@@ -196,18 +196,11 @@ class TdatHeader(basic.BasicHeader):
         READ: Override default process_lines
         """
         fl_parser = re.compile(self._field_line)
-        try:
-            start_line = (
-                min(i for i, line in enumerate(lines) if line.strip() == "<HEADER>") + 1
-            )
-        except ValueError:
-            raise TdatFormatError("<HEADER> not found in file." + _STD_MSG)
-        try:
-            end_line = min(
-                i for i, line in enumerate(lines) if line.strip() == "<DATA>"
-            )
-        except ValueError:
-            raise TdatFormatError("<DATA> not found in file." + _STD_MSG)
+        start_line = (
+            min(i for i, line in enumerate(lines) if line.strip() == "<HEADER>") + 1
+        )
+        end_line = min(i for i, line in enumerate(lines) if line.strip() == "<DATA>")
+
         for line in lines[start_line:end_line]:
             if fl_parser.match(line):
                 yield line
@@ -273,7 +266,7 @@ class TdatHeader(basic.BasicHeader):
 
         # check that cols and _line_fields are consistent or throw an error
         if len(self.names) != len(cols):
-            colnames = [col.name for col in cols]
+            colnames = [col.name for col in cols.values()]
             raise TdatFormatError(
                 'The columns "field" descriptors are not consistent with '
                 "the line[..] keyword.\n"

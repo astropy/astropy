@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 
 from astropy.io import ascii
-from astropy.io.ascii.tdat import TdatFormatWarning
+from astropy.io.ascii.tdat import TdatFormatError, TdatFormatWarning
 from astropy.table import Table
 from astropy.table.table_helpers import simple_table
 from astropy.units import allclose as quantity_allclose
@@ -96,8 +96,22 @@ def test_catch_format():
     out = StringIO()
     with pytest.raises(TdatFormatWarning) as err:
         t.write(out, format="ascii.tdat")
+    assert "'table_name' must be specified" in str(err.value)
+
+    t.meta["table_name"] = "anastropytablewithanamethatistoolongfortheformat"
+    with pytest.raises(TdatFormatWarning) as err:
+        t.write(out, format="ascii.tdat")
+    assert "'table_name' is too long" in str(err.value)
 
     t.meta["table_name"] = "astropy_table"
+    t.meta["table_description"] = """
+    This is a description that exceeds the character limit allowed by the tdat
+    format and it should be truncated before being written. A warning should
+    pop up to inform the user of this behavior.
+    """
+    with pytest.raises(TdatFormatWarning) as err:
+        t.write(out, format="ascii.tdat")
+    assert "'table_description' is too long" in str(err.value)
 
 
 def test_write_simple():
@@ -223,6 +237,46 @@ def test_bad_header_start():
         assert "<HEADER> not found in file." in str(err.value)
 
 
+def test_bad_data_heading():
+    """
+    No <DATA> heading
+    """
+    lines = copy.copy(SIMPLE_LINES)
+    lines[13] = "<DAYA>"
+    with pytest.raises(ascii.tdat.TdatFormatError) as err:
+        Table.read("\n".join(lines), format="ascii.tdat")
+    assert "<DATA> not found in file." in str(err.value)
+
+
+def test_bad_end_heading():
+    """
+    No <END> heading
+    """
+    lines = copy.copy(SIMPLE_LINES)
+    lines[-1] = "<That's all folks>"
+    with pytest.raises(ascii.tdat.TdatFormatError) as err:
+        Table.read("\n".join(lines), format="ascii.tdat")
+    assert "<END> not found in file." in str(err.value)
+
+
+def test_unrecognized_dtype():
+    """Not all dtypes are supported by tdat files"""
+    lines = copy.copy(SIMPLE_LINES)
+    lines[5] = "field[a] = complex"
+    with pytest.raises(ascii.tdat.TdatFormatError) as err:
+        Table.read("\n".join(lines), format="ascii.tdat")
+    assert "Unrecognized data type" in str(err.value)
+
+
+def test_mismatch_line_field():
+    """Not all dtypes are supported by tdat files"""
+    lines = copy.copy(SIMPLE_LINES)
+    lines[11] = "line[1] = a b c d"
+    with pytest.raises(ascii.tdat.TdatFormatError) as err:
+        Table.read("\n".join(lines), format="ascii.tdat")
+    assert 'The columns "field" descriptors are not consistent' in str(err.value)
+
+
 def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     if compare_class:
         assert obj1.__class__ is obj2.__class__
@@ -293,3 +347,52 @@ def test_round_trip_masked_table_default(tmp_path):
             t[name].mask = False
             t2[name].mask = False
             assert not np.all(t2[name] == t[name])  # Expected diff
+
+
+def test_deprecated_keyword():
+    """Deprecated and obsolete keywords should raise warnings"""
+    test_data = test_dat.copy()
+    test_data.insert(8, 'record_delimiter = "&"')
+    test_data.insert(8, 'field_delimiter = "|"')
+    with pytest.raises(TdatFormatWarning) as err:
+        t = Table.read(test_data, format="ascii.tdat")
+    assert "keyword is deprecated" in str(err.value)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=TdatFormatWarning)
+        t = Table.read(test_data, format="ascii.tdat")
+        assert all(t == test_table)
+
+    test_data = test_dat.copy()
+    test_data.insert(8, "relate[ra] = dec")
+    with pytest.raises(TdatFormatWarning) as err:
+        t = Table.read(test_data, format="ascii.tdat")
+    assert "keyword is obsolete" in str(err.value)
+
+
+def test_tdat_format_error():
+    """Test the basic error message"""
+    _STD_MSG = (
+        "See details in https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html"
+    )
+    error_msg = "Test error message"
+    with pytest.raises(TdatFormatError) as exc_info:
+        raise TdatFormatError(error_msg)
+
+    assert str(exc_info.value).startswith(error_msg)
+
+    # Test that the standard message is appended
+    assert _STD_MSG in str(exc_info.value)
+
+    # Test with empty error message
+    with pytest.raises(TdatFormatError) as exc_info:
+        raise TdatFormatError()
+
+    assert str(exc_info.value).startswith("\nSee details")
+
+    # Test with a different error message
+    another_msg = "Another test message"
+    with pytest.raises(TdatFormatError) as exc_info:
+        raise TdatFormatError(another_msg)
+
+    assert str(exc_info.value).startswith(another_msg)
+    assert _STD_MSG in str(exc_info.value)
