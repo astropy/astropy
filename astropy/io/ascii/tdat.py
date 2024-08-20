@@ -15,6 +15,7 @@ from warnings import warn
 
 import numpy as np
 
+import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 
 from . import basic, core
@@ -309,7 +310,7 @@ class TdatHeader(basic.BasicHeader):
         ]:
             keywords[key] = self.table_meta.get(key)
 
-        indices = [col.name for col in self.cols if col.indices != []]
+        indices = [col.info.name for col in self.cols if col.info.indices != []]
 
         if "table_name" in keywords:
             if len(keywords["table_name"]) > 20:
@@ -353,38 +354,40 @@ class TdatHeader(basic.BasicHeader):
         lines.append("# Table Parameters")
         lines.append("#")
         for col in self.cols:
-            if str(col.dtype) in self._dtype_dict_out:
-                ctype = self._dtype_dict_out[str(col.dtype)]
-            elif "int" in str(col.dtype):
+            if str(col.info.dtype) in self._dtype_dict_out:
+                ctype = self._dtype_dict_out[str(col.info.dtype)]
+            elif "int" in str(col.info.dtype):
                 ctype = "int4"
-            elif "float" in str(col.dtype):
+            elif "float" in str(col.info.dtype):
                 ctype = "float8"
-            elif "<U" in str(col.dtype):
-                ctype = f"char{str(col.dtype).rsplit('<U', maxsplit=1)[-1]}"
+            elif "<U" in str(col.info.dtype):
+                ctype = f"char{str(col.info.dtype).rsplit('<U', maxsplit=1)[-1]}"
             else:
-                raise TdatFormatError(
-                    f"Unrecognized data type {col.dtype} for column {col.name}."
-                )
-            field_line = f"field[{col.name}] = {ctype}"
+                # raise TdatFormatError(
+                #     f'Unrecognized data type `{col.info.dtype}` for column "{col.info.name}".'
+                # )
+                ctype = f"{col.info.dtype}"
+            field_line = f"field[{col.info.name}] = {ctype}"
 
-            if col.format is not None:
-                field_line += f":{col.format}"
-            if col.unit is not None:
-                field_line += f"_{col.unit:vounit}"
-            if "ucd" in col.meta:
-                field_line += f" [{col.meta['ucd']}]"
-            if "index" in col.meta:
-                field_line += f" ({col.meta['index']})"
-            elif (indices != []) and (col.name == indices[0]):
+            col_info_meta = col.info.meta or {}
+            if col.info.format is not None:
+                field_line += f":{col.info.format}"
+            if col.info.unit is not None:
+                field_line += f"_{u.Unit(col.info.unit).to_string(format='vounit')}"
+            if "ucd" in col_info_meta:
+                field_line += f" [{col_info_meta['ucd']}]"
+            if "index" in col_info_meta:
+                field_line += f" ({col_info_meta['index']})"
+            elif (indices != []) and (col.info.name == indices[0]):
                 field_line += " (key)"
-            elif col.name in indices:
+            elif col.info.name in indices:
                 field_line += " (index)"
-            if col.description is not None:
-                field_line += f" // {col.description}"
-            elif "comment" in col.meta:
+            if col.info.description is not None:
+                field_line += f" // {col.info.description}"
+            elif "comment" in col_info_meta:
                 field_line += " //"
-            if "comment" in col.meta:
-                field_line += f" // {col.meta['comment']}"
+            if "comment" in col_info_meta:
+                field_line += f" // {col_info_meta['comment']}"
             lines.append(field_line)
 
         if len(keywords) != 0:
@@ -402,7 +405,7 @@ class TdatHeader(basic.BasicHeader):
         lines.append("#")
         lines.append("# Data Format Specification")
         lines.append("#")
-        lines.append(f"line[1] = {' '.join([col.name for col in self.cols])}")
+        lines.append(f"line[1] = {' '.join([col.info.name for col in self.cols])}")
         lines.append("#")
 
 
