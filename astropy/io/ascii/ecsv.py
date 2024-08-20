@@ -45,13 +45,43 @@ class InvalidEcsvDatatypeWarning(AstropyUserWarning):
 
 
 class EcsvHeader(basic.BasicHeader):
-    """Header class for which the column definition line starts with the
-    comment character.  See the :class:`CommentedHeader` class  for an example.
-    """
+    """ECSV Header class"""
+
+    def validate(self, source):
+        """Validate that this is a ECSV file.
+
+        Raises InconsistentTableError if the header is not present or does not match
+        the ECSV format.
+
+        This is called early in the process of reading a table to determine if the
+        input source is a valid ECSV file.
+
+        Parameters
+        ----------
+        source : str, file-like, list
+            Can be either a file name, string (newline separated) with all header and data
+            lines (must have at least 2 lines), a file-like object with a
+            ``read()`` method, or a list of strings.
+        """
+        lines_iter = core.get_lines_iter(source)
+        try:
+            line = next(self.process_lines(lines_iter))
+        except StopIteration:
+            ok = False  # No comment lines at all
+        else:
+            ecsv_header_re = r"""%ECSV [ ] \d+ \. \d+ (\. \d+)? $"""
+            ok = re.match(ecsv_header_re, line.strip(), re.VERBOSE)
+        if not ok:
+            raise core.InconsistentTableError(
+                'ECSV header line like "# %ECSV <version>" not found as first line.'
+                "  This is required for a ECSV file."
+            )
 
     def process_lines(self, lines):
-        """Return only non-blank lines that start with the comment regexp.  For these
-        lines strip out the matching characters and leading/trailing whitespace.
+        """Return non-blank lines that start with the comment regexp.
+
+        For these lines strip out the matching characters and leading/trailing
+        whitespace.
         """
         re_comment = re.compile(self.comment)
         for line in lines:
@@ -134,24 +164,6 @@ class EcsvHeader(basic.BasicHeader):
 
         # Extract non-blank comment (header) lines with comment character stripped
         lines = list(self.process_lines(lines))
-
-        # Validate that this is a ECSV file
-        ecsv_header_re = r"""%ECSV [ ]
-                             (?P<major> \d+)
-                             \. (?P<minor> \d+)
-                             \.? (?P<bugfix> \d+)? $"""
-
-        no_header_msg = (
-            'ECSV header line like "# %ECSV <version>" not found as first line.'
-            "  This is required for a ECSV file."
-        )
-
-        if not lines:
-            raise core.InconsistentTableError(no_header_msg)
-
-        match = re.match(ecsv_header_re, lines[0].strip(), re.VERBOSE)
-        if not match:
-            raise core.InconsistentTableError(no_header_msg)
 
         try:
             header = meta.get_header_from_yaml(lines)
