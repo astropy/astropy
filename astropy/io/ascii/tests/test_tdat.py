@@ -7,6 +7,7 @@ Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
 
 import copy
+import warnings
 from io import StringIO
 
 import numpy as np
@@ -68,7 +69,6 @@ test_table = Table.read(test_dat, format="ascii.tdat")
 SIMPLE_LINES = [
     "<HEADER>",
     "table_name = astropy_table",
-    'table_description = "A table created via astropy"',
     "#",
     "# Table Parameters",
     "#",
@@ -88,15 +88,27 @@ SIMPLE_LINES = [
 ]
 
 
+def test_catch_format():
+    """
+    Ensure that a table without a table_name specified issues a warning.
+    """
+    t = simple_table()
+    out = StringIO()
+    with pytest.raises(TdatFormatWarning) as err:
+        t.write(out, format="ascii.tdat")
+
+    t.meta["table_name"] = "astropy_table"
+
+
 def test_write_simple():
     """
     Write a simple table with common types.  This shows the compact version
     of serialization with one line per column.
     """
-    t = simple_table()
-
-    out = StringIO()
-    with pytest.raises(TdatFormatWarning) as err:
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=TdatFormatWarning)
+        t = simple_table()
+        out = StringIO()
         t.write(out, format="ascii.tdat")
         assert out.getvalue().splitlines() == SIMPLE_LINES
 
@@ -176,8 +188,9 @@ def test_write_read_roundtrip():
 
 
 def test_write_read_roundtrip_empty_table(tmp_path):
-    # see https://github.com/astropy/astropy/issues/13191
-    with pytest.raises(TdatFormatWarning) as err:
+    """see https://github.com/astropy/astropy/issues/13191"""
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=TdatFormatWarning)
         sfile = tmp_path / "x.tdat"
         Table().write(sfile)
         t = Table.read(sfile)
@@ -190,11 +203,13 @@ def test_bad_delimiter():
     Passing a delimiter other than | (pipe) gives an exception
     """
     out = StringIO()
-    with pytest.raises(ValueError) as err:
-        test_table.write(out, format="ascii.tdat", delimiter=",")
-        assert "only pipe and space delimiter is allowed in tdat format" in str(
-            err.value
-        )
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=TdatFormatWarning)
+        with pytest.raises(ValueError) as err:
+            test_table.write(out, format="ascii.tdat", delimiter=",")
+            assert "only pipe and space delimiter is allowed in tdat format" in str(
+                err.value
+            )
 
 
 def test_bad_header_start():
@@ -203,8 +218,9 @@ def test_bad_header_start():
     """
     lines = copy.copy(SIMPLE_LINES)
     lines[0] = "<DATA>"
-    with pytest.raises(ascii.tdat.TdatFormatError):
+    with pytest.raises(ascii.tdat.TdatFormatError) as err:
         Table.read("\n".join(lines), format="ascii.tdat")
+        assert "<HEADER> not found in file." in str(err.value)
 
 
 def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
@@ -260,7 +276,8 @@ def test_round_trip_masked_table_default(tmp_path):
     filename = tmp_path / "x.tdat"
 
     t = simple_table(masked=True)  # int, float, and str cols with one masked element
-    with pytest.raises(TdatFormatWarning) as err:
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=TdatFormatWarning)
         t.write(filename)
 
         t2 = Table.read(filename)
