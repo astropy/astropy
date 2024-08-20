@@ -24,8 +24,8 @@ from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.table.table_helpers import simple_table
 from astropy.time import Time
+from astropy.units import UnitScaleError
 from astropy.units import allclose as quantity_allclose
-from astropy.units.format.fits import UnitScaleError
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
