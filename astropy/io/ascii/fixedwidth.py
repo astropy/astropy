@@ -80,6 +80,100 @@ class FixedWidthHeader(basic.BasicHeader):
             raise InconsistentTableError("No header line found in table")
         return line
 
+    def validate(self, source):
+        """Validate that ``source`` appears to be a fixed width table.
+
+        Raises InconsistentTableError if the header is not present or does not match
+        the fixed width format.
+
+        This is called early in the process of reading a table to determine if the
+        input source is a valid fixed width file.
+
+        This method is adapted from ``get_cols()`` but uses iterators over the original
+        ``source`` and should run quickly.
+
+        Parameters
+        ----------
+        source : str, file-like, list
+            Can be either a file name, string (newline separated) with all header and data
+            lines (must have at least 2 lines), a file-like object with a
+            ``read()`` method, or a list of strings.
+
+        """
+        header_rows = getattr(self, "header_rows", ["name"])
+
+        # See "else" clause below for explanation of start_line and position_line.
+        # Note that process_lines() returns an iterator so we need to call it each time.
+        start_line = core._get_line_index(
+            self.start_line, self.process_lines(core.get_lines_iter(source))
+        )
+        position_line = core._get_line_index(
+            self.position_line, self.process_lines(core.get_lines_iter(source))
+        )
+
+        # If start_line is none then there is no header line.  Column positions are
+        # determined from first data line and column names are either supplied by user
+        # or auto-generated.
+        if start_line is None:
+            if position_line is not None:
+                raise ValueError(
+                    "Cannot set position_line without also setting header_start"
+                )
+
+            # data.data_lines attribute already set via self.data.get_data_lines(lines)
+            # in BaseReader.read().  This includes slicing for data_start / data_end.
+            data_lines = self.data.get_data_lines_iter(source)
+
+            try:
+                vals, _, _ = self.get_fixedwidth_params(next(data_lines))
+            except StopIteration:
+                raise InconsistentTableError(
+                    "No data lines found so cannot autogenerate column names"
+                )
+
+            self.names = [self.auto_format.format(i) for i in range(1, len(vals) + 1)]
+
+        else:
+            # This bit of code handles two cases:
+            # start_line = <index> and position_line = None
+            #    Single header line where that line is used to determine both the
+            #    column positions and names.
+            # start_line = <index> and position_line = <index2>
+            #    Two header lines where the first line defines the column names and
+            #    the second line defines the column positions
+
+            if position_line is not None:
+                # Define self.col_starts and self.col_ends so that the call to
+                # get_fixedwidth_params below will use those to find the header
+                # column names.  Note that get_fixedwidth_params returns Python
+                # slice col_ends but expects inclusive col_ends on input (for
+                # more intuitive user interface).
+                line = self.get_line(core.get_lines_iter(source), position_line)
+                if len(set(line) - {self.splitter.delimiter, " "}) != 1:
+                    raise InconsistentTableError(
+                        "Position line should only contain delimiters and "
+                        'one other character, e.g. "--- ------- ---".'
+                    )
+                    # The line above lies. It accepts white space as well.
+                    # We don't want to encourage using three different
+                    # characters, because that can cause ambiguities, but white
+                    # spaces are so common everywhere that practicality beats
+                    # purity here.
+                charset = self.set_of_position_line_characters.union(
+                    {self.splitter.delimiter, " "}
+                )
+                if not set(line).issubset(charset):
+                    raise InconsistentTableError(
+                        f"Characters in position line must be part of {charset}"
+                    )
+                self.get_fixedwidth_params(line)
+
+            # Get the column names from the header line
+            line = self.get_line(
+                core.get_lines_iter(source), start_line + header_rows.index("name")
+            )
+            self.get_fixedwidth_params(line)
+
     def get_cols(self, lines):
         """
         Initialize the header Column objects from the table ``lines``.
@@ -95,7 +189,8 @@ class FixedWidthHeader(basic.BasicHeader):
         """
         header_rows = getattr(self, "header_rows", ["name"])
 
-        # See "else" clause below for explanation of start_line and position_line
+        # See "else" clause below for explanation of start_line and position_line.
+        # Note that process_lines() returns an iterator so we need to call it each time.
         start_line = core._get_line_index(self.start_line, self.process_lines(lines))
         position_line = core._get_line_index(
             self.position_line, self.process_lines(lines)

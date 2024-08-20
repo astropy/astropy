@@ -131,7 +131,7 @@ def get_lines_from_str_iter(source: str, newline: str | None = None) -> iter:
         yield source[start:]
 
 
-def get_lines_iter(source, newline=None):
+def get_lines_iter(source, newline: str | None = None) -> iter:
     """Get an iterator over the source lines for any data source type.
 
     Parameters
@@ -152,15 +152,43 @@ def get_lines_iter(source, newline=None):
     source_type = detect_source_type(source)
     if source_type == "filename":
         with get_readable_fileobj(source) as fileobj:
-            yield from fileobj
+            yield from (line.rstrip("\r\n") for line in fileobj)
     elif source_type == "data-str":
         yield from get_lines_from_str_iter(source, newline)
     elif source_type == "file-like":
-        yield from source
+        yield from (line.rstrip("\r\n") for line in source)
     elif source_type == "data-list":
         yield from source
     else:
         raise ValueError(f"unsupported source type {source_type}")
+
+
+def slice_lines_iter(
+    lines: iter,
+    start_line: int | None = None,
+    end_line: int | None = None,
+) -> iter:
+    """Slice an iterator over lines.
+
+    Parameters
+    ----------
+    lines : iterator
+        Iterator over the table lines.
+    start_line : int, callable, None
+        The line index, a callable function, or None.
+    end_line : int, callable, None
+        The line index, a callable function, or None.
+
+    Returns
+    -------
+    lines : iterator
+    """
+    for ii, line in enumerate(lines):
+        if start_line is not None and ii < start_line:
+            continue
+        if end_line is not None and ii >= end_line:
+            break
+        yield line
 
 
 class CsvWriter:
@@ -408,7 +436,7 @@ class BaseInputter:
     encoding = None
     """Encoding used to read the file"""
 
-    def get_lines(self, table, newline=None):
+    def get_lines(self, table, newline=None) -> list:
         """Get the lines from the ``table`` input.
 
         The input table can be one of:
@@ -643,8 +671,22 @@ def _replace_tab_with_space(line, escapechar, quotechar):
 
 
 def _get_line_index(line_or_func, lines):
-    """Return the appropriate line index, depending on ``line_or_func`` which
-    can be either a function, a positive or negative int, or None.
+    """Return the absolute line index into the table lines.
+
+    This depends on ``line_or_func`` which can be either a function, a positive or
+    negative int, or None.
+
+    Parameters
+    ----------
+    line_or_func : int, callable, None
+        The line index, a callable function, or None.
+    lines : iterator over lines
+        The lines to process.
+
+    Returns
+    -------
+    line_index : int, None
+        The line index.
     """
     if callable(line_or_func):
         return line_or_func(lines)
@@ -916,6 +958,30 @@ class BaseData:
         else:
             return list(nonblank_lines)
 
+    def process_lines_iter(self, lines: iter) -> iter:
+        """
+        READ: Strip out comment lines and blank lines from list of ``lines``.
+
+        Parameters
+        ----------
+        lines : iterator
+            All lines in table
+
+        Returns
+        -------
+        lines : iterator
+            Iterator over valid table data lines
+
+        """
+        nonblank_lines = (x for x in lines if x.strip())
+        if self.comment:
+            re_comment = re.compile(self.comment)
+            for line in nonblank_lines:
+                if not re_comment.match(line):
+                    yield line
+        else:
+            yield from nonblank_lines
+
     def get_data_lines(self, lines):
         """
         READ: Set ``data_lines`` attribute to lines slice comprising table data values.
@@ -928,6 +994,18 @@ class BaseData:
             self.data_lines = data_lines[slice(start_line, end_line)]
         else:  # Don't copy entire data lines unless necessary
             self.data_lines = data_lines
+
+    def get_data_lines_iter(self, source):
+        """
+        READ: return an iterator over source data lines.
+        """
+        start_line = _get_line_index(self.start_line, get_lines_iter(source))
+        end_line = _get_line_index(self.end_line, get_lines_iter(source))
+
+        if start_line is None and end_line is None:
+            yield from get_lines_iter(source)
+        else:
+            yield from slice_lines_iter(get_lines_iter(source), start_line, end_line)
 
     def get_str_vals(self):
         """Return a generator that returns a list of column values (as strings)
@@ -1494,7 +1572,10 @@ class BaseReader(metaclass=MetaBaseReader):
             Output table
 
         """
-        # If possible, validate the header without fully processing the table
+        # If possible, validate the header without fully processing the table. This is
+        # for performance, mostly when guessing. The validate method might not catch all
+        # possible errors but it must never produce a false positive (raising an
+        # InconsistentTableError).
         if hasattr(self.header, "validate"):
             self.header.validate(table)
 

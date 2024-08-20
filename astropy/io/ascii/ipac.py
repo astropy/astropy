@@ -83,6 +83,17 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     definition = "ignore"
     start_line = None
 
+    def validate(self, source):
+        lines = core.get_lines_iter(source)
+        header_lines = self.process_lines(lines)
+        header_vals = list(self.splitter(header_lines))
+        if len(header_vals) == 0:
+            raise ValueError(
+                "At least one header line beginning and ending with delimiter required"
+            )
+        elif len(header_vals) > 4:
+            raise ValueError("More than four header lines were found")
+
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
         delimiter character (with trailing whitespace stripped).
