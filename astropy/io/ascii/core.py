@@ -1494,6 +1494,10 @@ class BaseReader(metaclass=MetaBaseReader):
             Output table
 
         """
+        # If possible, validate the header without fully processing the table
+        if hasattr(self.header, "validate"):
+            self.header.validate(table)
+
         # If ``table`` is a file then store the name in the ``data``
         # attribute. The ``table`` is a "file" if it is a string
         # without the new line specific to the OS.
