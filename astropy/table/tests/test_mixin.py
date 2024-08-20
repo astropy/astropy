@@ -114,7 +114,12 @@ def test_io_ascii_write():
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
+    import warnings
+
     from astropy.io.ascii.connect import _get_connectors_table
+    from astropy.io.ascii.tdat import TdatFormatWarning
+
+    warnings.filterwarnings("ignore", category=TdatFormatWarning)
 
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():

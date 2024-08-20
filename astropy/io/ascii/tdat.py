@@ -15,7 +15,6 @@ from warnings import warn
 
 import numpy as np
 
-import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 
 from . import basic, core
@@ -373,7 +372,7 @@ class TdatHeader(basic.BasicHeader):
             if col.info.format is not None:
                 field_line += f":{col.info.format}"
             if col.info.unit is not None:
-                field_line += f"_{u.Unit(col.info.unit).to_string(format='vounit')}"
+                field_line += f"_{col.info.unit}"
             if "ucd" in col_info_meta:
                 field_line += f" [{col_info_meta['ucd']}]"
             if "index" in col_info_meta:
