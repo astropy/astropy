@@ -18,8 +18,10 @@ import operator
 import os
 import re
 import warnings
+from collections.abc import Generator
 from contextlib import suppress
 from io import StringIO
+from typing import TextIO
 
 import numpy as np
 
@@ -29,6 +31,8 @@ from astropy.utils.exceptions import AstropyWarning
 
 from . import connect
 from .docs import READ_DOCSTRING, WRITE_DOCSTRING
+
+SourceType = str | list[str] | TextIO
 
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES = {}
@@ -57,7 +61,7 @@ def _check_multidim_table(table, max_ndim):
         )
 
 
-def detect_source_type(source):
+def detect_source_type(source: SourceType) -> str:
     """Detect the type of source input.
 
     This is a helper function for the ``BaseReader`` class to support the documented
@@ -103,8 +107,11 @@ def detect_source_type(source):
     return source_type
 
 
-def get_lines_from_str_iter(source: str, newline: str | None = None) -> iter:
-    """Get an iterator over the source lines for a string of data lines.
+def get_lines_from_str_iter(
+    string: str,
+    newline: str | None = None,
+) -> Generator[str, None, None]:
+    """Get an iterator over the lines in a string.
 
     Parameters
     ----------
@@ -122,16 +129,19 @@ def get_lines_from_str_iter(source: str, newline: str | None = None) -> iter:
     start = 0
     if newline is None:
         newline = "\n|\r\n|\r"
-    for match in re.finditer(newline, source):
+    for match in re.finditer(newline, string):
         end = match.start()
-        yield source[start:end]
+        yield string[start:end]
         start = match.end()
 
-    if start < len(source):
-        yield source[start:]
+    if start < len(string):
+        yield string[start:]
 
 
-def get_lines_iter(source, newline: str | None = None) -> iter:
+def get_lines_iter(
+    source: SourceType,
+    newline: str | None = None,
+) -> Generator[str, None, None]:
     """Get an iterator over the source lines for any data source type.
 
     Parameters
@@ -167,7 +177,7 @@ def slice_lines_iter(
     lines: iter,
     start_line: int | None = None,
     end_line: int | None = None,
-) -> iter:
+) -> Generator[str, None, None]:
     """Slice an iterator over lines.
 
     Parameters

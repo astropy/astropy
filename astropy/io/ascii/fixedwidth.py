@@ -80,7 +80,7 @@ class FixedWidthHeader(basic.BasicHeader):
             raise InconsistentTableError("No header line found in table")
         return line
 
-    def validate(self, source):
+    def validate(self, source: core.SourceType) -> None:
         """Validate that ``source`` appears to be a fixed width table.
 
         Raises InconsistentTableError if the header is not present or does not match

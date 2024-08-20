@@ -47,7 +47,7 @@ class InvalidEcsvDatatypeWarning(AstropyUserWarning):
 class EcsvHeader(basic.BasicHeader):
     """ECSV Header class"""
 
-    def validate(self, source):
+    def validate(self, source: core.SourceType) -> None:
         """Validate that this is a ECSV file.
 
         Raises InconsistentTableError if the header is not present or does not match

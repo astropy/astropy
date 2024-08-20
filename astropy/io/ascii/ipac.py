@@ -83,9 +83,14 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     definition = "ignore"
     start_line = None
 
-    def validate(self, source):
+    def validate(self, source: core.SourceType) -> None:
         lines = core.get_lines_iter(source)
-        header_lines = self.process_lines(lines)
+        # Collect up to the first 10 IPAC header lines. This means discarding blank
+        # lines or comment lines (starting with "\") and stopping after 10 lines are
+        # returned.
+        header_lines = [
+            line for line, _ in zip(self.process_lines(lines), range(10), strict=False)
+        ]
         header_vals = list(self.splitter(header_lines))
         if len(header_vals) == 0:
             raise ValueError(
