@@ -36,6 +36,7 @@ __all__ = [
     "UnitsError",
     "UnitsWarning",
     "UnitConversionError",
+    "UnitScaleError",
     "UnitTypeError",
     "UnitBase",
     "NamedUnit",
