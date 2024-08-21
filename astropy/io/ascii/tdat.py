@@ -482,9 +482,12 @@ class TdatData(core.BaseData):
         READ: Override the default get_data_lines to find start and end lines.
         """
         # Select lines between <DATA> and <END> in file
-        start_line = (
-            min(i for i, line in enumerate(lines) if line.strip() == "<DATA>") + 1
-        )
+        try:
+            start_line = (
+                min(i for i, line in enumerate(lines) if line.strip() == "<DATA>") + 1
+            )
+        except ValueError:
+            raise TdatFormatError("<DATA> not found in file." + _STD_MSG)
         try:
             end_line = min(i for i, line in enumerate(lines) if line.strip() == "<END>")
         except ValueError:
