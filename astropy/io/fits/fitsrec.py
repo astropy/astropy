@@ -333,8 +333,7 @@ class FITS_rec(np.recarray):
                     dim = arr.shape[0]
                 else:
                     dim = 0
-                if dim > nrows:
-                    nrows = dim
+                nrows = max(dim, nrows)
 
         raw_data = np.empty(columns.dtype.itemsize * nrows, dtype=np.uint8)
         raw_data.fill(ord(columns._padding_byte))
