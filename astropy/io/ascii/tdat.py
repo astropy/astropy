@@ -482,12 +482,9 @@ class TdatData(core.BaseData):
         READ: Override the default get_data_lines to find start and end lines.
         """
         # Select lines between <DATA> and <END> in file
-        try:
-            start_line = (
-                min(i for i, line in enumerate(lines) if line.strip() == "<DATA>") + 1
-            )
-        except ValueError:
-            raise TdatFormatError("<DATA> not found in file." + _STD_MSG)
+        start_line = (
+            min(i for i, line in enumerate(lines) if line.strip() == "<DATA>") + 1
+        )
         try:
             end_line = min(i for i, line in enumerate(lines) if line.strip() == "<END>")
         except ValueError:
@@ -604,17 +601,17 @@ class Tdat(core.BaseReader):
 
     When writing to the TDAT format, the header will be auto-populated by
     information in the Table, prioritizing information given in the Table.meta:
-        comments : list or string, (optional)
-            Table information which provide context. This information is
-            included in the header preceding all other lines and commented
-            out with #
-        keywords : OrderedDict, (optional, recommended)
-            Header keywords which will appear in the file as "name=value" lines.
-            Of particular importance are `table_name`, `table_description`,
-            and `table_document_url`.
-            `table_name` is a required keyword for the TDAT format and will
-            be autopopulated with "astropy_table" if not specified in
-            Table.meta["keywords"]
+
+    comments : list or string, (optional)
+    Table information which provide context. This information is
+    included in the header preceding all other lines and commented
+    out with #
+
+    keywords : OrderedDict, (optional, recommended)
+    Header keywords which will appear in the file as "name=value" lines.
+    Of particular importance are table_name, table_description,
+    and table_document_url.
+
     If there is no Table.meta, this writer will attempt to automatically
     generate the appropriate header information based on the table and
     column properties and the recommendations for the TDAT format by HEASARC.
