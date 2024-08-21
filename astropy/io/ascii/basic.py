@@ -26,6 +26,50 @@ class BasicHeader(core.BaseHeader):
     comment = r"\s*#"
     write_comment = "# "
 
+    def validate(self, source, guessing=False, strict_names=False):
+        """Initialize the header Column objects from the table ``lines``.
+
+        Based on the previously set Header attributes find or create the column names.
+        Sets ``self.cols`` with the list of Columns.
+
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
+        """
+        lines = core.get_lines_iter(source, encoding=self.encoding)
+        start_line = core._get_line_index(self.start_line, self.process_lines(lines))
+        if start_line is None:
+            # No header line so auto-generate names from n_data_cols
+            # Get the data values from the first line of table data to determine n_data_cols
+            try:
+                data_lines = self.data.get_data_lines_iter(source)
+                first_data_vals = next(self.data.splitter(data_lines))
+            except StopIteration:
+                raise core.InconsistentTableError(
+                    "No data lines found so cannot autogenerate column names"
+                )
+            n_data_cols = len(first_data_vals)
+
+        else:
+            lines = core.get_lines_iter(source, encoding=self.encoding)
+            for i, line in enumerate(self.process_lines(lines)):
+                if i == start_line:
+                    break
+            else:  # No header line matching
+                raise ValueError("No header line found in table")
+
+            names = next(self.splitter([line]))
+            n_data_cols = len(names)
+            self.check_column_names(None, strict_names, guessing, colnames=names)
+
+        if guessing and n_data_cols <= 1:
+            raise core.InconsistentTableError(
+                "Table format guessing requires at least two columns, "
+                f"got {n_data_cols}"
+            )
+
 
 class BasicData(core.BaseData):
     """

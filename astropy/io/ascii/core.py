@@ -141,6 +141,7 @@ def get_lines_from_str_iter(
 def get_lines_iter(
     source: SourceType,
     newline: str | None = None,
+    encoding: str | None = None,
 ) -> Generator[str, None, None]:
     """Get an iterator over the source lines for any data source type.
 
@@ -160,13 +161,11 @@ def get_lines_iter(
         Iterator over the table lines.
     """
     source_type = detect_source_type(source)
-    if source_type == "filename":
-        with get_readable_fileobj(source) as fileobj:
+    if source_type in ("filename", "file-like"):
+        with get_readable_fileobj(source, encoding=encoding) as fileobj:
             yield from (line.rstrip("\r\n") for line in fileobj)
     elif source_type == "data-str":
         yield from get_lines_from_str_iter(source, newline)
-    elif source_type == "file-like":
-        yield from (line.rstrip("\r\n") for line in source)
     elif source_type == "data-list":
         yield from source
     else:
@@ -728,6 +727,9 @@ class BaseHeader:
     write_comment = False
     write_spacer_lines = ["ASCII_TABLE_WRITE_SPACER_LINE"]
 
+    # Default encoding for input source
+    encoding = None
+
     def __init__(self):
         self.splitter = self.splitter_class()
 
@@ -750,49 +752,6 @@ class BaseHeader:
         ]
         if comment_lines:
             meta.setdefault("table", {})["comments"] = comment_lines
-
-    def validate_hide(self, source, guessing=False, strict_names=False):
-        """Initialize the header Column objects from the table ``lines``.
-
-        Based on the previously set Header attributes find or create the column names.
-        Sets ``self.cols`` with the list of Columns.
-
-        Parameters
-        ----------
-        lines : list
-            List of table lines
-
-        """
-        lines = get_lines_iter(source)
-        start_line = _get_line_index(self.start_line, self.process_lines(lines))
-        if start_line is None:
-            # No header line so auto-generate names from n_data_cols
-            # Get the data values from the first line of table data to determine n_data_cols
-            try:
-                first_data_vals = next(self.data.get_str_vals())
-            except StopIteration:
-                raise InconsistentTableError(
-                    "No data lines found so cannot autogenerate column names"
-                )
-            n_data_cols = len(first_data_vals)
-
-        else:
-            lines = get_lines_iter(source)
-            for i, line in enumerate(self.process_lines(lines)):
-                if i == start_line:
-                    break
-            else:  # No header line matching
-                raise ValueError("No header line found in table")
-
-            names = next(self.splitter([line]))
-            n_data_cols = len(names)
-            self.check_column_names(None, strict_names, guessing, colnames=names)
-
-        if guessing and n_data_cols <= 1:
-            raise InconsistentTableError(
-                "Table format guessing requires at least two columns, "
-                f"got {len(names)}"
-            )
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
@@ -2003,6 +1962,7 @@ def _get_reader(reader_cls, inputter_cls=None, outputter_cls=None, **kwargs):
     if "encoding" in kwargs:
         reader.encoding = kwargs["encoding"]
         reader.inputter.encoding = kwargs["encoding"]
+        reader.header.encoding = kwargs["encoding"]
 
     return reader
 
