@@ -94,14 +94,12 @@ def test_catch_format():
     """
     t = simple_table()
     out = StringIO()
-    with pytest.raises(TdatFormatWarning) as err:
+    with pytest.warns(TdatFormatWarning, match="'table_name' must be specified"):
         t.write(out, format="ascii.tdat")
-    assert "'table_name' must be specified" in str(err.value)
 
     t.meta["table_name"] = "anastropytablewithanamethatistoolongfortheformat"
-    with pytest.raises(TdatFormatWarning) as err:
+    with pytest.warns(TdatFormatWarning, match="'table_name' is too long"):
         t.write(out, format="ascii.tdat")
-    assert "'table_name' is too long" in str(err.value)
 
     t.meta["table_name"] = "astropy_table"
     t.meta["table_description"] = """
@@ -109,9 +107,8 @@ def test_catch_format():
     format and it should be truncated before being written. A warning should
     pop up to inform the user of this behavior.
     """
-    with pytest.raises(TdatFormatWarning) as err:
+    with pytest.warns(TdatFormatWarning, match="'table_description' is too long"):
         t.write(out, format="ascii.tdat")
-    assert "'table_description' is too long" in str(err.value)
 
 
 def test_write_simple():
@@ -232,7 +229,7 @@ def test_bad_header_start():
     """
     lines = copy.copy(SIMPLE_LINES)
     lines[0] = "<DATA>"
-    with pytest.raises(ascii.tdat.TdatFormatError) as err:
+    with pytest.raises(TdatFormatError) as err:
         Table.read("\n".join(lines), format="ascii.tdat")
         assert "<HEADER> not found in file." in str(err.value)
 
@@ -254,7 +251,7 @@ def test_bad_end_heading():
     """
     lines = copy.copy(SIMPLE_LINES)
     lines[-1] = "<That's all folks>"
-    with pytest.raises(ascii.tdat.TdatFormatError) as err:
+    with pytest.raises(TdatFormatError) as err:
         Table.read("\n".join(lines), format="ascii.tdat")
     assert "<END> not found in file." in str(err.value)
 
@@ -263,7 +260,7 @@ def test_unrecognized_dtype():
     """Not all dtypes are supported by tdat files"""
     lines = copy.copy(SIMPLE_LINES)
     lines[5] = "field[a] = complex"
-    with pytest.raises(ascii.tdat.TdatFormatError) as err:
+    with pytest.raises(TdatFormatError) as err:
         Table.read("\n".join(lines), format="ascii.tdat")
     assert "Unrecognized data type" in str(err.value)
 
@@ -272,7 +269,7 @@ def test_mismatch_line_field():
     """Not all dtypes are supported by tdat files"""
     lines = copy.copy(SIMPLE_LINES)
     lines[11] = "line[1] = a b c d"
-    with pytest.raises(ascii.tdat.TdatFormatError) as err:
+    with pytest.raises(TdatFormatError) as err:
         Table.read("\n".join(lines), format="ascii.tdat")
     assert 'The columns "field" descriptors are not consistent' in str(err.value)
 
@@ -354,9 +351,9 @@ def test_deprecated_keyword():
     test_data = test_dat.copy()
     test_data.insert(8, 'record_delimiter = "&"')
     test_data.insert(8, 'field_delimiter = "|"')
-    with pytest.raises(TdatFormatWarning) as err:
+    with pytest.warns(TdatFormatWarning, match="keyword is deprecated"):
         t = Table.read(test_data, format="ascii.tdat")
-    assert "keyword is deprecated" in str(err.value)
+
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=TdatFormatWarning)
         t = Table.read(test_data, format="ascii.tdat")
@@ -364,9 +361,8 @@ def test_deprecated_keyword():
 
     test_data = test_dat.copy()
     test_data.insert(8, "relate[ra] = dec")
-    with pytest.raises(TdatFormatWarning) as err:
+    with pytest.warns(TdatFormatWarning, match="keyword is obsolete"):
         t = Table.read(test_data, format="ascii.tdat")
-    assert "keyword is obsolete" in str(err.value)
 
 
 def test_tdat_format_error():
