@@ -5,7 +5,8 @@ Available ufuncs in this module are at
 https://docs.scipy.org/doc/scipy/reference/special.html
 """
 
-from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
+from astropy.units.core import dimensionless_unscaled
+from astropy.units.errors import UnitsError, UnitTypeError
 
 from . import UFUNC_HELPERS
 from .helpers import (

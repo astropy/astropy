@@ -11,13 +11,8 @@ from fractions import Fraction
 
 import numpy as np
 
-from astropy.units.core import (
-    UnitConversionError,
-    UnitsError,
-    UnitTypeError,
-    dimensionless_unscaled,
-    unit_scale_converter,
-)
+from astropy.units.core import dimensionless_unscaled, unit_scale_converter
+from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0, NUMPY_LT_2_1
 
 if NUMPY_LT_2_0:

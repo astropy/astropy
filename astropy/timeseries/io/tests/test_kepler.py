@@ -6,7 +6,7 @@ import pytest
 
 from astropy.io.fits import BinTableHDU, HDUList, Header, PrimaryHDU
 from astropy.timeseries.io.kepler import kepler_fits_reader
-from astropy.units.core import UnitsWarning
+from astropy.units import UnitsWarning
 from astropy.utils.data import get_pkg_data_filename
 
 

@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from astropy.units.errors import UnitScaleError
 from astropy.utils import classproperty
 
 from . import core, generic, utils
@@ -73,7 +74,7 @@ class FITS(generic.Generic):
         base = np.log10(unit.scale)
 
         if base % 1.0 != 0.0:
-            raise core.UnitScaleError(
+            raise UnitScaleError(
                 "The FITS unit format is not able to represent scales "
                 "that are not powers of 10.  Multiply your data by "
                 f"{unit.scale:e}."
