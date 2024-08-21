@@ -751,6 +751,49 @@ class BaseHeader:
         if comment_lines:
             meta.setdefault("table", {})["comments"] = comment_lines
 
+    def validate_hide(self, source, guessing=False, strict_names=False):
+        """Initialize the header Column objects from the table ``lines``.
+
+        Based on the previously set Header attributes find or create the column names.
+        Sets ``self.cols`` with the list of Columns.
+
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
+        """
+        lines = get_lines_iter(source)
+        start_line = _get_line_index(self.start_line, self.process_lines(lines))
+        if start_line is None:
+            # No header line so auto-generate names from n_data_cols
+            # Get the data values from the first line of table data to determine n_data_cols
+            try:
+                first_data_vals = next(self.data.get_str_vals())
+            except StopIteration:
+                raise InconsistentTableError(
+                    "No data lines found so cannot autogenerate column names"
+                )
+            n_data_cols = len(first_data_vals)
+
+        else:
+            lines = get_lines_iter(source)
+            for i, line in enumerate(self.process_lines(lines)):
+                if i == start_line:
+                    break
+            else:  # No header line matching
+                raise ValueError("No header line found in table")
+
+            names = next(self.splitter([line]))
+            n_data_cols = len(names)
+            self.check_column_names(None, strict_names, guessing, colnames=names)
+
+        if guessing and n_data_cols <= 1:
+            raise InconsistentTableError(
+                "Table format guessing requires at least two columns, "
+                f"got {len(names)}"
+            )
+
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
 
@@ -868,7 +911,7 @@ class BaseHeader:
                 f'Unknown data type ""{col.raw_type}"" for column "{col.name}"'
             )
 
-    def check_column_names(self, names, strict_names, guessing):
+    def check_column_names(self, names, strict_names, guessing, colnames=None):
         """
         Check column names.
 
@@ -886,10 +929,13 @@ class BaseHeader:
         guessing : bool
             True if this method is being called while guessing the table format
         """
+        if colnames is None:
+            colnames = self.colnames
+
         if strict_names:
             # Impose strict requirements on column names (normally used in guessing)
             bads = [" ", ",", "|", "\t", "'", '"']
-            for name in self.colnames:
+            for name in colnames:
                 if (
                     _is_number(name)
                     or len(name) == 0
@@ -901,20 +947,16 @@ class BaseHeader:
                     )
         # When guessing require at least two columns, except for ECSV which can
         # reliably be guessed from the header requirements.
-        if (
-            guessing
-            and len(self.colnames) <= 1
-            and self.__class__.__name__ != "EcsvHeader"
-        ):
+        if guessing and len(colnames) <= 1 and self.__class__.__name__ != "EcsvHeader":
             raise ValueError(
                 "Table format guessing requires at least two columns, "
-                f"got {list(self.colnames)}"
+                f"got {list(colnames)}"
             )
 
-        if names is not None and len(names) != len(self.colnames):
+        if names is not None and len(names) != len(colnames):
             raise InconsistentTableError(
                 f"Length of names argument ({len(names)}) does not match number "
-                f"of table columns ({len(self.colnames)})"
+                f"of table columns ({len(colnames)})"
             )
 
 
@@ -1587,7 +1629,7 @@ class BaseReader(metaclass=MetaBaseReader):
         # possible errors but it must never produce a false positive (raising an
         # InconsistentTableError).
         if hasattr(self.header, "validate"):
-            self.header.validate(table)
+            self.header.validate(table, self.guessing, self.strict_names)
 
         # If ``table`` is a file then store the name in the ``data``
         # attribute. The ``table`` is a "file" if it is a string
