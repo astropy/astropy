@@ -11,8 +11,7 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms import BoxLeastSquares, LombScargle
 from astropy.timeseries.sampled import TimeSeries
-from astropy.units import Quantity
-from astropy.units.core import UnitsWarning
+from astropy.units import Quantity, UnitsWarning
 from astropy.utils.data import get_pkg_data_filename
 
 INPUT_TIME = Time(["2016-03-22T12:30:31", "2015-01-21T12:30:32", "2016-03-22T12:30:40"])

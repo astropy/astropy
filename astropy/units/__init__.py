@@ -15,6 +15,7 @@ from . import (
     cgs,
     core,
     decorators,
+    errors,
     misc,
     photometric,
     physical,
@@ -27,6 +28,7 @@ from .cgs import *
 from .core import *
 from .core import set_enabled_units
 from .decorators import *
+from .errors import *
 from .misc import *
 from .photometric import *
 from .physical import *
@@ -42,6 +44,7 @@ from .function import *
 
 __all__ = []
 __all__ += core.__all__
+__all__ += errors.__all__
 __all__ += quantity.__all__
 __all__ += decorators.__all__
 __all__ += structured.__all__

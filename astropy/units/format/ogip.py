@@ -24,6 +24,7 @@ import warnings
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
+from astropy.units.errors import UnitsWarning
 from astropy.utils import classproperty, parsing
 
 from . import core, generic, utils
@@ -256,8 +257,6 @@ class OGIP(generic.Generic):
                 p[0] = p[1]
             # Can't use np.log10 here, because p[0] may be a Python long.
             if math.log10(p[0]) % 1.0 != 0.0:
-                from astropy.units.core import UnitsWarning
-
                 warnings.warn(
                     f"'{p[0]}' scale should be a power of 10 in OGIP format",
                     UnitsWarning,
@@ -364,7 +363,7 @@ class OGIP(generic.Generic):
             if math.log10(unit.scale) % 1.0 != 0.0:
                 warnings.warn(
                     f"'{unit.scale}' scale should be a power of 10 in OGIP format",
-                    core.UnitsWarning,
+                    UnitsWarning,
                 )
 
         return super().to_string(unit, fraction=fraction)

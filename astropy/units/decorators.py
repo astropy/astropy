@@ -11,13 +11,8 @@ from numbers import Number
 
 import numpy as np
 
-from .core import (
-    Unit,
-    UnitBase,
-    UnitsError,
-    add_enabled_equivalencies,
-    dimensionless_unscaled,
-)
+from .core import Unit, UnitBase, add_enabled_equivalencies, dimensionless_unscaled
+from .errors import UnitsError
 from .physical import PhysicalType, get_physical_type
 from .quantity import Quantity
 

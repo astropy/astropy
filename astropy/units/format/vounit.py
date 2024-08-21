@@ -9,6 +9,7 @@ import re
 import warnings
 from typing import TYPE_CHECKING
 
+from astropy.units.errors import UnitScaleError, UnitsWarning
 from astropy.utils import classproperty
 
 from . import core, generic, utils
@@ -87,7 +88,7 @@ class VOUnit(generic.Generic):
             return core.dimensionless_unscaled
         # Check for excess solidi, but exclude fractional exponents (allowed)
         if s.count("/") > 1 and s.count("/") - len(re.findall(r"\(\d+/\d+\)", s)) > 1:
-            raise core.UnitsError(
+            raise UnitsError(
                 f"'{s}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard."
             )
@@ -110,7 +111,7 @@ class VOUnit(generic.Generic):
                         f"Unit {t.value!r} not supported by the VOUnit standard. "
                         + cls._did_you_mean_units(t.value)
                     ),
-                    core.UnitsWarning,
+                    UnitsWarning,
                 )
 
                 return cls._def_custom_unit(t.value)
@@ -198,13 +199,11 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def to_string(cls, unit, fraction=False):
-        from astropy.units import core
-
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if unit.physical_type == "dimensionless" and unit.scale != 1:
-            raise core.UnitScaleError(
+            raise UnitScaleError(
                 "The VOUnit format is not able to "
                 "represent scale for dimensionless units. "
                 f"Multiply your data by {unit.scale:e}."
