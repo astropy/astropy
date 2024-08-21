@@ -839,6 +839,5 @@ class TableFormatter:
        h : print this help""",
                     end=" ",
                 )
-            i0 = max(i0, 0)
-            i0 = min(len(tabcol) - delta_lines, i0)
+            i0 = min(len(tabcol) - delta_lines, max(i0, 0))
             print("\n")
