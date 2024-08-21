@@ -213,15 +213,13 @@ class TableFormatter:
             max_lines = lines
         elif max_lines < 0:
             max_lines = sys.maxsize
-        if max_lines < 8:
-            max_lines = 8
+        max_lines = max(max_lines, 8)
 
         if max_width is None:
             max_width = width
         elif max_width < 0:
             max_width = sys.maxsize
-        if max_width < 10:
-            max_width = 10
+        max_width = max(max_width, 10)
 
         return max_lines, max_width
 
@@ -841,8 +839,6 @@ class TableFormatter:
        h : print this help""",
                     end=" ",
                 )
-            if i0 < 0:
-                i0 = 0
-            if i0 >= len(tabcol) - delta_lines:
-                i0 = len(tabcol) - delta_lines
+            i0 = max(i0, 0)
+            i0 = min(len(tabcol) - delta_lines, i0)
             print("\n")
