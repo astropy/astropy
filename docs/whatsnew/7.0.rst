@@ -127,7 +127,7 @@ Note that it is not yet possible to use ``Quantity`` with dask arrays directly.
 .. _whatsnew_7_0_tdat_reader:
 
 Reading and writing TDAT files with ``astropy.io.ascii``
-=======================================
+========================================================
 
 The TDAT format, specified by https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html,
 is now supported by the Unified File Read/Write Interface.
