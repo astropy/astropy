@@ -489,12 +489,25 @@ def test_replicating():
 
     iclone = i.replicate_without_data()
     assert i.has_data
+    assert not i.isscalar
+    assert i.shape == (1,)
+    assert len(i) == 1
     assert not iclone.has_data
+    assert iclone.isscalar
+    assert iclone.shape == ()
+    with pytest.raises(TypeError, match="no len()"):
+        len(iclone)
 
     aa = AltAz(alt=1 * u.deg, az=2 * u.deg, obstime=Time("J2000"))
-    aaclone = aa.replicate_without_data(obstime=Time("J2001"))
+    aaclone = aa.replicate_without_data(obstime=Time(["J2001"]))
+    assert aa.has_data
+    assert aa.isscalar
+    assert aa.shape == ()
     assert not aaclone.has_data
-    assert aa.obstime != aaclone.obstime
+    assert not aaclone.isscalar
+    assert aaclone.shape == (1,)
+    assert len(aaclone) == 1
+    assert not np.any(aa.obstime == aaclone.obstime)
     assert aa.pressure == aaclone.pressure
     assert aa.obswl == aaclone.obswl
 
@@ -568,12 +581,19 @@ def test_transform():
 
 def test_transform_to_nonscalar_nodata_frame():
     # https://github.com/astropy/astropy/pull/5254#issuecomment-241592353
+    # Also checks that shape and length of all make sense.
     times = Time("2016-08-23") + np.linspace(0, 10, 12) * u.day
     coo1 = ICRS(
         ra=[[0.0], [10.0], [20.0]] * u.deg, dec=[[-30.0], [30.0], [60.0]] * u.deg
     )
-    coo2 = coo1.transform_to(FK5(equinox=times))
+    assert coo1.shape == (3, 1)
+    assert len(coo1) == 3
+    fk5 = FK5(equinox=times)
+    assert fk5.shape == (12,)
+    assert len(fk5) == 12
+    coo2 = coo1.transform_to(fk5)
     assert coo2.shape == (3, 12)
+    assert len(coo2) == 3
 
 
 def test_setitem_no_velocity():
@@ -1103,10 +1123,25 @@ def test_nodata_error():
     assert "does not have associated data" in str(excinfo.value)
 
 
+def test_nodata_len_shape():
+    i = ICRS()
+    assert i.shape == ()
+    with pytest.raises(TypeError, match="Scalar.*has no len()"):
+        len(i)
+
+
 def test_len0_data():
     i = ICRS([] * u.deg, [] * u.deg)
     assert i.has_data
     repr(i)
+    assert len(i) == 0
+    assert i.shape == (0,)
+
+
+def test_len0_nodata():
+    fk5 = FK5(equinox=Time([], format="jyear"))
+    assert len(fk5) == 0
+    assert fk5.shape == (0,)
 
 
 def test_quantity_attributes():
