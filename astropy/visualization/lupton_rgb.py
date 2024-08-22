@@ -266,9 +266,7 @@ class AsinhMapping(Mapping):
         if abs(Q) < epsilon:
             Q = 0.1
         else:
-            Qmax = 1e10
-            if Q > Qmax:
-                Q = Qmax
+            Q = min(Q, 1e10)
 
         frac = 0.1  # gradient estimated using frac*stretch is _slope
         self._slope = frac * self._uint8Max / np.arcsinh(frac * Q)
