@@ -1587,8 +1587,8 @@ class BaseReader(metaclass=MetaBaseReader):
         # for performance, mostly when guessing. The validate method might not catch all
         # possible errors but it must never produce a false positive (raising an
         # InconsistentTableError).
-        if hasattr(self.header, "validate"):
-            self.header.validate(table, self.guessing, self.strict_names)
+        if hasattr(self, "validate"):
+            self.validate(table, self.guessing, self.strict_names)
 
         # If ``table`` is a file then store the name in the ``data``
         # attribute. The ``table`` is a "file" if it is a string

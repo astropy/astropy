@@ -83,27 +83,6 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     definition = "ignore"
     start_line = None
 
-    def validate(
-        self,
-        source: core.SourceType,
-        guessing: bool = False,
-        strict_names: bool = False,
-    ) -> None:
-        lines = core.get_lines_iter(source)
-        # Collect up to the first 10 IPAC header lines. This means discarding blank
-        # lines or comment lines (starting with "\") and stopping after 10 lines are
-        # returned.
-        header_lines = [
-            line for line, _ in zip(self.process_lines(lines), range(10), strict=False)
-        ]
-        header_vals = list(self.splitter(header_lines))
-        if len(header_vals) == 0:
-            raise ValueError(
-                "At least one header line beginning and ending with delimiter required"
-            )
-        elif len(header_vals) > 4:
-            raise ValueError("More than four header lines were found")
-
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
         delimiter character (with trailing whitespace stripped).
@@ -486,6 +465,30 @@ class Ipac(basic.Basic):
         else:
             raise ValueError("definition should be one of ignore/left/right")
         self.header.DBMS = DBMS
+
+    def validate(
+        self,
+        source: core.SourceType,
+        guessing: bool = False,
+        strict_names: bool = False,
+    ) -> None:
+        lines = core.get_lines_iter(source, encoding=self.encoding)
+        # Collect up to the first 10 IPAC header lines. This means discarding blank
+        # lines or comment lines (starting with "\") and stopping after 10 lines are
+        # returned.
+        header_lines = [
+            line
+            for line, _ in zip(
+                self.header.process_lines(lines), range(10), strict=False
+            )
+        ]
+        header_vals = list(self.header.splitter(header_lines))
+        if len(header_vals) == 0:
+            raise ValueError(
+                "At least one header line beginning and ending with delimiter required"
+            )
+        elif len(header_vals) > 4:
+            raise ValueError("More than four header lines were found")
 
     def write(self, table):
         """

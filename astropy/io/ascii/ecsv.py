@@ -47,41 +47,6 @@ class InvalidEcsvDatatypeWarning(AstropyUserWarning):
 class EcsvHeader(basic.BasicHeader):
     """ECSV Header class"""
 
-    def validate(
-        self,
-        source: core.SourceType,
-        guessing: bool = False,
-        strict_names: bool = False,
-    ) -> None:
-        """Validate that this is a ECSV file.
-
-        Raises InconsistentTableError if the header is not present or does not match
-        the ECSV format.
-
-        This is called early in the process of reading a table to determine if the
-        input source is a valid ECSV file.
-
-        Parameters
-        ----------
-        source : str, file-like, list
-            Can be either a file name, string (newline separated) with all header and data
-            lines (must have at least 2 lines), a file-like object with a
-            ``read()`` method, or a list of strings.
-        """
-        lines_iter = core.get_lines_iter(source)
-        try:
-            line = next(self.process_lines(lines_iter))
-        except StopIteration:
-            ok = False  # No comment lines at all
-        else:
-            ecsv_header_re = r"""%ECSV [ ] \d+ \. \d+ (\. \d+)? $"""
-            ok = re.match(ecsv_header_re, line.strip(), re.VERBOSE)
-        if not ok:
-            raise core.InconsistentTableError(
-                'ECSV header line like "# %ECSV <version>" not found as first line.'
-                "  This is required for a ECSV file."
-            )
-
     def process_lines(self, lines):
         """Return non-blank lines that start with the comment regexp.
 
@@ -513,6 +478,41 @@ class Ecsv(basic.Basic):
     outputter_class = EcsvOutputter
 
     max_ndim = None  # No limit on column dimensionality
+
+    def validate(
+        self,
+        source: core.SourceType,
+        guessing: bool = False,
+        strict_names: bool = False,
+    ) -> None:
+        """Validate that this is a ECSV file.
+
+        Raises InconsistentTableError if the header is not present or does not match
+        the ECSV format.
+
+        This is called early in the process of reading a table to determine if the
+        input source is a valid ECSV file.
+
+        Parameters
+        ----------
+        source : str, file-like, list
+            Can be either a file name, string (newline separated) with all header and data
+            lines (must have at least 2 lines), a file-like object with a
+            ``read()`` method, or a list of strings.
+        """
+        lines_iter = core.get_lines_iter(source)
+        try:
+            line = next(self.header.process_lines(lines_iter))
+        except StopIteration:
+            ok = False  # No comment lines at all
+        else:
+            ecsv_header_re = r"""%ECSV [ ] \d+ \. \d+ (\. \d+)? $"""
+            ok = re.match(ecsv_header_re, line.strip(), re.VERBOSE)
+        if not ok:
+            raise core.InconsistentTableError(
+                'ECSV header line like "# %ECSV <version>" not found as first line.'
+                "  This is required for a ECSV file."
+            )
 
     def update_table_data(self, table):
         """
