@@ -32,11 +32,14 @@ from . import core
 from .base import Base
 
 if TYPE_CHECKING:
-    from typing import ClassVar
+    from re import Match, Pattern
+    from typing import ClassVar, Final
 
     import numpy as np
 
+    from astropy.extern.ply.lex import Lexer, LexToken
     from astropy.units import NamedUnit, UnitBase
+    from astropy.utils.parsing import ThreadSafeParser
 
 
 class Generic(Base):
@@ -48,7 +51,7 @@ class Generic(Base):
     supports any unit available in the `astropy.units` namespace.
     """
 
-    _tokens = (
+    _tokens: ClassVar[tuple[str, ...]] = (
         "COMMA",
         "DOUBLE_STAR",
         "STAR",
@@ -67,7 +70,7 @@ class Generic(Base):
     _deprecated_units: ClassVar[frozenset[str]] = frozenset()
 
     @classproperty(lazy=True)
-    def _lexer(cls):
+    def _lexer(cls) -> Lexer:
         tokens = cls._tokens
 
         t_COMMA = r"\,"
@@ -125,7 +128,7 @@ class Generic(Base):
         )
 
     @classproperty(lazy=True)
-    def _parser(cls):
+    def _parser(cls) -> ThreadSafeParser:
         """
         The grammar here is based on the description in the `FITS
         standard
@@ -437,7 +440,7 @@ class Generic(Base):
         return parsing.yacc(tabmodule="generic_parsetab", package="astropy/units")
 
     @classmethod
-    def _get_unit(cls, t):
+    def _get_unit(cls, t: LexToken) -> UnitBase:
         try:
             return cls._parse_unit(t.value)
         except ValueError as e:
@@ -448,7 +451,7 @@ class Generic(Base):
             raise ValueError(f"At col {t.lexpos}, {str(e)}")
 
     @classmethod
-    def _parse_unit(cls, s, detailed_exception=True):
+    def _parse_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
         registry = core.get_current_unit_registry().registry
         if s in cls._unit_symbols:
             s = cls._unit_symbols[s]
@@ -471,7 +474,7 @@ class Generic(Base):
         else:
             raise ValueError()
 
-    _unit_symbols = {
+    _unit_symbols: ClassVar[dict[str, str]] = {
         "%": "percent",
         "\N{PRIME}": "arcmin",
         "\N{DOUBLE PRIME}": "arcsec",
@@ -479,13 +482,13 @@ class Generic(Base):
         "e\N{SUPERSCRIPT MINUS}": "electron",
     }
 
-    _prefixable_unit_symbols = {
+    _prefixable_unit_symbols: ClassVar[dict[str, str]] = {
         "\N{GREEK CAPITAL LETTER OMEGA}": "Ohm",
         "\N{LATIN CAPITAL LETTER A WITH RING ABOVE}": "Angstrom",
         "\N{SCRIPT SMALL L}": "l",
     }
 
-    _unit_suffix_symbols = {
+    _unit_suffix_symbols: ClassVar[dict[str, str]] = {
         "\N{CIRCLED DOT OPERATOR}": "sun",
         "\N{SUN}": "sun",
         "\N{CIRCLED PLUS}": "earth",
@@ -495,7 +498,7 @@ class Generic(Base):
         "\N{LATIN SUBSCRIPT SMALL LETTER P}": "_p",
     }
 
-    _translations = str.maketrans(
+    _translations: ClassVar[dict[int, str]] = str.maketrans(
         {
             "\N{GREEK SMALL LETTER MU}": "\N{MICRO SIGN}",
             "\N{MINUS SIGN}": "-",
@@ -507,7 +510,7 @@ class Generic(Base):
     since then a string like 'µ' would be interpreted as unit mass.
     """
 
-    _superscripts = (
+    _superscripts: Final[str] = (
         "\N{SUPERSCRIPT MINUS}"
         "\N{SUPERSCRIPT PLUS SIGN}"
         "\N{SUPERSCRIPT ZERO}"
@@ -522,22 +525,26 @@ class Generic(Base):
         "\N{SUPERSCRIPT NINE}"
     )
 
-    _superscript_translations = str.maketrans(_superscripts, "-+0123456789")
-    _regex_superscript = re.compile(f"[{_superscripts}]?[{_superscripts[2:]}]+")
-    _regex_deg = re.compile("°([CF])?")
+    _superscript_translations: ClassVar[dict[int, int]] = str.maketrans(
+        _superscripts, "-+0123456789"
+    )
+    _regex_superscript: ClassVar[Pattern[str]] = re.compile(
+        f"[{_superscripts}]?[{_superscripts[2:]}]+"
+    )
+    _regex_deg: ClassVar[Pattern[str]] = re.compile("°([CF])?")
 
     @classmethod
-    def _convert_superscript(cls, m):
+    def _convert_superscript(cls, m: Match[str]) -> str:
         return f"({m.group().translate(cls._superscript_translations)})"
 
     @classmethod
-    def _convert_deg(cls, m):
+    def _convert_deg(cls, m: Match[str]) -> str:
         if len(m.string) == 1:
             return "deg"
         return m.string.replace("°", "deg_")
 
     @classmethod
-    def parse(cls, s, debug=False):
+    def parse(cls, s: str, debug: bool = False) -> UnitBase:
         if not isinstance(s, str):
             s = s.decode("ascii")
         elif not s.isascii():
@@ -569,7 +576,7 @@ class Generic(Base):
         return result
 
     @classmethod
-    def _do_parse(cls, s, debug=False):
+    def _do_parse(cls, s: str, debug: bool = False) -> UnitBase:
         try:
             # This is a short circuit for the case where the string
             # is just a single unit name
