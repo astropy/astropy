@@ -612,7 +612,7 @@ class DefaultSplitter(BaseSplitter):
 
         """
         if self.process_line:
-            lines = [self.process_line(x) for x in lines]
+            lines = (self.process_line(x) for x in lines)
 
         delimiter = " " if self.delimiter == r"\s" else self.delimiter
 
