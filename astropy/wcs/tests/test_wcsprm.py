@@ -11,7 +11,7 @@ from packaging.version import Version
 
 from astropy import units as u
 from astropy.io import fits
-from astropy.units.core import UnitsWarning
+from astropy.units import UnitsWarning
 from astropy.utils.data import (
     get_pkg_data_contents,
     get_pkg_data_filename,

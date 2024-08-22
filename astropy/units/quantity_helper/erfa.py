@@ -5,7 +5,8 @@
 from erfa import dt_eraASTROM, dt_eraLDBODY, dt_pv
 from erfa import ufunc as erfa_ufunc
 
-from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
+from astropy.units.core import dimensionless_unscaled
+from astropy.units.errors import UnitsError, UnitTypeError
 from astropy.units.structured import StructuredUnit
 
 from . import UFUNC_HELPERS

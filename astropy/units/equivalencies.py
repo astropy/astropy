@@ -16,7 +16,8 @@ from astropy.utils import deprecated_renamed_argument
 from astropy.utils.misc import isiterable
 
 from . import astrophys, cgs, dimensionless_unscaled, misc, si
-from .core import Unit, UnitsError
+from .core import Unit
+from .errors import UnitsError
 from .function import units as function_units
 
 __all__ = [

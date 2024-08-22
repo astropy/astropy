@@ -6,7 +6,8 @@ import warnings
 
 import numpy as np
 
-from astropy.units.core import Unit, UnitsError
+from astropy.units.core import Unit
+from astropy.units.errors import UnitsError
 from astropy.units.quantity import Quantity
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning

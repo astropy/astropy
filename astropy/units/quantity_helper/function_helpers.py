@@ -40,12 +40,8 @@ import operator
 import numpy as np
 from numpy.lib import recfunctions as rfn
 
-from astropy.units.core import (
-    UnitConversionError,
-    UnitsError,
-    UnitTypeError,
-    dimensionless_unscaled,
-)
+from astropy.units.core import dimensionless_unscaled
+from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
 from astropy.utils import isiterable
 from astropy.utils.compat import (
     COPY_IF_NEEDED,
