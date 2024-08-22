@@ -24,6 +24,7 @@ from copy import copy
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
+from astropy.units.errors import UnitScaleError, UnitsWarning
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
@@ -563,7 +564,7 @@ class Generic(Base):
             warnings.warn(
                 f"'{s}' contains multiple slashes, which is "
                 "discouraged by the FITS standard",
-                core.UnitsWarning,
+                UnitsWarning,
             )
         return result
 
@@ -598,8 +599,6 @@ class Generic(Base):
                 )
             raise ValueError()
         if unit in cls._deprecated_units:
-            from astropy.units.core import UnitsWarning
-
             message = (
                 f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
             )
@@ -646,8 +645,6 @@ class Generic(Base):
 
     @classmethod
     def _to_decomposed_alternative(cls, unit: UnitBase) -> str:
-        from astropy.units.core import UnitScaleError
-
         try:
             return cls.to_string(unit)
         except UnitScaleError:

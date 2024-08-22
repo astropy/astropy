@@ -5,12 +5,8 @@ import threading
 
 import numpy as np
 
-from astropy.units.core import (
-    UnitConversionError,
-    UnitsError,
-    UnitTypeError,
-    dimensionless_unscaled,
-)
+from astropy.units.core import dimensionless_unscaled
+from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
 
 __all__ = [
     "can_have_arbitrary_unit",

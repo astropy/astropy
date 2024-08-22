@@ -21,6 +21,7 @@ from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
 
 from . import format as unit_format
+from .errors import UnitConversionError, UnitsError, UnitsWarning
 from .utils import (
     is_effectively_unity,
     resolve_fractions,
@@ -33,11 +34,6 @@ if TYPE_CHECKING:
     from astropy.units.typing import UnitPower
 
 __all__ = [
-    "UnitsError",
-    "UnitsWarning",
-    "UnitConversionError",
-    "UnitScaleError",
-    "UnitTypeError",
     "UnitBase",
     "NamedUnit",
     "IrreducibleUnit",
@@ -606,41 +602,6 @@ def add_enabled_aliases(aliases):
     # in this new current registry, enable the further equivalencies requested
     get_current_unit_registry().add_enabled_aliases(aliases)
     return context
-
-
-class UnitsError(Exception):
-    """
-    The base class for unit-specific exceptions.
-    """
-
-
-class UnitScaleError(UnitsError, ValueError):
-    """
-    Used to catch the errors involving scaled units,
-    which are not recognized by FITS format.
-    """
-
-
-class UnitConversionError(UnitsError, ValueError):
-    """
-    Used specifically for errors related to converting between units or
-    interpreting units in terms of other units.
-    """
-
-
-class UnitTypeError(UnitsError, TypeError):
-    """
-    Used specifically for errors in setting to units not allowed by a class.
-
-    E.g., would be raised if the unit of an `~astropy.coordinates.Angle`
-    instances were set to a non-angular unit.
-    """
-
-
-class UnitsWarning(AstropyWarning):
-    """
-    The base class for unit-specific warnings.
-    """
 
 
 class UnitBase:
@@ -2713,7 +2674,3 @@ def unit_scale_converter(val):
 dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
 # Abbreviation of the above, see #1980
 one = dimensionless_unscaled
-
-# Maintain error in old location for backward compatibility
-# TODO: Is this still needed? Should there be a deprecation warning?
-unit_format.fits.UnitScaleError = UnitScaleError
