@@ -12,52 +12,9 @@ from typing import TYPE_CHECKING
 from astropy.units.utils import maybe_simple_fraction
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Generator, Iterable, Sequence
+    from collections.abc import Generator, Iterable, Sequence
 
-    from astropy.units import UnitBase
     from astropy.units.typing import Real
-
-
-def decompose_to_known_units(
-    unit: UnitBase, func: Callable[[UnitBase], None]
-) -> UnitBase:
-    """
-    Partially decomposes a unit so it is only composed of units that
-    are "known" to a given format.
-
-    Parameters
-    ----------
-    unit : `~astropy.units.UnitBase` instance
-
-    func : callable
-        This function will be called to determine if a given unit is
-        "known".  If the unit is not known, this function should raise a
-        `ValueError`.
-
-    Returns
-    -------
-    unit : `~astropy.units.UnitBase` instance
-        A flattened unit.
-    """
-    from astropy.units import core
-
-    if isinstance(unit, core.CompositeUnit):
-        new_unit = core.Unit(unit.scale)
-        for base, power in zip(unit.bases, unit.powers):
-            new_unit = new_unit * decompose_to_known_units(base, func) ** power
-        return new_unit
-    elif isinstance(unit, core.NamedUnit):
-        try:
-            func(unit)
-        except ValueError:
-            if isinstance(unit, core.Unit):
-                return decompose_to_known_units(unit._represents, func)
-            raise
-        return unit
-    else:
-        raise TypeError(
-            f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
-        )
 
 
 def format_power(power: Real) -> str:

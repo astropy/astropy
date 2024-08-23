@@ -67,7 +67,7 @@ class FITS(generic.Generic):
     @classmethod
     def to_string(cls, unit, fraction=False):
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
+        unit = cls._decompose_to_known_units(unit)
 
         parts = []
 
