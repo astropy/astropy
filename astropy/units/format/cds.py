@@ -21,14 +21,13 @@ from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
-from . import utils
 from .generic import Generic
 
 if TYPE_CHECKING:
     from typing import ClassVar, Literal
 
     from astropy.extern.ply.lex import Lexer
-    from astropy.units import UnitBase
+    from astropy.units import NamedUnit, UnitBase
     from astropy.utils.parsing import ThreadSafeParser
 
 
@@ -278,6 +277,10 @@ class CDS(Generic):
         return cls._do_parse(s, debug)
 
     @classmethod
+    def _get_unit_name(cls, unit: NamedUnit) -> str:
+        return unit.get_format_name(cls.name)
+
+    @classmethod
     def _format_mantissa(cls, m: str) -> str:
         return "" if m == "1" else m
 
@@ -296,9 +299,7 @@ class CDS(Generic):
         cls, unit: UnitBase, fraction: bool | Literal["inline"] = False
     ) -> str:
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(
-            unit, lambda x: x.get_format_name(cls.name)
-        )
+        unit = cls._decompose_to_known_units(unit)
 
         if not unit.bases:
             if unit.scale == 1:

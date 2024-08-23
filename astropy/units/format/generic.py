@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from astropy.extern.ply.lex import Lexer, LexToken
-    from astropy.units import NamedUnit, UnitBase
+    from astropy.units import CompositeUnit, NamedUnit, UnitBase
     from astropy.utils.parsing import ThreadSafeParser
 
 
@@ -659,6 +659,29 @@ class Generic(Base):
             unit = copy(unit)
             unit._scale = 1.0
             return f"{cls.to_string(unit)} (with data multiplied by {scale})"
+
+    @classmethod
+    def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:
+        """
+        Partially decomposes a unit so it is only composed of units that
+        are "known" to a given format.
+        """
+        if isinstance(unit, core.CompositeUnit):
+            new_unit = core.Unit(unit.scale)
+            for base, power in zip(unit.bases, unit.powers):
+                new_unit = new_unit * cls._decompose_to_known_units(base) ** power
+            return new_unit
+        if isinstance(unit, core.NamedUnit):
+            try:
+                cls._get_unit_name(unit)
+            except ValueError:
+                if isinstance(unit, core.Unit):
+                    return cls._decompose_to_known_units(unit._represents)
+                raise
+            return unit
+        raise TypeError(
+            f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
+        )
 
     @classmethod
     def format_exponential_notation(

@@ -356,7 +356,7 @@ class OGIP(generic.Generic):
     @classmethod
     def to_string(cls, unit, fraction="inline"):
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
+        unit = cls._decompose_to_known_units(unit)
 
         if isinstance(unit, core.CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
@@ -371,7 +371,7 @@ class OGIP(generic.Generic):
     @classmethod
     def _to_decomposed_alternative(cls, unit):
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
+        unit = cls._decompose_to_known_units(unit)
 
         if isinstance(unit, core.CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
