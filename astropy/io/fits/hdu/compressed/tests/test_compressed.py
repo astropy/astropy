@@ -1295,8 +1295,5 @@ def test_header_order(tmp_path):
 
     hdulist.writeto(tmp_path / "test.fits", overwrite=True)
 
-    hdulist3 = fits.open(tmp_path / "test.fits", disable_image_compression=True)
-
-    hdulist2 = fits.open(tmp_path / "test.fits")
-
-    assert hdulist[1].header.tostring("\n") == hdulist2[1].header.tostring("\n")
+    with fits.open(tmp_path / "test.fits") as hdulist2:
+        assert hdulist[1].header.tostring("\n") == hdulist2[1].header.tostring("\n")
