@@ -1265,3 +1265,38 @@ def test_rice_one_alias():
     # acceptable alias) to no longer be recognized.
     chdu = fits.CompImageHDU(np.zeros((3, 4, 5)))
     chdu.compression_type = "RICE_ONE"
+
+
+def test_header_order(tmp_path):
+    # Make sure that comments and history entries appear in the same order and
+    # same location after compression and decompression.
+
+    data = np.random.random((128, 128))
+    header = fits.Header()
+
+    header["a"] = 1
+    header["b"] = 2
+    header["c"] = 3
+    header["d"] = 4
+
+    header.add_history("history one", before="a")
+    header.add_comment("comment one", before="a")
+    header.add_comment("comment two", after="a")
+    header.add_comment("comment three", before="b")
+    header.add_history("history two", before="b")
+    header.add_comment("comment four", after="b")
+    header.add_comment("comment five", after="d")
+    header.add_history("history three")
+    header.add_blank()
+    header.add_blank()
+    header.add_blank()
+
+    hdulist = fits.HDUList([fits.PrimaryHDU(), fits.CompImageHDU(data, header)])
+
+    hdulist.writeto(tmp_path / "test.fits", overwrite=True)
+
+    hdulist3 = fits.open(tmp_path / "test.fits", disable_image_compression=True)
+
+    hdulist2 = fits.open(tmp_path / "test.fits")
+
+    assert hdulist[1].header.tostring("\n") == hdulist2[1].header.tostring("\n")
