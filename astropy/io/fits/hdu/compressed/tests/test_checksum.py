@@ -22,6 +22,7 @@ class TestChecksumFunctions(BaseChecksumTests):
                 assert h2[1].header["CHECKSUM"] == "D2GXD29VD2EVD29V"
                 assert "DATASUM" in h2[1].header
                 assert h2[1].header["DATASUM"] == "2189405276"
+                assert h2[1].header._countblanks() == 76
 
     def test_failing_compressed_datasum(self):
         """
