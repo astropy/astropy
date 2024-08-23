@@ -54,6 +54,7 @@ class Masked(NDArrayShapeMethods):
         a subclass of the type of ``data``.
     mask : array-like of bool, optional
         The initial mask to assign.  If not given, taken from the data.
+        If the data already has a mask, the masks are combined.
     copy : bool
         Whether the data and mask should be copied. Default: `False`.
 
@@ -121,6 +122,8 @@ class Masked(NDArrayShapeMethods):
         data, data_mask = cls._get_data_and_mask(data)
         if mask is None:
             mask = False if data_mask is None else data_mask
+        elif data_mask is not None:
+            mask = mask | data_mask
 
         masked_cls = cls._get_masked_cls(data.__class__)
         return masked_cls.from_unmasked(data, mask, copy)

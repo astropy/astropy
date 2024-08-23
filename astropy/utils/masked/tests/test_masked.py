@@ -122,6 +122,15 @@ class TestMaskedArrayInitialization(ArraySetup):
         assert ma.mask is not self.mask_sa
         assert np.may_share_memory(ma.mask, self.mask_sa)
 
+    def test_masked_input(self):
+        ma = Masked(self.a, mask=self.mask_a)
+        mab = Masked(ma, mask=self.mask_b)
+        assert isinstance(mab, np.ndarray)
+        assert isinstance(mab, type(self.sa))
+        assert isinstance(mab, Masked)
+        assert_array_equal(mab.unmasked, self.a)
+        assert_array_equal(mab.mask, self.mask_a | self.mask_b)
+
 
 def test_masked_ndarray_init():
     # Note: as a straight ndarray subclass, MaskedNDArray passes on
