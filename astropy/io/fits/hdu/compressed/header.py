@@ -732,19 +732,40 @@ def _image_header_to_empty_bintable(
     # Add any keywords that are in the original header that are not already
     # FIXME: don't use keyword_remaps, instead define an actual list to check
     # including regular expressions for NAXIS and other similar keywords
+
+    # We need to add comments and history entries back to the right place, so
+    # we first write out regular keywords and keep track of what the previous
+    # regular keyword was for each position. We need to do this because
+    # add_comment and add_history automatically write out to the bottom of the
+    # header and there is no way to tell them to add them to the current
+    # location.
+    current_last_keyword = bintable.header.cards[-1].keyword
+    previous_keyword = []
+
     for card in image_header.cards:
+        # We deal with blanks in _writeto, and we handle COMMENT and HISTORY
+        # only once we have written out the regular keywords. deal with after
+
         if card.keyword == "":
             bintable.header.add_blank()
-        elif card.keyword == "COMMENT":
-            bintable.header.add_comment(card.value)
-        elif card.keyword == "HISTORY":
-            bintable.header.add_history(card.value)
         elif (
-            card.keyword not in CompImageHeader._keyword_remaps
+            card.keyword not in ("", "COMMENT", "HISTORY")
+            and card.keyword not in CompImageHeader._keyword_remaps
             and card.keyword not in bintable.header
             and not card.keyword.startswith("NAXIS")
         ):
             bintable.header.append(card)
+            current_last_keyword = card.keyword
+
+        previous_keyword.append(current_last_keyword)
+
+    # We loop over cards in reverse order for 'after=' to return the correct
+    # order in the final header.
+    for icard, card in list(enumerate(image_header.cards))[::-1]:
+        if card.keyword == "COMMENT":
+            bintable.header.add_comment(card.value, after=previous_keyword[icard])
+        elif card.keyword == "HISTORY":
+            bintable.header.add_history(card.value, after=previous_keyword[icard])
 
     # TODO: avoid writing the same comment multiple times
 
