@@ -727,18 +727,6 @@ def _image_header_to_empty_bintable(
             image_header.comments["DATASUM"],
         )
 
-    # When we have an image checksum we need to ensure that the same
-    # number of blank cards exist in the table header as there were in
-    # the image header.  This allows those blank cards to be carried
-    # over to the image header when the hdu is uncompressed.
-
-    if "ZHECKSUM" in bintable.header:
-        image_blanks = image_header._countblanks()
-        table_blanks = bintable.header._countblanks()
-
-        for _ in range(image_blanks - table_blanks):
-            bintable.header.append()
-
     bintable.columns = cols
 
     # Add any keywords that are in the original header that are not already

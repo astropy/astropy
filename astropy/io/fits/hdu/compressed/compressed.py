@@ -668,6 +668,18 @@ class CompImageHDU(ImageHDU):
 
     def _writeto(self, fileobj, inplace=False, copy=False):
         if self._tmp_bintable is not None:
+            # Each time we assign the bintable data to the BinTableHDU, some of
+            # the blank keywords get removed, so at this point, just before
+            # writing, we should make sure that the number of blank cards in
+            # the final binary table to be written matches the number of blanks
+            # in the image header.
+
+            image_blanks = self.header._countblanks()
+            table_blanks = self._tmp_bintable.header._countblanks()
+
+            for _ in range(image_blanks - table_blanks):
+                self._tmp_bintable.header.append()
+
             return self._tmp_bintable._writeto(fileobj, inplace=inplace, copy=copy)
 
     def _postwriteto(self):
