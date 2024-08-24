@@ -323,12 +323,10 @@ like so:
         # Data we want to write.
         # 8 is the number of bytes per value, i.e. abs(header['BITPIX'])/8
         # (this example is assuming a 64-bit float)
-        # The -1 is to account for the final byte that we are about to
-        # write:
-        file_length = len(header.tostring()) + (40000 * 40000 * 8) - 1
-        # FITS files must be a multiple of 2880 bytes long
-        if file_length % 2880 != 0:
-            file_length = (file_length // 2880 + 1) * 2880
+        file_length = len(header.tostring()) + (40000 * 40000 * 8)
+        # FITS files must be a multiple of 2880 bytes long; the final -1
+        # is to account for the final byte that we are about to write.
+        file_length = ((file_length + 2880 - 1) // 2880) * 2880 - 1
         fobj.seek(file_length)
         fobj.write(b"\0")
 
@@ -338,9 +336,8 @@ More generally, this can be written:
 
     shape = tuple(header[f"NAXIS{ii}"] for ii in range(1, header["NAXIS"] + 1))
     with open("large.fits", "rb+") as fobj:
-        file_length = len(header.tostring()) + (np.prod(shape) * np.abs(header["BITPIX"] // 8)) - 1
-        if file_length % 2880 != 0:
-            file_length = (file_length // 2880 + 1) * 2880
+        file_length = len(header.tostring()) + (np.prod(shape) * np.abs(header["BITPIX"] // 8))
+        file_length = ((file_length + 2880 - 1) // 2880) * 2880 - 1
         fobj.seek(file_length)
         fobj.write(b"\0")
 
