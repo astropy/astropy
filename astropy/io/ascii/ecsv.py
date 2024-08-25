@@ -155,8 +155,10 @@ class EcsvHeader(basic.BasicHeader):
 
         try:
             header = meta.get_header_from_yaml(lines)
-        except meta.YamlParseError:
-            raise core.InconsistentTableError("unable to parse yaml in meta header")
+        except meta.YamlParseError as e:
+            raise core.InconsistentTableError(
+                "unable to parse yaml in meta header"
+            ) from e
 
         if "meta" in header:
             self.table_meta = header["meta"]
