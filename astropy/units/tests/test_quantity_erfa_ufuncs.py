@@ -123,6 +123,20 @@ class TestPVUfuncs:
         assert_quantity_allclose(pv["p"], self.pv["p"], atol=1 * u.m, rtol=0)
         assert_quantity_allclose(pv["v"], self.pv["v"], atol=1 * u.mm / u.s, rtol=0)
 
+    def test_s2p_not_all_quantity(self):
+        # Test for a useful error message - see gh-16873.
+        # Non-quantity input should be treated as dimensionless and thus cannot
+        # be converted to radians.
+        with pytest.raises(AttributeError, match="is treated as dimensionless"):
+            erfa_ufunc.s2p(0.5, 0.5, 4 * u.km)
+
+        # Except if we have the right equivalency in place.
+        with u.add_enabled_equivalencies(u.dimensionless_angles()):
+            result = erfa_ufunc.s2p(0.5, 0.5, 4 * u.km)
+
+        expected = erfa_ufunc.s2p(0.5 * u.radian, 0.5 * u.radian, 4 * u.km)
+        assert_array_equal(result, expected)
+
     def test_pvstar(self):
         ra, dec, pmr, pmd, px, rv, stat = erfa_ufunc.pvstar(self.pv)
         assert_array_equal(stat, np.zeros(self.pv.shape, dtype="i4"))
@@ -528,7 +542,7 @@ class TestGeodetic:
     def test_unit_errors(self):
         """Test unit errors when dimensionless parameters are used"""
 
-        msg = "'NoneType' object has no attribute 'get_converter'"
+        msg = "'NoneType'.*no attribute 'get_converter'.*\n.*treated as dimensionless"
         with pytest.raises(AttributeError, match=msg):
             erfa_ufunc.gc2gde(self.equatorial_radius_value, self.flattening, self.xyz)
         with pytest.raises(AttributeError, match=msg):
