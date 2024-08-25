@@ -323,6 +323,21 @@ class TestQuantityTrigonometricFuncs:
     def test_testwarns(self, tw):
         return test_testwarn(tw)
 
+    def test_sin_with_quantity_out(self):
+        # Test for a useful error message - see gh-16873.
+        # Non-quantity input should be treated as dimensionless and thus cannot
+        # be converted to radians.
+        out = u.Quantity(0)
+        with pytest.raises(AttributeError, match="is treated as dimensionless"):
+            np.sin(0.5, out=out)
+
+        # Except if we have the right equivalency in place.
+        with u.add_enabled_equivalencies(u.dimensionless_angles()):
+            result = np.sin(0.5, out=out)
+
+        assert result is out
+        assert result == np.sin(0.5) * u.dimensionless_unscaled
+
 
 class TestQuantityMathFuncs:
     """
