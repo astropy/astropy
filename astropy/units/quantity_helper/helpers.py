@@ -7,6 +7,7 @@ In particular, this implements the logic that determines scaling and result
 units for a given ufunc, given input units.
 """
 
+import sys
 from fractions import Fraction
 
 import numpy as np
@@ -34,7 +35,28 @@ def get_converter(from_unit, to_unit):
     """Like Unit.get_converter, except returns None if no scaling is needed,
     i.e., if the inferred scale is unity.
     """
-    converter = from_unit.get_converter(to_unit)
+    try:
+        converter = from_unit.get_converter(to_unit)
+    except AttributeError as e:
+        # Check for lack of unit only now, to avoid delay for cases where a unit
+        # unit was present. Note that cases where dimensionless is expected are
+        # already short-circuited; here, we cover just the case where, e.g., the
+        # user has done u.add_enabled_equivalencies(u.dimensionless_angles()).
+        if from_unit is not None:  # pragma: no cover
+            raise
+        try:
+            converter = dimensionless_unscaled.get_converter(to_unit)
+        except UnitsError:
+            note = (
+                "Input without a 'unit' attribute? Such input is treated "
+                f"as dimensionless and cannot be converted to {to_unit}."
+            )
+            if sys.version_info >= (3, 11):
+                e.add_note(note)
+                raise e
+            else:
+                raise AttributeError("\n".join([e.args[0], note])) from None
+
     return None if converter is unit_scale_converter else converter
 
 
