@@ -466,7 +466,7 @@ Hcompress.
 
 For more details, reference "A FITS Image Compression Proposal" from:
 
-    https://www.adass.org/adass/proceedings/adass99/P2-42/
+    https://www.aspbooks.org/a/volumes/article_details/?paper_id=20727
 
 and "Registered FITS Convention, Tiled Image Compression Convention":
 
