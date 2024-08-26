@@ -39,7 +39,7 @@ def get_converter(from_unit, to_unit):
         converter = from_unit.get_converter(to_unit)
     except AttributeError as e:
         # Check for lack of unit only now, to avoid delay for cases where a unit
-        # unit was present. Note that cases where dimensionless is expected are
+        # was present. Note that cases where dimensionless is expected are
         # already short-circuited; here, we cover just the case where, e.g., the
         # user has done u.add_enabled_equivalencies(u.dimensionless_angles()).
         if from_unit is not None:  # pragma: no cover
