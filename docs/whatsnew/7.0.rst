@@ -13,6 +13,7 @@ the 6.1 release.
 In particular, this release includes:
 
 * :ref:`whatsnew-7.0-table-masked-quantity`
+* :ref:`whatsnew-7.0-table-frames`
 * :ref:`whatsnew_7_0_quantity_to_string_formatter`
 * :ref:`whatsnew_7_0_ecsv_meta_default_dict`
 * :ref:`whatsnew_7_0_contributor_doc_improvement`
@@ -40,6 +41,20 @@ a work-around where a normal ``Quantity`` was used with a stub of a mask, and
 fixes functions like reading of table data from a list of dict that includes
 quantities with missing entries, and aggregation of ``MaskedQuantity`` in
 table groups.
+
+.. _whatsnew-7.0-table-frames:
+
+Coordinate frames can now be stored in tables
+=============================================
+
+Coordinate frames like ``ICRS`` and ``AltAz`` can now be stored in tables, as
+was already the case for ``SkyCoord`` and the underlying representations such
+as ``SphericalRepresentation``.
+
+This includes all frames, also those that do not have associated data, such as
+a ``SkyOffsetFrame`` in which the RA, Dec of the origin might represent a
+pointing directions for a tiled observation, and the position angle the roll of
+a spacecraft.
 
 .. _whatsnew_7_0_quantity_to_string_formatter:
 

@@ -46,6 +46,24 @@ scpmrv = coordinates.SkyCoord(
 scrv = coordinates.SkyCoord(
     [1, 2], [3, 4], [5, 6], unit="deg,deg,pc", radial_velocity=[11, 12] * u.km / u.s
 )
+icrs = coordinates.ICRS([1, 2] * u.deg, [3, 4] * u.deg)
+altaz = coordinates.AltAz(
+    [1, 2] * u.deg,
+    [3, 4] * u.deg,
+    obstime=time.Time("2010-11-12T13:14:15"),
+    location=el,
+)
+so = coordinates.SkyOffsetFrame(
+    [-1, -2] * u.deg,
+    [-3, -4] * u.deg,
+    origin=altaz,
+    rotation=[5, 6] * u.deg,
+)
+sond = coordinates.SkyOffsetFrame(
+    origin=icrs,
+    rotation=[5, 6] * u.deg,
+)
+
 tm = time.Time(
     [51000.5, 51001.5], format="mjd", scale="tai", precision=5, location=el[0]
 )
@@ -78,6 +96,10 @@ mixin_cols = {
     "scpm": scpm,
     "scpmrv": scpmrv,
     "scrv": scrv,
+    "icrs": icrs,
+    "altaz": altaz,
+    "so": so,
+    "sond": sond,
     "x": [1, 2] * u.m,
     "qdb": [10, 20] * u.dB(u.mW),
     "qdex": [4.5, 5.5] * u.dex(u.cm / u.s**2),
@@ -141,6 +163,10 @@ compare_attrs = {
         "representation_type",
         "frame.name",
     ],
+    "icrs": ["ra", "dec", "representation_type"],
+    "altaz": ["alt", "az", "obstime", "location", "representation_type"],
+    "so": ["lon", "lat", "rotation", "origin"],
+    "sond": ["rotation", "origin"],
     "x": ["value", "unit"],
     "qdb": ["value", "unit"],
     "qdex": ["value", "unit"],
@@ -190,6 +216,25 @@ non_trivial_names = {
         "scpmrv.radial_velocity",
     ],
     "scrv": ["scrv.ra", "scrv.dec", "scrv.distance", "scrv.radial_velocity"],
+    "icrs": ["icrs.ra", "icrs.dec"],
+    "altaz": [
+        "altaz.az",
+        "altaz.alt",
+        "altaz.location.x",
+        "altaz.location.y",
+        "altaz.location.z",
+    ],
+    "so": [
+        "so.lon",
+        "so.lat",
+        "so.rotation",
+        "so.origin.az",
+        "so.origin.alt",
+        "so.origin.location.x",
+        "so.origin.location.y",
+        "so.origin.location.z",
+    ],
+    "sond": ["sond.rotation", "sond.origin.ra", "sond.origin.dec"],
     "sd": ["sd.d_lon_coslat", "sd.d_lat", "sd.d_distance"],
     "sr": ["sr.lon", "sr.lat", "sr.distance"],
     "srd": [

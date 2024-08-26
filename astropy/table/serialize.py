@@ -336,7 +336,14 @@ def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
         mixin.info.name = info["name"]
         return mixin
 
-    if cls_full_name not in __construct_mixin_classes:
+    # We translate locally created skyoffset frames and treat all
+    # built-in frames as known.
+    if cls_full_name.startswith("abc.SkyOffset"):
+        cls_full_name = "astropy.coordinates.SkyOffsetFrame"
+    elif (
+        cls_full_name not in __construct_mixin_classes
+        and not cls_full_name.startswith("astropy.coordinates.builtin_frames")
+    ):
         raise ValueError(f"unsupported class for construct {cls_full_name}")
 
     mod_name, _, cls_name = cls_full_name.rpartition(".")
