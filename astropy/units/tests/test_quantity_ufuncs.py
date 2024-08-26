@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import dataclasses
+import sys
 import warnings
 from typing import TYPE_CHECKING, NamedTuple
 
@@ -14,6 +15,7 @@ from erfa import ufunc as erfa_ufunc
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
+from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
@@ -328,7 +330,12 @@ class TestQuantityTrigonometricFuncs:
         # Non-quantity input should be treated as dimensionless and thus cannot
         # be converted to radians.
         out = u.Quantity(0)
-        with pytest.raises(AttributeError, match="is treated as dimensionless"):
+        match = "'NoneType' object has no attribute 'get_converter'"
+        if not (PYTEST_LT_8_0 and sys.version_info >= (3, 11)):
+            # For python>=3.11, we use Exception.add_note, which
+            # pytest < 8 does not know how to deal with.
+            match += ".*\n.*treated as dimensionless"
+        with pytest.raises(AttributeError, match=match):
             np.sin(0.5, out=out)
 
         # Except if we have the right equivalency in place.
