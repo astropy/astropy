@@ -8,6 +8,9 @@ from astropy import units as u
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
 
+from .earth import EarthLocation
+from .representation import BaseDifferential, CartesianRepresentation
+
 __all__ = [
     "Attribute",
     "TimeAttribute",
@@ -566,8 +569,3 @@ class DifferentialAttribute(Attribute):
                 )
 
         return value, True
-
-
-# do this here to prevent a series of complicated circular imports
-from .earth import EarthLocation  # noqa: E402
-from .representation import BaseDifferential, CartesianRepresentation  # noqa: E402
