@@ -39,6 +39,7 @@ from astropy.coordinates.representation import (
     REPRESENTATION_CLASSES,
     CartesianDifferential,
 )
+from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
@@ -1755,3 +1756,22 @@ def test_spherical_offsets_with_wrap(shape):
 
     scom = sc.spherical_offsets_by(-2 * u.deg, 0 * u.deg)
     assert scom.shape == shape
+
+
+def test_insert():
+    # Tests are a subset of those in test_sky_coord.
+    c0 = ICRS([1, 2] * u.deg, [3, 4] * u.deg)
+    c1 = ICRS(5 * u.deg, 6 * u.deg)
+    c3 = ICRS([10, 20] * u.deg, [30, 40] * u.deg)
+
+    # Insert a scalar
+    c = c0.insert(1, c1)
+    assert skycoord_equal(c, ICRS([1, 5, 2] * u.deg, [3, 6, 4] * u.deg))
+
+    # Insert length=2 array at start of array
+    c = c0.insert(0, c3)
+    assert skycoord_equal(c, ICRS([10, 20, 1, 2] * u.deg, [30, 40, 3, 4] * u.deg))
+
+    # Insert length=2 array at end of array
+    c = c0.insert(2, c3)
+    assert skycoord_equal(c, ICRS([1, 2, 10, 20] * u.deg, [3, 4, 30, 40] * u.deg))

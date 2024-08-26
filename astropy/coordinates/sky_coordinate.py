@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import operator
 import re
 import warnings
 from typing import TYPE_CHECKING
@@ -15,18 +14,19 @@ from astropy.table import QTable
 from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
-from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle
-from .baseframe import BaseCoordinateFrame, GenericFrame, frame_transform_graph
+from .baseframe import (
+    BaseCoordinateFrame,
+    CoordinateFrameInfo,
+    GenericFrame,
+    frame_transform_graph,
+)
 from .distances import Distance
 from .representation import (
-    RadialDifferential,
     SphericalDifferential,
     SphericalRepresentation,
-    UnitSphericalCosLatDifferential,
-    UnitSphericalDifferential,
     UnitSphericalRepresentation,
 )
 from .sky_coordinate_parsers import (
@@ -41,134 +41,13 @@ if TYPE_CHECKING:
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
 
-class SkyCoordInfo(MixinInfo):
-    """
-    Container for meta information like name, description, format.  This is
-    required when the object is used as a mixin column within a table, but can
-    be used as a general way to store meta information.
-    """
-
-    attrs_from_parent = {"unit"}  # Unit is read-only
-    _supports_indexing = False
-
-    @staticmethod
-    def default_format(val):
-        repr_data = val.info._repr_data
-        formats = ["{0." + compname + ".value:}" for compname in repr_data.components]
-        return ",".join(formats).format(repr_data)
-
-    @property
-    def unit(self):
-        repr_data = self._repr_data
-        unit = ",".join(
-            str(getattr(repr_data, comp).unit) or "None"
-            for comp in repr_data.components
-        )
-        return unit
-
-    @property
-    def _repr_data(self):
-        if self._parent is None:
-            return None
-
-        sc = self._parent
-        if issubclass(sc.representation_type, SphericalRepresentation) and isinstance(
-            sc.data, UnitSphericalRepresentation
-        ):
-            repr_data = sc.represent_as(sc.data.__class__, in_frame_units=True)
-        else:
-            repr_data = sc.represent_as(sc.representation_type, in_frame_units=True)
-        return repr_data
-
+class SkyCoordInfo(CoordinateFrameInfo):
+    # Information for a SkyCoord is almost identical to that of a frame;
+    # we only need to add the name of the frame used underneath.
     def _represent_as_dict(self):
         sc = self._parent
-        attrs = list(sc.representation_component_names)
-
-        # Don't output distance unless it's actually distance.
-        if isinstance(sc.data, UnitSphericalRepresentation):
-            attrs = attrs[:-1]
-
-        diff = sc.data.differentials.get("s")
-        if diff is not None:
-            diff_attrs = list(sc.get_representation_component_names("s"))
-            # Don't output proper motions if they haven't been specified.
-            if isinstance(diff, RadialDifferential):
-                diff_attrs = diff_attrs[2:]
-            # Don't output radial velocity unless it's actually velocity.
-            elif isinstance(
-                diff, (UnitSphericalDifferential, UnitSphericalCosLatDifferential)
-            ):
-                diff_attrs = diff_attrs[:-1]
-            attrs.extend(diff_attrs)
-
-        attrs.extend(frame_transform_graph.frame_attributes.keys())
-
-        out = super()._represent_as_dict(attrs)
-
-        out["representation_type"] = sc.representation_type.get_name()
+        out = super()._represent_as_dict()
         out["frame"] = sc.frame.name
-        # Note that sc.info.unit is a fake composite unit (e.g. 'deg,deg,None'
-        # or None,None,m) and is not stored.  The individual attributes have
-        # units.
-
-        return out
-
-    def new_like(self, skycoords, length, metadata_conflicts="warn", name=None):
-        """
-        Return a new SkyCoord instance which is consistent with the input
-        SkyCoord objects ``skycoords`` and has ``length`` rows.  Being
-        "consistent" is defined as being able to set an item from one to each of
-        the rest without any exception being raised.
-
-        This is intended for creating a new SkyCoord instance whose elements can
-        be set in-place for table operations like join or vstack.  This is used
-        when a SkyCoord object is used as a mixin column in an astropy Table.
-
-        The data values are not predictable and it is expected that the consumer
-        of the object will fill in all values.
-
-        Parameters
-        ----------
-        skycoords : list
-            List of input SkyCoord objects
-        length : int
-            Length of the output skycoord object
-        metadata_conflicts : str ('warn'|'error'|'silent')
-            How to handle metadata conflicts
-        name : str
-            Output name (sets output skycoord.info.name)
-
-        Returns
-        -------
-        skycoord : |SkyCoord| (or subclass)
-            Instance of this class consistent with ``skycoords``
-
-        """
-        # Get merged info attributes like shape, dtype, format, description, etc.
-        attrs = self.merge_cols_attributes(
-            skycoords, metadata_conflicts, name, ("meta", "description")
-        )
-        skycoord0 = skycoords[0]
-
-        # Make a new SkyCoord object with the desired length and attributes
-        # by using the _apply / __getitem__ machinery to effectively return
-        # skycoord0[[0, 0, ..., 0, 0]]. This will have the all the right frame
-        # attributes with the right shape.
-        indexes = np.zeros(length, dtype=np.int64)
-        out = skycoord0[indexes]
-
-        # Use __setitem__ machinery to check for consistency of all skycoords
-        for skycoord in skycoords[1:]:
-            try:
-                out[0] = skycoord[0]
-            except Exception as err:
-                raise ValueError("Input skycoords are inconsistent.") from err
-
-        # Set (merged) info attributes
-        for attr in ("name", "meta", "description"):
-            if attr in attrs:
-                setattr(out.info, attr, attrs[attr])
-
         return out
 
 
@@ -509,73 +388,9 @@ class SkyCoord(ShapedLikeNDArray):
         self._sky_coord_frame[item] = value._sky_coord_frame
 
     def insert(self, obj, values, axis=0):
-        """
-        Insert coordinate values before the given indices in the object and
-        return a new Frame object.
+        return self.info._insert(obj, values, axis)
 
-        The values to be inserted must conform to the rules for in-place setting
-        of |SkyCoord| objects.
-
-        The API signature matches the ``np.insert`` API, but is more limited.
-        The specification of insert index ``obj`` must be a single integer,
-        and the ``axis`` must be ``0`` for simple insertion before the index.
-
-        Parameters
-        ----------
-        obj : int
-            Integer index before which ``values`` is inserted.
-        values : array-like
-            Value(s) to insert.  If the type of ``values`` is different
-            from that of quantity, ``values`` is converted to the matching type.
-        axis : int, optional
-            Axis along which to insert ``values``.  Default is 0, which is the
-            only allowed value and will insert a row.
-
-        Returns
-        -------
-        out : `~astropy.coordinates.SkyCoord` instance
-            New coordinate object with inserted value(s)
-
-        """
-        # Validate inputs: obj arg is integer, axis=0, self is not a scalar, and
-        # input index is in bounds.
-        try:
-            idx0 = operator.index(obj)
-        except TypeError:
-            raise TypeError("obj arg must be an integer")
-
-        if axis != 0:
-            raise ValueError("axis must be 0")
-
-        if not self.shape:
-            raise TypeError(
-                f"cannot insert into scalar {self.__class__.__name__} object"
-            )
-
-        if abs(idx0) > len(self):
-            raise IndexError(
-                f"index {idx0} is out of bounds for axis 0 with size {len(self)}"
-            )
-
-        # Turn negative index into positive
-        if idx0 < 0:
-            idx0 = len(self) + idx0
-
-        n_values = len(values) if values.shape else 1
-
-        # Finally make the new object with the correct length and set values for the
-        # three sections, before insert, the insert, and after the insert.
-        out = self.__class__.info.new_like(
-            [self], len(self) + n_values, name=self.info.name
-        )
-
-        # Set the output values. This is where validation of `values` takes place to ensure
-        # that it can indeed be inserted.
-        out[:idx0] = self[:idx0]
-        out[idx0 : idx0 + n_values] = values
-        out[idx0 + n_values :] = self[idx0:]
-
-        return out
+    insert.__doc__ = SkyCoordInfo._insert.__doc__
 
     def is_transformable_to(self, new_frame):
         """
@@ -900,30 +715,30 @@ class SkyCoord(ShapedLikeNDArray):
 
     def __setattr__(self, attr, val):
         # This is to make anything available through __getattr__ immutable
-        if "_sky_coord_frame" in self.__dict__:
-            if self._is_name(attr):
-                raise AttributeError(f"'{attr}' is immutable")
+        if attr != "info" and not attr.startswith("_"):
+            if "_sky_coord_frame" in self.__dict__:
+                if self._is_name(attr):
+                    raise AttributeError(f"'{attr}' is immutable")
 
-            if not attr.startswith("_") and hasattr(self._sky_coord_frame, attr):
-                setattr(self._sky_coord_frame, attr, val)
+                if hasattr(self._sky_coord_frame, attr):
+                    setattr(self._sky_coord_frame, attr, val)
+                    return
+
+            if attr in frame_transform_graph.frame_attributes:
+                # All possible frame attributes can be set, but only via a private
+                # variable.  See __getattr__ above.
+                super().__setattr__("_" + attr, val)
+                # Validate it
+                frame_transform_graph.frame_attributes[attr].__get__(self)
+                # And add to set of extra attributes
+                self._extra_frameattr_names |= {attr}
                 return
 
-            frame_cls = frame_transform_graph.lookup_name(attr)
-            if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
+            if frame_transform_graph.lookup_name(attr) is not None:
                 raise AttributeError(f"'{attr}' is immutable")
 
-        if attr in frame_transform_graph.frame_attributes:
-            # All possible frame attributes can be set, but only via a private
-            # variable.  See __getattr__ above.
-            super().__setattr__("_" + attr, val)
-            # Validate it
-            frame_transform_graph.frame_attributes[attr].__get__(self)
-            # And add to set of extra attributes
-            self._extra_frameattr_names |= {attr}
-
-        else:
-            # Otherwise, do the standard Python attribute setting
-            super().__setattr__(attr, val)
+        # Otherwise, do the standard Python attribute setting
+        super().__setattr__(attr, val)
 
     def __delattr__(self, attr):
         # mirror __setattr__ above
