@@ -1,5 +1,18 @@
                    Log of Changes Made to CFITSIO
                    
+Version 4.5.0 - Aug 2024
+
+  - Conversion of CFITSIO configure/build files to better conform with
+    automake and libtool.
+
+  - Bug fix for case of bit column output in string format on clang
+    compilers with high optimization.
+    
+  - Added compiler macro support to improve builds on loongarch64 and on
+    Gnu/Hurd kernels. 
+  
+  - Bug fix to fitsverify utility.
+                   
 Version 4.4.1 - Jun 2024
 
   - Removed NOSA license and restored previous license file
