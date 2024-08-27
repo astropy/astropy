@@ -759,6 +759,7 @@ class TestCompressedImage(FitsTestCase):
             hdul.writeto(self.temp("tmp.fits"), overwrite=True)
             with fits.open(self.temp("tmp.fits")) as hdul1:
                 hdu1 = hdul1[1]
+                assert len(hdu.header._keyword_indices["EXTNAME"]) == 1
                 assert hdu1.name == "NEW2"
 
             # Check that deleting EXTNAME will and setting the name will
