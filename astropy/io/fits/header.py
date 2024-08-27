@@ -1423,8 +1423,7 @@ class Header:
         # used by list.insert()
         if idx < 0:
             idx += len(self._cards) - 1
-            if idx < 0:
-                idx = 0
+            idx = max(idx, 0)
 
         # All the keyword indices above the insertion point must be updated
         self._updateindices(idx)
