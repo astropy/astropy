@@ -1,0 +1,2 @@
+Pretty-printing of Tables now also works in the presence of zero-length string
+columns (which sometimes are present in FITS tables).
