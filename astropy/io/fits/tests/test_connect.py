@@ -1116,3 +1116,14 @@ def test_unsigned_int_dtype_propagation_for_zero_length_table():
     hdu = BinTableHDU(tbl)
     tbl2 = Table.read(hdu)
     assert tbl.dtype == tbl2.dtype
+
+
+@pytest.mark.parametrize("table_type", [Table, QTable])
+def test_zero_length_string_columns_can_be_read_into_table(table_type, tmp_path):
+    filename = tmp_path / "zerodtable.fits"
+    data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
+    hdu = fits.BinTableHDU(data)
+    hdu.writeto(filename)
+    t = table_type.read(filename)
+    assert t["a"].dtype.itemsize == 0
+    assert t["a"].dtype == data["a"].dtype
