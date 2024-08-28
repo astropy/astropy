@@ -691,13 +691,6 @@ class FITS_rec(np.recarray):
         name = column.name
         format = column.format
 
-        if format.dtype.itemsize == 0:
-            warnings.warn(
-                f"Field {key!r} has a repeat count of 0 in its format code, "
-                "indicating an empty field."
-            )
-            return np.array([], dtype=format.dtype)
-
         # If field's base is a FITS_rec, we can run into trouble because it
         # contains a reference to the ._coldefs object of the original data;
         # this can lead to a circular reference; see ticket #49
