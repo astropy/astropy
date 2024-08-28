@@ -1086,3 +1086,15 @@ def test_multidims_with_zero_dim():
         "   b             ",
     ]
     assert t.pformat_all(show_dtype=True) == exp
+
+
+def test_zero_length_string():
+    data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
+    t = Table(data, copy=False)
+    exp = [
+        "  a      b  ",
+        "bytes0 int32",
+        "------ -----",
+        "          12",
+    ]
+    assert t.pformat_all(show_dtype=True) == exp
