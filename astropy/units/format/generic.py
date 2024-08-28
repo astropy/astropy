@@ -19,12 +19,10 @@ from __future__ import annotations
 import re
 import unicodedata
 import warnings
-from contextlib import suppress
-from copy import copy
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
-from astropy.units.errors import UnitScaleError, UnitsWarning
+from astropy.units.errors import UnitsWarning
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
@@ -642,23 +640,7 @@ class Generic(Base):
 
     @classmethod
     def _try_decomposed(cls, unit: UnitBase) -> str | None:
-        if (represents := getattr(unit, "_represents", None)) is not None:
-            with suppress(ValueError):
-                return cls._to_decomposed_alternative(represents)
-        if (decomposed := unit.decompose()) is not unit:
-            with suppress(ValueError):
-                return cls._to_decomposed_alternative(decomposed)
         return None
-
-    @classmethod
-    def _to_decomposed_alternative(cls, unit: UnitBase) -> str:
-        try:
-            return cls.to_string(unit)
-        except UnitScaleError:
-            scale = unit.scale
-            unit = copy(unit)
-            unit._scale = 1.0
-            return f"{cls.to_string(unit)} (with data multiplied by {scale})"
 
     @classmethod
     def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:

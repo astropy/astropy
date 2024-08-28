@@ -210,3 +210,7 @@ class VOUnit(generic.Generic):
             )
 
         return super().to_string(unit, fraction=fraction)
+
+    @classmethod
+    def _try_decomposed(cls, unit: UnitBase) -> str:
+        return cls.to_string(unit._represents)
