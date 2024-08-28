@@ -390,5 +390,27 @@ class Daophot(core.BaseReader):
         # The inputter needs to know about the data (see DaophotInputter.process_lines)
         self.inputter.data = self.data
 
+    def validate(self, source, guessing=False, strict_names=False):
+        """Validate the DAOphot table format.
+
+        This is strict, assuming output from the IRAF DAOphot routine which includes
+        all four header lines (#K, #N, #U, #F).
+        """
+        max_lines = core.MAX_VALIDATION_LINES_GUESSING if guessing else None
+        lines = core.get_lines_iter(source, encoding=self.encoding, max_lines=max_lines)
+
+        header_types = set()
+        for line in lines:
+            # Check for line starting with "#[NUF] " and set the header type
+            match = re.match(r"#([NUF])\s", line)
+            if match:
+                header_types.add(match.group(1))
+
+        # Require
+        if len(header_types) != 3:
+            raise core.InconsistentTableError(
+                "DAOphot table must have all four header types (#N, #U, #F)"
+            )
+
     def write(self, table=None):
         raise NotImplementedError
