@@ -212,5 +212,13 @@ class VOUnit(generic.Generic):
         return super().to_string(unit, fraction=fraction)
 
     @classmethod
+    def _fix_deprecated(cls, x: str) -> list[str]:
+        return (
+            [f"{x} (deprecated)", cls.to_string(cls._units[x]._represents)]
+            if x in cls._deprecated_units
+            else [x]
+        )
+
+    @classmethod
     def _try_decomposed(cls, unit: UnitBase) -> str:
         return cls.to_string(unit._represents)

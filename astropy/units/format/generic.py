@@ -627,16 +627,11 @@ class Generic(Base):
         msg : str
             A message with alternatives, or the empty string.
         """
+        return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
 
-        def fix_deprecated(x: str) -> list[str]:
-            if x not in cls._deprecated_units:
-                return [x]
-            results = [x + " (deprecated)"]
-            if (decomposed := cls._try_decomposed(cls._units[x])) is not None:
-                results.append(decomposed)
-            return results
-
-        return did_you_mean(unit, cls._units, fix=fix_deprecated)
+    @classmethod
+    def _fix_deprecated(cls, x: str) -> list[str]:
+        return [x + " (deprecated)" if x in cls._deprecated_units else x]
 
     @classmethod
     def _try_decomposed(cls, unit: UnitBase) -> str | None:
