@@ -18,7 +18,6 @@ FITS files
 
 from __future__ import annotations
 
-import copy
 import math
 import warnings
 from fractions import Fraction
@@ -367,20 +366,3 @@ class OGIP(generic.Generic):
                 )
 
         return super().to_string(unit, fraction=fraction)
-
-    @classmethod
-    def _to_decomposed_alternative(cls, unit):
-        # Remove units that aren't known to the format
-        unit = cls._decompose_to_known_units(unit)
-
-        if isinstance(unit, core.CompositeUnit):
-            # Can't use np.log10 here, because p[0] may be a Python long.
-            if math.log10(unit.scale) % 1.0 != 0.0:
-                scale = unit.scale
-                unit = copy.copy(unit)
-                unit._scale = 1.0
-                return (
-                    f"{generic._to_string(cls, unit)} (with data multiplied by {scale})"
-                )
-
-        return super().to_string(unit)
