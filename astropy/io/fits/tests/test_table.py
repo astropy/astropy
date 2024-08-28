@@ -1887,10 +1887,9 @@ class TestTableFunctions(FitsTestCase):
         hdul = fits.open(self.data("zerowidth.fits"))
         tbhdu = hdul[2]  # This HDU contains a zero-width column 'ORBPARM'
         assert "ORBPARM" in tbhdu.columns.names
-        # The ORBPARM column should not be in the data, though the data should
-        # be readable
         assert "ORBPARM" in tbhdu.data.names
         assert "ORBPARM" in tbhdu.data.dtype.names
+        assert tbhdu.data["ORBPARM"].shape == (29, 0)
         # Verify that some of the data columns are still correctly accessible
         # by name
         assert tbhdu.data[0]["ANNAME"] == "VLA:_W16"
@@ -1915,6 +1914,7 @@ class TestTableFunctions(FitsTestCase):
         assert "ORBPARM" in tbhdu.columns.names
         assert "ORBPARM" in tbhdu.data.names
         assert "ORBPARM" in tbhdu.data.dtype.names
+        assert tbhdu.data["ORBPARM"].shape == (29, 0)
         assert tbhdu.data[0]["ANNAME"] == "VLA:_W16"
         assert comparefloats(
             tbhdu.data[0]["STABXYZ"],
@@ -1929,6 +1929,17 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.data[-1]["NOSTA"] == 29
         assert tbhdu.data[-1]["MNTSTA"] == 0
         hdul.close()
+
+    def test_table_with_zero_width_str_column(self):
+        data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
+        thdu = fits.BinTableHDU(data)
+        thdu.writeto(self.temp("zerodtable.fits"))
+
+        with fits.open(self.temp("zerodtable.fits")) as hdul:
+            thdu = hdul[1]
+            assert hdul[1].columns["a"].format == "0A"
+            np.testing.assert_array_equal(hdul[1].data["a"], [""])
+            np.testing.assert_array_equal(hdul[1].data["b"], [12])
 
     def test_string_column_padding(self):
         a = ["img1", "img2", "img3a", "p"]
@@ -2679,11 +2690,9 @@ class TestTableFunctions(FitsTestCase):
             assert comparerecords(rgr_pl, rgr[0].data)
 
         with fits.open(self.data("zerowidth.fits")) as zwc:
-            # Doesn't pickle zero-width (_phanotm) column 'ORBPARM'
             zwc_pd = pickle.dumps(zwc[2].data)
             zwc_pl = pickle.loads(zwc_pd)
-            with pytest.warns(UserWarning, match="Field 2 has a repeat count of 0"):
-                assert comparerecords(zwc_pl, zwc[2].data)
+            assert comparerecords(zwc_pl, zwc[2].data)
 
     def test_zero_length_table(self):
         array = np.array([], dtype=[("a", "i8"), ("b", "S64"), ("c", ("i4", (3, 2)))])
@@ -3519,14 +3528,9 @@ class TestColumnFunctions(FitsTestCase):
             assert comparerecords(rgr_pl, rgr[0].data)
 
         with fits.open(self.data("zerowidth.fits")) as zwc:
-            # Doesn't pickle zero-width (_phanotm) column 'ORBPARM'
             zwc_pd = pickle.dumps(zwc[2].data)
             zwc_pl = pickle.loads(zwc_pd)
-            with pytest.warns(
-                UserWarning,
-                match=r"Field 2 has a repeat count of 0 in its format code",
-            ):
-                assert comparerecords(zwc_pl, zwc[2].data)
+            assert comparerecords(zwc_pl, zwc[2].data)
 
     def test_column_lookup_by_name(self):
         """Tests that a `ColDefs` can be indexed by column name."""
