@@ -1395,7 +1395,7 @@ def header_polarized():
     return Header.fromstring(HEADER_POLARIZED, sep="\n")
 
 
-@pytest.fixture()
+@pytest.fixture
 def wcs_polarized(header_polarized):
     return WCS(header_polarized)
 
