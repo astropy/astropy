@@ -76,7 +76,8 @@ class Basic(core.BaseReader):
             List of table lines
 
         """
-        lines = core.get_lines_iter(source, encoding=self.encoding)
+        max_lines = core.MAX_VALIDATION_LINES_GUESSING if guessing else None
+        lines = core.get_lines_iter(source, encoding=self.encoding, max_lines=max_lines)
         start_line = core._get_line_index(
             self.header.start_line, self.header.process_lines(lines)
         )
@@ -91,11 +92,11 @@ class Basic(core.BaseReader):
                     "No data lines found so cannot autogenerate column names"
                 )
             n_data_cols = len(first_data_vals)
-            print(f"first_data_vals: {first_data_vals}")
-            print(f"n_data_cols: {n_data_cols}")
 
         else:
-            lines = core.get_lines_iter(source, encoding=self.encoding)
+            lines = core.get_lines_iter(
+                source, encoding=self.encoding, max_lines=max_lines
+            )
             for i, line in enumerate(self.header.process_lines(lines)):
                 if i == start_line:
                     break

@@ -472,7 +472,8 @@ class Ipac(basic.Basic):
         guessing: bool = False,
         strict_names: bool = False,
     ) -> None:
-        lines = core.get_lines_iter(source, encoding=self.encoding)
+        max_lines = core.MAX_VALIDATION_LINES_GUESSING if guessing else None
+        lines = core.get_lines_iter(source, encoding=self.encoding, max_lines=max_lines)
         # Collect up to the first 10 IPAC header lines. This means discarding blank
         # lines or comment lines (starting with "\") and stopping after 10 lines are
         # returned.

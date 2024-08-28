@@ -40,6 +40,9 @@ FORMAT_CLASSES = {}
 # Similar dictionary for fast readers
 FAST_CLASSES = {}
 
+# Max number of source lines used for validation when guessing format
+MAX_VALIDATION_LINES_GUESSING = 1000
+
 
 def _check_multidim_table(table, max_ndim):
     """Check that ``table`` has only columns with ndim <= ``max_ndim``.
@@ -142,6 +145,7 @@ def get_lines_iter(
     source: SourceType,
     newline: str | None = None,
     encoding: str | None = None,
+    max_lines: int | None = None,
 ) -> Generator[str, None, None]:
     """Get an iterator over the source lines for any data source type.
 
@@ -163,13 +167,18 @@ def get_lines_iter(
     source_type = detect_source_type(source)
     if source_type in ("filename", "file-like"):
         with get_readable_fileobj(source, encoding=encoding) as fileobj:
-            yield from (line.rstrip("\r\n") for line in fileobj)
+            lines = (line.rstrip("\r\n") for line in fileobj)
     elif source_type == "data-str":
-        yield from get_lines_from_str_iter(source, newline)
+        lines = get_lines_from_str_iter(source, newline)
     elif source_type == "data-list":
-        yield from source
+        lines = source
     else:
         raise ValueError(f"unsupported source type {source_type}")
+
+    if max_lines is not None:
+        lines = itertools.islice(lines, max_lines)
+
+    yield from lines
 
 
 def slice_lines_iter(
