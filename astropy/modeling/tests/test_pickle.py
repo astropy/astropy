@@ -69,12 +69,12 @@ ROTATIONS = [
 ]
 
 
-@pytest.fixture()
+@pytest.fixture
 def inputs():
     return 0.3, 0.4
 
 
-@pytest.fixture()
+@pytest.fixture
 def inputs_math():
     return 1, -0.5
 
