@@ -1,0 +1,3 @@
+Ensure that ``QTable``, like ``Table``, can read zero-length string columns,
+and not convert them to length 1 strings. In the process, avoid a needless
+copy of all the data for ``QTable``.
