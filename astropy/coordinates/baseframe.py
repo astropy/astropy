@@ -26,7 +26,7 @@ from astropy import units as u
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.decorators import deprecated, format_doc, lazyproperty
-from astropy.utils.exceptions import AstropyWarning, _add_note_to_exception
+from astropy.utils.exceptions import AstropyWarning
 
 from . import representation as r
 from .angles import Angle, position_angle
@@ -557,8 +557,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         try:
             self._shape = np.broadcast_shapes(*shapes)
         except ValueError as exc:
-            _add_note_to_exception(
-                exc,
+            exc.add_note(
                 f"non-scalar data and/or attributes with inconsistent shapes: {shapes}",
             )
             raise exc

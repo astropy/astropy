@@ -27,7 +27,8 @@
 import doctest
 import os
 import sys
-from datetime import datetime, timezone
+import tomllib
+from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
 
@@ -36,12 +37,6 @@ from packaging.specifiers import SpecifierSet
 from sphinx.util import logging
 
 # from docs import global_substitutions
-
-
-if sys.version_info < (3, 11):
-    import tomli as tomllib
-else:
-    import tomllib
 
 logger = logging.getLogger(__name__)
 
@@ -211,7 +206,7 @@ toc_object_entries = False
 
 project = "Astropy"
 author = "The Astropy Developers"
-copyright = f"2011–{datetime.now(tz=timezone.utc).year}, " + author
+copyright = f"2011–{datetime.now(tz=UTC).year}, " + author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

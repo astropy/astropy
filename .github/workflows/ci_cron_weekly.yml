@@ -44,10 +44,10 @@ jobs:
           # that gives too many false positives due to URL timeouts. We also
           # install all dependencies via pip here so we pick up the latest
           # releases.
-          - name: Python 3.10 with dev version of key dependencies
+          - name: Python 3.11 with dev version of key dependencies
             os: ubuntu-latest
-            python: '3.10'
-            toxenv: py310-test-devdeps
+            python: '3.11'
+            toxenv: py311-test-devdeps
 
           # https://github.com/astropy/astropy/issues/15701
           - name: Python 3.11 with dev version of key dependencies without scipy
