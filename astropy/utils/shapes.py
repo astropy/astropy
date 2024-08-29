@@ -33,10 +33,9 @@ __all__ = [
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from types import EllipsisType
-    from typing import TypeVar
+    from typing import Self, TypeVar
 
     from numpy.typing import NDArray
-    from typing_extensions import Self
 
     DT = TypeVar("DT", bound=np.generic)
 

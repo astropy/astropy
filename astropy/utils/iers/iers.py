@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import os
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 from warnings import warn
@@ -47,7 +47,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.state import ScienceState
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
+    from typing import Self
 
 __all__ = [
     "Conf",
@@ -1122,9 +1122,7 @@ class LeapSeconds(QTable):
     def _today():
         # Get current day in scale='tai' without going through a scale change
         # (so we do not need leap seconds).
-        s = "{0.year:04d}-{0.month:02d}-{0.day:02d}".format(
-            datetime.now(tz=timezone.utc)
-        )
+        s = "{0.year:04d}-{0.month:02d}-{0.day:02d}".format(datetime.now(tz=UTC))
         return Time(s, scale="tai", format="iso", out_subfmt="date")
 
     @classmethod

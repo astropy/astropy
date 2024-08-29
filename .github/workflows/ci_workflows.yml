@@ -76,8 +76,8 @@ jobs:
           toxargs: -v --develop
           posargs: -n=4 --run-slow
 
-        - name: Python 3.10 with oldest supported version of all dependencies
-          linux: py310-test-oldestdeps-alldeps-cov-clocale
+        - name: Python 3.11 with oldest supported version of all dependencies
+          linux: py311-test-oldestdeps-alldeps-cov-clocale
           posargs: --remote-data=astropy
           coverage: codecov
 
@@ -90,8 +90,8 @@ jobs:
           posargs: --durations=50 --run-slow
           runs-on: macos-latest
 
-        - name: Python 3.10 Double test (Run tests twice)
-          linux: py310-test-double
+        - name: Python 3.11 Double test (Run tests twice)
+          linux: py311-test-double
 
   allowed_failures:
     needs: [initial_checks]

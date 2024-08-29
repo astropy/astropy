@@ -7,7 +7,6 @@ In particular, this implements the logic that determines scaling and result
 units for a given ufunc, given input units.
 """
 
-import sys
 from fractions import Fraction
 
 import numpy as np
@@ -37,7 +36,7 @@ def get_converter(from_unit, to_unit):
     """
     try:
         converter = from_unit.get_converter(to_unit)
-    except AttributeError as e:
+    except AttributeError as exc:
         # Check for lack of unit only now, to avoid delay for cases where a unit
         # was present. Note that cases where dimensionless is expected are
         # already short-circuited; here, we cover just the case where, e.g., the
@@ -47,15 +46,11 @@ def get_converter(from_unit, to_unit):
         try:
             converter = dimensionless_unscaled.get_converter(to_unit)
         except UnitsError:
-            note = (
+            exc.add_note(
                 "Input without a 'unit' attribute? Such input is treated "
                 f"as dimensionless and cannot be converted to {to_unit}."
             )
-            if sys.version_info >= (3, 11):
-                e.add_note(note)
-                raise e
-            else:
-                raise AttributeError("\n".join([e.args[0], note])) from None
+            raise exc
 
     return None if converter is unit_scale_converter else converter
 

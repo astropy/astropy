@@ -1486,7 +1486,7 @@ def test_now():
 
     # `Time.datetime` is not timezone aware, meaning `.replace` is necessary for
     # `now` also not be timezone aware.
-    now = datetime.datetime.now(tz=datetime.timezone.utc).replace(tzinfo=None)
+    now = datetime.datetime.now(tz=datetime.UTC).replace(tzinfo=None)
 
     t = Time.now()
 

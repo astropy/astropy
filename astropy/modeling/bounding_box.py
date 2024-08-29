@@ -19,9 +19,7 @@ from astropy.utils.compat import COPY_IF_NEEDED
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from typing import Any
-
-    from typing_extensions import Self
+    from typing import Any, Self
 
     from astropy.units import UnitBase
 
