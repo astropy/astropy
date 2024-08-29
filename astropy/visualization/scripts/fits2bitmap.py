@@ -83,8 +83,6 @@ def fits2bitmap(
     import matplotlib as mpl
     import matplotlib.image as mimg
 
-    from astropy.utils.introspection import minversion
-
     # __main__ gives ext as a string
     try:
         ext = int(ext)
@@ -109,14 +107,7 @@ def fits2bitmap(
     # explicitly define the output format
     out_format = os.path.splitext(out_fn)[1][1:]
 
-    try:
-        if minversion(mpl, "3.5"):
-            mpl.colormaps[cmap]
-        else:
-            from matplotlib import cm
-
-            cm.get_cmap(cmap)
-    except (ValueError, KeyError):
+    if cmap not in mpl.colormaps:
         log.critical(f"{cmap} is not a valid matplotlib colormap name.")
         return 1
 
