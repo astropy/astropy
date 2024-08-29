@@ -1145,3 +1145,23 @@ def test_masked_unit_conversion():
     c = table.MaskedColumn([3.5, 2.4, 1.7], name="test", unit=u.km)
     c.convert_unit_to(u.m)
     assert c.unit == (c * 2.0).unit
+
+
+@pytest.mark.parametrize(
+    "copy",
+    [
+        False,
+        pytest.param(
+            True,
+            marks=pytest.mark.xfail(
+                reason="See https://github.com/numpy/numpy/issues/27301"
+            ),
+        ),
+    ],
+)
+def test_zero_length_strings(Column, copy):
+    # Easiest way to get a zero-sized byte string is with a structured dtype.
+    data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
+    col = Column(data["a"], name="a", copy=copy)
+    assert col.dtype.itemsize == 0
+    assert col.dtype == data.dtype["a"]
