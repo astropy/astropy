@@ -19,12 +19,10 @@ from __future__ import annotations
 import re
 import unicodedata
 import warnings
-from contextlib import suppress
-from copy import copy
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
-from astropy.units.errors import UnitScaleError, UnitsWarning
+from astropy.units.errors import UnitsWarning
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
@@ -629,36 +627,15 @@ class Generic(Base):
         msg : str
             A message with alternatives, or the empty string.
         """
+        return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
 
-        def fix_deprecated(x: str) -> list[str]:
-            if x not in cls._deprecated_units:
-                return [x]
-            results = [x + " (deprecated)"]
-            if (decomposed := cls._try_decomposed(cls._units[x])) is not None:
-                results.append(decomposed)
-            return results
-
-        return did_you_mean(unit, cls._units, fix=fix_deprecated)
+    @classmethod
+    def _fix_deprecated(cls, x: str) -> list[str]:
+        return [x + " (deprecated)" if x in cls._deprecated_units else x]
 
     @classmethod
     def _try_decomposed(cls, unit: UnitBase) -> str | None:
-        if (represents := getattr(unit, "_represents", None)) is not None:
-            with suppress(ValueError):
-                return cls._to_decomposed_alternative(represents)
-        if (decomposed := unit.decompose()) is not unit:
-            with suppress(ValueError):
-                return cls._to_decomposed_alternative(decomposed)
         return None
-
-    @classmethod
-    def _to_decomposed_alternative(cls, unit: UnitBase) -> str:
-        try:
-            return cls.to_string(unit)
-        except UnitScaleError:
-            scale = unit.scale
-            unit = copy(unit)
-            unit._scale = 1.0
-            return f"{cls.to_string(unit)} (with data multiplied by {scale})"
 
     @classmethod
     def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:
