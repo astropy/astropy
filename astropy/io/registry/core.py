@@ -225,7 +225,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                 # registered.  This returns the parent class, so try coercing
                 # to desired subclass.
                 try:
-                    data = cls(data)
+                    data = cls(data, copy=False)
                 except Exception:
                     raise TypeError(
                         f"could not convert reader output to {cls.__name__} class."
