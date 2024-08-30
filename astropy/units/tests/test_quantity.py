@@ -13,7 +13,7 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
-from astropy.utils import isiterable, minversion
+from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.masked import Masked
@@ -1882,10 +1882,9 @@ def test_insert():
     assert q2.unit is u.m
     assert q2.dtype.kind == "f"
 
-    if minversion(np, "1.8.0"):
-        q2 = q.insert(1, [1, 2] * u.km)
-        assert np.all(q2.value == [1, 1000, 2000, 2])
-        assert q2.unit is u.m
+    q2 = q.insert(1, [1, 2] * u.km)
+    assert np.all(q2.value == [1, 1000, 2000, 2])
+    assert q2.unit is u.m
 
     # Cannot convert 1.5 * u.s to m
     with pytest.raises(u.UnitsError):
