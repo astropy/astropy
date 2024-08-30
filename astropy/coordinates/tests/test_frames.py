@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import re
-import sys
 from copy import deepcopy
 
 import numpy as np
@@ -259,8 +258,8 @@ def test_no_data_nonscalar_frames():
     assert a1.shape == (3, 10)
 
     match = r".*inconsistent shapes.*"
-    if sys.version_info >= (3, 11) and PYTEST_LT_8_0:
-        # Exception.__notes__ are available but ignored in matching,
+    if PYTEST_LT_8_0:
+        # Exception.__notes__ are ignored in matching,
         # so we'll match manually and post-mortem instead
         direct_match = None
     else:
@@ -751,8 +750,8 @@ def test_time_inputs():
 
     # If the shapes are not broadcastable, then we should raise an exception.
     match = r".*inconsistent shapes.*"
-    if sys.version_info >= (3, 11) and PYTEST_LT_8_0:
-        # Exception.__notes__ are available but ignored in matching,
+    if PYTEST_LT_8_0:
+        # Exception.__notes__ are ignored in matching,
         # so we'll match manually and post-mortem instead
         direct_match = None
     else:

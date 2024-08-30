@@ -3,8 +3,6 @@
 Test Structured units and quantities specifically with the ERFA ufuncs.
 """
 
-import sys
-
 import numpy as np
 import pytest
 from erfa import ufunc as erfa_ufunc
@@ -130,9 +128,8 @@ class TestPVUfuncs:
         # Non-quantity input should be treated as dimensionless and thus cannot
         # be converted to radians.
         match = "'NoneType' object has no attribute 'get_converter'"
-        if not (PYTEST_LT_8_0 and sys.version_info >= (3, 11)):
-            # For python>=3.11, we use Exception.add_note, which
-            # pytest < 8 does not know how to deal with.
+        if not PYTEST_LT_8_0:
+            # pytest < 8 does not know how to deal with Exception.add_note
             match += ".*\n.*treated as dimensionless"
         with pytest.raises(AttributeError, match=match):
             erfa_ufunc.s2p(0.5, 0.5, 4 * u.km)
@@ -550,9 +547,8 @@ class TestGeodetic:
         """Test unit errors when dimensionless parameters are used"""
 
         msg = "'NoneType' object has no attribute 'get_converter'"
-        if not (PYTEST_LT_8_0 and sys.version_info >= (3, 11)):
-            # For python>=3.11, we use Exception.add_note, which
-            # pytest < 8 does not know how to deal with.
+        if not PYTEST_LT_8_0:
+            # pytest < 8 does not know how to deal with Exception.add_note
             msg += ".*\n.*treated as dimensionless"
         with pytest.raises(AttributeError, match=msg):
             erfa_ufunc.gc2gde(self.equatorial_radius_value, self.flattening, self.xyz)
