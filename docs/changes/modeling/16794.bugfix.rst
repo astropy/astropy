@@ -1,1 +1,0 @@
-Fixed the ``fit_deriv`` calculations in the ``Lorentz1D`` model.
