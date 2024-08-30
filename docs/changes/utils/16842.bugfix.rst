@@ -1,3 +1,0 @@
-Fix the return type for ``np.broadcast_arrays`` on a single ``Masked``
-instance: it now correctly returns a 1-element sequence instead of a single
-array, just like would be the case with a regular array.
