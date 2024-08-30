@@ -1,1 +1,0 @@
-Fix reading zero-width columns such as 0A fields.
