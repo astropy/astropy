@@ -1,0 +1,2 @@
+Removed needless functions from an io.ascii test helper file
+This PR addresses this issue and changes all instances of the removed functions in the test files.
