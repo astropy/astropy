@@ -38,7 +38,7 @@ def _wcs_to_world_dask(wcs, shape, chunks=None):
         *pixel_nd,
         wcs=deepcopy(wcs),
         new_axis=0,
-        chunks=(3,) + chunks,
+        chunks=(len(shape),) + chunks,
     )
     return tuple([world[idx] for idx in range(len(shape))])
 
@@ -186,7 +186,6 @@ def _fit_models_to_chunk(
             index_abs = np.array(index) + np.array(
                 [block_info[0]["array-location"][idx][0] for idx in iterating_axes]
             )
-            # index = tuple(int(idx) for idx in np.unravel_index(i_abs, iterating_shape))
             maxlen = int(ceil(log10(max(iterating_shape))))
             fmt = "{0:0" + str(maxlen) + "d}"
             index_folder = os.path.join(
@@ -218,6 +217,18 @@ def _fit_models_to_chunk(
 
 
 class ParameterContainer:
+    """
+    This is an array container intended to be passed to dask's ``from_array``.
+
+    The initial parameter values need to be broadcast up to the data shape so
+    that map_blocks can then iterate over both the data and parameters. We
+    need to control the final chunking so that it matches the data. However,
+    rather than use dask to do the broadcasting and rechunking, which creates a
+    complex graph and results in high memory usage, this class can be used
+    instead to do all the broadcasting on-the-fly with Numpy as needed and keeps
+    the dask graph simple.
+    """
+
     def __init__(self, values, iterating_shape, iterating_axes, data_shape):
         self._values = values
         self.shape = data_shape
@@ -283,12 +294,14 @@ def parallel_fit_dask(
         fitters for more information about the meaning of weights.
     fitting_axes : int or tuple
         The axes to keep for the fitting (other axes will be sliced/iterated over)
-    world : `None` or dict or APE-14-WCS
-        This can be specified either as a dictionary mapping fitting axes to
-        world axis values, or as a WCS for the whole cube. If the former, then
-        the values in the dictionary can be either 1D arrays, or can be given
-        as N-dimensional arrays with shape broadcastable to the data shape. If
-        not specified, the fitting is carried out in pixel coordinates.
+    world : `None` or tuple or APE-14-WCS
+        This can be specified either as a tuple of world coordinates for each
+        fitting axis, or as WCS for the whole cube. If specified as a tuple,
+        the values in the tuple can be either 1D arrays, or can be given as
+        N-dimensional arrays with shape broadcastable to the data shape. If
+        specified as a WCS, the WCS can have any dimensionality so long as it
+        matches the data. If not specified, the fitting is carried out in pixel
+        coordinates.
     chunk_n_max : int
         Maximum number of fits to include in a chunk. If this is made too
         large, then the workload will not be split properly over processes, and
