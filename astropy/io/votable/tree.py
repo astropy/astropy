@@ -2644,7 +2644,6 @@ class TableElement(
             mask = np.zeros((nrows,), dtype=descr_mask)
 
         self.array = ma.array(array, mask=mask)
-        self._nrows = nrows
 
     def _resize_strategy(self, size):
         """
@@ -3531,7 +3530,6 @@ class TableElement(
             np.delete(self.array, index), mask=np.delete(self.array.mask, index)
         )
         self.array = new_array
-        self._nrows = len(new_array)
 
         # Return element that was popped
         return requested_element

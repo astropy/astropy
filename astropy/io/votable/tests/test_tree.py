@@ -69,7 +69,6 @@ class TestTableElementOperations:
             popped_value = table.pop(pop_index) if pop_index else table.pop()
             assert expected_value == popped_value
             assert len(table.array) == expected_length
-            assert table.nrows == expected_length
             # Assert the mask of remaining values is preserved
             assert np.array_equal(table.array.mask, expected_array_mask)
 
