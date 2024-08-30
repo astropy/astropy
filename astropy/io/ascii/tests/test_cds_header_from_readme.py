@@ -44,7 +44,11 @@ def test_description():
             "oscillator strength"
         )
         assert table["EW"].description == "Equivalent width (in mA)"
-        assert table["Q"].description == "DAOSPEC quality parameter Q (large values are bad)"
+        assert (
+            table["Q"].description
+            == "DAOSPEC quality parameter Q (large values are bad)"
+        )
+
 
 def test_multi_header():
     readme = "data/cds/multi/ReadMe"

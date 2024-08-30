@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+
 __all__ = [
     "setup_function",
     "teardown_function",
@@ -16,6 +17,7 @@ def setup_function(function):
 
 def teardown_function(function):
     os.chdir(CWD)
+
 
 def assert_equal_splitlines(arg1, arg2):
     __tracebackhide__ = True
