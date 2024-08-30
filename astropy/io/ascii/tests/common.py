@@ -1,9 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-
-import numpy as np
-
 __all__ = [
     "setup_function",
     "teardown_function",

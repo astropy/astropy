@@ -41,7 +41,7 @@ def test_description():
         assert table["ion"].description == "- Ionization stage (1 for neutral element)"
         assert table["loggf"].description == (
             "log10 of the gf value - logarithm base 10 of stat. weight times "
-            "oscillator strength",
+            "oscillator strength"
         )
         assert table["EW"].description == "Equivalent width (in mA)"
         assert table["Q"].description == "DAOSPEC quality parameter Q (large values are bad)"
@@ -226,7 +226,7 @@ def test_cds_no_whitespace():
     assert r.header.cols[7].description == "Equivalent width (in mA)"
     assert r.header.cols[7].null == "-9.9"
     assert r.header.cols[10].description == (
-        "DAOSPEC quality parameter Q (large values are bad)",
+        "DAOSPEC quality parameter Q (large values are bad)"
     )
     assert r.header.cols[10].null == "-9.999"
 

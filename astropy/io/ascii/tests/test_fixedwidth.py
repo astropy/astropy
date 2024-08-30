@@ -184,7 +184,7 @@ def test_read_no_header_names_NoHeader():
     dat = ascii.read(
         table, format="fixed_width_no_header", names=("Name", "Phone", "TCP")
     )
-    assert tuple(dat.dtype.names) ("Name", "Phone", "TCP")
+    assert tuple(dat.dtype.names) == ("Name", "Phone", "TCP")
     assert dat[1][0] == "Mary"
     assert dat[0][1] == "555-1234"
     assert dat[2][2] == "192.168.1.9"
