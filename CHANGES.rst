@@ -1,3 +1,53 @@
+Version 6.1.3 (2024-08-30)
+==========================
+
+Bug Fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix reading zero-width columns such as 0A fields. [#16894]
+
+- Ensure that ``QTable``, like ``Table``, can read zero-length string columns,
+  and not convert them to length 1 strings. In the process, avoid a needless
+  copy of all the data for ``QTable``. [#16898]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Fix KeyError when parsing certain VOTables. [#16830]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed the ``fit_deriv`` calculations in the ``Lorentz1D`` model. [#16794]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Pretty-printing of Tables now also works in the presence of zero-length string
+  columns (which sometimes are present in FITS tables). [#16898]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Fix the return type for ``np.broadcast_arrays`` on a single ``Masked``
+  instance: it now correctly returns a 1-element sequence instead of a single
+  array, just like would be the case with a regular array. [#16842]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fix a bug where ``wcs_info_str``'s results would look different in numpy 2 VS
+  numpy 1. [#16586]
+
+
+Other Changes and Additions
+---------------------------
+
+- The minimum required version of PyArrow is now v7.0.0. [#16785]
+
 Version 6.1.2 (2024-07-23)
 ==========================
 
