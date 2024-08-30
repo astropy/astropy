@@ -3,6 +3,7 @@ import filecmp
 import io
 from contextlib import nullcontext
 
+import numpy as np
 import pytest
 
 from astropy.io.votable import tree
@@ -11,6 +12,87 @@ from astropy.io.votable.table import parse
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.data import get_pkg_data_filename
+
+
+class TestTableElementOperations:
+    def _generate_common_votable(self):
+        votable = VOTableFile()
+        # ...with one resource...
+        resource = Resource()
+        votable.resources.append(resource)
+
+        # ... with one table
+        table = tree.TableElement(votable)
+        resource.tables.append(table)
+
+        # ... and fields of multiple types
+        table.fields.extend(
+            [
+                tree.Field(votable, name="TestText", datatype="char", arraysize="*"),
+                tree.Field(votable, name="TestFloat", datatype="float", unit="mag"),
+                tree.Field(
+                    votable, name="TestMatrix", datatype="double", arraysize="2x2"
+                ),
+            ]
+        )
+        return votable
+
+    def test_make_Fields(self):
+        self._generate_common_votable()
+
+    def test_table_element_create_pop(self):
+        """Tests adding and popping values from a table"""
+        # Prepare Table
+        length_to_test = 5
+        votable = self._generate_common_votable()
+        resource_table = votable.resources[0].tables[0]
+        resource_table.create_arrays(length_to_test)
+
+        # Test adding elements to the table
+        for i in range(1, length_to_test + 1):
+            resource_table.array[i - 1] = (
+                f"TestEntry{i}",
+                np.random.rand(),
+                np.random.rand(2, 2),
+            )
+            # Alternate mask True/False for odd/even indexes to increase mask complexity check
+            resource_table.array.mask[i - 1] = bool(i % 2)
+        assert len(resource_table.array) == length_to_test
+
+        def _pop_and_compare(table, reference_index, pop_index, expected_length):
+            """
+            Compares a direct value of the table with returned popped value of given index values.
+            Also compares the final length of the table with the given expected length
+            """
+            expected_value = np.ma.getdata(table.array)[reference_index]
+            expected_array_mask = np.delete(resource_table.array.mask, reference_index)
+            popped_value = table.pop(pop_index) if pop_index else table.pop()
+            assert expected_value == popped_value
+            assert len(table.array) == expected_length
+            assert table.nrows == expected_length
+            # Assert the mask of remaining values is preserved
+            assert np.array_equal(table.array.mask, expected_array_mask)
+
+        # Test IndexError outside of bounds
+        with pytest.raises(IndexError):
+            resource_table.pop(length_to_test)
+
+        with pytest.raises(IndexError):
+            resource_table.pop(-length_to_test - 1)
+
+        # Test popping extreme ends on the negative...
+        _pop_and_compare(resource_table, 0, -length_to_test, length_to_test - 1)
+        # ... and the extreme positive
+        _pop_and_compare(
+            resource_table,
+            len(resource_table.array) - 1,
+            len(resource_table.array) - 1,
+            length_to_test - 2,
+        )
+        # Test popping with default value (last)
+        _pop_and_compare(
+            resource_table, len(resource_table.array) - 1, None, length_to_test - 3
+        )
 
 
 def test_check_astroyear_fail():
@@ -24,21 +106,6 @@ def test_string_fail():
     config = {"verify": "exception"}
     with pytest.raises(W08):
         tree.check_string(42, "foo", config)
-
-
-def test_make_Fields():
-    votable = VOTableFile()
-    # ...with one resource...
-    resource = Resource()
-    votable.resources.append(resource)
-
-    # ... with one table
-    table = tree.TableElement(votable)
-    resource.tables.append(table)
-
-    table.fields.extend(
-        [tree.Field(votable, name="Test", datatype="float", unit="mag")]
-    )
 
 
 def test_unit_format():

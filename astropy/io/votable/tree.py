@@ -3509,6 +3509,32 @@ class TableElement(
     def iter_info(self):
         yield from self.infos
 
+    def pop(self, index=-1):
+        """
+        Remove and return item at index (default last).
+
+        Raises IndexError if list is empty or index is out of range.
+        """
+        # Ensure we're within bounds of the array
+        if abs(index) > len(self.array.data):
+            raise IndexError("pop index out of range")
+        # If negative indexing, convert to true index
+        elif index < 0:
+            index = len(self.array) + index
+
+        # Cache requested element before deletion
+        requested_element = np.ma.getdata(self.array)[index]
+
+        # Construct new copy of array without requested element
+        new_array = np.ma.masked_array(
+            np.delete(self.array, index), mask=np.delete(self.array.mask, index)
+        )
+        self.array = new_array
+        self._nrows = len(new_array)
+
+        # Return element that was popped
+        return requested_element
+
 
 class MivotBlock(Element):
     """
