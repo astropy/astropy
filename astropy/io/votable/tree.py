@@ -2644,6 +2644,7 @@ class TableElement(
             mask = np.zeros((nrows,), dtype=descr_mask)
 
         self.array = ma.array(array, mask=mask)
+        self._nrows = nrows
 
     def _resize_strategy(self, size):
         """
