@@ -15,7 +15,13 @@ from astropy.utils import classproperty
 from . import core, generic, utils
 
 if TYPE_CHECKING:
-    from astropy.units import UnitBase
+    from re import Pattern
+    from typing import ClassVar, Literal
+
+    import numpy as np
+
+    from astropy.extern.ply.lex import LexToken
+    from astropy.units import NamedUnit, UnitBase
 
 
 class VOUnit(generic.Generic):
@@ -26,11 +32,13 @@ class VOUnit(generic.Generic):
     <http://www.ivoa.net/documents/VOUnits/>`_.
     """
 
-    _explicit_custom_unit_regex = re.compile(r"^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$")
-    _custom_unit_regex = re.compile(r"^((?!\d)\w)+$")
-    _custom_units = {}
-    _space = "."
-    _scale_unit_separator = ""
+    _explicit_custom_unit_regex: ClassVar[Pattern[str]] = re.compile(
+        r"^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$"
+    )
+    _custom_unit_regex: ClassVar[Pattern[str]] = re.compile(r"^((?!\d)\w)+$")
+    _custom_units: ClassVar[dict[str, UnitBase]] = {}
+    _space: ClassVar[str] = "."
+    _scale_unit_separator: ClassVar[str] = ""
 
     @classproperty(lazy=True)
     def _all_units(cls) -> tuple[dict[str, UnitBase], frozenset[str]]:
@@ -81,7 +89,7 @@ class VOUnit(generic.Generic):
         return cls._all_units[1]
 
     @classmethod
-    def parse(cls, s, debug=False):
+    def parse(cls, s: str, debug: bool = False) -> UnitBase:
         if s in ("unknown", "UNKNOWN"):
             return None
         if s == "":
@@ -98,7 +106,7 @@ class VOUnit(generic.Generic):
         return result
 
     @classmethod
-    def _get_unit(cls, t):
+    def _get_unit(cls, t: LexToken) -> UnitBase:
         try:
             return super()._get_unit(t)
         except ValueError:
@@ -119,7 +127,7 @@ class VOUnit(generic.Generic):
             raise
 
     @classmethod
-    def _parse_unit(cls, unit, detailed_exception=True):
+    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
         super()._validate_unit(unit, detailed_exception=False)
         return cls._units[unit]
 
@@ -129,7 +137,7 @@ class VOUnit(generic.Generic):
             super()._validate_unit(unit, detailed_exception)
 
     @classmethod
-    def _get_unit_name(cls, unit):
+    def _get_unit_name(cls, unit: NamedUnit) -> str:
         # The da- and d- prefixes are discouraged.  This has the
         # effect of adding a scale to value in the result.
         if isinstance(unit, core.PrefixUnit):
@@ -146,7 +154,7 @@ class VOUnit(generic.Generic):
         return super()._get_unit_name(unit)
 
     @classmethod
-    def _def_custom_unit(cls, unit):
+    def _def_custom_unit(cls, unit: str) -> UnitBase:
         def def_base(name):
             if name in cls._custom_units:
                 return cls._custom_units[name]
@@ -180,11 +188,13 @@ class VOUnit(generic.Generic):
         return def_base(unit)
 
     @classmethod
-    def _format_superscript(cls, number):
+    def _format_superscript(cls, number: str) -> str:
         return f"**({number})" if "/" in number or "." in number else f"**{number}"
 
     @classmethod
-    def format_exponential_notation(cls, val, format_spec=".8g"):
+    def format_exponential_notation(
+        cls, val: float | np.number, format_spec: str = ".8g"
+    ) -> str:
         return super().format_exponential_notation(val, format_spec)
 
     @classmethod
@@ -198,7 +208,9 @@ class VOUnit(generic.Generic):
         return f"{scale}{numerator}/{denominator}"
 
     @classmethod
-    def to_string(cls, unit, fraction=False):
+    def to_string(
+        cls, unit: UnitBase, fraction: bool | Literal["inline"] = False
+    ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)
 
