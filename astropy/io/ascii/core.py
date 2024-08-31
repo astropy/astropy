@@ -164,21 +164,18 @@ def get_lines_iter(
     lines : iterator
         Iterator over the table lines.
     """
+    islice = itertools.islice
+
     source_type = detect_source_type(source)
     if source_type in ("filename", "file-like"):
         with get_readable_fileobj(source, encoding=encoding) as fileobj:
-            lines = (line.rstrip("\r\n") for line in fileobj)
+            yield from islice((line.rstrip("\r\n") for line in fileobj), max_lines)
     elif source_type == "data-str":
-        lines = get_lines_from_str_iter(source, newline)
+        yield from islice(get_lines_from_str_iter(source, newline), max_lines)
     elif source_type == "data-list":
-        lines = source
+        yield from islice(source, max_lines)
     else:
         raise ValueError(f"unsupported source type {source_type}")
-
-    if max_lines is not None:
-        lines = itertools.islice(lines, max_lines)
-
-    yield from lines
 
 
 def slice_lines_iter(
