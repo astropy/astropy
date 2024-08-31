@@ -8,8 +8,10 @@ the amount of development effort contributed over time (the codebase's "health")
 Assessments of The Astropy Project's engagement with the diverse astronomy
 community are an equally important but separate consideration and are detailed
 in:
-* `Astropy community engagement study <https://zenodo.org/records/10603049>`_
-* `Astropy diversity, equity and inclusion study <https://astropy-dei.orgmycology.com/>`_
+
+- `Astropy community engagement study <https://zenodo.org/records/10603049>`_
+
+- `Astropy diversity, equity and inclusion study <https://astropy-dei.orgmycology.com/>`_
 
 Concerning the codebase, a major positive trend is that citations to ``astropy``,
 as a proxy for its usage in research, have been consistently growing since The
