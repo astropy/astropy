@@ -85,6 +85,8 @@ def detect_source_type(source: SourceType) -> str:
     source_type : str
         The type of source input: 'filename', 'data-str', 'file-like', or 'data-list'.
     """
+    from . import cparser
+
     if isinstance(source, str):
         # Either a filename or a string of data.
         if "\n" in source or "\r" in source:
@@ -93,6 +95,8 @@ def detect_source_type(source: SourceType) -> str:
             source_type = "filename"
     elif hasattr(source, "read"):
         source_type = "file-like"
+    elif isinstance(source, cparser.FileString):
+        source_type = "cparser-filestring"
     else:
         # Check if it is list-like (supports indexing, slicing, iteration) and with at
         # least one string-like element
@@ -174,6 +178,8 @@ def get_lines_iter(
         yield from islice(get_lines_from_str_iter(source, newline), max_lines)
     elif source_type == "data-list":
         yield from islice(source, max_lines)
+    elif source_type == "cparser-filestring":
+        yield from islice(source.splitlines(), max_lines)
     else:
         raise ValueError(f"unsupported source type {source_type}")
 

@@ -315,7 +315,8 @@ class FastCommentedHeader(FastBasic):
         tmp = self.engine.source
         commented_lines = []
 
-        for line in tmp.splitlines():
+        max_lines = core.MAX_VALIDATION_LINES_GUESSING if self.guessing else None
+        for line in core.get_lines_iter(tmp, max_lines=max_lines):
             line = line.lstrip()
             if line and line[0] == self.comment:  # line begins with a comment
                 commented_lines.append(line[1:])
@@ -358,7 +359,8 @@ class FastRdb(FastBasic):
         tmp = self.engine.source
         line1 = ""
         line2 = ""
-        for line in tmp.splitlines():
+        max_lines = core.MAX_VALIDATION_LINES_GUESSING if self.guessing else None
+        for line in core.get_lines_iter(tmp, max_lines=max_lines):
             # valid non-comment line
             if not line1 and line.strip() and line.lstrip()[0] != self.comment:
                 line1 = line
