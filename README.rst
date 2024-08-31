@@ -4,11 +4,12 @@
 
 ----
 
-|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
+|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status|
+|Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
 ----
 The Astropy Project is a community effort to develop a
-single core package for astronomy in Python and foster interoperability between packages used in the field.
-This repository contains the core library.
+single core package for astronomy in Python and foster interoperability between
+packages used in the field. This repository contains the core library.
 
 * `Website <https://astropy.org/>`_
 * `Documentation <https://docs.astropy.org/>`_
@@ -26,7 +27,8 @@ To install `astropy` from PyPI, use:
 
     pip install astropy
 
-For more detailed instructions, see the `install guide <https://docs.astropy.org/en/stable/install.html>`_ in the docs.
+For more detailed instructions, see the `install guide
+<https://docs.astropy.org/en/stable/install.html>`_ in the docs.
 
 Contributing
 ============
@@ -34,18 +36,21 @@ Contributing
 The Astropy Project is made both by and for its users, so we welcome and
 encourage contributions of many kinds. Our goal is to keep this a positive,
 inclusive, successful, and growing community that abides by the
-`Astropy Community Code of Conduct <https://www.astropy.org/about.html#codeofconduct>`_.
+`Astropy Community Code of Conduct
+<https://www.astropy.org/about.html#codeofconduct>`_.
 
-For guidance on contributing to or submitting feedback for the Astropy Project, see the
-`contributions page <https://www.astropy.org/contribute.html>`_.
-For contributing code specifically, the developer docs have a `guide <https://docs.astropy.org/en/latest/index_dev.html>`_ with a quickstart.
+For guidance on contributing to or submitting feedback for the Astropy Project,
+see the `contributions page <https://www.astropy.org/contribute.html>`_.
+For contributing code specifically, the developer docs have a
+`guide <https://docs.astropy.org/en/latest/index_dev.html>`_ with a quickstart.
 There's also a `summary of contribution guidelines <CONTRIBUTING.md>`_.
 
 Developing with Codespaces
 ==========================
 
-GitHub Codespaces is a cloud development environment using Visual Studio Code in your browser.
-This is a convenient way to start developing Astropy, using our `dev container <.devcontainer/devcontainer.json>`_ configured
+GitHub Codespaces is a cloud development environment using Visual Studio Code
+in your browser. This is a convenient way to start developing Astropy, using
+our `dev container <.devcontainer/devcontainer.json>`_ configured
 with the required packages. For help, see the `GitHub Codespaces
 docs <https://docs.github.com/en/codespaces>`_.
 
@@ -53,7 +58,9 @@ docs <https://docs.github.com/en/codespaces>`_.
 
 Acknowledging and Citing
 ========================
-See the `acknowledgement and citation guide <https://www.astropy.org/acknowledging.html>`_ and the `CITATION <https://github.com/astropy/astropy/blob/main/astropy/CITATION>`_ file.
+See the `acknowledgement and citation guide
+<https://www.astropy.org/acknowledging.html>`_ and the `CITATION
+<https://github.com/astropy/astropy/blob/main/astropy/CITATION>`_ file.
 
 Supporting the Project
 ======================
