@@ -2,14 +2,21 @@
 Impact and Health
 #################
 
-The figures on this page give a sense of the level of impact ``astropy`` has on the
-astronomy community and research in the field, as well as the amount of
-development effort contributed over time (the codebase's "health"). A major
-positive trend is that citations to ``astropy``, and by proxy its usage in
-research, has been consistently growing since The Astropy Project was created.
-However, the amount of developer resources has remained small, with a limited
-number of volunteer maintainers met with an increasing amount of development
-responsibility. Hence, we welcome any help that you can give!
+The figures on this page give a sense of the level of impact the ``astropy``
+codebase has on the astronomy community and research in the field, as well as
+the amount of development effort contributed over time (the codebase's "health").
+Assessments of The Astropy Project's engagement with the diverse astronomy
+community are an equally important but separate consideration and are detailed
+in:
+* `Astropy community engagement study <https://zenodo.org/records/10603049>`_
+* `Astropy diversity, equity and inclusion study <https://astropy-dei.orgmycology.com/>`_
+
+Concerning the codebase, a major positive trend is that citations to ``astropy``,
+as a proxy for its usage in research, have been consistently growing since The
+Astropy Project was created. However, the amount of developer resources has
+remained small, with a limited number of volunteer maintainers met with an
+increasing amount of development responsibility. Hence, we welcome any help
+that you can give!
 
 First considering the citations, this figure estimates ``astropy``'s usage in
 astronomy research by its yearly publication impact, using citations drawn from
