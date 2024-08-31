@@ -2,12 +2,7 @@
 
 import os
 
-import numpy as np
-
 __all__ = [
-    "assert_equal",
-    "assert_almost_equal",
-    "assert_true",
     "setup_function",
     "teardown_function",
 ]
@@ -22,19 +17,6 @@ def setup_function(function):
 
 def teardown_function(function):
     os.chdir(CWD)
-
-
-# Compatibility functions to convert from nose to pytest
-def assert_equal(a, b):
-    assert a == b
-
-
-def assert_almost_equal(a, b, **kwargs):
-    assert np.allclose(a, b, **kwargs)
-
-
-def assert_true(a):
-    assert a
 
 
 def assert_equal_splitlines(arg1, arg2):
