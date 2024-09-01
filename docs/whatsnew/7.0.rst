@@ -19,6 +19,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_contributor_doc_improvement`
 * :ref:`whatsnew_7_0_typing_stats`
 * :ref:`whatsnew_7_0_unit_conversion_array_like`
+* :ref:`whatsnew_7_0_tdat_reader`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -137,6 +138,17 @@ value in ``Unit.to`` and have those arrays not be converted to Numpy arrays::
     dask.array<mul, shape=(10,), dtype=float64, chunksize=(10,), chunktype=numpy.ndarray>
 
 Note that it is not yet possible to use ``Quantity`` with dask arrays directly.
+
+.. _whatsnew_7_0_tdat_reader:
+
+Reading and writing TDAT files with ``astropy.io.ascii``
+========================================================
+
+The TDAT format, specified by https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html,
+is now supported by the Unified File Read/Write Interface.
+
+Note that this format is compatible with ``Table`` objects with integer, float,
+and/or string data types, but not ``QTable`` objects or other data types.
 
 Full change log
 ===============
