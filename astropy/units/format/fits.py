@@ -16,6 +16,8 @@ from astropy.utils import classproperty
 from . import core, generic, utils
 
 if TYPE_CHECKING:
+    from typing import Literal
+
     from astropy.units import UnitBase
 
 
@@ -60,12 +62,14 @@ class FITS(generic.Generic):
         return names
 
     @classmethod
-    def _parse_unit(cls, unit, detailed_exception=True):
+    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
         cls._validate_unit(unit, detailed_exception=detailed_exception)
         return cls._units[unit]
 
     @classmethod
-    def to_string(cls, unit, fraction=False):
+    def to_string(
+        cls, unit: UnitBase, fraction: bool | Literal["inline"] = False
+    ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)
 
@@ -93,7 +97,7 @@ class FITS(generic.Generic):
         return cls._scale_unit_separator.join(parts)
 
     @classmethod
-    def parse(cls, s, debug=False):
+    def parse(cls, s: str, debug: bool = False) -> UnitBase:
         result = super().parse(s, debug)
         if hasattr(result, "function_unit"):
             raise ValueError("Function units are not yet supported for FITS units.")
