@@ -628,6 +628,30 @@ def _guess(table, read_kwargs, format, fast_reader):
         cparser.CParserError,
     )
 
+    # Check what line endings are being used in file
+    line_ending = "\r\n" if "\r" in table else "\n"
+
+    # Determine whether we should limit the number of lines used in the guessing
+    from astropy.io.ascii import conf  # avoid circular imports
+
+    limit_lines = conf.guess_limit_lines
+
+    # Don't limit the number of lines if there are fewer than this number of
+    # lines in the table. In fact, we also don't limit the number of lines if
+    # there are just above the number of lines compared to the limit, up to a
+    # factor of 2, since it is fast to just go straight to the full table read.
+    if limit_lines and table.count(line_ending) > 2 * limit_lines:
+        # Now search for the position of the Nth line ending
+        pos = 0
+        for iter in range(limit_lines):
+            pos = table.index(line_ending, pos + 1)
+
+        # Define table subset
+        table_guess_subset = table[:pos]
+
+    else:
+        table_guess_subset = None
+
     # Now cycle through each possible reader and associated keyword arguments.
     # Try to read the table using those args, and if an exception occurs then
     # keep track of the failed guess and move on.
@@ -641,6 +665,13 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader = get_reader(**guess_kwargs)
 
             reader.guessing = True
+
+            if table_guess_subset:
+                # First try with subset of lines - if this fails we can skip this
+                # format early. If it works, we still proceed to check with the
+                # full table since we need to then return the read data.
+                reader.read(table_guess_subset)
+
             dat = reader.read(table)
             _read_trace.append(
                 {
