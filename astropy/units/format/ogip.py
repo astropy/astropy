@@ -29,9 +29,11 @@ from astropy.utils import classproperty, parsing
 from . import core, generic, utils
 
 if TYPE_CHECKING:
-    from typing import ClassVar
+    from typing import ClassVar, Literal
 
+    from astropy.extern.ply.lex import Lexer
     from astropy.units import UnitBase
+    from astropy.utils.parsing import ThreadSafeParser
 
 
 class OGIP(generic.Generic):
@@ -41,7 +43,7 @@ class OGIP(generic.Generic):
     <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
     """
 
-    _tokens = (
+    _tokens: ClassVar[tuple[str, ...]] = (
         "DIVISION",
         "OPEN_PAREN",
         "CLOSE_PAREN",
@@ -98,7 +100,7 @@ class OGIP(generic.Generic):
         return names
 
     @classproperty(lazy=True)
-    def _lexer(cls):
+    def _lexer(cls) -> Lexer:
         tokens = cls._tokens
 
         t_DIVISION = r"/"
@@ -152,7 +154,7 @@ class OGIP(generic.Generic):
         return parsing.lex(lextab="ogip_lextab", package="astropy/units")
 
     @classproperty(lazy=True)
-    def _parser(cls):
+    def _parser(cls) -> ThreadSafeParser:
         """
         The grammar here is based on the description in the
         `Specification of Physical Units within OGIP FITS files
@@ -340,20 +342,22 @@ class OGIP(generic.Generic):
         return parsing.yacc(tabmodule="ogip_parsetab", package="astropy/units")
 
     @classmethod
-    def _parse_unit(cls, unit, detailed_exception=True):
+    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
         cls._validate_unit(unit, detailed_exception=detailed_exception)
         return cls._units[unit]
 
     @classmethod
-    def parse(cls, s, debug=False):
+    def parse(cls, s: str, debug: bool = False) -> UnitBase:
         return cls._do_parse(s.strip(), debug)
 
     @classmethod
-    def _format_superscript(cls, number):
+    def _format_superscript(cls, number: str) -> str:
         return f"**({number})" if "/" in number else f"**{number}"
 
     @classmethod
-    def to_string(cls, unit, fraction="inline"):
+    def to_string(
+        cls, unit: UnitBase, fraction: bool | Literal["inline"] = "inline"
+    ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)
 
