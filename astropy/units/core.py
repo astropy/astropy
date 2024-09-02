@@ -618,8 +618,6 @@ class UnitBase:
     # arrays to avoid element-wise multiplication.
     __array_priority__ = 1000
 
-    _hash = None
-
     def __deepcopy__(self, memo):
         # This may look odd, but the units conversion will be very
         # broken after deep-copying if we don't guarantee that a given
@@ -889,15 +887,14 @@ class UnitBase:
         )
         return NotImplemented
 
-    def __hash__(self):
-        if self._hash is None:
-            parts = (
-                [str(self.scale)]
-                + [x.name for x in self.bases]
-                + [str(x) for x in self.powers]
-            )
-            self._hash = hash(tuple(parts))
+    def __hash__(self) -> int:
         return self._hash
+
+    @cached_property
+    def _hash(self) -> int:
+        return hash(
+            (str(self.scale), *[x.name for x in self.bases], *map(str, self.powers))
+        )
 
     def __getstate__(self):
         # If we get pickled, we should *not* store the memoized members since
@@ -2244,10 +2241,9 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
     def is_unity(self):
         return self._represents.is_unity()
 
-    def __hash__(self):
-        if self._hash is None:
-            self._hash = hash((self.name, self._represents))
-        return self._hash
+    @cached_property
+    def _hash(self) -> int:
+        return hash((self.name, self._represents))
 
     @classmethod
     def _from_physical_type_id(cls, physical_type_id):

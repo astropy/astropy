@@ -621,11 +621,11 @@ def test_pickle_does_not_keep_memoized_hash(unit):
     to mimic separate sessions in a simple test. See gh-11872.
     """
     unit_hash = hash(unit)
-    assert unit._hash is not None
+    assert "_hash" in vars(unit)
     unit_copy = pickle.loads(pickle.dumps(unit))
     # unit is not registered so we get a copy.
     assert unit_copy is not unit
-    assert unit_copy._hash is None
+    assert "_hash" not in vars(unit_copy)
     assert hash(unit_copy) == unit_hash
     with u.add_enabled_units([unit]):
         # unit is registered, so we get a reference.
