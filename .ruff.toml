@@ -257,7 +257,6 @@ lint.unfixable = [
 ]
 "astropy/stats/*" = [
     "PLR0911",  # too-many-return-statements
-    "PTH",      # all flake8-use-pathlib
 ]
 "astropy/table/*" = [
     "PTH",      # all flake8-use-pathlib
