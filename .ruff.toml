@@ -126,27 +126,6 @@ lint.ignore = [
     "PT018",   # pytest-composite-assertion
     "PT022",   # pytest-useless-yield-fixture
 
-    # flake8-use-pathlib (PTH)
-    "PTH100",  # os-path-abspath
-    "PTH101",  # os-chmod
-    "PTH102",  # os-mkdir
-    "PTH103",  # os-makedirs
-    "PTH104",  # os-rename
-    "PTH107",  # os-remove
-    "PTH108",  # os-unlink
-    "PTH109",  # os-getcwd
-    "PTH110",  # os-path-exists
-    "PTH111",  # os-path-expanduser
-    "PTH112",  # os-path-isdir
-    "PTH113",  # os-path-isfile
-    "PTH118",  # os-path-join
-    "PTH119",  # os-path-basename
-    "PTH120",  # os-path-dirname
-    "PTH122",  # os-path-splitext
-    "PTH123",  # builtin-open
-    "PTH202",  # `os.path.getsize` should be replaced by `Path.stat().st_size`
-    "PTH207",  # Replace `glob` with `Path.glob` or `Path.rglob`
-
     # flake8-return (RET)
     "RET501",  # unnecessary-return-none
     "RET502",  # implicit-return-value
@@ -217,6 +196,7 @@ lint.unfixable = [
 [lint.extend-per-file-ignores]
 "__init__.py" = ["E402", "F401", "F403"]
 "test_*.py" = [
+    "PTH", # all flake8-use-pathlib
     "RUF015",  # Prefer next({iterable}) over single element slice
 ]
 # TODO: fix these, on a per-subpackage basis.
@@ -224,21 +204,24 @@ lint.unfixable = [
 # is better to fix for subpackages individually. The general exclusion should be
 # copied to these subpackage sections and fixed there.
 "astropy/config/*" = [
-    "PTH114",  # os-path-islink
+    "PTH",     # all flake8-use-pathlib
     "PTH206",  # Replace `.split(os.sep)` with `Path.parts`
 ]
 "astropy/constants/*" = [
-    "N817",  # camelcase-imported-as-acronym
+    "N817",    # camelcase-imported-as-acronym
     "RET505",  # superfluous-else-return
 ]
 "astropy/convolution/*" = [
+    "PTH",      # all flake8-use-pathlib
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/coordinates/*" = [
+    "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
     "RET505",  # superfluous-else-return
 ]
 "astropy/cosmology/*" = [
+    "PTH",     # all flake8-use-pathlib
     "C408",  # unnecessary-collection-call
     "PT019",   # pytest-fixture-param-without-value
 ]
@@ -248,14 +231,20 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
     "PTH116",  # os-stat
     "PTH117",  # os-path-isabs
+    "PTH",      # all flake8-use-pathlib
     "SLOT000",  # Subclasses of `str` should define `__slots__`
     "TD005",  # Missing issue description after `TODO`
     "TRY400",  # error-instead-of-exception
     "TRY300",  # Consider `else` block
 ]
-"astropy/logger.py" = ["C408", "RET505"]
+"astropy/logger.py" = [
+    "C408",
+    "PTH",      # all flake8-use-pathlib
+    "RET505",
+]
 "astropy/modeling/*" = [
     "PLR0911",  # too-many-return-statements
+    "PTH",      # all flake8-use-pathlib
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
     "TRY300",  # Consider `else` block
     "F811",  # see https://github.com/astropy/astropy/pull/16633
@@ -264,26 +253,36 @@ lint.unfixable = [
     "C408",
 ]
 "astropy/samp/*" = [
+    "PTH",      # all flake8-use-pathlib
 ]
 "astropy/stats/*" = [
     "PLR0911",  # too-many-return-statements
+    "PTH",      # all flake8-use-pathlib
 ]
 "astropy/table/*" = [
+    "PTH",      # all flake8-use-pathlib
     "S605",  # Starting a process with a shell, possible injection detected
     "TRY300",  # Consider `else` block
 ]
-"astropy/tests/*" = ["C408", "RET505"]
+"astropy/tests/*" = [
+    "C408",
+    "PTH",      # all flake8-use-pathlib
+    "RET505"
+]
 "astropy/time/*" = [
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
+    "PTH",      # all flake8-use-pathlib
 ]
 "astropy/timeseries/*" = [
     "PLR0911",  # too-many-return-statements
+    "PTH",      # all flake8-use-pathlib
 ]
 "astropy/units/*" = [
     "F821",  # undefined-name
     "N812",  # lowercase-imported-as-non-lowercase
     "PLR0911",  # too-many-return-statements
+    "PTH",      # all flake8-use-pathlib
     "TRY300",  # Consider `else` block
 ]
 "astropy/uncertainty/*" = [
@@ -292,19 +291,24 @@ lint.unfixable = [
 "astropy/utils/*" = [
     "N811",  # constant-imported-as-non-constant
     "PLR0911",  # too-many-return-statements
+    "PTH",      # all flake8-use-pathlib
     "S321",  # Suspicious-ftp-lib-usage
     "TRY300",  # Consider `else` block
 ]
 "astropy/visualization/*" = [
     "B015",
     "PLR0911",  # too-many-return-statements
+    "PTH",      # all flake8-use-pathlib
 ]
 "astropy/wcs/*" = [
     "C408",  # unnecessary-collection-call
     "F821",  # undefined-name
+    "PTH",      # all flake8-use-pathlib
     "S608",  # Posslibe SQL injection
     "SIM202",  # NegateNotEqualOp
     "TRY300",  # Consider `else` block
 ]
 "docs/*" = []
 "examples/coordinates/*" = []
+
+".pyinstaller/*.py" = ["PTH"]
