@@ -10,6 +10,7 @@ import os
 import sys
 import tempfile
 import warnings
+from pathlib import Path
 
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
@@ -88,8 +89,8 @@ def pytest_configure(config):
     os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp("astropy_config")
     os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp("astropy_cache")
 
-    os.mkdir(os.path.join(os.environ["XDG_CONFIG_HOME"], "astropy"))
-    os.mkdir(os.path.join(os.environ["XDG_CACHE_HOME"], "astropy"))
+    Path(os.environ["XDG_CONFIG_HOME"]).joinpath("astropy").mkdir()
+    Path(os.environ["XDG_CACHE_HOME"]).joinpath("astropy").mkdir()
 
     config.option.astropy_header = True
     PYTEST_HEADER_MODULES["PyERFA"] = "erfa"
