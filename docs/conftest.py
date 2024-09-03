@@ -7,6 +7,7 @@
 
 import os
 import tempfile
+from pathlib import Path
 
 import pytest
 
@@ -16,8 +17,8 @@ import pytest
 os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp("astropy_config")
 os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp("astropy_cache")
 
-os.mkdir(os.path.join(os.environ["XDG_CONFIG_HOME"], "astropy"))
-os.mkdir(os.path.join(os.environ["XDG_CACHE_HOME"], "astropy"))
+Path(os.environ["XDG_CONFIG_HOME"]).joinpath("astropy").mkdir()
+Path(os.environ["XDG_CACHE_HOME"]).joinpath("astropy").mkdir()
 
 # Note that we don't need to change the environment variables back or remove
 # them after testing, because they are only changed for the duration of the
@@ -34,7 +35,7 @@ def _docdir(request):
         # Don't apply this fixture to io.rst.  It reads files and doesn't write.
         # Implementation from https://github.com/pytest-dev/pytest/discussions/10437
         if "io.rst" not in request.node.name:
-            old_cwd = os.getcwd()
+            old_cwd = Path.cwd()
             tmp_path = request.getfixturevalue("tmp_path")
             os.chdir(tmp_path)
             yield
