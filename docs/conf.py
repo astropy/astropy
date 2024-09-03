@@ -122,6 +122,7 @@ intersphinx_mapping.update(
         "asdf-astropy": ("https://asdf-astropy.readthedocs.io/en/latest/", None),
         "fsspec": ("https://filesystem-spec.readthedocs.io/en/latest/", None),
         "cycler": ("https://matplotlib.org/cycler/", None),
+        "dask": ("https://docs.dask.org/en/stable/", None),
     }
 )
 
