@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import inspect
-import os
 
 import pytest
 
@@ -82,15 +81,15 @@ class ReadWriteTestMixin(
         if (format, Cosmology) not in readwrite_registry._readers:
             pytest.xfail(f"no read method is registered for format {format!r}")
 
-        fname = str(tmp_path / f"{cosmo.name}.{format}")
+        fname = tmp_path / f"{cosmo.name}.{format}"
         cosmo.write(fname, format=format)
 
         # Also test kwarg "overwrite"
-        assert os.path.exists(fname)  # file exists
+        assert fname.is_file()
         with pytest.raises(IOError):
             cosmo.write(fname, format=format, overwrite=False)
 
-        assert os.path.exists(fname)  # overwrite file existing file
+        assert fname.exists()  # overwrite file existing file
         cosmo.write(fname, format=format, overwrite=True)
 
         # Read back

@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
-from os.path import dirname, join, relpath
+from os.path import relpath
+from pathlib import Path
 
 from setuptools import Extension
 
-ASTROPY_COSMOLOGY_ROOT = dirname(__file__)
+ASTROPY_COSMOLOGY_ROOT = Path(__file__).parent
 
 
 if sys.platform.startswith("win"):
@@ -22,7 +23,7 @@ def get_extensions():
     return [
         Extension(
             "astropy.cosmology._signature_deprecations",
-            [relpath(join(ASTROPY_COSMOLOGY_ROOT, "_signature_deprecations.c"))],
+            [relpath(Path(ASTROPY_COSMOLOGY_ROOT, "_signature_deprecations.c"))],
             extra_compile_args=extra_compile_args,
         ),
     ]
