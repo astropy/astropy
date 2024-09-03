@@ -4,10 +4,10 @@ Module to test fitting routines
 """
 
 # pylint: disable=invalid-name
-import os.path
 import unittest.mock as mk
 from importlib.metadata import EntryPoint
 from itertools import combinations
+from pathlib import Path
 from unittest import mock
 
 import numpy as np
@@ -234,10 +234,11 @@ class TestLinearLSQFitter:
     def test_chebyshev1D(self):
         """Tests fitting a 1D Chebyshev polynomial to some real world data."""
 
-        test_file = get_pkg_data_filename(os.path.join("data", "idcompspec.fits"))
-        with open(test_file) as f:
-            lines = f.read()
-            reclist = lines.split("begin")
+        reclist = (
+            Path(get_pkg_data_filename("data/idcompspec.fits"))
+            .read_text()
+            .split("begin")
+        )
 
         record = irafutil.IdentifyRecord(reclist[1])
         coeffs = record.coeff

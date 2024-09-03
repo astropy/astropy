@@ -244,7 +244,6 @@ lint.unfixable = [
 ]
 "astropy/modeling/*" = [
     "PLR0911",  # too-many-return-statements
-    "PTH",      # all flake8-use-pathlib
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
     "TRY300",  # Consider `else` block
     "F811",  # see https://github.com/astropy/astropy/pull/16633
