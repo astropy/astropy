@@ -10,11 +10,11 @@
 
 import inspect
 import logging
-import os
 import sys
 import warnings
 from contextlib import contextmanager
 from logging import CRITICAL, DEBUG, ERROR, FATAL, INFO, NOTSET, WARNING
+from pathlib import Path
 
 from . import conf as _conf
 from . import config as _config
@@ -228,12 +228,12 @@ class AstropyLogger(Logger):
         # find the module object and thus the fully-package-specified module
         # name.  The module.__file__ is the original source file name.
         mod_name = None
-        mod_path, ext = os.path.splitext(mod_path)
-        for name, mod in list(sys.modules.items()):
+        mod_path = Path(mod_path).with_suffix("")
+        for mod in sys.modules.values():
             try:
                 # Believe it or not this can fail in some cases:
                 # https://github.com/astropy/astropy/issues/2671
-                path = os.path.splitext(getattr(mod, "__file__", ""))[0]
+                path = Path(getattr(mod, "__file__", "")).with_suffix("")
             except Exception:
                 continue
             if path == mod_path:
@@ -524,11 +524,11 @@ class AstropyLogger(Logger):
 
             try:
                 if log_file_path == "" or testing_mode:
-                    log_file_path = os.path.join(
-                        _config.get_config_dir("astropy"), "astropy.log"
+                    log_file_path = (
+                        Path(_config.get_config_dir("astropy")) / "astropy.log"
                     )
                 else:
-                    log_file_path = os.path.expanduser(log_file_path)
+                    log_file_path = Path(log_file_path).expanduser()
 
                 encoding = conf.log_file_encoding if conf.log_file_encoding else None
                 fh = logging.FileHandler(log_file_path, encoding=encoding)
