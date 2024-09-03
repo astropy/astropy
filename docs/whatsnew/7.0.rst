@@ -19,6 +19,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_contributor_doc_improvement`
 * :ref:`whatsnew_7_0_typing_stats`
 * :ref:`whatsnew_7_0_unit_conversion_array_like`
+* :ref:`whatsnew_7_0_parallel_fitting`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -137,6 +138,33 @@ value in ``Unit.to`` and have those arrays not be converted to Numpy arrays::
     dask.array<mul, shape=(10,), dtype=float64, chunksize=(10,), chunktype=numpy.ndarray>
 
 Note that it is not yet possible to use ``Quantity`` with dask arrays directly.
+
+.. _whatsnew_7_0_parallel_fitting:
+
+Fitting models in parallel with N-dimensional data
+==================================================
+
+A new function, :func:`~astropy.modeling.fitting.parallel_fit_dask`, has been
+added to the :mod:`astropy.modeling` module. This function makes it easy to fit
+many parts of an N-dimensional array in parallel, such as fitting all the
+spectra in a spectral cube. This makes use of the `dask
+<https://www.dask.org/>`_ package to efficiently parallelize the problem,
+running it either on multiple processes of a single machine or in a distributed
+environment. A simple example might be:
+
+.. doctest-skip::
+
+    >>> from astropy.modeling.models import Gaussian1D
+    >>> from astropy.modeling.fitting import parallel_fit_dask, LevMarLSQFitter
+    >>> model_fit = parallel_fit_dask(model=Gaussian1D(),
+    ...                               fitter=LevMarLSQFitter(),
+    ...                               data=data,
+    ...                               world=wcs,
+    ...                               fitting_axes=0)
+
+where ``data`` is a 3-D array, and ``wcs`` is the :class:`~astropy.wcs.WCS`
+object associated with the data. A full example can be found at
+:ref:`parallel-fitting`.
 
 Full change log
 ===============
