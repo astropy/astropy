@@ -239,7 +239,6 @@ lint.unfixable = [
 ]
 "astropy/logger.py" = [
     "C408",
-    "PTH",      # all flake8-use-pathlib
     "RET505",
 ]
 "astropy/modeling/*" = [
