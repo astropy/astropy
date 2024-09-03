@@ -212,7 +212,6 @@ lint.unfixable = [
     "RET505",  # superfluous-else-return
 ]
 "astropy/convolution/*" = [
-    "PTH",      # all flake8-use-pathlib
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/coordinates/*" = [
