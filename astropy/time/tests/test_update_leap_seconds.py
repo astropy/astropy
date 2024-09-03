@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import erfa
 import pytest
@@ -59,10 +60,10 @@ class TestUpdateLeapSeconds:
 
     def test_auto_update_corrupt_file(self, tmp_path):
         bad_file = tmp_path / "no_expiration"
-        with open(iers.IERS_LEAP_SECOND_FILE) as fh:
-            lines = fh.readlines()
-        with open(bad_file, "w") as fh:
-            fh.write("\n".join([line for line in lines if not line.startswith("#")]))
+        lines = Path(iers.IERS_LEAP_SECOND_FILE).read_text().splitlines()
+        bad_file.write_text(
+            "\n".join(line for line in lines if not line.startswith("#"))
+        )
 
         with pytest.warns(AstropyWarning, match="ValueError.*did not find expiration"):
             update_leap_seconds([bad_file])
@@ -73,13 +74,11 @@ class TestUpdateLeapSeconds:
         expired.update_erfa_leap_seconds(initialize_erfa="empty")
         # Create similarly expired file.
         expired_file = str(tmp_path / "expired.dat")
-        with open(expired_file, "w") as fh:
-            fh.write(
-                "\n".join(
-                    ["# File expires on 28 June 2010"] + [str(item) for item in expired]
-                )
+        Path(expired_file).write_text(
+            "\n".join(
+                ["# File expires on 28 June 2010"] + [str(item) for item in expired]
             )
-
+        )
         with pytest.warns(iers.IERSStaleWarning):
             update_leap_seconds(["erfa", expired_file])
 
