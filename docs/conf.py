@@ -311,7 +311,7 @@ nitpicky = True
 show_warning_types = True
 # See docs/nitpick-exceptions file for the actual listing.
 nitpick_ignore = []
-for line in open("nitpick-exceptions"):
+for line in open("nitpick-exceptions"):  # noqa: PTH123
     if line.strip() == "" or line.startswith("#"):
         continue
     dtype, target = line.split(None, 1)
