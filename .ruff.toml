@@ -271,7 +271,6 @@ lint.unfixable = [
 ]
 "astropy/timeseries/*" = [
     "PLR0911",  # too-many-return-statements
-    "PTH",      # all flake8-use-pathlib
 ]
 "astropy/units/*" = [
     "F821",  # undefined-name
