@@ -118,7 +118,6 @@ docs = [
     "sphinx-changelog>=1.2.0",
     "sphinx_design",
     "Jinja2>=3.1.3",
-    "tomli; python_version < '3.11'",
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
 ]
@@ -217,9 +216,6 @@ filterwarnings = [
     "error",
     "ignore:unclosed <socket:ResourceWarning",
     "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
-    # Can be removed once Python>=3.11 is the minimum dependency,
-    # cf. https://github.com/astropy/astropy/issues/13907
-    "ignore:unclosed transport <asyncio.sslproto",
     "ignore:numpy\\.ufunc size changed:RuntimeWarning",
     "ignore:numpy\\.ndarray size changed:RuntimeWarning",
     "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
@@ -236,14 +232,14 @@ doctest_subpackage_requires = [
     "astropy/cosmology/_io/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
     "astropy/table/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
     "astropy/table/mixins/dask.py = dask",
-    "docs/* = numpy>=2.0.0rc1",   # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/stats/info_theory.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/stats/jackknife.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/table/row.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/time/formats.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/timeseries/periodograms/bls/core.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/timeseries/periodograms/lombscargle/core.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/units/structured.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "docs/* = numpy>=2",   # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/stats/info_theory.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/stats/jackknife.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/table/row.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/time/formats.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/timeseries/periodograms/bls/core.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/timeseries/periodograms/lombscargle/core.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/units/structured.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
     "astropy/modeling/fitting_parallel.py = dask",
     "docs/modeling/parallel-fitting.rst = dask",
 ]

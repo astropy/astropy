@@ -398,8 +398,7 @@ third-party package that supports timezone solving, such as `timezonefinder
 pass in their ``.degree`` attributes.
 
 The resulting timezone name could then be used with any packages that support
-time zone definitions, such as the (Python 3.9 default package) `zoneinfo
-<https://docs.python.org/3/library/zoneinfo.html>`_:
+time zone definitions, such as the `zoneinfo <https://docs.python.org/3/library/zoneinfo.html>`_:
 
 .. doctest-remote-data::
 
