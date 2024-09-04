@@ -554,7 +554,6 @@ class Ipac(basic.Basic):
         data_str_vals = list(zip(*self.data.str_vals()))
 
         for i, col in enumerate(table.columns.values()):
-            # FIXME: In Python 3.4, use max([], default=0).
             # See: https://docs.python.org/3/library/functions.html#max
             if data_str_vals:
                 col.width = max(len(vals[i]) for vals in data_str_vals)
