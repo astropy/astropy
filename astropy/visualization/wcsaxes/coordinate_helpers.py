@@ -427,7 +427,14 @@ class CoordinateHelper:
         self.ticks.set_visible(visible)
 
     def set_ticklabel(
-        self, color=None, size=None, pad=None, exclude_overlapping=None, **kwargs
+        self,
+        color=None,
+        size=None,
+        pad=None,
+        exclude_overlapping=None,
+        *,
+        simplify=True,
+        **kwargs,
     ):
         """
         Set the visual properties for the tick labels.
@@ -442,6 +449,8 @@ class CoordinateHelper:
             Distance in points between tick and label.
         exclude_overlapping : bool, optional
             Whether to exclude tick labels that overlap over each other.
+        simplify : bool, optional
+            Whether to remove repeated parts of tick labels.
         **kwargs
             Other keyword arguments are passed to :class:`matplotlib.text.Text`.
         """
@@ -453,6 +462,7 @@ class CoordinateHelper:
             self.ticklabels.set_pad(pad)
         if exclude_overlapping is not None:
             self.ticklabels.set_exclude_overlapping(exclude_overlapping)
+        self.ticklabels.set_simplify(simplify)
         self.ticklabels.set(**kwargs)
 
     def set_ticklabel_position(self, position):
