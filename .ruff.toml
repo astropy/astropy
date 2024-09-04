@@ -305,7 +305,6 @@ lint.unfixable = [
 "astropy/visualization/*" = [
     "B015",
     "PLR0911",  # too-many-return-statements
-    "PTH",      # all flake8-use-pathlib
 ]
 "astropy/wcs/*" = [
     "C408",  # unnecessary-collection-call
