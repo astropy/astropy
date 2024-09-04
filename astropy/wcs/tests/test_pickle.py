@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import pickle
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -27,7 +27,7 @@ def test_basic():
 
 def test_dist():
     with get_pkg_data_fileobj(
-        os.path.join("data", "dist.fits"), encoding="binary"
+        Path("data") / "dist.fits", encoding="binary"
     ) as test_file:
         hdulist = fits.open(test_file)
         # The use of ``AXISCORR`` for D2IM correction has been deprecated
@@ -54,7 +54,7 @@ def test_dist():
 
 def test_sip():
     with get_pkg_data_fileobj(
-        os.path.join("data", "sip.fits"), encoding="binary"
+        Path("data") / "sip.fits", encoding="binary"
     ) as test_file:
         hdulist = fits.open(test_file, ignore_missing_end=True)
         with pytest.warns(FITSFixedWarning):
@@ -73,7 +73,7 @@ def test_sip():
 
 def test_sip2():
     with get_pkg_data_fileobj(
-        os.path.join("data", "sip2.fits"), encoding="binary"
+        Path("data") / "sip2.fits", encoding="binary"
     ) as test_file:
         hdulist = fits.open(test_file, ignore_missing_end=True)
         with pytest.warns(FITSFixedWarning):
@@ -93,9 +93,7 @@ def test_sip2():
 # Ignore "PV2_2 = 0.209028857410973 invalid keyvalue" warning seen on Windows.
 @pytest.mark.filterwarnings(r"ignore:PV2_2")
 def test_wcs():
-    header = get_pkg_data_contents(
-        os.path.join("data", "outside_sky.hdr"), encoding="binary"
-    )
+    header = get_pkg_data_contents(Path("data") / "outside_sky.hdr", encoding="binary")
 
     wcs1 = wcs.WCS(header)
     s = pickle.dumps(wcs1)

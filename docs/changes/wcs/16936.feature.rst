@@ -1,0 +1,1 @@
+``WCS()`` now accepts ``os.PathLike`` objects as ``header``.

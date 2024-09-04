@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -13,8 +13,7 @@ from astropy.wcs.wcs import FITSFixedWarning
 # use the base name of the file, because everything we yield
 # will show up in the test name in the pandokia report
 hdr_map_file_list = [
-    os.path.basename(fname)
-    for fname in get_pkg_data_filenames("data/maps", pattern="*.hdr")
+    Path(fname).name for fname in get_pkg_data_filenames("data/maps", pattern="*.hdr")
 ]
 
 # Checking the number of files before reading them in.
@@ -38,7 +37,7 @@ def test_read_map_files():
 
 @pytest.mark.parametrize("filename", hdr_map_file_list)
 def test_map(filename):
-    header = get_pkg_data_contents(os.path.join("data/maps", filename))
+    header = get_pkg_data_contents(Path("data") / "maps" / filename)
     wcsobj = wcs.WCS(header)
 
     with NumpyRNGContext(123456789):
@@ -48,7 +47,7 @@ def test_map(filename):
 
 
 hdr_spec_file_list = [
-    os.path.basename(fname)
+    Path(fname).name
     for fname in get_pkg_data_filenames("data/spectra", pattern="*.hdr")
 ]
 
@@ -67,7 +66,7 @@ def test_read_spec_files():
 
 @pytest.mark.parametrize("filename", hdr_spec_file_list)
 def test_spectrum(filename):
-    header = get_pkg_data_contents(os.path.join("data", "spectra", filename))
+    header = get_pkg_data_contents(Path("data") / "spectra" / filename)
     # Warning only pops up for one of the inputs.
     with pytest.warns() as warning_lines:
         wcsobj = wcs.WCS(header)
