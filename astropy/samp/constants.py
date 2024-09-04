@@ -3,6 +3,8 @@
 Defines constants used in `astropy.samp`.
 """
 
+from pathlib import Path
+
 from astropy.utils.data import get_pkg_data_filename
 
 __all__ = [
@@ -33,5 +35,4 @@ SAFE_MTYPES = [
     "voresource.*",
 ]
 
-with open(get_pkg_data_filename("data/astropy_icon.png"), "rb") as f:
-    SAMP_ICON = f.read()
+SAMP_ICON = Path(get_pkg_data_filename("data/astropy_icon.png")).read_bytes()

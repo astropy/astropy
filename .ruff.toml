@@ -263,9 +263,7 @@ lint.unfixable = [
 "astropy/nddata/*" = [
     "C408",
 ]
-"astropy/samp/*" = [
-    "PTH",      # all flake8-use-pathlib
-]
+"astropy/samp/*" = []
 "astropy/stats/*" = [
     "PLR0911",  # too-many-return-statements
 ]
