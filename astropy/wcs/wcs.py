@@ -37,6 +37,7 @@ import re
 import textwrap
 import uuid
 import warnings
+from pathlib import Path
 
 # THIRD-PARTY
 import numpy as np
@@ -438,13 +439,15 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             sip = None
         else:
             keysel_flags = _parse_keysel(keysel)
-
-            if isinstance(header, (str, bytes)):
+            if isinstance(header, (str, bytes, os.PathLike)):
                 try:
-                    is_path = os.path.exists(header)
+                    is_path = os.path.exists(header)  # noqa: PTH110
                 except (OSError, ValueError):
                     is_path = False
-
+                # FIXME: fits.open currently needs header to be a string
+                # this should be removed once fits.open can handle PathLike objects.
+                if isinstance(header, os.PathLike):
+                    header = str(header)
                 if is_path:
                     if fobj is not None:
                         raise ValueError(
@@ -3029,7 +3032,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        filename : str, optional
+        filename : str | Path, optional
             Output file name - default is ``'footprint.reg'``
 
         color : str, optional
@@ -3072,7 +3075,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 " one can be given with the 'coordsys' argument."
             )
 
-        with open(filename, mode="w") as f:
+        with Path(filename).open(mode="w") as f:
             f.write(comments)
             f.write(f"{coordsys}\n")
             f.write("polygon(")
