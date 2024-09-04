@@ -209,7 +209,6 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/coordinates/*" = [
-    "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
     "RET505",  # superfluous-else-return
 ]
