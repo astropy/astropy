@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from os.path import abspath, dirname, join
+from pathlib import Path
 
 import astropy.config as _config
 import astropy.io.registry as io_registry
@@ -32,9 +32,9 @@ class Conf(_config.ConfigNamespace):
 
 conf = Conf()
 
-
-EXTERN_JS_DIR = abspath(join(dirname(extern.__file__), "jquery", "data", "js"))
-EXTERN_CSS_DIR = abspath(join(dirname(extern.__file__), "jquery", "data", "css"))
+_TABLE_DIR = Path(extern.__file__).parent
+EXTERN_JS_DIR = _TABLE_DIR.joinpath("jquery", "data", "js").resolve()
+EXTERN_CSS_DIR = _TABLE_DIR.joinpath("jquery", "data", "css").resolve()
 
 _SORTING_SCRIPT_PART_1 = """
 var astropy_sort_num = function(a, b) {{
@@ -145,8 +145,8 @@ class JSViewer:
     def jquery_urls(self):
         if self._use_local_files:
             return [
-                "file://" + join(EXTERN_JS_DIR, "jquery-3.6.0.min.js"),
-                "file://" + join(EXTERN_JS_DIR, "jquery.dataTables.min.js"),
+                f"file://{EXTERN_JS_DIR / 'jquery-3.6.0.min.js'}",
+                f"file://{EXTERN_JS_DIR / 'jquery.dataTables.min.js'}",
             ]
         else:
             return [conf.jquery_url, conf.datatables_url]
@@ -154,13 +154,13 @@ class JSViewer:
     @property
     def css_urls(self):
         if self._use_local_files:
-            return ["file://" + join(EXTERN_CSS_DIR, "jquery.dataTables.css")]
+            return [f"file://{EXTERN_CSS_DIR / 'jquery.dataTables.css'}"]
         else:
             return conf.css_urls
 
     def _jstable_file(self):
         if self._use_local_files:
-            return "file://" + join(EXTERN_JS_DIR, "jquery.dataTables.min")
+            return f"file://{EXTERN_JS_DIR / 'jquery.dataTables.min'}"
         else:
             return conf.datatables_url[:-3]
 
