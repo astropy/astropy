@@ -20,6 +20,7 @@ from astropy.modeling.models import (  # noqa: E402
     Planar2D,
 )
 from astropy.tests.helper import assert_quantity_allclose  # noqa: E402
+from astropy.utils.compat.optional_deps import HAS_PLT  # noqa: E402
 from astropy.wcs import WCS  # noqa: E402
 
 
@@ -460,6 +461,7 @@ class TestDiagnostics:
         assert os.listdir(tmp_path / "diag3") == ["0"]
         assert sorted(os.listdir(tmp_path / "diag3" / "0")) == ["error.log"]
 
+    @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
     def test_callable(self, tmp_path):
         # And check that we can pass in a callable
 
