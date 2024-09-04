@@ -9,9 +9,12 @@ celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
 
+from __future__ import annotations
+
 import os
 import re
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -42,6 +45,9 @@ from astropy.utils.data import (
 )
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.state import ScienceState
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 __all__ = [
     "Conf",
@@ -604,15 +610,19 @@ class IERS_A(IERS):
         return table
 
     @classmethod
-    def read(cls, file=None, readme=None):
+    def read(
+        cls,
+        file: str | os.PathLike[str] | None = None,
+        readme: str | os.PathLike[str] | None = None,
+    ) -> Self:
         """Read IERS-A table from a finals2000a.* file provided by USNO.
 
         Parameters
         ----------
-        file : str
+        file : str or os.PathLike[str]
             full path to ascii file holding IERS-A data.
             Defaults to ``iers.IERS_A_FILE``.
-        readme : str
+        readme : str or os.PathLike[str]
             full path to ascii file holding CDS-style readme.
             Defaults to package version, ``iers.IERS_A_README``.
 
@@ -640,8 +650,12 @@ class IERS_A(IERS):
                 )
             else:
                 file = IERS_A_FILE
+        else:
+            file = os.fspath(file)
         if readme is None:
             readme = IERS_A_README
+        else:
+            readme = os.fspath(readme)
 
         iers_a = super().read(file, format="cds", readme=readme)
 
@@ -694,15 +708,20 @@ class IERS_B(IERS):
     iers_table = None
 
     @classmethod
-    def read(cls, file=None, readme=None, data_start=6):
+    def read(
+        cls,
+        file: str | os.PathLike[str] | None = None,
+        readme: str | os.PathLike[str] | None = None,
+        data_start: int = 6,
+    ) -> Self:
         """Read IERS-B table from a eopc04.* file provided by IERS.
 
         Parameters
         ----------
-        file : str
+        file : str or os.PathLike[str]
             full path to ascii file holding IERS-B data.
             Defaults to package version, ``iers.IERS_B_FILE``.
-        readme : str
+        readme : str or os.PathLike[str]
             full path to ascii file holding CDS-style readme.
             Defaults to package version, ``iers.IERS_B_README``.
         data_start : int
@@ -732,9 +751,12 @@ class IERS_B(IERS):
         """
         if file is None:
             file = IERS_B_FILE
+        else:
+            file = os.fspath(file)
         if readme is None:
             readme = IERS_B_README
-
+        else:
+            readme = os.fspath(readme)
         table = super().read(file, format="cds", readme=readme, data_start=data_start)
 
         table.meta["data_path"] = file
