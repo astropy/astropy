@@ -7,6 +7,7 @@ import weakref
 from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 from numpy import ma
@@ -1919,7 +1920,6 @@ class Table:
             that if a column with this name already exists, this option will be
             ignored. Defaults to "idx".
         """
-        import os
         import tempfile
         import webbrowser
         from urllib.parse import urljoin
@@ -1933,9 +1933,9 @@ class Table:
         # We can't use NamedTemporaryFile here because it gets deleted as
         # soon as it gets garbage collected.
         tmpdir = tempfile.mkdtemp()
-        path = os.path.join(tmpdir, "table.html")
+        path = Path(tmpdir, "table.html")
 
-        with open(path, "w") as tmp:
+        with path.open("w") as tmp:
             if jsviewer:
                 if show_row_index:
                     display_table = self._make_index_row_display_table(show_row_index)
