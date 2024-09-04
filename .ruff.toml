@@ -302,7 +302,6 @@ lint.unfixable = [
 "astropy/wcs/*" = [
     "C408",  # unnecessary-collection-call
     "F821",  # undefined-name
-    "PTH",      # all flake8-use-pathlib
     "S608",  # Posslibe SQL injection
     "SIM202",  # NegateNotEqualOp
     "TRY300",  # Consider `else` block

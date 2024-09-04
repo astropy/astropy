@@ -1,5 +1,5 @@
 import abc
-import os
+from pathlib import Path
 
 import numpy as np
 
@@ -344,9 +344,9 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         return WCSAxes, {"wcs": self}
 
 
-UCDS_FILE = os.path.join(os.path.dirname(__file__), "data", "ucds.txt")
-with open(UCDS_FILE) as f:
-    VALID_UCDS = {x.strip() for x in f.read().splitlines()[1:]}
+UCDS_FILE = Path(__file__).parent / "data" / "ucds.txt"
+
+VALID_UCDS = {x.strip() for x in UCDS_FILE.read_text().splitlines()[1:]}
 
 
 def validate_physical_types(physical_types):
