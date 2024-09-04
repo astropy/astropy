@@ -227,6 +227,19 @@ We can apply this to the previous example:
     lon.set_ticklabel(exclude_overlapping=True)
     lat.set_ticklabel(exclude_overlapping=True)
 
+By default, repeated parts of tick labels (e.g., the whole degrees or hour
+angle) are omitted to keep the tick labels shorter.  If this simplification
+results in confusing tick labels, this behavior can be disabled by specifying
+``simplify=False``:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+   lon.set_ticklabel(simplify=False)
+   lat.set_ticklabel(simplify=False)
+
 Minor ticks
 ***********
 
