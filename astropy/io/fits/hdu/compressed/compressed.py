@@ -629,25 +629,6 @@ class CompImageHDU(ImageHDU):
                 BITPIX2DTYPE[self._orig_bitpix], blank=self._orig_blank
             )
 
-        # Shove the image header and data into a new ImageHDU and use that
-        # to compute the image checksum
-        image_hdu = ImageHDU(data=self.data, header=self.header.copy())
-        image_hdu._update_checksum(checksum)
-        if "CHECKSUM" in image_hdu.header:
-            # This will also pass through to the ZHECKSUM keyword and
-            # ZDATASUM keyword
-            self.header.set(
-                "CHECKSUM",
-                image_hdu.header["CHECKSUM"],
-                image_hdu.header.comments["CHECKSUM"],
-            )
-        if "DATASUM" in image_hdu.header:
-            self.header.set(
-                "DATASUM",
-                image_hdu.header["DATASUM"],
-                image_hdu.header.comments["DATASUM"],
-            )
-
         self._tmp_bintable = self._get_bintable_without_data()
 
         self._add_data_to_bintable(self._tmp_bintable)

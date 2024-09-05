@@ -328,17 +328,12 @@ def _image_header_to_empty_bintable(
     # added history or comments to.
 
     # Update the extension name in the table header
-    if name:
-        bintable.header["EXTNAME"] = name
-    else:
-        # Do not sync this with the image header since the default
-        # name is specific to the table header.
-        bintable.header.set(
-            "EXTNAME",
-            "COMPRESSED_IMAGE",
-            "name of this binary table extension",
-            after="TFIELDS",
-        )
+    bintable.header.set(
+        "EXTNAME",
+        name,
+        "name of this binary table extension",
+        after="TFIELDS",
+    )
 
     # Set the compression type in the table header.
     if compression_type:
