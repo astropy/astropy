@@ -505,8 +505,15 @@ class WCSAxes(Axes):
         for coords in self._all_coords:
             # Draw grids
             coords.frame.update()
+
+            # Pre-compute the coord range
+            coords._coord_range = coords.get_coord_range()
+
             for coord in coords:
                 coord._draw_grid(renderer)
+
+            # Delete the computation to protect from accidental use of a stale range
+            del coords._coord_range
 
         for coords in self._all_coords:
             # Draw tick labels
