@@ -96,7 +96,8 @@ class TestBasic:
         iers.IERS_A.close()
 
 
-def test_IERS_B_old_style_excerpt():
+@pytest.mark.parametrize("path_transform", [os.fspath, Path])
+def test_IERS_B_old_style_excerpt(path_transform):
     """Check that the instructions given in `IERS_B.read` actually work."""
     # If this test is changed, be sure to also adjust the instructions.
     #
@@ -104,8 +105,8 @@ def test_IERS_B_old_style_excerpt():
     # enough time has passed that old-style IERS_B files are simply
     # not around any more, say in 2025.  If so, also remove the excerpt
     # and the ReadMe.eopc04_IAU2000 file.
-    old_style_file = get_pkg_data_filename(
-        os.path.join("data", "iers_b_old_style_excerpt")
+    old_style_file = path_transform(
+        get_pkg_data_filename(os.path.join("data", "iers_b_old_style_excerpt"))
     )
     excerpt = iers.IERS_B.read(
         old_style_file,
