@@ -3,6 +3,7 @@
 
 import functools
 import inspect
+import sys
 import textwrap
 import threading
 import types
@@ -15,6 +16,12 @@ from .exceptions import (
     AstropyUserWarning,
 )
 
+if sys.version_info >= (3, 12):
+    from typing import deprecated as _deprecated
+else:
+    from typing_extensions import deprecated as _deprecated
+
+
 __all__ = [
     "classproperty",
     "deprecated",
@@ -26,6 +33,59 @@ __all__ = [
 ]
 
 _NotFound = object()
+
+
+def _ismethod(func):
+    """`inspect.ismethod` misses classmethods and staticmethods."""
+    return inspect.ismethod(func) or isinstance(func, (classmethod, staticmethod))
+
+
+def _get_func(func):
+    """
+    Given a function or classmethod (or other function wrapper type), get
+    the function object.
+    """
+    return func.__func__ if _ismethod(func) else func
+
+
+def _deprecation_message(alternative, pending):
+    """Return a deprecation message.
+
+    Parameters
+    ----------
+    alternative : str
+        An alternative function or class name that the user may use in
+        place of the deprecated object.  The deprecation warning will
+        tell the user about this alternative, if provided.
+    pending : bool
+        If `True`, tells the user that the object is pending deprecation
+        and is not currently deprecated.
+
+    Returns
+    -------
+    str
+        The deprecation message.
+    """
+    if pending:
+        msg = "The {func} {obj_type} will be deprecated in a future version."
+    else:
+        msg = "The {func} {obj_type} is deprecated and may be removed in a future version."
+
+    if alternative:
+        msg += f"\n        Use {alternative} instead."
+
+    return msg
+
+
+def _deprecate_doc(old_doc, message, since):
+    """Returns a given docstring with a deprecation message prepended."""
+    old_doc = textwrap.dedent(old_doc).strip("\n") if old_doc else ""
+    new_doc = f"\n.. deprecated:: {since}\n    {message.strip()}\n\n" + old_doc
+    if not old_doc:
+        # This is to prevent a spurious 'unexpected unindent' warning from
+        # docutils when the original docstring was blank.
+        new_doc += r"\ "
+    return new_doc
 
 
 def deprecated(
@@ -45,131 +105,62 @@ def deprecated(
     Parameters
     ----------
     since : str
-        The release at which this API became deprecated.  This is
-        required.
+        The release at which this API became deprecated.  This is required.
 
     message : str, optional
-        Override the default deprecation message.  The format
-        specifier ``func`` may be used for the name of the function,
-        and ``alternative`` may be used in the deprecation message
-        to insert the name of an alternative to the deprecated
-        function. ``obj_type`` may be used to insert a friendly name
-        for the type of object being deprecated.
+        Override the default deprecation message.  The format specifier ``func`` may be
+        used for the name of the function, and ``alternative`` may be used in the
+        deprecation message to insert the name of an alternative to the deprecated
+        function. ``obj_type`` may be used to insert a friendly name for the type of
+        object being deprecated.
 
     name : str, optional
-        The name of the deprecated function or class; if not provided
-        the name is automatically determined from the passed in
-        function or class, though this is useful in the case of
-        renamed functions, where the new function is just assigned to
-        the name of the deprecated function.  For example::
+        The name of the deprecated function or class; if not provided the name is
+        automatically determined from the passed in function or class, though this is
+        useful in the case of renamed functions, where the new function is just assigned
+        to the name of the deprecated function.  For example::
 
             def new_function():
                 ...
             oldFunction = new_function
 
     alternative : str, optional
-        An alternative function or class name that the user may use in
-        place of the deprecated object.  The deprecation warning will
-        tell the user about this alternative if provided.
+        An alternative function or class name that the user may use in place of the
+        deprecated object.  The deprecation warning will tell the user about this
+        alternative if provided.
 
     pending : bool, optional
-        If True, uses a AstropyPendingDeprecationWarning instead of a
-        ``warning_type``.
+        If True, uses a AstropyPendingDeprecationWarning instead of a ``warning_type``.
 
     obj_type : str, optional
-        The type of this object, if the automatically determined one
-        needs to be overridden.
+        The type of this object, if the automatically determined one needs to be
+        overridden.
 
-    warning_type : Warning
-        Warning to be issued.
-        Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
+    warning_type : Warning or None, optional
+        Warning to be issued. Default is
+        `~astropy.utils.exceptions.AstropyDeprecationWarning`.
+
+    Returns
+    -------
+    Callable[[T], T]
+        A decorator that can be applied to the function or class to mark it as
+        deprecated.
+
+    Notes
+    -----
+    This decorator is a wrapper around `~typing.deprecated`, which was introduced by
+    `PEP 702 <https://peps.python.org/pep-0702/>`_ in Python 3.12. In lower versions of
+    Python, the `~typing_extenstions.deprecated` backport is used instead. There are a number of differences
+    between this decorator and `~typing.deprecated`, which are described below.
+    1. This decorator is not guaranteed to be understood statically by type checkers,
+        whereas `~typing.deprecated` is.
+    2. This decorator can be used to deprecate `classmethod`s and `staticmethod`s,
+        whereas `~typing.deprecated` can only be used to deprecate functions and classes.
+    3. This decorator has a different signature and default warning type than
+        `~typing.deprecated`.
+    4. This decorator will modify the docstring of the deprecated object to include a
+        deprecation message, whereas `~typing.deprecated` will not.
     """
-    method_types = (classmethod, staticmethod, types.MethodType)
-
-    def deprecate_doc(old_doc, message):
-        """
-        Returns a given docstring with a deprecation message prepended
-        to it.
-        """
-        if not old_doc:
-            old_doc = ""
-        old_doc = textwrap.dedent(old_doc).strip("\n")
-        new_doc = f"\n.. deprecated:: {since}\n    {message.strip()}\n\n" + old_doc
-        if not old_doc:
-            # This is to prevent a spurious 'unexpected unindent' warning from
-            # docutils when the original docstring was blank.
-            new_doc += r"\ "
-        return new_doc
-
-    def get_function(func):
-        """
-        Given a function or classmethod (or other function wrapper type), get
-        the function object.
-        """
-        if isinstance(func, method_types):
-            func = func.__func__
-        return func
-
-    def deprecate_function(func, message, warning_type=warning_type):
-        """
-        Returns a wrapped function that displays ``warning_type``
-        when it is called.
-        """
-        if isinstance(func, method_types):
-            func_wrapper = type(func)
-        else:
-            func_wrapper = lambda f: f
-
-        func = get_function(func)
-
-        def deprecated_func(*args, **kwargs):
-            if pending:
-                category = AstropyPendingDeprecationWarning
-            else:
-                category = warning_type
-
-            warnings.warn(message, category, stacklevel=2)
-
-            return func(*args, **kwargs)
-
-        # If this is an extension function, we can't call
-        # functools.wraps on it, but we normally don't care.
-        # This crazy way to get the type of a wrapper descriptor is
-        # straight out of the Python 3.3 inspect module docs.
-        if type(func) is not type(str.__dict__["__add__"]):
-            deprecated_func = functools.wraps(func)(deprecated_func)
-
-        deprecated_func.__doc__ = deprecate_doc(deprecated_func.__doc__, message)
-        deprecated_func.__deprecated__ = message
-
-        return func_wrapper(deprecated_func)
-
-    def deprecate_class(cls, message, warning_type=warning_type):
-        """
-        Update the docstring and wrap the ``__init__`` in-place (or ``__new__``
-        if the class or any of the bases overrides ``__new__``) so it will give
-        a deprecation warning when an instance is created.
-
-        This won't work for extension classes because these can't be modified
-        in-place and the alternatives don't work in the general case:
-
-        - Using a new class that looks and behaves like the original doesn't
-          work because the __new__ method of extension types usually makes sure
-          that it's the same class or a subclass.
-        - Subclassing the class and return the subclass can lead to problems
-          with pickle and will look weird in the Sphinx docs.
-        """
-        cls.__doc__ = deprecate_doc(cls.__doc__, message)
-        cls.__deprecated__ = message
-        if cls.__new__ is object.__new__:
-            cls.__init__ = deprecate_function(
-                get_function(cls.__init__), message, warning_type
-            )
-        else:
-            cls.__new__ = deprecate_function(
-                get_function(cls.__new__), message, warning_type
-            )
-        return cls
 
     def deprecate(
         obj,
@@ -179,51 +170,46 @@ def deprecated(
         pending=pending,
         warning_type=warning_type,
     ):
-        if obj_type is None:
-            if isinstance(obj, type):
-                obj_type_name = "class"
-            elif inspect.isfunction(obj):
-                obj_type_name = "function"
-            elif inspect.ismethod(obj) or isinstance(obj, method_types):
-                obj_type_name = "method"
-            else:
-                obj_type_name = "object"
-        else:
+        # The `warning` message
+        if obj_type is not None:
             obj_type_name = obj_type
-
-        if not name:
-            name = get_function(obj).__name__
-
-        altmessage = ""
-        if not message or type(message) is type(deprecate):
-            if pending:
-                message = (
-                    "The {func} {obj_type} will be deprecated in a future version."
-                )
-            else:
-                message = (
-                    "The {func} {obj_type} is deprecated and may "
-                    "be removed in a future version."
-                )
-            if alternative:
-                altmessage = f"\n        Use {alternative} instead."
-
-        message = (
-            message.format(
-                func=name,
-                name=name,
-                alternative=alternative,
-                obj_type=obj_type_name,
-            )
-        ) + altmessage
-
-        if isinstance(obj, type):
-            return deprecate_class(obj, message, warning_type)
+        # obj_type is None:
+        elif isinstance(obj, type):
+            obj_type_name = "class"
+        elif inspect.isfunction(obj):
+            obj_type_name = "function"
+        elif _ismethod(obj):
+            obj_type_name = "method"
         else:
-            return deprecate_function(obj, message, warning_type)
+            obj_type_name = "object"
 
-    if type(message) is type(deprecate):
-        return deprecate(message)
+        if not message:
+            message = _deprecation_message(alternative, pending)
+        msg = message.format(
+            func=name if name else _get_func(obj).__name__,
+            alternative=alternative,
+            obj_type=obj_type_name,
+        )
+
+        # Add the deprecation message to the docstring
+        obj.__doc__ = _deprecate_doc(obj.__doc__, msg, since)
+
+        # The `warning` category to use
+        category = AstropyPendingDeprecationWarning if pending else warning_type
+
+        # Deprecate the object!
+        # Note: `typing.deprecated` can't yet deprecate a classmethod, so we need to do
+        # that ourselves instead. The specific error is: ``TypeError: @deprecated
+        # decorator with non-None category must be applied to a class or callable``
+        if category is None or inspect.isclass(obj) or callable(obj):
+            return _deprecated(msg, category=category)(obj)
+
+        # Deprecate the function, unwrapping method type decorators
+        depr_f = _deprecated(msg, category=category)(_get_func(obj))
+        # Add the deprecation message to the docstring
+        depr_f.__doc__ = _deprecate_doc(depr_f.__doc__, msg, since)
+        # Return the deprecated function, preserving the method type
+        return type(obj)(depr_f) if _ismethod(obj) else depr_f
 
     return deprecate
 

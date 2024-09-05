@@ -1,0 +1,3 @@
+The deprecation decorator ``astropy.utils.decorators.deprecated`` is now a wrapper
+around Python's ``@typing.deprecated`` decorator (using ``typing_extension`` for Python
+< 3.12). See Python's ``typing`` documentation for more information.
