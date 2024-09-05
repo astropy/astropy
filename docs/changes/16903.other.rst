@@ -1,1 +1,1 @@
-Updated minimum supported Python version to 3.11. As a result, minimum required versions for ``ipython``, ``packaging``, ``pyarrow``, PyYAML, and ``scipy`` were updated as well to be compatible, while ``tomli`` and ``typing_extensions`` are no longer needed.
+Updated minimum supported Python version to 3.11. As a result, minimum required versions for the required ``packaging`` and PyYAML, and optionally, ``ipython``, ``pyarrow``, and ``scipy`` were updated as well to be compatible, while ``tomli`` and ``typing_extensions`` are no longer needed.
