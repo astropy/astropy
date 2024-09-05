@@ -996,8 +996,8 @@ def test__validate_input_shapes():
     # for which the first input can be broadcasted to
     inputs = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8], [9, 10]])]
 
-    if sys.version_info >= (3, 11) and PYTEST_LT_8_0:
-        # Exception.__notes__ are available but ignored in matching,
+    if PYTEST_LT_8_0:
+        # Exception.__notes__ are ignored in matching,
         # so we'll match manually and post-mortem instead
         direct_match = None
     else:

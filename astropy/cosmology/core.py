@@ -27,8 +27,7 @@ from .parameter._descriptors import ParametersAttribute
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
-
-    from typing_extensions import Self
+    from typing import Self
 
     from astropy.cosmology.funcs.comparison import _FormatType
 

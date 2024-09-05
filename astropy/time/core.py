@@ -12,10 +12,9 @@ import copy
 import enum
 import operator
 import os
-import sys
 import threading
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from itertools import pairwise
 from time import strftime
 from typing import TYPE_CHECKING
@@ -499,10 +498,7 @@ class TimeBase(ShapedLikeNDArray):
 
     def __getstate__(self):
         # For pickling, we remove the cache from what's pickled
-        if sys.version_info < (3, 11):
-            state = self.__dict__.copy()
-        else:
-            state = super().__getstate__().copy()
+        state = super().__getstate__().copy()
         state.pop("_id_cache", None)
         state.pop("cache", None)
         return state
@@ -2097,7 +2093,7 @@ class Time(TimeBase):
             such a subclass) at the current time.
         """
         # call `now` immediately to be sure it's ASAP
-        dtnow = datetime.now(tz=timezone.utc)
+        dtnow = datetime.now(tz=UTC)
         return cls(val=dtnow, format="datetime", scale="utc")
 
     info = TimeInfo()

@@ -2,7 +2,6 @@
 
 import math
 import os
-import sys
 import time
 
 import numpy as np
@@ -930,14 +929,6 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp("test0.fits")) as hdul:
             assert (orig_data == hdul[1].data).all()
 
-    if sys.version_info < (3, 11):
-        # The test below raised a `ResourceWarning: unclosed transport` exception
-        # due to a bug in Python < 3.11 (cf. cpython#90476)
-        mark = pytest.mark.filterwarnings("ignore:unclosed transport <asyncio.sslproto")
-    else:
-        mark = lambda f: f
-
-    @mark
     def test_open_scaled_in_update_mode(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/119
