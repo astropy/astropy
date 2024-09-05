@@ -641,10 +641,6 @@ class CompImageHDU(ImageHDU):
             self._bintable.data = self._tmp_bintable.data
             self._tmp_bintable = self._bintable
 
-        # FIXME: at the moment test_open_comp_image_in_update_mode fails because
-        # doing the above will result in the data always being written out again
-        # when in update mode even if no changes were made to the header or data
-
         return self._tmp_bintable._prewriteto(checksum=checksum, inplace=inplace)
 
     def _writeto(self, fileobj, inplace=False, copy=False):
