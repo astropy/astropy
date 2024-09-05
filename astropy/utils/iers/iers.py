@@ -1166,8 +1166,8 @@ class LeapSeconds(QTable):
             # configuration items, which we want to be sure are up to date).
             files = [getattr(conf, f, f) for f in cls._auto_open_files]
 
-        # Remove empty entries.
-        files = [f for f in files if f]
+        # Remove empty entries and normalize Path objects to string
+        files = [os.fspath(f) for f in files if f]
 
         # Our trials start with normal files and remote ones that are
         # already in cache.  The bools here indicate that the cache
