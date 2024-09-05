@@ -759,7 +759,7 @@ def test_lon_as_lat():
     with pytest.raises(
         TypeError, match="A Latitude angle cannot be created from a Longitude angle"
     ):
-        lat = Latitude(lon)
+        Latitude(lon)
 
     with pytest.raises(
         TypeError, match="A Longitude angle cannot be assigned to a Latitude angle"
@@ -866,7 +866,7 @@ def test_lat_as_lon():
     with pytest.raises(
         TypeError, match="A Longitude angle cannot be created from a Latitude angle"
     ):
-        lon = Longitude(lat)
+        Longitude(lat)
 
     with pytest.raises(
         TypeError, match="A Latitude angle cannot be assigned to a Longitude angle"
