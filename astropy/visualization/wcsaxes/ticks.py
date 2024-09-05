@@ -38,7 +38,7 @@ class Ticks(Line2D):
         the locations of the ticks for that axis.
     """
 
-    def __init__(self, ticksize=None, tick_out=None, **kwargs):
+    def __init__(self, ticksize=None, **kwargs):
         if ticksize is None:
             ticksize = rcParams["xtick.major.size"]
         self.set_ticksize(ticksize)
