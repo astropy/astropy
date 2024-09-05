@@ -1247,8 +1247,8 @@ def test_model_copy_with_bounding_box():
     model1 = model | models.Identity(1)
     model_copy = model1.copy()
     assert id(model_copy) != id(model1)
-    assert model_copy.get_bounding_box() is None
-    assert model1.get_bounding_box() is None
+    assert model_copy.get_bounding_box() == bbox
+    assert model1.get_bounding_box() == bbox
 
 
 def test_compound_model_copy_with_bounding_box():
@@ -1278,8 +1278,8 @@ def test_compound_model_copy_with_bounding_box():
     model1 = model | models.Identity(3)
     model_copy = model1.copy()
     assert id(model_copy) != id(model1)
-    assert model_copy.get_bounding_box() is None
-    assert model1.get_bounding_box() is None
+    assert model_copy.get_bounding_box() == bbox
+    assert model1.get_bounding_box() == bbox
 
 
 def test_model_copy_with_compound_bounding_box():
