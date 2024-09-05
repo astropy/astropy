@@ -4,31 +4,11 @@
 Utililies used for constructing and inspecting rotation matrices.
 """
 
-from functools import reduce
-
 import numpy as np
 
 from astropy import units as u
-from astropy.utils import deprecated
 
 from .angles import Angle
-
-
-@deprecated("5.2", alternative="@")
-def matrix_product(*matrices):
-    """Matrix multiply all arguments together.
-
-    Arguments should have dimension 2 or larger. Larger dimensional objects
-    are interpreted as stacks of matrices residing in the last two dimensions.
-
-    This function mostly exists for readability: using `~numpy.matmul`
-    directly, one would have ``matmul(matmul(m1, m2), m3)``, etc. For even
-    better readability, one might consider using `~numpy.matrix` for the
-    arguments (so that one could write ``m1 * m2 * m3``), but then it is not
-    possible to handle stacks of matrices. Once only python >=3.5 is supported,
-    this function can be replaced by ``m1 @ m2 @ m3``.
-    """
-    return reduce(np.matmul, matrices)
 
 
 def matrix_transpose(matrix):
