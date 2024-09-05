@@ -2,6 +2,9 @@ ci:
   autofix_prs: false
   autoupdate_schedule: 'monthly'
 
+default_language_version:
+  python: python3.11
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -56,8 +59,6 @@ repos:
     hooks:
       - id: codespell
         args: ["--write-changes"]
-        additional_dependencies:
-          - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.3
@@ -75,7 +76,6 @@ repos:
     rev: v1.7.5
     hooks:
       - id: docformatter
-        additional_dependencies: [tomli]
         args: [--in-place, --config, ./pyproject.toml]
         exclude: |
           (?x)(
