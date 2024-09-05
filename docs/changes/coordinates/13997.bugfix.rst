@@ -1,0 +1,2 @@
+Keep ``Latitude`` from printing long input arrays in their entirety when failing
+limits check in ``_validate_angles``, indicating their range instead.
