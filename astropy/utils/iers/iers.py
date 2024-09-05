@@ -12,6 +12,7 @@ celestial-to-terrestrial coordinate transformations
 import os
 import re
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -256,6 +257,9 @@ class IERS(QTable):
         For the IERS class itself, an IERS_B sub-class instance is opened.
 
         """
+        # FIXME: We shouldn't need to do this
+        if isinstance(file, Path):
+            file = str(file)
         if file is not None or cls.iers_table is None:
             if file is not None:
                 if urlparse(file).netloc:
