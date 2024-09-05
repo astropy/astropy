@@ -555,10 +555,7 @@ class Ipac(basic.Basic):
 
         for i, col in enumerate(table.columns.values()):
             # See: https://docs.python.org/3/library/functions.html#max
-            if data_str_vals:
-                col.width = max(len(vals[i]) for vals in data_str_vals)
-            else:
-                col.width = 0
+            col.width = max([len(vals[i]) for vals in data_str_vals], default=0)
 
         widths = [max(col.width, col.headwidth) for col in table.columns.values()]
         # then write table
