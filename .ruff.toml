@@ -229,11 +229,25 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
     "PTH116",  # os-stat
     "PTH117",  # os-path-isabs
-    "PTH",      # all flake8-use-pathlib
     "SLOT000",  # Subclasses of `str` should define `__slots__`
     "TD005",  # Missing issue description after `TODO`
     "TRY400",  # error-instead-of-exception
     "TRY300",  # Consider `else` block
+]
+"astropy/io/ascii/*" = [
+    "PTH",
+]
+"astropy/io/fits/*" = [
+    "PTH",
+]
+"astropy/io/misc/*" = [
+    "PTH",
+]
+"astropy/io/registry/*" = [
+    "PTH",
+]
+"astropy/io/votable/*" = [
+    "PTH",
 ]
 "astropy/logger.py" = [
     "C408",
