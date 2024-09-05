@@ -1339,3 +1339,37 @@ def test_overlay_nondegree_unit(nondegree_frame):
     overlay[1].grid(color="r", linestyle="dashed")
 
     return fig
+
+
+@figure_test
+def test_nosimplify():
+    wcs = WCS(
+        {
+            "ctype1": "RA---CAR",
+            "ctype2": "DEC--CAR",
+            "crval1": 0,
+            "crval2": 0,
+            "cdelt1": -1,
+            "cdelt2": 1,
+            "crpix1": 1,
+            "crpix2": 1,
+        }
+    )
+
+    fig = Figure(figsize=(7, 8))
+    ax = fig.add_subplot(projection=wcs)
+
+    ax.coords[0].set_ticks(spacing=0.25 * u.hourangle)
+    ax.coords[0].set_ticklabel(rotation=90, pad=25, simplify=False)
+    ax.coords[0].set_ticklabel_position("bt")
+
+    ax.coords[1].set_ticks(spacing=0.25 * u.deg)
+    ax.coords[1].set_ticklabel(simplify=False)
+    ax.coords[1].set_ticklabel_position("lr")
+
+    ax.set_xlim(-30, 30)
+    ax.set_ylim(-2, 2)
+    ax.set_aspect(15)
+    ax.grid()
+
+    return fig

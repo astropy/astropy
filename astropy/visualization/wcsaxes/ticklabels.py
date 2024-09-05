@@ -26,6 +26,7 @@ class TickLabels(Text):
         self.set_visible_axes("all")
         self.set_pad(rcParams["xtick.major.pad"])
         self._exclude_overlapping = False
+        self._simplify = True
 
         # Mapping from axis > list[bounding boxes]
         self._axis_bboxes = defaultdict(list)
@@ -180,6 +181,9 @@ class TickLabels(Text):
     def set_exclude_overlapping(self, exclude_overlapping):
         self._exclude_overlapping = exclude_overlapping
 
+    def set_simplify(self, simplify):
+        self._simplify = simplify
+
     def _set_xy_alignments(self, renderer):
         """
         Compute and set the x, y positions and the horizontal/vertical alignment of
@@ -188,7 +192,8 @@ class TickLabels(Text):
         if not self._stale:
             return
 
-        self.simplify_labels()
+        if self._simplify:
+            self.simplify_labels()
         text_size = renderer.points_to_pixels(self.get_size())
 
         visible_axes = self.get_visible_axes()
