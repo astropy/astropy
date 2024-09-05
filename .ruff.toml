@@ -22,7 +22,7 @@ lint.ignore = [
     "B023",  # FunctionUsesLoopVariable
     "B028",  # No-explicit-stacklevel
     "B904",  # RaiseWithoutFromInsideExcept
-    "B905",  # ZipWithoutExplicitStrict   # requires 3.10+
+    "B905",  # ZipWithoutExplicitStrict
 
     # flake8-blind-except (BLE)
     "BLE001",  # blind-except
@@ -184,7 +184,7 @@ lint.ignore = [
     "TRY301",  # raise-within-try
 
     # pyupgrade (UP)
-    "UP038",  # isinstance using union separators. The code is slower as of Python 3.10-3.12
+    "UP038",  # isinstance using union separators. The code is slower as of Python 3.11-3.12
 
     # flake8-quotes (Q)
     "Q000",  # use double quotes

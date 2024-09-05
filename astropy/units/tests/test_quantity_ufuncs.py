@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import concurrent.futures
 import dataclasses
-import sys
 import warnings
 from typing import TYPE_CHECKING, NamedTuple
 
@@ -331,9 +330,8 @@ class TestQuantityTrigonometricFuncs:
         # be converted to radians.
         out = u.Quantity(0)
         match = "'NoneType' object has no attribute 'get_converter'"
-        if not (PYTEST_LT_8_0 and sys.version_info >= (3, 11)):
-            # For python>=3.11, we use Exception.add_note, which
-            # pytest < 8 does not know how to deal with.
+        if not PYTEST_LT_8_0:
+            # pytest < 8 does not know how to deal with Exception.add_note
             match += ".*\n.*treated as dimensionless"
         with pytest.raises(AttributeError, match=match):
             np.sin(0.5, out=out)

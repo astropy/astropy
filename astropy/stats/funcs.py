@@ -764,7 +764,7 @@ def poisson_conf_interval(
         else:
             conf_interval[0, n == 0] = 0
     elif interval == "kraft-burrows-nousek":
-        # Deprecation warning in Python 3.9 when N is float, so we force int,
+        # Deprecation warning when N is float, so we force int,
         # see https://github.com/astropy/astropy/issues/10832
         if np.isscalar(n):
             if not isinstance(n, int):

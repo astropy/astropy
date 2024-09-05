@@ -9,7 +9,7 @@ authors = [
     { name = "The Astropy Developers", email = "astropy.team@gmail.com" }
 ]
 license = { text = "BSD-3-Clause" }
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
@@ -39,17 +39,17 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "numpy>=1.23",
+    "numpy>=1.23.2",
     "pyerfa>=2.0.1.1",
     "astropy-iers-data>=0.2024.8.27.10.28.29",
-    "PyYAML>=3.13",
-    "packaging>=19.0",
+    "PyYAML>=6.0.0",
+    "packaging>=22.0.0",
 ]
 
 [project.optional-dependencies]
 # Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
-    "scipy>=1.8",
+    "scipy>=1.9.2",
     "matplotlib>=3.6.0",
 ]
 # Optional IPython-related behavior is in many places in Astropy. IPython is a complex
@@ -57,7 +57,7 @@ recommended = [
 # you are using Astropy from an IPython-dependent IDE, like Jupyter, this should enforce
 # the minimum supported version of IPython.
 ipython = [
-    "ipython>=7.32",
+    "ipython>=8.0.0",
 ]
 jupyter = [  # these are optional dependencies for `utils.console`
     "astropy[ipython]",
@@ -72,9 +72,9 @@ all = [
     "astropy[jupyter]",
     # Install all remaining optional dependencies
     "certifi",
-    "dask[array]",
+    "dask[array]>=2022.8.1",
     "h5py",
-    "pyarrow>=7.0.0",
+    "pyarrow>=10.0.1",
     "beautifulsoup4",
     "html5lib",
     "bleach",
@@ -90,7 +90,7 @@ all = [
 ]
 # The base set of test-time dependencies.
 test = [
-    "coverage[toml]",
+    "coverage",
     "pre-commit",
     "pytest>=7.0",
     "pytest-doctestplus>=0.12",
@@ -109,9 +109,7 @@ test_all = [
     "sgp4>=2.3",
     "array-api-strict",
 ]
-typing = [
-    "typing_extensions>=4.0.0",
-]
+typing = []
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
     "sphinx",
@@ -120,7 +118,6 @@ docs = [
     "sphinx-changelog>=1.2.0",
     "sphinx_design",
     "Jinja2>=3.1.3",
-    "tomli; python_version < '3.11'",
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
 ]
@@ -219,9 +216,6 @@ filterwarnings = [
     "error",
     "ignore:unclosed <socket:ResourceWarning",
     "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
-    # Can be removed once Python>=3.11 is the minimum dependency,
-    # cf. https://github.com/astropy/astropy/issues/13907
-    "ignore:unclosed transport <asyncio.sslproto",
     "ignore:numpy\\.ufunc size changed:RuntimeWarning",
     "ignore:numpy\\.ndarray size changed:RuntimeWarning",
     "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
@@ -238,14 +232,14 @@ doctest_subpackage_requires = [
     "astropy/cosmology/_io/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
     "astropy/table/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
     "astropy/table/mixins/dask.py = dask",
-    "docs/* = numpy>=2.0.0rc1",   # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/stats/info_theory.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/stats/jackknife.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/table/row.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/time/formats.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/timeseries/periodograms/bls/core.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/timeseries/periodograms/lombscargle/core.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/units/structured.py = numpy>=2.0.0rc1",  # not NUMPY_LT_2_0 (PR 15065)
+    "docs/* = numpy>=2",   # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/stats/info_theory.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/stats/jackknife.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/table/row.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/time/formats.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/timeseries/periodograms/bls/core.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/timeseries/periodograms/lombscargle/core.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/units/structured.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
     "astropy/modeling/fitting_parallel.py = dask",
     "docs/modeling/parallel-fitting.rst = dask",
 ]
@@ -594,14 +588,14 @@ ignore = [
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
 
-    [tool.gilesbot.circleci_artifacts.py310-test-image-mpl360]
-        url = ".tmp/py310-test-image-mpl360/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons, for py310-test-image-mpl360."
+    [tool.gilesbot.circleci_artifacts.py311-test-image-mpl360]
+        url = ".tmp/py311-test-image-mpl360/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons, for py311-test-image-mpl360."
         report_on_fail = true
 
-    [tool.gilesbot.circleci_artifacts.py310-test-image-mpldev]
-        url = ".tmp/py310-test-image-mpldev/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons for py310-test-image-mpldev."
+    [tool.gilesbot.circleci_artifacts.py311-test-image-mpldev]
+        url = ".tmp/py311-test-image-mpldev/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons for py311-test-image-mpldev."
         report_on_fail = true
 
 [tool.codespell]

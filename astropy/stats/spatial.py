@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    # TODO: consider replacing with `StrEnum` once support for Python 3.10 dropped
+    # TODO: consider replacing with `StrEnum`
     _ModeOps: TypeAlias = Literal["none", "translation", "ohser", "var-width", "ripley"]
 
 __all__ = ["RipleysKEstimator"]

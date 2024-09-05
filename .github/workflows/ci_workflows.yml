@@ -66,8 +66,8 @@ jobs:
           linux: py312-test-cov
           coverage: codecov
 
-        - name: Python 3.11 in Parallel with all optional dependencies
-          linux: py311-test-alldeps-fitsio
+        - name: Python 3.12 in Parallel with all optional dependencies
+          linux: py312-test-alldeps-fitsio
           libraries:
             apt:
               - language-pack-fr
@@ -76,22 +76,22 @@ jobs:
           toxargs: -v --develop
           posargs: -n=4 --run-slow
 
-        - name: Python 3.10 with oldest supported version of all dependencies
-          linux: py310-test-oldestdeps-alldeps-cov-clocale
+        - name: Python 3.11 with oldest supported version of all dependencies
+          linux: py311-test-oldestdeps-alldeps-cov-clocale
           posargs: --remote-data=astropy
           coverage: codecov
 
-        - name: Python 3.11 with all optional dependencies (Windows)
-          windows: py311-test-alldeps
+        - name: Python 3.12 with all optional dependencies (Windows)
+          windows: py312-test-alldeps
           posargs: --durations=50
 
-        - name: Python 3.11 with all optional dependencies (MacOS X)
-          macos: py311-test-alldeps
+        - name: Python 3.12 with all optional dependencies (MacOS X)
+          macos: py312-test-alldeps
           posargs: --durations=50 --run-slow
           runs-on: macos-latest
 
-        - name: Python 3.10 Double test (Run tests twice)
-          linux: py310-test-double
+        - name: Python 3.11 Double test (Run tests twice)
+          linux: py311-test-double
 
   allowed_failures:
     needs: [initial_checks]

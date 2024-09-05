@@ -130,8 +130,8 @@ def test_deprecated_class():
     orig_A = TA.__bases__[0]
 
     # The only thing that should be different about the new class
-    # is __doc__, __init__, __bases__ and __subclasshook__.
-    # and __init_subclass__ for Python 3.6+.
+    # is __doc__, __init__, __bases__, __subclasshook__,
+    # and __init_subclass__.
     for x in dir(orig_A):
         if x not in (
             "__doc__",

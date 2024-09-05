@@ -37,7 +37,6 @@ from astropy.utils import (
 )
 from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.compat import COPY_IF_NEEDED
-from astropy.utils.exceptions import _add_note_to_exception
 
 from .bounding_box import CompoundBoundingBox, ModelBoundingBox
 from .parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
@@ -1074,9 +1073,7 @@ class Model(metaclass=_ModelMeta):
         try:
             return np.broadcast_shapes(*all_shapes)
         except ValueError as exc:
-            _add_note_to_exception(
-                exc, "All inputs must have identical shapes or must be scalars."
-            )
+            exc.add_note("All inputs must have identical shapes or must be scalars.")
             raise exc
 
     def input_shape(self, inputs):
@@ -2008,8 +2005,7 @@ class Model(metaclass=_ModelMeta):
                     else:
                         broadcast = input_shape
                 except ValueError as exc:
-                    _add_note_to_exception(
-                        exc,
+                    exc.add_note(
                         f"self input argument {self.inputs[idx]!r} of shape"
                         f" {input_shape!r} cannot be broadcast with parameter"
                         f" {param.name!r} of shape {param.shape!r}.",
@@ -2074,8 +2070,7 @@ class Model(metaclass=_ModelMeta):
                         self._remove_axes_from_shape(param.shape, model_set_axis_param),
                     )
                 except ValueError as exc:
-                    _add_note_to_exception(
-                        exc,
+                    exc.add_note(
                         f"Model input argument {self.inputs[idx]!r} of shape"
                         f" {input_shape!r} "
                         f"cannot be broadcast with parameter {param.name!r} of shape "
