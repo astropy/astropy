@@ -72,7 +72,7 @@ all = [
     "astropy[jupyter]",
     # Install all remaining optional dependencies
     "certifi",
-    "dask[array]",
+    "dask[array]>=2022.8.1",
     "h5py",
     "pyarrow>=10.0.1",
     "beautifulsoup4",
