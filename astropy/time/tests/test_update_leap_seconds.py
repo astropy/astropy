@@ -58,7 +58,7 @@ class TestUpdateLeapSeconds:
             update_leap_seconds(["nonsense"])
 
     def test_auto_update_corrupt_file(self, tmp_path):
-        bad_file = str(tmp_path / "no_expiration")
+        bad_file = tmp_path / "no_expiration"
         with open(iers.IERS_LEAP_SECOND_FILE) as fh:
             lines = fh.readlines()
         with open(bad_file, "w") as fh:
