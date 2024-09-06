@@ -2,6 +2,7 @@
 
 import os
 import sys
+from pathlib import Path
 
 from .base import IORegistryError, _UnifiedIORegistryBase
 
@@ -12,12 +13,14 @@ PATH_TYPES = (str, os.PathLike)  # TODO! include bytes
 
 
 def _expand_user_in_args(args):
-    # Conservatively attempt to apply `os.path.expanduser` to the first
+    # Conservatively attempt to apply `pathlib.Path.expanduser` to the first
     # argument, which can be either a path or the contents of a table.
     if len(args) and isinstance(args[0], PATH_TYPES):
-        ex_user = os.path.expanduser(args[0])
-        if ex_user != args[0] and os.path.exists(os.path.dirname(ex_user)):
-            args = (ex_user,) + args[1:]
+        input_path = Path(args[0])
+        if (
+            ex_user := Path(input_path).expanduser()
+        ) != input_path and ex_user.parent.exists():
+            args = (str(ex_user), *args[1:])
     return args
 
 
@@ -186,13 +189,14 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                 fileobj = None
 
                 if len(args):
-                    if isinstance(args[0], PATH_TYPES) and not os.path.isdir(args[0]):
+                    if (
+                        isinstance(args[0], PATH_TYPES)
+                        and not (path := Path(args[0])).is_dir()
+                    ):
                         from astropy.utils.data import get_readable_fileobj
 
                         # path might be a os.PathLike object
-                        if isinstance(args[0], os.PathLike):
-                            args = (os.fspath(args[0]),) + args[1:]
-                        path = args[0]
+                        args = (os.fspath(args[0]),) + args[1:]
                         try:
                             ctx = get_readable_fileobj(
                                 args[0], encoding="binary", cache=cache

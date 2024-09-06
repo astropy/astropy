@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import contextlib
+import os
 import re
 import warnings
 from operator import itemgetter
@@ -350,6 +351,8 @@ class _UnifiedIORegistryBase:
         Returns the first valid format that can be used to read/write the data in
         question.  Mode can be either 'read' or 'write'.
         """
+        if path is not None:
+            path = os.fspath(path)
         valid_formats = self.identify_format(mode, cls, path, fileobj, args, kwargs)
 
         if len(valid_formats) == 0:
