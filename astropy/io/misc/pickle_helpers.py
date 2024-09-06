@@ -43,7 +43,7 @@ def fnunpickle(fileorname, number=0):
 
     """
     if isinstance(fileorname, str):
-        f = open(fileorname, "rb")
+        f = open(fileorname, "rb")  # noqa: PTH123
         close = True
     else:
         f = fileorname
@@ -95,7 +95,7 @@ def fnpickle(object, fileorname, protocol=None, append=False):
         protocol = pickle.HIGHEST_PROTOCOL
 
     if isinstance(fileorname, str):
-        f = open(fileorname, "ab" if append else "wb")
+        f = open(fileorname, "ab" if append else "wb")  # noqa: PTH123
         close = True
     else:
         f = fileorname
