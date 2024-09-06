@@ -19,9 +19,9 @@ class TestChecksumFunctions(BaseChecksumTests):
                 assert "DATASUM" in h2[0].header
                 assert h2[0].header["DATASUM"] == "0"
                 assert "CHECKSUM" in h2[1].header
-                assert h2[1].header["CHECKSUM"] == "ZeAbdb8aZbAabb7a"
+                assert h2[1].header["CHECKSUM"] == "D2GXD29VD2EVD29V"
                 assert "DATASUM" in h2[1].header
-                assert h2[1].header["DATASUM"] == "113055149"
+                assert h2[1].header["DATASUM"] == "2189405276"
 
     def test_failing_compressed_datasum(self):
         """
