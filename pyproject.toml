@@ -71,33 +71,34 @@ all = [
     "astropy[ipython]",
     "astropy[jupyter]",
     # Install all remaining optional dependencies
-    "certifi",
-    "dask[array]>=2022.8.1",
-    "h5py",
+    "certifi>=2022.6.15.1",
+    "dask[array]>=2022.5.1",
+    "h5py>=3.8.0",
     "pyarrow>=10.0.1",
-    "beautifulsoup4",
-    "html5lib",
-    "bleach",
+    "beautifulsoup4>=4.9.3", # imposed by pandas==2.0
+    "html5lib>=1.1",
+    "bleach>=3.2.1",
     "pandas>=2.0",
-    "sortedcontainers",
-    "pytz",
-    "jplephem",
-    "mpmath",
+    "sortedcontainers>=1.5.7", # (older versions may work)
+    "pytz>=2016.10", # (older versions may work)
+    "jplephem>=2.6", # (older versions may work)
+    "mpmath>=1.2.1",
+    "asdf>=2.8.3", # via asdf-astropy==0.3.*
     "asdf-astropy>=0.3",
-    "bottleneck",
+    "bottleneck>=1.3.3",
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
 ]
 # The base set of test-time dependencies.
 test = [
-    "coverage",
-    "pre-commit",
-    "pytest>=7.0",
+    "coverage>=6.4.4",
+    "pre-commit>=2.9.3", # lower bound is not tested beyond installation
+    "pytest>=7.3.0",
     "pytest-doctestplus>=0.12",
     "pytest-astropy-header>=0.2.1",
-    "pytest-astropy>=0.10",
-    "pytest-xdist",
-    "threadpoolctl",
+    "pytest-astropy>=0.10.0",
+    "pytest-xdist>=2.5.0",
+    "threadpoolctl>=3.0.0",
 ]
 test_all = [
     # Install grouped optional dependencies
