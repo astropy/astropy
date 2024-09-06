@@ -856,12 +856,7 @@ class CompImageHDU(BinTableHDU):
         if self._scale_back:
             self.scale(BITPIX2DTYPE[self._orig_bitpix])
 
-        if self._has_data:
-            self._update_compressed_data()
-
-            # Use methods in the superclass to update the header with
-            # scale/checksum keywords based on the data type of the image data
-            self._update_pseudo_int_scale_keywords()
+        if checksum and self.data is not None:
 
             # Shove the image header and data into a new ImageHDU and use that
             # to compute the image checksum
@@ -881,6 +876,14 @@ class CompImageHDU(BinTableHDU):
                     image_hdu.header["DATASUM"],
                     image_hdu.header.comments["DATASUM"],
                 )
+
+        if self._has_data:
+            self._update_compressed_data()
+
+            # Use methods in the superclass to update the header with
+            # scale/checksum keywords based on the data type of the image data
+            self._update_pseudo_int_scale_keywords()
+
             # Store a temporary backup of self.data in a different attribute;
             # see below
             self._imagedata = self.data
