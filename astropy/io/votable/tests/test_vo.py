@@ -19,7 +19,7 @@ from numpy.testing import assert_array_equal
 
 # LOCAL
 from astropy.io.votable import tree
-from astropy.io.votable.exceptions import W39, VOTableSpecError, VOWarning
+from astropy.io.votable.exceptions import W31, W39, VOTableSpecError, VOWarning
 from astropy.io.votable.table import parse, parse_single_table, validate
 from astropy.io.votable.xmlutil import validate_schema
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_filenames
@@ -60,7 +60,7 @@ def test_parse_single_table2():
         )
     assert isinstance(table2, tree.TableElement)
     assert len(table2.array) == 1
-    assert len(table2.array.dtype.names) == 28
+    assert len(table2.array.dtype.names) == 29
 
 
 def test_parse_single_table3():
@@ -85,6 +85,7 @@ def _test_regression(tmp_path, _python_based=False, binary_mode=1):
         ("unsignedByte", "|u1"),
         ("short", "<i2"),
         ("int", "<i4"),
+        ("intNoNull", "<i4"),
         ("long", "<i8"),
         ("double", "<f8"),
         ("float", "<f4"),
@@ -276,7 +277,7 @@ def test_select_missing_columns_error_message(columns, expected_missing):
 
 
 def test_select_columns_by_index():
-    columns = [0, 5, 13]
+    columns = [0, 5, 14]
     table = parse(
         get_pkg_data_filename("data/regression.xml"), columns=columns
     ).get_first_table()
@@ -774,6 +775,18 @@ class TestThroughBinary(TestParse):
     def test_bit_array2_mask(self):
         assert not np.any(self.mask["bitarray2"])
 
+    def test_null_integer_binary(self):
+        # BINARY1 requires magic value to be specified
+
+        self.array.mask["intNoNull"][0] = True
+
+        bio = io.BytesIO()
+
+        # W31: NaN's can not be represented in integer field
+        with pytest.warns(W31):
+            # https://github.com/astropy/astropy/issues/16090
+            self.votable.to_xml(bio)
+
 
 class TestThroughBinary2(TestParse):
     def setup_class(self):
@@ -798,6 +811,18 @@ class TestThroughBinary2(TestParse):
     def test_get_coosys_by_id(self):
         # No COOSYS in VOTable 1.2 or later
         pass
+
+    def test_null_integer_binary2(self):
+        # Integers with no magic values should still be
+        # masked in BINARY2 format
+
+        self.array.mask["intNoNull"][0] = True
+
+        table = self.votable.get_first_table()
+        array = table.array
+
+        assert array.mask["intNoNull"][0]
+        assert array["intNoNull"].mask[0]
 
 
 @pytest.mark.parametrize("format_", ["binary", "binary2"])

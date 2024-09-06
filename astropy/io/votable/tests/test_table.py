@@ -78,6 +78,7 @@ def test_table(tmp_path):
         ("unsignedByte", {"datatype": "unsignedByte"}),
         ("short", {"datatype": "short"}),
         ("int", {"datatype": "int"}),
+        ("intNoNull", {"datatype": "int"}),
         ("long", {"datatype": "long"}),
         ("double", {"datatype": "double"}),
         ("float", {"datatype": "float"}),
