@@ -857,7 +857,6 @@ class CompImageHDU(BinTableHDU):
             self.scale(BITPIX2DTYPE[self._orig_bitpix])
 
         if checksum and self.data is not None:
-
             # Shove the image header and data into a new ImageHDU and use that
             # to compute the image checksum
             image_hdu = ImageHDU(data=self.data, header=self.header)
