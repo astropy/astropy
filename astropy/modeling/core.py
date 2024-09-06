@@ -3319,51 +3319,51 @@ class CompoundModel(Model):
         return self._apply_operators_to_value_lists(leftval, rightval, **kw)
 
     def _bounding_box(self):
-        if self.op in {"+", "-"}:
-            return [
-                (min(l.lower, r.lower), max(l.upper, r.upper))
-                for l, r in zip(
-                    self.left.bounding_box.intervals.values(),
-                    self.right.bounding_box.intervals.values(),
-                )
-            ]
-        elif self.op == "*":
-            try:
-                left = self.left.bounding_box
-            except NotImplementedError:
-                return self.right.bounding_box
-
-            try:
-                right = self.right.bounding_box
-            except NotImplementedError:
-                return self.left.bounding_box
-
-            result = [
-                (max(l.lower, r.lower), min(l.upper, r.upper))
-                for l, r in zip(left.intervals.values(), right.intervals.values())
-            ]
-            if any(lo > hi for lo, hi in result):
-                raise NotImplementedError("The compound bounding box is an empty set")
-            return result
-        elif self.op == "/":
-            try:
-                _ = self.right.bounding_box
-            except NotImplementedError:
-                pass
-            else:
-                raise NotImplementedError(
-                    "Attempting to divide by a compound model with a bounding box would result in divide-by-zero error"
-                )
-            return self.left.bounding_box
-        elif self.op == "|":
-            try:
-                right = self.right.bounding_box
-            except NotImplementedError:
-                return self.left.bounding_box
-
-            return self.left.inverse(*right.intervals.values())
-        else:
+        if self.op == "fix_inputs":
             raise NotImplementedError
+
+        left = self.left.get_bounding_box()
+        right = self.right.get_bounding_box()
+
+        match self.op, left, right:
+            case _, CompoundBoundingBox(), CompoundBoundingBox():
+                raise NotImplementedError(
+                    "No bounding box is defined for this model. A default compound bounding box for a compound model is not yet implemented."
+                )
+            case "+" | "-", ModelBoundingBox(), ModelBoundingBox():
+                return [
+                    (min(l.lower, r.lower), max(l.upper, r.upper))
+                    for l, r in zip(
+                        left.intervals.values(),
+                        right.intervals.values(),
+                    )
+                ]
+            case "*", ModelBoundingBox(), None:
+                return left
+            case "*", None, ModelBoundingBox():
+                return right
+            case "*", ModelBoundingBox(), ModelBoundingBox():
+                result = [
+                    (max(l.lower, r.lower), min(l.upper, r.upper))
+                    for l, r in zip(left.intervals.values(), right.intervals.values())
+                ]
+                if any(lo > hi for lo, hi in result):
+                    raise NotImplementedError(
+                        "No bounding box is defined for this model. The compound bounding box is an empty set."
+                    )
+                return result
+            case "/", ModelBoundingBox(), None:
+                return left
+            case "/", None, ModelBoundingBox():
+                raise NotImplementedError(
+                    "No bounding box is defined for this model. Attempting to divide by a compound model with a bounding box would result in divide-by-zero error"
+                )
+            case "|", ModelBoundingBox(), None:
+                return left
+            case "|", _, ModelBoundingBox():
+                return self.left.inverse(*right.intervals.values())
+            case _:
+                raise NotImplementedError("No bounding box is defined for this model.")
 
     @property
     def n_submodels(self):
