@@ -281,7 +281,6 @@ lint.unfixable = [
 "astropy/time/*" = [
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
-    "PTH",      # all flake8-use-pathlib
 ]
 "astropy/timeseries/*" = [
     "PLR0911",  # too-many-return-statements
