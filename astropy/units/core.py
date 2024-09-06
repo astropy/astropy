@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from astropy.utils.compat import COPY_IF_NEEDED
-from astropy.utils.decorators import lazyproperty
+from astropy.utils.decorators import deprecated, lazyproperty
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
 
@@ -1806,6 +1806,7 @@ class NamedUnit(UnitBase):
         else:
             return names[0]
 
+    @deprecated(since="7.0", alternative="to_string()")
     def get_format_name(self, format):
         """
         Get a name for this unit that is specific to a particular
@@ -1824,6 +1825,9 @@ class NamedUnit(UnitBase):
         name : str
             The name of the unit for the given format.
         """
+        return self._get_format_name(format)
+
+    def _get_format_name(self, format: str) -> str:
         return self._format.get(format, self.name)
 
     @property
@@ -2013,7 +2017,7 @@ class UnrecognizedUnit(IrreducibleUnit):
             "to other units."
         )
 
-    def get_format_name(self, format):
+    def _get_format_name(self, format: str) -> str:
         return self.name
 
     def is_unity(self):
@@ -2524,8 +2528,8 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
                 # This is a hack to use Greek mu as a prefix
                 # for some formatters.
                 if prefix == "u":
-                    format["latex"] = r"\mu " + u.get_format_name("latex")
-                    format["unicode"] = "\N{MICRO SIGN}" + u.get_format_name("unicode")
+                    format["latex"] = r"\mu " + u._get_format_name("latex")
+                    format["unicode"] = "\N{MICRO SIGN}" + u._get_format_name("unicode")
 
                 for key, val in u._format.items():
                     format.setdefault(key, prefix + val)

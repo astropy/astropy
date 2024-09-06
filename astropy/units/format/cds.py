@@ -278,7 +278,7 @@ class CDS(Generic):
 
     @classmethod
     def _get_unit_name(cls, unit: NamedUnit) -> str:
-        return unit.get_format_name(cls.name)
+        return unit._get_format_name(cls.name)
 
     @classmethod
     def _format_mantissa(cls, m: str) -> str:
