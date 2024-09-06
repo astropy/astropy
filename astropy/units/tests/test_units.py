@@ -13,6 +13,7 @@ from astropy import constants as c
 from astropy import units as u
 from astropy.units import utils
 from astropy.utils.compat.optional_deps import HAS_DASK
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_initialisation():
@@ -554,7 +555,7 @@ def test_pickling():
 
     assert other is u.m
 
-    new_unit = u.IrreducibleUnit(["foo"], format={"baz": "bar"})
+    new_unit = u.IrreducibleUnit(["foo"], format={"unicode": "bar"})
     # This is local, so the unit should not be registered.
     assert "foo" not in u.get_current_unit_registry().registry
 
@@ -563,7 +564,7 @@ def test_pickling():
     new_unit_copy = pickle.loads(p)
     assert new_unit_copy is not new_unit
     assert new_unit_copy.names == ["foo"]
-    assert new_unit_copy.get_format_name("baz") == "bar"
+    assert new_unit_copy.to_string("unicode") == "bar"
     # It should still not be registered.
     assert "foo" not in u.get_current_unit_registry().registry
 
@@ -580,7 +581,7 @@ def test_pickling():
         new_unit_copy = pickle.loads(p)
         assert new_unit_copy is not new_unit
         assert new_unit_copy.names == ["foo"]
-        assert new_unit_copy.get_format_name("baz") == "bar"
+        assert new_unit_copy.to_string("unicode") == "bar"
         assert "foo" in u.get_current_unit_registry().registry
 
     # And just to be sure, that it gets removed outside of the context.
@@ -1016,3 +1017,8 @@ def test_dask_arrays():
     assert isinstance(data3, da.core.Array)
 
     assert_allclose(data3.compute(), [-272.15, -271.15, -270.15])
+
+
+def test_get_format_name_deprecation():
+    with pytest.warns(AstropyDeprecationWarning, match=r"Use to_string\(\) instead\.$"):
+        assert u.m.get_format_name("fits") == "m"
