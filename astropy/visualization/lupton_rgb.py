@@ -337,9 +337,9 @@ def make_lupton_rgb(
     output_dtype=np.uint8,
 ):
     r"""
-    Return a Red/Green/Blue color image from 3 images using an asinh stretch,
-    with interconnected band scaling. The input images can be int or float,
-    and in any range or bit-depth.
+    Return a Red/Green/Blue color image from 3 images using interconnected
+    band scaling, and an arbitrary stretch function (by default, an asinh stretch).
+    The input images can be int or float, and in any range or bit-depth.
 
     For a more detailed look at the use of this method, see the document
     :ref:`astropy:astropy-visualization-rgb`.
