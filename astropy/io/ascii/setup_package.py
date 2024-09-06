@@ -1,17 +1,17 @@
 # Licensed under a 3-clause BSD style license
 
-import os
+from pathlib import Path
 
 from numpy import get_include as get_numpy_include
 from setuptools import Extension
 
-ROOT = os.path.relpath(os.path.dirname(__file__))
+ROOT = Path(__file__).parent.relative_to(Path.cwd())
 
 
 def get_extensions():
     sources = [
-        os.path.join(ROOT, "cparser.pyx"),
-        os.path.join(ROOT, "src", "tokenizer.c"),
+        str(ROOT / "cparser.pyx"),
+        str(ROOT / "src" / "tokenizer.c"),
     ]
     ascii_ext = Extension(
         name="astropy.io.ascii.cparser",

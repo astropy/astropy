@@ -13,6 +13,7 @@ import itertools
 import os
 import re
 from contextlib import suppress
+from pathlib import Path
 
 from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 
@@ -379,7 +380,7 @@ class Cds(core.BaseReader):
             with suppress(TypeError):
                 # For strings only
                 if os.linesep not in table + "":
-                    self.data.table_name = os.path.basename(table)
+                    self.data.table_name = Path(table).name
 
             self.data.header = self.header
             self.header.data = self.data
