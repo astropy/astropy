@@ -489,7 +489,7 @@ def biweight_midvariance(
         where_func = np.where
         if isinstance(data, np.ma.MaskedArray):
             where_func = np.ma.where  # return MaskedArray
-        return where_func(mad.squeeze() == 0, 0.0, value)
+        return where_func(mad.squeeze(axis=axis) == 0, 0.0, value)
 
 
 def biweight_midcovariance(
