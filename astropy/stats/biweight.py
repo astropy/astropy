@@ -149,10 +149,11 @@ def biweight_location(
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
+    # np.ndim(mad) = 0 means axis is None or contains all axes
     # mad = 0 means data is constant or mostly constant
     # mad = np.nan means data contains NaNs and ignore_nan=False
-    if axis is None and (mad == 0.0 or np.isnan(mad)):
-        return M
+    if np.ndim(mad) == 0 and (mad == 0.0 or np.isnan(mad)):
+        return M.squeeze(axis=axis)
 
     if axis is not None:
         mad = np.expand_dims(mad, axis=axis)
@@ -440,12 +441,13 @@ def biweight_midvariance(
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
-    if axis is None:
-        # data is constant or mostly constant OR
-        # data contains NaNs and ignore_nan=False
-        if mad == 0.0 or np.isnan(mad):
-            return mad**2  # variance units
-    else:
+    # np.ndim(mad) = 0 means axis is None or contains all axes
+    # mad = 0 means data is constant or mostly constant
+    # mad = np.nan means data contains NaNs and ignore_nan=False
+    if np.ndim(mad) == 0 and (mad == 0.0 or np.isnan(mad)):
+        return mad**2  # variance units
+
+    if axis is not None:
         mad = np.expand_dims(mad, axis=axis)
 
     with np.errstate(divide="ignore", invalid="ignore"):
