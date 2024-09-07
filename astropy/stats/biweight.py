@@ -171,14 +171,16 @@ def biweight_location(
     # the median value along that axis.
     # Ignore RuntimeWarnings for divide by zero
     with np.errstate(divide="ignore", invalid="ignore"):
-        value = M.squeeze() + (sum_func(d * u, axis=axis) / sum_func(u, axis=axis))
+        value = M.squeeze(axis=axis) + (
+            sum_func(d * u, axis=axis) / sum_func(u, axis=axis)
+        )
         if np.isscalar(value):
             return value
 
         where_func = np.where
         if isinstance(data, np.ma.MaskedArray):
             where_func = np.ma.where  # return MaskedArray
-        return where_func(mad.squeeze() == 0, M.squeeze(), value)
+        return where_func(mad.squeeze(axis=axis) == 0, M.squeeze(axis=axis), value)
 
 
 def biweight_scale(
