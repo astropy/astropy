@@ -149,10 +149,11 @@ def biweight_location(
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
+    # np.ndim(mad) = 0 means axis is None or contains all axes
     # mad = 0 means data is constant or mostly constant
     # mad = np.nan means data contains NaNs and ignore_nan=False
-    if axis is None and (mad == 0.0 or np.isnan(mad)):
-        return M
+    if np.ndim(mad) == 0 and (mad == 0.0 or np.isnan(mad)):
+        return M.squeeze(axis=axis)
 
     if axis is not None:
         mad = np.expand_dims(mad, axis=axis)
@@ -171,14 +172,16 @@ def biweight_location(
     # the median value along that axis.
     # Ignore RuntimeWarnings for divide by zero
     with np.errstate(divide="ignore", invalid="ignore"):
-        value = M.squeeze() + (sum_func(d * u, axis=axis) / sum_func(u, axis=axis))
+        value = M.squeeze(axis=axis) + (
+            sum_func(d * u, axis=axis) / sum_func(u, axis=axis)
+        )
         if np.isscalar(value):
             return value
 
         where_func = np.where
         if isinstance(data, np.ma.MaskedArray):
             where_func = np.ma.where  # return MaskedArray
-        return where_func(mad.squeeze() == 0, M.squeeze(), value)
+        return where_func(mad.squeeze(axis=axis) == 0, M.squeeze(axis=axis), value)
 
 
 def biweight_scale(
@@ -438,12 +441,13 @@ def biweight_midvariance(
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
-    if axis is None:
-        # data is constant or mostly constant OR
-        # data contains NaNs and ignore_nan=False
-        if mad == 0.0 or np.isnan(mad):
-            return mad**2  # variance units
-    else:
+    # np.ndim(mad) = 0 means axis is None or contains all axes
+    # mad = 0 means data is constant or mostly constant
+    # mad = np.nan means data contains NaNs and ignore_nan=False
+    if np.ndim(mad) == 0 and (mad == 0.0 or np.isnan(mad)):
+        return mad**2  # variance units
+
+    if axis is not None:
         mad = np.expand_dims(mad, axis=axis)
 
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -487,7 +491,7 @@ def biweight_midvariance(
         where_func = np.where
         if isinstance(data, np.ma.MaskedArray):
             where_func = np.ma.where  # return MaskedArray
-        return where_func(mad.squeeze() == 0, 0.0, value)
+        return where_func(mad.squeeze(axis=axis) == 0, 0.0, value)
 
 
 def biweight_midcovariance(
