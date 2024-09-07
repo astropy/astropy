@@ -40,7 +40,7 @@ class Latex(console.Console):
 
     @classmethod
     def _format_unit_power(cls, unit: NamedUnit, power: Real = 1) -> str:
-        name = unit.get_format_name("latex")
+        name = unit._get_format_name("latex")
         if name == unit.name:
             # This doesn't escape arbitrary LaTeX strings, but it should
             # be good enough for unit names which are required to be alpha

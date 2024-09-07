@@ -590,7 +590,7 @@ class Generic(Base):
 
     @classmethod
     def _get_unit_name(cls, unit: NamedUnit) -> str:
-        name = unit.get_format_name(cls.name)
+        name = unit._get_format_name(cls.name)
         cls._validate_unit(name)
         return name
 
