@@ -33,33 +33,40 @@ __all__ = ["SigmaClip", "sigma_clip", "sigma_clipped_stats"]
 if HAS_BOTTLENECK:
     import bottleneck
 
-    def _move_tuple_axes_first(
+    def _move_tuple_axes_last(
         array: ArrayLike,
         axis: tuple[int, ...] | None = None,
     ) -> ArrayLike:
         """
-        Bottleneck can only take integer axis, not tuple, so this function
-        takes all the axes to be operated on and combines them into the
-        first dimension of the array so that we can then use axis=0.
+        Move the specified axes of a NumPy array to the last positions
+        and combine them.
+
+        Bottleneck can only take integer axis, not tuple, so this
+        function takes all the axes to be operated on and combines them
+        into the last dimension of the array so that we can then use
+        axis=-1.
+
+        Parameters
+        ----------
+        array : `~numpy.ndarray`
+            The input array.
+
+        axis : tuple of int
+            The axes on which to move and combine.
+
+        Returns
+        -------
+        array_new : `~numpy.ndarray`
+            Array with the axes being operated on moved into the last
+            dimension.
         """
-        # Figure out how many axes we are operating over
-        naxis = len(axis)
+        other_axes = tuple(i for i in range(array.ndim) if i not in axis)
 
-        # Add remaining axes to the axis tuple
-        axis += tuple(i for i in range(array.ndim) if i not in axis)
+        # Move the specified axes to the last positions
+        array_new = np.transpose(array, other_axes + axis)
 
-        # The new position of each axis is just in order
-        destination = tuple(range(array.ndim))
-
-        # Reorder the array so that the axes being operated on are at the
-        # beginning
-        array_new = np.moveaxis(array, axis, destination)
-
-        # Collapse the dimensions being operated on into a single dimension
-        # so that we can then use axis=0 with the bottleneck functions
-        array_new = array_new.reshape((-1,) + array_new.shape[naxis:])
-
-        return array_new
+        # Reshape the array by combining the moved axes
+        return array_new.reshape(array_new.shape[: len(other_axes)] + (-1,))
 
     def _apply_bottleneck(
         function: Callable,
@@ -73,8 +80,8 @@ if HAS_BOTTLENECK:
         i.e., a quantity, numpy array, or numpy scalar.
         """
         if isinstance(axis, tuple):
-            array = _move_tuple_axes_first(array, axis=axis)
-            axis = 0
+            array = _move_tuple_axes_last(array, axis=axis)
+            axis = -1
 
         result = function(array, axis=axis, **kwargs)
         if isinstance(array, Quantity):
