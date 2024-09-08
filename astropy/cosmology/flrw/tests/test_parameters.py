@@ -416,10 +416,11 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         Ob0 = cosmo_cls.parameters["Ob0"]
         assert isinstance(Ob0, Parameter)
         assert "Omega baryon;" in Ob0.__doc__
-        assert Ob0.default is None
+        assert Ob0.default == 0.0
 
         # validation
-        assert Ob0.validate(cosmo, None) is None
+        with pytest.warns(DeprecationWarning, match="Ob0=None is deprecated"):
+            assert Ob0.validate(cosmo, None) == 0.0
         assert Ob0.validate(cosmo, 0.1) == 0.1
         assert Ob0.validate(cosmo, 0.1 * u.one) == 0.1
         with pytest.raises(ValueError, match="Ob0 cannot be negative"):
@@ -462,19 +463,18 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         with pytest.raises(ValueError, match="baryonic density can not be larger"):
             cosmo_cls(*tba.args, **tba.kwargs)
 
-        # No baryons specified means baryon-specific methods fail.
+        # No baryons specified means baryons = 0 and gives a warning.
         tba = copy.copy(ba)
-        tba.arguments.pop("Ob0", None)
-        cosmo = cosmo_cls(*tba.args, **tba.kwargs)
-        with pytest.raises(ValueError):
-            cosmo.Ob(1)
+        tba.arguments["Ob0"] = None
+        with pytest.warns(DeprecationWarning, match="Ob0=None is deprecated"):
+            cosmo = cosmo_cls(*tba.args, **tba.kwargs)
 
-        # also means DM fraction is undefined
-        with pytest.raises(ValueError):
-            cosmo.Odm(1)
+        # In FLRW `Ob(z)` requires `w(z)`.
+        if not self.abstract_w:
+            assert cosmo.Ob(1) == 0
 
         # The default value is None
-        assert cosmo_cls.parameters["Ob0"].default is None
+        assert cosmo_cls.parameters["Ob0"].default == 0.0
 
 
 # =============================================================================
