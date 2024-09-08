@@ -1,1 +1,6 @@
-Updated minimum supported Python version to 3.11. As a result, minimum required versions for the required ``packaging`` and PyYAML, and optionally, ``ipython``, ``pyarrow``, and ``scipy`` were updated as well to be compatible, while ``tomli`` and ``typing_extensions`` are no longer needed.
+Updated minimum supported Python version to 3.11. As a result, minimum
+requirements were updated to compatible versions.
+Astropy now requires
+- ``numpy>=1.23.2``
+- ``PyYAML>=6.0.0``
+- ``packaging>=22.0.0``
