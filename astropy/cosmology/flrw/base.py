@@ -159,8 +159,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
     Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.
@@ -205,7 +204,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         equivalencies=u.mass_energy(),
     )
     Ob0: Parameter = Parameter(
-        default=None,
+        default=0.0,
         doc="Omega baryon; baryonic matter density/critical density at z=0.",
     )
 
@@ -267,9 +266,15 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
     @Ob0.validator
     def Ob0(self, param, value):
-        """Validate baryon density to None or positive float > matter density."""
+        """Validate baryon density to a non-negative float > matter density."""
         if value is None:
-            return value
+            warnings.warn(
+                "Ob0=None is deprecated, use Ob0=0 instead, "
+                "which never causes methods to raise exceptions.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return 0.0
 
         value = _validate_non_negative(self, param, value)
         if value > self.Om0:
@@ -487,8 +492,6 @@ class FLRW(Cosmology, _ScaleFactorMixin):
         ValueError
             If ``Ob0`` is `None`.
         """
-        if self.Ob0 is None:
-            raise ValueError("Baryon density not set for this cosmology")
         z = aszarr(z)
         return self.Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
