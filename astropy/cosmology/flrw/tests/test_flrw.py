@@ -9,9 +9,7 @@ import pytest
 from astropy.cosmology import FLRW
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology.tests.helper import get_redshift_methods
-from astropy.cosmology.tests.test_core import (
-    invalid_zs,
-)
+from astropy.cosmology.tests.test_core import invalid_zs
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FLRWTest
