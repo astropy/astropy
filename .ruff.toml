@@ -286,7 +286,6 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/units/*" = [
-    "F821",  # undefined-name
     "N812",  # lowercase-imported-as-non-lowercase
     "PLR0911",  # too-many-return-statements
     "TRY300",  # Consider `else` block
