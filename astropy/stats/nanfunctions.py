@@ -79,11 +79,13 @@ if HAS_BOTTLENECK:
         else:
             return result
 
+    nansum = functools.partial(_apply_bottleneck, bottleneck.nansum)
     nanmean = functools.partial(_apply_bottleneck, bottleneck.nanmean)
     nanmedian = functools.partial(_apply_bottleneck, bottleneck.nanmedian)
     nanstd = functools.partial(_apply_bottleneck, bottleneck.nanstd)
 
 else:
+    nansum = np.nansum
     nanmean = np.nanmean
     nanmedian = np.nanmedian
     nanstd = np.nanstd
