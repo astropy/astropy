@@ -11,8 +11,7 @@ from dask import array as da  # noqa: E402
 from numpy.testing import assert_allclose  # noqa: E402
 
 from astropy import units as u  # noqa: E402
-from astropy.modeling.fitting import LevMarLSQFitter, TRFLSQFitter  # noqa: E402
-from astropy.modeling.fitting_parallel import parallel_fit_dask  # noqa: E402
+from astropy.modeling.fitting import LevMarLSQFitter, TRFLSQFitter, parallel_fit_dask  # noqa: E402
 from astropy.modeling.models import (  # noqa: E402
     Const1D,
     Gaussian1D,

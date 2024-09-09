@@ -33,7 +33,7 @@ import numpy as np
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
 
-from .fitting_parallel import parallel_fit_dask
+from ._fitting_parallel import parallel_fit_dask
 from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
 from .spline import (
     SplineExactKnotsFitter,
