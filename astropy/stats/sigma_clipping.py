@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-import functools
 import warnings
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
-from astropy.stats.funcs import mad_std
+from astropy.stats.nanfunctions import nanmadstd, nanmean, nanmedian, nanstd
 from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
-from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
 from astropy.utils.exceptions import AstropyUserWarning
 
 if NUMPY_LT_2_0:
@@ -28,86 +26,6 @@ if TYPE_CHECKING:
     from numpy.typing import ArrayLike, NDArray
 
 __all__ = ["SigmaClip", "sigma_clip", "sigma_clipped_stats"]
-
-
-if HAS_BOTTLENECK:
-    import bottleneck
-
-    def _move_tuple_axes_last(
-        array: ArrayLike,
-        axis: tuple[int, ...] | None = None,
-    ) -> ArrayLike:
-        """
-        Move the specified axes of a NumPy array to the last positions
-        and combine them.
-
-        Bottleneck can only take integer axis, not tuple, so this
-        function takes all the axes to be operated on and combines them
-        into the last dimension of the array so that we can then use
-        axis=-1.
-
-        Parameters
-        ----------
-        array : `~numpy.ndarray`
-            The input array.
-
-        axis : tuple of int
-            The axes on which to move and combine.
-
-        Returns
-        -------
-        array_new : `~numpy.ndarray`
-            Array with the axes being operated on moved into the last
-            dimension.
-        """
-        other_axes = tuple(i for i in range(array.ndim) if i not in axis)
-
-        # Move the specified axes to the last positions
-        array_new = np.transpose(array, other_axes + axis)
-
-        # Reshape the array by combining the moved axes
-        return array_new.reshape(array_new.shape[: len(other_axes)] + (-1,))
-
-    def _apply_bottleneck(
-        function: Callable,
-        array: ArrayLike,
-        axis: int | tuple[int, ...] | None = None,
-        **kwargs,
-    ) -> float | NDArray | Quantity:
-        """Wrap bottleneck function to handle tuple axis.
-
-        Also takes care to ensure the output is of the expected type,
-        i.e., a quantity, numpy array, or numpy scalar.
-        """
-        if isinstance(axis, tuple):
-            array = _move_tuple_axes_last(array, axis=axis)
-            axis = -1
-
-        result = function(array, axis=axis, **kwargs)
-        if isinstance(array, Quantity):
-            return array.__array_wrap__(result)
-        elif isinstance(result, float):
-            # For compatibility with numpy, always return a numpy scalar.
-            return np.float64(result)
-        else:
-            return result
-
-    _nanmean = functools.partial(_apply_bottleneck, bottleneck.nanmean)
-    _nanmedian = functools.partial(_apply_bottleneck, bottleneck.nanmedian)
-    _nanstd = functools.partial(_apply_bottleneck, bottleneck.nanstd)
-
-else:
-    _nanmean = np.nanmean
-    _nanmedian = np.nanmedian
-    _nanstd = np.nanstd
-
-
-def _nanmadstd(
-    array: ArrayLike,
-    axis: int | tuple[int, ...] | None = None,
-) -> float | NDArray:
-    """mad_std function that ignores NaNs by default."""
-    return mad_std(array, axis=axis, ignore_nan=True)
 
 
 class SigmaClip:
@@ -301,10 +219,10 @@ class SigmaClip:
     ) -> Callable | None:
         if isinstance(cenfunc, str):
             if cenfunc == "median":
-                cenfunc = _nanmedian
+                cenfunc = nanmedian
 
             elif cenfunc == "mean":
-                cenfunc = _nanmean
+                cenfunc = nanmean
 
             else:
                 raise ValueError(f"{cenfunc} is an invalid cenfunc.")
@@ -317,9 +235,9 @@ class SigmaClip:
     ) -> Callable | None:
         if isinstance(stdfunc, str):
             if stdfunc == "std":
-                stdfunc = _nanstd
+                stdfunc = nanstd
             elif stdfunc == "mad_std":
-                stdfunc = _nanmadstd
+                stdfunc = nanmadstd
             else:
                 raise ValueError(f"{stdfunc} is an invalid stdfunc.")
 
@@ -1079,8 +997,8 @@ def sigma_clipped_stats(
         data, axis=axis, masked=False, return_bounds=False, copy=True
     )
 
-    mean = _nanmean(data_clipped, axis=axis)
-    median = _nanmedian(data_clipped, axis=axis)
-    std = _nanstd(data_clipped, ddof=std_ddof, axis=axis)
+    mean = nanmean(data_clipped, axis=axis)
+    median = nanmedian(data_clipped, axis=axis)
+    std = nanstd(data_clipped, ddof=std_ddof, axis=axis)
 
     return mean, median, std
