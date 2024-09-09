@@ -186,7 +186,7 @@ def test_multiple_solidus():
     ):
         assert u.Unit("m/s/kg").to_string() == "m / (kg s)"
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="contains multiple slashes"):
         u.Unit("m/s/kg", format="vounit")
 
     # Regression test for #9000: solidi in exponents do not count towards this.
