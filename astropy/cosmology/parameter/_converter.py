@@ -13,29 +13,32 @@ if TYPE_CHECKING:
 
     from astropy.cosmology import Cosmology, Parameter
 
-    from ._typing import _FValidateCallable
+    from ._typing import ParameterConverterCallable
 
 __all__: list[str] = []
 
 
-_REGISTRY_FVALIDATORS: dict[str, _FValidateCallable] = {}
+_REGISTRY_FVALIDATORS: dict[str, ParameterConverterCallable] = {}
 
 
 @overload
 def _register_validator(
-    key: str, fvalidate: _FValidateCallable
-) -> _FValidateCallable: ...
+    key: str, fvalidate: ParameterConverterCallable
+) -> ParameterConverterCallable: ...
 
 
 @overload
 def _register_validator(
     key: str, fvalidate: None = None
-) -> Callable[[_FValidateCallable], _FValidateCallable]: ...
+) -> Callable[[ParameterConverterCallable], ParameterConverterCallable]: ...
 
 
 def _register_validator(
-    key: str, fvalidate: _FValidateCallable | None = None
-) -> _FValidateCallable | Callable[[_FValidateCallable], _FValidateCallable]:
+    key: str, fvalidate: ParameterConverterCallable | None = None
+) -> (
+    ParameterConverterCallable
+    | Callable[[ParameterConverterCallable], ParameterConverterCallable]
+):
     """Decorator to register a new kind of validator function.
 
     Parameters
@@ -60,7 +63,7 @@ def _register_validator(
         return fvalidate
 
     # for use as a decorator
-    def register(fvalidate: _FValidateCallable) -> _FValidateCallable:
+    def register(fvalidate: ParameterConverterCallable) -> ParameterConverterCallable:
         """Register validator function.
 
         Parameters
