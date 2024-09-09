@@ -272,7 +272,7 @@ archs = ["auto", "aarch64"]
 
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 files = ["astropy/**/*.py"]
 plugins = ["numpy.typing.mypy_plugin"]
 ignore_missing_imports = true
