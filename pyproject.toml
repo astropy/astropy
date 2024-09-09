@@ -369,6 +369,9 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "PLR1730", # if-stmt-min-max (not always clearer, and sometimes slower)
     "PLW0642", # self-or-cls-assignment (occasionally desirable, very rarely a mistake)
 
+    # flake8-use-pathlib (PTH)
+    "PTH123", # builtin-open (not worth creating a Path object, builtin open is fine)
+
     # flake8-simplify (SIM)
     "SIM103", # needless-bool (cannot be safely applied in all contexts (np.True_ is not True))
 
