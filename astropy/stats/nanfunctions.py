@@ -1,4 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+The functions in this module provide faster versions of np.nan*
+functions using the optional bottleneck package if it is installed. If
+bottleneck is not installed, then the np.nan* functions are used.
+"""
 
 from __future__ import annotations
 
