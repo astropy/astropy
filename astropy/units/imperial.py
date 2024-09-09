@@ -16,6 +16,8 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
     >>> import astropy.units as u
     >>> u.imperial.enable()  # doctest: +SKIP
 """
+# avoid ruff complaints about undefined names defined by def_unit
+# ruff: noqa: F821
 
 __all__: list[str] = []  #  Units are added at the end
 
