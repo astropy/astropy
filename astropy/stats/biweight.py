@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from astropy.stats.funcs import median_absolute_deviation
-from astropy.stats.nanfunctions import nanmedian
+from astropy.stats.nanfunctions import nanmedian, nansum
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -39,7 +39,7 @@ def _stat_functions(
         sum_func = np.ma.sum
     elif ignore_nan:
         median_func = nanmedian
-        sum_func = np.nansum
+        sum_func = nansum
     else:
         median_func = np.median
         sum_func = np.sum
