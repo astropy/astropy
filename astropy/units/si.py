@@ -3,6 +3,8 @@
 This package defines the SI units.  They are also available in
 (and should be used through) the `astropy.units` namespace.
 """
+# avoid ruff complaints about undefined names defined by def_unit
+# ruff: noqa: F821
 
 import numpy as np
 
