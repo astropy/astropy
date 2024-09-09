@@ -15,8 +15,7 @@ from ._converter import _REGISTRY_FVALIDATORS, _register_validator
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
-
-    from typing_extensions import Self
+    from typing import Self
 
     from astropy.cosmology import Cosmology
 
