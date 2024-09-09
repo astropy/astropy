@@ -36,10 +36,10 @@ class testcase(NamedTuple):
     f: Callable
     """The ufunc to test."""
 
-    q_in: tuple[Quantity]
+    q_in: tuple[u.Quantity]
     """The input quantities."""
 
-    q_out: tuple[Quantity]
+    q_out: tuple[u.Quantity]
     """The expected output quantities."""
 
 
@@ -49,7 +49,7 @@ class testexc(NamedTuple):
     f: Callable
     """The ufunc to test."""
 
-    q_in: tuple[Quantity]
+    q_in: tuple[u.Quantity]
     """The input quantities."""
 
     exc: type
@@ -65,7 +65,7 @@ class testwarn(NamedTuple):
     f: Callable
     """The ufunc to test."""
 
-    q_in: tuple[Quantity]
+    q_in: tuple[u.Quantity]
     """The input quantities."""
 
     wfilter: str

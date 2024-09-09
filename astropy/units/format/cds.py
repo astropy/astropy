@@ -26,6 +26,8 @@ from .generic import Generic
 if TYPE_CHECKING:
     from typing import ClassVar, Literal
 
+    import numpy as np
+
     from astropy.extern.ply.lex import Lexer
     from astropy.units import NamedUnit, UnitBase
     from astropy.utils.parsing import ThreadSafeParser

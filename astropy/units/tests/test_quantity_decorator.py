@@ -348,7 +348,7 @@ def test_default_value_check():
 
 def test_str_unit_typo():
     @u.quantity_input
-    def myfunc_args(x: "kilograam"):
+    def myfunc_args(x: "kilograam"):  # noqa: F821
         return x
 
     with pytest.raises(ValueError):
