@@ -9,7 +9,7 @@ import re
 import warnings
 from typing import TYPE_CHECKING
 
-from astropy.units.errors import UnitScaleError, UnitsWarning
+from astropy.units.errors import UnitScaleError, UnitsError, UnitsWarning
 from astropy.utils import classproperty
 
 from . import core, generic, utils
