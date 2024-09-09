@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Type hints for the parameter module."""
 
 __all__: list[str] = []
