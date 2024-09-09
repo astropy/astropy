@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
 
 from . import _stats
 
@@ -853,8 +853,11 @@ def median_absolute_deviation(
             if ignore_nan:
                 data = np.ma.masked_where(np.isnan(data), data, copy=True)
         elif ignore_nan:
+            # prevent circular import
+            from astropy.stats.nanfunctions import nanmedian
+
             is_masked = False
-            func = np.nanmedian
+            func = nanmedian
         else:
             is_masked = False
             func = np.median  # drops units if result is NaN
@@ -870,7 +873,10 @@ def median_absolute_deviation(
     if axis is not None:
         data_median = np.expand_dims(data_median, axis=axis)
 
-    result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
+    if HAS_BOTTLENECK:
+        result = func(np.abs(data - data_median), axis=axis)
+    else:
+        result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
 
     if axis is None and np.ma.isMaskedArray(result):
         # return scalar version
