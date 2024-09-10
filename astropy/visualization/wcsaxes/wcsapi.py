@@ -23,7 +23,7 @@ IDENTITY.wcs.crval = [0.0, 0.0]
 IDENTITY.wcs.crpix = [1.0, 1.0]
 IDENTITY.wcs.cdelt = [1.0, 1.0]
 
-SPINE_PIXEL_INDEX = {'b': 0, 'l': 1, 't': 0, 'r': 1}
+SPINE_PIXEL_INDEX = {"b": 0, "l": 1, "t": 0, "r": 1}
 
 
 def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
@@ -170,11 +170,10 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         m = m[:, ::-1]
 
     if frame_class in (RectangularFrame, RectangularFrame1D):
-
         # For the regular rectangular frame, we can show coordinates on all
         # four spines, whereas for 1D plotting we can show world coordinates on
         # on the bottom or top spine.
-        spines = 'bltr' if frame_class is RectangularFrame else 'bt'
+        spines = "bltr" if frame_class is RectangularFrame else "bt"
 
         # Estimate the local partial derivative matrix with shape (world_n_dim,
         # pixel_n_dim) where each entry [i, j] is the partial derivative
@@ -189,7 +188,6 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         )
 
         for i, spine_name in enumerate(spines):
-
             # Determine which pixel index the spine corresponds to
             pix_index = SPINE_PIXEL_INDEX[spine_name]
 
@@ -197,7 +195,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
             # that pixel axis.
             pos = np.nonzero(m[:, pix_index])[0]
 
-            # Order the world coorinates from the ones that have the largest
+            # Order the world coordinates from the ones that have the largest
             # to the smallest derivative.
             order = np.argsort(derivs[pos, pix_index])[::-1]
             pos = pos[order]
@@ -212,10 +210,11 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         # In the special and common case where the frame is rectangular and
         # we are dealing with 2-d WCS (after slicing), we show all ticks on
         # all axes.
-        if ((frame_class is RectangularFrame and len(world_map) == 2)
-            or (frame_class is RectangularFrame1D and len(world_map) == 1)):
-                for index in world_map:
-                    coord_meta["default_ticks_position"][index] = spines
+        if (frame_class is RectangularFrame and len(world_map) == 2) or (
+            frame_class is RectangularFrame1D and len(world_map) == 1
+        ):
+            for index in world_map:
+                coord_meta["default_ticks_position"][index] = spines
 
     elif frame_class is EllipticalFrame:
         if "longitude" in coord_meta["type"]:
