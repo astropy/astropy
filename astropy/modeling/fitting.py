@@ -1117,7 +1117,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         self._use_min_max_bounds = use_min_max_bounds
         super().__init__()
 
-    def objective_function(self, fps, *args):
+    def objective_function(self, fps, *args, **context):
         """
         Function to minimize.
 
@@ -1128,20 +1128,21 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         args : list
             [model, [weights], [input coordinates], {context}]
         context : dict
-            A dict of pre-computed parameters from the __call__method
+            A dict of pre-computed parameters from the ``__call__`` method.  All
+            contents of the dict should be optional, as not all fitters support
+            passing it through, i.e. leastsq.
 
         """
         model = args[0]
         weights = args[1]
-        inputs = args[2:-2]
-        meas = args[-2]
-        context = args[-1]
+        inputs = args[2:-1]
+        meas = args[-1]
 
         fps = fitter_to_model_params_array(
             model,
             fps,
             self._use_min_max_bounds,
-            fit_param_indices=context["fit_param_indices"],
+            fit_param_indices=context.get("fit_param_indices"),
         )
 
         if weights is None:
@@ -1175,7 +1176,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         model.stds = StandardDeviations(cov_matrix, free_param_names)
 
     @staticmethod
-    def _wrap_deriv(params, model, weights, *args):
+    def _wrap_deriv(params, model, weights, x, y, z=None, **context):
         """
         Wraps the method calculating the Jacobian of the function to account
         for model constraints.
@@ -1184,14 +1185,6 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         constraints, instead of using p directly, we set the parameter list in
         this function.
         """
-        if len(args) == 4:
-            x, y, z = args[:-1]
-        else:
-            x, y = args[:-1]
-            z = None
-
-        context = args[-1]
-
         if weights is None:
             weights = 1.0
 
@@ -1260,7 +1253,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
                 ]
 
     def _compute_param_cov(
-        self, model, y, init_values, cov_x, fitparams, farg, weights=None
+        self, model, y, init_values, cov_x, fitparams, farg, fkwarg, weights=None
     ):
         # now try to compute the true covariance matrix
         if (len(y) > len(init_values)) and cov_x is not None:
@@ -1274,7 +1267,9 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
                 #   https://github.com/scipy/scipy/blob/
                 #   c1ed5ece8ffbf05356a22a8106affcd11bd3aee0/scipy/
                 #   optimize/_minpack_py.py#L591-L602
-                sum_sqrs = np.sum(self.objective_function(fitparams, *farg) ** 2)
+                sum_sqrs = np.sum(
+                    self.objective_function(fitparams, *farg, **fkwarg) ** 2
+                )
                 dof = len(y) - len(init_values)
                 self.fit_info["param_cov"] *= sum_sqrs / dof
         else:
@@ -1283,7 +1278,9 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             if self.fit_info["param_cov"] is not None:
                 self._add_fitting_uncertainties(model, self.fit_info["param_cov"])
 
-    def _run_fitter(self, model, farg, maxiter, acc, epsilon, estimate_jacobian):
+    def _run_fitter(
+        self, model, farg, fkwarg, maxiter, acc, epsilon, estimate_jacobian
+    ):
         return None, None, None
 
     def _filter_non_finite(self, x, y, z=None, weights=None):
@@ -1379,20 +1376,18 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         if filter_non_finite:
             x, y, z, weights = self._filter_non_finite(x, y, z, weights)
         farg = (
-            (
-                model_copy,
-                weights,
-            )
-            + _convert_input(x, y, z)
-            + ({"fit_param_indices": set(fit_param_indices)},)
-        )
+            model_copy,
+            weights,
+        ) + _convert_input(x, y, z)
+
+        fkwarg = {"fit_param_indices": set(fit_param_indices)}
 
         init_values, fitparams, cov_x = self._run_fitter(
-            model_copy, farg, maxiter, acc, epsilon, estimate_jacobian
+            model_copy, farg, fkwarg, maxiter, acc, epsilon, estimate_jacobian
         )
 
         self._compute_param_cov(
-            model_copy, y, init_values, cov_x, fitparams, farg, weights
+            model_copy, y, init_values, cov_x, fitparams, farg, fkwarg, weights
         )
 
         model_copy.sync_constraints = True
@@ -1445,7 +1440,9 @@ class LevMarLSQFitter(_NonLinearLSQFitter):
             "param_cov": None,
         }
 
-    def _run_fitter(self, model, farg, maxiter, acc, epsilon, estimate_jacobian):
+    def _run_fitter(
+        self, model, farg, fkwarg, maxiter, acc, epsilon, estimate_jacobian
+    ):
         from scipy import optimize
 
         if model.fit_deriv is None or estimate_jacobian:
@@ -1518,7 +1515,9 @@ class _NLLSQFitter(_NonLinearLSQFitter):
         super().__init__(calc_uncertainties, use_min_max_bounds)
         self._method = method
 
-    def _run_fitter(self, model, farg, maxiter, acc, epsilon, estimate_jacobian):
+    def _run_fitter(
+        self, model, farg, fkwarg, maxiter, acc, epsilon, estimate_jacobian
+    ):
         from scipy import optimize
         from scipy.linalg import svd
 
@@ -1526,11 +1525,13 @@ class _NLLSQFitter(_NonLinearLSQFitter):
             dfunc = "2-point"
         else:
 
-            def _dfunc(params, model, weights, *args):
+            def _dfunc(params, model, weights, *args, **context):
                 if model.col_fit_deriv:
-                    return np.transpose(self._wrap_deriv(params, model, weights, *args))
+                    return np.transpose(
+                        self._wrap_deriv(params, model, weights, *args, **context)
+                    )
                 else:
-                    return self._wrap_deriv(params, model, weights, *args)
+                    return self._wrap_deriv(params, model, weights, *args, **context)
 
             dfunc = _dfunc
 
@@ -1548,6 +1549,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
             self.objective_function,
             init_values,
             args=farg,
+            kwargs=fkwarg,
             jac=dfunc,
             max_nfev=maxiter,
             diff_step=np.sqrt(epsilon),
@@ -2005,7 +2007,7 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 # arbitrary fitter--as evidenced for example by the fact that JointFitter has
 # its own versions of these)
 def fitter_to_model_params_array(
-    model, fps, use_min_max_bounds=True, *, fit_param_indices
+    model, fps, use_min_max_bounds=True, *, fit_param_indices=None
 ):
     """
     Constructs the full list of model parameters from the fitted and
@@ -2030,6 +2032,9 @@ def fitter_to_model_params_array(
     bounds = model.bounds
     param_metrics = model._param_metrics
     parameters = np.empty(sum(m["size"] for m in param_metrics.values()), dtype=float)
+
+    if fit_param_indices is None:
+        _, fit_param_indices, _ = model_to_fit_params(model)
 
     offset = 0
     for idx, name in enumerate(model.param_names):
