@@ -95,8 +95,8 @@ Then select your platform to install miniforge:
 
 In a new terminal (miniforge Prompt on Windows) run ``conda list`` to test that the install has worked.
 
-Create a new environment
-========================
+Create Python Environment
+=========================
 
 To create a new Python environment for ``astropy`` and other packages, start by
 launching a terminal (under a UNIX-like system) or the miniforge Prompt (under Windows).
@@ -126,25 +126,21 @@ one of the following commands::
     python -m pip install "astropy[all]"         # All optional dependencies
     python -m pip install "astropy[dev_all]"     # All optional and test dependencies
 
-.. warning:: Do **not** install ``astropy`` or other packages using ``sudo``.
-
 In most cases, this will install a pre-compiled version of ``astropy`` (called a
 *wheel*). However, if you are installing astropy on an uncommon platform, astropy will be
 installed from a source file. In this unusual case you will need a C compiler to be
 installed (see `Building from source`_ below) for the installation to succeed.
 
-.. _testing_installed_astropy:
+.. warning:: Do **not** install ``astropy`` or other packages using ``sudo``.
 
-Testing an Installed ``astropy``
-================================
-
-See the `documentation on how to test your installed version of
-astropy <https://docs.astropy.org/en/latest/development/testguide.html#running-tests-installed-astropy>`_.
+You can test that your newly installed version of ``astropy`` is working via the
+`documentation on how to test your installed version of astropy
+<https://docs.astropy.org/en/latest/development/testguide.html#running-tests-installed-astropy>`_.
 
 .. _astropy-main-req:
 
 Requirements
-************
+============
 
 ``astropy`` has the following strict requirements:
 
@@ -257,8 +253,8 @@ The following packages can optionally be used when testing:
 - `tox <https://tox.readthedocs.io/en/latest/>`_: Used to automate testing
   and documentation builds.
 
-Building from Source
-********************
+Build from Source
+=================
 
 If you want to build the code from source, follow the instructions for
 :ref:`contributing_environment`. Note that instead of cloning from your fork, you can
@@ -275,8 +271,8 @@ is described in `Building the Documentation from Source <https://docs.astropy.or
 
 .. _sourcebuildtest:
 
-Testing a Source Code Build of ``astropy``
-==========================================
+Test Source Code Build
+----------------------
 
 {% if is_development %}
 
@@ -298,8 +294,8 @@ checkout of astropy <https://docs.astropy.org/en/latest/install.html#testing-a-s
 
 .. _install_astropy_nightly:
 
-Installing pre-built Development Versions of ``astropy``
-========================================================
+Install Pre-built Development Version
+=====================================
 
 Most nights a development snapshot of ``astropy`` will be compiled.
 This is useful if you want to test against a development version of astropy but
