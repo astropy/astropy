@@ -146,7 +146,7 @@ Workarounds include moving the units outside of the call to
     >>> np.arange(0, 10, 1) * u.m
     <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
 
-Also, `~numpy.linspace` does work:
+Additionally, `~numpy.linspace` _does_ work:
 
     >>> np.linspace(0 * u.m, 9 * u.m, 10)
     <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
