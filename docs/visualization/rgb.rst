@@ -103,7 +103,7 @@ RGB images using arbitrary stretching
 Numerous other methods for generating composite RGB images are possible.
 Alternative choices include using e.g., linear or logarithmic stretches,
 combined with optional data clipping and normalization (e.g., as often used
-in DS9 orother data viewers).
+in DS9 or other data viewers).
 
 The image stretching and normalization methods for single images are
 demonstrated in :ref:`astropy-visualization-stretchnorm`.
