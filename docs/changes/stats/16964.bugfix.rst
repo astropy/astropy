@@ -1,0 +1,6 @@
+Fixed a bug in biweight_location, biweight_scale, and
+biweight_midvariance where the returned array shape would be wrong if
+the input array had an axis length of 1 along any axis that was not
+included in the axis keyword. Also fixed a bug in these same functions
+where for constant data and axis set to a tuple containing all axes, the
+returned value would be NaN instead of the constant value.
