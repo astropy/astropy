@@ -139,6 +139,7 @@ class TestAngleFormatterLocator:
             ("dd", "15\xb0"),
             ("dd:mm", "15\xb024'"),
             ("dd:mm:ss", "15\xb023'32\""),
+            ("+dd:mm:ss", "+15\xb023'32\""),
             ("dd:mm:ss.s", "15\xb023'32.0\""),
             ("dd:mm:ss.ssss", "15\xb023'32.0316\""),
             ("hh", "1h"),
@@ -156,6 +157,7 @@ class TestAngleFormatterLocator:
             ("s", '55412"'),
             ("s.s", '55412.0"'),
             ("s.ss", '55412.03"'),
+            ("+s.ss", '+55412.03"'),
         ],
     )
     def test_format(self, format, string):
