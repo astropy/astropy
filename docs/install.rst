@@ -4,21 +4,45 @@
 Installation
 ************
 
-.. _installing-astropy-with-conda:
+Overview
+========
 
-Installing Python and Astropy with Conda
-****************************************
+The first step to installing ``astropy`` is to ensure that you have a Python
+environment which is **isolated** from your system Python installation. This is
+important because ``astropy`` has many dependencies, and you do not want to accidentally
+break your system by installing incompatible versions of these dependencies.
 
-There are many ways to install Python, but even if you have Python installed somewhere on your computer we recommend following these instructions anyway.
-The easiest way to manage a Python installation together with an Astropy installation is with the ``conda`` package manager.
-If you already have Python and ``conda`` working you can skip the next section.
-However, if you are using the Anaconda Python Distribution, we recommend you still install miniforge as described below.
+For this installation guide we use the `conda <https://docs.conda.io/en/latest/>`_
+package manager provided by `miniforge <https://github.com/conda-forge/miniforge>`_.
+This is a popular choice and works well, especially for newcomers. It is easy to install
+and use on all platforms and it makes it easy to install the latest Python version. If
+you already have a ``miniforge``-based Python environment then you can skip to
+:ref:`installing-astropy-with-pip`.
 
-Installing miniforge
-====================
+Another option for more experienced users is a virtual environment manager such as the
+Python standard library `venv <https://docs.python.org/3/library/venv.html>`_ module.
+There are numerous resources available to help you set up a virtual environment in this
+manner if you choose this option.
 
-We recommend installing Python with `miniforge <https://github.com/conda-forge/miniforge/#miniforge>`__.
-This will install ``conda`` and automatically configure the default channel (a channel is a remote software repository) to be ``conda-forge``.
+.. note::
+   We **do not recommend** using ``astropy`` with an existing `miniconda
+   <https://docs.anaconda.com/miniconda/>`_ or `Anaconda Python
+   <https://www.anaconda.com/download/>`_ distribution. The default ``astropy`` package
+   provided by Anaconda Inc. can be outdated and these distributions can require a
+   license for use at a large organisation. Instead, use ``miniforge`` as described
+   below.
+
+Once you have a Python environment set up, you will install ``astropy`` using |pip| or
+|conda|. Here we document using |pip| because it is easier to install the optional
+dependencies, but feel free to use |conda| if you prefer.
+
+Install ``miniforge``
+=====================
+
+You will install Python by first installing `miniforge
+<https://github.com/conda-forge/miniforge/#miniforge>`__. This provides the `conda
+package manager <https://docs.conda.io/en/latest/>`_ with the default remote package
+repository set to the community-led `conda-forge <https://conda-forge.org>`_ channel.
 
 First, download the installer for your system and architecture from the links below:
 
@@ -39,9 +63,10 @@ First, download the installer for your system and architecture from the links be
 
     .. grid-item-card:: Mac
 
+        `arm64 (Apple Silicon) <https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh>`__
+
         `x86-64 <https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-x86_64.sh>`__
 
-        `arm64 (Apple Silicon) <https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh>`__
 
 Then select your platform to install miniforge:
 
@@ -70,138 +95,43 @@ Then select your platform to install miniforge:
 
 In a new terminal (miniforge Prompt on Windows) run ``conda list`` to test that the install has worked.
 
-Using an Existing Conda Installation
-====================================
+Create a new environment
+========================
 
-If you already have a conda installation you can use it to install astropy.
-We do not recommend reusing an anaconda installation, as the default packages provided by Anaconda Inc. are often out dated and can require a license for use at a large organisaiton.
-If you have installed miniforge or anaconda you can add ``-c conda-forge`` to all installation commands to install packages from `conda-forge <https://conda-forge.org>`__.
-
-
-Installing astropy
-==================
-
-To install ``astropy``, start by launching a terminal (under a UNIX-like system) or the miniforge Prompt (under Windows).
+To create a new Python environment for ``astropy`` and other packages, start by
+launching a terminal (under a UNIX-like system) or the miniforge Prompt (under Windows).
 Now we will create and activate a new virtual environment to install ``astropy`` into:
 
 .. code-block:: bash
 
-    $ conda create --name astropy
+    $ conda create --name astropy python
     $ conda activate astropy
 
-In this case the environment we have created is named 'astropy'.
-Feel free to change this to a different environment name.
+In this case the environment we have created is named ``astropy`` but you can use any
+name you like.
 
-The benefit of using a virtual environment is that it allows you to install packages without affecting any other Python installation on your system.
-This also means you can work on multiple projects (research or coding) with different package requirements without them interfering with each other.
-
-Now we have a fresh environment we can install ``astropy``:
-
-.. code-block:: bash
-
-    $ conda install astropy
-
-This will install ``astropy`` and all of its dependencies.
-If you want to install another package later, you can run ``conda install <package_name>``.
-
-You will need to run ``conda activate astropy`` to activate this environment in new terminals in the future.
+In the future when you make a new terminal, you will need to run ``conda activate
+astropy`` to activate this environment.
 
 .. _installing-astropy-with-pip:
 
-Installing ``astropy`` with pip
-*******************************
+Install ``astropy``
+===================
 
-.. warning::
+To install ``astropy`` and your choice of :ref:`dependencies <astropy-main-req>`, run
+one of the following commands::
 
-  If you are new to Python and/or do not have familiarity with `Python virtual
-  environments <https://docs.python.org/3/tutorial/venv.html>`__, then we recommend
-  starting following the conda instructions above.
+    python -m pip install astropy                # Minimum required dependencies
+    python -m pip install "astropy[recommended]" # Recommended dependencies
+    python -m pip install "astropy[all]"         # All optional dependencies
+    python -m pip install "astropy[dev_all]"     # All optional and test dependencies
 
-Using pip
-=========
+.. warning:: Do **not** install ``astropy`` or other packages using ``sudo``.
 
-We highly recommended that you create a virtual environment before installing astropy.
-
-To install ``astropy`` with |pip|, run::
-
-    python -m pip install astropy
-
-If you want to make sure none of your existing dependencies get upgraded, you
-can also do::
-
-    python -m pip install astropy --no-deps
-
-On the other hand, if you want to install ``astropy`` along with recommended
-or even all of the available optional :ref:`dependencies <astropy-main-req>`,
-you can do::
-
-    python -m pip install "astropy[recommended]"
-
-or::
-
-    python -m pip install "astropy[all]"
-
-In most cases, this will install a pre-compiled version (called a *wheel*) of
-astropy, but if you are using a very recent version of Python, if a new version
-of astropy has just been released, or if you are building astropy for a platform
-that is not common, astropy will be installed from a source file. Note that in
-this case you will need a C compiler to be installed
-(see `Building from source`_ below) for the installation to succeed.
-
-If you get a ``PermissionError`` this means that you do not have the required
-administrative access to install new packages to your Python installation. In
-this case you should first create and activate a Python environment using either
-:ref:`Conda <anaconda_install>` or a `Python virtual
-environment <https://docs.python.org/3/tutorial/venv.html>`__. Both of these options
-will also allow you to do development on other software that uses
-``astropy``, such as an affiliated package.
-
-.. warning:: Do **not** install ``astropy`` or other third-party packages using ``sudo``.
-
-.. _anaconda_install:
-
-Using Conda
-===========
-
-To install ``astropy`` using conda run::
-
-    conda install astropy
-
-``astropy`` is installed by default with the `Anaconda Distribution
-<https://www.anaconda.com/download/>`_. To update to the latest version run::
-
-    conda update astropy
-
-There may be a delay of a day or two between when a new version of ``astropy``
-is released and when a package is available for conda. You can check
-for the list of available versions with ``conda search astropy``.
-
-If you want to install ``astropy`` along with recommended or all of the
-available optional :ref:`dependencies <astropy-main-req>`, you can do::
-
-    conda install --channel conda-forge --channel defaults scipy matplotlib
-
-or::
-
-    conda install --channel conda-forge --channel defaults scipy matplotlib \
-      h5py beautifulsoup4 html5lib bleach pandas sortedcontainers \
-      pytz setuptools mpmath bottleneck jplephem asdf-astropy pyarrow
-
-To also be able to run tests (see below) and support :ref:`builddocs` use the
-following. We use ``pip`` for these packages to ensure getting the latest
-releases which are compatible with the latest ``pytest`` and ``sphinx`` releases::
-
-    python -m pip install pytest-astropy sphinx-astropy
-
-.. warning::
-
-    Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation
-    of ``astropy`` itself may result in a corrupted installation.
-this case you should create a :ref:`virtual environment <astropy-dev:virtual_envs>`.
-
-.. danger::
-
-  Do **not** install ``astropy`` or other third-party packages using ``sudo``.
+In most cases, this will install a pre-compiled version of ``astropy`` (called a
+*wheel*). However, if you are installing astropy on an uncommon platform, astropy will be
+installed from a source file. In this unusual case you will need a C compiler to be
+installed (see `Building from source`_ below) for the installation to succeed.
 
 .. _testing_installed_astropy:
 
