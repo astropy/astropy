@@ -1403,6 +1403,10 @@ class LevMarLSQFitter(_NonLinearLSQFitter):
     """
     Levenberg-Marquardt algorithm and least squares statistic.
 
+    This fitter is no longer recommended - instead you should make use of
+    `LMLSQFitter` if your model does not have bounds, or one of the other
+    non-linear fitters otherwise.
+
     Parameters
     ----------
     calc_uncertainties : bool

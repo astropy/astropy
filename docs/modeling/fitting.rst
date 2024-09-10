@@ -70,7 +70,8 @@ fitters are:
   algorithm via the scipy legacy function `scipy.optimize.leastsq`. This fitter supports
   parameter bounds via an unsophisticated min/max condition which can cause parameters
   to "stick" to one of the bounds if during the fitting process the parameter gets close
-  to the bound during some of the intermediate fitting operations.
+  to the bound during some of the intermediate fitting operations. This fitter is no
+  longer recommended, and you should use one of the ones below depending on your use case.
 
 * :class:`~astropy.modeling.fitting.TRFLSQFitter`, which uses the Trust Region Reflective
   (TRF) algorithm that is particularly suitable for large sparse problems with bounds, see
@@ -101,7 +102,7 @@ Simple 1-D model fitting
 In this section, we look at a simple example of fitting a Gaussian to a
 simulated dataset. We use the `~astropy.modeling.functional_models.Gaussian1D`
 and `~astropy.modeling.functional_models.Trapezoid1D` models and the
-`~astropy.modeling.fitting.LevMarLSQFitter` fitter to fit the data:
+`~astropy.modeling.fitting.TRFLSQFitter` fitter to fit the data:
 
 .. plot::
    :include-source:
@@ -120,12 +121,12 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
     # Bounds are not really needed but included here to demonstrate usage.
     t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5,
                                 bounds={"x_0": (-5., 5.)})
-    fit_t = fitting.LevMarLSQFitter()
+    fit_t = fitting.TRFLSQFitter()
     t = fit_t(t_init, x, y, maxiter=200)
 
     # Fit the data using a Gaussian
     g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
-    fit_g = fitting.LevMarLSQFitter()
+    fit_g = fitting.TRFLSQFitter()
     g = fit_g(g_init, x, y)
 
     # Plot the data with the best-fit model
@@ -167,7 +168,7 @@ background in an image.
 
     # Fit the data using astropy.modeling
     p_init = models.Polynomial2D(degree=2)
-    fit_p = fitting.LevMarLSQFitter()
+    fit_p = fitting.LMLSQFitter()
 
     with warnings.catch_warnings():
         # Ignore model linearity warning from the fitter

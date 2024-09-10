@@ -147,8 +147,8 @@ We can now carry out the fit:
    :include-source:
    :nofigs:
 
-    >>> from astropy.modeling.fitting import LMLSQFitter
-    >>> fitter = LMLSQFitter()
+    >>> from astropy.modeling.fitting import TRFLSQFitter
+    >>> fitter = TRFLSQFitter()
     >>> model_fit_single = fitter(model, x, data[:, 5, 5])
 
 .. plot::
