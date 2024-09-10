@@ -14,6 +14,7 @@ import astropy.units as u
 from astropy.cosmology import FlatFLRWMixin, Parameter
 from astropy.cosmology.parameter._core import MISSING
 from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.tests.helper import assert_quantity_allclose
 
 if TYPE_CHECKING:
     from inspect import BoundArguments
@@ -173,8 +174,8 @@ class ParameterOde0TestMixin(ParameterTestMixin):
         # Setting param to 0 respects that. Note this test uses ``Ode()``.
         ba.arguments["Ode0"] = 0.0
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert u.allclose(cosmo.Ode([0, 1, 2, 3]), [0, 0, 0, 0])
-        assert u.allclose(cosmo.Ode(1), 0)
+        assert_quantity_allclose(cosmo.Ode([0, 1, 2, 3]), [0, 0, 0, 0])
+        assert_quantity_allclose(cosmo.Ode(1), 0)
 
         # Must be dimensionless or have no units. Errors otherwise.
         ba.arguments["Ode0"] = 10 * u.km
@@ -302,18 +303,20 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
 
         # on the instance
         # assert cosmo.m_nu is cosmo._m_nu
-        assert u.allclose(cosmo.m_nu, [0.0, 0.0, 0.0] * u.eV)
+        assert_quantity_allclose(cosmo.m_nu, [0.0, 0.0, 0.0] * u.eV)
 
         # set differently depending on the other inputs
         if cosmo.Tnu0.value == 0:
             assert cosmo.m_nu is None
         elif not cosmo._massivenu:  # only massless
-            assert u.allclose(cosmo.m_nu, 0 * u.eV)
+            assert_quantity_allclose(cosmo.m_nu, 0 * u.eV)
         elif self._nmasslessnu == 0:  # only massive
             assert cosmo.m_nu == cosmo._massivenu_mass
         else:  # a mix -- the most complicated case
-            assert u.allclose(cosmo.m_nu[: self._nmasslessnu], 0 * u.eV)
-            assert u.allclose(cosmo.m_nu[self._nmasslessnu], cosmo._massivenu_mass)
+            assert_quantity_allclose(cosmo.m_nu[: self._nmasslessnu], 0 * u.eV)
+            assert_quantity_allclose(
+                cosmo.m_nu[self._nmasslessnu], cosmo._massivenu_mass
+            )
 
     def test_init_m_nu(self, cosmo_cls: type[Cosmology], ba: BoundArguments):
         """Test initialization for values of ``m_nu``.
@@ -359,9 +362,9 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         assert not cosmo.has_massive_nu
         assert len(cosmo.m_nu) == 4
         assert cosmo.m_nu.unit == u.eV
-        assert u.allclose(cosmo.m_nu, 0 * u.eV)
+        assert_quantity_allclose(cosmo.m_nu, 0 * u.eV)
         # TODO! move this test when create ``test_nu_relative_density``
-        assert u.allclose(
+        assert_quantity_allclose(
             cosmo.nu_relative_density(1.0), 0.22710731766 * 4.05, rtol=1e-6
         )
 
@@ -371,7 +374,7 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         assert cosmo.has_massive_nu
         assert len(cosmo.m_nu) == 4
         assert cosmo.m_nu.unit == u.eV
-        assert u.allclose(cosmo.m_nu, [0.1, 0.1, 0.1, 0.1] * u.eV)
+        assert_quantity_allclose(cosmo.m_nu, [0.1, 0.1, 0.1, 0.1] * u.eV)
 
     def test_init_m_nu_override_by_Tcmb0(
         self, cosmo_cls: type[Cosmology], ba: BoundArguments
@@ -445,8 +448,8 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert cosmo.Ob0 == 0.0
         if not self.abstract_w:
-            assert u.allclose(cosmo.Ob(1), 0)
-            assert u.allclose(cosmo.Ob([0, 1, 2, 3]), [0, 0, 0, 0])
+            assert_quantity_allclose(cosmo.Ob(1), 0)
+            assert_quantity_allclose(cosmo.Ob([0, 1, 2, 3]), [0, 0, 0, 0])
 
         # Negative Ob0 errors
         tba = copy.copy(ba)
