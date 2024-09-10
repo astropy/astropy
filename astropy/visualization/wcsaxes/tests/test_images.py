@@ -1060,23 +1060,23 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-
     @figure_test
     def test_auto_world_placement(self):
-
         wcs = WCS(naxis=3)
-        wcs.wcs.ctype = 'RA---TAN', 'DEC--TAN', 'FREQ'
+        wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
         wcs.wcs.crval = 10, 20, 30
         wcs.wcs.crpix = 30, 30, 30
         wcs.wcs.cdelt = 0.1, 0.1, 0.01
-        wcs.wcs.cunit = 'deg', 'deg', 'GHz'
+        wcs.wcs.cunit = "deg", "deg", "GHz"
         wcs.wcs.set()
 
         fig = plt.figure()
         for iangle, angle in enumerate((0, 45, 70, 89)):
             wcs2 = wcs.deepcopy()
             wcs2.wcs.crota = 0, angle, 0
-            ax = fig.add_subplot(2, 2, iangle + 1, projection=wcs2, slices=('x', 'y', 0))
+            ax = fig.add_subplot(
+                2, 2, iangle + 1, projection=wcs2, slices=("x", "y", 0)
+            )
             ax.coords.grid()
 
         return fig
