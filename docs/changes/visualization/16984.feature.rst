@@ -1,0 +1,3 @@
+WCSAxes will now automatically select the fastest varying coordinate to show
+along each axis, rather than picking them in the order they are listed in the
+WCS.
