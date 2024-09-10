@@ -129,7 +129,7 @@ one of the following commands::
 In most cases, this will install a pre-compiled version of ``astropy`` (called a
 *wheel*). However, if you are installing astropy on an uncommon platform, astropy will be
 installed from a source file. In this unusual case you will need a C compiler to be
-installed (see `Building from source`_ below) for the installation to succeed.
+installed (see `Build from source`_ below) for the installation to succeed.
 
 .. warning:: Do **not** install ``astropy`` or other packages using ``sudo``.
 
