@@ -20,6 +20,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_typing_stats`
 * :ref:`whatsnew_7_0_unit_conversion_array_like`
 * :ref:`whatsnew_7_0_parallel_fitting`
+* :ref:`whatsnew_7_0_rgb_image_visualization_enhancement`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -165,6 +166,67 @@ environment. A simple example might be:
 where ``data`` is a 3-D array, and ``wcs`` is the :class:`~astropy.wcs.WCS`
 object associated with the data. A full example can be found at
 :ref:`parallel-fitting`.
+
+
+.. _whatsnew_7_0_rgb_image_visualization_enhancement:
+
+RGB image visualization enhancements
+====================================
+
+
+The `RGB image visualization functionality <https://docs.astropy.org/en/latest/visualization/rgb.html>`_
+in ``astropy.visualization`` has been expanded to support more flexible methods
+for creating composite RGB images.
+
+A new function :func:`~astropy.visualization.make_rgb` allows for creating RGB
+images with independent scaling on each filter, using arbitrary stretch and
+interval functions (instances of subclasses of
+:class:`~astropy.visualization.BaseStretch` and
+:class:`~astropy.visualization.BaseInterval`, respectively).
+
+Additionally, the :func:`~astropy.visualization.make_lupton_rgb` function
+(which performs interconnected R, G, B image scaling) now also supports
+arbitrary stretch and interval functions, in addition to the default Lupton
+asihn stretch.
+
+
+.. plot::
+   :context: reset
+   :nofigs:
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.visualization import make_rgb, make_lupton_rgb, ManualInterval, LogStretch
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+
+    # Read in the three images downloaded from here:
+    g_name = get_pkg_data_filename('visualization/reprojected_sdss_g.fits.bz2')
+    r_name = get_pkg_data_filename('visualization/reprojected_sdss_r.fits.bz2')
+    i_name = get_pkg_data_filename('visualization/reprojected_sdss_i.fits.bz2')
+    g = fits.getdata(g_name)
+    r = fits.getdata(r_name)
+    i = fits.getdata(i_name)
+
+    fig, axes = plt.subplots(1, 2)
+    fig.set_size_inches(10,4)
+
+
+.. plot::
+   :context:
+   :include-source:
+
+    intervals = [ManualInterval(vmin=0, vmax=np.percentile(img,99.95)) for img in [i,r,g]]
+
+    rgb_log = make_rgb(i, r, g, interval=intervals, stretch=LogStretch(a=1000))
+    rgb_log_lupton = make_lupton_rgb(i, r, g, interval=intervals, stretch_object=LogStretch(a=5))
+
+    axes[0].imshow(rgb_log, origin='lower')
+    axes[1].imshow(rgb_log_lupton, origin='lower')
+
+
+
+
 
 Full change log
 ===============
