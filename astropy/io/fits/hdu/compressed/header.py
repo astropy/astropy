@@ -198,7 +198,10 @@ def _bintable_header_to_image_header(bintable_header):
     # keywords, which there may be in some pathological cases:
     # https://github.com/astropy/astropy/issues/2750
     for keyword in set(image_header):
-        if CompImageHeader._is_reserved_keyword(keyword, warn=False):
+        if CompImageHeader._is_reserved_keyword(keyword, warn=False) or keyword in (
+            "CHECKSUM",
+            "DATASUM",
+        ):
             del image_header[keyword]
 
     if bscale:
