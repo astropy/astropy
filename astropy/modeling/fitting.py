@@ -31,7 +31,7 @@ from importlib.metadata import entry_points
 import numpy as np
 
 from astropy.units import Quantity
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .fitting_parallel import parallel_fit_dask
 from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
@@ -1663,6 +1663,24 @@ class LMLSQFitter(_NLLSQFitter):
 
     def __init__(self, calc_uncertainties=False):
         super().__init__("lm", calc_uncertainties, True)
+
+    def __call__(self, model, *args, **kwargs):
+        # Since there are several fitters with proper support for bounds, it
+        # is not a good idea to keep supporting the hacky bounds algorithm
+        # from LevMarLSQFitter here, and better to communicate with users
+        # that they should use another fitter. Once we remove the deprecation,
+        # we should update ``supported_constraints`` and change ``True`` to
+        # ``False`` in the call to ``super().__init__`` above.
+        if model.has_bounds:
+            warnings.warn(
+                "Using LMLSQFitter for models with bounds is now "
+                "deprecated. We recommend you use another non-linear "
+                "fitter such as TRFLSQFitter or DogBoxLSQFitter instead "
+                "as these have full support for fitting models with "
+                "bounds",
+                AstropyDeprecationWarning,
+            )
+        return super().__call__(model, *args, **kwargs)
 
 
 class SLSQPLSQFitter(Fitter):
