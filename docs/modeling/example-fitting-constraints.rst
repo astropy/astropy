@@ -71,7 +71,8 @@ attributes on a parameter. The following fitters support bounds internally:
 * `~astropy.modeling.fitting.SLSQPLSQFitter`
 
 The `~astropy.modeling.fitting.LevMarLSQFitter` algorithm uses an unsophisticated
-method of handling bounds and is no longer recommended.
+method of handling bounds and is no longer recommended (see
+:ref:`modeling-getting-started-nonlinear-notes` for more details).
 
 .. _tied:
 

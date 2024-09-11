@@ -62,16 +62,16 @@ The rules for passing input to fitters are:
 Notes on non-linear fitting
 ---------------------------
 
-There are several non-linear fitters, which rely on several different optimization
-algorithms now. Choice of algorithm is problem dependent. The main non-linear
-fitters are:
+There are several non-linear fitters, which rely on several different
+optimization algorithms. Which one you should choose will depend on the problem
+you are trying to solve. The main recommended non-linear fitters are:
 
-* :class:`~astropy.modeling.fitting.LevMarLSQFitter`, which uses the Levenberg-Marquardt
-  algorithm via the scipy legacy function `scipy.optimize.leastsq`. This fitter supports
-  parameter bounds via an unsophisticated min/max condition which can cause parameters
-  to "stick" to one of the bounds if during the fitting process the parameter gets close
-  to the bound during some of the intermediate fitting operations. This fitter is no
-  longer recommended, and you should use one of the ones below depending on your use case.
+* :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenberg-Marquardt (LM)
+  algorithm as implemented by `scipy.optimize.least_squares`. Does not handle bounds and/or
+  sparse Jacobians. Usually the most efficient method for small unconstrained problems.
+  If a Levenberg-Marquardt algorithm is desired for your problem, it is now recommended that
+  you use this fitter instead of :class:`~astropy.modeling.fitting.LevMarLSQFitter` as it
+  makes use of the recommended version of this algorithm in scipy.
 
 * :class:`~astropy.modeling.fitting.TRFLSQFitter`, which uses the Trust Region Reflective
   (TRF) algorithm that is particularly suitable for large sparse problems with bounds, see
@@ -87,12 +87,18 @@ fitters are:
   for more details. This fitter supports bounds in the same fashion that
   :class:`~astropy.modeling.fitting.TRFLSQFitter` does.
 
-* :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenberg-Marquardt (LM)
-  algorithm as implemented by `scipy.optimize.least_squares`. Does not handle bounds and/or
-  sparse Jacobians. Usually the most efficient method for small unconstrained problems.
-  If a Levenberg-Marquardt algorithm is desired for your problem, it is now recommended that
-  you use this fitter instead of :class:`~astropy.modeling.fitting.LevMarLSQFitter` as it
-  makes use of the recommended version of this algorithm in scipy.
+Note that the :class:`~astropy.modeling.fitting.LevMarLSQFitter` fitter, which
+uses the Levenberg-Marquardt algorithm via the scipy legacy function
+`scipy.optimize.leastsq`, is no longer recommended. This fitter supports
+parameter bounds via an unsophisticated min/max condition whereby during each
+step of the fitting, parameters that are out of bounds are simply reset to the
+min or max of the bounds. This can cause parameters to "stick" to one of the
+bounds if during the fitting process the parameter gets close to the bound. If
+the models you are fitting make use of bounds, you should make use of one of the
+other fitters such as :class:`~astropy.modeling.fitting.TRFLSQFitter` or
+:class:`~astropy.modeling.fitting.DogBoxLSQFitter`, and if you do not need
+bounds and specifically want to use the Levenberg-Marquardt algorithm, you
+should use :class:`~astropy.modeling.fitting.LMLSQFitter`.
 
 .. _modeling-getting-started-1d-fitting:
 
