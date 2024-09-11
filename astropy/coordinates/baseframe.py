@@ -184,31 +184,46 @@ class CoordinateFrameInfo(MixinInfo):
     def _represent_as_dict(self):
         coord = self._parent
         attrs = []
+        representation_type = coord.representation_type
+        differential_type = None
         if coord.has_data:
             attrs.extend(coord.representation_component_names)
             # Don't output distance unless it's actually distance.
-            if isinstance(coord.data, r.UnitSphericalRepresentation):
+            if issubclass(
+                representation_type, r.SphericalRepresentation
+            ) and isinstance(coord.data, r.UnitSphericalRepresentation):
                 attrs = attrs[:-1]
 
             diff = coord.data.differentials.get("s")
             if diff is not None:
+                differential_type = coord.differential_type
                 diff_attrs = list(coord.get_representation_component_names("s"))
-                # Don't output proper motions if they haven't been specified.
-                if isinstance(diff, r.RadialDifferential):
-                    diff_attrs = diff_attrs[2:]
-                    # Don't output radial velocity unless it's actually velocity.
-                elif isinstance(
-                    diff,
-                    (r.UnitSphericalDifferential, r.UnitSphericalCosLatDifferential),
+                if issubclass(
+                    differential_type,
+                    (r.SphericalDifferential, r.SphericalCosLatDifferential),
                 ):
-                    diff_attrs = diff_attrs[:-1]
+                    # Don't output proper motions or radial velocities unless
+                    # they've been specifically passed in.
+                    if isinstance(diff, r.RadialDifferential):
+                        diff_attrs = diff_attrs[2:]
+                    elif isinstance(
+                        diff,
+                        (
+                            r.UnitSphericalDifferential,
+                            r.UnitSphericalCosLatDifferential,
+                        ),
+                    ):
+                        diff_attrs = diff_attrs[:-1]
                 attrs.extend(diff_attrs)
 
         attrs.extend(frame_transform_graph.frame_attributes.keys())
 
         out = super()._represent_as_dict(attrs)
 
-        out["representation_type"] = coord.representation_type.get_name()
+        out["representation_type"] = representation_type.get_name()
+        if differential_type is not None:
+            out["differential_type"] = differential_type.get_name()
+
         # Note that coord.info.unit is a fake composite unit (e.g. 'deg,deg,None'
         # or None,None,m) and is not stored. The individual attributes have
         # units.
@@ -842,6 +857,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 RepresentationMapping("d_lat", f"pm_{lat}", ang_v_unit),
                 RepresentationMapping("d_distance", "radial_velocity", lin_v_unit),
             ],
+        )
+        repr_info.setdefault(
+            r.RadialDifferential,
+            [RepresentationMapping("d_distance", "radial_velocity", lin_v_unit)],
         )
         repr_info.setdefault(
             r.CartesianDifferential,
