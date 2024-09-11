@@ -1,4 +1,4 @@
-# This file was generated with the ref_galactic_fk4.py script, and the reference values were computed using AST
+# This file was generated with the generate_ref_ast.py script, and the reference values were computed using AST
 equinox_fk4,obstime,lon_in,lat_in,ra_fk4,dec_fk4,lon_gal,lat_gal
 J1998.36,B1995.95,334.661793414,43.9385116594,215.729885213,-13.2119623291,95.9916336135,-10.7923599366
 J2021.64,B1954.56,113.895199649,-14.1109832563,0.0191713429163,47.9584946764,230.354307383,2.91031092906
