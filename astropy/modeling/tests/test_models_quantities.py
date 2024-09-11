@@ -807,6 +807,10 @@ def test_models_fitting(model, fitter):
         return
 
     m = model["class"](**model["parameters"])
+
+    if m.has_bounds and isinstance(fitter, LMLSQFitter):
+        pytest.skip("The LMLSQFitter fitter does not support models with bounds")
+
     if len(model["evaluation"][0]) == 2:
         x = np.linspace(1, 3, 100) * model["evaluation"][0][0].unit
         y = np.exp(-(x.value**2)) * model["evaluation"][0][1].unit

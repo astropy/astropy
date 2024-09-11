@@ -292,6 +292,9 @@ class Fittable2DModelTester:
         parameters = test_parameters["parameters"]
         model = create_model(model_class, test_parameters)
 
+        if model.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
+            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
+
         if isinstance(parameters, dict):
             parameters = [parameters[name] for name in model.param_names]
 
@@ -372,6 +375,9 @@ class Fittable2DModelTester:
                 model_class, test_parameters, use_constraints=False
             )
             model = create_model(model_class, test_parameters, use_constraints=False)
+
+        if model_with_deriv.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
+            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
 
         # add 10% noise to the amplitude
         rsn = np.random.default_rng(0)
@@ -527,6 +533,9 @@ class Fittable1DModelTester:
         parameters = test_parameters["parameters"]
         model = create_model(model_class, test_parameters)
 
+        if model.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
+            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
+
         if isinstance(parameters, dict):
             parameters = [parameters[name] for name in model.param_names]
 
@@ -580,6 +589,9 @@ class Fittable1DModelTester:
         model_no_deriv = create_model(
             model_class, test_parameters, use_constraints=False
         )
+
+        if model_with_deriv.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
+            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
 
         # NOTE: PR 10644 replaced deprecated usage of RandomState but could not
         #       find a new seed that did not cause test failure, resorted to hardcoding.
