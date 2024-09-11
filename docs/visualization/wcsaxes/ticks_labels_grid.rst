@@ -167,6 +167,16 @@ angular coordinate axes, while the ``x...`` format or valid Python formats
 <https://docs.python.org/3/library/stdtypes.html#string-formatting>`_) should
 be used for non-angular coordinate axes.
 
+For any of the angular coordinate formats, one can prefix the format string
+with ``+`` to specify that the sign be included even for positive values, e.g.:
+
+==================== ====================
+       format              result
+==================== ====================
+``'+dd:mm:ss'``       ``'+15d23m32s'``
+``'+s.ss'``           ``'+55412.03'``
+==================== ====================
+
 The separators for angular coordinate tick labels can also be set by
 specifying a string or a tuple.
 

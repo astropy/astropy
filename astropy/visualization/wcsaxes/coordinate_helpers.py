@@ -240,6 +240,8 @@ class CoordinateHelper:
         """
         Set the formatter to use for the major tick labels.
 
+        See :ref:`tick_label_format` for accepted format strings and examples.
+
         Parameters
         ----------
         formatter : str or `~matplotlib.ticker.Formatter`
