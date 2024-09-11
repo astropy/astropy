@@ -16,7 +16,7 @@ import os
 import pkgutil
 import warnings
 from contextlib import contextmanager, nullcontext
-from os import path
+from pathlib import Path
 from textwrap import TextWrapper
 from warnings import warn
 
@@ -608,10 +608,14 @@ def get_config(packageormod=None, reload=False, rootname=None):
         try:
             # This feature is intended only for use by the unit tests
             if _override_config_file is not None:
-                cfgfn = _override_config_file
+                cfgfn = Path(_override_config_file)
             else:
-                cfgfn = path.join(get_config_dir(rootname=rootname), pkgname + ".cfg")
-            cobj = configobj.ConfigObj(cfgfn, interpolation=False)
+                cfgfn = (
+                    Path(get_config_dir(rootname=rootname))
+                    .joinpath(pkgname)
+                    .with_suffix(".cfg")
+                )
+            cobj = configobj.ConfigObj(str(cfgfn), interpolation=False)
         except OSError:
             # This can happen when HOME is not set
             cobj = configobj.ConfigObj(interpolation=False)
@@ -784,7 +788,7 @@ def create_config_file(pkg, rootname="astropy", overwrite=False):
     # local import to prevent using the logger before it is configured
     from astropy.logger import log
 
-    cfgfn = get_config_filename(pkg, rootname=rootname)
+    cfgfn = Path(get_config_filename(pkg, rootname=rootname))
 
     # generate the default config template
     template_content = io.StringIO()
@@ -795,7 +799,7 @@ def create_config_file(pkg, rootname="astropy", overwrite=False):
     doupdate = True
 
     # if the file already exists, check that it has not been modified
-    if cfgfn is not None and path.exists(cfgfn):
+    if cfgfn is not None and cfgfn.is_file():
         with open(cfgfn, encoding="latin-1") as fd:
             content = fd.read()
 
