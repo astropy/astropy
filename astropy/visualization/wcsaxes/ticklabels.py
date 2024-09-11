@@ -126,7 +126,7 @@ class TickLabels(Text):
         Figure out which parts of labels can be dropped to avoid repetition.
         """
         self.sort()
-        skippable_chars = "0123456789."
+        skippable_chars = "0123456789.+"
         if rcParams["axes.unicode_minus"] and not rcParams["text.usetex"]:
             skippable_chars += "\N{MINUS SIGN}"
         else:
