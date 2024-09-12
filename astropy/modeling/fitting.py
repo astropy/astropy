@@ -1117,7 +1117,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         self._use_min_max_bounds = use_min_max_bounds
         super().__init__()
 
-    def objective_function(self, fps, *args, **context):
+    def objective_function(self, fps, *args, fitparam_indices=None):
         """
         Function to minimize.
 
@@ -1126,12 +1126,10 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         fps : list
             parameters returned by the fitter
         args : list
-            [model, [weights], [input coordinates], {context}]
-        context : dict
-            A dict of pre-computed parameters from the ``__call__`` method.  All
-            contents of the dict should be optional, as not all fitters support
-            passing it through, i.e. leastsq.
-
+            [model, [weights], [input coordinates]]
+        fit_param_indices : list, optional
+            The ``fitparam_indices`` as returned by ``model_to_fit_params``.
+            This must be optional as not all fitters will support it.
         """
         model = args[0]
         weights = args[1]
@@ -1142,7 +1140,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             model,
             fps,
             self._use_min_max_bounds,
-            fit_param_indices=context.get("fit_param_indices"),
+            fitparam_indices=fitparam_indices,
         )
 
         if weights is None:
@@ -1176,7 +1174,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         model.stds = StandardDeviations(cov_matrix, free_param_names)
 
     @staticmethod
-    def _wrap_deriv(params, model, weights, x, y, z=None, **context):
+    def _wrap_deriv(params, model, weights, x, y, z=None, fitparam_indices=None):
         """
         Wraps the method calculating the Jacobian of the function to account
         for model constraints.
@@ -1371,7 +1369,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         """
         model_copy = _validate_model(model, self.supported_constraints)
         model_copy.sync_constraints = False
-        _, fit_param_indices, _ = model_to_fit_params(model_copy)
+        _, fitparam_indices, _ = model_to_fit_params(model_copy)
 
         if filter_non_finite:
             x, y, z, weights = self._filter_non_finite(x, y, z, weights)
@@ -1380,7 +1378,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             weights,
         ) + _convert_input(x, y, z)
 
-        fkwarg = {"fit_param_indices": set(fit_param_indices)}
+        fkwarg = {"fitparam_indices": set(fitparam_indices)}
 
         init_values, fitparams, cov_x = self._run_fitter(
             model_copy, farg, fkwarg, maxiter, acc, epsilon, estimate_jacobian
@@ -1528,10 +1526,14 @@ class _NLLSQFitter(_NonLinearLSQFitter):
             def _dfunc(params, model, weights, *args, **context):
                 if model.col_fit_deriv:
                     return np.transpose(
-                        self._wrap_deriv(params, model, weights, *args, **context)
+                        self._wrap_deriv(
+                            params, model, weights, *args, fitparam_indices=None
+                        )
                     )
                 else:
-                    return self._wrap_deriv(params, model, weights, *args, **context)
+                    return self._wrap_deriv(
+                        params, model, weights, *args, fitparam_indices=None
+                    )
 
             dfunc = _dfunc
 
@@ -2007,7 +2009,7 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 # arbitrary fitter--as evidenced for example by the fact that JointFitter has
 # its own versions of these)
 def fitter_to_model_params_array(
-    model, fps, use_min_max_bounds=True, *, fit_param_indices=None
+    model, fps, use_min_max_bounds=True, *, fitparam_indices=None
 ):
     """
     Constructs the full list of model parameters from the fitted and
@@ -2033,14 +2035,14 @@ def fitter_to_model_params_array(
     param_metrics = model._param_metrics
     parameters = np.empty(sum(m["size"] for m in param_metrics.values()), dtype=float)
 
-    if fit_param_indices is None:
-        _, fit_param_indices, _ = model_to_fit_params(model)
+    if fitparam_indices is None:
+        _, fitparam_indices, _ = model_to_fit_params(model)
 
     offset = 0
     for idx, name in enumerate(model.param_names):
         metrics = param_metrics[name]
         slice_ = metrics["slice"]
-        if idx not in fit_param_indices:
+        if idx not in fitparam_indices:
             parameters[slice_] = getattr(model, name).value
             continue
 
@@ -2098,9 +2100,9 @@ def fitter_to_model_params(model, fps, use_min_max_bounds=True):
         parameter with bounds.
         Default: True
     """
-    _, fit_param_indices, _ = model_to_fit_params(model)
+    _, fitparam_indices, _ = model_to_fit_params(model)
     parameters = fitter_to_model_params_array(
-        model, fps, use_min_max_bounds, fit_param_indices=fit_param_indices
+        model, fps, use_min_max_bounds, fitparam_indices=fitparam_indices
     )
     model.parameters = parameters
 
