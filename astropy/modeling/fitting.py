@@ -1674,11 +1674,12 @@ class LMLSQFitter(_NLLSQFitter):
         if model.has_bounds:
             warnings.warn(
                 "Using LMLSQFitter for models with bounds is now "
-                "deprecated. We recommend you use another non-linear "
+                "deprecated since astropy 7.0. We recommend you use another non-linear "
                 "fitter such as TRFLSQFitter or DogBoxLSQFitter instead "
                 "as these have full support for fitting models with "
                 "bounds",
                 AstropyDeprecationWarning,
+                stacklevel=2,
             )
         return super().__call__(model, *args, **kwargs)
 
