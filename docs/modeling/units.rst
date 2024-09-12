@@ -167,7 +167,7 @@ we would without any units:
 
     g5 = models.Gaussian1D(mean=3 * u.micron, stddev=1 * u.micron, amplitude=1 * u.Jy)
 
-    fitter = fitting.LevMarLSQFitter()
+    fitter = fitting.TRFLSQFitter()
 
     g5_fit = fitter(g5, x, y)
 

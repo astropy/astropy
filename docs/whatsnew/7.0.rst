@@ -156,9 +156,9 @@ environment. A simple example might be:
 .. doctest-skip::
 
     >>> from astropy.modeling.models import Gaussian1D
-    >>> from astropy.modeling.fitting import parallel_fit_dask, LevMarLSQFitter
+    >>> from astropy.modeling.fitting import parallel_fit_dask, TRFLSQFitter
     >>> model_fit = parallel_fit_dask(model=Gaussian1D(),
-    ...                               fitter=LevMarLSQFitter(),
+    ...                               fitter=TRFLSQFitter(),
     ...                               data=data,
     ...                               world=wcs,
     ...                               fitting_axes=0)

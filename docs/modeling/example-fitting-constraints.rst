@@ -8,7 +8,7 @@ attribute shows the type of constraints supported by a specific fitter::
     >>> from astropy.modeling import fitting
     >>> fitting.LinearLSQFitter.supported_constraints
     ['fixed']
-    >>> fitting.LevMarLSQFitter.supported_constraints
+    >>> fitting.TRFLSQFitter.supported_constraints
     ['fixed', 'tied', 'bounds']
     >>> fitting.SLSQPLSQFitter.supported_constraints
     ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']
@@ -64,11 +64,15 @@ Bounded Constraints
 
 Bounded fitting is supported through the ``bounds`` arguments to models or by
 setting `~astropy.modeling.Parameter.min` and `~astropy.modeling.Parameter.max`
-attributes on a parameter.  Bounds for the
-`~astropy.modeling.fitting.LevMarLSQFitter` are always exactly satisfied--if
-the value of the parameter is outside the fitting interval, it will be reset to
-the value at the bounds. The `~astropy.modeling.fitting.SLSQPLSQFitter` optimization
-algorithm handles bounds internally.
+attributes on a parameter. The following fitters support bounds internally:
+
+* `~astropy.modeling.fitting.TRFLSQFitter`
+* `~astropy.modeling.fitting.DogBoxLSQFitter`
+* `~astropy.modeling.fitting.SLSQPLSQFitter`
+
+The `~astropy.modeling.fitting.LevMarLSQFitter` algorithm uses an unsophisticated
+method of handling bounds and is no longer recommended (see
+:ref:`modeling-getting-started-nonlinear-notes` for more details).
 
 .. _tied:
 
@@ -141,7 +145,7 @@ linking the flux of the [OIII] λ4959 line to the [OIII] λ5007 line.
     hbeta_narrow.mean.tied = tie_hbeta_wave2
 
     # Simultaneously fit all the emission lines and continuum.
-    fitter = fitting.LevMarLSQFitter()
+    fitter = fitting.TRFLSQFitter()
     fitted_model = fitter(model, wave, flux)
     fitted_lines = fitted_model(wave)
 

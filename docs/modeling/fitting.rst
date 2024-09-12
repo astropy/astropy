@@ -62,36 +62,40 @@ The rules for passing input to fitters are:
 Notes on non-linear fitting
 ---------------------------
 
-There are several non-linear fitters, which rely on several different optimization
-algorithms now. Choice of algorithm is problem dependent. The main non-linear
-fitters are:
-
-* :class:`~astropy.modeling.fitting.LevMarLSQFitter`, which uses the Levenberg-Marquardt
-  algorithm via the scipy legacy function `scipy.optimize.leastsq`. This fitter supports
-  parameter bounds via an unsophisticated min/max condition which can cause parameters
-  to "stick" to one of the bounds if during the fitting process the parameter gets close
-  to the bound during some of the intermediate fitting operations.
+There are several non-linear fitters, which rely on several different
+optimization algorithms. Which one you should choose will depend on the problem
+you are trying to solve. The main recommended non-linear fitters are:
 
 * :class:`~astropy.modeling.fitting.TRFLSQFitter`, which uses the Trust Region Reflective
   (TRF) algorithm that is particularly suitable for large sparse problems with bounds, see
-  `scipy.optimize.least_squares` for more details. Note that this fitter supports parameter
-  bounds in a sophisticated fashion which prevents fitting from "sticking" to one of the
-  bounds provided. This fitter can be switched over to using the min/max bound method
-  by setting ``use_min_max_bounds=False`` when initializing the fitter. This is the recommended
-  algorithm by scipy.
+  `scipy.optimize.least_squares` for more details.
 
 * :class:`~astropy.modeling.fitting.DogBoxLSQFitter`, which uses the dogleg algorithm
   with rectangular trust regions, typical use case is small problems with bounds. Not
   recommended for problems with rank-deficient Jacobian, see `scipy.optimize.least_squares`
-  for more details. This fitter supports bounds in the same fashion that
-  :class:`~astropy.modeling.fitting.TRFLSQFitter` does.
+  for more details.
 
 * :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenberg-Marquardt (LM)
   algorithm as implemented by `scipy.optimize.least_squares`. Does not handle bounds and/or
   sparse Jacobians. Usually the most efficient method for small unconstrained problems.
   If a Levenberg-Marquardt algorithm is desired for your problem, it is now recommended that
   you use this fitter instead of :class:`~astropy.modeling.fitting.LevMarLSQFitter` as it
-  makes use of the recommended version of this algorithm in scipy.
+  makes use of the recommended version of this algorithm in scipy. However, if your problem
+  makes use of bounds, you should use another non-linear fitter instead such as
+  :class:`~astropy.modeling.fitting.TRFLSQFitter` or :class:`~astropy.modeling.fitting.DogBoxLSQFitter`
+
+Note that the :class:`~astropy.modeling.fitting.LevMarLSQFitter` fitter, which
+uses the Levenberg-Marquardt algorithm via the scipy legacy function
+`scipy.optimize.leastsq`, is no longer recommended. This fitter supports
+parameter bounds via an unsophisticated min/max condition whereby during each
+step of the fitting, parameters that are out of bounds are simply reset to the
+min or max of the bounds. This can cause parameters to "stick" to one of the
+bounds if during the fitting process the parameter gets close to the bound. If
+the models you are fitting make use of bounds, you should make use of one of the
+other fitters such as :class:`~astropy.modeling.fitting.TRFLSQFitter` or
+:class:`~astropy.modeling.fitting.DogBoxLSQFitter`, and if you do not need
+bounds and specifically want to use the Levenberg-Marquardt algorithm, you
+should use :class:`~astropy.modeling.fitting.LMLSQFitter`.
 
 .. _modeling-getting-started-1d-fitting:
 
@@ -101,7 +105,7 @@ Simple 1-D model fitting
 In this section, we look at a simple example of fitting a Gaussian to a
 simulated dataset. We use the `~astropy.modeling.functional_models.Gaussian1D`
 and `~astropy.modeling.functional_models.Trapezoid1D` models and the
-`~astropy.modeling.fitting.LevMarLSQFitter` fitter to fit the data:
+`~astropy.modeling.fitting.TRFLSQFitter` fitter to fit the data:
 
 .. plot::
    :include-source:
@@ -120,12 +124,12 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
     # Bounds are not really needed but included here to demonstrate usage.
     t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5,
                                 bounds={"x_0": (-5., 5.)})
-    fit_t = fitting.LevMarLSQFitter()
+    fit_t = fitting.TRFLSQFitter()
     t = fit_t(t_init, x, y, maxiter=200)
 
     # Fit the data using a Gaussian
     g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
-    fit_g = fitting.LevMarLSQFitter()
+    fit_g = fitting.TRFLSQFitter()
     g = fit_g(g_init, x, y)
 
     # Plot the data with the best-fit model
@@ -167,7 +171,7 @@ background in an image.
 
     # Fit the data using astropy.modeling
     p_init = models.Polynomial2D(degree=2)
-    fit_p = fitting.LevMarLSQFitter()
+    fit_p = fitting.LMLSQFitter()
 
     with warnings.catch_warnings():
         # Ignore model linearity warning from the fitter

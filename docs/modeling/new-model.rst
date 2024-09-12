@@ -27,7 +27,7 @@ of two Gaussians:
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling.models import custom_model
-    from astropy.modeling.fitting import LevMarLSQFitter
+    from astropy.modeling.fitting import TRFLSQFitter
 
     # Define model
     @custom_model
@@ -45,7 +45,7 @@ of two Gaussians:
 
     # Fit model to data
     m_init = sum_of_gaussians()
-    fit = LevMarLSQFitter()
+    fit = TRFLSQFitter()
     m = fit(m_init, x, y)
 
     # Plot the data and the best fit
