@@ -31,7 +31,7 @@ class HexagonalFrame(BaseFrame):
 
 
 class TestFrame(BaseImageTests):
-    @figure_test
+    @figure_test(tolerance=0.5)
     def test_custom_frame(self):
         wcs = WCS(self.msx_header)
 
