@@ -5,18 +5,15 @@ and generates a report as a directory tree of HTML files.
 """
 
 # STDLIB
-import os
 
 # LOCAL
+from pathlib import Path
+
 from astropy.utils.data import get_pkg_data_filename
 
 from . import html, result
 
 __all__ = ["make_validation_report"]
-
-
-def get_srcdir():
-    return os.path.dirname(__file__)
 
 
 def get_urls(destdir, s):
@@ -113,11 +110,10 @@ def make_validation_report(
     from astropy.utils.console import ProgressBar, Spinner, color_print
 
     if stilts is not None:
-        if not os.path.exists(stilts):
+        if not Path(stilts).exists():
             raise ValueError(f"{stilts} does not exist.")
 
-    destdir = os.path.expanduser(destdir)
-    destdir = os.path.abspath(destdir)
+    destdir = Path(destdir).expanduser().resolve()
 
     if urls is None:
         with Spinner("Loading URLs", "green") as s:

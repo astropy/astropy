@@ -14,6 +14,7 @@ import subprocess
 import urllib.error
 import urllib.request
 import warnings
+from pathlib import Path
 from xml.parsers.expat import ExpatError
 
 # VO
@@ -26,10 +27,9 @@ class Result:
         m = hashlib.md5()
         m.update(url)
         self._hash = m.hexdigest()
-        self._root = root
-        self._path = os.path.join(self._hash[0:2], self._hash[2:4], self._hash[4:])
-        if not os.path.exists(self.get_dirpath()):
-            os.makedirs(self.get_dirpath())
+        self._root = Path(root)
+        self._path = Path(self._hash[0:2], self._hash[2:4], self._hash[4:])
+        self._dirpath.mkdir(parents=True, exist_ok=True)
         self.timeout = timeout
         self.load_attributes()
 
@@ -39,35 +39,51 @@ class Result:
     def __exit__(self, *args):
         self.save_attributes()
 
-    def get_dirpath(self):
-        return os.path.join(self._root, self._path)
+    # TODO: make these properties public and deprecate corresponding accessors
+    def _dirpath(self) -> Path:
+        return self._root / self._path
 
-    def get_htmlpath(self):
+    def get_dirpath(self) -> str:
+        return os.fspath(self._dirpath)
+
+    @property
+    def _htmlpath(self) -> Path:
         return self._path
 
-    def get_attribute_path(self):
-        return os.path.join(self.get_dirpath(), "values.dat")
+    def get_htmlpath(self) -> str:
+        return os.fspath(self._htmlpath)
 
-    def get_vo_xml_path(self):
-        return os.path.join(self.get_dirpath(), "vo.xml")
+    @property
+    def _attribute_path(self) -> Path:
+        return self._dirpath / "values.dat"
+
+    def get_attribute_path(self) -> str:
+        return os.fspath(self._attribute_path)
+
+    @property
+    def _vo_xml_path(self) -> Path:
+        return self._dirpath / "vo.xml"
+
+    def get_vo_xml_path(self) -> str:
+        return os.fspath(self._vo_xml_path)
 
     # ATTRIBUTES
 
     def load_attributes(self):
-        path = self.get_attribute_path()
-        if os.path.exists(path):
+        path = self._attribute_path
+        if path.exists():
             try:
                 with open(path, "rb") as fd:
                     self._attributes = pickle.load(fd)
             except Exception:
-                shutil.rmtree(self.get_dirpath())
-                os.makedirs(self.get_dirpath())
+                shutil.rmtree(self._dirpath)
+                self._dirpath.mkdir(parents=True)
                 self._attributes = {}
         else:
             self._attributes = {}
 
     def save_attributes(self):
-        path = self.get_attribute_path()
+        path = self._attribute_path
         with open(path, "wb") as fd:
             pickle.dump(self._attributes, fd)
 
@@ -83,12 +99,12 @@ class Result:
     # VO XML
 
     def download_xml_content(self):
-        path = self.get_vo_xml_path()
+        path = self._vo_xml_path
 
         if "network_error" not in self._attributes:
             self["network_error"] = None
 
-        if os.path.exists(path):
+        if path.exists():
             return
 
         def fail(reason):
@@ -130,16 +146,16 @@ class Result:
             fd.write(content)
 
     def get_xml_content(self):
-        path = self.get_vo_xml_path()
-        if not os.path.exists(path):
+        path = self._vo_xml_path
+        if not path.exists():
             self.download_xml_content()
-        with open(path, "rb") as fd:
+        with path.open("rb") as fd:
             content = fd.read()
         return content
 
     def validate_vo(self):
-        path = self.get_vo_xml_path()
-        if not os.path.exists(path):
+        path = self._vo_xml_path
+        if not path.exists():
             self.download_xml_content()
         self["version"] = ""
         if "network_error" in self and self["network_error"] is not None:
@@ -154,7 +170,7 @@ class Result:
         nwarnings = 0
         t = None
         lines = []
-        with open(path, "rb") as input:
+        with path.open("rb") as input:
             with warnings.catch_warnings(record=True) as warning_lines:
                 try:
                     t = table.parse(input, verify="warn", filename=path)
@@ -217,7 +233,7 @@ class Result:
             return self["network_error"] is not None
 
     def validate_with_votlint(self, path_to_stilts_jar):
-        filename = self.get_vo_xml_path()
+        filename = str(self._vo_xml_path)
         p = subprocess.Popen(
             ["java", "-jar", path_to_stilts_jar, "votlint", "validate=false", filename],
             stdout=subprocess.PIPE,

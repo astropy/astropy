@@ -11,6 +11,7 @@ import os
 import sys
 import textwrap
 import warnings
+from pathlib import Path
 
 from astropy.utils import data
 from astropy.utils.xml import iterparser
@@ -152,10 +153,10 @@ def parse(
         "datatype_mapping": datatype_mapping,
     }
 
-    if isinstance(source, str):
-        source = os.path.expanduser(source)
+    if isinstance(source, str | os.PathLike):
+        source = Path(source).expanduser()
 
-    if filename is None and isinstance(source, str):
+    if filename is None and isinstance(source, Path):
         config["filename"] = source
 
     with iterparser.get_xml_iterator(
@@ -260,8 +261,8 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
 
     reset_vo_warnings()
 
-    if isinstance(source, str):
-        source = os.path.expanduser(source)
+    if isinstance(source, str | os.PathLike):
+        source = Path(source).expanduser()
 
     with data.get_readable_fileobj(source, encoding="binary") as fd:
         content = fd.read()
@@ -269,8 +270,8 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     content_buffer.seek(0)
 
     if filename is None:
-        if isinstance(source, str):
-            filename = source
+        if isinstance(source, Path):
+            filename = str(source)
         elif hasattr(source, "name"):
             filename = source.name
         elif hasattr(source, "url"):
@@ -331,7 +332,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
         output.write("astropy.io.votable found no violations.\n\n")
 
     success = 0
-    if xmllint and os.path.exists(filename):
+    if xmllint and Path(filename).exists():
         from . import xmlutil
 
         if votable is None:
@@ -387,8 +388,8 @@ def is_votable(source):
     is_votable : bool
         Returns `True` if the given file is a VOTable file.
     """
-    if isinstance(source, str):
-        source = os.path.expanduser(source)
+    if isinstance(source, str | os.PathLike):
+        source = Path(source).expanduser()
     try:
         with iterparser.get_xml_iterator(source) as iterator:
             for start, tag, d, pos in iterator:

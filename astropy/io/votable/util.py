@@ -10,6 +10,7 @@ import gzip
 import io
 import os
 import re
+from pathlib import Path
 
 from packaging.version import Version
 
@@ -27,7 +28,7 @@ def convert_to_writable_filelike(fd, compressed=False):
 
     Parameters
     ----------
-    fd : str or file-like
+    fd : str, os.PathLike or file-like
         May be:
 
             - a file path string, in which case it is opened, and the file
@@ -43,9 +44,9 @@ def convert_to_writable_filelike(fd, compressed=False):
     -------
     fd : :term:`file-like (writeable)`
     """
-    if isinstance(fd, str):
-        fd = os.path.expanduser(fd)
-        if fd.endswith(".gz") or compressed:
+    if isinstance(fd, str | os.PathLike):
+        fd = Path(fd).expanduser()
+        if fd.suffix == ".gz" or compressed:
             with gzip.GzipFile(filename=fd, mode="wb") as real_fd:
                 encoded_fd = io.TextIOWrapper(real_fd, encoding="utf8")
                 yield encoded_fd
