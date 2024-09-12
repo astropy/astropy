@@ -932,6 +932,38 @@ def test_local_pixel_derivatives(spatial_wcs_2d_small_angle):
     np.testing.assert_allclose(derivs[not_diag].flat, [0, 0], atol=1e-8)
 
 
+def test_local_pixel_derivatives_cube():
+    cube_wcs = WCS(naxis=3)
+    cube_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
+    cube_wcs.wcs.crval = 10, 20, 30
+    cube_wcs.wcs.cdelt = 0.0001, 0.0001, 0.01
+    cube_wcs.wcs.cunit = "deg", "deg", "GHz"
+    cube_wcs.wcs.set()
+
+    derivs = local_partial_pixel_derivatives(cube_wcs, 0, 0, 0)
+    np.testing.assert_allclose(
+        derivs, [[0.0001, 0, 0], [0, 0.0001, 0], [0, 0, 1e7]], rtol=0.1, atol=1e-5
+    )
+
+    derivs = local_partial_pixel_derivatives(cube_wcs, 0, 0, 0, normalize_by_world=True)
+    np.testing.assert_allclose(
+        derivs, [[1, 0, 0], [0, 1, 0], [0, 0, 1]], rtol=0.1, atol=1e-5
+    )
+
+    # Slice WCS so that there are two pixel and three world coordinates
+    sliced_wcs = cube_wcs[:, 0, :]
+
+    derivs = local_partial_pixel_derivatives(sliced_wcs, 0, 0, 0)
+    np.testing.assert_allclose(
+        derivs, [[0.0001, 0], [0, 0], [0, 1e7]], rtol=0.1, atol=1e-5
+    )
+
+    derivs = local_partial_pixel_derivatives(
+        sliced_wcs, 0, 0, 0, normalize_by_world=True
+    )
+    np.testing.assert_allclose(derivs, [[1, 0], [1, 0], [0, 1]], rtol=0.1, atol=1e-5)
+
+
 def test_pixel_to_world_correlation_matrix_celestial():
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
