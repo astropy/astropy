@@ -19,6 +19,7 @@ import time
 import typing
 import warnings
 from io import StringIO
+from pathlib import Path
 
 import numpy as np
 
@@ -144,9 +145,8 @@ def _probably_html(table, maxchars=100000):
             return True
 
         # Filename ending in .htm or .html which exists
-        if re.search(r"\.htm[l]?$", table[-5:], re.IGNORECASE) and os.path.exists(
-            os.path.expanduser(table)
-        ):
+        table_path = Path(table).expanduser()
+        if re.search(r"\.htm[l]?$", table[-5:], re.IGNORECASE) and table_path.is_file():
             return True
 
         # Table starts with HTML document type declaration
@@ -331,9 +331,8 @@ def _expand_user_if_path(argument):
         )
         if not is_str_data:
             # Remain conservative in expanding the presumed-path
-            ex_user = os.path.expanduser(argument)
-            if os.path.exists(ex_user):
-                argument = ex_user
+            if (ex_user := Path(argument).expanduser()).exists():
+                argument = str(ex_user)
     return argument
 
 
@@ -1006,7 +1005,7 @@ def write(
     )
 
     if isinstance(output, (str, bytes, os.PathLike)):
-        output = os.path.expanduser(output)
+        output = os.path.expanduser(output)  # noqa: PTH111
         if not overwrite and os.path.lexists(output):
             raise OSError(NOT_OVERWRITING_MSG.format(output))
 
@@ -1059,10 +1058,9 @@ def write(
         # behavior is for Python to translate \r\n (which we write because
         # of os.linesep) into \r\r\n. Specifying newline='' disables any
         # auto-translation.
-        output = open(output, "w", newline="")
-        output.write(outstr)
-        output.write(os.linesep)
-        output.close()
+        with open(output, "w", newline="") as output:
+            output.write(outstr)
+            output.write(os.linesep)
     else:
         output.write(outstr)
         output.write(os.linesep)

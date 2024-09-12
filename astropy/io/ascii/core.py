@@ -20,6 +20,7 @@ import re
 import warnings
 from contextlib import suppress
 from io import StringIO
+from pathlib import Path
 
 import numpy as np
 
@@ -1406,7 +1407,7 @@ class BaseReader(metaclass=MetaBaseReader):
         with suppress(TypeError):
             # Strings only
             if os.linesep not in table + "":
-                self.data.table_name = os.path.basename(table)
+                self.data.table_name = Path(table).name
 
         # If one of the newline chars is set as field delimiter, only
         # accept the other one as line splitter
