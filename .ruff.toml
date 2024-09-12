@@ -235,7 +235,6 @@ lint.unfixable = [
     "TRY300",  # Consider `else` block
 ]
 "astropy/io/ascii/*" = [
-    "PTH",
 ]
 "astropy/io/fits/*" = [
     "PTH",

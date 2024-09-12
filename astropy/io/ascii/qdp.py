@@ -6,9 +6,11 @@ not meant to be used directly, but instead are available as readers/writers in
 """
 
 import copy
+import os
 import re
 import warnings
 from collections.abc import Iterable
+from pathlib import Path
 
 import numpy as np
 
@@ -136,7 +138,7 @@ def _get_type_from_list_of_lines(lines, delimiter=None):
 def _get_lines_from_file(qdp_file):
     if "\n" in qdp_file:
         lines = qdp_file.split("\n")
-    elif isinstance(qdp_file, str):
+    elif isinstance(qdp_file, (str, os.PathLike)):
         with open(qdp_file) as fobj:
             lines = [line.strip() for line in fobj]
     elif isinstance(qdp_file, Iterable):
@@ -486,8 +488,7 @@ def _write_table_qdp(table, filename=None, err_specs=None):
     fobj.close()
 
     if filename is not None:
-        with open(filename, "w") as fobj:
-            print(full_string, file=fobj)
+        Path(filename).write_text(full_string)
 
     return full_string.split("\n")
 
