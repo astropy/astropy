@@ -1,0 +1,2 @@
+Allow ``astropy.visualization.units.quantity_support`` to be used as either
+a decorator or a context manager.
