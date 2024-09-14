@@ -5,6 +5,7 @@ Regression tests for the units.format package
 
 from __future__ import annotations
 
+import re
 import warnings
 from contextlib import nullcontext
 from fractions import Fraction
@@ -956,7 +957,7 @@ def test_powers(power, expected):
         ("\N{MICRO SIGN}g", u.microgram),
         ("\N{GREEK SMALL LETTER MU}g", u.microgram),
         ("g\N{MINUS SIGN}1", u.g ** (-1)),
-        ("m\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}", 1 / u.m),
+        ("m\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}", u.m**-1),
         ("m s\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}", u.m / u.s),
         ("m\N{SUPERSCRIPT TWO}", u.m**2),
         ("m\N{SUPERSCRIPT PLUS SIGN}\N{SUPERSCRIPT TWO}", u.m**2),
@@ -985,6 +986,18 @@ def test_powers(power, expected):
 def test_unicode(string, unit):
     assert u_format.Generic.parse(string) == unit
     assert u.Unit(string) == unit
+    # Should work in composites too.
+    assert u.Unit(f"{string}/s") == unit / u.s
+    assert u.Unit(f"m {string}") == u.m * unit
+    assert u.Unit(f"{string} {string}") == unit**2
+    # Not obvious that "°2" should be "deg**2", but not easy to reject,
+    # and "R♃²" should work.  But don't run on examples with a space or that
+    # already end in a number.
+    if re.match(r"^\S*[^\d⁰¹²³⁴⁵⁶⁷⁸⁹]$", string):
+        assert u.Unit(f"{string}2") == unit**2
+    assert u.Unit(f"{string}/{string}") == u.dimensionless_unscaled
+    # Finally, check round-trip
+    assert u.Unit(unit.to_string("unicode")) == unit
 
 
 @pytest.mark.parametrize(
