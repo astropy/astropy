@@ -98,6 +98,10 @@ class FITS(generic.Generic):
 
     @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
+        # Short-circuit, and also the only way to get "deg C" to be recognized
+        # it would be a composite unit otherwise.
+        if unit := cls._units.get(s.strip()):
+            return unit
         result = super().parse(s, debug)
         if hasattr(result, "function_unit"):
             raise ValueError("Function units are not yet supported for FITS units.")
