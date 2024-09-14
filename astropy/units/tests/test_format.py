@@ -17,7 +17,7 @@ from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.constants import si
-from astropy.units import PrefixUnit, Unit, UnitBase, UnitsWarning, dex
+from astropy.units import PrefixUnit, Unit, UnitBase, UnitsWarning, cds, dex
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -124,6 +124,8 @@ def test_unit_grammar_fail(string):
         (["[cm/s2]"], dex(u.cm / u.s**2)),
         (["[K]"], dex(u.K)),
         (["[-]"], dex(u.dimensionless_unscaled)),
+        (["eps0/mu0"], cds.eps0 / cds.mu0),
+        (["a0.s"], cds.a0 * u.s),
     ),
     ids=lambda x: x.string,
 )
@@ -466,8 +468,6 @@ def test_units_available(unit_formatter_class, n_units):
 def test_cds_non_ascii_unit():
     """Regression test for #5350.  This failed with a decoding error as
     μas could not be represented in ascii."""
-    from astropy.units import cds
-
     with cds.enable():
         u.radian.find_equivalent_units(include_prefix_units=True)
 
