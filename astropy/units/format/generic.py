@@ -572,17 +572,12 @@ class Generic(Base):
     @classmethod
     def _do_parse(cls, s: str, debug: bool = False) -> UnitBase:
         try:
-            # This is a short circuit for the case where the string
-            # is just a single unit name
-            return cls._parse_unit(s, detailed_exception=False)
+            return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
         except ValueError as e:
-            try:
-                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
-            except ValueError as e:
-                if str(e):
-                    raise
-                else:
-                    raise ValueError(f"Syntax error parsing unit '{s}'")
+            if str(e):
+                raise
+            else:
+                raise ValueError(f"Syntax error parsing unit '{s}'") from e
 
     @classmethod
     def _get_unit_name(cls, unit: NamedUnit) -> str:
