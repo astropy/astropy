@@ -2090,17 +2090,20 @@ class _UnitMetaClass(type):
         if isinstance(s, UnitBase):
             return s
 
-        elif isinstance(s, (bytes, str)):
+        elif isinstance(s, (str, bytes)):
             if len(s.strip()) == 0:
                 # Return the NULL unit
                 return dimensionless_unscaled
 
-            if format is None:
-                format = unit_format.Generic
-
             f = unit_format.get_format(format)
             if isinstance(s, bytes):
                 s = s.decode("ascii")
+
+            # Short-circuit for simple units for the default case of Generic.
+            if f is unit_format.Generic and (
+                unit := get_current_unit_registry().registry.get(s)
+            ):
+                return unit
 
             try:
                 return f.parse(s)
