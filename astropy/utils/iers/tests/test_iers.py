@@ -369,6 +369,22 @@ class TestIERS_Auto:
             assert dat["MJD"][-1] == (57539.0 + 60) * u.d
 
 
+@pytest.mark.parametrize("query", ["ut1_utc", "pm_xy"])
+@pytest.mark.parametrize("jd", [np.array([]), Time([], format="mjd")])
+@pytest.mark.parametrize("return_status", [False, True])
+def test_empty_mjd(query, jd, return_status):
+    # Regression test for gh-17008
+    iers_table = iers.IERS_Auto.open()
+    result = getattr(iers_table, query)(jd, return_status=return_status)
+    n_exp = (1 if query == "ut1_utc" else 2) + (1 if return_status else 0)
+    if n_exp == 1:
+        assert isinstance(result, np.ndarray)
+        assert result.size == 0
+    else:
+        assert len(result) == n_exp
+        assert all(r.size == 0 for r in result)
+
+
 def test_IERS_B_parameters_loading_into_IERS_Auto():
     # Make sure that auto downloading is off
     with iers.conf.set_temp("auto_download", False):
