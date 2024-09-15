@@ -243,6 +243,11 @@ def test_sigmaclip_fully_masked(masked_array):
     assert not hasattr(clipped_data, "mask")
     assert np.all(np.isnan(clipped_data))
 
+    clipped_data = sigma_clip(data, axis=1)
+    assert not isinstance(clipped_data, (Masked, np.ma.MaskedArray))
+    assert not hasattr(clipped_data, "mask")
+    assert np.all(np.isnan(clipped_data))
+
     clipped_data, low, high = sigma_clip(data, return_bounds=True)
     assert np.ma.allequal(data, clipped_data)
     assert np.isnan(low)

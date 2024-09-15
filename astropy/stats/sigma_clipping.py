@@ -610,20 +610,9 @@ class SigmaClip:
         """
         data = np.asanyarray(data)
 
-        if data.size == 0:
+        if data.size == 0 or np.all(getattr(data, "mask", np.False_)):
             if masked and not hasattr(data, "mask"):
                 result = np.ma.MaskedArray(data)
-            else:
-                result = data
-
-            if return_bounds:
-                return result, self._min_value, self._max_value
-            else:
-                return result
-
-        if isinstance(data, np.ma.MaskedArray) and data.mask.all():
-            if masked:
-                result = data
             else:
                 result = np.full(data.shape, np.nan)
 
