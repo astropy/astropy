@@ -37,6 +37,15 @@ class TestSphericalRepresentationSeparateMasks:
         assert_array_equal(self.msph.mask, self.mask)
         assert_array_equal(self.msph.get_mask(), self.mask)
         assert_array_equal(self.msph.get_mask("lon", "lat"), self.mask_ang)
+        assert repr(self.msph) == (
+            "<SphericalRepresentation (lon, lat, distance) in (hourangle, deg, pc)\n"
+            "    [( 0., -15., 10.), (———,  30., 20.), ( 6.,  ———, 30.),\n"
+            "     (12., -60., ———), (———,  ———, 50.), (———,  ———, ———)]>"
+        )
+        assert str(self.msph) == (
+            "[( 0., -15., 10.), (———,  30., 20.), ( 6.,  ———, 30.), (12., -60., ———),\n"
+            " (———,  ———, 50.), (———,  ———, ———)] (hourangle, deg, pc)"
+        )
 
     def test_convert_to_cartesian(self):
         mcart = self.msph.represent_as(r.CartesianRepresentation)
