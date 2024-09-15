@@ -365,15 +365,20 @@ def test_sigmaclip_fully_masked(masked_array):
     """
     data = masked_array([[1.0, 0.0], [0.0, 1.0]], mask=[[True, True], [True, True]])
     clipped_data = sigma_clip(data)
-    assert np.ma.allequal(data, clipped_data)
+    assert_equal(data, clipped_data)
 
     clipped_data = sigma_clip(data, masked=False)
     assert not isinstance(clipped_data, (Masked, np.ma.MaskedArray))
     assert not hasattr(clipped_data, "mask")
     assert np.all(np.isnan(clipped_data))
 
+    clipped_data = sigma_clip(data, axis=1)
+    assert not isinstance(clipped_data, (Masked, np.ma.MaskedArray))
+    assert not hasattr(clipped_data, "mask")
+    assert np.all(np.isnan(clipped_data))
+
     clipped_data, low, high = sigma_clip(data, return_bounds=True)
-    assert np.ma.allequal(data, clipped_data)
+    assert_equal(data, clipped_data)
     assert np.isnan(low)
     assert np.isnan(high)
 
@@ -386,10 +391,10 @@ def test_sigmaclip_empty_masked(masked_array):
     """
     data = masked_array(data=[], mask=[])
     clipped_data = sigma_clip(data)
-    assert np.ma.allequal(data, clipped_data)
+    assert_equal(data, clipped_data)
 
     clipped_data, low, high = sigma_clip(data, return_bounds=True)
-    assert np.ma.allequal(data, clipped_data)
+    assert_equal(data, clipped_data)
     assert np.isnan(low)
     assert np.isnan(high)
 
