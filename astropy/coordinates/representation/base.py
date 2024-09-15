@@ -532,7 +532,9 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         The record array fields will have the component names.
         """
         coo_items = [(c, getattr(self, c)) for c in self.components]
-        result = np.empty(self.shape, [(c, coo.dtype) for c, coo in coo_items])
+        result = np.empty_like(
+            coo_items[0][1].value, dtype=[(c, coo.dtype) for c, coo in coo_items]
+        )
         for c, coo in coo_items:
             result[c] = coo.value
         return result
