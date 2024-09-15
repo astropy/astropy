@@ -669,6 +669,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         """
         return self._data_cls
 
+    @property
+    def _data(self):
+        """Work-around for np.ma.getdata."""
+        return self.unmasked
+
     def view(self, dtype=None, type=None):
         """New view of the masked array.
 
