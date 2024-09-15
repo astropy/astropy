@@ -23,6 +23,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_parallel_fitting`
 * :ref:`whatsnew_7_0_rgb_image_visualization_enhancement`
 * :ref:`whatsnew_7_0_lorentz2d_model`
+* :ref:`whatsnew-7.0-masked-coordinates`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -287,6 +288,28 @@ New ``Lorentz2D`` model
 
 A new 2D Lorentzian model has been added to the ``astropy.modeling``
 package.
+
+.. _whatsnew-7.0-masked-coordinates:
+
+Support for masks in ``coordinates``
+====================================
+
+Initial support for masks has been implemented for |SkyCoord|, as well as for
+coordinate frames and coordinate representations.
+
+Like more generally for |Masked| instances, one can access the mask of using
+``.mask``, check whether the underlying data are masked using ``masked``,
+access underlying unmasked data using ``.unmasked``, and get a new instance
+with masked data replaced with a fill value using the ``filled()`` method.
+
+The way masks are combined treats coordinates using spherical representations
+(the default) as a special case, combining the masks of the two angles, but
+not including the mask on the distance. This is to allow one to deal with
+cases were positions are available for all sources, but distances only for
+some. It is possible to make other choices using the new ``.get_mask()`` method
+(available on |SkyCoord| and frames, but not on representations).
+
+For concrete examples, see :ref:`astropy-coordinates-masks`.
 
 Full change log
 ===============
