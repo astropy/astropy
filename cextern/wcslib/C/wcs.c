@@ -3380,18 +3380,18 @@ static int wcs_chksum(const struct wcsprm *wcs)
 
   if (wcs->pv) {
     size_t nszpv = wcs->npvmax * sizeof(struct pvcard);
-    chksum = wcs_fletcher32(chksum, &wcs->pv, nszpv);
+    chksum = wcs_fletcher32(chksum, wcs->pv, nszpv);
   }
 
   chksum = wcs_fletcher32(chksum, &wcs->nps, szi);
 
   if (wcs->ps) {
     size_t nszps = wcs->npsmax * sizeof(struct pscard);
-    chksum = wcs_fletcher32(chksum, &wcs->ps, nszps);
+    chksum = wcs_fletcher32(chksum, wcs->ps, nszps);
   }
 
   if (wcs->cd) {
-    chksum = wcs_fletcher32(chksum, wcs->pc, nnszd);
+    chksum = wcs_fletcher32(chksum, wcs->cd, nnszd);
   }
 
   if (wcs->crota) {
