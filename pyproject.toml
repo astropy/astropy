@@ -241,7 +241,7 @@ doctest_subpackage_requires = [
     "astropy/timeseries/periodograms/bls/core.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
     "astropy/timeseries/periodograms/lombscargle/core.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
     "astropy/units/structured.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/modeling/fitting_parallel.py = dask",
+    "astropy/modeling/_fitting_parallel.py = dask",
     "docs/modeling/parallel-fitting.rst = dask",
 ]
 markers = [
