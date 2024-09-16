@@ -750,3 +750,36 @@ def test_regression_10291():
     assert_quantity_allclose(
         venus.separation(sun), 554.427 * u.arcsecond, atol=0.001 * u.arcsecond
     )
+
+
+@pytest.mark.parametrize(
+    "differential_type, diff_kwargs",
+    [
+        (None, {}),
+        (
+            "unitsphericalcoslat",
+            {
+                "pm_ra_cosdec": [40, 50] * u.mas / u.yr,
+                "pm_dec": [60, 70] * u.mas / u.yr,
+            },
+        ),
+        ("radial", {"radial_velocity": [80, 90] * u.km / u.s}),
+    ],
+)
+@pytest.mark.parametrize("extra_kwargs", [{}, {"representation_type": "unitspherical"}])
+def test_regression_16998(differential_type, diff_kwargs, extra_kwargs):
+    """Direct tests of the underlying problem causing gh-16998.
+
+    Note that the issue itself was of columns missing in data written to a file.
+    On main, that is tested directly by the "icrs" column in
+    astropy/io/tests/mixin_columns.py.
+    Here, we test the underlying problem, that .info._represent_as_dict()
+    did not return a full set of columns in some cases.
+    """
+    if extra_kwargs and differential_type:
+        extra_kwargs["differential_type"] = differential_type
+    coord = SkyCoord([0, 10] * u.deg, [20, 30] * u.deg, **diff_kwargs, **extra_kwargs)
+    expected_entries = {"ra", "dec", "representation_type", "frame"}
+    if differential_type:
+        expected_entries |= {"differential_type"} | set(diff_kwargs)
+    assert set(coord.info._represent_as_dict()) == expected_entries
