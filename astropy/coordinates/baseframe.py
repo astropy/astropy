@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, NamedTuple
 import numpy as np
 
 from astropy import units as u
+from astropy.table import QTable
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.decorators import deprecated, format_doc, lazyproperty
@@ -2149,6 +2150,47 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         sph = self.represent_as("spherical", in_frame_units=True)
         return sph.differentials["s"].d_distance
+
+    def to_table(self) -> QTable:
+        """
+        Convert this |BaseFrame| to a |QTable|.
+
+        Any attributes that have the same length as the |BaseFrame| will be
+        converted to columns of the |QTable|. All other attributes will be
+        recorded as metadata.
+
+        Returns
+        -------
+        `~astropy.table.QTable`
+            A |QTable| containing the data of this |BaseFrame|.
+
+        Examples
+        --------
+        >>> from astropy.coordinates import ICRS
+        >>> coord = ICRS(ra=[40, 70]*u.deg, dec=[0, -20]*u.deg)
+        >>> t =  coord.to_table()
+        >>> t
+        <QTable length=2>
+           ra     dec
+          deg     deg
+        float64 float64
+        ------- -------
+           40.0     0.0
+           70.0   -20.0
+        >>> t.meta
+        {'representation_type': 'spherical'}
+        """
+        columns = {}
+        metadata = {}
+        # Record attributes that have the same length as self as columns in the
+        # table, and the other attributes as table metadata.  This matches
+        # table.serialize._represent_mixin_as_column().
+        for key, value in self.info._represent_as_dict().items():
+            if getattr(value, "shape", ())[:1] == (len(self),):
+                columns[key] = value
+            else:
+                metadata[key] = value
+        return QTable(columns, meta=metadata)
 
 
 class GenericFrame(BaseCoordinateFrame):

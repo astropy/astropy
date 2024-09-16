@@ -1245,8 +1245,8 @@ means that attributes such as ``obstime`` can become columns or metadata::
       0.0    20.0
      20.0     0.0
   >>> t.meta
-  {'obstime': <Time object: scale='tt' format='jyear' value=2000.0>,
-   'representation_type': 'spherical', 'frame': 'galactic'}
+  {'representation_type': 'spherical', 'frame': 'galactic',
+   'obstime': <Time object: scale='tt' format='jyear' value=2000.0>}
 
 Convenience Methods
 ===================
