@@ -1,0 +1,2 @@
+Minimal requirement for (optional dependency) matplotlib was bumped
+to 3.5.0, which is the oldest version with support for Python 3.10

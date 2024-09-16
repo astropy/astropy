@@ -66,7 +66,7 @@ test_all = [
 ]
 recommended = [
     "scipy>=1.8",
-    "matplotlib>=3.3,!=3.4.0,!=3.5.2",
+    "matplotlib>=3.5.0,!=3.5.2",
 ]
 typing = [
     "typing_extensions>=4.0.0"
@@ -564,9 +564,9 @@ ignore = [
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
 
-    [tool.gilesbot.circleci_artifacts.py310-test-image-mpl334]
-        url = ".tmp/py310-test-image-mpl334/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons, for py310-test-image-mpl334."
+    [tool.gilesbot.circleci_artifacts.py310-test-image-mpl350]
+        url = ".tmp/py310-test-image-mpl350/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons, for py310-test-image-mpl350."
         report_on_fail = true
 
     [tool.gilesbot.circleci_artifacts.py310-test-image-mpldev]
