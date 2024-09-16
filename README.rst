@@ -1,11 +1,5 @@
 |Astropy Logo|
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_dark.png?raw=true">
-  <source media="(prefers-color-scheme: light)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true">
-  <img alt="Astropy user statistics" src="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true">
-</picture>
-
 ----
 
 |Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
@@ -35,6 +29,12 @@ For more detailed instructions, see the `install guide
 
 Contributing
 ============
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_dark.png?raw=true">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true">
+  <img alt="Astropy user statistics" src="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true">
+</picture>
 
 The Astropy Project is made both by and for its users, so we welcome and
 encourage contributions of many kinds. Our goal is to keep this a positive,
