@@ -23,6 +23,7 @@ from .baseframe import BaseCoordinateFrame, GenericFrame, frame_transform_graph
 from .distances import Distance
 from .representation import (
     RadialDifferential,
+    SphericalCosLatDifferential,
     SphericalDifferential,
     SphericalRepresentation,
     UnitSphericalCosLatDifferential,
@@ -82,30 +83,47 @@ class SkyCoordInfo(MixinInfo):
 
     def _represent_as_dict(self):
         sc = self._parent
-        attrs = list(sc.representation_component_names)
-
-        # Don't output distance unless it's actually distance.
-        if isinstance(sc.data, UnitSphericalRepresentation):
-            attrs = attrs[:-1]
-
-        diff = sc.data.differentials.get("s")
-        if diff is not None:
-            diff_attrs = list(sc.get_representation_component_names("s"))
-            # Don't output proper motions if they haven't been specified.
-            if isinstance(diff, RadialDifferential):
-                diff_attrs = diff_attrs[2:]
-            # Don't output radial velocity unless it's actually velocity.
-            elif isinstance(
-                diff, (UnitSphericalDifferential, UnitSphericalCosLatDifferential)
+        attrs = []
+        representation_type = sc.representation_type
+        differential_type = None
+        if sc.has_data:
+            attrs.extend(sc.representation_component_names)
+            # Don't output distance unless it's actually distance.
+            if issubclass(representation_type, SphericalRepresentation) and isinstance(
+                sc.data, UnitSphericalRepresentation
             ):
-                diff_attrs = diff_attrs[:-1]
-            attrs.extend(diff_attrs)
+                attrs = attrs[:-1]
+
+            diff = sc.data.differentials.get("s")
+            if diff is not None:
+                differential_type = sc.differential_type
+                diff_attrs = list(sc.get_representation_component_names("s"))
+                if issubclass(
+                    differential_type,
+                    (SphericalDifferential, SphericalCosLatDifferential),
+                ):
+                    # Don't output proper motions or radial velocities unless
+                    # they've been specifically passed in.
+                    if isinstance(diff, RadialDifferential):
+                        diff_attrs = diff_attrs[2:]
+                    elif isinstance(
+                        diff,
+                        (
+                            UnitSphericalDifferential,
+                            UnitSphericalCosLatDifferential,
+                        ),
+                    ):
+                        diff_attrs = diff_attrs[:-1]
+                attrs.extend(diff_attrs)
 
         attrs.extend(frame_transform_graph.frame_attributes.keys())
 
         out = super()._represent_as_dict(attrs)
 
-        out["representation_type"] = sc.representation_type.get_name()
+        out["representation_type"] = representation_type.get_name()
+        if differential_type is not None:
+            out["differential_type"] = differential_type.get_name()
+
         out["frame"] = sc.frame.name
         # Note that sc.info.unit is a fake composite unit (e.g. 'deg,deg,None'
         # or None,None,m) and is not stored.  The individual attributes have

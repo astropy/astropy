@@ -640,7 +640,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 RepresentationMapping("d_distance", "radial_velocity", u.km / u.s),
             ],
         )
-
+        repr_info.setdefault(
+            r.RadialDifferential,
+            [RepresentationMapping("d_distance", "radial_velocity", u.km / u.s)],
+        )
         repr_info.setdefault(
             r.CartesianDifferential,
             [
