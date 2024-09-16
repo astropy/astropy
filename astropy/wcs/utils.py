@@ -976,7 +976,7 @@ def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
         derivatives[:, i] = world_off - world_ref
 
     if normalize_by_world:
-        derivatives /= derivatives.sum(axis=0)[:, np.newaxis]
+        derivatives /= derivatives.sum(axis=1)[:, np.newaxis]
 
     return derivatives
 
