@@ -115,7 +115,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - arch: aarch64
           - arch: s390x
           - arch: ppc64le
           - arch: armv7
@@ -171,3 +170,24 @@ jobs:
             ASTROPY_USE_SYSTEM_ALL=1 pip3 install -v --no-build-isolation -e .[test]
             pip3 list
             python3 -m pytest -m "not hypothesis"
+
+  test_arm64:
+
+    # Native arm64 testing - we keep this in the weekly cron as we need to pay for it so we should
+    # minimize how many jobs we do.
+
+    runs-on: linux-arm64
+    name: Python 3.12 (arm64)
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Set up dependencies
+        run: pip install tox
+
+      - name: Run tests
+        run: tox -e py312-test -- -n=2
