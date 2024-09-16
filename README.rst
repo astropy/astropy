@@ -1,6 +1,10 @@
 |Astropy Logo|
 
-|User Stats|
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_dark.png?raw=true" target="https://docs.astropy.org/en/latest/impact_health.html">
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true" target="https://docs.astropy.org/en/latest/impact_health.html">
+    <img alt="Astropy user statistics" src="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true" target="https://docs.astropy.org/en/latest/impact_health.html">
+</picture>
 
 ----
 
@@ -82,10 +86,6 @@ Astropy is licensed under a 3-clause BSD style license - see the
 .. |Astropy Logo| image:: https://github.com/astropy/repo_stats/blob/main/dashboard_template/astropy_banner_gray.svg
     :target: https://www.astropy.org/
     :alt: Astropy
-
-.. |User Stats| image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_transparent.png
-    :target: https://docs.astropy.org/en/latest/impact_health.html
-    :alt: Astropy User Statistics
 
 .. |Actions Status| image:: https://github.com/astropy/astropy/actions/workflows/ci_workflows.yml/badge.svg
     :target: https://github.com/astropy/astropy/actions
