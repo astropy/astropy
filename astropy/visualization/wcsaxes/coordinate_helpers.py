@@ -11,7 +11,6 @@ import numpy as np
 from matplotlib import rcParams
 from matplotlib.patches import PathPatch
 from matplotlib.path import Path
-from matplotlib.ticker import Formatter
 from matplotlib.transforms import Affine2D, ScaledTranslation
 
 from astropy import units as u
@@ -238,21 +237,20 @@ class CoordinateHelper:
 
     def set_major_formatter(self, formatter):
         """
-        Set the formatter to use for the major tick labels.
+        Set the format string to use for the major tick labels.
 
         See :ref:`tick_label_format` for accepted format strings and examples.
 
         Parameters
         ----------
-        formatter : str or `~matplotlib.ticker.Formatter`
-            The format or formatter to use.
+        formatter : str
+            The format string to use.
         """
-        if isinstance(formatter, Formatter):
-            raise NotImplementedError()  # figure out how to swap out formatter
-        elif isinstance(formatter, str):
+        # TODO: Figure out how to accept a Formatter instance
+        if isinstance(formatter, str):
             self._formatter_locator.format = formatter
         else:
-            raise TypeError("formatter should be a string or a Formatter instance")
+            raise TypeError("formatter should be a string")
 
     def format_coord(self, value, format="auto"):
         """
