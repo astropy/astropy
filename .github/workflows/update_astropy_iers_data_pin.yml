@@ -41,7 +41,7 @@ jobs:
           git commit -m "Update minimum required version of astropy-iers-data"
         fi
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@8867c4aba1b742c39f8d0ba35429c2dfa4b6cb20  # v7.0.1
+      uses: peter-evans/create-pull-request@d121e62763d8cc35b5fb1710e887d6e69a52d3a4  # v7.0.2
       with:
         branch: update-astropy-iers-data-pin
         branch-suffix: timestamp
