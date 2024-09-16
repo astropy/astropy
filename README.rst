@@ -1,9 +1,9 @@
 |Astropy Logo|
 
 <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_dark.png?raw=true">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true">
-    <img alt="Astropy user statistics" src="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_dark.png?raw=true">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true">
+  <img alt="Astropy user statistics" src="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true">
 </picture>
 
 ----
