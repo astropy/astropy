@@ -46,7 +46,14 @@ scpmrv = coordinates.SkyCoord(
 scrv = coordinates.SkyCoord(
     [1, 2], [3, 4], [5, 6], unit="deg,deg,pc", radial_velocity=[11, 12] * u.km / u.s
 )
-icrs = coordinates.ICRS([1, 2] * u.deg, [3, 4] * u.deg)
+# Use UnitSpherical and Radial for a regression test for gh-16998.
+icrs = coordinates.ICRS(
+    [1, 2] * u.deg,
+    [3, 4] * u.deg,
+    radial_velocity=[5, 6] * u.km / u.s,
+    representation_type="unitspherical",
+    differential_type="radial",
+)
 altaz = coordinates.AltAz(
     [1, 2] * u.deg,
     [3, 4] * u.deg,
@@ -163,7 +170,13 @@ compare_attrs = {
         "representation_type",
         "frame.name",
     ],
-    "icrs": ["ra", "dec", "representation_type"],
+    "icrs": [
+        "ra",
+        "dec",
+        "radial_velocity",
+        "representation_type",
+        "differential_type",
+    ],
     "altaz": ["alt", "az", "obstime", "location", "representation_type"],
     "so": ["lon", "lat", "rotation", "origin"],
     "sond": ["rotation", "origin"],
@@ -216,7 +229,7 @@ non_trivial_names = {
         "scpmrv.radial_velocity",
     ],
     "scrv": ["scrv.ra", "scrv.dec", "scrv.distance", "scrv.radial_velocity"],
-    "icrs": ["icrs.ra", "icrs.dec"],
+    "icrs": ["icrs.ra", "icrs.dec", "icrs.radial_velocity"],
     "altaz": [
         "altaz.az",
         "altaz.alt",
@@ -234,7 +247,12 @@ non_trivial_names = {
         "so.origin.location.y",
         "so.origin.location.z",
     ],
-    "sond": ["sond.rotation", "sond.origin.ra", "sond.origin.dec"],
+    "sond": [
+        "sond.rotation",
+        "sond.origin.ra",
+        "sond.origin.dec",
+        "sond.origin.radial_velocity",
+    ],
     "sd": ["sd.d_lon_coslat", "sd.d_lat", "sd.d_distance"],
     "sr": ["sr.lon", "sr.lat", "sr.distance"],
     "srd": [
