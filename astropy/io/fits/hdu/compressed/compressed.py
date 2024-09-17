@@ -561,7 +561,7 @@ class CompImageHDU(ImageHDU):
 
     @property
     def compressed_data(self):
-        return self._bintable.data
+        return None if self._bintable is None else self._bintable.data
 
     def _bintable_to_image_header(self):
         if self._bintable is None:
