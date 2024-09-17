@@ -63,13 +63,13 @@ class CompImageHDU(ImageHDU):
         data=None,
         header=None,
         name=None,
-        compression_type=None,
+        compression_type=DEFAULT_COMPRESSION_TYPE,
         tile_shape=None,
-        hcomp_scale=None,
-        hcomp_smooth=None,
-        quantize_level=None,
-        quantize_method=None,
-        dither_seed=None,
+        hcomp_scale=DEFAULT_HCOMP_SCALE,
+        hcomp_smooth=DEFAULT_HCOMP_SMOOTH,
+        quantize_level=DEFAULT_QUANTIZE_LEVEL,
+        quantize_method=DEFAULT_QUANTIZE_METHOD,
+        dither_seed=DEFAULT_DITHER_SEED,
         do_not_scale_image_data=False,
         uint=True,
         scale_back=None,
@@ -381,19 +381,17 @@ class CompImageHDU(ImageHDU):
                 if simple is not None:
                     self.header["SIMPLE"] = simple
 
-            self.compression_type = compression_type or DEFAULT_COMPRESSION_TYPE
+            self.compression_type = compression_type
             self.tile_shape = _validate_tile_shape(
                 tile_shape=tile_shape,
                 compression_type=self.compression_type,
                 image_header=self.header,
             )
-            self.hcomp_scale = hcomp_scale or DEFAULT_HCOMP_SCALE
-            self.hcomp_smooth = hcomp_smooth or DEFAULT_HCOMP_SMOOTH
-            self.quantize_level = (
-                quantize_level if quantize_level is not None else DEFAULT_QUANTIZE_LEVEL
-            )
-            self.quantize_method = quantize_method or DEFAULT_QUANTIZE_METHOD
-            self.dither_seed = dither_seed or DEFAULT_DITHER_SEED
+            self.hcomp_scale = hcomp_scale
+            self.hcomp_smooth = hcomp_smooth
+            self.quantize_level = quantize_level
+            self.quantize_method = quantize_method
+            self.dither_seed = dither_seed
 
             # TODO: just for parameter validation, e.g. tile shape - we shouldn't
             # ideally need this and should instead validate the values as they are
