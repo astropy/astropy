@@ -651,9 +651,8 @@ class CompImageHDU(ImageHDU):
         del self._tmp_bintable
 
     def _close(self, closed=True):
-        # FIXME: need to determine how to keep memmap open if needed
-
-        return
+        if self._bintable is not None:
+            return self._bintable._close(closed=closed)
 
     def _generate_dither_seed(self, seed):
         if not _is_int(seed):
