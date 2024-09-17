@@ -1298,3 +1298,23 @@ def test_header_order(tmp_path):
 
     with fits.open(tmp_path / "test.fits") as hdulist2:
         assert hdulist[1].header.tostring("\n") == hdulist2[1].header.tostring("\n")
+
+
+def test_hdu_lazy_loading(tmp_path):
+    # Lazy loading of HDUs relies on parameters such as _data_offset and so on,
+    # so we need to make sure these correctly point to the internal BinTableHDU.
+
+    hdulist = fits.HDUList([fits.PrimaryHDU()])
+
+    for idx in range(6):
+        data = np.ones((2**idx, 2**idx)) * idx
+        hdulist.append(fits.CompImageHDU(data))
+
+    hdulist.writeto(tmp_path / "multi_hdu.fits")
+
+    with open(tmp_path / "multi_hdu.fits", "rb") as fileobj:
+        with fits.open(fileobj) as hdulist:
+            for idx in range(6):
+                assert_equal(hdulist[idx + 1].data, idx)
+                assert hdulist[idx + 1].data.shape == (2**idx, 2**idx)
+                fileobj.seek(0)
