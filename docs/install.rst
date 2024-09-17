@@ -27,10 +27,10 @@ manner if you choose this option.
 .. note::
    We **do not recommend** using ``astropy`` with an existing `miniconda
    <https://docs.anaconda.com/miniconda/>`_ or `Anaconda Python
-   <https://www.anaconda.com/download/>`_ distribution. The default ``astropy`` package
-   provided by Anaconda Inc. can be outdated and these distributions can require a
-   license for use at a large organisation. Instead, use ``miniforge`` as described
-   below.
+   <https://www.anaconda.com/download/>`_ distribution. The ``astropy`` package provided
+   by Anaconda Inc. in the ``defaults`` channel can be outdated and these distributions
+   can require a license for use at a large organisation. Instead, use ``miniforge`` as
+   described below.
 
 Once you have a Python environment set up, you will install ``astropy`` using |pip| or
 |conda|. Here we document using |pip| because it is easier to install the optional
@@ -44,56 +44,8 @@ You will install Python by first installing `miniforge
 package manager <https://docs.conda.io/en/latest/>`_ with the default remote package
 repository set to the community-led `conda-forge <https://conda-forge.org>`_ channel.
 
-First, download the installer for your system and architecture from the links below:
-
-.. grid:: 3
-
-    .. grid-item-card:: Linux
-
-        `x86-64 <https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh>`__
-
-        `aarch64 <https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-aarch64.sh>`__
-
-        `ppc64le <https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-ppc64le.sh>`__
-
-    .. grid-item-card:: Windows
-        :link: https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Windows-x86_64.exe
-
-        `x86-64 <https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Windows-x86_64.exe>`__
-
-    .. grid-item-card:: Mac
-
-        `arm64 (Apple Silicon) <https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh>`__
-
-        `x86-64 <https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-x86_64.sh>`__
-
-
-Then select your platform to install miniforge:
-
-.. tab-set::
-
-    .. tab-item:: Linux & Mac
-        :sync: platform
-
-        Linux & Mac Run the script downloaded above, with
-        ``bash <filename>``. The following should work:
-
-        .. code-block:: console
-
-            bash Miniforge3-$(uname)-$(uname -m).sh
-
-        Once the installer has completed, close and reopen your terminal.
-
-    .. tab-item:: Windows
-        :sync: platform
-
-        Double click the executable file downloaded from
-        the links above.
-
-        Once the installer has completed you should have a new "miniforge
-        Prompt" entry in your start menu.
-
-In a new terminal (miniforge Prompt on Windows) run ``conda list`` to test that the install has worked.
+In a new terminal (miniforge Prompt on Windows) run ``conda list`` to test that the
+install has worked.
 
 Create Python Environment
 =========================
@@ -104,7 +56,7 @@ Now we will create and activate a new virtual environment to install ``astropy``
 
 .. code-block:: bash
 
-    $ conda create --name astropy python
+    $ conda create --channel conda-forge  --name astropy python
     $ conda activate astropy
 
 In this case the environment we have created is named ``astropy`` but you can use any
@@ -118,6 +70,16 @@ astropy`` to activate this environment.
 Install ``astropy``
 ===================
 
+You can install ``astropy`` and the rest of your dependencies using either |pip| or
+|conda|. Both methods are fully supported and will work well.
+
+.. warning::
+   Once you have created your base Python environment with |conda|, you should try to
+   stick with one method for installing new packages in your environment. In particular,
+   |conda| is not aware of packages installed with |pip| and may overwrite them.
+
+Using pip
+---------
 To install ``astropy`` and your choice of :ref:`dependencies <astropy-main-req>`, run
 one of the following commands::
 
@@ -131,8 +93,27 @@ In most cases, this will install a pre-compiled version of ``astropy`` (called a
 installed from a source file. In this unusual case you will need a C compiler to be
 installed (see `Build from source`_ below) for the installation to succeed.
 
-.. warning:: Do **not** install ``astropy`` or other packages using ``sudo``.
+.. warning:: Do **not** install ``astropy`` or other packages using ``sudo`` or any
+   elevated privilege.
 
+Using conda
+-----------
+To install ``astropy`` and the minimal set of required dependencies, run::
+
+  conda install --channel conda-forge astropy
+
+Install the recommended dependencies with::
+
+  conda install --channel conda-forge scipy matplotlib
+
+Install the optional dependencies with::
+
+  conda install --channel conda-forge ipython jupyter dask h5py pyarrow \
+     beautifulsoup4 html5lib bleach pandas sortedcontainers pytz jplephem mpmath \
+     asdf-astropy bottleneck fsspec s3fs certifi
+
+Testing
+-------
 You can test that your newly installed version of ``astropy`` is working via the
 `documentation on how to test your installed version of astropy
 <https://docs.astropy.org/en/latest/development/testguide.html#running-tests-installed-astropy>`_.
