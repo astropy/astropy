@@ -433,11 +433,13 @@ class CoordinateHelper:
         Parameters
         ----------
         formatter : str or callable
-            The format string to use, or a callable which takes a
+            The format string to use, or a callable (for advanced use cases).
+            If specified as a callable, this should take a
             `~astropy.units.Quantity` (which could be scalar or array) of tick
-            world coordinates as well as a ``spacing`` keyword argument, which
-            gives (also as a `~astropy.units.Quantity`) the spacing between
-            ticks, and returns an iterable of strings containing the labels.
+            world coordinates as well as an optional ``spacing`` keyword
+            argument, which gives (also as a `~astropy.units.Quantity`) the
+            spacing between ticks, and returns an iterable of strings
+            containing the labels.
         """
         if callable(formatter):
             self._custom_formatter = formatter
