@@ -607,7 +607,6 @@ class CompImageHDU(ImageHDU):
         return self._bintable is None or self.header._modified or self._data_modified
 
     def _prewriteto(self, checksum=False, inplace=False):
-
         if inplace and not self._hdu_modified_from_disk:
             self._tmp_bintable = None
             return
