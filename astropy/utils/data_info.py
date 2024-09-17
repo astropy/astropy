@@ -172,22 +172,6 @@ def data_info_factory(names, funcs):
     return func
 
 
-def _get_obj_attrs_map(obj, attrs):
-    """
-    Get the values for object ``attrs`` and return as a dict.  This
-    ignores any attributes that are None.  In the context of serializing
-    the supported core astropy classes this conversion will succeed and
-    results in more succinct and less python-specific YAML.
-    """
-    out = {}
-    for attr in attrs:
-        val = getattr(obj, attr, None)
-
-        if val is not None:
-            out[attr] = val
-    return out
-
-
 def _get_data_attribute(dat, attr=None):
     """
     Get a data object attribute for the ``attributes`` info summary method.
@@ -398,13 +382,17 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
         self._attrs = state
 
     def _represent_as_dict(self, attrs=None):
-        """Get the values for the parent ``attrs`` and return as a dict.
-
+        """Get the values for the parent ``attrs`` and return as a dict. This
+        ignores any attributes that are None.  In the context of serializing
+        the supported core astropy classes this conversion will succeed and
+        results in more succinct and less python-specific YAML.
         By default, uses '_represent_as_dict_attrs'.
         """
-        if attrs is None:
-            attrs = self._represent_as_dict_attrs
-        return _get_obj_attrs_map(self._parent, attrs)
+        return {
+            key: val
+            for key in (self._represent_as_dict_attrs if attrs is None else attrs)
+            if (val := getattr(self._parent, key, None)) is not None
+        }
 
     def _construct_from_dict(self, map):
         args = [map.pop(attr) for attr in self._construct_from_dict_args]
