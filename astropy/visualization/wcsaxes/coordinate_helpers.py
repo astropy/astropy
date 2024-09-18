@@ -105,6 +105,7 @@ class CoordinateHelper:
         self._default_label = default_label or ""
         self._auto_axislabel = True
         self._axislabel_set = False
+        self._custom_formatter = None
 
         # Disable auto label for elliptical frames as it puts labels in
         # annoying places.
