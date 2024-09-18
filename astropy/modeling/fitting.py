@@ -1384,7 +1384,11 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             a copy of the input model with parameters set by the fitter
 
         """
-        model_copy = _validate_model(model, self.supported_constraints, copy=not inplace)
+        model_copy = _validate_model(
+            model,
+            self.supported_constraints,
+            copy=not inplace,
+        )
         model_copy.sync_constraints = False
         _, fit_param_indices, _ = model_to_fit_params(model_copy)
 
@@ -1744,7 +1748,11 @@ class SLSQPLSQFitter(Fitter):
             a copy of the input model with parameters set by the fitter
 
         """
-        model_copy = _validate_model(model, self._opt_method.supported_constraints, copy=not inplace)
+        model_copy = _validate_model(
+            model,
+            self._opt_method.supported_constraints,
+            copy=not inplace,
+        )
         model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
         farg = (
@@ -1818,7 +1826,11 @@ class SimplexLSQFitter(Fitter):
             a copy of the input model with parameters set by the fitter
 
         """
-        model_copy = _validate_model(model, self._opt_method.supported_constraints, copy=not inplace)
+        model_copy = _validate_model(
+            model,
+            self._opt_method.supported_constraints,
+            copy=not inplace,
+        )
         model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
         farg = (
