@@ -151,7 +151,7 @@ def _fit_models_to_chunk(
             weights_kwargs = dict(weights=weights[index])
 
         # Do the actual fitting - note that we can use inplace=True here to
-        # speed things up by avoiding an unecessary copy, since we don't need
+        # speed things up by avoiding an unnecessary copy, since we don't need
         # to retain the original parameter values.
         try:
             with warnings.catch_warnings(record=True) as w:
