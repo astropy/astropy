@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from . import console, utils
+from . import console
 
 if TYPE_CHECKING:
     from typing import ClassVar
@@ -49,7 +49,7 @@ class Unicode(console.Console):
         if power != 1:
             if name in ("°", "e⁻", "″", "′", "ʰ"):
                 name = unit.short_names[0]
-            name += cls._format_superscript(utils.format_power(power))
+            name += cls._format_power(power)
         return name
 
     @classmethod

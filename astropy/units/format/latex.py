@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from . import console, utils
+from . import console
 
 if TYPE_CHECKING:
     from typing import ClassVar, Literal
@@ -53,7 +53,7 @@ class Latex(console.Console):
             # `u.deg**2` returns `deg^{2}` instead of `{}^{\circ}^{2}`.
             if re.match(r".*\^{[^}]*}$", name):  # ends w/ superscript?
                 name = unit.short_names[0]
-            name += cls._format_superscript(utils.format_power(power))
+            name += cls._format_power(power)
         return name
 
     @classmethod
