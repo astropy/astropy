@@ -1,115 +1,127 @@
+.. _installing-astropy:
+
 ************
 Installation
 ************
 
-.. _installing-astropy:
+Overview
+========
 
-Installing ``astropy``
-**********************
+The first step to installing ``astropy`` is to ensure that you have a Python
+environment which is **isolated** from your system Python installation. This is
+important because ``astropy`` has many dependencies, and you do not want to accidentally
+break your system by installing incompatible versions of these dependencies.
 
-If you are new to Python and/or do not have familiarity with `Python virtual
-environments <https://docs.python.org/3/tutorial/venv.html>`__, then we recommend
-starting by installing the `Anaconda Distribution
-<https://www.anaconda.com/download/>`_. This works on all platforms (linux,
-Mac, Windows) and installs a full-featured scientific Python in a user directory
-without requiring root permissions.
+For this installation guide we use the `conda <https://docs.conda.io/en/latest/>`_
+package manager provided by `miniforge <https://github.com/conda-forge/miniforge>`_.
+This is a popular choice and works well, especially for newcomers. It is easy to install
+and use on all platforms and it makes it easy to install the latest Python version. If
+you already have a ``miniforge``-based Python environment then you can skip to
+:ref:`installing-astropy-with-pip`.
+
+Another option for more experienced users is a virtual environment manager such as the
+Python standard library `venv <https://docs.python.org/3/library/venv.html>`_ module.
+There are numerous resources available to help you set up a virtual environment in this
+manner if you choose this option.
+
+.. note::
+   We **do not recommend** using ``astropy`` with an existing `miniconda
+   <https://docs.anaconda.com/miniconda/>`_ or `Anaconda Python
+   <https://www.anaconda.com/download/>`_ distribution. The ``astropy`` package provided
+   by Anaconda Inc. in the ``defaults`` channel can be outdated and these distributions
+   can require a license for use at a large organisation. Instead, use ``miniforge`` as
+   described below.
+
+Once you have a Python environment set up, you will install ``astropy`` using |pip| or
+|conda|. Here we document using |pip| because it is easier to install the optional
+dependencies, but feel free to use |conda| if you prefer.
+
+Install ``miniforge``
+=====================
+
+You will install Python by first installing `miniforge
+<https://github.com/conda-forge/miniforge/#miniforge>`__. This provides the `conda
+package manager <https://docs.conda.io/en/latest/>`_ with the default remote package
+repository set to the community-led `conda-forge <https://conda-forge.org>`_ channel.
+
+In a new terminal (miniforge Prompt on Windows) run ``conda list`` to test that the
+install has worked.
+
+Create Python Environment
+=========================
+
+To create a new Python environment for ``astropy`` and other packages, start by
+launching a terminal (under a UNIX-like system) or the miniforge Prompt (under Windows).
+Now we will create and activate a new virtual environment to install ``astropy`` into:
+
+.. code-block:: bash
+
+    $ conda create --channel conda-forge  --name astropy python
+    $ conda activate astropy
+
+In this case the environment we have created is named ``astropy`` but you can use any
+name you like.
+
+In the future when you make a new terminal, you will need to run ``conda activate
+astropy`` to activate this environment.
+
+.. _installing-astropy-with-pip:
+
+Install ``astropy``
+===================
+
+You can install ``astropy`` and the rest of your dependencies using either |pip| or
+|conda|. Both methods are fully supported and will work well.
+
+.. warning::
+   Once you have created your base Python environment with |conda|, you should try to
+   stick with one method for installing new packages in your environment. In particular,
+   |conda| is not aware of packages installed with |pip| and may overwrite them.
 
 Using pip
-=========
+---------
+To install ``astropy`` and your choice of :ref:`dependencies <astropy-main-req>`, run
+one of the following commands::
 
-.. warning::
+    python -m pip install astropy                # Minimum required dependencies
+    python -m pip install "astropy[recommended]" # Recommended dependencies
+    python -m pip install "astropy[all]"         # All optional dependencies
+    python -m pip install "astropy[dev_all]"     # All optional and test dependencies
 
-    Users of the Anaconda Python distribution should follow the instructions
-    for :ref:`anaconda_install`.
+In most cases, this will install a pre-compiled version of ``astropy`` (called a
+*wheel*). However, if you are installing astropy on an uncommon platform, astropy will be
+installed from a source file. In this unusual case you will need a C compiler to be
+installed (see `Build from source`_ below) for the installation to succeed.
 
-To install ``astropy`` with |pip|, run::
+.. warning:: Do **not** install ``astropy`` or other packages using ``sudo`` or any
+   elevated privilege.
 
-    python -m pip install astropy
+Using conda
+-----------
+To install ``astropy`` and the minimal set of required dependencies, run::
 
-If you want to make sure none of your existing dependencies get upgraded, you
-can also do::
+  conda install --channel conda-forge astropy
 
-    python -m pip install astropy --no-deps
+Install the recommended dependencies with::
 
-On the other hand, if you want to install ``astropy`` along with recommended
-or even all of the available optional :ref:`dependencies <astropy-main-req>`,
-you can do::
+  conda install --channel conda-forge scipy matplotlib
 
-    python -m pip install "astropy[recommended]"
+Install the optional dependencies with::
 
-or::
+  conda install --channel conda-forge ipython jupyter dask h5py pyarrow \
+     beautifulsoup4 html5lib bleach pandas sortedcontainers pytz jplephem mpmath \
+     asdf-astropy bottleneck fsspec s3fs certifi
 
-    python -m pip install "astropy[all]"
-
-In most cases, this will install a pre-compiled version (called a *wheel*) of
-astropy, but if you are using a very recent version of Python, if a new version
-of astropy has just been released, or if you are building astropy for a platform
-that is not common, astropy will be installed from a source file. Note that in
-this case you will need a C compiler to be installed
-(see `Building from source`_ below) for the installation to succeed.
-
-If you get a ``PermissionError`` this means that you do not have the required
-administrative access to install new packages to your Python installation. In
-this case you should first create and activate a Python environment using either
-:ref:`Conda <anaconda_install>` or a `Python virtual
-environment <https://docs.python.org/3/tutorial/venv.html>`__. Both of these options
-will also allow you to do development on other software that uses
-``astropy``, such as an affiliated package.
-
-.. warning:: Do **not** install ``astropy`` or other third-party packages using ``sudo``.
-
-.. _anaconda_install:
-
-Using Conda
-===========
-
-To install ``astropy`` using conda run::
-
-    conda install astropy
-
-``astropy`` is installed by default with the `Anaconda Distribution
-<https://www.anaconda.com/download/>`_. To update to the latest version run::
-
-    conda update astropy
-
-There may be a delay of a day or two between when a new version of ``astropy``
-is released and when a package is available for conda. You can check
-for the list of available versions with ``conda search astropy``.
-
-If you want to install ``astropy`` along with recommended or all of the
-available optional :ref:`dependencies <astropy-main-req>`, you can do::
-
-    conda install --channel conda-forge --channel defaults scipy matplotlib
-
-or::
-
-    conda install --channel conda-forge --channel defaults scipy matplotlib \
-      h5py beautifulsoup4 html5lib bleach pandas sortedcontainers \
-      pytz setuptools mpmath bottleneck jplephem asdf-astropy pyarrow
-
-To also be able to run tests (see below) and support :ref:`builddocs` use the
-following. We use ``pip`` for these packages to ensure getting the latest
-releases which are compatible with the latest ``pytest`` and ``sphinx`` releases::
-
-    python -m pip install pytest-astropy sphinx-astropy
-
-.. warning::
-
-    Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation
-    of ``astropy`` itself may result in a corrupted installation.
-
-.. _testing_installed_astropy:
-
-Testing an Installed ``astropy``
-================================
-
-See the `documentation on how to test your installed version of
-astropy <https://docs.astropy.org/en/latest/development/testguide.html#running-tests-installed-astropy>`_.
+Testing
+-------
+You can test that your newly installed version of ``astropy`` is working via the
+`documentation on how to test your installed version of astropy
+<https://docs.astropy.org/en/latest/development/testguide.html#running-tests-installed-astropy>`_.
 
 .. _astropy-main-req:
 
 Requirements
-************
+============
 
 ``astropy`` has the following strict requirements:
 
@@ -222,8 +234,8 @@ The following packages can optionally be used when testing:
 - `tox <https://tox.readthedocs.io/en/latest/>`_: Used to automate testing
   and documentation builds.
 
-Building from Source
-********************
+Build from Source
+=================
 
 If you want to build the code from source, follow the instructions for
 :ref:`contributing_environment`. Note that instead of cloning from your fork, you can
@@ -240,8 +252,8 @@ is described in `Building the Documentation from Source <https://docs.astropy.or
 
 .. _sourcebuildtest:
 
-Testing a Source Code Build of ``astropy``
-==========================================
+Test Source Code Build
+----------------------
 
 {% if is_development %}
 
@@ -263,8 +275,8 @@ checkout of astropy <https://docs.astropy.org/en/latest/install.html#testing-a-s
 
 .. _install_astropy_nightly:
 
-Installing pre-built Development Versions of ``astropy``
-========================================================
+Install Pre-built Development Version
+=====================================
 
 Most nights a development snapshot of ``astropy`` will be compiled.
 This is useful if you want to test against a development version of astropy but
