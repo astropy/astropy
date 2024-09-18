@@ -102,6 +102,8 @@ class CoordinateHelper:
         self.frame = frame
         self.default_label = default_label or ""
         self._auto_axislabel = True
+        self._custom_formatter = None
+
         # Disable auto label for elliptical frames as it puts labels in
         # annoying places.
         if issubclass(self.parent_axes.frame_class, EllipticalFrame):
