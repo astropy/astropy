@@ -3163,8 +3163,6 @@ class CompoundModel(Model):
             raise ModelDefinitionError("Illegal operator: ", self.op)
         self.name = name
         self._fittable = None
-        self.fit_deriv = None
-        self.col_fit_deriv = None
         if op in ("|", "+", "-"):
             self.linear = left.linear and right.linear
         else:
@@ -3293,6 +3291,60 @@ class CompoundModel(Model):
             rightval = self.right.evaluate(*right_inputs, *right_params)
 
         return self._apply_operators_to_value_lists(leftval, rightval, **kw)
+
+    @property
+    def fit_deriv(self):
+        if self.left.fit_deriv is None or self.right.fit_deriv is None:
+            return None
+
+        op = self.op
+        if op not in ["-", "+", "*", "/"]:
+            return None
+
+        def _calc_deriv(*args, **kwargs):
+            args, kw = self._get_kwarg_model_parameters_as_positional(args, kwargs)
+            left_inputs = self._get_left_inputs_from_args(args)
+            left_params = self._get_left_params_from_args(args)
+
+            right_inputs = self._get_right_inputs_from_args(args)
+            right_params = self._get_right_params_from_args(args)
+
+            left_deriv = self.left.fit_deriv(*left_inputs, *left_params)
+            right_deriv = self.right.fit_deriv(*right_inputs, *right_params)
+
+            if op in ["+", "-"]:
+                if op == "-":
+                    right_deriv = [-x for x in right_deriv]
+
+                return left_deriv + right_deriv
+
+            leftval = self.left(*left_inputs, *left_params)
+            rightval = self.right(*right_inputs, *right_params)
+
+            if op == "*":
+                # h(x, a, b, c) = f(x, a) * g(x, b, c)
+                # fit_deriv = [g(x, b, c) * df/da, f(x, a) * dg/db, f(x, a) * dg/dc]
+                return (
+                    [rightval * dparam for dparam in left_deriv] +
+                    [leftval * dparam for dparam in right_deriv]
+                )
+            if op == "/":
+                # h(x, a, b, c) = f(x, a) / g(x, b, c)
+                # fit_deriv = [g(x, b, c) * df/da,
+                #              -f(x, a) * dg/db / g(x, b, c)**2,
+                #              -f(x, a) * dg/dc / g(x, b, c)**2]
+                return (
+                    [rightval * dparam for dparam in left_deriv] +
+                    [-leftval * (dparam / rightval**2) for dparam in right_deriv]
+                )
+
+        return _calc_deriv
+
+    @property
+    def col_fit_deriv(self):
+        if not (self.left.col_fit_deriv and self.right.col_fit_deriv):
+            raise NotImplementedError("SAUSUAGE")
+        return True
 
     @property
     def n_submodels(self):
