@@ -3294,14 +3294,16 @@ class CompoundModel(Model):
 
     @property
     def fit_deriv(self):
+        # If either side of the model is missing analytical derivative then we can't compute one
         if self.left.fit_deriv is None or self.right.fit_deriv is None:
             return None
 
+        # Only the following operators are supported
         op = self.op
         if op not in ["-", "+", "*", "/"]:
             return None
 
-        def _calc_deriv(*args, **kwargs):
+        def _calc_compound_deriv(*args, **kwargs):
             args, kw = self._get_kwarg_model_parameters_as_positional(args, kwargs)
             left_inputs = self._get_left_inputs_from_args(args)
             left_params = self._get_left_params_from_args(args)
@@ -3310,7 +3312,39 @@ class CompoundModel(Model):
             right_params = self._get_right_params_from_args(args)
 
             left_deriv = self.left.fit_deriv(*left_inputs, *left_params)
+            if not self.left.col_fit_deriv:
+                left_deriv = np.asanyarray(left_deriv).T
             right_deriv = self.right.fit_deriv(*right_inputs, *right_params)
+            if not self.right.col_fit_deriv:
+                right_deriv = np.asanyarray(right_deriv).T
+
+            # We now have to use various differentiation rules to apply the
+            # arithmetic operators to the derivatives.
+            # If we consider an example of a compound model
+            # h(x, a, b, c) made up of two models g(x, a)
+            # and h(x, b, c), one with one parameter and
+            # the other with two parameters, the derivatives
+            # are evaluated as follows:
+
+            # Addition
+            # h(x, a, b, c) = f(x, a) + g(x, b, c)
+            # fit_deriv = [df/da, dg/db, dg/dc]
+
+            # Subtraction
+            # h(x, a, b, c) = f(x, a) - g(x, b, c)
+            # fit_deriv = [df/da, -dg/db, -dg/dc]
+
+            # Multiplication
+            # h(x, a, b, c) = f(x, a) * g(x, b, c)
+            # fit_deriv = [g(x, b, c) * df/da,
+            #              f(x, a) * dg/db,
+            #              f(x, a) * dg/dc]
+
+            # Division - Quotient rule
+            # h(x, a, b, c) = f(x, a) / g(x, b, c)
+            # fit_deriv = [df/da / g(x, b, c),
+            #              -f(x, a) * dg/db / g(x, b, c)**2,
+            #              -f(x, a) * dg/dc / g(x, b, c)**2]
 
             if op in ["+", "-"]:
                 if op == "-":
@@ -3318,32 +3352,24 @@ class CompoundModel(Model):
 
                 return left_deriv + right_deriv
 
-            leftval = self.left(*left_inputs, *left_params)
-            rightval = self.right(*right_inputs, *right_params)
+            leftval = self.left.evaluate(*left_inputs, *left_params)
+            rightval = self.right.evaluate(*right_inputs, *right_params)
 
             if op == "*":
-                # h(x, a, b, c) = f(x, a) * g(x, b, c)
-                # fit_deriv = [g(x, b, c) * df/da, f(x, a) * dg/db, f(x, a) * dg/dc]
                 return (
                     [rightval * dparam for dparam in left_deriv] +
                     [leftval * dparam for dparam in right_deriv]
-                )
+                )  # fmt: skip
             if op == "/":
-                # h(x, a, b, c) = f(x, a) / g(x, b, c)
-                # fit_deriv = [g(x, b, c) * df/da,
-                #              -f(x, a) * dg/db / g(x, b, c)**2,
-                #              -f(x, a) * dg/dc / g(x, b, c)**2]
                 return (
-                    [rightval * dparam for dparam in left_deriv] +
+                    [dparam / rightval for dparam in left_deriv] +
                     [-leftval * (dparam / rightval**2) for dparam in right_deriv]
-                )
+                )  # fmt: skip
 
-        return _calc_deriv
+        return _calc_compound_deriv
 
     @property
     def col_fit_deriv(self):
-        if not (self.left.col_fit_deriv and self.right.col_fit_deriv):
-            raise NotImplementedError("SAUSUAGE")
         return True
 
     @property
