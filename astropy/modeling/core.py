@@ -3343,6 +3343,9 @@ class CompoundModel(Model):
             if not self.right.col_fit_deriv:
                 right_deriv = np.asanyarray(right_deriv).T
 
+            left_deriv = list(left_deriv)
+            right_deriv = list(right_deriv)
+
             # We now have to use various differentiation rules to apply the
             # arithmetic operators to the derivatives.
             # If we consider an example of a compound model

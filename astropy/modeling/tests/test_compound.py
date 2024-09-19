@@ -1260,7 +1260,7 @@ def _all_regular_ops(model1, model2):
     (
         _all_regular_ops(Gaussian1D(5, 2, 3), Linear1D(2, 3))
         + _all_regular_ops(Polynomial1D(2), Gaussian1D())
-        + _all_regular_ops(Polynomial1D(2), Polynomial1D(3))
+        + _all_regular_ops(Polynomial1D(2, c0=1, c1=2, c2=-3), Polynomial1D(3, c0=4, c1=1, c2=-1, c3=2))
         + _all_regular_ops(Gaussian2D(2), Polynomial2D(3))
         + _all_regular_ops(
             Polynomial1D(degree=0, c0=664.3349), Gaussian1D(amplitude=2000, mean=195)
@@ -1274,12 +1274,31 @@ def test_compound_fit_deriv(model):
     Given some compound models compare the numerical derivatives to analytical ones.
     """
 
-    x = np.linspace(1, 5, num=10)
-    numerical = [
-        numerical_partial_deriv(model, x, param_idx=i)
-        for i in range(len(model.parameters))
-    ]
-    analytical = model.fit_deriv(x, *model.parameters)
+    x = np.linspace(1, 5, num=8)
+    y = np.linspace(1, 5, num=5)
 
-    for n, a in zip(numerical, analytical):
-        assert_allclose(n, a)
+    # fit_deriv takes 1D arrays for inputs - if we use higher dimension arrays,
+    # not all models are consistent in the dimensionality of the output. In any
+    # case the fitters will call _wrap_deriv and therefore fit_deriv with
+    # 1D inputs.
+    X, Y = np.meshgrid(x, y)
+    X = X.ravel()
+    Y = Y.ravel()
+
+    inputs = (x,) if model.n_inputs == 1 else (X, Y)
+
+    with np.errstate(all='ignore'):
+
+        numerical = [
+            numerical_partial_deriv(model, *inputs, param_idx=i)
+            for i in range(len(model.parameters))
+        ]
+
+        analytical = model.fit_deriv(*inputs, *model.parameters)
+
+    numerical = np.asanyarray(numerical)
+    analytical = np.asanyarray(analytical)
+
+    assert numerical.shape == analytical.shape
+
+    assert_allclose(numerical, analytical)
