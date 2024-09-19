@@ -1267,6 +1267,7 @@ def _all_regular_ops(model1, model2):
         )
         + [(Gaussian1D(5, 2, 3) + Const1D(2)) / (Polynomial1D(2) - Lorentz1D())]
     ),
+    ids=lambda x: x._format_expression(show_class_name=True),
 )
 def test_compound_fit_deriv(model):
     """

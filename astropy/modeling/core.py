@@ -3667,12 +3667,15 @@ class CompoundModel(Model):
             res.append(self)
         return res
 
-    def _format_expression(self, format_leaf=None):
+    def _format_expression(self, format_leaf=None, show_class_name=False):
         leaf_idx = 0
         operands = deque()
 
         if format_leaf is None:
-            format_leaf = lambda i, l: f"[{i}]"
+            if show_class_name:
+                format_leaf = lambda i, l: f"[{l.__class__.__name__}]"
+            else:
+                format_leaf = lambda i, l: f"[{i}]"
 
         for node in self.traverse_postorder():
             if not isinstance(node, CompoundModel):
