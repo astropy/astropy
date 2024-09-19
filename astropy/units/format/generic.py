@@ -644,10 +644,12 @@ class Generic(Base):
         are "known" to a given format.
         """
         if isinstance(unit, core.CompositeUnit):
-            new_unit = core.Unit(unit.scale)
-            for base, power in zip(unit.bases, unit.powers):
-                new_unit = new_unit * cls._decompose_to_known_units(base) ** power
-            return new_unit
+            return core.CompositeUnit(
+                unit.scale,
+                [cls._decompose_to_known_units(base) for base in unit.bases],
+                unit.powers,
+                _error_check=False,
+            )
         if isinstance(unit, core.NamedUnit):
             try:
                 cls._get_unit_name(unit)
