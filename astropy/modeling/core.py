@@ -3673,7 +3673,7 @@ class CompoundModel(Model):
 
         if format_leaf is None:
             if show_class_name:
-                format_leaf = lambda i, l: f"[{l.__class__.__name__}]"
+                format_leaf = lambda i, l: f"{l.__class__.__name__}"
             else:
                 format_leaf = lambda i, l: f"[{i}]"
 
