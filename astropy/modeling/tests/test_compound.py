@@ -1253,6 +1253,7 @@ def numerical_partial_deriv(model, *inputs, param_idx, delta=1e-5):
         Gaussian1D(5, 2, 3) - Linear1D(2, 3),
         Polynomial1D(2) * Gaussian1D(),
         Polynomial1D(2) / Gaussian1D(),
+        Polynomial1D(degree=0, c0=664.3349) + Gaussian1D(amplitude=2000, mean=195),
     ],
 )
 def test_compound_fit_deriv(model):
