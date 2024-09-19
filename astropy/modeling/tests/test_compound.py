@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name, pointless-statement
 
+import operator
 import pickle
 
 import numpy as np
@@ -20,6 +21,7 @@ from astropy.modeling.models import (
     Legendre1D,
     Legendre2D,
     Linear1D,
+    Lorentz1D,
     Mapping,
     Polynomial1D,
     Polynomial2D,
@@ -1246,20 +1248,31 @@ def numerical_partial_deriv(model, *inputs, param_idx, delta=1e-5):
     return (up - down) / (2 * delta)
 
 
+def _all_regular_ops(model1, model2):
+    return [
+        op(model1, model2)
+        for op in (operator.add, operator.sub, operator.mul, operator.truediv)
+    ]
+
+
 @pytest.mark.parametrize(
     "model",
-    [
-        Gaussian1D(5, 2, 3) + Linear1D(2, 3),
-        Gaussian1D(5, 2, 3) - Linear1D(2, 3),
-        Polynomial1D(2) * Gaussian1D(),
-        Polynomial1D(2) / Gaussian1D(),
-        Polynomial1D(degree=0, c0=664.3349) + Gaussian1D(amplitude=2000, mean=195),
-    ],
+    (
+        _all_regular_ops(Gaussian1D(5, 2, 3), Linear1D(2, 3))
+        + _all_regular_ops(Polynomial1D(2), Gaussian1D())
+        + _all_regular_ops(Polynomial1D(2), Polynomial1D(3))
+        + _all_regular_ops(Gaussian2D(2), Polynomial2D(3))
+        + _all_regular_ops(
+            Polynomial1D(degree=0, c0=664.3349), Gaussian1D(amplitude=2000, mean=195)
+        )
+        + [(Gaussian1D(5, 2, 3) + Const1D(2)) / (Polynomial1D(2) - Lorentz1D())]
+    ),
 )
 def test_compound_fit_deriv(model):
     """
     Given some compound models compare the numerical derivatives to analytical ones.
     """
+
     x = np.linspace(1, 5, num=10)
     numerical = [
         numerical_partial_deriv(model, x, param_idx=i)
@@ -1268,4 +1281,4 @@ def test_compound_fit_deriv(model):
     analytical = model.fit_deriv(x, *model.parameters)
 
     for n, a in zip(numerical, analytical):
-        assert np.allclose(n, a)
+        assert_allclose(n, a)
