@@ -260,6 +260,29 @@ htmlhelp_basename = project + "doc"
 # Set canonical URL from the Read the Docs Domain
 html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
 
+
+def _custom_edit_url(
+    github_user,
+    github_repo,
+    github_version,
+    doc_path,
+    file_name,
+    default_edit_page_url_template,
+):
+    """Create custom 'edit' URLs for API modules since they are dynamically generated."""
+    if file_name.startswith("api/"):
+        # this is a dynamically generated API page
+        doc_path = "astropy"
+        file_name = ""
+    return default_edit_page_url_template.format(
+        github_user=github_user,
+        github_repo=github_repo,
+        github_version=github_version,
+        doc_path=doc_path,
+        file_name=file_name,
+    )
+
+
 # A dictionary of values to pass into the template engine's context for all pages.
 html_context = {
     "default_mode": "light",
@@ -269,6 +292,9 @@ html_context = {
     "github_repo": "astropy",
     "github_version": "main",
     "doc_path": "docs",
+    "edit_page_url_template": "{{ astropy_custom_edit_url(github_user, github_repo, github_version, doc_path, file_name, default_edit_page_url_template) }}",
+    "default_edit_page_url_template": "https://github.com/{github_user}/{github_repo}/edit/{github_version}/{doc_path}{file_name}",
+    "astropy_custom_edit_url": _custom_edit_url,
     # Tell Jinja2 templates the build is running on Read the Docs
     "READTHEDOCS": os.environ.get("READTHEDOCS", "") == "True",
 }
