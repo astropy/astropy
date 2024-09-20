@@ -21,7 +21,7 @@ from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
 
 from . import format as unit_format
-from .errors import UnitConversionError, UnitsError, UnitsWarning
+from .errors import UnitConversionError, UnitScaleError, UnitsError, UnitsWarning
 from .utils import (
     is_effectively_unity,
     resolve_fractions,
@@ -2128,7 +2128,7 @@ class _UnitMetaClass(type):
                 return UnrecognizedUnit(s)
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
-            return CompositeUnit(s, [], [], _error_check=False)
+            return CompositeUnit(s, [], [])
 
         elif isinstance(s, tuple):
             from .structured import StructuredUnit
@@ -2293,6 +2293,11 @@ class CompositeUnit(UnitBase):
     powers : sequence of numbers
         A sequence of powers (in parallel with ``bases``) for each
         of the base units.
+
+    Raises
+    ------
+    UnitScaleError
+        If the scale is zero.
     """
 
     _decomposed_cache = None
@@ -2313,6 +2318,8 @@ class CompositeUnit(UnitBase):
         # kwarg `_error_check` is False, the error checking is turned
         # off.
         if _error_check:
+            if scale == 0:
+                raise UnitScaleError("cannot create a unit with a scale of 0.")
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError("bases must be sequence of UnitBase instances")
