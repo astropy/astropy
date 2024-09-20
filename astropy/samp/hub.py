@@ -2,7 +2,6 @@
 
 
 import copy
-import os
 import queue
 import select
 import socket
@@ -11,6 +10,7 @@ import time
 import uuid
 import warnings
 import xmlrpc.client as xmlrpc
+from pathlib import Path
 from urllib.parse import urlunparse
 
 from astropy import log
@@ -419,11 +419,13 @@ class SAMPHubServer:
 
         self._start_standard_server()
 
-        self._lockfile = create_lock_file(
-            lockfilename=self._customlockfilename,
-            mode=self._mode,
-            hub_id=self.id,
-            hub_params=self.params,
+        self._lockfile = Path(
+            create_lock_file(
+                lockfilename=self._customlockfilename,
+                mode=self._mode,
+                hub_id=self.id,
+                hub_params=self.params,
+            )
         )
 
         self._update_last_activity_time()
@@ -504,10 +506,10 @@ class SAMPHubServer:
 
         self._is_running = False
 
-        if self._lockfile and os.path.isfile(self._lockfile):
+        if self._lockfile is not None and self._lockfile.is_file():
             lockfiledict = read_lockfile(self._lockfile)
             if lockfiledict["samp.secret"] == self._hub_secret:
-                os.remove(self._lockfile)
+                self._lockfile.unlink()
         self._lockfile = None
 
         # Reset variables

@@ -7,6 +7,7 @@ import os
 import shutil
 import sys
 from functools import wraps
+from pathlib import Path
 
 __all__ = ["get_config_dir", "get_cache_dir", "set_temp_config", "set_temp_cache"]
 
@@ -73,7 +74,7 @@ def _find_home():
                     "astropy config dir - are you on an unsupported "
                     "platform?"
                 )
-    return homedir
+    return Path(homedir)
 
 
 def get_config_dir(rootname="astropy"):
