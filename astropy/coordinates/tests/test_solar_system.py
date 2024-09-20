@@ -19,7 +19,6 @@ from astropy.coordinates.solar_system import (
     get_body,
     get_body_barycentric,
     get_body_barycentric_posvel,
-    get_moon,
     solar_system_ephemeris,
 )
 from astropy.tests.helper import CI, assert_quantity_allclose
@@ -27,7 +26,6 @@ from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM, HAS_SKYFIELD
 from astropy.utils.data import download_file, get_pkg_data_filename
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 if HAS_SKYFIELD:
     from skyfield.api import Loader
@@ -421,15 +419,6 @@ def test_get_body_accounts_for_location_on_Earth():
 
     difference = (icrs_sun_from_alma - icrs_sun_from_geocentre).norm()
     assert_quantity_allclose(difference, 0.13046941 * u.m, atol=1 * u.mm)
-
-
-def test_get_moon_deprecation():
-    time_now = Time.now()
-    with pytest.warns(
-        AstropyDeprecationWarning, match=r'Use get_body\("moon"\) instead\.$'
-    ):
-        moon = get_moon(time_now)
-    assert moon == get_body("moon", time_now)
 
 
 @pytest.mark.remote_data
