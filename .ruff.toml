@@ -203,10 +203,7 @@ lint.unfixable = [
 # When a general exclusion is being fixed, but it affects many subpackages, it
 # is better to fix for subpackages individually. The general exclusion should be
 # copied to these subpackage sections and fixed there.
-"astropy/config/*" = [
-    "PTH",     # all flake8-use-pathlib
-    "PTH206",  # Replace `.split(os.sep)` with `Path.parts`
-]
+"astropy/config/*" = []
 "astropy/constants/*" = [
     "N817",    # camelcase-imported-as-acronym
     "RET505",  # superfluous-else-return
