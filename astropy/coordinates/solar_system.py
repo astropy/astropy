@@ -17,7 +17,7 @@ from astropy.constants import c as speed_of_light
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
 from astropy.utils.data import download_file
-from astropy.utils.decorators import classproperty, deprecated
+from astropy.utils.decorators import classproperty
 from astropy.utils.state import ScienceState
 
 from .builtin_frames import GCRS, ICRS
@@ -27,7 +27,6 @@ from .sky_coordinate import SkyCoord
 
 __all__ = [
     "get_body",
-    "get_moon",
     "get_body_barycentric",
     "get_body_barycentric_posvel",
     "solar_system_ephemeris",
@@ -498,41 +497,6 @@ def get_body(body, time, location=None, ephemeris=None):
     )
 
     return SkyCoord(gcrs)
-
-
-@deprecated("5.3", alternative='get_body("moon")')
-def get_moon(time, location=None, ephemeris=None):
-    """
-    Get a `~astropy.coordinates.SkyCoord` for the Earth's Moon as observed
-    from a location on Earth in the `~astropy.coordinates.GCRS` reference
-    system.
-
-    Parameters
-    ----------
-    time : `~astropy.time.Time`
-        Time of observation
-    location : `~astropy.coordinates.EarthLocation`
-        Location of observer on the Earth. If none is supplied, taken from
-        ``time`` (if not present, a geocentric observer will be assumed).
-    ephemeris : str, optional
-        Ephemeris to use.  If not given, use the one set with
-        ``astropy.coordinates.solar_system_ephemeris.set`` (which is
-        set to 'builtin' by default).
-
-    Returns
-    -------
-    skycoord : `~astropy.coordinates.SkyCoord`
-        GCRS Coordinate for the Moon
-
-    Notes
-    -----
-    The coordinate returned is the apparent position, which is the position of
-    the moon at time *t* minus the light travel time from the moon to the
-    observing *location*.
-
-    {_EPHEMERIS_NOTE}
-    """
-    return get_body("moon", time, location=location, ephemeris=ephemeris)
 
 
 # Add note about the ephemeris choices to the docstrings of relevant functions.
