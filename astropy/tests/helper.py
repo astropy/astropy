@@ -7,6 +7,7 @@ from the installed astropy.  It makes use of the |pytest| testing framework.
 import os
 import pickle
 
+import numpy as np
 import pytest
 
 from astropy.units import allclose as quantity_allclose  # noqa: F401
@@ -18,6 +19,7 @@ from .runner import TestRunner  # noqa: F401
 __all__ = [
     "assert_follows_unicode_guidelines",
     "assert_quantity_allclose",
+    "assert_objects_equal",
     "check_pickling_recovery",
     "pickle_protocol",
     "generic_recursive_equality_test",
@@ -192,11 +194,72 @@ def assert_quantity_allclose(actual, desired, rtol=1.0e-7, atol=None, **kwargs):
     This is a :class:`~astropy.units.Quantity`-aware version of
     :func:`numpy.testing.assert_allclose`.
     """
-    import numpy as np
-
     from astropy.units.quantity import _unquantify_allclose_arguments
 
     __tracebackhide__ = True
     np.testing.assert_allclose(
         *_unquantify_allclose_arguments(actual, desired, rtol, atol), **kwargs
     )
+
+
+def assert_objects_equal(actual, desired, /, *, attrs=None, compare_class=True):
+    """Compare objects by their shape and attributes, including those provided by .info
+
+    Parameters
+    ----------
+    actual and desired: np.ndarray (positional only)
+
+    attrs: list[str] (optional, keyword only)
+        a list of attributes to compare in addition to the default list:
+        ['info.name', 'info.format', 'info.unit',
+        'info.description', 'info.meta', 'info.dtype']
+
+    compare_class: bool (default: False, keyword only)
+        Whether to check that the two objects are instances of the same class
+
+    Raises
+    ------
+    AssertionError
+        If actual doesn't compare equal to desired.
+    """
+    if compare_class:
+        assert actual.__class__ is desired.__class__
+
+    assert actual.shape == desired.shape
+
+    info_attrs = [
+        "info.name",
+        "info.format",
+        "info.unit",
+        "info.description",
+        "info.meta",
+        "info.dtype",
+    ]
+    for attr in info_attrs + (attrs or []):
+        a1 = actual
+        a2 = desired
+        for subattr in attr.split("."):
+            try:
+                a1 = getattr(a1, subattr)
+                a2 = getattr(a2, subattr)
+            except AttributeError:
+                a1 = a1[subattr]
+                a2 = a2[subattr]
+
+        # Mixin info.meta can None instead of empty OrderedDict(), #6720 would
+        # fix this.
+        if attr == "info.meta":
+            if a1 is None:
+                a1 = {}
+            if a2 is None:
+                a2 = {}
+
+        if isinstance(a1, np.ndarray) and a1.dtype.kind == "f":
+            assert_quantity_allclose(a1, a2, rtol=1e-15)
+        elif isinstance(a1, np.dtype):
+            # FITS does not perfectly preserve dtype: byte order can change, and
+            # unicode gets stored as bytes.  So, we just check safe casting, to
+            # ensure we do not, e.g., accidentally change integer to float, etc.
+            assert np.can_cast(a2, a1, casting="safe")
+        else:
+            assert np.all(a1 == a2)
