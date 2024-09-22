@@ -171,6 +171,8 @@ to fit all spectra in the cube:
    :include-source:
    :nofigs:
 
+.. doctest-requires:: dask
+
     >>> from astropy.modeling.fitting import parallel_fit_dask
     >>> model_fit = parallel_fit_dask(model=model,
     ...                               fitter=fitter,
