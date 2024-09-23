@@ -278,7 +278,6 @@ class CompImageHDU(ImageHDU):
         This is particularly useful for software testing as it ensures that the
         same image will always use the same seed.
         """
-
         compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
         self._bintable = None
