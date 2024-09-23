@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from astropy.extern.ply.lex import Lexer
-    from astropy.units import NamedUnit, UnitBase
+    from astropy.units import UnitBase
     from astropy.utils.parsing import ThreadSafeParser
 
 
@@ -277,10 +277,6 @@ class CDS(Generic):
         if not isinstance(s, str):
             s = s.decode("ascii")
         return cls._do_parse(s, debug)
-
-    @classmethod
-    def _get_unit_name(cls, unit: NamedUnit) -> str:
-        return unit._get_format_name(cls.name)
 
     @classmethod
     def _format_mantissa(cls, m: str) -> str:
