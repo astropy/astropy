@@ -983,3 +983,23 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu) == hash(unit)
     tu2 = (unit ** (1 / power)) ** power
     assert hash(tu2) == hash(unit)
+
+
+def test_comparison_dimensionless_with_np_ma_masked():
+    # Found to be a problem indirectly in gh-17047;
+    # The path np.ma.masked.__eq__(u.dimensionless_unscaled)
+    # used to give a ZeroDivisionError.
+    comparison = u.dimensionless_unscaled == np.ma.masked
+    assert comparison is np.ma.masked
+
+
+def test_error_on_conversion_of_zero_to_unit():
+    # Found to be a problem indirectly in gh-17047; we allow conversion
+    # of numbers to units, but should not allow 0.
+    with pytest.raises(u.UnitScaleError, match="cannot create.*scale of 0"):
+        u.Unit(0)
+    with pytest.raises(u.UnitScaleError, match="cannot create.*scale of 0"):
+        u.dimensionless_unscaled.to(0)
+    # Also check some that do work.
+    assert u.dimensionless_unscaled.to(0.125) == 8
+    assert u.dimensionless_unscaled.to(8) == 0.125
