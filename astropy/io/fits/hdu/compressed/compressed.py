@@ -349,8 +349,6 @@ class CompImageHDU(ImageHDU):
             ]
             self.dither_seed = bintable.header.get("ZDITHER0", DEFAULT_DITHER_SEED)
 
-            self._data_loaded = False
-
         else:
             # Create at least a skeleton HDU that matches the input
             # header and data (if any were input)
@@ -395,8 +393,6 @@ class CompImageHDU(ImageHDU):
             # ideally need this and should instead validate the values as they are
             # set above.
             self._get_bintable_without_data()
-
-            self._data_loaded = True
 
         # Keep track of whether the data has been modified
         self._data_modified = False
@@ -517,11 +513,7 @@ class CompImageHDU(ImageHDU):
         a little different to _data_loaded on other HDUs, but it is conceptually
         the same idea in a way.
         """
-        return self.__data_loaded
-
-    @_data_loaded.setter
-    def _data_loaded(self, value):
-        self.__data_loaded = value
+        return "data" in self.__dict__ and super().data is not None
 
     @property
     def _data_shape(self):
@@ -546,7 +538,7 @@ class CompImageHDU(ImageHDU):
 
         if self._data_loaded:
             return super().data
-        elif len(self._bintable.data) == 0:
+        elif self._bintable is None or len(self._bintable.data) == 0:
             return None
 
         # Save the original scale-related values, because when we set
@@ -574,7 +566,6 @@ class CompImageHDU(ImageHDU):
     @data.setter
     def data(self, data):
         self._data_modified = True
-        self._data_loaded = True
         ImageHDU.data.fset(self, data)
         if (
             data is not None
