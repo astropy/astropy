@@ -993,6 +993,13 @@ class TestCompressedImage(FitsTestCase):
         with fits.open(self.temp('comp.fits')) as hdul:
             assert hdul[1].data[0, 0] == 0
 
+    def test_summary_noload(self):
+        # Make sure that calling info() (and therefore CompImageHDU.summary)
+        # does not cause the data to be loaded.
+        with fits.open(self.data("comp.fits")) as hdul:
+            summary = hdul.info(output=False)
+            assert summary == [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''), (1, 'COMPRESSED_IMAGE', 1, 'CompImageHDU', 105, (440, 300), 'int16', '')]
+            assert not hdul[1]._data_loaded
 
 class TestCompHDUSections:
     @pytest.fixture(autouse=True)

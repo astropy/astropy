@@ -278,7 +278,6 @@ class CompImageHDU(ImageHDU):
         This is particularly useful for software testing as it ensures that the
         same image will always use the same seed.
         """
-        self._decompression_active = False
 
         compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
@@ -351,7 +350,7 @@ class CompImageHDU(ImageHDU):
             ]
             self.dither_seed = bintable.header.get("ZDITHER0", DEFAULT_DITHER_SEED)
 
-            self._decompression_active = True
+            self._data_loaded = False
 
         else:
             # Create at least a skeleton HDU that matches the input
@@ -397,6 +396,8 @@ class CompImageHDU(ImageHDU):
             # ideally need this and should instead validate the values as they are
             # set above.
             self._get_bintable_without_data()
+
+            self._data_loaded = True
 
         # Keep track of whether the data has been modified
         self._data_modified = False
@@ -512,14 +513,23 @@ class CompImageHDU(ImageHDU):
 
     @property
     def _data_loaded(self):
-        return self._bintable is None or self._bintable.data is not DELAYED
+        """
+        Whether the data is fully decompressed into self.data - note that is
+        a little different to _data_loaded on other HDUs, but it is conceptually
+        the same idea in a way.
+        """
+        return self.__data_loaded
+
+    @_data_loaded.setter
+    def _data_loaded(self, value):
+        self.__data_loaded = value
 
     @property
     def _data_shape(self):
-        if self._decompression_active:
-            return tuple(reversed(self._axes))
-        else:
+        if self._data_loaded:
             return self.data.shape
+        else:
+            return tuple(reversed(self._axes))
 
     @property
     def data(self):
@@ -535,7 +545,7 @@ class CompImageHDU(ImageHDU):
         # file and therefore the data is just the one on the parent ImageHDU
         # class
 
-        if not self._decompression_active:
+        if self._data_loaded:
             return super().data
         elif len(self._bintable.data) == 0:
             return None
@@ -565,7 +575,7 @@ class CompImageHDU(ImageHDU):
     @data.setter
     def data(self, data):
         self._data_modified = True
-        self._decompression_active = False
+        self._data_loaded = True
         ImageHDU.data.fset(self, data)
         if (
             data is not None
