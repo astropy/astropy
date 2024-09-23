@@ -4,8 +4,11 @@ This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the |pytest| testing framework.
 """
 
+from __future__ import annotations
+
 import os
 import pickle
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
@@ -15,6 +18,9 @@ from astropy.utils.introspection import minversion
 
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # noqa: F401
+
+if TYPE_CHECKING:
+    from astropy.tests.typing import AstropyArrayLike
 
 __all__ = [
     "assert_follows_unicode_guidelines",
@@ -202,12 +208,22 @@ def assert_quantity_allclose(actual, desired, rtol=1.0e-7, atol=None, **kwargs):
     )
 
 
-def assert_objects_equal(actual, desired, /, *, attrs=None, compare_class=True):
+def assert_objects_equal(
+    actual: AstropyArrayLike,
+    desired: AstropyArrayLike,
+    /,
+    *,
+    attrs: list[str] | None = None,
+    compare_class: bool = True,
+) -> None:
     """Compare objects by their shape and attributes, including those provided by .info
 
     Parameters
     ----------
-    actual and desired: np.ndarray (positional only)
+    actual and desired: AstropyArrayLike (positional only)
+        these objects must have attributes `shape` and `info`.
+        Typically this means astropy ndarray subclasses or
+        :class:`astropy.utils.shapes.ShapedLikeNDArray`.
 
     attrs: list[str] (optional, keyword only)
         a list of attributes to compare in addition to the default list:
