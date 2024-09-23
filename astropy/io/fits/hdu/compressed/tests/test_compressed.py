@@ -372,14 +372,14 @@ class TestCompressedImage(FitsTestCase):
             assert (hdul[1].data[0] == zero_point).all()
 
         with fits.open(self.temp("scale.fits")) as hdul:
-            assert (hdul[1].data[1:] == orig_data[1:]).all()
+            assert_equal(hdul[1].data[1:], orig_data[1:])
             # Extra test to ensure that after everything the data is still the
             # same as in the original uncompressed version of the image
             with fits.open(self.data("scale.fits")) as hdul2:
                 # Recall we made the same modification to the data in hdul
                 # above
                 hdul2[0].data[0] = 0
-                assert (hdul[1].data == hdul2[0].data).all()
+                assert_equal(hdul[1].data, hdul2[0].data)
 
     def test_lossless_gzip_compression(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/198"""
@@ -982,6 +982,17 @@ class TestCompressedImage(FitsTestCase):
             assert hdul[1].header["NAXIS2"] == 120
             assert hdul[1].shape == (120, 150)
 
+    def test_inplace_data_modify(self, tmp_path):
+
+        self.copy_file("comp.fits")
+
+        with fits.open(self.temp('comp.fits'), mode="update") as hdul:
+            data = hdul[1].data
+            data[0] = 0
+
+        with fits.open(self.temp('comp.fits')) as hdul:
+            assert hdul[1].data[0, 0] == 0
+
 
 class TestCompHDUSections:
     @pytest.fixture(autouse=True)
@@ -1004,6 +1015,7 @@ class TestCompHDUSections:
         hdulist.writeto(tmp_path / "sections.fits")
 
         self.hdul = fits.open(tmp_path / "sections.fits")
+        self.hdul2 = fits.open(tmp_path / "sections.fits")
 
     def teardown_method(self):
         self.hdul.close()
