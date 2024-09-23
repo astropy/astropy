@@ -12,6 +12,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
+from astropy.coordinates import Angle
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED,
     DISPATCHED_FUNCTIONS,
@@ -38,6 +39,7 @@ POSITIONAL_ONLY = inspect.Parameter.POSITIONAL_ONLY
 KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
 POSITIONAL_OR_KEYWORD = inspect.Parameter.POSITIONAL_OR_KEYWORD
 
+ARCSEC_PER_DEGREE = 60 * 60
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -361,6 +363,81 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         def test_astype(self):
             int32q = self.q.astype("int32")
             assert_array_equal(np.astype(int32q, "int32"), int32q)
+
+    @needs_array_function
+    @pytest.mark.parametrize("angle_cls", [u.Quantity, Angle])
+    @pytest.mark.parametrize(
+        "args, kwargs, expected",
+        [
+            pytest.param(
+                (1 * u.radian,),
+                {},
+                np.arange(1),
+                id="pos: stop",
+            ),
+            pytest.param(
+                (0 * u.radian, 1 * u.degree),
+                {},
+                np.arange(1),
+                id="pos: start, stop",
+            ),
+            pytest.param(
+                (0 * u.radian, 1 * u.degree, 1 * u.arcsec),
+                {},
+                np.arange(ARCSEC_PER_DEGREE),
+                id="pos: start, stop, step",
+            ),
+            pytest.param(
+                (0 * u.radian, 1 * u.degree),
+                {"step": 1 * u.arcsec},
+                np.arange(ARCSEC_PER_DEGREE),
+                id="pos: start, stop; kw: step",
+            ),
+            pytest.param(
+                (0 * u.radian,),
+                {"stop": 5 * u.radian},
+                np.rad2deg(np.arange(5) * ARCSEC_PER_DEGREE),
+                id="pos: start; kw: stop",
+            ),
+            pytest.param(
+                (10 * u.radian, None),
+                {},
+                np.rad2deg(np.arange(10) * ARCSEC_PER_DEGREE),
+                id="pos: stop, followed by 1 None",
+            ),
+            pytest.param(
+                (10 * u.radian, None, None),
+                {},
+                np.rad2deg(np.arange(10) * ARCSEC_PER_DEGREE),
+                id="pos: stop, followed by 2 None",
+            ),
+            pytest.param(
+                (10 * u.radian, None, None, None),
+                {},
+                np.rad2deg(np.arange(10) * ARCSEC_PER_DEGREE),
+                id="pos: stop, followed by 3 None",
+            ),
+        ],
+    )
+    def test_arange(self, angle_cls, args, kwargs, expected):
+        arr = np.arange(
+            *args,
+            **kwargs,
+            like=angle_cls([], u.rad),
+        )
+        assert type(arr) is angle_cls
+        assert arr.unit == u.radian
+        np.testing.assert_array_almost_equal(arr.to_value(u.arcsec), expected)
+
+    def test_arange_incorrect_input_type(self):
+        with pytest.raises(
+            TypeError,
+            match=(
+                r"Expected every explicit argument \(start, stop and step\) "
+                r"to be Quantity or None\."
+            ),
+        ):
+            np.arange(10, like=u.Quantity([], u.s))
 
 
 class TestAccessingParts(InvariantUnitTestSetup):
@@ -2609,6 +2686,12 @@ rec_functions = {
     rfn.recursive_fill_fields, rfn.require_fields,
 }  # fmt: skip
 untested_functions |= rec_functions
+
+all_wrapped_functions |= {
+    # implemented NEP 35 functions
+    # xref https://github.com/numpy/numpy/issues/27451
+    np.arange,
+}
 
 
 @needs_array_function

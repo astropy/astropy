@@ -34,6 +34,8 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 """
 
+from __future__ import annotations
+
 import functools
 import operator
 
@@ -436,6 +438,69 @@ def _block(arrays, max_depth, result_ndim, depth=0):
         return np.concatenate(arrs, axis=-(max_depth-depth))
     else:
         return np_core.shape_base._atleast_nd(arrays, result_ndim)
+
+
+if NUMPY_LT_2_0:
+    @dispatched_function
+    def arange(*args, start=None, stop=None, step=None, dtype=None, like=None):
+        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, like=like)
+else:
+    @dispatched_function
+    def arange(*args, start=None, stop=None, step=None, dtype=None, device=None, like=None):
+        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, device=device, like=like)
+
+def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None, like=None):
+    from astropy.units import Quantity
+
+    # NumPy is supposed to validate the input parameters before this dispatched
+    # function is reached. Nevertheless, we'll sprinkle a few rundundant
+    # sanity checks in the form of `assert` statements.
+    # As they are not part of the business logic, it is fine if they are
+    # compiled-away (e.g. the Python interpreter runs with -O)
+    assert like is None
+
+    # bind positional arguments to their meaningful names
+    # following the (complex) logic of np.arange
+    assert len(args) <= 4
+    match args:
+        case pos1,:
+            assert stop is None or start is None
+            if stop is None:
+                stop = pos1
+            elif start is None:
+                start = pos1
+        case start, stop, *rest:
+            match rest:
+                # rebind step if possible
+                case step, *_:
+                    pass # nothing to do
+            if start is not None and stop is None:
+                start, stop = stop, start
+
+    has_out_unit = False
+    for arg in (start, stop, step):
+        if arg is None:
+            continue
+        if not isinstance(arg, Quantity):
+            raise TypeError(
+                "Expected every explicit argument (start, stop and step) "
+                "to be Quantity or None."
+            )
+        # the first (non None) argument dictates the output unit
+        if not has_out_unit:
+            out_unit = arg.unit
+            has_out_unit = True
+
+    locals_ = locals()
+    kwargs = {"dtype": dtype}
+    if not NUMPY_LT_2_0:
+        kwargs["device"] = device
+    for k in ("start", "stop", "step"):
+        if (v:=locals_[k]) is None:
+            continue
+        kwargs[k] = v.to_value(out_unit)
+
+    return np.arange(**kwargs), out_unit, None
 
 
 @dispatched_function
