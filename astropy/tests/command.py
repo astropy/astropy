@@ -95,12 +95,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             "Run tests that download remote data. Should be "
             "one of none/astropy/any (defaults to none).",
         ),
-        (
-            "pep8",
-            "8",
-            "Enable PEP8 checking and disable regular tests. "
-            "Requires the pytest-pep8 plugin.",
-        ),
         ("pdb", "d", "Start the interactive Python debugger on errors."),
         ("coverage", "c", "Create a coverage report. Requires the coverage package."),
         (
@@ -150,7 +144,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         self.pastebin = None
         self.args = None
         self.remote_data = "none"
-        self.pep8 = False
         self.pdb = False
         self.coverage = False
         self.parallel = 0
@@ -190,7 +183,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             "verbose={1.verbose_results!r}, "
             "pastebin={1.pastebin!r}, "
             "remote_data={1.remote_data!r}, "
-            "pep8={1.pep8!r}, "
             "pdb={1.pdb!r}, "
             "parallel={1.parallel!r}, "
             "docs_path={1.docs_path!r}, "
