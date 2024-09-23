@@ -983,14 +983,13 @@ class TestCompressedImage(FitsTestCase):
             assert hdul[1].shape == (120, 150)
 
     def test_inplace_data_modify(self, tmp_path):
-
         self.copy_file("comp.fits")
 
-        with fits.open(self.temp('comp.fits'), mode="update") as hdul:
+        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
             data = hdul[1].data
             data[0] = 0
 
-        with fits.open(self.temp('comp.fits')) as hdul:
+        with fits.open(self.temp("comp.fits")) as hdul:
             assert hdul[1].data[0, 0] == 0
 
     def test_summary_noload(self):
@@ -998,8 +997,21 @@ class TestCompressedImage(FitsTestCase):
         # does not cause the data to be loaded.
         with fits.open(self.data("comp.fits")) as hdul:
             summary = hdul.info(output=False)
-            assert summary == [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''), (1, 'COMPRESSED_IMAGE', 1, 'CompImageHDU', 105, (440, 300), 'int16', '')]
+            assert summary == [
+                (0, "PRIMARY", 1, "PrimaryHDU", 4, (), "", ""),
+                (
+                    1,
+                    "COMPRESSED_IMAGE",
+                    1,
+                    "CompImageHDU",
+                    105,
+                    (440, 300),
+                    "int16",
+                    "",
+                ),
+            ]
             assert not hdul[1]._data_loaded
+
 
 class TestCompHDUSections:
     @pytest.fixture(autouse=True)
