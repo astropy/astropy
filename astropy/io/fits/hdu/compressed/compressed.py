@@ -515,6 +515,13 @@ class CompImageHDU(ImageHDU):
         return self._bintable is None or self._bintable.data is not DELAYED
 
     @property
+    def _data_shape(self):
+        if self._decompression_active:
+            return tuple(reversed(self._axes))
+        else:
+            return self.data.shape
+
+    @property
     def data(self):
         """
         The decompressed data array.
