@@ -6,19 +6,19 @@
    It assumes that the documentation is built by and hosted on readthedocs.org:
    1. Readthedocs.org has a global robots.txt and no option for a custom one.
    2. The readthedocs app passes additional variables to the template context,
-   one of them being `version_slug`. This variable is a string computed from
+   one of them being `version_name`. This variable is a string computed from
    the tags of the branches that are selected to be built. It can be 'latest',
    'stable' or even a unique stringified version number.
 
    For more information, please refer to:
    https://github.com/astropy/astropy/pull/7874
    http://www.robotstxt.org/meta.html
-   https://github.com/rtfd/readthedocs.org/blob/master/readthedocs/builds/version_slug.py
+   https://github.com/readthedocs/readthedocs.org/blob/main/readthedocs/builds/models.py
 #}
 
 {% extends "!layout.html" %}
 {%- block extrahead %}
-  {% if not version_slug in to_be_indexed  %}
+  {% if not version_name in to_be_indexed  %}
   <meta name="robots" content="noindex, nofollow">
   {% endif %}
   {{ super() }}
