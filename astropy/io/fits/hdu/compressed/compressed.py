@@ -540,20 +540,32 @@ class CompImageHDU(ImageHDU):
         elif len(self._bintable.data) == 0:
             return None
 
-        if getattr(self, "_decompressed_data", None) is not None:
-            return self._decompressed_data
+        # Save the original scale-related values, because when we set
+        # self.data below these will get overridden in the ImageHDU.data setter
+        # but we don't want the settings to change just because we accessed
+        # the data.
+        orig_values = (
+            self._orig_bitpix,
+            self._orig_bscale,
+            self._orig_bzero,
+            self._orig_blank,
+        )
 
         # Since .section has general code to load any arbitrary part of the
         # data, we can just use this
-        data = self._decompressed_data = self.section[...]
+        self.data = self.section[...]
 
-        return data
+        # Restore the original scale-related values
+        self._orig_bitpix, self._orig_bscale, self._orig_bzero, self._orig_blank = (
+            orig_values
+        )
+
+        return self.data
 
     @data.setter
     def data(self, data):
         self._data_modified = True
         self._decompression_active = False
-        self._decompressed_data = None
         ImageHDU.data.fset(self, data)
         if (
             data is not None
