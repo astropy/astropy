@@ -1,0 +1,4 @@
+An exception is now raised if it is attempted to create a unit with a
+scale of zero, avoiding bugs further downstream (including surprising
+ones, such as a comparison of ``np.ma.masked == u.one`` leading to
+a ``ZeroDivisionError``).

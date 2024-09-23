@@ -3551,3 +3551,11 @@ def test_table_columns_update_deprecation():
         ),
     ):
         Table().columns.update({"a": [0]})
+
+
+def test_qtable_with_explicit_units():
+    # Regression test for gh-17047; the problem was that the dimensionless
+    # unit ended up being compared to np.ma.masked.  See also
+    # astropy/units/tests/test_units.py::test_comparison_dimensionless_with_np_ma_masked
+    tt = QTable(data=[[1.0, 2.0, 3.0]], names=["weight"], units={"weight": u.one})
+    assert tt["weight"].unit == u.dimensionless_unscaled

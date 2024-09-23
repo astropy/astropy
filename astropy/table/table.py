@@ -939,7 +939,7 @@ class Table:
                 if value.strip() == "":
                     value = None
 
-            if value not in (np.ma.masked, None):
+            if value is not None and value is not np.ma.masked:
                 col = self[name]
                 if attr == "unit" and isinstance(col, Quantity):
                     # Update the Quantity unit in-place
