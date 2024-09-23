@@ -31,8 +31,7 @@ def test_units():
         plt.plot([1, 2, 3] * u.m, [3, 4, 5] * u.kg, label="label")
         plt.plot([105, 210, 315] * u.cm, [3050, 3025, 3010] * u.g)
         plt.legend()
-        # Also test fill_between, which requires actual conversion to ndarray
-        # with numpy >=1.10 (#4654).
+        # Also test fill_between, which requires actual conversion to ndarray.
         plt.fill_between([1, 3] * u.m, [3, 5] * u.kg, [3050, 3010] * u.g)
         plt.savefig(buff, format="svg")
 
@@ -51,8 +50,7 @@ def test_units_decorator():
         plt.plot([1, 2, 3] * u.m, [3, 4, 5] * u.kg, label="label")
         plt.plot([105, 210, 315] * u.cm, [3050, 3025, 3010] * u.g)
         plt.legend()
-        # Also test fill_between, which requires actual conversion to ndarray
-        # with numpy >=1.10 (#4654).
+        # Also test fill_between, which requires actual conversion to ndarray.
         plt.fill_between([1, 3] * u.m, [3, 5] * u.kg, [3050, 3010] * u.g)
         plt.savefig(buff, format="svg")
 
