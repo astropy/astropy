@@ -22,7 +22,7 @@ from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized
 from astropy.table import Column, QTable, Table
 from astropy.table.column import MaskedColumn
 from astropy.table.table_helpers import simple_table
-from astropy.tests.helper import assert_objects_equal
+from astropy.tests.helper import assert_mixin_columns_equal
 from astropy.time import Time
 from astropy.units import QuantityInfo
 from astropy.utils.masked import Masked
@@ -356,10 +356,10 @@ def test_ecsv_mixins_qtable_to_table():
             # Class-specific attributes like `value` or `wrap_angle` are lost.
             attrs = ["unit"]
             compare_class = False
-            # Compare data values here (assert_objects_equal doesn't know how in this case)
+            # Compare data values here (assert_mixin_columns_equal doesn't know how in this case)
             assert np.allclose(col.value, col2, rtol=1e-10)
 
-        assert_objects_equal(col, col2, attrs=attrs, compare_class=compare_class)
+        assert_mixin_columns_equal(col, col2, attrs=attrs, compare_class=compare_class)
 
 
 @pytest.mark.parametrize("table_cls", (Table, QTable))
@@ -441,7 +441,7 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
                 for attr in compare_attrs[colname]
                 if not (attr == "wrap_angle" and table_cls is Table)
             ]
-        assert_objects_equal(t[colname], t2[colname], attrs=compare)
+        assert_mixin_columns_equal(t[colname], t2[colname], attrs=compare)
 
     # Special case to make sure Column type doesn't leak into Time class data
     if name.startswith("tm"):

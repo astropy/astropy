@@ -8,7 +8,7 @@ import pytest
 from astropy.io.misc.hdf5 import meta_path
 from astropy.table import Column, QTable, Table
 from astropy.table.table_helpers import simple_table
-from astropy.tests.helper import assert_objects_equal
+from astropy.tests.helper import assert_mixin_columns_equal
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.compat.optional_deps import HAS_H5PY
 from astropy.utils.data import get_pkg_data_filename
@@ -691,10 +691,10 @@ def test_hdf5_mixins_qtable_to_table(tmp_path):
             # Class-specific attributes like `value` or `wrap_angle` are lost.
             attrs = ["unit"]
             compare_class = False
-            # Compare data values here (assert_objects_equal doesn't know how in this case)
+            # Compare data values here (assert_mixin_columns_equal doesn't know how in this case)
             assert np.all(col.value == col2)
 
-        assert_objects_equal(col, col2, attrs=attrs, compare_class=compare_class)
+        assert_mixin_columns_equal(col, col2, attrs=attrs, compare_class=compare_class)
 
 
 @pytest.mark.skipif(not HAS_H5PY, reason="requires h5py")
@@ -751,7 +751,7 @@ def test_hdf5_mixins_per_column(table_cls, name_col, tmp_path):
 
     for colname in t.colnames:
         compare = ["data"] if colname in ("c1", "c2") else compare_attrs[colname]
-        assert_objects_equal(t[colname], t2[colname], attrs=compare)
+        assert_mixin_columns_equal(t[colname], t2[colname], attrs=compare)
 
     # Special case to make sure Column type doesn't leak into Time class data
     if name.startswith("tm"):

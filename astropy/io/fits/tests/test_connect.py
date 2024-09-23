@@ -23,7 +23,7 @@ from astropy.io.fits.column import (
 from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized_names
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.table.table_helpers import simple_table
-from astropy.tests.helper import assert_objects_equal
+from astropy.tests.helper import assert_mixin_columns_equal
 from astropy.time import Time
 from astropy.units import UnitScaleError
 from astropy.units.quantity import QuantityInfo
@@ -872,10 +872,10 @@ def test_fits_mixins_qtable_to_table(tmp_path):
             # Class-specific attributes like `value` or `wrap_angle` are lost.
             attrs = ["unit"]
             compare_class = False
-            # Compare data values here (assert_objects_equal doesn't know how in this case)
+            # Compare data values here (assert_mixin_columns_equal doesn't know how in this case)
             assert np.all(col.value == col2)
 
-        assert_objects_equal(col, col2, attrs=attrs, compare_class=compare_class)
+        assert_mixin_columns_equal(col, col2, attrs=attrs, compare_class=compare_class)
 
 
 @pytest.mark.parametrize("table_cls", (Table, QTable))
@@ -933,7 +933,7 @@ def test_fits_mixins_per_column(table_cls, name_col, tmp_path):
 
     for colname in t.colnames:
         compare = ["data"] if colname in ("c1", "c2") else compare_attrs[colname]
-        assert_objects_equal(t[colname], t2[colname], attrs=compare)
+        assert_mixin_columns_equal(t[colname], t2[colname], attrs=compare)
 
     # Special case to make sure Column type doesn't leak into Time class data
     if name.startswith("tm"):

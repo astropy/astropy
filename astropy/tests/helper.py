@@ -20,12 +20,12 @@ from astropy.utils.introspection import minversion
 from .runner import TestRunner  # noqa: F401
 
 if TYPE_CHECKING:
-    from astropy.tests.typing import AstropyArrayLike
+    from astropy.table.typing import MixinColumn
 
 __all__ = [
     "assert_follows_unicode_guidelines",
     "assert_quantity_allclose",
-    "assert_objects_equal",
+    "assert_mixin_columns_equal",
     "check_pickling_recovery",
     "pickle_protocol",
     "generic_recursive_equality_test",
@@ -208,19 +208,21 @@ def assert_quantity_allclose(actual, desired, rtol=1.0e-7, atol=None, **kwargs):
     )
 
 
-def assert_objects_equal(
-    actual: AstropyArrayLike,
-    desired: AstropyArrayLike,
+def assert_mixin_columns_equal(
+    actual: MixinColumn,
+    desired: MixinColumn,
     /,
     *,
     attrs: list[str] | None = None,
     compare_class: bool = True,
+    rtol=1e-15,
+    **kwargs,
 ) -> None:
-    """Compare objects by their shape and attributes, including those provided by .info
+    """Compare mixin columns by their shape and attributes, including those provided by .info
 
     Parameters
     ----------
-    actual and desired: AstropyArrayLike (positional only)
+    actual and desired: MixinColumn (positional only)
         these objects must have attributes `shape` and `info`.
         Typically this means astropy ndarray subclasses or
         :class:`astropy.utils.shapes.ShapedLikeNDArray`.
@@ -232,6 +234,13 @@ def assert_objects_equal(
 
     compare_class: bool (default: False, keyword only)
         Whether to check that the two objects are instances of the same class
+
+    rtol: float (default: 1e-15)
+        Relative tolerance on array comparison.
+        Passed down to :func:`numpy.testing.assert_allclose`.
+
+    **kwargs: dict, optional
+        Extra arguments to :func:`numpy.testing.assert_allclose`/
 
     Raises
     ------
@@ -262,7 +271,7 @@ def assert_objects_equal(
                 a1 = a1[subattr]
                 a2 = a2[subattr]
 
-        # Mixin info.meta can None instead of empty OrderedDict(), #6720 would
+        # MixinColumn info.meta can None instead of empty OrderedDict(), #6720 would
         # fix this.
         if attr == "info.meta":
             if a1 is None:
@@ -271,7 +280,7 @@ def assert_objects_equal(
                 a2 = {}
 
         if isinstance(a1, np.ndarray) and a1.dtype.kind == "f":
-            assert_quantity_allclose(a1, a2, rtol=1e-15)
+            assert_quantity_allclose(a1, a2, rtol=rtol, **kwargs)
         elif isinstance(a1, np.dtype):
             # FITS does not perfectly preserve dtype: byte order can change, and
             # unicode gets stored as bytes.  So, we just check safe casting, to
