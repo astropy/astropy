@@ -215,8 +215,8 @@ def assert_mixin_columns_equal(
     *,
     attrs: list[str] | None = None,
     compare_class: bool = True,
-    rtol=1e-15,
-    **kwargs,
+    rtol: float =1e-15,
+    **kwargs: Any,
 ) -> None:
     """Compare mixin columns by their shape and attributes, including those provided by .info
 
@@ -274,10 +274,8 @@ def assert_mixin_columns_equal(
         # MixinColumn info.meta can None instead of empty OrderedDict(), #6720 would
         # fix this.
         if attr == "info.meta":
-            if a1 is None:
-                a1 = {}
-            if a2 is None:
-                a2 = {}
+            a1 = {} if a1 is None else a1
+            a2 = {} if a2 is None else a2
 
         if isinstance(a1, np.ndarray) and a1.dtype.kind == "f":
             assert_quantity_allclose(a1, a2, rtol=rtol, **kwargs)
