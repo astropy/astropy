@@ -107,6 +107,7 @@ jobs:
 
     runs-on: ubuntu-latest
     name: Python 3.12
+    # keep condition in sync with test_arm64
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
       ARCH_ON_CI: ${{ matrix.arch }}
@@ -178,6 +179,8 @@ jobs:
 
     runs-on: linux-arm64
     name: Python 3.12 (arm64)
+    # keep condition in sync with test_more_architectures
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
 
     steps:
       - uses: actions/checkout@v4
