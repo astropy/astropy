@@ -250,7 +250,6 @@ class TestTableItems(BaseTestItems):
         py 3.3 failure mode
         """
         t = table_data.Table(table_data.COLS)
-        row = t[np.int64(0)]
         assert type(t[np.int64(0)]) is Row
 
     def test_select_bad_column(self, table_data):
