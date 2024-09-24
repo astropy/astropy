@@ -21,6 +21,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_unit_conversion_array_like`
 * :ref:`whatsnew_7_0_parallel_fitting`
 * :ref:`whatsnew_7_0_rgb_image_visualization_enhancement`
+* :ref:`whatsnew_7_0_votable_1_5`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -224,9 +225,17 @@ asihn stretch.
     axes[0].imshow(rgb_log, origin='lower')
     axes[1].imshow(rgb_log_lupton, origin='lower')
 
+.. _whatsnew_7_0_votable_1_5:
 
+Support VOTable version 1.5
+===========================
 
+The `Astropy VOTable parser <https://docs.astropy.org/en/stable/io/votable/index.html>`_
+now supports version 1.5 of the VOTable standard.  The main new feature is that the
+``COOSYS`` specification now has a ``refposition`` attribute analogous to that for ``TIMESYS``.
 
+At this writing, version 1.5 is a proposed standard, but it is expected to be approved as an
+official recommendation soon.
 
 Full change log
 ===============
