@@ -18,9 +18,9 @@
 
 {% extends "!layout.html" %}
 {%- block extrahead %}
-  {% if not version_slug in to_be_indexed  %}
+  {% if not readthedocs-version-slug in to_be_indexed  %}
   <meta name="robots" content="noindex, nofollow">
-  <p>Slug: {{ version_slug }}</p>
+  <p>Slug: {{ readthedocs-version-slug }}</p>
   <p>to_be_indexed: {{ to_be_indexed }}</p>
   {% endif %}
   {{ super() }}
