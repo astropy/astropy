@@ -13,13 +13,15 @@
    For more information, please refer to:
    https://github.com/astropy/astropy/pull/7874
    http://www.robotstxt.org/meta.html
-   https://github.com/rtfd/readthedocs.org/blob/master/readthedocs/builds/version_slug.py
+   https://github.com/readthedocs/readthedocs.org/blob/main/readthedocs/builds/version_slug.py
 #}
 
 {% extends "!layout.html" %}
 {%- block extrahead %}
   {% if not version_slug in to_be_indexed  %}
   <meta name="robots" content="noindex, nofollow">
+  <p>Slug: {{ version_slug }}</p>
+  <p>to_be_indexed: {{ to_be_indexed }}</p>
   {% endif %}
   {{ super() }}
 {% endblock %}
