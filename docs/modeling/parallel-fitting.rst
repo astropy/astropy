@@ -179,6 +179,8 @@ to fit all spectra in the cube:
     ...                               fitting_axes=0,
     ...                               data_unit=u.one,
     ...                               scheduler='synchronous')
+    >>> print(1)
+    2
 
 The arguments in this case are as follows:
 
