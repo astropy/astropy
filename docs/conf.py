@@ -321,6 +321,7 @@ def _custom_edit_url(
 # A dictionary of values to pass into the template engine's context for all pages.
 html_context = {
     "default_mode": "light",
+    "version_slug": os.environ.get('READTHEDOCS_VERSION') or '',
     "to_be_indexed": ["stable", "latest"],
     "is_development": dev,
     "github_user": "astropy",
