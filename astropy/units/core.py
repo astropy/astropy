@@ -27,7 +27,6 @@ from .utils import (
     resolve_fractions,
     sanitize_power,
     sanitize_scale,
-    validate_power,
 )
 
 if TYPE_CHECKING:
@@ -788,8 +787,16 @@ class UnitBase:
         return normalized
 
     def __pow__(self, p):
-        p = validate_power(p)
-        return CompositeUnit(1, [self], [p], _error_check=False)
+        try:  # Handling scalars should be as quick as possible
+            return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
+        except Exception:
+            arr = np.asanyarray(p)
+            p = arr.flat[0]
+            if (arr != p).any():
+                raise ValueError(
+                    "Quantities and Units may only be raised to a scalar power"
+                ) from None
+            return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
 
     def __truediv__(self, m):
         if isinstance(m, (bytes, str)):
@@ -2323,7 +2330,7 @@ class CompositeUnit(UnitBase):
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError("bases must be sequence of UnitBase instances")
-            powers = [validate_power(p) for p in powers]
+            powers = [sanitize_power(p) for p in powers]
 
         if not decompose and len(bases) == 1 and powers[0] >= 0:
             # Short-cut; with one unit there's nothing to expand and gather,
