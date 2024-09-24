@@ -25,9 +25,12 @@
 # See sphinx_astropy.conf for which values are set there.
 
 import doctest
+import inspect
+import operator
 import os
 import sys
 import tomllib
+import warnings
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
@@ -260,6 +263,61 @@ htmlhelp_basename = project + "doc"
 # Set canonical URL from the Read the Docs Domain
 html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
 
+
+def _custom_edit_url(
+    github_user,
+    github_repo,
+    github_version,
+    doc_path,
+    file_name,
+    default_edit_page_url_template,
+):
+    """Create custom 'edit' URLs for API modules since they are dynamically generated."""
+    if file_name.startswith("api/astropy.") and file_name.endswith(".rst"):
+        # this is a dynamically generated API page
+        astropy_path = file_name.removeprefix("api/astropy.").removesuffix(".rst")
+        item = operator.attrgetter(astropy_path)(astropy)  # noqa: F405
+        if module := getattr(item, "__module__", None):
+            mod_dir, _, mod_file = module.rpartition(".")
+            new_file_name = mod_file + ".py"
+            try:
+                line_no = inspect.findsource(item)[1]
+            except Exception:
+                # Warn if not just a cosmology instance, or a wcs compiled function.
+                if not (
+                    (
+                        "cosmology.realizations" in file_name
+                        and not isinstance(item, type)
+                    )
+                    or "modeling.tabular.Tabular" in file_name
+                    or "astropy.wcs" in file_name
+                ):
+                    warnings.warn(
+                        f"could not find source for {doc_path=}, {file_name=}"
+                    )
+            else:
+                new_file_name += f"#L{line_no + 1}"
+            doc_path = mod_dir.replace(".", "/") + "/"
+            file_name = new_file_name
+        else:
+            if "cosmology.realizations.available" in file_name:
+                doc_path = "astropy/cosmology/"
+                file_name = "realizations.py"
+            else:
+                warnings.warn(f"could not find module for {doc_path=}, {file_name=}")
+                # Fall back for items that do not even have a module. Hope for the best.
+                doc_path = "astropy"
+                file_name = astropy_path.replace(".", "/")
+
+    return default_edit_page_url_template.format(
+        github_user=github_user,
+        github_repo=github_repo,
+        github_version=github_version,
+        doc_path=doc_path,
+        file_name=file_name,
+    )
+
+
 # A dictionary of values to pass into the template engine's context for all pages.
 html_context = {
     "default_mode": "light",
@@ -269,6 +327,9 @@ html_context = {
     "github_repo": "astropy",
     "github_version": "main",
     "doc_path": "docs",
+    "edit_page_url_template": "{{ astropy_custom_edit_url(github_user, github_repo, github_version, doc_path, file_name, default_edit_page_url_template) }}",
+    "default_edit_page_url_template": "https://github.com/{github_user}/{github_repo}/edit/{github_version}/{doc_path}{file_name}",
+    "astropy_custom_edit_url": _custom_edit_url,
     # Tell Jinja2 templates the build is running on Read the Docs
     "READTHEDOCS": os.environ.get("READTHEDOCS", "") == "True",
 }
