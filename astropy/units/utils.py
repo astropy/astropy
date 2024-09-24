@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
     from typing import Literal, SupportsFloat, TypeVar
 
-    from numpy.typing import ArrayLike, NDArray
+    from numpy.typing import NDArray
 
     from astropy.units.typing import Complex, Real, UnitPower
 
@@ -250,43 +250,6 @@ def maybe_simple_fraction(p: Real, max_denominator: int = 100) -> UnitPower:
         d0, d1 = d1, d0 + a * d1
 
     return float(p)
-
-
-def validate_power(p: FloatLike | ArrayLike[FloatLike]) -> FloatLike:
-    """Check that a power can be converted to a floating point value.
-
-    Parameters
-    ----------
-    p : numerical
-        Power to be converted
-
-    Raises
-    ------
-    ValueError
-        If the power is an array in which not all elements are equal.
-
-    Returns
-    -------
-    p : numerical
-        Equals the input unless the input was iterable and all elements
-        were the same, in which case it returns the first item.
-    """
-    if p.__class__ is int or p.__class__ is Fraction:
-        return p
-    try:
-        float(p)
-    except Exception:
-        p = np.asanyarray(p)
-        if ((first := p.flat[0]) == p).all():
-            # All the same, now check it is OK.
-            float(first)
-            return first
-        else:
-            raise ValueError(
-                "Quantities and Units may only be raised to a scalar power"
-            ) from None
-    else:
-        return p
 
 
 def sanitize_power(p: Real) -> UnitPower:
