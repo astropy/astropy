@@ -18,7 +18,7 @@ from astropy.io.fits.hdu.compressed.utils import _tile_shape, _validate_tile_sha
 from astropy.io.fits.hdu.image import ImageHDU
 from astropy.io.fits.util import _is_int
 from astropy.io.fits.verify import _ErrList
-from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.decorators import deprecated_renamed_argument, lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .header import (
@@ -292,13 +292,6 @@ class CompImageHDU(ImageHDU):
             )
 
         if data is DELAYED or bintable is not None:
-            super().__init__(
-                name=name,
-                do_not_scale_image_data=do_not_scale_image_data,
-                uint=uint,
-                scale_back=scale_back,
-            )
-
             # NOTE: for now we don't ever read in CompImageHDU directly from
             # files, instead we read in BinTableHDU and pass it in here. In
             # future if we do want to read CompImageHDU in directly, we can
@@ -315,21 +308,19 @@ class CompImageHDU(ImageHDU):
             self._bintable._new = False
             self._bitpix = self._bintable.header["ZBITPIX"]
 
-            self._header = self._bintable_to_image_header()
-            self._header._modified = False
-            for card in self._header._cards:
+            header = self._bintable_to_image_header()
+            header._modified = False
+            for card in header._cards:
                 card._modified = False
 
-            self._orig_bscale = self._header.get("BSCALE", 1)
-            self._orig_bzero = self._header.get("BZERO", 0)
-            self._orig_bitpix = self._header.get("BITPIX")
-
-            self._axes = [
-                self._bintable.header.get("ZNAXIS" + str(axis + 1), 0)
-                for axis in range(self._bintable.header.get("ZNAXIS", 0))
-            ]
-
-            self._original_data_shape = tuple(self._axes[::-1])
+            super().__init__(
+                data=DELAYED,
+                header=header,
+                name=name,
+                do_not_scale_image_data=do_not_scale_image_data,
+                uint=uint,
+                scale_back=scale_back,
+            )
 
             self.compression_type = self._bintable.header.get(
                 "ZCMPTYPE", DEFAULT_COMPRESSION_TYPE
@@ -500,13 +491,6 @@ class CompImageHDU(ImageHDU):
         return bintable
 
     @property
-    def _has_data(self):
-        if self._bintable is None:
-            return self.data is not None
-        else:
-            return self._bintable.data is not None
-
-    @property
     def _data_loaded(self):
         """
         Whether the data is fully decompressed into self.data - note that is
@@ -522,7 +506,7 @@ class CompImageHDU(ImageHDU):
         else:
             return tuple(reversed(self._axes))
 
-    @property
+    @lazyproperty
     def data(self):
         """
         The decompressed data array.
@@ -541,27 +525,11 @@ class CompImageHDU(ImageHDU):
         elif self._bintable is None or len(self._bintable.data) == 0:
             return None
 
-        # Save the original scale-related values, because when we set
-        # self.data below these will get overridden in the ImageHDU.data setter
-        # but we don't want the settings to change just because we accessed
-        # the data.
-        orig_values = (
-            self._orig_bitpix,
-            self._orig_bscale,
-            self._orig_bzero,
-            self._orig_blank,
-        )
-
         # Since .section has general code to load any arbitrary part of the
         # data, we can just use this
-        self.data = self.section[...]
+        data = self.section[...]
 
-        # Restore the original scale-related values
-        self._orig_bitpix, self._orig_bscale, self._orig_bzero, self._orig_blank = (
-            orig_values
-        )
-
-        return self.data
+        return data
 
     @data.setter
     def data(self, data):
@@ -621,14 +589,14 @@ class CompImageHDU(ImageHDU):
 
         bintable.data = data
 
-    @property
-    def _hdu_modified_from_disk(self):
-        return self._bintable is None or self.header._modified or self._data_modified
-
     def _prewriteto(self, checksum=False, inplace=False):
-        if inplace and not self._hdu_modified_from_disk:
-            self._tmp_bintable = None
-            return
+        if (
+            self._bintable is not None
+            and not self._has_data
+            and not self.header._modified
+        ):
+            self._tmp_bintable = self._bintable
+            return self._tmp_bintable._prewriteto(checksum=checksum, inplace=inplace)
 
         if self._scale_back:
             self._scale_internal(
@@ -666,7 +634,7 @@ class CompImageHDU(ImageHDU):
             return self._tmp_bintable._writeto(fileobj, inplace=inplace, copy=copy)
 
     def _postwriteto(self):
-        del self._tmp_bintable
+        self._tmp_bintable = None
 
     def _close(self, closed=True):
         if self._bintable is not None:
