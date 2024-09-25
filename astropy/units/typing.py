@@ -76,3 +76,4 @@ Real: TypeAlias = int | float | Fraction | np.integer | np.floating
 Complex: TypeAlias = Real | complex | np.complexfloating
 
 UnitPower: TypeAlias = int | float | Fraction
+UnitScale: TypeAlias = int | float | Fraction | complex

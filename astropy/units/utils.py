@@ -22,10 +22,9 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from astropy.units.typing import Complex, Real, UnitPower
-
     from .core import UnitBase
     from .quantity import Quantity
+    from .typing import Complex, Real, UnitPower, UnitScale
 
     DType = TypeVar("DType", bound=np.generic)
     FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
@@ -192,7 +191,7 @@ def is_effectively_unity(value: Complex) -> bool:
         )
 
 
-def sanitize_scale(scale: Complex) -> Complex:
+def sanitize_scale(scale: Complex) -> UnitScale:
     if is_effectively_unity(scale):
         return 1.0
 
