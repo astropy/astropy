@@ -12,7 +12,6 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates import Angle
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED,
     DISPATCHED_FUNCTIONS,
@@ -365,7 +364,6 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
             assert_array_equal(np.astype(int32q, "int32"), int32q)
 
     @needs_array_function
-    @pytest.mark.parametrize("angle_cls", [u.Quantity, Angle])
     @pytest.mark.parametrize(
         "args, kwargs, expected",
         [
@@ -419,16 +417,24 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
             ),
         ],
     )
-    def test_arange(self, angle_cls, args, kwargs, expected):
-        arr = np.arange(
-            *args,
-            **kwargs,
-            like=angle_cls([], u.rad),
-        )
-        assert type(arr) is angle_cls
+    def test_arange(self, args, kwargs, expected):
+        arr = np.arange(*args, **kwargs, like=u.Quantity([], u.rad))
+        assert type(arr) is u.Quantity
         assert arr.unit == u.radian
         assert arr.dtype == expected.dtype
         np.testing.assert_array_almost_equal(arr.to_value(u.arcsec), expected)
+
+    def test_arange_like_quantity_subclass(self):
+        class AngularUnits(u.SpecificTypeQuantity):
+            _equivalent_unit = u.radian
+
+        arr = np.arange(
+            0 * u.radian, 10 * u.radian, 1 * u.radian, like=AngularUnits([], u.radian)
+        )
+        assert type(arr) is AngularUnits
+        assert arr.unit == u.radian
+        assert arr.dtype == np.dtype(float)
+        np.testing.assert_array_equal(arr.value, np.arange(10))
 
     def test_arange_pos_dtype(self):
         arr = np.arange(0 * u.s, 10 * u.s, 1 * u.s, int, like=u.Quantity([], u.radian))
