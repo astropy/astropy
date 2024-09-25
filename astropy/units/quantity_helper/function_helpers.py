@@ -470,12 +470,14 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None
             elif start is None:
                 start = pos1
         case start, stop, *rest:
-            match rest:
-                # rebind step if possible
-                case step, *_:
-                    pass # nothing to do
             if start is not None and stop is None:
                 start, stop = stop, start
+            match rest:
+                # rebind step and dtype if possible
+                case step,:
+                    pass
+                case step, dtype:
+                    pass
 
     has_out_unit = False
     for arg in (start, stop, step):
