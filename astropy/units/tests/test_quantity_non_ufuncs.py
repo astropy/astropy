@@ -372,49 +372,49 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
             pytest.param(
                 (1 * u.radian,),
                 {},
-                np.arange(1),
+                np.arange(1, dtype=float),
                 id="pos: stop",
             ),
             pytest.param(
                 (0 * u.radian, 1 * u.degree),
                 {},
-                np.arange(1),
+                np.arange(1, dtype=float),
                 id="pos: start, stop",
             ),
             pytest.param(
                 (0 * u.radian, 1 * u.degree, 1 * u.arcsec),
                 {},
-                np.arange(ARCSEC_PER_DEGREE),
+                np.arange(ARCSEC_PER_DEGREE, dtype=float),
                 id="pos: start, stop, step",
             ),
             pytest.param(
                 (0 * u.radian, 1 * u.degree),
                 {"step": 1 * u.arcsec},
-                np.arange(ARCSEC_PER_DEGREE),
+                np.arange(ARCSEC_PER_DEGREE, dtype=float),
                 id="pos: start, stop; kw: step",
             ),
             pytest.param(
                 (0 * u.radian,),
                 {"stop": 5 * u.radian},
-                np.rad2deg(np.arange(5) * ARCSEC_PER_DEGREE),
+                np.rad2deg(np.arange(5, dtype=float) * ARCSEC_PER_DEGREE),
                 id="pos: start; kw: stop",
             ),
             pytest.param(
                 (10 * u.radian, None),
                 {},
-                np.rad2deg(np.arange(10) * ARCSEC_PER_DEGREE),
+                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
                 id="pos: stop, followed by 1 None",
             ),
             pytest.param(
                 (10 * u.radian, None, None),
                 {},
-                np.rad2deg(np.arange(10) * ARCSEC_PER_DEGREE),
+                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
                 id="pos: stop, followed by 2 None",
             ),
             pytest.param(
                 (10 * u.radian, None, None, None),
                 {},
-                np.rad2deg(np.arange(10) * ARCSEC_PER_DEGREE),
+                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
                 id="pos: stop, followed by 3 None",
             ),
         ],
@@ -427,7 +427,15 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         )
         assert type(arr) is angle_cls
         assert arr.unit == u.radian
+        assert arr.dtype == expected.dtype
         np.testing.assert_array_almost_equal(arr.to_value(u.arcsec), expected)
+
+    def test_arange_pos_dtype(self):
+        arr = np.arange(0 * u.s, 10 * u.s, 1 * u.s, int, like=u.Quantity([], u.radian))
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.s
+        assert arr.dtype == np.dtype(int)
+        np.testing.assert_array_equal(arr.value, np.arange(10))
 
     def test_arange_incorrect_input_type(self):
         with pytest.raises(
