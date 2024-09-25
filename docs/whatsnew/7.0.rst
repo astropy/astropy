@@ -21,6 +21,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_unit_conversion_array_like`
 * :ref:`whatsnew_7_0_parallel_fitting`
 * :ref:`whatsnew_7_0_rgb_image_visualization_enhancement`
+* :ref:`whatsnew_7_0_lorentz2d_model`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -167,7 +168,6 @@ where ``data`` is a 3-D array, and ``wcs`` is the :class:`~astropy.wcs.WCS`
 object associated with the data. A full example can be found at
 :ref:`parallel-fitting`.
 
-
 .. _whatsnew_7_0_rgb_image_visualization_enhancement:
 
 RGB image visualization enhancements
@@ -224,9 +224,13 @@ asihn stretch.
     axes[0].imshow(rgb_log, origin='lower')
     axes[1].imshow(rgb_log_lupton, origin='lower')
 
+.. _whatsnew_7_0_lorentz2d_model:
 
+New ``Lorentz2D`` model
+=======================
 
-
+A new 2D Lorentzian model has been added to the ``astropy.modeling``
+package.
 
 Full change log
 ===============

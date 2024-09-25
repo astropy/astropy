@@ -33,6 +33,7 @@ from astropy.modeling.functional_models import (
     Linear1D,
     Logarithmic1D,
     Lorentz1D,
+    Lorentz2D,
     Moffat1D,
     Moffat2D,
     Multiply,
@@ -287,6 +288,17 @@ FUNC_MODELS_2D = [
         ],
         "bounding_box": [[-13.02230366, 15.02230366], [-12.02230366, 16.02230366]]
         * u.m,
+    },
+    {
+        "class": Lorentz2D,
+        "parameters": {
+            "amplitude": 2 * u.Jy,
+            "x_0": 505 * u.nm,
+            "y_0": 507 * u.nm,
+            "fwhm": 100 * u.AA,
+        },
+        "evaluation": [(0.51 * u.micron, 0.53 * u.micron, 0.08635579 * u.Jy)],
+        "bounding_box": [[255, 755], [257, 757]] * u.nm,
     },
     {
         "class": Const2D,

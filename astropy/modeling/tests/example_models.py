@@ -70,6 +70,7 @@ from astropy.modeling.functional_models import (
     Linear1D,
     Logarithmic1D,
     Lorentz1D,
+    Lorentz2D,
     Moffat1D,
     Moffat2D,
     Planar2D,
@@ -402,6 +403,15 @@ models_2D = {
         "z_values": [1.0, 0.111111, 0.008264, 0.008264, 0.00277],
         "x_lim": [-3, 3],
         "y_lim": [-3, 3],
+    },
+    Lorentz2D: {
+        "parameters": [1, 0, 0, 2],
+        "x_values": [0, 0, 1, 1],
+        "y_values": [0, 1, 0, 1],
+        "z_values": [1, 0.5, 0.5, 0.3333333],
+        "x_lim": [-10, 10],
+        "y_lim": [-10, 10],
+        "deriv_initial": [10, 5, 5, 4],
     },
     Polynomial2D: {
         "parameters": {"degree": 1, "c0_0": 1.0, "c1_0": 1.0, "c0_1": 1.0},
