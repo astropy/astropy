@@ -21,7 +21,7 @@ class TestChecksumFunctions(BaseChecksumTests):
                 assert "DATASUM" in h2[0].header
                 assert h2[0].header["DATASUM"] == "0"
                 assert "CHECKSUM" in h2[1].header
-                assert h2[1].header["CHECKSUM"] == "UAAaX40ZU97aU97Y"
+                assert h2[1].header["CHECKSUM"] == "ZeAbdb8aZbAabb7a"
                 assert "DATASUM" in h2[1].header
                 assert h2[1].header["DATASUM"] == "113055149"
                 assert h2[1].header._countblanks() == 78

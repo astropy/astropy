@@ -31,8 +31,10 @@ from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .base import ExtensionHDU, _BaseHDU, _NonstandardHDU, _ValidHDU
+from .compressed.compressed import CompImageHDU
 from .groups import GroupsHDU
 from .image import ImageHDU, PrimaryHDU
+from .table import BinTableHDU
 
 if HAS_BZ2:
     import bz2
@@ -1327,8 +1329,6 @@ class HDUList(list, _Verify):
                     self._data = data[hdu._data_offset + hdu._data_size :]
 
                 if not kwargs.get("disable_image_compression", False):
-                    from astropy.io.fits import BinTableHDU, CompImageHDU
-
                     if isinstance(hdu, BinTableHDU) and CompImageHDU.match_header(
                         hdu.header
                     ):
@@ -1584,19 +1584,15 @@ class HDUList(list, _Verify):
 
         Side effect of setting the objects _resize attribute.
         """
-        # Avoid circular import
-        from astropy.io.fits import CompImageHDU
-
         if not self._resize:
             # determine if any of the HDU is resized
             for hdu in self:
                 # for CompImageHDU, we need to handle things a little differently
                 # because the HDU matching the header/data on disk is hdu._bintable
                 if isinstance(hdu, CompImageHDU):
-                    if hdu._hdu_modified_from_disk:
-                        self._resize = True
-                        self._truncate = False
-                    continue
+                    hdu = hdu._tmp_bintable
+                    if hdu is None:
+                        continue
 
                 # Header:
                 nbytes = len(str(hdu._header))
