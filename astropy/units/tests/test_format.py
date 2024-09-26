@@ -303,16 +303,14 @@ def test_ogip_invalid_multiplication(string, message):
 
 
 class RoundtripBase:
-    deprecated_units = set()
-
     def check_roundtrip(self, unit, output_format=None):
         if output_format is None:
-            output_format = self.format_
+            output_format = self.format_.name
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # Same warning shows up multiple times
             s = unit.to_string(output_format)
 
-        if s in self.deprecated_units:
+        if s in self.format_._deprecated_units:
             with pytest.warns(UnitsWarning, match="deprecated") as w:
                 a = Unit(s, format=self.format_)
             assert len(w) == 1
@@ -330,7 +328,7 @@ class RoundtripBase:
 
 
 class TestRoundtripGeneric(RoundtripBase):
-    format_ = "generic"
+    format_ = u_format.Generic
 
     @pytest.mark.parametrize(
         "unit",
@@ -339,7 +337,7 @@ class TestRoundtripGeneric(RoundtripBase):
             for unit in u.__dict__.values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
-        ids=lambda x: str(x),
+        ids=str,
     )
     def test_roundtrip(self, unit):
         self.check_roundtrip(unit)
@@ -348,17 +346,12 @@ class TestRoundtripGeneric(RoundtripBase):
 
 
 class TestRoundtripVOUnit(RoundtripBase):
-    format_ = "vounit"
-    deprecated_units = u_format.VOUnit._deprecated_units
+    format_ = u_format.VOUnit
 
     @pytest.mark.parametrize(
         "unit",
-        [
-            unit
-            for unit in u_format.VOUnit._units.values()
-            if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
-        ],
-        ids=lambda x: str(x),
+        [u for u in u_format.VOUnit._units.values() if not isinstance(u, PrefixUnit)],
+        ids=str,
     )
     def test_roundtrip(self, unit):
         self.check_roundtrip(unit)
@@ -367,33 +360,24 @@ class TestRoundtripVOUnit(RoundtripBase):
 
 
 class TestRoundtripFITS(RoundtripBase):
-    format_ = "fits"
-    deprecated_units = u_format.FITS._deprecated_units
+    format_ = u_format.FITS
 
     @pytest.mark.parametrize(
         "unit",
-        [
-            unit
-            for unit in u_format.FITS._units.values()
-            if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
-        ],
-        ids=lambda x: str(x),
+        [u for u in u_format.FITS._units.values() if not isinstance(u, PrefixUnit)],
+        ids=str,
     )
     def test_roundtrip(self, unit):
         self.check_roundtrip(unit)
 
 
 class TestRoundtripCDS(RoundtripBase):
-    format_ = "cds"
+    format_ = u_format.CDS
 
     @pytest.mark.parametrize(
         "unit",
-        [
-            unit
-            for unit in u_format.CDS._units.values()
-            if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
-        ],
-        ids=lambda x: str(x),
+        [u for u in u_format.CDS._units.values() if not isinstance(u, PrefixUnit)],
+        ids=str,
     )
     def test_roundtrip(self, unit):
         self.check_roundtrip(unit)
@@ -404,9 +388,7 @@ class TestRoundtripCDS(RoundtripBase):
         self.check_roundtrip_decompose(unit)
 
     @pytest.mark.parametrize(
-        "unit",
-        [u.dex(unit) for unit in (u.cm / u.s**2, u.K, u.Lsun)],
-        ids=lambda x: str(x),
+        "unit", [u.dex(unit) for unit in (u.cm / u.s**2, u.K, u.Lsun)], ids=str
     )
     def test_roundtrip_dex(self, unit):
         string = unit.to_string(format="cds")
@@ -415,8 +397,7 @@ class TestRoundtripCDS(RoundtripBase):
 
 
 class TestRoundtripOGIP(RoundtripBase):
-    format_ = "ogip"
-    deprecated_units = u_format.OGIP._deprecated_units | {"d"}
+    format_ = u_format.OGIP
 
     @pytest.mark.parametrize(
         "unit",
@@ -425,7 +406,7 @@ class TestRoundtripOGIP(RoundtripBase):
             for unit in u_format.OGIP._units.values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
-        ids=lambda x: str(x),
+        ids=str,
     )
     def test_roundtrip(self, unit):
         if str(unit) in ("d", "0.001 Crab"):
