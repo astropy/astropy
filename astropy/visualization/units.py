@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from contextlib import ContextDecorator
+
 import numpy as np
 
 __all__ = ["quantity_support"]
@@ -48,7 +50,7 @@ def quantity_support(format="latex_inline"):
         else:
             return f"{n}π/2"
 
-    class MplQuantityConverter(units.ConversionInterface):
+    class MplQuantityConverter(units.ConversionInterface, ContextDecorator):
         def __init__(self):
             # Keep track of original converter in case the context manager is
             # used in a nested way.
