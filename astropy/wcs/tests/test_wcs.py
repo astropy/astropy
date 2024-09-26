@@ -1951,3 +1951,26 @@ def test_DistortionLookupTable():
             img_world_wcs.pixel_to_world_values(12 + dx * 3, 22 + dy * 3),
             [12 + dx * 3, 22 + dy * 3],
         )
+
+
+def test_ignore_rogue_dimensions_if_wcsaxes_explicit():
+
+    # Regression test for an issue that caused WCS to fail to parse a header
+    # which had a well defined WCSAXES, and extra dimensions not within
+    # WCSAXES.
+
+
+    header = fits.Header()
+    header['WCSAXES'] = 2
+    header['CTYPE3'] = 'TEST'
+    assert wcs.WCS(header).naxis == 2
+
+    # Example with SIP which errors if there are more than two dimensions in
+    # the WCS - previously the header below would have been identified as 3D
+    # based on the CDELT3 value despite WCSAXES being set.
+
+    filename = get_pkg_data_filename("data/sip.fits")
+    header = fits.getheader(filename)
+    assert header['WCSAXES'] == 2
+    header['CDELT3'] = 2
+    wcs.WCS(header)
