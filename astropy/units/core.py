@@ -21,12 +21,13 @@ from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
 
 from . import format as unit_format
-from .errors import UnitConversionError, UnitScaleError, UnitsError, UnitsWarning
+from .errors import UnitConversionError, UnitsError, UnitsWarning
 from .utils import (
     is_effectively_unity,
     resolve_fractions,
     sanitize_power,
-    sanitize_scale,
+    sanitize_scale_type,
+    sanitize_scale_value,
 )
 
 if TYPE_CHECKING:
@@ -2060,7 +2061,7 @@ class _UnitMetaClass(type):
                 represents = represents.unit
             else:
                 represents = CompositeUnit(
-                    represents.value * represents.unit.scale,
+                    sanitize_scale_type(represents.value) * represents.unit.scale,
                     bases=represents.unit.bases,
                     powers=represents.unit.powers,
                     _error_check=False,
@@ -2071,7 +2072,7 @@ class _UnitMetaClass(type):
                 s = s.unit
             else:
                 s = CompositeUnit(
-                    s.value * s.unit.scale,
+                    sanitize_scale_type(s.value) * s.unit.scale,
                     bases=s.unit.bases,
                     powers=s.unit.powers,
                     _error_check=False,
@@ -2325,8 +2326,7 @@ class CompositeUnit(UnitBase):
         # kwarg `_error_check` is False, the error checking is turned
         # off.
         if _error_check:
-            if scale == 0:
-                raise UnitScaleError("cannot create a unit with a scale of 0.")
+            scale = sanitize_scale_type(scale)
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError("bases must be sequence of UnitBase instances")
@@ -2353,7 +2353,7 @@ class CompositeUnit(UnitBase):
                     for p in unit.powers
                 ]
 
-            self._scale = sanitize_scale(scale)
+            self._scale = sanitize_scale_value(scale)
         else:
             # Regular case: use inputs as preliminary scale, bases, and powers,
             # then "expand and gather" identical bases, sanitize the scale, &c.
@@ -2431,7 +2431,7 @@ class CompositeUnit(UnitBase):
 
         self._bases = [x[0] for x in new_parts]
         self._powers = [sanitize_power(x[1]) for x in new_parts]
-        self._scale = sanitize_scale(scale)
+        self._scale = sanitize_scale_value(scale)
 
     def __copy__(self):
         """
