@@ -1,1 +1,0 @@
-Ensure proper handling of null values during BINARY2 serialization. Previously, masks were handled in two different ways for BINARY2 serialization, resulting in incorrect handling of null values and errors.
