@@ -1,1 +1,0 @@
-Fix a bug that caused the results from local_partial_pixel_derivative to be incorrect when using normalize_by_world=True (the matrix was previously normalized along the wrong axis)

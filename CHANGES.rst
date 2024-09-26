@@ -1,3 +1,62 @@
+Version 6.1.4 (2024-09-26)
+==========================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Keep ``Latitude`` from printing long input arrays in their entirety when failing
+  limits check in ``_validate_angles``, indicating their range instead. [#13997]
+
+- Avoid some components not being included in table output of coordinates if
+  the representation type was ``"unitspherical"``.
+
+  In the process, also ensured that one can pass in the ``radial_velocity``
+  keyword argument if one uses ``differential_type="radial"``. [#16999]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Ensure proper handling of null values during BINARY2 serialization. Previously, masks were handled in two different ways for BINARY2 serialization, resulting in incorrect handling of null values and errors. [#16091]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Fixed a bug in biweight_location, biweight_scale, and
+  biweight_midvariance where the returned array shape would be wrong if
+  the input array had an axis length of 1 along any axis that was not
+  included in the axis keyword. Also fixed a bug in these same functions
+  where for constant data and axis set to a tuple containing all axes, the
+  returned value would be NaN instead of the constant value. [#16964]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Ensure that initializing a ``QTable`` with explicit units` also succeeds if
+  one of the units is ``u.one``. [#17048]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- An exception is now raised if it is attempted to create a unit with a
+  scale of zero, avoiding bugs further downstream (including surprising
+  ones, such as a comparison of ``np.ma.masked == u.one`` leading to
+  a ``ZeroDivisionError``). [#17048]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fix a bug that caused the results from local_partial_pixel_derivative to be incorrect when using normalize_by_world=True (the matrix was previously normalized along the wrong axis) [#17003]
+
+
+Other Changes and Additions
+---------------------------
+
+- Minimal requirement for (optional dependency) matplotlib was bumped
+  to 3.5.0, which is the oldest version with support for Python 3.10 [#16993]
+
 Version 6.1.3 (2024-08-30)
 ==========================
 
