@@ -15,6 +15,8 @@ from astropy.units import utils
 from astropy.utils.compat.optional_deps import HAS_DASK
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
+FLOAT_EPS = np.finfo(float).eps
+
 
 def test_initialisation():
     assert u.Unit(u.m) is u.m
@@ -1042,3 +1044,14 @@ def test_error_on_conversion_of_zero_to_unit():
     # Also check some that do work.
     assert u.dimensionless_unscaled.to(0.125) == 8
     assert u.dimensionless_unscaled.to(8) == 0.125
+
+
+@pytest.mark.parametrize(
+    "unsanitized,sanitized",
+    [
+        pytest.param(complex(2, FLOAT_EPS), 2, id="almost_real_complex"),
+        pytest.param(complex(FLOAT_EPS, 2), 2j, id="almost_imaginary_complex"),
+    ],
+)
+def test_scale_sanitization(unsanitized, sanitized):
+    assert u.CompositeUnit(unsanitized, [u.m], [1]).scale == sanitized
