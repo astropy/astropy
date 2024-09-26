@@ -17,7 +17,7 @@ from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.bounding_box import ModelBoundingBox
 from astropy.modeling.core import FittableModel, Model, _ModelMeta
-from astropy.modeling.models import Gaussian2D, Lorentz2D
+from astropy.modeling.models import Gaussian2D
 from astropy.modeling.parameters import InputParameterError, Parameter
 from astropy.modeling.polynomial import PolynomialBase
 from astropy.modeling.powerlaws import (
@@ -391,15 +391,12 @@ class Fittable2DModelTester:
             rtol=1e-2,
         )
 
-        if isinstance(model_with_deriv, Lorentz2D):
-            atol = 1e-6
-        else:
-            atol = 0.1
         if model_class != Gaussian2D:
+            deriv_atol = test_parameters.get("deriv_atol", 0.1)
             assert_allclose(
                 new_model_with_deriv.parameters,
                 new_model_no_deriv.parameters,
-                rtol=atol,
+                rtol=deriv_atol,
             )
 
 
@@ -628,13 +625,11 @@ class Fittable1DModelTester:
             model_no_deriv, x, data, estimate_jacobian=True
         )
 
-        if isinstance(model_with_deriv, models.Lorentz1D):
-            atol = 1e-6
-        else:
-            atol = 0.15
-
+        deriv_atol = test_parameters.get("deriv_atol", 0.15)
         assert_allclose(
-            new_model_with_deriv.parameters, new_model_no_deriv.parameters, atol=atol
+            new_model_with_deriv.parameters,
+            new_model_no_deriv.parameters,
+            atol=deriv_atol,
         )
 
 
