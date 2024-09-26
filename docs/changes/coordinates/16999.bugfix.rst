@@ -1,5 +1,0 @@
-Avoid some components not being included in table output of coordinates if
-the representation type was ``"unitspherical"``.
-
-In the process, also ensured that one can pass in the ``radial_velocity``
-keyword argument if one uses ``differential_type="radial"``.

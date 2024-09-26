@@ -1,2 +1,0 @@
-Ensure that initializing a ``QTable`` with explicit units` also succeeds if
-one of the units is ``u.one``.
