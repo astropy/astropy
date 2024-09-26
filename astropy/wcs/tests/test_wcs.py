@@ -1954,15 +1954,13 @@ def test_DistortionLookupTable():
 
 
 def test_ignore_rogue_dimensions_if_wcsaxes_explicit():
-
     # Regression test for an issue that caused WCS to fail to parse a header
     # which had a well defined WCSAXES, and extra dimensions not within
     # WCSAXES.
 
-
     header = fits.Header()
-    header['WCSAXES'] = 2
-    header['CTYPE3'] = 'TEST'
+    header["WCSAXES"] = 2
+    header["CTYPE3"] = "TEST"
     assert wcs.WCS(header).naxis == 2
 
     # Example with SIP which errors if there are more than two dimensions in
@@ -1971,6 +1969,6 @@ def test_ignore_rogue_dimensions_if_wcsaxes_explicit():
 
     filename = get_pkg_data_filename("data/sip.fits")
     header = fits.getheader(filename)
-    assert header['WCSAXES'] == 2
-    header['CDELT3'] = 2
+    assert header["WCSAXES"] == 2
+    header["CDELT3"] = 2
     wcs.WCS(header)

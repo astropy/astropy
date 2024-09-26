@@ -493,7 +493,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             # e.g. CDELT3 to infer that the WCS has three dimensions even if
             # WCSAXES is 2.
             if naxis is None:
-                naxis = header.get('WCSAXES' + key.strip())
+                naxis = header.get("WCSAXES" + key.strip())
 
             est_naxis = 2
             try:
