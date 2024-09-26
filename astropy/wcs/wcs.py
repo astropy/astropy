@@ -473,6 +473,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                 header_string = header.tostring().rstrip()
             else:
                 header_string = header
+                header = fits.Header.fromstring(header_string)
 
             # Importantly, header is a *copy* of the passed-in header
             # because we will be modifying it
@@ -486,6 +487,13 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                 raise AssertionError(
                     "'fobj' must be either None or an astropy.io.fits.HDUList object."
                 )
+
+            # If WCSAXES is present, we respect it and use it to set naxis,
+            # because otherwise WCSLIB may ignore it and use the presence of
+            # e.g. CDELT3 to infer that the WCS has three dimensions even if
+            # WCSAXES is 2.
+            if naxis is None:
+                naxis = header.get('WCSAXES' + key.strip())
 
             est_naxis = 2
             try:
@@ -558,7 +566,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                 else:
                     raise
 
-            if naxis is not None:
+            if naxis is not None and wcsprm.naxis != naxis:
                 wcsprm = wcsprm.sub(naxis)
             self.naxis = wcsprm.naxis
 
