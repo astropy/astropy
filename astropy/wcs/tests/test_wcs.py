@@ -1971,4 +1971,4 @@ def test_ignore_rogue_dimensions_if_wcsaxes_explicit():
     header = fits.getheader(filename)
     assert header["WCSAXES"] == 2
     header["CDELT3"] = 2
-    wcs.WCS(header)
+    assert wcs.WCS(header).naxis == 2
