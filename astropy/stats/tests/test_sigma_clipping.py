@@ -502,17 +502,18 @@ def test_sigma_clip_axis_shapes(axis, bounds_shape):
     "dtype", [">f2", "<f2", ">f4", "<f4", ">f8", "<f8", "<i4", ">i8"]
 )
 def test_sigma_clip_dtypes(dtype):
-    # Check the shapes of the output for different use cases
-
+    # Compare the outputs for various dtypes
     with NumpyRNGContext(12345):
         array = np.random.randint(-5, 5, 1000).astype(float)
     array[30] = 100
-
     reference = sigma_clip(array, copy=True, masked=False)
-
     actual = sigma_clip(array.astype(dtype), copy=True, masked=False)
-
     assert_equal(reference, actual)
+
+    # Check that the output dtype is the same as the input dtype
+    arr = np.ones((10, 10), dtype=np.float32)
+    arr2 = sigma_clip(arr, cenfunc=np.mean, axis=0, masked=False)
+    assert arr2.dtype == arr.dtype
 
 
 def test_mad_std():
