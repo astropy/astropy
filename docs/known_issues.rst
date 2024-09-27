@@ -138,11 +138,11 @@ Beware that `~numpy.arange` works, but requires an additional ``like`` argument
     >>> np.arange(0 * u.cm, 1 * u.cm, 1 * u.mm, like=u.Quantity([], u.cm))
     <Quantity [0. , 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] cm>
 
-Also note that the unit of the output array is dictated by that of the first
+Also note that the unit of the output array is dictated by that of the ``stop``
 argument, and the data has a floating-point dtype. If an integer dtype is
 desired, it can be achieved as
 
-    >>> np.arange(0 * u.mm, 1 * u.cm, 1 * u.mm, like=u.Quantity([], u.m), dtype=int)
+    >>> np.arange(0 * u.cm, 10 * u.mm, 1 * u.mm, like=u.Quantity([], u.m), dtype=int)
     <Quantity [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] mm>
 
 Alternatively, one may move the units outside of the call as
