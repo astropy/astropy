@@ -55,14 +55,11 @@ class OGIP(generic.Generic):
         "LIT10",
         "UINT",
         "UNKNOWN",
+        "FUNCNAME",
         "UNIT",
     )
 
     _deprecated_units: ClassVar[frozenset[str]] = frozenset(("Crab", "mCrab"))
-    _functions: ClassVar[frozenset[str]] = frozenset((
-        "log", "ln", "exp", "sqrt", "sin", "cos", "tan",
-        "asin", "acos", "atan", "sinh", "cosh", "tanh",
-    ))  # fmt: skip
 
     @classproperty(lazy=True)
     def _units(cls) -> dict[str, UnitBase]:
@@ -94,8 +91,6 @@ class OGIP(generic.Generic):
         # Crab and mCrab, since OGIP doesn't define their quantities.
         names["Crab"] = u.def_unit(["Crab"], prefixes=False, doc="Crab (X-ray flux)")
         names["mCrab"] = u.Unit(10**-3 * names["Crab"])
-
-        names.update((name, name) for name in cls._functions)
 
         return names
 
@@ -138,6 +133,10 @@ class OGIP(generic.Generic):
         def t_UNKNOWN(t):
             r"[Uu][Nn][Kk][Nn][Oo][Ww][Nn]"
             return None
+
+        def t_FUNCNAME(t):
+            r"((sqrt)|(ln)|(exp)|(log)|(sin)|(cos)|(tan)|(asin)|(acos)|(atan)|(sinh)|(cosh)|(tanh))(?=\ *\()"
+            return t
 
         def t_UNIT(t):
             r"[a-zA-Z][a-zA-Z_]*"
@@ -188,6 +187,7 @@ class OGIP(generic.Generic):
         def p_product_of_units(p):
             """
             product_of_units : unit_expression
+                             | function
                              | division unit_expression
                              | product_of_units product unit_expression
                              | product_of_units division unit_expression
@@ -210,39 +210,39 @@ class OGIP(generic.Generic):
                             | UNIT OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
                             | OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
             """
-            bad_function_message = (
-                "The function '{}' is valid in OGIP, but not understood "
-                "by astropy.units."
-            )
             bad_multiplication_message = (
                 "if '{0}{1}' was meant to be a multiplication, "
                 "it should have been written as '{0} {1}'."
             )
 
             if len(p) == 7:
-                if p[1] == "sqrt":
-                    p[0] = p[3] ** (0.5 * p[6])
-                elif p[1] in cls._functions:
-                    raise ValueError(bad_function_message.format(p[1]))
-                else:
-                    raise ValueError(
-                        bad_multiplication_message.format(p[1], f"({p[3]})**{p[6]}")
-                    )
+                raise ValueError(
+                    bad_multiplication_message.format(p[1], f"({p[3]})**{p[6]}")
+                )
             elif len(p) == 6:
                 p[0] = p[2] ** p[5]
             elif len(p) == 5:
-                if p[1] == "sqrt":
-                    p[0] = p[3] ** 0.5
-                elif p[1] in cls._functions:
-                    raise ValueError(bad_function_message.format(p[1]))
-                else:
-                    raise ValueError(
-                        bad_multiplication_message.format(p[1], f"({p[3]})")
-                    )
+                raise ValueError(bad_multiplication_message.format(p[1], f"({p[3]})"))
             elif len(p) == 4:
                 p[0] = p[2]
             else:
                 p[0] = p[1]
+
+        def p_function(p):
+            """
+            function : FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN
+                     | FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
+            """
+            match list(p):
+                case [_, "sqrt", _, unit, _]:
+                    p[0] = unit**0.5
+                case [_, "sqrt", _, unit, _, _, numeric_power]:
+                    p[0] = unit ** (0.5 * numeric_power)
+                case [_, func, *_]:
+                    raise ValueError(
+                        f"The function '{func}' is valid in OGIP, but not understood "
+                        "by astropy.units."
+                    )
 
         def p_scale_factor(p):
             """
