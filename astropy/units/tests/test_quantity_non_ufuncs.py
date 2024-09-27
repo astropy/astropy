@@ -39,6 +39,7 @@ KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
 POSITIONAL_OR_KEYWORD = inspect.Parameter.POSITIONAL_OR_KEYWORD
 
 ARCSEC_PER_DEGREE = 60 * 60
+ARCSEC_PER_RADIAN = ARCSEC_PER_DEGREE * np.rad2deg(1)
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -374,21 +375,21 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
                 id="pos: stop",
             ),
             pytest.param(
-                (0 * u.radian, 1 * u.degree),
+                (0 * u.degree, 1 * u.radian),
                 {},
                 np.arange(1, dtype=float),
                 id="pos: start, stop",
             ),
             pytest.param(
-                (0 * u.radian, 1 * u.degree, 1 * u.arcsec),
+                (0 * u.degree, 1 * u.radian, 1 * u.arcsec),
                 {},
-                np.arange(ARCSEC_PER_DEGREE, dtype=float),
+                np.arange(ARCSEC_PER_RADIAN, dtype=float),
                 id="pos: start, stop, step",
             ),
             pytest.param(
-                (0 * u.radian, 1 * u.degree),
+                (0 * u.degree, 1 * u.radian),
                 {"step": 1 * u.arcsec},
-                np.arange(ARCSEC_PER_DEGREE, dtype=float),
+                np.arange(ARCSEC_PER_RADIAN, dtype=float),
                 id="pos: start, stop; kw: step",
             ),
             pytest.param(
@@ -445,11 +446,7 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
 
     def test_arange_incorrect_input_type(self):
         with pytest.raises(
-            TypeError,
-            match=(
-                r"Expected every explicit argument \(start, stop and step\) "
-                r"to be Quantity or None\."
-            ),
+            TypeError, match="Expected stop to be a Quantity, got stop="
         ):
             np.arange(10, like=u.Quantity([], u.s))
 
