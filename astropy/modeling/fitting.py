@@ -530,7 +530,17 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             return xnew, ynew
 
     @fitter_unit_support
-    def __call__(self, model, x, y, z=None, weights=None, rcond=None, inplace=False):
+    def __call__(
+        self,
+        model,
+        x,
+        y,
+        z=None,
+        weights=None,
+        rcond=None,
+        *,
+        inplace=False,
+    ):
         """
         Fit data to this model.
 
@@ -1329,6 +1339,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         epsilon=DEFAULT_EPS,
         estimate_jacobian=False,
         filter_non_finite=False,
+        *,
         inplace=False,
     ):
         """
@@ -1703,7 +1714,17 @@ class SLSQPLSQFitter(Fitter):
         self.fit_info = {}
 
     @fitter_unit_support
-    def __call__(self, model, x, y, z=None, weights=None, inplace=False, **kwargs):
+    def __call__(
+        self,
+        model,
+        x,
+        y,
+        z=None,
+        weights=None,
+        *,
+        inplace=False,
+        **kwargs,
+    ):
         """
         Fit data to this model.
 
@@ -1787,7 +1808,17 @@ class SimplexLSQFitter(Fitter):
         self.fit_info = {}
 
     @fitter_unit_support
-    def __call__(self, model, x, y, z=None, weights=None, inplace=False, **kwargs):
+    def __call__(
+        self,
+        model,
+        x,
+        y,
+        z=None,
+        weights=None,
+        *,
+        inplace=False,
+        **kwargs,
+    ):
         """
         Fit data to this model.
 
