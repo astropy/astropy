@@ -493,10 +493,8 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None
     new_values, out_unit = _quantities2arrays(*list(qty_kwargs.values()), unit_from_first=True)
     kwargs = dict(zip(qty_kwargs.keys(), new_values))
     kwargs["dtype"] = dtype
-
     if not NUMPY_LT_2_0:
         kwargs["device"] = device
-
 
     return np.arange(**kwargs), out_unit, None
 
