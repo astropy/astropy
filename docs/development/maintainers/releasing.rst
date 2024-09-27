@@ -429,12 +429,11 @@ clean-up tasks to finalize the process.
 Post-Release procedures
 -----------------------
 
-#. Update Readthedocs so that it builds docs for the version you just released.
-   You'll find this in the "Admin" tab, in the "Edit Versions" section --
-   click on "Activate" for the tag of the release you have just done.
-   Also verify that the ``stable`` Readthedocs version builds correctly for
-   the new version (it should trigger automatically once you've done the
-   previous step).
+#. Make sure that Readthedocs is building the documentation for the version you just released.
+   You'll find this in the "Versions" tab -- click on "Edit" for the tag you
+   just released, and make sure that "Active" is checked. Also verify that the
+   ``stable`` Readthedocs version builds correctly for the new version (it
+   should trigger automatically once you've done the previous step).
 
 #. When releasing a patch release, also set the previous RTD version in the
    release history to "Hidden".  For example when releasing v6.0.2, set
