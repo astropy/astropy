@@ -479,28 +479,24 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None
                 case step, dtype:
                     pass
 
-    has_out_unit = False
-    for arg in (start, stop, step):
-        if arg is None:
-            continue
-        if not isinstance(arg, Quantity):
-            raise TypeError(
-                "Expected every explicit argument (start, stop and step) "
-                "to be Quantity or None."
-            )
-        # the first (non None) argument dictates the output unit
-        if not has_out_unit:
-            out_unit = arg.unit
-            has_out_unit = True
+    if not isinstance(stop, Quantity):
+        raise TypeError(f"Expected stop to be a Quantity, got {stop=} ({type(stop)=}")
 
-    locals_ = locals()
-    kwargs = {"dtype": dtype}
+    # as the only required argument, we want stop to set the unit of the output
+    # so it's important that it comes first in the qty_kwargs
+    qty_kwargs = {
+        k: v
+        for k, v in (("stop", stop), ("start", start), ("step", step))
+        if v is not None
+    }
+
+    new_values, out_unit = _quantities2arrays(*list(qty_kwargs.values()), unit_from_first=True)
+    kwargs = dict(zip(qty_kwargs.keys(), new_values))
+    kwargs["dtype"] = dtype
+
     if not NUMPY_LT_2_0:
         kwargs["device"] = device
-    for k in ("start", "stop", "step"):
-        if (v:=locals_[k]) is None:
-            continue
-        kwargs[k] = v.to_value(out_unit)
+
 
     return np.arange(**kwargs), out_unit, None
 
