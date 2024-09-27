@@ -450,6 +450,14 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         ):
             np.arange(10, like=u.Quantity([], u.s))
 
+    def test_arange_unit_from_stop(self):
+        Q = 1 * u.km
+        a = np.arange(start=1 * u.s, stop=10 * u.min, like=Q)
+        b = np.arange(stop=10 * u.min, start=1 * u.s, like=Q)
+        assert a.unit == u.min
+        assert b.unit == u.min
+        np.testing.assert_array_equal(a.value, b.value)
+
 
 class TestAccessingParts(InvariantUnitTestSetup):
     def test_diag(self):
