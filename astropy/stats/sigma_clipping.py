@@ -487,8 +487,11 @@ class SigmaClip:
         In this case, we replace clipped values with NaNs as placeholder
         values.
         """
-        # float array type is needed to insert nans into the array
-        filtered_data = data.astype(float)  # also makes a copy
+        if data.dtype.kind != "f":
+            # float array type is needed to insert nans into the array
+            filtered_data = data.astype(np.float32)  # also makes a copy
+        else:
+            filtered_data = np.copy(data)
 
         # remove invalid values
         bad_mask = ~np.isfinite(filtered_data)
