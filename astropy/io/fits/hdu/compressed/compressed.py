@@ -385,9 +385,6 @@ class CompImageHDU(ImageHDU):
             # set above.
             self._get_bintable_without_data()
 
-        # Keep track of whether the data has been modified
-        self._data_modified = False
-
     def _remove_unnecessary_default_extnames(self, header):
         """Remove default EXTNAME values if they are unnecessary.
 
@@ -533,7 +530,6 @@ class CompImageHDU(ImageHDU):
 
     @data.setter
     def data(self, data):
-        self._data_modified = True
         ImageHDU.data.fset(self, data)
         if (
             data is not None
