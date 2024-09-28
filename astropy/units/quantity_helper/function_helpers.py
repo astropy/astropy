@@ -438,6 +438,65 @@ def _block(arrays, max_depth, result_ndim, depth=0):
         return np_core.shape_base._atleast_nd(arrays, result_ndim)
 
 
+if NUMPY_LT_2_0:
+    @dispatched_function
+    def arange(*args, start=None, stop=None, step=None, dtype=None, like=None):
+        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, like=like)
+else:
+    @dispatched_function
+    def arange(*args, start=None, stop=None, step=None, dtype=None, device=None, like=None):
+        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, device=device, like=like)
+
+def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None, like=None):
+    from astropy.units import Quantity
+
+    # NumPy is supposed to validate the input parameters before this dispatched
+    # function is reached. Nevertheless, we'll sprinkle a few rundundant
+    # sanity checks in the form of `assert` statements.
+    # As they are not part of the business logic, it is fine if they are
+    # compiled-away (e.g. the Python interpreter runs with -O)
+    assert like is None
+
+    # bind positional arguments to their meaningful names
+    # following the (complex) logic of np.arange
+    assert len(args) <= 4
+    match args:
+        case pos1,:
+            assert stop is None or start is None
+            if stop is None:
+                stop = pos1
+            elif start is None:
+                start = pos1
+        case start, stop, *rest:
+            if start is not None and stop is None:
+                start, stop = stop, start
+            match rest:
+                # rebind step and dtype if possible
+                case step,:
+                    pass
+                case step, dtype:
+                    pass
+
+    if not isinstance(stop, Quantity):
+        raise TypeError(f"Expected stop to be a Quantity, got {stop=} ({type(stop)=}")
+
+    # as the only required argument, we want stop to set the unit of the output
+    # so it's important that it comes first in the qty_kwargs
+    qty_kwargs = {
+        k: v
+        for k, v in (("stop", stop), ("start", start), ("step", step))
+        if v is not None
+    }
+
+    new_values, out_unit = _quantities2arrays(*qty_kwargs.values(), unit_from_first=True)
+    kwargs = dict(zip(qty_kwargs.keys(), new_values))
+    kwargs["dtype"] = dtype
+    if not NUMPY_LT_2_0:
+        kwargs["device"] = device
+
+    return np.arange(**kwargs), out_unit, None
+
+
 @dispatched_function
 def block(arrays):
     # We need to override block since the numpy implementation can take two

@@ -133,23 +133,24 @@ A workaround for this at the moment would be to do::
 
 As well as with `~numpy.full` one cannot do `~numpy.zeros`, `~numpy.ones`, and `~numpy.empty`.
 
-The `~numpy.arange` function does not work either::
+Beware that `~numpy.arange` works, but requires an additional ``like`` argument
 
-    >>> np.arange(0 * u.m, 10 * u.m, 1 * u.m)
-    Traceback (most recent call last):
-    ...
-    TypeError: only dimensionless scalar quantities can be converted to Python scalars
+    >>> np.arange(0 * u.cm, 1 * u.cm, 1 * u.mm, like=u.Quantity([], u.cm))
+    <Quantity [0. , 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] cm>
 
-Workarounds include moving the units outside of the call to
-`~numpy.arange`::
+Also note that the unit of the output array is dictated by that of the ``stop``
+argument, and that, like for quantities generally, the data has a floating-point
+dtype.
 
-    >>> np.arange(0, 10, 1) * u.m
-    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
+Alternatively, one may move the units outside of the call to `~numpy.arange`::
 
-Additionally, `~numpy.linspace` _does_ work:
+    >>> np.arange(0, 10, 1) << u.mm
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] mm>
 
-    >>> np.linspace(0 * u.m, 9 * u.m, 10)
-    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
+Or use `~numpy.linspace`:
+
+    >>> np.linspace(0 * u.cm, 9 * u.mm, 10)
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] mm>
 
 
 Quantities Lose Their Units When Broadcasted
