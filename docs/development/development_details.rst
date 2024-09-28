@@ -400,7 +400,6 @@ The C libraries currently bundled with ``astropy`` include:
 
 .. include:: links.inc
 
-.. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _git book: https://git-scm.com/book/
 .. _Astropy issue list: https://github.com/astropy/astropy/issues
 .. _git choose-your-own-adventure: http://sethrobertson.github.io/GitFixUm/fixup.html

@@ -10,7 +10,7 @@ need to know to make contributions to Astropy. This page provides Astropy-specif
 guidance to using Git along with a list of resources for learning more about Git.
 
 If you have never used git or have limited experience with it, take a few
-minutes to look at `Git Basics`_, part of a much longer `git book`_.
+minutes to look at Git Basics, part of a much longer `git book`_.
 
 Essential `git`_ commands
 *************************
@@ -469,7 +469,6 @@ your edit is correct, and you only appear in the list once.
 
 .. include:: links.inc
 
-.. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _git book: https://git-scm.com/book/
 .. _Astropy issue list: https://github.com/astropy/astropy/issues
 .. _git choose-your-own-adventure: http://sethrobertson.github.io/GitFixUm/fixup.html
