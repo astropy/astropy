@@ -423,7 +423,7 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert type(arr) is u.Quantity
         assert arr.unit == u.radian
         assert arr.dtype == expected.dtype
-        np.testing.assert_array_almost_equal(arr.to_value(u.arcsec), expected)
+        assert_allclose(arr.to_value(u.arcsec), expected)
 
     def test_arange_like_quantity_subclass(self):
         class AngularUnits(u.SpecificTypeQuantity):
@@ -435,14 +435,14 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert type(arr) is AngularUnits
         assert arr.unit == u.radian
         assert arr.dtype == np.dtype(float)
-        np.testing.assert_array_equal(arr.value, np.arange(10))
+        assert_array_equal(arr.value, np.arange(10))
 
     def test_arange_pos_dtype(self):
         arr = np.arange(0 * u.s, 10 * u.s, 1 * u.s, int, like=u.Quantity([], u.radian))
         assert type(arr) is u.Quantity
         assert arr.unit == u.s
         assert arr.dtype == np.dtype(int)
-        np.testing.assert_array_equal(arr.value, np.arange(10))
+        assert_array_equal(arr.value, np.arange(10))
 
     def test_arange_incorrect_input_type(self):
         with pytest.raises(
@@ -456,7 +456,7 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         b = np.arange(stop=10 * u.min, start=1 * u.s, like=Q)
         assert a.unit == u.min
         assert b.unit == u.min
-        np.testing.assert_array_equal(a.value, b.value)
+        assert_array_equal(a.value, b.value)
 
 
 class TestAccessingParts(InvariantUnitTestSetup):

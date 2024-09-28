@@ -34,8 +34,6 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 """
 
-from __future__ import annotations
-
 import functools
 import operator
 
@@ -490,7 +488,7 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None
         if v is not None
     }
 
-    new_values, out_unit = _quantities2arrays(*list(qty_kwargs.values()), unit_from_first=True)
+    new_values, out_unit = _quantities2arrays(*qty_kwargs.values(), unit_from_first=True)
     kwargs = dict(zip(qty_kwargs.keys(), new_values))
     kwargs["dtype"] = dtype
     if not NUMPY_LT_2_0:
