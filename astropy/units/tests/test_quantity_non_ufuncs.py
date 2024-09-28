@@ -38,6 +38,8 @@ POSITIONAL_ONLY = inspect.Parameter.POSITIONAL_ONLY
 KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
 POSITIONAL_OR_KEYWORD = inspect.Parameter.POSITIONAL_OR_KEYWORD
 
+ARCSEC_PER_DEGREE = 60 * 60
+ARCSEC_PER_RADIAN = ARCSEC_PER_DEGREE * np.rad2deg(1)
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -361,6 +363,100 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         def test_astype(self):
             int32q = self.q.astype("int32")
             assert_array_equal(np.astype(int32q, "int32"), int32q)
+
+    @needs_array_function
+    @pytest.mark.parametrize(
+        "args, kwargs, expected",
+        [
+            pytest.param(
+                (1 * u.radian,),
+                {},
+                np.arange(1, dtype=float),
+                id="pos: stop",
+            ),
+            pytest.param(
+                (0 * u.degree, 1 * u.radian),
+                {},
+                np.arange(1, dtype=float),
+                id="pos: start, stop",
+            ),
+            pytest.param(
+                (0 * u.degree, 1 * u.radian, 1 * u.arcsec),
+                {},
+                np.arange(ARCSEC_PER_RADIAN, dtype=float),
+                id="pos: start, stop, step",
+            ),
+            pytest.param(
+                (0 * u.degree, 1 * u.radian),
+                {"step": 1 * u.arcsec},
+                np.arange(ARCSEC_PER_RADIAN, dtype=float),
+                id="pos: start, stop; kw: step",
+            ),
+            pytest.param(
+                (0 * u.radian,),
+                {"stop": 5 * u.radian},
+                np.rad2deg(np.arange(5, dtype=float) * ARCSEC_PER_DEGREE),
+                id="pos: start; kw: stop",
+            ),
+            pytest.param(
+                (10 * u.radian, None),
+                {},
+                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
+                id="pos: stop, followed by 1 None",
+            ),
+            pytest.param(
+                (10 * u.radian, None, None),
+                {},
+                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
+                id="pos: stop, followed by 2 None",
+            ),
+            pytest.param(
+                (10 * u.radian, None, None, None),
+                {},
+                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
+                id="pos: stop, followed by 3 None",
+            ),
+        ],
+    )
+    def test_arange(self, args, kwargs, expected):
+        arr = np.arange(*args, **kwargs, like=u.Quantity([], u.rad))
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.radian
+        assert arr.dtype == expected.dtype
+        assert_allclose(arr.to_value(u.arcsec), expected)
+
+    def test_arange_like_quantity_subclass(self):
+        class AngularUnits(u.SpecificTypeQuantity):
+            _equivalent_unit = u.radian
+
+        arr = np.arange(
+            0 * u.radian, 10 * u.radian, 1 * u.radian, like=AngularUnits([], u.radian)
+        )
+        assert type(arr) is AngularUnits
+        assert arr.unit == u.radian
+        assert arr.dtype == np.dtype(float)
+        assert_array_equal(arr.value, np.arange(10))
+
+    def test_arange_pos_dtype(self):
+        arr = np.arange(0 * u.s, 10 * u.s, 1 * u.s, int, like=u.Quantity([], u.radian))
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.s
+        assert arr.dtype == np.dtype(int)
+        assert_array_equal(arr.value, np.arange(10))
+
+    def test_arange_incorrect_input_type(self):
+        with pytest.raises(
+            TypeError, match="Expected stop to be a Quantity, got stop="
+        ):
+            np.arange(10, like=u.Quantity([], u.s))
+
+    def test_arange_unit_from_stop(self):
+        Q = 1 * u.km
+        a = np.arange(start=1 * u.s, stop=10 * u.min, like=Q)
+        b = np.arange(stop=10 * u.min, start=1 * u.s, like=Q)
+        assert a.unit == u.min
+        assert b.unit == u.min
+        assert_array_equal(a.value, b.value)
 
 
 class TestAccessingParts(InvariantUnitTestSetup):
@@ -2609,6 +2705,12 @@ rec_functions = {
     rfn.recursive_fill_fields, rfn.require_fields,
 }  # fmt: skip
 untested_functions |= rec_functions
+
+all_wrapped_functions |= {
+    # implemented NEP 35 functions
+    # xref https://github.com/numpy/numpy/issues/27451
+    np.arange,
+}
 
 
 @needs_array_function
