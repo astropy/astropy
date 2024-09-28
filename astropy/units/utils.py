@@ -16,16 +16,17 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 from numpy import finfo
 
+from .errors import UnitScaleError
+
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
     from typing import Literal, SupportsFloat, TypeVar
 
     from numpy.typing import NDArray
 
-    from astropy.units.typing import Complex, Real, UnitPower
-
     from .core import UnitBase
     from .quantity import Quantity
+    from .typing import Complex, Real, UnitPower, UnitScale
 
     DType = TypeVar("DType", bound=np.generic)
     FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
@@ -192,9 +193,9 @@ def is_effectively_unity(value: Complex) -> bool:
         )
 
 
-def sanitize_scale(scale: Complex) -> Complex:
-    if is_effectively_unity(scale):
-        return 1.0
+def sanitize_scale_type(scale: Complex) -> UnitScale:
+    if not scale:
+        raise UnitScaleError("cannot create a unit with a scale of 0.")
 
     # Maximum speed for regular case where scale is a float.
     if scale.__class__ is float:
@@ -202,8 +203,12 @@ def sanitize_scale(scale: Complex) -> Complex:
 
     # We cannot have numpy scalars, since they don't autoconvert to
     # complex if necessary.  They are also slower.
-    if hasattr(scale, "dtype"):
-        scale = scale.item()
+    return scale.item() if isinstance(scale, np.number) else scale
+
+
+def sanitize_scale_value(scale: UnitScale) -> UnitScale:
+    if is_effectively_unity(scale):
+        return 1.0
 
     # All classes that scale can be (int, float, complex, Fraction)
     # have an "imag" attribute.

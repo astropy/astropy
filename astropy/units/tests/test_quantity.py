@@ -830,11 +830,7 @@ def test_quantity_conversion_equivalency_passed_on():
     assert_allclose(q4.value, q5.value)
 
 
-# Regression test for issue #2315, divide-by-zero error when examining 0*unit
-
-
 def test_self_equivalency():
-    assert u.deg.is_equivalent(0 * u.radian)
     assert u.deg.is_equivalent(1 * u.radian)
 
 
