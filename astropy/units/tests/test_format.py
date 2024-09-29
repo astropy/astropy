@@ -3,6 +3,7 @@
 Regression tests for the units.format package
 """
 
+import re
 import warnings
 from contextlib import nullcontext
 from fractions import Fraction
@@ -13,7 +14,7 @@ from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.constants import si
-from astropy.units import PrefixUnit, Unit, UnitBase, UnitsWarning, dex
+from astropy.units import PrefixUnit, Unit, UnitBase, UnitsWarning, cds, dex
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
 
@@ -95,6 +96,8 @@ def test_unit_grammar_fail(string):
         (["[cm/s2]"], dex(u.cm / u.s**2)),
         (["[K]"], dex(u.K)),
         (["[-]"], dex(u.dimensionless_unscaled)),
+        (["eps0/mu0"], cds.eps0 / cds.mu0),
+        (["a0.s"], cds.a0 * u.s),
     ],
 )
 def test_cds_grammar(strings, unit):
@@ -408,8 +411,6 @@ def test_cds_units_available():
 def test_cds_non_ascii_unit():
     """Regression test for #5350.  This failed with a decoding error as
     μas could not be represented in ascii."""
-    from astropy.units import cds
-
     with cds.enable():
         u.radian.find_equivalent_units(include_prefix_units=True)
 
@@ -891,7 +892,7 @@ def test_powers(power, expected):
         ("\N{MICRO SIGN}g", u.microgram),
         ("\N{GREEK SMALL LETTER MU}g", u.microgram),
         ("g\N{MINUS SIGN}1", u.g ** (-1)),
-        ("m\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}", 1 / u.m),
+        ("m\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}", u.m**-1),
         ("m s\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}", u.m / u.s),
         ("m\N{SUPERSCRIPT TWO}", u.m**2),
         ("m\N{SUPERSCRIPT PLUS SIGN}\N{SUPERSCRIPT TWO}", u.m**2),
@@ -920,6 +921,18 @@ def test_powers(power, expected):
 def test_unicode(string, unit):
     assert u_format.Generic.parse(string) == unit
     assert u.Unit(string) == unit
+    # Should work in composites too.
+    assert u.Unit(f"{string}/s") == unit / u.s
+    assert u.Unit(f"m {string}") == u.m * unit
+    assert u.Unit(f"{string} {string}") == unit**2
+    # Not obvious that "°2" should be "deg**2", but not easy to reject,
+    # and "R♃²" should work.  But don't run on examples with a space or that
+    # already end in a number.
+    if re.match(r"^\S*[^\d⁰¹²³⁴⁵⁶⁷⁸⁹]$", string):
+        assert u.Unit(f"{string}2") == unit**2
+    assert u.Unit(f"{string}/{string}") == u.dimensionless_unscaled
+    # Finally, check round-trip
+    assert u.Unit(unit.to_string("unicode")) == unit
 
 
 @pytest.mark.parametrize(
