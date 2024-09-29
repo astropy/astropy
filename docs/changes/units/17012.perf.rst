@@ -1,0 +1,1 @@
+Sped up the parsing of simple units by about 25%.
