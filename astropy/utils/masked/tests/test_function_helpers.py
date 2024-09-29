@@ -415,6 +415,14 @@ class TestSettingParts(MaskedArraySetup):
         np.put(expected_mask, [0, 2], [False, True])
         assert_array_equal(ma.unmasked, expected)
         assert_array_equal(ma.mask, expected_mask)
+        np.put(ma, [1, 2], np.ma.masked)
+        np.put(expected_mask, [1, 2], True)
+        assert_array_equal(ma.unmasked, expected)
+        assert_array_equal(ma.mask, expected_mask)
+        np.put(ma, [0, 1], np.ma.nomask)
+        np.put(expected_mask, [0, 1], False)
+        assert_array_equal(ma.unmasked, expected)
+        assert_array_equal(ma.mask, expected_mask)
 
         with pytest.raises(TypeError):
             # Indices cannot be masked.
@@ -426,7 +434,7 @@ class TestSettingParts(MaskedArraySetup):
 
     def test_putmask(self):
         ma = self.ma.flatten()
-        mask = [True, False, False, False, True, False]
+        mask = np.array([True, False, False, False, True, False])
         values = Masked(
             np.arange(100, 650, 100), mask=[False, True, True, True, False, False]
         )
@@ -437,13 +445,21 @@ class TestSettingParts(MaskedArraySetup):
         np.putmask(expected_mask, mask, values.mask)
         assert_array_equal(ma.unmasked, expected)
         assert_array_equal(ma.mask, expected_mask)
+        np.putmask(ma, ~mask, np.ma.masked)
+        np.putmask(expected_mask, ~mask, True)
+        assert_array_equal(ma.unmasked, expected)
+        assert_array_equal(ma.mask, expected_mask)
+        np.putmask(ma, mask, np.ma.nomask)
+        np.putmask(expected_mask, mask, False)
+        assert_array_equal(ma.unmasked, expected)
+        assert_array_equal(ma.mask, expected_mask)
 
         with pytest.raises(TypeError):
             np.putmask(self.a.flatten(), mask, values)
 
     def test_place(self):
         ma = self.ma.flatten()
-        mask = [True, False, False, False, True, False]
+        mask = np.array([True, False, False, False, True, False])
         values = Masked([100, 200], mask=[False, True])
         np.place(ma, mask, values)
         expected = self.a.flatten()
@@ -452,13 +468,21 @@ class TestSettingParts(MaskedArraySetup):
         np.place(expected_mask, mask, values.mask)
         assert_array_equal(ma.unmasked, expected)
         assert_array_equal(ma.mask, expected_mask)
+        np.place(ma, ~mask, np.ma.masked)
+        np.place(expected_mask, ~mask, True)
+        assert_array_equal(ma.unmasked, expected)
+        assert_array_equal(ma.mask, expected_mask)
+        np.place(ma, mask, np.ma.nomask)
+        np.place(expected_mask, mask, False)
+        assert_array_equal(ma.unmasked, expected)
+        assert_array_equal(ma.mask, expected_mask)
 
         with pytest.raises(TypeError):
             np.place(self.a.flatten(), mask, values)
 
     def test_copyto(self):
         ma = self.ma.flatten()
-        mask = [True, False, False, False, True, False]
+        mask = np.array([True, False, False, False, True, False])
         values = Masked(
             np.arange(100, 650, 100), mask=[False, True, True, True, False, False]
         )
@@ -467,6 +491,14 @@ class TestSettingParts(MaskedArraySetup):
         np.copyto(expected, values.unmasked, where=mask)
         expected_mask = self.mask_a.flatten()
         np.copyto(expected_mask, values.mask, where=mask)
+        assert_array_equal(ma.unmasked, expected)
+        assert_array_equal(ma.mask, expected_mask)
+        np.copyto(ma, np.ma.masked, where=~mask)
+        np.copyto(expected_mask, True, where=~mask)
+        assert_array_equal(ma.unmasked, expected)
+        assert_array_equal(ma.mask, expected_mask)
+        np.copyto(ma, np.ma.nomask, where=mask)
+        np.copyto(expected_mask, False, where=mask)
         assert_array_equal(ma.unmasked, expected)
         assert_array_equal(ma.mask, expected_mask)
 
