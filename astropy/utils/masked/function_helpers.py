@@ -439,8 +439,10 @@ def put(a, ind, v, mode="raise"):
     if isinstance(ind, Masked) or not isinstance(a, Masked):
         raise NotImplementedError
 
-    v_data, v_mask = get_data_and_mask(v)
-    if v_data is not None:
+    if v is np.ma.masked or v is np.ma.nomask:
+        v_mask = v is np.ma.masked
+    else:
+        v_data, v_mask = get_data_and_mask(v)
         np.put(a.unmasked, ind, v_data, mode=mode)
     # v_mask of None will be correctly interpreted as False.
     np.put(a.mask, ind, v_mask, mode=mode)
@@ -458,8 +460,10 @@ def putmask(a, mask, values):
     if isinstance(mask, Masked) or not isinstance(a, Masked):
         raise NotImplementedError
 
-    values_data, values_mask = get_data_and_mask(values)
-    if values_data is not None:
+    if values is np.ma.masked or values is np.ma.nomask:
+        values_mask = values is np.ma.masked
+    else:
+        values_data, values_mask = get_data_and_mask(values)
         np.putmask(a.unmasked, mask, values_data)
     np.putmask(a.mask, mask, values_mask)
 
@@ -476,8 +480,10 @@ def place(arr, mask, vals):
     if isinstance(mask, Masked) or not isinstance(arr, Masked):
         raise NotImplementedError
 
-    vals_data, vals_mask = get_data_and_mask(vals)
-    if vals_data is not None:
+    if vals is np.ma.masked or vals is np.ma.nomask:
+        vals_mask = vals is np.ma.masked
+    else:
+        vals_data, vals_mask = get_data_and_mask(vals)
         np.place(arr.unmasked, mask, vals_data)
     np.place(arr.mask, mask, vals_mask)
 
@@ -494,12 +500,12 @@ def copyto(dst, src, casting="same_kind", where=True):
     if not isinstance(dst, Masked) or isinstance(where, Masked):
         raise NotImplementedError
 
-    src_data, src_mask = get_data_and_mask(src)
-
-    if src_data is not None:
+    if src is np.ma.masked or src is np.ma.nomask:
+        src_mask = src is np.ma.masked
+    else:
+        src_data, src_mask = get_data_and_mask(src)
         np.copyto(dst.unmasked, src_data, casting=casting, where=where)
-    if src_mask is not None:
-        np.copyto(dst.mask, src_mask, where=where)
+    np.copyto(dst.mask, src_mask, where=where)
 
 
 @dispatched_function
