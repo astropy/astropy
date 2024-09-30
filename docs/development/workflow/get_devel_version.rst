@@ -7,8 +7,7 @@ Try the development version
 .. note::
     `git`_ is the name of a source code management system. It is used to keep
     track of changes made to code and to manage contributions coming from
-    several different people. If you want to read more about `git`_ right now
-    take a look at `Git Basics`_.
+    several different people.
 
     If you have never used `git`_ before, allow one hour the first time you do
     this. If you find this taking more than one hour, post in one of the
@@ -338,5 +337,4 @@ but it should not have ``'dev'`` in it.
 
 
 .. include:: links.inc
-.. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _Set Up Git at GitHub: https://help.github.com/en/articles/set-up-git#set-up-git

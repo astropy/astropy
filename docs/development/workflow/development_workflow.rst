@@ -46,7 +46,7 @@ Some `git`_ resources
 =====================
 
 If you have never used git or have limited experience with it, take a few
-minutes to look at `Git Basics`_, part of a much longer `git book`_.
+minutes to look at Git Basics, part of a much longer `git book`_.
 
 In practice, you need only a handful of `git`_ commands to make contributions
 to Astropy. There is a more extensive list of :ref:`git-resources` if you
@@ -668,7 +668,6 @@ can delete any backup branches that may have been created::
 
 .. include:: links.inc
 
-.. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _git book: https://git-scm.com/book/
 .. _Astropy issue list: https://github.com/astropy/astropy/issues
 .. _git choose-your-own-adventure: http://sethrobertson.github.io/GitFixUm/fixup.html
