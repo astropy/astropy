@@ -113,8 +113,10 @@ class CDS(Base):
             r"[x×]"
             return t
 
+        # Most units are just combinations of letters with no numbers, but there
+        # are a few special ones (\h is Planch constant) and three that end in 0.
         def t_UNIT(t):
-            r"\%|°|\\h|((?!\d)\w)+"
+            r"%|°|\\h|(a|eps|mu)0|((?!\d)\w)+"
             t.value = cls._get_unit(t)
             return t
 

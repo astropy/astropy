@@ -118,8 +118,11 @@ class Generic(Base):
             r"((sqrt)|(ln)|(exp)|(log)|(mag)|(dB)|(dex))(?=\ *\()"
             return t
 
+        # A possible unit is something that consists of characters not used
+        # for anything else: no spaces, no digits, signs, periods, stars,
+        # carets, parentheses or commas.
         def t_UNIT(t):
-            "%|([YZEPTGMkhdcmu\N{MICRO SIGN}npfazy]?'((?!\\d)\\w)+')|((?!\\d)\\w)+"
+            r"[^\s\d+\-\./\*\^\(\)\,]+"
             t.value = cls._get_unit(t)
             return t
 
@@ -465,6 +468,8 @@ class Generic(Base):
         elif not s.isascii():
             if s[0] == "\N{MICRO SIGN}":
                 s = "u" + s[1:]
+            elif s[0] == "°":
+                s = "deg" if len(s) == 1 else "deg_" + s[1:]
             if s[-1] in cls._prefixable_unit_symbols:
                 s = s[:-1] + cls._prefixable_unit_symbols[s[-1]]
             elif len(s) > 1 and s[-1] in cls._unit_suffix_symbols:
@@ -533,17 +538,10 @@ class Generic(Base):
 
     _superscript_translations = str.maketrans(_superscripts, "-+0123456789")
     _regex_superscript = re.compile(f"[{_superscripts}]?[{_superscripts[2:]}]+")
-    _regex_deg = re.compile("°([CF])?")
 
     @classmethod
     def _convert_superscript(cls, m):
         return f"({m.group().translate(cls._superscript_translations)})"
-
-    @classmethod
-    def _convert_deg(cls, m):
-        if len(m.string) == 1:
-            return "deg"
-        return m.string.replace("°", "deg_")
 
     @classmethod
     def parse(cls, s, debug=False):
@@ -563,8 +561,6 @@ class Generic(Base):
             # Translate superscripts to parenthesized numbers; this ensures
             # that mixes of superscripts and regular numbers fail.
             s = cls._regex_superscript.sub(cls._convert_superscript, s)
-            # Translate possible degrees.
-            s = cls._regex_deg.sub(cls._convert_deg, s)
 
         result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)
