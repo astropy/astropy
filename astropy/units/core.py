@@ -2095,12 +2095,16 @@ class _UnitMetaClass(type):
                 # Return the NULL unit
                 return dimensionless_unscaled
 
-            if format is None:
-                format = unit_format.Generic
-
             f = unit_format.get_format(format)
             if isinstance(s, bytes):
                 s = s.decode("ascii")
+
+            try:
+                return f._parse_unit(s, detailed_exception=False)  # Try a shortcut
+            except (AttributeError, ValueError):
+                # No `f._parse_unit()` (AttributeError)
+                # or `s` was a composite unit (ValueError).
+                pass
 
             try:
                 return f.parse(s)
