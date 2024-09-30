@@ -527,7 +527,10 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             for idx in range(self.data._nfields):
                 format = self.data._coldefs._recformats[idx]
                 if isinstance(format, _FormatP):
-                    _max = self.data.field(idx).max
+                    if self.data._load_variable_length_data:
+                        _max = self.data.field(idx).max
+                    else:
+                        _max = self.data.field(idx)[:, 0].max()
                     # May be either _FormatP or _FormatQ
                     format_cls = format.__class__
                     format = format_cls(format.dtype, repeat=format.repeat, max=_max)

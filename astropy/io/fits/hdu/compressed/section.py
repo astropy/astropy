@@ -6,7 +6,7 @@ from astropy.io.fits.hdu.base import BITPIX2DTYPE
 from astropy.io.fits.hdu.compressed._tiled_compression import (
     decompress_image_data_section,
 )
-from astropy.io.fits.hdu.compressed.utils import _data_shape, _n_tiles, _tile_shape
+from astropy.io.fits.hdu.compressed.utils import _n_tiles
 from astropy.utils.shapes import simplify_basic_index
 
 __all__ = ["CompImageSection"]
@@ -28,8 +28,10 @@ class CompImageSection:
 
     def __init__(self, hdu):
         self.hdu = hdu
-        self._data_shape = _data_shape(self.hdu._header)
-        self._tile_shape = _tile_shape(self.hdu._header)
+
+        self._data_shape = self.hdu.shape
+        self._tile_shape = self.hdu.tile_shape
+
         self._n_dim = len(self._data_shape)
         self._n_tiles = np.array(
             _n_tiles(self._data_shape, self._tile_shape), dtype=int
@@ -41,27 +43,34 @@ class CompImageSection:
 
     @property
     def ndim(self):
-        return self.hdu._header["ZNAXIS"]
+        return len(self.hdu.shape)
 
     @property
     def dtype(self):
-        return BITPIX2DTYPE[self.hdu._header["ZBITPIX"]]
+        return np.dtype(BITPIX2DTYPE[self.hdu._bitpix])
 
     def __getitem__(self, index):
+        if self.hdu._bintable is None:
+            return self.hdu.data[index]
+
         # Shortcut if the whole data is requested (this is used by the
         # data property, so we optimize it as it is frequently used)
         if index is Ellipsis:
             first_tile_index = np.zeros(self._n_dim, dtype=int)
             last_tile_index = self._n_tiles - 1
             data = decompress_image_data_section(
-                self.hdu.compressed_data,
+                self.hdu._bintable.data,
                 self.hdu.compression_type,
-                self.hdu._header,
-                self.hdu,
+                self.hdu._bintable.header,
+                self.hdu._bintable,
                 first_tile_index,
                 last_tile_index,
             )
-            return self.hdu._scale_data(data)
+            if self.hdu._do_not_scale_image_data:
+                return data
+            scaled_data = self.hdu._scale_data(data)
+            self.hdu._update_header_scale_info(scaled_data.dtype)
+            return scaled_data
 
         index = simplify_basic_index(index, shape=self._data_shape)
 
@@ -105,12 +114,19 @@ class CompImageSection:
                 )
 
         data = decompress_image_data_section(
-            self.hdu.compressed_data,
+            self.hdu._bintable.data,
             self.hdu.compression_type,
-            self.hdu._header,
-            self.hdu,
+            self.hdu._bintable.header,
+            self.hdu._bintable,
             first_tile_index,
             last_tile_index,
         )
 
-        return self.hdu._scale_data(data[tuple(final_array_index)])
+        data = data[tuple(final_array_index)]
+
+        if self.hdu._do_not_scale_image_data:
+            return data
+
+        scaled_data = self.hdu._scale_data(data)
+        self.hdu._update_header_scale_info(scaled_data.dtype)
+        return scaled_data

@@ -528,6 +528,12 @@ def compress_image_data(
     for irow, tile_slices in _iter_array_tiles(data_shape, tile_shape):
         tile_data = image_data[tile_slices]
 
+        if tile_data.dtype.kind == "u":
+            if tile_data.dtype.itemsize == 4:
+                tile_data = (tile_data.astype(np.int64) - 2**31).astype(np.int32)
+            elif tile_data.dtype.itemsize == 2:
+                tile_data = (tile_data.astype(np.int32) - 2**15).astype(np.int16)
+
         settings = _update_tile_settings(settings, compression_type, tile_data.shape)
 
         quantize = "ZSCALE" in compressed_coldefs.dtype.names
@@ -642,4 +648,4 @@ def compress_image_data(
 
     heap = table.tobytes() + compressed_bytes
 
-    return len(compressed_bytes), np.frombuffer(heap, dtype=np.uint8)
+    return heap

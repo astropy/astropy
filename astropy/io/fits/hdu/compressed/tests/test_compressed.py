@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import io
 import math
 import os
+import pickle
 import re
 import time
 from io import BytesIO
@@ -11,7 +13,7 @@ import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.extra.numpy import basic_indices
-from numpy.testing import assert_equal
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed import (
@@ -23,6 +25,7 @@ from astropy.io.fits.tests.conftest import FitsTestCase
 from astropy.io.fits.tests.test_table import comparerecords
 from astropy.utils.data import download_file
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import NumpyRNGContext
 
 
 class TestCompressedImage(FitsTestCase):
@@ -88,7 +91,6 @@ class TestCompressedImage(FitsTestCase):
         Test that quantize_level is used.
 
         """
-        import pickle
 
         np.random.seed(42)
 
@@ -187,11 +189,11 @@ class TestCompressedImage(FitsTestCase):
         hdu.writeto(self.temp("test.fits"))
 
         with fits.open(self.temp("test.fits")) as hdul:
-            assert isinstance(hdul[1], fits.CompImageHDU)
-            assert "ZQUANTIZ" in hdul[1]._header
-            assert hdul[1]._header["ZQUANTIZ"] == "SUBTRACTIVE_DITHER_1"
-            assert "ZDITHER0" in hdul[1]._header
-            assert hdul[1]._header["ZDITHER0"] == csum
+            comp_header = hdul[1]._bintable.header
+            assert "ZQUANTIZ" in comp_header
+            assert comp_header["ZQUANTIZ"] == "SUBTRACTIVE_DITHER_1"
+            assert "ZDITHER0" in comp_header
+            assert comp_header["ZDITHER0"] == csum
             assert np.all(hdul[1].data == array)
 
     def test_disable_image_compression(self):
@@ -242,7 +244,14 @@ class TestCompressedImage(FitsTestCase):
 
         time.sleep(1)
 
-        fits.open(self.temp("scale.fits"), mode="update").close()
+        # Now open the file in update mode and close immediately. Note that we
+        # need to set do_not_scale_image_data otherwise the data is scaled upon
+        # being opened.
+        fits.open(
+            self.temp("scale.fits"),
+            mode="update",
+            do_not_scale_image_data=True,
+        ).close()
 
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
@@ -363,14 +372,14 @@ class TestCompressedImage(FitsTestCase):
             assert (hdul[1].data[0] == zero_point).all()
 
         with fits.open(self.temp("scale.fits")) as hdul:
-            assert (hdul[1].data[1:] == orig_data[1:]).all()
+            assert_equal(hdul[1].data[1:], orig_data[1:])
             # Extra test to ensure that after everything the data is still the
             # same as in the original uncompressed version of the image
             with fits.open(self.data("scale.fits")) as hdul2:
                 # Recall we made the same modification to the data in hdul
                 # above
                 hdul2[0].data[0] = 0
-                assert (hdul[1].data == hdul2[0].data).all()
+                assert_equal(hdul[1].data, hdul2[0].data)
 
     def test_lossless_gzip_compression(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/198"""
@@ -498,10 +507,10 @@ class TestCompressedImage(FitsTestCase):
             test_set_keyword(hdr, "ZCMPTYPE", "ASDF")
             test_set_keyword(hdr, "ZVAL1", "Foo")
 
-    def test_compression_header_append(self):
+    def test_compression_header_append(self, tmp_path):
         with fits.open(self.data("comp.fits")) as hdul:
             imghdr = hdul[1].header
-            tblhdr = hdul[1]._header
+
             with pytest.warns(UserWarning, match="Keyword 'TFIELDS' is reserved") as w:
                 imghdr.append("TFIELDS")
             assert len(w) == 1
@@ -510,12 +519,21 @@ class TestCompressedImage(FitsTestCase):
             imghdr.append(("FOO", "bar", "qux"), end=True)
             assert "FOO" in imghdr
             assert imghdr[-1] == "bar"
-            assert "FOO" in tblhdr
-            assert tblhdr[-1] == "bar"
 
             imghdr.append(("CHECKSUM", "abcd1234"))
             assert "CHECKSUM" in imghdr
             assert imghdr["CHECKSUM"] == "abcd1234"
+
+            hdul.writeto(tmp_path / "updated.fits")
+
+        with fits.open(
+            tmp_path / "updated.fits", disable_image_compression=True
+        ) as hdulc:
+            tblhdr = hdulc[1].header
+
+            assert "FOO" in tblhdr
+            assert tblhdr["FOO"] == "bar"
+
             assert "CHECKSUM" not in tblhdr
             assert "ZHECKSUM" in tblhdr
             assert tblhdr["ZHECKSUM"] == "abcd1234"
@@ -534,23 +552,20 @@ class TestCompressedImage(FitsTestCase):
             header.append(("Q1_OSSTD", 1, "[adu] quadrant 1 overscan stddev"))
             header.append(("Q1_OSMED", 1, "[adu] quadrant 1 overscan median"))
 
-    def test_compression_header_insert(self):
+    def test_compression_header_insert(self, tmp_path):
         with fits.open(self.data("comp.fits")) as hdul:
             imghdr = hdul[1].header
-            tblhdr = hdul[1]._header
+
             # First try inserting a restricted keyword
             with pytest.warns(UserWarning, match="Keyword 'TFIELDS' is reserved") as w:
                 imghdr.insert(1000, "TFIELDS")
             assert len(w) == 1
             assert "TFIELDS" not in imghdr
-            assert tblhdr.count("TFIELDS") == 1
 
             # First try keyword-relative insert
             imghdr.insert("TELESCOP", ("OBSERVER", "Phil Plait"))
             assert "OBSERVER" in imghdr
             assert imghdr.index("OBSERVER") == imghdr.index("TELESCOP") - 1
-            assert "OBSERVER" in tblhdr
-            assert tblhdr.index("OBSERVER") == tblhdr.index("TELESCOP") - 1
 
             # Next let's see if an index-relative insert winds up being
             # sensible
@@ -558,40 +573,62 @@ class TestCompressedImage(FitsTestCase):
             imghdr.insert("OBSERVER", ("FOO",))
             assert "FOO" in imghdr
             assert imghdr.index("FOO") == idx
+
+            hdul.writeto(tmp_path / "updated.fits")
+
+        with fits.open(
+            tmp_path / "updated.fits", disable_image_compression=True
+        ) as hdulc:
+            tblhdr = hdulc[1].header
+
+            assert tblhdr.count("TFIELDS") == 1
+
+            assert "OBSERVER" in tblhdr
+            assert tblhdr.index("OBSERVER") == tblhdr.index("TELESCOP") - 1
+
             assert "FOO" in tblhdr
             assert tblhdr.index("FOO") == tblhdr.index("OBSERVER") - 1
 
-    def test_compression_header_set_before_after(self):
+    def test_compression_header_set_before_after(self, tmp_path):
         with fits.open(self.data("comp.fits")) as hdul:
             imghdr = hdul[1].header
-            tblhdr = hdul[1]._header
 
             with pytest.warns(UserWarning, match="Keyword 'ZBITPIX' is reserved ") as w:
                 imghdr.set("ZBITPIX", 77, "asdf", after="XTENSION")
             assert len(w) == 1
             assert "ZBITPIX" not in imghdr
+
+            hdul.writeto(tmp_path / "updated1.fits")
+
+        with fits.open(
+            tmp_path / "updated1.fits", disable_image_compression=True
+        ) as hdulc:
+            tblhdr = hdulc[1].header
+
             assert tblhdr.count("ZBITPIX") == 1
             assert tblhdr["ZBITPIX"] != 77
 
-            # Move GCOUNT before PCOUNT (not that there's any reason you'd
-            # *want* to do that, but it's just a test...)
-            imghdr.set("GCOUNT", 99, before="PCOUNT")
-            assert imghdr.index("GCOUNT") == imghdr.index("PCOUNT") - 1
-            assert imghdr["GCOUNT"] == 99
-            assert tblhdr.index("ZGCOUNT") == tblhdr.index("ZPCOUNT") - 1
-            assert tblhdr["ZGCOUNT"] == 99
-            assert tblhdr.index("PCOUNT") == 5
-            assert tblhdr.index("GCOUNT") == 6
-            assert tblhdr["GCOUNT"] == 1
+        with fits.open(self.data("comp.fits")) as hdul:
+            imghdr = hdul[1].header
 
-            imghdr.set("GCOUNT", 2, after="PCOUNT")
-            assert imghdr.index("GCOUNT") == imghdr.index("PCOUNT") + 1
-            assert imghdr["GCOUNT"] == 2
-            assert tblhdr.index("ZGCOUNT") == tblhdr.index("ZPCOUNT") + 1
-            assert tblhdr["ZGCOUNT"] == 2
-            assert tblhdr.index("PCOUNT") == 5
-            assert tblhdr.index("GCOUNT") == 6
-            assert tblhdr["GCOUNT"] == 1
+            imghdr.set("FOO", 2, before="OBJECT")
+            imghdr.set("BAR", 3, after="OBJECT")
+            assert imghdr.index("FOO") == imghdr.index("OBJECT") - 1
+            assert imghdr.index("BAR") == imghdr.index("OBJECT") + 1
+            assert imghdr["FOO"] == 2
+            assert imghdr["BAR"] == 3
+
+            hdul.writeto(tmp_path / "updated2.fits")
+
+        with fits.open(
+            tmp_path / "updated2.fits", disable_image_compression=True
+        ) as hdulc:
+            tblhdr = hdulc[1].header
+
+            assert tblhdr.index("FOO") == tblhdr.index("OBJECT") - 1
+            assert tblhdr.index("BAR") == tblhdr.index("OBJECT") + 1
+            assert tblhdr["FOO"] == 2
+            assert tblhdr["BAR"] == 3
 
     def test_compression_header_append_commentary(self):
         """
@@ -642,17 +679,21 @@ class TestCompressedImage(FitsTestCase):
 
         arr = np.arange(100, dtype=np.int32)
         hdu = fits.CompImageHDU(data=arr)
+        hdu.writeto(self.temp("test1.fits"))
 
-        header = hdu._header
         # append the duplicate keyword
-        hdu._header.append(("ZTENSION", "IMAGE"))
-        hdu.writeto(self.temp("test.fits"))
+        with fits.open(
+            self.temp("test1.fits"), disable_image_compression=True
+        ) as hdulc:
+            hdulc[1].header.append(("ZTENSION", "IMAGE"))
+            header = hdulc[1].header
+            hdulc.writeto(self.temp("test2.fits"))
 
-        with fits.open(self.temp("test.fits")) as hdul:
-            assert header == hdul[1]._header
+        with fits.open(self.temp("test2.fits")) as hdul:
+            assert header == hdul[1]._bintable.header
             # There's no good reason to have a duplicate keyword, but
             # technically it isn't invalid either :/
-            assert hdul[1]._header.count("ZTENSION") == 2
+            assert hdul[1]._bintable.header.count("ZTENSION") == 2
 
     def test_scale_bzero_with_compressed_int_data(self):
         """
@@ -690,26 +731,11 @@ class TestCompressedImage(FitsTestCase):
             hdul[1].data[:] = 0
             assert np.allclose(hdul[1].data, 0)
 
-    def test_compressed_header_missing_znaxis(self):
-        a = np.arange(100, 200, dtype=np.uint16)
-        comp_hdu = fits.CompImageHDU(a)
-        comp_hdu._header.pop("ZNAXIS")
-        with pytest.raises(KeyError):
-            comp_hdu.compressed_data
-        comp_hdu = fits.CompImageHDU(a)
-        comp_hdu._header.pop("ZBITPIX")
-        with pytest.raises(KeyError):
-            comp_hdu.compressed_data
-
     def test_compressed_header_double_extname(self):
         """Test that a double EXTNAME with one default value does not
         mask the non-default value."""
         with fits.open(self.data("double_ext.fits")) as hdul:
             hdu = hdul[1]
-
-            # Raw header has 2 EXTNAME entries
-            indices = hdu._header._keyword_indices["EXTNAME"]
-            assert len(indices) == 2
 
             # The non-default name should be returned.
             assert hdu.name == "ccd00"
@@ -725,8 +751,6 @@ class TestCompressedImage(FitsTestCase):
             hdu.name = new_name
             assert hdu.name == new_name
             assert hdu.header["EXTNAME"] == new_name
-            assert hdu._header["EXTNAME"] == new_name
-            assert hdu._image_header["EXTNAME"] == new_name
 
             # Check that setting the header will change the name property.
             hdu.header["EXTNAME"] = "NEW2"
@@ -735,7 +759,7 @@ class TestCompressedImage(FitsTestCase):
             hdul.writeto(self.temp("tmp.fits"), overwrite=True)
             with fits.open(self.temp("tmp.fits")) as hdul1:
                 hdu1 = hdul1[1]
-                assert len(hdu1._header._keyword_indices["EXTNAME"]) == 1
+                assert len(hdu.header._keyword_indices["EXTNAME"]) == 1
                 assert hdu1.name == "NEW2"
 
             # Check that deleting EXTNAME will and setting the name will
@@ -927,6 +951,67 @@ class TestCompressedImage(FitsTestCase):
         with fits.open(tmp_path / "compressed.fits") as hdul:
             assert_equal(hdul[1].data, data)
 
+    def test_info(self):
+        """
+        Make sure .info() works correctly when CompImageHDUs are present
+        """
+        output = io.StringIO()
+        with fits.open(self.data("comp.fits")) as hdul:
+            hdul.info(output=output)
+        output.seek(0)
+
+        # Note: ignore the first line which just gives the filename
+        actual = output.read().splitlines()[1:]
+
+        expected = [
+            "No.    Name      Ver    Type      Cards   Dimensions   Format",
+            "0  PRIMARY       1 PrimaryHDU       4   ()",
+            "1  COMPRESSED_IMAGE    1 CompImageHDU    105   (440, 300)   int16",
+        ]
+
+        for line_actual, line_expected in zip(actual, expected, strict=True):
+            assert line_actual.strip() == line_expected.strip()
+
+    def test_shape(self):
+        with fits.open(self.data("comp.fits")) as hdul:
+            assert hdul[1].header["NAXIS1"] == 440
+            assert hdul[1].header["NAXIS2"] == 300
+            assert hdul[1].shape == (300, 440)
+            hdul[1].data = np.ones((120, 150))
+            assert hdul[1].header["NAXIS1"] == 150
+            assert hdul[1].header["NAXIS2"] == 120
+            assert hdul[1].shape == (120, 150)
+
+    def test_inplace_data_modify(self, tmp_path):
+        self.copy_file("comp.fits")
+
+        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+            data = hdul[1].data
+            data[0] = 0
+
+        with fits.open(self.temp("comp.fits")) as hdul:
+            assert hdul[1].data[0, 0] == 0
+
+    def test_summary_noload(self):
+        # Make sure that calling info() (and therefore CompImageHDU.summary)
+        # does not cause the data to be loaded.
+        with fits.open(self.data("comp.fits")) as hdul:
+            summary = hdul.info(output=False)
+            assert summary == [
+                (0, "PRIMARY", 1, "PrimaryHDU", 4, (), "", ""),
+                (
+                    1,
+                    "COMPRESSED_IMAGE",
+                    1,
+                    "CompImageHDU",
+                    105,
+                    (440, 300),
+                    "int16",
+                    "",
+                ),
+            ]
+            assert not hdul[1]._data_loaded
+
 
 class TestCompHDUSections:
     @pytest.fixture(autouse=True)
@@ -949,6 +1034,7 @@ class TestCompHDUSections:
         hdulist.writeto(tmp_path / "sections.fits")
 
         self.hdul = fits.open(tmp_path / "sections.fits")
+        self.hdul2 = fits.open(tmp_path / "sections.fits")
 
     def teardown_method(self):
         self.hdul.close()
@@ -963,6 +1049,10 @@ class TestCompHDUSections:
     def test_section_slicing_scaling(self, index):
         assert_equal(self.hdul[2].section[index], self.hdul[2].data[index])
         assert_equal(self.hdul[2].section[index], self.data[index] * 2 + 100)
+
+    def test_section_properties(self):
+        assert self.hdul[1].section.dtype is np.dtype("int32")
+        assert self.hdul[1].section.ndim == 3
 
 
 def test_comphdu_fileobj():
@@ -1033,3 +1123,229 @@ def test_image_write_readonly(tmp_path):
 
     with fits.open(filename) as hdulist:
         assert_equal(hdulist[1].data, [1.0, 2.0, 3.0])
+
+
+def test_uint_option(tmp_path):
+    """
+    Check that the uint= option works correctly
+    """
+
+    filename = tmp_path / "uint_test.fits"
+
+    data = (2 ** (1 + np.arange(16).reshape((4, 4))) - 1).astype(np.uint16)
+
+    hdu = fits.CompImageHDU(data)
+    hdu.writeto(filename)
+
+    with fits.open(filename) as hdulist:
+        assert hdulist[1].data.dtype == np.dtype("uint16")
+        assert_equal(hdulist[1].data, data)
+
+    with fits.open(filename, uint=False) as hdulist:
+        assert hdulist[1].data.dtype == np.dtype("float32")
+        assert_allclose(hdulist[1].data, data)
+
+
+@pytest.mark.xfail
+def test_incorrect_bzero(tmp_path):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/5999 which is
+    a bug that caused BZERO to be incorrectly set to a value in a compressed
+    FITS HDU if a header was passed in with a value even though the data was
+    specified as a floating-point value.
+    """
+
+    data = np.arange(0, 100, dtype=np.uint16)
+    hdu = fits.ImageHDU(data=data)
+    data = hdu.data.astype(np.float64)
+    header = hdu.header
+
+    hdulist = fits.HDUList(
+        [
+            fits.PrimaryHDU(),
+            fits.ImageHDU(data=data, header=header),
+            fits.CompImageHDU(data=data, header=header),
+        ]
+    )
+
+    hdulist.writeto(tmp_path / "test_bzero.fits")
+
+    for hdu in hdulist:
+        assert hdu.header.get("BZERO") is None
+        assert hdu.header.get("BSCALE") is None
+
+    with fits.open(tmp_path / "test_bzero.fits") as hdulist_read:
+        for hdu in hdulist_read:
+            assert hdu.header.get("BZERO") is None
+            assert hdu.header.get("BSCALE") is None
+
+
+def test_custom_extname():
+    """
+    Regression test for a bug that caused specifying a custom name for a
+    CompImageHDU to not work if an existing image header was used.
+    """
+    data = np.arange(0, 100, dtype=np.uint16)
+    hdu = fits.ImageHDU(data=data)
+    header = hdu.header
+    fits.CompImageHDU(header=header, name="compressed")
+
+
+def test_pickle():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/10512 which
+    was a bug that caused CompImageHDU to not be picklable.
+    """
+    data = np.array([1, 2, 3])
+    hdu = fits.CompImageHDU(data)
+    a = pickle.loads(pickle.dumps(hdu))
+    assert_equal(hdu.data, data)
+
+
+def test_compression_settings_delayed_data(tmp_path):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/12216 which
+    was a bug that caused compression settings to be ignored if the data was
+    only set later.
+    """
+
+    hdu1 = fits.CompImageHDU(quantize_level=-32)
+    hdu2 = fits.CompImageHDU(quantize_level=-32, data=np.array([0.0]))
+
+    with NumpyRNGContext(42):
+        data = np.random.random((16, 16))
+
+    hdu1.data = data
+    hdu2.data = data
+
+    hdu1.writeto(tmp_path / "data1.fits")
+    hdu2.writeto(tmp_path / "data2.fits")
+
+    with fits.open(tmp_path / "data1.fits") as hdulist1_read:
+        with fits.open(tmp_path / "data2.fits") as hdulist2_read:
+            assert_equal(hdulist1_read[1].data, hdulist2_read[1].data)
+
+
+def test_header_assignment_issue(tmp_path):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/14081 which
+    was a bug that caused entries in header to not be preserved under certain
+    conditions if copied from another header.
+    """
+
+    ih = fits.ImageHDU()
+    ih.header["test"] = "right"
+
+    ch = fits.CompImageHDU()
+    ch.header["test"] = "wrong"
+    ch.header = ih.header
+    assert ch.header["test"] == "right"
+
+    ch.writeto(tmp_path / "test_header.fits")
+    with fits.open(tmp_path / "test_header.fits") as chdl:
+        assert chdl[1].header["test"] == "right"
+
+
+def test_section_unwritten():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/14611 which
+    was a bug that caused CompImageHDU.section to not work correctly if the
+    file was not written out to disk first.
+    """
+
+    data = np.arange(21 * 33).reshape((21, 33)).astype(np.int32)
+    header = fits.Header()
+    hdu = fits.CompImageHDU(data, header, compression_type="RICE_1", tile_shape=(5, 6))
+    assert_equal(hdu.section[...], data)
+    assert hdu.section[3, 4] == data[3, 4]
+
+
+EXPECTED_HEADER = """
+XTENSION= 'IMAGE   '           / Image extension
+BITPIX  =                   16 / data type of original image
+NAXIS   =                    2 / dimension of original image
+NAXIS1  =                   10 / length of original image axis
+NAXIS2  =                   10 / length of original image axis
+PCOUNT  =                    0 / number of parameters
+GCOUNT  =                    1 / number of groups
+END
+""".lstrip()
+
+
+def test_header():
+    """
+    Check that the header is correct when reading in compressed images and
+    correctly shows the image dimensions.
+    """
+
+    filename = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "..",
+        "tests",
+        "data",
+        "compressed_image.fits",
+    )
+
+    with fits.open(filename) as hdulist:
+        assert hdulist[1].header == fits.Header.fromstring(EXPECTED_HEADER, sep="\n")
+
+
+def test_rice_one_alias():
+    # Regression test for a bug that caused RICE_ONE (which we document as an
+    # acceptable alias) to no longer be recognized.
+    chdu = fits.CompImageHDU(np.zeros((3, 4, 5)))
+    chdu.compression_type = "RICE_ONE"
+
+
+def test_header_order(tmp_path):
+    # Make sure that comments and history entries appear in the same order and
+    # same location after compression and decompression.
+
+    data = np.random.random((128, 128))
+    header = fits.Header()
+
+    header["a"] = 1
+    header["b"] = 2
+    header["c"] = 3
+    header["d"] = 4
+
+    header.add_history("history one", before="a")
+    header.add_comment("comment one", before="a")
+    header.add_comment("comment two", after="a")
+    header.add_comment("comment three", before="b")
+    header.add_history("history two", before="b")
+    header.add_comment("comment four", after="b")
+    header.add_comment("comment five", after="d")
+    header.add_history("history three")
+    header.add_blank()
+    header.add_blank()
+    header.add_blank()
+
+    hdulist = fits.HDUList([fits.PrimaryHDU(), fits.CompImageHDU(data, header)])
+
+    hdulist.writeto(tmp_path / "test.fits", overwrite=True)
+
+    with fits.open(tmp_path / "test.fits") as hdulist2:
+        assert hdulist[1].header.tostring("\n") == hdulist2[1].header.tostring("\n")
+
+
+def test_hdu_lazy_loading(tmp_path):
+    # Lazy loading of HDUs relies on parameters such as _data_offset and so on,
+    # so we need to make sure these correctly point to the internal BinTableHDU.
+
+    hdulist = fits.HDUList([fits.PrimaryHDU()])
+
+    for idx in range(6):
+        data = np.ones((2**idx, 2**idx)) * idx
+        hdulist.append(fits.CompImageHDU(data))
+
+    hdulist.writeto(tmp_path / "multi_hdu.fits")
+
+    with open(tmp_path / "multi_hdu.fits", "rb") as fileobj:
+        with fits.open(fileobj) as hdulist:
+            for idx in range(6):
+                assert_equal(hdulist[idx + 1].data, idx)
+                assert hdulist[idx + 1].data.shape == (2**idx, 2**idx)
+                fileobj.seek(0)

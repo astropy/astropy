@@ -474,16 +474,6 @@ and "Registered FITS Convention, Tiled Image Compression Convention":
 
     https://fits.gsfc.nasa.gov/registry/tilecompression.html
 
-Compressed image data is accessed, in ``astropy``, using the optional
-``astropy.io.fits.compression`` module contained in a C shared library
-(compression.so). If an attempt is made to access an HDU containing compressed
-image data when the compression module is not available, the user is notified
-of the problem and the HDU is treated like a standard binary table HDU. This
-notification will only be made the first time compressed image data is
-encountered. In this way, the compression module is not required in order for
-``astropy`` to work.
-
-
 Header and Summary
 ------------------
 
@@ -492,7 +482,7 @@ any image header. The actual header stored in the FITS file is that of a binary
 table HDU with a set of special keywords, defined by the convention, to
 describe the structure of the compressed image. The conversion between binary
 table HDU header and image HDU header is all performed behind the scenes.
-Since the HDU is actually a binary table, it may not appear as a primary HDU in
+Since the HDU is actually a binary table, it will never appear as a primary HDU in
 a FITS file.
 
 Example
@@ -502,7 +492,7 @@ Example
   EXAMPLE START
   Accessing Compressed FITS Image HDU Headers
 
-The content of the HDU header may be accessed using the ``.header`` attribute::
+The content of the decompressed HDU header may be accessed using the ``.header`` attribute::
 
     >>> filename = fits.util.get_testdata_filepath('compressed_image.fits')
 
@@ -515,38 +505,6 @@ The content of the HDU header may be accessed using the ``.header`` attribute::
     NAXIS2  =                   10 / length of original image axis
     PCOUNT  =                    0 / number of parameters
     GCOUNT  =                    1 / number of groups
-
-The contents of the corresponding binary table HDU may be accessed using the
-hidden ``._header`` attribute. However, all user interface with the HDU header
-should be accomplished through the image header (the ``.header`` attribute)::
-
-    >>> hdul[1]._header
-    XTENSION= 'BINTABLE'           / binary table extension
-    BITPIX  =                    8 / array data type
-    NAXIS   =                    2 / number of array dimensions
-    NAXIS1  =                    8 / width of table in bytes
-    NAXIS2  =                   10 / number of rows in table
-    PCOUNT  =                   60 / number of group parameters
-    GCOUNT  =                    1 / number of groups
-    TFIELDS =                    1 / number of fields in each row
-    TTYPE1  = 'COMPRESSED_DATA'    / label for field 1
-    TFORM1  = '1PB(6)  '           / data format of field: variable length array
-    ZIMAGE  =                    T / extension contains compressed image
-    ZTENSION= 'IMAGE   '           / Image extension
-    ZBITPIX =                   16 / data type of original image
-    ZNAXIS  =                    2 / dimension of original image
-    ZNAXIS1 =                   10 / length of original image axis
-    ZNAXIS2 =                   10 / length of original image axis
-    ZPCOUNT =                    0 / number of parameters
-    ZGCOUNT =                    1 / number of groups
-    ZTILE1  =                   10 / size of tiles to be compressed
-    ZTILE2  =                    1 / size of tiles to be compressed
-    ZCMPTYPE= 'RICE_1  '           / compression algorithm
-    ZNAME1  = 'BLOCKSIZE'          / compression block size
-    ZVAL1   =                   32 / pixels per block
-    ZNAME2  = 'BYTEPIX '           / bytes per pixel (1, 2, 4, or 8)
-    ZVAL2   =                    2 / bytes per pixel (1, 2, 4, or 8)
-    EXTNAME = 'COMPRESSED_IMAGE'   / name of this binary table extension
 
 The contents of the HDU can be summarized by using either the :func:`info`
 convenience function or method::
@@ -571,15 +529,15 @@ Data
 
 As with the header, the data of a compressed image HDU appears to the user as
 standard uncompressed image data. The actual data is stored in the FITS file
-as Binary Table data containing at least one column (COMPRESSED_DATA). Each
+as binary table data containing at least one column (COMPRESSED_DATA). Each
 row of this variable length column contains the byte stream that was generated
 as a result of compressing the corresponding image tile. Several optional
-columns may also appear. These include UNCOMPRESSED_DATA to hold the
-uncompressed pixel values for tiles that cannot be compressed, ZSCALE and ZZERO
-to hold the linear scale factor and zero point offset which may be needed to
-transform the raw uncompressed values back to the original image pixel values,
-and ZBLANK to hold the integer value used to represent undefined pixels (if
-any) in the image.
+columns may also appear. These include GZIP_COMPRESSED_DATA to hold the
+gzip-compressed data for tiles that cannot be compressed by the selected
+algorithm, as well as ZSCALE and ZZERO to hold the linear scale factor and zero
+point offset which may be needed to transform the raw uncompressed values back
+to the original image pixel values, and ZBLANK to hold the integer value used to
+represent undefined pixels (if any) in the image.
 
 Example
 ^^^^^^^
