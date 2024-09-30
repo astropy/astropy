@@ -185,10 +185,11 @@ def test_decompress(
 ):
     compression_type, param, dtype = comp_param_dtype
 
+    with fits.open(fitsio_compressed_file_path, disable_image_compression=True) as hdul:
+        assert hdul[1].header["ZCMPTYPE"].replace("ONE", "1") == compression_type
+
     with fits.open(fitsio_compressed_file_path) as hdul:
         data = hdul[1].data
-
-        assert hdul[1]._header["ZCMPTYPE"].replace("ONE", "1") == compression_type
         assert hdul[1].data.dtype.kind == np.dtype(dtype).kind
         assert hdul[1].data.dtype.itemsize == np.dtype(dtype).itemsize
 

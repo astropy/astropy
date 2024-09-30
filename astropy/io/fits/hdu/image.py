@@ -319,6 +319,10 @@ class _ImageBaseHDU(_ValidHDU):
         # setting self.__dict__['data']
         return data
 
+    @property
+    def _data_shape(self):
+        return self.data.shape
+
     def update_header(self):
         """
         Update the header keywords to agree with the data.
@@ -326,7 +330,7 @@ class _ImageBaseHDU(_ValidHDU):
         if not (
             self._modified
             or self._header._modified
-            or (self._has_data and self.shape != self.data.shape)
+            or (self._has_data and self.shape != self._data_shape)
         ):
             # Not likely that anything needs updating
             return
@@ -345,8 +349,8 @@ class _ImageBaseHDU(_ValidHDU):
         # If the data's shape has changed (this may have happened without our
         # noticing either via a direct update to the data.shape attribute) we
         # need to update the internal self._axes
-        if self._has_data and self.shape != self.data.shape:
-            self._axes = list(self.data.shape)
+        if self._has_data and self.shape != self._data_shape:
+            self._axes = list(self._data_shape)
             self._axes.reverse()
 
         # Update the NAXIS keyword and ensure it's in the correct location in
@@ -808,6 +812,9 @@ class _ImageBaseHDU(_ValidHDU):
         raw_data = self._get_raw_data(shape, code, offset)
         raw_data.dtype = raw_data.dtype.newbyteorder(">")
 
+        return self._scale_data(raw_data)
+
+    def _scale_data(self, raw_data):
         if self._do_not_scale_image_data or (
             self._orig_bzero == 0 and self._orig_bscale == 1 and self._blank is None
         ):

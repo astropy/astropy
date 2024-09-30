@@ -1,13 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import itertools
 import re
 import warnings
-from contextlib import suppress
 
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE, ColDefs, Column
+from astropy.io.fits.hdu.compressed.compbintable import _CompBinTableHDU
 from astropy.io.fits.header import Header
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -18,9 +17,6 @@ from .settings import (
     DEFAULT_BYTE_PIX,
     DEFAULT_COMPRESSION_TYPE,
     DEFAULT_DITHER_SEED,
-    DEFAULT_HCOMP_SCALE,
-    DEFAULT_HCOMP_SMOOTH,
-    DEFAULT_QUANTIZE_LEVEL,
     DEFAULT_QUANTIZE_METHOD,
     NO_DITHER,
     QUANTIZE_METHOD_NAMES,
@@ -32,7 +28,7 @@ from .utils import _validate_tile_shape
 __all__ = [
     "CompImageHeader",
     "_bintable_header_to_image_header",
-    "_image_header_to_bintable_header_and_coldefs",
+    "_image_header_to_empty_bintable",
 ]
 
 
@@ -48,9 +44,6 @@ class CompImageHeader(Header):
     Note that if no image header is passed in, the code will instantiate a
     regular `~astropy.io.fits.Header`.
     """
-
-    # TODO: The difficulty of implementing this screams a need to rewrite this
-    # module
 
     _keyword_remaps = {
         "SIMPLE": "ZSIMPLE",
@@ -70,31 +63,6 @@ class CompImageHeader(Header):
         ["ZIMAGE", "ZCMPTYPE", "ZMASKCMP", "ZQUANTIZ", "ZDITHER0"]
     )
     _indexed_compression_keywords = {"ZNAXIS", "ZTILE", "ZNAME", "ZVAL"}
-    # TODO: Once it place it should be possible to manage some of this through
-    # the schema system, but it's not quite ready for that yet.  Also it still
-    # makes more sense to change CompImageHDU to subclass ImageHDU :/
-
-    def __new__(cls, table_header, image_header=None):
-        # 2019-09-14 (MHvK): No point wrapping anything if no image_header is
-        # given.  This happens if __getitem__ and copy are called - our super
-        # class will aim to initialize a new, possibly partially filled
-        # header, but we cannot usefully deal with that.
-        # TODO: the above suggests strongly we should *not* subclass from
-        # Header.  See also comment above about the need for reorganization.
-        if image_header is None:
-            return Header(table_header)
-        else:
-            return super().__new__(cls)
-
-    def __init__(self, table_header, image_header):
-        self._cards = image_header._cards
-        self._keyword_indices = image_header._keyword_indices
-        self._rvkc_indices = image_header._rvkc_indices
-        self._modified = image_header._modified
-        self._table_header = table_header
-
-    # We need to override and Header methods that can modify the header, and
-    # ensure that they sync with the underlying _table_header
 
     def __setitem__(self, key, value):
         # This isn't pretty, but if the `key` is either an int or a tuple we
@@ -119,38 +87,6 @@ class CompImageHeader(Header):
 
         super().__setitem__(key, value)
 
-        if index is not None:
-            remapped_keyword = self._remap_keyword(keyword)
-            self._table_header[remapped_keyword, index] = value
-        # Else this will pass through to ._update
-
-    def __delitem__(self, key):
-        if isinstance(key, slice) or self._haswildcard(key):
-            # If given a slice pass that on to the superclass and bail out
-            # early; we only want to make updates to _table_header when given
-            # a key specifying a single keyword
-            return super().__delitem__(key)
-
-        if isinstance(key, int):
-            keyword, index = self._keyword_from_index(key)
-        elif isinstance(key, tuple):
-            keyword, index = key
-        else:
-            keyword, index = key, None
-
-        if key not in self:
-            raise KeyError(f"Keyword {key!r} not found.")
-
-        super().__delitem__(key)
-
-        remapped_keyword = self._remap_keyword(keyword)
-
-        if remapped_keyword in self._table_header:
-            if index is not None:
-                del self._table_header[(remapped_keyword, index)]
-            else:
-                del self._table_header[remapped_keyword]
-
     def append(self, card=None, useblanks=True, bottom=False, end=False):
         # This logic unfortunately needs to be duplicated from the base class
         # in order to determine the keyword
@@ -170,24 +106,6 @@ class CompImageHeader(Header):
             return
 
         super().append(card=card, useblanks=useblanks, bottom=bottom, end=end)
-
-        remapped_keyword = self._remap_keyword(card.keyword)
-
-        # card.keyword strips the HIERARCH if present so this must be added
-        # back to avoid a warning.
-        if str(card).startswith("HIERARCH ") and not remapped_keyword.startswith(
-            "HIERARCH "
-        ):
-            remapped_keyword = "HIERARCH " + remapped_keyword
-
-        card = Card(remapped_keyword, card.value, card.comment)
-
-        # Here we disable the use of blank cards, because the call above to
-        # Header.append may have already deleted a blank card in the table
-        # header, thanks to inheritance: Header.append calls 'del self[-1]'
-        # to delete a blank card, which calls CompImageHeader.__deltitem__,
-        # which deletes the blank card both in the image and the table headers!
-        self._table_header.append(card=card, useblanks=False, bottom=bottom, end=end)
 
     def insert(self, key, card, useblanks=True, after=False):
         if isinstance(key, int):
@@ -215,26 +133,7 @@ class CompImageHeader(Header):
         if self._is_reserved_keyword(card.keyword):
             return
 
-        # Now the tricky part is to determine where to insert in the table
-        # header.  If given a numerical index we need to map that to the
-        # corresponding index in the table header.  Although rare, there may be
-        # cases where there is no mapping in which case we just try the same
-        # index
-        # NOTE: It is crucial that remapped_index in particular is figured out
-        # before the image header is modified
-        remapped_index = self._remap_index(key)
-        remapped_keyword = self._remap_keyword(card.keyword)
-
         super().insert(key, card, useblanks=useblanks, after=after)
-
-        card = Card(remapped_keyword, card.value, card.comment)
-
-        # Here we disable the use of blank cards, because the call above to
-        # Header.insert may have already deleted a blank card in the table
-        # header, thanks to inheritance: Header.insert calls 'del self[-1]'
-        # to delete a blank card, which calls CompImageHeader.__delitem__,
-        # which deletes the blank card both in the image and the table headers!
-        self._table_header.insert(remapped_index, card, useblanks=False, after=after)
 
     def _update(self, card):
         keyword = card[0]
@@ -243,44 +142,6 @@ class CompImageHeader(Header):
             return
 
         super()._update(card)
-
-        if keyword in Card._commentary_keywords:
-            # Otherwise this will result in a duplicate insertion
-            return
-
-        remapped_keyword = self._remap_keyword(keyword)
-        self._table_header._update((remapped_keyword,) + card[1:])
-
-    # Last piece needed (I think) for synchronizing with the real header
-    # This one is tricky since _relativeinsert calls insert
-    def _relativeinsert(self, card, before=None, after=None, replace=False):
-        keyword = card[0]
-
-        if self._is_reserved_keyword(keyword):
-            return
-
-        # Now we have to figure out how to remap 'before' and 'after'
-        if before is None:
-            if isinstance(after, int):
-                remapped_after = self._remap_index(after)
-            else:
-                remapped_after = self._remap_keyword(after)
-            remapped_before = None
-        else:
-            if isinstance(before, int):
-                remapped_before = self._remap_index(before)
-            else:
-                remapped_before = self._remap_keyword(before)
-            remapped_after = None
-
-        super()._relativeinsert(card, before=before, after=after, replace=replace)
-
-        remapped_keyword = self._remap_keyword(keyword)
-
-        card = Card(remapped_keyword, card[1], card[2])
-        self._table_header._relativeinsert(
-            card, before=remapped_before, after=remapped_after, replace=replace
-        )
 
     @classmethod
     def _is_reserved_keyword(cls, keyword, warn=True):
@@ -318,55 +179,16 @@ class CompImageHeader(Header):
 
         return False
 
-    @classmethod
-    def _remap_keyword(cls, keyword):
-        # Given a keyword that one might set on an image, remap that keyword to
-        # the name used for it in the COMPRESSED HDU header
-        # This is mostly just a lookup in _keyword_remaps, but needs handling
-        # for NAXISn keywords
-
-        is_naxisn = False
-        if keyword[:5] == "NAXIS":
-            with suppress(ValueError):
-                index = int(keyword[5:])
-                is_naxisn = index > 0
-
-        if is_naxisn:
-            return f"ZNAXIS{index}"
-
-        # If the keyword does not need to be remapped then just return the
-        # original keyword
-        return cls._keyword_remaps.get(keyword, keyword)
-
-    def _remap_index(self, idx):
-        # Given an integer index into this header, map that to the index in the
-        # table header for the same card.  If the card doesn't exist in the
-        # table header (generally should *not* be the case) this will just
-        # return the same index
-        # This *does* also accept a keyword or (keyword, repeat) tuple and
-        # obtains the associated numerical index with self._cardindex
-        if not isinstance(idx, int):
-            idx = self._cardindex(idx)
-
-        keyword, repeat = self._keyword_from_index(idx)
-        remapped_insert_keyword = self._remap_keyword(keyword)
-
-        with suppress(IndexError, KeyError):
-            idx = self._table_header._cardindex((remapped_insert_keyword, repeat))
-
-        return idx
-
-    def clear(self):
-        """
-        Remove all cards from the header.
-        """
-        self._table_header.clear()
-        super().clear()
-
 
 def _bintable_header_to_image_header(bintable_header):
     # Start with a copy of the table header.
     image_header = bintable_header.copy()
+
+    bscale = image_header.get("BSCALE")
+    bzero = image_header.get("BZERO")
+
+    # Strip out special keywords
+    image_header.strip()
 
     # Delete cards that are related to the table.  And move
     # the values of those cards that relate to the image from
@@ -376,8 +198,16 @@ def _bintable_header_to_image_header(bintable_header):
     # keywords, which there may be in some pathological cases:
     # https://github.com/astropy/astropy/issues/2750
     for keyword in set(image_header):
-        if CompImageHeader._is_reserved_keyword(keyword, warn=False):
+        if CompImageHeader._is_reserved_keyword(keyword, warn=False) or keyword in (
+            "CHECKSUM",
+            "DATASUM",
+        ):
             del image_header[keyword]
+
+    if bscale:
+        image_header["BSCALE"] = bscale
+    if bzero:
+        image_header["BZERO"] = bzero
 
     hcomments = bintable_header.comments
 
@@ -385,7 +215,6 @@ def _bintable_header_to_image_header(bintable_header):
         image_header.set(
             "SIMPLE", bintable_header["ZSIMPLE"], hcomments["ZSIMPLE"], before=0
         )
-        del image_header["XTENSION"]
     elif "ZTENSION" in bintable_header:
         if bintable_header["ZTENSION"] != "IMAGE":
             warnings.warn(
@@ -478,13 +307,11 @@ def _bintable_header_to_image_header(bintable_header):
         image_header.append()
 
     # Create the CompImageHeader that syncs with the table header
-    return CompImageHeader(bintable_header, image_header)
+    return CompImageHeader(image_header)
 
 
-def _image_header_to_bintable_header_and_coldefs(
+def _image_header_to_empty_bintable(
     image_header,
-    generated_image_header,
-    bintable_header,
     name=None,
     huge_hdu=False,
     compression_type=None,
@@ -497,21 +324,19 @@ def _image_header_to_bintable_header_and_coldefs(
     axes=None,
     generate_dither_seed=None,
 ):
+    bintable = _CompBinTableHDU()
+
     # NOTE: image_header is the header that a user would see as the image
     # header which they might have set things like BSCALE and BZERO on, or
-    # added history or comments to. Whereas generated_image_header is the
-    # image header as converted/generated from the existing binary table HDU.
+    # added history or comments to.
 
     # Update the extension name in the table header
-    if not name and "EXTNAME" not in bintable_header:
-        # Do not sync this with the image header since the default
-        # name is specific to the table header.
-        bintable_header.set(
-            "EXTNAME",
-            "COMPRESSED_IMAGE",
-            "name of this binary table extension",
-            after="TFIELDS",
-        )
+    bintable.header.set(
+        "EXTNAME",
+        name,
+        "name of this binary table extension",
+        after="TFIELDS",
+    )
 
     # Set the compression type in the table header.
     if compression_type:
@@ -526,7 +351,7 @@ def _image_header_to_bintable_header_and_coldefs(
             )
             compression_type = DEFAULT_COMPRESSION_TYPE
 
-        bintable_header.set(
+        bintable.header.set(
             "ZCMPTYPE", compression_type, "compression algorithm", after="TFIELDS"
         )
     else:
@@ -535,17 +360,16 @@ def _image_header_to_bintable_header_and_coldefs(
     # If the input image header had BSCALE/BZERO cards, then insert
     # them in the table header.
 
-    if image_header:
-        bzero = image_header.get("BZERO", 0.0)
-        bscale = image_header.get("BSCALE", 1.0)
-        after_keyword = "EXTNAME"
+    bzero = image_header.get("BZERO", 0.0)
+    bscale = image_header.get("BSCALE", 1.0)
+    after_keyword = "EXTNAME"
 
-        if bscale != 1.0:
-            bintable_header.set("BSCALE", bscale, after=after_keyword)
-            after_keyword = "BSCALE"
+    if bscale != 1.0:
+        bintable.header.set("BSCALE", bscale, after=after_keyword)
+        after_keyword = "BSCALE"
 
-        if bzero != 0.0:
-            bintable_header.set("BZERO", bzero, after=after_keyword)
+    if bzero != 0.0:
+        bintable.header.set("BZERO", bzero, after=after_keyword)
 
     try:
         bitpix_comment = image_header.comments["BITPIX"]
@@ -559,7 +383,7 @@ def _image_header_to_bintable_header_and_coldefs(
 
     # Set the label for the first column in the table
 
-    bintable_header.set(
+    bintable.header.set(
         "TTYPE1", "COMPRESSED_DATA", "label for field 1", after="TFIELDS"
     )
 
@@ -571,7 +395,7 @@ def _image_header_to_bintable_header_and_coldefs(
     else:
         tform1 = "1QB" if huge_hdu else "1PB"
 
-    bintable_header.set(
+    bintable.header.set(
         "TFORM1",
         tform1,
         "data format of field: variable length array",
@@ -580,26 +404,21 @@ def _image_header_to_bintable_header_and_coldefs(
 
     # Create the first column for the table.  This column holds the
     # compressed data.
-    col1 = Column(name=bintable_header["TTYPE1"], format=tform1)
+    col1 = Column(name=bintable.header["TTYPE1"], format=tform1)
 
     # Create the additional columns required for floating point
     # data and calculate the width of the output table.
 
-    zbitpix = generated_image_header["BITPIX"]
+    zbitpix = image_header["BITPIX"]
 
     if zbitpix < 0 and quantize_level != 0.0:
         # floating point image has 'COMPRESSED_DATA',
-        # 'UNCOMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns (unless using
+        # 'GZIP_COMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns (unless using
         # lossless compression, per CFITSIO)
         ncols = 4
 
-        # CFITSIO 3.28 and up automatically use the GZIP_COMPRESSED_DATA
-        # store floating point data that couldn't be quantized, instead
-        # of the UNCOMPRESSED_DATA column.  There's no way to control
-        # this behavior so the only way to determine which behavior will
-        # be employed is via the CFITSIO version
-
         ttype2 = "GZIP_COMPRESSED_DATA"
+
         # The required format for the GZIP_COMPRESSED_DATA is actually
         # missing from the standard docs, but CFITSIO suggests it
         # should be 1PB, which is logical.
@@ -607,9 +426,9 @@ def _image_header_to_bintable_header_and_coldefs(
 
         # Set up the second column for the table that will hold any
         # uncompressable data.
-        bintable_header.set("TTYPE2", ttype2, "label for field 2", after="TFORM1")
+        bintable.header.set("TTYPE2", ttype2, "label for field 2", after="TFORM1")
 
-        bintable_header.set(
+        bintable.header.set(
             "TFORM2",
             tform2,
             "data format of field: variable length array",
@@ -620,20 +439,20 @@ def _image_header_to_bintable_header_and_coldefs(
 
         # Set up the third column for the table that will hold
         # the scale values for quantized data.
-        bintable_header.set("TTYPE3", "ZSCALE", "label for field 3", after="TFORM2")
-        bintable_header.set(
+        bintable.header.set("TTYPE3", "ZSCALE", "label for field 3", after="TFORM2")
+        bintable.header.set(
             "TFORM3", "1D", "data format of field: 8-byte DOUBLE", after="TTYPE3"
         )
-        col3 = Column(name=bintable_header["TTYPE3"], format=bintable_header["TFORM3"])
+        col3 = Column(name=bintable.header["TTYPE3"], format=bintable.header["TFORM3"])
 
         # Set up the fourth column for the table that will hold
         # the zero values for the quantized data.
-        bintable_header.set("TTYPE4", "ZZERO", "label for field 4", after="TFORM3")
-        bintable_header.set(
+        bintable.header.set("TTYPE4", "ZZERO", "label for field 4", after="TFORM3")
+        bintable.header.set(
             "TFORM4", "1D", "data format of field: 8-byte DOUBLE", after="TTYPE4"
         )
         after = "TFORM4"
-        col4 = Column(name=bintable_header["TTYPE4"], format=bintable_header["TFORM4"])
+        col4 = Column(name=bintable.header["TTYPE4"], format=bintable.header["TFORM4"])
 
         # Create the ColDefs object for the table
         cols = ColDefs([col1, col2, col3, col4])
@@ -642,16 +461,6 @@ def _image_header_to_bintable_header_and_coldefs(
         ncols = 1
         after = "TFORM1"
 
-        # remove any header cards for the additional columns that
-        # may be left over from the previous data
-        to_remove = ["TTYPE2", "TFORM2", "TTYPE3", "TFORM3", "TTYPE4", "TFORM4"]
-
-        for k in to_remove:
-            try:
-                del bintable_header[k]
-            except KeyError:
-                pass
-
         # Create the ColDefs object for the table
         cols = ColDefs([col1])
 
@@ -659,27 +468,15 @@ def _image_header_to_bintable_header_and_coldefs(
     # number of fields in the table, the indicator for a compressed
     # image HDU, the data type of the image data and the number of
     # dimensions in the image data array.
-    bintable_header.set("NAXIS1", cols.dtype.itemsize, "width of table in bytes")
-    bintable_header.set(
+    bintable.header.set("NAXIS1", cols.dtype.itemsize, "width of table in bytes")
+    bintable.header.set(
         "TFIELDS", ncols, "number of fields in each row", after="GCOUNT"
     )
-    bintable_header.set(
+    bintable.header.set(
         "ZIMAGE", True, "extension contains compressed image", after=after
     )
-    bintable_header.set("ZBITPIX", zbitpix, bitpix_comment, after="ZIMAGE")
-    bintable_header.set(
-        "ZNAXIS", generated_image_header["NAXIS"], naxis_comment, after="ZBITPIX"
-    )
-
-    # Strip the table header of all the ZNAZISn and ZTILEn keywords
-    # that may be left over from the previous data
-
-    for idx in itertools.count(1):
-        try:
-            del bintable_header["ZNAXIS" + str(idx)]
-            del bintable_header["ZTILE" + str(idx)]
-        except KeyError:
-            break
+    bintable.header.set("ZBITPIX", zbitpix, bitpix_comment, after="ZIMAGE")
+    bintable.header.set("ZNAXIS", image_header["NAXIS"], naxis_comment, after="ZBITPIX")
 
     # Verify that any input tile size parameter is the appropriate
     # size to match the HDU's data.
@@ -687,13 +484,13 @@ def _image_header_to_bintable_header_and_coldefs(
     tile_shape = _validate_tile_shape(
         tile_shape=tile_shape,
         compression_type=compression_type,
-        image_header=generated_image_header,
+        image_header=image_header,
     )
 
     # Set up locations for writing the next cards in the header.
     last_znaxis = "ZNAXIS"
 
-    if generated_image_header["NAXIS"] > 0:
+    if image_header["NAXIS"] > 0:
         after1 = "ZNAXIS1"
     else:
         after1 = "ZNAXIS"
@@ -714,117 +511,76 @@ def _image_header_to_bintable_header_and_coldefs(
         else:
             nrows *= (axis - 1) // ts + 1
 
-        if image_header and naxis in image_header:
-            bintable_header.set(
+        if naxis in image_header:
+            bintable.header.set(
                 znaxis, axis, image_header.comments[naxis], after=last_znaxis
             )
         else:
-            bintable_header.set(
+            bintable.header.set(
                 znaxis, axis, "length of original image axis", after=last_znaxis
             )
 
-        bintable_header.set(ztile, ts, "size of tiles to be compressed", after=after1)
+        bintable.header.set(ztile, ts, "size of tiles to be compressed", after=after1)
         last_znaxis = znaxis
         after1 = ztile
 
     # Set the NAXIS2 header card in the table hdu to the number of
     # rows in the table.
-    bintable_header.set("NAXIS2", nrows, "number of rows in table")
+    bintable.header.set("NAXIS2", nrows, "number of rows in table")
 
-    # Set the compression parameters in the table header.
-
-    # First, setup the values to be used for the compression parameters
-    # in case none were passed in.  This will be either the value
-    # already in the table header for that parameter or the default
-    # value.
-    for idx in itertools.count(1):
-        zname = "ZNAME" + str(idx)
-        if zname not in bintable_header:
-            break
-        zval = "ZVAL" + str(idx)
-        if bintable_header[zname] == "NOISEBIT":
-            if quantize_level is None:
-                quantize_level = bintable_header[zval]
-        if bintable_header[zname] == "SCALE   ":
-            if hcomp_scale is None:
-                hcomp_scale = bintable_header[zval]
-        if bintable_header[zname] == "SMOOTH  ":
-            if hcomp_smooth is None:
-                hcomp_smooth = bintable_header[zval]
-
-    if quantize_level is None:
-        quantize_level = DEFAULT_QUANTIZE_LEVEL
-
-    if hcomp_scale is None:
-        hcomp_scale = DEFAULT_HCOMP_SCALE
-
-    if hcomp_smooth is None:
-        hcomp_smooth = DEFAULT_HCOMP_SMOOTH
-
-    # Next, strip the table header of all the ZNAMEn and ZVALn keywords
-    # that may be left over from the previous data
-    for idx in itertools.count(1):
-        zname = "ZNAME" + str(idx)
-        if zname not in bintable_header:
-            break
-        zval = "ZVAL" + str(idx)
-        del bintable_header[zname]
-        del bintable_header[zval]
-
-    # Finally, put the appropriate keywords back based on the
-    # compression type.
+    # Set the compression parameters in the table header based on the compression type
 
     after_keyword = "ZCMPTYPE"
     idx = 1
 
     if compression_type == "RICE_1":
-        bintable_header.set(
+        bintable.header.set(
             "ZNAME1", "BLOCKSIZE", "compression block size", after=after_keyword
         )
-        bintable_header.set(
+        bintable.header.set(
             "ZVAL1", DEFAULT_BLOCK_SIZE, "pixels per block", after="ZNAME1"
         )
 
-        bintable_header.set(
+        bintable.header.set(
             "ZNAME2", "BYTEPIX", "bytes per pixel (1, 2, 4, or 8)", after="ZVAL1"
         )
 
-        if bintable_header["ZBITPIX"] == 8:
+        if bintable.header["ZBITPIX"] == 8:
             bytepix = 1
-        elif bintable_header["ZBITPIX"] == 16:
+        elif bintable.header["ZBITPIX"] == 16:
             bytepix = 2
         else:
             bytepix = DEFAULT_BYTE_PIX
 
-        bintable_header.set(
+        bintable.header.set(
             "ZVAL2", bytepix, "bytes per pixel (1, 2, 4, or 8)", after="ZNAME2"
         )
         after_keyword = "ZVAL2"
         idx = 3
     elif compression_type == "HCOMPRESS_1":
-        bintable_header.set(
+        bintable.header.set(
             "ZNAME1", "SCALE", "HCOMPRESS scale factor", after=after_keyword
         )
-        bintable_header.set(
+        bintable.header.set(
             "ZVAL1", hcomp_scale, "HCOMPRESS scale factor", after="ZNAME1"
         )
-        bintable_header.set(
+        bintable.header.set(
             "ZNAME2", "SMOOTH", "HCOMPRESS smooth option", after="ZVAL1"
         )
-        bintable_header.set(
+        bintable.header.set(
             "ZVAL2", hcomp_smooth, "HCOMPRESS smooth option", after="ZNAME2"
         )
         after_keyword = "ZVAL2"
         idx = 3
 
-    if generated_image_header["BITPIX"] < 0:  # floating point image
-        bintable_header.set(
+    if image_header["BITPIX"] < 0:  # floating point image
+        bintable.header.set(
             "ZNAME" + str(idx),
             "NOISEBIT",
             "floating point quantization level",
             after=after_keyword,
         )
-        bintable_header.set(
+        bintable.header.set(
             "ZVAL" + str(idx),
             quantize_level,
             "floating point quantization level",
@@ -850,7 +606,7 @@ def _image_header_to_bintable_header_and_coldefs(
             else:
                 zquantiz_comment = "Pixel Quantization Algorithm"
 
-            bintable_header.set(
+            bintable.header.set(
                 "ZQUANTIZ",
                 QUANTIZE_METHOD_NAMES[quantize_method],
                 zquantiz_comment,
@@ -860,7 +616,7 @@ def _image_header_to_bintable_header_and_coldefs(
             # If the ZQUANTIZ keyword is missing the default is to assume
             # no dithering, rather than whatever DEFAULT_QUANTIZE_METHOD
             # is set to
-            quantize_method = bintable_header.get("ZQUANTIZ", NO_DITHER)
+            quantize_method = bintable.header.get("ZQUANTIZ", NO_DITHER)
 
             if isinstance(quantize_method, str):
                 for k, v in QUANTIZE_METHOD_NAMES.items():
@@ -871,153 +627,144 @@ def _image_header_to_bintable_header_and_coldefs(
                     quantize_method = NO_DITHER
 
         if quantize_method == NO_DITHER:
-            if "ZDITHER0" in bintable_header:
+            if "ZDITHER0" in bintable.header:
                 # If dithering isn't being used then there's no reason to
                 # keep the ZDITHER0 keyword
-                del bintable_header["ZDITHER0"]
+                del bintable.header["ZDITHER0"]
         else:
             if dither_seed:
                 dither_seed = generate_dither_seed(dither_seed)
-            elif "ZDITHER0" in bintable_header:
-                dither_seed = bintable_header["ZDITHER0"]
+            elif "ZDITHER0" in bintable.header:
+                dither_seed = bintable.header["ZDITHER0"]
             else:
                 dither_seed = generate_dither_seed(DEFAULT_DITHER_SEED)
 
-            bintable_header.set(
+            bintable.header.set(
                 "ZDITHER0",
                 dither_seed,
                 "dithering offset when quantizing floats",
                 after="ZQUANTIZ",
             )
 
-    if image_header:
-        # Move SIMPLE card from the image header to the
-        # table header as ZSIMPLE card.
+    # Move SIMPLE card from the image header to the
+    # table header as ZSIMPLE card.
 
-        if "SIMPLE" in image_header:
-            bintable_header.set(
-                "ZSIMPLE",
-                image_header["SIMPLE"],
-                image_header.comments["SIMPLE"],
-                before="ZBITPIX",
-            )
+    if "SIMPLE" in image_header:
+        bintable.header.set(
+            "ZSIMPLE",
+            image_header["SIMPLE"],
+            image_header.comments["SIMPLE"],
+            before="ZBITPIX",
+        )
 
-        # Move EXTEND card from the image header to the
-        # table header as ZEXTEND card.
+    # Move EXTEND card from the image header to the
+    # table header as ZEXTEND card.
 
-        if "EXTEND" in image_header:
-            bintable_header.set(
-                "ZEXTEND", image_header["EXTEND"], image_header.comments["EXTEND"]
-            )
+    if "EXTEND" in image_header:
+        bintable.header.set(
+            "ZEXTEND", image_header["EXTEND"], image_header.comments["EXTEND"]
+        )
 
-        # Move BLOCKED card from the image header to the
-        # table header as ZBLOCKED card.
+    # Move BLOCKED card from the image header to the
+    # table header as ZBLOCKED card.
 
-        if "BLOCKED" in image_header:
-            bintable_header.set(
-                "ZBLOCKED",
-                image_header["BLOCKED"],
-                image_header.comments["BLOCKED"],
-            )
+    if "BLOCKED" in image_header:
+        bintable.header.set(
+            "ZBLOCKED",
+            image_header["BLOCKED"],
+            image_header.comments["BLOCKED"],
+        )
 
-        # Move XTENSION card from the image header to the
-        # table header as ZTENSION card.
+    # Move XTENSION card from the image header to the
+    # table header as ZTENSION card.
 
-        # Since we only handle compressed IMAGEs, ZTENSION should
-        # always be IMAGE, even if the caller has passed in a header
-        # for some other type of extension.
-        if "XTENSION" in image_header:
-            bintable_header.set(
-                "ZTENSION",
-                "IMAGE",
-                image_header.comments["XTENSION"],
-                before="ZBITPIX",
-            )
+    # Since we only handle compressed IMAGEs, ZTENSION should
+    # always be IMAGE, even if the caller has passed in a header
+    # for some other type of extension.
+    if "XTENSION" in image_header:
+        bintable.header.set(
+            "ZTENSION",
+            "IMAGE",
+            image_header.comments["XTENSION"],
+            before="ZBITPIX",
+        )
 
-        # Move PCOUNT and GCOUNT cards from image header to the table
-        # header as ZPCOUNT and ZGCOUNT cards.
+    # Move PCOUNT and GCOUNT cards from image header to the table
+    # header as ZPCOUNT and ZGCOUNT cards.
 
-        if "PCOUNT" in image_header:
-            bintable_header.set(
-                "ZPCOUNT",
-                image_header["PCOUNT"],
-                image_header.comments["PCOUNT"],
-                after=last_znaxis,
-            )
+    if "PCOUNT" in image_header:
+        bintable.header.set(
+            "ZPCOUNT",
+            image_header["PCOUNT"],
+            image_header.comments["PCOUNT"],
+            after=last_znaxis,
+        )
 
-        if "GCOUNT" in image_header:
-            bintable_header.set(
-                "ZGCOUNT",
-                image_header["GCOUNT"],
-                image_header.comments["GCOUNT"],
-                after="ZPCOUNT",
-            )
+    if "GCOUNT" in image_header:
+        bintable.header.set(
+            "ZGCOUNT",
+            image_header["GCOUNT"],
+            image_header.comments["GCOUNT"],
+            after="ZPCOUNT",
+        )
 
-        # Move CHECKSUM and DATASUM cards from the image header to the
-        # table header as XHECKSUM and XDATASUM cards.
+    # Move CHECKSUM and DATASUM cards from the image header to the
+    # table header as XHECKSUM and XDATASUM cards.
 
-        if "CHECKSUM" in image_header:
-            bintable_header.set(
-                "ZHECKSUM",
-                image_header["CHECKSUM"],
-                image_header.comments["CHECKSUM"],
-            )
+    if "CHECKSUM" in image_header:
+        bintable.header.set(
+            "ZHECKSUM",
+            image_header["CHECKSUM"],
+            image_header.comments["CHECKSUM"],
+        )
 
-        if "DATASUM" in image_header:
-            bintable_header.set(
-                "ZDATASUM",
-                image_header["DATASUM"],
-                image_header.comments["DATASUM"],
-            )
-    else:
-        # Move XTENSION card from the image header to the
-        # table header as ZTENSION card.
+    if "DATASUM" in image_header:
+        bintable.header.set(
+            "ZDATASUM",
+            image_header["DATASUM"],
+            image_header.comments["DATASUM"],
+        )
 
-        # Since we only handle compressed IMAGEs, ZTENSION should
-        # always be IMAGE, even if the caller has passed in a header
-        # for some other type of extension.
-        if "XTENSION" in generated_image_header:
-            bintable_header.set(
-                "ZTENSION",
-                "IMAGE",
-                generated_image_header.comments["XTENSION"],
-                before="ZBITPIX",
-            )
+    bintable.columns = cols
 
-        # Move PCOUNT and GCOUNT cards from image header to the table
-        # header as ZPCOUNT and ZGCOUNT cards.
+    # Add any keywords that are in the original header that are not already
+    # FIXME: don't use keyword_remaps, instead define an actual list to check
+    # including regular expressions for NAXIS and other similar keywords
 
-        if "PCOUNT" in generated_image_header:
-            bintable_header.set(
-                "ZPCOUNT",
-                generated_image_header["PCOUNT"],
-                generated_image_header.comments["PCOUNT"],
-                after=last_znaxis,
-            )
+    # We need to add comments and history entries back to the right place, so
+    # we first write out regular keywords and keep track of what the previous
+    # regular keyword was for each position. We need to do this because
+    # add_comment and add_history automatically write out to the bottom of the
+    # header and there is no way to tell them to add them to the current
+    # location.
+    current_last_keyword = bintable.header.cards[-1].keyword
+    previous_keyword = []
 
-        if "GCOUNT" in generated_image_header:
-            bintable_header.set(
-                "ZGCOUNT",
-                generated_image_header["GCOUNT"],
-                generated_image_header.comments["GCOUNT"],
-                after="ZPCOUNT",
-            )
+    for card in image_header.cards:
+        # We deal with blanks in _writeto, and we handle COMMENT and HISTORY
+        # only once we have written out the regular keywords. deal with after
 
-    # When we have an image checksum we need to ensure that the same
-    # number of blank cards exist in the table header as there were in
-    # the image header.  This allows those blank cards to be carried
-    # over to the image header when the hdu is uncompressed.
+        if card.keyword == "":
+            bintable.header.add_blank()
+        elif (
+            card.keyword not in ("", "COMMENT", "HISTORY")
+            and card.keyword not in CompImageHeader._keyword_remaps
+            and card.keyword not in bintable.header
+            and not card.keyword.startswith("NAXIS")
+        ):
+            bintable.header.append(card)
+            current_last_keyword = card.keyword
 
-    if "ZHECKSUM" in bintable_header:
-        required_blanks = image_header._countblanks()
-        image_blanks = generated_image_header._countblanks()
-        table_blanks = bintable_header._countblanks()
+        previous_keyword.append(current_last_keyword)
 
-        for _ in range(required_blanks - image_blanks):
-            generated_image_header.append()
-            table_blanks += 1
+    # We loop over cards in reverse order for 'after=' to return the correct
+    # order in the final header.
+    for icard, card in list(enumerate(image_header.cards))[::-1]:
+        if card.keyword == "COMMENT":
+            bintable.header.add_comment(card.value, after=previous_keyword[icard])
+        elif card.keyword == "HISTORY":
+            bintable.header.add_history(card.value, after=previous_keyword[icard])
 
-        for _ in range(required_blanks - table_blanks):
-            bintable_header.append()
+    # TODO: avoid writing the same comment multiple times
 
-    return bintable_header, cols
+    return bintable
