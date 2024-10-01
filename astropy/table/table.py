@@ -2694,6 +2694,9 @@ class Table:
             raise ValueError("cannot replace a table index column")
 
         col = self._convert_data_to_col(col, name=name, copy=copy)
+        if col.shape == ():
+            raise ValueError("cannot replace a column with a scalar.")
+
         self._set_col_parent_table_and_mask(col)
 
         # Ensure that new column is the right length, unless it is the only column

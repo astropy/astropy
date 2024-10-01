@@ -3541,3 +3541,18 @@ def test_qtable_with_explicit_units():
     # astropy/units/tests/test_units.py::test_comparison_dimensionless_with_np_ma_masked
     tt = QTable(data=[[1.0, 2.0, 3.0]], names=["weight"], units={"weight": u.one})
     assert tt["weight"].unit == u.dimensionless_unscaled
+
+
+@pytest.mark.parametrize("empty_table", [True, False])
+def test_table_replace_column_with_scalar(empty_table):
+    # Regression test for bug mentioned in
+    # https://github.com/astropy/astropy/pull/17102#issuecomment-2386963846
+    t = QTable() if empty_table else QTable([[5, 6, 7]], names=["0"])
+    t["a"] = np.arange(3.0)
+    t["a"] = 5.0
+    assert len(t) == 3
+    assert t["a"].shape == (3,)
+    assert np.all(t["a"] == 5.0)
+    # Direct replacement should never work.
+    with pytest.raises(ValueError, match="cannot replace.*with a scalar"):
+        t.replace_column("a", 2)
