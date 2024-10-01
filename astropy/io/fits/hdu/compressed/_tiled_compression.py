@@ -284,6 +284,7 @@ def decompress_image_data_section(
     compression_type,
     compressed_header,
     bintable,
+    image_header,
     first_tile_index,
     last_tile_index,
 ):
@@ -359,9 +360,7 @@ def decompress_image_data_section(
     else:
         zzero_column = None
 
-    zblank_header = compressed_header.get(
-        "ZBLANK", compressed_header.get("BLANK", None)
-    )
+    zblank_header = compressed_header.get("ZBLANK", image_header.get("BLANK", None))
 
     gzip_compressed_data_column = None
     gzip_compressed_data_dtype = None
