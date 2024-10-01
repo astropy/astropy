@@ -297,12 +297,22 @@ def _bintable_header_to_image_header(bintable_header):
         del image_header["GCOUNT"]
 
     # Fill in BLANK keyword if necessary
-    if (
-        image_header["BITPIX"] > 0
-        and "BLANK" not in image_header
-        and "ZBLANK" in bintable_header
-    ):
-        image_header["BLANK"] = bintable_header["ZBLANK"]
+    if image_header["BITPIX"] > 0 and "BLANK" not in image_header:
+        if "ZBLANK" in bintable_header:
+            image_header["BLANK"] = bintable_header["ZBLANK"]
+        else:
+            # check for column named "ZBLANK"
+            for i in range(1, bintable_header["TFIELDS"] + 1):
+                if bintable_header[f"TTYPE{i}"] == "ZBLANK":
+                    # required BLANK keyword is missing
+                    # use most negative value as default
+                    image_header["BLANK"] = -(1 << (image_header["BITPIX"] - 1))
+                    warnings.warn(
+                        f"Setting default value {image_header['BLANK']} for "
+                        "missing BLANK keyword in compressed extension",
+                        AstropyUserWarning,
+                    )
+                    break
 
     # Look to see if there are any blank cards in the table
     # header.  If there are, there should be the same number
