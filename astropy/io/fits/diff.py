@@ -51,6 +51,12 @@ _COL_ATTRS = [
 ]
 
 
+def _get_differences(a, b):
+    relative = abs(b - a) / abs(b)
+    absolute = abs(b - 1)
+    return relative, absolute
+
+
 class _BaseDiff:
     """
     Base class for all FITS diff objects.
@@ -1109,6 +1115,9 @@ class ImageDataDiff(_BaseDiff):
         if not self.diff_pixels:
             return
 
+        max_relative = 0
+        max_absolute = 0
+
         for index, values in self.diff_pixels:
             # Convert to int to avoid np.int64 in list repr.
             index = [int(x + 1) for x in reversed(index)]
@@ -1121,6 +1130,9 @@ class ImageDataDiff(_BaseDiff):
                 rtol=self.rtol,
                 atol=self.atol,
             )
+            rdiff, adiff = _get_differences(values[0], values[1])
+            max_relative = max(max_relative, rdiff)
+            max_absolute = max(max_absolute, adiff)
 
         if self.diff_total > self.numdiffs:
             self._writeln(" ...")
@@ -1128,6 +1140,8 @@ class ImageDataDiff(_BaseDiff):
             f" {self.diff_total} different pixels found "
             f"({self.diff_ratio:.2%} different)."
         )
+        self._writeln(f" Maximum relative difference: {max_relative}.")
+        self._writeln(f" Maximum absolute difference: {max_absolute}.")
 
 
 class RawDataDiff(ImageDataDiff):
