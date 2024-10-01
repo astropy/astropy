@@ -262,14 +262,25 @@ class TestEmptyData:
         assert len(t["a"]) == 0
 
     def test_scalar(self, table_types):
-        """Test related to #3811 where setting empty tables to scalar values
-        should raise an error instead of having an error raised when accessing
-        the table."""
+        """Test related to #3811 and #17078: we used to have setting
+        empty tables succeed, but raise on access. Then, we ensured they
+        raised on setting. But now we let setting and accessing succeed:
+        the table stays empty."""
         t = table_types.Table()
-        with pytest.raises(
-            TypeError, match="Empty table cannot have column set to scalar value"
-        ):
-            t.add_column(0)
+        t.add_column(0, name="a")
+        assert len(t) == 0
+        assert isinstance(t["a"], Column)
+        assert len(t["a"]) == 0
+        assert t["a"].dtype == int
+        t["b"] = SkyCoord(1.0, 2.0, unit="hourangle,deg")
+        assert isinstance(t["b"], SkyCoord)
+        assert len(t["b"]) == 0
+        assert t["b"].data.lon.unit == u.hourangle
+        # For this case, broadcasting still works.
+        t["c"] = [1.0]
+        # But not here.
+        with pytest.raises(ValueError, match="data column length"):
+            t["d"] = [1.0, 2.0]
 
     def test_add_via_setitem_and_slice(self, table_types):
         """Test related to #3023 where a MaskedColumn is created with name=None
@@ -2618,10 +2629,11 @@ def test_empty_table_setdefault(value):
 
 def test_empty_table_setdefault_scalar():
     t = Table()
-    with pytest.raises(
-        TypeError, match="^Empty table cannot have column set to scalar value$"
-    ):
-        t.setdefault("a", 9)
+    t.setdefault("a", 9)
+    assert len(t) == 0
+    assert t.colnames == ["a"]
+    assert type(t["a"]) is Column
+    assert t["a"].dtype == int
 
 
 def test_table_meta_copy():
