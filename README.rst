@@ -1,36 +1,22 @@
-=======
-Astropy
-=======
+|Astropy Logo|
 
-.. container::
+----
 
-    |Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
+|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
+----
+The Astropy Project is a community effort to develop a
+single core package for astronomy in Python and foster interoperability between
+packages used in the field. This repository contains the core library.
 
-The Astropy Project (https://astropy.org/) is a community effort to develop a
-single core package for Astronomy in Python and foster interoperability between
-Python astronomy packages. This repository contains the core package which is
-intended to contain much of the core functionality and some common tools needed
-for performing astronomy and astrophysics with Python.
-
-Table of Contents
-=================
-
-- `Installation <#installation>`_
-- `Contributing <#contributing>`_
-- `Getting Started with GitHub Codespaces <#getting-started-with-github-codespaces>`_
-- `Supporting the Project <#supporting-the-project>`_
-- `License <#license>`_
+* `Website <https://astropy.org/>`_
+* `Documentation <https://docs.astropy.org/>`_
+* `Slack <https://astropy.slack.com/>`_
+* `Open Astronomy Discourse <https://community.openastronomy.org/c/astropy/8>`_
+* `Astropy users mailing list <https://mail.python.org/mailman/listinfo/astropy>`_
+* `Astropy developers mailing list <https://groups.google.com/g/astropy-dev>`_
 
 Installation
 ============
-
-Releases are `registered on PyPI <https://pypi.org/project/astropy>`_,
-and development is occurring at the
-`project's GitHub page <https://github.com/astropy/astropy>`_.
-
-For detailed installation instructions, see the
-`online documentation <https://docs.astropy.org/>`_
-or `docs/install.rst <docs/install.rst>`_ in this source distribution.
 
 To install `astropy` from PyPI, use:
 
@@ -38,39 +24,48 @@ To install `astropy` from PyPI, use:
 
     pip install astropy
 
+For more detailed instructions, see the `install guide
+<https://docs.astropy.org/en/stable/install.html>`_ in the docs.
+
 Contributing
 ============
 
+.. raw:: html
+
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_dark.png?raw=true">
+      <source media="(prefers-color-scheme: light)" srcset="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true">
+      <img alt="Astropy user statistics" src="https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true">
+    </picture>
+
 The Astropy Project is made both by and for its users, so we welcome and
 encourage contributions of many kinds. Our goal is to keep this a positive,
-inclusive, successful, and growing community by abiding with the
-`Astropy Community Code of Conduct <https://www.astropy.org/about.html#codeofconduct>`_.
+inclusive, successful, and growing community that abides by the
+`Astropy Community Code of Conduct
+<https://www.astropy.org/about.html#codeofconduct>`_.
 
-More detailed information on contributing to the project or submitting feedback
-can be found on the `contributions page <https://www.astropy.org/contribute.html>`_.
-A `summary of contribution guidelines <CONTRIBUTING.md>`_ can also be
-used as a quick reference when you are ready to start writing or validating
-code for submission.
+For guidance on contributing to or submitting feedback for the Astropy Project,
+see the `contributions page <https://www.astropy.org/contribute.html>`_.
+For contributing code specifically, the developer docs have a
+`guide <https://docs.astropy.org/en/latest/index_dev.html>`_ with a quickstart.
+There's also a `summary of contribution guidelines <CONTRIBUTING.md>`_.
 
-Getting Started with GitHub Codespaces
-======================================
+Developing with Codespaces
+==========================
 
-Codespaces is a cloud development environment supported by GitHub.
-None of the Astropy build machinery depends on it, but it is a
-convenient way to quickly get started doing development on Astropy.
-
-To get started, create a codespace for this repository by clicking this:
+GitHub Codespaces is a cloud development environment using Visual Studio Code
+in your browser. This is a convenient way to start developing Astropy, using
+our `dev container <.devcontainer/devcontainer.json>`_ configured
+with the required packages. For help, see the `GitHub Codespaces
+docs <https://docs.github.com/en/codespaces>`_.
 
 |Codespaces|
 
-A codespace will open in a web-based version of Visual Studio Code.
-The `dev container <.devcontainer/devcontainer.json>`_ is fully configured
-with software needed for this project. For help, see the `GitHub Codespaces
-Support page <https://docs.github.com/en/codespaces>`_.
-
-**Note**: Dev containers is an open spec which is supported by
-`GitHub Codespaces <https://github.com/codespaces>`_ and
-`other tools <https://containers.dev/supporting>`_.
+Acknowledging and Citing
+========================
+See the `acknowledgement and citation guide
+<https://www.astropy.org/acknowledging.html>`_ and the `CITATION
+<https://github.com/astropy/astropy/blob/main/astropy/CITATION>`_ file.
 
 Supporting the Project
 ======================
@@ -90,6 +85,10 @@ Astropy is licensed under a 3-clause BSD style license - see the
 `LICENSE.rst <LICENSE.rst>`_ file.
 
 
+.. |Astropy Logo| image:: https://github.com/astropy/repo_stats/blob/main/dashboard_template/astropy_banner_gray.svg
+    :target: https://www.astropy.org/
+    :alt: Astropy
+
 .. |Actions Status| image:: https://github.com/astropy/astropy/actions/workflows/ci_workflows.yml/badge.svg
     :target: https://github.com/astropy/astropy/actions
     :alt: Astropy's GitHub Actions CI Status
@@ -107,16 +106,16 @@ Astropy is licensed under a 3-clause BSD style license - see the
     :alt: Astropy's PyPI Status
 
 .. |Zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4670728.svg
-   :target: https://doi.org/10.5281/zenodo.4670728
-   :alt: Zenodo DOI
+    :target: https://doi.org/10.5281/zenodo.4670728
+    :alt: Zenodo DOI
 
 .. |Documentation Status| image:: https://img.shields.io/readthedocs/astropy/latest.svg?logo=read%20the%20docs&logoColor=white&label=Docs&version=stable
     :target: https://docs.astropy.org/en/stable/?badge=stable
     :alt: Documentation Status
 
 .. |Pre-Commit| image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
-   :target: https://github.com/pre-commit/pre-commit
-   :alt: pre-commit
+    :target: https://github.com/pre-commit/pre-commit
+    :alt: pre-commit
 
 .. |Ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
     :target: https://github.com/astral-sh/ruff
