@@ -282,6 +282,19 @@ class TestEmptyData:
         with pytest.raises(ValueError, match="data column length"):
             t["d"] = [1.0, 2.0]
 
+    def test_scalar_double_assignment(self, table_types):
+        # Following example given by @taldcroft in
+        # https://github.com/astropy/astropy/pull/17102#issuecomment-2386767337
+        t = table_types.Table()
+        t["a"] = 1.5
+        assert len(t) == 0
+        assert isinstance(t["a"], Column)
+        assert t["a"].shape == (0,)
+        t["a"] = 1.5
+        assert len(t) == 0
+        assert isinstance(t["a"], Column)
+        assert t["a"].shape == (0,)
+
     def test_add_via_setitem_and_slice(self, table_types):
         """Test related to #3023 where a MaskedColumn is created with name=None
         and then gets changed to name='a'.  After PR #2790 this test fails
