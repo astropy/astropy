@@ -31,7 +31,12 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from astropy.units.typing import UnitPower
+    from types import TracebackType
+    from typing import Any, Final, Literal, Self
+
+    from .physical import PhysicalType
+    from .quantity import Quantity
+    from .typing import Real, UnitPower, UnitScale
 
 __all__ = [
     "UnitBase",
@@ -53,7 +58,7 @@ __all__ = [
     "one",
 ]
 
-UNITY = 1.0
+UNITY: Final[float] = 1.0
 
 
 def _flatten_units_collection(items):
@@ -158,28 +163,28 @@ class _UnitRegistry:
             self.add_enabled_equivalencies(equivalencies)
             self.add_enabled_aliases(aliases)
 
-    def _reset_units(self):
+    def _reset_units(self) -> None:
         self._all_units = set()
         self._non_prefix_units = set()
         self._registry = {}
         self._by_physical_type = {}
 
-    def _reset_equivalencies(self):
+    def _reset_equivalencies(self) -> None:
         self._equivalencies = set()
 
-    def _reset_aliases(self):
+    def _reset_aliases(self) -> None:
         self._aliases = {}
 
     @property
-    def registry(self):
+    def registry(self) -> dict[str, UnitBase]:
         return self._registry
 
     @property
-    def all_units(self):
+    def all_units(self) -> set[UnitBase]:
         return self._all_units
 
     @property
-    def non_prefix_units(self):
+    def non_prefix_units(self) -> set[UnitBase]:
         return self._non_prefix_units
 
     def set_enabled_units(self, units):
@@ -239,7 +244,7 @@ class _UnitRegistry:
 
             self._by_physical_type.setdefault(unit._physical_type_id, set()).add(unit)
 
-    def get_units_with_physical_type(self, unit):
+    def get_units_with_physical_type(self, unit: UnitBase) -> set[UnitBase]:
         """
         Get all units in the registry with the same physical type as
         the given unit.
@@ -294,10 +299,10 @@ class _UnitRegistry:
         self._equivalencies |= set(equivalencies)
 
     @property
-    def aliases(self):
+    def aliases(self) -> dict[str, UnitBase]:
         return self._aliases
 
-    def set_enabled_aliases(self, aliases):
+    def set_enabled_aliases(self, aliases: dict[str, UnitBase]) -> None:
         """
         Set aliases for units.
 
@@ -316,7 +321,7 @@ class _UnitRegistry:
         self._reset_aliases()
         self.add_enabled_aliases(aliases)
 
-    def add_enabled_aliases(self, aliases):
+    def add_enabled_aliases(self, aliases: dict[str, UnitBase]) -> None:
         """
         Add aliases for units.
 
@@ -353,17 +358,22 @@ class _UnitContext:
     def __init__(self, init=[], equivalencies=[]):
         _unit_registries.append(_UnitRegistry(init=init, equivalencies=equivalencies))
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         pass
 
-    def __exit__(self, type, value, tb):
+    def __exit__(
+        self,
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
         _unit_registries.pop()
 
 
 _unit_registries = [_UnitRegistry()]
 
 
-def get_current_unit_registry():
+def get_current_unit_registry() -> _UnitRegistry:
     return _unit_registries[-1]
 
 
@@ -531,7 +541,7 @@ def add_enabled_equivalencies(equivalencies):
     return context
 
 
-def set_enabled_aliases(aliases):
+def set_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
     """
     Set aliases for units.
 
@@ -566,7 +576,7 @@ def set_enabled_aliases(aliases):
     return context
 
 
-def add_enabled_aliases(aliases):
+def add_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
     """
     Add aliases for units.
 
@@ -616,15 +626,15 @@ class UnitBase:
 
     # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
     # arrays to avoid element-wise multiplication.
-    __array_priority__ = 1000
+    __array_priority__: Final[Literal[1000]] = 1000
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: dict[int, Any] | None) -> Self:
         # This may look odd, but the units conversion will be very
         # broken after deep-copying if we don't guarantee that a given
         # physical unit corresponds to only one instance
         return self
 
-    def _repr_latex_(self):
+    def _repr_latex_(self) -> str:
         """
         Generate latex representation of unit name.  This is used by
         the IPython notebook to print a unit with a nice layout.
@@ -635,15 +645,15 @@ class UnitBase:
         """
         return unit_format.Latex.to_string(self)
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         """Return string representation for unit."""
         return unit_format.Generic.to_string(self).encode("unicode_escape")
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return string representation for unit."""
         return unit_format.Generic.to_string(self)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         string = unit_format.Generic.to_string(self)
 
         return f'Unit("{string}")'
@@ -660,7 +670,7 @@ class UnitBase:
         return tuple(zip((base.name for base in unit.bases), unit.powers))
 
     @property
-    def names(self):
+    def names(self) -> list[str]:
         """
         Returns all of the names associated with this unit.
         """
@@ -669,7 +679,7 @@ class UnitBase:
         )
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns the canonical (short) name associated with this unit.
         """
@@ -678,7 +688,7 @@ class UnitBase:
         )
 
     @property
-    def aliases(self):
+    def aliases(self) -> list[str]:
         """
         Returns the alias (long) names for this unit.
         """
@@ -687,27 +697,31 @@ class UnitBase:
         )
 
     @property
-    def scale(self):
+    def scale(self) -> UnitScale:
         """
         Return the scale of the unit.
         """
         return 1.0
 
     @property
-    def bases(self):
+    def bases(self) -> list[UnitBase]:
         """
         Return the bases of the unit.
         """
         return [self]
 
     @property
-    def powers(self):
+    def powers(self) -> list[UnitPower]:
         """
         Return the powers of the unit.
         """
         return [1]
 
-    def to_string(self, format=unit_format.Generic, **kwargs):
+    def to_string(
+        self,
+        format: type[unit_format.Base] | str | None = unit_format.Generic,
+        **kwargs,
+    ) -> str:
         r"""Output the unit in the given format as a string.
 
         Parameters
@@ -752,7 +766,7 @@ class UnitBase:
         f = unit_format.get_format(format)
         return f.to_string(self, **kwargs)
 
-    def __format__(self, format_spec):
+    def __format__(self, format_spec: str) -> str:
         """Try to format units using a formatter."""
         try:
             return self.to_string(format=format_spec)
@@ -787,7 +801,7 @@ class UnitBase:
 
         return normalized
 
-    def __pow__(self, p):
+    def __pow__(self, p: Real) -> CompositeUnit:
         try:  # Handling scalars should be as quick as possible
             return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
         except Exception:
@@ -904,7 +918,7 @@ class UnitBase:
             (str(self.scale), *[x.name for x in self.bases], *map(str, self.powers))
         )
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict[str, object]:
         # If we get pickled, we should *not* store the memoized members since
         # hashes of strings vary between sessions.
         state = self.__dict__.copy()
@@ -948,7 +962,7 @@ class UnitBase:
     def __gt__(self, other):
         return not (self <= other)
 
-    def __neg__(self):
+    def __neg__(self) -> Quantity:
         return self * -1.0
 
     def is_equivalent(self, other, equivalencies=[]):
@@ -1125,7 +1139,7 @@ class UnitBase:
 
             raise exc
 
-    def _to(self, other):
+    def _to(self, other: UnitBase) -> UnitScale:
         """
         Returns the scale to the specified unit.
 
@@ -1525,7 +1539,7 @@ class UnitBase:
         return composed
 
     @lazyproperty
-    def si(self):
+    def si(self) -> UnitBase:
         """
         Returns a copy of the current `Unit` instance in SI units.
         """
@@ -1534,7 +1548,7 @@ class UnitBase:
         return self.to_system(si)[0]
 
     @lazyproperty
-    def cgs(self):
+    def cgs(self) -> UnitBase:
         """
         Returns a copy of the current `Unit` instance with CGS units.
         """
@@ -1543,7 +1557,7 @@ class UnitBase:
         return self.to_system(cgs)[0]
 
     @property
-    def physical_type(self):
+    def physical_type(self) -> PhysicalType:
         """
         Physical type(s) dimensionally compatible with the unit.
 
@@ -1619,11 +1633,16 @@ class UnitBase:
         `find_equivalent_units`.
         """
 
-        HEADING_NAMES = ("Primary name", "Unit definition", "Aliases")
-        ROW_LEN = 3  # len(HEADING_NAMES), but hard-code since it is constant
-        NO_EQUIV_UNITS_MSG = "There are no equivalent units"
+        HEADING_NAMES: Final[tuple[str, str, str]] = (
+            "Primary name",
+            "Unit definition",
+            "Aliases",
+        )
+        # len(HEADING_NAMES), but hard-code since it is constant
+        ROW_LEN: Final[Literal[3]] = 3
+        NO_EQUIV_UNITS_MSG: Final[str] = "There are no equivalent units"
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             if len(self) == 0:
                 return self.NO_EQUIV_UNITS_MSG
             else:
@@ -1639,7 +1658,7 @@ class UnitBase:
                 lines = lines[0:1] + ["["] + [f"{x} ," for x in lines[1:]] + ["]"]
                 return "\n".join(lines)
 
-        def _repr_html_(self):
+        def _repr_html_(self) -> str:
             """
             Outputs a HTML table representation within Jupyter notebooks.
             """
@@ -1719,7 +1738,7 @@ class UnitBase:
         }
         return self.EquivalentUnitsList(results)
 
-    def is_unity(self):
+    def is_unity(self) -> bool:
         """
         Returns `True` if the unit is unscaled and dimensionless.
         """
@@ -1802,7 +1821,7 @@ class NamedUnit(UnitBase):
 
         self._inject(namespace)
 
-    def _generate_doc(self):
+    def _generate_doc(self) -> str:
         """
         Generate a docstring for the unit if the user didn't supply
         one.  This is only used from the constructor and may be
@@ -1839,35 +1858,35 @@ class NamedUnit(UnitBase):
         return self._format.get(format, self.name)
 
     @property
-    def names(self):
+    def names(self) -> list[str]:
         """
         Returns all of the names associated with this unit.
         """
         return self._names
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns the canonical (short) name associated with this unit.
         """
         return self._names[0]
 
     @property
-    def aliases(self):
+    def aliases(self) -> list[str]:
         """
         Returns the alias (long) names for this unit.
         """
         return self._names[1:]
 
     @property
-    def short_names(self):
+    def short_names(self) -> list[str]:
         """
         Returns all of the short names associated with this unit.
         """
         return self._short_names
 
     @property
-    def long_names(self):
+    def long_names(self) -> list[str]:
         """
         Returns all of the long names associated with this unit.
         """
@@ -1938,7 +1957,7 @@ class IrreducibleUnit(NamedUnit):
         )
 
     @property
-    def represents(self):
+    def represents(self) -> Self:
         """The unit that this named unit represents.
 
         For an irreducible unit, that is always itself.
@@ -1982,13 +2001,13 @@ class UnrecognizedUnit(IrreducibleUnit):
     # IrreducibleUnits.
     __reduce__ = object.__reduce__
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"UnrecognizedUnit({self})"
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         return self.name.encode("ascii", "replace")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     def to_string(self, format=None):
@@ -2028,7 +2047,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     def _get_format_name(self, format: str) -> str:
         return self.name
 
-    def is_unity(self):
+    def is_unity(self) -> Literal[False]:
         return False
 
 
@@ -2254,7 +2273,7 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
     def decompose(self, bases=set()):
         return self._represents.decompose(bases=bases)
 
-    def is_unity(self):
+    def is_unity(self) -> bool:
         return self._represents.is_unity()
 
     @cached_property
@@ -2366,7 +2385,7 @@ class CompositeUnit(UnitBase):
             self._powers = powers
             self._expand_and_gather(decompose=decompose, bases=decompose_bases)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if len(self._bases):
             return super().__repr__()
         else:
@@ -2376,21 +2395,21 @@ class CompositeUnit(UnitBase):
                 return "Unit(dimensionless)"
 
     @property
-    def scale(self):
+    def scale(self) -> UnitScale:
         """
         Return the scale of the composite unit.
         """
         return self._scale
 
     @property
-    def bases(self):
+    def bases(self) -> list[UnitBase]:
         """
         Return the bases of the composite unit.
         """
         return self._bases
 
     @property
-    def powers(self):
+    def powers(self) -> list[UnitPower]:
         """
         Return the powers of the composite unit.
         """
@@ -2437,7 +2456,7 @@ class CompositeUnit(UnitBase):
         self._powers = [sanitize_power(x[1]) for x in new_parts]
         self._scale = sanitize_scale_value(scale)
 
-    def __copy__(self):
+    def __copy__(self) -> CompositeUnit:
         """
         For compatibility with python copy module.
         """
@@ -2464,12 +2483,12 @@ class CompositeUnit(UnitBase):
             self._decomposed_cache = x
         return x
 
-    def is_unity(self):
+    def is_unity(self) -> bool:
         unit = self.decompose()
         return len(unit.bases) == 0 and unit.scale == 1.0
 
 
-si_prefixes = [
+si_prefixes: Final[list[tuple[list[str], list[str], float]]] = [
     (["Q"], ["quetta"], 1e30),
     (["R"], ["ronna"], 1e27),
     (["Y"], ["yotta"], 1e24),
@@ -2497,7 +2516,7 @@ si_prefixes = [
 ]
 
 
-binary_prefixes = [
+binary_prefixes: Final[list[tuple[list[str], list[str], int]]] = [
     (["Ki"], ["kibi"], 2**10),
     (["Mi"], ["mebi"], 2**20),
     (["Gi"], ["gibi"], 2**30),
@@ -2689,6 +2708,8 @@ def unit_scale_converter(val):
     return 1.0 * _condition_arg(val)
 
 
-dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
+dimensionless_unscaled: Final[CompositeUnit] = CompositeUnit(
+    1, [], [], _error_check=False
+)
 # Abbreviation of the above, see #1980
-one = dimensionless_unscaled
+one: Final[CompositeUnit] = dimensionless_unscaled
