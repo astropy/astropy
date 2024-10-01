@@ -2431,13 +2431,14 @@ class Table:
             col, name=name, copy=copy, default_name=default_name
         )
 
-        # Assigning a scalar column to an empty table should result in an
-        # exception (see #3811).
-        if col.shape == () and len(self) == 0:
-            raise TypeError("Empty table cannot have column set to scalar value")
-        # Make col data shape correct for scalars.  The second test is to allow
-        # broadcasting an N-d element to a column, e.g. t['new'] = [[1, 2]].
-        elif (col.shape == () or col.shape[0] == 1) and len(self) > 0:
+        # For scalars and for arrays with length 1, allow broadcasting to the
+        # length of the table. This includes zero-length tables, i.e., we
+        # broadcast the column to zero length (since astropy 7.0; this
+        # follows numpy behaviour; see gh-17078 for discussion).
+        # If the table is not yet initialized, we use the column for its length,
+        # which for a scalar will be length zero (which is most easily achieved
+        # by pass-through here).
+        if col.shape == () or (col.shape[0] == 1 and self.columns):
             new_shape = (len(self),) + getattr(col, "shape", ())[1:]
             if isinstance(col, np.ndarray):
                 col = np.broadcast_to(col, shape=new_shape, subok=True)
