@@ -787,3 +787,14 @@ def test_regression_16998(coord_cls, differential_type, diff_kwargs, extra_kwarg
     if coord_cls is SkyCoord:
         expected_entries.add("frame")
     assert set(coord.info._represent_as_dict()) == expected_entries
+
+
+def test_regression_17008():
+    """Test that one can transform a SkyCoord with empty data to other frames.
+
+    The underlying bug that caused the problem reported in gh-17008
+    is tested in utils/iers/tests/test_iers.py::test_empty_mjd
+    """
+    s = SkyCoord([] * u.deg, [] * u.deg, obstime=Time([], format="iso"))
+    itrs = s.itrs  # This failed before.
+    assert itrs.size == 0

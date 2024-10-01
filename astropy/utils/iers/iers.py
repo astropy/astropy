@@ -449,9 +449,6 @@ class IERS(QTable):
         if is_scalar:
             mjd = np.array([mjd])
             utc = np.array([utc])
-        elif mjd.size == 0:
-            # Short-cut empty input.
-            return np.array([])
 
         self._refresh_table_as_needed(mjd)
 
@@ -499,7 +496,8 @@ class IERS(QTable):
             results.append(status)
             return results
         else:
-            self._check_interpolate_indices(i1, i, np.max(mjd))
+            # Pass in initial to np.max to allow things to work for empty mjd.
+            self._check_interpolate_indices(i1, i, np.max(mjd, initial=50000))
             return results[0] if len(results) == 1 else results
 
     def _refresh_table_as_needed(self, mjd):
@@ -885,7 +883,8 @@ class IERS_Auto(IERS_A):
           In other words the IERS-A table was created by IERS long enough
           ago that it can be considered stale for predictions.
         """
-        max_input_mjd = np.max(mjd)
+        # Pass in initial to np.max to allow things to work for empty mjd.
+        max_input_mjd = np.max(mjd, initial=50000)
         now_mjd = self.time_now.mjd
 
         # IERS-A table contains predictive data out for a year after
