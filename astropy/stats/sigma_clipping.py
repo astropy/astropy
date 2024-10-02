@@ -349,10 +349,14 @@ class SigmaClip:
         if masked:
             result = np.ma.array(data, mask=mask, copy=copy)
         else:
-            if copy:
-                result = data.astype(float, copy=True)
+            if data.dtype.kind != "f":
+                # float array type is needed to insert nans into the array
+                result = data.astype(np.float32)  # also makes a copy
             else:
-                result = data
+                if copy:
+                    result = data.copy()
+                else:
+                    result = data
             result[mask] = np.nan
 
         if unit is not None:
