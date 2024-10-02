@@ -41,7 +41,8 @@ keywords = [
 dependencies = [
     "numpy>=1.23.2",
     "pyerfa>=2.0.1.1",
-    "astropy-iers-data>=0.2024.8.27.10.28.29",
+    "astropy-iers-data>=0.2024.9.30.0.32.59",
+
     "PyYAML>=6.0.0",
     "packaging>=22.0.0",
 ]
