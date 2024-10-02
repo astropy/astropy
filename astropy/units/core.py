@@ -646,11 +646,9 @@ class UnitBase:
         return unit_format.Latex.to_string(self)
 
     def __bytes__(self) -> bytes:
-        """Return string representation for unit."""
         return unit_format.Generic.to_string(self).encode("unicode_escape")
 
     def __str__(self) -> str:
-        """Return string representation for unit."""
         return unit_format.Generic.to_string(self)
 
     def __repr__(self) -> str:
@@ -767,7 +765,6 @@ class UnitBase:
         return f.to_string(self, **kwargs)
 
     def __format__(self, format_spec: str) -> str:
-        """Try to format units using a formatter."""
         try:
             return self.to_string(format=format_spec)
         except ValueError:
@@ -2457,9 +2454,6 @@ class CompositeUnit(UnitBase):
         self._scale = sanitize_scale_value(scale)
 
     def __copy__(self) -> CompositeUnit:
-        """
-        For compatibility with python copy module.
-        """
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
     def decompose(self, bases=set()):

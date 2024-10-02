@@ -118,9 +118,6 @@ class QuantityIterator:
         self._dataiter[index] = self._quantity._to_own_unit(value)
 
     def __next__(self):
-        """
-        Return the next value, or raise StopIteration.
-        """
         out = next(self._dataiter)
         # ndarray.flat._dataiter returns scalars, so need a view as a Quantity.
         return self._quantity._new_view(out)
@@ -1200,7 +1197,6 @@ class Quantity(np.ndarray):
 
     # Arithmetic operations
     def __mul__(self, other):
-        """Multiplication between `Quantity` objects and other objects."""
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
@@ -1212,7 +1208,6 @@ class Quantity(np.ndarray):
         return super().__mul__(other)
 
     def __imul__(self, other):
-        """In-place multiplication between `Quantity` objects and others."""
         if isinstance(other, (UnitBase, str)):
             self._set_unit(other * self.unit)
             return self
@@ -1220,13 +1215,9 @@ class Quantity(np.ndarray):
         return super().__imul__(other)
 
     def __rmul__(self, other):
-        """
-        Right Multiplication between `Quantity` objects and other objects.
-        """
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        """Division between `Quantity` objects and other objects."""
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
@@ -1238,7 +1229,6 @@ class Quantity(np.ndarray):
         return super().__truediv__(other)
 
     def __itruediv__(self, other):
-        """Inplace division between `Quantity` objects and other objects."""
         if isinstance(other, (UnitBase, str)):
             self._set_unit(self.unit / other)
             return self
@@ -1246,7 +1236,6 @@ class Quantity(np.ndarray):
         return super().__itruediv__(other)
 
     def __rtruediv__(self, other):
-        """Right Division between `Quantity` objects and other objects."""
         if isinstance(other, (UnitBase, str)):
             return self._new_view(
                 1.0 / self.value, other / self.unit, propagate_info=False
@@ -1358,7 +1347,6 @@ class Quantity(np.ndarray):
             )
 
     def __round__(self, ndigits=0):
-        """Called by built-in function round()"""
         return self.round(decimals=ndigits)
 
     def __index__(self):
