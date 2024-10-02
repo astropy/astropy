@@ -253,7 +253,7 @@ For example, create a table as shown below:
     >>> t = Table(data)  # or Table(rows=data), which is equivalent
 
 
-Before ``7.0`` the table would look like this:
+Before ``7.0`` the table would look like this::
 
      a   b   c
     --- --- ---
@@ -261,7 +261,7 @@ Before ``7.0`` the table would look like this:
      15  20  35
 
 
-Starting with ``7.0`` the table would instead look like this:
+Starting with ``7.0`` the table would instead look like this::
 
      b   c   a
     --- --- ---
