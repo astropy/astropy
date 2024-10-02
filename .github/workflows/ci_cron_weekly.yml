@@ -31,7 +31,7 @@ env:
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'Extra CI')) || (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'Extra CI')))
     env:
       ARCH_ON_CI: "normal"
     strategy:
@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Python 3.12
     # keep condition in sync with test_arm64
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'Extra CI')) || (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'Extra CI')))
     env:
       ARCH_ON_CI: ${{ matrix.arch }}
 
@@ -180,7 +180,9 @@ jobs:
     runs-on: linux-arm64
     name: Python 3.12 (arm64)
     # keep condition in sync with test_more_architectures
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'Extra CI')) || (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'Extra CI')))
+    env:
+      ARCH_ON_CI: "arm64"
 
     steps:
       - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938  # v4.2.0
@@ -191,6 +193,5 @@ jobs:
           python-version: '3.12'
       - name: Set up dependencies
         run: pip install tox
-
       - name: Run tests
         run: tox -e py312-test -- -n=2
