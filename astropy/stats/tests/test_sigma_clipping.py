@@ -515,6 +515,11 @@ def test_sigma_clip_dtypes(dtype):
     arr2 = sigma_clip(arr, cenfunc=np.mean, axis=0, masked=False)
     assert arr2.dtype == arr.dtype
 
+    # Check that int dtype is converted to float32, not float
+    arr = np.ones((10, 10), dtype=int)
+    arr2 = sigma_clip(arr, axis=0, masked=False)
+    assert arr2.dtype == np.float32
+
 
 def test_mad_std():
     # Check with a small array where we know how the result should differ from std
