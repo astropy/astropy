@@ -1065,9 +1065,12 @@ def test_data_noastropy_fallback(monkeypatch):
 
     monkeypatch.setattr(paths, "_find_or_create_root_dir", osraiser)
 
+    # make sure the config dir search fails
     with pytest.raises(OSError):
-        # make sure the config dir search fails
         paths.get_cache_dir(rootname="astropy")
+
+    with pytest.raises(OSError):
+        paths.get_cache_dir_path(rootname="astropy")
 
     with pytest.warns(CacheMissingWarning) as warning_lines:
         fnout = download_file(TESTURL, cache=True)
