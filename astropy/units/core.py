@@ -1487,8 +1487,8 @@ class UnitBase:
         )
 
     def to_system(self, system):
-        """
-        Converts this unit into ones belonging to the given system.
+        """Convert this unit into ones belonging to the given system.
+
         Since more than one result may be possible, a list is always
         returned.
 
@@ -1505,46 +1505,38 @@ class UnitBase:
         Returns
         -------
         units : list of `CompositeUnit`
-            The list is ranked so that units containing only the base
-            units of that system will appear first.
+            With an attempt to sort simpler units to the start (see examples).
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> (u.N / u.m**2).to_system(u.si)  # preference for simpler units
+        [Unit("Pa"), Unit("N / m2"), Unit("J / m3")]
+        >>> u.Pa.to_system(u.cgs)
+        [Unit("10 Ba"), Unit("10 P / s")]
+        >>> u.Ba.to_system(u.si)
+        [Unit("0.1 Pa"), Unit("0.1 N / m2"), Unit("0.1 J / m3")]
+        >>> (u.AU/u.yr).to_system(u.cgs)  # preference for base units
+        [Unit("474047 cm / s"), Unit("474047 Gal s")]
+        >>> (u.m / u.s**2).to_system(u.cgs)
+        [Unit("100 cm / s2"), Unit("100 Gal")]
+
         """
-        bases = set(system.bases)
-
-        def score(compose):
-            # In case that compose._bases has no elements we return
-            # 'np.inf' as 'score value'.  It does not really matter which
-            # number we would return. This case occurs for instance for
-            # dimensionless quantities:
-            compose_bases = compose.bases
-            if len(compose_bases) == 0:
-                return np.inf
-            else:
-                sum = 0
-                for base in compose_bases:
-                    if base in bases:
-                        sum += 1
-
-                return sum / float(len(compose_bases))
-
-        x = self.decompose(bases=bases)
-        composed = x.compose(units=system)
-        composed = sorted(composed, key=score, reverse=True)
-        return composed
+        return sorted(
+            self.decompose(bases=system.bases).compose(units=system),
+            key=lambda x: len(set(x.bases).difference(system.bases)),
+        )
 
     @lazyproperty
     def si(self) -> UnitBase:
-        """
-        Returns a copy of the current `Unit` instance in SI units.
-        """
+        """The unit expressed in terms of SI units."""
         from . import si
 
         return self.to_system(si)[0]
 
     @lazyproperty
     def cgs(self) -> UnitBase:
-        """
-        Returns a copy of the current `Unit` instance with CGS units.
-        """
+        """The unit expressed in terms of CGS units."""
         from . import cgs
 
         return self.to_system(cgs)[0]
