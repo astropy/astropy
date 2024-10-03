@@ -609,11 +609,12 @@ class SigmaClip:
             If ``masked=False`` and ``axis`` is specified, then the
             output `~numpy.ndarray` will have the same shape as the
             input ``data`` and contain ``np.nan`` where values were
-            clipped. If the input ``data`` was a masked array, then the
-            output `~numpy.ndarray` will also contain ``np.nan`` where
-            the input mask was `True`. If ``return_bounds=True`` then
-            the returned minimum and maximum clipping thresholds will be
-            be `~numpy.ndarray`\\s.
+            clipped. In this case, integer-type ``data`` arrays will
+            be converted to `~numpy.float32`. If the input ``data``
+            was a masked array, then the output `~numpy.ndarray` will
+            also contain ``np.nan`` where the input mask was `True`. If
+            ``return_bounds=True`` then the returned minimum and maximum
+            clipping thresholds will be be `~numpy.ndarray`\\s.
         """
         data = np.asanyarray(data)
 
@@ -803,13 +804,15 @@ def sigma_clip(
         have been removed. If ``return_bounds=True`` then the returned
         minimum and maximum thresholds are scalars.
 
-        If ``masked=False`` and ``axis`` is specified, then the output
-        `~numpy.ndarray` will have the same shape as the input ``data``
-        and contain ``np.nan`` where values were clipped. If the input
-        ``data`` was a masked array, then the output `~numpy.ndarray`
-        will also contain ``np.nan`` where the input mask was `True`.
-        If ``return_bounds=True`` then the returned minimum and maximum
-        clipping thresholds will be `~numpy.ndarray`\\s.
+        If ``masked=False`` and ``axis`` is specified, then the
+        output `~numpy.ndarray` will have the same shape as the input
+        ``data`` and contain ``np.nan`` where values were clipped. In
+        this case, integer-type ``data`` arrays will be converted to
+        `~numpy.float32`. If the input ``data`` was a masked array,
+        then the output `~numpy.ndarray` will also contain ``np.nan``
+        where the input mask was `True`. If ``return_bounds=True`` then
+        the returned minimum and maximum clipping thresholds will be
+        `~numpy.ndarray`\\s.
 
     See Also
     --------
