@@ -769,7 +769,7 @@ class Model(metaclass=_ModelMeta):
     def _initialize_setters(self, kwargs):
         """
         This exists to inject defaults for settable properties for models
-        originating from `custom_model`.
+        originating from `~astropy.modeling.custom_model`.
         """
         if hasattr(self, "_settable_properties"):
             setters = {
@@ -1488,7 +1488,8 @@ class Model(metaclass=_ModelMeta):
         >>> model_1d.bounding_box = (-5, 5)
         >>> model_2d.bounding_box = ((-6, 6), (-5, 5))
 
-        Setting the bounding_box limits for a user-defined 3D `custom_model`:
+        Setting the bounding_box limits for a user-defined 3D
+        `~astropy.modeling.custom_model`:
 
         >>> from astropy.modeling.models import custom_model
         >>> def const3d(x, y, z, amp=1):
@@ -2386,9 +2387,10 @@ class Model(metaclass=_ModelMeta):
 
         Returns
         -------
-        `CompoundModel`
-            A `CompoundModel` composed of the current model plus
-            `~astropy.modeling.mappings.UnitsMapping` model(s) that attach the units.
+        `~astropy.modeling.CompoundModel`
+            A `~astropy.modeling.CompoundModel` composed of the current
+            model plus `~astropy.modeling.mappings.UnitsMapping`
+            model(s) that attach the units.
 
         Raises
         ------
@@ -4452,8 +4454,8 @@ def custom_model(*args, fit_deriv=None):
 
 def _custom_model_inputs(func):
     """
-    Processes the inputs to the `custom_model`'s function into the appropriate
-    categories.
+    Processes the inputs to the `~astropy.modeling.custom_model`'s
+    function into the appropriate categories.
 
     Parameters
     ----------
@@ -4468,7 +4470,8 @@ def _custom_model_inputs(func):
     settable_params : dict
         dictionary of defaults for settable model properties
     params : dict
-        dictionary of model parameters set by `custom_model`'s function
+        dictionary of model parameters set by
+        `~astropyl.modeling.custom_model`'s function
     """
     inputs, parameters = get_inputs_and_params(func)
 
@@ -4504,13 +4507,15 @@ def _custom_model_inputs(func):
 
 def _custom_model_wrapper(func, fit_deriv=None):
     """
-    Internal implementation `custom_model`.
+    Internal implementation `~astropy.modeling.custom_model`.
 
-    When `custom_model` is called as a function its arguments are passed to
-    this function, and the result of this function is returned.
+    When `~astropy.modeling.custom_model` is called as a function its
+    arguments are passed to this function, and the result of this
+    function is returned.
 
-    When `custom_model` is used as a decorator a partial evaluation of this
-    function is returned by `custom_model`.
+    When `~astropy.modeling.custom_model` is used as a decorator
+    a partial evaluation of this function is returned by
+    `~astropy.modeling.custom_model`.
     """
     if not callable(func):
         raise ModelDefinitionError(
