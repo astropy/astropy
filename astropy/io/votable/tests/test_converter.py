@@ -58,6 +58,34 @@ def test_unicode_mask():
     assert c.output("Foo", True) == ""
 
 
+def test_warning_decoding_bad_ascii_characters_var():
+    config = {}
+    field = tree.Field(None, name="c", datatype="char", arraysize="*", config=config)
+    c = converters.get_converter(field, config=config)
+    stream = io.BytesIO(bytes([0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x81])).read
+    with pytest.warns(exceptions.W55) as w:
+        c.binparse(stream, config)
+    assert len(w) == 1
+
+
+def test_warning_decoding_bad_ascii_characters_fixed():
+    config = {}
+    field = tree.Field(None, name="c", datatype="char", arraysize="6", config=config)
+    c = converters.get_converter(field, config=config)
+    stream = io.BytesIO(bytes([0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x81])).read
+    with pytest.warns(exceptions.W55) as w:
+        c.binparse(stream, config)
+    assert len(w) == 1
+
+
+def test_ignore_warning_decoding_bad_ascii_characters():
+    config = {"verify": "ignore"}
+    field = tree.Field(None, name="c", datatype="char", arraysize="6", config=config)
+    c = converters.get_converter(field, config=config)
+    stream = io.BytesIO(bytes([0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x81])).read
+    assert c.binparse(stream, config) == ("hello\udc81", False)
+
+
 def test_unicode_as_char():
     config = {"verify": "exception"}
     field = tree.Field(

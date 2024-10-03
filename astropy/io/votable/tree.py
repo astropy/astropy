@@ -2899,7 +2899,9 @@ class TableElement(
                                         buf = io.BytesIO(rawdata)
                                         buf.seek(0)
                                         try:
-                                            value, mask_value = binparsers[i](buf.read)
+                                            value, mask_value = binparsers[i](
+                                                buf.read, config=config
+                                            )
                                         except Exception as e:
                                             vo_reraise(
                                                 e,
@@ -3075,7 +3077,7 @@ class TableElement(
 
                 for i, binparse in enumerate(binparsers):
                     try:
-                        value, value_mask = binparse(careful_read)
+                        value, value_mask = binparse(careful_read, config)
                     except EOFError:
                         raise
                     except Exception as e:

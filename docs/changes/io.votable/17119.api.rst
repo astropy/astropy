@@ -1,0 +1,3 @@
+Trying to decode bad ascii values when parsing VOTable data in binary was not possible.
+Now it will emit a W55 warning, which also means that it's possible to ignore that warning and
+still get a VOTable as result.

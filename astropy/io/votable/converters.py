@@ -251,7 +251,7 @@ class Converter:
         """
         raise NotImplementedError("This datatype must implement a 'output' method.")
 
-    def binparse(self, read):
+    def binparse(self, read, *, config=None):
         """
         Reads some number of bytes from the BINARY_ format
         representation by calling the function *read*, and returns the
@@ -263,6 +263,9 @@ class Converter:
         read : function
             A function that given a number of bytes, returns a byte
             string.
+
+        config : dict
+            The parser configuration dictionary
 
         Returns
         -------
@@ -370,17 +373,27 @@ class Char(Converter):
 
         return xml_escape_cdata(value)
 
-    def _binparse_var(self, read):
+    def _binparse_var(self, read, config):
         length = self._parse_length(read)
-        return read(length).decode("ascii"), False
+        data = read(length)
+        try:
+            decoded = data.decode("ascii")
+        except UnicodeDecodeError:
+            vo_warn(W55, (self.field_name, data), config=config)
+            decoded = data.decode("ascii", errors="surrogateescape")
+        return decoded, False
 
-    def _binparse_fixed(self, read):
+    def _binparse_fixed(self, read, config):
         s = struct.unpack(self._struct_format, read(self.arraysize))[0]
         end = s.find(_zero_byte)
-        s = s.decode("ascii")
+        try:
+            decoded = s.decode("ascii")
+        except UnicodeDecodeError:
+            vo_warn(W55, (self.field_name, s), config=config)
+            decoded = s.decode("ascii", errors="surrogateescape")
         if end != -1:
-            return s[:end], False
-        return s, False
+            return decoded[:end], False
+        return decoded, False
 
     def _binoutput_var(self, value, mask):
         if mask or value is None or value == "":
@@ -444,11 +457,11 @@ class UnicodeChar(Converter):
             return ""
         return xml_escape_cdata(str(value))
 
-    def _binparse_var(self, read):
+    def _binparse_var(self, read, config=None):
         length = self._parse_length(read)
         return read(length * 2).decode("utf_16_be"), False
 
-    def _binparse_fixed(self, read):
+    def _binparse_fixed(self, read, config=None):
         s = struct.unpack(self._struct_format, read(self.arraysize * 2))[0]
         s = s.decode("utf_16_be")
         end = s.find("\0")
@@ -514,14 +527,14 @@ class VarArray(Array):
         result = [output(x, m) for x, m in np.broadcast(value, mask)]
         return " ".join(result)
 
-    def binparse(self, read):
+    def binparse(self, read, config=None):
         length = self._parse_length(read)
 
         result = []
         result_mask = []
         binparse = self._base.binparse
         for i in range(length):
-            val, mask = binparse(read)
+            val, mask = binparse(read, config)
             result.append(val)
             result_mask.append(mask)
 
@@ -647,7 +660,7 @@ class NumericArray(Array):
             func = zip
         return " ".join(base_output(x, m) for x, m in func(value.flat, mask.flat))
 
-    def binparse(self, read):
+    def binparse(self, read, config=None):
         result = np.frombuffer(read(self._memsize), dtype=self._bigendian_format)[0]
         result_mask = self._base.is_null(result)
         return result, result_mask
@@ -679,7 +692,7 @@ class Numeric(Converter):
         else:
             self.is_null = np.isnan
 
-    def binparse(self, read):
+    def binparse(self, read, config=None):
         result = np.frombuffer(read(self._memsize), dtype=self._bigendian_format)
         return result[0], self.is_null(result[0])
 
@@ -1107,7 +1120,7 @@ class BitArray(NumericArray):
         mapping = {False: "0", True: "1"}
         return "".join(mapping[x] for x in value.flat)
 
-    def binparse(self, read):
+    def binparse(self, read, config=None):
         data = read(self._bytes)
         result = bitarray_to_bool(data, self._items)
         result = result.reshape(self._arraysize)
@@ -1156,7 +1169,7 @@ class Bit(Converter):
         else:
             return "0"
 
-    def binparse(self, read):
+    def binparse(self, read, config=None):
         data = read(1)
         return (ord(data) & 0x8) != 0, False
 
@@ -1176,13 +1189,13 @@ class BooleanArray(NumericArray):
 
     vararray_type = ArrayVarArray
 
-    def binparse(self, read):
+    def binparse(self, read, config=None):
         data = read(self._items)
         binparse = self._base.binparse_value
         result = []
         result_mask = []
         for char in data:
-            value, mask = binparse(char)
+            value, mask = binparse(char, config)
             result.append(value)
             result_mask.append(mask)
         result = np.array(result, dtype="b1").reshape(self._arraysize)
@@ -1239,7 +1252,7 @@ class Boolean(Converter):
             return "T"
         return "F"
 
-    def binparse(self, read):
+    def binparse(self, read, config=None):
         value = ord(read(1))
         return self.binparse_value(value)
 
@@ -1255,7 +1268,7 @@ class Boolean(Converter):
         ord("?"): (False, True),
     }
 
-    def binparse_value(self, value):
+    def binparse_value(self, value, config=None):
         try:
             return self._binparse_mapping[value]
         except KeyError:
