@@ -28,6 +28,10 @@ def teardown_module():
 def test_paths():
     assert "astropy" in paths.get_config_dir()
     assert "astropy" in paths.get_cache_dir()
+    assert str(paths.get_config_dir_path()) == paths.get_config_dir()
+    assert str(paths.get_cache_dir_path()) == paths.get_cache_dir()
+    assert paths.get_config_dir_path().is_absolute()
+    assert paths.get_cache_dir_path().is_absolute()
 
     assert "testpkg" in paths.get_config_dir(rootname="testpkg")
     assert "testpkg" in paths.get_cache_dir(rootname="testpkg")
@@ -47,6 +51,7 @@ def test_set_temp_config(tmp_path, monkeypatch):
     @paths.set_temp_config(temp_config_dir)
     def test_func():
         assert paths.get_config_dir(rootname="astropy") == str(temp_astropy_config)
+        assert paths.get_config_dir_path(rootname="astropy") == temp_astropy_config
 
         # Test temporary restoration of original default
         with paths.set_temp_config() as d:
@@ -57,6 +62,7 @@ def test_set_temp_config(tmp_path, monkeypatch):
     # Test context manager mode (with cleanup)
     with paths.set_temp_config(temp_config_dir, delete=True):
         assert paths.get_config_dir(rootname="astropy") == str(temp_astropy_config)
+        assert paths.get_config_dir_path(rootname="astropy") == temp_astropy_config
 
     assert not temp_config_dir.exists()
     # Check that we have returned to our old configuration.
@@ -414,9 +420,12 @@ def test_config_noastropy_fallback(monkeypatch):
     # also have to make sure the stored configuration objects are cleared
     monkeypatch.setattr(configuration, "_cfgobjs", {})
 
+    # make sure the config dir search fails
     with pytest.raises(OSError):
-        # make sure the config dir search fails
         paths.get_config_dir(rootname="astropy")
+
+    with pytest.raises(OSError):
+        paths.get_config_dir_path(rootname="astropy")
 
     # now run the basic tests, and make sure the warning about no astropy
     # is present

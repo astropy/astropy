@@ -525,7 +525,7 @@ class AstropyLogger(Logger):
             try:
                 if log_file_path == "" or testing_mode:
                     log_file_path = (
-                        Path(_config.get_config_dir("astropy")) / "astropy.log"
+                        _config.get_config_dir_path("astropy") / "astropy.log"
                     )
                 else:
                     log_file_path = Path(log_file_path).expanduser()
