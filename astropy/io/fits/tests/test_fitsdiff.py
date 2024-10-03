@@ -77,28 +77,32 @@ class TestFITSDiff_script(FitsTestCase):
         numdiff = fitsdiff.main([tmp_a, tmp_b])
         out, err = capsys.readouterr()
         assert numdiff == 1
-        assert out.splitlines()[-4:] == [
+        assert out.splitlines()[-6:] == [
             "        a> 9",
             "        b> 10",
             "     ...",
             "     100 different pixels found (100.00% different).",
+            "     Maximum relative difference: 1.0",
+            "     Maximum absolute difference: 1.0",
         ]
 
         numdiff = fitsdiff.main(["-n", "1", tmp_a, tmp_b])
         out, err = capsys.readouterr()
         assert numdiff == 1
-        assert out.splitlines()[-4:] == [
+        assert out.splitlines()[-6:] == [
             "        a> 0",
             "        b> 1",
             "     ...",
             "     100 different pixels found (100.00% different).",
+            "     Maximum relative difference: 1.0",
+            "     Maximum absolute difference: 1.0",
         ]
 
     def test_outputfile(self):
         a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
-        b[1, 0] = 12
+        b[1, 0] = 20
         hdu_b = PrimaryHDU(data=b)
         tmp_a = self.temp("testa.fits")
         tmp_b = self.temp("testb.fits")
@@ -109,11 +113,13 @@ class TestFITSDiff_script(FitsTestCase):
         assert numdiff == 1
         with open(self.temp("diff.txt")) as f:
             out = f.read()
-        assert out.splitlines()[-4:] == [
+        assert out.splitlines()[-6:] == [
             "     Data differs at [1, 2]:",
             "        a> 10",
-            "        b> 12",
+            "        b> 20",
             "     1 different pixels found (1.00% different).",
+            "     Maximum relative difference: 0.5",
+            "     Maximum absolute difference: 10.0",
         ]
 
     def test_atol(self):
@@ -150,7 +156,7 @@ class TestFITSDiff_script(FitsTestCase):
         a = np.arange(100, dtype=float).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
-        b[1, 0] = 11
+        b[1, 0] = 20
         hdu_b = PrimaryHDU(data=b)
         tmp_a = self.temp("testa.fits")
         tmp_b = self.temp("testb.fits")
@@ -173,10 +179,12 @@ Primary HDU:
    Data contains differences:
      Data differs at [1, 2]:
         a> 10.0
-         ?  ^
-        b> 11.0
-         ?  ^
+         ? ^
+        b> 20.0
+         ? ^
      1 different pixels found (1.00% different).
+     Maximum relative difference: 0.5
+     Maximum absolute difference: 10.0
 """
         )
         assert err == ""

@@ -53,7 +53,7 @@ _COL_ATTRS = [
 
 def _get_differences(a, b):
     relative = abs(b - a) / abs(b)
-    absolute = abs(b - 1)
+    absolute = float(abs(b - a))
     return relative, absolute
 
 
@@ -1140,8 +1140,8 @@ class ImageDataDiff(_BaseDiff):
             f" {self.diff_total} different pixels found "
             f"({self.diff_ratio:.2%} different)."
         )
-        self._writeln(f" Maximum relative difference: {max_relative}.")
-        self._writeln(f" Maximum absolute difference: {max_absolute}.")
+        self._writeln(f" Maximum relative difference: {max_relative}")
+        self._writeln(f" Maximum absolute difference: {max_absolute}")
 
 
 class RawDataDiff(ImageDataDiff):
