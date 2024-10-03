@@ -110,3 +110,17 @@ jobs:
         - name: (Allowed Failure) Python 3.12 with remote data and dev version of key dependencies
           linux: py312-test-devdeps
           posargs: --remote-data=any --verbose
+
+  test_wheel_building:
+    needs: [initial_checks]
+    # This ensures that a couple of wheel targets work fine in pull requests and pushes
+    permissions:
+      contents: none
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@924441154cf3053034c6513d5e06c69d262fb9a6  # v1.13.0
+    with:
+      upload_to_pypi: false
+      upload_to_anaconda: false
+      test_extras: test
+      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
+      targets: |
+        - cp311-manylinux_x86_64

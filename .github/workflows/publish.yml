@@ -10,8 +10,6 @@ on:
     # We also want this workflow triggered if the 'Build all wheels' label is added
     # or present when PR is updated
     types:
-      - opened
-      - reopened
       - synchronize
       - labeled
 
@@ -23,21 +21,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
-  test_wheel_building:
-    # This ensures that a couple of targets work fine in pull requests and pushes
-    permissions:
-      contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@924441154cf3053034c6513d5e06c69d262fb9a6  # v1.13.0
-    if: (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'labeled'))
-    with:
-      upload_to_pypi: false
-      upload_to_anaconda: false
-      test_extras: test
-      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
-      targets: |
-        - cp311-manylinux_x86_64
-
   build_and_publish:
     # This does the actual wheel building and publishing as part of the cron job
     # or if triggered manually via the workflow dispatch, or for a tag.
