@@ -1349,3 +1349,86 @@ def test_hdu_lazy_loading(tmp_path):
                 assert_equal(hdulist[idx + 1].data, idx)
                 assert hdulist[idx + 1].data.shape == (2**idx, 2**idx)
                 fileobj.seek(0)
+
+
+@pytest.mark.parametrize(
+    "init_kwargs, expected_zflags",
+    [
+        pytest.param(
+            dict(quantize_level=-32, data=np.array([0.0])),
+            {
+                "ZNAME1": "BLOCKSIZE",
+                "ZVAL1": 32,
+                "ZNAME2": "BYTEPIX",
+                "ZVAL2": 4,
+                "ZNAME3": "NOISEBIT",
+                "ZVAL3": -32,
+                "ZCMPTYPE": "RICE_1",
+                "ZQUANTIZ": "NO_DITHER",
+            },
+            id="quantize_level_w_data",
+        ),
+        pytest.param(
+            dict(quantize_level=-32),
+            {
+                "ZNAME1": "BLOCKSIZE",
+                "ZVAL1": 32,
+                "ZNAME2": "BYTEPIX",
+                "ZVAL2": 4,
+                "ZNAME3": "NOISEBIT",
+                "ZVAL3": -32,
+                "ZCMPTYPE": "RICE_1",
+                "ZQUANTIZ": "NO_DITHER",
+            },
+            id="quantize_level_wo_data",
+        ),
+        pytest.param(
+            dict(quantize_method=2, dither_seed=1, data=np.array([0.0])),
+            {
+                "ZNAME1": "BLOCKSIZE",
+                "ZVAL1": 32,
+                "ZNAME2": "BYTEPIX",
+                "ZVAL2": 4,
+                "ZNAME3": "NOISEBIT",
+                "ZVAL3": 16,
+                "ZCMPTYPE": "RICE_1",
+                "ZQUANTIZ": "SUBTRACTIVE_DITHER_2",
+            },
+            id="quantize_level_dither_seed_w_data",
+        ),
+        pytest.param(
+            dict(quantize_method=2, dither_seed=1),
+            {
+                "ZNAME1": "BLOCKSIZE",
+                "ZVAL1": 32,
+                "ZNAME2": "BYTEPIX",
+                "ZVAL2": 4,
+                "ZNAME3": "NOISEBIT",
+                "ZVAL3": 16,
+                "ZCMPTYPE": "RICE_1",
+                "ZQUANTIZ": "SUBTRACTIVE_DITHER_2",
+            },
+            id="quantize_level_dither_seed_wo_data",
+        ),
+    ],
+)
+def test_compression_options_with_mutated_data(
+    init_kwargs,
+    expected_zflags,
+    tmp_path,
+):
+    # see https://github.com/astropy/astropy/issues/12216
+    prng = np.random.default_rng(seed=0)
+    data = prng.random((50, 30)).astype("float32")
+
+    hdu = fits.CompImageHDU(**init_kwargs)
+    hdu.data = data.copy()
+
+    hdul = fits.HDUList([fits.PrimaryHDU(), hdu])
+    hdul.writeto(tmp_path / "t.fits")
+
+    with fits.open(tmp_path / "t.fits", disable_image_compression=True) as hdul2:
+        hdr = hdul2[1].header
+
+    zflags = {k: hdr[k] for k in expected_zflags}
+    assert zflags == expected_zflags
