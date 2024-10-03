@@ -195,8 +195,8 @@ class _ModelMeta(abc.ABCMeta):
         """
         The name of this model class--equivalent to ``cls.__name__``.
 
-        This attribute is provided for symmetry with the `Model.name` attribute
-        of model instances.
+        This attribute is provided for symmetry with the
+        `~astropy.modeling.Model.name` attribute of model instances.
         """
         return cls.__name__
 
@@ -1431,9 +1431,9 @@ class Model(metaclass=_ModelMeta):
     def inverse(self, value):
         if not isinstance(value, (Model, type(None))):
             raise ValueError(
-                "The ``inverse`` attribute may be assigned a `Model` "
-                "instance or `None` (where `None` explicitly forces the "
-                "model to have no inverse."
+                "The inverse attribute may be assigned a Model instance "
+                "or None (where None explicitly forces the model to have "
+                "no inverse."
             )
 
         self._user_inverse = value
@@ -1819,8 +1819,8 @@ class Model(metaclass=_ModelMeta):
         Evaluate a model at fixed positions, respecting the ``bounding_box``.
 
         The key difference relative to evaluating the model directly is that
-        this method is limited to a bounding box if the `Model.bounding_box`
-        attribute is set.
+        this method is limited to a bounding box if the
+        `~astropy.modeling.Model.bounding_box` attribute is set.
 
         Parameters
         ----------
@@ -1833,23 +1833,26 @@ class Model(metaclass=_ModelMeta):
             ``self(coords)`` yields the same shape as ``out``.  If ``out`` is
             not specified, ``coords`` will be used to determine the shape of
             the returned array. If this is not provided (or None), the model
-            will be evaluated on a grid determined by `Model.bounding_box`.
+            will be evaluated on a grid determined by
+            `~astropy.modeling.Model.bounding_box`.
 
         Returns
         -------
         out : `numpy.ndarray`
-            The model added to ``out`` if  ``out`` is not ``None``, or else a
-            new array from evaluating the model over ``coords``.
-            If ``out`` and ``coords`` are both `None`, the returned array is
-            limited to the `Model.bounding_box` limits. If
-            `Model.bounding_box` is `None`, ``arr`` or ``coords`` must be
-            passed.
+            The model added to ``out`` if ``out`` is not ``None``,
+            or else a new array from evaluating the model
+            over ``coords``. If ``out`` and ``coords`` are
+            both `None`, the returned array is limited to the
+            `~astropy.modeling.Model.bounding_box` limits. If
+            `~astropy.modeling.Model.bounding_box` is `None`, ``arr`` or
+            ``coords`` must be passed.
 
         Raises
         ------
         ValueError
-            If ``coords`` are not given and the `Model.bounding_box` of
-            this model is not set.
+            If ``coords`` are not given and the
+            `~astropy.modeling.Model.bounding_box` of this model is not
+            set.
 
         Examples
         --------
@@ -2366,11 +2369,11 @@ class Model(metaclass=_ModelMeta):
         input_units : dict or tuple, optional
             Input units to attach.  If dict, each key is the name of a model input,
             and the value is the unit to attach.  If tuple, the elements are units
-            to attach in order corresponding to `Model.inputs`.
+            to attach in order corresponding to `~astropy.modeling.Model.inputs`.
         return_units : dict or tuple, optional
             Output units to attach.  If dict, each key is the name of a model output,
             and the value is the unit to attach.  If tuple, the elements are units
-            to attach in order corresponding to `Model.outputs`.
+            to attach in order corresponding to `~astropy.modeling.Model.outputs`.
         input_units_equivalencies : dict, optional
             Default equivalencies to apply to input values.  If set, this should be a
             dictionary where each key is a string that corresponds to one of the
@@ -2512,8 +2515,9 @@ class Model(metaclass=_ModelMeta):
 
     def _initialize_constraints(self, kwargs):
         """
-        Pop parameter constraint values off the keyword arguments passed to
-        `Model.__init__` and store them in private instance attributes.
+        Pop parameter constraint values off the keyword arguments passed
+        to `~astropy.modeling.Model.__init__` and store them in private
+        instance attributes.
         """
         # Pop any constraints off the keyword arguments
         for constraint in self.parameter_constraints:
@@ -2969,10 +2973,10 @@ class FittableModel(Model):
     # derivative with respect to parameters
     fit_deriv = None
     """
-    Function (similar to the model's `~Model.evaluate`) to compute the
-    derivatives of the model with respect to its parameters, for use by fitting
-    algorithms.  In other words, this computes the Jacobian matrix with respect
-    to the model's parameters.
+    Function (similar to the model's `~astropy.modeling.Model.evaluate`)
+    to compute the derivatives of the model with respect to its
+    parameters, for use by fitting algorithms. In other words, this
+    computes the Jacobian matrix with respect to the model's parameters.
     """
     # Flag that indicates if the model derivatives with respect to parameters
     # are given in columns or rows
@@ -3914,9 +3918,9 @@ class CompoundModel(Model):
         """
         Evaluate a model at fixed positions, respecting the ``bounding_box``.
 
-        The key difference relative to evaluating the model directly is that
-        this method is limited to a bounding box if the `Model.bounding_box`
-        attribute is set.
+        The key difference relative to evaluating the model directly
+        is that this method is limited to a bounding box if the
+        `~astropy.modeling.Model.bounding_box` attribute is set.
 
         Parameters
         ----------
@@ -3929,7 +3933,8 @@ class CompoundModel(Model):
             ``self(coords)`` yields the same shape as ``out``.  If ``out`` is
             not specified, ``coords`` will be used to determine the shape of
             the returned array. If this is not provided (or None), the model
-            will be evaluated on a grid determined by `Model.bounding_box`.
+            will be evaluated on a grid determined by
+            `~astropy.modeling.Model.bounding_box`.
 
         Returns
         -------
@@ -3937,15 +3942,16 @@ class CompoundModel(Model):
             The model added to ``out`` if  ``out`` is not ``None``, or else a
             new array from evaluating the model over ``coords``.
             If ``out`` and ``coords`` are both `None`, the returned array is
-            limited to the `Model.bounding_box` limits. If
-            `Model.bounding_box` is `None`, ``arr`` or ``coords`` must be
-            passed.
+            limited to the `~astropy.modeling.Model.bounding_box`
+            limits. If `~astropy.modeling.Model.bounding_box` is `None`,
+            ``arr`` or ``coords`` must be passed.
 
         Raises
         ------
         ValueError
-            If ``coords`` are not given and the `Model.bounding_box` of
-            this model is not set.
+            If ``coords`` are not given and the
+            `~astropy.modeling.Model.bounding_box` of this model is not
+            set.
 
         Examples
         --------
@@ -4556,12 +4562,13 @@ def _custom_model_wrapper(func, fit_deriv=None):
 
 def render_model(model, arr=None, coords=None):
     """
-    Evaluates a model on an input array. Evaluation is limited to
-    a bounding box if the `Model.bounding_box` attribute is set.
+    Evaluates a model on an input array. Evaluation is limited to a
+    bounding box if the `~astropy.modeling.Model.bounding_box` attribute
+    is set.
 
     Parameters
     ----------
-    model : `Model`
+    model : `~astropy.modeling.Model`
         Model to be evaluated.
     arr : `numpy.ndarray`, optional
         Array on which the model is evaluated.
@@ -4575,8 +4582,9 @@ def render_model(model, arr=None, coords=None):
         The model evaluated on the input ``arr`` or a new array from
         ``coords``.
         If ``arr`` and ``coords`` are both `None`, the returned array is
-        limited to the `Model.bounding_box` limits. If
-        `Model.bounding_box` is `None`, ``arr`` or ``coords`` must be passed.
+        limited to the `~astropy.modeling.Model.bounding_box` limits.
+        If `~astropy.modeling.Model.bounding_box` is `None`, ``arr`` or
+        ``coords`` must be passed.
 
     Examples
     --------
