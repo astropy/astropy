@@ -30,6 +30,7 @@ from .quantity_helper.function_helpers import (
     DISPATCHED_FUNCTIONS,
     FUNCTION_HELPERS,
     SUBCLASS_SAFE_FUNCTIONS,
+    UNIT_FROM_LIKE_ARG,
     UNSUPPORTED_FUNCTIONS,
 )
 from .structured import StructuredUnit, _structured_unit_like_dtype
@@ -1932,6 +1933,12 @@ class Quantity(np.ndarray):
                 AstropyWarning,
             )
             return super().__array_function__(function, types, args, kwargs)
+
+        if unit is UNIT_FROM_LIKE_ARG:
+            # fallback mechanism for NEP 35 functions that dispatch on the 'like'
+            # argument (i.e. self, in this context), in cases where no other
+            # argument provides a unit
+            unit = self.unit
 
         # If unit is None, a plain array is expected (e.g., boolean), which
         # means we're done.

@@ -94,6 +94,12 @@ For most, masked input simply makes no sense, but for others it may have
 been lack of time.  Issues or PRs for support for functions are welcome.
 """
 
+
+SUPPORTED_NEP35_FUNCTIONS = set()
+"""Set of supported numpy functions with a 'like' keyword argument that dispatch
+on it (NEP 35).
+"""
+
 # Almost all from np.core.fromnumeric defer to methods so are OK.
 MASKED_SAFE_FUNCTIONS |= {
     getattr(np, name)
