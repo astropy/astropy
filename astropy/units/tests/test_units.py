@@ -256,9 +256,9 @@ def test_register():
     assert "foo" not in u.get_current_unit_registry().registry
 
 
-def test_in_units():
-    speed_unit = u.cm / u.s
-    _ = speed_unit.in_units(u.pc / u.hour, 1)
+def test_in_units_deprecation():
+    with pytest.warns(AstropyDeprecationWarning, match=r"Use to\(\) instead\.$"):
+        assert (u.m / u.s).in_units(u.cm / u.s) == 100
 
 
 def test_null_unit():

@@ -1210,6 +1210,7 @@ class UnitBase:
         else:
             return self.get_converter(Unit(other), equivalencies)(value)
 
+    @deprecated(since="7.0", alternative="to()")
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
         Alias for `to` for backward compatibility with pynbody.
