@@ -440,14 +440,14 @@ def _block(arrays, max_depth, result_ndim, depth=0):
 
 if NUMPY_LT_2_0:
     @dispatched_function
-    def arange(*args, start=None, stop=None, step=None, dtype=None, like=None):
-        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, like=like)
+    def arange(*args, start=None, stop=None, step=None, dtype=None):
+        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype)
 else:
     @dispatched_function
-    def arange(*args, start=None, stop=None, step=None, dtype=None, device=None, like=None):
-        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, device=device, like=like)
+    def arange(*args, start=None, stop=None, step=None, dtype=None, device=None):
+        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, device=device)
 
-def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None, like=None):
+def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None):
     from astropy.units import Quantity
 
     # NumPy is supposed to validate the input parameters before this dispatched
@@ -455,11 +455,10 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None
     # sanity checks in the form of `assert` statements.
     # As they are not part of the business logic, it is fine if they are
     # compiled-away (e.g. the Python interpreter runs with -O)
-    assert like is None
+    assert len(args) <= 4
 
     # bind positional arguments to their meaningful names
     # following the (complex) logic of np.arange
-    assert len(args) <= 4
     match args:
         case pos1,:
             assert stop is None or start is None
