@@ -75,8 +75,7 @@ get_config_dir.__doc__ = (
     + """
     See Also
     --------
-    get_config_dir_path:
-        same as this function, except that the return value is a pathlib.Path
+    get_config_dir_path : same as this function, except that the return value is a pathlib.Path
 
     """
 )
@@ -139,8 +138,7 @@ get_cache_dir.__doc__ = (
     + """
     See Also
     --------
-    get_cache_dir_path:
-        same as this function, except that the return value is a pathlib.Path
+    get_cache_dir_path : same as this function, except that the return value is a pathlib.Path
 
     """
 )
