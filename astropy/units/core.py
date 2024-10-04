@@ -646,11 +646,9 @@ class UnitBase:
         return unit_format.Latex.to_string(self)
 
     def __bytes__(self) -> bytes:
-        """Return string representation for unit."""
         return unit_format.Generic.to_string(self).encode("unicode_escape")
 
     def __str__(self) -> str:
-        """Return string representation for unit."""
         return unit_format.Generic.to_string(self)
 
     def __repr__(self) -> str:
@@ -671,50 +669,38 @@ class UnitBase:
 
     @property
     def names(self) -> list[str]:
-        """
-        Returns all of the names associated with this unit.
-        """
+        """All the names associated with the unit."""
         raise AttributeError(
             "Can not get names from unnamed units. Perhaps you meant to_string()?"
         )
 
     @property
     def name(self) -> str:
-        """
-        Returns the canonical (short) name associated with this unit.
-        """
+        """The canonical (short) name associated with the unit."""
         raise AttributeError(
             "Can not get names from unnamed units. Perhaps you meant to_string()?"
         )
 
     @property
     def aliases(self) -> list[str]:
-        """
-        Returns the alias (long) names for this unit.
-        """
+        """The aliases (long) names for the unit."""
         raise AttributeError(
             "Can not get aliases from unnamed units. Perhaps you meant to_string()?"
         )
 
     @property
     def scale(self) -> UnitScale:
-        """
-        Return the scale of the unit.
-        """
+        """The scale of the unit."""
         return 1.0
 
     @property
     def bases(self) -> list[UnitBase]:
-        """
-        Return the bases of the unit.
-        """
+        """The bases of the unit."""
         return [self]
 
     @property
     def powers(self) -> list[UnitPower]:
-        """
-        Return the powers of the unit.
-        """
+        """The powers of the bases of the unit."""
         return [1]
 
     def to_string(
@@ -726,9 +712,9 @@ class UnitBase:
 
         Parameters
         ----------
-        format : `astropy.units.format.Base` subclass or str
+        format : `astropy.units.format.Base` subclass or str or None
             The name of a format or a formatter class.  If not
-            provided, defaults to the generic format.
+            provided (or `None`), defaults to the generic format.
 
         **kwargs
             Further options forwarded to the formatter. Currently
@@ -767,7 +753,6 @@ class UnitBase:
         return f.to_string(self, **kwargs)
 
     def __format__(self, format_spec: str) -> str:
-        """Try to format units using a formatter."""
         try:
             return self.to_string(format=format_spec)
         except ValueError:
@@ -966,8 +951,7 @@ class UnitBase:
         return self * -1.0
 
     def is_equivalent(self, other, equivalencies=[]):
-        """
-        Returns `True` if this unit is equivalent to ``other``.
+        """Check whether this unit is equivalent to ``other``.
 
         Parameters
         ----------
@@ -1740,9 +1724,7 @@ class UnitBase:
         return self.EquivalentUnitsList(results)
 
     def is_unity(self) -> bool:
-        """
-        Returns `True` if the unit is unscaled and dimensionless.
-        """
+        """Check whether the unit is unscaled and dimensionless."""
         return False
 
 
@@ -1860,37 +1842,27 @@ class NamedUnit(UnitBase):
 
     @property
     def names(self) -> list[str]:
-        """
-        Returns all of the names associated with this unit.
-        """
+        """All the names associated with the unit."""
         return self._names
 
     @property
     def name(self) -> str:
-        """
-        Returns the canonical (short) name associated with this unit.
-        """
+        """The canonical (short) name associated with the unit."""
         return self._names[0]
 
     @property
     def aliases(self) -> list[str]:
-        """
-        Returns the alias (long) names for this unit.
-        """
+        """The aliases (long) names for the unit."""
         return self._names[1:]
 
     @property
     def short_names(self) -> list[str]:
-        """
-        Returns all of the short names associated with this unit.
-        """
+        """All the short names associated with the unit."""
         return self._short_names
 
     @property
     def long_names(self) -> list[str]:
-        """
-        Returns all of the long names associated with this unit.
-        """
+        """All the long names associated with the unit."""
         return self._long_names
 
     def _inject(self, namespace=None):
@@ -2397,23 +2369,17 @@ class CompositeUnit(UnitBase):
 
     @property
     def scale(self) -> UnitScale:
-        """
-        Return the scale of the composite unit.
-        """
+        """The scale of the composite unit."""
         return self._scale
 
     @property
     def bases(self) -> list[UnitBase]:
-        """
-        Return the bases of the composite unit.
-        """
+        """The bases of the composite unit."""
         return self._bases
 
     @property
     def powers(self) -> list[UnitPower]:
-        """
-        Return the powers of the composite unit.
-        """
+        """The powers of the bases of the composite unit."""
         return self._powers
 
     def _expand_and_gather(self, decompose=False, bases=set()):
@@ -2458,9 +2424,6 @@ class CompositeUnit(UnitBase):
         self._scale = sanitize_scale_value(scale)
 
     def __copy__(self) -> CompositeUnit:
-        """
-        For compatibility with python copy module.
-        """
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
     def decompose(self, bases=set()):
@@ -2597,8 +2560,11 @@ def def_unit(
     exclude_prefixes=[],
     namespace=None,
 ):
-    """
-    Factory function for defining new units.
+    """Define a new unit.
+
+    This function differs from creating units directly with `Unit` or
+    `IrreducibleUnit` because it can also automatically generate prefixed
+    units in the given namespace.
 
     Parameters
     ----------
