@@ -1909,7 +1909,14 @@ class Quantity(np.ndarray):
             except NotImplementedError:
                 return self._not_implemented_or_raise(function, types)
 
-            result = super().__array_function__(function, types, args, kwargs)
+            try:
+                result = super().__array_function__(function, types, args, kwargs)
+            except AttributeError as e:
+                if "_implementation" not in str(e):
+                    raise
+                # numpy bug, see https://github.com/numpy/numpy/issues/27500
+                result = function(*args, **kwargs)
+
             # Fall through to return section
 
         elif function in DISPATCHED_FUNCTIONS:
