@@ -1422,13 +1422,11 @@ def test_compression_options_with_mutated_data(
     data = prng.random((50, 30)).astype("float32")
 
     hdu = fits.CompImageHDU(**init_kwargs)
-    hdu.data = data.copy()
+    hdu.data = data
 
-    hdul = fits.HDUList([fits.PrimaryHDU(), hdu])
-    hdul.writeto(tmp_path / "t.fits")
+    hdu.writeto(tmp_path / "t.fits")
 
-    with fits.open(tmp_path / "t.fits", disable_image_compression=True) as hdul2:
-        hdr = hdul2[1].header
+    hdr = fits.getheader(tmp_path / "t.fits", ext=1, disable_image_compression=True)
 
     zflags = {k: hdr[k] for k in expected_zflags}
     assert zflags == expected_zflags
