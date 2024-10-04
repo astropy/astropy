@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   benchmark:
-    if: github.repository == 'astropy/astropy' && contains(github.event.pull_request.labels.*.name, 'benchmark')
+    if: (github.repository == 'astropy/astropy' && ((github.event_name == 'pull_request' && github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'benchmark')) || (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'benchmark')))
     name: "Compare asv with astropy main"
     runs-on: ubuntu-latest
     env:
