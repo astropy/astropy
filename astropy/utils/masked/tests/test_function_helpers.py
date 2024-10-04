@@ -35,6 +35,7 @@ from astropy.utils.masked.function_helpers import (
     DISPATCHED_FUNCTIONS,
     IGNORED_FUNCTIONS,
     MASKED_SAFE_FUNCTIONS,
+    SUPPORTED_NEP35_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
 
@@ -1754,7 +1755,10 @@ untested_functions |= poly_functions
 
 def test_basic_testing_completeness():
     assert all_wrapped_functions == (
-        tested_functions | IGNORED_FUNCTIONS | UNSUPPORTED_FUNCTIONS
+        tested_functions
+        | IGNORED_FUNCTIONS
+        | UNSUPPORTED_FUNCTIONS
+        | SUPPORTED_NEP35_FUNCTIONS
     )
 
 
