@@ -446,15 +446,15 @@ def _block(arrays, max_depth, result_ndim, depth=0):
 UNIT_FROM_LIKE_ARG = object()
 
 if NUMPY_LT_2_0:
-    @dispatched_function
+    @function_helper
     def arange(*args, start=None, stop=None, step=None, dtype=None):
         return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype)
 else:
-    @dispatched_function
+    @function_helper
     def arange(*args, start=None, stop=None, step=None, dtype=None, device=None):
         return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, device=device)
 
-def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None):
+def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
 
     # NumPy is supposed to validate the input parameters before this dispatched
     # function is reached. Nevertheless, we'll sprinkle a few rundundant
@@ -482,13 +482,6 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None
                 case step, dtype:
                     pass
 
-    if not hasattr(stop, "unit") and (hasattr(start, "unit") or hasattr(step, "unit")):
-        raise TypeError(
-            "stop without a unit cannot be combined with start or step having a unit"
-        )
-
-    out_unit = getattr(stop, "unit", UNIT_FROM_LIKE_ARG)
-
     # as the only required argument, we want stop to set the unit of the output
     # so it's important that it comes first in the qty_kwargs
     qty_kwargs = {
@@ -496,55 +489,47 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None
         for k, v in (("stop", stop), ("start", start), ("step", step))
         if v is not None
     }
+    out_unit = getattr(stop, "unit", UNIT_FROM_LIKE_ARG)
+    if out_unit is UNIT_FROM_LIKE_ARG:
+        if hasattr(start, "unit") or hasattr(step, "unit"):
+            raise TypeError(
+                "stop without a unit cannot be combined with "
+                "start or step with a unit."
+            )
+        kwargs.update(qty_kwargs)
+    else:
+        # Convert possible start, step to stop units.
+        new_values, _ = _quantities2arrays(*qty_kwargs.values())
+        kwargs.update(zip(qty_kwargs.keys(), new_values))
 
-    new_values, _ = _quantities2arrays(*qty_kwargs.values())
-    kwargs = dict(zip(qty_kwargs.keys(), new_values))
     kwargs["dtype"] = dtype
-    if not NUMPY_LT_2_0:
-        kwargs["device"] = device
-
-    return np.arange(**kwargs), out_unit, None
+    return (), kwargs, out_unit, None
 
 
 if NUMPY_LT_2_0:
-    @dispatched_function
-    def empty(shape, dtype=None, order='C'):
-        ret_arr = np.empty(shape, dtype, order)
-        return ret_arr, UNIT_FROM_LIKE_ARG, None
+    @function_helper(helps={np.empty, np.ones, np.zeros})
+    def creation_helper(shape, dtype=None, order='C'):
+        return (shape, dtype, order), {}, UNIT_FROM_LIKE_ARG, None
 else:
-    @dispatched_function
-    def empty(shape, dtype=None, order='C', *, device=None):
-        ret_arr = np.empty(shape, dtype, order, device=device)
-        return ret_arr, UNIT_FROM_LIKE_ARG, None
+    @function_helper(helps={np.empty, np.ones, np.zeros})
+    def creation_helper(shape, dtype=None, order='C', *, device=None):
+        return (shape, dtype, order), {"device": device}, UNIT_FROM_LIKE_ARG, None
+
 
 if NUMPY_LT_2_0:
-    @dispatched_function
-    def ones(shape, dtype=None, order='C'):
-        ret_arr = np.ones(shape, dtype, order)
-        return ret_arr, UNIT_FROM_LIKE_ARG, None
-else:
-    @dispatched_function
-    def ones(shape, dtype=None, order='C', *, device=None):
-        ret_arr = np.ones(shape, dtype, order, device=device)
-        return ret_arr, UNIT_FROM_LIKE_ARG, None
-
-@dispatched_function
-def zeros(shape, dtype=None, order='C'):
-    return np.zeros(shape, dtype, order), UNIT_FROM_LIKE_ARG, None
-
-if NUMPY_LT_2_0:
-    @dispatched_function
+    @function_helper
     def full(shape, fill_value, dtype=None, order='C'):
-        ret_arr = np.full(shape, fill_value, dtype, order)
-        out_unit = getattr(fill_value, "unit", UNIT_FROM_LIKE_ARG)
-        return ret_arr, out_unit, None
+        return full_impl(shape, fill_value, dtype, order)
 else:
-    @dispatched_function
+    @function_helper
     def full(shape, fill_value, dtype=None, order='C', *, device=None):
-        ret_arr = np.full(shape, fill_value, dtype, order, device=device)
-        out_unit = getattr(fill_value, "unit", UNIT_FROM_LIKE_ARG)
-        return ret_arr, out_unit, None
+        return full_impl(shape, fill_value, dtype, order, device=device)
 
+def full_impl(shape, fill_value, *args, **kwargs):
+    out_unit = getattr(fill_value, "unit", UNIT_FROM_LIKE_ARG)
+    if out_unit is not UNIT_FROM_LIKE_ARG:
+        fill_value = _as_quantity(fill_value).value
+    return (shape, fill_value) + args, kwargs, out_unit, None
 
 
 @dispatched_function
