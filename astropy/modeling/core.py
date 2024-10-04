@@ -1635,18 +1635,49 @@ class Model(metaclass=_ModelMeta):
         """
         model = self.copy()
 
-        for i, comp in enumerate(model):
-            inputs_unit = comp.input_units
-            outputs_unit = comp.output_units
+        if not isinstance(model, CompoundModel):
+            inputs_unit = {
+                inp: getattr(kwargs[inp], "unit", dimensionless_unscaled)
+                for inp in self.inputs
+                if kwargs[inp] is not None
+            }
 
-            parameter_units = comp._parameter_units_for_data_units(
+            outputs_unit = {
+                out: getattr(kwargs[out], "unit", dimensionless_unscaled)
+                for out in self.outputs
+                if kwargs[out] is not None
+            }
+            parameter_units = self._parameter_units_for_data_units(
                 inputs_unit, outputs_unit
             )
             for name, unit in parameter_units.items():
-                parameter = getattr(model, f"{name}_{i}")
+                parameter = getattr(model, name)
                 if parameter.unit is not None:
                     parameter.value = parameter.quantity.to(unit).value
                     parameter._set_unit(None, force=True)
+        else:
+            for i, comp in enumerate(model):
+                inputs_unit = {
+                    inp: kwargs[inp].unit
+                    if comp.input_units is None
+                    else comp.input_units[inp]
+                    for inp in comp.inputs
+                }
+                outputs_unit = {
+                    out: kwargs[out].unit
+                    if comp.output_units is None
+                    else comp.output_units[out]
+                    for out in comp.outputs
+                }
+
+                parameter_units = comp._parameter_units_for_data_units(
+                    inputs_unit, outputs_unit
+                )
+                for name, unit in parameter_units.items():
+                    parameter = getattr(model, f"{name}_{i}")
+                    if parameter.unit is not None:
+                        parameter.value = parameter.quantity.to(unit).value
+                        parameter._set_unit(None, force=True)
 
         if isinstance(model, CompoundModel):
             model.strip_units_from_tree()
@@ -1717,17 +1748,20 @@ class Model(metaclass=_ModelMeta):
         units for each parameter.
         """
         model = self.copy()
-        for i, comp in enumerate(model):
+        if not isinstance(model, CompoundModel):
             inputs_unit = {
-                inp: kwargs[inp].unit if i == 0 else comp.input_units
-                for inp in comp.inputs
-            }
-            outputs_unit = {
-                out: kwargs[out].unit if kwargs[out] is None else comp.output_units[out]
-                for out in comp.outputs
+                inp: getattr(kwargs[inp], "unit", dimensionless_unscaled)
+                for inp in self.inputs
+                if kwargs[inp] is not None
             }
 
-            parameter_units = comp._parameter_units_for_data_units(
+            outputs_unit = {
+                out: getattr(kwargs[out], "unit", dimensionless_unscaled)
+                for out in self.outputs
+                if kwargs[out] is not None
+            }
+
+            parameter_units = model._parameter_units_for_data_units(
                 inputs_unit, outputs_unit
             )
 
@@ -1735,10 +1769,33 @@ class Model(metaclass=_ModelMeta):
             # don't want to convert the parameter, just add the unit directly,
             # hence the call to ``_set_unit``.
             for name, unit in parameter_units.items():
-                parameter = getattr(model, f"{name}_{i}")
+                parameter = getattr(model, name)
                 parameter._set_unit(unit, force=True)
+        else:
+            for i, comp in enumerate(model):
+                inputs_unit = {
+                    inp: kwargs[inp].unit if i == 0 else comp.input_units[inp]
+                    for inp in comp.inputs
+                }
+                outputs_unit = {
+                    out: kwargs[out].unit
+                    if kwargs[out] is None
+                    else comp.output_units[out]
+                    for out in comp.outputs
+                }
 
-            return model
+                parameter_units = comp._parameter_units_for_data_units(
+                    inputs_unit, outputs_unit
+                )
+
+                # We are adding units to parameters that already have a value, but we
+                # don't want to convert the parameter, just add the unit directly,
+                # hence the call to ``_set_unit``.
+                for name, unit in parameter_units.items():
+                    parameter = getattr(model, f"{name}_{i}")
+                    parameter._set_unit(unit, force=True)
+
+        return model
 
     @property
     def _has_units(self):

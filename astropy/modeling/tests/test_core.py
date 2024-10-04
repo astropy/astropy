@@ -1642,3 +1642,16 @@ def test_reset_parameters_compound():
         ),
     ):
         c._reset_parameters(amplitude_0=np.ones((2, 3, 4)), stddev_0=np.ones((8,)))
+
+
+def test_without_units_for_data_compound():
+    phys = models.Linear1D(slope=-4 * u.ph / u.keV, intercept=100 * u.ph)
+    phys.output_units = {"y": u.ph}
+    response = models.Linear1D(slope=1 * u.ct / u.ph, intercept=0 * u.ct)
+    response.output_units = {"y": u.ct}
+    comb = phys | response
+    comb_without_units = comb.without_units_for_data()
+    comb_with_units = comb.with_units_from_data(x=1 * u.keV, y=1 * u.ct)
+    for name in comb.param_names:
+        assert getattr(comb, name).value == getattr(comb_with_units, name).value
+        assert getattr(comb, name).unit == getattr(comb_with_units, name).unit
