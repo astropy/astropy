@@ -69,6 +69,7 @@ SUPPORTED_NEP35_FUNCTIONS = {
     # xref https://github.com/numpy/numpy/issues/27451
     np.arange,
     np.empty, np.ones, np.zeros, np.full,
+    np.array, np.asarray, np.asanyarray, np.ascontiguousarray, np.asfortranarray,
 }  # fmt: skip
 """Functions that support a 'like' keyword argument and dispatch on it (NEP 35)"""
 UNSUPPORTED_FUNCTIONS = set()
@@ -531,6 +532,45 @@ def full_impl(shape, fill_value, *args, **kwargs):
         fill_value = _as_quantity(fill_value).value
     return (shape, fill_value) + args, kwargs, out_unit, None
 
+@function_helper
+def array(object, dtype=None, *, copy=True, order='K', subok=False, ndmin=0):
+    out_unit = getattr(object, "unit", UNIT_FROM_LIKE_ARG)
+    if out_unit is not UNIT_FROM_LIKE_ARG:
+        object = _as_quantity(object).value
+    kwargs = {"copy": copy, "order": order, "subok":subok, "ndmin": ndmin}
+    return (object, dtype), kwargs, out_unit, None
+
+if NUMPY_LT_2_0:
+    asarray_impl_1_helps = {np.asarray, np.asanyarray}
+    asarray_impl_2_helps = {}
+elif NUMPY_LT_2_1:
+    asarray_impl_1_helps = {np.asanyarray}
+    asarray_impl_2_helps = {np.asarray}
+else:
+    asarray_impl_1_helps = {}
+    asarray_impl_2_helps = {np.asarray, np.asanyarray}
+
+@function_helper(helps=asarray_impl_1_helps)
+def asarray_impl_1(a, dtype=None, order=None):
+    out_unit = getattr(a, "unit", UNIT_FROM_LIKE_ARG)
+    if out_unit is not UNIT_FROM_LIKE_ARG:
+        a = _as_quantity(a).value
+    return (a, dtype, order), {}, out_unit, None
+
+@function_helper(helps=asarray_impl_2_helps)
+def asarray_impl_2(a, dtype=None, order=None, *, device=None, copy=None):
+    out_unit = getattr(a, "unit", UNIT_FROM_LIKE_ARG)
+    if out_unit is not UNIT_FROM_LIKE_ARG:
+        a = _as_quantity(a).value
+    return (a, dtype, order), {"device": device, "copy":copy}, out_unit, None
+
+
+@function_helper(helps={np.ascontiguousarray, np.asfortranarray})
+def aslayoutarray_helper(a, dtype=None):
+    out_unit = getattr(a, "unit", UNIT_FROM_LIKE_ARG)
+    if out_unit is not UNIT_FROM_LIKE_ARG:
+        a = _as_quantity(a).value
+    return (a, dtype), {}, out_unit, None
 
 @dispatched_function
 def block(arrays):
