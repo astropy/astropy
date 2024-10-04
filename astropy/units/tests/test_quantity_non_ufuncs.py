@@ -18,6 +18,7 @@ from astropy.units.quantity_helper.function_helpers import (
     FUNCTION_HELPERS,
     IGNORED_FUNCTIONS,
     SUBCLASS_SAFE_FUNCTIONS,
+    SUPPORTED_NEP35_FUNCTIONS,
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
@@ -419,7 +420,7 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         ],
     )
     def test_arange(self, args, kwargs, expected):
-        arr = np.arange(*args, **kwargs, like=u.Quantity([], u.rad))
+        arr = np.arange(*args, **kwargs, like=u.Quantity([], u.degree))
         assert type(arr) is u.Quantity
         assert arr.unit == u.radian
         assert arr.dtype == expected.dtype
@@ -444,11 +445,17 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert arr.dtype == np.dtype(int)
         assert_array_equal(arr.value, np.arange(10))
 
-    def test_arange_incorrect_input_type(self):
+    def test_arange_default_unit(self):
+        arr = np.arange(10, like=u.Quantity([], u.s))
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.s
+
+    def test_arange_invalid_inputs(self):
         with pytest.raises(
-            TypeError, match="Expected stop to be a Quantity, got stop="
+            TypeError,
+            match="stop without a unit cannot be combined with start or step",
         ):
-            np.arange(10, like=u.Quantity([], u.s))
+            np.arange(0 * u.radian, 10, like=u.Quantity([], u.s))
 
     def test_arange_unit_from_stop(self):
         Q = 1 * u.km
@@ -457,6 +464,34 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert a.unit == u.min
         assert b.unit == u.min
         assert_array_equal(a.value, b.value)
+
+    def test_empty(self):
+        Q = 1 * u.km
+        arr = np.empty((2, 2), like=Q)
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.km
+
+    def test_ones(self):
+        Q = 1 * u.km
+        arr = np.ones((2, 2), like=Q)
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.km
+
+    def test_zeros(self):
+        Q = 1 * u.km
+        arr = np.zeros((2, 2), like=Q)
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.km
+
+    def test_full(self):
+        Q = 1 * u.km
+        arr1 = np.full((2, 2), 2, like=Q)
+        assert type(arr1) is u.Quantity
+        assert arr1.unit == u.km
+
+        arr2 = np.full((2, 2), 2 * u.s, like=Q)
+        assert type(arr2) is u.Quantity
+        assert arr2.unit == u.s
 
 
 class TestAccessingParts(InvariantUnitTestSetup):
@@ -2685,6 +2720,9 @@ class TestRecFunctions:
 all_wrapped_functions = get_wrapped_functions(
     np, np.fft, np.linalg, np.lib.recfunctions
 )
+all_wrapped_functions |= (
+    SUPPORTED_NEP35_FUNCTIONS  # ref https://github.com/numpy/numpy/issues/27451
+)
 tested_functions = get_covered_functions(locals())
 untested_functions = set()
 deprecated_functions = set()
@@ -2705,12 +2743,6 @@ rec_functions = {
     rfn.recursive_fill_fields, rfn.require_fields,
 }  # fmt: skip
 untested_functions |= rec_functions
-
-all_wrapped_functions |= {
-    # implemented NEP 35 functions
-    # xref https://github.com/numpy/numpy/issues/27451
-    np.arange,
-}
 
 
 @needs_array_function
@@ -2813,6 +2845,11 @@ class CheckSignatureCompatibilityBase:
                         f"helper is not re-exposing argument {nt!r} properly: "
                         f"expected {kt}, got {kh}"
                     )
+                elif nt == "like":
+                    # special case for NEP35 functions:
+                    # this argument doesn't need to be re-exposed because
+                    # it is not passed down to dispatched functions
+                    pass
                 elif kt is KEYWORD_ONLY:
                     assert (
                         have_kwargs_helper

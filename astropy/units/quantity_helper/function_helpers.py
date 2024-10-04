@@ -65,6 +65,12 @@ FUNCTION_HELPERS = {}
 """Functions with implementations usable with proper unit conversion."""
 DISPATCHED_FUNCTIONS = {}
 """Functions for which we provide our own implementation."""
+SUPPORTED_NEP35_FUNCTIONS = {
+    # xref https://github.com/numpy/numpy/issues/27451
+    np.arange,
+    np.empty, np.ones, np.zeros, np.full,
+}  # fmt: skip
+"""Functions that support a 'like' keyword argument and dispatch on it (NEP 35)"""
 UNSUPPORTED_FUNCTIONS = set()
 """Functions that cannot sensibly be used with quantities."""
 SUBCLASS_SAFE_FUNCTIONS |= {
@@ -437,29 +443,28 @@ def _block(arrays, max_depth, result_ndim, depth=0):
     else:
         return np_core.shape_base._atleast_nd(arrays, result_ndim)
 
+UNIT_FROM_LIKE_ARG = object()
 
 if NUMPY_LT_2_0:
-    @dispatched_function
-    def arange(*args, start=None, stop=None, step=None, dtype=None, like=None):
-        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, like=like)
+    @function_helper
+    def arange(*args, start=None, stop=None, step=None, dtype=None):
+        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype)
 else:
-    @dispatched_function
-    def arange(*args, start=None, stop=None, step=None, dtype=None, device=None, like=None):
-        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, device=device, like=like)
+    @function_helper
+    def arange(*args, start=None, stop=None, step=None, dtype=None, device=None):
+        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, device=device)
 
-def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None, like=None):
-    from astropy.units import Quantity
+def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
 
     # NumPy is supposed to validate the input parameters before this dispatched
     # function is reached. Nevertheless, we'll sprinkle a few rundundant
     # sanity checks in the form of `assert` statements.
     # As they are not part of the business logic, it is fine if they are
     # compiled-away (e.g. the Python interpreter runs with -O)
-    assert like is None
+    assert len(args) <= 4
 
     # bind positional arguments to their meaningful names
     # following the (complex) logic of np.arange
-    assert len(args) <= 4
     match args:
         case pos1,:
             assert stop is None or start is None
@@ -477,9 +482,6 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None
                 case step, dtype:
                     pass
 
-    if not isinstance(stop, Quantity):
-        raise TypeError(f"Expected stop to be a Quantity, got {stop=} ({type(stop)=}")
-
     # as the only required argument, we want stop to set the unit of the output
     # so it's important that it comes first in the qty_kwargs
     qty_kwargs = {
@@ -487,14 +489,47 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, device=None
         for k, v in (("stop", stop), ("start", start), ("step", step))
         if v is not None
     }
+    out_unit = getattr(stop, "unit", UNIT_FROM_LIKE_ARG)
+    if out_unit is UNIT_FROM_LIKE_ARG:
+        if hasattr(start, "unit") or hasattr(step, "unit"):
+            raise TypeError(
+                "stop without a unit cannot be combined with "
+                "start or step with a unit."
+            )
+        kwargs.update(qty_kwargs)
+    else:
+        # Convert possible start, step to stop units.
+        new_values, _ = _quantities2arrays(*qty_kwargs.values())
+        kwargs.update(zip(qty_kwargs.keys(), new_values))
 
-    new_values, out_unit = _quantities2arrays(*qty_kwargs.values(), unit_from_first=True)
-    kwargs = dict(zip(qty_kwargs.keys(), new_values))
     kwargs["dtype"] = dtype
-    if not NUMPY_LT_2_0:
-        kwargs["device"] = device
+    return (), kwargs, out_unit, None
 
-    return np.arange(**kwargs), out_unit, None
+
+if NUMPY_LT_2_0:
+    @function_helper(helps={np.empty, np.ones, np.zeros})
+    def creation_helper(shape, dtype=None, order='C'):
+        return (shape, dtype, order), {}, UNIT_FROM_LIKE_ARG, None
+else:
+    @function_helper(helps={np.empty, np.ones, np.zeros})
+    def creation_helper(shape, dtype=None, order='C', *, device=None):
+        return (shape, dtype, order), {"device": device}, UNIT_FROM_LIKE_ARG, None
+
+
+if NUMPY_LT_2_0:
+    @function_helper
+    def full(shape, fill_value, dtype=None, order='C'):
+        return full_impl(shape, fill_value, dtype, order)
+else:
+    @function_helper
+    def full(shape, fill_value, dtype=None, order='C', *, device=None):
+        return full_impl(shape, fill_value, dtype, order, device=device)
+
+def full_impl(shape, fill_value, *args, **kwargs):
+    out_unit = getattr(fill_value, "unit", UNIT_FROM_LIKE_ARG)
+    if out_unit is not UNIT_FROM_LIKE_ARG:
+        fill_value = _as_quantity(fill_value).value
+    return (shape, fill_value) + args, kwargs, out_unit, None
 
 
 @dispatched_function
