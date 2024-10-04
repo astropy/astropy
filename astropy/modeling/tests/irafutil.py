@@ -3,6 +3,8 @@
 This module provides functions to help with testing against iraf tasks.
 """
 
+from pathlib import Path
+
 import numpy as np
 
 from astropy.logger import log
@@ -16,16 +18,14 @@ def get_records(fname):
 
     Parameters
     ----------
-    fname : str
+    fname : str | PathLike
            name of an IRAF database file
 
     Returns
     -------
         A list of records
     """
-    f = open(fname)
-    dtb = f.read()
-    f.close()
+    dtb = Path(fname).read_text()
     recs = dtb.split("begin")[1:]
     records = [Record(r) for r in recs]
     return records
@@ -37,17 +37,14 @@ def get_database_string(fname):
 
     Parameters
     ----------
-    fname : str
+    fname : str | PathLike
           name of an IRAF database file
 
     Returns
     -------
         the database file as a string
     """
-    f = open(fname)
-    dtb = f.read()
-    f.close()
-    return dtb
+    return Path(fname).read_text()
 
 
 class Record:
