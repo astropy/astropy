@@ -9,10 +9,17 @@ import sys
 from functools import wraps
 from pathlib import Path
 
-__all__ = ["get_config_dir", "get_cache_dir", "set_temp_config", "set_temp_cache"]
+__all__ = [
+    "get_config_dir",
+    "get_config_dir_path",
+    "get_cache_dir",
+    "get_cache_dir_path",
+    "set_temp_config",
+    "set_temp_cache",
+]
 
 
-def get_config_dir(rootname: str = "astropy") -> str:
+def get_config_dir_path(rootname: str = "astropy") -> Path:
     """
     Determines the package configuration directory name and creates the
     directory if it doesn't exist.
@@ -31,7 +38,7 @@ def get_config_dir(rootname: str = "astropy") -> str:
 
     Returns
     -------
-    configdir : str
+    configdir : Path
         The absolute path to the configuration directory.
 
     """
@@ -43,7 +50,7 @@ def get_config_dir(rootname: str = "astropy") -> str:
         xch = set_temp_config._temp_path
         config_path = xch / rootname
         config_path.mkdir(exist_ok=True)
-        return str(config_path.resolve())
+        return config_path.resolve()
 
     # first look for XDG_CONFIG_HOME
     if (
@@ -52,14 +59,29 @@ def get_config_dir(rootname: str = "astropy") -> str:
         and not (xchpth := xch / rootname).is_symlink()
     ):
         if xchpth.exists():
-            return str(xchpth.resolve())
+            return xchpth.resolve()
         else:
             linkto = xchpth
 
-    return str(_find_or_create_root_dir("config", linkto, rootname))
+    return _find_or_create_root_dir("config", linkto, rootname)
 
 
-def get_cache_dir(rootname: str = "astropy") -> str:
+def get_config_dir(rootname: str = "astropy") -> str:
+    return str(get_config_dir_path(rootname))
+
+
+get_config_dir.__doc__ = (
+    get_config_dir_path.__doc__
+    + """
+    See Also
+    --------
+    get_config_dir_path : same as this function, except that the return value is a pathlib.Path
+
+    """
+)
+
+
+def get_cache_dir_path(rootname: str = "astropy") -> Path:
     """
     Determines the Astropy cache directory name and creates the directory if it
     doesn't exist.
@@ -78,7 +100,7 @@ def get_cache_dir(rootname: str = "astropy") -> str:
 
     Returns
     -------
-    cachedir : str
+    cachedir : Path
         The absolute path to the cache directory.
 
     """
@@ -91,7 +113,7 @@ def get_cache_dir(rootname: str = "astropy") -> str:
         cache_path = xch / rootname
         if not cache_path.is_file():
             cache_path.mkdir(exist_ok=True)
-        return str(cache_path.resolve())
+        return cache_path.resolve()
 
     # first look for XDG_CACHE_HOME
     if (
@@ -100,11 +122,26 @@ def get_cache_dir(rootname: str = "astropy") -> str:
         and not (xchpth := xch / rootname).is_symlink()
     ):
         if xchpth.exists():
-            return str(xchpth.resolve())
+            return xchpth.resolve()
         else:
             linkto = xchpth
 
-    return str(_find_or_create_root_dir("cache", linkto, rootname))
+    return _find_or_create_root_dir("cache", linkto, rootname)
+
+
+def get_cache_dir(rootname: str = "astropy") -> str:
+    return str(get_cache_dir_path(rootname))
+
+
+get_cache_dir.__doc__ = (
+    get_cache_dir_path.__doc__
+    + """
+    See Also
+    --------
+    get_cache_dir_path : same as this function, except that the return value is a pathlib.Path
+
+    """
+)
 
 
 class _SetTempPath:

@@ -24,7 +24,7 @@ from astropy.extern.configobj import configobj, validate
 from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
-from .paths import get_config_dir
+from .paths import get_config_dir_path
 
 __all__ = (
     "InvalidConfigurationItemWarning",
@@ -611,7 +611,7 @@ def get_config(packageormod=None, reload=False, rootname=None):
                 cfgfn = Path(_override_config_file)
             else:
                 cfgfn = (
-                    Path(get_config_dir(rootname=rootname))
+                    get_config_dir_path(rootname=rootname)
                     .joinpath(pkgname)
                     .with_suffix(".cfg")
                 )
