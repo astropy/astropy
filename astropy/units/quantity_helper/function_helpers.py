@@ -563,7 +563,7 @@ def asarray_impl_2(a, dtype=None, order=None, *, device=None, copy=None):
     out_unit = getattr(a, "unit", UNIT_FROM_LIKE_ARG)
     if out_unit is not UNIT_FROM_LIKE_ARG:
         a = _as_quantity(a).value
-    return (a, dtype, order), {"device": device, "copy":copy}, out_unit, None
+    return (a, dtype, order), {"device": device, "copy": copy}, out_unit, None
 
 
 @function_helper(helps={np.ascontiguousarray, np.asfortranarray})
