@@ -465,33 +465,59 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert b.unit == u.min
         assert_array_equal(a.value, b.value)
 
+
+class TestArrayCreation(BasicTestSetup):
+    def check(self, func, *args, skip_equality_check=False, **kwargs):
+        o = func(*args, **kwargs, like=self.q)
+        assert type(o) is type(self.q)
+        assert o.unit == self.q.unit
+        if skip_equality_check:
+            return
+        expected = func(*args, **kwargs) << self.q.unit
+        assert_array_equal(o, expected)
+
     def test_empty(self):
-        Q = 1 * u.km
-        arr = np.empty((2, 2), like=Q)
-        assert type(arr) is u.Quantity
-        assert arr.unit == u.km
+        self.check(np.empty, (2, 2), skip_equality_check=True)
 
     def test_ones(self):
-        Q = 1 * u.km
-        arr = np.ones((2, 2), like=Q)
-        assert type(arr) is u.Quantity
-        assert arr.unit == u.km
+        self.check(np.ones, (2, 2))
 
     def test_zeros(self):
-        Q = 1 * u.km
-        arr = np.zeros((2, 2), like=Q)
-        assert type(arr) is u.Quantity
-        assert arr.unit == u.km
+        self.check(np.zeros, (2, 2))
 
     def test_full(self):
+        self.check(np.full, (2, 2), 2)
+
+    def test_full_unit_from_fill_value(self):
         Q = 1 * u.km
         arr1 = np.full((2, 2), 2, like=Q)
-        assert type(arr1) is u.Quantity
-        assert arr1.unit == u.km
-
         arr2 = np.full((2, 2), 2 * u.s, like=Q)
         assert type(arr2) is u.Quantity
         assert arr2.unit == u.s
+        assert_array_equal(arr2.value, arr1.value)
+
+    def test_array(self):
+        self.check(np.array, np.arange(10))
+
+    def test_array_unit_from_data(self):
+        # check that input unit takes precedent over like arg
+        Q = np.arange(10) << u.km
+        arr2 = np.array(Q.value << u.cm, like=Q)
+        assert type(arr2) is u.Quantity
+        assert arr2.unit == u.cm
+        assert_array_equal(arr2.value, Q.value)
+
+    def test_asarray(self):
+        self.check(np.asarray, np.arange(10))
+
+    def test_asanyarray(self):
+        self.check(np.asanyarray, np.arange(10))
+
+    def test_ascontiguousarray(self):
+        self.check(np.ascontiguousarray, np.arange(10))
+
+    def test_asfortranarray(self):
+        self.check(np.asfortranarray, np.arange(10))
 
 
 class TestAccessingParts(InvariantUnitTestSetup):
