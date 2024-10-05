@@ -70,6 +70,7 @@ SUPPORTED_NEP35_FUNCTIONS = {
     np.arange,
     np.empty, np.ones, np.zeros, np.full,
     np.array, np.asarray, np.asanyarray, np.ascontiguousarray, np.asfortranarray,
+    np.frombuffer, np.fromfile, np.fromfunction, np.fromiter, np.fromstring,
 }  # fmt: skip
 """Functions that support a 'like' keyword argument and dispatch on it (NEP 35)"""
 UNSUPPORTED_FUNCTIONS = set()
@@ -571,6 +572,20 @@ def aslayoutarray_helper(a, dtype=None):
     if out_unit is not UNIT_FROM_LIKE_ARG:
         a = _as_quantity(a).value
     return (a, dtype), {}, out_unit, None
+
+@function_helper(helps={np.frombuffer, np.fromfile, np.fromiter, np.fromstring})
+def fromrawdata_helper(*args, **kwargs):
+    return args, kwargs, UNIT_FROM_LIKE_ARG, None
+
+@function_helper
+def fromfunction(function, shape, *, dtype=float, **kwargs):
+    zero_arg = (0,) * len(shape)
+    try:
+        out_unit = function(*zero_arg).unit
+    except Exception:
+        out_unit = UNIT_FROM_LIKE_ARG
+    return (function, shape), {"dtype": dtype, **kwargs}, out_unit, None
+
 
 @dispatched_function
 def block(arrays):
