@@ -519,6 +519,37 @@ class TestArrayCreation(BasicTestSetup):
     def test_asfortranarray(self):
         self.check(np.asfortranarray, np.arange(10))
 
+    def test_frombuffer(self):
+        self.check(np.frombuffer, b"\x01\x02\x03", dtype=np.uint8)
+
+    def test_fromfile(self, tmp_path):
+        arr = np.arange(10)
+        test_file = tmp_path / "arr.npy"
+        arr.tofile(test_file)
+        self.check(np.fromfile, test_file)
+
+    def test_fromfunction(self):
+        self.check(np.fromfunction, lambda i, j: i * j, (3, 3))
+
+    def test_fromfunction_unit_from_retv(self):
+        Q = [1, 2, 3] << u.cm
+        arr = np.fromfunction(lambda i, j: (i * j) << u.s, (3, 3), like=Q)
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.s
+
+    def test_fromiter(self):
+        it = (i * i for i in range(3))
+        self.check(
+            np.fromiter,
+            it,
+            dtype=np.dtype((int, 3)),
+            # cannot generate another array after consuming the iterator
+            skip_equality_check=True,
+        )
+
+    def test_fromstring(self):
+        self.check(np.fromstring, "1 2 3", sep=" ")
+
 
 class TestAccessingParts(InvariantUnitTestSetup):
     def test_diag(self):
