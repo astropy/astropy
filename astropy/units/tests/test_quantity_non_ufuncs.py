@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import itertools
+from io import StringIO
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -496,6 +497,9 @@ class TestArrayCreation(BasicTestSetup):
         assert arr2.unit == u.s
         assert_array_equal(arr2.value, arr1.value)
 
+    def test_require(self):
+        self.check(np.require, np.arange(10))
+
     def test_array(self):
         self.check(np.array, np.arange(10))
 
@@ -519,14 +523,22 @@ class TestArrayCreation(BasicTestSetup):
     def test_asfortranarray(self):
         self.check(np.asfortranarray, np.arange(10))
 
-    def test_frombuffer(self):
-        self.check(np.frombuffer, b"\x01\x02\x03", dtype=np.uint8)
+    def test_genfromtxt(self):
+        s = StringIO("1.0,2.0,3.0")
+        self.check(np.genfromtxt, s, delimiter=",", skip_equality_check=True)
+
+    def test_loadtxt(self):
+        s = StringIO("0 1\n2 3")
+        self.check(np.loadtxt, s, skip_equality_check=True)
 
     def test_fromfile(self, tmp_path):
         arr = np.arange(10)
         test_file = tmp_path / "arr.npy"
         arr.tofile(test_file)
         self.check(np.fromfile, test_file)
+
+    def test_frombuffer(self):
+        self.check(np.frombuffer, b"\x01\x02\x03", dtype=np.uint8)
 
     def test_fromfunction(self):
         self.check(np.fromfunction, lambda i, j: i * j, (3, 3))
@@ -549,6 +561,15 @@ class TestArrayCreation(BasicTestSetup):
 
     def test_fromstring(self):
         self.check(np.fromstring, "1 2 3", sep=" ")
+
+    def test_identity(self):
+        self.check(np.identity, 3)
+
+    def test_eye(self):
+        self.check(np.eye, 3)
+
+    def test_tri(self):
+        self.check(np.eye, 3)
 
 
 class TestAccessingParts(InvariantUnitTestSetup):
