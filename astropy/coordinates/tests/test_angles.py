@@ -777,6 +777,18 @@ def test_lon_as_lat():
     assert lat.value[0] == 10.0
 
 
+@pytest.mark.parametrize("lon", ["12.3dW", "12h13m12sE"])
+def test_lon_as_lat_str(lon):
+    with pytest.raises(TypeError, match="Latitude.*cannot be created from a Longitude"):
+        Latitude(lon)
+
+
+@pytest.mark.parametrize("lat", ["12.3dN", "12d13m12sS"])
+def test_lat_as_lon_str(lat):
+    with pytest.raises(TypeError, match="Longitude.*cannot be created from a Latitude"):
+        Longitude(lat)
+
+
 def test_longitude():
     """Test setting and manipulation operations on Longitude angles."""
 
