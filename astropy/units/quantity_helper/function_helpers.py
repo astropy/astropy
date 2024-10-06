@@ -579,7 +579,7 @@ def fromrawdata_helper(*args, **kwargs):
 
 @function_helper
 def fromfunction(function, shape, *, dtype=float, **kwargs):
-    zero_arg = (0,) * len(shape)
+    zero_arg = np.zeros(len(shape), dtype)
     try:
         out_unit = function(*zero_arg).unit
     except Exception:

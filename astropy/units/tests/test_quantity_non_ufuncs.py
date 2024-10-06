@@ -538,7 +538,7 @@ class TestArrayCreation(BasicTestSetup):
         assert arr.unit == u.s
 
     def test_fromiter(self):
-        it = (i * j for i, j in zip(range(3), range(3), strict=True))
+        it = (i * i for i in range(3))
         self.check(
             np.fromiter,
             it,
