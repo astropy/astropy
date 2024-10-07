@@ -3,6 +3,7 @@
 
 import operator
 import pickle
+from contextlib import nullcontext
 from fractions import Fraction
 
 import numpy as np
@@ -227,6 +228,48 @@ def test_unknown_unit3():
 
     with pytest.raises(TypeError):
         u.Unit(None)
+
+
+@pytest.mark.parametrize(
+    "parse_strict,expectation",
+    [
+        pytest.param("silent", nullcontext(), id="silent"),
+        pytest.param(
+            "warn",
+            pytest.warns(u.UnitParserWarning, match=r"meant to be a multiplication,"),
+            id="warn",
+        ),
+        pytest.param(
+            "raise",
+            pytest.raises(ValueError, match=r"was meant to be a multiplication, "),
+            id="raise",
+        ),
+        pytest.param(
+            "error",
+            pytest.raises(
+                ValueError,
+                match=r"^'parse_strict' must be 'warn', 'raise' or 'silent'$",
+            ),
+            id="invalid",
+        ),
+    ],
+)
+def test_parse_strict_noncritical_error(parse_strict, expectation):
+    with expectation:
+        assert u.Unit("m(s)", format="ogip", parse_strict=parse_strict) == u.m * u.s
+
+
+def test_parse_strict_noncritical_error_default():
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"^if 'm\(s\)' was meant to be a multiplication, it should have been "
+            r"written as 'm \(s\)'\.\n"
+            "If you cannot change the unit string then try specifying the "
+            r"'parse_strict' argument\.$"
+        ),
+    ):
+        assert u.Unit("m(s)", format="ogip")
 
 
 def test_invalid_scale():
