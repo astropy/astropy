@@ -8,6 +8,7 @@ __all__ = [
     "UnitScaleError",
     "UnitTypeError",
     "UnitsWarning",
+    "UnitParserWarning",
 ]
 
 from astropy.utils.exceptions import AstropyWarning
@@ -46,3 +47,7 @@ class UnitsWarning(AstropyWarning):
     """
     The base class for unit-specific warnings.
     """
+
+
+class UnitParserWarning(AstropyWarning):
+    """Unit parser warnings"""
