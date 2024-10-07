@@ -2142,7 +2142,7 @@ class Model(metaclass=_ModelMeta):
 
         self._validate_input_shapes(inputs, self.inputs, model_set_axis)
 
-        inputs_map = kwargs.get("inputs_map", None)
+        inputs_map = kwargs.get("inputs_map")
 
         inputs = self._validate_input_units(inputs, equivalencies, inputs_map)
 
@@ -2317,7 +2317,7 @@ class Model(metaclass=_ModelMeta):
         return tuple(outputs)
 
     def prepare_outputs(self, broadcasted_shapes, *outputs, **kwargs):
-        model_set_axis = kwargs.get("model_set_axis", None)
+        model_set_axis = kwargs.get("model_set_axis")
 
         if len(self) == 1:
             return self._prepare_outputs_single_model(outputs, broadcasted_shapes)

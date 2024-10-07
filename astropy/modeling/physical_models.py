@@ -97,7 +97,7 @@ class BlackBody(Fittable1DModel):
     }
 
     def __init__(self, *args, **kwargs):
-        scale = kwargs.get("scale", None)
+        scale = kwargs.get("scale")
 
         # Support scale with non-dimensionless unit by stripping the unit and
         # storing as self._output_units.

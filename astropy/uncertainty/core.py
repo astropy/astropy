@@ -209,7 +209,7 @@ class Distribution:
             if ufunc.nout == 1:
                 outputs = outputs[0]
 
-        axis = kwargs.get("axis", None)
+        axis = kwargs.get("axis")
         keepdims = kwargs.get("keepdims", False)
         if method in {"reduce", "accumulate", "reduceat"}:
             if axis is None:

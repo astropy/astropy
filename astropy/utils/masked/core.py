@@ -967,7 +967,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 # things like np.sum, it makes no sense to do otherwise.
                 # Individual methods need to override as needed.
                 if method == "reduce":
-                    axis = kwargs.get("axis", None)
+                    axis = kwargs.get("axis")
                     keepdims = kwargs.get("keepdims", False)
                     mask = np.logical_or.reduce(
                         mask,

@@ -228,7 +228,7 @@ class TestRunnerBase:
 
         args = self._generate_args(**kwargs)
 
-        if kwargs.get("plugins", None) is not None:
+        if kwargs.get("plugins") is not None:
             plugins = kwargs.pop("plugins")
         elif self.keywords.get("plugins", None) is not None:
             plugins = self.keywords["plugins"]
