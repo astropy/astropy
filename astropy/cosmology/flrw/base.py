@@ -1693,7 +1693,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     def clone(
         self, *, meta: Mapping | None = None, to_nonflat: bool = False, **kwargs
     ) -> Self:
-        if not to_nonflat and kwargs.get("Ode0", None) is not None:
+        if not to_nonflat and kwargs.get("Ode0") is not None:
             msg = "Cannot set 'Ode0' in clone unless 'to_nonflat=True'. "
             raise ValueError(msg)
         return super().clone(meta=meta, to_nonflat=to_nonflat, **kwargs)

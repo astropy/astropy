@@ -1088,7 +1088,7 @@ def diff(a, n=1, axis=-1, prepend=np._NoValue, append=np._NoValue):
 @function_helper
 def gradient(f, *varargs, **kwargs):
     f = _as_quantity(f)
-    axis = kwargs.get("axis", None)
+    axis = kwargs.get("axis")
     if axis is None:
         n_axis = f.ndim
     elif isinstance(axis, tuple):
@@ -1269,7 +1269,7 @@ def array2string(a, *args, **kwargs):
     # also work around this by passing on a formatter (as is done in Angle).
     # So, we do nothing if the formatter argument is present and has the
     # relevant formatter for our dtype.
-    formatter = args[6] if len(args) >= 7 else kwargs.get("formatter", None)
+    formatter = args[6] if len(args) >= 7 else kwargs.get("formatter")
 
     if formatter is None:
         a = a.value
