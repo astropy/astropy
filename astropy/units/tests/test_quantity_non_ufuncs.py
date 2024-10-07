@@ -569,7 +569,7 @@ class TestArrayCreation(BasicTestSetup):
         self.check(np.eye, 3)
 
     def test_tri(self):
-        self.check(np.eye, 3)
+        self.check(np.tri, 3)
 
 
 class TestAccessingParts(InvariantUnitTestSetup):
