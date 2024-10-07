@@ -468,7 +468,7 @@ def test_regression_6236():
 
     class MySpecialFrame(MyFrame):
         def __init__(self, *args, **kwargs):
-            _rep_kwarg = kwargs.get("representation_type", None)
+            _rep_kwarg = kwargs.get("representation_type")
             super().__init__(*args, **kwargs)
             if not _rep_kwarg:
                 self.representation_type = self.default_representation

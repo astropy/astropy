@@ -54,8 +54,8 @@ def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
     """
     # Note that we only calculate the bin edges...matplotlib will calculate
     # the actual histogram.
-    range = kwargs.get("range", None)
-    weights = kwargs.get("weights", None)
+    range = kwargs.get("range")
+    weights = kwargs.get("weights")
     bins = calculate_bin_edges(x, bins, range=range, weights=weights)
 
     if len(bins) > max_bins:

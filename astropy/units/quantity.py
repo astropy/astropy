@@ -627,7 +627,7 @@ class Quantity(np.ndarray):
         try:
             converters, unit = converters_and_unit(function, method, *inputs)
 
-            out = kwargs.get("out", None)
+            out = kwargs.get("out")
             # Avoid loop back by turning any Quantity output into array views.
             if out is not None:
                 # If pre-allocated output is used, check it is suitable.
