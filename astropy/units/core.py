@@ -11,6 +11,7 @@ import operator
 import textwrap
 import warnings
 from functools import cached_property
+from threading import RLock
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -60,6 +61,7 @@ __all__ = [
 
 UNITY: Final[float] = 1.0
 
+_WARNING_LOCK: Final[RLock] = RLock()
 _WARNING_ACTIONS: Final[dict[str, str]] = {
     "silent": "ignore",
     "warn": "default",
@@ -2105,8 +2107,12 @@ class _UnitMetaClass(type):
                 pass
 
             try:
-                with warnings.catch_warnings(
-                    action=_WARNING_ACTIONS[parse_strict], category=UnitParserWarning
+                with (
+                    _WARNING_LOCK,
+                    warnings.catch_warnings(
+                        action=_WARNING_ACTIONS[parse_strict],
+                        category=UnitParserWarning,
+                    ),
                 ):
                     return f.parse(s)
             except NotImplementedError:
