@@ -11,6 +11,7 @@ import operator
 import textwrap
 import warnings
 from functools import cached_property
+from threading import RLock
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -21,7 +22,7 @@ from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
 
 from . import format as unit_format
-from .errors import UnitConversionError, UnitsError, UnitsWarning
+from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
 from .utils import (
     is_effectively_unity,
     resolve_fractions,
@@ -59,6 +60,13 @@ __all__ = [
 ]
 
 UNITY: Final[float] = 1.0
+
+_WARNING_LOCK: Final[RLock] = RLock()
+_WARNING_ACTIONS: Final[dict[str, str]] = {
+    "silent": "ignore",
+    "warn": "default",
+    "raise": "error",
+}
 
 
 def _flatten_units_collection(items):
@@ -2099,13 +2107,31 @@ class _UnitMetaClass(type):
                 pass
 
             try:
-                return f.parse(s)
+                with (
+                    _WARNING_LOCK,
+                    warnings.catch_warnings(
+                        action=_WARNING_ACTIONS[parse_strict],
+                        category=UnitParserWarning,
+                    ),
+                ):
+                    return f.parse(s)
             except NotImplementedError:
                 raise
+            except UnitParserWarning as err:
+                new_err = ValueError(err)
+                new_err.add_note(
+                    "If you cannot change the unit string then try specifying the "
+                    "'parse_strict' argument."
+                )
+                raise new_err from err
+            except KeyError as err:
+                if parse_strict in _WARNING_ACTIONS:
+                    raise
+                raise ValueError(
+                    "'parse_strict' must be 'warn', 'raise' or 'silent'"
+                ) from None
             except Exception as e:
-                if parse_strict == "silent":
-                    pass
-                else:
+                if parse_strict != "silent":
                     # Deliberately not issubclass here. Subclasses
                     # should use their name.
                     if f is not unit_format.Generic:
@@ -2123,12 +2149,7 @@ class _UnitMetaClass(type):
                     )
                     if parse_strict == "raise":
                         raise ValueError(msg)
-                    elif parse_strict == "warn":
-                        warnings.warn(msg, UnitsWarning)
-                    else:
-                        raise ValueError(
-                            "'parse_strict' must be 'warn', 'raise' or 'silent'"
-                        )
+                    warnings.warn(msg, UnitsWarning)
                 return UnrecognizedUnit(s)
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
@@ -2165,15 +2186,19 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
       string is in, by default ``"generic"``.  For a description of
       the available formats, see `astropy.units.format`.
 
-      The optional ``parse_strict`` keyword controls what happens when an
-      unrecognized unit string is passed in.  It may be one of the following:
+      The optional ``parse_strict`` keyword argument controls what happens
+      when the string does not comply with the specified format. It may be
+      one of the following:
 
-         - ``'raise'``: (default) raise a ValueError exception.
+         - ``'raise'``: (default) raise a `ValueError` exception.
 
-         - ``'warn'``: emit a Warning, and return an
-           `UnrecognizedUnit` instance.
+         - ``'warn'``: emit a `UnitParserWarning`, and return a unit.
 
-         - ``'silent'``: return an `UnrecognizedUnit` instance.
+         - ``'silent'``: return a unit silently.
+
+      With ``'warn'`` or ``'silent'`` the parser might be able to parse the
+      string and return a normal unit, but if it fails then an
+      `UnrecognizedUnit` instance is returned.
 
     - From a number::
 

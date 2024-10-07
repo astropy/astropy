@@ -17,7 +17,15 @@ from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.constants import si
-from astropy.units import PrefixUnit, Unit, UnitBase, UnitsWarning, cds, dex
+from astropy.units import (
+    PrefixUnit,
+    Unit,
+    UnitBase,
+    UnitParserWarning,
+    UnitsWarning,
+    cds,
+    dex,
+)
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -279,7 +287,7 @@ def test_ogip_sqrt(string):
 
 
 @pytest.mark.parametrize(
-    "string,message",
+    "string,message,unit",
     [
         pytest.param(
             "m(s)**2",
@@ -287,6 +295,7 @@ def test_ogip_sqrt(string):
                 r"^if 'm\(s\)\*\*2' was meant to be a multiplication, "
                 r"it should have been written as 'm \(s\)\*\*2'.$"
             ),
+            u.m * u.s**2,
             id="m(s)**2",
         ),
         pytest.param(
@@ -295,14 +304,15 @@ def test_ogip_sqrt(string):
                 r"^if 'm\(s\)' was meant to be a multiplication, "
                 r"it should have been written as 'm \(s\)'.$"
             ),
+            u.m * u.s,
             id="m(s)",
         ),
     ],
 )
-def test_ogip_invalid_multiplication(string, message):
+def test_ogip_invalid_multiplication(string, message, unit):
     # Regression test for #16749
-    with pytest.raises(ValueError, match=message):
-        u_format.OGIP.parse(string)
+    with pytest.warns(UnitParserWarning, match=message):
+        assert u_format.OGIP.parse(string) == unit
 
 
 class RoundtripBase:
