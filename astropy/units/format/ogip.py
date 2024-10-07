@@ -23,7 +23,7 @@ import warnings
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
-from astropy.units.errors import UnitsWarning
+from astropy.units.errors import UnitParserWarning, UnitsWarning
 from astropy.utils import classproperty, parsing
 
 from . import core, generic, utils
@@ -216,13 +216,19 @@ class OGIP(generic.Generic):
             )
 
             if len(p) == 7:
-                raise ValueError(
-                    bad_multiplication_message.format(p[1], f"({p[3]})**{p[6]}")
+                warnings.warn(
+                    bad_multiplication_message.format(p[1], f"({p[3]})**{p[6]}"),
+                    UnitParserWarning,
                 )
+                p[0] = p[1] * p[3] ** p[6]
             elif len(p) == 6:
                 p[0] = p[2] ** p[5]
             elif len(p) == 5:
-                raise ValueError(bad_multiplication_message.format(p[1], f"({p[3]})"))
+                warnings.warn(
+                    bad_multiplication_message.format(p[1], f"({p[3]})"),
+                    UnitParserWarning,
+                )
+                p[0] = p[1] * p[3]
             elif len(p) == 4:
                 p[0] = p[2]
             else:
