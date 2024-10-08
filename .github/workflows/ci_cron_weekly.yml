@@ -55,10 +55,10 @@ jobs:
             python: '3.11'
             toxenv: py311-test-devdeps-noscipy
 
-          - name: Python 3.12 with dev version of infrastructure dependencies
+          - name: Python 3.13 with dev version of infrastructure dependencies
             os: ubuntu-latest
-            python: '3.12'
-            toxenv: py312-test-devinfra
+            python: '3.13'
+            toxenv: py313-test-devinfra
 
           - name: Python 3.12 on macOS (x86_64) with all optional dependencies
             os: macos-13
