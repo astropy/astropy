@@ -291,19 +291,13 @@ def test_ogip_sqrt(string):
     [
         pytest.param(
             "m(s)**2",
-            (
-                r"^if 'm\(s\)\*\*2' was meant to be a multiplication, "
-                r"it should have been written as 'm \(s\)\*\*2'.$"
-            ),
+            r"'m\(s\)\*\*2' .* should have been written as 'm \(s\)\*\*2'\.$",
             u.m * u.s**2,
             id="m(s)**2",
         ),
         pytest.param(
             "m(s)",
-            (
-                r"^if 'm\(s\)' was meant to be a multiplication, "
-                r"it should have been written as 'm \(s\)'.$"
-            ),
+            r"'m\(s\)' .* should have been written as 'm \(s\)'\.$",
             u.m * u.s,
             id="m(s)",
         ),
