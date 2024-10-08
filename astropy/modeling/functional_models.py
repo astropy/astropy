@@ -335,11 +335,17 @@ class Gaussian2D(Fittable2DModel):
     y_mean = Parameter(
         default=0, description="Peak position (along y axis) of Gaussian"
     )
+    # Ensure stddev makes sense if its bounds are not explicitly set.
+    # stddev must be non-zero and positive.
     x_stddev = Parameter(
-        default=1, description="Standard deviation of the Gaussian (along x axis)"
+        default=1,
+        bounds=(FLOAT_EPSILON, None),
+        description="Standard deviation of the Gaussian (along x axis)",
     )
     y_stddev = Parameter(
-        default=1, description="Standard deviation of the Gaussian (along y axis)"
+        default=1,
+        bounds=(FLOAT_EPSILON, None),
+        description="Standard deviation of the Gaussian (along y axis)",
     )
     theta = Parameter(
         default=0.0,
