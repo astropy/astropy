@@ -212,7 +212,6 @@ function_helper = FunctionAssigner(FUNCTION_HELPERS)
 dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
 
 
-# fmt: off
 @function_helper(
     helps={
         np.copy, np.real_if_close, np.sort_complex, np.resize,
@@ -222,8 +221,7 @@ dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
         np.fft.hfft, np.fft.ihfft,
         np.linalg.eigvals, np.linalg.eigvalsh,
     } | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
-)
-# fmt: on
+)  # fmt: skip
 def invariant_a_helper(a, *args, **kwargs):
     return (a.view(np.ndarray),) + args, kwargs, a.unit, None
 
@@ -367,7 +365,9 @@ def _as_quantities(*args):
 
     try:
         # Note: this should keep the dtype the same
-        return tuple(Quantity(a, copy=COPY_IF_NEEDED, subok=True, dtype=None) for a in args)
+        return tuple(
+            Quantity(a, copy=COPY_IF_NEEDED, subok=True, dtype=None) for a in args
+        )
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
@@ -439,26 +439,30 @@ def _block(arrays, max_depth, result_ndim, depth=0):
     # Block by concatenation, copied from np._core.shape_base,
     # but ensuring that we call regular concatenate.
     if depth < max_depth:
-        arrs = [_block(arr, max_depth, result_ndim, depth+1)
-                for arr in arrays]
+        arrs = [_block(arr, max_depth, result_ndim, depth + 1) for arr in arrays]
         # The one difference with the numpy code.
-        return np.concatenate(arrs, axis=-(max_depth-depth))
+        return np.concatenate(arrs, axis=-(max_depth - depth))
     else:
         return np_core.shape_base._atleast_nd(arrays, result_ndim)
+
 
 UNIT_FROM_LIKE_ARG = object()
 
 if NUMPY_LT_2_0:
+
     @function_helper
     def arange(*args, start=None, stop=None, step=None, dtype=None):
         return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype)
 else:
+
     @function_helper
     def arange(*args, start=None, stop=None, step=None, dtype=None, device=None):
-        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype, device=device)
+        return arange_impl(
+            *args, start=start, stop=stop, step=step, dtype=dtype, device=device
+        )
+
 
 def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
-
     # NumPy is supposed to validate the input parameters before this dispatched
     # function is reached. Nevertheless, we'll sprinkle a few rundundant
     # sanity checks in the form of `assert` statements.
@@ -469,7 +473,7 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
     # bind positional arguments to their meaningful names
     # following the (complex) logic of np.arange
     match args:
-        case pos1,:
+        case (pos1,):
             assert stop is None or start is None
             if stop is None:
                 stop = pos1
@@ -480,7 +484,7 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
                 start, stop = stop, start
             match rest:
                 # rebind step and dtype if possible
-                case step,:
+                case (step,):
                     pass
                 case step, dtype:
                     pass
@@ -510,29 +514,35 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
 
 
 if NUMPY_LT_2_0:
+
     @function_helper(helps={np.empty, np.ones, np.zeros})
-    def creation_helper(shape, dtype=None, order='C'):
+    def creation_helper(shape, dtype=None, order="C"):
         return (shape, dtype, order), {}, UNIT_FROM_LIKE_ARG, None
 else:
+
     @function_helper(helps={np.empty, np.ones, np.zeros})
-    def creation_helper(shape, dtype=None, order='C', *, device=None):
+    def creation_helper(shape, dtype=None, order="C", *, device=None):
         return (shape, dtype, order), {"device": device}, UNIT_FROM_LIKE_ARG, None
 
 
 if NUMPY_LT_2_0:
+
     @function_helper
-    def full(shape, fill_value, dtype=None, order='C'):
+    def full(shape, fill_value, dtype=None, order="C"):
         return full_impl(shape, fill_value, dtype, order)
 else:
+
     @function_helper
-    def full(shape, fill_value, dtype=None, order='C', *, device=None):
+    def full(shape, fill_value, dtype=None, order="C", *, device=None):
         return full_impl(shape, fill_value, dtype, order, device=device)
+
 
 def full_impl(shape, fill_value, *args, **kwargs):
     out_unit = getattr(fill_value, "unit", UNIT_FROM_LIKE_ARG)
     if out_unit is not UNIT_FROM_LIKE_ARG:
         fill_value = _as_quantity(fill_value).value
     return (shape, fill_value) + args, kwargs, out_unit, None
+
 
 @function_helper
 def require(a, dtype=None, requirements=None):
@@ -541,13 +551,15 @@ def require(a, dtype=None, requirements=None):
         a = _as_quantity(a).value
     return (a, dtype, requirements), {}, out_unit, None
 
+
 @function_helper
-def array(object, dtype=None, *, copy=True, order='K', subok=False, ndmin=0):
+def array(object, dtype=None, *, copy=True, order="K", subok=False, ndmin=0):
     out_unit = getattr(object, "unit", UNIT_FROM_LIKE_ARG)
     if out_unit is not UNIT_FROM_LIKE_ARG:
         object = _as_quantity(object).value
-    kwargs = {"copy": copy, "order": order, "subok":subok, "ndmin": ndmin}
+    kwargs = {"copy": copy, "order": order, "subok": subok, "ndmin": ndmin}
     return (object, dtype), kwargs, out_unit, None
+
 
 if NUMPY_LT_2_0:
     asarray_impl_1_helps = {np.asarray, np.asanyarray}
@@ -559,12 +571,14 @@ else:
     asarray_impl_1_helps = {}
     asarray_impl_2_helps = {np.asarray, np.asanyarray}
 
+
 @function_helper(helps=asarray_impl_1_helps)
 def asarray_impl_1(a, dtype=None, order=None):
     out_unit = getattr(a, "unit", UNIT_FROM_LIKE_ARG)
     if out_unit is not UNIT_FROM_LIKE_ARG:
         a = _as_quantity(a).value
     return (a, dtype, order), {}, out_unit, None
+
 
 @function_helper(helps=asarray_impl_2_helps)
 def asarray_impl_2(a, dtype=None, order=None, *, device=None, copy=None):
@@ -581,6 +595,7 @@ def aslayoutarray_helper(a, dtype=None):
         a = _as_quantity(a).value
     return (a, dtype), {}, out_unit, None
 
+
 @function_helper
 def fromfunction(function, shape, *, dtype=float, **kwargs):
     zero_arg = np.zeros(len(shape), dtype)
@@ -590,16 +605,16 @@ def fromfunction(function, shape, *, dtype=float, **kwargs):
         out_unit = UNIT_FROM_LIKE_ARG
     return (function, shape), {"dtype": dtype, **kwargs}, out_unit, None
 
-# fmt: off
+
 @function_helper(helps={
         np.frombuffer, np.fromfile, np.fromiter, np.fromstring,
         np.identity, np.eye, np.tri,
         np.genfromtxt, np.loadtxt,
     }
-)
-# fmt: on
+)  # fmt: skip
 def generic_like_array_function_helper(*args, **kwargs):
     return args, kwargs, UNIT_FROM_LIKE_ARG, None
+
 
 @dispatched_function
 def block(arrays):
