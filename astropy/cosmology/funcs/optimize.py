@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Protocol, TypedDict, Union
+from typing import TYPE_CHECKING, Any, Protocol, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -15,8 +15,10 @@ from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import NotRequired, TypeAlias
+
     from scipy.optimize import OptimizeResult
-    from typing_extensions import NotRequired, TypeAlias
 
 __all__ = ["z_at_value"]
 
@@ -32,11 +34,10 @@ class CustomMethod(Protocol):
 
     def __call__(
         self, fun: Callable[..., Any], args: tuple[Any], **kwargs: Any
-    ) -> OptimizeResult:
-        ...
+    ) -> OptimizeResult: ...
 
 
-BracketSingle: TypeAlias = Union[tuple[float, float], tuple[float, float, float], None]
+BracketSingle: TypeAlias = tuple[float, float] | tuple[float, float, float] | None
 
 
 class ZAtValueKWArgs(TypedDict):
@@ -54,7 +55,7 @@ class ZAtValueKWArgs(TypedDict):
     zmax: NotRequired[npt.ArrayLike]
     """The upper search limit for ``z``."""
 
-    ztol: NotRequired[float | npt.NDArray[np.float_]]
+    ztol: NotRequired[float | npt.NDArray[np.float64]]
     """The relative error in ``z`` acceptable for convergence."""
 
     maxfun: NotRequired[int | npt.NDArray[np.integer]]
