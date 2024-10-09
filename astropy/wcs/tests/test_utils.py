@@ -292,6 +292,21 @@ def test_slice_wcs():
         mywcs[0, ::2]
 
 
+def test_slice_drop_dimensions_order():
+
+    # Regression test for a bug that caused WCS.slice to ignore
+    # ``numpy_order=False`` if dimensions were dropped.
+
+    wcs = WCS(naxis=3)
+    wcs.wcs.ctype = 'RA---TAN', 'DEC--TAN', 'FREQ'
+
+    wcs_sliced_1 = wcs.slice([0, slice(None), slice(None)], numpy_order=True)
+    assert wcs_sliced_1.world_axis_physical_types == ['pos.eq.ra', 'pos.eq.dec']
+
+    wcs_sliced_2 = wcs.slice([slice(None), slice(None), 0], numpy_order=False)
+    assert wcs_sliced_2.world_axis_physical_types == ['pos.eq.ra', 'pos.eq.dec']
+
+
 def test_axis_names():
     mywcs = WCS(naxis=4)
     mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN", "VOPT-LSR", "STOKES"]

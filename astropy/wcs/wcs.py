@@ -3333,6 +3333,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         elif not hasattr(view, "__len__"):  # view MUST be an iterable
             view = [view]
 
+        if len(view) < self.wcs.naxis:
+            view = list(view) + [slice(None) for i in range(self.wcs.naxis - len(view))]
+
+        if not numpy_order:
+            view = view[::-1]
+
         if not all(isinstance(x, slice) for x in view):
             # We need to drop some dimensions, but this may not always be
             # possible with .sub due to correlated axes, so instead we use the
@@ -3357,10 +3363,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             if iview.step is not None and iview.step < 0:
                 raise NotImplementedError("Reversing an axis is not implemented.")
 
-            if numpy_order:
-                wcs_index = self.wcs.naxis - 1 - i
-            else:
-                wcs_index = i
+            wcs_index = self.wcs.naxis - 1 - i
 
             if wcs_index < 2:
                 itables = [x_tables, y_tables][wcs_index]
