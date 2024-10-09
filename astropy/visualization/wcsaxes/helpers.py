@@ -5,7 +5,9 @@ Helpers functions for different kinds of WCSAxes instances.
 """
 
 import numpy as np
-from mpl_toolkits.axes_grid1.anchored_artists import AnchoredEllipse, AnchoredSizeBar
+from matplotlib.offsetbox import AnchoredOffsetbox, AuxTransformBox
+from matplotlib.patches import Ellipse
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 
 import astropy.units as u
 from astropy.wcs.utils import proj_plane_pixel_scales
@@ -109,21 +111,17 @@ def add_beam(
     minor /= degrees_per_pixel
     major /= degrees_per_pixel
 
-    corner = CORNERS[corner]
-
-    beam = AnchoredEllipse(
-        ax.transData,
-        width=minor,
-        height=major,
-        angle=angle,
-        loc=corner,
+    aux_tr_box = AuxTransformBox(ax.transData)
+    ellipse = Ellipse((0, 0), width=minor, height=major, angle=angle, **kwargs)
+    aux_tr_box.add_artist(ellipse)
+    box = AnchoredOffsetbox(
+        child=aux_tr_box,
         pad=pad,
         borderpad=borderpad,
+        loc=CORNERS[corner],
         frameon=frame,
     )
-    beam.ellipse.set(**kwargs)
-
-    ax.add_artist(beam)
+    ax.add_artist(box)
 
 
 def add_scalebar(
