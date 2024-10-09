@@ -110,7 +110,9 @@ test_all = [
     "sgp4>=2.3",
     "array-api-strict",
 ]
-typing = []
+typing = [
+    "pandas-stubs>=2.0",
+]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
     "sphinx",
