@@ -37,7 +37,6 @@ from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
-from astropy.utils.decorators import deprecated
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
 
@@ -481,10 +480,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     def _theap(self):
         size = self._header["NAXIS1"] * self._header["NAXIS2"]
         return self._header.get("THEAP", size)
-
-    @deprecated("v6.0", alternative="update_header")
-    def update(self):
-        self.update_header()
 
     def update_header(self):
         """
