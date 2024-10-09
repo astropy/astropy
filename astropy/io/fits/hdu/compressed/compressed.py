@@ -18,7 +18,7 @@ from astropy.io.fits.hdu.compressed.utils import _tile_shape, _validate_tile_sha
 from astropy.io.fits.hdu.image import ImageHDU
 from astropy.io.fits.util import _is_int
 from astropy.io.fits.verify import _ErrList
-from astropy.utils.decorators import deprecated_renamed_argument, lazyproperty
+from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .header import (
@@ -50,14 +50,6 @@ class CompImageHDU(ImageHDU):
 
     _default_name = "COMPRESSED_IMAGE"
 
-    @deprecated_renamed_argument(
-        "tile_size",
-        None,
-        since="5.3",
-        message="The tile_size argument has been deprecated. Use tile_shape "
-        "instead, but note that this should be given in the reverse "
-        "order to tile_size (tile_shape should be in Numpy C order).",
-    )
     def __init__(
         self,
         data=None,
@@ -73,7 +65,6 @@ class CompImageHDU(ImageHDU):
         do_not_scale_image_data=False,
         uint=True,
         scale_back=None,
-        tile_size=None,
         bintable=None,
     ):
         """
@@ -281,15 +272,6 @@ class CompImageHDU(ImageHDU):
         compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
         self._bintable = None
-
-        if tile_shape is None and tile_size is not None:
-            tile_shape = tuple(tile_size[::-1])
-        elif tile_shape is not None and tile_size is not None:
-            raise ValueError(
-                "Cannot specify both tile_size and tile_shape. "
-                "Note that tile_size is deprecated and tile_shape "
-                "alone should be used."
-            )
 
         if data is DELAYED or bintable is not None:
             # NOTE: for now we don't ever read in CompImageHDU directly from
