@@ -12,6 +12,7 @@ from numpy.testing import assert_allclose
 
 from astropy import constants as c
 from astropy import units as u
+from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.units import utils
 from astropy.utils.compat.optional_deps import HAS_DASK
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -260,15 +261,20 @@ def test_parse_strict_noncritical_error(parse_strict, expectation):
 
 
 def test_parse_strict_noncritical_error_default():
-    with pytest.raises(
-        ValueError,
-        match=(
+    if PYTEST_LT_8_0:
+        # pytest < 8 does not know how to deal with `Exception.add_note`
+        match = (
+            r"^if 'm\(s\)' was meant to be a multiplication, it should have been "
+            r"written as 'm \(s\)'\.$"
+        )
+    else:
+        match = (
             r"^if 'm\(s\)' was meant to be a multiplication, it should have been "
             r"written as 'm \(s\)'\.\n"
             "If you cannot change the unit string then try specifying the "
             r"'parse_strict' argument\.$"
-        ),
-    ):
+        )
+    with pytest.raises(ValueError, match=match):
         assert u.Unit("m(s)", format="ogip")
 
 
