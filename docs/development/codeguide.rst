@@ -138,18 +138,8 @@ Coding Style/Conventions
     `ruff format <https://docs.astral.sh/ruff/formatter/>`_ code formatter, which closely follows the
     `The Black Code Style <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_.
 
-  * We recognize that sometimes ruff_ will autoformat things in undesirable
-    ways, e.g., matrices.  In the cases that ruff_ produces undesirable code
-    formatting:
-
-      * one can wrap code the code in ``# fmt: off`` and ``# fmt: on`` to disable
-        ruff_ formatting over multiple lines.
-
-      * or one can add a single ``# fmt: skip`` comment to the end of a line to
-        disable ruff_ formatting for that line.
-
-    This should be done sparingly, and only
-    when ruff_ produces undesirable formatting.
+  * In the rare cases that ruff_ formatting is undesirable, it is possible to
+    `disable formatting locally <https://docs.astral.sh/ruff/formatter/#format-suppression>`_.
 
       .. note::
         When a list or array should be formatted as one item per line then this is best
