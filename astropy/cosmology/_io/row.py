@@ -220,8 +220,8 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable, rename=N
         Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
     In Astropy, Row objects are always part of a Table. :class:`~astropy.table.QTable`
-    is recommended for tables with `~astropy.units.Quantity` columns. However the
-    returned type may be overridden using the ``cls`` argument:
+    is recommended for tables with |Quantity| columns. However the returned type may be
+    overridden using the ``cls`` argument:
 
         >>> from astropy.table import Table
         >>> Planck18.to_format("astropy.table", cls=Table)

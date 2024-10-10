@@ -226,7 +226,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Comoving distance in Mpc between each input redshift.
 
         References
@@ -306,7 +306,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Comoving distance in Mpc between each input redshift.
         """
         try:
@@ -339,7 +339,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Comoving distance in Mpc between each input redshift.
         """
         try:
@@ -372,7 +372,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Comoving distance in Mpc between each input redshift.
 
         References
@@ -431,7 +431,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
+        t : Quantity ['time']
             The age of the universe in Gyr at each input redshift.
         """
         t = inf if isinstance(z, Number) else np.full_like(z, inf, dtype=float)
@@ -453,7 +453,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
+        t : Quantity ['time']
             The age of the universe in Gyr at each input redshift.
 
         References
@@ -479,7 +479,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
+        t : Quantity ['time']
             The age of the universe in Gyr at each input redshift.
 
         References
@@ -515,7 +515,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
+        t : Quantity ['time']
             Lookback time in Gyr to each input redshift.
         """
         return self._EdS_age(0) - self._EdS_age(z)
@@ -545,7 +545,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
+        t : Quantity ['time']
             Lookback time in Gyr to each input redshift.
         """
         return self.hubble_time * log(aszarr(z) + 1.0)
@@ -570,7 +570,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
+        t : Quantity ['time']
             Lookback time in Gyr to each input redshift.
         """
         return self._flat_age(0) - self._flat_age(z)
