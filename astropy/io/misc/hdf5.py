@@ -7,6 +7,7 @@ not meant to be used directly, but instead are available as readers/writers in
 
 import os
 import warnings
+from pathlib import Path
 
 import numpy as np
 
@@ -226,7 +227,7 @@ def write_table_hdf5(
     ----------
     table : `~astropy.table.Table`
         Data table that is to be written to file.
-    output : str or :class:`h5py.File` or :class:`h5py.Group`
+    output : str or os.PathLike[str] or :class:`h5py.File` or :class:`h5py.Group`
         If a string, the filename to write the table to. If an h5py object,
         either the file or the group object to write the table to.
     path : str
@@ -291,12 +292,12 @@ def write_table_hdf5(
         else:
             output_group = output
 
-    elif isinstance(output, str):
-        if os.path.exists(output) and not append:
-            if overwrite and not append:
-                os.remove(output)
-            else:
+    elif isinstance(output, (str, os.PathLike)):
+        output = Path(output)
+        if output.exists() and not append:
+            if not overwrite:
                 raise OSError(NOT_OVERWRITING_MSG.format(output))
+            output.unlink()
 
         # Open the file for appending or writing
         f = h5py.File(output, "a" if append else "w")

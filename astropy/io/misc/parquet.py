@@ -8,6 +8,7 @@ available as readers/writers in `astropy.table`.  See
 
 import os
 import warnings
+from pathlib import Path
 
 import numpy as np
 
@@ -343,6 +344,7 @@ def write_table_parquet(table, output, overwrite=False):
 
     if not isinstance(output, (str, os.PathLike)):
         raise TypeError(f"`output` should be a string or path-like, not {output}")
+    output = Path(output)
 
     # Convert all compound columns into serialized column names, where
     # e.g. 'time' becomes ['time.jd1', 'time.jd2'].
@@ -427,12 +429,11 @@ def write_table_parquet(table, output, overwrite=False):
 
     schema = pa.schema(type_list, metadata=metadata_encode)
 
-    if os.path.exists(output):
-        if overwrite:
-            # We must remove the file prior to writing below.
-            os.remove(output)
-        else:
-            raise OSError(NOT_OVERWRITING_MSG.format(output))
+    if overwrite:
+        # We must remove the file prior to writing below.
+        output.unlink(missing_ok=True)
+    elif output.exists():
+        raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     with parquet.ParquetWriter(output, schema, version="2.4") as writer:
         # Convert each Table column to a pyarrow array
