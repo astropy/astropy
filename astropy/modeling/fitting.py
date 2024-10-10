@@ -530,7 +530,17 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             return xnew, ynew
 
     @fitter_unit_support
-    def __call__(self, model, x, y, z=None, weights=None, rcond=None):
+    def __call__(
+        self,
+        model,
+        x,
+        y,
+        z=None,
+        weights=None,
+        rcond=None,
+        *,
+        inplace=False,
+    ):
         """
         Fit data to this model.
 
@@ -561,6 +571,11 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         equivalencies : list or None, optional, keyword-only
             List of *additional* equivalencies that are should be applied in
             case x, y and/or z have units. Default is None.
+        inplace : bool, optional
+            If `False` (the default), a copy of the model with the fitted
+            parameters set will be returned. If `True`, the returned model will
+            be the same instance as the model passed in, and the parameter
+            values will be changed inplace.
 
         Returns
         -------
@@ -582,7 +597,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         _validate_constraints(self.supported_constraints, model)
 
-        model_copy = model.copy()
+        model_copy = model if inplace else model.copy()
         model_copy.sync_constraints = False
         _, fit_param_indices, _ = model_to_fit_params(model_copy)
 
@@ -1324,6 +1339,8 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         epsilon=DEFAULT_EPS,
         estimate_jacobian=False,
         filter_non_finite=False,
+        *,
+        inplace=False,
     ):
         """
         Fit data to this model.
@@ -1366,6 +1383,11 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             case x, y and/or z have units. Default is None.
         filter_non_finite : bool, optional
             Whether or not to filter data with non-finite values. Default is False
+        inplace : bool, optional
+            If `False` (the default), a copy of the model with the fitted
+            parameters set will be returned. If `True`, the returned model will
+            be the same instance as the model passed in, and the parameter
+            values will be changed inplace.
 
         Returns
         -------
@@ -1373,7 +1395,11 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             a copy of the input model with parameters set by the fitter
 
         """
-        model_copy = _validate_model(model, self.supported_constraints)
+        model_copy = _validate_model(
+            model,
+            self.supported_constraints,
+            copy=not inplace,
+        )
         model_copy.sync_constraints = False
         _, fit_param_indices, _ = model_to_fit_params(model_copy)
 
@@ -1707,7 +1733,17 @@ class SLSQPLSQFitter(Fitter):
         self.fit_info = {}
 
     @fitter_unit_support
-    def __call__(self, model, x, y, z=None, weights=None, **kwargs):
+    def __call__(
+        self,
+        model,
+        x,
+        y,
+        z=None,
+        weights=None,
+        *,
+        inplace=False,
+        **kwargs,
+    ):
         """
         Fit data to this model.
 
@@ -1725,6 +1761,11 @@ class SLSQPLSQFitter(Fitter):
             Weights for fitting.
             For data with Gaussian uncertainties, the weights should be
             1/sigma.
+        inplace : bool, optional
+            If `False` (the default), a copy of the model with the fitted
+            parameters set will be returned. If `True`, the returned model will
+            be the same instance as the model passed in, and the parameter
+            values will be changed inplace.
         kwargs : dict
             optional keyword arguments to be passed to the optimizer or the statistic
         verblevel : int
@@ -1747,7 +1788,11 @@ class SLSQPLSQFitter(Fitter):
             a copy of the input model with parameters set by the fitter
 
         """
-        model_copy = _validate_model(model, self._opt_method.supported_constraints)
+        model_copy = _validate_model(
+            model,
+            self._opt_method.supported_constraints,
+            copy=not inplace,
+        )
         model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
         farg = (
@@ -1782,7 +1827,17 @@ class SimplexLSQFitter(Fitter):
         self.fit_info = {}
 
     @fitter_unit_support
-    def __call__(self, model, x, y, z=None, weights=None, **kwargs):
+    def __call__(
+        self,
+        model,
+        x,
+        y,
+        z=None,
+        weights=None,
+        *,
+        inplace=False,
+        **kwargs,
+    ):
         """
         Fit data to this model.
 
@@ -1809,6 +1864,11 @@ class SimplexLSQFitter(Fitter):
         equivalencies : list or None, optional, keyword-only
             List of *additional* equivalencies that are should be applied in
             case x, y and/or z have units. Default is None.
+        inplace : bool, optional
+            If `False` (the default), a copy of the model with the fitted
+            parameters set will be returned. If `True`, the returned model will
+            be the same instance as the model passed in, and the parameter
+            values will be changed inplace.
 
         Returns
         -------
@@ -1816,7 +1876,11 @@ class SimplexLSQFitter(Fitter):
             a copy of the input model with parameters set by the fitter
 
         """
-        model_copy = _validate_model(model, self._opt_method.supported_constraints)
+        model_copy = _validate_model(
+            model,
+            self._opt_method.supported_constraints,
+            copy=not inplace,
+        )
         model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
         farg = (
@@ -2198,7 +2262,7 @@ def _validate_constraints(supported_constraints, model):
         raise UnsupportedConstraintError(message.format("inequality"))
 
 
-def _validate_model(model, supported_constraints):
+def _validate_model(model, supported_constraints, copy=True):
     """
     Check that model and fitter are compatible and return a copy of the model.
     """
@@ -2214,8 +2278,7 @@ def _validate_model(model, supported_constraints):
         raise ValueError("Non-linear fitters can only fit one data set at a time.")
     _validate_constraints(supported_constraints, model)
 
-    model_copy = model.copy()
-    return model_copy
+    return model.copy() if copy else model
 
 
 def populate_entry_points(entry_points):
