@@ -83,6 +83,7 @@ v
 
 # VSCode
 .vscode
+.history
 
 .tmp
 pip-wheel-metadata

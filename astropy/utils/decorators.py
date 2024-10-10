@@ -36,6 +36,8 @@ def deprecated(
     pending=False,
     obj_type=None,
     warning_type=AstropyDeprecationWarning,
+    *,
+    pending_warning_type=AstropyPendingDeprecationWarning,
 ):
     """
     Used to mark a function or class as deprecated.
@@ -45,8 +47,8 @@ def deprecated(
     Parameters
     ----------
     since : str
-        The release at which this API became deprecated.  This is
-        required.
+        The release at which this API became deprecated.
+        This is required.
 
     message : str, optional
         Override the default deprecation message.  The format
@@ -73,7 +75,7 @@ def deprecated(
         tell the user about this alternative if provided.
 
     pending : bool, optional
-        If True, uses a AstropyPendingDeprecationWarning instead of a
+        If True, uses a ``pending_warning_type`` instead of a
         ``warning_type``.
 
     obj_type : str, optional
@@ -83,6 +85,11 @@ def deprecated(
     warning_type : Warning
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
+
+    pending_warning_type : Warning
+        Pending warning to be issued.
+        This only works if ``pending`` is set to True.
+        Default is `~astropy.utils.exceptions.AstropyPendingDeprecationWarning`.
     """
     method_types = (classmethod, staticmethod, types.MethodType)
 
@@ -124,7 +131,7 @@ def deprecated(
 
         def deprecated_func(*args, **kwargs):
             if pending:
-                category = AstropyPendingDeprecationWarning
+                category = pending_warning_type
             else:
                 category = warning_type
 
@@ -235,6 +242,7 @@ def deprecated_attribute(
     alternative=None,
     pending=False,
     warning_type=AstropyDeprecationWarning,
+    pending_warning_type=AstropyPendingDeprecationWarning,
 ):
     """
     Used to mark a public attribute as deprecated.  This creates a
@@ -272,6 +280,11 @@ def deprecated_attribute(
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
+    pending_warning_type : Warning
+        Pending warning to be issued.
+        This only works if ``pending`` is set to True.
+        Default is `~astropy.utils.exceptions.AstropyPendingDeprecationWarning`.
+
     Examples
     --------
     ::
@@ -301,6 +314,7 @@ def deprecated_attribute(
         alternative=alternative,
         pending=pending,
         warning_type=warning_type,
+        pending_warning_type=pending_warning_type,
     )
 
     @specific_deprecated
