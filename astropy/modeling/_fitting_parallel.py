@@ -1,8 +1,8 @@
-import os
 import traceback
 import warnings
 from copy import deepcopy
 from math import ceil, log10, prod
+from pathlib import Path
 
 import numpy as np
 
@@ -189,20 +189,19 @@ def _fit_models_to_chunk(
             )
             maxlen = int(ceil(log10(max(iterating_shape))))
             fmt = "{0:0" + str(maxlen) + "d}"
-            index_folder = os.path.join(
-                diagnostics_path, "_".join(fmt.format(idx) for idx in index_abs)
+            index_folder = Path(diagnostics_path).joinpath(
+                "_".join(fmt.format(idx) for idx in index_abs)
             )
-            os.makedirs(index_folder, exist_ok=True)
+            index_folder.mkdir(parents=True, exist_ok=True)
 
             # Output error, if any
             if error:
-                with open(os.path.join(index_folder, "error.log"), "w") as f:
-                    f.write(error)
+                index_folder.joinpath("error.log").write_text(error)
 
             if all_warnings:
-                with open(os.path.join(index_folder, "warn.log"), "w") as f:
-                    for warning in all_warnings:
-                        f.write(f"{warning}\n")
+                index_folder.joinpath("warn.log").write_text(
+                    "".join(f"{warning}\n" for warning in all_warnings)
+                )
 
             if diagnostics_callable is not None:
                 diagnostics_callable(
@@ -349,7 +348,7 @@ def parallel_fit_dask(
             if diagnostics_path is None:
                 raise ValueError("diagnostics_path should be set")
             else:
-                os.makedirs(diagnostics_path, exist_ok=True)
+                Path(diagnostics_path).mkdir(parents=True, exist_ok=True)
     else:
         raise ValueError("diagnostics should be None, 'error', 'error+warn', or 'all'")
 
