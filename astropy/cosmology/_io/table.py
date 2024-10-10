@@ -52,8 +52,8 @@ To move the cosmology class from the metadata to a Table row, set the
     ------------- -------- ------------ ------- ------- ------- ----------- -------
     FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
-Astropy recommends `~astropy.table.QTable` for tables with `~astropy.units.Quantity`
-columns. However the returned type may be overridden using the ``cls`` argument:
+Astropy recommends `~astropy.table.QTable` for tables with |Quantity| columns. However
+the returned type may be overridden using the ``cls`` argument:
 
     >>> from astropy.table import Table
     >>> Planck18.to_format("astropy.table", cls=Table)
@@ -392,9 +392,8 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, rename=None):
         ------------- -------- ------------ ------- ------- ------- ----------- -------
         FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
-    Astropy recommends `~astropy.table.QTable` for tables with
-    `~astropy.units.Quantity` columns. However the returned type may be
-    overridden using the ``cls`` argument:
+    Astropy recommends `~astropy.table.QTable` for tables with |Quantity| columns.
+    However the returned type may be overridden using the ``cls`` argument:
 
         >>> from astropy.table import Table
         >>> Planck18.to_format("astropy.table", cls=Table)

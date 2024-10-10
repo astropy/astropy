@@ -386,10 +386,9 @@ def with_H0(H0: Quantity | None = None) -> Equivalency:
 
     Parameters
     ----------
-    H0 : None or `~astropy.units.Quantity` ['frequency']
-        The value of the Hubble constant to assume. If a
-        `~astropy.units.Quantity`, will assume the quantity *is* ``H0``. If
-        `None` (default), use the ``H0`` attribute from
+    H0 : None or Quantity['frequency']
+        The value of the Hubble constant to assume. If a |Quantity|, will assume the
+        quantity *is* ``H0``. If `None` (default), use the ``H0`` attribute from
         :mod:`~astropy.cosmology.default_cosmology`.
 
     References
