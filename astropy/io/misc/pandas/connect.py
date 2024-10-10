@@ -2,7 +2,7 @@
 # This file connects the readers/writers to the astropy.table.Table class
 
 import functools
-import os.path
+from pathlib import Path
 
 import astropy.io.registry as io_registry
 from astropy.table import Table
@@ -95,7 +95,7 @@ def _pandas_write(fmt, tbl, filespec, overwrite=False, **kwargs):
 
     if not overwrite:
         try:  # filespec is not always a path-like
-            exists = os.path.exists(filespec)
+            exists = Path(filespec).exists()
         except TypeError:  # skip invalid arguments
             pass
         else:
