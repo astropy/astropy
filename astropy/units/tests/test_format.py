@@ -315,6 +315,26 @@ def test_ogip_invalid_multiplication(string, message, unit):
         assert u_format.OGIP.parse(string) == unit
 
 
+@pytest.mark.parametrize(
+    "string,unit,power",
+    [
+        pytest.param("s**-1", u.s**-1, "-1", id="int_unit_power"),
+        pytest.param("m**-2.0", u.m**-2, "-2.0", id="float_unit_power"),
+        pytest.param("10**-3 kg", u.g, "-3", id="int_scale_power"),
+    ],
+)
+def test_ogip_negative_exponent_parenthesis(string, unit, power):
+    # Regression test for #16788 - negative powers require parenthesis
+    with pytest.warns(
+        UnitParserWarning,
+        match=(
+            r"^negative exponents must be enclosed in parenthesis\. "
+            rf"Expected '\*\*\({power}\)' instead of '\*\*{power}'\.$"
+        ),
+    ):
+        assert u_format.OGIP.parse(string) == unit
+
+
 class RoundtripBase:
     def check_roundtrip(self, unit, output_format=None):
         if output_format is None:
