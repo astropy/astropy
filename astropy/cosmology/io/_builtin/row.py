@@ -28,14 +28,14 @@ to the ``Planck18`` cosmology from which it was generated.
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                     Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 
-For more information on the argument options, see :ref:`cosmology_io_builtin-table`.
+For more information on the argument options, see :ref:`cosmology_io-builtin-table`.
 """
 
 import copy
 from collections import defaultdict
 
-from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
+from astropy.cosmology.io._connect import convert_registry
 from astropy.table import QTable, Row
 
 from .mapping import from_mapping

@@ -16,14 +16,14 @@ import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatCosmologyMixin, Parameter
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
+from astropy.cosmology.io.tests.test_connect import (
+    ReadWriteTestMixin,
+    ToFromFormatTestMixin,
+)
 from astropy.cosmology.parameter.tests.test_descriptors import (
     ParametersAttributeTestMixin,
 )
 from astropy.cosmology.parameter.tests.test_parameter import ParameterTestMixin
-from astropy.cosmology.tests.test_connect import (
-    ReadWriteTestMixin,
-    ToFromFormatTestMixin,
-)
 from astropy.table import Column, QTable, Table
 
 if TYPE_CHECKING:

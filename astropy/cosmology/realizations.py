@@ -27,8 +27,8 @@ from typing import TYPE_CHECKING
 from astropy.utils.data import get_pkg_data_path
 from astropy.utils.state import ScienceState
 
-from . import _io  # Ensure IO methods are registered, to read realizations # noqa: F401
 from .core import Cosmology
+from .io import _builtin  # Ensure IO is registered, to read realizations # noqa: F401
 
 if TYPE_CHECKING:
     from typing import ClassVar

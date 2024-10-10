@@ -139,7 +139,7 @@ metadata and which Cosmology class to use. Details of which are in
     >>> import json, os
     >>> import astropy.units as u
     >>> from astropy.cosmology import Cosmology
-    >>> from astropy.cosmology.connect import readwrite_registry
+    >>> from astropy.cosmology.io import readwrite_registry
 
     >>> def read_json(filename, **kwargs):
     ...     # read file, from path-like or file-like

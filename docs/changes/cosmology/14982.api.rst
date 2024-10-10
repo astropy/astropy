@@ -1,0 +1,3 @@
+``astropy.cosmology.connect`` has been renamed to ``astropy.cosmology.io``.
+The module is still available under its old name, but that has been deprecated
+and will be removed in a future version.
