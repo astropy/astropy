@@ -2,6 +2,7 @@
 
 
 import os
+from pathlib import Path
 
 import numpy as np
 
@@ -163,9 +164,9 @@ def write_table_votable(
         )
 
     # Check if output file already exists
-    if isinstance(output, str) and os.path.exists(output):
+    if isinstance(output, str | os.PathLike) and (output_path := Path(output)).exists():
         if overwrite:
-            os.remove(output)
+            output_path.unlink()
         else:
             raise OSError(NOT_OVERWRITING_MSG.format(output))
 
@@ -225,10 +226,11 @@ def write_table_votable_parquet(input, output, column_metadata, *, overwrite=Fal
     file is f"{output}.parquet".
     """
     # First save the PARQUET file.
-    parquet_filename = f"{output}.parquet"
-    path_type = f"file:{'//' if os.path.isabs(parquet_filename) else ''}"
+    output_path = Path(output)
+    parquet_filename = Path(f"{output}.parquet")
+    path_type = f"file:{'//' if parquet_filename.is_absolute() else ''}"
 
-    if os.path.exists(parquet_filename) and not overwrite:
+    if parquet_filename.exists() and not overwrite:
         raise OSError(NOT_OVERWRITING_MSG.format(parquet_filename))
     input.write(parquet_filename, format="parquet", overwrite=overwrite)
 
@@ -248,7 +250,7 @@ def write_table_votable_parquet(input, output, column_metadata, *, overwrite=Fal
         field.ucd = column_metadata[field.name]["ucd"]
         field.utype = column_metadata[field.name]["utype"]
 
-    if os.path.exists(output) and not overwrite:
+    if output_path.exists() and not overwrite:
         raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     votable.to_xml(output, tabledata_format="binary")
