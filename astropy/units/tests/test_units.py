@@ -420,6 +420,7 @@ def test_compose_cgs_to_si(unit):
     si = unit.to_system(u.si)
     assert [x.is_equivalent(unit) for x in si]
     assert si[0] == unit.si
+    assert np.isclose(si[0].scale, unit.decompose(bases=u.si.bases).scale)
 
 
 # We use a set to make sure we don't have any duplicates.
@@ -447,6 +448,7 @@ def test_compose_si_to_cgs(unit):
     else:
         assert [x.is_equivalent(unit) for x in cgs]
         assert cgs[0] == unit.cgs
+        assert np.isclose(cgs[0].scale, unit.decompose(bases=u.cgs.bases).scale)
 
 
 def test_to_si():
@@ -464,8 +466,22 @@ def test_to_si():
 
 
 def test_to_cgs():
-    assert u.Pa.to_system(u.cgs)[1]._bases[0] is u.Ba
-    assert u.Pa.to_system(u.cgs)[1]._scale == 10.0
+    assert u.Pa.to_system(u.cgs)[0].bases[0] is u.Ba
+    assert u.Pa.to_system(u.cgs)[0].scale == 10.0
+
+
+@pytest.mark.parametrize(
+    "unit, system, expected_bases",
+    [
+        (u.Pa, "si", [u.Pa]),
+        (u.sr, "si", [u.rad]),
+        (u.Gal, "si", [u.m, u.s]),
+        (u.Gal, "cgs", [u.cm, u.s]),
+    ],
+)
+def test_to_system_best_unit(unit, system, expected_bases):
+    in_system = getattr(unit, system)
+    assert in_system.bases == expected_bases
 
 
 def test_decompose_to_cgs():
