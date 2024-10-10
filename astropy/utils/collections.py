@@ -81,7 +81,7 @@ def _locked_mutator(instance_method):
         mtd_name = instance_method.__name__
         msg = (
             f"Direct mutations of {cls_name}.{self._attr_name} "
-            f"via {mtd_name} are deprecated since astropy 7.0 and "
+            f"via {mtd_name} are deprecated since astropy 7.1 and "
             "will raise an exception in the future. "
         )
 
@@ -110,7 +110,7 @@ class _OwnedMixin:
     This is meant as a helper class to prevent users from bypassing dedicated
     APIs by overriding mutating methods from the list API.
 
-    As of astropy 7.0, direct mutations are considered deprecated so a warning
+    As of astropy 7.1, direct mutations are considered deprecated so a warning
     is emitted. In a future major release of astropy, this class is meant to be
     removed, and its instances should be made completely private, possibly
     re-exposed as immutable properties (tuple).
