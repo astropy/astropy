@@ -102,6 +102,8 @@ class CoordinateHelper:
         self.frame = frame
         self.default_label = default_label or ""
         self._auto_axislabel = True
+        self._custom_formatter = None
+
         # Disable auto label for elliptical frames as it puts labels in
         # annoying places.
         if issubclass(self.parent_axes.frame_class, EllipticalFrame):
@@ -243,12 +245,20 @@ class CoordinateHelper:
 
         Parameters
         ----------
-        formatter : str
-            The format string to use.
+        formatter : str or callable
+            The format string to use, or a callable (for advanced use cases).
+            If specified as a callable, this should take a
+            `~astropy.units.Quantity` (which could be scalar or array) of tick
+            world coordinates as well as an optional ``spacing`` keyword
+            argument, which gives (also as a `~astropy.units.Quantity`) the
+            spacing between ticks, and returns an iterable of strings
+            containing the labels.
         """
-        # TODO: Figure out how to accept a Formatter instance
-        if isinstance(formatter, str):
+        if callable(formatter):
+            self._custom_formatter = formatter
+        elif isinstance(formatter, str):
             self._formatter_locator.format = formatter
+            self._custom_formatter = None
         else:
             raise TypeError("formatter should be a string")
 
@@ -281,7 +291,10 @@ class CoordinateHelper:
             value = value.to_value(fl._unit)
 
         spacing = self._fl_spacing
-        string = fl.formatter(values=[value] * fl._unit, spacing=spacing, format=format)
+
+        string = self.formatter(
+            values=[value] * fl._unit, spacing=spacing, format=format
+        )
 
         return string[0]
 
@@ -602,7 +615,7 @@ class CoordinateHelper:
 
     @property
     def formatter(self):
-        return self._formatter_locator.formatter
+        return self._custom_formatter or self._formatter_locator.formatter
 
     def _draw_grid(self, renderer):
         renderer.open_group("grid lines")
