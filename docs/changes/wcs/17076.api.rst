@@ -1,0 +1,2 @@
+The ``WCS`` class will now respect ``WCSAXESa`` to determine the number of
+dimensions in a WCS, if present in a header.
