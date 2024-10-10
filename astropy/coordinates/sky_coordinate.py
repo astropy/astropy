@@ -10,7 +10,6 @@ import numpy as np
 
 from astropy import units as u
 from astropy.constants import c as speed_of_light
-from astropy.table import QTable
 from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
@@ -902,18 +901,18 @@ class SkyCoord(ShapedLikeNDArray):
         >>> t.meta
         {'representation_type': 'spherical', 'frame': 'icrs'}
         """
-        self_as_dict = self.info._represent_as_dict()
-        tabledata = {}
-        metadata = {}
-        # Record attributes that have the same length as self as columns in the
-        # table, and the other attributes as table metadata.  This matches
-        # table.serialize._represent_mixin_as_column().
-        for key, value in self_as_dict.items():
+        table = self.frame.to_table()
+        # Record extra attributes not on the frame that have the same length as self as
+        # columns in the table, and the other attributes as table metadata.
+        # This matches table.serialize._represent_mixin_as_column().
+        table.meta["frame"] = self.frame.name
+        for key in self._extra_frameattr_names:
+            value = getattr(self, key)
             if getattr(value, "shape", ())[:1] == (len(self),):
-                tabledata[key] = value
+                table[key] = value
             else:
-                metadata[key] = value
-        return QTable(tabledata, meta=metadata)
+                table.meta[key] = value
+        return table
 
     def is_equivalent_frame(self, other):
         """
