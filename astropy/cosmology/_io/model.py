@@ -27,13 +27,17 @@ The |Planck18| cosmology can be recovered with |Cosmology.from_format|.
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """
 
+from __future__ import annotations
+
 import abc
 import copy
 import inspect
 from dataclasses import replace
+from typing import Generic
 
 import numpy as np
 
+from astropy.cosmology._typing import _CosmoT
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
 from astropy.modeling import FittableModel, Model
@@ -41,10 +45,10 @@ from astropy.utils.decorators import classproperty
 
 from .utils import convert_parameter_to_model_parameter
 
-__all__ = []  # nothing is publicly scoped
+__all__: list[str] = []  # nothing is publicly scoped
 
 
-class _CosmologyModel(FittableModel):
+class _CosmologyModel(FittableModel, Generic[_CosmoT]):
     """Base class for Cosmology redshift-method Models.
 
     .. note::
@@ -65,21 +69,21 @@ class _CosmologyModel(FittableModel):
     """
 
     @abc.abstractmethod
-    def _cosmology_class(self):
+    def _cosmology_class(self) -> type[_CosmoT]:
         """Cosmology class as a private attribute.
 
         Set in subclasses.
         """
 
     @abc.abstractmethod
-    def _method_name(self):
+    def _method_name(self) -> str:
         """Cosmology method name as a private attribute.
 
         Set in subclasses.
         """
 
     @classproperty
-    def cosmology_class(cls):
+    def cosmology_class(cls) -> type[_CosmoT]:
         """|Cosmology| class."""
         return cls._cosmology_class
 
@@ -89,7 +93,7 @@ class _CosmologyModel(FittableModel):
         return inspect.signature(cls._cosmology_class)
 
     @property
-    def cosmology(self):
+    def cosmology(self) -> _CosmoT:
         """Return |Cosmology| using `~astropy.modeling.Parameter` values."""
         cosmo = self._cosmology_class(
             name=self.name,
@@ -101,12 +105,13 @@ class _CosmologyModel(FittableModel):
         return cosmo
 
     @classproperty
-    def method_name(self):
+    def method_name(self) -> str:
         """Redshift-method name on |Cosmology| instance."""
         return self._method_name
 
     # ---------------------------------------------------------------
 
+    # NOTE: cannot add type annotations b/c of how Model introspects
     def evaluate(self, *args, **kwargs):
         """Evaluate method {method!r} of {cosmo_cls!r} Cosmology.
 
@@ -162,7 +167,7 @@ class _CosmologyModel(FittableModel):
 ##############################################################################
 
 
-def from_model(model):
+def from_model(model: _CosmologyModel[_CosmoT]) -> _CosmoT:
     """Load |Cosmology| from `~astropy.modeling.Model` object.
 
     Parameters
@@ -196,7 +201,7 @@ def from_model(model):
     return replace(cosmo, meta=meta)
 
 
-def to_model(cosmology, *_, method):
+def to_model(cosmology: _CosmoT, *_: object, method: str) -> _CosmologyModel[_CosmoT]:
     """Convert a `~astropy.cosmology.Cosmology` to a `~astropy.modeling.Model`.
 
     Parameters
@@ -273,7 +278,9 @@ def to_model(cosmology, *_, method):
     return model
 
 
-def model_identify(origin, format, *args, **kwargs):
+def model_identify(
+    origin: str, format: str | None, *args: object, **kwargs: object
+) -> bool:
     """Identify if object uses the :class:`~astropy.modeling.Model` format.
 
     Returns
