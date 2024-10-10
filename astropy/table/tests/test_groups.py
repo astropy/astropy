@@ -4,6 +4,9 @@ from contextlib import nullcontext
 
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis.extra.numpy import arrays
+from hypothesis.strategies import integers
 
 from astropy import coordinates, time
 from astropy import units as u
@@ -729,7 +732,8 @@ def test_group_mixins_unsupported(col):
 
 
 @pytest.mark.parametrize("add_index", [False, True])
-def test_group_stable_sort(add_index):
+@given(arrays("int64", shape=1000, elements=integers(min_value=0, max_value=5)))
+def test_group_stable_sort(add_index, a):
     """Test that group_by preserves the order of the table.
 
     This table has 5 groups with an average of 200 rows per group, so it is not
@@ -738,7 +742,6 @@ def test_group_stable_sort(add_index):
     This tests explicitly the case where grouping is done via the index sort.
     See: https://github.com/astropy/astropy/issues/14882
     """
-    a = np.random.randint(0, 5, 1000)
     b = np.arange(len(a))
     t = Table([a, b], names=["a", "b"])
     if add_index:
