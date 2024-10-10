@@ -47,6 +47,7 @@ if HAS_SCIPY:
 
 fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 non_linear_fitters = [LevMarLSQFitter, TRFLSQFitter, LMLSQFitter, DogBoxLSQFitter]
+non_linear_fitters_bounds = [LevMarLSQFitter, TRFLSQFitter, DogBoxLSQFitter]
 
 _RANDOM_SEED = 0x1337
 
@@ -394,13 +395,14 @@ class TestNonLinearFitters:
         self.ydata = func(self.initial_values, self.xdata) + yerror
         self.gauss = models.Gaussian1D(100, 5, stddev=1)
 
-    @pytest.mark.parametrize("fitter0", non_linear_fitters)
-    @pytest.mark.parametrize("fitter1", non_linear_fitters)
+    @pytest.mark.parametrize("fitter0", non_linear_fitters_bounds)
+    @pytest.mark.parametrize("fitter1", non_linear_fitters_bounds)
     def test_estimated_vs_analytic_deriv(self, fitter0, fitter1):
         """
         Runs `LevMarLSQFitter` and `TRFLSQFitter` with estimated and
         analytic derivatives of a `Gaussian1D`.
         """
+
         fitter0 = fitter0()
         model = fitter0(self.gauss, self.xdata, self.ydata)
         g1e = models.Gaussian1D(100, 5.0, stddev=1)
@@ -409,8 +411,8 @@ class TestNonLinearFitters:
         emodel = fitter1(g1e, self.xdata, self.ydata, estimate_jacobian=True)
         assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
-    @pytest.mark.parametrize("fitter0", non_linear_fitters)
-    @pytest.mark.parametrize("fitter1", non_linear_fitters)
+    @pytest.mark.parametrize("fitter0", non_linear_fitters_bounds)
+    @pytest.mark.parametrize("fitter1", non_linear_fitters_bounds)
     def test_estimated_vs_analytic_deriv_with_weights(self, fitter0, fitter1):
         """
         Runs `LevMarLSQFitter` and `TRFLSQFitter` with estimated and
@@ -429,7 +431,7 @@ class TestNonLinearFitters:
         )
         assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
-    @pytest.mark.parametrize("fitter", non_linear_fitters)
+    @pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
     def test_with_optimize(self, fitter):
         """
         Tests results from `LevMarLSQFitter` and `TRFLSQFitter` against
@@ -450,7 +452,7 @@ class TestNonLinearFitters:
         )
         assert_allclose(model.parameters, result[0], rtol=10 ** (-3))
 
-    @pytest.mark.parametrize("fitter", non_linear_fitters)
+    @pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
     def test_with_weights(self, fitter):
         """
         Tests results from `LevMarLSQFitter` and `TRFLSQFitter` with weights.
@@ -489,7 +491,7 @@ class TestNonLinearFitters:
         r"clipping to bounds"
     )
     @pytest.mark.parametrize("fitter_class", fitters)
-    @pytest.mark.parametrize("fitter", non_linear_fitters)
+    @pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
     def test_fitter_against_LevMar(self, fitter_class, fitter):
         """
         Tests results from non-linear fitters against `LevMarLSQFitter`
@@ -508,7 +510,7 @@ class TestNonLinearFitters:
         r"ignore:Values in x were outside bounds during a minimize step, "
         r"clipping to bounds"
     )
-    @pytest.mark.parametrize("fitter", non_linear_fitters)
+    @pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
     def test_LSQ_SLSQP_with_constraints(self, fitter):
         """
         Runs `LevMarLSQFitter`/`TRFLSQFitter` and `SLSQPLSQFitter` on a
@@ -523,7 +525,7 @@ class TestNonLinearFitters:
         model = fitter(g1, self.xdata, self.ydata)
         assert_allclose(model.parameters, slsqp_model.parameters, rtol=10 ** (-4))
 
-    @pytest.mark.parametrize("fitter", non_linear_fitters)
+    @pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
     def test_non_linear_lsq_fitter_with_weights(self, fitter):
         """
         Tests that issue #11581 has been solved.
@@ -755,7 +757,7 @@ class Test1DFittingWithOutlierRemoval:
         r"ignore:Values in x were outside bounds during a minimize step, "
         r"clipping to bounds"
     )
-    @pytest.mark.parametrize("fitter", non_linear_fitters + fitters)
+    @pytest.mark.parametrize("fitter", non_linear_fitters_bounds + fitters)
     def test_with_fitters_and_sigma_clip(self, fitter):
         import scipy.stats as stats
 
@@ -815,7 +817,7 @@ class Test2DFittingWithOutlierRemoval:
         r"ignore:Values in x were outside bounds during a minimize step, "
         r"clipping to bounds"
     )
-    @pytest.mark.parametrize("fitter", non_linear_fitters + fitters)
+    @pytest.mark.parametrize("fitter", non_linear_fitters_bounds + fitters)
     def test_with_fitters_and_sigma_clip(self, fitter):
         import scipy.stats as stats
 
@@ -1123,7 +1125,7 @@ def test_linear_fitter_with_weights_flat():
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.filterwarnings("ignore:The fit may be unsuccessful")
-@pytest.mark.parametrize("fitter", non_linear_fitters + fitters)
+@pytest.mark.parametrize("fitter", non_linear_fitters_bounds + fitters)
 def test_fitters_interface(fitter):
     """
     Test that ``**kwargs`` work with all optimizers.
@@ -1403,7 +1405,7 @@ class TestFittingUncertanties:
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", non_linear_fitters)
+@pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
 @pytest.mark.parametrize("weights", [np.ones(8), None])
 def test_non_finite_error(fitter, weights):
     """Regression test error introduced to solve issues #3575 and #12809"""
@@ -1422,7 +1424,7 @@ def test_non_finite_error(fitter, weights):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", non_linear_fitters)
+@pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
 @pytest.mark.parametrize("weights", [np.ones(8), None])
 def test_non_finite_filter_1D(fitter, weights):
     """Regression test filter introduced to remove non-finte values from data"""
@@ -1444,7 +1446,7 @@ def test_non_finite_filter_1D(fitter, weights):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", non_linear_fitters)
+@pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
 @pytest.mark.parametrize("weights", [np.ones((10, 10)), None])
 def test_non_finite_filter_2D(fitter, weights):
     """Regression test filter introduced to remove non-finte values from data"""

@@ -23,6 +23,7 @@ from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 fitters = [LevMarLSQFitter, TRFLSQFitter, LMLSQFitter, DogBoxLSQFitter]
+fitters_bounds = [LevMarLSQFitter, TRFLSQFitter, DogBoxLSQFitter]
 
 
 def test_swap_axes():
@@ -117,7 +118,7 @@ def test_identity():
 
 # https://github.com/astropy/astropy/pull/6018
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_fittable_compound(fitter):
     fitter = fitter()
 
