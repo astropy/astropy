@@ -24,7 +24,7 @@ from .flrw import (
     wpwaCDM,
 )
 from .funcs import cosmology_equal, z_at_value
-from .parameter import Parameter
+from .parameter import Parameter, ParameterConverterCallable
 from .realizations import available, default_cosmology
 
 __all__ = [
@@ -50,6 +50,7 @@ __all__ = [
     "cosmology_equal",
     # Parameter
     "Parameter",
+    "ParameterConverterCallable",
     # Realizations
     "realizations",
     "available",
