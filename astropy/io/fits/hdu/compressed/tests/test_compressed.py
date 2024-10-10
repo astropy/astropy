@@ -24,7 +24,6 @@ from astropy.io.fits.hdu.compressed import (
 from astropy.io.fits.tests.conftest import FitsTestCase
 from astropy.io.fits.tests.test_table import comparerecords
 from astropy.utils.data import download_file
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -889,29 +888,6 @@ class TestCompressedImage(FitsTestCase):
         with fits.open(self.data("comp.fits")) as hdul1:
             with fits.open(self.temp("test.fits")) as hdul2:
                 assert_equal(hdul1[1].data[:200, :100], hdul2[1].data)
-
-    def test_comp_image_deprecated_tile_size(self):
-        # Ensure that tile_size works but is deprecated. This test
-        # can be removed once support for tile_size is removed.
-
-        with pytest.warns(
-            AstropyDeprecationWarning,
-            match="The tile_size argument has been deprecated",
-        ):
-            chdu = fits.CompImageHDU(np.zeros((3, 4, 5)), tile_size=(5, 2, 1))
-
-        assert chdu.tile_shape == (1, 2, 5)
-
-    def test_comp_image_deprecated_tile_size_and_tile_shape(self):
-        # Make sure that tile_size and tile_shape are not both specified
-
-        with pytest.warns(AstropyDeprecationWarning) as w:
-            with pytest.raises(
-                ValueError, match="Cannot specify both tile_size and tile_shape."
-            ):
-                fits.CompImageHDU(
-                    np.zeros((3, 4, 5)), tile_size=(5, 2, 1), tile_shape=(3, 2, 3)
-                )
 
     def test_comp_image_properties_default(self):
         chdu = fits.CompImageHDU(np.zeros((3, 4, 5)))
