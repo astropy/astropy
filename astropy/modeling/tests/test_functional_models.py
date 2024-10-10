@@ -20,6 +20,12 @@ fitters = [
     fitting.DogBoxLSQFitter,
 ]
 
+fitters_bounds = [
+    fitting.LevMarLSQFitter,
+    fitting.TRFLSQFitter,
+    fitting.DogBoxLSQFitter,
+]
+
 
 def test_sigma_constant():
     """
@@ -552,7 +558,7 @@ def test_Voigt1D_method():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_KingProjectedAnalytic1D_fit(fitter):
     fitter = fitter()
 

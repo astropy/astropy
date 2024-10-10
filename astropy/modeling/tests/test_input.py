@@ -33,6 +33,12 @@ fitters = [
     fitting.DogBoxLSQFitter,
 ]
 
+fitters_bounds = [
+    fitting.LevMarLSQFitter,
+    fitting.TRFLSQFitter,
+    fitting.DogBoxLSQFitter,
+]
+
 
 class TestInputType:
     """
@@ -188,7 +194,7 @@ class TestFitting:
         assert_allclose(model.param_sets, expected, atol=10 ** (-7))
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    @pytest.mark.parametrize("fitter", fitters)
+    @pytest.mark.parametrize("fitter", fitters_bounds)
     def test_nonlinear_lsqt_1set_1d(self, fitter):
         """1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter"""
         fitter = fitter()
@@ -199,7 +205,7 @@ class TestFitting:
         assert_allclose(model.parameters, [10, 3, 0.2])
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    @pytest.mark.parametrize("fitter", fitters)
+    @pytest.mark.parametrize("fitter", fitters_bounds)
     def test_nonlinear_lsqt_Nset_1d(self, fitter):
         """1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter"""
         fitter = fitter()
@@ -213,7 +219,7 @@ class TestFitting:
             _ = fitter(g1, self.x1, y1)
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    @pytest.mark.parametrize("fitter", fitters)
+    @pytest.mark.parametrize("fitter", fitters_bounds)
     def test_nonlinear_lsqt_1set_2d(self, fitter):
         """1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter"""
         fitter = fitter()
@@ -226,7 +232,7 @@ class TestFitting:
         assert_allclose(model.parameters, [10, 3, 4, 0.3, 0.2, 0])
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    @pytest.mark.parametrize("fitter", fitters)
+    @pytest.mark.parametrize("fitter", fitters_bounds)
     def test_nonlinear_lsqt_Nset_2d(self, fitter):
         """1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter"""
         fitter = fitter()
