@@ -9,6 +9,8 @@ __all__ = [
     "UnitTypeError",
     "UnitsWarning",
     "UnitParserWarning",
+    "OGIPParserWarning",
+    "OGIPInvalidMultiplicationWarning",
 ]
 
 from astropy.utils.exceptions import AstropyWarning
@@ -51,3 +53,20 @@ class UnitsWarning(AstropyWarning):
 
 class UnitParserWarning(AstropyWarning):
     """Unit parser warnings"""
+
+
+class OGIPParserWarning(UnitParserWarning):
+    """Base class for OGIP parser warnings."""
+
+
+class OGIPInvalidMultiplicationWarning(OGIPParserWarning):
+    """Warning for OGIP multiplications missing a space between the factors."""
+
+    def __init__(self, left: str, right: str) -> None:
+        self.message = (
+            f"if '{left}{right}' was meant to be a multiplication, "
+            f"it should have been written as '{left} {right}'."
+        )
+
+    def __str__(self) -> str:
+        return self.message

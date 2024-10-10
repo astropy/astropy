@@ -23,7 +23,7 @@ import warnings
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
-from astropy.units.errors import UnitParserWarning, UnitsWarning
+from astropy.units.errors import OGIPInvalidMultiplicationWarning, UnitsWarning
 from astropy.utils import classproperty, parsing
 
 from . import core, generic, utils
@@ -210,24 +210,15 @@ class OGIP(generic.Generic):
                             | UNIT OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
                             | OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
             """
-            bad_multiplication_message = (
-                "if '{0}{1}' was meant to be a multiplication, "
-                "it should have been written as '{0} {1}'."
-            )
-
             if len(p) == 7:
                 warnings.warn(
-                    bad_multiplication_message.format(p[1], f"({p[3]})**{p[6]}"),
-                    UnitParserWarning,
+                    OGIPInvalidMultiplicationWarning(str(p[1]), f"({p[3]})**{p[6]}")
                 )
                 p[0] = p[1] * p[3] ** p[6]
             elif len(p) == 6:
                 p[0] = p[2] ** p[5]
             elif len(p) == 5:
-                warnings.warn(
-                    bad_multiplication_message.format(p[1], f"({p[3]})"),
-                    UnitParserWarning,
-                )
+                warnings.warn(OGIPInvalidMultiplicationWarning(str(p[1]), f"({p[3]})"))
                 p[0] = p[1] * p[3]
             elif len(p) == 4:
                 p[0] = p[2]
