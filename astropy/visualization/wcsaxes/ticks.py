@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import math
 from collections import defaultdict
 
 import numpy as np
@@ -170,7 +171,7 @@ class Ticks(Line2D):
         gc.set_alpha(self.get_alpha())
         gc.set_linewidth(self.get_linewidth())
 
-        marker_scale = Affine2D().scale(offset, offset)
+        marker_scale = Affine2D()
         marker_rotation = Affine2D()
         marker_transform = marker_scale + marker_rotation
 
@@ -181,6 +182,25 @@ class Ticks(Line2D):
                 continue
 
             for loc, angle in zip(pixel_array[axis], angle_array[axis]):
+                # rescale ticks so that their size
+                # *projected along the orthogonal axis* is constant
+                # here we use the math module instead of numpy because
+                # it's faster with scalar inputs.
+                angle_rad = math.radians(angle)
+                scale = offset
+                try:
+                    if axis == "l":  # left
+                        scale /= math.cos(angle_rad)
+                    elif axis == "b":  # bottom
+                        scale /= math.sin(angle_rad)
+                    elif axis == "r":  # right
+                        scale /= -math.cos(angle_rad)
+                    elif axis == "t":  # top
+                        scale /= -math.sin(angle_rad)
+                except ZeroDivisionError:
+                    pass
+                marker_scale.scale(scale)
+
                 # Set the rotation for this tick
                 marker_rotation.rotate_deg(initial_angle + angle)
 
@@ -194,8 +214,9 @@ class Ticks(Line2D):
                     path_trans.get_affine(),
                 )
 
-                # Reset the tick rotation before moving to the next tick
+                # Reset transforms before moving to the next tick
                 marker_rotation.clear()
+                marker_scale.clear()
 
                 self.ticks_locs[axis].append(locs)
 
