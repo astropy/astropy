@@ -22,11 +22,11 @@ if TYPE_CHECKING:
     from typing import Any, Literal
 
     from astropy.cosmology import Cosmology
+    from astropy.cosmology.core import CosmoT
     from astropy.cosmology.io._builtin.model import _CosmologyModel
     from astropy.table import Row, Table
 
-CosmoT = TypeVar("CosmoT", bound="Cosmology")
-MapT = TypeVar("MapT", bound="Mapping")  # type: ignore[type-arg]
+    MapT = TypeVar("MapT", bound="Mapping")  # type: ignore[type-arg]
 
 
 # ==============================================================================
