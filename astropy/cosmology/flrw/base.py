@@ -124,7 +124,7 @@ class _ScaleFactor:
 
         Returns
         -------
-        Quantity | ndarray | float
+        |Quantity| | ndarray | float
             Scale factor at each input redshift.
             Returns `float` if the input is scalar.
         """
