@@ -79,7 +79,6 @@ jobs:
 
         - name: Python 3.11 with oldest supported version of all dependencies
           linux: py311-test-oldestdeps-alldeps-cov-clocale
-          toxdeps: tox-uv
           posargs: --remote-data=astropy
           coverage: codecov
 

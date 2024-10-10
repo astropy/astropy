@@ -134,8 +134,7 @@ dev = [
     "astropy[typing]",
 ]
 dev_all = [
-    "tox>=4.18.0", # imposed by tox-uv
-    "tox-uv>=1.11.3",
+    "tox",
     "astropy[dev]",
     "astropy[test_all]",
 ]
