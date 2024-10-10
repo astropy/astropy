@@ -11,9 +11,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from typing import Any, SupportsIndex
-
-    from typing_extensions import Self
+    from typing import Any, Self, SupportsIndex
 
 
 class HomogeneousList(list):
