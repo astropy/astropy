@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name, pointless-statement
 
+import operator
 import pickle
 
 import numpy as np
@@ -20,6 +21,7 @@ from astropy.modeling.models import (
     Legendre1D,
     Legendre2D,
     Linear1D,
+    Lorentz1D,
     Mapping,
     Polynomial1D,
     Polynomial2D,
@@ -1216,3 +1218,87 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
     assert_quantity_allclose(fit.intercept_2, 10 * u.m)
     assert_quantity_allclose(fit.slope_3, 0 * u.kg / u.s)
     assert_quantity_allclose(fit.intercept_3, 5 * u.kg)
+
+
+def numerical_partial_deriv(model, *inputs, param_idx, delta=1e-5):
+    """
+    Evaluate the central difference approximation of the derivative for param_idx.
+
+    Parameters
+    ----------
+    model
+        The model to evaluate
+    inputs
+        The inputs to the model
+    param_idx
+        The index of the parameter to compute the partial derivative for.
+    delta
+        The step size with which to compute the central difference.
+    """
+    param = model.parameters
+
+    param_down = param.copy()
+    param_down[param_idx] = param[param_idx] - delta
+    param_up = param.copy()
+    param_up[param_idx] = param[param_idx] + delta
+
+    up = model.evaluate(*inputs, *param_up)
+    down = model.evaluate(*inputs, *param_down)
+
+    return (up - down) / (2 * delta)
+
+
+def _all_regular_ops(model1, model2):
+    return [
+        op(model1, model2)
+        for op in (operator.add, operator.sub, operator.mul, operator.truediv)
+    ]
+
+
+@pytest.mark.parametrize(
+    "model",
+    (
+        _all_regular_ops(Gaussian1D(5, 2, 3), Linear1D(2, 3))
+        + _all_regular_ops(Polynomial1D(2), Gaussian1D())
+        + _all_regular_ops(Polynomial1D(2, c0=1, c1=2, c2=-3), Polynomial1D(3, c0=4, c1=1, c2=-1, c3=2))
+        + _all_regular_ops(Gaussian2D(2), Polynomial2D(3))
+        + _all_regular_ops(
+            Polynomial1D(degree=0, c0=664.3349), Gaussian1D(amplitude=2000, mean=195)
+        )
+        + [(Gaussian1D(5, 2, 3) + Const1D(2)) / (Polynomial1D(2) - Lorentz1D())]
+    ),
+    ids=lambda x: x._format_expression(show_class_name=True),
+)
+def test_compound_fit_deriv(model):
+    """
+    Given some compound models compare the numerical derivatives to analytical ones.
+    """
+
+    x = np.linspace(1, 5, num=8)
+    y = np.linspace(1, 5, num=5)
+
+    # fit_deriv takes 1D arrays for inputs - if we use higher dimension arrays,
+    # not all models are consistent in the dimensionality of the output. In any
+    # case the fitters will call _wrap_deriv and therefore fit_deriv with
+    # 1D inputs.
+    X, Y = np.meshgrid(x, y)
+    X = X.ravel()
+    Y = Y.ravel()
+
+    inputs = (x,) if model.n_inputs == 1 else (X, Y)
+
+    with np.errstate(all='ignore'):
+
+        numerical = [
+            numerical_partial_deriv(model, *inputs, param_idx=i)
+            for i in range(len(model.parameters))
+        ]
+
+        analytical = model.fit_deriv(*inputs, *model.parameters)
+
+    numerical = np.asanyarray(numerical)
+    analytical = np.asanyarray(analytical)
+
+    assert numerical.shape == analytical.shape
+
+    assert_allclose(numerical, analytical)
