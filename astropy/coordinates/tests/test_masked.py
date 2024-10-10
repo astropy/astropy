@@ -127,3 +127,45 @@ class TestSphericalRepresentationSeparateMasks:
         expected = unmasked.copy()
         expected[self.mask] = unmasked[1]
         assert np.all(representation_equal(sph, expected))
+
+    def test_unmasked_representation_masked_differential(self):
+        rv = np.arange(6.0) << u.km / u.s
+        mask_rv = [True, False] * 3
+        mrv = Masked(rv, mask_rv)
+        mdiff = r.RadialDifferential(mrv)
+        msph = r.SphericalRepresentation(
+            self.lon,
+            self.lat,
+            self.dis,
+            differentials={"s": mdiff},
+        )
+        assert msph.masked
+        assert_array_equal(msph.lon.mask, False)
+        assert_array_equal(msph.lat.mask, False)
+        assert_array_equal(msph.distance.mask, False)
+        assert_array_equal(msph.differentials["s"].d_distance.mask, mask_rv)
+        sph = msph.unmasked
+        assert not sph.masked
+        assert not sph.differentials["s"].masked
+        # Sanity checks on "with[out]_differentials"
+        assert msph.without_differentials().masked
+        sph2 = r.SphericalRepresentation(self.lon, self.lat, self.dis)
+        assert not sph2.masked
+        sph3 = sph2.with_differentials({"s": mdiff})
+        assert sph3.masked
+
+    def test_masked_representation_unmasked_differential(self):
+        diff = r.RadialDifferential(np.arange(6.0) << u.km / u.s)
+        msph = r.SphericalRepresentation(
+            self.mlon,
+            self.mlat,
+            self.mdis,
+            differentials={"s": diff},
+        )
+        assert msph.masked
+        assert msph.differentials["s"].masked
+        assert_array_equal(msph.differentials["s"].d_distance.mask, False)
+        # Sanity check on using with_differentials.
+        msph2 = self.msph.with_differentials({"s": diff})
+        assert msph2.masked
+        assert msph2.differentials["s"].masked
