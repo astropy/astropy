@@ -1416,3 +1416,87 @@ def test_pixel_to_world_stokes(wcs_polarized):
     assert isinstance(world[2], StokesCoord)
     assert_array_equal(world[2], [1, 2, 3, 4])
     assert_array_equal(world[2].symbol, ["I", "Q", "U", "V"])
+
+
+@pytest.mark.parametrize("direction", ("world_to_pixel", "pixel_to_world"))
+def test_out_of_bounds(direction):
+    # Make sure that we correctly deal with any out-of-bound values in the
+    # low-level API.
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.crpix = (1, 1)
+    wcs.wcs.set()
+
+    func = (
+        wcs.world_to_pixel_values
+        if direction == "world_to_pixel"
+        else wcs.pixel_to_world_values
+    )
+
+    xp = np.arange(5) + 1
+    yp = np.arange(5) + 1
+
+    # Before setting bounds
+
+    # Scalars
+    xw, yw = func(xp[0], yp[0])
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, 1)
+
+    # Arrays
+    xw, yw = func(xp, yp)
+    assert_array_equal(xw, [1, 2, 3, 4, 5])
+    assert_array_equal(yw, [1, 2, 3, 4, 5])
+
+    # Mixed
+    xw, yw = func(xp[0], yp)
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, [1, 2, 3, 4, 5])
+
+    # Setting bounds on one dimension
+
+    wcs.pixel_bounds = [(-0.5, 3.5), None]
+
+    # Scalars
+
+    xw, yw = func(xp[0], yp[0])
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, 1)
+
+    xw, yw = func(xp[-1], yp[-1])
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, 5)
+
+    # Arrays
+    xw, yw = func(xp, yp)
+    assert_array_equal(xw, [1, 2, 3, np.nan, np.nan])
+    assert_array_equal(yw, [1, 2, 3, 4, 5])
+
+    # Mixed
+    xw, yw = func(xp[-1], yp)
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, [1, 2, 3, 4, 5])
+
+    # Setting bounds on both dimensions
+
+    wcs.pixel_bounds = [(-0.5, 3.5), (2.5, 5.5)]
+
+    # Scalars
+
+    xw, yw = func(xp[0], yp[0])
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, np.nan)
+
+    xw, yw = func(xp[-1], yp[-1])
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, 5)
+
+    # Arrays
+    xw, yw = func(xp, yp)
+    assert_array_equal(xw, [1, 2, 3, np.nan, np.nan])
+    assert_array_equal(yw, [np.nan, np.nan, 3, 4, 5])
+
+    # Mixed
+    xw, yw = func(xp[-1], yp)
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, [np.nan, np.nan, 3, 4, 5])
