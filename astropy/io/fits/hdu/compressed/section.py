@@ -63,6 +63,7 @@ class CompImageSection:
                 self.hdu.compression_type,
                 self.hdu._bintable.header,
                 self.hdu._bintable,
+                self.hdu.header,
                 first_tile_index,
                 last_tile_index,
             )
@@ -118,6 +119,7 @@ class CompImageSection:
             self.hdu.compression_type,
             self.hdu._bintable.header,
             self.hdu._bintable,
+            self.hdu.header,
             first_tile_index,
             last_tile_index,
         )
