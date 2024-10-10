@@ -193,6 +193,7 @@ numpydoc_xref_aliases.update(
         "ints": ":class:`python:int`",
         # for astropy
         "number": ":term:`number`",
+        "Quantity": ":class:`~astropy.units.Quantity`",
         "Representation": ":class:`~astropy.coordinates.BaseRepresentation`",
         "writable": ":term:`writable file-like object`",
         "readable": ":term:`readable file-like object`",

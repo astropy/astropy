@@ -152,7 +152,7 @@ def z_at_value(
     func : function or method
         A function that takes a redshift as input.
 
-    fval : `~astropy.units.Quantity`
+    fval : Quantity
         The (scalar or array) value of ``func(z)`` to recover.
 
     zmin : float or array-like['dimensionless'] or quantity-like, optional
@@ -202,7 +202,7 @@ def z_at_value(
 
     Returns
     -------
-    z : `~astropy.units.Quantity` ['redshift']
+    z : Quantity ['redshift']
         The redshift ``z`` satisfying ``zmin < z < zmax`` and ``func(z) =
         fval`` within ``ztol``. Has units of cosmological redshift.
 
