@@ -72,7 +72,10 @@ repos:
       - id: sp-repo-review
 
   - repo: https://github.com/PyCQA/docformatter
-    rev: v1.7.5
+    # using an untagged rev for forward compatibility with pre-commit 4.0
+    # see https://github.com/PyCQA/docformatter/issues/289
+    # This should be changed back to a tag when (>1.7.5) is released
+    rev: 06907d0267368b49b9180eed423fae5697c1e909
     hooks:
       - id: docformatter
         additional_dependencies: [tomli]
