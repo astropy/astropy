@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Testing :mod:`astropy.cosmology.parameter`."""
+"""Testing :mod:`astropy.cosmology._parameter`."""
 
 from collections.abc import Callable
 
@@ -9,12 +9,12 @@ import pytest
 
 import astropy.units as u
 from astropy.cosmology import Cosmology, Parameter
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
-from astropy.cosmology.parameter._converter import (
+from astropy.cosmology._parameter.converter import (
     _REGISTRY_FVALIDATORS,
     _validate_with_unit,
 )
-from astropy.cosmology.parameter._core import MISSING
+from astropy.cosmology._parameter.core import MISSING
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 
 ##############################################################################
 
