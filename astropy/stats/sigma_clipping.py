@@ -13,6 +13,7 @@ from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.masked import Masked, get_data_and_mask
 
 if NUMPY_LT_2_0:
     from numpy.core.multiarray import normalize_axis_index
@@ -310,6 +311,7 @@ class SigmaClip:
         if data_reshaped.dtype.kind != "f" or data_reshaped.dtype.itemsize > 8:
             data_reshaped = data_reshaped.astype(float)
 
+        data_reshaped, mask_reshaped = get_data_and_mask(data_reshaped)
         mask = ~np.isfinite(data_reshaped)
         if np.any(mask):
             warnings.warn(
@@ -317,12 +319,9 @@ class SigmaClip:
                 "infs), which were automatically clipped.",
                 AstropyUserWarning,
             )
-
-        if isinstance(data_reshaped, np.ma.MaskedArray):
-            mask |= data_reshaped.mask
-            data = data.view(np.ndarray)
-            data_reshaped = data_reshaped.view(np.ndarray)
-            mask = np.broadcast_to(mask, data_reshaped.shape).copy()
+        if mask_reshaped is not None:
+            mask |= mask_reshaped
+            data, _ = get_data_and_mask(data)
 
         bound_lo, bound_hi = _sigma_clip_fast(
             data_reshaped,
@@ -382,11 +381,12 @@ class SigmaClip:
         In this simple case, we remove clipped elements from the
         flattened array during each iteration.
         """
-        filtered_data = data.ravel()
-
         # remove masked values and convert to ndarray
-        if isinstance(filtered_data, np.ma.MaskedArray):
-            filtered_data = filtered_data._data[~filtered_data.mask]
+        filtered_data, mask = get_data_and_mask(data)
+        if mask is None:
+            filtered_data = filtered_data.ravel()
+        else:
+            filtered_data = filtered_data[~mask]
 
         # remove invalid values
         good_mask = np.isfinite(filtered_data)
@@ -418,9 +418,9 @@ class SigmaClip:
             # update the mask in place, ignoring RuntimeWarnings for
             # comparisons with NaN data values
             with np.errstate(invalid="ignore"):
-                filtered_data.mask |= np.logical_or(
-                    data < self._min_value, data > self._max_value
-                )
+                filtered_data.mask[
+                    (data < self._min_value) | (data > self._max_value)
+                ] = True
 
         if return_bounds:
             return filtered_data, self._min_value, self._max_value
@@ -618,20 +618,9 @@ class SigmaClip:
         """
         data = np.asanyarray(data)
 
-        if data.size == 0:
-            if masked:
+        if data.size == 0 or np.all(getattr(data, "mask", np.False_)):
+            if masked and not hasattr(data, "mask"):
                 result = np.ma.MaskedArray(data)
-            else:
-                result = data
-
-            if return_bounds:
-                return result, self._min_value, self._max_value
-            else:
-                return result
-
-        if isinstance(data, np.ma.MaskedArray) and data.mask.all():
-            if masked:
-                result = data
             else:
                 result = np.full(data.shape, np.nan)
 
@@ -987,11 +976,15 @@ def sigma_clipped_stats(
     SigmaClip, sigma_clip
     """
     if mask is not None:
-        data = np.ma.MaskedArray(data, mask)
+        if isinstance(data, Masked):
+            data = Masked(data, mask)
+        else:
+            data = np.ma.MaskedArray(data, mask=mask)
+
     if mask_value is not None:
         data = np.ma.masked_values(data, mask_value)
 
-    if isinstance(data, np.ma.MaskedArray) and data.mask.all():
+    if getattr(data, "mask", np.False_).all():
         return np.ma.masked, np.ma.masked, np.ma.masked
 
     sigclip = SigmaClip(
