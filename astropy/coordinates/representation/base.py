@@ -234,14 +234,14 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
             for attr, bc_attr in zip(attrs, bc_attrs)
         ]
 
-        # If any attribute has a mask, make all attributes Masked instances.
-        if any(hasattr(attr, "mask") for attr in attrs):
-            attrs = [Masked(attr) for attr in attrs]
-
         # Set private attributes for the attributes. (If not defined explicitly
         # on the class, the metaclass will define properties to access these.)
         for component, attr in zip(components, attrs):
             setattr(self, "_" + component, attr)
+
+        # If any attribute has a mask, ensure all attributes are Masked.
+        if any(hasattr(attr, "mask") for attr in attrs):
+            self._ensure_masked()
 
     @classmethod
     def get_name(cls):
@@ -397,11 +397,9 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
                 # Clearing masked elements on an unmasked instance: nothing to do.
                 return
 
-            elif set_mask or value.masked:
-                # To be able to set the mask, ensure the components are masked.
-                for comp in self.components:
-                    c = "_" + comp
-                    setattr(self, c, Masked(getattr(self, c)))
+            # Ensure our components are masked if a mask needs to be set.
+            if set_mask or value.masked:
+                self._ensure_masked()
 
         if set_mask or clear_mask:
             for comp in self.components:
@@ -456,6 +454,15 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
     @property
     def masked(self):
         return isinstance(getattr(self, self.components[0]), Masked)
+
+    def _ensure_masked(self):
+        """Ensure Masked components."""
+        # TODO: should we just allow the above property to be set?
+        # But be sure the API remains consistent with Time!
+        if not self.masked:
+            for comp in self.components:
+                c = "_" + comp
+                setattr(self, c, Masked(getattr(self, c)))
 
     def get_mask(self, *attrs):
         """Calculate the mask, by combining masks from the given attributes.
@@ -626,6 +633,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     """
 
     info = RepresentationInfo()
+    # Ensure _differentials always exists.
+    _differentials = {}
 
     def __init_subclass__(cls, **kwargs):
         # Register representation name (except for bases on which other
@@ -696,6 +705,14 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         if differentials is None and args and isinstance(args[0], self.__class__):
             differentials = args[0]._differentials
         self._differentials = self._validate_differentials(differentials)
+        # If any part is masked, all should be.
+        if self.masked or any(d.masked for d in self._differentials.values()):
+            self._ensure_masked()
+
+    def _ensure_masked(self):
+        super()._ensure_masked()
+        for d in self._differentials.values():
+            d._ensure_masked()
 
     def _validate_differentials(self, differentials):
         """
@@ -958,16 +975,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         if not differentials:
             return self
 
-        args = [getattr(self, component) for component in self.components]
-
-        # We shallow copy the differentials dictionary so we don't update the
-        # current object's dictionary when adding new keys
-        new_rep = self.__class__(
-            *args, differentials=self.differentials.copy(), copy=False
+        differentials = self._validate_differentials(differentials)
+        return self.__class__(
+            *[getattr(self, component) for component in self.components],
+            differentials=self.differentials | differentials,
+            copy=False,
         )
-        new_rep._differentials.update(new_rep._validate_differentials(differentials))
-
-        return new_rep
 
     def without_differentials(self):
         """Return a copy of the representation without attached differentials.
