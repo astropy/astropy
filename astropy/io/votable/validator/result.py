@@ -23,7 +23,7 @@ from astropy.io.votable import exceptions, table, xmlutil
 class Result:
     def __init__(self, url, root="results", timeout=10):
         self.url = url
-        m = hashlib.md5()
+        m = hashlib.md5(usedforsecurity=False)
         m.update(url)
         self._hash = m.hexdigest()
         self._root = root
