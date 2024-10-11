@@ -1,4 +1,3 @@
-import textwrap
 from os.path import abspath, dirname, join
 
 import pytest
@@ -7,8 +6,7 @@ from astropy import extern
 from astropy.coordinates import SkyCoord
 from astropy.table.table import Table
 from astropy.time import Time
-from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYDATAGRID
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 EXTERN_DIR = abspath(join(dirname(extern.__file__), "jquery", "data"))
@@ -223,34 +221,15 @@ def test_write_jsviewer_local(tmp_path):
         assert f.read().strip() == ref.strip()
 
 
-@pytest.mark.skipif(not HAS_IPYTHON, reason="requires iPython")
+@pytest.mark.skipif(not HAS_IPYDATAGRID, reason="requires ipydatagrid")
+# https://github.com/bqplot/bqplot/issues/1624 and such
+@pytest.mark.filterwarnings(r"ignore:((.|\n)*)traitlets((.|\n)*):DeprecationWarning")
 def test_show_in_notebook():
+    from ipydatagrid import DataGrid
+
     t = Table()
     t["a"] = [1, 2, 3, 4, 5]
     t["b"] = ["b", "c", "a", "d", "e"]
 
-    with pytest.warns(AstropyDeprecationWarning):
-        htmlstr_windx = t.show_in_notebook().data  # should default to 'idx'
-        htmlstr_windx_named = t.show_in_notebook(show_row_index="realidx").data
-        htmlstr_woindx = t.show_in_notebook(show_row_index=False).data
-
-        assert (
-            textwrap.dedent(
-                """
-        <thead><tr><th>idx</th><th>a</th><th>b</th></tr></thead>
-        <tr><td>0</td><td>1</td><td>b</td></tr>
-        <tr><td>1</td><td>2</td><td>c</td></tr>
-        <tr><td>2</td><td>3</td><td>a</td></tr>
-        <tr><td>3</td><td>4</td><td>d</td></tr>
-        <tr><td>4</td><td>5</td><td>e</td></tr>
-        """
-            ).strip()
-            in htmlstr_windx
-        )
-
-        assert (
-            "<thead><tr><th>realidx</th><th>a</th><th>b</th></tr></thead>"
-            in htmlstr_windx_named
-        )
-
-        assert "<thead><tr><th>a</th><th>b</th></tr></thead>" in htmlstr_woindx
+    htmlstr_windx = t.show_in_notebook()
+    assert isinstance(htmlstr_windx, DataGrid)

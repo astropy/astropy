@@ -25,6 +25,7 @@ _optional_deps = [
     "ipykernel",
     "IPython",
     "ipywidgets",
+    "ipydatagrid",
     "jplephem",
     "lxml",
     "matplotlib",
