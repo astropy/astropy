@@ -1015,7 +1015,9 @@ class FittingWithOutlierRemoval:
         loop = False
 
         # Starting fit, prior to any iteration and masking:
-        fitted_model = self.fitter(model, x, y, z, weights=weights, inplace=inplace, **kwargs)
+        fitted_model = self.fitter(
+            model, x, y, z, weights=weights, inplace=inplace, **kwargs
+        )
         filtered_data = np.ma.masked_array(data)
         if filtered_data.mask is np.ma.nomask:
             filtered_data.mask = False
