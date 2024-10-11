@@ -367,10 +367,10 @@ package.
 Faster guessing of formats in ``astropy.io.ascii``
 ==================================================
 
-When reading text-based tables with ``astropy.io.ascii`` and without specifying the
-table format, guessing the format should now be faster for large tables as it is now
-based on a subset of the table - by default the first 10000 lines of the file. If
-needed, this limit can be modified with the following configuration item:
+The performance of guessing the table format when reading large files with
+``astropy.io.ascii`` has been improved. Now the process uses at most
+10000 lines of the file to check if it matches the format. This behavior can
+be configured, e.g.::
 
 .. code-block:: python
 
