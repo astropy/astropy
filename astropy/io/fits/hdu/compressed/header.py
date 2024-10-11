@@ -6,7 +6,9 @@ import warnings
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE, ColDefs, Column
 from astropy.io.fits.hdu.compressed.compbintable import _CompBinTableHDU
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.io.fits.header import Header
+from astropy.io.fits.verify import VerifyWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 from .settings import (
     CMTYPE_ALIASES,
@@ -24,6 +26,7 @@ from .settings import (
 from .utils import _validate_tile_shape
 
 __all__ = [
+    "CompImageHeader",
     "_bintable_header_to_image_header",
     "_image_header_to_empty_bintable",
 ]
@@ -45,6 +48,12 @@ REMAPPED_KEYWORDS = {
 COMPRESSION_KEYWORDS = set(REMAPPED_KEYWORDS.values()).union(
     {"ZIMAGE", "ZCMPTYPE", "ZMASKCMP", "ZQUANTIZ", "ZDITHER0"}
 )
+
+class CompImageHeader(Header):
+    def __init__(self, *args, **kwargs):
+        warnings.warn("The CompImageHeader class is deprecated and will be "
+                      "removed in future", AstropyDeprecationWarning)
+        return super().__init__(*args, **kwargs)
 
 
 def _is_reserved_table_keyword(keyword):
@@ -651,7 +660,8 @@ def _image_header_to_empty_bintable(
             warnings.warn(
                 f"Keyword {card.keyword!r} is reserved "
                 "for use by the FITS Tiled Image "
-                "Convention so will be ignored"
+                "Convention so will be ignored",
+                VerifyWarning
             )
         elif (
             card.keyword not in ("", "COMMENT", "HISTORY")
