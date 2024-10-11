@@ -580,8 +580,11 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         Returns
         -------
-        model_copy : `~astropy.modeling.FittableModel`
-            a copy of the input model with parameters set by the fitter
+        fitted_model : `~astropy.modeling.FittableModel`
+            If ``inplace`` is `False` (the default), this is a copy of the
+            input model with parameters set by the fitter. If ``inplace`` is
+            `True`, this is the same model as the input model, with parameters
+            updated to be those set by the fitter.
 
         """
         if not model.fittable:
@@ -927,7 +930,7 @@ class FittingWithOutlierRemoval:
             f" niter: {self.niter}, outlier_kwargs: {self.outlier_kwargs})"
         )
 
-    def __call__(self, model, x, y, z=None, weights=None, **kwargs):
+    def __call__(self, model, x, y, z=None, weights=None, *, inplace=False, **kwargs):
         """
         Parameters
         ----------
@@ -945,11 +948,19 @@ class FittingWithOutlierRemoval:
             Weights to be passed to the fitter.
         kwargs : dict, optional
             Keyword arguments to be passed to the fitter.
+        inplace : bool, optional
+            If `False` (the default), a copy of the model with the fitted
+            parameters set will be returned. If `True`, the returned model will
+            be the same instance as the model passed in, and the parameter
+            values will be changed inplace.
 
         Returns
         -------
         fitted_model : `~astropy.modeling.FittableModel`
-            Fitted model after outlier removal.
+            If ``inplace`` is `False` (the default), this is a copy of the
+            input model with parameters set by the fitter. If ``inplace`` is
+            `True`, this is the same model as the input model, with parameters
+            updated to be those set by the fitter.
         mask : `numpy.ndarray`
             Boolean mask array, identifying which points were used in the final
             fitting iteration (False) and which were found to be outliers or
@@ -1004,7 +1015,7 @@ class FittingWithOutlierRemoval:
         loop = False
 
         # Starting fit, prior to any iteration and masking:
-        fitted_model = self.fitter(model, x, y, z, weights=weights, **kwargs)
+        fitted_model = self.fitter(model, x, y, z, weights=weights, inplace=inplace, **kwargs)
         filtered_data = np.ma.masked_array(data)
         if filtered_data.mask is np.ma.nomask:
             filtered_data.mask = False
@@ -1085,6 +1096,7 @@ class FittingWithOutlierRemoval:
                     *(c[good] for c in coords),
                     filtered_data.data[good],
                     weights=filtered_weights,
+                    inplace=inplace,
                     **kwargs,
                 )
             else:
@@ -1093,6 +1105,7 @@ class FittingWithOutlierRemoval:
                     *coords,
                     filtered_data,
                     weights=filtered_weights,
+                    inplace=inplace,
                     **kwargs,
                 )
 
@@ -1392,8 +1405,11 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
 
         Returns
         -------
-        model_copy : `~astropy.modeling.FittableModel`
-            a copy of the input model with parameters set by the fitter
+        fitted_model : `~astropy.modeling.FittableModel`
+            If ``inplace`` is `False` (the default), this is a copy of the
+            input model with parameters set by the fitter. If ``inplace`` is
+            `True`, this is the same model as the input model, with parameters
+            updated to be those set by the fitter.
 
         """
         model_copy = _validate_model(
@@ -1777,8 +1793,11 @@ class SLSQPLSQFitter(Fitter):
 
         Returns
         -------
-        model_copy : `~astropy.modeling.FittableModel`
-            a copy of the input model with parameters set by the fitter
+        fitted_model : `~astropy.modeling.FittableModel`
+            If ``inplace`` is `False` (the default), this is a copy of the
+            input model with parameters set by the fitter. If ``inplace`` is
+            `True`, this is the same model as the input model, with parameters
+            updated to be those set by the fitter.
 
         """
         model_copy = _validate_model(
@@ -1865,8 +1884,11 @@ class SimplexLSQFitter(Fitter):
 
         Returns
         -------
-        model_copy : `~astropy.modeling.FittableModel`
-            a copy of the input model with parameters set by the fitter
+        fitted_model : `~astropy.modeling.FittableModel`
+            If ``inplace`` is `False` (the default), this is a copy of the
+            input model with parameters set by the fitter. If ``inplace`` is
+            `True`, this is the same model as the input model, with parameters
+            updated to be those set by the fitter.
 
         """
         model_copy = _validate_model(
