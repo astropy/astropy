@@ -48,7 +48,7 @@ class OGIP(generic.Generic):
         "OPEN_PAREN",
         "CLOSE_PAREN",
         "WHITESPACE",
-        "STARSTAR",
+        "POWER",
         "STAR",
         "SIGN",
         "UFLOAT",
@@ -98,11 +98,11 @@ class OGIP(generic.Generic):
     def _lexer(cls) -> Lexer:
         tokens = cls._tokens
 
-        t_DIVISION = r"/"
+        t_DIVISION = "[ \t]*/[ \t]*"
         t_OPEN_PAREN = r"\("
         t_CLOSE_PAREN = r"\)"
         t_WHITESPACE = "[ \t]+"
-        t_STARSTAR = r"\*\*"
+        t_POWER = r"\*\*"
         t_STAR = r"\*"
 
         # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
@@ -120,10 +120,6 @@ class OGIP(generic.Generic):
         def t_SIGN(t):
             r"[+-](?=\d)"
             t.value = 1 if t.value == "+" else -1
-            return t
-
-        def t_X(t):  # multiplication for factor in front of unit
-            r"[x×]"
             return t
 
         def t_LIT10(t):
@@ -171,80 +167,87 @@ class OGIP(generic.Generic):
                  | scale_factor complete_expression
                  | scale_factor WHITESPACE complete_expression
             """
-            if len(p) == 4:
-                p[0] = core.CompositeUnit(p[1] * p[3].scale, p[3].bases, p[3].powers)
-            elif len(p) == 3:
-                p[0] = core.CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
-            else:
-                p[0] = p[1]
+            match p[1:]:
+                case (factor, unit) | (factor, _, unit):
+                    p[0] = core.CompositeUnit(
+                        factor * unit.scale, unit.bases, unit.powers
+                    )
+                case _:
+                    p[0] = p[1]
 
         def p_complete_expression(p):
             """
-            complete_expression : product_of_units
+            complete_expression : unit_expression
+                                | product_of_units
+                                | division_of_units
             """
+            # product_of_units is not in unit_expression for performance
+            # division_of_units is separate to enforce the correct order of operations
             p[0] = p[1]
 
         def p_product_of_units(p):
             """
-            product_of_units : unit_expression
-                             | function
-                             | division unit_expression
-                             | product_of_units product unit_expression
-                             | product_of_units division unit_expression
+            product_of_units : complete_expression product unit_expression
             """
-            if len(p) == 4:
-                if p[2] == "DIVISION":
-                    p[0] = p[1] / p[3]
-                else:
-                    p[0] = p[1] * p[3]
-            elif len(p) == 3:
-                p[0] = p[2] ** -1
-            else:
-                p[0] = p[1]
+            p[0] = p[1] * p[3]
+
+        def p_division_of_units(p):
+            """
+            division_of_units : DIVISION unit_expression
+                              | complete_expression DIVISION unit_expression
+            """
+            match p[1:]:
+                case _, unit:
+                    p[0] = unit**-1
+                case num, _, denom:
+                    p[0] = num / denom
 
         def p_unit_expression(p):
             """
-            unit_expression : unit
+            unit_expression : UNIT
+                            | function
+                            | UNIT POWER numeric_power
                             | UNIT OPEN_PAREN complete_expression CLOSE_PAREN
                             | OPEN_PAREN complete_expression CLOSE_PAREN
-                            | UNIT OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
-                            | OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
+                            | UNIT OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power
+                            | OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power
             """
             bad_multiplication_message = (
                 "if '{0}{1}' was meant to be a multiplication, "
                 "it should have been written as '{0} {1}'."
             )
 
-            if len(p) == 7:
-                warnings.warn(
-                    bad_multiplication_message.format(p[1], f"({p[3]})**{p[6]}"),
-                    UnitParserWarning,
-                )
-                p[0] = p[1] * p[3] ** p[6]
-            elif len(p) == 6:
-                p[0] = p[2] ** p[5]
-            elif len(p) == 5:
-                warnings.warn(
-                    bad_multiplication_message.format(p[1], f"({p[3]})"),
-                    UnitParserWarning,
-                )
-                p[0] = p[1] * p[3]
-            elif len(p) == 4:
-                p[0] = p[2]
-            else:
-                p[0] = p[1]
+            match p[1:]:
+                case factor, _, unit, _, _, power:
+                    warnings.warn(
+                        bad_multiplication_message.format(factor, f"({unit})**{power}"),
+                        UnitParserWarning,
+                    )
+                    p[0] = factor * unit**power
+                case (_, unit, _, _, power) | (unit, "**", power):
+                    p[0] = unit**power
+                case left, _, right, _:
+                    warnings.warn(
+                        bad_multiplication_message.format(left, f"({right})"),
+                        UnitParserWarning,
+                    )
+                    p[0] = left * right
+                case _, unit, _:
+                    p[0] = unit
+                case _:
+                    p[0] = p[1]
 
         def p_function(p):
             """
             function : FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN
-                     | FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
+                     | FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power
             """
-            match list(p):
-                case [_, "sqrt", _, unit, _]:
+            match p[1:]:
+                case "sqrt", _, unit, _:
                     p[0] = unit**0.5
-                case [_, "sqrt", _, unit, _, _, numeric_power]:
+                case "sqrt", _, unit, _, _, numeric_power:
                     p[0] = unit ** (0.5 * numeric_power)
-                case [_, func, *_]:
+                case func, *_:
                     raise ValueError(
                         f"The function '{func}' is valid in OGIP, but not understood "
                         "by astropy.units."
@@ -252,11 +255,11 @@ class OGIP(generic.Generic):
 
         def p_scale_factor(p):
             """
-            scale_factor : LIT10 power numeric_power
+            scale_factor : LIT10 POWER numeric_power
                          | LIT10
                          | signed_float
-                         | signed_float power numeric_power
-                         | signed_int power numeric_power
+                         | signed_float POWER numeric_power
+                         | signed_int POWER numeric_power
             """
             if len(p) == 4:
                 p[0] = 10 ** p[3]
@@ -269,15 +272,6 @@ class OGIP(generic.Generic):
                     UnitsWarning,
                 )
 
-        def p_division(p):
-            """
-            division : DIVISION
-                     | WHITESPACE DIVISION
-                     | WHITESPACE DIVISION WHITESPACE
-                     | DIVISION WHITESPACE
-            """
-            p[0] = "DIVISION"
-
         def p_product(p):
             """
             product : WHITESPACE
@@ -286,23 +280,6 @@ class OGIP(generic.Generic):
                     | WHITESPACE STAR WHITESPACE
                     | STAR WHITESPACE
             """
-            p[0] = "PRODUCT"
-
-        def p_power(p):
-            """
-            power : STARSTAR
-            """
-            p[0] = "POWER"
-
-        def p_unit(p):
-            """
-            unit : UNIT
-                 | UNIT power numeric_power
-            """
-            if len(p) == 4:
-                p[0] = p[1] ** p[3]
-            else:
-                p[0] = p[1]
 
         def p_numeric_power(p):
             """
@@ -310,7 +287,7 @@ class OGIP(generic.Generic):
                           | signed_float
                           | OPEN_PAREN signed_int CLOSE_PAREN
                           | OPEN_PAREN signed_float CLOSE_PAREN
-                          | OPEN_PAREN signed_float division UINT CLOSE_PAREN
+                          | OPEN_PAREN signed_float DIVISION UINT CLOSE_PAREN
             """
             if len(p) == 6:
                 p[0] = Fraction(int(p[2]), int(p[4]))
