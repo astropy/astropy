@@ -377,8 +377,8 @@ needed, this limit can be modified with the following configuration item:
     >>> from astropy.io.ascii import conf
     >>> conf.guess_limit_lines = 100000
 
-and the limit can be disabled by setting this value to `None`. For large tables, it
-is however preferable to specify the format of the table explicitly when reading.
+and the limit can be disabled by setting this value to `None`. When reading large tables
+you should specify the format of the table explicitly if possible.
 
 .. _whatsnew_7_0_votable_1_5:
 
