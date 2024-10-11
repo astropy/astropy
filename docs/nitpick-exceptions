@@ -91,7 +91,10 @@ py:class ArrayLike
 # np.ma
 py:class np.ma.MaskedArray
 # locally defined type variable for ndarray dtype
+py:class CosmoT
 py:class DT
+py:class FlatCosmoT
+py:class MapT
 
 # Classes from `astropy.extern` that are nonetheless exposed in documentation
 py:class Lexer
