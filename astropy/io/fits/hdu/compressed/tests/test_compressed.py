@@ -23,10 +23,10 @@ from astropy.io.fits.hdu.compressed import (
 )
 from astropy.io.fits.tests.conftest import FitsTestCase
 from astropy.io.fits.tests.test_table import comparerecords
+from astropy.io.fits.verify import VerifyWarning
 from astropy.utils.data import download_file
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import NumpyRNGContext
-from astropy.io.fits.verify import VerifyWarning
 
 
 class TestCompressedImage(FitsTestCase):
@@ -527,7 +527,9 @@ class TestCompressedImage(FitsTestCase):
             assert "CHECKSUM" in imghdr
             assert imghdr["CHECKSUM"] == "abcd1234"
 
-            with pytest.warns(VerifyWarning, match="Keyword 'TFIELDS' is reserved") as w:
+            with pytest.warns(
+                VerifyWarning, match="Keyword 'TFIELDS' is reserved"
+            ) as w:
                 hdul.writeto(tmp_path / "updated.fits")
 
         with fits.open(
@@ -575,7 +577,9 @@ class TestCompressedImage(FitsTestCase):
             assert "FOO" in imghdr
             assert imghdr.index("FOO") == idx
 
-            with pytest.warns(VerifyWarning, match="Keyword 'TFIELDS' is reserved") as w:
+            with pytest.warns(
+                VerifyWarning, match="Keyword 'TFIELDS' is reserved"
+            ) as w:
                 hdul.writeto(tmp_path / "updated.fits")
 
         with fits.open(
