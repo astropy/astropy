@@ -3316,7 +3316,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             A tuple containing the same number of slices as the WCS system.
             The ``step`` method, the third argument to a slice, is not
             presently supported.
-        numpy_order : bool
+        numpy_order : bool, default: True
             Use numpy order, i.e. slice the WCS so that an identical slice
             applied to a numpy array will slice the array and WCS in the same
             way. If set to `False`, the WCS will be sliced in FITS order,
