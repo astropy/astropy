@@ -72,6 +72,7 @@ jobs:
             apt:
               - language-pack-fr
               - tzdata
+              - libbz2-dev
               - libcfitsio-dev
           toxargs: -v --develop
           posargs: -n=4 --run-slow
