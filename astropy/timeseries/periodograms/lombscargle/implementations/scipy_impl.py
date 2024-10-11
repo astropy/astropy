@@ -41,6 +41,10 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
 
     from scipy import signal
 
+    from astropy.utils import minversion
+
+    SCIPY_LT_1_15 = not minversion("scipy", "1.15.dev")
+
     t, y = np.broadcast_arrays(t, y)
 
     # Scipy requires floating-point input
@@ -57,7 +61,12 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
         y = y - y.mean()
 
     # Note: scipy input accepts angular frequencies
-    p = signal.lombscargle(t, y, 2 * np.pi * frequency)
+    # floating_mean=True will fail tests due to https://github.com/scipy/scipy/pull/21277
+    if SCIPY_LT_1_15:
+        kwargs = {}
+    else:
+        kwargs = {"floating_mean": False}
+    p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
 
     if normalization == "psd":
         pass
