@@ -119,7 +119,7 @@ class OGIP(generic.Generic):
 
         def t_SIGN(t):
             r"[+-](?=\d)"
-            t.value = float(t.value + "1")
+            t.value = 1 if t.value == "+" else -1
             return t
 
         def t_X(t):  # multiplication for factor in front of unit
@@ -318,6 +318,13 @@ class OGIP(generic.Generic):
                 p[0] = p[2]
             else:
                 p[0] = p[1]
+                if p[1] < 0:
+                    warnings.warn(
+                        UnitParserWarning(
+                            "negative exponents must be enclosed in parenthesis. "
+                            f"Expected '**({p[1]})' instead of '**{p[1]}'."
+                        )
+                    )
 
         def p_sign(p):
             """
