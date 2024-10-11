@@ -31,6 +31,7 @@ from importlib.metadata import entry_points
 import numpy as np
 
 from astropy.units import Quantity
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from ._fitting_parallel import parallel_fit_dask
@@ -1601,11 +1602,6 @@ class TRFLSQFitter(_NLLSQFitter):
     calc_uncertainties : bool
         If the covariance matrix should be computed and set in the fit_info.
         Default: False
-    use_min_max_bounds: bool
-        If the set parameter bounds for a model will be enforced each given
-        parameter while fitting via a simple min/max condition. A True setting
-        will replicate how LevMarLSQFitter enforces bounds.
-        Default: False
 
     Attributes
     ----------
@@ -1614,6 +1610,7 @@ class TRFLSQFitter(_NLLSQFitter):
         the most recent fit information
     """
 
+    @deprecated_renamed_argument("use_min_max_bounds", None, "7.0")
     def __init__(self, calc_uncertainties=False, use_min_max_bounds=False):
         super().__init__("trf", calc_uncertainties, use_min_max_bounds)
 
@@ -1627,11 +1624,6 @@ class DogBoxLSQFitter(_NLLSQFitter):
     calc_uncertainties : bool
         If the covariance matrix should be computed and set in the fit_info.
         Default: False
-    use_min_max_bounds: bool
-        If the set parameter bounds for a model will be enforced each given
-        parameter while fitting via a simple min/max condition. A True setting
-        will replicate how LevMarLSQFitter enforces bounds.
-        Default: False
 
     Attributes
     ----------
@@ -1640,6 +1632,7 @@ class DogBoxLSQFitter(_NLLSQFitter):
         the most recent fit information
     """
 
+    @deprecated_renamed_argument("use_min_max_bounds", None, "7.0")
     def __init__(self, calc_uncertainties=False, use_min_max_bounds=False):
         super().__init__("dogbox", calc_uncertainties, use_min_max_bounds)
 
