@@ -2,6 +2,9 @@ from math import factorial
 
 import numpy as np
 
+from astropy.utils import minversion
+
+SCIPY_LT_1_15 = not minversion("scipy", "1.15.dev")
 
 def bitceil(N):
     """
