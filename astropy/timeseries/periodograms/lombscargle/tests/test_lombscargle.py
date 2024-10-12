@@ -6,6 +6,7 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.lombscargle import LombScargle
+from astropy.timeseries.periodograms.lombscargle.implementations.utils import SCIPY_LT_1_15
 
 ALL_METHODS = LombScargle.available_methods
 ALL_METHODS_NO_AUTO = [method for method in ALL_METHODS if method != "auto"]
@@ -67,8 +68,11 @@ def test_autofrequency(
 def test_all_methods(
     data, method, center_data, fit_mean, errors, with_units, normalization
 ):
-    if method == "scipy" and (fit_mean or errors != "none"):
-        return
+    if method == "scipy":
+        if fit_mean and SCIPY_LT_1_15:
+            pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
+        elif (errors == "full" or errors == "partial" and normalization == "psd"):
+            pytest.skip("scipy method only supports uniform uncertainties dy")
 
     t, y, dy = data
     frequency = 0.8 + 0.01 * np.arange(40)
@@ -97,7 +101,11 @@ def test_all_methods(
         fit_mean=fit_mean,
         normalization=normalization,
     )
-    P_expected = ls.power(frequency)
+    # Reference defaults to "scipy" in most cases
+    if method == "scipy":
+        P_expected = ls.power(frequency, method="cython")
+    else:
+        P_expected = ls.power(frequency)
 
     # don't use the fft approximation here; we'll test this elsewhere
     if method in FAST_METHODS:
@@ -112,7 +120,7 @@ def test_all_methods(
     else:
         assert not hasattr(P_method, "unit")
 
-    assert_quantity_allclose(P_expected, P_method)
+    assert_quantity_allclose(P_method, P_expected)
 
 
 @pytest.mark.parametrize("method", ALL_METHODS_NO_AUTO)
@@ -146,7 +154,7 @@ def test_integer_inputs(
     kwds = dict(center_data=center_data, fit_mean=fit_mean, normalization=normalization)
     P_float = LombScargle(t, y, dy, **kwds).power(frequency, method=method)
     P_int = LombScargle(t_int, y_int, dy_int, **kwds).power(frequency, method=method)
-    assert_allclose(P_float, P_int)
+    assert_allclose(P_int, P_float)
 
 
 @pytest.mark.parametrize("method", NTERMS_METHODS)
@@ -192,7 +200,7 @@ def test_nterms_methods(
             kwds["method_kwds"] = dict(use_fft=False)
         P_method = ls.power(frequency, method=method, **kwds)
 
-        assert_allclose(P_expected, P_method, rtol=1e-7, atol=1e-25)
+        assert_allclose(P_method, P_expected, rtol=1e-7, atol=1e-25)
 
 
 @pytest.mark.parametrize("method", FAST_METHODS)
@@ -284,8 +292,8 @@ def test_unit_conversions(data, with_error):
     y_millimeter = u.Quantity(y_meter, "millimeter")
 
     # sanity check on inputs
-    assert_quantity_allclose(t_day, t_hour)
-    assert_quantity_allclose(y_meter, y_millimeter)
+    assert_quantity_allclose(t_hour, t_day)
+    assert_quantity_allclose(y_millimeter, y_meter)
 
     if with_error:
         dy = dy * u.meter
@@ -300,13 +308,13 @@ def test_unit_conversions(data, with_error):
     assert freq_hour.unit == 1.0 / u.hour
 
     # Check that results match
-    assert_quantity_allclose(freq_day, freq_hour)
-    assert_quantity_allclose(P1, P2)
+    assert_quantity_allclose(freq_hour, freq_day)
+    assert_quantity_allclose(P2, P1)
 
     # Check that switching frequency units doesn't change things
     P3 = LombScargle(t_day, y_meter, dy).power(freq_hour)
     P4 = LombScargle(t_hour, y_meter, dy).power(freq_day)
-    assert_quantity_allclose(P3, P4)
+    assert_quantity_allclose(P4, P3)
 
 
 @pytest.mark.parametrize("fit_mean", [True, False])
@@ -389,8 +397,8 @@ def test_autopower(data):
     power1 = ls.power(freq1)
     freq2, power2 = ls.autopower(**kwargs)
 
-    assert_allclose(freq1, freq2)
-    assert_allclose(power1, power2)
+    assert_allclose(freq2, freq1)
+    assert_allclose(power2, power1)
 
 
 @pytest.mark.parametrize("with_units", [True, False])
@@ -475,20 +483,20 @@ def test_absolute_times(data, timedelta):
 
     freq1 = ls1.autofrequency(**kwargs)
     freq2 = ls2.autofrequency(**kwargs)
-    assert_quantity_allclose(freq1, freq2)
+    assert_quantity_allclose(freq2, freq1)
 
     power1 = ls1.power(freq1)
     power2 = ls2.power(freq2)
-    assert_quantity_allclose(power1, power2)
+    assert_quantity_allclose(power2, power1)
 
     freq1, power1 = ls1.autopower(**kwargs)
     freq2, power2 = ls2.autopower(**kwargs)
-    assert_quantity_allclose(freq1, freq2)
-    assert_quantity_allclose(power1, power2)
+    assert_quantity_allclose(freq2, freq1)
+    assert_quantity_allclose(power2, power1)
 
     model1 = ls1.model(t, 2 / u.day)
     model2 = ls2.model(trel, 2 / u.day)
-    assert_quantity_allclose(model1, model2)
+    assert_quantity_allclose(model2, model1)
 
     # Check model validation
     MESSAGE = (
@@ -506,7 +514,7 @@ def test_absolute_times(data, timedelta):
 
     design1 = ls1.design_matrix(2 / u.day, t=t)
     design2 = ls2.design_matrix(2 / u.day, t=trel)
-    assert_quantity_allclose(design1, design2)
+    assert_quantity_allclose(design2, design1)
 
     # Check design matrix validation
 
