@@ -1657,7 +1657,20 @@ class LMLSQFitter(_NLLSQFitter):
     def __init__(self, calc_uncertainties=False):
         super().__init__("lm", calc_uncertainties, True)
 
-    def __call__(self, model, *args, **kwargs):
+    @fitter_unit_support
+    def __call__(
+        self,
+        model,
+        x,
+        y,
+        z=None,
+        weights=None,
+        maxiter=DEFAULT_MAXITER,
+        acc=DEFAULT_ACC,
+        epsilon=DEFAULT_EPS,
+        estimate_jacobian=False,
+        filter_non_finite=False,
+    ):
         # Since there are several fitters with proper support for bounds, it
         # is not a good idea to keep supporting the hacky bounds algorithm
         # from LevMarLSQFitter here, and better to communicate with users
@@ -1674,7 +1687,18 @@ class LMLSQFitter(_NLLSQFitter):
                 AstropyDeprecationWarning,
                 stacklevel=2,
             )
-        return super().__call__(model, *args, **kwargs)
+        return super().__call__(
+            model,
+            x,
+            y,
+            z=z,
+            weights=weights,
+            maxiter=maxiter,
+            acc=acc,
+            epsilon=epsilon,
+            estimate_jacobian=estimate_jacobian,
+            filter_non_finite=filter_non_finite,
+        )
 
 
 class SLSQPLSQFitter(Fitter):
