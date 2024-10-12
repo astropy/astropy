@@ -177,7 +177,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     """
 
     H0: Parameter = Parameter(
-        doc="Hubble constant as an `~astropy.units.Quantity` at z=0.",
+        doc="Hubble constant at z=0.",
         unit="km/(s Mpc)",
         fvalidate="scalar",
     )
@@ -188,7 +188,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     Ode0: Parameter = ParameterOde0.clone()
     Tcmb0: Parameter = Parameter(
         default=0.0 * u.K,
-        doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
+        doc="Temperature of the CMB at z=0.",
         unit="Kelvin",
         fvalidate="scalar",
     )
@@ -357,17 +357,17 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
     @cached_property
     def hubble_time(self) -> u.Quantity:
-        """Hubble time as `~astropy.units.Quantity`."""
+        """Hubble time."""
         return (_sec_to_Gyr / (self.H0.value * _H0units_to_invs)) << u.Gyr
 
     @cached_property
     def hubble_distance(self) -> u.Quantity:
-        """Hubble distance as `~astropy.units.Quantity`."""
+        """Hubble distance."""
         return (const.c / self.H0).to(u.Mpc)
 
     @cached_property
     def critical_density0(self) -> u.Quantity:
-        """Critical density as `~astropy.units.Quantity` at z=0."""
+        """Critical density at z=0."""
         return (
             _critdens_const * (self.H0.value * _H0units_to_invs) ** 2
         ) << u.g / u.cm**3
@@ -642,7 +642,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        Tcmb : `~astropy.units.Quantity` ['temperature']
+        Tcmb : Quantity ['temperature']
             The temperature of the CMB in K.
         """
         return self.Tcmb0 * (aszarr(z) + 1.0)
@@ -661,7 +661,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        Tnu : `~astropy.units.Quantity` ['temperature']
+        Tnu : Quantity ['temperature']
             The temperature of the cosmic neutrino background in K.
         """
         return self.Tnu0 * (aszarr(z) + 1.0)
@@ -987,7 +987,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        H : `~astropy.units.Quantity` ['frequency']
+        H : Quantity ['frequency']
             Hubble parameter at each input redshift.
         """
         return self.H0 * self.efunc(z)
@@ -1009,7 +1009,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
+        t : Quantity ['time']
             Lookback time in Gyr to each input redshift.
 
         See Also
@@ -1034,7 +1034,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
+        t : Quantity ['time']
             Lookback time in Gyr to each input redshift.
         """
         return self.hubble_time * self._integral_lookback_time(z)
@@ -1080,7 +1080,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Lookback distance in Mpc
         """
         return (self.lookback_time(z) * const.c).to(u.Mpc)
@@ -1099,7 +1099,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
+        t : Quantity ['time']
             The age of the universe in Gyr at each input redshift.
 
         See Also
@@ -1123,7 +1123,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
+        t : Quantity ['time']
             The age of the universe in Gyr at each input redshift.
         """
         return self.hubble_time * self._integral_age(z)
@@ -1165,8 +1165,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        rho : `~astropy.units.Quantity`
-            Critical density in g/cm^3 at each input redshift.
+        rho : Quantity ['mass density']
+            Critical density at each input redshift.
         """
         return self.critical_density0 * (self.efunc(z)) ** 2
 
@@ -1187,7 +1187,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Comoving distance in Mpc to each input redshift.
         """
         return self._comoving_distance_z1z2(0, z)
@@ -1208,7 +1208,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Comoving distance in Mpc between each input redshift.
         """
         return self._integral_comoving_distance_z1z2(z1, z2)
@@ -1252,7 +1252,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Comoving distance in Mpc between each input redshift.
         """
         return self.hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)  # fmt: skip
@@ -1276,7 +1276,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Comoving transverse distance in Mpc at each input redshift.
 
         Notes
@@ -1303,7 +1303,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Comoving transverse distance in Mpc between input redshift.
 
         Notes
@@ -1339,7 +1339,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Angular diameter distance in Mpc at each input redshift.
 
         References
@@ -1368,7 +1368,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             Luminosity distance in Mpc at each input redshift.
 
         See Also
@@ -1398,7 +1398,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : Quantity ['length']
             The angular diameter distance between each input redshift pair.
             Returns scalar if input is scalar, array else-wise.
         """
@@ -1453,7 +1453,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        distmod : `~astropy.units.Quantity` ['length']
+        distmod : Quantity ['length']
             Distance modulus at each input redshift, in magnitudes.
 
         See Also
@@ -1485,7 +1485,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        V : `~astropy.units.Quantity`
+        V : Quantity ['volume']
             Comoving volume in :math:`Mpc^3` at each input redshift.
         """
         Ok0 = self.Ok0
@@ -1523,7 +1523,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        dV : `~astropy.units.Quantity`
+        dV : Quantity
             Differential comoving volume per redshift per steradian at each
             input redshift.
         """
@@ -1544,7 +1544,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             The distance in comoving kpc corresponding to an arcmin at each
             input redshift.
         """
@@ -1564,7 +1564,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : `~astropy.units.Quantity` ['length']
+        d : Quantity ['length']
             The distance in proper kpc corresponding to an arcmin at each input
             redshift.
         """
@@ -1584,7 +1584,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        theta : `~astropy.units.Quantity` ['angle']
+        theta : Quantity ['angle']
             The angular separation in arcsec corresponding to a comoving kpc at
             each input redshift.
         """
@@ -1604,7 +1604,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        theta : `~astropy.units.Quantity` ['angle']
+        theta : Quantity ['angle']
             The angular separation in arcsec corresponding to a proper kpc at
             each input redshift.
         """
