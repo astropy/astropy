@@ -17,6 +17,7 @@ from .fast_impl import lombscargle_fast
 from .fastchi2_impl import lombscargle_fastchi2
 from .scipy_impl import lombscargle_scipy
 from .slow_impl import lombscargle_slow
+from .utils import SCIPY_LT_1_15
 
 METHODS = {
     "slow": lombscargle_slow,
@@ -84,7 +85,7 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     prefer_fast = len(frequency) > 200 and (
         assume_regular_frequency or _is_regular(frequency)
     )
-    prefer_scipy = "scipy" in methods and dy is None and not fit_mean
+    prefer_scipy = "scipy" in methods and dy is None and not (fit_mean and SCIPY_LT_1_15)
 
     # automatically choose the appropriate method
     if method == "auto":
@@ -201,10 +202,16 @@ def lombscargle(
         assume_regular_frequency=assume_regular_frequency,
     )
 
-    # scipy doesn't support dy or fit_mean=True
+    # scipy doesn't support dy array; fit_mean=True requires >= 1.15
     if method == "scipy":
-        if kwds.pop("fit_mean"):
-            raise ValueError("scipy method does not support fit_mean=True")
+        if kwds.get("fit_mean"):
+            if SCIPY_LT_1_15:
+                raise ValueError("`fit_mean=True` requires Scipy 1.15 or greater")
+            else:
+                # The other methods treat center_data always as True if fit_mean = True;
+                # scipy.signal.lombscargle treats this separately, but for consistent
+                # results set to True here as well.
+                kwds["center_data"] = True
         if dy is not None:
             dy = np.ravel(np.asarray(dy))
             if not np.allclose(dy[0], dy):
