@@ -178,7 +178,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     """
 
     H0: Parameter = Parameter(
-        doc="Hubble constant as an |Quantity| at z=0.",
+        doc="Hubble constant at z=0.",
         unit="km/(s Mpc)",
         fvalidate="scalar",
     )
@@ -189,7 +189,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
     Ode0: Parameter = ParameterOde0.clone()
     Tcmb0: Parameter = Parameter(
         default=0.0 * u.K,
-        doc="Temperature of the CMB as |Quantity| at z=0.",
+        doc="Temperature of the CMB at z=0.",
         unit="Kelvin",
         fvalidate="scalar",
     )
@@ -1162,8 +1162,8 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        rho : Quantity
-            Critical density in g/cm^3 at each input redshift.
+        rho : Quantity ['mass density']
+            Critical density at each input redshift.
         """
         return self.critical_density0 * (self.efunc(z)) ** 2
 
@@ -1395,7 +1395,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        d : Quantity
+        d : Quantity ['length']
             The angular diameter distance between each input redshift pair.
             Returns scalar if input is scalar, array else-wise.
         """
@@ -1482,7 +1482,7 @@ class FLRW(Cosmology, _ScaleFactorMixin):
 
         Returns
         -------
-        V : Quantity
+        V : Quantity ['volume']
             Comoving volume in :math:`Mpc^3` at each input redshift.
         """
         Ok0 = self.Ok0
