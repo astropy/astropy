@@ -3316,7 +3316,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             A tuple containing the same number of slices as the WCS system.
             The ``step`` method, the third argument to a slice, is not
             presently supported.
-        numpy_order : bool
+        numpy_order : bool, default: True
             Use numpy order, i.e. slice the WCS so that an identical slice
             applied to a numpy array will slice the array and WCS in the same
             way. If set to `False`, the WCS will be sliced in FITS order,
@@ -3332,6 +3332,12 @@ reduce these to 2 dimensions using the naxis kwarg.
             raise ValueError("Must have # of slices <= # of WCS axes")
         elif not hasattr(view, "__len__"):  # view MUST be an iterable
             view = [view]
+
+        if len(view) < self.wcs.naxis:
+            view = list(view) + [slice(None) for i in range(self.wcs.naxis - len(view))]
+
+        if not numpy_order:
+            view = view[::-1]
 
         if not all(isinstance(x, slice) for x in view):
             # We need to drop some dimensions, but this may not always be
@@ -3357,10 +3363,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             if iview.step is not None and iview.step < 0:
                 raise NotImplementedError("Reversing an axis is not implemented.")
 
-            if numpy_order:
-                wcs_index = self.wcs.naxis - 1 - i
-            else:
-                wcs_index = i
+            wcs_index = self.wcs.naxis - 1 - i
 
             if wcs_index < 2:
                 itables = [x_tables, y_tables][wcs_index]
