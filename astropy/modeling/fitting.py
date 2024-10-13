@@ -1714,6 +1714,7 @@ class LMLSQFitter(_NLLSQFitter):
         epsilon=DEFAULT_EPS,
         estimate_jacobian=False,
         filter_non_finite=False,
+        inplace=False,
     ):
         # Since there are several fitters with proper support for bounds, it
         # is not a good idea to keep supporting the hacky bounds algorithm
