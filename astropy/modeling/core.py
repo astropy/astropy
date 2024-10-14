@@ -1672,49 +1672,25 @@ class Model(metaclass=_ModelMeta):
         """
         model = self.copy()
 
-        if not isinstance(model, CompoundModel):
-            inputs_unit = {
-                inp: getattr(kwargs[inp], "unit", dimensionless_unscaled)
-                for inp in self.inputs
-                if kwargs[inp] is not None
-            }
+        inputs_unit = {
+            inp: getattr(kwargs[inp], "unit", dimensionless_unscaled)
+            for inp in self.inputs
+            if kwargs[inp] is not None
+        }
 
-            outputs_unit = {
-                out: getattr(kwargs[out], "unit", dimensionless_unscaled)
-                for out in self.outputs
-                if kwargs[out] is not None
-            }
-            parameter_units = self._parameter_units_for_data_units(
-                inputs_unit, outputs_unit
-            )
-            for name, unit in parameter_units.items():
-                parameter = getattr(model, name)
-                if parameter.unit is not None:
-                    parameter.value = parameter.quantity.to(unit).value
-                    parameter._set_unit(None, force=True)
-        else:
-            for i, comp in enumerate(model):
-                inputs_unit = {
-                    inp: kwargs[inp].unit
-                    if comp.input_units is None
-                    else comp.input_units[inp]
-                    for inp in comp.inputs
-                }
-                outputs_unit = {
-                    out: kwargs[out].unit
-                    if comp.output_units is None
-                    else comp.output_units[out]
-                    for out in comp.outputs
-                }
-
-                parameter_units = comp._parameter_units_for_data_units(
-                    inputs_unit, outputs_unit
-                )
-                for name, unit in parameter_units.items():
-                    parameter = getattr(model, f"{name}_{i}")
-                    if parameter.unit is not None:
-                        parameter.value = parameter.quantity.to(unit).value
-                        parameter._set_unit(None, force=True)
+        outputs_unit = {
+            out: getattr(kwargs[out], "unit", dimensionless_unscaled)
+            for out in self.outputs
+            if kwargs[out] is not None
+        }
+        parameter_units = self._parameter_units_for_data_units(
+            inputs_unit, outputs_unit
+        )
+        for name, unit in parameter_units.items():
+            parameter = getattr(model, name)
+            if parameter.unit is not None:
+                parameter.value = parameter.quantity.to(unit).value
+                parameter._set_unit(None, force=True)
 
         if isinstance(model, CompoundModel):
             model.strip_units_from_tree()
@@ -1785,52 +1761,29 @@ class Model(metaclass=_ModelMeta):
         units for each parameter.
         """
         model = self.copy()
-        if not isinstance(model, CompoundModel):
-            inputs_unit = {
-                inp: getattr(kwargs[inp], "unit", dimensionless_unscaled)
-                for inp in self.inputs
-                if kwargs[inp] is not None
-            }
 
-            outputs_unit = {
-                out: getattr(kwargs[out], "unit", dimensionless_unscaled)
-                for out in self.outputs
-                if kwargs[out] is not None
-            }
+        inputs_unit = {
+            inp: getattr(kwargs[inp], "unit", dimensionless_unscaled)
+            for inp in self.inputs
+            if kwargs[inp] is not None
+        }
 
-            parameter_units = model._parameter_units_for_data_units(
-                inputs_unit, outputs_unit
-            )
+        outputs_unit = {
+            out: getattr(kwargs[out], "unit", dimensionless_unscaled)
+            for out in self.outputs
+            if kwargs[out] is not None
+        }
 
-            # We are adding units to parameters that already have a value, but we
-            # don't want to convert the parameter, just add the unit directly,
-            # hence the call to ``_set_unit``.
-            for name, unit in parameter_units.items():
-                parameter = getattr(model, name)
-                parameter._set_unit(unit, force=True)
-        else:
-            for i, comp in enumerate(model):
-                inputs_unit = {
-                    inp: kwargs[inp].unit if i == 0 else comp.input_units[inp]
-                    for inp in comp.inputs
-                }
-                outputs_unit = {
-                    out: kwargs[out].unit
-                    if kwargs[out] is None
-                    else comp.output_units[out]
-                    for out in comp.outputs
-                }
+        parameter_units = self._parameter_units_for_data_units(
+            inputs_unit, outputs_unit
+        )
 
-                parameter_units = comp._parameter_units_for_data_units(
-                    inputs_unit, outputs_unit
-                )
-
-                # We are adding units to parameters that already have a value, but we
-                # don't want to convert the parameter, just add the unit directly,
-                # hence the call to ``_set_unit``.
-                for name, unit in parameter_units.items():
-                    parameter = getattr(model, f"{name}_{i}")
-                    parameter._set_unit(unit, force=True)
+        # We are adding units to parameters that already have a value, but we
+        # don't want to convert the parameter, just add the unit directly,
+        # hence the call to ``_set_unit``.
+        for name, unit in parameter_units.items():
+            parameter = getattr(model, name)
+            parameter._set_unit(unit, force=True)
 
         return model
 
@@ -4146,7 +4099,7 @@ class CompoundModel(Model):
         -----
         This modifies the behavior of the base method to account for the
         case where the sub-models of a compound model have different output
-        units. This is only valid for compound * and / compound models as
+        units. This is only valid for compound *, / and | compound models as
         in that case it is reasonable to mix the output units. It does this
         by modifying the output units of each sub model by using the output
         units of the other sub model so that we can apply the original function
@@ -4206,6 +4159,16 @@ class CompoundModel(Model):
             model = CompoundModel(self.op, left, right, name=self.name)
 
             return model, left_kwargs, right_kwargs
+        elif self.op == "|":
+            left_out = self.left(**{inp: kwargs[inp] for inp in self.inputs})
+            left = self.left.without_units_for_data(x=kwargs["x"], y=left_out)
+            left_kwargs = {"x": kwargs["x"], "y": left_out}
+            right = self.right.without_units_for_data(
+                x=self.left(**{inp: kwargs[inp] for inp in self.inputs}), y=kwargs["y"]
+            )
+            right_kwargs = {"x": left_out, "y": kwargs["y"]}
+            model = CompoundModel(self.op, left, right, name=self.name)
+            return model, left_kwargs, right_kwargs
         else:
             return super().without_units_for_data(**kwargs)
 
@@ -4227,7 +4190,7 @@ class CompoundModel(Model):
         Outside the mixed output units, this method is identical to the
         base method.
         """
-        if self.op in ["*", "/"]:
+        if self.op in ["*", "/", "|"]:
             left_kwargs = kwargs.pop("_left_kwargs")
             right_kwargs = kwargs.pop("_right_kwargs")
 
@@ -4235,7 +4198,6 @@ class CompoundModel(Model):
             right = self.right.with_units_from_data(**right_kwargs)
 
             return CompoundModel(self.op, left, right, name=self.name)
-
         else:
             return super().with_units_from_data(**kwargs)
 
