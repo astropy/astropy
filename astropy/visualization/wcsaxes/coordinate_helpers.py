@@ -422,9 +422,6 @@ class CoordinateHelper:
                 "coord_type should be one of 'scalar', 'longitude', or 'latitude'"
             )
 
-    def get_coord_type(self):
-        return self._coord_type
-
     def set_major_formatter(self, formatter):
         """
         Set the format string to use for the major tick labels.
