@@ -1,2 +1,3 @@
 The ``WCS`` class will now respect ``WCSAXESa`` to determine the number of
-dimensions in a WCS, if present in a header.
+dimensions in a WCS by default, if present in a header. This default value
+can be overridden using the already-existing ``naxis`` keyword argument.
