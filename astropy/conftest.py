@@ -64,14 +64,15 @@ def fast_thread_switching():
 
 
 def pytest_configure(config):
-
     # Ensure number of columns and lines is deterministic for testing
     from astropy import conf
+
     conf.max_width = 80
     conf.max_lines = 24
 
     # Disable IERS auto download for testing
     from astropy.utils.iers import conf as iers_conf
+
     iers_conf.auto_download = False
 
     builtins._pytest_running = True
@@ -121,14 +122,15 @@ def pytest_configure(config):
 
 
 def pytest_unconfigure(config):
-
     # Undo settings related to number of lines/columns to show
     from astropy import conf
+
     conf.reset("max_width")
     conf.reset("max_lines")
 
     # Undo IERS auto download setting for testing
     from astropy.utils.iers import conf as iers_conf
+
     iers_conf.reset("auto_download")
 
     builtins._pytest_running = False

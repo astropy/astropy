@@ -7,8 +7,7 @@ from shutil import get_terminal_size
 import numpy as np
 import pytest
 
-from astropy import table
-from astropy import conf
+from astropy import conf, table
 from astropy import units as u
 from astropy.io import ascii
 from astropy.table import QTable, Table
