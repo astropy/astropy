@@ -1517,3 +1517,38 @@ def test_sync_constraints_after_fitting():
     assert m.sync_constraints is True
     m.amplitude.fixed = True
     assert m.fixed == {"amplitude": True, "mean": False, "stddev": False}
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.filterwarnings(r"ignore:Model is linear in parameters.*")
+@pytest.mark.parametrize("fitter_cls", fitters + non_linear_fitters)
+def test_inplace_fitting(fitter_cls):
+    m_ini = models.Const1D()
+    fitter = fitter_cls()
+
+    x = [1, 2, 3]
+    y = [1.5, 2.0, 2.5]
+
+    # By default inplace is False
+
+    m_fit = fitter(m_ini, x, y)
+
+    assert m_fit is not m_ini
+    assert_almost_equal(m_ini.amplitude, 1.0)
+    assert_almost_equal(m_fit.amplitude, 2.0)
+
+    # Test explicit False
+
+    m_fit = fitter(m_ini, x, y, inplace=False)
+
+    assert m_fit is not m_ini
+    assert_almost_equal(m_ini.amplitude, 1.0)
+    assert_almost_equal(m_fit.amplitude, 2.0)
+
+    # Test explicit True
+
+    m_fit = fitter(m_ini, x, y, inplace=True)
+
+    assert m_fit is m_ini
+    assert_almost_equal(m_ini.amplitude, 2.0)
+    assert_almost_equal(m_fit.amplitude, 2.0)
