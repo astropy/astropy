@@ -220,8 +220,6 @@ filterwarnings = [
     "ignore:unclosed <socket:ResourceWarning",
     "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
     "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
-    # https://github.com/h5py/h5py/pull/2416
-    "ignore:__array__ implementation doesn't accept a copy keyword:DeprecationWarning",
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
