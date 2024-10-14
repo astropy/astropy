@@ -32,7 +32,7 @@ class SetupData:
 
 class TestPprint(SetupData):
     def test_pformat(self):
-        assert self.t.pformat() == [
+        assert self.t.pformat(max_lines=-1, max_width=-1) == [
             " a   b ",
             "--- ---",
             "  1  --",

@@ -986,7 +986,7 @@ def test_inserting_quantity_row_in_empty_table(
     assert type(table["b"]) is expected_column_type
     assert type(table["c"]) is Column
 
-    assert table.pformat() == expected_pformat
+    assert table.pformat(max_lines=-1, max_width=-1) == expected_pformat
 
 
 @pytest.mark.usefixtures("table_types")

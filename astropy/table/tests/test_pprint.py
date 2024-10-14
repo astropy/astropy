@@ -12,6 +12,7 @@ from astropy import units as u
 from astropy.io import ascii
 from astropy.table import QTable, Table
 from astropy.table.table_helpers import simple_table
+from astropy.table.tests.utils import ignore_pformat_default_pending_depr_warning
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
 SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
@@ -27,7 +28,7 @@ class TestMultiD:
             np.array([[5, 6], [50, 60]], dtype=np.int64),
         ]
         t = table_type(arr)
-        lines = t.pformat(show_dtype=True)
+        lines = t.pformat(show_dtype=True, max_lines=-1, max_width=-1)
         assert lines == [
             "  col0     col1     col2  ",
             "int64[2] int64[2] int64[2]",
@@ -36,7 +37,7 @@ class TestMultiD:
             "10 .. 20 30 .. 40 50 .. 60",
         ]
 
-        lines = t.pformat(html=True, show_dtype=True)
+        lines = t.pformat(html=True, show_dtype=True, max_lines=-1, max_width=-1)
         assert lines == [
             f'<table id="table{id(t)}">',
             "<thead><tr><th>col0</th><th>col1</th><th>col2</th></tr></thead>",
@@ -58,7 +59,7 @@ class TestMultiD:
         ]
 
         t = table_type([arr])
-        lines = t.pformat(show_dtype=True)
+        lines = t.pformat(show_dtype=True, max_lines=-1, max_width=-1)
         assert lines == [
             "   col0   ",
             "int64[2,2]",
@@ -76,7 +77,7 @@ class TestMultiD:
             np.array([[(5,)], [(50,)]], dtype=np.int64),
         ]
         t = table_type(arr)
-        lines = t.pformat(show_dtype=True)
+        lines = t.pformat(show_dtype=True, max_lines=-1, max_width=-1)
         assert lines == [
             "   col0       col1       col2   ",
             "int64[1,1] int64[1,1] int64[1,1]",
@@ -85,7 +86,7 @@ class TestMultiD:
             "        10         30         50",
         ]
 
-        lines = t.pformat(html=True, show_dtype=True)
+        lines = t.pformat(html=True, show_dtype=True, max_lines=-1, max_width=-1)
         assert lines == [
             f'<table id="table{id(t)}">',
             "<thead><tr><th>col0</th><th>col1</th><th>col2</th></tr></thead>",
@@ -107,7 +108,7 @@ class TestMultiD:
         ]
 
         t = table_type([arr])
-        lines = t.pformat(show_dtype=True)
+        lines = t.pformat(show_dtype=True, max_lines=-1, max_width=-1)
         assert lines == [
             "    col0    ",
             "int64[2,1,1]",
@@ -146,7 +147,7 @@ class TestPprint:
 
     def test_empty_table(self, table_type):
         t = table_type()
-        lines = t.pformat()
+        lines = t.pformat(max_lines=-1, max_width=-1)
         assert lines == ["<No columns>"]
         c = repr(t)
         masked = "masked=True " if t.masked else ""
@@ -155,6 +156,7 @@ class TestPprint:
             "<No columns>",
         ]
 
+    @ignore_pformat_default_pending_depr_warning
     def test_format0(self, table_type):
         """Try getting screen size but fail to defaults because testing doesn't
         have access to screen (fcntl.ioctl fails).
@@ -297,7 +299,7 @@ class TestPprint:
         """Test a range of max_lines"""
         self._setup(table_type)
         for max_lines in (0, 1, 4, 5, 6, 7, 8, 100, 101, 102, 103, 104, 130):
-            lines = self.tb.pformat(max_lines=max_lines, show_unit=False)
+            lines = self.tb.pformat(max_lines=max_lines, show_unit=False, max_width=-1)
             assert len(lines) == max(8, min(102, max_lines))
 
     def test_pformat_all(self, table_type):
@@ -610,6 +612,7 @@ def test_pprint_py3_bytes():
     assert t["col"].pformat() == ["col ", "----", " val", "bläh"]
 
 
+@ignore_pformat_default_pending_depr_warning
 def test_pprint_structured():
     su = table.Column(
         [
@@ -675,7 +678,7 @@ def test_html():
     dat = np.array([1.0, 2.0], dtype=np.float32)
     t = Table([dat], names=["a"])
 
-    lines = t.pformat(html=True)
+    lines = t.pformat(html=True, max_lines=-1, max_width=-1)
     assert lines == [
         f'<table id="table{id(t)}">',
         "<thead><tr><th>a</th></tr></thead>",
@@ -684,7 +687,7 @@ def test_html():
         "</table>",
     ]
 
-    lines = t.pformat(html=True, tableclass="table-striped")
+    lines = t.pformat(html=True, tableclass="table-striped", max_lines=-1, max_width=-1)
     assert lines == [
         f'<table id="table{id(t)}" class="table-striped">',
         "<thead><tr><th>a</th></tr></thead>",
@@ -693,7 +696,9 @@ def test_html():
         "</table>",
     ]
 
-    lines = t.pformat(html=True, tableclass=["table", "table-striped"])
+    lines = t.pformat(
+        html=True, tableclass=["table", "table-striped"], max_lines=-1, max_width=-1
+    )
     assert lines == [
         f'<table id="table{id(t)}" class="table table-striped">',
         "<thead><tr><th>a</th></tr></thead>",
@@ -705,7 +710,7 @@ def test_html():
 
 def test_align():
     t = simple_table(2, kinds="iS")
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         " a   b ",
         "--- ---",
         "  1   b",
@@ -713,7 +718,7 @@ def test_align():
     ]
     # Use column format attribute
     t["a"].format = "<"
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         " a   b ",
         "--- ---",
         "1     b",
@@ -723,22 +728,22 @@ def test_align():
     # Now override column format attribute with various combinations of align
     tpf = [" a   b ", "--- ---", " 1   b ", " 2   c "]
     for align in ("^", ["^", "^"], ("^", "^")):
-        assert tpf == t.pformat(align=align)
+        assert t.pformat(align=align, max_lines=-1, max_width=-1) == tpf
 
-    assert t.pformat(align="<") == [
+    assert t.pformat(align="<", max_lines=-1, max_width=-1) == [
         " a   b ",
         "--- ---",
         "1   b  ",
         "2   c  ",
     ]
-    assert t.pformat(align="0=") == [
+    assert t.pformat(align="0=", max_lines=-1, max_width=-1) == [
         " a   b ",
         "--- ---",
         "001 00b",
         "002 00c",
     ]
 
-    assert t.pformat(align=["<", "^"]) == [
+    assert t.pformat(align=["<", "^"], max_lines=-1, max_width=-1) == [
         " a   b ",
         "--- ---",
         "1    b ",
@@ -749,21 +754,21 @@ def test_align():
     # character that is the same as an align character.
     t = simple_table(2, kinds="iS")
 
-    assert t.pformat(align="^^") == [
+    assert t.pformat(align="^^", max_lines=-1, max_width=-1) == [
         " a   b ",
         "--- ---",
         "^1^ ^b^",
         "^2^ ^c^",
     ]
 
-    assert t.pformat(align="^>") == [
+    assert t.pformat(align="^>", max_lines=-1, max_width=-1) == [
         " a   b ",
         "--- ---",
         "^^1 ^^b",
         "^^2 ^^c",
     ]
 
-    assert t.pformat(align="^<") == [
+    assert t.pformat(align="^<", max_lines=-1, max_width=-1) == [
         " a   b ",
         "--- ---",
         "1^^ b^^",
@@ -774,21 +779,21 @@ def test_align():
     t1 = Table([[1.0, 2.0], [1, 2]], names=["column1", "column2"])
     t1["column1"].format = "#^.2f"
 
-    assert t1.pformat() == [
+    assert t1.pformat(max_lines=-1, max_width=-1) == [
         "column1 column2",
         "------- -------",
         "##1.00#       1",
         "##2.00#       2",
     ]
 
-    assert t1.pformat(align="!<") == [
+    assert t1.pformat(align="!<", max_lines=-1, max_width=-1) == [
         "column1 column2",
         "------- -------",
         "1.00!!! 1!!!!!!",
         "2.00!!! 2!!!!!!",
     ]
 
-    assert t1.pformat(align=[None, "!<"]) == [
+    assert t1.pformat(align=[None, "!<"], max_lines=-1, max_width=-1) == [
         "column1 column2",
         "------- -------",
         "##1.00# 1!!!!!!",
@@ -797,7 +802,7 @@ def test_align():
 
     # Zero fill
     t["a"].format = "+d"
-    assert t.pformat(align="0=") == [
+    assert t.pformat(align="0=", max_lines=-1, max_width=-1) == [
         " a   b ",
         "--- ---",
         "+01 00b",
@@ -805,13 +810,13 @@ def test_align():
     ]
 
     with pytest.raises(ValueError):
-        t.pformat(align=["fail"])
+        t.pformat(align=["fail"], max_lines=-1, max_width=-1)
 
     with pytest.raises(TypeError):
-        t.pformat(align=0)
+        t.pformat(align=0, max_lines=-1, max_width=-1)
 
     with pytest.raises(TypeError):
-        t.pprint(align=0)
+        t.pprint(align=0, max_lines=-1, max_width=-1)
 
     # Make sure pprint() does not raise an exception
     t.pprint()
@@ -823,6 +828,7 @@ def test_align():
         t.pprint(align="x=")
 
 
+@ignore_pformat_default_pending_depr_warning
 def test_auto_format_func():
     """Test for #5802 (fix for #5800 where format_func key is not unique)"""
     t = Table([[1, 2] * u.m])
@@ -840,7 +846,7 @@ def test_decode_replace():
     https://docs.python.org/3/library/codecs.html#codecs.replace_errors
     """
     t = Table([[b"Z\xf0"]])
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         "col0",
         "----",
         "  Z\ufffd",

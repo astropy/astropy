@@ -23,6 +23,7 @@ from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.table import Column, MaskedColumn, QTable, Table, TableMergeError
 from astropy.table.operations import _get_out_class, join_distance, join_skycoord
+from astropy.table.tests.utils import ignore_pformat_default_pending_depr_warning
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata
@@ -136,7 +137,7 @@ class TestJoin:
         assert type(t12["d"]) is type(t2["d"])
         assert t12.masked is False
         assert sort_eq(
-            t12.pformat(),
+            t12.pformat(max_lines=-1, max_width=-1),
             [
                 " a   b   c   d ",
                 "--- --- --- ---",
@@ -163,7 +164,7 @@ class TestJoin:
             assert type(t12[name]) is Column
         assert type(t12["d"]) is MaskedColumn
         assert sort_eq(
-            t12.pformat(),
+            t12.pformat(max_lines=-1, max_width=-1),
             [
                 " a   b   c   d ",
                 "--- --- --- ---",
@@ -180,7 +181,7 @@ class TestJoin:
         assert t12.has_masked_columns is True
         assert t12.masked is False
         assert sort_eq(
-            t12.pformat(),
+            t12.pformat(max_lines=-1, max_width=-1),
             [
                 " a   b   c   d ",
                 "--- --- --- ---",
@@ -196,7 +197,7 @@ class TestJoin:
         assert t12.has_masked_columns is True
         assert t12.masked is False
         assert sort_eq(
-            t12.pformat(),
+            t12.pformat(max_lines=-1, max_width=-1),
             [
                 " a   b   c   d ",
                 "--- --- --- ---",
@@ -229,7 +230,7 @@ class TestJoin:
         assert type(t12["d"]) is type(t2["d"])
         assert t12.masked is False
         assert sort_eq(
-            t12.pformat(),
+            t12.pformat(max_lines=-1, max_width=-1),
             [
                 " a  b_1  c  b_2  d ",
                 "--- --- --- --- ---",
@@ -252,7 +253,7 @@ class TestJoin:
         t12 = table.join(t1, t2, join_type="left", keys="a")
         assert t12.has_masked_columns is True
         assert sort_eq(
-            t12.pformat(),
+            t12.pformat(max_lines=-1, max_width=-1),
             [
                 " a  b_1  c  b_2  d ",
                 "--- --- --- --- ---",
@@ -269,7 +270,7 @@ class TestJoin:
         t12 = table.join(t1, t2, join_type="right", keys="a")
         assert t12.has_masked_columns is True
         assert sort_eq(
-            t12.pformat(),
+            t12.pformat(max_lines=-1, max_width=-1),
             [
                 " a  b_1  c  b_2  d ",
                 "--- --- --- --- ---",
@@ -286,7 +287,7 @@ class TestJoin:
         t12 = table.join(t1, t2, join_type="outer", keys="a")
         assert t12.has_masked_columns is True
         assert sort_eq(
-            t12.pformat(),
+            t12.pformat(max_lines=-1, max_width=-1),
             [
                 " a  b_1  c  b_2  d ",
                 "--- --- --- --- ---",
@@ -321,7 +322,7 @@ class TestJoin:
         t1m["c"].mask[2] = True
         t1m2 = table.join(t1m, t2, join_type="inner", keys="a")
         assert sort_eq(
-            t1m2.pformat(),
+            t1m2.pformat(max_lines=-1, max_width=-1),
             [
                 " a  b_1  c  b_2  d ",
                 "--- --- --- --- ---",
@@ -335,7 +336,7 @@ class TestJoin:
 
         t21m = table.join(t2, t1m, join_type="inner", keys="a")
         assert sort_eq(
-            t21m.pformat(),
+            t21m.pformat(max_lines=-1, max_width=-1),
             [
                 " a  b_1  d  b_2  c ",
                 "--- --- --- --- ---",
@@ -373,7 +374,7 @@ class TestJoin:
         t2m["d"].mask[2] = True
         t1m2m = table.join(t1m, t2m, join_type="inner", keys="a")
         assert sort_eq(
-            t1m2m.pformat(),
+            t1m2m.pformat(max_lines=-1, max_width=-1),
             [
                 " a  b_1  c  b_2  d ",
                 "--- --- --- --- ---",
@@ -853,7 +854,7 @@ class TestJoin:
             "     4 1.1 .. 1.0    -- .. --",
             "     5   -- .. --  0.5 .. 0.0",
         ]
-        assert t12.pformat(show_dtype=True) == exp
+        assert t12.pformat(show_dtype=True, max_lines=-1, max_width=-1) == exp
 
     def test_keys_left_right_basic(self):
         """Test using the keys_left and keys_right args to specify different
@@ -945,7 +946,7 @@ class TestJoin:
             names=["structured", "string"],
         )
         t12 = table.join(t1, t2, ["structured"], join_type="outer")
-        assert t12.pformat() == (
+        assert t12.pformat(max_lines=-1, max_width=-1) == (
             [
                 "structured [f, i] string_1 string_2",
                 "----------------- -------- --------",
@@ -984,7 +985,12 @@ class TestSetdiff:
         out = table.setdiff(self.t1, self.t2)
         assert type(out["a"]) is type(self.t1["a"])
         assert type(out["b"]) is type(self.t1["b"])
-        assert out.pformat() == [" a   b ", "--- ---", "  1 bar", "  1 foo"]
+        assert out.pformat(max_lines=-1, max_width=-1) == [
+            " a   b ",
+            "--- ---",
+            "  1 bar",
+            "  1 foo",
+        ]
 
     def test_default_same_tables(self, operation_table_type):
         self._setup(operation_table_type)
@@ -992,7 +998,7 @@ class TestSetdiff:
 
         assert type(out["a"]) is type(self.t1["a"])
         assert type(out["b"]) is type(self.t1["b"])
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             " a   b ",
             "--- ---",
         ]
@@ -1009,7 +1015,7 @@ class TestSetdiff:
 
         assert type(out["a"]) is type(self.t1["a"])
         assert type(out["b"]) is type(self.t1["b"])
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             " a   b ",
             "--- ---",
             "  1 foo",
@@ -1022,7 +1028,7 @@ class TestSetdiff:
 
         assert type(out["a"]) is type(self.t1["a"])
         assert type(out["b"]) is type(self.t1["b"])
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             " a   b   d ",
             "--- --- ---",
             "  4 bar  R4",
@@ -1096,7 +1102,7 @@ class TestVStack:
         out = table.vstack([self.t1, t2[1]])
         assert type(out["a"]) is type(self.t1["a"])
         assert type(out["b"]) is type(self.t1["b"])
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             " a   b ",
             "--- ---",
             "0.0 foo",
@@ -1110,7 +1116,7 @@ class TestVStack:
         t2.meta.clear()
         out = table.vstack([self.t1, t2["a"]])
         assert out.masked is False
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             " a   b ",
             "--- ---",
             "0.0 foo",
@@ -1179,7 +1185,7 @@ class TestVStack:
         assert type(t12) is operation_table_type
         assert type(t12["a"]) is type(t1["a"])
         assert type(t12["b"]) is type(t1["b"])
-        assert t12.pformat() == [
+        assert t12.pformat(max_lines=-1, max_width=-1) == [
             " a   b ",
             "--- ---",
             "0.0 foo",
@@ -1192,7 +1198,7 @@ class TestVStack:
         assert type(t124) is operation_table_type
         assert type(t12["a"]) is type(t1["a"])
         assert type(t12["b"]) is type(t1["b"])
-        assert t124.pformat() == [
+        assert t124.pformat(max_lines=-1, max_width=-1) == [
             " a   b ",
             "--- ---",
             "0.0 foo",
@@ -1212,7 +1218,7 @@ class TestVStack:
         t4 = self.t4
         t12 = table.vstack([t1, t2], join_type="outer")
         assert t12.masked is False
-        assert t12.pformat() == [
+        assert t12.pformat(max_lines=-1, max_width=-1) == [
             " a   b   c ",
             "--- --- ---",
             "0.0 foo  --",
@@ -1223,7 +1229,7 @@ class TestVStack:
 
         t124 = table.vstack([t1, t2, t4], join_type="outer")
         assert t124.masked is False
-        assert t124.pformat() == [
+        assert t124.pformat(max_lines=-1, max_width=-1) == [
             " a   b   c ",
             "--- --- ---",
             "0.0 foo  --",
@@ -1264,7 +1270,7 @@ class TestVStack:
         t4["b"].mask[1] = True
         t14 = table.vstack([t1, t4])
         assert t14.masked is False
-        assert t14.pformat() == [
+        assert t14.pformat(max_lines=-1, max_width=-1) == [
             " a   b ",
             "--- ---",
             "0.0 foo",
@@ -1330,7 +1336,7 @@ class TestVStack:
                 in str(warning_lines[1].message)
             )
             # Check units are suitably ignored for a regular Table
-            assert out.pformat() == [
+            assert out.pformat(max_lines=-1, max_width=-1) == [
                 "   a       b   ",
                 "   km          ",
                 "-------- ------",
@@ -1343,7 +1349,7 @@ class TestVStack:
             ]
         else:
             # Check QTable correctly dealt with units.
-            assert out.pformat() == [
+            assert out.pformat(max_lines=-1, max_width=-1) == [
                 "   a       b   ",
                 "   km          ",
                 "-------- ------",
@@ -1530,7 +1536,7 @@ class TestVStack:
             names=["structured", "string"],
         )
         t12 = table.vstack([t1, t2])
-        assert t12.pformat() == (
+        assert t12.pformat(max_lines=-1, max_width=-1) == (
             [
                 "structured [f, i] string",
                 "----------------- ------",
@@ -1553,7 +1559,7 @@ class TestVStack:
         # One table without the structured column.
         t3 = t2[("string",)]
         t13 = table.vstack([t1, t3])
-        assert t13.pformat() == [
+        assert t13.pformat(max_lines=-1, max_width=-1) == [
             "structured [f, i] string",
             "----------------- ------",
             "         (1.0, 1)    one",
@@ -1754,7 +1760,7 @@ class TestDStack:
             names=["structured", "string"],
         )
         t12 = table.dstack([t1, t2])
-        assert t12.pformat() == (
+        assert t12.pformat(max_lines=-1, max_width=-1) == (
             [
                 "structured [f, i]     string   ",
                 "------------------ ------------",
@@ -1773,7 +1779,7 @@ class TestDStack:
         # One table without the structured column.
         t3 = t2[("string",)]
         t13 = table.dstack([t1, t3])
-        assert t13.pformat() == [
+        assert t13.pformat(max_lines=-1, max_width=-1) == [
             "structured [f, i]    string   ",
             "----------------- ------------",
             "   (1.0, 1) .. -- one .. three",
@@ -1844,7 +1850,7 @@ class TestHStack:
         self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t1])
         assert out.masked is False
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             "a_1 b_1 a_2 b_2",
             "--- --- --- ---",
             "0.0 foo 0.0 foo",
@@ -1855,7 +1861,7 @@ class TestHStack:
         self._setup(operation_table_type)
         out = table.hstack([self.t1[0], self.t2[1]])
         assert out.masked is False
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             "a_1 b_1 a_2 b_2  c ",
             "--- --- --- --- ---",
             "0.0 foo 3.0 sez   5",
@@ -1867,7 +1873,7 @@ class TestHStack:
         assert type(out["a"]) is type(self.t1["a"])
         assert type(out["b"]) is type(self.t1["b"])
         assert type(out["c"]) is type(self.t2["c"])
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             " a   b   c ",
             "--- --- ---",
             "0.0 foo   4",
@@ -1923,6 +1929,7 @@ class TestHStack:
         with pytest.raises(ValueError):
             table.hstack([self.t1, self.t2], join_type="invalid join type")
 
+    @ignore_pformat_default_pending_depr_warning
     def test_stack_basic(self, operation_table_type):
         self._setup(operation_table_type)
         t1 = self.t1
@@ -1937,7 +1944,7 @@ class TestHStack:
         assert type(out["b_1"]) is type(t1["b"])
         assert type(out["a_2"]) is type(t2["a"])
         assert type(out["b_2"]) is type(t2["b"])
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             "a_1 b_1 a_2 b_2  c ",
             "--- --- --- --- ---",
             "0.0 foo 2.0 pez   4",
@@ -1953,7 +1960,7 @@ class TestHStack:
 
         out = table.hstack([t1, t2, t3, t4], join_type="outer")
         assert out.masked is False
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             "a_1 b_1 a_2 b_2  c   d   e   f   g ",
             "--- --- --- --- --- --- --- --- ---",
             "0.0 foo 2.0 pez   4 4.0   7 0.0 foo",
@@ -1963,7 +1970,7 @@ class TestHStack:
 
         out = table.hstack([t1, t2, t3, t4], join_type="inner")
         assert out.masked is False
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             "a_1 b_1 a_2 b_2  c   d   e   f   g ",
             "--- --- --- --- --- --- --- --- ---",
             "0.0 foo 2.0 pez   4 4.0   7 0.0 foo",
@@ -1986,7 +1993,7 @@ class TestHStack:
         t2.meta.clear()
         t2["b"].mask[1] = True
         out = table.hstack([t1, t2])
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             "a_1 b_1 a_2 b_2",
             "--- --- --- ---",
             "0.0 foo 0.0 foo",
@@ -2002,7 +2009,7 @@ class TestHStack:
             table_names=("left", "right"),
         )
         assert out.masked is False
-        assert out.pformat() == [
+        assert out.pformat(max_lines=-1, max_width=-1) == [
             "left_a left_b right_a right_b  c ",
             "------ ------ ------- ------- ---",
             "   0.0    foo     2.0     pez   4",
@@ -2092,6 +2099,7 @@ class TestHStack:
             assert "hstack requires masking" in str(err.value)
 
 
+@ignore_pformat_default_pending_depr_warning
 def test_unique(operation_table_type):
     t = operation_table_type.read(
         [
@@ -2117,7 +2125,7 @@ def test_unique(operation_table_type):
     del t_s["b", "c", "d"]
     t_all = table.unique(t_s)
     assert sort_eq(
-        t_all.pformat(),
+        t_all.pformat(max_lines=-1, max_width=-1),
         [
             " a ",
             "---",
@@ -2130,7 +2138,7 @@ def test_unique(operation_table_type):
     key1 = "a"
     t1a = table.unique(t, key1)
     assert sort_eq(
-        t1a.pformat(),
+        t1a.pformat(max_lines=-1, max_width=-1),
         [
             " a   b   c   d ",
             "--- --- --- ---",
@@ -2141,7 +2149,7 @@ def test_unique(operation_table_type):
     )
     t1b = table.unique(t, key1, keep="last")
     assert sort_eq(
-        t1b.pformat(),
+        t1b.pformat(max_lines=-1, max_width=-1),
         [
             " a   b   c   d ",
             "--- --- --- ---",
@@ -2152,7 +2160,7 @@ def test_unique(operation_table_type):
     )
     t1c = table.unique(t, key1, keep="none")
     assert sort_eq(
-        t1c.pformat(),
+        t1c.pformat(max_lines=-1, max_width=-1),
         [
             " a   b   c   d ",
             "--- --- --- ---",
@@ -2163,7 +2171,7 @@ def test_unique(operation_table_type):
     key2 = ["a", "b"]
     t2a = table.unique(t, key2)
     assert sort_eq(
-        t2a.pformat(),
+        t2a.pformat(max_lines=-1, max_width=-1),
         [
             " a   b   c   d ",
             "--- --- --- ---",
@@ -2177,7 +2185,7 @@ def test_unique(operation_table_type):
 
     t2b = table.unique(t, key2, keep="last")
     assert sort_eq(
-        t2b.pformat(),
+        t2b.pformat(max_lines=-1, max_width=-1),
         [
             " a   b   c   d ",
             "--- --- --- ---",
@@ -2190,7 +2198,7 @@ def test_unique(operation_table_type):
     )
     t2c = table.unique(t, key2, keep="none")
     assert sort_eq(
-        t2c.pformat(),
+        t2c.pformat(max_lines=-1, max_width=-1),
         [
             " a   b   c   d ",
             "--- --- --- ---",
@@ -2220,7 +2228,7 @@ def test_unique(operation_table_type):
 
     t1_mu = table.unique(t1_m, silent=True)
     assert t1_mu.masked is False
-    assert t1_mu.pformat() == [
+    assert t1_mu.pformat(max_lines=-1, max_width=-1) == [
         " a   b   c   d ",
         "--- --- --- ---",
         "  0   a 0.0   4",
@@ -2239,7 +2247,7 @@ def test_unique(operation_table_type):
     # order
     t1_mu = table.unique(t1_m, keys=["d", "a", "b"], silent=True)
     assert t1_mu.masked is False
-    assert t1_mu.pformat() == [
+    assert t1_mu.pformat(max_lines=-1, max_width=-1) == [
         " a   b   c   d ",
         "--- --- --- ---",
         "  2   a 4.0  --",

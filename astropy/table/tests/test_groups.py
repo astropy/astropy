@@ -11,6 +11,7 @@ from hypothesis.strategies import integers
 from astropy import coordinates, time
 from astropy import units as u
 from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
+from astropy.table.tests.utils import ignore_pformat_default_pending_depr_warning
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyUserWarning
@@ -54,6 +55,7 @@ def test_column_group_by_no_argsort(T1b):
         t1a.group_by(list(range(len(t1a))))
 
 
+@ignore_pformat_default_pending_depr_warning
 def test_table_group_by(T1):
     """
     Test basic table group_by functionality for possible key types and for
@@ -68,7 +70,7 @@ def test_table_group_by(T1):
         assert str(tg["a"].groups) == "<ColumnGroups indices=[0 1 4 8]>"
 
         # Sorted by 'a' and in original order for rest
-        assert tg.pformat() == [
+        assert tg.pformat(max_lines=-1, max_width=-1) == [
             " a   b   c   d   q ",
             "                 m ",
             "--- --- --- --- ---",
@@ -94,7 +96,7 @@ def test_table_group_by(T1):
             tg = t1.group_by(keys)
             assert np.all(tg.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
             # Sorted by 'a', 'b' and in original order for rest
-            assert tg.pformat() == [
+            assert tg.pformat(max_lines=-1, max_width=-1) == [
                 " a   b   c   d   q ",
                 "                 m ",
                 "--- --- --- --- ---",
@@ -119,7 +121,7 @@ def test_table_group_by(T1):
         # Group by a simple ndarray
         tg = t1.group_by(np.array([0, 1, 0, 1, 2, 1, 0, 0]))
         assert np.all(tg.groups.indices == np.array([0, 4, 7, 8]))
-        assert tg.pformat() == [
+        assert tg.pformat(max_lines=-1, max_width=-1) == [
             " a   b   c   d   q ",
             "                 m ",
             "--- --- --- --- ---",
@@ -170,6 +172,7 @@ def test_groups_keys_time(T1b: QTable):
     assert np.all(keys["b"] == np.array(["a", "a", "b", "a", "b", "c"]))
 
 
+@ignore_pformat_default_pending_depr_warning
 def test_groups_iterator(T1):
     tg = T1.group_by("a")
     for ii, group in enumerate(tg.groups):
@@ -221,6 +224,7 @@ def test_group_column_from_table(T1):
     assert np.all(cg.groups.indices == np.array([0, 1, 4, 8]))
 
 
+@ignore_pformat_default_pending_depr_warning
 def test_table_groups_mask_index(T1):
     """
     Use boolean mask as item in __getitem__ for groups
@@ -235,6 +239,7 @@ def test_table_groups_mask_index(T1):
         assert np.all(t2.groups.keys["a"] == np.array([0, 2]))
 
 
+@ignore_pformat_default_pending_depr_warning
 def test_table_groups_array_index(T1):
     """
     Use numpy array as item in __getitem__ for groups
@@ -249,6 +254,7 @@ def test_table_groups_array_index(T1):
         assert np.all(t2.groups.keys["a"] == np.array([0, 2]))
 
 
+@ignore_pformat_default_pending_depr_warning
 def test_table_groups_slicing(T1):
     """
     Test that slicing table groups works
@@ -291,7 +297,7 @@ def test_grouped_item_access(T1):
         assert np.all(tgs.groups.keys == tg.groups.keys)
         assert np.all(tgs.groups.indices == tg.groups.indices)
         tgsa = tgs.groups.aggregate(np.sum)
-        assert tgsa.pformat() == [
+        assert tgsa.pformat(max_lines=-1, max_width=-1) == [
             " a   c    d ",
             "--- ---- ---",
             "  0  0.0   4",
@@ -303,7 +309,7 @@ def test_grouped_item_access(T1):
         assert np.all(tgs.groups.keys == tg.groups.keys)
         assert np.all(tgs.groups.indices == tg.groups.indices)
         tgsa = tgs.groups.aggregate(np.sum)
-        assert tgsa.pformat() == [
+        assert tgsa.pformat(max_lines=-1, max_width=-1) == [
             " c    d ",
             "---- ---",
             " 0.0   4",
@@ -367,7 +373,7 @@ def test_group_by_masked(T1):
     t1m = QTable(T1, masked=True)
     t1m["c"].mask[4] = True
     t1m["d"].mask[5] = True
-    assert t1m.group_by("a").pformat() == [
+    assert t1m.group_by("a").pformat(max_lines=-1, max_width=-1) == [
         " a   b   c   d   q ",
         "                 m ",
         "--- --- --- --- ---",
@@ -450,7 +456,7 @@ def test_table_aggregate(T1):
     t1 = T1["a", "c", "d"]
     tg = t1.group_by("a")
     tga = tg.groups.aggregate(np.sum)
-    assert tga.pformat() == [
+    assert tga.pformat(max_lines=-1, max_width=-1) == [
         " a   c    d ",
         "--- ---- ---",
         "  0  0.0   4",
@@ -483,7 +489,7 @@ def test_table_aggregate(T1):
     with pytest.warns(UserWarning, match="converting a masked element to nan"), ctx:
         tga = tg.groups.aggregate(np.sum)
 
-    assert tga.pformat() == [
+    assert tga.pformat(max_lines=-1, max_width=-1) == [
         " a   c    d    q  ",
         "               m  ",
         "--- ---- ---- ----",
@@ -500,7 +506,7 @@ def test_table_aggregate(T1):
     t1m["d"].mask[5] = True
     tg = t1m.group_by("a")
     tga = tg.groups.aggregate(np.sum)
-    assert tga.pformat() == [
+    assert tga.pformat(max_lines=-1, max_width=-1) == [
         " a   c    d ",
         "--- ---- ---",
         "  0  0.0   4",
@@ -513,7 +519,7 @@ def test_table_aggregate(T1):
     tg = T1.group_by("a")
     with pytest.warns(AstropyUserWarning, match="Cannot aggregate column"):
         tga = tg.groups.aggregate(np.sum)
-    assert tga.pformat() == [
+    assert tga.pformat(max_lines=-1, max_width=-1) == [
         " a   c    d   q  ",
         "              m  ",
         "--- ---- --- ----",
@@ -548,7 +554,7 @@ def test_table_aggregate_reduceat(T1):
 
     assert np.all(tga_r == tga_n)
     assert np.all(tga_a == tga_n)
-    assert tga_n.pformat() == [
+    assert tga_n.pformat(max_lines=-1, max_width=-1) == [
         " a   c    d ",
         "--- ---- ---",
         "  0  0.0   4",
@@ -559,7 +565,7 @@ def test_table_aggregate_reduceat(T1):
     tga_r = tg.groups.aggregate(np.mean)
     tga_n = tg.groups.aggregate(np_mean)
     assert np.all(tga_r == tga_n)
-    assert tga_n.pformat() == [
+    assert tga_n.pformat(max_lines=-1, max_width=-1) == [
         " a   c   d ",
         "--- --- ---",
         "  0 0.0 4.0",
@@ -573,7 +579,13 @@ def test_table_aggregate_reduceat(T1):
 
     with pytest.warns(AstropyUserWarning, match="Cannot aggregate column"):
         tga = tg.groups.aggregate(np_add)
-    assert tga.pformat() == [" a ", "---", "  0", "  1", "  2"]
+    assert tga.pformat(max_lines=-1, max_width=-1) == [
+        " a ",
+        "---",
+        "  0",
+        "  1",
+        "  2",
+    ]
 
 
 def test_column_aggregate(T1):
@@ -625,13 +637,17 @@ def test_table_filter():
     )
     tg = t.group_by("a")
     t2 = tg.groups.filter(all_positive)
-    assert t2.groups[0].pformat() == [
+    assert t2.groups[0].pformat(max_lines=-1, max_width=-1) == [
         " a   c   d ",
         "--- --- ---",
         " -2 7.0   0",
         " -2 5.0   1",
     ]
-    assert t2.groups[1].pformat() == [" a   c   d ", "--- --- ---", "  0 0.0   4"]
+    assert t2.groups[1].pformat(max_lines=-1, max_width=-1) == [
+        " a   c   d ",
+        "--- --- ---",
+        "  0 0.0   4",
+    ]
 
 
 def test_column_filter():

@@ -749,7 +749,7 @@ def test_quantity_representation():
     Test that table representation of quantities does not have unit
     """
     t = QTable([[1, 2] * u.m])
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         "col0",
         " m  ",
         "----",
@@ -854,7 +854,7 @@ def test_representation_representation(c, expected_pformat):
     Test that Representations are represented correctly.
     """
     t = Table([c])
-    assert t.pformat() == expected_pformat
+    assert t.pformat(max_lines=-1, max_width=-1) == expected_pformat
 
 
 def test_skycoord_representation():
@@ -865,7 +865,7 @@ def test_skycoord_representation():
     # With no unit we get "None" in the unit row
     c = coordinates.SkyCoord([0], [1], [0], representation_type="cartesian")
     t = Table([c])
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         "     col0     ",
         "None,None,None",
         "--------------",
@@ -875,7 +875,7 @@ def test_skycoord_representation():
     # Test that info works with a dynamically changed representation
     c = coordinates.SkyCoord([0], [1], [0], unit="m", representation_type="cartesian")
     t = Table([c])
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         "    col0   ",
         "   m,m,m   ",
         "-----------",
@@ -883,7 +883,7 @@ def test_skycoord_representation():
     ]
 
     t["col0"].representation_type = "unitspherical"
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         "  col0  ",
         "deg,deg ",
         "--------",
@@ -891,7 +891,7 @@ def test_skycoord_representation():
     ]
 
     t["col0"].representation_type = "cylindrical"
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         "    col0    ",
         "  m,deg,m   ",
         "------------",
@@ -965,7 +965,7 @@ def test_ndarray_mixin(as_ndarray_mixin):
     assert t[1]["d"][0] == d[1][0]
     assert t[1]["d"][1] == d[1][1]
 
-    assert t.pformat(show_dtype=True) == (
+    assert t.pformat(show_dtype=True, max_lines=-1, max_width=-1) == (
         [
             "  a [f0, f1]     b [x, y]      c [rx, ry]      d    ",
             "(int32, str1) (int32, str2) (float64, str3) int64[2]",
@@ -997,7 +997,7 @@ def test_possible_string_format_functions():
     """
     t = QTable([[1, 2] * u.m])
     t["col0"].info.format = "%.3f"
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         " col0",
         "  m  ",
         "-----",
@@ -1006,7 +1006,7 @@ def test_possible_string_format_functions():
     ]
 
     t["col0"].info.format = "hi {:.3f}"
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         "  col0  ",
         "   m    ",
         "--------",
@@ -1015,7 +1015,7 @@ def test_possible_string_format_functions():
     ]
 
     t["col0"].info.format = ".4f"
-    assert t.pformat() == [
+    assert t.pformat(max_lines=-1, max_width=-1) == [
         " col0 ",
         "  m   ",
         "------",

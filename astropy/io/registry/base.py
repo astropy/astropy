@@ -323,7 +323,7 @@ class _UnifiedIORegistryBase:
         """``get_formats()``, without column "Data class", as a str."""
         format_table = self.get_formats(data_class, filter_on)
         format_table.remove_column("Data class")
-        format_table_str = "\n".join(format_table.pformat(max_lines=-1))
+        format_table_str = "\n".join(format_table.pformat(max_lines=-1, max_width=-1))
         return format_table_str
 
     def _is_best_match(self, class1, class2, format_classes):

@@ -682,7 +682,7 @@ def test_default_missing(fast_reader):
     )
     dat = ascii.read(table, fast_reader=fast_reader)
     assert dat.masked is False
-    assert dat.pformat() == [
+    assert dat.pformat(max_lines=-1, max_width=-1) == [
         " a   b   c   d ",
         "--- --- --- ---",
         "  1   3  --  --",
@@ -692,7 +692,7 @@ def test_default_missing(fast_reader):
     # Single row table with a single missing element
     table = """ a \n "" """
     dat = ascii.read(table, fast_reader=fast_reader)
-    assert dat.pformat() == [" a ", "---", " --"]
+    assert dat.pformat(max_lines=-1, max_width=-1) == [" a ", "---", " --"]
     assert dat["a"].dtype.kind == "i"
 
     # Same test with a fixed width reader
@@ -706,7 +706,7 @@ def test_default_missing(fast_reader):
     )
     dat = ascii.read(table, format="fixed_width_two_line")
     assert dat.masked is False
-    assert dat.pformat() == [
+    assert dat.pformat(max_lines=-1, max_width=-1) == [
         " a   b   c   d ",
         "--- --- --- ---",
         "  1   3  --  --",
@@ -715,7 +715,7 @@ def test_default_missing(fast_reader):
 
     dat = ascii.read(table, format="fixed_width_two_line", fill_values=None)
     assert dat.masked is False
-    assert dat.pformat() == [
+    assert dat.pformat(max_lines=-1, max_width=-1) == [
         " a   b   c   d ",
         "--- --- --- ---",
         "  1   3        ",
@@ -724,7 +724,7 @@ def test_default_missing(fast_reader):
 
     dat = ascii.read(table, format="fixed_width_two_line", fill_values=[])
     assert dat.masked is False
-    assert dat.pformat() == [
+    assert dat.pformat(max_lines=-1, max_width=-1) == [
         " a   b   c   d ",
         "--- --- --- ---",
         "  1   3        ",
@@ -1371,7 +1371,7 @@ def test_pformat_roundtrip():
         ]
     )
     dat = ascii.read(table)
-    out = ascii.read(dat.pformat())
+    out = ascii.read(dat.pformat(max_lines=-1, max_width=-1))
     assert len(dat) == len(out)
     assert dat.colnames == out.colnames
     for c in dat.colnames:
@@ -1729,14 +1729,18 @@ def test_read_with_encoding(tmp_path, encoding):
             f.write(content)
 
         table = ascii.read(testfile, encoding=encoding)
-        assert table.pformat() == [" à   b    è  ", "--- --- -----", "  1   2 héllo"]
+        assert table.pformat(max_lines=-1, max_width=-1) == [
+            " à   b    è  ",
+            "--- --- -----",
+            "  1   2 héllo",
+        ]
 
         for guess in (True, False):
             table = ascii.read(
                 testfile, format=fmt, fast_reader=False, encoding=encoding, guess=guess
             )
             assert table["è"].dtype.kind == "U"
-            assert table.pformat() == [
+            assert table.pformat(max_lines=-1, max_width=-1) == [
                 " à   b    è  ",
                 "--- --- -----",
                 "  1   2 héllo",
@@ -2051,7 +2055,7 @@ def test_read_converters_simplified():
 
     converters = {"a": str, "e": np.float32}
     t2 = Table.read(out.getvalue(), format="ascii.basic", converters=converters)
-    assert t2.pformat(show_dtype=True) == [
+    assert t2.pformat(show_dtype=True, max_lines=-1, max_width=-1) == [
         " a      b      c     d      e   ",
         "str1 float64  str5  str5 float32",
         "---- ------- ----- ----- -------",
@@ -2061,7 +2065,7 @@ def test_read_converters_simplified():
 
     converters = {"a": float, "*": [np.int64, float, bool, str]}
     t2 = Table.read(out.getvalue(), format="ascii.basic", converters=converters)
-    assert t2.pformat_all(show_dtype=True) == [
+    assert t2.pformat_all(show_dtype=True, max_lines=-1, max_width=-1) == [
         "   a       b      c     d     e  ",
         "float64 float64  bool  str5 int64",
         "------- ------- ----- ----- -----",
