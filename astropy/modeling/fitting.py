@@ -1743,6 +1743,7 @@ class LMLSQFitter(_NLLSQFitter):
             epsilon=epsilon,
             estimate_jacobian=estimate_jacobian,
             filter_non_finite=filter_non_finite,
+            inplace=inplace,
         )
 
 
