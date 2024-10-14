@@ -6,7 +6,12 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.lombscargle import LombScargle
-from astropy.timeseries.periodograms.lombscargle.implementations.utils import SCIPY_LT_1_15
+from astropy.timeseries.periodograms.lombscargle.implementations.main import (
+    validate_method,
+)
+from astropy.timeseries.periodograms.lombscargle.implementations.utils import (
+    SCIPY_LT_1_15,
+)
 
 ALL_METHODS = LombScargle.available_methods
 ALL_METHODS_NO_AUTO = [method for method in ALL_METHODS if method != "auto"]
@@ -71,7 +76,7 @@ def test_all_methods(
     if method == "scipy":
         if fit_mean and SCIPY_LT_1_15:
             pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
-        elif (errors == "full" or errors == "partial" and normalization == "psd"):
+        elif errors == "full" or errors == "partial" and normalization == "psd":
             pytest.skip("scipy method only supports uniform uncertainties dy")
 
     t, y, dy = data
@@ -101,11 +106,15 @@ def test_all_methods(
         fit_mean=fit_mean,
         normalization=normalization,
     )
-    # Reference defaults to "scipy" in most cases
-    if method == "scipy":
-        P_expected = ls.power(frequency, method="cython")
-    else:
-        P_expected = ls.power(frequency)
+    # Use default method for reference unless it is identical to method tested
+    # (can be either "scipy" or "cython").
+    reference = validate_method("auto", dy, fit_mean, 1, frequency, True)
+    if reference == method:
+        if method == "scipy":
+            reference = "cython"
+        else:
+            reference = "slow"
+    P_expected = ls.power(frequency, method=reference)
 
     # don't use the fft approximation here; we'll test this elsewhere
     if method in FAST_METHODS:
@@ -120,7 +129,7 @@ def test_all_methods(
     else:
         assert not hasattr(P_method, "unit")
 
-    assert_quantity_allclose(P_method, P_expected)
+    assert_quantity_allclose(P_method, P_expected, rtol=1e-10)
 
 
 @pytest.mark.parametrize("method", ALL_METHODS_NO_AUTO)
