@@ -16,13 +16,13 @@ from astropy.io.fits.hdu.compressed._tiled_compression import (
 )
 from astropy.io.fits.hdu.compressed.utils import _tile_shape, _validate_tile_shape
 from astropy.io.fits.hdu.image import ImageHDU
+from astropy.io.fits.header import Header
 from astropy.io.fits.util import _is_int
 from astropy.io.fits.verify import _ErrList
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .header import (
-    CompImageHeader,
     _bintable_header_to_image_header,
     _image_header_to_empty_bintable,
 )
@@ -333,7 +333,7 @@ class CompImageHDU(ImageHDU):
 
             super().__init__(
                 data=data,
-                header=CompImageHeader(header or []),
+                header=header or Header(),
                 name=name,
                 do_not_scale_image_data=do_not_scale_image_data,
                 uint=uint,
