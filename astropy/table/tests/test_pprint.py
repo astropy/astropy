@@ -161,9 +161,8 @@ class TestPprint:
         """
         self._setup(table_type)
         arr = np.arange(4000, dtype=np.float64).reshape(100, 40)
-        with conf.set_temp("max_width", None):
-            with conf.set_temp("max_lines", None):
-                lines = table_type(arr).pformat()
+        with conf.set_temp("max_width", None), conf.set_temp("max_lines", None):
+            lines = table_type(arr).pformat()
         width, nlines = get_terminal_size()
         assert len(lines) == nlines
         for line in lines[:-1]:  # skip last "Length = .. rows" line
