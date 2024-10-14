@@ -110,7 +110,7 @@ def all_parameters(obj: object, /) -> dict[str, Field | Parameter]:
         All fields of the dataclass, including those not yet finalized in the class, if
         it's still under construction, e.g. in ``__init_subclass__``.
     """
-    from astropy.cosmology.parameter import Parameter
+    from astropy.cosmology._parameter.core import Parameter
 
     return {
         k: (v if isinstance(v, Parameter) else v.default)
