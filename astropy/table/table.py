@@ -24,7 +24,10 @@ from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import (
+    AstropyPendingDeprecationWarning,
+    AstropyUserWarning,
+)
 from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaAttribute, MetaData
 
@@ -576,6 +579,9 @@ class PprintIncludeExclude(TableAttribute):
         self.__set__(instance, names)
 
         return ctx
+
+
+_NoValue = object()
 
 
 class Table:
@@ -1659,7 +1665,7 @@ class Table:
         return self._base_repr_(html=False, max_width=None)
 
     def __str__(self):
-        return "\n".join(self.pformat())
+        return "\n".join(self.pformat(max_lines=None, max_width=None))
 
     def __bytes__(self):
         return str(self).encode("utf-8")
@@ -1963,8 +1969,8 @@ class Table:
     @format_doc(_pformat_docs, id="{id}")
     def pformat(
         self,
-        max_lines=None,
-        max_width=None,
+        max_lines=_NoValue,
+        max_width=_NoValue,
         show_name=True,
         show_unit=None,
         show_dtype=False,
@@ -1987,6 +1993,29 @@ class Table:
         ``astropy.conf.max_width``.
 
         """
+        if max_lines is _NoValue:
+            warnings.warn(
+                "The default value for the max_lines argument in "
+                f"{self.__class__.__name__}.pformat is planned to change "
+                "from None to -1 in a future version of astropy. "
+                "This warning is emitted since version 7.0 ."
+                "Pass an explicit value to avoid this warning.",
+                category=AstropyPendingDeprecationWarning,
+                stacklevel=2,
+            )
+            max_lines = None
+        if max_width is _NoValue:
+            warnings.warn(
+                "The default value for the max_width argument in "
+                f"{self.__class__.__name__}.pformat is planned to change "
+                "from None to -1 in a future version of astropy. "
+                "This warning is emitted since version 7.0 ."
+                "Pass an explicit value to avoid this warning.",
+                category=AstropyPendingDeprecationWarning,
+                stacklevel=2,
+            )
+            max_width = None
+
         lines, outs = self.formatter._pformat_table(
             self,
             max_lines,
