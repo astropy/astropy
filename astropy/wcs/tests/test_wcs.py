@@ -1971,4 +1971,6 @@ def test_ignore_rogue_dimensions_if_wcsaxes_explicit():
     header = fits.getheader(filename)
     assert header["WCSAXES"] == 2
     header["CDELT3"] = 2
-    assert wcs.WCS(header).naxis == 2
+    # Ignore a warning that relates to NAXIS being 0
+    with pytest.warns(wcs.FITSFixedWarning):
+        assert wcs.WCS(header).naxis == 2
