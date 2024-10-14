@@ -3,12 +3,12 @@
 import re
 import warnings
 
-from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE, ColDefs, Column
 from astropy.io.fits.hdu.compressed.compbintable import _CompBinTableHDU
 from astropy.io.fits.header import Header
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.io.fits.verify import VerifyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .settings import (
     CMTYPE_ALIASES,
@@ -31,153 +31,52 @@ __all__ = [
     "_image_header_to_empty_bintable",
 ]
 
+ZDEF_RE = re.compile(r"(?P<label>^[Zz][a-zA-Z]*)(?P<num>[1-9][0-9 ]*$)?")
+INDEXED_COMPRESSION_KEYWORDS = {"ZNAXIS", "ZTILE", "ZNAME", "ZVAL"}
+REMAPPED_KEYWORDS = {
+    "SIMPLE": "ZSIMPLE",
+    "XTENSION": "ZTENSION",
+    "BITPIX": "ZBITPIX",
+    "NAXIS": "ZNAXIS",
+    "EXTEND": "ZEXTEND",
+    "BLOCKED": "ZBLOCKED",
+    "PCOUNT": "ZPCOUNT",
+    "GCOUNT": "ZGCOUNT",
+    "CHECKSUM": "ZHECKSUM",
+    "DATASUM": "ZDATASUM",
+}
+COMPRESSION_KEYWORDS = set(REMAPPED_KEYWORDS.values()).union(
+    {"ZIMAGE", "ZCMPTYPE", "ZMASKCMP", "ZQUANTIZ", "ZDITHER0"}
+)
+
 
 class CompImageHeader(Header):
-    """
-    Header object for compressed image HDUs designed to keep the compression
-    header and the underlying image header properly synchronized.
-
-    This essentially wraps the image header, so that all values are read from
-    and written to the image header.  However, updates to the image header will
-    also update the table header where appropriate.
-
-    Note that if no image header is passed in, the code will instantiate a
-    regular `~astropy.io.fits.Header`.
-    """
-
-    _keyword_remaps = {
-        "SIMPLE": "ZSIMPLE",
-        "XTENSION": "ZTENSION",
-        "BITPIX": "ZBITPIX",
-        "NAXIS": "ZNAXIS",
-        "EXTEND": "ZEXTEND",
-        "BLOCKED": "ZBLOCKED",
-        "PCOUNT": "ZPCOUNT",
-        "GCOUNT": "ZGCOUNT",
-        "CHECKSUM": "ZHECKSUM",
-        "DATASUM": "ZDATASUM",
-    }
-
-    _zdef_re = re.compile(r"(?P<label>^[Zz][a-zA-Z]*)(?P<num>[1-9][0-9 ]*$)?")
-    _compression_keywords = set(_keyword_remaps.values()).union(
-        ["ZIMAGE", "ZCMPTYPE", "ZMASKCMP", "ZQUANTIZ", "ZDITHER0"]
-    )
-    _indexed_compression_keywords = {"ZNAXIS", "ZTILE", "ZNAME", "ZVAL"}
-
-    def __setitem__(self, key, value):
-        # This isn't pretty, but if the `key` is either an int or a tuple we
-        # need to figure out what keyword name that maps to before doing
-        # anything else; these checks will be repeated later in the
-        # super().__setitem__ call but I don't see another way around it
-        # without some major refactoring
-        if self._set_slice(key, value, self):
-            return
-
-        if isinstance(key, int):
-            keyword, index = self._keyword_from_index(key)
-        elif isinstance(key, tuple):
-            keyword, index = key
-        else:
-            # We don't want to specify and index otherwise, because that will
-            # break the behavior for new keywords and for commentary keywords
-            keyword, index = key, None
-
-        if self._is_reserved_keyword(keyword):
-            return
-
-        super().__setitem__(key, value)
-
-    def append(self, card=None, useblanks=True, bottom=False, end=False):
-        # This logic unfortunately needs to be duplicated from the base class
-        # in order to determine the keyword
-        if isinstance(card, str):
-            card = Card(card)
-        elif isinstance(card, tuple):
-            card = Card(*card)
-        elif card is None:
-            card = Card()
-        elif not isinstance(card, Card):
-            raise ValueError(
-                "The value appended to a Header must be either a keyword or "
-                f"(keyword, value, [comment]) tuple; got: {card!r}"
-            )
-
-        if self._is_reserved_keyword(card.keyword):
-            return
-
-        super().append(card=card, useblanks=useblanks, bottom=bottom, end=end)
-
-    def insert(self, key, card, useblanks=True, after=False):
-        if isinstance(key, int):
-            # Determine condition to pass through to append
-            if after:
-                if key == -1:
-                    key = len(self._cards)
-                else:
-                    key += 1
-
-            if key >= len(self._cards):
-                self.append(card, end=True)
-                return
-
-        if isinstance(card, str):
-            card = Card(card)
-        elif isinstance(card, tuple):
-            card = Card(*card)
-        elif not isinstance(card, Card):
-            raise ValueError(
-                "The value inserted into a Header must be either a keyword or "
-                f"(keyword, value, [comment]) tuple; got: {card!r}"
-            )
-
-        if self._is_reserved_keyword(card.keyword):
-            return
-
-        super().insert(key, card, useblanks=useblanks, after=after)
-
-    def _update(self, card):
-        keyword = card[0]
-
-        if self._is_reserved_keyword(keyword):
-            return
-
-        super()._update(card)
-
-    @classmethod
-    def _is_reserved_keyword(cls, keyword, warn=True):
-        msg = (
-            f"Keyword {keyword!r} is reserved for use by the FITS Tiled Image "
-            "Convention and will not be stored in the header for the "
-            "image being compressed."
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "The CompImageHeader class is deprecated and will be " "removed in future",
+            AstropyDeprecationWarning,
         )
+        return super().__init__(*args, **kwargs)
 
-        if keyword == "TFIELDS":
-            if warn:
-                warnings.warn(msg)
-            return True
 
-        m = TDEF_RE.match(keyword)
+def _is_reserved_table_keyword(keyword):
+    m = TDEF_RE.match(keyword)
+    return keyword == "TFIELDS" or (
+        m and m.group("label").upper() in TABLE_KEYWORD_NAMES
+    )
 
-        if m and m.group("label").upper() in TABLE_KEYWORD_NAMES:
-            if warn:
-                warnings.warn(msg)
-            return True
 
-        m = cls._zdef_re.match(keyword)
+def _is_reserved_compression_keyword(keyword):
+    m = ZDEF_RE.match(keyword)
+    return keyword in COMPRESSION_KEYWORDS or (
+        m and m.group("label").upper() in INDEXED_COMPRESSION_KEYWORDS
+    )
 
-        if m:
-            label = m.group("label").upper()
-            num = m.group("num")
-            if num is not None and label in cls._indexed_compression_keywords:
-                if warn:
-                    warnings.warn(msg)
-                return True
-            elif label in cls._compression_keywords:
-                if warn:
-                    warnings.warn(msg)
-                return True
 
-        return False
+def _is_reserved_keyword(keyword):
+    return _is_reserved_table_keyword(keyword) or _is_reserved_compression_keyword(
+        keyword
+    )
 
 
 def _bintable_header_to_image_header(bintable_header):
@@ -198,10 +97,7 @@ def _bintable_header_to_image_header(bintable_header):
     # keywords, which there may be in some pathological cases:
     # https://github.com/astropy/astropy/issues/2750
     for keyword in set(image_header):
-        if CompImageHeader._is_reserved_keyword(keyword, warn=False) or keyword in (
-            "CHECKSUM",
-            "DATASUM",
-        ):
+        if _is_reserved_keyword(keyword) or keyword in ("CHECKSUM", "DATASUM"):
             del image_header[keyword]
 
     if bscale:
@@ -324,8 +220,7 @@ def _bintable_header_to_image_header(bintable_header):
     for _ in range(table_blanks - image_blanks):
         image_header.append()
 
-    # Create the CompImageHeader that syncs with the table header
-    return CompImageHeader(image_header)
+    return image_header
 
 
 def _image_header_to_empty_bintable(
@@ -764,9 +659,16 @@ def _image_header_to_empty_bintable(
 
         if card.keyword == "":
             bintable.header.add_blank()
+        elif _is_reserved_keyword(card.keyword):
+            warnings.warn(
+                f"Keyword {card.keyword!r} is reserved "
+                "for use by the FITS Tiled Image "
+                "Convention so will be ignored",
+                VerifyWarning,
+            )
         elif (
             card.keyword not in ("", "COMMENT", "HISTORY")
-            and card.keyword not in CompImageHeader._keyword_remaps
+            and card.keyword not in REMAPPED_KEYWORDS
             and card.keyword not in bintable.header
             and not card.keyword.startswith("NAXIS")
         ):

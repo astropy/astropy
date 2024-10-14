@@ -23,6 +23,7 @@ from astropy.io.fits.hdu.compressed import (
 )
 from astropy.io.fits.tests.conftest import FitsTestCase
 from astropy.io.fits.tests.test_table import comparerecords
+from astropy.io.fits.verify import VerifyWarning
 from astropy.utils.data import download_file
 from astropy.utils.misc import NumpyRNGContext
 
@@ -486,7 +487,7 @@ class TestCompressedImage(FitsTestCase):
             assert "TEST2" not in hdul[1].header
             assert "TEST2" not in hdul[1]._header
 
-    def test_compression_update_header_with_reserved(self):
+    def test_compression_update_header_with_reserved(self, tmp_path):
         """
         Ensure that setting reserved keywords related to the table data
         structure on CompImageHDU image headers fails.
@@ -501,19 +502,21 @@ class TestCompressedImage(FitsTestCase):
 
         with fits.open(self.data("comp.fits")) as hdul:
             hdr = hdul[1].header
-            test_set_keyword(hdr, "TFIELDS", 8)
-            test_set_keyword(hdr, "TTYPE1", "Foo")
-            test_set_keyword(hdr, "ZCMPTYPE", "ASDF")
-            test_set_keyword(hdr, "ZVAL1", "Foo")
+            hdr["TFIELDS"] = 8
+            hdr["TTYPE1"] = "Foo"
+            hdr["ZCMPTYPE"] = "ASDF"
+            hdr["ZVAL1"] = "Foo"
+            with pytest.warns() as record:
+                hdul.writeto(tmp_path / "test.fits")
+            assert len(record) == 4
+            for i, keyword in enumerate(("TFIELDS", "TTYPE1", "ZCMPTYPE", "ZVAL1")):
+                assert f"Keyword {keyword!r} is reserved" in record[i].message.args[0]
 
     def test_compression_header_append(self, tmp_path):
         with fits.open(self.data("comp.fits")) as hdul:
             imghdr = hdul[1].header
 
-            with pytest.warns(UserWarning, match="Keyword 'TFIELDS' is reserved") as w:
-                imghdr.append("TFIELDS")
-            assert len(w) == 1
-            assert "TFIELDS" not in imghdr
+            imghdr.append("TFIELDS")
 
             imghdr.append(("FOO", "bar", "qux"), end=True)
             assert "FOO" in imghdr
@@ -523,7 +526,10 @@ class TestCompressedImage(FitsTestCase):
             assert "CHECKSUM" in imghdr
             assert imghdr["CHECKSUM"] == "abcd1234"
 
-            hdul.writeto(tmp_path / "updated.fits")
+            with pytest.warns(
+                VerifyWarning, match="Keyword 'TFIELDS' is reserved"
+            ) as w:
+                hdul.writeto(tmp_path / "updated.fits")
 
         with fits.open(
             tmp_path / "updated.fits", disable_image_compression=True
@@ -556,10 +562,7 @@ class TestCompressedImage(FitsTestCase):
             imghdr = hdul[1].header
 
             # First try inserting a restricted keyword
-            with pytest.warns(UserWarning, match="Keyword 'TFIELDS' is reserved") as w:
-                imghdr.insert(1000, "TFIELDS")
-            assert len(w) == 1
-            assert "TFIELDS" not in imghdr
+            imghdr.insert(1000, "TFIELDS")
 
             # First try keyword-relative insert
             imghdr.insert("TELESCOP", ("OBSERVER", "Phil Plait"))
@@ -573,7 +576,10 @@ class TestCompressedImage(FitsTestCase):
             assert "FOO" in imghdr
             assert imghdr.index("FOO") == idx
 
-            hdul.writeto(tmp_path / "updated.fits")
+            with pytest.warns(
+                VerifyWarning, match="Keyword 'TFIELDS' is reserved"
+            ) as w:
+                hdul.writeto(tmp_path / "updated.fits")
 
         with fits.open(
             tmp_path / "updated.fits", disable_image_compression=True
@@ -592,12 +598,10 @@ class TestCompressedImage(FitsTestCase):
         with fits.open(self.data("comp.fits")) as hdul:
             imghdr = hdul[1].header
 
-            with pytest.warns(UserWarning, match="Keyword 'ZBITPIX' is reserved ") as w:
-                imghdr.set("ZBITPIX", 77, "asdf", after="XTENSION")
-            assert len(w) == 1
-            assert "ZBITPIX" not in imghdr
+            imghdr.set("ZBITPIX", 77, "asdf", after="GCOUNT")
 
-            hdul.writeto(tmp_path / "updated1.fits")
+            with pytest.warns(UserWarning, match="Keyword 'ZBITPIX' is reserved"):
+                hdul.writeto(tmp_path / "updated1.fits")
 
         with fits.open(
             tmp_path / "updated1.fits", disable_image_compression=True
