@@ -397,6 +397,22 @@ The system of transformation between supported time scales (i.e., all but
 
 .. image:: time_scale_conversion.png
 
+Jyear vs DecimalYear Comparison
+"""""""""""""""""""""""""""""""
+
+  >>> from astropy.time import Time
+  >>> t=Time('2016-10-11')
+  >>> t.format='jyear'
+  >>> t
+  <Time object: scale='utc' format='jyear' value=2016.7761806981518>
+
+
+  >>> t=Time('2016-10-11')
+  >>> t.format='decimalyear'
+  >>> t
+  <Time object: scale='utc' format='decimalyear' value=2016.775956284153>
+
+
 Scalar or Array
 ^^^^^^^^^^^^^^^
 
