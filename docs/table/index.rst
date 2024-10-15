@@ -109,8 +109,8 @@ by altering the `astropy.table.conf.default_notebook_table_class
 .. image:: table_repr_html.png
    :width: 450px
 
-Or you can get a fancier notebook interface with in-browser filtering, and sort
-using :meth:`~astropy.table.Table.show_in_notebook`:
+Or you can get a fancier notebook interface with :meth:`~astropy.table.Table.show_in_notebook`,
+e.g., when used with ``backend="ipydatagrid"``, it comes with in-browser filtering and sort:
 
 .. image:: https://raw.githubusercontent.com/jupyter-widgets/ipydatagrid/main/static/ipydatagrid_1.gif
    :width: 450px

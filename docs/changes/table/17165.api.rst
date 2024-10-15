@@ -1,1 +1,1 @@
-``show_in_notebook`` method for Astropy tables has been un-deprecated. However, it now relies on an optional dependency, ``ipydatagrid``, and has a new API.
+``show_in_notebook`` method for Astropy tables has been un-deprecated. However, it now takes a ``backend`` keyword and ``backend="classic"`` is still deprecated. It also takes a new ``backend="ipydatagrid"`` that relies on an optional dependency, ``ipydatagrid``.
