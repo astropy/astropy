@@ -1,0 +1,7 @@
+``Table.pformat``'s ``max_lines`` and ``max_width`` arguments defaulting to
+``None`` is now pending deprecation. In a future version of Astropy, we plan to
+change their default values to -1, which gives more consistent outputs,
+independent of the terminal size.
+
+``Column.pformat``'s ``max_lines`` argument follows the same pending
+deprecation.
