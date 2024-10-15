@@ -16,6 +16,7 @@ In particular, this release includes:
 * :ref:`whatsnew-7.0-table-frames`
 * :ref:`whatsnew-7.0-table-notebook-backends`
 * :ref:`whatsnew-7.0-table-init-columns-order`
+* :ref:`whatsnew_7_0_table_pformat_default_changes`
 * :ref:`whatsnew_7_0_quantity_to_string_formatter`
 * :ref:`whatsnew_7_0_numpy_constructors_like_quantity`
 * :ref:`whatsnew_7_0_ecsv_meta_default_dict`
@@ -114,6 +115,21 @@ Starting with ``7.0`` the table would instead look like this::
     --- --- ---
      10   7  --
      20  35  15
+
+.. _whatsnew_7_0_table_pformat_default_changes:
+
+``Table.pformat`` is now independent of terminal dimensions
+===========================================================
+
+``Table.pformat`` and ``Column.pformat`` do not truncate their outputs according
+to terminal height and width by default any more. The new default behavior is
+intended to be less surprising.
+
+Truncating representations to fit the current terminal is still supported but
+now requires explicitly passing ``max_lines=None`` and/or ``max_width=None``.
+
+``Table.pformat_all`` is deprecated as it is now fully redundant.
+
 
 .. _whatsnew_7_0_quantity_to_string_formatter:
 
