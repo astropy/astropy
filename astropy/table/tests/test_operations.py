@@ -945,9 +945,8 @@ class TestJoin:
             names=["structured", "string"],
         )
         t12 = table.join(t1, t2, ["structured"], join_type="outer")
-        assert (
-            t12.pformat()
-            == [
+        assert t12.pformat() == (
+            [
                 "structured [f, i] string_1 string_2",
                 "----------------- -------- --------",
                 "          (1., 1)      one       --",
@@ -1531,9 +1530,8 @@ class TestVStack:
             names=["structured", "string"],
         )
         t12 = table.vstack([t1, t2])
-        assert (
-            t12.pformat()
-            == [
+        assert t12.pformat() == (
+            [
                 "structured [f, i] string",
                 "----------------- ------",
                 "          (1., 1)    one",
@@ -1756,9 +1754,8 @@ class TestDStack:
             names=["structured", "string"],
         )
         t12 = table.dstack([t1, t2])
-        assert (
-            t12.pformat()
-            == [
+        assert t12.pformat() == (
+            [
                 "structured [f, i]     string   ",
                 "------------------ ------------",
                 "(1., 1) .. (3., 3) one .. three",
