@@ -7,7 +7,7 @@ from shutil import get_terminal_size
 import numpy as np
 import pytest
 
-from astropy import table
+from astropy import conf, table
 from astropy import units as u
 from astropy.io import ascii
 from astropy.table import QTable, Table
@@ -161,7 +161,8 @@ class TestPprint:
         """
         self._setup(table_type)
         arr = np.arange(4000, dtype=np.float64).reshape(100, 40)
-        lines = table_type(arr).pformat()
+        with conf.set_temp("max_width", None), conf.set_temp("max_lines", None):
+            lines = table_type(arr).pformat()
         width, nlines = get_terminal_size()
         assert len(lines) == nlines
         for line in lines[:-1]:  # skip last "Length = .. rows" line
