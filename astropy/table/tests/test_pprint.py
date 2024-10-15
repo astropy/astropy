@@ -10,9 +10,10 @@ import pytest
 from astropy import conf, table
 from astropy import units as u
 from astropy.io import ascii
-from astropy.table import QTable, Table
+from astropy.table import Column, QTable, Table
 from astropy.table.table_helpers import simple_table
 from astropy.table.tests.utils import ignore_pformat_default_pending_depr_warning
+from astropy.utils.exceptions import AstropyPendingDeprecationWarning
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
 SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
@@ -117,6 +118,26 @@ class TestMultiD:
             "     3 .. 30",
             "     5 .. 50",
         ]
+
+
+def test_pformat_max_size_deprecation():
+    with (
+        pytest.warns(
+            AstropyPendingDeprecationWarning,
+            match=r"The default value for the max_lines argument",
+        ),
+        pytest.warns(
+            AstropyPendingDeprecationWarning,
+            match=r"The default value for the max_width argument",
+        ),
+    ):
+        Table().pformat()
+
+    with pytest.warns(
+        AstropyPendingDeprecationWarning,
+        match=r"The default value for the max_lines argument",
+    ):
+        Column().pformat()
 
 
 def test_html_escaping():
