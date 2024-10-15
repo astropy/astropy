@@ -595,7 +595,13 @@ def test_column_aggregate(T1):
     for masked in (False, True):
         tg = QTable(T1, masked=masked).group_by("a")
         tga = tg["c"].groups.aggregate(np.sum)
-        assert tga.pformat() == [" c  ", "----", " 0.0", " 6.0", "22.0"]
+        assert tga.pformat(max_lines=-1) == [
+            " c  ",
+            "----",
+            " 0.0",
+            " 6.0",
+            "22.0",
+        ]
 
 
 def test_column_aggregate_f8():
@@ -604,7 +610,12 @@ def test_column_aggregate_f8():
     for masked in (False, True):
         tg = Table({"a": np.arange(2, dtype=">f8")}, masked=masked).group_by("a")
         tga = tg["a"].groups.aggregate(np.sum)
-        assert tga.pformat() == [" a ", "---", "0.0", "1.0"]
+        assert tga.pformat(max_lines=-1) == [
+            " a ",
+            "---",
+            "0.0",
+            "1.0",
+        ]
 
 
 def test_table_filter():
@@ -674,9 +685,9 @@ def test_column_filter():
     tg = t.group_by("a")
     c2 = tg["c"].groups.filter(lambda column: np.all(column >= 0))
     assert len(c2.groups) == 3
-    assert c2.groups[0].pformat() == [" c ", "---", "7.0", "5.0"]
-    assert c2.groups[1].pformat() == [" c ", "---", "0.0"]
-    assert c2.groups[2].pformat() == [" c ", "---", "3.0", "2.0", "1.0"]
+    assert c2.groups[0].pformat(max_lines=-1) == [" c ", "---", "7.0", "5.0"]
+    assert c2.groups[1].pformat(max_lines=-1) == [" c ", "---", "0.0"]
+    assert c2.groups[2].pformat(max_lines=-1) == [" c ", "---", "3.0", "2.0", "1.0"]
 
 
 def test_group_mixins():

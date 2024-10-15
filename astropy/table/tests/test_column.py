@@ -168,7 +168,13 @@ class TestColumn:
         assert c.description == "an example"
         assert c.meta == q.info.meta
         assert c.meta is not q.info.meta
-        assert c.pformat() == " q \n---\n0.0\n1.0\n2.0".splitlines()
+        assert c.pformat(max_lines=-1) == [
+            " q ",
+            "---",
+            "0.0",
+            "1.0",
+            "2.0",
+        ]
 
     def test_quantity_comparison(self, Column):
         # regression test for gh-6532
@@ -1003,7 +1009,7 @@ def test_unicode_sandwich_set(Column):
 
     c[0] = uba  # ä is a 2-byte character in utf-8, test fails with ascii encoding
     assert np.all(c == [uba, "def"])
-    assert c.pformat() == ["None", "----", "  " + uba, " def"]
+    assert c.pformat(max_lines=-1) == ["None", "----", f"  {uba}", " def"]
 
     c[:] = b"cc"
     assert np.all(c == ["cc", "cc"])

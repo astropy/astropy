@@ -609,7 +609,7 @@ def test_pprint_py3_bytes():
     blah = "bläh".encode()
     dat = np.array([val, blah], dtype=[("col", "S10")])
     t = table.Table(dat)
-    assert t["col"].pformat() == ["col ", "----", " val", "bläh"]
+    assert t["col"].pformat(max_lines=-1) == ["col ", "----", " val", "bläh"]
 
 
 @ignore_pformat_default_pending_depr_warning
@@ -625,7 +625,7 @@ def test_pprint_structured():
             ("f", [("p0", np.float64), ("p1", np.float64, (2,))]),
         ],
     )
-    assert su.pformat() == [
+    assert su.pformat(max_lines=-1) == [
         "  su [i, f[p0, p1]]   ",
         "----------------------",
         "(1, (1.5, [1.6, 1.7]))",
