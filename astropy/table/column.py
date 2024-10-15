@@ -12,6 +12,7 @@ from astropy.units import Quantity, StructuredUnit, Unit
 from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
+from astropy.utils.exceptions import AstropyPendingDeprecationWarning
 from astropy.utils.metadata import MetaData
 from astropy.utils.misc import dtype_bytes_or_chars
 
@@ -38,6 +39,9 @@ class StringTruncateWarning(UserWarning):
 
 # Always emit this warning, not just the first instance
 warnings.simplefilter("always", StringTruncateWarning)
+
+# sentinel default value
+_NoValue = object()
 
 
 def _auto_names(n_cols):
@@ -852,7 +856,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def pformat(
         self,
-        max_lines=None,
+        max_lines=_NoValue,
         show_name=True,
         show_unit=False,
         show_dtype=False,
@@ -890,6 +894,18 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             List of lines with header and formatted column values
 
         """
+        if max_lines is _NoValue:
+            warnings.warn(
+                "The default value for the max_lines argument in "
+                f"{self.__class__.__name__}.pformat is planned to change "
+                "from None to -1 in a future version of astropy. "
+                "This warning is emitted since version 7.0 ."
+                "Pass an explicit value to avoid this warning.",
+                category=AstropyPendingDeprecationWarning,
+                stacklevel=2,
+            )
+            max_lines = None
+
         _pformat_col = self._formatter._pformat_col
         lines, outs = _pformat_col(
             self,

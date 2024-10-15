@@ -39,6 +39,7 @@ from .column import (
     MaskedColumn,
     _auto_names,
     _convert_sequence_data_to_array,
+    _NoValue,
     col_copy,
 )
 from .connect import TableRead, TableWrite
@@ -579,9 +580,6 @@ class PprintIncludeExclude(TableAttribute):
         self.__set__(instance, names)
 
         return ctx
-
-
-_NoValue = object()
 
 
 class Table:
