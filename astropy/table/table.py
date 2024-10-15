@@ -24,7 +24,7 @@ from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaAttribute, MetaData
 
@@ -1778,23 +1778,55 @@ class Table:
         else:
             return self
 
-    def show_in_notebook(self, **datagrid_kwargs):
+    def show_in_notebook(self, *, backend="classic", **kwargs):
         """Render the table in HTML and show it in the IPython notebook.
 
-        .. note::
-
-            This method now requires an optional dependency, ``ipydatagrid``,
-            and has a different API.
+        .. note:: This method now has a different API.
 
         Parameters
         ----------
-        **datagrid_kwargs : dict, optional
-            Keyword arguments as accepted by ``ipydatagrid.DataGrid``.
+        backend : {"classic", "ipydatagrid"}
+            Backend to use for rendering.
+
+        **kwargs : dict, optional
+            Keyword arguments as accepted by desired backend.
+
+        Raises
+        ------
+        NotImplementedError
+            Requested backend is not supported.
+
+        See Also
+        --------
+        astropy.table.notebook_backends
 
         """
-        from ipydatagrid import DataGrid
+        if backend == "classic":
+            from astropy.table.notebook_backends import classic
 
-        return DataGrid(self.to_pandas(), **datagrid_kwargs)
+            # NOTE: The leading whitespace in warning lines is for backward compatibility.
+            warnings.warn(
+                """show_in_notebook() is deprecated as of 6.1 and to create
+         interactive tables it is recommended to use dedicated tools like:
+         - https://github.com/bloomberg/ipydatagrid
+         - https://docs.bokeh.org/en/latest/docs/user_guide/interaction/widgets.html#datatable
+         - https://dash.plotly.com/datatable""",
+                AstropyDeprecationWarning,
+            )
+            func = classic
+
+        elif backend == "ipydatagrid":
+            from astropy.table.notebook_backends import ipydatagrid
+
+            func = ipydatagrid
+
+        else:
+            raise NotImplementedError(
+                f'"{backend}" backend is not supported for rendering Astropy table '
+                "in IPython notebook."
+            )
+
+        return func(self, **kwargs)
 
     @deprecated(
         "6.1",

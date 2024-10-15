@@ -159,8 +159,9 @@ The further dependencies provide more specific features:
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
-- `ipydatagrid <https://pypi.org/project/ipydatagrid/>`_: Used to
-  display :class:`~astropy.table.Table` in Jupyter notebook.
+- `ipydatagrid <https://pypi.org/project/ipydatagrid/>`_: Used in
+  :meth:`astropy.table.Table.show_in_notebook` to display the Astropy table
+  in IPython notebook for ``backend="ipydatagrid"``.
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
   This is a command line tool installed outside of Python.
