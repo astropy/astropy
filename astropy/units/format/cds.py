@@ -21,6 +21,7 @@ from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
+from .fits import FITS
 from .generic import Generic
 
 if TYPE_CHECKING:
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
     from astropy.utils.parsing import ThreadSafeParser
 
 
-class CDS(Generic):
+class CDS(FITS):
     """
     Support the `Centre de Données astronomiques de Strasbourg
     <https://cds.unistra.fr/>`_ `Standards for Astronomical
@@ -307,4 +308,4 @@ class CDS(Generic):
             elif is_effectively_unity(unit.scale * 100.0):
                 return "%"
 
-        return super().to_string(unit, fraction=fraction)
+        return cls._to_string(unit, fraction=fraction)

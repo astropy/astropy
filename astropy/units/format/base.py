@@ -152,6 +152,13 @@ class Base:
         ValueError
             If ``fraction`` is not recognized.
         """
+        # A separate `_to_string()` method allows subclasses (e.g. `FITS`) to implement
+        # `to_string()` without needlessly interfering with the `to_string()`
+        # implementations of their subclasses.
+        return cls._to_string(unit, fraction=fraction)
+
+    @classmethod
+    def _to_string(cls, unit: UnitBase, *, fraction: bool | str) -> str:
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
         # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".

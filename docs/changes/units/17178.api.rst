@@ -1,0 +1,2 @@
+The ``CDS``, ``OGIP`` and ``VOUnit`` unit formatters are now subclasses of the
+``FITS`` unit formatter.
