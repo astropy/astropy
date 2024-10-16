@@ -627,9 +627,6 @@ def _guess(table, read_kwargs, format, fast_reader):
         cparser.CParserError,
     )
 
-    # Check what line endings are being used in file
-    line_ending = "\r\n" if "\r" in table else "\n"
-
     # Determine whether we should limit the number of lines used in the guessing
     from astropy.io.ascii import conf  # avoid circular imports
 
@@ -645,7 +642,7 @@ def _guess(table, read_kwargs, format, fast_reader):
         # Now search for the position of the Nth line ending
         pos = -1
         for idx in range(limit_lines * 2):
-            pos = table.find(line_ending, pos + 1)
+            pos = table.find('\n', pos + 1)
             if pos == -1:
                 # Fewer than 2 * limit_lines line endings found so no guess subset.
                 break
