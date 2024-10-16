@@ -216,8 +216,8 @@ class _TableLikeHDU(_ValidHDU):
         # pass datLoc, for P format
         data._heapoffset = self._theap
         data._heapsize = self._header["PCOUNT"]
-        tbsize = self._header["NAXIS1"] * self._header["NAXIS2"]
-        data._gap = self._theap - tbsize
+        data._tbsize = self._header["NAXIS1"] * self._header["NAXIS2"]
+        data._gap = self._theap - data._tbsize
 
         # pass the attributes
         for idx, col in enumerate(columns):
@@ -515,6 +515,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             # calculate PCOUNT, for variable length tables
             tbsize = self._header["NAXIS1"] * self._header["NAXIS2"]
             heapstart = self._header.get("THEAP", tbsize)
+            self.data._tbsize = tbsize
             self.data._gap = heapstart - tbsize
             pcount = self.data._heapsize + self.data._gap
             if pcount > 0:
