@@ -1778,7 +1778,7 @@ class Table:
         else:
             return self
 
-    def show_in_notebook(self, *, backend="classic", **kwargs):
+    def show_in_notebook(self, *, backend="ipydatagrid", **kwargs):
         """Render the table in HTML and show it in the Jupyter notebook.
 
         .. note:: The method API was modified in Astropy 7.0 to include a ``backend``
@@ -1786,8 +1786,9 @@ class Table:
 
         Parameters
         ----------
-        backend : {"classic", "ipydatagrid"}
-            Backend to use for rendering.
+        backend : {"ipydatagrid", "classic"}
+            Backend to use for rendering (default="ipydatagrid"). The "classic" backend
+            is deprecated since Astropy 6.1.
 
         **kwargs : dict, optional
             Keyword arguments as accepted by desired backend.

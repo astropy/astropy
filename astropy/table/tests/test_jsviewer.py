@@ -263,7 +263,7 @@ def test_show_in_notebook_ipydatagrid():
     from ipydatagrid import DataGrid
 
     t = Table()
-    htmlstr_windx = t.show_in_notebook(backend="ipydatagrid")
+    htmlstr_windx = t.show_in_notebook()
     assert isinstance(htmlstr_windx, DataGrid)
 
 
