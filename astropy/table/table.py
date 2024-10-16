@@ -1781,14 +1781,14 @@ class Table:
     def show_in_notebook(self, *, backend="ipydatagrid", **kwargs):
         """Render the table in HTML and show it in the Jupyter notebook.
 
-        .. note:: The method API was modified in Astropy 7.0 to include a ``backend``
+        .. note:: The method API was modified in v7.0 to include a ``backend``
            argument and require only keyword arguments.
 
         Parameters
         ----------
         backend : {"ipydatagrid", "classic"}
             Backend to use for rendering (default="ipydatagrid"). The "classic" backend
-            is deprecated since Astropy 6.1.
+            is deprecated since v6.1.
 
         **kwargs : dict, optional
             Keyword arguments as accepted by desired backend.
@@ -1803,7 +1803,12 @@ class Table:
         astropy.table.notebook_backends
 
         """
-        if backend == "classic":
+        if backend == "ipydatagrid":
+            from astropy.table.notebook_backends import ipydatagrid
+
+            func = ipydatagrid
+
+        elif backend == "classic":
             from astropy.table.notebook_backends import classic
 
             # NOTE: The leading whitespace in warning lines is for backward compatibility.
@@ -1816,11 +1821,6 @@ class Table:
                 AstropyDeprecationWarning,
             )
             func = classic
-
-        elif backend == "ipydatagrid":
-            from astropy.table.notebook_backends import ipydatagrid
-
-            func = ipydatagrid
 
         else:
             raise NotImplementedError(

@@ -230,9 +230,15 @@ def test_show_in_notebook_classic():
     t["b"] = ["b", "c", "a", "d", "e"]
 
     with pytest.warns(AstropyDeprecationWarning):
-        htmlstr_windx = t.show_in_notebook().data  # should default to 'idx'
-        htmlstr_windx_named = t.show_in_notebook(show_row_index="realidx").data
-        htmlstr_woindx = t.show_in_notebook(show_row_index=False).data
+        htmlstr_windx = t.show_in_notebook(
+            backend="classic"
+        ).data  # should default to 'idx'
+        htmlstr_windx_named = t.show_in_notebook(
+            backend="classic", show_row_index="realidx"
+        ).data
+        htmlstr_woindx = t.show_in_notebook(
+            backend="classic", show_row_index=False
+        ).data
 
     assert (
         textwrap.dedent(
@@ -263,8 +269,8 @@ def test_show_in_notebook_ipydatagrid():
     from ipydatagrid import DataGrid
 
     t = Table()
-    htmlstr_windx = t.show_in_notebook()
-    assert isinstance(htmlstr_windx, DataGrid)
+    dg = t.show_in_notebook()
+    assert isinstance(dg, DataGrid)
 
 
 def test_show_in_notebook_invalid_backend():
