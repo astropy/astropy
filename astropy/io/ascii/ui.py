@@ -639,17 +639,20 @@ def _guess(table, read_kwargs, format, fast_reader):
     # lines in the table. In fact, we also don't limit the number of lines if
     # there are just above the number of lines compared to the limit, up to a
     # factor of 2, since it is fast to just go straight to the full table read.
-    if limit_lines and table.count(line_ending) > 2 * limit_lines:
+    table_guess_subset = None
+
+    if limit_lines:
         # Now search for the position of the Nth line ending
-        pos = 0
-        for iter in range(limit_lines):
-            pos = table.index(line_ending, pos + 1)
-
-        # Define table subset
-        table_guess_subset = table[:pos]
-
-    else:
-        table_guess_subset = None
+        pos = -1
+        for idx in range(limit_lines * 2):
+            pos = table.find(line_ending, pos + 1)
+            if pos == -1:
+                # Fewer than 2 * limit_lines line endings found so no guess subset.
+                break
+            if idx == limit_lines - 1:
+                pos_limit = pos
+        else:
+            table_guess_subset = table[:pos_limit]
 
     # Now cycle through each possible reader and associated keyword arguments.
     # Try to read the table using those args, and if an exception occurs then
