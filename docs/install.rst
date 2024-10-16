@@ -161,7 +161,7 @@ The further dependencies provide more specific features:
 
 - `ipydatagrid <https://pypi.org/project/ipydatagrid/>`_: Used in
   :meth:`astropy.table.Table.show_in_notebook` to display the Astropy table
-  in IPython notebook for ``backend="ipydatagrid"``.
+  in Jupyter notebook for ``backend="ipydatagrid"``.
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
   This is a command line tool installed outside of Python.

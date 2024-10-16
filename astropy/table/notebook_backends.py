@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Backend implementations for `~astropy.table.Table` interface
-with IPython notebooks.
+with Jupyter notebooks.
 
 """
 
@@ -17,7 +17,7 @@ def classic(
     table_class="astropy-default",
     show_row_index="idx",
 ):
-    """Render the table in HTML and show it in the IPython notebook.
+    """Render the table in HTML and show it in the Jupyter notebook.
 
     .. deprecated:: 6.1
        Use :func:`ipydatagrid` instead.
@@ -97,7 +97,7 @@ def classic(
 
 def ipydatagrid(table, **kwargs):
     """Render the table in HTML with ``ipydatagrid`` and show it in
-    the IPython notebook.
+    the Jupyter notebook.
 
     .. note::
         This function requires an optional dependency, ``ipydatagrid``.

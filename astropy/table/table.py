@@ -1779,9 +1779,10 @@ class Table:
             return self
 
     def show_in_notebook(self, *, backend="classic", **kwargs):
-        """Render the table in HTML and show it in the IPython notebook.
+        """Render the table in HTML and show it in the Jupyter notebook.
 
-        .. note:: This method now has a different API.
+        .. note:: The method API was modified in Astropy 7.0 to include a ``backend``
+           argument and require only keyword arguments.
 
         Parameters
         ----------
@@ -1823,7 +1824,7 @@ class Table:
         else:
             raise NotImplementedError(
                 f'"{backend}" backend is not supported for rendering Astropy table '
-                "in IPython notebook."
+                "in Jupyter notebook."
             )
 
         return func(self, **kwargs)
