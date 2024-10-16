@@ -5,6 +5,7 @@ from numpy.testing import assert_array_equal
 
 import astropy.coordinates.representation as r
 import astropy.units as u
+from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.utils.masked import Masked
 
@@ -127,6 +128,18 @@ class TestSphericalRepresentationSeparateMasks:
         expected = unmasked.copy()
         expected[self.mask] = unmasked[1]
         assert np.all(representation_equal(sph, expected))
+
+    def test_transform_keeps_distance_angular_masks(self):
+        m = rotation_matrix(30.0, "x") * 2.0  # rotation and scale
+        sph = self.msph.transform(m)
+        assert sph.masked
+        # Distance now also masked if angular coordinates were masked.
+        assert_array_equal(sph.distance.mask, self.mask)
+        # But angular coordinates just depend on the angular mask.
+        assert_array_equal(sph.lon.mask, self.mask_ang)
+        assert_array_equal(sph.lat.mask, self.mask_ang)
+        assert_array_equal(self.msph.get_mask(), self.mask)
+        assert_array_equal(self.msph.get_mask("lon", "lat"), self.mask_ang)
 
     def test_unmasked_representation_masked_differential(self):
         rv = np.arange(6.0) << u.km / u.s
