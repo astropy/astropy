@@ -10,7 +10,7 @@ import pytest
 from astropy import conf, table
 from astropy import units as u
 from astropy.io import ascii
-from astropy.table import QTable, Table
+from astropy.table import Column, QTable, Table
 from astropy.table.table_helpers import simple_table
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
@@ -314,6 +314,40 @@ class TestPprint:
         (out, err) = capsys.readouterr()
         # +3 accounts for the three header lines in this  table
         assert len(out.splitlines()) == BIG_WIDE_ARR.shape[0] + 3
+
+
+class TestPprintColumn:
+    @pytest.mark.parametrize(
+        "scalar, exp",
+        [
+            (
+                1,
+                [
+                    "None",
+                    "----",
+                    "   1",
+                ],
+            ),
+            (
+                u.Quantity(0.6, "eV"),
+                [
+                    "None",
+                    "----",
+                    " 0.6",
+                ],
+            ),
+        ],
+    )
+    def test_pprint_scalar(self, scalar, exp):
+        # see https://github.com/astropy/astropy/issues/12584
+        c = Column(scalar)
+
+        # Make sure pprint() does not raise an exception
+        c.pprint()
+
+        # Check actual output
+        out = c.pformat()
+        assert out == exp
 
 
 @pytest.mark.usefixtures("table_type")

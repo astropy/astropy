@@ -463,7 +463,13 @@ class TableFormatter:
 
         max_lines -= n_header
         n_print2 = max_lines // 2
-        n_rows = len(col)
+        try:
+            n_rows = len(col)
+        except TypeError:
+            is_scalar = True
+            n_rows = 1
+        else:
+            is_scalar = False
 
         # This block of code is responsible for producing the function that
         # will format values for this column.  The ``format_func`` function
@@ -501,17 +507,15 @@ class TableFormatter:
         auto_format_func = get_auto_format_func(col, pssf)
         format_func = col.info._format_funcs.get(col_format, auto_format_func)
 
-        if len(col) > max_lines:
+        if n_rows > max_lines:
             if show_length is None:
                 show_length = True
             i0 = n_print2 - (1 if show_length else 0)
             i1 = n_rows - n_print2 - max_lines % 2
-            indices = np.concatenate(
-                [np.arange(0, i0 + 1), np.arange(i1 + 1, len(col))]
-            )
+            indices = np.concatenate([np.arange(0, i0 + 1), np.arange(i1 + 1, n_rows)])
         else:
             i0 = -1
-            indices = np.arange(len(col))
+            indices = np.arange(n_rows)
 
         def format_col_str(idx):
             if multidims:
@@ -527,6 +531,8 @@ class TableFormatter:
                     left = format_func(col_format, col[(idx,) + multidim0])
                     right = format_func(col_format, col[(idx,) + multidim1])
                     return f"{left} .. {right}"
+            elif is_scalar:
+                return format_func(col_format, col)
             else:
                 return format_func(col_format, col[idx])
 
