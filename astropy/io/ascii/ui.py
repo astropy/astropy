@@ -639,17 +639,22 @@ def _guess(table, read_kwargs, format, fast_reader):
     table_guess_subset = None
 
     if limit_lines:
-        # Now search for the position of the Nth line ending
-        pos = -1
-        for idx in range(limit_lines * 2):
-            pos = table.find('\n', pos + 1)
-            if pos == -1:
-                # Fewer than 2 * limit_lines line endings found so no guess subset.
-                break
-            if idx == limit_lines - 1:
-                pos_limit = pos
+
+        if isinstance(table, list):
+            if len(table) > 2 * limit_lines:
+                table_guess_subset = table[:limit_lines]
         else:
-            table_guess_subset = table[:pos_limit]
+            # Now search for the position of the Nth line ending
+            pos = -1
+            for idx in range(limit_lines * 2):
+                pos = table.find('\n', pos + 1)
+                if pos == -1:
+                    # Fewer than 2 * limit_lines line endings found so no guess subset.
+                    break
+                if idx == limit_lines - 1:
+                    pos_limit = pos
+            else:
+                table_guess_subset = table[:pos_limit]
 
     # Now cycle through each possible reader and associated keyword arguments.
     # Try to read the table using those args, and if an exception occurs then
