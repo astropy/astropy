@@ -237,7 +237,6 @@ lint.unfixable = [
     "PTH",
 ]
 "astropy/io/misc/*" = [
-    "PTH",
 ]
 "astropy/io/registry/*" = [
     "PTH",
