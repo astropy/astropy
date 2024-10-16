@@ -208,6 +208,7 @@ class FITS_rec(np.recarray):
             "_converted",
             "_heapoffset",
             "_heapsize",
+            "_tbsize",
             "_nfields",
             "_gap",
             "_uint",
@@ -238,6 +239,7 @@ class FITS_rec(np.recarray):
             self._converted = obj._converted
             self._heapoffset = obj._heapoffset
             self._heapsize = obj._heapsize
+            self._tbsize = obj._tbsize
             self._col_weakrefs = obj._col_weakrefs
             self._coldefs = obj._coldefs
             self._nfields = obj._nfields
@@ -251,6 +253,7 @@ class FITS_rec(np.recarray):
 
             self._heapoffset = getattr(obj, "_heapoffset", 0)
             self._heapsize = getattr(obj, "_heapsize", 0)
+            self._tbsize = getattr(obj, "_tbsize", 0)
 
             self._gap = getattr(obj, "_gap", 0)
             self._uint = getattr(obj, "_uint", False)
@@ -273,6 +276,7 @@ class FITS_rec(np.recarray):
         self._converted = {}
         self._heapoffset = 0
         self._heapsize = 0
+        self._tbsize = 0
         self._col_weakrefs = weakref.WeakSet()
         self._coldefs = None
         self._gap = 0
@@ -518,6 +522,10 @@ class FITS_rec(np.recarray):
 
         # We got a view; change it back to our class, and add stuff
         out = out.view(type(self))
+        out._heapoffset = self._heapoffset
+        out._heapsize = self._heapsize
+        out._tbsize = self._tbsize
+        out._gap = self._gap
         out._uint = self._uint
         out._coldefs = ColDefs(self._coldefs)
         arrays = []
@@ -1033,7 +1041,7 @@ class FITS_rec(np.recarray):
         May return ``None`` if no array resembling the "raw data" according to
         the stated criteria can be found.
         """
-        raw_data_bytes = self.nbytes + self._heapsize
+        raw_data_bytes = self._tbsize + self._heapsize
         base = self
         while hasattr(base, "base") and base.base is not None:
             base = base.base

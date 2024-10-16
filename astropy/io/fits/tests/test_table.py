@@ -3349,6 +3349,40 @@ class TestVLATables(FitsTestCase):
         ):
             fits.BinTableHDU.from_columns([c1])
 
+    def test_vla_slice(self):
+        filename = self.data("variable_length_table.fits")
+
+        # slicing the VLA array
+        with fits.open(filename) as hdul:
+            hdu = hdul[1]
+            arr = hdu.data["var"][:1]
+            assert arr.tolist() == [[45, 56]]
+            assert arr[0].dtype == np.int16
+
+        # slicing .data
+        with fits.open(filename) as hdul:
+            hdu = hdul[1]
+            arr = hdu.data[:1]["var"]
+            assert arr.tolist() == [[45, 56]]
+            assert arr[0].dtype == np.int16
+
+    def test_vla_slice2(self):
+        filename = self.data("theap-gap.fits")
+
+        # slicing the VLA array
+        with fits.open(filename) as hdul:
+            hdu = hdul[1]
+            arr = hdu.data["arr"][:3]
+            assert arr.tolist() == [[], [0], [0, 1]]
+            assert arr[1].dtype == np.int32
+
+        # slicing .data
+        with fits.open(filename) as hdul:
+            hdu = hdul[1]
+            arr = hdu.data[:3]["arr"]
+            assert arr.tolist() == [[], [0], [0, 1]]
+            assert arr[1].dtype == np.int32
+
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
