@@ -22,9 +22,9 @@ from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized
 from astropy.table import Column, QTable, Table
 from astropy.table.column import MaskedColumn
 from astropy.table.table_helpers import simple_table
+from astropy.tests.helper import _assert_mixin_columns_equal
 from astropy.time import Time
 from astropy.units import QuantityInfo
-from astropy.units import allclose as quantity_allclose
 from astropy.utils.masked import Masked
 
 from .common import TEST_DIR
@@ -306,49 +306,6 @@ def test_regression_5604():
     assert "!astropy.units.Quantity" in out.getvalue()
 
 
-def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
-    if compare_class:
-        assert obj1.__class__ is obj2.__class__
-
-    assert obj1.shape == obj2.shape
-
-    info_attrs = [
-        "info.name",
-        "info.format",
-        "info.unit",
-        "info.description",
-        "info.dtype",
-    ]
-    for attr in attrs + info_attrs:
-        a1 = obj1
-        a2 = obj2
-        for subattr in attr.split("."):
-            try:
-                a1 = getattr(a1, subattr)
-                a2 = getattr(a2, subattr)
-            except AttributeError:
-                a1 = a1[subattr]
-                a2 = a2[subattr]
-
-        if isinstance(a1, np.ndarray) and a1.dtype.kind == "f":
-            assert quantity_allclose(a1, a2, rtol=1e-10)
-        else:
-            assert np.all(a1 == a2)
-
-    # Check meta values and key order but allow None to be equivalent to {}
-    meta1 = obj1.info.meta or {}
-    meta2 = obj2.info.meta or {}
-    assert meta1 == meta2
-    assert meta1.keys() == meta2.keys()
-
-    # For no attrs that means we just compare directly.
-    if not attrs:
-        if isinstance(obj1, np.ndarray) and obj1.dtype.kind == "f":
-            assert quantity_allclose(obj1, obj2, rtol=1e-15)
-        else:
-            assert np.all(obj1 == obj2)
-
-
 def test_ecsv_mixins_ascii_read_class():
     """Ensure that ascii.read(ecsv_file) returns the correct class
     (QTable if any Quantity subclasses, Table otherwise).
@@ -399,10 +356,10 @@ def test_ecsv_mixins_qtable_to_table():
             # Class-specific attributes like `value` or `wrap_angle` are lost.
             attrs = ["unit"]
             compare_class = False
-            # Compare data values here (assert_objects_equal doesn't know how in this case)
+            # Compare data values here (_assert_mixin_columns_equal doesn't know how in this case)
             assert np.allclose(col.value, col2, rtol=1e-10)
 
-        assert_objects_equal(col, col2, attrs, compare_class)
+        _assert_mixin_columns_equal(col, col2, attrs=attrs, compare_class=compare_class)
 
 
 @pytest.mark.parametrize("table_cls", (Table, QTable))
@@ -484,7 +441,7 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
                 for attr in compare_attrs[colname]
                 if not (attr == "wrap_angle" and table_cls is Table)
             ]
-        assert_objects_equal(t[colname], t2[colname], compare)
+        _assert_mixin_columns_equal(t[colname], t2[colname], attrs=compare)
 
     # Special case to make sure Column type doesn't leak into Time class data
     if name.startswith("tm"):

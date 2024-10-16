@@ -23,9 +23,9 @@ from astropy.io.fits.column import (
 from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized_names
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.table.table_helpers import simple_table
+from astropy.tests.helper import _assert_mixin_columns_equal
 from astropy.time import Time
 from astropy.units import UnitScaleError
-from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
@@ -841,48 +841,6 @@ def test_convert_comment_convention():
     ]
 
 
-def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
-    if compare_class:
-        assert obj1.__class__ is obj2.__class__
-
-    info_attrs = [
-        "info.name",
-        "info.format",
-        "info.unit",
-        "info.description",
-        "info.meta",
-        "info.dtype",
-    ]
-    for attr in attrs + info_attrs:
-        a1 = obj1
-        a2 = obj2
-        for subattr in attr.split("."):
-            try:
-                a1 = getattr(a1, subattr)
-                a2 = getattr(a2, subattr)
-            except AttributeError:
-                a1 = a1[subattr]
-                a2 = a2[subattr]
-
-        # Mixin info.meta can None instead of empty OrderedDict(), #6720 would
-        # fix this.
-        if attr == "info.meta":
-            if a1 is None:
-                a1 = {}
-            if a2 is None:
-                a2 = {}
-
-        if isinstance(a1, np.ndarray) and a1.dtype.kind == "f":
-            assert quantity_allclose(a1, a2, rtol=1e-15)
-        elif isinstance(a1, np.dtype):
-            # FITS does not perfectly preserve dtype: byte order can change, and
-            # unicode gets stored as bytes.  So, we just check safe casting, to
-            # ensure we do not, e.g., accidentally change integer to float, etc.
-            assert np.can_cast(a2, a1, casting="safe")
-        else:
-            assert np.all(a1 == a2)
-
-
 def test_fits_mixins_qtable_to_table(tmp_path):
     """Test writing as QTable and reading as Table.  Ensure correct classes
     come out.
@@ -914,10 +872,10 @@ def test_fits_mixins_qtable_to_table(tmp_path):
             # Class-specific attributes like `value` or `wrap_angle` are lost.
             attrs = ["unit"]
             compare_class = False
-            # Compare data values here (assert_objects_equal doesn't know how in this case)
+            # Compare data values here (_assert_mixin_columns_equal doesn't know how in this case)
             assert np.all(col.value == col2)
 
-        assert_objects_equal(col, col2, attrs, compare_class)
+        _assert_mixin_columns_equal(col, col2, attrs=attrs, compare_class=compare_class)
 
 
 @pytest.mark.parametrize("table_cls", (Table, QTable))
@@ -975,7 +933,7 @@ def test_fits_mixins_per_column(table_cls, name_col, tmp_path):
 
     for colname in t.colnames:
         compare = ["data"] if colname in ("c1", "c2") else compare_attrs[colname]
-        assert_objects_equal(t[colname], t2[colname], compare)
+        _assert_mixin_columns_equal(t[colname], t2[colname], attrs=compare)
 
     # Special case to make sure Column type doesn't leak into Time class data
     if name.startswith("tm"):
