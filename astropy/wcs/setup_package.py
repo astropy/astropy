@@ -112,7 +112,7 @@ def write_wcsconfig_h(paths):
 
 
 def generate_c_docstrings():
-    docstrings = import_file(str(WCSROOT / "docstrings.py"))
+    docstrings = import_file(WCSROOT / "docstrings.py")
     docstrings = docstrings.__dict__
     keys = [
         key for key, val in docstrings.items()
@@ -283,8 +283,8 @@ def get_extensions():
     ]
 
     wcslib_config_paths = [
-        str(WCSROOT / "include" / "astropy_wcs" / "wcsconfig.h"),
-        str(WCSROOT / "include" / "wcsconfig.h"),
+        WCSROOT / "include" / "astropy_wcs" / "wcsconfig.h",
+        WCSROOT / "include" / "wcsconfig.h",
     ]
 
     get_wcslib_cfg(cfg, wcslib_files, wcslib_config_paths)
