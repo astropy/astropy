@@ -1,4 +1,6 @@
 # cython: language_level=3
+
+cimport cython
 from collections import OrderedDict
 
 
@@ -64,3 +66,44 @@ def parse_header(fileobj):
     # create a Header object
     header_str = ''.join(read_blocks)
     return header_str, cards
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def compute_checksum(const unsigned char[:] data not None, unsigned int sum32):
+    """
+    Adapted from the C code in FITS Standard Version 4.0 section J.5.
+    """
+    cdef:
+        unsigned int hi, lo, hicarry, locarry
+        const unsigned char[:] buf
+        Py_ssize_t i, k, length
+
+    for k in range(0, data.shape[0], 2880):
+        length = min(2880, data.shape[0] - k)  # handle last block
+        buf = data[k : k + length]
+
+        # Accumulate the sum of the high-order 16 bits and the
+        # low-order 16 bits of each 32-bit word, separately.
+        # The first byte in each pair is the most significant.
+        # This algorithm works on both big and little endian machines.
+        hi = sum32 >> 16
+        lo = sum32 & 0xFFFF
+        for i in range(0, buf.shape[0], 4):
+            hi += (buf[i] << 8) + buf[i+1]
+            lo += (buf[i+2] << 8) + buf[i+3]
+
+        # fold carry bits from each 16 bit sum into the other sum
+        hicarry = hi >> 16
+        locarry = lo >> 16
+
+        while hicarry or locarry:
+            hi = (hi & 0xFFFF) + locarry
+            lo = (lo & 0xFFFF) + hicarry
+            hicarry = hi >> 16
+            locarry = lo >> 16
+
+        # Concatenate the high and low parts to form the full 32-bit checksum
+        sum32 = (hi << 16) + lo
+
+    return sum32
