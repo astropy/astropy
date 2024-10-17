@@ -83,6 +83,8 @@ py:class a shallow copy of D
 # types
 py:class EllipsisType
 py:class ModuleType
+# numbers
+py:class Complex
 # numpy
 py:class np.number
 # numpy.typing
