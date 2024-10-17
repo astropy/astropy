@@ -632,7 +632,7 @@ def _guess(table, read_kwargs, format, fast_reader):
     # False if a file object was passed in.
     from astropy.io.ascii import conf  # avoid circular imports
 
-    limit_lines = conf.guess_limit_lines and not hasattr(table, 'read')
+    limit_lines = conf.guess_limit_lines if not hasattr(table, 'read') else False
 
     # Don't limit the number of lines if there are fewer than this number of
     # lines in the table. In fact, we also don't limit the number of lines if
