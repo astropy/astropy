@@ -19,6 +19,7 @@ from astropy.coordinates import (
 )
 from astropy.io import fits
 from astropy.tests.figures import figure_test
+from astropy.utils import isiterable
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_scalebar
@@ -1372,4 +1373,26 @@ def test_nosimplify():
     ax.set_aspect(15)
     ax.grid()
 
+    return fig
+
+
+@figure_test
+def test_custom_formatter(spatial_wcs_2d_small_angle):
+    def double_format(value, **kwargs):
+        if isiterable(value):
+            return [f"{(v * 2):.4f}" for v in value]
+        else:
+            return f"{(value * 2):.2f}"
+
+    def fruit_format(value, **kwargs):
+        fruits = ["apple", "pear", "banana", "orange", "kiwi", "grape"]
+        if isiterable(value):
+            return (fruits * 10)[: len(value)]
+        else:
+            return "apple"
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle)
+    ax.coords[0].set_major_formatter(double_format)
+    ax.coords[1].set_major_formatter(fruit_format)
     return fig
