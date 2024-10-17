@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-7.0-table-masked-quantity`
 * :ref:`whatsnew-7.0-table-frames`
+* :ref:`whatsnew_7_0_table_pformat_default_changes`
 * :ref:`whatsnew_7_0_quantity_to_string_formatter`
 * :ref:`whatsnew_7_0_numpy_constructors_like_quantity`
 * :ref:`whatsnew_7_0_ecsv_meta_default_dict`
@@ -59,6 +60,21 @@ This includes all frames, also those that do not have associated data, such as
 a ``SkyOffsetFrame`` in which the RA, Dec of the origin might represent a
 pointing directions for a tiled observation, and the position angle the roll of
 a spacecraft.
+
+.. _whatsnew_7_0_table_pformat_default_changes:
+
+``Table.pformat`` is now independent on terminal dimensions
+===========================================================
+
+``Table.pformat`` and ``Column.pformat`` do not truncate their outputs according
+to terminal height and width by default any more. The new default behavior is
+intended to be less surprising.
+
+Truncating representations to fit the current terminal is still supported but
+now requires explicitly passing ``max_lines=None`` and/or ``max_width=None``.
+
+``Table.pformat_all`` is deprecated as it is now fully redundant.
+
 
 .. _whatsnew_7_0_quantity_to_string_formatter:
 
