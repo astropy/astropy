@@ -1,0 +1,3 @@
+Converting the ohm to a string with the OGIP unit formatter (e.g.
+``f"{u.ohm:ogip}"``) previously produced the string ``'V / A'``, but now
+produces ``'ohm'`` as expected.
