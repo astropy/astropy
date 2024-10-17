@@ -5,7 +5,12 @@ import numpy as np
 
 from .utils import deserialize_class
 
-__all__ = ["BaseHighLevelWCS", "HighLevelWCSMixin"]
+__all__ = [
+    "values_to_high_level_objects",
+    "high_level_objects_to_values",
+    "BaseHighLevelWCS",
+    "HighLevelWCSMixin",
+]
 
 
 def rec_getattr(obj, att):
@@ -249,7 +254,7 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
 
     This function uses the information in ``wcs.world_axis_object_classes`` and
     ``wcs.world_axis_object_components`` to convert low level "values"
-    `~.Quantity` objects, to high level objects (such as `~.SkyCoord).
+    `~.Quantity` objects, to high level objects (such as `~.SkyCoord`).
 
     This is used in `.HighLevelWCSMixin.pixel_to_world`, but provided as a
     separate function for use in other places where needed.
