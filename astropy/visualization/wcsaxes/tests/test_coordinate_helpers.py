@@ -43,8 +43,8 @@ def assert_label_draw(ax, x_label, y_label):
     ax.coords[0].set_axislabel("Label 1")
     ax.coords[1].set_axislabel("Label 2")
 
-    with patch.object(ax.coords[0].axislabels, "set_position") as pos1:
-        with patch.object(ax.coords[1].axislabels, "set_position") as pos2:
+    with patch.object(ax.coords[0]._axislabels, "set_position") as pos1:
+        with patch.object(ax.coords[1]._axislabels, "set_position") as pos2:
             ax.figure.canvas.draw()
 
     assert pos1.call_count == x_label
@@ -126,4 +126,4 @@ def test_grid_variations(ignore_matplotlibrc, draw_grid, expected_visibility):
     transform = transforms.Affine2D().scale(2.0)
     coord_helper = CoordinateHelper(parent_axes=ax, transform=transform)
     coord_helper.grid(draw_grid=draw_grid)
-    assert coord_helper.grid_lines_kwargs["visible"] == expected_visibility
+    assert coord_helper._grid_lines_kwargs["visible"] == expected_visibility

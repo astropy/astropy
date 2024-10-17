@@ -671,7 +671,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_axislabel("Label 1")
         ax.coords[1].set_axislabel("Label 2")
         ax.coords[1].set_axislabel_visibility_rule("always")
-        ax.coords[1].ticklabels.set_visible(False)
+        ax.coords[1].set_ticklabel_visible(False)
         return fig
 
     @figure_test(savefig_kwargs={"bbox_inches": "tight"})
@@ -1164,7 +1164,7 @@ def test_1d_plot_1d_sliced_low_level_wcs(
     # Draw to trigger rendering the ticks.
     plt.draw()
 
-    assert ax.coords[bottom_axis].ticks.get_visible_axes() == ["b"]
+    assert ax.coords[bottom_axis]._ticks.get_visible_axes() == ["b"]
 
     return fig
 
@@ -1192,7 +1192,7 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(
     # Draw to trigger rendering the ticks.
     plt.draw()
 
-    assert ax.coords[bottom_axis].ticks.get_visible_axes() == ["b"]
+    assert ax.coords[bottom_axis]._ticks.get_visible_axes() == ["b"]
 
     return fig
 
