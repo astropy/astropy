@@ -12,6 +12,7 @@ from inspect import Parameter, signature
 import numpy as np
 
 from astropy.io.fits import conf
+from astropy.io.fits._utils import compute_checksum
 from astropy.io.fits.file import _File
 from astropy.io.fits.header import Header, _BasicHeader, _DelayedHeader, _pad_length
 from astropy.io.fits.util import (
@@ -1464,55 +1465,9 @@ class _ValidHDU(_BaseHDU, _Verify):
         -------
         ones complement checksum
         """
-        blocklen = 2880
         sum32 = np.uint32(sum32)
-        for i in range(0, len(data), blocklen):
-            length = min(blocklen, len(data) - i)  # ????
-            sum32 = self._compute_hdu_checksum(data[i : i + length], sum32)
-        return sum32
-
-    def _compute_hdu_checksum(self, data, sum32=0):
-        """
-        Translated from FITS Checksum Proposal by Seaman, Pence, and Rots.
-        Use uint32 literals as a hedge against type promotion to int64.
-
-        This code should only be called with blocks of 2880 bytes
-        Longer blocks result in non-standard checksums with carry overflow
-        Historically,  this code *was* called with larger blocks and for that
-        reason still needs to be for backward compatibility.
-        """
-        u8 = np.uint32(8)
-        u16 = np.uint32(16)
-        uFFFF = np.uint32(0xFFFF)
-
-        if data.nbytes % 2:
-            last = data[-1]
-            data = data[:-1]
-        else:
-            last = np.uint32(0)
-
-        data = data.view(">u2")
-
-        hi = sum32 >> u16
-        lo = sum32 & uFFFF
-        hi += np.add.reduce(data[0::2], dtype=np.uint64)
-        lo += np.add.reduce(data[1::2], dtype=np.uint64)
-
-        if (data.nbytes // 2) % 2:
-            lo += last << u8
-        else:
-            hi += last << u8
-
-        hicarry = hi >> u16
-        locarry = lo >> u16
-
-        while hicarry or locarry:
-            hi = (hi & uFFFF) + locarry
-            lo = (lo & uFFFF) + hicarry
-            hicarry = hi >> u16
-            locarry = lo >> u16
-
-        return (hi << u16) + lo
+        sum32 = compute_checksum(data, sum32)
+        return np.uint32(sum32)
 
     # _MASK and _EXCLUDE used for encoding the checksum value into a character
     # string.
