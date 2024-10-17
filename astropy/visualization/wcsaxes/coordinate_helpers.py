@@ -104,6 +104,8 @@ class CoordinateHelper:
         self._frame = frame
         self._default_label = default_label or ""
         self._auto_axislabel = True
+        self._axislabel_set = False
+
         # Disable auto label for elliptical frames as it puts labels in
         # annoying places.
         if issubclass(self.parent_axes.frame_class, EllipticalFrame):
@@ -701,6 +703,8 @@ class CoordinateHelper:
         if minpad is None:
             minpad = 1
 
+        self._axislabel_set = True
+
         self._axislabels.set_text(text)
         self._axislabels.set_minpad(minpad)
         self._axislabels.set(**kwargs)
@@ -717,7 +721,10 @@ class CoordinateHelper:
         label : str
             The axis label
         """
-        return self._axislabels.get_text()
+        if self._auto_axislabel and not self._axislabel_set:
+            return self._get_default_axislabel()
+        else:
+            return self._axislabels.get_text()
 
     def set_auto_axislabel(self, auto_label):
         """
@@ -845,7 +852,7 @@ class CoordinateHelper:
 
     def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, visible_ticks):
         # Render the default axis label if no axis label is set.
-        if self._auto_axislabel and not self.get_axislabel():
+        if self._auto_axislabel and not self._axislabel_set:
             self.set_axislabel(self._get_default_axislabel())
 
         renderer.open_group("axis labels")
