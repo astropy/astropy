@@ -1438,7 +1438,12 @@ def test_out_of_bounds(direction):
 
     # Before setting bounds
 
-    # Scalars
+    # Python Scalars
+    xw, yw = func(1, 1)
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, 1)
+
+    # Numpy Scalars
     xw, yw = func(xp[0], yp[0])
     assert_array_equal(xw, 1)
     assert_array_equal(yw, 1)
@@ -1457,7 +1462,17 @@ def test_out_of_bounds(direction):
 
     wcs.pixel_bounds = [(-0.5, 3.5), None]
 
-    # Scalars
+    # Python Scalars
+
+    xw, yw = func(1, 1)
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, 1)
+
+    xw, yw = func(5, 5)
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, 5)
+
+    # Numpy Scalars
 
     xw, yw = func(xp[0], yp[0])
     assert_array_equal(xw, 1)
@@ -1481,7 +1496,17 @@ def test_out_of_bounds(direction):
 
     wcs.pixel_bounds = [(-0.5, 3.5), (2.5, 5.5)]
 
-    # Scalars
+    # Python Scalars
+
+    xw, yw = func(1, 1)
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, np.nan)
+
+    xw, yw = func(5, 5)
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, 5)
+
+    # Numpy Scalars
 
     xw, yw = func(xp[0], yp[0])
     assert_array_equal(xw, 1)

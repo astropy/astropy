@@ -342,10 +342,11 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     pixel_arrays[idim] > self.pixel_bounds[idim][1]
                 )
                 if np.any(out_of_bounds):
-                    pix = pixel_arrays[idim].astype(float, copy=True)
+                    pix = pixel_arrays[idim]
                     if np.isscalar(pix):
                         pix = np.nan
                     else:
+                        pix = pix.astype(float, copy=True)
                         pix[out_of_bounds] = np.nan
                     pixel_arrays[idim] = pix
         return pixel_arrays
