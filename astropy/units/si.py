@@ -352,7 +352,7 @@ def_unit(
     namespace=_ns,
     prefixes=True,
     doc="Ohm: electrical resistance",
-    format={"latex": r"\Omega", "unicode": "Ω"},
+    format={"latex": r"\Omega", "ogip": "ohm", "unicode": "Ω"},
 )
 def_unit(
     ["S", "Siemens", "siemens"],
