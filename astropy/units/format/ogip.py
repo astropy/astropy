@@ -26,7 +26,8 @@ from typing import TYPE_CHECKING
 from astropy.units.errors import UnitParserWarning, UnitsWarning
 from astropy.utils import classproperty, parsing
 
-from . import core, generic, utils
+from . import core, utils
+from .fits import FITS
 
 if TYPE_CHECKING:
     from typing import ClassVar, Literal
@@ -36,7 +37,7 @@ if TYPE_CHECKING:
     from astropy.utils.parsing import ThreadSafeParser
 
 
-class OGIP(generic.Generic):
+class OGIP(FITS):
     """
     Support the units in `Office of Guest Investigator Programs (OGIP)
     FITS files
@@ -332,11 +333,6 @@ class OGIP(generic.Generic):
         return parsing.yacc(tabmodule="ogip_parsetab", package="astropy/units")
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        cls._validate_unit(unit, detailed_exception=detailed_exception)
-        return cls._units[unit]
-
-    @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
         return cls._do_parse(s.strip(), debug)
 
@@ -359,4 +355,4 @@ class OGIP(generic.Generic):
                     UnitsWarning,
                 )
 
-        return super().to_string(unit, fraction=fraction)
+        return cls._to_string(unit, fraction=fraction)
