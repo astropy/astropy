@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
-from astropy.stats.nanfunctions import nanmadstd, nanmean, nanmedian, nanstd
+from astropy.stats.nanfunctions import nanmadstd
 from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
@@ -219,10 +219,10 @@ class SigmaClip:
     ) -> Callable | None:
         if isinstance(cenfunc, str):
             if cenfunc == "median":
-                cenfunc = nanmedian
+                cenfunc = np.nanmedian
 
             elif cenfunc == "mean":
-                cenfunc = nanmean
+                cenfunc = np.nanmean
 
             else:
                 raise ValueError(f"{cenfunc} is an invalid cenfunc.")
@@ -235,7 +235,7 @@ class SigmaClip:
     ) -> Callable | None:
         if isinstance(stdfunc, str):
             if stdfunc == "std":
-                stdfunc = nanstd
+                stdfunc = np.nanstd
             elif stdfunc == "mad_std":
                 stdfunc = nanmadstd
             else:
@@ -1007,8 +1007,8 @@ def sigma_clipped_stats(
         data, axis=axis, masked=False, return_bounds=False, copy=True
     )
 
-    mean = nanmean(data_clipped, axis=axis)
-    median = nanmedian(data_clipped, axis=axis)
-    std = nanstd(data_clipped, ddof=std_ddof, axis=axis)
+    mean = np.nanmean(data_clipped, axis=axis)
+    median = np.nanmedian(data_clipped, axis=axis)
+    std = np.nanstd(data_clipped, ddof=std_ddof, axis=axis)
 
     return mean, median, std
