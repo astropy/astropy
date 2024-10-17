@@ -1,0 +1,4 @@
+Implemented a default bounding box for compound models. The bounding box is
+deduced from the compound model's operands. For example, the bounding box of
+the sum of two models is the union of the bounding boxes of the individual
+models.

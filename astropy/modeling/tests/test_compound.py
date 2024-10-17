@@ -11,6 +11,7 @@ import astropy.units as u
 from astropy.modeling.core import CompoundModel, Model, ModelDefinitionError
 from astropy.modeling.fitting import LevMarLSQFitter
 from astropy.modeling.models import (
+    Box1D,
     Chebyshev1D,
     Chebyshev2D,
     Const1D,
@@ -1216,3 +1217,132 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
     assert_quantity_allclose(fit.intercept_2, 10 * u.m)
     assert_quantity_allclose(fit.slope_3, 0 * u.kg / u.s)
     assert_quantity_allclose(fit.intercept_3, 5 * u.kg)
+
+
+@pytest.mark.parametrize(
+    ("expr", "result"),
+    [
+        (lambda x, y: x + y, [0, 3]),
+        (lambda x, y: x - y, [0, 3]),
+        (lambda x, y: x * y, None),
+        (lambda x, y: x / y, None),
+        (lambda x, y: x | y, None),
+        (lambda x, y: x**y, None),
+    ],
+)
+def test_compound_model_bounding_box_disjoint(expr, result):
+    x = Box1D(x_0=0.5, width=1)
+    y = Box1D(x_0=2.5, width=1)
+    m = expr(x, y)
+    if result is None:
+        with pytest.raises(NotImplementedError):
+            m.bounding_box
+    else:
+        np.testing.assert_array_equal(m.bounding_box.intervals[0], result)
+
+
+@pytest.mark.parametrize(
+    ("expr", "result"),
+    [
+        (lambda x, y: x + y, [0, 4]),
+        (lambda x, y: x - y, [0, 4]),
+        (lambda x, y: x * y, [1, 3]),
+        (lambda x, y: x / y, None),
+        (lambda x, y: x | y, None),
+        (lambda x, y: x**y, None),
+    ],
+)
+def test_compound_model_bounding_box_subset(expr, result):
+    x = Box1D(x_0=2, width=4)
+    y = Box1D(x_0=2, width=2)
+    m = expr(x, y)
+    if result is None:
+        with pytest.raises(NotImplementedError):
+            m.bounding_box
+    else:
+        np.testing.assert_array_equal(m.bounding_box.intervals[0], result)
+
+
+@pytest.mark.parametrize(
+    ("expr", "result"),
+    [
+        (lambda x, y: x + y, [0, 4]),
+        (lambda x, y: x - y, [0, 4]),
+        (lambda x, y: x * y, [1, 3]),
+        (lambda x, y: x / y, None),
+        (lambda x, y: x | y, None),
+        (lambda x, y: x**y, None),
+    ],
+)
+def test_compound_model_bounding_box_superset(expr, result):
+    x = Box1D(x_0=2, width=2)
+    y = Box1D(x_0=2, width=4)
+    m = expr(x, y)
+    if result is None:
+        with pytest.raises(NotImplementedError):
+            m.bounding_box
+    else:
+        np.testing.assert_array_equal(m.bounding_box.intervals[0], result)
+
+
+@pytest.mark.parametrize(
+    ("expr", "result"),
+    [
+        (lambda x, y: x + y, None),
+        (lambda x, y: x - y, None),
+        (lambda x, y: x * y, [1, 3]),
+        (lambda x, y: x / y, [1, 3]),
+        (lambda x, y: x | y, [1, 3]),
+        (lambda x, y: x**y, None),
+    ],
+)
+def test_compound_model_bounding_box_rhs_unbounded(expr, result):
+    x = Box1D(x_0=2, width=2)
+    y = Linear1D(slope=2)
+    m = expr(x, y)
+    if result is None:
+        with pytest.raises(NotImplementedError):
+            m.bounding_box
+    else:
+        np.testing.assert_array_equal(m.bounding_box.intervals[0], result)
+
+
+@pytest.mark.parametrize(
+    ("expr", "result"),
+    [
+        (lambda x, y: x + y, None),
+        (lambda x, y: x - y, None),
+        (lambda x, y: x * y, [1, 3]),
+        (lambda x, y: x / y, None),
+        (lambda x, y: x | y, [0.5, 1.5]),
+        (lambda x, y: x**y, None),
+    ],
+)
+def test_compound_model_bounding_box_lhs_unbounded(expr, result):
+    x = Linear1D(slope=2)
+    y = Box1D(x_0=2, width=2)
+    m = expr(x, y)
+    if result is None:
+        with pytest.raises(NotImplementedError):
+            m.bounding_box
+    else:
+        np.testing.assert_array_equal(m.bounding_box.intervals[0], result)
+
+
+@pytest.mark.parametrize(
+    "expr",
+    [
+        lambda x, y: x + y,
+        lambda x, y: x - y,
+        lambda x, y: x * y,
+        lambda x, y: x / y,
+        lambda x, y: x | y,
+        lambda x, y: x**y,
+    ],
+)
+def test_compound_model_bounding_box_both_unbounded(expr):
+    x = Linear1D()
+    y = Linear1D()
+    m = expr(x, y)
+    with pytest.raises(NotImplementedError):
+        m.bounding_box
