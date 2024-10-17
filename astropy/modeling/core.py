@@ -1761,6 +1761,7 @@ class Model(metaclass=_ModelMeta):
         units for each parameter.
         """
         model = self.copy()
+
         inputs_unit = {
             inp: getattr(kwargs[inp], "unit", dimensionless_unscaled)
             for inp in self.inputs
@@ -4098,7 +4099,7 @@ class CompoundModel(Model):
         -----
         This modifies the behavior of the base method to account for the
         case where the sub-models of a compound model have different output
-        units. This is only valid for compound * and / compound models as
+        units. This is only valid for compound *, / and | compound models as
         in that case it is reasonable to mix the output units. It does this
         by modifying the output units of each sub model by using the output
         units of the other sub model so that we can apply the original function
@@ -4158,6 +4159,16 @@ class CompoundModel(Model):
             model = CompoundModel(self.op, left, right, name=self.name)
 
             return model, left_kwargs, right_kwargs
+        elif self.op == "|":
+            left_out = self.left(**{inp: kwargs[inp] for inp in self.inputs})
+            left = self.left.without_units_for_data(x=kwargs["x"], y=left_out)
+            left_kwargs = {"x": kwargs["x"], "y": left_out}
+            right = self.right.without_units_for_data(
+                x=self.left(**{inp: kwargs[inp] for inp in self.inputs}), y=kwargs["y"]
+            )
+            right_kwargs = {"x": left_out, "y": kwargs["y"]}
+            model = CompoundModel(self.op, left, right, name=self.name)
+            return model, left_kwargs, right_kwargs
         else:
             return super().without_units_for_data(**kwargs)
 
@@ -4179,7 +4190,7 @@ class CompoundModel(Model):
         Outside the mixed output units, this method is identical to the
         base method.
         """
-        if self.op in ["*", "/"]:
+        if self.op in ["*", "/", "|"]:
             left_kwargs = kwargs.pop("_left_kwargs")
             right_kwargs = kwargs.pop("_right_kwargs")
 
@@ -4187,7 +4198,6 @@ class CompoundModel(Model):
             right = self.right.with_units_from_data(**right_kwargs)
 
             return CompoundModel(self.op, left, right, name=self.name)
-
         else:
             return super().with_units_from_data(**kwargs)
 
