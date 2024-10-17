@@ -945,7 +945,7 @@ class _ImageBaseHDU(_ValidHDU):
             else:
                 byteswapped = False
 
-            cs = self._compute_checksum(d.flatten().view(np.uint8))
+            cs = self._compute_checksum(d.ravel().view(np.uint8))
 
             # If the data was byteswapped in this method then return it to
             # its original little-endian order.
