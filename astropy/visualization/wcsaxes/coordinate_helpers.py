@@ -77,6 +77,8 @@ class CoordinateHelper:
         The angle at which the longitude wraps (defaults to 360 degrees).
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
+    default_label : str, optional
+        The axis label to show by default if none is set later.
     """
 
     def __init__(
@@ -93,14 +95,14 @@ class CoordinateHelper:
         default_label=None,
     ):
         # Keep a reference to the parent axes and the transform
-        self.parent_axes = parent_axes
-        self.parent_map = parent_map
-        self.transform = transform
-        self.coord_index = coord_index
-        self.coord_unit = coord_unit
+        self._parent_axes = parent_axes
+        self._parent_map = parent_map
+        self._transform = transform
+        self._coord_index = coord_index
+        self._coord_unit = coord_unit
         self._format_unit = format_unit
-        self.frame = frame
-        self.default_label = default_label or ""
+        self._frame = frame
+        self._default_label = default_label or ""
         self._auto_axislabel = True
         # Disable auto label for elliptical frames as it puts labels in
         # annoying places.
@@ -112,30 +114,30 @@ class CoordinateHelper:
         # Initialize ticks
         self.dpi_transform = Affine2D()
         self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
-        self.ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
+        self._ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
 
         # Initialize tick labels
-        self.ticklabels = TickLabels(
+        self._ticklabels = TickLabels(
             self.frame,
             transform=None,  # display coordinates
             figure=parent_axes.get_figure(),
         )
-        self.ticks.display_minor_ticks(rcParams["xtick.minor.visible"])
-        self.minor_frequency = 5
+        self._ticks.display_minor_ticks(rcParams["xtick.minor.visible"])
+        self._minor_frequency = 5
 
         # Initialize axis labels
-        self.axislabels = AxisLabels(
+        self._axislabels = AxisLabels(
             self.frame,
             transform=None,  # display coordinates
             figure=parent_axes.get_figure(),
         )
 
         # Initialize container for the grid lines
-        self.grid_lines = []
+        self._grid_lines = []
 
         # Initialize grid style. Take defaults from matplotlib.rcParams.
         # Based on matplotlib.axis.YTick._get_gridline.
-        self.grid_lines_kwargs = {
+        self._grid_lines_kwargs = {
             "visible": False,
             "facecolor": "none",
             "edgecolor": rcParams["grid.color"],
@@ -144,6 +146,191 @@ class CoordinateHelper:
             "alpha": rcParams["grid.alpha"],
             "transform": self.parent_axes.transData,
         }
+
+    @property
+    def parent_axes(self):
+        """
+        The axes the coordinate helper belongs to.
+        """
+        return self._parent_axes
+
+    @parent_axes.setter
+    def parent_axes(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.parent_axes directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._parent_axes = value
+
+    @property
+    def parent_map(self):
+        """
+        The :class:`~astropy.visualization.wcsaxes.CoordinatesMap` object this
+        coordinate belongs to.
+        """
+        return self._parent_map
+
+    @parent_map.setter
+    def parent_map(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.parent_map directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._parent_map = value
+
+    @property
+    def transform(self):
+        """
+        The transform corresponding to this coordinate system.
+        """
+        return self._transform
+
+    @transform.setter
+    def transform(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.transform directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._transform = value
+
+    @property
+    def coord_index(self):
+        """
+        The index of this coordinate in the
+        :class:`~astropy.visualization.wcsaxes.CoordinatesMap`.
+        """
+        return self._coord_index
+
+    @coord_index.setter
+    def coord_index(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.coord_index directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._coord_index = value
+
+    @property
+    def coord_type(self):
+        """
+        The type of this coordinate (e.g., ``'longitude'``)
+        """
+        return self._coord_type
+
+    @coord_type.setter
+    def coord_type(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.coord_type directly is deprecated, use CoordinateHelper.set_coord_type instead",
+            AstropyDeprecationWarning,
+        )
+        self._coord_type = value
+
+    @property
+    def coord_unit(self):
+        """
+        The unit that this coordinate is in given the output of transform.
+        """
+        return self._coord_unit
+
+    @coord_unit.setter
+    def coord_unit(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.coord_unit directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._coord_unit = value
+
+    @property
+    def coord_wrap(self):
+        """
+        The angle at which the longitude wraps (defaults to 360 degrees).
+        """
+        return self._coord_wrap
+
+    @coord_wrap.setter
+    def coord_wrap(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.coord_wrap directly is deprecated, use CoordinateHelper.set_coord_type instead",
+            AstropyDeprecationWarning,
+        )
+        self._coord_wrap = value
+
+    @property
+    def frame(self):
+        """
+        The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
+        """
+        return self._frame
+
+    @frame.setter
+    def frame(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.frame directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._frame = value
+
+    @property
+    def default_label(self):
+        """
+        The axis label to show by default if none is set later.
+        """
+        return self._default_label
+
+    @default_label.setter
+    def default_label(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.default_label directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._default_label = value
+
+    @property
+    def ticks(self):
+        warnings.warn(
+            "CoordinateHelper.ticks should not be accessed directly and is deprecated",
+            AstropyDeprecationWarning,
+        )
+        return self._ticks
+
+    @ticks.setter
+    def ticks(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.ticks directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._ticks = value
+
+    @property
+    def ticklabels(self):
+        warnings.warn(
+            "CoordinateHelper.ticklabels should not be accessed directly and is deprecated",
+            AstropyDeprecationWarning,
+        )
+        return self._ticks
+
+    @ticklabels.setter
+    def ticklabels(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.ticklabels directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._ticklabels = value
+
+    @property
+    def axislabels(self):
+        warnings.warn(
+            "CoordinateHelper.ticks should not be accessed directly and is deprecated",
+            AstropyDeprecationWarning,
+        )
+        return self._axislabels
+
+    @axislabels.setter
+    def axislabels(self, value):
+        warnings.warn(
+            "Setting CoordinateHelper.axislabels directly is deprecated",
+            AstropyDeprecationWarning,
+        )
+        self._axislabels = value
 
     def grid(self, draw_grid=True, grid_type=None, **kwargs):
         """
@@ -183,11 +370,11 @@ class CoordinateHelper:
         if "color" in kwargs:
             kwargs["edgecolor"] = kwargs.pop("color")
 
-        self.grid_lines_kwargs.update(kwargs)
+        self._grid_lines_kwargs.update(kwargs)
 
         if draw_grid is None:
             draw_grid = True
-        self.grid_lines_kwargs["visible"] = draw_grid
+        self._grid_lines_kwargs["visible"] = draw_grid
 
     def set_coord_type(self, coord_type, coord_wrap=None):
         """
@@ -200,7 +387,7 @@ class CoordinateHelper:
         coord_wrap : `~astropy.units.Quantity`, optional
             The value to wrap at for angular coordinates.
         """
-        self.coord_type = coord_type
+        self._coord_type = coord_type
 
         if coord_wrap is not None and not isinstance(coord_wrap, u.Quantity):
             warnings.warn(
@@ -210,13 +397,13 @@ class CoordinateHelper:
             coord_wrap = coord_wrap * u.deg
 
         if coord_type == "longitude" and coord_wrap is None:
-            self.coord_wrap = 360 * u.deg
+            self._coord_wrap = 360 * u.deg
         elif coord_type != "longitude" and coord_wrap is not None:
             raise NotImplementedError(
                 "coord_wrap is not yet supported for non-longitude coordinates"
             )
         else:
-            self.coord_wrap = coord_wrap
+            self._coord_wrap = coord_wrap
 
         # Initialize tick formatter/locator
         if coord_type == "scalar":
@@ -375,20 +562,20 @@ class CoordinateHelper:
             self._formatter_locator.number = number
 
         if size is not None:
-            self.ticks.set_ticksize(size)
+            self._ticks.set_ticksize(size)
 
         if width is not None:
-            self.ticks.set_linewidth(width)
+            self._ticks.set_linewidth(width)
 
         if color is not None:
-            self.ticks.set_color(color)
+            self._ticks.set_color(color)
 
         if alpha is not None:
-            self.ticks.set_alpha(alpha)
+            self._ticks.set_alpha(alpha)
 
         if direction is not None:
             if direction in ("in", "out"):
-                self.ticks.set_tick_out(direction == "out")
+                self._ticks.set_tick_out(direction == "out")
             else:
                 raise ValueError("direction should be 'in' or 'out'")
 
@@ -398,7 +585,7 @@ class CoordinateHelper:
                 "set_ticklabel instead of set_ticks",
                 AstropyDeprecationWarning,
             )
-            self.ticklabels.set_exclude_overlapping(exclude_overlapping)
+            self._ticklabels.set_exclude_overlapping(exclude_overlapping)
 
     def set_ticks_position(self, position):
         """
@@ -412,7 +599,7 @@ class CoordinateHelper:
             ``'l'``, ``'r'``. For example, ``'lb'`` will lead the ticks to be
             shown on the left and bottom axis.
         """
-        self.ticks.set_visible_axes(position)
+        self._ticks.set_visible_axes(position)
 
     def set_ticks_visible(self, visible):
         """
@@ -424,7 +611,7 @@ class CoordinateHelper:
             The visibility of ticks. Setting as ``False`` will hide ticks
             along this coordinate.
         """
-        self.ticks.set_visible(visible)
+        self._ticks.set_visible(visible)
 
     def set_ticklabel(
         self,
@@ -455,15 +642,15 @@ class CoordinateHelper:
             Other keyword arguments are passed to :class:`matplotlib.text.Text`.
         """
         if size is not None:
-            self.ticklabels.set_size(size)
+            self._ticklabels.set_size(size)
         if color is not None:
-            self.ticklabels.set_color(color)
+            self._ticklabels.set_color(color)
         if pad is not None:
-            self.ticklabels.set_pad(pad)
+            self._ticklabels.set_pad(pad)
         if exclude_overlapping is not None:
-            self.ticklabels.set_exclude_overlapping(exclude_overlapping)
-        self.ticklabels.set_simplify(simplify)
-        self.ticklabels.set(**kwargs)
+            self._ticklabels.set_exclude_overlapping(exclude_overlapping)
+        self._ticklabels.set_simplify(simplify)
+        self._ticklabels.set(**kwargs)
 
     def set_ticklabel_position(self, position):
         """
@@ -477,7 +664,7 @@ class CoordinateHelper:
             ``'t'``, ``'l'``, ``'r'``. For example, ``'lb'`` will lead the
             tick labels to be shown on the left and bottom axis.
         """
-        self.ticklabels.set_visible_axes(position)
+        self._ticklabels.set_visible_axes(position)
 
     def set_ticklabel_visible(self, visible):
         """
@@ -489,7 +676,7 @@ class CoordinateHelper:
             The visibility of ticks. Setting as ``False`` will hide this
             coordinate's tick labels.
         """
-        self.ticklabels.set_visible(visible)
+        self._ticklabels.set_visible(visible)
 
     def set_axislabel(self, text, minpad=1, **kwargs):
         """
@@ -514,12 +701,12 @@ class CoordinateHelper:
         if minpad is None:
             minpad = 1
 
-        self.axislabels.set_text(text)
-        self.axislabels.set_minpad(minpad)
-        self.axislabels.set(**kwargs)
+        self._axislabels.set_text(text)
+        self._axislabels.set_minpad(minpad)
+        self._axislabels.set(**kwargs)
 
         if fontdict is not None:
-            self.axislabels.update(fontdict)
+            self._axislabels.update(fontdict)
 
     def get_axislabel(self):
         """
@@ -530,7 +717,7 @@ class CoordinateHelper:
         label : str
             The axis label
         """
-        return self.axislabels.get_text()
+        return self._axislabels.get_text()
 
     def set_auto_axislabel(self, auto_label):
         """
@@ -574,7 +761,7 @@ class CoordinateHelper:
             ``'t'``, ``'l'``, ``'r'``. For example, ``'lb'`` will lead the
             axis label to be shown on the left and bottom axis.
         """
-        self.axislabels.set_visible_axes(position)
+        self._axislabels.set_visible_axes(position)
 
     def set_axislabel_visibility_rule(self, rule):
         """
@@ -588,13 +775,13 @@ class CoordinateHelper:
             were drawn on that axis. If the rule is 'labels' the axis label
             will only be drawn if tick labels were drawn on that axis.
         """
-        self.axislabels.set_visibility_rule(rule)
+        self._axislabels.set_visibility_rule(rule)
 
     def get_axislabel_visibility_rule(self, rule):
         """
         Get the rule used to determine when the axis label is drawn.
         """
-        return self.axislabels.get_visibility_rule()
+        return self._axislabels.get_visibility_rule()
 
     @property
     def locator(self):
@@ -609,7 +796,7 @@ class CoordinateHelper:
 
         self._update_ticks()
 
-        if self.grid_lines_kwargs["visible"]:
+        if self._grid_lines_kwargs["visible"]:
             if isinstance(self.frame, RectangularFrame1D):
                 self._update_grid_lines_1d()
             else:
@@ -620,18 +807,18 @@ class CoordinateHelper:
 
             if self._grid_type == "lines":
                 frame_patch = self.frame.patch
-                for path in self.grid_lines:
-                    p = PathPatch(path, **self.grid_lines_kwargs)
+                for path in self._grid_lines:
+                    p = PathPatch(path, **self._grid_lines_kwargs)
                     p.set_clip_path(frame_patch)
                     p.draw(renderer)
 
             elif self._grid is not None:
                 if MATPLOTLIB_LT_3_8:
                     for line in self._grid.collections:
-                        line.set(**self.grid_lines_kwargs)
+                        line.set(**self._grid_lines_kwargs)
                         line.draw(renderer)
                 else:
-                    self._grid.set(**self.grid_lines_kwargs)
+                    self._grid.set(**self._grid_lines_kwargs)
                     self._grid.draw(renderer)
 
         renderer.close_group("grid lines")
@@ -647,12 +834,12 @@ class CoordinateHelper:
             coordinates.
         """
         renderer.open_group("ticks")
-        self.ticks.draw(renderer)
+        self._ticks.draw(renderer)
 
-        self.ticklabels._tick_out_size = self.ticks.out_size
+        self._ticklabels._tick_out_size = self._ticks.out_size
 
-        self.ticklabels._set_existing_bboxes(existing_bboxes)
-        self.ticklabels.draw(renderer)
+        self._ticklabels._set_existing_bboxes(existing_bboxes)
+        self._ticklabels.draw(renderer)
 
         renderer.close_group("ticks")
 
@@ -663,12 +850,12 @@ class CoordinateHelper:
 
         renderer.open_group("axis labels")
 
-        self.axislabels.draw(
+        self._axislabels.draw(
             renderer,
             bboxes=bboxes,
             ticklabels_bbox=ticklabels_bbox,
             coord_ticklabels_bbox=ticklabels_bbox[self],
-            ticks_locs=self.ticks.ticks_locs,
+            ticks_locs=self._ticks.ticks_locs,
             visible_ticks=visible_ticks,
         )
 
@@ -692,7 +879,7 @@ class CoordinateHelper:
             *coord_range[self.coord_index]
         )
 
-        if self.ticks.get_display_minor_ticks():
+        if self._ticks.get_display_minor_ticks():
             minor_ticks_w_coordinates = self._formatter_locator.minor_locator(
                 self._fl_spacing,
                 self.get_minor_frequency(),
@@ -705,10 +892,10 @@ class CoordinateHelper:
 
         frame = self.frame.sample(conf.frame_boundary_samples)
 
-        self.ticks.clear()
-        self.ticklabels.clear()
-        self.lblinfo = []
-        self.lbl_world = []
+        self._ticks.clear()
+        self._ticklabels.clear()
+        self._lblinfo = []
+        self._lbl_world = []
         # Look up parent axes' transform from data to figure coordinates.
         #
         # See:
@@ -802,7 +989,7 @@ class CoordinateHelper:
             # check the ticks determined above.
             self._compute_ticks(tick_world_coordinates, spine, axis, w1, w2, tick_angle)
 
-            if self.ticks.get_display_minor_ticks():
+            if self._ticks.get_display_minor_ticks():
                 self._compute_ticks(
                     minor_ticks_w_coordinates,
                     spine,
@@ -815,10 +1002,10 @@ class CoordinateHelper:
 
         # format tick labels, add to scene
         text = self.formatter(
-            self.lbl_world * tick_world_coordinates.unit, spacing=self._fl_spacing
+            self._lbl_world * tick_world_coordinates.unit, spacing=self._fl_spacing
         )
-        for kwargs, txt in zip(self.lblinfo, text):
-            self.ticklabels.add(text=txt, **kwargs)
+        for kwargs, txt in zip(self._lblinfo, text):
+            self._ticklabels.add(text=txt, **kwargs)
 
     def _compute_ticks(
         self, tick_world_coordinates, spine, axis, w1, w2, tick_angle, ticks="major"
@@ -886,7 +1073,7 @@ class CoordinateHelper:
                     world = t
 
                 if ticks == "major":
-                    self.ticks.add(
+                    self._ticks.add(
                         axis=axis,
                         pixel=(x_data_i, y_data_i),
                         world=world,
@@ -897,7 +1084,7 @@ class CoordinateHelper:
                     # store information to pass to ticklabels.add
                     # it's faster to format many ticklabels at once outside
                     # of the loop
-                    self.lblinfo.append(
+                    self._lblinfo.append(
                         dict(
                             axis=axis,
                             data=(x_data_i, y_data_i),
@@ -906,10 +1093,10 @@ class CoordinateHelper:
                             axis_displacement=imin + frac,
                         )
                     )
-                    self.lbl_world.append(world)
+                    self._lbl_world.append(world)
 
                 else:
-                    self.ticks.add_minor(
+                    self._ticks.add_minor(
                         minor_axis=axis,
                         minor_pixel=(x_data_i, y_data_i),
                         minor_world=world,
@@ -926,10 +1113,10 @@ class CoordinateHelper:
         display_minor_ticks : bool
             Whether or not to display minor ticks.
         """
-        self.ticks.display_minor_ticks(display_minor_ticks)
+        self._ticks.display_minor_ticks(display_minor_ticks)
 
     def get_minor_frequency(self):
-        return self.minor_frequency
+        return self._minor_frequency
 
     def set_minor_frequency(self, frequency):
         """
@@ -940,20 +1127,20 @@ class CoordinateHelper:
         frequency : int
             The number of minor ticks per major ticks.
         """
-        self.minor_frequency = frequency
+        self._minor_frequency = frequency
 
     def _update_grid_lines_1d(self):
         if self.coord_index is None:
             return
 
-        x_ticks_pos = [a[0] for a in self.ticks.pixel["b"]]
+        x_ticks_pos = [a[0] for a in self._ticks.pixel["b"]]
 
         ymin, ymax = self.parent_axes.get_ylim()
 
-        self.grid_lines = []
+        self._grid_lines = []
         for x_coord in x_ticks_pos:
             pixel = [[x_coord, ymin], [x_coord, ymax]]
-            self.grid_lines.append(Path(pixel))
+            self._grid_lines.append(Path(pixel))
 
     def _update_grid_lines(self):
         # For 3-d WCS with a correlated third axis, the *proper* way of
@@ -982,7 +1169,7 @@ class CoordinateHelper:
 
         xy_world = np.zeros((n_samples * n_coord, 2))
 
-        self.grid_lines = []
+        self._grid_lines = []
 
         for iw, w in enumerate(tick_world_coordinates_values):
             subset = slice(iw * n_samples, (iw + 1) * n_samples)
@@ -1009,7 +1196,7 @@ class CoordinateHelper:
 
         for iw in range(n_coord):
             subset = slice(iw * n_samples, (iw + 1) * n_samples)
-            self.grid_lines.append(
+            self._grid_lines.append(
                 self._get_gridline(
                     xy_world[subset], pixel[subset], xy_world_round[subset]
                 )
@@ -1272,7 +1459,7 @@ class CoordinateHelper:
                 )
             else:
                 if "length" in kwargs:
-                    self.ticks.set_minor_ticksize(kwargs["length"])
+                    self._ticks.set_minor_ticksize(kwargs["length"])
             return
 
         # At this point, we can now ignore the 'which' argument.
@@ -1314,15 +1501,15 @@ class CoordinateHelper:
 
         # And the grid settings
         if "grid_color" in kwargs:
-            self.grid_lines_kwargs["edgecolor"] = kwargs["grid_color"]
+            self._grid_lines_kwargs["edgecolor"] = kwargs["grid_color"]
         if "grid_alpha" in kwargs:
-            self.grid_lines_kwargs["alpha"] = kwargs["grid_alpha"]
+            self._grid_lines_kwargs["alpha"] = kwargs["grid_alpha"]
         if "grid_linewidth" in kwargs:
-            self.grid_lines_kwargs["linewidth"] = kwargs["grid_linewidth"]
+            self._grid_lines_kwargs["linewidth"] = kwargs["grid_linewidth"]
         if "grid_linestyle" in kwargs:
             if kwargs["grid_linestyle"] in LINES_TO_PATCHES_LINESTYLE:
-                self.grid_lines_kwargs["linestyle"] = LINES_TO_PATCHES_LINESTYLE[
+                self._grid_lines_kwargs["linestyle"] = LINES_TO_PATCHES_LINESTYLE[
                     kwargs["grid_linestyle"]
                 ]
             else:
-                self.grid_lines_kwargs["linestyle"] = kwargs["grid_linestyle"]
+                self._grid_lines_kwargs["linestyle"] = kwargs["grid_linestyle"]
