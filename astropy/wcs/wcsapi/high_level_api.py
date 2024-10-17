@@ -1,4 +1,5 @@
 import abc
+import numbers
 from collections import OrderedDict, defaultdict
 
 import numpy as np
@@ -129,7 +130,8 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
 
     This function uses the information in ``wcs.world_axis_object_classes`` and
     ``wcs.world_axis_object_components`` to convert the high level objects
-    (such as `~.SkyCoord`) to low level "values" `~.Quantity` objects.
+    (such as `~.SkyCoord`) to low level "values" which should be scalars or
+    Numpy arrays.
 
     This is used in `.HighLevelWCSMixin.world_to_pixel`, but provided as a
     separate function for use in other places where needed.
@@ -245,6 +247,17 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
         else:
             world.append(rec_getattr(objects[key], attr))
 
+    # Check the type of the return values - should be scalars or plain Numpy
+    # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
+    # we don't want to match Numpy subclasses.
+    for w in world:
+        if not isinstance(w, numbers.Number) and not type(w) == np.ndarray:
+            raise TypeError(
+                f"WCS world_axis_object_components results in "
+                f"values which are not scalars or plain Numpy "
+                f"arrays (got {type(w)})"
+            )
+
     return world
 
 
@@ -267,6 +280,16 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
     low_level_wcs: `.BaseLowLevelWCS`
         The WCS object to use to interpret the coordinates.
     """
+    # Check the type of the input values - should be scalars or plain Numpy
+    # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
+    # we don't want to match Numpy subclasses.
+    for w in world_values:
+        if not isinstance(w, numbers.Number) and not type(w) == np.ndarray:
+            raise TypeError(
+                f"Expected world coordinates as scalars or plain Numpy "
+                f"arrays (got {type(w)})"
+            )
+
     # Cache the classes and components since this may be expensive
     components = low_level_wcs.world_axis_object_components
     classes = low_level_wcs.world_axis_object_classes
