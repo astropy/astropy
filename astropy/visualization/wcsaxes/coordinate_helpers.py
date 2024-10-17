@@ -319,7 +319,7 @@ class CoordinateHelper:
     @property
     def axislabels(self):
         warnings.warn(
-            "CoordinateHelper.ticks should not be accessed directly and is deprecated",
+            "CoordinateHelper.axislabels should not be accessed directly and is deprecated",
             AstropyDeprecationWarning,
         )
         return self._axislabels
