@@ -671,7 +671,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_axislabel("Label 1")
         ax.coords[1].set_axislabel("Label 2")
         ax.coords[1].set_axislabel_visibility_rule("always")
-        ax.coords[1].set_ticks_visible(False)
+        ax.coords[1].set_ticklabel_visible(False)
         return fig
 
     @figure_test(savefig_kwargs={"bbox_inches": "tight"})
