@@ -19,6 +19,31 @@ __all__ = [
 ]
 
 
+def _get_dir_path(rootname: str, cls: type, fallback: str) -> Path:
+    # If using set_temp_x, that overrides all
+    if (xch := cls._temp_path) is not None:
+        path = xch / rootname
+        if not path.is_file():
+            path.mkdir(exist_ok=True)
+        return path.resolve()
+
+    # first look for XDG_CONFIG_HOME
+    if (
+        (xdg_config_home := os.getenv("XDG_CONFIG_HOME")) is not None
+        and (xch := Path(xdg_config_home)).exists()
+        and not (xchpth := xch / rootname).is_symlink()
+    ):
+        if xchpth.exists():
+            return xchpth.resolve()
+
+        # symlink will be set to this if the directory is created
+        linkto = xchpth
+    else:
+        linkto = None
+
+    return _find_or_create_root_dir(fallback, linkto, rootname)
+
+
 def get_config_dir_path(rootname: str = "astropy") -> Path:
     """
     Determines the package configuration directory name and creates the
@@ -42,28 +67,7 @@ def get_config_dir_path(rootname: str = "astropy") -> Path:
         The absolute path to the configuration directory.
 
     """
-    # symlink will be set to this if the directory is created
-    linkto = None
-
-    # If using set_temp_config, that overrides all
-    if set_temp_config._temp_path is not None:
-        xch = set_temp_config._temp_path
-        config_path = xch / rootname
-        config_path.mkdir(exist_ok=True)
-        return config_path.resolve()
-
-    # first look for XDG_CONFIG_HOME
-    if (
-        (xdg_config_home := os.getenv("XDG_CONFIG_HOME")) is not None
-        and (xch := Path(xdg_config_home)).exists()
-        and not (xchpth := xch / rootname).is_symlink()
-    ):
-        if xchpth.exists():
-            return xchpth.resolve()
-        else:
-            linkto = xchpth
-
-    return _find_or_create_root_dir("config", linkto, rootname)
+    return _get_dir_path(rootname, set_temp_config, "config")
 
 
 def get_config_dir(rootname: str = "astropy") -> str:
@@ -104,29 +108,7 @@ def get_cache_dir_path(rootname: str = "astropy") -> Path:
         The absolute path to the cache directory.
 
     """
-    # symlink will be set to this if the directory is created
-    linkto = None
-
-    # If using set_temp_cache, that overrides all
-    if set_temp_cache._temp_path is not None:
-        xch = set_temp_cache._temp_path
-        cache_path = xch / rootname
-        if not cache_path.is_file():
-            cache_path.mkdir(exist_ok=True)
-        return cache_path.resolve()
-
-    # first look for XDG_CACHE_HOME
-    if (
-        (xdg_config_home := os.getenv("XDG_CONFIG_HOME")) is not None
-        and (xch := Path(xdg_config_home)).exists()
-        and not (xchpth := xch / rootname).is_symlink()
-    ):
-        if xchpth.exists():
-            return xchpth.resolve()
-        else:
-            linkto = xchpth
-
-    return _find_or_create_root_dir("cache", linkto, rootname)
+    return _get_dir_path(rootname, set_temp_cache, "cache")
 
 
 def get_cache_dir(rootname: str = "astropy") -> str:
