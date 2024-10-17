@@ -14,7 +14,6 @@ from importlib.util import find_spec
 _optional_deps = [
     "asdf_astropy",
     "bleach",
-    "bottleneck",
     "bs4",
     "bz2",  # stdlib
     "certifi",

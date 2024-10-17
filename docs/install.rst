@@ -110,7 +110,7 @@ Install the optional dependencies with::
 
   conda install --channel conda-forge ipython jupyter dask h5py pyarrow \
      beautifulsoup4 html5lib bleach pandas sortedcontainers pytz jplephem mpmath \
-     asdf-astropy bottleneck fsspec s3fs certifi
+     asdf-astropy fsspec s3fs certifi
 
 Testing
 -------
@@ -184,10 +184,6 @@ The further dependencies provide more specific features:
 - `asdf-astropy <https://github.com/astropy/asdf-astropy>`_ |minimum_asdf_astropy_version| or later: Enables the
   serialization of various Astropy classes into a portable, hierarchical,
   human-readable representation.
-
-- `bottleneck <https://pypi.org/project/Bottleneck/>`_: Improves the performance
-  of sigma-clipping and other functionality that may require computing
-  statistics on arrays with NaN values.
 
 - `certifi <https://pypi.org/project/certifi/>`_: Useful when downloading
   files from HTTPS or FTP+TLS sites in case Python is not able to locate
