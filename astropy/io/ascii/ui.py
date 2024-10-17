@@ -627,10 +627,12 @@ def _guess(table, read_kwargs, format, fast_reader):
         cparser.CParserError,
     )
 
-    # Determine whether we should limit the number of lines used in the guessing
+    # Determine whether we should limit the number of lines used in the guessing.
+    # Note that this does not currently work for file objects, so we set this to
+    # False if a file object was passed in.
     from astropy.io.ascii import conf  # avoid circular imports
 
-    limit_lines = conf.guess_limit_lines
+    limit_lines = conf.guess_limit_lines and not hasattr(table, 'read')
 
     # Don't limit the number of lines if there are fewer than this number of
     # lines in the table. In fact, we also don't limit the number of lines if
