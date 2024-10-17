@@ -197,6 +197,7 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
     def _setup(self, table_type):
         self.data = [{"a": 1, "b": 2, "c": 3}, {"a": 3, "b": 4, "c": 5}]
         self.data_ragged = [{"a": 1, "b": 2}, {"a": 2, "c": 4}]
+        self.data_acb = [{"a": 2, "c": 4}, {"a": 1, "b": 2}]
 
     def test_names(self, table_type):
         self._setup(table_type)
@@ -207,6 +208,14 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
         self._setup(table_type)
         t = table_type(self.data, names=("c", "b", "a"))
         assert t.colnames == ["c", "b", "a"]
+
+    def test_rows_without_names_args(self, table_type):
+        # see https://github.com/astropy/astropy/pull/15735
+        self._setup(table_type)
+        t1 = table_type(rows=self.data)
+        assert t1.colnames == ["a", "b", "c"]
+        t2 = table_type(rows=self.data_acb)
+        assert t2.colnames == ["a", "c", "b"]
 
     def test_missing_data_init_from_dict(self, table_type):
         self._setup(table_type)
@@ -252,6 +261,7 @@ class TestInitFromListOfMapping(TestInitFromListOfDicts):
     def _setup(self, table_type):
         self.data = [DictLike(a=1, b=2, c=3), DictLike(a=3, b=4, c=5)]
         self.data_ragged = [DictLike(a=1, b=2), DictLike(a=2, c=4)]
+        self.data_acb = [DictLike(a=2, c=4), DictLike(a=1, b=2)]
         # Make sure data rows are not a dict subclass
         assert not isinstance(self.data[0], dict)
 

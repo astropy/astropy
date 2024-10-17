@@ -288,6 +288,43 @@ New ``Lorentz2D`` model
 A new 2D Lorentzian model has been added to the ``astropy.modeling``
 package.
 
+
+Ordering of table columns constructed from rows
+===============================================
+
+The column order in a `~astropy.table.Table` constructed from a `list` or rows (`dict`
+or `~astropy.table.Row`) may change using ``astropy`` version ``7.0`` *if the
+first row has missing values*.
+
+Before ``7.0``, the column ordering was determined from the first row if it contained
+values for all the columns, or by sorting the final column names alphabetically if it
+did not. Starting with ``7.0``, columns are always added in the order they appear
+when iterating over  the `list` of rows.
+
+For example, create a table as shown below:
+
+    >>> from astropy.table import Table
+    >>> data = [{'b': 10, 'c': 7, },
+    ...         {'a': 15, 'c': 35, 'b': 20}]
+    >>> t = Table(data)  # or Table(rows=data), which is equivalent
+
+
+Before ``7.0`` the table would look like this::
+
+     a   b   c
+    --- --- ---
+     --  10   7
+     15  20  35
+
+
+Starting with ``7.0`` the table would instead look like this::
+
+     b   c   a
+    --- --- ---
+     10   7  --
+     20  35  15
+
+
 Full change log
 ===============
 
