@@ -6,7 +6,7 @@ from .utils import SCIPY_LT_1_15
 
 
 def lombscargle_scipy(
-        t, y, frequency, normalization="standard", fit_mean=False, center_data=True
+    t, y, frequency, normalization="standard", fit_mean=False, center_data=True
 ):
     """Lomb-Scargle Periodogram.
 
@@ -63,15 +63,17 @@ def lombscargle_scipy(
         raise ValueError("frequency should be one-dimensional")
 
     if center_data:
+        kwargs = {"precenter": True}
+        # Already taken care of by 'precenter', but still needed for normalization
         y = y - y.mean()
+    else:
+        kwargs = {"precenter": False}
 
     if SCIPY_LT_1_15:
         if fit_mean:
             raise NotImplementedError("`fit_mean=True` requires Scipy 1.15+")
-        else:
-            kwargs = {}
     else:
-        kwargs = {"floating_mean": fit_mean}
+        kwargs["floating_mean"] = fit_mean
 
     # Note: scipy `freqs` input is in angular frequencies
     p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)

@@ -85,7 +85,9 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     prefer_fast = len(frequency) > 200 and (
         assume_regular_frequency or _is_regular(frequency)
     )
-    prefer_scipy = "scipy" in methods and dy is None and not (fit_mean and SCIPY_LT_1_15)
+    prefer_scipy = (
+        "scipy" in methods and dy is None and not (fit_mean and SCIPY_LT_1_15)
+    )
 
     # automatically choose the appropriate method
     if method == "auto":

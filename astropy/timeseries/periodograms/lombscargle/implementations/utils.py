@@ -6,6 +6,7 @@ from astropy.utils import minversion
 
 SCIPY_LT_1_15 = not minversion("scipy", "1.15.dev")
 
+
 def bitceil(N):
     """
     Find the bit (i.e. power of 2) immediately greater than or equal to N
