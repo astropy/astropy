@@ -335,6 +335,11 @@ def test_ogip_negative_exponent_parenthesis(string, unit, power):
         assert u_format.OGIP.parse(string) == unit
 
 
+def test_ogip_ohm():
+    # Regression test for #17200 - OGIP converted u.ohm to 'V / A'
+    assert u_format.OGIP.to_string(u.ohm) == "ohm"
+
+
 class RoundtripBase:
     def check_roundtrip(self, unit, output_format=None):
         if output_format is None:
