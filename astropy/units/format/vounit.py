@@ -12,7 +12,8 @@ from typing import TYPE_CHECKING
 from astropy.units.errors import UnitScaleError, UnitsError, UnitsWarning
 from astropy.utils import classproperty
 
-from . import core, generic, utils
+from . import core, utils
+from .fits import FITS
 
 if TYPE_CHECKING:
     from re import Pattern
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
     from astropy.units import NamedUnit, UnitBase
 
 
-class VOUnit(generic.Generic):
+class VOUnit(FITS):
     """
     The IVOA standard for units used by the VO.
 
@@ -221,7 +222,7 @@ class VOUnit(generic.Generic):
                 f"Multiply your data by {unit.scale:e}."
             )
 
-        return super().to_string(unit, fraction=fraction)
+        return cls._to_string(unit, fraction=fraction)
 
     @classmethod
     def _fix_deprecated(cls, x: str) -> list[str]:

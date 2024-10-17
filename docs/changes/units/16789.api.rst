@@ -1,1 +1,0 @@
-The ``CDS`` unit formatter is now a subclass of the ``Generic`` formatter.
