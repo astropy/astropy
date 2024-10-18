@@ -698,7 +698,7 @@ def test_latitude():
 
     lim_exc = r"Latitude angle\(s\) must be within -90 deg <= angle <= 90 deg, got"
     with pytest.raises(ValueError, match=rf"{lim_exc} \[91. 89.\] deg"):
-        Latitude(["91d", "89d"])
+        Latitude([91, 89] * u.deg)
     with pytest.raises(ValueError, match=f"{lim_exc} -91.0 deg"):
         Latitude("-91d")
 
@@ -775,6 +775,18 @@ def test_lon_as_lat():
     lat = Latitude([20], "deg")
     lat[0] = Angle(lon)
     assert lat.value[0] == 10.0
+
+
+@pytest.mark.parametrize("lon", ["12.3dW", "12h13m12sE", ["1d", "1dW"]])
+def test_lon_as_lat_str(lon):
+    with pytest.raises(TypeError, match="Latitude.*cannot be created from a Longitude"):
+        Latitude(lon)
+
+
+@pytest.mark.parametrize("lat", ["12.3dN", "12d13m12sS", ["1d", "1dS"]])
+def test_lat_as_lon_str(lat):
+    with pytest.raises(TypeError, match="Longitude.*cannot be created from a Latitude"):
+        Longitude(lat)
 
 
 def test_longitude():
