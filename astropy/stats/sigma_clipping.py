@@ -121,6 +121,7 @@ class SigmaClip:
     specified as a string. If one of the options is set to a string
     while the other has a custom callable, you may in some cases see
     better performance if you have the `bottleneck`_ package installed.
+    To preserve accuracy, bottleneck is only used for float64 computations.
 
     .. _bottleneck:  https://github.com/pydata/bottleneck
 
@@ -825,6 +826,7 @@ def sigma_clip(
     specified as a string. If one of the options is set to a string
     while the other has a custom callable, you may in some cases see
     better performance if you have the `bottleneck`_ package installed.
+    To preserve accuracy, bottleneck is only used for float64 computations.
 
     .. _bottleneck:  https://github.com/pydata/bottleneck
 
@@ -973,6 +975,7 @@ def sigma_clipped_stats(
     specified as a string. If one of the options is set to a string
     while the other has a custom callable, you may in some cases see
     better performance if you have the `bottleneck`_ package installed.
+    To preserve accuracy, bottleneck is only used for float64 computations.
 
     .. _bottleneck:  https://github.com/pydata/bottleneck
 
