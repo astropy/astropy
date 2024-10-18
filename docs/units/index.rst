@@ -114,7 +114,7 @@ And it can convert between unit systems, such as `SI
 <https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_::
 
     >>> (1.0 * u.Pa).cgs
-    <Quantity 10. P / s>
+    <Quantity 10. Ba>
 
 The units ``mag``, ``dex``, and ``dB`` are special, being :ref:`logarithmic
 units <logarithmic_units>`, for which a value is the logarithm of a physical
