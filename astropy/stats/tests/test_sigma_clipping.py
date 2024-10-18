@@ -8,7 +8,8 @@ from astropy import units as u
 from astropy.stats import mad_std
 from astropy.stats.sigma_clipping import SigmaClip, sigma_clip, sigma_clipped_stats
 from astropy.table import MaskedColumn
-from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NumpyRNGContext
 
@@ -171,6 +172,25 @@ def test_sigma_clipped_stats_masked_col():
 
     col = MaskedColumn(data=arr)
     sigma_clipped_stats(col)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    not HAS_BOTTLENECK,
+    reason="test a workaround for upstream bug in bottleneck",
+)
+@pytest.mark.parametrize("shape", [(1024, 1024), (6388, 9576)])
+def test_sigma_clip_large_float32_arrays(shape):
+    # see https://github.com/astropy/astropy/issues/17185
+    rng = np.random.default_rng(0)
+
+    expected = (0.5, 0.5, 0.288)  # mean, median, stddev
+
+    arr = rng.random(size=shape, dtype="f4")
+    for byteorder in (">", "<"):
+        data = arr.astype(dtype=f"{byteorder}f4", copy=COPY_IF_NEEDED)
+        res = sigma_clipped_stats(data, sigma=3, maxiters=5)
+        assert_allclose(res, expected, rtol=3e-3)
 
 
 def test_invalid_sigma_clip():
