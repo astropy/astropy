@@ -84,10 +84,40 @@ if HAS_BOTTLENECK:
         else:
             return result
 
-    nansum = functools.partial(_apply_bottleneck, bottleneck.nansum)
-    nanmean = functools.partial(_apply_bottleneck, bottleneck.nanmean)
-    nanmedian = functools.partial(_apply_bottleneck, bottleneck.nanmedian)
-    nanstd = functools.partial(_apply_bottleneck, bottleneck.nanstd)
+    bn_funcs = dict(
+        nansum=functools.partial(_apply_bottleneck, bottleneck.nansum),
+        nanmean=functools.partial(_apply_bottleneck, bottleneck.nanmean),
+        nanmedian=functools.partial(_apply_bottleneck, bottleneck.nanmedian),
+        nanstd=functools.partial(_apply_bottleneck, bottleneck.nanstd),
+    )
+
+    np_funcs = dict(
+        nansum=np.nansum,
+        nanmean=np.nanmean,
+        nanmedian=np.nanmedian,
+        nanstd=np.nanstd,
+    )
+
+    def _dtype_dispatch(func_name):
+        # dispatch to bottleneck or numpy depending on the input array dtype
+        # this is done to workaround known accuracy bugs in bottleneck
+        # affecting float32 calculations
+        # see https://github.com/pydata/bottleneck/issues/379
+        # see https://github.com/pydata/bottleneck/issues/462
+        # see https://github.com/astropy/astropy/issues/17185
+        # see https://github.com/astropy/astropy/issues/11492
+        def wrapped(*args, **kwargs):
+            if args[0].dtype.str[1:] == "f8":
+                return bn_funcs[func_name](*args, **kwargs)
+            else:
+                return np_funcs[func_name](*args, **kwargs)
+
+        return wrapped
+
+    nansum = _dtype_dispatch("nansum")
+    nanmean = _dtype_dispatch("nanmean")
+    nanmedian = _dtype_dispatch("nanmedian")
+    nanstd = _dtype_dispatch("nanstd")
 
 else:
     nansum = np.nansum
