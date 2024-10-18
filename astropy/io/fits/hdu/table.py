@@ -909,7 +909,7 @@ class BinTableHDU(_TableBaseHDU):
                             if not len(coldata):
                                 continue
 
-                            csum = self._compute_checksum(coldata, csum)
+                            csum = self._compute_checksum(coldata.view("ubyte"), csum)
             else:
                 csum = self._compute_checksum(data._get_heap_data(), csum)
 
