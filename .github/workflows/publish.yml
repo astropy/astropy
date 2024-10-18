@@ -27,7 +27,7 @@ jobs:
     permissions:
       contents: none
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@924441154cf3053034c6513d5e06c69d262fb9a6  # v1.13.0
-    if: (github.repository == 'astropy/astropy' && ( startsWith(github.ref, 'refs/tags/v') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'Build all wheels')) || (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'Build all wheels')))
+    if: (github.repository == 'astropy/astropy' && ( startsWith(github.ref, 'refs/tags/v') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')))
     with:
 
       # We upload to PyPI for all tags starting with v but not ones ending in .dev
