@@ -54,6 +54,7 @@ __all__ = [
     "FittableModel",
     "Fittable1DModel",
     "Fittable2DModel",
+    "Fittable3DModel",
     "CompoundModel",
     "fix_inputs",
     "custom_model",
@@ -2977,6 +2978,17 @@ class Fittable2DModel(FittableModel):
     """
 
     n_inputs = 2
+    n_outputs = 1
+
+
+class Fittable3DModel(FittableModel):
+    """
+    Base class for three-dimensional fittable models.
+
+    This class provides an easier interface to defining new models.
+    """
+
+    n_inputs = 3
     n_outputs = 1
 
 
