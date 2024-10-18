@@ -425,6 +425,56 @@ and transforming velocities. These are available both via the lower-level
 For more details on velocity support (and limitations), see the
 :doc:`velocities` page.
 
+.. _astropy-coordinates-masks:
+
+Masks
+-----
+
+Sometimes you may have incomplete information about objects, e.g., some have
+distances while others have not. `~astropy.coordinates` supports using masks
+for such purposes, using the |Masked| class::
+
+    >>> from astropy.utils.masked import Masked
+    >>> distance = Masked([0.1, np.nan]*u.kpc, mask=[False, True])
+    >>> sc = SkyCoord([1., 2.]*u.hourangle, [3., 4.]*u.deg, distance=distance)
+    >>> sc
+    <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)
+        [(15., 3., 0.1), (30., 4., ———)]>
+
+The masks propagates as you would expect::
+
+    >>> sc.separation(sc[0])  # doctest: +FLOAT_CMP
+    <MaskedAngle [ 0.        , 15.00502838] deg>
+    >>> sc.separation_3d(sc[0])  # doctest: +FLOAT_CMP
+    <MaskedDistance [ 0., ———] kpc>
+    >>> sc.fk5  # doctest: +FLOAT_CMP
+    <SkyCoord (FK5: equinox=J2000.000): (ra, dec, distance) in (deg, deg, kpc)
+        [(15.00000668, 3.00000101, 0.1), (        ———,        ———, ———)]>
+
+In the last example, you will notice that the angles of the second item have
+become masked too. This is because the distance is used in the conversion
+(which involves matrix multiplications on the cartesian representation).
+Indeed, the underlying data is now corrupted by the ``NaN`` we put in::
+
+    >>> sc.fk5.unmasked  # doctest: +FLOAT_CMP
+    <SkyCoord (FK5: equinox=J2000.000): (ra, dec, distance) in (deg, deg, kpc)
+        [(15.00000668, 3.00000101, 0.1), (        nan,        nan, nan)]>
+
+In principle, by using a "good guess" for the distance, this can be avoided::
+
+    >>> distance2 = Masked([0.1, 1.]*u.kpc, mask=[False, True])
+    >>> sc2 = SkyCoord([1., 2.]*u.hourangle, [3., 4.]*u.deg, distance=distance2)
+    >>> sc2.fk5  # doctest: +FLOAT_CMP
+    <SkyCoord (FK5: equinox=J2000.000): (ra, dec, distance) in (deg, deg, kpc)
+        [(15.00000668, 3.00000101, 0.1), (        ———,        ———, ———)]>
+    >>> sc2.fk5.unmasked  # doctest: +FLOAT_CMP
+    <SkyCoord (FK5: equinox=J2000.000): (ra, dec, distance) in (deg, deg, kpc)
+        [(15.00000668, 3.00000101, 0.1), (30.00000678, 3.99999943, 1. )]>
+
+.. warning::
+    Support for masks is new in astropy 7.0, and may be incomplete.
+    Please report any problems you find.
+
 .. _astropy-coordinates-overview:
 
 Overview of `astropy.coordinates` Concepts
