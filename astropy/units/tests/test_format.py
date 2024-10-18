@@ -251,6 +251,11 @@ def test_ogip_sqrt(string):
     assert u_format.OGIP.parse(string) == u.m ** Fraction(3, 2)
 
 
+def test_ogip_ohm():
+    # Regression test for #17200 - OGIP converted u.ohm to 'V / A'
+    assert u_format.OGIP.to_string(u.ohm) == "ohm"
+
+
 class RoundtripBase:
     deprecated_units = set()
 
