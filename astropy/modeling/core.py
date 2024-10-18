@@ -665,11 +665,6 @@ class Model(metaclass=_ModelMeta):
     in the class body.
     """
 
-    n_inputs = 0
-    """The number of inputs."""
-    n_outputs = 0
-    """ The number of outputs."""
-
     standard_broadcasting = True
     fittable = False
     linear = True
@@ -807,40 +802,14 @@ class Model(metaclass=_ModelMeta):
         self._outputs = val
 
     @property
-    def n_inputs(self):
+    def n_inputs(self) -> int:
         """The number of inputs."""
-        # TODO: remove the code in the ``if`` block when support
-        # for models with ``inputs`` as class variables is removed.
-        if hasattr(self.__class__, "n_inputs") and isinstance(
-            self.__class__.n_inputs, property
-        ):
-            try:
-                return len(self.__class__.inputs)
-            except TypeError:
-                try:
-                    return len(self.inputs)
-                except AttributeError:
-                    return 0
-
-        return self.__class__.n_inputs
+        return len(getattr(self, "inputs", ()))
 
     @property
-    def n_outputs(self):
+    def n_outputs(self) -> int:
         """The number of outputs."""
-        # TODO: remove the code in the ``if`` block when support
-        # for models with ``outputs`` as class variables is removed.
-        if hasattr(self.__class__, "n_outputs") and isinstance(
-            self.__class__.n_outputs, property
-        ):
-            try:
-                return len(self.__class__.outputs)
-            except TypeError:
-                try:
-                    return len(self.outputs)
-                except AttributeError:
-                    return 0
-
-        return self.__class__.n_outputs
+        return len(getattr(self, "outputs", ()))
 
     def _calculate_separability_matrix(self):
         """
