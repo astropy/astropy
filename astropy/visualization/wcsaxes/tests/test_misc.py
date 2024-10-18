@@ -676,3 +676,20 @@ def test_invisible_bbox():
     assert ax.get_tightbbox(fig.canvas.get_renderer()) is not None
     ax.set_visible(False)
     assert ax.get_tightbbox(fig.canvas.get_renderer()) is None
+
+
+def test_get_axislabel_default():
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    assert ax.coords[0].get_axislabel() == "pos.eq.ra"
+    assert ax.coords[1].get_axislabel() == "pos.eq.dec"
+
+    # Make sure that setting axis labels explicitly works, including to an
+    # empty string
+    ax.coords[0].set_axislabel("Right Ascension")
+    ax.coords[1].set_axislabel("")
+    assert ax.coords[0].get_axislabel() == "Right Ascension"
+    assert ax.coords[1].get_axislabel() == ""
