@@ -49,7 +49,7 @@ dependencies = [
 [project.optional-dependencies]
 # Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
-    "scipy>=1.9.2",
+    "scipy@git+https://github.com/adammj/scipy.git@lombscargle",
     "matplotlib>=3.6.0",
 ]
 # Optional IPython-related behavior is in many places in Astropy. IPython is a complex
