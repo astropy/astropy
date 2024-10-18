@@ -183,7 +183,7 @@ class Angle(SpecificTypeQuantity):
             elif isiterable(angle) and not (
                 isinstance(angle, np.ndarray) and angle.dtype.kind not in "SUVO"
             ):
-                angle = [Angle(x, unit, copy=COPY_IF_NEEDED) for x in angle]
+                angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
 
         return super().__new__(cls, angle, unit, dtype=dtype, copy=copy, **kwargs)
 
@@ -582,7 +582,9 @@ class Latitude(Angle):
 
     def __new__(cls, angle, unit=None, **kwargs):
         # Forbid creating a Lat from a Long.
-        if isinstance(angle, Longitude):
+        if isinstance(angle, Longitude) or (
+            isinstance(angle, str) and angle.endswith(("E", "W"))
+        ):
             raise TypeError("A Latitude angle cannot be created from a Longitude angle")
         self = super().__new__(cls, angle, unit=unit, **kwargs)
         self._validate_angles()
@@ -707,7 +709,9 @@ class Longitude(Angle):
 
     def __new__(cls, angle, unit=None, wrap_angle=None, **kwargs):
         # Forbid creating a Long from a Lat.
-        if isinstance(angle, Latitude):
+        if isinstance(angle, Latitude) or (
+            isinstance(angle, str) and angle.endswith(("N", "S"))
+        ):
             raise TypeError(
                 "A Longitude angle cannot be created from a Latitude angle."
             )
