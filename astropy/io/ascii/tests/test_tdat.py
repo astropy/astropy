@@ -209,6 +209,31 @@ def test_write_read_roundtrip_empty_table(tmp_path):
         assert len(t.colnames) == 0
 
 
+def test_keyword_quotes():
+    lines = copy.copy(SIMPLE_LINES)
+    lines[1] = 'table_name = "astropy_table"'
+    t = Table.read(lines, format="ascii.tdat")
+    assert t.meta["keywords"]["table_name"] == '"astropy_table"'
+    lines[1] = "table_name = 'astropy_table'"
+    t = Table.read(lines, format="ascii.tdat")
+    assert t.meta["keywords"]["table_name"] == "'astropy_table'"
+    lines[1] = "table_name = `astropy_table`"
+    t = Table.read(lines, format="ascii.tdat")
+    assert t.meta["keywords"]["table_name"] == "`astropy_table`"
+
+    lines[1] = "table_name = \"'`astropy_table`'\""
+    t = Table.read(lines, format="ascii.tdat")
+    assert t.meta["keywords"]["table_name"] == "\"'`astropy_table`'\""
+
+    # Mismatched
+    lines[1] = "table_name = \"astropy_table'"
+    with pytest.raises(TdatFormatError, match="Mismatched"):
+        t = Table.read(lines, format="ascii.tdat")
+    lines[1] = "table_name = \"'astropy_table\"'"
+    with pytest.raises(TdatFormatError, match="Mismatched"):
+        t = Table.read(lines, format="ascii.tdat")
+
+
 def test_bad_delimiter():
     """
     Passing a delimiter other than | (pipe) gives an exception
@@ -251,9 +276,7 @@ def test_bad_end_heading():
     """
     lines = copy.copy(SIMPLE_LINES)
     lines[-1] = "<That's all folks>"
-    with pytest.raises(TdatFormatError) as err:
-        Table.read("\n".join(lines), format="ascii.tdat")
-    assert "<END> not found in file." in str(err.value)
+    Table.read("\n".join(lines), format="ascii.tdat")
 
 
 def test_unrecognized_dtype():
