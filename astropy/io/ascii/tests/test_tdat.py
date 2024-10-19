@@ -8,6 +8,7 @@ Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 
 import copy
 import warnings
+from collections import OrderedDict
 from io import StringIO
 
 import numpy as np
@@ -124,17 +125,67 @@ def test_write_simple():
         assert out.getvalue().splitlines() == SIMPLE_LINES
 
 
+def test_full_table_content():
+    """Check the table content matches expectation."""
+    assert test_table.meta == {
+        "comments": ["TABLE: heasarc_simple", "TOTAL ROWS: 7"],
+        "keywords": OrderedDict(
+            [
+                ("table_name", "heasarc_simple"),
+                ("table_description", "Test table"),
+                ("table_security", "public"),
+                ("parameter_defaults", "name ra dec"),
+                ("frequency_regime", "Gamma-ray"),
+                ("observatory_name", "GAMMA-RAY BURSTS"),
+                ("row_type", "GRB"),
+                ("table_author", "Example et al."),
+                ("table_priority", "3.01"),
+                ("table_type", "Observation"),
+                ("unique_key", "record_number"),
+            ]
+        ),
+    }
+    assert len(test_table) == 7
+    dtypes = [int, int, "<U3", float, float, float]
+    descriptions = [
+        "Unique Identifier for Entry",
+        "Source ID Number",
+        "String Name",
+        "Right Ascension",
+        "Declination",
+        "Empty",
+    ]
+    ucds = ["meta.id", "meta.id", "meta.id;meta.main", "pos.eq.ra", "pos.eq.dec", None]
+    indices = ["key", "index", "index", "index", "index", None]
+    for i, col in enumerate(test_table.columns):
+        assert test_table[col].dtype == dtypes[i]
+        assert test_table[col].description == descriptions[i]
+        assert test_table[col].meta.get("ucd", None) == ucds[i]
+        assert test_table[col].meta.get("index", None) == indices[i]
+    assert test_table["ra"].unit == "deg"
+    assert test_table["dec"].unit == "deg"
+    assert test_table["ra"].format == ".4f"
+    assert test_table["dec"].format == ".4f"
+    assert test_table["empty"].format == ".4f"
+
+
 def test_write_full():
     """
     Write a full-featured table with common types and explicitly check output
     """
     t = test_table
+    """Differences between lines and test_dat:
+    Empty comment lines are dropped (except when denoting a section header like "Table Parameters").
+    The data type for string field "name" is downsized to char3 from char12 reflecting the maximum actual size in the column.
+    Extraneous spaces in the data are stripped
+    This reflects flexibility in reading in from a tdat file and writing out in a standard way.
+    """
     lines = [
         "<HEADER>",
         "# TABLE: heasarc_simple",
         "# TOTAL ROWS: 7",
         "table_name = heasarc_simple",
-        'table_description = "Test table"',
+        "table_description = Test table",
         "table_security = public",
         "#",
         "# Table Parameters",
@@ -211,24 +262,28 @@ def test_write_read_roundtrip_empty_table(tmp_path):
 
 def test_keyword_quotes():
     lines = copy.copy(SIMPLE_LINES)
+    # double quotes
     lines[1] = 'table_name = "astropy_table"'
     t = Table.read(lines, format="ascii.tdat")
-    assert t.meta["keywords"]["table_name"] == '"astropy_table"'
+    assert t.meta["keywords"]["table_name"] == "astropy_table"
+    # single quotes
     lines[1] = "table_name = 'astropy_table'"
     t = Table.read(lines, format="ascii.tdat")
-    assert t.meta["keywords"]["table_name"] == "'astropy_table'"
+    assert t.meta["keywords"]["table_name"] == "astropy_table"
+    # back quotes
     lines[1] = "table_name = `astropy_table`"
     t = Table.read(lines, format="ascii.tdat")
-    assert t.meta["keywords"]["table_name"] == "`astropy_table`"
-
+    assert t.meta["keywords"]["table_name"] == "astropy_table"
+    # combination and multiple, nested properly
     lines[1] = "table_name = \"'`astropy_table`'\""
     t = Table.read(lines, format="ascii.tdat")
-    assert t.meta["keywords"]["table_name"] == "\"'`astropy_table`'\""
+    assert t.meta["keywords"]["table_name"] == "astropy_table"
 
-    # Mismatched
+    # mismatched
     lines[1] = "table_name = \"astropy_table'"
     with pytest.raises(TdatFormatError, match="Mismatched"):
         t = Table.read(lines, format="ascii.tdat")
+    # combination, nested improperly
     lines[1] = "table_name = \"'astropy_table\"'"
     with pytest.raises(TdatFormatError, match="Mismatched"):
         t = Table.read(lines, format="ascii.tdat")
