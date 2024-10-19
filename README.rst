@@ -2,7 +2,7 @@
 
 ----
 
-|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
+|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo| |Gurubase|
 ----
 The Astropy Project is a community effort to develop a
 single core package for astronomy in Python and foster interoperability between
@@ -131,3 +131,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
 .. |Codespaces| image:: https://github.com/codespaces/badge.svg
     :target: https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=2081289
     :alt: Open in GitHub Codespaces
+
+.. |Gurubase| image:: https://img.shields.io/badge/Gurubase-Ask%20Astropy%20Guru-006BFF
+    :target: https://gurubase.io/g/astropy
+    :alt: Astropy Guru
