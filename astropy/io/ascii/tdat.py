@@ -169,7 +169,7 @@ class TdatHeader(basic.BasicHeader):
                     )
                 except AssertionError:
                     raise TdatFormatError("Mismatched quotes for value of " + key)
-                keywords[key] = kmatch.group("value")
+                keywords[key] = kmatch.group("value").strip("\"'`")
 
         self._line_fields = line_fields
 
@@ -353,9 +353,8 @@ class TdatHeader(basic.BasicHeader):
                         "'table_description' is too long, truncating to 80 characters",
                         TdatFormatWarning,
                     )
-                new_desc = keywords.pop(key)[:80].replace("'", "")
-                new_desc = new_desc.replace('"', "")
-                lines.append(f'{key} = "{new_desc}"')
+                new_desc = keywords.pop(key)[:80]
+                lines.append(f"{key} = {new_desc}")
             elif key in keywords:
                 lines.append(f"{key} = {keywords.pop(key)}")
 
