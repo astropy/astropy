@@ -76,7 +76,7 @@ class TdatHeader(basic.BasicHeader):
         "Data Format Specification",
     ]
     # keywords in the header: name = value
-    _keys = r"(?P<key>\w+)\s*=\s*([\'])?(?P<value>.*?)(?(2)\2|\s*$)"
+    _keys = r"(?P<key>\w+)\s*=\s*(?P<value>.*?)(\s*(#|//)(?P<comment>.*$)|(\s*$))"
     # keywords in the header: name[text] = some_other_text;
     # names: relate|line
     _extra_keys = r"\s*(relate|line)\[(\w+)\]\s*=\s*([\w\s]+)(?:\((\w+)\))?"
@@ -159,6 +159,16 @@ class TdatHeader(basic.BasicHeader):
 
             elif kmatch:
                 key = kmatch.group("key")
+                _quotes = r"^(?P<quote>[\"\'\`]*)(?P<value>.*?)(?P<endquote>[\"\'\`]*$)"
+                quote_parse = re.compile(_quotes)
+                quotes_match = quote_parse.match(kmatch.group("value"))
+                try:
+                    assert (
+                        quotes_match.group("quote")
+                        == quotes_match.group("endquote")[::-1]
+                    )
+                except AssertionError:
+                    raise TdatFormatError("Mismatched quotes for value of " + key)
                 keywords[key] = kmatch.group("value")
 
         self._line_fields = line_fields
@@ -172,13 +182,18 @@ class TdatHeader(basic.BasicHeader):
         """
         try:
             start_line = (
-                min(i for i, line in enumerate(lines) if line.strip() == "<HEADER>") + 1
+                min(
+                    i
+                    for i, line in enumerate(lines)
+                    if line.strip().upper() == "<HEADER>"
+                )
+                + 1
             )
         except ValueError:
             raise TdatFormatError("<HEADER> not found in file." + _STD_MSG)
         try:
             end_line = min(
-                i for i, line in enumerate(lines) if line.strip() == "<DATA>"
+                i for i, line in enumerate(lines) if line.strip().upper() == "<DATA>"
             )
         except ValueError:
             raise TdatFormatError("<DATA> not found in file." + _STD_MSG)
@@ -197,9 +212,12 @@ class TdatHeader(basic.BasicHeader):
         """
         fl_parser = re.compile(self._field_line)
         start_line = (
-            min(i for i, line in enumerate(lines) if line.strip() == "<HEADER>") + 1
+            min(i for i, line in enumerate(lines) if line.strip().upper() == "<HEADER>")
+            + 1
         )
-        end_line = min(i for i, line in enumerate(lines) if line.strip() == "<DATA>")
+        end_line = min(
+            i for i, line in enumerate(lines) if line.strip().upper() == "<DATA>"
+        )
 
         for line in lines[start_line:end_line]:
             if fl_parser.match(line):
@@ -484,14 +502,24 @@ class TdatData(core.BaseData):
         # Select lines between <DATA> and <END> in file
         try:
             start_line = (
-                min(i for i, line in enumerate(lines) if line.strip() == "<DATA>") + 1
+                min(
+                    i
+                    for i, line in enumerate(lines)
+                    if line.strip().upper() == "<DATA>"
+                )
+                + 1
             )
         except ValueError:
             raise TdatFormatError("<DATA> not found in file." + _STD_MSG)
         try:
-            end_line = min(i for i, line in enumerate(lines) if line.strip() == "<END>")
+            end_line = min(
+                i for i, line in enumerate(lines) if line.strip().upper() == "<END>"
+            )
         except ValueError:
-            raise TdatFormatError("<END> not found in file." + _STD_MSG)
+            # <END> is an optional keyword to demarcate the end of the data.
+            # If not present the end of the document is assumed to be the end
+            # end of the data.
+            end_line = len(lines) - 1
 
         self.data_lines = self.process_lines(lines[start_line:end_line])
 
