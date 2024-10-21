@@ -5,8 +5,14 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy import units as u
+from astropy.coordinates import Angle
 from astropy.stats import mad_std
-from astropy.stats.sigma_clipping import SigmaClip, sigma_clip, sigma_clipped_stats
+from astropy.stats.sigma_clipping import (
+    SigmaClip,
+    SigmaClippedStats,
+    sigma_clip,
+    sigma_clipped_stats,
+)
 from astropy.table import MaskedColumn
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
@@ -172,6 +178,91 @@ def test_sigma_clipped_stats_masked_col():
 
     col = MaskedColumn(data=arr)
     sigma_clipped_stats(col)
+
+
+@pytest.mark.parametrize("units", [False, True])
+@pytest.mark.parametrize("sigma", np.linspace(2, 5, 10))
+def test_sigmaclippedstats_stats(units, sigma):
+    """Test SigmaClippedStats class."""
+    data = np.ones((101, 205))
+    rng = np.random.default_rng(0)
+    idx = rng.integers(0, 100, 10)
+    data[idx, idx] = 1000
+
+    if units:
+        unit = u.m
+        data <<= unit
+    else:
+        unit = 1
+
+    stats = SigmaClippedStats(data, sigma=sigma)
+    assert stats.min() == 1.0 * unit
+    assert stats.max() == 1.0 * unit
+    assert stats.sum() == np.sum(data) - (1000 * 10) * unit
+    assert stats.mean() == 1.0 * unit
+    assert stats.median() == 1.0 * unit
+    assert stats.mode() == 1.0 * unit
+    assert stats.mode(median_factor=3.5, mean_factor=2.5) == 1.0 * unit
+    assert stats.std() == 0.0 * unit
+    assert stats.var() == 0.0 * unit**2
+    assert stats.mad_std() == 0.0 * unit
+    assert stats.biweight_location() == 1.0 * unit
+    assert stats.biweight_scale() == 0.0 * unit
+
+    # test nanvar with Angle
+    data = Angle([10, 20, 30, 40], "deg")
+    stats = SigmaClippedStats(data, sigma=5)
+    assert isinstance(stats.mean(), u.Quantity)
+    assert isinstance(stats.var(), u.Quantity)
+    assert not isinstance(stats.var(), Angle)
+    assert stats.mean() == 25 * u.deg
+    assert stats.var() == 125 * u.deg**2
+
+
+def test_sigmaclippedstats_mask():
+    data = np.ones((101, 205))
+    rng = np.random.default_rng(0)
+    idx = rng.integers(0, 100, 10)
+    data[idx, idx] = 1000
+    stats = SigmaClippedStats(data, sigma=3.2)
+    assert stats.min() == 1.0
+    assert stats.max() == 1.0
+    assert stats.sum() == np.sum(data) - 1000 * 10
+    assert stats.mean() == 1.0
+    assert stats.median() == 1.0
+    assert stats.mode() == 1.0
+    assert stats.mode(median_factor=3.5, mean_factor=2.5) == 1.0
+    assert stats.std() == 0.0
+    assert stats.var() == 0.0
+    assert stats.mad_std() == 0.0
+    assert stats.biweight_location() == 1.0
+    assert stats.biweight_scale() == 0.0
+
+    mask = np.zeros_like(data, dtype=bool)
+    mask[idx, idx] = True
+    stats3 = SigmaClippedStats(data, sigma=3.2, mask=mask)
+    assert stats3.mode() == stats.mode()
+
+    mask = np.zeros_like(data, dtype=bool)
+    stats4 = SigmaClippedStats(data, sigma=3.2, mask_value=1000)
+    assert stats4.mode() == stats3.mode()
+
+    data = np.ones((101, 205))
+    mask = np.ones_like(data, dtype=bool)
+    match = "input data is all masked"
+    with pytest.raises(ValueError, match=match):
+        SigmaClippedStats(data, sigma=3, mask=mask)
+
+
+def test_sigmaclippedstats_axis():
+    data = np.ones((101, 205))
+    stats = SigmaClippedStats(data, sigma=2.8, axis=1)
+    shape = (data.shape[0],)
+    assert stats.mean().shape == shape
+    assert stats.mode().shape == shape
+    assert stats.var().shape == shape
+    assert stats.mad_std().shape == shape
+    assert stats.biweight_location().shape == shape
 
 
 @pytest.mark.slow
