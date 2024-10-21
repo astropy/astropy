@@ -621,7 +621,7 @@ class CoordinateHelper:
         """
         Get where tick labels will appear.
         """
-        return self._ticks.get_visible_axes()
+        return "".join(self._ticks.get_visible_axes())
 
     def set_ticks_visible(self, visible):
         """
@@ -692,7 +692,7 @@ class CoordinateHelper:
         """
         Get where tick labels will appear.
         """
-        return self._ticklabels.get_visible_axes()
+        return "".join(self._ticklabels.get_visible_axes())
 
     def set_ticklabel_visible(self, visible):
         """
@@ -800,7 +800,7 @@ class CoordinateHelper:
         """
         Get where axis labels will appear.
         """
-        return self._axislabels.get_visible_axes()
+        return "".join(self._axislabels.get_visible_axes())
 
     def set_axislabel_visibility_rule(self, rule):
         """
