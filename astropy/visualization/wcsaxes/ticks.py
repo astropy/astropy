@@ -38,7 +38,8 @@ class Ticks(Line2D):
         the locations of the ticks for that axis.
     """
 
-    def __init__(self, ticksize=None, **kwargs):
+    def __init__(self, frame=None, ticksize=None, **kwargs):
+        self._frame = frame
         if ticksize is None:
             ticksize = rcParams["xtick.major.size"]
         self.set_ticksize(ticksize)
@@ -108,9 +109,9 @@ class Ticks(Line2D):
 
     def get_visible_axes(self):
         if self._visible_axes == "all":
-            return self.world.keys()
+            return list(self._frame.keys())
         else:
-            return [x for x in self._visible_axes if x in self.world]
+            return [x for x in self._visible_axes if x in self._frame]
 
     def clear(self):
         self.world = defaultdict(list)
