@@ -1,7 +1,0 @@
-#K MERGERAD   = INDEF                   scaleunit  %-23.7g  
-#N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER    \
-#U ##    pixels    pixels    magnitudes  magnitudes    counts         ##       \
-#F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d     
-#N         SHARPNESS   CHI         PIER  PERROR                                \
-#U         ##          ##          ##    perrors                               \
-#F         %-23.3f     %-12.3f     %-6d  %-13s                                 

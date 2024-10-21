@@ -1,5 +1,0 @@
-# Don't ignore *.c files in this directory tree.  We don't have any
-# Cython files here.
-
-!*.c
-docstrings.c

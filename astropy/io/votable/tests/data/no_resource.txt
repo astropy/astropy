@@ -1,5 +1,0 @@
-Validation report for no_resource.xml
-
-5: W53: VOTABLE element must contain at least one RESOURCE element.
-xmlns="http://www.ivoa.net/xml/VOTable/v1.2">
-                                             ^
