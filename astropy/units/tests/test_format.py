@@ -375,9 +375,9 @@ class TestRoundtripOGIP(RoundtripBase):
         ],
     )
     def test_roundtrip(self, unit):
-        if str(unit) in ("d", "0.001 Crab"):
-            # Special-case day, which gets auto-converted to hours, and mCrab,
-            # which the default check does not recognize as a deprecated unit.
+        if str(unit) == "0.001 Crab":
+            # Special-case mCrab, which the default check does not recognize
+            # as a deprecated unit.
             with pytest.warns(UnitsWarning):
                 s = unit.to_string(self.format_)
                 a = Unit(s, format=self.format_)
