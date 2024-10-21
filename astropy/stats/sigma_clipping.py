@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
+from astropy.stats.biweight import biweight_location, biweight_scale
 from astropy.stats.nanfunctions import nanmadstd, nanmean, nanmedian, nanstd, nanvar
 from astropy.units import Quantity
 from astropy.utils import isiterable
@@ -1076,6 +1077,54 @@ class SigmaClippedStats:
             The variance of the data.
         """
         return nanvar(self.data, axis=self.axis, ddof=ddof)
+
+    def biweight_location(
+        self, c: float = 6.0, M: float | None = None
+    ) -> float | NDArray:
+        """
+        Calculate the biweight location of the data.
+
+        NaN values are ignored.
+
+        Parameters
+        ----------
+        c : float, optional
+            Tuning constant for the biweight estimator. Default value is
+            6.0.
+
+        M : float or None, optional
+            Initial guess for the biweight location. Default value is
+            `None`.
+
+        Returns
+        -------
+        biweight_location : float or `~numpy.ndarray`
+            The biweight location of the data.
+        """
+        return biweight_location(self.data, c=c, M=M, axis=self.axis, ignore_nan=True)
+
+    def biweight_scale(self, c: float = 6.0, M: float | None = None) -> float | NDArray:
+        """
+        Calculate the biweight scale of the data.
+
+        NaN values are ignored.
+
+        Parameters
+        ----------
+        c : float, optional
+            Tuning constant for the biweight estimator. Default value is
+            6.0.
+
+        M : float or None, optional
+            Initial guess for the biweight location. Default value is
+            `None`.
+
+        Returns
+        -------
+        biweight_scale : float or `~numpy.ndarray`
+            The biweight scale of the data.
+        """
+        return biweight_scale(self.data, c=c, M=M, axis=self.axis, ignore_nan=True)
 
 
 def sigma_clipped_stats(
