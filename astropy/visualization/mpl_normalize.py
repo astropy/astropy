@@ -457,37 +457,21 @@ def simple_norm(
         An `ImageNormalize` instance that can be used for displaying
         images with Matplotlib.
     """
-    if percent is not None:
-        interval = PercentileInterval(percent)
-    elif min_percent is not None or max_percent is not None:
-        interval = AsymmetricPercentileInterval(
-            min_percent or 0.0, max_percent or 100.0
-        )
-    elif vmin is not None or vmax is not None:
-        interval = ManualInterval(vmin, vmax)
-    else:
-        interval = MinMaxInterval()
-
-    if stretch == "linear":
-        stretch = LinearStretch()
-    elif stretch == "sqrt":
-        stretch = SqrtStretch()
-    elif stretch == "power":
-        stretch = PowerStretch(power)
-    elif stretch == "log":
-        stretch = LogStretch(log_a)
-    elif stretch == "asinh":
-        stretch = AsinhStretch(asinh_a)
-    elif stretch == "sinh":
-        stretch = SinhStretch(sinh_a)
-    else:
-        raise ValueError(f"Unknown stretch: {stretch}.")
-
-    vmin, vmax = interval.get_limits(data)
-
-    return ImageNormalize(
-        vmin=vmin, vmax=vmax, stretch=stretch, clip=clip, invalid=invalid
+    simple_norm = SimpleNorm(
+        stretch=stretch,
+        percent=percent,
+        min_percent=min_percent,
+        max_percent=max_percent,
+        vmin=vmin,
+        vmax=vmax,
+        power=power,
+        log_a=log_a,
+        asinh_a=asinh_a,
+        sinh_a=sinh_a,
+        clip=clip,
+        invalid=invalid,
     )
+    return simple_norm(data)
 
 
 # used in imshow_norm
