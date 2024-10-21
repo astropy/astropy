@@ -9,6 +9,7 @@ import numpy as np
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
 from astropy.stats.biweight import biweight_location, biweight_scale
+from astropy.stats.funcs import mad_std
 from astropy.stats.nanfunctions import nanmadstd, nanmean, nanmedian, nanstd, nanvar
 from astropy.units import Quantity
 from astropy.utils import isiterable
@@ -1031,6 +1032,30 @@ class SigmaClippedStats:
         """
         return nanmedian(self.data, axis=self.axis)
 
+    def mode(
+        self, median_factor: float = 3.0, mean_factor: float = 2.0
+    ) -> float | NDArray:
+        """
+        Calculate the mode of the data using a estimator of the form
+        ``(median_factor * median) - (mean_factor * mean)``.
+
+        NaN values are ignored.
+
+        Parameters
+        ----------
+        median_factor : float, optional
+            The multiplicative factor for the data median. Defaults to 3.
+
+        mean_factor : float, optional
+            The multiplicative factor for the data mean. Defaults to 2.
+
+        Returns
+        -------
+        mode : float or `~numpy.ndarray`
+            The estimated mode of the data.
+        """
+        return (median_factor * self.median()) - (mean_factor * self.mean())
+
     def std(self, ddof: int = 0) -> float | NDArray:
         """
         Calculate the standard deviation of the data.
@@ -1125,6 +1150,20 @@ class SigmaClippedStats:
             The biweight scale of the data.
         """
         return biweight_scale(self.data, c=c, M=M, axis=self.axis, ignore_nan=True)
+
+    def mad_std(self) -> float | NDArray:
+        """
+        Calculate the median absolute deviation (MAD) based standard
+        deviation of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        mad_std : float or `~numpy.ndarray`
+            The MAD-based standard deviation of the data.
+        """
+        return mad_std(self.data, axis=self.axis, ignore_nan=True)
 
 
 def sigma_clipped_stats(
