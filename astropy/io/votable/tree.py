@@ -1053,10 +1053,7 @@ class Values(Element, _IDProperty):
 
     @min.setter
     def min(self, min):
-        if hasattr(self._field, "converter") and min is not None:
-            self._min = self._field.converter.parse(min, config=self._config)[0]
-        else:
-            self._min = min
+        self._min = self._parse_minmax(min)
 
     @min.deleter
     def min(self):
@@ -1089,10 +1086,7 @@ class Values(Element, _IDProperty):
 
     @max.setter
     def max(self, max):
-        if hasattr(self._field, "converter") and max is not None:
-            self._max = self._field.converter.parse(max, config=self._config)[0]
-        else:
-            self._max = max
+        self._max = self._parse_minmax(max)
 
     @max.deleter
     def max(self):
@@ -1165,6 +1159,35 @@ class Values(Element, _IDProperty):
                     break
 
         return self
+
+    def _parse_minmax(self, val):
+        retval = val
+        if hasattr(self._field, "converter") and val is not None:
+            parsed_val = None
+            if self._field.arraysize is None:
+                # Use the default parser.
+                parsed_val = self._field.converter.parse(val, config=self._config)[0]
+            else:
+                # Set config to ignore verification (prevent warnings and exceptions) on parse.
+                ignore_warning_config = self._config.copy()
+                ignore_warning_config["verify"] = "ignore"
+
+                # max should be a scalar except for certain xtypes so try scalar parsing first.
+                try:
+                    parsed_val = self._field.converter.parse_scalar(
+                        val, config=ignore_warning_config
+                    )[0]
+                except ValueError as ex:
+                    pass  # Ignore ValueError returned for array vals by some parsers (like int)
+                finally:
+                    if parsed_val is None:
+                        # Try the array parsing to support certain xtypes and historical array values.
+                        parsed_val = self._field.converter.parse(
+                            val, config=ignore_warning_config
+                        )[0]
+
+            retval = parsed_val
+        return retval
 
     def is_defaults(self):
         """
