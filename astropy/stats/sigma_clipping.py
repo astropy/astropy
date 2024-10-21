@@ -1335,21 +1335,16 @@ def sigma_clipped_stats(
     if isinstance(data, np.ma.MaskedArray) and data.mask.all():
         return np.ma.masked, np.ma.masked, np.ma.masked
 
-    sigclip = SigmaClip(
+    stats = SigmaClippedStats(
+        data,
         sigma=sigma,
         sigma_lower=sigma_lower,
         sigma_upper=sigma_upper,
         maxiters=maxiters,
         cenfunc=cenfunc,
         stdfunc=stdfunc,
+        axis=axis,
         grow=grow,
     )
-    data_clipped = sigclip(
-        data, axis=axis, masked=False, return_bounds=False, copy=True
-    )
 
-    mean = nanmean(data_clipped, axis=axis)
-    median = nanmedian(data_clipped, axis=axis)
-    std = nanstd(data_clipped, ddof=std_ddof, axis=axis)
-
-    return mean, median, std
+    return stats.mean(), stats.median(), stats.std(ddof=std_ddof)
