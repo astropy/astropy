@@ -77,7 +77,11 @@ if HAS_BOTTLENECK:
 
         result = function(array, axis=axis, **kwargs)
         if isinstance(array, Quantity):
-            return array.__array_wrap__(result)
+            if function is bottleneck.nanvar:
+                result = array._result_as_quantity(result, array.unit**2, None)
+            else:
+                result = array.__array_wrap__(result)
+            return result
         elif isinstance(result, float):
             # For compatibility with numpy, always return a numpy scalar.
             return np.float64(result)
@@ -89,6 +93,7 @@ if HAS_BOTTLENECK:
         nanmean=functools.partial(_apply_bottleneck, bottleneck.nanmean),
         nanmedian=functools.partial(_apply_bottleneck, bottleneck.nanmedian),
         nanstd=functools.partial(_apply_bottleneck, bottleneck.nanstd),
+        nanvar=functools.partial(_apply_bottleneck, bottleneck.nanvar),
     )
 
     np_funcs = dict(
@@ -96,6 +101,7 @@ if HAS_BOTTLENECK:
         nanmean=np.nanmean,
         nanmedian=np.nanmedian,
         nanstd=np.nanstd,
+        nanvar=np.nanvar,
     )
 
     def _dtype_dispatch(func_name):
@@ -118,12 +124,14 @@ if HAS_BOTTLENECK:
     nanmean = _dtype_dispatch("nanmean")
     nanmedian = _dtype_dispatch("nanmedian")
     nanstd = _dtype_dispatch("nanstd")
+    nanvar = _dtype_dispatch("nanvar")
 
 else:
     nansum = np.nansum
     nanmean = np.nanmean
     nanmedian = np.nanmedian
     nanstd = np.nanstd
+    nanvar = np.nanvar
 
 
 def nanmadstd(
