@@ -8,6 +8,7 @@ import astropy.coordinates.representation as r
 import astropy.units as u
 from astropy.coordinates import FK5, SkyCoord
 from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.utils.masked import Masked
 
@@ -351,6 +352,8 @@ class TestSkyCoordWithDifferentials:
         # All parts of the coordinate influence the final positions.
         expected_mask = self.sc.get_mask() | getattr(dt, "mask", False)
         assert_array_equal(sc.mask, expected_mask)
+        expected_unmasked = self.sc.unmasked.apply_space_motion(dt=dt)
+        assert skycoord_equal(sc.unmasked, expected_unmasked)
 
 
 class TestSkyCoordWithOnlyDifferentialsMasked(TestSkyCoordWithDifferentials):
