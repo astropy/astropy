@@ -1843,10 +1843,10 @@ class CooSys(SimpleElement):
         equinox=None,
         epoch=None,
         system=None,
-        refposition=None,
         id=None,
         config=None,
         pos=None,
+        refposition=None,
         **extra,
     ):
         if config is None:
