@@ -146,9 +146,9 @@ def test_coord_type_from_ctype(cube_wcs):
     ticks_position = coord_meta["default_ticks_position"]
 
     # These axes are swapped due to the pixel derivatives
-    assert axislabel_position == ["l", "r", "b"]
-    assert ticklabel_position == ["l", "r", "b"]
-    assert ticks_position == ["l", "r", "b"]
+    assert axislabel_position == ["r", "l", "b"]
+    assert ticklabel_position == ["r", "l", "b"]
+    assert ticks_position == ["r", "l", "b"]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["GLON-TAN", "GLAT-TAN"]
@@ -190,9 +190,8 @@ def test_coord_type_from_ctype(cube_wcs):
     ticklabel_position = coord_meta["default_ticklabel_position"]
     ticks_position = coord_meta["default_ticks_position"]
 
-    # These axes should be swapped because of slices
-    assert axislabel_position == ["l", "b"]
-    assert ticklabel_position == ["l", "b"]
+    assert axislabel_position == ["b", "l"]
+    assert ticklabel_position == ["b", "l"]
     assert ticks_position == ["bltr", "bltr"]
 
     wcs = WCS(naxis=2)
@@ -539,9 +538,9 @@ def test_coord_meta_wcsapi():
         u.Unit("deg"),
         u.one,
     ]
-    assert coord_meta["default_axislabel_position"] == ["b", "l", "t", "r", ""]
-    assert coord_meta["default_ticklabel_position"] == ["b", "l", "t", "r", ""]
-    assert coord_meta["default_ticks_position"] == ["b", "l", "t", "r", ""]
+    assert coord_meta["default_axislabel_position"] == ["", "r", "b", "l", "t"]
+    assert coord_meta["default_ticklabel_position"] == ["", "r", "b", "l", "t"]
+    assert coord_meta["default_ticks_position"] == ["", "r", "b", "l", "t"]
     assert coord_meta["default_axis_label"] == [
         "Frequency",
         "time",

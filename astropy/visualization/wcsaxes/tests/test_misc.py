@@ -158,6 +158,9 @@ def test_set_label_properties(ignore_matplotlibrc):
 
     ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
 
+    ax.coords[0].set_axislabel_position("b")
+    ax.coords[1].set_axislabel_position("l")
+
     ax.set_xlabel("Test x label", labelpad=2, color="red")
     ax.set_ylabel("Test y label", labelpad=3, color="green")
 
@@ -560,6 +563,12 @@ def test_set_labels_with_coords(ignore_matplotlibrc, frame_class):
 
     wcs = WCS(header)
     fig, ax = plt.subplots(subplot_kw=dict(frame_class=frame_class, projection=wcs))
+
+    if frame_class is RectangularFrame:
+        # Do not use default "auto" positioning
+        ax.coords[0].set_axislabel_position("b")
+        ax.coords[1].set_axislabel_position("l")
+
     ax.set_xlabel(labels[0])
     ax.set_ylabel(labels[1])
 
