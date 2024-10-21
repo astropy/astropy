@@ -1,6 +1,10 @@
+import re
+
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
+from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.units import Quantity
 from astropy.wcs import WCS
@@ -203,6 +207,55 @@ def test_values_to_objects():
 
     assert c1.dec == c1_out.dec
     assert c2.b == c2_out.b
+
+
+class InvalidWCSQuantity(SkyCoordDuplicateWCS):
+    """
+    WCS which defines ``world_axis_object_components`` which returns Quantity
+    instead of bare Numpy arrays, which can cause issues. This is for a
+    regression test to make sure that we don't return Quantities from
+    ``world_axis_object_components``.
+    """
+
+    @property
+    def world_axis_object_components(self):
+        return [
+            ("test1", "ra", "spherical.lon"),
+            ("test1", "dec", "spherical.lat"),
+            ("test2", 0, "spherical.lon"),
+            ("test2", 1, "spherical.lat"),
+        ]
+
+
+def test_objects_to_values_invalid_type():
+    wcs = InvalidWCSQuantity()
+    c1, c2 = wcs.pixel_to_world(1, 2, 3, 4)
+    with pytest.raises(
+        TypeError,
+        match=(
+            re.escape(
+                "WCS world_axis_object_components results in values which are not "
+                "scalars or plain Numpy arrays (got <class "
+                "'astropy.coordinates.angles.core.Longitude'>)"
+            )
+        ),
+    ):
+        high_level_objects_to_values(c1, c2, low_level_wcs=wcs)
+
+
+def test_values_to_objects_invalid_type():
+    wcs = SkyCoordDuplicateWCS()
+    c1, c2 = wcs.pixel_to_world(1, 2, 3, 4)
+    with pytest.raises(
+        TypeError,
+        match=(
+            re.escape(
+                "Expected world coordinates as scalars or plain Numpy arrays (got "
+                "<class 'astropy.units.quantity.Quantity'>)"
+            )
+        ),
+    ):
+        values_to_high_level_objects(2 * u.m, 4, 6, 8, low_level_wcs=wcs)
 
 
 class MinimalHighLevelWCS(HighLevelWCSMixin):
