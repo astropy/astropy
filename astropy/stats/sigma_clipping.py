@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
-from astropy.stats.nanfunctions import nanmadstd, nanmean, nanmedian, nanstd
+from astropy.stats.nanfunctions import nanmadstd, nanmean, nanmedian, nanstd, nanvar
 from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
@@ -1053,6 +1053,29 @@ class SigmaClippedStats:
             The standard deviation of the data.
         """
         return nanstd(self.data, axis=self.axis, ddof=ddof)
+
+    def var(self, ddof: int = 0) -> float | NDArray:
+        """
+        Calculate the variance of the data.
+
+        NaN values are ignored.
+
+        Parameters
+        ----------
+        ddof : int, optional
+            The delta degrees of freedom. The divisor used in the
+            calculation is ``N - ddof``, where ``N`` represents the
+            number of elements. For a population variance where you have
+            data for the entire population, use ``ddof=0``. For a sample
+            variance where you have a sample of the population, use
+            ``ddof=1``. The default is 0.
+
+        Returns
+        -------
+        var : float or `~numpy.ndarray`
+            The variance of the data.
+        """
+        return nanvar(self.data, axis=self.axis, ddof=ddof)
 
 
 def sigma_clipped_stats(
