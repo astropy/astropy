@@ -133,12 +133,12 @@ def test_get_position():
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
 
-    assert ax.coords[0].get_ticks_position() == ["b", "l", "t", "r"]
-    assert ax.coords[1].get_ticks_position() == ["b", "l", "t", "r"]
-    assert ax.coords[0].get_ticklabel_position() == ["b"]
-    assert ax.coords[1].get_ticklabel_position() == ["l"]
-    assert ax.coords[0].get_axislabel_position() == ["b"]
-    assert ax.coords[1].get_axislabel_position() == ["l"]
+    assert ax.coords[0].get_ticks_position() == "bltr"
+    assert ax.coords[1].get_ticks_position() == "bltr"
+    assert ax.coords[0].get_ticklabel_position() == "b"
+    assert ax.coords[1].get_ticklabel_position() == "l"
+    assert ax.coords[0].get_axislabel_position() == "b"
+    assert ax.coords[1].get_axislabel_position() == "l"
 
     ax.coords[0].set_ticks_position("br")
     ax.coords[1].set_ticks_position("tl")
@@ -147,9 +147,9 @@ def test_get_position():
     ax.coords[0].set_axislabel_position("t")
     ax.coords[1].set_axislabel_position("r")
 
-    assert ax.coords[0].get_ticks_position() == ["b", "r"]
-    assert ax.coords[1].get_ticks_position() == ["t", "l"]
-    assert ax.coords[0].get_ticklabel_position() == ["b", "t"]
-    assert ax.coords[1].get_ticklabel_position() == ["r", "l"]
-    assert ax.coords[0].get_axislabel_position() == ["t"]
-    assert ax.coords[1].get_axislabel_position() == ["r"]
+    assert ax.coords[0].get_ticks_position() == "br"
+    assert ax.coords[1].get_ticks_position() == "tl"
+    assert ax.coords[0].get_ticklabel_position() == "bt"
+    assert ax.coords[1].get_ticklabel_position() == "rl"
+    assert ax.coords[0].get_axislabel_position() == "t"
+    assert ax.coords[1].get_axislabel_position() == "r"
