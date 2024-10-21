@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import ArrayLike, NDArray
 
-__all__ = ["SigmaClip", "sigma_clip", "sigma_clipped_stats"]
+__all__ = ["SigmaClip", "sigma_clip", "SigmaClippedStats", "sigma_clipped_stats"]
 
 
 class SigmaClip:
@@ -112,7 +112,7 @@ class SigmaClip:
 
     See Also
     --------
-    sigma_clip, sigma_clipped_stats
+    sigma_clip, sigma_clipped_stats, SigmaClippedStats
 
     Notes
     -----
@@ -817,7 +817,7 @@ def sigma_clip(
 
     See Also
     --------
-    SigmaClip, sigma_clipped_stats
+    SigmaClip, sigma_clipped_stats, SigmaClippedStats
 
     Notes
     -----
@@ -877,6 +877,182 @@ def sigma_clip(
     return sigclip(
         data, axis=axis, masked=masked, return_bounds=return_bounds, copy=copy
     )
+
+
+class SigmaClippedStats:
+    """
+    Class to calculate sigma-clipped statistics on the provided data.
+
+    Parameters
+    ----------
+    data : array-like or `~numpy.ma.MaskedArray`
+        Data array or object that can be converted to an array.
+
+    mask : `numpy.ndarray` (bool), optional
+        A boolean mask with the same shape as ``data``, where a `True`
+        value indicates the corresponding element of ``data`` is masked.
+        Masked pixels are excluded when computing the statistics.
+
+    mask_value : float, optional
+        A data value (e.g., ``0.0``) that is ignored when computing the
+        statistics. ``mask_value`` will be masked in addition to any
+        input ``mask``.
+
+    sigma : float, optional
+        The number of standard deviations to use for both the lower
+        and upper clipping limit. These limits are overridden by
+        ``sigma_lower`` and ``sigma_upper``, if input. The default is 3.
+
+    sigma_lower : float or None, optional
+        The number of standard deviations to use as the lower bound for
+        the clipping limit. If `None` then the value of ``sigma`` is
+        used. The default is `None`.
+
+    sigma_upper : float or None, optional
+        The number of standard deviations to use as the upper bound for
+        the clipping limit. If `None` then the value of ``sigma`` is
+        used. The default is `None`.
+
+    maxiters : int or None, optional
+        The maximum number of sigma-clipping iterations to perform or
+        `None` to clip until convergence is achieved (i.e., iterate
+        until the last iteration clips nothing). If convergence is
+        achieved prior to ``maxiters`` iterations, the clipping
+        iterations will stop. The default is 5.
+
+    cenfunc : {'median', 'mean'} or callable, optional
+        The statistic or callable function/object used to compute
+        the center value for the clipping. If using a callable
+        function/object and the ``axis`` keyword is used, then it must
+        be able to ignore NaNs (e.g., `numpy.nanmean`) and it must have
+        an ``axis`` keyword to return an array with axis dimension(s)
+        removed. The default is ``'median'``.
+
+    stdfunc : {'std', 'mad_std'} or callable, optional
+        The statistic or callable function/object used to compute the
+        standard deviation about the center value. If using a callable
+        function/object and the ``axis`` keyword is used, then it must
+        be able to ignore NaNs (e.g., `numpy.nanstd`) and it must have
+        an ``axis`` keyword to return an array with axis dimension(s)
+        removed. The default is ``'std'``.
+
+    axis : None or int or tuple of int, optional
+        The axis or axes along which to sigma clip the data. If `None`,
+        then the flattened data will be used. ``axis`` is passed to the
+        ``cenfunc`` and ``stdfunc``. The default is `None`.
+
+    grow : float or `False`, optional
+        Radius within which to mask the neighbouring pixels of those
+        that fall outwith the clipping limits (only applied along
+        ``axis``, if specified). As an example, for a 2D image a value
+        of 1 will mask the nearest pixels in a cross pattern around each
+        deviant pixel, while 1.5 will also reject the nearest diagonal
+        neighbours and so on.
+
+    Notes
+    -----
+    The best performance will typically be obtained by setting
+    ``cenfunc`` and ``stdfunc`` to one of the built-in functions
+    specified as a string. If one of the options is set to a string
+    while the other has a custom callable, you may in some cases
+    see better performance if you have the `bottleneck`_ package
+    installed. To preserve accuracy, bottleneck is only used for float64
+    computations.
+
+    .. _bottleneck:  https://github.com/pydata/bottleneck
+
+    See Also
+    --------
+    sigma_clipped_stats, SigmaClip, sigma_clip
+    """
+
+    def __init__(
+        self,
+        data: ArrayLike,
+        *,
+        mask: NDArray | None = None,
+        mask_value: float | None = None,
+        sigma: float = 3.0,
+        sigma_lower: float | None = None,
+        sigma_upper: float | None = None,
+        maxiters: int = 5,
+        cenfunc: Literal["median", "mean"] | Callable = "median",
+        stdfunc: Literal["std", "mad_std"] | Callable = "std",
+        axis: int | tuple[int, ...] | None = None,
+        grow: float | Literal[False] | None = False,
+    ) -> None:
+        sigclip = SigmaClip(
+            sigma=sigma,
+            sigma_lower=sigma_lower,
+            sigma_upper=sigma_upper,
+            maxiters=maxiters,
+            cenfunc=cenfunc,
+            stdfunc=stdfunc,
+            grow=grow,
+        )
+
+        if mask is not None:
+            data = np.ma.MaskedArray(data, mask)
+        if mask_value is not None:
+            data = np.ma.masked_values(data, mask_value)
+
+        if isinstance(data, np.ma.MaskedArray) and data.mask.all():
+            raise ValueError("input data is all masked")
+
+        self.data = sigclip(
+            data, axis=axis, masked=False, return_bounds=False, copy=True
+        )
+        self.axis = axis
+
+    def mean(self) -> float | NDArray:
+        """
+        Calculate the mean of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        mean : float or `~numpy.ndarray`
+            The mean of the data.
+        """
+        return nanmean(self.data, axis=self.axis)
+
+    def median(self) -> float | NDArray:
+        """
+        Calculate the median of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        median : float or `~numpy.ndarray`
+            The median of the data.
+        """
+        return nanmedian(self.data, axis=self.axis)
+
+    def std(self, ddof: int = 0) -> float | NDArray:
+        """
+        Calculate the standard deviation of the data.
+
+        NaN values are ignored.
+
+        Parameters
+        ----------
+        ddof : int, optional
+            The delta degrees of freedom for the standard deviation
+            calculation. The divisor used in the calculation is ``N -
+            ddof``, where ``N`` represents the number of elements. For
+            a population standard deviation where you have data for the
+            entire population, use ``ddof=0``. For a sample standard
+            deviation where you have a sample of the population, use
+            ``ddof=1``. The default is 0.
+
+        Returns
+        -------
+        std : float or `~numpy.ndarray`
+            The standard deviation of the data.
+        """
+        return nanstd(self.data, axis=self.axis, ddof=ddof)
 
 
 def sigma_clipped_stats(
@@ -990,7 +1166,7 @@ def sigma_clipped_stats(
 
     See Also
     --------
-    SigmaClip, sigma_clip
+    SigmaClippedStats, SigmaClip, sigma_clip
     """
     if mask is not None:
         data = np.ma.MaskedArray(data, mask)
