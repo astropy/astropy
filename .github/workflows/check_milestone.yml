@@ -1,8 +1,7 @@
 name: Check PR milestone
 
 on:
-  # So it cannot be skipped.
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, milestoned, demilestoned]
 
 concurrency:
