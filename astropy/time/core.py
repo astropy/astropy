@@ -29,7 +29,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import lazyproperty
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
@@ -1615,18 +1615,13 @@ class TimeBase(MaskableShapedLikeNDArray):
             )
         return self.max(axis, keepdims=keepdims) - self.min(axis, keepdims=keepdims)
 
-    if NUMPY_LT_2_0:
-        _ptp_decorator = lambda f: f
-    else:
-        _ptp_decorator = deprecated("6.1", alternative="np.ptp")
+    def __array_function__(self, function, types, args, kwargs):
+        if function is np.ptp:
+            return self._ptp_impl(*args[1:], **kwargs)
+        else:
+            return super().__array_function__(function, types, args, kwargs)
 
-        def __array_function__(self, function, types, args, kwargs):
-            if function is np.ptp:
-                return self._ptp_impl(*args[1:], **kwargs)
-            else:
-                return super().__array_function__(function, types, args, kwargs)
-
-    @_ptp_decorator
+    @deprecated("7.0", alternative="np.ptp")
     def ptp(self, axis=None, out=None, keepdims=False):
         """Peak to peak (maximum - minimum) along a given axis.
 
