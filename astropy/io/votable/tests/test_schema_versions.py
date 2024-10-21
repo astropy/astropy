@@ -58,6 +58,7 @@ test_cases = [
 ]
 
 
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="Cannot test on Windows")
 @pytest.mark.parametrize(
     "votable_file,schema_version,expected_return_code,expected_msg_re", test_cases
 )
@@ -65,16 +66,11 @@ def test_schema_versions(
     votable_file, schema_version, expected_return_code, expected_msg_re
 ):
     """Test that xmllint gives expected results for the given file and schema version."""
-
-    # We need xmllint so won't try with Windows.
-    if sys.platform.startswith("win"):
-        return
-
     try:
         rc, stdout, stderr = validate_schema(votable_file, schema_version)
     except OSError:
-        # If xmllint is not installed, we want the test to pass anyway
-        return
+        # If xmllint is not installed, we want to skip the test
+        pytest.skip("xmllint is not available so will not do schema validation")
 
     assert rc == expected_return_code
     if rc == 3:
