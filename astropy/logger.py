@@ -581,7 +581,12 @@ class StreamHandler(logging.StreamHandler):
                 color_print(record.levelname, "brown", end="", file=stream)
             else:
                 color_print(record.levelname, "red", end="", file=stream)
-        record.message = f"{record.msg % record.args} [{record.origin:s}]"
+        # Make lazy interpretation intentional to leave the option to use
+        # special characters without escaping in log messages.
+        if record.args:
+            record.message = f"{record.msg % record.args} [{record.origin:s}]"
+        else:
+            record.message = f"{record.msg} [{record.origin:s}]"
         print(": " + record.message, file=stream)
 
 
