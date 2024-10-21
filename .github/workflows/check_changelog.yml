@@ -1,8 +1,7 @@
 name: Check PR change log
 
 on:
-  # So it cannot be skipped.
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, labeled, unlabeled]
 
 concurrency:
