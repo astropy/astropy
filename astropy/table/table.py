@@ -1791,7 +1791,8 @@ class Table:
             is deprecated since v6.1.
 
         **kwargs : dict, optional
-            Keyword arguments as accepted by desired backend.
+            Keyword arguments as accepted by desired backend. See `astropy.table.notebook_backends`
+            for the available backends and their respective keyword arguments.
 
         Raises
         ------
