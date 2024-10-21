@@ -3,6 +3,7 @@ import filecmp
 import io
 from contextlib import nullcontext
 
+import numpy as np
 import pytest
 
 from astropy.io.votable import tree
@@ -113,6 +114,113 @@ def test_votable_values_empty_min_max():
     </VOTABLE>
     """
     parse(io.BytesIO(with_empty_minmax), verify="exception")
+
+
+def _assert_minmax_match(val, expected_val):
+    """val can be number or numpy array; expected_val can be number or list"""
+    if isinstance(val, np.ndarray):
+        assert np.allclose(val, np.array(expected_val))
+    else:
+        assert val == expected_val
+
+
+@pytest.mark.parametrize(
+    ("testvals"),
+    [
+        {
+            "dt": "float",
+            "min": "1.2",
+            "max": "3.4",
+            "expected_min": 1.2,
+            "expected_max": 3.4,
+        },
+        {
+            "dt": "float",
+            "min": "1.2 3.4",
+            "max": "3.4 5.6",
+            "expected_min": [1.2, 3.4],
+            "expected_max": [3.4, 5.6],
+        },
+        {
+            "dt": "double",
+            "min": "1.2",
+            "max": "3.4",
+            "expected_min": 1.2,
+            "expected_max": 3.4,
+        },
+        {
+            "dt": "double",
+            "min": "1.2 3.4",
+            "max": "3.4 5.6",
+            "expected_min": [1.2, 3.4],
+            "expected_max": [3.4, 5.6],
+        },
+        {
+            "dt": "unsignedByte",
+            "min": "1",
+            "max": "3",
+            "expected_min": 1,
+            "expected_max": 3,
+        },
+        {
+            "dt": "unsignedByte",
+            "min": "1 3",
+            "max": "3 5",
+            "expected_min": [1, 3],
+            "expected_max": [3, 5],
+        },
+        {"dt": "short", "min": "1", "max": "3", "expected_min": 1, "expected_max": 3},
+        {
+            "dt": "short",
+            "min": "1 3",
+            "max": "3 5",
+            "expected_min": [1, 3],
+            "expected_max": [3, 5],
+        },
+        {"dt": "int", "min": "1", "max": "3", "expected_min": 1, "expected_max": 3},
+        {
+            "dt": "int",
+            "min": "1 3",
+            "max": "3 5",
+            "expected_min": [1, 3],
+            "expected_max": [3, 5],
+        },
+        {"dt": "long", "min": "1", "max": "3", "expected_min": 1, "expected_max": 3},
+        {
+            "dt": "long",
+            "min": "1 3",
+            "max": "3 5",
+            "expected_min": [1, 3],
+            "expected_max": [3, 5],
+        },
+    ],
+)
+def test_min_max_with_arrays(testvals):
+    """When a FIELD/PARAM is an array type, ensure we accept (without warnings/exceptions)
+    MIN and MAX values both as scalars (preferred except for some xtypes) or arrays."""
+    minmax_template = """<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" version="1.5">
+        <RESOURCE type="results">
+            <TABLE ID="result" name="result">
+                <{param_or_field} arraysize="2" datatype="{dt}" name="param_or_field" xtype="interval">
+                    <VALUES><MIN value="{min}"/><MAX value="{max}"/></VALUES>
+                </{param_or_field}>
+            </TABLE>
+        </RESOURCE>
+    </VOTABLE>
+    """
+
+    for param_or_field in ["PARAM", "FIELD"]:
+        testvals["param_or_field"] = param_or_field
+        xml_string = minmax_template.format(**testvals)
+        xml_bytes = xml_string.encode("utf-8")
+
+        # Parse without exceptions.
+        vot = parse(io.BytesIO(xml_bytes), verify="exception")
+
+        # Assert that the scalar or array values were parsed and stored as expected.
+        param_or_field = vot.get_field_by_id_or_name("param_or_field")
+        _assert_minmax_match(param_or_field.values.min, testvals["expected_min"])
+        _assert_minmax_match(param_or_field.values.max, testvals["expected_max"])
 
 
 def test_version():
