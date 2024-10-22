@@ -1,0 +1,2 @@
+Fixed a bug where ``one.to_string(format='vounit')`` would return an empty
+string, in violation of the VOUnit standard 1.1, which recommends ``'1'``.

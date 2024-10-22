@@ -215,12 +215,16 @@ class VOUnit(FITS):
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)
 
-        if unit.physical_type == "dimensionless" and unit.scale != 1:
-            raise UnitScaleError(
-                "The VOUnit format is not able to "
-                "represent scale for dimensionless units. "
-                f"Multiply your data by {unit.scale:e}."
-            )
+        if unit.physical_type == "dimensionless":
+            if unit.scale != 1:
+                raise UnitScaleError(
+                    "The VOUnit format is not able to "
+                    "represent scale for dimensionless units. "
+                    f"Multiply your data by {unit.scale:e}."
+                )
+            # the VO standard explicitly forbids representing a dimensionless
+            # unit with an empty string, and instead recommends '1'
+            return "1"
 
         return cls._to_string(unit, fraction=fraction)
 

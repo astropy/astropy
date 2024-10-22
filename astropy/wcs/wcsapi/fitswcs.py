@@ -290,7 +290,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     def world_axis_units(self):
         units = []
         for unit in self.wcs.cunit:
-            if unit is None:
+            if unit is None or unit == "":
+                # Use an empty string for missing units. We include
+                # dimensionless_unscaled here because using VO format
+                # it would be converted to '1'.
                 unit = ""
             elif isinstance(unit, u.Unit):
                 unit = unit.to_string(format="vounit")

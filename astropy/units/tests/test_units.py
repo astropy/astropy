@@ -715,6 +715,11 @@ def test_repr_latex():
     assert u.m._repr_latex_() == u.m.to_string("latex")
 
 
+def test_repr_one_vounit():
+    # see https://github.com/astropy/astropy/issues/17228
+    assert u.one.to_string("vounit") == "1"
+
+
 def test_operations_with_strings():
     assert u.m / "5s" == (u.m / (5.0 * u.s))
 
