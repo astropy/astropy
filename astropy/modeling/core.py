@@ -4154,7 +4154,7 @@ class CompoundModel(Model):
             raise ValueError(f"No submodels found named {name}")
 
     def without_units_for_data(self, **kwargs):
-        """
+        r"""
         See `~astropy.modeling.Model.without_units_for_data` for overview
         of this method.
 
@@ -4162,7 +4162,7 @@ class CompoundModel(Model):
         -----
         This modifies the behavior of the base method to account for the
         case where the sub-models of a compound model have different output
-        units. This is only valid for compound *, / and | compound models as
+        units. This is only valid for compound \*, / and | compound models as
         in that case it is reasonable to mix the output units. It does this
         by modifying the output units of each sub model by using the output
         units of the other sub model so that we can apply the original function
