@@ -10,7 +10,16 @@ import numpy as np
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
 from astropy.stats.biweight import biweight_location, biweight_scale
 from astropy.stats.funcs import mad_std
-from astropy.stats.nanfunctions import nanmadstd, nanmean, nanmedian, nanstd, nanvar
+from astropy.stats.nanfunctions import (
+    nanmadstd,
+    nanmax,
+    nanmean,
+    nanmedian,
+    nanmin,
+    nanstd,
+    nansum,
+    nanvar,
+)
 from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
@@ -1005,6 +1014,45 @@ class SigmaClippedStats:
             data, axis=axis, masked=False, return_bounds=False, copy=True
         )
         self.axis = axis
+
+    def min(self) -> float | NDArray:
+        """
+        Calculate the minimum of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        min : float or `~numpy.ndarray`
+            The minimum of the data.
+        """
+        return nanmin(self.data, axis=self.axis)
+
+    def max(self) -> float | NDArray:
+        """
+        Calculate the maximum of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        max : float or `~numpy.ndarray`
+            The maximum of the data.
+        """
+        return nanmax(self.data, axis=self.axis)
+
+    def sum(self) -> float | NDArray:
+        """
+        Calculate the sum of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        sum : float or `~numpy.ndarray`
+            The sum of the data.
+        """
+        return nansum(self.data, axis=self.axis)
 
     def mean(self) -> float | NDArray:
         """

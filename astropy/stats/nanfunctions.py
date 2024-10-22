@@ -90,6 +90,8 @@ if HAS_BOTTLENECK:
 
     bn_funcs = dict(
         nansum=functools.partial(_apply_bottleneck, bottleneck.nansum),
+        nanmin=functools.partial(_apply_bottleneck, bottleneck.nanmin),
+        nanmax=functools.partial(_apply_bottleneck, bottleneck.nanmax),
         nanmean=functools.partial(_apply_bottleneck, bottleneck.nanmean),
         nanmedian=functools.partial(_apply_bottleneck, bottleneck.nanmedian),
         nanstd=functools.partial(_apply_bottleneck, bottleneck.nanstd),
@@ -98,6 +100,8 @@ if HAS_BOTTLENECK:
 
     np_funcs = dict(
         nansum=np.nansum,
+        nanmin=np.nanmin,
+        nanmax=np.nanmax,
         nanmean=np.nanmean,
         nanmedian=np.nanmedian,
         nanstd=np.nanstd,
@@ -121,6 +125,8 @@ if HAS_BOTTLENECK:
         return wrapped
 
     nansum = _dtype_dispatch("nansum")
+    nanmin = _dtype_dispatch("nanmin")
+    nanmax = _dtype_dispatch("nanmax")
     nanmean = _dtype_dispatch("nanmean")
     nanmedian = _dtype_dispatch("nanmedian")
     nanstd = _dtype_dispatch("nanstd")
@@ -128,6 +134,8 @@ if HAS_BOTTLENECK:
 
 else:
     nansum = np.nansum
+    nanmin = np.nanmin
+    nanmax = np.nanmax
     nanmean = np.nanmean
     nanmedian = np.nanmedian
     nanstd = np.nanstd
