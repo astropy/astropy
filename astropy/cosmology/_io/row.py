@@ -31,8 +31,11 @@ to the ``Planck18`` cosmology from which it was generated.
 For more information on the argument options, see :ref:`cosmology_io_builtin-table`.
 """
 
+from __future__ import annotations
+
 import copy
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
@@ -40,8 +43,20 @@ from astropy.table import QTable, Row
 
 from .mapping import from_mapping
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
-def from_row(row, *, move_to_meta=False, cosmology=None, rename=None):
+    from astropy.cosmology._typing import _CosmoT
+    from astropy.table import Table
+
+
+def from_row(
+    row: Row,
+    *,
+    move_to_meta: bool = False,
+    cosmology: str | type[_CosmoT] | None = None,
+    rename: Mapping[str, str] | None = None,
+) -> _CosmoT:
     """Instantiate a `~astropy.cosmology.Cosmology` from a `~astropy.table.Row`.
 
     Parameters
@@ -62,8 +77,8 @@ def from_row(row, *, move_to_meta=False, cosmology=None, rename=None):
         the cosmology instance. The class also provides default parameter values,
         filling in any non-mandatory arguments missing in 'table'.
 
-    rename : dict or None (optional, keyword-only)
-        A dictionary mapping columns in the row to fields of the `~astropy.cosmology.Cosmology`.
+    rename : Mapping[str, str] or None (optional, keyword-only)
+        A mapping of column names in the row to field names of the |Cosmology|.
 
     Returns
     -------
@@ -163,7 +178,13 @@ def from_row(row, *, move_to_meta=False, cosmology=None, rename=None):
     )
 
 
-def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable, rename=None):
+def to_row(
+    cosmology: Cosmology,
+    *args: object,
+    cosmology_in_meta: bool = False,
+    table_cls: type[Table] = QTable,
+    rename: Mapping[str, str] | None = None,
+) -> Row:
     """Serialize the cosmology into a `~astropy.table.Row`.
 
     Parameters
@@ -179,6 +200,8 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable, rename=N
     cosmology_in_meta : bool
         Whether to put the cosmology class in the Table metadata (if `True`) or as the
         first column (if `False`, default).
+    rename : Mapping[str, str] or None (optional, keyword-only)
+        A mapping of field names of the |Cosmology| to column names in the row.
 
     Returns
     -------
@@ -247,7 +270,9 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable, rename=N
     return table[0]  # extract row from table
 
 
-def row_identify(origin, format, *args, **kwargs):
+def row_identify(
+    origin: str, format: str | None, *args: object, **kwargs: object
+) -> bool:
     """Identify if object uses the `~astropy.table.Row` format.
 
     Returns

@@ -154,6 +154,10 @@ not match the class' parameter names.
     True
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from astropy.cosmology.connect import convert_registry
@@ -164,8 +168,23 @@ from .mapping import to_mapping
 from .row import from_row
 from .utils import convert_parameter_to_column
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from typing import TypeVar
 
-def from_table(table, index=None, *, move_to_meta=False, cosmology=None, rename=None):
+    from astropy.cosmology._typing import _CosmoT
+
+    _TableT = TypeVar("_TableT", Table)
+
+
+def from_table(
+    table: Table,
+    index: int | str | None = None,
+    *,
+    move_to_meta: bool = False,
+    cosmology: str | type[_CosmoT] | None = None,
+    rename: Mapping[str, str] | None = None,
+) -> _CosmoT:
     """Instantiate a `~astropy.cosmology.Cosmology` from a |QTable|.
 
     Parameters
@@ -191,9 +210,8 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None, rename=
         cosmology instance. The class also provides default parameter values, filling in
         any non-mandatory arguments missing in 'table'.
 
-    rename : dict or None (optional, keyword-only)
-        A dictionary mapping columns in 'table' to fields of the
-        `~astropy.cosmology.Cosmology` class.
+    rename : Mapping[str, str] or None (optional, keyword-only)
+        A mapping of column names in 'table' to field names of the |Cosmology| class.
 
     Returns
     -------
@@ -332,14 +350,20 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None, rename=
     return from_row(row, move_to_meta=move_to_meta, cosmology=cosmology, rename=rename)
 
 
-def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, rename=None):
+def to_table(
+    cosmology: Cosmology,
+    *args: object,
+    cls: type[_TableT] = QTable,
+    cosmology_in_meta: bool = True,
+    rename: Mapping[str, str] | None = None,
+) -> _TableT:
     """Serialize the cosmology into a `~astropy.table.QTable`.
 
     Parameters
     ----------
     cosmology : `~astropy.cosmology.Cosmology`
         The cosmology instance to convert to a table.
-    *args
+    *args : object
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
     cls : type (optional, keyword-only)
@@ -348,6 +372,9 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, rename=None):
     cosmology_in_meta : bool (optional, keyword-only)
         Whether to put the cosmology class in the Table metadata (if `True`,
         default) or as the first column (if `False`).
+    rename : Mapping[str, str] or None (optional, keyword-only)
+        A mapping of field names of the |Cosmology| class to column names in the
+        |Table|.
 
     Returns
     -------
@@ -448,7 +475,9 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, rename=None):
     return tbl
 
 
-def table_identify(origin, format, *args, **kwargs):
+def table_identify(
+    origin: str, format: str | None, *args: object, **kwargs: object
+) -> bool:
     """Identify if object uses the Table format.
 
     Returns

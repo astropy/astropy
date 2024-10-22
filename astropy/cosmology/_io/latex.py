@@ -54,6 +54,10 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     >>> temp_dir.cleanup()
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, TypeVar
+
 import astropy.units as u
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
@@ -61,6 +65,12 @@ from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable
 
 from .table import to_table
+
+if TYPE_CHECKING:
+    from astropy.io.typing import PathLike, WriteableFileLike
+    from astropy.table import Table
+
+    _TableT = TypeVar("_TableT", Table)
 
 _FORMAT_TABLE = {
     "H0": "$H_0$",
@@ -79,8 +89,14 @@ _FORMAT_TABLE = {
 
 
 def write_latex(
-    cosmology, file, *, overwrite=False, cls=QTable, latex_names=True, **kwargs
-):
+    cosmology: Cosmology,
+    file: PathLike | WriteableFileLike[_TableT],
+    *,
+    overwrite: bool = False,
+    cls: type[_TableT] = QTable,
+    latex_names: bool = True,
+    **kwargs: Any,
+) -> None:
     r"""Serialize the |Cosmology| into a LaTeX.
 
     Parameters
@@ -184,7 +200,9 @@ def write_latex(
     table.write(file, overwrite=overwrite, format="ascii.latex", **kwargs)
 
 
-def latex_identify(origin, filepath, fileobj, *args, **kwargs):
+def latex_identify(
+    origin: object, filepath: str | None, *args: object, **kwargs: object
+) -> bool:
     """Identify if object uses the Table format.
 
     Returns

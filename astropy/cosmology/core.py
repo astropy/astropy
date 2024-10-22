@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from typing import Self
 
+    from astropy.cosmology._typing import _CosmoT
     from astropy.cosmology.funcs.comparison import _FormatType
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
@@ -45,11 +46,10 @@ __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 # Parameters
 
 # registry of cosmology classes with {key=name : value=class}
-_COSMOLOGY_CLASSES = dict()
+_COSMOLOGY_CLASSES: dict[str, type[Cosmology]] = dict()
 
 # typing
 # NOTE: private b/c RTD error
-_CosmoT = TypeVar("_CosmoT", bound="Cosmology")
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
 
 
