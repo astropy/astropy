@@ -77,7 +77,7 @@ class OGIP(generic.Generic):
                 deprecated_names.add(prefix + base)
         simple_units = [
             "angstrom", "arcmin", "arcsec", "AU", "barn", "bin",
-            "byte", "chan", "count", "day", "deg", "erg", "G",
+            "byte", "chan", "count", "d", "deg", "erg", "G",
             "h", "lyr", "mag", "min", "photon", "pixel",
             "voxel", "yr",
         ]  # fmt: skip
