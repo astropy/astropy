@@ -364,7 +364,7 @@ class TestRoundtripCDS(RoundtripBase):
 
 class TestRoundtripOGIP(RoundtripBase):
     format_ = "ogip"
-    deprecated_units = u_format.OGIP._deprecated_units | {"d"}
+    deprecated_units = u_format.OGIP._deprecated_units
 
     @pytest.mark.parametrize(
         "unit",
