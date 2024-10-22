@@ -282,7 +282,8 @@ def test_fitting_custom_names(model, fitter):
 
 
 @pytest.mark.filterwarnings(r"ignore:Model is linear in parameters*")
-def test_fitting_model_pipe_with_units():
+@pytest.mark.parametrize("fitter", fitters)
+def test_fitting_model_pipe_with_units(fitter):
     e = np.linspace(0, 25, 100) * u.keV
     phys = models.Linear1D(slope=-4 * u.ph / u.keV, intercept=100 * u.ph)
     phys.output_units = {"y": u.ph}
@@ -290,6 +291,7 @@ def test_fitting_model_pipe_with_units():
     response.output_units = {"y": u.ct}
     comb = phys | response
     fake_data = comb(e)
-    fit = fitting.LevMarLSQFitter()
+    fit = fitter()
     res = fit(comb, e, fake_data)
-    assert res
+    for name in comb.param_names:
+        assert getattr(comb, name) == getattr(res, name)
