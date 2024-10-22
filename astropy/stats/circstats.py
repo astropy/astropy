@@ -36,7 +36,7 @@ __doctest_requires__ = {"vtest": ["scipy"]}
 
 def _components(
     data: NDArray | Quantity,
-    p: float | None = 1.0,
+    p: float = 1.0,
     phi: float | NDArray | Quantity = 0.0,
     axis: int | None = None,
     weights: NDArray | None = None,
@@ -58,7 +58,7 @@ def _components(
 
 def _angle(
     data: NDArray | Quantity,
-    p: float | None = 1.0,
+    p: float = 1.0,
     phi: float | NDArray | Quantity = 0.0,
     axis: int | None = None,
     weights: NDArray | None = None,
@@ -78,7 +78,7 @@ def _angle(
 
 def _length(
     data: NDArray | Quantity,
-    p: float | None = 1.0,
+    p: float = 1.0,
     phi: float | NDArray | Quantity = 0.0,
     axis: int | None = None,
     weights: NDArray | None = None,
@@ -278,7 +278,7 @@ def circstd(
 
 def circmoment(
     data: NDArray | Quantity,
-    p: float | None = 1.0,
+    p: float = 1.0,
     centered: bool | None = False,
     axis: int | None = None,
     weights: NDArray | None = None,

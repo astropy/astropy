@@ -164,12 +164,12 @@ class SigmaClip:
 
     def __init__(
         self,
-        sigma: float | None = 3.0,
+        sigma: float = 3.0,
         sigma_lower: float | None = None,
         sigma_upper: float | None = None,
         maxiters: int | None = 5,
-        cenfunc: Literal["median", "mean"] | Callable | None = "median",
-        stdfunc: Literal["std", "mad_std"] | Callable | None = "std",
+        cenfunc: Literal["median", "mean"] | Callable = "median",
+        stdfunc: Literal["std", "mad_std"] | Callable = "std",
         grow: float | Literal[False] | None = False,
     ) -> None:
         self.sigma = sigma
@@ -669,12 +669,12 @@ class SigmaClip:
 
 def sigma_clip(
     data: ArrayLike,
-    sigma: float | None = 3.0,
+    sigma: float = 3.0,
     sigma_lower: float | None = None,
     sigma_upper: float | None = None,
     maxiters: int | None = 5,
-    cenfunc: Literal["median", "mean"] | Callable | None = "median",
-    stdfunc: Literal["std", "mad_std"] | Callable | None = "std",
+    cenfunc: Literal["median", "mean"] | Callable = "median",
+    stdfunc: Literal["std", "mad_std"] | Callable = "std",
     axis: int | tuple[int, ...] | None = None,
     masked: bool | None = True,
     return_bounds: bool | None = False,
@@ -883,13 +883,13 @@ def sigma_clipped_stats(
     data: ArrayLike,
     mask: NDArray | None = None,
     mask_value: float | None = None,
-    sigma: float | None = 3.0,
+    sigma: float = 3.0,
     sigma_lower: float | None = None,
     sigma_upper: float | None = None,
     maxiters: int | None = 5,
-    cenfunc: Literal["median", "mean"] | Callable | None = "median",
-    stdfunc: Literal["std", "mad_std"] | Callable | None = "std",
-    std_ddof: int | None = 0,
+    cenfunc: Literal["median", "mean"] | Callable = "median",
+    stdfunc: Literal["std", "mad_std"] | Callable = "std",
+    std_ddof: int = 0,
     axis: int | tuple[int, ...] | None = None,
     grow: float | Literal[False] | None = False,
 ) -> tuple[float, float, float]:

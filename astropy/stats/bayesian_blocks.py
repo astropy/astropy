@@ -516,7 +516,7 @@ class RegularEvents(FitnessFunc):
     def __init__(
         self,
         dt: float,
-        p0: float | None = 0.05,
+        p0: float = 0.05,
         gamma: float | None = None,
         ncp_prior: float | None = None,
     ) -> None:
@@ -575,7 +575,7 @@ class PointMeasures(FitnessFunc):
 
     def __init__(
         self,
-        p0: float | None = 0.05,
+        p0: float = 0.05,
         gamma: float | None = None,
         ncp_prior: float | None = None,
     ) -> None:
