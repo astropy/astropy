@@ -109,6 +109,13 @@ by altering the `astropy.table.conf.default_notebook_table_class
 .. image:: table_repr_html.png
    :width: 450px
 
+Or you can get a fancier notebook interface with :meth:`~astropy.table.Table.show_in_notebook`,
+e.g., when used with ``backend="ipydatagrid"``, it comes with in-browser filtering and sort:
+
+.. image:: https://raw.githubusercontent.com/jupyter-widgets/ipydatagrid/main/static/ipydatagrid_1.gif
+   :width: 450px
+   :alt: Animated DataGrid usage example from ipydatagrid.
+
 If you print the table (either from the notebook or in a text console session)
 then a formatted version appears::
 
