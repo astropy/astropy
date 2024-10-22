@@ -17,6 +17,10 @@ require YAML serialization.
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """  # this is shown in the docs.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology.connect import convert_registry
@@ -26,7 +30,14 @@ from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
 from .mapping import from_mapping
 from .utils import FULLQUALNAME_SUBSTITUTIONS as QNS
 
-__all__ = []  # nothing is publicly scoped
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from yaml import MappingNode
+
+    from astropy.cosmology._typing import _CosmoT
+
+__all__: list[str] = []  # nothing is publicly scoped
 
 
 ##############################################################################
@@ -36,7 +47,23 @@ __all__ = []  # nothing is publicly scoped
 # that calls these functions.
 
 
-def yaml_representer(tag):
+_representer_doc = """Cosmology yaml representer function for {}.
+
+Parameters
+----------
+dumper : :class:`~astropy.io.misc.yaml.AstropyDumper`
+    The dumper object with which to serialize the |Cosmology| object.
+obj : :class:`~astropy.cosmology.Cosmology`
+    The |Cosmology| object to serialize.
+
+Returns
+-------
+str
+    :mod:`yaml` representation of |Cosmology| object.
+"""
+
+
+def yaml_representer(tag: str) -> Callable[[AstropyDumper, Cosmology], str]:
     """`yaml <https://yaml.org>`_ representation of |Cosmology| object.
 
     Parameters
@@ -50,19 +77,7 @@ def yaml_representer(tag):
         Function to construct :mod:`yaml` representation of |Cosmology| object.
     """
 
-    def representer(dumper, obj):
-        """Cosmology yaml representer function for {}.
-
-        Parameters
-        ----------
-        dumper : `~astropy.io.misc.yaml.AstropyDumper`
-        obj : `~astropy.cosmology.Cosmology`
-
-        Returns
-        -------
-        str
-            :mod:`yaml` representation of |Cosmology| object.
-        """
+    def representer(dumper: AstropyDumper, obj: Cosmology) -> str:
         # convert to mapping
         map = obj.to_format("mapping")
         # remove the cosmology class info. It's already recorded in `tag`
@@ -72,12 +87,14 @@ def yaml_representer(tag):
 
         return dumper.represent_mapping(tag, map)
 
-    representer.__doc__ = representer.__doc__.format(tag)
+    representer.__doc__ = _representer_doc.format(tag)
 
     return representer
 
 
-def yaml_constructor(cls):
+def yaml_constructor(
+    cls: type[_CosmoT],
+) -> Callable[[AstropyLoader, MappingNode], _CosmoT]:
     """Cosmology| object from :mod:`yaml` representation.
 
     Parameters
@@ -91,7 +108,7 @@ def yaml_constructor(cls):
         Function to construct |Cosmology| object from :mod:`yaml` representation.
     """
 
-    def constructor(loader, node):
+    def constructor(loader: AstropyLoader, node: MappingNode) -> _CosmoT:
         """Cosmology yaml constructor function.
 
         Parameters
@@ -116,7 +133,7 @@ def yaml_constructor(cls):
     return constructor
 
 
-def register_cosmology_yaml(cosmo_cls):
+def register_cosmology_yaml(cosmo_cls: type[Cosmology]) -> None:
     """Register :mod:`yaml` for Cosmology class.
 
     Parameters
@@ -136,14 +153,14 @@ def register_cosmology_yaml(cosmo_cls):
 # Unified-I/O Functions
 
 
-def from_yaml(yml, *, cosmology=None):
+def from_yaml(yml: str, *, cosmology: type[_CosmoT] | None = None) -> _CosmoT:
     """Load `~astropy.cosmology.Cosmology` from :mod:`yaml` object.
 
     Parameters
     ----------
     yml : str
         :mod:`yaml` representation of |Cosmology| object
-    cosmology : str, `~astropy.cosmology.Cosmology` class, or None (optional, keyword-only)
+    cosmology : str, |Cosmology| class, or None (optional, keyword-only)
         The expected cosmology class (or string name thereof). This argument is
         is only checked for correctness if not `None`.
 
@@ -178,14 +195,14 @@ def from_yaml(yml, *, cosmology=None):
     return cosmo
 
 
-def to_yaml(cosmology, *args):
+def to_yaml(cosmology: Cosmology, *args: object) -> str:
     r"""Return the cosmology class, parameters, and metadata as a :mod:`yaml` object.
 
     Parameters
     ----------
     cosmology : `~astropy.cosmology.Cosmology` subclass instance
         The cosmology to serialize.
-    *args
+    *args : Any
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
 
