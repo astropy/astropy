@@ -231,7 +231,7 @@ array with the following properties:
   single item, slicing, or index array access.
 - Has a ``shape`` attribute.
 - Has a ``__len__()`` method for length.
-- Has an ``info`` class descriptor which is a subclass of the
+- Has an ``info`` class descriptor which is an instance of a subclass of the
   :class:`astropy.utils.data_info.MixinInfo` class.
 
 The `Example: ArrayWrapper`_ section shows a minimal working example of a class
