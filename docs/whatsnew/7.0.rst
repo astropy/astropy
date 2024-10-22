@@ -29,6 +29,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_votable_1_5`
 * :ref:`whatsnew_7_0_simplenorm`
 * :ref:`whatsnew_7_0_sigmaclippedstats`
+* :ref:`whatsnew_7_0_wcsaxes_default_axes`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -435,6 +436,65 @@ simple example might be:
     (np.float64(20.79545805574793), np.float64(4283.1404835097765), np.float64(62.608350894722484))
     >>> stats.biweight_location(), stats.biweight_scale()  # doctest: +FLOAT_CMP
     (np.float64(67.98055399699436), np.float64(64.82889460022386))
+
+.. _whatsnew_7_0_wcsaxes_default_axes:
+
+Automatic placement of axis and tick labels for ``WCSAxes``
+===========================================================
+
+``WCSAxes`` now automatically selects which coordinates are displayed on which axes
+of a plot, a change from the previous behavior of using the ordering of the
+world axes in the WCS object.
+
+The selection is done by first placing the coordinates on the different axes in
+the order in which they appear in the WCS and then trying different permutations
+of coordinates on different axes to see if it is possible to increase the number
+of tick labels. This addresses the situation where ticks are shown along an axis
+where the world coordinate hardly varies when it varies substantially along the
+other axis.
+
+This default can be overridden by manually setting the axes to use with
+`~.CoordinateHelper.set_ticks_position`,
+`~.CoordinateHelper.set_ticklabel_position`, and
+`~.CoordinateHelper.set_axislabel_position`:
+
+.. plot::
+
+    import matplotlib.pyplot as plt
+
+    from astropy.wcs import WCS
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = 'RA---TAN', 'DEC--TAN'
+    wcs.wcs.crval = 10, 20
+    wcs.wcs.crpix = 30, 30
+    wcs.wcs.cdelt = 0.1, 0.1
+    wcs.wcs.cunit = 'deg', 'deg'
+    wcs.wcs.crota = 0, 89
+    wcs.wcs.set()
+
+    fig = plt.figure(figsize=(10, 5))
+    ax0 = fig.add_subplot(1, 2, 1, projection=wcs)
+    ax0.set_title("Previous default")
+    ax0.coords[0].set_axislabel_position("b")
+    ax0.coords[0].set_ticklabel_position("b")
+    ax0.coords[1].set_axislabel_position("l")
+    ax0.coords[1].set_ticklabel_position("l")
+    ax0.coords[0].tick_params(color="red", labelcolor="red")
+    ax0.coords[0].set_axislabel(ax0.coords[0].get_axislabel(), color="red")
+    ax0.coords[1].tick_params(color="blue", labelcolor="blue")
+    ax0.coords[1].set_axislabel(ax0.coords[1].get_axislabel(), color="blue")
+    ax0.coords.grid()
+
+    ax1 = fig.add_subplot(1, 2, 2, projection=wcs)
+    ax1.set_title("New default")
+    ax1.coords.grid()
+    ax1.coords[0].tick_params(color="red", labelcolor="red")
+    ax1.coords[0].set_axislabel(ax1.coords[0].get_axislabel(), color="red")
+    ax1.coords[1].tick_params(color="blue", labelcolor="blue")
+    ax1.coords[1].set_axislabel(ax1.coords[1].get_axislabel(), color="blue")
+
+    fig.tight_layout()
 
 Full change log
 ===============
