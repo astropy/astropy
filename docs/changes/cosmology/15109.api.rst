@@ -1,0 +1,2 @@
+The ``cosmology.parameter`` module is now private. It's contents: ``Parameter`` remain
+public and should be imported from ``cosmology``, not ``cosmology.parameter``.

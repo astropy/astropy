@@ -6,8 +6,7 @@ import numpy as np
 import pytest
 
 import astropy.units as u
-from astropy.cosmology import Flatw0wzCDM, w0wzCDM
-from astropy.cosmology.parameter import Parameter
+from astropy.cosmology import Flatw0wzCDM, Parameter, w0wzCDM
 from astropy.cosmology.tests.test_core import ParameterTestMixin, make_valid_zs
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
