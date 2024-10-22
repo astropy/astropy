@@ -100,7 +100,7 @@ def ipydatagrid(table, **kwargs):
     the Jupyter notebook.
 
     .. note::
-        This function requires an optional dependency, ``ipydatagrid``.
+        This function requires optional dependencies ``pandas`` and ``ipydatagrid``.
 
     Parameters
     ----------
