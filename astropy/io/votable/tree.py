@@ -79,6 +79,7 @@ from .exceptions import (
     W53,
     W54,
     W56,
+    W57,
     vo_raise,
     vo_reraise,
     vo_warn,
@@ -1052,10 +1053,7 @@ class Values(Element, _IDProperty):
 
     @min.setter
     def min(self, min):
-        if hasattr(self._field, "converter") and min is not None:
-            self._min = self._field.converter.parse(min, config=self._config)[0]
-        else:
-            self._min = min
+        self._min = self._parse_minmax(min)
 
     @min.deleter
     def min(self):
@@ -1088,10 +1086,7 @@ class Values(Element, _IDProperty):
 
     @max.setter
     def max(self, max):
-        if hasattr(self._field, "converter") and max is not None:
-            self._max = self._field.converter.parse(max, config=self._config)[0]
-        else:
-            self._max = max
+        self._max = self._parse_minmax(max)
 
     @max.deleter
     def max(self):
@@ -1164,6 +1159,35 @@ class Values(Element, _IDProperty):
                     break
 
         return self
+
+    def _parse_minmax(self, val):
+        retval = val
+        if hasattr(self._field, "converter") and val is not None:
+            parsed_val = None
+            if self._field.arraysize is None:
+                # Use the default parser.
+                parsed_val = self._field.converter.parse(val, config=self._config)[0]
+            else:
+                # Set config to ignore verification (prevent warnings and exceptions) on parse.
+                ignore_warning_config = self._config.copy()
+                ignore_warning_config["verify"] = "ignore"
+
+                # max should be a scalar except for certain xtypes so try scalar parsing first.
+                try:
+                    parsed_val = self._field.converter.parse_scalar(
+                        val, config=ignore_warning_config
+                    )[0]
+                except ValueError as ex:
+                    pass  # Ignore ValueError returned for array vals by some parsers (like int)
+                finally:
+                    if parsed_val is None:
+                        # Try the array parsing to support certain xtypes and historical array values.
+                        parsed_val = self._field.converter.parse(
+                            val, config=ignore_warning_config
+                        )[0]
+
+            retval = parsed_val
+        return retval
 
     def is_defaults(self):
         """
@@ -1810,7 +1834,7 @@ class CooSys(SimpleElement):
     name, documented below.
     """
 
-    _attr_list = ["ID", "equinox", "epoch", "system"]
+    _attr_list = ["ID", "equinox", "epoch", "system", "refposition"]
     _element_name = "COOSYS"
 
     def __init__(
@@ -1822,6 +1846,7 @@ class CooSys(SimpleElement):
         id=None,
         config=None,
         pos=None,
+        refposition=None,
         **extra,
     ):
         if config is None:
@@ -1841,6 +1866,11 @@ class CooSys(SimpleElement):
         self.equinox = equinox
         self.epoch = epoch
         self.system = system
+        self.refposition = refposition
+
+        # refposition introduced in v1.5.
+        if self.refposition is not None and not config.get("version_1_5_or_later"):
+            warn_or_raise(W57, W57, (), config, pos)
 
         warn_unknown_attrs("COOSYS", extra.keys(), config, pos)
 
@@ -1886,7 +1916,10 @@ class CooSys(SimpleElement):
             "barycentric",
             "geo_app",
         ):
-            warn_or_raise(E16, E16, system, self._config, self._pos)
+            if not self._config.get("version_1_5_or_later"):
+                # Starting in v1.5, system values come from the IVOA refframe vocabulary
+                # (http://www.ivoa.net/rdf/refframe).  For now we are not checking those values.
+                warn_or_raise(E16, E16, system, self._config, self._pos)
         self._system = system
 
     @system.deleter
@@ -4152,6 +4185,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         config["version_1_2_or_later"] = util.version_compare(self.version, "1.2") >= 0
         config["version_1_3_or_later"] = util.version_compare(self.version, "1.3") >= 0
         config["version_1_4_or_later"] = util.version_compare(self.version, "1.4") >= 0
+        config["version_1_5_or_later"] = util.version_compare(self.version, "1.5") >= 0
         return config
 
     # Map VOTable version numbers to namespace URIs and schema information.
@@ -4193,6 +4227,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             "schema_location_value": (
                 "http://www.ivoa.net/xml/VOTable/v1.3"
                 " http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"
+            ),
+        },
+        "1.5": {
+            "namespace_uri": "http://www.ivoa.net/xml/VOTable/v1.3",
+            "schema_location_attr": "xsi:schemaLocation",
+            "schema_location_value": (
+                "http://www.ivoa.net/xml/VOTable/v1.3"
+                " http://www.ivoa.net/xml/VOTable/VOTable-1.5.xsd"
             ),
         },
     }
