@@ -52,6 +52,11 @@ def classic(
         that if a column with this name already exists, this option will be
         ignored. Defaults to "idx".
 
+    Returns
+    -------
+    html : object
+        An ``IPython.display.HTML`` instance representing the given table.
+
     Notes
     -----
     Currently, unlike :meth:`~astropy.table.Table.show_in_browser`
@@ -99,6 +104,11 @@ def ipydatagrid(table, **kwargs):
     """Render the table in HTML with ``ipydatagrid`` and show it in
     the Jupyter notebook.
 
+    This function creates an ``ipydatagrid.DataGrid`` object by converting the input
+    ``table`` to a ``pandas.DataFrame`` and passing ``**kwargs`` to the constructor.
+    The available ``DataGrid`` options can be seen in a Jupyter notebook with
+    ``help(ipydatagrid.DataGrid)``.
+
     .. note::
         This function requires optional dependencies ``pandas`` and ``ipydatagrid``.
 
@@ -109,6 +119,11 @@ def ipydatagrid(table, **kwargs):
 
     **kwargs : dict, optional
         Keyword arguments accepted by ``ipydatagrid.DataGrid``.
+
+    Returns
+    -------
+    dg : object
+        An ``ipydatagrid.DataGrid`` instance representing the given table.
 
     """
     from ipydatagrid import DataGrid

@@ -7,7 +7,12 @@ from astropy import extern
 from astropy.coordinates import SkyCoord
 from astropy.table.table import Table
 from astropy.time import Time
-from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYDATAGRID, HAS_IPYTHON
+from astropy.utils.compat.optional_deps import (
+    HAS_BLEACH,
+    HAS_IPYDATAGRID,
+    HAS_IPYTHON,
+    HAS_PANDAS,
+)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
@@ -262,7 +267,9 @@ def test_show_in_notebook_classic():
     assert "<thead><tr><th>a</th><th>b</th></tr></thead>" in htmlstr_woindx
 
 
-@pytest.mark.skipif(not HAS_IPYDATAGRID, reason="requires ipydatagrid")
+@pytest.mark.skipif(
+    not HAS_IPYDATAGRID or not HAS_PANDAS, reason="requires ipydatagrid and pandas"
+)
 # https://github.com/bqplot/bqplot/issues/1624 and such
 @pytest.mark.filterwarnings(r"ignore:((.|\n)*)traitlets((.|\n)*):DeprecationWarning")
 def test_show_in_notebook_ipydatagrid():
