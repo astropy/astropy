@@ -66,7 +66,7 @@ def jackknife_resampling(data: NDArray[DT]) -> NDArray[DT]:
 def jackknife_stats(
     data: NDArray,
     statistic: Callable,
-    confidence_level: float | None = 0.95,
+    confidence_level: float = 0.95,
 ) -> tuple[float | NDArray, float | NDArray, float | NDArray, NDArray]:
     """Performs jackknife estimation on the basis of jackknife resamples.
 
