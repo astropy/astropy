@@ -7,7 +7,12 @@ from astropy import extern
 from astropy.coordinates import SkyCoord
 from astropy.table.table import Table
 from astropy.time import Time
-from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON
+from astropy.utils.compat.optional_deps import (
+    HAS_BLEACH,
+    HAS_IPYDATAGRID,
+    HAS_IPYTHON,
+    HAS_PANDAS,
+)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
@@ -223,34 +228,59 @@ def test_write_jsviewer_local(tmp_path):
         assert f.read().strip() == ref.strip()
 
 
-@pytest.mark.skipif(not HAS_IPYTHON, reason="requires iPython")
-def test_show_in_notebook():
+@pytest.mark.skipif(not HAS_IPYTHON, reason="requires IPython")
+def test_show_in_notebook_classic():
     t = Table()
     t["a"] = [1, 2, 3, 4, 5]
     t["b"] = ["b", "c", "a", "d", "e"]
 
     with pytest.warns(AstropyDeprecationWarning):
-        htmlstr_windx = t.show_in_notebook().data  # should default to 'idx'
-        htmlstr_windx_named = t.show_in_notebook(show_row_index="realidx").data
-        htmlstr_woindx = t.show_in_notebook(show_row_index=False).data
+        htmlstr_windx = t.show_in_notebook(
+            backend="classic"
+        ).data  # should default to 'idx'
+        htmlstr_windx_named = t.show_in_notebook(
+            backend="classic", show_row_index="realidx"
+        ).data
+        htmlstr_woindx = t.show_in_notebook(
+            backend="classic", show_row_index=False
+        ).data
 
-        assert (
-            textwrap.dedent(
-                """
-        <thead><tr><th>idx</th><th>a</th><th>b</th></tr></thead>
-        <tr><td>0</td><td>1</td><td>b</td></tr>
-        <tr><td>1</td><td>2</td><td>c</td></tr>
-        <tr><td>2</td><td>3</td><td>a</td></tr>
-        <tr><td>3</td><td>4</td><td>d</td></tr>
-        <tr><td>4</td><td>5</td><td>e</td></tr>
-        """
-            ).strip()
-            in htmlstr_windx
-        )
+    assert (
+        textwrap.dedent(
+            """
+    <thead><tr><th>idx</th><th>a</th><th>b</th></tr></thead>
+    <tr><td>0</td><td>1</td><td>b</td></tr>
+    <tr><td>1</td><td>2</td><td>c</td></tr>
+    <tr><td>2</td><td>3</td><td>a</td></tr>
+    <tr><td>3</td><td>4</td><td>d</td></tr>
+    <tr><td>4</td><td>5</td><td>e</td></tr>
+    """
+        ).strip()
+        in htmlstr_windx
+    )
 
-        assert (
-            "<thead><tr><th>realidx</th><th>a</th><th>b</th></tr></thead>"
-            in htmlstr_windx_named
-        )
+    assert (
+        "<thead><tr><th>realidx</th><th>a</th><th>b</th></tr></thead>"
+        in htmlstr_windx_named
+    )
 
-        assert "<thead><tr><th>a</th><th>b</th></tr></thead>" in htmlstr_woindx
+    assert "<thead><tr><th>a</th><th>b</th></tr></thead>" in htmlstr_woindx
+
+
+@pytest.mark.skipif(
+    not HAS_IPYDATAGRID or not HAS_PANDAS, reason="requires ipydatagrid and pandas"
+)
+# https://github.com/bqplot/bqplot/issues/1624 and such
+@pytest.mark.filterwarnings(r"ignore:((.|\n)*)traitlets((.|\n)*):DeprecationWarning")
+def test_show_in_notebook_ipydatagrid():
+    from ipydatagrid import DataGrid
+
+    t = Table()
+    dg = t.show_in_notebook()
+    assert isinstance(dg, DataGrid)
+
+
+def test_show_in_notebook_invalid_backend():
+    t = Table()
+    with pytest.raises(NotImplementedError, match=".* backend is not supported"):
+        t.show_in_notebook(backend="foo")

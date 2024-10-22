@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-7.0-table-masked-quantity`
 * :ref:`whatsnew-7.0-table-frames`
+* :ref:`whatsnew-7.0-table-notebook-backends`
 * :ref:`whatsnew_7_0_quantity_to_string_formatter`
 * :ref:`whatsnew_7_0_numpy_constructors_like_quantity`
 * :ref:`whatsnew_7_0_ecsv_meta_default_dict`
@@ -60,6 +61,21 @@ This includes all frames, also those that do not have associated data, such as
 a ``SkyOffsetFrame`` in which the RA, Dec of the origin might represent a
 pointing directions for a tiled observation, and the position angle the roll of
 a spacecraft.
+
+.. _whatsnew-7.0-table-notebook-backends:
+
+Table ``show_in_notebook`` is back with ``ipydatagrid``
+=======================================================
+
+Due to popular demand, the :meth:`~astropy.table.Table.show_in_notebook`
+method is revived (instead of deprecated) with a new backend that would
+require an optional dependency, ``ipydatagrid``. As a result, a new module
+called `astropy.table.notebook_backends` is added to support different
+backends for rendering Astropy tables in Jupyter notebooks.
+
+.. image:: https://raw.githubusercontent.com/jupyter-widgets/ipydatagrid/main/static/ipydatagrid_1.gif
+   :width: 450px
+   :alt: Animated DataGrid usage example from ipydatagrid
 
 .. _whatsnew_7_0_quantity_to_string_formatter:
 

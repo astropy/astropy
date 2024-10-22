@@ -59,10 +59,11 @@ recommended = [
 ipython = [
     "ipython>=8.0.0",
 ]
-jupyter = [  # these are optional dependencies for `utils.console`
+jupyter = [  # these are optional dependencies for utils.console and table
     "astropy[ipython]",
     "ipywidgets",
     "ipykernel",
+    "ipydatagrid",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
