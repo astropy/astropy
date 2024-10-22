@@ -1814,11 +1814,8 @@ class Table:
 
             # NOTE: The leading whitespace in warning lines is for backward compatibility.
             warnings.warn(
-                """show_in_notebook() is deprecated as of 6.1 and to create
-         interactive tables it is recommended to use dedicated tools like:
-         - https://github.com/bloomberg/ipydatagrid
-         - https://docs.bokeh.org/en/latest/docs/user_guide/interaction/widgets.html#datatable
-         - https://dash.plotly.com/datatable""",
+                "'classic' backend for show_in_notebook() is deprecated as of 6.1. "
+                "Instead, use the supported backend 'ipydatagrid'.",
                 AstropyDeprecationWarning,
             )
             func = classic
