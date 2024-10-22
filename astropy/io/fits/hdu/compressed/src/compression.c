@@ -10,13 +10,6 @@
 #include <ricecomp.h>
 
 
-// Compatibility code because we pick up fitsio2.h from cextern. Can
-// remove once we remove cextern
-#ifdef _REENTRANT
-pthread_mutex_t Fitsio_Lock;
-int Fitsio_Pthread_Status = 0;
-#endif
-
 /* Define docstrings */
 static char module_docstring[] = "Core compression/decompression functions wrapped from cfitsio.";
 static char compress_plio_1_c_docstring[] = "Compress data using PLIO_1";
