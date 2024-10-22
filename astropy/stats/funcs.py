@@ -71,7 +71,7 @@ to convert it to 1-sigma standard deviation.
 def binom_conf_interval(
     k: int | NDArray,
     n: int | NDArray,
-    confidence_level: float | None = 0.68269,
+    confidence_level: float = 0.68269,
     interval: Literal["wilson", "jeffreys", "flat", "wald"] = "wilson",
 ) -> NDArray:
     r"""Binomial proportion confidence interval given k successes,
@@ -307,7 +307,7 @@ def binned_binom_proportion(
     success: ArrayLike,
     bins: int | ArrayLike = 10,
     range: tuple[float, float] | None = None,
-    confidence_level: float | None = 0.68269,
+    confidence_level: float = 0.68269,
     interval: Literal["wilson", "jeffreys", "flat", "wald"] = "wilson",
 ) -> tuple[NDArray, NDArray, NDArray, NDArray]:
     """Binomial proportion and confidence interval in bins of a continuous
@@ -521,8 +521,8 @@ def poisson_conf_interval(
         "frequentist-confidence",
         "kraft-burrows-nousek",
     ] = "root-n",
-    sigma: float | None = 1.0,
-    background: float | None = 0.0,
+    sigma: float = 1.0,
+    background: float = 0.0,
     confidence_level: float | None = None,
 ) -> NDArray:
     r"""Poisson parameter confidence interval given observed counts.
@@ -959,7 +959,7 @@ def signal_to_noise_oir_ccd(
     dark_eps: float,
     rd: float,
     npix: float,
-    gain: float | None = 1.0,
+    gain: float = 1.0,
 ) -> float | NDArray:
     """Computes the signal to noise ratio for source being observed in the
     optical/IR using a CCD.
@@ -1005,7 +1005,7 @@ def signal_to_noise_oir_ccd(
 
 def bootstrap(
     data: NDArray,
-    bootnum: int | None = 100,
+    bootnum: int = 100,
     samples: int | None = None,
     bootfunc: Callable | None = None,
 ) -> NDArray:

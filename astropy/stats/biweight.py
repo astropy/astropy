@@ -49,7 +49,7 @@ def _stat_functions(
 
 def biweight_location(
     data: ArrayLike,
-    c: float | None = 6.0,
+    c: float = 6.0,
     M: float | ArrayLike | None = None,
     axis: int | tuple[int, ...] | None = None,
     *,
@@ -187,7 +187,7 @@ def biweight_location(
 
 def biweight_scale(
     data: ArrayLike,
-    c: float | None = 9.0,
+    c: float = 9.0,
     M: float | ArrayLike | None = None,
     axis: int | tuple[int, ...] | None = None,
     modify_sample_size: bool | None = False,
@@ -313,7 +313,7 @@ def biweight_scale(
 
 def biweight_midvariance(
     data: ArrayLike,
-    c: float | None = 9.0,
+    c: float = 9.0,
     M: float | ArrayLike | None = None,
     axis: int | tuple[int, ...] | None = None,
     modify_sample_size: bool | None = False,
@@ -497,7 +497,7 @@ def biweight_midvariance(
 
 def biweight_midcovariance(
     data: ArrayLike,
-    c: float | None = 9.0,
+    c: float = 9.0,
     M: float | ArrayLike | None = None,
     modify_sample_size: bool | None = False,
 ) -> NDArray[float]:
@@ -714,7 +714,7 @@ def biweight_midcovariance(
 def biweight_midcorrelation(
     x: ArrayLike,
     y: ArrayLike,
-    c: float | None = 9.0,
+    c: float = 9.0,
     M: float | ArrayLike | None = None,
     modify_sample_size: bool | None = False,
 ) -> float:
