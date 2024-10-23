@@ -952,8 +952,11 @@ def sigma_clipped_stats(
     std_ddof : int, optional
         The delta degrees of freedom for the standard deviation
         calculation. The divisor used in the calculation is ``N -
-        std_ddof``, where ``N`` represents the number of elements. The
-        default is 0.
+        std_ddof``, where ``N`` represents the number of elements. For a
+        population standard deviation where you have data for the entire
+        population, use ``std_ddof=0``. For a sample standard deviation
+        where you have a sample of the population, use ``std_ddof=1``.
+        The default is 0.
 
     axis : None or int or tuple of int, optional
         The axis or axes along which to sigma clip the data. If `None`,
