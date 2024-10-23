@@ -71,14 +71,13 @@ def lombscargle_chi2(
         yw = y / dy
     chi2_ref = np.dot(yw, yw)
 
-    # compute the unnormalized model chi2 at each frequency
+    # compute the unnormalized model sum of residuals at each frequency
     def compute_power(f):
         X = design_matrix(t, f, dy=dy, bias=fit_mean, nterms=nterms)
-        XTX = np.dot(X.T, X)
-        XTy = np.dot(X.T, yw)
-        return np.dot(XTy.T, np.linalg.solve(XTX, XTy))
+        _, res, _, _ = np.linalg.lstsq(X, yw, rcond=None)
+        return np.sum(res)
 
-    p = np.array([compute_power(f) for f in frequency])
+    p = np.array(chi2_ref - [compute_power(f) for f in frequency])
 
     if normalization == "psd":
         p *= 0.5
