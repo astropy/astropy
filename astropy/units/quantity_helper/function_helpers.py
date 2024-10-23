@@ -92,8 +92,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.isposinf, np.isneginf, np.isreal, np.iscomplex,
     np.average, np.mean, np.std, np.var, np.trace,
     np.nanmax, np.nanmin, np.nanargmin, np.nanargmax, np.nanmean,
-    np.nansum, np.nancumsum, np.nanstd, np.nanvar,
-    np.nanprod, np.nancumprod,
+    np.nansum, np.nancumsum, np.nanprod, np.nancumprod,
     np.einsum_path, np.linspace,
     np.sort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
@@ -215,6 +214,7 @@ dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
         np.fft.fft2, np.fft.ifft2, np.fft.rfft2, np.fft.irfft2,
         np.fft.fftn, np.fft.ifftn, np.fft.rfftn, np.fft.irfftn,
         np.fft.hfft, np.fft.ihfft,
+        np.nanstd,  # See comment on nanvar helper.
         np.linalg.eigvals, np.linalg.eigvalsh,
     } | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
 )
@@ -247,6 +247,17 @@ def like_helper(a, *args, **kwargs):
     subok = args[2] if len(args) > 2 else kwargs.pop("subok", True)
     unit = a.unit if subok else None
     return (a.view(np.ndarray),) + args, kwargs, unit, None
+
+
+# nanvar is safe for Quantity and was previously in SUBCLASS_FUNCTIONS, but it
+# is not safe for Angle, since the resulting unit is inconsistent with being
+# an Angle. By using FUNCTION_HELPERS, the unit gets passed through
+# _result_as_quantity, which will correctly drop to Quantity.
+# A side effect would be that np.nanstd then also produces Quantity; this
+# is avoided by it being helped by invariant_a_helpers above.
+@function_helper
+def nanvar(a, *args, **kwargs):
+    return (a.view(np.ndarray),) + args, kwargs, a.unit**2, None
 
 
 @function_helper

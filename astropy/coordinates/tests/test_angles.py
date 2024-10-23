@@ -216,6 +216,28 @@ def test_angle_methods():
     assert a_min == 0.0 * u.degree
 
 
+def test_angle_nan_functions():
+    # Most numpy functions tested as part of the Quantity tests.
+    # But check that we drop to Quantity when appropriate; see
+    # https://github.com/astropy/astropy/pull/17221#discussion_r1813060768
+    a = Angle([0.0, 2.0, np.nan], "deg")
+    a_mean = np.nanmean(a)
+    assert type(a_mean) is Angle
+    assert a_mean == 1.0 * u.degree
+    a_std = np.nanstd(a)
+    assert type(a_std) is Angle
+    assert a_std == 1.0 * u.degree
+    a_var = np.nanvar(a)
+    assert type(a_var) is u.Quantity
+    assert a_var == 1.0 * u.degree**2
+    a_max = np.nanmax(a)
+    assert type(a_max) is Angle
+    assert a_max == 2.0 * u.degree
+    a_min = np.nanmin(a)
+    assert type(a_min) is Angle
+    assert a_min == 0.0 * u.degree
+
+
 def test_angle_convert():
     """
     Test unit conversion of Angle objects
