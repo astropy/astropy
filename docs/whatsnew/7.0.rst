@@ -27,6 +27,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_lorentz2d_model`
 * :ref:`whatsnew_7_0_votable_1_5`
 * :ref:`whatsnew_7_0_simplenorm`
+* :ref:`whatsnew_7_0_sigmaclippedstats`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -392,6 +393,32 @@ method:
     fig, ax = plt.subplots()
     axim = snorm.imshow(image, ax=ax, origin='lower')
     fig.colorbar(axim)
+
+.. _whatsnew_7_0_sigmaclippedstats:
+
+New ``SigmaClippedStats`` class
+===============================
+
+A new convenience class, :class:`~astropy.stats.SigmaClippedStats`, has
+been added to the :mod:`~astropy.stats` module. This class provides a
+convenient way to compute statistics of an array with sigma-clipping. A
+simple example might be:
+
+.. doctest-skip::
+
+    >>> import numpy as np
+    >>> from astropy.stats import SigmaClippedStats
+    >>> rng = np.random.default_rng(seed=42)
+    >>> data = rng.exponential(scale=100, size=500)
+    >>> stats = SigmaClippedStats(data, sigma=3, maxiters=10)
+    >>> stats.min(), stats.max(), stats.sum()  # doctest: +FLOAT_CMP
+    (np.float64(0.8129422833034009), np.float64(255.34193997940474), np.float64(36783.895498717866))
+    >>> stats.mean(), stats.median(), stats.std()  # doctest: +FLOAT_CMP
+    (np.float64(79.61882142579624), np.float64(60.01103363578014), np.float64(65.4457063794851))
+    >>> stats.mode(), stats.var(), stats.mad_std()  # doctest: +FLOAT_CMP
+    (np.float64(20.79545805574793), np.float64(4283.1404835097765), np.float64(62.608350894722484))
+    >>> stats.biweight_location(), stats.biweight_scale()  # doctest: +FLOAT_CMP
+    (np.float64(67.98055399699436), np.float64(64.82889460022386))
 
 Full change log
 ===============
