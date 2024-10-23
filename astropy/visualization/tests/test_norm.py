@@ -7,7 +7,12 @@ from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
 from astropy.visualization.interval import ManualInterval, PercentileInterval
-from astropy.visualization.mpl_normalize import ImageNormalize, imshow_norm, simple_norm
+from astropy.visualization.mpl_normalize import (
+    ImageNormalize,
+    SimpleNorm,
+    imshow_norm,
+    simple_norm,
+)
 from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
 
 DATA = np.linspace(0.0, 15.0, 6)
@@ -282,30 +287,54 @@ class TestImageScaling:
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
+@pytest.mark.parametrize("stretch", ["linear", "sqrt", "power", "log", "asinh", "sinh"])
+def test_simplenorm(stretch):
+    data = np.arange(25).reshape((5, 5))
+    snorm = SimpleNorm(stretch, percent=99)
+    norm = snorm(data)
+    assert isinstance(norm, ImageNormalize)
+    assert_allclose(norm(data), simple_norm(data, stretch, percent=99)(data))
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
+def test_simplenorm_imshow():
+    import matplotlib.pyplot as plt
+    from matplotlib.image import AxesImage
+
+    data = np.arange(25).reshape((5, 5))
+    fig, ax = plt.subplots()
+    snorm = SimpleNorm("sqrt", percent=99)
+    axim = snorm.imshow(data, ax=ax)
+    assert isinstance(axim, AxesImage)
+    keys = ("vmin", "vmax", "stretch", "clip", "invalid")
+    for key in keys:
+        assert getattr(axim.norm, key) == getattr(snorm(data), key)
+
+    fig.clear()
+    axim = snorm.imshow(data, ax=None)
+
+    with pytest.raises(ValueError):
+        snorm.imshow(data, ax=ax, norm=ImageNormalize())
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
 def test_imshow_norm():
     import matplotlib.pyplot as plt
 
     image = np.random.randn(10, 10)
 
-    plt.clf()
-    ax = plt.subplot(label="test_imshow_norm")
+    fig, ax = plt.subplots(label="test_imshow_norm")
     imshow_norm(image, ax=ax)
-
-    with pytest.raises(ValueError):
-        # X and data are the same, can't give both
-        imshow_norm(image, X=image, ax=ax)
 
     with pytest.raises(ValueError):
         # illegal to manually pass in normalization since that defeats the point
         imshow_norm(image, ax=ax, norm=ImageNormalize())
 
-    plt.clf()
+    fig.clear()
     imshow_norm(image, ax=ax, vmin=0, vmax=1)
 
     # make sure the pyplot version works
-    plt.clf()
+    fig.clear()
     imres, norm = imshow_norm(image, ax=None)
 
     assert isinstance(norm, ImageNormalize)
-
-    plt.close("all")
