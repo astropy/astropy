@@ -330,7 +330,7 @@ class RectangularFrame(BaseFrame):
     A classic rectangular frame.
     """
 
-    spine_names = "brtl"
+    spine_names = "bltr"
 
     def update_spines(self):
         xmin, xmax = self.parent_axes.get_xlim()
