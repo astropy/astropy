@@ -146,19 +146,25 @@ class AsymmetricPercentileInterval(BaseInterval):
 
     Parameters
     ----------
-    lower_percentile : float
-        The lower percentile below which to ignore pixels.
-    upper_percentile : float
-        The upper percentile above which to ignore pixels.
+    lower_percentile : float or None
+        The lower percentile below which to ignore pixels. If None, then
+        defaults to 0.
+    upper_percentile : float or None
+        The upper percentile above which to ignore pixels. If None, then
+        defaults to 100.
     n_samples : int, optional
         Maximum number of values to use. If this is specified, and there
         are more values in the dataset as this, then values are randomly
         sampled from the array (with replacement).
     """
 
-    def __init__(self, lower_percentile, upper_percentile, n_samples=None):
-        self.lower_percentile = lower_percentile
-        self.upper_percentile = upper_percentile
+    def __init__(self, lower_percentile=None, upper_percentile=None, n_samples=None):
+        self.lower_percentile = (
+            lower_percentile if lower_percentile is not None else 0.0
+        )
+        self.upper_percentile = (
+            upper_percentile if upper_percentile is not None else 100.0
+        )
         self.n_samples = n_samples
 
     def get_limits(self, values):
