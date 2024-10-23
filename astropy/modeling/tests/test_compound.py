@@ -1249,10 +1249,16 @@ def numerical_partial_deriv(model, *inputs, param_idx, delta=1e-5):
 @pytest.mark.parametrize(
     "model",
     [
-        Gaussian1D(5, 2, 3) + Linear1D(2, 3),
-        Gaussian1D(5, 2, 3) - Linear1D(2, 3),
-        Polynomial1D(2) * Gaussian1D(),
-        Polynomial1D(2) / Gaussian1D(),
+        pytest.param(
+            m, id=m._format_expression(format_leaf=lambda i, l: type(l).__name__)
+        )
+        for m in [
+            Gaussian1D(5, 2, 3) + Linear1D(2, 3),
+            Gaussian1D(5, 2, 3) - Linear1D(2, 3),
+            Polynomial1D(2) * Gaussian1D(),
+            Polynomial1D(2) / Gaussian1D(),
+            Polynomial1D(2) + Gaussian1D(),
+        ]
     ],
 )
 def test_compound_fit_deriv(model):
