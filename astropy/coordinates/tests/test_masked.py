@@ -340,6 +340,13 @@ class TestSkyCoordWithDifferentials:
         assert_array_equal(self.sc.get_mask(), self.mask)
         assert_array_equal(self.sc.get_mask("ra", "dec"), False)
 
+    def test_filled(self):
+        unmasked = self.sc.unmasked
+        filled = self.sc.filled(unmasked[1])
+        expected = unmasked.copy()
+        expected[self.mask] = unmasked[1]
+        assert skycoord_equal(filled, expected)
+
     @pytest.mark.parametrize(
         "dt",
         [
