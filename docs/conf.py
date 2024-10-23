@@ -246,6 +246,7 @@ html_theme_options.update(
         },
         # https://github.com/pydata/pydata-sphinx-theme/issues/1492
         "navigation_with_keys": False,
+        "announcement": 'The <a href="https://ui.adsabs.harvard.edu/abs/2013A%26A...558A..33A/abstract">First Astropy Paper</a> recently hit 10,000 citations. Thanks to everyone who has cited the paper and contributed to Astropy.',
     }
 )
 
