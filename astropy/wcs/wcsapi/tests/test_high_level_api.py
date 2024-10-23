@@ -282,3 +282,27 @@ def test_minimal_mixin_subclass():
     pixel = high_level_wcs.world_to_array_index(*coord)
 
     assert_allclose(pixel, (1, 2))
+
+
+def test_world_to_array_index_nan():
+    # see https://github.com/astropy/astropy/issues/17227
+    wcs1 = WCS(naxis=1)
+    wcs1.wcs.crpix = (1,)
+    wcs1.wcs.set()
+    wcs1.pixel_bounds = [None]
+
+    res1 = wcs1.world_to_array_index(*wcs1.pixel_to_world((5,)))
+    assert not np.any(np.isnan(res1))
+    assert res1.ndim == 0
+    assert res1.item() == 5
+
+    wcs2 = WCS(naxis=2)
+    wcs2.wcs.crpix = (1, 1)
+    wcs2.wcs.set()
+    wcs2.pixel_bounds = [None, (-0.5, 3.5)]
+
+    res2 = wcs2.world_to_array_index(*wcs2.pixel_to_world(5, 5))
+    assert not np.any(np.isnan(res2))
+    assert isinstance(res2, tuple)
+    assert len(res2) == 2
+    assert res2 == (np.iinfo(int).min, 5)
