@@ -121,7 +121,7 @@ cdef _lomb_scargle(const DTYPE_t[::1] t, const DTYPE_t[::1] y, const DTYPE_t[::1
         dcos_buffer = <DTYPE_t*>malloc(N_obs * sizeof(DTYPE_t))
 
     if assume_regular_frequency:
-        #init the buffers in order to enable recursion
+        #init the buffers to enable recursion
         for j in range(N_obs):
             tmp = t[j] * (omega[N_freq-1] - omega[0]) / (N_freq - 1)
             dsin_buffer[j] = sin(tmp)
