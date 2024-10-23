@@ -833,8 +833,6 @@ class CoordinateHelper:
     def _draw_grid(self, renderer):
         renderer.open_group("grid lines")
 
-        self._update_ticks()
-
         if self._grid_lines_kwargs["visible"]:
             if isinstance(self.frame, RectangularFrame1D):
                 self._update_grid_lines_1d()

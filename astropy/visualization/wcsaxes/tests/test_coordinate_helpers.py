@@ -132,13 +132,23 @@ def test_grid_variations(ignore_matplotlibrc, draw_grid, expected_visibility):
 def test_get_position():
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
 
     assert ax.coords[0].get_ticks_position() == "bltr"
     assert ax.coords[1].get_ticks_position() == "bltr"
-    assert ax.coords[0].get_ticklabel_position() == "b"
-    assert ax.coords[1].get_ticklabel_position() == "l"
-    assert ax.coords[0].get_axislabel_position() == "b"
-    assert ax.coords[1].get_axislabel_position() == "l"
+    assert ax.coords[0].get_ticklabel_position() == "#"
+    assert ax.coords[1].get_ticklabel_position() == "#"
+    assert ax.coords[0].get_axislabel_position() == "#"
+    assert ax.coords[1].get_axislabel_position() == "#"
+
+    fig.canvas.draw()
+
+    assert ax.coords[0].get_ticks_position() == "bltr"
+    assert ax.coords[1].get_ticks_position() == "bltr"
+    assert ax.coords[0].get_ticklabel_position() == "b#"
+    assert ax.coords[1].get_ticklabel_position() == "l#"
+    assert ax.coords[0].get_axislabel_position() == "b#"
+    assert ax.coords[1].get_axislabel_position() == "l#"
 
     ax.coords[0].set_ticks_position("br")
     ax.coords[1].set_ticks_position("tl")

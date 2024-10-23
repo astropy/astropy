@@ -490,30 +490,13 @@ class WCSAxes(Axes):
         if rcParams["axes.grid"]:
             self.grid()
 
-    def draw_wcsaxes(self, renderer):
-        if not self.axison:
-            return
-        # Here need to find out range of all coordinates, and update range for
-        # each coordinate axis. For now, just assume it covers the whole sky.
-
-        self._bboxes = []
-        # This generates a structure like [coords][axis] = [...]
-        ticklabels_bbox = defaultdict(partial(defaultdict, list))
-
-        visible_ticks = []
-
+    def _update_tick_and_label_positions(self, keep_coord_range=False):
         for coords in self._all_coords:
-            # Draw grids
             coords.frame.update()
-
-            # Pre-compute the coord range
             coords._coord_range = coords.get_coord_range()
 
             for coord in coords:
-                coord._draw_grid(renderer)
-
-            # Delete the computation to protect from accidental use of a stale range
-            del coords._coord_range
+                coord._update_ticks()
 
         # At this point, if any of the tick/ticklabel/axislabel positions are
         # set to be automatic, we need to determine the optimal positions.
@@ -565,6 +548,27 @@ class WCSAxes(Axes):
                 # TODO: decide if this should emit a warning or if we should
                 # instead cycle through the spine list again
                 pass
+
+    def draw_wcsaxes(self, renderer):
+        if not self.axison:
+            return
+        # Here need to find out range of all coordinates, and update range for
+        # each coordinate axis. For now, just assume it covers the whole sky.
+
+        self._bboxes = []
+        # This generates a structure like [coords][axis] = [...]
+        ticklabels_bbox = defaultdict(partial(defaultdict, list))
+
+        visible_ticks = []
+
+        self._update_tick_and_label_positions(keep_coord_range=True)
+
+        for coords in self._all_coords:
+            for coord in coords:
+                coord._draw_grid(renderer)
+
+            # Delete the computation to protect from accidental use of a stale range
+            del coords._coord_range
 
         for coords in self._all_coords:
             # Draw tick labels
@@ -626,6 +630,7 @@ class WCSAxes(Axes):
     # Matplotlib internally sometimes calls set_xlabel(label=...).
     def set_xlabel(self, xlabel=None, labelpad=1, loc=None, **kwargs):
         """Set x-label."""
+        self._update_tick_and_label_positions()
         if xlabel is None:
             xlabel = kwargs.pop("label", None)
             if xlabel is None:
@@ -642,6 +647,7 @@ class WCSAxes(Axes):
 
     def set_ylabel(self, ylabel=None, labelpad=1, loc=None, **kwargs):
         """Set y-label."""
+        self._update_tick_and_label_positions()
         if ylabel is None:
             ylabel = kwargs.pop("label", None)
             if ylabel is None:
@@ -661,6 +667,7 @@ class WCSAxes(Axes):
                 break
 
     def get_xlabel(self):
+        self._update_tick_and_label_positions()
         for coord in self.coords:
             if (
                 "b" in coord._axislabels.get_visible_axes()
@@ -669,6 +676,7 @@ class WCSAxes(Axes):
                 return coord.get_axislabel()
 
     def get_ylabel(self):
+        self._update_tick_and_label_positions()
         if self.frame_class is RectangularFrame1D:
             return super().get_ylabel()
 
