@@ -5,7 +5,6 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import ICRS, BaseCoordinateFrame, SkyCoord
 from astropy.wcs import WCS
-from astropy.wcs.utils import local_partial_pixel_derivatives
 from astropy.wcs.wcsapi import SlicedLowLevelWCS
 
 from .frame import EllipticalFrame, RectangularFrame, RectangularFrame1D
@@ -167,57 +166,20 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
         inv_all_corr = np.all(m, axis=1)
         m = m[:, ::-1]
 
-    if frame_class is RectangularFrame:
-        for i, spine_name in enumerate("bltr"):
-            pos = np.nonzero(m[:, i % 2])[0]
-            # If all the axes we have are correlated with each other and we
-            # have inverted the axes, then we need to reverse the index so we
-            # put the 'y' on the left.
-            if inv_all_corr[i % 2]:
-                pos = pos[::-1]
+    if frame_class in (RectangularFrame, RectangularFrame1D):
+        for index in world_map:
+            coord_meta["default_axislabel_position"][index] = "#"
+            coord_meta["default_ticklabel_position"][index] = "#"
+            coord_meta["default_ticks_position"][index] = "#"
 
-            if len(pos) > 0:
-                index = world_map[pos[0]]
-                coord_meta["default_axislabel_position"][index] = spine_name
-                coord_meta["default_ticklabel_position"][index] = spine_name
-                coord_meta["default_ticks_position"][index] = spine_name
-                m[pos[0], :] = 0
-
-        # In the special and common case where the frame is rectangular and
-        # we are dealing with 2-d WCS (after slicing), we show all ticks on
-        # all axes for backward-compatibility.
-        if len(world_map) == 2:
+        # In the special and common case where the frame is rectangular and we
+        # are dealing with a 2-d WCS (after slicing) for RectangularFrame or a
+        # 1-d WCS for RectangularFrame1D, we show all ticks on all axes.
+        if (frame_class is RectangularFrame and len(world_map) == 2) or (
+            frame_class is RectangularFrame1D and len(world_map) == 1
+        ):
             for index in world_map:
-                coord_meta["default_ticks_position"][index] = "bltr"
-
-    elif frame_class is RectangularFrame1D:
-        derivs = np.abs(
-            local_partial_pixel_derivatives(
-                transform_wcs,
-                *[0] * transform_wcs.pixel_n_dim,
-                normalize_by_world=False,
-            )
-        )[:, 0]
-        for i, spine_name in enumerate("bt"):
-            # Here we are iterating over the correlated axes in world axis order.
-            # We want to sort the correlated axes by their partial derivatives,
-            # so we put the most rapidly changing world axis on the bottom.
-            pos = np.nonzero(m[:, 0])[0]
-            order = np.argsort(derivs[pos])[::-1]  # Sort largest to smallest
-            pos = pos[order]
-            if len(pos) > 0:
-                index = world_map[pos[0]]
-                coord_meta["default_axislabel_position"][index] = spine_name
-                coord_meta["default_ticklabel_position"][index] = spine_name
-                coord_meta["default_ticks_position"][index] = spine_name
-                m[pos[0], :] = 0
-
-        # In the special and common case where the frame is rectangular and
-        # we are dealing with 2-d WCS (after slicing), we show all ticks on
-        # all axes for backward-compatibility.
-        if len(world_map) == 1:
-            for index in world_map:
-                coord_meta["default_ticks_position"][index] = "bt"
+                coord_meta["default_ticks_position"][index] = frame_class.spine_names
 
     elif frame_class is EllipticalFrame:
         if "longitude" in coord_meta["type"]:
