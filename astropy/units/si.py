@@ -61,7 +61,12 @@ def_unit(
     namespace=_ns,
     doc="ångström: 10 ** -10 m",
     prefixes=[(["m", "milli"], ["milli", "m"], 1.0e-3)],
-    format={"latex": r"\mathring{A}", "unicode": "Å", "vounit": "Angstrom"},
+    format={
+        "latex": r"\mathring{A}",
+        "ogip": "angstrom",
+        "unicode": "Å",
+        "vounit": "Angstrom",
+    },
 )
 
 
