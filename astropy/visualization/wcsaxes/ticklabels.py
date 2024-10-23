@@ -176,7 +176,7 @@ class TickLabels(Text):
         if self._visible_axes == "all":
             return list(self._frame.keys())
         else:
-            return [x for x in self._visible_axes if x in self._frame]
+            return [x for x in self._visible_axes if x in self._frame or x == "#"]
 
     def set_exclude_overlapping(self, exclude_overlapping):
         self._exclude_overlapping = exclude_overlapping
@@ -337,6 +337,9 @@ class TickLabels(Text):
         self._set_xy_alignments(renderer)
 
         for axis in self.get_visible_axes():
+            if axis == "#":
+                continue
+
             for i in range(len(self.world[axis])):
                 # This implicitly sets the label text, position, alignment
                 bb = self._get_bb(axis, i, renderer)

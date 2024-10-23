@@ -515,6 +515,57 @@ class WCSAxes(Axes):
             # Delete the computation to protect from accidental use of a stale range
             del coords._coord_range
 
+        # At this point, if any of the tick/ticklabel/axislabel positions are
+        # set to be automatic, we need to determine the optimal positions.
+
+        # We start off by checking whether any of the CoordinateHelper objects
+        # are for coordinates where any of the positions are set to auto
+        # (indicated by a "#")
+        auto_coords = []
+        for coords in self._all_coords:
+            for coord in coords:
+                if (
+                    "#" in coord.get_ticks_position()
+                    or "#" in coord.get_ticklabel_position()
+                    or "#" in coord.get_axislabel_position()
+                ):
+                    auto_coords.append(coord)
+
+        # At this point, if there are one or more coordinates we proceed and
+        # try and assign positions automatically
+        if len(auto_coords) >= 1:
+            # Keey track of which coordinates were set to automatic and for
+            # which item (ticks, ticklabels, axislabels)
+            coords_restore_to_auto = {}
+
+            # Loop over the axes/spines in the frame
+            for axis in coords.frame.spine_names:
+                # For each one, find the coordinate that has the most ticks
+                coord = max(auto_coords, key=lambda c: len(c._ticks.world[axis]))
+
+                # Manually set the desired axis on this coordinate
+                if "#" in coord.get_ticks_position():
+                    coord.set_ticks_position(axis + "#")
+                if "#" in coord.get_ticklabel_position():
+                    coord.set_ticklabel_position(axis + "#")
+                if "#" in coord.get_axislabel_position():
+                    coord.set_axislabel_position(axis + "#")
+
+                # Remove the coordinate from the list of consideration for
+                # the next iteration
+                auto_coords.remove(coord)
+
+                # If there aren't any left in auto_coords, we've successfully
+                # processed all the coordinates with auto settings.
+                if len(auto_coords) == 0:
+                    break
+
+            # Not enough spines to show the remaining auto-coordinates on
+            if len(auto_coords) > 0:
+                # TODO: decide if this should emit a warning or if we should
+                # instead cycle through the spine list again
+                pass
+
         for coords in self._all_coords:
             # Draw tick labels
             for coord in coords:
