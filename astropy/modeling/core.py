@@ -3313,10 +3313,10 @@ class CompoundModel(Model):
 
             left_deriv = self.left.fit_deriv(*left_inputs, *left_params)
             if not self.left.col_fit_deriv:
-                left_deriv = np.asanyarray(left_deriv).T
+                left_deriv = (np.asanyarray(left_deriv).T).tolist()
             right_deriv = self.right.fit_deriv(*right_inputs, *right_params)
             if not self.right.col_fit_deriv:
-                right_deriv = np.asanyarray(right_deriv).T
+                right_deriv = (np.asanyarray(right_deriv).T).tolist()
 
             # We now have to use various differentiation rules to apply the
             # arithmetic operators to the derivatives.
