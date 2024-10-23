@@ -520,7 +520,7 @@ class LombScargle(BasePeriodogram):
 
         dy = np.ones_like(y) if dy is None else np.asarray(dy)
         X = self.design_matrix(frequency)
-        parameters, _, _, _ = np.linalg.lstsq(X, y / dy, rcond=None)
+        parameters = np.linalg.solve(np.dot(X.T, X), np.dot(X.T, y / dy))
         if units:
             parameters = get_unit(self.y) * parameters
         return parameters
