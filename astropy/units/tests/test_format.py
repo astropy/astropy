@@ -720,14 +720,13 @@ def test_deprecated_did_you_mean_units():
     assert "Crab (deprecated)" in str(exc_info.value)
     assert "mCrab (deprecated)" in str(exc_info.value)
 
-    with pytest.warns(
-        UnitsWarning,
-        match=r".* Did you mean 0\.1nm, Angstrom "
-        r"\(deprecated\) or angstrom \(deprecated\)\?",
-    ) as w:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"Did you mean 0\.1nm, Angstrom \(deprecated\) or angstrom \(deprecated\)\?"
+        ),
+    ):
         u.Unit("ANGSTROM", format="vounit")
-    assert len(w) == 1
-    assert str(w[0].message).count("0.1nm") == 1
 
     with pytest.warns(UnitsWarning, match=r".* 0\.1nm\.") as w:
         u.Unit("angstrom", format="vounit")
@@ -754,9 +753,8 @@ def test_vounit_binary_prefix():
     assert u.Unit("KiB", format="vounit") == u.Unit("1024 B")
     assert u.Unit("Kibyte", format="vounit") == u.Unit("1024 B")
     assert u.Unit("Kibit", format="vounit") == u.Unit("128 B")
-    with pytest.warns(UnitsWarning) as w:
+    with pytest.raises(ValueError, match="not supported by the VOUnit standard"):
         u.Unit("kibibyte", format="vounit")
-    assert len(w) == 1
 
 
 def test_vounit_unknown():
@@ -777,7 +775,7 @@ def test_vounit_details():
     with pytest.warns(
         UnitsWarning, match="Unit 'kdB' not supported by the VOUnit standard.*"
     ):
-        u.Unit("kdB", format="vounit")
+        u.Unit("kdB", format="vounit", parse_strict="warn")
 
     # The da- prefix is not allowed, and the d- prefix is discouraged
     assert u.dam.to_string("vounit") == "10m"
@@ -859,7 +857,7 @@ def test_vounit_custom():
 def test_vounit_implicit_custom():
     # Yikes, this becomes "femto-urlong"...  But at least there's a warning.
     with pytest.warns(UnitsWarning) as w:
-        x = u.Unit("furlong/week", format="vounit")
+        x = u.Unit("furlong/week", format="vounit", parse_strict="warn")
     assert x.bases[0]._represents.scale == 1e-15
     assert x.bases[0]._represents.bases[0].name == "urlong"
     assert len(w) == 2
