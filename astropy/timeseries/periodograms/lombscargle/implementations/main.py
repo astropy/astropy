@@ -217,6 +217,10 @@ def lombscargle(
             kwds.pop("frequency"), assume_regular_frequency
         )
         kwds.update(f0=f0, df=df, Nf=Nf)
+        
+    # enable optimizations specific to regular grids only
+    if method == "cython":
+        kwds.update(assume_regular_frequency=assume_regular_frequency)
 
     # only chi2 methods support nterms
     if not method.endswith("chi2"):
