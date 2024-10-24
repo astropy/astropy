@@ -534,15 +534,18 @@ class WCSAxes(Axes):
         # If there are one or more coordinates we proceed and try and assign
         # positions automatically
         if len(auto_coords) >= 1:
+
+            # Extract the spines for the frame
+            spines = coords.frame.spine_names
+
             # We create an iterable of different assignments of spines to
             # coords, where empty string means the coordinate will not be shown
             # on any axis.
-            spines = coords.frame.spine_names
             if len(auto_coords) > len(spines):
                 spines = spines + "".join(" " * (len(auto_coords) - len(spines)))
             else:
-                spines = spines[: len(auto_coords)]
-            options = permutations(spines)
+                spines = spines
+            options = permutations(spines, r=len(auto_coords))
 
             # Keep track of the maximum number of ticks for different options
             n_tick_max = -1
