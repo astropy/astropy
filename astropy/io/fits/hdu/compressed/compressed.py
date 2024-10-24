@@ -325,12 +325,6 @@ class CompImageHDU(ImageHDU):
         else:
             # Create at least a skeleton HDU that matches the input
             # header and data (if any were input)
-
-            if header is not None:
-                bscale = header.get("BSCALE")
-                bzero = header.get("BZERO")
-                simple = header.get("SIMPLE")
-
             super().__init__(
                 data=data,
                 header=header or Header(),
@@ -340,15 +334,8 @@ class CompImageHDU(ImageHDU):
                 scale_back=scale_back,
             )
 
-            if header is not None:
-                if bscale is not None:
-                    self.header["BSCALE"] = bscale
-
-                if bzero is not None:
-                    self.header["BZERO"] = bzero
-
-                if simple is not None:
-                    self.header["SIMPLE"] = simple
+            if header is not None and "SIMPLE" in header:
+                self.header["SIMPLE"] = header["SIMPLE"]
 
             self.compression_type = compression_type
             self.tile_shape = _validate_tile_shape(

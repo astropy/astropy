@@ -1,0 +1,2 @@
+Fix creating CompImageHDU from header with BSCALE/BZERO: keywords are now
+ignored, as done in ImageHDU.
