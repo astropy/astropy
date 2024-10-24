@@ -534,9 +534,22 @@ class WCSAxes(Axes):
         # If there are one or more coordinates we proceed and try and assign
         # positions automatically
         if len(auto_coords) >= 1:
-
             # Extract the spines for the frame
             spines = coords.frame.spine_names
+
+            # Determine spines to exclude - to do this we look only at axes being
+            # used for tick labels because it's possible the user (or the defaults)
+            # have resulted in all ticks being shown on all axes. The automated
+            # algorithm here is primarily concerned with placing tick labels
+            # in the most sensible way.
+            already_used = []
+            for coords in self._all_coords:
+                for coord in coords:
+                    pos = coord.get_ticklabel_position()
+                    if "#" not in pos:
+                        already_used += list(pos)
+
+            spines = "".join(s for s in spines if s not in already_used)
 
             # We create an iterable of different assignments of spines to
             # coords, where empty string means the coordinate will not be shown
