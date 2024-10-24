@@ -2061,7 +2061,7 @@ def test_read_converters_simplified():
 
     converters = {"a": float, "*": [np.int64, float, bool, str]}
     t2 = Table.read(out.getvalue(), format="ascii.basic", converters=converters)
-    assert t2.pformat_all(show_dtype=True) == [
+    assert t2.pformat(show_dtype=True) == [
         "   a       b      c     d     e  ",
         "float64 float64  bool  str5 int64",
         "------- ------- ----- ----- -----",

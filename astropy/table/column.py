@@ -852,7 +852,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def pformat(
         self,
-        max_lines=None,
+        max_lines=-1,
         show_name=True,
         show_unit=False,
         show_dtype=False,
@@ -860,17 +860,19 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
     ):
         """Return a list of formatted string representation of column values.
 
-        If no value of ``max_lines`` is supplied then the height of the
+        If ``max_lines=None`` is supplied then the height of the
         screen terminal is used to set ``max_lines``.  If the terminal
         height cannot be determined then the default will be
         determined using the ``astropy.conf.max_lines`` configuration
         item. If a negative value of ``max_lines`` is supplied then
-        there is no line limit applied.
+        there is no line limit applied (default).
 
         Parameters
         ----------
-        max_lines : int
-            Maximum lines of output (header + data rows)
+        max_lines : int or None
+            Maximum lines of output (header + data rows).
+            -1 (default) implies no limit, ``None`` implies using the
+            height of the current terminal.
 
         show_name : bool
             Include column name. Default is True.
@@ -904,7 +906,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
     def pprint(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False):
         """Print a formatted string representation of column values.
 
-        If no value of ``max_lines`` is supplied then the height of the
+        If ``max_lines=None`` (default) then the height of the
         screen terminal is used to set ``max_lines``.  If the terminal
         height cannot be determined then the default will be
         determined using the ``astropy.conf.max_lines`` configuration
