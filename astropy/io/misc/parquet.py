@@ -509,7 +509,7 @@ def get_pyarrow():
     return pa, parquet
 
 
-def write_parquet_votable(table, output, *, metadata, overwrite=False,
+def write_parquet_votable(table, output, *, metadata=None, overwrite=False,
                           overwrite_metadata=False):
     """
     Writes a Parquet file with a VOT (XML) metadata table included.
@@ -532,7 +532,6 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False,
         If `True`, overwrite existing column metadata. Default is `False`.
     """
     # TODO cases to handle:
-    # - missing metadata kwarg, e.g. it could be inherited from the input table
     # - overwriting metadata, metadata could be partially missing, the provided
     #   one then could overwrite the existing one in the table
     # - make overwrite actually overwrite rather than delete the file upfront
@@ -557,9 +556,15 @@ def write_parquet_votable(table, output, *, metadata, overwrite=False,
     # We only use the first row of the astropy table to get the general
     # information such as arraysize, ID, or datatype.
 
-    # TODO this step looses the metadata that the astropy Table input might have had, e.g. column units.
+    # TODO this step looses the metadata that the astropy Table input might have had,
+    # e.g. column units.
     votablefile = VOTableFile()
     votable_write = votablefile.from_table(table[0:1])
+
+    # TODO: API placeholder for inheriting metadata from exising table, thus
+    # no API change is needed for making this technically optional
+    if metadata is None:
+        raise NotImplementedError("metadata has to be always specified")
 
     # Then add the other metadata keys to the FIELDS parameters of the VOTable
     metadatakeys = list(metadata[next(iter(metadata.keys()))].keys())
