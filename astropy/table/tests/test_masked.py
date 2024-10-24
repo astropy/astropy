@@ -10,6 +10,7 @@ import astropy.units as u
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.table.column import BaseColumn
 from astropy.time import Time
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.masked import Masked
 
 
@@ -195,21 +196,32 @@ class TestMaskedColumnInit(SetupData):
             MaskedColumn(name="b", length=4, mask=mask_list)
 
 
+DTYPES_TEST_INIT = ["?", "b", "i2", "f4", "c8", "S", "U", "O"]
+if not NUMPY_LT_2_0:
+    DTYPES_TEST_INIT.extend(
+        [
+            np.dtypes.StrDType,  # same as "U"
+            np.dtypes.BytesDType,  # same as "S"
+            np.dtypes.StringDType,
+        ]
+    )
+
+
 class TestTableInit(SetupData):
     """Initializing a table"""
 
-    @pytest.mark.parametrize("type_str", ("?", "b", "i2", "f4", "c8", "S", "U", "O"))
+    @pytest.mark.parametrize("dtype", DTYPES_TEST_INIT)
     @pytest.mark.parametrize("shape", ((8,), (4, 2), (2, 2, 2)))
-    def test_init_from_sequence_data_numeric_typed(self, type_str, shape):
+    def test_init_from_sequence_data_numeric_typed(self, dtype, shape):
         """Test init from list or list of lists with dtype specified, optionally
         including an np.ma.masked element.
         """
         # Make data of correct dtype and shape, then turn into a list,
-        # then use that to init Table with spec'd type_str.
+        # then use that to init Table with spec'd dtype.
         data = list(range(8))
-        np_data = np.array(data, dtype=type_str).reshape(shape)
+        np_data = np.array(data, dtype=dtype).reshape(shape)
         np_data_list = np_data.tolist()
-        t = Table([np_data_list], dtype=[type_str])
+        t = Table([np_data_list], dtype=[dtype])
         col = t["col0"]
         assert col.dtype == np_data.dtype
         assert np.all(col == np_data)
@@ -223,21 +235,21 @@ class TestTableInit(SetupData):
         else:
             np_data_list[-1][-1][-1] = np.ma.masked
         last_idx = tuple(-1 for _ in shape)
-        t = Table([np_data_list], dtype=[type_str])
+        t = Table([np_data_list], dtype=[dtype])
         col = t["col0"]
         assert col.dtype == np_data.dtype
         assert np.all(col == np_data)
         assert col.mask[last_idx]
         assert type(col) is MaskedColumn
 
-    @pytest.mark.parametrize("type_str", ("?", "b", "i2", "f4", "c8", "S", "U", "O"))
+    @pytest.mark.parametrize("dtype", DTYPES_TEST_INIT)
     @pytest.mark.parametrize("shape", ((8,), (4, 2), (2, 2, 2)))
-    def test_init_from_sequence_data_numeric_untyped(self, type_str, shape):
+    def test_init_from_sequence_data_numeric_untyped(self, dtype, shape):
         """Test init from list or list of lists with dtype NOT specified,
         optionally including an np.ma.masked element.
         """
         data = list(range(8))
-        np_data = np.array(data, dtype=type_str).reshape(shape)
+        np_data = np.array(data, dtype=dtype).reshape(shape)
         np_data_list = np_data.tolist()
         t = Table([np_data_list])
         # Grab the dtype that numpy assigns for the Python list inputs
