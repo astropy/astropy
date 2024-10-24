@@ -5,6 +5,7 @@ import contextlib
 import os
 import re
 from math import ceil
+from pathlib import Path
 
 from astropy import online_docs_root
 from astropy.io.votable import exceptions
@@ -124,9 +125,7 @@ def write_result(result):
     xml = result.get_xml_content()
     xml_lines = xml.splitlines()
 
-    path = os.path.join(result.get_dirpath(), "index.html")
-
-    with open(path, "w", encoding="utf-8") as fd:
+    with open(result._dirpath / "index.html", "w", encoding="utf-8") as fd:
         w = XMLWriter(fd)
         with make_html_header(w):
             with w.tag("p"):
@@ -145,7 +144,7 @@ def write_result(result):
                 content = result["xmllint_content"]
                 if not isinstance(content, str):
                     content = content.decode("ascii")
-                content = content.replace(result.get_dirpath() + "/", "")
+                content = content.replace(str(result._dirpath) + os.sep, "")
                 with w.tag("pre"):
                     w.data(content)
 
@@ -171,7 +170,7 @@ def write_result_row(w, result):
                 w.element(
                     "a",
                     result.url.decode("ascii"),
-                    href=f"{result.get_htmlpath()}/index.html",
+                    href=f"{result._htmlpath}/index.html",
                 )
 
         if "network_error" in result and result["network_error"] is not None:
@@ -247,8 +246,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
 
     for i, j in enumerate(range(0, max(len(results), 1), chunk_size)):
         subresults = results[j : j + chunk_size]
-        path = os.path.join(root, f"{basename}_{i:02d}.html")
-        with open(path, "w", encoding="utf-8") as fd:
+        with Path(root, f"{basename}_{i:02d}.html").open("w", encoding="utf-8") as fd:
             w = XMLWriter(fd)
             with make_html_header(w):
                 write_page_links(i)
@@ -291,8 +289,7 @@ def add_subset(w, basename, name, subresults, inside=["p"], total=None):
 
 
 def write_index(subsets, results, root="results"):
-    path = os.path.join(root, "index.html")
-    with open(path, "w", encoding="utf-8") as fd:
+    with Path(root, "index.html").open("w", encoding="utf-8") as fd:
         w = XMLWriter(fd)
         with make_html_header(w):
             w.element("h1", "VO Validation results")
