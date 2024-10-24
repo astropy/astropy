@@ -613,7 +613,10 @@ class CoordinateHelper:
             The axes on which the ticks for this coordinate should appear.
             Should be a string containing zero or more of ``'b'``, ``'t'``,
             ``'l'``, ``'r'``. For example, ``'lb'`` will lead the ticks to be
-            shown on the left and bottom axis.
+            shown on the left and bottom axis. In addition, if ``'#'`` is
+            included in the string, the position will be considered dynamic and
+            will be updated at draw-time in order to show the ticks on the same
+            axes as the tick labels are shown.
         """
         self._ticks.set_visible_axes(position)
 
@@ -684,7 +687,10 @@ class CoordinateHelper:
             The axes on which the tick labels for this coordinate should
             appear. Should be a string containing zero or more of ``'b'``,
             ``'t'``, ``'l'``, ``'r'``. For example, ``'lb'`` will lead the
-            tick labels to be shown on the left and bottom axis.
+            tick labels to be shown on the left and bottom axis. In addition,
+            if ``'#'`` is included in the string, the position will be
+            considered dynamic and will be updated at draw-time in order to
+            attempt to optimize the layout of all the coordinates.
         """
         self._ticklabels.set_visible_axes(position)
 
@@ -792,7 +798,10 @@ class CoordinateHelper:
             The axes on which the axis label for this coordinate should
             appear. Should be a string containing zero or more of ``'b'``,
             ``'t'``, ``'l'``, ``'r'``. For example, ``'lb'`` will lead the
-            axis label to be shown on the left and bottom axis.
+            axis label to be shown on the left and bottom axis. In addition, if
+            ``'#'`` is included in the string, the position will be considered
+            dynamic and will be updated at draw-time in order to show the axis
+            label on the same axes as the tick labels are shown.
         """
         self._axislabels.set_visible_axes(position)
 

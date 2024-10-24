@@ -1,5 +1,7 @@
 from itertools import permutations
 
+import numpy as np
+
 __all__ = ["auto_assign_coord_positions"]
 
 
@@ -34,9 +36,9 @@ def auto_assign_coord_positions(ax):
         for coord in coords:
             if "#" not in (pos := coord.get_ticklabel_position()):
                 if "#" in coord.get_ticks_position():
-                    coords.set_ticks_position(pos + "#")
+                    coord.set_ticks_position(pos + "#")
                 if "#" in coord.get_axislabel_position():
-                    coords.set_axislabel_position(pos + "#")
+                    coord.set_axislabel_position(pos + "#")
 
     # At this point, all coordinates requiring automatic placement have
     # tick labels requiring automatic placement (any coordinates with fixed
@@ -89,8 +91,21 @@ def auto_assign_coord_positions(ax):
         if not consistent:
             continue
 
+        # Determine the number of tick labels on each axis
+        n_on_each = {s: len(c._ticks.world[s]) for c, s in zip(auto_coords, option)}
+
         # Determine the total number of tick labels
-        n_tick = sum([len(c._ticks.world[s]) for c, s in zip(auto_coords, option)])
+        n_tick = sum(n_on_each.values())
+
+        # Determine a sorted version of this list by spine axis order
+        n_on_each_sorted = [n_on_each.get(s, 0) for s in spines]
+
+        # We should ideally not have empty spines, so if there are any non-zero
+        # values in n_on_each then we should add a penalty for every 0 value
+        # that occurs before the last non-zero value
+        idx = np.nonzero(n_on_each_sorted)[0]
+        if len(idx) > 0:
+            n_tick -= n_on_each_sorted[: idx[-1]].count(0) * 1e-3
 
         # Keep track of the best option so far
         if n_tick > n_tick_max:
