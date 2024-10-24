@@ -336,6 +336,52 @@ def test_custom_coord_type_from_ctype():
         assert ax.coords["eggs"].get_format_unit() == u.deg
 
 
+def test_custom_coord_type_from_ctype_nested():
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["eggs", "spam"]
+    wcs.wcs.cunit = ["deg", "deg"]
+
+    custom_mapping = {
+        "eggs": "custom:pos.eggs",
+        "spam": "custom:pos.spam",
+    }
+
+    with custom_ctype_to_ucd_mapping(custom_mapping):
+        fig = plt.figure()
+        custom_meta_1 = {
+            "pos.eggs": {
+                "coord_wrap": 360.0 * u.deg,
+                "format_unit": u.arcsec,
+                "coord_type": "longitude",
+            }
+        }
+        with custom_ucd_wcscoord_mapping(custom_meta_1):
+            custom_meta_2 = {
+                "pos.spam": {
+                    "format_unit": u.deg,
+                    "coord_type": "latitude",
+                }
+            }
+            with custom_ucd_wcscoord_mapping(custom_meta_2):
+                ax = fig.add_subplot(111, projection=wcs)
+                ax.coords
+                assert ax.coords["eggs"].coord_type == "longitude"
+                assert ax.coords["eggs"].coord_wrap == 360 * u.deg
+                assert ax.coords["eggs"].get_format_unit() == u.arcsec
+                assert ax.coords["spam"].coord_type == "latitude"
+                assert ax.coords["spam"].get_format_unit() == u.deg
+
+        # Now test the mappings have been removed
+        fig2 = plt.figure()
+        ax = fig.add_subplot(111, projection=wcs)
+        assert ax.coords["eggs"].coord_type == "scalar"
+        assert ax.coords["eggs"].coord_wrap == None
+        assert ax.coords["eggs"].get_format_unit() == u.deg
+        assert ax.coords["spam"].coord_type == "scalar"
+        assert ax.coords["spam"].coord_wrap == None
+        assert ax.coords["spam"].get_format_unit() == u.deg
+
+
 def test_coord_type_1d_1d_wcs():
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = ["WAVE"]
