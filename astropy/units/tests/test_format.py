@@ -529,7 +529,7 @@ def test_latex_inline_scale():
         ("unicode", "erg Å⁻¹ s⁻¹ cm⁻²", "10000000 kg m⁻¹ s⁻³"),
         (">25s", "   erg / (Angstrom s cm2)", "        1e+07 kg / (m s3)"),
         ("cds", "erg.Angstrom-1.s-1.cm-2", "10000000kg.m-1.s-3"),
-        ("ogip", "10 erg / (nm s cm**2)", "1e+07 kg / (m s**3)"),
+        ("ogip", "erg / (angstrom s cm**2)", "1e+07 kg / (m s**3)"),
         ("fits", "erg Angstrom-1 s-1 cm-2", "10**7 kg m-1 s-3"),
         ("vounit", "erg.Angstrom**-1.s**-1.cm**-2", "10000000kg.m**-1.s**-3"),
         # TODO: make fits and vounit less awful!
