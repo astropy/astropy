@@ -27,6 +27,7 @@ import inspect
 import warnings
 from functools import reduce, wraps
 from importlib.metadata import entry_points
+from itertools import chain
 
 import numpy as np
 
@@ -1179,6 +1180,11 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             self._use_min_max_bounds,
             fit_param_indices=fit_param_indices,
         )
+        fps = list(
+            chain.from_iterable(
+                [[p] if p.shape == () else p.flatten().tolist() for p in fps]
+            )
+        )
 
         if weights is None:
             value = np.ravel(model.evaluate(*inputs, *fps) - meas)
@@ -2172,7 +2178,10 @@ def fitter_to_model_params_array(
 
     bounds = model.bounds
     param_metrics = model._param_metrics
-    parameters = np.empty(sum(m["size"] for m in param_metrics.values()), dtype=float)
+    parameters = [
+        np.zeros(m["shape"]) if m["shape"] != () else np.zeros(m["size"])
+        for m in param_metrics.values()
+    ]
 
     if fit_param_indices is None:
         _, fit_param_indices, _ = model_to_fit_params(model)
@@ -2182,7 +2191,7 @@ def fitter_to_model_params_array(
         metrics = param_metrics[name]
         slice_ = metrics["slice"]
         if idx not in fit_param_indices:
-            parameters[slice_] = getattr(model, name).value
+            parameters[idx] = getattr(model, name).value
             continue
 
         shape = metrics["shape"]
@@ -2199,7 +2208,7 @@ def fitter_to_model_params_array(
             if _max is not None:
                 values = np.fmin(values, _max)
 
-        parameters[slice_] = values
+        parameters[idx] = values
         offset += size
 
     # This has to be done in a separate loop due to how tied parameters are
@@ -2208,7 +2217,11 @@ def fitter_to_model_params_array(
     # better to change this at some point
     if has_tied:
         # Update model parameters before calling ``tied`` constraints.
-        model.parameters = parameters
+        model.parameters = list(
+            chain.from_iterable(
+                [[p] if p.shape == () else p.flatten().tolist() for p in parameters]
+            )
+        )
 
         for idx, name in enumerate(model.param_names):
             if model.tied[name]:
@@ -2217,7 +2230,7 @@ def fitter_to_model_params_array(
 
                 # To handle multiple tied constraints, model parameters
                 # need to be updated after each iteration.
-                parameters[slice_] = value
+                parameters[idx] = value
                 model._array_to_parameters()
 
     return parameters
@@ -2243,7 +2256,11 @@ def fitter_to_model_params(model, fps, use_min_max_bounds=True):
     parameters = fitter_to_model_params_array(
         model, fps, use_min_max_bounds, fit_param_indices=fit_param_indices
     )
-    model.parameters = parameters
+    model.parameters = list(
+        chain.from_iterable(
+            [[p] if p.shape == () else p.flatten().tolist() for p in parameters]
+        )
+    )
 
 
 def model_to_fit_params(model):
