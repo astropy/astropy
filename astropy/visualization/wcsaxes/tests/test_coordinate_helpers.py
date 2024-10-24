@@ -134,8 +134,8 @@ def test_get_position():
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
 
-    assert ax.coords[0].get_ticks_position() == "bltr"
-    assert ax.coords[1].get_ticks_position() == "bltr"
+    assert ax.coords[0].get_ticks_position() == "brtl"
+    assert ax.coords[1].get_ticks_position() == "brtl"
     assert ax.coords[0].get_ticklabel_position() == "#"
     assert ax.coords[1].get_ticklabel_position() == "#"
     assert ax.coords[0].get_axislabel_position() == "#"
@@ -143,8 +143,8 @@ def test_get_position():
 
     fig.canvas.draw()
 
-    assert ax.coords[0].get_ticks_position() == "bltr"
-    assert ax.coords[1].get_ticks_position() == "bltr"
+    assert ax.coords[0].get_ticks_position() == "brtl"
+    assert ax.coords[1].get_ticks_position() == "brtl"
     assert ax.coords[0].get_ticklabel_position() == "b#"
     assert ax.coords[1].get_ticklabel_position() == "l#"
     assert ax.coords[0].get_axislabel_position() == "b#"
