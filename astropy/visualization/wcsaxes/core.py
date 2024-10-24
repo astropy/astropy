@@ -918,6 +918,8 @@ class WCSAxes(Axes):
         elif axis in ("x", "y") and self.frame_class is RectangularFrame:
             spine = "b" if axis == "x" else "l"
 
+            self._update_tick_and_label_positions()
+
             for coord in self.coords:
                 if spine in coord._axislabels.get_visible_axes():
                     coord.tick_params(**kwargs)
