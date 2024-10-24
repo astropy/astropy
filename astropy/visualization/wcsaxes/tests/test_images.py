@@ -658,6 +658,8 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticklabel(alpha=0.5)
         ax.coords[0].set_ticklabel_position("all")
         ax.coords[1].set_ticklabel_position("all")
+        ax.coords[0].set_axislabel_position("b")
+        ax.coords[1].set_axislabel_position("l")
         return fig
 
     @figure_test
