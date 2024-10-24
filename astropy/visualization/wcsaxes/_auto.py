@@ -61,7 +61,7 @@ def auto_assign_coord_positions(ax):
         return
 
     # Extract the spines for the frame
-    spines = coords.frame.spine_names
+    spines = coords.frame._spine_auto_position_order
 
     # Construct a new list of spines taking into account excluded ones
     spines = "".join(s for s in spines if s not in already_used)
