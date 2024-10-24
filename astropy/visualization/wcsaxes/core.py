@@ -2,7 +2,6 @@
 
 from collections import defaultdict
 from functools import partial
-from itertools import permutations
 
 import numpy as np
 from matplotlib import rcParams
@@ -16,6 +15,7 @@ from astropy.utils.compat.optional_deps import HAS_PIL
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
+from ._auto import auto_assign_coord_positions
 from .coordinates_map import CoordinatesMap
 from .frame import RectangularFrame, RectangularFrame1D
 from .transforms import CoordinateTransform
@@ -512,72 +512,7 @@ class WCSAxes(Axes):
 
         # At this point, if any of the tick/ticklabel/axislabel positions are
         # set to be automatic, we need to determine the optimal positions.
-
-        # We start off by checking whether any of the CoordinateHelper objects
-        # are for coordinates where any of the positions are set to auto
-        # (indicated by a "#")
-        auto_coords = []
-        for coords in self._all_coords:
-            for coord in coords:
-                if (
-                    "#" in coord.get_ticks_position()
-                    or "#" in coord.get_ticklabel_position()
-                    or "#" in coord.get_axislabel_position()
-                ):
-                    auto_coords.append(coord)
-
-        # NOTE: for now we assume that only the main coordinate system has
-        # automatic placement as in general we hard-code overlays to t and r.
-        # However we should think of what happens if the overlays are set to
-        # auto mode.
-
-        # If there are one or more coordinates we proceed and try and assign
-        # positions automatically
-        if len(auto_coords) >= 1:
-            # Extract the spines for the frame
-            spines = coords.frame.spine_names
-
-            # Determine spines to exclude - to do this we look only at axes being
-            # used for tick labels because it's possible the user (or the defaults)
-            # have resulted in all ticks being shown on all axes. The automated
-            # algorithm here is primarily concerned with placing tick labels
-            # in the most sensible way.
-            already_used = []
-            for coords in self._all_coords:
-                for coord in coords:
-                    pos = coord.get_ticklabel_position()
-                    if "#" not in pos:
-                        already_used += list(pos)
-
-            spines = "".join(s for s in spines if s not in already_used)
-
-            # We create an iterable of different assignments of spines to
-            # coords, where empty string means the coordinate will not be shown
-            # on any axis.
-            if len(auto_coords) > len(spines):
-                spines = spines + "".join(" " * (len(auto_coords) - len(spines)))
-            else:
-                spines = spines
-            options = permutations(spines, r=len(auto_coords))
-
-            # Keep track of the maximum number of ticks for different options
-            n_tick_max = -1
-            best_option = None
-            for option in options:
-                n_tick = sum(
-                    [len(c._ticks.world[s]) for c, s in zip(auto_coords, option)]
-                )
-                if n_tick > n_tick_max:
-                    n_tick_max = n_tick
-                    best_option = option
-
-            for coord, spine in zip(auto_coords, best_option):
-                if "#" in coord.get_ticks_position():
-                    coord.set_ticks_position(spine + "#")
-                if "#" in coord.get_ticklabel_position():
-                    coord.set_ticklabel_position(spine + "#")
-                if "#" in coord.get_axislabel_position():
-                    coord.set_axislabel_position(spine + "#")
+        auto_assign_coord_positions(self)
 
         if not keep_coord_range:
             for coords in self._all_coords:
