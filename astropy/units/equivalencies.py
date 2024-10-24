@@ -386,11 +386,11 @@ def doppler_radio(rest):
         return restwav * ckms / (ckms - x)
 
     def to_vel_en(x):
-        resten = rest.to_value(si.eV, equivalencies=spectral())
+        resten = rest.to_value(misc.eV, equivalencies=spectral())
         return (resten - x) / (resten) * ckms
 
     def from_vel_en(x):
-        resten = rest.to_value(si.eV, equivalencies=spectral())
+        resten = rest.to_value(misc.eV, equivalencies=spectral())
         voverc = x / ckms
         return resten * (1 - voverc)
 
@@ -398,7 +398,7 @@ def doppler_radio(rest):
         [
             (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (si.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (misc.eV, si.km / si.s, to_vel_en, from_vel_en),
         ],
         "doppler_radio",
         {"rest": rest},
@@ -456,11 +456,11 @@ def doppler_optical(rest):
         return restwav * (1 + voverc)
 
     def to_vel_en(x):
-        resten = rest.to_value(si.eV, equivalencies=spectral())
+        resten = rest.to_value(misc.eV, equivalencies=spectral())
         return ckms * (resten - x) / x
 
     def from_vel_en(x):
-        resten = rest.to_value(si.eV, equivalencies=spectral())
+        resten = rest.to_value(misc.eV, equivalencies=spectral())
         voverc = x / ckms
         return resten / (1 + voverc)
 
@@ -468,7 +468,7 @@ def doppler_optical(rest):
         [
             (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (si.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (misc.eV, si.km / si.s, to_vel_en, from_vel_en),
         ],
         "doppler_optical",
         {"rest": rest},
@@ -533,11 +533,11 @@ def doppler_relativistic(rest):
         return restwav * ((1 + voverc) / (1 - voverc)) ** 0.5
 
     def to_vel_en(x):
-        resten = rest.to_value(si.eV, spectral())
+        resten = rest.to_value(misc.eV, spectral())
         return (resten**2 - x**2) / (resten**2 + x**2) * ckms
 
     def from_vel_en(x):
-        resten = rest.to_value(si.eV, spectral())
+        resten = rest.to_value(misc.eV, spectral())
         voverc = x / ckms
         return resten * ((1 - voverc) / (1 + (voverc))) ** 0.5
 
@@ -545,7 +545,7 @@ def doppler_relativistic(rest):
         [
             (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (si.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (misc.eV, si.km / si.s, to_vel_en, from_vel_en),
         ],
         "doppler_relativistic",
         {"rest": rest},
@@ -817,7 +817,7 @@ def temperature_energy():
     e = _si.e.value
     k_B = _si.k_B.value
     return Equivalency(
-        [(si.K, si.eV, lambda x: x / (e / k_B), lambda x: x * (e / k_B))],
+        [(si.K, misc.eV, lambda x: x / (e / k_B), lambda x: x * (e / k_B))],
         "temperature_energy",
     )
 

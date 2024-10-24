@@ -557,8 +557,8 @@ class TableFormatter:
     def _pformat_table(
         self,
         table,
-        max_lines=None,
-        max_width=None,
+        max_lines=-1,
+        max_width=-1,
         show_name=True,
         show_unit=None,
         show_dtype=False,
@@ -574,9 +574,13 @@ class TableFormatter:
         ----------
         max_lines : int or None
             Maximum number of rows to output
+            -1 (default) implies no limit, ``None`` implies using the
+            height of the current terminal.
 
         max_width : int or None
             Maximum character width of output
+            -1 (default) implies no limit, ``None`` implies using the
+            width of the current terminal.
 
         show_name : bool
             Include a header row for column names. Default is True.

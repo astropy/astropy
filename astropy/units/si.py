@@ -8,8 +8,6 @@ This package defines the SI units.  They are also available in
 
 import numpy as np
 
-from astropy.constants import si as _si
-
 from .core import Unit, UnitBase, def_unit
 
 __all__: list[str] = []  #  Units are added at the end
@@ -314,13 +312,6 @@ def_unit(
     namespace=_ns,
     prefixes=True,
     doc="Joule: energy",
-)
-def_unit(
-    ["eV", "electronvolt"],
-    _si.e.value * J,
-    namespace=_ns,
-    prefixes=True,
-    doc="Electron Volt",
 )
 
 

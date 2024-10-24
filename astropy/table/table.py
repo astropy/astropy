@@ -1649,7 +1649,7 @@ class Table:
         return self._base_repr_(html=False, max_width=None)
 
     def __str__(self):
-        return "\n".join(self.pformat())
+        return "\n".join(self.pformat(max_lines=None, max_width=None))
 
     def __bytes__(self):
         return str(self).encode("utf-8")
@@ -1919,8 +1919,8 @@ class Table:
     @format_doc(_pformat_docs, id="{id}")
     def pformat(
         self,
-        max_lines=None,
-        max_width=None,
+        max_lines=-1,
+        max_width=-1,
         show_name=True,
         show_unit=None,
         show_dtype=False,
@@ -1932,12 +1932,12 @@ class Table:
         """Return a list of lines for the formatted string representation of
         the table.
 
-        If no value of ``max_lines`` is supplied then the height of the
+        If ``max_lines=None`` is supplied then the height of the
         screen terminal is used to set ``max_lines``.  If the terminal
-        height cannot be determined then the default is taken from the
-        configuration item ``astropy.conf.max_lines``.  If a negative
-        value of ``max_lines`` is supplied then there is no line limit
-        applied.
+        height cannot be determined then the default will be
+        determined using the ``astropy.conf.max_lines`` configuration
+        item. If a negative value of ``max_lines`` is supplied then
+        there is no line limit applied (default).
 
         The same applies for ``max_width`` except the configuration item  is
         ``astropy.conf.max_width``.
@@ -1961,6 +1961,7 @@ class Table:
 
         return lines
 
+    @deprecated(since="7.0", alternative="Table.pformat")
     @format_doc(_pformat_docs, id="{id}")
     def pformat_all(
         self,
@@ -1977,12 +1978,12 @@ class Table:
         """Return a list of lines for the formatted string representation of
         the entire table.
 
-        If no value of ``max_lines`` is supplied then the height of the
+        If ``max_lines=None`` is supplied then the height of the
         screen terminal is used to set ``max_lines``.  If the terminal
-        height cannot be determined then the default is taken from the
-        configuration item ``astropy.conf.max_lines``.  If a negative
-        value of ``max_lines`` is supplied then there is no line limit
-        applied.
+        height cannot be determined then the default will be
+        determined using the ``astropy.conf.max_lines`` configuration
+        item. If a negative value of ``max_lines`` is supplied then
+        there is no line limit applied (default).
 
         The same applies for ``max_width`` except the configuration item  is
         ``astropy.conf.max_width``.
