@@ -46,7 +46,15 @@ def _toindex(value):
     >>> _toindex(np.array([1.5, 2.49999]))
     array([2, 2])
     """
-    indx = np.asarray(np.floor(np.asarray(value) + 0.5), dtype=int)
+    arr = np.floor(np.asarray(value) + 0.5)
+
+    fill_value = np.iinfo(int).min
+    if np.isscalar(arr):
+        if np.isnan(arr):
+            arr = fill_value
+    else:
+        arr[np.isnan(arr)] = fill_value
+    indx = np.asarray(arr, dtype=int)
     return indx
 
 
