@@ -491,6 +491,18 @@ class WCSAxes(Axes):
             self.grid()
 
     def _update_tick_and_label_positions(self, keep_coord_range=False):
+        """
+        This method will update the tick positions and will then optionally
+        decide on which axes to show ticks/tick labels/axis labels on if in
+        automatic mode.
+
+        The ``keep_coord_range`` argument is used to indicate whether to keep
+        coords._coord_range at the end of the method or whether to clean it
+        up.
+        """
+
+        # Start off by updating the frame, pre-computing the coordinate range
+        # in the figure, and updating the tick positions.
         for coords in self._all_coords:
             coords.frame.update()
             coords._coord_range = coords.get_coord_range()
@@ -514,8 +526,8 @@ class WCSAxes(Axes):
                 ):
                     auto_coords.append(coord)
 
-        # At this point, if there are one or more coordinates we proceed and
-        # try and assign positions automatically
+        # If there are one or more coordinates we proceed and try and assign
+        # positions automatically
         if len(auto_coords) >= 1:
             # Keey track of which coordinates were set to automatic and for
             # which item (ticks, ticklabels, axislabels)
@@ -548,6 +560,10 @@ class WCSAxes(Axes):
                 # TODO: decide if this should emit a warning or if we should
                 # instead cycle through the spine list again
                 pass
+
+        if not keep_coord_range:
+            for coords in self._all_coords:
+                del coords._coord_range
 
     def draw_wcsaxes(self, renderer):
         if not self.axison:
