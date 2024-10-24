@@ -79,6 +79,9 @@ def lombscargle_chi2(
         return np.dot(XTy.T, np.linalg.solve(XTX, XTy))
 
     p = np.array([compute_power(f) for f in frequency])
+    p = np.array(chi2_ref - [compute_power(f) for f in frequency])
+
+    p = np.array([compute_power(f) for f in frequency])
 
     if normalization == "psd":
         p *= 0.5
