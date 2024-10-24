@@ -280,6 +280,7 @@ class RectangularFrame1D(BaseFrame):
     """
 
     spine_names = "bt"
+    _spine_auto_position_order = "bt"
     spine_class = SpineXAligned
 
     def update_spines(self):
@@ -330,7 +331,8 @@ class RectangularFrame(BaseFrame):
     A classic rectangular frame.
     """
 
-    spine_names = "bltr"
+    spine_names = "brtl"
+    _spine_auto_position_order = "bltr"
 
     def update_spines(self):
         xmin, xmax = self.parent_axes.get_xlim()
@@ -350,6 +352,7 @@ class EllipticalFrame(BaseFrame):
     """
 
     spine_names = "chv"
+    _spine_auto_position_order = "chv"
 
     def update_spines(self):
         xmin, xmax = self.parent_axes.get_xlim()
