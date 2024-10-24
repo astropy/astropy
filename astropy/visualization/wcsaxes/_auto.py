@@ -105,7 +105,7 @@ def auto_assign_coord_positions(ax):
         # that occurs before the last non-zero value
         idx = np.nonzero(n_on_each_sorted)[0]
         if len(idx) > 0:
-            n_tick -= n_on_each_sorted[: idx[-1]].count(0) * 1e-3
+            n_tick -= n_on_each_sorted[: idx[-1]].count(0)
 
         # Keep track of the best option so far
         if n_tick > n_tick_max:
