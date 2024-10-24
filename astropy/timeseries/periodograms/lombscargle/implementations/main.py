@@ -222,7 +222,7 @@ def lombscargle(
         )
         kwds.update(f0=f0, df=df, Nf=Nf)
 
-    # enable optimizations specific to regular grids only
+    # if the grid is regular enable additional optimizations in the cython method
     if method == "cython":
         kwds.update(assume_regular_frequency=assume_regular_frequency)
 
