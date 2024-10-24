@@ -299,6 +299,10 @@ def test_coord_type_from_ctype(cube_wcs):
     assert coord_meta["format_unit"] == [u.arcsec, u.arcsec]
     assert coord_meta["wrap"] == [180 * u.deg, None]
 
+    del astropy.visualization.wcsaxes.wcsapi.CUSTOM_UCD_COORD_META_MAPPING[
+        "custom:pos.myframe.lon"
+    ]
+
 
 def test_custom_coord_type_from_ctype():
     wcs = WCS(naxis=1)
