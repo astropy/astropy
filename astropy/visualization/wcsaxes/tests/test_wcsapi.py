@@ -8,7 +8,6 @@ import numpy as np
 import pytest
 from matplotlib.transforms import Affine2D, IdentityTransform
 
-import astropy.visualization.wcsaxes.wcsapi
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
@@ -276,32 +275,6 @@ def test_coord_type_from_ctype(cube_wcs):
         },
         "custom:pos.myframe.lat": {"format_unit": u.arcsec, "coord_type": "latitude"},
     }
-
-    astropy.visualization.wcsaxes.wcsapi.CUSTOM_UCD_COORD_META_MAPPING.update(
-        myframe_mapping
-    )
-
-    wcs = WCS(naxis=2)
-    wcs.wcs.ctype = ["MFLN-TAN", "MFLT-TAN"]
-    wcs.wcs.crpix = [256.0] * 2
-    wcs.wcs.cdelt = [-0.05] * 2
-    wcs.wcs.crval = [50.0] * 2
-    wcs.wcs.set()
-
-    custom_mapping = {
-        "MFLN": "custom:pos.myframe.lon",
-        "MFLT": "custom:pos.myframe.lat",
-    }
-    with custom_ctype_to_ucd_mapping(custom_mapping):
-        _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
-
-    assert coord_meta["type"] == ["longitude", "latitude"]
-    assert coord_meta["format_unit"] == [u.arcsec, u.arcsec]
-    assert coord_meta["wrap"] == [180 * u.deg, None]
-
-    del astropy.visualization.wcsaxes.wcsapi.CUSTOM_UCD_COORD_META_MAPPING[
-        "custom:pos.myframe.lon"
-    ]
 
 
 def test_custom_coord_type_from_ctype():
