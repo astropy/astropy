@@ -104,6 +104,30 @@ def_unit(
     doc="Unified atomic mass unit",
 )
 
+##########################################################################
+# ENERGY
+
+def_unit(
+    ["eV", "electronvolt"],
+    _si.e.value * si.J,
+    namespace=_ns,
+    prefixes=True,
+    doc="Electron Volt",
+)
+
+# Here, explicitly convert the planck constant to 'eV s' since the constant
+# can override that to give a more precise value that takes into account
+# covariances between e and h.  Eventually, this may also be replaced with
+# just `_si.Ryd.to(eV)`.
+def_unit(
+    ["Ry", "rydberg"],
+    (_si.Ryd * _si.c * _si.h.to(eV * si.s)).to(eV),
+    namespace=_ns,
+    prefixes=True,
+    doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg constant",
+    format={"latex": r"R_{\infty}", "unicode": "R∞"},
+)
+
 
 ###########################################################################
 # COMPUTER
