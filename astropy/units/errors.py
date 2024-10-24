@@ -49,5 +49,5 @@ class UnitsWarning(AstropyWarning):
     """
 
 
-class UnitParserWarning(AstropyWarning):
+class UnitParserWarning(UnitsWarning):
     """Unit parser warnings"""

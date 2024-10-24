@@ -9,7 +9,7 @@ import re
 import warnings
 from typing import TYPE_CHECKING
 
-from astropy.units.errors import UnitScaleError, UnitsError, UnitsWarning
+from astropy.units.errors import UnitParserWarning, UnitScaleError, UnitsError
 from astropy.utils import classproperty
 
 from . import core, utils
@@ -116,11 +116,10 @@ class VOUnit(FITS):
 
             if cls._custom_unit_regex.match(t.value):
                 warnings.warn(
-                    (
+                    UnitParserWarning(
                         f"Unit {t.value!r} not supported by the VOUnit standard. "
                         + cls._did_you_mean_units(t.value)
-                    ),
-                    UnitsWarning,
+                    )
                 )
 
                 return cls._def_custom_unit(t.value)
