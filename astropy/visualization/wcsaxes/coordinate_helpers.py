@@ -609,12 +609,12 @@ class CoordinateHelper:
 
         Parameters
         ----------
-        position : str
+        position : str or list
             The axes on which the ticks for this coordinate should appear.
-            Should be a string containing zero or more of ``'b'``, ``'t'``,
+            Should be a sequence containing zero or more of ``'b'``, ``'t'``,
             ``'l'``, ``'r'``. For example, ``'lb'`` will lead the ticks to be
             shown on the left and bottom axis. In addition, if ``'#'`` is
-            included in the string, the position will be considered dynamic and
+            included in the sequence, the position will be considered dynamic and
             will be updated at draw-time in order to show the ticks on the same
             axes as the tick labels are shown.
         """
@@ -624,7 +624,7 @@ class CoordinateHelper:
         """
         Get where tick labels will appear.
         """
-        return "".join(self._ticks.get_visible_axes())
+        return list(self._ticks.get_visible_axes())
 
     def set_ticks_visible(self, visible):
         """
@@ -685,10 +685,10 @@ class CoordinateHelper:
         ----------
         position : str
             The axes on which the tick labels for this coordinate should
-            appear. Should be a string containing zero or more of ``'b'``,
+            appear. Should be a sequence containing zero or more of ``'b'``,
             ``'t'``, ``'l'``, ``'r'``. For example, ``'lb'`` will lead the
             tick labels to be shown on the left and bottom axis. In addition,
-            if ``'#'`` is included in the string, the position will be
+            if ``'#'`` is included in the sequence, the position will be
             considered dynamic and will be updated at draw-time in order to
             attempt to optimize the layout of all the coordinates.
         """
@@ -698,7 +698,7 @@ class CoordinateHelper:
         """
         Get where tick labels will appear.
         """
-        return "".join(self._ticklabels.get_visible_axes())
+        return list(self._ticklabels.get_visible_axes())
 
     def set_ticklabel_visible(self, visible):
         """
@@ -796,10 +796,10 @@ class CoordinateHelper:
         ----------
         position : str
             The axes on which the axis label for this coordinate should
-            appear. Should be a string containing zero or more of ``'b'``,
+            appear. Should be a sequence containing zero or more of ``'b'``,
             ``'t'``, ``'l'``, ``'r'``. For example, ``'lb'`` will lead the
             axis label to be shown on the left and bottom axis. In addition, if
-            ``'#'`` is included in the string, the position will be considered
+            ``'#'`` is included in the sequence, the position will be considered
             dynamic and will be updated at draw-time in order to show the axis
             label on the same axes as the tick labels are shown.
         """
@@ -809,7 +809,7 @@ class CoordinateHelper:
         """
         Get where axis labels will appear.
         """
-        return "".join(self._axislabels.get_visible_axes())
+        return list(self._axislabels.get_visible_axes())
 
     def set_axislabel_visibility_rule(self, rule):
         """
