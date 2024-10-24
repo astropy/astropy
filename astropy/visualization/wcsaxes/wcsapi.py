@@ -95,12 +95,12 @@ def custom_ucd_wcscoord_mapping(mapping, *, overwrite=False):
     ...        ax.coords
     <CoordinatesMap with 1 world coordinates:
     <BLANKLINE>
-        index       aliases           type   unit  wrap format_unit visible
-                                                    deg
-        ----- -------------------- --------- ---- ----- ----------- -------
-            0 custom:pos.eggs eggs longitude  deg 360.0      arcsec     yes
+      index       aliases           type   unit  wrap format_unit visible
+                                                 deg
+      ----- -------------------- --------- ---- ----- ----------- -------
+          0 custom:pos.eggs eggs longitude  deg 360.0      arcsec     yes
     <BLANKLINE>
-
+    >
     """
     for k, v in mapping.items():
         k = k.removeprefix("custom:")
