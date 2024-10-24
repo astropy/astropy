@@ -1,1 +1,1 @@
-Add support for custom coordinate frames for ``WCSAxes`` through a context manager ``custom_ucd_wcscoord_mapping`` using a custom property mapping ``CUSTOM_UCD_COORD_META_MAPPING`` in ``astropy.visualization.wcsaxes.wcsapi``.
+Add support for custom coordinate frames for ``WCSAxes`` through a context manager ``astropy.visualization.wcsaxes.custom_ucd_wcscoord_mapping`` using a custom property mapping ``CUSTOM_UCD_COORD_META_MAPPING`` in ``astropy.visualization.wcsaxes.wcsapi``.
