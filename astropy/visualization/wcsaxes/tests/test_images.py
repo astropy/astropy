@@ -1167,7 +1167,7 @@ def test_1d_plot_1d_sliced_low_level_wcs(
     # Draw to trigger rendering the ticks.
     plt.draw()
 
-    assert ax.coords[bottom_axis].get_ticks_position() == "b#"
+    assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
 
     return fig
 
@@ -1195,7 +1195,7 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(
     # Draw to trigger rendering the ticks.
     plt.draw()
 
-    assert ax.coords[bottom_axis].get_ticks_position() == "b#"
+    assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
 
     return fig
 

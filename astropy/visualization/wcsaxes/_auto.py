@@ -36,9 +36,9 @@ def auto_assign_coord_positions(ax):
         for coord in coords:
             if "#" not in (pos := coord.get_ticklabel_position()):
                 if "#" in coord.get_ticks_position():
-                    coord.set_ticks_position(pos + "#")
+                    coord.set_ticks_position(pos + ["#"])
                 if "#" in coord.get_axislabel_position():
-                    coord.set_axislabel_position(pos + "#")
+                    coord.set_axislabel_position(pos + ["#"])
 
     # At this point, all coordinates requiring automatic placement have
     # tick labels requiring automatic placement (any coordinates with fixed
@@ -115,8 +115,8 @@ def auto_assign_coord_positions(ax):
     # Finalize assignments
     for coord, spine in zip(auto_coords, best_option):
         if "#" in coord.get_ticks_position():
-            coord.set_ticks_position(spine + "#")
+            coord.set_ticks_position([spine, "#"])
         if "#" in coord.get_ticklabel_position():
-            coord.set_ticklabel_position(spine + "#")
+            coord.set_ticklabel_position([spine, "#"])
         if "#" in coord.get_axislabel_position():
-            coord.set_axislabel_position(spine + "#")
+            coord.set_axislabel_position([spine, "#"])
