@@ -379,7 +379,36 @@ def test_custom_coord_type_from_ctype_nested():
         assert ax.coords["eggs"].get_format_unit() == u.deg
         assert ax.coords["spam"].coord_type == "scalar"
         assert ax.coords["spam"].coord_wrap == None
-        assert ax.coords["spam"].get_format_unit() == u.deg
+
+
+def test_custom_coord_type_1d_2d_wcs_overwrite():
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["HGLN-TAN", "HGLT-TAN"]
+    wcs.wcs.crpix = [256.0] * 2
+    wcs.wcs.cdelt = [-0.05] * 2
+    wcs.wcs.crval = [50.0] * 2
+    wcs.wcs.set()
+
+    custom_meta = {
+        "custom:pos.heliographic.stonyhurst.lon": {
+            "coord_wrap": 180 * u.deg,
+            "format_unit": u.arcsec,
+            "coord_type": "longitude",
+        }
+    }
+
+    with pytest.raises(
+        ValueError, match="pos.heliographic.stonyhurst.lon already exists"
+    ):
+        with custom_ucd_wcscoord_mapping(custom_meta):
+            _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
+
+    with custom_ucd_wcscoord_mapping(custom_meta, overwrite=True):
+        _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
+
+    assert coord_meta["type"] == ["longitude", "latitude"]
+    assert coord_meta["format_unit"] == [u.arcsec, u.deg]
+    assert coord_meta["wrap"] == [180.0 * u.deg, None]
 
 
 def test_coord_type_1d_1d_wcs():

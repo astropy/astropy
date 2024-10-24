@@ -1,5 +1,7 @@
 # Functions/classes for WCSAxes related to APE14 WCSes
 
+from contextlib import contextmanager
+
 import numpy as np
 
 from astropy import units as u
@@ -56,7 +58,8 @@ CUSTOM_UCD_COORD_META_MAPPING = {
 }
 
 
-class custom_ucd_wcscoord_mapping:
+@contextmanager
+def custom_ucd_wcscoord_mapping(mapping, *, overwrite=False):
     """
     A context manager that makes it possible to temporarily add new UCD+ to WCS coordinate
     plot metadata mappings.
@@ -64,53 +67,52 @@ class custom_ucd_wcscoord_mapping:
     Parameters
     ----------
     mapping : dict
-        A dictionary mapping a UCD to coordinate plot metadata
+        A dictionary mapping a UCD to coordinate plot metadata.
+        Note that custom UCD names have their "custom:" prefix stripped.
+    overwrite : bool
+        If `True` overwrite existing entries with ``mapping``.
 
     Examples
     --------
-        >>> from matplotlib import pyplot as plt
-        >>> from astropy.visualization.wcsaxes.wcsapi import custom_ucd_wcscoord_mapping
-        >>> from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
-        >>> wcs = WCS(naxis=1)
-        >>> wcs.wcs.ctype = ["eggs"]
-        >>> wcs.wcs.cunit = ["deg"]
-        >>> custom_mapping = {"eggs": "custom:pos.eggs"}
-        >>> with custom_ctype_to_ucd_mapping(custom_mapping):
-        ...     custom_meta = {
-        ...         "pos.eggs": {
-        ...             "coord_wrap": 360.0 * u.deg,
-        ...             "format_unit": u.arcsec,
-        ...             "coord_type": "longitude",
-        ...         }
-        ...     }
-        ...     with custom_ucd_wcscoord_mapping(custom_meta):
-        ...        fig = plt.figure()
-        ...        ax = fig.add_subplot(111, projection=wcs)
-        ...        ax.coords
-        <CoordinatesMap with 1 world coordinates:
-        <BLANKLINE>
-          index       aliases           type   unit  wrap format_unit visible
-                                                     deg
-          ----- -------------------- --------- ---- ----- ----------- -------
-              0 custom:pos.eggs eggs longitude  deg 360.0      arcsec     yes
-        <BLANKLINE>
-        >
+    >>> from matplotlib import pyplot as plt
+    >>> from astropy.visualization.wcsaxes.wcsapi import custom_ucd_wcscoord_mapping
+    >>> from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
+    >>> wcs = WCS(naxis=1)
+    >>> wcs.wcs.ctype = ["eggs"]
+    >>> wcs.wcs.cunit = ["deg"]
+    >>> custom_mapping = {"eggs": "custom:pos.eggs"}
+    >>> with custom_ctype_to_ucd_mapping(custom_mapping):
+    ...     custom_meta = {
+    ...         "pos.eggs": {
+    ...             "coord_wrap": 360.0 * u.deg,
+    ...             "format_unit": u.arcsec,
+    ...             "coord_type": "longitude",
+    ...         }
+    ...     }
+    ...     with custom_ucd_wcscoord_mapping(custom_meta):
+    ...        fig = plt.figure()
+    ...        ax = fig.add_subplot(111, projection=wcs)
+    ...        ax.coords
+    <CoordinatesMap with 1 world coordinates:
+    <BLANKLINE>
+        index       aliases           type   unit  wrap format_unit visible
+                                                    deg
+        ----- -------------------- --------- ---- ----- ----------- -------
+            0 custom:pos.eggs eggs longitude  deg 360.0      arcsec     yes
+    <BLANKLINE>
+
     """
+    for k, v in mapping.items():
+        k = k.removeprefix("custom:")
+        if not overwrite and k in CUSTOM_UCD_COORD_META_MAPPING:
+            raise ValueError(f"UCD metadata mapping {k} already exists.")
+        CUSTOM_UCD_COORD_META_MAPPING[k] = v
 
-    def __init__(self, mapping):
-        self.mapping = {}
-        for k, v in mapping.items():
-            if k in CUSTOM_UCD_COORD_META_MAPPING:
-                raise ValueError(f"UCD metadata mapping {k} already exists.")
-            CUSTOM_UCD_COORD_META_MAPPING[k] = v
-            self.mapping[k] = v
+    yield
 
-    def __enter__(self):
-        pass
-
-    def __exit__(self, type, value, tb):
-        for k in self.mapping.keys():
-            del CUSTOM_UCD_COORD_META_MAPPING[k]
+    for k in mapping.keys():
+        k = k.removeprefix("custom:")
+        del CUSTOM_UCD_COORD_META_MAPPING[k]
 
 
 def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
