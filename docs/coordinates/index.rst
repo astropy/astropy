@@ -447,7 +447,7 @@ The masks propagates as you would expect::
     <MaskedAngle [ 0.        , 15.00502838] deg>
     >>> sc.separation_3d(sc[0])  # doctest: +FLOAT_CMP
     <MaskedDistance [ 0., ———] kpc>
-    >>> gcrs = sc.gcrs  # doctest: +SHOW_WARNINGS
+    >>> gcrs = sc.gcrs  # doctest: +SHOW_WARNINGS +IGNORE_OUTPUT
     RuntimeWarning: invalid value encountered in ld...
     RuntimeWarning: invalid value encountered in anp...
     >>> gcrs  # doctest: +FLOAT_CMP
