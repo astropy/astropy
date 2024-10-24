@@ -144,8 +144,8 @@ def lombscargle(
           evenly-spaced frequencies: by default this will be checked unless
           ``assume_regular_frequency`` is set to True.
         - `cython`: use the O[N^2] method written in cython. Note that this
-          method conditionally enables a recursive increase in frequency, 
-          typically leading to a significant performance boost 
+          method conditionally enables a recursive increase in frequency,
+          typically leading to a significant performance boost
           if `assume_regular_frequency` is set to True.
         - `slow`: use the O[N^2] pure-python implementation
         - `chi2`: use the O[N^2] chi2/linear-fitting implementation
@@ -158,7 +158,7 @@ def lombscargle(
 
     assume_regular_frequency : bool, optional
         if True, assume that the input frequency is of the form
-        freq = f0 + df * np.arange(N). Only referenced if method is 'auto', 
+        freq = f0 + df * np.arange(N). Only referenced if method is 'auto',
         'fast' or 'cython'.
     normalization : str, optional
         Normalization to use for the periodogram.
