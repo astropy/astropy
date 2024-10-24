@@ -391,9 +391,10 @@ def test_custom_coord_type_1d_2d_wcs_overwrite():
 
     custom_meta = {
         "custom:pos.heliographic.stonyhurst.lon": {
-            "coord_wrap": 180 * u.deg,
             "format_unit": u.arcsec,
-            "coord_type": "longitude",
+            # This also tests that we don't overwrite the custom meta with the
+            # stock meta that will set to longitude when the UCD ends in lon
+            "coord_type": "latitude",
         }
     }
 
@@ -406,9 +407,9 @@ def test_custom_coord_type_1d_2d_wcs_overwrite():
     with custom_ucd_wcscoord_mapping(custom_meta, overwrite=True):
         _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 
-    assert coord_meta["type"] == ["longitude", "latitude"]
+    assert coord_meta["type"] == ["latitude", "latitude"]
     assert coord_meta["format_unit"] == [u.arcsec, u.deg]
-    assert coord_meta["wrap"] == [180.0 * u.deg, None]
+    assert coord_meta["wrap"] == [None, None]
 
 
 def test_coord_type_1d_1d_wcs():

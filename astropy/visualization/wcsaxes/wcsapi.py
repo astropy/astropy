@@ -166,10 +166,10 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
                 if ucd in axis_type:
                     dim_meta.update(meta)
                     break
-
-            for ucd, meta in UCD_COORD_META_MAPPING.items():
-                if ucd == axis_type_split[-1]:
-                    dim_meta.update(meta)
+            else:
+                for ucd, meta in UCD_COORD_META_MAPPING.items():
+                    if ucd == axis_type_split[-1]:
+                        dim_meta.update(meta)
 
         coord_meta["type"].append(dim_meta["coord_type"])
         coord_meta["wrap"].append(dim_meta["coord_wrap"])
