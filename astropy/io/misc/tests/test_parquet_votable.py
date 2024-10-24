@@ -135,7 +135,6 @@ def test_compare_parquet_votable(tmp_path):
     assert parquet_votable["sfr"].unit == u.solMass / u.yr
 
 
-@pytest.mark.xfail(reason="TODO fix: metadata should be optional when it all already exist")
 def test_write_from_votable_existing_metadata(tmp_path):
     """Read a votable into a Table and write it out as 'parquet.votable' preserving metadata"""
     output_filename = tmp_path / "test_votable.parq"
@@ -143,15 +142,16 @@ def test_write_from_votable_existing_metadata(tmp_path):
 
     input_t = Table.read(input_data)
 
-    # Write out the VOTable into a parquet, preserving the metadata
-    # without providing an extra dictionary
-    input_t.write(output_filename, format="parquet.votable")
+    with pytest.raises(NotImplementedError):
+        # Write out the VOTable into a parquet, preserving the metadata
+        # without providing an extra dictionary
+        input_t.write(output_filename, format="parquet.votable")
 
-    loaded_table = Table.read(output_filename, format="parquet.votable")
+        loaded_table = Table.read(output_filename, format="parquet.votable")
 
-    assert np.all(input_t == loaded_table)
-    for attr in ["meta", "unit", "dtype", "description"]:
-        assert getattr(input_t["ra"], attr) == getattr(loaded_table["ra"], attr)
+        assert np.all(input_t == loaded_table)
+        for attr in ["meta", "unit", "dtype", "description"]:
+            assert getattr(input_t["ra"], attr) == getattr(loaded_table["ra"], attr)
 
 
 # Not sure this use case should be supported at all
