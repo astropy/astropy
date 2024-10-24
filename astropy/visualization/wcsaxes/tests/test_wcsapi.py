@@ -193,7 +193,7 @@ def test_coord_type_from_ctype(cube_wcs):
     # These axes should be swapped because of slices
     assert axislabel_position == ["#", "#"]
     assert ticklabel_position == ["#", "#"]
-    assert ticks_position == ["bltr", "bltr"]
+    assert ticks_position == ["brtl", "brtl"]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["HGLN-TAN", "HGLT-TAN"]
@@ -330,7 +330,7 @@ def test_coord_meta_4d(wcs_4d):
 
     assert axislabel_position == ["", "", "#", "#"]
     assert ticklabel_position == ["", "", "#", "#"]
-    assert ticks_position == ["", "", "bltr", "bltr"]
+    assert ticks_position == ["", "", "brtl", "brtl"]
 
 
 def test_coord_meta_4d_line_plot(wcs_4d):
@@ -403,7 +403,7 @@ def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
         ]
         assert coord_meta["default_axislabel_position"] == ["", "#", "#"]
         assert coord_meta["default_ticklabel_position"] == ["", "#", "#"]
-        assert coord_meta["default_ticks_position"] == ["", "bltr", "bltr"]
+        assert coord_meta["default_ticks_position"] == ["", "brtl", "brtl"]
 
         # Validate the axes initialize correctly
         plt.clf()
