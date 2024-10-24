@@ -453,11 +453,6 @@ of tick labels. This addresses the situation where ticks are shown along an axis
 where the world coordinate hardly varies when it varies substantially along the
 other axis.
 
-This default can be overridden by manually setting the axes to use with
-`~.CoordinateHelper.set_ticks_position`,
-`~.CoordinateHelper.set_ticklabel_position`, and
-`~.CoordinateHelper.set_axislabel_position`:
-
 .. plot::
 
     import matplotlib.pyplot as plt
@@ -495,6 +490,11 @@ This default can be overridden by manually setting the axes to use with
     ax1.coords[1].set_axislabel(ax1.coords[1].get_axislabel(), color="blue")
 
     fig.tight_layout()
+
+This default can be overridden by manually setting the axes to use with
+`~.CoordinateHelper.set_ticks_position`,
+`~.CoordinateHelper.set_ticklabel_position`, and
+`~.CoordinateHelper.set_axislabel_position`.
 
 Full change log
 ===============

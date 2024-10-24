@@ -683,7 +683,7 @@ class CoordinateHelper:
 
         Parameters
         ----------
-        position : str
+        position : str or list
             The axes on which the tick labels for this coordinate should
             appear. Should be a sequence containing zero or more of ``'b'``,
             ``'t'``, ``'l'``, ``'r'``. For example, ``'lb'`` will lead the
@@ -794,7 +794,7 @@ class CoordinateHelper:
 
         Parameters
         ----------
-        position : str
+        position : str or list
             The axes on which the axis label for this coordinate should
             appear. Should be a sequence containing zero or more of ``'b'``,
             ``'t'``, ``'l'``, ``'r'``. For example, ``'lb'`` will lead the
