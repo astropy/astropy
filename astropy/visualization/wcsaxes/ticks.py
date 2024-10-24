@@ -111,7 +111,7 @@ class Ticks(Line2D):
         if self._visible_axes == "all":
             return list(self._frame.keys())
         else:
-            return [x for x in self._visible_axes if x in self._frame]
+            return [x for x in self._visible_axes if x in self._frame or x == "#"]
 
     def clear(self):
         self.world = defaultdict(list)
@@ -178,6 +178,9 @@ class Ticks(Line2D):
         initial_angle = 180.0 if self.get_tick_out() else 0.0
 
         for axis in self.get_visible_axes():
+            if axis == "#":
+                continue
+
             if axis not in pixel_array:
                 continue
 
