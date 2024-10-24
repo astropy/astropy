@@ -15,19 +15,19 @@ from astropy.utils.masked import Masked
 
 class MaskedSphericalSetup:
     @classmethod
-    def setup_class(self):
-        self.lon = np.array([0.0, 3.0, 6.0, 12.0, 15.0, 18.0]) << u.hourangle
-        self.lat = np.array([-15.0, 30.0, 60.0, -60.0, 89.0, -80.0]) << u.deg
-        self.dis = np.array([10.0, 20.0, 30.0, 40.0, 50.0, 60.0]) << u.pc
-        self.mask_lon = np.array([False, True, False, False, True, True])
-        self.mask_lat = np.array([False, False, True, False, True, True])
-        self.mask_dis = np.array([False, False, False, True, False, True])
-        self.mlon = Masked(self.lon, self.mask_lon)
-        self.mlat = Masked(self.lat, self.mask_lat)
-        self.mdis = Masked(self.dis, self.mask_dis)
-        self.msph = r.SphericalRepresentation(self.mlon, self.mlat, self.mdis)
-        self.mask_ang = self.mask_lon | self.mask_lat
-        self.mask = self.mask_ang | self.mask_dis
+    def setup_class(cls):
+        cls.lon = np.array([0.0, 3.0, 6.0, 12.0, 15.0, 18.0]) << u.hourangle
+        cls.lat = np.array([-15.0, 30.0, 60.0, -60.0, 89.0, -80.0]) << u.deg
+        cls.dis = np.array([10.0, 20.0, 30.0, 40.0, 50.0, 60.0]) << u.pc
+        cls.mask_lon = np.array([False, True, False, False, True, True])
+        cls.mask_lat = np.array([False, False, True, False, True, True])
+        cls.mask_dis = np.array([False, False, False, True, False, True])
+        cls.mlon = Masked(cls.lon, cls.mask_lon)
+        cls.mlat = Masked(cls.lat, cls.mask_lat)
+        cls.mdis = Masked(cls.dis, cls.mask_dis)
+        cls.msph = r.SphericalRepresentation(cls.mlon, cls.mlat, cls.mdis)
+        cls.mask_ang = cls.mask_lon | cls.mask_lat
+        cls.mask = cls.mask_ang | cls.mask_dis
 
 
 class TestSphericalRepresentationSeparateMasks(MaskedSphericalSetup):
@@ -194,9 +194,9 @@ class TestFrame(MaskedSphericalSetup):
     """Tests that mask is calculated properly for frames, using FK5."""
 
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.fk5 = FK5(self.msph)
+        cls.fk5 = FK5(cls.msph)
 
     def test_initialization_directly(self):
         d = Masked([50, 1.0] * u.kpc, mask=[False, True])
@@ -282,13 +282,13 @@ class TestSkyCoord(TestFrame):
     """
 
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.p = np.linspace(900, 1000, self.msph.size) << u.hPa
-        self.mask_p = np.array([True, False, False, False, False, False])
-        self.mp = Masked(self.p, self.mask_p)
+        cls.p = np.linspace(900, 1000, cls.msph.size) << u.hPa
+        cls.mask_p = np.array([True, False, False, False, False, False])
+        cls.mp = Masked(cls.p, cls.mask_p)
         # Ensure we have an attribute not associated with the frame.
-        self.fk5 = SkyCoord(self.msph, frame="fk5", pressure=self.mp)
+        cls.fk5 = SkyCoord(cls.msph, frame="fk5", pressure=cls.mp)
 
     def test_non_frame_attribute(self):
         assert_array_equal(self.fk5.get_mask("pressure"), self.mask_p)
@@ -299,32 +299,30 @@ class TestSkyCoord(TestFrame):
 
 class TestSkyCoordWithDifferentials:
     @classmethod
-    def setup_class(self):
-        self.ra = [0.0, 3.0, 6.0, 12.0, 15.0, 18.0] << u.hourangle
-        self.dec = [-15.0, 30.0, 60.0, -60.0, 89.0, -80.0] << u.deg
-        self.dis = [10.0, 20.0, 30.0, 40.0, 50.0, 60.0] << u.pc
-        self.mask_dis = np.array([False, True, False, True, False, True])
-        self.pm_ra_cosdec = [1.0, 2.0, 3.0, -4.0, -5.0, -6.0] << (u.mas / u.yr)
-        self.mask_pm_ra_cosdec = np.array([False, False, True, False, False, True])
-        self.pm_dec = [-9.0, -7.0, 5.0, 3.0, 1.0, 0.0] << (u.mas / u.yr)
-        self.mask_pm_dec = np.array([False, False, True, True, False, True])
-        self.rv = [40.0, 50.0, 0.0, 0.0, -30.0, -10.0] << (u.km / u.s)
-        self.mask_rv = np.array([False, False, False, False, True, True])
-        self.mdis = Masked(self.dis, self.mask_dis)
-        self.mpm_ra_cosdec = Masked(self.pm_ra_cosdec, self.mask_pm_ra_cosdec)
-        self.mpm_dec = Masked(self.pm_dec, self.mask_pm_dec)
-        self.mrv = Masked(self.rv, self.mask_rv)
-        self.sc = SkyCoord(
-            ra=self.ra,
-            dec=self.dec,
-            distance=self.mdis,
-            pm_ra_cosdec=self.mpm_ra_cosdec,
-            pm_dec=self.mpm_dec,
-            radial_velocity=self.mrv,
+    def setup_class(cls):
+        cls.ra = [0.0, 3.0, 6.0, 12.0, 15.0, 18.0] << u.hourangle
+        cls.dec = [-15.0, 30.0, 60.0, -60.0, 89.0, -80.0] << u.deg
+        cls.dis = [10.0, 20.0, 30.0, 40.0, 50.0, 60.0] << u.pc
+        cls.mask_dis = np.array([False, True, False, True, False, True])
+        cls.pm_ra_cosdec = [1.0, 2.0, 3.0, -4.0, -5.0, -6.0] << (u.mas / u.yr)
+        cls.mask_pm_ra_cosdec = np.array([False, False, True, False, False, True])
+        cls.pm_dec = [-9.0, -7.0, 5.0, 3.0, 1.0, 0.0] << (u.mas / u.yr)
+        cls.mask_pm_dec = np.array([False, False, True, True, False, True])
+        cls.rv = [40.0, 50.0, 0.0, 0.0, -30.0, -10.0] << (u.km / u.s)
+        cls.mask_rv = np.array([False, False, False, False, True, True])
+        cls.mdis = Masked(cls.dis, cls.mask_dis)
+        cls.mpm_ra_cosdec = Masked(cls.pm_ra_cosdec, cls.mask_pm_ra_cosdec)
+        cls.mpm_dec = Masked(cls.pm_dec, cls.mask_pm_dec)
+        cls.mrv = Masked(cls.rv, cls.mask_rv)
+        cls.sc = SkyCoord(
+            ra=cls.ra,
+            dec=cls.dec,
+            distance=cls.mdis,
+            pm_ra_cosdec=cls.mpm_ra_cosdec,
+            pm_dec=cls.mpm_dec,
+            radial_velocity=cls.mrv,
         )
-        self.mask = (
-            self.mask_dis | self.mask_pm_ra_cosdec | self.mask_pm_dec | self.mask_rv
-        )
+        cls.mask = cls.mask_dis | cls.mask_pm_ra_cosdec | cls.mask_pm_dec | cls.mask_rv
 
     def test_setup(self):
         assert self.sc.masked
@@ -365,18 +363,16 @@ class TestSkyCoordWithDifferentials:
 
 class TestSkyCoordWithOnlyDifferentialsMasked(TestSkyCoordWithDifferentials):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
         # Overwrite SkyCoord using unmasked distance.
-        self.mask_dis = False
-        self.sc = SkyCoord(
-            ra=self.ra,
-            dec=self.dec,
-            distance=self.dis,
-            pm_ra_cosdec=self.mpm_ra_cosdec,
-            pm_dec=self.mpm_dec,
-            radial_velocity=self.mrv,
+        cls.mask_dis = False
+        cls.sc = SkyCoord(
+            ra=cls.ra,
+            dec=cls.dec,
+            distance=cls.dis,
+            pm_ra_cosdec=cls.mpm_ra_cosdec,
+            pm_dec=cls.mpm_dec,
+            radial_velocity=cls.mrv,
         )
-        self.mask = (
-            self.mask_dis | self.mask_pm_ra_cosdec | self.mask_pm_dec | self.mask_rv
-        )
+        cls.mask = cls.mask_dis | cls.mask_pm_ra_cosdec | cls.mask_pm_dec | cls.mask_rv
