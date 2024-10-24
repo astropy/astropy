@@ -7,6 +7,8 @@
 *.dll
 __pycache__
 
+# cythonize -a output during development
+astropy/**/*.html
 # Ignore .c files by default to avoid including generated code. If you want to
 # add a non-generated .c extension, put that into the src/ subdirectory of a
 # package or else use `git add -f filename.c`.
