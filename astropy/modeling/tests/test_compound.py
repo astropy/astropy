@@ -1216,3 +1216,61 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
     assert_quantity_allclose(fit.intercept_2, 10 * u.m)
     assert_quantity_allclose(fit.slope_3, 0 * u.kg / u.s)
     assert_quantity_allclose(fit.intercept_3, 5 * u.kg)
+
+
+def numerical_partial_deriv(model, *inputs, param_idx, delta=1e-5):
+    """
+    Evaluate the central difference approximation of the derivative for param_idx.
+
+    Parameters
+    ----------
+    model
+        The model to evaluate
+    inputs
+        The inputs to the model
+    param_idx
+        The index of the parameter to compute the partial derivative for.
+    delta
+        The step size with which to compute the central difference.
+    """
+    param = model.parameters
+
+    param_down = param.copy()
+    param_down[param_idx] = param[param_idx] - delta
+    param_up = param.copy()
+    param_up[param_idx] = param[param_idx] + delta
+
+    up = model.evaluate(*inputs, *param_up)
+    down = model.evaluate(*inputs, *param_down)
+
+    return (up - down) / (2 * delta)
+
+
+@pytest.mark.parametrize(
+    "model",
+    [
+        pytest.param(
+            m, id=m._format_expression(format_leaf=lambda i, l: type(l).__name__)
+        )
+        for m in [
+            Gaussian1D(5, 2, 3) + Linear1D(2, 3),
+            Gaussian1D(5, 2, 3) - Linear1D(2, 3),
+            Polynomial1D(2) * Gaussian1D(),
+            Polynomial1D(2) / Gaussian1D(),
+            Polynomial1D(2) + Gaussian1D(),
+        ]
+    ],
+)
+def test_compound_fit_deriv(model):
+    """
+    Given some compound models compare the numerical derivatives to analytical ones.
+    """
+    x = np.linspace(1, 5, num=10)
+    numerical = [
+        numerical_partial_deriv(model, x, param_idx=i)
+        for i in range(len(model.parameters))
+    ]
+    analytical = model.fit_deriv(x, *model.parameters)
+
+    for n, a in zip(numerical, analytical):
+        assert np.allclose(n, a)

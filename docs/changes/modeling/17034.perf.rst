@@ -1,0 +1,1 @@
+``CompoundModel`` now implements numerical derivatives of parameters when using the +, -, * or / operators. This improves the speed of fitting these models because numerical derivatives of the parameters are not calculated.
