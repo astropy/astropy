@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 from functools import partial
+from itertools import permutations
 
 import numpy as np
 from matplotlib import rcParams
@@ -500,7 +501,6 @@ class WCSAxes(Axes):
         coords._coord_range at the end of the method or whether to clean it
         up.
         """
-
         # Start off by updating the frame, pre-computing the coordinate range
         # in the figure, and updating the tick positions.
         for coords in self._all_coords:
@@ -526,40 +526,42 @@ class WCSAxes(Axes):
                 ):
                     auto_coords.append(coord)
 
+        # NOTE: for now we assume that only the main coordinate system has
+        # automatic placement as in general we hard-code overlays to t and r.
+        # However we should think of what happens if the overlays are set to
+        # auto mode.
+
         # If there are one or more coordinates we proceed and try and assign
         # positions automatically
         if len(auto_coords) >= 1:
-            # Keey track of which coordinates were set to automatic and for
-            # which item (ticks, ticklabels, axislabels)
-            coords_restore_to_auto = {}
+            # We create an iterable of different assignments of spines to
+            # coords, where empty string means the coordinate will not be shown
+            # on any axis.
+            spines = coords.frame.spine_names
+            if len(auto_coords) > len(spines):
+                spines = spines + "".join(" " * (len(auto_coords) - len(spines)))
+            else:
+                spines = spines[: len(auto_coords)]
+            options = permutations(spines)
 
-            # Loop over the axes/spines in the frame
-            for axis in coords.frame.spine_names:
-                # For each one, find the coordinate that has the most ticks
-                coord = max(auto_coords, key=lambda c: len(c._ticks.world[axis]))
+            # Keep track of the maximum number of ticks for different options
+            n_tick_max = -1
+            best_option = None
+            for option in options:
+                n_tick = sum(
+                    [len(c._ticks.world[s]) for c, s in zip(auto_coords, option)]
+                )
+                if n_tick > n_tick_max:
+                    n_tick_max = n_tick
+                    best_option = option
 
-                # Manually set the desired axis on this coordinate
+            for coord, spine in zip(auto_coords, best_option):
                 if "#" in coord.get_ticks_position():
-                    coord.set_ticks_position(axis + "#")
+                    coord.set_ticks_position(spine + "#")
                 if "#" in coord.get_ticklabel_position():
-                    coord.set_ticklabel_position(axis + "#")
+                    coord.set_ticklabel_position(spine + "#")
                 if "#" in coord.get_axislabel_position():
-                    coord.set_axislabel_position(axis + "#")
-
-                # Remove the coordinate from the list of consideration for
-                # the next iteration
-                auto_coords.remove(coord)
-
-                # If there aren't any left in auto_coords, we've successfully
-                # processed all the coordinates with auto settings.
-                if len(auto_coords) == 0:
-                    break
-
-            # Not enough spines to show the remaining auto-coordinates on
-            if len(auto_coords) > 0:
-                # TODO: decide if this should emit a warning or if we should
-                # instead cycle through the spine list again
-                pass
+                    coord.set_axislabel_position(spine + "#")
 
         if not keep_coord_range:
             for coords in self._all_coords:
