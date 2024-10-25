@@ -1,0 +1,5 @@
+The performance of guessing the table format when reading large files with
+``astropy.io.ascii`` has been improved. Now the process uses at most
+10000 lines of the file to check if it matches the format. This behavior can
+be configured using the ``astropy.io.ascii.conf.guess_limit_lines``
+configuration item, including disabling the limit entirely.

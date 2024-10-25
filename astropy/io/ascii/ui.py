@@ -627,6 +627,36 @@ def _guess(table, read_kwargs, format, fast_reader):
         cparser.CParserError,
     )
 
+    # Determine whether we should limit the number of lines used in the guessing.
+    # Note that this does not currently work for file objects, so we set this to
+    # False if a file object was passed in.
+    from astropy.io.ascii import conf  # avoid circular imports
+
+    limit_lines = conf.guess_limit_lines if not hasattr(table, "read") else False
+
+    # Don't limit the number of lines if there are fewer than this number of
+    # lines in the table. In fact, we also don't limit the number of lines if
+    # there are just above the number of lines compared to the limit, up to a
+    # factor of 2, since it is fast to just go straight to the full table read.
+    table_guess_subset = None
+
+    if limit_lines:
+        if isinstance(table, list):
+            if len(table) > 2 * limit_lines:
+                table_guess_subset = table[:limit_lines]
+        else:
+            # Now search for the position of the Nth line ending
+            pos = -1
+            for idx in range(limit_lines * 2):
+                pos = table.find("\n", pos + 1)
+                if pos == -1:
+                    # Fewer than 2 * limit_lines line endings found so no guess subset.
+                    break
+                if idx == limit_lines - 1:
+                    pos_limit = pos
+            else:
+                table_guess_subset = table[:pos_limit]
+
     # Now cycle through each possible reader and associated keyword arguments.
     # Try to read the table using those args, and if an exception occurs then
     # keep track of the failed guess and move on.
@@ -640,6 +670,13 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader = get_reader(**guess_kwargs)
 
             reader.guessing = True
+
+            if table_guess_subset:
+                # First try with subset of lines - if this fails we can skip this
+                # format early. If it works, we still proceed to check with the
+                # full table since we need to then return the read data.
+                reader.read(table_guess_subset)
+
             dat = reader.read(table)
             _read_trace.append(
                 {
