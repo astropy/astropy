@@ -43,7 +43,6 @@ from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_representation import unitphysics  # this fixture is used below  # noqa: F401
 
@@ -110,9 +109,7 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.equinox.value == "B1950.000"
     assert mfk4.obstime.value == "B1980.000"
     assert mfk4.newattr == "newattr"
-
-    with pytest.warns(AstropyDeprecationWarning):
-        assert set(mfk4.get_frame_attr_names()) == {"equinox", "obstime", "newattr"}
+    assert set(mfk4.get_frame_attr_defaults()) == {"equinox", "obstime", "newattr"}
 
     mfk4 = MyFK4(equinox="J1980.0", obstime="J1990.0", newattr="world")
     assert mfk4.equinox.value == "J1980.000"

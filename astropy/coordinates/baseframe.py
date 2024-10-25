@@ -26,7 +26,7 @@ from astropy import units as u
 from astropy.table import QTable
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo
-from astropy.utils.decorators import deprecated, format_doc, lazyproperty
+from astropy.utils.decorators import format_doc, lazyproperty
 from astropy.utils.exceptions import AstropyWarning
 
 from . import representation as r
@@ -945,21 +945,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def get_frame_attr_defaults(cls):
         """Return a dict with the defaults for each frame attribute."""
         return {name: getattr(cls, name).default for name in cls.frame_attributes}
-
-    @deprecated(
-        "5.2",
-        alternative="get_frame_attr_defaults",
-        message=(
-            "The {func}() {obj_type} is deprecated and may be removed in a future"
-            " version. Use {alternative}() to obtain a dict of frame attribute names"
-            " and default values."
-            " The fastest way to obtain the names is frame_attributes.keys()"
-        ),
-    )
-    @classmethod
-    def get_frame_attr_names(cls):
-        """Return a dict with the defaults for each frame attribute."""
-        return cls.get_frame_attr_defaults()
 
     def get_representation_cls(self, which="base"):
         """The class used for part of this frame's data.
