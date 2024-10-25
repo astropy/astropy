@@ -13,7 +13,7 @@ from functools import cached_property
 from inspect import signature
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import numpy as np
 from numpy import inf, sin
@@ -38,6 +38,10 @@ from astropy.utils.exceptions import AstropyUserWarning
 if TYPE_CHECKING:
     from collections.abc import Mapping
     from typing import Self
+
+    from numpy.typing import ArrayLike, NDArray
+
+    from astropy.units import Quantity
 
 # isort: split
 if HAS_SCIPY:
@@ -76,28 +80,43 @@ _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
 ##############################################################################
 
 
-class _ScaleFactorMixin:
+class _ScaleFactor:
+    """The object has attributes and methods for computing the cosmological scale factor.
+
+    The scale factor is defined as :math:`a = 1 / (1 + z)`.
+
+    Attributes
+    ----------
+    scale_factor0 : `~astropy.units.Quantity`
+        Scale factor at redshift 0.
+
+    Methods
+    -------
+    scale_factor
+        Compute the scale factor at a given redshift.
+    """
+
     @property
-    def scale_factor0(self):
+    def scale_factor0(self) -> Quantity:
         r"""Scale factor at redshift 0.
 
         The scale factor is defined as :math:`a = \frac{a_0}{1 + z}`. The common
-        convention is to set :math:`a_0 = 1`. However, in some cases, e.g. in some old
-        CMB papers, :math:`a_0` is used to normalize `a` to be a convenient number at
-        the redshift of interest for that paper. Explicitly using :math:`a_0` in both
-        calculation and code avoids ambiguity.
+        convention is to set :math:`a_0 = 1`. However, in some cases, e.g. in
+        some old CMB papers, :math:`a_0` is used to normalize `a` to be a
+        convenient number at the redshift of interest for that paper. Explicitly
+        using :math:`a_0` in both calculation and code avoids ambiguity.
         """
-        return u.Quantity(self.scale_factor(0), unit=u.one)
+        return self.scale_factor(0) << u.one
 
     @deprecated_keywords("z", since="7.0")
-    def scale_factor(self, z):
+    def scale_factor(self, z: Quantity | ArrayLike) -> Quantity | NDArray[Any] | float:
         """Scale factor at redshift ``z``.
 
         The scale factor is defined as :math:`a = 1 / (1 + z)`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
+        z : Quantity-like ['redshift'] | array-like
             Input redshift.
 
             .. versionchanged:: 7.0
@@ -105,7 +124,7 @@ class _ScaleFactorMixin:
 
         Returns
         -------
-        a : ndarray or float
+        |Quantity| | ndarray | float
             Scale factor at each input redshift.
             Returns `float` if the input is scalar.
         """
@@ -119,7 +138,7 @@ ParameterOde0 = Parameter(
 
 
 @dataclass_decorator
-class FLRW(Cosmology, _ScaleFactorMixin):
+class FLRW(Cosmology, _ScaleFactor):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
     This is an abstract base class -- you cannot instantiate examples of this
