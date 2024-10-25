@@ -1,0 +1,2 @@
+Avoid a ``RuntimeWarning`` in ``WCS.world_to_array_index`` by converting
+NaN inputs to int.
