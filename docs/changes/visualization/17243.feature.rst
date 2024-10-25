@@ -1,0 +1,1 @@
+WCSAxes will now select which axis to draw which tick labels and axis labels on based on the number of drawn tick labels, rather than picking them in the order they are listed in the WCS. This means that axes may be swapped in comparison with previous versions of Astropy by default.
