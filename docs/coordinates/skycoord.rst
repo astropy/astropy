@@ -487,7 +487,6 @@ documentation::
   sc.gcrs                                sc.separation_3d
   sc.geocentrictrueecliptic              sc.shape
   sc.get_constellation                   sc.size
-  sc.get_frame_attr_names                sc.skyoffset_frame
   sc.guess_from_table                    sc.spherical
   sc.has_data                            sc.spherical_offsets_to
   sc.hcrs                                sc.squeeze
@@ -586,7 +585,6 @@ class), and |SkyCoord| (a.k.a. high-level class; see
   sc.frame.flatten                             sc.frame.reshape
   sc.frame.frame_attributes                    sc.frame.separation
   sc.frame.frame_specific_representation_info  sc.frame.separation_3d
-  sc.frame.get_frame_attr_names                sc.frame.shape
   sc.frame.has_data                            sc.frame.size
   sc.frame.is_equivalent_frame                 sc.frame.spherical
   sc.frame.is_frame_attr_default               sc.frame.squeeze
