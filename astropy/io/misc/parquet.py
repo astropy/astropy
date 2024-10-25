@@ -617,10 +617,14 @@ def write_parquet_votable(
     updated_metadata = {
         **original_metadata,
         b"IVOA.VOTable-Parquet.version": b"1.0",
-        b"IVOA.VOTable-Parquet.type": b"Parquet-local-XML",
-        b"IVOA.VOTable-Parquet.encoding": b"utf-8",
         b"IVOA.VOTable-Parquet.content": xml_str,
     }
+
+    # Some other metadata we were thinking about but don't yet use:
+    #   We mandate the encoding to be UTF-8, thus this is superfluous
+    #     b"IVOA.VOTable-Parquet.encoding": b"utf-8",
+    #   The type can be implied by the presence of IVOA.VOTable-Parquet.content
+    #     b"IVOA.VOTable-Parquet.type": b"Parquet-local-XML",
 
     pyarrow_table = pyarrow_table.replace_schema_metadata(updated_metadata)
 
