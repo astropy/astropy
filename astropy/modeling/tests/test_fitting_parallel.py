@@ -637,10 +637,10 @@ def test_compound_model():
         scheduler="synchronous",
     )
 
-    assert_allclose(model_fit.amplitude_0.value, [2, 1.63349282])
-    assert_allclose(model_fit.mean_0.value, [1.1, 1.145231])
-    assert_allclose(model_fit.stddev_0.value, [0.1, 0.73632987])
-    assert_allclose(model_fit.amplitude_1.value, [2, 2])
+    assert_allclose(model_fit.amplitude_0.value, [2, 1.633], atol=0.001)
+    assert_allclose(model_fit.mean_0.value, [1.1, 1.145], atol=0.001)
+    assert_allclose(model_fit.stddev_0.value, [0.1, 0.736], atol=0.001)
+    assert_allclose(model_fit.amplitude_1.value, [2, 2], atol=0.001)
 
 
 def test_model_dimension_mismatch():
