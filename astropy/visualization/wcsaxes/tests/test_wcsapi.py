@@ -146,9 +146,9 @@ def test_coord_type_from_ctype(cube_wcs):
     ticks_position = coord_meta["default_ticks_position"]
 
     # These axes are swapped due to the pixel derivatives
-    assert axislabel_position == ["l", "r", "b"]
-    assert ticklabel_position == ["l", "r", "b"]
-    assert ticks_position == ["l", "r", "b"]
+    assert axislabel_position == ["#", "#", "#"]
+    assert ticklabel_position == ["#", "#", "#"]
+    assert ticks_position == ["#", "#", "#"]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["GLON-TAN", "GLAT-TAN"]
@@ -191,9 +191,9 @@ def test_coord_type_from_ctype(cube_wcs):
     ticks_position = coord_meta["default_ticks_position"]
 
     # These axes should be swapped because of slices
-    assert axislabel_position == ["l", "b"]
-    assert ticklabel_position == ["l", "b"]
-    assert ticks_position == ["bltr", "bltr"]
+    assert axislabel_position == ["#", "#"]
+    assert ticklabel_position == ["#", "#"]
+    assert ticks_position == ["brtl", "brtl"]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["HGLN-TAN", "HGLT-TAN"]
@@ -328,9 +328,9 @@ def test_coord_meta_4d(wcs_4d):
     ticklabel_position = coord_meta["default_ticklabel_position"]
     ticks_position = coord_meta["default_ticks_position"]
 
-    assert axislabel_position == ["", "", "b", "l"]
-    assert ticklabel_position == ["", "", "b", "l"]
-    assert ticks_position == ["", "", "bltr", "bltr"]
+    assert axislabel_position == ["", "", "#", "#"]
+    assert ticklabel_position == ["", "", "#", "#"]
+    assert ticks_position == ["", "", "brtl", "brtl"]
 
 
 def test_coord_meta_4d_line_plot(wcs_4d):
@@ -343,9 +343,9 @@ def test_coord_meta_4d_line_plot(wcs_4d):
     ticks_position = coord_meta["default_ticks_position"]
 
     # These axes are swapped due to the pixel derivatives
-    assert axislabel_position == ["", "", "t", "b"]
-    assert ticklabel_position == ["", "", "t", "b"]
-    assert ticks_position == ["", "", "t", "b"]
+    assert axislabel_position == ["", "", "#", "#"]
+    assert ticklabel_position == ["", "", "#", "#"]
+    assert ticks_position == ["", "", "#", "#"]
 
 
 @pytest.fixture
@@ -401,9 +401,9 @@ def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
             u.Unit("arcsec"),
             u.Unit("arcsec"),
         ]
-        assert coord_meta["default_axislabel_position"] == ["", "b", "l"]
-        assert coord_meta["default_ticklabel_position"] == ["", "b", "l"]
-        assert coord_meta["default_ticks_position"] == ["", "bltr", "bltr"]
+        assert coord_meta["default_axislabel_position"] == ["", "#", "#"]
+        assert coord_meta["default_ticklabel_position"] == ["", "#", "#"]
+        assert coord_meta["default_ticks_position"] == ["", "brtl", "brtl"]
 
         # Validate the axes initialize correctly
         plt.clf()
@@ -539,9 +539,9 @@ def test_coord_meta_wcsapi():
         u.Unit("deg"),
         u.one,
     ]
-    assert coord_meta["default_axislabel_position"] == ["b", "l", "t", "r", ""]
-    assert coord_meta["default_ticklabel_position"] == ["b", "l", "t", "r", ""]
-    assert coord_meta["default_ticks_position"] == ["b", "l", "t", "r", ""]
+    assert coord_meta["default_axislabel_position"] == ["#", "#", "#", "#", "#"]
+    assert coord_meta["default_ticklabel_position"] == ["#", "#", "#", "#", "#"]
+    assert coord_meta["default_ticks_position"] == ["#", "#", "#", "#", "#"]
     assert coord_meta["default_axis_label"] == [
         "Frequency",
         "time",

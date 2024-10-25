@@ -271,15 +271,19 @@ specified.
 Tick, tick label, and axis label position
 *****************************************
 
-By default, the tick and axis labels for the first coordinate are shown on the
-x-axis, and the tick and axis labels for the second coordinate are shown on
-the y-axis. In addition, the ticks for both coordinates are shown on all axes.
-This can be customized using the
-:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_position` and
-:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position` methods, which each
-take a string that can contain any or several of ``l``, ``b``, ``r``, or ``t``
+By default, WCSAxes automatically decides which coordinates to show on which axes
+in order to minimize cases where some coordinates have no or too few tick labels.
+In addition, in the cases of 2-d WCS and rectangular frames the ticks for both coordinates are shown on all axes.
+
+However, this automated behavior can be overridden and positions can be
+explicitly specified for different coordinates using the
+:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_position`,
+:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position`, and
+:meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_axislabel_position` methods,
+which each
+take a string or sequence that can contain any or several of ``l``, ``b``, ``r``, or ``t``
 (indicating the ticks or tick labels should be shown on the left, bottom,
-right, or top axes respectively):
+right, or top axes respectively), e.g:
 
 .. plot::
    :context:
@@ -293,25 +297,42 @@ right, or top axes respectively):
     lat.set_ticklabel_position('lr')
     lat.set_axislabel_position('lr')
 
-We can set the defaults back using:
+In practice, in the above example you should be able to specify just the tick label positions:
+
+.. plot::
+   :context:
+   :nofigs:
+   :include-source:
+   :align: center
+
+    lon.set_ticklabel_position('bt')
+    lat.set_ticklabel_position('lr')
+
+because the ticks and axis labels default to being shown on the same axes as the
+tick labels.
+
+If you want to switch back to automated positioning, you can specify a string with
+a single ``#``:
 
 .. plot::
    :context:
    :include-source:
    :align: center
 
-    lon.set_ticks_position('all')
-    lon.set_ticklabel_position('b')
-    lon.set_axislabel_position('b')
-    lat.set_ticks_position('all')
-    lat.set_ticklabel_position('l')
-    lat.set_axislabel_position('l')
+    lon.set_ticks_position('#')
+    lon.set_ticklabel_position('#')
+    lon.set_axislabel_position('#')
+    lat.set_ticks_position('#')
+    lat.set_ticklabel_position('#')
+    lat.set_axislabel_position('#')
+
+The ``#`` indicates that the positions should be re-assigned dynamically every
+time the axes are drawn.
 
 On plots with elliptical frames, three alternate tick positions are supported:
 ``c`` for the outer circular or elliptical border, ``h`` for the horizontal
 axis (which is usually the major axis of the ellipse), and ``v`` for the
 vertical axis (which is usually the minor axis of the ellipse).
-
 
 Hiding ticks and tick labels
 ****************************

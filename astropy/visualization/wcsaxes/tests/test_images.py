@@ -658,6 +658,8 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticklabel(alpha=0.5)
         ax.coords[0].set_ticklabel_position("all")
         ax.coords[1].set_ticklabel_position("all")
+        ax.coords[0].set_axislabel_position("b")
+        ax.coords[1].set_axislabel_position("l")
         return fig
 
     @figure_test
@@ -1165,7 +1167,7 @@ def test_1d_plot_1d_sliced_low_level_wcs(
     # Draw to trigger rendering the ticks.
     plt.draw()
 
-    assert ax.coords[bottom_axis]._ticks.get_visible_axes() == ["b"]
+    assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
 
     return fig
 
@@ -1193,7 +1195,7 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(
     # Draw to trigger rendering the ticks.
     plt.draw()
 
-    assert ax.coords[bottom_axis]._ticks.get_visible_axes() == ["b"]
+    assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
 
     return fig
 

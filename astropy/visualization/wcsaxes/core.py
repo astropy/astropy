@@ -15,6 +15,7 @@ from astropy.utils.compat.optional_deps import HAS_PIL
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
+from ._auto import auto_assign_coord_positions
 from .coordinates_map import CoordinatesMap
 from .frame import RectangularFrame, RectangularFrame1D
 from .transforms import CoordinateTransform
@@ -490,6 +491,33 @@ class WCSAxes(Axes):
         if rcParams["axes.grid"]:
             self.grid()
 
+    def _update_tick_and_label_positions(self, keep_coord_range=False):
+        """
+        This method will update the tick positions and will then optionally
+        decide on which axes to show ticks/tick labels/axis labels on if in
+        automatic mode.
+
+        The ``keep_coord_range`` argument is used to indicate whether to keep
+        coords._coord_range at the end of the method or whether to clean it
+        up.
+        """
+        # Start off by updating the frame, pre-computing the coordinate range
+        # in the figure, and updating the tick positions.
+        for coords in self._all_coords:
+            coords.frame.update()
+            coords._coord_range = coords.get_coord_range()
+
+            for coord in coords:
+                coord._update_ticks()
+
+        # At this point, if any of the tick/ticklabel/axislabel positions are
+        # set to be automatic, we need to determine the optimal positions.
+        auto_assign_coord_positions(self)
+
+        if not keep_coord_range:
+            for coords in self._all_coords:
+                del coords._coord_range
+
     def draw_wcsaxes(self, renderer):
         if not self.axison:
             return
@@ -502,13 +530,9 @@ class WCSAxes(Axes):
 
         visible_ticks = []
 
+        self._update_tick_and_label_positions(keep_coord_range=True)
+
         for coords in self._all_coords:
-            # Draw grids
-            coords.frame.update()
-
-            # Pre-compute the coord range
-            coords._coord_range = coords.get_coord_range()
-
             for coord in coords:
                 coord._draw_grid(renderer)
 
@@ -575,6 +599,7 @@ class WCSAxes(Axes):
     # Matplotlib internally sometimes calls set_xlabel(label=...).
     def set_xlabel(self, xlabel=None, labelpad=1, loc=None, **kwargs):
         """Set x-label."""
+        self._update_tick_and_label_positions()
         if xlabel is None:
             xlabel = kwargs.pop("label", None)
             if xlabel is None:
@@ -591,6 +616,7 @@ class WCSAxes(Axes):
 
     def set_ylabel(self, ylabel=None, labelpad=1, loc=None, **kwargs):
         """Set y-label."""
+        self._update_tick_and_label_positions()
         if ylabel is None:
             ylabel = kwargs.pop("label", None)
             if ylabel is None:
@@ -610,6 +636,7 @@ class WCSAxes(Axes):
                 break
 
     def get_xlabel(self):
+        self._update_tick_and_label_positions()
         for coord in self.coords:
             if (
                 "b" in coord._axislabels.get_visible_axes()
@@ -618,6 +645,7 @@ class WCSAxes(Axes):
                 return coord.get_axislabel()
 
     def get_ylabel(self):
+        self._update_tick_and_label_positions()
         if self.frame_class is RectangularFrame1D:
             return super().get_ylabel()
 
@@ -889,6 +917,8 @@ class WCSAxes(Axes):
 
         elif axis in ("x", "y") and self.frame_class is RectangularFrame:
             spine = "b" if axis == "x" else "l"
+
+            self._update_tick_and_label_positions()
 
             for coord in self.coords:
                 if spine in coord._axislabels.get_visible_axes():
