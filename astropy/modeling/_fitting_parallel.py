@@ -19,7 +19,7 @@ def _pixel_to_world_values_block(*pixel, wcs=None):
     Convert a block of pixel values to world values using a WCS. This is for
     use in map_blocks.
     """
-    world = wcs.pixel_to_world_values(*pixel[::-1])[::-1]
+    world = wcs.array_index_to_world_values(*pixel)
     world = np.array(world)
     return world
 
@@ -460,11 +460,18 @@ def parallel_fit_dask(
 
         # Construct dask arrays of world coordinates for every pixel in the cube.
         # We will then iterate over this in map_blocks.
-        world = _wcs_to_world_dask(world, data.shape, chunks=data.chunksize)
+        # NOTE: This returns in world (cartesian) order
+        world_dask_arrays = _wcs_to_world_dask(world, data.shape, chunks=data.chunksize)
 
         # Extract world arrays for just fitting dimensions
-        world = [world[idx] for idx in fitting_axes]
+        fitting_pixel_axes = np.arange(data.ndim)[::-1][np.array(fitting_axes)]
+        world_idx = [
+            np.argwhere(world.axis_correlation_matrix[:, fpa])[:, 0][0]
+            for fpa in fitting_pixel_axes
+        ]
+        world = [world_dask_arrays[idx] for idx in world_idx]
         world_arrays = True
+
     elif isinstance(world, tuple):
         # If world is a tuple then we allow N inputs where N is the number of fitting_axes
         # Each array in the tuple should with be broadcastable to the shape of the fitting_axes
