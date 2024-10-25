@@ -226,6 +226,7 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
     "PTH116",  # os-stat
     "PTH117",  # os-path-isabs
+    "S314",  # defusedxml
     "SLOT000",  # Subclasses of `str` should define `__slots__`
     "TD005",  # Missing issue description after `TODO`
     "TRY400",  # error-instead-of-exception
