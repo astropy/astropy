@@ -239,6 +239,8 @@ class TestCompressedImage(FitsTestCase):
         # it
         with fits.open(self.data("scale.fits"), do_not_scale_image_data=True) as hdul:
             chdu = fits.CompImageHDU(data=hdul[0].data, header=hdul[0].header)
+            chdu.header["BZERO"] = hdul[0].header["BZERO"]
+            chdu.header["BSCALE"] = hdul[0].header["BSCALE"]
             chdu.writeto(self.temp("scale.fits"))
         mtime = os.stat(self.temp("scale.fits")).st_mtime
 
@@ -354,6 +356,8 @@ class TestCompressedImage(FitsTestCase):
         # Create a compressed version of the scaled image
         with fits.open(self.data("scale.fits"), do_not_scale_image_data=True) as hdul:
             chdu = fits.CompImageHDU(data=hdul[0].data, header=hdul[0].header)
+            chdu.header["BZERO"] = hdul[0].header["BZERO"]
+            chdu.header["BSCALE"] = hdul[0].header["BSCALE"]
             chdu.writeto(self.temp("scale.fits"))
 
         with fits.open(self.temp("scale.fits"), mode="update", scale_back=True) as hdul:
@@ -1005,11 +1009,11 @@ class TestCompHDUSections:
         )
 
         header2 = fits.Header()
-        header2["BSCALE"] = 2
-        header2["BZERO"] = 100
         hdu2 = fits.CompImageHDU(
             self.data, header2, compression_type="RICE_1", tile_shape=(5, 4, 5)
         )
+        hdu2.header["BSCALE"] = 2
+        hdu2.header["BZERO"] = 100
         hdulist = fits.HDUList([fits.PrimaryHDU(), hdu1, hdu2])
         hdulist.writeto(tmp_path / "sections.fits")
 
@@ -1126,7 +1130,6 @@ def test_uint_option(tmp_path):
         assert_allclose(hdulist[1].data, data)
 
 
-@pytest.mark.xfail
 def test_incorrect_bzero(tmp_path):
     """
     Regression test for https://github.com/astropy/astropy/issues/5999 which is
@@ -1158,6 +1161,7 @@ def test_incorrect_bzero(tmp_path):
         for hdu in hdulist_read:
             assert hdu.header.get("BZERO") is None
             assert hdu.header.get("BSCALE") is None
+        np.testing.assert_array_equal(hdulist_read[1].data, hdulist_read[2].data)
 
 
 def test_custom_extname():
