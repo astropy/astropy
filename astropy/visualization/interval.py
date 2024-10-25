@@ -9,8 +9,6 @@ import abc
 
 import numpy as np
 
-from astropy.utils.decorators import deprecated_attribute, deprecated_renamed_argument
-
 from .transform import BaseTransform
 
 __all__ = [
@@ -225,9 +223,8 @@ class ZScaleInterval(BaseInterval):
         The number of points in the array to sample for determining
         scaling factors.  Defaults to 1000.
 
-        .. versionchanged:: 5.2
-            ``n_samples`` replaces the deprecated ``nsamples`` argument,
-            which will be removed in the future.
+        .. versionchanged:: 7.0
+            ``nsamples`` parameter is removed.
 
     contrast : float, optional
         The scaling factor (between 0 and 1) for determining the minimum
@@ -249,7 +246,6 @@ class ZScaleInterval(BaseInterval):
         5.
     """
 
-    @deprecated_renamed_argument("nsamples", "n_samples", "5.2")
     def __init__(
         self,
         n_samples=1000,
@@ -265,9 +261,6 @@ class ZScaleInterval(BaseInterval):
         self.min_npixels = min_npixels
         self.krej = krej
         self.max_iterations = max_iterations
-
-    # Mark `nsamples` as deprecated
-    nsamples = deprecated_attribute("nsamples", "5.2", alternative="n_samples")
 
     def get_limits(self, values):
         # Sample the image
