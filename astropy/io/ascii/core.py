@@ -308,7 +308,7 @@ class BaseInputter:
 
         The input table can be one of:
 
-        * File name
+        * File name (str or pathlike)
         * String (newline separated) with all header and data lines (must have at least 2 lines)
         * File-like object with read() method
         * List of strings
@@ -328,8 +328,10 @@ class BaseInputter:
             List of lines
         """
         try:
-            if hasattr(table, "read") or (
-                "\n" not in table + "" and "\r" not in table + ""
+            if (
+                hasattr(table, "read")
+                or isinstance(table, os.PathLike)
+                or ("\n" not in table + "" and "\r" not in table + "")
             ):
                 with get_readable_fileobj(table, encoding=self.encoding) as fileobj:
                     table = fileobj.read()
