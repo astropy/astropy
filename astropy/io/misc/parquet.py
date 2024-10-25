@@ -603,9 +603,8 @@ def write_parquet_votable(
     # remove the DATA element and replace it with a reference to the parquet
     data_tmp = tab_tmp.find(f"{nsurl}DATA")
     tab_tmp.remove(data_tmp)
-    data_tmp = xml.etree.ElementTree.SubElement(tab_tmp, f"{nsurl}DATA")
     _ = xml.etree.ElementTree.SubElement(
-        data_tmp, f"{nsurl}PARQUET", type="Parquet-local-XML"
+        tab_tmp, f"{nsurl}PARQUET", type="Parquet-local-XML"
     )
 
     # convert back to a string, encode, and return
