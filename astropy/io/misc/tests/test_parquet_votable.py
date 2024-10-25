@@ -93,7 +93,7 @@ def test_parquet_votable_input_column_unit(overwrite_metadata, tmp_path):
     assert loaded_table["sfr"].unit == u.solMass / u.yr
 
 
-@pytest.mark.xfail(reason="TODO fix: exitsing column metadata is ignored")
+@pytest.mark.xfail(reason="TODO fix: existing column metadata is ignored")
 def test_parquet_votable_input_column_metadata(tmp_path):
     """Test preservation of column metadata"""
     filename = tmp_path / "test_votable.parq"
@@ -109,7 +109,7 @@ def test_parquet_votable_input_column_metadata(tmp_path):
     assert loaded_table["mass"].meta["foo"] == "bar"
 
 
-@pytest.mark.xfail(reason="TODO fix: exitsing metadata is ignored")
+@pytest.mark.xfail(reason="TODO fix: existing metadata is ignored")
 def test_parquet_votable_input_metadata(tmp_path):
     """Test preservation of table metadata"""
     filename = tmp_path / "test_votable.parq"

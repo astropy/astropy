@@ -546,10 +546,14 @@ def write_parquet_votable(
 
     from astropy.io.votable.tree import VOTableFile
 
-    if os.path.exists(output):
+    if not isinstance(output, (str, os.PathLike)):
+        raise TypeError(f"`output` should be a string or path-like, not {output}")
+    output = Path(output)
+
+    if Path.exists(output):
         if overwrite:
             # We must remove the file prior to writing below.
-            os.remove(output)
+            Path.unlink(output)
         else:
             raise OSError(NOT_OVERWRITING_MSG.format(output))
 
