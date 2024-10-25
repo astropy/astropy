@@ -509,8 +509,9 @@ def get_pyarrow():
     return pa, parquet
 
 
-def write_parquet_votable(table, output, *, metadata=None, overwrite=False,
-                          overwrite_metadata=False):
+def write_parquet_votable(
+    table, output, *, metadata=None, overwrite=False, overwrite_metadata=False
+):
     """
     Writes a Parquet file with a VOT (XML) metadata table included.
 
@@ -561,7 +562,7 @@ def write_parquet_votable(table, output, *, metadata=None, overwrite=False,
     votablefile = VOTableFile()
     votable_write = votablefile.from_table(table[0:1])
 
-    # TODO: API placeholder for inheriting metadata from exising table, thus
+    # TODO: API placeholder for inheriting metadata from existing table, thus
     # no API change is needed for making this technically optional
     if metadata is None:
         raise NotImplementedError("metadata has to be always specified")
@@ -574,8 +575,9 @@ def write_parquet_votable(table, output, *, metadata=None, overwrite=False,
                 if (getattr(field, mkey) is None) or overwrite_metadata:
                     setattr(field, mkey, metadata[field.name][mkey])
             else:
-                if ((mkey == "description")
-                    and ((field.description is None) or overwrite_metadata)):
+                if (mkey == "description") and (
+                    (field.description is None) or overwrite_metadata
+                ):
                     field.description = metadata[field.name]["description"]
                 else:
                     print(f"Warning: '{mkey}' is not a valid VOT metadata key")

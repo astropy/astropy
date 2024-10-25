@@ -1,4 +1,5 @@
 import copy
+
 import numpy as np
 import pytest
 
@@ -73,8 +74,12 @@ def test_parquet_votable_input_column_unit(overwrite_metadata, tmp_path):
     modified_input = copy.deepcopy(input_table)
     modified_input["mass"].unit = u.kg
 
-    write_parquet_votable(modified_input, filename, metadata=column_metadata,
-                          overwrite_metadata=overwrite_metadata)
+    write_parquet_votable(
+        modified_input,
+        filename,
+        metadata=column_metadata,
+        overwrite_metadata=overwrite_metadata,
+    )
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         loaded_table = read_parquet_votable(filename)
@@ -82,7 +87,9 @@ def test_parquet_votable_input_column_unit(overwrite_metadata, tmp_path):
     # Compare data content
     assert np.all(modified_input == loaded_table)
 
-    assert (modified_input["mass"].unit == loaded_table["mass"].unit) is not overwrite_metadata
+    assert (
+        modified_input["mass"].unit == loaded_table["mass"].unit
+    ) is not overwrite_metadata
     assert loaded_table["sfr"].unit == u.solMass / u.yr
 
 
@@ -155,7 +162,7 @@ def test_write_from_votable_existing_metadata(tmp_path):
 
 
 # Not sure this use case should be supported at all
-@pytest.mark.xfail(reason="TODO fix: metadata could be overwriten")
+@pytest.mark.xfail(reason="TODO fix: metadata could be overwritten")
 def test_write_from_votable_overriding_metadata(tmp_path):
     """Read a votable into a Table and write it out as 'parquet.votable' preserving metadata"""
     output_filename = tmp_path / "test_votable.parq"
