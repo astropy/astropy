@@ -2139,24 +2139,45 @@ def test_table_write_help_ascii_html():
     assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
 
 
-def test_table_guess_limit_lines():
+@pytest.mark.parametrize(
+    "table_type", ["filename", "fileobj", "linelist", "string", "path"]
+)
+def test_table_guess_limit_lines(table_type):
     """
     Make sure that the guess_limit_lines configuration item has an effect.
     """
 
+    filename = "data/ipac.dat"
+    if table_type == "filename":
+        table_input = filename
+    elif table_type == "path":
+        table_input = pathlib.Path(filename)
+    elif table_type == "fileobj":
+        table_input = open(filename, "rb")
+    else:
+        with open(filename) as f:
+            table_input = f.read()
+        if table_type == "linelist":
+            table_input = table_input.splitlines()
+
     # First, check that we can read ipac.tbl with guessing
-    ascii.read("data/ipac.dat")
+    ascii.read(table_input)
 
     # If we set guess_limit_lines to a very small value such as the header
     # gets truncated, the reading should fail
     with ascii.conf.set_temp("guess_limit_lines", 3):
         with pytest.raises(ascii.InconsistentTableError, match="Unable to guess"):
-            ascii.read("data/ipac.dat")
+            ascii.read(table_input)
 
     # Setting this to 10 should work
     with ascii.conf.set_temp("guess_limit_lines", 10):
-        ascii.read("data/ipac.dat")
+        ascii.read(table_input)
 
+    if table_type == "fileobj":
+        table_input.close()
+
+
+def test_table_guess_limit_lines_cut_data():
     # Now pick an example where the limit cuts through the data
     with ascii.conf.set_temp("guess_limit_lines", 7):
         table = ascii.read("data/sextractor2.dat")
