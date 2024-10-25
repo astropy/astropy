@@ -275,7 +275,7 @@ By default, WCSAxes automatically decides which coordinates to show on which axe
 in order to minimize cases where some coordinates have no or too few tick labels.
 In addition, in the cases of 2-d WCS and rectangular frames the ticks for both coordinates are shown on all axes.
 
-However, this automated behavior can be overriden and positions can be
+However, this automated behavior can be overridden and positions can be
 explicitly specified for different coordinates using the
 :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_position`,
 :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position`, and
