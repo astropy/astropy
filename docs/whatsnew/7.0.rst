@@ -494,7 +494,9 @@ other axis.
 This default can be overridden by manually setting the axes to use with
 `~.CoordinateHelper.set_ticks_position`,
 `~.CoordinateHelper.set_ticklabel_position`, and
-`~.CoordinateHelper.set_axislabel_position`.
+`~.CoordinateHelper.set_axislabel_position`. In practice, you should be able
+to just call `~.CoordinateHelper.set_ticklabel_position` because axis labels
+and ticks will default to being shown on the same axes as tick labels.
 
 Full change log
 ===============
