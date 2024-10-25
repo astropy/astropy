@@ -26,6 +26,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_parallel_fitting`
 * :ref:`whatsnew_7_0_rgb_image_visualization_enhancement`
 * :ref:`whatsnew_7_0_lorentz2d_model`
+* :ref:`whatsnew_7_0_faster_io_ascii_guessing`
 * :ref:`whatsnew_7_0_votable_1_5`
 * :ref:`whatsnew_7_0_simplenorm`
 * :ref:`whatsnew_7_0_sigmaclippedstats`
@@ -361,6 +362,24 @@ New ``Lorentz2D`` model
 
 A new 2D Lorentzian model has been added to the ``astropy.modeling``
 package.
+
+.. _whatsnew_7_0_faster_io_ascii_guessing:
+
+Faster guessing of formats in ``astropy.io.ascii``
+==================================================
+
+The performance of guessing the table format when reading large files with
+``astropy.io.ascii`` has been improved. Now the process uses at most
+10000 lines of the file to check if it matches the format. This behavior can
+be configured, e.g.::
+
+.. code-block:: python
+
+    >>> from astropy.io.ascii import conf
+    >>> conf.guess_limit_lines = 100000
+
+and the limit can be disabled by setting this value to `None`. When reading large tables
+you should specify the format of the table explicitly if possible.
 
 .. _whatsnew_7_0_votable_1_5:
 
