@@ -17,7 +17,7 @@ __all__ = [
     "transform_coord_meta_from_wcs",
     "WCSWorld2PixelTransform",
     "WCSPixel2WorldTransform",
-    "custom_ucd_wcscoord_mapping",
+    "custom_ucd_coord_meta_mapping",
 ]
 
 IDENTITY = WCS(naxis=2)
@@ -59,7 +59,7 @@ CUSTOM_UCD_COORD_META_MAPPING = {
 
 
 @contextmanager
-def custom_ucd_wcscoord_mapping(mapping, *, overwrite=False):
+def custom_ucd_coord_meta_mapping(mapping, *, overwrite=False):
     """
     A context manager that makes it possible to temporarily add new UCD+ to WCS coordinate
     plot metadata mappings.
@@ -75,7 +75,7 @@ def custom_ucd_wcscoord_mapping(mapping, *, overwrite=False):
     Examples
     --------
     >>> from matplotlib import pyplot as plt
-    >>> from astropy.visualization.wcsaxes.wcsapi import custom_ucd_wcscoord_mapping
+    >>> from astropy.visualization.wcsaxes.wcsapi import custom_ucd_coord_meta_mapping
     >>> from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
     >>> wcs = WCS(naxis=1)
     >>> wcs.wcs.ctype = ["eggs"]
@@ -89,7 +89,7 @@ def custom_ucd_wcscoord_mapping(mapping, *, overwrite=False):
     ...             "coord_type": "longitude",
     ...         }
     ...     }
-    ...     with custom_ucd_wcscoord_mapping(custom_meta):
+    ...     with custom_ucd_coord_meta_mapping(custom_meta):
     ...        fig = plt.figure()
     ...        ax = fig.add_subplot(111, projection=wcs)
     ...        ax.coords

@@ -19,7 +19,7 @@ from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFra
 from astropy.visualization.wcsaxes.wcsapi import (
     WCSWorld2PixelTransform,
     apply_slices,
-    custom_ucd_wcscoord_mapping,
+    custom_ucd_coord_meta_mapping,
     transform_coord_meta_from_wcs,
 )
 from astropy.wcs import WCS
@@ -299,7 +299,7 @@ def test_custom_coord_type_from_ctype():
                 "coord_type": "longitude",
             }
         }
-        with custom_ucd_wcscoord_mapping(custom_meta):
+        with custom_ucd_coord_meta_mapping(custom_meta):
             ax = fig.add_subplot(111, projection=wcs)
             ax.coords
             assert ax.coords["eggs"].coord_type == "longitude"
@@ -332,14 +332,14 @@ def test_custom_coord_type_from_ctype_nested():
                 "coord_type": "longitude",
             }
         }
-        with custom_ucd_wcscoord_mapping(custom_meta_1):
+        with custom_ucd_coord_meta_mapping(custom_meta_1):
             custom_meta_2 = {
                 "pos.spam": {
                     "format_unit": u.deg,
                     "coord_type": "latitude",
                 }
             }
-            with custom_ucd_wcscoord_mapping(custom_meta_2):
+            with custom_ucd_coord_meta_mapping(custom_meta_2):
                 ax = fig.add_subplot(111, projection=wcs)
                 ax.coords
                 assert ax.coords["eggs"].coord_type == "longitude"
@@ -378,10 +378,10 @@ def test_custom_coord_type_1d_2d_wcs_overwrite():
     with pytest.raises(
         ValueError, match="pos.heliographic.stonyhurst.lon already exists"
     ):
-        with custom_ucd_wcscoord_mapping(custom_meta):
+        with custom_ucd_coord_meta_mapping(custom_meta):
             _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 
-    with custom_ucd_wcscoord_mapping(custom_meta, overwrite=True):
+    with custom_ucd_coord_meta_mapping(custom_meta, overwrite=True):
         _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 
     assert coord_meta["type"] == ["latitude", "latitude"]
