@@ -13,9 +13,8 @@ from inspect import signature
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.decorators import deprecated
 
-__all__ = ["poly_map_domain", "comb", "ellipse_extent"]
+__all__ = ["poly_map_domain", "ellipse_extent"]
 
 
 def make_binary_operator_eval(oper, f, g):
@@ -71,27 +70,6 @@ def _validate_domain_window(value):
             raise ValueError("domain and window should be tuples of size 2.")
         return tuple(value)
     return value
-
-
-@deprecated("5.3", alternative="math.comb")
-def comb(N, k):
-    """
-    The number of combinations of N things taken k at a time.
-
-    Parameters
-    ----------
-    N : int, array
-        Number of things.
-    k : int, array
-        Number of elements taken.
-
-    """
-    if (k > N) or (N < 0) or (k < 0):
-        return 0
-    val = 1
-    for j in range(min(k, N - k)):
-        val = (val * (N - j)) / (j + 1)
-    return val
 
 
 def array_repr_oneline(array):
