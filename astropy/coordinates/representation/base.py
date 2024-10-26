@@ -398,7 +398,12 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
                 return
 
             # Ensure our components are masked if a mask needs to be set.
-            if set_mask or value.masked:
+            # NOTE: we could also make ourselves masked if value.masked.
+            # But then we have to be sure that Time does the same, and live
+            # with the inconsistency that things like ndarray and Quantity cannot
+            # become masked when setting an item with a masked value.  See
+            # https://github.com/astropy/astropy/pull/17016#issuecomment-2439607869
+            if set_mask:
                 self._ensure_masked()
 
         if set_mask or clear_mask:
