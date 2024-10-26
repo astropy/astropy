@@ -319,7 +319,7 @@ def write_table_parquet(table, output, overwrite=False):
     Parameters
     ----------
     table : `~astropy.table.Table`
-        Data table that is to be written to file.
+        Data table that is to be written to output.
     output : str or path-like
         The filename to write the table to.
     overwrite : bool, optional
@@ -507,3 +507,182 @@ def get_pyarrow():
     from pyarrow import parquet
 
     return pa, parquet
+
+
+def write_parquet_votable(
+    table, output, *, metadata=None, overwrite=False, overwrite_metadata=False
+):
+    """
+    Writes a Parquet file with a VOT (XML) metadata table included.
+
+    Parameters
+    ----------
+    table : `~astropy.table.Table`
+        Data table that is to be written to output.
+    output : str or path-like
+        The filename to write the table to.
+    metadata : dict
+        Nested dictionary (keys = column names; sub-keys = meta keys) for each
+        of the columns containing a dictionary with metadata. Existing metadata
+        takes precedent, use ``overwrite_metadata`` to ensure this dictionary is
+        being used in all cases.
+    overwrite : bool, optional
+        If `True`, overwrite the output file if it exists. Raises an
+        ``OSError`` if ``False`` and the output file exists. Default is `False`.
+    overwrite_metadata : bool, optional
+        If `True`, overwrite existing column metadata. Default is `False`.
+    """
+    # TODO cases to handle:
+    # - overwriting metadata, metadata could be partially missing, the provided
+    #   one then could overwrite the existing one in the table
+    # - make overwrite actually overwrite rather than delete the file upfront
+    # - warn for non VO standard units at write, not just at read time
+    # - deal better with non-VO units
+
+    import io
+    import xml.etree.ElementTree
+
+    import pyarrow.parquet
+
+    from astropy.io.votable.tree import VOTableFile
+
+    if not isinstance(output, (str, os.PathLike)):
+        raise TypeError(f"`output` should be a string or path-like, not {output}")
+    output = Path(output)
+
+    if Path.exists(output):
+        if overwrite:
+            # We must remove the file prior to writing below.
+            Path.unlink(output)
+        else:
+            raise OSError(NOT_OVERWRITING_MSG.format(output))
+
+    # Prepare the VOTable (XML)
+    # We only use the first row of the astropy table to get the general
+    # information such as arraysize, ID, or datatype.
+
+    # TODO this step looses the metadata that the astropy Table input might have had,
+    # e.g. column units.
+    votablefile = VOTableFile()
+    votable_write = votablefile.from_table(table[0:1])
+
+    # TODO: API placeholder for inheriting metadata from existing table, thus
+    # no API change is needed for making this technically optional
+    if metadata is None:
+        raise NotImplementedError("metadata has to be always specified")
+
+    # Then add the other metadata keys to the FIELDS parameters of the VOTable
+    metadatakeys = list(metadata[next(iter(metadata.keys()))].keys())
+    for field in votable_write.resources[0].tables[0].fields:
+        for mkey in metadatakeys:
+            if mkey in field._attr_list:
+                if (getattr(field, mkey) is None) or overwrite_metadata:
+                    setattr(field, mkey, metadata[field.name][mkey])
+            else:
+                if (mkey == "description") and (
+                    (field.description is None) or overwrite_metadata
+                ):
+                    field.description = metadata[field.name]["description"]
+                else:
+                    print(f"Warning: '{mkey}' is not a valid VOT metadata key")
+
+    # Convert the VOTable object into a Byte string to create an
+    # XML that we can add to the Parquet metadata
+    xml_bstr = io.BytesIO()
+    votable_write.to_xml(xml_bstr)
+    xml_bstr = xml_bstr.getvalue()
+
+    # Now remove the data from this XML string and just
+    # recover DESCRIPTION and FIELD elements
+
+    # get the table
+    nsurl = "{http://www.ivoa.net/xml/VOTable/v1.3}"
+    root = xml.etree.ElementTree.fromstring(xml_bstr)
+    tab_tmp = root.find(f"{nsurl}RESOURCE").find(f"{nsurl}TABLE")
+
+    # remove the DATA element and replace it with a reference to the parquet
+    data_tmp = tab_tmp.find(f"{nsurl}DATA")
+    tab_tmp.remove(data_tmp)
+    _ = xml.etree.ElementTree.SubElement(
+        tab_tmp, f"{nsurl}PARQUET", type="Parquet-local-XML"
+    )
+
+    # convert back to a string, encode, and return
+    xml_str = xml.etree.ElementTree.tostring(
+        root, encoding="unicode", method="xml", xml_declaration=True
+    )
+
+    # Write the Parquet file
+    pyarrow_table = pyarrow.Table.from_pydict({c: table[c] for c in table.colnames})
+
+    # add the required Type 1 file-level metadata
+    original_metadata = pyarrow_table.schema.metadata or {}
+    updated_metadata = {
+        **original_metadata,
+        b"IVOA.VOTable-Parquet.version": b"1.0",
+        b"IVOA.VOTable-Parquet.content": xml_str,
+    }
+
+    # Some other metadata we were thinking about but don't yet use:
+    #   We mandate the encoding to be UTF-8, thus this is superfluous
+    #     b"IVOA.VOTable-Parquet.encoding": b"utf-8",
+    #   The type can be implied by the presence of IVOA.VOTable-Parquet.content
+    #     b"IVOA.VOTable-Parquet.type": b"Parquet-local-XML",
+
+    pyarrow_table = pyarrow_table.replace_schema_metadata(updated_metadata)
+
+    # write the parquet file with required Type 1 metadata
+    pyarrow.parquet.write_table(pyarrow_table, output)
+
+
+def read_parquet_votable(filename):
+    """
+    Reads a Parquet file with a VOT (XML) metadata table included.
+
+    Parameters
+    ----------
+    filename : str or path-like or file-like object
+        If a string or path-like object, the filename to read the table from.
+        If a file-like object, the stream to read data.
+
+    Returns
+    -------
+    table : `~astropy.table.Table`
+        A table with included votable metadata, e.g. as column units.
+    """
+    import io
+
+    import pyarrow.parquet
+
+    from astropy.io import votable
+    from astropy.table import Table, vstack
+
+    # First load the column metadata that is stored
+    # in the parquet content
+    parquet_custom_metadata = pyarrow.parquet.ParquetFile(filename).metadata.metadata
+
+    # Create an empty Astropy table inheriting all the column metadata
+    # information.
+    vot_blob = io.BytesIO(parquet_custom_metadata[b"IVOA.VOTable-Parquet.content"])
+    empty_table_with_columns_and_metadata = Table.read(votable.parse(vot_blob))
+
+    # Load the data from the parquet table using the Table.read() functionality
+    data_table_with_no_metadata = Table.read(filename, format="parquet")
+
+    # Stitch the two tables together to create final table
+    complete_table = vstack(
+        [empty_table_with_columns_and_metadata, data_table_with_no_metadata]
+    )
+
+    return complete_table
+
+
+def register_parquet_votable():
+    """
+    Register Parquet VOT with Unified I/O.
+    """
+    from astropy.io import registry as io_registry
+    from astropy.table import Table
+
+    io_registry.register_reader("parquet.votable", Table, read_parquet_votable)
+    io_registry.register_writer("parquet.votable", Table, write_parquet_votable)

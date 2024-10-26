@@ -226,6 +226,7 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
     "PTH116",  # os-stat
     "PTH117",  # os-path-isabs
+    "S314",  # defusedxml
     "SLOT000",  # Subclasses of `str` should define `__slots__`
     "TD005",  # Missing issue description after `TODO`
     "TRY400",  # error-instead-of-exception
@@ -310,3 +311,12 @@ lint.unfixable = [
 "examples/coordinates/*" = []
 
 ".pyinstaller/*.py" = ["PTH"]
+
+
+[lint.flake8-import-conventions.aliases]
+# xml is hardly ever used thus the alias should not be mandated
+# There is no way to remove from the default list, only to override
+# the default thus we list the things here that we actually should use.
+"numpy" = "np"
+"matplotlib" = "mpl"
+"matplotlib.pyplot" = "plt"

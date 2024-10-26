@@ -1,0 +1,2 @@
+New format ``"parquet.votable"`` is added to read and write a parquet file
+with a votable metadata included.
