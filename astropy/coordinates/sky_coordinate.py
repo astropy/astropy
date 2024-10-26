@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import operator
 import re
 import warnings
 from typing import TYPE_CHECKING
@@ -14,6 +15,7 @@ from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
 from .angles import Angle
 from .baseframe import (
@@ -50,7 +52,7 @@ class SkyCoordInfo(CoordinateFrameInfo):
         return out
 
 
-class SkyCoord(ShapedLikeNDArray):
+class SkyCoord(MaskableShapedLikeNDArray):
     """High-level object providing a flexible interface for celestial coordinate
     representation, manipulation, and transformation between systems.
 
@@ -264,6 +266,36 @@ class SkyCoord(ShapedLikeNDArray):
     def shape(self):
         return self.frame.shape
 
+    # The following 3 have identical implementation as in BaseCoordinateFrame,
+    # but we cannot just rely on __getattr__ to get them from the frame,
+    # because (1) get_mask has to be able to access our own attributes, and
+    # (2) masked and mask are abstract properties in MaskableSharedLikeNDArray
+    # which thus need to be explicitly defined.
+    # TODO: factor out common methods and attributes in a mixin class.
+    @property
+    def masked(self):
+        return self.data.masked
+
+    def get_mask(self, *attrs):
+        if not attrs:
+            # Just use the frame
+            return self._sky_coord_frame.get_mask()
+
+        values = operator.attrgetter(*attrs)(self)
+        if not isinstance(values, tuple):
+            values = (values,)
+        masks = [getattr(v, "mask", None) for v in values]
+        # Broadcast makes it readonly too.
+        return np.broadcast_to(combine_masks(masks), self.shape)
+
+    @property
+    def mask(self):
+        return self._sky_coord_frame.mask
+
+    masked.__doc__ = BaseCoordinateFrame.masked.__doc__
+    get_mask.__doc__ = BaseCoordinateFrame.get_mask.__doc__
+    mask.__doc__ = BaseCoordinateFrame.mask.__doc__
+
     def __eq__(self, value):
         """Equality operator for SkyCoord.
 
@@ -369,6 +401,11 @@ class SkyCoord(ShapedLikeNDArray):
 
           self.frame.data[item] = value.frame.data
         """
+        if value is np.ma.masked or value is np.ma.nomask:
+            self.data.__setitem__(item, value)
+            self.cache.clear()
+            return
+
         if self.__class__ is not value.__class__:
             raise TypeError(
                 "can only set from object of same class: "
