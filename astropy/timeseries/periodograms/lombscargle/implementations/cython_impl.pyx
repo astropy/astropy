@@ -104,8 +104,9 @@ from libc.stdlib cimport malloc, free
 @cython.wraparound(False)
 
 cdef _lomb_scargle(const DTYPE_t[::1] t, const DTYPE_t[::1] y, const DTYPE_t[::1] w,
-                            const DTYPE_t[::1] omega, DTYPE_t[::1] PLS, bint fit_mean=True, bint assume_regular_frequency=False):
+                            const DTYPE_t[::1] omega, DTYPE_t[::1] PLS, const bint fit_mean, const bint assume_regular_frequency):
 
+    cdef int i, j
     cdef ITYPE_t N_freq = omega.shape[0]
     cdef ITYPE_t N_obs = t.shape[0]
 
