@@ -154,11 +154,8 @@ cdef _lomb_scargle(const DTYPE_t[::1] t, const DTYPE_t[::1] y, const DTYPE_t[::1
             Ch += y[j] * w[j] * cos_buffer[j]
             S2 += w[j] * 2 * sin_buffer[j] * cos_buffer[j]
             C2 += w[j] * (1 - (2 * sin_buffer[j] * sin_buffer[j]))
-
-        if fit_mean:
-            for j in range(N_obs):
-                S += w[j] * sin_buffer[j]
-                C += w[j] * cos_buffer[j]
+            S += w[j] * sin_buffer[j]
+            C += w[j] * cos_buffer[j]
 
         if fit_mean:
             tan_2omega_tau = (S2 - (2 * S * C)) / (C2 - ((C * C) - (S * S)))
