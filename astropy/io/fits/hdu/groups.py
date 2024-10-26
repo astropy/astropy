@@ -432,10 +432,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         # delete extra NAXISi's
         for idx in range(len(self._axes) + 1, old_naxis + 1):
-            try:
-                del self._header["NAXIS" + str(idx)]
-            except KeyError:
-                pass
+            self._header.remove(f"NAXIS{idx}", ignore_missing=True)
 
         if self._has_data and isinstance(self.data, GroupData):
             self._header.set("GROUPS", True, after="NAXIS" + str(len(self._axes)))

@@ -594,11 +594,8 @@ class _BaseHDU:
         modified = self._header._modified or self._data_loaded
 
         if checksum == "remove":
-            if checksum_keyword in self._header:
-                del self._header[checksum_keyword]
-
-            if datasum_keyword in self._header:
-                del self._header[datasum_keyword]
+            self._header.remove(checksum_keyword, ignore_missing=True)
+            self._header.remove(datasum_keyword, ignore_missing=True)
         elif (
             modified
             or self._new
@@ -624,8 +621,7 @@ class _BaseHDU:
         # BSCALE/BZERO cards
         if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
             for keyword in ("BSCALE", "BZERO"):
-                with suppress(KeyError):
-                    del self._header[keyword]
+                self._header.remove(keyword, ignore_missing=True)
 
     def _writeheader(self, fileobj):
         offset = 0
