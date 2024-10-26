@@ -661,7 +661,7 @@ class TestJoin:
 
         # Check for left, right, outer join which requires masking. Works for
         # the listed mixins classes.
-        if isinstance(col, (Quantity, Time, TimeDelta)):
+        if isinstance(col, (Quantity, Time, TimeDelta, SkyCoord)):
             out = table.join(t1, t2, join_type="left")
             assert len(out) == 3
             assert np.all(out["idx"] == [0, 1, 3])
@@ -1474,10 +1474,10 @@ class TestVStack:
             with pytest.raises(NotImplementedError, match=re.escape(msg)):
                 table.vstack([t, t])
 
-        # Check for outer stack which requires masking.  Only Time supports
-        # this currently.
+        # Check for outer stack which requires masking.  Works for
+        # the listed mixins classes.
         t2 = table.QTable([col], names=["b"])  # different from col name for t
-        if isinstance(col, (Time, TimeDelta, Quantity)):
+        if isinstance(col, (Time, TimeDelta, Quantity, SkyCoord)):
             out = table.vstack([t, t2], join_type="outer")
             assert len(out) == len_col * 2
             assert np.all(out["a"][:len_col] == col)
@@ -2074,8 +2074,9 @@ class TestHStack:
             assert np.all(out["col0_1"] == col1[: len(col2)])
             assert np.all(out["col0_2"] == col2)
 
-        # Time class supports masking, all other mixins do not
-        if isinstance(col1, (Time, TimeDelta, Quantity)):
+        # Check mixin classes that support masking (and that we raise for
+        # those that do not).
+        if isinstance(col1, (Time, TimeDelta, Quantity, SkyCoord)):
             out = table.hstack([t1, t2], join_type="outer")
             assert len(out) == len(t1)
             assert np.all(out["col0_1"] == col1)

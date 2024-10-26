@@ -148,6 +148,7 @@ class CoordinateFrameInfo(MixinInfo):
 
     attrs_from_parent = {"unit"}  # Unit is read-only
     _supports_indexing = False
+    mask_val = np.ma.masked
 
     @staticmethod
     def default_format(val):
