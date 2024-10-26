@@ -1,0 +1,1 @@
+Fix ``ImageHDU.scale`` with float.

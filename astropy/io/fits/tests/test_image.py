@@ -1127,6 +1127,13 @@ def test_scale_implicit_casting():
     hdu.scale(bzero=1.3)
 
 
+def test_scale_floats():
+    data = np.arange(10) / 10
+    hdu = fits.ImageHDU(data)
+    hdu.scale("float32")
+    np.testing.assert_array_equal(hdu.data, data.astype("float32"))
+
+
 def test_bzero_implicit_casting_compressed():
     # Regression test for an issue that occurred because Numpy now does not
     # allow implicit type casting during inplace operations. Astropy is
