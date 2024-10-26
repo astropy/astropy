@@ -31,6 +31,7 @@ In particular, this release includes:
 * :ref:`whatsnew_7_0_simplenorm`
 * :ref:`whatsnew_7_0_sigmaclippedstats`
 * :ref:`whatsnew_7_0_wcsaxes_default_axes`
+* :ref:`whatsnew-7.0-masked-coordinates`
 
 In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -516,6 +517,32 @@ This default can be overridden by manually setting the axes to use with
 `~.CoordinateHelper.set_axislabel_position`. In practice, you should be able
 to just call `~.CoordinateHelper.set_ticklabel_position` because axis labels
 and ticks will default to being shown on the same axes as tick labels.
+
+.. _whatsnew-7.0-masked-coordinates:
+
+Support for masks in ``coordinates``
+====================================
+
+Initial support for masks has been implemented for |SkyCoord|, as well as for
+coordinate frames and coordinate representations.
+
+Like more generally for |Masked| instances, one can access the mask using
+`~astropy.coordinates.SkyCoord.mask` and check whether the underlying data are
+masked using `~astropy.coordinates.SkyCoord.masked`. Like for all masked
+classes, one can access underlying unmasked data using
+`~astropy.utils.masked.MaskableShapedLikeNDArray.unmasked` and one can get a
+new instance with masked data replaced with a fill value using
+:meth:`~astropy.utils.masked.MaskableShapedLikeNDArray.filled`.
+
+By default, the mask combines all masks of the underlying representation
+components, including those on possible differentials like radial velocity and
+proper motion. It is possible to make other choices using the new
+`~astropy.coordinates.SkyCoord.get_mask()` method. For instance,
+``sc.get_mask("ra", "dec")`` would get the combined masks of just the angular
+components, which may be useful if dealing with, e.g., a catalogue of stars
+where distances are available only for some of the objects.
+
+For concrete examples, see :ref:`astropy-coordinates-masks`.
 
 Full change log
 ===============
