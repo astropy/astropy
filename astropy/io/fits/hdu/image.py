@@ -378,10 +378,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         # delete extra NAXISi's
         for idx in range(len(self._axes) + 1, old_naxis + 1):
-            try:
-                del self._header["NAXIS" + str(idx)]
-            except KeyError:
-                pass
+            self._header.remove(f"NAXIS{idx}", ignore_missing=True)
 
         if "BLANK" in self._header:
             self._blank = self._header["BLANK"]
@@ -428,7 +425,7 @@ class _ImageBaseHDU(_ValidHDU):
             # factors
             return
 
-        for keyword in ["BSCALE", "BZERO"]:
+        for keyword in ("BSCALE", "BZERO"):
             try:
                 del self._header[keyword]
                 # Since _update_header_scale_info can, currently, be called
@@ -555,19 +552,13 @@ class _ImageBaseHDU(_ValidHDU):
                 self.data -= np.array(_zero).astype(self.data.dtype, casting="unsafe")
             self._header["BZERO"] = _zero
         else:
-            try:
-                del self._header["BZERO"]
-            except KeyError:
-                pass
+            self._header.remove("BZERO", ignore_missing=True)
 
         if _scale and _scale != 1:
             self.data = self.data / _scale
             self._header["BSCALE"] = _scale
         else:
-            try:
-                del self._header["BSCALE"]
-            except KeyError:
-                pass
+            self._header.remove("BSCALE", ignore_missing=True)
 
         # Set blanks
         if blank is not None and issubclass(_type, np.integer):
