@@ -371,7 +371,7 @@ Faster guessing of formats in ``astropy.io.ascii``
 The performance of guessing the table format when reading large files with
 ``astropy.io.ascii`` has been improved. Now the process uses at most
 10000 lines of the file to check if it matches the format. This behavior can
-be configured, e.g.::
+be configured, e.g.:
 
 .. code-block:: python
 
