@@ -95,17 +95,17 @@ class TestSphericalRepresentationSeparateMasks(MaskedSphericalSetup):
         assert_array_equal(msph.unmasked.lon, self.lon)
 
     def test_set_masked_item_on_unmasked_instance(self):
-        sph = self.msph.copy().unmasked
+        # Currently, the mask on items is *ignored*, just as it is for ndarray,
+        # Quantity, and Time. In principle, this could be changed for containers
+        # like representations and Time. See
+        # https://github.com/astropy/astropy/pull/17016#issuecomment-2439607869
+        sph = self.msph.unmasked.copy()
         sph[0] = self.msph[1]
-        assert sph.masked
-        assert_array_equal(
-            sph.mask, np.concatenate(([True], np.zeros_like(self.mask[1:])))
-        )
-        assert_array_equal(
-            sph.unmasked.lon, np.concatenate((sph.lon[1:2], self.lon[1:]))
-        )
+        assert not sph.masked
+        assert_array_equal(sph.mask, np.zeros_like(self.mask))
+        assert_array_equal(sph.lon, np.concatenate((sph.lon[1:2], self.lon[1:])))
         sph[0] = self.msph[0].unmasked
-        assert sph.masked  # Does not get reset
+        assert not sph.masked
         assert_array_equal(sph.mask, np.zeros_like(self.mask))
         assert_array_equal(sph.unmasked.lon, self.lon)
 
@@ -133,6 +133,15 @@ class TestSphericalRepresentationSeparateMasks(MaskedSphericalSetup):
         sph = self.msph.filled(unmasked[1])
         expected = unmasked.copy()
         expected[self.mask] = unmasked[1]
+        assert np.all(representation_equal(sph, expected))
+
+    def test_filled_with_masked_value(self):
+        # Filled ignores the mask (this will be true as long as __setitem__
+        # ignores it; it may be a logical choice to actually use it).
+        sph = self.msph.filled(self.msph[1])
+        assert not sph.masked
+        expected = self.msph.unmasked.copy()
+        expected[self.mask] = self.msph.unmasked[1]
         assert np.all(representation_equal(sph, expected))
 
     def test_transform_keeps_distance_angular_masks(self):
@@ -343,6 +352,14 @@ class TestSkyCoordWithDifferentials:
         filled = self.sc.filled(unmasked[1])
         expected = unmasked.copy()
         expected[self.mask] = unmasked[1]
+        assert skycoord_equal(filled, expected)
+
+    def test_filled_with_masked_value(self):
+        # Filled ignores the mask (this will be true as long as __setitem__
+        # ignores it; it may be a logical choice to actually use it).
+        filled = self.sc.filled(self.sc[1])
+        expected = self.sc.unmasked.copy()
+        expected[self.mask] = self.sc.unmasked[1]
         assert skycoord_equal(filled, expected)
 
     @pytest.mark.parametrize(
