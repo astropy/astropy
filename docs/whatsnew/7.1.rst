@@ -1,7 +1,7 @@
-.. _whatsnew-7.0:
+.. _whatsnew-7.1:
 
 **************************
-What's New in Astropy 7.0?
+What's New in Astropy 7.1?
 **************************
 
 Overview
