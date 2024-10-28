@@ -1802,7 +1802,7 @@ class Table:
             except ImportError:
                 raise ImportError(
                     "The default option for show_in_notebook now requires pandas "
-                    "and ipydatagrid to also be installed"
+                    "and ipydatagrid to also be installed, or please consider using the astropy[jupyter] extras"
                 ) from None
 
             func = ipydatagrid
