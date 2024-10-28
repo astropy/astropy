@@ -129,16 +129,34 @@ class MrtHeader(cds.CdsHeader):
         top_meta = OrderedDict()
         top_keys = ["Title", "Authors", "Table"]
         notes = []
-        for line in head_lines:
-            if line.startswith(f"{key}:" for key in top_keys):
+        i = 0
+        while i < len(head_lines):
+            # TODO: Clarify parsing: try to avoid multiple if/else before and after while
+            # Also try to avoid nested while loops
+            is_top = is_note = False
+            line = head_lines[i]
+            if line.startswith(tuple(f"{key}:" for key in top_keys)):
                 key, val = line.split(":", maxsplit=1)
-                top_meta[key] = val.strip()
+                val = val.strip()
+                is_top = True
             # TODO: Use regex to extract note and number?
             elif line.startswith("Note ("):
                 note_num = line[6 : line.find(")")]
-                note_text = line[line.find(":") + 1 :].strip()
                 assert int(note_num) == len(notes) + 1
-                notes.append(note_text)
+                val = line[line.find(":") + 1 :].strip()
+                is_note = True
+
+            i += 1
+            if is_top or is_note:
+                # TODO: More robust indentation check
+                while head_lines[i].startswith("  "):
+                    val += " " + head_lines[i].strip()
+                    i += 1
+
+            if is_top:
+                top_meta[key] = val
+            elif is_note:
+                notes.append(val)
 
         print(top_meta)
         print(notes)
