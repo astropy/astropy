@@ -24,7 +24,6 @@ The exceptions are below:
 .. toctree::
    :maxdepth: 1
 
-   iers
    data
    masked/index
 
