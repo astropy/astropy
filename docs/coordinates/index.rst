@@ -549,7 +549,7 @@ listed below.
    common_errors
    definitions
    inplace
-
+   example_gallery
 
 In addition, another resource for the capabilities of this package is the
 ``astropy.coordinates.tests.test_api_ape5`` testing file. It showcases most of
