@@ -616,6 +616,17 @@ def test_masking_Cds_Mrt():
         assert not hasattr(data["Fit"], "mask")
 
 
+def test_read_mrt_metadata():
+    f = "data/cds.dat"
+    testfile = get_testfiles(f)[0]
+    data = ascii.read(f, format="mrt")
+    assert "top" in data.meta
+    assert "Title" in data.meta["top"]
+    assert "Authors" in data.meta["top"]
+    assert "Table" in data.meta["top"]
+    assert "Notes" in data.meta
+
+
 def test_null_Ipac():
     f = "data/ipac.dat"
     testfile = get_testfiles(f)[0]
