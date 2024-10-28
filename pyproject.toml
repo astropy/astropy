@@ -64,6 +64,7 @@ jupyter = [  # these are optional dependencies for utils.console and table
     "ipywidgets",
     "ipykernel",
     "ipydatagrid",
+    "pandas",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
