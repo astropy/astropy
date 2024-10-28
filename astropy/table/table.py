@@ -1795,7 +1795,15 @@ class Table:
 
         """
         if backend == "ipydatagrid":
-            from astropy.table.notebook_backends import ipydatagrid
+            try:
+                import pandas  # noqa: F401
+
+                from astropy.table.notebook_backends import ipydatagrid
+            except ImportError:
+                raise ImportError(
+                    "The default option for show_in_notebook now requires pandas "
+                    "and ipydatagrid to also be installed"
+                ) from None
 
             func = ipydatagrid
 
