@@ -127,14 +127,13 @@ class MrtHeader(cds.CdsHeader):
         # Not really necessary but avoids "catching" data lines erroneously
         head_lines = [line for line in lines if line not in self.data.data_lines]
         top_meta = OrderedDict()
+        top_keys = ["Title", "Authors", "Table"]
         notes = []
         for line in head_lines:
-            if line.startswith("Title:"):
-                top_meta["Title"] = line[6:].strip()
-            elif line.startswith("Authors:"):
-                top_meta["Authors"] = line[8:].strip()
-            elif line.startswith("Table:"):
-                top_meta["Table"] = line[6:].strip()
+            if line.startswith(f"{key}:" for key in top_keys):
+                key, val = line.split(":", maxsplit=1)
+                top_meta[key] = val.strip()
+            # TODO: Use regex to extract note and number?
             elif line.startswith("Note ("):
                 note_num = line[6 : line.find(")")]
                 note_text = line[line.find(":") + 1 :].strip()
