@@ -246,6 +246,7 @@ html_theme_options.update(
         },
         # https://github.com/pydata/pydata-sphinx-theme/issues/1492
         "navigation_with_keys": False,
+        "announcement": "https://www.astropy.org/annoucement_banner.html",
     }
 )
 
