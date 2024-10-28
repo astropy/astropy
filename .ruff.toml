@@ -117,7 +117,6 @@ lint.ignore = [
 
     # flake8-pytest-style (PT)
     "PT003",   # pytest-extraneous-scope-function
-    "PT004",   # pytest-missing-fixture-name-underscore # deprecated in ruff 0.6.0
     "PT006",   # pytest-parametrize-names-wrong-type
     "PT007",   # pytest-parametrize-values-wrong-type
     "PT011",   # pytest-raises-too-broad
