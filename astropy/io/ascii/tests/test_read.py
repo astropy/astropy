@@ -618,13 +618,17 @@ def test_masking_Cds_Mrt():
 
 def test_read_mrt_metadata():
     f = "data/cds.dat"
-    testfile = get_testfiles(f)[0]
     data = ascii.read(f, format="mrt")
     assert "top" in data.meta
     assert "Title" in data.meta["top"]
     assert "Authors" in data.meta["top"]
     assert "Table" in data.meta["top"]
     assert "Notes" in data.meta
+    # TODO: format/better mechanism for tests?
+    assert (
+        data.meta["top"]["Title"]
+        == "Spitzer Observations of NGC 1333: A Study of Structure and Evolution in a Nearby Embedded Cluster"
+    )
 
 
 def test_null_Ipac():
