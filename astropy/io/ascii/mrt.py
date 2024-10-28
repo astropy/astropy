@@ -10,6 +10,7 @@ Ref: https://journals.aas.org/mrt-standards
 
 import re
 import warnings
+from collections import OrderedDict
 from io import StringIO
 from math import ceil, floor
 from string import Template
@@ -116,6 +117,34 @@ class MrtHeader(cds.CdsHeader):
             col.max = None
         if col.min is np.ma.core.MaskedConstant:
             col.min = None
+
+    def update_meta(self, lines, meta):
+        """
+        Extract any table-level metadata, e.g. keywords, comments, column metadata, from
+        the table ``lines`` and update the OrderedDict ``meta`` in place.
+        For MRT tables, the extracted metadata includes article title, author list, table name, and notes.
+        """
+        # Not really necessary but avoids "catching" data lines erroneously
+        head_lines = [line for line in lines if line not in self.data.data_lines]
+        top_meta = OrderedDict()
+        notes = []
+        for line in head_lines:
+            if line.startswith("Title:"):
+                top_meta["Title"] = line[6:].strip()
+            elif line.startswith("Authors:"):
+                top_meta["Authors"] = line[8:].strip()
+            elif line.startswith("Table:"):
+                top_meta["Table"] = line[6:].strip()
+            elif line.startswith("Note ("):
+                note_num = line[6 : line.find(")")]
+                note_text = line[line.find(":") + 1 :].strip()
+                assert int(note_num) == len(notes) + 1
+                notes.append(note_text)
+
+        print(top_meta)
+        print(notes)
+        meta.setdefault("table", {})["top"] = top_meta
+        meta["table"]["Notes"] = notes
 
     def column_float_formatter(self, col):
         """
