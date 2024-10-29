@@ -210,8 +210,6 @@ class ZScaleInterval(BaseInterval):
     """
     Interval based on IRAF's zscale.
 
-    https://iraf.net/forum/viewtopic.php?showtopic=134139
-
     Original implementation:
     https://github.com/spacetelescope/stsci.numdisplay/blob/master/lib/stsci/numdisplay/zscale.py
 
