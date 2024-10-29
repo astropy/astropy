@@ -8,6 +8,12 @@
   margin-top: 10px;
 }
 
+/* Smaller fonts */
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: medium;
+}
+
 /* Dark theme tweaking */
 html[data-theme=dark] .sd-card img[src*='.svg'] {
     filter: invert(0.82) brightness(0.8) contrast(1.2);
