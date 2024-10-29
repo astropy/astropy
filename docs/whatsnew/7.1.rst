@@ -18,8 +18,8 @@ In addition to these major changes, Astropy v7.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* X issues have been closed since v7.0
-* X pull requests have been merged since v7.0
+* X issues have been closed since v7.1
+* X pull requests have been merged since v7.1
 * X distinct people have contributed code
 
 Full change log
