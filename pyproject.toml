@@ -220,7 +220,6 @@ xfail_strict = true
 filterwarnings = [
     "error",
     "ignore:unclosed <socket:ResourceWarning",
-    "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
     "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
 ]
 doctest_norecursedirs = [
