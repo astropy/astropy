@@ -623,16 +623,16 @@ def test_read_mrt_metadata():
     assert "Title" in data.meta["top"]
     assert "Authors" in data.meta["top"]
     assert "Table" in data.meta["top"]
-    assert "Notes" in data.meta
-    assert len(data.meta["Notes"]) == 3
-    # TODO: format/better mechanism for tests?
+    assert "notes" in data.meta
+    assert len(data.meta["notes"]) == 3
+    # TODO: format/better mechanism for tests
     assert (
         data.meta["top"]["Title"]
         == "Spitzer Observations of NGC 1333: A Study of Structure and Evolution in a Nearby Embedded Cluster"
     )
 
     assert (
-        data.meta["Notes"][0]
+        data.meta["notes"][0]
         == 'Asterisks mark "deeply embedded" sources with questionable IRAC colors or incomplete IRAC photometry and relatively bright MIPS 24 micron photometry.'
     )
 

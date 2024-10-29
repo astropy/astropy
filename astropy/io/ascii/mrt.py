@@ -118,50 +118,52 @@ class MrtHeader(cds.CdsHeader):
         if col.min is np.ma.core.MaskedConstant:
             col.min = None
 
+    def _extract_metadata_lines(self, lines):
+        """
+        Processes list of lines and returns an ordered dictionary of meta-data fields.
+        The meta-data is stored as a list of lines, respecting line splits in the input.
+        """
+        # Not really necessary but avoids "catching" data lines erroneously
+        head_lines = [line for line in lines if line not in self.data.data_lines]
+        meta_lines = OrderedDict()
+        meta_key_patterns = ["Title", "Authors", "Table", r"Note \(\d+\)"]
+        # Match empty strings as well. Notes with empty first lines are not treaded differently at this stage
+        meta_pattern = f"({'|'.join(meta_key_patterns)}):(.*)$"
+        in_meta = False
+        for line in head_lines:
+            match = re.match(meta_pattern, line)
+            if match:
+                key, val = match.groups()
+                meta_lines[key] = [val]
+                in_meta = True
+            elif line.startswith("  ") and not line.isspace() and in_meta:
+                meta_lines[key].append(line)
+            elif in_meta:
+                in_meta = False
+        return meta_lines
+
     def update_meta(self, lines, meta):
         """
         Extract any table-level metadata, e.g. keywords, comments, column metadata, from
         the table ``lines`` and update the OrderedDict ``meta`` in place.
-        For MRT tables, the extracted metadata includes article title, author list, table name, and notes.
+        For MRT tables, the extracted metadata includes article title, author list,
+        table name, and notes.
         """
-        # Not really necessary but avoids "catching" data lines erroneously
-        head_lines = [line for line in lines if line not in self.data.data_lines]
-        top_meta = OrderedDict()
+        meta_dict = self._extract_metadata_lines(lines)
+
         top_keys = ["Title", "Authors", "Table"]
+        top_meta = OrderedDict()
         notes = []
-        i = 0
-        while i < len(head_lines):
-            # TODO: Clarify parsing: try to avoid multiple if/else before and after while
-            # Also try to avoid nested while loops
-            is_top = is_note = False
-            line = head_lines[i]
-            if line.startswith(tuple(f"{key}:" for key in top_keys)):
-                key, val = line.split(":", maxsplit=1)
-                val = val.strip()
-                is_top = True
-            # TODO: Use regex to extract note and number?
-            elif line.startswith("Note ("):
-                note_num = line[6 : line.find(")")]
-                assert int(note_num) == len(notes) + 1
-                val = line[line.find(":") + 1 :].strip()
-                is_note = True
-
-            i += 1
-            if is_top or is_note:
-                # TODO: More robust indentation check
-                while head_lines[i].startswith("  "):
-                    val += " " + head_lines[i].strip()
-                    i += 1
-
-            if is_top:
+        for key, val in meta_dict.items():
+            if key in top_keys:
                 top_meta[key] = val
-            elif is_note:
+            elif key.startswith("Note"):
                 notes.append(val)
-
-        print(top_meta)
-        print(notes)
+            else:
+                # TODO: ValueError or RuntimeError?
+                raise ValueError(f"Unrecognized metadata key: {key}")
         meta.setdefault("table", {})["top"] = top_meta
-        meta["table"]["Notes"] = notes
+        meta["table"]["notes"] = notes
 
     def column_float_formatter(self, col):
         """
