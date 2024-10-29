@@ -253,7 +253,7 @@ class ParameterContainer:
         return values[item]
 
 
-@support_nddata(wcs="world", weights="uncertainty", unit="data_unit", mask="mask")
+@support_nddata(wcs="world", uncertainty="weights", unit="data_unit")
 def parallel_fit_dask(
     data,
     *,
