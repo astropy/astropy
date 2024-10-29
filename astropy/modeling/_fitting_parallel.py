@@ -295,9 +295,11 @@ def parallel_fit_dask(
     data_units : `astropy.units.Unit`
         Units for the data array, for when the data array is not a ``Quantity``
         instance.
-    weights : `numpy.ndarray` or `dask.array.core.Array`
+    weights : `numpy.ndarray`, `dask.array.core.Array` or `astropy.nddata.NDUncertainty`
         The weights to use in the fitting. See the documentation for specific
         fitters for more information about the meaning of weights.
+        If passed as a `.NDUncertainty` object it will be converted to a
+        `.StdDevUncertainty` and then passed to the fitter as 1 over that.
     mask : `numpy.nddata`
         A boolean mask to be applied to the data.
     fitting_axes : int or tuple
