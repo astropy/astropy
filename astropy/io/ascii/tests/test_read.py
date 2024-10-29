@@ -630,7 +630,7 @@ def test_read_mrt_metadata():
         data.meta["top"]["Title"]
         == "Spitzer Observations of NGC 1333: A Study of Structure and Evolution in a Nearby Embedded Cluster"
     )
-
+    assert isinstance(data.meta["top"]["Authors"], list)
     assert (
         data.meta["notes"][0]
         == 'Asterisks mark "deeply embedded" sources with questionable IRAC colors or incomplete IRAC photometry and relatively bright MIPS 24 micron photometry.'

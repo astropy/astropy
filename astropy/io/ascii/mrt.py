@@ -118,19 +118,15 @@ class MrtHeader(cds.CdsHeader):
         if col.min is np.ma.core.MaskedConstant:
             col.min = None
 
-    def _extract_metadata_lines(self, lines):
+    def _extract_metadata_lines(self, lines, meta_pattern):
         """
         Processes list of lines and returns an ordered dictionary of meta-data fields.
         The meta-data is stored as a list of lines, respecting line splits in the input.
         """
-        # Not really necessary but avoids "catching" data lines erroneously
-        head_lines = [line for line in lines if line not in self.data.data_lines]
         meta_lines = OrderedDict()
-        meta_key_patterns = ["Title", "Authors", "Table", r"Note \(\d+\)"]
         # Match empty strings as well. Notes with empty first lines are not treaded differently at this stage
-        meta_pattern = f"({'|'.join(meta_key_patterns)}):(.*)$"
         in_meta = False
-        for line in head_lines:
+        for line in lines:
             match = re.match(meta_pattern, line)
             if match:
                 key, val = match.groups()
@@ -149,9 +145,37 @@ class MrtHeader(cds.CdsHeader):
         For MRT tables, the extracted metadata includes article title, author list,
         table name, and notes.
         """
-        meta_dict = self._extract_metadata_lines(lines)
-
+        # Not really necessary but avoids "catching" data lines erroneously
+        head_lines = [line for line in lines if line not in self.data.data_lines]
         top_keys = ["Title", "Authors", "Table"]
+        meta_key_patterns = top_keys + [r"Note \(\d+\)"]
+        meta_pattern = f"({'|'.join(meta_key_patterns)}):(.*)$"
+        meta_dict = self._extract_metadata_lines(head_lines, meta_pattern)
+
+        map_note_pattern = "^([A-Za-z]) = (.+)$"
+        for meta_key, meta_lines in meta_dict.items():
+            if (
+                meta_key.startswith("Note")
+                and meta_lines[0].strip() == ""
+                and re.match(map_note_pattern, meta_lines[1].strip())
+            ):
+                n_indent = len(meta_lines[1]) - len(meta_lines[1].lstrip())
+                stripped_lines = [line[n_indent:] for line in meta_lines]
+                # TODO: Fail when there is a line that is neither continuation or mapping
+                mapped_note = self._extract_metadata_lines(
+                    stripped_lines, map_note_pattern
+                )
+                for map_key, map_val in mapped_note.items():
+                    mapped_note[map_key] = " ".join(
+                        [mline.strip() for mline in map_val]
+                    )
+                meta_dict[meta_key] = mapped_note
+            else:
+                meta_dict[meta_key] = " ".join([mline.strip() for mline in meta_lines])
+
+            if meta_key == "Authors":
+                meta_dict[meta_key] = meta_dict[meta_key].split(", ")
+
         top_meta = OrderedDict()
         notes = []
         for key, val in meta_dict.items():
