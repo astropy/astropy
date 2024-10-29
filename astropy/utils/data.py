@@ -1222,9 +1222,11 @@ def _try_url_open(
         ftp_tls=ftp_tls, ssl_context=ssl_context, allow_insecure=False
     )
     req = urllib.request.Request(source_url, headers=http_headers)
+    remote = None
 
     try:
-        return urlopener.open(req, timeout=timeout)
+        remote = urlopener.open(req, timeout=timeout)
+        yield remote
     except urllib.error.URLError as exc:
         reason = exc.reason
         if (
@@ -1254,9 +1256,13 @@ def _try_url_open(
                 urlopener = _build_urlopener(
                     ftp_tls=ftp_tls, ssl_context=ssl_context, allow_insecure=True
                 )
-                return urlopener.open(req, timeout=timeout)
-
-        raise
+                remote = urlopener.open(req, timeout=timeout)
+                yield remote
+        else:
+            raise
+    finally:
+        if hasattr(remote, "close"):
+            remote.close()
 
 
 def _download_file_from_source(
