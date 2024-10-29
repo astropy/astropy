@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from astropy.units.utils import maybe_simple_fraction
 from astropy.utils import classproperty
+
+from . import utils
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -14,10 +15,12 @@ if TYPE_CHECKING:
     import numpy as np
 
     from astropy.units import NamedUnit, UnitBase
-    from astropy.units.typing import Real, UnitPower
+    from astropy.units.typing import Real
+
+from abc import ABC, abstractmethod
 
 
-class Base:
+class Base(ABC):
     """
     The abstract base class of all unit formats.
     """
@@ -91,23 +94,16 @@ class Base:
         return f"({number})" if "/" in number or "." in number else number
 
     @classmethod
-    def _format_unit_power(cls, unit: NamedUnit, power: UnitPower = 1) -> str:
+    def _format_unit_power(cls, unit: NamedUnit, power: Real = 1) -> str:
         """Format the unit for this format class raised to the given power.
 
         This is overridden in Latex where the name of the unit can depend on the power
         (e.g., for degrees).
         """
         name = unit._get_format_name(cls.name)
-        return name if power == 1 else name + cls._format_power(power)
-
-    @classmethod
-    def _format_power(cls, power: UnitPower) -> str:
-        # If the denominator of `power` is a power of 2 then `power` is stored
-        # as a `float` (see `units.utils.sanitize_power()`), but we still want
-        # to display it as a fraction.
-        return cls._format_superscript(
-            str(maybe_simple_fraction(power) if isinstance(power, float) else power)
-        )
+        if power != 1:
+            name += cls._format_superscript(utils.format_power(power))
+        return name
 
     @classmethod
     def _format_unit_list(cls, units: Iterable[tuple[NamedUnit, Real]]) -> str:
@@ -152,13 +148,6 @@ class Base:
         ValueError
             If ``fraction`` is not recognized.
         """
-        # A separate `_to_string()` method allows subclasses (e.g. `FITS`) to implement
-        # `to_string()` without needlessly interfering with the `to_string()`
-        # implementations of their subclasses.
-        return cls._to_string(unit, fraction=fraction)
-
-    @classmethod
-    def _to_string(cls, unit: UnitBase, *, fraction: bool | str) -> str:
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
         # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".
@@ -202,6 +191,7 @@ class Base:
             ) from None
 
     @classmethod
+    @abstractmethod
     def parse(cls, s: str) -> UnitBase:
         """
         Convert a string to a unit object.
