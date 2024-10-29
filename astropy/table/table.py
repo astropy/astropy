@@ -93,6 +93,8 @@ __doctest_skip__ = [
     "Table.convert_unicode_to_bytestring",
 ]
 
+__doctest_requires__ = {("Table.from_pandas", "Table.to_pandas"): ["pandas"]}
+
 _pprint_docs = """
     {__doc__}
 
@@ -406,7 +408,7 @@ class TableAttribute(MetaAttribute):
       >>> t.identifier
       10
       >>> t.meta
-      OrderedDict([('__attributes__', {'identifier': 10})])
+      {'__attributes__': {'identifier': 10}}
     """
 
 
