@@ -18,15 +18,14 @@ The cosmological class and other metadata, e.g. a paper reference, are in
 the Table's metadata.
 
     >>> cr.meta
-    OrderedDict([('Oc0', 0.2607), ('n', 0.9665), ...])
+    {'Oc0': 0.2607, 'n': 0.9665, ...}
 
 Now this row can be used to load a new cosmological instance identical
 to the ``Planck18`` cosmology from which it was generated.
 
     >>> cosmo = Cosmology.from_format(cr, format="astropy.row")
     >>> cosmo
-    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                    Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+    FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
 For more information on the argument options, see :ref:`cosmology_io_builtin-table`.
 """
@@ -105,8 +104,7 @@ def from_row(
 
         >>> cosmo = Cosmology.from_format(cr, format="astropy.row")
         >>> cosmo
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
     The ``cosmology`` information (column or metadata) may be omitted if the cosmology
     class (or its string name) is passed as the ``cosmology`` keyword argument to
@@ -114,23 +112,20 @@ def from_row(
 
         >>> del cr.columns["cosmology"]  # remove cosmology from metadata
         >>> Cosmology.from_format(cr, cosmology="FlatLambdaCDM")
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
     Alternatively, specific cosmology classes can be used to parse the data.
 
         >>> from astropy.cosmology import FlatLambdaCDM
         >>> FlatLambdaCDM.from_format(cr)
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
     When using a specific cosmology class, the class' default parameter values are used
     to fill in any missing information.
 
         >>> del cr.columns["Tcmb0"]  # show FlatLambdaCDM provides default
         >>> FlatLambdaCDM.from_format(cr)
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 0. K>, Neff=3.046, m_nu=None, Ob0=0.04897)
 
     If a `~astropy.table.Row` object has columns that do not match the fields of the
     `~astropy.cosmology.Cosmology` class, they can be mapped using the ``rename``
@@ -229,7 +224,7 @@ def to_row(
     Table's metadata.
 
         >>> cr.meta
-        OrderedDict([('Oc0', 0.2607), ('n', 0.9665), ...])
+        {'Oc0': 0.2607, 'n': 0.9665, ...}
 
     To move the cosmology class from a column to the Table's metadata, set the
     ``cosmology_in_meta`` argument to `True`:

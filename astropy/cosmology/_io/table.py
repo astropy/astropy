@@ -23,7 +23,7 @@ The cosmological class and other metadata, e.g. a paper reference, are in the Ta
 metadata.
 
     >>> ct.meta
-    OrderedDict([..., ('cosmology', 'FlatLambdaCDM')])
+    {..., 'cosmology': 'FlatLambdaCDM'}
 
 
 Cosmology supports the astropy Table-like protocol (see :ref:`Table-like Objects`) to
@@ -79,8 +79,7 @@ it was generated.
 
     >>> cosmo = Cosmology.from_format(ct, format="astropy.table")
     >>> cosmo
-    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                    Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+    FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
     >>> cosmo == Planck18
     True
 
@@ -90,23 +89,20 @@ The ``cosmology`` information (row or metadata) may be omitted if the cosmology 
 
     >>> del ct.meta["cosmology"]  # remove cosmology from metadata
     >>> Cosmology.from_format(ct, cosmology="FlatLambdaCDM")
-    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                    Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+    FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
 Alternatively, specific cosmology classes can be used to parse the data.
 
     >>> from astropy.cosmology import FlatLambdaCDM
     >>> FlatLambdaCDM.from_format(ct)
-    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                    Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+     FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
 When using a specific cosmology class, the class' default parameter values are used to
 fill in any missing information.
 
     >>> del ct["Tcmb0"]  # show FlatLambdaCDM provides default
     >>> FlatLambdaCDM.from_format(ct)
-    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                    Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
+     FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 0. K>, Neff=3.046, m_nu=None, Ob0=0.04897)
 
 For tables with multiple rows of cosmological parameters, the ``index`` argument is
 needed to select the correct row. The index can be an integer for the row number or, if
@@ -237,8 +233,7 @@ def from_table(
 
         >>> cosmo = Cosmology.from_format(ct, format="astropy.table")
         >>> cosmo
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
     The ``cosmology`` information (column or metadata) may be omitted if the cosmology
     class (or its string name) is passed as the ``cosmology`` keyword argument to
@@ -246,23 +241,20 @@ def from_table(
 
         >>> del ct.meta["cosmology"]  # remove cosmology from metadata
         >>> Cosmology.from_format(ct, cosmology="FlatLambdaCDM")
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
     Alternatively, specific cosmology classes can be used to parse the data.
 
         >>> from astropy.cosmology import FlatLambdaCDM
         >>> FlatLambdaCDM.from_format(ct)
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+         FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
     When using a specific cosmology class, the class' default parameter values are used
     to fill in any missing information.
 
         >>> del ct["Tcmb0"]  # show FlatLambdaCDM provides default
         >>> FlatLambdaCDM.from_format(ct)
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
+         FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 0. K>, Neff=3.046, m_nu=None, Ob0=0.04897)
 
     For tables with multiple rows of cosmological parameters, the ``index`` argument is
     needed to select the correct row. The index can be an integer for the row number or,
@@ -406,7 +398,7 @@ def to_table(
     the Table's metadata.
 
         >>> ct.meta
-        OrderedDict([..., ('cosmology', 'FlatLambdaCDM')])
+        {..., 'cosmology': 'FlatLambdaCDM'}
 
     To move the cosmology class from the metadata to a Table column, set the
     ``cosmology_in_meta`` argument to `False`:

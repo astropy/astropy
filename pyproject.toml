@@ -228,10 +228,10 @@ doctest_norecursedirs = [
     "*/tests/command.py",
 ]
 doctest_subpackage_requires = [
-    "astropy/cosmology/_io/mapping.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
-    "astropy/cosmology/_io/row.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
-    "astropy/cosmology/_io/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
-    "astropy/table/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
+    "astropy/cosmology/_io/mapping.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
+    "astropy/cosmology/_io/row.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
+    "astropy/cosmology/_io/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
+    "astropy/table/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/table/mixins/dask.py = dask",
     "docs/* = numpy>=2",   # not NUMPY_LT_2_0 (PR 15065)
     "astropy/stats/info_theory.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
