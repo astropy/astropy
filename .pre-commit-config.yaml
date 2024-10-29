@@ -60,7 +60,11 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
+<<<<<<< HEAD
     rev: v0.6.9
+=======
+    rev: v0.7.1
+>>>>>>> 51ffebfa4 (add abstraction to base.py)
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
@@ -110,6 +114,42 @@ repos:
               docs/ |
               examples/
           )
+      - id: docformatter-venv
+        name: docformatter-venv
+        language: python
+        additional_dependencies: [tomli]
+        args: [--in-place, --config, ./pyproject.toml]
+        exclude: |
+          (?x)(
+              test.*\.py |
+              astropy/__init__\.py |
+              astropy/_dev/ |
+              astropy/config/ |
+              astropy/conftest\.py |
+              astropy/constants/ |
+              astropy/convolution/ |
+              astropy/coordinates/ |
+              astropy/extern/ |
+              astropy/io/ |
+              astropy/logger\.py |
+              astropy/modeling/ |
+              astropy/nddata/ |
+              astropy/samp/ |
+              astropy/stats/ |
+              astropy/table/ |
+              astropy/tests/ |
+              astropy/time/ |
+              astropy/timeseries/ |
+              astropy/uncertainty/ |
+              astropy/units/ |
+              astropy/utils/ |
+              astropy/version\.py |
+              astropy/visualization/ |
+              astropy/wcs/ |
+              docs/ |
+              examples/
+          )
+
 
   - repo: local
     hooks:

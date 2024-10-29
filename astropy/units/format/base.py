@@ -191,7 +191,6 @@ class Base(ABC):
             ) from None
 
     @classmethod
-    @abstractmethod
     def parse(cls, s: str) -> UnitBase:
         """
         Convert a string to a unit object.
