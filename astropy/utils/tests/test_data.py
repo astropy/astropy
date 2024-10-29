@@ -1188,6 +1188,7 @@ def test_compressed_stream():
         assert f.read().rstrip() == b"CONTENT"
 
 
+@pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.remote_data(source="astropy")
 def test_invalid_location_download_raises_urlerror():
     """
@@ -1199,6 +1200,7 @@ def test_invalid_location_download_raises_urlerror():
         download_file("http://www.astropy.org/nonexistentfile")
 
 
+@pytest.mark.filterwarnings("ignore:unclosed <ssl.SSLSocket:ResourceWarning")
 def test_invalid_location_download_noconnect():
     """
     checks that download_file gives an OSError if the socket is blocked
@@ -1326,6 +1328,7 @@ def test_export_import_roundtrip_stream(temp_cache, valid_urls):
     assert set(get_cached_urls()) == initial_urls_in_cache
 
 
+@pytest.mark.filterwarnings("ignore:unclosed <ssl.SSLSocket:ResourceWarning")
 def test_export_overwrite_flag_works(temp_cache, valid_urls, tmp_path):
     fn = tmp_path / "f.zip"
     c = b"Some contents\nto check later"
@@ -1342,6 +1345,7 @@ def test_export_overwrite_flag_works(temp_cache, valid_urls, tmp_path):
     assert get_file_contents(fn, encoding="binary") != c
 
 
+@pytest.mark.filterwarnings("ignore:unclosed <ssl.SSLSocket:ResourceWarning")
 def test_export_import_roundtrip_different_location(tmp_path, valid_urls):
     original_cache = tmp_path / "original"
     original_cache.mkdir()
@@ -1382,6 +1386,7 @@ def test_cache_size_changes_correctly_when_files_are_added_and_removed(
     assert cache_total_size() == s_i
 
 
+@pytest.mark.filterwarnings("ignore:unclosed <ssl.SSLSocket:ResourceWarning")
 def test_cache_contents_agrees_with_get_urls(temp_cache, valid_urls):
     r = []
     for a, a_c in islice(valid_urls, FEW):
@@ -1501,6 +1506,7 @@ def test_check_download_cache_cleanup(temp_cache, valid_urls):
     # download cache will be checked on exit
 
 
+@pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 def test_download_cache_update_doesnt_damage_cache(temp_cache, valid_urls):
     u, _ = next(valid_urls)
     download_file(u, cache=True)
