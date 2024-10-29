@@ -64,17 +64,7 @@ class ConfigurationChangedWarning(AstropyWarning):
     """
 
 
-class _ConfigNamespaceMeta(type):
-    def __init__(cls, name, bases, dict):
-        if cls.__bases__[0] is object:
-            return
-
-        for key, val in dict.items():
-            if isinstance(val, ConfigItem):
-                val.name = key
-
-
-class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
+class ConfigNamespace:
     """
     A namespace of configuration items.  Each subpackage with
     configuration items should define a subclass of this class,
@@ -326,6 +316,9 @@ class ConfigItem:
             self.aliases = [aliases]
         else:
             self.aliases = aliases
+
+    def __set_name__(self, owner, name):
+        self.name = name
 
     def __set__(self, obj, value):
         return self.set(value)
