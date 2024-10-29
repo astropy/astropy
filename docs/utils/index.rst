@@ -27,6 +27,8 @@ The exceptions are below:
    data
    masked/index
 
+:ref:`utils-iers`
+
 .. note:: The ``astropy.utils.compat`` subpackage is not included in this
     documentation. It contains utility modules for compatibility with
     older/newer versions of python and numpy, as well as including some
