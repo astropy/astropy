@@ -1,0 +1,1 @@
+``parallel_fit_dask`` now supports ``NDData`` objects as the ``data=`` argument using the ``data``, ``wcs``, ``uncertainty``, ``mask`` and ``unit`` attributes of the ``NDData`` object.
