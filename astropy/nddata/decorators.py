@@ -152,10 +152,10 @@ def support_nddata(
             if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
                 raise ValueError("func may not have *args or **kwargs.")
             try:
-                if param.default == param.empty:
-                    func_args.append(param_name)
-                else:
+                if param.kind == param.KEYWORD_ONLY or param.default != param.empty:
                     func_kwargs.append(param_name)
+                else:
+                    func_args.append(param_name)
             # The comparison to param.empty may fail if the default is a
             # numpy array or something similar. So if the comparison fails then
             # it's quite obvious that there was a default and it should be
@@ -169,17 +169,16 @@ def support_nddata(
                 else:
                     raise
 
-        # First argument should be data
-        if not func_args or func_args[0] != attr_arg_map.get("data", "data"):
+        data_arg_name = attr_arg_map.get("data", "data")
+        if data_arg_name not in sig.keys():
             raise ValueError(
-                "Can only wrap functions whose first positional "
-                "argument is `{}`"
-                "".format(attr_arg_map.get("data", "data"))
+                f"Can only wrap a function with a {data_arg_name} argument."
             )
 
         @wraps(func)
-        def wrapper(data, *args, **kwargs):
-            bound_args = signature(func).bind(data, *args, **kwargs)
+        def wrapper(*args, **kwargs):
+            bound_args = signature(func).bind_partial(*args, **kwargs)
+            data = bound_args.arguments[data_arg_name]
             unpack = isinstance(data, accepts)
             input_data = data
             ignored = []
@@ -187,7 +186,6 @@ def support_nddata(
                 raise TypeError(
                     f"Only NDData sub-classes that inherit from {accepts.__name__}"
                     " can be used by this function"
-                    ""
                 )
 
             # If data is an NDData instance, we can try and find properties
@@ -246,9 +244,9 @@ def support_nddata(
                             )
                             continue
                     # Otherwise use the property as input for the function.
-                    kwargs[propmatch] = value
+                    bound_args.arguments[propmatch] = value
                 # Finally, replace data by the data attribute
-                data = data.data
+                bound_args.arguments[data_arg_name] = data.data
 
                 if ignored:
                     warnings.warn(
@@ -258,7 +256,7 @@ def support_nddata(
                         AstropyUserWarning,
                     )
 
-            result = func(data, *args, **kwargs)
+            result = func(*bound_args.args, **bound_args.kwargs)
 
             if unpack and repack:
                 # If there are multiple required returned arguments make sure

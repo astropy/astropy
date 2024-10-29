@@ -58,6 +58,29 @@ def test_pass_nddata():
     assert unit_out is unit_in
 
 
+@pytest.mark.parametrize(
+    "func",
+    (
+        lambda *, data, wcs, unit=None: (data, wcs, unit),
+        lambda *, wcs=None, data, unit=None: (data, wcs, unit),
+    ),
+)
+def test_pass_nddata_kwarg_only(func):
+    wrapped_function = support_nddata(func)
+
+    data_in = np.array([1, 2, 3])
+    wcs_in = WCS(naxis=1)
+    unit_in = u.Jy
+
+    nddata_in = NDData(data_in, wcs=wcs_in, unit=unit_in)
+
+    data_out, wcs_out, unit_out = wrapped_function(data=nddata_in)
+
+    assert data_out is data_in
+    assert wcs_out is wcs_in
+    assert unit_out is unit_in
+
+
 def test_pass_nddata_and_explicit():
     data_in = np.array([1, 2, 3])
     wcs_in = WCS(naxis=1)
@@ -103,39 +126,18 @@ def test_pass_nddata_ignored():
     assert unit_out is unit_in
 
 
-def test_incorrect_first_argument():
-    with pytest.raises(ValueError) as exc:
-
-        @support_nddata
-        def wrapped_function_2(something, wcs=None, unit=None):
-            pass
-
-    assert (
-        exc.value.args[0]
-        == "Can only wrap functions whose first positional argument is `data`"
-    )
-
-    with pytest.raises(ValueError) as exc:
-
-        @support_nddata
-        def wrapped_function_3(something, data, wcs=None, unit=None):
-            pass
-
-    assert (
-        exc.value.args[0]
-        == "Can only wrap functions whose first positional argument is `data`"
-    )
-
-    with pytest.raises(ValueError) as exc:
-
-        @support_nddata
-        def wrapped_function_4(wcs=None, unit=None):
-            pass
-
-    assert (
-        exc.value.args[0]
-        == "Can only wrap functions whose first positional argument is `data`"
-    )
+@pytest.mark.parametrize(
+    "func",
+    (
+        lambda something, wcs=None, unit=None: None,
+        lambda wcs=None, unit=None: None,
+    ),
+)
+def test_incorrect_first_argument(func):
+    with pytest.raises(
+        ValueError, match="Can only wrap a function with a data argument"
+    ):
+        support_nddata(func)
 
 
 def test_wrap_function_no_kwargs():
