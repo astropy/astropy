@@ -61,7 +61,7 @@ From here, we can access the components of the resulting
 `~astropy.coordinates.Galactocentric` instance to see the 3D Cartesian
 velocity components:
 
->>> print(gc1.v_x, gc1.v_y, gc1.v_z)
+>>> print(gc1.v_x, gc1.v_y, gc1.v_z)  # doctest: +FLOAT_CMP
 30.254684717897074 km / s 171.29916086104885 km / s 18.19390627095307 km / s
 
 The default parameters for the `~astropy.coordinates.Galactocentric` frame
@@ -83,7 +83,7 @@ x values) so ``v_x`` is opposite of the Galactocentric radial velocity:
 We can then transform to this frame instead, with our custom parameters:
 
 >>> gc2 = c1.transform_to(gc_frame)
->>> print(gc2.v_x, gc2.v_y, gc2.v_z)
+>>> print(gc2.v_x, gc2.v_y, gc2.v_z)  # doctest: +FLOAT_CMP
 28.427958360720748 km / s 169.69916086104888 km / s 17.70831652451455 km / s
 
 It is sometimes useful to specify the solar motion using the
@@ -104,7 +104,7 @@ which we will again take to be 11 km/s:
 ...     galcen_distance=galcen_distance, galcen_v_sun=v_sun2, z_sun=0 * u.pc
 ... )
 >>> gc3 = c1.transform_to(gc_frame2)
->>> print(gc3.v_x, gc3.v_y, gc3.v_z)
+>>> print(gc3.v_x, gc3.v_y, gc3.v_z)  # doctest: +FLOAT_CMP
 28.427958360720748 km / s 167.61484955608267 km / s 18.118916793584443 km / s
 
 The transformations also work in the opposite direction. This can be useful
@@ -145,19 +145,19 @@ Heliocentric coordinates:
     curve:
 
     >>> fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-    >>> axes[0].plot(gc_rings.x.T, gc_rings.y.T, marker="None", linewidth=3)
-    >>> axes[0].text(-8.0, 0, r"$\odot$", fontsize=20)
-    >>> axes[0].set_xlim(-30, 30)
-    >>> axes[0].set_ylim(-30, 30)
-    >>> axes[0].set_xlabel("$x$ [kpc]")
-    >>> axes[0].set_ylabel("$y$ [kpc]")
-    >>> axes[0].set_title("Positions")
-    >>> axes[1].plot(gc_rings.v_x.T, gc_rings.v_y.T, marker="None", linewidth=3)
-    >>> axes[1].set_xlim(-250, 250)
-    >>> axes[1].set_ylim(-250, 250)
-    >>> axes[1].set_xlabel(f"$v_x$ [{(u.km / u.s).to_string('latex_inline')}]")
-    >>> axes[1].set_ylabel(f"$v_y$ [{(u.km / u.s).to_string('latex_inline')}]")
-    >>> axes[1].set_title("Velocities")
+    >>> _ = axes[0].plot(gc_rings.x.T, gc_rings.y.T, marker="None", linewidth=3)
+    >>> _ = axes[0].text(-8.0, 0, r"$\odot$", fontsize=20)
+    >>> _ = axes[0].set_xlim(-30, 30)
+    >>> _ = axes[0].set_ylim(-30, 30)
+    >>> _ = axes[0].set_xlabel("$x$ [kpc]")
+    >>> _ = axes[0].set_ylabel("$y$ [kpc]")
+    >>> _ = axes[0].set_title("Positions")
+    >>> _ = axes[1].plot(gc_rings.v_x.T, gc_rings.v_y.T, marker="None", linewidth=3)
+    >>> _ = axes[1].set_xlim(-250, 250)
+    >>> _ = axes[1].set_ylim(-250, 250)
+    >>> _ = axes[1].set_xlabel(f"$v_x$ [{(u.km / u.s).to_string('latex_inline')}]")
+    >>> _ = axes[1].set_ylabel(f"$v_y$ [{(u.km / u.s).to_string('latex_inline')}]")
+    >>> _ = axes[1].set_title("Velocities")
     >>> fig.tight_layout()
 
     Now we can transform to Galactic coordinates and visualize the rings in
@@ -166,18 +166,18 @@ Heliocentric coordinates:
     >>> gal_rings = gc_rings.transform_to(coord.Galactic)
     >>> fig, ax = plt.subplots(1, 1, figsize=(8, 6))
     >>> for i in range(len(ring_distances)):
-    ...     ax.plot(
+    ...     _ = ax.plot(
     ...         gal_rings[i].l.degree,
     ...         gal_rings[i].pm_l_cosb.value,
     ...         label=str(ring_distances[i]),
     ...         marker="None",
     ...         linewidth=3,
     ...     )
-    >>> ax.set_xlim(360, 0)
-    >>> ax.set_xlabel("$l$ [deg]")
-    >>> ax.set_ylabel(rf'$\mu_l \, \cos b$ [{(u.mas/u.yr).to_string("latex_inline")}]')
-    >>> ax.legend()
-    >>> plt.show()
+    >>> _ = ax.set_xlim(360, 0)
+    >>> _ = ax.set_xlabel("$l$ [deg]")
+    >>> _ = ax.set_ylabel(rf'$\mu_l \, \cos b$ [{(u.mas/u.yr).to_string("latex_inline")}]')
+    >>> _ = ax.legend()
+    >>> plt.draw()
 
 ..
   EXAMPLE END
