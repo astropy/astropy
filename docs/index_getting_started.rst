@@ -4,11 +4,12 @@
 Getting Started
 ***************
 
+:ref:`whatsnew-7.1`
+
 .. toctree::
    :maxdepth: 1
 
    install
-   whatsnew/7.1
    importing_astropy
    Example Gallery <generated/examples/index>
    Tutorials <https://learn.astropy.org/>
