@@ -27,7 +27,7 @@ test_dat = [
 ]
 
 
-def test_roundtrip_mrt_table():
+def test_roundtrip_cds_table():
     """
     Tests whether or not the CDS writer can roundtrip a table,
     i.e. read a table to ``Table`` object and write it exactly
