@@ -145,39 +145,21 @@ def support_nddata(
     all_returns = returns + keeps
 
     def support_nddata_decorator(func):
-        # Find out args and kwargs
-        func_args, func_kwargs = [], []
-        sig = signature(func).parameters
-        for param_name, param in sig.items():
+        func_parameters = signature(func).parameters
+        for param in func_parameters.values():
             if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
                 raise ValueError("func may not have *args or **kwargs.")
-            try:
-                if param.kind == param.KEYWORD_ONLY or param.default != param.empty:
-                    func_kwargs.append(param_name)
-                else:
-                    func_args.append(param_name)
-            # The comparison to param.empty may fail if the default is a
-            # numpy array or something similar. So if the comparison fails then
-            # it's quite obvious that there was a default and it should be
-            # appended to the "func_kwargs".
-            except ValueError as exc:
-                if (
-                    "The truth value of an array with more than one element "
-                    "is ambiguous." in str(exc)
-                ):
-                    func_kwargs.append(param_name)
-                else:
-                    raise
 
         data_arg_name = attr_arg_map.get("data", "data")
-        if data_arg_name not in sig.keys():
+        if data_arg_name not in func_parameters.keys():
             raise ValueError(
                 f"Can only wrap a function with a {data_arg_name} argument."
             )
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            bound_args = signature(func).bind_partial(*args, **kwargs)
+            func_sig = signature(func)
+            bound_args = func_sig.bind_partial(*args, **kwargs)
             data = bound_args.arguments[data_arg_name]
             unpack = isinstance(data, accepts)
             input_data = data
@@ -206,7 +188,7 @@ def support_nddata(
                         continue
                     # Warn if the property is set but not used by the function.
                     propmatch = attr_arg_map.get(prop, prop)
-                    if propmatch not in func_kwargs:
+                    if propmatch not in func_parameters:
                         ignored.append(prop)
                         continue
 
@@ -226,13 +208,23 @@ def support_nddata(
                         # indistinguishable from an explicitly passed kwarg
                         # and it won't notice that and use the attribute of the
                         # NDData.
-                        if propmatch in func_args or (
-                            propmatch in func_kwargs
-                            and (
+                        warn_conflict = False
+                        try:
+                            if (
                                 bound_args.arguments[propmatch]
-                                is not sig[propmatch].default
-                            )
-                        ):
+                                is not func_parameters[propmatch].default
+                            ):
+                                warn_conflict = True
+                        except ValueError as exc:
+                            if (
+                                "The truth value of an array with more than one element "
+                                "is ambiguous." in str(exc)
+                            ):
+                                warn_conflict = False
+                            else:
+                                raise
+
+                        if warn_conflict:
                             warnings.warn(
                                 "Property {} has been passed explicitly and "
                                 "as an NDData property{}, using explicitly "
@@ -256,6 +248,9 @@ def support_nddata(
                         AstropyUserWarning,
                     )
 
+            # Need to apply defaults so that any positional only arguments are
+            # passed as positional properly
+            bound_args.apply_defaults()
             result = func(*bound_args.args, **bound_args.kwargs)
 
             if unpack and repack:
