@@ -24,6 +24,7 @@ of two Gaussians:
 .. plot::
    :include-source:
 
+    import warnings
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling.models import custom_model
@@ -46,7 +47,11 @@ of two Gaussians:
     # Fit model to data
     m_init = sum_of_gaussians()
     fit = TRFLSQFitter()
-    m = fit(m_init, x, y)
+    with warnings.catch_warnings():
+        # Ignore a warning from the fitter
+        warnings.filterwarnings('ignore', message='The fit may be unsuccessful',
+                                category=UserWarning)
+        m = fit(m_init, x, y)
 
     # Plot the data and the best fit
     plt.plot(x, y, 'o', color='k')
