@@ -2,7 +2,7 @@ name: Check PR milestone
 
 on:
   pull_request:
-    types: [opened, synchronize, milestoned, demilestoned]
+    types: [synchronize, milestoned, demilestoned]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
