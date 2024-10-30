@@ -15,6 +15,7 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
+from astropy.io.ascii.mrt import MAX_SIZE_README_LINE
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
@@ -85,7 +86,7 @@ def test_roundtrip_cds_table():
     assert lines == exp_output
 
 
-def test_roundtrip_mrt_table():
+def test_roundtrip_mrt_meta():
     """
     Tests whether or not the MRT writer can roundtrip a table,
     i.e. read a table to ``Table`` object and write it exactly
@@ -103,37 +104,92 @@ def test_roundtrip_mrt_table():
     Masked columns are read properly though, and thus are being tested
     during round-tripping.
     """
-    # TODO: Figure out output for cds2.dat
-    # exp_output = [
-    #     "================================================================================",
-    #     "Byte-by-byte Description of file: table.dat",
-    #     "--------------------------------------------------------------------------------",
-    #     " Bytes Format Units  Label     Explanations",
-    #     "--------------------------------------------------------------------------------",
-    #     " 1- 7  A7       ---    ID       Star ID                              ",
-    #     " 9-12  I4       K      Teff     [4337/4654] Effective temperature    ",
-    #     "14-17  F4.2   [cm.s-2] logg     [0.77/1.28] Surface gravity          ",
-    #     "19-22  F4.2     km.s-1 vturb    [1.23/1.82] Micro-turbulence velocity",
-    #     "24-28  F5.2     [-]    [Fe/H]   [-2.11/-1.5] Metallicity             ",
-    #     "30-33  F4.2     [-]    e_[Fe/H] ? rms uncertainty on [Fe/H]          ",
-    #     "--------------------------------------------------------------------------------",
-    #     "Notes:",
-    #     "--------------------------------------------------------------------------------",
-    #     "S05-5   4337 0.77 1.80 -2.07     ",
-    #     "S08-229 4625 1.23 1.23 -1.50     ",
-    #     "S05-10  4342 0.91 1.82 -2.11 0.14",
-    #     "S05-47  4654 1.28 1.74 -1.64 0.16",
-    # ]
+    exp_output = [
+        "Title: The Taurus Spitzer Survey: New Candidate Taurus Members Selected Using",
+        "    Sensitive Mid-Infrared Photometry",
+        "Authors: Rebull L.M., Padgett D.L., McCabe C.-E., Hillenbrand L.A.,",
+        "    Stapelfeldt K.R., Noriega-Crespo A., Carey S.J., Brooke T., Huard T.,",
+        "    Terebey S., Audard M., Monin J.-L., Fukagawa M., Gudel M., Knapp G.R.,",
+        "    Menard F., Allen L.E., Angione J.R., Baldovin-Saavedra C., Bouvier J.,",
+        "    Briggs K., Dougados C., Evans N.J., Flagey N., Guieu S., Grosso N.,",
+        "    Glauser A.M., Harvey P., Hines D., Latter W.B., Skinner S.L., Strom S.,",
+        "    Tromp J., Wolf S.",
+        "Table: Spitzer measurements for sample of previously identified Taurus members",
+        "================================================================================",
+        "Byte-by-byte Description of file: table.dat",
+        "--------------------------------------------------------------------------------",
+        " Bytes Format Units  Label     Explanations",
+        "--------------------------------------------------------------------------------",
+        "  1- 15  A15    ---    SST      Spitzer Tau name",
+        " 17- 39  A23    ---    CName    Common name",
+        "     41  A1     ---    l_3.6mag ? Limit flag on 3.6mag",
+        " 43- 47  F5.2   mag    3.6mag   [6.62/15.33] Spitzer/IRAC 3.6 micron band",
+        "                                 magnitude (1)",
+        " 49- 52  F4.2   mag    e_3.6mag [0.05/0.15]? Uncertainty in 3.6mag",
+        "     54  A1     ---    l_4.5mag ? Limit flag on 4.5mag",
+        " 56- 60  F5.2   mag    4.5mag   [6.1/14.25]? Spitzer/IRAC 4.5 micron band",
+        "                                 magnitude (1)",
+        " 62- 65  F4.2   mag    e_4.5mag [0.05/0.22]? Uncertainty in 4.5mag",
+        "     67  A1     ---    l_5.8mag ? Limit flag on 5.8mag",
+        " 69- 73  F5.2   mag    5.8mag   [3.49/13.7] Spitzer/IRAC 5.8 micron band",
+        "                                 magnitude (1)",
+        " 75- 78  F4.2   mag    e_5.8mag [0.05/0.12]? Uncertainty in 5.8mag",
+        "     80  A1     ---    l_8mag   ? Limit flag on 8.0mag",
+        " 82- 86  F5.2   mag    8mag     [3.52/13.41]? Spitzer/IRAC 8.0 micron band",
+        "                                 magnitude (1)",
+        " 88- 91  F4.2   mag    e_8mag   [0.04/0.17]? Uncertainty in 8mag",
+        "     93  A1     ---    l_24mag  ? Limit flag on 24mag",
+        " 95- 99  F5.2   mag    24mag    [0.45/11.05]? Spitzer/MIPS 24 micron band",
+        "                                 magnitude (1)",
+        "101-104  F4.2   mag    e_24mag  [0.01/0.33]? Uncertainty in 24mag",
+        "    106  A1     ---    l_70mag  ? Limit flag on 70mag",
+        "108-112  F5.2   mag    70mag    [-2.54/3.14]? Spitzer/MIPS 70 micron band",
+        "                                 magnitude (1)",
+        "114-117  F4.2   mag    e_70mag  ? Uncertainty in 70mag",
+        "    119  A1     ---    l_160mag ? Limit flag on 160mag",
+        "121-125  F5.2   mag    160mag   ? Spitzer/MIPS 160 micron band magnitude (1)",
+        "127-130  F4.2   mag    e_160mag ? Uncertainty in 160mag",
+        "132-134  A3     ---    ID24/70  ? Identification in 24/70 micron color-magnitude",
+        "                                 diagram",
+        "136-144  A9     ---    IDKS/24  ? Identification in Ks/70 micron color-magnitude",
+        "                                 diagram",
+        "146-154  A9     ---    ID8/24   ? Identification in 8/24 micron color-magnitude",
+        "                                 diagram",
+        "156-164  A9     ---    ID4.5/8  ? Identification in 4.5/8 micron color-magnitude",
+        "                                 diagram",
+        "166-168  A3     ---    IDIRAC   ? Identification in IRAC color-color diagram",
+        "170-172  A3     ---    Note     ? Additional note (2)",
+        "--------------------------------------------------------------------------------",
+        "Note (1): To convert between magnitudes and flux densities, we use M= 2.5",
+        "    log(F_zeropt_/F) where the zero-point flux densities for the seven Spitzer",
+        "    bands are 280.9, 179.7, 115.0, and 64.13 Jy for IRAC and 7.14, 0.775, and",
+        "    0.159 Jy for MIPS.  IRAC effective wavelengths are 3.6, 4.5, 5.8, and 8.0",
+        "    microns; MIPS effective wavelengths are 24, 70, and 160 microns.",
+        "Note (2)",
+        "    b = MIPS-160 flux density for this object is subject to confusion with a",
+        "        nearby source or sources.",
+        "    c = MIPS-160 flux density for this object is compromised by missing and/or",
+        "        saturated data.",
+        "    d = MIPS-160 flux density for this object is hard saturated.",
+        "    e = IRAC flux densities for 043835.4+261041=HV Tau C do not appear in our",
+        "        automatically-extracted catalog. Flux densities here are those from",
+        "        Hartmann et al. (2005); since their observations have more redundancy at",
+        "        IRAC bands, they are able to obtain reliable flux densities for this",
+        "        object at IRAC bands.  MIPS flux densities are determined from our data.",
+        "    f = The image morphology around 041426.2+280603 is complex; careful PSF",
+        "        subtraction and modeling will be required to apportion flux densities",
+        "        among the three local maxima seen in close proximity in the IRAC images,",
+        "        which may or may not be three physically distinct sources.",
+    ]
     dat = get_pkg_data_filename("data/cds2.dat", package="astropy.io.ascii.tests")
     t = Table.read(dat, format="ascii.mrt")
     out = StringIO()
     t.write(out, format="ascii.mrt")
-    print(out)
-    # TODO: Add comparison test
-    # lines = out.getvalue().splitlines()
-    # i_bbb = lines.index("=" * 80)
-    # lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
-    # assert lines == exp_output
+    lines = out.getvalue().splitlines()
+    reversed_index = lines[::-1].index("-" * 80)
+    meta_lines = lines[: len(lines) - reversed_index - 1]
+    assert all(len(line) <= MAX_SIZE_README_LINE for line in meta_lines)
+    assert meta_lines == exp_output
 
 
 def test_write_byte_by_byte_units():
@@ -511,6 +567,7 @@ def test_write_extra_skycoord_cols():
     """
     Tests output for cases when table contains multiple ``SkyCoord`` columns.
     """
+
     exp_output = [
         "================================================================================",
         "Byte-by-byte Description of file: table.dat",
