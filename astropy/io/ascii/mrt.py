@@ -489,7 +489,13 @@ class MrtHeader(cds.CdsHeader):
         # lines in order to wrap them. It is the sum of the widths of the
         # previous 4 columns plus the number of single spacing between them.
         # The hyphen in the Bytes column is also counted.
-        nsplit = byte_count_width * 2 + 1 + 12 + max_label_width + 4
+        # TODO: Use column formatting from above instead of "magic" numbers
+        # byte_count_width*2+1 is Bytes column.
+        # format+units+spaces between is 12
+        # 4 spaces between units and label
+        # 1 space after label
+        # 1 space beyond explanation start (mrt standard)
+        nsplit = byte_count_width * 2 + 1 + 16 + max_label_width + 2
 
         # Wrap line if it is too long
         buff = ""
