@@ -9,12 +9,12 @@ Ref: https://journals.aas.org/mrt-standards
 """
 
 import re
+import textwrap
 import warnings
 from collections import OrderedDict
 from io import StringIO
 from math import ceil, floor
 from string import Template
-from textwrap import wrap
 
 import numpy as np
 
@@ -40,9 +40,9 @@ BYTE_BY_BYTE_TEMPLATE = [
 ]
 
 MRT_TEMPLATE = [
-    "Title: $title",
-    "Authors: $authors",
-    "Table: $table",
+    "$title",
+    "$authors",
+    "$table",
     "================================================================================",
     "$bytebybyte",
     "$notes",
@@ -497,7 +497,7 @@ class MrtHeader(cds.CdsHeader):
         for newline in bbblines:
             if len(newline) > MAX_SIZE_README_LINE:
                 buff += ("\n").join(
-                    wrap(
+                    textwrap.wrap(
                         newline,
                         subsequent_indent=" " * nsplit,
                         width=MAX_SIZE_README_LINE,
@@ -697,27 +697,62 @@ class MrtHeader(cds.CdsHeader):
         )
 
         # Fill up the full ReadMe
+        default_indent = "    "
         # TODO: Wrap lines, with proper indent
         top_meta = self.table_meta["top"]
         notes = self.table_meta["notes"]
+        from functools import partial
+
+        wrap_meta = partial(
+            textwrap.wrap,
+            subsequent_indent=default_indent,
+            width=MAX_SIZE_README_LINE,
+            break_long_words=False,
+            break_on_hyphens=False,
+        )
+        # Indent title and authors
+        top_out = {}
+        top_out["Title"] = "\n".join(wrap_meta("Title: " + top_meta["Title"]))
+        top_out["Table"] = "\n".join(wrap_meta("Table: " + top_meta["Table"]))
+        # HACK: Use numbers to avoid breaking author names, then revert to spaces
+        authors_hack = "Authors: " + "6".join(top_meta["Authors"]).replace(
+            " ", "7"
+        ).replace("6", ", ")
+        top_out["Authors"] = "\n".join(wrap_meta(authors_hack)).replace("7", " ")
         notes_str = []
         for i, note in enumerate(notes):
+            note_prefix = f"Note ({i+1})"
             if isinstance(note, dict):
                 # TODO: Wrap this as well, with proper indent
-                note = "\n".join(f"{key} = {val}" for key, val in note.items())
+                map_notes = []
+                for key, val in note.items():
+                    map_str = f"{key} = {val}"
+                    # Don't use default_indent: want len("k = "), so 4 spaces
+                    map_str = "\n".join(
+                        wrap_meta(
+                            map_str,
+                            width=MAX_SIZE_README_LINE - len(default_indent),
+                            subsequent_indent="    ",
+                        )
+                    )
+                    map_notes.append(map_str)
+                note = textwrap.indent("\n".join(map_notes), default_indent)
+                notes_str.append(f"{note_prefix}\n{note}")
             elif not isinstance(note, str):
                 raise TypeError(
                     f"Unexpected type {type(note)} for note {note}. Expected str or dict."
                 )
-            notes_str.append(f"Note ({i+1}): {note}")
+            else:
+                note_str = "\n".join(wrap_meta(f"{note_prefix}: {note}"))
+                notes_str.append(note_str)
         notes_str = "\n".join(notes_str)
         rm_template = Template("\n".join(MRT_TEMPLATE))
         readme_filled = rm_template.substitute(
             {
                 "bytebybyte": byte_by_byte,
-                "title": top_meta["Title"],
-                "authors": ", ".join(top_meta["Authors"]),
-                "table": top_meta["Table"],
+                "title": top_out["Title"],
+                "authors": top_out["Authors"],
+                "table": top_out["Table"],
                 "notes": notes_str,
             }
         )
