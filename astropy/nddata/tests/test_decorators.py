@@ -86,6 +86,8 @@ def test_pass_nddata_kwarg_only(func):
     (
         lambda data, wcs=None, mask=None, /, *, unit=None: (data, wcs, unit, mask),
         lambda data, wcs=None, /, mask=None, *, unit: (data, wcs, unit, mask),
+        lambda wcs=None, /, data, mask=None, *, unit: (data, wcs, unit, mask),
+        lambda wcs=None, /, mask=None, *, data, unit: (data, wcs, unit, mask),
     ),
 )
 def test_pass_nddata_positional_only(func):
