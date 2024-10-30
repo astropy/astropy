@@ -145,7 +145,8 @@ def support_nddata(
     all_returns = returns + keeps
 
     def support_nddata_decorator(func):
-        func_parameters = signature(func).parameters
+        func_sig = signature(func)
+        func_parameters = func_sig.parameters
         for param in func_parameters.values():
             if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
                 raise ValueError("func may not have *args or **kwargs.")
@@ -158,7 +159,6 @@ def support_nddata(
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            func_sig = signature(func)
             bound_args = func_sig.bind_partial(*args, **kwargs)
             data = bound_args.arguments[data_arg_name]
             unpack = isinstance(data, accepts)
