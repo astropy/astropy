@@ -38,8 +38,7 @@ identical to the |Planck18| cosmology from which it was generated.
 
     >>> cosmo = Cosmology.from_format(cm, format="mapping")
     >>> cosmo
-    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+    FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
 How did |Cosmology.from_format| know to return an instance of the |FlatLambdaCDM| class?
 The mapping object has a field ``cosmology`` which can be either the string name of the
@@ -57,22 +56,20 @@ argument to |Cosmology.from_format|.
     >>> del cm["cosmology"]  # remove cosmology class
 
     >>> Cosmology.from_format(cm, cosmology="FlatLambdaCDM")
-    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+    FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
 To the second point, we can use specific cosmology class to parse the data.
 
     >>> from astropy.cosmology import FlatLambdaCDM
     >>> FlatLambdaCDM.from_format(cm)
-    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+    FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
 Also, the class' default parameter values are used to fill in any information missing in
 the data. For example, if ``Tcmb0`` is missing, the default value of 0.0 K is used.
 
     >>> del cm["Tcmb0"]  # show FlatLambdaCDM provides default
     >>> FlatLambdaCDM.from_format(cm)
-    FlatLambdaCDM(name="Planck18", H0=..., Tcmb0=0.0 K, ...)
+    FlatLambdaCDM(name='Planck18', H0=..., Tcmb0=<Quantity 0. K>, ...)
 
 If instead of *missing* information, there is *extra* information, there are a few
 options. The first is to use the ``move_to_meta`` keyword argument to move fields that
@@ -81,7 +78,7 @@ are not in the Cosmology constructor to the Cosmology's metadata.
     >>> cm2 = cm | {"extra": 42, "cosmology": "FlatLambdaCDM"}
     >>> cosmo = Cosmology.from_format(cm2, move_to_meta=True)
     >>> cosmo.meta
-    OrderedDict([('extra', 42), ...])
+    {'extra': 42, ...}
 
 Alternatively, the ``rename`` keyword argument can be used to rename keys in the mapping
 to fields of the |Cosmology|. This is crucial when the mapping has keys that are not
@@ -93,8 +90,7 @@ valid arguments to the |Cosmology| constructor.
 
     >>> rename = {'cosmo_cls': 'cosmology', 'cosmo_name': 'name'}
     >>> Cosmology.from_format(cm3, rename=rename)
-    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                    Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
+    FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 0. K>, Neff=3.046, m_nu=None, Ob0=0.04897)
 
 Let's take a closer look at |Cosmology.to_format|, because there a lot of options, to
 tailor the output to specific needs.
@@ -103,11 +99,7 @@ The dictionary type may be changed with the ``cls`` keyword argument:
 
     >>> from collections import OrderedDict
     >>> Planck18.to_format('mapping', cls=OrderedDict)
-    OrderedDict([('cosmology', <class 'astropy.cosmology...FlatLambdaCDM'>),
-        ('name', 'Planck18'), ('H0', <Quantity 67.66 km / (Mpc s)>),
-        ('Om0', 0.30966), ('Tcmb0', <Quantity 2.7255 K>), ('Neff', 3.046),
-        ('m_nu', <Quantity [0.  , 0.  , 0.06] eV>), ('Ob0', 0.04897),
-        ('meta', ...
+    OrderedDict({'cosmology': <class 'astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM'>, 'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966, 'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046, 'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897, 'meta': ...
 
 Sometimes it is more useful to have the name of the cosmology class, not the type
 itself. The keyword argument ``cosmology_as_str`` may be used:
@@ -235,31 +227,27 @@ def from_mapping(
 
         >>> cosmo = Cosmology.from_format(cm, format="mapping")
         >>> cosmo
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
     The ``cosmology`` field can be omitted if the cosmology class (or its string name)
     is passed as the ``cosmology`` keyword argument to |Cosmology.from_format|.
 
         >>> del cm["cosmology"]  # remove cosmology class
         >>> Cosmology.from_format(cm, cosmology="FlatLambdaCDM")
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
     Alternatively, specific cosmology classes can be used to parse the data.
 
         >>> from astropy.cosmology import FlatLambdaCDM
         >>> FlatLambdaCDM.from_format(cm)
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
     When using a specific cosmology class, the class' default parameter values are used
     to fill in any missing information.
 
         >>> del cm["Tcmb0"]  # show FlatLambdaCDM provides default
         >>> FlatLambdaCDM.from_format(cm)
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 0. K>, Neff=3.046, m_nu=None, Ob0=0.04897)
 
     The ``move_to_meta`` keyword argument can be used to move fields that are not in the
     Cosmology constructor to the Cosmology's metadata. This is useful when the
@@ -268,7 +256,7 @@ def from_mapping(
         >>> cm2 = cm | {"extra": 42, "cosmology": "FlatLambdaCDM"}
         >>> cosmo = Cosmology.from_format(cm2, move_to_meta=True)
         >>> cosmo.meta
-        OrderedDict([('extra', 42), ...])
+        {'extra': 42, ...}
 
     The ``rename`` keyword argument can be used to rename keys in the mapping to fields
     of the |Cosmology|. This is crucial when the mapping has keys that are not valid
@@ -280,8 +268,7 @@ def from_mapping(
 
         >>> rename = {'cosmo_cls': 'cosmology', 'cosmo_name': 'name'}
         >>> Cosmology.from_format(cm3, rename=rename)
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 0. K>, Neff=3.046, m_nu=None, Ob0=0.04897)
     """
     # Rename keys, if given a ``renames`` dict.
     # Also, make a copy of the mapping, so we can pop from it.
@@ -371,11 +358,7 @@ def to_mapping(
 
         >>> from collections import OrderedDict
         >>> Planck18.to_format('mapping', cls=OrderedDict)
-        OrderedDict([('cosmology', <class 'astropy.cosmology...FlatLambdaCDM'>),
-          ('name', 'Planck18'), ('H0', <Quantity 67.66 km / (Mpc s)>),
-          ('Om0', 0.30966), ('Tcmb0', <Quantity 2.7255 K>), ('Neff', 3.046),
-          ('m_nu', <Quantity [0.  , 0.  , 0.06] eV>), ('Ob0', 0.04897),
-          ('meta', ...
+        OrderedDict({'cosmology': <class 'astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM'>, 'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966, 'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046, 'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897, 'meta': {'Oc0': 0.2607, 'n': 0.9665, 'sigma8': 0.8102, 'tau': 0.0561, 'z_reion': <Quantity 7.82 redshift>, 't0': <Quantity 13.787 Gyr>, 'reference': 'Planck Collaboration 2018, 2020, A&A, 641, A6  (Paper VI), Table 2 (TT, TE, EE + lowE + lensing + BAO)'}})
 
     Sometimes it is more useful to have the name of the cosmology class, not
     the type itself. The keyword argument ``cosmology_as_str`` may be used:
