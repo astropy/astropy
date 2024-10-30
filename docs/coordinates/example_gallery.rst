@@ -346,8 +346,6 @@ Astropy can answer that.
 
     .. testsetup:: sphx_glr_generated_examples_coordinates_plot_obs-planning
 
-        >>> from astropy.utils import iers
-        >>> iers.conf.auto_download = False
         >>> m33 = SkyCoord(23.46206906, 30.66017511, unit="deg")
 
     Use `astropy.coordinates.EarthLocation` to provide the location of Bear
@@ -456,10 +454,6 @@ Astropy can answer that.
     ...     _ = ax.set_ylabel("Altitude [deg]")
     ...     _ = ax.grid(visible=True)
     ...     plt.draw()
-
-    .. testcleanup:: sphx_glr_generated_examples_coordinates_plot_obs-planning
-
-        >>> iers.conf.reset("auto_download")
 
 ..
   EXAMPLE END
