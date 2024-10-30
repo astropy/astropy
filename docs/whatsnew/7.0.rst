@@ -279,7 +279,7 @@ Note that it is not yet possible to use ``Quantity`` with dask arrays directly.
 Performance improvements in astropy.modeling
 ============================================
 
-There have been significant improvements to the performance of fitting in
+There have been significant improvements to the performance of non-linear fitters in
 :mod:`astropy.modeling`, with typical speedups of 2x for simple models and 4x or
 more for compound models.
 
