@@ -40,12 +40,12 @@ BYTE_BY_BYTE_TEMPLATE = [
 ]
 
 MRT_TEMPLATE = [
-    "Title:",
-    "Authors:",
-    "Table:",
+    "Title: $title",
+    "Authors: $authors",
+    "Table: $table",
     "================================================================================",
     "$bytebybyte",
-    "Notes:",
+    "$notes",
     "--------------------------------------------------------------------------------",
 ]
 
@@ -697,8 +697,30 @@ class MrtHeader(cds.CdsHeader):
         )
 
         # Fill up the full ReadMe
+        # TODO: Wrap lines, with proper indent
+        top_meta = self.table_meta["top"]
+        notes = self.table_meta["notes"]
+        notes_str = []
+        for i, note in enumerate(notes):
+            if isinstance(note, dict):
+                # TODO: Wrap this as well, with proper indent
+                note = "\n".join(f"{key} = {val}" for key, val in note.items())
+            elif not isinstance(note, str):
+                raise TypeError(
+                    f"Unexpected type {type(note)} for note {note}. Expected str or dict."
+                )
+            notes_str.append(f"Note ({i+1}): {note}")
+        notes_str = "\n".join(notes_str)
         rm_template = Template("\n".join(MRT_TEMPLATE))
-        readme_filled = rm_template.substitute({"bytebybyte": byte_by_byte})
+        readme_filled = rm_template.substitute(
+            {
+                "bytebybyte": byte_by_byte,
+                "title": top_meta["Title"],
+                "authors": ", ".join(top_meta["Authors"]),
+                "table": top_meta["Table"],
+                "notes": notes_str,
+            }
+        )
         lines.append(readme_filled)
 
 
