@@ -86,8 +86,6 @@ def test_pass_nddata_kwarg_only(func):
     (
         lambda data, wcs=None, mask=None, /, *, unit=None: (data, wcs, unit, mask),
         lambda data, wcs=None, /, mask=None, *, unit: (data, wcs, unit, mask),
-        lambda wcs=None, /, data=None, mask=None, *, unit: (data, wcs, unit, mask),
-        lambda wcs=None, /, mask=None, *, data, unit: (data, wcs, unit, mask),
     ),
 )
 def test_pass_nddata_positional_only(func):
@@ -131,6 +129,61 @@ def test_pass_nddata_positional_only(func):
         ),
     ) as w:
         data_out, wcs_out, unit_out, mask_out = wrapped_function(nddata_in, wcs_in)
+
+    assert data_out is data_in
+    assert wcs_out is wcs_in
+    assert unit_out is unit_in
+    assert mask_out is mask_in
+
+
+@pytest.mark.parametrize(
+    "func",
+    (
+        lambda wcs=None, /, data=None, mask=None, *, unit: (data, wcs, unit, mask),
+        lambda wcs=None, /, mask=None, *, data, unit: (data, wcs, unit, mask),
+    ),
+)
+def test_pass_nddata_positional_only_data_kwarg(func):
+    wrapped_function = support_nddata(func)
+
+    data_in = np.array([1, 2, 3])
+    wcs_in = WCS(naxis=1)
+    unit_in = u.Jy
+    mask_in = np.array([True, False, False])
+
+    nddata_in = NDData(data_in, wcs=wcs_in, unit=unit_in, mask=mask_in)
+
+    data_out, wcs_out, unit_out, mask_out = wrapped_function(data=nddata_in)
+
+    assert data_out is data_in
+    assert wcs_out is wcs_in
+    assert unit_out is unit_in
+    assert mask_out is mask_in
+
+    nddata2 = NDData(data_in, unit=unit_in, mask=mask_in)
+
+    data_out, wcs_out, unit_out, mask_out = wrapped_function(data=nddata2)
+
+    assert data_out is data_in
+    assert wcs_out is None
+    assert unit_out is unit_in
+    assert mask_out is mask_in
+
+    data_out, wcs_out, unit_out, mask_out = wrapped_function(wcs_in, data=nddata2)
+
+    assert data_out is data_in
+    assert wcs_out is wcs_in
+    assert unit_out is unit_in
+    assert mask_out is mask_in
+
+    with pytest.warns(
+        AstropyUserWarning,
+        match=(
+            "Property wcs has been passed explicitly and as "
+            "an NDData property, using explicitly specified value"
+        ),
+    ) as w:
+        data_out, wcs_out, unit_out, mask_out = wrapped_function(wcs_in, data=nddata_in)
 
     assert data_out is data_in
     assert wcs_out is wcs_in
