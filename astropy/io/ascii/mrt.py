@@ -11,7 +11,6 @@ Ref: https://journals.aas.org/mrt-standards
 import re
 import textwrap
 import warnings
-from collections import OrderedDict
 from io import StringIO
 from math import ceil, floor
 from string import Template
@@ -120,10 +119,10 @@ class MrtHeader(cds.CdsHeader):
 
     def _extract_metadata_lines(self, lines, meta_pattern):
         """
-        Processes list of lines and returns an ordered dictionary of meta-data fields.
+        Processes list of lines and returns an dictionary of meta-data fields.
         The meta-data is stored as a list of lines, respecting line splits in the input.
         """
-        meta_lines = OrderedDict()
+        meta_lines = {}
         # Match empty strings as well. Notes with empty first lines are not treaded differently at this stage
         in_meta = False
         for line in lines:
@@ -141,7 +140,7 @@ class MrtHeader(cds.CdsHeader):
     def update_meta(self, lines, meta):
         """
         Extract any table-level metadata, e.g. keywords, comments, column metadata, from
-        the table ``lines`` and update the OrderedDict ``meta`` in place.
+        the table ``lines`` and update the dict ``meta`` in place.
         For MRT tables, the extracted metadata includes article title, author list,
         table name, and notes.
         """
@@ -176,7 +175,7 @@ class MrtHeader(cds.CdsHeader):
             if meta_key == "Authors":
                 meta_dict[meta_key] = meta_dict[meta_key].split(", ")
 
-        top_meta = OrderedDict()
+        top_meta = {}
         notes = []
         for key, val in meta_dict.items():
             if key in top_keys:
