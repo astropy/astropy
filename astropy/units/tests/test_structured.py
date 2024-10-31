@@ -19,31 +19,31 @@ from astropy.utils.masked import Masked
 
 class StructuredTestBase:
     @classmethod
-    def setup_class(self):
-        self.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
-        self.pv_t_dtype = np.dtype([("pv", self.pv_dtype), ("t", "f8")])
-        self.p_unit = u.km
-        self.v_unit = u.km / u.s
-        self.t_unit = u.s
-        self.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
-        self.pv_t_dtype = np.dtype([("pv", self.pv_dtype), ("t", "f8")])
-        self.pv = np.array([(1.0, 0.25), (2.0, 0.5), (3.0, 0.75)], self.pv_dtype)
-        self.pv_t = np.array(
+    def setup_class(cls):
+        cls.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
+        cls.pv_t_dtype = np.dtype([("pv", cls.pv_dtype), ("t", "f8")])
+        cls.p_unit = u.km
+        cls.v_unit = u.km / u.s
+        cls.t_unit = u.s
+        cls.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
+        cls.pv_t_dtype = np.dtype([("pv", cls.pv_dtype), ("t", "f8")])
+        cls.pv = np.array([(1.0, 0.25), (2.0, 0.5), (3.0, 0.75)], cls.pv_dtype)
+        cls.pv_t = np.array(
             [
                 ((4.0, 2.5), 0.0),
                 ((5.0, 5.0), 1.0),
                 ((6.0, 7.5), 2.0),
             ],
-            self.pv_t_dtype,
+            cls.pv_t_dtype,
         )
 
 
 class StructuredTestBaseWithUnits(StructuredTestBase):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.pv_unit = StructuredUnit((self.p_unit, self.v_unit), ("p", "v"))
-        self.pv_t_unit = StructuredUnit((self.pv_unit, self.t_unit), ("pv", "t"))
+        cls.pv_unit = StructuredUnit((cls.p_unit, cls.v_unit), ("p", "v"))
+        cls.pv_t_unit = StructuredUnit((cls.pv_unit, cls.t_unit), ("pv", "t"))
 
 
 class TestStructuredUnitBasics(StructuredTestBase):
@@ -628,10 +628,10 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
 
 class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.q_pv = self.pv << self.pv_unit
-        self.q_pv_t = self.pv_t << self.pv_t_unit
+        cls.q_pv = cls.pv << cls.pv_unit
+        cls.q_pv_t = cls.pv_t << cls.pv_t_unit
 
     def test_empty_like(self):
         z = np.empty_like(self.q_pv)
