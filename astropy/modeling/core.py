@@ -3798,6 +3798,8 @@ class CompoundModel(Model):
             self._map_parameters()
         units_for_data = {}
         for imodel, model in enumerate(self._leaflist):
+            input_units = model.input_units or input_units
+            output_units = model.output_units or output_units
             units_for_data_leaf = model._parameter_units_for_data_units(
                 input_units, output_units
             )
