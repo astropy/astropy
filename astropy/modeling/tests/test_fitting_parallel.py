@@ -22,6 +22,7 @@ from astropy.modeling.models import (  # noqa: E402
     Linear1D,
     Planar2D,
 )
+from astropy.nddata import NDData, StdDevUncertainty  # noqa: E402
 from astropy.tests.helper import assert_quantity_allclose  # noqa: E402
 from astropy.utils.compat.optional_deps import HAS_PLT  # noqa: E402
 from astropy.wcs import WCS  # noqa: E402
@@ -1036,3 +1037,75 @@ def test_world_wcs_axis_correlation():
 
     model_fit = parallel_fit_dask(fitting_axes=1, world=wcs1, **common_kwargs)
     assert_allclose(model_fit.mean, [6, 4])
+
+
+def test_support_nddata():
+    data = gaussian(np.arange(20), 2, 10, 1).reshape((20, 1)) * u.Jy
+
+    # Introduce outliers
+    data[10, 0] = 1000.0 * u.Jy
+    # Mask the outliers (invalid is True)
+    mask = data > 100.0 * u.Jy
+
+    model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=0.002 * u.mm)
+    fitter = LevMarLSQFitter()
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "OFFSET", "WAVE"
+    wcs.wcs.crval = 10, 0.1
+    wcs.wcs.crpix = 1, 1
+    wcs.wcs.cdelt = 10, 0.1
+    wcs.wcs.cunit = "deg", "um"
+
+    nd_data = NDData(
+        data=data,
+        wcs=wcs,
+        mask=mask,
+    )
+
+    model_fit = parallel_fit_dask(
+        data=nd_data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        scheduler="synchronous",
+    )
+
+    assert_allclose(model_fit.amplitude.quantity, 2 * u.Jy)
+    assert_allclose(model_fit.mean.quantity, 1.1 * u.um)
+    assert_allclose(model_fit.stddev.quantity, 0.1 * u.um)
+
+
+def test_support_nddata_uncert():
+    data = np.repeat(np.array([1, 2, 4]), 2).reshape((2, -1), order="F").T
+    uncert = (
+        np.repeat(np.array([1 / 7**0.5, 1 / 2**0.5, 1]), 2)
+        .reshape((2, -1), order="F")
+        .T
+    )
+
+    model = Const1D(0)
+    fitter = LevMarLSQFitter()
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "OFFSET", "WAVE"
+    wcs.wcs.crval = 10, 1
+    wcs.wcs.crpix = 1, 1
+    wcs.wcs.cdelt = 10, 1
+    wcs.wcs.cunit = "deg", "m"
+
+    nd_data = NDData(
+        data=data,
+        wcs=wcs,
+        uncertainty=StdDevUncertainty(uncert),
+    )
+
+    model_fit = parallel_fit_dask(
+        data=nd_data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        scheduler="synchronous",
+    )
+
+    assert_allclose(model_fit.amplitude, 1.5)
