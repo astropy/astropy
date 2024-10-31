@@ -255,10 +255,10 @@ class ParameterContainer:
 
 @support_nddata(wcs="world", uncertainty="weights", unit="data_unit")
 def parallel_fit_dask(
-    data,
     *,
     model,
     fitter,
+    data,
     data_unit=None,
     weights=None,
     mask=None,
