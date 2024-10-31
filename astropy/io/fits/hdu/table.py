@@ -348,29 +348,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     self.data = data
                 else:
                     self.data = self._data_type.from_columns(data)
-
-                # TODO: Too much of the code in this class uses header keywords
-                # in making calculations related to the data size.  This is
-                # unreliable, however, in cases when users mess with the header
-                # unintentionally--code that does this should be cleaned up.
-                self._header["NAXIS1"] = self.data._raw_itemsize
-                self._header["NAXIS2"] = self.data.shape[0]
-                self._header["TFIELDS"] = len(self.data._coldefs)
-
-                self.columns = self.data._coldefs
-                self.columns._add_listener(self.data)
-                self.update_header()
-
-                with suppress(TypeError, AttributeError):
-                    # Make the ndarrays in the Column objects of the ColDefs
-                    # object of the HDU reference the same ndarray as the HDU's
-                    # FITS_rec object.
-                    for idx, col in enumerate(self.columns):
-                        col.array = self.data.field(idx)
-
-                    # Delete the _arrays attribute so that it is recreated to
-                    # point to the new data placed in the column objects above
-                    del self.columns._arrays
             elif data is None:
                 pass
             else:
