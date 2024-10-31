@@ -19,7 +19,6 @@ from typing import TYPE_CHECKING
 
 from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
-from astropy.utils.misc import did_you_mean
 
 from .fits import FITS
 from .generic import Generic
@@ -259,19 +258,6 @@ class CDS(FITS):
             raise ValueError()
 
         return parsing.yacc(tabmodule="cds_parsetab", package="astropy/units")
-
-    @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        if unit not in cls._units:
-            if detailed_exception:
-                raise ValueError(
-                    f"Unit '{unit}' not supported by the CDS SAC standard. "
-                    f"{did_you_mean(unit, cls._units)}"
-                )
-            else:
-                raise ValueError()
-
-        return cls._units[unit]
 
     @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:

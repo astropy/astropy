@@ -127,16 +127,6 @@ class VOUnit(FITS):
             raise
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        super()._validate_unit(unit, detailed_exception=False)
-        return cls._units[unit]
-
-    @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
-        if unit not in cls._custom_units:
-            super()._validate_unit(unit, detailed_exception)
-
-    @classmethod
     def _get_unit_name(cls, unit: NamedUnit) -> str:
         # The da- and d- prefixes are discouraged.  This has the
         # effect of adding a scale to value in the result.
@@ -151,7 +141,10 @@ class VOUnit(FITS):
                     f"In '{unit}': VOUnit can not represent units with the 'd' "
                     "(deci) prefix"
                 )
-        return super()._get_unit_name(unit)
+        name = unit._get_format_name(cls.name)
+        if name not in cls._custom_units:
+            cls._validate_unit(name, detailed_exception=True)
+        return name
 
     @classmethod
     def _def_custom_unit(cls, unit: str) -> UnitBase:
