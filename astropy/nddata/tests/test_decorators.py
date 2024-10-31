@@ -82,13 +82,31 @@ def test_pass_nddata_kwarg_only(func):
 
 
 @pytest.mark.parametrize(
-    "func",
+    "func, call_type",
     (
-        lambda data, wcs=None, mask=None, /, *, unit=None: (data, wcs, unit, mask),
-        lambda data, wcs=None, /, mask=None, *, unit: (data, wcs, unit, mask),
+        pytest.param(
+            lambda data, wcs=None, mask=None, /, *, unit=None: (data, wcs, unit, mask),
+            "data_as_pos",
+            id="data_wcs_mask_pos-only",
+        ),
+        pytest.param(
+            lambda data, wcs=None, /, mask=None, *, unit: (data, wcs, unit, mask),
+            "data_as_pos",
+            id="data_wcs_pos-only",
+        ),
+        pytest.param(
+            lambda wcs=None, /, data=None, mask=None, *, unit: (data, wcs, unit, mask),
+            "data_as_kw",
+            id="data_pos-or-kw",
+        ),
+        pytest.param(
+            lambda wcs=None, /, mask=None, *, data, unit: (data, wcs, unit, mask),
+            "data_as_kw",
+            id="data_kw-only",
+        ),
     ),
 )
-def test_pass_nddata_positional_only(func):
+def test_pass_nddata_constrained_signature(func, call_type):
     wrapped_function = support_nddata(func)
 
     data_in = np.array([1, 2, 3])
@@ -98,7 +116,14 @@ def test_pass_nddata_positional_only(func):
 
     nddata_in = NDData(data_in, wcs=wcs_in, unit=unit_in, mask=mask_in)
 
-    data_out, wcs_out, unit_out, mask_out = wrapped_function(nddata_in)
+    if call_type == "data_as_pos":
+        args = (nddata_in,)
+        kwargs = {}
+    elif call_type == "data_as_kw":
+        args = ()
+        kwargs = {"data": nddata_in}
+
+    data_out, wcs_out, unit_out, mask_out = wrapped_function(*args, **kwargs)
 
     assert data_out is data_in
     assert wcs_out is wcs_in
@@ -107,19 +132,40 @@ def test_pass_nddata_positional_only(func):
 
     nddata2 = NDData(data_in, unit=unit_in, mask=mask_in)
 
-    data_out, wcs_out, unit_out, mask_out = wrapped_function(nddata2)
+    if call_type == "data_as_pos":
+        args = (nddata2,)
+        kwargs = {}
+    elif call_type == "data_as_kw":
+        args = ()
+        kwargs = {"data": nddata2}
+
+    data_out, wcs_out, unit_out, mask_out = wrapped_function(*args, **kwargs)
 
     assert data_out is data_in
     assert wcs_out is None
     assert unit_out is unit_in
     assert mask_out is mask_in
 
-    data_out, wcs_out, unit_out, mask_out = wrapped_function(nddata2, wcs_in)
+    if call_type == "data_as_pos":
+        args = (nddata2, wcs_in)
+        kwargs = {}
+    elif call_type == "data_as_kw":
+        args = (wcs_in,)
+        kwargs = {"data": nddata2}
+
+    data_out, wcs_out, unit_out, mask_out = wrapped_function(*args, **kwargs)
 
     assert data_out is data_in
     assert wcs_out is wcs_in
     assert unit_out is unit_in
     assert mask_out is mask_in
+
+    if call_type == "data_as_pos":
+        args = (nddata_in, wcs_in)
+        kwargs = {}
+    elif call_type == "data_as_kw":
+        args = (wcs_in,)
+        kwargs = {"data": nddata_in}
 
     with pytest.warns(
         AstropyUserWarning,
@@ -127,64 +173,8 @@ def test_pass_nddata_positional_only(func):
             "Property wcs has been passed explicitly and as "
             "an NDData property, using explicitly specified value"
         ),
-    ) as w:
-        data_out, wcs_out, unit_out, mask_out = wrapped_function(nddata_in, wcs_in)
-
-    assert data_out is data_in
-    assert wcs_out is wcs_in
-    assert unit_out is unit_in
-    assert mask_out is mask_in
-
-
-@pytest.mark.parametrize(
-    "func",
-    (
-        lambda wcs=None, /, data=None, mask=None, *, unit: (data, wcs, unit, mask),
-        lambda wcs=None, /, mask=None, *, data, unit: (data, wcs, unit, mask),
-    ),
-)
-def test_pass_nddata_positional_only_data_kwarg(func):
-    wrapped_function = support_nddata(func)
-
-    data_in = np.array([1, 2, 3])
-    wcs_in = WCS(naxis=1)
-    unit_in = u.Jy
-    mask_in = np.array([True, False, False])
-
-    nddata_in = NDData(data_in, wcs=wcs_in, unit=unit_in, mask=mask_in)
-
-    data_out, wcs_out, unit_out, mask_out = wrapped_function(data=nddata_in)
-
-    assert data_out is data_in
-    assert wcs_out is wcs_in
-    assert unit_out is unit_in
-    assert mask_out is mask_in
-
-    nddata2 = NDData(data_in, unit=unit_in, mask=mask_in)
-
-    data_out, wcs_out, unit_out, mask_out = wrapped_function(data=nddata2)
-
-    assert data_out is data_in
-    assert wcs_out is None
-    assert unit_out is unit_in
-    assert mask_out is mask_in
-
-    data_out, wcs_out, unit_out, mask_out = wrapped_function(wcs_in, data=nddata2)
-
-    assert data_out is data_in
-    assert wcs_out is wcs_in
-    assert unit_out is unit_in
-    assert mask_out is mask_in
-
-    with pytest.warns(
-        AstropyUserWarning,
-        match=(
-            "Property wcs has been passed explicitly and as "
-            "an NDData property, using explicitly specified value"
-        ),
-    ) as w:
-        data_out, wcs_out, unit_out, mask_out = wrapped_function(wcs_in, data=nddata_in)
-
+    ):
+        data_out, wcs_out, unit_out, mask_out = wrapped_function(*args, **kwargs)
     assert data_out is data_in
     assert wcs_out is wcs_in
     assert unit_out is unit_in
