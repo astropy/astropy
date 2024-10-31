@@ -31,17 +31,17 @@ of two Gaussians:
 
     # Define model
     @custom_model
-    def sum_of_gaussians(x, amplitude1=1., mean1=-1., sigma1=1.,
-                            amplitude2=1., mean2=1., sigma2=1.):
+    def sum_of_gaussians(x, amplitude1=1.0, mean1=-1.0, sigma1=1.0,
+                            amplitude2=1.0, mean2=1.5, sigma2=1.0):
         return (amplitude1 * np.exp(-0.5 * ((x - mean1) / sigma1)**2) +
                 amplitude2 * np.exp(-0.5 * ((x - mean2) / sigma2)**2))
 
-    # Generate fake data
+    # Generate fake data with some noise
     rng = np.random.default_rng(0)
     x = np.linspace(-5., 5., 200)
     m_ref = sum_of_gaussians(amplitude1=2., mean1=-0.5, sigma1=0.4,
                              amplitude2=0.5, mean2=2., sigma2=1.0)
-    y = m_ref(x) + rng.normal(0., 0.1, x.shape)
+    y = m_ref(x) + rng.normal(0., 0.05, x.shape)
 
     # Fit model to data
     m_init = sum_of_gaussians()
