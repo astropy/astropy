@@ -300,7 +300,7 @@ def parallel_fit_dask(
         fitters for more information about the meaning of weights.
         If passed as a `.NDUncertainty` object it will be converted to a
         `.StdDevUncertainty` and then passed to the fitter as 1 over that.
-    mask : `numpy.nddata`
+    mask : `numpy.ndarray`
         A boolean mask to be applied to the data.
     fitting_axes : int or tuple
         The axes to keep for the fitting (other axes will be sliced/iterated over)
