@@ -96,6 +96,7 @@ test = [
     "coverage>=6.4.4",
     "pre-commit>=2.9.3", # lower bound is not tested beyond installation
     "pytest>=7.3.0",
+    "hypothesis!=6.116.0", # https://github.com/astropy/astropy/issues/17299
     "pytest-doctestplus>=0.12",
     "pytest-astropy-header>=0.2.1",
     "pytest-astropy>=0.10.0",
