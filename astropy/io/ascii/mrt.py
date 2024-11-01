@@ -117,13 +117,38 @@ class MrtHeader(cds.CdsHeader):
         if col.min is np.ma.core.MaskedConstant:
             col.min = None
 
-    def _extract_metadata_lines(self, lines, meta_pattern):
+    def _extract_metadata_lines(self, lines, meta_pattern, allow_gaps=True):
+        """Extract metadata from a list of lines
+
+        The first line of a metadata field is identified based on meta_pattern.
+        Subsequent lines are appended to the field if they start with the minimum
+        MRT indentation of 2 spaces and are non-empty.
+
+        Parameters
+        ----------
+        lines : list[str]
+            List of lines from an input MRT file.
+        meta_pattern : str
+            Metadata pattern with exactly two capture groups for keys and values.
+            For example '^([A-Za-z]) = (.+)$' will match '{key} = {value}'
+        allow_gaps: bool
+            Allow gaps between metadata fields.
+            Could be separators, other table segments, etc.
+
+        Returns
+        -------
+        dict[str, list[str]]
+            Dictionary mapping metadata keys to a list of lines from the input.
+            For the first line of each field, only the second group of meta_pattern
+            is included in the list.
         """
-        Processes list of lines and returns an dictionary of meta-data fields.
-        The meta-data is stored as a list of lines, respecting line splits in the input.
-        """
+        pattern = re.compile(meta_pattern)
+        if pattern.groups != 2:
+            raise ValueError(
+                "meta_pattern must have exactly two capture groups."
+                f" Pattern {meta_pattern} has {pattern.groups} groups."
+            )
         meta_lines = {}
-        # Match empty strings as well. Notes with empty first lines are not treaded differently at this stage
         in_meta = False
         for line in lines:
             match = re.match(meta_pattern, line)
@@ -134,8 +159,32 @@ class MrtHeader(cds.CdsHeader):
             elif line.startswith("  ") and not line.isspace() and in_meta:
                 meta_lines[key].append(line)
             elif in_meta:
+                if not allow_gaps:
+                    raise ValueError("Unexpected gap in metadata fields")
                 in_meta = False
         return meta_lines
+
+    def _find_map_note(self, meta_key, meta_lines):
+        map_note_pattern = "^([A-Za-z]) = (.+)$"
+        if (
+            meta_key.startswith("Note")
+            and meta_lines[0].strip() == ""
+            and re.match(map_note_pattern, meta_lines[1].strip())
+        ):
+            n_indent = len(meta_lines[1]) - len(meta_lines[1].lstrip())
+            stripped_lines = [line[n_indent:] for line in meta_lines]
+            try:
+                mapped_note = self._extract_metadata_lines(
+                    stripped_lines, map_note_pattern, allow_gaps=False
+                )
+            except ValueError as e:
+                if str(e) == "Unexpected gap in metadata fields":
+                    return None
+                else:
+                    raise e
+            for map_key, map_val in mapped_note.items():
+                mapped_note[map_key] = " ".join([mline.strip() for mline in map_val])
+            return mapped_note
 
     def update_meta(self, lines, meta):
         """
@@ -146,34 +195,24 @@ class MrtHeader(cds.CdsHeader):
         """
         # Not really necessary but avoids "catching" data lines erroneously
         head_lines = [line for line in lines if line not in self.data.data_lines]
+
+        # Store all metadata fields (top part of header and notes) in a dictionary.
+        # Keep lines separated in a list for each field.
         top_keys = ["Title", "Authors", "Table"]
         meta_key_patterns = top_keys + [r"Note \(\d+\)"]
+        # Match empty strings on RHS, added as any other line to meta_dict for now
         meta_pattern = f"({'|'.join(meta_key_patterns)}):(.*)$"
         meta_dict = self._extract_metadata_lines(head_lines, meta_pattern)
 
-        map_note_pattern = "^([A-Za-z]) = (.+)$"
+        # Store mapping notes in dictionaries, store all others as strings.
+        # Then split authors into a Python list.
         for meta_key, meta_lines in meta_dict.items():
-            if (
-                meta_key.startswith("Note")
-                and meta_lines[0].strip() == ""
-                and re.match(map_note_pattern, meta_lines[1].strip())
-            ):
-                n_indent = len(meta_lines[1]) - len(meta_lines[1].lstrip())
-                stripped_lines = [line[n_indent:] for line in meta_lines]
-                # TODO: Fail when there is a line that is neither continuation or mapping
-                mapped_note = self._extract_metadata_lines(
-                    stripped_lines, map_note_pattern
-                )
-                for map_key, map_val in mapped_note.items():
-                    mapped_note[map_key] = " ".join(
-                        [mline.strip() for mline in map_val]
-                    )
+            mapped_note = self._find_map_note(meta_key, meta_lines)
+            if mapped_note is not None:
                 meta_dict[meta_key] = mapped_note
             else:
                 meta_dict[meta_key] = " ".join([mline.strip() for mline in meta_lines])
-
-            if meta_key == "Authors":
-                meta_dict[meta_key] = meta_dict[meta_key].split(", ")
+        meta_dict["Authors"] = meta_dict["Authors"].split(", ")
 
         top_meta = {}
         notes = []
