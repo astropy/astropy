@@ -290,6 +290,7 @@ def test_fitting_model_pipe_with_units(fitter):
     response = models.Linear1D(slope=1 * u.ct / u.ph, intercept=0 * u.ct)
     response.output_units = {"y": u.ct}
     comb = phys | response
+    comb.unit_change_composition = True
     fake_data = comb(e)
     fit = fitter()
     res = fit(comb, e, fake_data)
