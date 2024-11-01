@@ -4,6 +4,7 @@ import numpy as np
 
 cimport cython
 cimport numpy as np
+from libc.stdlib cimport malloc, free
 
 np.import_array()
 
@@ -98,7 +99,6 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
                          "not recognized".format(normalization))
     return PLS.ravel()
 
-from libc.stdlib cimport malloc, free
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
