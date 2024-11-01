@@ -184,14 +184,6 @@ Coding Style/Conventions
 
       # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-* Star-imports, e.g.,
-
-    from packagename import *
-
-  should never be used, except as a tool to flatten the namespace of a module.
-  An example of the allowed usage is given in the :ref:`import-star-example`
-  example.
-
 * Classes should either use direct variable access, or Python’s property
   mechanism for setting object instance variables. ``get_value``/``set_value``
   style methods should be used only when getting and setting the values
@@ -489,50 +481,6 @@ the hierarchy.
 
 .. note:: For more information on the benefits of `super`, see
           https://rhettinger.wordpress.com/2011/05/26/super-considered-super/
-
-.. _import-star-example:
-
-Acceptable use of ``from module import *``
-------------------------------------------
-
-``from module import *`` is discouraged in a module that contains
-implementation code, as it impedes clarity and often imports unused variables.
-It can, however, be used for a package that is laid out in the following
-manner::
-
-    packagename
-    packagename/__init__.py
-    packagename/submodule1.py
-    packagename/submodule2.py
-
-In this case, ``packagename/__init__.py`` may be::
-
-    """
-    A docstring describing the package goes here
-    """
-    from submodule1 import *
-    from submodule2 import *
-
-This allows functions or classes in the submodules to be used directly as
-``packagename.foo`` rather than ``packagename.submodule1.foo``. If this is
-used, it is strongly recommended that the submodules make use of the ``__all__``
-variable to specify which modules should be imported. Thus, ``submodule2.py``
-might read::
-
-    from numpy import array, linspace
-
-    __all__ = ['foo', 'AClass']
-
-    def foo(bar):
-        # the function would be defined here
-        pass
-
-    class AClass:
-        # the class is defined here
-        pass
-
-This ensures that ``from submodule import *`` only imports ``foo`` and
-``AClass``, but not `numpy.array` or `numpy.linspace`.
 
 .. _Numpy: https://numpy.org/
 .. _Scipy: https://www.scipy.org/
