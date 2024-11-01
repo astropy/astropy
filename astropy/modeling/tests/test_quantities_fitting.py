@@ -281,6 +281,7 @@ def test_fitting_custom_names(model, fitter):
         )
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.filterwarnings(r"ignore:Model is linear in parameters*")
 @pytest.mark.parametrize("fitter", fitters)
 def test_fitting_model_pipe_with_units(fitter):
