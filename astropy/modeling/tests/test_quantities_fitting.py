@@ -8,7 +8,7 @@ import pytest
 
 from astropy import units as u
 from astropy.modeling import fitting, models
-from astropy.modeling.core import Fittable1DModel
+from astropy.modeling.core import Fittable1DModel, compose_models_with_units
 from astropy.modeling.parameters import Parameter
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import UnitsError
@@ -291,6 +291,14 @@ def test_fitting_model_pipe_with_units(fitter):
     response.output_units = {"y": u.ct}
     comb = phys | response
     comb.unit_change_composition = True
+    fake_data = comb(e)
+    fit = fitter()
+    res = fit(comb, e, fake_data)
+    for name in comb.param_names:
+        assert getattr(comb, name) == getattr(res, name)
+
+    comb = compose_models_with_units(phys, response)
+    assert comb.unit_change_composition
     fake_data = comb(e)
     fit = fitter()
     res = fit(comb, e, fake_data)
