@@ -4803,14 +4803,14 @@ def compose_models_with_units(left, right):
     Parameters
     ----------
     left: `~astropy.modeling.Model`
-        The model to the left of the `|` operator.
+        The model to the left of the ``|`` operator.
     right: `~astropy.modeling.Model`
-        The model to the right of the `|` operator.
+        The model to the right of the ``|`` operator.
 
     Returns
     -------
     model: `~astropy.modeling.CompoundModel`
-        The composed left | right, with unit change through `|` enabled.
+        The composed left ``|`` right, with unit change through ``|`` enabled.
     """
     model = left | right
     model.unit_change_composition = True
