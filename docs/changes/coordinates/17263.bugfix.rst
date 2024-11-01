@@ -1,0 +1,2 @@
+Fix a crash when instantiating ``Angle`` (or ``Latitude``, or ``Longitude``)
+from a non-numpy array (for instance pyarrow arrays).
