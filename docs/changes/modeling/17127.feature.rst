@@ -1,1 +1,0 @@
-Extend unit changing compound model operations to include the pipe (`|`) operator.
