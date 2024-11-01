@@ -411,6 +411,7 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "INP001", # implicit-namespace-package. The examples are not a package.
     "T203"    # pprint found
 ]
+"__init__.py" = ["F403"]  # Wildcard imports
 
 [tool.ruff.lint.flake8-annotations]
 ignore-fully-untyped = true
