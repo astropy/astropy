@@ -488,13 +488,9 @@ class MrtHeader(cds.CdsHeader):
         # ``nsplit`` is the number of whitespaces to prefix to long description
         # lines in order to wrap them. It is the sum of the widths of the
         # previous 4 columns plus the number of single spacing between them.
-        # The hyphen in the Bytes column is also counted.
-        # TODO: Use column formatting from above instead of "magic" numbers
-        # byte_count_width*2+1 is Bytes column.
-        # format+units+spaces between is 12
-        # 4 spaces between units and label
-        # 1 space after label
-        # 1 space beyond explanation start (mrt standard)
+        # The hyphen in the Bytes column is also counted (width*2+1)
+        # format+units+spaces between and after is 16
+        # 1 space after label + 1 space beyond explanation start (mrt standard)
         nsplit = byte_count_width * 2 + 1 + 16 + max_label_width + 2
 
         # Wrap line if it is too long
