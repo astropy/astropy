@@ -183,7 +183,6 @@ class MrtHeader(cds.CdsHeader):
             elif key.startswith("Note"):
                 notes.append(val)
             else:
-                # TODO: ValueError or RuntimeError?
                 raise ValueError(f"Unrecognized metadata key: {key}")
         meta.setdefault("table", {})["top"] = top_meta
         meta["table"]["notes"] = notes
