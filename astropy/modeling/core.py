@@ -3039,7 +3039,7 @@ class CompoundModel(Model):
     to combine models is through the model operators.
     """
 
-    def __init__(self, op, left, right, name=None):
+    def __init__(self, op, left, right, name=None, *, unit_change_composition=False):
         self.__dict__["_param_names"] = None
         self._n_submodels = None
         self.op = op
@@ -3052,6 +3052,7 @@ class CompoundModel(Model):
         self._parameters = None
         self._parameters_ = None
         self._param_metrics = None
+        self._unit_change_composition = unit_change_composition
 
         if op != "fix_inputs" and len(left) != len(right):
             raise ValueError("Both operands must have equal values for n_models")
@@ -3856,13 +3857,27 @@ class CompoundModel(Model):
                     inputs_map[inp] = self.left, inp
         return inputs_map
 
+    @property
+    def unit_change_composition(self):
+        """
+        A flag indicating whether or not the unit change composition
+        has been set for this model.
+        """
+        return self._unit_change_composition
+
+    @unit_change_composition.setter
+    def unit_change_composition(self, value):
+        self._unit_change_composition = value
+
     def _parameter_units_for_data_units(self, input_units, output_units):
         if self._leaflist is None:
             self._map_parameters()
         units_for_data = {}
         for imodel, model in enumerate(self._leaflist):
-            input_units = model.input_units or input_units
-            output_units = model.output_units or output_units
+            if self.unit_change_composition:
+                input_units = model.input_units or input_units
+                output_units = model.output_units or output_units
+
             units_for_data_leaf = model._parameter_units_for_data_units(
                 input_units, output_units
             )
@@ -4164,8 +4179,9 @@ class CompoundModel(Model):
         -----
         This modifies the behavior of the base method to account for the
         case where the sub-models of a compound model have different output
-        units. This is only valid for compound \*, / and | compound models as
-        in that case it is reasonable to mix the output units. It does this
+        units. This is only valid for compound \*, / and | (only if
+        ``unit_change_composition`` is ``True`` on the instance) compound models
+        as in that case it is reasonable to mix the output units. It does this
         by modifying the output units of each sub model by using the output
         units of the other sub model so that we can apply the original function
         and get the desired result.
@@ -4224,7 +4240,7 @@ class CompoundModel(Model):
             model = CompoundModel(self.op, left, right, name=self.name)
 
             return model, left_kwargs, right_kwargs
-        elif self.op == "|":
+        elif self.op == "|" and self.unit_change_composition:
             left_out = self.left(**{inp: kwargs[inp] for inp in self.inputs})
             left = self.left.without_units_for_data(x=kwargs["x"], y=left_out)
             left_kwargs = {"x": kwargs["x"], "y": left_out}
@@ -4232,7 +4248,13 @@ class CompoundModel(Model):
                 x=self.left(**{inp: kwargs[inp] for inp in self.inputs}), y=kwargs["y"]
             )
             right_kwargs = {"x": left_out, "y": kwargs["y"]}
-            model = CompoundModel(self.op, left, right, name=self.name)
+            model = CompoundModel(
+                self.op,
+                left,
+                right,
+                name=self.name,
+                unit_change_composition=self.unit_change_composition,
+            )
             return model, left_kwargs, right_kwargs
         else:
             return super().without_units_for_data(**kwargs)
@@ -4255,14 +4277,20 @@ class CompoundModel(Model):
         Outside the mixed output units, this method is identical to the
         base method.
         """
-        if self.op in ["*", "/", "|"]:
+        if self.op in ["*", "/"] or (self.op == "|" and self.unit_change_composition):
             left_kwargs = kwargs.pop("_left_kwargs")
             right_kwargs = kwargs.pop("_right_kwargs")
 
             left = self.left.with_units_from_data(**left_kwargs)
             right = self.right.with_units_from_data(**right_kwargs)
 
-            return CompoundModel(self.op, left, right, name=self.name)
+            return CompoundModel(
+                self.op,
+                left,
+                right,
+                name=self.name,
+                unit_change_composition=self.unit_change_composition,
+            )
         else:
             return super().with_units_from_data(**kwargs)
 
