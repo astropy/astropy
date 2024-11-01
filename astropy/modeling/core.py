@@ -53,6 +53,7 @@ __all__ = [
     "ModelDefinitionError",
     "bind_bounding_box",
     "bind_compound_bounding_box",
+    "compose_models_with_units",
     "custom_model",
     "fix_inputs",
 ]
@@ -4789,4 +4790,29 @@ def hide_inverse(model):
     the model or restore the inverse later.
     """
     del model.inverse
+    return model
+
+
+def compose_models_with_units(left, right):
+    """
+    This function is a convenience function to compose two models with units such
+    that unit changes are possible.
+
+    This performs left | right, but with the added ability to handle unit changes
+
+    Parameters
+    ----------
+    left: `~astropy.modeling.Model`
+        The model to the left of the `|` operator.
+    right: `~astropy.modeling.Model`
+        The model to the right of the `|` operator.
+
+    Returns
+    -------
+    model: `~astropy.modeling.CompoundModel`
+        The composed left | right, with unit change through `|` enabled.
+    """
+    model = left | right
+    model.unit_change_composition = True
+
     return model
