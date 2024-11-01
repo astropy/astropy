@@ -4,9 +4,10 @@ import warnings
 from copy import deepcopy
 from textwrap import dedent
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 from matplotlib.transforms import Affine2D, IdentityTransform
 
 from astropy import units as u
@@ -27,13 +28,6 @@ from astropy.visualization.wcsaxes.wcsapi import (
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
 from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
-
-
-@pytest.fixture
-def plt_close():
-    yield
-    plt.close("all")
-
 
 WCS2D = WCS(naxis=2)
 WCS2D.wcs.ctype = ["x", "y"]
@@ -312,7 +306,7 @@ def test_custom_coord_type_from_ctype():
         "eggs": "custom:pos.eggs",
     }
     with custom_ctype_to_ucd_mapping(custom_mapping):
-        fig = plt.figure()
+        fig = Figure()
         ax = fig.add_subplot(111, projection=wcs)
         assert ax.coords["eggs"].coord_type == "scalar"
         assert ax.coords["eggs"].coord_wrap == None
@@ -332,7 +326,7 @@ def test_custom_coord_type_from_ctype():
             assert ax.coords["eggs"].coord_wrap == 360 * u.deg
             assert ax.coords["eggs"].get_format_unit() == u.arcsec
 
-        fig = plt.figure()
+        fig = Figure()
         ax = fig.add_subplot(111, projection=wcs)
         assert ax.coords["eggs"].coord_type == "scalar"
         assert ax.coords["eggs"].coord_wrap == None
@@ -356,7 +350,7 @@ def test_custom_coord_type_from_ctype_nested():
     }
 
     with custom_ctype_to_ucd_mapping(custom_mapping):
-        fig = plt.figure()
+        fig = Figure()
         custom_meta_1 = {
             "pos.eggs": {
                 "coord_wrap": 360.0 * u.deg,
@@ -381,8 +375,8 @@ def test_custom_coord_type_from_ctype_nested():
                 assert ax.coords["spam"].get_format_unit() == u.deg
 
         # Now test the mappings have been removed
-        fig2 = plt.figure()
-        ax = fig.add_subplot(111, projection=wcs)
+        fig2 = Figure()
+        ax = fig2.add_subplot(111, projection=wcs)
         assert ax.coords["eggs"].coord_type == "scalar"
         assert ax.coords["eggs"].coord_wrap == None
         assert ax.coords["eggs"].get_format_unit() == u.deg
@@ -540,8 +534,9 @@ def test_apply_slices(sub_wcs, wcs_slice, wcsaxes_slices, world_map, ndim):
 
 # parametrize here to pass to the fixture
 @pytest.mark.parametrize("wcs_slice", [np.s_[:, :, 0, :]])
-def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
+def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice):
     slices_wcsaxes = [0, "x", "y"]
+    fig = Figure()
 
     for sub_wcs_ in (sub_wcs, SlicedLowLevelWCS(wcs_4d, wcs_slice)):
         with warnings.catch_warnings():
@@ -571,8 +566,8 @@ def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
         assert coord_meta["default_ticks_position"] == ["", "brtl", "brtl"]
 
         # Validate the axes initialize correctly
-        plt.clf()
-        plt.subplot(projection=sub_wcs_, slices=slices_wcsaxes)
+        fig.clear()
+        fig.add_subplot(projection=sub_wcs_, slices=slices_wcsaxes)
 
 
 class LowLevelWCS5D(BaseLowLevelWCS):
@@ -658,13 +653,14 @@ def test_edge_axes():
         "latpole": 90.0,
     }
     wcs = WCS(header)
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
     ax.imshow(data, origin="lower")
     # By default the x- and y- axes should be drawn
     lon = ax.coords[0]
     lat = ax.coords[1]
-    fig.canvas.draw()
+    canvas.draw()
     np.testing.assert_equal(
         lon._ticks.world["b"], np.array([90.0, 180.0, 180.0, 270.0, 0.0])
     )
@@ -717,9 +713,9 @@ def test_coord_meta_wcsapi():
 
 
 @figure_test
-def test_wcsapi_5d_with_names(plt_close):
+def test_wcsapi_5d_with_names():
     # Test for plotting image and also setting values of ticks
-    fig = plt.figure(figsize=(6, 6))
+    fig = Figure(figsize=(6, 6))
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=LowLevelWCS5D())
     ax.set_xlim(-0.5, 148.5)
     ax.set_ylim(-0.5, 148.5)
@@ -776,9 +772,9 @@ class LowLevelWCSCelestial2D(BaseLowLevelWCS):
 
 
 @figure_test
-def test_wcsapi_2d_celestial_arcsec(plt_close):
+def test_wcsapi_2d_celestial_arcsec():
     # Regression test for plot_coord/scatter_coord/text_coord with celestial WCS that is not in degrees
-    fig = plt.figure(figsize=(6, 6))
+    fig = Figure(figsize=(6, 6))
     ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=LowLevelWCSCelestial2D())
     ax.set_xlim(-0.5, 200.5)
     ax.set_ylim(-0.5, 200.5)
