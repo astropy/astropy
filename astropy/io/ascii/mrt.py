@@ -698,7 +698,6 @@ class MrtHeader(cds.CdsHeader):
 
         # Fill up the full ReadMe
         default_indent = "    "
-        # TODO: Wrap lines, with proper indent
         top_meta = self.table_meta["top"]
         notes = self.table_meta["notes"]
         from functools import partial
@@ -723,7 +722,6 @@ class MrtHeader(cds.CdsHeader):
         for i, note in enumerate(notes):
             note_prefix = f"Note ({i+1})"
             if isinstance(note, dict):
-                # TODO: Wrap this as well, with proper indent
                 map_notes = []
                 for key, val in note.items():
                     map_str = f"{key} = {val}"
