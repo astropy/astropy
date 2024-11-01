@@ -11,7 +11,7 @@ from itertools import product
 
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import HealthCheck, given, settings
 from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_allclose, assert_equal
 
@@ -1025,11 +1025,13 @@ class TestCompHDUSections:
         self.hdul = None
 
     @given(basic_indices((13, 17, 25)))
+    @settings(suppress_health_check=[HealthCheck.differing_executors])
     def test_section_slicing(self, index):
         assert_equal(self.hdul[1].section[index], self.hdul[1].data[index])
         assert_equal(self.hdul[1].section[index], self.data[index])
 
     @given(basic_indices((13, 17, 25)))
+    @settings(suppress_health_check=[HealthCheck.differing_executors])
     def test_section_slicing_scaling(self, index):
         assert_equal(self.hdul[2].section[index], self.hdul[2].data[index])
         assert_equal(self.hdul[2].section[index], self.data[index] * 2 + 100)

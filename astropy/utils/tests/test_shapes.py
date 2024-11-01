@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import HealthCheck, given, settings
 from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_equal
 
@@ -51,6 +51,7 @@ class TestSimplifyBasicIndex:
         self.data = np.random.random(TEST_SHAPE)
 
     @given(basic_indices(TEST_SHAPE))
+    @settings(suppress_health_check=[HealthCheck.differing_executors])
     def test_indexing(self, index):
         new_index = simplify_basic_index(index, shape=self.shape)
         assert_equal(self.data[index], self.data[new_index])
