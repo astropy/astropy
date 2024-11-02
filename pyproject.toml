@@ -49,6 +49,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest>=7.0",
+    "hypothesis!=6.116.0", # https://github.com/astropy/astropy/issues/17299
     "pytest-doctestplus>=0.12",
     "pytest-astropy-header>=0.2.1",
     "pytest-astropy>=0.10",
