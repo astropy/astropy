@@ -17,7 +17,7 @@ changed_lines = 0
 for iline in range(len(lines)):
     if "astropy-iers-data" in lines[iline]:
         changed_lines += 1
-        lines[iline] = f'    "astropy-iers-data>={last_version}",\n'
+        lines[iline] = f'    "astropy-iers-data>={last_version}",'
 
 if changed_lines == 0:
     print(f"No line found containing astropy-iers-data in {project_file}")
