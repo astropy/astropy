@@ -2047,7 +2047,7 @@ def test_masked_quantity_str_repr():
 
 class TestQuantitySubclassAboveAndBelow:
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         class MyArray(np.ndarray):
             def __array_finalize__(self, obj):
                 super_array_finalize = super().__array_finalize__
@@ -2056,9 +2056,9 @@ class TestQuantitySubclassAboveAndBelow:
                 if hasattr(obj, "my_attr"):
                     self.my_attr = obj.my_attr
 
-        self.MyArray = MyArray
-        self.MyQuantity1 = type("MyQuantity1", (u.Quantity, MyArray), dict(my_attr="1"))
-        self.MyQuantity2 = type("MyQuantity2", (MyArray, u.Quantity), dict(my_attr="2"))
+        cls.MyArray = MyArray
+        cls.MyQuantity1 = type("MyQuantity1", (u.Quantity, MyArray), dict(my_attr="1"))
+        cls.MyQuantity2 = type("MyQuantity2", (MyArray, u.Quantity), dict(my_attr="2"))
 
     def test_setup(self):
         mq1 = self.MyQuantity1(10, u.m)
