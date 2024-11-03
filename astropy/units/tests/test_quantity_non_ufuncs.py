@@ -2663,22 +2663,22 @@ class TestRecFunctions:
     tested_module = np.lib.recfunctions
 
     @classmethod
-    def setup_class(self):
-        self.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
-        self.pv_t_dtype = np.dtype(
+    def setup_class(cls):
+        cls.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
+        cls.pv_t_dtype = np.dtype(
             [("pv", np.dtype([("pp", "f8"), ("vv", "f8")])), ("t", "f8")]
         )
 
-        self.pv = np.array([(1.0, 0.25), (2.0, 0.5), (3.0, 0.75)], self.pv_dtype)
-        self.pv_t = np.array(
-            [((4.0, 2.5), 0.0), ((5.0, 5.0), 1.0), ((6.0, 7.5), 2.0)], self.pv_t_dtype
+        cls.pv = np.array([(1.0, 0.25), (2.0, 0.5), (3.0, 0.75)], cls.pv_dtype)
+        cls.pv_t = np.array(
+            [((4.0, 2.5), 0.0), ((5.0, 5.0), 1.0), ((6.0, 7.5), 2.0)], cls.pv_t_dtype
         )
 
-        self.pv_unit = u.StructuredUnit((u.km, u.km / u.s), ("p", "v"))
-        self.pv_t_unit = u.StructuredUnit((self.pv_unit, u.s), ("pv", "t"))
+        cls.pv_unit = u.StructuredUnit((u.km, u.km / u.s), ("p", "v"))
+        cls.pv_t_unit = u.StructuredUnit((cls.pv_unit, u.s), ("pv", "t"))
 
-        self.q_pv = self.pv << self.pv_unit
-        self.q_pv_t = self.pv_t << self.pv_t_unit
+        cls.q_pv = cls.pv << cls.pv_unit
+        cls.q_pv_t = cls.pv_t << cls.pv_t_unit
 
     def test_structured_to_unstructured(self):
         # can't unstructure something with incompatible units

@@ -2033,7 +2033,7 @@ class _UnitMetaClass(type):
     """
 
     def __call__(
-        self,
+        cls,
         s="",
         represents=None,
         format=None,
