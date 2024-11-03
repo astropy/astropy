@@ -272,10 +272,10 @@ class TestAlongAxis(MaskedArraySetup):
 
 class TestIndicesFrom(NoMaskTestSetup):
     @classmethod
-    def setup_class(self):
-        self.a = np.arange(9).reshape(3, 3)
-        self.mask_a = np.eye(3, dtype=bool)
-        self.ma = Masked(self.a, self.mask_a)
+    def setup_class(cls):
+        cls.a = np.arange(9).reshape(3, 3)
+        cls.mask_a = np.eye(3, dtype=bool)
+        cls.ma = Masked(cls.a, cls.mask_a)
 
     def test_diag_indices_from(self):
         self.check(np.diag_indices_from)
@@ -289,10 +289,10 @@ class TestIndicesFrom(NoMaskTestSetup):
 
 class TestRealImag(InvariantMaskTestSetup):
     @classmethod
-    def setup_class(self):
-        self.a = np.array([1 + 2j, 3 + 4j])
-        self.mask_a = np.array([True, False])
-        self.ma = Masked(self.a, mask=self.mask_a)
+    def setup_class(cls):
+        cls.a = np.array([1 + 2j, 3 + 4j])
+        cls.mask_a = np.array([True, False])
+        cls.ma = Masked(cls.a, mask=cls.mask_a)
 
     def test_real(self):
         self.check(np.real)
@@ -614,13 +614,13 @@ class TestConcatenate(MaskedArraySetup):
 
 class TestSplit:
     @classmethod
-    def setup_class(self):
-        self.a = np.arange(54.0).reshape(3, 3, 6)
-        self.mask_a = np.zeros(self.a.shape, dtype=bool)
-        self.mask_a[1, 1, 1] = True
-        self.mask_a[0, 1, 4] = True
-        self.mask_a[1, 2, 5] = True
-        self.ma = Masked(self.a, mask=self.mask_a)
+    def setup_class(cls):
+        cls.a = np.arange(54.0).reshape(3, 3, 6)
+        cls.mask_a = np.zeros(cls.a.shape, dtype=bool)
+        cls.mask_a[1, 1, 1] = True
+        cls.mask_a[0, 1, 4] = True
+        cls.mask_a[1, 2, 5] = True
+        cls.ma = Masked(cls.a, mask=cls.mask_a)
 
     def check(self, func, *args, **kwargs):
         out = func(self.ma, *args, **kwargs)
@@ -863,13 +863,13 @@ class TestUfuncLike(InvariantMaskTestSetup):
 
 class TestUfuncLikeTests:
     @classmethod
-    def setup_class(self):
-        self.a = np.array([[-np.inf, +np.inf, np.nan, 3.0, 4.0]] * 2)
-        self.mask_a = np.array([[False] * 5, [True] * 4 + [False]])
-        self.ma = Masked(self.a, mask=self.mask_a)
-        self.b = np.array([[3.0001], [3.9999]])
-        self.mask_b = np.array([[True], [False]])
-        self.mb = Masked(self.b, mask=self.mask_b)
+    def setup_class(cls):
+        cls.a = np.array([[-np.inf, +np.inf, np.nan, 3.0, 4.0]] * 2)
+        cls.mask_a = np.array([[False] * 5, [True] * 4 + [False]])
+        cls.ma = Masked(cls.a, mask=cls.mask_a)
+        cls.b = np.array([[3.0001], [3.9999]])
+        cls.mask_b = np.array([[True], [False]])
+        cls.mb = Masked(cls.b, mask=cls.mask_b)
 
     def check(self, func):
         out = func(self.ma)
@@ -933,10 +933,10 @@ class TestUfuncLikeTests:
 
 class TestArrayAPI:
     @classmethod
-    def setup_class(self):
-        self.a = np.tile(np.arange(5.0), 2).reshape(2, 5)
-        self.mask_a = np.array([[False] * 5, [True] * 4 + [False]])
-        self.ma = Masked(self.a, mask=self.mask_a)
+    def setup_class(cls):
+        cls.a = np.tile(np.arange(5.0), 2).reshape(2, 5)
+        cls.mask_a = np.array([[False] * 5, [True] * 4 + [False]])
+        cls.ma = Masked(cls.a, mask=cls.mask_a)
 
     def check(self, func, *args, **kwargs):
         out = func(self.ma, *args, **kwargs)
@@ -1029,12 +1029,12 @@ class TestReductionLikeFunctions(MaskedArraySetup):
 @pytest.mark.filterwarnings("ignore:all-nan")
 class TestPartitionLikeFunctions:
     @classmethod
-    def setup_class(self):
-        self.a = np.arange(36.0).reshape(6, 6)
-        self.mask_a = np.zeros_like(self.a, bool)
+    def setup_class(cls):
+        cls.a = np.arange(36.0).reshape(6, 6)
+        cls.mask_a = np.zeros_like(cls.a, bool)
         # On purpose fill diagonal, so we get all masked elements.
-        self.mask_a[np.tril_indices_from(self.a)] = True
-        self.ma = Masked(self.a, mask=self.mask_a)
+        cls.mask_a[np.tril_indices_from(cls.a)] = True
+        cls.ma = Masked(cls.a, mask=cls.mask_a)
 
     def check(self, function, *args, **kwargs):
         # Check function by comparing to nan-equivalent, with masked
@@ -1135,18 +1135,18 @@ class TestIntDiffFunctions(MaskedArraySetup):
 
 class TestSpaceFunctions:
     @classmethod
-    def setup_class(self):
-        self.a = np.arange(1.0, 7.0).reshape(2, 3)
-        self.mask_a = np.array(
+    def setup_class(cls):
+        cls.a = np.arange(1.0, 7.0).reshape(2, 3)
+        cls.mask_a = np.array(
             [
                 [True, False, False],
                 [False, True, False],
             ]
         )
-        self.ma = Masked(self.a, mask=self.mask_a)
-        self.b = np.array([2.5, 10.0, 3.0])
-        self.mask_b = np.array([False, True, False])
-        self.mb = Masked(self.b, mask=self.mask_b)
+        cls.ma = Masked(cls.a, mask=cls.mask_a)
+        cls.b = np.array([2.5, 10.0, 3.0])
+        cls.mask_b = np.array([False, True, False])
+        cls.mb = Masked(cls.b, mask=cls.mask_b)
 
     def check(self, function, *args, **kwargs):
         out = function(self.ma, self.mb, 5)
@@ -1285,8 +1285,8 @@ class TestSortFunctions(MaskedArraySetup):
 class TestStringFunctions:
     # More elaborate tests done in test_masked.py
     @classmethod
-    def setup_class(self):
-        self.ma = Masked(np.arange(3), mask=[True, False, False])
+    def setup_class(cls):
+        cls.ma = Masked(np.arange(3), mask=[True, False, False])
 
     def test_array2string(self):
         out0 = np.array2string(self.ma)
@@ -1320,13 +1320,13 @@ class TestStringFunctions:
 
 class TestBitFunctions:
     @classmethod
-    def setup_class(self):
-        self.a = np.array([15, 255, 0], dtype="u1")
-        self.mask_a = np.array([False, True, False])
-        self.ma = Masked(self.a, mask=self.mask_a)
-        self.b = np.unpackbits(self.a).reshape(6, 4)
-        self.mask_b = np.array([False] * 15 + [True, True] + [False] * 7).reshape(6, 4)
-        self.mb = Masked(self.b, mask=self.mask_b)
+    def setup_class(cls):
+        cls.a = np.array([15, 255, 0], dtype="u1")
+        cls.mask_a = np.array([False, True, False])
+        cls.ma = Masked(cls.a, mask=cls.mask_a)
+        cls.b = np.unpackbits(cls.a).reshape(6, 4)
+        cls.mask_b = np.array([False] * 15 + [True, True] + [False] * 7).reshape(6, 4)
+        cls.mb = Masked(cls.b, mask=cls.mask_b)
 
     @pytest.mark.parametrize("axis", [None, 1, 0])
     def test_packbits(self, axis):
@@ -1420,13 +1420,13 @@ class TestMemoryFunctions(MaskedArraySetup):
 class TestDatetimeFunctions:
     # Could in principle support np.is_busday, np.busday_count, np.busday_offset.
     @classmethod
-    def setup_class(self):
-        self.a = np.array(["2020-12-31", "2021-01-01", "2021-01-02"], dtype="M")
-        self.mask_a = np.array([False, True, False])
-        self.ma = Masked(self.a, mask=self.mask_a)
-        self.b = np.array([["2021-01-07"], ["2021-01-31"]], dtype="M")
-        self.mask_b = np.array([[False], [True]])
-        self.mb = Masked(self.b, mask=self.mask_b)
+    def setup_class(cls):
+        cls.a = np.array(["2020-12-31", "2021-01-01", "2021-01-02"], dtype="M")
+        cls.mask_a = np.array([False, True, False])
+        cls.ma = Masked(cls.a, mask=cls.mask_a)
+        cls.b = np.array([["2021-01-07"], ["2021-01-31"]], dtype="M")
+        cls.mask_b = np.array([[False], [True]])
+        cls.mb = Masked(cls.b, mask=cls.mask_b)
 
     def test_datetime_as_string(self):
         out = np.datetime_as_string(self.ma)
@@ -1553,15 +1553,15 @@ class TestArraySetOps:
     """
 
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         # Setup for unique (names as in unique_all NamedTuple)
         # input data, unique values, indices in data to those,
         # inverse indices in values to reconstruct data, counts.
-        self.data = Masked([1, 1, 1, 2, 2, 3], mask=[0, 0, 1, 0, 1, 0])
-        self.values = Masked([1, 2, 3, 1, 2], mask=[0, 0, 0, 1, 1])
-        self.indices = np.array([0, 3, 5, 2, 4])
-        self.inverse_indices = np.array([0, 0, 3, 1, 4, 2])
-        self.counts = np.array([2, 1, 1, 1, 1])
+        cls.data = Masked([1, 1, 1, 2, 2, 3], mask=[0, 0, 1, 0, 1, 0])
+        cls.values = Masked([1, 2, 3, 1, 2], mask=[0, 0, 0, 1, 1])
+        cls.indices = np.array([0, 3, 5, 2, 4])
+        cls.inverse_indices = np.array([0, 0, 3, 1, 4, 2])
+        cls.counts = np.array([2, 1, 1, 1, 1])
 
     @pytest.mark.parametrize("dtype", [int, float, object])
     def test_unique(self, dtype):
