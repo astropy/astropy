@@ -2,7 +2,6 @@
 
 import json
 import locale
-import os
 import urllib.error
 from datetime import datetime
 
@@ -11,7 +10,7 @@ import pytest
 
 from astropy.io import fits
 from astropy.tests.helper import CI
-from astropy.utils import data, misc
+from astropy.utils import misc
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -46,31 +45,6 @@ def test_api_lookup():
         objurl
         == "https://docs.astropy.org/en/stable/utils/ref_api.html#module-astropy.utils.misc"
     )
-
-
-def test_is_path_hidden_deprecation():
-    with pytest.warns(
-        AstropyDeprecationWarning, match="^The is_path_hidden function is deprecated"
-    ):
-        misc.is_path_hidden("data")
-
-
-# This is the only test that uses astropy/utils/tests/data/.hidden_file.txt
-def test_skip_hidden():
-    path = data.get_pkg_data_path("data")
-    for root, dirs, files in os.walk(path):
-        assert ".hidden_file.txt" in files
-        assert "local.dat" in files
-        # break after the first level since the data dir contains some other
-        # subdirectories that don't have these files
-        break
-    with pytest.warns(
-        AstropyDeprecationWarning, match="^The .*_hidden function is deprecated"
-    ):
-        for root, dirs, files in misc.walk_skip_hidden(path):
-            assert ".hidden_file.txt" not in files
-            assert "local.dat" in files
-            break
 
 
 def test_JsonCustomEncoder():
