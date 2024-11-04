@@ -1,2 +1,2 @@
-Reduction of redundant computation of the the ``cython`` implementation of the Lomb-Scargle periodogram.
+Reduction of redundant computation of the ``cython`` implementation of the Lomb-Scargle periodogram.
 ``assume_regular_frequency`` is now passed to the Cython implementation as a keyword argument enabling recursion.
