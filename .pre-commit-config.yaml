@@ -61,10 +61,14 @@ repos:
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
 <<<<<<< HEAD
+<<<<<<< HEAD
     rev: v0.6.9
 =======
     rev: v0.7.1
 >>>>>>> 51ffebfa4 (add abstraction to base.py)
+=======
+    rev: v0.7.2
+>>>>>>> cbcf260ab5 ([pre-commit.ci] pre-commit autoupdate)
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
@@ -79,7 +83,7 @@ repos:
     # using an untagged rev for forward compatibility with pre-commit 4.0
     # see https://github.com/PyCQA/docformatter/issues/289
     # This should be changed back to a tag when (>1.7.5) is released
-    rev: 06907d0267368b49b9180eed423fae5697c1e909
+    rev: v1.7.5
     hooks:
       - id: docformatter
         additional_dependencies: [tomli]
