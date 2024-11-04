@@ -40,7 +40,7 @@ def test_find_map_note():
     assert isinstance(hdr._find_map_note(*good_twolines), dict)
     assert (
         hdr._find_map_note(*good_twolines)["M"]
-        == "some description of M with a continuation lines"
+        == "some description of M\nwith a continuation lines"
     )
     assert hdr._find_map_note(*text_with_equal) is None
     assert isinstance(hdr._find_map_note(*single_compatible_line), dict)
@@ -139,12 +139,13 @@ def test_roundtrip_mrt_meta():
         "166-168  A3     ---    IDIRAC   ? Identification in IRAC color-color diagram",
         "170-172  A3     ---    Note     ? Additional note (2)",
         "--------------------------------------------------------------------------------",
-        "Note (1): To convert between magnitudes and flux densities, we use M= 2.5",
-        "    log(F_zeropt_/F) where the zero-point flux densities for the seven Spitzer",
-        "    bands are 280.9, 179.7, 115.0, and 64.13 Jy for IRAC and 7.14, 0.775, and",
-        "    0.159 Jy for MIPS.  IRAC effective wavelengths are 3.6, 4.5, 5.8, and 8.0",
-        "    microns; MIPS effective wavelengths are 24, 70, and 160 microns.",
-        "Note (2)",
+        "Note (1): To convert between magnitudes and flux densities, we use",
+        "    M= 2.5 log(F_zeropt_/F) where the zero-point flux densities for the",
+        "    seven Spitzer bands are 280.9, 179.7, 115.0, and 64.13 Jy for IRAC",
+        "    and 7.14, 0.775, and 0.159 Jy for MIPS.  IRAC effective wavelengths",
+        "    are 3.6, 4.5, 5.8, and 8.0 microns; MIPS effective wavelengths are",
+        "    24, 70, and 160 microns.",
+        "Note (2):",
         "    b = MIPS-160 flux density for this object is subject to confusion with a",
         "        nearby source or sources.",
         "    c = MIPS-160 flux density for this object is compromised by missing and/or",
@@ -152,13 +153,14 @@ def test_roundtrip_mrt_meta():
         "    d = MIPS-160 flux density for this object is hard saturated.",
         "    e = IRAC flux densities for 043835.4+261041=HV Tau C do not appear in our",
         "        automatically-extracted catalog. Flux densities here are those from",
-        "        Hartmann et al. (2005); since their observations have more redundancy at",
-        "        IRAC bands, they are able to obtain reliable flux densities for this",
-        "        object at IRAC bands.  MIPS flux densities are determined from our data.",
+        "        Hartmann et al. (2005); since their observations have more redundancy",
+        "        at IRAC bands, they are able to obtain reliable flux densities for",
+        "        this object at IRAC bands.  MIPS flux densities are determined from",
+        "        our data.",
         "    f = The image morphology around 041426.2+280603 is complex; careful PSF",
         "        subtraction and modeling will be required to apportion flux densities",
-        "        among the three local maxima seen in close proximity in the IRAC images,",
-        "        which may or may not be three physically distinct sources.",
+        "        among the three local maxima seen in close proximity in the IRAC",
+        "        images, which may or may not be three physically distinct sources.",
     ]
     dat = get_pkg_data_filename("data/cds2.dat", package="astropy.io.ascii.tests")
     t = Table.read(dat, format="ascii.mrt")

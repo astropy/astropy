@@ -768,22 +768,24 @@ class MrtHeader(cds.CdsHeader):
                 for key, val in note.items():
                     map_str = f"{key} = {val}"
                     # Don't use default_indent: want len("k = "), so 4 spaces
-                    map_str = "\n".join(
-                        wrap_meta(
-                            map_str,
-                            width=MAX_SIZE_README_LINE - len(default_indent),
-                            subsequent_indent="    ",
-                        )
+                    map_str = textwrap.indent(
+                        map_str,
+                        "    ",
+                        predicate=lambda x: not x.startswith(f"{key} = "),
                     )
                     map_notes.append(map_str)
                 note = textwrap.indent("\n".join(map_notes), default_indent)
-                notes_str.append(f"{note_prefix}\n{note}")
+                notes_str.append(f"{note_prefix}:\n{note}")
             elif not isinstance(note, str):
                 raise TypeError(
                     f"Unexpected type {type(note)} for note {note}. Expected str or dict."
                 )
             else:
-                note_str = "\n".join(wrap_meta(f"{note_prefix}: {note}"))
+                note_str = textwrap.indent(
+                    f"{note_prefix}: {note}",
+                    default_indent,
+                    predicate=lambda x: not x.startswith("Note ("),
+                )
                 notes_str.append(note_str)
         notes_str = "\n".join(notes_str)
         rm_template = Template("\n".join(MRT_TEMPLATE))
