@@ -142,7 +142,6 @@ Core Package Contributors
 * E\. Madison Bray
 * E\. Rykoff
 * E.C. Herenz
-* Ed Slavich
 * Eduardo Olinto
 * Edward Betts
 * Edward Slavich
