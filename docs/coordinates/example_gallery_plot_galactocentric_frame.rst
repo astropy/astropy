@@ -136,19 +136,19 @@ Heliocentric coordinates:
     curve:
 
     >>> fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-    >>> _ = axes[0].plot(gc_rings.x.T, gc_rings.y.T, marker="None", linewidth=3)
-    >>> _ = axes[0].text(-8.0, 0, r"$\odot$", fontsize=20)
-    >>> _ = axes[0].set_xlim(-30, 30)
-    >>> _ = axes[0].set_ylim(-30, 30)
-    >>> _ = axes[0].set_xlabel("$x$ [kpc]")
-    >>> _ = axes[0].set_ylabel("$y$ [kpc]")
-    >>> _ = axes[0].set_title("Positions")
-    >>> _ = axes[1].plot(gc_rings.v_x.T, gc_rings.v_y.T, marker="None", linewidth=3)
-    >>> _ = axes[1].set_xlim(-250, 250)
-    >>> _ = axes[1].set_ylim(-250, 250)
-    >>> _ = axes[1].set_xlabel(f"$v_x$ [{(u.km / u.s).to_string('latex_inline')}]")
-    >>> _ = axes[1].set_ylabel(f"$v_y$ [{(u.km / u.s).to_string('latex_inline')}]")
-    >>> _ = axes[1].set_title("Velocities")
+    >>> axes[0].plot(gc_rings.x.T, gc_rings.y.T, marker="None", linewidth=3)  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].text(-8.0, 0, r"$\odot$", fontsize=20)  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].set_xlim(-30, 30)  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].set_ylim(-30, 30)  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].set_xlabel("$x$ [kpc]")  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].set_ylabel("$y$ [kpc]")  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].set_title("Positions")  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].plot(gc_rings.v_x.T, gc_rings.v_y.T, marker="None", linewidth=3)  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].set_xlim(-250, 250)  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].set_ylim(-250, 250)  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].set_xlabel(f"$v_x$ [{(u.km / u.s).to_string('latex_inline')}]")  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].set_ylabel(f"$v_y$ [{(u.km / u.s).to_string('latex_inline')}]")  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].set_title("Velocities")  # doctest: +IGNORE_OUTPUT
     >>> fig.tight_layout()
 
     Now we can transform to Galactic coordinates and visualize the rings in
@@ -157,17 +157,17 @@ Heliocentric coordinates:
     >>> gal_rings = gc_rings.transform_to(coord.Galactic)
     >>> fig, ax = plt.subplots(1, 1, figsize=(8, 6))
     >>> for i in range(len(ring_distances)):
-    ...     _ = ax.plot(
+    ...     ax.plot(
     ...         gal_rings[i].l.degree,
     ...         gal_rings[i].pm_l_cosb.value,
     ...         label=str(ring_distances[i]),
     ...         marker="None",
     ...         linewidth=3,
-    ...     )
-    >>> _ = ax.set_xlim(360, 0)
-    >>> _ = ax.set_xlabel("$l$ [deg]")
-    >>> _ = ax.set_ylabel(rf'$\mu_l \, \cos b$ [{(u.mas/u.yr).to_string("latex_inline")}]')
-    >>> _ = ax.legend()
+    ...     )  # doctest: +IGNORE_OUTPUT
+    >>> ax.set_xlim(360, 0)  # doctest: +IGNORE_OUTPUT
+    >>> ax.set_xlabel("$l$ [deg]")  # doctest: +IGNORE_OUTPUT
+    >>> ax.set_ylabel(rf'$\mu_l \, \cos b$ [{(u.mas/u.yr).to_string("latex_inline")}]')  # doctest: +IGNORE_OUTPUT
+    >>> ax.legend()  # doctest: +IGNORE_OUTPUT
     >>> plt.draw()
 
 ..

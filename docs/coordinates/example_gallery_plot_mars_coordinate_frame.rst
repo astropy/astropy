@@ -101,14 +101,14 @@ representations.
     >>> xyz_ocentric = mars_ocentric.represent_as(CartesianRepresentation)
     >>> with quantity_support():
     ...     fig, ax = plt.subplots(2, subplot_kw={"projection": "3d"})
-    ...     _ = ax[0].scatter(*((xyz - xyz_sphere).xyz << u.km))
-    ...     _ = ax[0].tick_params(labelsize=8)
-    ...     _ = ax[0].set(xlabel="x [km]", ylabel="y [km]", zlabel="z [km]")
-    ...     _ = ax[0].set_title("Mars-odetic spheroid difference from sphere")
-    ...     _ = ax[1].scatter(*((xyz_ocentric - xyz_sphere).xyz << u.km))
-    ...     _ = ax[1].tick_params(labelsize=8)
-    ...     _ = ax[1].set(xlabel="x [km]", ylabel="y [km]", zlabel="z [km]")
-    ...     _ = ax[1].set_title("Mars-ocentric spheroid difference from sphere")
+    ...     ax[0].scatter(*((xyz - xyz_sphere).xyz << u.km))  # doctest: +IGNORE_OUTPUT
+    ...     ax[0].tick_params(labelsize=8)  # doctest: +IGNORE_OUTPUT
+    ...     ax[0].set(xlabel="x [km]", ylabel="y [km]", zlabel="z [km]")  # doctest: +IGNORE_OUTPUT
+    ...     ax[0].set_title("Mars-odetic spheroid difference from sphere")  # doctest: +IGNORE_OUTPUT
+    ...     ax[1].scatter(*((xyz_ocentric - xyz_sphere).xyz << u.km))  # doctest: +IGNORE_OUTPUT
+    ...     ax[1].tick_params(labelsize=8)  # doctest: +IGNORE_OUTPUT
+    ...     ax[1].set(xlabel="x [km]", ylabel="y [km]", zlabel="z [km]")  # doctest: +IGNORE_OUTPUT
+    ...     ax[1].set_title("Mars-ocentric spheroid difference from sphere")  # doctest: +IGNORE_OUTPUT
     ...     plt.draw()
 
 ..

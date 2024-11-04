@@ -179,19 +179,19 @@ by the `~astropy.coordinates.Galactic` class.
     As an example, we will now plot the points in both coordinate systems:
 
     >>> fig, axes = plt.subplots(2, 1, figsize=(8, 10), subplot_kw={"projection": "aitoff"})
-    >>> _ = axes[0].set_title("Sagittarius")
-    >>> _ = axes[0].plot(
+    >>> axes[0].set_title("Sagittarius")  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].plot(
     ...     sgr.Lambda.wrap_at(180 * u.deg).radian,
     ...     sgr.Beta.radian,
     ...     linestyle="none",
     ...     marker=".",
-    ... )
-    >>> _ = axes[0].grid(visible=True)
-    >>> _ = axes[1].set_title("ICRS")
-    >>> _ = axes[1].plot(
+    ... )  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].grid(visible=True)  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].set_title("ICRS")  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].plot(
     ...     icrs.ra.wrap_at(180 * u.deg).radian, icrs.dec.radian, linestyle="none", marker="."
-    ... )
-    >>> _ = axes[1].grid(visible=True)
+    ... )  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].grid(visible=True)  # doctest: +IGNORE_OUTPUT
 
     This particular transformation is just a spherical rotation, which is a
     special case of an Affine transformation with no vector offset. The
@@ -212,26 +212,26 @@ by the `~astropy.coordinates.Galactic` class.
          ...,
          ...]>
     >>> fig, axes = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
-    >>> _ = axes[0].set_title("Sagittarius")
-    >>> _ = axes[0].plot(
+    >>> axes[0].set_title("Sagittarius")  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].plot(
     ...     sgr.Lambda.degree, sgr.pm_Lambda_cosBeta.value, linestyle="none", marker="."
-    ... )
-    >>> _ = axes[0].set_xlabel(r"$\Lambda$ [deg]")
-    >>> _ = axes[0].set_ylabel(
+    ... )  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].set_xlabel(r"$\Lambda$ [deg]")  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].set_ylabel(
     ...     rf"$\mu_\Lambda \, \cos B$ [{sgr.pm_Lambda_cosBeta.unit.to_string('latex_inline')}]"
-    ... )
-    >>> _ = axes[0].grid(visible=True)
-    >>> _ = axes[1].set_title("ICRS")
-    >>> _ = axes[1].plot(icrs.ra.degree, icrs.pm_ra_cosdec.value, linestyle="none", marker=".")
-    >>> _ = axes[1].set_ylabel(
+    ... )  # doctest: +IGNORE_OUTPUT
+    >>> axes[0].grid(visible=True)  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].set_title("ICRS")  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].plot(icrs.ra.degree, icrs.pm_ra_cosdec.value, linestyle="none", marker=".")  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].set_ylabel(
     ...     rf"$\mu_\alpha \, \cos\delta$ [{icrs.pm_ra_cosdec.unit.to_string('latex_inline')}]"
-    ... )
-    >>> _ = axes[1].grid(visible=True)
-    >>> _ = axes[2].set_title("ICRS")
-    >>> _ = axes[2].plot(icrs.ra.degree, icrs.pm_dec.value, linestyle="none", marker=".")
-    >>> _ = axes[2].set_xlabel("RA [deg]")
-    >>> _ = axes[2].set_ylabel(rf"$\mu_\delta$ [{icrs.pm_dec.unit.to_string('latex_inline')}]")
-    >>> _ = axes[2].grid(visible=True)
+    ... )  # doctest: +IGNORE_OUTPUT
+    >>> axes[1].grid(visible=True)  # doctest: +IGNORE_OUTPUT
+    >>> axes[2].set_title("ICRS")  # doctest: +IGNORE_OUTPUT
+    >>> axes[2].plot(icrs.ra.degree, icrs.pm_dec.value, linestyle="none", marker=".")  # doctest: +IGNORE_OUTPUT
+    >>> axes[2].set_xlabel("RA [deg]")  # doctest: +IGNORE_OUTPUT
+    >>> axes[2].set_ylabel(rf"$\mu_\delta$ [{icrs.pm_dec.unit.to_string('latex_inline')}]")  # doctest: +IGNORE_OUTPUT
+    >>> axes[2].grid(visible=True)  # doctest: +IGNORE_OUTPUT
     >>> plt.draw()
 
 ..

@@ -20,7 +20,7 @@ transformation using a sky position and barycentric radial-velocity.
 Use the latest convention for the Galactocentric coordinates:
 
 >>> import astropy.coordinates as coord
->>> _ = coord.galactocentric_frame_defaults.set("latest")
+>>> coord.galactocentric_frame_defaults.set("latest")  # doctest: +IGNORE_OUTPUT
 
 For this example, let's work with the coordinates and barycentric radial
 velocity of the star HD 155967, as obtained from
