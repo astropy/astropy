@@ -83,11 +83,11 @@ Astropy can answer that.
 
     >>> with quantity_support():
     ...     fig, ax = plt.subplots(1, 1, figsize=(12, 6))
-    ...     _ = ax.plot(delta_midnight, m33airmasss_July13night)
-    ...     _ = ax.set_xlim(-2, 10)
-    ...     _ = ax.set_ylim(1, 4)
-    ...     _ = ax.set_xlabel("Hours from EDT Midnight")
-    ...     _ = ax.set_ylabel("Airmass [Sec(z)]")
+    ...     ax.plot(delta_midnight, m33airmasss_July13night)  # doctest: +IGNORE_OUTPUT
+    ...     ax.set_xlim(-2, 10)  # doctest: +IGNORE_OUTPUT
+    ...     ax.set_ylim(1, 4)  # doctest: +IGNORE_OUTPUT
+    ...     ax.set_xlabel("Hours from EDT Midnight")  # doctest: +IGNORE_OUTPUT
+    ...     ax.set_ylabel("Airmass [Sec(z)]")  # doctest: +IGNORE_OUTPUT
     ...     plt.draw()
 
     Use  :func:`~astropy.coordinates.get_sun` to find the location of the Sun at 1000
@@ -114,10 +114,10 @@ Astropy can answer that.
 
     >>> with quantity_support():
     ...     fig, ax = plt.subplots(1, 1, figsize=(12, 6))
-    ...     _ = ax.plot(delta_midnight, sunaltazs_July12_to_13.alt, color="r", label="Sun")
-    ...     _ = ax.plot(
+    ...     ax.plot(delta_midnight, sunaltazs_July12_to_13.alt, color="r", label="Sun")  # doctest: +IGNORE_OUTPUT
+    ...     ax.plot(
     ...         delta_midnight, moonaltazs_July12_to_13.alt, color=[0.75] * 3, ls="--", label="Moon"
-    ...     )
+    ...     )  # doctest: +IGNORE_OUTPUT
     ...     mappable = ax.scatter(
     ...         delta_midnight,
     ...         m33altazs_July12_to_13.alt,
@@ -127,30 +127,30 @@ Astropy can answer that.
     ...         s=8,
     ...         cmap="viridis",
     ...     )
-    ...     _ = ax.fill_between(
+    ...     ax.fill_between(
     ...         delta_midnight,
     ...         0 * u.deg,
     ...         90 * u.deg,
     ...         sunaltazs_July12_to_13.alt < (-0 * u.deg),
     ...         color="0.5",
     ...         zorder=0,
-    ...     )
-    ...     _ = ax.fill_between(
+    ...     )  # doctest: +IGNORE_OUTPUT
+    ...     ax.fill_between(
     ...         delta_midnight,
     ...         0 * u.deg,
     ...         90 * u.deg,
     ...         sunaltazs_July12_to_13.alt < (-18 * u.deg),
     ...         color="k",
     ...         zorder=0,
-    ...     )
-    ...     _ = fig.colorbar(mappable).set_label("Azimuth [deg]")
-    ...     _ = ax.legend(loc="upper left")
-    ...     _ = ax.set_xlim(-12 * u.hour, 12 * u.hour)
-    ...     _ = ax.set_xticks((np.arange(13) * 2 - 12) * u.hour)
-    ...     _ = ax.set_ylim(0 * u.deg, 90 * u.deg)
-    ...     _ = ax.set_xlabel("Hours from EDT Midnight")
-    ...     _ = ax.set_ylabel("Altitude [deg]")
-    ...     _ = ax.grid(visible=True)
+    ...     )  # doctest: +IGNORE_OUTPUT
+    ...     fig.colorbar(mappable).set_label("Azimuth [deg]")  # doctest: +IGNORE_OUTPUT
+    ...     ax.legend(loc="upper left")  # doctest: +IGNORE_OUTPUT
+    ...     ax.set_xlim(-12 * u.hour, 12 * u.hour)  # doctest: +IGNORE_OUTPUT
+    ...     ax.set_xticks((np.arange(13) * 2 - 12) * u.hour)  # doctest: +IGNORE_OUTPUT
+    ...     ax.set_ylim(0 * u.deg, 90 * u.deg)  # doctest: +IGNORE_OUTPUT
+    ...     ax.set_xlabel("Hours from EDT Midnight")  # doctest: +IGNORE_OUTPUT
+    ...     ax.set_ylabel("Altitude [deg]")  # doctest: +IGNORE_OUTPUT
+    ...     ax.grid(visible=True)  # doctest: +IGNORE_OUTPUT
     ...     plt.draw()
 
 ..
