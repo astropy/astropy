@@ -90,3 +90,7 @@ pip-wheel-metadata
 
 # Files generated if figure tests are run
 results
+
+
+
+.pre-commit-config.yaml

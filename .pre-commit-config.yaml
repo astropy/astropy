@@ -79,6 +79,7 @@ repos:
     hooks:
       - id: sp-repo-review
 
+<<<<<<< HEAD
   - repo: https://github.com/PyCQA/docformatter
     # using an untagged rev for forward compatibility with pre-commit 4.0
     # see https://github.com/PyCQA/docformatter/issues/289
@@ -155,6 +156,8 @@ repos:
           )
 
 
+=======
+>>>>>>> 031019f0df (Remove docformatter from pre-commit)
   - repo: local
     hooks:
       - id: changelogs-rst
