@@ -183,7 +183,7 @@ class MrtHeader(cds.CdsHeader):
                 else:
                     raise e
             for map_key, map_val in mapped_note.items():
-                mapped_note[map_key] = " ".join([mline.strip() for mline in map_val])
+                mapped_note[map_key] = "\n".join([mline.strip() for mline in map_val])
             return mapped_note
 
     def update_meta(self, lines, meta):
@@ -211,7 +211,10 @@ class MrtHeader(cds.CdsHeader):
             if mapped_note is not None:
                 meta_dict[meta_key] = mapped_note
             else:
-                meta_dict[meta_key] = " ".join([mline.strip() for mline in meta_lines])
+                join_char = "\n" if meta_key.startswith("Note") else " "
+                meta_dict[meta_key] = join_char.join(
+                    [mline.strip() for mline in meta_lines]
+                )
         meta_dict["Authors"] = meta_dict["Authors"].split(", ")
 
         top_meta = {}
