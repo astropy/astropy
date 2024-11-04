@@ -38,9 +38,11 @@ In addition to these major changes, Astropy v7.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* X issues have been closed since v6.1
-* X pull requests have been merged since v6.1
-* X distinct people have contributed code
+* 1440 commits have been added since 6.1
+* 213 issues have been closed since 6.1
+* 466 pull requests have been merged since 6.1
+* 52 people have contributed since 6.1
+* 22 of which are new contributors
 
 .. _whatsnew-7.0-table-masked-quantity:
 
@@ -559,3 +561,61 @@ Full change log
 
 To see a detailed list of all changes in version v7.0, including changes in
 API, please see the :ref:`changelog`.
+
+Contributors to the 7.0 release
+===============================
+
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+  -  Albert Y. Shih
+  -  Albert Zhang  *
+  -  Alfio Puglisi  *
+  -  Andreas Faisst
+  -  Brandie-M  *
+  -  Brett Morris
+  -  Brigitta Sipőcz
+  -  Clément Robert
+  -  Deen-Dot  *
+  -  Derek Homeier
+  -  Eero Vaher
+  -  Hans Moritz Günther
+  -  Henrike F  *
+  -  Hugo Buddelmeijer
+  -  Jeff Jennings  *
+  -  Jost Migenda  *
+  -  Larry Bradley
+  -  Leo Singer
+  -  Marten van Kerkwijk
+  -  Maximilian Linhoff
+  -  Maximillian Weber  *
+  -  Melissa Weber Mendonça  *
+  -  Michael Kelley  *
+  -  Mihai Cara
+  -  Mridul Seth
+  -  Nabil Freij
+  -  Nathaniel Starkman
+  -  P. L. Lim
+  -  Parkerwise  *
+  -  Peter Teuben
+  -  Sam Holt
+  -  Sam Van Kooten
+  -  Sedona Price  *
+  -  Shane Maloney  *
+  -  Simon Alinder  *
+  -  Simon Conseil
+  -  SteinMatthiasPTB  *
+  -  Stuart Mumford
+  -  Tanvi Pooranmal Meena
+  -  Thomas Robitaille
+  -  Thomas Vandal  *
+  -  Tom Aldcroft
+  -  Tom Donaldson
+  -  Zach Burnett  *
+  -  Zhen-Kai Gao  *
+  -  rachel guo  *
+  -  sharath  *
+
+Where a * indicates that this release contains their first contribution to astropy.
