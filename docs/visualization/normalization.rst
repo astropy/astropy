@@ -64,8 +64,7 @@ Here's an example using the
     norm = simple_norm(image, 'sqrt')
 
     # Display the image
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    fig, ax = plt.subplots()
     im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
 
@@ -230,8 +229,7 @@ the data and the interval and stretch objects:
     # norm = ImageNormalize(image, MinMaxInterval(), SqrtStretch())
 
     # Display the image
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    fig, ax = plt.subplots()
     im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
 
@@ -265,8 +263,7 @@ use case:
     image = np.arange(65536).reshape((256, 256))
 
     # Display the exact same thing as the above plot
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    fig, ax = plt.subplots()
     im, norm = imshow_norm(image, ax, origin='lower',
                            interval=MinMaxInterval(), stretch=SqrtStretch())
     fig.colorbar(im)
@@ -301,8 +298,7 @@ also be the vmin and vmax limits, which you can determine from the
     norm = ImageNormalize(vmin=vmin, vmax=vmax, stretch=SqrtStretch())
 
     # Display the image
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    fig, ax = plt.subplots()
     im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
 
@@ -331,8 +327,7 @@ composite stretch can stretch residual images with negative values:
     # Image of random Gaussian noise
     rng = np.random.default_rng()
     image = rng.normal(size=(64, 64))
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    fig, ax = plt.subplots()
     # ImageNormalize normalizes values to [0,1] before applying the stretch
     norm = ImageNormalize(stretch=stretch, vmin=-5, vmax=5)
     im = ax.imshow(image, origin='lower', norm=norm, cmap='gray')
