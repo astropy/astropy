@@ -54,7 +54,7 @@ We then instantiate the `~astropy.visualization.wcsaxes.WCSAxes` using the
    :nofigs:
 
     import matplotlib.pyplot as plt
-    ax = plt.subplot(projection=wcs, slices=(50, 'y', 'x'))
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs, slices=(50, 'y', 'x')))
 
 By setting ``slices=(50, 'y', 'x')``, we have chosen to plot the second
 dimension on the y-axis and the third dimension on the x-axis. Even though we
@@ -108,7 +108,7 @@ If we don't want to reverse the dimensions plotted, we can simply do:
    :align: center
 
     import matplotlib.pyplot as plt
-    ax = plt.subplot(projection=wcs, slices=(50, 'x', 'y'))
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs, slices=(50, 'x', 'y')))
     ax.imshow(image_data[:, :, 50])
 
 
@@ -125,7 +125,7 @@ down to one dimension.
    :nofigs:
 
     import matplotlib.pyplot as plt
-    ax = plt.subplot(projection=wcs, slices=(50, 50, 'x'))
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs, slices=(50, 50, 'x')))
 
 
 Here we have selected the 50 pixel in the first and second dimensions and will
@@ -165,8 +165,8 @@ for each of the spatial axes.
    :align: center
    :nofigs:
 
-    import matplotlib.pyplot as plt
-    ax = plt.subplot(projection=wcs, slices=(50, 'x', 0))
+    import matplotlib.pyplot as plot
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs, slices=(50, 'x', 0)))
 
 .. plot::
    :context:
