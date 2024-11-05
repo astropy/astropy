@@ -1623,64 +1623,52 @@ class UnitBase:
             "Unit definition",
             "Aliases",
         )
-        # len(HEADING_NAMES), but hard-code since it is constant
-        ROW_LEN: Final[Literal[3]] = 3
         NO_EQUIV_UNITS_MSG: Final[str] = "There are no equivalent units"
 
         def __repr__(self) -> str:
-            if len(self) == 0:
+            if not self:
                 return self.NO_EQUIV_UNITS_MSG
-            else:
-                lines = self._process_equivalent_units(self)
-                lines.insert(0, self.HEADING_NAMES)
-                widths = [0] * self.ROW_LEN
-                for line in lines:
-                    for i, col in enumerate(line):
-                        widths[i] = max(widths[i], len(col))
-
-                f = "  {{0:<{}s}} | {{1:<{}s}} | {{2:<{}s}}".format(*widths)
-                lines = [f.format(*line) for line in lines]
-                lines = lines[0:1] + ["["] + [f"{x} ," for x in lines[1:]] + ["]"]
-                return "\n".join(lines)
+            lines = self._process_units()
+            widths = list(map(len, self.HEADING_NAMES))
+            for line in lines:
+                widths = [max(w, len(col)) for w, col in zip(widths, line, strict=True)]
+            row_template = "  {{0:<{}s}} | {{1:<{}s}} | {{2:<{}s}}".format(*widths)
+            return "\n".join(
+                [
+                    row_template.format(*self.HEADING_NAMES),
+                    "[",
+                    *(f"{row_template.format(*line)} ," for line in lines),
+                    "]",
+                ]
+            )
 
         def _repr_html_(self) -> str:
             """
             Outputs a HTML table representation within Jupyter notebooks.
             """
-            if len(self) == 0:
+            if not self:
                 return f"<p>{self.NO_EQUIV_UNITS_MSG}</p>"
-            else:
-                # HTML tags to use to compose the table in HTML
-                blank_table = '<table style="width:50%">{}</table>'
-                blank_row_container = "<tr>{}</tr>"
-                heading_row_content = "<th>{}</th>" * self.ROW_LEN
-                data_row_content = "<td>{}</td>" * self.ROW_LEN
+            heading = "".join(f"<th>{name}</th>" for name in self.HEADING_NAMES)
+            rows = (
+                f"<tr>{''.join(f'<td>{elem}</td>' for elem in row)}</tr>"
+                for row in self._process_units()
+            )
+            # The HTML will be rendered & the table is simple, so don't
+            # bother to include newlines & indentation for the HTML code.
+            return f'<table style="width:50%"><tr>{heading}</tr>{"".join(rows)}</table>'
 
-                # The HTML will be rendered & the table is simple, so don't
-                # bother to include newlines & indentation for the HTML code.
-                heading_row = blank_row_container.format(
-                    heading_row_content.format(*self.HEADING_NAMES)
-                )
-                data_rows = self._process_equivalent_units(self)
-                all_rows = heading_row
-                for row in data_rows:
-                    html_row = blank_row_container.format(data_row_content.format(*row))
-                    all_rows += html_row
-                return blank_table.format(all_rows)
-
-        @staticmethod
-        def _process_equivalent_units(equiv_units_data):
+        def _process_units(self) -> list[tuple[str, str, str]]:
             """
             Extract attributes, and sort, the equivalent units pre-formatting.
             """
-            processed_equiv_units = []
-            for u in equiv_units_data:
-                irred = u.decompose().to_string()
-                if irred == u.name:
-                    irred = "irreducible"
-                processed_equiv_units.append((u.name, irred, ", ".join(u.aliases)))
-            processed_equiv_units.sort()
-            return processed_equiv_units
+            return sorted(
+                (
+                    unit.name,
+                    "irreducible" if (s := str(unit.decompose())) == unit.name else s,
+                    ", ".join(unit.aliases),
+                )
+                for unit in self
+            )
 
     def find_equivalent_units(
         self, equivalencies=[], units=None, include_prefix_units=False
