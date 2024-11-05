@@ -180,9 +180,14 @@ class Angle(SpecificTypeQuantity):
                     # Possible conversion to `unit` will be done below.
                     angle = u.Quantity(angle, angle_unit, copy=COPY_IF_NEEDED)
 
-            elif isiterable(angle) and not (
-                isinstance(angle, np.ndarray) and angle.dtype.kind not in "SUVO"
-            ):
+            elif isinstance(angle, np.ndarray):
+                if angle.dtype.kind in "SUVO":
+                    angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
+
+            elif hasattr(angle, "__array__"):
+                angle = np.asarray(angle)
+
+            elif isiterable(angle):
                 angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
 
         return super().__new__(cls, angle, unit, dtype=dtype, copy=copy, **kwargs)
