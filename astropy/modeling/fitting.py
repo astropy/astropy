@@ -179,22 +179,6 @@ class UnsupportedConstraintError(ModelsError, ValueError):
     """
 
 
-class _FitterMeta(abc.ABCMeta):
-    """
-    Currently just provides a registry for all Fitter classes.
-    """
-
-    registry = set()
-
-    def __new__(mcls, name, bases, members):
-        cls = super().__new__(mcls, name, bases, members)
-
-        if not inspect.isabstract(cls) and not name.startswith("_"):
-            mcls.registry.add(cls)
-
-        return cls
-
-
 def fitter_unit_support(func):
     """
     This is a decorator that can be used to add support for dealing with
@@ -305,7 +289,7 @@ def fitter_unit_support(func):
     return wrapper
 
 
-class Fitter(metaclass=_FitterMeta):
+class Fitter:
     """
     Base class for all fitters.
 
@@ -317,6 +301,12 @@ class Fitter(metaclass=_FitterMeta):
         Statistic function
 
     """
+
+    _subclass_registry = set()
+
+    def __init_subclass__(cls) -> None:
+        if not (inspect.isabstract(cls) or cls.__name__.startswith("_")):
+            Fitter._subclass_registry.add(cls)
 
     supported_constraints = []
 
@@ -381,10 +371,7 @@ class Fitter(metaclass=_FitterMeta):
         raise NotImplementedError("Subclasses should implement this method.")
 
 
-# TODO: I have ongoing branch elsewhere that's refactoring this module so that
-# all the fitter classes in here are Fitter subclasses.  In the meantime we
-# need to specify that _FitterMeta is its metaclass.
-class LinearLSQFitter(metaclass=_FitterMeta):
+class LinearLSQFitter(Fitter):
     """
     A class performing a linear least square fitting.
     Uses `numpy.linalg.lstsq` to do the fitting.
@@ -1124,7 +1111,7 @@ class FittingWithOutlierRemoval:
         return fitted_model, filtered_data.mask
 
 
-class _NonLinearLSQFitter(metaclass=_FitterMeta):
+class _NonLinearLSQFitter(Fitter):
     """
     Base class for Non-Linear least-squares fitters.
 
@@ -1148,7 +1135,6 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         self.fit_info = None
         self._calc_uncertainties = calc_uncertainties
         self._use_min_max_bounds = use_min_max_bounds
-        super().__init__()
 
     def objective_function(self, fps, *args, fit_param_indices=None):
         """
@@ -1941,7 +1927,7 @@ class SimplexLSQFitter(Fitter):
         return model_copy
 
 
-class JointFitter(metaclass=_FitterMeta):
+class JointFitter(Fitter):
     """
     Fit models which share a parameter.
     For example, fit two gaussians to two data sets but keep
