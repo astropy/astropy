@@ -623,3 +623,12 @@ def test_nd_columun_as_index(masked):
         ValueError, match="Multi-dimensional column 'arr' cannot be used as an index."
     ):
         t.add_index("arr")
+
+
+def test_quantity_column_as_index():
+    # Regression test for https://github.com/astropy/astropy/issues/16036
+    t = QTable({"a": u.Quantity([0, 1], unit="m"), "b": [1, 2]})
+    t.add_index(["a"])
+    sel = t.loc[t["a"][0]]
+    assert sel.index == 0
+    assert sel["b"] == 1

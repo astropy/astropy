@@ -848,7 +848,8 @@ class TableLoc:
             stop = MaxValue() if item.stop is None else item.stop
             rows = index.range((start,), (stop,))
         else:
-            if not isinstance(item, (list, np.ndarray)):  # single element
+            if not (isinstance(item, list) or getattr(item, "shape", ())):
+                # single element
                 item = [item]
             # item should be a list or ndarray of values
             rows = []

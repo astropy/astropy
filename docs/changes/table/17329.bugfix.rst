@@ -1,0 +1,2 @@
+Ensure that for a ``QTable`` with a ``Quantity`` column as an index,
+a scalar quantity index works as expected.
