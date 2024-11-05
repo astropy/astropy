@@ -55,6 +55,18 @@ def test_angle_arrays():
         Angle(["04:02:02", "03:02:01", "06:02:01"])
 
 
+def test_angle_from_pyarrow():
+    # Creating Angle instances from some array classes (e.g. pyarrow.array) failed
+    # even though creating Quantity instances succeeded.
+    # see https://github.com/astropy/astropy/issues/17255
+    pa = pytest.importorskip("pyarrow")
+
+    input_data = [1.1, 2.2]
+    arr = pa.array(input_data)
+    angle = Angle(arr, "deg")
+    npt.assert_array_equal(angle.value, input_data)
+
+
 def test_dms():
     a1 = Angle([0, 45.5, -45.5], unit=u.degree)
     d, m, s = a1.dms
