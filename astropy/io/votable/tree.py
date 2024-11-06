@@ -3890,13 +3890,16 @@ class Resource(
                 w.element("DESCRIPTION", self.description, wrap=True)
             if self.mivot_block is not None and self.type == "meta":
                 self.mivot_block.to_xml(w)
-            for element_set in (
+            element_sets = [
                 self.coordinate_systems,
                 self.time_systems,
                 self.params,
                 self.infos,
                 self.links,
-            ):
+            ]
+            if kwargs["version_1_2_or_later"]:
+                element_sets.append(self.groups)
+            for element_set in element_sets:
                 for element in element_set:
                     element.to_xml(w, **kwargs)
 
