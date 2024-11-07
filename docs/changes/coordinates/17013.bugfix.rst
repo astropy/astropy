@@ -1,2 +1,0 @@
-Ensure that coordinates can be transformed to other coordinate frames
-also if they have size zero (i.e., hold empty data arrays).

@@ -1,7 +1,0 @@
-The unit parsers are now better at recognizing unusual composite
-units:
-
-- units involving special unicode symbols, like "L☉/pc²";
-- units that include CDS units ending in a 0, like "eps0/s";
-- units including the degree symbol, "°". For example, "°C/s" is no
-  longer incorrectly interpreted as "°C/s^2".

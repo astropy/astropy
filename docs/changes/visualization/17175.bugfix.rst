@@ -1,3 +1,0 @@
-Fixed a bug that caused ``CoordinateHelper.get_axislabel()`` to return an
-empty string instead of the default label if no label has been explicitly
-provided.
