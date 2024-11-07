@@ -1,2 +1,0 @@
-``np.nanvar(angle)`` now produces a ``Quantity`` with the correct
-unit, rather than raising an exception.
