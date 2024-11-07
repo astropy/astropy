@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from astropy.units import NamedUnit, UnitBase
-    from astropy.units.typing import UnitPower
+    from astropy.units.typing import UnitPower, UnitScale
 
 
 class Base:
@@ -52,7 +52,7 @@ class Base:
 
     @classmethod
     def format_exponential_notation(
-        cls, val: float | np.number, format_spec: str = ".8g"
+        cls, val: UnitScale | np.number, format_spec: str = ".8g"
     ) -> str:
         """
         Formats a value in exponential notation.
