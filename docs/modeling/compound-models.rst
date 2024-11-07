@@ -72,11 +72,10 @@ These new compound models can also be fitted to data, like most other models
         gg_fit = fitter(gg_init, x, y)
 
     # Plot the data with the best-fit model
-    plt.figure(figsize=(8,5))
-    plt.plot(x, y, 'ko')
-    plt.plot(x, gg_fit(x))
-    plt.xlabel('Position')
-    plt.ylabel('Flux')
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(x, y, 'ko')
+    ax.plot(x, gg_fit(x))
+    ax.set(xlabel='Position', ylabel='Flux')
 
 This works for 1-D models, 2-D models, and combinations thereof, though there
 are some complexities involved in correctly matching up the inputs and outputs
@@ -103,11 +102,11 @@ mean positions and the variance is the sum of the variances.
     g3 = convolve_models(g1, g2)
 
     x = np.linspace(-3, 3, 50)
-    plt.figure(figsize=(8, 5))
-    plt.plot(x, g1(x), label='g1')
-    plt.plot(x, g2(x), label='g2')
-    plt.plot(x, g3(x), label='g3 (Convolution)')
-    plt.legend()
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(x, g1(x), label='g1')
+    ax.plot(x, g2(x), label='g2')
+    ax.plot(x, g3(x), label='g3 (Convolution)')
+    ax.legend()
 
 
 .. _compound-models:
@@ -345,17 +344,16 @@ example, to create the following compound model:
     x = np.linspace(0, 1.2, 100)
     g0 = RedshiftScaleFactor(0) | Gaussian1D(1, 0.75, 0.1)
 
-    plt.figure(figsize=(8, 5))
-    plt.plot(x, g0(x), 'g--', label='$z=0$')
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(x, g0(x), 'g--', label='$z=0$')
 
     for z in (0.2, 0.4, 0.6):
         g = RedshiftScaleFactor(z) | Gaussian1D(1, 0.75, 0.1)
-        plt.plot(x, g(x), color=plt.cm.OrRd(z),
+        ax.plot(x, g(x), color=plt.cm.OrRd(z),
                  label=f'$z={z}$')
 
-    plt.xlabel('Energy')
-    plt.ylabel('Flux')
-    plt.legend()
+    ax.set(xlabel='Energy', ylabel='Flux')
+    ax.legend()
 
 If you wish to perform redshifting in the wavelength space instead of energy,
 and would also like to conserve flux, here is another way to do it using
@@ -371,19 +369,18 @@ model *instances*:
     x = np.linspace(1000, 5000, 1000)
     g0 = Gaussian1D(1, 2000, 200)  # No redshift is same as redshift with z=0
 
-    plt.figure(figsize=(8, 5))
-    plt.plot(x, g0(x), 'g--', label='$z=0$')
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(x, g0(x), 'g--', label='$z=0$')
 
     for z in (0.2, 0.4, 0.6):
         rs = RedshiftScaleFactor(z).inverse  # Redshift in wavelength space
         sc = Scale(1. / (1 + z))  # Rescale the flux to conserve energy
         g = rs | g0 | sc
-        plt.plot(x, g(x), color=plt.cm.OrRd(z),
+        ax.plot(x, g(x), color=plt.cm.OrRd(z),
                  label=f'$z={z}$')
 
-    plt.xlabel('Wavelength')
-    plt.ylabel('Flux')
-    plt.legend()
+    ax.set(xlabel='Wavelength', ylabel='Flux')
+    ax.legend()
 
 When working with models with multiple inputs and outputs, the same idea
 applies.  If each input is thought of as a coordinate axis, then this defines a
@@ -418,15 +415,12 @@ example:
 
     x, y = np.mgrid[-1:1:0.01, -1:1:0.01]
 
-    plt.figure(figsize=(8, 2.5))
+    fig, axs = plt.subplots(figsize=(8, 2.5), ncols=3)
 
-    for idx, theta in enumerate((0, 45, 90)):
+    for idx, (theta, ax) in enumerate(zip((0, 45, 90), axs)):
         g = Rotation2D(theta) | Gaussian2D(1, 0, 0, 0.1, 0.3)
-        plt.subplot(1, 3, idx + 1)
-        plt.imshow(g(x, y), origin='lower')
-        plt.xticks([])
-        plt.yticks([])
-        plt.title(rf'Rotated $ {theta}^\circ $')
+        ax.imshow(g(x, y), origin='lower')
+        ax.set(xticks=[], yticks=[], title=rf'Rotated $ {theta}^\circ $')
 
 .. note::
 

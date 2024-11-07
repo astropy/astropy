@@ -49,12 +49,12 @@ can try to run a commonly used peak enhancing kernel:
     astropy_conv = convolve(img, kernel, normalize_kernel=False, nan_treatment='fill')
     #astropy_conv_fft = convolve_fft(img, kernel, normalize_kernel=False, nan_treatment='fill')
 
-    plt.figure(1, figsize=(12, 12)).clf()
-    ax1 = plt.subplot(1, 2, 1)
+    fig, axs = plt.subplots(ncols=2, figsize=(12, 12))
+    ax1 = axs[0]
     im = ax1.imshow(img, vmin=-6., vmax=5.e1, origin='lower',
                     interpolation='nearest', cmap='viridis')
 
-    ax2 = plt.subplot(1, 2, 2)
+    ax2 = axs[1]
     im = ax2.imshow(astropy_conv, vmin=-6., vmax=5.e1, origin='lower',
                     interpolation='nearest', cmap='viridis')
 
@@ -103,18 +103,18 @@ before applying the peak-finding kernel.
                            normalize_kernel=False,
                            nan_treatment='fill')
 
-   plt.figure(1, figsize=(12, 12)).clf()
-   ax1 = plt.subplot(1, 3, 1)
+   fig, axs = plt.subplots(ncols=3, figsize=(12, 12))
+   ax1 = axs[0]
    ax1.set_title("Image with missing data")
    im = ax1.imshow(img, vmin=-6., vmax=5.e1, origin='lower',
                    interpolation='nearest', cmap='viridis')
 
-   ax2 = plt.subplot(1, 3, 2)
+   ax2 = axs[1]
    ax2.set_title("Interpolated")
    im = ax2.imshow(reconstructed_image, vmin=-6., vmax=5.e1, origin='lower',
                    interpolation='nearest', cmap='viridis')
 
-   ax3 = plt.subplot(1, 3, 3)
+   ax3 = axs[2]
    ax3.set_title("Peak-Finding")
    im = ax3.imshow(peaked_image, vmin=-6., vmax=5.e1, origin='lower',
                    interpolation='nearest', cmap='viridis')

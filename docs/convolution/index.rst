@@ -72,8 +72,8 @@ result.
 
     # Now we do a bunch of plots.  In the first two plots, the originally masked
     # values are marked with red X's
-    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(8, 8))
-    plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95,
+    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(8, 8), layout="tight")
+    fig.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95,
                         wspace=0.3, hspace=0.3)
     ax = ax.flatten()
     for axis in ax:
@@ -106,22 +106,19 @@ result.
     ax[3].set_xticklabels([])
     ax[3].set_yticklabels([])
 
-    plt.tight_layout()
-
     # we make a second plot of the amplitudes vs offset position to more
     # clearly illustrate the value differences
-    plt.figure(2, figsize=(8, 6)).clf()
-    plt.plot(img[:, 25], label='Input data', drawstyle='steps-mid', linewidth=2,
+    fig2, ax2 = plt.subplots(figsize=(8, 6))
+    ax2.plot(img[:, 25], label='Input data', drawstyle='steps-mid', linewidth=2,
              alpha=0.5)
-    plt.plot(scipy_conv[:, 25], label='SciPy convolved', drawstyle='steps-mid',
+    ax2.plot(scipy_conv[:, 25], label='SciPy convolved', drawstyle='steps-mid',
              linewidth=2, alpha=0.5, marker='s')
-    plt.plot(scipy_conv_zerod[:, 25], label='SciPy convolved (NaN to zero)',
+    ax2.plot(scipy_conv_zerod[:, 25], label='SciPy convolved (NaN to zero)',
              drawstyle='steps-mid', linewidth=2, alpha=0.5, marker='s')
-    plt.plot(astropy_conv[:, 25], label='Astropy convolved', drawstyle='steps-mid',
+    ax2.plot(astropy_conv[:, 25], label='Astropy convolved', drawstyle='steps-mid',
              linewidth=2, alpha=0.5)
-    plt.xlabel("Pixel")
-    plt.ylabel("Amplitude")
-    plt.legend(loc='best')
+    ax2.set(xlabel="Pixel", ylabel="Amplitude")
+    ax2.legend(loc='best')
     plt.show()
 
 
@@ -209,7 +206,7 @@ The kernel can then be used directly when calling
 
     from astropy.convolution import Gaussian1DKernel, convolve
 
-    plt.figure(3).clf()
+    fig, ax = plt.subplots()
 
     # Generate fake data
     rng = np.random.default_rng(963)
@@ -224,9 +221,9 @@ The kernel can then be used directly when calling
     z = convolve(y, g)
 
     # Plot data before and after convolution
-    plt.plot(x, y, label='Data')
-    plt.plot(x, z, label='Convolved Data', linewidth=2)
-    plt.legend(loc='best')
+    ax.plot(x, y, label='Data')
+    ax.plot(x, z, label='Convolved Data', linewidth=2)
+    ax.legend(loc='best')
     plt.show()
 
 ..
@@ -307,25 +304,28 @@ flagged-out pixels:
 
    # Now we do a bunch of plots.  In the first two plots, the originally masked
    # values are marked with red X's
-   plt.figure(1, figsize=(12, 6)).clf()
-   plt.close(2) # close the second plot from above
+   fig, axs = plt.subplots(ncols=2, figsize=(12, 6))
 
-   ax1 = plt.subplot(1, 2, 1)
+   ax1 = axs[0]
    im = ax1.imshow(img, vmin=-2., vmax=2.e1, origin='lower',
                    interpolation='nearest', cmap='viridis')
    y, x = np.where(np.isnan(img))
-   ax1.set_autoscale_on(False)
    ax1.plot(x, y, 'rx', markersize=4)
-   ax1.set_title("Original")
-   ax1.set_xticklabels([])
-   ax1.set_yticklabels([])
+   ax1.set(
+       autoscale_on=False,
+       title="Original",
+       xticklabels=[],
+       yticklabels=[],
+   )
 
-   ax2 = plt.subplot(1, 2, 2)
+   ax2 = axs[1]
    im = ax2.imshow(fixed_image, vmin=-2., vmax=2.e1, origin='lower',
                    interpolation='nearest', cmap='viridis')
-   ax2.set_title("Fixed")
-   ax2.set_xticklabels([])
-   ax2.set_yticklabels([])
+   ax2.set(
+       title="Fixed",
+       xticklabels=[],
+       yticklabels=[],
+   )
 
 ..
   EXAMPLE END
@@ -377,29 +377,36 @@ eye.
 
    # Now we do a bunch of plots.  In the first two plots, the originally masked
    # values are marked with red X's
-   plt.figure(1, figsize=(12, 6)).clf()
-   ax1 = plt.subplot(1, 3, 1)
+   fig, axs = plt.subplots(ncols=3, figsize=(12, 6))
+
+   ax1 = axs[0]
    im = ax1.imshow(img, vmin=-2., vmax=2.e1, origin='lower',
                    interpolation='nearest', cmap='viridis')
    y, x = np.where(np.isnan(img))
-   ax1.set_autoscale_on(False)
-   ax1.set_title("Original")
-   ax1.set_xticklabels([])
-   ax1.set_yticklabels([])
+   ax1.set(
+       autoscale_on=False,
+       title="Original",
+       xticklabels=[],
+       yticklabels=[],
+   )
 
-   ax2 = plt.subplot(1, 3, 2)
+   ax2 = axs[1]
    im = ax2.imshow(new_img, vmin=-2., vmax=2.e1, origin='lower',
                    interpolation='nearest', cmap='viridis')
-   ax2.set_title("Sparsely Sampled")
-   ax2.set_xticklabels([])
-   ax2.set_yticklabels([])
+   ax2.set(
+       title="Sparsely Sampled",
+       xticklabels=[],
+       yticklabels=[],
+   )
 
-   ax2 = plt.subplot(1, 3, 3)
-   im = ax2.imshow(reconstructed_image, vmin=-2., vmax=2.e1, origin='lower',
+   ax3 = axs[2]
+   im = ax3.imshow(reconstructed_image, vmin=-2., vmax=2.e1, origin='lower',
                    interpolation='nearest', cmap='viridis')
-   ax2.set_title("Reconstructed")
-   ax2.set_xticklabels([])
-   ax2.set_yticklabels([])
+   ax3.set(
+       title="Reconstructed",
+       xticklabels=[],
+       yticklabels=[],
+   )
 
 ..
   EXAMPLE END

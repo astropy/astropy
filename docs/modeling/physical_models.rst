@@ -57,14 +57,15 @@ default units returned by :class:`~astropy.modeling.physical_models.BlackBody`.
     bb = BlackBody(temperature=temperature, scale=10000.0)
     bb_result = bb(wavelengths)
 
-    fig, ax = plt.subplots(ncols=1)
+    fig, ax = plt.subplots(layout='tight')
     ax.plot(wavelengths, bb_result, '-')
 
-    ax.set_xscale('log')
-    ax.set_xlabel(fr"$\lambda$ [{wavelengths.unit}]")
-    ax.set_ylabel(fr"$F(\lambda)$ [{bb_result.unit}]")
+    ax.set(
+        xscale="log",
+        xlabel=fr"$\lambda$ [{wavelengths.unit}]",
+        ylabel=fr"$F(\lambda)$ [{bb_result.unit}]",
+    )
 
-    plt.tight_layout()
     plt.show()
 
 The :meth:`~astropy.modeling.physical_models.BlackBody.bolometric_flux` member
@@ -112,13 +113,11 @@ with :math:`x_0 = 2175` Angstrom and :math:`f = 400` Angstrom is shown below.
     mod = Drude1D(amplitude=1.0, x_0=2175. * u.AA, fwhm=400. * u.AA)
     mod_result = mod(wavelengths)
 
-    fig, ax = plt.subplots(ncols=1)
+    fig, ax = plt.subplots(layout="tight")
     ax.plot(wavelengths, mod_result, '-')
 
-    ax.set_xlabel(fr"$\lambda$ [{wavelengths.unit}]")
-    ax.set_ylabel(r"$D(\lambda)$")
+    ax.set(xlabel=fr"$\lambda$ [{wavelengths.unit}]", ylabel=r"$D(\lambda)$")
 
-    plt.tight_layout()
     plt.show()
 
 .. _NFW:
@@ -198,14 +197,16 @@ as attributes ``rho_s`` and ``r_s``, and the overdensity radius can be accessed 
     n_result = n(radii)
 
     # Plot creation
-    fig, ax = plt.subplots(2)
+    fig, axs = plt.subplots(nrows=2)
     fig.suptitle('1 Dimensional NFW Profile')
 
     # Density profile subplot
-    ax[0].plot(radii, n_result, '-')
-    ax[0].set_yscale('log')
-    ax[0].set_xlabel(fr"$r$ [{radii.unit}]")
-    ax[0].set_ylabel(fr"$\rho$ [{n_result.unit}]")
+    axs[0].plot(radii, n_result, '-')
+    axs[0].set(
+        yscale='log',
+        xlabel=fr"$r$ [{radii.unit}]",
+        ylabel=fr"$\rho$ [{n_result.unit}]",
+    )
 
     # Create scaled density / scaled radius subplot
     # NFW Object
@@ -217,14 +218,16 @@ as attributes ``rho_s`` and ``r_s``, and the overdensity radius can be accessed 
     n_result = n(radii)
 
     # Scaled density / scaled radius subplot
-    ax[1].plot(radii / n.radius_s, n_result / n.density_s, '-')
-    ax[1].set_xscale('log')
-    ax[1].set_yscale('log')
-    ax[1].set_xlabel(r"$r / r_s$")
-    ax[1].set_ylabel(r"$\rho / \rho_s$")
+    axs[1].plot(radii / n.radius_s, n_result / n.density_s, '-')
+    axs[1].set(
+        xscale='log',
+        yscale='log',
+        xlabel=r"$r / r_s$",
+        ylabel=r"$\rho / \rho_s$",
+    )
 
     # Display plot
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
 
 

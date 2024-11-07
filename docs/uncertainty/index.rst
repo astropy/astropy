@@ -78,7 +78,8 @@ through::
   >>> from matplotlib import pyplot as plt # doctest: +SKIP
   >>> from astropy.visualization import quantity_support # doctest: +SKIP
   >>> with quantity_support():
-  ...     plt.hist(f.distribution, bins=50) # doctest: +SKIP
+  ...     fig, ax = plt.subplots()  # doctest: +SKIP
+  ...     ax.hist(f.distribution, bins=50)  # doctest: +SKIP
 
 .. plot::
 
@@ -95,7 +96,8 @@ through::
   e = unc.Distribution(((rng.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   f = (c * d * e) ** (1/3)
   with quantity_support():
-      plt.hist(f.distribution, bins=50)
+      fig, ax = plt.subplots()
+      ax.hist(f.distribution, bins=50)
 
 
 Using `astropy.uncertainty`
@@ -272,9 +274,9 @@ an un-correlated joint distribution plot:
   >>> from matplotlib import pyplot as plt # doctest: +SKIP
   >>> n1 = unc.normal(center=0., std=1, n_samples=10000)
   >>> n2 = unc.normal(center=0., std=2, n_samples=10000)
-  >>> plt.scatter(n1.distribution, n2.distribution, s=2, lw=0, alpha=.5) # doctest: +SKIP
-  >>> plt.xlim(-4, 4) # doctest: +SKIP
-  >>> plt.ylim(-4, 4) # doctest: +SKIP
+  >>> fig, ax = plt.subplots()  # doctest: +SKIP
+  >>> ax.scatter(n1.distribution, n2.distribution, s=2, lw=0, alpha=.5)  # doctest: +SKIP
+  >>> ax.set(xlim=(-4, 4), ylim=(-4, 4))  # doctest: +SKIP
 
 Indeed, the distributions are independent. If we instead construct a covariant
 pair of Gaussians, it is immediately apparent:

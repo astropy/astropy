@@ -718,7 +718,7 @@ package, and also automatically enables access to remote data::
 
     @figure_test
     def test_figure():
-        fig = plt.figure()
+        fig, ax = plt.subplots()
         ...
         return fig
 

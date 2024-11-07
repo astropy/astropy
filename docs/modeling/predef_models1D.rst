@@ -48,7 +48,7 @@ These models provide shapes, often used to model general x, y data.
 
     x = np.linspace(-4.0, 6.0, num=100)
 
-    fig, sax = plt.subplots(ncols=3, figsize=(10, 5))
+    fig, sax = plt.subplots(ncols=3, figsize=(10, 5), layout="tight")
     ax = sax.flatten()
 
     linemod = Linear1D(slope=2., intercept=1.)
@@ -67,7 +67,6 @@ These models provide shapes, often used to model general x, y data.
         ax[k].set_ylabel("y")
         ax[k].legend()
 
-    plt.tight_layout()
     plt.show()
 
 Profiles
@@ -126,7 +125,7 @@ These models provide profiles, often used for lines in spectra.
     x = np.linspace(-4.0, 6.0, num=100)
     r = np.logspace(-1.0, 2.0, num=100)
 
-    fig, sax = plt.subplots(nrows=3, ncols=3, figsize=(10, 10))
+    fig, sax = plt.subplots(nrows=3, ncols=3, figsize=(10, 10), layout="tight")
     ax = sax.flatten()
 
     mods = [
@@ -159,5 +158,4 @@ These models provide profiles, often used for lines in spectra.
     for k in range(len(mods), len(ax)):
         ax[k].axis("off")
 
-    plt.tight_layout()
     plt.show()
