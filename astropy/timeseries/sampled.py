@@ -313,7 +313,7 @@ class TimeSeries(BaseTimeSeries):
         return result
 
     @classmethod
-    def from_pandas(self, df, time_scale="utc"):
+    def from_pandas(cls, df, time_scale="utc"):
         """
         Convert a :class:`~pandas.DataFrame` to a
         :class:`astropy.timeseries.TimeSeries`.
@@ -354,7 +354,7 @@ class TimeSeries(BaseTimeSeries):
 
     @classmethod
     def read(
-        self,
+        cls,
         filename,
         time_column=None,
         time_format=None,

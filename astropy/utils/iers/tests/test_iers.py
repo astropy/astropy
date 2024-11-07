@@ -121,7 +121,7 @@ def test_IERS_B_old_style_excerpt(path_transform):
 
 class TestIERS_AExcerpt:
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         iers.IERS_A.close()
 
     def test_simple(self):
@@ -201,7 +201,7 @@ class TestIERS_AExcerpt:
 
 class TestIERS_A:
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         iers.IERS_A.close()
 
     def test_simple(self):
