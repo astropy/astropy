@@ -1,2 +1,0 @@
-Ensure that setting an existing column to a scalar always properly fills it
-(rather than breaking the table if there was only one column in it).

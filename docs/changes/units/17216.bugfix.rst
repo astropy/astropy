@@ -1,2 +1,0 @@
-The ``OGIP`` unit formatter now handles the unit ``day`` and the corresponding
-string ``"d"`` in full compliance with the standard.
