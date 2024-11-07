@@ -5,11 +5,16 @@ import pytest
 
 import astropy.units as u
 from astropy import coordinates as coord
-from astropy.coordinates import Longitude
+from astropy.coordinates import (
+    ICRS,
+    Angle,
+    Distance,
+    DynamicMatrixTransform,
+    Latitude,
+    Longitude,
+    StaticMatrixTransform,
+)
 from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noqa: F401
-
-# Can't test distances without scipy due to cosmology deps
-from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test_basic():
@@ -27,47 +32,24 @@ def test_pickle_longitude_wrap_angle():
     assert a.wrap_angle == b.wrap_angle
 
 
-_names = [
-    coord.Angle,
-    coord.Distance,
-    coord.DynamicMatrixTransform,
-    coord.ICRS,
-    coord.Latitude,
-    coord.Longitude,
-    coord.StaticMatrixTransform,
-]
-
-_xfail = [False, not HAS_SCIPY, True, True, False, True, False]
-
-_args = [
-    [0.0],
-    [],
-    [lambda *args: np.identity(3), coord.ICRS, coord.ICRS],
-    [0, 0],
-    [0],
-    [0],
-    [np.identity(3), coord.ICRS, coord.ICRS],
-]
-
-_kwargs = [
-    {"unit": "radian"},
-    {"z": 0.23},
-    {},
-    {"unit": ["radian", "radian"]},
-    {"unit": "radian"},
-    {"unit": "radian"},
-    {},
-]
+def _dummy_transform(fromcoord, toframe):
+    return np.identity(3)
 
 
 @pytest.mark.parametrize(
-    ("name", "args", "kwargs", "xfail"), tuple(zip(_names, _args, _kwargs, _xfail))
+    "original",
+    [
+        Angle(0.0 * u.rad),
+        Distance(5 * u.pc),
+        DynamicMatrixTransform(_dummy_transform, ICRS, ICRS),
+        ICRS(0 * u.rad, 0 * u.rad),
+        Latitude(0 * u.rad),
+        Longitude(0 * u.rad),
+        StaticMatrixTransform(np.identity(3), ICRS, ICRS),
+    ],
+    ids=lambda x: type(x).__name__,
 )
-def test_simple_object(pickle_protocol, name, args, kwargs, xfail):  # noqa: F811
-    # Tests easily instantiated objects
-    if xfail:
-        pytest.xfail()
-    original = name(*args, **kwargs)
+def test_simple_object(pickle_protocol, original):  # noqa: F811
     check_pickling_recovery(original, pickle_protocol)
 
 
