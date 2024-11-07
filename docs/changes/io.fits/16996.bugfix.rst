@@ -1,1 +1,0 @@
-Fix access to VLA columns after slicing ``.data``.
