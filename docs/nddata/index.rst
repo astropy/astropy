@@ -134,7 +134,8 @@ horizontal line in the lower middle of the image:
 .. doctest-skip::
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.imshow(data, origin='lower')
+    >>> fig, ax = plt.subplots()
+    >>> ax.imshow(data, origin='lower')
 
 .. plot::
 
@@ -151,7 +152,8 @@ horizontal line in the lower middle of the image:
     data += 0.01 * rng.standard_normal((500, 600))
     cosmic_ray_value = 0.997
     data[100, 300:310] = cosmic_ray_value
-    plt.imshow(data, origin='lower')
+    fig, ax = plt.subplots()
+    ax.imshow(data, origin='lower')
 
 
 The "cosmic ray" can be masked out in this test image, like this::
@@ -286,7 +288,8 @@ the center of the cutout at ``position``::
     >>> position = (149.7, 100.1)
     >>> size = (81, 101)     # pixels
     >>> cutout = Cutout2D(ccd, position, size)
-    >>> plt.imshow(cutout.data, origin='lower') # doctest: +SKIP
+    >>> fig, ax = plt.subplots()  # doctest: +SKIP
+    >>> ax.imshow(cutout.data, origin='lower')  # doctest: +SKIP
 
 .. plot::
 
@@ -312,7 +315,8 @@ the center of the cutout at ``position``::
     position = (149.7, 100.1)
     size = (81, 101)     # pixels
     cutout = Cutout2D(ccd, position, size)
-    plt.imshow(cutout.data, origin='lower')
+    fig, ax = plt.subplots()
+    ax.imshow(cutout.data, origin='lower')
 
 This cutout can also plot itself on the original image::
 
@@ -342,7 +346,8 @@ This cutout can also plot itself on the original image::
     position = (149.7, 100.1)
     size = (81, 101)     # pixels
     cutout = Cutout2D(ccd, position, size)
-    plt.imshow(ccd, origin='lower')
+    fig, ax = plt.subplots()
+    ax.imshow(ccd, origin='lower')
     cutout.plot_on_original(color='white')
 
 The cutout also provides methods for finding pixel coordinates in the original
@@ -385,7 +390,8 @@ result is a `numpy.ndarray`; the mask, metadata, etc. are discarded:
     >>> smaller = block_reduce(ccd, 4)  # doctest: +IGNORE_WARNINGS
     >>> smaller
     array(...)
-    >>> plt.imshow(smaller, origin='lower')  # doctest: +SKIP
+    >>> fig, ax = plt.subplots()
+    >>> ax.imshow(smaller, origin='lower')  # doctest: +SKIP
 
 .. plot::
 
@@ -409,7 +415,8 @@ result is a `numpy.ndarray`; the mask, metadata, etc. are discarded:
                   meta={'object': 'fake galaxy', 'filter': 'R'},
                   unit='adu')
     smaller = block_reduce(ccd.data, 4)
-    plt.imshow(smaller, origin='lower')
+    fig, ax = plt.subplots()
+    ax.imshow(smaller, origin='lower')
 
 By default, both `~astropy.nddata.block_reduce` and
 `~astropy.nddata.block_replicate` conserve flux.

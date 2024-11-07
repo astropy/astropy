@@ -30,31 +30,33 @@ parameters are shown in the following sketch:
     x = np.linspace(-5, 5, 50000)
     y = np.ones_like(x)
     y[np.abs((x-t0+0.5*period)%period-0.5*period)<0.5*duration] = 1.0 - depth
-    plt.figure(figsize=(7, 4))
-    plt.axvline(t0, color="k", ls="dashed", lw=0.75)
-    plt.axvline(t0+period, color="k", ls="dashed", lw=0.75)
-    plt.axhline(1.0-depth, color="k", ls="dashed", lw=0.75)
-    plt.plot(x, y)
+    fig, ax = plt.subplots(figsize=(7, 4))
+    ax.axvline(t0, color="k", ls="dashed", lw=0.75)
+    ax.axvline(t0+period, color="k", ls="dashed", lw=0.75)
+    ax.axhline(1.0-depth, color="k", ls="dashed", lw=0.75)
+    ax.plot(x, y)
 
     kwargs = dict(
         va="center", arrowprops=dict(arrowstyle="->", lw=0.5),
         bbox={"fc": "w", "ec": "none"},
     )
-    plt.annotate("period", xy=(t0+period, 1.01), xytext=(t0+0.5*period, 1.01), ha="center", **kwargs)
-    plt.annotate("period", xy=(t0, 1.01), xytext=(t0+0.5*period, 1.01), ha="center", **kwargs)
-    plt.annotate("duration", xy=(t0-0.5*duration, 1.0-0.5*depth), xytext=(t0, 1.0-0.5*depth), ha="center", **kwargs)
-    plt.annotate("duration", xy=(t0+0.5*duration, 1.0-0.5*depth), xytext=(t0, 1.0-0.5*depth), ha="center", **kwargs)
-    plt.annotate("reference time", xy=(t0, 1.0-depth-0.01), xytext=(t0+0.25*duration, 1.0-depth-0.01), ha="left", **kwargs)
-    plt.annotate("depth", xy=(0.0, 1.0), xytext=(0.0, 1.0-0.5*depth), ha="center", rotation=90, **kwargs)
-    plt.annotate("depth", xy=(0.0, 1.0-depth), xytext=(0.0, 1.0-0.5*depth), ha="center", rotation=90, **kwargs)
+    ax.annotate("period", xy=(t0+period, 1.01), xytext=(t0+0.5*period, 1.01), ha="center", **kwargs)
+    ax.annotate("period", xy=(t0, 1.01), xytext=(t0+0.5*period, 1.01), ha="center", **kwargs)
+    ax.annotate("duration", xy=(t0-0.5*duration, 1.0-0.5*depth), xytext=(t0, 1.0-0.5*depth), ha="center", **kwargs)
+    ax.annotate("duration", xy=(t0+0.5*duration, 1.0-0.5*depth), xytext=(t0, 1.0-0.5*depth), ha="center", **kwargs)
+    ax.annotate("reference time", xy=(t0, 1.0-depth-0.01), xytext=(t0+0.25*duration, 1.0-depth-0.01), ha="left", **kwargs)
+    ax.annotate("depth", xy=(0.0, 1.0), xytext=(0.0, 1.0-0.5*depth), ha="center", rotation=90, **kwargs)
+    ax.annotate("depth", xy=(0.0, 1.0-depth), xytext=(0.0, 1.0-0.5*depth), ha="center", rotation=90, **kwargs)
 
 
-    plt.ylim(1.0 - depth - 0.02, 1.02)
-    plt.xlim(-5, 5)
-    plt.gca().set_yticks([])
-    plt.gca().set_xticks([])
-    plt.ylabel("brightness")
-    plt.xlabel("time")
+    ax.set(
+        ylim=(1.0 - depth - 0.02, 1.02),
+        xlim=(-5, 5),
+        yticks=[],
+        xticks=[],
+        ylabel="brightness",
+        xlabel="time",
+    )
 
     # ****
 
@@ -135,7 +137,8 @@ useful attributes, the most useful of which are generally the ``period`` and
 This result can be plotted using matplotlib:
 
 >>> import matplotlib.pyplot as plt                  # doctest: +SKIP
->>> plt.plot(periodogram.period, periodogram.power)  # doctest: +SKIP
+>>> fig, ax = plt.subplots()  # doctest: +SKIP
+>>> ax.plot(periodogram.period, periodogram.power)  # doctest: +SKIP
 
 .. plot::
 
@@ -150,10 +153,9 @@ This result can be plotted using matplotlib:
     model = BoxLeastSquares(t * u.day, y, dy=0.01)
     periodogram = model.autopower(0.2)
 
-    plt.figure(figsize=(8, 4))
-    plt.plot(periodogram.period, periodogram.power, "k")
-    plt.xlabel("period [day]")
-    plt.ylabel("power")
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(periodogram.period, periodogram.power, "k")
+    ax.set(xlabel="period [day]", ylabel="power")
 
 In this figure, you can see the peak at the correct period of three days.
 
@@ -193,10 +195,9 @@ follows:
     model = BoxLeastSquares(t * u.day, y, dy=0.01)
     periodogram = model.autopower(0.2, objective="snr")
 
-    plt.figure(figsize=(8, 4))
-    plt.plot(periodogram.period, periodogram.power, "k")
-    plt.xlabel("period [day]")
-    plt.ylabel("depth S/N")
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(periodogram.period, periodogram.power, "k")
+    ax.set(xlabel="period [day]", ylabel="depth S/N")
 
 This objective will generally produce a periodogram that is qualitatively
 similar to the log likelihood spectrum, but it has been used to improve the
@@ -244,10 +245,9 @@ It is possible to provide a specific period grid as follows:
     periods = np.linspace(2.5, 3.5, 1000) * u.day
     periodogram = model.power(periods, 0.2)
 
-    plt.figure(figsize=(8, 4))
-    plt.plot(periodogram.period, periodogram.power, "k")
-    plt.xlabel("period [day]")
-    plt.ylabel("power")
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(periodogram.period, periodogram.power, "k")
+    ax.set(xlabel="period [day]", ylabel="power")
 
 However, if the period grid is too coarse, the correct period might be missed.
 
@@ -269,10 +269,9 @@ However, if the period grid is too coarse, the correct period might be missed.
     periods = np.linspace(0.5, 10.5, 15) * u.day
     periodogram = model.power(periods, 0.2)
 
-    plt.figure(figsize=(8, 4))
-    plt.plot(periodogram.period, periodogram.power, "k")
-    plt.xlabel("period [day]")
-    plt.ylabel("power")
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(periodogram.period, periodogram.power, "k")
+    ax.set(xlabel="period [day]", ylabel="power")
 
 .. EXAMPLE END
 

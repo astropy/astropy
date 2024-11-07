@@ -174,9 +174,9 @@ details). We can use what we have seen so far to make a plot:
    :context:
 
    import matplotlib.pyplot as plt
-   plt.plot(ts.time.jd, ts['sap_flux'], 'k.', markersize=1)
-   plt.xlabel('Julian Date')
-   plt.ylabel('SAP Flux (e-/s)')
+   fig, ax = plt.subplots()
+   ax.plot(ts.time.jd, ts['sap_flux'], 'k.', markersize=1)
+   ax.set(xlabel='Julian Date', ylabel='SAP Flux (e-/s)')
 
 It looks like there are a few transits! We can use the
 :class:`~astropy.timeseries.BoxLeastSquares` class to estimate the
@@ -231,17 +231,11 @@ Now we can take a look at the folded time series:
 
 .. plot::
    :context:
-   :nofigs:
-
-   plt.clf()
-
-.. plot::
-   :context:
    :include-source:
 
-   plt.plot(ts_folded.time.jd, ts_folded['sap_flux'], 'k.', markersize=1)
-   plt.xlabel('Time (days)')
-   plt.ylabel('SAP Flux (e-/s)')
+   fig, ax = plt.subplots()
+   ax.plot(ts_folded.time.jd, ts_folded['sap_flux'], 'k.', markersize=1)
+   ax.set(xlabel='Time (days)', ylabel='SAP Flux (e-/s)')
 
 Using the :ref:`stats` module, we can normalize the flux by sigma-clipping
 the data to determine the baseline flux::
@@ -306,18 +300,12 @@ Now we can take a look at the final result:
 
 .. plot::
    :context:
-   :nofigs:
-
-   plt.clf()
-
-.. plot::
-   :context:
    :include-source:
 
-   plt.plot(ts_folded.time.jd, ts_folded['sap_flux_norm'], 'k.', markersize=1)
-   plt.plot(ts_binned.time_bin_start.jd, ts_binned['sap_flux_norm'], 'r-', drawstyle='steps-post')
-   plt.xlabel('Time (days)')
-   plt.ylabel('Normalized flux')
+   fig, ax = plt.subplots()
+   ax.plot(ts_folded.time.jd, ts_folded['sap_flux_norm'], 'k.', markersize=1)
+   ax.plot(ts_binned.time_bin_start.jd, ts_binned['sap_flux_norm'], 'r-', drawstyle='steps-post')
+   ax.set(xlabel='Time (days)', ylabel='Normalized flux')
 
 To learn more about the capabilities in the `astropy.timeseries` module, you can
 find links to the full documentation in the next section.

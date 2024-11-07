@@ -49,8 +49,9 @@ of two Gaussians:
     m = fit(m_init, x, y)
 
     # Plot the data and the best fit
-    plt.plot(x, y, 'o', color='k')
-    plt.plot(x, m(x))
+    fig, ax = plt.subplots()
+    ax.plot(x, y, 'o', color='k')
+    ax.plot(x, m(x))
 
 
 This decorator also supports setting a model's
