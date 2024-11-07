@@ -77,7 +77,7 @@ class BitFlag(int):
 
 
 class BitFlagNameMeta(type):
-    def __new__(mcls, name, bases, members):
+    def __new__(cls, name, bases, members):
         for k, v in members.items():
             if not k.startswith("_"):
                 v = BitFlag(v)
@@ -113,7 +113,7 @@ class BitFlagNameMeta(type):
         else:
             members = {"_locked": True, "__version__": "", **members}
 
-        return super().__new__(mcls, name, bases, members)
+        return super().__new__(cls, name, bases, members)
 
     def __setattr__(cls, name, val):
         if name == "_locked":

@@ -87,7 +87,6 @@ lint.ignore = [
     "N801",  # invalid-class-name
     "N802",  # invalid-function-name
     "N803",  # invalid-argument-name
-    "N804",  # invalid-first-argument-name-for-class-method
     "N805",  # invalid-first-argument-name-for-method
     "N807",  # dunder-function-name
     "N813",  # camelcase-imported-as-lowercase
