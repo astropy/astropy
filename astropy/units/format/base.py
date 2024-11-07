@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from astropy.units import NamedUnit, UnitBase
-    from astropy.units.typing import Real, UnitPower
+    from astropy.units.typing import UnitPower
 
 
 class Base:
@@ -110,7 +110,7 @@ class Base:
         )
 
     @classmethod
-    def _format_unit_list(cls, units: Iterable[tuple[NamedUnit, Real]]) -> str:
+    def _format_unit_list(cls, units: Iterable[tuple[NamedUnit, UnitPower]]) -> str:
         return cls._space.join(
             cls._format_unit_power(base_, power) for base_, power in units
         )
