@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 
     from astropy.extern.ply.lex import Lexer
     from astropy.units import UnitBase
+    from astropy.units.typing import UnitScale
     from astropy.utils.parsing import ThreadSafeParser
 
 
@@ -277,7 +278,7 @@ class CDS(FITS):
 
     @classmethod
     def format_exponential_notation(
-        cls, val: float | np.number, format_spec: str = ".8g"
+        cls, val: UnitScale | np.number, format_spec: str = ".8g"
     ) -> str:
         return super(Generic, cls).format_exponential_notation(val, format_spec)
 
