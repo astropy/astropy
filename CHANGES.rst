@@ -1,3 +1,97 @@
+Version 6.1.5 (2024-11-07)
+==========================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Ensure that coordinates can be transformed to other coordinate frames
+  also if they have size zero (i.e., hold empty data arrays). [#17013]
+
+- ``Longitude`` and ``Latitude`` can no longer be initialized with strings
+  ending in "N" or "S", and "E" or "W", respectively, since those suggest
+  the other type. [#17132]
+
+- ``np.nanvar(angle)`` now produces a ``Quantity`` with the correct
+  unit, rather than raising an exception. [#17239]
+
+- Fix a crash when instantiating ``Angle`` (or ``Latitude``, or ``Longitude``)
+  from a non-numpy array (for instance pyarrow arrays). [#17263]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix access to VLA columns after slicing ``.data``. [#16996]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Updated xml writer for VOTable Resource elements to include groups. [#17344]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Add support for positional only and keyword only arguments when using the ``support_nddata`` decorator. [#17281]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Fixed a bug where float32 inputs to sigma_clip and SigmaClip were
+  changed to float. [#17086]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix a crash when calling ``Column.pprint`` on a scalar column. [#15749]
+
+- Ensure that setting an existing column to a scalar always properly fills it
+  (rather than breaking the table if there was only one column in it). [#17105]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- The unit parsers are now better at recognizing unusual composite
+  units:
+
+  - units involving special unicode symbols, like "L☉/pc²";
+  - units that include CDS units ending in a 0, like "eps0/s";
+  - units including the degree symbol, "°". For example, "°C/s" is no
+    longer incorrectly interpreted as "°C/s^2". [#17011]
+
+- Converting the ohm to a string with the OGIP unit formatter (e.g.
+  ``f"{u.ohm:ogip}"``) previously produced the string ``'V / A'``, but now
+  produces ``'ohm'`` as expected. [#17200]
+
+- The ``OGIP`` unit formatter now handles the unit ``day`` and the corresponding
+  string ``"d"`` in full compliance with the standard. [#17216]
+
+- The ``"ogip"`` unit format now represents the unit angstrom as ``"angstrom"``
+  instead of ``"0.1 nm"``. [#17241]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Ensure that queries of ``.ut1_utc()`` and ``.pm_xy()`` return the correct
+  results also when passing in an empty array of times. [#17013]
+
+- Fixed a bug where astropy's logger wouldn't perform lazy string interpolation. [#17196]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed a bug that caused ``CoordinateHelper.get_axislabel()`` to return an
+  empty string instead of the default label if no label has been explicitly
+  provided. [#17175]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed a bug that caused ``WCS.slice`` to ignore ``numpy_order`` and always
+  interpret the slices as if ``numpy_order`` was ``True``, in the specific case
+  where the slices were such that dimensions in the WCS would be dropped. [#17147]
+
 Version 6.1.4 (2024-09-26)
 ==========================
 
