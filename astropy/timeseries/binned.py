@@ -252,7 +252,7 @@ class BinnedTimeSeries(BaseTimeSeries):
 
     @classmethod
     def read(
-        self,
+        cls,
         filename,
         time_bin_start_column=None,
         time_bin_end_column=None,

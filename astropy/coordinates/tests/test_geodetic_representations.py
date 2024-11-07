@@ -24,11 +24,11 @@ from astropy.units.tests.test_quantity_erfa_ufuncs import vvd
 
 class TestCustomGeodeticRepresentations:
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         # Preserve the original REPRESENTATION_CLASSES dict so that importing
         # the test file doesn't add a persistent test subclass (CustomGeodetic, etc.)
-        self.REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
-        self.DUPLICATE_REPRESENTATIONS_ORIG = deepcopy(DUPLICATE_REPRESENTATIONS)
+        cls.REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
+        cls.DUPLICATE_REPRESENTATIONS_ORIG = deepcopy(DUPLICATE_REPRESENTATIONS)
 
         class CustomGeodetic(BaseGeodeticRepresentation):
             _flattening = 0.01832
@@ -50,18 +50,18 @@ class TestCustomGeodeticRepresentations:
             _equatorial_radius = 3396190.0 * u.m
             _flattening = 0.5886007555512007 * u.percent
 
-        self.CustomGeodetic = CustomGeodetic
-        self.CustomSphericGeodetic = CustomSphericGeodetic
-        self.CustomSphericBodycentric = CustomSphericBodycentric
-        self.IAUMARS2000GeodeticRepresentation = IAUMARS2000GeodeticRepresentation
-        self.IAUMARS2000BodycentricRepresentation = IAUMARS2000BodycentricRepresentation
+        cls.CustomGeodetic = CustomGeodetic
+        cls.CustomSphericGeodetic = CustomSphericGeodetic
+        cls.CustomSphericBodycentric = CustomSphericBodycentric
+        cls.IAUMARS2000GeodeticRepresentation = IAUMARS2000GeodeticRepresentation
+        cls.IAUMARS2000BodycentricRepresentation = IAUMARS2000BodycentricRepresentation
 
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         REPRESENTATION_CLASSES.clear()
-        REPRESENTATION_CLASSES.update(self.REPRESENTATION_CLASSES_ORIG)
+        REPRESENTATION_CLASSES.update(cls.REPRESENTATION_CLASSES_ORIG)
         DUPLICATE_REPRESENTATIONS.clear()
-        DUPLICATE_REPRESENTATIONS.update(self.DUPLICATE_REPRESENTATIONS_ORIG)
+        DUPLICATE_REPRESENTATIONS.update(cls.DUPLICATE_REPRESENTATIONS_ORIG)
 
     def get_representation(self, representation):
         if isinstance(representation, str):

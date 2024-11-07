@@ -160,18 +160,16 @@ class FITS_rec(np.recarray):
     _character_as_bytes = False
     _load_variable_length_data = True
 
-    def __new__(subtype, input):
+    def __new__(cls, input):
         """
         Construct a FITS record array from a recarray.
         """
         # input should be a record array
         if input.dtype.subdtype is None:
-            self = np.recarray.__new__(
-                subtype, input.shape, input.dtype, buf=input.data
-            )
+            self = np.recarray.__new__(cls, input.shape, input.dtype, buf=input.data)
         else:
             self = np.recarray.__new__(
-                subtype, input.shape, input.dtype, buf=input.data, strides=input.strides
+                cls, input.shape, input.dtype, buf=input.data, strides=input.strides
             )
 
         self._init()
