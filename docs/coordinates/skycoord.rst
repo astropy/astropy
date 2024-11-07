@@ -960,12 +960,11 @@ its usual position to avoid overlap with the axis labels.
 .. doctest-skip::
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.figure(figsize=(8,4.2))
-    >>> plt.subplot(111, projection="aitoff")
-    >>> plt.title("Aitoff projection of our random data")
-    >>> plt.grid(True)
-    >>> plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
-    >>> plt.subplots_adjust(top=0.95,bottom=0.0)
+    >>> fig, ax = plt.subplots(figsize=(8, 4.2), subplot_kw=dict(projection="aitoff"))
+    >>> ax.title("Aitoff projection of our random data")
+    >>> ax.grid(True)
+    >>> ax.scatter(ra_rad, dec_rad, marker="o", s=2, alpha=0.3)
+    >>> fig.subplots_adjust(top=0.95, bottom=0.0)
     >>> plt.show()
 
 
@@ -1006,12 +1005,11 @@ its usual position to avoid overlap with the axis labels.
     # As a last step we set up the plotting environment with matplotlib using the
     # Aitoff projection with a specific title, a grid, filled circles as markers with
     # a marker size of 2, and an alpha value of 0.3.
-    plt.figure(figsize=(8,4.2))
-    plt.subplot(111, projection="aitoff")
-    plt.title("Aitoff projection of our random data", y=1.08)
-    plt.grid(True)
-    plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
-    plt.subplots_adjust(top=0.95, bottom=0.0)
+    fig, ax = plt.subplots(figsize=(8, 4.2), subplot_kw=dict(projection="aitoff"))
+    ax.set_title("Aitoff projection of our random data", y=1.08)
+    ax.grid(True)
+    ax.scatter(ra_rad, dec_rad, marker="o", s=2, alpha=0.3)
+    fig.subplots_adjust(top=0.95, bottom=0.0)
     plt.show()
 
 ..
@@ -1061,12 +1059,11 @@ We use the same plotting setup as in the last example:
 .. doctest-skip::
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.figure(figsize=(8,4.2))
-    >>> plt.subplot(111, projection="aitoff")
-    >>> plt.title("Aitoff projection of our random data")
-    >>> plt.grid(True)
-    >>> plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
-    >>> plt.subplots_adjust(top=0.95,bottom=0.0)
+    >>> fig, ax = plt.subplots(figsize=(8, 4.2), subplot_kw=dict(projection="aitoff"))
+    >>> ax.set_title("Aitoff projection of our random data")
+    >>> ax.grid(True)
+    >>> ax.scatter(ra_rad, dec_rad, marker="o", s=2, alpha=0.3)
+    >>> fig.subplots_adjust(top=0.95, bottom=0.0)
     >>> plt.show()
 
 
@@ -1103,12 +1100,11 @@ We use the same plotting setup as in the last example:
     dec_rad = c_gal_icrs.dec.radian
 
     # We use the same plotting setup as in the last example:
-    plt.figure(figsize=(8,4.2))
-    plt.subplot(111, projection="aitoff")
-    plt.title("Aitoff projection of our random data", y=1.08)
-    plt.grid(True)
-    plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
-    plt.subplots_adjust(top=0.95,bottom=0.0)
+    fig, ax = plt.subplots(figsize=(8, 4.2), subplot_kw=dict(projection="aitoff"))
+    ax.set_title("Aitoff projection of our random data", y=1.08)
+    ax.grid(True)
+    ax.scatter(ra_rad, dec_rad, marker="o", s=2, alpha=0.3)
+    fig.subplots_adjust(top=0.95, bottom=0.0)
     plt.show()
 
 ..

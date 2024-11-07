@@ -52,11 +52,12 @@ we provide three methods for fitting splines to data:
     fitter = SplineExactKnotsFitter()
     spl3 = fitter(spl, x, y, t=t)
 
-    plt.plot(x, y, 'ro', label="Data")
-    plt.plot(xs, spl1(xs), 'b-', label="Interpolating")
-    plt.plot(xs, spl2(xs), 'g-', label="Smoothing")
-    plt.plot(xs, spl3(xs), 'k-', label="Exact Knots")
-    plt.legend()
+    fig, ax = plt.subplots()
+    ax.plot(x, y, 'ro', label="Data")
+    ax.plot(xs, spl1(xs), 'b-', label="Interpolating")
+    ax.plot(xs, spl2(xs), 'g-', label="Smoothing")
+    ax.plot(xs, spl3(xs), 'k-', label="Exact Knots")
+    ax.legend()
     plt.show()
 
 Note that by default, splines have `degree <astropy.modeling.spline.Spline1D.degree>` 3.

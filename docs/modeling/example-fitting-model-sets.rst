@@ -107,15 +107,14 @@ Now inspect the model::
 
 Plot the fit along a couple of pixels:
 
-    >>> def plotramp(t, image, best_fit, row, col):
-    ...     plt.plot(t, image[:, row, col], '.', label=f'data pixel {row},{col}')
-    ...     plt.plot(t, best_fit[:, row, col], '-', label=f'fit to pixel {row},{col}')
-    ...     plt.xlabel('Time')
-    ...     plt.ylabel('Counts')
-    ...     plt.legend(loc='upper left')
-    >>> fig = plt.figure(figsize=(10, 5)) # doctest: +SKIP
-    >>> plotramp(t, image, best_fit, 1, 1) # doctest: +SKIP
-    >>> plotramp(t, image, best_fit, 2, 1) # doctest: +SKIP
+    >>> def plotramp(ax, t, image, best_fit, row, col):
+    ...     ax.plot(t, image[:, row, col], '.', label=f'data pixel {row},{col}')
+    ...     ax.plot(t, best_fit[:, row, col], '-', label=f'fit to pixel {row},{col}')
+    ...     ax.set(xlabel='Time', ylabel='Counts')
+    ...     ax.legend(loc='upper left')
+    >>> fig, ax = plt.subplots(figsize=(10, 5)) # doctest: +SKIP
+    >>> plotramp(ax, t, image, best_fit, 1, 1) # doctest: +SKIP
+    >>> plotramp(ax, t, image, best_fit, 2, 1) # doctest: +SKIP
 
 The data and the best fit model are shown together on one plot.
 
@@ -159,15 +158,14 @@ The data and the best fit model are shown together on one plot.
 
 
     # Plot the fit along a couple of pixels
-    def plotramp(t, image, best_fit, row, col):
-        plt.plot(t, image[:, row, col], '.', label=f'data pixel {row},{col}')
-        plt.plot(t, best_fit[:, row, col], '-', label=f'fit to pixel {row},{col}')
-        plt.xlabel('Time')
-        plt.ylabel('Counts')
-        plt.legend(loc='upper left')
+    def plotramp(ax, t, image, best_fit, row, col):
+        ax.plot(t, image[:, row, col], '.', label=f'data pixel {row},{col}')
+        ax.plot(t, best_fit[:, row, col], '-', label=f'fit to pixel {row},{col}')
+        ax.set(xlabel='Time', ylabel='Counts')
+        ax.legend(loc='upper left')
 
 
-    plt.figure(figsize=(10, 5))
-    plotramp(t, image, best_fit, 1, 1)
-    plotramp(t, image, best_fit, 3, 2)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    plotramp(ax, t, image, best_fit, 1, 1)
+    plotramp(ax, t, image, best_fit, 3, 2)
     plt.show()

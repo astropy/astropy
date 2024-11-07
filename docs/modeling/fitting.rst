@@ -133,13 +133,12 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
     g = fit_g(g_init, x, y)
 
     # Plot the data with the best-fit model
-    plt.figure(figsize=(8,5))
-    plt.plot(x, y, 'ko')
-    plt.plot(x, t(x), label='Trapezoid')
-    plt.plot(x, g(x), label='Gaussian')
-    plt.xlabel('Position')
-    plt.ylabel('Flux')
-    plt.legend(loc=2)
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(x, y, 'ko')
+    ax.plot(x, t(x), label='Trapezoid')
+    ax.plot(x, g(x), label='Gaussian')
+    ax.set(xlabel='Position', ylabel='Flux')
+    ax.legend(loc=2)
 
 As shown above, once instantiated, the fitter class can be used as a function
 that takes the initial model (``t_init`` or ``g_init``) and the data values
@@ -180,15 +179,15 @@ background in an image.
         p = fit_p(p_init, x, y, z)
 
     # Plot the data with the best-fit model
-    plt.figure(figsize=(8, 2.5))
-    plt.subplot(1, 3, 1)
-    plt.imshow(z, origin='lower', interpolation='nearest', vmin=-1e4, vmax=5e4)
-    plt.title("Data")
-    plt.subplot(1, 3, 2)
-    plt.imshow(p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
+    fig, axs = plt.subplots(figsize=(8, 2.5), ncols=3)
+    ax1 = axs[0]
+    ax1.imshow(z, origin='lower', interpolation='nearest', vmin=-1e4, vmax=5e4)
+    ax1.set_title("Data")
+    ax2 = axs[1]
+    ax2.imshow(p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
                vmax=5e4)
-    plt.title("Model")
-    plt.subplot(1, 3, 3)
-    plt.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
+    ax2.set_title("Model")
+    ax3 = axs[2]
+    ax3.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
                vmax=5e4)
-    plt.title("Residual")
+    ax3.set_title("Residual")

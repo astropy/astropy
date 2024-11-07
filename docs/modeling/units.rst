@@ -152,9 +152,10 @@ generating synthetic data:
 
     x = np.linspace(1, 5, 30) * u.micron
     y = np.exp(-0.5 * (x - 2.5 * u.micron)**2 / (200 * u.nm)**2) * u.mJy
-    plt.plot(x, y, 'ko')
-    plt.xlabel('Wavelength (microns)')
-    plt.ylabel('Flux density (mJy)')
+
+    fig, ax = plt.subplots()
+    ax.plot(x, y, 'ko')
+    ax.set(xlabel='Wavelength (microns)', ylabel='Flux density (mJy)')
 
 and we then define the initial guess for the fitting and we carry out the fit as
 we would without any units:
@@ -171,10 +172,10 @@ we would without any units:
 
     g5_fit = fitter(g5, x, y)
 
-    plt.plot(x, y, 'ko')
-    plt.plot(x, g5_fit(x), 'r-')
-    plt.xlabel('Wavelength (microns)')
-    plt.ylabel('Flux density (mJy)')
+    fig, ax = plt.subplots()
+    ax.plot(x, y, 'ko')
+    ax.plot(x, g5_fit(x), 'r-')
+    ax.set(xlabel='Wavelength (microns)', ylabel='Flux density (mJy)')
 
 Fitting with equivalencies
 --------------------------
@@ -192,9 +193,9 @@ evaluation examples:
 
     g6_fit = fitter(g6, x, y, equivalencies={'x': u.spectral()})
 
-    plt.plot(x, g6_fit(x, equivalencies={'x': u.spectral()}), 'b-')
-    plt.xlabel('Wavelength (microns)')
-    plt.ylabel('Flux density (mJy)')
+    fig, ax = plt.subplots()
+    ax.plot(x, g6_fit(x, equivalencies={'x': u.spectral()}), 'b-')
+    ax.set(xlabel='Wavelength (microns)', ylabel='Flux density (mJy)')
 
 In this case, the fit (in blue) is slightly worse, because a Gaussian in
 frequency space (blue) is not a Gaussian in wavelength space (red). As mentioned
