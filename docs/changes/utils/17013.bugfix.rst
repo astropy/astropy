@@ -1,2 +1,0 @@
-Ensure that queries of ``.ut1_utc()`` and ``.pm_xy()`` return the correct
-results also when passing in an empty array of times.

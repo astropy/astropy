@@ -1,1 +1,0 @@
-Updated xml writer for VOTable Resource elements to include groups.
