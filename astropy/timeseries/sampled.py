@@ -338,7 +338,7 @@ class TimeSeries(BaseTimeSeries):
         time = Time(df.index, scale=time_scale)
         table = Table.from_pandas(df)
 
-        return TimeSeries(time=time, data=table)
+        return cls(time=time, data=table)
 
     def to_pandas(self):
         """
@@ -431,4 +431,4 @@ class TimeSeries(BaseTimeSeries):
                     f"Time column '{time_column}' not found in the input data."
                 )
 
-            return TimeSeries(time=time, data=table)
+            return cls(time=time, data=table)
