@@ -4378,7 +4378,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                     self.resources,
                 ]
                 if kwargs["version_1_2_or_later"]:
-                    element_sets[0] = self.groups
+                    element_sets.append(self.groups)
+                    if not kwargs["version_1_4_or_later"]:
+                        # COOSYS was deprecated in v1.2, and undeprecated in v1.4
+                        del element_sets[0]
+
                 for element_set in element_sets:
                     for element in element_set:
                         element.to_xml(w, **kwargs)
