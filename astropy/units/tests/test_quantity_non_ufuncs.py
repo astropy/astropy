@@ -1280,10 +1280,52 @@ class TestNanFunctions(InvariantUnitTestSetup):
     def test_nanstd(self):
         self.check(np.nanstd)
 
+    @pytest.mark.parametrize(
+        "out_init",
+        [
+            pytest.param(u.Quantity(-1, "m"), id="out with coorect unit"),
+            # this should work too: out.unit will be overridden
+            pytest.param(u.Quantity(-1), id="out with a different unit"),
+        ],
+    )
+    def test_nanstd_out(self, out_init):
+        out = out_init.copy()
+        o = np.nanstd(self.q, out=out)
+        assert o is out
+        assert o == np.nanstd(self.q)
+
+        # Also check array input, Quantity output.
+        out = out_init.copy()
+        o2 = np.nanstd(self.q.value, out=out)
+        assert o2 is out
+        assert o2.unit == u.dimensionless_unscaled
+        assert o2 == np.nanstd(self.q.value)
+
     def test_nanvar(self):
         out = np.nanvar(self.q)
         expected = np.nanvar(self.q.value) * self.q.unit**2
         assert np.all(out == expected)
+
+    @pytest.mark.parametrize(
+        "out_init",
+        [
+            pytest.param(u.Quantity(-1, "m"), id="out with coorect unit"),
+            # this should work too: out.unit will be overridden
+            pytest.param(u.Quantity(-1), id="out with a different unit"),
+        ],
+    )
+    def test_nanvar_out(self, out_init):
+        out = out_init.copy()
+        o = np.nanvar(self.q, out=out)
+        assert o is out
+        assert o == np.nanvar(self.q)
+
+        # Also check array input, Quantity output.
+        out = out_init.copy()
+        o2 = np.nanvar(self.q.value, out=out)
+        assert o2 is out
+        assert o2.unit == u.dimensionless_unscaled
+        assert o2 == np.nanvar(self.q.value)
 
     def test_nanprod(self):
         with pytest.raises(u.UnitsError):
