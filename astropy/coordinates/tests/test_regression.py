@@ -222,6 +222,7 @@ def test_regression_4210():
         eclobj.distance
 
 
+@pytest.mark.remote_data
 def test_regression_futuretimes_4302():
     """
     Checks that an error is not raised for future times not covered by IERS
