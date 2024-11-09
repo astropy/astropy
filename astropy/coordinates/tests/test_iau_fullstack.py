@@ -180,6 +180,7 @@ def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     npt.assert_allclose(fullstack_icrs.dec.deg, icrs2.dec.deg)
 
 
+@pytest.mark.remote_data
 def test_future_altaz():
     """
     While this does test the full stack, it is mostly meant to check that a
