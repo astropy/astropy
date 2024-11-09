@@ -67,6 +67,17 @@ def test_angle_from_pyarrow():
     npt.assert_array_equal(angle.value, input_data)
 
 
+def test_angle_from_pandas():
+    # see https://github.com/astropy/astropy/issues/17357
+    pd = pytest.importorskip("pandas")
+
+    input_data = ["10 0 0", "12 0 0"]
+    df = pd.DataFrame({"angle": input_data})
+    angle = Angle(df["angle"], unit=u.hourangle)
+    expected = Angle(input_data, u.hourangle)
+    npt.assert_array_equal(angle.value, expected.value)
+
+
 def test_dms():
     a1 = Angle([0, 45.5, -45.5], unit=u.degree)
     d, m, s = a1.dms
