@@ -14,7 +14,7 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Longitude
 from astropy.units import Quantity
-from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_2
 from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.utils.masked import Masked, MaskedNDArray
 
@@ -1449,8 +1449,13 @@ def test_masked_repr_explicit_structured():
 
 def test_masked_repr_summary():
     ma = Masked(np.arange(15.0), mask=[True] + [False] * 14)
+    if NUMPY_LT_2_2:
+        expected = "MaskedNDArray([———,  1.,  2., ..., 12., 13., 14.])"
+    else:
+        expected = "MaskedNDArray([———,  1.,  2., ..., 12., 13., 14.], shape=(15,))"
+
     with np.printoptions(threshold=2):
-        assert repr(ma) == "MaskedNDArray([———,  1.,  2., ..., 12., 13., 14.])"
+        assert repr(ma) == expected
 
 
 def test_masked_repr_nodata():
