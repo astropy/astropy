@@ -1,0 +1,1 @@
+Fixed instantiating ``Angle`` from a ``pandas`` ``Series`` object.

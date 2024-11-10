@@ -184,7 +184,9 @@ class Angle(SpecificTypeQuantity):
                 if angle.dtype.kind in "SUVO":
                     angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
 
-            elif hasattr(angle, "__array__"):
+            elif hasattr(angle, "__array__") and (
+                not hasattr(angle, "dtype") or angle.dtype.kind not in "SUVO"
+            ):
                 angle = np.asarray(angle)
 
             elif isiterable(angle):
