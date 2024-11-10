@@ -3022,6 +3022,9 @@ class TestVLATables(FitsTestCase):
                 q = toto[1].data.field("QUAL_SPE")
                 assert (q[0][4:8] == np.array([0, 0, 0, 0], dtype=np.uint8)).all()
                 assert toto[1].columns[0].format.endswith("J(1571)")
+                # Test BINTableHDU copy
+                copytoto = toto[1].copy()
+                assert (toto[1].data.field("QUAL_SPE")[0][4:8] == q[0][4:8]).all()
 
         for code in ("PJ()", "QJ()"):
             test(code)

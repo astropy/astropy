@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import copy
 import operator
 import warnings
 import weakref
@@ -581,12 +582,20 @@ class FITS_rec(np.recarray):
         return self.names
 
     def copy(self, order="C"):
-        # Go through recarray to ensure we do not share items with self
-        # that we do not want to share (see __getitem__).
-        new = self.view(np.recarray).copy(order=order).view(type(self))
-        new._uint = self._uint
-        new._coldefs = ColDefs(self._coldefs)
+        """
+        The Numpy documentation lies; `numpy.ndarray.copy` is not equivalent to
+        `numpy.copy`.  Differences include that it re-views the copied array as
+        self's ndarray subclass, as though it were taking a slice; this means
+        ``__array_finalize__`` is called and the copy shares all the array
+        attributes (including ``._converted``!).  So we need to make a deep
+        copy of all those attributes so that the two arrays truly do not share
+        any data.
+        """
+        new = super().copy(order=order)
 
+        new.__dict__ = copy.deepcopy(self.__dict__)
+        new._col_weakrefs = weakref.WeakSet()
+        new._coldefs = ColDefs(self._coldefs)
         return new
 
     @property
