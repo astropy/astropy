@@ -233,6 +233,7 @@ doctest_subpackage_requires = [
     "astropy/table/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/table/mixins/dask.py = dask",
     "docs/* = numpy>=2",   # not NUMPY_LT_2_0 (PR 15065)
+    "docs/timeseries/index.rst = numpy<2.2.0.dev0",  # NUMPY_LT_2_2 (PR 17364)
     "astropy/stats/info_theory.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
     "astropy/stats/jackknife.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
     "astropy/table/row.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
