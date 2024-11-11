@@ -731,7 +731,8 @@ class UnitBase:
             - `False` : display unit bases with negative powers as they are;
             - 'inline' or `True` : use a single-line fraction;
             - 'multiline' : use a multiline fraction (available for the
-              'latex', 'console' and 'unicode' formats only).
+              'latex', 'console' and 'unicode' formats only; for others,
+              an 'inline' fraction is used).
 
         Raises
         ------
