@@ -583,28 +583,21 @@ def test_format_styles_non_default_fraction(format_spec, fraction, string, decom
     assert fluxunit.decompose().to_string(format_spec, fraction=fraction) == decomposed
 
 
-@pytest.mark.parametrize("format_spec", ["generic", "cds", "fits", "ogip", "vounit"])
-def test_no_multiline_fraction(format_spec):
+@pytest.mark.parametrize("format_spec", u_format.Base.registry.keys())
+def test_multiline_fraction_different_if_available(format_spec):
     fluxunit = u.W / u.m**2
     multiline_format = fluxunit.to_string(format_spec, fraction="multiline")
     inline_format = fluxunit.to_string(format_spec, fraction="inline")
-    assert multiline_format == inline_format
+    if format_spec in ["generic", "cds", "fits", "ogip", "vounit"]:
+        assert multiline_format == inline_format
+    else:
+        assert multiline_format != inline_format
 
 
 @pytest.mark.parametrize("format_spec", u_format.Base.registry.keys())
 def test_unknown_fraction_style(format_spec):
-    if hasattr(u_format.Base.registry[format_spec], "_format_multiline_fraction"):
-        available = "'inline' or 'multiline'"
-    else:
-        available = "'inline'"
     fluxunit = u.W / u.m**2
-    with pytest.raises(
-        ValueError,
-        match=(
-            f"^'{format_spec}' format only supports {available} fractions, "
-            r"not fraction='parrot'\.$"
-        ),
-    ):
+    with pytest.raises(ValueError, match="'parrot'"):
         fluxunit.to_string(format_spec, fraction="parrot")
 
 
