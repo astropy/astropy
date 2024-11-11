@@ -586,23 +586,22 @@ def test_format_styles_non_default_fraction(format_spec, fraction, string, decom
 @pytest.mark.parametrize("format_spec", ["generic", "cds", "fits", "ogip", "vounit"])
 def test_no_multiline_fraction(format_spec):
     fluxunit = u.W / u.m**2
-    with pytest.raises(
-        ValueError,
-        match=(
-            f"^'{format_spec}' format only supports 'inline' fractions, "
-            r"not fraction='multiline'\.$"
-        ),
-    ):
-        fluxunit.to_string(format_spec, fraction="multiline")
+    multiline_format = fluxunit.to_string(format_spec, fraction="multiline")
+    inline_format = fluxunit.to_string(format_spec, fraction="inline")
+    assert multiline_format == inline_format
 
 
-@pytest.mark.parametrize("format_spec", ["latex", "console", "unicode"])
+@pytest.mark.parametrize("format_spec", u_format.Base.registry.keys())
 def test_unknown_fraction_style(format_spec):
+    if hasattr(u_format.Base.registry[format_spec], "_format_multiline_fraction"):
+        available = "'inline' or 'multiline'"
+    else:
+        available = "'inline'"
     fluxunit = u.W / u.m**2
     with pytest.raises(
         ValueError,
         match=(
-            f"^'{format_spec}' format only supports 'inline' or 'multiline' fractions, "
+            f"^'{format_spec}' format only supports {available} fractions, "
             r"not fraction='parrot'\.$"
         ),
     ):

@@ -68,7 +68,7 @@ class FITS(generic.Generic):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline"] = False
+        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
     ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)

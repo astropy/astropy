@@ -48,6 +48,7 @@ class Base:
         return {
             True: cls._format_inline_fraction,
             "inline": cls._format_inline_fraction,
+            "multiline": cls._format_inline_fraction,
         }
 
     @classmethod
@@ -127,7 +128,7 @@ class Base:
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, *, fraction: bool | Literal["inline"] = True
+        cls, unit: UnitBase, *, fraction: bool | Literal["inline", "multiline"] = True
     ) -> str:
         """Convert a unit to its string representation.
 
@@ -143,9 +144,9 @@ class Base:
             - `False` : display unit bases with negative powers as they are
               (e.g., ``km s-1``);
             - 'inline' or `True` : use a single-line fraction (e.g., ``km / s``);
-            - 'multiline' : use a multiline fraction (available for the
-              ``latex``, ``console`` and ``unicode`` formats only; e.g.,
-              ``$\\mathrm{\\frac{km}{s}}$``).
+            - 'multiline' : use a multiline fraction if possible (available for
+              the ``latex``, ``console`` and ``unicode`` formats; e.g.,
+              ``$\\mathrm{\\frac{km}{s}}$``). If not possible, use 'inline'.
 
         Raises
         ------
@@ -191,7 +192,9 @@ class Base:
         except KeyError:
             # We accept Booleans, but don't advertise them in the error message
             *all_but_last, last = (
-                repr(key) for key in cls._fraction_formatters if isinstance(key, str)
+                repr(key)
+                for key in cls._fraction_formatters
+                if isinstance(key, str) and hasattr(cls, f"_format_{key}_fraction")
             )
             supported_formats = (
                 f"{', '.join(all_but_last)} or {last}" if all_but_last else last
