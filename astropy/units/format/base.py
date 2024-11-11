@@ -5,10 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from astropy.units.utils import maybe_simple_fraction
-from astropy.utils import classproperty
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Iterable
     from typing import ClassVar, Literal
 
     import numpy as np
@@ -42,14 +41,6 @@ class Base:
 
         Base.registry[cls.name] = cls
         super().__init_subclass__(**kwargs)
-
-    @classproperty(lazy=True)
-    def _fraction_formatters(cls) -> dict[bool | str, Callable[[str, str, str], str]]:
-        return {
-            True: cls._format_inline_fraction,
-            "inline": cls._format_inline_fraction,
-            "multiline": cls._format_inline_fraction,
-        }
 
     @classmethod
     def format_exponential_notation(
@@ -176,6 +167,17 @@ class Base:
         if not fraction or unit.powers[-1] > 0:
             return s + cls._format_unit_list(zip(unit.bases, unit.powers, strict=True))
 
+        if not (fraction is True or fraction in ("inline", "multiline")):
+            raise ValueError(
+                f"fraction can only be False, 'inline', or 'multiline', "
+                f"not {fraction!r}."
+            )
+
+        if fraction == "multiline" and hasattr(cls, "_format_multiline_fraction"):
+            formatter = cls._format_multiline_fraction
+        else:
+            formatter = cls._format_inline_fraction
+
         positive = []
         negative = []
         for base, power in zip(unit.bases, unit.powers, strict=True):
@@ -183,26 +185,9 @@ class Base:
                 positive.append((base, power))
             else:
                 negative.append((base, -power))
-        try:
-            return cls._fraction_formatters[fraction](
-                s,
-                cls._format_unit_list(positive) or "1",
-                cls._format_unit_list(negative),
-            )
-        except KeyError:
-            # We accept Booleans, but don't advertise them in the error message
-            *all_but_last, last = (
-                repr(key)
-                for key in cls._fraction_formatters
-                if isinstance(key, str) and hasattr(cls, f"_format_{key}_fraction")
-            )
-            supported_formats = (
-                f"{', '.join(all_but_last)} or {last}" if all_but_last else last
-            )
-            raise ValueError(
-                f"{cls.name!r} format only supports {supported_formats} "
-                f"fractions, not {fraction=!r}."
-            ) from None
+        return formatter(
+            s, cls._format_unit_list(positive) or "1", cls._format_unit_list(negative)
+        )
 
     @classmethod
     def parse(cls, s: str) -> UnitBase:
