@@ -1,1 +1,0 @@
-Fixed a bug where astropy's logger wouldn't perform lazy string interpolation.
