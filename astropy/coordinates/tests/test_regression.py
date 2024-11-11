@@ -222,7 +222,6 @@ def test_regression_4210():
         eclobj.distance
 
 
-@pytest.mark.remote_data
 def test_regression_futuretimes_4302():
     """
     Checks that an error is not raised for future times not covered by IERS
@@ -263,7 +262,8 @@ def test_regression_futuretimes_4302():
     with ctx1, ctx2, ctx3:
         future_time = Time("2511-5-1")
         c = CIRS(1 * u.deg, 2 * u.deg, obstime=future_time)
-        c.transform_to(ITRS(obstime=future_time))
+        with iers.conf.set_temp("auto_max_age", None):
+            c.transform_to(ITRS(obstime=future_time))
 
 
 def test_regression_4996():
