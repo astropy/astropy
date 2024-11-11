@@ -1,3 +1,0 @@
-Fixed a bug that caused ``WCS.slice`` to ignore ``numpy_order`` and always
-interpret the slices as if ``numpy_order`` was ``True``, in the specific case
-where the slices were such that dimensions in the WCS would be dropped.
