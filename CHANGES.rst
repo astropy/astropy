@@ -1,3 +1,20 @@
+Version 6.1.6 (2024-11-11)
+==========================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed instantiating ``Angle`` from a ``pandas`` ``Series`` object. [#17358]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Fixed calling ``np.nanvar`` and ``np.nanstd`` with ``Quantity`` ``out`` argument. [#17354]
+
+
 Version 6.1.5 (2024-11-07)
 ==========================
 
