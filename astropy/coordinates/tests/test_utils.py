@@ -13,6 +13,7 @@ from astropy.time import Time
 from astropy.utils.exceptions import AstropyWarning
 
 
+@pytest.mark.remote_data
 def test_polar_motion_unsupported_dates():
     msg = r"Tried to get polar motions for times {} IERS.*"
 
