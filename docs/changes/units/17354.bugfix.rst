@@ -1,1 +1,0 @@
-Fixed calling ``np.nanvar`` and ``np.nanstd`` with ``Quantity`` ``out`` argument.
