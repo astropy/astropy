@@ -1,2 +1,0 @@
-Fixed a bug where float32 inputs to sigma_clip and SigmaClip were
-changed to float.

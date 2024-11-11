@@ -1,3 +1,0 @@
-``Longitude`` and ``Latitude`` can no longer be initialized with strings
-ending in "N" or "S", and "E" or "W", respectively, since those suggest
-the other type.

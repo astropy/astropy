@@ -1,1 +1,0 @@
-Fix a crash when calling ``Column.pprint`` on a scalar column.

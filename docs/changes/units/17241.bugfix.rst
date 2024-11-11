@@ -1,2 +1,0 @@
-The ``"ogip"`` unit format now represents the unit angstrom as ``"angstrom"``
-instead of ``"0.1 nm"``.
