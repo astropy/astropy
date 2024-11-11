@@ -31,7 +31,7 @@ class ConstantMeta(type):
     among other reasons).
     """
 
-    def __new__(mcls, name, bases, d):
+    def __new__(cls, name, bases, d):
         def wrap(meth):
             @functools.wraps(meth)
             def wrapper(self, *args, **kwargs):
@@ -86,7 +86,7 @@ class ConstantMeta(type):
             ):
                 d[attr] = wrap(value)
 
-        return super().__new__(mcls, name, bases, d)
+        return super().__new__(cls, name, bases, d)
 
 
 class Constant(Quantity, metaclass=ConstantMeta):

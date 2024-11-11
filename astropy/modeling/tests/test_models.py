@@ -1170,7 +1170,7 @@ def test_SmoothlyBrokenPowerLaw1D_fit_deriv():
 
 class _ExtendedModelMeta(_ModelMeta):
     @classmethod
-    def __prepare__(mcls, name, bases, **kwds):
+    def __prepare__(cls, name, bases, **kwds):
         # this shows the parent class machinery still applies
         namespace = super().__prepare__(name, bases, **kwds)
         # the custom bit

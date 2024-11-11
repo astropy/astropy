@@ -228,11 +228,11 @@ class ParentAttribute:
 
 
 class DataInfoMeta(type):
-    def __new__(mcls, name, bases, dct):
+    def __new__(cls, name, bases, dct):
         # Ensure that we do not gain a __dict__, which would mean
         # arbitrary attributes could be set.
         dct.setdefault("__slots__", [])
-        return super().__new__(mcls, name, bases, dct)
+        return super().__new__(cls, name, bases, dct)
 
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
