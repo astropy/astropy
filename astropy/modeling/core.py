@@ -100,10 +100,10 @@ class _ModelMeta(abc.ABCMeta):
     # Default empty dict for _parameters_, which will be empty on model
     # classes that don't have any Parameters
 
-    def __new__(mcls, name, bases, members, **kwds):
+    def __new__(cls, name, bases, members, **kwds):
         # See the docstring for _is_dynamic above
         if "_is_dynamic" not in members:
-            members["_is_dynamic"] = mcls._is_dynamic
+            members["_is_dynamic"] = cls._is_dynamic
         opermethods = [
             ("__add__", _model_oper("+")),
             ("__sub__", _model_oper("-")),
@@ -121,7 +121,7 @@ class _ModelMeta(abc.ABCMeta):
 
         for opermethod, opercall in opermethods:
             members[opermethod] = opercall
-        cls = super().__new__(mcls, name, bases, members, **kwds)
+        self = super().__new__(cls, name, bases, members, **kwds)
 
         param_names = list(members["_parameters_"])
 
@@ -133,16 +133,16 @@ class _ModelMeta(abc.ABCMeta):
                     param_names = list(tbase._parameters_) + param_names
         # Remove duplicates (arising from redefinition in subclass).
         param_names = list(dict.fromkeys(param_names))
-        if cls._parameters_:
-            if hasattr(cls, "_param_names"):
+        if self._parameters_:
+            if hasattr(self, "_param_names"):
                 # Slight kludge to support compound models, where
-                # cls.param_names is a property; could be improved with a
+                # param_names is a property; could be improved with a
                 # little refactoring but fine for now
-                cls._param_names = tuple(param_names)
+                self._param_names = tuple(param_names)
             else:
-                cls.param_names = tuple(param_names)
+                self.param_names = tuple(param_names)
 
-        return cls
+        return self
 
     def __init__(cls, name, bases, members, **kwds):
         super().__init__(name, bases, members, **kwds)

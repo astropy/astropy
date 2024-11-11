@@ -21,10 +21,10 @@ if HAS_SCIPY:
 
 class TestInit:
     @classmethod
-    def setup_class(self):
-        self.rates = np.array([1, 5, 30, 400])[:, np.newaxis]
-        self.parr = np.random.poisson(self.rates, (4, 1000))
-        self.parr_t = np.random.poisson(self.rates.squeeze(), (1000, 4))
+    def setup_class(cls):
+        cls.rates = np.array([1, 5, 30, 400])[:, np.newaxis]
+        cls.parr = np.random.poisson(cls.rates, (4, 1000))
+        cls.parr_t = np.random.poisson(cls.rates.squeeze(), (1000, 4))
 
     def test_numpy_init(self):
         # Test that we can initialize directly from a Numpy array
@@ -559,9 +559,9 @@ ADVANCED_INDICES = [
 
 class TestGetSetItemAdvancedIndex:
     @classmethod
-    def setup_class(self):
-        self.distribution = np.arange(60.0).reshape(3, 4, 5)
-        self.d = Distribution(self.distribution)
+    def setup_class(cls):
+        cls.distribution = np.arange(60.0).reshape(3, 4, 5)
+        cls.d = Distribution(cls.distribution)
 
     def test_setup(self):
         ai1, ai2 = ADVANCED_INDICES[:2]
@@ -592,26 +592,26 @@ class TestGetSetItemAdvancedIndex:
 
 class TestQuantityDistributionGetSetItemAdvancedIndex(TestGetSetItemAdvancedIndex):
     @classmethod
-    def setup_class(self):
-        self.distribution = np.arange(60.0).reshape(3, 4, 5) << u.m
-        self.d = Distribution(self.distribution)
+    def setup_class(cls):
+        cls.distribution = np.arange(60.0).reshape(3, 4, 5) << u.m
+        cls.d = Distribution(cls.distribution)
 
 
 class StructuredDtypeBase:
     @classmethod
-    def setup_class(self):
-        self.dtype = np.dtype([("a", "f8"), ("b", "(2,2)f8")])
+    def setup_class(cls):
+        cls.dtype = np.dtype([("a", "f8"), ("b", "(2,2)f8")])
         data = np.arange(5.0) + (np.arange(60.0) * 10).reshape(3, 4, 5, 1)
-        self.distribution = data.view(self.dtype).reshape(3, 4, 5)
-        self.d = Distribution(self.distribution)
+        cls.distribution = data.view(cls.dtype).reshape(3, 4, 5)
+        cls.d = Distribution(cls.distribution)
 
 
 class TestStructuredQuantityDistributionInit(StructuredDtypeBase):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.unit = u.Unit("km, m")
-        self.d_unit = self.unit
+        cls.unit = u.Unit("km, m")
+        cls.d_unit = cls.unit
 
     def test_init_via_structured_samples(self):
         distribution = self.distribution << self.unit
@@ -634,10 +634,10 @@ class TestStructuredAdvancedIndex(StructuredDtypeBase, TestGetSetItemAdvancedInd
 
 class TestStructuredDistribution(StructuredDtypeBase):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.item = (0.0, [[-1.0, -2.0], [-3.0, -4.0]])
-        self.b_item = [[-1.0, -2.0], [-3.0, -4.0]]
+        cls.item = (0.0, [[-1.0, -2.0], [-3.0, -4.0]])
+        cls.b_item = [[-1.0, -2.0], [-3.0, -4.0]]
 
     @pytest.mark.parametrize("item", [-2, slice(1, 3), "a", "b"])
     def test_getitem(self, item):
@@ -682,9 +682,9 @@ class TestStructuredDistribution(StructuredDtypeBase):
 
 class TestStructuredQuantityDistribution(TestStructuredDistribution):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.distribution = self.distribution * u.Unit("km,m")
-        self.d = self.d * u.Unit("km,m")
-        self.item = self.item * u.Unit("Mm,km")
-        self.b_item = self.b_item * u.km
+        cls.distribution = cls.distribution * u.Unit("km,m")
+        cls.d = cls.d * u.Unit("km,m")
+        cls.item = cls.item * u.Unit("Mm,km")
+        cls.b_item = cls.b_item * u.km
