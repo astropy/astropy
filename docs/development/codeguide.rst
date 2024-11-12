@@ -17,13 +17,6 @@ Interface and Dependencies
   <https://github.com/astropy/astropy/blob/main/pyproject.toml>`_ file of the
   core package.
 
-* Usage of ``six`` and ``2to3`` is no longer acceptable.
-
-* `f-strings <https://docs.python.org/3/reference/lexical_analysis.html#f-strings>`_
-  should be used when possible, and if not, Python 3
-  formatting should be used (i.e. ``"{0:s}".format("spam")``)
-  instead of the ``%`` operator (``"%s" % "spam"``).
-
 * The core package should be importable with no
   dependencies other than components already in the Astropy core, the
   `Python Standard Library <https://docs.python.org/3/library/index.html>`_,
@@ -131,8 +124,7 @@ Coding Style/Conventions
 ========================
 
 * The code should follow the standard `PEP8 Style Guide for Python Code
-  <https://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
-  using only 4 spaces for indentation, and never tabs.
+  <https://www.python.org/dev/peps/pep-0008/>`_.
 
   * ``astropy`` itself enforces this style guide using the
     `ruff format <https://docs.astral.sh/ruff/formatter/>`_ code formatter, which closely follows the
@@ -164,17 +156,6 @@ Coding Style/Conventions
     particular set of |PEP8| and style-related checks that are used in Astropy do not
     need to be used in affiliated packages. In particular, the set of ruff_ checks is
     not required for affiliated packages.
-
-  * Alternately, you can manually check and fix your changes by running the
-    following `tox <https://tox.readthedocs.io/>`__ command::
-
-      tox -e codestyle
-
-* Following PEP8's recommendation, absolute imports are to be used in general.
-  The exception to this is relative imports of the form
-  ``from . import modname``, best when referring to files within the same
-  sub-module.  This makes it clearer what code is from the current submodule
-  as opposed to from another.
 
   .. note:: There are multiple options for testing PEP8 compliance of code,
             see :doc:`testguide` for more information.
