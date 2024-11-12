@@ -280,7 +280,9 @@ class ColumnGroups(BaseGroups):
                 and not hasattr(par_col, "mask")
                 and (hasattr(func, "reduceat") or func is np.sum or func is np.mean)
             ):
-                if func is np.mean:
+                if par_col.size == 0:
+                    vals = []
+                elif func is np.mean:
                     vals = np.add.reduceat(par_col, i0s) / np.diff(self.indices)
                 else:
                     if func is np.sum:
