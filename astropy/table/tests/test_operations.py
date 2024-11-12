@@ -28,11 +28,23 @@ from astropy.units.quantity import Quantity
 from astropy.utils import metadata
 from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.masked import Masked
 from astropy.utils.metadata import MergeConflictError
 
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
+
+
+def check_cols_equal(col1, col2):
+    """Check that col1 == col2, taking care of zero-length masked columns."""
+    assert (
+        type(col1) is type(col2)
+        or (isinstance(col1, Masked) and type(col1) is Masked(type(col2)))
+        or (isinstance(col2, Masked) and type(col2) is Masked(type(col1)))
+    )
+    eq = np.all(col1 == col2)
+    return eq or isinstance(eq, Masked) and not eq.shape and eq.unmasked
 
 
 def check_mask(col, exp_mask):
@@ -1438,15 +1450,22 @@ class TestVStack:
         assert (self.t1 == table.vstack(self.t1)).all()
         assert (self.t1 == table.vstack([self.t1])).all()
 
-    def test_mixin_functionality(self, mixin_cols):
-        col = mixin_cols["m"]
-        len_col = len(col)
-        t = table.QTable([col], names=["a"])
-        cls_name = type(col).__name__
+    @pytest.mark.parametrize("empty_table1", [False, True])
+    @pytest.mark.parametrize("empty_table2", [False, True])
+    def test_mixin_functionality(self, mixin_cols, empty_table1, empty_table2):
+        col1 = col2 = mixin_cols["m"]
+        if empty_table1:
+            col1 = col1[:0]
+        if empty_table2:
+            col2 = col2[:0]
+        len_col1 = len(col1)
+        t1 = table.QTable([col1], names=["a"])
+        len_col2 = len(col2)
+        t2 = table.QTable([col2], names=["a"])
 
         # Vstack works for these classes:
         if isinstance(
-            col,
+            col1,
             (
                 u.Quantity,
                 Time,
@@ -1457,40 +1476,32 @@ class TestVStack:
                 StokesCoord,
             ),
         ):
-            out = table.vstack([t, t])
-            assert len(out) == len_col * 2
-            if cls_name == "SkyCoord":
-                # Argh, SkyCoord needs __eq__!!
-                assert skycoord_equal(out["a"][len_col:], col)
-                assert skycoord_equal(out["a"][:len_col], col)
-            elif "Repr" in cls_name or "Diff" in cls_name:
-                assert np.all(representation_equal(out["a"][:len_col], col))
-                assert np.all(representation_equal(out["a"][len_col:], col))
-            else:
-                assert np.all(out["a"][:len_col] == col)
-                assert np.all(out["a"][len_col:] == col)
+            out = table.vstack([t1, t2])
+            assert len(out) == len_col1 + len_col2
+            assert check_cols_equal(out["a"][:len_col1], col1)
+            assert check_cols_equal(out["a"][len_col1:], col2)
         else:
-            msg = f"vstack unavailable for mixin column type(s): {cls_name}"
+            msg = f"vstack unavailable for mixin column type(s): {type(col1).__name__}"
             with pytest.raises(NotImplementedError, match=re.escape(msg)):
-                table.vstack([t, t])
+                table.vstack([t1, t2])
 
         # Check for outer stack which requires masking.  Works for
         # the listed mixins classes.
-        t2 = table.QTable([col], names=["b"])  # different from col name for t
-        if isinstance(col, (Time, TimeDelta, Quantity, SkyCoord)):
-            out = table.vstack([t, t2], join_type="outer")
-            assert len(out) == len_col * 2
-            assert np.all(out["a"][:len_col] == col)
-            assert np.all(out["b"][len_col:] == col)
-            assert check_mask(out["a"], [False] * len_col + [True] * len_col)
-            assert check_mask(out["b"], [True] * len_col + [False] * len_col)
+        t2 = table.QTable([col2], names=["b"])  # different from col name for t
+        if isinstance(col1, (Time, TimeDelta, Quantity, SkyCoord)):
+            out = table.vstack([t1, t2], join_type="outer")
+            assert len(out) == len_col1 + len_col2
+            assert check_cols_equal(out["a"][:len_col1], col1)
+            assert check_cols_equal(out["b"][len_col1:], col2)
+            assert check_mask(out["a"], [False] * len_col1 + [True] * len_col2)
+            assert check_mask(out["b"], [True] * len_col1 + [False] * len_col2)
             # check directly stacking mixin columns:
-            out2 = table.vstack([t, t2["b"]])
-            assert np.all(out["a"] == out2["a"])
-            assert np.all(out["b"] == out2["b"])
+            out2 = table.vstack([t1, t2["b"]])
+            assert check_cols_equal(out["a"], out2["a"])
+            assert check_cols_equal(out["b"], out2["b"])
         else:
             with pytest.raises(NotImplementedError) as err:
-                table.vstack([t, t2], join_type="outer")
+                table.vstack([t1, t2], join_type="outer")
             assert "vstack requires masking" in str(
                 err.value
             ) or "vstack unavailable" in str(err.value)
