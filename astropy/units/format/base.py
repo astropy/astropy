@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING
 
+from astropy.units.errors import UnitsWarning
 from astropy.units.utils import maybe_simple_fraction
 
 if TYPE_CHECKING:
@@ -118,6 +120,18 @@ class Base:
         return f"{scale}{numerator} / {denominator}"
 
     @classmethod
+    def _format_multiline_fraction(
+        cls, scale: str, numerator: str, denominator: str
+    ) -> str:
+        # By default, we just warn that we do not have a multiline format.
+        warnings.warn(
+            f"{cls.name!r} format does not support multiline "
+            "fractions; using inline instead.",
+            UnitsWarning,
+        )
+        return cls._format_inline_fraction(scale, numerator, denominator)
+
+    @classmethod
     def to_string(
         cls, unit: UnitBase, *, fraction: bool | Literal["inline", "multiline"] = True
     ) -> str:
@@ -167,16 +181,15 @@ class Base:
         if not fraction or unit.powers[-1] > 0:
             return s + cls._format_unit_list(zip(unit.bases, unit.powers, strict=True))
 
-        if not (fraction is True or fraction in ("inline", "multiline")):
-            raise ValueError(
-                f"fraction can only be False, 'inline', or 'multiline', "
-                f"not {fraction!r}."
-            )
-
-        if fraction == "multiline" and hasattr(cls, "_format_multiline_fraction"):
+        if fraction is True or fraction == "inline":
+            formatter = cls._format_inline_fraction
+        elif fraction == "multiline":
             formatter = cls._format_multiline_fraction
         else:
-            formatter = cls._format_inline_fraction
+            raise ValueError(
+                "fraction can only be False, 'inline', or 'multiline', "
+                f"not {fraction!r}."
+            )
 
         positive = []
         negative = []
