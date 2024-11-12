@@ -180,7 +180,6 @@ def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     npt.assert_allclose(fullstack_icrs.dec.deg, icrs2.dec.deg)
 
 
-@pytest.mark.remote_data
 def test_future_altaz():
     """
     While this does test the full stack, it is mostly meant to check that a
@@ -209,5 +208,6 @@ def test_future_altaz():
             AstropyWarning,
             match="Tried to get polar motions for times after IERS data is valid.*",
         ),
+        iers.conf.set_temp("auto_max_age", None),
     ):
         SkyCoord(1 * u.deg, 2 * u.deg).transform_to(AltAz(location=location, obstime=t))
