@@ -2597,3 +2597,11 @@ def test_table_comp(t1, t2):
         assert not any(t2 == t1)
         assert all(t1 != t2)
         assert all(t2 != t1)
+
+
+def test_empty_skycoord_vstack():
+    # Explicit regression test for gh-17378
+    table1 = Table({"foo": SkyCoord([], [], unit="deg")})
+    table2 = table.vstack([table1, table1])  # Used to fail.
+    assert len(table2) == 0
+    assert isinstance(table2["foo"], SkyCoord)
