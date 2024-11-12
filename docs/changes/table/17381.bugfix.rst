@@ -1,0 +1,2 @@
+Ensure that representations and differentials, like SkyCoord, can be used in
+table join operations, by making use of the fact that they can now be masked.
