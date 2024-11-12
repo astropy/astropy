@@ -582,7 +582,8 @@ def test_table_aggregate_reduceat_empty():
             {
                 "action": np.asarray([], dtype=str),
                 "duration": np.asarray([], dtype=float),
-            }
+            },
+            masked=masked,
         )
         tga = tg.group_by("action").groups.aggregate(np.sum)
         assert tga.pformat() == ["action duration", "------ --------"]
