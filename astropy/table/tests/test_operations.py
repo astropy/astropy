@@ -1523,6 +1523,15 @@ class TestVStack:
         with pytest.raises(ValueError, match="representations are inconsistent"):
             table.vstack([t1, t3])
 
+    def test_vstack_different_sky_coordinates(self):
+        """Test that SkyCoord can generally not be mixed together."""
+        sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
+        sc2 = SkyCoord([5, 6] * u.deg, [7, 8] * u.deg, frame="fk5")
+        t1 = Table([sc1])
+        t2 = Table([sc2])
+        with pytest.raises(ValueError, match="coords are inconsistent"):
+            table.vstack([t1, t2])
+
     def test_vstack_structured_column(self):
         """Regression tests for gh-13271."""
         # Two tables with matching names, including a structured column.
