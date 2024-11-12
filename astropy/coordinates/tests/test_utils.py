@@ -10,10 +10,10 @@ from astropy.coordinates.builtin_frames.utils import (
 from astropy.coordinates.solar_system import get_body_barycentric_posvel
 from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
 from astropy.time import Time
+from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
 
 
-@pytest.mark.remote_data
 def test_polar_motion_unsupported_dates():
     msg = r"Tried to get polar motions for times {} IERS.*"
 
@@ -25,7 +25,11 @@ def test_polar_motion_unsupported_dates():
     with pytest.warns(AstropyWarning, match=msg.format("before")), ctx:
         get_polar_motion(Time("1900-01-01"))
 
-    with pytest.warns(AstropyWarning, match=msg.format("after")), ctx:
+    with (
+        pytest.warns(AstropyWarning, match=msg.format("after")),
+        ctx,
+        iers.conf.set_temp("auto_max_age", None),
+    ):
         get_polar_motion(Time("2100-01-01"))
 
 
