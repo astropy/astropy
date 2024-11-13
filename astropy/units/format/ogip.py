@@ -359,4 +359,4 @@ class OGIP(Generic):
                     UnitsWarning,
                 )
 
-        return cls._to_string(unit, fraction=fraction)
+        return super().to_string(unit, fraction=fraction)
