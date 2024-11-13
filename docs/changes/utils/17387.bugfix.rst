@@ -1,0 +1,2 @@
+Fixed a bug where an old IERS-A table with stale predictive values could trigger
+the download of a new IERS-A table even if automatic downloading was disabled.
