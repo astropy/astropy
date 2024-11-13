@@ -20,20 +20,17 @@ from typing import TYPE_CHECKING
 from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
 
-from .generic import Generic
+from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
     from typing import ClassVar, Literal
 
-    import numpy as np
-
     from astropy.extern.ply.lex import Lexer
     from astropy.units import UnitBase
-    from astropy.units.typing import UnitScale
     from astropy.utils.parsing import ThreadSafeParser
 
 
-class CDS(Generic):
+class CDS(Base, _ParsingFormatMixin):
     """
     Support the `Centre de Données astronomiques de Strasbourg
     <https://cds.unistra.fr/>`_ `Standards for Astronomical
@@ -260,16 +257,12 @@ class CDS(Generic):
         return parsing.yacc(tabmodule="cds_parsetab", package="astropy/units")
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        cls._validate_unit(unit, detailed_exception=detailed_exception)
-        return cls._units[unit]
-
-    @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
         if " " in s:
             raise ValueError("CDS unit must not contain whitespace")
         if not isinstance(s, str):
             s = s.decode("ascii")
+
         return cls._do_parse(s, debug)
 
     @classmethod
@@ -279,12 +272,6 @@ class CDS(Generic):
     @classmethod
     def _format_superscript(cls, number: str) -> str:
         return number if number.startswith("-") else "+" + number
-
-    @classmethod
-    def format_exponential_notation(
-        cls, val: UnitScale | np.number, format_spec: str = ".8g"
-    ) -> str:
-        return super(Generic, cls).format_exponential_notation(val, format_spec)
 
     @classmethod
     def to_string(

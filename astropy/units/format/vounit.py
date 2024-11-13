@@ -12,7 +12,8 @@ from typing import TYPE_CHECKING
 from astropy.units.errors import UnitParserWarning, UnitScaleError, UnitsError
 from astropy.utils import classproperty
 
-from . import Generic, core, utils
+from . import Base, core, utils
+from .generic import _GenericParserMixin
 
 if TYPE_CHECKING:
     from re import Pattern
@@ -25,7 +26,7 @@ if TYPE_CHECKING:
     from astropy.units.typing import UnitScale
 
 
-class VOUnit(Generic):
+class VOUnit(Base, _GenericParserMixin):
     """
     The IVOA standard for units used by the VO.
 
@@ -90,11 +91,6 @@ class VOUnit(Generic):
         return cls._all_units[1]
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        cls._validate_unit(unit, detailed_exception=detailed_exception)
-        return cls._units[unit]
-
-    @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
         if s in ("unknown", "UNKNOWN"):
             return None
@@ -106,7 +102,7 @@ class VOUnit(Generic):
                 f"'{s}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard."
             )
-        result = cls._do_parse(s, debug=debug)
+        result = cls._do_parse(s, debug)
         if hasattr(result, "function_unit"):
             raise ValueError("Function units are not yet supported in VOUnit.")
         return result
@@ -193,7 +189,7 @@ class VOUnit(Generic):
     def format_exponential_notation(
         cls, val: UnitScale | np.number, format_spec: str = ".8g"
     ) -> str:
-        return super().format_exponential_notation(val, format_spec)
+        return format(val, format_spec)
 
     @classmethod
     def _format_inline_fraction(

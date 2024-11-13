@@ -26,17 +26,21 @@ from typing import TYPE_CHECKING
 from astropy.units.errors import UnitParserWarning, UnitsWarning
 from astropy.utils import classproperty, parsing
 
-from . import Generic, core, utils
+from . import core, utils
+from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
     from typing import ClassVar, Literal
 
+    import numpy as np
+
     from astropy.extern.ply.lex import Lexer
     from astropy.units import UnitBase
+    from astropy.units.typing import UnitScale
     from astropy.utils.parsing import ThreadSafeParser
 
 
-class OGIP(Generic):
+class OGIP(Base, _ParsingFormatMixin):
     """
     Support the units in `Office of Guest Investigator Programs (OGIP)
     FITS files
@@ -332,11 +336,6 @@ class OGIP(Generic):
         return parsing.yacc(tabmodule="ogip_parsetab", package="astropy/units")
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        cls._validate_unit(unit, detailed_exception=detailed_exception)
-        return cls._units[unit]
-
-    @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
         return cls._do_parse(s.strip(), debug)
 
@@ -360,3 +359,9 @@ class OGIP(Generic):
                 )
 
         return super().to_string(unit, fraction=fraction)
+
+    @classmethod
+    def format_exponential_notation(
+        cls, val: UnitScale | np.number, format_spec: str = "g"
+    ) -> str:
+        return format(val, format_spec)
