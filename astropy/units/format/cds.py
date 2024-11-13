@@ -20,7 +20,6 @@ from typing import TYPE_CHECKING
 from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
 
-from .fits import FITS
 from .generic import Generic
 
 if TYPE_CHECKING:
@@ -34,7 +33,7 @@ if TYPE_CHECKING:
     from astropy.utils.parsing import ThreadSafeParser
 
 
-class CDS(FITS):
+class CDS(Generic):
     """
     Support the `Centre de Données astronomiques de Strasbourg
     <https://cds.unistra.fr/>`_ `Standards for Astronomical
@@ -259,6 +258,11 @@ class CDS(FITS):
             raise ValueError()
 
         return parsing.yacc(tabmodule="cds_parsetab", package="astropy/units")
+
+    @classmethod
+    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+        cls._validate_unit(unit, detailed_exception=detailed_exception)
+        return cls._units[unit]
 
     @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:

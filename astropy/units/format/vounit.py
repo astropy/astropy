@@ -12,8 +12,7 @@ from typing import TYPE_CHECKING
 from astropy.units.errors import UnitParserWarning, UnitScaleError, UnitsError
 from astropy.utils import classproperty
 
-from . import core, utils
-from .fits import FITS
+from . import Generic, core, utils
 
 if TYPE_CHECKING:
     from re import Pattern
@@ -26,7 +25,7 @@ if TYPE_CHECKING:
     from astropy.units.typing import UnitScale
 
 
-class VOUnit(FITS):
+class VOUnit(Generic):
     """
     The IVOA standard for units used by the VO.
 
@@ -89,6 +88,11 @@ class VOUnit(FITS):
     @classproperty(lazy=True)
     def _deprecated_units(cls) -> frozenset[str]:
         return cls._all_units[1]
+
+    @classmethod
+    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+        cls._validate_unit(unit, detailed_exception=detailed_exception)
+        return cls._units[unit]
 
     @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
