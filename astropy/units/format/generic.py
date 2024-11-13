@@ -27,7 +27,7 @@ from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
 from . import core
-from .base import Base
+from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
     from re import Match, Pattern
@@ -35,20 +35,14 @@ if TYPE_CHECKING:
 
     import numpy as np
 
-    from astropy.extern.ply.lex import Lexer, LexToken
-    from astropy.units import CompositeUnit, NamedUnit, UnitBase
+    from astropy.extern.ply.lex import Lexer
+    from astropy.units import UnitBase
     from astropy.units.typing import UnitScale
     from astropy.utils.parsing import ThreadSafeParser
 
 
-class Generic(Base):
-    """
-    A "generic" format.
-
-    The syntax of the format is based directly on the FITS standard,
-    but instead of only supporting the units that FITS knows about, it
-    supports any unit available in the `astropy.units` namespace.
-    """
+class _GenericParserMixin(_ParsingFormatMixin):
+    """Provide the parser used by Generic, FITS and VOUnit."""
 
     _tokens: ClassVar[tuple[str, ...]] = (
         "COMMA",
@@ -65,8 +59,6 @@ class Generic(Base):
         "UINT",
         "UFLOAT",
     )
-
-    _deprecated_units: ClassVar[frozenset[str]] = frozenset()
 
     @classproperty(lazy=True)
     def _lexer(cls) -> Lexer:
@@ -441,16 +433,15 @@ class Generic(Base):
 
         return parsing.yacc(tabmodule="generic_parsetab", package="astropy/units")
 
-    @classmethod
-    def _get_unit(cls, t: LexToken) -> UnitBase:
-        try:
-            return cls._parse_unit(t.value)
-        except ValueError as e:
-            registry = core.get_current_unit_registry()
-            if t.value in registry.aliases:
-                return registry.aliases[t.value]
 
-            raise ValueError(f"At col {t.lexpos}, {str(e)}")
+class Generic(Base, _GenericParserMixin):
+    """
+    A "generic" format.
+
+    The syntax of the format is based directly on the FITS standard,
+    but instead of only supporting the units that FITS knows about, it
+    supports any unit available in the `astropy.units` namespace.
+    """
 
     @classmethod
     def _parse_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
@@ -559,7 +550,8 @@ class Generic(Base):
             # that mixes of superscripts and regular numbers fail.
             s = cls._regex_superscript.sub(cls._convert_superscript, s)
 
-        result = cls._do_parse(s, debug=debug)
+        result = cls._do_parse(s, debug)
+
         # Check for excess solidi, but exclude fractional exponents (accepted)
         n_slashes = s.count("/")
         if n_slashes > 1 and (n_slashes - len(re.findall(r"\(\d+/\d+\)", s))) > 1:
@@ -569,90 +561,6 @@ class Generic(Base):
                 UnitsWarning,
             )
         return result
-
-    @classmethod
-    def _do_parse(cls, s: str, debug: bool = False) -> UnitBase:
-        try:
-            return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
-        except ValueError as e:
-            if str(e):
-                raise
-            else:
-                raise ValueError(f"Syntax error parsing unit '{s}'")
-
-    @classmethod
-    def _get_unit_name(cls, unit: NamedUnit) -> str:
-        name = unit._get_format_name(cls.name)
-        cls._validate_unit(name)
-        return name
-
-    @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
-        if unit not in cls._units:
-            if detailed_exception:
-                raise ValueError(
-                    f"Unit '{unit}' not supported by the {cls.__name__} standard. "
-                    + cls._did_you_mean_units(unit)
-                )
-            raise ValueError()
-        if unit in cls._deprecated_units:
-            message = (
-                f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
-            )
-            if (decomposed := cls._try_decomposed(cls._units[unit])) is not None:
-                message += f" Suggested: {decomposed}."
-            warnings.warn(message, UnitsWarning)
-
-    @classmethod
-    def _did_you_mean_units(cls, unit: str) -> str:
-        """
-        A wrapper around `astropy.utils.misc.did_you_mean` that deals with
-        the display of deprecated units.
-
-        Parameters
-        ----------
-        unit : str
-            The invalid unit string
-
-        Returns
-        -------
-        msg : str
-            A message with alternatives, or the empty string.
-        """
-        return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
-
-    @classmethod
-    def _fix_deprecated(cls, x: str) -> list[str]:
-        return [x + " (deprecated)" if x in cls._deprecated_units else x]
-
-    @classmethod
-    def _try_decomposed(cls, unit: UnitBase) -> str | None:
-        return None
-
-    @classmethod
-    def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:
-        """
-        Partially decomposes a unit so it is only composed of units that
-        are "known" to a given format.
-        """
-        if isinstance(unit, core.CompositeUnit):
-            return core.CompositeUnit(
-                unit.scale,
-                [cls._decompose_to_known_units(base) for base in unit.bases],
-                unit.powers,
-                _error_check=False,
-            )
-        if isinstance(unit, core.NamedUnit):
-            try:
-                cls._get_unit_name(unit)
-            except ValueError:
-                if isinstance(unit, core.Unit):
-                    return cls._decompose_to_known_units(unit._represents)
-                raise
-            return unit
-        raise TypeError(
-            f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
-        )
 
     @classmethod
     def format_exponential_notation(

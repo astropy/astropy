@@ -7,6 +7,9 @@ from typing import TYPE_CHECKING
 
 from astropy.units.errors import UnitsWarning
 from astropy.units.utils import maybe_simple_fraction
+from astropy.utils.misc import did_you_mean
+
+from . import core
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -14,6 +17,7 @@ if TYPE_CHECKING:
 
     import numpy as np
 
+    from astropy.extern.ply.lex import LexToken
     from astropy.units import NamedUnit, UnitBase
     from astropy.units.typing import UnitPower, UnitScale
 
@@ -201,3 +205,111 @@ class Base:
         Convert a string to a unit object.
         """
         raise NotImplementedError(f"Can not parse with {cls.__name__} format")
+
+
+class _ParsingFormatMixin:
+    """Provides private methods used in the formats that parse units."""
+
+    _deprecated_units: ClassVar[frozenset[str]] = frozenset()
+
+    @classmethod
+    def _do_parse(cls, s: str, debug: bool = False) -> UnitBase:
+        try:
+            return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
+        except ValueError as e:
+            if str(e):
+                raise
+            else:
+                raise ValueError(f"Syntax error parsing unit '{s}'")
+
+    @classmethod
+    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+        cls._validate_unit(unit, detailed_exception=detailed_exception)
+        return cls._units[unit]
+
+    @classmethod
+    def _get_unit(cls, t: LexToken) -> UnitBase:
+        try:
+            return cls._parse_unit(t.value)
+        except ValueError as e:
+            registry = core.get_current_unit_registry()
+            if t.value in registry.aliases:
+                return registry.aliases[t.value]
+
+            raise ValueError(f"At col {t.lexpos}, {str(e)}")
+
+    @classmethod
+    def _get_unit_name(cls, unit: NamedUnit) -> str:
+        name = unit._get_format_name(cls.name)
+        cls._validate_unit(name)
+        return name
+
+    @classmethod
+    def _fix_deprecated(cls, x: str) -> list[str]:
+        return [x + " (deprecated)" if x in cls._deprecated_units else x]
+
+    @classmethod
+    def _did_you_mean_units(cls, unit: str) -> str:
+        """
+        A wrapper around `astropy.utils.misc.did_you_mean` that deals with
+        the display of deprecated units.
+
+        Parameters
+        ----------
+        unit : str
+            The invalid unit string
+
+        Returns
+        -------
+        msg : str
+            A message with alternatives, or the empty string.
+        """
+        return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
+
+    @classmethod
+    def _try_decomposed(cls, unit: UnitBase) -> str | None:
+        return None
+
+    @classmethod
+    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
+        if unit not in cls._units:
+            if detailed_exception:
+                raise ValueError(
+                    f"Unit '{unit}' not supported by the {cls.__name__} standard. "
+                    + cls._did_you_mean_units(unit)
+                )
+            raise ValueError()
+        if unit in cls._deprecated_units:
+            message = (
+                f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
+            )
+            if (decomposed := cls._try_decomposed(cls._units[unit])) is not None:
+                message += f" Suggested: {decomposed}."
+            warnings.warn(message, UnitsWarning)
+
+    @classmethod
+    def _decompose_to_known_units(
+        cls, unit: core.CompositeUnit | core.NamedUnit
+    ) -> UnitBase:
+        """
+        Partially decomposes a unit so it is only composed of units that
+        are "known" to a given format.
+        """
+        if isinstance(unit, core.CompositeUnit):
+            return core.CompositeUnit(
+                unit.scale,
+                [cls._decompose_to_known_units(base) for base in unit.bases],
+                unit.powers,
+                _error_check=False,
+            )
+        if isinstance(unit, core.NamedUnit):
+            try:
+                cls._get_unit_name(unit)
+            except ValueError:
+                if isinstance(unit, core.Unit):
+                    return cls._decompose_to_known_units(unit._represents)
+                raise
+            return unit
+        raise TypeError(
+            f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
+        )
