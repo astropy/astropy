@@ -576,6 +576,19 @@ def test_table_aggregate_reduceat(T1):
     assert tga.pformat() == [" a ", "---", "  0", "  1", "  2"]
 
 
+def test_table_aggregate_reduceat_empty():
+    for masked in (False, True):
+        tg = Table(
+            {
+                "action": np.asarray([], dtype=str),
+                "duration": np.asarray([], dtype=float),
+            },
+            masked=masked,
+        )
+        tga = tg.group_by("action").groups.aggregate(np.sum)
+        assert tga.pformat() == ["action duration", "------ --------"]
+
+
 def test_column_aggregate(T1):
     """
     Aggregate a single table column
