@@ -299,4 +299,4 @@ class CDS(Generic):
             elif is_effectively_unity(unit.scale * 100.0):
                 return "%"
 
-        return cls._to_string(unit, fraction=fraction)
+        return super().to_string(unit, fraction=fraction)

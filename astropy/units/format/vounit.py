@@ -219,7 +219,7 @@ class VOUnit(Generic):
                 f"Multiply your data by {unit.scale:e}."
             )
 
-        return cls._to_string(unit, fraction=fraction)
+        return super().to_string(unit, fraction=fraction)
 
     @classmethod
     def _fix_deprecated(cls, x: str) -> list[str]:
