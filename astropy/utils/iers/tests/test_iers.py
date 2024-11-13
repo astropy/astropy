@@ -341,12 +341,22 @@ class TestIERS_Auto:
                 dat.ut1_utc(Time(60000, format="mjd").jd)
             assert len(warns) == 1
 
-            # Warning only if we are getting return status
+            # Confirm that disabling the download means no warning because there is no
+            # refresh to even fail, but there will still be the interpolation error
+            with (
+                iers.conf.set_temp("auto_download", False),
+                pytest.raises(
+                    ValueError,
+                    match="interpolating from IERS_Auto using predictive values that are more",
+                ),
+            ):
+                dat.ut1_utc(Time(60000, format="mjd").jd)
+
+            # Warning only (i.e., no exception) if we are getting return status
             with pytest.warns(
                 iers.IERSStaleWarning, match="IERS_Auto predictive values are older"
-            ) as warns:
+            ):
                 dat.ut1_utc(Time(60000, format="mjd").jd, return_status=True)
-            assert len(warns) == 1
 
             # Now set auto_max_age = None which says that we don't care how old the
             # available IERS-A file is.  There should be no warnings or exceptions.
