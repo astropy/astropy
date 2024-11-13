@@ -1,0 +1,1 @@
+Fixed table aggregate with empty columns when float is present.
