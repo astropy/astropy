@@ -883,6 +883,11 @@ class IERS_Auto(IERS_A):
           In other words the IERS-A table was created by IERS long enough
           ago that it can be considered stale for predictions.
         """
+        # If downloading is disabled, bail out silently.
+        # _check_interpolate_indices() will error later if appropriate.
+        if not conf.auto_download:
+            return
+
         # Pass in initial to np.max to allow things to work for empty mjd.
         max_input_mjd = np.max(mjd, initial=50000)
         now_mjd = self.time_now.mjd
