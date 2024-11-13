@@ -1,0 +1,61 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: redshift, unit: redshift, datatype: float64}
+# - {name: dm, unit: Mpc, datatype: float64}
+# - {name: da, unit: Mpc, datatype: float64}
+# - {name: dl, unit: Mpc, datatype: float64}
+# meta: !!omap
+# - {source: icosmo (icosmo.org)}
+# - {Om: 0.3}
+# - {w: -1}
+# - {h: 0.7}
+# - {Ol: 0.1}
+# - __serialized_columns__:
+#     da:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: &id001 !astropy.units.Unit {unit: Mpc}
+#       value: !astropy.table.SerializedColumn {name: da}
+#     dl:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: *id001
+#       value: !astropy.table.SerializedColumn {name: dl}
+#     dm:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: *id001
+#       value: !astropy.table.SerializedColumn {name: dm}
+#     redshift:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: redshift}
+#       value: !astropy.table.SerializedColumn {name: redshift}
+# schema: astropy-2.0
+redshift dm da dl
+0.0 0.0 0.0 0.0
+0.1625 643.08185 553.18868 747.58265
+0.325 1200.9858 906.40441 1591.3062
+0.5 1731.6262 1154.4175 2597.4393
+0.6625 2174.3252 1307.8648 3614.8157
+0.825 2578.7616 1413.0201 4706.2399
+1.0 2979.346 1489.673 5958.692
+1.1625 3324.2002 1537.2024 7188.5829
+1.325 3646.8432 1568.5347 8478.9104
+1.5 3972.8407 1589.1363 9932.1017
+1.6625 4258.1131 1599.2913 11337.226
+1.825 4528.5346 1603.0211 12793.11
+2.0 4804.9314 1601.6438 14414.794
+2.1625 5049.2007 1596.5852 15968.097
+2.325 5282.6693 1588.7727 17564.875
+2.5 5523.0914 1578.0261 19330.82
+2.6625 5736.9813 1566.4113 21011.694
+2.825 5942.5803 1553.6158 22730.37
+3.0 6155.4289 1538.8572 24621.716
+3.1625 6345.6997 1524.4924 26413.975
+3.325 6529.3655 1509.6799 28239.506
+3.5 6720.2676 1493.3928 30241.204
+3.6625 6891.5474 1478.0799 32131.84
+3.825 7057.4213 1462.678 34052.058
+4.0 7230.3723 1446.0745 36151.862
+4.1625 7385.9998 1430.7021 38130.224
+4.325 7537.1112 1415.4199 40135.117
+4.5 7695.0718 1399.104 42322.895
+4.6625 7837.551 1384.115 44380.133

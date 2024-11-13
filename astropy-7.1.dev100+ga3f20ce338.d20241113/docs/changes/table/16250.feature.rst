@@ -1,0 +1,4 @@
+Changed a number of dict-like containers in ``io.ascii`` from ``OrderedDict`` to
+``dict``. The ``dict`` class maintains key order since Python 3.8 so ``OrderedDict`` is
+no longer needed. The changes are largely internal and should not affect users in any
+way. See also the API change log entry for this PR.

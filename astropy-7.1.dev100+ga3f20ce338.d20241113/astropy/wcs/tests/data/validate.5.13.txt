@@ -1,0 +1,16 @@
+HDU 1:
+  WCS key ' ':
+    - RADECSYS= 'ICRS ' / Astrometric system
+      the RADECSYS keyword is deprecated, use RADESYSa.
+    - The WCS transformation has more axes (2) than the image it is
+      associated with (0)
+    - Removed redundant SCAMP distortion parameters because SIP
+      parameters are also present
+
+HDU 2:
+  WCS key ' ':
+    - The WCS transformation has more axes (3) than the image it is
+      associated with (0)
+    - 'celfix' made the change 'In CUNIT3 : Mismatched units type
+      'length': have 'Hz', want 'm''.
+    - 'unitfix' made the change 'Changed units: 'HZ' -> 'Hz''.

@@ -1,0 +1,105 @@
+name: "When Opened"
+
+on:
+  issues:
+    types:
+    - opened
+  pull_request_target:
+    types:
+    - opened
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Label PR
+      uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9  # v5.0.0
+      if: github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'meeseeksmachine'
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+    - name: 'Reviewer Checklist'
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
+      if: github.event_name == 'pull_request_target'
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `Thank you for your contribution to Astropy! 🌌 This checklist is meant to remind the package maintainers who will review this pull request of some common things to look for.
+
+            - [ ] Do the proposed changes actually accomplish desired goals?
+            - [ ] Do the proposed changes follow the [Astropy coding guidelines](https://docs.astropy.org/en/latest/development/codeguide.html)?
+            - [ ] Are tests added/updated as required? If so, do they follow the [Astropy testing guidelines](https://docs.astropy.org/en/latest/development/testguide.html)?
+            - [ ] Are docs added/updated as required? If so, do they follow the [Astropy documentation guidelines](https://docs.astropy.org/en/latest/development/docguide.html)?
+            - [ ] Is rebase and/or squash necessary? If so, please provide the author with appropriate instructions. Also see instructions for [rebase](https://docs.astropy.org/en/latest/development/development_details.html#rebase-if-necessary) and [squash](https://docs.astropy.org/en/latest/development/development_details.html#squash-if-necessary).
+            - [ ] Did the CI pass? If no, are the failures related? If you need to run daily and weekly cron jobs as part of the PR, please apply the "Extra CI" label. Codestyle issues can be fixed by the [bot](https://docs.astropy.org/en/latest/development/development_details.html#pre-commit).
+            - [ ] Is a change log needed? If yes, did the change log check pass? If no, add the "no-changelog-entry-needed" label. If this is a manual backport, use the "skip-changelog-checks" label unless special changelog handling is necessary.
+            - [ ] Is this a big PR that makes a "What's new?" entry worthwhile and if so, is (1) a "what's new" entry included in this PR and (2) the "whatsnew-needed" label applied?
+            - [ ] At the time of adding the milestone, if the milestone set requires a backport to release branch(es), apply the appropriate "backport-X.Y.x" label(s) *before* merge.`
+          })
+    - name: Greet new contributors
+      uses: actions/first-interaction@34f15e814fe48ac9312ccf29db4e74fa767cbab7  # v1.3.0
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        issue-message: >
+            Welcome to Astropy 👋 and thank you for your first issue!
+
+
+            A project member will respond to you as soon as possible; in
+            the meantime, please double-check the [guidelines for submitting
+            issues](https://github.com/astropy/astropy/blob/main/CONTRIBUTING.md#reporting-issues)
+            and make sure you've provided the requested details.
+
+
+            GitHub issues in the Astropy repository are used to track bug
+            reports and feature requests; If your issue poses a question about
+            how to use Astropy, please instead raise your question in the
+            [Astropy Discourse user
+            forum](https://community.openastronomy.org/c/astropy/8) and close
+            this issue.
+
+
+            If you feel that this issue has not been responded to in a timely
+            manner, please send a message directly to the [development
+            mailing list](http://groups.google.com/group/astropy-dev).  If
+            the issue is urgent or sensitive in nature (e.g., a security
+            vulnerability) please send an e-mail directly to the private e-mail
+            feedback@astropy.org.
+        pr-message: >
+            Welcome to Astropy 👋 and congratulations on your first pull
+            request! 🎉
+
+
+            A project member will respond to you as soon as possible; in the
+            meantime, please have a look over the [Checklist for Contributed
+            Code](https://github.com/astropy/astropy/blob/main/CONTRIBUTING.md#checklist-for-contributed-code)
+            and make sure you've addressed as many of the questions there as
+            possible.
+
+
+            If you feel that this pull request has not been responded to in a
+            timely manner, please send a message directly to the
+            [development mailing
+            list](http://groups.google.com/group/astropy-dev).  If the issue is
+            urgent or sensitive in nature (e.g., a security vulnerability)
+            please send an e-mail directly to the private e-mail
+            feedback@astropy.org.
+    - name: 'Comment Draft PR'
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
+      if: github.event.pull_request.draft == true
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '👋 Thank you for your draft pull request! Do you know that you can use `[ci skip]` or `[skip ci]` in your commit messages to skip running continuous integration tests until you are ready?'
+          })
+    # Special action for a special day. Until next year!
+    #- name: Special comment
+    #  uses: pllim/action-special_pr_comment@5126c189c02418a55448480b28efd1a00af48d7b  # 0.2
+    #  with:
+    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

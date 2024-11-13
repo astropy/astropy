@@ -1,0 +1,2 @@
+Fixed the output representation of models with parameters that have
+units of ``dimensionless_unscaled``.

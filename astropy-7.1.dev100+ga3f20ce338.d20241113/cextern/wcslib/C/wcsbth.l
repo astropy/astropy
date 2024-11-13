@@ -1,0 +1,3735 @@
+/*============================================================================
+  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
+
+  This file is part of WCSLIB.
+
+  WCSLIB is free software: you can redistribute it and/or modify it under the
+  terms of the GNU Lesser General Public License as published by the Free
+  Software Foundation, either version 3 of the License, or (at your option)
+  any later version.
+
+  WCSLIB is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+  more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with WCSLIB.  If not, see http://www.gnu.org/licenses.
+
+  Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
+  http://www.atnf.csiro.au/people/Mark.Calabretta
+  $Id: wcsbth.l,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+*=============================================================================
+*
+* wcsbth.l is a Flex description file containing the definition of a lexical
+* scanner for parsing the WCS keyrecords for one or more image arrays and/or
+* pixel lists in a FITS binary table header.  It can also handle primary image
+* and image extension headers.
+*
+* wcsbth.l requires Flex v2.5.4 or later.  Refer to wcshdr.h for a description
+* of the user interface and operating notes.
+*
+* Implementation notes
+* --------------------
+* wcsbth() may be invoked with an option that causes it to recognize the
+* image-header form of WCS keywords as defaults for each alternate coordinate
+* representation (up to 27).  By design, with this option enabled wcsbth() can
+* also handle primary image and image extension headers, effectively treating
+* them as a single-column binary table though with WCS keywords of a different
+* form.
+*
+* NAXIS is always 2 for binary tables, it refers to the two-dimensional nature
+* of the table.  Thus NAXIS does not count the number of image axes in either
+* image arrays or pixels lists and for the latter there is not even a formal
+* equivalent of WCSAXESa.  Hence NAXIS is always ignored and a first pass
+* through the header is required to determine the number of images, the number
+* of alternate coordinate representations for each image (up to 27), and the
+* number of coordinate axes in each representation; this pass also counts the
+* number of iPVn_ma and iPSn_ma or TVk_ma and TSk_ma keywords in each
+* representation.
+*
+* On completion of the first pass, the association between column number and
+* axis number is defined for each representation of a pixel list.  Memory is
+* allocated for an array of the required number of wcsprm structs and each of
+* these is initialized appropriately.  These structs are filled in the second
+* pass.
+*
+* It is permissible for a scalar table column to contain degenerate (single-
+* point) image arrays and simultaneously form one axis of a pixel list.
+*
+* The parser does not check for duplicated keywords, for most keywords it
+* accepts the last encountered.
+*
+* wcsbth() does not currently handle the Green Bank convention.
+*
+*===========================================================================*/
+
+/* Options. */
+%option full
+%option never-interactive
+%option noinput
+%option noyywrap
+%option outfile="wcsbth.c"
+%option prefix="wcsbth"
+%option reentrant
+%option extra-type="struct wcsbth_extra *"
+
+/* Indices for parameterized keywords. */
+Z1	[0-9]
+Z2	[0-9]{2}
+Z3	[0-9]{3}
+Z4	[0-9]{4}
+
+I1	[1-9]
+I2	[1-9][0-9]
+I3	[1-9][0-9]{2}
+I4	[1-9][0-9]{3}
+
+/* Alternate coordinate system identifier. */
+ALT	[ A-Z]
+
+/* Keyvalue data types. */
+INTEGER	[+-]?[0-9]+
+FLOAT	[+-]?([0-9]+\.?[0-9]*|\.[0-9]+)([eEdD][+-]?[0-9]+)?
+STRING	'([^']|'')*'
+
+/* Inline comment syntax. */
+INLINE " "*(\/.*)?
+
+/* Exclusive start states. */
+%x CCCCCia   iCCCna iCCCCn    TCCCna TCCCCn
+%x CCi_ja    ijCCna           TCn_ka TCCn_ka
+%x CROTAi           iCROTn           TCROTn
+%x CCi_ma    iCn_ma iCCn_ma   TCn_ma TCCn_ma
+%x PROJPm
+%x CCCCCCCC CCCCCCCa
+%x CCCCna   CCCCCna
+%x CCCCn    CCCCCn
+%x VALUE INTEGER_VAL FLOAT_VAL FLOAT2_VAL STRING_VAL
+%x COMMENT DISCARD ERROR FLUSH
+
+%{
+#include <math.h>
+#include <setjmp.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "wcs.h"
+#include "wcshdr.h"
+#include "wcsmath.h"
+#include "wcsprintf.h"
+#include "wcsutil.h"
+
+			// Codes used for keyvalue data types.
+#define INTEGER 0
+#define FLOAT   1
+#define FLOAT2  2
+#define STRING  3
+
+			// Bit masks used for keyword types:
+#define IMGAUX  0x1	// Auxiliary image header, e.g. LONPOLEa or
+			// DATE-OBS.
+#define IMGAXIS 0x2	// Image header with axis number, e.g.
+			// CTYPEia.
+#define IMGHEAD 0x3	// IMGAUX | IMGAXIS, i.e. image header of
+			// either type.
+#define BIMGARR 0x4	// Binary table image array, e.g. iCTYna.
+#define PIXLIST 0x8	// Pixel list, e.g. TCTYna.
+#define BINTAB  0xC	// BIMGARR | PIXLIST, i.e. binary table
+			// image array (without axis number) or
+			// pixel list, e.g. LONPna or OBSGXn.
+
+// User data associated with yyscanner.
+struct wcsbth_extra {
+  // Values passed to YY_INPUT.
+  char *hdr;
+  int  nkeyrec;
+
+  // Used in preempting the call to exit() by yy_fatal_error().
+  jmp_buf abort_jmp_env;
+};
+
+#define YY_DECL int wcsbth_scanner(char *header, int nkeyrec, int relax, \
+ int ctrl, int keysel, int *colsel, int *nreject, int *nwcs, \
+ struct wcsprm **wcs, yyscan_t yyscanner)
+
+#define YY_INPUT(inbuff, count, bufsize) \
+	{ \
+	  if (yyextra->nkeyrec) { \
+	    strncpy(inbuff, yyextra->hdr, 80); \
+	    inbuff[80] = '\n'; \
+	    yyextra->hdr += 80; \
+	    yyextra->nkeyrec--; \
+	    count = 81; \
+	  } else { \
+	    count = YY_NULL; \
+	  } \
+	}
+
+// Preempt the call to exit() by yy_fatal_error().
+#define exit(status) longjmp(yyextra->abort_jmp_env, status);
+
+// A convenience macro to get around incompatibilities between unput() and
+// yyless(): put yytext followed by a blank back onto the input stream.
+#define WCSBTH_PUTBACK \
+  sprintf(strtmp, "%s ", yytext); \
+  size_t iz = strlen(strtmp); \
+  while (iz) unput(strtmp[--iz]);
+
+// Struct used internally for header bookkeeping.
+struct wcsbth_alts {
+  int ncol, ialt, icol, imgherit;
+  short int (*arridx)[27];
+  short int pixidx[27];
+  short int pad1;
+  unsigned int *pixlist;
+
+  unsigned char (*npv)[27];
+  unsigned char (*nps)[27];
+  unsigned char pixnpv[27];
+  unsigned char pixnps[27];
+  unsigned char pad2[2];
+};
+
+// Internal helper functions.
+static YY_DECL;
+static int wcsbth_colax(struct wcsprm *wcs, struct wcsbth_alts *alts, int k,
+        char a);
+static int wcsbth_final(struct wcsbth_alts *alts, int *nwcs,
+        struct wcsprm **wcs);
+static struct wcsprm *wcsbth_idx(struct wcsprm *wcs, struct wcsbth_alts *alts,
+        int keytype, int n, char a);
+static int wcsbth_init1(struct wcsbth_alts *alts, int auxprm, int *nwcs,
+        struct wcsprm **wcs);
+static int wcsbth_pass1(int keytype, int i, int j, int n, int k, char a,
+        char ptype, struct wcsbth_alts *alts);
+
+// Helper functions for keywords that require special handling.
+static int wcsbth_jdref(double *wptr,   const double *jdref);
+static int wcsbth_jdrefi(double *wptr,  const double *jdrefi);
+static int wcsbth_jdreff(double *wptr,  const double *jdreff);
+static int wcsbth_epoch(double *wptr,   const double *epoch);
+static int wcsbth_vsource(double *wptr, const double *vsource);
+
+// Helper functions for keyvalue validity checking.
+static int wcsbth_timepixr(double timepixr);
+
+%}
+
+%%
+	char *errmsg, errtxt[80], *keyname, strtmp[80];
+	int    inttmp;
+	double dbltmp, dbl2tmp[2];
+	struct auxprm auxtem;
+	struct wcsprm wcstem;
+	
+	// Initialize returned values.
+	*nreject = 0;
+	*nwcs = 0;
+	*wcs  = 0x0;
+	
+	// Our handle on the input stream.
+	char *keyrec = header;
+	char *hptr = header;
+	char *keep = 0x0;
+	
+	// For keeping tallies of keywords found.
+	int nvalid = 0;
+	int nother = 0;
+	
+	// Used to flag image header keywords that are always inherited.
+	int imherit = 1;
+	
+	// If strict, then also reject.
+	if (relax & WCSHDR_strict) relax |= WCSHDR_reject;
+	
+	// Keyword indices, as used in the WCS papers, e.g. iVn_ma, TPn_ka.
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	int n = 0;
+	int m = 0;
+	char a = ' ';
+	
+	// Header bookkeeping.
+	struct wcsbth_alts alts;
+	alts.ncol = 0;
+	alts.arridx  = 0x0;
+	alts.pixlist = 0x0;
+	alts.npv = 0x0;
+	alts.nps = 0x0;
+	
+	for (int ialt = 0; ialt < 27; ialt++) {
+	  alts.pixidx[ialt] = 0;
+	  alts.pixnpv[ialt] = 0;
+	  alts.pixnps[ialt] = 0;
+	}
+	
+	// For decoding the keyvalue.
+	int keytype =  0;
+	int valtype = -1;
+	void *vptr  = 0x0;
+	
+	// For keywords that require special handling.
+	int altlin = 0;
+	char ptype = ' ';
+	int (*chekval)(double) = 0x0;
+	int (*special)(double *, const double *) = 0x0;
+	struct auxprm *auxp = 0x0;
+	int auxprm = 0;
+	int naux   = 0;
+	
+	// Selection by column number.
+	int nsel = colsel ? colsel[0] : 0;
+	int incl = (nsel > 0);
+	char exclude[1000];
+	for (int icol = 0; icol < 1000; icol++) {
+	  exclude[icol] = incl;
+	}
+	for (int icol = 1; icol <= abs(nsel); icol++) {
+	  int itmp = colsel[icol];
+	  if (0 < itmp && itmp < 1000) {
+	    exclude[itmp] = !incl;
+	  }
+	}
+	exclude[0] = 0;
+	
+	// Selection by keyword type.
+	if (keysel) {
+	  int itmp = keysel;
+	  keysel = 0;
+	  if (itmp & WCSHDR_IMGHEAD) keysel |= IMGHEAD;
+	  if (itmp & WCSHDR_BIMGARR) keysel |= BIMGARR;
+	  if (itmp & WCSHDR_PIXLIST) keysel |= PIXLIST;
+	}
+	if (keysel == 0) {
+	  keysel = IMGHEAD | BINTAB;
+	}
+	
+	// Control variables.
+	int ipass = 1;
+	int npass = 2;
+	
+	// User data associated with yyscanner.
+	yyextra->hdr = header;
+	yyextra->nkeyrec = nkeyrec;
+	
+	// Return here via longjmp() invoked by yy_fatal_error().
+	if (setjmp(yyextra->abort_jmp_env)) {
+	  return WCSHDRERR_PARSER;
+	}
+	
+	BEGIN(INITIAL);
+
+
+^TFIELDS" = "" "*{INTEGER} {
+	  if (ipass == 1) {
+	    if (alts.ncol == 0) {
+	      sscanf(yytext, "TFIELDS = %d", &(alts.ncol));
+	      BEGIN(FLUSH);
+	    } else {
+	      errmsg = "duplicate or out-of-sequence TFIELDS keyword";
+	      BEGIN(ERROR);
+	    }
+	
+	  } else {
+	    BEGIN(FLUSH);
+	  }
+	}
+
+^WCSAXES{ALT}=" "" "*{INTEGER} {
+	  if (!(keysel & IMGAXIS)) {
+	    // Ignore this key type.
+	    BEGIN(DISCARD);
+	
+	  } else {
+	    if (relax & WCSHDR_ALLIMG) {
+	      sscanf(yytext, "WCSAXES%c= %d", &a, &i);
+	
+	      if (i < 0) {
+	        errmsg = "negative value of WCSAXESa ignored";
+	        BEGIN(ERROR);
+	
+	      } else {
+	        valtype = INTEGER;
+	        vptr    = 0x0;
+	
+	        keyname = "WCSAXESa";
+	        keytype = IMGAXIS;
+	        BEGIN(COMMENT);
+	      }
+	
+	    } else if (relax & WCSHDR_reject) {
+	      errmsg = "image-header keyword WCSAXESa in binary table";
+	      BEGIN(ERROR);
+	
+	    } else {
+	      // Pretend we don't recognize it.
+	      BEGIN(DISCARD);
+	    }
+	  }
+	}
+
+^WCAX{I1}{ALT}"  = "" "*{INTEGER} |
+^WCAX{I2}{ALT}" = "" "*{INTEGER}  |
+^WCAX{I3}{ALT}"= "" "*{INTEGER} {
+	  keyname = "WCAXna";
+	
+	  // Note that a blank in the sscanf() format string matches zero or
+	  // more of them in the input.
+	  sscanf(yytext, "WCAX%d%c = %d", &n, &a, &i);
+	
+	  if (!(keysel & BIMGARR) || exclude[n]) {
+	    // Ignore this key type or column.
+	    BEGIN(DISCARD);
+	
+	  } else if (i < 0) {
+	    errmsg = "negative value of WCSAXESa ignored";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    valtype = INTEGER;
+	    vptr    = 0x0;
+	
+	    keyname = "WCAXna";
+	    keytype = IMGAXIS;
+	    BEGIN(COMMENT);
+	  }
+	}
+
+^WCST{I1}{ALT}"  = "" "*{STRING} |
+^WCST{I2}{ALT}" = "" "*{STRING} |
+^WCST{I3}{ALT}"= "" "*{STRING} {
+	  // Cross-reference supplier.
+	  keyname = "WCSTna";
+	  errmsg = "cross-references are not implemented";
+	  BEGIN(ERROR);
+	}
+
+^WCSX{I1}{ALT}"  = "" "*{STRING} |
+^WCSX{I2}{ALT}" = "" "*{STRING} |
+^WCSX{I3}{ALT}"= "" "*{STRING} {
+	  // Cross-reference consumer.
+	  keyname = "WCSXna";
+	  errmsg = "cross-references are not implemented";
+	  BEGIN(ERROR);
+	}
+
+^CRPIX	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crpix);
+	
+	  keyname = "CRPIXja";
+	  BEGIN(CCCCCia);
+	}
+
+^{I1}CRP  |
+^{I1}CRPX {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crpix);
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 4) {
+	    keyname = "jCRPna";
+	    BEGIN(iCCCna);
+	  } else {
+	    keyname = "jCRPXn";
+	    BEGIN(iCCCCn);
+	  }
+	}
+
+^TCRP	|
+^TCRPX	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crpix);
+	
+	  if (yyleng == 4) {
+	    keyname = "TCRPna";
+	    BEGIN(TCCCna);
+	  } else {
+	    keyname = "TCRPXn";
+	    BEGIN(TCCCCn);
+	  }
+	}
+
+^PC	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.pc);
+	  altlin = 1;
+	
+	  keyname = "PCi_ja";
+	  BEGIN(CCi_ja);
+	}
+
+^{I2}PC	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.pc);
+	  altlin  = 1;
+	
+	  sscanf(yytext, "%1d%1d", &i, &j);
+	
+	  keyname = "ijPCna";
+	  BEGIN(ijCCna);
+	}
+
+^TP	|
+^TPC	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.pc);
+	  altlin  = 1;
+	
+	  if (yyleng == 2) {
+	    keyname = "TPn_ka";
+	    BEGIN(TCn_ka);
+	  } else {
+	    keyname = "TPCn_ka";
+	    BEGIN(TCCn_ka);
+	  }
+	}
+
+^CD	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.cd);
+	  altlin  = 2;
+	
+	  keyname = "CDi_ja";
+	  BEGIN(CCi_ja);
+	}
+
+^{I2}CD	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.cd);
+	  altlin  = 2;
+	
+	  sscanf(yytext, "%1d%1d", &i, &j);
+	
+	  keyname = "ijCDna";
+	  BEGIN(ijCCna);
+	}
+
+^TC	|
+^TCD	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.cd);
+	  altlin  = 2;
+	
+	  if (yyleng == 2) {
+	    keyname = "TCn_ka";
+	    BEGIN(TCn_ka);
+	  } else {
+	    keyname = "TCDn_ka";
+	    BEGIN(TCCn_ka);
+	  }
+	}
+
+^CDELT	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.cdelt);
+	
+	  keyname = "CDELTia";
+	  BEGIN(CCCCCia);
+	}
+
+^{I1}CDE  |
+^{I1}CDLT {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.cdelt);
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 4) {
+	    keyname = "iCDEna";
+	    BEGIN(iCCCna);
+	  } else {
+	    keyname = "iCDLTn";
+	    BEGIN(iCCCCn);
+	  }
+	}
+
+^TCDE	|
+^TCDLT	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.cdelt);
+	
+	  if (yyleng == 4) {
+	    keyname = "TCDEna";
+	    BEGIN(TCCCna);
+	  } else {
+	    keyname = "TCDLTn";
+	    BEGIN(TCCCCn);
+	  }
+	}
+
+^CROTA	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crota);
+	  altlin  = 4;
+	
+	  keyname = "CROTAi";
+	  BEGIN(CROTAi);
+	}
+
+^{I1}CROT {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crota);
+	  altlin  = 4;
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  keyname = "iCROTn";
+	  BEGIN(iCROTn);
+	}
+
+^TCROT	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crota);
+	  altlin  = 4;
+	
+	  keyname = "TCROTn";
+	  BEGIN(TCROTn);
+	}
+
+^CUNIT	{
+	  valtype = STRING;
+	  vptr    = &(wcstem.cunit);
+	
+	  keyname = "CUNITia";
+	  BEGIN(CCCCCia);
+	}
+
+^{I1}CUN  |
+^{I1}CUNI {
+	  valtype = STRING;
+	  vptr    = &(wcstem.cunit);
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 4) {
+	    keyname = "iCUNna";
+	    BEGIN(iCCCna);
+	  } else {
+	    keyname = "iCUNIn";
+	    BEGIN(iCCCCn);
+	  }
+	}
+
+^TCUN	|
+^TCUNI	{
+	  valtype = STRING;
+	  vptr    = &(wcstem.cunit);
+	
+	  if (yyleng == 4) {
+	    keyname = "TCUNna";
+	    BEGIN(TCCCna);
+	  } else {
+	    keyname = "TCUNIn";
+	    BEGIN(TCCCCn);
+	  }
+	}
+
+^CTYPE	{
+	  valtype = STRING;
+	  vptr    = &(wcstem.ctype);
+	
+	  keyname = "CTYPEia";
+	  BEGIN(CCCCCia);
+	}
+
+^{I1}CTY  |
+^{I1}CTYP {
+	  valtype = STRING;
+	  vptr    = &(wcstem.ctype);
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 4) {
+	    keyname = "iCTYna";
+	    BEGIN(iCCCna);
+	  } else {
+	    keyname = "iCTYPn";
+	    BEGIN(iCCCCn);
+	  }
+	}
+
+^TCTY	|
+^TCTYP	{
+	  valtype = STRING;
+	  vptr    = &(wcstem.ctype);
+	
+	  if (yyleng == 4) {
+	    keyname = "TCTYna";
+	    BEGIN(TCCCna);
+	  } else {
+	    keyname = "TCTYPn";
+	    BEGIN(TCCCCn);
+	  }
+	}
+
+^CRVAL	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crval);
+	
+	  keyname = "CRVALia";
+	  BEGIN(CCCCCia);
+	}
+
+^{I1}CRV  |
+^{I1}CRVL {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crval);
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 4) {
+	    keyname = "iCRVna";
+	    BEGIN(iCCCna);
+	  } else {
+	    keyname = "iCRVLn";
+	    BEGIN(iCCCCn);
+	  }
+	}
+
+^TCRV	|
+^TCRVL	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crval);
+	
+	  if (yyleng == 4) {
+	    keyname = "TCRVna";
+	    BEGIN(TCCCna);
+	  } else {
+	    keyname = "TCRVLn";
+	    BEGIN(TCCCCn);
+	  }
+	}
+
+^LONPOLE |
+^LONP	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.lonpole);
+	
+	  if (yyleng == 7) {
+	    keyname = "LONPOLEa";
+	    imherit = 0;
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "LONPna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^LATPOLE |
+^LATP	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.latpole);
+	
+	  if (yyleng == 7) {
+	    keyname = "LATPOLEa";
+	    imherit = 0;
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "LATPna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^RESTFREQ |
+^RESTFRQ  |
+^RFRQ	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.restfrq);
+	
+	  if (yyleng == 8) {
+	    if (relax & WCSHDR_strict) {
+	      errmsg = "the RESTFREQ keyword is deprecated, use RESTFRQa";
+	      BEGIN(ERROR);
+	
+	    } else {
+	      unput(' ');
+	
+	      keyname = "RESTFREQ";
+	      BEGIN(CCCCCCCa);
+	    }
+	
+	  } else if (yyleng == 7) {
+	    keyname = "RESTFRQa";
+	    BEGIN(CCCCCCCa);
+	
+	  } else {
+	    keyname = "RFRQna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^RESTWAV |
+^RWAV	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.restwav);
+	
+	  if (yyleng == 7) {
+	    keyname = "RESTWAVa";
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "RWAVna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^PV	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.pv);
+	  ptype   = 'v';
+	
+	  keyname = "PVi_ma";
+	  BEGIN(CCi_ma);
+	}
+
+^{I1}V	|
+^{I1}PV	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.pv);
+	  ptype   = 'v';
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 2) {
+	    keyname = "iVn_ma";
+	    BEGIN(iCn_ma);
+	  } else {
+	    keyname = "iPVn_ma";
+	    BEGIN(iCCn_ma);
+	  }
+	}
+
+^TV	|
+^TPV	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.pv);
+	  ptype   = 'v';
+	
+	  if (yyleng == 2) {
+	    keyname = "TVn_ma";
+	    BEGIN(TCn_ma);
+	  } else {
+	    keyname = "TPVn_ma";
+	    BEGIN(TCCn_ma);
+	  }
+	}
+
+^PROJP	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.pv);
+	  ptype   = 'v';
+	
+	  keyname = "PROJPm";
+	  BEGIN(PROJPm);
+	}
+
+^PS	{
+	  valtype = STRING;
+	  vptr    = &(wcstem.ps);
+	  ptype   = 's';
+	
+	  keyname = "PSi_ma";
+	  BEGIN(CCi_ma);
+	}
+
+^{I1}S	|
+^{I1}PS	{
+	  valtype = STRING;
+	  vptr    = &(wcstem.ps);
+	  ptype   = 's';
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 2) {
+	    keyname = "iSn_ma";
+	    BEGIN(iCn_ma);
+	  } else {
+	    keyname = "iPSn_ma";
+	    BEGIN(iCCn_ma);
+	  }
+	}
+
+^TS	|
+^TPS	{
+	  valtype = STRING;
+	  vptr    = &(wcstem.ps);
+	  ptype   = 's';
+	
+	  if (yyleng == 2) {
+	    keyname = "TSn_ma";
+	    BEGIN(TCn_ma);
+	  } else {
+	    keyname = "TPSn_ma";
+	    BEGIN(TCCn_ma);
+	  }
+	}
+
+^VELREF{ALT}" " {
+	  sscanf(yytext, "VELREF%c", &a);
+	
+	  if (relax & WCSHDR_strict) {
+	    errmsg = "the VELREF keyword is deprecated, use SPECSYSa";
+	    BEGIN(ERROR);
+	
+	  } else if (a == ' ' || (relax & WCSHDR_VELREFa)) {
+	    valtype = INTEGER;
+	    vptr    = &(wcstem.velref);
+	
+	    unput(a);
+	
+	    keyname = "VELREF";
+	    imherit = 0;
+	    BEGIN(CCCCCCCa);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "VELREF keyword may not have an alternate version code";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^CNAME	{
+	  valtype = STRING;
+	  vptr    = &(wcstem.cname);
+	
+	  keyname = "CNAMEia";
+	  BEGIN(CCCCCia);
+	}
+
+^{I1}CNA  |
+^{I1}CNAM {
+	  valtype = STRING;
+	  vptr    = &(wcstem.cname);
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 4) {
+	    keyname = "iCNAna";
+	    BEGIN(iCCCna);
+	  } else {
+	    if (!(relax & WCSHDR_CNAMn)) vptr = 0x0;
+	    keyname = "iCNAMn";
+	    BEGIN(iCCCCn);
+	  }
+	}
+
+^TCNA	|
+^TCNAM	{
+	  valtype = STRING;
+	  vptr    = &(wcstem.cname);
+	
+	  if (yyleng == 4) {
+	    keyname = "TCNAna";
+	    BEGIN(TCCCna);
+	  } else {
+	    if (!(relax & WCSHDR_CNAMn)) vptr = 0x0;
+	    keyname = "TCNAMn";
+	    BEGIN(TCCCCn);
+	  }
+	}
+
+^CRDER	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crder);
+	
+	  keyname = "CRDERia";
+	  BEGIN(CCCCCia);
+	}
+
+^{I1}CRD |
+^{I1}CRDE {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crder);
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 4) {
+	    keyname = "iCRDna";
+	    BEGIN(iCCCna);
+	  } else {
+	    if (!(relax & WCSHDR_CNAMn)) vptr = 0x0;
+	    keyname = "iCRDEn";
+	    BEGIN(iCCCCn);
+	  }
+	}
+
+^TCRD	|
+^TCRDE	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.crder);
+	
+	  if (yyleng == 4) {
+	    keyname = "TCRDna";
+	    BEGIN(TCCCna);
+	  } else {
+	    if (!(relax & WCSHDR_CNAMn)) vptr = 0x0;
+	    keyname = "TCRDEn";
+	    BEGIN(TCCCCn);
+	  }
+	}
+
+^CSYER	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.csyer);
+	
+	  keyname = "CSYERia";
+	  BEGIN(CCCCCia);
+	}
+
+^{I1}CSY  |
+^{I1}CSYE {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.csyer);
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 4) {
+	    keyname = "iCSYna";
+	    BEGIN(iCCCna);
+	  } else {
+	    if (!(relax & WCSHDR_CNAMn)) vptr = 0x0;
+	    keyname = "iCSYEn";
+	    BEGIN(iCCCCn);
+	  }
+	}
+
+^TCSY	|
+^TCSYE	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.csyer);
+	
+	  if (yyleng == 4) {
+	    keyname = "TCSYna";
+	    BEGIN(TCCCna);
+	  } else {
+	    if (!(relax & WCSHDR_CNAMn)) vptr = 0x0;
+	    keyname = "TCSYEn";
+	    BEGIN(TCCCCn);
+	  }
+	}
+
+^CZPHS	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.czphs);
+	
+	  keyname = "CZPHSia";
+	  BEGIN(CCCCCia);
+	}
+
+^{I1}CZP  |
+^{I1}CZPH {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.czphs);
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 4) {
+	    keyname = "iCZPna";
+	    BEGIN(iCCCna);
+	  } else {
+	    if (!(relax & WCSHDR_CNAMn)) vptr = 0x0;
+	    keyname = "iCZPHn";
+	    BEGIN(iCCCCn);
+	  }
+	}
+
+^TCZP	|
+^TCZPH	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.czphs);
+	
+	  if (yyleng == 4) {
+	    keyname = "TCZPna";
+	    BEGIN(TCCCna);
+	  } else {
+	    if (!(relax & WCSHDR_CNAMn)) vptr = 0x0;
+	    keyname = "TCZPHn";
+	    BEGIN(TCCCCn);
+	  }
+	}
+
+^CPERI	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.cperi);
+	
+	  keyname = "CPERIia";
+	  BEGIN(CCCCCia);
+	}
+
+^{I1}CPR  |
+^{I1}CPER {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.cperi);
+	
+	  sscanf(yytext, "%d", &i);
+	
+	  if (yyleng == 4) {
+	    keyname = "iCPRna";
+	    BEGIN(iCCCna);
+	  } else {
+	    if (!(relax & WCSHDR_CNAMn)) vptr = 0x0;
+	    keyname = "iCPERn";
+	    BEGIN(iCCCCn);
+	  }
+	}
+
+^TCPR	|
+^TCPER	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.cperi);
+	
+	  if (yyleng == 4) {
+	    keyname = "TCPRna";
+	    BEGIN(TCCCna);
+	  } else {
+	    if (!(relax & WCSHDR_CNAMn)) vptr = 0x0;
+	    keyname = "TCPERn";
+	    BEGIN(TCCCCn);
+	  }
+	}
+
+^WCSNAME |
+^WCSN	 |
+^TWCS	{
+	  valtype = STRING;
+	  vptr    = wcstem.wcsname;
+	
+	  if (yyleng == 7) {
+	    keyname = "WCSNAMEa";
+	    imherit = 0;
+	    BEGIN(CCCCCCCa);
+	
+	  } else {
+	    if (*yytext == 'W') {
+	      keyname = "WCSNna";
+	    } else {
+	      keyname = "TWCSna";
+	    }
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^TIMESYS" " {
+	  valtype = STRING;
+	  vptr    = wcstem.timesys;
+	
+	  keyname = "TIMESYS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TREFPOS" " |
+^TRPOS  {
+	  valtype = STRING;
+	  vptr    = wcstem.trefpos;
+	
+	  if (yyleng == 8) {
+	    if (ctrl < -10) keep = keyrec;
+	    keyname = "TREFPOS";
+	    BEGIN(CCCCCCCC);
+	  } else {
+	    keyname = "TRPOSn";
+	    BEGIN(CCCCCn);
+	  }
+	}
+
+^TREFDIR" " |
+^TRDIR  {
+	  valtype = STRING;
+	  vptr    = wcstem.trefdir;
+	
+	  if (yyleng == 8) {
+	    if (ctrl < -10) keep = keyrec;
+	    keyname = "TREFDIR";
+	    BEGIN(CCCCCCCC);
+	  } else {
+	    keyname = "TRDIRn";
+	    BEGIN(CCCCCn);
+	  }
+	}
+
+^PLEPHEM" " {
+	  valtype = STRING;
+	  vptr    = wcstem.plephem;
+	
+	  keyname = "PLEPHEM";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMEUNIT {
+	  valtype = STRING;
+	  vptr    = wcstem.timeunit;
+	
+	  keyname = "TIMEUNIT";
+	  BEGIN(CCCCCCCC);
+	}
+
+^DATEREF" " |
+^DATE-REF {
+	  if ((yytext[4] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    valtype = STRING;
+	    vptr    = wcstem.dateref;
+	
+	    keyname = "DATEREF";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the DATE-REF keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^MJDREF"  " |
+^MJD-REF" " {
+	  if ((yytext[3] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    valtype = FLOAT2;
+	    vptr    = wcstem.mjdref;
+	
+	    keyname = "MJDREF";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the MJD-REF keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^MJDREFI" " |
+^MJD-REFI {
+	  if ((yytext[3] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    // Actually integer, but treated as float.
+	    valtype = FLOAT;
+	    vptr    = wcstem.mjdref;
+	
+	    keyname = "MJDREFI";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the MJD-REFI keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^MJDREFF" " |
+^MJD-REFF {
+	  if ((yytext[3] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    valtype = FLOAT;
+	    vptr    = wcstem.mjdref + 1;
+	
+	    keyname = "MJDREFF";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the MJD-REFF keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^JDREF"   " |
+^JD-REF"  " {
+	  if ((yytext[2] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    valtype = FLOAT2;
+	    vptr    = wcstem.mjdref;
+	    special = wcsbth_jdref;
+	
+	    keyname = "JDREF";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the JD-REF keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^JDREFI"  " |
+^JD-REFI {
+	  if ((yytext[2] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    // Actually integer, but treated as float.
+	    valtype = FLOAT;
+	    vptr    = wcstem.mjdref;
+	    special = wcsbth_jdrefi;
+	
+	    keyname = "JDREFI";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the JD-REFI keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^JDREFF"  " |
+^JD-REFF {
+	  if ((yytext[2] == 'R') || (relax & WCSHDR_DATEREF)) {
+	    valtype = FLOAT;
+	    vptr    = wcstem.mjdref;
+	    special = wcsbth_jdreff;
+	
+	    keyname = "JDREFF";
+	    BEGIN(CCCCCCCC);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the JD-REFF keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^TIMEOFFS {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.timeoffs);
+	
+	  keyname = "TIMEOFFS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^DATE-OBS {
+	  valtype = STRING;
+	  vptr    = wcstem.dateobs;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "DATE-OBS";
+	  imherit = 0;
+	  BEGIN(CCCCCCCC);
+	}
+
+^DOBS{I1}"   " |
+^DOBS{I2}"  "  |
+^DOBS{I3}" " {
+	  valtype = STRING;
+	  vptr    = wcstem.dateobs;
+	
+	  if (relax & WCSHDR_DOBSn) {
+	    yyless(4);
+	
+	    keyname = "DOBSn";
+	    BEGIN(CCCCn);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "DOBSn keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^DATE-BEG {
+	  valtype = STRING;
+	  vptr    = wcstem.datebeg;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "DATE-BEG";
+	  BEGIN(CCCCCCCC);
+	}
+
+^DATE-AVG |
+^DAVG   {
+	  valtype = STRING;
+	  vptr    = wcstem.dateavg;
+	
+	  if (yyleng == 8) {
+	    if (ctrl < -10) keep = keyrec;
+	    keyname = "DATE-AVG";
+	    BEGIN(CCCCCCCC);
+	  } else {
+	    keyname = "DAVGn";
+	    BEGIN(CCCCn);
+	  }
+	}
+
+^DATE-END {
+	  valtype = STRING;
+	  vptr    = wcstem.dateend;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "DATE-END";
+	  BEGIN(CCCCCCCC);
+	}
+
+^MJD-OBS" " |
+^MJDOB	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.mjdobs);
+	
+	  if (yyleng == 8) {
+	    if (ctrl < -10) keep = keyrec;
+	    keyname = "MJD-OBS";
+	    imherit = 0;
+	    BEGIN(CCCCCCCC);
+	  } else {
+	    keyname = "MJDOBn";
+	    BEGIN(CCCCCn);
+	  }
+	}
+
+^MJD-BEG" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.mjdbeg);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "MJD-BEG";
+	  BEGIN(CCCCCCCC);
+	}
+
+^MJD-AVG" " |
+^MJDA	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.mjdavg);
+	
+	  if (yyleng == 8) {
+	    if (ctrl < -10) keep = keyrec;
+	    keyname = "MJD-AVG";
+	    BEGIN(CCCCCCCC);
+	  } else {
+	    keyname = "MJDAn";
+	    BEGIN(CCCCn);
+	  }
+	}
+
+^MJD-END" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.mjdend);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "MJD-END";
+	  BEGIN(CCCCCCCC);
+	}
+
+^JEPOCH"  " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.jepoch);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "JEPOCH";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BEPOCH"  " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.bepoch);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "BEPOCH";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TSTART"  " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.tstart);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TSTART";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TSTOP"   " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.tstop);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TSTOP";
+	  BEGIN(CCCCCCCC);
+	}
+
+^XPOSURE" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.xposure);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "XPOSURE";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TELAPSE" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.telapse);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TELAPSE";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMSYER" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.timsyer);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TIMSYER";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMRDER" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.timrder);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TIMRDER";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMEDEL" " {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.timedel);
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TIMEDEL";
+	  BEGIN(CCCCCCCC);
+	}
+
+^TIMEPIXR {
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.timepixr);
+	  chekval = wcsbth_timepixr;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "TIMEPIXR";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSGEO-X |
+^OBSGX	{
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo;
+	
+	  if (yyleng == 8) {
+	    if (ctrl < -10) keep = keyrec;
+	    keyname = "OBSGEO-X";
+	    BEGIN(CCCCCCCC);
+	  } else {
+	    keyname = "OBSGXn";
+	    BEGIN(CCCCCn);
+	  }
+	}
+
+^OBSGEO-Y |
+^OBSGY	{
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo + 1;
+	
+	  if (yyleng == 8) {
+	    if (ctrl < -10) keep = keyrec;
+	    keyname = "OBSGEO-Y";
+	    BEGIN(CCCCCCCC);
+	  } else {
+	    keyname = "OBSGYn";
+	    BEGIN(CCCCCn);
+	  }
+	}
+
+^OBSGEO-Z |
+^OBSGZ	{
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo + 2;
+	
+	  if (yyleng == 8) {
+	    if (ctrl < -10) keep = keyrec;
+	    keyname = "OBSGEO-Z";
+	    BEGIN(CCCCCCCC);
+	  } else {
+	    keyname = "OBSGZn";
+	    BEGIN(CCCCCn);
+	  }
+	}
+
+^OBSGEO-L {
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo + 3;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "OBSGEO-L";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSGL{I1}"  " |
+^OBSGL{I2}" "  |
+^OBSGL{I3} {
+	  valtype = STRING;
+	  vptr    = wcstem.obsgeo + 3;
+	
+	  if (relax & WCSHDR_OBSGLBHn) {
+	    yyless(5);
+	
+	    keyname = "OBSGLn";
+	    BEGIN(CCCCCn);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "OBSGLn keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^OBSGEO-B {
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo + 4;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "OBSGEO-B";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSGB{I1}"  " |
+^OBSGB{I2}" "  |
+^OBSGB{I3} {
+	  valtype = STRING;
+	  vptr    = wcstem.obsgeo + 3;
+	
+	  if (relax & WCSHDR_OBSGLBHn) {
+	    yyless(5);
+	
+	    keyname = "OBSGBn";
+	    BEGIN(CCCCCn);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "OBSGBn keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^OBSGEO-H {
+	  valtype = FLOAT;
+	  vptr    = wcstem.obsgeo + 5;
+	  if (ctrl < -10) keep = keyrec;
+	
+	  keyname = "OBSGEO-H";
+	  BEGIN(CCCCCCCC);
+	}
+
+^OBSGH{I1}"  " |
+^OBSGH{I2}" "  |
+^OBSGH{I3} {
+	  valtype = STRING;
+	  vptr    = wcstem.obsgeo + 3;
+	
+	  if (relax & WCSHDR_OBSGLBHn) {
+	    yyless(5);
+	
+	    keyname = "OBSGHn";
+	    BEGIN(CCCCCn);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "OBSGHn keyword is non-standard";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^OBSORBIT {
+	  valtype = STRING;
+	  vptr    = wcstem.obsorbit;
+	
+	  keyname = "OBSORBIT";
+	  BEGIN(CCCCCCCC);
+	}
+
+^RADESYS |
+^RADE	{
+	  valtype = STRING;
+	  vptr    = wcstem.radesys;
+	
+	  if (yyleng == 7) {
+	    keyname = "RADESYSa";
+	    imherit = 0;
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "RADEna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^RADECSYS {
+	  if (relax & WCSHDR_RADECSYS) {
+	    valtype = STRING;
+	    vptr    = wcstem.radesys;
+	
+	    unput(' ');
+	
+	    keyname = "RADECSYS";
+	    imherit = 0;
+	    BEGIN(CCCCCCCa);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the RADECSYS keyword is deprecated, use RADESYSa";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^EPOCH{ALT}"  " {
+	  sscanf(yytext, "EPOCH%c", &a);
+	
+	  if (relax & WCSHDR_strict) {
+	    errmsg = "the EPOCH keyword is deprecated, use EQUINOXa";
+	    BEGIN(ERROR);
+	
+	  } else if (a == ' ' || (relax & WCSHDR_EPOCHa)) {
+	    valtype = FLOAT;
+	    vptr    = &(wcstem.equinox);
+	    special = wcsbth_epoch;
+	
+	    unput(a);
+	
+	    keyname = "EPOCH";
+	    imherit = 0;
+	    BEGIN(CCCCCCCa);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "EPOCH keyword may not have an alternate version code";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^EQUINOX |
+^EQUI	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.equinox);
+	
+	  if (yyleng == 7) {
+	    keyname = "EQUINOXa";
+	    imherit = 0;
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "EQUIna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^SPECSYS |
+^SPEC	{
+	  valtype = STRING;
+	  vptr    = wcstem.specsys;
+	
+	  if (yyleng == 7) {
+	    keyname = "SPECSYSa";
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "SPECna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^SSYSOBS |
+^SOBS	{
+	  valtype = STRING;
+	  vptr    = wcstem.ssysobs;
+	
+	  if (yyleng == 7) {
+	    keyname = "SSYSOBSa";
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "SOBSna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^VELOSYS |
+^VSYS	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.velosys);
+	
+	  if (yyleng == 7) {
+	    keyname = "VELOSYSa";
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "VSYSna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^VSOURCE{ALT} {
+	  if (relax & WCSHDR_VSOURCE) {
+	    valtype = FLOAT;
+	    vptr    = &(wcstem.zsource);
+	    special = wcsbth_vsource;
+	
+	    yyless(7);
+	
+	    keyname = "VSOURCEa";
+	    BEGIN(CCCCCCCa);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the VSOURCEa keyword is deprecated, use ZSOURCEa";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^VSOU{I1}{ALT}"  " |
+^VSOU{I2}{ALT}" "  |
+^VSOU{I3}{ALT} {
+	  if (relax & WCSHDR_VSOURCE) {
+	    valtype = FLOAT;
+	    vptr    = &(wcstem.zsource);
+	    special = wcsbth_vsource;
+	
+	    yyless(4);
+	    keyname = "VSOUna";
+	    BEGIN(CCCCna);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "VSOUna keyword is deprecated, use ZSOUna";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^ZSOURCE |
+^ZSOU	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.zsource);
+	
+	  if (yyleng == 7) {
+	    keyname = "ZSOURCEa";
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "ZSOUna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^SSYSSRC |
+^SSRC	{
+	  valtype = STRING;
+	  vptr    = wcstem.ssyssrc;
+	
+	  if (yyleng == 7) {
+	    keyname = "SSYSSRCa";
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "SSRCna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^VELANGL |
+^VANG	{
+	  valtype = FLOAT;
+	  vptr    = &(wcstem.velangl);
+	
+	  if (yyleng == 7) {
+	    keyname = "VELANGLa";
+	    BEGIN(CCCCCCCa);
+	  } else {
+	    keyname = "VANGna";
+	    BEGIN(CCCCna);
+	  }
+	}
+
+^RSUN_REF {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.rsun_ref);
+	
+	  keyname = "RSUN_REF";
+	  BEGIN(CCCCCCCC);
+	}
+
+^DSUN_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.dsun_obs);
+	
+	  keyname = "DSUN_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^CRLN_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.crln_obs);
+	
+	  keyname = "CRLN_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^HGLN_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.hgln_obs);
+	
+	  keyname = "HGLN_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^CRLT_OBS |
+^HGLT_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.hglt_obs);
+	
+	  keyname = "HGLT_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^A_RADIUS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.a_radius);
+	
+	  keyname = "A_RADIUS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^B_RADIUS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.b_radius);
+	
+	  keyname = "B_RADIUS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^C_RADIUS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.c_radius);
+	
+	  keyname = "C_RADIUS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BLON_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.blon_obs);
+	
+	  keyname = "BLON_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BLAT_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.blat_obs);
+	
+	  keyname = "BLAT_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^BDIS_OBS {
+	  valtype = FLOAT;
+	  auxprm  = 1;
+	  vptr    = &(auxtem.bdis_obs);
+	
+	  keyname = "BDIS_OBS";
+	  BEGIN(CCCCCCCC);
+	}
+
+^END" "{77} {
+	  if (yyextra->nkeyrec) {
+	    yyextra->nkeyrec = 0;
+	    errmsg = "keyrecords following the END keyrecord were ignored";
+	    BEGIN(ERROR);
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+^.	{
+	  BEGIN(DISCARD);
+	}
+
+<CCCCCia>{I1}{ALT}" " |
+<CCCCCia>{I2}{ALT} {
+	  if (relax & WCSHDR_ALLIMG) {
+	    sscanf(yytext, "%d%c", &i, &a);
+	    keytype = IMGAXIS;
+	    BEGIN(VALUE);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCCCCia>0{I1}{ALT} |
+<CCCCCia>00{I1} {
+	  if (relax & WCSHDR_ALLIMG) {
+	    if (relax & WCSHDR_reject) {
+	      // Violates the basic FITS standard.
+	      errmsg = "indices in parameterized keywords must not have "
+	               "leading zeroes";
+	      BEGIN(ERROR);
+	
+	    } else {
+	      // Pretend we don't recognize it.
+	      BEGIN(DISCARD);
+	    }
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "invalid image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCCCCia>0{ALT}" " |
+<CCCCCia>00{ALT} |
+<CCCCCia>{Z3} {
+	  // Anything that has fallen through to this point must contain
+	  // an invalid axis number.
+	  if (relax & WCSHDR_ALLIMG) {
+	    errmsg = "axis number must exceed 0";
+	    BEGIN(ERROR);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "invalid image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCCCCia>. {
+	  if (relax & WCSHDR_reject) {
+	    // Looks too much like a FITS WCS keyword not to flag it.
+	    errmsg = errtxt;
+	    sprintf(errmsg, "keyword looks very much like %s but isn't",
+	      keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<iCCCCn>{I1}"  " |
+<iCCCCn>{I2}" "  |
+<iCCCCn>{I3}     |
+<TCCCCn>{I1}"  " |
+<TCCCCn>{I2}" "  |
+<TCCCCn>{I3} {
+	  if (vptr) {
+	    WCSBTH_PUTBACK;
+	    BEGIN((YY_START == iCCCCn) ? iCCCna : TCCCna);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg, "%s keyword is non-standard", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<iCCCCn>{I1}[A-Z]" " |
+<iCCCCn>{I2}[A-Z]    |
+<TCCCCn>{I1}[A-Z]" " |
+<TCCCCn>{I2}[A-Z] {
+	  if (vptr && (relax & WCSHDR_LONGKEY)) {
+	    WCSBTH_PUTBACK;
+	    BEGIN((YY_START == iCCCCn) ? iCCCna : TCCCna);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    if (!vptr) {
+	      sprintf(errmsg, "%s keyword is non-standard", keyname);
+	    } else {
+	      sprintf(errmsg,
+	        "%s keyword may not have an alternate version code", keyname);
+	    }
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<iCCCCn>. |
+<TCCCCn>. {
+	  BEGIN(DISCARD);
+	}
+
+<iCCCna>{I1}{ALT}"  " |
+<iCCCna>{I2}{ALT}" "  |
+<iCCCna>{I3}{ALT}     |
+<TCCCna>{I1}{ALT}"  " |
+<TCCCna>{I2}{ALT}" "  |
+<TCCCna>{I3}{ALT} {
+	  sscanf(yytext, "%d%c", &n, &a);
+	  if (YY_START == TCCCna) i = wcsbth_colax(*wcs, &alts, n, a);
+	  keytype = (YY_START == iCCCna) ? BIMGARR : PIXLIST;
+	  BEGIN(VALUE);
+	}
+
+<iCCCna>. |
+<TCCCna>. {
+	  BEGIN(DISCARD);
+	}
+
+<CCi_ja>{I1}_{I1}{ALT}"  " |
+<CCi_ja>{I1}_{I2}{ALT}" " |
+<CCi_ja>{I2}_{I1}{ALT}" " |
+<CCi_ja>{I2}_{I2}{ALT} {
+	  if (relax & WCSHDR_ALLIMG) {
+	    sscanf(yytext, "%d_%d%c", &i, &j, &a);
+	    keytype = IMGAXIS;
+	    BEGIN(VALUE);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCi_ja>0{I1}_{I1}{ALT}" " |
+<CCi_ja>{I1}_0{I1}{ALT}" " |
+<CCi_ja>00{I1}_{I1}{ALT} |
+<CCi_ja>0{I1}_0{I1}{ALT} |
+<CCi_ja>{I1}_00{I1}{ALT} |
+<CCi_ja>000{I1}_{I1} |
+<CCi_ja>00{I1}_0{I1} |
+<CCi_ja>0{I1}_00{I1} |
+<CCi_ja>{I1}_000{I1} |
+<CCi_ja>0{I1}_{I2}{ALT} |
+<CCi_ja>{I1}_0{I2}{ALT} |
+<CCi_ja>00{I1}_{I2} |
+<CCi_ja>0{I1}_0{I2} |
+<CCi_ja>{I1}_00{I2} |
+<CCi_ja>0{I2}_{I1}{ALT} |
+<CCi_ja>{I2}_0{I1}{ALT} |
+<CCi_ja>00{I2}_{I1} |
+<CCi_ja>0{I2}_0{I1} |
+<CCi_ja>{I2}_00{I1} |
+<CCi_ja>0{I2}_{I2} |
+<CCi_ja>{I2}_0{I2} {
+	  if (relax & WCSHDR_ALLIMG) {
+	    if (((altlin == 1) && (relax & WCSHDR_PC0i_0ja)) ||
+	        ((altlin == 2) && (relax & WCSHDR_CD0i_0ja))) {
+	      sscanf(yytext, "%d_%d%c", &i, &j, &a);
+	      keytype = IMGAXIS;
+	      BEGIN(VALUE);
+	
+	    } else if (relax & WCSHDR_reject) {
+	      errmsg = "indices in parameterized keywords must not have "
+	             "leading zeroes";
+	      BEGIN(ERROR);
+	
+	    } else {
+	      // Pretend we don't recognize it.
+	      BEGIN(DISCARD);
+	    }
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "invalid image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCi_ja>{Z1}_{Z1}{ALT}"  " |
+<CCi_ja>{Z2}_{Z1}{ALT}" " |
+<CCi_ja>{Z1}_{Z2}{ALT}" " |
+<CCi_ja>{Z3}_{Z1}{ALT} |
+<CCi_ja>{Z2}_{Z2}{ALT} |
+<CCi_ja>{Z1}_{Z3}{ALT} |
+<CCi_ja>{Z4}_{Z1} |
+<CCi_ja>{Z3}_{Z2} |
+<CCi_ja>{Z2}_{Z3} |
+<CCi_ja>{Z1}_{Z4} {
+	  // Anything that has fallen through to this point must contain
+	  // an invalid axis number.
+	  if (relax & WCSHDR_ALLIMG) {
+	    errmsg = "axis number must exceed 0";
+	    BEGIN(ERROR);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "invalid image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCi_ja>{Z1}-{Z1}{ALT}"  " |
+<CCi_ja>{Z2}-{Z1}{ALT}" " |
+<CCi_ja>{Z1}-{Z2}{ALT}" " |
+<CCi_ja>{Z3}-{Z1}{ALT} |
+<CCi_ja>{Z2}-{Z2}{ALT} |
+<CCi_ja>{Z1}-{Z3}{ALT} |
+<CCi_ja>{Z4}-{Z1} |
+<CCi_ja>{Z3}-{Z2} |
+<CCi_ja>{Z2}-{Z3} |
+<CCi_ja>{Z1}-{Z4} {
+	  if (relax & WCSHDR_ALLIMG) {
+	    errmsg = errtxt;
+	    sprintf(errmsg, "%s keyword must use an underscore, not a dash",
+	      keyname);
+	    BEGIN(ERROR);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "invalid image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCi_ja>{Z1}{6} {
+	  // This covers the defunct forms CD00i00j and PC00i00j.
+	  if (relax & WCSHDR_ALLIMG) {
+	    if (((altlin == 1) && (relax & WCSHDR_PC00i00j)) ||
+	        ((altlin == 2) && (relax & WCSHDR_CD00i00j))) {
+	      sscanf(yytext, "%3d%3d", &i, &j);
+	      a = ' ';
+	      keytype = IMGAXIS;
+	      BEGIN(VALUE);
+	
+	    } else if (relax & WCSHDR_reject) {
+	      errmsg = errtxt;
+	      sprintf(errmsg,
+	        "this form of the %s keyword is deprecated, use %s",
+	        keyname, keyname);
+	      BEGIN(ERROR);
+	
+	    } else {
+	      // Pretend we don't recognize it.
+	      BEGIN(DISCARD);
+	    }
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "deprecated image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCi_ja>. {
+	  BEGIN(DISCARD);
+	}
+
+<ijCCna>{I1}{ALT}"  " |
+<ijCCna>{I2}{ALT}" "  |
+<ijCCna>{I3}{ALT} {
+	  sscanf(yytext, "%d%c", &n, &a);
+	  keytype = BIMGARR;
+	  BEGIN(VALUE);
+	}
+
+<TCCn_ka>{I1}_{I1}{ALT}" " |
+<TCCn_ka>{I1}_{I2}{ALT} |
+<TCCn_ka>{I2}_{I1}{ALT} |
+<TCCn_ka>{I1}_{I3} |
+<TCCn_ka>{I2}_{I2} |
+<TCCn_ka>{I3}_{I1} {
+	  if (relax & WCSHDR_LONGKEY) {
+	    WCSBTH_PUTBACK;
+	    BEGIN(TCn_ka);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg, "%s keyword is non-standard", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<TCCn_ka>. {
+	  BEGIN(DISCARD);
+	}
+
+<TCn_ka>{I1}_{I1}{ALT}"  " |
+<TCn_ka>{I1}_{I2}{ALT}" " |
+<TCn_ka>{I2}_{I1}{ALT}" " |
+<TCn_ka>{I1}_{I3}{ALT} |
+<TCn_ka>{I2}_{I2}{ALT} |
+<TCn_ka>{I3}_{I1}{ALT} {
+	  sscanf(yytext, "%d_%d%c", &n, &k, &a);
+	  i = wcsbth_colax(*wcs, &alts, n, a);
+	  j = wcsbth_colax(*wcs, &alts, k, a);
+	  keytype = PIXLIST;
+	  BEGIN(VALUE);
+	}
+
+<TCn_ka>{I1}_{I4} |
+<TCn_ka>{I2}_{I3} |
+<TCn_ka>{I3}_{I2} |
+<TCn_ka>{I4}_{I1} {
+	  sscanf(yytext, "%d_%d", &n, &k);
+	  a = ' ';
+	  i = wcsbth_colax(*wcs, &alts, n, a);
+	  j = wcsbth_colax(*wcs, &alts, k, a);
+	  keytype = PIXLIST;
+	  BEGIN(VALUE);
+	}
+
+<TCn_ka>. {
+	  BEGIN(DISCARD);
+	}
+
+<CROTAi>{Z1}{ALT}" " |
+<CROTAi>{Z2}{ALT} |
+<CROTAi>{Z3} {
+	  if (relax & WCSHDR_ALLIMG) {
+	    a = ' ';
+	    sscanf(yytext, "%d%c", &i, &a);
+	
+	    if (relax & WCSHDR_strict) {
+	      errmsg = "the CROTAn keyword is deprecated, use PCi_ja";
+	      BEGIN(ERROR);
+	
+	    } else if (a == ' ' || relax & WCSHDR_CROTAia) {
+	      yyless(0);
+	      BEGIN(CCCCCia);
+	
+	    } else if (relax & WCSHDR_reject) {
+	      errmsg = "CROTAn keyword may not have an alternate version code";
+	      BEGIN(ERROR);
+	
+	    } else {
+	      // Pretend we don't recognize it.
+	      BEGIN(DISCARD);
+	    }
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "deprecated image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CROTAi>. {
+	  if (relax & WCSHDR_ALLIMG) {
+	    yyless(0);
+	    BEGIN(CCCCCia);
+	  } else {
+	    // Let it go.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<iCROTn>{I1}"  " |
+<iCROTn>{I2}" "  |
+<iCROTn>{I3}     |
+<TCROTn>{I1}"  " |
+<TCROTn>{I2}" "  |
+<TCROTn>{I3} {
+	  WCSBTH_PUTBACK;
+	  BEGIN((YY_START == iCROTn) ? iCCCna : TCCCna);
+	}
+
+<iCROTn>{I1}[A-Z]" " |
+<iCROTn>{I2}[A-Z]    |
+<TCROTn>{I1}[A-Z]" " |
+<TCROTn>{I2}[A-Z] {
+	  if (relax & WCSHDR_CROTAia) {
+	    WCSBTH_PUTBACK;
+	    BEGIN((YY_START == iCROTn) ? iCCCna : TCCCna);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "%s keyword may not have an alternate version code", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<iCROTn>. |
+<TCROTn>. {
+	  BEGIN(DISCARD);
+	}
+
+<CCCCCCCa>{ALT} |
+<CCCCCCCC>. {
+	  // Image-header keyword.
+	  if (imherit || (relax & (WCSHDR_AUXIMG | WCSHDR_ALLIMG))) {
+	    if (YY_START == CCCCCCCa) {
+	      sscanf(yytext, "%c", &a);
+	    } else {
+	      a = 0;
+	      unput(yytext[0]);
+	    }
+	    keytype = IMGAUX;
+	    BEGIN(VALUE);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCCCCCCa>. {
+	  if (relax & WCSHDR_reject) {
+	    // Looks too much like a FITS WCS keyword not to flag it.
+	    errmsg = errtxt;
+	    sprintf(errmsg, "invalid alternate code, keyword resembles %s "
+	      "but isn't", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCCCna>{I1}{ALT}"  " |
+<CCCCna>{I2}{ALT}" "  |
+<CCCCna>{I3}{ALT}     |
+<CCCCCna>{I1}{ALT}" " |
+<CCCCCna>{I2}{ALT} {
+	  sscanf(yytext, "%d%c", &n, &a);
+	  keytype = BINTAB;
+	  BEGIN(VALUE);
+	}
+
+<CCCCCna>{I3} {
+	  sscanf(yytext, "%d", &n);
+	  a = ' ';
+	  keytype = BINTAB;
+	  BEGIN(VALUE);
+	}
+
+<CCCCna>. |
+<CCCCCna>. {
+	  BEGIN(DISCARD);
+	}
+
+<CCCCn>{I1}"   " |
+<CCCCn>{I2}"  "  |
+<CCCCn>{I3}" "   |
+<CCCCn>{I4}      |
+<CCCCCn>{I1}"  " |
+<CCCCCn>{I2}" "  |
+<CCCCCn>{I3} {
+	  sscanf(yytext, "%d", &n);
+	  a = 0;
+	  keytype = BINTAB;
+	  BEGIN(VALUE);
+	}
+
+<CCCCn>. |
+<CCCCCn>. {
+	  BEGIN(DISCARD);
+	}
+
+<CCi_ma>{I1}_{Z1}{ALT}"  " |
+<CCi_ma>{I1}_{I2}{ALT}" " |
+<CCi_ma>{I2}_{Z1}{ALT}" " |
+<CCi_ma>{I2}_{I2}{ALT} {
+	  // Image-header keyword.
+	  if (relax & WCSHDR_ALLIMG) {
+	    sscanf(yytext, "%d_%d%c", &i, &m, &a);
+	    keytype = IMGAXIS;
+	    BEGIN(VALUE);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCi_ma>0{I1}_{Z1}{ALT}" " |
+<CCi_ma>{I1}_0{Z1}{ALT}" " |
+<CCi_ma>00{I1}_{Z1}{ALT} |
+<CCi_ma>0{I1}_0{Z1}{ALT} |
+<CCi_ma>{I1}_00{Z1}{ALT} |
+<CCi_ma>000{I1}_{Z1} |
+<CCi_ma>00{I1}_0{Z1} |
+<CCi_ma>0{I1}_00{Z1} |
+<CCi_ma>{I1}_000{Z1} |
+<CCi_ma>0{I1}_{I2}{ALT} |
+<CCi_ma>{I1}_0{I2}{ALT} |
+<CCi_ma>00{I1}_{I2} |
+<CCi_ma>0{I1}_0{I2} |
+<CCi_ma>{I1}_00{I2} |
+<CCi_ma>0{I2}_{Z1}{ALT} |
+<CCi_ma>{I2}_0{Z1}{ALT} |
+<CCi_ma>00{I2}_{Z1} |
+<CCi_ma>0{I2}_0{Z1} |
+<CCi_ma>{I2}_00{Z1} |
+<CCi_ma>0{I2}_{I2} |
+<CCi_ma>{I2}_0{I2} {
+	  if (relax & WCSHDR_ALLIMG) {
+	    if (((valtype == FLOAT)  && (relax & WCSHDR_PV0i_0ma)) ||
+	        ((valtype == STRING) && (relax & WCSHDR_PS0i_0ma))) {
+	      sscanf(yytext, "%d_%d%c", &i, &m, &a);
+	      keytype = IMGAXIS;
+	      BEGIN(VALUE);
+	
+	    } else if (relax & WCSHDR_reject) {
+	      errmsg = "indices in parameterized keywords must not have "
+	               "leading zeroes";
+	      BEGIN(ERROR);
+	
+	    } else {
+	      // Pretend we don't recognize it.
+	      BEGIN(DISCARD);
+	    }
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "invalid image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCi_ma>{Z1}_{Z1}{ALT}"  " |
+<CCi_ma>{Z2}_{Z1}{ALT}" " |
+<CCi_ma>{Z1}_{Z2}{ALT}" " |
+<CCi_ma>{Z3}_{Z1}{ALT} |
+<CCi_ma>{Z2}_{Z2}{ALT} |
+<CCi_ma>{Z1}_{Z3}{ALT} |
+<CCi_ma>{Z4}_{Z1} |
+<CCi_ma>{Z3}_{Z2} |
+<CCi_ma>{Z2}_{Z3} |
+<CCi_ma>{Z1}_{Z4} {
+	  if (relax & WCSHDR_ALLIMG) {
+	    // Anything that has fallen through to this point must contain
+	    // an invalid parameter.
+	    errmsg = "axis number must exceed 0";
+	    BEGIN(ERROR);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg,
+	      "invalid image-header keyword %s in binary table", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CCi_ma>{Z1}-{Z1}{ALT}"  " |
+<CCi_ma>{Z2}-{Z1}{ALT}" " |
+<CCi_ma>{Z1}-{Z2}{ALT}" " |
+<CCi_ma>{Z3}-{Z1}{ALT} |
+<CCi_ma>{Z2}-{Z2}{ALT} |
+<CCi_ma>{Z1}-{Z3}{ALT} |
+<CCi_ma>{Z4}-{Z1} |
+<CCi_ma>{Z3}-{Z2} |
+<CCi_ma>{Z2}-{Z3} |
+<CCi_ma>{Z1}-{Z4} {
+	  errmsg = errtxt;
+	  sprintf(errmsg, "%s keyword must use an underscore, not a dash",
+	    keyname);
+	  BEGIN(ERROR);
+	}
+
+<CCi_ma>. {
+	  BEGIN(DISCARD);
+	}
+
+<iCCn_ma>{I1}_{Z1}{ALT}" " |
+<iCCn_ma>{I1}_{I2}{ALT}    |
+<iCCn_ma>{I1}_{I3}         |
+<iCCn_ma>{I2}_{Z1}{ALT}    |
+<iCCn_ma>{I2}_{I2}         |
+<iCCn_ma>{I3}_{Z1}         |
+<TCCn_ma>{I1}_{Z1}{ALT}" " |
+<TCCn_ma>{I1}_{I2}{ALT}    |
+<TCCn_ma>{I1}_{I3}         |
+<TCCn_ma>{I2}_{Z1}{ALT}    |
+<TCCn_ma>{I2}_{I2}         |
+<TCCn_ma>{I3}_{Z1} {
+	  if (relax & WCSHDR_LONGKEY) {
+	    WCSBTH_PUTBACK;
+	    BEGIN((YY_START == iCCn_ma) ? iCn_ma : TCn_ma);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = errtxt;
+	    sprintf(errmsg, "the %s keyword is non-standard", keyname);
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<iCCn_ma>. |
+<TCCn_ma>. {
+	  BEGIN(DISCARD);
+	}
+
+<iCn_ma>{I1}_{Z1}{ALT}"  " |
+<iCn_ma>{I1}_{I2}{ALT}" "  |
+<iCn_ma>{I1}_{I3}{ALT}     |
+<iCn_ma>{I2}_{Z1}{ALT}" "  |
+<iCn_ma>{I2}_{I2}{ALT}     |
+<iCn_ma>{I3}_{Z1}{ALT}     |
+<TCn_ma>{I1}_{Z1}{ALT}"  " |
+<TCn_ma>{I1}_{I2}{ALT}" "  |
+<TCn_ma>{I1}_{I3}{ALT}     |
+<TCn_ma>{I2}_{Z1}{ALT}" "  |
+<TCn_ma>{I2}_{I2}{ALT}     |
+<TCn_ma>{I3}_{Z1}{ALT} {
+	  sscanf(yytext, "%d_%d%c", &n, &m, &a);
+	  if (YY_START == TCn_ma) i = wcsbth_colax(*wcs, &alts, n, a);
+	  keytype = (YY_START == iCn_ma) ? BIMGARR : PIXLIST;
+	  BEGIN(VALUE);
+	}
+
+<iCn_ma>{I1}_{I4} |
+<iCn_ma>{I2}_{I3} |
+<iCn_ma>{I3}_{I2} |
+<iCn_ma>{I4}_{Z1} |
+<TCn_ma>{I1}_{I4} |
+<TCn_ma>{I2}_{I3} |
+<TCn_ma>{I3}_{I2} |
+<TCn_ma>{I4}_{Z1} {
+	  // Invalid combinations will be flagged by <VALUE>.
+	  sscanf(yytext, "%d_%d", &n, &m);
+	  a = ' ';
+	  if (YY_START == TCn_ma) i = wcsbth_colax(*wcs, &alts, n, a);
+	  keytype = (YY_START == iCn_ma) ? BIMGARR : PIXLIST;
+	  BEGIN(VALUE);
+	}
+
+<iCn_ma>. |
+<TCn_ma>. {
+	  BEGIN(DISCARD);
+	}
+
+<PROJPm>{Z1}"  " {
+	  if (relax & WCSHDR_PROJPn) {
+	    sscanf(yytext, "%d", &m);
+	    i = 0;
+	    a = ' ';
+	    keytype = IMGAXIS;
+	    BEGIN(VALUE);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "the PROJPn keyword is deprecated, use PVi_ma";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    // Pretend we don't recognize it.
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<PROJPm>{Z2}" " |
+<PROJPm>{Z3} {
+	  if (relax & (WCSHDR_PROJPn | WCSHDR_reject)) {
+	    errmsg = "invalid PROJPn keyword";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<PROJPm>. {
+	  BEGIN(DISCARD);
+	}
+
+<VALUE>=" "+ {
+	  // Do checks on i, j, m, n, k.
+	  if (!(keytype & keysel)) {
+	    // Selection by keyword type.
+	    BEGIN(DISCARD);
+	
+	  } else if (exclude[n] || exclude[k]) {
+	    // One or other column is not selected.
+	    if (k && (exclude[n] != exclude[k])) {
+	      // For keywords such as TCn_ka, both columns must be excluded.
+	      // User error, so return immediately.
+	      return WCSHDRERR_BAD_COLUMN;
+	
+	    } else {
+	      BEGIN(DISCARD);
+	    }
+	
+	  } else if (i > 99 || j > 99 || m > 99 || n > 999 || k > 999) {
+	    if (relax & WCSHDR_reject) {
+	      errmsg = errtxt;
+	      if (i > 99 || j > 99) {
+	        sprintf(errmsg, "axis number exceeds 99");
+	      } else if (m > 99) {
+	        sprintf(errmsg, "parameter number exceeds 99");
+	      } else if (n > 999 || k > 999) {
+	        sprintf(errmsg, "column number exceeds 999");
+	      }
+	      BEGIN(ERROR);
+	
+	    } else {
+	      // Pretend we don't recognize it.
+	      BEGIN(DISCARD);
+	    }
+	
+	  } else if (ipass == 2 && npass == 3 && (keytype & BINTAB)) {
+	    // Skip keyvalues that won't be inherited.
+	    BEGIN(FLUSH);
+	
+	  } else {
+	    if (ipass == 3 && (keytype & IMGHEAD)) {
+	      // IMGHEAD keytypes are always dealt with on the second pass.
+	      // However, they must be re-parsed in order to report errors.
+	      vptr = 0x0;
+	    }
+	
+	    if (valtype == INTEGER) {
+	      BEGIN(INTEGER_VAL);
+	    } else if (valtype == FLOAT) {
+	      BEGIN(FLOAT_VAL);
+	    } else if (valtype == FLOAT2) {
+	      BEGIN(FLOAT2_VAL);
+	    } else if (valtype == STRING) {
+	      BEGIN(STRING_VAL);
+	    } else {
+	      errmsg = errtxt;
+	      sprintf(errmsg, "internal parser ERROR, bad data type: %d",
+	        valtype);
+	      BEGIN(ERROR);
+	    }
+	  }
+	}
+
+<VALUE>. {
+	  errmsg = "invalid KEYWORD = VALUE syntax";
+	  BEGIN(ERROR);
+	}
+
+<INTEGER_VAL>{INTEGER} {
+	  if (ipass == 1) {
+	    BEGIN(COMMENT);
+	
+	  } else {
+	    // Read the keyvalue.
+	    sscanf(yytext, "%d", &inttmp);
+	
+	    BEGIN(COMMENT);
+	  }
+	}
+
+<INTEGER_VAL>. {
+	  errmsg = "an integer value was expected";
+	  BEGIN(ERROR);
+	}
+
+<FLOAT_VAL>{FLOAT} {
+	  if (ipass == 1) {
+	    BEGIN(COMMENT);
+	
+	  } else {
+	    // Read the keyvalue.
+	    wcsutil_str2double(yytext, &dbltmp);
+	
+	    if (chekval && chekval(dbltmp)) {
+	      errmsg = "invalid keyvalue";
+	      BEGIN(ERROR);
+	    } else {
+	      BEGIN(COMMENT);
+	    }
+	  }
+	}
+
+<FLOAT_VAL>. {
+	  errmsg = "a floating-point value was expected";
+	  BEGIN(ERROR);
+	}
+
+<FLOAT2_VAL>{FLOAT} {
+	  if (ipass == 1) {
+	    BEGIN(COMMENT);
+	
+	  } else {
+	    // Read the keyvalue as integer and fractional parts.
+	    wcsutil_str2double2(yytext, dbl2tmp);
+	
+	    BEGIN(COMMENT);
+	  }
+	}
+
+<FLOAT2_VAL>. {
+	  errmsg = "a floating-point value was expected";
+	  BEGIN(ERROR);
+	}
+
+<STRING_VAL>{STRING} {
+	  if (ipass == 1) {
+	    BEGIN(COMMENT);
+	
+	  } else {
+	    // Copy the keyvalue minus the quotes.
+	    strncpy(strtmp, yytext+1, yyleng-2);
+	    strtmp[yyleng-2] = '\0';
+	
+	    // Strip off trailing blanks.
+	    for (int jx = yyleng-3; jx >= 0; jx--) {
+	      if (strtmp[jx] != ' ') {
+	        break;
+	      }
+	      strtmp[jx] = '\0';
+	    }
+	
+	    // Squeeze out repeated quotes.
+	    int ix = 0;
+	    for (int jx = 0; jx < 72; jx++) {
+	      if (ix < jx) {
+	        strtmp[ix] = strtmp[jx];
+	      }
+	
+	      if (strtmp[jx] == '\0') {
+	        break;
+	      } else if (strtmp[jx] == '\'' && strtmp[jx+1] == '\'') {
+	        jx++;
+	      }
+	
+	      ix++;
+	    }
+	
+	    BEGIN(COMMENT);
+	  }
+	}
+
+<STRING_VAL>. {
+	  errmsg = "a string value was expected";
+	  BEGIN(ERROR);
+	}
+
+<COMMENT>{INLINE}$ {
+	  if (ipass == 1) {
+	    // Do first-pass bookkeeping.
+	    wcsbth_pass1(keytype, i, j, n, k, a, ptype, &alts);
+	    BEGIN(FLUSH);
+	
+	  } else if (*wcs) {
+	    // Store the value now that the keyrecord has been validated.
+	    alts.icol = 0;
+	    alts.ialt = 0;
+	
+	    // Update each coordinate representation.
+	    int gotone = 0;
+	    struct wcsprm *wcsp;
+	    while ((wcsp = wcsbth_idx(*wcs, &alts, keytype, n, a))) {
+	      gotone = 1;
+	
+	      if (vptr) {
+	        void *wptr;
+	        if (auxprm) {
+	          // Additional auxiliary parameter.
+	          auxp = wcsp->aux;
+	          ptrdiff_t voff = (char *)vptr - (char *)(&auxtem);
+	          wptr = (void *)((char *)auxp + voff);
+	        } else {
+	          // A parameter that lives directly in wcsprm.
+	          ptrdiff_t voff = (char *)vptr - (char *)(&wcstem);
+	          wptr = (void *)((char *)wcsp + voff);
+	        }
+	
+	        if (valtype == INTEGER) {
+	          *((int *)wptr) = inttmp;
+	
+	        } else if (valtype == FLOAT) {
+	          // Apply keyword parameterization.
+	          if (ptype == 'v') {
+	            int ipx = (wcsp->npv)++;
+	            wcsp->pv[ipx].i = i;
+	            wcsp->pv[ipx].m = m;
+	            wptr = &(wcsp->pv[ipx].value);
+	
+	          } else if (j) {
+	            wptr = *((double **)wptr) + (i - 1)*(wcsp->naxis)
+	                                      + (j - 1);
+	
+	          } else if (i) {
+	            wptr = *((double **)wptr) + (i - 1);
+	          }
+	
+	          if (special) {
+	            special(wptr, &dbltmp);
+	          } else {
+	            *((double *)wptr) = dbltmp;
+	          }
+	
+	          // Flag the presence of PCi_ja, or CDi_ja and/or CROTAia.
+	          if (altlin) {
+	            wcsp->altlin |= altlin;
+	            altlin = 0;
+	          }
+	
+	          } else if (valtype == FLOAT2) {
+	            // Split MJDREF and JDREF into integer and fraction.
+	            if (special) {
+	              special(wptr, dbl2tmp);
+	            } else {
+	              *((double *)wptr) = dbl2tmp[0];
+	              *((double *)wptr + 1) = dbl2tmp[1];
+	            }
+	
+	        } else if (valtype == STRING) {
+	          // Apply keyword parameterization.
+	          if (ptype == 's') {
+	            int ipx = wcsp->nps++;
+	            wcsp->ps[ipx].i = i;
+	            wcsp->ps[ipx].m = m;
+	            wptr = wcsp->ps[ipx].value;
+	
+	          } else if (j) {
+	            wptr = *((char (**)[72])wptr) +
+	                    (i - 1)*(wcsp->naxis) + (j - 1);
+	
+	          } else if (i) {
+	            wptr = *((char (**)[72])wptr) + (i - 1);
+	          }
+	
+	          char *cptr = (char *)wptr;
+	          strcpy(cptr, strtmp);
+	        }
+	      }
+	    }
+	
+	    if (ipass == npass) {
+	      if (gotone) {
+	        nvalid++;
+	        if (ctrl == 4) {
+	          wcsfprintf(stderr,
+	            "%.80s\n  Accepted (%d) as a valid WCS keyrecord.\n",
+	            keyrec, nvalid);
+	        }
+	
+	        BEGIN(FLUSH);
+	
+	      } else {
+	        errmsg = "syntactically valid WCS keyrecord has no effect";
+	        BEGIN(ERROR);
+	      }
+	
+	    } else {
+	      BEGIN(FLUSH);
+	    }
+	
+	  } else {
+	    BEGIN(FLUSH);
+	  }
+	}
+
+<COMMENT>.*" "*\/.*$ {
+	  errmsg = "invalid keyvalue";
+	  BEGIN(ERROR);
+	}
+
+<COMMENT>[^ \/\n]*{INLINE}$ {
+	  errmsg = "invalid keyvalue";
+	  BEGIN(ERROR);
+	}
+
+<COMMENT>" "+[^\/\n].*{INLINE}$ {
+	  errmsg = "invalid keyvalue or malformed keycomment";
+	  BEGIN(ERROR);
+	}
+
+<COMMENT>.*$ {
+	  errmsg = "malformed keycomment";
+	  BEGIN(ERROR);
+	}
+
+<DISCARD>.*$ {
+	  if (ipass == npass) {
+	    if (ctrl < 0) {
+	      // Preserve discards.
+	      keep = keyrec;
+	
+	    } else if (2 < ctrl) {
+	      nother++;
+	      wcsfprintf(stderr, "%.80s\n  Not a recognized WCS keyword.\n",
+	        keyrec);
+	    }
+	  }
+	  BEGIN(FLUSH);
+	}
+
+<ERROR>.*$ {
+	  if (ipass == npass) {
+	    (*nreject)++;
+	
+	    if (ctrl%10 == -1) {
+	      keep = keyrec;
+	    }
+	
+	    if (1 < abs(ctrl%10)) {
+	      wcsfprintf(stderr, "%.80s\n  Rejected (%d), %s.\n",
+	        keyrec, *nreject, errmsg);
+	    }
+	  }
+	  BEGIN(FLUSH);
+	}
+
+<FLUSH>.*\n {
+	  if (ipass == npass && keep) {
+	    if (hptr < keep) {
+	      strncpy(hptr, keep, 80);
+	    }
+	    hptr += 80;
+	  }
+	
+	  naux += auxprm;
+	  auxprm = 0;
+	
+	  // Throw away the rest of the line and reset for the next one.
+	  i = j = 0;
+	  n = k = 0;
+	  m = 0;
+	  a = ' ';
+	
+	  keyrec += 80;
+	
+	  keytype =  0;
+	  valtype = -1;
+	  vptr    = 0x0;
+	  keep    = 0x0;
+	
+	  altlin  = 0;
+	  ptype   = ' ';
+	  chekval = 0x0;
+	  special = 0x0;
+	
+	  BEGIN(INITIAL);
+	}
+
+<<EOF>>	 {
+	  // End-of-input.
+	  if (ipass == 1) {
+	    int status;
+	    if ((status = wcsbth_init1(&alts, naux, nwcs, wcs)) ||
+	        (*nwcs == 0 && ctrl == 0)) {
+	      return status;
+	    }
+	
+	    if (2 < abs(ctrl%10)) {
+	      if (*nwcs == 1) {
+	        if (strcmp(wcs[0]->wcsname, "DEFAULTS") != 0) {
+	          wcsfprintf(stderr, "Found one coordinate representation.\n");
+	        }
+	      } else {
+	        wcsfprintf(stderr, "Found %d coordinate representations.\n",
+	          *nwcs);
+	      }
+	    }
+	
+	    if (alts.imgherit) npass = 3;
+	  }
+	
+	  if (ipass++ < npass) {
+	    yyextra->hdr = header;
+	    yyextra->nkeyrec = nkeyrec;
+	    keyrec = header;
+	    *nreject = 0;
+	
+	    imherit = 1;
+	
+	    i = j = 0;
+	    k = n = 0;
+	    m = 0;
+	    a = ' ';
+	
+	    keytype =  0;
+	    valtype = -1;
+	    vptr    = 0x0;
+	
+	    altlin = 0;
+	    ptype  = ' ';
+	    chekval = 0x0;
+	    special = 0x0;
+	
+	    yyrestart(yyin, yyscanner);
+	
+	  } else {
+	
+	    if (ctrl < 0) {
+	      *hptr = '\0';
+	    } else if (ctrl == 1) {
+	      wcsfprintf(stderr, "%d WCS keyrecord%s rejected.\n",
+	        *nreject, (*nreject==1)?" was":"s were");
+	    } else if (ctrl == 4) {
+	      wcsfprintf(stderr, "\n");
+	      wcsfprintf(stderr, "%5d keyrecord%s rejected for syntax or "
+	        "other errors,\n", *nreject, (*nreject==1)?" was":"s were");
+	      wcsfprintf(stderr, "%5d %s recognized as syntactically valid, "
+	        "and\n", nvalid, (nvalid==1)?"was":"were");
+	      wcsfprintf(stderr, "%5d other%s were not recognized as WCS "
+	        "keyrecords.\n", nother, (nother==1)?"":"s");
+	    }
+	
+	    return wcsbth_final(&alts, nwcs, wcs);
+	  }
+	}
+
+%%
+
+/*----------------------------------------------------------------------------
+* External interface to the scanner.
+*---------------------------------------------------------------------------*/
+
+int wcsbth(
+  char *header,
+  int nkeyrec,
+  int relax,
+  int ctrl,
+  int keysel,
+  int *colsel,
+  int *nreject,
+  int *nwcs,
+  struct wcsprm **wcs)
+
+{
+  // Function prototypes.
+  int yylex_init_extra(YY_EXTRA_TYPE extra, yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  struct wcsbth_extra extra;
+  yyscan_t yyscanner;
+  yylex_init_extra(&extra, &yyscanner);
+  int status = wcsbth_scanner(header, nkeyrec, relax, ctrl, keysel, colsel,
+                              nreject, nwcs, wcs, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}
+
+/*----------------------------------------------------------------------------
+* Perform first-pass tasks:
+*
+* 1) Count the number of coordinate axes in each of the 27 possible alternate
+*    image-header coordinate representations.  Also count the number of PVi_ma
+*    and PSi_ma keywords in each representation.
+*
+* 2) Determine the number of binary table columns that have an image array
+*    with a coordinate representation (up to 999), and count the number of
+*    coordinate axes in each of the 27 possible alternates.  Also count the
+*    number of iVn_ma and iSn_ma keywords in each representation.
+*
+* 3) Determine the number of alternate pixel list coordinate representations
+*    (up to 27) and the table columns associated with each.  Also count the
+*    number of TVn_ma and TSn_ma keywords in each representation.
+*
+* In the first pass alts->arridx[icol][27] is used to determine the number of
+* axes in each of 27 possible image-header coordinate descriptions (icol == 0)
+* and each of the 27 possible coordinate representations for an image array in
+* each column.
+*
+* The elements of alts->pixlist[icol] are used as bit arrays to flag which of
+* the 27 possible pixel list coordinate representations are associated with
+* each table column.
+*---------------------------------------------------------------------------*/
+
+int wcsbth_pass1(
+  int keytype,
+  int i,
+  int j,
+  int n,
+  int k,
+  char a,
+  char ptype,
+  struct wcsbth_alts *alts)
+
+{
+  if (a == 0) {
+    // Keywords such as DATE-OBS go along for the ride.
+    return 0;
+  }
+
+  int ncol = alts->ncol;
+
+  // Do we need to allocate memory for alts?
+  if (alts->arridx == 0x0) {
+    if (ncol == 0) {
+      // Can only happen if TFIELDS is missing or out-of-sequence.  If n and
+      // k are both zero then we may be processing an image header so leave
+      // ncol alone - the array will be realloc'd later if required.
+      if (n || k) {
+        // The header is mangled, assume the worst.
+        ncol = 999;
+      }
+    }
+
+    if (!(alts->arridx  =  calloc((1 + ncol)*27, sizeof(short int))) ||
+        !(alts->npv     =  calloc((1 + ncol)*27, sizeof(unsigned char)))  ||
+        !(alts->nps     =  calloc((1 + ncol)*27, sizeof(unsigned char)))  ||
+        !(alts->pixlist =  calloc((1 + ncol),    sizeof(unsigned int)))) {
+      if (alts->arridx)  free(alts->arridx);
+      if (alts->npv)     free(alts->npv);
+      if (alts->nps)     free(alts->nps);
+      if (alts->pixlist) free(alts->pixlist);
+      return WCSHDRERR_MEMORY;
+    }
+
+    alts->ncol = ncol;
+
+  } else if (n > ncol || k > ncol) {
+    // Can only happen if TFIELDS or the WCS keyword is wrong; carry on.
+    ncol = 999;
+    if (!(alts->arridx  = realloc(alts->arridx,
+                                    27*(1 + ncol)*sizeof(short int))) ||
+        !(alts->npv     = realloc(alts->npv,
+                                    27*(1 + ncol)*sizeof(unsigned char)))  ||
+        !(alts->nps     = realloc(alts->nps,
+                                    27*(1 + ncol)*sizeof(unsigned char)))  ||
+        !(alts->pixlist = realloc(alts->pixlist,
+                                       (1 + ncol)*sizeof(unsigned int)))) {
+      if (alts->arridx)  free(alts->arridx);
+      if (alts->npv)     free(alts->npv);
+      if (alts->nps)     free(alts->nps);
+      if (alts->pixlist) free(alts->pixlist);
+      return WCSHDRERR_MEMORY;
+    }
+
+    // Since realloc() doesn't initialize the extra memory.
+    for (int icol = (1 + alts->ncol); icol < (1 + ncol); icol++) {
+      for (int ialt = 0; ialt < 27; ialt++) {
+        alts->arridx[icol][ialt] = 0;
+        alts->npv[icol][ialt] = 0;
+        alts->nps[icol][ialt] = 0;
+        alts->pixlist[icol]   = 0;
+      }
+    }
+
+    alts->ncol = ncol;
+  }
+
+  int ialt = 0;
+  if (a != ' ') {
+    ialt = a - 'A' + 1;
+  }
+
+  // A BINTAB keytype such as LONPna, in conjunction with an IMGAXIS keytype
+  // causes a table column to be recognized as an image array.
+  if (keytype & IMGHEAD || keytype & BIMGARR) {
+    // n == 0 is expected for IMGHEAD keywords.
+    if (i == 0 && j == 0) {
+      if (alts->arridx[n][ialt] == 0) {
+        // Flag that an auxiliary keyword was seen.
+        alts->arridx[n][ialt] = -1;
+      }
+
+    } else {
+      // Record the maximum axis number found.
+      if (alts->arridx[n][ialt] < i) {
+        alts->arridx[n][ialt] = i;
+      }
+
+      if (alts->arridx[n][ialt] < j) {
+        alts->arridx[n][ialt] = j;
+      }
+    }
+
+    if (ptype == 'v') {
+      alts->npv[n][ialt]++;
+    } else if (ptype == 's') {
+      alts->nps[n][ialt]++;
+    }
+  }
+
+  // BINTAB keytypes, which apply both to pixel lists as well as binary table
+  // image arrays, never contribute to recognizing a table column as a pixel
+  // list axis.  A PIXLIST keytype is required for that.
+  if (keytype == PIXLIST) {
+    int mask = 1 << ialt;
+
+    // n > 0 for PIXLIST keytypes.
+    alts->pixlist[n] |= mask;
+    if (k) alts->pixlist[k] |= mask;
+
+    // Used as a flag over all columns.
+    alts->pixlist[0] |= mask;
+
+    if (ptype == 'v') {
+      alts->pixnpv[ialt]++;
+    } else if (ptype == 's') {
+      alts->pixnps[ialt]++;
+    }
+  }
+
+  return 0;
+}
+
+
+/*----------------------------------------------------------------------------
+* Perform initializations at the end of the first pass:
+*
+* 1) Determine the required number of wcsprm structs, allocate memory for
+*    an array of them and initialize each one.
+*---------------------------------------------------------------------------*/
+
+int wcsbth_init1(
+  struct wcsbth_alts *alts,
+  int naux,
+  int *nwcs,
+  struct wcsprm **wcs)
+
+{
+  int status = 0;
+
+  if (alts->arridx == 0x0) {
+    *nwcs = 0;
+    return 0;
+  }
+
+  // Determine the number of axes in each pixel list representation.
+  int ialt, mask, ncol = alts->ncol;
+  for (ialt = 0, mask = 1; ialt < 27; ialt++, mask <<= 1) {
+    alts->pixidx[ialt] = 0;
+
+    if (alts->pixlist[0] | mask) {
+      for (int icol = 1; icol <= ncol; icol++) {
+        if (alts->pixlist[icol] & mask) {
+          alts->pixidx[ialt]++;
+        }
+      }
+    }
+  }
+
+  // Find the total number of coordinate representations.
+  *nwcs = 0;
+  alts->imgherit = 0;
+  int inherit[27];
+  for (int ialt = 0; ialt < 27; ialt++) {
+    inherit[ialt] = 0;
+
+    for (int icol = 1; icol <= ncol; icol++) {
+      if (alts->arridx[icol][ialt] < 0) {
+        // No BIMGARR keytype but there's at least one BINTAB.
+        if (alts->arridx[0][ialt] > 0) {
+          // There is an IMGAXIS keytype that we will inherit, so count this
+          // representation.
+          alts->arridx[icol][ialt] = alts->arridx[0][ialt];
+        } else {
+          alts->arridx[icol][ialt] = 0;
+        }
+      }
+
+      if (alts->arridx[icol][ialt]) {
+        if (alts->arridx[0][ialt]) {
+          // All IMGHEAD keywords are inherited for this ialt.
+          inherit[ialt] = 1;
+
+          if (alts->arridx[icol][ialt] < alts->arridx[0][ialt]) {
+            // The extra axes are also inherited.
+            alts->arridx[icol][ialt] = alts->arridx[0][ialt];
+          }
+        }
+
+        (*nwcs)++;
+      }
+    }
+
+    // Count every "a" found in any IMGHEAD keyword...
+    if (alts->arridx[0][ialt]) {
+      if (inherit[ialt]) {
+        // ...but not if the IMGHEAD keywords will be inherited.
+        alts->arridx[0][ialt] = 0;
+        alts->imgherit = 1;
+      } else if (alts->arridx[0][ialt] > 0) {
+        (*nwcs)++;
+      }
+    }
+
+    // We need a struct for every "a" found in a PIXLIST keyword.
+    if (alts->pixidx[ialt]) {
+      (*nwcs)++;
+    }
+  }
+
+
+  if (*nwcs) {
+    // Allocate memory for the required number of wcsprm structs.
+    if (!(*wcs = calloc(*nwcs, sizeof(struct wcsprm)))) {
+      return WCSHDRERR_MEMORY;
+    }
+
+    // Initialize each wcsprm struct.
+    struct wcsprm *wcsp = *wcs;
+    *nwcs = 0;
+    for (int icol = 0; icol <= ncol; icol++) {
+      for (int ialt = 0; ialt < 27; ialt++) {
+        if (alts->arridx[icol][ialt] > 0) {
+          // Image-header representations that are not for inheritance
+          // (icol == 0) or binary table image array representations.
+          wcsp->flag = -1;
+          int npvmax = alts->npv[icol][ialt];
+          int npsmax = alts->nps[icol][ialt];
+          if ((status = wcsinit(1, (int)(alts->arridx[icol][ialt]), wcsp,
+                                npvmax, npsmax, -1))) {
+            wcsvfree(nwcs, wcs);
+            break;
+          }
+
+          // Record the alternate version code.
+          if (ialt) {
+            wcsp->alt[0] = 'A' + ialt - 1;
+          }
+
+          // Any additional auxiliary keywords present?
+          if (naux) {
+            if (wcsauxi(1, wcsp)) {
+              return WCSHDRERR_MEMORY;
+            }
+          }
+
+          // Record the table column number.
+          wcsp->colnum = icol;
+
+          // On the second pass alts->arridx[icol][27] indexes the array of
+          // wcsprm structs.
+          alts->arridx[icol][ialt] = (*nwcs)++;
+
+          wcsp++;
+
+        } else {
+          // Signal that this column has no WCS for this "a".
+          alts->arridx[icol][ialt] = -1;
+        }
+      }
+    }
+
+    for (int ialt = 0; ialt < 27; ialt++) {
+      if (alts->pixidx[ialt]) {
+        // Pixel lists representations.
+        wcsp->flag = -1;
+        int npvmax = alts->pixnpv[ialt];
+        int npsmax = alts->pixnps[ialt];
+        if ((status = wcsinit(1, (int)(alts->pixidx[ialt]), wcsp, npvmax,
+                              npsmax, -1))) {
+          wcsvfree(nwcs, wcs);
+          break;
+        }
+
+        // Record the alternate version code.
+        if (ialt) {
+          wcsp->alt[0] = 'A' + ialt - 1;
+        }
+
+        // Any additional auxiliary keywords present?
+        if (naux) {
+          if (wcsauxi(1, wcsp)) {
+            return WCSHDRERR_MEMORY;
+          }
+        }
+
+        // Record the pixel list column numbers.
+        int icol, ix, mask = (1 << ialt);
+        for (icol = 1, ix = 0; icol <= ncol; icol++) {
+          if (alts->pixlist[icol] & mask) {
+            wcsp->colax[ix++] = icol;
+          }
+        }
+
+        // alts->pixidx[] indexes the array of wcsprm structs.
+        alts->pixidx[ialt] = (*nwcs)++;
+
+        wcsp++;
+
+      } else {
+        // Signal that this column is not a pixel list axis for this "a".
+        alts->pixidx[ialt] = -1;
+      }
+    }
+  }
+
+  return status;
+}
+
+
+/*----------------------------------------------------------------------------
+* Return a pointer to the next wcsprm struct for a particular column number
+* and alternate.
+*---------------------------------------------------------------------------*/
+
+struct wcsprm *wcsbth_idx(
+  struct wcsprm *wcs,
+  struct wcsbth_alts *alts,
+  int  keytype,
+  int  n,
+  char a)
+
+{
+  const char as[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  if (!wcs) return 0x0;
+
+  int iwcs = -1;
+  for (; iwcs < 0 && alts->ialt < 27; alts->ialt++) {
+    // Note that a == 0 applies to every alternate, otherwise this
+    // loop simply determines the appropriate value of alts->ialt.
+    if (a && a != as[alts->ialt]) continue;
+
+    if (keytype & (IMGHEAD | BIMGARR)) {
+      for (; iwcs < 0 && alts->icol <= alts->ncol; alts->icol++) {
+        // Image header keywords, n == 0, apply to all columns, otherwise this
+        // loop simply determines the appropriate value of alts->icol.
+        if (n && n != alts->icol) continue;
+        iwcs = alts->arridx[alts->icol][alts->ialt];
+      }
+
+      // Break out of the loop to stop alts->ialt from being incremented.
+      if (iwcs >= 0) break;
+
+      // Start from scratch for the next alts->ialt.
+      alts->icol = 0;
+    }
+
+    if (keytype & (IMGAUX | PIXLIST)) {
+      iwcs = alts->pixidx[alts->ialt];
+    }
+  }
+
+  return (iwcs >= 0) ? (wcs + iwcs) : 0x0;
+}
+
+
+/*----------------------------------------------------------------------------
+* Return the axis number associated with the specified column number in a
+* particular pixel list coordinate representation.
+*---------------------------------------------------------------------------*/
+
+int wcsbth_colax(
+  struct wcsprm *wcs,
+  struct wcsbth_alts *alts,
+  int n,
+  char a)
+
+{
+  if (!wcs) return 0;
+
+  struct wcsprm *wcsp = wcs;
+  if (a != ' ') {
+    wcsp += alts->pixidx[a-'A'+1];
+  }
+
+  for (int ix = 0; ix < wcsp->naxis; ix++) {
+    if (wcsp->colax[ix] == n) {
+      return ++ix;
+    }
+  }
+
+  return 0;
+}
+
+
+/*----------------------------------------------------------------------------
+* Interpret the JDREF, JDREFI, and JDREFF keywords.
+*---------------------------------------------------------------------------*/
+
+int wcsbth_jdref(double *mjdref, const double *jdref)
+
+{
+  // Set MJDREF from JDREF.
+  if (undefined(mjdref[0] && undefined(mjdref[1]))) {
+    mjdref[0] = jdref[0] - 2400000.0;
+    mjdref[1] = jdref[1] - 0.5;
+
+    if (mjdref[1] < 0.0) {
+      mjdref[0] -= 1.0;
+      mjdref[1] += 1.0;
+    }
+  }
+
+  return 0;
+}
+
+int wcsbth_jdrefi(double *mjdref, const double *jdrefi)
+
+{
+  // Set the integer part of MJDREF from JDREFI.
+  if (undefined(mjdref[0])) {
+    mjdref[0] = *jdrefi - 2400000.5;
+  }
+
+  return 0;
+}
+
+
+int wcsbth_jdreff(double *mjdref, const double *jdreff)
+
+{
+  // Set the fractional part of MJDREF from JDREFF.
+  if (undefined(mjdref[1])) {
+    mjdref[1] = *jdreff;
+  }
+
+  return 0;
+}
+
+
+/*----------------------------------------------------------------------------
+* Interpret EPOCHa keywords.
+*---------------------------------------------------------------------------*/
+
+int wcsbth_epoch(double *equinox, const double *epoch)
+
+{
+  // If EQUINOXa is currently undefined then set it from EPOCHa.
+  if (undefined(*equinox)) {
+    *equinox = *epoch;
+  }
+
+  return 0;
+}
+
+
+/*----------------------------------------------------------------------------
+* Interpret VSOURCEa keywords.
+*---------------------------------------------------------------------------*/
+
+int wcsbth_vsource(double *zsource, const double *vsource)
+
+{
+  const double c = 299792458.0;
+
+  // If ZSOURCEa is currently undefined then set it from VSOURCEa.
+  if (undefined(*zsource)) {
+    // Convert relativistic Doppler velocity to redshift.
+    double beta = *vsource/c;
+    *zsource = (1.0 + beta)/sqrt(1.0 - beta*beta) - 1.0;
+  }
+
+  return 0;
+}
+
+
+/*----------------------------------------------------------------------------
+* Check validity of a TIMEPIXR keyvalue.
+*---------------------------------------------------------------------------*/
+
+int wcsbth_timepixr(double timepixr)
+
+{
+  return (timepixr < 0.0 || 1.0 < timepixr);
+}
+
+
+/*----------------------------------------------------------------------------
+* Tie up loose ends.
+*---------------------------------------------------------------------------*/
+
+int wcsbth_final(
+  struct wcsbth_alts *alts,
+  int *nwcs,
+  struct wcsprm **wcs)
+
+{
+  if (alts->arridx)  free(alts->arridx);
+  if (alts->npv)     free(alts->npv);
+  if (alts->nps)     free(alts->nps);
+  if (alts->pixlist) free(alts->pixlist);
+
+  for (int ialt = 0; ialt < *nwcs; ialt++) {
+    // Interpret -TAB header keywords.
+    int status;
+    if ((status = wcstab(*wcs+ialt))) {
+       wcsvfree(nwcs, wcs);
+       return status;
+    }
+  }
+
+  return 0;
+}

@@ -1,0 +1,10 @@
+\catalog = sao
+\date = "Wed Sp 20 09:48:36 1995"
+\mykeyword = 'Another way for defining keyvalue string'
+\ This is an example of a valid comment.
+\ The 2nd data line is used to verify the exact column parsing 
+\ (unclear if this is a valid for the IPAC format)
+|     ra   |    dec   |   sai   |-----v2---|    sptype        |
+|    real  |   real   |   int   |    real  |     char         |
+|    unit  |   unit   |   unit  |    unit  |     ergs         |
+|    null  |   null   |   null  |    null  |     -999         |

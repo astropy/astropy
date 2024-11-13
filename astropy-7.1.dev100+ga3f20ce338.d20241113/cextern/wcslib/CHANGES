@@ -1,0 +1,3588 @@
+WCSLIB version 8.3 (2024/05/14)
+-------------------------------
+
+* C library
+
+  - Until now, wcsset() always operated unconditionally - the wcsprm
+    struct was set or reset regardless of its current state.  Likewise
+    the various *set() functions for the other structs.
+
+    However, in some situations, particularly in threaded applications,
+    it is desirable to have wcsset(), etc., check the state of the
+    struct and return immediately if it has already been set.  This may
+    now be accomplished by setting wcsprm::flag == 1 (instead of 0)
+    before calling wcsset().  Likewise for the other structs.  This sets
+    a "bypass" flag within the struct itself.
+
+  - A new function, wcsenq(), queries the state of the wcsprm struct,
+    specifically whether WCSLIB is managing its memory, whether the
+    struct has been set, and whether or not it is in bypass mode, and
+    whether it is self-consistent.  There are corresponding functions
+    for the other structs: celenq(), disenq(), linenq(), prjenq(),
+    spcenq(), and tabenq().  Please refer to the WCSLIB manual.
+
+  - In the C test suite, modified twcs to test wcsenq() and also
+    wcsset() in bypass mode.
+
+  - Quelled nuisance compiler warnings in wcsbth(), wcspih(), wcsp2s(),
+    and wcshdo().
+
+* Fortran wrappers
+
+  - Interprocedural Link Time Optimization (LTO), when used with the
+    strict compiler options required by some Linux distributions, may
+    place more stringent requirements on mixing code written in
+    different languages.  Specifically, as far as WCSLIB is concerned,
+    this applies for Fortran calling C (or vice versa) where the
+    function parameter list includes a character variable.
+
+    It is important to note that the existing Fortran wrappers work as
+    they did before, with or without LTO, that issues only arise when
+    strict LTO compiler options are enabled, and that wrappers without
+    a character argument are unaffected.
+
+    Fortran 2003 introduced the "language-binding-spec" attribute using
+    the keyword BIND.  The INTERFACE block for a procedure may be given
+    the BIND(C) attribute to specify the interface of an external,
+    interoperable C function.  Use of this BIND(C) attribute is now
+    virtually mandated by LTO (with said strict compiler options).
+
+    The WCSLIB Fortran wrappers are written in C, e.g. wcs_f.c, with a
+    Fortran-compliant interface, and these C functions are intended to
+    be called directly from Fortran applications.  Three options were
+    considered for achieving strict LTO compliance:
+
+      1) Require that all existing Fortran applications be modified to
+         conform to the Fortran 2003 language binding specification via
+         the addition of INTERFACE blocks bearing the BIND(C) attribute
+         for the existing wrappers.
+
+         This option is clearly untenable.
+
+      2) Rewrite the WCSLIB Fortran wrappers completely in Fortran 2003.
+
+         It seems that this option may be tenable as the BIND(C) spec
+         allows for C-equivalent derived types.  However, it would
+         require rewriting all of the wrappers, 5 kloc of C code, in
+         Fortran 2003 code that must directly manipulate the internals
+         of all of the WCSLIB structs.
+
+      3) Introduce a new layer of thin wrappers, written in Fortran
+         2003, that do nothing more than define the INTERFACE to the
+         existing wrappers written in C and then call them.
+         Essentially this extracts the changes required in option (1)
+         into a new set of wrappers.
+
+         This was the option chosen on the basis of simplicity - only
+         specific wrappers, namely those with character arguments, need
+         be rewrapped.  It also minimises WCSLIB's exposure to Fortran
+         2003, particularly for the sake of legacy astronomical packages
+         such as Miriad and AIPS.  Further, it admits the possibility of
+         the optional use of this extra layer of wrappers.
+
+    The new Fortran 2003 wrappers reside in the Fortran subdirectory in
+    files by the name of *_bindc.f90.  By default they are not compiled
+    and not used.  To use them, WCSLIB must be configure'd with the new
+    '--with-bindc' option.  This causes the new BIND(C) wrappers to be
+    compiled, and the names of the old wrappers to be changed, for
+    example from wcspih_() to wcspih_c().
+
+    LTO compile problems reported by Eli Schwartz, Gentoo maintainer.
+
+  - Added wrappers for celenq(), disenq(), linenq(), prjenq(), spcenq(),
+    tabenq(), and wcsenq().
+
+  - In the Fortran test suite, modified twcs to test WCSENQ and also
+    WCSSET in bypass mode.
+
+* PGSBOX
+
+  - Changes mirroring those described above for the Fortran wrappers,
+    the difference being that here we have a mix of C calling Fortran
+    (e.g. cpgsbox() calling PGSBOX) as well as Fortran calling C (e.g.
+    PGWCSL calling pgwcsl_c()).  As with the Fortran wrappers, the new
+    configure option, '--with-bindc', chooses whether to use the new
+    BIND(C) PGSBOX wrappers.
+
+* Installation
+
+  - Added '--with-bindc' as a new configure option (or BINDC=yes from
+    the environment) to signal the use of the new strictly LTO-compliant
+    Fortran wrappers.  See above.
+
+  - Modified 'configure' to report the version of gcc used.  Likewise,
+    for the 'show' rule in makedefs.
+
+* User manual
+
+  - Quelled a nuisance compiler warning in doxextr.
+
+  - Documentation generation moved to doxygen 1.10.0 (was 1.9.8).
+
+
+WCSLIB version 8.2.2 (2023/11/29)
+---------------------------------
+
+* C library (installation)
+
+  - In prj.c, a number of variables with global scope that are only used
+    internally were declared static to avoid namespace conflicts arising
+    in Link Time Optimization (LTO) builds of the Rwcs wrappers.  This
+    is a patch release as it does not affect the library itself other
+    than in localising some symbols that were never meant to be global.
+    Reported by Rodrigo Carrizo with patch.
+
+    Likewise for an internally used helper function, prjoff().
+    Likewise for a handful of variables in cel.c, dis.c, lin.c, tab.c,
+    wcs.c, wcsfix.c, and wcshdr.c.
+
+
+WCSLIB version 8.2.1 (2023/11/17)
+---------------------------------
+
+* Installation
+
+  - With searching enabled in the HTML manual, doxygen creates a new
+    subdirectory, html/search, which must be installed explicitly.
+
+
+WCSLIB version 8.2 (2023/11/16)
+-------------------------------
+
+* C library
+
+  - In wcshdo(), fixed character buffer overflows in the comment string
+    for the longitude and latitude axes triggered by some projections,
+    and also the formatting for generic coordinate systems.  Reported by
+    Shu Niu.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.9.8 (was 1.9.7).
+
+  - Enabled searching in the HTML manual.
+
+
+WCSLIB version 8.1 (2023/07/06)
+-------------------------------
+
+Changes in the contents of the auxprm struct (in 8.0 beta) necessitated
+incrementing the major version number from 7 to 8, i.e. the ABI changed.
+Took the opportunity for minor tweaks to wcsprm and disprm.
+
+* C library
+
+  - In disprm, changed the order of maxdis and totdis to ensure correct
+    alignment of doubles on 32-bit machines.
+
+* Fortran wrappers
+
+  - Match changes to disprm in the C library.
+
+  - In the Fortran test suite, inserted a brief pause between plots in
+    tprj2, tspc, and tpih2, which have long been a blur.
+
+* PGSBOX
+
+  - Quell innocuous compiler warnings from gfortran 12.1.0.  Inserted a
+    brief pause between plots in pgtest and cpgtest.
+
+
+WCSLIB version 8.0 beta (2023/07/01)
+------------------------------------
+
+Beta test version, not publically released.
+
+* C library
+
+  - Support planetary keywords A_RADIUS, B_RADIUS, C_RADIUS, BLON_OBS,
+    BLAT_OBS, and BDIS_OBS in auxprm by analogy with the Solar keywords
+    added at 7.1.  Requested by Chiara Marmo (Observatoire de Paris).
+
+  - Added wcsprm::time to the wcsprm struct to record the TIME axis
+    number (along with lng, lat, and spec).
+
+  - Fixed a bug in wcspih() and wcsbth() where trailing blanks were not
+    stripped from string keyvalues.  Reported by Naveen Dukiya.
+
+    Changed test program tdis3 to test this.
+
+  - Fixed a problem affecting thread safety in disp2x(), disx2p(), and
+    diswarp().  Reported by Mohammad Akhlaghi.
+
+* Fortran wrappers
+
+  - Match changes to the C library supporting planetary keywords in
+    auxprm and the addition of wcsprm::time.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.9.7 (was 1.9.5).
+
+
+WCSLIB version 7.12 (2022/09/09)
+--------------------------------
+
+* C library
+
+  - In wcsp2s() and wcss2p(), fixed handling of status returns from
+    linp2x() and linx2p() relating to distortion functions, specifically
+    with respect to setting the stat[] vector.  Reported by Sepideh
+    Eskandarlou (via Mohammad Akhlaghi).
+
+  - When extracting by axis type, wcssub() did not account for the
+    possibility of time axes with -TAB or -LOG algorithm codes.
+    Reported by Mihai Cara.
+
+* Utilities
+
+  - Fixed a bit of confusion in wcsgrid relating to cfitsio file opening
+    syntax, e.g. file.fits+1.  It now matches wcsware in that regard.
+
+  - Portability fix in sundazel - need to define _POSIX_C_SOURCE as
+    199506L in order to get the declaration of localtime_r().  Reported
+    by Marc Espie.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.9.5 (was 1.9.3).
+
+
+WCSLIB version 7.11 (2022/04/26)
+--------------------------------
+
+* C library
+
+  - In tabini(), the default index array should contain a 1-relative
+    sequence: {1, 2,... N}.  Previously it was 0-relative.
+
+
+WCSLIB version 7.10 (2022/04/24)
+--------------------------------
+
+* C library
+
+  - In tabcpy(), collapse degenerate table index arrays if they are
+    collapsed in the source struct.  Minor fix for output formatting
+    in tabprt().
+
+  - In the C test suite, added calls to wcstrim() in twcsfix to tidy
+    the structs before printing.
+
+* Utilities
+
+  - The default option in wcsware now trims the wcsprm struct before
+    printing it.  Use the '-p' option to print the untrimmed struct.
+
+
+WCSLIB version 7.9 (2022/03/26)
+-------------------------------
+
+* C library
+
+  - In wcsset(), bug fix for identifying time coordinate axes.
+    Reported by Mihai Cara with patch.
+
+
+WCSLIB version 7.8 (2022/03/25)
+-------------------------------
+
+* C library
+
+  - In wcssub(), bug fix for tabular coordinates that change axis
+    number, thus requiring tabprm::map to be updated.  Reported by
+    Mihai Cara with patch.
+
+    Also in wcssub():
+      - check that all axes of a multi-dimensional table are extracted
+        together,
+      - fixed potential memory leaks for tabular coordinate axes when
+        an attempt to subimage non-separable axes fails,
+      - the error messages for non-separable coordinate systems are
+        generally more informative,
+      - subimage extraction by coordinate type now recognises time
+        coordinate axis types via WCSSUB_TIME.
+
+  - wcsset() now identifies time coordinate axes in wcsprm::types.
+
+  - Extended test program twcssub to test the above modifications.
+
+* Installation
+
+  - Bug fix in the utils makefile for creating $(MANDIR)/man1.
+    Reported by Aleksander Kurek.
+
+  - Bug fix in the Fortran makefile for compiling and using 'tofits'.
+    Reported by Stefan Brüns.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.9.3 (was 1.9.1).
+
+
+WCSLIB version 7.7 (2021/07/12)
+-------------------------------
+
+* C library
+
+  - In disfree() and disset(), removed potential for double invokation
+    of free() on allocated memory.  Reported by Cyril Richard.
+
+  - In wcsutil_fptr2str(), fixed a bug reported by Ralf Palsa (with fix)
+    that caused it to be overly enthusiastic in stripping leading zeroes
+    off addresses of function pointers.
+
+  - In wcspcx(), replaced variable length arrays with allocated memory
+    (portability issue).  Reported by Mihai Cara with patch.
+
+  - Fixed buglets in wcsbth() and linsize() uncovered by gcc 11.1.0.
+
+  - Quelled inconsequential compiler warnings from gcc 11.1.0 concerning
+    wcsmix() (function prototype in wcs.h), wcstrim(), wcseulexe(),
+    wcsulex(), and wcsutrne().
+
+  - Defined _POSIX_C_SOURCE appropriately in tprj2.c and tspc.c to get
+    the function prototype etc. for nanosleep() from time.h.
+
+* Fortran wrappers
+
+  - Quelled numerous inconsequential compiler warnings from gfortran
+    11.1.0.
+
+  - Fixed minor bugs uncovered by gfortran 11.1.0 in test programs tdis2
+    and ttab3.
+
+* Utilities
+
+  - Moved 'tofits' from ./C/test/ into the utilities directory as it's
+    generally useful, and added usage (converted to man page).
+
+    Also made it a bit smarter in dealing with ISO/IEC 8859 and UTF-8
+    encoded byte streams, in particular translating non-breaking spaces
+    into ordinary spaces.
+
+* Installation
+
+  - Two patches for configure.ac provided by Mosè Giordano:
+    1. makes it possible to build the Windows library using the MinGW
+       cross-compiler,
+    2. makes the soname of the MacOSX library consistent with other
+       Unix systems.
+
+
+WCSLIB version 7.6 (2021/04/13)
+-------------------------------
+
+* C library
+
+  - Bug fix in tabs2x() triggered for 1-dimensional coordinate lookup
+    tables on axes > 1.  Reported by Mihai Cara.
+
+  - In datfix(), don't return status 0 if no change was made (fix for
+    change made at release 7.4).  Reported by Derek Homeier.
+
+  - New function wcspcx() in the wcsfix suite regularizes the linear
+    transformation component of a coordinate description to make it more
+    human-readable.  It decomposes CDi_ja into PCi_ja and CDELTia in
+    such a way that CDELTia forms meaningful scaling parameters, often
+    leaving an orthogonal or near-orthogonal matrix.  Optionally, it can
+    then permute rows of this matrix to unscramble axis permutations.
+
+    A test header may be generated from wcspcx.keyrec for input to
+    wcsware (not exercised as part of the standard test suite).
+
+  - New function wcstrim() frees memory allocated by wcsinit() for
+    arrays in a wcsprm struct that remain unused after the struct has
+    been set up.
+
+  - New functions wcssize(), auxsize(), tabsize(), linsize(), dissize(),
+    celsize(), prjsize(), spcsize(), and wcserr_size() compute the total
+    size of the relevant structs, including allocated memory.
+
+  - In the C test suite, inserted a brief pause in tprj2 and tspc, which
+    otherwise have now become a blur.
+
+* Fortran wrappers
+
+  - Added wrappers for wcspcx(), wcstrim(), wcssize(), auxsize(),
+    tabsize(), linsize(), dissize(), celsize(), prjsize(), spcsize(),
+    and wcserr_size().
+
+* Utilities
+
+  - Added -c, -cp, -C, and -Cp options to wcsware to apply wcspcx()
+    in a variety of ways, -m to apply wcstrim(), and -z to report the
+    total size of the wcsprm struct with a breakdown of the sizes of
+    its constituent structs.
+
+  - Fixed compiler warnings for sundazel (portability issue).
+
+* Installation
+
+  - Upped the required version of Flex to 2.6.0 (was 2.5.9).  Problems
+    with Flex 2.5.39 reported by Derek Homeier.
+
+    Also added '--disable-flex' as a new configure option to force the
+    use of the pre-generated Flex sources.
+
+
+WCSLIB version 7.5 (2021/03/20)
+-------------------------------
+
+The C code in WCSLIB is moving piecemeal to the C99 standard.  In fact,
+various indispensible C99 constructs have been used in WCSLIB for many
+years: the long long int data type (in fitshdr() only); stdint.h,
+inttypes.h, and the use of PRI formatting control (in wcsprintf(), which
+is widely used by the library); and the C99-extended library function
+vsnprintf() (used by wcserr for a decade).  Flex-generated C code also
+uses C99 extensions, though with workarounds if they are not available.
+
+Except in the header prologues, which are formatted in a special way for
+generating the user manual, comments were changed en masse to C99 style
+in release 7.3.1, and variable declarations in code that I have occasion
+to modify will transition to the more general placement allowed by C99.
+However, I have no plans to use any of the more esoteric features of
+C99.
+
+* C library
+
+  - New function, wcsccs(), changes the celestial coordinate system of a
+    wcsprm struct, for example, from equatorial to galactic coordinates.
+    The parameters that define the spherical coordinate transformation
+    must be provided.  This allows WCSLIB to provide this functionality
+    without needing to know anything about specific celestial coordinate
+    systems, and has the advantage of making the routine completely
+    general.  Requested by Mohammad Akhlaghi.
+
+    Modified test program twcsfix also to test wcsccs().
+
+  - Fixed a problem common to all of the Flex code (fitshdr, wcsbth,
+    wcspih, wcsulex, and wcsutrn) that made it thread-unsafe.  Reported
+    by Cyril Richard.
+
+    Added a new test program, tpthreads, to test thread safety.  It is
+    only used for code development, and not exercised as part of the
+    standard test suite.
+
+  - In fitshdr(), fixed a problem that potentially could arise on
+    systems where sizeof(long long int) is greater than 8 (64 bits).
+
+* Fortran wrappers
+
+  - Match changes to the C library: added a wrapper for wcsccs(), and
+    modified twcsfix.f.
+
+  - Because null addresses cannot be passed to functions in Fortran,
+    wcssub_() now interprets *nsub == -1 && *axes == -1 as a signal to
+    do a deep copy of one wcsprm struct to another.
+
+* Utilities
+
+  - New utility, sundazel, computes the local time of the Sun's passage
+    through the specified apparent longitude or latitude in a user-
+    defined coordinate system.  It can also perform several other Solar
+    related calculations.  (It is unrelated to FITS WCS, and does not
+    use WCSLIB.)
+
+* Installation
+
+  - Added an 'uninstall' rule to the makefiles.  Suggested by
+    Cyril Richard.
+
+
+WCSLIB version 7.4 (2021/01/31)
+-------------------------------
+
+* C library
+
+  - In wcshdo(), fixed a bug introduced in release 5.9 that potentially
+    caused loss of numerical precision in the sprintf() formatting of
+    floating point keyvalues.  This was triggered when a large range of
+    CRPIXja, PCi_ja, or CDELTia values (as three separate groups) were
+    formatted using an 'f' format descriptor, the range not being so
+    large that it would have forced wcshdo() to revert to 'E' format.
+    Reported by Mohammad Akhlaghi.
+
+    Also in wcshdo(), fixed a bug introduced in release 7.1 that caused
+    the coefficients of the TPD distortion function not to be written to
+    the header.  TPD and Polynomial distortion function headers will now
+    always include the DPja.DOCORR keyword.  Reported by Derek Homeier
+    with patch.
+
+  - In wcsset(), fixed a segv generated in attempting to report a non-
+    standard units string with wcserr message reporting disabled.
+    Reported by Mohammad Akhlaghi.
+
+    In wcsutrne(), allow 'Angstroms' and 'angstroms' as additional
+    synonyms for 'Angstrom'.
+
+  - In datfix(), ensure that 0 is returned if an informational message
+    is set in wcsprm::err.  Consequent on feedback independently from
+    Mihai Cara and Bruce Merry.
+
+    Clarified that informational messages may be set in wcsprm::err
+    for returns of 0 from datfix(), obsfix(), unitfix(), and spcfix().
+
+* User manual
+
+  - Added cautions about translating CDi_ja to PCi_ja plus CDELTia for
+    those historical distortion functions (TPV, TNX, ZPX) that expect to
+    operate on intermediate world coordinates, rather than intermediate
+    pixel coordinates.  Consequent on feedback from Mohammad Akhlaghi.
+
+  - Documentation generation moved to doxygen 1.9.1 (was 1.8.19).
+
+
+WCSLIB version 7.3.1 (2020/08/17)
+---------------------------------
+
+There are no functional changes in this release.
+
+* C library
+* Fortran wrappers
+* PGSBOX
+* Utilities
+
+  - Changed all C code, including within the flex sources, Fortran and
+    PGSBOX wrappers, and test suite, to use C99 style commenting (i.e.
+    using //), excluding the header prologues used to generate the user
+    manual.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.19 (was 1.8.18).
+
+
+WCSLIB version 7.3 (2020/06/03)
+-------------------------------
+
+* C library
+
+  - wcshdo() was writing MJD-OBS twice to the header, and MJD-BEG not
+    at all.
+
+  - In wcshdo(), if MJDREF assumes its default value, just write
+    MJDREF = 0 (not MJDREFI & MJDREFF), and omit writing DATEREF,
+    which, with a value of '1858-11-17', looks strange and is
+    potentially confusing.  Reported by Thomas Robitaille.
+
+    If the fractional part of MJDREF is zero, then just write the
+    integer part as MJDREF (i.e. not as MJDREFI & MJDREFF).
+
+  - Bug fix in wcsfix() - it was writing error messages that referred
+    to DATE-REF and MJD-REF rather then DATEREF and MJDREF.  Reported
+    by Mihai Cara.
+
+  - Under control of a new flag, WCSHDR_DATEREF, added the option to
+    wcspih() and wcsbth() to accept DATE-REF, MJD-REF, MJD-REFI,
+    MJD-REFF, JDREF, JD-REFI, and JD-REFF as synonyms for the standard
+    keywords, DATEREF, MJDREF, MJDREFI, MJDREFF, JDREF, JDREFI, and
+    JDREFF.  The latter buck the pattern set by the other date keywords
+    ({DATE,MJD}-{OBS,BEG,AVG,END}), thereby increasing the potential
+    for confusion and error.
+
+* Fortran wrappers
+
+  - As compilers are becoming much stricter (gfortran 10), modified all
+    Fortran test programs to use the type-specific equivalents of the
+    various *PUT and *GET routines.  Reported by Ole Streicher.
+
+  - For the fitshdr wrappers, added type-specific equivalents of
+    KEYGET: KEYGTI, KEYGTD, and KEYGTC.
+
+* PGSBOX
+
+  - Modified pgtest to use the type-specific equivalents of WCSPUT.
+
+* User manual
+
+  - In the section "WCSLIB Fortran wrappers", promoted use of the type-
+    specific equivalents of the various *PUT and *GET routines.
+
+  - In the section "FITS-WCS and related software", added ASCL and ADS
+    codes, where they exist, for all software packages mentioned.
+
+  - Documentation generation moved to doxygen 1.8.18 (was 1.8.17).
+
+
+WCSLIB version 7.2 (2020/03/09)
+-------------------------------
+
+* C library
+
+  - In wcssub(), fixed a bug relating to handling coordinate lookup
+    tables.  Reported by Mihai Cara with fix.
+
+    Also increased the number of coordinate axes handled from 10 to 32.
+
+* Installation
+
+  - New configure option, '--disable-shared', defeats generation of the
+    sharable library.
+
+
+WCSLIB version 7.1 (2020/01/01)
+-------------------------------
+
+Changes in the contents of the wcsprm struct necessitated incrementing
+the major version number from 6 to 7 (i.e. the ABI changed).
+
+* C library
+
+  - In wcsset(), set wcsprm::mjdref[] to zero if neither it nor
+    wcsprm::dateref are defined, as per the standard.  Reported by
+    Thomas Robitaille.
+
+    wcsset() now also checks that the number of coordinate axes does not
+    exceed 32.
+
+  - In tabs2x(), fixed an out-of-bounds array access produced by invalid
+    world coordinates.  Reported by Mihai Cara and Michael Seifert.
+
+    In tab.c, declare static three helper functions, tabedge(),
+    tabrow(), and tabvox(), used by tabs2x().  Increased the number of
+    coordinate axes handled by tabvox() from 16 to 32.
+
+  - Extended datfix() to handle MJDREF/DATEREF, overlooked in the
+    changes in release 6.1.  Also fixed the handling of MJD < 0.
+
+  - Support Solar keywords RSUN_REF, DSUN_OBS, CRLN_OBS, CRLT_OBS,
+    HGLN_OBS, and HGLT_OBS by accomodating them within an auxiliary
+    struct, auxprm, within the wcsprm struct.  Now filled by the header
+    parsers, wcspih() and wcsbth() and handled routinely by wcsinit(),
+    wcssub(), wcscompare(), wcsfree(), wcsprt(), wcsset(), and wcshdo().
+    Requested by Stuart Mumford (SunPy) with input from Bill Thompson.
+
+  - Bug fix in wcsprintf_set() for resetting the output disposition.
+    Reported by Mihai Cara with patch.
+
+  - In dis.{h,c}, the DOCORR record is now handled as a first-class
+    value via disprm::docorr.  This required changing the struct.
+
+  - In cel.c, spc.c, wcserr.c, wcsfix.c, wcshdr.c, and wcsutil.c,
+    quelled compiler warnings from gcc 9.2.0 generated by
+    -Wmaybe-uninitialized and -Wstringop-truncation (via -Wall).
+
+    Similarly for various programs in the test suite.
+
+  - In various functions, quelled warnings from the Microsoft Visual C++
+    compiler, mostly relating to pointer arithmetic.  Reported by
+    Michael Seifert.
+
+* Fortran wrappers
+
+  - Handled compiler warnings from gcc 9.2.0 generated by
+    -Wstringop-truncation (via -Wall).
+
+  - Minor enhancements to character argument handling, including, in
+    prjget_(), blank-filling the returned strings matching PRJ_CODE and
+    PRJ_NAME, and likewise for SPC_TYPE and SPC_CODE in spcget_().
+
+* Utilities
+
+  - In wcsgrid, handled compiler warnings from gcc 9.2.0 generated by
+    -Wstringop-truncation (via -Wall).
+
+* User manual
+
+  - In the section on "FITS-WCS and related software", added mention of
+    the R wrappers (Rwcs).  Suggested by Aaron Robotham.
+
+  - Added a new section detailing the limit on the number of image axes
+    that WCSLIB can handle (currently 32), and how this could be
+    increased if needed.  Prompted by Thomas Robitaille.
+
+  - Augmented the section on the Fortran wrappers, particularly with
+    respect to character string handling in argument lists.
+
+  - Documentation generation moved to doxygen 1.8.17 (was 1.8.16).
+
+
+WCSLIB version 6.4 (2019/08/15)
+-------------------------------
+
+* Installation
+
+  - The rule change to the Fortran makefile in v6.3 to add getwcstab_f.o
+    to the sharable library causes it to depend on CFITSIO to resolve
+    fits_get_wcstab().  Hence backed out of that change.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.16 (was 1.8.14).
+
+
+WCSLIB version 6.3 (2019/07/12)
+-------------------------------
+
+* C library
+
+  - Fixed the Polynomial and TPD distortions so that, as stipulated in
+    WCS Paper IV, they are now considered to return an additive
+    correction to be applied to the given coordinates, rather than the
+    corrected coordinates themselves.
+
+    Added a new subsection to the prologue of dis.h entitled 'Historical
+    idiosyncrasies', which discusses this issue and other vagueries.
+
+    Amended components of the test suite accordingly: SIPTPV.keyrec,
+    TPV7.keyrec, and tdis1.c.
+
+  - Fixed memory leaks and other potential problems that arose in the
+    wcserr system consequent on changes made in release 6.1.
+
+    Memory allocated by wcsfixi() for messages in the array of wcserr
+    structs must now be freed by the caller.  Amended twcsfix.c
+    accordingly.
+
+  - Plugged memory leaks arising in disset().
+
+  - New function wcsdealloc() provided to free memory allocated within
+    certain WCSLIB routines.  Suggested by David Motl.
+
+  - Eliminated a swag of inconsequential compiler warnings, particularly
+    those emanating from the flex sources.
+
+* Validation
+
+  - The library, Fortran wrappers, utilities, and test programs now pass
+    runtime analysis using -fsanitize=address and -fsanitize=undefined
+    in gcc 8.3.0, in addition to valgrind.  Also compile-time strictures
+    using -std=c99, -pedantic, -Wall, -Wextra, and -DFORTIFY_SOURCE=2.
+    Prompted by feedback from Ole Streicher.
+
+* Installation
+
+  - The non-graphical tests now run reliably in parallel builds
+    (make CHECK=nopgplot -j8 check).  Requested by Mohammed Akhlaghi.
+
+    The graphical tests can also be run in parallel, but as PGPLOT can
+    only handle one stream at a time, some graphics are likely to be
+    lost.  Nevertheless, it is a useful option, especially with runtime
+    analysis via -fsanitize=address, etc.
+
+  - As CFITSIO doesn't provide a Fortran wrapper for fits_read_wcstab(),
+    getwcstab_f.o is now always included in the WCSLIB object library
+    and sharable library if CFITSIO is available (and the WCSLIB Fortran
+    wrappers are required).  Use 'configure --without-cfitsio' to
+    defeat this.
+
+  - Tidied up some aspects of the build where CFITSIO is not available.
+
+* User manual
+
+  - Fixed minor formatting problems in dis.h.
+
+
+WCSLIB version 6.2 (2018/10/20)
+-------------------------------
+
+* C library
+
+  - Consequent on the change in release 6.1, reapplied soothing balm to
+    the wtbarr struct definition in wcs.h for C++ compilation (C and
+    Fortran compilation being unaffected).  While the object libraries
+    themselves are unchanged, the modified wcs.h must be installed for
+    compiling C++ applications.  Reported by Corentin Schreiber.
+
+* User manual
+
+  - Fixed minor formatting problems with the doxygen manual generation.
+
+
+WCSLIB version 6.1 (2018/10/19)
+-------------------------------
+
+* C library
+
+  - Added support for time-related WCS keywords (Paper VII) by expanding
+    the wcsprm struct to store them as auxiliary values, now filled by
+    the header parsers, wcspih() and wcsbth() and handled routinely by
+    wcsinit(), wcssub(), wcscompare(), wcsfree(), wcsprt(), wcsset(),
+    and wcshdo().
+
+  - Augmented datfix() to do various consistency checks on the new
+    time-related keyvalues, and added a new routine, obsfix(), to check
+    consistency of the OBSGEO-[XYZLBH] observatory coordinates.
+
+  - In the usage notes for wcsbth(), clarified that, according to WCS
+    Papers III and VII, certain global image header keywords are
+    permitted in binary table headers and are expected to be inherited
+    by image arrays and pixel lists, and elaborated on the difficulties
+    that such inheritance may cause for pixel lists.
+
+  - Revamped message string handling in the wcserr module to allow
+    arbitrarily long messages while greatly reducing the sizeof the
+    struct.
+
+  - Extracted the definition of the wtbarr struct from wcs.h to a
+    separate header file, wtbarr.h, in order to reduce the number of
+    irrelevant warnings generated by 'gcc -Wpadded' (primarily for
+    code development).  Applications code that needs to access members
+    of the struct (unlikely) must now include wtbarr.h (or wcslib.h).
+
+  - The WCSLIB major version number was incremented as changes to the
+    wcsprm struct makes the ABI of the sharable library incompatible
+    with executables linked with that of older releases.
+
+* Fortran wrappers
+
+  - Match changes to the C library, including adding a wrapper for
+    obsfix().
+
+* Installation
+
+  - Several changes to configure and the makefiles aimed at facilitating
+    code development.
+
+
+WCSLIB version 5.20 (2018/10/05)
+--------------------------------
+
+* C library
+
+  - Added utility functions dpkeyi() and dpkeyd() to dis.c, and removed
+    the corresponding functions from wcsutil.c.
+
+* Fortran wrappers
+
+  - New wrappers for dpkeyi() and dpkeyd().
+
+* Installation
+
+  - Reworked the makefiles to allow parallel library builds, as required
+    by some software distributions.  Reported by Dustin Lang with
+    suggested patch, and Zaak Beekman.  (Parallel execution of the test
+    suite is not supported.)
+
+  - The introduction of "deterministic" archiving (ar(1)) broke
+    dependency analysis in the WCSLIB makefiles on the many systems
+    where it is now enabled by default (i.e. binutils configured with
+    --enable-deterministic-archives).
+
+    Modified configure to force non-deterministic archiving during the
+    library builds, thus repairing the dependency analysis.  However,
+    the static object libraries are now reconstructed using
+    deterministic archiving in the process of installing them.
+
+  - Fixed problems with the dependency analysis, solely affecting code
+    development.
+
+
+WCSLIB version 5.19.1 (2018/07/28)
+----------------------------------
+
+* Installation
+
+  - Updated ./config/config.{guess,sub} to the latest versions from the
+    GIT repository, timestamped 2018-07-18 and 2018-07-25, respectively.
+    The previous pair were dated 2012-02-10 and 2012-04-18.
+
+
+WCSLIB version 5.19 (2018/07/27)
+--------------------------------
+
+* C library
+
+  - In wcssub(), fixed a bug in handling distortion functions on axes
+    with changed axis number in the subimage (i.e. via deletion or
+    addition of an axis).
+
+  - In various routines within dis.c, wcs.c, wcshdr.c, and wcspih.l,
+    increased the size of various sprintf() output buffers to avert
+    -Wformat-overflow warnings from gcc 8.1.0 (with -DFORTIFY_SOURCE=2).
+    Reported by Simon Conseil.
+
+    Also fixed other warnings in these routines from gcc 8.1.0
+    relating to -Wcast-function-type, -Wmaybe-uninitialized, and
+    -Wunused-parameter.
+
+  - In wcsutrn.l (the units alias translator used by wcsfix), recognise
+    'Deg', 'Degree', and 'Degrees' as aliases for 'deg'.  Rogue header
+    reported by Jim Lewis.
+
+  - Added a note to the prologue of spx.h explaining WCSLIB's use of
+    Cox's air-to-vacuum transformation equation rather than the IUGG
+    relation cited in WCS Paper III.  Noted by Benjamin Alan Weaver.
+
+  - In the test suite, avert nuisance compiler warnings in tdis1.
+    Made tsphdpa more robust in handling user coordinate input.
+
+* PGSBOX
+
+  - In pgwcsl_(), avert nuisance warnings from gcc 8.1.0 relating to
+    unused parameters (-Wunused-parameter).  Also averted nuisance
+    compiler warnings in cpgtest.
+
+* Utilities
+
+  - wcsware was not reading the -TAB table from the FITS file for
+    alternate descriptions, bug reported by Chiara Marmo.  Nor was
+    wcsfix() ever invoked for them.
+
+    Made it more robust in handling user input of coordinates for the
+    -x and -w options.
+
+  - Fixed compiler warnings from gcc 8.1.0 in HPXcvt
+    (-Wmaybe-uninitialized), and wcsgrid (-Wformat-overflow).
+
+* Installation
+
+  - Amended configure.ac to allow cross-compilation, and also updated
+    the auxiliary configure scripts in the config/ directory.  Patch
+    supplied by Mosè Giordano.
+
+
+WCSLIB version 5.18 (2018/01/10)
+--------------------------------
+
+* C library
+
+  - New routines introduced to preclude altering the global variables
+    NPVMAX, NPSMAX, and NDPMAX, which determine how much memory to
+    allocate for storing PVi_ma, PSi_ma, DPja, and DQia keyvalues:
+    wcsinit(), lininit(), lindist(), and disinit().  These are now used
+    by various WCSLIB routines, such as the header parsers, which
+    previously temporarily altered the global variables, thus posing a
+    thread hazard.  Testing and feedback on thread-safety issues, with
+    patches, from Rodrigo Tobar Carrizo.
+
+  - The Flex scanners, fitshdr(), wcsbth(), wcspih(), wcsulexe(), and
+    wcsutrne(), have been rewritten as thin wrappers (with the same API)
+    over scanners that were modified (with changed API) as required to
+    use Flex's "reentrant" option.  Consequently, they are now reentrant
+    and should be thread-safe.  That also passes through to the
+    deprecated wrappers, wcsulex() and wcsutrn().
+
+  - Fixed memory leaks in lindist() and lincpy() uncovered by valgrind.
+
+  - Test programs tfitshdr, tpih1, tpih2, and ttab3 are now careful to
+    free all allocated memory before exit to defeat spurious reports of
+    memory leaks by valgrind.
+
+* Fortran wrappers
+
+  - New wrappers for wcsinit(), lininit(), lindist(), and disinit().
+
+* Installation
+
+  - configure now recognises the value of ARFLAGS obtained from the
+    environment.
+
+* User manual
+
+  - Updates and amendments in line with the above changes.
+
+  - Documentation generation moved to doxygen 1.8.14 (was 1.8.13).
+
+
+WCSLIB version 5.17 (2017/09/18)
+--------------------------------
+
+* C library
+
+  - Fixed a memory leak in wcspih().  Reported by Pim Schellart.
+
+  - Fixed compiler warnings about comparison between signed and unsigned
+    integers in tab.c (Pey-Lian Lim).  Also fixed warnings in other
+    functions about unused parameters.
+
+* Fortran wrappers
+
+  - Fixed compiler warnings about comparison between signed and unsigned
+    integers in several routines.
+
+* PGSBOX
+
+  - Fixed a compiler warning about comparison between signed and
+    unsigned ints.
+
+* Installation
+
+  - Removed setgid permission on installation directories (for Fedora
+    Linux, reported by Sergio Pascual).
+
+* User manual
+
+  - Minor updates and amendments.
+
+  - Documentation generation moved to doxygen 1.8.13 (was 1.8.10).
+
+
+WCSLIB version 5.16 (2017/01/15)
+--------------------------------
+
+* C library
+
+  - Bug fix in spcfix() for the previous change.  Reported separately by
+    Julian Taylor & Peter Williams.
+
+
+WCSLIB version 5.15 (2016/04/05)
+--------------------------------
+
+* C library
+
+  - Bug fix in wcsulex.l for the previous change.  Reported, and fix
+    supplied by Tammo Jan Dijkema.
+
+  - In spcfix(), report the value of VELREF if ctype is translated from
+    the AIPS convention.
+
+
+WCSLIB version 5.14 (2016/02/07)
+--------------------------------
+
+* C library
+
+  - In wcsulex.l and wcsutrn.l, applied a workaround for a memory leak
+    introduced by a change (bug) in flex in Aug/2012.  Reported, and
+    fix supplied by Thomas Robitaille and Erik Bray.
+
+* Installation
+
+  - In MacOSX, create symlink libwcs.dylib pointing to the dynamic
+    library so that WCSLIB is linked dynamically by default.  Requested
+    by Paul Price.
+
+
+WCSLIB version 5.13 (2016/01/26)
+--------------------------------
+
+* C library
+
+  - In wcshdo(), provide floating-point format control via the 'ctrl'
+    argument (formerly 'relax').
+
+  - In wcspih(), PLATEID by itself is no longer sufficient to trigger a
+    DSS translation (reported by James Allen).
+
+  - In unitfix(), ensure that the message buffer cannot be overrun, e.g.
+    by blank-padded unit strings (reported by Vishal Kasliwal).
+
+
+WCSLIB version 5.12 (2015/11/15)
+--------------------------------
+
+* C library
+
+  - Bug fix in wcshdo() for CRVALia precision reported by Mihai Cara.
+
+
+WCSLIB version 5.11 (2015/10/18)
+--------------------------------
+
+* C library
+
+  - Bug fixes in wcspih.l and dis.c for WAT distortions provided by
+    Ole Streicher.
+
+
+WCSLIB version 5.10 (2015/10/09)
+--------------------------------
+
+* C library
+
+  - In wcshdo(), allow output of floating point keyvalues to 15
+    significant digits (was 14), mainly for astropy.
+
+  - In wcspih(), allow unrecognised WAT projection types (tan, etc.) to
+    pass without returning an error.  Reported by Michael Droettboom.
+    Also fixed a bug triggered by SIP keywords in unconventional order,
+    reported by Colin Slater, LSST.
+
+
+WCSLIB version 5.9 (2015/07/21)
+-------------------------------
+
+* C library
+
+  - In disx2p(), make proper allowance for the possibility that the TPD
+    and SIP forward and inverse distortion polynomials may not be of the
+    same degree, reported by Martin Kuemmel.
+
+  - Fix-ups in wcshdo() reported by Michael Droettboom, and several
+    tidy-ups as well.
+
+
+WCSLIB version 5.8 (2015/07/08)
+-------------------------------
+
+* C library
+
+  - DSS (Digitized Sky Survey) coordinates are now handled via TPD, as
+    are the TNX and ZPX "projections".  New test script tdis3 and
+    headers DSS.keyrec, TNX.keyrec, and ZPX.keyrec.
+
+  - New function dishdo() can be used to set a flag that causes
+    wcshdo() to write headers in the form of the distortion function
+    used internally (usually TPD).
+
+  - Added the capability, via DPja.DOCORR, for a distortion function to
+    to compute an additive correction to the undistorted coordinates
+    (rather than computing the distorted coordinates themselves).
+
+  - Added auxiliary variables to TPD via DPja.AUX.jhat.COEFF.m.
+
+  - Bug fix in wcshdo() for TPV, diagnosed by Michael Droettboom.
+
+* Fortran wrappers
+
+  - Wrapper for dishdo().
+
+
+WCSLIB version 5.7 (2015/06/29)
+-------------------------------
+
+* C library
+
+  - Extended wcssub() to handle distortions (and thus wcscopy() also).
+    This required axis mapping to be enabled for SIP distortions within
+    WCSLIB.
+
+  - wcshdo() now handles all distortions currently supported by WCSLIB:
+    SIP, TPV, TPD, and Polynomial.
+
+  - Bug fixes in sphx2s() and sphs2x() for non-unit vector strides for
+    special-case rotations.
+
+  - In wcsset(), modify wcsprm::ctype after translating TPV so that
+    subsequent calls won't try to re-translate it, the PVi_ma records
+    by then having been erased.  Reported by Michael Droettboom.  Also,
+    restore NDPMAX after translating TPV.
+
+  - Bug fixes in discpy(), disprt(), disset(), and disx2p().
+
+  - Added disperr(), prjperr(), spcperr(), spxperr(), and tabperr() to
+    complete the set and make reporting errors slightly more convenient.
+
+* Utilities
+
+  - wcsware has a new option, -o, to print the wcsprm struct in the form
+    of a FITS header using wcshdo().  Also, the -a option has been
+    extended to allow a 0-relative numeric index for selecting an
+    alternate WCS, where the alternates are sequenced alphabetically
+    (without gaps) following the primary representation.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.10 (was 1.8.9.1).
+
+
+WCSLIB version 5.6 (2015/06/14)
+-------------------------------
+
+* C library
+
+  - Bug fixes in wcspih() and sipset() to account for the fact that the
+    independent variables of the SIP polynomial are pixel coordinate
+    offsets from CRPIXja, not pixel coordinates per se.  Diagnosed by
+    Michael Droettboom.
+
+    Validated SIP and TPV handling by comparing the output of
+    'wcsware -x' with that of wcstools 'xy2sky -d -n6' using astropy's
+    SIP test headers, and separate SIP and TPV headers originating from
+    the Palomar Transient Factory provided by David Shupe.
+
+    Changed SIP.keyrec so that CRPIX1 and CRPIX2 differ in value,
+    thereby making tests sensitive to any confusion between the two.
+
+
+WCSLIB version 5.5 (2015/05/05)
+-------------------------------
+
+* C library
+
+  - Bug fixes in wcspih.l for headers with multiple distortions, and for
+    distortion parameter look-alike keywords.
+
+  - Bug fix in sipset() uncovered by valgrind.
+
+
+WCSLIB version 5.4.1 (2015/05/01)
+---------------------------------
+
+* C library
+
+  - Added a fairly lengthy section to the prologue of dis.h describing
+    the Paper IV keywords and the distortion functions currently
+    implemented.
+
+* User manual
+
+  - Added a new section on WCSLIB version numbers.
+
+
+WCSLIB version 5.4 (2015/04/21)
+-------------------------------
+
+* C library
+
+  - Further work on distortions: wcspih() now parses Paper IV distortion
+    keywords (CPDISja, CQDISia, DPja, DQia, etc.), thus handling record-
+    valued keywords.  SIP keywords are also parsed and translated into
+    Paper IV keywords.
+
+  - TPV, SIP, and whereever possible, the general Polynomial distortion
+    function of Paper IV are now implemented by the Template Polynomial
+    Distortion (TPD), that being a superset of TPV and SIP.  TPD, which
+    can also handle 1D distortions and be used for inversions, is also
+    supported as a separate distortion type defined by Paper IV
+    keywords.  TPD efficiently handles 1D distortions and distortions
+    without radial terms.
+
+  - Specialized inverse distortions, such as defined by SIP, are
+    implemented by TPD and recognized by disx2p(), which uses them to
+    compute the initial approximation of its more precise iterative
+    solution.
+
+  - Generalized tdis1.c so that it can do closure tests for SIP headers,
+    and added a SIP test header.
+
+
+WCSLIB version 5.3.1 (2015/04/21)
+---------------------------------
+
+* C library
+
+  - Bug fix in test program tdis1.c reported by Martin Kuemmel.
+
+
+WCSLIB version 5.3 (2015/04/21)
+-------------------------------
+
+First public release of WCSLIB 5.x with distortions capability.
+
+* C library
+
+  - Changed disprm::dtype from char[16] to char[72] for reasons relating
+    to header parsing.
+
+  - More armour plating for disset() and friends.  They also use new
+    utility functions wcsutil_dpkey_int() and wcsutil_dpkey_double() to
+    extract numeric values from a dpkey struct.  This ensures their
+    independence of the data type, the appropriate reporting of dpkey
+    values by disprt(), and (eventually) the appropriate writing of DPja
+    and DQia keyvalues by wcshdo().
+
+  - Augmented the usage comments for dpfill() to explain how numeric
+    values in a dpkey struct are handled.
+
+* Utilities
+
+  - wcsware now uses wcserr to provide a backtrace on errors.  Also
+    fixed a couple of minor annoyances relating to alternate
+    representations.
+
+
+WCSLIB version 5.2 beta release (2015/04/15)
+--------------------------------------------
+
+* C library
+
+  - Further development of disprm and related functions to implement
+    the FITS keywords for distortions introduced in WCS Paper IV, thus
+    changing disprm's ABI once again.
+
+    disprm's model is now similar to wcsprm's handling of PVi_ma and
+    PSi_ma, where the parsed keyrecords are loaded into a set of pvcard
+    and pscard structs and wcsset() does the analysis.  For disprm, the
+    parsed DPja or DQia keyrecords are loaded into a set of dpkey
+    structs for disset() to analyse.
+
+  - New function dpfill() aids in filling a dpkey struct.  Function
+    disparms() has been removed.  It was no longer needed as
+    disprm::parms[][] is now a "returned" member of the struct.
+
+  - Implementation of the general Polynomial distortion function defined
+    in Sect. 3.1 of WCS Paper IV.  The polynomial is defined in terms of
+    Paper IV keywords.
+
+  - Bug fixes in diswarp() and linwarp() reported by
+    Michael Droettboom.
+
+  - Test program tdis1 now tests a TPV header for closure in two ways:
+    directly as a specialist TPV distortion (as before), then by
+    translating it into a general polynomial distortion.  It then also
+    tests that the TPV and polynomial distortions produce the same
+    results.
+
+* Fortran wrappers
+
+  - Changes to the wrappers reflecting changes to disprm.
+
+  - Bug fixes in fitshdr_f.c, and test programs tdis1.f, tfitshdr.f,
+    twcsfix.f, and twcs.f.  All reported and/or fixed by Ole Streicher.
+
+
+WCSLIB version 5.1 beta release (2015/04/07)
+--------------------------------------------
+
+* C library
+
+  - Distortions-related bug fixes to linset(), linp2x(), and linx2p().
+
+  - New functions diswarp() and linwarp() compute statistics of the
+    distortion functions over a specified domain.  Changed tdis1.c to
+    test them.
+
+  - Changes to disprm (so changed ABI).
+
+* Fortran wrappers
+
+  - Wrappers for diswarp() and linwarp().
+
+
+WCSLIB version 5.0 beta release (2015/04/05)
+--------------------------------------------
+
+* C library
+
+  - Implemented the framework of WCS Paper IV (the draft distortions
+    proposal) based on a new struct, disprm, and suite of routines with
+    header dis.h: disini(), disalloc(), discpy(), disfree(), disprt(),
+    disset(), disp2x(), and disx2p().  New test program tdis1.
+
+    Consequent changes to the linprm struct have altered its ABI, thus
+    necessitating an increment in the WCSLIB major verion number.
+
+  - wcsset() now recognises the "TPV" projection proposed in an early
+    draft of WCS Paper II, and translates it into a disprm distortion -
+    by request of Octavi Fors.  Additionally, it recognises "TPU" as
+    equivalent to "TPV" but using a prior distortion (coming before the
+    linear transformation matrix) rather than sequent (coming after it).
+
+  - In wcspih() and wcsbth(), added relaxation flags to allow PC0i_0ja,
+    PV0j_0ma, and PS0j_0ma (i.e. with leading zeroes on the index).
+
+  - Added wcslib_version() to return the WCSLIB version number, as
+    suggested by Ole Streicher.
+
+  - Fixed problems uncovered by valgrind in prjbchk() (reported by
+    Ger van Diepen), sphx2s(), sphx2s(), spcspxe(), spcxpse(), tabini(),
+    and wcshdo_util().
+
+  - Tidied up error reporting, particularly relating to translating
+    status returns from lower-level functions.  New functions linperr()
+    and celperr() report error messages from the structs they contain
+    in addition to their own.
+
+  - Changed output formatting of floating point values in linprt(),
+    celprt(), prjprt(), spcprt(), tabprt(), and wcsprt().  Updated the
+    test output reference files for tbth1, tpih1, twcsfix, twcssub, and
+    twcstab to suit.
+
+  - Tidied up several of the test programs, mostly to free memory
+    explicitly before exit so that valgrind doesn't report (non-)leaks.
+
+* Fortran wrappers
+
+  - Wrappers for the new distortion functions.  New test programs
+    tdis1.f and tdis2.f.
+
+  - Updates following changes to wcspih() and wcsbth().
+
+  - Added wrappers for linperr() and celperr().  Also added prjperr_(),
+    spcperr_(), and tabperr_() as convenient wrappers on wcserr_prt().
+
+  - Wrapper for wcslib_version().
+
+* Utilities
+
+  - Added a "lint" function to wcsware to check a FITS header for
+    conformance to the WCS standard.  New test program twcslint.
+
+* PGSBOX
+
+  - In PGCRLB, fixed an incorrect use of the MOD intrinsic reported by
+    'gfortran -std=f95' via Jean-Baptiste Marquette.
+
+
+WCSLIB version 4.25.1 (2015/01/05)
+----------------------------------
+
+* C library
+
+  - Updated the test output reference files for tpih1, tbth1, twcsfix,
+    and twcstab to account for the change to wcsset() in release 4.25.
+
+* Fortran wrappers
+
+  - Updated the test output reference files for tpih1, twcsfix, and
+    twcstab to account for the change to wcsset() in release 4.25.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.9.1 (was 1.8.8).
+
+
+WCSLIB version 4.25 (2014/12/15)
+----------------------------------
+
+* C library
+
+  - wcsset() now supplies default values for the auxiliary keywords
+    EQUINOXa and RADESYSa if not present in the FITS header.
+
+
+WCSLIB version 4.24 (2014/09/19)
+----------------------------------
+
+* C library
+
+  - Changed API to wcscompare() to allow a tolerance to be specified for
+    floating-point comparisons.  Contributed by Michael Droettboom.
+
+* Fortran wrappers
+
+    Track the change to wcscompare().
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.8 (was 1.8.4).
+
+  - Added mention of WCSLIB in "homebrew-science" (MacOSX) in the
+    section on other packages.
+
+
+WCSLIB version 4.23 (2014/05/11)
+--------------------------------
+
+* C library
+
+  - New function wcscompare() compares two wcsprm structs for equality
+    with varying degrees of strictness.  Test program twcscompare.
+    Contributed by Michael Droettboom.
+
+  - In wcssub(), fixed a bug uncovered by valgrind arising from
+    allocation of insufficient memory for temporaries when a new axis
+    is added.  Reported by Michael Droettboom.
+
+  - In wcshdo(), don't write RESTFRQ or RESTWAV if zero.
+
+    Also, to distinguish them from integer keyvalues, floating-
+    point values will now always be written with an exponent or
+    fractional part, ".0" being appended if necessary to achieve this.
+    Suggested by Peter Weilbacher.
+
+  - Fixed the '-h' option in twcshdr.
+
+* Fortran wrappers
+
+  - Wrapper for wcscompare().
+
+
+WCSLIB version 4.22 (2014/04/13)
+--------------------------------
+
+* C library
+
+  - In pcox2s() and pcos2x(), use alternative projection equations for
+    greater numerical precision near theta == 0.  In cops2x(), return
+    an exact result for theta at the poles.  Relaxed the tolerance for
+    bounds checking a little in sflx2s().
+
+
+WCSLIB version 4.21 (2014/03/24)
+--------------------------------
+
+* C library
+
+  - New function prjbchk() performs bounds checking on native spherical
+    coordinates.  It is invoked automatically by the deprojection (x2s)
+    routines if prjprm::bounds&4 is set.  Documented the new bounds
+    checking implemented by prjbchk() in the prologue entry for
+    wcsbchk().  Improvements to tprj1 to test the vector API of prjx2s()
+    and to deal better with out-of-bounds native coordinates returned by
+    it.
+
+  - Bug fixes in the projection routines: in hpxx2s() relating to bounds
+    checking, bug introduced at 4.20, reported by Michael Droettboom; in
+    parx2s() and molx2s() relating to setting the stat vector; in
+    hpxx2s() relating to implementation of the vector API; and in
+    xphx2s() relating to setting an out-of-bounds value of phi.
+
+* Fortran wrappers
+
+  - Wrapper for prjbchk().  Modified tprj1.f to track changes to the C
+    version.
+
+
+WCSLIB version 4.20 (2013/12/18)
+--------------------------------
+
+* C library
+
+  - New function, wcsbchk(), for controlling bounds checking in the
+    projection routines.
+
+  - Enable bounds checking in the pixel-to-sky (x2s) direction for HPX
+    and XPH if prjprm::bounds&2.  Tightened bounds checking in xphx2s().
+    prjini() now sets prjprm::bounds = 3 to enable all bounds checking
+    by default.
+
+  - Fixed an incorrect error message in wcs_units().  Also report
+    potentially unsafe units translations in unitfix() - both
+    contributed by Michael Droettboom.
+
+* Fortran wrappers
+
+  - Wrapper for wcsbchk().
+
+* PGSBOX
+
+  - Fixed a few nuisance warnings from gfortran 4.7.2 relating to
+    implicit type conversions in pgsbox.f.
+
+* User manual
+
+  - Added mention of wcsjs (Javascript) in the section on other
+    packages.
+
+
+WCSLIB version 4.19 (2013/09/30)
+--------------------------------
+
+* C library
+
+  - Bug fix in wcshdo(), uncovered by cppcheck and reported by David
+    Binderman.  Fixed additional minor inconsistencies in hpxx2s(),
+    wcsprintf(), and wcsfprintf() reported by cppcheck.
+
+  - Minor fix to twcstab reported by cppcheck.
+
+  - Bug fix in wcssub() for handling (non-standard) PROJPn keywords
+    (uncovered by valgrind, reported by Paul Price).
+
+
+WCSLIB version 4.18 (2013/07/13)
+--------------------------------
+
+* C library
+
+  - Implemented the butterfly projection (XPH), being the polar form of
+    the HEALPix projection with (H,K) = (4,3).  Augmented tprj1.c and
+    tprj2.c to suit.
+
+  - Bug fix in celfix() when translating GLS to SFL with non-zero
+    reference point.
+
+* Fortran wrappers
+
+  - Wrappers for the XPH projection functions and corresponding
+    modifications to the test programs.
+
+  - Fixed a few inconsequential warnings from gfortran 4.7.2 relating
+    to implicit type conversions in the test programs.
+
+* Utilities
+
+  - In HPXcvt, fixed incorrect axis scaling (CDELT1 and CDELT2) in the
+    XPH header, and set the PCi_ja matrix in the HPX header to a pure
+    45 degree rotation with appropriate adjustment of CDELT1 and CDELT2
+    (matching XPH).  Also set LONPOLE to 180 degree in the XPH header
+    with adjustment of CRVAL1 as recommended in the errata.  These
+    changes prompted by Paddy Leahy.  Also, modified the FITS header
+    comment for XPH - it is no longer "experimental", and accept the
+    '-x' option (i.e. without qualification) as equivalent to '-xn'.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.4 (was 1.5.6).
+
+
+WCSLIB version 4.17 (2013/01/29)
+--------------------------------
+
+* C library
+
+  - Added wcsfprintf() to wcsprint.h.  Now used in wcsbth() and wcspih()
+    to allow diagnostic output to be redirected.  Changes provided by
+    Michael Droettboom.
+
+
+WCSLIB version 4.16 (2012/11/07)
+--------------------------------
+
+* C library
+
+  - When wcspih() constructs a default coordinate representation it will
+    give it the special name "DEFAULTS", and will not report "Found one
+    coordinate representation" (if reporting is enabled).
+
+* Utilities
+
+  - wcsware has a new option, -P, which does the same as -p except that
+    it won't print a wcsprm struct with the name "DEFAULTS".
+
+
+WCSLIB version 4.15 (2012/09/26)
+--------------------------------
+
+* C library
+
+  - Bug fixes in spctype(), spcspxe(), spcxpse, and spctrne() for
+    propagating an error status correctly from lower-level routines.
+    Amendments to the prologues of these routines.  Reported by
+    Hans Terlouw.
+
+  - Similarly for wcsunitse(), wcsulexe(), and wcsutrne().
+
+* PGSBOX
+
+  - Bug fix in PGSBOX for handling cycles in angle when both world
+    coordinate elements are angular.  Reported by Thomas Robitaille.
+
+
+WCSLIB version 4.14 (2012/07/13)
+--------------------------------
+
+* C library
+
+  - Problems were caused for fitshdr(), wcsbth(), wcspih(), wcsulex(),
+    datfix() and wcshdo(), by locales such as "fr_FR" in which commas
+    are used to delimit the decimal part of floating point numbers.
+    In particular, these locales adversely affect the behaviour of
+    sscanf() and sprintf() when reading and writing FITS header
+    keyvalues.  Thread-safe fixes provided by Michael Droettboom.
+
+  - Applied astropy patches from Michael Droettboom: attend to compiler
+    warnings in prj.c, spc.c, tab.c, and wcsutil.c, including those for
+    MS-Windows.
+
+
+WCSLIB version 4.13.4 (2012/04/02)
+----------------------------------
+
+* Installation
+
+  - Relaxed the closure tolerance slightly in tlog.f as for tlog.c
+    previously.
+
+
+WCSLIB version 4.13.3 (2012/03/26)
+----------------------------------
+
+* Installation
+
+  - Relaxed the closure tolerance slightly in tlog.c for gcc 4.6.3 on
+    Ubuntu 12.04 (reported by Ole Streicher).
+
+
+WCSLIB version 4.13.2 (2012/03/21)
+----------------------------------
+
+* Installation
+
+  - Changes to configure.ac and the GNUmakefiles to put '-lm' strictly
+    in the correct sequence when producing the sharable library
+    (reported by Ole Streicher).
+
+
+WCSLIB version 4.13.1 (2012/03/15)
+----------------------------------
+
+* C library
+
+  - Workaround in wcserr_set() for an unfortunate compiler segv from
+    gcc 4.2.1 in MacOSX 10.7.
+
+
+WCSLIB version 4.13 (2012/03/14)
+--------------------------------
+
+* C library
+
+  - Allow naxis == 0 in wcsini() and linini() for a degenerate
+    coordinate system as may be produced by wcssub().  In wcssub(),
+    ensure that wcsini() is called for coordinate systems with
+    naxis == 0.  In wcssptr(), call spcfree() before spcini() to plug a
+    memory leak.
+
+
+WCSLIB version 4.12 (2012/02/29)
+--------------------------------
+
+* C library
+
+  - In spctrne(), guard against restfrq == restwav == 0.0 when
+    translating between two velocity-characteristic types, or between
+    two wave-characteristic types (the translation is independent of
+    restfrq and restwav, but a dummy value is needed for intermediate
+    calculations).
+
+
+WCSLIB version 4.11 (2012/02/21)
+--------------------------------
+
+* C library
+
+  - Bug fix in spcset() for handling simple linear spectral axes.
+
+* Fortran wrappers
+
+  - Bug fix in spctrne_() for handling ctypeS2.
+
+
+WCSLIB version 4.10 (2012/02/06)
+--------------------------------
+
+* C library
+
+  - datfix() and spcfix() now return informative messages when dates and
+    AIPS-convention spectral axes are translated (changes contributed by
+    Michael Droettboom).  spcaips() now returns an error status for
+    invalid values of VELREF.
+
+  - wcssub() has been augmented with the ability to add new axes onto a
+    wcsprm struct.
+
+
+WCSLIB version 4.9 (2012/01/24)
+-------------------------------
+
+* C library
+
+  - Fixes to wcsfixi() for collecting the messages properly in the info
+    array (from Michael Droettboom).
+
+  - Handle certain malformed date strings more gracefully in datfix().
+
+  - Make informative messages printed by wcserr_prt() a bit more
+    informative.
+
+
+WCSLIB version 4.8.4 (2011/12/05)
+---------------------------------
+
+* C library
+
+  - Fixed the pseudo-random number generator in twcstab.c - gcc 4.6 with
+    '-O2' baulked at testing for signed integer overflow.
+
+* Installation
+
+  - In configure.ac, the Fortran compiler's libraries must be added to
+    the link list when checking for the PGPLOT libraries since gcc is
+    driving the linker.  Likewise in C/GNUmakefile when linking test
+    programs that use PGPLOT.
+
+  - Use 'make CHECK=nopgplot check' to run only the non-graphical tests
+    (even if PGPLOT is available).
+
+  - After compiling and running the tests, 'make check' now summarizes
+    the non-graphical test results and stops if any failed.
+
+
+WCSLIB version 4.8.3 (2011/11/17)
+---------------------------------
+
+* C library
+
+  - Minor generalization of the wcserr diagnostics to allow the return
+    of informative messages, which are associated with negative status
+    values.  wcserr_prt() will now recognize and print them as such.
+    Added wcserr_clear() to reset (clear) a wcserr struct.
+
+  - Modified unitfix() to return an informative message if a units
+    alias is applied, and wcsfixi() to allow such messages to be
+    propagated through the info array (from Michael Droettboom).
+
+  - Modified twcsfix.c to use wcserr diagnostics, in particular to
+    report units alias translations.
+
+* Fortran wrappers
+
+  - In wcsfix_(), interpret *naxis == 0 as meaning naxis == 0x0, thus
+    causing cylfix() to be skipped.
+
+  - Modified twcsfix.f to reflect changes made to twcsfix.c.
+
+
+WCSLIB version 4.8.2 (2011/10/04)
+---------------------------------
+
+* Installation
+
+  - Changes for Debian package generation contributed by Ole Streicher:
+    - Corrections to 'configure' reported by 'lintian'.
+    - Generate man pages for the utility programs and install them.
+
+
+WCSLIB version 4.8.1 (2011/09/19)
+---------------------------------
+
+* Installation
+
+  - Set SONAME in the sharable library in accordance with
+    tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html
+    (reported by Ole Streicher, Debian package maintainer).  The
+    sharable library will again be installed with full release number
+    and with a symbolic link from SONAME pointing to it.  If defined,
+    SHRLN will point to SONAME.
+
+
+WCSLIB version 4.8 (2011/08/15)
+-------------------------------
+
+* C library
+
+  - New error diagnostics mechanism contributed by Michael Droettboom:
+
+    Most functions that return a numeric status (error) code now also
+    write a detailed error message to a wcserr struct attached to the
+    passed-in *prm struct.  See wcserr.h for more information.
+
+    Functions that didn't have a *prm struct as an argument have no
+    direct way to return an error message.  Therefore, these functions
+    now have duplicate versions with the suffix "e" that take an
+    additional "struct wcserr *" parameter.  These functions are:
+
+        spcspx()    ->  spcspxe()
+        spctrn()    ->  spctrne()
+        spctyp()    ->  spctype()
+        spcxps()    ->  spcxpse()
+        wcsulex()   ->  wcsulexe()
+        wcsunits()  ->  wcsunitse()
+        wcsutrn()   ->  wcsutrne()
+
+    A new function wcsfixi() was added which is identical to wcsfix()
+    but in addition stores all of the detailed textual messages about
+    the fixes that were performed.
+
+  - In wcssub(), ensure that wcstab->m_tab has been initialized
+    before trying to free it on status return 12 or 13 (reported by
+    Hans Terlow).
+
+  - Bug fixes:
+    - In sphx2s() and sphs2x() for the case where |eul[1]| = 180.0.
+    - For parsing AIPS-convention VELREF in wcsbth().
+    - In spcaips() for translating AIPS-convention CTYPEia without
+      Doppler frame.
+
+  - Non-graphical test programs now simply report "PASS" if they satisfy
+    the reporting tolerance for closure residuals, etc.  Their full
+    output is reported otherwise.  Run 'make MODE=interactive check' to
+    revert to the previous behaviour of reporting the full output for
+    tests that succeed.
+
+  - Eliminated compiler warnings about type-punning of pointer-to-
+    function.
+
+* Fortran wrappers
+
+    Extensive modifications to track the new error handling mechanism
+    in the C library.
+
+* Installation
+
+  - configure now prefers gfortran over g77 if available.
+
+  - Don't rely on "." being in the PATH if config.status needs to be
+    run in the pgsbox and utils makefile (reported by Peter Teuben).
+
+
+WCSLIB version 4.7 (2011/02/07)
+-------------------------------
+
+* C library
+
+  - Bug fix in celset() for interpreting LATPOLEa when LONPOLEa = phi0.
+    Crept in at version 4.4.
+
+  - Fixed the bounds test on y in hpxx2s() (HEALPix projection) for
+    unconventional values of H and K.  In hpxx2s() and hpxs2x(),
+    corrected the offset of the southern polar half-facets for
+    even K.  In hpxs2x(), put the phi = 180 meridian in the expected
+    place.
+
+  - Bug fixes in tabx2s() and tabs2x() for default indexes (reported
+    by David Berry).  In tabs2x(), if no solution is found then do
+    minor extrapolation past the ends of each row (1-D case only).
+    Sped up tabs2x() by about 50%.
+
+  - New functions wcsprintf(), wcsprintf_set(), and wcsprintf_buf(),
+    declared in wcsprintf.h, provide control over the disposition of
+    output from celprt(), linprt(), prjprt(), spcprt(), tabprt(), and
+    wcsprt() routines.  Prompted by Michael Droettboom, with an initial
+    implementation.
+
+* Fortran wrappers
+
+  - In the various test programs, used EQUIVALENCEs to ensure that the
+    CEL, LIN, PRJ, etc. arrays are aligned on a DOUBLE PRECISION
+    boundary.
+
+* PGSBOX
+
+  - Bug fix for the case where NG1 == 0 and GRID1(0) < 0, and likewise
+    for NG2 and GRID2.
+
+* Utilities
+
+  - In wcsware, added a '-w' option to convert world coordinates
+    obtained from stdin to pixel coordinates using wcss2p().  Allow
+    multiple sets of input coordinates with the '-x' and '-w' options
+    and report the value of the intermediate world coordinates.
+
+* User manual
+
+  - Fixed list formatting for function return values < 0 or > 9.
+
+  - New section for wcsprintf() and related routines.
+
+* Installation
+
+  - Changes prompted by Sébastien Fabbro for the Gentoo Linux package:
+      a) autoconf updates,
+      b) respect LDFLAGS when building the shared library,
+      c) install documentation,
+      d) recognise DESTDIR for doing a staged installation.
+
+  - As of this release, the minor WCSLIB version number (second field)
+    will be incremented if and only if a change is made that affects the
+    library itself, not the documentation or utilities.  The version
+    number on the installed libraries and header files will omit the
+    patch number (third field).
+
+
+WCSLIB version 4.6.3 (2010/11/24)
+---------------------------------
+
+* C library
+
+  - Bug fix in wcsbth() for handling the inheritance of image header
+    keywords (uncovered by valgrind, reported by Jim Lewis).
+
+
+WCSLIB version 4.6.2 (2010/11/22)
+---------------------------------
+
+* C library
+
+  - Fixed a memory leak in wcsbth.l (reported by Jim Lewis).
+
+
+WCSLIB version 4.6.1 (2010/11/18)
+---------------------------------
+
+* Fortran wrappers
+
+  - Fixed typos in cel_f.c, celget[cdi] -> celgt[cdi].
+
+
+WCSLIB version 4.6 (2010/11/16)
+-------------------------------
+
+* C library
+
+  - In wcsulex.l and wcsutrn.l, stdlib.h must be included explicitly
+    before the redefinition of exit() - most versions of flex do include
+    it upfront but some don't (reported by Peter Williams).
+
+* Fortran wrappers
+
+  - Changes intended to avert nuisance compiler warnings that could
+    potentially obscure warnings indicative of a genuine problem:
+
+    - To stop messages about unused variables when the relevant compiler
+      option is set, e.g. 'g77 -Wunused', the various *_ERRMSG arrays
+      defined in the Fortran include files and (formerly) initialized
+      therein via DATA statements, e.g. PRJ_ERRMSG in prj.inc, have now
+      been placed into COMMON blocks with names such as PRJ_DATA, and
+      are initialized via DATA statements in BLOCK DATA subprograms
+      defined in separate files, e.g. prj_data.f.
+
+    - To stop messages about subroutines being invoked with inconsistent
+      argument lists if the relevant compiler option is not set, e.g.
+      'g77 -Wno-globals', the C wrapper functions that take 'void *'
+      arguments now have separate forms for INTEGER, DOUBLE PRECISION,
+      and CHARACTER arguments that simply invoke the generic function.
+      Application code must be modified to take advantage of this.
+
+* User manual
+
+  - In the section on the Fortran wrappers in the manual, warn about the
+    need for the INTEGER array holding a data structure to be aligned on
+    a DOUBLE PRECISION boundary.
+
+
+WCSLIB version 4.5.6 (2010/10/28)
+---------------------------------
+
+* Installation
+
+  - Fixed the search for CFITSIO and PGPLOT library and include
+    directories.
+
+
+WCSLIB version 4.5.5 (2010/10/14)
+---------------------------------
+
+* Installation
+
+  - Build the PGSBOX sharable library.
+
+
+WCSLIB version 4.5.4 (2010/09/28)
+---------------------------------
+
+* C library
+
+  - In wcshdo(), according to the FITS standard, "Letters in the
+    exponential form ('E' or 'D') shall be upper case" (reported by
+    Michael Droettboom).
+
+
+WCSLIB version 4.5.3 (2010/09/23)
+---------------------------------
+
+* Utilities
+
+  - Various improvements to wcsgrid: correct the scaling set via
+    cpgwnad(); label angles other than RA,Dec in decimal degrees;
+    draw the projection boundary for projections other than zenithals.
+
+
+WCSLIB version 4.5.2 (2010/09/23)
+---------------------------------
+
+* C library
+
+  - Fixed the translation of GLS to SFL in wcsset() and celfix() when
+    the reference longitude is non-zero - it introduces an offset in
+    longitude in the normal way.  (This undoes part of the change
+    applied in version 4.4.)
+
+
+WCSLIB version 4.5.1 (2010/08/12)
+---------------------------------
+
+* C library
+
+  - New utility function, sphpad(), computes the coordinates of points
+    offset by given angular distances and position angles from a given
+    point on the sky (complementary to sphdpa()).
+
+* Fortran wrappers
+
+  - New wrapper function:
+    - SPHPAD for sphpad().
+
+
+WCSLIB version 4.5 (2010/07/16)
+-------------------------------
+
+* C library
+
+  - Fixed the interpretation of VELREF when translating AIPS-convention
+    spectral types.  Such translation is now handled by a new special-
+    purpose function, spcaips().  The wcsprm struct has been augmented
+    with an entry for velref which is filled by wcspih() and wcsbth().
+    Previously, selection by VELREF of the radio or optical velocity
+    convention for type VELO was not properly handled.
+
+* Fortran wrappers
+
+  - New wrapper function:
+    - SPCAIPS for spcaips().
+
+  - Changed spc.inc, spc_f.c, wcs.inc and wcs_f.c to track VELREF
+    changes.
+
+  - Declared functions external in the include files to avoid compiler
+    warnings about unused variables (if the particular option is set).
+
+* Utilities
+
+  - Added a '-q' option to fitshdr to quit after a specified number
+    of HDUs.
+
+
+WCSLIB version 4.4.4 (2009/09/14)
+---------------------------------
+
+* Installation
+
+  - Added more configure options for controlling the build:
+    --disable-fortran, --disable-utils, --without-cfitsio, and
+    --without-pgplot.
+
+
+WCSLIB version 4.4.3 (2009/09/03)
+---------------------------------
+
+* C library
+
+  - Set wave number units to "/m" in spctyp(), was "1/m" which is not
+    strictly legal and wasn't handled by wcsulex() (reported by
+    Hans Terlow).  Also fixed a number of units specifications in the
+    prologue of spx.h to conform with Paper I usage.
+
+  - In wcsulex(), allow unit strings like "1/m" in addition to "/m",
+    provided that the superfluous "1" is the first non-blank character
+    in the expression, or parenthesised sub-expression.
+
+  - In wcssptr(), ensure that i is always reset if given < 0.
+
+* User manual
+
+  - Augmented the list of FITS WCS and related software in the manual.
+
+
+WCSLIB version 4.4.2 (2009/08/13)
+---------------------------------
+
+* C library
+
+  - In sphx2s() and sphs2x(), handle the case where |eul[1]| = 180.0
+    separately for speed and accuracy.  This change also fixes a rare
+    and subtle bug in cels2x() that occurs when celprm::isolat is set
+    and the magnitude of the first latitude in the lat[] vector exceeds
+    90 deg (reported by Hans Terlouw).
+
+* Installation
+
+  - Fix relating to creation of symlinks when installing the libraries.
+
+
+WCSLIB version 4.4.1 (2009/08/11)
+---------------------------------
+
+* Installation
+
+  - Fixes for installation of the CHANGES file and for the creation of a
+    symbolic link for the sharable library if one already exists.
+
+
+WCSLIB version 4.4 (2009/08/10)
+-------------------------------
+
+* C library
+
+  - Creation of WCSLIB user manual from the header file prologues using
+    a special-purpose parser, doxextr, and sed scripts to generate input
+    for doxygen.  This required minor formatting changes to all
+    prologues plus miscellaneous changes such as naming of arguments in
+    function prototypes.
+
+  - Bug fix in wcsset() that affected handling of PROJPn (deprecated)
+    and PVi_ma attached to the longitude (not latitude) axis.  Guard
+    against long strings when copying the projection code.  In
+    wcs_types(), allow for early Paper IV distortion codes (e.g.
+    "RA---TAN-SIP") when parsing CTYPEia.
+
+  - Use sincos() whereever possible for a ~15% speedup (patches for
+    cel.c, prj.c and sph.c supplied by Michael Droettboom).  configure
+    checks for, and uses it automatically if available.
+
+  - Fixed the translation of GLS to SFL in wcsset() and celfix() when
+    the reference longitude and latitude are non-zero.  (In the AIPS
+    convention, this simply translates the reference point, i.e. the map
+    as a whole, to those coordinates without creating an oblique grid.)
+
+  - Bug fix in prjoff(), a utility function used by the prj routines.
+    It forces (x,y) = (0,0) at (phi_0,theta_0) when the latter are set
+    by PVi_[012]a attached to the longitude (not latitude) axis.  Rarely
+    used in practice.
+
+  - New utility function, sphdpa(), computes the distance and position
+    angle from a point on the sphere to a set of field points.
+
+  - In sphx2s() and sphx2s(), handle a simple change in origin of
+    longitude using a short-cut calculation for speed and accuracy.
+    Similarly in celset(), check whether phip == phi0 when computing
+    latp and if so use a short-cut that ensures latp == 90.0 (exactly)
+    if lat0 == theta0.  The resulting spherical rotation then becomes a
+    simple change in origin of longitude.  In particular, these changes
+    should assist PGSBOX in drawing grid lines of +/-180 longitude, to
+    prevent flip-flopping between one and the other.
+
+  - wcsbth() & wcspih(): resolved an inconsistency between the
+    documentation and code by renamimg WCSHDR_VSOURCEa as
+    WCSHDR_VSOURCE.
+
+  - Flex code: moved declaration of helper functions out of global
+    scope.
+
+  - Fixed the call to wcss2p() in twcshdr (in a section of code not
+    usually exercised).
+
+* Fortran wrappers
+
+  - New wrapper functions:
+    - WCSBTH for wcsbth(),
+    - WCSBDX for wcsbdx(),
+    - CDFIX  for cdfix(),
+    - SPHDPA for sphdpa().
+
+  - Updated WCSLEN (in wcs.inc) and added WCS_COLAX and WCS_VELANGL to
+    match changes to wcsprm made in v4.3 with corresponding changes to
+    the wrapper functions.  Likewise updated TABLEN (in tab.inc) for
+    changes to tabprm, and added CEL_LATPREQ for celprm.
+
+  - Struct lengths (WCSLEN, PRJLEN, etc.) are now long enough to
+    accomodate 64-bit machines.
+
+  - Updated the flag bits for the RELAX argument in wcshdr.inc to
+    reflect changes to wcshdr.h made in v4.3.  Renamed WCSHDR_VSOURCEa
+    to WCSHDR_VSOURCE for consistency with the C library.
+
+* PGSBOX
+
+  - Improved grid labelling, particularly in minimizing the number of
+    fields required in sexagesimal labels.
+
+* Utilities
+
+  - New utility program:
+
+    - wcsware extracts the WCS keywords for an image from the specified
+      FITS file, constructs wcsprm structs for each coordinate
+      representation found, and performs a variety of operations using
+      them.
+
+  - Old utility programs (first appeared in 4.3 but were not recorded):
+
+    - HPXcvt reorganises HEALPix data into a 2-D FITS image with HPX
+      coordinate system.
+
+    - wcsgrid extracts the WCS keywords for an image from the specified
+      FITS file and uses pgsbox() to plot a 2-D coordinate graticule for
+      each alternate representation found.
+
+    - fitshdr lists headers from a FITS file specified on the command
+      line, or else on stdin, printing them as 80-character keyrecords
+      without trailing blanks.
+
+* Installation
+
+  - New configure options, --with-pgplotinc, --with-pgplotlib,
+    --with-cfitsioinc and --with-cfitsiolib allow additional directories
+    to be added to the library and include file search path.
+
+  - Miscellaneous fixes and improvements to the installation process.
+
+  - Generate a metadata file for pkg-config.
+
+  - Added 'make MODE=interactive check' to run the test programs in
+    interactive mode rather than batch.
+
+  - Merged the separate CHANGES files for C, Fortran and PGSBOX into
+    one (this), with a new section for utilities.
+
+
+WCSLIB version 4.3.3 (2009/04/30)
+---------------------------------
+
+* C library
+
+  - fitshdr.l, wcsbth.l, and wcspih.l: use setjmp/longjmp to preempt
+    the call to exit() which is hard-coded in function yy_fatal_error()
+    supplied by flex.
+
+  - wcspih.l: if NAXIS is non-zero but there were no WCS keywords at
+    all in the header then create a default WCS with blank alternate
+    version.
+
+
+WCSLIB version 4.3.2 (2009/03/16)
+---------------------------------
+
+* C library
+
+  - utils/GNUmakefile: create BINDIR if necessary prior to installing
+    utilities.
+
+
+WCSLIB version 4.3.1 (2008/09/08)
+---------------------------------
+
+* Installation
+
+  - Top-level GNUmakefile: install header files.
+
+
+WCSLIB version 4.3 (2007/12/27)
+-------------------------------
+
+* C library
+
+  - A new general WCS header parser wcsbth() handles binary table image
+    arrays and pixel lists as well as image array headers.  Added
+    "colax" to the wcsprm struct to record the column numbers for each
+    axis in a pixel list.
+
+  - New function wcsbdx() is the analog of wcsidx() for the array of
+    wcsprm structs returned by wcsbth().
+
+  - New function wcshdo() writes out a wcsprm struct as a FITS header.
+
+  - Changes to wcspih():
+    - Bug fix, check for a == 0 (indication of a keyword that applies
+      to all alternates) in internal helper function wcspih_naxes()
+      (reported by Craig Markwardt).
+    - Added a new ctrl option to remove valid WCS keyrecords except for
+      those with a more general role, namely {DATE,MJD}-{OBS,AVG} and
+      OBSGEO-{X,Y,Z} (suggested by Jim Lewis).
+    - Added a rule for VELANGLa.  Also added "velangl" to the wcsprm
+      struct.
+    - Do checks on the i, k & m keyword parameters in <VALUE>.
+    - Fixed the test for repeated blanks in the NAXIS and WCSAXES
+      patterns.
+    - Fixed three <CCi_ma> rules to allow m == 0.
+    - Reworked the implementation notes in the prologue.
+
+  - The flex scanners, fitshdr.l, wcsbth.l, wcspih.l, wcsulex.l, and
+    wcsutrn.l, invoke yylex_destroy() before returning to avoid a 16kiB
+    memory leak.  This was reported by several people, however it may be
+    problematic depending on the version of flex used - version 2.5.9 or
+    later is required.  If this is not available, C sources pre-
+    generated by flex 2.5.33 will be used.
+
+  - In wcs.c, don't define the signbit macro if already defined (for
+    MacOSX).
+
+  - In wcs.h, documented wtbarr namespace issues in C++.
+
+  - In wcsset(), always set wcsprm.cunit[i], if possible (primarily for
+    use by wcshdo()).
+
+  - In wcsfix.c, parenthesised a boolean expression that was otherwise
+    incorrect.
+
+  - Fixed an obscure floating point rounding error in celset() that
+    appeared with -O2 optimization in gcc v3.3.5 (Linux).
+
+  - prjset() now correctly propagates the status value returned by the
+    specific projection-setting functions (reported by Bill Pence).
+
+  - Bug fix in hpxx2s(), also added bounds checking.  Minor efficiencies
+    in carx2s() and merx2s().
+
+  - In the various functions that print the contents of the structs, use
+    the "%p" printf conversion specifier to print addresses rather than
+    casting the pointer to int and using "#x".  The latter does not work
+    on 64-bit machines where sizeof(int) != sizeof(void*).
+
+  - Reorganized the various structs to get alignment on 64-bit machines.
+
+  - All header file prologues now reference the README file for an
+    overview of the library.
+
+  - Miscellaneous portability fixes for 64-bit, MacOSX, OSF compiler,
+    etc.
+
+  - Elimination of compiler warnings, e.g. parenthesised assignments
+    used as truth values (a favourite gcc gripe!), etc.
+
+  - Process flex descriptions using a newer version of flex, primarily
+    for MacOSX.  However, the processed files are now only used when
+    flex 2.5.9 or later is not available.
+
+  - Removed WCSLIB 2.x backwards-compatibility measures from lin.h,
+    prj.h, prj.c, and sph.h.
+
+* Fortran wrappers
+
+  - (No substantive changes.)
+
+* PGSBOX
+
+  - Miscellaneous improvements to PGSBOX.
+
+* General
+
+  - Switched licensing to LGPL 3.0.
+
+  - In comment text, replaced use of the obsolete term "card" with
+    "keyrecord" which consists of a "keyword", "keyvalue", and
+    "keycomment".
+
+* Installation
+
+  - General improvements to the installation process: autoconf-related
+    portability improvements, particularly relating to Fortran name
+    mangling; makefile rules for building the shared library, for
+    processing flex descriptions; don't rely on "." being in the PATH
+    when running tests.
+
+
+WCSLIB version 4.2 (2005/09/23)
+-------------------------------
+
+* C library
+
+  - Brought the installation process under control of GNU autoconf,
+    the top-level makefile now builds and tests everything, and the C
+    library has a config.h in which WCS_INT64 is set.  Added an INSTALL
+    file.
+
+  - Merged the FORTRAN, C and PGSBOX READMEs into one top-level README.
+
+  - Extensions for -TAB coordinate handling: in tabx2s() and tabs2x(),
+    allow extrapolation by half a cell at either end of the index and
+    coordinate tables; fits_read_wcstab() (in getwcstab.{h,c}) allows
+    TDIMn to be omitted for 1-D lookup tables for which it has the form
+    '(1,K)', i.e. describing a degenerate 2-D array; wcsprt() now prints
+    the wtbarr structs in wcsprm.
+
+  - Bug fixes for -TAB coordinate handling: in tabx2s() and tabs2x()
+    the incorrect indexing variable, m instead of i, was used for
+    tab->crval[]; wcsp2s() and wcss2p() returned prematurely in the
+    tabular coordinate loop; in wcstab(), removed an extraneous
+    assignment to wtbp->kind for index arrays.
+
+  - In wcsp2s() and wcss2p(), elements of the stat[] vector that had
+    been set were being reset incorrectly to zero.  The stat[] values
+    are now set as flag bits for each coordinate element.
+
+  - Added cdfix() to the wcsfix() suite to fix erroneously omitted
+    CDi_ja cards.
+
+  - PGSBOX is now compiled into a separate object library, and is
+    installed alongside WCSLIB.
+
+  - Eliminated several instances of non-ANSI C library functions and
+    header files and some residual K&R C usage.  The Sun C compiler
+    complained about const int definitions of initializers used in
+    variable declarations in some of the test programs; changed these
+    to preprocessor macros.
+
+* Fortran wrappers
+
+  - Fixed handling of 64-bit integer keyvalues in keyget_().
+
+  - Fixed output formatting of 64-bit integer keyvalues in tfitshdr.f.
+
+  - Fixed minor syntax errors in twcsfix.f and tpih1.f reported by the
+    Sun Fortran compiler.
+
+  - The output of each test program now identifies the source file.
+
+* PGSBOX
+
+  - (No substantive changes.)
+
+
+WCSLIB version 4.1 (2005/08/31)
+-------------------------------
+
+* C library
+
+  Summary of added functionality:
+
+  - -TAB coordinate axes are now fully implemented in the WCSLIB driver
+    functions (in wcs.{h,c}); multiple -TAB axes are supported.  A new
+    function, wcstab(), which is automatically invoked by wcspih(),
+    parses -TAB-related header cards and sets up structs for a separate
+    routine that reads the necessary arrays from a FITS binary table
+    extension.
+
+    An implementation of this routine in CFITSIO, fits_read_wcstab(),
+    is provided.  Note however that the interface of this function is
+    experimental, and the code itself must be considered beta-release in
+    WCSLIB 4.1.
+
+  - Units specifications, either from CNAMEia or inline comments (with
+    brackets), of arbitrary complexity are now fully implemented via a
+    parser, wcsulex(), and converter, wcsunits().  This is invoked
+    automatically by wcsset().
+
+  - Translators for non-standard WCS constructs are provided.  These
+    cover date formats, units specifications, defunct celestial
+    projection types, AIPS spectral axis types, and the repair of
+    malformed cylindrical coordinate systems.
+
+  - wcspih() now has options to remove the WCS cards it has processed
+    from the header and a new generic FITS header parser, fitshdr(), may
+    be used to parse the remaining non-WCS cards.  In addition to the
+    more basic types, it handles 64-bit and 'very long' (70 digit)
+    integer keyvalues, and also continued string keyvalues.  It also
+    does keyword matching and extracts units specifications in inline
+    comments.
+
+  - -LOG coordinates are now implemented independently of spectral
+    coordinate types.  Multiple -LOG axes are supported.
+
+  - New function wcssptr() translates the spectral axis in a wcsprm
+    struct to the required type.
+
+  - The README file now gives an introduction to, and complete overview
+    of, WCSLIB.  It provides a point of entry to programming with
+    WCSLIB.  Complete descriptions and usage notes for all functions are
+    contained in the header files.
+
+  - The FORTRAN wrappers and test programs are now completely up-to-date
+    with respect to the C implementation.
+
+  - All code, including the FORTRAN wrappers, PGSBOX, and all test
+    programs, now pass 'purify' without memory leaks, uninitialized
+    memory reads, memory access violations, or other memory faults.
+
+  Change notes:
+
+  - Added options to wcspih() to remove WCS cards from the input header
+    leaving only non-WCS cards behind.  Modified test programs tpih1.c
+    and tpih2.c to use CFITSIO optionally via preprocessor macro
+    DO_CFITSIO.
+
+  - New function wcstab() in wcshdr.{h,c} parses -TAB-related header
+    cards and sets up structs for a separate routine that reads the
+    necessary arrays from a FITS binary table extension.  New
+    test/demo program twcstab.c using header defined in wcstab.cards.
+
+  - CFITSIO implementation, fits_read_wcstab() in getwcstab.{h,c}, of a
+    function, independent of WCSLIB, for extracting arrays from a binary
+    table as required in constructing -TAB coordinates.
+
+  - New units specification parser, wcsulex() in wcsunits.h and
+    wcsulex.l, and converter, wcsunits() in wcsunits.{h,c}.  New
+    test/demo program tunits.c.
+
+  - New parser for non-standard units specifications, wcsutrn() in
+    wcsunits.h and wcsutrn.l, also tested by tunits.c.
+
+  - New functions datfix(), unitfix() (which applies wcsutrn()),
+    celfix(), and spcfix() join cylfix() in wcsfix.{h,c} to translate
+    various forms of non-standard or quasi-standard FITS WCS keyvalues
+    in a wcsprm struct.  wcsfix() applies all of these in sequence.
+    New test/demo program twcsfix.c, with wcsfix() also now invoked by
+    tpih1.c.
+
+  - New generic FITS header parser, fitshdr() in fitshdr.{h,l}.  New
+    test/demo program tfitshdr.c uses wcs.cards with extra non-WCS
+    cards added.
+
+  - -LOG coordinates are now treated as a coordinate type separate from
+    spectral coordinates, implemented via log.{h,c} and test program
+    tlog.c.  The logarithmic functions were removed from spx.{h,c}, and
+    spc.c.
+
+  - Extensive changes to wcs.{h,c} to support multiple -TAB and -LOG
+    coordinate axes and units conversion.  Substantially changed the
+    test program, twcs.c, to test the more general functionality.
+
+  - New function wcssptr() in wcs.{h,c} translates the spectral axis in
+    a wcsprm struct.
+
+  - Added DATE-AVG to wcsprm.  Also ntab, tab, nwtb, and wtb required
+    for -TAB implementation.  Define struct wtbarr.
+
+  - Added a types[] member to the wcsprm struct to identify axis
+    coordinate types using a four-digit code.
+
+  - Use memset() in wcsini() to null-fill character arrays in the wcsprm
+    struct so that they don't appear to be padded with garbage when
+    displayed by gdb.
+
+  - Do alias translation for AIPS-convention spectral types in wcsset()
+    using spctyp().  If wcsset() finds a CTYPEia in "4-3" form with an
+    unrecognized algorithm code it now returns an error rather than
+    assume that it's a linear axis.  wcsset() now also resets lonpole
+    and latpole to the values actually used.
+
+  - Modified spctyp() to translate AIPS-convention spectral ctypes, and
+    modified the argument list to return the parsed spectral type and
+    algorithm code.  The return arguments will not be modified if
+    CTYPEia is not a valid spectral type; zero-pointers may be specified
+    for any that are not of interest.  Removed the external const
+    variables, spc_codes and spc_ncode, as their function is now
+    fulfilled by spctyp().
+
+  - Fixed a bug in spctrn() in resolving ctypeS2 wildcarding.
+
+  - Added latpreq member to the celprm struct, set by celset() to
+    indicate how LATPOLE is used.  Augmented tcel2.c to report it.
+
+  - New function tabmem() in tab.{h,c} takes control of user-allocated
+    memory.
+
+  - tabini() allows K == 0 and also K[m] == 0 to initialize partially
+    the tabprm struct (for wcstab()).  It now does fine-grained
+    bookkeeping of memory allocation for the index arrays and allocates
+    each individually.  tabprm.index[] == 0x0 is recognized as default
+    indexing in tabset(), tabx2s() and tabs2x().
+
+  - The *prt() functions report parameters to an extra decimal place.
+
+  - tabprt() prints the array index for elements of the coordinate and
+    index vectors.
+
+  - Set the 0th element in all *_errmsg arrays to "Success".
+
+  - Extracted string utility functions used by WCSLIB into
+    wcsutil.{h,c}.
+
+  - Removed support for K&R C.
+
+* Fortran wrappers
+
+  - The FORTRAN wrappers and test programs are now completely up-to-date
+    with respect to the C implementation.
+
+  - New include files, wrappers, and test programs:
+    fitshdr.inc, fitshdr_f.c, getwcstab.inc, getwcstab_f.c, log.inc,
+    log_f.c, sph.inc, tab.inc, tab_f.c, tfitshdr.f, tlog.f, ttab1.f,
+    ttab2.f, ttab3.f, tunits.f, twcsfix.f, twcstab.f, wcsfix.inc,
+    wcsfix_f.c, wcsunits.inc, wcsunits_f.c.
+
+  - Updates to reflect changes to the C library and test programs:
+    cel.inc, cel_f.c, prj.inc, spc.inc, spc_f.c, spx.inc, spx_f.c,
+    tlin.f, tpih1.f, tpih2.f, tprj1.f, tprj2.f, tspc.f, tsph.f, tspx.f,
+    twcs.f, twcsmix.f, twcssub.f, wcs.inc, wcs_f.c, wcshdr.inc,
+    wcshdr_f.c.
+
+  - Added *_ERRMSG arrays containing status messages to all include
+    files.
+
+  - Removed support for K&R C.
+
+* PGSBOX
+
+  - Fixed a subtle though benign memory fault identified by 'purify'.
+
+  - Reset LATPOLE in the COE example in cpgtest.f when drawing the
+    second (native) grid because it will have been set to a non-default
+    value by wcsset() when the first grid was drawn; set wcs.flag to -1
+    before wcsinit() and call wcsfree() at the end.  Similarly for
+    pgtest.f.
+
+
+WCSLIB version 4.0 (2005/02/07)
+-------------------------------
+
+* C library
+
+  - Implemented tabular coordinates (-TAB).  New files: tab.h and tab.c,
+    and test programs ttab[123].c.  These have not been incorporated
+    into the higher-level (wcs.h) functions at this stage.
+
+  - New spectral functions: spchek() checks a spectral algorithm code
+    for legitimacy; from the spectral keywords given, spcspx() derives
+    the corresponding CRVALi and CDELTi keywords for the underlying P-,
+    and X-type spectral coordinates; spcxps() does the opposite;
+    spctrn() combines spcspx() and spcxps() to translate one set of
+    spectral keywords into another, e.g.  'FREQ' -> 'ZOPT-F2W'.
+
+  - Implemented the HEALPix (HPX) projection in the prj functions.
+
+  - Added a new function, wcsidx(), to return an array that indexes the
+    alternate coordinate descriptions found by wcspih() (suggested by
+    Bill Pence, NASA/Goddard).  Modified tpih1.c to exercise it.
+
+  - In wcsp2s() and wcss2p(), check that nelem equals or exceeds
+    wcs.naxis; emphasised this in the usage notes for these functions
+    in tab.h (suggested by Bill Pence, NASA/Goddard).
+
+  - Moved the macros used for UNDEFINED values and the corresponding
+    macro test function, undefined(), to wcsmath.h for general use.
+    Previously, UNDEFINED values were only used internally, but they are
+    now visible in some of the structs, particularly values of undefined
+    auxiliary header cards in the wcsprm struct.
+
+  - Remove const from the double args in the specx() prototype in spx.h
+    to match the definition in spx.c (reported by Bryan Irby,
+    NASA/Goddard).
+
+  - Fixed the interaction between the FLAVOUR and PGPLOTLIB definitions
+    in the C and FORTRAN Makefiles by introducing a separate variable,
+    DO_PLOTS, to control whether to exercise test programs that require
+    PGPLOT (reported by Bill Pence, NASA/Goddard).
+
+* Fortran wrappers
+
+  - New wrapper defined in wcshdr_f.c: wcsidx_().  Modified test program
+    tpih1.f to use it.
+
+* PGSBOX
+
+  - (No substantive changes.)
+
+* General
+
+  - Changed the copyright notice in all library routines from LGPL to
+    GPL as recommended by the FSF (http://www.gnu.org/licenses/why-not-
+    lgpl.html).
+
+* Installation
+
+  - General improvements to the installation process: fixed the
+    interaction between the FLAVOUR and PGPLOTLIB definitions in the
+    Makefile by introducing a separate variable, DO_PLOTS, to control
+    whether to exercise test programs that require PGPLOT (reported by
+    Bill Pence, NASA/Goddard).  Added an "install" target to the
+    Makefile.
+
+
+WCSLIB version 3.6 (2004/08/25)
+-------------------------------
+
+* C library
+
+  - New service routine, wcssub() extracts the coordinate description
+    for a subimage from a wcsprm struct.  wcscopy() is now implemented
+    as a preprocessor macro that invokes wcssub().  New test program,
+    twcssub.c, tests wcssub().
+
+  - In wcspih():
+
+    1) Fixed handling of string-valued keywords where the inline comment
+       contains a single-quote character (').
+
+    2) Fixed the address arithmetic for EPOCH and VELREF.
+
+    3) Translate VSOURCEa into ZSOURCEa if required.
+
+    4) Recognize SSYSSRCa.
+
+    5) Support free-format string keyvalues, as well as integer and
+       floating-point keyvalues; documented this in the prologue of
+       wcshdr.h.
+
+    6) Allow header cards without inline comments.
+
+    7) Fixed function prototyping in wcspih.l (i.e. ANSI and non-ANSI
+       forms were potentially mixed).
+
+    8) Catch an unhandled newline character on the END card that was
+       echoed to stdout.
+
+    9) In error messages, print "ERROR" (uppercase) - POSIX standard.
+
+  - Modified wcs.cards to explain and test free-format keyvalues, and
+    also augmented the inline comment on illegal WCS cards that are to
+    be rejected, and WCS-like cards to be discarded.  Added a header
+    card with no inline comment.
+
+  - Removed vsource from the wcsprm struct and added ssyssrc.
+
+  - In wcsini(), fixed a problem with memory management for wcs.pv when
+    NPVMAX is zero; likewise for wcs.ps and NPSMAX.
+
+  - In wcsprt(), don't print auxiliary coordinate system information in
+    arrays with zero address.
+
+  - In wcss2p(), status == 9 (one or more invalid world coordinates) was
+    not returned appropriately.
+
+  - Renamed twcs1.c to twcs.c, and twcs2.c to twcsmix.c.
+
+  - "Error status/code/number" is now referred to consistently as the
+    "status return value".
+
+  - Some vestiges of K&R C were removed: preprocessor definition of
+    const, and K&R function prototypes.
+
+* Fortran wrappers
+
+  - New wrapper defined in wcs_f.c: wcssub_().  New test program,
+    twcssub.f.
+
+  - Renamed twcs1.f to twcs.f, and twcs2.f to twcsmix.f.
+
+* PGSBOX
+
+  - (No substantive changes.)
+
+* Installation
+
+  - Worked over the C, FORTRAN, and PGSBOX makefiles, in particular to
+    make them all consistent.
+
+
+WCSLIB version 3.5 (2004/06/28)
+-------------------------------
+
+* C library
+
+  - WCSLIB now provides a function, wcspih() implemented as a Flex
+    description, that parses a FITS image header, either that of a
+    primary HDU or an image extension.  Given a character array
+    containing the header it identifies and reads all WCS cards for
+    the primary coordinate description and up to 26 alternate
+    descriptions and returns this information as an array of wcsprm
+    structs.  A service routine, wcsvfree(), is provided to free the
+    memory allocated by wcspih().  The relevant header file for these
+    functions is wcshdr.h.
+
+    Test programs, tpih1 and tpih2, are provided to verify wcspih.  The
+    first simply prints the contents of the structs using wcsprt().  The
+    second uses cpgsbox() to draw coordinate graticules.  A FITS WCS
+    test header has been developed to provide input to these test
+    programs.  It is implemented as a list of card images, wcs.cards,
+    one card per line, together with a program, tofits, that compiles
+    these into a valid FITS file.  tpih1 uses its own code to read this,
+    whereas tpih2 uses the fits_hdr2str() function from CFITSIO.
+
+  - Removed twcsprt, tpih exercises wcsprt() much more thoroughly than
+    twcsprt ever did.  Modified twcs1 to print the size of the various
+    structs as twcsprt used to.
+
+  - Although they are not used in any coordinate calculations, the
+    wcsprm struct now provides data members for storing all of the
+    auxiliary FITS WCS header cards defined in Papers I, II, and III,
+    such as WCSNAMEa, EQUINOXa, and CNAMEia.  Members are also provided
+    for storing the alternate descriptor code (the "a" in CTYPEia), and
+    the binary table column number.  These are supported by the high
+    level WCSLIB routines, wcsini(), wcscopy(), wcsfree(), and wcsprt().
+    Refer to wcs.h for details.
+
+  - The number of PVi_ma cards for which wcsini() allocates memory is
+    now set by a global variable, NPVMAX (previously a C-preprocessor
+    macro).  This defaults to 64 but may be changed by a new function,
+    wcsnpv().  The wcsprm struct contains a new member, npvmax, that
+    records the value of this number at the time the struct was
+    initialized.  This is in addition to npv which records the actual
+    number of cards that were encountered.
+
+    Similarly, NPSMAX (default 8) is used for the number of PSi_ma
+    cards, and it may be changed via wcsnps().
+
+    The axis number, i, in the pvcard struct used for storing PVi_ma
+    cards may now be set to 0 to indicate the latitude axis.
+
+  - calloc() is now used in place of malloc() in allocating memory for
+    arrays, and inclusion of malloc.h has been replaced with stdlib.h
+    for all platforms.
+
+    wcsfree() checks that wcs.flag != -1 before testing wcs.m_flag when
+    freeing memory allocated by wcsini() in case the struct is
+    uninitialized.  Similarly for linfree().
+
+  - In prj.h, renamed C-preprocessor macros INI, PRT, SET, X2S and S2X
+    to PRJINI, PRJPRT, PRJSET, PRJX2S and PRJS2X to reduce the
+    likelihood of namespace clashes.  Similarly in spc.h.
+
+    Also, in prj.c, changed the name of helper routine offset() to
+    prjoff() to reduce the likelihood of global namespace conflicts.
+
+  - In line with bonx2s() and bons2x(), bonset() now recognizes the
+    equatorial case of Bonne's projection as Sanson-Flamsteed, mainly so
+    that the auxiliary information in the prjprm struct more accurately
+    reflects the truth.  Modified tcel2 to exercise this by using an
+    equatorial Bonne projection in place of the Hammer-Aitov.
+
+  - zpns2x() used prj.w[0] for bounds checking, though this had not been
+    set by zpnset() for polynomials of degree N < 3.  Consequently,
+    bounds checking for N < 3 was unreliable (reported by David Berry,
+    STARLINK).
+
+  - Changed some variable names in tscs2x(), cscx2s(), cscs2x(),
+    qscx2s(), and qscs2x() to match Paper II, and likewise changed some
+    inequality tests in qscs2x() without changing the results.
+
+  - Minor tidying up of output formatting in prjprt().
+
+  - Added the alternate version code to FITS WCS keywords mentioned in
+    comments, e.g. CTYPEi changed to CTYPEia.
+
+* Fortran wrappers
+
+  - New wrappers defined in wcshdr_f.c: wcspih_() and wcsvfree_(), and
+    also a new service function, wcsvcopy_().
+
+    New test programs, TPIH1 and TPIH2, being analogues of tpih1 and
+    tpih2.  Removed TWCSPRT.
+
+  - In wcs_f.c, new wrappers wcsnpv_() and wcsnps_(); modified wcsput_()
+    and wcsget_() to handle new members of the wcsprm struct.  Also
+    modified wcsput_() to null-fill all char[] members of the wcsprm
+    struct, and likewise wcsget_() to blank-fill them.
+
+  - Modified wcs.inc to support changes to the wcsprm struct.
+
+* PGSBOX
+
+  - In PGSBOX, increased the dimension of the WORLD and XY vectors from
+    2 to 9 to accomodate higher-dimensional coordinate representations
+    of up to 9 elements.  Similarly for pgwcsl().  The assumption
+    (presently) is that the first two world, and pixel, coordinate
+    elements are the relevant ones; the others are all set to zero when
+    pgwcsl() initializes and otherwise ignored.
+
+    Assigned some variables in DATA to stop compiler messages about
+    uninitialized variables.
+
+  - Generalized the Makefile, bringing it into line with the WCSLIB
+    Makefile, and adding separate targets for compiling and running the
+    test programs.  The default target now simply compiles pgsbox.c and
+    cpgsbox.c.  A separate target compiles pgwcsl.c and inserts it into
+    ../C/libwcs.a.
+
+
+WCSLIB version 3.4 (2004/02/11)
+-------------------------------
+
+* C library
+
+  - In aitx2s(), apply the boundary condition 0.5 <= Z^2 <= 1 given
+    after Eq. (109) in WCS Paper II to detect outlying pixels.
+
+  - Fixed several special-case bugs in celset():
+
+    1) For theta_0 = 90, in substituting the default value for phi_p
+       (LONPOLE),
+
+       a) for the special case when delta_0 = 90, celset() provided the
+          wrong value (180 instead of 0),
+
+       b) celset() neglected to add phi_0 (normally 0).
+
+    2) For theta_0 != 90,
+
+       a) for the special case when delta_0 = -90, celset() incorrectly
+          computed delta_p (as theta_0 instead of -theta_0),
+
+       b) for the special case when delta_p = +90 (or -90), celset()
+          neglected to subtract (or add) phi_0 (normally 0).
+
+    3) For |delta_0| = 90, celset() incorrectly allowed the particular,
+       invalid, value of phi_p (LONPOLE) that put the other pole at the
+       fiducial point.
+
+    4) For theta_0 = 0, delta_0 = 0 LATPOLE determines delta_p
+       completely.  For LATPOLE > 90 celset() now sets delta_p to 90,
+       and for LATPOLE < -90 it sets it to -90.
+
+  - Additional refinements in celset():
+
+    1) cel->ref[2] is normalized in the range [-180,180].
+
+    2) Account for rounding error in the computation of delta_p.
+
+  - sphx2s() and sphs2x() incorrectly handled the "change in the origin
+    of longitude" special case that arises when delta_p = -90, in the
+    even more restrictive case where |theta| = 90 also; it applied
+    Eq. (3) instead of Eq. (4) of Paper II.
+
+  - Added a new test program, tcel2.c, to exercise celset() more
+    thoroughly.  Renamed the original tcel.c to tcel1.c and modified the
+    Makefile to suit.
+
+* Fortran wrappers
+
+  - (No changes.)
+
+* PGSBOX
+
+  - (No substantive changes.)
+
+
+WCSLIB version 3.3 (2003/10/21)
+-------------------------------
+
+* C library
+
+  - In celset(), the default value for phi_p (LONPOLE) is
+
+       phi_p = phi_0 + ((delta_0 < theta_0) ?  180.0 : 0.0)
+
+    Previously phi_0 (which is normally zero) was not added (reported by
+    David Berry, STARLINK).
+
+  - wcsprt() and linprt() now check that the structs have been
+    initialized.
+
+  - In wcsini(), when the wcsprm flag is -1 also set the linprm flag to
+    -1 to force initialization of the memory managed by linset().
+
+  - wcsset() now explicitly initializes the celprm and spcprm structs
+    via celini() and spcini().
+
+  - Fixed syntax errors in the macro definitions of linrev_errmsg and
+    linfwd_errmsg.
+
+  - In Makefile, added the -ansi option to gcc to force it to behave
+    like a strict ANSI C compiler, specifically in setting the __STDC__
+    preprocessor macro.
+
+* Fortran wrappers
+
+  - (No changes.)
+
+* PGSBOX
+
+  - PGSBOX now recognizes status returns -1, -2, and -3 from NLFUNC for
+    opcodes +2 and +1 which cause it to accept the returned (x,y)
+    coordinates but not consider them as one end of a crossing segment
+    for labelling world coordinate 1, 2, or both.
+
+  - PGSBOX now takes care not to lose vertical tick marks (and hence
+    labels) at the left or right edge of the frame.  Likewise for
+    horizontal tick marks at the top or bottom edge of the frame.
+
+  - Tightened up the test in PGSBOX for cycles in angle to catch the
+    case where the coordinate value spans a full 360 degrees.
+
+  - PGSBOX will no longer accept frame crossings that are too oblique;
+    floating point rounding errors may cause grid lines that should
+    otherwise track along the frame to weave down it from side-to-side
+    resulting in spurious crossing points.
+
+  - Fixed a bug in pgwcsl_() for processing simple linear coordinates.
+
+  - pgwcsl_() now returns error -2 if the latitude is outside -90 to +90
+    for opcodes +2 and +1.
+
+  - Amended the translation of status return codes from WCSLIB in
+    pgwcsl_().
+
+  - Provided a header file for pgwcsl_() (mainly for C++ usage).
+
+  - Added extra test plots to PGTEST and cpgtest.
+
+  - Added extra functionality to the Makefile.
+
+
+WCSLIB version 3.2 (2003/09/09)
+-------------------------------
+
+* C library
+
+  - Added the facility of setting the flag member of a wcsprm struct to
+    -1 before calling wcsini() for the first time in order to initialize
+    memory management.  Likewise for linprm and linini().
+
+  - Renamed wcscpy() to wcscopy() to avoid a conflict with the Posix
+    "wide character string" function of the same name (wchar.h).  In
+    particular, this is used by the GNU C++ string class.
+
+  - The higher level functions (wcs, cel, spc) no longer return
+    prematurely if some of the input coordinate values are invalid.
+
+  - All functions now test whether a null pointer for the particular
+    struct (wcsprm, celprm, etc.) has been passed to them.
+
+  - Function return codes have been rationalized into a consistent set
+    within each of the wcs, cel, lin, prj, spc, and spx suites of
+    functions.  Error messages to match these error codes are now
+    encoded in a single character array, e.g. wcs_errmsg and prj_errmsg,
+    instead of a separate array for each function.  Macro definitions
+    for the older character arrays (e.g. wcsini_errmsg) have been
+    provided for backward compatibility.
+
+  - Declared prj_stat as extern in prj.h.
+
+* Fortran wrappers
+
+  - (No changes.)
+
+* PGSBOX
+
+  - Added an ENTRY point, PGLBOX, that provides a simplified interface
+    to PGSBOX for linear axes without having to specify an NLFUNC or the
+    associated parameters.
+
+
+WCSLIB version 3.1 (2003/04/29)
+-------------------------------
+
+* C library
+
+  - Added "global" and "divergent" prjprm struct informational members
+    to record whether the projection is capable of mapping the whole
+    sphere, and whether it is divergent in latitude.
+
+  - Function cylfix() provided to fix WCS FITS header cards for
+    malformed cylindrical projections (c.f. Paper II, Sect. 7.3.4).
+
+  - Added support for CUNITi cards to wcsprm (but not currently
+    implemented).
+
+  - Added macro implementations of the trigd functions to wcstrig.h,
+    enabled if WCSTRIG_MACRO is defined.
+
+  - Improved printing of the WCSLIB structs.
+
+  - Added macro definitions for the lengths of the WCSLIB structs
+    measured in sizeof(int) units (mainly for the FORTRAN wrappers).
+
+* Fortran wrappers
+
+  - FORTRAN is now supported via a set of wrappers on the C library.
+    Refer to the README file.
+
+* PGSBOX
+
+
+
+WCSLIB version 3.0 beta release (2003/04/01)
+--------------------------------------------
+
+* C library
+
+  - Fully vectorized function interfaces (C preprocessor macros are
+    available to implement the scalar interfaces of the proj.c, sph.c,
+    and lin.c routines from WCSLIB 2.x).
+
+  - Implementation of Paper II, Sect. 2.5: User-specified
+    (phi0, theta0).
+
+  - Implementation of Paper III (excluding "-TAB").
+
+  - Memory management is now implemented in the upper-level (wcs.c)
+    routines.
+
+  - New extensible design should accomodate Paper IV (and any other)
+    without further change to the function interfaces.
+
+* PGSBOX
+
+  - Added a C wrapper function, cpgsbox(), and C test/demo program,
+    cpgtest, that duplicates PGTEST and serves as a C coding template.
+
+  - Added calendar date axes.
+
+  - Sped up the max/min search - if only tickmarks are required there is
+    no need to search the interior of the image.
+
+  - Return margin widths in CACHE(,NC).
+
+  - Fixed a buglet that caused ticks at the frame edges to be skipped.
+
+  - Return error 3 if CACHE overflows.
+
+  - Adapted PGWCSL for WCSLIB 3.x - it is now a C function (for
+    interfacing to WCSLIB) with a FORTRAN-like interface (for PGSBOX).
+
+
+WCSLIB version 2.9 (2002/04/03)
+-------------------------------
+
+* C library
+
+  - Fixed a bug with alias translation in wcsset().
+
+  - Added a conditional compilation directive to lin.c for Apple's
+    MacOSX.
+
+* Fortran library
+
+  - Fixed CUBEFACE handling in WCSSET.
+
+
+WCSLIB version 2.8 (2001/11/16)
+-------------------------------
+
+* C library
+
+  - Added support for the SZP projection with szpset(), szpfwd() and
+    szprev(), and generalized AZP with support for the tilt parameter,
+    gamma.
+
+  - Added phi0 to the prjprm struct, this is set by the projection
+    initialization routines along with theta0.
+
+  - Fixed a problem in wcsmix() caused by numerical imprecision that
+    could cause it not to recognize when convergence was reached; break
+    out of the loop early if a discontinuity is detected.
+
+  - Clarified the usage of vspan in the prologue to wcsmix().
+
+  - Fixed comments relating to LATPOLE in the prologue to cel.c and
+    tcel.c, and replaced references to LONGPOLE with LONPOLE.
+
+  - Augmented the error reports in twcs2.
+
+  - Modified projex() in tproj1 and prjplt() in tproj2 to make use of
+    the information stored in the prjprm struct.
+
+* Fortran library
+
+  - Added support for the SZP projection with SZPSET, SZPFWD and SZPREV,
+    and generalized AZP with support for the tilt parameter, gamma.
+
+  - Changed the call sequence to PRJSET to return PHI0 along with
+    THETA0.
+
+  - Fixed a problem in WCSMIX caused by numerical imprecision that could
+    cause it not to recognize when convergence was reached; break out of
+    the loop early if a discontinuity is detected.
+
+  - Clarified the usage of VSPAN in the prologue to WCSMIX.
+
+  - Fixed comments relating to LATPOLE in the prologue to CEL and TCEL,
+    and replaced references to LONGPOLE with LONPOLE.
+
+  - Augmented the error reports in TWCS2.
+
+  - Modified PROJEX in TPROJ1 and PRJPLT in TPROJ2 to use the generic
+    driver routines PRJSET, PRJFWD and PRJREV.  PRJPLT also now uses the
+    projection type encoded in PRJ(11).
+
+
+WCSLIB version 2.7 (2001/02/19)
+-------------------------------
+
+* C library
+
+  - Added generic driver routines prjset(), prjfwd() and prjrev().
+    These invoke specific projection routines via the pointer-to-
+    function elements, prjfwd and prjrev, transferred to the prjprm
+    struct from celprm.
+
+  - Added code (3-letter projection code) and theta0 (reference
+    latitude) elements to prjprm.
+
+  - The projection code for the Sanson-Flamsteed projection is now SFL.
+    The upper-level routines, wcsset(), wcsfwd(), and wcsrev(),
+    recognize GLS as an alias for this.
+
+  - wcsset() now recognizes 'xyLN/xyLT' axis pairs.
+
+  - Two bugs in the translation from NCP to SIN in wcsfwd() and wcsrev()
+    were fixed: (1) the projection parameter was computed incorrectly
+    and (2) they did not honour prj->flag set to -1 to disable strict
+    bounds checking.
+
+  - A bug in wcsmix() was fixed - it was relying on the wcsprm struct to
+    have been initialized beforehand.
+
+  - The test programs now use the cpgplot interface to PGPLOT, the old
+    tpgc.c and tpgf.f wrappers have been removed.
+
+* Fortran library
+
+  - Added generic driver routines PRJSET, PRJFWD and PRJREV.  These are
+    keyed to specific projection routines via the value of PRJ(11) which
+    now differs for each projection.
+
+  - The projection code for the Sanson-Flamsteed projection is now SFL.
+    The upper-level routines, WCSSET, WCSFWD, and WCSREV, recognize GLS
+    as an alias for this.
+
+  - WCSSET now recognizes 'xyLN/xyLT' axis pairs.
+
+  - A bug in the translation from NCP to SIN in WCSFWD and WCSREV was
+    fixed; they did not honour PRJ(11) set to -1 to disable strict
+    bounds checking.
+
+  - A bug in WCSMIX was fixed - it was relying on the WCS array to have
+    been initialized beforehand.
+
+
+WCSLIB version 2.6 (2000/05/10)
+-------------------------------
+
+* C library
+
+  - Check for invalid (x,y) in zearev().
+
+  - In wcsmath.h, guard against prior definition of PI and other
+    preprocessor variables.
+
+* Fortran library
+
+  - Check for invalid (X,Y) in ZEAREV.
+
+  - Declare COSD and SIND in WCSFWD and WCSREV, reported by Clive Page
+    (cgp@star.le.ac.uk).
+
+
+WCSLIB version 2.5 (1999/12/14)
+-------------------------------
+
+* C library
+
+  - Added copyright notice to header files and prefixed include guard
+    names with "WCSLIB_".
+
+  - Fixed cube face handling in wcsfwd() and wcsrev() (reported by
+    Doug Mink, CfA).  Allow more general face layout in the inverse
+    quadcube projections.
+
+  - Fixed the problem in wcsmix() where it failed to find a valid
+    solution when the solution point lay at a native pole of a
+    projection in which the pole is represented as a finite interval.
+    However, wcsmix() will only ever return one solution even when two
+    or more valid solutions may exist.
+
+  - wcsmix() now accepts viter in the range 5 - 10, the specified value
+    will be pushed up or down into this range if necessary.
+
+  - The projection routines for AZP, TAN, SIN, ZPN, and COP now return
+    error 2 if (phi,theta) correspond to the overlapped (far) side of
+    the projection.  This strict bounds checking can be switched off by
+    setting prj->flag to -1 (rather than 0) when the projections are
+    initialized.
+
+  - The upper level routines, wcsset(), wcsfwd(), wcsrev(), and
+    wcsmix(), now recognize the NCP projection and convert it to the
+    equivalent SIN projection.  The lower level routines do not
+    recognize NCP.
+
+  - Extracted definitions of mathematical constants (PI etc.) from
+    proj.h into wcsmath.h in order to avoid conflicts with their
+    definition in math.h in some systems (such as Linux).
+
+  - Describe the two alternate representations of the quadcube
+    projections (i.e. faces laid out or stacked) in the prologue of
+    wcs.c.
+
+* Fortran library
+
+  - Fixed cube face handling in WCSFWD and WCSREV, reported by Doug Mink
+    (dmink@cfa.harvard.edu).  Allow more general face layout in the
+    inverse quadcube projections.
+
+  - Fixed the problem in WCSMIX where it failed to find a valid solution
+    when the solution point lay at a native pole of a projection in
+    which the pole is represented as a finite interval.  However, WCSMIX
+    will only ever return one solution even when two or more valid
+    solutions may exist.
+
+  - WCSMIX now accepts VITER in the range 5 - 10, the specified value
+    will be pushed up or down into this range if necessary.
+
+  - The projection routines for AZP, TAN, SIN, ZPN, and COP now return
+    error 2 if (phi,theta) correspond to the overlapped (far) side of
+    the projection.  This strict bounds checking can be switched off by
+    setting PRJ(11) to -1 (rather than 0) when the projections are
+    initialized.
+
+  - The upper level routines, WCSSET, WCSFWD, WCSREV, and WCSMIX, now
+    recognize the NCP projection and convert it to the equivalent SIN
+    projection.  The lower level routines do not recognize NCP.
+
+  - Describe the two alternate representations of the quadcube
+    projections (i.e. faces laid out or stacked) in the prologue of
+    wcs.f.
+
+
+WCSLIB version 2.4 (1996/09/23)
+-------------------------------
+
+* C library
+
+  - In sinrev(), cscrev(), qscrev(), and tscrev(), return error 2 if
+    (x,y) do not lie within the perimeter of the projection.  In
+    sinrev(), stop the computation of phi for the "synthesis" projection
+    being applied to the pure "orthographic" case (reported by
+    David Berry, STARLINK).
+
+  - (Internal change) Renamed variables l <-> m in the quadcube
+    projections to accord with standard usage (and revised WCS draft
+    paper).
+
+* Fortran library
+
+  - In SINREV, CSCREV, QSCREV, and TSCREV, return error 2 if (X,Y) do
+    not lie within the perimeter of the projection.  In SINREV, stop the
+    computation of PHI for the "synthesis" projection being applied to
+    the pure "orthographic" case.  Reported by David Berry
+    (dsb@ast.man.ac.uk).
+
+  - (Internal change) Renamed variables L <-> M in the quadcube
+    projections to accord with standard usage (and revised WCS draft
+    paper).
+
+  - (Internal change) Stopped PRJ(11) doing double service in any
+    projection.  It is now set and tested for a specific magic value
+    rather than simply being non-zero.
+
+
+WCSLIB version 2.3 (1996/06/24)
+-------------------------------
+
+* C library
+
+  - Fixed two bugs in zpnset().  The first led to an incorrect
+    determination of the degree of the polynomial and would mainly have
+    affected the efficiency of zpnrev().  The second affected the
+    determination of the boundary of the projection but would only have
+    been significant for projections with a point of inflection between
+    9 and 10 degrees of the pole.  Reported by David Berry, STARLINK.
+
+  - Replaced usage of alloca() in lin.c with malloc() and free() for
+    portability as suggested by Klaus Banse, ESO (kbanse@eso.org).
+
+  - Allow for C implementations that provide their own versions of
+    cosd(), sind(), tand(), acosd(), asind(), atand(), and atan2d().
+    From Klaus Banse, ESO (kbanse@eso.org).
+
+  - Implemented the CUBEFACE axis for quadcube projections.
+
+  - Made all function prototypes const-correct.
+
+  - Adapted the header files to C++ usage.
+
+  - Added a new test program, twcs1, to verify closure of wcsfwd() and
+    wcsrev().  The old twcs test program is now called twcs2.
+
+  - Added external arrays of error messages indexed by function return
+    value.  For example, extern const char *wcsmix_errmsg[] for
+    wcsmix().  Messages for the many proj.c functions are in
+    prjfwd_errmsg[], etc.
+
+* Fortran library
+
+  - Implemented the CUBEFACE axis for quadcube projections.
+
+  - Added a new test program, TWCS1, to verify closure of WCSFWD and
+    WCSREV.  The old TWCS test program is now called TWCS2.
+
+
+WCSLIB version 2.2 (1996/01/18)
+-------------------------------
+
+* C library
+
+  - Amended the projection equations for the conics (COP, COD, COE, COO)
+    and Bonne's projection (BON) to correctly handle southern hemisphere
+    projections with PROJP1 < 0 (reported by Lindsay Davis, NOAO).
+    Revised tproj1 and tproj2 to test such cases.
+
+* Fortran library
+
+  - Amended the projection equations for the conics (COP, COD, COE, COO)
+    and Bonne's projection (BON) to correctly handle southern hemisphere
+    projections with PROJP1 < 0 (reported by Lindsay Davis, NOAO).
+    Revised TPROJ1 and TPROJ2 to test such cases.
+
+  - Increased the dimension of the WCS array from WCS(0:2) to WCS(0:3)
+    to allow for future handling of the CUBEFACE keyword - WCS(3) will
+    store an index to the CUBEFACE axis.  This affects the call
+    sequences of WCSSET, WCSFWD, WCSREV, and WCSMIX.
+
+
+WCSLIB version 2.1 (1995/11/17)
+-------------------------------
+
+* C library
+
+  The main change of interest to programmers is that of changed argument
+  lists for wcsfwd() and wcsrev() as described below.
+
+  - The WCS linear transformations are now implemented in WCSLIB,
+    complete with matrix inverter.  The new files are lin.c, lin.h, and
+    test program tlin.c.
+
+  - Given either the celestial longitude or latitude plus an element of
+    the pixel coordinate a new routine, wcsmix(), solves for the
+    remaining elements by iterating on the unknown celestial coordinate
+    element using wcsfwd().
+
+  - The high level driver routines wcsfwd(), wcsrev(), and wcsmix() now
+    apply the full WCS algorithm chain (except for pixel regularization
+    table), including parsing the CTYPEn header cards and computing non-
+    celestial elements of the world coordinate.  This required a change
+    to their argument lists which now more closely reflect the sequence
+    of algorithms applied.  A new routine, wcsset(), parses the CTYPEn.
+
+  - The high level driver routines of WCSLIB 1.0 are available as
+    intermediate level drivers celset(), celfwd(), and celrev(), but
+    note that their argument lists have been extended to return native
+    coordinates.  The related struct is now called celprm instead of
+    wcsprm.
+
+  - The reference point for conic projections is now at the midpoint of
+    the standard parallels.  The FITS header cards PROJP1 and PROJP2 now
+    give the half-sum (midpoint) and half-difference of the latitudes of
+    the standard parallels; previously they gave the latitudes of the
+    standard parallels themselves.  The change is reflected in this
+    release of WCSLIB.
+
+  - A bug in celset() (formerly wcsset()) that misapplied WCS draft
+    equations 7 has been fixed (thanks to Rick Ebert IPAC/JPL and
+    Lindsey Davis, NOAO for reporting this).  This affected the
+    computation of Euler angles for the celestial coordinate
+    transformation for those projections that have their reference point
+    away from the native pole.  In investigating this a deficiency with
+    the formalism was discovered that led to the introduction of a
+    LATPOLE FITS header card which may be used to disambiguate where
+    CRVAL1, CRVAL2, and LONGPOLE do not uniquely determine the latitude
+    of the native pole.  The celprm struct (formerly wcsprm) has been
+    extended to accomodate LATPOLE.
+
+  - Default values of LONGPOLE and LATPOLE are now supported and their
+    use is recommended where appropriate.
+
+  - Numerical precision was being lost near the native poles in the SIN,
+    AIR, and QSC projections and this has been recovered (reported by
+    Lindsey Davis, NOAO).  Floating underflows in CSC are now avoided.
+
+  - Numerical precision was also lost in certain circumstances in the
+    spherical coordinate transformation routines and this has been
+    fixed.
+
+  - The test programs have been enhanced in various ways and the library
+    has been validated on an SGI machine using both 32-bit and 64-bit
+    compilers.
+
+* Fortran library
+
+  The main change of interest to programmers is that of changed call
+  sequences for WCSFWD and WCSREV as described below.
+
+  - The WCS linear transformations are now implemented in WCSLIB,
+    complete with matrix inverter.  The new files are lin.f and test
+    program tlin.f.
+
+  - Given either the celestial longitude or latitude plus an element of
+    the pixel coordinate a new routine, WCSMIX, solves for the remaining
+    elements by iterating on the unknown celestial coordinate element
+    using WCSFWD.
+
+  - The high level driver routines WCSFWD, WCSREV, and WCSMIX now apply
+    the full WCS algorithm chain (except for pixel regularization
+    table), including parsing the CTYPEn header cards and computing non-
+    celestial elements of the world coordinate.  This required a change
+    to their call sequences which now more closely reflect the sequence
+    of algorithms applied.  A new routine, WCSSET, parses the CTYPEn.
+
+  - The high level driver routines of WCSLIB 1.0 are available as
+    intermediate level drivers CELSET, CELFWD, and CELREV, but note
+    that their call sequences have been extended to return native
+    coordinates.  The related parameter array is now called CEL instead
+    of WCS.
+
+  - The reference point for conic projections is now at the midpoint of
+    the standard parallels.  The FITS header cards PROJP1 and PROJP2 now
+    give the half-sum (midpoint) and half-difference of the latitudes of
+    the standard parallels; previously they gave the latitudes of the
+    standard parallels themselves.  The change is reflected in this
+    release of WCSLIB.
+
+  - A bug in CELSET (formerly WCSSET) that misapplied WCS draft
+    equations 7 has been fixed (thanks to Rick Ebert IPAC/JPL and
+    Lindsey Davis, NOAO for reporting this).  This affected the
+    computation of Euler angles for the celestial coordinate
+    transformation for those projections that have their reference point
+    away from the native pole.  In investigating this a deficiency with
+    the formalism was discovered that led to the introduction of a
+    LATPOLE FITS header card which may be used to disambiguate where
+    CRVAL1, CRVAL2, and LONGPOLE do not uniquely determine the latitude
+    of the native pole.  The CEL parameter array (formerly WCS) has been
+    extended to accomodate LATPOLE as CEL(4), and the flag variable is
+    now CEL(5) (formerly WCS(4)).
+
+  - Default values of LONGPOLE and LATPOLE are now supported and their
+    use is recommended where appropriate.
+
+  - Numerical precision was being lost near the native poles in the SIN,
+    AIR, and QSC projections and this has been recovered (reported by
+    Lindsey Davis, NOAO).  Floating underflows in CSC are now avoided.
+
+  - Numerical precision was also lost in certain circumstances in the
+    spherical coordinate transformation routines and this has been
+    fixed.
+
+  - The test programs have been enhanced in various ways and the
+    library has been validated on an SGI machine using both 32-bit and
+    64-bit compilers.
+
+
+WCSLIB version 1.0 (1995/01/31)
+-------------------------------
+
+* C library
+
+  Initial release.
+
+* Fortran library
+
+  Initial release.
+
+------------------------------------------------------------------------
+$Id: CHANGES,v 8.3 2024/05/13 16:33:01 mcalabre Exp $

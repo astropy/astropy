@@ -1,0 +1,45 @@
+import pytest
+
+from astropy import units as u
+from astropy.tests.helper import assert_quantity_allclose
+
+
+def test_assert_quantity_allclose():
+    assert_quantity_allclose([1, 2], [1, 2])
+
+    assert_quantity_allclose([1, 2] * u.m, [100, 200] * u.cm)
+
+    assert_quantity_allclose([1, 2] * u.m, [101, 201] * u.cm, atol=2 * u.cm)
+
+    with pytest.raises(AssertionError, match=r"\nNot equal to tolerance"):
+        assert_quantity_allclose([1, 2] * u.m, [90, 200] * u.cm)
+
+    with pytest.raises(AssertionError):
+        assert_quantity_allclose([1, 2] * u.m, [101, 201] * u.cm, atol=0.5 * u.cm)
+
+    with pytest.raises(
+        u.UnitsError,
+        match=r"Units for 'desired' \(\) and 'actual' \(m\) are not convertible",
+    ):
+        assert_quantity_allclose([1, 2] * u.m, [100, 200])
+
+    with pytest.raises(
+        u.UnitsError,
+        match=r"Units for 'desired' \(cm\) and 'actual' \(\) are not convertible",
+    ):
+        assert_quantity_allclose([1, 2], [100, 200] * u.cm)
+
+    with pytest.raises(
+        u.UnitsError,
+        match=r"Units for 'atol' \(\) and 'actual' \(m\) are not convertible",
+    ):
+        assert_quantity_allclose([1, 2] * u.m, [100, 200] * u.cm, atol=0.3)
+
+    with pytest.raises(
+        u.UnitsError,
+        match=r"Units for 'atol' \(m\) and 'actual' \(\) are not convertible",
+    ):
+        assert_quantity_allclose([1, 2], [1, 2], atol=0.3 * u.m)
+
+    with pytest.raises(u.UnitsError, match=r"'rtol' should be dimensionless"):
+        assert_quantity_allclose([1, 2], [1, 2], rtol=0.3 * u.m)

@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest an idea to improve astropy.
+labels: "Feature Request"
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Thanks for taking the time to fill out this feature request!
+        Please have a search on our GitHub repository to see if a similar
+        issue has already been posted. If a similar issue is closed, have a
+        quick look to see if you are satisfied by the resolution.
+        If not please go ahead and open an issue!
+  - type: textarea
+    attributes:
+      label: What is the problem this feature will solve?
+      description: >-
+        What are you trying to do, that you are unable to achieve with astropy
+        and its affiliated packages as it currently stands?
+  - type: textarea
+    attributes:
+      label: Describe the desired outcome
+      description: >-
+        Clear and concise description of what you want to happen. Please use examples
+        of real world use cases that this would help with, and how it solves the
+        problem described above. If you want to, you can suggest a draft design or API
+        so we can have a deeper discussion on the feature.
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: >-
+        Add any other context, links, etc. relevant to the feature request.
+        You may also include screenshots if necessary.

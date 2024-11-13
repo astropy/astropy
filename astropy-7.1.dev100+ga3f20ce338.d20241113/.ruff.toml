@@ -1,0 +1,320 @@
+extend = "pyproject.toml"
+lint.ignore = [
+    # NOTE: to find a good code to fix, run:
+    # ruff --select="ALL" --statistics astropy/<subpackage>
+
+    # flake8-annotations (ANN) : static typing
+    "ANN001",  # Function argument without type annotation
+    "ANN003",  # `**kwargs` without type annotation
+    "ANN202",  # Private function without return type annotation
+    "ANN401",  # Use of `Any` type
+
+    # flake8-unused-arguments (ARG)
+    "ARG001",  # unused-function-argument
+    "ARG002",  # unused-method-argument
+    "ARG003",  # unused-class-method-argument
+    "ARG004",  # unused-static-method-argument
+    "ARG005",  # unused-lambda-argument
+
+    # flake8-bugbear (B)
+    "B006",  # MutableArgumentDefault
+    "B007",  # UnusedLoopControlVariable
+    "B023",  # FunctionUsesLoopVariable
+    "B028",  # No-explicit-stacklevel
+    "B904",  # RaiseWithoutFromInsideExcept
+    "B905",  # ZipWithoutExplicitStrict
+
+    # flake8-blind-except (BLE)
+    "BLE001",  # blind-except
+
+    # mccabe (C90) : code complexity
+    # TODO: configure maximum allowed complexity.
+    "C901",  # McCabeComplexity
+
+    # pydocstyle (D)
+    # Missing Docstrings
+    "D100",  # undocumented-public-module
+    "D101",  # undocumented-public-class
+    "D103",  # undocumented-public-function
+    "D104",  # undocumented-public-package
+    "D205",  # blank-line-after-summary
+    # Quotes Issues
+    "D300",  # triple-single-quotes
+    "D301",  # escape-sequence-in-docstring
+    # Docstring Content Issues
+    "D403",  # first-line-capitalized
+    "D404",  # docstring-starts-with-this
+    "D401",  # non-imperative-mood.
+    "D414",  # empty-docstring-section
+    "D419",  # docstring is empty
+
+    # flake8-datetimez (DTZ)
+    "DTZ001",  # call-datetime-without-tzinfo
+    "DTZ005",  # call-datetime-now-without-tzinfo
+
+    # pycodestyle (E, W)
+    "E501",  # line-too-long
+    "E721",  # type-comparison
+    "E731",  # lambda-assignment
+
+    # flake8-errmsg (EM)  : nicer error tracebacks
+    "EM101",   # raw-string-in-exception
+    "EM102",   # f-string-in-exception
+    "EM103",   # dot-format-in-exception
+
+    # eradicate (ERA)
+    # NOTE: be careful that developer notes are kept.
+    "ERA001",  # commented-out-code
+
+    # flake8-executable (EXE)
+    "EXE002",  # shebang-missing-executable-file
+
+    # Pyflakes (F)
+    "F841",  # unused-variable
+
+    # flake8-boolean-trap (FBT)  : boolean flags should be kwargs, not args
+    # NOTE: a good thing to fix, but changes API.
+    "FBT001",  # boolean-positional-arg-in-function-definition
+    "FBT002",  # boolean-default-value-in-function-definition
+    "FBT003",  # boolean-positional-value-in-function-call
+
+    # flake8-fixme (FIX)
+    "FIX001",  # Line contains FIXME.  this should be fixed or at least FIXME replaced with TODO
+    "FIX004",  # Line contains HACK. replace HACK with NOTE.
+
+    # pep8-naming (N)
+    # NOTE: some of these can/should be fixed, but this changes the API.
+    "N801",  # invalid-class-name
+    "N802",  # invalid-function-name
+    "N803",  # invalid-argument-name
+    "N805",  # invalid-first-argument-name-for-method
+    "N807",  # dunder-function-name
+    "N813",  # camelcase-imported-as-lowercase
+    "N815",  # mixed-case-variable-in-class-scope
+    "N816",  # mixed-case-variable-in-global-scope
+    "N818",  # error-suffix-on-exception-name
+
+    # NumPy-specific rules (NPY)
+    "NPY002", # Replace legacy `np.random.rand` call with `np.random.Generator`  (2023-05-03)
+
+    # Perflint (PERF)
+    "PERF203",  # `try`-`except` within a loop incurs performance overhead
+    "PERF401",  # Use a list comprehension to create a transformed list
+
+    # Pylint (PLC, PLE, PLR, PLW)
+    "PLE0101",  # return-in-init
+    "PLR0124",  # Name compared with itself
+    "PLR0402",  # ConsiderUsingFromImport
+    "PLR0912",  # too-many-branches
+    "PLR0913",  # too-many-args
+    "PLR0915",  # too-many-statements
+    "PLR1714",  # Consider merging multiple comparisons
+    "PLR2004",  # MagicValueComparison
+    "PLR5501",  # collapsible-else-if
+    "PLW0603",  # global-statement
+    "PLW2901",  # redefined-loop-name
+
+    # flake8-pytest-style (PT)
+    "PT003",   # pytest-extraneous-scope-function
+    "PT006",   # pytest-parametrize-names-wrong-type
+    "PT007",   # pytest-parametrize-values-wrong-type
+    "PT011",   # pytest-raises-too-broad
+    "PT012",   # pytest-raises-with-multiple-statements
+    "PT017",   # pytest-assert-in-exceptinstead
+    "PT018",   # pytest-composite-assertion
+    "PT022",   # pytest-useless-yield-fixture
+
+    # flake8-return (RET)
+    "RET501",  # unnecessary-return-none
+    "RET502",  # implicit-return-value
+    "RET503",  # implicit-return
+    "RET504",  # unnecessary-assign
+    "RET507",  # superfluous-else-continue
+
+    # flake8-raise (RSE)
+    "RSE102",  # unnecessary-paren-on-raise-exception
+
+    # Ruff-specific rules (RUF)
+    "RUF001",  # ambiguous-unicode-character-string
+    "RUF002",  # ambiguous-unicode-character-docstring
+    "RUF010",  # use conversion in f-string
+    "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
+
+    # flake8-bandit (S)
+    "S101",  # Use of `assert` detected
+    "S105",  # hardcoded-password-string
+    "S110",  # try-except-pass
+    "S112",  # try-except-continue
+    "S301",  # suspicious-pickle-usage
+    "S307",  # Use of possibly insecure function; consider using `ast.literal_eval`
+    "S311",  # suspicious-non-cryptographic-randomness
+    "S324",  # hashlib-insecure-hash-function
+    "S506",  # UnsafeYAMLLoad
+    "S310",  # Suspicious-url-open-usage
+    "S603",  # `subprocess` call: check for execution of untrusted input
+    "S607",  # Starting a process with a partial executable path
+
+    # flake8-simplify (SIM)
+    "SIM102",  # NestedIfStatements
+    "SIM105",  # UseContextlibSuppress
+    "SIM108",  # UseTernaryOperator
+    "SIM114",  # if-with-same-arms
+    "SIM115",  # OpenFileWithContextHandler
+    "SIM117",  # MultipleWithStatements
+    "SIM118",  # KeyInDict
+    "SIM201",  # NegateEqualOp
+    "SIM300",  # yoda condition
+
+    # flake8-print (T20)
+    "T201",  # PrintUsed
+
+    # flake8-todos (TD)
+    "TD001",  # Invalid TODO tag
+    "TD003",  # Missing issue link on the line following this TODO
+    "TD004",  # Missing colon in TODO
+    "TD007",  # Missing space after colon in TODO
+
+    # tryceratops (TRY)
+    "TRY002",  # raise-vanilla-class
+    "TRY003",  # raise-vanilla-args
+    "TRY004",  # prefer-type-error
+    "TRY201",  # verbose-raise
+    "TRY301",  # raise-within-try
+
+    # pyupgrade (UP)
+    "UP038",  # isinstance using union separators. The code is slower as of Python 3.11-3.12
+
+    # flake8-quotes (Q)
+    "Q000",  # use double quotes
+]
+lint.unfixable = [
+    "E711"  # NoneComparison. Hard to fix b/c numpy has it's own None.
+]
+
+[lint.extend-per-file-ignores]
+"__init__.py" = ["E402", "F401"]
+"test_*.py" = [
+    "PTH", # all flake8-use-pathlib
+    "RUF015",  # Prefer next({iterable}) over single element slice
+]
+# TODO: fix these, on a per-subpackage basis.
+# When a general exclusion is being fixed, but it affects many subpackages, it
+# is better to fix for subpackages individually. The general exclusion should be
+# copied to these subpackage sections and fixed there.
+"astropy/config/*" = []
+"astropy/constants/*" = [
+    "N817",    # camelcase-imported-as-acronym
+    "RET505",  # superfluous-else-return
+]
+"astropy/convolution/*" = [
+    "PLR0911",  # too-many-return-statements
+]
+"astropy/coordinates/*" = [
+    "PTH",     # all flake8-use-pathlib
+    "DTZ007",  # call-datetime-strptime-without-zone
+    "RET505",  # superfluous-else-return
+]
+"astropy/cosmology/*" = [
+    "C408",  # unnecessary-collection-call
+    "PT019",   # pytest-fixture-param-without-value
+]
+"astropy/io/*" = [
+    "G001",  # logging-string-format
+    "G004",  # logging-f-string
+    "PLR0911",  # too-many-return-statements
+    "PTH116",  # os-stat
+    "PTH117",  # os-path-isabs
+    "S314",  # defusedxml
+    "SLOT000",  # Subclasses of `str` should define `__slots__`
+    "TD005",  # Missing issue description after `TODO`
+    "TRY400",  # error-instead-of-exception
+    "TRY300",  # Consider `else` block
+]
+"astropy/io/ascii/*" = [
+]
+"astropy/io/fits/*" = [
+    "PTH",
+]
+"astropy/io/misc/*" = [
+]
+"astropy/io/registry/*" = [
+    "PTH",
+]
+"astropy/io/votable/*" = [
+    "PTH",
+]
+"astropy/logger.py" = [
+    "C408",
+    "RET505",
+]
+"astropy/modeling/*" = [
+    "PLR0911",  # too-many-return-statements
+    "SLOT001",  # Subclasses of `tuple` should define `__slots__`
+    "TRY300",  # Consider `else` block
+    "F811",  # see https://github.com/astropy/astropy/pull/16633
+]
+"astropy/nddata/*" = [
+    "C408",
+]
+"astropy/samp/*" = [
+    "PTH",      # all flake8-use-pathlib
+]
+"astropy/stats/*" = [
+    "PLR0911",  # too-many-return-statements
+]
+"astropy/table/*" = [
+    "S605",  # Starting a process with a shell, possible injection detected
+    "TRY300",  # Consider `else` block
+]
+"astropy/tests/*" = [
+    "C408",
+    "PTH",      # all flake8-use-pathlib
+    "RET505"
+]
+"astropy/time/*" = [
+    "FIX003",  # Line contains XXX.  replace XXX with TODO
+    "PIE794",  # duplicate-class-field-definition
+]
+"astropy/timeseries/*" = [
+    "PLR0911",  # too-many-return-statements
+]
+"astropy/units/*" = [
+    "N812",  # lowercase-imported-as-non-lowercase
+    "PLR0911",  # too-many-return-statements
+    "TRY300",  # Consider `else` block
+]
+"astropy/uncertainty/*" = [
+    "C408",
+]
+"astropy/utils/*" = [
+    "N811",  # constant-imported-as-non-constant
+    "PLR0911",  # too-many-return-statements
+    "PTH",      # all flake8-use-pathlib
+    "S321",  # Suspicious-ftp-lib-usage
+    "TRY300",  # Consider `else` block
+]
+"astropy/visualization/*" = [
+    "B015",
+    "PLR0911",  # too-many-return-statements
+]
+"astropy/wcs/*" = [
+    "C408",  # unnecessary-collection-call
+    "F821",  # undefined-name
+    "PTH",      # all flake8-use-pathlib
+    "S608",  # Posslibe SQL injection
+    "SIM202",  # NegateNotEqualOp
+    "TRY300",  # Consider `else` block
+]
+"docs/*" = []
+"examples/coordinates/*" = []
+
+".pyinstaller/*.py" = ["PTH"]
+
+
+[lint.flake8-import-conventions.aliases]
+# xml is hardly ever used thus the alias should not be mandated
+# There is no way to remove from the default list, only to override
+# the default thus we list the things here that we actually should use.
+"numpy" = "np"
+"matplotlib" = "mpl"
+"matplotlib.pyplot" = "plt"

@@ -1,0 +1,5 @@
+``SkyCoord``, coordinate frames, and representations have all have gained the
+ability to deal with ``Masked`` data. In general, the procedure is similar to
+that of ``Time``, except that different representation components do not share
+the mask, to enable holding, e.g., a catalogue of objects in which only some
+have associated distances.

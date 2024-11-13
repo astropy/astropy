@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+  <RESOURCE name="myFavouriteGalaxies">
+    <COOSYS ID="sys" equinox="J2000" epoch="J2000" system="eq_FK5"/>
+    <TABLE name="results">
+      <DESCRIPTION>Velocities and Distance estimations</DESCRIPTION>
+      <PARAM name="Telescope" datatype="float" ucd="phys.size;instr.tel"
+             unit="m" value="3.6"/>
+      <FIELD name="RA"   ID="col1" ucd="pos.eq.ra;meta.main"
+             datatype="float" width="6" precision="2" unit="deg" ref="sys"/>
+      <FIELD name="Dec"  ID="col2" ucd="pos.eq.dec;meta.main"
+             datatype="float" width="6" precision="2" unit="deg" ref="sys"/>
+      <FIELD name="Name" ID="col3" ucd="meta.id;meta.main"
+             datatype="char" arraysize="8*"/>
+      <FIELD name="RVel" ID="col4" ucd="spect.dopplerVeloc" datatype="int"
+             width="5" unit="km/s"/>
+      <FIELD name="e_RVel" ID="col5" ucd="stat.error;spect.dopplerVeloc"
+             datatype="int" width="3" unit="km/s"/>
+      <FIELD name="R" ID="col6" ucd="pos.distance;pos.heliocentric"
+             datatype="float" width="4" precision="1" unit="Mpc">
+        <DESCRIPTION>Distance of Galaxy, assuming H=75km/s/Mpc</DESCRIPTION>
+      </FIELD>
+      <DATA>
+        <TABLEDATA>
+        <TR>
+          <TD>010.68</TD><TD>+41.27</TD><TD>N 224</TD><TD>-297</TD><TD>5</TD><TD>0.7</TD>
+        </TR>
+        <TR>
+          <TD>287.43</TD><TD>-63.85</TD><TD>N 6744</TD><TD>839</TD><TD>6</TD><TD>10.4</TD>
+        </TR>
+        <TR>
+          <TD>023.48</TD><TD>+30.66</TD><TD>N 598</TD><TD>-182</TD><TD>3</TD><TD>0.7</TD>
+        </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+  </RESOURCE>
+</VOTABLE>

@@ -1,0 +1,2 @@
+Added support for calling numpy array constructors (``np.empty``, ``np.ones``,
+``np.zeros`` and ``np.full``) with ``like=Quantity(...)`` .

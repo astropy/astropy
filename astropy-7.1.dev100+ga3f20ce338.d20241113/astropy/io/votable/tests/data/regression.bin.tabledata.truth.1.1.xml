@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Produced with astropy.io.votable version testing
+     http://www.astropy.org/ -->
+<VOTABLE version="1.1" xmlns="http://www.ivoa.net/xml/VOTable/v1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ivoa.net/xml/VOTable/v1.1">
+ <DESCRIPTION>
+  The VOTable format is an XML standard for the interchange of data
+  represented as a set of tables. In this context, a table is an
+  unordered set of rows, each of a uniform format, as specified in the
+  table metadata. Each row in a table is a sequence of table cells,
+  and each of these contains either a primitive data type, or an array
+  of such primitives. VOTable is derived from the Astrores format [1],
+  itself modeled on the FITS Table format [2]; VOTable was designed to
+  be closer to the FITS Binary Table format.
+ </DESCRIPTION>
+ <COOSYS ID="J2000" equinox="J2000" system="eq_FK5"/>
+ <PARAM ID="wrong_arraysize" arraysize="0" datatype="float" name="wrong_arraysize" value=""/>
+ <PARAM ID="INPUT" arraysize="*" datatype="float" name="INPUT" ucd="phys.size;instr.tel" unit="km.h-1" value="0 0">
+  <DESCRIPTION>
+   This is the most interesting parameter in the world, and it drinks
+   Dos Equis
+  </DESCRIPTION>
+ </PARAM>
+ <INFO ID="QUERY_STATUS" name="QUERY_STATUS" value="OK">This is some information.</INFO>
+ <RESOURCE type="results">
+  <DESCRIPTION>
+   This is a resource description
+  </DESCRIPTION>
+  <PARAM ID="awesome" arraysize="*" datatype="float" name="INPUT" unit="deg" value="0 0"/>
+  <PARAM ID="empty_value" arraysize="*" datatype="char" name="empty_value" unit="foo" value="">
+   <VALUES>
+    <OPTION name="empty_value" value=""/>
+    <OPTION value="90prime"/>
+   </VALUES>
+  </PARAM>
+  <LINK href="http://www.foo.com/"/>
+  <TABLE ID="main_table" nrows="5">
+   <DESCRIPTION>
+    This describes the table.
+   </DESCRIPTION>
+   <FIELD ID="string_test" arraysize="*" datatype="char" name="string test"/>
+   <FIELD ID="string_test_2" arraysize="10" datatype="char" name="fixed string test"/>
+   <FIELD ID="unicode_test" arraysize="*" datatype="unicodeChar" name="unicode_test"/>
+   <FIELD ID="fixed_unicode_test" arraysize="10" datatype="unicodeChar" name="unicode test"/>
+   <FIELD ID="string_array_test" arraysize="4" datatype="char" name="string array test"/>
+   <FIELD ID="unsignedByte" datatype="unsignedByte" name="unsignedByte"/>
+   <FIELD ID="short" datatype="short" name="short">
+    <VALUES null="-32768"/>
+   </FIELD>
+   <FIELD ID="int" datatype="int" name="int" utype="myint">
+    <VALUES ID="int_nulls" null="123456789">
+     <MIN inclusive="no" value="-1000"/>
+     <MAX inclusive="yes" value="1000"/>
+     <OPTION name="bogus" value="whatever"/>
+    </VALUES>
+   </FIELD>
+   <FIELD ID="intNoNull" datatype="int" name="intNoNull"/>
+   <FIELD ID="long" datatype="long" name="long">
+    <VALUES ref="int_nulls"/>
+    <LINK href="http://www.long-integers.com/"/>
+   </FIELD>
+   <FIELD ID="double" datatype="double" name="double"/>
+   <FIELD ID="float" datatype="float" name="float"/>
+   <FIELD ID="array" arraysize="2x2*" datatype="long" name="array">
+    <VALUES null="-1"/>
+   </FIELD>
+   <FIELD ID="bit" datatype="bit" name="bit"/>
+   <FIELD ID="bitarray" arraysize="2x3" datatype="bit" name="bitarray"/>
+   <FIELD ID="bitvararray" arraysize="*" datatype="bit" name="bitvararray"/>
+   <FIELD ID="bitvararray2" arraysize="2x3x*" datatype="bit" name="bitvararray2"/>
+   <FIELD ID="floatComplex" datatype="floatComplex" name="floatComplex"/>
+   <FIELD ID="doubleComplex" datatype="doubleComplex" name="doubleComplex"/>
+   <FIELD ID="doubleComplexArray" arraysize="*" datatype="doubleComplex" name="doubleComplexArray"/>
+   <FIELD ID="doubleComplexArrayFixed" arraysize="2" datatype="doubleComplex" name="doubleComplexArrayFixed"/>
+   <FIELD ID="boolean" datatype="boolean" name="boolean"/>
+   <FIELD ID="booleanArray" arraysize="4" datatype="boolean" name="booleanArray"/>
+   <FIELD ID="nulls" datatype="int" name="nulls">
+    <VALUES null="-9"/>
+   </FIELD>
+   <FIELD ID="nulls_array" arraysize="2x2" datatype="int" name="nulls_array">
+    <VALUES null="-9"/>
+   </FIELD>
+   <FIELD ID="precision1" datatype="double" name="precision1" precision="E3" width="10"/>
+   <FIELD ID="precision2" datatype="double" name="precision2" precision="F3"/>
+   <FIELD ID="doublearray" arraysize="*" datatype="double" name="doublearray">
+    <VALUES null="-1.0"/>
+   </FIELD>
+   <FIELD ID="bitarray2" arraysize="16" datatype="bit" name="bitarray2"/>
+   <PARAM ID="INPUT2" arraysize="*" datatype="float" name="INPUT2" unit="deg" value="0 0">
+    <DESCRIPTION>
+     This is the most interesting parameter in the world, and it
+     drinks Dos Equis
+    </DESCRIPTION>
+   </PARAM>
+   <GROUP>
+    <PARAMref ref="awesome"/>
+   </GROUP>
+   <GROUP>
+    <DESCRIPTION>
+     This should warn of a second description.
+    </DESCRIPTION>
+    <FIELDref ref="boolean"/>
+    <GROUP>
+     <PARAMref ref="awesome"/>
+     <PARAM ID="OUTPUT" datatype="float" name="OUTPUT" value="42"/>
+    </GROUP>
+    <PARAM ID="INPUT3" arraysize="*" datatype="float" name="INPUT3" unit="deg" value="0 0">
+     <DESCRIPTION>
+      This is the most interesting parameter in the world, and it
+      drinks Dos Equis
+     </DESCRIPTION>
+    </PARAM>
+   </GROUP>
+   <LINK href="http://tabledata.org/"/>
+   <DATA>
+    <TABLEDATA>
+     <TR>
+      <TD>String &amp; test</TD>
+      <TD>Fixed stri</TD>
+      <TD>Ceçi n'est pas un pipe</TD>
+      <TD>Ceçi n'est</TD>
+      <TD>ab c</TD>
+      <TD>128</TD>
+      <TD>4096</TD>
+      <TD>268435456</TD>
+      <TD>3</TD>
+      <TD>922337203685477</TD>
+      <TD>8.9990234375</TD>
+      <TD>1</TD>
+      <TD/>
+      <TD>1</TD>
+      <TD>101101</TD>
+      <TD>1 1 1</TD>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD>0 0 0 0</TD>
+      <TD>T</TD>
+      <TD>T T T T</TD>
+      <TD>0</TD>
+      <TD>-9 -9 -9 -9</TD>
+      <TD>      1.33</TD>
+      <TD>1.333</TD>
+      <TD/>
+      <TD>1111000011110000</TD>
+     </TR>
+     <TR>
+      <TD>String &amp;amp; test</TD>
+      <TD>0123456789</TD>
+      <TD>வணக்கம்</TD>
+      <TD>வணக்கம்</TD>
+      <TD>0123</TD>
+      <TD>255</TD>
+      <TD>32767</TD>
+      <TD>2147483647</TD>
+      <TD>3</TD>
+      <TD>123456789</TD>
+      <TD>0</TD>
+      <TD>0</TD>
+      <TD>42 32 12 32</TD>
+      <TD>0</TD>
+      <TD>010011</TD>
+      <TD>0 0 0 0 0</TD>
+      <TD>0 1 0 0 1 0 1 0 1 0 1 0</TD>
+      <TD>0 0</TD>
+      <TD>0 0</TD>
+      <TD>0 0 0 0</TD>
+      <TD>0 -1 -1 -1</TD>
+      <TD>F</TD>
+      <TD>T T F T</TD>
+      <TD>-9</TD>
+      <TD>0 1 2 3</TD>
+      <TD>         1</TD>
+      <TD>1.000</TD>
+      <TD>0 1 +InF -InF NaN 0 -1</TD>
+      <TD>0000000000000000</TD>
+     </TR>
+     <TR>
+      <TD>XXXX</TD>
+      <TD>XXXX</TD>
+      <TD>XXXX</TD>
+      <TD>0123456789</TD>
+      <TD/>
+      <TD>0</TD>
+      <TD>-4096</TD>
+      <TD>-268435456</TD>
+      <TD>3</TD>
+      <TD>-1152921504606846976</TD>
+      <TD>+InF</TD>
+      <TD>+InF</TD>
+      <TD>12 34 56 78 87 65 43 21</TD>
+      <TD>1</TD>
+      <TD>111000</TD>
+      <TD>1 0 1 0 1</TD>
+      <TD>1 1 1 1 1 1</TD>
+      <TD>0 -1</TD>
+      <TD>0 -1</TD>
+      <TD>0 0 0 0</TD>
+      <TD>0 0 0 0</TD>
+      <TD>T</TD>
+      <TD>T T ? T</TD>
+      <TD>2</TD>
+      <TD>-9 0 -9 1</TD>
+      <TD>     1e+34</TD>
+      <TD>9999999999999999455752309870428160.000</TD>
+      <TD/>
+      <TD>0000000000000000</TD>
+     </TR>
+     <TR>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD>255</TD>
+      <TD>32767</TD>
+      <TD>268435455</TD>
+      <TD>3</TD>
+      <TD>1152921504606846975</TD>
+      <TD/>
+      <TD>+InF</TD>
+      <TD>-1 23</TD>
+      <TD>0</TD>
+      <TD>000000</TD>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD>0 0 0 0</TD>
+      <TD>F</TD>
+      <TD>? ? ? ?</TD>
+      <TD>-9</TD>
+      <TD>0 -9 1 -9</TD>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD>0000000000000000</TD>
+     </TR>
+     <TR>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD>255</TD>
+      <TD>32767</TD>
+      <TD>123456789</TD>
+      <TD>3</TD>
+      <TD>123456789</TD>
+      <TD>-InF</TD>
+      <TD/>
+      <TD>31 -1</TD>
+      <TD>0</TD>
+      <TD>000000</TD>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD>0 0 0 0</TD>
+      <TD>?</TD>
+      <TD>? ? ? ?</TD>
+      <TD>-9</TD>
+      <TD>-9 -9 -9 -9</TD>
+      <TD/>
+      <TD/>
+      <TD/>
+      <TD>0000000000000000</TD>
+     </TR>
+    </TABLEDATA>
+   </DATA>
+  </TABLE>
+  <RESOURCE type="results">
+   <TABLE nrows="1" ref="main_table">
+    <DESCRIPTION>
+     This is a referenced table
+    </DESCRIPTION>
+    <DATA>
+     <TABLEDATA>
+      <TR>
+       <TD>String &amp; test</TD>
+       <TD>Fixed stri</TD>
+       <TD>Ceçi n'est pas un pipe</TD>
+       <TD>Ceçi n'est</TD>
+       <TD>ab c</TD>
+       <TD>128</TD>
+       <TD>4096</TD>
+       <TD>268435456</TD>
+       <TD>3</TD>
+       <TD>922337203685477</TD>
+       <TD>8.9990234375</TD>
+       <TD>1</TD>
+       <TD/>
+       <TD>1</TD>
+       <TD>101101</TD>
+       <TD>1 1 1</TD>
+       <TD/>
+       <TD/>
+       <TD/>
+       <TD/>
+       <TD>0 0 0 0</TD>
+       <TD>T</TD>
+       <TD>T T T T</TD>
+       <TD>0</TD>
+       <TD>-9 -9 -9 -9</TD>
+       <TD>      1.33</TD>
+       <TD>1.333</TD>
+       <TD/>
+       <TD>1111000011110000</TD>
+      </TR>
+     </TABLEDATA>
+    </DATA>
+   </TABLE>
+   <TABLE ID="last_table" nrows="0" ref="main_table"/>
+  </RESOURCE>
+ </RESOURCE>
+</VOTABLE>

@@ -1,0 +1,12 @@
+👋 Welcome to "AstroPy" in GitHub Codespaces!
+
+🔍 To explore VS Code to its fullest, search using the Command Palette (Cmd/Ctrl + Shift + P or F1).
+
+ℹ️  Look at https://docs.astropy.org/en/latest/development/quickstart.html
+    for more contribution details.
+
+⭐⭐ =================================  IMPORTANT!!  ================================== ⭐⭐
+   To complete setup of your development environment run the following in the terminal:
+
+      pip install -e .[all,test_all,docs]
+⭐⭐ ================================================================================== ⭐⭐

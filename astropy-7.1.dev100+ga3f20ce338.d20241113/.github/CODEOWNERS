@@ -1,0 +1,60 @@
+# Despite the name of this file, the people listed here DO NOT OWN the code in astropy subpackages,
+# the copyright is held by the Astropy Project as a whole - see the license file for details.
+#
+# This file exists because as of 2022, GitHub does not offer a mechanism to subscribe to only
+# a fraction of new PRs in astropy. Either one chooses to "watch" the entire repository and
+# receives a large number of notifications or one needs to manually check for new PRs for
+# sub-package(s) of interest.
+#
+# All names listed here by sub-packages will be requested to review any new PR
+# and thus get notified. Only people with maintainer-level permission can be added as
+# PR reviewers.
+#
+# Instructions for core maintainers -- Add your GitHub username to opt-in to automatic
+# review requests for specific sub-packages below:
+
+# astropy/constants
+astropy/convolution         @larrybradley
+# astropy/coordinates
+astropy/cosmology           @astropy/cosmology
+astropy/io/ascii            @taldcroft          @dhomeier
+astropy/io/fits             @saimn
+astropy/io/misc             @WilliamJamieson    @matteobachetti
+astropy/io/registry         @nstarman
+# astropy/io/votable
+astropy/modeling            @astropy/modeling
+# astropy/nddata
+# astropy/samp
+astropy/stats               @larrybradley
+astropy/table               @taldcroft
+astropy/time                @taldcroft
+# astropy/timeseries
+# astropy/uncertainty
+# astropy/units
+# astropy/utils
+astropy/visualization       @astrofrog     @larrybradley
+astropy/wcs                 @mcara
+astropy/wcs/wcsapi          @astrofrog
+
+# docs/constants
+docs/convolution            @larrybradley
+# docs/coordinates
+docs/cosmology              @astropy/cosmology
+docs/io/ascii               @taldcroft          @dhomeier
+docs/io/fits                @saimn
+# docs/io/votable
+docs/modeling               @astropy/modeling
+# docs/nddata
+# docs/samp
+docs/stats                  @larrybradley
+docs/table                  @taldcroft
+docs/time                   @taldcroft
+# docs/timeseries
+# docs/uncertainty
+# docs/units
+# docs/utils
+docs/visualization          @astrofrog      @larrybradley
+docs/wcs                    @mcara
+
+.pre-commit-config.yaml     @WilliamJamieson    @nstarman
+.ruff.toml                   @WilliamJamieson    @nstarman

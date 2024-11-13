@@ -174,11 +174,14 @@ class FunctionUnitBase(metaclass=ABCMeta):
         return [(self, self.physical_unit, self.to_physical, self.from_physical)]
 
     # ↓↓↓ properties/methods required to behave like a unit
-    def decompose(self, bases=set()):
+    def decompose(self, bases=None):
         """Copy the current unit with the physical unit decomposed.
 
         For details, see `~astropy.units.UnitBase.decompose`.
         """
+        if bases is None:
+            bases=set()
+        
         return self._copy(self.physical_unit.decompose(bases))
 
     @property
@@ -201,7 +204,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         """Return the physical type of the physical unit (e.g., 'length')."""
         return self.physical_unit.physical_type
 
-    def is_equivalent(self, other, equivalencies=[]):
+    def is_equivalent(self, other, equivalencies=None):
         """
         Returns `True` if this unit is equivalent to ``other``.
 
@@ -223,6 +226,9 @@ class FunctionUnitBase(metaclass=ABCMeta):
         -------
         bool
         """
+        if equivalencies is None:
+            equivalencies=[]
+        
         if isinstance(other, tuple):
             return any(self.is_equivalent(u, equivalencies) for u in other)
 
@@ -238,7 +244,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         return self.physical_unit.is_equivalent(other_physical_unit, equivalencies)
 
-    def to(self, other, value=1.0, equivalencies=[]):
+    def to(self, other, value=1.0, equivalencies=None):
         """
         Return the converted values in the specified unit.
 
@@ -269,6 +275,9 @@ class FunctionUnitBase(metaclass=ABCMeta):
         `~astropy.units.UnitsError`
             If units are inconsistent.
         """
+        if equivalencies is None:
+            equivalencies=[]
+        
         # conversion to one's own physical unit should be fastest
         if other is self.physical_unit:
             return self.to_physical(value)
@@ -627,11 +636,14 @@ class FunctionQuantity(Quantity):
         """Return a copy with the physical unit in CGS units."""
         return self.__class__(self.physical.cgs)
 
-    def decompose(self, bases=[]):
+    def decompose(self, bases=None):
         """Generate a new instance with the physical unit decomposed.
 
         For details, see `~astropy.units.Quantity.decompose`.
         """
+        if bases is None:
+            bases=set()
+        
         return self.__class__(self.physical.decompose(bases))
 
     # ↓↓↓ methods overridden to add additional behavior

@@ -1,0 +1,2 @@
+*.fits    -text
+astropy/io/fits/tiled_compression/tests/data/*fits binary

@@ -1,0 +1,388 @@
+
+Linux horus 5.4.0-77-generic #86-Ubuntu SMP Thu Jun 17 02:35:03 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+
+GNU Make 4.2.1
+  SUBDIR      := .
+  MAKEFLAGS   :=  -Otarget
+
+For building and installing wcslib-7.6...
+  ARCH        := x86_64-linux-gnu
+  FLEX        := flex
+  FLFLAGS     := -D_POSIX_C_SOURCE=1
+  CPP         := gcc -E
+  CPPFLAGS    := -DHAVE_CONFIG_H
+  WCSTRIG     := WRAPPER
+  CC          := gcc
+  CFLAGS      := -g -O2
+  FC          := gfortran
+  FFLAGS      := -g -O2 -I.
+  WCSLIB      := libwcs-7.6.a
+  ARFLAGS     := U
+  RANLIB      := ranlib
+  SHRLIB      := libwcs.so.7.6
+  SONAME      := libwcs.so.7
+  SHRFLAGS    := -fPIC
+  SHRLD       := gcc -fPIC -shared -Wl,-hlibwcs.so.7
+  SHRLN       := libwcs.so
+  LN_S        := ln -s
+  INSTALL     := /usr/bin/install -c
+  LIBDIR      := /usr/local/lib
+  BINDIR      := /usr/local/bin
+  INCDIR      := /usr/local/include/wcslib-7.6
+  INCLINK     := /usr/local/include/wcslib
+  DOCDIR      := /usr/local/share/doc/wcslib-7.6
+  DOCLINK     := /usr/local/share/doc/wcslib
+  HTMLDIR     := /usr/local/share/doc/wcslib-7.6
+  PDFDIR      := /usr/local/share/doc/wcslib-7.6
+  MANDIR      := /usr/local/share/man
+  TIMER       := date +"%a %Y/%m/%d %X %z, executing on $HOST"
+
+Important wcsconfig.h defines...
+  #define HAVE_SINCOS 1
+  #define WCSLIB_INT64 long long int
+
+To build utilities and test programs...
+  LD          := gcc
+  LDFLAGS     := -L/usr/local/lib
+  PGPLOTINC   := -I/usr/local/include/pgplot
+  PGPLOTLIB   := -lcpgplot -lpgplot -lpng -lz -lX11 
+  CFITSIOINC  := -I/usr/local/include/cfitsio
+  CFITSIOLIB  := -lcfitsio 
+  GETWCSTAB   := 
+  FLIBS       := -L/lib -L/lib/x86_64-linux-gnu -L/usr/lib -L/usr/lib/gcc/x86_64-linux-gnu/9 -L/usr/lib/x86_64-linux-gnu -lgfortran -lm -lquadmath
+  LIBS        := -lm 
+
+Default observer coordinates for sundazel...
+  OBSLNG      := +151.18130
+  OBSLAT      := -33.85865
+  OBSTZ       := +10.0
+
+Subdirectories to be built...
+  SUBDIRS     := C Fortran pgsbox utils
+  TSTDIRS     := C Fortran pgsbox
+
+For code development...
+  FLAVOURS    := ""
+  FLAVOUR     := 
+  MODE        := 
+  VALGRIND    := 
+  EXTRA_CLEAN := 
+
+
+make[1]: Entering directory '/home/mcalabre/WCS/wcslib-7.6'
+
+Mon 2021/07/12 14:15:45 +1000, executing on horus
+make[2]: Entering directory '/home/mcalabre/WCS/wcslib-7.6/C'
+
+flex -D_POSIX_C_SOURCE=1 -t wcsutrn.l | sed -e 's/^[	 ]*#/#/' > wcsutrn.c
+
+flex -D_POSIX_C_SOURCE=1 -t wcspih.l | sed -e 's/^[	 ]*#/#/' > wcspih.c
+
+flex -D_POSIX_C_SOURCE=1 -t fitshdr.l | sed -e 's/^[	 ]*#/#/' > fitshdr.c
+
+flex -D_POSIX_C_SOURCE=1 -t wcsbth.l | sed -e 's/^[	 ]*#/#/' > wcsbth.c
+
+flex -D_POSIX_C_SOURCE=1 -t wcsulex.l | sed -e 's/^[	 ]*#/#/' > wcsulex.c
+
+Building WCSLIB C library...
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c cel.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c dis.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c fitshdr.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c lin.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c log.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c prj.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c spc.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c sph.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c spx.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c tab.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcs.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcsbth.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcserr.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcsfix.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcshdr.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcspih.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcsprintf.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcstrig.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcsulex.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcsunits.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcsutil.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -c wcsutrn.c
+
+ar rU libwcs-7.6.a cel.o dis.o fitshdr.o lin.o log.o prj.o spc.o sph.o spx.o tab.o wcs.o wcsbth.o wcserr.o wcsfix.o wcshdr.o wcspih.o wcsprintf.o wcstrig.o wcsulex.o wcsunits.o wcsutil.o wcsutrn.o
+ar: creating libwcs-7.6.a
+ranlib libwcs-7.6.a
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c cel.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c dis.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c fitshdr.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c lin.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c log.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c prj.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c spc.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c sph.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c spx.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c tab.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcs.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcsbth.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcserr.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcsfix.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcshdr.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcspih.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcsprintf.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcstrig.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcsulex.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcsunits.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcsutil.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -g -O2 -fPIC -c wcsutrn.c
+
+ar rU libwcs-PIC.a cel.o dis.o fitshdr.o lin.o log.o prj.o spc.o sph.o spx.o tab.o wcs.o wcsbth.o wcserr.o wcsfix.o wcshdr.o wcspih.o wcsprintf.o wcstrig.o wcsulex.o wcsunits.o wcsutil.o wcsutrn.o
+ar: creating libwcs-PIC.a
+
+mkdir tmp && \
+     cd tmp && \
+     trap 'cd .. ; rm -f -r tmp' 0 1 2 3 15 ; \
+     ar x ../libwcs-PIC.a && \
+     gcc -fPIC -shared -Wl,-hlibwcs.so.7 -o libwcs.so.7.6 *.o -L/usr/local/lib -lm  && \
+     mv libwcs.so.7.6 ..
+make[2]: Leaving directory '/home/mcalabre/WCS/wcslib-7.6/C'
+
+Mon 2021/07/12 14:16:10 +1000, executing on horus
+make[2]: Entering directory '/home/mcalabre/WCS/wcslib-7.6/Fortran'
+make[3]: Entering directory '/home/mcalabre/WCS/wcslib-7.6/C'
+
+Building WCSLIB C library...
+
+
+make[3]: Leaving directory '/home/mcalabre/WCS/wcslib-7.6/C'
+
+Building WCSLIB Fortran wrappers...
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c cel_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c dis_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c fitshdr_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c lin_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c log_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c prj_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c spc_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c sph_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c spx_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c tab_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c wcs_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c wcserr_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c wcsfix_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c wcshdr_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c wcsunits_f.c
+
+gfortran -g -O2 -I. -c cel_data.f
+
+gfortran -g -O2 -I. -c dis_data.f
+
+gfortran -g -O2 -I. -c fitshdr_data.f
+
+gfortran -g -O2 -I. -c lin_data.f
+
+gfortran -g -O2 -I. -c log_data.f
+
+gfortran -g -O2 -I. -c prj_data.f
+
+gfortran -g -O2 -I. -c spc_data.f
+
+gfortran -g -O2 -I. -c spx_data.f
+
+gfortran -g -O2 -I. -c tab_data.f
+
+gfortran -g -O2 -I. -c wcs_data.f
+
+gfortran -g -O2 -I. -c wcsfix_data.f
+
+gfortran -g -O2 -I. -c wcshdr_data.f
+
+gfortran -g -O2 -I. -c wcsunits_data.f
+
+ar rU ../C/libwcs-7.6.a cel_data.o cel_f.o dis_data.o dis_f.o fitshdr_data.o fitshdr_f.o lin_data.o lin_f.o log_data.o log_f.o prj_data.o prj_f.o spc_data.o spc_f.o sph_f.o spx_data.o spx_f.o tab_data.o tab_f.o wcs_data.o wcs_f.o wcserr_f.o wcsfix_data.o wcsfix_f.o wcshdr_data.o wcshdr_f.o wcsunits_data.o wcsunits_f.o
+ranlib ../C/libwcs-7.6.a
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c cel_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c dis_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c fitshdr_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c lin_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c log_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c prj_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c spc_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c sph_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c spx_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c tab_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c wcs_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c wcserr_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c wcsfix_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c wcshdr_f.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -fPIC -c wcsunits_f.c
+
+gfortran -g -O2 -I. -fPIC -c cel_data.f
+
+gfortran -g -O2 -I. -fPIC -c dis_data.f
+
+gfortran -g -O2 -I. -fPIC -c fitshdr_data.f
+
+gfortran -g -O2 -I. -fPIC -c lin_data.f
+
+gfortran -g -O2 -I. -fPIC -c log_data.f
+
+gfortran -g -O2 -I. -fPIC -c prj_data.f
+
+gfortran -g -O2 -I. -fPIC -c spc_data.f
+
+gfortran -g -O2 -I. -fPIC -c spx_data.f
+
+gfortran -g -O2 -I. -fPIC -c tab_data.f
+
+gfortran -g -O2 -I. -fPIC -c wcs_data.f
+
+gfortran -g -O2 -I. -fPIC -c wcsfix_data.f
+
+gfortran -g -O2 -I. -fPIC -c wcshdr_data.f
+
+gfortran -g -O2 -I. -fPIC -c wcsunits_data.f
+
+ar rU ../C/libwcs-PIC.a cel_data.o cel_f.o dis_data.o dis_f.o fitshdr_data.o fitshdr_f.o lin_data.o lin_f.o log_data.o log_f.o prj_data.o prj_f.o spc_data.o spc_f.o sph_f.o spx_data.o spx_f.o tab_data.o tab_f.o wcs_data.o wcs_f.o wcserr_f.o wcsfix_data.o wcsfix_f.o wcshdr_data.o wcshdr_f.o wcsunits_data.o wcsunits_f.o
+
+mkdir tmp && \
+     cd tmp && \
+     trap 'cd .. ; rm -f -r tmp' 0 1 2 3 15 ; \
+     ar x ../../C/libwcs-PIC.a && \
+     gcc -fPIC -shared -Wl,-hlibwcs.so.7 -o libwcs.so.7.6 *.o -L/usr/local/lib -lm  && \
+     mv libwcs.so.7.6 ../../C
+make[2]: Leaving directory '/home/mcalabre/WCS/wcslib-7.6/Fortran'
+
+Mon 2021/07/12 14:16:13 +1000, executing on horus
+make[2]: Entering directory '/home/mcalabre/WCS/wcslib-7.6/pgsbox'
+
+Building PGSBOX library...
+
+gfortran -I../Fortran -g -O2 -I. -c pgsbox.f
+
+gcc -DHAVE_CONFIG_H -I. -I.. -I../C -g -O2 -c cpgsbox.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -I../C -g -O2 -c pgwcsl.c
+
+gfortran -I../Fortran -g -O2 -I. -c pgcrfn.f
+
+ar rU libpgsbox-7.6.a cpgsbox.o pgcrfn.o pgsbox.o pgwcsl.o
+ar: creating libpgsbox-7.6.a
+ranlib libpgsbox-7.6.a
+
+gfortran -I../Fortran -g -O2 -I. -fPIC -c pgsbox.f
+
+gcc -DHAVE_CONFIG_H -I. -I.. -I../C -g -O2 -fPIC -c cpgsbox.c
+
+gcc -DHAVE_CONFIG_H -I. -I.. -I../C -g -O2 -fPIC -c pgwcsl.c
+
+gfortran -I../Fortran -g -O2 -I. -fPIC -c pgcrfn.f
+
+ar rU libpgsbox-PIC.a cpgsbox.o pgcrfn.o pgsbox.o pgwcsl.o
+ar: creating libpgsbox-PIC.a
+
+mkdir tmp && \
+     cd tmp && \
+     trap 'cd .. ; rm -f -r tmp' 0 1 2 3 15 ; \
+     ar x ../libpgsbox-PIC.a && \
+     gcc -fPIC -shared -Wl,-hlibpgsbox.so.7 -o libpgsbox.so.7.6 *.o ../../C/libwcs.so.7.6 -L/usr/local/lib -lcpgplot -lpgplot -lpng -lz -lX11  -L/lib -L/lib/x86_64-linux-gnu -L/usr/lib -L/usr/lib/gcc/x86_64-linux-gnu/9 -L/usr/lib/x86_64-linux-gnu -lgfortran -lm -lquadmath && \
+     mv libpgsbox.so.7.6 ..
+make[2]: Leaving directory '/home/mcalabre/WCS/wcslib-7.6/pgsbox'
+
+Mon 2021/07/12 14:16:15 +1000, executing on horus
+make[2]: Entering directory '/home/mcalabre/WCS/wcslib-7.6/utils'
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -L/usr/local/lib -o tofits tofits.c
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -g -O2 -c -o fitshdr.o fitshdr.c
+gcc -o fitshdr fitshdr.o -L/usr/local/lib -lm 
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -DOBSLNG=+151.18130 -DOBSLAT=-33.85865 -DOBSTZ=+10.0 -g -O2 -c -o sundazel.o sundazel.c
+gcc -o sundazel sundazel.o -L/usr/local/lib -lm 
+
+gcc -DHAVE_CONFIG_H -I.. -I../C -I/usr/local/include/cfitsio -g -O2 -c -o HPXcvt.o HPXcvt.c
+gcc -o HPXcvt HPXcvt.o -L/usr/local/lib -lcfitsio  -lm 
+
+gcc -DDO_CFITSIO -DHAVE_CONFIG_H -I.. -I../C -I../pgsbox -I../C -I/usr/local/include/cfitsio \
+     -g -O2 -c -o wcsware.o wcsware.c
+gcc -o wcsware wcsware.o  -L/usr/local/lib -lcfitsio  ../C/libwcs-7.6.a \
+     -L/lib -L/lib/x86_64-linux-gnu -L/usr/lib -L/usr/lib/gcc/x86_64-linux-gnu/9 -L/usr/lib/x86_64-linux-gnu -lgfortran -lm -lquadmath -lm 
+
+gcc -DDO_CFITSIO -DHAVE_CONFIG_H -I.. -I../C -I../pgsbox -I../C -I/usr/local/include/pgplot \
+     -I/usr/local/include/cfitsio -g -O2 -c -o wcsgrid.o wcsgrid.c
+gcc -o wcsgrid wcsgrid.o  -L/usr/local/lib ../pgsbox/libpgsbox-7.6.a \
+     -lcpgplot -lpgplot -lpng -lz -lX11  -lcfitsio  ../C/libwcs-7.6.a -L/lib -L/lib/x86_64-linux-gnu -L/usr/lib -L/usr/lib/gcc/x86_64-linux-gnu/9 -L/usr/lib/x86_64-linux-gnu -lgfortran -lm -lquadmath -lm 
+make[2]: Leaving directory '/home/mcalabre/WCS/wcslib-7.6/utils'
+make[1]: Leaving directory '/home/mcalabre/WCS/wcslib-7.6'

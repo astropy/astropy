@@ -874,8 +874,11 @@ class Quantity(np.ndarray):
 
     info = QuantityInfo()
 
-    def _to_value(self, unit, equivalencies=[]):
+    def _to_value(self, unit, equivalencies=None):
         """Helper method for to and to_value."""
+        if equivalencies is None:
+            equivalencies=[]
+        
         if equivalencies == []:
             equivalencies = self._equivalencies
         if not self.dtype.names or isinstance(self.unit, StructuredUnit):
@@ -894,7 +897,7 @@ class Quantity(np.ndarray):
                 result[name] = self[name]._to_value(unit, equivalencies)
             return result
 
-    def to(self, unit, equivalencies=[], copy=True):
+    def to(self, unit, equivalencies=None, copy=True):
         """
         Return a new `~astropy.units.Quantity` object with the specified unit.
 
@@ -921,6 +924,9 @@ class Quantity(np.ndarray):
         --------
         to_value : get the numerical value in a given unit.
         """
+        if equivalencies is None:
+            equivalencies=[]
+        
         # We don't use `to_value` below since we always want to make a copy
         # and don't want to slow down this method (esp. the scalar case).
         unit = Unit(unit)
@@ -933,7 +939,7 @@ class Quantity(np.ndarray):
             value = self.to_value(unit, equivalencies)
         return self._new_view(value, unit)
 
-    def to_value(self, unit=None, equivalencies=[]):
+    def to_value(self, unit=None, equivalencies=None):
         """
         The numerical value, possibly in a different unit.
 
@@ -961,6 +967,9 @@ class Quantity(np.ndarray):
         --------
         to : Get a new instance in a different unit.
         """
+        if equivalencies is None:
+            equivalencies=[]
+        
         if unit is None or unit is self.unit:
             value = self.view(np.ndarray)
         elif not self.dtype.names:
@@ -1591,7 +1600,7 @@ class Quantity(np.ndarray):
                 # Format the whole thing as a single string.
                 return format(f"{self.value}{self._unitstr:s}", format_spec)
 
-    def decompose(self, bases=[]):
+    def decompose(self, bases=None):
         """
         Generates a new `Quantity` with the units
         decomposed. Decomposed units have only irreducible units in
@@ -1611,9 +1620,12 @@ class Quantity(np.ndarray):
         newq : `~astropy.units.Quantity`
             A new object equal to this quantity with units decomposed.
         """
+        if bases is None:
+            bases=set()
+        
         return self._decompose(False, bases=bases)
 
-    def _decompose(self, allowscaledunits=False, bases=[]):
+    def _decompose(self, allowscaledunits=False, bases=None):
         """
         Generates a new `Quantity` with the units decomposed. Decomposed
         units have only irreducible units in them (see
@@ -1639,6 +1651,9 @@ class Quantity(np.ndarray):
             A new object equal to this quantity with units decomposed.
 
         """
+        if bases is None:
+            bases=set()
+        
         new_unit = self.unit.decompose(bases=bases)
 
         # Be careful here because self.value usually is a view of self;

@@ -1,0 +1,3 @@
+Added the ability to specify that WCSAxes tick labels always include the sign
+(namely for positive values) by starting the format string with a ``+``
+character.

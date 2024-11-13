@@ -1,0 +1,4 @@
+Improved the performance of 1D models, models with scalar parameters, and models
+without units, when evaluating them with scalar or small arrays of inputs. For
+models that satisfy all of the conditions above, the improvement can be on the
+order of 30-40% in execution time.

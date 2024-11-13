@@ -311,7 +311,7 @@ class StructuredUnit:
             operator.attrgetter("physical_type"), cls=Structure
         )
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases=None):
         """The `StructuredUnit` composed of only irreducible units.
 
         Parameters
@@ -328,9 +328,12 @@ class StructuredUnit:
         `~astropy.units.StructuredUnit`
             With the unit for each field containing only irreducible units.
         """
+        if bases is None:
+            bases=set()
+        
         return self._recursively_apply(operator.methodcaller("decompose", bases=bases))
 
-    def is_equivalent(self, other, equivalencies=[]):
+    def is_equivalent(self, other, equivalencies=None):
         """`True` if all fields are equivalent to the other's fields.
 
         Parameters
@@ -346,6 +349,9 @@ class StructuredUnit:
         -------
         bool
         """
+        if equivalencies is None:
+            equivalencies=[]
+        
         try:
             other = StructuredUnit(other)
         except Exception:
@@ -360,7 +366,10 @@ class StructuredUnit:
 
         return True
 
-    def get_converter(self, other, equivalencies=[]):
+    def get_converter(self, other, equivalencies=None):
+        if equivalencies is None:
+            equivalencies=[]
+        
         if not isinstance(other, type(self)):
             other = self.__class__(other, names=self)
 
@@ -382,7 +391,7 @@ class StructuredUnit:
 
     get_converter.__doc__ = UnitBase.get_converter.__doc__
 
-    def to(self, other, value=np._NoValue, equivalencies=[]):
+    def to(self, other, value=np._NoValue, equivalencies=None):
         """Return values converted to the specified unit.
 
         Parameters
@@ -413,6 +422,9 @@ class StructuredUnit:
         UnitsError
             If units are inconsistent
         """
+        if equivalencies is None:
+            equivalencies=[]
+        
         if value is np._NoValue:
             # We do not have UNITY as a default, since then the docstring
             # would list 1.0 as default, yet one could not pass that in.

@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
+<VOTABLE version="1.1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="http://www.ivoa.net/xml/VOTable/v1.1"
+ xmlns="http://www.ivoa.net/xml/VOTable/v1.1">
+<DESCRIPTION > <!-- This should get word-wrapped -->
+The VOTable format is an XML standard for the interchange of data represented as a set of tables. In this context, a table is an unordered set of rows, each of a uniform format, as specified in the table metadata. Each row in a table is a sequence of table cells, and each of these contains either a primitive data type, or an array of such primitives. VOTable is derived from the Astrores format [1], itself modeled on the FITS Table format [2]; VOTable was designed to be closer to the FITS Binary Table format.
+</DESCRIPTION>
+<COOSYS ID="J2000" system="eq_FK5" equinox="J2000"/>
+<PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.000000" arraysize="0"/>
+<PARAM datatype="float" name="INPUT" value="0.000000,0.000000" arraysize="*" unit="km/h" ucd="phys.size;instr.tel">
+  <DESCRIPTION>This is the most interesting parameter in the world, and it drinks Dos Equis</DESCRIPTION>
+</PARAM>
+<INFO ID="QUERY_STATUS" name="QUERY_STATUS" value="OK">This is some information.</INFO>
+<RESOURCE type="results">
+<DESCRIPTION>
+  This is a resource description
+</DESCRIPTION>
+<PARAM ID="awesome" datatype="float" name="INPUT" value="0.000000,0.000000" arraysize="*" unit="deg"></PARAM>
+<PARAM ID="empty_value" arraysize="*" datatype="char" name="empty_value" unit="foo" value="">
+  <VALUES>
+    <OPTION name="empty_value" value=""/>
+    <OPTION value="90prime"/>
+  </VALUES>
+</PARAM>
+<LINK href="http://www.foo.com/" gref="DECPRECATED">
+  <DESCRIPTION>Really, this link is totally bogus.</DESCRIPTION>
+</LINK>
+<TABLE ID="main_table">
+<DESCRIPTION>
+  This describes the table.
+</DESCRIPTION>
+<INFO name="Error" ID="ErrorInfo" value="One might expect to find some INFO here, too..."/>
+<GROUP>
+  <PARAMref ref="awesome"/>
+</GROUP>
+<PARAM datatype="float" name="INPUT2" value="0.000000,0.000000" arraysize="*" unit="deg">
+  <DESCRIPTION>This is the most interesting parameter in the world, and it drinks Dos Equis</DESCRIPTION>
+</PARAM>
+<FIELD id="string_test" name="string test" datatype="char" arraysize="*"></FIELD>
+<FIELD ID="string_test" name="fixed string test" datatype="char" arraysize="10"/>
+<FIELD ID="unicode_test" name="unicode_test" datatype="unicodeChar" arraysize="*"/>
+<FIELD ID="fixed_unicode_test" name="unicode test" datatype="unicodeString" arraysize="10"/>
+<LINK href="http://tabledata.org/"/>
+<FIELD ID="string_array_test" name="string array test" datatype="string" arraysize="4*"/>
+<FIELD ID="unsignedByte" name="unsignedByte" datatype="unsignedByte"/>
+<FIELD ID="short" name="short" datatype="short">
+  <VALUES null="-32769"/>
+</FIELD>
+<FIELD ID="int" name="int" datatype="int" utype="myint">
+  <VALUES null="123456789" ID="int_nulls">
+    <MIN value="-1000" inclusive="no"/>
+    <MAX value="1000" inclusive="yes"/>
+    <OPTION name="bogus" value="whatever"/>
+  </VALUES>
+  <IGNORE_ME/>
+</FIELD>
+<FIELD ID="intNoNull" datatype="int" name="intNoNull"/>
+<FIELD ID="long" name="long" datatype="long">
+  <LINK href="http://www.long-integers.com/"/>
+  <VALUES ref="int_nulls"/>
+</FIELD>
+<FIELD ID="double" name="double" datatype="double"/>
+<FIELD ID="float" name="float" datatype="float">
+  <VALUES null=""/>
+</FIELD>
+<FIELD ID="array" name="array" datatype="long" arraysize="2x2*">
+  <VALUES null="-1"/>
+</FIELD>
+<FIELD ID="bit" name="bit" datatype="bit"/>
+<FIELD ID="bitarray" name="bitarray" datatype="bit" arraysize="2x3"/>
+<FIELD ID="bitvararray" name="bitvararray" datatype="bit" arraysize="*"/>
+<FIELD ID="bitvararray2" name="bitvararray2" datatype="bit" arraysize="2x3x*"/>
+<FIELD ID="floatComplex" name="floatComplex" datatype="floatComplex"/>
+<FIELD ID="doubleComplex" name="doubleComplex" datatype="doubleComplex"/>
+<FIELD ID="doubleComplexArray" name="doubleComplexArray" datatype="doubleComplex" arraysize="*"/>
+<FIELD ID="doubleComplexArrayFixed" name="doubleComplexArrayFixed" datatype="doubleComplex" arraysize="2"/>
+<FIELD ID="boolean" name="boolean" datatype="boolean"/>
+<FIELD ID="booleanArray" name="booleanArray" datatype="boolean" arraysize="4"/>
+<FIELD ID="nulls" name="nulls" datatype="int">
+  <VALUES null="-9"/>
+</FIELD>
+<FIELD ID="nulls_array" name="nulls_array" datatype="int" arraysize="2x2">
+  <VALUES null="-9"/>
+</FIELD>
+<FIELD ID="precision1" name="precision1" datatype="double" precision="E3" width="10"/>
+<FIELD ID="precision2" name="precision2" datatype="double" precision="F3"/>
+<FIELD ID="doublearray" name="doublearray" datatype="double" arraysize="*">
+  <VALUES null="-1"/>
+</FIELD>
+<FIELD ID="bitarray2" name="bitarray2" datatype="bit" arraysize="16"/>
+<GROUP>
+  <DESCRIPTION>
+    This is just a group to make sure we can round-trip them.
+  </DESCRIPTION>
+  <DESCRIPTION>
+    This should warn of a second description.
+  </DESCRIPTION>
+  <FIELDref ref="boolean"/>
+  <GROUP>
+    <PARAMref ref="awesome"/>
+    <PARAM datatype="float" name="OUTPUT" value="42"/>
+  </GROUP>
+  <PARAM datatype="float" name="INPUT3" value="0.000000,0.000000" arraysize="*" unit="deg">
+    <DESCRIPTION>This is the most interesting parameter in the world, and it drinks Dos Equis</DESCRIPTION>
+  </PARAM>
+</GROUP>
+<DATA>
+<TABLEDATA>
+<TR>
+  <TD>String &amp; test</TD>
+  <TD>Fixed string long test</TD> <!-- Should truncate -->
+  <TD>Ceçi n'est pas un pipe</TD> <!-- French, n'est-ce pas? -->
+  <TD>Ceçi n'est pas un pipe</TD>
+  <TD>ab cd</TD>
+  <TD>128</TD>
+  <TD>4096</TD>
+  <TD>268435456</TD>
+  <TD>3</TD>
+  <TD>922337203685477</TD>
+  <TD>8.9990234375</TD>
+  <TD encoding="base64">P4AAAA==</TD>
+  <TD>   </TD>
+  <TD>1</TD>
+  <TD>1 0 1 1 0 1</TD>
+  <TD>1 1 1</TD>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD>0 0 0 0</TD>
+  <TD>True</TD>
+  <TD>True True True True</TD>
+  <TD>0</TD>
+  <TD/>
+  <TD>1.333333333333333333333333333333333</TD>
+  <TD>1.333333333333333333333333333333333</TD>
+  <TD/>
+  <TD>1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0</TD>
+</TR>
+<TR>
+  <TD><![CDATA[String &amp; test]]></TD> <!-- Test that &amp; is treated literally inside CDATA -->
+  <TD>0123456789A</TD>
+  <TD>வணக்கம்</TD>
+  <TD>வணக்கம்</TD>
+  <TD>0123456789A</TD>
+  <TD>256</TD> <!-- should overflow to 0 -->
+  <TD>65536</TD> <!-- should overflow to 0-->
+  <TD>2147483647</TD> <!-- overflowing here would raise a Numpy exception -->
+  <TD>3</TD>
+  <TD></TD>
+  <TD>1.0e-325</TD> <!-- underflow to 0 -->
+  <TD>1.0e-46</TD> <!-- underflow to 0 -->
+  <TD>42 32, 12 32</TD>
+  <TD>0</TD>
+  <TD>0 1 0 0 1 1</TD>
+  <TD>0 0 0 0 0</TD>
+  <TD>0 1 0 0 1 0 1 0 1 0 1 0</TD>
+  <TD>0 0</TD>
+  <TD>0 0</TD>
+  <TD>0 0 0 0</TD>
+  <TD>0 -1 -1 -1</TD>
+  <TD>FaLsE</TD>
+  <TD>true true falSE TRUE</TD>
+  <TD>-9</TD>
+  <TD>0 1 2 3</TD>
+  <TD>1.0</TD>
+  <TD>1.0</TD>
+  <TD>0 1 Inf -Inf NaN 0 -1</TD>
+  <TD/>
+</TR>
+<TR>
+  <TD>XXXX </TD>
+  <TD> XXXX </TD> <!-- Shouldn't output extra 0 bytes even though field is wider than string -->
+  <TD> XXXX </TD>
+  <TD>0123456789A</TD>
+  <TD/>
+  <TD>-23</TD> <!-- negative, should wrap around to positive -->
+  <TD>-4096</TD> <!-- negative, perfectly valid -->
+  <TD>-268435456</TD> <!-- negative, perfectly valid -->
+  <TD>3</TD>
+  <TD>-1152921504606846976</TD>  <!-- negative, perfectly valid -->
+  <TD>1.0E309</TD>
+  <TD>1.0E45</TD>
+  <TD>12 34 56 78 87 65 43 21</TD>
+  <TD>1</TD>
+  <TD>1 1 1 0 0 0</TD>
+  <TD>1 0 1 0 1</TD>
+  <TD>1 1 1 1 1 1</TD>
+  <TD>0 -1</TD>
+  <TD>0 -1</TD>
+  <TD>0 0 0 0</TD>
+  <TD>0 0 0 0</TD>
+  <TD>true</TD>
+  <TD>true True ? true</TD>
+  <TD>2</TD>
+  <TD>-9 0 -9 1</TD>
+  <TD>1e34</TD>
+  <TD>1e34</TD>
+  <TD/>
+  <TD/>
+</TR>
+<TR>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD>0xff</TD> <!-- hex -->
+  <TD>0xffff</TD> <!-- hex - negative value -->
+  <TD>0xfffffff</TD>
+  <TD>3</TD>
+  <TD>0xfffffffffffffff</TD>
+  <TD>NaN</TD>
+  <TD>+Inf</TD>
+  <TD>NaN, 23</TD>
+  <TD>0</TD>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD>NaN Inf</TD>
+  <TD/>
+  <TD>0 0 0 0</TD>
+  <TD>false</TD>
+  <TD/>
+  <TD/>
+  <TD>0 -9 1 -9</TD>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+</TR>
+<TR>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD>0x100</TD> <!-- hex, overflow -->
+  <TD>0x10000</TD> <!-- hex, overflow -->
+  <TD/>
+  <TD>3</TD>
+  <TD/>
+  <TD>-Inf</TD>
+  <TD/>
+  <TD>31, -1</TD>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD>0 0 0 0</TD>
+  <TD/>
+  <TD/>
+  <TD>-9</TD>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+</TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+<RESOURCE>
+ <TABLE ref="main_table">
+   <DESCRIPTION>
+     This is a referenced table
+   </DESCRIPTION>
+   <DATA>
+<TABLEDATA>
+<TR>
+  <TD>String &amp; test</TD>
+  <TD>Fixed string long test</TD> <!-- Should truncate -->
+  <TD>Ceçi n'est pas un pipe</TD> <!-- French, n'est-ce pas? -->
+  <TD>Ceçi n'est pas un pipe</TD>
+  <TD>ab cd</TD>
+  <TD>128</TD>
+  <TD>4096</TD>
+  <TD>268435456</TD>
+  <TD>3</TD>
+  <TD>922337203685477</TD>
+  <TD>8.9990234375</TD>
+  <TD encoding="base64">P4AAAA==</TD>
+  <TD>   </TD>
+  <TD>1</TD>
+  <TD>1 0 1 1 0 1</TD>
+  <TD>1 1 1</TD>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD>0 0 0 0</TD>
+  <TD>True</TD>
+  <TD>True True True True</TD>
+  <TD>0</TD>
+  <TD/>
+  <TD>1.333333333333333333333333333333333</TD>
+  <TD>1.333333333333333333333333333333333</TD>
+  <TD/>
+  <TD>1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0</TD>
+</TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+<TABLE ref="main_table" ID="last_table">
+<DATA>
+<TABLEDATA/> <!-- Add an empty table because it's a useful thing to test -->
+</DATA>
+</TABLE>
+</RESOURCE>
+</RESOURCE>
+</VOTABLE>

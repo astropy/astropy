@@ -1,0 +1,5 @@
+``Table.read(..., format='votable')``, ``votable.parse`` and
+``votable.parse_single_table`` now respect the ``columns`` argument and will only output
+selected columns. Previously, unselected columns would just be masked (and unallocated).
+``astropy.io.votable.tree.TableElement.create_arrays`` also gained a ``colnumbers``
+keyword argument to allow column selection.

@@ -1,0 +1,1 @@
+``UnitScaleError`` can now be imported from the ``astropy.units`` namespace.

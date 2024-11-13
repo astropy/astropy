@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Produced with astropy.io.votable version 4.0
+ http://www.astropy.org/ -->
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ivoa.net/xml/VOTable/v1.3">
+ <RESOURCE type="results">
+  <TABLE>
+   <DATA>
+    <TABLEDATA>
+     <TR></TR>
+     <TR></TR>
+     <TR></TR>
+    </TABLEDATA>
+   </DATA>
+   <INFO name="matches" value="3">matching records</INFO>
+  </TABLE>
+ </RESOURCE>
+</VOTABLE>

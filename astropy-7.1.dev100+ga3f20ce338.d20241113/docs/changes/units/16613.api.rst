@@ -1,0 +1,3 @@
+Conversion from one unit to another using ``old_unit.to(new_unit, value)`` no longer
+converts  ``value`` automatically to a numpy array, but passes through array duck types
+such as ``dask`` arrays, with equivalencies properly accounted for.

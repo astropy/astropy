@@ -1,0 +1,25 @@
+{# This extension of the 'layout.html' prevents documentation for previous
+   versions of Astropy to be indexed by bots, e.g. googlebot or bing bot,
+   by inserting a robots meta tag into pages that are not in the stable or
+   latest branch.
+
+   It assumes that the documentation is built by and hosted on readthedocs.org:
+   1. Readthedocs.org has a global robots.txt and no option for a custom one.
+   2. The readthedocs app passes additional variables to the template context,
+   one of them being `version_slug`. This variable is a string computed from
+   the tags of the branches that are selected to be built. It can be 'latest',
+   'stable' or even a unique stringified version number.
+
+   For more information, please refer to:
+   https://github.com/astropy/astropy/pull/7874
+   http://www.robotstxt.org/meta.html
+   https://github.com/rtfd/readthedocs.org/blob/master/readthedocs/builds/version_slug.py
+#}
+
+{% extends "!layout.html" %}
+{%- block extrahead %}
+  {% if not version_slug in to_be_indexed  %}
+  <meta name="robots" content="noindex, nofollow">
+  {% endif %}
+  {{ super() }}
+{% endblock %}

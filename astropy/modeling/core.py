@@ -471,7 +471,7 @@ class _ModelMeta(abc.ABCMeta):
 
     # *** Other utilities ***
 
-    def _format_cls_repr(cls, keywords=[]):
+    def _format_cls_repr(cls, keywords=None):
         """
         Internal implementation of ``__repr__``.
 
@@ -479,6 +479,9 @@ class _ModelMeta(abc.ABCMeta):
         override the default ``__repr__`` while keeping the same basic
         formatting.
         """
+        if keywords is None:
+            keywords=[]
+        
         # For the sake of familiarity start the output with the standard class
         # __repr__
         parts = [super().__repr__()]
@@ -2863,7 +2866,7 @@ class Model(metaclass=_ModelMeta):
 
         return np.array(values)
 
-    def _format_repr(self, args=[], kwargs={}, defaults={}):
+    def _format_repr(self, args=None, kwargs=None, defaults=None):
         """
         Internal implementation of ``__repr__``.
 
@@ -2871,6 +2874,13 @@ class Model(metaclass=_ModelMeta):
         override the default ``__repr__`` while keeping the same basic
         formatting.
         """
+        if args is None:
+            args = []
+        if kwargs is None:
+            kwargs = {}
+        if defaults is None:
+            defaults={}
+        
         parts = [repr(a) for a in args]
 
         parts.extend(
@@ -2891,7 +2901,7 @@ class Model(metaclass=_ModelMeta):
 
         return f"<{self.__class__.__name__}({', '.join(parts)})>"
 
-    def _format_str(self, keywords=[], defaults={}):
+    def _format_str(self, keywords=None, defaults=None):
         """
         Internal implementation of ``__str__``.
 
@@ -2899,6 +2909,11 @@ class Model(metaclass=_ModelMeta):
         override the default ``__str__`` while keeping the same basic
         formatting.
         """
+        if keywords is None:
+            keywords=[]
+        if defaults is None:
+            defaults={}
+        
         default_keywords = [
             ("Model", self.__class__.__name__),
             ("Name", self.name),

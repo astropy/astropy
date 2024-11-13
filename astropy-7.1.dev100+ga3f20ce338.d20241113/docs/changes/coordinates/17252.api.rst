@@ -1,0 +1,2 @@
+The deprecated ``BaseCoordinateFrame.get_frame_attr_names()`` is removed.
+Use ``get_frame_attr_defaults()`` instead.

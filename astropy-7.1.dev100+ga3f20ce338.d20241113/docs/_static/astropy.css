@@ -1,0 +1,25 @@
+/* Main page overview cards */
+
+.sd-card .sd-card-img-top {
+  height: 52px;
+  width: 52px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+}
+
+/* Dark theme tweaking */
+html[data-theme=dark] .sd-card img[src*='.svg'] {
+    filter: invert(0.82) brightness(0.8) contrast(1.2);
+}
+
+/* Flip the colours on graphviz graphs on dark mode */
+html[data-theme="dark"] div.graphviz > object.inheritance {
+  filter: invert(0.82) brightness(0.8) contrast(1.2);
+}
+html[data-theme="dark"] div.graphviz > object.graphviz {
+  filter: invert(0.82) brightness(0.8) contrast(1.2);
+}
+html[data-theme="dark"] ul.cooframelegend {
+  filter: invert(0.82) brightness(0.8) contrast(1.2);
+}

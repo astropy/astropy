@@ -1,0 +1,233 @@
+Validation report for regression.xml
+
+11: W01: Array uses commas rather than whitespace
+<PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.00...
+^
+
+11: E02: Incorrect number of elements in array. Expected multiple of
+  0, got 2
+<PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.00...
+^
+
+12: W01: Array uses commas rather than whitespace
+<PARAM datatype="float" name="INPUT" value="0.000000,0.000000" arra...
+^
+
+20: W01: Array uses commas rather than whitespace
+<PARAM ID="awesome" datatype="float" name="INPUT" value="0.000000,0...
+^
+
+21: W50: Invalid unit string 'foo'
+<PARAM ID="empty_value" arraysize="*" datatype="char" name="empty_v...
+^
+
+27: W11: The gref attribute on LINK is deprecated in VOTable 1.1
+<LINK href="http://www.foo.com/" gref="DECPRECATED">
+^
+
+28: W10: Unknown tag 'DESCRIPTION'.  Ignoring
+  <DESCRIPTION>Really, this link is totally bogus.</DESCRIPTION>
+  ^
+
+34: W26: 'INFO' inside 'TABLE' added in VOTable 1.2
+<INFO name="Error" ID="ErrorInfo" value="One might expect to find s...
+^
+
+38: W01: Array uses commas rather than whitespace
+<PARAM datatype="float" name="INPUT2" value="0.000000,0.000000" arr...
+^
+
+41: W09: ID attribute not capitalized
+<FIELD id="string_test" name="string test" datatype="char" arraysiz...
+^
+
+44: W13: 'unicodeString' is not a valid VOTable datatype, should be
+  'unicodeChar'
+<FIELD ID="fixed_unicode_test" name="unicode test" datatype="unicod...
+^
+
+46: W13: 'string' is not a valid VOTable datatype, should be 'char'
+<FIELD ID="string_array_test" name="string array test" datatype="st...
+^
+
+49: W51: Value '-32769' is out of range for a 16-bit integer field
+  <VALUES null="-32769"/>
+  ^
+
+57: W10: Unknown tag 'IGNORE_ME'.  Ignoring
+  <IGNORE_ME/>
+  ^
+
+98: W17: GROUP element contains more than one DESCRIPTION element
+    This should warn of a second description.
+^
+
+105: W01: Array uses commas rather than whitespace
+  <PARAM datatype="float" name="INPUT3" value="0.000000,0.000000" a...
+  ^
+
+42: W32: Duplicate ID 'string_test' renamed to 'string_test_2' to
+  ensure uniqueness
+<FIELD ID="string_test" name="fixed string test" datatype="char" ar...
+^
+
+113: W46: char value is too long for specified length of 10
+  <TD>Fixed string long test</TD> <!-- Should truncate -->
+      ^
+
+115: W46: unicodeChar value is too long for specified length of 10
+  <TD>Ceçi n'est pas un pipe</TD>
+      ^
+
+116: W46: char value is too long for specified length of 4
+  <TD>ab cd</TD>
+      ^
+
+136: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1
+  <TD/>
+  ^
+
+136: W49: Empty cell illegal for integer fields.
+  <TD/>
+  ^
+
+144: W46: char value is too long for specified length of 10
+  <TD>0123456789A</TD>
+      ^
+
+147: W46: char value is too long for specified length of 4
+  <TD>0123456789A</TD>
+      ^
+
+148: W51: Value '256' is out of range for a 8-bit unsigned integer
+  field
+  <TD>256</TD> <!-- should overflow to 0 -->
+      ^
+
+149: W51: Value '65536' is out of range for a 16-bit integer field
+  <TD>65536</TD> <!-- should overflow to 0-->
+      ^
+
+152: W49: Empty cell illegal for integer fields.
+  <TD></TD>
+  ^
+
+155: W01: Array uses commas rather than whitespace
+  <TD>42 32, 12 32</TD>
+      ^
+
+171: E02: Incorrect number of elements in array. Expected multiple of
+  16, got 0
+  <TD/>
+  ^
+
+171: W49: Empty cell illegal for integer fields.
+  <TD/>
+  ^
+
+171: W49: Empty cell illegal for integer fields.
+  <TD/>
+  ^
+
+171: W49: Empty cell illegal for integer fields.
+  <TD/>
+  ^
+
+171: W49: Empty cell illegal for integer fields.
+  <TD/>
+  ^
+
+171: W49: Empty cell illegal for integer fields.
+  <TD/>
+  ^
+
+171: W49: Empty cell illegal for integer fields.
+  <TD/>
+  ^
+
+171: W49: Empty cell illegal for integer fields.
+  <TD/>
+  ^
+
+171: W49: Empty cell illegal for integer fields. (suppressing further
+  warnings of this type...)
+  <TD/>
+  ^
+
+177: W46: unicodeChar value is too long for specified length of 10
+  <TD>0123456789A</TD>
+      ^
+
+179: W51: Value '-23' is out of range for a 8-bit unsigned integer
+  field
+  <TD>-23</TD> <!-- negative, should wrap around to positive -->
+      ^
+
+202: E02: Incorrect number of elements in array. Expected multiple of
+  16, got 0
+  <TD/>
+  ^
+
+211: W51: Value '65535' is out of range for a 16-bit integer field
+  <TD>0xffff</TD> <!-- hex - negative value -->
+      ^
+
+217: W01: Array uses commas rather than whitespace
+  <TD>NaN, 23</TD>
+      ^
+
+219: E02: Incorrect number of elements in array. Expected multiple of
+  6, got 0
+  <TD/>
+  ^
+
+227: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1
+  <TD/>
+  ^
+
+233: E02: Incorrect number of elements in array. Expected multiple of
+  16, got 0
+  <TD/>
+  ^
+
+241: W51: Value '256' is out of range for a 8-bit unsigned integer
+  field
+  <TD>0x100</TD> <!-- hex, overflow -->
+      ^
+
+242: W51: Value '65536' is out of range for a 16-bit integer field
+  <TD>0x10000</TD> <!-- hex, overflow -->
+      ^
+
+248: W01: Array uses commas rather than whitespace
+  <TD>31, -1</TD>
+      ^
+
+250: E02: Incorrect number of elements in array. Expected multiple of
+  6, got 0
+  <TD/>
+  ^
+
+258: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1
+  <TD/>
+  ^
+
+260: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1 (suppressing further warnings of this type...)
+  <TD/>
+  ^
+
+278: W46: char value is too long for specified length of 10
+  <TD>Fixed string long test</TD> <!-- Should truncate -->
+      ^
+
+280: W46: unicodeChar value is too long for specified length of 10
+  <TD>Ceçi n'est pas un pipe</TD>
+      ^
+
+281: W46: char value is too long for specified length of 4
+  <TD>ab cd</TD>
+      ^

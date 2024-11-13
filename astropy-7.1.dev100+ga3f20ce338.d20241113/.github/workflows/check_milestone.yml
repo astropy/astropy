@@ -1,0 +1,33 @@
+name: Check PR milestone
+
+on:
+  pull_request:
+    types: [synchronize, milestoned, demilestoned]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # https://stackoverflow.com/questions/69434370/how-can-i-get-the-latest-pr-data-specifically-milestones-when-running-yaml-jobs
+  milestone_checker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
+      if: github.repository == 'astropy/astropy'
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const { data } = await github.request("GET /repos/{owner}/{repo}/pulls/{pr}", {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pr: context.payload.pull_request.number
+            });
+            if (data.milestone) {
+              core.info(`This pull request has a milestone set: ${data.milestone.title}`);
+            } else {
+              core.setFailed(`A maintainer needs to set the milestone for this pull request.`);
+            }

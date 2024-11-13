@@ -1,0 +1,14 @@
+ {
+   "version": 1,
+   "project": "astropy",
+   "project_url": "https://www.astropy.org/",
+   "repo": ".",
+   "install_command": [
+     "pip install . matplotlib scipy"
+   ],
+   "branches": ["main"],
+   "show_commit_url": "https://github.com/astropy/astropy/commit/",
+   "pythons": ["3.11"],
+   "environment_type": "virtualenv",
+   "benchmark_dir": "astropy-benchmarks/benchmarks"
+ }

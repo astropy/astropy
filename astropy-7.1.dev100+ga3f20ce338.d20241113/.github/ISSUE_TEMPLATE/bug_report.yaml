@@ -1,0 +1,68 @@
+name: Bug report
+description: Create a report describing unexpected or incorrect behavior in astropy.
+labels: Bug
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Thanks for taking the time to fill out this bug report!
+        Please have a search on our GitHub repository to see if a similar
+        issue has already been posted. If a similar issue is closed, have a
+        quick look to see if you are satisfied by the resolution.
+        If not please go ahead and open an issue!
+        Please check that the
+        [development version](https://docs.astropy.org/en/latest/development/quickstart.html#install-the-development-version-of-astropy)
+        still produces the same bug.
+  - type: textarea
+    attributes:
+      label: Description
+      description: >-
+        A clear and concise description of what the bug is.
+  - type: textarea
+    attributes:
+      label: Expected behavior
+      description: >-
+        A clear and concise description of what you expected to happen.
+  - type: textarea
+    attributes:
+      label: How to Reproduce
+      description: >-
+        A clear and concise description of what actually happened instead.
+        Was the output confusing or poorly described? Please provide steps to reproduce this bug.
+      value: |
+        1. Get package from '...'
+        2. Then run '...'
+        3. An error occurs.
+
+        ```python
+        # Put your Python code snippet here.
+        ```
+  - type: textarea
+    attributes:
+      label: Versions
+      description: Please run the following script and paste the output
+      value: |
+        ```python
+        import astropy
+        try:
+            astropy.system_info()
+        except AttributeError:
+            import platform; print(platform.platform())
+            import sys; print("Python", sys.version)
+            import astropy; print("astropy", astropy.__version__)
+            import numpy; print("Numpy", numpy.__version__)
+            import erfa; print("pyerfa", erfa.__version__)
+            try:
+                import scipy
+                print("Scipy", scipy.__version__)
+            except ImportError:
+                print("Scipy not installed")
+            try:
+                import matplotlib
+                print("Matplotlib", matplotlib.__version__)
+            except ImportError:
+                print("Matplotlib not installed")
+        ```
+        ```
+        # Paste the result here
+        ```

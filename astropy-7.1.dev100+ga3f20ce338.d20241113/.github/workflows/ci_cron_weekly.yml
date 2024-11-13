@@ -1,0 +1,192 @@
+name: Weekly cron
+
+on:
+  workflow_dispatch:
+  schedule:
+    # run every Monday at 6am UTC
+    - cron: '0 6 * * 1'
+  pull_request:
+    # We also want this workflow triggered if the 'Extra CI' label is added
+    # or present when PR is updated
+    types:
+      - synchronize
+      - labeled
+  push:
+    # We want this workflow to always run on release branches as well as
+    # all tags since we want to be really sure we don't introduce
+    # regressions on the release branches, and it's also important to run
+    # this on pre-release and release tags.
+    branches:
+    - 'v*'
+    tags:
+    - '*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IS_CRON: 'true'
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    env:
+      ARCH_ON_CI: "normal"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+
+          # We check numpy-dev also in a job that only runs from cron, so that
+          # we can spot issues sooner. We do not use remote data here, since
+          # that gives too many false positives due to URL timeouts. We also
+          # install all dependencies via pip here so we pick up the latest
+          # releases.
+          - name: Python 3.11 with dev version of key dependencies
+            os: ubuntu-latest
+            python: '3.11'
+            toxenv: py311-test-devdeps
+
+          # https://github.com/astropy/astropy/issues/15701
+          - name: Python 3.11 with dev version of key dependencies without scipy
+            os: ubuntu-latest
+            python: '3.11'
+            toxenv: py311-test-devdeps-noscipy
+
+          - name: Python 3.13 with dev version of infrastructure dependencies
+            os: ubuntu-latest
+            python: '3.13'
+            toxenv: py313-test-devinfra
+
+          - name: Python 3.13 on macOS (x86_64) with all optional dependencies
+            os: macos-13
+            python: '3.13'
+            toxenv: py313-test-alldeps
+
+          - name: Documentation link check
+            os: ubuntu-latest
+            python: '3.x'
+            toxenv: linkcheck
+            toxposargs: --color
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install language-pack-de and tzdata
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install language-pack-de tzdata
+    - name: Install graphviz
+      if: ${{ matrix.toxenv == 'linkcheck' }}
+      run: sudo apt-get install graphviz
+    - name: Install Python dependencies
+      run: python -m pip install --upgrade tox
+    - name: Run tests
+      run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
+
+
+  tests_more_architectures:
+
+    # The following architectures are emulated and are therefore slow, so
+    # we include them just in the weekly cron. These also serve as a test
+    # of using system libraries and using pytest directly.
+
+    runs-on: ubuntu-latest
+    name: Python 3.12
+    # keep condition in sync with test_arm64
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    env:
+      ARCH_ON_CI: ${{ matrix.arch }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: s390x
+          - arch: ppc64le
+          - arch: armv7
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 0
+      - uses: uraimo/run-on-arch-action@5397f9e30a9b62422f302092631c99ae1effcd9e # v2.8.1
+        name: Run tests
+        id: build
+        with:
+          arch: ${{ matrix.arch }}
+          distro: ubuntu_rolling
+
+          shell: /bin/bash
+          env: |
+            ARCH_ON_CI: ${{ env.ARCH_ON_CI }}
+            IS_CRON: ${{ env.IS_CRON }}
+
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y gnupg2
+            # Add test-support repository for wcslib8
+            echo "deb http://ppa.launchpadcontent.net/astropy/test-support/ubuntu lunar main" > /etc/apt/sources.list.d/test-support.list
+            gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv CC75F07B3EF41EFC
+            gpg --export --armor CC75F07B3EF41EFC | tee /etc/apt/trusted.gpg.d/test-support.asc
+            apt-get update -q -y
+            apt-get install -q -y --no-install-recommends \
+                                  git \
+                                  g++ \
+                                  pkg-config \
+                                  python3 \
+                                  python3-erfa \
+                                  python3-extension-helpers \
+                                  python3-jinja2 \
+                                  python3-numpy \
+                                  python3-pytest-astropy \
+                                  python3-setuptools-scm \
+                                  python3-yaml \
+                                  python3-venv \
+                                  python3-wheel \
+                                  wcslib-dev
+
+          run: |
+            uname -a
+            echo "LONG_BIT="$(getconf LONG_BIT)
+            python3 -m venv --system-site-packages tests
+            source tests/bin/activate
+            # cython and pyerfa versions in ubuntu repos are too old currently
+            pip install -U cython
+            pip install -U --no-build-isolation pyerfa
+            ASTROPY_USE_SYSTEM_ALL=1 pip3 install -v --no-build-isolation -e .[test]
+            pip3 list
+            python3 -m pytest -m "not hypothesis"
+
+  test_arm64:
+
+    # Native arm64 testing - we keep this in the weekly cron as we need to pay for it so we should
+    # minimize how many jobs we do.
+
+    runs-on: linux-arm64
+    name: Python 3.12 (arm64)
+    # keep condition in sync with test_more_architectures
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    env:
+      ARCH_ON_CI: "arm64"
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+        with:
+          python-version: '3.12'
+      - name: Set up dependencies
+        run: pip install tox
+      - name: Run tests
+        run: tox -e py312-test -- -n=2

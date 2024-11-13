@@ -3144,7 +3144,7 @@ class TimeDelta(TimeBase):
         # since other has already had a chance to look at us.
         return other / self.to(u.day)
 
-    def to(self, unit, equivalencies=[]):
+    def to(self, unit, equivalencies=None):
         """
         Convert to a quantity in the specified unit.
 
@@ -3167,6 +3167,9 @@ class TimeDelta(TimeBase):
         --------
         to_value : get the numerical value in a given unit.
         """
+        if equivalencies is None:
+            equivalencies=[]
+        
         return u.Quantity(self._time.jd1 + self._time.jd2, u.day).to(
             unit, equivalencies=equivalencies
         )

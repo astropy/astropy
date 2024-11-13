@@ -1,0 +1,4 @@
+# We copy header files here from `cextern/wcslib/C`, but they should
+# be ignored by git.
+
+*.h

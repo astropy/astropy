@@ -191,7 +191,7 @@ class SpectralQuantity(SpecificTypeQuantity):
         self._doppler_convention = value
 
     @quantity_input(doppler_rest=SPECTRAL_UNITS)
-    def to(self, unit, equivalencies=[], doppler_rest=None, doppler_convention=None):
+    def to(self, unit, equivalencies=None, doppler_rest=None, doppler_convention=None):
         """
         Return a new `~astropy.coordinates.SpectralQuantity` object with the specified unit.
 
@@ -225,6 +225,9 @@ class SpectralQuantity(SpecificTypeQuantity):
         `SpectralQuantity`
             New spectral coordinate object with data converted to the new unit.
         """
+        if equivalencies is None:
+            equivalencies=[]
+        
         # Make sure units can be passed as strings
         unit = Unit(unit)
 

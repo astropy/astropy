@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2">
+  <RESOURCE type="results">
+    <TABLE>
+      <FIELD name="ID" datatype="char" ucd="meta.id;meta.main" arraysize="*" />
+      <FIELD name="access_url" datatype="char" ucd="meta.ref.url" arraysize="*" />
+      <FIELD name="service_def" datatype="char" ucd="meta.ref" arraysize="*" />
+      <FIELD name="error_message" datatype="char" ucd="meta.code.error" arraysize="*" />
+      <FIELD name="semantics" datatype="char" ucd="meta.code" arraysize="*" />
+      <FIELD name="description" datatype="char" ucd="meta.note" arraysize="*" />
+      <FIELD name="content_type" datatype="char" ucd="meta.code.mime" arraysize="*" />
+      <FIELD name="content_length" datatype="long" ucd="phys.size;meta.file" unit="byte" />
+      <FIELD name="product_type" datatype="char" utype="caom:Artifact.productType" arraysize="*" />
+      <FIELD name="file_uri" datatype="char" ID="fileURIRef" arraysize="*" />
+      <DATA>
+        <TABLEDATA>
+          <TR>
+            <TD>caom:GEMINI/GS-2012A-Q-5-116-003/GS-2012A-Q-5-116-003</TD>
+            <TD>http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/data/pub/GEMINI/S20120515S0064?runid=bx9b1o8cvk1qesrt</TD>
+            <TD />
+            <TD />
+            <TD>#this</TD>
+            <TD />
+            <TD>application/fits</TD>
+            <TD>7068398</TD>
+            <TD>science</TD>
+            <TD />
+          </TR>
+          <TR>
+            <TD>caom:GEMINI/GS-2012A-Q-5-116-003/GS-2012A-Q-5-116-003</TD>
+            <TD />
+            <TD>cutout</TD>
+            <TD />
+            <TD>#cutout</TD>
+            <TD />
+            <TD>application/fits</TD>
+            <TD />
+            <TD>science</TD>
+            <TD>ad:GEMINI/S20120515S0064</TD>
+          </TR>
+          <TR>
+            <TD>caom:GEMINI/GS-2012A-Q-5-116-003/GS-2012A-Q-5-116-003</TD>
+            <TD />
+            <TD>soda-62b3e0b3-2718-442f-920a-ce8028687c2b</TD>
+            <TD />
+            <TD>#cutout</TD>
+            <TD />
+            <TD>application/fits</TD>
+            <TD />
+            <TD>science</TD>
+            <TD>ad:GEMINI/S20120515S0064</TD>
+          </TR>
+          <TR>
+            <TD>caom:GEMINI/GS-2012A-Q-5-116-003/GS-2012A-Q-5-116-003</TD>
+            <TD />
+            <TD>soda-d0378127-e438-46a2-880f-42df8884a2ff</TD>
+            <TD />
+            <TD>#cutout</TD>
+            <TD />
+            <TD>application/fits</TD>
+            <TD />
+            <TD>science</TD>
+            <TD>ad:GEMINI/S20120515S0064</TD>
+          </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+    <INFO name="QUERY_STATUS" value="OK" />
+  </RESOURCE>
+  <RESOURCE type="meta" ID="this" utype="adhoc:service">
+    <PARAM name="resourceIdentifier" datatype="char" arraysize="*" value="ivo://cadc.nrc.ca/datalink" />
+    <PARAM name="standardID" datatype="char" arraysize="*" value="ivo://ivoa.net/std/DataLink#links-1.0" />
+    <PARAM name="accessURL" datatype="char" arraysize="*" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/datalink" />
+    <GROUP name="inputParams">
+      <PARAM name="ID" datatype="char" arraysize="*" value="" />
+      <PARAM name="RESPONSEFORMAT" datatype="char" arraysize="*" value="application/x-votable+xml;content=datalink">
+        <VALUES>
+          <OPTION value="application/x-votable+xml;content=datalink" name="good"/>
+          <OPTION value="application/x-download-manifest+txt" spurious="bad"/>
+        </VALUES>
+      </PARAM>
+    </GROUP>
+  </RESOURCE>
+  <RESOURCE type="meta" ID="cutout" utype="adhoc:service">
+    <PARAM name="resourceIdentifier" datatype="char" arraysize="*" value="ivo://cadc.nrc.ca/cutout" />
+    <PARAM name="accessURL" datatype="char" arraysize="*" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/cutout" />
+    <GROUP name="inputParams">
+      <PARAM name="uri" datatype="char" ref="fileURIRef" arraysize="*" value="" />
+      <PARAM name="cutout" datatype="char" xtype="stc:AstroCoordArea" arraysize="*" value="" />
+    </GROUP>
+  </RESOURCE>
+  <RESOURCE type="meta" ID="soda-sync" utype="adhoc:service">
+    <PARAM name="resourceIdentifier" datatype="char" arraysize="*" value="ivo://cadc.nrc.ca/soda#sync" />
+    <PARAM name="standardID" datatype="char" arraysize="*" value="ivo://ivoa.net/std/SODA#sync-1.0" />
+    <PARAM name="accessURL" datatype="char" arraysize="*" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/sync" />
+    <GROUP name="inputParams">
+      <PARAM name="ID" datatype="char" ref="fileURIRef" arraysize="*" value="" />
+      <PARAM name="POS" datatype="char" ucd="obs.field" arraysize="*" value="" />
+      <PARAM name="CIRC" datatype="double" ucd="obs.field" unit="deg" xtype="circle" arraysize="3" value="" />
+      <PARAM name="POLY" datatype="double" ucd="obs.field" unit="deg" xtype="polygon" arraysize="*" value="" />
+      <PARAM name="BAND" datatype="double" ucd="em.wl;stat.interval" unit="m" xtype="interval" arraysize="2" value="" />
+      <PARAM name="TIME" datatype="double" ucd="time;stat.interval" unit="d" xtype="interval" arraysize="2" value="" />
+      <PARAM name="POL" datatype="char" ucd="phys.polarization.stokes" arraysize="2*" value="" />
+    </GROUP>
+  </RESOURCE>
+  <RESOURCE type="meta" ID="soda-async" utype="adhoc:service">
+    <PARAM name="resourceIdentifier" datatype="char" arraysize="*" value="ivo://cadc.nrc.ca/soda#async" />
+    <PARAM name="standardID" datatype="char" arraysize="*" value="ivo://ivoa.net/std/SODA#async-1.0" />
+    <PARAM name="accessURL" datatype="char" arraysize="*" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/async" />
+    <GROUP name="inputParams">
+      <PARAM name="ID" datatype="char" ref="fileURIRef" arraysize="*" value="" />
+      <PARAM name="POS" datatype="char" ucd="obs.field" arraysize="*" value="" />
+      <PARAM name="CIRC" datatype="double" ucd="obs.field" unit="deg" xtype="circle" arraysize="3" value="" />
+      <PARAM name="POLY" datatype="double" ucd="obs.field" unit="deg" xtype="polygon" arraysize="*" value="" />
+      <PARAM name="BAND" datatype="double" ucd="em.wl;stat.interval" unit="m" xtype="interval" arraysize="2" value="" />
+      <PARAM name="TIME" datatype="double" ucd="time;stat.interval" unit="d" xtype="interval" arraysize="2" value="" />
+      <PARAM name="POL" datatype="char" ucd="phys.polarization.stokes" arraysize="2*" value="" />
+    </GROUP>
+  </RESOURCE>
+  <RESOURCE type="meta" ID="soda-62b3e0b3-2718-442f-920a-ce8028687c2b" utype="adhoc:service">
+    <PARAM name="resourceIdentifier" datatype="char" arraysize="27" value="ivo://cadc.nrc.ca/soda#sync" />
+    <PARAM name="standardID" datatype="char" arraysize="32" value="ivo://ivoa.net/std/SODA#sync-1.0" />
+    <PARAM name="accessURL" datatype="char" arraysize="*" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/sync" />
+    <GROUP name="inputParams">
+      <PARAM name="ID" datatype="char" ucd="" arraysize="*" value="ad:GEMINI/S20120515S0064" />
+      <PARAM name="POS" datatype="char" ucd="obs.field" arraysize="*" value="" />
+      <PARAM name="CIRC" datatype="double" ucd="obs.field" unit="deg" xtype="circle" arraysize="3" value="">
+        <VALUES>
+          <MAX value="249.4461412814794 6.208882135413049 0.04682149110213382" />
+        </VALUES>
+      </PARAM>
+      <PARAM name="POLY" datatype="double" ucd="obs.field" unit="deg" xtype="polygon" arraysize="*" value="">
+        <VALUES>
+          <MAX value="249.39904413680034 6.208645591686135 249.39911774129286 6.209064581212914 249.49323846809307 6.209114516657962 249.49307002200794 6.208699271984017" />
+        </VALUES>
+      </PARAM>
+      <PARAM name="BAND" datatype="double" ucd="em.wl;stat.interval" unit="m" xtype="interval" arraysize="2" value="">
+        <VALUES>
+          <MAX value="4.1449399999999995E-7 7.416079999999999E-7" />
+        </VALUES>
+      </PARAM>
+    </GROUP>
+  </RESOURCE>
+  <RESOURCE type="meta" ID="soda-d0378127-e438-46a2-880f-42df8884a2ff" utype="adhoc:service">
+    <PARAM name="resourceIdentifier" datatype="char" arraysize="28" value="ivo://cadc.nrc.ca/soda#async" />
+    <PARAM name="standardID" datatype="char" arraysize="33" value="ivo://ivoa.net/std/SODA#async-1.0" />
+    <PARAM name="accessURL" datatype="char" arraysize="*" value="http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/async" />
+    <GROUP name="inputParams">
+      <PARAM name="ID" datatype="char" ucd="" arraysize="*" value="ad:GEMINI/S20120515S0064" />
+      <PARAM name="POS" datatype="char" ucd="obs.field" arraysize="*" value="" />
+      <PARAM name="CIRC" datatype="double" ucd="obs.field" unit="deg" xtype="circle" arraysize="3" value="">
+        <VALUES>
+          <MAX value="249.4461412814794 6.208882135413049 0.04682149110213382" />
+        </VALUES>
+      </PARAM>
+      <PARAM name="POLY" datatype="double" ucd="obs.field" unit="deg" xtype="polygon" arraysize="*" value="">
+        <VALUES>
+          <MAX value="249.39904413680034 6.208645591686135 249.39911774129286 6.209064581212914 249.49323846809307 6.209114516657962 249.49307002200794 6.208699271984017" />
+        </VALUES>
+      </PARAM>
+      <PARAM name="BAND" datatype="double" ucd="em.wl;stat.interval" unit="m" xtype="interval" arraysize="2" value="">
+        <VALUES>
+          <MAX value="4.1449399999999995E-7 7.416079999999999E-7" />
+        </VALUES>
+      </PARAM>
+    </GROUP>
+  </RESOURCE>
+</VOTABLE>

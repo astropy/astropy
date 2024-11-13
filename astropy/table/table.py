@@ -240,7 +240,10 @@ class TableColumns(OrderedDict):
         Column objects as data structure that can init dict (see above)
     """
 
-    def __init__(self, cols={}):
+    def __init__(self, cols=None):
+        if cols is None:
+            cols={}
+        
         if isinstance(cols, (list, tuple)):
             # `cols` should be a list of two-tuples, but it is allowed to have
             # columns (BaseColumn or mixins) in the list.
@@ -1840,7 +1843,7 @@ class Table:
         max_lines=5000,
         jsviewer=False,
         browser="default",
-        jskwargs={"use_local_files": True},
+        jskwargs=None,
         tableid=None,
         table_class="display compact",
         css=None,
@@ -1893,6 +1896,9 @@ class Table:
 
         from .jsviewer import DEFAULT_CSS
 
+        if jskwargs is None:
+            jskwargs={"use_local_files": True}
+        
         if css is None:
             css = DEFAULT_CSS
 

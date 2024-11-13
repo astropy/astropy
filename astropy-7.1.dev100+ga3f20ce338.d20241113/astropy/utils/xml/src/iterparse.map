@@ -1,0 +1,7 @@
+VERS_1.0 {
+   global:
+      init_iterparser;
+      PyInit__iterparser;
+   local:
+      *;
+};

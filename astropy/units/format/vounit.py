@@ -68,7 +68,10 @@ class VOUnit(FITS):
         binary_prefixes = ["Ki", "Mi", "Gi", "Ti", "Pi", "Ei"]
         deprecated_units = {"angstrom", "Angstrom", "Ba", "barn", "erg", "G", "ta"}
 
-        def do_defines(bases, prefixes, skips=[]):
+        def do_defines(bases, prefixes, skips=None):
+            if skips is None:
+                skips=[]
+            
             for key, base in utils.get_non_keyword_units(bases, prefixes):
                 if key not in skips:
                     names[key] = getattr(u if hasattr(u, key) else uvo, key)

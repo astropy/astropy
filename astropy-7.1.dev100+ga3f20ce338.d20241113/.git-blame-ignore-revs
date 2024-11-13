@@ -1,0 +1,51 @@
+# Commits to ignore in blame:
+# black for astropy.config
+5a4c5fcb00bf917c4bbe3c342b66177cf6cb3c75
+# black for astropy.constants
+e789729540438eb891ae83ef1a39171f7a4c007a
+# black for astropy.convolution
+9d4adb8a5ab74a8c85e0d4b41e65bb78ee19aedb
+# black for astropy.coordinates
+fbbc0cb370d033722fef7f501b6aed4b500812d0
+# black for astropy.cosmology
+420686db541271e8a20ad15e3a2b68bf30655889
+# black for astropy.io.ascii
+6e80e68e817fd629e04e80b45478052b6a4a3c4a
+# black for astropy.io.fits
+6750c7f86129858b92d83b0086c3b99b9470bf8b
+# black for astropy.io.misc
+128fe2873f25581feda0c2d726181b093bdc306a
+# black for atropy.io.votable
+7ca4c9e44e762e258b3c455bdfca793b83a93802
+# black for other astropy.io
+2e948e310fa2882ef3fd483b130297e3c692481f
+# black for astropy.modeling
+d8f7f53c7342e4e40c1a76351a3befa1f9b2f2db
+# black for astropy.nddata
+a7cb990203a9d2093fa81bbbbd4ac0f763f6da6b
+# black for astropy.samp
+3c9c91ae593cad2f669d65bf3e67accc5c49333c
+# black for astropy.stats
+ecfab5a9f56d5f5724f30a6dabe580960136e4c6
+# black for astropy.table
+1403108bcd07341657e41d47c99abad373f27644
+# black for astropy.tests
+369402b47317f4752e3dadaa136a1f8ccce74a2e
+# black for astropy.time
+fa2df9f32e5c041d74f7d1ef3d5a188c521cbc79
+# black for astropy.timeseries
+059495d362003d3f88c1e7456bfe56693c958e10
+# black for astropy.uncertainty
+58470fa36befa7efd1e37bbc7374859d7c22223a
+# black for astropy.units
+53ba687f90131a7b5a578af32b376b8fac04863a
+# black for astropy.utils
+0630d6acf23aab2ef338b35f9a5130ee592e7aa5
+# black for astropy.visualization
+1265c1a9970d467c9372f9143b8cb0a1d37facf1
+# black for astropy.wcs
+5bf365bd9638f3c335963745b46246fabe428a0f
+# black for other parts of astropy
+d2165fa02c1a2d79f4a6cb69a5cebeee0b073033
+# DOC: Moved dev docs around
+f5a1738f32d4920ac853c7c0ec6c941ccec47555

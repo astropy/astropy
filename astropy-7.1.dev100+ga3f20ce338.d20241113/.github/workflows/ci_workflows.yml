@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - main
+    - 'v*'
+    tags:
+    - '*'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ARCH_ON_CI: "normal"
+  IS_CRON: "false"
+
+jobs:
+  initial_checks:
+    name: Mandatory checks before CI
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check base branch
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const skip_label = 'skip-basebranch-check';
+          const { default_branch: allowed_basebranch } = context.payload.repository;
+          const pr = context.payload.pull_request;
+          if (pr.user.login === 'meeseeksmachine') {
+            core.info(`Base branch check is skipped since this is auto-backport by ${pr.user.login}`);
+            return;
+          }
+          if (pr.labels.find(lbl => lbl.name === skip_label)) {
+            core.info(`Base branch check is skipped due to the presence of ${skip_label} label`);
+            return;
+          }
+          if (pr.base.ref !== allowed_basebranch) {
+            core.setFailed(`PR opened against ${pr.base.ref}, not ${allowed_basebranch}`);
+          } else {
+            core.info(`PR opened correctly against ${allowed_basebranch}`);
+          }
+
+  tests:
+    needs: [initial_checks]
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@924441154cf3053034c6513d5e06c69d262fb9a6  # v1.13.0
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
+      submodules: false
+      coverage: ''
+      libraries: |
+        apt:
+          - language-pack-fr
+          - tzdata
+      envs: |
+        # NOTE: this coverage test is needed for tests and code that
+        #       run only with minimal dependencies.
+        - name: Python 3.12 with minimal dependencies and full coverage
+          linux: py312-test-cov
+          coverage: codecov
+
+        - name: Python 3.12 in Parallel with all optional dependencies
+          linux: py312-test-alldeps-fitsio
+          libraries:
+            apt:
+              - language-pack-fr
+              - tzdata
+              - libbz2-dev
+              - libcfitsio-dev
+          toxargs: -v --develop
+          posargs: -n=4 --run-slow
+
+        - name: Python 3.11 with oldest supported version of all dependencies
+          linux: py311-test-oldestdeps-alldeps-cov-clocale
+          posargs: --remote-data=astropy
+          coverage: codecov
+
+        - name: Python 3.12 with all optional dependencies (Windows)
+          windows: py312-test-alldeps
+          posargs: --durations=50
+
+        - name: Python 3.12 with all optional dependencies (MacOS X)
+          macos: py312-test-alldeps
+          posargs: --durations=50 --run-slow
+          runs-on: macos-latest
+
+        - name: Python 3.11 Double test (Run tests twice)
+          linux: py311-test-double
+
+  allowed_failures:
+    needs: [initial_checks]
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@924441154cf3053034c6513d5e06c69d262fb9a6  # v1.13.0
+    with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
+      submodules: false
+      coverage: ''
+      libraries: |
+        apt:
+          - language-pack-de
+          - tzdata
+      envs: |
+        - name: (Allowed Failure) Python 3.13 with remote data and dev version of key dependencies
+          linux: py313-test-devdeps
+          posargs: --remote-data=any --verbose
+
+  test_wheel_building:
+    needs: [initial_checks]
+    # This ensures that a couple of wheel targets work fine in pull requests and pushes
+    permissions:
+      contents: none
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@924441154cf3053034c6513d5e06c69d262fb9a6  # v1.13.0
+    with:
+      upload_to_pypi: false
+      upload_to_anaconda: false
+      test_extras: test
+      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
+      targets: |
+        - cp311-manylinux_x86_64

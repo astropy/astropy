@@ -1,0 +1,76 @@
+name: Daily cron
+
+on:
+  workflow_dispatch:
+  schedule:
+    # run every day at 3am UTC
+    - cron: '0 3 * * *'
+  pull_request:
+    # We also want this workflow triggered if the 'Extra CI' label is added
+    # or present when PR is updated
+    types:
+      - synchronize
+      - labeled
+  push:
+    # We want this workflow to always run on release branches as well as
+    # all tags since we want to be really sure we don't introduce
+    # regressions on the release branches, and it's also important to run
+    # this on pre-release and release tags.
+    branches:
+    - 'v*'
+    tags:
+    - '*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ARCH_ON_CI: "normal"
+  IS_CRON: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Bundling with pyinstaller
+            os: ubuntu-latest
+            python: '3.11'
+            toxenv: pyinstaller
+
+          - name: Python 3.12 with all optional dependencies and pre-releases
+            os: ubuntu-latest
+            python: '3.12'
+            toxenv: py312-test-alldeps-predeps
+            toxargs: -v
+            toxposargs: --remote-data=any
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Install language-pack-de and tzdata
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install language-pack-de tzdata
+
+    - name: Install Python dependencies
+      run: python -m pip install --upgrade tox
+
+    - name: Run tests
+      run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}

@@ -1,0 +1,1 @@
+Parsing units with scale factors is now up to 50% faster.

@@ -1,0 +1,244 @@
+Metadata-Version: 2.1
+Name: astropy
+Version: 7.1.dev100+ga3f20ce338.d20241113
+Summary: Astronomy and astrophysics core library
+Author-email: The Astropy Developers <astropy.team@gmail.com>
+License: BSD-3-Clause
+Project-URL: homepage, https://www.astropy.org/
+Project-URL: documentation, https://docs.astropy.org
+Project-URL: repository, https://github.com/astropy/astropy
+Keywords: astronomy,astrophysics,cosmology,space,science,units,table,wcs,samp,coordinate,fits,modeling,models,fitting,ascii
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: C
+Classifier: Programming Language :: Cython
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Topic :: Scientific/Engineering :: Astronomy
+Classifier: Topic :: Scientific/Engineering :: Physics
+Requires-Python: >=3.11
+Description-Content-Type: text/x-rst
+License-File: LICENSE.rst
+License-File: licenses/AURA_LICENSE.rst
+License-File: licenses/CONFIGOBJ_LICENSE.rst
+License-File: licenses/DATATABLES_LICENSE.rst
+License-File: licenses/ERFA.rst
+License-File: licenses/EXPAT_LICENSE.rst
+License-File: licenses/GATSPY_LICENSE.rst
+License-File: licenses/JQUERY_LICENSE.rst
+License-File: licenses/NUMPY_LICENSE.rst
+License-File: licenses/PLY_LICENSE.rst
+License-File: licenses/POSITIONAL_DEFAULTS.rst
+License-File: licenses/PYFITS.rst
+License-File: licenses/PYTHON.rst
+License-File: licenses/README.rst
+License-File: licenses/WCSLIB_LICENSE.rst
+Requires-Dist: numpy>=1.23.2
+Requires-Dist: pyerfa>=2.0.1.1
+Requires-Dist: astropy-iers-data>=0.2024.10.28.0.34.7
+Requires-Dist: PyYAML>=6.0.0
+Requires-Dist: packaging>=22.0.0
+Provides-Extra: recommended
+Requires-Dist: scipy>=1.9.2; extra == "recommended"
+Requires-Dist: matplotlib>=3.6.0; extra == "recommended"
+Provides-Extra: ipython
+Requires-Dist: ipython>=8.0.0; extra == "ipython"
+Provides-Extra: jupyter
+Requires-Dist: astropy[ipython]; extra == "jupyter"
+Requires-Dist: ipywidgets; extra == "jupyter"
+Requires-Dist: ipykernel; extra == "jupyter"
+Requires-Dist: ipydatagrid; extra == "jupyter"
+Requires-Dist: pandas; extra == "jupyter"
+Provides-Extra: all
+Requires-Dist: astropy[recommended]; extra == "all"
+Requires-Dist: astropy[ipython]; extra == "all"
+Requires-Dist: astropy[jupyter]; extra == "all"
+Requires-Dist: certifi>=2022.6.15.1; extra == "all"
+Requires-Dist: dask[array]>=2022.5.1; extra == "all"
+Requires-Dist: h5py>=3.8.0; extra == "all"
+Requires-Dist: pyarrow>=10.0.1; extra == "all"
+Requires-Dist: beautifulsoup4>=4.9.3; extra == "all"
+Requires-Dist: html5lib>=1.1; extra == "all"
+Requires-Dist: bleach>=3.2.1; extra == "all"
+Requires-Dist: pandas>=2.0; extra == "all"
+Requires-Dist: sortedcontainers>=1.5.7; extra == "all"
+Requires-Dist: pytz>=2016.10; extra == "all"
+Requires-Dist: jplephem>=2.6; extra == "all"
+Requires-Dist: mpmath>=1.2.1; extra == "all"
+Requires-Dist: asdf>=2.8.3; extra == "all"
+Requires-Dist: asdf-astropy>=0.3; extra == "all"
+Requires-Dist: bottleneck>=1.3.3; extra == "all"
+Requires-Dist: fsspec[http]>=2023.4.0; extra == "all"
+Requires-Dist: s3fs>=2023.4.0; extra == "all"
+Provides-Extra: test
+Requires-Dist: coverage>=6.4.4; extra == "test"
+Requires-Dist: pre-commit>=2.9.3; extra == "test"
+Requires-Dist: pytest>=7.3.0; extra == "test"
+Requires-Dist: pytest-doctestplus>=0.12; extra == "test"
+Requires-Dist: pytest-astropy-header>=0.2.1; extra == "test"
+Requires-Dist: pytest-astropy>=0.10.0; extra == "test"
+Requires-Dist: pytest-xdist>=2.5.0; extra == "test"
+Requires-Dist: threadpoolctl>=3.0.0; extra == "test"
+Provides-Extra: test-all
+Requires-Dist: astropy[all]; extra == "test-all"
+Requires-Dist: astropy[test]; extra == "test-all"
+Requires-Dist: objgraph; extra == "test-all"
+Requires-Dist: skyfield>=1.20; extra == "test-all"
+Requires-Dist: sgp4>=2.3; extra == "test-all"
+Requires-Dist: array-api-strict; extra == "test-all"
+Provides-Extra: typing
+Requires-Dist: pandas-stubs>=2.0; extra == "typing"
+Provides-Extra: docs
+Requires-Dist: astropy[recommended]; extra == "docs"
+Requires-Dist: sphinx; extra == "docs"
+Requires-Dist: sphinx-astropy[confv2]>=1.9.1; extra == "docs"
+Requires-Dist: pytest>=7.0; extra == "docs"
+Requires-Dist: sphinx-changelog>=1.2.0; extra == "docs"
+Requires-Dist: sphinx_design; extra == "docs"
+Requires-Dist: Jinja2>=3.1.3; extra == "docs"
+Requires-Dist: sphinxcontrib-globalsubs>=0.1.1; extra == "docs"
+Requires-Dist: matplotlib>=3.9.1; extra == "docs"
+Provides-Extra: dev
+Requires-Dist: astropy[recommended]; extra == "dev"
+Requires-Dist: astropy[test]; extra == "dev"
+Requires-Dist: astropy[docs]; extra == "dev"
+Requires-Dist: astropy[typing]; extra == "dev"
+Provides-Extra: dev-all
+Requires-Dist: tox; extra == "dev-all"
+Requires-Dist: astropy[dev]; extra == "dev-all"
+Requires-Dist: astropy[test_all]; extra == "dev-all"
+
+|Astropy Logo|
+
+----
+
+|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
+
+----
+
+The Astropy Project is a community effort to develop a
+single core package for astronomy in Python and foster interoperability between
+packages used in the field. This repository contains the core library.
+
+* `Website <https://astropy.org/>`_
+* `Documentation <https://docs.astropy.org/>`_
+* `Slack <https://astropy.slack.com/>`_
+* `Open Astronomy Discourse <https://community.openastronomy.org/c/astropy/8>`_
+* `Astropy users mailing list <https://mail.python.org/mailman/listinfo/astropy>`_
+* `Astropy developers mailing list <https://groups.google.com/g/astropy-dev>`_
+
+Installation
+============
+
+To install `astropy` from PyPI, use:
+
+.. code-block:: bash
+
+    pip install astropy
+
+For more detailed instructions, see the `install guide
+<https://docs.astropy.org/en/stable/install.html>`_ in the docs.
+
+Contributing
+============
+
+|User Stats|
+
+The Astropy Project is made both by and for its users, so we welcome and
+encourage contributions of many kinds. Our goal is to keep this a positive,
+inclusive, successful, and growing community that abides by the
+`Astropy Community Code of Conduct
+<https://www.astropy.org/about.html#codeofconduct>`_.
+
+For guidance on contributing to or submitting feedback for the Astropy Project,
+see the `contributions page <https://www.astropy.org/contribute.html>`_.
+For contributing code specifically, the developer docs have a
+`guide <https://docs.astropy.org/en/latest/index_dev.html>`_ with a quickstart.
+There's also a `summary of contribution guidelines <CONTRIBUTING.md>`_.
+
+Developing with Codespaces
+==========================
+
+GitHub Codespaces is a cloud development environment using Visual Studio Code
+in your browser. This is a convenient way to start developing Astropy, using
+our `dev container <.devcontainer/devcontainer.json>`_ configured
+with the required packages. For help, see the `GitHub Codespaces
+docs <https://docs.github.com/en/codespaces>`_.
+
+|Codespaces|
+
+Acknowledging and Citing
+========================
+See the `acknowledgement and citation guide
+<https://www.astropy.org/acknowledging.html>`_ and the `CITATION
+<https://github.com/astropy/astropy/blob/main/astropy/CITATION>`_ file.
+
+Supporting the Project
+======================
+
+|NumFOCUS| |Donate|
+
+The Astropy Project is sponsored by NumFOCUS, a 501(c)(3) nonprofit in the
+United States. You can donate to the project by using the link above, and this
+donation will support our mission to promote sustainable, high-level code base
+for the astronomy community, open code development, educational materials, and
+reproducible scientific research.
+
+License
+=======
+
+Astropy is licensed under a 3-clause BSD style license - see the
+`LICENSE.rst <LICENSE.rst>`_ file.
+
+
+.. |Astropy Logo| image:: https://github.com/astropy/repo_stats/blob/main/dashboard_template/astropy_banner_gray.svg
+    :target: https://www.astropy.org/
+    :alt: Astropy
+
+.. |User Stats| image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png
+    :target: https://docs.astropy.org/en/latest/impact_health.html
+    :alt: Astropy User Statistics
+
+.. |Actions Status| image:: https://github.com/astropy/astropy/actions/workflows/ci_workflows.yml/badge.svg
+    :target: https://github.com/astropy/astropy/actions
+    :alt: Astropy's GitHub Actions CI Status
+
+.. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/main?logo=circleci&label=CircleCI
+    :target: https://circleci.com/gh/astropy/astropy
+    :alt: Astropy's CircleCI Status
+
+.. |Coverage Status| image:: https://codecov.io/gh/astropy/astropy/branch/main/graph/badge.svg
+    :target: https://codecov.io/gh/astropy/astropy
+    :alt: Astropy's Coverage Status
+
+.. |PyPI Status| image:: https://img.shields.io/pypi/v/astropy.svg
+    :target: https://pypi.org/project/astropy
+    :alt: Astropy's PyPI Status
+
+.. |Zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4670728.svg
+    :target: https://doi.org/10.5281/zenodo.4670728
+    :alt: Zenodo DOI
+
+.. |Documentation Status| image:: https://img.shields.io/readthedocs/astropy/latest.svg?logo=read%20the%20docs&logoColor=white&label=Docs&version=stable
+    :target: https://docs.astropy.org/en/stable/?badge=stable
+    :alt: Documentation Status
+
+.. |Pre-Commit| image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
+    :target: https://github.com/pre-commit/pre-commit
+    :alt: pre-commit
+
+.. |Ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Ruff
+
+.. |NumFOCUS| image:: https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A
+    :target: https://numfocus.org
+    :alt: Powered by NumFOCUS
+
+.. |Donate| image:: https://img.shields.io/badge/Donate-to%20Astropy-brightgreen.svg
+    :target: https://numfocus.org/donate-to-astropy
+
+.. |Codespaces| image:: https://github.com/codespaces/badge.svg
+    :target: https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=2081289
+    :alt: Open in GitHub Codespaces

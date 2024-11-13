@@ -1,0 +1,8 @@
+# This subpckage is only used in development checkouts and should not be
+# included in built tarballs
+prune astropy/_dev
+
+prune docs/_build
+prune build
+
+global-exclude *.pyc *.o

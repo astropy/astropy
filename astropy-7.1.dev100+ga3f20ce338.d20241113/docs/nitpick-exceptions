@@ -1,0 +1,98 @@
+# astropy.io.votable
+py:class astropy.io.votable.tree.SimpleElement
+py:class astropy.io.votable.tree.SimpleElementWithContent
+
+# astropy.modeling
+py:class astropy.modeling.polynomial.PolynomialBase
+
+# astropy.io.fits
+py:class astropy.io.fits.hdu.base.ExtensionHDU
+py:class astropy.io.fits.util.NotifierMixin
+py:class astropy.io.fits.hdu.compressed._codecs.Codec
+
+# astropy.io.misc.yaml
+py:class yaml.dumper.SafeDumper
+py:class yaml.loader.SafeLoader
+py:class yaml.representer.SafeRepresenter
+py:class yaml.scanner.Scanner
+py:class yaml.constructor.SafeConstructor
+py:class yaml.constructor.BaseConstructor
+py:class yaml.parser.Parser
+py:class yaml.representer.BaseRepresenter
+py:class yaml.reader.Reader
+py:class yaml.resolver.BaseResolver
+py:class yaml.serializer.Serializer
+py:class yaml.composer.Composer
+py:class yaml.resolver.Resolver
+py:class yaml.emitter.Emitter
+
+# astropy.units
+# This is required on macOS (#9040 and #10026) and Windows (#16288).
+py:obj astropy.units.function.logarithmic.m_bol
+
+# astropy.utils
+py:class json.encoder.JSONEncoder
+
+# astropy.table
+py:class astropy.table.column.BaseColumn
+py:class astropy.table.groups.BaseGroups
+# astropy.visualization
+py:obj Bbox
+py:obj Transform
+py:obj Figure
+py:obj AbstractPathEffect
+py:obj N
+
+# astropy.wcs
+py:class astropy.wcs.wcsapi.fitswcs.FITSWCSAPIMixin
+py:class astropy.wcs.wcsapi.fitswcs.custom_ctype_to_ucd_mapping
+
+# numpy inherited docstrings
+py:obj dtype
+py:obj a
+py:obj n
+py:obj ndarray
+py:obj args
+
+# other classes and functions that cannot be linked to
+py:class xmlrpc.client.Error
+
+# Pending on python docs links issue #11975
+py:obj list.append
+py:obj list.count
+py:obj list.extend
+py:obj list.index
+py:obj list.insert
+py:meth list.pop
+py:obj list.remove
+py:obj RendererBase
+py:obj Artist
+py:obj BboxBase
+
+# This list is from https://github.com/numpy/numpydoc/issues/275
+py:class None.  Remove all items from D.
+py:class a set-like object providing a view on D's items
+py:class a set-like object providing a view on D's keys
+py:class None.  Update D from dict/iterable E and F.
+py:class an object providing a view on D's values
+py:class a shallow copy of D
+
+# Types used in annotations included here because of a Sphinx bug.
+# See https://github.com/sphinx-doc/sphinx/issues/9813
+# and https://github.com/sphinx-doc/sphinx/issues/11225
+# types
+py:class EllipsisType
+py:class ModuleType
+# numpy
+py:class np.number
+# numpy.typing
+py:class NDArray
+py:class ArrayLike
+# np.ma
+py:class np.ma.MaskedArray
+# locally defined type variable for ndarray dtype
+py:class DT
+
+# Classes from `astropy.extern` that are nonetheless exposed in documentation
+py:class Lexer
+py:class LRParser

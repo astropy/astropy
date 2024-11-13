@@ -1,0 +1,3 @@
+Added support for calling numpy array constructors (``np.array``,
+``np.asarray``, ``np.asanyarray``, ``np.ascontiguousarray`` and
+``np.asfortranarray``) with ``like=Quantity(...)`` .

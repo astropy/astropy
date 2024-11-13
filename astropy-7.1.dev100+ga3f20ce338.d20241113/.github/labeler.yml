@@ -1,0 +1,244 @@
+Docs:
+- changed-files:
+  - any-glob-to-any-file:
+    - docs/*
+    - docs/_static/*
+    - docs/_templates/*
+    - docs/development/**/*
+    - docs/whatsnew/*
+    - examples/**/*
+    - licenses/*
+    - CITATION
+    - CITATION.cff
+    - .mailmap
+    - .readthedocs.yaml
+    - '*.md'
+  - all-globs-to-any-file:
+    - '**/*.rst'
+    - '!CHANGES.rst'
+    - '!docs/changes/**/*'
+
+testing:
+- changed-files:
+  - any-glob-to-any-file:
+    - astropy/tests/**/*
+    - codecov.yml
+    - conftest.py
+    - '**/conftest.py'
+    - tox.ini
+    - .circleci/*
+    - .github/workflows/CFF-test.yml
+    - .github/workflows/check_changelog.yml
+    - .github/workflows/ci*.yml
+    - .github/workflows/codeql-analysis.yml
+    - .pyinstaller/**/*
+    - .flake8
+    - .pycodestyle
+    - .pre-commit-config.yaml
+    - .ruff.toml
+
+dev-automation:
+- changed-files:
+  - any-glob-to-any-file:
+    - .pre-commit-config.yaml
+    - .ruff.toml
+    - .devcontainer/*
+    - .github/ISSUE_TEMPLATE/*
+    - .github/*
+    - .github/workflows/open_actions.yml
+    - .github/workflows/stalebot.yml
+    - .github/workflows/update_astropy_iers_data_pin.*
+
+skip-changelog-checks:
+- changed-files:
+  - any-glob-to-any-file:
+    - .pre-commit-config.yaml
+
+external:
+- changed-files:
+  - any-glob-to-any-file:
+    - astropy/extern/**/*
+    - cextern/**/*
+
+installation:
+- changed-files:
+  - any-glob-to-any-file:
+    - docs/install.rst
+    - MANIFEST.in
+    - pyproject.toml
+    - setup.py
+
+Release:
+- changed-files:
+  - any-glob-to-any-file:
+    - docs/development/releasing.rst
+    - .github/workflows/publish.yml
+
+config:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/config/**/*'
+    - astropy/extern/configobj/**/*
+
+constants:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/constants/**/*'
+
+convolution:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/convolution/**/*'
+
+coordinates:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/coordinates/**/*'
+
+cosmology:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/cosmology/**/*'
+
+io.ascii:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/io/ascii/**/*'
+
+io.fits:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/io/fits/**/*'
+    - cextern/cfitsio/**/*
+
+io.misc:
+- changed-files:
+  - any-glob-to-any-file:
+    - astropy/io/misc/*
+    - astropy/io/misc/pandas/**/*
+    - astropy/io/misc/tests/**/*
+    - docs/io/misc*.rst
+
+io.registry:
+- changed-files:
+  - any-glob-to-any-file:
+    - astropy/io/*
+    - astropy/io/registry/**/*
+    - astropy/io/tests/*
+    - docs/io/registry*.rst
+
+io.votable:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/io/votable/**/*'
+
+logging:
+- changed-files:
+  - any-glob-to-any-file:
+    - astropy/logger.py
+    - astropy/tests/test_logger.py
+    - docs/logging.rst
+
+modeling:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/modeling/**/*'
+
+nddata:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/nddata/**/*'
+
+samp:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/samp/**/*'
+
+stats:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/stats/**/*'
+
+table:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/table/**/*'
+    - astropy/extern/jquery/**/*
+
+time:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/time/**/*'
+
+timeseries:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/timeseries/**/*'
+
+uncertainty:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/uncertainty/**/*'
+
+unified-io:
+- changed-files:
+  - any-glob-to-any-file:
+    - astropy/table/connect.py
+    - astropy/io/**/connect.py
+    - docs/io/unified.rst
+
+units:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/units/**/*'
+    - astropy/extern/ply/**/*
+
+utils:
+- changed-files:
+  - any-glob-to-any-file:
+    - cextern/expat/**/*
+  - all-globs-to-any-file:
+    - '**/utils/**/*'
+    - '!astropy/utils/iers/**/*'
+    - '!docs/utils/iers.rst'
+    - '!astropy/utils/masked/**/*'
+    - '!docs/utils/masked/**/*'
+
+utils.iers:
+- changed-files:
+  - any-glob-to-any-file:
+    - astropy/utils/iers/**/*
+    - docs/utils/iers.rst
+    - .github/workflows/update_astropy_iers_data_pin.*
+
+utils.masked:
+- changed-files:
+  - any-glob-to-any-file:
+    - astropy/utils/masked/**/*
+    - docs/utils/masked/**/*
+
+visualization:
+- changed-files:
+  - all-globs-to-any-file:
+    - '**/visualization/**/*'
+    - '!**/visualization/wcsaxes/**/*'
+
+visualization.wcsaxes:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/visualization/wcsaxes/**/*'
+
+wcs:
+- changed-files:
+  - any-glob-to-any-file:
+    - cextern/wcslib/**/*
+  - all-globs-to-any-file:
+    - '**/wcs/**/*'
+    - '!astropy/wcs/wcsapi/**/*'
+    - '!docs/wcs/wcsapi.rst'
+
+wcs.wcsapi:
+- changed-files:
+  - any-glob-to-any-file:
+    - astropy/wcs/wcsapi/**/*
+    - docs/wcs/wcsapi.rst

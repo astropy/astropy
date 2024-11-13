@@ -1,0 +1,954 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+import numpy as np
+import pytest
+
+from astropy.io import fits
+from astropy.io.fits.column import Column
+from astropy.io.fits.diff import (
+    FITSDiff,
+    HDUDiff,
+    HeaderDiff,
+    ImageDataDiff,
+    TableDataDiff,
+)
+from astropy.io.fits.hdu import HDUList, ImageHDU, PrimaryHDU
+from astropy.io.fits.hdu.base import NonstandardExtHDU
+from astropy.io.fits.hdu.table import BinTableHDU
+from astropy.io.fits.header import Header
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
+
+from .conftest import FitsTestCase
+
+
+class DummyNonstandardExtHDU(NonstandardExtHDU):
+    def __init__(self, data=None, *args, **kwargs):
+        super().__init__(self, *args, **kwargs)
+        self._buffer = np.asarray(data).tobytes()
+        self._data_offset = 0
+
+    @property
+    def size(self):
+        return len(self._buffer)
+
+
+class TestDiff(FitsTestCase):
+    def test_identical_headers(self):
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        assert HeaderDiff(ha, hb).identical
+        assert HeaderDiff(ha.tostring(), hb.tostring()).identical
+
+        with pytest.raises(TypeError):
+            HeaderDiff(1, 2)
+
+    def test_slightly_different_headers(self):
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        hb["C"] = 4
+        assert not HeaderDiff(ha, hb).identical
+
+    def test_common_keywords(self):
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        hb["C"] = 4
+        hb["D"] = (5, "Comment")
+        assert HeaderDiff(ha, hb).common_keywords == ["A", "B", "C"]
+
+    def test_different_keyword_count(self):
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        del hb["B"]
+        diff = HeaderDiff(ha, hb)
+        assert not diff.identical
+        assert diff.diff_keyword_count == (3, 2)
+
+        # But make sure the common keywords are at least correct
+        assert diff.common_keywords == ["A", "C"]
+
+    def test_different_keywords(self):
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        hb["C"] = 4
+        hb["D"] = (5, "Comment")
+        ha["E"] = (6, "Comment")
+        ha["F"] = (7, "Comment")
+        diff = HeaderDiff(ha, hb)
+        assert not diff.identical
+        assert diff.diff_keywords == (["E", "F"], ["D"])
+
+    def test_different_keyword_values(self):
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        hb["C"] = 4
+        diff = HeaderDiff(ha, hb)
+        assert not diff.identical
+        assert diff.diff_keyword_values == {"C": [(3, 4)]}
+
+    def test_different_keyword_comments(self):
+        ha = Header([("A", 1), ("B", 2), ("C", 3, "comment 1")])
+        hb = ha.copy()
+        hb.comments["C"] = "comment 2"
+        diff = HeaderDiff(ha, hb)
+        assert not diff.identical
+        assert diff.diff_keyword_comments == {"C": [("comment 1", "comment 2")]}
+
+    def test_different_keyword_values_with_duplicate(self):
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        ha.append(("C", 4))
+        hb.append(("C", 5))
+        diff = HeaderDiff(ha, hb)
+        assert not diff.identical
+        assert diff.diff_keyword_values == {"C": [None, (4, 5)]}
+
+    def test_asymmetric_duplicate_keywords(self):
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        ha.append(("A", 2, "comment 1"))
+        ha.append(("A", 3, "comment 2"))
+        hb.append(("B", 4, "comment 3"))
+        hb.append(("C", 5, "comment 4"))
+        diff = HeaderDiff(ha, hb)
+        assert not diff.identical
+        assert diff.diff_keyword_values == {}
+        assert diff.diff_duplicate_keywords == {"A": (3, 1), "B": (1, 2), "C": (1, 2)}
+
+        report = diff.report()
+        assert (
+            "Inconsistent duplicates of keyword 'A'     :\n"
+            "  Occurs 3 time(s) in a, 1 times in (b)" in report
+        )
+
+    def test_floating_point_rtol(self):
+        ha = Header([("A", 1), ("B", 2.00001), ("C", 3.000001)])
+        hb = ha.copy()
+        hb["B"] = 2.00002
+        hb["C"] = 3.000002
+        diff = HeaderDiff(ha, hb)
+        assert not diff.identical
+        assert diff.diff_keyword_values == {
+            "B": [(2.00001, 2.00002)],
+            "C": [(3.000001, 3.000002)],
+        }
+        diff = HeaderDiff(ha, hb, rtol=1e-6)
+        assert not diff.identical
+        assert diff.diff_keyword_values == {"B": [(2.00001, 2.00002)]}
+        diff = HeaderDiff(ha, hb, rtol=1e-5)
+        assert diff.identical
+
+    def test_floating_point_atol(self):
+        ha = Header([("A", 1), ("B", 1.0), ("C", 0.0)])
+        hb = ha.copy()
+        hb["B"] = 1.00001
+        hb["C"] = 0.000001
+        diff = HeaderDiff(ha, hb, rtol=1e-6)
+        assert not diff.identical
+        assert diff.diff_keyword_values == {
+            "B": [(1.0, 1.00001)],
+            "C": [(0.0, 0.000001)],
+        }
+        diff = HeaderDiff(ha, hb, rtol=1e-5)
+        assert not diff.identical
+        assert diff.diff_keyword_values == {"C": [(0.0, 0.000001)]}
+        diff = HeaderDiff(ha, hb, atol=1e-6)
+        assert not diff.identical
+        assert diff.diff_keyword_values == {"B": [(1.0, 1.00001)]}
+        diff = HeaderDiff(ha, hb, atol=1e-5)  # strict inequality
+        assert not diff.identical
+        assert diff.diff_keyword_values == {"B": [(1.0, 1.00001)]}
+        diff = HeaderDiff(ha, hb, rtol=1e-5, atol=1e-5)
+        assert diff.identical
+        diff = HeaderDiff(ha, hb, atol=1.1e-5)
+        assert diff.identical
+        diff = HeaderDiff(ha, hb, rtol=1e-6, atol=1e-6)
+        assert not diff.identical
+
+    def test_ignore_blanks(self):
+        with fits.conf.set_temp("strip_header_whitespace", False):
+            ha = Header([("A", 1), ("B", 2), ("C", "A       ")])
+            hb = ha.copy()
+            hb["C"] = "A"
+            assert ha["C"] != hb["C"]
+
+            diff = HeaderDiff(ha, hb)
+            # Trailing blanks are ignored by default
+            assert diff.identical
+            assert diff.diff_keyword_values == {}
+
+            # Don't ignore blanks
+            diff = HeaderDiff(ha, hb, ignore_blanks=False)
+            assert not diff.identical
+            assert diff.diff_keyword_values == {"C": [("A       ", "A")]}
+
+    @pytest.mark.parametrize("differ", [HeaderDiff, HDUDiff, FITSDiff])
+    def test_ignore_blank_cards(self, differ):
+        """Test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/152
+
+        Ignore blank cards.
+        """
+
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = Header([("A", 1), ("", ""), ("B", 2), ("", ""), ("C", 3)])
+        hc = ha.copy()
+        if differ is HeaderDiff:
+            hc.append()
+            hc.append()
+        else:  # Ensure blanks are not at the end as they are stripped by HDUs
+            hc.add_blank(after=-2)
+            hc.add_blank(after=-2)
+
+        if differ in (HDUDiff, FITSDiff):  # wrap it in a PrimaryHDU
+            ha, hb, hc = (PrimaryHDU(np.arange(10), h) for h in (ha, hb, hc))
+            hc_header = hc.header
+        if differ is FITSDiff:  # wrap it in a HDUList
+            ha, hb, hc = (HDUList([h]) for h in (ha, hb, hc))
+            hc_header = hc[0].header
+
+        # We now have a header with interleaved blanks, and a header with end
+        # blanks, both of which should ignore the blanks
+        assert differ(ha, hb).identical
+        assert differ(ha, hc).identical
+        assert differ(hb, hc).identical
+
+        assert not differ(ha, hb, ignore_blank_cards=False).identical
+        assert not differ(ha, hc, ignore_blank_cards=False).identical
+
+        # Both hb and hc have the same number of blank cards; since order is
+        # currently ignored, these should still be identical even if blank
+        # cards are not ignored
+        assert differ(hb, hc, ignore_blank_cards=False).identical
+
+        if differ is HeaderDiff:
+            hc.append()
+        else:  # Ensure blanks are not at the end as they are stripped by HDUs
+            hc_header.add_blank(after=-2)
+        # But now there are different numbers of blanks, so they should not be
+        # ignored:
+        assert not differ(hb, hc, ignore_blank_cards=False).identical
+
+    def test_ignore_hdus(self):
+        a = np.arange(100).reshape(10, 10)
+        b = a.copy()
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        xa = np.array([(1.0, 1), (3.0, 4)], dtype=[("x", float), ("y", int)])
+        xb = np.array([(1.0, 2), (3.0, 5)], dtype=[("x", float), ("y", int)])
+        phdu = PrimaryHDU(header=ha)
+        ihdua = ImageHDU(data=a, name="SCI")
+        ihdub = ImageHDU(data=b, name="SCI")
+        bhdu1 = BinTableHDU(data=xa, name="ASDF")
+        bhdu2 = BinTableHDU(data=xb, name="ASDF")
+        hdula = HDUList([phdu, ihdua, bhdu1])
+        hdulb = HDUList([phdu, ihdub, bhdu2])
+
+        # ASDF extension should be different
+        diff = FITSDiff(hdula, hdulb)
+        assert not diff.identical
+        assert diff.diff_hdus[0][0] == 2
+
+        # ASDF extension should be ignored
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=["ASDF"])
+        assert diff.identical, diff.report()
+
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=["ASD*"])
+        assert diff.identical, diff.report()
+
+        # SCI extension should be different
+        hdulb["SCI"].data += 1
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=["ASDF"])
+        assert not diff.identical
+
+        # SCI and ASDF extensions should be ignored
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=["SCI", "ASDF"])
+        assert diff.identical, diff.report()
+
+        # All EXTVER of SCI should be ignored
+        ihduc = ImageHDU(data=a, name="SCI", ver=2)
+        hdulb.append(ihduc)
+        diff = FITSDiff(hdula, hdulb, ignore_hdus=["SCI", "ASDF"])
+        assert not any(diff.diff_hdus), diff.report()
+        assert any(diff.diff_hdu_count), diff.report()
+
+    def test_ignore_keyword_values(self):
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        hb["B"] = 4
+        hb["C"] = 5
+        diff = HeaderDiff(ha, hb, ignore_keywords=["*"])
+        assert diff.identical
+        diff = HeaderDiff(ha, hb, ignore_keywords=["B"])
+        assert not diff.identical
+        assert diff.diff_keyword_values == {"C": [(3, 5)]}
+
+        report = diff.report()
+        assert "Keyword B        has different values" not in report
+        assert "Keyword C        has different values" in report
+
+        # Test case-insensitivity
+        diff = HeaderDiff(ha, hb, ignore_keywords=["b"])
+        assert not diff.identical
+        assert diff.diff_keyword_values == {"C": [(3, 5)]}
+
+    def test_ignore_keyword_comments(self):
+        ha = Header([("A", 1, "A"), ("B", 2, "B"), ("C", 3, "C")])
+        hb = ha.copy()
+        hb.comments["B"] = "D"
+        hb.comments["C"] = "E"
+        diff = HeaderDiff(ha, hb, ignore_comments=["*"])
+        assert diff.identical
+        diff = HeaderDiff(ha, hb, ignore_comments=["B"])
+        assert not diff.identical
+        assert diff.diff_keyword_comments == {"C": [("C", "E")]}
+
+        report = diff.report()
+        assert "Keyword B        has different comments" not in report
+        assert "Keyword C        has different comments" in report
+
+        # Test case-insensitivity
+        diff = HeaderDiff(ha, hb, ignore_comments=["b"])
+        assert not diff.identical
+        assert diff.diff_keyword_comments == {"C": [("C", "E")]}
+
+    def test_hierarch_keywords_identical(self):
+        ha = Header(
+            [
+                ("HIERARCH UPPER", 1),
+                ("HIERARCH lower", 2),
+                ("HIERARCH veryverylong", 3),
+            ]
+        )
+        hb = ha.copy()
+        assert HeaderDiff(ha, hb).identical
+
+    def test_hierarch_keywords_different(self):
+        ha = Header([("HIERARCH Both", 1)])
+        hb = Header([("HIERARCH BOTh", 1)])
+        diff = HeaderDiff(ha, hb)
+        assert not diff.identical
+        assert diff.common_keywords == []
+        assert diff.diff_keywords == (["Both"], ["BOTh"])
+
+    def test_trivial_identical_images(self):
+        ia = np.arange(100).reshape(10, 10)
+        ib = np.arange(100).reshape(10, 10)
+        diff = ImageDataDiff(ia, ib)
+        assert diff.identical
+        assert diff.diff_total == 0
+
+    def test_identical_within_relative_tolerance(self):
+        ia = np.ones((10, 10)) - 0.00001
+        ib = np.ones((10, 10)) - 0.00002
+        diff = ImageDataDiff(ia, ib, rtol=1.0e-4)
+        assert diff.identical
+        assert diff.diff_total == 0
+
+    def test_identical_within_absolute_tolerance(self):
+        ia = np.zeros((10, 10)) - 0.00001
+        ib = np.zeros((10, 10)) - 0.00002
+        diff = ImageDataDiff(ia, ib, rtol=1.0e-4)
+        assert not diff.identical
+        assert diff.diff_total == 100
+        diff = ImageDataDiff(ia, ib, atol=1.0e-4)
+        assert diff.identical
+        assert diff.diff_total == 0
+
+    def test_identical_within_rtol_and_atol(self):
+        ia = np.zeros((10, 10)) - 0.00001
+        ib = np.zeros((10, 10)) - 0.00002
+        diff = ImageDataDiff(ia, ib, rtol=1.0e-5, atol=1.0e-5)
+        assert diff.identical
+        assert diff.diff_total == 0
+
+    def test_not_identical_within_rtol_and_atol(self):
+        ia = np.zeros((10, 10)) - 0.00001
+        ib = np.zeros((10, 10)) - 0.00002
+        diff = ImageDataDiff(ia, ib, rtol=1.0e-5, atol=1.0e-6)
+        assert not diff.identical
+        assert diff.diff_total == 100
+
+    def test_identical_comp_image_hdus(self):
+        """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/189
+
+        For this test we mostly just care that comparing to compressed images
+        does not crash, and returns the correct results.  Two compressed images
+        will be considered identical if the decompressed data is the same.
+        Obviously we test whether or not the same compression was used by
+        looking for (or ignoring) header differences.
+        """
+
+        data = np.arange(100.0).reshape(10, 10)
+        hdu = fits.CompImageHDU(data=data)
+        hdu.writeto(self.temp("test.fits"))
+
+        with (
+            fits.open(self.temp("test.fits")) as hdula,
+            fits.open(self.temp("test.fits")) as hdulb,
+        ):
+            diff = FITSDiff(hdula, hdulb)
+            assert diff.identical
+
+    def test_different_dimensions(self):
+        ia = np.arange(100).reshape(10, 10)
+        ib = np.arange(100) - 1
+
+        # Although ib could be reshaped into the same dimensions, for now the
+        # data is not compared anyways
+        diff = ImageDataDiff(ia, ib)
+        assert not diff.identical
+        assert diff.diff_dimensions == ((10, 10), (100,))
+        assert diff.diff_total == 0
+
+        report = diff.report()
+        assert "Data dimensions differ" in report
+        assert "a: 10 x 10" in report
+        assert "b: 100" in report
+        assert "No further data comparison performed." in report
+
+    def test_different_pixels(self):
+        ia = np.arange(100).reshape(10, 10)
+        ib = np.arange(100).reshape(10, 10)
+        ib[0, 0] = 10
+        ib[5, 5] = 20
+        diff = ImageDataDiff(ia, ib)
+        assert not diff.identical
+        assert diff.diff_dimensions == ()
+        assert diff.diff_total == 2
+        assert diff.diff_ratio == 0.02
+        assert diff.diff_pixels == [((0, 0), (0, 10)), ((5, 5), (55, 20))]
+
+    def test_identical_tables(self):
+        c1 = Column("A", format="L", array=[True, False])
+        c2 = Column("B", format="X", array=[[0], [1]])
+        c3 = Column("C", format="4I", dim="(2, 2)", array=[[0, 1, 2, 3], [4, 5, 6, 7]])
+        c4 = Column("D", format="J", bscale=2.0, array=[0, 1])
+        c5 = Column("E", format="A3", array=["abc", "def"])
+        c6 = Column("F", format="E", unit="m", array=[0.0, 1.0])
+        c7 = Column("G", format="D", bzero=-0.1, array=[0.0, 1.0])
+        c8 = Column("H", format="C", array=[0.0 + 1.0j, 2.0 + 3.0j])
+        c9 = Column("I", format="M", array=[4.0 + 5.0j, 6.0 + 7.0j])
+        c10 = Column("J", format="PI(2)", array=[[0, 1], [2, 3]])
+        c11 = Column("K", format="QJ(2)", array=[[0, 1], [2, 3]])
+
+        columns = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]
+
+        ta = BinTableHDU.from_columns(columns)
+        tb = BinTableHDU.from_columns([c.copy() for c in columns])
+
+        diff = TableDataDiff(ta.data, tb.data)
+        assert diff.identical
+        assert len(diff.common_columns) == 11
+        assert diff.common_column_names == set("abcdefghijk")
+        assert diff.diff_ratio == 0
+        assert diff.diff_total == 0
+
+    def test_diff_empty_tables(self):
+        """
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/178
+
+        Ensure that diffing tables containing empty data doesn't crash.
+        """
+
+        c1 = Column("D", format="J")
+        c2 = Column("E", format="J")
+        thdu = BinTableHDU.from_columns([c1, c2], nrows=0)
+
+        hdula = fits.HDUList([thdu])
+        hdulb = fits.HDUList([thdu])
+
+        diff = FITSDiff(hdula, hdulb)
+        assert diff.identical
+
+    def test_ignore_table_fields(self):
+        c1 = Column("A", format="L", array=[True, False])
+        c2 = Column("B", format="X", array=[[0], [1]])
+        c3 = Column("C", format="4I", dim="(2, 2)", array=[[0, 1, 2, 3], [4, 5, 6, 7]])
+
+        c4 = Column("B", format="X", array=[[1], [0]])
+        c5 = Column("C", format="4I", dim="(2, 2)", array=[[1, 2, 3, 4], [5, 6, 7, 8]])
+
+        ta = BinTableHDU.from_columns([c1, c2, c3])
+        tb = BinTableHDU.from_columns([c1, c4, c5])
+
+        diff = TableDataDiff(ta.data, tb.data, ignore_fields=["B", "C"])
+        assert diff.identical
+
+        # The only common column should be c1
+        assert len(diff.common_columns) == 1
+        assert diff.common_column_names == {"a"}
+        assert diff.diff_ratio == 0
+        assert diff.diff_total == 0
+
+    def test_different_table_field_names(self):
+        ca = Column("A", format="L", array=[True, False])
+        cb = Column("B", format="L", array=[True, False])
+        cc = Column("C", format="L", array=[True, False])
+
+        ta = BinTableHDU.from_columns([ca, cb])
+        tb = BinTableHDU.from_columns([ca, cc])
+
+        diff = TableDataDiff(ta.data, tb.data)
+
+        assert not diff.identical
+        assert len(diff.common_columns) == 1
+        assert diff.common_column_names == {"a"}
+        assert diff.diff_column_names == (["B"], ["C"])
+        assert diff.diff_ratio == 0
+        assert diff.diff_total == 0
+
+        report = diff.report()
+        assert "Extra column B of format L in a" in report
+        assert "Extra column C of format L in b" in report
+
+    def test_different_table_field_counts(self):
+        """
+        Test tables with some common columns, but different number of columns
+        overall.
+        """
+
+        ca = Column("A", format="L", array=[True, False])
+        cb = Column("B", format="L", array=[True, False])
+        cc = Column("C", format="L", array=[True, False])
+
+        ta = BinTableHDU.from_columns([cb])
+        tb = BinTableHDU.from_columns([ca, cb, cc])
+
+        diff = TableDataDiff(ta.data, tb.data)
+
+        assert not diff.identical
+        assert diff.diff_column_count == (1, 3)
+        assert len(diff.common_columns) == 1
+        assert diff.common_column_names == {"b"}
+        assert diff.diff_column_names == ([], ["A", "C"])
+        assert diff.diff_ratio == 0
+        assert diff.diff_total == 0
+
+        report = diff.report()
+        assert " Tables have different number of columns:" in report
+        assert "  a: 1\n  b: 3" in report
+
+    def test_different_table_rows(self):
+        """
+        Test tables that are otherwise identical but one has more rows than the
+        other.
+        """
+
+        ca1 = Column("A", format="L", array=[True, False])
+        cb1 = Column("B", format="L", array=[True, False])
+        ca2 = Column("A", format="L", array=[True, False, True])
+        cb2 = Column("B", format="L", array=[True, False, True])
+
+        ta = BinTableHDU.from_columns([ca1, cb1])
+        tb = BinTableHDU.from_columns([ca2, cb2])
+
+        diff = TableDataDiff(ta.data, tb.data)
+
+        assert not diff.identical
+        assert diff.diff_column_count == ()
+        assert len(diff.common_columns) == 2
+        assert diff.diff_rows == (2, 3)
+        assert diff.diff_values == []
+
+        report = diff.report()
+
+        assert "Table rows differ" in report
+        assert "a: 2" in report
+        assert "b: 3" in report
+        assert "No further data comparison performed." in report
+
+    def test_different_table_data(self):
+        """
+        Test diffing table data on columns of several different data formats
+        and dimensions.
+        """
+
+        ca1 = Column("A", format="L", array=[True, False])
+        ca2 = Column("B", format="X", array=[[0], [1]])
+        ca3 = Column("C", format="4I", dim="(2, 2)", array=[[0, 1, 2, 3], [4, 5, 6, 7]])
+        ca4 = Column("D", format="J", bscale=2.0, array=[0.0, 2.0])
+        ca5 = Column("E", format="A3", array=["abc", "def"])
+        ca6 = Column("F", format="E", unit="m", array=[0.0, 1.0])
+        ca7 = Column("G", format="D", bzero=-0.1, array=[0.0, 1.0])
+        ca8 = Column("H", format="C", array=[0.0 + 1.0j, 2.0 + 3.0j])
+        ca9 = Column("I", format="M", array=[4.0 + 5.0j, 6.0 + 7.0j])
+        ca10 = Column("J", format="PI(2)", array=[[0, 1], [2, 3]])
+        ca11 = Column("K", format="QJ(2)", array=[[0, 1], [2, 3]])
+
+        cb1 = Column("A", format="L", array=[False, False])
+        cb2 = Column("B", format="X", array=[[0], [0]])
+        cb3 = Column("C", format="4I", dim="(2, 2)", array=[[0, 1, 2, 3], [5, 6, 7, 8]])
+        cb4 = Column("D", format="J", bscale=2.0, array=[2.0, 2.0])
+        cb5 = Column("E", format="A3", array=["abc", "ghi"])
+        cb6 = Column("F", format="E", unit="m", array=[1.0, 2.0])
+        cb7 = Column("G", format="D", bzero=-0.1, array=[2.0, 3.0])
+        cb8 = Column("H", format="C", array=[1.0 + 1.0j, 2.0 + 3.0j])
+        cb9 = Column("I", format="M", array=[5.0 + 5.0j, 6.0 + 7.0j])
+        cb10 = Column("J", format="PI(2)", array=[[1, 2], [3, 4]])
+        cb11 = Column("K", format="QJ(2)", array=[[1, 2], [3, 4]])
+
+        ta = BinTableHDU.from_columns(
+            [ca1, ca2, ca3, ca4, ca5, ca6, ca7, ca8, ca9, ca10, ca11]
+        )
+        tb = BinTableHDU.from_columns(
+            [cb1, cb2, cb3, cb4, cb5, cb6, cb7, cb8, cb9, cb10, cb11]
+        )
+
+        diff = TableDataDiff(ta.data, tb.data, numdiffs=20)
+        assert not diff.identical
+        # The column definitions are the same, but not the column values
+        assert diff.diff_columns == ()
+        assert diff.diff_values[0] == (("A", 0), (True, False))
+        assert diff.diff_values[1] == (("B", 1), ([1], [0]))
+        assert diff.diff_values[2][0] == ("C", 1)
+        assert (diff.diff_values[2][1][0] == [[4, 5], [6, 7]]).all()
+        assert (diff.diff_values[2][1][1] == [[5, 6], [7, 8]]).all()
+        assert diff.diff_values[3] == (("D", 0), (0, 2.0))
+        assert diff.diff_values[4] == (("E", 1), ("def", "ghi"))
+        assert diff.diff_values[5] == (("F", 0), (0.0, 1.0))
+        assert diff.diff_values[6] == (("F", 1), (1.0, 2.0))
+        assert diff.diff_values[7] == (("G", 0), (0.0, 2.0))
+        assert diff.diff_values[8] == (("G", 1), (1.0, 3.0))
+        assert diff.diff_values[9] == (("H", 0), (0.0 + 1.0j, 1.0 + 1.0j))
+        assert diff.diff_values[10] == (("I", 0), (4.0 + 5.0j, 5.0 + 5.0j))
+        assert diff.diff_values[11][0] == ("J", 0)
+        assert (diff.diff_values[11][1][0] == [0, 1]).all()
+        assert (diff.diff_values[11][1][1] == [1, 2]).all()
+        assert diff.diff_values[12][0] == ("J", 1)
+        assert (diff.diff_values[12][1][0] == [2, 3]).all()
+        assert (diff.diff_values[12][1][1] == [3, 4]).all()
+        assert diff.diff_values[13][0] == ("K", 0)
+        assert (diff.diff_values[13][1][0] == [0, 1]).all()
+        assert (diff.diff_values[13][1][1] == [1, 2]).all()
+        assert diff.diff_values[14][0] == ("K", 1)
+        assert (diff.diff_values[14][1][0] == [2, 3]).all()
+        assert (diff.diff_values[14][1][1] == [3, 4]).all()
+
+        assert diff.diff_total == 15
+        assert np.isclose(diff.diff_ratio, 0.682, atol=1e-3, rtol=0)
+
+        report = diff.report()
+        assert "Column A data differs in row 0:\n    a> True\n    b> False" in report
+        assert "...and at 1 more indices.\n Column D data differs in row 0:" in report
+        assert "15 different table data element(s) found (68.18% different)" in report
+        assert report.count("more indices") == 1
+
+    def test_identical_files_basic(self):
+        """Test identicality of two simple, extensionless files."""
+
+        a = np.arange(100).reshape(10, 10)
+        hdu = PrimaryHDU(data=a)
+        hdu.writeto(self.temp("testa.fits"))
+        hdu.writeto(self.temp("testb.fits"))
+        diff = FITSDiff(self.temp("testa.fits"), self.temp("testb.fits"))
+        assert diff.identical
+
+        report = diff.report()
+        # Primary HDUs should contain no differences
+        assert "Primary HDU" not in report
+        assert "Extension HDU" not in report
+        assert "No differences found." in report
+
+        a = np.arange(10)
+        ehdu = ImageHDU(data=a)
+        diff = HDUDiff(ehdu, ehdu)
+        assert diff.identical
+        report = diff.report()
+        assert "No differences found." in report
+
+    def test_partially_identical_files1(self):
+        """
+        Test files that have some identical HDUs but a different extension
+        count.
+        """
+
+        a = np.arange(100).reshape(10, 10)
+        phdu = PrimaryHDU(data=a)
+        ehdu = ImageHDU(data=a)
+        hdula = HDUList([phdu, ehdu])
+        hdulb = HDUList([phdu, ehdu, ehdu])
+        diff = FITSDiff(hdula, hdulb)
+        assert not diff.identical
+        assert diff.diff_hdu_count == (2, 3)
+
+        # diff_hdus should be empty, since the third extension in hdulb
+        # has nothing to compare against
+        assert diff.diff_hdus == []
+
+        report = diff.report()
+        assert "Files contain different numbers of HDUs" in report
+        assert "a: 2\n b: 3" in report
+        assert "No differences found between common HDUs" in report
+
+    def test_partially_identical_files2(self):
+        """
+        Test files that have some identical HDUs but one different HDU.
+        """
+
+        a = np.arange(100).reshape(10, 10)
+        phdu = PrimaryHDU(data=a)
+        ehdu = ImageHDU(data=a)
+        ehdu2 = ImageHDU(data=(a + 1))
+        hdula = HDUList([phdu, ehdu, ehdu])
+        hdulb = HDUList([phdu, ehdu2, ehdu])
+        diff = FITSDiff(hdula, hdulb)
+
+        assert not diff.identical
+        assert diff.diff_hdu_count == ()
+        assert len(diff.diff_hdus) == 1
+        assert diff.diff_hdus[0][0] == 1
+
+        hdudiff = diff.diff_hdus[0][1]
+        assert not hdudiff.identical
+        assert hdudiff.diff_extnames == ()
+        assert hdudiff.diff_extvers == ()
+        assert hdudiff.diff_extension_types == ()
+        assert hdudiff.diff_headers.identical
+        assert hdudiff.diff_data is not None
+
+        datadiff = hdudiff.diff_data
+        assert isinstance(datadiff, ImageDataDiff)
+        assert not datadiff.identical
+        assert datadiff.diff_dimensions == ()
+        assert datadiff.diff_pixels == [((0, y), (y, y + 1)) for y in range(10)]
+        assert datadiff.diff_ratio == 1.0
+        assert datadiff.diff_total == 100
+
+        report = diff.report()
+        # Primary HDU and 2nd extension HDU should have no differences
+        assert "Primary HDU" not in report
+        assert "Extension HDU 2" not in report
+        assert "Extension HDU 1" in report
+
+        assert "Headers contain differences" not in report
+        assert "Data contains differences" in report
+        for y in range(10):
+            assert f"Data differs at [{y + 1}, 1]" in report
+        assert "100 different pixels found (100.00% different)." in report
+
+    def test_partially_identical_files3(self):
+        """
+        Test files that have some identical HDUs but a different extension
+        name.
+        """
+
+        phdu = PrimaryHDU()
+        ehdu = ImageHDU(name="FOO")
+        hdula = HDUList([phdu, ehdu])
+        ehdu = BinTableHDU(name="BAR")
+        ehdu.header["EXTVER"] = 2
+        ehdu.header["EXTLEVEL"] = 3
+        hdulb = HDUList([phdu, ehdu])
+        diff = FITSDiff(hdula, hdulb)
+        assert not diff.identical
+
+        assert diff.diff_hdus[0][0] == 1
+
+        hdu_diff = diff.diff_hdus[0][1]
+        assert hdu_diff.diff_extension_types == ("IMAGE", "BINTABLE")
+        assert hdu_diff.diff_extnames == ("FOO", "BAR")
+        assert hdu_diff.diff_extvers == (1, 2)
+        assert hdu_diff.diff_extlevels == (1, 3)
+
+        report = diff.report()
+        assert "Extension types differ" in report
+        assert "a: IMAGE\n    b: BINTABLE" in report
+        assert "Extension names differ" in report
+        assert "a: FOO\n    b: BAR" in report
+        assert "Extension versions differ" in report
+        assert "a: 1\n    b: 2" in report
+        assert "Extension levels differ" in report
+        assert "a: 1\n    b: 2" in report
+
+    def test_diff_nans(self):
+        """
+        Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/204
+        """
+
+        # First test some arrays that should be equivalent....
+        arr = np.empty((10, 10), dtype=np.float64)
+        arr[:5] = 1.0
+        arr[5:] = np.nan
+        arr2 = arr.copy()
+
+        table = np.rec.array(
+            [(1.0, 2.0), (3.0, np.nan), (np.nan, np.nan)], names=["cola", "colb"]
+        ).view(fits.FITS_rec)
+        table2 = table.copy()
+
+        assert ImageDataDiff(arr, arr2).identical
+        assert TableDataDiff(table, table2).identical
+
+        # Now let's introduce some differences, where there are nans and where
+        # there are not nans
+        arr2[0][0] = 2.0
+        arr2[5][0] = 2.0
+        table2[0][0] = 2.0
+        table2[1][1] = 2.0
+
+        diff = ImageDataDiff(arr, arr2)
+        assert not diff.identical
+        assert diff.diff_pixels[0] == ((0, 0), (1.0, 2.0))
+        assert diff.diff_pixels[1][0] == (5, 0)
+        assert np.isnan(diff.diff_pixels[1][1][0])
+        assert diff.diff_pixels[1][1][1] == 2.0
+
+        diff = TableDataDiff(table, table2)
+        assert not diff.identical
+        assert diff.diff_values[0] == (("cola", 0), (1.0, 2.0))
+        assert diff.diff_values[1][0] == ("colb", 1)
+        assert np.isnan(diff.diff_values[1][1][0])
+        assert diff.diff_values[1][1][1] == 2.0
+
+    def test_file_output_from_path_string(self):
+        outpath = self.temp("diff_output.txt")
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        hb["C"] = 4
+        diffobj = HeaderDiff(ha, hb)
+        diffobj.report(fileobj=outpath)
+        report_as_string = diffobj.report()
+        with open(outpath) as fout:
+            assert fout.read() == report_as_string
+
+    def test_file_output_overwrite_safety(self):
+        outpath = self.temp("diff_output.txt")
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        hb["C"] = 4
+        diffobj = HeaderDiff(ha, hb)
+        diffobj.report(fileobj=outpath)
+
+        with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+            diffobj.report(fileobj=outpath)
+
+    def test_file_output_overwrite_success(self):
+        outpath = self.temp("diff_output.txt")
+        ha = Header([("A", 1), ("B", 2), ("C", 3)])
+        hb = ha.copy()
+        hb["C"] = 4
+        diffobj = HeaderDiff(ha, hb)
+        diffobj.report(fileobj=outpath)
+        report_as_string = diffobj.report()
+        diffobj.report(fileobj=outpath, overwrite=True)
+        with open(outpath) as fout:
+            assert (
+                fout.read() == report_as_string
+            ), "overwritten output file is not identical to report string"
+
+    def test_rawdatadiff_nodiff(self):
+        a = np.arange(100, dtype="uint8").reshape(10, 10)
+        b = a.copy()
+        hdu_a = DummyNonstandardExtHDU(data=a)
+        hdu_b = DummyNonstandardExtHDU(data=b)
+        diff = HDUDiff(hdu_a, hdu_b)
+        assert diff.identical
+        report = diff.report()
+        assert "No differences found." in report
+
+    def test_rawdatadiff_dimsdiff(self):
+        a = np.arange(100, dtype="uint8") + 10
+        b = a[:80].copy()
+        hdu_a = DummyNonstandardExtHDU(data=a)
+        hdu_b = DummyNonstandardExtHDU(data=b)
+        diff = HDUDiff(hdu_a, hdu_b)
+        assert not diff.identical
+        report = diff.report()
+        assert "Data sizes differ:" in report
+        assert "a: 100 bytes" in report
+        assert "b: 80 bytes" in report
+        assert "No further data comparison performed." in report
+
+    def test_rawdatadiff_bytesdiff(self):
+        a = np.arange(100, dtype="uint8") + 10
+        b = a.copy()
+        changes = [(30, 200), (89, 170)]
+        for i, v in changes:
+            b[i] = v
+
+        hdu_a = DummyNonstandardExtHDU(data=a)
+        hdu_b = DummyNonstandardExtHDU(data=b)
+        diff = HDUDiff(hdu_a, hdu_b)
+
+        assert not diff.identical
+
+        diff_bytes = diff.diff_data.diff_bytes
+        assert len(changes) == len(diff_bytes)
+        for j, (i, v) in enumerate(changes):
+            assert diff_bytes[j] == (i, (i + 10, v))
+
+        report = diff.report()
+        assert "Data contains differences:" in report
+        for i, _ in changes:
+            assert f"Data differs at byte {i}:" in report
+        assert "2 different bytes found (2.00% different)." in report
+
+
+def test_fitsdiff_hdu_name(tmp_path):
+    """Make sure diff report reports HDU name and ver if same in files"""
+    path1 = tmp_path / "test1.fits"
+    path2 = tmp_path / "test2.fits"
+
+    hdulist = HDUList([PrimaryHDU(), ImageHDU(data=np.zeros(5), name="SCI")])
+    hdulist.writeto(path1)
+    hdulist[1].data[0] = 1
+    hdulist.writeto(path2)
+
+    diff = FITSDiff(path1, path2)
+    assert "Extension HDU 1 (SCI, 1):" in diff.report()
+
+
+def test_fitsdiff_no_hdu_name(tmp_path):
+    """Make sure diff report doesn't report HDU name if not in files"""
+    path1 = tmp_path / "test1.fits"
+    path2 = tmp_path / "test2.fits"
+
+    hdulist = HDUList([PrimaryHDU(), ImageHDU(data=np.zeros(5))])
+    hdulist.writeto(path1)
+    hdulist[1].data[0] = 1
+    hdulist.writeto(path2)
+
+    diff = FITSDiff(path1, path2)
+    assert "Extension HDU 1:" in diff.report()
+
+
+def test_fitsdiff_with_names(tmp_path):
+    """Make sure diff report doesn't report HDU name if not same in files"""
+    path1 = tmp_path / "test1.fits"
+    path2 = tmp_path / "test2.fits"
+
+    hdulist = HDUList([PrimaryHDU(), ImageHDU(data=np.zeros(5), name="SCI", ver=1)])
+    hdulist.writeto(path1)
+    hdulist[1].name = "ERR"
+    hdulist.writeto(path2)
+
+    diff = FITSDiff(path1, path2)
+    assert "Extension HDU 1:" in diff.report()
+
+
+def test_rawdatadiff_diff_with_rtol(tmp_path):
+    """Regression test for https://github.com/astropy/astropy/issues/13330"""
+    path1 = tmp_path / "test1.fits"
+    path2 = tmp_path / "test2.fits"
+    a = np.zeros((10, 2), dtype="float32")
+    a[:, 0] = np.arange(10, dtype="float32") + 10
+    a[:, 1] = np.arange(10, dtype="float32") + 20
+    b = a.copy()
+    changes = [(3, 13.1, 23.1), (8, 20.5, 30.5)]
+    for i, v, w in changes:
+        b[i, 0] = v
+        b[i, 1] = w
+
+    ca = Column("A", format="20E", array=[a])
+    cb = Column("A", format="20E", array=[b])
+    hdu_a = BinTableHDU.from_columns([ca])
+    hdu_a.writeto(path1, overwrite=True)
+    hdu_b = BinTableHDU.from_columns([cb])
+    hdu_b.writeto(path2, overwrite=True)
+    with fits.open(path1) as fits1:
+        with fits.open(path2) as fits2:
+            diff = FITSDiff(fits1, fits2, atol=0, rtol=0.001)
+            str1 = diff.report(fileobj=None, indent=0)
+
+            diff = FITSDiff(fits1, fits2, atol=0, rtol=0.01)
+            str2 = diff.report(fileobj=None, indent=0)
+
+    assert "...and at 1 more indices." in str1
+    assert "...and at 1 more indices." not in str2

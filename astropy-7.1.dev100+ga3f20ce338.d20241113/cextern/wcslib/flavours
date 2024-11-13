@@ -1,0 +1,142 @@
+#-----------------------------------------------------------------------------
+# Makefile overrides for various combinations of architecture, operating
+# system and compiler.  Used for development and testing only, not required
+# for building WCSLIB.
+#
+# Variables like CC and CFLAGS are exported into the environment so that they
+# will be seen by 'configure'.  Thus, normal usage is as follows:
+#
+#   make distclean
+#   make FLAVOUR=dev configure
+#   make
+#
+# Reminder: add '-d' to FLFLAGS for debugging.
+#
+# $Id: flavours,v 8.3 2024/05/13 16:33:01 mcalabre Exp $
+#-----------------------------------------------------------------------------
+
+F :=
+
+ifeq "$(FLAVOUR)" ""
+  F   := default
+  override FLAVOUR := default
+endif
+
+ifeq "$(FLAVOUR)" "dev"
+  # Currently gcc 11.4.0.
+  F   := development
+  CC  := gcc
+  F77 := gfortran
+endif
+
+ifeq "$(FLAVOUR)" "dev12"
+  # Currently gcc 12.3.0.
+  F   := development
+  CC  := gcc-12
+  F77 := gfortran-12
+endif
+
+# Compiler optimization level.
+ifndef OPT
+  OPT := 0
+endif
+
+
+# Quench warnings about padding in foreign structs, particularly in fitsio.h.
+ifneq "$(findstring $(SUBDIR),C Fortran pgsbox)" ""
+  WPADDED := -Wpadded
+endif
+
+ifeq "$F" "development"
+  # Options for code development with gcc/gfortran.
+#  INSTRUMENT      := -fsanitize=address    # appears to be broken.
+  INSTRUMENT      := -fsanitize=undefined
+  INSTRUMENT      += -fstack-protector-strong
+  CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long
+  ifeq "$(INSTRUMENT)" ""
+    # The instrumentation options produce copious "padding" warnings.
+    CWARNINGS     += $(WPADDED)
+  endif
+  FWARNINGS       := -Wall -Wno-surprising
+  export CC       := $(CC) -std=c99 -pedantic
+  export CPPFLAGS := -D_FORTIFY_SOURCE=2
+  export CFLAGS   := -g -O$(OPT) $(INSTRUMENT) $(CWARNINGS)
+  export F77      := $(F77)
+  export FFLAGS   := -g -O$(OPT) -fimplicit-none -I. $(INSTRUMENT) $(FWARNINGS)
+  export LDFLAGS  := $(INSTRUMENT)
+  ifdef VALGRIND
+    override VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
+    override VALGRIND += --track-origins=yes
+  endif
+endif
+
+ifeq "$(FLAVOUR)" "lto"
+  # For LTO development.
+  F := $(FLAVOUR)
+  export BINDC    := yes
+  CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long
+  FWARNINGS       := -Wall -Wno-surprising
+  LTOFLAGS        := -O1 -flto=4 -Werror=odr -Werror=lto-type-mismatch -Werror=strict-aliasing
+  export CC       := gcc-12 -std=c99 -pedantic
+  export CPPFLAGS := -D_FORTIFY_SOURCE=2
+  export CFLAGS   := $(LTOFLAGS) $(CWARNINGS)
+  export F77      := gfortran-12
+  export FFLAGS   := -fimplicit-none -I. $(LTOFLAGS) $(FWARNINGS)
+  export LDFLAGS  := $(LTOFLAGS)
+endif
+
+ifeq "$(FLAVOUR)" "profile"
+  # gcc with profiling (gprof).
+  F := $(FLAVOUR)
+  export CC       := gcc -std=c99 -pedantic
+  export CPPFLAGS :=
+  export CFLAGS   := -pg -g -O -Wall -Wextra -Wno-long-long $(WPADDED)
+  export FFLAGS   := -pg -g -O -fimplicit-none -Wall -I.
+  export LDFLAGS  := -pg -g $(filter -L%, $(LDFLAGS))
+  override EXTRA_CLEAN := gmon.out bb.out
+endif
+
+
+# Check FLAVOUR.
+ifeq "$F" ""
+  override FLAVOUR := unrecognised
+endif
+
+# Check VALGRIND.
+ifeq "$(findstring valgrind, $(VALGRIND))" "valgrind"
+  override MODE := interactive
+else
+  # Unrecognised.
+  override VALGRIND :=
+endif
+
+# Check MODE.
+ifeq "$(MODE)" "interactive"
+  # Important not to have output batched when running the test programs.
+  MAKEFLAGS := $(filter-out -Otarget,$(MAKEFLAGS)) -Onone
+else
+  # Unrecognised.
+  override MODE :=
+endif
+
+
+# gmake uses FC in place of configure's F77.
+ifdef F77
+  FC := $(F77)
+endif
+
+ifndef TIMER
+  TIMER := date +"%a %Y/%m/%d %X %z, executing on $$HOST"
+endif
+
+ifdef FLAVOUR
+  TIMER := $(TIMER) ; echo "    with $(FLAVOUR) FLAVOUR."
+endif
+
+show ::
+	-@ echo 'For code development...'
+	-@ echo '  FLAVOUR     := $(FLAVOUR)'
+	-@ echo '  MODE        := $(MODE)'
+	-@ echo '  VALGRIND    := $(VALGRIND)'
+	-@ echo '  EXTRA_CLEAN := $(EXTRA_CLEAN)'
+	-@ echo ''

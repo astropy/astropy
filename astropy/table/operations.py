@@ -363,7 +363,7 @@ def join(
     keys_right=None,
     keep_order=False,
     uniq_col_name="{col_name}_{table_name}",
-    table_names=["1", "2"],
+    table_names=None,
     metadata_conflicts="warn",
     join_funcs=None,
 ):
@@ -412,6 +412,9 @@ def join(
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
+    if table_names is None:
+        table_names=["1", "2"]
+    
     # Try converting inputs to Table as needed
     if not isinstance(left, Table):
         left = Table(left)
@@ -1136,7 +1139,7 @@ def _join(
     keys=None,
     join_type="inner",
     uniq_col_name="{col_name}_{table_name}",
-    table_names=["1", "2"],
+    table_names=None,
     metadata_conflicts="warn",
     join_funcs=None,
     keys_left=None,
@@ -1176,6 +1179,9 @@ def _join(
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
+    if table_names is None:
+        table_names=["1", "2"]
+    
     # Special column name for cartesian join, should never collide with real column
     cartesian_index_name = "__table_cartesian_join_temp_index__"
 

@@ -1,0 +1,32 @@
+version: 2
+
+build:
+  os: "ubuntu-22.04"
+  tools:
+    python: "mambaforge-4.10"
+  jobs:
+    post_checkout:
+      - git fetch --unshallow || true
+    pre_install:
+      - git update-index --assume-unchanged docs/conf.py docs/rtd_environment.yaml
+
+conda:
+  environment: docs/rtd_environment.yaml
+
+sphinx:
+  builder: html
+  configuration: docs/conf.py
+  fail_on_warning: true
+
+# Install regular dependencies.
+# Then, install special pinning for RTD.
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+        - all
+
+# Don't build any extra formats
+formats: []

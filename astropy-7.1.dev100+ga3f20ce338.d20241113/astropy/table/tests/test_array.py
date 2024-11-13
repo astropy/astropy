@@ -1,0 +1,45 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import numpy as np
+import pytest
+
+from astropy.table.sorted_array import SortedArray
+from astropy.table.table import Table
+
+
+@pytest.fixture
+def array():
+    # composite index
+    col0 = np.array([x % 2 for x in range(1, 11)])
+    col1 = np.array(list(range(1, 11)))
+    t = Table([col0, col1])
+    t = t[t.argsort()]
+    return SortedArray(t, t["col1"].copy())
+
+
+@pytest.fixture
+def wide_array():
+    # array with 100 columns
+    t = Table([[x] * 10 for x in np.arange(100)])
+    return SortedArray(t, t["col0"].copy())
+
+
+def test_array_find(array):
+    for i in range(1, 11):
+        print(f"Searching for {i}")
+        assert array.find((i % 2, i)) == [i]
+    assert array.find((1, 4)) == []
+
+
+def test_array_range(array):
+    assert np.all(array.range((0, 8), (1, 3), (True, True)) == [8, 10, 1, 3])
+    assert np.all(array.range((0, 8), (1, 3), (False, True)) == [10, 1, 3])
+    assert np.all(array.range((0, 8), (1, 3), (True, False)) == [8, 10, 1])
+
+
+def test_wide_array(wide_array):
+    # checks for a previous bug in which the length of a
+    # sliced SortedArray was set to the number of columns
+    # instead of the number of elements in each column
+    first_row = wide_array[:1].data
+    assert np.all(first_row == Table([[x] for x in np.arange(100)]))

@@ -1,0 +1,104 @@
+version: 2.1
+
+jobs:
+
+  # The following job is to run any image comparison test, and runs on any branch
+  # or in any pull request. It will generate a summary page for each tox environment
+  # being run, and giles will report the URL of the summary page back to the pull
+  # request (alternatively you can find the summary page in the artifacts in the
+  # CircleCI UI).
+  figure:
+    parameters:
+      jobname:
+        type: string
+    docker:
+      - image: cimg/python:3.11
+    environment:
+      TOXENV=<< parameters.jobname >>
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+              sudo apt update
+              sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
+              pip install pip tox --upgrade
+      - run:
+          name: Run tests
+          command: tox -v
+      - run:
+          name: Upload coverage results to codecov
+          command: |
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            chmod +x codecov
+            ./codecov -t ${CODECOV_TOKEN} -f coverage.xml
+      - store_artifacts:
+          path: results
+      - run:
+          name: "Image comparison page is available at: "
+          command: echo "${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/results/fig_comparison.html"
+
+  # The following job runs only on main - and its main purpose is to update the reference
+  # images in the astropy-figure-tests repository. This job needs a deploy key. To produce
+  # this, go to the astropy-figure-tests repository settings and go to SSH keys, then add
+  # your public SSH key.
+  deploy-reference-images:
+    parameters:
+      jobname:
+        type: string
+    docker:
+      - image: cimg/python:3.11
+    environment:
+      TOXENV: << parameters.jobname >>
+      GIT_SSH_COMMAND: ssh -i ~/.ssh/id_rsa_bfaaefe38d95110b75c79252bafbe0fc
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+              sudo apt update
+              sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
+              pip install pip tox --upgrade
+      - run: ssh-add -D
+      - add_ssh_keys:
+          fingerprints: "bf:aa:ef:e3:8d:95:11:0b:75:c7:92:52:ba:fb:e0:fc"
+      - run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - run: git config --global user.email "astropy@circleci" && git config --global user.name "Astropy Circle CI"
+      - run: git clone git@github.com:astropy/astropy-figure-tests.git --depth 1 -b astropy-${CIRCLE_BRANCH} ~/astropy-figure-tests/
+      - run:
+          name: Generate reference images
+          command: tox -v -- --mpl-generate-path=/home/circleci/astropy-figure-tests/figures/$TOXENV
+      - run: |
+          cd ~/astropy-figure-tests/
+          git pull
+          git status
+          git add .
+          git commit -m "Update reference figures from ${CIRCLE_BRANCH}" || echo "No changes to reference images to deploy"
+          git push
+
+workflows:
+  version: 2
+
+  figure-tests:
+    jobs:
+      - figure:
+          name: << matrix.jobname >>
+          matrix:
+            parameters:
+              jobname:
+                - "py311-test-image-mpl360-cov"
+                - "py311-test-image-mpldev-cov"
+
+      - deploy-reference-images:
+          name: baseline-<< matrix.jobname >>
+          matrix:
+            parameters:
+              jobname:
+                - "py311-test-image-mpl360-cov"
+                - "py311-test-image-mpldev-cov"
+          requires:
+            - << matrix.jobname >>
+          filters:
+            branches:
+              only:
+                - main

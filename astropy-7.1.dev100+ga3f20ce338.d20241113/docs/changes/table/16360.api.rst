@@ -1,0 +1,2 @@
+An exception is now raised when trying to add a multi-dimensional column as an
+index via ``Table.add_index``.
