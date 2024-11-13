@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 
     from astropy.extern.ply.lex import Lexer, LexToken
     from astropy.units import CompositeUnit, NamedUnit, UnitBase
+    from astropy.units.typing import UnitScale
     from astropy.utils.parsing import ThreadSafeParser
 
 
@@ -655,6 +656,6 @@ class Generic(Base):
 
     @classmethod
     def format_exponential_notation(
-        cls, val: float | np.number, format_spec: str = "g"
+        cls, val: UnitScale | np.number, format_spec: str = "g"
     ) -> str:
         return format(val, format_spec)

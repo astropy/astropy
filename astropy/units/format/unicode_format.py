@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from typing import ClassVar
 
     from astropy.units import NamedUnit
-    from astropy.units.typing import Real
+    from astropy.units.typing import UnitPower
 
 
 class Unicode(console.Console):
@@ -43,7 +43,7 @@ class Unicode(console.Console):
         return m.replace("-", "−")
 
     @classmethod
-    def _format_unit_power(cls, unit: NamedUnit, power: Real = 1) -> str:
+    def _format_unit_power(cls, unit: NamedUnit, power: UnitPower = 1) -> str:
         name = unit._get_format_name(cls.name)
         # Check for superscript units
         if power != 1:

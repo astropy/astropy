@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from typing import ClassVar, Literal
 
     from astropy.units import NamedUnit, UnitBase
-    from astropy.units.typing import Real
+    from astropy.units.typing import UnitPower
 
 
 class Latex(console.Console):
@@ -39,7 +39,7 @@ class Latex(console.Console):
         return f"^{{{number}}}"
 
     @classmethod
-    def _format_unit_power(cls, unit: NamedUnit, power: Real = 1) -> str:
+    def _format_unit_power(cls, unit: NamedUnit, power: UnitPower = 1) -> str:
         name = unit._get_format_name("latex")
         if name == unit.name:
             # This doesn't escape arbitrary LaTeX strings, but it should
