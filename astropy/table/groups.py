@@ -254,7 +254,7 @@ class ColumnGroups(BaseGroups):
     @property
     def indices(self):
         # If the parent column is in a table then use group indices from table
-        if self.parent_table:
+        if self.parent_table is not None:
             return self.parent_table.groups.indices
         else:
             if self._indices is None:
@@ -265,7 +265,7 @@ class ColumnGroups(BaseGroups):
     @property
     def keys(self):
         # If the parent column is in a table then use group indices from table
-        if self.parent_table:
+        if self.parent_table is not None:
             return self.parent_table.groups.keys
         else:
             return self._keys
