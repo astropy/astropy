@@ -632,30 +632,34 @@ def test_vstack():
         vstack([t1, t2])
 
 
-def test_insert_row(mixin_cols):
+@pytest.mark.parametrize("empty_table", [False, True])
+def test_insert_row(mixin_cols, empty_table):
     """
     Test inserting a row, which works for Column, Quantity, Time and SkyCoord.
     """
-    t = QTable(mixin_cols)
-    t0 = t.copy()
+    t0 = QTable(mixin_cols)
+    if empty_table:
+        t = t0[:0].copy()
+        insert_index = 0
+        result_indices = [-1]
+    else:
+        t = t0.copy()
+        insert_index = 1
+        result_indices = [0, -1, 1, 2, 3]
     t["m"].info.description = "d"
-    idxs = [0, -1, 1, 2, 3]
     if isinstance(
         t["m"], (u.Quantity, Column, time.Time, time.TimeDelta, coordinates.SkyCoord)
     ):
-        t.insert_row(1, t[-1])
+        t.insert_row(insert_index, t0[-1])
 
         for name in t.colnames:
-            col = t[name]
-            if isinstance(col, coordinates.SkyCoord):
-                assert skycoord_equal(col, t0[name][idxs])
-            else:
-                assert np.all(col == t0[name][idxs])
+            assert np.all(t[name] == t0[name][result_indices])
 
+        assert np.all(t == t0[result_indices])
         assert t["m"].info.description == "d"
     else:
         with pytest.raises(ValueError) as exc:
-            t.insert_row(1, t[-1])
+            t.insert_row(insert_index, t0[-1])
         assert "Unable to insert row" in str(exc.value)
 
 
