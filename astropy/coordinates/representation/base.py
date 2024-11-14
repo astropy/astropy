@@ -104,18 +104,18 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
         attrs = self.merge_cols_attributes(
             reps, metadata_conflicts, name, ("meta", "description")
         )
-        # Make a new representation or differential with the desired length
-        # using the _apply / __getitem__ machinery to effectively return
-        # rep0[[0, 0, ..., 0, 0]]. This will have the right shape, and
-        # include possible differentials.
-        indexes = np.zeros(length, dtype=np.int64)
-        out = reps[0][indexes]
+
+        # Make a new representation or differential with the desired length.
+        rep0 = reps[0]
+        out = rep0._apply(np.zeros_like, shape=(length,) + rep0.shape[1:])
 
         # Use __setitem__ machinery to check whether all representations
         # can represent themselves as this one without loss of information.
+        # We use :0 to ensure we do not break on empty coordinates (with the
+        # side benefit that we do not actually set anything).
         for rep in reps[1:]:
             try:
-                out[0] = rep[0]
+                out[:0] = rep[:0]
             except Exception as err:
                 raise ValueError("input representations are inconsistent.") from err
 
