@@ -1074,7 +1074,7 @@ class TestNanFunctions(InvariantUnitTestSetup):
     @pytest.mark.parametrize(
         "out_init",
         [
-            pytest.param(u.Quantity(-1, "m"), id="out with coorect unit"),
+            pytest.param(u.Quantity(-1, "m"), id="out with correct unit"),
             # this should work too: out.unit will be overridden
             pytest.param(u.Quantity(-1), id="out with a different unit"),
         ],
@@ -1100,7 +1100,7 @@ class TestNanFunctions(InvariantUnitTestSetup):
     @pytest.mark.parametrize(
         "out_init",
         [
-            pytest.param(u.Quantity(-1, "m"), id="out with coorect unit"),
+            pytest.param(u.Quantity(-1, "m"), id="out with correct unit"),
             # this should work too: out.unit will be overridden
             pytest.param(u.Quantity(-1), id="out with a different unit"),
         ],
