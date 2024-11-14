@@ -270,19 +270,17 @@ class CoordinateFrameInfo(MixinInfo):
         attrs = self.merge_cols_attributes(
             coords, metadata_conflicts, name, ("meta", "description")
         )
+
+        # Make a new coordinate with the desired length.
         coord0 = coords[0]
+        out = coord0._apply(np.zeros_like, shape=(length,) + coord0.shape[1:])
 
-        # Make a new coord object with the desired length and attributes
-        # by using the _apply / __getitem__ machinery to effectively return
-        # coord0[[0, 0, ..., 0, 0]]. This will have the all the right frame
-        # attributes with the right shape.
-        indexes = np.zeros(length, dtype=np.int64)
-        out = coord0[indexes]
-
-        # Use __setitem__ machinery to check for consistency of all coords
+        # Use __setitem__ machinery to check for consistency of all coords.
+        # We use :0 to ensure we do not break on empty coordinates (with the
+        # side benefit that we do not actually set anything).
         for coord in coords[1:]:
             try:
-                out[0] = coord[0]
+                out[:0] = coord[:0]
             except Exception as err:
                 raise ValueError("Input coords are inconsistent.") from err
 
