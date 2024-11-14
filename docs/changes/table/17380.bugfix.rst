@@ -1,0 +1,3 @@
+Ensure that tables holding coordinates or representations can also be stacked
+if they have zero length. This fix also ensures that the ``insert`` method
+works correctly with a zero-length table holding a coordinate object.
