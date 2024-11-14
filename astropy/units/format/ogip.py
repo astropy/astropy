@@ -342,7 +342,7 @@ class OGIP(FITS):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline"] = "inline"
+        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = "inline"
     ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)

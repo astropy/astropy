@@ -583,29 +583,24 @@ def test_format_styles_non_default_fraction(format_spec, fraction, string, decom
     assert fluxunit.decompose().to_string(format_spec, fraction=fraction) == decomposed
 
 
-@pytest.mark.parametrize("format_spec", ["generic", "cds", "fits", "ogip", "vounit"])
-def test_no_multiline_fraction(format_spec):
+@pytest.mark.parametrize("format_spec", u_format.Base.registry)
+def test_multiline_fraction_different_if_available(format_spec):
     fluxunit = u.W / u.m**2
-    with pytest.raises(
-        ValueError,
-        match=(
-            f"^'{format_spec}' format only supports 'inline' fractions, "
-            r"not fraction='multiline'\.$"
-        ),
-    ):
-        fluxunit.to_string(format_spec, fraction="multiline")
+    inline_format = fluxunit.to_string(format_spec, fraction="inline")
+    if format_spec in ["generic", "cds", "fits", "ogip", "vounit"]:
+        with pytest.warns(UnitsWarning, match="does not support multiline"):
+            multiline_format = fluxunit.to_string(format_spec, fraction="multiline")
+        assert multiline_format == inline_format
+    else:
+        multiline_format = fluxunit.to_string(format_spec, fraction="multiline")
+        assert multiline_format != inline_format
 
 
-@pytest.mark.parametrize("format_spec", ["latex", "console", "unicode"])
+@pytest.mark.parametrize("format_spec", u_format.Base.registry)
 def test_unknown_fraction_style(format_spec):
     fluxunit = u.W / u.m**2
-    with pytest.raises(
-        ValueError,
-        match=(
-            f"^'{format_spec}' format only supports 'inline' or 'multiline' fractions, "
-            r"not fraction='parrot'\.$"
-        ),
-    ):
+    msg = "fraction can only be False, 'inline', or 'multiline', not 'parrot'"
+    with pytest.raises(ValueError, match=msg):
         fluxunit.to_string(format_spec, fraction="parrot")
 
 

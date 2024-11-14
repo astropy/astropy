@@ -1,0 +1,3 @@
+Passing ``fraction='multiline'`` to ``unit.to_string()`` will no longer raise
+an exception if the given format does not support multiline fractions, but
+rather give a warning and use an inline fraction.
