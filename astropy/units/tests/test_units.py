@@ -36,7 +36,6 @@ def test_initialisation():
     assert u.Unit("") == u.dimensionless_unscaled
     assert u.one == u.dimensionless_unscaled
     assert u.Unit("10 m") == ten_meter
-    assert u.Unit(10.0) == u.CompositeUnit(10.0, [], [])
 
     assert u.Unit() == u.dimensionless_unscaled
 
@@ -1120,3 +1119,22 @@ def test_error_on_conversion_of_zero_to_unit():
 )
 def test_scale_sanitization(unsanitized, sanitized):
     assert u.CompositeUnit(unsanitized, [u.m], [1]).scale == sanitized
+
+
+@pytest.mark.parametrize(
+    "scale",
+    [
+        5,
+        10.0,
+        7 + 3j,
+        Fraction(1, 3),
+        np.int32(100),
+        np.float32(0.01),
+        np.complex128(1 - 4j),
+    ],
+    ids=type,
+)
+def test_dimensionless_scale_factor_types(scale):
+    # Regression test for #17355 - Unit did not accept all scale factor
+    # types that CompositeUnit accepted
+    assert u.Unit(scale) == u.CompositeUnit(scale, [], [])

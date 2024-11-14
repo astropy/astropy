@@ -10,6 +10,7 @@ import inspect
 import operator
 import textwrap
 import warnings
+from fractions import Fraction
 from functools import cached_property
 from threading import RLock
 from typing import TYPE_CHECKING
@@ -2144,7 +2145,8 @@ class _UnitMetaClass(type):
                     warnings.warn(msg, UnitsWarning)
                 return UnrecognizedUnit(s)
 
-        elif isinstance(s, (int, float, np.floating, np.integer)):
+        # can't use units.typing.Complex because of an import loop
+        elif isinstance(s, (int, float, complex, Fraction, np.number)):
             return CompositeUnit(s, [], [])
 
         elif isinstance(s, tuple):
