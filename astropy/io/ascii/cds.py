@@ -77,6 +77,17 @@ def _is_section_delimiter(line):
     return line.startswith(("------", "=======")) and len(set(line.strip())) == 1
 
 
+class CdsSplitter(fixedwidth.FixedWidthSplitter):
+    """
+    Contains the join function to left align the MRT columns
+    when writing to a file.
+    """
+
+    def join(self, vals, widths):
+        vals = [val + " " * (width - len(val)) for val, width in zip(vals, widths)]
+        return self.delimiter.join(vals)
+
+
 class CdsHeader(core.BaseHeader):
     _subfmt = "CDS"
 
@@ -98,6 +109,141 @@ class CdsHeader(core.BaseHeader):
                 f'"{col.name}"'
             )
         return match.group(1)
+
+    def _split_float_format(self, value):
+        """
+        Splits a Float string into different parts to find number
+        of digits after decimal and check if the value is in Scientific
+        notation.
+
+        Parameters
+        ----------
+        value : str
+            String containing the float value to split.
+
+        Returns
+        -------
+        fmt: (int, int, int, bool, bool)
+            List of values describing the Float string.
+            (size, dec, ent, sign, exp)
+            size, length of the given string.
+            ent, number of digits before decimal point.
+            dec, number of digits after decimal point.
+            sign, whether or not given value signed.
+            exp, is value in Scientific notation?
+        """
+        regfloat = re.compile(
+            r"""(?P<sign> [+-]*)
+                (?P<ent> [^eE.]+)
+                (?P<deciPt> [.]*)
+                (?P<decimals> [0-9]*)
+                (?P<exp> [eE]*-*)[0-9]*""",
+            re.VERBOSE,
+        )
+        mo = regfloat.match(value)
+
+        if mo is None:
+            raise Exception(f"{value} is not a float number")
+        return (
+            len(value),
+            len(mo.group("ent")),
+            len(mo.group("decimals")),
+            mo.group("sign") != "",
+            mo.group("exp") != "",
+        )
+
+    def column_float_formatter(self, col):
+        """
+        String formatter function for a column containing Float values.
+        Checks if the values in the given column are in Scientific notation,
+        by splitting the value string. It is assumed that the column either has
+        float values or Scientific notation.
+
+        A ``col.formatted_width`` attribute is added to the column. It is not added
+        if such an attribute is already present, say when the ``formats`` argument
+        is passed to the writer. A properly formatted format string is also added as
+        the ``col.format`` attribute.
+
+        Parameters
+        ----------
+        col : A ``Table.Column`` object.
+        """
+        # maxsize: maximum length of string containing the float value.
+        # maxent: maximum number of digits places before decimal point.
+        # maxdec: maximum number of digits places after decimal point.
+        # maxprec: maximum precision of the column values, sum of maxent and maxdec.
+        maxsize, maxprec, maxent, maxdec = 1, 0, 1, 0
+        sign = False
+        fformat = "F"
+
+        # Find maximum sized value in the col
+        for val in col.str_vals:
+            # Skip null values
+            if val is None or val == "":
+                continue
+
+            # Find format of the Float string
+            fmt = self._split_float_format(val)
+            # If value is in Scientific notation
+            if fmt[4] is True:
+                # if the previous column value was in normal Float format
+                # set maxsize, maxprec and maxdec to default.
+                if fformat == "F":
+                    maxsize, maxprec, maxdec = 1, 0, 0
+                # Designate the column to be in Scientific notation.
+                fformat = "E"
+            else:
+                # Move to next column value if
+                # current value is not in Scientific notation
+                # but the column is designated as such because
+                # one of the previous values was.
+                if fformat == "E":
+                    continue
+
+            maxsize = max(maxsize, fmt[0])
+            maxent = max(maxent, fmt[1])
+            maxdec = max(maxdec, fmt[2])
+            if fmt[3]:
+                sign = True
+
+            maxprec = max(maxprec, fmt[1] + fmt[2])
+
+        if fformat == "E":
+            # If ``formats`` not passed.
+            if getattr(col, "formatted_width", None) is None:
+                col.formatted_width = maxsize
+                if sign:
+                    col.formatted_width += 1
+            # Number of digits after decimal is replaced by the precision
+            # for values in Scientific notation, when writing that Format.
+            col.fortran_format = fformat + str(col.formatted_width) + "." + str(maxprec)
+            col.format = str(col.formatted_width) + "." + str(maxdec) + "e"
+        else:
+            lead = ""
+            if (
+                getattr(col, "formatted_width", None) is None
+            ):  # If ``formats`` not passed.
+                col.formatted_width = maxent + maxdec + 1
+                if sign:
+                    col.formatted_width += 1
+            elif col.format.startswith("0"):
+                # Keep leading zero, if already set in format - primarily for `seconds` columns
+                # in coordinates; may need extra case if this is to be also supported with `sign`.
+                lead = "0"
+            col.fortran_format = fformat + str(col.formatted_width) + "." + str(maxdec)
+            col.format = lead + col.fortran_format[1:] + "f"
+
+    def _set_column_val_limits(self, col):
+        """
+        Sets the ``col.min`` and ``col.max`` column attributes,
+        taking into account columns with Null values.
+        """
+        col.max = max(col)
+        col.min = min(col)
+        if col.max is np.ma.core.MaskedConstant:
+            col.max = None
+        if col.min is np.ma.core.MaskedConstant:
+            col.min = None
 
     def get_cols(self, lines):
         """
@@ -693,7 +839,7 @@ class CdsData(core.BaseData):
     """CDS table data reader."""
 
     _subfmt = "CDS"
-    splitter_class = fixedwidth.FixedWidthSplitter
+    splitter_class = CdsSplitter
 
     def process_lines(self, lines):
         """Skip over CDS/MRT header by finding the last section delimiter."""
@@ -709,6 +855,10 @@ class CdsData(core.BaseData):
                 f"No {self._subfmt} section delimiter found"
             )
         return lines[i_sections[-1] + 1 :]
+
+    def write(self, lines):
+        self.splitter.delimiter = " "
+        fixedwidth.FixedWidthData.write(self, lines)
 
 
 class Cds(core.BaseReader):
@@ -819,7 +969,7 @@ class Cds(core.BaseReader):
 
     _format_name = "cds"
     _io_registry_format_aliases = ["cds"]
-    _io_registry_can_write = False
+    _io_registry_can_write = True
     _description = "CDS format table"
 
     data_class = CdsData
