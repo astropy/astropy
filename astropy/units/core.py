@@ -10,7 +10,6 @@ import inspect
 import operator
 import textwrap
 import warnings
-from fractions import Fraction
 from functools import cached_property
 from threading import RLock
 from typing import TYPE_CHECKING
@@ -2035,44 +2034,14 @@ class _UnitMetaClass(type):
         if hasattr(s, "_physical_type_id"):
             return s
 
-        # turn possible Quantity input for s or represents into a Unit
-        from .quantity import Quantity
-
-        if isinstance(represents, Quantity):
-            if is_effectively_unity(represents.value):
-                represents = represents.unit
-            else:
-                represents = CompositeUnit(
-                    sanitize_scale_type(represents.value) * represents.unit.scale,
-                    bases=represents.unit.bases,
-                    powers=represents.unit.powers,
-                    _error_check=False,
-                )
-
-        if isinstance(s, Quantity):
-            if is_effectively_unity(s.value):
-                s = s.unit
-            else:
-                s = CompositeUnit(
-                    sanitize_scale_type(s.value) * s.unit.scale,
-                    bases=s.unit.bases,
-                    powers=s.unit.powers,
-                    _error_check=False,
-                )
-
-        # now decide what we really need to do; define derived Unit?
-        if isinstance(represents, UnitBase):
+        if represents is not None:
             # This has the effect of calling the real __new__ and
             # __init__ on the Unit class.
             return super().__call__(
                 s, represents, format=format, namespace=namespace, doc=doc
             )
 
-        # or interpret a Quantity (now became unit), string or number?
-        if isinstance(s, UnitBase):
-            return s
-
-        elif isinstance(s, (bytes, str)):
+        if isinstance(s, (str, bytes)):
             if len(s.strip()) == 0:
                 # Return the NULL unit
                 return dimensionless_unscaled
@@ -2116,10 +2085,7 @@ class _UnitMetaClass(type):
                 if parse_strict != "silent":
                     # Deliberately not issubclass here. Subclasses
                     # should use their name.
-                    if f is not unit_format.Generic:
-                        format_clause = f.name + " "
-                    else:
-                        format_clause = ""
+                    format_clause = "" if f is unit_format.Generic else f.name + " "
                     msg = (
                         f"'{s}' did not parse as {format_clause}unit: {str(e)} "
                         "If this is meant to be a custom unit, "
@@ -2134,20 +2100,29 @@ class _UnitMetaClass(type):
                     warnings.warn(msg, UnitsWarning)
                 return UnrecognizedUnit(s)
 
-        # can't use units.typing.Complex because of an import loop
-        elif isinstance(s, (int, float, complex, Fraction, np.number)):
+        from .quantity import Quantity
+
+        if isinstance(s, Quantity):
+            if is_effectively_unity(s.value):
+                return s.unit
+            return CompositeUnit(
+                sanitize_scale_type(s.value) * s.unit.scale,
+                bases=s.unit.bases,
+                powers=s.unit.powers,
+                _error_check=False,
+            )
+
+        from .typing import Complex
+
+        if isinstance(s, Complex):  # same as the annotation in sanitize_scale_type()
             return CompositeUnit(s, [], [])
 
-        elif isinstance(s, tuple):
+        if isinstance(s, tuple):
             from .structured import StructuredUnit
 
             return StructuredUnit(s)
 
-        elif s is None:
-            raise TypeError("None is not a valid Unit")
-
-        else:
-            raise TypeError(f"{s} can not be converted to a Unit")
+        raise TypeError(f"{s!r} cannot be converted to a Unit")
 
 
 class Unit(NamedUnit, metaclass=_UnitMetaClass):
