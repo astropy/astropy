@@ -8,7 +8,7 @@ This package defines the SI units.  They are also available in
 
 import numpy as np
 
-from .core import Unit, UnitBase, def_unit
+from .core import CompositeUnit, UnitBase, def_unit
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -20,7 +20,7 @@ _ns = globals()
 
 def_unit(
     ["percent", "pct"],
-    Unit(0.01),
+    CompositeUnit(0.01, [], []),
     namespace=_ns,
     prefixes=False,
     doc="percent: one hundredth of unity, factor 0.01",
