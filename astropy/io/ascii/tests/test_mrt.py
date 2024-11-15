@@ -9,7 +9,8 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
-from astropy.io.ascii.mrt import MAX_SIZE_README_LINE, MrtHeader
+from astropy.io.ascii.cds import MAX_SIZE_README_LINE
+from astropy.io.ascii.mrt import MrtHeader
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
@@ -174,6 +175,7 @@ def test_roundtrip_mrt_meta():
 
 
 def test_write_byte_by_byte_units():
+    # TODO: Test both CDS and MRT
     t = ascii.read(test_dat)
     col_units = [None, u.C, u.kg, u.m / u.s, u.year]
     t._set_column_attribute("unit", col_units)
@@ -184,7 +186,7 @@ def test_write_byte_by_byte_units():
     out = StringIO()
     t.write(out, format="ascii.mrt")
     # Read written table.
-    columns = ascii.read(out.getvalue(), format="cds").itercols()
+    columns = ascii.read(out.getvalue(), format="mrt").itercols()
     assert [col.unit for col in columns] == col_units
 
 
@@ -475,12 +477,12 @@ Byte-by-byte Description of file: table.dat
  Bytes Format Units  Label     Explanations
 --------------------------------------------------------------------------------
  1- 8  A8     ---    thisIsALongColumnLabel This is a tediously long
-                                           description. But they do sometimes
-                                           have them. Better to put extra
-                                           details in the notes. This is a
-                                           tediously long description. But they
-                                           do sometimes have them. Better to put
-                                           extra details in the notes.
+                                             description. But they do sometimes
+                                             have them. Better to put extra
+                                             details in the notes. This is a
+                                             tediously long description. But
+                                             they do sometimes have them. Better
+                                             to put extra details in the notes.
 10-14  E5.1   ---    e                      [-3160000.0/0.01] Description of e
 16-23  F8.5   ---    d                      [22.25/27.25] Description of d
 --------------------------------------------------------------------------------

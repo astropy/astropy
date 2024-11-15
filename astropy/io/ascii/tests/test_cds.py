@@ -61,9 +61,10 @@ def test_roundtrip_cds_table():
     dat = get_pkg_data_filename(
         "data/cdsFunctional2.dat", package="astropy.io.ascii.tests"
     )
-    t = Table.read(dat, format="ascii.mrt")
+    t = Table.read(dat, format="ascii.cds")
     out = StringIO()
-    t.write(out, format="ascii.mrt")
+    # TODO: Write with CDS
+    t.write(out, format="ascii.cds")
     lines = out.getvalue().splitlines()
     i_bbb = lines.index("=" * 80)
     lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
