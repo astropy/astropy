@@ -169,7 +169,7 @@ def test_header_from_readme():
 def test_cds_units(reader_cls):
     from astropy import units
 
-    data_and_readme = "data/cds.dat"
+    data_and_readme = "data/mrt.dat"
     reader = ascii.get_reader(reader_cls)
     table = reader.read(data_and_readme)
     # column unit is GMsun (giga solar masses)

@@ -609,7 +609,7 @@ def test_fill_values_list(fast_reader):
 
 
 def test_masking_Cds_Mrt():
-    f = "data/cds.dat"  # Tested for CDS and MRT
+    f = "data/mrt.dat"  # Tested for CDS and MRT
     for testfile in get_testfiles(f):
         data = ascii.read(f, **testfile["opts"])
         assert data["AK"].mask[0]
@@ -617,7 +617,7 @@ def test_masking_Cds_Mrt():
 
 
 def test_read_mrt_metadata():
-    f = "data/cds.dat"
+    f = "data/mrt.dat"
     data = ascii.read(f, format="mrt")
     assert "top" in data.meta
     assert "Title" in data.meta["top"]
@@ -633,7 +633,7 @@ def test_read_mrt_metadata():
     assert isinstance(data.meta["top"]["Authors"], list)
     assert (
         data.meta["notes"][0]
-        == 'Asterisks mark "deeply embedded" sources with questionable IRAC colors or incomplete IRAC photometry and relatively bright MIPS 24 micron photometry.'
+        == 'Asterisks mark "deeply embedded" sources with questionable IRAC\ncolors or incomplete IRAC photometry and relatively bright\nMIPS 24 micron photometry.'
     )
 
 
@@ -785,7 +785,7 @@ def get_testfiles(name=None):
                 "AK",
                 "Fit",
             ),
-            "name": "data/cds.dat",
+            "name": "data/mrt.dat",
             "nrows": 1,
             "opts": {"format": "cds"},
         },
@@ -804,7 +804,7 @@ def get_testfiles(name=None):
                 "AK",
                 "Fit",
             ),
-            "name": "data/cds.dat",
+            "name": "data/mrt.dat",
             "nrows": 1,
             "opts": {"format": "mrt"},
         },
@@ -814,7 +814,7 @@ def get_testfiles(name=None):
                 "DefaultName",
                 "#CompsOnThisRow",
             ),
-            "name": "data/cds_mrt_dashes.txt",
+            "name": "data/mrt_dashes.txt",
             "nrows": 8,
             "opts": {"format": "mrt"},
         },
@@ -823,11 +823,11 @@ def get_testfiles(name=None):
                 "DefaultName",
                 "#CompsOnThisRow",
             ),
-            "name": "data/cds_mrt_dashes.txt",
+            "name": "data/mrt_dashes.txt",
             "nrows": 8,
             "opts": {"format": "cds"},
         },
-        # Test malformed CDS file (issues #2241 #467)
+        # Test malformed MRT file (issues #2241 #467)
         {
             "cols": (
                 "Index",
@@ -843,9 +843,9 @@ def get_testfiles(name=None):
                 "AK",
                 "Fit",
             ),
-            "name": "data/cds_malformed.dat",
+            "name": "data/mrt_malformed.dat",
             "nrows": 1,
-            "opts": {"format": "cds", "data_start": "guess"},
+            "opts": {"format": "mrt", "data_start": "guess"},
         },
         {
             "cols": ("a", "b", "c"),
@@ -946,7 +946,7 @@ def get_testfiles(name=None):
                 "AK",
                 "Fit",
             ),
-            "name": "data/no_data_cds.dat",
+            "name": "data/no_data_mrt.dat",
             "nrows": 0,
             "opts": {"format": "cds"},
         },
@@ -965,7 +965,7 @@ def get_testfiles(name=None):
                 "AK",
                 "Fit",
             ),
-            "name": "data/no_data_cds.dat",
+            "name": "data/no_data_mrt.dat",
             "nrows": 0,
             "opts": {"format": "mrt"},
         },

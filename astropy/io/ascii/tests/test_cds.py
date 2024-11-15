@@ -63,7 +63,6 @@ def test_roundtrip_cds_table():
     )
     t = Table.read(dat, format="ascii.cds")
     out = StringIO()
-    # TODO: Write with CDS
     t.write(out, format="ascii.cds")
     lines = out.getvalue().splitlines()
     i_bbb = lines.index("=" * 80)

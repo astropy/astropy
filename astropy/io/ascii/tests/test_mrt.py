@@ -163,7 +163,7 @@ def test_roundtrip_mrt_meta():
         "        among the three local maxima seen in close proximity in the IRAC",
         "        images, which may or may not be three physically distinct sources.",
     ]
-    dat = get_pkg_data_filename("data/cds2.dat", package="astropy.io.ascii.tests")
+    dat = get_pkg_data_filename("data/mrt2.dat", package="astropy.io.ascii.tests")
     t = Table.read(dat, format="ascii.mrt")
     out = StringIO()
     t.write(out, format="ascii.mrt")
