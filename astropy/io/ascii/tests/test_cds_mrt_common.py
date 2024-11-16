@@ -103,10 +103,11 @@ def test_write_byte_by_byte_for_masked_column(fmt):
 
 
 def test_write_readme_with_default_options(fmt):
-    exp_output = [
-        "Title:",
-        "Authors:",
-        "Table:",
+    if fmt == "mrt":
+        top_lines = ["Title:", "Authors:", "Table:"]
+    else:
+        top_lines = []
+    exp_output = top_lines + [
         "================================================================================",
         "Byte-by-byte Description of file: table.dat",
         "--------------------------------------------------------------------------------",
