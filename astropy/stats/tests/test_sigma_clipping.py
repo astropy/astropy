@@ -703,4 +703,4 @@ def test_propagation_of_mask():
     x = np.array([1, 1, 1, 1, 1, 1, 1, 1, 5, 5]).astype(float)
     y = np.ma.masked_where(x > 1, x)
 
-    np.testing.assert_allclose(sigma_clipped_stats(y, grow=1), (1, 1, 0))
+    assert_allclose(sigma_clipped_stats(y, grow=1), (1, 1, 0))
