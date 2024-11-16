@@ -698,6 +698,7 @@ def test_mad_std_large():
     assert_allclose(result1, result2)
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_propagation_of_mask():
     # Quick test to check that the mask is propagated correctly
     x = np.array([1, 1, 1, 1, 1, 1, 1, 1, 5, 5]).astype(float)
