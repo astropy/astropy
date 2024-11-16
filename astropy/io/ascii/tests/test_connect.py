@@ -40,6 +40,10 @@ def test_read_mrt():
     Table.read(get_pkg_data_filename("data/mrt.dat"), format="mrt")
 
 
+def test_read_cds():
+    Table.read(get_pkg_data_filename("data/cdsFunctional.dat"), format="cds")
+
+
 def test_read_dapphot():
     Table.read(get_pkg_data_filename("data/daophot.dat"), format="daophot")
 
