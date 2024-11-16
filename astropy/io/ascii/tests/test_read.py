@@ -625,7 +625,6 @@ def test_read_mrt_metadata():
     assert "Table" in data.meta["top"]
     assert "notes" in data.meta
     assert len(data.meta["notes"]) == 3
-    # TODO: format/better mechanism for tests
     assert (
         data.meta["top"]["Title"]
         == "Spitzer Observations of NGC 1333: A Study of Structure and Evolution in a Nearby Embedded Cluster"
@@ -846,6 +845,25 @@ def get_testfiles(name=None):
             "name": "data/mrt_malformed.dat",
             "nrows": 1,
             "opts": {"format": "mrt", "data_start": "guess"},
+        },
+        {
+            "cols": (
+                "Index",
+                "RAh",
+                "RAm",
+                "RAs",
+                "DE-",
+                "DEd",
+                "DEm",
+                "DEs",
+                "Match",
+                "Class",
+                "AK",
+                "Fit",
+            ),
+            "name": "data/mrt_malformed.dat",
+            "nrows": 1,
+            "opts": {"format": "cds", "data_start": "guess"},
         },
         {
             "cols": ("a", "b", "c"),
