@@ -32,7 +32,7 @@ __doctest_skip__ = ["*"]
 
 
 MAX_COL_INTLIMIT = 100000
-# TODO: Change to 70 when writing, but double check not used astr "strong" assert
+# TODO: Change to 70 when writing, but double check not used as "strong" assert
 MAX_SIZE_README_LINE = 80
 
 
