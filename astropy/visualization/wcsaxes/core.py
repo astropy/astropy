@@ -221,16 +221,16 @@ class WCSAxes(Axes):
             raise ValueError("Cannot use images with origin='upper' in WCSAxes.")
 
         if HAS_PIL:
-            from PIL.Image import Image
+            import PIL.Image
 
-            if minversion("PIL", "9.1"):
-                from PIL.Image import Transpose
-
-                FLIP_TOP_BOTTOM = Transpose.FLIP_TOP_BOTTOM
-            else:
+            if hasattr(PIL.Image, "FLIP_TOP_BOTTOM"):
+                # PIL version < 9.1
                 from PIL.Image import FLIP_TOP_BOTTOM
+            else:
+                from PIL.Image import Transpose
+                FLIP_TOP_BOTTOM = Transpose.FLIP_TOP_BOTTOM
 
-            if isinstance(X, Image) or hasattr(X, "getpixel"):
+            if isinstance(X, PIL.Image.Image) or hasattr(X, "getpixel"):
                 X = X.transpose(FLIP_TOP_BOTTOM)
 
         return super().imshow(X, *args, origin=origin, **kwargs)
