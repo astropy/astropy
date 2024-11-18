@@ -462,7 +462,7 @@ class SigmaClip:
             # float array type is needed to insert nans into the array
             filtered_data = data.astype(np.float32)  # also makes a copy
         else:
-            filtered_data = np.copy(data)
+            filtered_data = data.copy()
 
         # remove invalid values
         bad_mask = ~np.isfinite(filtered_data)
