@@ -27,13 +27,12 @@ __all__ = ["WCSAxes", "WCSAxesSubplot"]
 VISUAL_PROPERTIES = ["facecolor", "edgecolor", "linewidth", "alpha", "linestyle"]
 
 if HAS_PIL:
-    import PIL.Image
-    if hasattr(PIL.Image, "FLIP_TOP_BOTTOM"):
-        # PIL version < 9.1
-        from PIL.Image import FLIP_TOP_BOTTOM
-    else:
+    if minversion("PIL", "9.1"):
         from PIL.Image import Transpose
         FLIP_TOP_BOTTOM = Transpose.FLIP_TOP_BOTTOM
+    else:
+        from PIL.Image import FLIP_TOP_BOTTOM
+        
 
 class _WCSAxesArtist(Artist):
     """This is a dummy artist to enforce the correct z-order of axis ticks,
