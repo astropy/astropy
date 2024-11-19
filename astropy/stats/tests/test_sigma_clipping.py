@@ -98,6 +98,24 @@ def test_sigma_clip_scalar_mask():
     assert result.mask.shape != ()
 
 
+def test_sigma_clip_masked_array():
+    """
+    Regression test to check that MaskedArray masks are propagated
+    correctly if cenfunc/stdfunc is not the default, axis is not None,
+    and masked=False.
+    """
+    arr = np.ones(10).astype(float)
+    arr[-2:] = 5
+    arr = np.ma.masked_where(arr > 1, arr)
+    out = sigma_clip(arr, cenfunc=np.mean, axis=0, masked=False)
+    assert np.all(np.isnan(out[-2:]))
+    assert_allclose(np.nanmean(out), 1.0)
+
+    out = sigma_clip(arr, stdfunc=np.std, axis=0, masked=False)
+    assert np.all(np.isnan(out[-2:]))
+    assert_allclose(np.nanmean(out), 1.0)
+
+
 def test_sigma_clip_class():
     with NumpyRNGContext(12345):
         data = np.random.randn(100)
