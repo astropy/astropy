@@ -665,13 +665,7 @@ def test_init_QTable_and_set_units():
     assert np.all(t["col1"].value == [1, 2])
 
 
-@pytest.mark.parametrize(
-    "table_cls",
-    [
-        pytest.param(Table),
-        pytest.param(QTable, marks=pytest.mark.xfail),
-    ],
-)
+@pytest.mark.parametrize("table_cls", [Table, QTable])
 def test_table_from_columns_with_mixed_str_type_name(table_cls):
     # see https://github.com/astropy/astropy/issues/17418
     t = table_cls()
