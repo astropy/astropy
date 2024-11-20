@@ -8,10 +8,17 @@ in the :meth:`~astropy.units.UnitBase.to_string` method, i.e.,
 these classes rarely if ever need to be imported directly.
 """
 
+from __future__ import annotations
+
 import sys
 import warnings
+from abc import abstractmethod
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
+
+if TYPE_CHECKING:
+    from astropy.units import UnitBase
 
 # This is pretty atrocious, but it will prevent a circular import for those
 # formatters that need access to the units.core module An entry for it should
@@ -43,6 +50,22 @@ __all__ = [
 ]
 
 
+@runtime_checkable
+class UnitFormatter(Protocol):
+    @classmethod
+    @abstractmethod
+    def to_string(cls, unit: UnitBase) -> str:
+        raise NotImplementedError
+
+
+@runtime_checkable
+class ParsingUnitFormatter(UnitFormatter, Protocol):
+    @classmethod
+    @abstractmethod
+    def parse(cls, s: str) -> UnitBase:
+        raise NotImplementedError
+
+
 def __getattr__(name):
     if name == "Fits":
         warnings.warn(
@@ -57,16 +80,13 @@ def __getattr__(name):
 
 
 def _known_formats():
-    in_out = [
-        name
-        for name, cls in Base.registry.items()
-        if cls.parse.__func__ is not Base.parse.__func__
-    ]
-    out_only = [
-        name
-        for name, cls in Base.registry.items()
-        if cls.parse.__func__ is Base.parse.__func__
-    ]
+    in_out = []
+    out_only = []
+    for name, formatter in Base.registry.items():
+        if issubclass(formatter, ParsingUnitFormatter):
+            in_out.append(name)
+        else:
+            out_only.append(name)
     return (
         f"Valid formatter names are: {in_out} for input and output, "
         f"and {out_only} for output only."
@@ -90,7 +110,7 @@ def get_format(format=None):
     if format is None:
         return Generic
 
-    if isinstance(format, type) and issubclass(format, Base):
+    if isinstance(format, type) and issubclass(format, UnitFormatter):
         return format
     elif not (isinstance(format, str) or format is None):
         raise TypeError(

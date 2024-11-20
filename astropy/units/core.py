@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from types import TracebackType
     from typing import Any, Final, Literal, Self
 
+    from .format import UnitFormatter
     from .physical import PhysicalType
     from .quantity import Quantity
     from .typing import Real, UnitPower, UnitScale
@@ -713,7 +714,7 @@ class UnitBase:
 
     def to_string(
         self,
-        format: type[unit_format.Base] | str | None = unit_format.Generic,
+        format: UnitFormatter | str | None = unit_format.Generic,
         **kwargs,
     ) -> str:
         r"""Output the unit in the given format as a string.
@@ -2047,6 +2048,9 @@ class _UnitMetaClass(type):
                 return dimensionless_unscaled
 
             f = unit_format.get_format(format)
+            if not issubclass(f, unit_format.ParsingUnitFormatter):
+                raise NotImplementedError(f"Can not parse with {f.__name__} format")
+
             if isinstance(s, bytes):
                 s = s.decode("ascii")
 
@@ -2066,8 +2070,6 @@ class _UnitMetaClass(type):
                     ),
                 ):
                     return f.parse(s)
-            except NotImplementedError:
-                raise
             except UnitParserWarning as err:
                 new_err = ValueError(err)
                 new_err.add_note(
