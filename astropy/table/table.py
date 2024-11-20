@@ -2097,6 +2097,12 @@ class Table:
             raise ValueError(f"Illegal type {type(item)} for table item access")
 
     def __setitem__(self, item, value):
+        # np.str_ is an example of a string subtype that may cause issues
+        # down the line because its repr differs from that of a builtin str
+        # in numpy>2 . See https://github.com/astropy/astropy/issues/17418
+        if isinstance(item, str) and type(item) is not str:
+            item = str(item)
+
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
         if isinstance(item, str) and item not in self.colnames:
@@ -2388,6 +2394,9 @@ class Table:
               1 0.1    a   x
               2 0.2    b   y
         """
+        if name is not None:
+            name = str(name)
+
         if default_name is None:
             default_name = f"col{len(self.columns)}"
 
