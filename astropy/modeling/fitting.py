@@ -1134,7 +1134,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         If the covariance matrix should be computed and set in the fit_info.
         Default: False
     use_min_max_bounds : bool
-        If the set parameter bounds for a model will be enforced each given
+        If set, the parameter bounds for a model will be enforced for each given
         parameter while fitting via a simple min/max condition.
         Default: True
     """
@@ -1555,7 +1555,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
         If the covariance matrix should be computed and set in the fit_info.
         Default: False
     use_min_max_bounds: bool
-        If the set parameter bounds for a model will be enforced each given
+        If set, the parameter bounds for a model will be enforced for each given
         parameter while fitting via a simple min/max condition. A True setting
         will replicate how LevMarLSQFitter enforces bounds.
         Default: False
@@ -2161,7 +2161,7 @@ def fitter_to_model_params_array(
     fps :
         The fit parameter values to be assigned
     use_min_max_bounds: bool
-        If the set parameter bounds for model will be enforced on each
+        If set, the parameter bounds for the model will be enforced on each
         parameter with bounds.
         Default: True
     """
@@ -2235,7 +2235,7 @@ def fitter_to_model_params(model, fps, use_min_max_bounds=True):
     fps :
         The fit parameter values to be assigned
     use_min_max_bounds: bool
-        If the set parameter bounds for model will be enforced on each
+        If set, the parameter bounds for the model will be enforced on each
         parameter with bounds.
         Default: True
     """
