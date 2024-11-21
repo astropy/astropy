@@ -1,4 +1,0 @@
-Added ``inplace=False/True`` keyword argument to the ``__call__`` method of most fitters,
-to optionally allow the original model passed to the fitter to be modified with the fitted
-values of the parameters, rather than return a copy. This can improve performance if users
-don't need to keep hold of the initial parameter values.

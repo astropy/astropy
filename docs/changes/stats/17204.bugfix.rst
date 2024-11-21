@@ -1,4 +1,0 @@
-Fixed accuracy of sigma clipping for large ``float32`` arrays when
-``bottleneck`` is installed. Performance may be impacted for computations
-involving arrays with dtype other than ``float64``. This change has no impact
-for environments that do not have ``bottleneck`` installed.

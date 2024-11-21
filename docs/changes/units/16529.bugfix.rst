@@ -1,1 +1,0 @@
-Allow SI-prefixes for radioactivity units ``becquerel`` and ``curie`` in ``astropy.units.si``, conforming to BIPM's guidelines for SI units.

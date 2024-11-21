@@ -1,2 +1,0 @@
-Parsing strings representing non-composite units with ``Unit`` is now up to 25%
-faster.

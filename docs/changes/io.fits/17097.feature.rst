@@ -1,2 +1,0 @@
-Expanded ``FITSDiff`` output for ``PrimaryHDU`` and ``ImageHDU`` to include the
-maximum relative and absolute differences in the data.

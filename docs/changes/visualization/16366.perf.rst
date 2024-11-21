@@ -1,4 +1,0 @@
-Removed redundant transformations when WCSAxes determines the coordinate ranges
-for ticks/gridlines, which speeds up typical plot generation by ~10%, and by
-much more if ``astropy.visualization.wcsaxes.conf.coordinate_range_samples`` is
-set to a large value

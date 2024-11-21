@@ -1,2 +1,0 @@
-Converting composite units to strings with the ``"cds"``, ``"fits"``,
-``"ogip"`` and ``"vounit"`` formatters is now at least twice as fast.

@@ -1,1 +1,0 @@
-Added the ability to specify a callable function in ``CoordinateHelper.set_major_formatter``

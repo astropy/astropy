@@ -1,2 +1,0 @@
-For ``Masked`` initialization in which a mask is passed in, ensure that that
-mask is combined with any mask present on the input.

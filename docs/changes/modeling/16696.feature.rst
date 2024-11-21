@@ -1,3 +1,0 @@
-Added a new ``parallel_fit_dask`` function that can be used to fit models to
-many sections (e.g. spectra, image slices) on an N-dimensional array in
-parallel.

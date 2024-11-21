@@ -1,7 +1,0 @@
-Always use ``MaskedQuantity`` in ``QTable`` to represent masked ``Quantity``
-data or when the ``QTable`` is created with ``masked=True``.  Previously the
-default was to use a normal ``Quantity`` with a ``mask`` attribute of type
-``FalseArray`` as a stub to allow a minimal level of compatibility for certain
-operations. This update brings more consistent behavior and fixes functions
-like reading of table data from a list of dict that includes quantities with
-missing entries, and aggregation of ``MaskedQuantity`` in table groups.

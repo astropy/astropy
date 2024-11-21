@@ -1,4 +1,0 @@
-The performance of biweight_location, biweight_scale,
-biweight_midvariance, and median_absolute_deviation has been improved by
-using the bottleneck nan* functions when available. This requires the
-bottleneck optional dependency to be installed.

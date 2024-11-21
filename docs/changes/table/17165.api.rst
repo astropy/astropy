@@ -1,5 +1,0 @@
-``show_in_notebook`` method for Astropy tables has been un-deprecated and the API has
-been updated to accept a ``backend`` keyword and require only keyword arguments. The new
-default ``backend="ipydatagrid"`` relies on an optional dependency, ``ipydatagrid``. The
-previous default table viewer (prior to v7.0) is still available as
-``backend="classic"``, but it has been deprecated since v6.1 and will be removed in a future release.

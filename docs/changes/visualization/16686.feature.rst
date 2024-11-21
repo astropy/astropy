@@ -1,2 +1,0 @@
-Added ``get_ticks_position``, ``get_ticklabel_position``, and
-``get_axislabel_position`` methods on ``CoordinateHelper`` in WCSAxes.
