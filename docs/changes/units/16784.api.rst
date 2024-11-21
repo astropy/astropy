@@ -1,2 +1,0 @@
-Added a __round__() dunder method to ``Quantity``
-in order to support the built-in round() function.

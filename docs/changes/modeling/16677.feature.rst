@@ -1,3 +1,0 @@
-Added ``Model.has_tied``, ``Model.has_fixed``, and ``Model.has_bounds`` attributes to make
-it easy to check whether models have various kinds of constraints set without having to
-inspect ``Model.tied``, ``Model.fixed``, and ``Model.bounds`` in detail.

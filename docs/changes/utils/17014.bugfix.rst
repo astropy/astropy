@@ -1,4 +1,0 @@
-For ``Masked`` instances, ``np.put``, ``np.putmask``, ``np.place`` and
-``np.copyto`` can now handle putting/copying not just ``np.ma.masked`` but
-also ``np.ma.nomask``; for both cases, only the mask of the relevant entries
-will be set.

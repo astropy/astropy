@@ -1,1 +1,0 @@
-Fix a bug where column names would be lost when instantiating ``Table`` from a list of ``Row`` objects.

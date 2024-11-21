@@ -1,3 +1,0 @@
-Making the "votable.parquet" format available as a reader format to ensure
-consistency with the writer formats, even though the format it recognised
-automatically by "votable".

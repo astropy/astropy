@@ -1,4 +1,0 @@
-The optional ``use_min_max_bounds`` keyword argument in ``TRFLSQFitter`` and
-``DogBoxLSQFitter`` has now been deprecated and should not be used. These
-fitters handle bounds correctly by default and this keyword argument was only
-provided to opt-in to a more basic form of bounds handling.

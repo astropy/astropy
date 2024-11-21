@@ -1,3 +1,0 @@
-Explicitly set ``usedforsecurity=False`` when using ``hashlib.md5``. Without this, ``hashlib.md5`` will be blocked in FIPS mode.
-FIPS (Federal Information Processing Standards) is a set of standards created by NIST (National Institute of Standards and Technology) for US government agencies regarding computer security and interoperability.
-This affects download caching.

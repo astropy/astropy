@@ -1,3 +1,0 @@
-Added support for calling numpy array constructors (``np.require``,
-``np.identity``, ``np.eye``, ``np.tri``, ``np.genfromtxt`` and ``np.loadtxt``)
-with ``like=Quantity(...))`` .
