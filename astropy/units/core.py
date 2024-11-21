@@ -11,7 +11,6 @@ import operator
 import textwrap
 import warnings
 from functools import cached_property
-from itertools import pairwise
 from threading import RLock
 from typing import TYPE_CHECKING
 
@@ -1445,24 +1444,19 @@ class UnitBase:
         else:
             units = filter_units(_flatten_units_collection(units))
 
-        results = self._compose(
-            equivalencies=equivalencies,
-            namespace=units,
-            max_depth=max_depth,
-            depth=0,
-            cached_results={},
-        )
-
-        if not results:
-            return []
-
         # Sort the results so the simplest ones appear first.
         # Simplest is defined as "the minimum sum of absolute
         # powers" (i.e. the fewest bases), and preference should
         # be given to results where the sum of powers is positive
         # and the scale is exactly equal to 1.0
-        results = sorted(
-            results,
+        return sorted(
+            self._compose(
+                equivalencies=equivalencies,
+                namespace=units,
+                max_depth=max_depth,
+                depth=0,
+                cached_results={},
+            ),
             key=lambda x: (
                 not is_effectively_unity(x.scale),
                 sum(x.powers) < 0.0,
@@ -1470,12 +1464,6 @@ class UnitBase:
                 abs(x.scale),
             ),
         )
-
-        return [results[0]] + [
-            x2
-            for (_, x1_str), (x2, x2_str) in pairwise((x, str(x)) for x in results)
-            if x1_str != x2_str
-        ]
 
     def to_system(self, system):
         """Convert this unit into ones belonging to the given system.
