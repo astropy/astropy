@@ -26,6 +26,16 @@ __all__ = ["WCSAxes", "WCSAxesSubplot"]
 
 VISUAL_PROPERTIES = ["facecolor", "edgecolor", "linewidth", "alpha", "linestyle"]
 
+if HAS_PIL:
+    from PIL.Image import Image
+
+    if minversion("PIL", "9.1"):
+        from PIL.Image import Transpose
+
+        FLIP_TOP_BOTTOM = Transpose.FLIP_TOP_BOTTOM
+    else:
+        from PIL.Image import FLIP_TOP_BOTTOM
+
 
 class _WCSAxesArtist(Artist):
     """This is a dummy artist to enforce the correct z-order of axis ticks,
@@ -220,18 +230,8 @@ class WCSAxes(Axes):
         elif origin == "upper":
             raise ValueError("Cannot use images with origin='upper' in WCSAxes.")
 
-        if HAS_PIL:
-            from PIL.Image import Image
-
-            if minversion("PIL", "9.1"):
-                from PIL.Image import Transpose
-
-                FLIP_TOP_BOTTOM = Transpose.FLIP_TOP_BOTTOM
-            else:
-                from PIL.Image import FLIP_TOP_BOTTOM
-
-            if isinstance(X, Image) or hasattr(X, "getpixel"):
-                X = X.transpose(FLIP_TOP_BOTTOM)
+        if HAS_PIL and (isinstance(X, Image) or hasattr(X, "getpixel")):
+            X = X.transpose(FLIP_TOP_BOTTOM)
 
         return super().imshow(X, *args, origin=origin, **kwargs)
 
