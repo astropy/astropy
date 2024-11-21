@@ -1,1 +1,0 @@
-Added a new keyword ``pending_warning_type`` to ``deprecated`` decorator so downstream developers could customize the type of warning for pending deprecation state.

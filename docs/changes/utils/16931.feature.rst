@@ -1,2 +1,0 @@
-Add support for specifying files as ``pathlib.Path`` objects in ``IERS_A.read``
-and ``IERS_B.read``.

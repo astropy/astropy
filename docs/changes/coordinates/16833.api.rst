@@ -1,4 +1,0 @@
-For non-scalar frames without data, ``len(frame)`` will now return the first
-element of its ``shape``, just like for frames with data (or arrays more
-generally).  For scalar frames, a ``TypeError`` will be raised.  Both these
-instead of raising a ``ValueError`` stating the frame has no data.

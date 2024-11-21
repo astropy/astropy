@@ -1,2 +1,0 @@
-Improved the performance of ``parallel_fit_dask`` by avoiding unnecessary copies of the
-model inside the fitter.

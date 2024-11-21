@@ -1,6 +1,0 @@
-The ``CompImageHDU`` class has been refactored to inherit from ``ImageHDU``
-instead of ``BinTableHDU``. This change should be for the most part preserve the
-API, but any calls to ``isinstance(hdu, BinTableHDU)`` will now return ``False``
-if ``hdu`` is a ``CompImageHDU`` whereas before it would have returned ``True``.
-In addition, the ``uint`` keyword argument to ``CompImageHDU`` now defaults to
-``True`` for consistency with ``ImageHDU``.

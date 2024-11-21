@@ -1,1 +1,0 @@
-Added a SimpleNorm class to create a matplotlib normalization object.

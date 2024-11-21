@@ -1,2 +1,0 @@
-The deprecated ``Quantity.nansum()`` method has been removed.  Use
-``np.nansum`` instead.
