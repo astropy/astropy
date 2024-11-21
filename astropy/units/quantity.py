@@ -1900,9 +1900,10 @@ class Quantity(np.ndarray):
             try:
                 result = super().__array_function__(function, types, args, kwargs)
             except AttributeError as e:
+                # this exception handling becomes unneeded in numpy 2.2 (not NUMPY_LT_2_2)
+                # see https://github.com/numpy/numpy/issues/27500
                 if "_implementation" not in str(e):
                     raise
-                # numpy bug, see https://github.com/numpy/numpy/issues/27500
                 result = function(*args, **kwargs)
 
             # Fall through to return section
