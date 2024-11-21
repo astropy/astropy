@@ -1,2 +1,0 @@
-Support reading and writing of VOTable version 1.5, including the new
-``refposition`` attribute of ``COOSYS``.

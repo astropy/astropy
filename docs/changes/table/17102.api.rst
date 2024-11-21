@@ -1,3 +1,0 @@
-Setting an empty table to a scalar no longer raises an exception, but
-creates an empty column. This is to support cases where the number of
-elements in a table is not known in advance, and could be zero.

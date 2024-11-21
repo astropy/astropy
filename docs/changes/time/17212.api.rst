@@ -1,5 +1,0 @@
-``Time.ptp`` now properly emits a deprecation warning independently of NumPy's
-version. This method was previously deprecated in astropy 6.1, but the warning
-was not visible for users that had NumPy 1.x installed. Because of this, the
-warning message was updated to state that ``Time.ptp`` is deprecated since
-version 7.0 instead.

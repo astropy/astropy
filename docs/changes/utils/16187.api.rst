@@ -1,5 +1,0 @@
-``IERS_Auto.open()`` now always returns a table of type ``IERS_Auto`` that
-contains the combination of IERS-A and IERS-B data, even if automatic
-updating of the IERS-A file is disabled or if downloading the new file fails.
-Previously, under those conditions, it would return a table of a different type
-(``IERS_B``) with only IERS-B data.

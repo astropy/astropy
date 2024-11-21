@@ -1,3 +1,0 @@
-Added support for calling numpy array constructors (``np.frombuffer``,
-``np.fromfile``, ``np.fromiter``, ``np.fromstring`` and ``np.fromfunction``)
-with ``like=Quantity(...))`` .

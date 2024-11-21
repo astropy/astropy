@@ -1,4 +1,0 @@
-- Remove code that was deprecated in previous versions: ``_ExtensionHDU`` and
-  ``_NonstandardExtHDU``, ``(Bin)Table.update``, ``tile_size`` argument for
-  ``CompImageHDU``. Also specifying an invalid ``tile_shape`` now raises an
-  error.

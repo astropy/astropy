@@ -1,2 +1,0 @@
-The deprecated ``coordinates.get_moon()`` function has been removed. Use
-``coordinates.get_body("moon")`` instead.

@@ -1,4 +1,0 @@
-The ``CompImageHeader`` class is now deprecated, and headers on ``CompImageHDU``
-instances are now plain ``Header`` instances. If a reserved keyword is set on
-``CompImageHDU.header``, a warning will now be emitted at the point where the
-file is written rather than at the point where the keyword is set.

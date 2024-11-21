@@ -1,3 +1,0 @@
-Subclasses of ``_NonLinearLSQFitter``, so any subclasses of the public ``LevMarLSQFitter``, ``TRFLSQFitter``, ``LMLSQFitter`` or ``DogBoxLSQFitter``, should now accept an additional ``fit_param_indices`` kwarg in the function signature of their ``objective_function`` methods.
-Nothing is needed to be done with this kwarg, and it might not be set, but it can optionally be passed through to ``fitter_to_model_params_array`` for a performance improvement.
-We also recommended accepting all kwargs (with ``**kwargs``) in this method so that future additional kwargs do not cause breakage.

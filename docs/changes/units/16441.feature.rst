@@ -1,2 +1,0 @@
-Add the unit foe (or Bethe, equivalent to 1e51 erg), which is often used to
-express the energy emitted by a supernova explosion.

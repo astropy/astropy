@@ -1,3 +1,0 @@
-The ``get_format_name()`` method of ``NamedUnit`` and its subclasses is
-deprecated.
-The ``to_string()`` method can be used instead.

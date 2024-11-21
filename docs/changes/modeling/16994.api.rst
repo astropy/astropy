@@ -1,3 +1,0 @@
-Using the ``LMLSQFitter`` fitter with models that have bounds is now deprecated,
-as support for bounds was very basic. Instead, non-linear fitters with more
-sophisticated support for bounds should be used instead.

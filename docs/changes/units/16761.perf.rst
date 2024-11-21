@@ -1,1 +1,0 @@
-Parsing composite units with the OGIP formatter is now up to 25% faster.

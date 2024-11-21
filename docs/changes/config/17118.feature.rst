@@ -1,3 +1,0 @@
-Added ``get_config_dir_path`` (and ``get_cache_dir_path``) which is equivalent
-to ``get_config_dir`` (respectively ``get_cache_dir``) except that it returns a
-``pathlib.Path`` object instead of ``str``.

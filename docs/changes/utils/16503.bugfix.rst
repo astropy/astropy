@@ -1,3 +1,0 @@
-Ensure ``MaskedQuantity`` can be initialized with a list of masked
-quantities (as long as their shapes match), just like regular
-``Quantity`` and ``ndarray``.

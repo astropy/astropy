@@ -1,5 +1,0 @@
-Setting ``Ob0 = None`` in FLRW cosmologies has been deprecated in favor of ``Ob0 =
-0.0``. Conceptually this is a change in that baryons are now always a component of the
-cosmology. Practically, the only change (besides that ``Ob0`` is never ``None``) is that
-methods relying on ``Ob0`` always work, rather than sometimes raising an exception,
-instead by default taking the contribution of the baryons to be negligible.

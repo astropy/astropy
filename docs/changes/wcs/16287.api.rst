@@ -1,3 +1,0 @@
-Errors may now occur if a ``BaseLowLevelWCS`` class defines
-``world_axis_object_components`` which returns values that are not scalars or
-plain Numpy arrays as per APE 14.

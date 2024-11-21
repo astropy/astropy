@@ -1,2 +1,0 @@
-The HDF5 writer, ``write_table_hdf5()``, now accepts ``os.PathLike`` objects
-as ``output``.
