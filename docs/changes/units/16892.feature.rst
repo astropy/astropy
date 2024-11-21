@@ -1,5 +1,0 @@
-When parsing invalid unit strings with ``u.Unit(..., parse_strict="warn")`` or
-``u.Unit(..., parse_strict="silent")``, a normal unit may be returned if the
-problem is not too serious.
-If parsing the string fails completely then an ``UnrecognizedUnit`` instance is
-returned, just as before.

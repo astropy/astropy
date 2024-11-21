@@ -1,2 +1,0 @@
-The deprecated ``units.format.Unscaled`` has been removed. Use ``units.format.Generic``
-instead.

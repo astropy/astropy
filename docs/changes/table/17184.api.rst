@@ -1,6 +1,0 @@
-The default behavior of ``Table.pformat`` was changed to include all rows and columns
-instead of truncating the outputs to fit the current terminal.  The new default
-keyword arguments ``max_width=-1`` and ``max_lines=-1`` now match those in
-``Table.pformat_all``. Since the ``Table.pformat_all`` method is now redundant, it is
-pending deprecation. Similarly, the default behavior of ``Column.pformat`` was changed
-to include all rows instead of truncating the outputs to fit the current terminal.

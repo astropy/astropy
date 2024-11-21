@@ -1,1 +1,0 @@
-Added SI-units ``sievert``, ``gray``, ``katal``, and ``hectare`` in ``astropy.units.si``.

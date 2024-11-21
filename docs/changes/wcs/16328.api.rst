@@ -1,3 +1,0 @@
-``WCS.pixel_to_world_values``, ``WCS.world_to_pixel_values``,
-``WCS.pixel_to_world`` and ``WCS.world_to_pixel`` now correctly return NaN values for
-pixel positions that are outside of ``pixel_bounds``.

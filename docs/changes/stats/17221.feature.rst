@@ -1,2 +1,0 @@
-Added a SigmaClippedStats convenience class for computing sigma-clipped
-statistics.
