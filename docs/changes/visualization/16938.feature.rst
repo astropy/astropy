@@ -1,2 +1,0 @@
-Added the ability to disable the automatic simplification of WCSAxes tick labels
-by specifying ``simplify=False`` to ``set_ticklabel()`` for a coordinate axis.

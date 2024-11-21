@@ -1,7 +1,0 @@
-The OGIP unit parser now detects negative powers that are not enclosed in
-parenthesis.
-For example, ``u.Unit("s**-1", format="ogip")`` now raises an error because the
-OGIP standard expects the string to be written as ``"s**(-1)"`` instead, but it
-is still possible to parse the unit with
-``u.Unit("s**-1", format="ogip", parse_strict="warn")`` or
-``parse_strict="silent"``.

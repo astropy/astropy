@@ -1,2 +1,0 @@
-Integer inputs to ``sigma_clip`` and ``SigmaClip`` are not converted to
-``np.float32`` instead of ``float`` if necessary.

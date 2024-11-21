@@ -1,1 +1,0 @@
-The deprecated ``compat.override__dir__()`` utility has been removed.

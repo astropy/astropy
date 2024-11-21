@@ -1,2 +1,0 @@
-The deprecated ``comb()`` function has been removed.
-Use ``math.comb()`` from the Python standard library instead.

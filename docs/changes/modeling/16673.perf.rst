@@ -1,1 +1,0 @@
-Performance of most non-linear fitters has been significantly improved by reducing the overhead in evaluating models inside the objective function.

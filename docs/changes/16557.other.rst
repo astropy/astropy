@@ -1,1 +1,0 @@
-Update minimal recommendation for matplotlib from version 3.3.4 to 3.6.0

@@ -1,2 +1,0 @@
-The ``UnitBase.in_units()`` method is deprecated.
-The ``to()`` method can be used as a drop-in replacement.

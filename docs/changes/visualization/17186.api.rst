@@ -1,1 +1,0 @@
-The deprecated ``nsamples`` parameter of ``ZScaleInterval`` is removed.

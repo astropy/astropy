@@ -1,4 +1,0 @@
-The Contributor documentation has been significantly improved. It now includes a
-Quickstart Guide with concise instructions on setting up a development environment and
-making a pull request. In addition, the developer documentation was reorganized and
-simplified where possible to improve readability and accessibility.

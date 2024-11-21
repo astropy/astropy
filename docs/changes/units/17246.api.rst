@@ -1,4 +1,0 @@
-The ``eV`` and ``rydberg`` units were moved to ``astropy.units.misc`` (from
-``astropy.units.si`` and ``astropy.units.astrophys``, respectively).
-Practically, this means that ``Unit.to_system(u.si)`` no longer includes
-``eV`` as a SI-compatible unit.

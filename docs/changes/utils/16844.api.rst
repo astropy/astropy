@@ -1,4 +1,0 @@
-The ``utils.masked`` module has gained a mixin class, ``MaskableShapedLikeNDArray``,
-as well as two utility functions, ``get_data_and_mask`` and ``combine_masks``,
-that can help make a container classes carry masked data. Within astropy, these
-are now used in the implementation of masks for ``Time``.

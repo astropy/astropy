@@ -1,2 +1,0 @@
-``format_exception()`` is deprecated because it provides little benefit, if
-any, over normal Python tracebacks.

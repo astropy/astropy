@@ -1,2 +1,0 @@
-Fix an issue in sigma-clipping where the use of ``np.copy()`` was causing
-the input data mask to be discarded in cases where ``grow`` was set.

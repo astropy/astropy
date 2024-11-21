@@ -1,2 +1,0 @@
-Fix the broken behavior of reading an ASCII table and filling values using column names.
-This PR addresses the issue and improves the functionality.

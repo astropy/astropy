@@ -1,4 +1,0 @@
-Add a ``keep_order`` argument to the ``astropy.table.join`` function which specifies to
-maintain the original order of the key table in the joined output. This applies for
-inner, left, and right joins. The default is ``False`` in which case the output is
-ordered by the join keys, consistent with prior behavior.

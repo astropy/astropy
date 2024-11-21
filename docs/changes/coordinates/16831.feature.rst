@@ -1,5 +1,0 @@
-``BaseCoordinateFrame`` instances such as ``ICRS``, ``SkyOffsetFrame``, etc.,
-can now be stored directly in tables (previously, they were stored as
-``object`` type columns). Furthermore, storage in tables is now also possible
-for frames that have no data (but which have attributes with the correct shape
-to fit in the table).

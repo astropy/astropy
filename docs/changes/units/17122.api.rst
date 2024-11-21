@@ -1,7 +1,0 @@
-Unit conversions to a given system with ``unit.to_system()``,
-``unit.si``, and ``unit.cgs``, will now prefer the simplest unit if it
-is in the given system, rather than prioritizing more complicated
-units if those had a base unit component.  E.g., ``u.Pa.si`` will now
-simply return ``Unit("Pa")`` rather than ``Unit("N / m2")``.  However,
-the case where a unit can be simply described in base units remains
-unchanged: ``u.Gal.cgs`` will still give ``Unit("cm / s2")``.

@@ -1,1 +1,0 @@
-Removes the unintended NumPy export previously at ``astropy.visualization.np``.

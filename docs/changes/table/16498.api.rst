@@ -1,2 +1,0 @@
-Aggregating table groups for ``MaskedColumn`` no longer converts
-fully masked groups to ``NaN``, but instead returns a masked element.

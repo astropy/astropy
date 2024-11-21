@@ -1,3 +1,0 @@
-It is now possible to use ``Unit`` to create dimensionless units with a scale
-factor that is a complex number or a ``fractions.Fraction`` instance.
-It was already possible to create such units directly with ``CompositeUnit``.

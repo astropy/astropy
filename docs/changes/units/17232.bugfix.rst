@@ -1,6 +1,0 @@
-Parsing custom units with ``u.Unit()`` using the ``"vounit"`` format now obeys
-the ``parse_strict`` parameter, unless the custom units are made explicit with
-quotation marks.
-For example, ``u.Unit("custom_unit", format="vounit")`` now raises an error,
-but ``u.Unit("custom_unit", format="vounit", parse_strict="silent")`` or
-``u.Unit("'custom_unit'", format="vounit")`` do not.

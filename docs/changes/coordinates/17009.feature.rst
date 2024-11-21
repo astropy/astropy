@@ -1,2 +1,0 @@
-``BaseCoordinateFrame`` now has a ``to_table()`` method, which converts the
-frame to a ``QTable``, analogously to the ``SkyCoord.to_table()`` method.

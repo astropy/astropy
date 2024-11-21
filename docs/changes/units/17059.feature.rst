@@ -1,2 +1,0 @@
-Added a ``np.arange`` dispatch for ``Quantity`` (requires one to use
-``like=<some_quantity>``).
