@@ -10,7 +10,6 @@ from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
 from astropy.coordinates import BaseCoordinateFrame, SkyCoord
-from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_PIL
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
@@ -27,14 +26,7 @@ __all__ = ["WCSAxes", "WCSAxesSubplot"]
 VISUAL_PROPERTIES = ["facecolor", "edgecolor", "linewidth", "alpha", "linestyle"]
 
 if HAS_PIL:
-    from PIL.Image import Image
-
-    if minversion("PIL", "9.1"):
-        from PIL.Image import Transpose
-
-        FLIP_TOP_BOTTOM = Transpose.FLIP_TOP_BOTTOM
-    else:
-        from PIL.Image import FLIP_TOP_BOTTOM
+    from PIL.Image import Image, Transpose
 
 
 class _WCSAxesArtist(Artist):
@@ -231,7 +223,7 @@ class WCSAxes(Axes):
             raise ValueError("Cannot use images with origin='upper' in WCSAxes.")
 
         if HAS_PIL and (isinstance(X, Image) or hasattr(X, "getpixel")):
-            X = X.transpose(FLIP_TOP_BOTTOM)
+            X = X.transpose(Transpose.FLIP_TOP_BOTTOM)
 
         return super().imshow(X, *args, origin=origin, **kwargs)
 
