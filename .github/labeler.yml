@@ -71,7 +71,7 @@ installation:
 Release:
 - changed-files:
   - any-glob-to-any-file:
-    - docs/development/releasing.rst
+    - docs/development/maintainers/releasing.rst
     - .github/workflows/publish.yml
 
 config:

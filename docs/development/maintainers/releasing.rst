@@ -258,9 +258,8 @@ branch trigger a build with Github Actions, e.g.::
       branches:
       - v6.1.x
 
-You also need to activate builds on the release branch for ReadTheDocs. Go to
-`RTD's Settings <https://readthedocs.org/projects/astropy/versions/>`_ and check
-"Activate" and "Hidden" for the new release branch.
+Go to `RTD's Settings <https://readthedocs.org/projects/astropy/versions/>`_ and check
+"Activate" and "Hidden" for the new release branch, which should be activated automatically.
 
 Make sure that the continuous integration services (e.g., GitHub Actions or CircleCI) are passing
 for the `astropy core repository`_ branch you are going to release.
