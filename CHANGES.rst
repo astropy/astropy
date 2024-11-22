@@ -1,3 +1,15 @@
+Version 6.1.7 (2024-11-22)
+==========================
+
+Bug Fixes
+---------
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Fix an issue in sigma-clipping where the use of ``np.copy()`` was causing
+  the input data mask to be discarded in cases where ``grow`` was set. [#17402]
+
 Version 6.1.6 (2024-11-11)
 ==========================
 
