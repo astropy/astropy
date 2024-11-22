@@ -130,6 +130,10 @@ The procedure for the feature freeze is as follows:
    https://github.com/astropy/astropy/wiki/Release-Calendar with the current
    date for this version's feature freeze.
 
+#. Go to `RTD's Settings <https://readthedocs.org/projects/astropy/versions/>`_
+   and check "Activate" and "Hidden" for the new release branch, which should be
+   activated automatically.
+
 #. Inform the Astropy developer community that the branching has occurred.
 
 #. Once the feature freeze has happened, you should go through the PRs labeled
@@ -246,20 +250,6 @@ the release branch.
 
 Ensure continuous integration and intensive tests pass
 ------------------------------------------------------
-
-Update ``.github/workflows/ci_workflows.yml`` so that pushes on the release
-branch trigger a build with Github Actions, e.g.::
-
-  on:
-    push:
-      branches:
-      - v6.1.x
-    pull_request:
-      branches:
-      - v6.1.x
-
-Go to `RTD's Settings <https://readthedocs.org/projects/astropy/versions/>`_ and check
-"Activate" and "Hidden" for the new release branch, which should be activated automatically.
 
 Make sure that the continuous integration services (e.g., GitHub Actions or CircleCI) are passing
 for the `astropy core repository`_ branch you are going to release.
@@ -428,11 +418,9 @@ clean-up tasks to finalize the process.
 Post-Release procedures
 -----------------------
 
-#. Make sure that ReadTheDocs is building the documentation for the version you just released.
-   You'll find this in the "Versions" tab -- click on "Edit" for the tag you
-   just released, and make sure that "Active" is checked. Also verify that the
-   ``stable`` ReadTheDocs version builds correctly for the new version (it
-   should trigger automatically once you've done the previous step).
+#. Make sure that ReadTheDocs is building the documentation for the version you
+   just released.  Also verify that the ``stable`` ReadTheDocs version builds
+   correctly for the new version (both should trigger automatically).
 
 #. When releasing a patch release, also set the previous RTD version in the
    release history to "Hidden".  For example when releasing v6.0.2, set
