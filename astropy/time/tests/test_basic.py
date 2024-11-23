@@ -2523,12 +2523,12 @@ def test_ymdhms_init_from_dict_scalar(kwargs):
     tm = Time(time_dict, **kwargs)
 
     assert tm == Time("2016-12-31T23:59:60.123456789")
-    for attr in time_dict:
+    for attr, expected in time_dict.items():
         for value in (tm.value[attr], getattr(tm.value, attr)):
             if attr == "second":
-                assert allclose_sec(time_dict[attr], value)
+                assert allclose_sec(value, expected)
             else:
-                assert time_dict[attr] == value
+                assert value == expected
 
     # Now test initializing from a YMDHMS format time using the object
     tm_rt = Time(tm)
