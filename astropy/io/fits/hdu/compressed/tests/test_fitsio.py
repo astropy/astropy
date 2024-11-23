@@ -104,7 +104,7 @@ def base_original_data(data_shape, dtype, numpy_rng, compression_type):
     random.ravel()[0] = 0.0
     # There seems to be a bug with the fitsio library where HCOMPRESS doesn't
     # work with int16 random data, so use a bit for structured test data.
-    if compression_type.startswith("HCOMPRESS") and "i2" in dtype or "u1" in dtype:
+    if (compression_type.startswith("HCOMPRESS") and "i2" in dtype) or "u1" in dtype:
         random = np.arange(np.prod(data_shape)).reshape(data_shape)
     return random.astype(dtype)
 

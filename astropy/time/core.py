@@ -1825,11 +1825,8 @@ class TimeBase(MaskableShapedLikeNDArray):
                 # Let other have a go.
                 return NotImplemented
 
-        if (
-            self.scale is not None
-            and self.scale not in other.SCALES
-            or other.scale is not None
-            and other.scale not in self.SCALES
+        if (self.scale is not None and self.scale not in other.SCALES) or (
+            other.scale is not None and other.scale not in self.SCALES
         ):
             # Other will also not be able to do it, so raise a TypeError
             # immediately, allowing us to explain why it doesn't work.
@@ -3010,11 +3007,8 @@ class TimeDelta(TimeBase):
                 return NotImplemented
 
         # the scales should be compatible (e.g., cannot convert TDB to TAI)
-        if (
-            self.scale is not None
-            and self.scale not in other.SCALES
-            or other.scale is not None
-            and other.scale not in self.SCALES
+        if (self.scale is not None and self.scale not in other.SCALES) or (
+            other.scale is not None and other.scale not in self.SCALES
         ):
             raise TypeError(
                 "Cannot add TimeDelta instances with scales "
