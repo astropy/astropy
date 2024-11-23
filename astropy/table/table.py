@@ -2084,10 +2084,8 @@ class Table:
         ):
             # If item is an empty array/list/tuple then return the table with no rows
             return self._new_from_slice([])
-        elif (
-            isinstance(item, (slice, np.ndarray, list))
-            or isinstance(item, tuple)
-            and all(isinstance(x, np.ndarray) for x in item)
+        elif isinstance(item, (slice, np.ndarray, list)) or (
+            isinstance(item, tuple) and all(isinstance(x, np.ndarray) for x in item)
         ):
             # here for the many ways to give a slice; a tuple of ndarray
             # is produced by np.where, as in t[np.where(t['a'] > 2)]
@@ -2123,10 +2121,8 @@ class Table:
             elif isinstance(item, (int, np.integer)):
                 self._set_row(idx=item, colnames=self.colnames, vals=value)
 
-            elif (
-                isinstance(item, (slice, np.ndarray, list))
-                or isinstance(item, tuple)
-                and all(isinstance(x, np.ndarray) for x in item)
+            elif isinstance(item, (slice, np.ndarray, list)) or (
+                isinstance(item, tuple) and all(isinstance(x, np.ndarray) for x in item)
             ):
                 if isinstance(value, Table):
                     vals = (col for col in value.columns.values())

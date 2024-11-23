@@ -301,11 +301,8 @@ class TimeFormat:
         elif val1.size == 0:
             isfinite1 = False
         ok1 = (
-            val1.dtype.kind == "f"
-            and val1.dtype.itemsize >= 8
-            and isfinite1
-            or val1.size == 0
-        )
+            val1.dtype.kind == "f" and val1.dtype.itemsize >= 8 and isfinite1
+        ) or val1.size == 0
         ok2 = (
             val2 is None
             or (
@@ -2455,7 +2452,7 @@ def _validate_jd_for_storage(jd):
     if isinstance(jd, (float, int)):
         return np.array(jd, dtype=float)
     if isinstance(jd, np.generic) and (
-        jd.dtype.kind == "f" and jd.dtype.itemsize <= 8 or jd.dtype.kind in "iu"
+        (jd.dtype.kind == "f" and jd.dtype.itemsize <= 8) or jd.dtype.kind in "iu"
     ):
         return np.array(jd, dtype=float)
     elif isinstance(jd, np.ndarray) and jd.dtype.kind == "f" and jd.dtype.itemsize == 8:
