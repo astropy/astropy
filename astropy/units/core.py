@@ -634,7 +634,7 @@ class UnitBase:
 
     # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
     # arrays to avoid element-wise multiplication.
-    __array_priority__: Final[Literal[1000]] = 1000
+    __array_priority__: Final = 1000
 
     def __deepcopy__(self, memo: dict[int, Any] | None) -> Self:
         # This may look odd, but the units conversion will be very
