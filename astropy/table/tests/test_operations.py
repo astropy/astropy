@@ -44,7 +44,7 @@ def check_cols_equal(col1, col2):
         or (isinstance(col2, Masked) and type(col2) is Masked(type(col1)))
     )
     eq = np.all(col1 == col2)
-    return eq or isinstance(eq, Masked) and not eq.shape and eq.unmasked
+    return eq or (isinstance(eq, Masked) and not eq.shape and eq.unmasked)
 
 
 def check_mask(col, exp_mask):

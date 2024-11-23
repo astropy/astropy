@@ -798,7 +798,7 @@ def _masked_quantile(a, q, axis=None, out=None, **kwargs):
 def _preprocess_quantile(a, q, axis=None, out=None, **kwargs):
     from astropy.utils.masked import Masked
 
-    if isinstance(q, Masked) or out is not None and not isinstance(out, Masked):
+    if isinstance(q, Masked) or (out is not None and not isinstance(out, Masked)):
         raise NotImplementedError
 
     a = Masked(a)
