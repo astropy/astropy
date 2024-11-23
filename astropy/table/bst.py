@@ -107,7 +107,7 @@ class Node:
     __ge__ = lambda x, y: x.key >= y.key
     __gt__ = lambda x, y: x.key > y.key
     __ne__ = lambda x, y: x.key != y.key
-    __slots__ = ("key", "data", "left", "right")
+    __slots__ = ("data", "key", "left", "right")
 
     # each node has a key and data list
     def __init__(self, key, data):
