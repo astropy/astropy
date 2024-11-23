@@ -12,25 +12,21 @@ if __name__ == "__main__":
             f"\n{ndims}-dimensional arrays ('n' is the size of the image AND "
             "the kernel)"
         )
-        print(" ".join(["%17s" % n for n in ("n", "convolve", "convolve_fft")]))
+        print(" ".join([f"{n:>17}" for n in ("n", "convolve", "convolve_fft")]))
 
         for ii in range(3, max_exponents_fft[ndims]):
             # array = np.random.random([2**ii]*ndims)
             # test ODD sizes too
             if ii < max_exponents_fft[ndims]:
-                setup = """
-import numpy as np
-from astropy.convolution.convolve import convolve
-from astropy.convolution.convolve import convolve_fft
-array = np.random.random([%i]*%i)
-kernel = np.random.random([%i]*%i)""" % (
-                    2**ii - 1,
-                    ndims,
-                    2**ii - 1,
-                    ndims,
+                setup = (
+                    "import numpy as np\n"
+                    "from astropy.convolution.convolve import convolve\n"
+                    "from astropy.convolution.convolve import convolve_fft\n"
+                    f"array = np.random.random([{2**ii - 1}]*{ndims})\n"
+                    f"kernel = np.random.random([{2**ii - 1}]*{ndims})\n"
                 )
 
-                print("%16i:" % (int(2**ii - 1)), end=" ")
+                print(f"{int(2**ii - 1):>16}:", end=" ")
 
                 if ii <= max_exponents_linear[ndims]:
                     for convolve_type, extra in zip(
@@ -45,7 +41,7 @@ kernel = np.random.random([%i]*%i)""" % (
                         )
                         print(f"{besttime:17f}", end=" ")
                 else:
-                    print("%17s" % "skipped", end=" ")
+                    print(f"{'skipped':>17}", end=" ")
                     statement = "convolve_fft(array, kernel, boundary='fill')"
                     besttime = min(
                         timeit.Timer(stmt=statement, setup=setup).repeat(3, 10)
@@ -54,19 +50,15 @@ kernel = np.random.random([%i]*%i)""" % (
 
                 print()
 
-            setup = """
-import numpy as np
-from astropy.convolution.convolve import convolve
-from astropy.convolution.convolve import convolve_fft
-array = np.random.random([%i]*%i)
-kernel = np.random.random([%i]*%i)""" % (
-                2**ii,
-                ndims,
-                2**ii,
-                ndims,
+            setup = (
+                "import numpy as np\n"
+                "from astropy.convolution.convolve import convolve\n"
+                "from astropy.convolution.convolve import convolve_fft\n"
+                f"array = np.random.random([{2**ii}]*{ndims})\n"
+                f"kernel = np.random.random([{2**ii}]*{ndims})\n"
             )
 
-            print("%16i:" % (int(2**ii)), end=" ")
+            print(f"{int(2**ii)}:>16", end=" ")
 
             if ii <= max_exponents_linear[ndims]:
                 for convolve_type in (
@@ -75,7 +67,7 @@ kernel = np.random.random([%i]*%i)""" % (
                 ):
                     # convolve doesn't allow even-sized kernels
                     if convolve_type == "":
-                        print("%17s" % "-", end=" ")
+                        print(f"{'-':>17}", end=" ")
                     else:
                         statement = (
                             f"convolve{convolve_type}(array, kernel, boundary='fill')"
@@ -85,7 +77,7 @@ kernel = np.random.random([%i]*%i)""" % (
                         )
                         print(f"{besttime:17f}", end=" ")
             else:
-                print("%17s" % "skipped", end=" ")
+                print(f"{'skipped':>17}", end=" ")
                 statement = "convolve_fft(array, kernel, boundary='fill')"
                 besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                 print(f"{besttime:17f}", end=" ")
