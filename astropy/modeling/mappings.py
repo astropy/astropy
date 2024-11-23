@@ -8,7 +8,7 @@ from astropy.units import Quantity
 
 from .core import FittableModel, Model
 
-__all__ = ["Mapping", "Identity", "UnitsMapping"]
+__all__ = ["Identity", "Mapping", "UnitsMapping"]
 
 
 class Mapping(FittableModel):

@@ -33,11 +33,11 @@ from .function_helpers import (
 )
 
 __all__ = [
-    "Masked",
     "MaskableShapedLikeNDArray",
+    "Masked",
     "MaskedNDArray",
-    "get_data_and_mask",
     "combine_masks",
+    "get_data_and_mask",
 ]
 
 

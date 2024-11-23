@@ -19,8 +19,8 @@ __all__ = [
     "assert_follows_unicode_guidelines",
     "assert_quantity_allclose",
     "check_pickling_recovery",
-    "pickle_protocol",
     "generic_recursive_equality_test",
+    "pickle_protocol",
 ]
 
 PYTEST_LT_8_0 = not minversion(pytest, "8.0")

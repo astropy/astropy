@@ -16,7 +16,7 @@ from astropy.visualization.stretch import _prepare as _stretch_prepare
 
 from .basic_rgb import RGBImageMapping
 
-__all__ = ["make_lupton_rgb", "LuptonAsinhStretch", "LuptonAsinhZscaleStretch"]
+__all__ = ["LuptonAsinhStretch", "LuptonAsinhZscaleStretch", "make_lupton_rgb"]
 
 
 def compute_intensity(image_r, image_g=None, image_b=None):

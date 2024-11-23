@@ -20,7 +20,7 @@ from astropy.utils.compat import COPY_IF_NEEDED
 
 from .utils import array_repr_oneline, get_inputs_and_params
 
-__all__ = ["Parameter", "InputParameterError", "ParameterError"]
+__all__ = ["InputParameterError", "Parameter", "ParameterError"]
 
 
 class ParameterError(Exception):

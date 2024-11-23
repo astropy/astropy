@@ -43,9 +43,9 @@ if TYPE_CHECKING:
 
 __all__ = [
     "Quantity",
-    "SpecificTypeQuantity",
-    "QuantityInfoBase",
     "QuantityInfo",
+    "QuantityInfoBase",
+    "SpecificTypeQuantity",
     "allclose",
     "isclose",
 ]

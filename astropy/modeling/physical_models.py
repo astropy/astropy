@@ -15,7 +15,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
 
-__all__ = ["BlackBody", "Drude1D", "Plummer1D", "NFW"]
+__all__ = ["NFW", "BlackBody", "Drude1D", "Plummer1D"]
 
 
 class BlackBody(Fittable1DModel):

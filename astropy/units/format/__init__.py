@@ -29,14 +29,14 @@ from .unicode_format import Unicode
 from .vounit import VOUnit
 
 __all__ = [
-    "Base",
-    "Generic",
     "CDS",
-    "Console",
     "FITS",
+    "OGIP",
+    "Base",
+    "Console",
+    "Generic",
     "Latex",
     "LatexInline",
-    "OGIP",
     "Unicode",
     "VOUnit",
     "get_format",

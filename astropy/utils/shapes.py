@@ -22,10 +22,10 @@ else:
     from numpy.lib.array_utils import normalize_axis_index
 
 __all__ = [
+    "IncompatibleShapeError",
     "NDArrayShapeMethods",
     "ShapedLikeNDArray",
     "check_broadcast",
-    "IncompatibleShapeError",
     "simplify_basic_index",
     "unbroadcast",
 ]

@@ -22,14 +22,14 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 __all__ = [
+    "circcorrcoef",
     "circmean",
+    "circmoment",
     "circstd",
     "circvar",
-    "circmoment",
-    "circcorrcoef",
     "rayleightest",
-    "vtest",
     "vonmisesmle",
+    "vtest",
 ]
 __doctest_requires__ = {"vtest": ["scipy"]}
 

@@ -65,7 +65,7 @@ if TYPE_CHECKING:
 
 # TODO: implement other fitness functions from appendix C of Scargle 2013
 
-__all__ = ["FitnessFunc", "Events", "RegularEvents", "PointMeasures", "bayesian_blocks"]
+__all__ = ["Events", "FitnessFunc", "PointMeasures", "RegularEvents", "bayesian_blocks"]
 
 
 def bayesian_blocks(

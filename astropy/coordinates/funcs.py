@@ -26,11 +26,11 @@ from .sky_coordinate import SkyCoord
 
 __all__ = [
     "cartesian_to_spherical",
-    "spherical_to_cartesian",
-    "get_sun",
-    "get_constellation",
-    "concatenate_representations",
     "concatenate",
+    "concatenate_representations",
+    "get_constellation",
+    "get_sun",
+    "spherical_to_cartesian",
 ]
 
 

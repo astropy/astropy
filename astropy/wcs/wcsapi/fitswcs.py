@@ -20,7 +20,7 @@ from .high_level_api import HighLevelWCSMixin
 from .low_level_api import BaseLowLevelWCS
 from .wrappers import SlicedLowLevelWCS
 
-__all__ = ["custom_ctype_to_ucd_mapping", "SlicedFITSWCS", "FITSWCSAPIMixin"]
+__all__ = ["FITSWCSAPIMixin", "SlicedFITSWCS", "custom_ctype_to_ucd_mapping"]
 
 C_SI = c.si.value
 

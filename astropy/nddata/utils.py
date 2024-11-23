@@ -16,13 +16,13 @@ from astropy.wcs import Sip
 from astropy.wcs.utils import proj_plane_pixel_scales, skycoord_to_pixel
 
 __all__ = [
-    "extract_array",
-    "add_array",
-    "subpixel_indices",
-    "overlap_slices",
+    "Cutout2D",
     "NoOverlapError",
     "PartialOverlapError",
-    "Cutout2D",
+    "add_array",
+    "extract_array",
+    "overlap_slices",
+    "subpixel_indices",
 ]
 
 

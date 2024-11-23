@@ -50,16 +50,16 @@ from .utils import (
 )
 
 __all__ = [
-    "Model",
-    "FittableModel",
+    "CompoundModel",
     "Fittable1DModel",
     "Fittable2DModel",
-    "CompoundModel",
-    "fix_inputs",
-    "custom_model",
+    "FittableModel",
+    "Model",
     "ModelDefinitionError",
     "bind_bounding_box",
     "bind_compound_bounding_box",
+    "custom_model",
+    "fix_inputs",
 ]
 
 
