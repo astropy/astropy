@@ -17,14 +17,14 @@ from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from .core import FunctionQuantity, FunctionUnitBase
 
 __all__ = [
+    "Decibel",
+    "DecibelUnit",
+    "Dex",
+    "DexUnit",
+    "LogQuantity",
     "LogUnit",
     "MagUnit",
-    "DexUnit",
-    "DecibelUnit",
-    "LogQuantity",
     "Magnitude",
-    "Decibel",
-    "Dex",
 ]
 
 

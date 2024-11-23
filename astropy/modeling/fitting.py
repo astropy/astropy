@@ -46,22 +46,22 @@ from .statistic import leastsquare
 from .utils import _combine_equivalency_dict, poly_map_domain
 
 __all__ = [
-    "LinearLSQFitter",
-    "LevMarLSQFitter",
-    "TRFLSQFitter",
     "DogBoxLSQFitter",
-    "LMLSQFitter",
-    "FittingWithOutlierRemoval",
-    "SLSQPLSQFitter",
-    "SimplexLSQFitter",
-    "JointFitter",
     "Fitter",
+    "FittingWithOutlierRemoval",
+    "JointFitter",
+    "LMLSQFitter",
+    "LevMarLSQFitter",
+    "LinearLSQFitter",
     "ModelLinearityError",
     "ModelsError",
+    "SLSQPLSQFitter",
+    "SimplexLSQFitter",
     "SplineExactKnotsFitter",
     "SplineInterpolateFitter",
     "SplineSmoothingFitter",
     "SplineSplrepFitter",
+    "TRFLSQFitter",
     "parallel_fit_dask",
 ]
 

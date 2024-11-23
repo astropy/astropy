@@ -6,9 +6,9 @@ used internally in ``astropy.coordinates.angles``, and of possible use externall
 
 __all__ = [
     "angular_separation",
-    "position_angle",
-    "offset_by",
     "golden_spiral_grid",
+    "offset_by",
+    "position_angle",
     "uniform_spherical_random_surface",
     "uniform_spherical_random_volume",
 ]

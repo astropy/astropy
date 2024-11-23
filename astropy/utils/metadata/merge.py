@@ -13,9 +13,9 @@ from .utils import common_dtype
 
 __all__ = [
     "MERGE_STRATEGIES",
-    "MergeStrategy",
-    "MergePlus",
     "MergeNpConcatenate",
+    "MergePlus",
+    "MergeStrategy",
     "enable_merge_strategies",
     "merge",
 ]

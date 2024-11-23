@@ -12,10 +12,10 @@ import numpy as np
 from .transform import BaseTransform
 
 __all__ = [
+    "AsymmetricPercentileInterval",
     "BaseInterval",
     "ManualInterval",
     "MinMaxInterval",
-    "AsymmetricPercentileInterval",
     "PercentileInterval",
     "ZScaleInterval",
 ]

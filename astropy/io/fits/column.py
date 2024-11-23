@@ -23,7 +23,7 @@ from .card import CARD_LENGTH, Card
 from .util import NotifierMixin, _convert_array, _is_int, cmp, encode_ascii
 from .verify import VerifyError, VerifyWarning
 
-__all__ = ["Column", "ColDefs", "Delayed"]
+__all__ = ["ColDefs", "Column", "Delayed"]
 
 
 # mapping from TFORM data type to numpy data type (code)

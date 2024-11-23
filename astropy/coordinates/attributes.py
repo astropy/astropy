@@ -13,12 +13,12 @@ from .representation import BaseDifferential, CartesianRepresentation
 
 __all__ = [
     "Attribute",
-    "TimeAttribute",
-    "QuantityAttribute",
-    "EarthLocationAttribute",
-    "CoordinateAttribute",
     "CartesianRepresentationAttribute",
+    "CoordinateAttribute",
     "DifferentialAttribute",
+    "EarthLocationAttribute",
+    "QuantityAttribute",
+    "TimeAttribute",
 ]
 
 

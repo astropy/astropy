@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
     from astropy.units import UnitBase
 
-__all__ = ["ModelBoundingBox", "CompoundBoundingBox"]
+__all__ = ["CompoundBoundingBox", "ModelBoundingBox"]
 
 
 class _BaseInterval(NamedTuple):

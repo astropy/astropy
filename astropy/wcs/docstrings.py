@@ -6,7 +6,7 @@
 # which are then converted by setup.py into docstrings.h, which is
 # included by pywcs.c
 
-__all__ = ["TWO_OR_MORE_ARGS", "RETURNS", "ORIGIN", "RA_DEC_ORDER"]
+__all__ = ["ORIGIN", "RA_DEC_ORDER", "RETURNS", "TWO_OR_MORE_ARGS"]
 
 
 def _fix(content, indent=0):

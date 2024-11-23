@@ -20,7 +20,7 @@ from . import (
     si,
 )
 
-__all__ = ["def_physical_type", "get_physical_type", "PhysicalType"]
+__all__ = ["PhysicalType", "def_physical_type", "get_physical_type"]
 
 _units_and_physical_types = [
     (core.dimensionless_unscaled, "dimensionless"),

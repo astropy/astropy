@@ -11,13 +11,13 @@ from astropy import log
 from astropy.units import Quantity, Unit, UnitConversionError
 
 __all__ = [
-    "MissingDataAssociationException",
     "IncompatibleUncertaintiesException",
+    "InverseVariance",
+    "MissingDataAssociationException",
     "NDUncertainty",
     "StdDevUncertainty",
     "UnknownUncertainty",
     "VarianceUncertainty",
-    "InverseVariance",
 ]
 
 # mapping from collapsing operations to the complementary methods used for `to_variance`

@@ -13,11 +13,11 @@ from matplotlib.patches import PathPatch
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = [
+    "BaseFrame",
+    "EllipticalFrame",
+    "RectangularFrame",
     "RectangularFrame1D",
     "Spine",
-    "BaseFrame",
-    "RectangularFrame",
-    "EllipticalFrame",
 ]
 
 

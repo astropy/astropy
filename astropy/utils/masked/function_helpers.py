@@ -37,9 +37,9 @@ else:
 # such that sphinx can typeset the functions with docstrings.
 # The latter are added to __all__ at the end.
 __all__ = [
-    "MASKED_SAFE_FUNCTIONS",
     "APPLY_TO_BOTH_FUNCTIONS",
     "DISPATCHED_FUNCTIONS",
+    "MASKED_SAFE_FUNCTIONS",
     "UNSUPPORTED_FUNCTIONS",
 ]
 

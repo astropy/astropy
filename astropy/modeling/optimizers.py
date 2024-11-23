@@ -12,7 +12,7 @@ import numpy as np
 
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["Optimization", "SLSQP", "Simplex"]
+__all__ = ["SLSQP", "Optimization", "Simplex"]
 
 # Maximum number of iterations
 DEFAULT_MAXITER = 100

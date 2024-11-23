@@ -28,7 +28,7 @@ else:
 if TYPE_CHECKING:
     from astropy.units.typing import UnitPower
 
-__all__ = ["FunctionUnitBase", "FunctionQuantity"]
+__all__ = ["FunctionQuantity", "FunctionUnitBase"]
 
 SUPPORTED_UFUNCS = {
     getattr(np_umath, ufunc)

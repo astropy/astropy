@@ -41,23 +41,23 @@ if TYPE_CHECKING:
     from .typing import Real, UnitPower, UnitScale
 
 __all__ = [
-    "UnitBase",
-    "NamedUnit",
-    "IrreducibleUnit",
-    "Unit",
     "CompositeUnit",
+    "IrreducibleUnit",
+    "NamedUnit",
     "PrefixUnit",
+    "Unit",
+    "UnitBase",
     "UnrecognizedUnit",
-    "def_unit",
-    "get_current_unit_registry",
-    "set_enabled_units",
-    "add_enabled_units",
-    "set_enabled_equivalencies",
-    "add_enabled_equivalencies",
-    "set_enabled_aliases",
     "add_enabled_aliases",
+    "add_enabled_equivalencies",
+    "add_enabled_units",
+    "def_unit",
     "dimensionless_unscaled",
+    "get_current_unit_registry",
     "one",
+    "set_enabled_aliases",
+    "set_enabled_equivalencies",
+    "set_enabled_units",
 ]
 
 UNITY: Final[float] = 1.0

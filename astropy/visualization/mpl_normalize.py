@@ -37,7 +37,7 @@ else:
             raise ImportError("matplotlib is required in order to use this class.")
 
 
-__all__ = ["ImageNormalize", "SimpleNorm", "simple_norm", "imshow_norm"]
+__all__ = ["ImageNormalize", "SimpleNorm", "imshow_norm", "simple_norm"]
 
 __doctest_requires__ = {"*": ["matplotlib"]}
 

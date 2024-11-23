@@ -1,6 +1,6 @@
 import numpy as np
 
-__all__ = ["design_matrix", "construct_regularization", "periodic_fit"]
+__all__ = ["construct_regularization", "design_matrix", "periodic_fit"]
 
 
 def design_matrix(t, bands, frequency, dy=None, nterms_base=1, nterms_band=1):

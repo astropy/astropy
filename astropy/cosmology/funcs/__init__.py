@@ -4,4 +4,4 @@
 from .comparison import cosmology_equal
 from .optimize import z_at_value
 
-__all__ = ["z_at_value", "cosmology_equal"]
+__all__ = ["cosmology_equal", "z_at_value"]

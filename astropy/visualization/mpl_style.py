@@ -4,7 +4,7 @@
 # plotting style. It is no longer documented/recommended as of Astropy v3.0
 # but is kept here for backward-compatibility.
 
-__all__ = ["astropy_mpl_style_1", "astropy_mpl_style"]
+__all__ = ["astropy_mpl_style", "astropy_mpl_style_1"]
 
 # Version 1 astropy plotting style for matplotlib
 astropy_mpl_style_1 = {

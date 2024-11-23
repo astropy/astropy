@@ -40,7 +40,7 @@ from .exceptions import (
     warn_or_raise,
 )
 
-__all__ = ["get_converter", "Converter", "table_column_to_votable_datatype"]
+__all__ = ["Converter", "get_converter", "table_column_to_votable_datatype"]
 
 
 pedantic_array_splitter = re.compile(r" +")

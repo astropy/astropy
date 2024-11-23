@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from types import FrameType, ModuleType
     from typing import Literal
 
-__all__ = ["resolve_name", "minversion", "find_current_module", "isinstancemethod"]
+__all__ = ["find_current_module", "isinstancemethod", "minversion", "resolve_name"]
 
 __doctest_skip__ = ["find_current_module"]
 

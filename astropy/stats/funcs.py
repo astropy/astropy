@@ -30,22 +30,22 @@ if TYPE_CHECKING:
     FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
 
 __all__ = [
+    "binned_binom_proportion",
+    "binom_conf_interval",
+    "bootstrap",
+    "cdf_from_intervals",
+    "fold_intervals",
     "gaussian_fwhm_to_sigma",
     "gaussian_sigma_to_fwhm",
-    "binom_conf_interval",
-    "binned_binom_proportion",
-    "poisson_conf_interval",
-    "median_absolute_deviation",
-    "mad_std",
-    "signal_to_noise_oir_ccd",
-    "bootstrap",
-    "kuiper",
-    "kuiper_two",
-    "kuiper_false_positive_probability",
-    "cdf_from_intervals",
-    "interval_overlap_length",
     "histogram_intervals",
-    "fold_intervals",
+    "interval_overlap_length",
+    "kuiper",
+    "kuiper_false_positive_probability",
+    "kuiper_two",
+    "mad_std",
+    "median_absolute_deviation",
+    "poisson_conf_interval",
+    "signal_to_noise_oir_ccd",
 ]
 
 __doctest_skip__ = ["binned_binom_proportion"]

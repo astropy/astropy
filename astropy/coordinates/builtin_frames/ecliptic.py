@@ -9,15 +9,15 @@ from astropy.utils.decorators import format_doc
 from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
 
 __all__ = [
-    "GeocentricMeanEcliptic",
     "BarycentricMeanEcliptic",
-    "HeliocentricMeanEcliptic",
-    "BaseEclipticFrame",
-    "GeocentricTrueEcliptic",
     "BarycentricTrueEcliptic",
-    "HeliocentricTrueEcliptic",
-    "HeliocentricEclipticIAU76",
+    "BaseEclipticFrame",
     "CustomBarycentricEcliptic",
+    "GeocentricMeanEcliptic",
+    "GeocentricTrueEcliptic",
+    "HeliocentricEclipticIAU76",
+    "HeliocentricMeanEcliptic",
+    "HeliocentricTrueEcliptic",
 ]
 
 

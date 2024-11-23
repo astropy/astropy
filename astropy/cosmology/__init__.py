@@ -27,7 +27,7 @@ from .funcs import cosmology_equal, z_at_value
 from .parameter import Parameter
 from .realizations import available, default_cosmology
 
-__all__ = [
+__all__ = [  #  noqa: RUF100, RUF022
     # Core
     "Cosmology",
     "CosmologyError",

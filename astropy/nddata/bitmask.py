@@ -10,11 +10,11 @@ import warnings
 import numpy as np
 
 __all__ = [
-    "bitfield_to_boolean_mask",
-    "interpret_bit_flags",
     "BitFlagNameMap",
-    "extend_bit_flag_map",
     "InvalidBitFlag",
+    "bitfield_to_boolean_mask",
+    "extend_bit_flag_map",
+    "interpret_bit_flags",
 ]
 
 
