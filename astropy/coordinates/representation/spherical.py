@@ -937,8 +937,7 @@ class BaseSphericalDifferential(BaseDifferential):
         if (
             isinstance(other, BaseSphericalDifferential)
             and not isinstance(self, type(other))
-            or isinstance(other, RadialDifferential)
-        ):
+        ) or isinstance(other, RadialDifferential):
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
             result_args = {
@@ -1197,8 +1196,7 @@ class BaseSphericalCosLatDifferential(BaseDifferential):
         if (
             isinstance(other, BaseSphericalCosLatDifferential)
             and not isinstance(self, type(other))
-            or isinstance(other, RadialDifferential)
-        ):
+        ) or isinstance(other, RadialDifferential):
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
             result_args = {

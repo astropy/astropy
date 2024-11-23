@@ -43,10 +43,8 @@ unsupported_cols = {
     name: col
     for name, col in mixin_cols.items()
     if (
-        isinstance(col, Time)
-        and col.location.shape != ()
-        or isinstance(col, np.ndarray)
-        and col.dtype.kind == "O"
+        (isinstance(col, Time) and col.location.shape != ())
+        or (isinstance(col, np.ndarray) and col.dtype.kind == "O")
         or isinstance(col, u.LogQuantity)
     )
 }

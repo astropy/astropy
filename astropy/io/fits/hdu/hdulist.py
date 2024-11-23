@@ -452,7 +452,7 @@ class HDUList(list, _Verify):
 
         self._try_while_unread_hdus(super().__delitem__, key)
 
-        if key == end_index or key == -1 and not self._resize:
+        if key == end_index or (key == -1 and not self._resize):
             self._truncate = True
         else:
             self._truncate = False

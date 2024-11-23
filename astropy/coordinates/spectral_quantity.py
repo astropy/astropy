@@ -88,14 +88,12 @@ class SpectralQuantity(SpecificTypeQuantity):
         if (
             (
                 function is np.multiply
-                or function is np.true_divide
-                and inputs[0] is self
+                or (function is np.true_divide and inputs[0] is self)
             )
             and result.unit == self.unit
-            or (
-                function in (np.minimum, np.maximum, np.fmax, np.fmin)
-                and method in ("reduce", "reduceat")
-            )
+        ) or (
+            function in (np.minimum, np.maximum, np.fmax, np.fmin)
+            and method in ("reduce", "reduceat")
         ):
             result = result.view(self.__class__)
             result.__array_finalize__(self)
