@@ -1416,8 +1416,7 @@ class DuckQuantity3(DuckQuantity2):
         out = kwargs.get("out")
 
         kwargs_copy = {}
-        for k in kwargs:
-            kwarg = kwargs[k]
+        for k, kwarg in kwargs.items():
             if isinstance(kwarg, type(self)):
                 kwargs_copy[k] = kwarg.data
             elif isinstance(kwarg, (list, tuple)):
