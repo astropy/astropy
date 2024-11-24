@@ -48,6 +48,7 @@ from astropy.utils.compat import (
     NUMPY_LT_1_24,
     NUMPY_LT_2_0,
     NUMPY_LT_2_1,
+    NUMPY_LT_2_2,
 )
 
 if NUMPY_LT_2_0:
@@ -65,14 +66,22 @@ FUNCTION_HELPERS = {}
 """Functions with implementations usable with proper unit conversion."""
 DISPATCHED_FUNCTIONS = {}
 """Functions for which we provide our own implementation."""
-SUPPORTED_NEP35_FUNCTIONS = {
+
+if NUMPY_LT_2_2:
+    # in numpy 2.2 these are auto detected by numpy itself
     # xref https://github.com/numpy/numpy/issues/27451
-    np.arange,
-    np.empty, np.ones, np.zeros, np.full,
-    np.array, np.asarray, np.asanyarray, np.ascontiguousarray, np.asfortranarray,
-    np.frombuffer, np.fromfile, np.fromfunction, np.fromiter, np.fromstring,
-    np.require, np.identity, np.eye, np.tri, np.genfromtxt, np.loadtxt,
-}  # fmt: skip
+    SUPPORTED_NEP35_FUNCTIONS = {
+        np.arange,
+        np.empty, np.ones, np.zeros, np.full,
+        np.array, np.asarray, np.asanyarray, np.ascontiguousarray, np.asfortranarray,
+        np.frombuffer, np.fromfile, np.fromfunction, np.fromiter, np.fromstring,
+        np.require, np.identity, np.eye, np.tri, np.genfromtxt, np.loadtxt,
+    }  # fmt: skip
+    """Functions that support a 'like' keyword argument and dispatch on it (NEP 35)"""
+else:
+    # When our minimum becomes numpy>=2.2, this can be removed, here and in the tests
+    SUPPORTED_NEP35_FUNCTIONS = set()
+
 """Functions that support a 'like' keyword argument and dispatch on it (NEP 35)"""
 UNSUPPORTED_FUNCTIONS = set()
 """Functions that cannot sensibly be used with quantities."""
