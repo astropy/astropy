@@ -28,6 +28,7 @@ from astropy.utils.compat import (
     NUMPY_LT_1_25,
     NUMPY_LT_2_0,
     NUMPY_LT_2_1,
+    NUMPY_LT_2_2,
 )
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
@@ -1754,12 +1755,11 @@ untested_functions |= poly_functions
 
 
 def test_basic_testing_completeness():
-    assert all_wrapped_functions == (
-        tested_functions
-        | IGNORED_FUNCTIONS
-        | UNSUPPORTED_FUNCTIONS
-        | SUPPORTED_NEP35_FUNCTIONS
-    )
+    declared_functions = tested_functions | IGNORED_FUNCTIONS | UNSUPPORTED_FUNCTIONS
+    if NUMPY_LT_2_2:
+        declared_functions |= SUPPORTED_NEP35_FUNCTIONS
+
+    assert declared_functions == all_wrapped_functions
 
 
 @pytest.mark.xfail(reason="coverage not completely set up yet")
