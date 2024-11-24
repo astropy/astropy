@@ -28,6 +28,7 @@ from astropy.utils.compat import (
     NUMPY_LT_1_25,
     NUMPY_LT_2_0,
     NUMPY_LT_2_1,
+    NUMPY_LT_2_2,
 )
 
 if TYPE_CHECKING:
@@ -2840,9 +2841,9 @@ class TestRecFunctions:
 all_wrapped_functions = get_wrapped_functions(
     np, np.fft, np.linalg, np.lib.recfunctions
 )
-all_wrapped_functions |= (
-    SUPPORTED_NEP35_FUNCTIONS  # ref https://github.com/numpy/numpy/issues/27451
-)
+if NUMPY_LT_2_2:
+    # ref https://github.com/numpy/numpy/issues/27451
+    all_wrapped_functions |= SUPPORTED_NEP35_FUNCTIONS
 tested_functions = get_covered_functions(locals())
 untested_functions = set()
 deprecated_functions = set()
