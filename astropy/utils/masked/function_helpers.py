@@ -15,7 +15,7 @@ import warnings
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0, NUMPY_LT_2_1
+from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -99,6 +99,17 @@ SUPPORTED_NEP35_FUNCTIONS = set()
 """Set of supported numpy functions with a 'like' keyword argument that dispatch
 on it (NEP 35).
 """
+if not NUMPY_LT_2_2:
+    # in numpy 2.2 these are auto detected by numpy itself
+    # xref https://github.com/numpy/numpy/issues/27451
+    SUPPORTED_NEP35_FUNCTIONS |= set()
+    UNSUPPORTED_FUNCTIONS |= {
+        np.arange,
+        np.empty, np.ones, np.zeros, np.full,
+        np.array, np.asarray, np.asanyarray, np.ascontiguousarray, np.asfortranarray,
+        np.frombuffer, np.fromfile, np.fromfunction, np.fromiter, np.fromstring,
+        np.require, np.identity, np.eye, np.tri, np.genfromtxt, np.loadtxt,
+    }  # fmt: skip
 
 # Almost all from np.core.fromnumeric defer to methods so are OK.
 MASKED_SAFE_FUNCTIONS |= {
