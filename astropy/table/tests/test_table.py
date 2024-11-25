@@ -572,7 +572,6 @@ class TestAddName(SetupData):
         t.add_column(col)
         assert t.colnames == ["col0"]
 
-    @pytest.mark.xfail
     def test_setting_column_name_to_with_invalid_type(self, table_types):
         t = table_types.Table()
         t["a"] = [1, 2]

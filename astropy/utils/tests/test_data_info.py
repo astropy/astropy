@@ -100,7 +100,6 @@ def test_info_no_copy_skycoord():
     assert val.info.indices == []
 
 
-@pytest.mark.xfail
 def test_setting_info_name_to_with_invalid_type():
     # see https://github.com/astropy/astropy/issues/17449
     qt = QTable()

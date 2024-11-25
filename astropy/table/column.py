@@ -762,9 +762,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         return self._name
 
     @name.setter
-    def name(self, val):
-        if val is not None:
+    def name(self, val: str | None):
+        if isinstance(val, str):
             val = str(val)
+        elif val is not None:
+            raise TypeError(
+                f"Expected a str value, got {val} with type {type(val).__name__}"
+            )
 
         if self.parent_table is not None:
             table = self.parent_table
