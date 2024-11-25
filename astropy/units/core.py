@@ -1743,8 +1743,6 @@ class NamedUnit(UnitBase):
         format: Mapping[str, str] | None = None,
         namespace: MutableMapping[str, object] | None = None,
     ) -> None:
-        UnitBase.__init__(self)
-
         if isinstance(st, (bytes, str)):
             self._names = [st]
             self._short_names = [st]
@@ -1764,18 +1762,10 @@ class NamedUnit(UnitBase):
             self._short_names = [st[0]]
             self._long_names = st[1:]
 
-        if format is None:
-            format = {}
-        self._format = format
-
-        if doc is None:
-            doc = self._generate_doc()
-        else:
-            doc = textwrap.dedent(doc)
-            doc = textwrap.fill(doc)
-
-        self.__doc__ = doc
-
+        self._format = {} if format is None else format
+        self.__doc__ = (
+            self._generate_doc() if doc is None else textwrap.fill(textwrap.dedent(doc))
+        )
         self._inject(namespace)
 
     def _generate_doc(self) -> str:
