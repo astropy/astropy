@@ -32,6 +32,7 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Collection, Iterable, Mapping, MutableMapping
     from types import TracebackType
     from typing import Any, Final, Literal, Self
 
@@ -69,7 +70,7 @@ _WARNING_ACTIONS: Final[dict[str, str]] = {
 }
 
 
-def _flatten_units_collection(items):
+def _flatten_units_collection(items: object) -> set[UnitBase]:
     """
     Given a list of sequences, modules or dictionaries of units, or
     single units, return a flat set of all the units found.
@@ -195,7 +196,7 @@ class _UnitRegistry:
     def non_prefix_units(self) -> set[UnitBase]:
         return self._non_prefix_units
 
-    def set_enabled_units(self, units):
+    def set_enabled_units(self, units: object) -> None:
         """
         Sets the units enabled in the unit registry.
 
@@ -214,7 +215,7 @@ class _UnitRegistry:
         self._reset_units()
         return self.add_enabled_units(units)
 
-    def add_enabled_units(self, units):
+    def add_enabled_units(self, units: object) -> None:
         """
         Adds to the set of units enabled in the unit registry.
 
@@ -378,14 +379,14 @@ class _UnitContext:
         _unit_registries.pop()
 
 
-_unit_registries = [_UnitRegistry()]
+_unit_registries: Final = [_UnitRegistry()]
 
 
 def get_current_unit_registry() -> _UnitRegistry:
     return _unit_registries[-1]
 
 
-def set_enabled_units(units):
+def set_enabled_units(units: object) -> _UnitContext:
     """
     Sets the units enabled in the unit registry.
 
@@ -436,7 +437,7 @@ def set_enabled_units(units):
     return context
 
 
-def add_enabled_units(units):
+def add_enabled_units(units: object) -> _UnitContext:
     """
     Adds to the set of units enabled in the unit registry.
 
@@ -1052,7 +1053,7 @@ class UnitBase:
                 except UnitsError:
                     pass
 
-        def get_err_str(unit):
+        def get_err_str(unit: UnitBase) -> str:
             unit_str = unit.to_string("generic")
             physical_type = unit.physical_type
             if physical_type != "unknown":
@@ -1210,7 +1211,7 @@ class UnitBase:
         """
         return self.to(other, value=value, equivalencies=equivalencies)
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases: Collection[UnitBase] = set()) -> UnitBase:
         """
         Return a unit object composed of only irreducible units.
 
@@ -1233,7 +1234,7 @@ class UnitBase:
     def _compose(
         self, equivalencies=[], namespace=[], max_depth=2, depth=0, cached_results=None
     ):
-        def is_final_result(unit):
+        def is_final_result(unit: UnitBase) -> bool:
             # Returns True if this result contains only the expected
             # units
             return all(base in namespace for base in unit.bases)
@@ -1403,10 +1404,10 @@ class UnitBase:
         # they can't possibly provide useful results.  Having too many
         # destination units greatly increases the search space.
 
-        def has_bases_in_common(a, b):
+        def has_bases_in_common(a: UnitBase, b: UnitBase) -> bool:
             return any(ab in b.bases for ab in a.bases) if a.bases or b.bases else True
 
-        def has_bases_in_common_with_equiv(unit, other):
+        def has_bases_in_common_with_equiv(unit: UnitBase, other: UnitBase) -> bool:
             if has_bases_in_common(unit, other):
                 return True
             for funit, tunit, a, b in equivalencies:
@@ -1423,7 +1424,7 @@ class UnitBase:
                             return True
             return False
 
-        def filter_units(units):
+        def filter_units(units: Iterable[object]) -> set[UnitBase]:
             return {
                 tunit
                 for tunit in units
@@ -1735,7 +1736,13 @@ class NamedUnit(UnitBase):
         If any of the given unit names are not valid Python tokens.
     """
 
-    def __init__(self, st, doc=None, format=None, namespace=None):
+    def __init__(
+        self,
+        st: str | list[str] | tuple[list[str], list[str]],
+        doc: str | None = None,
+        format: Mapping[str, str] | None = None,
+        namespace: MutableMapping[str, object] | None = None,
+    ) -> None:
         UnitBase.__init__(self)
 
         if isinstance(st, (bytes, str)):
@@ -1832,7 +1839,7 @@ class NamedUnit(UnitBase):
         """All the long names associated with the unit."""
         return self._long_names
 
-    def _inject(self, namespace=None):
+    def _inject(self, namespace: MutableMapping[str, object] | None = None) -> None:
         """
         Injects the unit, and all of its aliases, in the given
         namespace dictionary.
@@ -1904,7 +1911,7 @@ class IrreducibleUnit(NamedUnit):
         """
         return self
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases: Collection[UnitBase] = set()) -> UnitBase:
         if len(bases) and self not in bases:
             for base in bases:
                 try:
@@ -2200,11 +2207,11 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         NamedUnit.__init__(self, st, namespace=namespace, doc=doc, format=format)
 
     @property
-    def represents(self):
+    def represents(self) -> UnitBase:
         """The unit that this named unit represents."""
         return self._represents
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases: Collection[UnitBase] = set()) -> UnitBase:
         return self._represents.decompose(bases=bases)
 
     def is_unity(self) -> bool:
@@ -2215,7 +2222,9 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         return hash((self.name, self._represents))
 
     @classmethod
-    def _from_physical_type_id(cls, physical_type_id):
+    def _from_physical_type_id(
+        cls, physical_type_id: tuple[tuple[str, UnitPower], ...]
+    ) -> UnitBase:
         # get string bases and powers from the ID tuple
         bases = [cls(base) for base, _ in physical_type_id]
         powers = [power for _, power in physical_type_id]
@@ -2265,7 +2274,7 @@ class CompositeUnit(UnitBase):
         If the scale is zero.
     """
 
-    _decomposed_cache = None
+    _decomposed_cache: CompositeUnit | None = None
 
     def __init__(
         self,
@@ -2387,7 +2396,7 @@ class CompositeUnit(UnitBase):
     def __copy__(self) -> CompositeUnit:
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases: Collection[UnitBase] = set()) -> CompositeUnit:
         if len(bases) == 0 and self._decomposed_cache is not None:
             return self._decomposed_cache
 
