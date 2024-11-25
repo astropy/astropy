@@ -167,23 +167,13 @@ def test_get_position():
     assert ax.coords[1].get_axislabel_position() == ["r"]
 
 
-def test_getters():
+def test_deprecated_getters():
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     helper = CoordinateHelper(parent_axes=ax)
 
-    assert helper.parent_axes == helper._parent_axes
-    assert helper.parent_map == helper._parent_map
-    assert helper.transform == helper._transform
-    assert helper.coord_index == helper._coord_index
-    assert helper.coord_type == helper._coord_type
-    assert helper.coord_unit == helper._coord_unit
-    assert helper.coord_wrap == helper._coord_wrap
-    assert helper.frame == helper._frame
-    assert helper.default_label == helper._default_label
-
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=AstropyDeprecationWarning)
-        assert helper.ticks == helper._ticks
-        assert helper.ticklabels == helper._ticklabels
-        assert helper.axislabels == helper._axislabels
+        assert not helper.ticks.get_display_minor_ticks()
+        assert helper.ticklabels.text == {}
+        assert helper.axislabels.get_visibility_rule() == "labels"
