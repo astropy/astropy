@@ -2225,16 +2225,12 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
     def _from_physical_type_id(
         cls, physical_type_id: tuple[tuple[str, UnitPower], ...]
     ) -> UnitBase:
+        if len(physical_type_id) == 1 and physical_type_id[0][1] == 1:
+            return cls(physical_type_id[0][0])
         # get string bases and powers from the ID tuple
         bases = [cls(base) for base, _ in physical_type_id]
         powers = [power for _, power in physical_type_id]
-
-        if len(physical_type_id) == 1 and powers[0] == 1:
-            unit = bases[0]
-        else:
-            unit = CompositeUnit(1, bases, powers, _error_check=False)
-
-        return unit
+        return CompositeUnit(1, bases, powers, _error_check=False)
 
 
 class PrefixUnit(Unit):
