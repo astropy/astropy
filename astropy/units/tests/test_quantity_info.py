@@ -100,7 +100,6 @@ class TestQuantityInfo:
         q *= u.s
         assert_info_equal(q, self.q, ignore={"unit"})
 
-    @pytest.mark.xfail
     def test_inplace_info_name_change(self):
         # see https://github.com/astropy/astropy/issues/17449
         q = self.q.copy()

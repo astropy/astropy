@@ -1179,7 +1179,6 @@ def test_zero_length_strings(Column, copy):
     assert col.dtype == data.dtype["a"]
 
 
-@pytest.mark.xfail
 def test_setting_column_name_to_with_invalid_type(Column):
     # see https://github.com/astropy/astropy/issues/17449
     col = Column([1, 2], name="a")
