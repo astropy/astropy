@@ -47,7 +47,6 @@ __doctest_skip__ = [
     "Header.comments",
     "Header.fromtextfile",
     "Header.totextfile",
-    "Header.set",
     "Header.update",
 ]
 
@@ -905,21 +904,6 @@ class Header:
             ``header[keyword] = value`` and
             ``header[keyword] = (value, comment)`` respectively.
 
-            New keywords can also be inserted relative to existing keywords
-            using, for example::
-
-                >>> header.insert('NAXIS1', ('NAXIS', 2, 'Number of axes'))
-
-            to insert before an existing keyword, or::
-
-                >>> header.insert('NAXIS', ('NAXIS1', 4096), after=True)
-
-            to insert after an existing keyword.
-
-            The only advantage of using :meth:`Header.set` is that it
-            easily replaces the old usage of :meth:`Header.update` both
-            conceptually and in terms of function signature.
-
         Parameters
         ----------
         keyword : str
@@ -1361,6 +1345,18 @@ class Header:
         """
         Inserts a new keyword+value card into the Header at a given location,
         similar to `list.insert`.
+
+        New keywords can also be inserted relative to existing keywords
+        using, for example::
+
+            >>> header = Header({"NAXIS1": 10})
+            >>> header.insert('NAXIS1', ('NAXIS', 2, 'Number of axes'))
+
+        to insert before an existing keyword, or::
+
+            >>> header.insert('NAXIS1', ('NAXIS2', 4096), after=True)
+
+        to insert after an existing keyword.
 
         Parameters
         ----------
