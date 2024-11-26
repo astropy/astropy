@@ -99,14 +99,9 @@ class StreamingHDU:
 
                 if "PCOUNT" not in self._header:
                     dim = self._header["NAXIS"]
-
-                    if dim == 0:
-                        dim = ""
-                    else:
-                        dim = str(dim)
-
+                    dim = "" if dim == 0 else str(dim)
                     self._header.set(
-                        "PCOUNT", 0, "number of parameters", after="NAXIS" + dim
+                        "PCOUNT", 0, "number of parameters", after=f"NAXIS{dim}"
                     )
 
                 if "GCOUNT" not in self._header:
