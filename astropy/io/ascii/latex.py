@@ -8,9 +8,17 @@ latex.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 from . import core
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from re import Pattern
+    from typing import ClassVar, Final
 
 latexdicts = {
     "AA": {
@@ -41,7 +49,7 @@ latexdicts = {
 }
 
 
-RE_COMMENT = re.compile(r"(?<!\\)%")  # % character but not \%
+RE_COMMENT: Final[Pattern[str]] = re.compile(r"(?<!\\)%")  # % character but not \%
 
 
 def add_dictval_to_list(adict, key, alist):
@@ -62,7 +70,7 @@ def add_dictval_to_list(adict, key, alist):
             alist.extend(adict[key])
 
 
-def find_latex_line(lines, latex):
+def find_latex_line(lines: list[str], latex: str) -> int | None:
     """
     Find the first line which matches a pattern.
 
@@ -87,7 +95,7 @@ def find_latex_line(lines, latex):
 
 
 class LatexInputter(core.BaseInputter):
-    def process_lines(self, lines):
+    def process_lines(self, lines: list[str]) -> list[str]:
         return [lin.strip() for lin in lines]
 
 
@@ -96,14 +104,14 @@ class LatexSplitter(core.BaseSplitter):
 
     delimiter = "&"
 
-    def __call__(self, lines):
+    def __call__(self, lines: list[str]) -> Generator[list[str], None, None]:
         last_line = RE_COMMENT.split(lines[-1])[0].strip()
         if not last_line.endswith(r"\\"):
             lines[-1] = last_line + r"\\"
 
         return super().__call__(lines)
 
-    def process_line(self, line):
+    def process_line(self, line: str) -> str:
         """Remove whitespace at the beginning or end of line. Also remove
         \\ at end of line.
         """
@@ -114,14 +122,14 @@ class LatexSplitter(core.BaseSplitter):
             )
         return line.removesuffix(r"\\")
 
-    def process_val(self, val):
+    def process_val(self, val: str) -> str:
         """Remove whitespace and {} at the beginning or end of value."""
         val = val.strip()
         if val and (val[0] == "{") and (val[-1] == "}"):
             val = val[1:-1]
         return val
 
-    def join(self, vals):
+    def join(self, vals: list[str]) -> str:
         """Join values together and add a few extra spaces for readability."""
         delimiter = " " + self.delimiter + " "
         return delimiter.join(x.strip() for x in vals) + r" \\"
@@ -140,7 +148,7 @@ class LatexHeader(core.BaseHeader):
         else:
             return None
 
-    def _get_units(self):
+    def _get_units(self) -> dict[str, str]:
         units = {}
         col_units = [col.info.unit for col in self.cols]
         for name, unit in zip(self.colnames, col_units):
@@ -179,7 +187,7 @@ class LatexHeader(core.BaseHeader):
 class LatexData(core.BaseData):
     """Class to read the data in LaTeX tables."""
 
-    data_start = None
+    data_start: ClassVar[str | None] = None
     data_end = r"\end{tabular}"
     splitter_class = LatexSplitter
 
@@ -381,10 +389,10 @@ class AASTexHeaderSplitter(LatexSplitter):
         \tablehead{\colhead{col1} & ... & \colhead{coln}}
     """
 
-    def __call__(self, lines):
+    def __call__(self, lines: list[str]) -> Generator[list[str], None, None]:
         return super(LatexSplitter, self).__call__(lines)
 
-    def process_line(self, line):
+    def process_line(self, line: str) -> str:
         """extract column names from tablehead."""
         line = line.split("%")[0]
         line = line.replace(r"\tablehead", "")
@@ -395,7 +403,7 @@ class AASTexHeaderSplitter(LatexSplitter):
             raise core.InconsistentTableError(r"\tablehead is missing {}")
         return line.replace(r"\colhead", "")
 
-    def join(self, vals):
+    def join(self, vals: list[str]) -> str:
         return " & ".join([r"\colhead{" + str(x) + "}" for x in vals])
 
 
