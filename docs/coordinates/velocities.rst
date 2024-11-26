@@ -417,8 +417,10 @@ radial velocity of 10 km/s:
                radial_velocity=[10]*1000*u.km/u.s,
                location=location, obstime=time)
     gcrs = aa.transform_to(GCRS(obstime=time))
-    plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
-    plt.ylabel('RV [km/s]')
+
+    fig, ax = plt.subplots()
+    ax.scatter(time.datetime, gcrs.radial_velocity.to(u.km / u.s))
+    ax.set_ylabel("RV [km/s]")
 
 This seems plausible: the radial velocity should indeed be very close to 10 km/s
 because the frame does not involve a velocity shift.
@@ -436,8 +438,9 @@ the same: the radial velocity should be essentially the same in both frames:
                radial_velocity=[10]*1000*u.km/u.s,
                location=location, obstime=time)
     gcrs = aa.transform_to(GCRS(obstime=time))
-    plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
-    plt.ylabel('RV [km/s]')
+
+    ax.scatter(time.datetime, gcrs.radial_velocity.to(u.km / u.s))
+    ax.set_ylabel("RV [km/s]")
 
 But this result is nonsense, with values from -1000 to 1000 km/s instead of the
 ~10 km/s we expected. The root of the problem here is that the machine

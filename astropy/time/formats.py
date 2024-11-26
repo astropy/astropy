@@ -940,18 +940,19 @@ class TimeGPS(TimeFromEpoch):
 
 class TimePlotDate(TimeFromEpoch):
     """
-    Matplotlib `~matplotlib.pyplot.plot_date` input:
+    Input for a `~matplotlib.axes.Axes` object with ax.xaxis.axis_date():
     1 + number of days from 0001-01-01 00:00:00 UTC.
 
-    This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date`
-    function::
+    This can be used as follow::
 
       >>> import matplotlib.pyplot as plt
       >>> jyear = np.linspace(2000, 2001, 20)
       >>> t = Time(jyear, format='jyear', scale='utc')
-      >>> plt.plot_date(t.plot_date, jyear)
-      >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant
-      >>> plt.draw()
+      >>> fig, ax = plt.subplots()
+      >>> ax.xaxis.axis_date()
+      >>> ax.scatter(t.plot_date, jyear)
+      >>> fig.autofmt_xdate()  # orient date labels at a slant
+      >>> fig.show()
 
     For example, 730120.0003703703 is midnight on January 1, 2000.
     """
