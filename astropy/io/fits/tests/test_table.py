@@ -2858,6 +2858,27 @@ class TestTableFunctions(FitsTestCase):
             t3.teardown_class()
         del t3
 
+    @pytest.mark.skipif(not HAVE_OBJGRAPH, reason="requires objgraph")
+    def test_reference_leak_copyhdu(self):
+        """Regression test for https://github.com/astropy/astropy/issues/15649"""
+
+        def readfile(filename):
+            with fits.open(filename) as hdul:
+                hdu = hdul[1].copy()
+
+        with _refcounting("FITS_rec"):
+            readfile(self.data("memtest.fits"))
+
+    def test_converted_copy(self):
+        """
+        Test that the bintable converted arrays are copied when the fitsrec is.
+        Related to https://github.com/astropy/astropy/issues/15649
+        """
+
+        with fits.open(self.data("memtest.fits")) as hdul:
+            data = hdul[1].data.copy()
+            assert data._converted is not hdul[1].data._converted
+
     def test_dump_overwrite(self):
         with fits.open(self.data("table.fits")) as hdul:
             tbhdu = hdul[1]
@@ -3001,6 +3022,9 @@ class TestVLATables(FitsTestCase):
                 q = toto[1].data.field("QUAL_SPE")
                 assert (q[0][4:8] == np.array([0, 0, 0, 0], dtype=np.uint8)).all()
                 assert toto[1].columns[0].format.endswith("J(1571)")
+                # Test BINTableHDU copy
+                copytoto = toto[1].copy()
+                assert (toto[1].data.field("QUAL_SPE")[0][4:8] == q[0][4:8]).all()
 
         for code in ("PJ()", "QJ()"):
             test(code)
