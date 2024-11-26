@@ -1013,8 +1013,9 @@ To get the representation of a |Time| object::
   >>> import matplotlib.pyplot as plt  # doctest: +SKIP
   >>> jyear = np.linspace(2000, 2001, 20)  # doctest: +SKIP
   >>> t = Time(jyear, format='jyear')  # doctest: +SKIP
-  >>> plt.plot_date(t.plot_date, jyear)  # doctest: +SKIP
-  >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant  # doctest: +SKIP
+  >>> fig, ax = plt.subplots()  # doctest: +SKIP
+  >>> ax.plot_date(t.plot_date, jyear)  # doctest: +SKIP
+  >>> fig.autofmt_xdate()  # orient date labels at a slant  # doctest: +SKIP
   >>> plt.draw()  # doctest: +SKIP
 
 .. EXAMPLE END

@@ -40,7 +40,8 @@ Now, we can display the image:
 .. doctest-skip::
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.imshow(data, origin='lower')
+    >>> fig, ax = plt.subplots()
+    >>> ax.imshow(data, origin='lower')
 
 .. plot::
 
@@ -49,7 +50,8 @@ Now, we can display the image:
     from astropy.modeling.models import Gaussian2D
     y, x = np.mgrid[0:500, 0:500]
     data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
-    plt.imshow(data, origin='lower')
+    fig, ax = plt.subplots()
+    ax.imshow(data, origin='lower')
 
 Next we can create a cutout for the single object in this image. We
 create a cutout centered at position ``(x, y) = (49.7, 100.1)`` with a
@@ -90,7 +92,8 @@ image:
 .. doctest-skip::
 
     >>> cutout = Cutout2D(data, position, (41, 51))
-    >>> plt.imshow(cutout.data, origin='lower')
+    >>> fig, ax = plt.subplots()
+    >>> ax.imshow(cutout.data, origin='lower')
 
 .. plot::
 
@@ -102,7 +105,8 @@ image:
     data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
     position = (49.7, 100.1)
     cutout = Cutout2D(data, position, (41, 51))
-    plt.imshow(cutout.data, origin='lower')
+    fig, ax = plt.subplots()
+    ax.imshow(cutout.data, origin='lower')
 
 The cutout object can plot its bounding box on the original data using
 the :meth:`~astropy.nddata.utils.Cutout2D.plot_on_original` method:
@@ -123,7 +127,8 @@ the :meth:`~astropy.nddata.utils.Cutout2D.plot_on_original` method:
     position = (49.7, 100.1)
     size = (41, 51)
     cutout = Cutout2D(data, position, size)
-    plt.imshow(data, origin='lower')
+    fig, ax = plt.subplots()
+    ax.imshow(data, origin='lower')
     cutout.plot_on_original(color='white')
 
 Many properties of the cutout array are also stored as attributes,
@@ -256,7 +261,8 @@ Now we can create the cutout array using the
 `~astropy.coordinates.SkyCoord` position and ``wcs`` object::
 
     >>> cutout = Cutout2D(data, position, (30, 40), wcs=wcs)
-    >>> plt.imshow(cutout.data, origin='lower')   # doctest: +SKIP
+    >>> fig, ax = plt.subplots()  # doctest: +SKIP
+    >>> ax.imshow(cutout.data, origin='lower')  # doctest: +SKIP
 
 .. plot::
 
@@ -278,7 +284,8 @@ Now we can create the cutout array using the
     wcs.wcs.crval = [position.ra.value, position.dec.value]
     wcs.wcs.crpix = [50, 100]
     cutout = Cutout2D(data, position, (30, 40), wcs=wcs)
-    plt.imshow(cutout.data, origin='lower')
+    fig, ax = plt.subplots()
+    ax.imshow(cutout.data, origin='lower')
 
 The ``wcs`` attribute of the `~astropy.nddata.utils.Cutout2D` object now
 contains the propagated `~astropy.wcs.WCS` for the cutout array.
@@ -318,7 +325,8 @@ position, and ``wcs`` object from above to create a cutout with size
 
     >>> size = u.Quantity((1.5, 2.5), u.arcsec)
     >>> cutout = Cutout2D(data, position, size, wcs=wcs)
-    >>> plt.imshow(cutout.data, origin='lower')   # doctest: +SKIP
+    >>> fig, ax = plt.subplots()  # doctest: +SKIP
+    >>> ax.imshow(cutout.data, origin='lower')  # doctest: +SKIP
 
 .. plot::
 
@@ -342,7 +350,8 @@ position, and ``wcs`` object from above to create a cutout with size
     wcs.wcs.crpix = [50, 100]
     size = u.Quantity((1.5, 2.5), u.arcsec)
     cutout = Cutout2D(data, position, size, wcs=wcs)
-    plt.imshow(cutout.data, origin='lower')
+    fig, ax = plt.subplots()
+    ax.imshow(cutout.data, origin='lower')
 
 
 Saving a 2D Cutout to a FITS File with an Updated WCS
