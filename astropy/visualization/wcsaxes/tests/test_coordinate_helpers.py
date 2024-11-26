@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
 from unittest.mock import patch
 
 import matplotlib.pyplot as plt
@@ -168,12 +167,13 @@ def test_get_position():
 
 
 def test_deprecated_getters():
-    fig = plt.figure()
+    fig, _ = plt.subplots()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     helper = CoordinateHelper(parent_axes=ax)
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=AstropyDeprecationWarning)
+    with pytest.warns(AstropyDeprecationWarning):
         assert not helper.ticks.get_display_minor_ticks()
+    with pytest.warns(AstropyDeprecationWarning):
         assert helper.ticklabels.text == {}
+    with pytest.warns(AstropyDeprecationWarning):
         assert helper.axislabels.get_visibility_rule() == "labels"
