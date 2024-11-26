@@ -31,6 +31,15 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.masked import Masked
 from astropy.utils.metadata import MergeConflictError
 
+MIXINS_WITH_FULL_MASK_SUPPORT = (
+    Quantity,
+    Time,
+    TimeDelta,
+    BaseRepresentationOrDifferential,
+    SkyCoord,
+    EarthLocation,  # Currently, a Quantity subclass, but that may change.
+)
+
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
@@ -673,7 +682,7 @@ class TestJoin:
 
         # Check for left, right, outer join which requires masking. Works for
         # the listed mixins classes.
-        if isinstance(col, (Quantity, Time, TimeDelta, SkyCoord)):
+        if isinstance(col, MIXINS_WITH_FULL_MASK_SUPPORT):
             out = table.join(t1, t2, join_type="left")
             assert len(out) == 3
             assert np.all(out["idx"] == [0, 1, 3])
@@ -1464,18 +1473,7 @@ class TestVStack:
         t2 = table.QTable([col2], names=["a"])
 
         # Vstack works for these classes:
-        if isinstance(
-            col1,
-            (
-                u.Quantity,
-                Time,
-                TimeDelta,
-                SkyCoord,
-                EarthLocation,
-                BaseRepresentationOrDifferential,
-                StokesCoord,
-            ),
-        ):
+        if isinstance(col1, MIXINS_WITH_FULL_MASK_SUPPORT + (StokesCoord,)):
             out = table.vstack([t1, t2])
             assert len(out) == len_col1 + len_col2
             assert check_cols_equal(out["a"][:len_col1], col1)
@@ -1488,7 +1486,7 @@ class TestVStack:
         # Check for outer stack which requires masking.  Works for
         # the listed mixins classes.
         t2 = table.QTable([col2], names=["b"])  # different from col name for t
-        if isinstance(col1, (Time, TimeDelta, Quantity, SkyCoord)):
+        if isinstance(col1, MIXINS_WITH_FULL_MASK_SUPPORT):
             out = table.vstack([t1, t2], join_type="outer")
             assert len(out) == len_col1 + len_col2
             assert check_cols_equal(out["a"][:len_col1], col1)
@@ -2096,7 +2094,7 @@ class TestHStack:
 
         # Check mixin classes that support masking (and that we raise for
         # those that do not).
-        if isinstance(col1, (Time, TimeDelta, Quantity, SkyCoord)):
+        if isinstance(col1, MIXINS_WITH_FULL_MASK_SUPPORT):
             out = table.hstack([t1, t2], join_type="outer")
             assert len(out) == len(t1)
             assert np.all(out["col0_1"] == col1)
