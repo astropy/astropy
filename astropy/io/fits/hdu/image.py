@@ -577,7 +577,10 @@ class _ImageBaseHDU(_ValidHDU):
             self._header["BLANK"] = blank
 
         if self.data.dtype.type != _type:
-            self.data = np.array(np.around(self.data), dtype=_type)
+            if issubclass(_type, np.floating):
+                self.data = np.array(self.data, dtype=_type)
+            else:
+                self.data = np.array(np.around(self.data), dtype=_type)
 
         # Update the BITPIX Card to match the data
         self._bitpix = DTYPE2BITPIX[self.data.dtype.name]
