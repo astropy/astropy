@@ -596,6 +596,7 @@ class FITS_rec(np.recarray):
         new = super().copy(order=order)
 
         new.__dict__ = copy.deepcopy(self.__dict__)
+        new._col_weakrefs = weakref.WeakSet()
         return new
 
     @property
