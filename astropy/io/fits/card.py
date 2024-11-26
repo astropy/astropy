@@ -43,7 +43,7 @@ class Card(_Verify):
     """The length of a Card image; should always be 80 for valid FITS files."""
 
     # String for a FITS standard compliant (FSC) keyword.
-    _keywd_FSC_RE = re.compile(r"^[A-Z0-9_-]{0,%d}$" % KEYWORD_LENGTH)
+    _keywd_FSC_RE = re.compile(r"^[A-Z0-9_-]{0,%d}$" % KEYWORD_LENGTH)  # noqa: UP031, RUF100
     # This will match any printable ASCII character excluding '='
     _keywd_hierarch_RE = re.compile(
         r"^(?:HIERARCH +)?(?:^[ -<>-~]+ ?)+$", re.IGNORECASE
