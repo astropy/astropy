@@ -50,6 +50,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
 
     attrs_from_parent = {"unit"}  # Indicates unit is read-only
     _supports_indexing = False
+    mask_val = np.ma.masked
 
     @staticmethod
     def default_format(val):
