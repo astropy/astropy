@@ -21,8 +21,7 @@ from textwrap import TextWrapper
 from warnings import warn
 
 from astropy.extern.configobj import configobj, validate
-from astropy.utils import find_current_module, silence
-from astropy.utils import isiterable
+from astropy.utils import find_current_module, isiterable, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .paths import get_config_dir_path
@@ -329,10 +328,10 @@ class ConfigItem:
         # cache value on the descriptor itself, to avoid repeated accesses
         # to the ConfigObj object which is much slower
         try:
-            val = self.value
+            return self.value
         except AttributeError:
             val = self.value = self()
-        return val
+            return val
 
     def set(self, value):
         """
@@ -387,8 +386,8 @@ class ConfigItem:
 
         """
         initval = self()
-        self.set(value)
         try:
+            self.set(value)
             yield
         finally:
             self.set(initval)
