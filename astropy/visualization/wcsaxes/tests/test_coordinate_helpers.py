@@ -172,8 +172,11 @@ def test_deprecated_getters():
     helper = CoordinateHelper(parent_axes=ax)
 
     with pytest.warns(AstropyDeprecationWarning):
-        assert not helper.ticks.get_display_minor_ticks()
+        ticks = helper.ticks
+    assert not ticks.get_display_minor_ticks()
     with pytest.warns(AstropyDeprecationWarning):
-        assert helper.ticklabels.text == {}
+        ticklabels = helper.ticklabels
+    assert ticklabels.text == {}
     with pytest.warns(AstropyDeprecationWarning):
-        assert helper.axislabels.get_visibility_rule() == "labels"
+        axislabels = helper.axislabels
+    assert axislabels.get_visibility_rule() == "labels"
