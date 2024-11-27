@@ -14,7 +14,7 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Longitude
 from astropy.units import Quantity
-from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_2
+from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_2, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.utils.masked import Masked, MaskedNDArray
 
@@ -821,7 +821,7 @@ class MaskedOperatorTests(MaskedArraySetup):
         assert_array_equal(mxm2.unmasked, exp2)
         assert_array_equal(mxm2.mask, mask2)
 
-    def test_matvec(self):
+    def test_matmul_matvec(self):
         result = self.ma @ self.mb
         assert np.all(result.mask)
         assert_array_equal(result.unmasked, self.a @ self.b)
@@ -835,7 +835,7 @@ class MaskedOperatorTests(MaskedArraySetup):
         assert_array_equal(result3.unmasked, self.a @ self.b)
         assert_array_equal(result3.mask, new_ma.mask.any(-1))
 
-    def test_vecmat(self):
+    def test_matmul_vecmat(self):
         result = self.mb @ self.ma.T
         assert np.all(result.mask)
         assert_array_equal(result.unmasked, self.b @ self.a.T)
@@ -848,7 +848,7 @@ class MaskedOperatorTests(MaskedArraySetup):
         assert_array_equal(result3.unmasked, self.b @ self.a.T)
         assert_array_equal(result3.mask, new_ma.mask.any(0))
 
-    def test_vecvec(self):
+    def test_matmul_vecvec(self):
         result = self.mb @ self.mb
         assert result.shape == ()
         assert result.mask
@@ -856,6 +856,27 @@ class MaskedOperatorTests(MaskedArraySetup):
         mb_no_mask = Masked(self.b, False)
         result2 = mb_no_mask @ mb_no_mask
         assert not result2.mask
+
+    @pytest.mark.skipif(
+        NUMPY_LT_2_3,
+        reason="np.matvec and np.vecmat are new in NumPy 2.3",
+    )
+    def test_matvec_vecmat(self):
+        vec = Masked(np.arange(3, like=self.a), [True, False, False])
+        mat_mask = np.zeros((3, 3), bool)
+        mat_mask[0, 0] = True
+        mat = Masked(
+            np.array([[1.0, -1.0, 2.0], [0.0, 3.0, -1.0], [-1.0, -1.0, 1.0]]),
+            mat_mask,
+        )
+
+        ref_matvec = (vec * mat).sum(-1)
+        res_matvec = np.matvec(mat, vec)
+        assert_masked_equal(res_matvec, ref_matvec)
+
+        ref_vecmat = (vec * mat.T).sum(-1)
+        res_vecmat = np.vecmat(vec, mat)
+        assert_masked_equal(res_vecmat, ref_vecmat)
 
 
 class TestMaskedArrayOperators(MaskedOperatorTests):
