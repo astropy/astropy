@@ -18,7 +18,7 @@ from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 if TYPE_CHECKING:
@@ -386,6 +386,29 @@ class TestQuantityMathFuncs:
         q2 = np.array([4j, 5j, 6j]) / u.s
         o = np.vecdot(q1, q2)
         assert o == (32.0 + 0j) * u.m / u.s
+
+    @pytest.mark.skipif(
+        NUMPY_LT_2_3, reason="np.matvec and np.vecmat are new in NumPy 2.3"
+    )
+    def test_matvec():
+        vec = np.arange(3) << u.s
+        mat = (
+            np.array(
+                [
+                    [1.0, -1.0, 2.0],
+                    [0.0, 3.0, -1.0],
+                    [-1.0, -1.0, 1.0],
+                ]
+            )
+            << u.m
+        )
+        ref_matvec = (vec * mat).sum(-1)
+        res_matvec = np.matvec(mat, vec)
+        assert_array_equal(res_matvec, ref_matvec)
+
+        ref_vecmat = (vec * mat.T).sum(-1)
+        res_vecmat = np.vecmat(vec, mat)
+        assert_array_equal(res_vecmat, ref_vecmat)
 
     @pytest.mark.parametrize("function", (np.divide, np.true_divide))
     def test_divide_scalar(self, function):
