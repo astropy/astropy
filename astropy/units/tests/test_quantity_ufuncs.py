@@ -390,7 +390,7 @@ class TestQuantityMathFuncs:
     @pytest.mark.skipif(
         NUMPY_LT_2_3, reason="np.matvec and np.vecmat are new in NumPy 2.3"
     )
-    def test_matvec():
+    def test_matvec(self):
         vec = np.arange(3) << u.s
         mat = (
             np.array(
