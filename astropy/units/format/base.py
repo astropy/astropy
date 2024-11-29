@@ -17,13 +17,15 @@ if TYPE_CHECKING:
     from astropy.units import NamedUnit, UnitBase
     from astropy.units.typing import UnitPower, UnitScale
 
+    from . import UnitFormatter
+
 
 class Base:
     """
     The abstract base class of all unit formats.
     """
 
-    registry: ClassVar[dict[str, type[Base]]] = {}
+    registry: ClassVar[dict[str, UnitFormatter]] = {}
     _space: ClassVar[str] = " "
     _scale_unit_separator: ClassVar[str] = " "
     _times: ClassVar[str] = "*"
@@ -201,10 +203,3 @@ class Base:
         return formatter(
             s, cls._format_unit_list(positive) or "1", cls._format_unit_list(negative)
         )
-
-    @classmethod
-    def parse(cls, s: str) -> UnitBase:
-        """
-        Convert a string to a unit object.
-        """
-        raise NotImplementedError(f"Can not parse with {cls.__name__} format")
