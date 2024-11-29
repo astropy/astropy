@@ -174,7 +174,7 @@ class TestToFromYAML(ToFromDirectTestBase, ToFromYAMLTestMixin):
         This overrides from super because `ToFromDirectTestBase` adds a custom
         Cosmology ``CosmologyWithKwargs`` that is not registered with YAML.
         """
-        yield  # run tests
+        return  # run tests
 
     def test_from_yaml_autoidentify(self, cosmo, to_format, from_format):
         """

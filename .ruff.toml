@@ -122,7 +122,6 @@ lint.ignore = [
     "PT012",   # pytest-raises-with-multiple-statements
     "PT017",   # pytest-assert-in-exceptinstead
     "PT018",   # pytest-composite-assertion
-    "PT022",   # pytest-useless-yield-fixture
 
     # flake8-return (RET)
     "RET501",  # unnecessary-return-none
