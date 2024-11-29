@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import functools
 import itertools
+import sys
 
 import erfa
 import numpy as np
@@ -17,6 +18,10 @@ within_1_second = functools.partial(np.allclose, rtol=1.0, atol=1.0 / 3600.0)
 within_2_seconds = functools.partial(np.allclose, rtol=1.0, atol=2.0 / 3600.0)
 
 
+@pytest.mark.skipif(
+    sys.flags.optimize >= 2,
+    reason="docstrings are not testable in optimized mode",
+)
 def test_doc_string_contains_models():
     """The doc string is formatted; this ensures this remains working."""
     for kind in ("mean", "apparent"):
