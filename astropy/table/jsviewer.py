@@ -19,12 +19,12 @@ class Conf(_config.ConfigNamespace):
     )
 
     datatables_url = _config.ConfigItem(
-        "https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js",
+        "https://cdn.datatables.net/2.1.8/js/dataTables.min.js",
         "The URL to the jquery datatables library.",
     )
 
     css_urls = _config.ConfigItem(
-        ["https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css"],
+        ["https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"],
         "The URLs to the css file(s) to include.",
         cfgtype="string_list",
     )
@@ -146,7 +146,7 @@ class JSViewer:
         if self._use_local_files:
             return [
                 f"file://{EXTERN_JS_DIR / 'jquery-3.6.0.min.js'}",
-                f"file://{EXTERN_JS_DIR / 'jquery.dataTables.min.js'}",
+                f"file://{EXTERN_JS_DIR / 'datatables.min.js'}",
             ]
         else:
             return [conf.jquery_url, conf.datatables_url]
@@ -154,13 +154,13 @@ class JSViewer:
     @property
     def css_urls(self):
         if self._use_local_files:
-            return [f"file://{EXTERN_CSS_DIR / 'jquery.dataTables.css'}"]
+            return [f"file://{EXTERN_CSS_DIR / 'datatables.css'}"]
         else:
             return conf.css_urls
 
     def _jstable_file(self):
         if self._use_local_files:
-            return f"file://{EXTERN_JS_DIR / 'jquery.dataTables.min'}"
+            return f"file://{EXTERN_JS_DIR / 'datatables.min'}"
         else:
             return conf.datatables_url[:-3]
 
