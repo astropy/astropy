@@ -13,7 +13,8 @@ import numpy as np
 from astropy.units.errors import UnitScaleError
 from astropy.utils import classproperty
 
-from . import core, generic, utils
+from . import Base, core, utils
+from .generic import _GenericParserMixin
 
 if TYPE_CHECKING:
     from typing import Literal
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
     from astropy.units import UnitBase
 
 
-class FITS(generic.Generic):
+class FITS(Base, _GenericParserMixin):
     """
     The FITS standard unit format.
 
@@ -62,11 +63,6 @@ class FITS(generic.Generic):
         return names
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        cls._validate_unit(unit, detailed_exception=detailed_exception)
-        return cls._units[unit]
-
-    @classmethod
     def to_string(
         cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
     ) -> str:
@@ -98,7 +94,7 @@ class FITS(generic.Generic):
 
     @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
-        result = super().parse(s, debug)
+        result = cls._do_parse(s, debug)
         if hasattr(result, "function_unit"):
             raise ValueError("Function units are not yet supported for FITS units.")
         return result

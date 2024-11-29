@@ -1031,9 +1031,22 @@ def test_parse_error_message_for_output_only_format(format_):
         u.Unit("m", format=format_)
 
 
-def test_unknown_parser():
-    with pytest.raises(ValueError, match=r"Unknown.*unicode'\] for output only"):
-        u.Unit("m", format="foo")
+class TestUnknownFormat:
+    # Check full message to ensure we correctly classify in-out and
+    # output only formats.
+    UNKNOWN_MSG = (
+        r"Unknown format {!r}.  Valid formatter names are: "
+        r"\['cds', 'generic', 'fits', 'ogip', 'vounit'\] for input and output, "
+        r"and \['console', 'latex', 'latex_inline', 'unicode'\] for output only."
+    )
+
+    def test_unknown_parser(self):
+        with pytest.raises(ValueError, match=self.UNKNOWN_MSG.format("foo")):
+            u.Unit("m", format="foo")
+
+    def test_unknown_output_format(self):
+        with pytest.raises(ValueError, match=self.UNKNOWN_MSG.format("abc")):
+            u.m.to_string("abc")
 
 
 def test_celsius_fits():
