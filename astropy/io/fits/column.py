@@ -2271,6 +2271,16 @@ def _makep(array, descr_output, format, nrows=None):
         nelem = data_output[idx].shape
         descr_output[idx, 0] = np.prod(nelem)
         descr_output[idx, 1] = _offset
+
+        # detect overflow when using P format
+        if (
+            descr_output.dtype == np.int32
+            and int(descr_output[idx, 0]) * _nbytes >= 2**31
+        ):
+            raise ValueError(
+                "The heapsize limit for 'P' format has been reached. "
+                "Please consider using the 'Q' format for your file."
+            )
         _offset += descr_output[idx, 0] * _nbytes
 
     return data_output
