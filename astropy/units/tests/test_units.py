@@ -14,7 +14,7 @@ from astropy import constants as c
 from astropy import units as u
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.units import utils
-from astropy.utils.compat.optional_deps import HAS_DASK
+from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT, HAS_DASK
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 FLOAT_EPS = np.finfo(float).eps
@@ -1062,6 +1062,22 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu) == hash(unit)
     tu2 = (unit ** (1 / power)) ** power
     assert hash(tu2) == hash(unit)
+
+
+@pytest.mark.skipif(not HAS_ARRAY_API_STRICT, reason="tests array_api_strict")
+def test_array_api_strict_arrays():
+    # Ensure strict array api arrays can be passed in/out of Unit.to()
+    # Note that those have non-standard dtype.
+    import array_api_strict as xp
+
+    data1 = xp.asarray([1.0, 2.0, 3.0])
+    data2 = u.m.to(u.km, value=data1)
+    assert isinstance(data2, type(data1))
+    assert_allclose(data2, [0.001, 0.002, 0.003])
+
+    data3 = u.K.to(u.deg_C, value=data1, equivalencies=u.temperature())
+    assert isinstance(data3, type(data1))
+    assert_allclose(data3, [-272.15, -271.15, -270.15])
 
 
 @pytest.mark.skipif(not HAS_DASK, reason="tests dask.array")
