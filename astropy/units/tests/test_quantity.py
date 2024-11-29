@@ -4,6 +4,7 @@
 import copy
 import decimal
 import numbers
+import operator
 import pickle
 from fractions import Fraction
 
@@ -717,6 +718,14 @@ class TestQuantityOperations:
         # Array quantity
         q = u.Quantity([1.0, 2.0, 3.0], u.m)
         assert np.all(np.array(q) == np.array([1.0, 2.0, 3.0]))
+
+    def test_index(self):
+        val = 123
+        out = operator.index(u.Quantity(val, u.one, dtype=int))
+        assert out == val
+
+        with pytest.raises(TypeError):
+            operator.index(u.Quantity(val, u.m, dtype=int))
 
 
 def test_quantity_conversion():
