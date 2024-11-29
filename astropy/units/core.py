@@ -2649,35 +2649,39 @@ def def_unit(
     return result
 
 
-def _condition_arg(value):
-    """
-    Validate value is acceptable for conversion purposes.
+KNOWN_GOOD = np.ndarray | float | int | complex
 
-    Will convert into an array if not a scalar, and can be converted
-    into an array
+
+def _condition_arg(value):
+    """Validate value is acceptable for conversion purposes.
+
+    Will convert into an array if not a scalar or array-like, where scalars
+    and arrays can be python and numpy types, anything that defines
+    ``__array_namespace__`` or anything that has a ``.dtype`` attribute.
 
     Parameters
     ----------
-    value : int or float value, or sequence of such values
+    value : scalar or array-like
 
     Returns
     -------
-    Scalar value or numpy array
+    Scalar value or array
 
     Raises
     ------
     ValueError
         If value is not as expected
+
     """
-    if isinstance(value, (np.ndarray, float, int, complex, np.void)):
+    if (
+        isinstance(value, KNOWN_GOOD)
+        or hasattr(value, "dtype")
+        or hasattr(value, "__array_namespace__")
+    ):
         return value
 
-    dtype = getattr(value, "dtype", None)
-    if dtype is None:
-        value = np.array(value)
-        dtype = value.dtype
-
-    if dtype.kind not in "ifc":
+    value = np.array(value)
+    if value.dtype.kind not in "ifc":
         raise ValueError(
             "Value not scalar compatible or convertible to "
             "an int, float, or complex array"
