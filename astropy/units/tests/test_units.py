@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Regression tests for the units package."""
 
+import itertools
 import operator
 import pickle
 from contextlib import nullcontext
@@ -80,18 +81,31 @@ def test_invalid_compare():
     assert not (u.m == u.s)
 
 
-def test_convert():
-    assert u.h.get_converter(u.s)(1) == 3600
+@pytest.mark.parametrize(
+    "original,expectation",
+    [
+        pytest.param(1, 3600.0, id="small_int"),
+        pytest.param(2.0, 7200.0, id="small_float"),
+        pytest.param(10**25, 3.6e28, id="large_int"),
+        pytest.param(3e25, 1.08e29, id="large_float"),
+    ],
+)
+def test_convert(original, expectation):
+    result = u.h.get_converter(u.s)(original)
+    assert_allclose(result, expectation, rtol=1e-15, atol=0)
+    assert type(result) is float
 
 
 def test_convert_roundtrip():
     c1 = u.cm.get_converter(u.m)
     c2 = u.m.get_converter(u.cm)
-    np.isclose(c1(c2(10.0)), c2(c1(10.0)), atol=0, rtol=1e-15)
+    assert_allclose(c1(c2(10.0)), c2(c1(10.0)), rtol=1e-15, atol=0)
 
+
+def test_convert_roundtrip_with_equivalency():
     c1 = u.arcsec.get_converter(u.pc, u.parallax())
     c2 = u.pc.get_converter(u.arcsec, u.parallax())
-    np.isclose(c1(c2(10.0)), c2(c1(10.0)), atol=0, rtol=1e-15)
+    assert_allclose(c1(c2(10.0)), c2(c1(10.0)), rtol=1e-15, atol=0)
 
 
 def test_convert_fail():
@@ -141,12 +155,6 @@ def test_units_conversion():
     assert_allclose(u.AU.to(u.pc), 4.84813681e-6)
     assert_allclose(u.cycle.to(u.rad), 6.283185307179586)
     assert_allclose(u.spat.to(u.sr), 12.56637061435917)
-
-
-def test_units_manipulation():
-    # Just do some manipulation and check it's happy
-    (u.kpc * u.yr) ** Fraction(1, 3) / u.Myr
-    (u.AA * u.erg) ** 9
 
 
 def test_decompose():
@@ -570,15 +578,10 @@ def test_compose_no_duplicates():
     assert len(composed) == 1
 
 
-def test_long_int():
-    """
-    Issue #672
-    """
-    sigma = 10**21 * u.M_p / u.cm**2
-    sigma.to(u.M_sun / u.pc**2)
-
-
-def test_endian_independence():
+@pytest.mark.parametrize(
+    "dtype", tuple(map("".join, itertools.product("<>", "if", "48")))
+)
+def test_endian_independence(dtype):
     """
     Regression test for #744
 
@@ -586,11 +589,8 @@ def test_endian_independence():
     converted because the dtype is '>f4', not 'float32', and the code was
     looking for the strings 'float' or 'int'.
     """
-    for endian in ["<", ">"]:
-        for ntype in ["i", "f"]:
-            for byte in ["4", "8"]:
-                x = np.array([1, 2, 3], dtype=(endian + ntype + byte))
-                u.m.to(u.cm, x)
+    x = np.array([1, 2, 3], dtype=dtype)
+    assert u.m.to(u.cm, x).tolist() == [100.0, 200.0, 300.0]
 
 
 def test_radian_base():
@@ -711,7 +711,7 @@ def test_pickle_unrecognized_unit():
     Issue #2047
     """
     a = u.Unit("asdf", parse_strict="silent")
-    pickle.loads(pickle.dumps(a))
+    assert isinstance(pickle.loads(pickle.dumps(a)), u.UnrecognizedUnit)
 
 
 def test_duplicate_define():
@@ -750,7 +750,9 @@ def test_compose_into_arbitrary_units():
     # Issue #1438
     from astropy.constants import G
 
-    G.decompose([u.kg, u.km, u.Unit("15 s")])
+    G_decomposed = G.decompose([u.kg, u.km, u.Unit("100 s")])
+    assert_allclose(G_decomposed.unit.scale, 1e-4)
+    assert G_decomposed == G
 
 
 def test_unit_multiplication_with_string():
