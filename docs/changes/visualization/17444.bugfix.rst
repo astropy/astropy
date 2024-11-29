@@ -1,0 +1,1 @@
+Fix broken `ticklabels` getter in `CoordinateHelper`. The getter was incorrectly returning the helper's ticks rather than the labels; this PR corrects that.
