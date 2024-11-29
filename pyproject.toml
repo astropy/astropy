@@ -258,6 +258,7 @@ filterwarnings = [
     "ignore:'_UnionGenericAlias' is deprecated and slated for removal in Python 3.17:DeprecationWarning", # not PYTHON_LT_3_14
     # Weird warning from the vectorized do_format in Angle.to_string. low numpy/python?
     "ignore:invalid value encountered in do_format:RuntimeWarning",
+    "ignore:assertions not in test modules or plugins will be ignored:UserWarning"
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
