@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import inspect
+import sys
 
 import pytest
 
@@ -156,7 +157,8 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
         assert "overwrite" in sig.parameters
 
         # also in docstring
-        assert "overwrite : bool" in writer.__doc__
+        if not sys.flags.optimize:
+            assert "overwrite : bool" in writer.__doc__
 
     @pytest.mark.parametrize("format, _, has_deps", readwrite_formats)
     def test_readwrite_reader_class_mismatch(
