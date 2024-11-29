@@ -7,6 +7,7 @@ import os
 import shutil
 import sys
 from functools import wraps
+from inspect import cleandoc
 from pathlib import Path
 
 __all__ = [
@@ -74,15 +75,17 @@ def get_config_dir(rootname: str = "astropy") -> str:
     return str(get_config_dir_path(rootname))
 
 
-get_config_dir.__doc__ = (
-    get_config_dir_path.__doc__
-    + """
+if get_config_dir_path.__doc__ is not None:
+    # guard against PYTHONOPTIMIZE mode
+    get_config_dir.__doc__ = cleandoc(
+        get_config_dir_path.__doc__
+        + """
     See Also
     --------
     get_config_dir_path : same as this function, except that the return value is a pathlib.Path
 
     """
-)
+    )
 
 
 def get_cache_dir_path(rootname: str = "astropy") -> Path:
@@ -115,15 +118,17 @@ def get_cache_dir(rootname: str = "astropy") -> str:
     return str(get_cache_dir_path(rootname))
 
 
-get_cache_dir.__doc__ = (
-    get_cache_dir_path.__doc__
-    + """
+if get_cache_dir_path.__doc__ is not None:
+    # guard against PYTHONOPTIMIZE mode
+    get_cache_dir.__doc__ = cleandoc(
+        get_cache_dir_path.__doc__
+        + """
     See Also
     --------
     get_cache_dir_path : same as this function, except that the return value is a pathlib.Path
 
     """
-)
+    )
 
 
 class _SetTempPath:
