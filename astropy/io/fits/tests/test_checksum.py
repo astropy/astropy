@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import sys
 import warnings
 
 import numpy as np
@@ -48,11 +47,8 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert "CHECKSUM" in hdul[0].header
             assert "DATASUM" in hdul[0].header
 
-            if not sys.platform.startswith("win32"):
-                # The checksum ends up being different on Windows, possibly due
-                # to slight floating point differences
-                assert hdul[0].header["CHECKSUM"] == "ZHMkeGKjZGKjbGKj"
-                assert hdul[0].header["DATASUM"] == "4950"
+            assert hdul[0].header["CHECKSUM"] == "ZHMkeGKjZGKjbGKj"
+            assert hdul[0].header["DATASUM"] == "4950"
 
     def test_scaled_data(self):
         with fits.open(self.data("scale.fits")) as hdul:
@@ -203,13 +199,10 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert "DATASUM" in hdul[0].header
             assert hdul[0].header["DATASUM"] == "0"
 
-            if not sys.platform.startswith("win32"):
-                # The checksum ends up being different on Windows, possibly due
-                # to slight floating point differences
-                assert "CHECKSUM" in hdul[1].header
-                assert hdul[1].header["CHECKSUM"] == "3rKFAoI94oICAoI9"
-                assert "DATASUM" in hdul[1].header
-                assert hdul[1].header["DATASUM"] == "1914653725"
+            assert "CHECKSUM" in hdul[1].header
+            assert hdul[1].header["CHECKSUM"] == "3rKFAoI94oICAoI9"
+            assert "DATASUM" in hdul[1].header
+            assert hdul[1].header["DATASUM"] == "1914653725"
 
     def test_open_with_no_keywords(self):
         hdul = fits.open(self.data("arange.fits"), checksum=True)
