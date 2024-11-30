@@ -3234,13 +3234,10 @@ class TestVLATables(FitsTestCase):
 
         col = fits.Column(name="MATRIX", format=f"PD({nelem})", unit="", array=matrix)
 
-        t = fits.BinTableHDU.from_columns([col])
-        t.name = "MATRIX"
-
         with pytest.raises(
             ValueError, match="Please consider using the 'Q' format for your file."
         ):
-            t.writeto(self.temp("matrix.fits"))
+            fits.BinTableHDU.from_columns([col])
 
     @pytest.mark.skipif(sys.maxsize < 2**32, reason="requires 64-bit system")
     @pytest.mark.skipif(sys.platform == "win32", reason="Cannot test on Windows")
