@@ -124,8 +124,8 @@ def _z_at_scalar_value(
 def z_at_value(
     func,
     fval,
-    zmin=1e-8,
-    zmax=1000,
+    zmin=1e-8 * cu.redshift,
+    zmax=1e3 * cu.redshift,
     ztol=1e-8,
     maxfun=500,
     method="Brent",
@@ -407,3 +407,33 @@ def z_at_value(
         result = it.operands[-1]  # zs
 
     return result << cu.redshift
+
+
+def z_matter_radiation_equality(
+    cosmo, zmin=1e3 * cu.redshift, zmax=1e4 * cu.redshift, **rootkw
+):
+    """Calculate matter-radiation equality for a given cosmology.
+
+    Parameters
+    ----------
+    cosmo : Cosmology
+        Must have methods ``Om(z)`` and ``Ogamma(z)``
+    zmin, zmax : float
+        The min/max z in which to search for z-equality
+    full_output : bool
+        Whether to return the full output of the scipy rootfinder,
+        or just z-equality
+    rootkw
+        kwargs into scipy minimizer. See `~scipy.optimize.brentq` for details
+
+    Returns
+    -------
+    z_eq : float
+        If `full_output` is False
+    """
+
+    def resid(z):
+        """Matter - radiation."""
+        return cosmo.Om(z) - (cosmo.Ogamma(z) + cosmo.Onu(z))
+
+    return z_at_value(resid, 0, zmin=zmin, zmax=zmax, **rootkw)
