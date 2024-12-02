@@ -117,12 +117,8 @@ class VOUnit(Base, _GenericParserMixin):
 
             if cls._custom_unit_regex.match(t.value):
                 warnings.warn(
-                    UnitParserWarning(
-                        f"Unit {t.value!r} not supported by the VOUnit standard. "
-                        + cls._did_you_mean_units(t.value)
-                    )
+                    cls._invalid_unit_error_message(t.value), UnitParserWarning
                 )
-
                 return cls._def_custom_unit(t.value)
 
             raise
@@ -226,5 +222,8 @@ class VOUnit(Base, _GenericParserMixin):
         )
 
     @classmethod
-    def _try_decomposed(cls, unit: UnitBase) -> str:
-        return cls.to_string(unit._represents)
+    def _deprecated_unit_warning_message(cls, unit: str) -> str:
+        return (
+            super()._deprecated_unit_warning_message(unit)
+            + f" Suggested: {cls.to_string(cls._units[unit]._represents)}."
+        )
