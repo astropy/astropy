@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import ArrayLike, NDArray
 
-__all__ = ["SigmaClip", "sigma_clip", "SigmaClippedStats", "sigma_clipped_stats"]
+__all__ = ["SigmaClip", "SigmaClippedStats", "sigma_clip", "sigma_clipped_stats"]
 
 
 class SigmaClip:

@@ -5,7 +5,7 @@ The ``lombscarglemultiband`` function here is essentially a switch
 statement for the various implementations available in this submodule
 """
 
-__all__ = ["lombscargle_multiband", "available_methods"]
+__all__ = ["available_methods", "lombscargle_multiband"]
 
 from .mbfast_impl import lombscargle_mbfast
 from .mbflex_impl import lombscargle_mbflex

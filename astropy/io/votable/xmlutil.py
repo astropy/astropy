@@ -13,11 +13,11 @@ from astropy.utils.xml import validate
 from .exceptions import W02, W03, W04, W05, vo_warn, warn_or_raise
 
 __all__ = [
-    "check_id",
-    "fix_id",
-    "check_token",
-    "check_mime_content_type",
     "check_anyuri",
+    "check_id",
+    "check_mime_content_type",
+    "check_token",
+    "fix_id",
     "validate_schema",
 ]
 

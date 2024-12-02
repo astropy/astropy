@@ -9,11 +9,11 @@ from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
 
 __all__ = [
-    "can_have_arbitrary_unit",
-    "converters_and_unit",
-    "check_output",
     "UFUNC_HELPERS",
     "UNSUPPORTED_UFUNCS",
+    "can_have_arbitrary_unit",
+    "check_output",
+    "converters_and_unit",
 ]
 
 

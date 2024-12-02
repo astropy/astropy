@@ -18,6 +18,7 @@ from .parameters import Parameter
 from .utils import _validate_domain_window, poly_map_domain
 
 __all__ = [
+    "SIP",
     "Chebyshev1D",
     "Chebyshev2D",
     "Hermite1D",
@@ -25,10 +26,9 @@ __all__ = [
     "InverseSIP",
     "Legendre1D",
     "Legendre2D",
+    "OrthoPolynomialBase",
     "Polynomial1D",
     "Polynomial2D",
-    "SIP",
-    "OrthoPolynomialBase",
     "PolynomialModel",
 ]
 

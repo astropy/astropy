@@ -18,10 +18,10 @@ if TYPE_CHECKING:
     from astropy.table import Row, Table
 
 __all__ = [
-    "CosmologyRead",
-    "CosmologyWrite",
     "CosmologyFromFormat",
+    "CosmologyRead",
     "CosmologyToFormat",
+    "CosmologyWrite",
 ]
 __doctest_skip__ = __all__
 

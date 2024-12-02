@@ -3,12 +3,12 @@
 """Custom errors and exceptions for astropy.units."""
 
 __all__ = [
-    "UnitsError",
     "UnitConversionError",
+    "UnitParserWarning",
     "UnitScaleError",
     "UnitTypeError",
+    "UnitsError",
     "UnitsWarning",
-    "UnitParserWarning",
 ]
 
 from astropy.utils.exceptions import AstropyWarning

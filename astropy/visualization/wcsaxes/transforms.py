@@ -21,10 +21,10 @@ from astropy.coordinates import (
 )
 
 __all__ = [
-    "CurvedTransform",
     "CoordinateTransform",
-    "World2PixelTransform",
+    "CurvedTransform",
     "Pixel2WorldTransform",
+    "World2PixelTransform",
 ]
 
 

@@ -14,7 +14,7 @@ import numpy as np
 
 from astropy import units as u
 
-__all__ = ["poly_map_domain", "ellipse_extent"]
+__all__ = ["ellipse_extent", "poly_map_domain"]
 
 
 def make_binary_operator_eval(oper, f, g):

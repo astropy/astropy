@@ -17,16 +17,16 @@ if TYPE_CHECKING:
     from astropy.units import Quantity
 
 __all__ = [
-    "littleh",
-    "redshift",
     # redshift equivalencies
     "dimensionless_redshift",
-    "with_redshift",
+    "littleh",
+    "redshift",
     "redshift_distance",
     "redshift_hubble",
     "redshift_temperature",
     # other equivalencies
     "with_H0",
+    "with_redshift",
 ]
 
 __doctest_requires__ = {("with_redshift", "redshift_distance"): ["scipy"]}

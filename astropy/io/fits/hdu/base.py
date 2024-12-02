@@ -31,9 +31,9 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = [
     "DELAYED",
+    "ExtensionHDU",
     # classes
     "InvalidHDUException",
-    "ExtensionHDU",
     "NonstandardExtHDU",
 ]
 

@@ -59,18 +59,18 @@ from .utils import day_frac
 if TYPE_CHECKING:
     from astropy.coordinates import EarthLocation
 __all__ = [
-    "TimeBase",
+    "STANDARD_TIME_SCALES",
+    "TIME_DELTA_SCALES",
+    "TIME_SCALES",
+    "OperandTypeError",
+    "ScaleValueError",
     "Time",
+    "TimeBase",
     "TimeDelta",
+    "TimeDeltaMissingUnitWarning",
     "TimeInfo",
     "TimeInfoBase",
     "update_leap_seconds",
-    "TIME_SCALES",
-    "STANDARD_TIME_SCALES",
-    "TIME_DELTA_SCALES",
-    "ScaleValueError",
-    "OperandTypeError",
-    "TimeDeltaMissingUnitWarning",
 ]
 
 

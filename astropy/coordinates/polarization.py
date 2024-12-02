@@ -10,7 +10,7 @@ from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.shapes import ShapedLikeNDArray
 
-__all__ = ["StokesCoord", "custom_stokes_symbol_mapping", "StokesSymbol"]
+__all__ = ["StokesCoord", "StokesSymbol", "custom_stokes_symbol_mapping"]
 
 
 class StokesSymbol(NamedTuple):

@@ -13,10 +13,10 @@ from .frame import EllipticalFrame, RectangularFrame, RectangularFrame1D
 from .transforms import CurvedTransform
 
 __all__ = [
-    "transform_coord_meta_from_wcs",
-    "WCSWorld2PixelTransform",
     "WCSPixel2WorldTransform",
+    "WCSWorld2PixelTransform",
     "custom_ucd_coord_meta_mapping",
+    "transform_coord_meta_from_wcs",
 ]
 
 IDENTITY = WCS(naxis=2)

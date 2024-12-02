@@ -77,7 +77,12 @@ from .lsr import LSR, LSRD, LSRK, GalacticLSR
 # we define an __all__ because otherwise the transformation modules
 # get included.  Note that the order here determines the order in the
 # documentation of the built-in frames (see make_transform_graphs_docs).
-__all__ = [
+
+# ignoring RUF022 here because case-sensitive  alphanumeric sorting doesn't work here
+# (as of ruff 0.8). RUF100 also ignored so older versions of ruff don't remove
+# the first noqa comment
+# ref https://github.com/astropy/astropy/pull/17437#discussion_r1856780149
+__all__ = [  # noqa: RUF022, RUF100
     "ICRS",
     "FK5",
     "FK4",

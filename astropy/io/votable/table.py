@@ -19,12 +19,12 @@ from astropy.utils.xml import iterparser
 from . import exceptions, tree
 
 __all__ = [
+    "from_table",
     "parse",
     "parse_single_table",
-    "from_table",
-    "writeto",
-    "validate",
     "reset_vo_warnings",
+    "validate",
+    "writeto",
 ]
 
 
