@@ -711,7 +711,7 @@ def future_keyword_only(names: list[str], *, since=list[str]) -> FunctionType:
                     "Pass them as keywords to suppress this warning. "
                     f"(deprecated since {since_details})"
                 )
-                warnings.warn(msg, FutureWarning, stacklevel=2)
+                warnings.warn(msg, AstropyDeprecationWarning, stacklevel=2)
             return raw_function(*args, **kwargs)
 
         return decorated_function
