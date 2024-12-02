@@ -619,7 +619,7 @@ def test_future_kwo_warn_if_and_only_if_needed():
         lambda a, b, c=None, d=None: ...
     )
     with pytest.warns(
-        FutureWarning,
+        AstropyDeprecationWarning,
         match=(
             "The following arguments were received positionally, which "
             "will be disallowed in a future release: b, c, d\n"
@@ -631,7 +631,7 @@ def test_future_kwo_warn_if_and_only_if_needed():
 
     # also check the warning if all arguments were marked at the same time
     with pytest.warns(
-        FutureWarning,
+        AstropyDeprecationWarning,
         match=(
             "The following arguments were received positionally, which "
             "will be disallowed in a future release: b, c\n"
