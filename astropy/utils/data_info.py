@@ -29,12 +29,12 @@ import numpy as np
 from . import metadata
 
 __all__ = [
-    "data_info_factory",
-    "dtype_info_name",
     "BaseColumnInfo",
     "DataInfo",
     "MixinInfo",
     "ParentDtypeInfo",
+    "data_info_factory",
+    "dtype_info_name",
 ]
 
 # Tuple of filterwarnings kwargs to ignore when calling info

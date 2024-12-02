@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Astropy FLRW classes."""
 
-__all__ = [
+__all__ = [  # noqa: RUF100, RUF022
     # base
     "FLRW",
     "FlatFLRWMixin",

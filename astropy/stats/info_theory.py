@@ -9,10 +9,10 @@ from __future__ import annotations
 import numpy as np
 
 __all__ = [
-    "bayesian_info_criterion",
-    "bayesian_info_criterion_lsq",
     "akaike_info_criterion",
     "akaike_info_criterion_lsq",
+    "bayesian_info_criterion",
+    "bayesian_info_criterion_lsq",
 ]
 
 __doctest_requires__ = {

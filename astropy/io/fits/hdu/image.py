@@ -18,7 +18,7 @@ from astropy.utils import isiterable, lazyproperty
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU, _ValidHDU
 
-__all__ = ["Section", "PrimaryHDU", "ImageHDU"]
+__all__ = ["ImageHDU", "PrimaryHDU", "Section"]
 
 
 class _ImageBaseHDU(_ValidHDU):

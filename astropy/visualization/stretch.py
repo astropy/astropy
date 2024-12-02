@@ -10,18 +10,18 @@ import numpy as np
 from .transform import BaseTransform, CompositeTransform
 
 __all__ = [
-    "BaseStretch",
-    "LinearStretch",
-    "SqrtStretch",
-    "PowerStretch",
-    "PowerDistStretch",
-    "SquaredStretch",
-    "LogStretch",
     "AsinhStretch",
-    "SinhStretch",
-    "HistEqStretch",
-    "ContrastBiasStretch",
+    "BaseStretch",
     "CompositeStretch",
+    "ContrastBiasStretch",
+    "HistEqStretch",
+    "LinearStretch",
+    "LogStretch",
+    "PowerDistStretch",
+    "PowerStretch",
+    "SinhStretch",
+    "SqrtStretch",
+    "SquaredStretch",
 ]
 
 

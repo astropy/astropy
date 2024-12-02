@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from astropy.extern.ply.lex import Lexer
     from astropy.extern.ply.yacc import LRParser
 
-__all__ = ["lex", "ThreadSafeParser", "yacc"]
+__all__ = ["ThreadSafeParser", "lex", "yacc"]
 
 
 _TAB_HEADER = """# Licensed under a 3-clause BSD style license - see LICENSE.rst

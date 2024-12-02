@@ -17,9 +17,9 @@ from .parameters import Parameter
 
 __all__ = [
     "Spline1D",
+    "SplineExactKnotsFitter",
     "SplineInterpolateFitter",
     "SplineSmoothingFitter",
-    "SplineExactKnotsFitter",
     "SplineSplrepFitter",
 ]
 __doctest_requires__ = {"Spline1D": ["scipy"]}

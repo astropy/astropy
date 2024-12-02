@@ -31,10 +31,10 @@ from .parameters import Parameter
 from .utils import _to_orig_unit, _to_radian
 
 __all__ = [
+    "EulerAngleRotation",
     "RotateCelestial2Native",
     "RotateNative2Celestial",
     "Rotation2D",
-    "EulerAngleRotation",
     "RotationSequence3D",
     "SphericalRotationSequence",
 ]

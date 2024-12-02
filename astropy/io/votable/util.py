@@ -14,9 +14,9 @@ import re
 from packaging.version import Version
 
 __all__ = [
+    "coerce_range_list_param",
     "convert_to_writable_filelike",
     "stc_reference_frames",
-    "coerce_range_list_param",
 ]
 
 
