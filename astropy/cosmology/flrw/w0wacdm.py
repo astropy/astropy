@@ -11,7 +11,7 @@ from astropy.cosmology.parameter import Parameter
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
 
-__all__ = ["w0waCDM", "Flatw0waCDM"]
+__all__ = ["Flatw0waCDM", "w0waCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 

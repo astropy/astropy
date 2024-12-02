@@ -64,7 +64,7 @@ from astropy import units as u
 from astropy.table import SerializedColumn
 from astropy.time import Time, TimeDelta
 
-__all__ = ["AstropyLoader", "AstropyDumper", "load", "load_all", "dump"]
+__all__ = ["AstropyDumper", "AstropyLoader", "dump", "load", "load_all"]
 
 
 def _unit_representer(dumper, obj):

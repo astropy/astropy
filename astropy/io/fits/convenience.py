@@ -80,19 +80,19 @@ from .util import (
 )
 
 __all__ = [
-    "getheader",
-    "getdata",
-    "getval",
-    "setval",
-    "delval",
-    "writeto",
     "append",
-    "update",
+    "delval",
+    "getdata",
+    "getheader",
+    "getval",
     "info",
+    "printdiff",
+    "setval",
+    "table_to_hdu",
     "tabledump",
     "tableload",
-    "table_to_hdu",
-    "printdiff",
+    "update",
+    "writeto",
 ]
 
 

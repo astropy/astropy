@@ -5,7 +5,7 @@ The ``lombscargle`` function here is essentially a sophisticated switch
 statement for the various implementations available in this submodule
 """
 
-__all__ = ["lombscargle", "available_methods"]
+__all__ = ["available_methods", "lombscargle"]
 
 import numpy as np
 

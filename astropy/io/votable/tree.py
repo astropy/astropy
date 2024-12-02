@@ -96,21 +96,21 @@ except ImportError:
 
 
 __all__ = [
-    "Link",
-    "Info",
-    "Values",
-    "Field",
-    "Param",
     "CooSys",
-    "TimeSys",
-    "FieldRef",
-    "ParamRef",
-    "Group",
-    "TableElement",
-    "Resource",
-    "VOTableFile",
     "Element",
+    "Field",
+    "FieldRef",
+    "Group",
+    "Info",
+    "Link",
     "MivotBlock",
+    "Param",
+    "ParamRef",
+    "Resource",
+    "TableElement",
+    "TimeSys",
+    "VOTableFile",
+    "Values",
 ]
 
 

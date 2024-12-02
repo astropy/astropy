@@ -37,14 +37,14 @@ from .decorators import classproperty, deprecated
 from .misc import isiterable
 
 __all__ = [
-    "isatty",
-    "color_print",
-    "human_time",
-    "human_file_size",
     "ProgressBar",
-    "Spinner",
-    "print_code_line",
     "ProgressBarOrSpinner",
+    "Spinner",
+    "color_print",
+    "human_file_size",
+    "human_time",
+    "isatty",
+    "print_code_line",
     "terminal_size",
 ]
 

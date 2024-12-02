@@ -11,7 +11,7 @@ import pytest
 
 from astropy.cosmology import core
 
-__all__ = ["get_redshift_methods", "clean_registry"]
+__all__ = ["clean_registry", "get_redshift_methods"]
 
 ###############################################################################
 # FUNCTIONS

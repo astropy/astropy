@@ -20,11 +20,11 @@ if TYPE_CHECKING:
     from numpy.typing import ArrayLike, NDArray
 
 __all__ = [
-    "histogram",
-    "scott_bin_width",
-    "freedman_bin_width",
-    "knuth_bin_width",
     "calculate_bin_edges",
+    "freedman_bin_width",
+    "histogram",
+    "knuth_bin_width",
+    "scott_bin_width",
 ]
 
 

@@ -10,7 +10,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from .index import get_index_by_names
 
-__all__ = ["TableGroups", "ColumnGroups"]
+__all__ = ["ColumnGroups", "TableGroups"]
 
 
 def table_group_by(table, keys):

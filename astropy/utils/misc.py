@@ -20,16 +20,16 @@ from contextlib import contextmanager
 from astropy.utils import deprecated
 
 __all__ = [
+    "JsonCustomEncoder",
+    "NumpyRNGContext",
+    "dtype_bytes_or_chars",
+    "find_api_page",
+    "format_exception",
+    "indent",
+    "is_path_hidden",
     "isiterable",
     "silence",
-    "format_exception",
-    "NumpyRNGContext",
-    "find_api_page",
-    "is_path_hidden",
     "walk_skip_hidden",
-    "JsonCustomEncoder",
-    "indent",
-    "dtype_bytes_or_chars",
 ]
 
 NOT_OVERWRITING_MSG = (

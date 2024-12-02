@@ -10,12 +10,12 @@ from functools import wraps
 from pathlib import Path
 
 __all__ = [
-    "get_config_dir",
-    "get_config_dir_path",
     "get_cache_dir",
     "get_cache_dir_path",
-    "set_temp_config",
+    "get_config_dir",
+    "get_config_dir_path",
     "set_temp_cache",
+    "set_temp_config",
 ]
 
 

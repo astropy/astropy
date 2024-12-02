@@ -22,10 +22,10 @@ if TYPE_CHECKING:
 
 __all__ = [
     "biweight_location",
-    "biweight_scale",
-    "biweight_midvariance",
-    "biweight_midcovariance",
     "biweight_midcorrelation",
+    "biweight_midcovariance",
+    "biweight_midvariance",
+    "biweight_scale",
 ]
 
 

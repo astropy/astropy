@@ -13,7 +13,7 @@ from astropy.utils import data
 
 from ._iterparser import IterParser as _fast_iterparse
 
-__all__ = ["get_xml_iterator", "get_xml_encoding", "xml_readlines"]
+__all__ = ["get_xml_encoding", "get_xml_iterator", "xml_readlines"]
 
 
 @contextlib.contextmanager

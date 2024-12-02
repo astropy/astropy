@@ -6,11 +6,11 @@ here, but rather in the particular subpackage.
 """
 
 __all__ = [
-    "AstropyWarning",
-    "AstropyUserWarning",
+    "AstropyBackwardsIncompatibleChangeWarning",
     "AstropyDeprecationWarning",
     "AstropyPendingDeprecationWarning",
-    "AstropyBackwardsIncompatibleChangeWarning",
+    "AstropyUserWarning",
+    "AstropyWarning",
     "DuplicateRepresentationWarning",
     "NoValue",
 ]

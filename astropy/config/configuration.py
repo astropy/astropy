@@ -27,13 +27,13 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from .paths import get_config_dir_path
 
 __all__ = (
+    "ConfigItem",
+    "ConfigNamespace",
     "InvalidConfigurationItemWarning",
+    "create_config_file",
+    "generate_config",
     "get_config",
     "reload_config",
-    "ConfigNamespace",
-    "ConfigItem",
-    "generate_config",
-    "create_config_file",
 )
 
 

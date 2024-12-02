@@ -12,7 +12,7 @@ import numpy as np
 
 from astropy.utils.data_info import DataInfo
 
-__all__ = ["table_info", "TableInfo", "serialize_method_as"]
+__all__ = ["TableInfo", "serialize_method_as", "table_info"]
 
 
 def table_info(tbl, option="attributes", out=""):

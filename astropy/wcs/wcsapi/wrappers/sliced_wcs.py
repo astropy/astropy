@@ -8,7 +8,7 @@ from astropy.utils.decorators import lazyproperty
 
 from .base import BaseWCSWrapper
 
-__all__ = ["sanitize_slices", "SlicedLowLevelWCS"]
+__all__ = ["SlicedLowLevelWCS", "sanitize_slices"]
 
 
 def sanitize_slices(slices, ndim):
