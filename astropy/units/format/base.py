@@ -267,25 +267,24 @@ class _ParsingFormatMixin:
         return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
 
     @classmethod
-    def _try_decomposed(cls, unit: UnitBase) -> str | None:
-        return None
-
-    @classmethod
     def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
         if unit not in cls._units:
             if detailed_exception:
-                raise ValueError(
-                    f"Unit '{unit}' not supported by the {cls.__name__} standard. "
-                    + cls._did_you_mean_units(unit)
-                )
+                raise ValueError(cls._invalid_unit_error_message(unit))
             raise ValueError()
         if unit in cls._deprecated_units:
-            message = (
-                f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
-            )
-            if (decomposed := cls._try_decomposed(cls._units[unit])) is not None:
-                message += f" Suggested: {decomposed}."
-            warnings.warn(message, UnitsWarning)
+            warnings.warn(cls._deprecated_unit_warning_message(unit), UnitsWarning)
+
+    @classmethod
+    def _invalid_unit_error_message(cls, unit: str) -> str:
+        return (
+            f"Unit '{unit}' not supported by the {cls.__name__} standard. "
+            + cls._did_you_mean_units(unit)
+        )
+
+    @classmethod
+    def _deprecated_unit_warning_message(cls, unit: str) -> str:
+        return f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
 
     @classmethod
     def _decompose_to_known_units(
