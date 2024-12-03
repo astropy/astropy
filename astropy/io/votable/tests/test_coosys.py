@@ -77,7 +77,12 @@ def test_coosys_system():
 
 
 def _coosys_tests(votable):
-    assert len(list(votable.iter_coosys())) == 2
+    assert len(list(votable.iter_coosys())) == 3
+    coosys = votable.get_coosys_by_id("coosys0")
+    assert coosys.system == "ICRS"
+    assert coosys.equinox == "J2000"
+    assert coosys.epoch == "J2014.5"
+    assert coosys.refposition == "BARYCENTER"
 
     coosys = votable.get_coosys_by_id("coosys1")
     assert coosys.system == "ICRS"
