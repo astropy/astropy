@@ -3978,6 +3978,7 @@ class Resource(
             ]
             if kwargs["version_1_2_or_later"]:
                 element_sets.append(self.groups)
+
             for element_set in element_sets:
                 for element in element_set:
                     element.to_xml(w, **kwargs)
@@ -4378,7 +4379,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                     self.resources,
                 ]
                 if kwargs["version_1_2_or_later"]:
-                    element_sets[0] = self.groups
+                    element_sets.append(self.groups)
+
                 for element_set in element_sets:
                     for element in element_set:
                         element.to_xml(w, **kwargs)

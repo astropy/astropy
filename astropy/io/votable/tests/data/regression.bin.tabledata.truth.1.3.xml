@@ -12,6 +12,7 @@
   itself modeled on the FITS Table format [2]; VOTable was designed to
   be closer to the FITS Binary Table format.
  </DESCRIPTION>
+ <COOSYS ID="J2000" equinox="J2000" system="eq_FK5"/>
  <PARAM ID="wrong_arraysize" arraysize="0" datatype="float" name="wrong_arraysize" value=""/>
  <PARAM ID="INPUT" arraysize="*" datatype="float" name="INPUT" ucd="phys.size;instr.tel" unit="km.h-1" value="0 0">
   <DESCRIPTION>
