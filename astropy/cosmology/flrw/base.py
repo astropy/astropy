@@ -149,7 +149,7 @@ class _TemperatureCMB:
     """Temperature of the CMB as |Quantity| at z=0."""
 
     @deprecated_keywords("z", since="7.0")
-    def Tcmb(self, z):
+    def Tcmb(self, z: Quantity | ArrayLike) -> Quantity:
         """Return the CMB temperature at redshift ``z``.
 
         Parameters
