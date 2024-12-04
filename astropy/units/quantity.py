@@ -1594,7 +1594,7 @@ class Quantity(np.ndarray):
                 # Format the whole thing as a single string.
                 return format(f"{self.value}{self._unitstr:s}", format_spec)
 
-    def decompose(self, bases: Collection[UnitBase] = []) -> Self:
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """
         Generates a new `Quantity` with the units
         decomposed. Decomposed units have only irreducible units in
@@ -1617,7 +1617,7 @@ class Quantity(np.ndarray):
         return self._decompose(False, bases=bases)
 
     def _decompose(
-        self, allowscaledunits: bool = False, bases: Collection[UnitBase] = []
+        self, allowscaledunits: bool = False, bases: Collection[UnitBase] = ()
     ) -> Self:
         """
         Generates a new `Quantity` with the units decomposed. Decomposed

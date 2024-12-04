@@ -318,7 +318,7 @@ class StructuredUnit:
             operator.attrgetter("physical_type"), cls=Structure
         )
 
-    def decompose(self, bases: Collection[UnitBase] = set()) -> Self:
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """The `StructuredUnit` composed of only irreducible units.
 
         Parameters
