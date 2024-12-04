@@ -12,7 +12,7 @@ import textwrap
 import warnings
 from functools import cached_property
 from threading import RLock
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
@@ -32,13 +32,13 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Iterable, Mapping, MutableMapping
+    from collections.abc import Collection, Iterable, Mapping, MutableMapping, Sequence
     from types import TracebackType
     from typing import Any, Final, Literal, Self
 
     from .physical import PhysicalType
     from .quantity import Quantity
-    from .typing import Real, UnitPower, UnitScale
+    from .typing import Complex, Real, UnitPower, UnitScale
 
 __all__ = [
     "CompositeUnit",
@@ -1211,7 +1211,7 @@ class UnitBase:
         """
         return self.to(other, value=value, equivalencies=equivalencies)
 
-    def decompose(self, bases: Collection[UnitBase] = set()) -> UnitBase:
+    def decompose(self, bases: Collection[UnitBase] = ()) -> UnitBase:
         """
         Return a unit object composed of only irreducible units.
 
@@ -1901,7 +1901,7 @@ class IrreducibleUnit(NamedUnit):
         """
         return self
 
-    def decompose(self, bases: Collection[UnitBase] = set()) -> UnitBase:
+    def decompose(self, bases: Collection[UnitBase] = ()) -> UnitBase:
         if len(bases) and self not in bases:
             for base in bases:
                 try:
@@ -2201,7 +2201,7 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         """The unit that this named unit represents."""
         return self._represents
 
-    def decompose(self, bases: Collection[UnitBase] = set()) -> UnitBase:
+    def decompose(self, bases: Collection[UnitBase] = ()) -> UnitBase:
         return self._represents.decompose(bases=bases)
 
     def is_unity(self) -> bool:
@@ -2262,13 +2262,36 @@ class CompositeUnit(UnitBase):
 
     _decomposed_cache: CompositeUnit | None = None
 
+    # _error_check can switch off runtime validation of scale, bases and powers.
+    # These overloads enable type checkers to validate statically.
+    @overload
+    def __init__(
+        self,
+        scale: Complex,
+        bases: Sequence[UnitBase],
+        powers: Sequence[Real],
+        decompose: bool = False,
+        decompose_bases: Collection[UnitBase] = (),
+        _error_check: Literal[True] = True,
+    ) -> None: ...
+    @overload
+    def __init__(
+        self,
+        scale: UnitScale,
+        bases: Sequence[UnitBase],
+        powers: Sequence[UnitPower],
+        decompose: bool = False,
+        decompose_bases: Collection[UnitBase] = (),
+        _error_check: Literal[False] = False,
+    ) -> None: ...
+
     def __init__(
         self,
         scale,
         bases,
         powers,
         decompose=False,
-        decompose_bases=set(),
+        decompose_bases=(),
         _error_check=True,
     ):
         # There are many cases internal to astropy.units where we
@@ -2338,7 +2361,9 @@ class CompositeUnit(UnitBase):
         """The powers of the bases of the composite unit."""
         return self._powers
 
-    def _expand_and_gather(self, decompose=False, bases=set()):
+    def _expand_and_gather(
+        self, decompose: bool = False, bases: Collection[UnitBase] = ()
+    ):
         def add_unit(unit, power, scale):
             if bases and unit not in bases:
                 for base in bases:
@@ -2382,7 +2407,7 @@ class CompositeUnit(UnitBase):
     def __copy__(self) -> CompositeUnit:
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
-    def decompose(self, bases: Collection[UnitBase] = set()) -> CompositeUnit:
+    def decompose(self, bases: Collection[UnitBase] = ()) -> CompositeUnit:
         if len(bases) == 0 and self._decomposed_cache is not None:
             return self._decomposed_cache
 

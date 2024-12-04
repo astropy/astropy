@@ -26,6 +26,9 @@ else:
     from numpy._core import umath as np_umath
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+    from typing import Self
+
     from astropy.units.typing import UnitPower
 
 __all__ = ["FunctionQuantity", "FunctionUnitBase"]
@@ -174,7 +177,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         return [(self, self.physical_unit, self.to_physical, self.from_physical)]
 
     # ↓↓↓ properties/methods required to behave like a unit
-    def decompose(self, bases=set()):
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """Copy the current unit with the physical unit decomposed.
 
         For details, see `~astropy.units.UnitBase.decompose`.
@@ -627,7 +630,7 @@ class FunctionQuantity(Quantity):
         """Return a copy with the physical unit in CGS units."""
         return self.__class__(self.physical.cgs)
 
-    def decompose(self, bases=[]):
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """Generate a new instance with the physical unit decomposed.
 
         For details, see `~astropy.units.Quantity.decompose`.
