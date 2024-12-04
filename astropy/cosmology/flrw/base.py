@@ -62,8 +62,6 @@ __doctest_requires__ = {"*": ["scipy"]}
 # the initialization rather than have every object do them.
 _H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
 _sec_to_Gyr = u.s.to(u.Gyr)
-# const in critical density in cgs units (g cm^-3)
-_critdens_const = (3 / (8 * pi * const.G)).cgs.value
 # angle conversions
 _radian_in_arcsec = (1 * u.rad).to(u.arcsec)
 _radian_in_arcmin = (1 * u.rad).to(u.arcmin)
@@ -451,10 +449,13 @@ class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB, _CriticalDensity):
 
     @cached_property
     def critical_density0(self) -> u.Quantity:
-        """Critical density at z=0."""
-        return (
-            _critdens_const * (self.H0.value * _H0units_to_invs) ** 2
-        ) << u.g / u.cm**3
+        r"""Critical mass density at z=0.
+
+        The critical density is the density of the Universe at which the Universe is
+        flat. It is defined as :math:`\rho_{\text{crit}} = 3 H_0^2 / (8 \pi G)`.
+
+        """
+        return (3 * self.H0**2 / (8 * pi * const.G)).cgs
 
     @cached_property
     def Ogamma0(self) -> float:
