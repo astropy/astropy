@@ -3,15 +3,22 @@
 This module defines structured units and quantities.
 """
 
+from __future__ import annotations
+
 # Standard library
 import operator
 from functools import cached_property
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from astropy.utils.compat.numpycompat import NUMPY_LT_1_24
 
 from .core import UNITY, Unit, UnitBase
+
+if TYPE_CHECKING:
+    from collections.abc import Collection
+    from typing import Self
 
 __all__ = ["StructuredUnit"]
 
@@ -311,7 +318,7 @@ class StructuredUnit:
             operator.attrgetter("physical_type"), cls=Structure
         )
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """The `StructuredUnit` composed of only irreducible units.
 
         Parameters
