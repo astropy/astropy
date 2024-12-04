@@ -169,13 +169,13 @@ class _TemperatureCMB:
 class _CriticalDensity:
     """The object has attributes and methods for the critical density."""
 
-    critical_density0: u.Quantity
+    critical_density0: Quantity
     """Critical density at redshift 0."""
 
     efunc: Callable[[Any], NDArray[Any]]
 
     @deprecated_keywords("z", since="7.0")
-    def critical_density(self, z):
+    def critical_density(self, z: Quantity | ArrayLike) -> Quantity:
         """Critical density in grams per cubic cm at redshift ``z``.
 
         Parameters
