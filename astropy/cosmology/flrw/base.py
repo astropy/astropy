@@ -36,7 +36,7 @@ from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Callable, Mapping
     from typing import Self
 
     from numpy.typing import ArrayLike, NDArray
@@ -168,6 +168,34 @@ class _TemperatureCMB:
         return self.Tcmb0 * (aszarr(z) + 1.0)
 
 
+class _CriticalDensity:
+    """The object has attributes and methods for the critical density."""
+
+    critical_density0: u.Quantity
+    """Critical density at redshift 0."""
+
+    efunc: Callable[[Any], NDArray[Any]]
+
+    @deprecated_keywords("z", since="7.0")
+    def critical_density(self, z):
+        """Critical density in grams per cubic cm at redshift ``z``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
+
+        Returns
+        -------
+        rho : Quantity ['mass density']
+            Critical density at each input redshift.
+        """
+        return self.critical_density0 * self.efunc(z) ** 2
+
+
 ParameterOde0 = Parameter(
     doc="Omega dark energy; dark energy density/critical density at z=0.",
     fvalidate="float",
@@ -175,7 +203,7 @@ ParameterOde0 = Parameter(
 
 
 @dataclass_decorator
-class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB):
+class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB, _CriticalDensity):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
     This is an abstract base class -- you cannot instantiate examples of this
@@ -1173,25 +1201,6 @@ class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB):
         z_at_value : Find the redshift corresponding to an age.
         """
         return quad(self._lookback_time_integrand_scalar, z, inf)[0]
-
-    @deprecated_keywords("z", since="7.0")
-    def critical_density(self, z):
-        """Critical density in grams per cubic cm at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        rho : Quantity ['mass density']
-            Critical density at each input redshift.
-        """
-        return self.critical_density0 * (self.efunc(z)) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def comoving_distance(self, z):
