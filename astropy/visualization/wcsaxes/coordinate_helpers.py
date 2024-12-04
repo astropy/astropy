@@ -311,7 +311,7 @@ class CoordinateHelper:
             "CoordinateHelper.ticklabels should not be accessed directly and is deprecated",
             AstropyDeprecationWarning,
         )
-        return self._ticks
+        return self._ticklabels
 
     @ticklabels.setter
     def ticklabels(self, value):
