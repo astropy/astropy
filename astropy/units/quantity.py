@@ -37,6 +37,7 @@ from .structured import StructuredUnit, _structured_unit_like_dtype
 from .utils import is_effectively_unity
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from typing import Self
 
     from .typing import QuantityLike
@@ -1593,7 +1594,7 @@ class Quantity(np.ndarray):
                 # Format the whole thing as a single string.
                 return format(f"{self.value}{self._unitstr:s}", format_spec)
 
-    def decompose(self, bases=[]):
+    def decompose(self, bases: Collection[UnitBase] = []) -> Self:
         """
         Generates a new `Quantity` with the units
         decomposed. Decomposed units have only irreducible units in
@@ -1615,7 +1616,9 @@ class Quantity(np.ndarray):
         """
         return self._decompose(False, bases=bases)
 
-    def _decompose(self, allowscaledunits=False, bases=[]):
+    def _decompose(
+        self, allowscaledunits: bool = False, bases: Collection[UnitBase] = []
+    ) -> Self:
         """
         Generates a new `Quantity` with the units decomposed. Decomposed
         units have only irreducible units in them (see
