@@ -88,12 +88,7 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
         assert c.w0 == 0.1
         assert c.wz == 0.2
         for n, v in filter_keys_from_items(c.parameters, ("w0", "wz")):
-            if v is None:
-                assert v is getattr(cosmo, n)
-            else:
-                assert u.allclose(
-                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
-                )
+            assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
 
     # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below
     def test_w(self, cosmo):
