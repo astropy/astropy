@@ -9,6 +9,7 @@ import pytest
 from astropy import units as u
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.wcsaxes.coordinate_helpers import CoordinateHelper
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
@@ -163,3 +164,19 @@ def test_get_position():
     assert ax.coords[1].get_ticklabel_position() == ["r", "l"]
     assert ax.coords[0].get_axislabel_position() == ["t"]
     assert ax.coords[1].get_axislabel_position() == ["r"]
+
+
+def test_deprecated_getters():
+    fig, _ = plt.subplots()
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    helper = CoordinateHelper(parent_axes=ax)
+
+    with pytest.warns(AstropyDeprecationWarning):
+        ticks = helper.ticks
+    assert not ticks.get_display_minor_ticks()
+    with pytest.warns(AstropyDeprecationWarning):
+        ticklabels = helper.ticklabels
+    assert ticklabels.text == {}
+    with pytest.warns(AstropyDeprecationWarning):
+        axislabels = helper.axislabels
+    assert axislabels.get_visibility_rule() == "labels"
