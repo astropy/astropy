@@ -177,7 +177,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         return [(self, self.physical_unit, self.to_physical, self.from_physical)]
 
     # ↓↓↓ properties/methods required to behave like a unit
-    def decompose(self, bases: Collection[UnitBase] = set()) -> Self:
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """Copy the current unit with the physical unit decomposed.
 
         For details, see `~astropy.units.UnitBase.decompose`.
@@ -630,7 +630,7 @@ class FunctionQuantity(Quantity):
         """Return a copy with the physical unit in CGS units."""
         return self.__class__(self.physical.cgs)
 
-    def decompose(self, bases: Collection[UnitBase] = []) -> Self:
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """Generate a new instance with the physical unit decomposed.
 
         For details, see `~astropy.units.Quantity.decompose`.
