@@ -36,7 +36,7 @@ from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Callable, Mapping
     from typing import Self
 
     from numpy.typing import ArrayLike, NDArray
@@ -62,8 +62,6 @@ __doctest_requires__ = {"*": ["scipy"]}
 # the initialization rather than have every object do them.
 _H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
 _sec_to_Gyr = u.s.to(u.Gyr)
-# const in critical density in cgs units (g cm^-3)
-_critdens_const = (3 / (8 * pi * const.G)).cgs.value
 # angle conversions
 _radian_in_arcsec = (1 * u.rad).to(u.arcsec)
 _radian_in_arcmin = (1 * u.rad).to(u.arcmin)
@@ -168,6 +166,34 @@ class _TemperatureCMB:
         return self.Tcmb0 * (aszarr(z) + 1.0)
 
 
+class _CriticalDensity:
+    """The object has attributes and methods for the critical density."""
+
+    critical_density0: Quantity
+    """Critical density at redshift 0."""
+
+    efunc: Callable[[Any], NDArray[Any]]
+
+    @deprecated_keywords("z", since="7.0")
+    def critical_density(self, z: Quantity | ArrayLike) -> Quantity:
+        """Critical density in grams per cubic cm at redshift ``z``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
+
+        Returns
+        -------
+        rho : Quantity ['mass density']
+            Critical density at each input redshift.
+        """
+        return self.critical_density0 * self.efunc(z) ** 2
+
+
 ParameterOde0 = Parameter(
     doc="Omega dark energy; dark energy density/critical density at z=0.",
     fvalidate="float",
@@ -175,7 +201,7 @@ ParameterOde0 = Parameter(
 
 
 @dataclass_decorator
-class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB):
+class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB, _CriticalDensity):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
     This is an abstract base class -- you cannot instantiate examples of this
@@ -423,10 +449,13 @@ class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB):
 
     @cached_property
     def critical_density0(self) -> u.Quantity:
-        """Critical density at z=0."""
-        return (
-            _critdens_const * (self.H0.value * _H0units_to_invs) ** 2
-        ) << u.g / u.cm**3
+        r"""Critical mass density at z=0.
+
+        The critical density is the density of the Universe at which the Universe is
+        flat. It is defined as :math:`\rho_{\text{crit}} = 3 H_0^2 / (8 \pi G)`.
+
+        """
+        return (3 * self.H0**2 / (8 * pi * const.G)).cgs
 
     @cached_property
     def Ogamma0(self) -> float:
@@ -1173,25 +1202,6 @@ class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB):
         z_at_value : Find the redshift corresponding to an age.
         """
         return quad(self._lookback_time_integrand_scalar, z, inf)[0]
-
-    @deprecated_keywords("z", since="7.0")
-    def critical_density(self, z):
-        """Critical density in grams per cubic cm at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        rho : Quantity ['mass density']
-            Critical density at each input redshift.
-        """
-        return self.critical_density0 * (self.efunc(z)) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def comoving_distance(self, z):
