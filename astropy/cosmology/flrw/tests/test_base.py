@@ -125,11 +125,7 @@ class FLRWTest(
         assert isinstance(cosmo_cls.Odm0, cached_property)
 
         # on the instance
-        assert (
-            cosmo.Odm0 is None
-            if cosmo.Ob0 is None
-            else np.allclose(cosmo.Odm0, cosmo.Om0 - cosmo.Ob0)
-        )
+        assert np.allclose(cosmo.Odm0, cosmo.Om0 - cosmo.Ob0)
 
     def test_Ok0(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``Ok0``."""
@@ -354,10 +350,7 @@ class FLRWTest(
         assert c.H0.value == 100
         for n, v in filter_keys_from_items(c.parameters, ("H0",)):
             v_expect = getattr(cosmo, n)
-            if v is None:
-                assert v is v_expect
-            else:
-                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
+            assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
 
@@ -370,10 +363,7 @@ class FLRWTest(
         assert c.meta == {**cosmo.meta, **dict(zz="tops")}
         for n, v in filter_keys_from_items(c.parameters, ("H0", "Tcmb0")):
             v_expect = getattr(cosmo, n)
-            if v is None:
-                assert v is v_expect
-            else:
-                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
+            assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
         assert not u.allclose(c.Tcmb0.value, cosmo.Tcmb0.value)
