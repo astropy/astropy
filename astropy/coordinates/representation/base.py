@@ -5,7 +5,7 @@ import abc
 import functools
 import operator
 import warnings
-from typing import ClassVar
+from typing import ClassVar, Final
 
 import numpy as np
 
@@ -145,13 +145,14 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
 
     # Ensure multiplication/division with ndarray or Quantity doesn't lead to
     # object arrays.
-    __array_priority__: ClassVar[int] = 50000
+    __array_priority__: Final = 50000
 
     name: ClassVar[str]
     """Name of the representation or differential.
 
-    In lower case, with any trailing 'representation' or 'differential' removed. (E.g.,
-    'spherical' for `~astropy.coordinates.SphericalRepresentation` or
+    By default, the lower-cased name of the class with with any trailing
+    'representation' or 'differential' removed. (E.g., 'spherical' for
+    `~astropy.coordinates.SphericalRepresentation` or
     `~astropy.coordinates.SphericalDifferential`.)
     """
 
@@ -262,8 +263,6 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         if any(hasattr(attr, "mask") for attr in attrs):
             self._ensure_masked()
 
-    # -----------------------------------------------------------------
-
     @deprecated("v7.1", alternative="name")
     @classmethod
     def get_name(cls):
@@ -272,8 +271,6 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         Returns the ``.name`` attribute.
         """
         return cls.name
-
-    # -----------------------------------------------------------------
 
     # The two methods that any subclass has to define.
     @classmethod
