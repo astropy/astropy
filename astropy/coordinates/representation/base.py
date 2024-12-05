@@ -5,6 +5,7 @@ import abc
 import functools
 import operator
 import warnings
+from typing import ClassVar, Final
 
 import numpy as np
 
@@ -12,6 +13,7 @@ import astropy.units as u
 from astropy.coordinates.angles import Angle
 from astropy.utils import classproperty
 from astropy.utils.data_info import MixinInfo
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, Masked, combine_masks
 
@@ -143,9 +145,30 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
 
     # Ensure multiplication/division with ndarray or Quantity doesn't lead to
     # object arrays.
-    __array_priority__ = 50000
+    __array_priority__: Final = 50000
+
+    # Have to define this default b/c init_subclass is not called for the base class.
+    name: ClassVar[str] = "base"
+    """Name of the representation or differential.
+
+    When a subclass is defined, by default, the name is the lower-cased name of the
+    class with with any trailing 'representation' or 'differential' removed. (E.g.,
+    'spherical' for `~astropy.coordinates.SphericalRepresentation` or
+    `~astropy.coordinates.SphericalDifferential`.)
+
+    This can be customized when defining a subclass by setting the class attribute.
+    """
 
     info = BaseRepresentationOrDifferentialInfo()
+
+    def __init_subclass__(cls) -> None:
+        # Name of the representation or differential
+        if "name" not in cls.__dict__:
+            cls.name = (
+                cls.__name__.lower()
+                .removesuffix("representation")
+                .removesuffix("differential")
+            )
 
     def __init__(self, *args, **kwargs):
         # make argument a list, so we can pop them off.
@@ -244,23 +267,14 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         if any(hasattr(attr, "mask") for attr in attrs):
             self._ensure_masked()
 
+    @deprecated("v7.1", alternative="name")
     @classmethod
     def get_name(cls):
         """Name of the representation or differential.
 
-        In lower case, with any trailing 'representation' or 'differential'
-        removed. (E.g., 'spherical' for
-        `~astropy.coordinates.SphericalRepresentation` or
-        `~astropy.coordinates.SphericalDifferential`.)
+        Returns the ``.name`` attribute.
         """
-        name = cls.__name__.lower()
-
-        if name.endswith("representation"):
-            name = name[:-14]
-        elif name.endswith("differential"):
-            name = name[:-12]
-
-        return name
+        return cls.name
 
     # The two methods that any subclass has to define.
     @classmethod
@@ -643,6 +657,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     _differentials = {}
 
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)  # sets `cls.name`
+
         # Register representation name (except for bases on which other
         # representations are built, but which cannot themselves be used).
         if cls.__name__.startswith("Base"):
@@ -653,7 +669,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 'Representations must have an "attr_classes" class attribute.'
             )
 
-        repr_name = cls.get_name()
+        repr_name = cls.name
         # first time a duplicate is added
         # remove first entry and add both using their qualnames
         if repr_name in REPRESENTATION_CLASSES:
@@ -702,8 +718,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                         doc=f"The '{component}' component of the points(s).",
                     ),
                 )
-
-        super().__init_subclass__(**kwargs)
 
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
@@ -801,7 +815,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     @classproperty
     def _compatible_differentials(cls):
-        return [DIFFERENTIAL_CLASSES[cls.get_name()]]
+        return [DIFFERENTIAL_CLASSES[cls.name]]
 
     @property
     def differentials(self):
@@ -1323,6 +1337,8 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         For these, the components are those of the base representation prefixed
         by 'd_', and the class is `~astropy.units.Quantity`.
         """
+        super().__init_subclass__(**kwargs)  # sets `cls.name`
+
         # Don't do anything for base helper classes.
         if cls.__name__ in (
             "BaseDifferential",
@@ -1342,7 +1358,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             base_attr_classes = cls.base_representation.attr_classes
             cls.attr_classes = {"d_" + c: u.Quantity for c in base_attr_classes}
 
-        repr_name = cls.get_name()
+        repr_name = cls.name
         if repr_name in DIFFERENTIAL_CLASSES:
             raise ValueError(f"Differential class {repr_name} already defined")
 
@@ -1360,8 +1376,6 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                         doc=f"Component '{component}' of the Differential.",
                     ),
                 )
-
-        super().__init_subclass__(**kwargs)
 
     @classmethod
     def _check_base(cls, base):

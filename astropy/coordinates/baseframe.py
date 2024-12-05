@@ -106,7 +106,7 @@ def _get_repr_classes(base, **differentials):
     for name, differential_type in differentials.items():
         if differential_type == "base":
             # We don't want to fail for this case.
-            differential_type = r.DIFFERENTIAL_CLASSES.get(base.get_name(), None)
+            differential_type = r.DIFFERENTIAL_CLASSES.get(base.name, None)
 
         elif differential_type in r.DIFFERENTIAL_CLASSES:
             differential_type = r.DIFFERENTIAL_CLASSES[differential_type]
@@ -223,9 +223,9 @@ class CoordinateFrameInfo(MixinInfo):
 
         out = super()._represent_as_dict(attrs)
 
-        out["representation_type"] = representation_type.get_name()
+        out["representation_type"] = representation_type.name
         if differential_type is not None:
-            out["differential_type"] = differential_type.get_name()
+            out["differential_type"] = differential_type.name
 
         # Note that coord.info.unit is a fake composite unit (e.g. 'deg,deg,None'
         # or None,None,m) and is not stored. The individual attributes have
