@@ -183,9 +183,9 @@ def test_accessors(sc, scmany):
     sph = sc.spherical
     gal = sc.galactic
 
-    if sc.data.get_name().startswith("unit") and not sc.data.differentials[
+    if sc.data.name.startswith("unit") and not sc.data.differentials[
         "s"
-    ].get_name().startswith("unit"):
+    ].name.startswith("unit"):
         # this xfail can be eliminated when issue #7028 is resolved
         pytest.xfail(".velocity fails if there is an RV but not distance")
     sc.velocity

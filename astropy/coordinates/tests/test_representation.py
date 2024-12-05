@@ -130,8 +130,8 @@ class TestRadialRepresentation:
 
 class TestSphericalRepresentation:
     def test_name(self):
-        assert SphericalRepresentation.get_name() == "spherical"
-        assert SphericalRepresentation.get_name() in REPRESENTATION_CLASSES
+        assert SphericalRepresentation.name == "spherical"
+        assert SphericalRepresentation.name in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -527,8 +527,8 @@ class TestSphericalRepresentation:
 
 class TestUnitSphericalRepresentation:
     def test_name(self):
-        assert UnitSphericalRepresentation.get_name() == "unitspherical"
-        assert UnitSphericalRepresentation.get_name() in REPRESENTATION_CLASSES
+        assert UnitSphericalRepresentation.name == "unitspherical"
+        assert UnitSphericalRepresentation.name in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -702,8 +702,8 @@ class TestUnitSphericalRepresentation:
 
 class TestPhysicsSphericalRepresentation:
     def test_name(self):
-        assert PhysicsSphericalRepresentation.get_name() == "physicsspherical"
-        assert PhysicsSphericalRepresentation.get_name() in REPRESENTATION_CLASSES
+        assert PhysicsSphericalRepresentation.name == "physicsspherical"
+        assert PhysicsSphericalRepresentation.name in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -1000,8 +1000,8 @@ class TestPhysicsSphericalRepresentation:
 
 class TestCartesianRepresentation:
     def test_name(self):
-        assert CartesianRepresentation.get_name() == "cartesian"
-        assert CartesianRepresentation.get_name() in REPRESENTATION_CLASSES
+        assert CartesianRepresentation.name == "cartesian"
+        assert CartesianRepresentation.name in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -1267,8 +1267,8 @@ class TestCartesianRepresentation:
 
 class TestCylindricalRepresentation:
     def test_name(self):
-        assert CylindricalRepresentation.get_name() == "cylindrical"
-        assert CylindricalRepresentation.get_name() in REPRESENTATION_CLASSES
+        assert CylindricalRepresentation.name == "cylindrical"
+        assert CylindricalRepresentation.name in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -1898,7 +1898,7 @@ class TestCartesianRepresentationWithDifferential:
         )
 
         r2 = CartesianRepresentation.from_representation(r1)
-        assert r2.get_name() == "cartesian"
+        assert r2.name == "cartesian"
         assert not r2.differentials
 
         r3 = SphericalRepresentation(r1)
@@ -1921,22 +1921,22 @@ class TestCartesianRepresentationWithDifferential:
 
         # Only change the representation, drop the differential
         new_rep = rep1.represent_as(SphericalRepresentation)
-        assert new_rep.get_name() == "spherical"
+        assert new_rep.name == "spherical"
         assert not new_rep.differentials  # dropped
 
         # Pass in separate classes for representation, differential
         new_rep = rep1.represent_as(
             SphericalRepresentation, SphericalCosLatDifferential
         )
-        assert new_rep.get_name() == "spherical"
-        assert new_rep.differentials["s"].get_name() == "sphericalcoslat"
+        assert new_rep.name == "spherical"
+        assert new_rep.differentials["s"].name == "sphericalcoslat"
 
         # Pass in a dictionary for the differential classes
         new_rep = rep1.represent_as(
             SphericalRepresentation, {"s": SphericalCosLatDifferential}
         )
-        assert new_rep.get_name() == "spherical"
-        assert new_rep.differentials["s"].get_name() == "sphericalcoslat"
+        assert new_rep.name == "spherical"
+        assert new_rep.differentials["s"].name == "sphericalcoslat"
 
         # make sure represent_as() passes through the differentials
         for name in REPRESENTATION_CLASSES:
@@ -1951,9 +1951,9 @@ class TestCartesianRepresentationWithDifferential:
             new_rep = rep1.represent_as(
                 REPRESENTATION_CLASSES[name], DIFFERENTIAL_CLASSES[name]
             )
-            assert new_rep.get_name() == name
+            assert new_rep.name == name
             assert len(new_rep.differentials) == 1
-            assert new_rep.differentials["s"].get_name() == name
+            assert new_rep.differentials["s"].name == name
 
         with pytest.raises(ValueError) as excinfo:
             rep1.represent_as("name")
@@ -2117,7 +2117,7 @@ def test_to_cartesian():
     )
 
     cart = sr.to_cartesian()
-    assert cart.get_name() == "cartesian"
+    assert cart.name == "cartesian"
     assert not cart.differentials
 
 
@@ -2207,7 +2207,7 @@ def unitphysics():
         del PhysicsSphericalRepresentation._unit_representation
 
     # remove from the module-level representations, if present
-    REPRESENTATION_CLASSES.pop(UnitPhysicsSphericalRepresentation.get_name(), None)
+    REPRESENTATION_CLASSES.pop(UnitPhysicsSphericalRepresentation.name, None)
 
 
 def test_unitphysics(unitphysics):
