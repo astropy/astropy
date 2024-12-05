@@ -1,0 +1,2 @@
+On representations the method `get_name` has been deprecated in favor of the class-level
+attribute `name`. The method will be removed in a future release.
