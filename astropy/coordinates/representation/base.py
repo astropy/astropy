@@ -147,24 +147,28 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
     # object arrays.
     __array_priority__: Final = 50000
 
-    name: ClassVar[str]
+    # Have to define this default b/c init_subclass is not called for the base class.
+    name: ClassVar[str] = "base"
     """Name of the representation or differential.
 
-    By default, the lower-cased name of the class with with any trailing
-    'representation' or 'differential' removed. (E.g., 'spherical' for
-    `~astropy.coordinates.SphericalRepresentation` or
+    When a subclass is defined, by default, the name is the lower-cased name of the
+    class with with any trailing 'representation' or 'differential' removed. (E.g.,
+    'spherical' for `~astropy.coordinates.SphericalRepresentation` or
     `~astropy.coordinates.SphericalDifferential`.)
+
+    This can be customized when defining a subclass by setting the class attribute.
     """
 
     info = BaseRepresentationOrDifferentialInfo()
 
     def __init_subclass__(cls) -> None:
-        # Name of the representation or differential.
-        cls.name = (
-            cls.__name__.lower()
-            .removesuffix("representation")
-            .removesuffix("differential")
-        )
+        # Name of the representation or differential
+        if "name" not in cls.__dict__:
+            cls.name = (
+                cls.__name__.lower()
+                .removesuffix("representation")
+                .removesuffix("differential")
+            )
 
     def __init__(self, *args, **kwargs):
         # make argument a list, so we can pop them off.
