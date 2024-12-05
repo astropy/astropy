@@ -505,7 +505,6 @@ class FLRW(Cosmology, _ScaleFactor):
             The density of baryonic matter relative to the critical density at
             each redshift.
             Returns `float` if the input is scalar.
-
         """
         z = aszarr(z)
         return self.Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
