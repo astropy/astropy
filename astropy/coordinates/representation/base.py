@@ -264,12 +264,12 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
 
     # -----------------------------------------------------------------
 
-    @deprecated("v6.1", alternative="name")
+    @deprecated("v7.1", alternative="name")
     @classmethod
     def get_name(cls):
         """Name of the representation or differential.
 
-        See `name` for details.
+        Returns the ``.name`` attribute.
         """
         return cls.name
 
