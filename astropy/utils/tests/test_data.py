@@ -277,7 +277,7 @@ def a_binary_file(tmp_path):
     b_contents = b"\xde\xad\xbe\xef"
     with open(fn, "wb") as f:
         f.write(b_contents)
-    yield fn, b_contents
+    return fn, b_contents
 
 
 @pytest.fixture
@@ -286,7 +286,7 @@ def a_file(tmp_path):
     contents = "contents\n"
     with open(fn, "w") as f:
         f.write(contents)
-    yield fn, contents
+    return fn, contents
 
 
 def test_temp_cache(tmp_path):
