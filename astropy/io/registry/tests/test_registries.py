@@ -84,7 +84,7 @@ def fmtcls2():
 
 @pytest.fixture(params=["test1", "test2"])
 def fmtcls(request):
-    yield (request.param, EmptyData)
+    return (request.param, EmptyData)
 
 
 @pytest.fixture
@@ -1095,7 +1095,7 @@ class TestSubclass:
     @pytest.fixture(autouse=True)
     def registry(self):
         """I/O registry. Not cleaned."""
-        yield
+        return
 
     def test_read_table_subclass(self):
         class MyTable(Table):
