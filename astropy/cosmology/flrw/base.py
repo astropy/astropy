@@ -176,7 +176,7 @@ class FLRW(Cosmology, _ScaleFactor):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
         density at z=0.
 
@@ -346,9 +346,9 @@ class FLRW(Cosmology, _ScaleFactor):
         return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
 
     @cached_property
-    def Odm0(self) -> float | None:
+    def Odm0(self) -> float:
         """Omega dark matter; dark matter density/critical density at z=0."""
-        return None if self.Ob0 is None else (self.Om0 - self.Ob0)
+        return self.Om0 - self.Ob0
 
     @cached_property
     def Ok0(self) -> float:
@@ -505,11 +505,6 @@ class FLRW(Cosmology, _ScaleFactor):
             The density of baryonic matter relative to the critical density at
             each redshift.
             Returns `float` if the input is scalar.
-
-        Raises
-        ------
-        ValueError
-            If ``Ob0`` is `None`.
         """
         z = aszarr(z)
         return self.Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
@@ -533,21 +528,11 @@ class FLRW(Cosmology, _ScaleFactor):
             critical density at each redshift.
             Returns `float` if the input is scalar.
 
-        Raises
-        ------
-        ValueError
-            If ``Ob0`` is `None`.
-
         Notes
         -----
         This does not include neutrinos, even if non-relativistic at the
         redshift of interest.
         """
-        if self.Odm0 is None:
-            raise ValueError(
-                "Baryonic density not set for this cosmology, "
-                "unclear meaning of dark matter density"
-            )
         z = aszarr(z)
         return self.Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 

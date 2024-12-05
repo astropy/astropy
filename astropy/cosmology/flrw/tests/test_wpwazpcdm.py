@@ -131,10 +131,7 @@ class TestwpwaCDM(
         assert c.zp == 14
         for n, v in filter_keys_from_items(c.parameters, ("wp", "wa", "zp")):
             v_expect = getattr(cosmo, n)
-            if v is None:
-                assert v is v_expect
-            else:
-                assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
+            assert_quantity_allclose(v, v_expect, atol=1e-4 * getattr(v, "unit", 1))
 
     # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below
     def test_w(self, cosmo):
