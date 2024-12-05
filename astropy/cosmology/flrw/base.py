@@ -131,6 +131,43 @@ class _ScaleFactor:
         return 1.0 / (aszarr(z) + 1.0)
 
 
+class _TemperatureCMB:
+    """The object has attributes and methods for computing the cosmological background temperature.
+
+    Attributes
+    ----------
+    Tcmb0 : |Quantity|
+        Temperature of the CMB at redshift 0.
+
+    Methods
+    -------
+    Tcmb
+        Compute the CMB temperature at a given redshift.
+    """
+
+    Tcmb0: Quantity
+    """Temperature of the CMB as |Quantity| at z=0."""
+
+    @deprecated_keywords("z", since="7.0")
+    def Tcmb(self, z: Quantity | ArrayLike) -> Quantity:
+        """Return the CMB temperature at redshift ``z``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
+
+        Returns
+        -------
+        Tcmb : Quantity ['temperature']
+            The temperature of the CMB in K.
+        """
+        return self.Tcmb0 * (aszarr(z) + 1.0)
+
+
 ParameterOde0 = Parameter(
     doc="Omega dark energy; dark energy density/critical density at z=0.",
     fvalidate="float",
@@ -138,7 +175,7 @@ ParameterOde0 = Parameter(
 
 
 @dataclass_decorator
-class FLRW(Cosmology, _ScaleFactor):
+class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
     This is an abstract base class -- you cannot instantiate examples of this
@@ -632,25 +669,6 @@ class FLRW(Cosmology, _ScaleFactor):
         if self.Onu0 == 0:  # Common enough to be worth checking explicitly
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
         return self.Ogamma(z) * self.nu_relative_density(z)
-
-    @deprecated_keywords("z", since="7.0")
-    def Tcmb(self, z):
-        """Return the CMB temperature at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Tcmb : Quantity ['temperature']
-            The temperature of the CMB in K.
-        """
-        return self.Tcmb0 * (aszarr(z) + 1.0)
 
     @deprecated_keywords("z", since="7.0")
     def Tnu(self, z):
