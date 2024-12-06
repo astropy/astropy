@@ -27,10 +27,9 @@ def _get_dir_path(rootname: str, cls: type, fallback: str) -> Path:
             path.mkdir(exist_ok=True)
         return path.resolve()
 
-    # first look for XDG_CONFIG_HOME
     if (
-        (xdg_config_home := os.getenv("XDG_CONFIG_HOME")) is not None
-        and (xch := Path(xdg_config_home)).exists()
+        (xdg_dir := os.getenv(f"XDG_{fallback.upper()}_HOME")) is not None
+        and (xch := Path(xdg_dir)).exists()
         and not (xchpth := xch / rootname).is_symlink()
     ):
         if xchpth.exists():
