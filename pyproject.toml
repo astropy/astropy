@@ -184,8 +184,6 @@ namespaces = true
 "astropy.tests.figures" = ["*.json"]
 "astropy.wcs" = ["include/*/*.h"]
 "astropy.wcs.tests" = ["extension/*.c"]
-# Delete with deprecated astropy.utils.misc.walk_skip_hidden()
-"astropy.utils.tests" = ["data/.hidden_file.txt"]
 
 [tool.setuptools_scm]
 write_to = "astropy/_version.py"

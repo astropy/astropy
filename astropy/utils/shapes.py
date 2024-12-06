@@ -184,13 +184,6 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
 
     """
 
-    # Note to developers: if new methods are added here, be sure to check that
-    # they work properly with the classes that use this, such as Time and
-    # BaseRepresentation, i.e., look at their ``_apply`` methods and add
-    # relevant tests.  This is particularly important for methods that imply
-    # copies rather than views of data (see the special-case treatment of
-    # 'flatten' in Time).
-
     @property
     @abc.abstractmethod
     def shape(self) -> tuple[int, ...]:
@@ -257,16 +250,12 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
                 f"scalar {self.__class__.__name__!r} object is not iterable."
             )
 
-        # We cannot just write a generator here, since then the above error
-        # would only be raised once we try to use the iterator, rather than
-        # upon its definition using iter(self).
         def self_iter():
             for idx in range(len(self)):
                 yield self[idx]
 
         return self_iter()
 
-    # Functions that change shape or essentially do indexing.
     _APPLICABLE_FUNCTIONS = {
         np.moveaxis,
         np.rollaxis,
@@ -283,9 +272,6 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
         np.delete,
     }
 
-    # Functions that themselves defer to a method. Those are all
-    # defined in np.core.fromnumeric, but exclude alen as well as
-    # sort and partition, which make copies before calling the method.
     _METHOD_FUNCTIONS = {
         getattr(np, name): {
             "amax": "max",
@@ -298,49 +284,32 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
         for name in np_core.fromnumeric.__all__
         if name not in ["alen", "sort", "partition"]
     }
-    # Add np.copy, which we may as well let defer to our method.
     _METHOD_FUNCTIONS[np.copy] = "copy"
 
-    # Could be made to work with a bit of effort:
-    # np.where, np.compress, np.extract,
-    # np.diag_indices_from, np.triu_indices_from, np.tril_indices_from
-    # np.tile, np.repeat (need .repeat method)
-    # TODO: create a proper implementation.
-    # Furthermore, some arithmetic functions such as np.mean, np.median,
-    # could work for Time, and many more for TimeDelta, so those should
-    # override __array_function__.
     def __array_function__(self, function, types, args, kwargs):
         """Wrap numpy functions that make sense."""
-        if function in self._APPLICABLE_FUNCTIONS:
-            if function is np.broadcast_to:
-                # Ensure that any ndarray subclasses used are
-                # properly propagated.
-                kwargs.setdefault("subok", True)
-            elif (
-                function in {np.atleast_1d, np.atleast_2d, np.atleast_3d}
-                and len(args) > 1
-            ):
-                return tuple(function(arg, **kwargs) for arg in args)
+        if not all(issubclass(t, ShapedLikeNDArray) for t in types):
+            return NotImplemented
 
-            if self is not args[0]:
-                return NotImplemented
+        namespace = self.__array_namespace__()
+        if function in namespace:
+            return namespace[function](*args, **kwargs)
+        return NotImplemented
 
-            return self._apply(function, *args[1:], **kwargs)
-
-        # For functions that defer to methods, use the corresponding
-        # method/attribute if we have it.  Otherwise, fall through.
-        if self is args[0] and function in self._METHOD_FUNCTIONS:
-            method = getattr(self, self._METHOD_FUNCTIONS[function], None)
-            if method is not None:
-                if callable(method):
-                    return method(*args[1:], **kwargs)
-                else:
-                    # For np.shape, etc., just return the attribute.
-                    return method
-
-        # Fall-back, just pass the arguments on since perhaps the function
-        # works already (see above).
-        return function.__wrapped__(*args, **kwargs)
+    def __array_namespace__(self):
+        """Return the namespace of array functions."""
+        return {
+            "broadcast_to": np.broadcast_to,
+            "moveaxis": np.moveaxis,
+            "atleast_1d": np.atleast_1d,
+            "atleast_2d": np.atleast_2d,
+            "atleast_3d": np.atleast_3d,
+            "expand_dims": np.expand_dims,
+            "flip": np.flip,
+            "fliplr": np.fliplr,
+            "flipud": np.flipud,
+            "roll": np.roll,
+        }
 
 
 class IncompatibleShapeError(ValueError):
