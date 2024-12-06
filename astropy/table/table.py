@@ -1924,7 +1924,7 @@ class Table:
         except webbrowser.Error:
             log.error(f"Browser '{browser}' not found.")
         else:
-            br.open(urljoin("file:", pathname2url(path)))
+            br.open(urljoin("file:", pathname2url(str(path))))
 
     @format_doc(_pformat_docs, id="{id}")
     def pformat(
