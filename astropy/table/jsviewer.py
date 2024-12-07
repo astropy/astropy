@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from pathlib import Path
+from warnings import warn
 
 import astropy.config as _config
 import astropy.io.registry as io_registry
@@ -19,12 +20,12 @@ class Conf(_config.ConfigNamespace):
     )
 
     datatables_url = _config.ConfigItem(
-        "https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js",
+        "https://cdn.datatables.net/2.1.8/js/dataTables.min.js",
         "The URL to the jquery datatables library.",
     )
 
     css_urls = _config.ConfigItem(
-        ["https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css"],
+        ["https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"],
         "The URLs to the css file(s) to include.",
         cfgtype="string_list",
     )
@@ -131,7 +132,11 @@ class JSViewer:
     """
 
     def __init__(self, use_local_files=False, display_length=50):
-        self._use_local_files = use_local_files
+        if use_local_files:
+            warn(
+                "`use_local_files` is deprecated and has no effect; for security reasons no static versions of the required js libraries are included in astropy.",
+                DeprecationWarning,
+            )
         self.display_length_menu = [
             [10, 25, 50, 100, 500, 1000, -1],
             [10, 25, 50, 100, 500, 1000, "All"],
@@ -143,26 +148,14 @@ class JSViewer:
 
     @property
     def jquery_urls(self):
-        if self._use_local_files:
-            return [
-                f"file://{EXTERN_JS_DIR / 'jquery-3.6.0.min.js'}",
-                f"file://{EXTERN_JS_DIR / 'jquery.dataTables.min.js'}",
-            ]
-        else:
-            return [conf.jquery_url, conf.datatables_url]
+        return [conf.jquery_url, conf.datatables_url]
 
     @property
     def css_urls(self):
-        if self._use_local_files:
-            return [f"file://{EXTERN_CSS_DIR / 'jquery.dataTables.css'}"]
-        else:
-            return conf.css_urls
+        return conf.css_urls
 
     def _jstable_file(self):
-        if self._use_local_files:
-            return f"file://{EXTERN_JS_DIR / 'jquery.dataTables.min'}"
-        else:
-            return conf.datatables_url[:-3]
+        return conf.datatables_url[:-3]
 
     def ipynb(self, table_id, css=None, sort_columns="[]"):
         html = f"<style>{css if css is not None else DEFAULT_CSS_NB}</style>"
