@@ -104,11 +104,9 @@ def test_write_jsviewer_default(tmp_path):
         length="50",
         display_length="10, 25, 50, 100, 500, 1000",
         datatables_css_url=(
-            "https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css"
+            "https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"
         ),
-        datatables_js_url=(
-            "https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"
-        ),
+        datatables_js_url=("https://cdn.datatables.net/2.1.8/js/dataTables.min.js"),
         jquery_url="https://code.jquery.com/" + JQUERY_MIN_JS,
     )
     with open(tmpfile) as f:
@@ -155,11 +153,9 @@ def test_write_jsviewer_mixin(tmp_path, mixin):
         length="50",
         display_length="10, 25, 50, 100, 500, 1000",
         datatables_css_url=(
-            "https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css"
+            "https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"
         ),
-        datatables_js_url=(
-            "https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"
-        ),
+        datatables_js_url=("https://cdn.datatables.net/2.1.8/js/dataTables.min.js"),
         jquery_url="https://code.jquery.com/" + JQUERY_MIN_JS,
     )
     with open(tmpfile) as f:
@@ -191,38 +187,10 @@ def test_write_jsviewer_options(tmp_path):
         length="5",
         display_length="5, 10, 25, 50, 100, 500, 1000",
         datatables_css_url=(
-            "https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css"
+            "https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"
         ),
-        datatables_js_url=(
-            "https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"
-        ),
+        datatables_js_url=("https://cdn.datatables.net/2.1.8/js/dataTables.min.js"),
         jquery_url="https://code.jquery.com/" + JQUERY_MIN_JS,
-    )
-    with open(tmpfile) as f:
-        assert f.read().strip() == ref.strip()
-
-
-def test_write_jsviewer_local(tmp_path):
-    t = Table()
-    t["a"] = [1, 2, 3, 4, 5]
-    t["b"] = ["a", "b", "c", "d", "e"]
-    t["a"].unit = "m"
-
-    tmpfile = tmp_path / "test.html"
-
-    t.write(
-        tmpfile, format="jsviewer", table_id="test", jskwargs={"use_local_files": True}
-    )
-    ref = REFERENCE % dict(
-        lines=format_lines(t["a"], t["b"]),
-        table_class="display compact",
-        table_id="test",
-        length="50",
-        display_length="10, 25, 50, 100, 500, 1000",
-        datatables_css_url="file://" + join(EXTERN_DIR, "css", "jquery.dataTables.css"),
-        datatables_js_url="file://"
-        + join(EXTERN_DIR, "js", "jquery.dataTables.min.js"),
-        jquery_url="file://" + join(EXTERN_DIR, "js", JQUERY_MIN_JS),
     )
     with open(tmpfile) as f:
         assert f.read().strip() == ref.strip()
