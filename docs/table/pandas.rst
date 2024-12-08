@@ -134,7 +134,7 @@ Notice a few things:
   in pandas. The integer column ``a`` is converted to a nullable integer column, and
   the string column ``c`` is converted to an ``object`` column.
 - The `~astropy.time.Time` object is converted to a pandas TimeSeries using
-  `datetime64[ns]`.
+  ``datetime64[ns]``.
 - The `~astropy.coordinates.SkyCoord` object is converted to two float columns
   ``sc.ra`` and ``sc.dec``, and the unit is lost.
 - The `~astropy.units.Quantity` object is converted to a float column and the unit is
