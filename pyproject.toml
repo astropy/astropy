@@ -246,6 +246,7 @@ doctest_subpackage_requires = [
 ]
 markers = [
     "mpl_image_compare",
+    "slow: Tests that are slow and may require more resources"
 ]
 
 [tool.cibuildwheel]
