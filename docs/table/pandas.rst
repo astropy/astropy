@@ -73,7 +73,7 @@ The conversions to and from ``pandas`` are subject to the following caveats:
   <https://pandas.pydata.org/docs/user_guide/timeseries.html>`_, but this object has
   only 64-bit precision and does not support leap seconds or time scales.
 
-These issues a highlighted below in a more complex example with a table that includes
+These issues are highlighted below in a more complex example with a table that includes
 masked and mixin columns.
 
 .. EXAMPLE START: Interfacing Tables with the Pandas Package (Complex Example)
