@@ -88,8 +88,8 @@ Interoperability
 
 We recognize that Pandas is a popular library and that there are many users who are
 familiar with it. For this reason, we have made it easy to convert between
-`astropy.table` and `~pandas.DataFrame`. This allows users to take advantage of the
-features of both packages as needed.
+`astropy.table` and `~pandas.DataFrame`, as documented in :ref:`pandas`. This allows
+users to take advantage of the features of both packages as needed.
 
 We are also committed to supporting interoperability with a more generalized concept of
 the DataFrame, with packages like `polars <https://pola.rs/>`_ gaining popularity.
