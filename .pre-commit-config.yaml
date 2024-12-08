@@ -71,6 +71,14 @@ repos:
     hooks:
       - id: sp-repo-review
 
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v1.13.0"
+    hooks:
+      - id: mypy
+        files: astropy
+        args: ["--config-file", ".mypy.ini", "--install-types", "--non-interactive"]
+        additional_dependencies: ["numpy"]
+
   - repo: local
     hooks:
       - id: changelogs-rst
