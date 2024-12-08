@@ -32,24 +32,14 @@ package:
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    plt.subplot(projection=wcs)
-    plt.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
-    plt.grid(color='white', ls='solid')
-    plt.xlabel('Galactic Longitude')
-    plt.ylabel('Galactic Latitude')
-
-This example uses the :mod:`matplotlib.pyplot` interface to Matplotlib, but WCSAxes
-can be used with any of the other ways of using Matplotlib (some examples of which
-are given in :ref:`initialization`). For example, using the partially object-oriented
-interface, you can do::
-
-    ax = plt.subplot(projection=wcs)
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
     ax.grid(color='white', ls='solid')
-    ax.set_xlabel('Galactic Longitude')
-    ax.set_ylabel('Galactic Latitude')
+    ax.set(xlabel='Galactic Longitude', ylabel='Galactic Latitude')
 
-However, the axes object is needed to access some of the more advanced functionality
+The above example uses the partially-object oriented matplotlib interface (keeping
+explicit references to figure and axes objects), as opposed to the pyplot interface.
+Note that this needed to access some of the more advanced functionality
 of WCSAxes.  An example of this usage is:
 
 .. plot::
@@ -57,7 +47,7 @@ of WCSAxes.  An example of this usage is:
    :include-source:
    :align: center
 
-    ax = plt.subplot(projection=wcs, label='overlays')
+    ax = fig.add_subplot(projection=wcs, label='overlays')
 
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
