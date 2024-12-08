@@ -6,8 +6,7 @@ import numpy as np
 import pytest
 
 import astropy.units as u
-from astropy.cosmology import Flatw0waCDM, Planck18, w0waCDM
-from astropy.cosmology.parameter import Parameter
+from astropy.cosmology import Flatw0waCDM, Parameter, Planck18, w0waCDM
 from astropy.cosmology.tests.test_core import ParameterTestMixin
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY

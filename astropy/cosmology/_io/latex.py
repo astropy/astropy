@@ -59,9 +59,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, TypeVar
 
 import astropy.units as u
+from astropy.cosmology._parameter import Parameter
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
-from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable
 
 from .table import to_table
