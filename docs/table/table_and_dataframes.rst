@@ -19,7 +19,7 @@ addition, the base `~astropy.table.Column` class holds a ``unit`` attribute as
 metadata to allow tracking of the units of the data for applications not using
 |Quantity|.
 
-Pandas does not provide support for units.
+*Pandas does not provide support for units.*
 
 Multi-dimensional and Structured Columns
 ----------------------------------------
@@ -29,7 +29,7 @@ commonly stored in a table. An example is a source catalog with an image thumbna
 spectrum for each source. Structured columns are less common, but are useful for storing
 vectorized data like an `~astropy.coordinates.EarthLocation` in a table.
 
-Pandas is not able to natively store multi-dimensional or structured columns.
+*Pandas is not able to natively store multi-dimensional or structured columns.*
 
 Lossless representation of FITS and VOTable data via metadata
 -------------------------------------------------------------
@@ -39,15 +39,17 @@ VOTable data. This means that when you read a FITS or VOTable file into a table 
 write it back out, the data will be effectively identical. This is made possible by
 robust support for table and column metadata which allows storing and propagating common
 column information such as the unit, description, and format. For VOTable data, more
-esoteric information like the UCD is maintained.
+information like the UCD is maintained.
 
-FITS and VOTable are two important file formats in astronomy, but the idea of lossless
-representation of physical data is critical in many other contexts as well, for instance
-when retrieving data from the numerous data catalogs provided by `astroquery
-<https://astroquery.readthedocs.io/en/latest/>`_.
+FITS and VOTable are two important data formats in astronomy, but the idea of lossless
+representation of physical data is critical in other contexts as well. For
+example, accessing metadata like units is a key component of using the
+`astroquery <https://astroquery.readthedocs.io/en/latest/>`_ service for astronomical
+data analysis.
 
-Pandas provides limited support for metadata, but as of late-2024 it is highlighted as
-"experimental" in the documentation.
+
+*Pandas provides limited support for metadata, but as of late-2024 it is highlighted as
+"experimental" in the documentation.*
 
 Time and Coordinates
 --------------------
@@ -58,9 +60,9 @@ Arrays of times and coordinates can be natively stored in `astropy.table`, meani
 the full power of these objects is available when working with them as columns within a
 table.
 
-Pandas supports `timeseries
-<https://pandas.pydata.org/docs/user_guide/timeseries.html>`_ data, but with key
-limitations:
+*Pandas supports* `timeseries
+<https://pandas.pydata.org/docs/user_guide/timeseries.html>`_ *data, but with key
+limitations*:
 
 - Leap seconds are not supported. In many circumstances (for instance planning an
   observation) this limitation is not acceptable.
@@ -72,7 +74,7 @@ limitations:
 - :ref:`Time formats <time-format>` used in astronomy such as the FITS time format are
   not supported.
 
-Pandas does not support coordinate columns.
+*Pandas does not support coordinate columns.*
 
 Responsiveness to Community Needs
 ---------------------------------
