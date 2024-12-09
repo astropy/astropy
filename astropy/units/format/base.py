@@ -239,12 +239,6 @@ class _ParsingFormatMixin:
             raise ValueError(f"At col {t.lexpos}, {str(e)}")
 
     @classmethod
-    def _get_unit_name(cls, unit: NamedUnit) -> str:
-        name = unit._get_format_name(cls.name)
-        cls._validate_unit(name)
-        return name
-
-    @classmethod
     def _fix_deprecated(cls, x: str) -> list[str]:
         return [x + " (deprecated)" if x in cls._deprecated_units else x]
 
@@ -303,7 +297,7 @@ class _ParsingFormatMixin:
             )
         if isinstance(unit, core.NamedUnit):
             try:
-                cls._get_unit_name(unit)
+                cls._validate_named_unit(unit)
             except ValueError:
                 if isinstance(unit, core.Unit):
                     return cls._decompose_to_known_units(unit._represents)
@@ -312,3 +306,7 @@ class _ParsingFormatMixin:
         raise TypeError(
             f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
         )
+
+    @classmethod
+    def _validate_named_unit(cls, unit: NamedUnit) -> None:
+        cls._validate_unit(unit._get_format_name(cls.name))
