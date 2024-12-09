@@ -223,14 +223,9 @@ class _ParsingFormatMixin:
                 raise ValueError(f"Syntax error parsing unit '{s}'")
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        cls._validate_unit(unit, detailed_exception=detailed_exception)
-        return cls._units[unit]
-
-    @classmethod
     def _get_unit(cls, t: LexToken) -> UnitBase:
         try:
-            return cls._parse_unit(t.value)
+            return cls._validate_unit(t.value)
         except ValueError as e:
             registry = core.get_current_unit_registry()
             if t.value in registry.aliases:
@@ -261,13 +256,15 @@ class _ParsingFormatMixin:
         return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
 
     @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
-        if unit not in cls._units:
-            if detailed_exception:
-                raise ValueError(cls._invalid_unit_error_message(unit))
-            raise ValueError()
+    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
         if unit in cls._deprecated_units:
             warnings.warn(cls._deprecated_unit_warning_message(unit), UnitsWarning)
+        try:
+            return cls._units[unit]
+        except KeyError:
+            if detailed_exception:
+                raise ValueError(cls._invalid_unit_error_message(unit)) from None
+            raise ValueError() from None
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:
