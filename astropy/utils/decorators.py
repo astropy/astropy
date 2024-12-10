@@ -28,6 +28,54 @@ __all__ = [
 _NotFound = object()
 
 
+def make_depr_msg(func_name, obj_type, alternative=""):
+    """
+    Create a deprecation message.
+
+    Parameters
+    ----------
+    func_name : str
+        The name of the deprecated function or class.
+        
+    obj_type : str
+        The type of the object being deprecated.
+        
+    alternative : str, optional
+        An alternative function or class name that the user may use instead.
+
+    Returns
+    -------
+    str
+        The formatted deprecation message.
+    """
+    message = f"The {func_name} {obj_type} is deprecated and may be removed in a future version."
+    if alternative:
+        message += f"\n        Use {alternative} instead."
+    return message
+
+
+def depr_doc(docstring, message):
+    """
+    Modify the decorated function's docstring to include the deprecation message.
+
+    Parameters
+    ----------
+    docstring : str
+        The original docstring of the function.
+        
+    message : str
+        The deprecation message to be added.
+
+    Returns
+    -------
+    str
+        The modified docstring.
+    """
+    if docstring is None:
+        return message
+    return f"{docstring}\n\n{message}"
+
+
 def deprecated(
     since,
     message="",
@@ -93,21 +141,6 @@ def deprecated(
     """
     method_types = (classmethod, staticmethod, types.MethodType)
 
-    def deprecate_doc(old_doc, message):
-        """
-        Returns a given docstring with a deprecation message prepended
-        to it.
-        """
-        if not old_doc:
-            old_doc = ""
-        old_doc = textwrap.dedent(old_doc).strip("\n")
-        new_doc = f"\n.. deprecated:: {since}\n    {message.strip()}\n\n" + old_doc
-        if not old_doc:
-            # This is to prevent a spurious 'unexpected unindent' warning from
-            # docutils when the original docstring was blank.
-            new_doc += r"\ "
-        return new_doc
-
     def get_function(func):
         """
         Given a function or classmethod (or other function wrapper type), get
@@ -122,34 +155,17 @@ def deprecated(
         Returns a wrapped function that displays ``warning_type``
         when it is called.
         """
-        if isinstance(func, method_types):
-            func_wrapper = type(func)
-        else:
-            func_wrapper = lambda f: f
-
         func = get_function(func)
 
         def deprecated_func(*args, **kwargs):
-            if pending:
-                category = pending_warning_type
-            else:
-                category = warning_type
-
+            category = pending_warning_type if pending else warning_type
             warnings.warn(message, category, stacklevel=2)
-
             return func(*args, **kwargs)
 
-        # If this is an extension function, we can't call
-        # functools.wraps on it, but we normally don't care.
-        # This crazy way to get the type of a wrapper descriptor is
-        # straight out of the Python 3.3 inspect module docs.
-        if type(func) is not type(str.__dict__["__add__"]):
-            deprecated_func = functools.wraps(func)(deprecated_func)
-
-        deprecated_func.__doc__ = deprecate_doc(deprecated_func.__doc__, message)
+        deprecated_func.__doc__ = depr_doc(deprecated_func.__doc__, message)
         deprecated_func.__deprecated__ = message
 
-        return func_wrapper(deprecated_func)
+        return functools.wraps(func)(deprecated_func)
 
     def deprecate_class(cls, message, warning_type=warning_type):
         """
@@ -166,7 +182,7 @@ def deprecated(
         - Subclassing the class and return the subclass can lead to problems
           with pickle and will look weird in the Sphinx docs.
         """
-        cls.__doc__ = deprecate_doc(cls.__doc__, message)
+        cls.__doc__ = depr_doc(cls.__doc__, message)
         cls.__deprecated__ = message
         if cls.__new__ is object.__new__:
             cls.__init__ = deprecate_function(
@@ -186,43 +202,17 @@ def deprecated(
         pending=pending,
         warning_type=warning_type,
     ):
+        """Handle the deprecation logic for functions or classes."""
         if obj_type is None:
-            if isinstance(obj, type):
-                obj_type_name = "class"
-            elif inspect.isfunction(obj):
-                obj_type_name = "function"
-            elif inspect.ismethod(obj) or isinstance(obj, method_types):
-                obj_type_name = "method"
-            else:
-                obj_type_name = "object"
+            obj_type_name = "class" if isinstance(obj, type) else "function" if inspect.isfunction(obj) else "method" if inspect.ismethod(obj) or isinstance(obj, method_types) else "object"
         else:
             obj_type_name = obj_type
 
         if not name:
             name = get_function(obj).__name__
 
-        altmessage = ""
         if not message or type(message) is type(deprecate):
-            if pending:
-                message = (
-                    "The {func} {obj_type} will be deprecated in a future version."
-                )
-            else:
-                message = (
-                    "The {func} {obj_type} is deprecated and may "
-                    "be removed in a future version."
-                )
-            if alternative:
-                altmessage = f"\n        Use {alternative} instead."
-
-        message = (
-            message.format(
-                func=name,
-                name=name,
-                alternative=alternative,
-                obj_type=obj_type_name,
-            )
-        ) + altmessage
+            message = make_depr_msg(name, obj_type_name, alternative)
 
         if isinstance(obj, type):
             return deprecate_class(obj, message, warning_type)
