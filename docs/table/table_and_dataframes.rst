@@ -34,7 +34,7 @@ vectorized data like an `~astropy.coordinates.EarthLocation` in a table.
 Lossless representation of FITS and VOTable data via metadata
 -------------------------------------------------------------
 
-The `astropy.table` package is designed to provide lossless representation of FITS and
+The `astropy.table` package strives to provide lossless representation of FITS and
 VOTable data. This means that when you read a FITS or VOTable file into a table and then
 write it back out, the data will be effectively identical. This is made possible by
 robust support for table and column metadata which allows storing and propagating common
@@ -46,7 +46,6 @@ representation of physical data is critical in other contexts as well. For
 example, accessing metadata like units is a key component of using the
 `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ service for astronomical
 data analysis.
-
 
 *Pandas provides limited support for metadata, but as of late-2024 it is highlighted as
 "experimental" in the documentation.*
@@ -69,12 +68,12 @@ limitations*:
 - Pandas times are stored with 64-bit precision, which is not sufficient for some
   astronomical applications. Astropy uses 128-bit precision for time to allow
   sub-nanosecond precision over the age of the universe.
-- Different :ref:`time scales <time-scale>` common in astronomy (e.g. TAI, UT1) are
+- Different :ref:`time scales <time-scale>` common in astronomy (e.g., TAI, UT1) are
   not supported.
 - :ref:`Time formats <time-format>` used in astronomy such as the FITS time format are
   not supported.
 
-*Pandas does not support coordinate columns.*
+*Pandas does not support sky coordinate columns.*
 
 Responsiveness to Community Needs
 ---------------------------------
@@ -91,7 +90,8 @@ Interoperability
 We recognize that Pandas is a popular library and that there are many users who are
 familiar with it. For this reason, we have made it easy to convert between
 `astropy.table` and `~pandas.DataFrame`, as documented in :ref:`pandas`. This allows
-users to take advantage of the features of both packages as needed.
+users to take advantage of the features of both packages as needed,
+within the limitations stated above.
 
 We are also committed to supporting interoperability with a more generalized concept of
 the DataFrame, with packages like `polars <https://pola.rs/>`_ gaining popularity.

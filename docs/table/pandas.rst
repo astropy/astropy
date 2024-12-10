@@ -67,7 +67,7 @@ The conversions to and from ``pandas`` are subject to the following caveats:
   masked column to a pandas DataFrame, the original values are lost.
 
 * Tables with :ref:`mixin_columns` such as `~astropy.time.Time`,
-  `~astropy.coordinates.SkyCoord`, and `~astropy.units.Quantity` can be converted, but
+  `~astropy.coordinates.SkyCoord`, and |Quantity| can be converted, but
   *with loss of information or fidelity*. For instance, `~astropy.time.Time` columns
   will be converted to a `pandas TimeSeries
   <https://pandas.pydata.org/docs/user_guide/timeseries.html>`_, but this object has

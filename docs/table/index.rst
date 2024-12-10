@@ -7,7 +7,7 @@ Data Tables (`astropy.table`)
 Introduction
 ============
 
-`astropy.table` provides a flexible and easy to use set of tools for working with
+`astropy.table` provides a flexible and easy-to-use set of tools for working with
 tabular data using an interface based on `numpy`. In addition to basic table creation,
 access, and modification operations, key features include:
 
