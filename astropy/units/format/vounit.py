@@ -124,7 +124,7 @@ class VOUnit(Base, _GenericParserMixin):
             raise
 
     @classmethod
-    def _get_unit_name(cls, unit: NamedUnit) -> str:
+    def _validate_named_unit(cls, unit: NamedUnit) -> None:
         # The da- and d- prefixes are discouraged.  This has the
         # effect of adding a scale to value in the result.
         if isinstance(unit, core.PrefixUnit):
@@ -138,10 +138,8 @@ class VOUnit(Base, _GenericParserMixin):
                     f"In '{unit}': VOUnit can not represent units with the 'd' "
                     "(deci) prefix"
                 )
-        name = unit._get_format_name(cls.name)
-        if name not in cls._custom_units:
+        if (name := unit._get_format_name(cls.name)) not in cls._custom_units:
             cls._validate_unit(name, detailed_exception=True)
-        return name
 
     @classmethod
     def _def_custom_unit(cls, unit: str) -> UnitBase:
