@@ -339,6 +339,14 @@ Masking
 
    masking.rst
 
+Mixin Columns
+-------------
+
+.. toctree::
+   :maxdepth: 2
+
+   mixin_columns.rst
+
 I/O with Tables
 ---------------
 
@@ -347,14 +355,6 @@ I/O with Tables
 
    io.rst
    pandas.rst
-
-Mixin Columns
--------------
-
-.. toctree::
-   :maxdepth: 2
-
-   mixin_columns.rst
 
 Astropy Table and DataFrames
 ----------------------------
