@@ -1,0 +1,13 @@
+Astropy used to bundle the javascript libraries jQuery and DataTables for
+interactive (e.g. sorting by column values) tables using the ``show_in_browser()``
+method.
+This bundling requires relatively large files in astropy itself, for a relatively minor feature.
+Furthermore, the astropy developers are not experts in javascript development, and
+javascript libraries many need updates to improve on security vulnerabilities.
+This change removes the bundled versions of jQuery and DataTables from astropy,
+updates the default version of the remote URLs to version 2.1.8 of DataTables, and
+sets the default for ``show_in_browser(use_local_files=False)`` to use the remote versions
+in all cases. If the method is called with ``use_local_files=True``, a warning is
+displayed and remote version are used anyway.
+This may break the use of the method when working offline, unless the javascript
+files are cached by the browser from a previous online session.
