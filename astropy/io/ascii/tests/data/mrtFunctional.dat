@@ -1,0 +1,21 @@
+Title: New evolutionary sequences for extremely low-mass white dwarfs:
+       Homogeneous mass and age determinations and asteroseismic
+       prospects
+Authors: Althaus L.G., Miller Bertolami M.M., Corsico A.H.
+Table: Mass and age of extreme low-mass white dwarfs
+================================================================================
+Byte-by-byte Description of file: table2.dat
+--------------------------------------------------------------------------------
+   Bytes Format  Units    Label     Explanations
+--------------------------------------------------------------------------------
+   1- 18 F18.16  [K]      logTe     [3.85,4.79] Log of effective temperature
+  20- 37 F18.16  [cm/s2]  logg      [3,7.7] Surface gravity
+  39- 58 F20.17  Msun     Mass      [0.1/0.6]?=-1 Mass fit
+  60- 83 E24.18  Msun   e_Mass      ?=-1 Mass fit error
+  85-108 E24.18  Myr      Age       ?=-1 Age fit
+ 110-133 E24.18  Myr    e_Age       ?=-1 Age fit error
+
+--------------------------------------------------------------------------------
+Note (1): Copied from cdsFunctional.dat for tests about units.
+--------------------------------------------------------------------------------
+3.8500000000000001|3.0000000000000000| 0.24458909000000001|3.78770000000000018E-003|      34.946352740000002|      8.2766551100000001
