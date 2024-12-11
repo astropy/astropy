@@ -183,6 +183,15 @@ def test_cds_log10_dimensionless():
     assert u.dex(u.dimensionless_unscaled).to_string(format="cds") == "[-]"
 
 
+def test_cds_angstrom_str():
+    # Regression test for a problem noticed in
+    # https://github.com/astropy/astropy/pull/17527#discussion_r1880555481
+    # that the string representation of the cds version of Angstrom was "AA".
+    assert str(u.cds.Angstrom) == str(u.Angstrom) == "Angstrom"
+    # Since this is a NamedUnit, let's check the name for completeness.
+    assert u.cds.Angstrom.name == "Angstrom"
+
+
 # These examples are taken from the EXAMPLES section of
 # https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/
 @pytest.mark.parametrize(
