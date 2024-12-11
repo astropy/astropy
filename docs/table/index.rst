@@ -17,7 +17,7 @@ access, and modification operations, key features include:
 * Provide flexible metadata structures for the table and individual columns.
 * Perform :ref:`table_operations` like database joins, concatenation, and binning.
 * Maintain a table index for fast retrieval of table items or ranges.
-* Support a general :ref:`mixin protocol <mixin_protocol>` for flexible data containers in tables, including non-astropy objects.
+* Support a general :ref:`mixin protocol <mixin_protocol>` for flexible data containers in tables.
 * :ref:`Read and write <read_write_tables>` to files via the :ref:`Unified File Read/Write Interface <table_io>`.
 * Convert to and from `pandas.DataFrame`.
 

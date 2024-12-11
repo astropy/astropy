@@ -41,12 +41,6 @@ robust support for table and column metadata which allows storing and propagatin
 column information such as the unit, description, and format. For VOTable data, more
 information like the UCD is maintained.
 
-FITS and VOTable are two important data formats in astronomy, but the idea of lossless
-representation of physical data is critical in other contexts as well. For
-example, accessing metadata like units is a key component of using the
-`astroquery <https://astroquery.readthedocs.io/en/latest/>`_ service for astronomical
-data analysis.
-
 *Pandas provides limited support for metadata, but as of late-2024 it is highlighted as
 "experimental" in the documentation.*
 
