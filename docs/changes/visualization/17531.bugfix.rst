@@ -1,0 +1,9 @@
+The following private classes from ``astropy.visualization.lupton_rgb``, that
+were dropped without deprecation in astropy 7.0.0, were re-introduced following
+a report that they were used downstream. The following classes are now
+considered public:
+
+- ``Mapping``
+- ``AsinhMapping``
+- ``LinearMapping``
+- ``AsinhZScaleMapping``
