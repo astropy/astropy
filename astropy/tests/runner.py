@@ -10,8 +10,8 @@ import tempfile
 import warnings
 from functools import wraps
 from importlib.util import find_spec
+from pathlib import Path
 
-from astropy.config.paths import set_temp_cache, set_temp_config
 from astropy.utils import find_current_module
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
@@ -235,23 +235,25 @@ class TestRunnerBase:
         else:
             plugins = []
 
-        # Override the config locations to not make a new directory nor use
-        # existing cache or config. Note that we need to do this here in
+        # Avoid the existing config. Note that we need to do this here in
         # addition to in conftest.py - for users running tests interactively
         # in e.g. IPython, conftest.py would get read in too late, so we need
         # to do it here - but at the same time the code here doesn't work when
         # running tests in parallel mode because this uses subprocesses which
         # don't know about the temporary config/cache.
-        astropy_config = tempfile.mkdtemp("astropy_config")
-        astropy_cache = tempfile.mkdtemp("astropy_cache")
-
-        # Have to use nested with statements for cross-Python support
-        # Note, using these context managers here is superfluous if the
-        # config_dir or cache_dir options to pytest are in use, but it's
-        # also harmless to nest the contexts
-        with set_temp_config(astropy_config, delete=True):
-            with set_temp_cache(astropy_cache, delete=True):
+        # Note, this is superfluous if the config_dir option to pytest is in use,
+        # but it's also harmless
+        orig_xdg_config = os.environ.get("XDG_CONFIG_HOME")
+        with tempfile.TemporaryDirectory("astropy_config") as astropy_config:
+            Path(astropy_config, "astropy").mkdir()
+            os.environ["XDG_CONFIG_HOME"] = astropy_config
+            try:
                 return pytest.main(args=args, plugins=plugins)
+            finally:
+                if orig_xdg_config is None:
+                    os.environ.pop("XDG_CONFIG_HOME", None)
+                else:
+                    os.environ["XDG_CONFIG_HOME"] = orig_xdg_config
 
     @classmethod
     def make_test_runner_in(cls, path):
