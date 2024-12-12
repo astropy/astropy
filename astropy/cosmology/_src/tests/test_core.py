@@ -15,7 +15,7 @@ import pytest
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatCosmologyMixin, Parameter
-from astropy.cosmology._src.tests.test_connect import (
+from astropy.cosmology._src.tests.io.test_connect import (
     ReadWriteTestMixin,
     ToFromFormatTestMixin,
 )
