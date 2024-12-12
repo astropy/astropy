@@ -199,7 +199,7 @@ depr_kws_wrap_get(PyObject* self, PyObject* obj, PyObject* type) {
 
 static PyTypeObject DeprKwsWrap = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "_signature_deprecations.wrap",
+    .tp_name = "signature_deprecations.wrap",
     .tp_doc = PyDoc_STR("wrap a function with deprecated keyword arguments"),
     .tp_basicsize = sizeof(DeprKwsObject),
     .tp_itemsize = 0,
@@ -216,14 +216,14 @@ static PyTypeObject DeprKwsWrap = {
 
 static struct PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "_signature_deprecations",
+    .m_name = "signature_deprecations",
     .m_doc = PyDoc_STR("fast decorators to mark signature details as deprecated"),
     .m_size = -1,
 };
 
 
 PyMODINIT_FUNC
-PyInit__signature_deprecations(void) {
+PyInit_signature_deprecations(void) {
     PyObject* m;
 
     if (PyType_Ready(&DeprKwsWrap) < 0)
