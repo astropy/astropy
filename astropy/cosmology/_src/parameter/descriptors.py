@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-__all__: list[str] = []
+__all__: list[str] = ["ParametersAttribute"]
 
 from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, NoReturn
 
 if TYPE_CHECKING:
-    from astropy.cosmology.core import Cosmology
+    from astropy.cosmology import Cosmology
 
 
 @dataclass(frozen=True, slots=True)
