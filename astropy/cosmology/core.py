@@ -15,7 +15,9 @@ from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 
-from ._utils import all_parameters
+# isort: split
+from astropy.cosmology._src.utils import all_parameters
+
 from .connect import (
     CosmologyFromFormat,
     CosmologyRead,
