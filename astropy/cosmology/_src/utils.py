@@ -7,9 +7,8 @@ __all__: list[str] = []  # nothing is publicly scoped
 import functools
 import operator
 from collections.abc import Callable
-from dataclasses import Field
 from numbers import Number
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import Any, TypeVar
 
 import numpy as np
 
@@ -17,9 +16,6 @@ import astropy.cosmology.units as cu
 from astropy.units import Quantity
 
 from .signature_deprecations import _depr_kws_wrap
-
-if TYPE_CHECKING:
-    from astropy.cosmology import Parameter
 
 _F = TypeVar("_F", bound=Callable[..., Any])
 
@@ -94,32 +90,6 @@ def all_cls_vars(obj: object | type, /) -> dict[str, Any]:
     """Return all variables in the whole class hierarchy."""
     cls = obj if isinstance(obj, type) else obj.__class__
     return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))
-
-
-def all_parameters(obj: object, /) -> dict[str, Field | Parameter]:
-    """Get all fields of a dataclass, including those not-yet finalized.
-
-    Parameters
-    ----------
-    obj : object | type
-        A dataclass.
-
-    Returns
-    -------
-    dict[str, Field | Parameter]
-        All fields of the dataclass, including those not yet finalized in the class, if
-        it's still under construction, e.g. in ``__init_subclass__``.
-    """
-    from astropy.cosmology._src.parameter import Parameter
-
-    return {
-        k: (v if isinstance(v, Parameter) else v.default)
-        for k, v in all_cls_vars(obj).items()
-        if (
-            isinstance(v, Parameter)
-            or (isinstance(v, Field) and isinstance(v.default, Parameter))
-        )
-    }
 
 
 def deprecated_keywords(*kws, since):

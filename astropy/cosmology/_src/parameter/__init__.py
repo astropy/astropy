@@ -5,6 +5,7 @@ __all__ = [  # noqa: RUF100, RUF022
     "Parameter",
     "ParametersAttribute",
     "MISSING",
+    "all_parameters",
     # converters
     "validate_with_unit",
     "validate_to_float",
@@ -19,4 +20,5 @@ from .converter import (
     validate_with_unit,
 )
 from .core import MISSING, Parameter
+from .dataclass_utils import all_parameters
 from .descriptors import ParametersAttribute
