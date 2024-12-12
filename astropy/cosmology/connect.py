@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeVar, overload
 
-from astropy.cosmology import units as cu
 from astropy.io import registry as io_registry
 from astropy.units import add_enabled_units
+
+# isort: split
+from astropy.cosmology import units as cu
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

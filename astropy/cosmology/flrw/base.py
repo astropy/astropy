@@ -20,6 +20,11 @@ from numpy import inf, sin
 
 import astropy.constants as const
 import astropy.units as u
+from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.decorators import lazyproperty
+from astropy.utils.exceptions import AstropyUserWarning
+
+# isort: split
 from astropy.cosmology._utils import (
     aszarr,
     deprecated_keywords,
@@ -31,9 +36,6 @@ from astropy.cosmology.parameter._converter import (
     _validate_non_negative,
     _validate_with_unit,
 )
-from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.decorators import lazyproperty
-from astropy.utils.exceptions import AstropyUserWarning
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping

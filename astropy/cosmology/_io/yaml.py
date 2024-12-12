@@ -21,11 +21,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import astropy.cosmology.units as cu
 import astropy.units as u
+from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
+
+# isort: split
+import astropy.cosmology.units as cu
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
-from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
 
 from .mapping import from_mapping
 from .utils import FULLQUALNAME_SUBSTITUTIONS as QNS
