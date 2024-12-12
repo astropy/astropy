@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
     from yaml import MappingNode
 
-    from astropy.cosmology._typing import _CosmoT
+    from astropy.cosmology._src.typing import _CosmoT
 
 __all__: list[str] = []  # nothing is publicly scoped
 
