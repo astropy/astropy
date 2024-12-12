@@ -6,7 +6,7 @@ from pathlib import Path
 
 from setuptools import Extension
 
-ASTROPY_COSMOLOGY_ROOT = Path(__file__).parent
+ASTROPY_COSMOLOGY_SRC_ROOT = Path(__file__).parent
 
 
 if sys.platform.startswith("win"):
@@ -23,7 +23,7 @@ def get_extensions():
     return [
         Extension(
             "astropy.cosmology._src.signature_deprecations",
-            [relpath(Path(ASTROPY_COSMOLOGY_ROOT, "_src", "signature_deprecations.c"))],
+            [relpath(Path(ASTROPY_COSMOLOGY_SRC_ROOT, "signature_deprecations.c"))],
             extra_compile_args=extra_compile_args,
         ),
     ]
