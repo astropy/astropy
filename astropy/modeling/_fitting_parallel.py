@@ -75,10 +75,10 @@ class FitInfoArrayContainer:
     def get_property_as_array(self, name):
         array = None
         for index in np.ndindex(self.fit_info_array.shape):
-            value = getattr(self.fit_info_array[index], name)
+            value = np.array(getattr(self.fit_info_array[index], name))
             if array is None:
-                array = np.zeros(self.shape + np.shape(value))
-            if np.shape(value) != array.shape[self.ndim:]:
+                array = np.zeros(self.shape + value.shape, dtype=value.dtype)
+            if value.shape != array.shape[self.ndim:]:
                 raise ValueError('Property {name} does not have consistent shape in all fit_info')
             array[index] = value
         return array
