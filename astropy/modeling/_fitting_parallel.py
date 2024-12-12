@@ -103,13 +103,16 @@ def _fit_models_to_chunk(
     # In some cases, dask calls this function with empty arrays, so we can
     # take a short-cut here.
     if data.ndim == 0 or data.size == 0 or block_info is None or block_info == []:
-        return parameters
+        return parameters_obj
 
     # Because of the way map_blocks works, we need to have all arrays passed
     # to map_blocks have the same shape, even though for the parameters this
     # means there are extra unneeded dimensions. We slice these out here.
     index = tuple([slice(None)] * (1 + len(iterating_axes)) + [0] * len(fitting_axes))
     parameters = parameters[index]
+
+    parameters_obj = np.zeros((2,) + parameters.shape[1:], dtype=object)
+    parameters_obj[0] = {'parameters': parameters}
 
     # The world argument is used to pass through 1D arrays of world coordinates
     # (otherwise world_arrays is used) so if the model has more than one
@@ -180,6 +183,8 @@ def _fit_models_to_chunk(
             for ipar, name in enumerate(model_fit.param_names):
                 parameters[(ipar,) + index] = getattr(model_fit, name).value
 
+            parameters_obj[(1,) + index] = fitter.fit_info
+
         if diagnostics == "error+warn" and len(all_warnings) > 0:
             output = True
 
@@ -217,7 +222,10 @@ def _fit_models_to_chunk(
                     fitter_kwargs,
                 )
 
-    return parameters
+    print(parameters_obj.shape)
+    print(parameters.shape)
+
+    return parameters_obj
 
 
 class ParameterContainer:
@@ -617,7 +625,7 @@ def parallel_fit_dask(
         *parameter_arrays,
         *(world if world_arrays else []),
         enforce_ndim=True,
-        dtype=float,
+        dtype=object,
         drop_axis=fitting_axes,
         model=simple_model,
         fitter=fitter,
@@ -639,7 +647,11 @@ def parallel_fit_dask(
     else:
         compute_kwargs = {"scheduler": scheduler}
 
-    parameter_arrays_fitted = result.compute(**compute_kwargs)
+    container = result.compute(**compute_kwargs)
+
+    return container
+
+    parameter_arrays_fitted = container[0, 0, 0]['parameters']
 
     # Set up new parameter arrays with fitted values
     parameters = {}
