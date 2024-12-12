@@ -168,7 +168,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from typing import TypeVar
 
-    from astropy.cosmology._typing import _CosmoT
+    from astropy.cosmology._src.typing import _CosmoT
 
     _TableT = TypeVar("_TableT", Table)
 

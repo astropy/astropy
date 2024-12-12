@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
     from astropy.cosmology import Cosmology
     from astropy.cosmology._io.model import _CosmologyModel
-    from astropy.cosmology._typing import _CosmoT
+    from astropy.cosmology._src.typing import _CosmoT
     from astropy.table import Row, Table
 
 __all__ = [

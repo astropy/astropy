@@ -176,7 +176,7 @@ from .table import from_table, to_table
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from astropy.cosmology._typing import _CosmoT
+    from astropy.cosmology._src.typing import _CosmoT
     from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
     from astropy.table import Table
 

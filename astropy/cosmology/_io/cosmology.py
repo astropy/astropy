@@ -21,7 +21,7 @@ from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
 if TYPE_CHECKING:
-    from astropy.cosmology._typing import _CosmoT
+    from astropy.cosmology._src.typing import _CosmoT
 
 __all__: list[str] = []  # nothing is publicly scoped
 

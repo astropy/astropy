@@ -101,7 +101,7 @@ from astropy.cosmology.parameter import Parameter
 from .table import from_table, to_table
 
 if TYPE_CHECKING:
-    from astropy.cosmology._typing import _CosmoT
+    from astropy.cosmology._src.typing import _CosmoT
     from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
     from astropy.table import Table
 
