@@ -163,11 +163,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, TypeVar
 
-import astropy.cosmology.units as cu
 import astropy.units as u
+from astropy.table import QTable
+
+# isort: split
+import astropy.cosmology.units as cu
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
-from astropy.table import QTable
 
 from .table import from_table, to_table
 

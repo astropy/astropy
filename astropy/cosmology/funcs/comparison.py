@@ -17,6 +17,8 @@ import numpy as np
 from numpy import False_, True_, ndarray
 
 from astropy import table
+
+# isort: split
 from astropy.cosmology.core import Cosmology
 
 if TYPE_CHECKING:

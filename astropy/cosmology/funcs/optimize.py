@@ -9,10 +9,12 @@ from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict
 import numpy as np
 import numpy.typing as npt
 
-from astropy.cosmology import units as cu
-from astropy.cosmology.core import CosmologyError
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
+
+# isort: split
+from astropy.cosmology import units as cu
+from astropy.cosmology.core import CosmologyError
 
 if TYPE_CHECKING:
     from collections.abc import Callable

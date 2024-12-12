@@ -36,9 +36,11 @@ import copy
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+from astropy.table import QTable, Row
+
+# isort: split
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
-from astropy.table import QTable, Row
 
 from .mapping import from_mapping
 
