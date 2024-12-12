@@ -194,6 +194,38 @@ class _CriticalDensity:
         return self.critical_density0 * self.efunc(z) ** 2
 
 
+class _BaryonComponent:
+    """The cosmology has attributes and methods for the baryon density."""
+
+    Ob0: float
+    """Omega baryons: density of baryonic matter in units of the critical density at z=0."""
+
+    inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
+
+    @deprecated_keywords("z", since="7.0")
+    def Ob(self, z: Quantity | ArrayLike) -> NDArray[Any] | float:
+        """Return the density parameter for baryonic matter at redshift ``z``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
+
+        Returns
+        -------
+        Ob : ndarray or float
+            The density of baryonic matter relative to the critical density at
+            each redshift.
+            Returns `float` if the input is scalar.
+
+        """
+        z = aszarr(z)
+        return self.Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
+
+
 ParameterOde0 = Parameter(
     doc="Omega dark energy; dark energy density/critical density at z=0.",
     fvalidate="float",
@@ -201,7 +233,9 @@ ParameterOde0 = Parameter(
 
 
 @dataclass_decorator
-class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB, _CriticalDensity):
+class FLRW(
+    Cosmology, _ScaleFactor, _TemperatureCMB, _CriticalDensity, _BaryonComponent
+):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
     This is an abstract base class -- you cannot instantiate examples of this
@@ -552,29 +586,6 @@ class FLRW(Cosmology, _ScaleFactor, _TemperatureCMB, _CriticalDensity):
         """
         z = aszarr(z)
         return self.Om0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
-
-    @deprecated_keywords("z", since="7.0")
-    def Ob(self, z):
-        """Return the density parameter for baryonic matter at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Ob : ndarray or float
-            The density of baryonic matter relative to the critical density at
-            each redshift.
-            Returns `float` if the input is scalar.
-
-        """
-        z = aszarr(z)
-        return self.Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Odm(self, z):
