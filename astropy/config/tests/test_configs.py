@@ -37,6 +37,21 @@ def test_paths():
     assert "testpkg" in paths.get_cache_dir(rootname="testpkg")
 
 
+@pytest.mark.parametrize(
+    "environment_variable,func",
+    [
+        # Regression test for #17514 - XDG_CACHE_HOME had no effect
+        pytest.param("XDG_CACHE_HOME", paths.get_cache_dir_path, id="cache"),
+        pytest.param("XDG_CONFIG_HOME", paths.get_config_dir_path, id="config"),
+    ],
+)
+def test_xdg_variables(monkeypatch, tmp_path, environment_variable, func):
+    config_dir = tmp_path / "astropy"
+    config_dir.mkdir()
+    monkeypatch.setenv(environment_variable, str(tmp_path))
+    assert func() == config_dir
+
+
 def test_set_temp_config(tmp_path, monkeypatch):
     # Check that we start in an understood state.
     assert configuration._cfgobjs == OLD_CONFIG
