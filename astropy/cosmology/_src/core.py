@@ -16,8 +16,11 @@ from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 
 # isort: split
-from astropy.cosmology._src.parameter import Parameter, ParametersAttribute
-from astropy.cosmology._src.utils import all_parameters
+from astropy.cosmology._src.parameter import (
+    Parameter,
+    ParametersAttribute,
+    all_parameters,
+)
 from astropy.cosmology.connect import (
     CosmologyFromFormat,
     CosmologyRead,
