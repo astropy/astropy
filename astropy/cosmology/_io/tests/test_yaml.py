@@ -82,7 +82,7 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
         assert isinstance(yml, str)  # test type
         assert yml.startswith("!" + ".".join(cosmo_cls.__module__.split(".")[:2]))
         # e.g. "astropy.cosmology" for built-in cosmologies, or "__main__" for the test
-        # SubCosmology class defined in ``astropy.cosmology.tests.test_core``.
+        # SubCosmology class defined in ``astropy.cosmology._src.tests.test_core``.
 
     def test_from_yaml_default(
         self, cosmo, to_format, from_format, xfail_if_not_registered_with_yaml

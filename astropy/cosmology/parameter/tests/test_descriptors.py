@@ -92,7 +92,7 @@ class ParametersAttributeTestMixin:
     """Test the descriptor for ``parameters`` on Cosmology classes.
 
     This is a mixin class and is mixed into
-    :class:`~astropy.cosmology.tests.test_core.CosmologyTest`.
+    :class:`~astropy.cosmology._src.tests.test_core.CosmologyTest`.
     """
 
     @pytest.mark.parametrize("name", ["parameters", "_derived_parameters"])

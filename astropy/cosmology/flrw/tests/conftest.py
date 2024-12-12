@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeVar
 
-from astropy.cosmology.tests.helper import clean_registry  # noqa: F401
+from astropy.cosmology._src.tests.helper import clean_registry  # noqa: F401
 from astropy.tests.helper import pickle_protocol  # noqa: F401
 
 if TYPE_CHECKING:

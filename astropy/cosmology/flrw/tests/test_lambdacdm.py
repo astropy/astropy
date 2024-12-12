@@ -11,9 +11,9 @@ import astropy.constants as const
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import FlatLambdaCDM, LambdaCDM
+from astropy.cosmology._src.tests.helper import get_redshift_methods
+from astropy.cosmology._src.tests.test_core import invalid_zs, valid_zs
 from astropy.cosmology.flrw.lambdacdm import ellipkinc, hyp2f1
-from astropy.cosmology.tests.helper import get_redshift_methods
-from astropy.cosmology.tests.test_core import invalid_zs, valid_zs
 from astropy.table import QTable
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
