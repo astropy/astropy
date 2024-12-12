@@ -16,7 +16,7 @@ import numpy as np
 from astropy.units import Quantity
 
 from . import units as cu
-from ._signature_deprecations import _depr_kws_wrap
+from ._src.signature_deprecations import _depr_kws_wrap
 
 if TYPE_CHECKING:
     from astropy.cosmology import Parameter

@@ -22,8 +22,8 @@ else:
 def get_extensions():
     return [
         Extension(
-            "astropy.cosmology._signature_deprecations",
-            [relpath(Path(ASTROPY_COSMOLOGY_ROOT, "_signature_deprecations.c"))],
+            "astropy.cosmology._src.signature_deprecations",
+            [relpath(Path(ASTROPY_COSMOLOGY_ROOT, "_src", "signature_deprecations.c"))],
             extra_compile_args=extra_compile_args,
         ),
     ]
