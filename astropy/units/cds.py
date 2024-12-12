@@ -68,7 +68,7 @@ def _initialize_module():
         (["al"], u.lyr, "Light year", ["c", "d"]),
         (["lyr"], u.lyr, "Light year"),
         (["alpha"], _si.alpha, "Fine structure constant"),
-        ((["AA", "Å"], ["Angstrom", "Angstroem"]), u.AA, "Angstrom"),
+        (["Angstrom", "Å", "Angstroem", "AA"], u.AA, "Angstrom"),
         (["arcmin", "arcm"], u.arcminute, "minute of arc"),
         (["arcsec", "arcs"], u.arcsecond, "second of arc"),
         (["atm"], _si.atm, "atmosphere"),
