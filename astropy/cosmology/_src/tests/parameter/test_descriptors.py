@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Testing :mod:`astropy.cosmology.parameter._descriptor`."""
+"""Testing :mod:`astropy.cosmology._src.parameter.descriptor`."""
 
 from __future__ import annotations
 
@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, ClassVar
 
 import pytest
 
+from astropy.cosmology._src.parameter import Parameter
+from astropy.cosmology._src.parameter.descriptors import ParametersAttribute
 from astropy.cosmology._src.utils import all_cls_vars
-from astropy.cosmology.parameter import Parameter
-from astropy.cosmology.parameter._descriptors import ParametersAttribute
 
 if TYPE_CHECKING:
     from astropy.cosmology.core import Cosmology

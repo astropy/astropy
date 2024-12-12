@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["Parameter"]
+__all__ = ["MISSING", "Parameter"]
 
 import copy
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 import astropy.units as u
 
-from ._converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
+from .converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

@@ -25,6 +25,10 @@ from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 # isort: split
+from astropy.cosmology._src.parameter import (
+    validate_non_negative,
+    validate_with_unit,
+)
 from astropy.cosmology._src.utils import (
     aszarr,
     deprecated_keywords,
@@ -32,10 +36,6 @@ from astropy.cosmology._src.utils import (
 )
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin, dataclass_decorator
 from astropy.cosmology.parameter import Parameter
-from astropy.cosmology.parameter._converter import (
-    _validate_non_negative,
-    _validate_with_unit,
-)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -394,7 +394,7 @@ class FLRW(
             )
             return 0.0
 
-        value = _validate_non_negative(self, param, value)
+        value = validate_non_negative(self, param, value)
         if value > self.Om0:
             raise ValueError(
                 "baryonic density can not be larger than total matter density."
@@ -414,7 +414,7 @@ class FLRW(
             return None  # None, regardless of input
 
         # Validate / set units
-        value = _validate_with_unit(self, param, value)
+        value = validate_with_unit(self, param, value)
 
         # Check values and data shapes
         if value.shape not in ((), (nneutrinos,)):

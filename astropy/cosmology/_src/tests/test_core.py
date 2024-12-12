@@ -20,11 +20,12 @@ from astropy.cosmology._src.tests.io.test_connect import (
     ToFromFormatTestMixin,
 )
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
-from astropy.cosmology.parameter.tests.test_descriptors import (
+from astropy.table import Column, QTable, Table
+
+from .parameter.test_descriptors import (
     ParametersAttributeTestMixin,
 )
-from astropy.cosmology.parameter.tests.test_parameter import ParameterTestMixin
-from astropy.table import Column, QTable, Table
+from .parameter.test_parameter import ParameterTestMixin
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
