@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import astropy.units as u
-from astropy.cosmology._utils import (
+from astropy.cosmology._src.utils import (
     all_cls_vars,
     aszarr,
     deprecated_keywords,
@@ -16,7 +16,7 @@ from .test_core import invalid_zs, valid_zs, z_arr
 
 
 def test_vectorize_redshift_method():
-    """Test :func:`astropy.cosmology._utils.vectorize_redshift_method`."""
+    """Test :func:`astropy.cosmology._src.utils.vectorize_redshift_method`."""
 
     class Class:
         @vectorize_redshift_method
@@ -59,13 +59,13 @@ class Test_aszarr:
         ),
     )
     def test_valid(self, z, expect):
-        """Test :func:`astropy.cosmology._utils.aszarr`."""
+        """Test :func:`astropy.cosmology._src.utils.aszarr`."""
         got = aszarr(z)
         assert np.array_equal(got, expect)
 
     @pytest.mark.parametrize("z, exc", invalid_zs)
     def test_invalid(self, z, exc):
-        """Test :func:`astropy.cosmology._utils.aszarr`."""
+        """Test :func:`astropy.cosmology._src.utils.aszarr`."""
         with pytest.raises(exc):
             aszarr(z)
 
@@ -87,7 +87,7 @@ class Test_aszarr:
 
 
 def test_all_cls_vars():
-    """Test :func:`astropy.cosmology._utils.all_cls_vars`."""
+    """Test :func:`astropy.cosmology._src.utils.all_cls_vars`."""
 
     class ClassA:
         a = 1

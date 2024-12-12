@@ -13,10 +13,10 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 import numpy as np
 
+import astropy.cosmology.units as cu
 from astropy.units import Quantity
 
-from . import units as cu
-from ._src.signature_deprecations import _depr_kws_wrap
+from .signature_deprecations import _depr_kws_wrap
 
 if TYPE_CHECKING:
     from astropy.cosmology import Parameter

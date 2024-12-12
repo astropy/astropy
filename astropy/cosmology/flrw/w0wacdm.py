@@ -4,7 +4,7 @@
 
 from numpy import exp
 
-from astropy.cosmology._utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.cosmology.core import dataclass_decorator
 from astropy.cosmology.parameter import Parameter
 

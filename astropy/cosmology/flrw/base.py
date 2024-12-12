@@ -25,7 +25,7 @@ from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 # isort: split
-from astropy.cosmology._utils import (
+from astropy.cosmology._src.utils import (
     aszarr,
     deprecated_keywords,
     vectorize_redshift_method,

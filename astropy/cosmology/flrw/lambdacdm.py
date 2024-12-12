@@ -9,7 +9,7 @@ from numpy import log
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 # isort: split
-from astropy.cosmology._utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.cosmology.core import dataclass_decorator
 
 from . import scalar_inv_efuncs
