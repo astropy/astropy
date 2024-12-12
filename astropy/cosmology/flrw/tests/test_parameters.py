@@ -12,8 +12,8 @@ import pytest
 
 import astropy.units as u
 from astropy.cosmology import FlatFLRWMixin, Parameter
+from astropy.cosmology._src.tests.test_core import ParameterTestMixin
 from astropy.cosmology.parameter._core import MISSING
-from astropy.cosmology.tests.test_core import ParameterTestMixin
 from astropy.tests.helper import assert_quantity_allclose
 
 if TYPE_CHECKING:
