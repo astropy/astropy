@@ -20,14 +20,17 @@ from typing import TYPE_CHECKING
 import astropy.units as u
 from astropy.units import Equivalency
 
+# isort: split
+from .default import default_cosmology
+from .funcs.optimize import z_at_value
 from .units import littleh, redshift
 
 if TYPE_CHECKING:
     import sys
-    from typing import Literal
+    from typing import Any, Literal
 
+    from astropy.cosmology import Cosmology
     from astropy.cosmology._src.funcs.optimize import _ZAtValueKWArgs
-    from astropy.cosmology.core import Cosmology
     from astropy.units import Quantity
 
     if sys.version_info < (3, 12):
@@ -111,8 +114,6 @@ def redshift_distance(
     >>> d.to(cu.redshift, cu.redshift_distance(WMAP9, kind="comoving", zmax=1200))  # doctest: +FLOAT_CMP
     <Quantity 1100.000 redshift>
     """
-    from astropy.cosmology import default_cosmology, z_at_value
-
     # get cosmology: None -> default and process str / class
     cosmology = cosmology if cosmology is not None else default_cosmology.get()
     with default_cosmology.set(cosmology):  # if already cosmo, passes through
@@ -176,8 +177,6 @@ def redshift_hubble(
     >>> z.to(cu.littleh, equivalency)  # doctest: +FLOAT_CMP
     <Quantity 15656.37401543 littleh>
     """
-    from astropy.cosmology import default_cosmology, z_at_value
-
     # get cosmology: None -> default and process str / class
     cosmology = cosmology if cosmology is not None else default_cosmology.get()
     with default_cosmology.set(cosmology):  # if already cosmo, passes through
@@ -241,8 +240,6 @@ def redshift_temperature(
     >>> z.to(u.K, cu.redshift_temperature(WMAP9))
     <Quantity 3000.225 K>
     """
-    from astropy.cosmology import default_cosmology, z_at_value
-
     # get cosmology: None -> default and process str / class
     cosmology = cosmology if cosmology is not None else default_cosmology.get()
     with default_cosmology.set(cosmology):  # if already cosmo, passes through
@@ -327,8 +324,6 @@ def with_redshift(
     >>> z.to(u.K, equivalency)
     <Quantity 3000.225 K>
     """
-    from astropy.cosmology import default_cosmology
-
     # get cosmology: None -> default and process str / class
     cosmology = cosmology if cosmology is not None else default_cosmology.get()
     with default_cosmology.set(cosmology):  # if already cosmo, passes through
@@ -376,8 +371,6 @@ def with_H0(H0: Quantity | None = None) -> Equivalency:
     little-h at all, see https://arxiv.org/pdf/1308.4150.pdf
     """
     if H0 is None:
-        from .realizations import default_cosmology
-
         H0 = default_cosmology.get().H0
 
     h100_val_unit = u.Unit(100 / (H0.to_value((u.km / u.s) / u.Mpc)) * littleh)
