@@ -6,6 +6,18 @@ from astropy.modeling import Parameter as ModelParameter
 from astropy.table import Column
 
 FULLQUALNAME_SUBSTITUTIONS = {
+    "astropy.cosmology._src.flrw.base.FLRW": "astropy.cosmology.flrw.FLRW",
+    "astropy.cosmology._src.flrw.lambdacdm.LambdaCDM": "astropy.cosmology.flrw.LambdaCDM",
+    "astropy.cosmology._src.flrw.lambdacdm.FlatLambdaCDM": (
+        "astropy.cosmology.flrw.FlatLambdaCDM"
+    ),
+    "astropy.cosmology._src.flrw.w0wacdm.w0waCDM": "astropy.cosmology.flrw.w0waCDM",
+    "astropy.cosmology._src.flrw.w0wacdm.Flatw0waCDM": "astropy.cosmology.flrw.Flatw0waCDM",
+    "astropy.cosmology._src.flrw.w0wzcdm.w0wzCDM": "astropy.cosmology.flrw.w0wzCDM",
+    "astropy.cosmology._src.flrw.w0cdm.wCDM": "astropy.cosmology.flrw.wCDM",
+    "astropy.cosmology._src.flrw.w0cdm.FlatwCDM": "astropy.cosmology.flrw.FlatwCDM",
+    "astropy.cosmology._src.flrw.wpwazpcdm.wpwaCDM": "astropy.cosmology.flrw.wpwaCDM",
+    # ===== deprecated paths =====
     "astropy.cosmology.flrw.base.FLRW": "astropy.cosmology.flrw.FLRW",
     "astropy.cosmology.flrw.lambdacdm.LambdaCDM": "astropy.cosmology.flrw.LambdaCDM",
     "astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM": (
