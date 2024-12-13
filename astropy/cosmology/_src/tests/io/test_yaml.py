@@ -22,13 +22,13 @@ from .base import ToFromDirectTestBase, ToFromTestMixinBase
 def test_yaml_representer():
     """Test :func:`~astropy.cosmology._src.io.builtin.yaml.yaml_representer`."""
     # test function `representer`
-    representer = yaml_representer("!astropy.cosmology.flrw.LambdaCDM")
+    representer = yaml_representer("!astropy.cosmology.LambdaCDM")
     assert callable(representer)
 
     # test the normal method of dumping to YAML
     yml = dump(Planck18)
     assert isinstance(yml, str)
-    assert yml.startswith("!astropy.cosmology.flrw.FlatLambdaCDM")
+    assert yml.startswith("!astropy.cosmology.FlatLambdaCDM")
 
 
 def test_yaml_constructor():
