@@ -7,8 +7,8 @@ import pytest
 
 import astropy.units as u
 from astropy.cosmology import Flatw0wzCDM, w0wzCDM
+from astropy.cosmology._src.parameter import Parameter
 from astropy.cosmology._src.tests.test_core import ParameterTestMixin, make_valid_zs
-from astropy.cosmology.parameter import Parameter
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .conftest import filter_keys_from_items

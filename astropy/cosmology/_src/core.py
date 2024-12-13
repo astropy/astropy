@@ -16,7 +16,7 @@ from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 
 # isort: split
-from astropy.cosmology._src.parameter import ParametersAttribute
+from astropy.cosmology._src.parameter import Parameter, ParametersAttribute
 from astropy.cosmology._src.utils import all_parameters
 from astropy.cosmology.connect import (
     CosmologyFromFormat,
@@ -24,8 +24,6 @@ from astropy.cosmology.connect import (
     CosmologyToFormat,
     CosmologyWrite,
 )
-
-from .parameter import Parameter
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
