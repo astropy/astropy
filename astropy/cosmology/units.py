@@ -10,13 +10,24 @@ from astropy.units import Equivalency
 from astropy.units.utils import generate_unit_summary as _generate_unit_summary
 
 if TYPE_CHECKING:
+    import sys
     from typing import Literal
-
-    from typing_extensions import Unpack
 
     from astropy.cosmology.core import Cosmology
     from astropy.cosmology.funcs.optimize import _ZAtValueKWArgs
     from astropy.units import Quantity
+
+    if sys.version_info < (3, 12):
+        from typing import Any
+
+        _UnpackZAtValueKWArgs = Any
+    else:
+        from typing import TypeAlias
+
+        from typing_extensions import Unpack
+
+        _UnpackZAtValueKWArgs: TypeAlias = Unpack[_ZAtValueKWArgs]
+
 
 __all__ = [
     # redshift equivalencies
@@ -82,7 +93,7 @@ def dimensionless_redshift() -> Equivalency:
 def redshift_distance(
     cosmology: Cosmology | str | None = None,
     kind: Literal["comoving", "lookback", "luminosity"] = "comoving",
-    **atzkw: Unpack[_ZAtValueKWArgs],
+    **atzkw: _UnpackZAtValueKWArgs,
 ) -> Equivalency:
     """Convert quantities between redshift and distance.
 
@@ -163,7 +174,7 @@ def redshift_distance(
 
 
 def redshift_hubble(
-    cosmology: Cosmology | str | None = None, **atzkw: Unpack[_ZAtValueKWArgs]
+    cosmology: Cosmology | str | None = None, **atzkw: _UnpackZAtValueKWArgs
 ) -> Equivalency:
     """Convert quantities between redshift and Hubble parameter and little-h.
 
@@ -233,7 +244,7 @@ def redshift_hubble(
 
 
 def redshift_temperature(
-    cosmology: Cosmology | str | None = None, **atzkw: Unpack[_ZAtValueKWArgs]
+    cosmology: Cosmology | str | None = None, **atzkw: _UnpackZAtValueKWArgs
 ) -> Equivalency:
     """Convert quantities between redshift and CMB temperature.
 
