@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 
 import astropy.units as u
+from astropy.cosmology import Cosmology
 from astropy.cosmology import units as cu
-from astropy.cosmology._src.core import Cosmology
-from astropy.cosmology._src.io.connect import readwrite_registry
+from astropy.cosmology.io import readwrite_registry
 
 from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase
 
