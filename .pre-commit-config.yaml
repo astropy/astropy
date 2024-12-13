@@ -11,7 +11,6 @@ repos:
         exclude: "^(\
             cextern/wcslib/C/flexed/.*|\
             CHANGES.rst|\
-            astropy/extern/jquery/data/js/jquery.dataTables.js|\
         )$"
         # Prevent giant files from being committed.
       - id: check-case-conflict
