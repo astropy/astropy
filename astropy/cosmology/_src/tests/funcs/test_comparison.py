@@ -8,15 +8,15 @@ import numpy as np
 import pytest
 
 from astropy.cosmology import Cosmology, FlatCosmologyMixin, Planck18, cosmology_equal
-from astropy.cosmology._src.tests.io.base import ToFromTestMixinBase
-from astropy.cosmology.connect import convert_registry
-from astropy.cosmology.funcs.comparison import (
+from astropy.cosmology._src.funcs.comparison import (
     _CANT_BROADCAST,
     _cosmology_not_equal,
     _CosmologyWrapper,
     _parse_format,
     _parse_formats,
 )
+from astropy.cosmology._src.tests.io.base import ToFromTestMixinBase
+from astropy.cosmology.connect import convert_registry
 
 
 class ComparisonFunctionTestBase(ToFromTestMixinBase):
