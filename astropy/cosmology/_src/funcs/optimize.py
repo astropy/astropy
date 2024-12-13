@@ -14,7 +14,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 # isort: split
 from astropy.cosmology import units as cu
-from astropy.cosmology.core import CosmologyError
+from astropy.cosmology._src.core import CosmologyError
 
 if TYPE_CHECKING:
     from collections.abc import Callable

@@ -7,9 +7,9 @@ from typing import final
 import pytest
 
 from astropy.cosmology import FLRW
+from astropy.cosmology._src.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology._src.tests.helper import get_redshift_methods
 from astropy.cosmology._src.tests.test_core import invalid_zs
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FLRWTest

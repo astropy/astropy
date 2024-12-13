@@ -8,9 +8,9 @@ See the :ref:`astropy-cosmology` for more detailed usage examples and references
 """
 
 from . import realizations, units
+from ._src.core import Cosmology, CosmologyError, FlatCosmologyMixin
 from ._src.funcs import cosmology_equal, z_at_value
 from ._src.parameter import Parameter
-from .core import Cosmology, CosmologyError, FlatCosmologyMixin
 from .flrw import (
     FLRW,
     FlatFLRWMixin,

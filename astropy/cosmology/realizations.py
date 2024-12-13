@@ -25,8 +25,8 @@ import sys
 
 from astropy.utils.data import get_pkg_data_path
 
+from ._src.core import Cosmology
 from ._src.default import default_cosmology
-from .core import Cosmology
 
 __doctest_requires__ = {"*": ["scipy"]}
 

@@ -5,9 +5,9 @@
 from numpy import exp
 
 from astropy.cosmology import units as cu
+from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.parameter import Parameter
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
-from astropy.cosmology.core import dataclass_decorator
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin

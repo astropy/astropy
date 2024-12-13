@@ -9,18 +9,20 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.cosmology import core, flrw, z_at_value
-from astropy.cosmology._src.funcs.optimize import _z_at_scalar_value
-from astropy.cosmology.realizations import (
+from astropy.cosmology import (
     WMAP1,
     WMAP3,
     WMAP5,
     WMAP7,
     WMAP9,
+    CosmologyError,
     Planck13,
     Planck15,
     Planck18,
+    flrw,
+    z_at_value,
 )
+from astropy.cosmology._src.funcs.optimize import _z_at_scalar_value
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -61,13 +63,13 @@ def test_z_at_value_scalar():
     # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
     with (
-        pytest.raises(core.CosmologyError),
+        pytest.raises(CosmologyError),
         pytest.warns(AstropyUserWarning, match="fval is not bracketed"),
     ):
         z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, zmax=0.5)
 
     with (
-        pytest.raises(core.CosmologyError),
+        pytest.raises(CosmologyError),
         pytest.warns(AstropyUserWarning, match="fval is not bracketed"),
         np.errstate(over="ignore"),
     ):
@@ -318,7 +320,7 @@ def test_z_at_value_bracketed(method):
         ctx_bracket = nullcontext()
 
     with (
-        pytest.raises(core.CosmologyError),
+        pytest.raises(CosmologyError),
         pytest.warns(AstropyUserWarning, match="fval is not bracketed"),
         ctx_bracket,
     ):

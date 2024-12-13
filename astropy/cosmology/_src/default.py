@@ -8,8 +8,10 @@ __all__ = ["default_cosmology"]
 
 from typing import TYPE_CHECKING
 
-from astropy.cosmology.core import Cosmology
 from astropy.utils.state import ScienceState
+
+# isort: split
+from astropy.cosmology._src.core import Cosmology
 
 if TYPE_CHECKING:
     from typing import ClassVar

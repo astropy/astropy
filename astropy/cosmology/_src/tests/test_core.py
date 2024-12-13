@@ -15,11 +15,11 @@ import pytest
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatCosmologyMixin, Parameter
+from astropy.cosmology._src.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.cosmology._src.tests.io.test_connect import (
     ReadWriteTestMixin,
     ToFromFormatTestMixin,
 )
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
 from astropy.table import Column, QTable, Table
 
 from .parameter.test_descriptors import (

@@ -135,8 +135,8 @@ import inspect
 from collections.abc import Mapping, MutableMapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
+from astropy.cosmology._src.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology._src.io.connect import convert_registry
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
 if TYPE_CHECKING:
     from astropy.cosmology._src.typing import _CosmoT

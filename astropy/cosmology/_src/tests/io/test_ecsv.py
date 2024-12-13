@@ -2,8 +2,8 @@
 
 import pytest
 
+from astropy.cosmology._src.core import _COSMOLOGY_CLASSES
 from astropy.cosmology._src.io.builtin.ecsv import read_ecsv, write_ecsv
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.table import QTable, Table, vstack
 
 from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase

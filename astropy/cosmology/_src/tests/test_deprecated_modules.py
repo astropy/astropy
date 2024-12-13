@@ -25,6 +25,25 @@ def test_connect():
         from astropy.cosmology.connect import CosmologyFromFormat  # noqa: F401
 
 
+def test_core():
+    """Test `astropy.cosmology.core`."""
+    from astropy.cosmology import core
+
+    try:
+        del core.Cosmology
+    except Exception:
+        pass
+
+    with (
+        warnings.catch_warnings(),
+        pytest.deprecated_call(
+            match=re.escape("The module `astropy.cosmology.core` is deprecated"),
+        ),
+    ):
+        warnings.simplefilter("always")
+        from astropy.cosmology.core import Cosmology  # noqa: F401
+
+
 def test_funcs():
     """Test `astropy.cosmology.core`."""
     from astropy.cosmology import funcs
