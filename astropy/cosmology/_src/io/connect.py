@@ -16,7 +16,7 @@ from astropy.io import registry as io_registry
 from astropy.units import add_enabled_units
 
 # isort: split
-from astropy.cosmology import units as cu
+import astropy.cosmology._src.units as cu
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

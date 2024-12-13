@@ -12,8 +12,10 @@ from typing import Any, TypeVar
 
 import numpy as np
 
-import astropy.cosmology.units as cu
 from astropy.units import Quantity
+
+# isort: split
+import astropy.cosmology._src.units as cu
 
 from .signature_deprecations import _depr_kws_wrap
 
