@@ -41,8 +41,8 @@ from astropy.modeling import FittableModel, Model
 from astropy.utils.decorators import classproperty
 
 # isort: split
+from astropy.cosmology._src.io.connect import convert_registry
 from astropy.cosmology._src.typing import _CosmoT
-from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
 
 from .utils import convert_parameter_to_model_parameter

@@ -168,7 +168,7 @@ from astropy.table import QTable
 
 # isort: split
 import astropy.cosmology.units as cu
-from astropy.cosmology.connect import readwrite_registry
+from astropy.cosmology._src.io.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
 
 from .table import from_table, to_table

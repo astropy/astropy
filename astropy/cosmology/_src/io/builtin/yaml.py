@@ -26,7 +26,7 @@ from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
 
 # isort: split
 import astropy.cosmology.units as cu
-from astropy.cosmology.connect import convert_registry
+from astropy.cosmology._src.io.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
 from .mapping import from_mapping
