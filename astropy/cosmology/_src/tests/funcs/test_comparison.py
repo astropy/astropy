@@ -15,8 +15,8 @@ from astropy.cosmology._src.funcs.comparison import (
     _parse_format,
     _parse_formats,
 )
+from astropy.cosmology._src.io.connect import convert_registry
 from astropy.cosmology._src.tests.io.base import ToFromTestMixinBase
-from astropy.cosmology.connect import convert_registry
 
 
 class ComparisonFunctionTestBase(ToFromTestMixinBase):

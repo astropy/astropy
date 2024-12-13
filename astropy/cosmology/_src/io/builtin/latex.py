@@ -62,8 +62,8 @@ import astropy.units as u
 from astropy.table import QTable
 
 # isort: split
+from astropy.cosmology._src.io.connect import readwrite_registry
 from astropy.cosmology._src.parameter import Parameter
-from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
 
 from .table import to_table

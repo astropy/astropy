@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from astropy.cosmology.connect import convert_registry
+from astropy.cosmology._src.io.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
 if TYPE_CHECKING:

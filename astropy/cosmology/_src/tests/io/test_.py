@@ -5,7 +5,7 @@
 This file is weirdly named so that it's the first test of I/O.
 """
 
-from astropy.cosmology.connect import convert_registry, readwrite_registry
+from astropy.cosmology._src.io.connect import convert_registry, readwrite_registry
 
 
 def test_expected_readwrite_io():

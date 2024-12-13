@@ -1,17 +1,31 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = [
+__all__ = [  # noqa: F822
     "CosmologyFromFormat",
     "CosmologyRead",
     "CosmologyToFormat",
     "CosmologyWrite",
 ]
 
-from ._src.io.connect import (
-    CosmologyFromFormat,
-    CosmologyRead,
-    CosmologyToFormat,
-    CosmologyWrite,
-    convert_registry,  # noqa: F401
-    readwrite_registry,  # noqa: F401
-)
+import sys
+import warnings
+from typing import Any
+
+
+def __getattr__(name: str) -> Any:
+    if name not in __all__ + ["convert_registry", "readwrite_registry"]:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}.")
+
+    from ._src.io import connect
+
+    obj = getattr(connect, name)
+
+    setattr(sys.modules[__name__], name, obj)
+
+    warnings.warn(
+        "The module `astropy.cosmology.connect` is deprecated and will be removed "
+        "in v8.0. Import from `astropy.cosmology.io` instead.",
+        category=DeprecationWarning,
+    )
+
+    return obj
