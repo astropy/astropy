@@ -6,7 +6,11 @@ import random
 import numpy as np
 import pytest
 
-from astropy.cosmology._io.model import _CosmologyModel, from_model, to_model
+from astropy.cosmology._src.io.builtin.model import (
+    _CosmologyModel,
+    from_model,
+    to_model,
+)
 from astropy.cosmology._src.tests.helper import get_redshift_methods
 from astropy.cosmology.core import Cosmology
 from astropy.cosmology.flrw.w0wzcdm import w0wzCDM

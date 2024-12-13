@@ -7,7 +7,7 @@ import pytest
 
 from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
-from astropy.cosmology._io.tests import (
+from astropy.cosmology._src.tests.io import (
     test_cosmology,
     test_ecsv,
     test_html,

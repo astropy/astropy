@@ -2,7 +2,7 @@
 
 import pytest
 
-from astropy.cosmology._io.latex import _FORMAT_TABLE, write_latex
+from astropy.cosmology._src.io.builtin.latex import _FORMAT_TABLE, write_latex
 from astropy.io.registry.base import IORegistryError
 from astropy.table import QTable, Table
 

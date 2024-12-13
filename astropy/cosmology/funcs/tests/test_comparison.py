@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from astropy.cosmology import Cosmology, FlatCosmologyMixin, Planck18, cosmology_equal
-from astropy.cosmology._io.tests.base import ToFromTestMixinBase
+from astropy.cosmology._src.tests.io.base import ToFromTestMixinBase
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.funcs.comparison import (
     _CANT_BROADCAST,
@@ -23,7 +23,7 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
     """Tests for cosmology comparison functions.
 
     This class inherits from
-    `astropy.cosmology._io.tests.base.ToFromTestMixinBase` because the cosmology
+    `astropy.cosmology._src.tests.io.base.ToFromTestMixinBase` because the cosmology
     comparison functions all have a kwarg ``format`` that allow the arguments to
     be converted to a |Cosmology| using the ``to_format`` architecture.
 

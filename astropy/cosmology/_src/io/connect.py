@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from typing import Any, Literal
 
     from astropy.cosmology import Cosmology
-    from astropy.cosmology._io.model import _CosmologyModel
+    from astropy.cosmology._src.io.builtin.model import _CosmologyModel
     from astropy.cosmology._src.typing import _CosmoT
     from astropy.table import Row, Table
 
