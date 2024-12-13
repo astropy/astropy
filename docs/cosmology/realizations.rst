@@ -296,3 +296,4 @@ Reference/API
    :no-main-docstr:
    :include-all-objects:
    :inherited-members:
+   :noindex:
