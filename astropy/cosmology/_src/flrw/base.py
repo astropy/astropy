@@ -26,6 +26,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 # isort: split
 from astropy.cosmology._src.parameter import (
+    Parameter,
     validate_non_negative,
     validate_with_unit,
 )
@@ -35,7 +36,6 @@ from astropy.cosmology._src.utils import (
     vectorize_redshift_method,
 )
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin, dataclass_decorator
-from astropy.cosmology.parameter import Parameter
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
