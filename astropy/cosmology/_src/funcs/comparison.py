@@ -19,7 +19,7 @@ from numpy import False_, True_, ndarray
 from astropy import table
 
 # isort: split
-from astropy.cosmology.core import Cosmology
+from astropy.cosmology._src.core import Cosmology
 
 if TYPE_CHECKING:
     from collections.abc import Callable

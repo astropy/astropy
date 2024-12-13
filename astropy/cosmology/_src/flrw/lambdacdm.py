@@ -9,8 +9,8 @@ from numpy import log
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 # isort: split
+from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
-from astropy.cosmology.core import dataclass_decorator
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin

@@ -25,6 +25,11 @@ from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 # isort: split
+from astropy.cosmology._src.core import (
+    Cosmology,
+    FlatCosmologyMixin,
+    dataclass_decorator,
+)
 from astropy.cosmology._src.parameter import (
     Parameter,
     validate_non_negative,
@@ -35,7 +40,6 @@ from astropy.cosmology._src.utils import (
     deprecated_keywords,
     vectorize_redshift_method,
 )
-from astropy.cosmology.core import Cosmology, FlatCosmologyMixin, dataclass_decorator
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping

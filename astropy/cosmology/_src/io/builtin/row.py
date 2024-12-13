@@ -39,8 +39,8 @@ from typing import TYPE_CHECKING
 from astropy.table import QTable, Row
 
 # isort: split
+from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import convert_registry
-from astropy.cosmology.core import Cosmology
 
 from .mapping import from_mapping
 

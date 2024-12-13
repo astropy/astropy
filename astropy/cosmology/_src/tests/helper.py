@@ -9,7 +9,7 @@ import inspect
 
 import pytest
 
-from astropy.cosmology import core
+from astropy.cosmology._src import core
 
 __all__ = ["clean_registry", "get_redshift_methods"]
 

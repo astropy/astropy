@@ -2,8 +2,8 @@
 
 import pytest
 
+from astropy.cosmology._src.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology._src.io.builtin.row import from_row, to_row
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.table import Row
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase

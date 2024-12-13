@@ -156,8 +156,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import convert_registry
-from astropy.cosmology.core import Cosmology
 from astropy.table import Column, QTable, Table
 
 from .mapping import to_mapping
