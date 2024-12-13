@@ -6,29 +6,29 @@ from astropy.modeling import Parameter as ModelParameter
 from astropy.table import Column
 
 FULLQUALNAME_SUBSTITUTIONS = {
-    "astropy.cosmology._src.flrw.base.FLRW": "astropy.cosmology.flrw.FLRW",
-    "astropy.cosmology._src.flrw.lambdacdm.LambdaCDM": "astropy.cosmology.flrw.LambdaCDM",
+    "astropy.cosmology._src.flrw.base.FLRW": "astropy.cosmology.FLRW",
+    "astropy.cosmology._src.flrw.lambdacdm.LambdaCDM": "astropy.cosmology.LambdaCDM",
     "astropy.cosmology._src.flrw.lambdacdm.FlatLambdaCDM": (
-        "astropy.cosmology.flrw.FlatLambdaCDM"
+        "astropy.cosmology.FlatLambdaCDM"
     ),
-    "astropy.cosmology._src.flrw.w0wacdm.w0waCDM": "astropy.cosmology.flrw.w0waCDM",
-    "astropy.cosmology._src.flrw.w0wacdm.Flatw0waCDM": "astropy.cosmology.flrw.Flatw0waCDM",
-    "astropy.cosmology._src.flrw.w0wzcdm.w0wzCDM": "astropy.cosmology.flrw.w0wzCDM",
-    "astropy.cosmology._src.flrw.w0cdm.wCDM": "astropy.cosmology.flrw.wCDM",
-    "astropy.cosmology._src.flrw.w0cdm.FlatwCDM": "astropy.cosmology.flrw.FlatwCDM",
-    "astropy.cosmology._src.flrw.wpwazpcdm.wpwaCDM": "astropy.cosmology.flrw.wpwaCDM",
+    "astropy.cosmology._src.flrw.w0wacdm.w0waCDM": "astropy.cosmology.w0waCDM",
+    "astropy.cosmology._src.flrw.w0wacdm.Flatw0waCDM": "astropy.cosmology.Flatw0waCDM",
+    "astropy.cosmology._src.flrw.w0wzcdm.w0wzCDM": "astropy.cosmology.w0wzCDM",
+    "astropy.cosmology._src.flrw.w0cdm.wCDM": "astropy.cosmology.wCDM",
+    "astropy.cosmology._src.flrw.w0cdm.FlatwCDM": "astropy.cosmology.FlatwCDM",
+    "astropy.cosmology._src.flrw.wpwazpcdm.wpwaCDM": "astropy.cosmology.wpwaCDM",
     # ===== deprecated paths =====
-    "astropy.cosmology.flrw.base.FLRW": "astropy.cosmology.flrw.FLRW",
-    "astropy.cosmology.flrw.lambdacdm.LambdaCDM": "astropy.cosmology.flrw.LambdaCDM",
+    "astropy.cosmology.flrw.base.FLRW": "astropy.cosmology.FLRW",
+    "astropy.cosmology.flrw.lambdacdm.LambdaCDM": "astropy.cosmology.LambdaCDM",
     "astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM": (
         "astropy.cosmology.flrw.FlatLambdaCDM"
     ),
-    "astropy.cosmology.flrw.w0wacdm.w0waCDM": "astropy.cosmology.flrw.w0waCDM",
-    "astropy.cosmology.flrw.w0wacdm.Flatw0waCDM": "astropy.cosmology.flrw.Flatw0waCDM",
-    "astropy.cosmology.flrw.w0wzcdm.w0wzCDM": "astropy.cosmology.flrw.w0wzCDM",
-    "astropy.cosmology.flrw.w0cdm.wCDM": "astropy.cosmology.flrw.wCDM",
-    "astropy.cosmology.flrw.w0cdm.FlatwCDM": "astropy.cosmology.flrw.FlatwCDM",
-    "astropy.cosmology.flrw.wpwazpcdm.wpwaCDM": "astropy.cosmology.flrw.wpwaCDM",
+    "astropy.cosmology.flrw.w0wacdm.w0waCDM": "astropy.cosmology.w0waCDM",
+    "astropy.cosmology.flrw.w0wacdm.Flatw0waCDM": "astropy.cosmology.Flatw0waCDM",
+    "astropy.cosmology.flrw.w0wzcdm.w0wzCDM": "astropy.cosmology.w0wzCDM",
+    "astropy.cosmology.flrw.w0cdm.wCDM": "astropy.cosmology.wCDM",
+    "astropy.cosmology.flrw.w0cdm.FlatwCDM": "astropy.cosmology.FlatwCDM",
+    "astropy.cosmology.flrw.wpwazpcdm.wpwaCDM": "astropy.cosmology.wpwaCDM",
 }
 """Substitutions mapping the actual qualified name to its preferred value."""
 
