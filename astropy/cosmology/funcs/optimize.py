@@ -1,31 +1,104 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Convenience functions for `astropy.cosmology`."""
 
+from __future__ import annotations
+
 import warnings
+from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict
 
 import numpy as np
+import numpy.typing as npt
 
 from astropy.cosmology import units as cu
 from astropy.cosmology.core import CosmologyError
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import TypeAlias
+
+    from scipy.optimize import OptimizeResult
+
 __all__ = ["z_at_value"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 
 
+# TODO: it would be nice to upstream this to scipy and then use it here.
+class _CustomSolverCallable(Protocol):
+    """Protocol for custom :mod:`scipy.optimize.minimize_scalar` methods.
+
+    See :mod:`scipy.optimize.minimize_scalar` for details.
+    """
+
+    def __call__(
+        self, fun: Callable[..., Any], args: tuple[Any, ...], **kwargs: Any
+    ) -> OptimizeResult: ...
+
+
+_BracketSingle: TypeAlias = tuple[float, float] | tuple[float, float, float]
+
+
+class _ZAtValueKWArgs(TypedDict):  # noqa: PYI049
+    """Keyword arguments for :func:`~astropy.cosmology.z_at_value`.
+
+    Note that :func:`~astropy.cosmology.z_at_value` can accept most of these
+    arguments as positional arguments. This TypedDict is useful for
+    type annotating arguments to other functions that pass them to
+    :func:`~astropy.cosmology.z_at_value`.
+    """
+
+    zmin: NotRequired[npt.ArrayLike]
+    """The lower search limit for ``z``."""
+
+    zmax: NotRequired[npt.ArrayLike]
+    """The upper search limit for ``z``."""
+
+    ztol: NotRequired[float | npt.NDArray[np.float64]]
+    """The relative error in ``z`` acceptable for convergence."""
+
+    maxfun: NotRequired[int | npt.NDArray[np.integer]]
+    """The maximum number of function evaluations allowed in the optimization routine."""
+
+    method: NotRequired[str | _CustomSolverCallable]
+    """The type of solver to pass to the minimizer.
+
+    The built-in options provided by :func:`~scipy.optimize.minimize_scalar` are 'Brent'
+    (default),'Golden' and 'Bounded' with names case insensitive - see documentation
+    there for details. It also accepts a custom solver by passing any user-provided
+    callable object that meets the requirements listed therein under the Notes on
+    "Custom minimizers" - or in more detail in :doc:`scipy:tutorial/optimize` - although
+    their use is currently untested.
+    """
+
+    bracket: NotRequired[npt.NDArray[np.void] | _BracketSingle | None]
+    """The search bracket, with semantics depending on the solver.
+
+    For methods 'Brent' and 'Golden', ``bracket`` defines the bracketing
+    interval and can either have three items (z1, z2, z3) so that
+    z1 < z2 < z3 and ``func(z2) < func (z1), func(z3)`` or two items z1
+    and z3 which are assumed to be a starting interval for a downhill
+    bracket search. For non-monotonic functions such as angular diameter
+    distance this may be used to start the search on the desired side of
+    the maximum, but see Examples below for usage notes.
+    """
+
+    verbose: NotRequired[bool]
+    """Print diagnostic output from solver."""
+
+
 def _z_at_scalar_value(
     func,
-    fval,
-    zmin=1e-8,
-    zmax=1000,
-    ztol=1e-8,
-    maxfun=500,
-    method="Brent",
-    bracket=None,
-    verbose=False,
-):
+    fval: float | npt.NDArray[np.floating] | Quantity,
+    zmin: float | npt.NDArray[np.floating] | Quantity = 1e-8,
+    zmax: float | npt.NDArray[np.floating] | Quantity = 1000,
+    ztol: float | npt.NDArray[np.floating] = 1e-8,
+    maxfun: int | npt.NDArray[np.integer] = 500,
+    method: str | _CustomSolverCallable = "Brent",
+    bracket: _BracketSingle | None = None,
+    verbose: bool = False,
+) -> float:
     """Find the redshift ``z`` at which ``func(z) = fval``.
 
     See :func:`astropy.cosmology.funcs.z_at_value`.
@@ -124,15 +197,15 @@ def _z_at_scalar_value(
 def z_at_value(
     func,
     fval,
-    zmin=1e-8,
-    zmax=1000,
-    ztol=1e-8,
-    maxfun=500,
-    method="Brent",
-    bracket=None,
+    zmin: npt.ArrayLike = 1e-8,
+    zmax: npt.ArrayLike = 1000,
+    ztol: npt.ArrayLike = 1e-8,
+    maxfun: int | npt.NDArray[np.integer] = 500,
+    method: str | _CustomSolverCallable = "Brent",
+    bracket: npt.NDArray[np.void] | _BracketSingle | None = None,
     *,
-    verbose=False,
-):
+    verbose: bool = False,
+) -> Quantity:
     """Find the redshift ``z`` at which ``func(z) = fval``.
 
     This finds the redshift at which one of the cosmology functions or
@@ -392,7 +465,7 @@ def z_at_value(
         for fv, zmn, zmx, zt, mfe, bkt, zs in it:  # ← eltwise unpack & eval ↓
             zs[...] = _z_at_scalar_value(
                 func,
-                fv * unit,
+                fv * unit,  # type: ignore[arg-type]
                 zmin=zmn,
                 zmax=zmx,
                 ztol=zt,
