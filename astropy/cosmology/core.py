@@ -206,7 +206,7 @@ class Cosmology(metaclass=ABCMeta):
         _COSMOLOGY_CLASSES[cls.__qualname__] = cls
 
         # register to YAML
-        from astropy.cosmology._io.yaml import register_cosmology_yaml
+        from astropy.cosmology._src.io.builtin.yaml import register_cosmology_yaml
 
         register_cosmology_yaml(cls)
 

@@ -2,7 +2,7 @@
 
 import pytest
 
-from astropy.cosmology._io.row import from_row, to_row
+from astropy.cosmology._src.io.builtin.row import from_row, to_row
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.table import Row
 

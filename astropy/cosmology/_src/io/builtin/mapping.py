@@ -99,7 +99,7 @@ The dictionary type may be changed with the ``cls`` keyword argument:
 
     >>> from collections import OrderedDict
     >>> Planck18.to_format('mapping', cls=OrderedDict)
-    OrderedDict({'cosmology': <class 'astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM'>, 'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966, 'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046, 'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897, 'meta': ...
+    OrderedDict({'cosmology': <class 'astropy.cosmology...FlatLambdaCDM'>, 'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966, 'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046, 'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897, 'meta': {...}})
 
 Sometimes it is more useful to have the name of the cosmology class, not the type
 itself. The keyword argument ``cosmology_as_str`` may be used:
@@ -135,7 +135,7 @@ import inspect
 from collections.abc import Mapping, MutableMapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from astropy.cosmology.connect import convert_registry
+from astropy.cosmology._src.io.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
 if TYPE_CHECKING:
@@ -358,7 +358,7 @@ def to_mapping(
 
         >>> from collections import OrderedDict
         >>> Planck18.to_format('mapping', cls=OrderedDict)
-        OrderedDict({'cosmology': <class 'astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM'>, 'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966, 'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046, 'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897, 'meta': {'Oc0': 0.2607, 'n': 0.9665, 'sigma8': 0.8102, 'tau': 0.0561, 'z_reion': <Quantity 7.82 redshift>, 't0': <Quantity 13.787 Gyr>, 'reference': 'Planck Collaboration 2018, 2020, A&A, 641, A6  (Paper VI), Table 2 (TT, TE, EE + lowE + lensing + BAO)'}})
+        OrderedDict({'cosmology': <class 'astropy.cosmology...FlatLambdaCDM'>, 'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966, 'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046, 'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897, 'meta': {...}})
 
     Sometimes it is more useful to have the name of the cosmology class, not
     the type itself. The keyword argument ``cosmology_as_str`` may be used:

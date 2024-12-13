@@ -2,7 +2,7 @@
 
 import pytest
 
-from astropy.cosmology._io.cosmology import from_cosmology, to_cosmology
+from astropy.cosmology._src.io.builtin.cosmology import from_cosmology, to_cosmology
 
 from .base import IODirectTestBase, ToFromTestMixinBase
 

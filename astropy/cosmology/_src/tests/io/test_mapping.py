@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from astropy.cosmology import Cosmology
-from astropy.cosmology._io.mapping import from_mapping, to_mapping
+from astropy.cosmology._src.io.builtin.mapping import from_mapping, to_mapping
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
 
