@@ -56,6 +56,42 @@ matrices associated `~astropy.nddata.NDData` objects via the new
 `~astropy.nddata.Covariance` class.  See the full :ref:`nddata-covariance`
 documentation.
 
+.. _whatsnew-7.1-cosmology:
+
+Cosmology
+=========
+
+The new ``traits`` module hosts various parts of cosmologies, such as the
+``ScaleFactor``. These traits can be used to more easily construct custom cosmologies by
+combining different components.
+
+Here is an example of how to use the ``ScaleFactor`` trait in a custom cosmology class:
+
+.. code-block:: python
+
+    from astropy.cosmology.traits import ScaleFactor
+    from astropy.cosmology import Cosmology
+
+    class CustomCosmology(Cosmology, ScaleFactor):
+        def __init__(self, H0, Om0, Ode0):
+            self.H0 = H0
+            self.Om0 = Om0
+            self.Ode0 = Ode0
+            super().__init__()
+
+        # Additional custom methods and properties can be added here
+
+    cosmo = CustomCosmology(H0=70, Om0=0.3, Ode0=0.7)
+    print(cosmo.scale_factor(0))  # Output: 1.0
+
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v7.1, including changes in
+API, please see the :ref:`changelog`.
+
+
 Full change log
 ===============
 
