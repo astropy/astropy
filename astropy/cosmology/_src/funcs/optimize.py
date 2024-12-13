@@ -103,7 +103,7 @@ def _z_at_scalar_value(
 ) -> float:
     """Find the redshift ``z`` at which ``func(z) = fval``.
 
-    See :func:`astropy.cosmology.funcs.z_at_value`.
+    See :func:`astropy.cosmology.z_at_value`.
     """
     from scipy.optimize import minimize_scalar
 

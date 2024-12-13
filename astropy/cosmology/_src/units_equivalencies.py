@@ -26,8 +26,8 @@ if TYPE_CHECKING:
     import sys
     from typing import Literal
 
+    from astropy.cosmology._src.funcs.optimize import _ZAtValueKWArgs
     from astropy.cosmology.core import Cosmology
-    from astropy.cosmology.funcs.optimize import _ZAtValueKWArgs
     from astropy.units import Quantity
 
     if sys.version_info < (3, 12):

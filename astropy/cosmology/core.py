@@ -31,8 +31,8 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from typing import Self
 
+    from astropy.cosmology._src.funcs.comparison import _FormatType
     from astropy.cosmology._src.typing import _CosmoT
-    from astropy.cosmology.funcs.comparison import _FormatType
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
@@ -615,7 +615,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
     def __equiv__(self, other):
         """Flat-|Cosmology| equivalence.
 
-        Use `astropy.cosmology.funcs.cosmology_equal` with
+        Use `astropy.cosmology.cosmology_equal` with
         ``allow_equivalent=True`` for actual checks!
 
         Parameters
