@@ -17,6 +17,7 @@ import pytest
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Planck18
+from astropy.cosmology._src.flrw.base import _a_B_c2, quad
 from astropy.cosmology._src.tests.helper import get_redshift_methods
 from astropy.cosmology._src.tests.test_core import (
     CosmologyTest,
@@ -25,7 +26,6 @@ from astropy.cosmology._src.tests.test_core import (
     valid_zs,
 )
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
-from astropy.cosmology.flrw.base import _a_B_c2, quad
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
 
