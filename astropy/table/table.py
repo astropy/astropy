@@ -1838,7 +1838,7 @@ class Table:
         max_lines=5000,
         jsviewer=False,
         browser="default",
-        jskwargs={"use_local_files": True},
+        jskwargs={"use_local_files": False},
         tableid=None,
         table_class="display compact",
         css=None,
@@ -1856,7 +1856,11 @@ class Table:
         jsviewer : bool
             If `True`, prepends some javascript headers so that the table is
             rendered as a `DataTables <https://datatables.net>`_ data table.
-            This allows in-browser searching & sorting.
+            This allows in-browser searching & sorting, but requires a
+            connection to the internet to load the necessary javascript
+            libraries from a CDN. Working offline may work in limited
+            circumstances, if the browser has cached the necessary libraries
+            from a previous use of this method.
         browser : str
             Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
             ``'safari'`` (for mac, you may need to use ``'open -a
@@ -1864,8 +1868,8 @@ class Table:
             ``'default'``, will use the system default browser.
         jskwargs : dict
             Passed to the `astropy.table.JSViewer` init. Defaults to
-            ``{'use_local_files': True}`` which means that the JavaScript
-            libraries will be served from local copies.
+            ``{'use_local_files': False}`` which means that the JavaScript
+            libraries will be loaded from a CDN.
         tableid : str or None
             An html ID tag for the table.  Default is ``table{id}``, where id
             is the unique integer id of the table object, id(self).

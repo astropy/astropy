@@ -163,7 +163,6 @@ table:
 - changed-files:
   - any-glob-to-any-file:
     - '**/table/**/*'
-    - astropy/extern/jquery/**/*
 
 time:
 - changed-files:
