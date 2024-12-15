@@ -7,14 +7,22 @@ __all__ = ["Parameter"]
 import copy
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, overload
 
 import astropy.units as u
 
-from ._converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
+from ._converter import _REGISTRY_FVALIDATORS, _register_validator
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
+    from typing import Self
+
+    from astropy.cosmology import Cosmology
+
+    from ._typing import ParameterConverterCallable
+
+
+_VT = TypeVar("_VT")  # Runtime-required type of the Parameter's value used in Generic.
 
 
 class Sentinel(Enum):
@@ -23,7 +31,7 @@ class Sentinel(Enum):
     MISSING = auto()
     """A sentinel value signifying a missing default."""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.name}>"
 
 
@@ -46,12 +54,12 @@ class _UnitField:
 
 
 @dataclass(frozen=True)
-class _FValidateField:
-    default: FValidateCallable | str = "default"
+class _FValidateField(Generic[_VT]):
+    default: ParameterConverterCallable[_VT] | str = "default"
 
     def __get__(
         self, obj: Parameter | None, objcls: type[Parameter] | None
-    ) -> FValidateCallable | str:
+    ) -> ParameterConverterCallable[_VT] | str:
         if obj is None:  # calling `Parameter.fvalidate` from the class
             return self.default
         return obj._fvalidate  # calling `Parameter.fvalidate` from an instance
@@ -73,7 +81,7 @@ class _FValidateField:
 
 
 @dataclass(frozen=True)
-class Parameter:
+class Parameter(Generic[_VT]):
     r"""Cosmological parameter (descriptor).
 
     Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
@@ -130,7 +138,7 @@ class Parameter:
     """Unit equivalencies available when setting the parameter."""
 
     # Setting
-    fvalidate: _FValidateField = _FValidateField(default="default")
+    fvalidate: _FValidateField[_VT] = _FValidateField(default="default")
     """Function to validate/convert values when setting the Parameter."""
 
     # Info
@@ -144,8 +152,8 @@ class Parameter:
     """
 
     def __post_init__(self) -> None:
-        self._fvalidate_in: FValidateCallable | str
-        self._fvalidate: FValidateCallable
+        self._fvalidate_in: ParameterConverterCallable[_VT] | str
+        self._fvalidate: ParameterConverterCallable[_VT]
         object.__setattr__(self, "__doc__", self.doc)
         # Now setting a dummy attribute name. The cosmology class will call
         # `__set_name__`, passing the real attribute name. However, if Parameter is not
@@ -159,7 +167,13 @@ class Parameter:
     # -------------------------------------------
     # descriptor and property-like methods
 
-    def __get__(self, cosmology, cosmo_cls=None):
+    @overload
+    def __get__(self, cosmology: None, cosmo_cls: Any) -> Self: ...
+
+    @overload
+    def __get__(self, cosmology: Cosmology, cosmo_cls: Any) -> _VT: ...
+
+    def __get__(self, cosmology: Cosmology | None, cosmo_cls: Any = None) -> Self | _VT:
         # Get from class
         if cosmology is None:
             # If the Parameter is being set as part of a dataclass constructor, then we
@@ -172,10 +186,11 @@ class Parameter:
             ):
                 raise AttributeError
             return self
+
         # Get from instance
         return cosmology.__dict__[self.name]
 
-    def __set__(self, cosmology, value):
+    def __set__(self, cosmology: Cosmology, value: Any) -> None:
         """Allows attribute setting once.
 
         Raises AttributeError subsequently.
@@ -207,7 +222,7 @@ class Parameter:
     # -------------------------------------------
     # validate value
 
-    def validator(self, fvalidate):
+    def validator(self, fvalidate: ParameterConverterCallable[_VT]) -> Self:
         """Make new Parameter with custom ``fvalidate``.
 
         Note: ``Parameter.fvalidator`` must be the top-most descriptor decorator.
@@ -223,7 +238,7 @@ class Parameter:
         """
         return self.clone(fvalidate=fvalidate)
 
-    def validate(self, cosmology, value):
+    def validate(self, cosmology: Cosmology, value: Any) -> _VT:
         """Run the validator on this Parameter.
 
         Parameters
@@ -240,8 +255,27 @@ class Parameter:
         """
         return self._fvalidate(cosmology, self, value)
 
+    @overload
     @staticmethod
-    def register_validator(key, fvalidate=None):
+    def register_validator(
+        key: str, fvalidate: ParameterConverterCallable[_VT]
+    ) -> ParameterConverterCallable[_VT]: ...
+
+    @overload
+    @staticmethod
+    def register_validator(
+        key: str, fvalidate: None = None
+    ) -> Callable[
+        [ParameterConverterCallable[_VT]], ParameterConverterCallable[_VT]
+    ]: ...
+
+    @staticmethod
+    def register_validator(
+        key: str, fvalidate: ParameterConverterCallable[_VT] | None = None
+    ) -> (
+        ParameterConverterCallable[_VT]
+        | Callable[[ParameterConverterCallable[_VT]], ParameterConverterCallable[_VT]]
+    ):
         """Decorator to register a new kind of validator function.
 
         Parameters
@@ -261,12 +295,12 @@ class Parameter:
 
     # -------------------------------------------
 
-    def clone(self, **kw):
+    def clone(self, **kw: Any) -> Self:
         """Clone this `Parameter`, changing any constructor argument.
 
         Parameters
         ----------
-        **kw
+        **kw : dict, optional
             Passed to constructor. The current values, eg. ``fvalidate`` are
             used as the default values, so an empty ``**kw`` is an exact copy.
 
