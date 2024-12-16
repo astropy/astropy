@@ -1302,7 +1302,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         n = np.add.reduce(where, axis=axis, keepdims=keepdims)
 
         # catch the case when an axis is fully masked to prevent div by zero:
-        n = np.add.reduce(where, axis=axis, keepdims=keepdims)
         neq0 = n == 0
         n += neq0
         result /= n
