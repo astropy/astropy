@@ -28,6 +28,9 @@ from .parameter import Parameter
 from .realizations import available, default_cosmology
 
 __all__ = [  #  noqa: RUF100, RUF022
+    # Public Submodules
+    "units",
+    "realizations",
     # Core
     "Cosmology",
     "CosmologyError",
@@ -51,7 +54,6 @@ __all__ = [  #  noqa: RUF100, RUF022
     # Parameter
     "Parameter",
     # Realizations
-    "realizations",
     "available",
     "default_cosmology",
     "WMAP1",
@@ -62,8 +64,6 @@ __all__ = [  #  noqa: RUF100, RUF022
     "Planck13",
     "Planck15",
     "Planck18",
-    # Units
-    "units",
 ]
 
 
