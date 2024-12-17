@@ -38,4 +38,20 @@ class MixinColumn(Protocol[T]):
     ) -> Self: ...
     def __getitem__(self, key): ...
     def __len__(self) -> int:
+        """Return the length of the mixin column.
+        
+        The MixinColumn provides a default implementation for the length based on the shape attribute.
+        
+        Examples
+        ----------
+        >>> from astropy.table.typing import MixinColumn
+        
+        >>> class Obj(MixinColumn):
+        ...     shape = (5, 2, 3)
+        
+        >>> obj = Obj()
+        >>> len(obj)
+        5
+
+        """"
         return self.shape[0]
