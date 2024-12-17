@@ -120,7 +120,7 @@ pandas if they decide to override the dunder methods.
 See: https://github.com/astropy/astropy/issues/11247
 
 Using Numpy array creation functions to initialize Quantity
-------------------------------------------------------------
+-----------------------------------------------------------
 Trying the following example will ignore the unit:
 
     >>> np.full(10, 1 * u.m)
@@ -204,6 +204,26 @@ What the second comparison is really doing is this::
    np.True_
 
 See: https://github.com/astropy/astropy/issues/15103
+
+def_unit should not be used for logarithmic unit
+------------------------------------------------
+
+When defining custom unit involving logarithmic unit, ``def_unit`` usage
+should be avoided because it might result in surprising behavior::
+
+    >>> dBW = u.def_unit('dBW', u.dB(u.W))
+    >>> 1 * dBW
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand type(s) for *: 'int' and 'Unit'
+
+Instead, it could be defined directly as such::
+
+    >>> dBW = u.dB(u.W)
+    >>> 1 * dBW
+    <Decibel 1. dB(W)>
+
+See: https://github.com/astropy/astropy/issues/5945
 
 mmap Support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------
