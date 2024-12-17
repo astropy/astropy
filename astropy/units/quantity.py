@@ -60,7 +60,7 @@ _UFUNCS_FILTER_WARNINGS = {np.arcsin, np.arccos, np.arccosh, np.arctanh}
 
 
 class Conf(_config.ConfigNamespace):
-    """
+    __doc__ = """
     Configuration parameters for Quantity.
     """
 
