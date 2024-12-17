@@ -59,7 +59,7 @@ __all__ = [
 
 # NOTE: Cannot put this in __init__.py due to circular import.
 class Conf(_config.ConfigNamespace):
-    """
+    __doc__ = """
     Configuration parameters for `astropy.io.votable.exceptions`.
     """
 

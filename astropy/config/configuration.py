@@ -16,6 +16,7 @@ import os
 import pkgutil
 import warnings
 from contextlib import contextmanager, nullcontext
+from inspect import getdoc
 from pathlib import Path
 from textwrap import TextWrapper
 from warnings import warn
@@ -89,9 +90,9 @@ class ConfigNamespace:
                 yield key
 
     def __str__(self):
-        try:
-            header = f"{self.__doc__.strip()}\n\n"
-        except AttributeError:
+        if (docstring := getdoc(self)) is not None:
+            header = f"{docstring}\n\n"
+        else:
             current_module = str(find_current_module(2)).split("'")[1]
             header = f"Configuration parameters for `{current_module}`\n\n"
         return header + "\n\n".join(map(str, self.values()))

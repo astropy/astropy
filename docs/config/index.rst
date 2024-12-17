@@ -292,7 +292,7 @@ each sub-package that has configuration items)::
     from astropy import config as _config
 
     class Conf(_config.ConfigNamespace):
-        """
+        __doc__ = """
         Configuration parameters for my subpackage.
         """
         some_setting = _config.ConfigItem(
