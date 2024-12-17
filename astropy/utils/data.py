@@ -104,7 +104,7 @@ class _NonClosingTextIOWrapper(io.TextIOWrapper):
 
 
 class Conf(_config.ConfigNamespace):
-    """
+    __doc__ = """
     Configuration parameters for `astropy.utils.data`.
     """
 

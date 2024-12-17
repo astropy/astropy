@@ -24,7 +24,7 @@ from . import config as _config
 
 
 class Conf(_config.ConfigNamespace):
-    """
+    __doc__ = """
     Configuration parameters for `astropy`.
     """
 

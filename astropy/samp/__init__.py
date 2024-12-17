@@ -21,7 +21,7 @@ from .utils import *
 
 
 class Conf(_config.ConfigNamespace):
-    """
+    __doc__ = """
     Configuration parameters for `astropy.samp`.
     """
 
