@@ -3,6 +3,7 @@
 import concurrent.futures
 import inspect
 import pickle
+import sys
 from contextlib import nullcontext
 
 import pytest
@@ -614,7 +615,8 @@ def test_classproperty_docstring():
 
             return 1
 
-    assert A.__dict__["foo"].__doc__ == "The foo."
+    expected_doc = "The foo." if sys.flags.optimize < 2 else None
+    assert inspect.getdoc(A.__dict__["foo"]) == expected_doc
 
     class B:
         # Use doc passed to classproperty constructor
@@ -623,7 +625,10 @@ def test_classproperty_docstring():
 
         foo = classproperty(_get_foo, doc="The foo.")
 
-    assert B.__dict__["foo"].__doc__ == "The foo."
+    # we should *always* get a string back by setting the doc argument.
+    # As of Python 3.13, this is in line with how the builtin @property decorator
+    # interacts with PYTHONOPTIMIZE=2
+    assert inspect.getdoc(B.__dict__["foo"]) == "The foo."
 
 
 @pytest.mark.slow
@@ -687,12 +692,13 @@ def test_format_doc_stringInput_simple():
 
     docstring_fail = ""
 
-    # Raises an valueerror if input is empty
-    with pytest.raises(ValueError):
+    if sys.flags.optimize < 2:
+        # Raises an valueerror if input is empty
+        with pytest.raises(ValueError):
 
-        @format_doc(docstring_fail)
-        def testfunc_fail():
-            pass
+            @format_doc(docstring_fail)
+            def testfunc_fail():
+                pass
 
     docstring = "test"
 
@@ -701,14 +707,15 @@ def test_format_doc_stringInput_simple():
     def testfunc_1():
         pass
 
-    assert inspect.getdoc(testfunc_1) == docstring
+    expected_doc = docstring if sys.flags.optimize < 2 else None
+    assert inspect.getdoc(testfunc_1) == expected_doc
 
     # Test that it replaces an existing docstring
     @format_doc(docstring)
     def testfunc_2():
         """not test"""
 
-    assert inspect.getdoc(testfunc_2) == docstring
+    assert inspect.getdoc(testfunc_2) == expected_doc
 
 
 def test_format_doc_stringInput_format():
@@ -716,19 +723,21 @@ def test_format_doc_stringInput_format():
 
     docstring = "yes {0} no {opt}"
 
-    # Raises an indexerror if not given the formatted args and kwargs
-    with pytest.raises(IndexError):
+    if sys.flags.optimize < 2:
+        # Raises an indexerror if not given the formatted args and kwargs
+        with pytest.raises(IndexError):
 
-        @format_doc(docstring)
-        def testfunc1():
-            pass
+            @format_doc(docstring)
+            def testfunc1():
+                pass
 
     # Test that the formatting is done right
     @format_doc(docstring, "/", opt="= life")
     def testfunc2():
         pass
 
-    assert inspect.getdoc(testfunc2) == "yes / no = life"
+    expected_doc = "yes / no = life" if sys.flags.optimize < 2 else None
+    assert inspect.getdoc(testfunc2) == expected_doc
 
     # Test that we can include the original docstring
 
@@ -738,7 +747,8 @@ def test_format_doc_stringInput_format():
     def testfunc3():
         """= 2 / 2 * life"""
 
-    assert inspect.getdoc(testfunc3) == "yes / no = 2 / 2 * life"
+    expected_doc = "yes / no = 2 / 2 * life" if sys.flags.optimize < 2 else None
+    assert inspect.getdoc(testfunc3) == expected_doc
 
 
 def test_format_doc_objectInput_simple():
@@ -747,12 +757,13 @@ def test_format_doc_objectInput_simple():
     def docstring_fail():
         pass
 
-    # Self input while the function has no docstring raises an error
-    with pytest.raises(ValueError):
+    if sys.flags.optimize < 2:
+        # Self input while the function has no docstring raises an error
+        with pytest.raises(ValueError):
 
-        @format_doc(docstring_fail)
-        def testfunc_fail():
-            pass
+            @format_doc(docstring_fail)
+            def testfunc_fail():
+                pass
 
     def docstring0():
         """test"""
@@ -778,19 +789,22 @@ def test_format_doc_objectInput_format():
     def docstring():
         """test {0} test {opt}"""
 
-    # Raises an indexerror if not given the formatted args and kwargs
-    with pytest.raises(IndexError):
+    if sys.flags.optimize < 2:
+        # Raises an indexerror if not given the formatted args and kwargs
+        with pytest.raises(IndexError):
 
-        @format_doc(docstring)
-        def testfunc_fail():
-            pass
+            @format_doc(docstring)
+            def testfunc_fail():
+                pass
 
     # Test that the formatting is done right
     @format_doc(docstring, "+", opt="= 2 * test")
     def testfunc2():
         pass
 
-    assert inspect.getdoc(testfunc2) == "test + test = 2 * test"
+    expected_doc = "test + test = 2 * test" if sys.flags.optimize < 2 else None
+
+    assert inspect.getdoc(testfunc2) == expected_doc
 
     # Test that we can include the original docstring
 
@@ -801,43 +815,49 @@ def test_format_doc_objectInput_format():
     def testfunc3():
         """= 4 / 2 * test"""
 
-    assert inspect.getdoc(testfunc3) == "test + test = 4 / 2 * test"
+    expected_doc = "test + test = 4 / 2 * test" if sys.flags.optimize < 2 else None
+
+    assert inspect.getdoc(testfunc3) == expected_doc
 
 
 def test_format_doc_selfInput_simple():
     # Simple tests with self input
 
-    # Self input while the function has no docstring raises an error
-    with pytest.raises(ValueError):
+    if sys.flags.optimize < 2:
+        # Self input while the function has no docstring raises an error
+        with pytest.raises(ValueError):
 
-        @format_doc(None)
-        def testfunc_fail():
-            pass
+            @format_doc(None)
+            def testfunc_fail():
+                pass
 
     # Test that it keeps an existing docstring
     @format_doc(None)
     def testfunc_1():
         """not test"""
 
-    assert inspect.getdoc(testfunc_1) == "not test"
+    expected_doc = "not test" if sys.flags.optimize < 2 else None
+    assert inspect.getdoc(testfunc_1) == expected_doc
 
 
 def test_format_doc_selfInput_format():
     # Tests with string input which is '__doc__' (special case) and formatting
 
-    # Raises an indexerror if not given the formatted args and kwargs
-    with pytest.raises(IndexError):
+    if sys.flags.optimize < 2:
+        # Raises an indexerror if not given the formatted args and kwargs
+        with pytest.raises(IndexError):
 
-        @format_doc(None)
-        def testfunc_fail():
-            """dum {0} dum {opt}"""
+            @format_doc(None)
+            def testfunc_fail():
+                """dum {0} dum {opt}"""
 
     # Test that the formatting is done right
     @format_doc(None, "di", opt="da dum")
     def testfunc1():
         """dum {0} dum {opt}"""
 
-    assert inspect.getdoc(testfunc1) == "dum di dum da dum"
+    expected_doc = "dum di dum da dum" if sys.flags.optimize < 2 else None
+    assert inspect.getdoc(testfunc1) == expected_doc
 
     # Test that we cannot recursively insert the original documentation
 
@@ -845,7 +865,8 @@ def test_format_doc_selfInput_format():
     def testfunc2():
         """dum {0} dum {__doc__}"""
 
-    assert inspect.getdoc(testfunc2) == "dum di dum "
+    expected_doc = "dum di dum " if sys.flags.optimize < 2 else None
+    assert inspect.getdoc(testfunc2) == expected_doc
 
 
 def test_format_doc_onMethod():
@@ -859,7 +880,8 @@ def test_format_doc_onMethod():
         def test_method(self):
             """is {0}"""
 
-    assert inspect.getdoc(TestClass.test_method) == "what we do is strange."
+    expected_doc = "what we do is strange." if sys.flags.optimize < 2 else None
+    assert inspect.getdoc(TestClass.test_method) == expected_doc
 
 
 def test_format_doc_onClass():
@@ -870,4 +892,5 @@ def test_format_doc_onClass():
     class TestClass:
         """is"""
 
-    assert inspect.getdoc(TestClass) == "what we do is strange."
+    expected_doc = "what we do is strange." if sys.flags.optimize < 2 else None
+    assert inspect.getdoc(TestClass) == expected_doc
