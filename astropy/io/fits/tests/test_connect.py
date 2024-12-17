@@ -69,10 +69,7 @@ class TestSingleTable:
         filename = "temp.fits"
         t1 = Table(self.data)
         t1.write(filename, overwrite=True)
-        try:
-            t1.write(Path(filename), format="fits", overwrite=True)
-        except OSError as error:
-            pytest.fail(f"overwrite true raises {error}")
+        t1.write(Path(filename), format="fits", overwrite=True)
 
     def test_simple(self, tmp_path):
         filename = tmp_path / "test_simple.fts"
