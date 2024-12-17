@@ -1,0 +1,1 @@
+Fix ``overwrite=True`` with FITS tables.
