@@ -1,5 +1,6 @@
 import gc
 import warnings
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -63,6 +64,15 @@ class TestSingleTable:
             list(zip([1, 2, 3, 4], ["a", "b", "c", "d"], [2.3, 4.5, 6.7, 8.9])),
             dtype=[("a", int), ("b", "U1"), ("c", float)],
         )
+
+    def test_path(self, tmp_path):
+        filename = "temp.fits"
+        t1 = Table(self.data)
+        t1.write(filename, overwrite=True)
+        try:
+            t1.write(Path(filename), format="fits", overwrite=True)
+        except OSError as error:
+            pytest.fail(f"overwrite true raises {error}")
 
     def test_simple(self, tmp_path):
         filename = tmp_path / "test_simple.fts"
