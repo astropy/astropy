@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from pathlib import Path
+from warnings import warn
 
 import astropy.config as _config
 import astropy.io.registry as io_registry
 from astropy import extern
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .table import Table
 
@@ -132,6 +134,11 @@ class JSViewer:
 
     def __init__(self, use_local_files=False, display_length=50):
         self._use_local_files = use_local_files
+        if use_local_files:
+            warn(
+                "`use_local_files` is deprecated and will be ignored or removed in astropy 7.1.",
+                AstropyDeprecationWarning,
+            )
         self.display_length_menu = [
             [10, 25, 50, 100, 500, 1000, -1],
             [10, 25, 50, 100, 500, 1000, "All"],

@@ -204,9 +204,15 @@ def test_write_jsviewer_local(tmp_path):
 
     tmpfile = tmp_path / "test.html"
 
-    t.write(
-        tmpfile, format="jsviewer", table_id="test", jskwargs={"use_local_files": True}
-    )
+    with pytest.warns(
+        AstropyDeprecationWarning, match="`use_local_files` is deprecated"
+    ):
+        t.write(
+            tmpfile,
+            format="jsviewer",
+            table_id="test",
+            jskwargs={"use_local_files": True},
+        )
     ref = REFERENCE % dict(
         lines=format_lines(t["a"], t["b"]),
         table_class="display compact",
