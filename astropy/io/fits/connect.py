@@ -458,7 +458,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
         # verify=False stops it reading and checking the existing file.
         fits_append(output, table_hdu.data, table_hdu.header, verify=False)
     else:
-        table_hdu.writeto(output)
+        table_hdu.writeto(output, overwrite=overwrite)
 
 
 io_registry.register_reader("fits", Table, read_table_fits)
