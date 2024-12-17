@@ -1,1 +1,1 @@
-Fix ``overwrite=True`` with FITS tables.
+Fix ``overwrite=True`` with FITS tables when the input filename is a ``Path``.
