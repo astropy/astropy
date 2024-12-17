@@ -22,7 +22,7 @@ from .wcsapi import custom_ucd_coord_meta_mapping
 
 
 class Conf(_config.ConfigNamespace):
-    """
+    __doc__ = """
     Configuration parameters for `astropy.visualization.wcsaxes`.
     """
 
