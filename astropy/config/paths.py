@@ -3,12 +3,22 @@
 data/cache files used by Astropy should be placed.
 """
 
+from __future__ import annotations
+
 import os
 import shutil
 import sys
 from functools import wraps
 from inspect import cleandoc
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from types import TracebackType
+    from typing import Literal, ParamSpec
+
+    P = ParamSpec("P")
 
 __all__ = [
     "get_cache_dir",
@@ -20,7 +30,9 @@ __all__ = [
 ]
 
 
-def _get_dir_path(rootname: str, cls: type, fallback: str) -> Path:
+def _get_dir_path(
+    rootname: str, cls: type[_SetTempPath], fallback: Literal["cache", "config"]
+) -> Path:
     # If using set_temp_x, that overrides all
     if (xch := cls._temp_path) is not None:
         path = xch / rootname
@@ -131,10 +143,12 @@ if get_cache_dir_path.__doc__ is not None:
 
 
 class _SetTempPath:
-    _temp_path = None
-    _default_path_getter = None
+    _temp_path: Path | None = None
+    _default_path_getter: Callable[[str], str]
 
-    def __init__(self, path=None, delete=False):
+    def __init__(
+        self, path: os.PathLike[str] | str | None = None, delete: bool = False
+    ) -> None:
         if path is not None:
             path = Path(path).resolve()
 
@@ -142,7 +156,7 @@ class _SetTempPath:
         self._delete = delete
         self._prev_path = self.__class__._temp_path
 
-    def __enter__(self):
+    def __enter__(self) -> str:
         self.__class__._temp_path = self._path
         try:
             return self._default_path_getter("astropy")
@@ -150,17 +164,22 @@ class _SetTempPath:
             self.__class__._temp_path = self._prev_path
             raise
 
-    def __exit__(self, *args):
+    def __exit__(
+        self,
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
         self.__class__._temp_path = self._prev_path
 
         if self._delete and self._path is not None:
             shutil.rmtree(self._path)
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[P, object]) -> Callable[P, None]:
         """Implements use as a decorator."""
 
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> None:
             with self:
                 func(*args, **kwargs)
 
@@ -195,7 +214,7 @@ class set_temp_config(_SetTempPath):
 
     _default_path_getter = staticmethod(get_config_dir)
 
-    def __enter__(self):
+    def __enter__(self) -> str:
         # Special case for the config case, where we need to reset all the
         # cached config objects.  We do keep the cache, since some of it
         # may have been set programmatically rather than be stored in the
@@ -206,13 +225,18 @@ class set_temp_config(_SetTempPath):
         _cfgobjs.clear()
         return super().__enter__()
 
-    def __exit__(self, *args):
+    def __exit__(
+        self,
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
         from .configuration import _cfgobjs
 
         _cfgobjs.clear()
         _cfgobjs.update(self._cfgobjs_copy)
         del self._cfgobjs_copy
-        super().__exit__(*args)
+        super().__exit__(type, value, tb)
 
 
 class set_temp_cache(_SetTempPath):
