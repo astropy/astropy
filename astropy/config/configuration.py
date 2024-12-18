@@ -9,6 +9,8 @@ configuration files for Astropy and affiliated packages.
     found at https://configobj.readthedocs.io .
 """
 
+from __future__ import annotations
+
 import contextlib
 import importlib
 import io
@@ -19,6 +21,7 @@ from contextlib import contextmanager, nullcontext
 from inspect import getdoc
 from pathlib import Path
 from textwrap import TextWrapper
+from typing import TYPE_CHECKING
 from warnings import warn
 
 from astropy.extern.configobj import configobj, validate
@@ -26,6 +29,10 @@ from astropy.utils import find_current_module, isiterable, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .paths import get_config_dir_path
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from typing import Final
 
 __all__ = (
     "ConfigItem",
@@ -84,7 +91,7 @@ class ConfigNamespace:
         conf = Conf()
     """
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[str, None, None]:
         for key, val in self.__class__.__dict__.items():
             if isinstance(val, ConfigItem):
                 yield key
@@ -100,19 +107,19 @@ class ConfigNamespace:
     keys = __iter__
     """Iterate over configuration item names."""
 
-    def values(self):
+    def values(self) -> Generator[ConfigItem, None, None]:
         """Iterate over configuration item values."""
         for val in self.__class__.__dict__.values():
             if isinstance(val, ConfigItem):
                 yield val
 
-    def items(self):
+    def items(self) -> Generator[tuple[str, ConfigItem], None, None]:
         """Iterate over configuration item ``(name, value)`` pairs."""
         for key, val in self.__class__.__dict__.items():
             if isinstance(val, ConfigItem):
                 yield key, val
 
-    def help(self, name=None):
+    def help(self, name: str | None = None) -> None:
         """Print info about configuration items.
 
         Parameters
@@ -185,7 +192,7 @@ class ConfigNamespace:
         for item in self.values():
             item.reload()
 
-    def reset(self, attr=None):
+    def reset(self, attr: str | None = None) -> None:
         """
         Reset a configuration item to its default.
 
@@ -426,13 +433,13 @@ class ConfigItem:
             baseobj[self.name] = newobj[self.name]
         return baseobj.get(self.name)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__}: name={self.name!r} value={self()!r} at"
             f" 0x{id(self):x}>"
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "\n".join(
             (
                 f"{self.__class__.__name__}: {self.name}",
@@ -529,7 +536,7 @@ class ConfigItem:
 
 # this dictionary stores the primary copy of the ConfigObj's for each
 # root package
-_cfgobjs = {}
+_cfgobjs: Final[dict[str, configobj.ConfigObj]] = {}
 
 
 def get_config_filename(packageormod=None, rootname=None):
