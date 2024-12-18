@@ -88,11 +88,11 @@ class UnifiedReadWrite:
                 header = (
                     f"{cls.__name__}.{method_name}(format='{format}') documentation\n"
                 )
-                doc = read_write_func.__doc__
+                doc = inspect.getdoc(read_write_func)
             else:
                 # General docs
                 header = f"{cls.__name__}.{method_name} general documentation\n"
-                doc = getattr(cls, method_name).__doc__
+                doc = inspect.getdoc(getattr(cls, method_name))
 
             reader_doc = re.sub(".", "=", header)
             reader_doc += header
