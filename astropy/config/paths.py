@@ -30,32 +30,6 @@ __all__ = [
 ]
 
 
-def _get_dir_path(
-    rootname: str, cls: type[_SetTempPath], fallback: Literal["cache", "config"]
-) -> Path:
-    # If using set_temp_x, that overrides all
-    if (xch := cls._temp_path) is not None:
-        path = xch / rootname
-        if not path.is_file():
-            path.mkdir(exist_ok=True)
-        return path.resolve()
-
-    if (
-        (xdg_dir := os.getenv(f"XDG_{fallback.upper()}_HOME")) is not None
-        and (xch := Path(xdg_dir)).exists()
-        and not (xchpth := xch / rootname).is_symlink()
-    ):
-        if xchpth.exists():
-            return xchpth.resolve()
-
-        # symlink will be set to this if the directory is created
-        linkto = xchpth
-    else:
-        linkto = None
-
-    return _find_or_create_root_dir(fallback, linkto, rootname)
-
-
 def get_config_dir_path(rootname: str = "astropy") -> Path:
     """
     Determines the package configuration directory name and creates the
@@ -79,7 +53,7 @@ def get_config_dir_path(rootname: str = "astropy") -> Path:
         The absolute path to the configuration directory.
 
     """
-    return _get_dir_path(rootname, set_temp_config, "config")
+    return set_temp_config.get_dir_path(rootname)
 
 
 def get_config_dir(rootname: str = "astropy") -> str:
@@ -122,7 +96,7 @@ def get_cache_dir_path(rootname: str = "astropy") -> Path:
         The absolute path to the cache directory.
 
     """
-    return _get_dir_path(rootname, set_temp_cache, "cache")
+    return set_temp_cache.get_dir_path(rootname)
 
 
 def get_cache_dir(rootname: str = "astropy") -> str:
@@ -145,6 +119,7 @@ if get_cache_dir_path.__doc__ is not None:
 class _SetTempPath:
     _temp_path: Path | None = None
     _default_path_getter: Callable[[str], str]
+    _fallback_dirname: Literal["cache", "config"]
 
     def __init__(
         self, path: os.PathLike[str] | str | None = None, delete: bool = False
@@ -185,6 +160,30 @@ class _SetTempPath:
 
         return wrapper
 
+    @classmethod
+    def get_dir_path(cls, rootname: str) -> Path:
+        if (xch := cls._temp_path) is not None:
+            path = xch / rootname
+            if not path.is_file():
+                path.mkdir(exist_ok=True)
+            return path.resolve()
+
+        if (
+            (xdg_dir := os.getenv(f"XDG_{cls._fallback_dirname.upper()}_HOME"))
+            is not None
+            and (xch := Path(xdg_dir)).exists()
+            and not (xchpth := xch / rootname).is_symlink()
+        ):
+            if xchpth.exists():
+                return xchpth.resolve()
+
+            # symlink will be set to this if the directory is created
+            linkto = xchpth
+        else:
+            linkto = None
+
+        return _find_or_create_root_dir(cls._fallback_dirname, linkto, rootname)
+
 
 class set_temp_config(_SetTempPath):
     """
@@ -213,6 +212,7 @@ class set_temp_config(_SetTempPath):
     """
 
     _default_path_getter = staticmethod(get_config_dir)
+    _fallback_dirname = "config"
 
     def __enter__(self) -> str:
         # Special case for the config case, where we need to reset all the
@@ -268,6 +268,7 @@ class set_temp_cache(_SetTempPath):
     """
 
     _default_path_getter = staticmethod(get_cache_dir)
+    _fallback_dirname = "cache"
 
 
 def _find_or_create_root_dir(
