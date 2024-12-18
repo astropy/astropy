@@ -192,6 +192,14 @@ def test_cds_angstrom_str():
     assert u.cds.Angstrom.name == "Angstrom"
 
 
+@pytest.mark.xfail(reason="reveals an inconsistency between u.solMass and cds.solMass")
+def test_cds_solMass_str():
+    # CDS allows writing solar mass as Msun or solMass,
+    # but cds.solMass and u.solMass should be consistent.
+    assert u.solMass.to_string("cds") == "solMass"
+    assert u.cds.solMass.to_string("cds") == "solMass"
+
+
 # These examples are taken from the EXAMPLES section of
 # https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/
 @pytest.mark.parametrize(
