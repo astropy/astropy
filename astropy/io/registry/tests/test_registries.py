@@ -353,6 +353,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
                     assert docs[-1][iread : iread + 3] != "Yes"
         # now test it's updated
         docs = EmptyData.read.__doc__.split("\n")
+        ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
         ifmt = docs[ihd].index("Format") + 2
         iread = docs[ihd].index("Read") + 1
         assert docs[-2][ifmt : ifmt + 4] == "test"
@@ -722,6 +723,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
                     assert docs[-1][iwrite : iwrite + 3] != "Yes"
         # now test it's updated
         docs = EmptyData.write.__doc__.split("\n")
+        ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
         ifmt = docs[ihd].index("Format") + 1
         iwrite = docs[ihd].index("Write") + 2
         assert fmt in docs[-2][ifmt : ifmt + len(fmt) + 1]
