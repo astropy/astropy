@@ -571,17 +571,17 @@ def _generate_wcs_and_update_header(hdr):
     return (new_hdr, wcs)
 
 
-def fits_ccddata_reader(
-    filename,
-    hdu=0,
-    unit=None,
-    hdu_uncertainty="UNCERT",
-    hdu_mask="MASK",
-    hdu_flags=None,
-    key_uncertainty_type="UTYPE",
-    hdu_psf="PSFIMAGE",
-    **kwd,
-):
+def keep_doc(docstring: str):
+    # A decorator that forces docstrings to stay available
+    # at runtime, even against PYTHONOPTIMIZE=2
+    def wrapper(func):
+        func.__doc__ = docstring
+        return func
+
+    return wrapper
+
+
+@keep_doc(
     """
     Generate a CCDData object from a FITS file.
 
@@ -638,6 +638,18 @@ def fits_ccddata_reader(
     be scaled and the keywords used to manage scaled data in
     :mod:`astropy.io.fits` are disabled.
     """
+)
+def fits_ccddata_reader(
+    filename,
+    hdu=0,
+    unit=None,
+    hdu_uncertainty="UNCERT",
+    hdu_mask="MASK",
+    hdu_flags=None,
+    key_uncertainty_type="UTYPE",
+    hdu_psf="PSFIMAGE",
+    **kwd,
+):
     unsupport_open_keywords = {
         "do_not_scale_image_data": "Image data must be scaled.",
         "scale_back": "Scale information is not preserved.",
@@ -738,17 +750,7 @@ def fits_ccddata_reader(
     return ccd_data
 
 
-def fits_ccddata_writer(
-    ccd_data,
-    filename,
-    hdu_mask="MASK",
-    hdu_uncertainty="UNCERT",
-    hdu_flags=None,
-    key_uncertainty_type="UTYPE",
-    as_image_hdu=False,
-    hdu_psf="PSFIMAGE",
-    **kwd,
-):
+@keep_doc(
     """
     Write CCDData object to FITS file.
 
@@ -795,6 +797,18 @@ def fits_ccddata_writer(
     NotImplementedError
         Saving flags is not supported.
     """
+)
+def fits_ccddata_writer(
+    ccd_data,
+    filename,
+    hdu_mask="MASK",
+    hdu_uncertainty="UNCERT",
+    hdu_flags=None,
+    key_uncertainty_type="UTYPE",
+    as_image_hdu=False,
+    hdu_psf="PSFIMAGE",
+    **kwd,
+):
     hdu = ccd_data.to_hdu(
         hdu_mask=hdu_mask,
         hdu_uncertainty=hdu_uncertainty,
