@@ -228,7 +228,7 @@ class CdsHeader(core.BaseHeader):
 
 
 class CdsData(core.BaseData):
-    """CDS table data reader."""
+    __doc__ = """CDS table data reader."""
 
     _subfmt = "CDS"
     splitter_class = fixedwidth.FixedWidthSplitter
@@ -250,7 +250,8 @@ class CdsData(core.BaseData):
 
 
 class Cds(core.BaseReader):
-    """CDS format table.
+    __doc__ = """
+    CDS format table.
 
     See: https://vizier.unistra.fr/doc/catstd.htx
 

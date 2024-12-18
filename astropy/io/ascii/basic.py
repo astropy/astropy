@@ -15,7 +15,7 @@ from . import core
 
 
 class BasicHeader(core.BaseHeader):
-    """
+    __doc__ = """
     Basic table Header Reader.
 
     Set a few defaults for common ascii table formats
@@ -28,7 +28,7 @@ class BasicHeader(core.BaseHeader):
 
 
 class BasicData(core.BaseData):
-    """
+    __doc__ = """
     Basic table Data Reader.
 
     Set a few defaults for common ascii table formats
@@ -41,7 +41,7 @@ class BasicData(core.BaseData):
 
 
 class Basic(core.BaseReader):
-    r"""Character-delimited table with a single header line at the top.
+    __doc__ = r"""Character-delimited table with a single header line at the top.
 
     Lines beginning with a comment character (default='#') as the first
     non-whitespace character are comments.
@@ -66,7 +66,7 @@ class Basic(core.BaseReader):
 
 
 class NoHeaderHeader(BasicHeader):
-    """
+    __doc__ = """
     Reader for table header without a header.
 
     Set the start of header line number to `None`, which tells the basic
@@ -77,7 +77,7 @@ class NoHeaderHeader(BasicHeader):
 
 
 class NoHeaderData(BasicData):
-    """
+    __doc__ = """
     Reader for table data without a header.
 
     Data starts at first uncommented line since there is no header line.
@@ -87,7 +87,7 @@ class NoHeaderData(BasicData):
 
 
 class NoHeader(Basic):
-    """Character-delimited table with no header line.
+    __doc__ = """Character-delimited table with no header line.
 
     When reading, columns are autonamed using header.auto_format which defaults
     to "col%d".  Otherwise this reader the same as the :class:`Basic` class
@@ -106,7 +106,7 @@ class NoHeader(Basic):
 
 
 class CommentedHeaderHeader(BasicHeader):
-    """
+    __doc__ = """
     Header class for which the column definition line starts with the
     comment character.  See the :class:`CommentedHeader` class  for an example.
     """
@@ -127,7 +127,7 @@ class CommentedHeaderHeader(BasicHeader):
 
 
 class CommentedHeader(Basic):
-    """Character-delimited table with column names in a comment line.
+    __doc__ = """Character-delimited table with column names in a comment line.
 
     When reading, ``header_start`` can be used to specify the
     line index of column names, and it can be a negative index (for example -1
@@ -182,7 +182,7 @@ class CommentedHeader(Basic):
 
 
 class TabHeaderSplitter(core.DefaultSplitter):
-    """Split lines on tab and do not remove whitespace."""
+    __doc__ = """Split lines on tab and do not remove whitespace."""
 
     delimiter = "\t"
 
@@ -191,7 +191,7 @@ class TabHeaderSplitter(core.DefaultSplitter):
 
 
 class TabDataSplitter(TabHeaderSplitter):
-    """
+    __doc__ = """
     Don't strip data value whitespace since that is significant in TSV tables.
     """
 
@@ -200,7 +200,7 @@ class TabDataSplitter(TabHeaderSplitter):
 
 
 class TabHeader(BasicHeader):
-    """
+    __doc__ = """
     Reader for header of tables with tab separated header.
     """
 
@@ -208,7 +208,7 @@ class TabHeader(BasicHeader):
 
 
 class TabData(BasicData):
-    """
+    __doc__ = """
     Reader for data of tables with tab separated data.
     """
 
@@ -216,7 +216,8 @@ class TabData(BasicData):
 
 
 class Tab(Basic):
-    """Tab-separated table.
+    __doc__ = """
+    Tab-separated table.
 
     Unlike the :class:`Basic` reader, whitespace is not stripped from the
     beginning and end of either lines or individual column values.
@@ -236,7 +237,7 @@ class Tab(Basic):
 
 
 class CsvSplitter(core.DefaultSplitter):
-    """
+    __doc__ = """
     Split on comma for CSV (comma-separated-value) tables.
     """
 
@@ -244,7 +245,7 @@ class CsvSplitter(core.DefaultSplitter):
 
 
 class CsvHeader(BasicHeader):
-    """
+    __doc__ = """
     Header that uses the :class:`astropy.io.ascii.basic.CsvSplitter`.
     """
 
@@ -254,7 +255,7 @@ class CsvHeader(BasicHeader):
 
 
 class CsvData(BasicData):
-    """
+    __doc__ = """
     Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`.
     """
 
@@ -265,7 +266,8 @@ class CsvData(BasicData):
 
 
 class Csv(Basic):
-    """CSV (comma-separated-values) table.
+    __doc__ = """
+    CSV (comma-separated-values) table.
 
     This file format may contain rows with fewer entries than the number of
     columns, a situation that occurs in output from some spreadsheet editors.
@@ -326,7 +328,7 @@ class Csv(Basic):
 
 
 class RdbHeader(TabHeader):
-    """
+    __doc__ = """
     Header for RDB tables.
     """
 
@@ -387,7 +389,7 @@ class RdbHeader(TabHeader):
 
 
 class RdbData(TabData):
-    """
+    __doc__ = """
     Data reader for RDB data. Starts reading at line 2.
     """
 
@@ -395,7 +397,7 @@ class RdbData(TabData):
 
 
 class Rdb(Tab):
-    """Tab-separated file with an extra line after the column definition line that
+    __doc__ = """Tab-separated file with an extra line after the column definition line that
     specifies either numeric (N) or string (S) data.
 
     See: https://www.drdobbs.com/rdb-a-unix-command-line-database/199101326
