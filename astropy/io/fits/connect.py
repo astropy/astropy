@@ -435,7 +435,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
     ----------
     input : Table
         The table to write out.
-    output : str
+    output : str or os.PathLike[str]
         The filename to write the table to.
     overwrite : bool
         Whether to overwrite any existing file without warning.
@@ -448,7 +448,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
     table_hdu = table_to_hdu(input, character_as_bytes=True)
 
     # Check if output file already exists
-    if os.path.exists(output) and os.path.isfile(output):
+    if os.path.isfile(output):
         if overwrite:
             os.remove(output)
         elif not append:
