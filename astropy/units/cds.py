@@ -119,7 +119,7 @@ def _initialize_module():
         (["mmHg"], 133.322387415 * u.Pa, "millimeter of mercury"),
         (["mol"], u.mol, "mole"),
         (["mp"], _si.m_p, "proton mass"),
-        (["Msun", "solMass"], u.solMass, "solar mass"),
+        (["solMass", "Msun"], u.solMass, "solar mass"),
         ((["mu0", "µ0"], []), _si.mu0, "magnetic constant"),
         (["muB"], _si.muB, "Bohr magneton"),
         (["N"], u.N, "Newton"),
