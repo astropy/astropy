@@ -448,7 +448,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
     table_hdu = table_to_hdu(input, character_as_bytes=True)
 
     # Check if output file already exists
-    if isinstance(output, str) and os.path.exists(output):
+    if os.path.exists(output) and os.path.isfile(output):
         if overwrite:
             os.remove(output)
         elif not append:
@@ -458,7 +458,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
         # verify=False stops it reading and checking the existing file.
         fits_append(output, table_hdu.data, table_hdu.header, verify=False)
     else:
-        table_hdu.writeto(output, overwrite=overwrite)
+        table_hdu.writeto(output)
 
 
 io_registry.register_reader("fits", Table, read_table_fits)
