@@ -689,17 +689,6 @@ def test_lazyproperty_threadsafe(fast_thread_switching):
 
 def test_format_doc_stringInput_simple():
     # Simple tests with string input
-
-    docstring_fail = ""
-
-    if sys.flags.optimize < 2:
-        # Raises an valueerror if input is empty
-        with pytest.raises(ValueError):
-
-            @format_doc(docstring_fail)
-            def testfunc_fail():
-                pass
-
     docstring = "test"
 
     # A first test that replaces an empty docstring
@@ -722,14 +711,6 @@ def test_format_doc_stringInput_format():
     # Tests with string input and formatting
 
     docstring = "yes {0} no {opt}"
-
-    if sys.flags.optimize < 2:
-        # Raises an indexerror if not given the formatted args and kwargs
-        with pytest.raises(IndexError):
-
-            @format_doc(docstring)
-            def testfunc1():
-                pass
 
     # Test that the formatting is done right
     @format_doc(docstring, "/", opt="= life")
@@ -754,17 +735,6 @@ def test_format_doc_stringInput_format():
 def test_format_doc_objectInput_simple():
     # Simple tests with object input
 
-    def docstring_fail():
-        pass
-
-    if sys.flags.optimize < 2:
-        # Self input while the function has no docstring raises an error
-        with pytest.raises(ValueError):
-
-            @format_doc(docstring_fail)
-            def testfunc_fail():
-                pass
-
     def docstring0():
         """test"""
 
@@ -788,14 +758,6 @@ def test_format_doc_objectInput_format():
 
     def docstring():
         """test {0} test {opt}"""
-
-    if sys.flags.optimize < 2:
-        # Raises an indexerror if not given the formatted args and kwargs
-        with pytest.raises(IndexError):
-
-            @format_doc(docstring)
-            def testfunc_fail():
-                pass
 
     # Test that the formatting is done right
     @format_doc(docstring, "+", opt="= 2 * test")
@@ -823,14 +785,6 @@ def test_format_doc_objectInput_format():
 def test_format_doc_selfInput_simple():
     # Simple tests with self input
 
-    if sys.flags.optimize < 2:
-        # Self input while the function has no docstring raises an error
-        with pytest.raises(ValueError):
-
-            @format_doc(None)
-            def testfunc_fail():
-                pass
-
     # Test that it keeps an existing docstring
     @format_doc(None)
     def testfunc_1():
@@ -842,14 +796,6 @@ def test_format_doc_selfInput_simple():
 
 def test_format_doc_selfInput_format():
     # Tests with string input which is '__doc__' (special case) and formatting
-
-    if sys.flags.optimize < 2:
-        # Raises an indexerror if not given the formatted args and kwargs
-        with pytest.raises(IndexError):
-
-            @format_doc(None)
-            def testfunc_fail():
-                """dum {0} dum {opt}"""
 
     # Test that the formatting is done right
     @format_doc(None, "di", opt="da dum")
@@ -894,3 +840,47 @@ def test_format_doc_onClass():
 
     expected_doc = "what we do is strange." if sys.flags.optimize < 2 else None
     assert inspect.getdoc(TestClass) == expected_doc
+
+
+@pytest.mark.skipif(
+    sys.flags.optimize >= 2,
+    reason="NA for Python optimized mode",
+)
+@pytest.mark.parametrize(
+    "docstring, expected_exception",
+    [
+        # Raises an valueerror if input is empty
+        pytest.param("", ValueError, id="empty string"),
+        # Raises an indexerror if not given the formatted args and kwargs
+        pytest.param("yes {0} no {opt}", IndexError, id="missing args or kwargs (str)"),
+        # Self input while the function has no docstring raises an error
+        pytest.param(lambda: None, ValueError, id="function without a docstring"),
+        # Self input while the function has no docstring raises an error
+        pytest.param(None, ValueError, id="None"),
+    ],
+)
+def test_format_doc_exceptions(docstring, expected_exception):
+    with pytest.raises(expected_exception):
+
+        @format_doc(docstring)
+        def testfunc_fail():
+            pass
+
+
+@pytest.mark.skipif(
+    sys.flags.optimize >= 2,
+    reason="NA for Python optimized mode",
+)
+def test_format_doc_indexerrors():
+    def _FUNC_WITH_TEMPLATE_DOCSTRING():
+        """test {0} test {opt}"""
+
+    # Raises an indexerror if not given the formatted args and kwargs
+    with pytest.raises(IndexError):
+
+        @format_doc(_FUNC_WITH_TEMPLATE_DOCSTRING)
+        def testfunc_fail():
+            pass
+
+    with pytest.raises(IndexError):
+        format_doc(None)(_FUNC_WITH_TEMPLATE_DOCSTRING)
