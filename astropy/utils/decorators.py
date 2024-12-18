@@ -3,6 +3,7 @@
 
 import functools
 import inspect
+import sys
 import textwrap
 import threading
 import types
@@ -746,7 +747,7 @@ class classproperty(property):
         # the doc argument was used rather than taking the docstring
         # from fget
         # Related Python issue: https://bugs.python.org/issue24766
-        if doc is not None:
+        if doc is not None and sys.flags.optimize < 2:
             self.__doc__ = doc
 
     def __get__(self, obj, objtype):
@@ -1133,6 +1134,9 @@ def format_doc(docstring, *args, **kwargs):
     on an object to first parse the new docstring and then to parse the
     original docstring or the ``args`` and ``kwargs``.
     """
+    if sys.flags.optimize >= 2:
+        # docstrings are dropped at runtime, so let's return a noop decorator
+        return lambda func: func
 
     def set_docstring(obj):
         if docstring is None:
