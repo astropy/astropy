@@ -10,8 +10,10 @@ Test :mod:`astropy.io.registry`.
 """
 
 import os
+import sys
 from collections import Counter
 from copy import deepcopy
+from inspect import getdoc
 from io import StringIO
 
 import numpy as np
@@ -42,7 +44,7 @@ class UnifiedIORegistryBaseSubClass(_UnifiedIORegistryBase):
 
 
 class EmptyData:
-    """
+    __doc__ = """
     Thing that can read and write.
     Note that the read/write are the compatibility methods, which allow for the
     kwarg ``registry``. This allows us to not subclass ``EmptyData`` for each
@@ -155,6 +157,7 @@ class TestUnifiedIORegistryBase:
         # (kw)args don't matter
         assert registry.get_formats(data_class=24) is None
 
+    @pytest.mark.skipif(sys.flags.optimize >= 2, reason="NA for Python optimized mode")
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         # TODO! figure out what can be tested
@@ -332,6 +335,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         """Test ``registry.get_formats()``."""
         raise AssertionError()
 
+    @pytest.mark.skipif(sys.flags.optimize >= 2, reason="NA for Python optimized mode")
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         super().test_delay_doc_updates(registry, fmtcls1)
@@ -342,8 +346,8 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             # test that the doc has not yet been updated.
             # if a the format was registered in a different way, then
             # test that this method is not present.
-            if "Format" in EmptyData.read.__doc__:
-                docs = EmptyData.read.__doc__.split("\n")
+            if "Format" in (docstring1 := getdoc(EmptyData.read)):
+                docs = docstring1.split("\n")
                 ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
                 ifmt = docs[ihd].index("Format") + 1
                 iread = docs[ihd].index("Read") + 1
@@ -352,7 +356,9 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
                     assert docs[-1][ifmt : ifmt + 5] == "test"
                     assert docs[-1][iread : iread + 3] != "Yes"
         # now test it's updated
-        docs = EmptyData.read.__doc__.split("\n")
+        docstring2 = getdoc(EmptyData.read)
+        docs = docstring2.split("\n")
+        ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
         ifmt = docs[ihd].index("Format") + 2
         iread = docs[ihd].index("Read") + 1
         assert docs[-2][ifmt : ifmt + 4] == "test"
@@ -700,6 +706,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
 
     # ===========================================
 
+    @pytest.mark.skipif(sys.flags.optimize >= 2, reason="NA for Python optimized mode")
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         super().test_delay_doc_updates(registry, fmtcls1)
@@ -711,8 +718,8 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             # test that the doc has not yet been updated.
             # if a the format was registered in a different way, then
             # test that this method is not present.
-            if "Format" in EmptyData.read.__doc__:
-                docs = EmptyData.write.__doc__.split("\n")
+            if "Format" in (docstring1 := getdoc(EmptyData.write)):
+                docs = docstring1.split("\n")
                 ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
                 ifmt = docs[ihd].index("Format")
                 iwrite = docs[ihd].index("Write") + 1
@@ -721,7 +728,9 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
                     assert fmt in docs[-1][ifmt : ifmt + len(fmt) + 1]
                     assert docs[-1][iwrite : iwrite + 3] != "Yes"
         # now test it's updated
-        docs = EmptyData.write.__doc__.split("\n")
+        docstring2 = getdoc(EmptyData.write)
+        docs = docstring2.split("\n")
+        ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
         ifmt = docs[ihd].index("Format") + 1
         iwrite = docs[ihd].index("Write") + 2
         assert fmt in docs[-2][ifmt : ifmt + len(fmt) + 1]
@@ -1005,6 +1014,7 @@ class TestUnifiedIORegistry(TestUnifiedInputRegistry, TestUnifiedOutputRegistry)
         """Test ``registry.get_formats()``."""
         raise AssertionError()
 
+    @pytest.mark.skipif(sys.flags.optimize >= 2, reason="NA for Python optimized mode")
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         super().test_delay_doc_updates(registry, fmtcls1)
