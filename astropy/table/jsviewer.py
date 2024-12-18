@@ -136,7 +136,7 @@ class JSViewer:
         self._use_local_files = use_local_files
         if use_local_files:
             warn(
-                "`use_local_files` is deprecated and will be ignored or removed in astropy 7.1.",
+                "use_local_files is deprecated and will be ignored in astropy 7.1; it might be removed in a future version.",
                 AstropyDeprecationWarning,
             )
         self.display_length_menu = [

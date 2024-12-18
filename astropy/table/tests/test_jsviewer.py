@@ -204,9 +204,7 @@ def test_write_jsviewer_local(tmp_path):
 
     tmpfile = tmp_path / "test.html"
 
-    with pytest.warns(
-        AstropyDeprecationWarning, match="`use_local_files` is deprecated"
-    ):
+    with pytest.warns(AstropyDeprecationWarning, match="use_local_files is deprecated"):
         t.write(
             tmpfile,
             format="jsviewer",
