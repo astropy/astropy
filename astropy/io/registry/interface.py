@@ -50,11 +50,12 @@ class UnifiedReadWrite:
 
     @property
     def registry(self):
-        """Unified I/O registry instance."""
+        __doc__ = """Unified I/O registry instance."""
         return self._registry
 
     def help(self, format=None, out=None):
-        """Output help documentation for the specified unified I/O ``format``.
+        __doc__ = """
+        Output help documentation for the specified unified I/O ``format``.
 
         By default the help output is printed to the console via ``pydoc.pager``.
         Instead one can supplied a file handle object as ``out`` and the output
@@ -106,7 +107,8 @@ class UnifiedReadWrite:
             out.write(reader_doc)
 
     def list_formats(self, out=None):
-        """Print a list of available formats to console (or ``out`` filehandle).
+        __doc__ = """
+        Print a list of available formats to console (or ``out`` filehandle).
 
         out : None or file handle object
             Output destination (default is stdout via a pager)
