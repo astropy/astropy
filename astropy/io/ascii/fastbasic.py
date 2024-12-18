@@ -10,7 +10,7 @@ from . import core, cparser
 
 
 class FastBasic(metaclass=core.MetaBaseReader):
-    """
+    __doc__ = """
     This class is intended to handle the same format addressed by the
     ordinary :class:`Basic` writer, but it acts as a wrapper for underlying C
     code and is therefore much faster. Unlike the other ASCII readers and
@@ -214,7 +214,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
 
 
 class FastCsv(FastBasic):
-    """
+    __doc__ = """
     A faster version of the ordinary :class:`Csv` writer that uses the
     optimized C parsing engine. Note that this reader will append empty
     field values to the end of any row with not enough columns, while
@@ -238,7 +238,7 @@ class FastCsv(FastBasic):
 
 
 class FastTab(FastBasic):
-    """
+    __doc__ = """
     A faster version of the ordinary :class:`Tab` reader that uses
     the optimized C parsing engine.
     """
@@ -254,7 +254,7 @@ class FastTab(FastBasic):
 
 
 class FastNoHeader(FastBasic):
-    """
+    __doc__ = """
     This class uses the fast C engine to read tables with no header line. If
     the names parameter is unspecified, the columns will be autonamed with
     "col{}".
@@ -276,7 +276,7 @@ class FastNoHeader(FastBasic):
 
 
 class FastCommentedHeader(FastBasic):
-    """
+    __doc__ = """
     A faster version of the :class:`CommentedHeader` reader, which looks for
     column names in a commented line. ``header_start`` denotes the index of
     the header line among all commented lines and is 0 by default.
@@ -339,7 +339,7 @@ class FastCommentedHeader(FastBasic):
 
 
 class FastRdb(FastBasic):
-    """
+    __doc__ = """
     A faster version of the :class:`Rdb` reader. This format is similar to
     tab-delimited, but it also contains a header line after the column
     name line denoting the type of each column (N for numeric, S for string).

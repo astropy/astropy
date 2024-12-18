@@ -64,7 +64,7 @@ def identify_table(soup, htmldict, numtable):
 
 
 class HTMLInputter(core.BaseInputter):
-    """
+    __doc__ = """
     Input lines of HTML in a valid form.
 
     This requires `BeautifulSoup
@@ -112,7 +112,7 @@ class HTMLInputter(core.BaseInputter):
 
 
 class HTMLSplitter(core.BaseSplitter):
-    """
+    __doc__ = """
     Split HTML table data.
     """
 
@@ -143,7 +143,7 @@ class HTMLSplitter(core.BaseSplitter):
 
 
 class HTMLOutputter(core.TableOutputter):
-    """
+    __doc__ = """
     Output the HTML data as an ``astropy.table.Table`` object.
 
     This subclass allows for the final table to contain
@@ -260,7 +260,8 @@ class HTMLData(core.BaseData):
 
 
 class HTML(core.BaseReader):
-    """HTML format table.
+    __doc__ = """
+    HTML format table.
 
     In order to customize input and output, a dict of parameters may
     be passed to this class holding specific customizations.

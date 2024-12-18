@@ -45,7 +45,8 @@ class InvalidEcsvDatatypeWarning(AstropyUserWarning):
 
 
 class EcsvHeader(basic.BasicHeader):
-    """Header class for which the column definition line starts with the
+    __doc__ = """
+    Header class for which the column definition line starts with the
     comment character.  See the :class:`CommentedHeader` class  for an example.
     """
 
@@ -242,7 +243,7 @@ def _check_dtype_is_str(col):
 
 
 class EcsvOutputter(core.TableOutputter):
-    """
+    __doc__ = """
     After reading the input lines and processing, convert the Reader columns
     and metadata to an astropy.table.Table object.  This overrides the default
     converters to be an empty list because there is no "guessing" of the
@@ -456,7 +457,8 @@ class EcsvData(basic.BasicData):
 
 
 class Ecsv(basic.Basic):
-    """ECSV (Enhanced Character Separated Values) format table.
+    __doc__ = """
+    ECSV (Enhanced Character Separated Values) format table.
 
     Th ECSV format allows for specification of key table and column meta-data, in
     particular the data type and unit.

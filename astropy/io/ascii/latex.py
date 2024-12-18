@@ -100,7 +100,7 @@ class LatexInputter(core.BaseInputter):
 
 
 class LatexSplitter(core.BaseSplitter):
-    """Split LaTeX table data. Default delimiter is `&`."""
+    __doc__ = """Split LaTeX table data. Default delimiter is `&`."""
 
     delimiter = "&"
 
@@ -136,7 +136,7 @@ class LatexSplitter(core.BaseSplitter):
 
 
 class LatexHeader(core.BaseHeader):
-    """Class to read the header of Latex Tables."""
+    __doc__ = """Class to read the header of Latex Tables."""
 
     header_start = r"\begin{tabular}"
     splitter_class = LatexSplitter
@@ -185,7 +185,7 @@ class LatexHeader(core.BaseHeader):
 
 
 class LatexData(core.BaseData):
-    """Class to read the data in LaTeX tables."""
+    __doc__ = """Class to read the data in LaTeX tables."""
 
     data_start: ClassVar[str | None] = None
     data_end = r"\end{tabular}"
@@ -217,7 +217,8 @@ class LatexData(core.BaseData):
 
 
 class Latex(core.BaseReader):
-    r"""LaTeX format table.
+    __doc__ = r"""
+    LaTeX format table.
 
     This class implements some LaTeX specific commands.  Its main
     purpose is to write out a table in a form that LaTeX can compile. It

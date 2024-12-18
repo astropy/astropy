@@ -31,7 +31,8 @@ class SimpleRSTData(FixedWidthData):
 
 
 class RST(FixedWidth):
-    """reStructuredText simple format table.
+    __doc__ = """
+    reStructuredText simple format table.
 
     See: https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#simple-tables
 

@@ -13,7 +13,7 @@ from . import core
 
 
 class SExtractorHeader(core.BaseHeader):
-    """Read the header from a file produced by SExtractor."""
+    __doc__ = """Read the header from a file produced by SExtractor."""
 
     comment = r"^\s*#\s*\S\D.*"  # Find lines that don't have "# digit"
 
@@ -115,7 +115,8 @@ class SExtractorData(core.BaseData):
 
 
 class SExtractor(core.BaseReader):
-    """SExtractor format table.
+    __doc__ = """
+    SExtractor format table.
 
     SExtractor is a package for faint-galaxy photometry (Bertin & Arnouts
     1996, A&A Supp. 317, 393.)

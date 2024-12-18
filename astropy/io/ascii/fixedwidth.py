@@ -13,7 +13,7 @@ from .core import DefaultSplitter, InconsistentTableError
 
 
 class FixedWidthSplitter(core.BaseSplitter):
-    """
+    __doc__ = """
     Split line based on fixed start and end positions for each ``col`` in
     ``self.cols``.
 
@@ -56,13 +56,13 @@ class FixedWidthSplitter(core.BaseSplitter):
 
 
 class FixedWidthHeaderSplitter(DefaultSplitter):
-    """Splitter class that splits on ``|``."""
+    __doc__ = """Splitter class that splits on ``|``."""
 
     delimiter = "|"
 
 
 class FixedWidthHeader(basic.BasicHeader):
-    """
+    __doc__ = """
     Fixed width table header reader.
     """
 
@@ -248,7 +248,7 @@ class FixedWidthHeader(basic.BasicHeader):
 
 
 class FixedWidthData(basic.BasicData):
-    """
+    __doc__ = """
     Base table data reader.
     """
 
@@ -299,7 +299,8 @@ class FixedWidthData(basic.BasicData):
 
 
 class FixedWidth(basic.Basic):
-    """Fixed width table with single header line defining column names and positions.
+    __doc__ = """
+    Fixed width table with single header line defining column names and positions.
 
     Examples::
 
@@ -353,19 +354,20 @@ class FixedWidth(basic.Basic):
 
 
 class FixedWidthNoHeaderHeader(FixedWidthHeader):
-    """Header reader for fixed with tables with no header line."""
+    __doc__ = """Header reader for fixed with tables with no header line."""
 
     start_line = None
 
 
 class FixedWidthNoHeaderData(FixedWidthData):
-    """Data reader for fixed width tables with no header line."""
+    __doc__ = """Data reader for fixed width tables with no header line."""
 
     start_line = 0
 
 
 class FixedWidthNoHeader(FixedWidth):
-    """Fixed width table which has no header line.
+    __doc__ = """
+    Fixed width table which has no header line.
 
     When reading, column names are either input (``names`` keyword) or
     auto-generated.  Column positions are determined either by input
@@ -408,7 +410,8 @@ class FixedWidthNoHeader(FixedWidth):
 
 
 class FixedWidthTwoLineHeader(FixedWidthHeader):
-    """Header reader for fixed width tables splitting on whitespace.
+    __doc__ = """
+    Header reader for fixed width tables splitting on whitespace.
 
     For fixed width tables with several header lines, there is typically
     a white-space delimited format line, so splitting on white space is
@@ -419,19 +422,20 @@ class FixedWidthTwoLineHeader(FixedWidthHeader):
 
 
 class FixedWidthTwoLineDataSplitter(FixedWidthSplitter):
-    """Splitter for fixed width tables splitting on ``' '``."""
+    __doc__ = """Splitter for fixed width tables splitting on ``' '``."""
 
     delimiter = " "
 
 
 class FixedWidthTwoLineData(FixedWidthData):
-    """Data reader for fixed with tables with two header lines."""
+    __doc__ = """Data reader for fixed with tables with two header lines."""
 
     splitter_class = FixedWidthTwoLineDataSplitter
 
 
 class FixedWidthTwoLine(FixedWidth):
-    """Fixed width table which has two header lines.
+    __doc__ = """
+    Fixed width table which has two header lines.
 
     The first header line defines the column names and the second implicitly
     defines the column positions.

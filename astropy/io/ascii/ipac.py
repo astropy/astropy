@@ -36,7 +36,8 @@ class IpacFormatError(Exception):
 
 
 class IpacHeaderSplitter(core.BaseSplitter):
-    """Splitter for Ipac Headers.
+    __doc__ = """
+    Splitter for Ipac Headers.
 
     This splitter is similar its parent when reading, but supports a
     fixed width format (as required for Ipac table headers) for writing.
@@ -64,7 +65,7 @@ class IpacHeaderSplitter(core.BaseSplitter):
 
 
 class IpacHeader(fixedwidth.FixedWidthHeader):
-    """IPAC table header."""
+    __doc__ = """IPAC table header."""
 
     splitter_class = IpacHeaderSplitter
 
@@ -328,7 +329,7 @@ class IpacDataSplitter(fixedwidth.FixedWidthSplitter):
 
 
 class IpacData(fixedwidth.FixedWidthData):
-    """IPAC table data reader."""
+    __doc__ = """IPAC table data reader."""
 
     comment = r"[|\\]"
     start_line = 0
@@ -343,7 +344,7 @@ class IpacData(fixedwidth.FixedWidthData):
 
 
 class Ipac(basic.Basic):
-    r"""IPAC format table.
+    __doc__ = r"""IPAC format table.
 
     See: https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html
 
