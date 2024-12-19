@@ -1,0 +1,1 @@
+File name could be passed as ``Path`` object to fits.write

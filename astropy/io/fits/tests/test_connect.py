@@ -1,5 +1,8 @@
+import contextlib
 import gc
+import os
 import warnings
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -57,12 +60,34 @@ def equal_data(a, b):
     return all(np.all(a[name] == b[name]) for name in a.dtype.names)
 
 
+@contextlib.contextmanager
+def working_directory(path):
+    """
+    A context manager changing the working directory to the given
+    path. The directory is changed back on exit.
+    """
+
+    cwd = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(cwd)
+
+
 class TestSingleTable:
     def setup_class(self):
         self.data = np.array(
             list(zip([1, 2, 3, 4], ["a", "b", "c", "d"], [2.3, 4.5, 6.7, 8.9])),
             dtype=[("a", int), ("b", "U1"), ("c", float)],
         )
+
+    def test_path(self, tmp_path):
+        with working_directory(tmp_path):
+            filename = "temp.fits"
+            t1 = Table(self.data)
+            t1.write(filename, overwrite=True)
+            t1.write(Path(filename), format="fits", overwrite=True)
 
     def test_simple(self, tmp_path):
         filename = tmp_path / "test_simple.fts"
