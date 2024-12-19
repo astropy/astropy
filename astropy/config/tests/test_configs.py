@@ -118,6 +118,52 @@ def test_set_temp_cache_resets_on_exception(tmp_path):
     assert t == paths.get_cache_dir()
 
 
+@pytest.fixture
+def tmp_cache_env_var_existing_dir(tmp_path):
+    old_env_var = os.getenv("ASTROPY_CACHE_DIR")
+    os.environ["ASTROPY_CACHE_DIR"] = str(tmp_path)
+    yield str(tmp_path)
+    if old_env_var is not None:
+        os.environ["ASTROPY_CACHE_DIR"] = old_env_var
+
+
+def test_cache_dir_from_env_variable(tmp_cache_env_var_existing_dir):
+    assert paths.get_cache_dir() == tmp_cache_env_var_existing_dir
+
+
+@pytest.fixture
+def tmp_cache_env_var_existing_file(tmp_path):
+    old_env_var = os.getenv("ASTROPY_CACHE_DIR")
+    path = tmp_path / "file"
+    path.touch()
+    os.environ["ASTROPY_CACHE_DIR"] = str(path)
+    yield str(path)
+    if old_env_var is not None:
+        os.environ["ASTROPY_CACHE_DIR"] = old_env_var
+
+
+@pytest.mark.usefixtures("tmp_cache_env_var_existing_file")
+def test_cache_dir_from_env_variable_file():
+    with pytest.raises(FileExistsError):
+        paths.get_cache_dir()
+
+
+@pytest.fixture
+def tmp_cache_env_var_missing_parent(tmp_path):
+    old_env_var = os.getenv("ASTROPY_CACHE_DIR")
+    path = tmp_path / "parent" / "child"
+    os.environ["ASTROPY_CACHE_DIR"] = str(path)
+    yield str(path)
+    if old_env_var is not None:
+        os.environ["ASTROPY_CACHE_DIR"] = old_env_var
+
+
+@pytest.mark.usefixtures("tmp_cache_env_var_missing_parent")
+def test_cache_dir_from_env_var_missing_parent():
+    with pytest.raises(FileNotFoundError):
+        paths.get_cache_dir()
+
+
 def test_config_file():
     from astropy.config.configuration import get_config, reload_config
 
