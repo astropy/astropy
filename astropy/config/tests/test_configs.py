@@ -168,7 +168,7 @@ def check_config(conf):
     assert "[table]" in conf
     assert "# replace_warnings = ," in conf
     assert "[table.jsviewer]" in conf
-    assert "# css_urls = https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css," in conf  # fmt: skip
+    assert "# css_urls = https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css" in conf  # fmt: skip
     assert "[visualization.wcsaxes]" in conf
     assert "## Whether to log exceptions before raising them." in conf
     assert "# log_exceptions = False" in conf
