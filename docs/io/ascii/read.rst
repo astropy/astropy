@@ -673,7 +673,8 @@ the basic reader, but header and data start in different lines of the file::
 
   # Note: NoHeader is already included in astropy.io.ascii for convenience.
   class NoHeaderHeader(BasicHeader):
-      """Reader for table header without a header
+      __doc__ = """
+      Reader for table header without a header
 
       Set the start of header line number to `None`, which tells the basic
       reader there is no header line.
@@ -681,14 +682,16 @@ the basic reader, but header and data start in different lines of the file::
       start_line = None
 
   class NoHeaderData(BasicData):
-      """Reader for table data without a header
+      __doc__ = """
+      Reader for table data without a header
 
       Data starts at first uncommented line since there is no header line.
       """
       start_line = 0
 
   class NoHeader(Basic):
-      """Read a table with no header line.  Columns are autonamed using
+      __doc__ = """
+      Read a table with no header line.  Columns are autonamed using
       header.auto_format which defaults to "col%d".  Otherwise this reader
       the same as the :class:`Basic` class from which it is derived.  Example::
 
@@ -706,7 +709,8 @@ the methods in the base class::
 
   # Note: CommentedHeader is already included in astropy.io.ascii for convenience.
   class CommentedHeaderHeader(BasicHeader):
-      """Header class for which the column definition line starts with the
+      __doc__ = """
+      Header class for which the column definition line starts with the
       comment character.  See the :class:`CommentedHeader` class  for an example.
       """
       def process_lines(self, lines):
@@ -723,7 +727,8 @@ the methods in the base class::
 
 
   class CommentedHeader(Basic):
-      """Read a file where the column names are given in a line that begins with
+      __doc__ = """
+      Read a file where the column names are given in a line that begins with
       the header comment character. ``header_start`` can be used to specify the
       line index of column names, and it can be a negative index (for example -1
       for the last commented line).  The default delimiter is the <space>

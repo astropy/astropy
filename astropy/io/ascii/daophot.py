@@ -19,7 +19,7 @@ from .misc import first_false_index, first_true_index, groupmore
 
 
 class DaophotHeader(core.BaseHeader):
-    """
+    __doc__ = """
     Read the header from a file produced by the IRAF DAOphot routine.
     """
 
@@ -312,7 +312,7 @@ class DaophotInputter(core.ContinuationLinesInputter):
 
 
 class Daophot(core.BaseReader):
-    """
+    __doc__ = """
     DAOphot format table.
 
     Example::

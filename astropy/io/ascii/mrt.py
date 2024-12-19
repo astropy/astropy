@@ -50,7 +50,7 @@ MRT_TEMPLATE = [
 
 
 class MrtSplitter(fixedwidth.FixedWidthSplitter):
-    """
+    __doc__ = """
     Contains the join function to left align the MRT columns
     when writing to a file.
     """
@@ -631,7 +631,7 @@ class MrtHeader(cds.CdsHeader):
 
 
 class MrtData(cds.CdsData):
-    """MRT table data reader."""
+    __doc__ = """MRT table data reader."""
 
     _subfmt = "MRT"
     splitter_class = MrtSplitter
@@ -642,7 +642,8 @@ class MrtData(cds.CdsData):
 
 
 class Mrt(core.BaseReader):
-    """AAS MRT (Machine-Readable Table) format table.
+    __doc__ = """
+    AAS MRT (Machine-Readable Table) format table.
 
     **Reading**
     ::

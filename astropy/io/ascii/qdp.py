@@ -494,7 +494,7 @@ def _write_table_qdp(table, filename=None, err_specs=None):
 
 
 class QDPSplitter(core.DefaultSplitter):
-    """
+    __doc__ = """
     Split on space for QDP tables.
     """
 
@@ -502,7 +502,7 @@ class QDPSplitter(core.DefaultSplitter):
 
 
 class QDPHeader(basic.CommentedHeaderHeader):
-    """
+    __doc__ = """
     Header that uses the :class:`astropy.io.ascii.basic.QDPSplitter`.
     """
 
@@ -512,7 +512,7 @@ class QDPHeader(basic.CommentedHeaderHeader):
 
 
 class QDPData(basic.BasicData):
-    """
+    __doc__ = """
     Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`.
     """
 
@@ -523,7 +523,8 @@ class QDPData(basic.BasicData):
 
 
 class QDP(basic.Basic):
-    """Quick and Dandy Plot table.
+    __doc__ = """
+    Quick and Dandy Plot table.
 
     Example::
 

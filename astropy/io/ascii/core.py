@@ -301,7 +301,7 @@ class Column:
 
 
 class BaseInputter:
-    """
+    __doc__ = """
     Get the lines from the table input and return a list of lines.
 
     """
@@ -382,7 +382,7 @@ class BaseInputter:
 
 
 class BaseSplitter:
-    """
+    __doc__ = """
     Base splitter that uses python's split method to do the work.
 
     This does not handle quoted values.  A key feature is the formulation of
@@ -433,7 +433,8 @@ class BaseSplitter:
 
 
 class DefaultSplitter(BaseSplitter):
-    """Default class to split strings into columns using python csv.  The class
+    __doc__ = """
+    Default class to split strings into columns using python csv.  The class
     attributes are taken from the csv Dialect class.
 
     Typical usage::
@@ -574,7 +575,7 @@ def _get_line_index(line_or_func, lines):
 
 
 class BaseHeader:
-    """
+    __doc__ = """
     Base table header reader.
     """
 
@@ -784,7 +785,7 @@ class BaseHeader:
 
 
 class BaseData:
-    """
+    __doc__ = """
     Base table data reader.
     """
 
@@ -1055,7 +1056,8 @@ def convert_numpy(numpy_type):
 
 
 class BaseOutputter:
-    """Output table as a dict of column objects keyed on column name.  The
+    __doc__ = """
+    Output table as a dict of column objects keyed on column name.  The
     table data are stored as plain python lists within the column objects.
     """
 
@@ -1182,7 +1184,7 @@ def _deduplicate_names(names: list[str]) -> list[str]:
 
 
 class TableOutputter(BaseOutputter):
-    """
+    __doc__ = """
     Output the table as an astropy.table.Table object.
     """
 
@@ -1323,7 +1325,8 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
 
 
 class BaseReader(metaclass=MetaBaseReader):
-    """Class providing methods to read and write an ASCII table using the specified
+    __doc__ = """
+    Class providing methods to read and write an ASCII table using the specified
     header, data, inputter, and outputter instances.
 
     Typical usage is to instantiate a Reader() object and customize the
@@ -1599,7 +1602,8 @@ class BaseReader(metaclass=MetaBaseReader):
 
 
 class ContinuationLinesInputter(BaseInputter):
-    """Inputter where lines ending in ``continuation_char`` are joined with the subsequent line.
+    __doc__ = """
+    Inputter where lines ending in ``continuation_char`` are joined with the subsequent line.
 
     Example::
 
