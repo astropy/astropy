@@ -68,7 +68,7 @@ class _AstLogIPYExc(Exception):
 
 
 class Conf(_config.ConfigNamespace):
-    __doc__ = """
+    """
     Configuration parameters for `astropy.logger`.
     """
 
