@@ -156,9 +156,9 @@ def test_votable(capsys):
 def test_max_lines(capsys):
     showtable.main(
         [
-            os.path.join(ASCII_ROOT, "data/cds2.dat"),
+            os.path.join(ASCII_ROOT, "data/mrt2.dat"),
             "--format",
-            "ascii.cds",
+            "ascii.mrt",
             "--max-lines",
             "7",
             "--max-width",
@@ -192,7 +192,7 @@ def test_show_dtype(capsys):
 
 
 def test_hide_unit(capsys):
-    showtable.main([os.path.join(ASCII_ROOT, "data/cds.dat"), "--format", "ascii.cds"])
+    showtable.main([os.path.join(ASCII_ROOT, "data/mrt.dat"), "--format", "ascii.mrt"])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
         "Index RAh RAm  RAs  DE- DEd  DEm    DEs   Match Class  AK  Fit ",
@@ -203,9 +203,9 @@ def test_hide_unit(capsys):
 
     showtable.main(
         [
-            os.path.join(ASCII_ROOT, "data/cds.dat"),
+            os.path.join(ASCII_ROOT, "data/mrt.dat"),
             "--format",
-            "ascii.cds",
+            "ascii.mrt",
             "--hide-unit",
         ]
     )
