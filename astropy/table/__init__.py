@@ -45,7 +45,7 @@ __all__ = [
 
 
 class Conf(_config.ConfigNamespace):
-    __doc__ = """
+    """
     Configuration parameters for `astropy.table`.
     """
 
