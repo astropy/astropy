@@ -118,6 +118,56 @@ def test_set_temp_cache_resets_on_exception(tmp_path):
     assert t == paths.get_cache_dir()
 
 
+def _cleanup_environment(env_var_name: str, old_value: str | None) -> None:
+    if old_value is None:
+        os.environ.pop(env_var_name)
+    else:
+        os.environ[env_var_name] = old_value
+
+
+@pytest.fixture
+def tmp_cache_env_var_existing_dir(tmp_path):
+    old_value = os.getenv("ASTROPY_CACHE_DIR")
+    os.environ["ASTROPY_CACHE_DIR"] = str(tmp_path)
+    yield str(tmp_path)
+    _cleanup_environment("ASTROPY_CACHE_DIR", old_value)
+
+
+def test_cache_dir_from_env_variable(tmp_cache_env_var_existing_dir):
+    assert paths.get_cache_dir() == tmp_cache_env_var_existing_dir
+
+
+@pytest.fixture
+def tmp_cache_env_var_existing_file(tmp_path):
+    old_value = os.getenv("ASTROPY_CACHE_DIR")
+    path = tmp_path / "file"
+    path.touch()
+    os.environ["ASTROPY_CACHE_DIR"] = str(path)
+    yield str(path)
+    _cleanup_environment("ASTROPY_CACHE_DIR", old_value)
+
+
+@pytest.mark.usefixtures("tmp_cache_env_var_existing_file")
+def test_cache_dir_from_env_variable_file():
+    with pytest.raises(FileExistsError):
+        paths.get_cache_dir()
+
+
+@pytest.fixture
+def tmp_cache_env_var_missing_parent(tmp_path):
+    old_value = os.getenv("ASTROPY_CACHE_DIR")
+    path = tmp_path / "parent" / "child"
+    os.environ["ASTROPY_CACHE_DIR"] = str(path)
+    yield str(path)
+    _cleanup_environment("ASTROPY_CACHE_DIR", old_value)
+
+
+@pytest.mark.usefixtures("tmp_cache_env_var_missing_parent")
+def test_cache_dir_from_env_var_missing_parent():
+    with pytest.raises(FileNotFoundError):
+        paths.get_cache_dir()
+
+
 def test_config_file():
     from astropy.config.configuration import get_config, reload_config
 
@@ -446,6 +496,49 @@ def test_config_noastropy_fallback(monkeypatch):
     # now run the basic tests, and make sure the warning about no astropy
     # is present
     test_configitem()
+
+
+@pytest.fixture
+def tmp_config_env_var_existing_dir(tmp_path):
+    old_value = os.getenv("ASTROPY_CONFIG_DIR")
+    os.environ["ASTROPY_CONFIG_DIR"] = str(tmp_path)
+    yield str(tmp_path)
+    _cleanup_environment("ASTROPY_CONFIG_DIR", old_value)
+
+
+def test_config_dir_from_env_variable(tmp_config_env_var_existing_dir):
+    assert paths.get_config_dir() == tmp_config_env_var_existing_dir
+
+
+@pytest.fixture
+def tmp_config_env_var_existing_file(tmp_path):
+    old_value = os.getenv("ASTROPY_CONFIG_DIR")
+    path = tmp_path / "file"
+    path.touch()
+    os.environ["ASTROPY_CONFIG_DIR"] = str(path)
+    yield str(path)
+    _cleanup_environment("ASTROPY_CONFIG_DIR", old_value)
+
+
+@pytest.mark.usefixtures("tmp_config_env_var_existing_file")
+def test_config_dir_from_env_variable_file():
+    with pytest.raises(FileExistsError):
+        paths.get_config_dir()
+
+
+@pytest.fixture
+def tmp_config_env_var_missing_parent(tmp_path):
+    old_value = os.getenv("ASTROPY_CONFIG_DIR")
+    path = tmp_path / "parent" / "child"
+    os.environ["ASTROPY_CONFIG_DIR"] = str(path)
+    yield str(path)
+    _cleanup_environment("ASTROPY_CONFIG_DIR", old_value)
+
+
+@pytest.mark.usefixtures("tmp_config_env_var_missing_parent")
+def test_config_dir_from_env_var_missing_parent():
+    with pytest.raises(FileNotFoundError):
+        paths.get_config_dir()
 
 
 def test_configitem_setters():

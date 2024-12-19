@@ -122,7 +122,8 @@ class _SetTempPath:
     # This base class serves as a deduplication layer for its only two intended
     # children (set_temp_cache and set_temp_config)
     _directory_type: Literal["cache", "config"]
-    _directory_env_var: Literal["XDG_CACHE_HOME", "XDG_CONFIG_HOME"]
+    _xdg_env_dir: Literal["XDG_CACHE_HOME", "XDG_CONFIG_HOME"]
+    _astropy_env_dir: Literal["ASTROPY_CACHE_DIR", "ASTROPY_CONFIG_DIR"]
 
     def __init__(
         self, path: os.PathLike[str] | str | None = None, delete: bool = False
@@ -165,6 +166,25 @@ class _SetTempPath:
 
     @classmethod
     def _get_dir_path(cls, rootname: str) -> Path:
+        if (usrpth_str := os.getenv(cls._astropy_env_dir)) is not None:
+            usrpth = Path(usrpth_str).expanduser()
+
+            if usrpth.is_file():
+                raise FileExistsError(
+                    f"Cannot create directory under {usrpth_str} as requested "
+                    f"via the environment variable {cls._astropy_env_dir}: "
+                    "a file with this name already exists."
+                )
+
+            if not usrpth.parent.exists():
+                raise FileNotFoundError(
+                    f"Cannot create directory under {usrpth_str} as requested "
+                    f"via the environment variable {cls._astropy_env_dir}: "
+                    f"the parent directory {usrpth.parent} does not exist."
+                )
+            usrpth.mkdir(exist_ok=True)
+            return usrpth.resolve()
+
         if (xch := cls._temp_path) is not None:
             path = xch / rootname
             if not path.is_file():
@@ -172,7 +192,7 @@ class _SetTempPath:
             return path.resolve()
 
         if (
-            (dir_ := os.getenv(cls._directory_env_var)) is not None
+            (dir_ := os.getenv(cls._xdg_env_dir)) is not None
             and (xch := Path(dir_)).exists()
             and not (xchpth := xch / rootname).is_symlink()
         ):
@@ -243,7 +263,8 @@ class set_temp_config(_SetTempPath):
     """
 
     _directory_type = "config"
-    _directory_env_var = "XDG_CONFIG_HOME"
+    _xdg_env_dir = "XDG_CONFIG_HOME"
+    _astropy_env_dir = "ASTROPY_CONFIG_DIR"
 
     def __enter__(self) -> str:
         # Special case for the config case, where we need to reset all the
@@ -299,4 +320,5 @@ class set_temp_cache(_SetTempPath):
     """
 
     _directory_type = "cache"
-    _directory_env_var = "XDG_CACHE_HOME"
+    _xdg_env_dir = "XDG_CACHE_HOME"
+    _astropy_env_dir = "ASTROPY_CACHE_DIR"
