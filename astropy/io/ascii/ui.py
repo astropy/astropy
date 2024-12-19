@@ -145,8 +145,10 @@ def _probably_html(table, maxchars=100000):
             return True
 
         # Filename ending in .htm or .html which exists
-        table_path = Path(table).expanduser()
-        if re.search(r"\.htm[l]?$", table[-5:], re.IGNORECASE) and table_path.is_file():
+        if (
+            re.search(r"\.htm[l]?$", table[-5:], re.IGNORECASE)
+            and Path(table).expanduser().is_file()
+        ):
             return True
 
         # Table starts with HTML document type declaration
