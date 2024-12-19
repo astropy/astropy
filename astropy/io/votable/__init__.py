@@ -37,7 +37,7 @@ VERIFY_OPTIONS = ["ignore", "warn", "exception"]  # First one is default
 
 
 class Conf(_config.ConfigNamespace):
-    __doc__ = """
+    """
     Configuration parameters for `astropy.io.votable`.
     """
 

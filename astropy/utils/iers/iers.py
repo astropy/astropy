@@ -165,7 +165,7 @@ def _none_to_float(value):
 
 
 class Conf(_config.ConfigNamespace):
-    __doc__ = """
+    """
     Configuration parameters for `astropy.utils.iers`.
     """
 
