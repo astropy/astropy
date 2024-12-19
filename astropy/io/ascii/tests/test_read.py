@@ -1497,6 +1497,13 @@ def test_probably_html(home_is_data):
         ],
         (" <! doctype htm > ", " hello world"),
         [[1, 2, 3]],
+        # regression tests for https://github.com/astropy/astropy/issues/17562
+        "~itsatrap",  # looks like a Path, but isn't
+        (
+            "~0FR1K19A00A  C2011 01 29.24643 01 18 02.537-02 41 30.21         22.2 wL~3JL8F51\n"
+            "~0FR1K19A00A  C2011 01 29...47 46 56.60         20.93GV~7ukZG96\n"
+            "~0FR1K19A00A 1C2024 03 03.20377105 56 18.827+47 46 54.95         20.97GV~7ukZG96"
+        ),
     ):
         assert _probably_html(tabl0) is False
 
