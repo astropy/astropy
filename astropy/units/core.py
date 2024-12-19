@@ -677,27 +677,6 @@ class UnitBase:
         return tuple(zip((base.name for base in unit.bases), unit.powers))
 
     @property
-    def names(self) -> list[str]:
-        """All the names associated with the unit."""
-        raise AttributeError(
-            "Can not get names from unnamed units. Perhaps you meant to_string()?"
-        )
-
-    @property
-    def name(self) -> str:
-        """The canonical (short) name associated with the unit."""
-        raise AttributeError(
-            "Can not get names from unnamed units. Perhaps you meant to_string()?"
-        )
-
-    @property
-    def aliases(self) -> list[str]:
-        """The aliases (long) names for the unit."""
-        raise AttributeError(
-            "Can not get aliases from unnamed units. Perhaps you meant to_string()?"
-        )
-
-    @property
     def scale(self) -> UnitScale:
         """The scale of the unit."""
         return 1.0
