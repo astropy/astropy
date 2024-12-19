@@ -19,6 +19,18 @@ from .basic_rgb import RGBImageMapping
 __all__ = ["LuptonAsinhStretch", "LuptonAsinhZscaleStretch", "make_lupton_rgb"]
 
 
+def __getattr__(name: str):
+    from importlib import import_module
+
+    if name in ["Mapping", "AsinhMapping", "LinearMapping", "AsinhZScaleMapping"]:
+        private_depr_module = import_module(
+            "astropy.visualization._lupton_rgb_depr_private_classes"
+        )
+        return getattr(private_depr_module, name)
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 def compute_intensity(image_r, image_g=None, image_b=None):
     """
     Return a naive total intensity from the red, blue, and green intensities.
