@@ -1,0 +1,2 @@
+Add support for setting astropy's cache and config directories via the
+``ASTROPY_CACHE_DIR`` and ``ASTROPY_CONFIG_DIR`` environment variables.
