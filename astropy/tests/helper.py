@@ -4,16 +4,26 @@ This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the |pytest| testing framework.
 """
 
+from __future__ import annotations
+
 import os
 import pickle
+from typing import TYPE_CHECKING
 
+import numpy as np
 import pytest
 
-from astropy.units import allclose as quantity_allclose  # noqa: F401
+from astropy.units import allclose as quantity_allclose
 from astropy.utils.introspection import minversion
 
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # noqa: F401
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from astropy.table.typing import MixinColumn
+
 
 __all__ = [
     "assert_follows_unicode_guidelines",
@@ -192,11 +202,96 @@ def assert_quantity_allclose(actual, desired, rtol=1.0e-7, atol=None, **kwargs):
     This is a :class:`~astropy.units.Quantity`-aware version of
     :func:`numpy.testing.assert_allclose`.
     """
-    import numpy as np
-
     from astropy.units.quantity import _unquantify_allclose_arguments
 
     __tracebackhide__ = True
     np.testing.assert_allclose(
         *_unquantify_allclose_arguments(actual, desired, rtol, atol), **kwargs
     )
+
+
+def _assert_mixin_columns_equal(
+    actual: MixinColumn,
+    desired: MixinColumn,
+    /,
+    *,
+    attrs: list[str] | None = None,
+    compare_class: bool = True,
+    rtol: float = 1e-15,
+    **kwargs: Any,
+) -> None:
+    """Compare mixin columns by their shape and attributes, including those provided by .info
+
+    Parameters
+    ----------
+    actual and desired: MixinColumn (positional only)
+        these objects must have attributes `shape` and `info`.
+        Typically this means astropy ndarray subclasses or
+        :class:`astropy.utils.shapes.ShapedLikeNDArray`.
+
+    attrs: list[str] (optional, keyword only)
+        a list of attributes to compare in addition to the default list:
+        ['info.name', 'info.format', 'info.unit',
+        'info.description', 'info.meta', 'info.dtype']
+
+    compare_class: bool (default: False, keyword only)
+        Whether to check that the two objects are instances of the same class
+
+    rtol: float (default: 1e-15)
+        Relative tolerance on array comparison.
+        Passed down to :func:`numpy.testing.assert_allclose`.
+
+    **kwargs: dict, optional
+        Extra arguments to :func:`numpy.testing.assert_allclose`/
+
+    Raises
+    ------
+    AssertionError
+        If actual doesn't compare equal to desired.
+    """
+    if compare_class:
+        assert actual.__class__ is desired.__class__
+
+    assert actual.shape == desired.shape
+
+    info_attrs = [
+        "info.name",
+        "info.format",
+        "info.unit",
+        "info.description",
+        "info.meta",
+        "info.dtype",
+    ]
+    for attr in info_attrs + (attrs or []):
+        a1 = actual
+        a2 = desired
+        for subattr in attr.split("."):
+            try:
+                a1 = getattr(a1, subattr)
+                a2 = getattr(a2, subattr)
+            except AttributeError:
+                a1 = a1[subattr]
+                a2 = a2[subattr]
+
+        # MixinColumn info.meta can None instead of empty OrderedDict(), #6720 would
+        # fix this.
+        if attr == "info.meta":
+            a1 = {} if a1 is None else a1
+            a2 = {} if a2 is None else a2
+
+        if isinstance(a1, np.ndarray) and a1.dtype.kind == "f":
+            assert_quantity_allclose(a1, a2, rtol=rtol, **kwargs)
+        elif isinstance(a1, np.dtype):
+            # FITS does not perfectly preserve dtype: byte order can change, and
+            # unicode gets stored as bytes.  So, we just check safe casting, to
+            # ensure we do not, e.g., accidentally change integer to float, etc.
+            assert np.can_cast(a2, a1, casting="safe")
+        else:
+            assert np.all(a1 == a2)
+
+    # For no attrs that means we just compare directly.
+    if not attrs:
+        if isinstance(actual, np.ndarray) and actual.dtype.kind == "f":
+            assert quantity_allclose(actual, desired, rtol=1e-15)
+        else:
+            assert np.all(actual == desired)
