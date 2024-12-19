@@ -1,0 +1,1 @@
+Fixed a bug parsing ASCII table with data that starts with a tilda.

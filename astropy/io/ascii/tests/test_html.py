@@ -17,6 +17,7 @@ import pytest
 
 from astropy.io import ascii
 from astropy.io.ascii import core, html
+from astropy.io.ascii.ui import _probably_html
 from astropy.table import Table
 from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_BS4
 
@@ -837,3 +838,13 @@ def test_read_html_unicode():
     ]
     dat = Table.read(table_in, format="ascii.html")
     assert np.all(dat["col1"] == ["Δ", "Δ"])
+
+
+def test_html_check():
+    """Regression test for GH Issue 17562"""
+    table_in = (
+        "~0FR1K19A00A  C2011 01 29.24643 01 18 02.537-02 41 30.21         22.2 wL~3JL8F51\n"
+        "~0FR1K19A00A  C2011 01 29...47 46 56.60         20.93GV~7ukZG96\n"
+        "~0FR1K19A00A 1C2024 03 03.20377105 56 18.827+47 46 54.95         20.97GV~7ukZG96"
+    )
+    assert not _probably_html(table_in)
