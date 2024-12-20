@@ -349,6 +349,17 @@ def test_stored_parquet_votable(format):
     assert stored_votable["sfr"].unit == u.solMass / u.year
 
 
+def test_write_jybeam_unit(tmp_path):
+    t = Table()
+    t["flux"] = [5]
+    t["flux"].unit = u.Jy / u.beam
+    filename = tmp_path / "test.xml"
+    t.write(filename, format="votable", overwrite=True)
+
+    t_rt = Table.read(filename, format="votable")
+    assert t_rt["flux"].unit == t["flux"].unit
+
+
 def test_write_overwrite(tmp_path):
     t = simple_table(3, 3)
     filename = tmp_path / "overwrite_test.vot"
