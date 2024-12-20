@@ -419,7 +419,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
                 p[0] = p[3] ** 0.5
                 return
             elif p[1] in ("mag", "dB", "dex"):
-                function_unit = cls._parse_unit(p[1])
+                function_unit = cls._validate_unit(p[1])
                 # In Generic, this is callable, but that does not have to
                 # be the case in subclasses (e.g., in VOUnit it is not).
                 if callable(function_unit):
@@ -444,7 +444,7 @@ class Generic(Base, _GenericParserMixin):
     """
 
     @classmethod
-    def _parse_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
+    def _validate_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
         registry = core.get_current_unit_registry().registry
         if s in cls._unit_symbols:
             s = cls._unit_symbols[s]

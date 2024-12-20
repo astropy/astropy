@@ -222,7 +222,7 @@ class VOUnit(Base, _GenericParserMixin):
         )
 
     @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
+    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
         if unit in cls._deprecated_units:
             warnings.warn(
                 UnitsWarning(
@@ -230,4 +230,4 @@ class VOUnit(Base, _GenericParserMixin):
                     f" Suggested: {cls.to_string(cls._units[unit]._represents)}."
                 )
             )
-        super()._validate_unit(unit, detailed_exception)
+        return super()._validate_unit(unit, detailed_exception)
