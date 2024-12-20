@@ -10,8 +10,50 @@ from astropy.timeseries.binned import BinnedTimeSeries
 from astropy.timeseries.sampled import TimeSeries
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["aggregate_downsample"]
+__all__ = ["aggregate_downsample", "nanmean"]
 
+
+def nanmean_reduceat(data, indices):
+    mask = np.isnan(data)
+
+    if mask.any():  # If there are NaNs
+        # Create a writeable copy and mask NaNs
+        data_copy = data.copy()
+        data_copy[mask] = 0
+        count_data = np.add.reduceat(~mask, indices)
+        count_data = count_data.astype(float)
+        count_data[count_data == 0] = np.nan
+    else:
+        data_copy = data
+        # Derive counts from indices
+        count_data = np.diff(indices, append=len(data))
+        count_data[count_data <= 0] = 1
+
+    sum_data = np.add.reduceat(data_copy, indices)
+    nanmean = sum_data / count_data
+    return nanmean
+
+
+def nanmean(*args, **kwargs):
+    """
+    This function is a wrapper around `numpy.nanmean` and behaves identically to it.
+    Additionally, it includes the `reduceat` method, which performs grouped mean calculations
+    over slices of the data, defined by a set of indices, while ignoring NaN values.
+    The `reduceat` method behaves identical to `numpy.ufunc.reduceat` except that
+    parameters ``axis``, ``dtype``, and ``out`` are not supported.
+    For further functionality take a look at the ``See also`` section.
+
+    See Also
+    --------
+    numpy.nanmean
+    numpy.ufunc.reduceat
+    """
+    result = np.nanmean(*args, **kwargs)
+    return result
+
+
+# Attach the nanmean_reduceat to the function
+nanmean.reduceat = nanmean_reduceat
 
 def reduceat(array, indices, function):
     """
@@ -93,7 +135,7 @@ def aggregate_downsample(
         parameter will be ignored.
     aggregate_func : callable, optional
         The function to use for combining points in the same bin. Defaults
-        to np.nanmean.
+        to `~astropy.timeseries.nanmean`.
 
     Returns
     -------
@@ -175,7 +217,7 @@ def aggregate_downsample(
     )
 
     if aggregate_func is None:
-        aggregate_func = np.nanmean
+        aggregate_func = nanmean
 
     # Start and end times of the binned timeseries
     bin_start = binned.time_bin_start
