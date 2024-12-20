@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 # Renamed these imports so that them being in the namespace will not
@@ -66,6 +68,10 @@ def test_priority():
     assert ["eggs", "spam"] == args
 
 
+@pytest.mark.skipif(
+    sys.flags.optimize >= 2,
+    reason="docstrings are not available at runtime",
+)
 def test_docs():
     class Spam(_TestRunnerBase):
         @keyword()
