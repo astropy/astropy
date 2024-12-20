@@ -135,6 +135,23 @@ def pytest_configure(config):
             threads_per_worker = max(max_threads // int(xdist_worker_count), 1)
             threadpool_limits(threads_per_worker)
 
+    config.addinivalue_line(
+        "markers",
+        "only_optimized_interpreter: mark a test as skipped if the interpreter is not running with -OO flags",
+    )
+    config.addinivalue_line(
+        "markers",
+        "no_optimized_interpreter: mark a test as skipped if the interpreter is running with -OO flags",
+    )
+
+
+def pytest_runtest_setup(item):
+    for m in item.iter_markers():
+        if m.name == "only_optimized_interpreter" and sys.flags.optimize < 2:
+            pytest.skip("interpreter isn't running in optimized mode")
+        if m.name == "no_optimized_interpreter" and sys.flags.optimize >= 2:
+            pytest.skip("interpreter is running in optimized mode")
+
 
 def pytest_unconfigure(config):
     # Undo settings related to number of lines/columns to show
