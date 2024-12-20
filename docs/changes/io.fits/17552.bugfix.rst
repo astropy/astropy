@@ -1,1 +1,1 @@
-File name could be passed as ``Path`` object to fits.write
+Fix ```Table.write(..., overwrite=True)``` when using a pathlib filename
