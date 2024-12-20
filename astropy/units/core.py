@@ -2026,9 +2026,9 @@ class _UnitMetaClass(type):
                 s = s.decode("ascii")
 
             try:
-                return f._parse_unit(s, detailed_exception=False)  # Try a shortcut
+                return f._validate_unit(s, detailed_exception=False)  # Try a shortcut
             except (AttributeError, ValueError):
-                # No `f._parse_unit()` (AttributeError)
+                # No `f._validate_unit()` (AttributeError)
                 # or `s` was a composite unit (ValueError).
                 pass
 
