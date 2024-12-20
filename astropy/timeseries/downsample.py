@@ -55,6 +55,7 @@ def nanmean(*args, **kwargs):
 # Attach the nanmean_reduceat to the function
 nanmean.reduceat = nanmean_reduceat
 
+
 def reduceat(array, indices, function):
     """
     Manual reduceat functionality for cases where Numpy functions don't have a reduceat.

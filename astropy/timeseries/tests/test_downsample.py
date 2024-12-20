@@ -38,7 +38,8 @@ def test_reduceat():
         reduceat(np.arange(8), np.arange(8)[::2], np.nanmean),
     )
 
-@pytest.mark.filterwarnings('ignore::RuntimeWarning')
+
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_nanmean():
     data = np.arange(8)
     indices = [0, 4, 1, 5, 5, 2, 6, 6, 3, 7]
@@ -46,7 +47,7 @@ def test_nanmean():
     nanmean_output1 = nanmean.reduceat(data, indices)
     assert_equal(reduceat_output1, reduceat_output1)
 
-    data = data.astype('float')
+    data = data.astype("float")
     data[::2] = np.nan
     reduceat_output1 = reduceat(data, indices, np.nanmean)
     nanmean_output1 = nanmean.reduceat(data, indices)
