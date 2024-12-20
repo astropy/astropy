@@ -1,0 +1,2 @@
+The ``help`` methods from ``Table.read`` and ``Table.write`` now raise an
+exception if called under Python's optimized mode (``-OO`` flag).
