@@ -67,9 +67,9 @@ class TestSingleTable:
         )
 
     def test_overwrite_with_path(self, tmp_path):
+        filename = "temp.fits"
+        t1 = Table(self.data)
         with contextlib.chdir(tmp_path):
-            filename = "temp.fits"
-            t1 = Table(self.data)
             t1.write(filename, format="fits")
             t1.write(Path(filename), format="fits", overwrite=True)
         t1.write(Path(tmp_path / filename), format="fits", overwrite=True)
