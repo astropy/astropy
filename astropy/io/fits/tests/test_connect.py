@@ -66,7 +66,7 @@ class TestSingleTable:
             dtype=[("a", int), ("b", "U1"), ("c", float)],
         )
 
-    def test_path(self, tmp_path):
+    def test_overwrite_with_path(self, tmp_path):
         with contextlib.chdir(tmp_path):
             filename = "temp.fits"
             t1 = Table(self.data)
