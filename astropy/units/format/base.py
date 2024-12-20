@@ -272,8 +272,6 @@ class _ParsingFormatMixin:
             if detailed_exception:
                 raise ValueError(cls._invalid_unit_error_message(unit))
             raise ValueError()
-        if unit in cls._deprecated_units:
-            warnings.warn(cls._deprecated_unit_warning_message(unit), UnitsWarning)
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:
@@ -281,10 +279,6 @@ class _ParsingFormatMixin:
             f"Unit '{unit}' not supported by the {cls.__name__} standard. "
             + cls._did_you_mean_units(unit)
         )
-
-    @classmethod
-    def _deprecated_unit_warning_message(cls, unit: str) -> str:
-        return f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
 
     @classmethod
     def _decompose_to_known_units(
