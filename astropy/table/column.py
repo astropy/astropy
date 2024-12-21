@@ -442,7 +442,7 @@ class ColumnInfo(BaseColumnInfo):
         # length to include the table length, we pick off a possible last bit.
         dtype = np.dtype(
             [
-                (name, part.dtype, part.shape[len(shape) + 1 :])
+                (str(name), part.dtype, part.shape[len(shape) + 1 :])
                 for name, part in data.items()
             ]
         )
@@ -482,6 +482,8 @@ class ColumnInfo(BaseColumnInfo):
             New instance of this class consistent with ``cols``
 
         """
+        if name is not None:
+            name = str(name)
         attrs = self.merge_cols_attributes(
             cols, metadata_conflicts, name, ("meta", "unit", "format", "description")
         )
