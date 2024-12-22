@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from contextlib import ContextDecorator
+from contextlib import contextmanager, ExitStack, ContextDecorator
 
 import numpy as np
 
@@ -100,3 +100,12 @@ def quantity_support(format="latex_inline"):
                 units.registry[u.Quantity] = self._original_converter[u.Quantity]
 
     return MplQuantityConverter()
+
+from astropy.visualization.time import time_support
+
+@contextmanager
+def astro_support():
+    with ExitStack() as stack:
+        stack.enter_context(quantity_support())
+        stack.enter_context(time_support())
+        yield
