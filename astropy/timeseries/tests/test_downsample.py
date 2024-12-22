@@ -39,24 +39,28 @@ def test_reduceat():
     )
 
 
-@pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_nanmean():
     data = np.arange(8)
     indices = [0, 4, 1, 5, 5, 2, 6, 6, 3, 7]
+
     reduceat_output1 = reduceat(data, indices, np.nanmean)
     nanmean_output1 = nanmean.reduceat(data, indices)
-    assert_equal(reduceat_output1, reduceat_output1)
+    assert_equal(reduceat_output1, nanmean_output1)
 
     data = data.astype("float")
     data[::2] = np.nan
-    reduceat_output1 = reduceat(data, indices, np.nanmean)
-    nanmean_output1 = nanmean.reduceat(data, indices)
-    assert_equal(reduceat_output1, reduceat_output1)
+    with np.testing.suppress_warnings() as sup:
+        sup.filter(RuntimeWarning, "Mean of empty slice")
+        reduceat_output2 = reduceat(data, indices, np.nanmean)
+    nanmean_output2 = nanmean.reduceat(data, indices)
+    assert_equal(reduceat_output2, nanmean_output2)
 
     data[:] = np.nan
-    reduceat_output1 = reduceat(data, indices, np.nanmean)
-    nanmean_output1 = nanmean.reduceat(data, indices)
-    assert_equal(reduceat_output1, reduceat_output1)
+    with np.testing.suppress_warnings() as sup:
+        sup.filter(RuntimeWarning, "Mean of empty slice")
+        reduceat_output3 = reduceat(data, indices, np.nanmean)
+    nanmean_output3 = nanmean.reduceat(data, indices)
+    assert_equal(reduceat_output3, nanmean_output3)
 
 
 def test_timeseries_invalid():
