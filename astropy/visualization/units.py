@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from contextlib import contextmanager, ExitStack, ContextDecorator
+from contextlib import ContextDecorator
 
 import numpy as np
 
@@ -100,38 +100,3 @@ def quantity_support(format="latex_inline"):
                 units.registry[u.Quantity] = self._original_converter[u.Quantity]
 
     return MplQuantityConverter()
-
-
-from astropy.visualization.time import time_support
-
-
-@contextmanager
-def astro_support():
-    """
-    Enable support for plotting `astropy.units.Quantity` and `astropy.time.Time` instances in
-    matplotlib.
-
-    It can be used as a decorator or with a ``with`` statement.
-
-        >>> from astropy.visualization.units import astro_support
-        >>> with astro_support():
-        ...     plt.figure()
-        ...     plt.plot([1, 2, 3] * u.m)
-        ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
-        ...     plt.draw()
-
-        >>> @astro_support()
-        ... def plot_example():
-        ...     plt.figure()
-        ...     plt.plot([1, 2, 3] * u.m)
-        ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
-        ...     plt.draw()
-        ...     plt.show()
-
-        >>> plot_example()
-
-    """
-    with ExitStack() as stack:
-        stack.enter_context(quantity_support())
-        stack.enter_context(time_support())
-        yield
