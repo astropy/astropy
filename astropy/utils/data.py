@@ -13,9 +13,6 @@ import io
 import os
 import re
 import shutil
-
-# import ssl moved inside functions using ssl to avoid import failure
-# when running in pyodide/Emscripten
 import sys
 import urllib.error
 import urllib.parse
@@ -23,6 +20,7 @@ import urllib.request
 import zipfile
 from importlib import import_module
 from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir
+from types import MappingProxyType as ReadOnlyDict
 from warnings import warn
 
 import astropy_iers_data
@@ -1913,11 +1911,6 @@ def _url_to_dirname(url):
         urlobj[2] = "/"
     url_c = urllib.parse.urlunsplit(urlobj)
     return hashlib.md5(url_c.encode("utf-8"), usedforsecurity=False).hexdigest()
-
-
-class ReadOnlyDict(dict):
-    def __setitem__(self, key, value):
-        raise TypeError("This object is read-only.")
 
 
 _NOTHING = ReadOnlyDict({})
