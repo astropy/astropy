@@ -236,7 +236,8 @@ class TestRunnerBase:
             plugins = []
 
         # Avoid the existing config. Note that we need to do this here in
-        # addition to in conftest.py - for users running tests interactively
+        # addition to in conftest.py - the released wheels do not contain the
+        # root level conftest.py. Furthermore, for users running tests interactively
         # in e.g. IPython, conftest.py would get read in too late, so we need
         # to do it here - but at the same time the code here doesn't work when
         # running tests in parallel mode because this uses subprocesses which
@@ -244,9 +245,15 @@ class TestRunnerBase:
         # Note, this is superfluous if the config_dir option to pytest is in use,
         # but it's also harmless
         orig_xdg_config = os.environ.get("XDG_CONFIG_HOME")
-        with tempfile.TemporaryDirectory("astropy_config") as astropy_config:
+        orig_xdg_cache = os.environ.get("XDG_CACHE_HOME")
+        with (
+            tempfile.TemporaryDirectory("astropy_config") as astropy_config,
+            tempfile.TemporaryDirectory("astropy_cache") as astropy_cache,
+        ):
             Path(astropy_config, "astropy").mkdir()
             os.environ["XDG_CONFIG_HOME"] = astropy_config
+            Path(astropy_cache, "astropy").mkdir()
+            os.environ["XDG_CACHE_HOME"] = astropy_cache
             try:
                 return pytest.main(args=args, plugins=plugins)
             finally:
@@ -254,6 +261,10 @@ class TestRunnerBase:
                     os.environ.pop("XDG_CONFIG_HOME", None)
                 else:
                     os.environ["XDG_CONFIG_HOME"] = orig_xdg_config
+                if orig_xdg_cache is None:
+                    os.environ.pop("XDG_CACHE_HOME", None)
+                else:
+                    os.environ["XDG_CACHE_HOME"] = orig_xdg_cache
 
     @classmethod
     def make_test_runner_in(cls, path):
