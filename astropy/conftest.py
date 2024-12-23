@@ -3,6 +3,8 @@
 This file contains pytest configuration settings that are astropy-specific
 (i.e.  those that would not necessarily be shared by affiliated packages
 making use of astropy's test runner).
+
+some other change.
 """
 import builtins
 import os
