@@ -16,7 +16,7 @@ def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
 
     >>> from astropy.visualization.astropy_support import astropy_support
 
-    >>> @astro_support()
+    >>> @astropy_support()
     ... def plot_example():
     ...     plt.figure()
     ...     plt.plot([1, 2, 3] * u.m)
@@ -26,7 +26,7 @@ def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
     
     >>> plot_example()
 
-    >>> with astro_support():
+    >>> with astropy_support():
     ...     plt.figure()
     ...     plt.plot([1, 2, 3] * u.m)
     ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
