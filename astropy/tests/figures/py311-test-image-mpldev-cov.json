@@ -54,6 +54,7 @@
   "astropy.visualization.wcsaxes.tests.test_images.test_custom_formatter": "1142e72415e9affaa97c7e763d1274632fe1d9cf8a9eae2a579a179fd14d6b9d",
   "astropy.visualization.wcsaxes.tests.test_images.test_equatorial_arcsec": "f048285e01f99235e711068e06ea5729b1ff5258604a944a5fa26042e613dae6",
   "astropy.visualization.wcsaxes.tests.test_images.test_wcs_preserve_units": "4111f2731c268bbe8ff57551b011afd6dd918efe07236507625f6e99e69b7263",
+  "astropy.visualization.wcsaxes.tests.test_images.test_astropy_support": "aee3dd8cfc0998ec2d904549c6527fa55f3b16cbe9a30c222a2c0ac6a6db155e",
   "astropy.visualization.wcsaxes.tests.test_transform_coord_meta.TestTransformCoordMeta.test_coords_overlay": "f7635158075969632bc3cabd6cfa9798a3d4227f173aed32a546c540c65d9b4d",
   "astropy.visualization.wcsaxes.tests.test_transform_coord_meta.TestTransformCoordMeta.test_coords_overlay_auto_coord_meta": "9a3cc14c87a8349487888c69bab345748894be4295598eaed2475804f97b5f8a",
   "astropy.visualization.wcsaxes.tests.test_transform_coord_meta.TestTransformCoordMeta.test_direct_init": "021364576662b07f1eedf58251d657244fd1b67bb16ec4c99a0506b1dde0d66e",
