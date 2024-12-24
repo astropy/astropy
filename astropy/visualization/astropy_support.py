@@ -14,12 +14,7 @@ def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
     Examples
     ----------
 
-    >>> from astropy.visualization.units import astro_support
-    >>> with astro_support():
-    ...     plt.figure()
-    ...     plt.plot([1, 2, 3] * u.m)
-    ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
-    ...     plt.draw()
+    >>> from astropy.visualization.astropy_support import astropy_support
 
     >>> @astro_support()
     ... def plot_example():
@@ -28,8 +23,14 @@ def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
     ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
     ...     plt.draw()
     ...     plt.show()
-
+    
     >>> plot_example()
+
+    >>> with astro_support():
+    ...     plt.figure()
+    ...     plt.plot([1, 2, 3] * u.m)
+    ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
+    ...     plt.draw()
 
     """
     with ExitStack() as stack:
