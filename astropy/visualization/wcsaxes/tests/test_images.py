@@ -1401,10 +1401,11 @@ def test_custom_formatter(spatial_wcs_2d_small_angle):
     ax.coords[1].set_major_formatter(fruit_format)
     return fig
 
+
 @figure_test(tolerance=1)
 def test_astropy_support():
     x_meters = np.linspace(1, 10, 50) * u.m  # Distances in meters
-    x_kilometers = np.linspace(0.001, 0.01, 50) * u.km  # Distances in kilometers
+    x_kilometers = np.linspace(0.002, 0.011, 50) * u.km  # Distances in kilometers
 
     y_seconds = Time('2000-01-01T00:10:00', scale='utc') + TimeDelta(np.linspace(0, 3600, 50), format='sec')  
 

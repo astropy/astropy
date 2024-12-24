@@ -11,25 +11,25 @@ def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
 
     It can be used as a decorator or with a ``with`` statement.
 
-        Examples
-        ----------
+    Examples
+    ----------
 
-        >>> from astropy.visualization.units import astro_support
-        >>> with astro_support():
-        ...     plt.figure()
-        ...     plt.plot([1, 2, 3] * u.m)
-        ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
-        ...     plt.draw()
+    >>> from astropy.visualization.units import astro_support
+    >>> with astro_support():
+    ...     plt.figure()
+    ...     plt.plot([1, 2, 3] * u.m)
+    ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
+    ...     plt.draw()
 
-        >>> @astro_support()
-        ... def plot_example():
-        ...     plt.figure()
-        ...     plt.plot([1, 2, 3] * u.m)
-        ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
-        ...     plt.draw()
-        ...     plt.show()
+    >>> @astro_support()
+    ... def plot_example():
+    ...     plt.figure()
+    ...     plt.plot([1, 2, 3] * u.m)
+    ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
+    ...     plt.draw()
+    ...     plt.show()
 
-        >>> plot_example()
+    >>> plot_example()
 
     """
     with ExitStack() as stack:
