@@ -56,7 +56,7 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-def _known_formats():
+def _known_formats() -> str:
     in_out = [
         name
         for name, cls in Base.registry.items()
@@ -73,7 +73,7 @@ def _known_formats():
     )
 
 
-def get_format(format=None):
+def get_format(format: str | type[Base] | None = None) -> type[Base]:
     """
     Get a formatter by name.
 
