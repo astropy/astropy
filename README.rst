@@ -1,3 +1,18 @@
+# TODOs
+
+- Implement JPEG-LS (done)
+- Ensure all current tests pass
+
+- Ensure that memmap works, memory usage should not exceed some threshold, and only the required sections should be decompressed
+- Ensure that .section works, memory usage should not exceed some threshold, and only the required sections should be decompressed
+(not actually sure yet why we have both of those options)
+
+- Consider implementing dask for parallel encoding and decoding
+- Consider implementing JPEG-XL for even (slightly) better compression performance? Probably not for now, minimal gains
+
+- Later... complete "practical astro compression" in C and implement that.
+
+
 |Astropy Logo|
 
 ----
