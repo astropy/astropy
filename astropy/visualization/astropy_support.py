@@ -14,6 +14,9 @@ def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
     Examples
     ----------
 
+    >>> import matplotlib.pyplot as plt
+    >>> import astropy.units as u
+    >>> from astropy.time import Time
     >>> from astropy.visualization.astropy_support import astropy_support
 
     >>> @astropy_support()
