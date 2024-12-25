@@ -1,4 +1,4 @@
-#TODOs
+TODOs
 
 - Implement JPEG-LS (done)
 - Ensure all current tests pass
@@ -12,6 +12,7 @@
 
 - Later... complete "practical astro compression" in C and implement that.
 
+----
 
 |Astropy Logo|
 
