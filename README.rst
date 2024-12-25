@@ -1,4 +1,4 @@
-# TODOs
+#TODOs
 
 - Implement JPEG-LS (done)
 - Ensure all current tests pass
