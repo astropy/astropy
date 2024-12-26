@@ -26,7 +26,7 @@ def time_support(*, scale=None, format=None, simplify=True):
       >>> import matplotlib.pyplot as plt
       >>> from astropy import units as u
       >>> from astropy import visualization
-      >>> with visualization.time_support():  # doctest: +IGNORE_OUTPUT
+      >>> with visualization.time_support():  
       ...     plt.figure()
       ...     plt.plot(Time(['2016-03-22T12:30:31', '2016-03-22T12:30:38', '2016-03-22T12:34:40']))
       ...     plt.draw()
