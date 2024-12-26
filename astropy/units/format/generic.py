@@ -22,11 +22,11 @@ import warnings
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
+from astropy.units.core import CompositeUnit, Unit, get_current_unit_registry
 from astropy.units.errors import UnitsWarning
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
-from . import core
 from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
@@ -204,8 +204,6 @@ class _GenericParserMixin(_ParsingFormatMixin):
                  | factor product inverse_unit
                  | factor
             """
-            from astropy.units.core import CompositeUnit, Unit
-
             if len(p) == 2:
                 p[0] = Unit(p[1])
             elif len(p) == 3:
@@ -218,8 +216,6 @@ class _GenericParserMixin(_ParsingFormatMixin):
             division_product_of_units : division_product_of_units division product_of_units
                                       | product_of_units
             """
-            from astropy.units.core import Unit
-
             if len(p) == 4:
                 p[0] = Unit(p[1] / p[3])
             else:
@@ -445,7 +441,7 @@ class Generic(Base, _GenericParserMixin):
 
     @classmethod
     def _validate_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
-        registry = core.get_current_unit_registry().registry
+        registry = get_current_unit_registry().registry
         if s in cls._unit_symbols:
             s = cls._unit_symbols[s]
 
