@@ -9,7 +9,12 @@ import re
 import warnings
 from typing import TYPE_CHECKING
 
-from astropy.units.errors import UnitParserWarning, UnitScaleError, UnitsError
+from astropy.units.errors import (
+    UnitParserWarning,
+    UnitScaleError,
+    UnitsError,
+    UnitsWarning,
+)
 from astropy.utils import classproperty
 
 from . import Base, core, utils
@@ -22,7 +27,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from astropy.extern.ply.lex import LexToken
-    from astropy.units import NamedUnit, UnitBase
+    from astropy.units import UnitBase
     from astropy.units.typing import UnitScale
 
 
@@ -124,24 +129,19 @@ class VOUnit(Base, _GenericParserMixin):
             raise
 
     @classmethod
-    def _get_unit_name(cls, unit: NamedUnit) -> str:
+    def _decompose_to_known_units(
+        cls, unit: core.CompositeUnit | core.NamedUnit
+    ) -> UnitBase:
         # The da- and d- prefixes are discouraged.  This has the
         # effect of adding a scale to value in the result.
-        if isinstance(unit, core.PrefixUnit):
-            if unit._represents.scale == 10.0:
-                raise ValueError(
-                    f"In '{unit}': VOUnit can not represent units with the 'da' "
-                    "(deka) prefix"
-                )
-            elif unit._represents.scale == 0.1:
-                raise ValueError(
-                    f"In '{unit}': VOUnit can not represent units with the 'd' "
-                    "(deci) prefix"
-                )
-        name = unit._get_format_name(cls.name)
-        if name not in cls._custom_units:
-            cls._validate_unit(name, detailed_exception=True)
-        return name
+        if isinstance(unit, core.PrefixUnit) and unit._represents.scale in (0.1, 10.0):
+            return cls._decompose_to_known_units(unit._represents)
+        if (
+            isinstance(unit, core.NamedUnit)
+            and unit._get_format_name(cls.name) in cls._custom_units
+        ):
+            return unit
+        return super()._decompose_to_known_units(unit)
 
     @classmethod
     def _def_custom_unit(cls, unit: str) -> UnitBase:
@@ -222,8 +222,12 @@ class VOUnit(Base, _GenericParserMixin):
         )
 
     @classmethod
-    def _deprecated_unit_warning_message(cls, unit: str) -> str:
-        return (
-            super()._deprecated_unit_warning_message(unit)
-            + f" Suggested: {cls.to_string(cls._units[unit]._represents)}."
-        )
+    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+        if unit in cls._deprecated_units:
+            warnings.warn(
+                UnitsWarning(
+                    f"The unit '{unit}' has been deprecated in the VOUnit standard."
+                    f" Suggested: {cls.to_string(cls._units[unit]._represents)}."
+                )
+            )
+        return super()._validate_unit(unit, detailed_exception)
