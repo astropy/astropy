@@ -223,26 +223,15 @@ class _ParsingFormatMixin:
                 raise ValueError(f"Syntax error parsing unit '{s}'")
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        cls._validate_unit(unit, detailed_exception=detailed_exception)
-        return cls._units[unit]
-
-    @classmethod
     def _get_unit(cls, t: LexToken) -> UnitBase:
         try:
-            return cls._parse_unit(t.value)
+            return cls._validate_unit(t.value)
         except ValueError as e:
             registry = core.get_current_unit_registry()
             if t.value in registry.aliases:
                 return registry.aliases[t.value]
 
             raise ValueError(f"At col {t.lexpos}, {str(e)}")
-
-    @classmethod
-    def _get_unit_name(cls, unit: NamedUnit) -> str:
-        name = unit._get_format_name(cls.name)
-        cls._validate_unit(name)
-        return name
 
     @classmethod
     def _fix_deprecated(cls, x: str) -> list[str]:
@@ -267,13 +256,13 @@ class _ParsingFormatMixin:
         return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
 
     @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
-        if unit not in cls._units:
+    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+        try:
+            return cls._units[unit]
+        except KeyError:
             if detailed_exception:
-                raise ValueError(cls._invalid_unit_error_message(unit))
-            raise ValueError()
-        if unit in cls._deprecated_units:
-            warnings.warn(cls._deprecated_unit_warning_message(unit), UnitsWarning)
+                raise ValueError(cls._invalid_unit_error_message(unit)) from None
+            raise ValueError() from None
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:
@@ -281,10 +270,6 @@ class _ParsingFormatMixin:
             f"Unit '{unit}' not supported by the {cls.__name__} standard. "
             + cls._did_you_mean_units(unit)
         )
-
-    @classmethod
-    def _deprecated_unit_warning_message(cls, unit: str) -> str:
-        return f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
 
     @classmethod
     def _decompose_to_known_units(
@@ -303,12 +288,11 @@ class _ParsingFormatMixin:
             )
         if isinstance(unit, core.NamedUnit):
             try:
-                cls._get_unit_name(unit)
+                return cls._validate_unit(unit._get_format_name(cls.name))
             except ValueError:
                 if isinstance(unit, core.Unit):
                     return cls._decompose_to_known_units(unit._represents)
                 raise
-            return unit
         raise TypeError(
             f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
         )
