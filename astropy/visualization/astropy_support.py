@@ -16,19 +16,18 @@ def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
 
     .. plot::
         :include-source:
+        import matplotlib.pyplot as plt
+        import astropy.units as u
+        from astropy.time import Time
+        from astropy.visualization.astropy_support import astropy_support
 
-    >>> import matplotlib.pyplot as plt
-    >>> import astropy.units as u
-    >>> from astropy.time import Time
-    >>> from astropy.visualization.astropy_support import astropy_support
-
-    >>> @astropy_support()
-    ... def plot_example():
-    ...     plt.figure()
-    ...     plt.plot([1, 2, 3] * u.m)
-    ...     plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
-    ...     plt.draw()
-    ...     plt.show()
+        @astropy_support()
+        def plot_example():
+            plt.figure()
+            plt.plot([1, 2, 3] * u.m)
+            plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
+            plt.draw()
+            plt.show()
 
     >>> with astropy_support():  # doctest: +IGNORE_OUTPUT
     ...     plt.figure()
