@@ -646,14 +646,16 @@ def _check_val_type_not_quantity(format_name, val1, val2):
 
 class TimeDecimalYear(TimeNumeric):
     """
-    Time as a decimal year, with integer values corresponding to midnight
-    of the first day of each year.
+    Time format based on the Gregorian Calendar, using decimal years with
+    accurate calculation of leap years.
 
-    For example 2000.5 corresponds to the ISO time '2000-07-02 00:00:00'.
+    The fractional part represents the exact fraction of a year, considering
+    the precise number of days in the year (365 or 366).
 
-    Since for this format the length of the year varies between 365 and
-    366 days, it is not possible to use Quantity input, in which a year
-    is always 365.25 days.
+    When to use:
+        Use this format for general-purpose timekeeping when a precise
+        understanding of time in the Gregorian calendar is needed, accounting for
+        leap years.
     """
 
     name = "decimalyear"
@@ -2059,7 +2061,16 @@ class TimeBesselianEpoch(TimeEpochDate):
 
 
 class TimeJulianEpoch(TimeEpochDate):
-    """Julian Epoch year as value(s) like 2000.0."""
+    """
+    Time format based on the Julian Calendar, using Julian years (365.25 days/year).
+
+    The Julian year is used in astronomy for large-scale time calculations,
+    and the fraction of the year is based on the fixed number of days in a Julian year.
+
+    When to use:
+        Use this format if your calculations are based on Julian years, commonly
+        used in astronomy for long-term time scales.
+    """
 
     name = "jyear"
     unit = erfa.DJY  # 365.25, the Julian year, for conversion to quantities
