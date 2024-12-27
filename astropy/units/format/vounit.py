@@ -9,6 +9,14 @@ import re
 import warnings
 from typing import TYPE_CHECKING
 
+from astropy.units.core import (
+    CompositeUnit,
+    NamedUnit,
+    PrefixUnit,
+    def_unit,
+    dimensionless_unscaled,
+    si_prefixes,
+)
 from astropy.units.errors import (
     UnitParserWarning,
     UnitScaleError,
@@ -17,7 +25,7 @@ from astropy.units.errors import (
 )
 from astropy.utils import classproperty
 
-from . import Base, core, utils
+from . import Base, utils
 from .generic import _GenericParserMixin
 
 if TYPE_CHECKING:
@@ -100,7 +108,7 @@ class VOUnit(Base, _GenericParserMixin):
         if s in ("unknown", "UNKNOWN"):
             return None
         if s == "":
-            return core.dimensionless_unscaled
+            return dimensionless_unscaled
         # Check for excess solidi, but exclude fractional exponents (allowed)
         if s.count("/") > 1 and s.count("/") - len(re.findall(r"\(\d+/\d+\)", s)) > 1:
             raise UnitsError(
@@ -129,15 +137,13 @@ class VOUnit(Base, _GenericParserMixin):
             raise
 
     @classmethod
-    def _decompose_to_known_units(
-        cls, unit: core.CompositeUnit | core.NamedUnit
-    ) -> UnitBase:
+    def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:
         # The da- and d- prefixes are discouraged.  This has the
         # effect of adding a scale to value in the result.
-        if isinstance(unit, core.PrefixUnit) and unit._represents.scale in (0.1, 10.0):
+        if isinstance(unit, PrefixUnit) and unit._represents.scale in (0.1, 10.0):
             return cls._decompose_to_known_units(unit._represents)
         if (
-            isinstance(unit, core.NamedUnit)
+            isinstance(unit, NamedUnit)
             and unit._get_format_name(cls.name) in cls._custom_units
         ):
             return unit
@@ -150,27 +156,25 @@ class VOUnit(Base, _GenericParserMixin):
                 return cls._custom_units[name]
 
             if name.startswith("'"):
-                return core.def_unit(
+                return def_unit(
                     [name[1:-1], name],
                     format={"vounit": name},
                     namespace=cls._custom_units,
                 )
             else:
-                return core.def_unit(name, namespace=cls._custom_units)
+                return def_unit(name, namespace=cls._custom_units)
 
         if unit in cls._custom_units:
             return cls._custom_units[unit]
 
-        for short, full, factor in core.si_prefixes:
+        for short, full, factor in si_prefixes:
             for prefix in short:
                 if unit.startswith(prefix):
                     base_name = unit[len(prefix) :]
                     base_unit = def_base(base_name)
-                    return core.PrefixUnit(
+                    return PrefixUnit(
                         [prefix + x for x in base_unit.names],
-                        core.CompositeUnit(
-                            factor, [base_unit], [1], _error_check=False
-                        ),
+                        CompositeUnit(factor, [base_unit], [1], _error_check=False),
                         format={"vounit": prefix + base_unit.names[-1]},
                         namespace=cls._custom_units,
                     )

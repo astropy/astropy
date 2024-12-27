@@ -17,6 +17,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from astropy.units.core import CompositeUnit, Unit
 from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
 
@@ -147,7 +148,6 @@ class CDS(Base, _ParsingFormatMixin):
                  | factor
             """
             from astropy.units import dex
-            from astropy.units.core import CompositeUnit, Unit
 
             if len(p) == 3:
                 p[0] = CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
