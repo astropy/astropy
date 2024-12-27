@@ -23,10 +23,11 @@ import warnings
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
+from astropy.units.core import CompositeUnit
 from astropy.units.errors import UnitParserWarning, UnitsWarning
 from astropy.utils import classproperty, parsing
 
-from . import core, utils
+from . import utils
 from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
@@ -173,9 +174,7 @@ class OGIP(Base, _ParsingFormatMixin):
             """
             match p[1:]:
                 case (factor, unit) | (factor, _, unit):
-                    p[0] = core.CompositeUnit(
-                        factor * unit.scale, unit.bases, unit.powers
-                    )
+                    p[0] = CompositeUnit(factor * unit.scale, unit.bases, unit.powers)
                 case _:
                     p[0] = p[1]
 
@@ -350,7 +349,7 @@ class OGIP(Base, _ParsingFormatMixin):
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)
 
-        if isinstance(unit, core.CompositeUnit):
+        if isinstance(unit, CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
             if math.log10(unit.scale) % 1.0 != 0.0:
                 warnings.warn(

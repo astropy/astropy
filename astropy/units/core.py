@@ -21,7 +21,6 @@ from astropy.utils.decorators import deprecated, lazyproperty
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
 
-from . import format as unit_format
 from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
 from .utils import (
     is_effectively_unity,
@@ -36,6 +35,7 @@ if TYPE_CHECKING:
     from types import TracebackType
     from typing import Any, Final, Literal, Self
 
+    from .format import Base
     from .physical import PhysicalType
     from .quantity import Quantity
     from .typing import Complex, Real, UnitPower, UnitScale
@@ -652,18 +652,20 @@ class UnitBase:
         -------
         Latex string
         """
-        return unit_format.Latex.to_string(self)
+        from .format import Latex
+
+        return Latex.to_string(self)
 
     def __bytes__(self) -> bytes:
-        return unit_format.Generic.to_string(self).encode("unicode_escape")
+        return str(self).encode("unicode_escape")
 
     def __str__(self) -> str:
-        return unit_format.Generic.to_string(self)
+        from .format import Generic
+
+        return Generic.to_string(self)
 
     def __repr__(self) -> str:
-        string = unit_format.Generic.to_string(self)
-
-        return f'Unit("{string}")'
+        return f'Unit("{self}")'
 
     @cached_property
     def _physical_type_id(self) -> tuple[tuple[str, UnitPower], ...]:
@@ -712,11 +714,7 @@ class UnitBase:
         """The powers of the bases of the unit."""
         return [1]
 
-    def to_string(
-        self,
-        format: type[unit_format.Base] | str | None = unit_format.Generic,
-        **kwargs,
-    ) -> str:
+    def to_string(self, format: type[Base] | str | None = None, **kwargs) -> str:
         r"""Output the unit in the given format as a string.
 
         Parameters
@@ -759,8 +757,9 @@ class UnitBase:
         ──
         s
         """
-        f = unit_format.get_format(format)
-        return f.to_string(self, **kwargs)
+        from .format import get_format
+
+        return get_format(format).to_string(self, **kwargs)
 
     def __format__(self, format_spec: str) -> str:
         try:
@@ -2021,7 +2020,9 @@ class _UnitMetaClass(type):
                 # Return the NULL unit
                 return dimensionless_unscaled
 
-            f = unit_format.get_format(format)
+            from .format import Generic, get_format
+
+            f = get_format(format)
             if isinstance(s, bytes):
                 s = s.decode("ascii")
 
@@ -2060,7 +2061,7 @@ class _UnitMetaClass(type):
                 if parse_strict != "silent":
                     # Deliberately not issubclass here. Subclasses
                     # should use their name.
-                    format_clause = "" if f is unit_format.Generic else f.name + " "
+                    format_clause = "" if f is Generic else f.name + " "
                     msg = (
                         f"'{s}' did not parse as {format_clause}unit: {str(e)} "
                         "If this is meant to be a custom unit, "

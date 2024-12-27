@@ -5,11 +5,10 @@ from __future__ import annotations
 import warnings
 from typing import TYPE_CHECKING
 
+from astropy.units.core import CompositeUnit, NamedUnit, Unit, get_current_unit_registry
 from astropy.units.errors import UnitsWarning
 from astropy.units.utils import maybe_simple_fraction
 from astropy.utils.misc import did_you_mean
-
-from . import core
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -18,7 +17,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from astropy.extern.ply.lex import LexToken
-    from astropy.units import NamedUnit, UnitBase
+    from astropy.units import UnitBase
     from astropy.units.typing import UnitPower, UnitScale
 
 
@@ -227,7 +226,7 @@ class _ParsingFormatMixin:
         try:
             return cls._validate_unit(t.value)
         except ValueError as e:
-            registry = core.get_current_unit_registry()
+            registry = get_current_unit_registry()
             if t.value in registry.aliases:
                 return registry.aliases[t.value]
 
@@ -272,25 +271,23 @@ class _ParsingFormatMixin:
         )
 
     @classmethod
-    def _decompose_to_known_units(
-        cls, unit: core.CompositeUnit | core.NamedUnit
-    ) -> UnitBase:
+    def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:
         """
         Partially decomposes a unit so it is only composed of units that
         are "known" to a given format.
         """
-        if isinstance(unit, core.CompositeUnit):
-            return core.CompositeUnit(
+        if isinstance(unit, CompositeUnit):
+            return CompositeUnit(
                 unit.scale,
                 [cls._decompose_to_known_units(base) for base in unit.bases],
                 unit.powers,
                 _error_check=False,
             )
-        if isinstance(unit, core.NamedUnit):
+        if isinstance(unit, NamedUnit):
             try:
                 return cls._validate_unit(unit._get_format_name(cls.name))
             except ValueError:
-                if isinstance(unit, core.Unit):
+                if isinstance(unit, Unit):
                     return cls._decompose_to_known_units(unit._represents)
                 raise
         raise TypeError(
