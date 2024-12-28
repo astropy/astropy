@@ -211,29 +211,77 @@ __dir_inc__ = [
     "physical_constants",
     "astronomical_constants",
     "system_info",
+    "system_info",
+] + [
+    # add public modules to use direct import first stage like
+    # import astropy.stats as st
+    "config",
+    "constants",
+    "convolution",
+    "coordinates",
+    "cosmology",
+    "io",
+    "modeling",
+    "nddata",
+    "samp",
+    "stats",
+    "table",
+    "time",
+    "timeseries",
+    "uncertainty",
+    "units",
+    "utils",
+    "visualization",
+    "wcs",
+]
+
+# Define __all__ to control what gets imported with 'from module import *'
+# Combine global names (explicitly defined in the module) and dynamically available names
+__all__ = [
+    name
+    for name in map(str, set(globals()).union(dir()).union(__dir_inc__))
+    # Exclude private/internal names (those starting with '_')
+    if not (
+        (name.startswith("_") and not name.endswith("_"))
+        or name
+        in [
+            "set",
+            "Conf",
+            "Path",
+            "ScienceState",
+            "TestRunner",
+            "__dir_inc__",
+            "sys",
+        ]
+    )
 ]
 
 
-from types import ModuleType as __module_type__
+# Custom attributes we want to be displayed when dir() is called
+def __dir__():
+    return sorted(__all__)
 
-# Clean up top-level namespace--delete everything that isn't in __dir_inc__
-# or is a magic attribute, and that isn't a submodule of this package
-for varname in dir():
-    if not (
-        (varname.startswith("__") and varname.endswith("__"))
-        or varname in __dir_inc__
-        or (
-            varname[0] != "_"
-            and isinstance(locals()[varname], __module_type__)
-            and locals()[varname].__name__.startswith(__name__ + ".")
-        )
-    ):
-        # The last clause in the above disjunction deserves explanation:
-        # When using relative imports like ``from .. import config``, the
-        # ``config`` variable is automatically created in the namespace of
-        # whatever module ``..`` resolves to (in this case astropy).  This
-        # happens a few times just in the module setup above.  This allows
-        # the cleanup to keep any public submodules of the astropy package
-        del locals()[varname]
 
-del varname, __module_type__
+# from types import ModuleType as __module_type__
+
+# # Clean up top-level namespace--delete everything that isn't in __dir_inc__
+# # or is a magic attribute, and that isn't a submodule of this package
+# for varname in dir():
+#     if not (
+#         (varname.startswith("__") and varname.endswith("__"))
+#         or varname in __dir_inc__
+#         or (
+#             varname[0] != "_"
+#             and isinstance(locals()[varname], __module_type__)
+#             and locals()[varname].__name__.startswith(__name__ + ".")
+#         )
+#     ):
+#         # The last clause in the above disjunction deserves explanation:
+#         # When using relative imports like ``from .. import config``, the
+#         # ``config`` variable is automatically created in the namespace of
+#         # whatever module ``..`` resolves to (in this case astropy).  This
+#         # happens a few times just in the module setup above.  This allows
+#         # the cleanup to keep any public submodules of the astropy package
+#         del locals()[varname]
+
+# del varname, __module_type__
