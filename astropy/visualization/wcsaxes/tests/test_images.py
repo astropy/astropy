@@ -1407,21 +1407,23 @@ def test_astropy_support():
     x_meters = np.linspace(1, 10, 50) * u.m  # Distances in meters
     x_kilometers = np.linspace(0.002, 0.011, 50) * u.km  # Distances in kilometers
 
-    y_seconds = Time('2000-01-01T00:10:00', scale='utc') + TimeDelta(np.linspace(0, 3600, 50), format='sec')  
+    y_seconds = Time("2000-01-01T00:10:00", scale="utc") + TimeDelta(
+        np.linspace(0, 3600, 50), format="sec"
+    )
 
-    start_time = Time('2000-01-01T00:00:00', scale='utc')
-    end_time = start_time + TimeDelta(2/24, format='jd')  
-  
+    start_time = Time("2000-01-01T00:00:00", scale="utc")
+    end_time = start_time + TimeDelta(2 / 24, format="jd")
+
     with astropy_support():
         fig, ax = plt.subplots()
 
-        ax.plot(x_meters, y_seconds, label='Meters vs. Seconds')
-        ax.plot(x_kilometers, y_seconds, label='Kilometers vs. Seconds')
+        ax.plot(x_meters, y_seconds, label="Meters vs. Seconds")
+        ax.plot(x_kilometers, y_seconds, label="Kilometers vs. Seconds")
 
-        ax.set_ylim(start_time, Time((end_time), format='jd'))
+        ax.set_ylim(start_time, Time((end_time), format="jd"))
 
-        ax.set_xlabel('Distance (m)')
-        ax.set_ylabel('Time')
+        ax.set_xlabel("Distance (m)")
+        ax.set_ylabel("Time")
         ax.legend()
 
     return fig
