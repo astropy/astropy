@@ -19,6 +19,7 @@ from astropy.coordinates import (
 )
 from astropy.io import fits
 from astropy.tests.figures import figure_test
+from astropy.time import Time, TimeDelta
 from astropy.utils import isiterable
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
@@ -26,8 +27,6 @@ from astropy.visualization.astropy_support import astropy_support
 from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_scalebar
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.visualization.wcsaxes.patches import Quadrangle, SphericalCircle
-from astropy.time import Time, TimeDelta
-
 from astropy.wcs import WCS
 
 

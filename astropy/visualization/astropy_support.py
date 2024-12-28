@@ -1,4 +1,5 @@
-from contextlib import contextmanager, ExitStack
+from contextlib import ExitStack, contextmanager
+
 from astropy.visualization.time import time_support
 from astropy.visualization.units import quantity_support
 
