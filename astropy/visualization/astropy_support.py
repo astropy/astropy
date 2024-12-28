@@ -12,8 +12,8 @@ def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
     It can be used as a decorator or with a ``with`` statement.
 
     Examples
-    ----------
-    
+    --------
+
     .. plot::
         :include-source:
 

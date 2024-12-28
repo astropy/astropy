@@ -1,3 +1,2 @@
-Added a new ``astropy_support`` context manager in ``astropy.visualization``. 
+Added a new ``astropy_support`` context manager in ``astropy.visualization``.
 This enables ``time_support`` and ``quantity_support`` for plotting ``astropy.units.Quantity`` and ``astropy.time.Time`` instances in matplotlib.
-
