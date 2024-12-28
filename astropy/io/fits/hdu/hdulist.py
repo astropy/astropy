@@ -739,6 +739,12 @@ class HDUList(list, _Verify):
         if not isinstance(hdu, _BaseHDU):
             raise ValueError("HDUList can only append an HDU.")
 
+        # store BZERO and BSCALE if present
+        if "BZERO" in hdu.header:
+            bzero = hdu.header["BZERO"]
+        if "BSCALE" in hdu.header:
+            bscale = hdu.header["BSCALE"]
+
         if len(self) > 0:
             if isinstance(hdu, GroupsHDU):
                 raise ValueError("Can't append a GroupsHDU to a non-empty HDUList")
@@ -748,7 +754,14 @@ class HDUList(list, _Verify):
                 # so create an Extension HDU from the input Primary HDU.
                 # TODO: This isn't necessarily sufficient to copy the HDU;
                 # _header_offset and friends need to be copied too.
-                hdu = ImageHDU(hdu.data, hdu.header)
+                hdu = ImageHDU(
+                    hdu.data,
+                    hdu.header,
+                    do_not_scale_image_data=hdu._do_not_scale_image_data,
+                )
+                if hdu._do_not_scale_image_data:
+                    hdu.header["BZERO"] = bzero
+                    hdu.header["BSCALE"] = bscale
         else:
             if not isinstance(hdu, (PrimaryHDU, _NonstandardHDU)):
                 # You passed in an Extension HDU but we need a Primary
@@ -756,7 +769,14 @@ class HDUList(list, _Verify):
                 # If you provided an ImageHDU then we can convert it to
                 # a primary HDU and use that.
                 if isinstance(hdu, ImageHDU):
-                    hdu = PrimaryHDU(hdu.data, hdu.header)
+                    hdu = PrimaryHDU(
+                        hdu.data,
+                        hdu.header,
+                        do_not_scale_image_data=hdu._do_not_scale_image_data,
+                    )
+                    if hdu._do_not_scale_image_data:
+                        hdu.header["BZERO"] = bzero
+                        hdu.header["BSCALE"] = bscale
                 else:
                     # You didn't provide an ImageHDU so we create a
                     # simple Primary HDU and append that first before
