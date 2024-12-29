@@ -396,6 +396,7 @@ The system of transformation between supported time scales (i.e., all but
 `Convert time scale`_ section.
 
 .. image:: time_scale_conversion.png
+
 Comparing Time Formats: `jyear` vs `decimalyear`
 ==================================================
 
