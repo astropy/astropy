@@ -395,34 +395,34 @@ The system of transformation between supported time scales (i.e., all but
 ``local``) is shown in the figure below. Further details are provided in the
 `Convert time scale`_ section.
 
-.. image:: time_scale_conversion.png
-
 Comparing Time Formats: `jyear` vs `decimalyear`
-==================================================
+================================================
 
-Below is a comparison of the `jyear` and `decimalyear` time formats for the same date.
-+---------------+----------------------------------+----------------------------------+
-| **Date**      | **`jyear`**                     | **`decimalyear`**               |
-+===============+==================================+==================================+
-| 2016-10-11    | 2016.7761806981518              | 2016.775956284153               |
-+---------------+----------------------------------+----------------------------------+
-- **`jyear`**: Represents time in Julian years, where each year has exactly 365.25 days, irrespective of leap years.
-- **`decimalyear`**: Represents time in Gregorian years, which account for leap years and provide the exact fractional year based on the date.
+Below is a comparison of the `jyear` and `decimalyear` time formats for the same date:
+
+**Date**: 2016-10-11
+
+- **`jyear`**: 2016.7761806981518 : Represents time in Julian years, where each year has exactly 365.25 days, irrespective of leap years.
+- **`decimalyear`**: 2016.775956284153 : Represents time in Gregorian years, which account for leap years and provide the exact fractional year based on the date.
 
 Example Usage: `jyear` vs `decimalyear`
-----------------------------------------
-The example below shows how to convert a specific date into both the `jyear` and `decimalyear` formats using the `Time` class from `astropy.time`.
+---------------------------------------
 
-  from astropy.time import Time
-  # Using jyear format
-  t = Time('2016-10-11')
-  t.format = 'jyear'
-  print(t)  # Output: 2016.7761806981518
+The example below shows how to convert a specific date into both the `jyear` and `decimalyear` formats using the `Time` class from `astropy.time`:
 
-  # Using decimalyear format
-  t = Time('2016-10-11')
-  t.format = 'decimalyear'
-  print(t)  # Output: 2016.775956284153
+.. code-block:: python
+
+    from astropy.time import Time
+
+    # Using jyear format
+    t = Time('2016-10-11')
+    t.format = 'jyear'
+    print(t)  # Output: 2016.7761806981518
+
+    # Using decimalyear format
+    t = Time('2016-10-11')
+    t.format = 'decimalyear'
+    print(t)  # Output: 2016.775956284153
 
 Scalar or Array
 ^^^^^^^^^^^^^^^
