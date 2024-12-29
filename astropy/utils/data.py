@@ -20,7 +20,7 @@ import urllib.request
 import zipfile
 from importlib import import_module
 from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir
-from types import MappingProxyType as ReadOnlyDict
+from types import MappingProxyType
 from warnings import warn
 
 import astropy_iers_data
@@ -1913,7 +1913,7 @@ def _url_to_dirname(url):
     return hashlib.md5(url_c.encode("utf-8"), usedforsecurity=False).hexdigest()
 
 
-_NOTHING = ReadOnlyDict({})
+_NOTHING = MappingProxyType({})
 
 
 class CacheDamaged(ValueError):
@@ -2178,7 +2178,7 @@ def cache_contents(pkgname="astropy"):
                     os.path.join(dldir, entry.name, "url"), encoding="utf-8"
                 )
                 r[url] = os.path.abspath(os.path.join(dldir, entry.name, "contents"))
-    return ReadOnlyDict(r)
+    return MappingProxyType(r)
 
 
 def export_download_cache(
