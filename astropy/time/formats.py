@@ -658,7 +658,7 @@ class TimeDecimalYear(TimeNumeric):
         >>> tm0 = Time("2024-01-01T00:00:00")
         >>> tm1 = Time("2025-01-01T00:00:00")
         >>> year_fraction = 2024 + (tm.jd - tm0.jd) / (tm1.jd - tm0.jd)
-        >>> year_fraction
+        >>> year_fraction # doctest: +ELLIPSIS
         2024.2609934729812
         >>> tm.decimalyear
         2024.2609934729812
@@ -2095,7 +2095,7 @@ class TimeJulianEpoch(TimeEpochDate):
         >>> from astropy.time import Time
         >>> import astropy.units as u
         >>> j2000_epoch = Time("2000-01-01T12:00:00", scale="tt")
-        >>> j2000_epoch.jyear
+        >>> j2000_epoch.jyear # doctest: +ELLIPSIS
         2000.0
         >>> (j2000_epoch + 365.25 * u.day).jyear
         2001.0
