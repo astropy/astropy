@@ -651,14 +651,16 @@ class TimeDecimalYear(TimeNumeric):
 
     The fractional part represents the exact fraction of a year, considering
     the precise number of days in the year (365 or 366).
+
+    Example:
     >>> from astropy.time import Time
     >>> tm = Time("2024-04-05T12:34:00")
     >>> tm0 = Time("2024-01-01T00:00:00")
     >>> tm1 = Time("2025-01-01T00:00:00")
     >>> 2024 + (tm.jd - tm0.jd) / (tm1.jd - tm0.jd)
-        2024.2609934729812
-    >>> tm.decimalyear
-        2024.2609934729812
+    2024.2609934729812
+    >>> float(tm.decimalyear)
+    2024.2609934729812
 
     When to use:
     Since for this format the length of the year varies between 365 and 366 days, it is
@@ -2084,25 +2086,27 @@ class TimeBesselianEpoch(TimeEpochDate):
 
 class TimeJulianEpoch(TimeEpochDate):
     """
-    This format is based the Julian year which is exactly 365.25 days/year and a day is
-    exactly 86400 SI seconds.
-    The Julian epoch year is defined so that 2000.0 is 12:00 TT on January 1, 2000.
-    Using astropy this is expressed as::
-    >>> from astropy.time import Time
-    >>> import astropy.units as u
-    >>> j2000_epoch = Time("2000-01-01T12:00:00", scale="tt")
-    >>> j2000_epoch.jyear
+    This format is based on the Julian year, which is exactly 365.25 days/year, and a day is
+    exactly 86400 SI seconds.  
+    The Julian epoch year is defined such that 2000.0 corresponds to 12:00 TT on January 1, 2000.  
+    Using Astropy, this can be expressed as:
+    
+    Example:
+        >>> from astropy.time import Time
+        >>> import astropy.units as u
+        >>> j2000_epoch = Time("2000-01-01T12:00:00", scale="tt")
+        >>> j2000_epoch.jyear
         2000.0
-    >>> (j2000_epoch + 365.25 * u.day).jyear
+        >>> (j2000_epoch + 365.25 * u.day).jyear
         2001.0
 
-    The Julian year is commonly used in astronomy for expressing the epoch of a source
+    The Julian year is commonly used in astronomy to express the epoch of a source
     catalog or the time of an observation. The Julian epoch year is sometimes written as
-    a string like "J2001.5" with a preceding "J", and you can initialize a ``Time``
-    object with such a string::
+    a string like "J2001.5" with a preceding "J". You can initialize a ``Time`` object with such a string:
 
-    >>> Time("J2001.5").jyear
-      2001.5
+    Example:
+        >>> Time("J2001.5").jyear
+        2001.5
 
     When to use:
         Use this format if your calculations are based on Julian years, commonly
