@@ -2087,10 +2087,9 @@ class TimeBesselianEpoch(TimeEpochDate):
 class TimeJulianEpoch(TimeEpochDate):
     """
     This format is based on the Julian year, which is exactly 365.25 days/year, and a day is
-    exactly 86400 SI seconds.  
-    The Julian epoch year is defined such that 2000.0 corresponds to 12:00 TT on January 1, 2000.  
+    exactly 86400 SI seconds.
+    The Julian epoch year is defined such that 2000.0 corresponds to 12:00 TT on January 1, 2000.
     Using Astropy, this can be expressed as:
-    
     Example:
         >>> from astropy.time import Time
         >>> import astropy.units as u
