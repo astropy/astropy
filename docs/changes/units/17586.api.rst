@@ -1,0 +1,2 @@
+Automatic conversion of a ``str`` or ``bytes`` instance to a unit when it is
+multiplied or divided with an existing unit or quantity is deprecated.
