@@ -16,7 +16,7 @@ from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
 from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
 """ The Quantity class will represent a number + unit + uncertainty """
@@ -1608,16 +1608,33 @@ def test_quantity_initialized_with_quantity():
 
 
 def test_quantity_string_unit():
-    q1 = 1.0 * u.m / "s"
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "^divisions involving a unit and a 'str' instance are deprecated since "
+            r"v7\.1\. Convert 's' to a unit explicitly\.$"
+        ),
+    ):
+        q1 = 1.0 * u.m / "s"
     assert q1.value == 1
     assert q1.unit == (u.m / u.s)
 
-    q2 = q1 * "m"
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "^products involving a unit and a 'str' instance are deprecated since "
+            r"v7\.1\. Convert 'm' to a unit explicitly\.$"
+        ),
+    ):
+        q2 = q1 * "m"
     assert q2.unit == ((u.m * u.m) / u.s)
 
 
 def test_quantity_invalid_unit_string():
-    with pytest.raises(ValueError):
+    with (
+        pytest.raises(ValueError),
+        pytest.warns(AstropyDeprecationWarning, match="^products involving .* a 'str'"),
+    ):
         "foo" * u.m
 
 

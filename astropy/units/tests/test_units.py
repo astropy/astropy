@@ -731,9 +731,23 @@ def test_repr_latex():
 
 
 def test_operations_with_strings():
-    assert u.m / "5s" == (u.m / (5.0 * u.s))
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "^divisions involving a unit and a 'str' instance are deprecated since "
+            r"v7\.1\. Convert '5s' to a unit explicitly\.$"
+        ),
+    ):
+        assert u.m / "5s" == (u.m / (5.0 * u.s))
 
-    assert u.m * "5s" == (5.0 * u.m * u.s)
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "^products involving a unit and a 'str' instance are deprecated since "
+            r"v7\.1\. Convert '5s' to a unit explicitly\.$"
+        ),
+    ):
+        assert u.m * "5s" == (5.0 * u.m * u.s)
 
 
 def test_comparison():
@@ -756,19 +770,29 @@ def test_compose_into_arbitrary_units():
 
 
 def test_unit_multiplication_with_string():
-    """Check that multiplication with strings produces the correct unit."""
-    u1 = u.cm
-    us = "kg"
-    assert us * u1 == u.Unit(us) * u1
-    assert u1 * us == u1 * u.Unit(us)
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "^products involving a unit and a 'str' instance are deprecated since "
+            r"v7\.1\. Convert 'kg' to a unit explicitly\.$"
+        ),
+    ):
+        assert "kg" * u.cm == u.kg * u.cm
+    with pytest.warns(AstropyDeprecationWarning, match="^products involving .* 'str'"):
+        assert u.cm * "kg" == u.cm * u.kg
 
 
 def test_unit_division_by_string():
-    """Check that multiplication with strings produces the correct unit."""
-    u1 = u.cm
-    us = "kg"
-    assert us / u1 == u.Unit(us) / u1
-    assert u1 / us == u1 / u.Unit(us)
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "^divisions involving a unit and a 'str' instance are deprecated since "
+            r"v7\.1\. Convert 'kg' to a unit explicitly\.$"
+        ),
+    ):
+        assert "kg" / u.cm == u.kg / u.cm
+    with pytest.warns(AstropyDeprecationWarning, match="^divisions involving .* 'str'"):
+        assert u.cm / "kg" == u.cm / u.kg
 
 
 def test_sorted_bases():

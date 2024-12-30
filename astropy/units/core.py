@@ -18,7 +18,7 @@ import numpy as np
 
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import deprecated, lazyproperty
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.misc import isiterable
 
 from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
@@ -807,14 +807,25 @@ class UnitBase:
                 ) from None
             return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
 
-    def __truediv__(self, m):
-        if isinstance(m, (bytes, str)):
-            m = Unit(m)
+    @staticmethod
+    def _warn_about_operation_with_deprecated_type(op: str, other: bytes | str) -> None:
+        warnings.warn(
+            AstropyDeprecationWarning(
+                f"{op} involving a unit and a '{type(other).__name__}' instance are "
+                f"deprecated since v7.1. Convert {other!r} to a unit explicitly."
+            ),
+            stacklevel=3,
+        )
 
+    def __truediv__(self, m):
         if isinstance(m, UnitBase):
             if m.is_unity():
                 return self
             return CompositeUnit(1, [self, m], [1, -1], _error_check=False)
+
+        if isinstance(m, (bytes, str)):
+            self._warn_about_operation_with_deprecated_type("divisions", m)
+            return self / Unit(m)
 
         try:
             # Cannot handle this as Unit, re-try as Quantity
@@ -826,6 +837,7 @@ class UnitBase:
 
     def __rtruediv__(self, m):
         if isinstance(m, (bytes, str)):
+            self._warn_about_operation_with_deprecated_type("divisions", m)
             return Unit(m) / self
 
         try:
@@ -846,15 +858,16 @@ class UnitBase:
             return NotImplemented
 
     def __mul__(self, m):
-        if isinstance(m, (bytes, str)):
-            m = Unit(m)
-
         if isinstance(m, UnitBase):
             if m.is_unity():
                 return self
             elif self.is_unity():
                 return m
             return CompositeUnit(1, [self, m], [1, 1], _error_check=False)
+
+        if isinstance(m, (bytes, str)):
+            self._warn_about_operation_with_deprecated_type("products", m)
+            return self * Unit(m)
 
         # Cannot handle this as Unit, re-try as Quantity.
         try:
@@ -866,6 +879,7 @@ class UnitBase:
 
     def __rmul__(self, m):
         if isinstance(m, (bytes, str)):
+            self._warn_about_operation_with_deprecated_type("products", m)
             return Unit(m) * self
 
         # Cannot handle this as Unit.  Here, m cannot be a Quantity,
