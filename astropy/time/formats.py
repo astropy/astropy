@@ -650,16 +650,16 @@ class TimeDecimalYear(TimeNumeric):
     day of each year.
 
     The fractional part represents the exact fraction of the year, considering the
-    precise number of days in the year (365 or 366). The following example shows roughly
-    how the decimal year is computed::
+    precise number of days in the year (365 or 366). The following example shows
+    essentially how the decimal year is computed::
 
       >>> from astropy.time import Time
       >>> tm = Time("2024-04-05T12:34:00")
       >>> tm0 = Time("2024-01-01T00:00:00")
       >>> tm1 = Time("2025-01-01T00:00:00")
-      >>> 2024 + (tm.jd - tm0.jd) / (tm1.jd - tm0.jd)  # doctest: +FLOAT_CMP
+      >>> print(2024 + (tm.jd - tm0.jd) / (tm1.jd - tm0.jd))  # doctest: +FLOAT_CMP
       2024.2609934729812
-      >>> tm.decimalyear  # doctest: +FLOAT_CMP
+      >>> print(tm.decimalyear)  # doctest: +FLOAT_CMP
       2024.2609934729812
 
     Since for this format the length of the year varies between 365 and 366 days, it is
@@ -2056,7 +2056,7 @@ class TimeBesselianEpoch(TimeEpochDate):
     """Besselian Epoch year as decimal value(s) like 1950.0.
 
     For information about this epoch format, see:
-    https://en.wikipedia.org/wiki/Epoch_(astronomy)#Besselian_years.
+    `<https://en.wikipedia.org/wiki/Epoch_(astronomy)#Besselian_years>`_.
 
     The astropy Time class uses the ERFA functions ``epb2jd`` and ``epb`` to convert
     between Besselian epoch years and Julian dates. This is roughly equivalent to the
@@ -2094,9 +2094,9 @@ class TimeJulianEpoch(TimeEpochDate):
       >>> from astropy.time import Time
       >>> import astropy.units as u
       >>> j2000_epoch = Time("2000-01-01T12:00:00", scale="tt")
-      >>> j2000_epoch.jyear  # doctest: +FLOAT_CMP
+      >>> print(j2000_epoch.jyear)  # doctest: +FLOAT_CMP
       2000.0
-      >>> (j2000_epoch + 365.25 * u.day).jyear  # doctest: +FLOAT_CMP
+      >>> print((j2000_epoch + 365.25 * u.day).jyear)  # doctest: +FLOAT_CMP
       2001.0
 
     The Julian year is commonly used in astronomy for expressing the epoch of a source
@@ -2104,10 +2104,10 @@ class TimeJulianEpoch(TimeEpochDate):
     a string like "J2001.5" with a preceding "J". You can initialize a ``Time`` object with
     such a string::
 
-      >>> Time("J2001.5").jyear
+      >>> print(Time("J2001.5").jyear)  # doctest: +FLOAT_CMP
       2001.5
 
-    See also: https://en.wikipedia.org/wiki/Julian_year_(astronomy).
+    See also: `<https://en.wikipedia.org/wiki/Julian_year_(astronomy)>`_.
     """
 
     name = "jyear"

@@ -394,6 +394,9 @@ local  Local Time Scale          (LOCAL)
 The system of transformation between supported time scales (i.e., all but
 ``local``) is shown in the figure below. Further details are provided in the
 `Convert time scale`_ section.
+
+.. image:: time_scale_conversion.png
+
 Scalar or Array
 ^^^^^^^^^^^^^^^
 
