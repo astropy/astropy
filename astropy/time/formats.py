@@ -646,14 +646,26 @@ def _check_val_type_not_quantity(format_name, val1, val2):
 
 class TimeDecimalYear(TimeNumeric):
     """
-    Time as a decimal year, with integer values corresponding to midnight
-    of the first day of each year.
+    Time as a decimal year, with integer values corresponding to midnight of the first
+    day of each year.
 
-    For example 2000.5 corresponds to the ISO time '2000-07-02 00:00:00'.
+    The fractional part represents the exact fraction of the year, considering the
+    precise number of days in the year (365 or 366). The following example shows
+    essentially how the decimal year is computed::
 
-    Since for this format the length of the year varies between 365 and
-    366 days, it is not possible to use Quantity input, in which a year
-    is always 365.25 days.
+      >>> from astropy.time import Time
+      >>> tm = Time("2024-04-05T12:34:00")
+      >>> tm0 = Time("2024-01-01T00:00:00")
+      >>> tm1 = Time("2025-01-01T00:00:00")
+      >>> print(2024 + (tm.jd - tm0.jd) / (tm1.jd - tm0.jd))  # doctest: +FLOAT_CMP
+      2024.2609934729812
+      >>> print(tm.decimalyear)  # doctest: +FLOAT_CMP
+      2024.2609934729812
+
+    Since for this format the length of the year varies between 365 and 366 days, it is
+    not possible to use Quantity input, in which a year is always 365.25 days.
+
+    This format is convenient for low-precision applications or for plotting data.
     """
 
     name = "decimalyear"
@@ -2041,11 +2053,23 @@ class TimeEpochDate(TimeNumeric):
 
 
 class TimeBesselianEpoch(TimeEpochDate):
-    """Besselian Epoch year as value(s) like 1950.0.
+    """Besselian Epoch year as decimal value(s) like 1950.0.
 
-    Since for this format the length of the year varies, input needs to
-    be floating point; it is not possible to use Quantity input, for
-    which a year always equals 365.25 days.
+    For information about this epoch format, see:
+    `<https://en.wikipedia.org/wiki/Epoch_(astronomy)#Besselian_years>`_.
+
+    The astropy Time class uses the ERFA functions ``epb2jd`` and ``epb`` to convert
+    between Besselian epoch years and Julian dates. This is roughly equivalent to the
+    following formula (see the wikipedia page for the reference)::
+
+      B = 1900.0 + (Julian date - 2415020.31352) / 365.242198781
+
+    Since for this format the length of the year varies, input needs to be floating
+    point; it is not possible to use Quantity input, for which a year always equals
+    365.25 days.
+
+    The Besselian epoch year is used for expressing the epoch or equinox in older source
+    catalogs, but it has been largely replaced by the Julian epoch year.
     """
 
     name = "byear"
@@ -2059,7 +2083,32 @@ class TimeBesselianEpoch(TimeEpochDate):
 
 
 class TimeJulianEpoch(TimeEpochDate):
-    """Julian Epoch year as value(s) like 2000.0."""
+    """Julian epoch year as decimal value(s) like 2000.0.
+
+    This format is based the Julian year which is exactly 365.25 days/year and a day is
+    exactly 86400 SI seconds.
+
+    The Julian epoch year is defined so that 2000.0 is 12:00 TT on January 1, 2000.
+    Using astropy this is expressed as::
+
+      >>> from astropy.time import Time
+      >>> import astropy.units as u
+      >>> j2000_epoch = Time("2000-01-01T12:00:00", scale="tt")
+      >>> print(j2000_epoch.jyear)  # doctest: +FLOAT_CMP
+      2000.0
+      >>> print((j2000_epoch + 365.25 * u.day).jyear)  # doctest: +FLOAT_CMP
+      2001.0
+
+    The Julian year is commonly used in astronomy for expressing the epoch of a source
+    catalog or the time of an observation. The Julian epoch year is sometimes written as
+    a string like "J2001.5" with a preceding "J". You can initialize a ``Time`` object with
+    such a string::
+
+      >>> print(Time("J2001.5").jyear)  # doctest: +FLOAT_CMP
+      2001.5
+
+    See also: `<https://en.wikipedia.org/wiki/Julian_year_(astronomy)>`_.
+    """
 
     name = "jyear"
     unit = erfa.DJY  # 365.25, the Julian year, for conversion to quantities
