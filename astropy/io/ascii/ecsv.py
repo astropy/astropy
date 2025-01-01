@@ -37,6 +37,24 @@ ECSV_DATATYPES = (
     "string",
 )  # Raise warning if not one of these standard dtypes
 
+NO_HEADER_MSG = (
+    'ECSV header line like "# %ECSV <version>" not found as first line.'
+    "  This is required for a ECSV file."
+)
+
+def _validate_ecsv_header_line(header_line):
+
+    # Validate that this is a ECSV file
+
+    ecsv_header_re = r"""%ECSV [ ]
+                            (?P<major> \d+)
+                            \. (?P<minor> \d+)
+                            \.? (?P<bugfix> \d+)? $"""
+
+    match = re.match(ecsv_header_re, header_line.strip(), re.VERBOSE)
+    if not match:
+        raise core.InconsistentTableError(NO_HEADER_MSG)
+
 
 class InvalidEcsvDatatypeWarning(AstropyUserWarning):
     """
@@ -135,23 +153,10 @@ class EcsvHeader(basic.BasicHeader):
         # Extract non-blank comment (header) lines with comment character stripped
         lines = list(self.process_lines(lines))
 
-        # Validate that this is a ECSV file
-        ecsv_header_re = r"""%ECSV [ ]
-                             (?P<major> \d+)
-                             \. (?P<minor> \d+)
-                             \.? (?P<bugfix> \d+)? $"""
-
-        no_header_msg = (
-            'ECSV header line like "# %ECSV <version>" not found as first line.'
-            "  This is required for a ECSV file."
-        )
-
         if not lines:
-            raise core.InconsistentTableError(no_header_msg)
+            raise core.InconsistentTableError(NO_HEADER_MSG)
 
-        match = re.match(ecsv_header_re, lines[0].strip(), re.VERBOSE)
-        if not match:
-            raise core.InconsistentTableError(no_header_msg)
+        _validate_ecsv_header_line(lines[0].strip())
 
         try:
             header = meta.get_header_from_yaml(lines)
@@ -496,6 +501,12 @@ class Ecsv(basic.Basic):
     outputter_class = EcsvOutputter
 
     max_ndim = None  # No limit on column dimensionality
+
+    def read(self, table):
+        # Check that the table starts with the expected first header line, if
+        # not then this will exit early
+        _validate_ecsv_header_line(table.split('\n', 1)[0].strip())
+        return super().read(table)
 
     def update_table_data(self, table):
         """
