@@ -1675,7 +1675,8 @@ class Field(
     def to_xml(self, w, **kwargs):
         attrib = w.object_attrs(self, self._attr_list)
         if "unit" in attrib:
-            attrib["unit"] = self.unit.to_string("cds")
+            format = _get_unit_format(self._config)
+            attrib["unit"] = self.unit.to_string(format)
         with w.tag(self._element_name, attrib=attrib):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
