@@ -1,6 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pkgutil
+import subprocess
+import sys
+from textwrap import dedent
+from types import ModuleType
+
+import pytest
+
+import astropy
 
 
 def test_imports():
@@ -32,3 +40,21 @@ def test_toplevel_namespace():
     assert "log" in d
     assert "test" in d
     assert "sys" not in d
+
+
+def test_toplevel_lazy_imports():
+    # Check that subpackages are loaded on demand.
+    cmd = dedent("""
+    import astropy, sys
+    assert 'astropy.units' not in sys.modules
+    astropy.units
+    assert 'astropy.units' in sys.modules
+    """)
+    cp = subprocess.check_call([sys.executable, "-c", cmd])
+    assert cp == 0
+
+
+def test_toplevel_attribute_error():
+    # Ensure that our __getattr__ does not leak an import error or so.
+    with pytest.raises(AttributeError, match="module 'astropy' has no"):
+        astropy.nonsense
