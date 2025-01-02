@@ -169,7 +169,7 @@ def test_header_from_readme():
 def test_cds_units(reader_cls):
     from astropy import units
 
-    data_and_readme = "data/cds.dat"
+    data_and_readme = "data/mrt.dat"
     reader = ascii.get_reader(reader_cls)
     table = reader.read(data_and_readme)
     # column unit is GMsun (giga solar masses)
@@ -177,9 +177,11 @@ def test_cds_units(reader_cls):
     assert table["Fit"].to(units.solMass).unit == units.solMass
 
 
-@pytest.mark.parametrize("reader_cls", (ascii.Cds, ascii.Mrt))
-def test_cds_function_units(reader_cls):
-    data_and_readme = "data/cdsFunctional.dat"
+@pytest.mark.parametrize(
+    "reader_cls, data_and_readme",
+    [(ascii.Cds, "data/cdsFunctional.dat"), (ascii.Mrt, "data/mrtFunctional.dat")],
+)
+def test_cds_function_units(reader_cls, data_and_readme):
     reader = ascii.get_reader(reader_cls)
     table = reader.read(data_and_readme)
     assert table["logg"].unit == u.dex(u.cm / u.s**2)
@@ -190,10 +192,12 @@ def test_cds_function_units(reader_cls):
     assert table["e_Age"].unit == u.Myr
 
 
-@pytest.mark.parametrize("reader_cls", (ascii.Cds, ascii.Mrt))
-def test_cds_function_units2(reader_cls):
+@pytest.mark.parametrize(
+    "reader_cls, data_and_readme",
+    [(ascii.Cds, "data/cdsFunctional2.dat"), (ascii.Mrt, "data/mrtFunctional2.dat")],
+)
+def test_cds_function_units2(reader_cls, data_and_readme):
     # This one includes some dimensionless dex.
-    data_and_readme = "data/cdsFunctional2.dat"
     reader = ascii.get_reader(reader_cls)
     table = reader.read(data_and_readme)
     assert table["Teff"].unit == u.K
