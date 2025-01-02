@@ -1051,7 +1051,7 @@ class TestUnknownFormat:
     # Check full message to ensure we correctly classify in-out and
     # output only formats.
     UNKNOWN_MSG = (
-        r"Unknown format {!r}.  Valid formatter names are: "
+        r"Unknown format {!r}. Valid formatter names are: "
         r"\['cds', 'generic', 'fits', 'ogip', 'vounit'\] for input and output, "
         r"and \['console', 'latex', 'latex_inline', 'unicode'\] for output only."
     )
