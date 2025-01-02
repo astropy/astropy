@@ -221,6 +221,7 @@ filterwarnings = [
     "error",
     "ignore:unclosed <socket:ResourceWarning",
     "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
+    "ignore:assertions not in test modules or plugins will be ignored:UserWarning"
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
