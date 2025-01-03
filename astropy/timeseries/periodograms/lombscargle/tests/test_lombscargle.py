@@ -1,3 +1,5 @@
+from contextlib import nullcontext
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -6,12 +8,16 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.lombscargle import LombScargle
+from astropy.utils import minversion
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 ALL_METHODS = LombScargle.available_methods
 ALL_METHODS_NO_AUTO = [method for method in ALL_METHODS if method != "auto"]
 FAST_METHODS = [method for method in ALL_METHODS if "fast" in method]
 NTERMS_METHODS = [method for method in ALL_METHODS if "chi2" in method]
 NORMALIZATIONS = ["standard", "psd", "log", "model"]
+
+SCIPY_LT_1_15 = not minversion("scipy", "1.15.0") if HAS_SCIPY else False
 
 
 @pytest.fixture
@@ -67,7 +73,7 @@ def test_autofrequency(
 def test_all_methods(
     data, method, center_data, fit_mean, errors, with_units, normalization
 ):
-    if method == "scipy" and (fit_mean or errors != "none"):
+    if method == "scipy" and errors != "none":
         return
 
     t, y, dy = data
@@ -89,14 +95,22 @@ def test_all_methods(
 
     kwds = {}
 
-    ls = LombScargle(
-        t,
-        y,
-        dy,
-        center_data=center_data,
-        fit_mean=fit_mean,
-        normalization=normalization,
-    )
+    if method == "scipy" and SCIPY_LT_1_15:
+        ctx = pytest.raises(ValueError)
+    else:
+        ctx = nullcontext()
+    with ctx:
+        ls = LombScargle(
+            t,
+            y,
+            dy,
+            center_data=center_data,
+            fit_mean=fit_mean,
+            normalization=normalization,
+        )
+    if not isinstance(ctx, nullcontext):
+        return
+
     P_expected = ls.power(frequency)
 
     # don't use the fft approximation here; we'll test this elsewhere
