@@ -1,9 +1,14 @@
 import numpy as np
 
+from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+SCIPY_LT_1_15 = not minversion("scipy", "1.15.0") if HAS_SCIPY else True
 
-def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=True):
+
+def lombscargle_scipy(
+    t, y, frequency, normalization="standard", center_data=True, *, fit_mean=False
+):
     """Lomb-Scargle Periodogram.
 
     This is a wrapper of ``scipy.signal.lombscargle`` for computation of the
@@ -56,8 +61,13 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
     if center_data:
         y = y - y.mean()
 
+    if SCIPY_LT_1_15:
+        kwargs = {}
+    else:
+        kwargs = {"floating_mean": fit_mean}
+
     # Note: scipy input accepts angular frequencies
-    p = signal.lombscargle(t, y, 2 * np.pi * frequency)
+    p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
 
     if normalization == "psd":
         pass

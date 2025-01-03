@@ -9,6 +9,7 @@ __all__ = ["available_methods", "lombscargle"]
 
 import numpy as np
 
+from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .chi2_impl import lombscargle_chi2
@@ -26,6 +27,9 @@ METHODS = {
     "fastchi2": lombscargle_fastchi2,
     "cython": lombscargle_cython,
 }
+
+
+SCIPY_LT_1_15 = not minversion("scipy", "1.15.0") if HAS_SCIPY else True
 
 
 def available_methods():
@@ -204,7 +208,14 @@ def lombscargle(
     # scipy doesn't support dy or fit_mean=True
     if method == "scipy":
         if kwds.pop("fit_mean"):
-            raise ValueError("scipy method does not support fit_mean=True")
+            if SCIPY_LT_1_15:
+                raise ValueError(
+                    "Combining method='scipy' with fit_mean=True requires "
+                    "scipy 1.15 or newer."
+                )
+            else:
+                kwds["fit_mean"] = fit_mean
+
         if dy is not None:
             dy = np.ravel(np.asarray(dy))
             if not np.allclose(dy[0], dy):
