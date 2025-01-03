@@ -26,6 +26,7 @@ __all__ = [  # noqa: RUF100, RUF022
     "samp",
     "stats",
     "table",
+    "tests",
     "time",
     "timeseries",
     "uncertainty",
