@@ -219,8 +219,6 @@ log_cli_level = "info"
 xfail_strict = true
 filterwarnings = [
     "error",
-    "ignore:unclosed <socket:ResourceWarning",
-    "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
