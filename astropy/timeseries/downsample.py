@@ -48,8 +48,7 @@ def nanmean(*args, **kwargs):
     numpy.nanmean
     numpy.ufunc.reduceat
     """
-    result = np.nanmean(*args, **kwargs)
-    return result
+    return np.nanmean(*args, **kwargs)
 
 
 # Attach the nanmean_reduceat to the function
