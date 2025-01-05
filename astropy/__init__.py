@@ -11,6 +11,55 @@ from pathlib import Path
 
 from astropy.utils.system_info import system_info
 
+__all__ = [  # noqa: RUF100, RUF022
+    "__version__",
+    "__bibtex__",
+    # Subpackages (mostly lazy-loaded)
+    "config",
+    "constants",
+    "convolution",
+    "coordinates",
+    "cosmology",
+    "io",
+    "modeling",
+    "nddata",
+    "samp",
+    "stats",
+    "table",
+    "tests",
+    "time",
+    "timeseries",
+    "uncertainty",
+    "units",
+    "utils",
+    "visualization",
+    "wcs",
+    # Functions
+    "test",
+    "log",
+    "find_api_page",
+    "online_help",
+    "online_docs_root",
+    "conf",
+    "physical_constants",
+    "astronomical_constants",
+    "system_info",
+]
+
+
+def __getattr__(attr):
+    if attr in __all__:
+        from importlib import import_module
+
+        return import_module("astropy." + attr)
+
+    raise AttributeError(f"module 'astropy' has no attribute {attr!r}")
+
+
+def __dir__():
+    return sorted(set(globals()).union(__all__))
+
+
 from .version import version as __version__
 
 # The location of the online documentation for astropy
@@ -198,30 +247,14 @@ def online_help(query):
     webbrowser.open(url)
 
 
-__dir_inc__ = [
-    "__version__",
-    "__githash__",
-    "__bibtex__",
-    "test",
-    "log",
-    "find_api_page",
-    "online_help",
-    "online_docs_root",
-    "conf",
-    "physical_constants",
-    "astronomical_constants",
-    "system_info",
-]
-
-
 from types import ModuleType as __module_type__
 
-# Clean up top-level namespace--delete everything that isn't in __dir_inc__
+# Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
 for varname in dir():
     if not (
         (varname.startswith("__") and varname.endswith("__"))
-        or varname in __dir_inc__
+        or varname in __all__
         or (
             varname[0] != "_"
             and isinstance(locals()[varname], __module_type__)

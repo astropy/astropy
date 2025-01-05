@@ -1,0 +1,4 @@
+After ``import astropy``, ``dir(astropy)`` will now list all subpackages,
+including those that have not yet been loaded. This also means tab
+completion will work as expected (e.g., ``from astropy.coo<TAB>`` will
+expand to ``from astropy.coordinates``).
