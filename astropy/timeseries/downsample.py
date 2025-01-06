@@ -18,18 +18,17 @@ def nanmean_reduceat(data, indices):
 
     if mask.any():  # If there are NaNs
         # Create a writeable copy and mask NaNs
-        data_copy = data.copy()
-        data_copy[mask] = 0
+        data = data.copy()
+        data[mask] = 0
         count_data = np.add.reduceat(~mask, indices)
         count_data = count_data.astype(float)
         count_data[count_data == 0] = np.nan
     else:
-        data_copy = data
         # Derive counts from indices
         count_data = np.diff(indices, append=len(data))
         count_data[count_data <= 0] = 1
 
-    sum_data = np.add.reduceat(data_copy, indices)
+    sum_data = np.add.reduceat(data, indices)
     nanmean = sum_data / count_data
     return nanmean
 
