@@ -1,7 +1,9 @@
 import numpy as np
+import pytest
 
-from astropy.modeling import fitting, models
+from astropy.modeling import Model, Parameter, fitting, models
 from astropy.modeling.models import fix_inputs
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test_fix_inputs_fittable():
@@ -41,3 +43,32 @@ def test_fix_inputs_zero_input_fitting():
 
     # Check it recovers slope=2, intercept=1
     np.testing.assert_allclose(fitted_p.parameters, [2.0, 1.0], atol=1e-7)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_fix_inputs_non_fittable():
+    """
+    Check that if you fix the inputs on a model which isn't fittable,
+    the resulting model also isn't fittable.
+    """
+
+    class NonFittable1D(Model):
+        fittable = False
+        n_inputs = 1
+        n_outputs = 1
+        param_names = ("param1",)
+
+        param1 = Parameter(default=1)
+
+        @staticmethod
+        def evaluate(x, param1):
+            return param1 * x
+
+    # Instantiate the non-fittable model
+    non_fittable_model = NonFittable1D()
+
+    # Fix the input on the non-fittable model
+    fixed_model = fix_inputs(non_fittable_model, {"x": 3.0})
+
+    # Verify that the returned model is still not fittable
+    assert fixed_model.fittable is False
