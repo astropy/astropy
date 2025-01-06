@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from .format import Base
     from .physical import PhysicalType
     from .quantity import Quantity
-    from .typing import Complex, Real, UnitPower, UnitScale
+    from .typing import UnitPower, UnitPowerLike, UnitScale, UnitScaleLike
 
 __all__ = [
     "CompositeUnit",
@@ -774,7 +774,7 @@ class UnitBase:
 
         return normalized
 
-    def __pow__(self, p: Real) -> CompositeUnit:
+    def __pow__(self, p: UnitPowerLike) -> CompositeUnit:
         try:  # Handling scalars should be as quick as possible
             return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
         except Exception:
@@ -2081,9 +2081,9 @@ class _UnitMetaClass(type):
                 _error_check=False,
             )
 
-        from .typing import Complex
+        from .typing import UnitScaleLike
 
-        if isinstance(s, Complex):  # same as the annotation in sanitize_scale_type()
+        if isinstance(s, UnitScaleLike):
             return CompositeUnit(s, [], [])
 
         if isinstance(s, tuple):
@@ -2261,9 +2261,9 @@ class CompositeUnit(UnitBase):
     @overload
     def __init__(
         self,
-        scale: Complex,
+        scale: UnitScaleLike,
         bases: Sequence[UnitBase],
-        powers: Sequence[Real],
+        powers: Sequence[UnitPowerLike],
         decompose: bool = False,
         decompose_bases: Collection[UnitBase] = (),
         _error_check: Literal[True] = True,
