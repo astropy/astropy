@@ -68,12 +68,7 @@ For more examples see the :mod:`numpy.typing` definition of
 """
 
 
-# The classes from the standard library `numbers` module are not suitable for
-# type checking (https://github.com/python/mypy/issues/3186). For now we define
-# our own number types, but if a good definition becomes available upstream
-# then we should switch to that.
-Real: TypeAlias = int | float | Fraction | np.integer | np.floating
-Complex: TypeAlias = Real | complex | np.complexfloating
-
 UnitPower: TypeAlias = int | float | Fraction
+UnitPowerLike: TypeAlias = UnitPower | np.integer | np.floating
 UnitScale: TypeAlias = int | float | Fraction | complex
+UnitScaleLike: TypeAlias = UnitScale | np.number
