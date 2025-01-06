@@ -8,7 +8,11 @@ from numpy.testing import assert_equal
 
 from astropy import units as u
 from astropy.time import Time
-from astropy.timeseries.downsample import aggregate_downsample, nanmean, reduceat
+from astropy.timeseries.downsample import (
+    aggregate_downsample,
+    nanmean_reduceat,
+    reduceat,
+)
 from astropy.timeseries.sampled import TimeSeries
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -39,12 +43,12 @@ def test_reduceat():
     )
 
 
-def test_nanmean():
+def test_nanmean_reduceat():
     data = np.arange(8)
     indices = [0, 4, 1, 5, 5, 2, 6, 6, 3, 7]
 
     reduceat_output1 = reduceat(data, indices, np.nanmean)
-    nanmean_output1 = nanmean.reduceat(data, indices)
+    nanmean_output1 = nanmean_reduceat(data, indices)
     assert_equal(reduceat_output1, nanmean_output1)
 
     data = data.astype("float")
@@ -52,14 +56,14 @@ def test_nanmean():
     with np.testing.suppress_warnings() as sup:
         sup.filter(RuntimeWarning, "Mean of empty slice")
         reduceat_output2 = reduceat(data, indices, np.nanmean)
-    nanmean_output2 = nanmean.reduceat(data, indices)
+    nanmean_output2 = nanmean_reduceat(data, indices)
     assert_equal(reduceat_output2, nanmean_output2)
 
     data[:] = np.nan
     with np.testing.suppress_warnings() as sup:
         sup.filter(RuntimeWarning, "Mean of empty slice")
         reduceat_output3 = reduceat(data, indices, np.nanmean)
-    nanmean_output3 = nanmean.reduceat(data, indices)
+    nanmean_output3 = nanmean_reduceat(data, indices)
     assert_equal(reduceat_output3, nanmean_output3)
 
 

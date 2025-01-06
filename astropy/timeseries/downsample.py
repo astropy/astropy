@@ -10,7 +10,7 @@ from astropy.timeseries.binned import BinnedTimeSeries
 from astropy.timeseries.sampled import TimeSeries
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["aggregate_downsample", "nanmean"]
+__all__ = ["aggregate_downsample"]
 
 
 def nanmean_reduceat(data, indices):
@@ -34,27 +34,6 @@ def nanmean_reduceat(data, indices):
     return nanmean
 
 
-def nanmean(*args, **kwargs):
-    """
-    This function is a wrapper around `numpy.nanmean` and behaves identically to it.
-    Additionally, it includes the `reduceat` method, which performs grouped mean calculations
-    over slices of the data, defined by a set of indices, while ignoring NaN values.
-    The `reduceat` method behaves identical to `numpy.ufunc.reduceat` except that
-    parameters ``axis``, ``dtype``, and ``out`` are not supported.
-    For further functionality take a look at the ``See also`` section.
-
-    See Also
-    --------
-    numpy.nanmean
-    numpy.ufunc.reduceat
-    """
-    return np.nanmean(*args, **kwargs)
-
-
-# Attach the nanmean_reduceat to the function
-nanmean.reduceat = nanmean_reduceat
-
-
 def reduceat(array, indices, function):
     """
     Manual reduceat functionality for cases where Numpy functions don't have a reduceat.
@@ -62,6 +41,8 @@ def reduceat(array, indices, function):
     """
     if len(indices) == 0:
         return np.array([])
+    elif function is nanmean_reduceat:
+        return np.array(function(array, indices))
     elif hasattr(function, "reduceat"):
         return np.array(function.reduceat(array, indices))
     else:
@@ -135,7 +116,7 @@ def aggregate_downsample(
         parameter will be ignored.
     aggregate_func : callable, optional
         The function to use for combining points in the same bin. Defaults
-        to `~astropy.timeseries.nanmean`.
+        to an internal implementation of NumPy `nanmean` function.
 
     Returns
     -------
@@ -217,7 +198,7 @@ def aggregate_downsample(
     )
 
     if aggregate_func is None:
-        aggregate_func = nanmean
+        aggregate_func = nanmean_reduceat
 
     # Start and end times of the binned timeseries
     bin_start = binned.time_bin_start
