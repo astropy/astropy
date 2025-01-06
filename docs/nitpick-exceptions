@@ -94,10 +94,10 @@ py:class np.ma.MaskedArray
 # locally defined type variable for ndarray dtype
 py:class DT
 # type aliases
-py:class Complex
-py:class Real
 py:class UnitPower
+py:class UnitPowerLike
 py:class UnitScale
+py:class UnitScaleLike
 
 # Classes from `astropy.extern` that are nonetheless exposed in documentation
 py:class Lexer
