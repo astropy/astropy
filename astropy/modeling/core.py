@@ -3527,8 +3527,16 @@ class CompoundModel(Model):
         return self._param_names
 
     def _make_leaflist(self):
+        if self.op == "fix_inputs":
+            # The right side is a dict of fixed inputs, not a Model.
+            # So the only real submodel is the left side.
+            self._leaflist = [self.left]  # store just that one submodel
+            self._tdict = {}
+            return
+
         tdict = {}
         leaflist = []
+        # This function is normally used for +, -, *, /, |, & ...
         make_subtree_dict(self, "", tdict, leaflist)
         self._leaflist = leaflist
         self._tdict = tdict
