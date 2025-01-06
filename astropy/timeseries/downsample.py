@@ -21,7 +21,7 @@ def nanmean_reduceat(data, indices):
         data = data.copy()
         data[mask] = 0
         count_data = np.add.reduceat(~mask, indices)
-        count_data = count_data.astype(float)
+        count_data = count_data.astype("float64")
         count_data[count_data == 0] = np.nan
     else:
         # Derive counts from indices
