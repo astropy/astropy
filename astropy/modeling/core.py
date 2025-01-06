@@ -3288,7 +3288,12 @@ class CompoundModel(Model):
 
     @property
     def fit_deriv(self):
-        # If either side of the model is missing analytical derivative then we can't compute one
+        # If either side is missing an analytical derivative, we can't compute one.
+        if self.op == "fix_inputs":
+            # The "right" side is just a dict, so let's rely on the left side derivative:
+            # e.g., Linear1D.fit_deriv exists. If that's None, we just return None.
+            return self.left.fit_deriv
+
         if self.left.fit_deriv is None or self.right.fit_deriv is None:
             return None
 
