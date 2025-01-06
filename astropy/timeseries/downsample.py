@@ -29,8 +29,7 @@ def nanmean_reduceat(data, indices):
         count_data[count_data <= 0] = 1
 
     sum_data = np.add.reduceat(data, indices)
-    nanmean = sum_data / count_data
-    return nanmean
+    return sum_data / count_data
 
 
 def reduceat(array, indices, function):
