@@ -6,6 +6,7 @@ from astropy.modeling.models import fix_inputs
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_fix_inputs_fittable():
     """Test that fix_inputs(...).fittable does not raise AttributeError."""
     photon = models.Linear1D(slope=2, intercept=1)
@@ -16,6 +17,7 @@ def test_fix_inputs_fittable():
     assert p.fittable is True
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_fix_inputs_zero_input_fitting():
     """
     Test if we can fit a model whose entire input is fixed, but still
