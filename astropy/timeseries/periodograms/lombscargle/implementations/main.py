@@ -88,6 +88,8 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     prefer_fast = len(frequency) > 200 and (
         assume_regular_frequency or _is_regular(frequency)
     )
+    # Note that this condition may be simplified (remove `and not fit_mean`)
+    # once fit_mean=True is made the default value for method='scipy'
     prefer_scipy = "scipy" in methods and dy is None and not fit_mean
 
     # automatically choose the appropriate method
@@ -118,7 +120,7 @@ def lombscargle(
     method="auto",
     assume_regular_frequency=False,
     normalization="standard",
-    fit_mean=True,
+    fit_mean=None,
     center_data=True,
     method_kwds=None,
     nterms=1,
@@ -205,22 +207,25 @@ def lombscargle(
         assume_regular_frequency=assume_regular_frequency,
     )
 
-    # scipy doesn't support dy or fit_mean=True
+    # scipy<1.15 doesn't support fit_mean=True
+    # scipy doesn't support dy
     if method == "scipy":
-        if kwds.pop("fit_mean"):
-            if SCIPY_LT_1_15:
-                raise ValueError(
-                    "Combining method='scipy' with fit_mean=True requires "
-                    "scipy 1.15 or newer."
-                )
-            else:
-                kwds["fit_mean"] = fit_mean
+        if kwds["fit_mean"] and SCIPY_LT_1_15:
+            raise ValueError(
+                "Combining method='scipy' with fit_mean=True requires "
+                "scipy 1.15 or newer."
+            )
+        elif kwds["fit_mean"] is None:
+            # ... # deprecation warning goes here
+            kwds["fit_mean"] = False
 
         if dy is not None:
             dy = np.ravel(np.asarray(dy))
             if not np.allclose(dy[0], dy):
                 raise ValueError("scipy method only supports uniform uncertainties dy")
         args = (t, y)
+    elif kwds["fit_mean"] is None:
+        kwds["fit_mean"] = True
 
     # fast methods require frequency expressed as a grid
     if method.startswith("fast"):
