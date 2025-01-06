@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
     from .core import UnitBase
     from .quantity import Quantity
-    from .typing import Complex, Real, UnitPower, UnitScale
+    from .typing import UnitPower, UnitPowerLike, UnitScale, UnitScaleLike
 
     DType = TypeVar("DType", bound=np.generic)
     FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
@@ -181,7 +181,7 @@ def generate_prefixonly_unit_summary(namespace: dict[str, object]) -> str:
     return docstring.getvalue()
 
 
-def is_effectively_unity(value: Complex) -> bool:
+def is_effectively_unity(value: UnitScaleLike) -> bool:
     # value is *almost* always real, except, e.g., for u.mag**0.5, when
     # it will be complex.  Use try/except to ensure normal case is fast
     try:
@@ -193,7 +193,7 @@ def is_effectively_unity(value: Complex) -> bool:
         )
 
 
-def sanitize_scale_type(scale: Complex) -> UnitScale:
+def sanitize_scale_type(scale: UnitScaleLike) -> UnitScale:
     if not scale:
         raise UnitScaleError("cannot create a unit with a scale of 0.")
 
@@ -226,7 +226,7 @@ def sanitize_scale_value(scale: UnitScale) -> UnitScale:
         return scale.real
 
 
-def maybe_simple_fraction(p: Real, max_denominator: int = 100) -> UnitPower:
+def maybe_simple_fraction(p: UnitPowerLike, max_denominator: int = 100) -> UnitPower:
     """Fraction very close to x with denominator at most max_denominator.
 
     The fraction has to be such that fraction/x is unity to within 4 ulp.
@@ -257,7 +257,7 @@ def maybe_simple_fraction(p: Real, max_denominator: int = 100) -> UnitPower:
     return float(p)
 
 
-def sanitize_power(p: Real) -> UnitPower:
+def sanitize_power(p: UnitPowerLike) -> UnitPower:
     """Convert the power to a float, an integer, or a Fraction.
 
     If a fractional power can be represented exactly as a floating point
@@ -297,7 +297,9 @@ def sanitize_power(p: Real) -> UnitPower:
     return p
 
 
-def resolve_fractions(a: Real, b: Real) -> tuple[Real, Real]:
+def resolve_fractions(
+    a: UnitPowerLike, b: UnitPowerLike
+) -> tuple[UnitPowerLike, UnitPowerLike]:
     """
     If either input is a Fraction, convert the other to a Fraction
     (at least if it does not have a ridiculous denominator).
