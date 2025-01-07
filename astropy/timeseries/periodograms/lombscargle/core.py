@@ -48,7 +48,8 @@ class LombScargle(BasePeriodogram):
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
         If unspecified, power and autopower methods will use fit_mean=True in
-        most situations, except for method='scipy' where it is set to False.
+        most situations, except for method='scipy' where it is set to False,
+        and raises a deprecation warning.
     center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data. This is especially important if fit_mean = False
