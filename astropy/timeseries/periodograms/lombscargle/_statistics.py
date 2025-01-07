@@ -6,6 +6,7 @@ This is an internal module; users should access this functionality via the
 ``astropy.timeseries.LombScargle`` API.
 """
 
+import warnings
 from functools import wraps
 
 import numpy as np
@@ -352,7 +353,13 @@ def _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstrap=1000)
         ls_boot = LombScargle(
             t, y[s], dy if dy is None else dy[s], normalization=normalization
         )
-        freq, power = ls_boot.autopower(maximum_frequency=fmax)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # autopower is called with default values (which we cannot change
+            # to preserve backward compatibility) for both fit_mean and method
+            # which might result in a DeprecationWarning being raised,
+            # if method='auto' resolves to method='scipy'
+            freq, power = ls_boot.autopower(maximum_frequency=fmax)
         power_max.append(power.max())
 
     power_max = u.Quantity(power_max)

@@ -75,7 +75,7 @@ class LombScargle(BasePeriodogram):
     Compute the Lomb-Scargle periodogram at a user-specified frequency grid:
 
     >>> freq = np.arange(0.8, 1.3, 0.1)
-    >>> LombScargle(t, y).power(freq)  # doctest: +FLOAT_CMP
+    >>> LombScargle(t, y, fit_mean=True).power(freq)  # doctest: +FLOAT_CMP
     array([0.0792948 , 0.01778874, 0.25328167, 0.01064157, 0.01471387])
 
     If the inputs are astropy Quantities with units, the units will be
@@ -453,7 +453,7 @@ class LombScargle(BasePeriodogram):
             frequency=strip_units(frequency),
             t_fit=strip_units(t),
             center_data=self.center_data,
-            fit_mean=self.fit_mean,
+            fit_mean=True if self.fit_mean is None else self.fit_mean,
             nterms=self.nterms,
         )
         return y_fit * get_unit(self.y)
@@ -555,7 +555,13 @@ class LombScargle(BasePeriodogram):
             t, dy = strip_units(self._trel, self.dy)
         else:
             t, dy = strip_units(self._validate_t(self._as_relative_time("t", t)), None)
-        return design_matrix(t, frequency, dy, nterms=self.nterms, bias=self.fit_mean)
+        return design_matrix(
+            t,
+            frequency,
+            dy,
+            nterms=self.nterms,
+            bias=True if self.fit_mean is None else self.fit_mean,
+        )
 
     def distribution(self, power, cumulative=False):
         """Expected periodogram distribution under the null hypothesis.
