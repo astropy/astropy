@@ -7,10 +7,13 @@ statement for the various implementations available in this submodule
 
 __all__ = ["available_methods", "lombscargle"]
 
+import warnings
+
 import numpy as np
 
 from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .chi2_impl import lombscargle_chi2
 from .cython_impl import lombscargle_cython
@@ -216,7 +219,16 @@ def lombscargle(
                 "scipy 1.15 or newer."
             )
         elif kwds["fit_mean"] is None:
-            # ... # deprecation warning goes here
+            warnings.warn(
+                "The default value for fit_mean with method='scipy' "
+                "will change from False to True in a future version. "
+                "Pass fit_mean=True or fit_mean=False explicitly to silence "
+                "this warning. "
+                "Note that fit_mean=True requires scipy 1.15 or newer. "
+                "Deprecated since astropy 7.1.0",
+                category=AstropyDeprecationWarning,
+                stacklevel=2,
+            )
             kwds["fit_mean"] = False
 
         if dy is not None:

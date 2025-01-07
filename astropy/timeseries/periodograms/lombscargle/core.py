@@ -47,6 +47,8 @@ class LombScargle(BasePeriodogram):
         if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
+        If unspecified, power and autopower methods will use fit_mean=True in
+        most situations, except for method='scipy' where it is set to False.
     center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data. This is especially important if fit_mean = False
@@ -108,7 +110,7 @@ class LombScargle(BasePeriodogram):
         t,
         y,
         dy=None,
-        fit_mean=True,
+        fit_mean=None,
         center_data=True,
         nterms=1,
         normalization="standard",
