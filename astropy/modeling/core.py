@@ -3533,10 +3533,20 @@ class CompoundModel(Model):
 
     def _make_leaflist(self):
         if self.op == "fix_inputs":
-            # The right side is a dict of fixed inputs, not a Model.
-            # So the only real submodel is the left side.
-            self._leaflist = [self.left]  # store just that one submodel
-            self._tdict = {}
+            # The right side is a dict, not a Model. We skip it
+            # and only gather "leaf" models from the left side.
+            leaflist = []
+            tdict = {}
+            # If the left side is itself a CompoundModel, recurse into it;
+            # otherwise, it's just a single Model leaf.
+            if isinstance(self.left, CompoundModel):
+                self.left._make_leaflist()
+                leaflist = self.left._leaflist
+                tdict = self.left._tdict
+            else:
+                leaflist = [self.left]
+            self._leaflist = leaflist
+            self._tdict = tdict
             return
 
         tdict = {}

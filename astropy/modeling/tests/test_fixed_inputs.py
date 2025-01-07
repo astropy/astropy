@@ -74,3 +74,49 @@ def test_fix_inputs_non_fittable():
 
     # Verify that the returned model is still not fittable
     assert fixed_model.fittable is False
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_fix_inputs_pipe_operator():
+    """
+    Test chaining a fix_inputs(...) model with another model using '|',
+    ensuring that the right side is the actual model, not the dict of fixed values.
+    """
+    import numpy as np
+
+    from astropy.modeling.fitting import LMLSQFitter
+    from astropy.modeling.functional_models import Linear1D
+    from astropy.modeling.models import fix_inputs
+
+    m1 = Linear1D(slope=2, intercept=0)
+    m2 = Linear1D(slope=4, intercept=1)
+    # Fix inputs of m1
+    fixed_m1 = fix_inputs(m1, {"x": [1, 2, 3, 4]})
+
+    # Now compose with m2 using the pipe operator
+    comb = fixed_m1 | m2
+
+    # Check submodel indexing: comb[0] should be the "fixed m1" (which is a CompoundModel),
+    # and comb[1] should be 'm2', not the dictionary of fixed values.
+    assert comb[1] is m2, "Right-hand submodel should be m2, not the dict"
+
+    # Test fittable
+    # If both left and right submodels are fittable (or effectively fittable),
+    # the final pipeline model should be fittable = True
+    assert comb.fittable is True
+
+    # Evaluate the combined model
+    y_data = comb()
+
+    # Attempt to fit. We still need a dummy x array matching y_data's shape,
+    # because the fitter expects x, y. Even though m1 has its x fixed, the pipeline
+    # might still pass the input forward to m2, etc.
+    fitter = LMLSQFitter()
+
+    x_dummy = np.zeros_like(y_data)
+    fitted = fitter(comb, x_dummy, y_data)
+
+    # We don't necessarily check exact numeric results here, but let's ensure
+    # no AttributeError is raised and 'fitted' is still a compound model.
+    assert fitted is not None
+    assert fitted.fittable
