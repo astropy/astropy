@@ -1,0 +1,1 @@
+Improved the ``aggregate_downsample`` performance using a new default ``aggregate_func``.
