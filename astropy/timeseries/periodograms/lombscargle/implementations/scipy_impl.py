@@ -7,7 +7,7 @@ SCIPY_LT_1_15 = not minversion("scipy", "1.15.0") if HAS_SCIPY else True
 
 
 def lombscargle_scipy(
-    t, y, frequency, normalization="standard", center_data=True, *, fit_mean=False
+    t, y, frequency, normalization="standard", center_data=True, *, fit_mean=True
 ):
     """Lomb-Scargle Periodogram.
 
@@ -28,7 +28,7 @@ def lombscargle_scipy(
     center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data.
-    fit_mean : bool (default: False)
+    fit_mean : bool (default: True)
         if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
@@ -80,16 +80,16 @@ def lombscargle_scipy(
     if normalization == "psd":
         return p
 
-    if kwargs.get("floating_mean", False):
-        yoffset = y.mean()
+    if center_data or not kwargs.get("floating_mean", False):
+        chi2_ref = 0.5 * t.size * np.mean(y**2)
     else:
-        yoffset = 0.0
+        chi2_ref = 0.5 * t.size * np.mean((y - y.mean()) ** 2)
 
     if normalization == "standard":
-        p *= 2 / (t.size * np.mean((y - yoffset) ** 2))
+        p /= chi2_ref
     elif normalization == "log":
-        p = -np.log(1 - 2 * p / (t.size * np.mean((y - yoffset) ** 2)))
+        p = -np.log(1 - p / chi2_ref)
     elif normalization == "model":
-        p /= 0.5 * t.size * np.mean((y - yoffset) ** 2) - p
+        p /= chi2_ref - p
 
     return p
