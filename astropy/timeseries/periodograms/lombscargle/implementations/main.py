@@ -91,9 +91,9 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     prefer_fast = len(frequency) > 200 and (
         assume_regular_frequency or _is_regular(frequency)
     )
-    # Note that this condition may be simplified (remove `and not fit_mean`)
-    # once fit_mean=True is made the default value for method='scipy'
-    prefer_scipy = "scipy" in methods and dy is None and not fit_mean
+    prefer_scipy = (
+        "scipy" in methods and dy is None and not (SCIPY_LT_1_15 and fit_mean)
+    )
 
     # automatically choose the appropriate method
     if method == "auto":
@@ -123,7 +123,7 @@ def lombscargle(
     method="auto",
     assume_regular_frequency=False,
     normalization="standard",
-    fit_mean=None,
+    fit_mean=True,
     center_data=True,
     method_kwds=None,
     nterms=1,
