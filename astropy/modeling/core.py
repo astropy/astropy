@@ -4326,6 +4326,10 @@ def make_subtree_dict(tree, nodepath, tdict, leaflist):
        (relative to all indices for the whole tree)
     - right most index contained within that subtree
     """
+    # If this is a dictionary (i.e. from fix_inputs), skip it entirely
+    if isinstance(tree, dict):
+        return
+
     # if this is a leaf, just append it to the leaflist
     if not hasattr(tree, "isleaf"):
         leaflist.append(tree)
