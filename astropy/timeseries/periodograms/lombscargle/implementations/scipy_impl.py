@@ -74,14 +74,22 @@ def lombscargle_scipy(
     # Note: scipy input accepts angular frequencies
     p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
 
+    if normalization not in ("psd", "standard", "log", "model", "psd"):
+        raise ValueError(f"{normalization=!r} not recognized")
+
     if normalization == "psd":
-        pass
-    elif normalization == "standard":
-        p *= 2 / (t.size * np.mean(y**2))
-    elif normalization == "log":
-        p = -np.log(1 - 2 * p / (t.size * np.mean(y**2)))
-    elif normalization == "model":
-        p /= 0.5 * t.size * np.mean(y**2) - p
+        return p
+
+    if kwargs.get("floating_mean", False):
+        yoffset = y.mean()
     else:
-        raise ValueError(f"normalization='{normalization}' not recognized")
+        yoffset = 0.0
+
+    if normalization == "standard":
+        p *= 2 / (t.size * np.mean((y - yoffset) ** 2))
+    elif normalization == "log":
+        p = -np.log(1 - 2 * p / (t.size * np.mean((y - yoffset) ** 2)))
+    elif normalization == "model":
+        p /= 0.5 * t.size * np.mean((y - yoffset) ** 2) - p
+
     return p
