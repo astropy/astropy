@@ -4098,15 +4098,13 @@ class Table:
 
         badcols = [name for name, col in self.columns.items() if len(col.shape) > 1]
         if badcols:
-            # fmt: off
             raise ValueError(
-                f'Cannot convert a table with multidimensional columns to a '
-                f'pandas DataFrame. Offending columns are: {badcols}\n'
-                f'One can filter out such columns using:\n'
-                f'names = [name for name in tbl.colnames if len(tbl[name].shape) <= 1]\n'
-                f'tbl[names].to_pandas(...)'
+                f"Cannot convert a table with multidimensional columns to a "
+                f"pandas DataFrame. Offending columns are: {badcols}\n"
+                f"One can filter out such columns using:\n"
+                f"names = [name for name in tbl.colnames if len(tbl[name].shape) <= 1]\n"
+                f"tbl[names].to_pandas(...)"
             )
-            # fmt: on
 
         out = OrderedDict()
 
