@@ -979,6 +979,12 @@ class Section:
         # `ImageHDU.section` in place of `.data`.
         return self.hdu.shape
 
+    @property
+    def dtype(self):
+        # Implementing `.dtype` enables `astropy.nddata.Cutout2D` to accept
+        # `ImageHDU.section` in place of `.data`.
+        return np.dtype(BITPIX2DTYPE[self.hdu._bitpix])
+
     def __getitem__(self, key):
         """Returns a slice of HDU data specified by `key`.
 

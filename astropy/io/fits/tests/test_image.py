@@ -9,6 +9,7 @@ import pytest
 from numpy.testing import assert_equal
 
 from astropy.io import fits
+from astropy.io.fits.hdu.base import BITPIX2DTYPE
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -403,6 +404,7 @@ class TestImageFunctions(FitsTestCase):
     def test_section(self):
         # section testing
         fs = fits.open(self.data("arange.fits"))
+        assert fs[0].section.dtype == np.dtype(BITPIX2DTYPE[fs[0]._bitpix])
         assert np.array_equal(fs[0].section[3, 2, 5], 357)
         assert np.array_equal(
             fs[0].section[3, 2, :],
