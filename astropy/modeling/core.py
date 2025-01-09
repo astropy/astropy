@@ -3332,7 +3332,7 @@ class CompoundModel(Model):
             # shape (6, 5, 3) or (6, 15). We therefore normalize this to always
             # ravel all but the first dimension
             left_deriv = left_deriv.reshape((left_deriv.shape[0], -1))
-            right_deriv = right_deriv.reshape((left_deriv.shape[0], -1))
+            right_deriv = right_deriv.reshape((right_deriv.shape[0], -1))
 
             # Convert the arrays back to lists over the first dimension so as to
             # be able to concatenate them (we don't use .tolist() which would
