@@ -1258,22 +1258,39 @@ def numerical_partial_deriv(model, *inputs, param_idx, delta=1e-5):
             Polynomial1D(2) * Gaussian1D(),
             Polynomial1D(2) / Gaussian1D(),
             Polynomial1D(2) + Gaussian1D(),
+            Polynomial2D(2) + Gaussian2D(),
         ]
     ],
 )
-def test_compound_fit_deriv(model):
+@pytest.mark.parametrize("input_ndim", (1, 2))
+def test_compound_fit_deriv(model, input_ndim):
     """
     Given some compound models compare the numerical derivatives to analytical ones.
     """
-    x = np.linspace(1, 5, num=10).reshape((5, 2))
+
+    x = np.linspace(1, 5, num=10)
+    y = np.linspace(1, 5, num=10)
+
+    if input_ndim == 2:
+        x = x.reshape((5, 2))
+        y = y.reshape((5, 2))
+
+    inputs = (x,) if model.n_inputs == 1 else (x, y)
+
     numerical = [
-        numerical_partial_deriv(model, x, param_idx=i)
+        numerical_partial_deriv(model, *inputs, param_idx=i)
         for i in range(len(model.parameters))
     ]
-    analytical = model.fit_deriv(x, *model.parameters)
+    analytical = model.fit_deriv(*inputs, *model.parameters)
 
-    for n, a in zip(numerical, analytical):
-        assert np.allclose(n, a)
+    numerical = np.asarray(numerical)
+    analytical = np.asarray(analytical)
+
+    # Reshape output to ravel all but the first dimension since some models do this
+    numerical = numerical.reshape((numerical.shape[0], -1))
+    analytical = analytical.reshape((analytical.shape[0], -1))
+
+    assert_allclose(numerical, analytical)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
