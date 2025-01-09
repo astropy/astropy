@@ -170,6 +170,7 @@ _pformat_docs = """
     -------
     lines : list
         Formatted table as a list of strings.
+
     """
 
 
