@@ -6,5 +6,3 @@ dependencies:
   - python=3.13
   - pip
   - graphviz
-  - pip:
-    - git+https://github.com/sphinx-doc/sphinx
