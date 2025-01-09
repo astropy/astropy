@@ -9,7 +9,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 import astropy.units as u
 from astropy.modeling.core import CompoundModel, Model, ModelDefinitionError
-from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.fitting import LevMarLSQFitter, DogBoxLSQFitter
 from astropy.modeling.models import (
     Chebyshev1D,
     Chebyshev2D,
@@ -1265,7 +1265,7 @@ def test_compound_fit_deriv(model):
     """
     Given some compound models compare the numerical derivatives to analytical ones.
     """
-    x = np.linspace(1, 5, num=10)
+    x = np.linspace(1, 5, num=10).reshape((5, 2))
     numerical = [
         numerical_partial_deriv(model, x, param_idx=i)
         for i in range(len(model.parameters))
@@ -1274,3 +1274,29 @@ def test_compound_fit_deriv(model):
 
     for n, a in zip(numerical, analytical):
         assert np.allclose(n, a)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_fit_compound_polynomial2d():
+
+    # Regression test for a bug that caused compound models with Polynomial2D
+    # to not be fittable due to a bug in CompoundModel.fit_deriv
+
+    # Generate fake data
+    rng = np.random.default_rng(0)
+    y, x = np.mgrid[:128, :128]
+    z = 2. * x ** 2 - 0.5 * x ** 2 + 1.5 * x * y - 1.
+    z += rng.normal(0., 0.1, z.shape) * 50000.
+    z += Gaussian2D(
+        amplitude=50000,
+        x_mean=60,
+        y_mean=60,
+        x_stddev=5,
+        y_stddev=5
+    )(x, y)
+
+    # Fit the data using astropy.modeling
+    p_init = Polynomial2D(degree=2) + Gaussian2D(amplitude=50000, x_mean=60, y_mean=60)
+    fit_p = DogBoxLSQFitter()
+
+    p = fit_p(p_init, x, y, z)
