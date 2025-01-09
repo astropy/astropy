@@ -18,8 +18,6 @@ def _expand_user_in_args(args):
         ex_user = os.path.expanduser(args[0])
         if ex_user != args[0] and os.path.exists(os.path.dirname(ex_user)):
             args = (ex_user,) + args[1:]
-        else:
-            args = (str(args[0]),)
     return args
 
 
