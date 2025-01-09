@@ -13,7 +13,12 @@ import numpy as np
 
 from astropy.units.core import dimensionless_unscaled, unit_scale_converter
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
+from astropy.utils.compat.numpycompat import (
+    NUMPY_LT_2_0,
+    NUMPY_LT_2_1,
+    NUMPY_LT_2_2,
+    NUMPY_LT_2_3,
+)
 
 if NUMPY_LT_2_0:
     from numpy.core import umath as np_umath
@@ -413,6 +418,10 @@ if not NUMPY_LT_2_1:
         np._core.umath._rpartition,
         np._core.umath._rpartition_index,
         np._core.umath._partition,
+    }
+if not NUMPY_LT_2_3:
+    UNSUPPORTED_UFUNCS |= {
+        np._core.umath._slice,
     }
 
 # SINGLE ARGUMENT UFUNCS
