@@ -3334,9 +3334,6 @@ class CompoundModel(Model):
             left_deriv = left_deriv.reshape((left_deriv.shape[0], -1))
             right_deriv = right_deriv.reshape((right_deriv.shape[0], -1))
 
-            print(left_deriv.shape)
-            print(right_deriv.shape)
-
             # Convert the arrays back to lists over the first dimension so as to
             # be able to concatenate them (we don't use .tolist() which would
             # convert to a list of lists instead of a list of arrays)
