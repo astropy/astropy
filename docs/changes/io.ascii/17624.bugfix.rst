@@ -1,0 +1,1 @@
+Find and read ASCII tables even if there is white space before \begin{tabular}, \tablehead, and similar markers.
