@@ -3321,10 +3321,10 @@ class CompoundModel(Model):
             right_deriv = np.asanyarray(right_deriv)
 
             if not self.left.col_fit_deriv:
-                left_deriv = left_deriv.T
+                left_deriv = np.moveaxis(left_deriv, -1, 0)
 
             if not self.right.col_fit_deriv:
-                right_deriv = right_deriv.T
+                right_deriv = np.moveaxis(right_deriv, -1, 0)
 
             # Some models preserve the shape of the input in the output of
             # fit_deriv whereas some do not. For example for a 6-parameter model,
@@ -3333,6 +3333,9 @@ class CompoundModel(Model):
             # ravel all but the first dimension
             left_deriv = left_deriv.reshape((left_deriv.shape[0], -1))
             right_deriv = right_deriv.reshape((right_deriv.shape[0], -1))
+
+            print(left_deriv.shape)
+            print(right_deriv.shape)
 
             # Convert the arrays back to lists over the first dimension so as to
             # be able to concatenate them (we don't use .tolist() which would
@@ -3374,8 +3377,8 @@ class CompoundModel(Model):
 
                 return np.array(left_deriv + right_deriv)
 
-            leftval = self.left.evaluate(*left_inputs, *left_params)
-            rightval = self.right.evaluate(*right_inputs, *right_params)
+            leftval = self.left.evaluate(*left_inputs, *left_params).ravel()
+            rightval = self.right.evaluate(*right_inputs, *right_params).ravel()
 
             if op == "*":
                 return np.array(
