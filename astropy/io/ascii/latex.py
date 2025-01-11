@@ -79,7 +79,7 @@ def find_latex_line(lines, latex):
         Line number. Returns None, if no match was found
 
     """
-    re_string = re.compile(latex.replace("\\", "\\\\"))
+    re_string = re.compile(r"\s*" + latex.replace("\\", "\\\\"))
     for i, line in enumerate(lines):
         if re_string.match(line):
             return i
@@ -220,6 +220,11 @@ class Latex(core.BaseReader):
     This class can also read simple LaTeX tables (one line per table
     row, no ``\multicolumn`` or similar constructs), specifically, it
     can read the tables that it writes.
+    When reading, it will look for the Latex commands to start and end tabular
+    data (``\begin{tabular}`` and ``\end{tabular}``). That means that
+    those lines have to be present in the input file; the benefit is that this
+    reader can be used on a LaTeX file with text, tables, and figures and it
+    will read the first valid table.
 
     Reading a LaTeX table, the following keywords are accepted:
 
