@@ -218,7 +218,7 @@ use the ``help`` function of the ``read`` or ``write`` functions. For example:
 
   >>> ascii.read.help()  # Common help for all formats
   >>> ascii.read.help("html")  # Common help plus "html" format-specific args
-  >>> ascii.write.help("latex")  # Common help plus "html" format-specific args
+  >>> ascii.write.help("latex")  # Common help plus "latex" format-specific args
 
 Using `astropy.io.ascii`
 ========================
