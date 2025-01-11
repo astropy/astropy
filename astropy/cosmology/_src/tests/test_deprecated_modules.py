@@ -16,7 +16,7 @@ def test_connect():
         pass
 
     with (
-        warnings.catch_warnings(),
+        warnings.catch_warnings(),  # Always raise warning so 2x test sees it too.
         pytest.deprecated_call(
             match=re.escape("The module `astropy.cosmology.connect` is deprecated"),
         ),
@@ -35,7 +35,7 @@ def test_core():
         pass
 
     with (
-        warnings.catch_warnings(),
+        warnings.catch_warnings(),  # Always raise warning so 2x test sees it too.
         pytest.deprecated_call(
             match=re.escape("The module `astropy.cosmology.core` is deprecated"),
         ),
@@ -54,7 +54,7 @@ def test_flrw():
         pass
 
     with (
-        warnings.catch_warnings(),
+        warnings.catch_warnings(),  # Always raise warning so 2x test sees it too.
         pytest.deprecated_call(
             match=re.escape("The module `astropy.cosmology.flrw` is deprecated"),
         ),
@@ -73,7 +73,7 @@ def test_funcs():
         pass
 
     with (
-        warnings.catch_warnings(),
+        warnings.catch_warnings(),  # Always raise warning so 2x test sees it too.
         pytest.deprecated_call(
             match=re.escape("The module `astropy.cosmology.funcs` is deprecated")
         ),
@@ -92,7 +92,7 @@ def test_parameter():
         pass
 
     with (
-        warnings.catch_warnings(),
+        warnings.catch_warnings(),  # Always raise warning so 2x test sees it too.
         pytest.deprecated_call(
             match=re.escape("The module `astropy.cosmology.parameter` is deprecated"),
         ),

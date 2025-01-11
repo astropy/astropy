@@ -3,7 +3,7 @@
 
 .. deprecated:: 7.1
 
-    This module is deprecated and will be removed in Astropy v8.0. All the public
+    This module is deprecated and will be removed in a future version. All the public
     classes and functions have been and will continue to be available in the
     :mod:`~astropy.cosmology` module.
 
@@ -46,8 +46,8 @@ def __getattr__(name: str) -> Any:
     setattr(sys.modules[__name__], name, obj)
 
     warnings.warn(
-        "The module `astropy.cosmology.flrw` is deprecated and will be removed "
-        "in v8.0. Import from `astropy.cosmology` instead.",
+        "The module `astropy.cosmology.flrw` is deprecated since v7.1 and will be "
+        "removed in a future version. Import from `astropy.cosmology` instead.",
         category=DeprecationWarning,
     )
 

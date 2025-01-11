@@ -26,8 +26,8 @@ def __getattr__(name: str) -> Any:
     setattr(sys.modules[__name__], name, Parameter)
 
     warnings.warn(
-        "The module `astropy.cosmology.parameter` is deprecated and will be removed "
-        "in v8.0. Import from `astropy.cosmology` instead.",
+        "The module `astropy.cosmology.parameter` is deprecated since v7.1 and will be "
+        "removed in a future version. Import from `astropy.cosmology` instead.",
         category=DeprecationWarning,
     )
 

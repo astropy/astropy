@@ -23,8 +23,8 @@ def __getattr__(name: str) -> Any:
     setattr(sys.modules[__name__], name, obj)
 
     warnings.warn(
-        "The module `astropy.cosmology.connect` is deprecated and will be removed "
-        "in v8.0. Import from `astropy.cosmology.io` instead.",
+        "The module `astropy.cosmology.connect` is deprecated since v7.1 and will be "
+        "removed in a future version. Import from `astropy.cosmology.io` instead.",
         category=DeprecationWarning,
     )
 
