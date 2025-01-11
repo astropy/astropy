@@ -12,7 +12,7 @@ import numpy as np
 from astropy.constants import si as _si
 
 from . import si
-from .core import UnitBase, binary_prefixes, def_unit, set_enabled_units, si_prefixes
+from .core import BINARY_PREFIXES, SI_PREFIXES, UnitBase, def_unit, set_enabled_units
 
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
@@ -135,14 +135,14 @@ def_unit(
 def_unit(
     (["bit", "b"], ["bit"]),
     namespace=_ns,
-    prefixes=si_prefixes + binary_prefixes,
+    prefixes=SI_PREFIXES + BINARY_PREFIXES,
 )
 def_unit(
     (["byte", "B"], ["byte"]),
     8 * bit,
     namespace=_ns,
     format={"vounit": "byte"},
-    prefixes=si_prefixes + binary_prefixes,
+    prefixes=SI_PREFIXES + BINARY_PREFIXES,
     exclude_prefixes=["d"],
 )
 def_unit(
