@@ -22,7 +22,7 @@ following example shows how to use the built-in
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    ax = plt.subplot(projection=wcs, frame_class=EllipticalFrame)
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs, frame_class=EllipticalFrame))
 
     ax.coords.grid(color='white')
 
@@ -50,7 +50,7 @@ all-sky plots such as Aitoff projections:
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    ax = plt.subplot(projection=wcs, frame_class=EllipticalFrame)
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs, frame_class=EllipticalFrame))
 
     path_effects=[patheffects.withStroke(linewidth=3, foreground='black')]
     ax.coords.grid(color='white')
@@ -112,7 +112,7 @@ which we can then use:
      hdu = fits.open(filename)[0]
      wcs = WCS(hdu.header)
 
-     ax = plt.subplot(projection=wcs, frame_class=HexagonalFrame)
+     fig, ax = plt.subplots(subplot_kw=dict(projection=wcs, frame_class=HexagonalFrame))
 
      ax.coords.grid(color='white')
 

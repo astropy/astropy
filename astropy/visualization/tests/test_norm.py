@@ -5,7 +5,7 @@ import pytest
 from numpy import ma
 from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 
-from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 from astropy.visualization.interval import ManualInterval, PercentileInterval
 from astropy.visualization.mpl_normalize import (
     ImageNormalize,
@@ -286,7 +286,7 @@ class TestImageScaling:
             simple_norm(DATA2, stretch="invalid")
 
 
-@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
+@pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
 @pytest.mark.parametrize("stretch", ["linear", "sqrt", "power", "log", "asinh", "sinh"])
 def test_simplenorm(stretch):
     data = np.arange(25).reshape((5, 5))
@@ -296,13 +296,14 @@ def test_simplenorm(stretch):
     assert_allclose(norm(data), simple_norm(data, stretch, percent=99)(data))
 
 
-@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
+@pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
 def test_simplenorm_imshow():
-    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
     from matplotlib.image import AxesImage
 
     data = np.arange(25).reshape((5, 5))
-    fig, ax = plt.subplots()
+    fig = Figure()
+    ax = fig.add_subplot()
     snorm = SimpleNorm("sqrt", percent=99)
     axim = snorm.imshow(data, ax=ax)
     assert isinstance(axim, AxesImage)
@@ -317,13 +318,14 @@ def test_simplenorm_imshow():
         snorm.imshow(data, ax=ax, norm=ImageNormalize())
 
 
-@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
+@pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
 def test_imshow_norm():
-    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
 
     image = np.random.randn(10, 10)
 
-    fig, ax = plt.subplots(label="test_imshow_norm")
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_norm")
     imshow_norm(image, ax=ax)
 
     with pytest.raises(ValueError):
@@ -333,7 +335,7 @@ def test_imshow_norm():
     fig.clear()
     imshow_norm(image, ax=ax, vmin=0, vmax=1)
 
-    # make sure the pyplot version works
+    # make sure the matplotlib version works
     fig.clear()
     imres, norm = imshow_norm(image, ax=None)
 

@@ -46,7 +46,7 @@ you want to disable this behavior you can either set an explicit label for that
 axis with `~astropy.visualization.wcsaxes.CoordinateHelper.set_axislabel` or you
 can disable the feature per coordinate with::
 
-  ax = plt.subplot(projection=wcs)  # doctest: +SKIP
+  fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))  # doctest: +SKIP
   ax.coords[0].set_auto_axislabel(False)  # doctest: +SKIP
 
 
