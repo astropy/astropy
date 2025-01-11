@@ -439,6 +439,9 @@ linkcheck_anchors = False
 linkcheck_report_timeouts_as_broken = True
 linkcheck_allow_unauthorized = False
 
+# -- Options for autodoc ----------------------------------------------------
+autodoc_typehints = "none"
+
 
 def rstjinja(app, docname, source):
     """Render pages as a jinja template to hide/show dev docs."""
