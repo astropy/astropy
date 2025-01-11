@@ -299,3 +299,34 @@ class Parameter:
             if f.repr and (f.name != "default" or self.default is not MISSING)
         )
         return f"{self.__class__.__name__}({', '.join(fields_repr)})"
+    
+    @classmethod
+    def from_repr(cls, repr_str):
+        """Create a Parameter instance from its repr string."""
+        # Remove the class name and parentheses, então divide em pares de chave-valor
+        content = repr_str[len(cls.__name__) + 1 : -1]  # remove 'Parameter(' e ')'
+        key_value_pairs = [item.strip() for item in content.split(",")]
+
+        # Parse key-value pairs em um dicionário
+        args = {}
+        for pair in key_value_pairs:
+            key, value = pair.split("=")
+            args[key.strip()] = value.strip()
+
+        # Trate casos especiais para tipos de dados específicos
+        if 'unit' in args and args['unit'] == 'None':
+            args['unit'] = None
+        if 'derived' in args:
+            args['derived'] = args['derived'] == 'True'
+        if 'equivalencies' in args:
+            # Converte 'equivalencies' de uma string para uma lista vazia, se necessário
+            args['equivalencies'] = [] if args['equivalencies'] == '[]' else args['equivalencies']
+        if 'fvalidate' in args:
+            # Remova as aspas de 'fvalidate' e garanta que ele seja interpretado corretamente
+            fvalidate_value = args['fvalidate'].strip("'\"")
+            args['fvalidate'] = fvalidate_value if fvalidate_value in _REGISTRY_FVALIDATORS else None
+        if 'doc' in args:
+            # Remova as aspas externas de 'doc', caso existam
+            args['doc'] = args['doc'].strip("'\"")
+
+        return cls(**args)
