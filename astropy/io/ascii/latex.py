@@ -234,11 +234,14 @@ class Latex(core.BaseReader):
         The LaTeX writer will output units in the table if they are present in the
         column info::
 
+            >>> import io
+            >>> out = io.StringIO()
             >>> import sys
             >>> import astropy.units as u
             >>> from astropy.table import Table
             >>> t = Table({'v': [1, 2] * u.km/u.s, 'class': ['star', 'jet']})
-            >>> t.write(sys.stdout, format='ascii.latex')
+            >>> t.write(out, format='ascii.latex')
+            >>> print(out.getvalue())
             \begin{table}
             \begin{tabular}{cc}
             v & class \\
@@ -256,16 +259,7 @@ class Latex(core.BaseReader):
         skip reading the lines with units to just read the numerical values using the
         ``data_start`` parameter to set the first line where numerical data values appear::
 
-            >>> tstring = r'''
-            ... \begin{table}
-            ... \begin{tabular}{cc}
-            ... v & class \\
-            ... $\mathrm{km\,s^{-1}}$ &  \\
-            ... 1.0 & star \\
-            ... 2.0 & jet \\
-            ... \end{tabular}
-            ... \end{table}'''
-            >>> Table.read(tstring.split('\n'), format='ascii.latex', data_start=4)
+            >>> Table.read(out.getvalue(), format='ascii.latex', data_start=4)
             <Table length=2>
                v    class
             float64  str4
