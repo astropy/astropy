@@ -740,6 +740,57 @@ the methods in the base class::
       header_class = CommentedHeaderHeader
       data_class = NoHeaderData
 
+**Application: Write a "fixed_width" table with a "commented_header"**
+
+This module provides formats for tables where the header line is marked with a comment
+character and a separate class that writes fixed-width tables, but there is no functionality
+to write a fixed-width table with a commented header. Fixed width tables can be easier to read
+by eye because the rows are aligned and certain other programs require the header line to be
+commented. So, we now want to make a writer that can write this format; for this example we do
+not bother to work out how to read this format, but just raise an error on reading:
+
+  >>> from astropy.io.ascii.fixedwidth import FixedWidthData, FixedWidth
+  >>> class FixedWidthDataCommentedHeader(FixedWidthData):
+  ...     def write(self, lines):
+  ...         lines = super().write(lines)
+  ...         lines[0] = self.write_comment + lines[0]
+  ...         for i in range(1, len(lines)):
+  ...             lines[i] = ' ' * len(self.write_comment) + lines[i]
+  ...         return lines
+  >>> class FixedWidthCommentedHeader(FixedWidth):
+  ...     _format_name = "fixed_width_commented_header"
+  ...     _description = "Fixed width with commented header"
+  ...
+  ...     data_class = FixedWidthDataCommentedHeader
+  ...
+  ...     def read(self, table):
+  ...         raise NotImplementedError
+
+This new format is automatically added to the list of formats that can be read by
+the :ref:`io_registry` (note that our format has no mechanism to write out the units):
+
+    >>> import sys
+    >>> from astropy.table import Table
+    >>> import astropy.units as u
+    >>> tab = Table({'v': [15.4, 223.45] * u.km/u.s, 'type': ['star', 'jet']})
+    >>> tab.write(sys.stdout, format='ascii.fixed_width', delimiter=None)
+         v  type
+      15.4  star
+    223.45   jet
+    >>> tab.write(sys.stdout, format='ascii.commented_header')
+    # v type
+    15.4 star
+    223.45 jet
+    >>> tab.write(sys.stdout, format='ascii.fixed_width_commented_header', delimiter=None)
+    #      v  type
+        15.4  star
+      223.45   jet
+
+.. testcleanup::
+
+    >>> from astropy.io import registry
+    >>> registry.unregister_reader("ascii.fixed_width_commented_header", Table)
+    >>> registry.unregister_writer("ascii.fixed_width_commented_header", Table)
 
 **Define a custom reader functionally**
 
