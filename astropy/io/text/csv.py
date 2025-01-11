@@ -1,13 +1,13 @@
 import io
 import os
-from typing import BinaryIO
-
-import pyarrow as pa
-import pyarrow.csv
+from typing import TYPE_CHECKING, BinaryIO
 
 import astropy.table as apt
 
 from . import core
+
+if TYPE_CHECKING:
+    import pyarrow.csv
 
 
 def read_csv(
@@ -74,6 +74,9 @@ def read_csv(
         Whether empty lines are ignored in CSV input. If False, an empty line is
         interpreted as containing a single empty value (assuming a one-column CSV file).
     """
+    import pyarrow as pa
+    import pyarrow.csv
+
     parse_options = pa.csv.ParseOptions(
         delimiter=delimiter,
         quote_char=quotechar,
@@ -137,7 +140,7 @@ def strip_comment_lines(
 def get_convert_options(
     include_names: list | None,
     dtypes: dict | None,
-) -> pyarrow.csv.ConvertOptions:
+) -> "pyarrow.csv.ConvertOptions":
     """
     Generate PyArrow CSV conversion options based on included column names and data
     types.
@@ -157,6 +160,9 @@ def get_convert_options(
         PyArrow CSV ConvertOptions object configured with the specified column names and
         data types.
     """
+    import pyarrow as pa
+    import pyarrow.csv
+
     convert_options = pyarrow.csv.ConvertOptions()
     if include_names is not None:
         convert_options.include_columns = include_names
@@ -172,7 +178,7 @@ def get_read_options(
     data_start: int | None,
     names: list | None,
     encoding: str | None,
-) -> pyarrow.csv.ReadOptions:
+) -> "pyarrow.csv.ReadOptions":
     """
     Generate read options for reading a CSV file using pyarrow.
 
@@ -194,6 +200,8 @@ def get_read_options(
     pyarrow.csv.ReadOptions
         The configured read options for reading the CSV file.
     """
+    import pyarrow.csv
+
     read_options = pyarrow.csv.ReadOptions()
 
     # No header: header_start = None, data_start = None or int
