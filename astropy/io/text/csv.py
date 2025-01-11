@@ -1,4 +1,5 @@
-from pathlib import Path
+import io
+import os
 from typing import BinaryIO
 
 import pyarrow as pa
@@ -10,24 +11,27 @@ from . import core
 
 
 def read_csv(
-    input_file: Path | str | BinaryIO,
+    input_file: os.PathLike | str | BinaryIO,
     delimiter: str = ",",
     quotechar: str = '"',
     double_quote: bool = True,
     escape_char: str | bool = False,
-    newlines_in_values: bool = False,
-    ignore_empty_lines: bool = True,
     header_start: int | None = 0,
     data_start: int | None = None,
     names: list | None = None,
     include_names: list | None = None,
     dtypes: dict | None = None,
     comment: str | None = None,
+    encoding: str = "utf-8",
+    newlines_in_values: bool = False,
+    ignore_empty_lines: bool = True,
 ) -> apt.Table:
     """Read a CSV file into an astropy Table using pyarrow.read_csv.
 
     Parameters
     ----------
+    input_file : str, PathLike, or binary file-like object
+        File path or binary file-like object to read from.
     delimiter: 1-character str, optional (default ",")
         Character delimiting individual cells in the CSV data.
     quote_char: 1-character str or False, optional (default '"')
@@ -40,8 +44,8 @@ def read_csv(
         is not allowed).
     header_start : int, None, optional (default 0)
         Line index for the header line with column names. If `None`, no header line is
-        assumed and the column names are taken from ``names`` or generated
-        automatically ("f0", "f1", ...).
+        assumed and the column names are taken from ``names`` or generated automatically
+        ("f0", "f1", ...).
     data_start : int, None, optional (default None)
         Line index for the start of data. If `None`, then data starts one line after the
          header, or on the first line if there is no header.
@@ -52,21 +56,23 @@ def read_csv(
     include_names : list, None, optional (default None)
         List of column names to include in output.
     dtypes : dict, None, optional (default None)
-        Dictionary of data types for output columns. Each key is a column name and the
-        value is a data type object that is accepted as an argument to `np.dtype`.
-        Examples include ``int``, ``np.float32``, ``np.dtype('f4')`` or ``"float32"``.
+        If provided, this is a dictionary of data types for output columns. Each key is
+        a column name and the value is a data type object that is accepted as an
+        argument to `np.dtype`. Examples include ``int``, ``np.float32``,
+        ``np.dtype('f4')`` or ``"float32"``. Default is to infer the data types.
+    comment: 1-character str or None, optional (default None)
+        Character used to indicate the start of a comment. Any line starting with
+        optional whitespace and then this character is ignored. Using this option will
+        cause the parser to be slower and use more memory as it uses Python code to
+        strip comments.
+    encoding: str, optional (default 'utf-8')
+        Encoding of the input data.
     newlines_in_values: bool, optional (default False)
         Whether newline characters are allowed in CSV values. Setting this to True
         reduces the performance of multi-threaded CSV reading.
     ignore_empty_lines: bool, optional (default True)
         Whether empty lines are ignored in CSV input. If False, an empty line is
         interpreted as containing a single empty value (assuming a one-column CSV file).
-    comment: 1-character str or None, optional (default None)
-        Character used to indicate the start of a comment. Any line starting with this
-        character is ignored. Using this option will cause the parser to be slower and
-        use more memory as it uses Python code to strip comments. NOT IMPLEMENTED YET.
-    encoding: str, optional (default 'utf-8')
-        Encoding of the input data.
     """
     parse_options = pa.csv.ParseOptions(
         delimiter=delimiter,
@@ -74,28 +80,13 @@ def read_csv(
         double_quote=double_quote,
         escape_char=escape_char,
         newlines_in_values=newlines_in_values,
+        ignore_empty_lines=ignore_empty_lines,
     )
 
-    # skip_rowsint, optional (default 0) The number of rows to skip before the column names
-    # (if any) and the CSV data.
-    #
-    # skip_rows_after_names int, optional (default 0) The number of rows to skip after the
-    # column names. This number can be larger than the number of rows in one block, and
-    # empty rows are counted. The order of application is as follows: - skip_rows is applied
-    # (if non-zero); - column names are read (unless column_names is set); -
-    # skip_rows_after_names is applied (if non-zero).
-    #
-    # column_names list, optional The column names of the target table. If empty, fall back
-    # on autogenerate_column_names.
-    #
-    # autogenerate_column_names bool, optional (default False) Whether to autogenerate column
-    # names if column_names is empty. If true, column names will be of the form “f0”, “f1”…
-    # If false, column names will be read from the first CSV row after skip_rows.
-
     if comment is not None:
-        raise NotImplementedError("'comment' parameter is not implemented yet.")
+        input_file = strip_comment_lines(input_file, comment)
 
-    read_options = get_read_options(header_start, data_start, names)
+    read_options = get_read_options(header_start, data_start, names, encoding)
     convert_options = get_convert_options(include_names, dtypes)
 
     table_pa = pyarrow.csv.read_csv(
@@ -107,6 +98,40 @@ def read_csv(
     table_apt = core.convert_pa_table_to_astropy_table(table_pa)
 
     return table_apt
+
+
+def strip_comment_lines(
+    input_file: os.PathLike | str | BinaryIO, comment: str
+) -> BinaryIO:
+    """Strip comment lines from input_file.
+
+    A comment is any line that starts with optional whitespace followed by the comment
+    character.
+
+    Parameters
+    ----------
+    input_file : str, PathLike, or binary file-like object
+        File path or binary file-like object to read from.
+    comment: 1-character str
+        Character used to indicate the start of a comment. Any line starting with this
+        character is ignored.
+
+    Returns
+    -------
+    BinaryIO
+        BytesIO object with comments stripped.
+    """
+    if isinstance(input_file, (str, os.PathLike)):
+        with open(input_file, "rb") as f:
+            lines = f.readlines()
+    else:
+        lines = input_file.readlines()
+
+    comment_encode = comment.encode()
+    stripped_lines = [
+        line for line in lines if not line.lstrip().startswith(comment_encode)
+    ]
+    return io.BytesIO(b"".join(stripped_lines))
 
 
 def get_convert_options(
@@ -127,6 +152,7 @@ def get_read_options(
     header_start: int | None,
     data_start: int | None,
     names: list | None,
+    encoding: str | None,
 ) -> pyarrow.csv.ReadOptions:
     read_options = pyarrow.csv.ReadOptions()
 
@@ -151,5 +177,8 @@ def get_read_options(
             data_start = header_start + 1
         read_options.skip_rows = header_start
         read_options.skip_rows_after_names = data_start - header_start - 1
+
+    if encoding is not None:
+        read_options.encoding = encoding
 
     return read_options
