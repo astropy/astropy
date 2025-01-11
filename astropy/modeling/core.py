@@ -3294,7 +3294,12 @@ class CompoundModel(Model):
 
     @property
     def fit_deriv(self):
-        # If either side of the model is missing analytical derivative then we can't compute one
+        # If either side is missing an analytical derivative, we can't compute one.
+        if self.op == "fix_inputs":
+            # The "right" side is just a dict, so let's rely on the left side derivative:
+            # e.g., Linear1D.fit_deriv exists. If that's None, we just return None.
+            return self.left.fit_deriv
+
         if self.left.fit_deriv is None or self.right.fit_deriv is None:
             return None
 
@@ -3511,8 +3516,26 @@ class CompoundModel(Model):
         return self._param_names
 
     def _make_leaflist(self):
+        if self.op == "fix_inputs":
+            # The right side is a dict, not a Model. We skip it
+            # and only gather "leaf" models from the left side.
+            leaflist = []
+            tdict = {}
+            # If the left side is itself a CompoundModel, recurse into it;
+            # otherwise, it's just a single Model leaf.
+            if isinstance(self.left, CompoundModel):
+                self.left._make_leaflist()
+                leaflist = self.left._leaflist
+                tdict = self.left._tdict
+            else:
+                leaflist = [self.left]
+            self._leaflist = leaflist
+            self._tdict = tdict
+            return
+
         tdict = {}
         leaflist = []
+        # This function is normally used for +, -, *, /, |, & ...
         make_subtree_dict(self, "", tdict, leaflist)
         self._leaflist = leaflist
         self._tdict = tdict
@@ -4287,6 +4310,10 @@ def make_subtree_dict(tree, nodepath, tdict, leaflist):
        (relative to all indices for the whole tree)
     - right most index contained within that subtree
     """
+    # If this is a dictionary (i.e. from fix_inputs), skip it entirely
+    if isinstance(tree, dict):
+        return
+
     # if this is a leaf, just append it to the leaflist
     if not hasattr(tree, "isleaf"):
         leaflist.append(tree)
