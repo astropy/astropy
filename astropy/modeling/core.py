@@ -3177,7 +3177,10 @@ class CompoundModel(Model):
         self._constraints_cache = {}
 
     def _get_left_inputs_from_args(self, args):
-        return args[: self.left.n_inputs]
+        op = self.op
+        if op == "fix_inputs":
+            return [self.right["x"]]
+        return args[: self.right.n_inputs]
 
     def _get_right_inputs_from_args(self, args):
         op = self.op
@@ -3195,6 +3198,9 @@ class CompoundModel(Model):
             # Args expected to look like (*left inputs, *right inputs, *left params, *right params)
             n_inputs = self.left.n_inputs + self.right.n_inputs
             return args[n_inputs : n_inputs + self.n_left_params]
+        elif op == "|":
+            n_inputs = self.right.n_inputs
+            return args[n_inputs : n_inputs + self.n_left_params]
         else:
             return args[self.left.n_inputs : self.left.n_inputs + self.n_left_params]
 
@@ -3205,6 +3211,9 @@ class CompoundModel(Model):
         if op == "&":
             # Args expected to look like (*left inputs, *right inputs, *left params, *right params)
             return args[self.left.n_inputs + self.right.n_inputs + self.n_left_params :]
+        elif op == "|":
+            n_inputs = self.right.n_inputs
+            return args[n_inputs + self.n_left_params :]
         else:
             return args[self.left.n_inputs + self.n_left_params :]
 
@@ -3215,6 +3224,9 @@ class CompoundModel(Model):
         if self.op == "&":
             new_args = list(args[: self.left.n_inputs + self.right.n_inputs])
             args_pos = self.left.n_inputs + self.right.n_inputs
+        elif self.op == "|":
+            args_pos = self.right.n_inputs
+            new_args = list(args[:args_pos])
         else:
             new_args = list(args[: self.left.n_inputs])
             args_pos = self.left.n_inputs
