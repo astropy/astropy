@@ -2,12 +2,13 @@ import io
 import os
 from typing import TYPE_CHECKING, BinaryIO
 
-import astropy.io.registry
-import astropy.table as apt
+import numpy as np
 
-from . import core
+import astropy.io.registry
+from astropy.table import Table
 
 if TYPE_CHECKING:
+    import pyarrow as pa
     import pyarrow.csv
 
 
@@ -26,7 +27,7 @@ def read_csv(
     encoding: str = "utf-8",
     newlines_in_values: bool = False,
     ignore_empty_lines: bool = True,
-) -> apt.Table:
+) -> Table:
     """Read a CSV file into an astropy Table using pyarrow.read_csv.
 
     Parameters
@@ -87,11 +88,11 @@ def read_csv(
         ignore_empty_lines=ignore_empty_lines,
     )
 
-    if comment is not None:
-        input_file = strip_comment_lines(input_file, comment)
-
     read_options = get_read_options(header_start, data_start, names, encoding)
     convert_options = get_convert_options(include_names, dtypes)
+
+    if comment is not None:
+        input_file = strip_comment_lines(input_file, comment, encoding)
 
     table_pa = pyarrow.csv.read_csv(
         input_file,
@@ -99,9 +100,105 @@ def read_csv(
         read_options=read_options,
         convert_options=convert_options,
     )
-    table_apt = core.convert_pa_table_to_astropy_table(table_pa)
+    table_apt = convert_pa_table_to_astropy_table(table_pa)
 
     return table_apt
+
+
+def convert_pa_string_array_to_numpy(str_arr: "pa.ChunkedArray") -> np.ndarray:
+    """
+    Convert a PyArrow ChunkedArray of strings to a NumPy array.
+
+    Parameters
+    ----------
+    str_arr : pa.ChunkedArray
+        A PyArrow ChunkedArray containing string data.
+
+    Returns
+    -------
+    np.ndarray
+        A NumPy array containing the string data from the input ChunkedArray.
+        If the input ChunkedArray contains null values, the returned array will
+        be a masked array with nulls masked out.
+    """
+    # Check if string_array has any nulls
+    has_null = str_arr.null_count > 0
+
+    # Replace nulls with an empty string
+    str_arr_filled = str_arr.fill_null("") if has_null else str_arr
+
+    # Convert to NumPy array with fixed-length Unicode dtype
+    np_array = str_arr_filled.to_numpy().astype(str)
+
+    if has_null:
+        mask = str_arr.is_null().to_numpy()
+        np_array = np.ma.array(np_array, mask=mask, copy=False)
+
+    return np_array
+
+
+def convert_pa_array_to_numpy(arr):
+    """
+    Convert a PyArrow array to a NumPy array.
+
+    Parameters
+    ----------
+    arr : pyarrow.Array
+        The PyArrow array to be converted.
+
+    Returns
+    -------
+    np.ndarray or np.ma.MaskedArray
+        The converted NumPy array. If the input array contains null values,
+        a masked array is returned with nulls masked out.
+
+    Notes
+    -----
+    - If the input array is of string type, it delegates the conversion to
+      `convert_pa_string_array_to_numpy`.
+    - If the input array contains null values, they are replaced with 0 before
+      conversion, and a masked array is returned with the null positions masked.
+    """
+    import pyarrow as pa
+
+    if pa.types.is_string(arr.type):
+        return convert_pa_string_array_to_numpy(arr)
+
+    # Check if array has any nulls
+    has_null = arr.null_count > 0
+
+    # Replace nulls with an empty string
+    arr_filled = arr.fill_null(0) if has_null else arr
+
+    # Convert to NumPy array with fixed-length Unicode dtype
+    np_array = arr_filled.to_numpy()
+
+    if has_null:
+        mask = arr.is_null().to_numpy()
+        np_array = np.ma.array(np_array, mask=mask, copy=False)
+    return np_array
+
+
+def convert_pa_table_to_astropy_table(table_pa: "pa.Table") -> Table:
+    """
+    Convert a PyArrow Table to an Astropy Table.
+
+    Parameters
+    ----------
+    table_pa : pa.Table
+        The PyArrow Table to be converted.
+
+    Returns
+    -------
+    Table
+        Converted astropy Table.
+    """
+    columns = {}
+    for name, col in zip(table_pa.column_names, table_pa.itercolumns()):
+        col_np = convert_pa_array_to_numpy(col)
+        columns[name] = col_np
+    out = Table(columns, copy=False)
+    return out
 
 
 def strip_comment_lines(
@@ -145,8 +242,7 @@ def get_convert_options(
     dtypes: dict | None,
 ) -> "pyarrow.csv.ConvertOptions":
     """
-    Generate PyArrow CSV conversion options based on included column names and data
-    types.
+    Generate PyArrow CSV convert options.
 
     Parameters
     ----------
@@ -183,7 +279,7 @@ def get_read_options(
     encoding: str | None,
 ) -> "pyarrow.csv.ReadOptions":
     """
-    Generate read options for reading a CSV file using pyarrow.
+    Generate PyArrow CSV read options.
 
     Parameters
     ----------
@@ -235,4 +331,4 @@ def get_read_options(
     return read_options
 
 
-astropy.io.registry.register_reader("text.csv", apt.Table, read_csv)
+astropy.io.registry.register_reader("pyarrow.csv", Table, read_csv)
