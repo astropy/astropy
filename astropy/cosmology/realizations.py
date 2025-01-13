@@ -4,8 +4,6 @@
 See :attr:`~astropy.cosmology.realizations.available` for a full list.
 """
 
-from __future__ import annotations
-
 __all__ = [  # noqa: F822 (undefined name)
     # Realizations (dynamic attribute, see __getattr__)
     "WMAP1",
