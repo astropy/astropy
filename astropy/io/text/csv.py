@@ -2,6 +2,7 @@ import io
 import os
 from typing import TYPE_CHECKING, BinaryIO
 
+import astropy.io.registry
 import astropy.table as apt
 
 from . import core
@@ -230,3 +231,6 @@ def get_read_options(
         read_options.encoding = encoding
 
     return read_options
+
+
+astropy.io.registry.register_reader("text.csv", apt.Table, read_csv)
