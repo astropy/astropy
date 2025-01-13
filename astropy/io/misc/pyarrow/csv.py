@@ -105,37 +105,39 @@ def read_csv(
 
 
 def strip_comment_lines(
-    input_file: os.PathLike | str | BinaryIO, comment: str
-) -> BinaryIO:
-    """Strip comment lines from input_file.
+    input_file: os.PathLike | str | BinaryIO,
+    comment: str,
+    encoding: str,
+) -> io.BytesIO:
+    """
+    Remove lines starting with a specified comment string from a file.
 
-    A comment is any line that starts with optional whitespace followed by the comment
-    character.
+    If ``input_file`` is a file path, it will be opened in binary read mode. The
+    ``comment`` string is encoded to bytes using the default encoding for comparison with the file content.
 
     Parameters
     ----------
-    input_file : str, PathLike, or binary file-like object
-        File path or binary file-like object to read from.
-    comment: 1-character str
-        Character used to indicate the start of a comment. Any line starting with this
-        character is ignored.
+    input_file : os.PathLike, str, or BinaryIO
+        The input file path or file-like object to read from.
+    comment : str
+        The comment string that identifies lines to be removed.
 
     Returns
     -------
-    BinaryIO
-        BytesIO object with comments stripped.
+    io.BytesIO
+        A BytesIO object containing the filtered content with comment lines removed.
     """
+    comment_encode = comment.encode(encoding)
+    output = io.BytesIO()
     if isinstance(input_file, (str, os.PathLike)):
-        with open(input_file, "rb") as f:
-            lines = f.readlines()
-    else:
-        lines = input_file.readlines()
+        input_file = open(input_file, "rb")
 
-    comment_encode = comment.encode()
-    stripped_lines = [
-        line for line in lines if not line.lstrip().startswith(comment_encode)
-    ]
-    return io.BytesIO(b"".join(stripped_lines))
+    for line in input_file:
+        if not line.lstrip().startswith(comment_encode):
+            output.write(line)
+    output.seek(0)
+
+    return output
 
 
 def get_convert_options(
