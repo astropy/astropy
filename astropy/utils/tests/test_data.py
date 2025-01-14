@@ -1060,10 +1060,11 @@ def test_data_noastropy_fallback(monkeypatch):
 
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
-    def osraiser(dirnm, linkto, pkgname=None):
+    @classmethod
+    def osraiser(cls, linkto, pkgname=None):
         raise OSError()
 
-    monkeypatch.setattr(paths, "_find_or_create_root_dir", osraiser)
+    monkeypatch.setattr(paths._SetTempPath, "_find_or_create_root_dir", osraiser)
 
     # make sure the config dir search fails
     with pytest.raises(OSError):
