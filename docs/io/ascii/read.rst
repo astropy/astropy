@@ -673,6 +673,7 @@ the basic reader, but header and data start in different lines of the file::
 
   >>> # Note: NoHeader is already included in astropy.io.ascii for convenience.
   >>> from astropy.io.ascii.basic import BasicHeader, BasicData, Basic
+  >>>
   >>> class NoHeaderHeader(BasicHeader):
   ...     """Reader for table header without a header
   ...
@@ -751,6 +752,7 @@ commented. So, we now want to make a writer that can write this format; for this
 not bother to work out how to read this format, but just raise an error on reading:
 
   >>> from astropy.io.ascii.fixedwidth import FixedWidthData, FixedWidth
+  >>>
   >>> class FixedWidthDataCommentedHeaderData(FixedWidthData):
   ...     def write(self, lines):
   ...         lines = super().write(lines)
@@ -758,6 +760,7 @@ not bother to work out how to read this format, but just raise an error on readi
   ...         for i in range(1, len(lines)):
   ...             lines[i] = ' ' * len(self.write_comment) + lines[i]
   ...         return lines
+  >>>
   >>> class FixedWidthCommentedHeader(FixedWidth):
   ...     _format_name = "fixed_width_commented_header"
   ...     _description = "Fixed width with commented header"
@@ -771,8 +774,8 @@ This new format is automatically added to the list of formats that can be read b
 the :ref:`io_registry` (note that our format has no mechanism to write out the units):
 
     >>> import sys
-    >>> from astropy.table import Table
     >>> import astropy.units as u
+    >>> from astropy.table import Table
     >>> tab = Table({'v': [15.4, 223.45] * u.km/u.s, 'type': ['star', 'jet']})
     >>> tab.write(sys.stdout, format='ascii.fixed_width', delimiter=None)
          v  type
@@ -801,6 +804,7 @@ of a reader, and then to modify the properties of this one reader instance
 in a function::
 
   >>> from astropy.io import ascii
+  >>>
   >>> def read_rdb_table(table):
   ...     reader = ascii.Basic()
   ...     reader.header.splitter.delimiter = '\t'
