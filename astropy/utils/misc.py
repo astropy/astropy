@@ -17,7 +17,9 @@ import sys
 import threading
 import traceback
 import unicodedata
+from collections import defaultdict
 from contextlib import contextmanager
+from itertools import chain
 from typing import TYPE_CHECKING
 
 from astropy.utils import deprecated
@@ -467,50 +469,32 @@ def did_you_mean(
         Returns the string "Did you mean X, Y, or Z?", or the empty
         string if no alternatives were found.
     """
-    if isinstance(s, str):
-        s = strip_accents(s)
-    s_lower = s.lower()
+    s_lower = strip_accents(s).lower()
 
     # Create a mapping from the lower case name to all capitalization
     # variants of that name.
-    candidates_lower = {}
+    candidates_lower = defaultdict(list)
     for candidate in candidates:
-        candidate_lower = candidate.lower()
-        candidates_lower.setdefault(candidate_lower, [])
-        candidates_lower[candidate_lower].append(candidate)
+        candidates_lower[candidate.lower()].append(candidate)
 
     # The heuristic here is to first try "singularizing" the word.  If
     # that doesn't match anything use difflib to find close matches in
     # original, lower and upper case.
-    if s_lower.endswith("s") and s_lower[:-1] in candidates_lower:
-        matches = [s_lower[:-1]]
-    else:
-        matches = difflib.get_close_matches(
-            s_lower, candidates_lower, n=n, cutoff=cutoff
-        )
+    matches: Iterable[str] = (
+        [s_lower[:-1]]
+        if s_lower.endswith("s") and s_lower[:-1] in candidates_lower
+        else difflib.get_close_matches(s_lower, candidates_lower, n=n, cutoff=cutoff)
+    )
 
-    if len(matches):
-        capitalized_matches = set()
-        for match in matches:
-            capitalized_matches.update(candidates_lower[match])
-        matches = capitalized_matches
-
-        if fix is not None:
-            mapped_matches = []
-            for match in matches:
-                mapped_matches.extend(fix(match))
-            matches = mapped_matches
-
-        matches = list(set(matches))
-        matches = sorted(matches)
-
-        if len(matches) == 1:
-            matches = matches[0]
-        else:
-            matches = ", ".join(matches[:-1]) + " or " + matches[-1]
-        return f"Did you mean {matches}?"
-
-    return ""
+    if not matches:
+        return ""
+    matches = chain.from_iterable(candidates_lower[match] for match in matches)
+    if fix is not None:
+        matches = chain.from_iterable(fix(match) for match in matches)
+    *first_matches, suggestion = sorted(set(matches))
+    if first_matches:
+        suggestion = ", ".join(first_matches) + " or " + suggestion
+    return f"Did you mean {suggestion}?"
 
 
 LOCALE_LOCK = threading.Lock()
