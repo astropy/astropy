@@ -4,6 +4,8 @@ A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
 
+from __future__ import annotations
+
 import contextlib
 import difflib
 import inspect
@@ -16,8 +18,12 @@ import threading
 import traceback
 import unicodedata
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 from astropy.utils import deprecated
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable
 
 __all__ = [
     "JsonCustomEncoder",
@@ -410,7 +416,7 @@ class JsonCustomEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def strip_accents(s):
+def strip_accents(s: str) -> str:
     """
     Remove accents from a Unicode string.
 
@@ -421,7 +427,13 @@ def strip_accents(s):
     )
 
 
-def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
+def did_you_mean(
+    s: str,
+    candidates: Iterable[str],
+    n: int = 3,
+    cutoff: float = 0.8,
+    fix: Callable[[str], list[str]] | None = None,
+) -> str:
     """
     When a string isn't found in a set of candidates, we can be nice
     to provide a list of alternatives in the exception.  This
@@ -431,7 +443,9 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
     ----------
     s : str
 
-    candidates : sequence of str or dict of str keys
+    candidates : iterable of str
+        Note that str itself does not cause an error, but the output
+        might not be what was expected.
 
     n : int
         The maximum number of results to include.  See
@@ -444,7 +458,7 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
 
     fix : callable
         A callable to modify the results after matching.  It should
-        take a single string and return a sequence of strings
+        take a single string and return a list of strings
         containing the fixed matches.
 
     Returns
