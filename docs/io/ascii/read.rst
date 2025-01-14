@@ -671,74 +671,75 @@ one class that handles the data, and a reader class that ties it all together.
 Here is an example from the code that defines a reader that is just like
 the basic reader, but header and data start in different lines of the file::
 
-  # Note: NoHeader is already included in astropy.io.ascii for convenience.
-  class NoHeaderHeader(BasicHeader):
-      """Reader for table header without a header
-
-      Set the start of header line number to `None`, which tells the basic
-      reader there is no header line.
-      """
-      start_line = None
-
-  class NoHeaderData(BasicData):
-      """Reader for table data without a header
-
-      Data starts at first uncommented line since there is no header line.
-      """
-      start_line = 0
-
-  class NoHeader(Basic):
-      """Read a table with no header line.  Columns are autonamed using
-      header.auto_format which defaults to "col%d".  Otherwise this reader
-      the same as the :class:`Basic` class from which it is derived.  Example::
-
-        # Table data
-        1 2 "hello there"
-        3 4 world
-      """
-      _format_name = 'no_header'
-      _description = 'Basic table with no headers'
-      header_class = NoHeaderHeader
-      data_class = NoHeaderData
+  >>> # Note: NoHeader is already included in astropy.io.ascii for convenience.
+  >>> from astropy.io.ascii.basic import BasicHeader, BasicData, Basic
+  >>> class NoHeaderHeader(BasicHeader):
+  ...     """Reader for table header without a header
+  ...
+  ...     Set the start of header line number to `None`, which tells the basic
+  ...     reader there is no header line.
+  ...     """
+  ...     start_line = None
+  >>>
+  >>> class NoHeaderData(BasicData):
+  ...     """Reader for table data without a header
+  ...
+  ...     Data starts at first uncommented line since there is no header line.
+  ...     """
+  ...     start_line = 0
+  >>>
+  >>> class NoHeader(Basic):
+  ...     """Read a table with no header line.  Columns are autonamed using
+  ...     header.auto_format which defaults to "col%d".  Otherwise this reader
+  ...     the same as the :class:`Basic` class from which it is derived.  Example::
+  ...
+  ...       # Table data
+  ...       1 2 "hello there"
+  ...       3 4 world
+  ...     """
+  ...     _format_name = 'custom_no_header'
+  ...     _description = 'Basic table with no headers'
+  ...     header_class = NoHeaderHeader
+  ...     data_class = NoHeaderData
 
 In a slightly more involved case, the implementation can also override some of
 the methods in the base class::
 
-  # Note: CommentedHeader is already included in astropy.io.ascii for convenience.
-  class CommentedHeaderHeader(BasicHeader):
-      """Header class for which the column definition line starts with the
-      comment character.  See the :class:`CommentedHeader` class  for an example.
-      """
-      def process_lines(self, lines):
-          """Return only lines that start with the comment regexp.  For these
-          lines strip out the matching characters."""
-          re_comment = re.compile(self.comment)
-          for line in lines:
-              match = re_comment.match(line)
-              if match:
-                  yield line[match.end():]
-
-      def write(self, lines):
-          lines.append(self.write_comment + self.splitter.join(self.colnames))
-
-
-  class CommentedHeader(Basic):
-      """Read a file where the column names are given in a line that begins with
-      the header comment character. ``header_start`` can be used to specify the
-      line index of column names, and it can be a negative index (for example -1
-      for the last commented line).  The default delimiter is the <space>
-      character.::
-
-        # col1 col2 col3
-        # Comment line
-        1 2 3
-        4 5 6
-      """
-      _format_name = 'commented_header'
-      _description = 'Column names in a commented line'
-
-      header_class = CommentedHeaderHeader
-      data_class = NoHeaderData
+  >>> # Note: CommentedHeader is already included in astropy.io.ascii for convenience.
+  >>> class CommentedHeaderHeader(BasicHeader):
+  ...     """Header class for which the column definition line starts with the
+  ...     comment character.  See the :class:`CommentedHeader` class  for an example.
+  ...     """
+  ...     def process_lines(self, lines):
+  ...         """Return only lines that start with the comment regexp.  For these
+  ...         lines strip out the matching characters."""
+  ...         re_comment = re.compile(self.comment)
+  ...         for line in lines:
+  ...             match = re_comment.match(line)
+  ...             if match:
+  ...                 yield line[match.end():]
+  ...
+  ...     def write(self, lines):
+  ...         lines.append(self.write_comment + self.splitter.join(self.colnames))
+  >>>
+  >>>
+  >>> class CommentedHeader(Basic):
+  ...     """Read a file where the column names are given in a line that begins with
+  ...     the header comment character. ``header_start`` can be used to specify the
+  ...     line index of column names, and it can be a negative index (for example -1
+  ...     for the last commented line).  The default delimiter is the <space>
+  ...     character.::
+  ...
+  ...       # col1 col2 col3
+  ...       # Comment line
+  ...       1 2 3
+  ...       4 5 6
+  ...     """
+  ...     _format_name = 'custom_commented_header'
+  ...     _description = 'Column names in a commented line'
+  ...
+  ...     header_class = CommentedHeaderHeader
+  ...     data_class = NoHeaderData
 
 **Application: Write a "fixed_width" table with a "commented_header"**
 
@@ -750,7 +751,7 @@ commented. So, we now want to make a writer that can write this format; for this
 not bother to work out how to read this format, but just raise an error on reading:
 
   >>> from astropy.io.ascii.fixedwidth import FixedWidthData, FixedWidth
-  >>> class FixedWidthDataCommentedHeader(FixedWidthData):
+  >>> class FixedWidthDataCommentedHeaderData(FixedWidthData):
   ...     def write(self, lines):
   ...         lines = super().write(lines)
   ...         lines[0] = self.write_comment + lines[0]
@@ -761,7 +762,7 @@ not bother to work out how to read this format, but just raise an error on readi
   ...     _format_name = "fixed_width_commented_header"
   ...     _description = "Fixed width with commented header"
   ...
-  ...     data_class = FixedWidthDataCommentedHeader
+  ...     data_class = FixedWidthDataCommentedHeaderData
   ...
   ...     def read(self, table):
   ...         raise NotImplementedError
@@ -789,8 +790,9 @@ the :ref:`io_registry` (note that our format has no mechanism to write out the u
 .. testcleanup::
 
     >>> from astropy.io import registry
-    >>> registry.unregister_reader("ascii.fixed_width_commented_header", Table)
-    >>> registry.unregister_writer("ascii.fixed_width_commented_header", Table)
+    >>> for format_name in ['custom_no_header', 'custom_commented_header', 'fixed_width_commented_header']:
+    ...     registry.unregister_reader(f"ascii.{format_name}", Table)
+    ...     registry.unregister_writer(f"ascii.{format_name}", Table)
 
 **Define a custom reader functionally**
 
@@ -798,33 +800,34 @@ Instead of defining a new class, it is also possible to obtain an instance
 of a reader, and then to modify the properties of this one reader instance
 in a function::
 
-   def read_rdb_table(table):
-       reader = astropy.io.ascii.Basic()
-       reader.header.splitter.delimiter = '\t'
-       reader.data.splitter.delimiter = '\t'
-       reader.header.splitter.process_line = None
-       reader.data.splitter.process_line = None
-       reader.data.start_line = 2
-
-       return reader.read(table)
+  >>> from astropy.io import ascii
+  >>> def read_rdb_table(table):
+  ...     reader = ascii.Basic()
+  ...     reader.header.splitter.delimiter = '\t'
+  ...     reader.data.splitter.delimiter = '\t'
+  ...     reader.header.splitter.process_line = None
+  ...     reader.data.splitter.process_line = None
+  ...     reader.data.start_line = 2
+  ...
+  ...     return reader.read(table)
 
 
 **Create a custom splitter.process_val function**
 ::
 
-   # The default process_val() normally just strips whitespace.
-   # In addition have it replace empty fields with -999.
-   def process_val(x):
-       """Custom splitter process_val function: Remove whitespace at the beginning
-       or end of value and substitute -999 for any blank entries."""
-       x = x.strip()
-       if x == '':
-           x = '-999'
-       return x
-
-   # Create an RDB reader and override the splitter.process_val function
-   rdb_reader = astropy.io.ascii.get_reader(reader_cls=astropy.io.ascii.Rdb)
-   rdb_reader.data.splitter.process_val = process_val
+   >>> # The default process_val() normally just strips whitespace.
+   >>> # In addition have it replace empty fields with -999.
+   >>> def process_val(x):
+   ...     """Custom splitter process_val function: Remove whitespace at the beginning
+   ...     or end of value and substitute -999 for any blank entries."""
+   ...     x = x.strip()
+   ...     if x == '':
+   ...         x = '-999'
+   ...     return x
+   >>>
+   >>> # Create an RDB reader and override the splitter.process_val function
+   >>> rdb_reader = ascii.get_reader(reader_cls=ascii.Rdb)
+   >>> rdb_reader.data.splitter.process_val = process_val
 
 ..
   EXAMPLE END
@@ -869,6 +872,13 @@ Examples
   EXAMPLE START
   Reading Large Tables in Chunks with astropy.io.ascii
 
+.. testsetup::
+
+   >>> # For performance we don't actually make a > 100 MB table.
+   >>> # The code works this way, too.
+   >>> tab = Table({'Vmag': [7] * 10})
+   >>> tab.write('large_table.csv')
+
 To read an entire table while limiting peak memory usage:
 ::
 
@@ -899,6 +909,11 @@ them at the end.
           out_tbls.append(tbl[bright])
 
   out_tbl = vstack(out_tbls)
+
+.. testcleanup::
+
+      >>> import pathlib
+      >>> pathlib.Path.unlink('large_table.csv')
 
 .. Note:: **Performance**
 
