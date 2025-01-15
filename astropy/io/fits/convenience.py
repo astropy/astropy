@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-"""Convenience functions for working with FITS files.
-
+"""
 Convenience functions
 =====================
 
@@ -80,19 +79,19 @@ from .util import (
 )
 
 __all__ = [
-    "append",
-    "delval",
-    "getdata",
     "getheader",
+    "getdata",
     "getval",
-    "info",
-    "printdiff",
     "setval",
-    "table_to_hdu",
+    "delval",
+    "writeto",
+    "append",
+    "update",
+    "info",
     "tabledump",
     "tableload",
-    "update",
-    "writeto",
+    "table_to_hdu",
+    "printdiff",
 ]
 
 
@@ -117,6 +116,7 @@ def getheader(filename, *args, **kwargs):
     -------
     header : `Header` object
     """
+
     mode, closed = _get_file_mode(filename)
     hdulist, extidx = _getext(filename, mode, *args, **kwargs)
     try:
@@ -208,6 +208,7 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None, **k
     IndexError
         If no data is found in searched HDUs.
     """
+
     mode, closed = _get_file_mode(filename)
 
     ext = kwargs.get("ext")
@@ -291,6 +292,7 @@ def getval(filename, keyword, *args, **kwargs):
     -------
     keyword value : str, int, or float
     """
+
     if "do_not_scale_image_data" not in kwargs:
         kwargs["do_not_scale_image_data"] = True
 
@@ -362,6 +364,7 @@ def setval(
         = True`` when opening the file so that values can be retrieved from the
         unmodified header.
     """
+
     if "do_not_scale_image_data" not in kwargs:
         kwargs["do_not_scale_image_data"] = True
 
@@ -381,6 +384,7 @@ def delval(filename, keyword, *args, **kwargs):
 
     Parameters
     ----------
+
     filename : path-like or file-like
         Name of the FITS file, or file object If opened, mode must be update
         (rb+).  An opened file object or `~gzip.GzipFile` object will be closed
@@ -399,6 +403,7 @@ def delval(filename, keyword, *args, **kwargs):
         = True`` when opening the file so that values can be retrieved from the
         unmodified header.
     """
+
     if "do_not_scale_image_data" not in kwargs:
         kwargs["do_not_scale_image_data"] = True
 
@@ -450,14 +455,8 @@ def writeto(
     checksum : bool, optional
         If `True`, adds both ``DATASUM`` and ``CHECKSUM`` cards to the
         headers of all HDU's written to the file.
-
-    Notes
-    -----
-    gzip, zip and bzip2 compression algorithms are natively supported.
-    Compression mode is determined from the filename extension
-    ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
-    compressed file object, e.g. `gzip.GzipFile`.
     """
+
     hdu = _makehdu(data, header)
     if hdu.is_image and not isinstance(hdu, PrimaryHDU):
         hdu = PrimaryHDU(data, header=header)
@@ -548,13 +547,12 @@ def table_to_hdu(table, character_as_bytes=False):
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
             # with non-default fill values in FITS (if at all possible).
-            # Be careful that we do not set null for columns that were not masked!
             int_formats = ("B", "I", "J", "K")
-            if (
-                col.format in int_formats or col.format.p_format in int_formats
-            ) and hasattr(table[col.name], "mask"):
-                fill_value = tarray[col.name].fill_value
-                col.null = fill_value.astype(int)
+            if not (col.format in int_formats or col.format.p_format in int_formats):
+                continue
+
+            fill_value = tarray[col.name].fill_value
+            col.null = fill_value.astype(int)
     else:
         table_hdu = BinTableHDU.from_columns(
             tarray, header=hdr, character_as_bytes=character_as_bytes
@@ -629,7 +627,7 @@ def table_to_hdu(table, character_as_bytes=False):
             setattr(col, attr, col_info.get(attr, None))
         trpos = col_info.get("time_ref_pos", None)
         if trpos is not None:
-            col.time_ref_pos = trpos
+            setattr(col, "time_ref_pos", trpos)
 
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
@@ -777,6 +775,7 @@ def update(filename, data, *args, **kwargs):
         Any additional keyword arguments to be passed to
         `astropy.io.fits.open`.
     """
+
     # The arguments to this function are a bit trickier to deal with than others
     # in this module, since the documentation has promised that the header
     # argument can be an optional positional argument.
@@ -822,6 +821,7 @@ def info(filename, output=None, **kwargs):
         `astropy.io.fits.open`.
         *Note:* This function sets ``ignore_missing_end=True`` by default.
     """
+
     mode, closed = _get_file_mode(filename, default="readonly")
     # Set the default value for the ignore_missing_end parameter
     if "ignore_missing_end" not in kwargs:
@@ -897,6 +897,7 @@ def printdiff(inputa, inputb, *args, **kwargs):
     To save the diff report to a file please use `~astropy.io.fits.FITSDiff`
     directly.
     """
+
     # Pop extension keywords
     extension = {
         key: kwargs.pop(key) for key in ["ext", "extname", "extver"] if key in kwargs
@@ -986,6 +987,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1, overwrite
     `tableload` function can be used to reassemble the table from the
     three ASCII files.
     """
+
     # allow file object to already be opened in any of the valid modes
     # and leave the file in the same state (opened or closed) as when
     # the function was called
@@ -1041,6 +1043,7 @@ def tableload(datafile, cdfile, hfile=None):
     data and parameters.  The tabledump function can be used to create the
     initial ASCII files.
     """
+
     return BinTableHDU.load(datafile, cdfile, hfile, replace=True)
 
 
@@ -1055,6 +1058,7 @@ def _getext(filename, mode, *args, ext=None, extname=None, extver=None, **kwargs
     This supports several different styles of extension selection.  See the
     :func:`getdata()` documentation for the different possibilities.
     """
+
     err_msg = "Redundant/conflicting extension arguments(s): {}".format(
         {"args": args, "ext": ext, "extname": extname, "extver": extver}
     )
@@ -1165,6 +1169,7 @@ def _get_file_mode(filename, default="readonly"):
     and leave the file in the same state (opened or closed) as when
     the function was called.
     """
+
     mode = default
     closed = fileobj_closed(filename)
 
@@ -1173,8 +1178,8 @@ def _get_file_mode(filename, default="readonly"):
         mode = FILE_MODES.get(fmode)
         if mode is None:
             raise OSError(
-                f"File mode of the input file object ({fmode!r}) cannot be used to "
-                "read/write FITS files."
+                "File mode of the input file object ({!r}) cannot be used to "
+                "read/write FITS files.".format(fmode)
             )
 
     return mode, closed

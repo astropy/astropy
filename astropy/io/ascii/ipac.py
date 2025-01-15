@@ -8,8 +8,9 @@ ipac.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
+
 import re
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from textwrap import wrap
 from warnings import warn
 
@@ -64,7 +65,7 @@ class IpacHeaderSplitter(core.BaseSplitter):
 
 
 class IpacHeader(fixedwidth.FixedWidthHeader):
-    """IPAC table header."""
+    """IPAC table header"""
 
     splitter_class = IpacHeaderSplitter
 
@@ -85,8 +86,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
-        delimiter character (with trailing whitespace stripped).
-        """
+        delimiter character (with trailing whitespace stripped)"""
         delim = self.splitter.delimiter
         for line in lines:
             line = line.rstrip()
@@ -96,7 +96,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     def update_meta(self, lines, meta):
         """
         Extract table-level comments and keywords for IPAC table.  See:
-        https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw.
+        https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw
         """
 
         def process_keyword_value(val):
@@ -121,7 +121,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
         table_meta = meta["table"]
         table_meta["comments"] = []
-        table_meta["keywords"] = {}
+        table_meta["keywords"] = OrderedDict()
         keywords = table_meta["keywords"]
 
         # fmt: off
@@ -163,9 +163,10 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         for col_type_key, col_type in self.col_type_list:
             if col_type_key.startswith(col.raw_type.lower()):
                 return col_type
-        raise ValueError(
-            f'Unknown data type ""{col.raw_type}"" for column "{col.name}"'
-        )
+        else:
+            raise ValueError(
+                f'Unknown data type ""{col.raw_type}"" for column "{col.name}"'
+            )
 
     def get_cols(self, lines):
         """
@@ -182,7 +183,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         """
         # generator returning valid header lines
         header_lines = self.process_lines(lines)
-        header_vals = list(self.splitter(header_lines))
+        header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
             raise ValueError(
                 "At least one header line beginning and ending with delimiter required"
@@ -314,8 +315,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         The width of each column is determined in Ipac.write. Writing the header
         must be delayed until that time.
         This function is called from there, once the width information is
-        available.
-        """
+        available."""
+
         for vals in self.str_vals():
             lines.append(self.splitter.join(vals, widths))
         return lines
@@ -328,7 +329,7 @@ class IpacDataSplitter(fixedwidth.FixedWidthSplitter):
 
 
 class IpacData(fixedwidth.FixedWidthData):
-    """IPAC table data reader."""
+    """IPAC table data reader"""
 
     comment = r"[|\\]"
     start_line = 0
@@ -336,7 +337,7 @@ class IpacData(fixedwidth.FixedWidthData):
     fill_values = [(core.masked, "null")]
 
     def write(self, lines, widths, vals_list):
-        """IPAC writer, modified from FixedWidth writer."""
+        """IPAC writer, modified from FixedWidth writer"""
         for vals in vals_list:
             lines.append(self.splitter.join(vals, widths))
         return lines
@@ -448,7 +449,6 @@ class Ipac(basic.Basic):
         `IPAC <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
         definition.
     """
-
     _format_name = "ipac"
     _io_registry_format_aliases = ["ipac"]
     _io_registry_can_write = True
@@ -507,17 +507,17 @@ class Ipac(basic.Basic):
         # Write header and data to lines list
         lines = []
         # Write meta information
-        raw_comments = table.meta.get("comments", [])
-        for comment in raw_comments:
-            lines.extend(
-                wrap(str(comment), 80, initial_indent="\\ ", subsequent_indent="\\ ")
-            )
-        if len(lines) > len(raw_comments):
-            warn(
-                "Wrapping comment lines > 78 characters produced "
-                f"{len(lines) - len(raw_comments)} extra line(s)",
-                AstropyUserWarning,
-            )
+        if "comments" in table.meta:
+            for comment in table.meta["comments"]:
+                if len(str(comment)) > 78:
+                    warn(
+                        "Comment string > 78 characters was automatically wrapped.",
+                        AstropyUserWarning,
+                    )
+                for line in wrap(
+                    str(comment), 80, initial_indent="\\ ", subsequent_indent="\\ "
+                ):
+                    lines.append(line)
         if "keywords" in table.meta:
             keydict = table.meta["keywords"]
             for keyword in keydict:
@@ -551,11 +551,18 @@ class Ipac(basic.Basic):
         for i, col in enumerate(table.columns.values()):
             col.headwidth = max(len(vals[i]) for vals in self.header.str_vals())
         # keep data_str_vals because they take some time to make
-        data_str_vals = list(zip(*self.data.str_vals()))
+        data_str_vals = []
+        col_str_iters = self.data.str_vals()
+        for vals in zip(*col_str_iters):
+            data_str_vals.append(vals)
 
         for i, col in enumerate(table.columns.values()):
+            # FIXME: In Python 3.4, use max([], default=0).
             # See: https://docs.python.org/3/library/functions.html#max
-            col.width = max([len(vals[i]) for vals in data_str_vals], default=0)
+            if data_str_vals:
+                col.width = max(len(vals[i]) for vals in data_str_vals)
+            else:
+                col.width = 0
 
         widths = [max(col.width, col.headwidth) for col in table.columns.values()]
         # then write table

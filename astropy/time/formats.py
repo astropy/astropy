@@ -1,70 +1,66 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import datetime
 import fnmatch
-import functools
 import re
 import time
 import warnings
+from collections import OrderedDict, defaultdict
 from decimal import Decimal
 
 import erfa
 import numpy as np
 
 import astropy.units as u
-from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 from astropy.utils.decorators import classproperty, lazyproperty
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
-from astropy.utils.masked import Masked
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from . import _parse_times, conf, utils
 from .utils import day_frac, quantity_day_frac, two_product, two_sum
 
 __all__ = [
-    "TIME_DELTA_FORMATS",
-    "TIME_FORMATS",
-    "AstropyDatetimeLeapSecondWarning",
-    "TimeBesselianEpoch",
-    "TimeBesselianEpochString",
-    "TimeCxcSec",
-    "TimeDatetime",
-    "TimeDatetime64",
-    "TimeDecimalYear",
-    "TimeDeltaDatetime",
-    "TimeDeltaFormat",
-    "TimeDeltaJD",
-    "TimeDeltaNumeric",
-    "TimeDeltaQuantityString",
-    "TimeDeltaSec",
-    "TimeEpochDate",
-    "TimeEpochDateString",
-    "TimeFITS",
     "TimeFormat",
-    "TimeFromEpoch",
-    "TimeGPS",
-    "TimeISO",
-    "TimeISOT",
     "TimeJD",
-    "TimeJulianEpoch",
-    "TimeJulianEpochString",
     "TimeMJD",
-    "TimeNumeric",
-    "TimePlotDate",
-    "TimeString",
-    "TimeUnique",
+    "TimeFromEpoch",
     "TimeUnix",
     "TimeUnixTai",
-    "TimeYMDHMS",
+    "TimeCxcSec",
+    "TimeGPS",
+    "TimeDecimalYear",
+    "TimePlotDate",
+    "TimeUnique",
+    "TimeDatetime",
+    "TimeString",
+    "TimeISO",
+    "TimeISOT",
+    "TimeFITS",
     "TimeYearDayTime",
+    "TimeEpochDate",
+    "TimeBesselianEpoch",
+    "TimeJulianEpoch",
+    "TimeDeltaFormat",
+    "TimeDeltaSec",
+    "TimeDeltaJD",
+    "TimeEpochDateString",
+    "TimeBesselianEpochString",
+    "TimeJulianEpochString",
+    "TIME_FORMATS",
+    "TIME_DELTA_FORMATS",
     "TimezoneInfo",
+    "TimeDeltaDatetime",
+    "TimeDatetime64",
+    "TimeYMDHMS",
+    "TimeNumeric",
+    "TimeDeltaNumeric",
 ]
 
 __doctest_skip__ = ["TimePlotDate"]
 
 # These both get filled in at end after TimeFormat subclasses defined.
-# It is important that these get populated by insertion order.
+# Use an OrderedDict to fix the order in which formats are tried.
 # This ensures, e.g., that 'isot' gets tried before 'fits'.
-TIME_FORMATS = {}
-TIME_DELTA_FORMATS = {}
+TIME_FORMATS = OrderedDict()
+TIME_DELTA_FORMATS = OrderedDict()
 
 # Translations between deprecated FITS timescales defined by
 # Rots et al. 2015, A&A 574:A36, and timescales used here.
@@ -75,10 +71,6 @@ FITS_DEPRECATED_SCALES = {
     "UT": "utc",
     "IAT": "tai",
 }
-
-
-class AstropyDatetimeLeapSecondWarning(AstropyUserWarning):
-    """Warning for leap second when converting to datetime.datetime object."""
 
 
 def _regexify_subfmts(subfmts):
@@ -124,8 +116,6 @@ class TimeFormat:
     ----------
     val1 : numpy ndarray, list, number, str, or bytes
         Values to initialize the time or times.  Bytes are decoded as ascii.
-        Quantities with time units are allowed for formats where the
-        interpretation is unambiguous.
     val2 : numpy ndarray, list, or number; optional
         Value(s) to initialize the time or times.  Only used for numerical
         input, to help preserve precision.
@@ -142,16 +132,8 @@ class TimeFormat:
     """
 
     _default_scale = "utc"  # As of astropy 0.4
-    _default_precision = 3
-    _min_precision = 0
-    _max_precision = 9
-
     subfmts = ()
     _registry = TIME_FORMATS
-
-    # Check that numeric inputs are finite (not nan or inf). This is overridden in
-    # subclasses in which nan and inf are valid inputs.
-    _check_finite = True
 
     def __init__(
         self, val1, val2, scale, precision, in_subfmt, out_subfmt, from_jd=False
@@ -245,24 +227,12 @@ class TimeFormat:
         if self._jd1 is not None:
             self._jd1, self._jd2 = _broadcast_writeable(self._jd1, self._jd2)
 
-    @classmethod
-    @functools.cache
-    def fill_value(cls, subfmt):
-        """
-        Return a value corresponding to J2000 (2000-01-01 12:00:00) in this format.
-
-        This is used as a fill value for masked arrays to ensure that any ERFA
-        operations on the masked array will not fail due to the masked value.
-        """
-        tm = Time(2451545.0, format="jd", scale="utc")
-        return tm.to_value(format=cls.name, subfmt=subfmt)
-
     def __len__(self):
         return len(self.jd1)
 
     @property
     def scale(self):
-        """Time scale."""
+        """Time scale"""
         self._scale = self._check_scale(self._scale)
         return self._scale
 
@@ -270,28 +240,49 @@ class TimeFormat:
     def scale(self, val):
         self._scale = val
 
+    def mask_if_needed(self, value):
+        if self.masked:
+            value = np.ma.array(value, mask=self.mask, copy=False)
+        return value
+
+    @property
+    def mask(self):
+        if "mask" not in self.cache:
+            self.cache["mask"] = np.isnan(self.jd2)
+            if self.cache["mask"].shape:
+                self.cache["mask"].flags.writeable = False
+        return self.cache["mask"]
+
+    @property
+    def masked(self):
+        if "masked" not in self.cache:
+            self.cache["masked"] = bool(np.any(self.mask))
+        return self.cache["masked"]
+
+    @property
+    def jd2_filled(self):
+        return np.nan_to_num(self.jd2) if self.masked else self.jd2
+
     @property
     def precision(self):
         return self._precision
 
     @precision.setter
     def precision(self, val):
-        if val is None:
-            val = self._default_precision
         # Verify precision is 0-9 (inclusive)
-        if not (
-            isinstance(val, int) and self._min_precision <= val <= self._max_precision
-        ):
-            raise ValueError(
-                "precision attribute must be an int between "
-                f"{self._min_precision} and {self._max_precision}"
-            )
+        if not isinstance(val, int) or val < 0 or val > 9:
+            raise ValueError("precision attribute must be an int between 0 and 9")
         self._precision = val
 
-    def _check_finite_vals(self, val1, val2):
-        """A helper function to TimeFormat._check_val_type that's meant to be
-        optionally bypassed in subclasses that have _check_finite=False
+    @lazyproperty
+    def cache(self):
         """
+        Return the cache associated with this instance.
+        """
+        return defaultdict(dict)
+
+    def _check_val_type(self, val1, val2):
+        """Input value validation, typically overridden by derived classes"""
         # val1 cannot contain nan, but val2 can contain nan
         isfinite1 = np.isfinite(val1)
         if val1.size > 1:  # Calling .all() on a scalar is surprisingly slow
@@ -301,8 +292,11 @@ class TimeFormat:
         elif val1.size == 0:
             isfinite1 = False
         ok1 = (
-            val1.dtype.kind == "f" and val1.dtype.itemsize >= 8 and isfinite1
-        ) or val1.size == 0
+            val1.dtype.kind == "f"
+            and val1.dtype.itemsize >= 8
+            and isfinite1
+            or val1.size == 0
+        )
         ok2 = (
             val2 is None
             or (
@@ -316,11 +310,6 @@ class TimeFormat:
             raise TypeError(
                 f"Input values for {self.name} class must be finite doubles"
             )
-
-    def _check_val_type(self, val1, val2):
-        """Input value validation, typically overridden by derived classes."""
-        if self.__class__._check_finite:
-            self._check_finite_vals(val1, val2)
 
         if getattr(val1, "unit", None) is not None:
             # Convert any quantity-likes to days first, attempting to be
@@ -360,7 +349,7 @@ class TimeFormat:
             Remove ndarray subclasses since for jd1/jd2 we want a pure ndarray
             or a Python or numpy scalar.
             """
-            return val.view(np.ndarray) if isinstance(val, np.ndarray) else val
+            return np.asarray(val) if isinstance(val, np.ndarray) else val
 
         return asarray_or_scalar(val1), asarray_or_scalar(val2)
 
@@ -430,7 +419,7 @@ class TimeFormat:
         else:
             value = self.value
 
-        return value
+        return self.mask_if_needed(value)
 
     @property
     def value(self):
@@ -465,52 +454,6 @@ class TimeFormat:
 
         return subfmts
 
-    @classmethod
-    def _fill_masked_values(cls, val, val2, mask, in_subfmt):
-        """Fill masked values with the fill value for this format.
-
-        This also takes care of broadcasting the outputs to the correct shape.
-
-        Parameters
-        ----------
-        val : ndarray
-            Array of values
-        val2 : ndarray, None
-            Array of second values (or None)
-        mask : ndarray
-            Mask array
-        in_subfmt : str
-            Input subformat
-
-        Returns
-        -------
-        val, val2 : ndarray
-            Arrays with masked values filled with the fill value for this format.
-            These are copies of the originals.
-        """
-        if val2 is None:
-            val, mask = np.broadcast_arrays(val, mask)
-        else:
-            val, val2, mask = np.broadcast_arrays(val, val2, mask)
-            val2 = val2.copy()
-            val2[mask] = np.zeros_like(val2, shape=())
-
-        # Fill value needs to comply with the specified input subformat. Usually this
-        # is "*" for any matching input, but for a custom subformat the fill value
-        # needs to be compatible with the specified subformat.
-        fill_value = cls.fill_value(in_subfmt)
-
-        # For string types ensure that the numpy string length is long enough to
-        # hold the fill value for the specified subformat.
-        if (val_kind := val.dtype.kind) in ("U", "S") and (
-            new_width := len(fill_value)
-        ) > val.dtype.itemsize // (4 if val_kind == "U" else 1):
-            val = val.astype(f"{val_kind}{new_width}")  # Makes copy.
-        else:
-            val = val.copy()
-        val[mask] = fill_value
-        return val, val2
-
 
 class TimeNumeric(TimeFormat):
     subfmts = (
@@ -522,7 +465,7 @@ class TimeNumeric(TimeFormat):
     )
 
     def _check_val_type(self, val1, val2):
-        """Input value validation, typically overridden by derived classes."""
+        """Input value validation, typically overridden by derived classes"""
         # Save original state of val2 because the super()._check_val_type below
         # may change val2 from None to np.array(0). The value is saved in order
         # to prevent a useless and slow call to np.result_type() below in the
@@ -588,7 +531,8 @@ class TimeNumeric(TimeFormat):
             digits = int(np.ceil(np.log10(unit / np.finfo(float).eps)))
             # TODO: allow a way to override the format.
             kwargs["fmt"] = f".{digits}f"
-        return subfmt[3](jd1, jd2, **kwargs)
+        value = subfmt[3](jd1, jd2, **kwargs)
+        return self.mask_if_needed(value)
 
     value = property(to_value)
 
@@ -596,7 +540,6 @@ class TimeNumeric(TimeFormat):
 class TimeJD(TimeNumeric):
     """
     Julian Date time format.
-
     This represents the number of days since the beginning of
     the Julian Period.
     For example, 2451544.5 in JD is midnight on January 1, 2000.
@@ -612,7 +555,6 @@ class TimeJD(TimeNumeric):
 class TimeMJD(TimeNumeric):
     """
     Modified Julian Date time format.
-
     This represents the number of days since midnight on November 17, 1858.
     For example, 51544.0 in MJD is midnight on January 1, 2000.
     """
@@ -633,47 +575,14 @@ class TimeMJD(TimeNumeric):
     value = property(to_value)
 
 
-def _check_val_type_not_quantity(format_name, val1, val2):
-    # If val2 is a Quantity, the super() call that follows this check
-    # will raise a TypeError.
-    if hasattr(val1, "to") and getattr(val1, "unit", None) is not None:
-        raise ValueError(
-            f"cannot use Quantities for {format_name!r} format, as the unit of year "
-            "is defined as 365.25 days, while the length of year is variable "
-            "in this format. Use float instead."
-        )
-
-
 class TimeDecimalYear(TimeNumeric):
     """
-    Time as a decimal year, with integer values corresponding to midnight of the first
-    day of each year.
-
-    The fractional part represents the exact fraction of the year, considering the
-    precise number of days in the year (365 or 366). The following example shows
-    essentially how the decimal year is computed::
-
-      >>> from astropy.time import Time
-      >>> tm = Time("2024-04-05T12:34:00")
-      >>> tm0 = Time("2024-01-01T00:00:00")
-      >>> tm1 = Time("2025-01-01T00:00:00")
-      >>> print(2024 + (tm.jd - tm0.jd) / (tm1.jd - tm0.jd))  # doctest: +FLOAT_CMP
-      2024.2609934729812
-      >>> print(tm.decimalyear)  # doctest: +FLOAT_CMP
-      2024.2609934729812
-
-    Since for this format the length of the year varies between 365 and 366 days, it is
-    not possible to use Quantity input, in which a year is always 365.25 days.
-
-    This format is convenient for low-precision applications or for plotting data.
+    Time as a decimal year, with integer values corresponding to midnight
+    of the first day of each year.  For example 2000.5 corresponds to the
+    ISO time '2000-07-02 00:00:00'.
     """
 
     name = "decimalyear"
-
-    def _check_val_type(self, val1, val2):
-        _check_val_type_not_quantity(self.name, val1, val2)
-        # if val2 is a Quantity, super() will raise a TypeError.
-        return super()._check_val_type(val1, val2)
 
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
@@ -706,8 +615,9 @@ class TimeDecimalYear(TimeNumeric):
 
     def to_value(self, **kwargs):
         scale = self.scale.upper().encode("ascii")
-        # precision=0
-        iy_start, ims, ids, ihmsfs = erfa.d2dtf(scale, 0, self.jd1, self.jd2)
+        iy_start, ims, ids, ihmsfs = erfa.d2dtf(
+            scale, 0, self.jd1, self.jd2_filled  # precision=0
+        )
         imon = np.ones_like(iy_start)
         iday = np.ones_like(iy_start)
         ihr = np.zeros_like(iy_start)
@@ -732,7 +642,7 @@ class TimeDecimalYear(TimeNumeric):
 class TimeFromEpoch(TimeNumeric):
     """
     Base class for times that represent the interval from a particular
-    epoch as a numerical multiple of a unit time interval (e.g. seconds
+    epoch as a floating point multiple of a unit time interval (e.g. seconds
     or days).
     """
 
@@ -750,7 +660,7 @@ class TimeFromEpoch(TimeNumeric):
 
     @property
     def epoch(self):
-        """Reference epoch time from which the time interval is measured."""
+        """Reference epoch time from which the time interval is measured"""
         return self._epoch
 
     def set_jds(self, val1, val2):
@@ -891,21 +801,22 @@ class TimeUnixTai(TimeUnix):
 
     Examples
     --------
+
       >>> # get the current offset between TAI and UTC
       >>> from astropy.time import Time
       >>> t = Time('2020-01-01', scale='utc')
       >>> t.unix_tai - t.unix
-      np.float64(37.0)
+      37.0
 
       >>> # Before 1972, the offset between TAI and UTC was not integer
       >>> t = Time('1970-01-01', scale='utc')
       >>> t.unix_tai - t.unix  # doctest: +FLOAT_CMP
-      np.float64(8.000082)
+      8.000082
 
       >>> # Initial offset of 10 seconds in 1972
       >>> t = Time('1972-01-01', scale='utc')
       >>> t.unix_tai - t.unix
-      np.float64(10.0)
+      10.0
     """
 
     name = "unix_tai"
@@ -932,7 +843,7 @@ class TimeGPS(TimeFromEpoch):
     For example, 630720013.0 is midnight on January 1, 2000.
 
     Notes
-    -----
+    =====
     This implementation is strictly a representation of the number of seconds
     (including leap seconds) since midnight UTC on 1980-01-06.  GPS can also be
     considered as a time scale which is ahead of TAI by a fixed offset
@@ -952,19 +863,18 @@ class TimeGPS(TimeFromEpoch):
 
 class TimePlotDate(TimeFromEpoch):
     """
-    Input for a `~matplotlib.axes.Axes` object with ax.xaxis.axis_date():
-    1 + number of days from 0001-01-01 00:00:00 UTC.
+    Matplotlib `~matplotlib.pyplot.plot_date` input:
+    1 + number of days from 0001-01-01 00:00:00 UTC
 
-    This can be used as follow::
+    This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date`
+    function::
 
       >>> import matplotlib.pyplot as plt
       >>> jyear = np.linspace(2000, 2001, 20)
       >>> t = Time(jyear, format='jyear', scale='utc')
-      >>> fig, ax = plt.subplots()
-      >>> ax.xaxis.axis_date()
-      >>> ax.scatter(t.plot_date, jyear)
-      >>> fig.autofmt_xdate()  # orient date labels at a slant
-      >>> fig.show()
+      >>> plt.plot_date(t.plot_date, jyear)
+      >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant
+      >>> plt.draw()
 
     For example, 730120.0003703703 is midnight on January 1, 2000.
     """
@@ -980,10 +890,14 @@ class TimePlotDate(TimeFromEpoch):
 
     @lazyproperty
     def epoch(self):
-        """Reference epoch time from which the time interval is measured."""
-        if HAS_MATPLOTLIB:
+        """Reference epoch time from which the time interval is measured"""
+        try:
+            # Matplotlib >= 3.3 has a get_epoch() function
             from matplotlib.dates import get_epoch
-
+        except ImportError:
+            # If no get_epoch() then the epoch is '0001-01-01'
+            _epoch = self._epoch
+        else:
             # Get the matplotlib date epoch as an ISOT string in UTC
             epoch_utc = get_epoch()
             from erfa import ErfaWarning
@@ -993,9 +907,6 @@ class TimePlotDate(TimeFromEpoch):
                 warnings.filterwarnings("ignore", category=ErfaWarning)
                 _epoch = Time(epoch_utc, scale="utc", format="isot")
             _epoch.format = "jd"
-        else:
-            # If matplotlib is not installed then the epoch is '0001-01-01'
-            _epoch = self._epoch
 
         return _epoch
 
@@ -1004,7 +915,7 @@ class TimeStardate(TimeFromEpoch):
     """
     Stardate: date units from 2318-07-05 12:00:00 UTC.
     For example, stardate 41153.7 is 00:52 on April 30, 2363.
-    See http://trekguide.com/Stardates.htm#TNG for calculations and reference points.
+    See http://trekguide.com/Stardates.htm#TNG for calculations and reference points
     """
 
     name = "stardate"
@@ -1095,7 +1006,7 @@ class TimeAstropyTime(TimeUnique):
 
 class TimeDatetime(TimeUnique):
     """
-    Represent date as Python standard library `~datetime.datetime` object.
+    Represent date as Python standard library `~datetime.datetime` object
 
     Example::
 
@@ -1122,7 +1033,7 @@ class TimeDatetime(TimeUnique):
         return val1, None
 
     def set_jds(self, val1, val2):
-        """Convert datetime object contained in val1 to jd1, jd2."""
+        """Convert datetime object contained in val1 to jd1, jd2"""
         # Iterate through the datetime objects, getting year, month, etc.
         iterator = np.nditer(
             [val1, None, None, None, None, None, None],
@@ -1147,31 +1058,17 @@ class TimeDatetime(TimeUnique):
         )
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
-    def to_value(
-        self, timezone=None, leap_second_strict="raise", parent=None, out_subfmt=None
-    ):
+    def to_value(self, timezone=None, parent=None, out_subfmt=None):
         """
         Convert to (potentially timezone-aware) `~datetime.datetime` object.
 
-        If ``timezone`` is not ``None``, return a timezone-aware datetime object.
-
-        Since the `~datetime.datetime` class does not natively handle leap seconds, the
-        behavior when converting a time within a leap second is controlled by the
-        ``leap_second_strict`` argument. For example::
-
-          >>> from astropy.time import Time
-          >>> t = Time("2015-06-30 23:59:60.500")
-          >>> print(t.to_datetime(leap_second_strict='silent'))
-          2015-07-01 00:00:00.500000
+        If ``timezone`` is not ``None``, return a timezone-aware datetime
+        object.
 
         Parameters
         ----------
         timezone : {`~datetime.tzinfo`, None}, optional
             If not `None`, return timezone-aware datetime.
-        leap_second_strict : str, optional
-            If ``raise`` (default), raise an exception if the time is within a leap
-            second. If ``warn`` then issue a warning. If ``silent`` then silently
-            handle the leap second.
 
         Returns
         -------
@@ -1192,8 +1089,9 @@ class TimeDatetime(TimeUnique):
         # Rather than define a value property directly, we have a function,
         # since we want to be able to pass in timezone information.
         scale = self.scale.upper().encode("ascii")
-        # 6 for microsec
-        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 6, self.jd1, self.jd2)
+        iys, ims, ids, ihmsfs = erfa.d2dtf(
+            scale, 6, self.jd1, self.jd2_filled  # 6 for microsec
+        )
         ihrs = ihmsfs["h"]
         imins = ihmsfs["m"]
         isecs = ihmsfs["s"]
@@ -1206,39 +1104,18 @@ class TimeDatetime(TimeUnique):
 
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if isec >= 60:
-                isec = isec - 1
-                in_leap_second = True
-            else:
-                in_leap_second = False
-
+                raise ValueError(
+                    f"Time {(iy, im, id, ihr, imin, isec, ifracsec)} is within "
+                    "a leap second but datetime does not support leap seconds"
+                )
             if timezone is not None:
-                dt = datetime.datetime(
+                out[...] = datetime.datetime(
                     iy, im, id, ihr, imin, isec, ifracsec, tzinfo=TimezoneInfo()
                 ).astimezone(timezone)
             else:
-                dt = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
+                out[...] = datetime.datetime(iy, im, id, ihr, imin, isec, ifracsec)
 
-            if in_leap_second:
-                dt += datetime.timedelta(seconds=1)
-                msg = (
-                    f"Time {dt} is within a leap second but `datetime` does not "
-                    "support leap seconds. Use the `leap_second_strict` argument "
-                    "of the `Time.to_datetime()` method with value of 'raise', 'warn', "
-                    "or 'silent' to control how leap seconds are handled."
-                )
-                if leap_second_strict == "raise":
-                    raise ValueError(msg)
-                elif leap_second_strict == "warn":
-                    warnings.warn(msg, AstropyDatetimeLeapSecondWarning)
-                elif leap_second_strict != "silent":
-                    raise ValueError(
-                        f"leap_second_strict must be 'raise', 'warn', or 'silent', "
-                        f"not '{leap_second_strict}'"
-                    )
-
-            out[...] = dt
-
-        return iterator.operands[-1]
+        return self.mask_if_needed(iterator.operands[-1])
 
     value = property(to_value)
 
@@ -1272,7 +1149,7 @@ class TimeYMDHMS(TimeUnique):
       >>> t.iso
       '2015-02-03 12:13:14.567'
       >>> t.ymdhms.year
-      np.int32(2015)
+      2015
     """
 
     name = "ymdhms"
@@ -1321,7 +1198,9 @@ class TimeYMDHMS(TimeUnique):
             # same shape here.
             names = val1.item().keys()
             values = val1.item().values()
-            val1_as_dict = dict(zip(names, np.broadcast_arrays(*values)))
+            val1_as_dict = {
+                name: value for name, value in zip(names, np.broadcast_arrays(*values))
+            }
 
         else:
             raise ValueError("input must be dict or table-like")
@@ -1369,7 +1248,7 @@ class TimeYMDHMS(TimeUnique):
     @property
     def value(self):
         scale = self.scale.upper().encode("ascii")
-        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 9, self.jd1, self.jd2)
+        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 9, self.jd1, self.jd2_filled)
 
         out = np.empty(
             self.jd1.shape,
@@ -1388,7 +1267,9 @@ class TimeYMDHMS(TimeUnique):
         out["hour"] = ihmsfs["h"]
         out["minute"] = ihmsfs["m"]
         out["second"] = ihmsfs["s"] + ihmsfs["f"] * 10 ** (-9)
-        return out.view(np.recarray)
+        out = out.view(np.recarray)
+
+        return self.mask_if_needed(out)
 
 
 class TimezoneInfo(datetime.tzinfo):
@@ -1562,10 +1443,11 @@ class TimeString(TimeUnique):
                     continue
 
             return vals
-        raise ValueError(f"Time {timestr} does not match {self.name} format")
+        else:
+            raise ValueError(f"Time {timestr} does not match {self.name} format")
 
     def set_jds(self, val1, val2):
-        """Parse the time strings contained in val1 and set jd1, jd2."""
+        """Parse the time strings contained in val1 and set jd1, jd2"""
         # If specific input subformat is required then use the Python parser.
         # Also do this if Time format class does not define `use_fast_parser` or
         # if the fast parser is entirely disabled. Note that `use_fast_parser`
@@ -1590,7 +1472,7 @@ class TimeString(TimeUnique):
         self.jd2 = jd2
 
     def get_jds_python(self, val1, val2):
-        """Parse the time strings contained in val1 and get jd1, jd2."""
+        """Parse the time strings contained in val1 and get jd1, jd2"""
         # Select subformats based on current self.in_subfmt
         subfmts = self._select_subfmts(self.in_subfmt)
         # Be liberal in what we accept: convert bytes to ascii.
@@ -1618,15 +1500,12 @@ class TimeString(TimeUnique):
         jd1, jd2 = erfa.dtf2d(
             self.scale.upper().encode("ascii"), *iterator.operands[1:]
         )
-        # The iterator above eats the mask...
-        if isinstance(val1, Masked):
-            jd1 = Masked(jd1, mask=val1.mask.copy())
         jd1, jd2 = day_frac(jd1, jd2)
 
         return jd1, jd2
 
     def get_jds_fast(self, val1, val2):
-        """Use fast C parser to parse time strings in val1 and get jd1, jd2."""
+        """Use fast C parser to parse time strings in val1 and get jd1, jd2"""
         # Handle bytes or str input and convert to uint8.  We need to the
         # dtype _parse_times.dt_u1 instead of uint8, since otherwise it is
         # not possible to create a gufunc with structured dtype output.
@@ -1664,7 +1543,9 @@ class TimeString(TimeUnique):
         calendar date and time for the internal JD values.
         """
         scale = (self.scale.upper().encode("ascii"),)
-        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision, self.jd1, self.jd2)
+        iys, ims, ids, ihmsfs = erfa.d2dtf(
+            scale, self.precision, self.jd1, self.jd2_filled
+        )
 
         # Get the str_fmt element of the first allowed output subformat
         _, _, str_fmt = self._select_subfmts(self.out_subfmt)[0]
@@ -1904,8 +1785,7 @@ class TimeDatetime64(TimeISOT):
 
         # Finally apply mask if necessary
         if masked:
-            self.jd1 = Masked(self.jd1, mask=mask)
-            self.jd2 = Masked(self.jd2, mask=mask)
+            self.jd2[mask] = np.nan
 
     @property
     def value(self):
@@ -1974,7 +1854,7 @@ class TimeFITS(TimeString):
     )
 
     def parse_string(self, timestr, subfmts):
-        """Read time and deprecated scale if present."""
+        """Read time and deprecated scale if present"""
         # Try parsing with any of the allowed sub-formats.
         for _, regex, _ in subfmts:
             tm = re.match(regex, timestr)
@@ -2033,7 +1913,7 @@ class TimeFITS(TimeString):
 
 class TimeEpochDate(TimeNumeric):
     """
-    Base class for support of Besselian and Julian epoch dates.
+    Base class for support floating point Besselian and Julian epoch dates
     """
 
     _default_scale = "tt"  # As of astropy 3.2, this is no longer 'utc'.
@@ -2053,62 +1933,25 @@ class TimeEpochDate(TimeNumeric):
 
 
 class TimeBesselianEpoch(TimeEpochDate):
-    """Besselian Epoch year as decimal value(s) like 1950.0.
-
-    For information about this epoch format, see:
-    `<https://en.wikipedia.org/wiki/Epoch_(astronomy)#Besselian_years>`_.
-
-    The astropy Time class uses the ERFA functions ``epb2jd`` and ``epb`` to convert
-    between Besselian epoch years and Julian dates. This is roughly equivalent to the
-    following formula (see the wikipedia page for the reference)::
-
-      B = 1900.0 + (Julian date - 2415020.31352) / 365.242198781
-
-    Since for this format the length of the year varies, input needs to be floating
-    point; it is not possible to use Quantity input, for which a year always equals
-    365.25 days.
-
-    The Besselian epoch year is used for expressing the epoch or equinox in older source
-    catalogs, but it has been largely replaced by the Julian epoch year.
-    """
+    """Besselian Epoch year as floating point value(s) like 1950.0"""
 
     name = "byear"
     epoch_to_jd = "epb2jd"
     jd_to_epoch = "epb"
 
     def _check_val_type(self, val1, val2):
-        _check_val_type_not_quantity(self.name, val1, val2)
+        """Input value validation, typically overridden by derived classes"""
+        if hasattr(val1, "to") and hasattr(val1, "unit") and val1.unit is not None:
+            raise ValueError(
+                "Cannot use Quantities for 'byear' format, as the interpretation "
+                "would be ambiguous. Use float with Besselian year instead."
+            )
         # FIXME: is val2 really okay here?
         return super()._check_val_type(val1, val2)
 
 
 class TimeJulianEpoch(TimeEpochDate):
-    """Julian epoch year as decimal value(s) like 2000.0.
-
-    This format is based the Julian year which is exactly 365.25 days/year and a day is
-    exactly 86400 SI seconds.
-
-    The Julian epoch year is defined so that 2000.0 is 12:00 TT on January 1, 2000.
-    Using astropy this is expressed as::
-
-      >>> from astropy.time import Time
-      >>> import astropy.units as u
-      >>> j2000_epoch = Time("2000-01-01T12:00:00", scale="tt")
-      >>> print(j2000_epoch.jyear)  # doctest: +FLOAT_CMP
-      2000.0
-      >>> print((j2000_epoch + 365.25 * u.day).jyear)  # doctest: +FLOAT_CMP
-      2001.0
-
-    The Julian year is commonly used in astronomy for expressing the epoch of a source
-    catalog or the time of an observation. The Julian epoch year is sometimes written as
-    a string like "J2001.5" with a preceding "J". You can initialize a ``Time`` object with
-    such a string::
-
-      >>> print(Time("J2001.5").jyear)  # doctest: +FLOAT_CMP
-      2001.5
-
-    See also: `<https://en.wikipedia.org/wiki/Julian_year_(astronomy)>`_.
-    """
+    """Julian Epoch year as floating point value(s) like 2000.0"""
 
     name = "jyear"
     unit = erfa.DJY  # 365.25, the Julian year, for conversion to quantities
@@ -2161,7 +2004,7 @@ class TimeEpochDateString(TimeString):
 
 
 class TimeBesselianEpochString(TimeEpochDateString):
-    """Besselian Epoch year as string value(s) like 'B1950.0'."""
+    """Besselian Epoch year as string value(s) like 'B1950.0'"""
 
     name = "byear_str"
     epoch_to_jd = "epb2jd"
@@ -2170,7 +2013,7 @@ class TimeBesselianEpochString(TimeEpochDateString):
 
 
 class TimeJulianEpochString(TimeEpochDateString):
-    """Julian Epoch year as string value(s) like 'J2000.0'."""
+    """Julian Epoch year as string value(s) like 'J2000.0'"""
 
     name = "jyear_str"
     epoch_to_jd = "epj2jd"
@@ -2179,17 +2022,13 @@ class TimeJulianEpochString(TimeEpochDateString):
 
 
 class TimeDeltaFormat(TimeFormat):
-    """Base class for time delta representations."""
+    """Base class for time delta representations"""
 
     _registry = TIME_DELTA_FORMATS
-    _default_precision = 3
-    # Somewhat arbitrary values that are effectively no limit for precision.
-    _min_precision = -99
-    _max_precision = 99
 
     def _check_scale(self, scale):
         """
-        Check that the scale is in the allowed list of scales, or is `None`.
+        Check that the scale is in the allowed list of scales, or is `None`
         """
         if scale is not None and scale not in TIME_DELTA_SCALES:
             raise ScaleValueError(
@@ -2200,8 +2039,6 @@ class TimeDeltaFormat(TimeFormat):
 
 
 class TimeDeltaNumeric(TimeDeltaFormat, TimeNumeric):
-    _check_finite = False
-
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
         self.jd1, self.jd2 = day_frac(val1, val2, divisor=1.0 / self.unit)
@@ -2218,21 +2055,21 @@ class TimeDeltaNumeric(TimeDeltaFormat, TimeNumeric):
 
 
 class TimeDeltaSec(TimeDeltaNumeric):
-    """Time delta in SI seconds."""
+    """Time delta in SI seconds"""
 
     name = "sec"
     unit = 1.0 / erfa.DAYSEC  # for quantity input
 
 
-class TimeDeltaJD(TimeDeltaNumeric, TimeUnique):
-    """Time delta in Julian days (86400 SI seconds)."""
+class TimeDeltaJD(TimeDeltaNumeric):
+    """Time delta in Julian days (86400 SI seconds)"""
 
     name = "jd"
     unit = 1.0
 
 
 class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
-    """Time delta in datetime.timedelta."""
+    """Time delta in datetime.timedelta"""
 
     name = "datetime"
 
@@ -2274,237 +2111,16 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
             jd1_, jd2_ = day_frac(jd1, jd2)
             out[...] = datetime.timedelta(days=jd1_, microseconds=jd2_ * 86400 * 1e6)
 
-        return iterator.operands[-1]
-
-
-class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
-    """Time delta as a string with one or more Quantity components.
-
-    This format provides a human-readable multi-scale string representation of a time
-    delta. It is convenient for applications like a configuration file or a command line
-    option.
-
-    The format is specified as follows:
-
-    - The string is a sequence of one or more components.
-    - Each component is a number followed by an astropy unit of time.
-    - For input, whitespace within the string is allowed but optional.
-    - For output, there is a single space between components.
-    - The allowed components are listed below.
-    - The order (yr, d, hr, min, s) is fixed but individual components are optional.
-
-    The allowed input component units are shown below:
-
-    - "yr": years (365.25 days)
-    - "d": days (24 hours)
-    - "hr": hours (60 minutes)
-    - "min": minutes (60 seconds)
-    - "s": seconds
-
-    .. Note:: These definitions correspond to physical units of time and are NOT
-       calendar date intervals. Thus adding "1yr" to "2000-01-01 00:00:00" will give
-       "2000-12-31 06:00:00" instead of "2001-01-01 00:00:00".
-
-    The ``out_subfmt`` attribute specifies the components to be included in the string
-    output.  The default is ``"multi"`` which represents the time delta as
-    ``"<days>d <hours>hr <minutes>min <seconds>s"``, where only non-zero components are
-    included.
-
-    - "multi": multiple components, e.g. "2d 3hr 15min 5.6s"
-    - "yr": years
-    - "d": days
-    - "hr": hours
-    - "min": minutes
-    - "s": seconds
-
-    Examples
-    --------
-    >>> from astropy.time import Time, TimeDelta
-    >>> import astropy.units as u
-
-    >>> print(TimeDelta("1yr"))
-    365d 6hr
-
-    >>> print(Time("2000-01-01") + TimeDelta("1yr"))
-    2000-12-31 06:00:00.000
-    >>> print(TimeDelta("+3.6d"))
-    3d 14hr 24min
-    >>> print(TimeDelta("-3.6d"))
-    -3d 14hr 24min
-    >>> print(TimeDelta("1yr 3.6d", out_subfmt="d"))
-    368.85d
-
-    >>> td = TimeDelta(40 * u.hr)
-    >>> print(td.to_value(format="quantity_str"))
-    1d 16hr
-    >>> print(td.to_value(format="quantity_str", subfmt="d"))
-    1.667d
-    >>> td.precision = 9
-    >>> print(td.to_value(format="quantity_str", subfmt="d"))
-    1.666666667d
-    """
-
-    name = "quantity_str"
-
-    subfmts = (
-        ("multi", None, None),
-        ("yr", None, None),
-        ("d", None, None),
-        ("hr", None, None),
-        ("min", None, None),
-        ("s", None, None),
-    )
-
-    # Regex to parse "1.02yr 2.2d 3.12hr 4.322min 5.6s" where each element is optional
-    # but the order is fixed. Each element is a float with optional exponent. Each
-    # element is named.
-    re_float = r"(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?"
-    re_ydhms = re.compile(
-        rf"""^ \s*
-        (?P<sign>[-+])? \s*  # Optional sign
-        (?=[^-+\s])  # At least one character which is not a sign or whitespace
-        ((?P<yr>{re_float}) \s* yr \s*)?
-        ((?P<d>{re_float}) \s* d \s*)?
-        ((?P<hr>{re_float}) \s* hr \s*)?
-        ((?P<min>{re_float}) \s* min \s*)?
-        ((?P<s>{re_float}) \s* s)?
-        \s* $
-        """,
-        re.VERBOSE,
-    )
-
-    def _check_val_type(self, val1, val2):
-        if val1.dtype.kind not in ("S", "U") and val1.size:
-            raise TypeError(f"Input values for {self.name} class must be strings")
-        if val2 is not None:
-            raise ValueError(
-                f"{self.name} objects do not accept a val2 but you provided {val2}"
-            )
-        return val1, None
-
-    def parse_string(self, timestr):
-        """Read time from a single string"""
-        components = ("yr", "d", "hr", "min", "s")
-
-        if (match := self.re_ydhms.match(timestr)) is None:
-            raise ValueError(
-                f"Time delta '{timestr}' does not match {self.name} format"
-            )
-
-        tm = match.groupdict()
-        vals = [float(tm[component] or 0.0) for component in components]
-        if tm["sign"] == "-":
-            vals = [-val for val in vals]
-
-        return vals
-
-    def set_jds(self, val1, val2):
-        """Parse the time strings contained in val1 and get jd1, jd2."""
-        # Be liberal in what we accept: convert bytes to ascii.
-        # Here .item() is needed for arrays with entries of unequal length,
-        # to strip trailing 0 bytes.
-        to_string = (
-            str if val1.dtype.kind == "U" else lambda x: str(x.item(), encoding="ascii")
-        )
-        iterator = np.nditer(
-            [val1, None, None, None, None, None],
-            flags=["zerosize_ok"],
-            op_dtypes=[None] + 5 * [np.double],
-        )
-        for val, yr, day, hr, min, sec in iterator:
-            val = to_string(val)
-            (
-                yr[...],
-                day[...],
-                hr[...],
-                min[...],
-                sec[...],
-            ) = self.parse_string(val)
-
-        yrs, days, hrs, mins, secs = iterator.operands[1:]
-
-        jd1 = yrs * 365.25 + days  # Exact in the case that yrs and days are integer
-        jd2 = hrs / 24.0 + mins / 1440.0 + secs / 86400.0  # Inexact
-        self.jd1, self.jd2 = day_frac(jd1, jd2)
-
-    def to_value(self, parent=None, out_subfmt=None):
-        out_subfmt = out_subfmt or self.out_subfmt
-        subfmt = self._get_allowed_subfmt(out_subfmt)
-
-        iterator = np.nditer(
-            [self.jd1, self.jd2, None],
-            flags=["refs_ok", "zerosize_ok"],
-            op_dtypes=[None, None, object],
-        )
-
-        for jd1, jd2, out in iterator:
-            jd = jd1 + jd2
-            if jd < 0:
-                jd1, jd2, jd = -jd1, -jd2, -jd  # Flip all signs
-                sign = "-"
-            else:
-                sign = ""
-
-            if subfmt in ["*", "multi"]:
-                comps = self.get_multi_comps(jd1, jd2)
-
-            else:
-                value = (jd * u.day).to_value(subfmt)
-                value = np.round(value, self.precision)
-                comps = [f"{value}{subfmt}"]
-
-            out[...] = sign + " ".join(comps)
-
-        return iterator.operands[-1]
-
-    def get_multi_comps(self, jd1, jd2):
-        jd, remainder = two_sum(jd1, jd2)
-        days = int(np.floor(jd))
-        jd -= days
-        jd += remainder
-
-        hours = int(np.floor(jd * 24.0))
-        jd -= hours / 24.0
-        mins = int(np.floor(jd * 1440.0))
-        jd -= mins / 1440.0
-        secs = np.round(jd * 86400.0, self.precision)
-
-        comp_vals = [days, hours, mins, secs]
-        if secs >= 60.0:
-            self.fix_comp_vals_overflow(comp_vals)
-
-        comps = [
-            f"{comp_val}{name}"
-            for comp_val, name in zip(comp_vals, ("d", "hr", "min", "s"))
-            if comp_val != 0
-        ]
-        if not comps:
-            comps = ["0.0s"]
-
-        return comps
-
-    @staticmethod
-    def fix_comp_vals_overflow(comp_vals):
-        comp_maxes = (None, 24, 60, 60.0)
-        for ii in [3, 2, 1]:
-            comp_val = comp_vals[ii]
-            comp_max = comp_maxes[ii]
-            if comp_val >= comp_max:
-                comp_vals[ii] -= comp_max
-                comp_vals[ii - 1] += 1
-
-    @property
-    def value(self):
-        return self.to_value()
+        return self.mask_if_needed(iterator.operands[-1])
 
 
 def _validate_jd_for_storage(jd):
     if isinstance(jd, (float, int)):
-        return np.array(jd, dtype=float)
+        return np.array(jd, dtype=np.float_)
     if isinstance(jd, np.generic) and (
-        (jd.dtype.kind == "f" and jd.dtype.itemsize <= 8) or jd.dtype.kind in "iu"
+        jd.dtype.kind == "f" and jd.dtype.itemsize <= 8 or jd.dtype.kind in "iu"
     ):
-        return np.array(jd, dtype=float)
+        return np.array(jd, dtype=np.float_)
     elif isinstance(jd, np.ndarray) and jd.dtype.kind == "f" and jd.dtype.itemsize == 8:
         return jd
     else:

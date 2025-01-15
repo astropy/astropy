@@ -4,7 +4,7 @@ import numpy as np
 def lombscargle_slow(
     t, y, dy, frequency, normalization="standard", fit_mean=True, center_data=True
 ):
-    """Lomb-Scargle Periodogram.
+    """Lomb-Scargle Periodogram
 
     This is a pure-python implementation of the original Lomb-Scargle formalism
     (e.g. [1]_, [2]_), with the addition of the floating mean (e.g. [3]_)
@@ -61,7 +61,7 @@ def lombscargle_slow(
     omega = omega.ravel()[np.newaxis, :]
 
     # make following arrays into column vectors
-    t, y, dy, w = (x[:, np.newaxis] for x in (t, y, dy, w))
+    t, y, dy, w = map(lambda x: x[:, np.newaxis], (t, y, dy, w))
 
     sin_omega_t = np.sin(omega * t)
     cos_omega_t = np.cos(omega * t)

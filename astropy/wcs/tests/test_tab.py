@@ -88,7 +88,7 @@ def test_wcstab_swapaxes_same_val_roundtrip():
     filename = get_pkg_data_filename("data/tab-time-last-axis.fits")
 
     axes_order = [3, 2, 1]
-    axes_order0 = [i - 1 for i in axes_order]
+    axes_order0 = list(i - 1 for i in axes_order)
 
     with fits.open(filename) as hdul:
         w = wcs.WCS(hdul[0].header, hdul)

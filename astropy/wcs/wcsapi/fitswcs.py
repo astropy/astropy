@@ -20,7 +20,7 @@ from .high_level_api import HighLevelWCSMixin
 from .low_level_api import BaseLowLevelWCS
 from .wrappers import SlicedLowLevelWCS
 
-__all__ = ["FITSWCSAPIMixin", "SlicedFITSWCS", "custom_ctype_to_ucd_mapping"]
+__all__ = ["custom_ctype_to_ucd_mapping", "SlicedFITSWCS", "FITSWCSAPIMixin"]
 
 C_SI = c.si.value
 
@@ -153,7 +153,7 @@ CTYPE_TO_UCD1 = {
     "LOCAL": "time",
     # Distance coordinates
     "DIST": "pos.distance",
-    "DSUN": "custom:pos.distance.sunToObserver",
+    "DSUN": "custom:pos.distance.sunToObserver"
     # UT() and TT() are handled separately in world_axis_physical_types
 }
 
@@ -174,6 +174,7 @@ class custom_ctype_to_ucd_mapping:
 
     Examples
     --------
+
     Consider a WCS with the following CTYPE::
 
         >>> from astropy.wcs import WCS
@@ -208,7 +209,7 @@ class SlicedFITSWCS(SlicedLowLevelWCS, HighLevelWCSMixin):
 class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     """
     A mix-in class that is intended to be inherited by the
-    :class:`~astropy.wcs.WCS` class and provides the low- and high-level WCS API.
+    :class:`~astropy.wcs.WCS` class and provides the low- and high-level WCS API
     """
 
     @property
@@ -332,27 +333,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
         return matrix
 
-    def _out_of_bounds_to_nan(self, pixel_arrays):
-        if self.pixel_bounds is not None:
-            pixel_arrays = list(pixel_arrays)
-            for idim in range(self.pixel_n_dim):
-                if self.pixel_bounds[idim] is None:
-                    continue
-                out_of_bounds = (pixel_arrays[idim] < self.pixel_bounds[idim][0]) | (
-                    pixel_arrays[idim] > self.pixel_bounds[idim][1]
-                )
-                if np.any(out_of_bounds):
-                    pix = pixel_arrays[idim]
-                    if np.isscalar(pix):
-                        pix = np.nan
-                    else:
-                        pix = pix.astype(float, copy=True)
-                        pix[out_of_bounds] = np.nan
-                    pixel_arrays[idim] = pix
-        return pixel_arrays
-
     def pixel_to_world_values(self, *pixel_arrays):
-        pixel_arrays = self._out_of_bounds_to_nan(pixel_arrays)
         world = self.all_pix2world(*pixel_arrays, 0)
         return world[0] if self.world_n_dim == 1 else tuple(world)
 
@@ -369,8 +350,6 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             pixel = self._array_converter(
                 lambda *args: e.best_solution, "input", *world_arrays, 0
             )
-
-        pixel = self._out_of_bounds_to_nan(pixel)
 
         return pixel[0] if self.pixel_n_dim == 1 else tuple(pixel)
 
@@ -417,7 +396,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 self._components_and_classes_cache = None
 
         # Avoid circular imports by importing here
-        from astropy.coordinates import EarthLocation, SkyCoord, StokesCoord
+        from astropy.coordinates import EarthLocation, SkyCoord
         from astropy.time import Time, TimeDelta
         from astropy.time.formats import FITS_DEPRECATED_SCALES
         from astropy.wcs.utils import wcs_to_celestial_frame
@@ -438,11 +417,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             else:
                 kwargs = {}
                 kwargs["frame"] = celestial_frame
-                # Very occasionally (i.e. with TAB) wcs does not convert the units to degrees
-                kwargs["unit"] = (
-                    u.Unit(self.wcs.cunit[self.wcs.lng]),
-                    u.Unit(self.wcs.cunit[self.wcs.lat]),
-                )
+                kwargs["unit"] = u.deg
 
                 classes["celestial"] = (SkyCoord, (), kwargs)
 
@@ -471,7 +446,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
 
                 # Get the time scale from TIMESYS or fall back to 'utc'
-                tscale = self.wcs.timesys.lower() or "utc"
+                tscale = self.wcs.timesys or "utc"
 
                 if np.isnan(self.wcs.mjdavg):
                     obstime = Time(
@@ -721,8 +696,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     # Initialize delta
                     reference_time_delta = None
 
-                    # Extract time scale, and remove any algorithm code
-                    scale = self.wcs.ctype[i].split("-")[0].lower()
+                    # Extract time scale
+                    scale = self.wcs.ctype[i].lower()
 
                     if scale == "time":
                         if self.wcs.timesys:
@@ -800,13 +775,6 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
                     classes[name] = (Time, (), {}, time_from_reference_and_offset)
                     components[i] = (name, 0, offset_from_time_and_reference)
-
-        if "phys.polarization.stokes" in self.world_axis_physical_types:
-            for i in range(self.naxis):
-                if self.world_axis_physical_types[i] == "phys.polarization.stokes":
-                    name = "stokes"
-                    classes[name] = (StokesCoord, (), {})
-                    components[i] = (name, 0, "value")
 
         # Fallback: for any remaining components that haven't been identified, just
         # return Quantity as the class to use

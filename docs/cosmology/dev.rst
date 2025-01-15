@@ -59,7 +59,6 @@ and tips and tricks to building a performant cosmology class.
 
     from astropy.cosmology import FLRW
 
-    @dataclass(frozen=True, eq=False)
     class CustomCosmology(FLRW):
         ...  # [details discussed below]
 
@@ -87,23 +86,25 @@ the definition of |FLRW|.
 
 .. code-block:: python
 
-    @dataclass(frozen=True, eq=False)
     class FLRW(Cosmology):
 
-        H0: Parameter = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0",
-                                  unit="km/(s Mpc)", fvalidate="scalar")
-        Om0: Parameter = Parameter(doc="Omega matter; matter density/critical density at z=0",
-                                   fvalidate="non-negative")
-        Ode0: Parameter = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
-                                    fvalidate="float")
-        Tcmb0: Parameter = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
-                                     default=0.0 * u.K, unit="Kelvin", fmt="0.4g", fvalidate="scalar")
-        Neff: Parameter = Parameter(doc="Number of effective neutrino species.",
-                                    default=3.04, fvalidate="non-negative")
-        m_nu: Parameter = Parameter(doc="Mass of neutrino species.",
-                                    default=0.0*u.eV, unit="eV", equivalencies=u.mass_energy(), fmt="")
-        Ob0: Parameter = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.",
-                                   default=None)
+        H0 = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0",
+                       unit="km/(s Mpc)", fvalidate="scalar")
+        Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0",
+                        fvalidate="non-negative")
+        Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
+                         fvalidate="float")
+        Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
+                  unit="Kelvin", fmt="0.4g", fvalidate="scalar")
+        Neff = Parameter(doc="Number of effective neutrino species.", fvalidate="non-negative")
+        m_nu = Parameter(doc="Mass of neutrino species.",
+                 unit="eV", equivalencies=u.mass_energy(), fmt="")
+        Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
+
+        def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
+                     Ob0=None, *, name=None, meta=None):
+            self.H0 = H0
+            ...  # for each Parameter in turn
 
         @Ob0.validator
         def Ob0(self, param, value):
@@ -115,10 +116,10 @@ the definition of |FLRW|.
                 raise ValueError("baryonic density can not be larger than total matter density.")
             return value
 
-First note that all the parameters are also arguments in ``__init__()``. This is not
-strictly necessary, but is good practice. If the parameter has units (and related
-equivalencies) these must be specified on the |Parameter|, as seen in
-The "H0" item in :attr:`~astropy.cosmology.FLRW.parameters`.
+First note that all the parameters are also arguments in ``__init__``. This is
+not strictly necessary, but is good practice. If the parameter has units (and
+related equivalencies) these must be specified on the Parameter, as seen in
+:attr:`~astropy.cosmology.FLRW.H0` and :attr:`~astropy.cosmology.FLRW.m_nu`.
 
 The next important thing to note is how the parameter value is set, in
 ``__init__``. |Parameter| allows for a value to be set once (before
@@ -143,11 +144,10 @@ parameter and change any constructor argument. For example, see
 
 .. code-block:: python
 
-    @dataclass(frozen=True, eq=False)
     class FlatFLRWMixin(FlatCosmologyMixin):
         ...
 
-        Ode0: Parameter = FLRW.parameters["Ode0"].clone(derived=True)
+        Ode0 = FLRW.Ode0.clone(derived=True)  # now a derived param.
 
 Mixins
 ------

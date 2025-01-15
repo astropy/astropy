@@ -6,7 +6,7 @@ Usage Tips/Suggestions for Methods That Access Remote Resources
 There are currently two methods that rely on getting remote data to work.
 
 The first is the :class:`~astropy.coordinates.SkyCoord` :meth:`~astropy.coordinates.SkyCoord.from_name` method, which uses
-`Sesame <https://cds.unistra.fr/cgi-bin/Sesame>`_ to retrieve coordinates
+`Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object::
 
     >>> from astropy.coordinates import SkyCoord

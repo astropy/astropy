@@ -8,14 +8,12 @@ import numpy as np
 
 from astropy import log
 from astropy.units import Quantity, Unit
-from astropy.utils.compat.optional_deps import HAS_DASK
-from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.metadata import MetaData
 from astropy.wcs.wcsapi import (
     BaseHighLevelWCS,
     BaseLowLevelWCS,
     HighLevelWCSWrapper,
-    SlicedLowLevelWCS,  # noqa: F401
+    SlicedLowLevelWCS,
 )
 
 from .nddata_base import NDDataBase
@@ -65,7 +63,7 @@ class NDData(NDDataBase):
 
     meta : `dict`-like object, optional
         Additional meta information about the dataset. If no meta is provided
-        an empty dict is created.
+        an empty `collections.OrderedDict` is created.
         Default is ``None``.
 
     unit : unit-like, optional
@@ -114,11 +112,11 @@ class NDData(NDDataBase):
         >>> nd2 = NDData(q, unit=u.cm)
         INFO: overwriting Quantity's current unit with specified unit. [astropy.nddata.nddata]
         >>> nd2.data  # doctest: +FLOAT_CMP
-        array([100., 200., 300., 400.])
+        array([1., 2., 3., 4.])
         >>> nd2.unit
         Unit("cm")
 
-    See Also
+    See also
     --------
     NDDataRef
     NDDataArray
@@ -159,10 +157,10 @@ class NDData(NDDataBase):
             # unit just overwrite the unit parameter with the NDData.unit
             # and proceed as if that one was given as parameter. Same for the
             # other parameters.
-            if unit is None and data.unit is not None:
-                unit = data.unit
-            elif unit is not None and data.unit is not None:
+            if unit is not None and data.unit is not None and unit != data.unit:
                 log.info("overwriting NDData's current unit with specified unit.")
+            elif data.unit is not None:
+                unit = data.unit
 
             if uncertainty is not None and data.uncertainty is not None:
                 log.info(
@@ -192,69 +190,29 @@ class NDData(NDDataBase):
             elif data.meta is not None:
                 meta = data.meta
 
-            # get the data attribute as it is, and continue to process it:
             data = data.data
 
-        # if the data is wrapped by astropy.utils.masked.Masked:
-        if isinstance(data, Masked):
-            # first get the mask if one is available:
-            if hasattr(data, "mask"):
+        else:
+            if hasattr(data, "mask") and hasattr(data, "data"):
+                # Separating data and mask
                 if mask is not None:
                     log.info(
-                        "overwriting Masked Quantity's current mask with specified mask."
+                        "overwriting Masked Objects's current mask with specified mask."
                     )
                 else:
                     mask = data.mask
 
-            if isinstance(data, MaskedNDArray):
-                if unit is not None and hasattr(data, "unit") and data.unit != unit:
-                    log.info(
-                        "overwriting MaskedNDArray's current unit with specified unit."
-                    )
-                    data = data.to(unit).value
-                elif unit is None and hasattr(data, "unit"):
-                    unit = data.unit
-                    data = data.value
-
-                # now get the unmasked ndarray:
-                data = np.asarray(data)
+                # Just save the data for further processing, we could be given
+                # a masked Quantity or something else entirely. Better to check
+                # it first.
+                data = data.data
 
             if isinstance(data, Quantity):
-                # this is a Quantity:
-                if unit is not None and data.unit != unit:
+                if unit is not None and unit != data.unit:
                     log.info("overwriting Quantity's current unit with specified unit.")
-                    data = data.to(unit)
-                elif unit is None and data.unit is not None:
+                else:
                     unit = data.unit
                 data = data.value
-
-        if isinstance(data, np.ma.masked_array):
-            if mask is not None:
-                log.info(
-                    "overwriting masked ndarray's current mask with specified mask."
-                )
-            else:
-                mask = data.mask
-            data = data.data
-
-        if isinstance(data, Quantity):
-            # this is a Quantity:
-            if unit is not None and data.unit != unit:
-                log.info("overwriting Quantity's current unit with specified unit.")
-                data = data.to(unit)
-            elif unit is None and data.unit is not None:
-                unit = data.unit
-            data = data.value
-
-        if isinstance(data, np.ndarray):
-            # check for mask from np.ma.masked_ndarray
-            if hasattr(data, "mask"):
-                if mask is not None:
-                    log.info(
-                        "overwriting masked ndarray's current mask with specified mask."
-                    )
-                else:
-                    mask = data.mask
 
         # Quick check on the parameters if they match the requirements.
         if (
@@ -264,7 +222,8 @@ class NDData(NDDataBase):
         ):
             # Data doesn't look like a numpy array, try converting it to
             # one.
-            data = np.asanyarray(data)
+            data = np.array(data, subok=True, copy=False)
+
         # Another quick check to see if what we got looks like an array
         # rather than an object (since numpy will convert a
         # non-numerical/non-string inputs to an array of objects).
@@ -308,47 +267,10 @@ class NDData(NDDataBase):
 
     def __repr__(self):
         prefix = self.__class__.__name__ + "("
-        # to support reprs for other non-ndarray `data` attributes,
-        # add more cases here:
-        if HAS_DASK:
-            import dask.array as da
+        data = np.array2string(self.data, separator=", ", prefix=prefix)
+        unit = f", unit='{self.unit}'" if self.unit is not None else ""
 
-            is_dask = isinstance(self.data, da.Array)
-        else:
-            is_dask = False
-
-        if (
-            isinstance(self.data, (int, float, np.ndarray))
-            or np.issubdtype(float, self.data)
-            or np.issubdtype(int, self.data)
-        ) and not is_dask:
-            # if data is an ndarray, get build a repr via Masked:
-            ma = Masked(self.data, mask=self.mask)
-            data_repr = repr(ma)
-            # strip the class name generated by Masked, and the final ")",
-            # and re-pad multi-line array outputs
-            after_first_paren = data_repr.index("(") + 1
-            old_prefix_spaces = " " * after_first_paren
-            new_prefix_spaces = " " * len(prefix)
-            data_repr = data_repr[after_first_paren:-1].replace(
-                old_prefix_spaces, new_prefix_spaces
-            )
-            unit = f", unit='{self.unit}'" if self.unit is not None else ""
-            return f"{prefix}{data_repr}{unit})"
-        else:
-            # relying on the builtin repr for objects other than ndarrays
-            # allows for compatibility with e.g. dask:
-            contents = []
-            for attr in ("data", "mask", "uncertainty", "unit"):
-                attr_data = getattr(self, attr)
-                if attr_data is not None:
-                    attr_prefix = f"\n  {attr}="
-                    attr_repr = repr(attr_data)
-                    attr_repr = attr_repr.replace(
-                        "\n", f'\n{" " * (len(attr_prefix) - 1)}'
-                    )
-                    contents.append(attr_prefix + attr_repr)
-            return prefix + ",".join(contents) + "\n)"
+        return "".join((prefix, data, unit, ")"))
 
     @property
     def data(self):

@@ -19,6 +19,7 @@
 # - t0: !astropy.units.Quantity
 #     unit: !astropy.units.Unit {unit: Gyr}
 #     value: 13.72
+# - {flat: true}
 # - {reference: 'Komatsu et al. 2009, ApJS, 180, 330, doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).'}
 # - {cosmology: FlatLambdaCDM}
 # - __serialized_columns__:

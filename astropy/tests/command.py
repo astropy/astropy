@@ -4,7 +4,6 @@ This is for backward-compatibility for other downstream packages and can be remo
 once astropy-helpers has reached end-of-life.
 
 """
-
 import os
 import shutil
 import stat
@@ -16,7 +15,6 @@ from contextlib import contextmanager
 from setuptools import Command
 
 from astropy.logger import log
-from astropy.utils.decorators import deprecated
 
 
 @contextmanager
@@ -36,7 +34,6 @@ def _suppress_stdout():
             sys.stdout = old_stdout
 
 
-@deprecated("6.0")
 class FixRemoteDataOption(type):
     """
     This metaclass is used to catch cases where the user is running the tests
@@ -64,7 +61,6 @@ class FixRemoteDataOption(type):
         return super().__init__(name, bases, dct)
 
 
-@deprecated("6.0")
 class AstropyTest(Command, metaclass=FixRemoteDataOption):
     description = "Run the tests for this package"
 
@@ -95,8 +91,19 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             "Run tests that download remote data. Should be "
             "one of none/astropy/any (defaults to none).",
         ),
+        (
+            "pep8",
+            "8",
+            "Enable PEP8 checking and disable regular tests. "
+            "Requires the pytest-pep8 plugin.",
+        ),
         ("pdb", "d", "Start the interactive Python debugger on errors."),
         ("coverage", "c", "Create a coverage report. Requires the coverage package."),
+        (
+            "open-files",
+            "o",
+            "Fail if any tests leave files open.  Requires the psutil package.",
+        ),
         (
             "parallel=",
             "j",
@@ -144,8 +151,10 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         self.pastebin = None
         self.args = None
         self.remote_data = "none"
+        self.pep8 = False
         self.pdb = False
         self.coverage = False
+        self.open_files = False
         self.parallel = 0
         self.docs_path = None
         self.skip_docs = False
@@ -163,6 +172,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         """
         Build a Python script to run the tests.
         """
+
         cmd_pre = ""  # Commands to run before the test function
         cmd_post = ""  # Commands to run after the test function
 
@@ -183,7 +193,9 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             "verbose={1.verbose_results!r}, "
             "pastebin={1.pastebin!r}, "
             "remote_data={1.remote_data!r}, "
+            "pep8={1.pep8!r}, "
             "pdb={1.pdb!r}, "
+            "open_files={1.open_files!r}, "
             "parallel={1.parallel!r}, "
             "docs_path={1.docs_path!r}, "
             "skip_docs={1.skip_docs!r}, "
@@ -195,7 +207,10 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         return cmd.format(set_flag, self, cmd_pre=cmd_pre, cmd_post=cmd_post)
 
     def run(self):
-        """Run the tests!"""
+        """
+        Run the tests!
+        """
+
         # Install the runtime dependencies.
         if self.distribution.install_requires:
             self.distribution.fetch_build_eggs(self.distribution.install_requires)
@@ -271,8 +286,9 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         Install the package and to a temporary directory for the purposes of
         testing. This allows us to test the install command, include the
         entry points, and also avoids creating pyc and __pycache__ directories
-        inside the build directory.
+        inside the build directory
         """
+
         # On OSX the default path for temp files is under /var, but in most
         # cases on OSX /var is actually a symlink to /private/var; ensure we
         # dereference that link, because pytest is very sensitive to relative
@@ -312,7 +328,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             shutil.copytree(self.docs_path, new_docs_path)
             self.docs_path = new_docs_path
 
-        shutil.copy("pyproject.toml", self.testing_path)
+        shutil.copy("setup.cfg", self.testing_path)
 
     def _change_permissions_testing_path(self, writable=False):
         if writable:
@@ -328,7 +344,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
     def _generate_coverage_commands(self):
         """
         This method creates the post and pre commands if coverage is to be
-        generated.
+        generated
         """
         if self.parallel != 0:
             raise ValueError("--coverage can not be used with --parallel")

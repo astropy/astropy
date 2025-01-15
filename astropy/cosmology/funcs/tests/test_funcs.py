@@ -2,7 +2,6 @@
 
 import inspect
 import sys
-from contextlib import nullcontext
 from io import StringIO
 
 import numpy as np
@@ -10,8 +9,7 @@ import pytest
 
 from astropy import units as u
 from astropy.cosmology import core, flrw
-from astropy.cosmology.funcs import z_at_value
-from astropy.cosmology.funcs.optimize import _z_at_scalar_value
+from astropy.cosmology.funcs import _z_at_scalar_value, z_at_value
 from astropy.cosmology.realizations import (
     WMAP1,
     WMAP3,
@@ -22,7 +20,6 @@ from astropy.cosmology.realizations import (
     Planck15,
     Planck18,
 )
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
@@ -61,18 +58,13 @@ def test_z_at_value_scalar():
 
     # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
-    with (
-        pytest.raises(core.CosmologyError),
-        pytest.warns(AstropyUserWarning, match="fval is not bracketed"),
-    ):
-        z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, zmax=0.5)
+    with pytest.raises(core.CosmologyError):
+        with pytest.warns(AstropyUserWarning, match=r"fval is not bracketed"):
+            z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, zmax=0.5)
 
-    with (
-        pytest.raises(core.CosmologyError),
-        pytest.warns(AstropyUserWarning, match="fval is not bracketed"),
-        np.errstate(over="ignore"),
-    ):
-        z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, zmin=4.0)
+    with pytest.raises(core.CosmologyError):
+        with pytest.warns(AstropyUserWarning, match=r"fval is not bracketed"):
+            z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, zmin=4.0)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
@@ -201,13 +193,8 @@ def test_z_at_value_bracketed(method):
     """
     cosmo = Planck13
 
-    if PYTEST_LT_8_0:
-        ctx_fval = nullcontext()
-    else:
-        ctx_fval = pytest.warns(AstropyUserWarning, match="fval is not bracketed")
-
     if method == "Bounded":
-        with pytest.warns(AstropyUserWarning, match="fval is not bracketed"):
+        with pytest.warns(AstropyUserWarning, match=r"fval is not bracketed"):
             z = z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, method=method)
         if z > 1.6:
             z = 3.7914908
@@ -215,7 +202,7 @@ def test_z_at_value_bracketed(method):
         else:
             z = 0.6812777
             bracket = (1.6, 2.0)
-        with pytest.warns(UserWarning, match="Option 'bracket' is ignored"), ctx_fval:
+        with pytest.warns(UserWarning, match=r"Option 'bracket' is ignored"):
             assert allclose(
                 z_at_value(
                     cosmo.angular_diameter_distance,
@@ -311,25 +298,15 @@ def test_z_at_value_bracketed(method):
             rtol=1e-6,
         )
 
-    if not PYTEST_LT_8_0 and method == "Bounded":
-        ctx_bracket = pytest.warns(
-            UserWarning, match="Option 'bracket' is ignored by method Bounded"
-        )
-    else:
-        ctx_bracket = nullcontext()
-
-    with (
-        pytest.raises(core.CosmologyError),
-        pytest.warns(AstropyUserWarning, match="fval is not bracketed"),
-        ctx_bracket,
-    ):
-        z_at_value(
-            cosmo.angular_diameter_distance,
-            1500 * u.Mpc,
-            method=method,
-            bracket=(3.9, 5.0),
-            zmin=4.0,
-        )
+    with pytest.raises(core.CosmologyError):
+        with pytest.warns(AstropyUserWarning, match=r"fval is not bracketed"):
+            z_at_value(
+                cosmo.angular_diameter_distance,
+                1500 * u.Mpc,
+                method=method,
+                bracket=(3.9, 5.0),
+                zmin=4.0,
+            )
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
@@ -424,7 +401,7 @@ def test_z_at_value_roundtrip(cosmo):
         assert allclose(got, z, rtol=2e-11), f"Round-trip testing {name} failed"
 
     # Test distance functions between two redshifts; only for realizations
-    if isinstance(getattr(cosmo, "name", None), str):
+    if isinstance(cosmo.name, str):
         z2 = 2.0
         func_z1z2 = [
             lambda z1: cosmo._comoving_distance_z1z2(z1, z2),

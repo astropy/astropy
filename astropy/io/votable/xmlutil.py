@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Various XML-related utilities.
+Various XML-related utilities
 """
+
 
 # ASTROPY
 from astropy.logger import log
@@ -13,11 +14,11 @@ from astropy.utils.xml import validate
 from .exceptions import W02, W03, W04, W05, vo_warn, warn_or_raise
 
 __all__ = [
-    "check_anyuri",
     "check_id",
-    "check_mime_content_type",
-    "check_token",
     "fix_id",
+    "check_token",
+    "check_mime_content_type",
+    "check_anyuri",
     "validate_schema",
 ]
 
@@ -60,7 +61,9 @@ def check_token(token, attr_name, config=None, pos=None):
 
     As defined by XML Schema Part 2.
     """
-    return token is None or xml_check.check_token(token)
+    if token is not None and not xml_check.check_token(token):
+        return False
+    return True
 
 
 def check_mime_content_type(content_type, config=None, pos=None):
@@ -112,14 +115,13 @@ def validate_schema(filename, version="1.1"):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-    supported_schemas = ["1.1", "1.2", "1.3", "1.4", "1.5"]
+    if version not in ("1.0", "1.1", "1.2", "1.3"):
+        log.info(f"{filename} has version {version}, using schema 1.1")
+        version = "1.1"
 
-    if version == "1.0":
-        schema_path = data.get_pkg_data_filename("data/VOTable.dtd")
-    else:
-        if version not in supported_schemas:
-            log.info(f"{filename} has version {version}, using schema 1.1")
-            version = "1.1"
+    if version in ("1.1", "1.2", "1.3"):
         schema_path = data.get_pkg_data_filename(f"data/VOTable.v{version}.xsd")
+    else:
+        schema_path = data.get_pkg_data_filename("data/VOTable.dtd")
 
     return validate.validate_schema(filename, schema_path)

@@ -9,15 +9,15 @@ from astropy.utils.decorators import format_doc
 from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
 
 __all__ = [
-    "BarycentricMeanEcliptic",
-    "BarycentricTrueEcliptic",
-    "BaseEclipticFrame",
-    "CustomBarycentricEcliptic",
     "GeocentricMeanEcliptic",
-    "GeocentricTrueEcliptic",
-    "HeliocentricEclipticIAU76",
+    "BarycentricMeanEcliptic",
     "HeliocentricMeanEcliptic",
+    "BaseEclipticFrame",
+    "GeocentricTrueEcliptic",
+    "BarycentricTrueEcliptic",
     "HeliocentricTrueEcliptic",
+    "HeliocentricEclipticIAU76",
+    "CustomBarycentricEcliptic",
 ]
 
 
@@ -92,10 +92,8 @@ class GeocentricMeanEcliptic(BaseEclipticFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    equinox = TimeAttribute(default=EQUINOX_J2000, doc="The equinox time")
-    obstime = TimeAttribute(
-        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
-    )
+    equinox = TimeAttribute(default=EQUINOX_J2000)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
 @format_doc(
@@ -115,10 +113,8 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    equinox = TimeAttribute(default=EQUINOX_J2000, doc="The equinox time")
-    obstime = TimeAttribute(
-        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
-    )
+    equinox = TimeAttribute(default=EQUINOX_J2000)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
 doc_footer_bary = """
@@ -145,7 +141,7 @@ class BarycentricMeanEcliptic(BaseEclipticFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    equinox = TimeAttribute(default=EQUINOX_J2000, doc="The equinox time")
+    equinox = TimeAttribute(default=EQUINOX_J2000)
 
 
 @format_doc(
@@ -162,7 +158,7 @@ class BarycentricTrueEcliptic(BaseEclipticFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    equinox = TimeAttribute(default=EQUINOX_J2000, doc="The equinox time")
+    equinox = TimeAttribute(default=EQUINOX_J2000)
 
 
 doc_footer_helio = """
@@ -198,10 +194,8 @@ class HeliocentricMeanEcliptic(BaseEclipticFrame):
 
     """
 
-    equinox = TimeAttribute(default=EQUINOX_J2000, doc="The equinox time")
-    obstime = TimeAttribute(
-        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
-    )
+    equinox = TimeAttribute(default=EQUINOX_J2000)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
 @format_doc(
@@ -224,10 +218,8 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
 
     """
 
-    equinox = TimeAttribute(default=EQUINOX_J2000, doc="The equinox time")
-    obstime = TimeAttribute(
-        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
-    )
+    equinox = TimeAttribute(default=EQUINOX_J2000)
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
 @format_doc(base_doc, components=doc_components_ecl.format("sun's center"), footer="")
@@ -247,9 +239,7 @@ class HeliocentricEclipticIAU76(BaseEclipticFrame):
 
     """
 
-    obstime = TimeAttribute(
-        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
-    )
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
 @format_doc(base_doc, components=doc_components_ecl.format("barycenter"), footer="")
@@ -264,6 +254,4 @@ class CustomBarycentricEcliptic(BaseEclipticFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    obliquity = QuantityAttribute(
-        default=84381.448 * u.arcsec, unit=u.arcsec, doc="The obliquity of the ecliptic"
-    )
+    obliquity = QuantityAttribute(default=84381.448 * u.arcsec, unit=u.arcsec)

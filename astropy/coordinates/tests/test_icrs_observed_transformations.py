@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Accuracy tests for ICRS transformations, primarily to/from AltAz."""
+"""Accuracy tests for ICRS transformations, primarily to/from AltAz.
 
+"""
 import numpy as np
 
 from astropy import units as u
@@ -12,8 +13,8 @@ from astropy.coordinates import (
     HADec,
     SkyCoord,
     frame_transform_graph,
-    golden_spiral_grid,
 )
+from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 

@@ -6,7 +6,7 @@
 # which are then converted by setup.py into docstrings.h, which is
 # included by pywcs.c
 
-__all__ = ["ORIGIN", "RA_DEC_ORDER", "RETURNS", "TWO_OR_MORE_ARGS"]
+__all__ = ["TWO_OR_MORE_ARGS", "RETURNS", "ORIGIN", "RA_DEC_ORDER"]
 
 
 def _fix(content, indent=0):
@@ -85,11 +85,6 @@ a_order = """
 ``int`` (read-only) Order of the polynomial (``A_ORDER``).
 """
 
-a_radius = """
-``double``  semimajor axis of the ellipsoid that defines the approximate shape
-of a target body used in projection (m). If undefined, this is set to `None`.
-"""
-
 all_pix2world = f"""
 all_pix2world(pixcrd, origin) -> ``double array[ncoord][nelem]``
 
@@ -165,32 +160,6 @@ resized, without creating a new `~astropy.wcs.Sip` object.
 
 ap_order = """
 ``int`` (read-only) Order of the polynomial (``AP_ORDER``).
-"""
-
-b_radius = """
-``double``  intermediate axis of the ellipsoid that defines the approximate shape
-of a target body used in projection (m). If undefined, this is set to `None`.
-"""
-
-bdis_obs = """
-``double``  Distance between the centre of the celestial body and the observer (m).
-If undefined, this is set to `None`.
-"""
-
-blon_obs = """
-``double``  Bodycentric longitude of the observer in the body-fixed reference frame
-of the target body, spanning from 0 to 360 deg (deg).
-If undefined, this is set to `None`.
-"""
-
-blat_obs = """
-``double``  Bodycentric latitude of the observer in the body-fixed reference frame
-of the target body (deg). If undefined, this is set to `None`.
-"""
-
-c_radius = """
-``double``  semiminor axis of the ellipsoid that defines the approximate shape
-of a target body used in projection (m). If undefined, this is set to `None`.
 """
 
 cel = """
@@ -673,7 +642,7 @@ phi : numpy.ndarray
     in native spherical coordinates (in degrees).
 theta : numpy.ndarray
     Array corresponding to the longitude :math:`\theta` of the projected point
-    in native spherical coordinates (in degrees). Values corresponding to
+    in native spherical coordinatess (in degrees). Values corresponding to
     invalid :math:`(\phi, \theta)` coordinates are set to ``numpy.nan``.
 
 Returns
@@ -1024,7 +993,7 @@ The dimensions of the tabular array
 """
 
 DistortionLookupTable = """
-DistortionLookupTable(table, crpix, crval, cdelt)
+DistortionLookupTable(*table*, *crpix*, *crval*, *cdelt*)
 
 Represents a single lookup table for a `distortion paper`_
 transformation.
@@ -1035,12 +1004,10 @@ table : 2-dimensional array
     The distortion lookup table.
 
 crpix : 2-tuple
-    The distortion array reference pixel, in FITS Header format: 1-based
-    indexing, (x,y) order.
+    The distortion array reference pixel
 
 crval : 2-tuple
-    The image array pixel coordinate, in FITS Header format: 1-based indexing,
-    (x,y) order.
+    The image array pixel coordinate
 
 cdelt : 2-tuple
     The grid step size

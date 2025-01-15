@@ -24,17 +24,15 @@ from astropy.io.fits.util import (
 )
 from astropy.io.fits.verify import VerifyError, VerifyWarning, _ErrList, _Verify
 from astropy.utils import indent
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.exceptions import AstropyUserWarning
 
+from . import compressed
 from .base import ExtensionHDU, _BaseHDU, _NonstandardHDU, _ValidHDU
-from .compressed.compressed import CompImageHDU
 from .groups import GroupsHDU
 from .image import ImageHDU, PrimaryHDU
-from .table import BinTableHDU
 
 if HAS_BZ2:
     import bz2
@@ -56,7 +54,6 @@ def fitsopen(
     *,
     use_fsspec=None,
     fsspec_kwargs=None,
-    decompress_in_memory=False,
     **kwargs,
 ):
     """Factory function to open a FITS file and return an `HDUList` object.
@@ -172,7 +169,7 @@ def fitsopen(
         ``name`` starts with the Amazon S3 storage prefix ``s3://`` or the
         Google Cloud Storage prefix ``gs://``.  Can also be used for paths
         with other prefixes (e.g., ``http://``) but in this case you must
-        explicitly pass ``use_fsspec=True``.
+        explicitely pass ``use_fsspec=True``.
         Use of this feature requires the optional ``fsspec`` package.
         A ``ModuleNotFoundError`` will be raised if the dependency is missing.
 
@@ -187,20 +184,13 @@ def fitsopen(
 
         .. versionadded:: 5.2
 
-    decompress_in_memory : bool, optional
-        By default files are decompressed progressively depending on what data
-        is needed.  This is good for memory usage, avoiding decompression of
-        the whole file, but it can be slow. With decompress_in_memory=True it
-        is possible to decompress instead the whole file in memory.
-
-        .. versionadded:: 6.0
-
     Returns
     -------
     hdulist : `HDUList`
         `HDUList` containing all of the header data units in the file.
 
     """
+
     from astropy.io.fits import conf
 
     if memmap is None:
@@ -231,7 +221,6 @@ def fitsopen(
         ignore_missing_simple,
         use_fsspec=use_fsspec,
         fsspec_kwargs=fsspec_kwargs,
-        decompress_in_memory=decompress_in_memory,
         **kwargs,
     )
 
@@ -257,6 +246,7 @@ class HDUList(list, _Verify):
             or a bytes object containing the contents of the FITS
             file.
         """
+
         if isinstance(file, bytes):
             self._data = file
             self._file = None
@@ -343,6 +333,7 @@ class HDUList(list, _Verify):
         """
         Get an HDU from the `HDUList`, indexed by number or name.
         """
+
         # If the key is a slice we need to make sure the necessary HDUs
         # have been loaded before passing the slice on to super.
         if isinstance(key, slice):
@@ -421,6 +412,7 @@ class HDUList(list, _Verify):
         """
         Set an HDU to the `HDUList`, indexed by number or name.
         """
+
         _key = self._positive_index_of(key)
         if isinstance(hdu, (slice, list)):
             if _is_int(_key):
@@ -444,6 +436,7 @@ class HDUList(list, _Verify):
         """
         Delete an HDU from the `HDUList`, indexed by number or name.
         """
+
         if isinstance(key, slice):
             end_index = len(self)
         else:
@@ -452,7 +445,7 @@ class HDUList(list, _Verify):
 
         self._try_while_unread_hdus(super().__delitem__, key)
 
-        if key == end_index or (key == -1 and not self._resize):
+        if key == end_index or key == -1 and not self._resize:
             self._truncate = True
         else:
             self._truncate = False
@@ -485,6 +478,7 @@ class HDUList(list, _Verify):
         be used directly.  Use :func:`open` instead (and see its
         documentation for details of the parameters accepted by this method).
         """
+
         return cls._readfrom(
             fileobj=fileobj,
             mode=mode,
@@ -525,17 +519,19 @@ class HDUList(list, _Verify):
         hdul : HDUList
             An :class:`HDUList` object representing the in-memory FITS file.
         """
+
         try:
             # Test that the given object supports the buffer interface by
             # ensuring an ndarray can be created from it
             np.ndarray((), dtype="ubyte", buffer=data)
         except TypeError:
             raise TypeError(
-                f"The provided object {data} does not contain an underlying "
+                "The provided object {} does not contain an underlying "
                 "memory buffer.  fromstring() requires an object that "
                 "supports the buffer interface such as bytes, buffer, "
                 "memoryview, ndarray, etc.  This restriction is to ensure "
                 "that efficient access to the array/table data is possible."
+                "".format(data)
             )
 
         return cls._readfrom(data=data, **kwargs)
@@ -578,6 +574,7 @@ class HDUList(list, _Verify):
             ========== ========================================================
 
         """
+
         if self._file is not None:
             output = self[index].fileinfo()
 
@@ -621,6 +618,7 @@ class HDUList(list, _Verify):
             A shallow copy of this `HDUList` object.
 
         """
+
         return self[:]
 
     # Syntactic sugar for `__copy__()` magic method
@@ -655,6 +653,7 @@ class HDUList(list, _Verify):
             The HDU object at position indicated by ``index`` or having name
             and version specified by ``index``.
         """
+
         # Make sure that HDUs are loaded before attempting to pop
         self.readall()
         list_index = self.index_of(index)
@@ -672,6 +671,7 @@ class HDUList(list, _Verify):
         hdu : BaseHDU
             The HDU object to insert
         """
+
         if not isinstance(hdu, _BaseHDU):
             raise ValueError(f"{hdu} is not an HDU.")
 
@@ -733,6 +733,7 @@ class HDUList(list, _Verify):
         hdu : BaseHDU
             HDU to add to the `HDUList`.
         """
+
         if not isinstance(hdu, _BaseHDU):
             raise ValueError("HDUList can only append an HDU.")
 
@@ -806,6 +807,7 @@ class HDUList(list, _Verify):
             found in the ``HDUList``.
 
         """
+
         if _is_int(key):
             return key
         elif isinstance(key, tuple):
@@ -818,8 +820,9 @@ class HDUList(list, _Verify):
 
         if not isinstance(_key, str):
             raise KeyError(
-                f"{type(self).__name__} indices must be integers, extension "
-                f"names as strings, or (extname, version) tuples; got {_key}"
+                "{} indices must be integers, extension names as strings, "
+                "or (extname, version) tuples; got {}"
+                "".format(self.__class__.__name__, _key)
             )
 
         _key = (_key.strip()).upper()
@@ -855,6 +858,7 @@ class HDUList(list, _Verify):
         all HDUs.  Therefore using negative indices on HDULists is inherently
         inefficient.
         """
+
         index = self.index_of(key)
 
         if index >= 0:
@@ -890,6 +894,7 @@ class HDUList(list, _Verify):
         verbose : bool
             When `True`, print verbose messages
         """
+
         if self._file.mode not in ("append", "update", "ostream"):
             warnings.warn(
                 f"Flush for '{self._file.mode}' mode is not supported.",
@@ -901,7 +906,7 @@ class HDUList(list, _Verify):
         if save_backup and self._file.mode in ("append", "update"):
             filename = self._file.name
             if os.path.exists(filename):
-                # The file doesn't actually exist anymore for some reason
+                # The the file doesn't actually exist anymore for some reason
                 # then there's no point in trying to make a backup
                 backup = filename + ".bak"
                 idx = 1
@@ -909,14 +914,17 @@ class HDUList(list, _Verify):
                     backup = filename + ".bak." + str(idx)
                     idx += 1
                 warnings.warn(
-                    f"Saving a backup of {filename} to {backup}.", AstropyUserWarning
+                    f"Saving a backup of {filename} to {backup}.",
+                    AstropyUserWarning,
                 )
                 try:
                     shutil.copy(filename, backup)
                 except OSError as exc:
                     raise OSError(
-                        f"Failed to save backup to destination {filename}"
-                    ) from exc
+                        "Failed to save backup to destination {}: {}".format(
+                            filename, exc
+                        )
+                    )
 
         self.verify(option=output_verify)
 
@@ -946,6 +954,7 @@ class HDUList(list, _Verify):
         Make sure that if the primary header needs the keyword ``EXTEND`` that
         it has it and it is correct.
         """
+
         if not len(self):
             return
 
@@ -999,14 +1008,8 @@ class HDUList(list, _Verify):
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the headers of all HDU's written to the file.
-
-        Notes
-        -----
-        gzip, zip and bzip2 compression algorithms are natively supported.
-        Compression mode is determined from the filename extension
-        ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
-        compressed file object, e.g. `gzip.GzipFile`.
         """
+
         if len(self) == 0:
             warnings.warn("There is nothing to write.", AstropyUserWarning)
             return
@@ -1015,11 +1018,6 @@ class HDUList(list, _Verify):
 
         # make sure the EXTEND keyword is there if there is extension
         self.update_extend()
-
-        if fileobj is sys.stdout:
-            # special case stdout for debugging convenience
-            # see https://github.com/astropy/astropy/issues/3427
-            fileobj = fileobj.buffer
 
         # make note of whether the input file object is already open, in which
         # case we should not close it after writing (that should be the job
@@ -1065,6 +1063,7 @@ class HDUList(list, _Verify):
         closed : bool
             When `True`, close the underlying file object.
         """
+
         try:
             if (
                 self._file
@@ -1094,6 +1093,7 @@ class HDUList(list, _Verify):
             output to a file and instead returns a list of tuples representing
             the HDU info.  Writes to ``sys.stdout`` by default.
         """
+
         if output is None:
             output = sys.stdout
 
@@ -1156,7 +1156,6 @@ class HDUList(list, _Verify):
         *,
         use_fsspec=None,
         fsspec_kwargs=None,
-        decompress_in_memory=False,
         **kwargs,
     ):
         """
@@ -1164,6 +1163,7 @@ class HDUList(list, _Verify):
         HDUList.fromstring, both of which wrap this method, as their
         implementations are largely the same.
         """
+
         if fileobj is not None:
             if not isinstance(fileobj, _File):
                 # instantiate a FITS file object (ffo)
@@ -1174,7 +1174,6 @@ class HDUList(list, _Verify):
                     cache=cache,
                     use_fsspec=use_fsspec,
                     fsspec_kwargs=fsspec_kwargs,
-                    decompress_in_memory=decompress_in_memory,
                 )
             # The Astropy mode is determined by the _File initializer if the
             # supplied mode was None
@@ -1266,6 +1265,7 @@ class HDUList(list, _Verify):
         reading HDUs until the operation succeeds or there are no
         more HDUs to read.
         """
+
         while True:
             try:
                 return func(*args, **kwargs)
@@ -1282,9 +1282,11 @@ class HDUList(list, _Verify):
 
         Returns True if a new HDU was loaded, or False otherwise.
         """
+
         if self._read_all:
             return False
 
+        saved_compression_enabled = compressed.COMPRESSION_ENABLED
         fileobj, data, kwargs = self._file, self._data, self._open_kwargs
 
         if fileobj is not None and fileobj.closed:
@@ -1292,6 +1294,12 @@ class HDUList(list, _Verify):
 
         try:
             self._in_read_next_hdu = True
+
+            if (
+                "disable_image_compression" in kwargs
+                and kwargs["disable_image_compression"]
+            ):
+                compressed.COMPRESSION_ENABLED = False
 
             # read all HDUs
             try:
@@ -1328,17 +1336,6 @@ class HDUList(list, _Verify):
                     hdu = _BaseHDU.fromstring(data, **kwargs)
                     self._data = data[hdu._data_offset + hdu._data_size :]
 
-                if not kwargs.get("disable_image_compression", False):
-                    if isinstance(hdu, BinTableHDU) and CompImageHDU.match_header(
-                        hdu.header
-                    ):
-                        kwargs_comp = {
-                            key: val
-                            for key, val in kwargs.items()
-                            if key in ("scale_back", "uint", "do_not_scale_image_data")
-                        }
-                        hdu = CompImageHDU(bintable=hdu, **kwargs_comp)
-
                 super().append(hdu)
                 if len(self) == 1:
                     # Check for an extension HDU and update the EXTEND
@@ -1352,16 +1349,17 @@ class HDUList(list, _Verify):
             # corrupted HDU
             except (VerifyError, ValueError) as exc:
                 warnings.warn(
-                    f"Error validating header for HDU #{len(self)} (note: Astropy "
-                    f"uses zero-based indexing).\n{indent(str(exc))}\n"
+                    "Error validating header for HDU #{} (note: Astropy "
+                    "uses zero-based indexing).\n{}\n"
                     "There may be extra bytes after the last HDU or the "
-                    "file is corrupted.",
+                    "file is corrupted.".format(len(self), indent(str(exc))),
                     VerifyWarning,
                 )
                 del exc
                 self._read_all = True
                 return False
         finally:
+            compressed.COMPRESSION_ENABLED = saved_compression_enabled
             self._in_read_next_hdu = False
 
         return True
@@ -1408,7 +1406,7 @@ class HDUList(list, _Verify):
         # each element calls their own verify
         for idx, hdu in enumerate(self):
             if idx > 0 and (not isinstance(hdu, ExtensionHDU)):
-                err_text = f"HDUList's element {idx} is not an extension HDU."
+                err_text = f"HDUList's element {str(idx)} is not an extension HDU."
 
                 err = self.run_option(option, err_text=err_text, fixable=False)
                 errs.append(err)
@@ -1421,6 +1419,7 @@ class HDUList(list, _Verify):
 
     def _flush_update(self):
         """Implements flushing changes to a file in update mode."""
+
         for hdu in self:
             # Need to all _prewriteto() for each HDU first to determine if
             # resizing will be necessary
@@ -1450,6 +1449,7 @@ class HDUList(list, _Verify):
         Implements flushing changes in update mode when parts of one or more HDU
         need to be resized.
         """
+
         old_name = self._file.name
         old_memmap = self._file.memmap
         name = _tmp_name(old_name)
@@ -1526,26 +1526,11 @@ class HDUList(list, _Verify):
                 # references to data from files that had to be resized upon
                 # flushing (on Windows--again, this is no problem on Linux).
                 for idx, mmap, arr in mmaps:
-                    if mmap is None:
-                        continue
-                    if NUMPY_LT_2_0:
-                        # Note that this hack is only possible on numpy 1.x:
-                        # in 2.x, we cannot write directly to the data attribute
+                    if mmap is not None:
                         # https://github.com/numpy/numpy/issues/8628
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore", category=DeprecationWarning)
                             arr.data = self[idx].data.data
-                    elif sys.getrefcount(arr) > 2:
-                        # 2 is the minimum number of references to this object
-                        # counting `arr` and a reference as an argument to getrefcount(),
-                        # see  https://docs.python.org/3/library/sys.html#sys.getrefcount
-                        warnings.warn(
-                            "Memory map object was closed but appears to still "
-                            "be referenced. Further access will result in undefined "
-                            "behavior (possibly including segmentation faults).",
-                            category=UserWarning,
-                            stacklevel=2,
-                        )
                 del mmaps  # Just to be sure
 
         else:
@@ -1584,16 +1569,10 @@ class HDUList(list, _Verify):
 
         Side effect of setting the objects _resize attribute.
         """
+
         if not self._resize:
             # determine if any of the HDU is resized
             for hdu in self:
-                # for CompImageHDU, we need to handle things a little differently
-                # because the HDU matching the header/data on disk is hdu._bintable
-                if isinstance(hdu, CompImageHDU):
-                    hdu = hdu._tmp_bintable
-                    if hdu is None:
-                        continue
-
                 # Header:
                 nbytes = len(str(hdu._header))
                 if nbytes != (hdu._data_offset - hdu._header_offset):

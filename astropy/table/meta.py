@@ -52,9 +52,7 @@ class ColumnDict(dict):
 
 def _construct_odict(load, node):
     """
-    Construct dict from !!omap in yaml safe load.
-
-    See ``get_header_from_yaml()`` for usage.
+    Construct OrderedDict from !!omap in yaml safe load.
 
     Source: https://gist.github.com/weaver/317164
     License: Unspecified
@@ -62,8 +60,23 @@ def _construct_odict(load, node):
     This is the same as SafeConstructor.construct_yaml_omap(),
     except the data type is changed to OrderedDict() and setitem is
     used instead of append in the loop
+
+    Examples
+    --------
+    ::
+
+      >>> yaml.load('''  # doctest: +SKIP
+      ... !!omap
+      ... - foo: bar
+      ... - mumble: quux
+      ... - baz: gorp
+      ... ''')
+      OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
+
+      >>> yaml.load('''!!omap [ foo: bar, mumble: quux, baz : gorp ]''')  # doctest: +SKIP
+      OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
     """
-    omap = {}
+    omap = OrderedDict()
     yield omap
     if not isinstance(node, yaml.SequenceNode):
         raise yaml.constructor.ConstructorError(
@@ -164,12 +177,12 @@ def _get_variable_length_array_shape(col):
     be ``np.dtype(object)``.
 
     Parameters
-    ----------
+    ==========
     col : column-like
         Input table column, assumed to be object-type
 
     Returns
-    -------
+    =======
     shape : tuple
         Inferred variable length shape or None
     dtype : np.dtype
@@ -177,10 +190,10 @@ def _get_variable_length_array_shape(col):
     """
 
     class ConvertError(ValueError):
-        """Local conversion error used below."""
+        """Local conversion error used below"""
 
     # Numpy types supported as variable-length arrays
-    np_classes = (np.floating, np.integer, np.bool_, np.str_)
+    np_classes = (np.floating, np.integer, np.bool_, np.unicode_)
 
     try:
         if len(col) == 0 or not all(isinstance(val, np.ndarray) for val in col):
@@ -204,11 +217,12 @@ def _get_variable_length_array_shape(col):
 
 
 def _get_datatype_from_dtype(dtype):
-    """Return string version of ``dtype`` for writing to ECSV ``datatype``."""
+    """Return string version of ``dtype`` for writing to ECSV ``datatype``"""
     datatype = dtype.name
     if datatype.startswith(("bytes", "str")):
         datatype = "string"
-    datatype = datatype.removesuffix("_")  # string_ and bool_ lose the final _ for ECSV
+    if datatype.endswith("_"):
+        datatype = datatype[:-1]  # string_ and bool_ lose the final _ for ECSV
     return datatype
 
 
@@ -255,7 +269,7 @@ def _get_col_attributes(col):
         ("unit", lambda x: x is not None, str),
         ("format", lambda x: x is not None, None),
         ("description", lambda x: x is not None, None),
-        ("meta", lambda x: x, OrderedDict),
+        ("meta", lambda x: x, None),
     ):
         col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
@@ -286,9 +300,10 @@ def get_yaml_from_table(table):
     lines : list
         List of text lines with YAML header content
     """
+
     header = {"cols": list(table.columns.values())}
     if table.meta:
-        header["meta"] = OrderedDict(table.meta)
+        header["meta"] = table.meta
 
     return get_yaml_from_header(header)
 

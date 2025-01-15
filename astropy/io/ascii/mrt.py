@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Classes to read AAS MRT table format.
+"""Classes to read AAS MRT table format
 
 Ref: https://journals.aas.org/mrt-standards
 
@@ -77,7 +77,7 @@ class MrtHeader(cds.CdsHeader):
         Returns
         -------
         fmt: (int, int, int, bool, bool)
-            List of values describing the Float string.
+            List of values describing the Float sting.
             (size, dec, ent, sign, exp)
             size, length of the given string.
             ent, number of digits before decimal point.
@@ -121,7 +121,7 @@ class MrtHeader(cds.CdsHeader):
         """
         String formatter function for a column containing Float values.
         Checks if the values in the given column are in Scientific notation,
-        by splitting the value string. It is assumed that the column either has
+        by spliting the value string. It is assumed that the column either has
         float values or Scientific notation.
 
         A ``col.formatted_width`` attribute is added to the column. It is not added
@@ -165,13 +165,17 @@ class MrtHeader(cds.CdsHeader):
                 if fformat == "E":
                     continue
 
-            maxsize = max(maxsize, fmt[0])
-            maxent = max(maxent, fmt[1])
-            maxdec = max(maxdec, fmt[2])
+            if maxsize < fmt[0]:
+                maxsize = fmt[0]
+            if maxent < fmt[1]:
+                maxent = fmt[1]
+            if maxdec < fmt[2]:
+                maxdec = fmt[2]
             if fmt[3]:
                 sign = True
 
-            maxprec = max(maxprec, fmt[1] + fmt[2])
+            if maxprec < fmt[1] + fmt[2]:
+                maxprec = fmt[1] + fmt[2]
 
         if fformat == "E":
             # If ``formats`` not passed.
@@ -208,7 +212,7 @@ class MrtHeader(cds.CdsHeader):
         See the Vizier MRT Standard documentation in the link below for more details
         on these. An example Byte-By-Byte table is shown here.
 
-        See: https://vizier.unistra.fr/doc/catstd-3.1.htx
+        See: http://vizier.u-strasbg.fr/doc/catstd-3.1.htx
 
         Example::
 
@@ -235,7 +239,10 @@ class MrtHeader(cds.CdsHeader):
         --------------------------------------------------------------------------------
         """
         # Get column widths
-        vals_list = list(zip(*self.data.str_vals()))
+        vals_list = []
+        col_str_iters = self.data.str_vals()
+        for vals in zip(*col_str_iters):
+            vals_list.append(vals)
 
         for i, col in enumerate(self.cols):
             col.width = max(len(vals[i]) for vals in vals_list)
@@ -364,8 +371,10 @@ class MrtHeader(cds.CdsHeader):
                 description = f"{lim_vals}{nullflag} {description}"
 
             # Find the maximum label and description column widths.
-            max_label_width = max(len(col.name), max_label_width)
-            max_descrip_size = max(len(description), max_descrip_size)
+            if len(col.name) > max_label_width:
+                max_label_width = len(col.name)
+            if len(description) > max_descrip_size:
+                max_descrip_size = len(description)
 
             # Add a row for the Sign of Declination in the bbb table
             if col.name == "DEd":
@@ -482,7 +491,7 @@ class MrtHeader(cds.CdsHeader):
                     continue
 
             # Replace single ``SkyCoord`` column by its coordinate components if no coordinate
-            # columns of the corresponding type exist yet.
+            # columns of the correspoding type exist yet.
             if isinstance(col, SkyCoord):
                 # If coordinates are given in RA/DEC, divide each them into hour/deg,
                 # minute/arcminute, second/arcsecond columns.
@@ -593,10 +602,10 @@ class MrtHeader(cds.CdsHeader):
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
             elif not isinstance(col, Column):
-                col = Column(col, name=self.colnames[i])
+                col = Column(col)
                 # If column values are ``object`` types, convert them to string.
                 if np.issubdtype(col.dtype, np.dtype(object).type):
-                    col = Column([str(val) for val in col], name=col.name)
+                    col = Column([str(val) for val in col])
                 self.cols[i] = col
 
         # Delete original ``SkyCoord`` columns, if there were any.
@@ -631,7 +640,7 @@ class MrtHeader(cds.CdsHeader):
 
 
 class MrtData(cds.CdsData):
-    """MRT table data reader."""
+    """MRT table data reader"""
 
     _subfmt = "MRT"
     splitter_class = MrtSplitter

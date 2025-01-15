@@ -33,6 +33,7 @@ def get_col_name_map(
     will be present, while for the other non-key columns the value will be (col_name_0,
     None, ..) or (None, col_name_1, ..) etc.
     """
+
     col_name_map = collections.defaultdict(lambda: [None] * len(arrays))
     col_name_list = []
 
@@ -67,8 +68,10 @@ def get_col_name_map(
     repeated_names = [name for name, count in col_name_count.items() if count > 1]
     if repeated_names:
         raise TableMergeError(
-            f"Merging column names resulted in duplicates: {repeated_names}.  "
-            "Change uniq_col_name or table_names args to fix this."
+            "Merging column names resulted in duplicates: {}.  "
+            "Change uniq_col_name or table_names args to fix this.".format(
+                repeated_names
+            )
         )
 
     # Convert col_name_map to a regular dict with tuple (immutable) values
@@ -84,6 +87,7 @@ def get_descrs(arrays, col_name_map):
 
     Return a list of descrs for the output.
     """
+
     out_descrs = []
 
     for out_name, in_names in col_name_map.items():
@@ -100,8 +104,9 @@ def get_descrs(arrays, col_name_map):
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
             raise TableMergeError(
-                f"The '{names[0]}' columns have incompatible types: "
-                f"{tme._incompat_types}"
+                "The '{}' columns have incompatible types: {}".format(
+                    names[0], tme._incompat_types
+                )
             ) from tme
 
         # Make sure all input shapes are the same

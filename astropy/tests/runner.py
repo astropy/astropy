@@ -8,10 +8,11 @@ import shlex
 import sys
 import tempfile
 import warnings
+from collections import OrderedDict
 from functools import wraps
 from importlib.util import find_spec
-from pathlib import Path
 
+from astropy.config.paths import set_temp_cache, set_temp_config
 from astropy.utils import find_current_module
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
@@ -56,13 +57,14 @@ class TestRunnerBase:
     defining 'keyword' methods. These are methods that have the
     :class:`~astropy.tests.runner.keyword` decorator, these methods are used to
     construct allowed keyword arguments to the
-    `~astropy.tests.runner.TestRunnerBase.run_tests` method as a way to allow
+    ``run_tests`` method as a way to allow
     customization of individual keyword arguments (and associated logic)
     without having to re-implement the whole
-    `~astropy.tests.runner.TestRunnerBase.run_tests` method.
+    ``run_tests`` method.
 
     Examples
     --------
+
     A simple keyword method::
 
         class MyRunner(TestRunnerBase):
@@ -102,7 +104,7 @@ class TestRunnerBase:
         # Sort all keywords based on the priority flag.
         sorted_keywords = sorted(keywords, key=lambda x: x[1]._priority, reverse=True)
 
-        cls.keywords = {}
+        cls.keywords = OrderedDict()
         doc_keywords = ""
         for name, func in sorted_keywords:
             # Here we test if the function has been overloaded to return
@@ -174,7 +176,7 @@ class TestRunnerBase:
         "pytest_astropy_header",
     ]
     _missing_dependancy_error = (
-        "Test dependencies are missing: {}. You should install the "
+        "Test dependencies are missing: {module}. You should install the "
         "'pytest-astropy' package (you may need to update the package if you "
         "have a previous version installed, e.g., "
         "'pip install pytest-astropy --upgrade' or the equivalent with conda)."
@@ -182,21 +184,13 @@ class TestRunnerBase:
 
     @classmethod
     def _has_test_dependencies(cls):  # pragma: no cover
-        # Using the test runner will not work without these dependencies.
+        # Using the test runner will not work without these dependencies, but
+        # pytest-openfiles is optional, so it's not listed here.
         for module in cls._required_dependencies:
             spec = find_spec(module)
-            # Checking loader accounts for packages that were uninstalled.
-            # pytest plugins are special, it's enough if they are picked up the
-            # pytest independently of how they are installed.
+            # Checking loader accounts for packages that were uninstalled
             if spec is None or spec.loader is None:
-                # Don't import pytest until it's actually needed
-                import pytest
-
-                pluginmanager = pytest.PytestPluginManager()
-                try:
-                    pluginmanager.import_plugin(module)
-                except ImportError:
-                    raise RuntimeError(cls._missing_dependancy_error.format(module))
+                raise RuntimeError(cls._missing_dependancy_error.format(module=module))
 
     def run_tests(self, **kwargs):
         # The following option will include eggs inside a .eggs folder in
@@ -228,44 +222,43 @@ class TestRunnerBase:
 
         args = self._generate_args(**kwargs)
 
-        if kwargs.get("plugins") is not None:
+        if kwargs.get("plugins", None) is not None:
             plugins = kwargs.pop("plugins")
         elif self.keywords.get("plugins", None) is not None:
             plugins = self.keywords["plugins"]
         else:
             plugins = []
 
-        # Avoid the existing config. Note that we need to do this here in
+        # Override the config locations to not make a new directory nor use
+        # existing cache or config. Note that we need to do this here in
         # addition to in conftest.py - for users running tests interactively
         # in e.g. IPython, conftest.py would get read in too late, so we need
         # to do it here - but at the same time the code here doesn't work when
         # running tests in parallel mode because this uses subprocesses which
         # don't know about the temporary config/cache.
-        # Note, this is superfluous if the config_dir option to pytest is in use,
-        # but it's also harmless
-        orig_xdg_config = os.environ.get("XDG_CONFIG_HOME")
-        with tempfile.TemporaryDirectory("astropy_config") as astropy_config:
-            Path(astropy_config, "astropy").mkdir()
-            os.environ["XDG_CONFIG_HOME"] = astropy_config
-            try:
+        astropy_config = tempfile.mkdtemp("astropy_config")
+        astropy_cache = tempfile.mkdtemp("astropy_cache")
+
+        # Have to use nested with statements for cross-Python support
+        # Note, using these context managers here is superfluous if the
+        # config_dir or cache_dir options to pytest are in use, but it's
+        # also harmless to nest the contexts
+        with set_temp_config(astropy_config, delete=True):
+            with set_temp_cache(astropy_cache, delete=True):
                 return pytest.main(args=args, plugins=plugins)
-            finally:
-                if orig_xdg_config is None:
-                    os.environ.pop("XDG_CONFIG_HOME", None)
-                else:
-                    os.environ["XDG_CONFIG_HOME"] = orig_xdg_config
 
     @classmethod
     def make_test_runner_in(cls, path):
         """
         Constructs a `TestRunner` to run in the given path, and returns a
         ``test()`` function which takes the same arguments as
-        `~astropy.tests.runner.TestRunner.run_tests`.
+        ``TestRunner.run_tests``.
 
         The returned ``test()`` function will be defined in the module this
         was called from.  This is used to implement the ``astropy.test()``
         function (or the equivalent for affiliated packages).
         """
+
         runner = cls(path)
 
         @wraps(runner.run_tests, ("__doc__",))
@@ -291,7 +284,7 @@ class TestRunnerBase:
 
 class TestRunner(TestRunnerBase):
     """
-    A test runner for astropy tests.
+    A test runner for astropy tests
     """
 
     def packages_path(self, packages, base_path, error=None, warning=None):
@@ -477,6 +470,7 @@ class TestRunner(TestRunnerBase):
             data from http://data.astropy.org (``astropy``), or all tests that
             use remote data (``any``). The default is ``none``.
         """
+
         if remote_data is True:
             remote_data = "any"
         elif remote_data is False:
@@ -495,6 +489,26 @@ class TestRunner(TestRunnerBase):
         return [f"--remote-data={remote_data}"]
 
     @keyword()
+    def pep8(self, pep8, kwargs):
+        """
+        pep8 : bool, optional
+            Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
+            tests. Same as specifying ``--pep8 -k pep8`` in ``args``.
+        """
+        if pep8:
+            try:
+                import pytest_pep8  # noqa: F401
+            except ImportError:
+                raise ImportError(
+                    "PEP8 checking requires pytest-pep8 plugin: "
+                    "https://pypi.org/project/pytest-pep8"
+                )
+            else:
+                return ["--pep8", "-k", "pep8"]
+
+        return []
+
+    @keyword()
     def pdb(self, pdb, kwargs):
         """
         pdb : bool, optional
@@ -503,6 +517,35 @@ class TestRunner(TestRunnerBase):
         """
         if pdb:
             return ["--pdb"]
+        return []
+
+    @keyword()
+    def open_files(self, open_files, kwargs):
+        """
+        open_files : bool, optional
+            Fail when any tests leave files open.  Off by default, because
+            this adds extra run time to the test suite.  Requires the
+            ``psutil`` package.
+        """
+        if open_files:
+            if kwargs["parallel"] != 0:
+                raise SystemError(
+                    "open file detection may not be used in conjunction with "
+                    "parallel testing."
+                )
+
+            try:
+                import psutil  # noqa: F401
+            except ImportError:
+                raise SystemError(
+                    "open file detection requested, but psutil package "
+                    "is not installed."
+                )
+
+            return ["--open-files"]
+
+            print("Checking for unclosed files")
+
         return []
 
     @keyword(0)
@@ -531,6 +574,7 @@ class TestRunner(TestRunnerBase):
         docs_path : str, optional
             The path to the documentation .rst files.
         """
+
         paths = []
         if docs_path is not None and not kwargs["skip_docs"]:
             if kwargs["package"] is not None:

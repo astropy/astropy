@@ -4,7 +4,6 @@ A module containing unit tests for the `bitmask` module.
 Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-
 import warnings
 
 import numpy as np
@@ -12,8 +11,8 @@ import pytest
 
 from astropy.nddata import bitmask
 
-MAX_INT_TYPE = np.int64
-MAX_UINT_TYPE = np.uint64
+MAX_INT_TYPE = np.maximum_sctype(np.int_)
+MAX_UINT_TYPE = np.maximum_sctype(np.uint)
 MAX_UINT_FLAG = np.left_shift(
     MAX_UINT_TYPE(1), MAX_UINT_TYPE(np.iinfo(MAX_UINT_TYPE).bits - 1)
 )
@@ -201,6 +200,7 @@ def test_bitfield_must_be_integer_check():
             np.bool_,
             [1, 1, 0, 0, 0, 1, 1],
         ),
+        (EXTREME_TEST_DATA, None, None, True, np.bool_, EXTREME_TEST_DATA.size * [1]),
         (
             EXTREME_TEST_DATA,
             [1, MAX_UINT_FLAG],

@@ -4,11 +4,11 @@ import locale
 import pathlib
 import platform
 import re
+from collections import OrderedDict
 from io import BytesIO, StringIO
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
 
 from astropy import table
 from astropy.io import ascii
@@ -25,9 +25,12 @@ from astropy.utils.data import get_pkg_data_path
 from astropy.utils.exceptions import AstropyWarning
 
 # setup/teardown function to have the tests run in the correct directory
-from .common import (
-    setup_function,  # noqa: F401
-    teardown_function,  # noqa: F401
+from .common import (  # noqa: F401
+    assert_almost_equal,
+    assert_equal,
+    assert_true,
+    setup_function,
+    teardown_function,
 )
 
 
@@ -92,7 +95,7 @@ def test_read_specify_converters_with_names():
 
 def test_read_remove_and_rename_columns():
     csv_text = ["a,b,c", "1,2,3", "4,5,6"]
-    reader = ascii.get_reader(reader_cls=ascii.Csv)
+    reader = ascii.get_reader(Reader=ascii.Csv)
     reader.read(csv_text)
     header = reader.header
     with pytest.raises(KeyError, match="Column NOT-EXIST does not exist"):
@@ -135,14 +138,22 @@ def test_guess_with_names_arg():
 
 def test_guess_with_format_arg():
     """
-    When the format is explicitly given then disable the strict column name checking in
-    guessing.
+    When the format or Reader is explicitly given then disable the
+    strict column name checking in guessing.
     """
     dat = ascii.read(["1,2", "3,4"], format="basic")
     assert len(dat) == 1
     assert dat.colnames == ["1", "2"]
 
     dat = ascii.read(["1,2", "3,4"], names=("a", "b"), format="basic")
+    assert len(dat) == 1
+    assert dat.colnames == ["a", "b"]
+
+    dat = ascii.read(["1,2", "3,4"], Reader=ascii.Basic)
+    assert len(dat) == 1
+    assert dat.colnames == ["1", "2"]
+
+    dat = ascii.read(["1,2", "3,4"], names=("a", "b"), Reader=ascii.Basic)
     assert len(dat) == 1
     assert dat.colnames == ["a", "b"]
 
@@ -211,15 +222,15 @@ def test_read_all_files(fast_reader, path_format, home_is_data):
             if "guess" not in test_opts:
                 test_opts["guess"] = guess
             if (
-                "format" in test_opts
-                and f"fast_{test_opts['format']}" in core.FAST_CLASSES
+                "Reader" in test_opts
+                and f"fast_{test_opts['Reader']._format_name}" in core.FAST_CLASSES
             ):  # has fast version
-                if "inputter_cls" not in test_opts:  # fast reader doesn't allow this
+                if "Inputter" not in test_opts:  # fast reader doesn't allow this
                     test_opts["fast_reader"] = fast_reader
             table = ascii.read(testfile["name"], **test_opts)
-            assert table.dtype.names == testfile["cols"]
+            assert_equal(table.dtype.names, testfile["cols"])
             for colname in table.dtype.names:
-                assert len(table[colname]) == testfile["nrows"]
+                assert_equal(len(table[colname]), testfile["nrows"])
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -239,17 +250,17 @@ def test_read_all_files_via_table(fast_reader, path_format, home_is_data):
             test_opts = testfile["opts"].copy()
             if "guess" not in test_opts:
                 test_opts["guess"] = guess
-            if "format" in test_opts:
-                format = f"ascii.{test_opts['format']}"
-                del test_opts["format"]
+            if "Reader" in test_opts:
+                format = f"ascii.{test_opts['Reader']._format_name}"
+                del test_opts["Reader"]
             else:
                 format = "ascii"
             if f"fast_{format}" in core.FAST_CLASSES:
                 test_opts["fast_reader"] = fast_reader
             table = Table.read(testfile["name"], format=format, **test_opts)
-            assert table.dtype.names == testfile["cols"]
+            assert_equal(table.dtype.names, testfile["cols"])
             for colname in table.dtype.names:
-                assert len(table[colname]) == testfile["nrows"]
+                assert_equal(len(table[colname]), testfile["nrows"])
 
 
 def test_guess_all_files():
@@ -260,15 +271,15 @@ def test_guess_all_files():
         if not testfile["opts"].get("guess", True):
             continue
         print(f"\n\n******** READING {testfile['name']}")
-        for filter_read_opts in (["format", "delimiter", "quotechar"], []):
+        for filter_read_opts in (["Reader", "delimiter", "quotechar"], []):
             # Copy read options except for those in filter_read_opts
             guess_opts = {
                 k: v for k, v in testfile["opts"].items() if k not in filter_read_opts
             }
             table = ascii.read(testfile["name"], guess=True, **guess_opts)
-            assert table.dtype.names == testfile["cols"]
+            assert_equal(table.dtype.names, testfile["cols"])
             for colname in table.dtype.names:
-                assert len(table[colname]) == testfile["nrows"]
+                assert_equal(len(table[colname]), testfile["nrows"])
 
 
 def test_validate_read_kwargs():
@@ -295,7 +306,7 @@ def test_validate_read_kwargs():
 
 def test_daophot_indef():
     """Test that INDEF is correctly interpreted as a missing value"""
-    table = ascii.read("data/daophot2.dat", format="daophot")
+    table = ascii.read("data/daophot2.dat", Reader=ascii.Daophot)
     for col in table.itercols():
         # Four columns have all INDEF values and are masked, rest are normal Column
         if col.name in ("OTIME", "MAG", "MERR", "XAIRMASS"):
@@ -310,17 +321,17 @@ def test_daophot_types():
     inferred automatically based only data values.  DAOphot reader uses
     the header information to assign types.
     """
-    table = ascii.read("data/daophot2.dat", format="daophot")
+    table = ascii.read("data/daophot2.dat", Reader=ascii.Daophot)
     assert table["LID"].dtype.char in "fd"  # float or double
     assert table["MAG"].dtype.char in "fd"  # even without any data values
     assert (
         table["PIER"].dtype.char in "US"
     )  # string (data values are consistent with int)
-    assert table["ID"].dtype.kind == "i"  # int types: int, long, int64
+    assert table["ID"].dtype.char in "il"  # int or long
 
 
 def test_daophot_header_keywords():
-    table = ascii.read("data/daophot.dat", format="daophot")
+    table = ascii.read("data/daophot.dat", Reader=ascii.Daophot)
     expected_keywords = (
         ("NSTARFILE", "test.nst.1", "filename", "%-23s"),
         ("REJFILE", '"hello world"', "filename", "%-23s"),
@@ -330,13 +341,13 @@ def test_daophot_header_keywords():
     keywords = table.meta["keywords"]  # Ordered dict of keyword structures
     for name, value, units, format_ in expected_keywords:
         keyword = keywords[name]
-        assert keyword["value"] == value
-        assert keyword["units"] == units
-        assert keyword["format"] == format_
+        assert_equal(keyword["value"], value)
+        assert_equal(keyword["units"], units)
+        assert_equal(keyword["format"], format_)
 
 
 def test_daophot_multiple_aperture():
-    table = ascii.read("data/daophot3.dat", format="daophot")
+    table = ascii.read("data/daophot3.dat", Reader=ascii.Daophot)
     assert "MAG5" in table.colnames  # MAG5 is one of the newly created column names
     assert table["MAG5"][4] == 22.13  # A sample entry in daophot3.dat file
     assert table["MERR2"][0] == 1.171
@@ -346,7 +357,7 @@ def test_daophot_multiple_aperture():
 
 
 def test_daophot_multiple_aperture2():
-    table = ascii.read("data/daophot4.dat", format="daophot")
+    table = ascii.read("data/daophot4.dat", Reader=ascii.Daophot)
     assert "MAG15" in table.colnames  # MAG15 is one of the newly created column name
     assert table["MAG15"][1] == -7.573  # A sample entry in daophot4.dat file
     assert table["MERR2"][0] == 0.049
@@ -358,7 +369,7 @@ def test_empty_table_no_header(fast_reader):
     with pytest.raises(ascii.InconsistentTableError):
         ascii.read(
             "data/no_data_without_header.dat",
-            format="no_header",
+            Reader=ascii.NoHeader,
             guess=False,
             fast_reader=fast_reader,
         )
@@ -393,7 +404,7 @@ def test_set_names(fast_reader):
     data = ascii.read(
         "data/simple3.txt", names=names, delimiter="|", fast_reader=fast_reader
     )
-    assert data.dtype.names == names
+    assert_equal(data.dtype.names, names)
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -407,7 +418,7 @@ def test_set_include_names(fast_reader):
         delimiter="|",
         fast_reader=fast_reader,
     )
-    assert data.dtype.names == include_names
+    assert_equal(data.dtype.names, include_names)
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -419,19 +430,19 @@ def test_set_exclude_names(fast_reader):
         delimiter="|",
         fast_reader=fast_reader,
     )
-    assert data.dtype.names == ("obsid", "redshift", "X", "rad")
+    assert_equal(data.dtype.names, ("obsid", "redshift", "X", "rad"))
 
 
 def test_include_names_daophot():
     include_names = ("ID", "MAG", "PIER")
     data = ascii.read("data/daophot.dat", include_names=include_names)
-    assert data.dtype.names == include_names
+    assert_equal(data.dtype.names, include_names)
 
 
 def test_exclude_names_daophot():
     exclude_names = ("ID", "YCENTER", "MERR", "NITER", "CHI", "PERROR")
     data = ascii.read("data/daophot.dat", exclude_names=exclude_names)
-    assert data.dtype.names == ("XCENTER", "MAG", "MSKY", "SHARPNESS", "PIER")
+    assert_equal(data.dtype.names, ("XCENTER", "MAG", "MSKY", "SHARPNESS", "PIER"))
 
 
 def test_custom_process_lines():
@@ -443,8 +454,8 @@ def test_custom_process_lines():
     reader = ascii.get_reader(delimiter="|")
     reader.inputter.process_lines = process_lines
     data = reader.read("data/bars_at_ends.txt")
-    assert data.dtype.names == ("obsid", "redshift", "X", "Y", "object", "rad")
-    assert len(data) == 3
+    assert_equal(data.dtype.names, ("obsid", "redshift", "X", "Y", "object", "rad"))
+    assert_equal(len(data), 3)
 
 
 def test_custom_process_line():
@@ -457,7 +468,7 @@ def test_custom_process_line():
     reader.data.splitter.process_line = process_line
     data = reader.read("data/nls1_stackinfo.dbout")
     cols = get_testfiles("data/nls1_stackinfo.dbout")["cols"]
-    assert data.dtype.names == cols[1:]
+    assert_equal(data.dtype.names, cols[1:])
 
 
 def test_custom_splitters():
@@ -467,20 +478,20 @@ def test_custom_splitters():
     f = "data/test4.dat"
     data = reader.read(f)
     testfile = get_testfiles(f)
-    assert data.dtype.names == testfile["cols"]
-    assert len(data) == testfile["nrows"]
-    assert_allclose(data.field("zabs1.nh")[2], 0.0839710433091)
-    assert_allclose(data.field("p1.gamma")[2], 1.25997502704)
-    assert_allclose(data.field("p1.ampl")[2], 0.000696444029148)
-    assert data.field("statname")[2] == "chi2modvar"
-    assert_allclose(data.field("statval")[2], 497.56468441)
+    assert_equal(data.dtype.names, testfile["cols"])
+    assert_equal(len(data), testfile["nrows"])
+    assert_almost_equal(data.field("zabs1.nh")[2], 0.0839710433091)
+    assert_almost_equal(data.field("p1.gamma")[2], 1.25997502704)
+    assert_almost_equal(data.field("p1.ampl")[2], 0.000696444029148)
+    assert_equal(data.field("statname")[2], "chi2modvar")
+    assert_almost_equal(data.field("statval")[2], 497.56468441)
 
 
 def test_start_end():
     data = ascii.read("data/test5.dat", header_start=1, data_start=3, data_end=-5)
-    assert len(data) == 13
-    assert data.field("statname")[0] == "chi2xspecvar"
-    assert data.field("statname")[-1] == "chi2gehrels"
+    assert_equal(len(data), 13)
+    assert_equal(data.field("statname")[0], "chi2xspecvar")
+    assert_equal(data.field("statname")[-1], "chi2gehrels")
 
 
 def test_set_converters():
@@ -489,8 +500,8 @@ def test_set_converters():
         "p1.gamma": [ascii.convert_numpy("str")],
     }
     data = ascii.read("data/test4.dat", converters=converters)
-    assert str(data["zabs1.nh"].dtype) == "float32"
-    assert data["p1.gamma"][0] == "1.26764500000"
+    assert_equal(str(data["zabs1.nh"].dtype), "float32")
+    assert_equal(data["p1.gamma"][0], "1.26764500000")
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -500,8 +511,8 @@ def test_from_string(fast_reader):
         table = fd.read()
     testfile = get_testfiles(f)[0]
     data = ascii.read(table, fast_reader=fast_reader, **testfile["opts"])
-    assert data.dtype.names == testfile["cols"]
-    assert len(data) == testfile["nrows"]
+    assert_equal(data.dtype.names, testfile["cols"])
+    assert_equal(len(data), testfile["nrows"])
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -510,8 +521,8 @@ def test_from_filelike(fast_reader):
     testfile = get_testfiles(f)[0]
     with open(f, "rb") as fd:
         data = ascii.read(fd, fast_reader=fast_reader, **testfile["opts"])
-    assert data.dtype.names == testfile["cols"]
-    assert len(data) == testfile["nrows"]
+    assert_equal(data.dtype.names, testfile["cols"])
+    assert_equal(len(data), testfile["nrows"])
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -521,15 +532,15 @@ def test_from_lines(fast_reader):
         table = fd.readlines()
     testfile = get_testfiles(f)[0]
     data = ascii.read(table, fast_reader=fast_reader, **testfile["opts"])
-    assert data.dtype.names == testfile["cols"]
-    assert len(data) == testfile["nrows"]
+    assert_equal(data.dtype.names, testfile["cols"])
+    assert_equal(len(data), testfile["nrows"])
 
 
 def test_comment_lines():
-    table = ascii.get_reader(reader_cls=ascii.Rdb)
+    table = ascii.get_reader(Reader=ascii.Rdb)
     data = table.read("data/apostrophe.rdb")
-    assert table.comment_lines == ["# first comment", "  # second comment"]
-    assert data.meta["comments"] == ["first comment", "second comment"]
+    assert_equal(table.comment_lines, ["# first comment", "  # second comment"])
+    assert_equal(data.meta["comments"], ["first comment", "second comment"])
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -539,10 +550,10 @@ def test_fill_values(fast_reader):
     data = ascii.read(
         f, fill_values=("a", "1"), fast_reader=fast_reader, **testfile["opts"]
     )
-    assert (data["a"].mask == [False, True]).all()
-    assert (data["a"] == [1, 1]).all()
-    assert (data["b"].mask == [False, True]).all()
-    assert (data["b"] == [2, 1]).all()
+    assert_true((data["a"].mask == [False, True]).all())
+    assert_true((data["a"] == [1, 1]).all())
+    assert_true((data["b"].mask == [False, True]).all())
+    assert_true((data["b"] == [2, 1]).all())
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -586,12 +597,12 @@ def test_fill_values_exclude_names(fast_reader):
 def check_fill_values(data):
     """compare array column by column with expectation"""
     assert not hasattr(data["a"], "mask")
-    assert (data["a"] == ["1", "a"]).all()
-    assert (data["b"].mask == [False, True]).all()
+    assert_true((data["a"] == ["1", "a"]).all())
+    assert_true((data["b"].mask == [False, True]).all())
     # Check that masked value is "do not care" in comparison
-    assert (data["b"] == [2, -999]).all()
+    assert_true((data["b"] == [2, -999]).all())
     data["b"].mask = False  # explicitly unmask for comparison
-    assert (data["b"] == [2, 1]).all()
+    assert_true((data["b"] == [2, 1]).all())
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -605,14 +616,14 @@ def test_fill_values_list(fast_reader):
         **testfile["opts"],
     )
     data["a"].mask = False  # explicitly unmask for comparison
-    assert (data["a"] == [42, 42]).all()
+    assert_true((data["a"] == [42, 42]).all())
 
 
 def test_masking_Cds_Mrt():
     f = "data/cds.dat"  # Tested for CDS and MRT
     for testfile in get_testfiles(f):
         data = ascii.read(f, **testfile["opts"])
-        assert data["AK"].mask[0]
+        assert_true(data["AK"].mask[0])
         assert not hasattr(data["Fit"], "mask")
 
 
@@ -634,13 +645,14 @@ def test_null_Ipac():
 
 
 def test_Ipac_meta():
-    keywords = {
-        "intval": 1,
-        "floatval": 2.3e3,
-        "date": "Wed Sp 20 09:48:36 1995",
-        "key_continue": "IPAC keywords can continue across lines",
-    }
-
+    keywords = OrderedDict(
+        (
+            ("intval", 1),
+            ("floatval", 2.3e3),
+            ("date", "Wed Sp 20 09:48:36 1995"),
+            ("key_continue", "IPAC keywords can continue across lines"),
+        )
+    )
     comments = ["This is an example of a valid comment"]
     f = "data/ipac.dat"
     testfile = get_testfiles(f)[0]
@@ -665,7 +677,7 @@ def test_read_rdb_wrong_type(fast_reader):
 N\tN
 1\tHello"""
     with pytest.raises(ValueError):
-        ascii.read(table, format="rdb", fast_reader=fast_reader)
+        ascii.read(table, Reader=ascii.Rdb, fast_reader=fast_reader)
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
@@ -673,7 +685,7 @@ def test_default_missing(fast_reader):
     """
     Read a table with empty values and ensure that corresponding entries are masked
     """
-    table = "\n".join(  # noqa: FLY002
+    table = "\n".join(
         [
             "a,b,c,d",
             "1,3,,",
@@ -696,7 +708,7 @@ def test_default_missing(fast_reader):
     assert dat["a"].dtype.kind == "i"
 
     # Same test with a fixed width reader
-    table = "\n".join(  # noqa: FLY002
+    table = "\n".join(
         [
             " a   b   c   d ",
             "--- --- --- ---",
@@ -704,7 +716,7 @@ def test_default_missing(fast_reader):
             "  2     4.0  ss",
         ]
     )
-    dat = ascii.read(table, format="fixed_width_two_line")
+    dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine)
     assert dat.masked is False
     assert dat.pformat() == [
         " a   b   c   d ",
@@ -713,7 +725,7 @@ def test_default_missing(fast_reader):
         "  2  -- 4.0  ss",
     ]
 
-    dat = ascii.read(table, format="fixed_width_two_line", fill_values=None)
+    dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine, fill_values=None)
     assert dat.masked is False
     assert dat.pformat() == [
         " a   b   c   d ",
@@ -722,7 +734,7 @@ def test_default_missing(fast_reader):
         "  2     4.0  ss",
     ]
 
-    dat = ascii.read(table, format="fixed_width_two_line", fill_values=[])
+    dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine, fill_values=[])
     assert dat.masked is False
     assert dat.pformat() == [
         " a   b   c   d ",
@@ -741,13 +753,13 @@ def get_testfiles(name=None):
             "cols": ("agasc_id", "n_noids", "n_obs"),
             "name": "data/apostrophe.rdb",
             "nrows": 2,
-            "opts": {"format": "rdb"},
+            "opts": {"Reader": ascii.Rdb},
         },
         {
             "cols": ("agasc_id", "n_noids", "n_obs"),
             "name": "data/apostrophe.tab",
             "nrows": 2,
-            "opts": {"format": "tab"},
+            "opts": {"Reader": ascii.Tab},
         },
         {
             "cols": (
@@ -766,7 +778,7 @@ def get_testfiles(name=None):
             ),
             "name": "data/cds.dat",
             "nrows": 1,
-            "opts": {"format": "cds"},
+            "opts": {"Reader": ascii.Cds},
         },
         {
             "cols": (
@@ -785,26 +797,7 @@ def get_testfiles(name=None):
             ),
             "name": "data/cds.dat",
             "nrows": 1,
-            "opts": {"format": "mrt"},
-        },
-        # Test CDS and MRT files with dashes in column name
-        {
-            "cols": (
-                "DefaultName",
-                "#CompsOnThisRow",
-            ),
-            "name": "data/cds_mrt_dashes.txt",
-            "nrows": 8,
-            "opts": {"format": "mrt"},
-        },
-        {
-            "cols": (
-                "DefaultName",
-                "#CompsOnThisRow",
-            ),
-            "name": "data/cds_mrt_dashes.txt",
-            "nrows": 8,
-            "opts": {"format": "cds"},
+            "opts": {"Reader": ascii.Mrt},
         },
         # Test malformed CDS file (issues #2241 #467)
         {
@@ -824,27 +817,27 @@ def get_testfiles(name=None):
             ),
             "name": "data/cds_malformed.dat",
             "nrows": 1,
-            "opts": {"format": "cds", "data_start": "guess"},
+            "opts": {"Reader": ascii.Cds, "data_start": "guess"},
         },
         {
             "cols": ("a", "b", "c"),
             "name": "data/commented_header.dat",
             "nrows": 2,
-            "opts": {"format": "commented_header"},
+            "opts": {"Reader": ascii.CommentedHeader},
         },
         {
             "cols": ("a", "b", "c"),
             "name": "data/commented_header2.dat",
             "nrows": 2,
-            "opts": {"format": "commented_header", "header_start": -1},
+            "opts": {"Reader": ascii.CommentedHeader, "header_start": -1},
         },
         {
             "cols": ("col1", "col2", "col3", "col4", "col5"),
             "name": "data/continuation.dat",
             "nrows": 2,
             "opts": {
-                "inputter_cls": ascii.ContinuationLinesInputter,
-                "format": "no_header",
+                "Inputter": ascii.ContinuationLinesInputter,
+                "Reader": ascii.NoHeader,
             },
         },
         {
@@ -863,7 +856,7 @@ def get_testfiles(name=None):
             ),
             "name": "data/daophot.dat",
             "nrows": 2,
-            "opts": {"format": "daophot"},
+            "opts": {"Reader": ascii.Daophot},
         },
         {
             "cols": (
@@ -876,13 +869,13 @@ def get_testfiles(name=None):
             ),
             "name": "data/sextractor.dat",
             "nrows": 3,
-            "opts": {"format": "sextractor"},
+            "opts": {"Reader": ascii.SExtractor},
         },
         {
             "cols": ("ra", "dec", "sai", "v2", "sptype"),
             "name": "data/ipac.dat",
             "nrows": 2,
-            "opts": {"format": "ipac"},
+            "opts": {"Reader": ascii.Ipac},
         },
         {
             "cols": (
@@ -927,7 +920,7 @@ def get_testfiles(name=None):
             ),
             "name": "data/no_data_cds.dat",
             "nrows": 0,
-            "opts": {"format": "cds"},
+            "opts": {"Reader": ascii.Cds},
         },
         {
             "cols": (
@@ -946,7 +939,7 @@ def get_testfiles(name=None):
             ),
             "name": "data/no_data_cds.dat",
             "nrows": 0,
-            "opts": {"format": "mrt"},
+            "opts": {"Reader": ascii.Mrt},
         },
         {
             "cols": (
@@ -964,25 +957,25 @@ def get_testfiles(name=None):
             ),
             "name": "data/no_data_daophot.dat",
             "nrows": 0,
-            "opts": {"format": "daophot"},
+            "opts": {"Reader": ascii.Daophot},
         },
         {
             "cols": ("NUMBER", "FLUX_ISO", "FLUXERR_ISO", "VALUES", "VALUES_1", "FLAG"),
             "name": "data/no_data_sextractor.dat",
             "nrows": 0,
-            "opts": {"format": "sextractor"},
+            "opts": {"Reader": ascii.SExtractor},
         },
         {
             "cols": ("ra", "dec", "sai", "v2", "sptype"),
             "name": "data/no_data_ipac.dat",
             "nrows": 0,
-            "opts": {"format": "ipac"},
+            "opts": {"Reader": ascii.Ipac},
         },
         {
             "cols": ("ra", "v2"),
             "name": "data/ipac.dat",
             "nrows": 2,
-            "opts": {"format": "ipac", "include_names": ["ra", "v2"]},
+            "opts": {"Reader": ascii.Ipac, "include_names": ["ra", "v2"]},
         },
         {
             "cols": ("a", "b", "c"),
@@ -994,13 +987,13 @@ def get_testfiles(name=None):
             "cols": ("agasc_id", "n_noids", "n_obs"),
             "name": "data/short.rdb",
             "nrows": 7,
-            "opts": {"format": "rdb"},
+            "opts": {"Reader": ascii.Rdb},
         },
         {
             "cols": ("agasc_id", "n_noids", "n_obs"),
             "name": "data/short.tab",
             "nrows": 7,
-            "opts": {"format": "tab"},
+            "opts": {"Reader": ascii.Tab},
         },
         {
             "cols": ("test 1a", "test2", "test3", "test4"),
@@ -1042,19 +1035,19 @@ def get_testfiles(name=None):
             "cols": ("col1", "col2", "col3", "col4", "col5", "col6"),
             "name": "data/simple4.txt",
             "nrows": 3,
-            "opts": {"format": "no_header", "delimiter": "|"},
+            "opts": {"Reader": ascii.NoHeader, "delimiter": "|"},
         },
         {
             "cols": ("col1", "col2", "col3"),
             "name": "data/space_delim_no_header.dat",
             "nrows": 2,
-            "opts": {"format": "no_header"},
+            "opts": {"Reader": ascii.NoHeader},
         },
         {
             "cols": ("col1", "col2", "col3"),
             "name": "data/space_delim_no_header.dat",
             "nrows": 2,
-            "opts": {"format": "no_header", "header_start": None},
+            "opts": {"Reader": ascii.NoHeader, "header_start": None},
         },
         {
             "cols": ("obsid", "offset", "x", "y", "name", "oaa"),
@@ -1084,38 +1077,38 @@ def get_testfiles(name=None):
             "name": "data/simple_csv.csv",
             "cols": ("a", "b", "c"),
             "nrows": 2,
-            "opts": {"format": "csv"},
+            "opts": {"Reader": ascii.Csv},
         },
         {
             "name": "data/simple_csv_missing.csv",
             "cols": ("a", "b", "c"),
             "nrows": 2,
             "skip": True,
-            "opts": {"format": "csv"},
+            "opts": {"Reader": ascii.Csv},
         },
         {
             "cols": ("cola", "colb", "colc"),
             "name": "data/latex1.tex",
             "nrows": 2,
-            "opts": {"format": "latex"},
+            "opts": {"Reader": ascii.Latex},
         },
         {
             "cols": ("Facility", "Id", "exposure", "date"),
             "name": "data/latex2.tex",
             "nrows": 3,
-            "opts": {"format": "aastex"},
+            "opts": {"Reader": ascii.AASTex},
         },
         {
             "cols": ("cola", "colb", "colc"),
             "name": "data/latex3.tex",
             "nrows": 2,
-            "opts": {"format": "latex"},
+            "opts": {"Reader": ascii.Latex},
         },
         {
             "cols": ("Col1", "Col2", "Col3", "Col4"),
             "name": "data/fixed_width_2_line.txt",
             "nrows": 2,
-            "opts": {"format": "fixed_width_two_line"},
+            "opts": {"Reader": ascii.FixedWidthTwoLine},
         },
     ]
 
@@ -1127,7 +1120,7 @@ def get_testfiles(name=None):
                 "cols": ("Column 1", "Column 2", "Column 3"),
                 "name": "data/html.html",
                 "nrows": 3,
-                "opts": {"format": "html"},
+                "opts": {"Reader": ascii.HTML},
             }
         )
     except ImportError:
@@ -1190,7 +1183,7 @@ def test_sextractor_units():
     """
     Make sure that the SExtractor reader correctly inputs descriptions and units.
     """
-    table = ascii.read("data/sextractor2.dat", format="sextractor", guess=False)
+    table = ascii.read("data/sextractor2.dat", Reader=ascii.SExtractor, guess=False)
     expected_units = [
         None,
         Unit("pix"),
@@ -1222,7 +1215,7 @@ def test_sextractor_last_column_array():
     """
     Make sure that the SExtractor reader handles the last column correctly when it is array-like.
     """
-    table = ascii.read("data/sextractor3.dat", format="sextractor", guess=False)
+    table = ascii.read("data/sextractor3.dat", Reader=ascii.SExtractor, guess=False)
     expected_columns = [
         "X_IMAGE",
         "Y_IMAGE",
@@ -1363,13 +1356,7 @@ def test_guessing_file_object():
 def test_pformat_roundtrip():
     """Check that the screen output of ``print tab`` can be read. See #3025."""
     """Read a table with empty values and ensure that corresponding entries are masked"""
-    table = "\n".join(  # noqa: FLY002
-        [
-            "a,b,c,d",
-            "1,3,1.11,1",
-            "2, 2, 4.0 , ss ",
-        ]
-    )
+    table = "\n".join(["a,b,c,d", "1,3,1.11,1", "2, 2, 4.0 , ss "])
     dat = ascii.read(table)
     out = ascii.read(dat.pformat())
     assert len(dat) == len(out)
@@ -1497,13 +1484,6 @@ def test_probably_html(home_is_data):
         ],
         (" <! doctype htm > ", " hello world"),
         [[1, 2, 3]],
-        # regression tests for https://github.com/astropy/astropy/issues/17562
-        "~itsatrap",  # looks like a Path, but isn't
-        (
-            "~0FR1K19A00A  C2011 01 29.24643 01 18 02.537-02 41 30.21         22.2 wL~3JL8F51\n"
-            "~0FR1K19A00A  C2011 01 29...47 46 56.60         20.93GV~7ukZG96\n"
-            "~0FR1K19A00A 1C2024 03 03.20377105 56 18.827+47 46 54.95         20.97GV~7ukZG96"
-        ),
     ):
         assert _probably_html(tabl0) is False
 
@@ -1559,8 +1539,8 @@ def test_data_header_start(fast_reader):
             assert t.colnames == ["a", "b"]
             assert len(t) == 1
             assert np.all(t["a"] == [1])
-            # Sanity check that the expected reader_cls is being used
-            assert get_read_trace()[-1]["kwargs"]["reader_cls"] is (
+            # Sanity check that the expected Reader is being used
+            assert get_read_trace()[-1]["kwargs"]["Reader"] is (
                 ascii.Basic if (fast_reader is False) else ascii.FastBasic
             )
 
@@ -1587,9 +1567,9 @@ def test_table_with_no_newline():
 
     # Put a single line of column names but with no newline
     for kwargs in [
-        {},
-        {"guess": False, "fast_reader": False, "format": "basic"},
-        {"guess": False, "fast_reader": True, "format": "fast_basic"},
+        dict(),
+        dict(guess=False, fast_reader=False, format="basic"),
+        dict(guess=False, fast_reader=True, format="fast_basic"),
     ]:
         table = BytesIO()
         table.write(b"a b")
@@ -1603,7 +1583,7 @@ def test_path_object():
     data = ascii.read(fpath)
 
     assert len(data) == 2
-    assert sorted(data.columns) == ["test 1a", "test2", "test3", "test4"]
+    assert sorted(list(data.columns)) == ["test 1a", "test2", "test3", "test4"]
     assert data["test2"][1] == "hat2"
 
 
@@ -1675,7 +1655,7 @@ def test_initial_column_fill_values():
     class Tester(ascii.Basic):
         header_class = TestHeader
 
-    reader = ascii.get_reader(reader_cls=Tester)
+    reader = ascii.get_reader(Reader=Tester)
 
     assert (
         reader.read(
@@ -1872,8 +1852,8 @@ def test_read_non_ascii():
 def test_kwargs_dict_guess(enable):
     """Test that fast_reader dictionary is preserved through guessing sequence."""
     # Fails for enable=(True, 'force') - #5578
-    ascii.read("a\tb\n 1\t2\n3\t 4.0", fast_reader={"enable": enable})
-    assert get_read_trace()[-1]["kwargs"]["reader_cls"] is (
+    ascii.read("a\tb\n 1\t2\n3\t 4.0", fast_reader=dict(enable=enable))
+    assert get_read_trace()[-1]["kwargs"]["Reader"] is (
         ascii.Tab if (enable is False) else ascii.FastTab
     )
     for k in get_read_trace():
@@ -1945,8 +1925,8 @@ def test_include_names_rdb_fast():
     lines[0] = "a\ta_2\ta_1\ta_3\ta_4"
     dat = ascii.read(lines, fast_reader="force", include_names=["a", "a_2", "a_3"])
     assert len(dat) == 2
-    assert dat["a"].dtype.kind == "i"
-    assert dat["a_2"].dtype.kind == "i"
+    assert dat["a"].dtype == int
+    assert dat["a_2"].dtype == int
 
 
 @pytest.mark.parametrize("fast_reader", [False, "force"])
@@ -2068,7 +2048,7 @@ def test_read_converters_simplified():
 
     converters = {"a": float, "*": [np.int64, float, bool, str]}
     t2 = Table.read(out.getvalue(), format="ascii.basic", converters=converters)
-    assert t2.pformat(show_dtype=True) == [
+    assert t2.pformat_all(show_dtype=True) == [
         "   a       b      c     d     e  ",
         "float64 float64  bool  str5 int64",
         "------- ------- ----- ----- -----",
@@ -2088,117 +2068,3 @@ def test_read_converters_simplified():
             t2 = Table.read(
                 out.getvalue(), format="ascii.basic", converters=converters, guess=False
             )
-
-
-def test_table_read_help_ascii():
-    """
-    Test dynamically created documentation help via the I/O registry for 'ascii'.
-    """
-    out = StringIO()
-    ascii.read.help(out=out)
-    doc = out.getvalue()
-
-    assert "ascii.read() documentation" in doc
-    assert "Parameters" in doc
-    assert "ASCII reader 'ascii' details" in doc
-    assert "Character-delimited table with a single header line" in doc
-
-
-def test_table_read_help_ascii_html():
-    """
-    Test dynamically created documentation help via the I/O registry for 'ascii.html'.
-    """
-    out = StringIO()
-    ascii.read.help("html", out=out)
-    doc = out.getvalue()
-
-    assert "ascii.read(format='html') documentation" in doc
-    assert "Parameters" in doc
-    assert "ASCII reader 'ascii.html' details" in doc
-    assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
-
-
-def test_table_write_help_ascii():
-    """
-    Test dynamically created documentation help via the I/O registry for 'ascii'.
-    """
-    out = StringIO()
-    ascii.write.help(out=out)
-    doc = out.getvalue()
-
-    assert "ascii.write() documentation" in doc
-    assert "Parameters" in doc
-    assert "ASCII writer 'ascii' details" in doc
-    assert "Character-delimited table with a single header line" in doc
-
-
-def test_table_write_help_ascii_html():
-    """
-    Test dynamically created documentation help via the I/O registry for 'ascii.html'.
-    """
-    out = StringIO()
-    ascii.write.help("html", out=out)
-    doc = out.getvalue()
-
-    assert "ascii.write(format='html') documentation" in doc
-    assert "Parameters" in doc
-    assert "ASCII writer 'ascii.html' details" in doc
-    assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
-
-
-@pytest.mark.parametrize(
-    "table_type", ["filename", "fileobj", "linelist", "string", "path"]
-)
-def test_table_guess_limit_lines(table_type):
-    """
-    Make sure that the guess_limit_lines configuration item has an effect.
-    """
-
-    filename = "data/ipac.dat"
-    if table_type == "filename":
-        table_input = filename
-    elif table_type == "path":
-        table_input = pathlib.Path(filename)
-    elif table_type == "fileobj":
-        table_input = open(filename, "rb")
-    else:
-        with open(filename) as f:
-            table_input = f.read()
-        if table_type == "linelist":
-            table_input = table_input.splitlines()
-
-    # First, check that we can read ipac.tbl with guessing
-    ascii.read(table_input)
-
-    # If we set guess_limit_lines to a very small value such as the header
-    # gets truncated, the reading should fail
-    with ascii.conf.set_temp("guess_limit_lines", 3):
-        with pytest.raises(ascii.InconsistentTableError, match="Unable to guess"):
-            ascii.read(table_input)
-
-    # Setting this to 10 should work
-    with ascii.conf.set_temp("guess_limit_lines", 10):
-        ascii.read(table_input)
-
-    if table_type == "fileobj":
-        table_input.close()
-
-
-def test_table_guess_limit_lines_cut_data():
-    # Now pick an example where the limit cuts through the data
-    with ascii.conf.set_temp("guess_limit_lines", 7):
-        table = ascii.read("data/sextractor2.dat")
-
-    assert table.colnames == [
-        "NUMBER",
-        "XWIN_IMAGE",
-        "YWIN_IMAGE",
-        "MAG_AUTO",
-        "MAGERR_AUTO",
-        "FLAGS",
-        "X2_IMAGE",
-        "X_MAMA",
-        "MU_MAX",
-    ]
-
-    assert len(table) == 5

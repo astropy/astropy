@@ -32,9 +32,9 @@ astropy/time                @taldcroft
 # astropy/uncertainty
 # astropy/units
 # astropy/utils
-astropy/visualization       @astrofrog     @larrybradley
+astropy/visualization       @astrofrog          @Cadair     @larrybradley
 astropy/wcs                 @mcara
-astropy/wcs/wcsapi          @astrofrog
+astropy/wcs/wcsapi          @astrofrog          @Cadair
 
 # docs/constants
 docs/convolution            @larrybradley
@@ -53,8 +53,7 @@ docs/time                   @taldcroft
 # docs/uncertainty
 # docs/units
 # docs/utils
-docs/visualization          @astrofrog      @larrybradley
+docs/visualization          @astrofrog          @Cadair      @larrybradley
 docs/wcs                    @mcara
 
 .pre-commit-config.yaml     @WilliamJamieson    @nstarman
-.ruff.toml                   @WilliamJamieson    @nstarman

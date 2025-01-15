@@ -1,10 +1,8 @@
 import numpy as np
 
-from astropy.utils.compat.optional_deps import HAS_SCIPY
-
 
 def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=True):
-    """Lomb-Scargle Periodogram.
+    """Lomb-Scargle Periodogram
 
     This is a wrapper of ``scipy.signal.lombscargle`` for computation of the
     Lomb-Scargle periodogram. This is a relatively fast version of the naive
@@ -36,10 +34,10 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
     .. [2] W. Press et al, Numerical Recipes in C (2002)
     .. [3] Scargle, J.D. 1982, ApJ 263:835-853
     """
-    if not HAS_SCIPY:
-        raise ModuleNotFoundError("scipy must be installed to use lombscargle_scipy")
-
-    from scipy import signal
+    try:
+        from scipy import signal
+    except ImportError:
+        raise ImportError("scipy must be installed to use lombscargle_scipy")
 
     t, y = np.broadcast_arrays(t, y)
 

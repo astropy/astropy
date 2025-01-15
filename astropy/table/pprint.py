@@ -4,12 +4,11 @@ import fnmatch
 import os
 import re
 import sys
-from shutil import get_terminal_size
 
 import numpy as np
 
 from astropy import log
-from astropy.utils.console import Getch, color_print, conf
+from astropy.utils.console import Getch, color_print, conf, terminal_size
 from astropy.utils.data_info import dtype_info_name
 
 __all__ = []
@@ -86,13 +85,13 @@ def get_auto_format_func(
             return col.info._format_funcs[format_](format_, val)
 
         if callable(format_):
-            format_func = lambda format_, val: format_(val)
+            format_func = lambda format_, val: format_(val)  # noqa: E731
             try:
                 out = format_func(format_, val)
                 if not isinstance(out, str):
                     raise ValueError(
-                        f"Format function for value {val} returned {type(val)} "
-                        "instead of string type"
+                        "Format function for value {} returned {} "
+                        "instead of string type".format(val, type(val))
                     )
             except Exception as err:
                 # For a masked element, the format function call likely failed
@@ -207,7 +206,7 @@ class TableFormatter:
             max_width = conf.max_width
 
         if max_lines is None or max_width is None:
-            width, lines = get_terminal_size()
+            lines, width = terminal_size()
 
         if max_lines is None:
             max_lines = lines
@@ -449,10 +448,7 @@ class TableFormatter:
             i_centers.append(n_header)
             n_header += 1
             if dtype is not None:
-                # For zero-length strings, np.dtype((dtype, ())) does not work;
-                # see https://github.com/numpy/numpy/issues/27301
-                # As a work-around, just omit the shape if there is none.
-                col_dtype = dtype_info_name((dtype, multidims) if multidims else dtype)
+                col_dtype = dtype_info_name((dtype, multidims))
             else:
                 col_dtype = col.__class__.__qualname__ or "object"
             yield col_dtype
@@ -463,13 +459,7 @@ class TableFormatter:
 
         max_lines -= n_header
         n_print2 = max_lines // 2
-        try:
-            n_rows = len(col)
-        except TypeError:
-            is_scalar = True
-            n_rows = 1
-        else:
-            is_scalar = False
+        n_rows = len(col)
 
         # This block of code is responsible for producing the function that
         # will format values for this column.  The ``format_func`` function
@@ -507,15 +497,17 @@ class TableFormatter:
         auto_format_func = get_auto_format_func(col, pssf)
         format_func = col.info._format_funcs.get(col_format, auto_format_func)
 
-        if n_rows > max_lines:
+        if len(col) > max_lines:
             if show_length is None:
                 show_length = True
             i0 = n_print2 - (1 if show_length else 0)
             i1 = n_rows - n_print2 - max_lines % 2
-            indices = np.concatenate([np.arange(0, i0 + 1), np.arange(i1 + 1, n_rows)])
+            indices = np.concatenate(
+                [np.arange(0, i0 + 1), np.arange(i1 + 1, len(col))]
+            )
         else:
             i0 = -1
-            indices = np.arange(n_rows)
+            indices = np.arange(len(col))
 
         def format_col_str(idx):
             if multidims:
@@ -531,8 +523,6 @@ class TableFormatter:
                     left = format_func(col_format, col[(idx,) + multidim0])
                     right = format_func(col_format, col[(idx,) + multidim1])
                     return f"{left} .. {right}"
-            elif is_scalar:
-                return format_func(col_format, col)
             else:
                 return format_func(col_format, col[idx])
 
@@ -545,8 +535,8 @@ class TableFormatter:
                     yield format_col_str(idx)
                 except ValueError:
                     raise ValueError(
-                        f'Unable to parse format string "{col_format}" for '
-                        f'entry "{col[idx]}" in column "{col.info.name}"'
+                        'Unable to parse format string "{}" for entry "{}" '
+                        'in column "{}"'.format(col_format, col[idx], col.info.name)
                     )
 
         outs["show_length"] = show_length
@@ -557,8 +547,8 @@ class TableFormatter:
     def _pformat_table(
         self,
         table,
-        max_lines=-1,
-        max_width=-1,
+        max_lines=None,
+        max_width=None,
         show_name=True,
         show_unit=None,
         show_dtype=False,
@@ -574,13 +564,9 @@ class TableFormatter:
         ----------
         max_lines : int or None
             Maximum number of rows to output
-            -1 (default) implies no limit, ``None`` implies using the
-            height of the current terminal.
 
         max_width : int or None
             Maximum character width of output
-            -1 (default) implies no limit, ``None`` implies using the
-            width of the current terminal.
 
         show_name : bool
             Include a header row for column names. Default is True.
@@ -636,12 +622,14 @@ class TableFormatter:
         elif isinstance(align, (list, tuple)):
             if len(align) != n_cols:
                 raise ValueError(
-                    f"got {len(align)} alignment values instead of "
-                    f"the number of columns ({n_cols})"
+                    "got {} alignment values instead of "
+                    "the number of columns ({})".format(len(align), n_cols)
                 )
         else:
             raise TypeError(
-                f"align keyword must be str or list or tuple (got {type(align)})"
+                "align keyword must be str or list or tuple (got {})".format(
+                    type(align)
+                )
             )
 
         # Process column visibility from table pprint_include_names and
@@ -823,8 +811,7 @@ class TableFormatter:
 
             if key.lower() == "q":
                 break
-
-            if key == " " or key == "f":
+            elif key == " " or key == "f":
                 i0 += delta_lines
             elif key == "b":
                 i0 = i0 - delta_lines

@@ -5,8 +5,7 @@
 import numpy as np
 
 from astropy import log
-from astropy.units import Unit, UnitConversionError, UnitsError  # noqa: F401
-from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.units import Unit, UnitConversionError, UnitsError
 
 from .flag_collection import FlagCollection
 from .mixins.ndarithmetic import NDArithmeticMixin
@@ -118,8 +117,8 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
                     # Raise an error if uncertainty has unit and data does not
                     raise ValueError(
                         "Cannot assign an uncertainty with unit "
-                        f"to {class_name} without "
-                        "a unit"
+                        "to {} without "
+                        "a unit".format(class_name)
                     )
                 self._uncertainty = value
                 self._uncertainty.parent_nddata = self
@@ -169,11 +168,9 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
     def mask(self, value):
         # Check that value is not either type of null mask.
         if (value is not None) and (value is not np.ma.nomask):
-            mask = np.asarray(value, dtype=np.bool_)
+            mask = np.array(value, dtype=np.bool_, copy=False)
             if mask.shape != self.data.shape:
-                raise ValueError(
-                    f"dimensions of mask {mask.shape} and data {self.data.shape} do not match"
-                )
+                raise ValueError("dimensions of mask do not match data")
             else:
                 self._mask = mask
         else:
@@ -204,7 +201,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
     @property
     def ndim(self):
         """
-        integer dimensions of this object's data.
+        integer dimensions of this object's data
         """
         return self.data.ndim
 
@@ -221,7 +218,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
                 else:
                     self._flags = value
             else:
-                flags = np.asarray(value)
+                flags = np.array(value, copy=False)
                 if flags.shape != self.shape:
                     raise ValueError("dimensions of flags do not match data")
                 else:
@@ -229,22 +226,17 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         else:
             self._flags = value
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self):
         """
         This allows code that requests a Numpy array to use an NDData
         object as a Numpy array.
         """
         if self.mask is not None:
-            return np.ma.masked_array(
-                self.data,
-                self.mask,
-                dtype=dtype,
-                copy=copy,
-            )
+            return np.ma.masked_array(self.data, self.mask)
         else:
-            return np.array(self.data, dtype=dtype, copy=copy)
+            return np.array(self.data)
 
-    def __array_wrap__(self, array, context=None, return_scalar=False):
+    def __array_prepare__(self, array, context=None):
         """
         This ensures that a masked array is returned if self is masked.
         """

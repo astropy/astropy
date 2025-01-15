@@ -19,17 +19,15 @@ import urllib.parse
 import urllib.request
 import warnings
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import nullcontext
 from itertools import islice
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
+import py.path
 import pytest
 
 import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
-from astropy.tests.helper import CI, IS_CRON, PYTEST_LT_8_0
-from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 from astropy.utils.data import (
     CacheDamaged,
     CacheMissingWarning,
@@ -61,10 +59,14 @@ from astropy.utils.data import (
 )
 from astropy.utils.exceptions import AstropyWarning
 
+CI = os.environ.get("CI", False) == "true"
 TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
 TESTURL_SSL = "https://www.astropy.org"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
+
+# NOTE: Python can be built without bz2 or lzma.
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 
 # For when we need "some" test URLs
 FEW = 5
@@ -106,7 +108,7 @@ def valid_urls(tmp_path):
     def _valid_urls(tmp_path):
         for i in itertools.count():
             c = os.urandom(16).hex()
-            fn = tmp_path / f"valid_{i}"
+            fn = tmp_path / f"valid_{str(i)}"
             with open(fn, "w") as f:
                 f.write(c)
             u = url_to(fn)
@@ -119,7 +121,7 @@ def valid_urls(tmp_path):
 def invalid_urls(tmp_path):
     def _invalid_urls(tmp_path):
         for i in itertools.count():
-            fn = tmp_path / f"invalid_{i}"
+            fn = tmp_path / f"invalid_{str(i)}"
             if not os.path.exists(fn):
                 yield url_to(fn)
 
@@ -192,6 +194,9 @@ def fake_readonly_cache(tmp_path, valid_urls, monkeypatch):
         """
         raise OSError(errno.EPERM, "os.mkdtemp monkeypatched out")
 
+    def no_TemporaryDirectory(*args, **kwargs):
+        raise OSError(errno.EPERM, "_SafeTemporaryDirectory monkeypatched out")
+
     with TemporaryDirectory(dir=tmp_path) as d:
         # other fixtures use the same tmp_path so we need a subdirectory
         # to make into the cache
@@ -202,6 +207,9 @@ def fake_readonly_cache(tmp_path, valid_urls, monkeypatch):
             files = set(d.iterdir())
             monkeypatch.setattr(os, "mkdir", no_mkdir)
             monkeypatch.setattr(tempfile, "mkdtemp", no_mkdtemp)
+            monkeypatch.setattr(
+                astropy.utils.data, "_SafeTemporaryDirectory", no_TemporaryDirectory
+            )
             yield urls
             assert set(d.iterdir()) == files
             check_download_cache()
@@ -225,7 +233,7 @@ def test_download_file_absolute_path(valid_urls, temp_cache):
     assert is_abs(download_file(u, cache=False))  # no cache
     assert is_abs(download_file(u, cache=True))  # not in cache
     assert is_abs(download_file(u, cache=True))  # in cache
-    for v in cache_contents().values():
+    for k, v in cache_contents().items():
         assert is_abs(v)
 
 
@@ -277,7 +285,7 @@ def a_binary_file(tmp_path):
     b_contents = b"\xde\xad\xbe\xef"
     with open(fn, "wb") as f:
         f.write(b_contents)
-    return fn, b_contents
+    yield fn, b_contents
 
 
 @pytest.fixture
@@ -286,7 +294,7 @@ def a_file(tmp_path):
     contents = "contents\n"
     with open(fn, "w") as f:
         f.write(contents)
-    return fn, contents
+    yield fn, contents
 
 
 def test_temp_cache(tmp_path):
@@ -342,8 +350,10 @@ def test_download_with_sources_and_bogus_original(
     # it was loaded by mistake.
     for i, (um, c_bad) in enumerate(islice(valid_urls, FEW)):
         assert not is_url_in_cache(um)
+        sources[um] = []
         # For many of them the sources list starts with invalid URLs
-        sources[um] = list(islice(invalid_urls, i))
+        for iu in islice(invalid_urls, i):
+            sources[um].append(iu)
         u, c = next(valid_urls)
         sources[um].append(u)
         urls.append((um, c, c_bad))
@@ -355,7 +365,7 @@ def test_download_with_sources_and_bogus_original(
         )
     else:
         rs = [
-            download_file(u, cache=True, sources=sources.get(u))
+            download_file(u, cache=True, sources=sources.get(u, None))
             for (u, c, c_bad) in urls
         ]
     assert len(rs) == len(urls)
@@ -380,8 +390,8 @@ def test_download_file_threaded_many(temp_cache, valid_urls):
         r = list(P.map(lambda u: download_file(u, cache=True), [u for (u, c) in urls]))
     check_download_cache()
     assert len(r) == len(urls)
-    for r_, (u, c) in zip(r, urls):
-        assert get_file_contents(r_) == c
+    for r, (u, c) in zip(r, urls):
+        assert get_file_contents(r) == c
 
 
 @pytest.mark.skipif(
@@ -432,11 +442,11 @@ def test_download_file_threaded_many_partial_success(
         r = list(P.map(get, urls))
     check_download_cache()
     assert len(r) == len(urls)
-    for r_, u in zip(r, urls):
+    for r, u in zip(r, urls):
         if u in contents:
-            assert get_file_contents(r_) == contents[u]
+            assert get_file_contents(r) == contents[u]
         else:
-            assert r_ is None
+            assert r is None
 
 
 def test_clear_download_cache(valid_urls):
@@ -678,7 +688,7 @@ def test_download_parallel_from_internet_works(temp_cache):
         urls.append(main_url + s)
         sources[urls[-1]] = [urls[-1], mirror_url + s]
     fnout = download_files_in_parallel(urls, sources=sources)
-    assert all(os.path.isfile(f) for f in fnout), fnout
+    assert all([os.path.isfile(f) for f in fnout]), fnout
 
 
 @pytest.mark.parametrize("method", [None, "spawn"])
@@ -726,7 +736,9 @@ def test_download_parallel_with_sources_and_bogus_original(
     sources = {}
     for i, (um, c_bad) in enumerate(islice(valid_urls, FEW)):
         assert not is_url_in_cache(um)
-        sources[um] = list(islice(invalid_urls, i))
+        sources[um] = []
+        for iu in islice(invalid_urls, i):
+            sources[um].append(iu)
         u, c = next(valid_urls)
         sources[um].append(u)
         urls.append((um, c, c_bad))
@@ -744,8 +756,8 @@ def test_download_parallel_many(temp_cache, valid_urls):
 
     r = download_files_in_parallel([u for (u, c) in td])
     assert len(r) == len(td)
-    for r_, (_, c) in zip(r, td):
-        assert get_file_contents(r_) == c
+    for r, (u, c) in zip(r, td):
+        assert get_file_contents(r) == c
 
 
 def test_download_parallel_partial_success(temp_cache, valid_urls, invalid_urls):
@@ -895,7 +907,7 @@ def test_find_by_hash(valid_urls, temp_cache):
 def test_find_invalid():
     # this is of course not a real data file and not on any remote server, but
     # it should *try* to go to the remote server
-    with pytest.raises((urllib.error.URLError, TimeoutError)):
+    with pytest.raises(urllib.error.URLError):
         get_pkg_data_filename(
             "kjfrhgjklahgiulrhgiuraehgiurhgiuhreglhurieghruelighiuerahiulruli"
         )
@@ -1025,7 +1037,7 @@ def test_compute_hash(tmp_path):
         ntf.flush()
 
     chhash = compute_hash(filename)
-    shash = hashlib.md5(rands, usedforsecurity=False).hexdigest()
+    shash = hashlib.md5(rands).hexdigest()
 
     assert chhash == shash
 
@@ -1060,18 +1072,14 @@ def test_data_noastropy_fallback(monkeypatch):
 
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
-    @classmethod
-    def osraiser(cls, linkto, pkgname=None):
+    def osraiser(dirnm, linkto, pkgname=None):
         raise OSError()
 
-    monkeypatch.setattr(paths._SetTempPath, "_find_or_create_root_dir", osraiser)
+    monkeypatch.setattr(paths, "_find_or_create_root_dir", osraiser)
 
-    # make sure the config dir search fails
     with pytest.raises(OSError):
+        # make sure the config dir search fails
         paths.get_cache_dir(rootname="astropy")
-
-    with pytest.raises(OSError):
-        paths.get_cache_dir_path(rootname="astropy")
 
     with pytest.warns(CacheMissingWarning) as warning_lines:
         fnout = download_file(TESTURL, cache=True)
@@ -1096,14 +1104,10 @@ def test_data_noastropy_fallback(monkeypatch):
     assert os.path.isfile(fnout)
 
     # clearing the cache should be a no-up that doesn't affect fnout
-    with pytest.warns(CacheMissingWarning) as record:
+    with pytest.warns(
+        CacheMissingWarning, match=r".*Not clearing data cache - cache inaccessible.*"
+    ):
         clear_download_cache(TESTURL)
-    assert len(record) == 2
-    assert (
-        record[0].message.args[0]
-        == "Remote data cache could not be accessed due to OSError"
-    )
-    assert "Not clearing data cache - cache inaccessible" in record[1].message.args[0]
     assert os.path.isfile(fnout)
 
     # now remove it so tests don't clutter up the temp dir this should get
@@ -1121,21 +1125,6 @@ def test_data_noastropy_fallback(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "encoding, expected_type, expected_lines",
-    [
-        pytest.param("utf-8", str, ["האסטרונומי פייתון"], id="utf-8"),
-        pytest.param(
-            "binary",
-            bytes,
-            [
-                b"\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95"
-                b"\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"
-            ],
-            id="binary",
-        ),
-    ],
-)
-@pytest.mark.parametrize(
     "filename",
     [
         "unicode.txt",
@@ -1150,12 +1139,21 @@ def test_data_noastropy_fallback(monkeypatch):
         ),
     ],
 )
-def test_read_unicode(filename, encoding, expected_type, expected_lines):
-    contents = get_pkg_data_contents(os.path.join("data", filename), encoding=encoding)
-    assert type(contents) is expected_type
-    # Using splitlines() instead of split("\n") here for portability as
-    # newlines can be represented differently in different OSes.
-    assert contents.splitlines() == expected_lines
+def test_read_unicode(filename):
+    contents = get_pkg_data_contents(os.path.join("data", filename), encoding="utf-8")
+    assert isinstance(contents, str)
+    contents = contents.splitlines()[1]
+    assert contents == "האסטרונומי פייתון"
+
+    contents = get_pkg_data_contents(os.path.join("data", filename), encoding="binary")
+    assert isinstance(contents, bytes)
+    x = contents.splitlines()[1]
+    # fmt: off
+    assert x == (
+        b"\xff\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95"
+        b"\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"[1:]
+    )
+    # fmt: on
 
 
 def test_compressed_stream():
@@ -1607,6 +1605,12 @@ def test_get_fileobj_str(a_file):
         assert rf.read() == c
 
 
+def test_get_fileobj_localpath(a_file):
+    fn, c = a_file
+    with get_readable_fileobj(py.path.local(fn)) as rf:
+        assert rf.read() == c
+
+
 def test_get_fileobj_pathlib(a_file):
     fn, c = a_file
     with get_readable_fileobj(pathlib.Path(fn)) as rf:
@@ -1775,7 +1779,7 @@ def test_can_make_directories_readonly(tmp_path):
             )
         elif platform.system() == "Windows":
             pytest.skip(
-                "It seems we can't make a directory un-writable under Windows "
+                "It seems we can't make a driectory un-writable under Windows "
                 "with chmod, in spite of the documentation."
             )
         else:
@@ -1819,26 +1823,6 @@ def test_import_file_cache_readonly(readonly_cache, tmp_path):
     with pytest.raises(OSError):
         import_file_to_cache(url, filename, remove_original=True)
     assert not is_url_in_cache(url)
-
-
-def test_import_file_cache_invalid_cross_device_link(tmp_path, monkeypatch):
-    def no_rename(path, mode=None):
-        if os.path.exists(path):
-            raise OSError(errno.EXDEV, "os.rename monkeypatched out")
-        else:
-            raise FileNotFoundError(f"File {path} does not exist.")
-
-    monkeypatch.setattr(os, "rename", no_rename)
-
-    filename = tmp_path / "test-file"
-    content = "Some text or other"
-    url = "http://example.com/"
-    with open(filename, "w") as f:
-        f.write(content)
-
-    with pytest.warns(AstropyWarning, match="os.rename monkeypatched out"):
-        import_file_to_cache(url, filename, remove_original=True, replace=True)
-    assert is_url_in_cache(url)
 
 
 def test_download_file_cache_readonly_cache_miss(readonly_cache, valid_urls):
@@ -2073,14 +2057,9 @@ def test_removal_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
         # This platform is able to remove files while in use.
         monkeypatch.setattr(astropy.utils.data, "_rmtree", no_rmtree)
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(CacheMissingWarning, match=".*PermissionError.*")
-
     u, c = next(valid_urls)
     with open(download_file(u, cache=True)):
-        with pytest.warns(CacheMissingWarning, match=".*in use.*"), ctx:
+        with pytest.warns(CacheMissingWarning, match=r".*in use.*"):
             clear_download_cache(u)
 
 
@@ -2093,15 +2072,10 @@ def test_update_of_open_files_windows(temp_cache, valid_urls, monkeypatch):
         # This platform is able to remove files while in use.
         monkeypatch.setattr(astropy.utils.data, "_rmtree", no_rmtree)
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(CacheMissingWarning, match=".*read-only.*")
-
     u, c = next(valid_urls)
     with open(download_file(u, cache=True)):
         u2, c2 = next(valid_urls)
-        with pytest.warns(CacheMissingWarning, match=".*in use.*"), ctx:
+        with pytest.warns(CacheMissingWarning, match=r".*in use.*"):
             f = download_file(u, cache="update", sources=[u2])
         check_download_cache()
         assert is_url_in_cache(u)
@@ -2164,46 +2138,10 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
     assert not is_url_in_cache(u)
 
 
-def test_clear_download_cache_invalid_cross_device_link(
-    temp_cache, valid_urls, monkeypatch
-):
-    def no_rename(path, mode=None):
-        raise OSError(errno.EXDEV, "os.rename monkeypatched out")
-
-    u, c = next(valid_urls)
-    download_file(u, cache=True)
-
-    monkeypatch.setattr(os, "rename", no_rename)
-
-    assert is_url_in_cache(u)
-    with pytest.warns(AstropyWarning, match="os.rename monkeypatched out"):
-        clear_download_cache(u)
-    assert not is_url_in_cache(u)
-
-
-def test_clear_download_cache_raises_os_error(temp_cache, valid_urls, monkeypatch):
-    def no_rename(path, mode=None):
-        raise OSError(errno.EBUSY, "os.rename monkeypatched out")
-
-    u, c = next(valid_urls)
-    download_file(u, cache=True)
-
-    monkeypatch.setattr(os, "rename", no_rename)
-
-    assert is_url_in_cache(u)
-    with pytest.warns(CacheMissingWarning, match="os.rename monkeypatched out"):
-        clear_download_cache(u)
-
-
-@pytest.mark.skipif(
-    CI and not IS_CRON,
-    reason="Flaky/too much external traffic for regular CI",
-)
+@pytest.mark.skipif("CI", reason="Flaky on CI")
 @pytest.mark.remote_data
 def test_ftp_tls_auto(temp_cache):
-    """Test that download automatically enables TLS/SSL when required"""
-
-    url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.daily"
+    url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"  # noqa: E501
     download_file(url)
 
 

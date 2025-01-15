@@ -1,2 +1,0 @@
-Fix ``CoordinateHelper.ticklabels``. The getter was incorrectly returning
-the helper's ticks rather than the labels.

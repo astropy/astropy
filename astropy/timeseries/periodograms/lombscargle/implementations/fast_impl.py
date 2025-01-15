@@ -16,7 +16,7 @@ def lombscargle_fast(
     use_fft=True,
     trig_sum_kwds=None,
 ):
-    """Fast Lomb-Scargle Periodogram.
+    """Fast Lomb-Scargle Periodogram
 
     This implements the Press & Rybicki method [1]_ for fast O[N log(N)]
     Lomb-Scargle periodograms.

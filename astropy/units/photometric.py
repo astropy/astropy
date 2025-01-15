@@ -3,24 +3,17 @@
 """
 This module defines magnitude zero points and related photometric quantities.
 
-The corresponding magnitudes are given in the description of each unit.
-(the actual definitions are in `astropy.units.function.units`).
-
-Both the units and magnitudes are available in (and should be used
-through) the `astropy.units` namespace.
-
+The corresponding magnitudes are given in the description of each unit
+(the actual definitions are in `~astropy.units.function.logarithmic`).
 """
-# avoid ruff complaints about undefined names defined by def_unit
-# ruff: noqa: F821
 
-import numpy as np
+
+import numpy as _numpy
 
 from astropy.constants import si as _si
 
 from . import astrophys, cgs, si
 from .core import Unit, UnitBase, def_unit
-
-__all__ = ["zero_point_flux"]  #  Units are added at the end
 
 _ns = globals()
 
@@ -36,11 +29,11 @@ def_unit(
 )
 def_unit(
     ["bol", "f_bol"],
-    _si.L_bol0 / (4 * np.pi * (10.0 * astrophys.pc) ** 2),
+    _si.L_bol0 / (4 * _numpy.pi * (10.0 * astrophys.pc) ** 2),
     namespace=_ns,
     prefixes=False,
     doc=(
-        "Irradiance corresponding to apparent bolometric magnitude zero "
+        "Irradiance corresponding to appparent bolometric magnitude zero "
         "(magnitude ``m_bol``)."
     ),
 )
@@ -85,14 +78,18 @@ def zero_point_flux(flux0):
 
 
 ###########################################################################
-# ALL & DOCSTRING
+# CLEANUP
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+del UnitBase
+del def_unit
+del cgs, si, astrophys
 
+###########################################################################
+# DOCSTRING
+
+# This generates a docstring for this module that describes all of the
+# standard units defined here.
+from .utils import generate_unit_summary as _generate_unit_summary
 
 if __doc__ is not None:
-    # This generates a docstring for this module that describes all of the
-    # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
     __doc__ += _generate_unit_summary(globals())

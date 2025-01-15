@@ -7,10 +7,11 @@ Sending and Receiving Tables and Images over SAMP
 
 In the following examples, we make use of:
 
-* |TOPCAT|, which is a tool to explore tabular data.
+* `TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_, which is a tool to
+  explore tabular data.
 * `SAO DS9 <http://ds9.si.edu/>`_, which is an image
   visualization tool that can overplot catalogs.
-* `Aladin Desktop <https://aladin.unistra.fr>`_, which is another tool that
+* `Aladin Desktop <http://aladin.u-strasbg.fr>`_, which is another tool that
   can visualize images and catalogs.
 
 TOPCAT and Aladin will run a SAMP Hub if none is found, so for the following
@@ -108,7 +109,7 @@ We now set up a receiver class which will handle any received messages. We need
 to take care to write handlers for both notifications and calls (the difference
 between the two being that calls expect a reply)::
 
-    >>> class Receiver:
+    >>> class Receiver(object):
     ...     def __init__(self, client):
     ...         self.client = client
     ...         self.received = False
@@ -183,7 +184,7 @@ reads the table once it has::
     client.connect()
 
     # Set up a receiver class
-    class Receiver:
+    class Receiver(object):
         def __init__(self, client):
             self.client = client
             self.received = False

@@ -1,4 +1,29 @@
-:orphan:
+.. _whatsnew-5.3:
 
-`What's New in Astropy 5.3?
-<https://docs.astropy.org/en/v5.3/whatsnew/5.3.html>`__
+**************************
+What's New in Astropy 5.3?
+**************************
+
+Overview
+========
+
+Astropy 5.3 is a major release that adds significant new functionality since
+the 5.2 release.
+
+In particular, this release includes:
+
+.. * :ref:`whatsnew-5.3-example`
+
+In addition to these major changes, Astropy v5.3 includes a large number of
+smaller improvements and bug fixes, which are described in the :ref:`changelog`.
+By the numbers:
+
+* X issues have been closed since v4.2
+* X pull requests have been merged since v4.2
+* X distinct people have contributed code
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v5.3, including changes in
+API, please see the :ref:`changelog`.

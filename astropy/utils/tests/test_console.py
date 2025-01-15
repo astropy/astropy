@@ -22,6 +22,7 @@ class FakeTTY(io.StringIO):
         if encoding is None:
             return super().__new__(cls)
 
+        encoding = encoding
         cls = type(encoding.title() + cls.__name__, (cls,), {"encoding": encoding})
 
         return cls.__new__(cls)

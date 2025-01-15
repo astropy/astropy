@@ -38,11 +38,12 @@ from astropy.coordinates import (
     SphericalRepresentation,
     UnitSphericalRepresentation,
     get_body,
+    get_moon,
     get_sun,
 )
 from astropy.coordinates.sites import get_builtin_sites
 from astropy.table import Table
-from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils import iers
@@ -88,18 +89,18 @@ def test_regression_3920():
 
     aa = AltAz(location=loc, obstime=time)
     sc = SkyCoord(10 * u.deg, 3 * u.deg)
-    assert sc.transform_to(aa).shape == ()
+    assert sc.transform_to(aa).shape == tuple()
     # That part makes sense: the input is a scalar so the output is too
 
     sc2 = SkyCoord(10 * u.deg, 3 * u.deg, 1 * u.AU)
-    assert sc2.transform_to(aa).shape == ()
+    assert sc2.transform_to(aa).shape == tuple()
     # in 3920 that assert fails, because the shape is (1,)
 
     # check that the same behavior occurs even if transform is from low-level classes
     icoo = ICRS(sc.data)
     icoo2 = ICRS(sc2.data)
-    assert icoo.transform_to(aa).shape == ()
-    assert icoo2.transform_to(aa).shape == ()
+    assert icoo.transform_to(aa).shape == tuple()
+    assert icoo2.transform_to(aa).shape == tuple()
 
 
 def test_regression_3938():
@@ -245,25 +246,16 @@ def test_regression_futuretimes_4302():
     # if using IERS_B (which happens without --remote-data, i.e. for all CI
     # testing) do we expect another warning.
     if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):
-        ctx1 = pytest.warns(
+        ctx = pytest.warns(
             AstropyWarning,
             match=r"\(some\) times are outside of range covered by IERS table.*",
         )
     else:
-        ctx1 = nullcontext()
-
-    ctx2 = pytest.warns(ErfaWarning, match=".*dubious year.*")
-
-    if PYTEST_LT_8_0:
-        ctx3 = nullcontext()
-    else:
-        ctx3 = pytest.warns(AstropyWarning, match=".*times after IERS data is valid.*")
-
-    with ctx1, ctx2, ctx3:
+        ctx = nullcontext()
+    with ctx:
         future_time = Time("2511-5-1")
         c = CIRS(1 * u.deg, 2 * u.deg, obstime=future_time)
-        with iers.conf.set_temp("auto_max_age", None):
-            c.transform_to(ITRS(obstime=future_time))
+        c.transform_to(ITRS(obstime=future_time))
 
 
 def test_regression_4996():
@@ -321,7 +313,7 @@ def test_regression_4926():
     times = Time("2010-01-1") + np.arange(20) * u.day
     green = get_builtin_sites()["greenwich"]
     # this is the regression test
-    moon = get_body("moon", times, green)
+    moon = get_moon(times, green)
 
     # this is an additional test to make sure the GCRS->ICRS transform works for complex shapes
     moon.transform_to(ICRS())
@@ -334,7 +326,7 @@ def test_regression_4926():
 def test_regression_5209():
     "check that distances are not lost on SkyCoord init"
     time = Time("2015-01-01")
-    moon = get_body("moon", time)
+    moon = get_moon(time)
     new_coord = SkyCoord([moon])
     assert_quantity_allclose(new_coord[0].distance, moon.distance)
 
@@ -393,7 +385,7 @@ def test_itrs_vals_5133():
     aaf = AltAz(obstime=time, location=el)
     aacs = [coo.transform_to(aaf) for coo in coos]
 
-    assert all(coo.isscalar for coo in aacs)
+    assert all([coo.isscalar for coo in aacs])
 
     # the ~1 degree tolerance is b/c aberration makes it not exact
     assert_quantity_allclose(aacs[0].az, 180 * u.deg, atol=1 * u.deg)
@@ -445,7 +437,7 @@ def test_regression_5743():
     sc = SkyCoord(
         [5, 10], [20, 30], unit=u.deg, obstime=["2017-01-01T00:00", "2017-01-01T00:10"]
     )
-    assert sc[0].obstime.shape == ()
+    assert sc[0].obstime.shape == tuple()
 
 
 def test_regression_5889_5890():
@@ -454,7 +446,7 @@ def test_regression_5889_5890():
         *u.Quantity([3980608.90246817, -102.47522911, 4966861.27310067], unit=u.m)
     )
     times = Time("2017-03-20T12:00:00") + np.linspace(-2, 2, 3) * u.hour
-    moon = get_body("moon", times, location=greenwich)
+    moon = get_moon(times, location=greenwich)
     targets = SkyCoord([350.7 * u.deg, 260.7 * u.deg], [18.4 * u.deg, 22.4 * u.deg])
     targs2d = targets[:, np.newaxis]
     targs2d.transform_to(moon)
@@ -469,7 +461,7 @@ def test_regression_6236():
 
     class MySpecialFrame(MyFrame):
         def __init__(self, *args, **kwargs):
-            _rep_kwarg = kwargs.get("representation_type")
+            _rep_kwarg = kwargs.get("representation_type", None)
             super().__init__(*args, **kwargs)
             if not _rep_kwarg:
                 self.representation_type = self.default_representation
@@ -638,7 +630,7 @@ def test_regression_8276():
     class MyFrame(BaseCoordinateFrame):
         a = QuantityAttribute(unit=u.m)
 
-    # we save the transform graph so that it doesn't accidentally mess with other tests
+    # we save the transform graph so that it doesn't acidentally mess with other tests
     old_transform_graph = baseframe.frame_transform_graph
     try:
         baseframe.frame_transform_graph = copy.copy(baseframe.frame_transform_graph)
@@ -752,50 +744,3 @@ def test_regression_10291():
     assert_quantity_allclose(
         venus.separation(sun), 554.427 * u.arcsecond, atol=0.001 * u.arcsecond
     )
-
-
-@pytest.mark.parametrize("coord_cls", [ICRS, SkyCoord])
-@pytest.mark.parametrize(
-    "differential_type, diff_kwargs",
-    [
-        (None, {}),
-        (
-            "unitsphericalcoslat",
-            {
-                "pm_ra_cosdec": [40, 50] * u.mas / u.yr,
-                "pm_dec": [60, 70] * u.mas / u.yr,
-            },
-        ),
-        ("radial", {"radial_velocity": [80, 90] * u.km / u.s}),
-    ],
-)
-@pytest.mark.parametrize("extra_kwargs", [{}, {"representation_type": "unitspherical"}])
-def test_regression_16998(coord_cls, differential_type, diff_kwargs, extra_kwargs):
-    """Direct tests of the underlying problem causing gh-16998.
-
-    Note that the issue itself was of columns missing in data written to a file.
-    That is now tested directly by the "icrs" column in
-    astropy/io/tests/mixin_columns.py.
-    Here, we test the underlying problem, that .info._represent_as_dict()
-    did not return a full set of columns in some cases.
-    """
-    if extra_kwargs and differential_type:
-        extra_kwargs["differential_type"] = differential_type
-    coord = coord_cls([0, 10] * u.deg, [20, 30] * u.deg, **diff_kwargs, **extra_kwargs)
-    expected_entries = {"ra", "dec", "representation_type"}
-    if differential_type:
-        expected_entries |= {"differential_type"} | set(diff_kwargs)
-    if coord_cls is SkyCoord:
-        expected_entries.add("frame")
-    assert set(coord.info._represent_as_dict()) == expected_entries
-
-
-def test_regression_17008():
-    """Test that one can transform a SkyCoord with empty data to other frames.
-
-    The underlying bug that caused the problem reported in gh-17008
-    is tested in utils/iers/tests/test_iers.py::test_empty_mjd
-    """
-    s = SkyCoord([] * u.deg, [] * u.deg, obstime=Time([], format="iso"))
-    itrs = s.itrs  # This failed before.
-    assert itrs.size == 0

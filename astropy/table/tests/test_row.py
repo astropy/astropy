@@ -83,7 +83,7 @@ class TestRow:
         np_t = self.t.as_array()
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
-                self.t[0] == np_t[0]  # noqa: B015
+                self.t[0] == np_t[0]
         else:
             for row, np_row in zip(self.t, np_t):
                 assert np.all(row == np_row)
@@ -95,7 +95,7 @@ class TestRow:
         np_t["a"] = [0, 0, 0]
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
-                self.t[0] == np_t[0]  # noqa: B015
+                self.t[0] == np_t[0]
         else:
             for row, np_row in zip(self.t, np_t):
                 assert np.all(row != np_row)
@@ -106,7 +106,7 @@ class TestRow:
         np_t = self.t.as_array()
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
-                self.t[0] == np_t[0]  # noqa: B015
+                self.t[0] == np_t[0]
         else:
             for row, np_row in zip(self.t, np_t):
                 assert np.all(np_row == row)
@@ -121,7 +121,7 @@ class TestRow:
         assert np_data is not d.as_void()
         assert d.colnames == list(np_data.dtype.names)
 
-        np_data = np.asarray(d)
+        np_data = np.array(d, copy=False)
         if table_types.Table is not MaskedTable:
             assert np.all(np_data == d.as_void())
         assert np_data is not d.as_void()
@@ -209,7 +209,9 @@ class TestRow:
     def test_create_rows_from_list(self, table_types):
         """https://github.com/astropy/astropy/issues/8976"""
         orig_tab = table_types.Table([[1, 2, 3], [4, 5, 6]], names=("a", "b"))
-        new_tab = type(orig_tab)(rows=list(orig_tab), names=orig_tab.dtype.names)
+        new_tab = type(orig_tab)(
+            rows=[row for row in orig_tab], names=orig_tab.dtype.names
+        )
         assert np.all(orig_tab == new_tab)
 
     def test_row_keys_values(self, table_types):
@@ -348,16 +350,16 @@ def test_uint_indexing():
     that printing such a row works.
 
     This is non-trivial: adding a signed and unsigned
-    64 bit integer in numpy results in a float, which is an
+    integer in numpy results in a float, which is an
     invalid slice index.
 
     Regression test for gh-7464.
     """
     t = table.Table([[1.0, 2.0, 3.0]], names="a")
     assert t["a"][1] == 2.0
-    assert t["a"][np.int64(1)] == 2.0
-    assert t["a"][np.uint64(1)] == 2.0
-    assert t[np.uint64(1)]["a"] == 2.0
+    assert t["a"][np.int_(1)] == 2.0
+    assert t["a"][np.uint(1)] == 2.0
+    assert t[np.uint(1)]["a"] == 2.0
 
     trepr = [
         "<Row index=1>",
@@ -368,22 +370,5 @@ def test_uint_indexing():
     ]
 
     assert repr(t[1]).splitlines() == trepr
-    assert repr(t[np.int64(1)]).splitlines() == trepr
-    assert repr(t[np.uint64(1)]).splitlines() == trepr
-
-
-def test_row_get():
-    row = table.Table({"a": [2, 4], "b": [3, 9]})[0]
-    assert row.get("a") == 2
-    assert row.get("x") is None
-    assert row.get("b", -1) == 3
-    assert row.get("y", -1) == -1
-
-
-def test_table_row_slicing():
-    # see https://github.com/astropy/astropy/issues/14007
-    from numpy.testing import assert_array_equal
-
-    t = table.Table({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
-    first_row = t[0]
-    assert_array_equal(first_row[1:], [4, 7])
+    assert repr(t[np.int_(1)]).splitlines() == trepr
+    assert repr(t[np.uint(1)]).splitlines() == trepr

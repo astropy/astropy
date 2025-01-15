@@ -11,7 +11,7 @@ from astropy.table.table import Table
 def array():
     # composite index
     col0 = np.array([x % 2 for x in range(1, 11)])
-    col1 = np.array(list(range(1, 11)))
+    col1 = np.array([x for x in range(1, 11)])
     t = Table([col0, col1])
     t = t[t.argsort()]
     return SortedArray(t, t["col1"].copy())

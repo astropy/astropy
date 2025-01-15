@@ -1,4 +1,0 @@
-:orphan:
-
-`What's New in Astropy 7.0?
-<https://docs.astropy.org/en/v7.0.x/whatsnew/7.0.html>`__

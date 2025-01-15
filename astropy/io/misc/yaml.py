@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Functions for serializing astropy objects to YAML.
-
+"""
+This module contains functions for serializing core astropy objects via the
+YAML protocol.
 It provides functions `~astropy.io.misc.yaml.dump`,
 `~astropy.io.misc.yaml.load`, and `~astropy.io.misc.yaml.load_all` which
 call the corresponding functions in `PyYaml <https://pyyaml.org>`_ but use the
@@ -18,40 +19,41 @@ classes to define custom YAML tags for the following astropy classes:
 - `astropy.coordinates.EarthLocation`
 - `astropy.table.SerializedColumn`
 
-Examples
---------
-    >>> from astropy.io.misc import yaml
-    >>> import astropy.units as u
-    >>> from astropy.time import Time
-    >>> from astropy.coordinates import EarthLocation
-    >>> t = Time(2457389.0, format='mjd',
-    ...          location=EarthLocation(1000, 2000, 3000, unit=u.km))
-    >>> td = yaml.dump(t)
-    >>> print(td)
-    !astropy.time.Time
-    format: mjd
-    in_subfmt: '*'
-    jd1: 4857390.0
-    jd2: -0.5
-    location: !astropy.coordinates.earth.EarthLocation
+Example
+=======
+::
+  >>> from astropy.io.misc import yaml
+  >>> import astropy.units as u
+  >>> from astropy.time import Time
+  >>> from astropy.coordinates import EarthLocation
+  >>> t = Time(2457389.0, format='mjd',
+  ...          location=EarthLocation(1000, 2000, 3000, unit=u.km))
+  >>> td = yaml.dump(t)
+  >>> print(td)
+  !astropy.time.Time
+  format: mjd
+  in_subfmt: '*'
+  jd1: 4857390.0
+  jd2: -0.5
+  location: !astropy.coordinates.earth.EarthLocation
     ellipsoid: WGS84
     x: !astropy.units.Quantity
-        unit: &id001 !astropy.units.Unit {unit: km}
-        value: 1000.0
+      unit: &id001 !astropy.units.Unit {unit: km}
+      value: 1000.0
     y: !astropy.units.Quantity
-        unit: *id001
-        value: 2000.0
+      unit: *id001
+      value: 2000.0
     z: !astropy.units.Quantity
-        unit: *id001
-        value: 3000.0
-    out_subfmt: '*'
-    precision: 3
-    scale: utc
-    >>> ty = yaml.load(td)
-    >>> ty
-    <Time object: scale='utc' format='mjd' value=2457389.0>
-    >>> ty.location  # doctest: +FLOAT_CMP
-    <EarthLocation (1000., 2000., 3000.) km>
+      unit: *id001
+      value: 3000.0
+  out_subfmt: '*'
+  precision: 3
+  scale: utc
+  >>> ty = yaml.load(td)
+  >>> ty
+  <Time object: scale='utc' format='mjd' value=2457389.0>
+  >>> ty.location  # doctest: +FLOAT_CMP
+  <EarthLocation (1000., 2000., 3000.) km>
 """
 
 import base64
@@ -64,7 +66,7 @@ from astropy import units as u
 from astropy.table import SerializedColumn
 from astropy.time import Time, TimeDelta
 
-__all__ = ["AstropyDumper", "AstropyLoader", "dump", "load", "load_all"]
+__all__ = ["AstropyLoader", "AstropyDumper", "load", "load_all", "dump"]
 
 
 def _unit_representer(dumper, obj):
@@ -110,9 +112,6 @@ def _timedelta_constructor(loader, node):
 
 
 def _ndarray_representer(dumper, obj):
-    if obj.dtype.hasobject:
-        raise TypeError(f"cannot serialize numpy object array: {obj}")
-
     if not (obj.flags["C_CONTIGUOUS"] or obj.flags["F_CONTIGUOUS"]):
         obj = np.ascontiguousarray(obj)
 
@@ -124,12 +123,12 @@ def _ndarray_representer(dumper, obj):
 
     data_b64 = base64.b64encode(obj.tobytes())
 
-    out = {
-        "buffer": data_b64,
-        "dtype": str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
-        "shape": obj.shape,
-        "order": order,
-    }
+    out = dict(
+        buffer=data_b64,
+        dtype=str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
+        shape=obj.shape,
+        order=order,
+    )
 
     return dumper.represent_mapping("!numpy.ndarray", out)
 
@@ -141,18 +140,15 @@ def _ndarray_constructor(loader, node):
     # construct_sequence.
     map = loader.construct_mapping(node, deep=True)
     map["buffer"] = base64.b64decode(map["buffer"])
-
-    if map["dtype"] == "object":
-        raise TypeError("cannot load numpy array with dtype object")
     return np.ndarray(**map)
 
 
 def _void_representer(dumper, obj):
     data_b64 = base64.b64encode(obj.tobytes())
-    out = {
-        "buffer": data_b64,
-        "dtype": str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
-    }
+    out = dict(
+        buffer=data_b64,
+        dtype=str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
+    )
     return dumper.represent_mapping("!numpy.void", out)
 
 
@@ -194,13 +190,13 @@ def _skycoord_constructor(loader, node):
 # Straight from yaml's Representer
 def _complex_representer(self, data):
     if data.imag == 0.0:
-        data = f"{data.real!s}"
+        data = f"{data.real!r}"
     elif data.real == 0.0:
-        data = f"{data.imag!s}j"
+        data = f"{data.imag!r}j"
     elif data.imag > 0:
-        data = f"{data.real!s}+{data.imag!s}j"
+        data = f"{data.real!r}+{data.imag!r}j"
     else:
-        data = f"{data.real!s}{data.imag!s}j"
+        data = f"{data.real!r}{data.imag!r}j"
     return self.represent_scalar("tag:yaml.org,2002:python/complex", data)
 
 
@@ -243,30 +239,6 @@ class AstropyDumper(yaml.SafeDumper):
     def _represent_tuple(self, data):
         return self.represent_sequence("tag:yaml.org,2002:python/tuple", data)
 
-    def represent_float(self, data):
-        # Override to change repr(data) to str(data) since otherwise all the
-        # numpy scalars fail in not NUMPY_LT_2_0.
-        # otherwise, this function is identical to yaml.SafeDumper.represent_float
-        # (as of pyyaml 6.0.1)
-        if data != data or (data == 0.0 and data == 1.0):
-            value = ".nan"
-        elif data == self.inf_value:
-            value = ".inf"
-        elif data == -self.inf_value:
-            value = "-.inf"
-        else:
-            value = str(data).lower()
-            # Note that in some cases `repr(data)` represents a float number
-            # without the decimal parts.  For instance:
-            #   >>> repr(1e17)
-            #   '1e17'
-            # Unfortunately, this is not a valid float representation according
-            # to the definition of the `!!float` tag.  We fix this by adding
-            # '.0' before the 'e' symbol.
-            if "." not in value and "e" in value:
-                value = value.replace("e", ".0e", 1)
-        return self.represent_scalar("tag:yaml.org,2002:float", value)
-
 
 AstropyDumper.add_multi_representer(u.UnitBase, _unit_representer)
 AstropyDumper.add_multi_representer(u.FunctionUnitBase, _unit_representer)
@@ -282,6 +254,7 @@ AstropyDumper.add_representer(SerializedColumn, _serialized_column_representer)
 # Numpy dtypes
 AstropyDumper.add_representer(np.bool_, yaml.representer.SafeRepresenter.represent_bool)
 for np_type in [
+    np.int_,
     np.intc,
     np.intp,
     np.int8,
@@ -296,9 +269,11 @@ for np_type in [
     AstropyDumper.add_representer(
         np_type, yaml.representer.SafeRepresenter.represent_int
     )
-for np_type in [np.float16, np.float32, np.float64, np.longdouble]:
-    AstropyDumper.add_representer(np_type, AstropyDumper.represent_float)
-for np_type in [complex, np.complex64, np.complex128]:
+for np_type in [np.float_, np.float16, np.float32, np.float64, np.longdouble]:
+    AstropyDumper.add_representer(
+        np_type, yaml.representer.SafeRepresenter.represent_float
+    )
+for np_type in [np.complex_, complex, np.complex64, np.complex128]:
     AstropyDumper.add_representer(np_type, _complex_representer)
 
 AstropyLoader.add_constructor("tag:yaml.org,2002:python/complex", _complex_constructor)

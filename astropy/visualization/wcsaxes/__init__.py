@@ -18,7 +18,6 @@ from .coordinates_map import CoordinatesMap
 from .core import *
 from .helpers import *
 from .patches import *
-from .wcsapi import custom_ucd_coord_meta_mapping
 
 
 class Conf(_config.ConfigNamespace):

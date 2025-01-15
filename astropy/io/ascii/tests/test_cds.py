@@ -5,20 +5,20 @@ This module tests some methods related to ``CDS`` format
 reader/writer.
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
-
 from io import StringIO
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
-from astropy.table import Column, MaskedColumn, QTable, Table
+from astropy.table import Column, MaskedColumn, Table
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
+
+from .common import assert_almost_equal
 
 test_dat = [
     "names e d s i",
@@ -96,8 +96,8 @@ def test_write_byte_by_byte_units():
     out = StringIO()
     t.write(out, format="ascii.mrt")
     # Read written table.
-    columns = ascii.read(out.getvalue(), format="cds").itercols()
-    assert [col.unit for col in columns] == col_units
+    tRead = ascii.read(out.getvalue(), format="cds")
+    assert [tRead[col].unit for col in tRead.columns] == col_units
 
 
 def test_write_readme_with_default_options():
@@ -192,60 +192,62 @@ def test_write_byte_by_byte_for_masked_column():
     assert lines == exp_output
 
 
-exp_coord_cols_output = {
-    "generic": [
-        "================================================================================",
-        "Byte-by-byte Description of file: table.dat",
-        "--------------------------------------------------------------------------------",
-        " Bytes Format Units  Label     Explanations",
-        "--------------------------------------------------------------------------------",
-        " 1- 8  A8     ---    names   Description of names              ",
-        "10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e",
-        "16-23  F8.5   ---    d       [22.25/27.25] Description of d    ",
-        "25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     ",
-        "33-35  I3     ---    i       [-30/67] Description of i         ",
-        "37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    ",
-        "41-42  I2     ---    sameI   [20] Description of sameI         ",
-        "44-45  I2     h      RAh     Right Ascension (hour)            ",
-        "47-48  I2     min    RAm     Right Ascension (minute)          ",
-        "50-62  F13.10 s      RAs     Right Ascension (second)          ",
-        "   64  A1     ---    DE-     Sign of Declination               ",
-        "65-66  I2     deg    DEd     Declination (degree)              ",
-        "68-69  I2     arcmin DEm     Declination (arcmin)              ",
-        "71-82  F12.9  arcsec DEs     Declination (arcsec)              ",
-        "--------------------------------------------------------------------------------",
-        "Notes:",
-        "--------------------------------------------------------------------------------",
-        "HD81809  1e-07  22.25608   2e+00  67 5.0 20 22 02 15.4500000000 -61 39 34.599996000",
-        "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.2244072000 +17 46 26.496624000",
+exp_coord_cols_output = dict(
+    # fmt: off
+    generic=[
+        '================================================================================',
+        'Byte-by-byte Description of file: table.dat',
+        '--------------------------------------------------------------------------------',
+        ' Bytes Format Units  Label     Explanations',
+        '--------------------------------------------------------------------------------',
+        ' 1- 8  A8     ---    names   Description of names              ',
+        '10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e',
+        '16-23  F8.5   ---    d       [22.25/27.25] Description of d    ',
+        '25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     ',
+        '33-35  I3     ---    i       [-30/67] Description of i         ',
+        '37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    ',
+        '41-42  I2     ---    sameI   [20] Description of sameI         ',
+        '44-45  I2     h      RAh     Right Ascension (hour)            ',
+        '47-48  I2     min    RAm     Right Ascension (minute)          ',
+        '50-62  F13.10 s      RAs     Right Ascension (second)          ',
+        '   64  A1     ---    DE-     Sign of Declination               ',
+        '65-66  I2     deg    DEd     Declination (degree)              ',
+        '68-69  I2     arcmin DEm     Declination (arcmin)              ',
+        '71-82  F12.9  arcsec DEs     Declination (arcsec)              ',
+        '--------------------------------------------------------------------------------',
+        'Notes:',
+        '--------------------------------------------------------------------------------',
+        'HD81809  1e-07  22.25608   2e+00  67 5.0 20 22 02 15.4500000000 -61 39 34.599996000',
+        'HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.2244072000 +17 46 26.496624000',
     ],
-    "positive_de": [
-        "================================================================================",
-        "Byte-by-byte Description of file: table.dat",
-        "--------------------------------------------------------------------------------",
-        " Bytes Format Units  Label     Explanations",
-        "--------------------------------------------------------------------------------",
-        " 1- 8  A8     ---    names   Description of names              ",
-        "10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e",
-        "16-23  F8.5   ---    d       [22.25/27.25] Description of d    ",
-        "25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     ",
-        "33-35  I3     ---    i       [-30/67] Description of i         ",
-        "37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    ",
-        "41-42  I2     ---    sameI   [20] Description of sameI         ",
-        "44-45  I2     h      RAh     Right Ascension (hour)            ",
-        "47-48  I2     min    RAm     Right Ascension (minute)          ",
-        "50-62  F13.10 s      RAs     Right Ascension (second)          ",
-        "   64  A1     ---    DE-     Sign of Declination               ",
-        "65-66  I2     deg    DEd     Declination (degree)              ",
-        "68-69  I2     arcmin DEm     Declination (arcmin)              ",
-        "71-82  F12.9  arcsec DEs     Declination (arcsec)              ",
-        "--------------------------------------------------------------------------------",
-        "Notes:",
-        "--------------------------------------------------------------------------------",
-        "HD81809  1e-07  22.25608   2e+00  67 5.0 20 12 48 15.2244072000 +17 46 26.496624000",
-        "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.2244072000 +17 46 26.496624000",
+    positive_de=[
+        '================================================================================',
+        'Byte-by-byte Description of file: table.dat',
+        '--------------------------------------------------------------------------------',
+        ' Bytes Format Units  Label     Explanations',
+        '--------------------------------------------------------------------------------',
+        ' 1- 8  A8     ---    names   Description of names              ',
+        '10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e',
+        '16-23  F8.5   ---    d       [22.25/27.25] Description of d    ',
+        '25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     ',
+        '33-35  I3     ---    i       [-30/67] Description of i         ',
+        '37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    ',
+        '41-42  I2     ---    sameI   [20] Description of sameI         ',
+        '44-45  I2     h      RAh     Right Ascension (hour)            ',
+        '47-48  I2     min    RAm     Right Ascension (minute)          ',
+        '50-62  F13.10 s      RAs     Right Ascension (second)          ',
+        '   64  A1     ---    DE-     Sign of Declination               ',
+        '65-66  I2     deg    DEd     Declination (degree)              ',
+        '68-69  I2     arcmin DEm     Declination (arcmin)              ',
+        '71-82  F12.9  arcsec DEs     Declination (arcsec)              ',
+        '--------------------------------------------------------------------------------',
+        'Notes:',
+        '--------------------------------------------------------------------------------',
+        'HD81809  1e-07  22.25608   2e+00  67 5.0 20 12 48 15.2244072000 +17 46 26.496624000',
+        'HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.2244072000 +17 46 26.496624000',
     ],
-    "galactic": [
+    # fmt: on
+    galactic=[
         "================================================================================",
         "Byte-by-byte Description of file: table.dat",
         "--------------------------------------------------------------------------------",
@@ -266,7 +268,7 @@ exp_coord_cols_output = {
         "HD81809  1e-07  22.25608   2e+00  67 5.0 20 330.071639591690 -45.548080484609",
         "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 330.071639591690 -45.548080484609",
     ],
-    "ecliptic": [
+    ecliptic=[
         "================================================================================",
         "Byte-by-byte Description of file: table.dat",
         "--------------------------------------------------------------------------------",
@@ -287,7 +289,7 @@ exp_coord_cols_output = {
         "HD81809  1e-07  22.25608   2e+00  67 5.0 20 306.224208650096 -45.621789850825",
         "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 306.224208650096 -45.621789850825",
     ],
-}
+)
 
 
 def test_write_coord_cols():
@@ -401,8 +403,8 @@ Byte-by-byte Description of file: table.dat
     t.remove_columns(["s", "i"])
     description = (
         "This is a tediously long description."
-        " But they do sometimes have them."
-        " Better to put extra details in the notes. "
+        + " But they do sometimes have them."
+        + " Better to put extra details in the notes. "
     )
     t["names"].description = description * 2
     t["names"].name = "thisIsALongColumnLabel"
@@ -418,27 +420,28 @@ Byte-by-byte Description of file: table.dat
 
 def test_write_mixin_and_broken_cols():
     """
-    Tests conversion to string values for ``mix-in`` columns other than
+    Tests convertion to string values for ``mix-in`` columns other than
     ``SkyCoord`` and for columns with only partial ``SkyCoord`` values.
     """
+    # fmt: off
     exp_output = [
-        "================================================================================",
-        "Byte-by-byte Description of file: table.dat",
-        "--------------------------------------------------------------------------------",
-        " Bytes Format Units  Label     Explanations",
-        "--------------------------------------------------------------------------------",
-        "  1-  7  A7     ---    name    Description of name       ",
-        "  9- 74  A66    ---    Unknown Description of Unknown    ",
-        " 76-114  A39    ---    cart    Description of cart       ",
-        "116-138  A23    ---    time    Description of time       ",
-        "140-142  F3.1   m      q       [1.0/1.0] Description of q",
-        "--------------------------------------------------------------------------------",
-        "Notes:",
-        "--------------------------------------------------------------------------------",
-        "HD81809 <SkyCoord (ICRS): (ra, dec) in deg",
-        "    (330.564375, -61.65961111)> (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000 1.0",
-        "random  12                                                                 (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000 1.0",
+        '================================================================================',
+        'Byte-by-byte Description of file: table.dat',
+        '--------------------------------------------------------------------------------',
+        ' Bytes Format Units  Label     Explanations',
+        '--------------------------------------------------------------------------------',
+        '  1-  7  A7     ---    name    Description of name   ',
+        '  9- 74  A66    ---    Unknown Description of Unknown',
+        ' 76-114  A39    ---    Unknown Description of Unknown',
+        '116-138  A23    ---    Unknown Description of Unknown',
+        '--------------------------------------------------------------------------------',
+        'Notes:',
+        '--------------------------------------------------------------------------------',
+        'HD81809 <SkyCoord (ICRS): (ra, dec) in deg',
+        '    (330.564375, -61.65961111)> (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000',  # noqa: E501
+        'random  12                                                                 (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000',  # noqa: E501
     ]
+    # fmt: on
     t = Table()
     t["name"] = ["HD81809"]
     coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
@@ -446,7 +449,6 @@ def test_write_mixin_and_broken_cols():
     t.add_row(["random", 12])
     t["cart"] = coord.cartesian
     t["time"] = Time("2019-1-1")
-    t["q"] = u.Quantity(1.0, u.m)
     out = StringIO()
     t.write(out, format="ascii.mrt")
     lines = out.getvalue().splitlines()
@@ -502,7 +504,9 @@ def test_write_extra_skycoord_cols():
     for a, b in zip(lines[-2:], exp_output[-2:]):
         assert a[:18] == b[:18]
         assert a[30:42] == b[30:42]
-        assert_allclose(np.fromstring(a[2:], sep=" "), np.fromstring(b[2:], sep=" "))
+        assert_almost_equal(
+            np.fromstring(a[2:], sep=" "), np.fromstring(b[2:], sep=" ")
+        )
 
 
 def test_write_skycoord_with_format():
@@ -548,13 +552,3 @@ def test_write_skycoord_with_format():
     lines = lines[i_bbb:]  # Select Byte-By-Byte section and following lines.
     # Check the written table.
     assert lines == exp_output
-
-
-def test_write_qtable():
-    # Regression test for gh-12804
-    qt = QTable([np.arange(4) * u.m, ["a", "b", "c", "ddd"]], names=["a", "b"])
-    out = StringIO()
-    qt.write(out, format="mrt")
-    result = out.getvalue()
-    assert "Description of a" in result
-    assert "Description of b" in result

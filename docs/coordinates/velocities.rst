@@ -417,10 +417,8 @@ radial velocity of 10 km/s:
                radial_velocity=[10]*1000*u.km/u.s,
                location=location, obstime=time)
     gcrs = aa.transform_to(GCRS(obstime=time))
-
-    fig, ax = plt.subplots()
-    ax.scatter(time.datetime, gcrs.radial_velocity.to(u.km / u.s))
-    ax.set_ylabel("RV [km/s]")
+    plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
+    plt.ylabel('RV [km/s]')
 
 This seems plausible: the radial velocity should indeed be very close to 10 km/s
 because the frame does not involve a velocity shift.
@@ -438,9 +436,8 @@ the same: the radial velocity should be essentially the same in both frames:
                radial_velocity=[10]*1000*u.km/u.s,
                location=location, obstime=time)
     gcrs = aa.transform_to(GCRS(obstime=time))
-
-    ax.scatter(time.datetime, gcrs.radial_velocity.to(u.km / u.s))
-    ax.set_ylabel("RV [km/s]")
+    plt.plot_date(time.plot_date, gcrs.radial_velocity.to(u.km/u.s))
+    plt.ylabel('RV [km/s]')
 
 But this result is nonsense, with values from -1000 to 1000 km/s instead of the
 ~10 km/s we expected. The root of the problem here is that the machine
@@ -572,7 +569,7 @@ radial velocity and :math:`v_b` is the barycentric correction returned by
 the barycentric correction in this way leads to errors of order 3 m/s.
 
 The barycentric correction in `~astropy.coordinates.SkyCoord.radial_velocity_correction` is consistent
-with the `IDL implementation <https://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html>`_ of
+with the `IDL implementation <http://astroutils.astronomy.ohio-state.edu/exofast/barycorr.html>`_ of
 the Wright & Eastmann (2014) paper to a level of 10 mm/s for a source at
 infinite distance. We do not include the Shapiro delay nor the light
 travel time correction from equation 28 of that paper. The neglected terms

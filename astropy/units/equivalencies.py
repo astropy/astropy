@@ -1,50 +1,45 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-A set of standard astronomical equivalencies.
+"""A set of standard astronomical equivalencies."""
 
-The equivalency class and all equivalency functions defined here are also
-available in (and should be used through) the `astropy.units` namespace.
-
-"""
+import warnings
+from collections import UserList
 
 # THIRD-PARTY
 import numpy as np
 
 # LOCAL
 from astropy.constants import si as _si
-from astropy.utils import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import isiterable
 
 from . import astrophys, cgs, dimensionless_unscaled, misc, si
-from .core import Unit
-from .errors import UnitsError
+from .core import Unit, UnitsError
 from .function import units as function_units
 
 __all__ = [
-    "Equivalency",
-    "beam_angular_area",
-    "brightness_temperature",
-    "dimensionless_angles",
-    "doppler_optical",
-    "doppler_radio",
-    "doppler_redshift",
-    "doppler_relativistic",
-    "logarithmic",
-    "magnetic_flux_field",
-    "mass_energy",
-    "molar_mass_amu",
     "parallax",
-    "pixel_scale",
-    "plate_scale",
     "spectral",
     "spectral_density",
+    "doppler_radio",
+    "doppler_optical",
+    "doppler_relativistic",
+    "doppler_redshift",
+    "mass_energy",
+    "brightness_temperature",
+    "thermodynamic_temperature",
+    "beam_angular_area",
+    "dimensionless_angles",
+    "logarithmic",
     "temperature",
     "temperature_energy",
-    "thermodynamic_temperature",
+    "molar_mass_amu",
+    "pixel_scale",
+    "plate_scale",
+    "Equivalency",
 ]
 
 
-class Equivalency(list):
+class Equivalency(UserList):
     """
     A container for a units equivalency.
 
@@ -57,21 +52,18 @@ class Equivalency(list):
     """
 
     def __init__(self, equiv_list, name="", kwargs=None):
-        super().__init__(equiv_list)
+        self.data = equiv_list
         self.name = [name]
-        self.kwargs = [kwargs] if kwargs is not None else [{}]
+        self.kwargs = [kwargs] if kwargs is not None else [dict()]
 
     def __add__(self, other):
         if isinstance(other, Equivalency):
-            # The super() returns a list, which is really a bit weird,
-            # but that means we have to pass it back through the initializer.
-            new = self.__class__(super().__add__(other))
-            # Avoid the change to list of the name and kwargs arguments.
-            new.name = self.name + other.name
-            new.kwargs = self.kwargs + other.kwargs
+            new = super().__add__(other)
+            new.name = self.name[:] + other.name
+            new.kwargs = self.kwargs[:] + other.kwargs
             return new
         else:
-            return super().__add__(other)  # Let list take care.
+            return self.data.__add__(other)
 
     def __eq__(self, other):
         return (
@@ -92,7 +84,7 @@ def dimensionless_angles():
 
 
 def logarithmic():
-    """Allow logarithmic units to be converted to dimensionless fractions."""
+    """Allow logarithmic units to be converted to dimensionless fractions"""
     return Equivalency(
         [(dimensionless_unscaled, function_units.dex, np.log10, lambda x: 10.0**x)],
         "logarithmic",
@@ -162,9 +154,6 @@ def spectral():
     )
 
 
-@deprecated_renamed_argument(
-    "factor", None, since="7.0", alternative='"wav" as a "Quantity"'
-)
 def spectral_density(wav, factor=None):
     """
     Returns a list of equivalence pairs that handle spectral density
@@ -175,15 +164,13 @@ def spectral_density(wav, factor=None):
     wav : `~astropy.units.Quantity`
         `~astropy.units.Quantity` associated with values being converted
         (e.g., wavelength or frequency).
-    factor : array_like
-        If ``wav`` is a |Unit| instead of a |Quantity| then ``factor``
-        is the value ``wav`` will be multiplied with to convert it to
-        a |Quantity|.
 
-        .. deprecated:: 7.0
+    Notes
+    -----
+    The ``factor`` argument is left for backward-compatibility with the syntax
+    ``spectral_density(unit, factor)`` but users are encouraged to use
+    ``spectral_density(factor * unit)`` instead.
 
-            ``factor`` is deprecated. Pass in ``wav`` as a |Quantity|,
-            not as a |Unit|.
     """
     from .core import UnitBase
 
@@ -364,6 +351,7 @@ def doppler_radio(rest):
     >>> radio_velocity  # doctest: +FLOAT_CMP
     <Quantity -31.209092088877583 km / s>
     """
+
     assert_is_spectral_unit(rest)
 
     ckms = _si.c.to_value("km/s")
@@ -386,11 +374,11 @@ def doppler_radio(rest):
         return restwav * ckms / (ckms - x)
 
     def to_vel_en(x):
-        resten = rest.to_value(misc.eV, equivalencies=spectral())
+        resten = rest.to_value(si.eV, equivalencies=spectral())
         return (resten - x) / (resten) * ckms
 
     def from_vel_en(x):
-        resten = rest.to_value(misc.eV, equivalencies=spectral())
+        resten = rest.to_value(si.eV, equivalencies=spectral())
         voverc = x / ckms
         return resten * (1 - voverc)
 
@@ -398,7 +386,7 @@ def doppler_radio(rest):
         [
             (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (misc.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (si.eV, si.km / si.s, to_vel_en, from_vel_en),
         ],
         "doppler_radio",
         {"rest": rest},
@@ -433,6 +421,7 @@ def doppler_optical(rest):
     >>> optical_velocity  # doctest: +FLOAT_CMP
     <Quantity -31.20584348799674 km / s>
     """
+
     assert_is_spectral_unit(rest)
 
     ckms = _si.c.to_value("km/s")
@@ -456,11 +445,11 @@ def doppler_optical(rest):
         return restwav * (1 + voverc)
 
     def to_vel_en(x):
-        resten = rest.to_value(misc.eV, equivalencies=spectral())
+        resten = rest.to_value(si.eV, equivalencies=spectral())
         return ckms * (resten - x) / x
 
     def from_vel_en(x):
-        resten = rest.to_value(misc.eV, equivalencies=spectral())
+        resten = rest.to_value(si.eV, equivalencies=spectral())
         voverc = x / ckms
         return resten / (1 + voverc)
 
@@ -468,7 +457,7 @@ def doppler_optical(rest):
         [
             (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (misc.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (si.eV, si.km / si.s, to_vel_en, from_vel_en),
         ],
         "doppler_optical",
         {"rest": rest},
@@ -509,7 +498,8 @@ def doppler_relativistic(rest):
     >>> relativistic_wavelength = measured_velocity.to(u.mm, equivalencies=relativistic_CO_equiv)
     >>> relativistic_wavelength  # doctest: +FLOAT_CMP
     <Quantity 2.6116243681798923 mm>
-    """
+    """  # noqa: E501
+
     assert_is_spectral_unit(rest)
 
     ckms = _si.c.to_value("km/s")
@@ -533,11 +523,11 @@ def doppler_relativistic(rest):
         return restwav * ((1 + voverc) / (1 - voverc)) ** 0.5
 
     def to_vel_en(x):
-        resten = rest.to_value(misc.eV, spectral())
+        resten = rest.to_value(si.eV, spectral())
         return (resten**2 - x**2) / (resten**2 + x**2) * ckms
 
     def from_vel_en(x):
-        resten = rest.to_value(misc.eV, spectral())
+        resten = rest.to_value(si.eV, spectral())
         voverc = x / ckms
         return resten * ((1 - voverc) / (1 + (voverc))) ** 0.5
 
@@ -545,7 +535,7 @@ def doppler_relativistic(rest):
         [
             (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (misc.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (si.eV, si.km / si.s, to_vel_en, from_vel_en),
         ],
         "doppler_relativistic",
         {"rest": rest},
@@ -659,7 +649,20 @@ def brightness_temperature(frequency, beam_area=None):
         >>> surf_brightness = 1e6*u.MJy/u.sr
         >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz)) # doctest: +FLOAT_CMP
         <Quantity 130.1931904778803 K>
-    """
+    """  # noqa: E501
+    if frequency.unit.is_equivalent(si.sr):
+        if not beam_area.unit.is_equivalent(si.Hz):
+            raise ValueError(
+                "The inputs to `brightness_temperature` are frequency and angular area."
+            )
+        warnings.warn(
+            "The inputs to `brightness_temperature` have changed. "
+            "Frequency is now the first input, and angular area "
+            "is the second, optional input.",
+            AstropyDeprecationWarning,
+        )
+        frequency, beam_area = beam_area, frequency
+
     nu = frequency.to(si.GHz, spectral())
     factor_Jy = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
     factor_K = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
@@ -723,7 +726,7 @@ def beam_angular_area(beam_area):
 def thermodynamic_temperature(frequency, T_cmb=None):
     r"""Defines the conversion between Jy/sr and "thermodynamic temperature",
     :math:`T_{CMB}`, in Kelvins.  The thermodynamic temperature is a unit very
-    commonly used in cosmology. See eqn 8 in [1].
+    commonly used in cosmology. See eqn 8 in [1]
 
     :math:`K_{CMB} \equiv I_\nu / \left(2 k \nu^2 / c^2  f(\nu) \right)`
 
@@ -773,7 +776,9 @@ def thermodynamic_temperature(frequency, T_cmb=None):
         return x**2 * np.exp(x) / np.expm1(x) ** 2
 
     def convert_Jy_to_K(x_jybm):
-        factor = (f(nu) * 2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(astrophys.Jy)
+        factor = (f(nu) * 2 * _si.k_B * si.K * nu**2 / _si.c**2).to_value(
+            astrophys.Jy
+        )
         return x_jybm / factor
 
     def convert_K_to_Jy(x_K):
@@ -817,7 +822,7 @@ def temperature_energy():
     e = _si.e.value
     k_B = _si.k_B.value
     return Equivalency(
-        [(si.K, misc.eV, lambda x: x / (e / k_B), lambda x: x * (e / k_B))],
+        [(si.K, si.eV, lambda x: x / (e / k_B), lambda x: x * (e / k_B))],
         "temperature_energy",
     )
 
@@ -842,6 +847,7 @@ def pixel_scale(pixscale):
     pixscale : `~astropy.units.Quantity`
         The pixel scale either in units of <unit>/pixel or pixel/<unit>.
     """
+
     decomposed = pixscale.unit.decompose()
     dimensions = dict(zip(decomposed.bases, decomposed.powers))
     pix_power = dimensions.get(misc.pix, 0)
@@ -884,45 +890,23 @@ def plate_scale(platescale):
     )
 
 
-def magnetic_flux_field(mu_r=1):
-    r"""
-    Convert magnetic field between magnetic field strength :math:`(\mathbf{H})` and
-    magnetic flux density :math:`(\mathbf{B})` using the relationship:
+# -------------------------------------------------------------------------
 
-    .. math::
 
-        \mathbf{B} = \mu_r \mu_0 \mathbf{H}
+def __getattr__(attr):
+    if attr == "with_H0":
+        import warnings
 
-    where:
-        - :math:`\mu_0` is the vacuum permeability, a physical constant.
-        - :math:`\mu_r` is the relative permeability of the medium, a dimensionless
-          quantity.
+        from astropy.cosmology.units import with_H0
+        from astropy.utils.exceptions import AstropyDeprecationWarning
 
-    The default setting (:math:`\mu_r=1`) represents conditions in a vacuum.
+        warnings.warn(
+            "`with_H0` is deprecated from `astropy.units.equivalencies` "
+            "since astropy 5.0 and may be removed in a future version. "
+            "Use `astropy.cosmology.units.with_H0` instead.",
+            AstropyDeprecationWarning,
+        )
 
-    Parameters
-    ----------
-    mu_r : float, optional
-        The relative magnetic permeability of the medium. This is a dimensionless quantity
-        and has a default value of :math:`\mu_r=1` which corresponds to free space (vacuum).
+        return with_H0
 
-    Examples
-    --------
-    >>> import astropy.units as u
-    >>> H = 1 * u.Oe
-    >>> H.to(u.G, equivalencies=u.magnetic_flux_field())  # doctest: +FLOAT_CMP
-    <Quantity 1. G>
-    >>> H.to(u.G, equivalencies=u.magnetic_flux_field(mu_r=0.8))  # doctest: +FLOAT_CMP
-    <Quantity 0.8 G>
-    >>> B = 1 * u.T
-    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field())  # doctest: +FLOAT_CMP
-    <Quantity 795774.71502628 A / m>
-    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field(mu_r=0.8))  # doctest: +FLOAT_CMP
-    <Quantity 994718.39378285 A / m>
-
-    """
-    mu0 = _si.mu0.value
-    return Equivalency(
-        [(si.T, si.A / si.m, lambda x: x / (mu_r * mu0), lambda x: x * mu_r * mu0)],
-        "magnetic_flux_field",
-    )
+    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")

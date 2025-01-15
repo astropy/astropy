@@ -2,7 +2,7 @@
 
 """
 Classes that deal with stretching, i.e. mapping a range of [0:1] values onto
-another set of [0:1] values with a transformation.
+another set of [0:1] values with a transformation
 """
 
 import numpy as np
@@ -10,25 +10,24 @@ import numpy as np
 from .transform import BaseTransform, CompositeTransform
 
 __all__ = [
-    "AsinhStretch",
     "BaseStretch",
-    "CompositeStretch",
-    "ContrastBiasStretch",
-    "HistEqStretch",
     "LinearStretch",
-    "LogStretch",
-    "PowerDistStretch",
-    "PowerStretch",
-    "SinhStretch",
     "SqrtStretch",
+    "PowerStretch",
+    "PowerDistStretch",
     "SquaredStretch",
+    "LogStretch",
+    "AsinhStretch",
+    "SinhStretch",
+    "HistEqStretch",
+    "ContrastBiasStretch",
+    "CompositeStretch",
 ]
 
 
 def _logn(n, x, out=None):
     """Calculate the log base n of x."""
-    # We define this because numpy.emath.logn doesn't support the out
-    # keyword.
+    # We define this because numpy.lib.scimath.logn doesn't support out=
     if out is None:
         return np.log(x) / np.log(n)
     else:
@@ -42,6 +41,7 @@ def _prepare(values, clip=True, out=None):
     Prepare the data by optionally clipping and copying, and return the
     array that should be subsequently used for in-place calculations.
     """
+
     if clip:
         return np.clip(values, 0.0, 1.0, out=out)
     else:
@@ -54,8 +54,8 @@ def _prepare(values, clip=True, out=None):
 
 class BaseStretch(BaseTransform):
     """
-    Base class for the stretch classes, which when called with an array
-    of values in the range [0:1], returns an transformed array of values
+    Base class for the stretch classes, which, when called with an array
+    of values in the range [0:1], return an transformed array of values,
     also in the range [0:1].
     """
 
@@ -100,7 +100,7 @@ class LinearStretch(BaseStretch):
     The stretch is given by:
 
     .. math::
-        y = slope * x + intercept
+        y = slope x + intercept
 
     Parameters
     ----------
@@ -172,6 +172,7 @@ class SqrtStretch(BaseStretch):
         result : ndarray
             The transformed values.
         """
+
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = not clip and invalid is not None
         with np.errstate(invalid="ignore"):
@@ -216,7 +217,7 @@ class PowerStretch(BaseStretch):
         super().__init__()
         if a <= 0:
             raise ValueError("a must be > 0")
-        self.a = a
+        self.power = a
 
     def __call__(self, values, clip=True, out=None, invalid=None):
         """
@@ -247,14 +248,17 @@ class PowerStretch(BaseStretch):
         result : ndarray
             The transformed values.
         """
+
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = (
-            not clip and invalid is not None and ((-1 < self.a < 0) or (0 < self.a < 1))
+            not clip
+            and invalid is not None
+            and ((-1 < self.power < 0) or (0 < self.power < 1))
         )
         with np.errstate(invalid="ignore"):
             if replace_invalid:
                 idx = values < 0
-            np.power(values, self.a, out=values)
+            np.power(values, self.power, out=values)
 
         if replace_invalid:
             # Assign new NaN (i.e., NaN not in the original input
@@ -266,7 +270,7 @@ class PowerStretch(BaseStretch):
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return PowerStretch(1.0 / self.a)
+        return PowerStretch(1.0 / self.power)
 
 
 class PowerDistStretch(BaseStretch):
@@ -290,19 +294,19 @@ class PowerDistStretch(BaseStretch):
         if a < 0 or a == 1:  # singularity
             raise ValueError("a must be >= 0, but cannot be set to 1")
         super().__init__()
-        self.a = a
+        self.exp = a
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.power(self.a, values, out=values)
+        np.power(self.exp, values, out=values)
         np.subtract(values, 1, out=values)
-        np.true_divide(values, self.a - 1.0, out=values)
+        np.true_divide(values, self.exp - 1.0, out=values)
         return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return InvertedPowerDistStretch(a=self.a)
+        return InvertedPowerDistStretch(a=self.exp)
 
 
 class InvertedPowerDistStretch(BaseStretch):
@@ -327,19 +331,19 @@ class InvertedPowerDistStretch(BaseStretch):
         if a < 0 or a == 1:  # singularity
             raise ValueError("a must be >= 0, but cannot be set to 1")
         super().__init__()
-        self.a = a
+        self.exp = a
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.multiply(values, self.a - 1.0, out=values)
+        np.multiply(values, self.exp - 1.0, out=values)
         np.add(values, 1, out=values)
-        _logn(self.a, values, out=values)
+        _logn(self.exp, values, out=values)
         return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return PowerDistStretch(a=self.a)
+        return PowerDistStretch(a=self.exp)
 
 
 class SquaredStretch(PowerStretch):
@@ -385,7 +389,7 @@ class LogStretch(BaseStretch):
         super().__init__()
         if a <= 0:  # singularity
             raise ValueError("a must be > 0")
-        self.a = a
+        self.exp = a
 
     def __call__(self, values, clip=True, out=None, invalid=None):
         """
@@ -416,15 +420,16 @@ class LogStretch(BaseStretch):
         result : ndarray
             The transformed values.
         """
+
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = not clip and invalid is not None
         with np.errstate(invalid="ignore"):
             if replace_invalid:
                 idx = values < 0
-            np.multiply(values, self.a, out=values)
+            np.multiply(values, self.exp, out=values)
             np.add(values, 1.0, out=values)
             np.log(values, out=values)
-            np.true_divide(values, np.log(self.a + 1.0), out=values)
+            np.true_divide(values, np.log(self.exp + 1.0), out=values)
 
         if replace_invalid:
             # Assign new NaN (i.e., NaN not in the original input
@@ -436,7 +441,7 @@ class LogStretch(BaseStretch):
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return InvertedLogStretch(self.a)
+        return InvertedLogStretch(self.exp)
 
 
 class InvertedLogStretch(BaseStretch):
@@ -460,20 +465,20 @@ class InvertedLogStretch(BaseStretch):
         super().__init__()
         if a <= 0:  # singularity
             raise ValueError("a must be > 0")
-        self.a = a
+        self.exp = a
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.multiply(values, np.log(self.a + 1.0), out=values)
+        np.multiply(values, np.log(self.exp + 1.0), out=values)
         np.exp(values, out=values)
         np.subtract(values, 1.0, out=values)
-        np.true_divide(values, self.a, out=values)
+        np.true_divide(values, self.exp, out=values)
         return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return LogStretch(self.a)
+        return LogStretch(self.exp)
 
 
 class AsinhStretch(BaseStretch):
@@ -488,17 +493,17 @@ class AsinhStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula. The value of this
-        parameter is where the asinh curve transitions from linear to
-        logarithmic behavior, expressed as a fraction of the normalized
-        image. The stretch becomes more linear as the ``a`` value is
-        increased. ``a`` must be greater than 0. Default is 0.1.
+        The ``a`` parameter used in the above formula.  The value of
+        this parameter is where the asinh curve transitions from linear
+        to logarithmic behavior, expressed as a fraction of the
+        normalized image.  ``a`` must be greater than 0 and less than or
+        equal to 1 (0 < a <= 1).  Default is 0.1.
     """
 
     def __init__(self, a=0.1):
         super().__init__()
-        if a <= 0:
-            raise ValueError("a must be > 0")
+        if a <= 0 or a > 1:
+            raise ValueError("a must be > 0 and <= 1")
         self.a = a
 
     def __call__(self, values, clip=True, out=None):
@@ -526,15 +531,15 @@ class SinhStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula. The stretch
-        becomes more linear as the ``a`` value is increased. ``a`` must
-        be greater than 0. Default is 1/3.
+        The ``a`` parameter used in the above formula.  ``a`` must be
+        greater than 0 and less than or equal to 1 (0 < a <= 1).
+        Default is 1/3.
     """
 
     def __init__(self, a=1.0 / 3.0):
         super().__init__()
-        if a <= 0:
-            raise ValueError("a must be > 0")
+        if a <= 0 or a > 1:
+            raise ValueError("a must be > 0 and <= 1")
         self.a = a
 
     def __call__(self, values, clip=True, out=None):

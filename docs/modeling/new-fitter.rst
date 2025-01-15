@@ -45,7 +45,7 @@ necessary::
                     'Model is linear in parameters; '
                     'non-linear fitting methods should not be used.')
         model_copy = model.copy()
-        init_values, _ = model_to_fit_params(model_copy)
+        init_values, _ = _model_to_fit_params(model_copy)
         self.fitparams = optimize.fmin_slsqp(self.errorfunc, p0=init_values,
                                              args=(y, x),
                                              bounds=self.bounds,
@@ -93,8 +93,8 @@ The following import statements are needed::
 
     import numpy as np
     from astropy.modeling.fitting import (_validate_model,
-                                          fitter_to_model_params,
-                                          model_to_fit_params, Fitter,
+                                          _fitter_to_model_params,
+                                          _model_to_fit_params, Fitter,
                                           _convert_input)
     from astropy.modeling.optimizers import Simplex
 

@@ -19,7 +19,7 @@ The following shows a few of the ASCII formats that are available, while the
 section on `Supported formats`_ contains the full list.
 
 * :class:`~astropy.io.ascii.Basic`: basic table with customizable delimiters and header configurations
-* :class:`~astropy.io.ascii.Cds`: `CDS format table <https://vizier.unistra.fr/doc/catstd.htx>`_ (also Vizier)
+* :class:`~astropy.io.ascii.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier)
 * :class:`~astropy.io.ascii.Daophot`: table from the IRAF DAOphot package
 * :class:`~astropy.io.ascii.Ecsv`: :ref:`ecsv_format` for lossless round-trip of data tables (**recommended**)
 * :class:`~astropy.io.ascii.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`)
@@ -147,8 +147,9 @@ example::
    column types and units) to a comment section at the beginning while
    maintaining compatibility with most plain CSV readers. It also allows storing
    richer data like `~astropy.coordinates.SkyCoord` or multidimensional or
-   variable-length columns. ECSV is also supported in Java by |STIL| and
-   |TOPCAT| (see :ref:`ecsv_format`).
+   variable-length columns. ECSV is also supported in java by `STIL
+   <http://www.star.bristol.ac.uk/~mbt/stil/>`_ and `TOPCAT
+   <http://www.star.bris.ac.uk/~mbt/topcat/>`_,
 
 To write our simple example table to ECSV we use::
 
@@ -206,19 +207,6 @@ are compatible with the fast Cython/C engine for reading and writing.
 ``tab``                     Yes  Yes :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
 ========================= ===== ==== ============================================================================================
 
-Getting Help
-============
-
-Some formats have additional options that can be set to control the behavior of the
-reader or writer. For more information on these options, you can either see the
-documentation for the specific format class (e.g. :class:`~astropy.io.ascii.HTML`) or
-use the ``help`` function of the ``read`` or ``write`` functions. For example:
-
-.. doctest-skip::
-
-  >>> ascii.read.help()  # Common help for all formats
-  >>> ascii.read.help("html")  # Common help plus "html" format-specific args
-  >>> ascii.write.help("latex")  # Common help plus "latex" format-specific args
 
 Using `astropy.io.ascii`
 ========================
@@ -289,7 +277,4 @@ Extension Reader Classes
 Reference/API
 =============
 
-.. toctree::
-   :maxdepth: 2
-
-   ref_api
+.. automodapi:: astropy.io.ascii

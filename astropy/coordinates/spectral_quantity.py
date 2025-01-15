@@ -1,7 +1,8 @@
 import numpy as np
 
-from astropy.units import Unit, si
+from astropy.units import Unit
 from astropy.units import equivalencies as eq
+from astropy.units import si
 from astropy.units.decorators import quantity_input
 from astropy.units.quantity import Quantity, SpecificTypeQuantity
 
@@ -88,12 +89,14 @@ class SpectralQuantity(SpecificTypeQuantity):
         if (
             (
                 function is np.multiply
-                or (function is np.true_divide and inputs[0] is self)
+                or function is np.true_divide
+                and inputs[0] is self
             )
             and result.unit == self.unit
-        ) or (
-            function in (np.minimum, np.maximum, np.fmax, np.fmin)
-            and method in ("reduce", "reduceat")
+            or (
+                function in (np.minimum, np.maximum, np.fmax, np.fmin)
+                and method in ("reduce", "reduceat")
+            )
         ):
             result = result.view(self.__class__)
             result.__array_finalize__(self)
@@ -173,6 +176,7 @@ class SpectralQuantity(SpecificTypeQuantity):
         .. [1] Astropy documentation: https://docs.astropy.org/en/stable/units/equivalencies.html#spectral-doppler-equivalencies
 
         """
+
         if self._doppler_convention is not None:
             raise AttributeError(
                 "doppler_convention has already been set, and cannot be changed. Use"
@@ -223,6 +227,7 @@ class SpectralQuantity(SpecificTypeQuantity):
         `SpectralQuantity`
             New spectral coordinate object with data converted to the new unit.
         """
+
         # Make sure units can be passed as strings
         unit = Unit(unit)
 

@@ -37,10 +37,10 @@ To create a logarithmic quantity::
 
 Above, we make use of the fact that the units ``mag``, ``dex``, and
 ``dB`` are special in that, when used as functions, they return a
-:class:`~astropy.units.LogUnit` instance
-(:class:`~astropy.units.MagUnit`,
-:class:`~astropy.units.DexUnit`, and
-:class:`~astropy.units.DecibelUnit`,
+:class:`~astropy.units.function.logarithmic.LogUnit` instance
+(:class:`~astropy.units.function.logarithmic.MagUnit`,
+:class:`~astropy.units.function.logarithmic.DexUnit`, and
+:class:`~astropy.units.function.logarithmic.DecibelUnit`,
 respectively). The same happens as required when strings are parsed
 by :class:`~astropy.units.Unit`.
 
@@ -49,11 +49,11 @@ by :class:`~astropy.units.Unit`.
 As for normal |Quantity| objects, you can access the value with the
 `~astropy.units.Quantity.value` attribute. In addition, you can convert to a
 |Quantity| with the physical unit using the
-`~astropy.units.FunctionQuantity.physical` attribute::
+`~astropy.units.function.FunctionQuantity.physical` attribute::
 
     >>> logg = 5. * u.dex(u.cm / u.s**2)
     >>> logg.value
-    np.float64(5.0)
+    5.0
     >>> logg.physical  # doctest: +FLOAT_CMP
     <Quantity 100000. cm / s2>
 
@@ -76,8 +76,8 @@ To convert a logarithmic quantity to a different unit::
     >>> logg.to('dex(m/s2)')  # doctest: +FLOAT_CMP
     <Dex 3. dex(m / s2)>
 
-For convenience, the :attr:`~astropy.units.FunctionQuantity.si` and
-:attr:`~astropy.units.FunctionQuantity.cgs` attributes can be used to
+For convenience, the :attr:`~astropy.units.function.FunctionQuantity.si` and
+:attr:`~astropy.units.function.FunctionQuantity.cgs` attributes can be used to
 convert the |Quantity| to base `SI
 <https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ or `CGS
 <https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_
@@ -135,15 +135,15 @@ first star has a known ST magnitude, so we can calculate zero points::
     (<Magnitude 17.2 mag(ST)>, <Magnitude 17. mag(ST)>)
     >>> zp_b, zp_v = b_ref - b_i0[0], v_ref - v_i0[0]
     >>> zp_b, zp_v  # doctest: +FLOAT_CMP
-    (<Magnitude 18.56250876 mag(ST s / ct)>,
-     <Magnitude 18.67485561 mag(ST s / ct)>)
+    (<Magnitude 18.56250876 mag(s ST / ct)>,
+     <Magnitude 18.67485561 mag(s ST / ct)>)
 
 Here, ``ST`` is shorthand for the ST zero-point flux::
 
     >>> (0. * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
-    <Quantity 3.63078055e-09 erg / (Angstrom s cm2)>
+    <Quantity 3.63078055e-09 erg / (Angstrom cm2 s)>
     >>> (-21.1 * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
-    <Quantity 1. erg / (Angstrom s cm2)>
+    <Quantity 1. erg / (Angstrom cm2 s)>
 
 .. Note::
 
@@ -173,7 +173,7 @@ flux density per unit wavelength using the
 
     >>> flam = V.to(u.erg/u.s/u.cm**2/u.AA)
     >>> flam  # doctest: +FLOAT_CMP
-    <Quantity [5.75439937e-16, 1.29473986e-17, 3.59649961e-18] erg / (Angstrom s cm2)>
+    <Quantity [5.75439937e-16, 1.29473986e-17, 3.59649961e-18] erg / (Angstrom cm2 s)>
 
 To convert ``V`` to flux density per unit frequency (:math:`f_\nu`), we again
 need the appropriate :ref:`equivalency <unit_equivalencies>`, which in this case
@@ -182,14 +182,14 @@ is the central wavelength of the magnitude band, 5500 Angstroms::
     >>> lam = 5500 * u.AA
     >>> fnu = V.to(u.erg/u.s/u.cm**2/u.Hz, u.spectral_density(lam))
     >>> fnu  # doctest: +FLOAT_CMP
-    <Quantity [5.80636959e-27, 1.30643316e-28, 3.62898099e-29] erg / (Hz s cm2)>
+    <Quantity [5.80636959e-27, 1.30643316e-28, 3.62898099e-29] erg / (cm2 Hz s)>
 
 We could have used the central frequency instead::
 
     >>> nu = 5.45077196e+14 * u.Hz
     >>> fnu = V.to(u.erg/u.s/u.cm**2/u.Hz, u.spectral_density(nu))
     >>> fnu  # doctest: +FLOAT_CMP
-    <Quantity [5.80636959e-27, 1.30643316e-28, 3.62898099e-29] erg / (Hz s cm2)>
+    <Quantity [5.80636959e-27, 1.30643316e-28, 3.62898099e-29] erg / (cm2 Hz s)>
 
 .. Note::
 
@@ -258,7 +258,7 @@ to work::
 
     This is implemented by having a list of supported ufuncs in
     ``units/function/core.py`` and by explicitly disabling some array methods in
-    :class:`~astropy.units.FunctionQuantity`.  If you believe a
+    :class:`~astropy.units.function.FunctionQuantity`.  If you believe a
     function or method is incorrectly treated, please `let us know
     <http://www.astropy.org/contribute.html>`_.
 

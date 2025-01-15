@@ -46,7 +46,7 @@ value members::
 
     >>> q = 42.0 * u.meter
     >>> q.value
-    np.float64(42.0)
+    42.0
     >>> q.unit
     Unit("m")
 
@@ -114,7 +114,7 @@ And it can convert between unit systems, such as `SI
 <https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_::
 
     >>> (1.0 * u.Pa).cgs
-    <Quantity 10. Ba>
+    <Quantity 10. P / s>
 
 The units ``mag``, ``dex``, and ``dB`` are special, being :ref:`logarithmic
 units <logarithmic_units>`, for which a value is the logarithm of a physical
@@ -139,7 +139,7 @@ normally work:
     UnitConversionError: 'nm' (length) and 'Hz' (frequency) are not convertible
 
 But by passing an equivalency list, in this case
-:func:`~astropy.units.spectral`, it does:
+:func:`~astropy.units.equivalencies.spectral`, it does:
 
     >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
     <Quantity  2.99792458e+14 Hz>
@@ -212,7 +212,7 @@ See Also
   <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
 - `Standards for astronomical catalogues: units
-  <https://vizier.unistra.fr/vizier/doc/catstd-3.2.htx>`_.
+  <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_.
 
 - `IAU Style Manual
   <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
@@ -228,7 +228,37 @@ See Also
 Reference/API
 =============
 
-.. toctree::
-   :maxdepth: 2
+.. automodapi:: astropy.units.quantity
 
-   ref_api
+.. automodapi:: astropy.units
+
+.. automodapi:: astropy.units.format
+
+.. automodapi:: astropy.units.si
+
+.. automodapi:: astropy.units.cgs
+
+.. automodapi:: astropy.units.astrophys
+
+.. automodapi:: astropy.units.misc
+
+.. automodapi:: astropy.units.function.units
+
+.. automodapi:: astropy.units.photometric
+
+.. automodapi:: astropy.units.imperial
+
+.. automodapi:: astropy.units.cds
+
+.. automodapi:: astropy.units.physical
+
+.. automodapi:: astropy.units.equivalencies
+
+.. automodapi:: astropy.units.function
+
+.. automodapi:: astropy.units.function.logarithmic
+   :include-all-objects:
+
+.. automodapi:: astropy.units.deprecated
+
+.. automodapi:: astropy.units.required_by_vounit

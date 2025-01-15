@@ -79,12 +79,8 @@ class TETE(BaseRADecFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    obstime = TimeAttribute(
-        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
-    )
-    location = EarthLocationAttribute(
-        default=EARTH_CENTER, doc="The location on Earth of the observer"
-    )
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+    location = EarthLocationAttribute(default=EARTH_CENTER)
 
 
 # Self transform goes through ICRS and is defined in icrs_cirs_transforms.py
@@ -110,7 +106,7 @@ class TEME(BaseCoordinateFrame):
     default_representation = CartesianRepresentation
     default_differential = CartesianDifferential
 
-    obstime = TimeAttribute(doc="The reference time (e.g., time of observation)")
+    obstime = TimeAttribute()
 
 
 # Transformation functions for getting to/from TEME and ITRS are in

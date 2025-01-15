@@ -1,76 +1,57 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Core units classes and functions.
+Core units classes and functions
 """
 
-from __future__ import annotations
 
 import inspect
 import operator
 import textwrap
 import warnings
-from functools import cached_property
-from threading import RLock
-from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
-from astropy.utils.compat import COPY_IF_NEEDED
-from astropy.utils.decorators import deprecated, lazyproperty
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.decorators import lazyproperty
+from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
 
-from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
+from . import format as unit_format
 from .utils import (
     is_effectively_unity,
     resolve_fractions,
-    sanitize_power,
-    sanitize_scale_type,
-    sanitize_scale_value,
+    sanitize_scale,
+    validate_power,
 )
 
-if TYPE_CHECKING:
-    from collections.abc import Collection, Iterable, Mapping, MutableMapping, Sequence
-    from types import TracebackType
-    from typing import Any, Final, Literal, Self
-
-    from .format import Base
-    from .physical import PhysicalType
-    from .quantity import Quantity
-    from .typing import UnitPower, UnitPowerLike, UnitScale, UnitScaleLike
-
 __all__ = [
-    "CompositeUnit",
-    "IrreducibleUnit",
-    "NamedUnit",
-    "PrefixUnit",
-    "Unit",
+    "UnitsError",
+    "UnitsWarning",
+    "UnitConversionError",
+    "UnitTypeError",
     "UnitBase",
+    "NamedUnit",
+    "IrreducibleUnit",
+    "Unit",
+    "CompositeUnit",
+    "PrefixUnit",
     "UnrecognizedUnit",
-    "add_enabled_aliases",
-    "add_enabled_equivalencies",
-    "add_enabled_units",
     "def_unit",
-    "dimensionless_unscaled",
     "get_current_unit_registry",
-    "one",
-    "set_enabled_aliases",
-    "set_enabled_equivalencies",
     "set_enabled_units",
+    "add_enabled_units",
+    "set_enabled_equivalencies",
+    "add_enabled_equivalencies",
+    "set_enabled_aliases",
+    "add_enabled_aliases",
+    "dimensionless_unscaled",
+    "one",
 ]
 
-UNITY: Final[float] = 1.0
-
-_WARNING_LOCK: Final[RLock] = RLock()
-_WARNING_ACTIONS: Final[dict[str, str]] = {
-    "silent": "ignore",
-    "warn": "default",
-    "raise": "error",
-}
+UNITY = 1.0
 
 
-def _flatten_units_collection(items: object) -> set[UnitBase]:
+def _flatten_units_collection(items):
     """
     Given a list of sequences, modules or dictionaries of units, or
     single units, return a flat set of all the units found.
@@ -100,11 +81,10 @@ def _flatten_units_collection(items: object) -> set[UnitBase]:
 
 
 def _normalize_equivalencies(equivalencies):
-    """Normalizes equivalencies ensuring each is a 4-tuple.
+    """
+    Normalizes equivalencies, ensuring each is a 4-tuple of the form::
 
-    The resulting tuple is of the form::
-
-        (from_unit, to_unit, forward_func, backward_func)
+    (from_unit, to_unit, forward_func, backward_func)
 
     Parameters
     ----------
@@ -172,31 +152,31 @@ class _UnitRegistry:
             self.add_enabled_equivalencies(equivalencies)
             self.add_enabled_aliases(aliases)
 
-    def _reset_units(self) -> None:
+    def _reset_units(self):
         self._all_units = set()
         self._non_prefix_units = set()
         self._registry = {}
         self._by_physical_type = {}
 
-    def _reset_equivalencies(self) -> None:
+    def _reset_equivalencies(self):
         self._equivalencies = set()
 
-    def _reset_aliases(self) -> None:
+    def _reset_aliases(self):
         self._aliases = {}
 
     @property
-    def registry(self) -> dict[str, UnitBase]:
+    def registry(self):
         return self._registry
 
     @property
-    def all_units(self) -> set[UnitBase]:
+    def all_units(self):
         return self._all_units
 
     @property
-    def non_prefix_units(self) -> set[UnitBase]:
+    def non_prefix_units(self):
         return self._non_prefix_units
 
-    def set_enabled_units(self, units: object) -> None:
+    def set_enabled_units(self, units):
         """
         Sets the units enabled in the unit registry.
 
@@ -215,7 +195,7 @@ class _UnitRegistry:
         self._reset_units()
         return self.add_enabled_units(units)
 
-    def add_enabled_units(self, units: object) -> None:
+    def add_enabled_units(self, units):
         """
         Adds to the set of units enabled in the unit registry.
 
@@ -251,9 +231,10 @@ class _UnitRegistry:
             if not isinstance(unit, PrefixUnit):
                 self._non_prefix_units.add(unit)
 
-            self._by_physical_type.setdefault(unit._physical_type_id, set()).add(unit)
+            hash = unit._get_physical_type_id()
+            self._by_physical_type.setdefault(hash, set()).add(unit)
 
-    def get_units_with_physical_type(self, unit: UnitBase) -> set[UnitBase]:
+    def get_units_with_physical_type(self, unit):
         """
         Get all units in the registry with the same physical type as
         the given unit.
@@ -262,7 +243,7 @@ class _UnitRegistry:
         ----------
         unit : UnitBase instance
         """
-        return self._by_physical_type.get(unit._physical_type_id, set())
+        return self._by_physical_type.get(unit._get_physical_type_id(), set())
 
     @property
     def equivalencies(self):
@@ -282,7 +263,7 @@ class _UnitRegistry:
         ----------
         equivalencies : list of tuple
             List of equivalent pairs, e.g., as returned by
-            `~astropy.units.dimensionless_angles`.
+            `~astropy.units.equivalencies.dimensionless_angles`.
         """
         self._reset_equivalencies()
         return self.add_enabled_equivalencies(equivalencies)
@@ -301,17 +282,17 @@ class _UnitRegistry:
         ----------
         equivalencies : list of tuple
             List of equivalent pairs, e.g., as returned by
-            `~astropy.units.dimensionless_angles`.
+            `~astropy.units.equivalencies.dimensionless_angles`.
         """
         # pre-normalize list to help catch mistakes
         equivalencies = _normalize_equivalencies(equivalencies)
         self._equivalencies |= set(equivalencies)
 
     @property
-    def aliases(self) -> dict[str, UnitBase]:
+    def aliases(self):
         return self._aliases
 
-    def set_enabled_aliases(self, aliases: dict[str, UnitBase]) -> None:
+    def set_enabled_aliases(self, aliases):
         """
         Set aliases for units.
 
@@ -330,7 +311,7 @@ class _UnitRegistry:
         self._reset_aliases()
         self.add_enabled_aliases(aliases)
 
-    def add_enabled_aliases(self, aliases: dict[str, UnitBase]) -> None:
+    def add_enabled_aliases(self, aliases):
         """
         Add aliases for units.
 
@@ -367,26 +348,21 @@ class _UnitContext:
     def __init__(self, init=[], equivalencies=[]):
         _unit_registries.append(_UnitRegistry(init=init, equivalencies=equivalencies))
 
-    def __enter__(self) -> None:
+    def __enter__(self):
         pass
 
-    def __exit__(
-        self,
-        type: type[BaseException] | None,
-        value: BaseException | None,
-        tb: TracebackType | None,
-    ) -> None:
+    def __exit__(self, type, value, tb):
         _unit_registries.pop()
 
 
-_unit_registries: Final = [_UnitRegistry()]
+_unit_registries = [_UnitRegistry()]
 
 
-def get_current_unit_registry() -> _UnitRegistry:
+def get_current_unit_registry():
     return _unit_registries[-1]
 
 
-def set_enabled_units(units: object) -> _UnitContext:
+def set_enabled_units(units):
     """
     Sets the units enabled in the unit registry.
 
@@ -406,6 +382,7 @@ def set_enabled_units(units: object) -> _UnitContext:
 
     Examples
     --------
+
     >>> from astropy import units as u
     >>> with u.set_enabled_units([u.pc]):
     ...     u.m.find_equivalent_units()
@@ -437,7 +414,7 @@ def set_enabled_units(units: object) -> _UnitContext:
     return context
 
 
-def add_enabled_units(units: object) -> _UnitContext:
+def add_enabled_units(units):
     """
     Adds to the set of units enabled in the unit registry.
 
@@ -458,6 +435,7 @@ def add_enabled_units(units: object) -> _UnitContext:
 
     Examples
     --------
+
     >>> from astropy import units as u
     >>> from astropy.units import imperial
     >>> with u.add_enabled_units(imperial):
@@ -506,7 +484,7 @@ def set_enabled_equivalencies(equivalencies):
     ----------
     equivalencies : list of tuple
         list of equivalent pairs, e.g., as returned by
-        `~astropy.units.dimensionless_angles`.
+        `~astropy.units.equivalencies.dimensionless_angles`.
 
     Examples
     --------
@@ -541,7 +519,7 @@ def add_enabled_equivalencies(equivalencies):
     ----------
     equivalencies : list of tuple
         list of equivalent pairs, e.g., as returned by
-        `~astropy.units.dimensionless_angles`.
+        `~astropy.units.equivalencies.dimensionless_angles`.
     """
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())
@@ -550,7 +528,7 @@ def add_enabled_equivalencies(equivalencies):
     return context
 
 
-def set_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
+def set_enabled_aliases(aliases):
     """
     Set aliases for units.
 
@@ -585,7 +563,7 @@ def set_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
     return context
 
 
-def add_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
+def add_enabled_aliases(aliases):
     """
     Add aliases for units.
 
@@ -623,6 +601,43 @@ def add_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
     return context
 
 
+class UnitsError(Exception):
+    """
+    The base class for unit-specific exceptions.
+    """
+
+
+class UnitScaleError(UnitsError, ValueError):
+    """
+    Used to catch the errors involving scaled units,
+    which are not recognized by FITS format.
+    """
+
+    pass
+
+
+class UnitConversionError(UnitsError, ValueError):
+    """
+    Used specifically for errors related to converting between units or
+    interpreting units in terms of other units.
+    """
+
+
+class UnitTypeError(UnitsError, TypeError):
+    """
+    Used specifically for errors in setting to units not allowed by a class.
+
+    E.g., would be raised if the unit of an `~astropy.coordinates.Angle`
+    instances were set to a non-angular unit.
+    """
+
+
+class UnitsWarning(AstropyWarning):
+    """
+    The base class for unit-specific warnings.
+    """
+
+
 class UnitBase:
     """
     Abstract base class for units.
@@ -635,15 +650,18 @@ class UnitBase:
 
     # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
     # arrays to avoid element-wise multiplication.
-    __array_priority__: Final = 1000
+    __array_priority__ = 1000
 
-    def __deepcopy__(self, memo: dict[int, Any] | None) -> Self:
+    _hash = None
+    _type_id = None
+
+    def __deepcopy__(self, memo):
         # This may look odd, but the units conversion will be very
         # broken after deep-copying if we don't guarantee that a given
         # physical unit corresponds to only one instance
         return self
 
-    def _repr_latex_(self) -> str:
+    def _repr_latex_(self):
         """
         Generate latex representation of unit name.  This is used by
         the IPython notebook to print a unit with a nice layout.
@@ -652,95 +670,98 @@ class UnitBase:
         -------
         Latex string
         """
-        from .format import Latex
+        return unit_format.Latex.to_string(self)
 
-        return Latex.to_string(self)
+    def __bytes__(self):
+        """Return string representation for unit"""
+        return unit_format.Generic.to_string(self).encode("unicode_escape")
 
-    def __bytes__(self) -> bytes:
-        return str(self).encode("unicode_escape")
+    def __str__(self):
+        """Return string representation for unit"""
+        return unit_format.Generic.to_string(self)
 
-    def __str__(self) -> str:
-        from .format import Generic
+    def __repr__(self):
+        string = unit_format.Generic.to_string(self)
 
-        return Generic.to_string(self)
+        return f'Unit("{string}")'
 
-    def __repr__(self) -> str:
-        return f'Unit("{self}")'
-
-    @cached_property
-    def _physical_type_id(self) -> tuple[tuple[str, UnitPower], ...]:
+    def _get_physical_type_id(self):
         """
         Returns an identifier that uniquely identifies the physical
         type of this unit.  It is comprised of the bases and powers of
         this unit, without the scale.  Since it is hashable, it is
         useful as a dictionary key.
         """
-        unit = self.decompose()
-        return tuple(zip((base.name for base in unit.bases), unit.powers))
+        if self._type_id is None:
+            unit = self.decompose()
+            self._type_id = tuple(zip((base.name for base in unit.bases), unit.powers))
+
+        return self._type_id
 
     @property
-    def scale(self) -> UnitScale:
-        """The scale of the unit."""
+    def names(self):
+        """
+        Returns all of the names associated with this unit.
+        """
+        raise AttributeError(
+            "Can not get names from unnamed units. Perhaps you meant to_string()?"
+        )
+
+    @property
+    def name(self):
+        """
+        Returns the canonical (short) name associated with this unit.
+        """
+        raise AttributeError(
+            "Can not get names from unnamed units. Perhaps you meant to_string()?"
+        )
+
+    @property
+    def aliases(self):
+        """
+        Returns the alias (long) names for this unit.
+        """
+        raise AttributeError(
+            "Can not get aliases from unnamed units. Perhaps you meant to_string()?"
+        )
+
+    @property
+    def scale(self):
+        """
+        Return the scale of the unit.
+        """
         return 1.0
 
     @property
-    def bases(self) -> list[UnitBase]:
-        """The bases of the unit."""
+    def bases(self):
+        """
+        Return the bases of the unit.
+        """
         return [self]
 
     @property
-    def powers(self) -> list[UnitPower]:
-        """The powers of the bases of the unit."""
+    def powers(self):
+        """
+        Return the powers of the unit.
+        """
         return [1]
 
-    def to_string(self, format: type[Base] | str | None = None, **kwargs) -> str:
-        r"""Output the unit in the given format as a string.
+    def to_string(self, format=unit_format.Generic):
+        """
+        Output the unit in the given format as a string.
 
         Parameters
         ----------
-        format : `astropy.units.format.Base` subclass or str or None
-            The name of a format or a formatter class.  If not
-            provided (or `None`), defaults to the generic format.
-
-        **kwargs
-            Further options forwarded to the formatter. Currently
-            recognized is ``fraction``, which can take the following values:
-
-            - `False` : display unit bases with negative powers as they are;
-            - 'inline' or `True` : use a single-line fraction;
-            - 'multiline' : use a multiline fraction (available for the
-              'latex', 'console' and 'unicode' formats only; for others,
-              an 'inline' fraction is used).
-
-        Raises
-        ------
-        TypeError
-            If ``format`` is of the wrong type.
-        ValueError
-            If ``format`` or ``fraction`` are not recognized.
-
-        Examples
-        --------
-        >>> import astropy.units as u
-        >>> kms = u.Unit('km / s')
-        >>> kms.to_string()  # Generic uses fraction='inline' by default
-        'km / s'
-        >>> kms.to_string('latex')  # Latex uses fraction='multiline' by default
-        '$\\mathrm{\\frac{km}{s}}$'
-        >>> print(kms.to_string('unicode', fraction=False))
-        km s⁻¹
-        >>> print(kms.to_string('unicode', fraction='inline'))
-        km / s
-        >>> print(kms.to_string('unicode', fraction='multiline'))
-        km
-        ──
-        s
+        format : `astropy.units.format.Base` instance or str
+            The name of a format or a formatter object.  If not
+            provided, defaults to the generic format.
         """
-        from .format import get_format
 
-        return get_format(format).to_string(self, **kwargs)
+        f = unit_format.get_format(format)
+        return f.to_string(self)
 
-    def __format__(self, format_spec: str) -> str:
+    def __format__(self, format_spec):
+        """Try to format units using a formatter."""
         try:
             return self.to_string(format=format_spec)
         except ValueError:
@@ -748,11 +769,10 @@ class UnitBase:
 
     @staticmethod
     def _normalize_equivalencies(equivalencies):
-        """Normalizes equivalencies, ensuring each is a 4-tuple.
+        """
+        Normalizes equivalencies, ensuring each is a 4-tuple of the form::
 
-        The resulting tuple is of the form::
-
-            (from_unit, to_unit, forward_func, backward_func)
+        (from_unit, to_unit, forward_func, backward_func)
 
         Parameters
         ----------
@@ -774,37 +794,18 @@ class UnitBase:
 
         return normalized
 
-    def __pow__(self, p: UnitPowerLike) -> CompositeUnit:
-        try:  # Handling scalars should be as quick as possible
-            return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
-        except Exception:
-            arr = np.asanyarray(p)
-            p = arr.flat[0]
-            if (arr != p).any():
-                raise ValueError(
-                    "Quantities and Units may only be raised to a scalar power"
-                ) from None
-            return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
-
-    @staticmethod
-    def _warn_about_operation_with_deprecated_type(op: str, other: bytes | str) -> None:
-        warnings.warn(
-            AstropyDeprecationWarning(
-                f"{op} involving a unit and a '{type(other).__name__}' instance are "
-                f"deprecated since v7.1. Convert {other!r} to a unit explicitly."
-            ),
-            stacklevel=3,
-        )
+    def __pow__(self, p):
+        p = validate_power(p)
+        return CompositeUnit(1, [self], [p], _error_check=False)
 
     def __truediv__(self, m):
+        if isinstance(m, (bytes, str)):
+            m = Unit(m)
+
         if isinstance(m, UnitBase):
             if m.is_unity():
                 return self
             return CompositeUnit(1, [self, m], [1, -1], _error_check=False)
-
-        if isinstance(m, (bytes, str)):
-            self._warn_about_operation_with_deprecated_type("divisions", m)
-            return self / Unit(m)
 
         try:
             # Cannot handle this as Unit, re-try as Quantity
@@ -816,7 +817,6 @@ class UnitBase:
 
     def __rtruediv__(self, m):
         if isinstance(m, (bytes, str)):
-            self._warn_about_operation_with_deprecated_type("divisions", m)
             return Unit(m) / self
 
         try:
@@ -832,21 +832,18 @@ class UnitBase:
             else:
                 return Quantity(m, self ** (-1))
         except TypeError:
-            if isinstance(m, np.ndarray):
-                raise
             return NotImplemented
 
     def __mul__(self, m):
+        if isinstance(m, (bytes, str)):
+            m = Unit(m)
+
         if isinstance(m, UnitBase):
             if m.is_unity():
                 return self
             elif self.is_unity():
                 return m
             return CompositeUnit(1, [self, m], [1, 1], _error_check=False)
-
-        if isinstance(m, (bytes, str)):
-            self._warn_about_operation_with_deprecated_type("products", m)
-            return self * Unit(m)
 
         # Cannot handle this as Unit, re-try as Quantity.
         try:
@@ -858,7 +855,6 @@ class UnitBase:
 
     def __rmul__(self, m):
         if isinstance(m, (bytes, str)):
-            self._warn_about_operation_with_deprecated_type("products", m)
             return Unit(m) * self
 
         # Cannot handle this as Unit.  Here, m cannot be a Quantity,
@@ -874,18 +870,14 @@ class UnitBase:
             else:
                 return Quantity(m, unit=self)
         except TypeError:
-            if isinstance(m, np.ndarray):
-                raise
             return NotImplemented
 
     def __rlshift__(self, m):
         try:
             from .quantity import Quantity
 
-            return Quantity(m, self, copy=COPY_IF_NEEDED, subok=True)
+            return Quantity(m, self, copy=False, subok=True)
         except Exception:
-            if isinstance(m, np.ndarray):
-                raise
             return NotImplemented
 
     def __rrshift__(self, m):
@@ -896,21 +888,22 @@ class UnitBase:
         )
         return NotImplemented
 
-    def __hash__(self) -> int:
+    def __hash__(self):
+        if self._hash is None:
+            parts = (
+                [str(self.scale)]
+                + [x.name for x in self.bases]
+                + [str(x) for x in self.powers]
+            )
+            self._hash = hash(tuple(parts))
         return self._hash
 
-    @cached_property
-    def _hash(self) -> int:
-        return hash(
-            (str(self.scale), *[x.name for x in self.bases], *map(str, self.powers))
-        )
-
-    def __getstate__(self) -> dict[str, object]:
+    def __getstate__(self):
         # If we get pickled, we should *not* store the memoized members since
         # hashes of strings vary between sessions.
         state = self.__dict__.copy()
         state.pop("_hash", None)
-        state.pop("_physical_type_id", None)
+        state.pop("_type_id", None)
         return state
 
     def __eq__(self, other):
@@ -949,11 +942,12 @@ class UnitBase:
     def __gt__(self, other):
         return not (self <= other)
 
-    def __neg__(self) -> Quantity:
+    def __neg__(self):
         return self * -1.0
 
     def is_equivalent(self, other, equivalencies=[]):
-        """Check whether this unit is equivalent to ``other``.
+        """
+        Returns `True` if this unit is equivalent to ``other``.
 
         Parameters
         ----------
@@ -990,7 +984,7 @@ class UnitBase:
         if isinstance(other, UnrecognizedUnit):
             return False
 
-        if self._physical_type_id == other._physical_type_id:
+        if self._get_physical_type_id() == other._get_physical_type_id():
             return True
         elif len(equivalencies):
             unit = self.decompose()
@@ -1013,7 +1007,7 @@ class UnitBase:
 
     def _apply_equivalencies(self, unit, other, equivalencies):
         """
-        Internal function (used from `get_converter`) to apply
+        Internal function (used from `_get_converter`) to apply
         equivalence pairs.
         """
 
@@ -1045,8 +1039,8 @@ class UnitBase:
                 except UnitsError:
                     pass
 
-        def get_err_str(unit: UnitBase) -> str:
-            unit_str = unit.to_string("generic")
+        def get_err_str(unit):
+            unit_str = unit.to_string("unscaled")
             physical_type = unit.physical_type
             if physical_type != "unknown":
                 unit_str = f"'{unit_str}' ({physical_type})"
@@ -1059,38 +1053,14 @@ class UnitBase:
 
         raise UnitConversionError(f"{unit_str} and {other_str} are not convertible")
 
-    def get_converter(self, other, equivalencies=[]):
+    def _get_converter(self, other, equivalencies=[]):
+        """Get a converter for values in ``self`` to ``other``.
+
+        If no conversion is necessary, returns ``unit_scale_converter``
+        (which is used as a check in quantity helpers).
+
         """
-        Create a function that converts values from this unit to another.
 
-        Parameters
-        ----------
-        other : unit-like
-            The unit to convert to.
-        equivalencies : list of tuple
-            A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`astropy:unit_equivalencies`.
-            This list is in addition to possible global defaults set by, e.g.,
-            `set_enabled_equivalencies`.
-            Use `None` to turn off all equivalencies.
-
-        Returns
-        -------
-        func : callable
-            A callable that takes an array-like argument and returns
-            it converted from units of self to units of other.
-
-        Raises
-        ------
-        UnitsError
-            If the units cannot be converted to each other.
-
-        Notes
-        -----
-        This method is used internally in `Quantity` to convert to
-        different units. Note that the function returned takes
-        and returns values, not quantities.
-        """
         # First see if it is just a scaling.
         try:
             scale = self._to(other)
@@ -1098,8 +1068,6 @@ class UnitBase:
             pass
         else:
             if scale == 1.0:
-                # If no conversion is necessary, returns ``unit_scale_converter``
-                # (which is used as a check in quantity helpers).
                 return unit_scale_converter
             else:
                 return lambda val: scale * _condition_arg(val)
@@ -1117,7 +1085,7 @@ class UnitBase:
                 for funit, tunit, a, b in other.equivalencies:
                     if other is funit:
                         try:
-                            converter = self.get_converter(tunit, equivalencies)
+                            converter = self._get_converter(tunit, equivalencies)
                         except Exception:
                             pass
                         else:
@@ -1125,7 +1093,7 @@ class UnitBase:
 
             raise exc
 
-    def _to(self, other: UnitBase) -> UnitScale:
+    def _to(self, other):
         """
         Returns the scale to the specified unit.
 
@@ -1194,16 +1162,15 @@ class UnitBase:
         if other is self and value is UNITY:
             return UNITY
         else:
-            return self.get_converter(Unit(other), equivalencies)(value)
+            return self._get_converter(Unit(other), equivalencies)(value)
 
-    @deprecated(since="7.0", alternative="to()")
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
         Alias for `to` for backward compatibility with pynbody.
         """
         return self.to(other, value=value, equivalencies=equivalencies)
 
-    def decompose(self, bases: Collection[UnitBase] = ()) -> UnitBase:
+    def decompose(self, bases=set()):
         """
         Return a unit object composed of only irreducible units.
 
@@ -1226,10 +1193,13 @@ class UnitBase:
     def _compose(
         self, equivalencies=[], namespace=[], max_depth=2, depth=0, cached_results=None
     ):
-        def is_final_result(unit: UnitBase) -> bool:
+        def is_final_result(unit):
             # Returns True if this result contains only the expected
             # units
-            return all(base in namespace for base in unit.bases)
+            for base in unit.bases:
+                if base not in namespace:
+                    return False
+            return True
 
         unit = self.decompose()
         key = hash(unit)
@@ -1325,10 +1295,10 @@ class UnitBase:
             for len_bases, composed, tunit in results:
                 if len_bases > min_length:
                     break
-
-                factored = composed * tunit
-                if is_final_result(factored):
-                    subresults.add(factored)
+                else:
+                    factored = composed * tunit
+                    if is_final_result(factored):
+                        subresults.add(factored)
 
             if len(subresults):
                 cached_results[key] = subresults
@@ -1396,10 +1366,16 @@ class UnitBase:
         # they can't possibly provide useful results.  Having too many
         # destination units greatly increases the search space.
 
-        def has_bases_in_common(a: UnitBase, b: UnitBase) -> bool:
-            return any(ab in b.bases for ab in a.bases) if a.bases or b.bases else True
+        def has_bases_in_common(a, b):
+            if len(a.bases) == 0 and len(b.bases) == 0:
+                return True
+            for ab in a.bases:
+                for bb in b.bases:
+                    if ab == bb:
+                        return True
+            return False
 
-        def has_bases_in_common_with_equiv(unit: UnitBase, other: UnitBase) -> bool:
+        def has_bases_in_common_with_equiv(unit, other):
             if has_bases_in_common(unit, other):
                 return True
             for funit, tunit, a, b in equivalencies:
@@ -1416,51 +1392,67 @@ class UnitBase:
                             return True
             return False
 
-        def filter_units(units: Iterable[object]) -> set[UnitBase]:
-            return {
-                tunit
-                for tunit in units
+        def filter_units(units):
+            filtered_namespace = set()
+            for tunit in units:
                 if (
                     isinstance(tunit, UnitBase)
                     and (include_prefix_units or not isinstance(tunit, PrefixUnit))
                     and has_bases_in_common_with_equiv(decomposed, tunit.decompose())
-                )
-            }
+                ):
+                    filtered_namespace.add(tunit)
+            return filtered_namespace
 
         decomposed = self.decompose()
 
         if units is None:
-            units = (
-                filter_units(self._get_units_with_same_physical_type(equivalencies))
-                or get_current_unit_registry().non_prefix_units
-            )
+            units = filter_units(self._get_units_with_same_physical_type(equivalencies))
+            if len(units) == 0:
+                units = get_current_unit_registry().non_prefix_units
+        elif isinstance(units, dict):
+            units = set(filter_units(units.values()))
+        elif inspect.ismodule(units):
+            units = filter_units(vars(units).values())
         else:
             units = filter_units(_flatten_units_collection(units))
 
-        # Sort the results so the simplest ones appear first.
-        # Simplest is defined as "the minimum sum of absolute
-        # powers" (i.e. the fewest bases), and preference should
-        # be given to results where the sum of powers is positive
-        # and the scale is exactly equal to 1.0
-        return sorted(
+        def sort_results(results):
+            if not len(results):
+                return []
+
+            # Sort the results so the simplest ones appear first.
+            # Simplest is defined as "the minimum sum of absolute
+            # powers" (i.e. the fewest bases), and preference should
+            # be given to results where the sum of powers is positive
+            # and the scale is exactly equal to 1.0
+            results = list(results)
+            results.sort(key=lambda x: np.abs(x.scale))
+            results.sort(key=lambda x: np.sum(np.abs(x.powers)))
+            results.sort(key=lambda x: np.sum(x.powers) < 0.0)
+            results.sort(key=lambda x: not is_effectively_unity(x.scale))
+
+            last_result = results[0]
+            filtered = [last_result]
+            for result in results[1:]:
+                if str(result) != str(last_result):
+                    filtered.append(result)
+                last_result = result
+
+            return filtered
+
+        return sort_results(
             self._compose(
                 equivalencies=equivalencies,
                 namespace=units,
                 max_depth=max_depth,
                 depth=0,
                 cached_results={},
-            ),
-            key=lambda x: (
-                not is_effectively_unity(x.scale),
-                sum(x.powers) < 0.0,
-                sum(map(abs, x.powers)),
-                abs(x.scale),
-            ),
+            )
         )
 
     def to_system(self, system):
-        """Convert this unit into ones belonging to the given system.
-
+        """
+        Converts this unit into ones belonging to the given system.
         Since more than one result may be possible, a list is always
         returned.
 
@@ -1477,44 +1469,53 @@ class UnitBase:
         Returns
         -------
         units : list of `CompositeUnit`
-            With an attempt to sort simpler units to the start (see examples).
-
-        Examples
-        --------
-        >>> import astropy.units as u
-        >>> (u.N / u.m**2).to_system(u.si)  # preference for simpler units
-        [Unit("Pa"), Unit("N / m2"), Unit("J / m3")]
-        >>> u.Pa.to_system(u.cgs)
-        [Unit("10 Ba"), Unit("10 P / s")]
-        >>> u.Ba.to_system(u.si)
-        [Unit("0.1 Pa"), Unit("0.1 N / m2"), Unit("0.1 J / m3")]
-        >>> (u.AU/u.yr).to_system(u.cgs)  # preference for base units
-        [Unit("474047 cm / s"), Unit("474047 Gal s")]
-        >>> (u.m / u.s**2).to_system(u.cgs)
-        [Unit("100 cm / s2"), Unit("100 Gal")]
-
+            The list is ranked so that units containing only the base
+            units of that system will appear first.
         """
-        return sorted(
-            self.decompose(bases=system.bases).compose(units=system),
-            key=lambda x: len(set(x.bases).difference(system.bases)),
-        )
+        bases = set(system.bases)
+
+        def score(compose):
+            # In case that compose._bases has no elements we return
+            # 'np.inf' as 'score value'.  It does not really matter which
+            # number we would return. This case occurs for instance for
+            # dimensionless quantities:
+            compose_bases = compose.bases
+            if len(compose_bases) == 0:
+                return np.inf
+            else:
+                sum = 0
+                for base in compose_bases:
+                    if base in bases:
+                        sum += 1
+
+                return sum / float(len(compose_bases))
+
+        x = self.decompose(bases=bases)
+        composed = x.compose(units=system)
+        composed = sorted(composed, key=score, reverse=True)
+        return composed
 
     @lazyproperty
-    def si(self) -> UnitBase:
-        """The unit expressed in terms of SI units."""
+    def si(self):
+        """
+        Returns a copy of the current `Unit` instance in SI units.
+        """
+
         from . import si
 
         return self.to_system(si)[0]
 
     @lazyproperty
-    def cgs(self) -> UnitBase:
-        """The unit expressed in terms of CGS units."""
+    def cgs(self):
+        """
+        Returns a copy of the current `Unit` instance with CGS units.
+        """
         from . import cgs
 
         return self.to_system(cgs)[0]
 
     @property
-    def physical_type(self) -> PhysicalType:
+    def physical_type(self):
         """
         Physical type(s) dimensionally compatible with the unit.
 
@@ -1590,57 +1591,64 @@ class UnitBase:
         `find_equivalent_units`.
         """
 
-        HEADING_NAMES: Final[tuple[str, str, str]] = (
-            "Primary name",
-            "Unit definition",
-            "Aliases",
-        )
-        NO_EQUIV_UNITS_MSG: Final[str] = "There are no equivalent units"
+        HEADING_NAMES = ("Primary name", "Unit definition", "Aliases")
+        ROW_LEN = 3  # len(HEADING_NAMES), but hard-code since it is constant
+        NO_EQUIV_UNITS_MSG = "There are no equivalent units"
 
-        def __repr__(self) -> str:
-            if not self:
+        def __repr__(self):
+            if len(self) == 0:
                 return self.NO_EQUIV_UNITS_MSG
-            lines = self._process_units()
-            widths = list(map(len, self.HEADING_NAMES))
-            for line in lines:
-                widths = [max(w, len(col)) for w, col in zip(widths, line, strict=True)]
-            row_template = "  {{0:<{}s}} | {{1:<{}s}} | {{2:<{}s}}".format(*widths)
-            return "\n".join(
-                [
-                    row_template.format(*self.HEADING_NAMES),
-                    "[",
-                    *(f"{row_template.format(*line)} ," for line in lines),
-                    "]",
-                ]
-            )
+            else:
+                lines = self._process_equivalent_units(self)
+                lines.insert(0, self.HEADING_NAMES)
+                widths = [0] * self.ROW_LEN
+                for line in lines:
+                    for i, col in enumerate(line):
+                        widths[i] = max(widths[i], len(col))
 
-        def _repr_html_(self) -> str:
+                f = "  {{0:<{0}s}} | {{1:<{1}s}} | {{2:<{2}s}}".format(*widths)
+                lines = [f.format(*line) for line in lines]
+                lines = lines[0:1] + ["["] + [f"{x} ," for x in lines[1:]] + ["]"]
+                return "\n".join(lines)
+
+        def _repr_html_(self):
             """
             Outputs a HTML table representation within Jupyter notebooks.
             """
-            if not self:
+            if len(self) == 0:
                 return f"<p>{self.NO_EQUIV_UNITS_MSG}</p>"
-            heading = "".join(f"<th>{name}</th>" for name in self.HEADING_NAMES)
-            rows = (
-                f"<tr>{''.join(f'<td>{elem}</td>' for elem in row)}</tr>"
-                for row in self._process_units()
-            )
-            # The HTML will be rendered & the table is simple, so don't
-            # bother to include newlines & indentation for the HTML code.
-            return f'<table style="width:50%"><tr>{heading}</tr>{"".join(rows)}</table>'
+            else:
+                # HTML tags to use to compose the table in HTML
+                blank_table = '<table style="width:50%">{}</table>'
+                blank_row_container = "<tr>{}</tr>"
+                heading_row_content = "<th>{}</th>" * self.ROW_LEN
+                data_row_content = "<td>{}</td>" * self.ROW_LEN
 
-        def _process_units(self) -> list[tuple[str, str, str]]:
+                # The HTML will be rendered & the table is simple, so don't
+                # bother to include newlines & indentation for the HTML code.
+                heading_row = blank_row_container.format(
+                    heading_row_content.format(*self.HEADING_NAMES)
+                )
+                data_rows = self._process_equivalent_units(self)
+                all_rows = heading_row
+                for row in data_rows:
+                    html_row = blank_row_container.format(data_row_content.format(*row))
+                    all_rows += html_row
+                return blank_table.format(all_rows)
+
+        @staticmethod
+        def _process_equivalent_units(equiv_units_data):
             """
             Extract attributes, and sort, the equivalent units pre-formatting.
             """
-            return sorted(
-                (
-                    unit.name,
-                    "irreducible" if (s := str(unit.decompose())) == unit.name else s,
-                    ", ".join(unit.aliases),
-                )
-                for unit in self
-            )
+            processed_equiv_units = []
+            for u in equiv_units_data:
+                irred = u.decompose().to_string()
+                if irred == u.name:
+                    irred = "irreducible"
+                processed_equiv_units.append((u.name, irred, ", ".join(u.aliases)))
+            processed_equiv_units.sort()
+            return processed_equiv_units
 
     def find_equivalent_units(
         self, equivalencies=[], units=None, include_prefix_units=False
@@ -1678,13 +1686,13 @@ class UnitBase:
             max_depth=1,
             include_prefix_units=include_prefix_units,
         )
-        results = {
-            x.bases[0] for x in results if len(x.bases) == 1 and x.powers[0] == 1
-        }
+        results = {x.bases[0] for x in results if len(x.bases) == 1}
         return self.EquivalentUnitsList(results)
 
-    def is_unity(self) -> bool:
-        """Check whether the unit is unscaled and dimensionless."""
+    def is_unity(self):
+        """
+        Returns `True` if the unit is unscaled and dimensionless.
+        """
         return False
 
 
@@ -1728,13 +1736,9 @@ class NamedUnit(UnitBase):
         If any of the given unit names are not valid Python tokens.
     """
 
-    def __init__(
-        self,
-        st: str | list[str] | tuple[list[str], list[str]],
-        doc: str | None = None,
-        format: Mapping[str, str] | None = None,
-        namespace: MutableMapping[str, object] | None = None,
-    ) -> None:
+    def __init__(self, st, doc=None, format=None, namespace=None):
+        UnitBase.__init__(self)
+
         if isinstance(st, (bytes, str)):
             self._names = [st]
             self._short_names = [st]
@@ -1754,13 +1758,21 @@ class NamedUnit(UnitBase):
             self._short_names = [st[0]]
             self._long_names = st[1:]
 
-        self._format = {} if format is None else format
-        self.__doc__ = (
-            self._generate_doc() if doc is None else textwrap.fill(textwrap.dedent(doc))
-        )
+        if format is None:
+            format = {}
+        self._format = format
+
+        if doc is None:
+            doc = self._generate_doc()
+        else:
+            doc = textwrap.dedent(doc)
+            doc = textwrap.fill(doc)
+
+        self.__doc__ = doc
+
         self._inject(namespace)
 
-    def _generate_doc(self) -> str:
+    def _generate_doc(self):
         """
         Generate a docstring for the unit if the user didn't supply
         one.  This is only used from the constructor and may be
@@ -1772,7 +1784,6 @@ class NamedUnit(UnitBase):
         else:
             return names[0]
 
-    @deprecated(since="7.0", alternative="to_string()")
     def get_format_name(self, format):
         """
         Get a name for this unit that is specific to a particular
@@ -1791,37 +1802,44 @@ class NamedUnit(UnitBase):
         name : str
             The name of the unit for the given format.
         """
-        return self._get_format_name(format)
-
-    def _get_format_name(self, format: str) -> str:
         return self._format.get(format, self.name)
 
     @property
-    def names(self) -> list[str]:
-        """All the names associated with the unit."""
+    def names(self):
+        """
+        Returns all of the names associated with this unit.
+        """
         return self._names
 
     @property
-    def name(self) -> str:
-        """The canonical (short) name associated with the unit."""
+    def name(self):
+        """
+        Returns the canonical (short) name associated with this unit.
+        """
         return self._names[0]
 
     @property
-    def aliases(self) -> list[str]:
-        """The aliases (long) names for the unit."""
+    def aliases(self):
+        """
+        Returns the alias (long) names for this unit.
+        """
         return self._names[1:]
 
     @property
-    def short_names(self) -> list[str]:
-        """All the short names associated with the unit."""
+    def short_names(self):
+        """
+        Returns all of the short names associated with this unit.
+        """
         return self._short_names
 
     @property
-    def long_names(self) -> list[str]:
-        """All the long names associated with the unit."""
+    def long_names(self):
+        """
+        Returns all of the long names associated with this unit.
+        """
         return self._long_names
 
-    def _inject(self, namespace: MutableMapping[str, object] | None = None) -> None:
+    def _inject(self, namespace=None):
         """
         Injects the unit, and all of its aliases, in the given
         namespace dictionary.
@@ -1886,14 +1904,14 @@ class IrreducibleUnit(NamedUnit):
         )
 
     @property
-    def represents(self) -> Self:
+    def represents(self):
         """The unit that this named unit represents.
 
         For an irreducible unit, that is always itself.
         """
         return self
 
-    def decompose(self, bases: Collection[UnitBase] = ()) -> UnitBase:
+    def decompose(self, bases=set()):
         if len(bases) and self not in bases:
             for base in bases:
                 try:
@@ -1930,13 +1948,13 @@ class UnrecognizedUnit(IrreducibleUnit):
     # IrreducibleUnits.
     __reduce__ = object.__reduce__
 
-    def __repr__(self) -> str:
-        return f"UnrecognizedUnit({self})"
+    def __repr__(self):
+        return f"UnrecognizedUnit({str(self)})"
 
-    def __bytes__(self) -> bytes:
+    def __bytes__(self):
         return self.name.encode("ascii", "replace")
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.name
 
     def to_string(self, format=None):
@@ -1966,17 +1984,17 @@ class UnrecognizedUnit(IrreducibleUnit):
         self._normalize_equivalencies(equivalencies)
         return self == other
 
-    def get_converter(self, other, equivalencies=None):
+    def _get_converter(self, other, equivalencies=None):
         self._normalize_equivalencies(equivalencies)
         raise ValueError(
             f"The unit {self.name!r} is unrecognized.  It can not be converted "
             "to other units."
         )
 
-    def _get_format_name(self, format: str) -> str:
+    def get_format_name(self, format):
         return self.name
 
-    def is_unity(self) -> Literal[False]:
+    def is_unity(self):
         return False
 
 
@@ -1989,7 +2007,7 @@ class _UnitMetaClass(type):
     """
 
     def __call__(
-        cls,
+        self,
         s="",
         represents=None,
         format=None,
@@ -1998,63 +2016,72 @@ class _UnitMetaClass(type):
         parse_strict="raise",
     ):
         # Short-circuit if we're already a unit
-        if hasattr(s, "_physical_type_id"):
+        if hasattr(s, "_get_physical_type_id"):
             return s
 
-        if represents is not None:
+        # turn possible Quantity input for s or represents into a Unit
+        from .quantity import Quantity
+
+        if isinstance(represents, Quantity):
+            if is_effectively_unity(represents.value):
+                represents = represents.unit
+            else:
+                represents = CompositeUnit(
+                    represents.value * represents.unit.scale,
+                    bases=represents.unit.bases,
+                    powers=represents.unit.powers,
+                    _error_check=False,
+                )
+
+        if isinstance(s, Quantity):
+            if is_effectively_unity(s.value):
+                s = s.unit
+            else:
+                s = CompositeUnit(
+                    s.value * s.unit.scale,
+                    bases=s.unit.bases,
+                    powers=s.unit.powers,
+                    _error_check=False,
+                )
+
+        # now decide what we really need to do; define derived Unit?
+        if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
             # __init__ on the Unit class.
             return super().__call__(
                 s, represents, format=format, namespace=namespace, doc=doc
             )
 
-        if isinstance(s, (str, bytes)):
+        # or interpret a Quantity (now became unit), string or number?
+        if isinstance(s, UnitBase):
+            return s
+
+        elif isinstance(s, (bytes, str)):
             if len(s.strip()) == 0:
                 # Return the NULL unit
                 return dimensionless_unscaled
 
-            from .format import Generic, get_format
+            if format is None:
+                format = unit_format.Generic
 
-            f = get_format(format)
+            f = unit_format.get_format(format)
             if isinstance(s, bytes):
                 s = s.decode("ascii")
 
             try:
-                return f._validate_unit(s, detailed_exception=False)  # Try a shortcut
-            except (AttributeError, ValueError):
-                # No `f._validate_unit()` (AttributeError)
-                # or `s` was a composite unit (ValueError).
-                pass
-
-            try:
-                with (
-                    _WARNING_LOCK,
-                    warnings.catch_warnings(
-                        action=_WARNING_ACTIONS[parse_strict],
-                        category=UnitParserWarning,
-                    ),
-                ):
-                    return f.parse(s)
+                return f.parse(s)
             except NotImplementedError:
                 raise
-            except UnitParserWarning as err:
-                new_err = ValueError(err)
-                new_err.add_note(
-                    "If you cannot change the unit string then try specifying the "
-                    "'parse_strict' argument."
-                )
-                raise new_err from err
-            except KeyError as err:
-                if parse_strict in _WARNING_ACTIONS:
-                    raise
-                raise ValueError(
-                    "'parse_strict' must be 'warn', 'raise' or 'silent'"
-                ) from None
             except Exception as e:
-                if parse_strict != "silent":
+                if parse_strict == "silent":
+                    pass
+                else:
                     # Deliberately not issubclass here. Subclasses
                     # should use their name.
-                    format_clause = "" if f is Generic else f.name + " "
+                    if f is not unit_format.Generic:
+                        format_clause = f.name + " "
+                    else:
+                        format_clause = ""
                     msg = (
                         f"'{s}' did not parse as {format_clause}unit: {str(e)} "
                         "If this is meant to be a custom unit, "
@@ -2066,32 +2093,27 @@ class _UnitMetaClass(type):
                     )
                     if parse_strict == "raise":
                         raise ValueError(msg)
-                    warnings.warn(msg, UnitsWarning)
+                    elif parse_strict == "warn":
+                        warnings.warn(msg, UnitsWarning)
+                    else:
+                        raise ValueError(
+                            "'parse_strict' must be 'warn', 'raise' or 'silent'"
+                        )
                 return UnrecognizedUnit(s)
 
-        from .quantity import Quantity
+        elif isinstance(s, (int, float, np.floating, np.integer)):
+            return CompositeUnit(s, [], [], _error_check=False)
 
-        if isinstance(s, Quantity):
-            if is_effectively_unity(s.value):
-                return s.unit
-            return CompositeUnit(
-                sanitize_scale_type(s.value) * s.unit.scale,
-                bases=s.unit.bases,
-                powers=s.unit.powers,
-                _error_check=False,
-            )
-
-        from .typing import UnitScaleLike
-
-        if isinstance(s, UnitScaleLike):
-            return CompositeUnit(s, [], [])
-
-        if isinstance(s, tuple):
+        elif isinstance(s, tuple):
             from .structured import StructuredUnit
 
             return StructuredUnit(s)
 
-        raise TypeError(f"{s!r} cannot be converted to a Unit")
+        elif s is None:
+            raise TypeError("None is not a valid Unit")
+
+        else:
+            raise TypeError(f"{s} can not be converted to a Unit")
 
 
 class Unit(NamedUnit, metaclass=_UnitMetaClass):
@@ -2113,19 +2135,15 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
       string is in, by default ``"generic"``.  For a description of
       the available formats, see `astropy.units.format`.
 
-      The optional ``parse_strict`` keyword argument controls what happens
-      when the string does not comply with the specified format. It may be
-      one of the following:
+      The optional ``parse_strict`` keyword controls what happens when an
+      unrecognized unit string is passed in.  It may be one of the following:
 
-         - ``'raise'``: (default) raise a `ValueError` exception.
+         - ``'raise'``: (default) raise a ValueError exception.
 
-         - ``'warn'``: emit a `UnitParserWarning`, and return a unit.
+         - ``'warn'``: emit a Warning, and return an
+           `UnrecognizedUnit` instance.
 
-         - ``'silent'``: return a unit silently.
-
-      With ``'warn'`` or ``'silent'`` the parser might be able to parse the
-      string and return a normal unit, but if it fails then an
-      `UnrecognizedUnit` instance is returned.
+         - ``'silent'``: return an `UnrecognizedUnit` instance.
 
     - From a number::
 
@@ -2191,30 +2209,33 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         NamedUnit.__init__(self, st, namespace=namespace, doc=doc, format=format)
 
     @property
-    def represents(self) -> UnitBase:
+    def represents(self):
         """The unit that this named unit represents."""
         return self._represents
 
-    def decompose(self, bases: Collection[UnitBase] = ()) -> UnitBase:
+    def decompose(self, bases=set()):
         return self._represents.decompose(bases=bases)
 
-    def is_unity(self) -> bool:
+    def is_unity(self):
         return self._represents.is_unity()
 
-    @cached_property
-    def _hash(self) -> int:
-        return hash((self.name, self._represents))
+    def __hash__(self):
+        if self._hash is None:
+            self._hash = hash((self.name, self._represents))
+        return self._hash
 
     @classmethod
-    def _from_physical_type_id(
-        cls, physical_type_id: tuple[tuple[str, UnitPower], ...]
-    ) -> UnitBase:
-        if len(physical_type_id) == 1 and physical_type_id[0][1] == 1:
-            return cls(physical_type_id[0][0])
+    def _from_physical_type_id(cls, physical_type_id):
         # get string bases and powers from the ID tuple
         bases = [cls(base) for base, _ in physical_type_id]
         powers = [power for _, power in physical_type_id]
-        return CompositeUnit(1, bases, powers, _error_check=False)
+
+        if len(physical_type_id) == 1 and powers[0] == 1:
+            unit = bases[0]
+        else:
+            unit = CompositeUnit(1, bases, powers, _error_check=False)
+
+        return unit
 
 
 class PrefixUnit(Unit):
@@ -2247,37 +2268,9 @@ class CompositeUnit(UnitBase):
     powers : sequence of numbers
         A sequence of powers (in parallel with ``bases``) for each
         of the base units.
-
-    Raises
-    ------
-    UnitScaleError
-        If the scale is zero.
     """
 
-    _decomposed_cache: CompositeUnit | None = None
-
-    # _error_check can switch off runtime validation of scale, bases and powers.
-    # These overloads enable type checkers to validate statically.
-    @overload
-    def __init__(
-        self,
-        scale: UnitScaleLike,
-        bases: Sequence[UnitBase],
-        powers: Sequence[UnitPowerLike],
-        decompose: bool = False,
-        decompose_bases: Collection[UnitBase] = (),
-        _error_check: Literal[True] = True,
-    ) -> None: ...
-    @overload
-    def __init__(
-        self,
-        scale: UnitScale,
-        bases: Sequence[UnitBase],
-        powers: Sequence[UnitPower],
-        decompose: bool = False,
-        decompose_bases: Collection[UnitBase] = (),
-        _error_check: Literal[False] = False,
-    ) -> None: ...
+    _decomposed_cache = None
 
     def __init__(
         self,
@@ -2285,7 +2278,7 @@ class CompositeUnit(UnitBase):
         bases,
         powers,
         decompose=False,
-        decompose_bases=(),
+        decompose_bases=set(),
         _error_check=True,
     ):
         # There are many cases internal to astropy.units where we
@@ -2295,11 +2288,10 @@ class CompositeUnit(UnitBase):
         # kwarg `_error_check` is False, the error checking is turned
         # off.
         if _error_check:
-            scale = sanitize_scale_type(scale)
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError("bases must be sequence of UnitBase instances")
-            powers = [sanitize_power(p) for p in powers]
+            powers = [validate_power(p) for p in powers]
 
         if not decompose and len(bases) == 1 and powers[0] >= 0:
             # Short-cut; with one unit there's nothing to expand and gather,
@@ -2318,11 +2310,10 @@ class CompositeUnit(UnitBase):
                 scale *= unit.scale**power
                 self._bases = unit.bases
                 self._powers = [
-                    sanitize_power(operator.mul(*resolve_fractions(p, power)))
-                    for p in unit.powers
+                    operator.mul(*resolve_fractions(p, power)) for p in unit.powers
                 ]
 
-            self._scale = sanitize_scale_value(scale)
+            self._scale = sanitize_scale(scale)
         else:
             # Regular case: use inputs as preliminary scale, bases, and powers,
             # then "expand and gather" identical bases, sanitize the scale, &c.
@@ -2331,7 +2322,7 @@ class CompositeUnit(UnitBase):
             self._powers = powers
             self._expand_and_gather(decompose=decompose, bases=decompose_bases)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         if len(self._bases):
             return super().__repr__()
         else:
@@ -2341,23 +2332,27 @@ class CompositeUnit(UnitBase):
                 return "Unit(dimensionless)"
 
     @property
-    def scale(self) -> UnitScale:
-        """The scale of the composite unit."""
+    def scale(self):
+        """
+        Return the scale of the composite unit.
+        """
         return self._scale
 
     @property
-    def bases(self) -> list[UnitBase]:
-        """The bases of the composite unit."""
+    def bases(self):
+        """
+        Return the bases of the composite unit.
+        """
         return self._bases
 
     @property
-    def powers(self) -> list[UnitPower]:
-        """The powers of the bases of the composite unit."""
+    def powers(self):
+        """
+        Return the powers of the composite unit.
+        """
         return self._powers
 
-    def _expand_and_gather(
-        self, decompose: bool = False, bases: Collection[UnitBase] = ()
-    ):
+    def _expand_and_gather(self, decompose=False, bases=set()):
         def add_unit(unit, power, scale):
             if bases and unit not in bases:
                 for base in bases:
@@ -2395,13 +2390,16 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], "name", "")))
 
         self._bases = [x[0] for x in new_parts]
-        self._powers = [sanitize_power(x[1]) for x in new_parts]
-        self._scale = sanitize_scale_value(scale)
+        self._powers = [x[1] for x in new_parts]
+        self._scale = sanitize_scale(scale)
 
-    def __copy__(self) -> CompositeUnit:
+    def __copy__(self):
+        """
+        For compatibility with python copy module.
+        """
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
-    def decompose(self, bases: Collection[UnitBase] = ()) -> CompositeUnit:
+    def decompose(self, bases=set()):
         if len(bases) == 0 and self._decomposed_cache is not None:
             return self._decomposed_cache
 
@@ -2422,12 +2420,12 @@ class CompositeUnit(UnitBase):
             self._decomposed_cache = x
         return x
 
-    def is_unity(self) -> bool:
+    def is_unity(self):
         unit = self.decompose()
         return len(unit.bases) == 0 and unit.scale == 1.0
 
 
-si_prefixes: Final[list[tuple[list[str], list[str], float]]] = [
+si_prefixes = [
     (["Q"], ["quetta"], 1e30),
     (["R"], ["ronna"], 1e27),
     (["Y"], ["yotta"], 1e24),
@@ -2455,7 +2453,7 @@ si_prefixes: Final[list[tuple[list[str], list[str], float]]] = [
 ]
 
 
-binary_prefixes: Final[list[tuple[list[str], list[str], int]]] = [
+binary_prefixes = [
     (["Ki"], ["kibi"], 2**10),
     (["Mi"], ["mebi"], 2**20),
     (["Gi"], ["gibi"], 2**30),
@@ -2504,8 +2502,8 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
                 # This is a hack to use Greek mu as a prefix
                 # for some formatters.
                 if prefix == "u":
-                    format["latex"] = r"\mu " + u._get_format_name("latex")
-                    format["unicode"] = "\N{MICRO SIGN}" + u._get_format_name("unicode")
+                    format["latex"] = r"\mu " + u.get_format_name("latex")
+                    format["unicode"] = "\N{MICRO SIGN}" + u.get_format_name("unicode")
 
                 for key, val in u._format.items():
                     format.setdefault(key, prefix + val)
@@ -2535,11 +2533,8 @@ def def_unit(
     exclude_prefixes=[],
     namespace=None,
 ):
-    """Define a new unit.
-
-    This function differs from creating units directly with `Unit` or
-    `IrreducibleUnit` because it can also automatically generate prefixed
-    units in the given namespace.
+    """
+    Factory function for defining new units.
 
     Parameters
     ----------
@@ -2593,6 +2588,7 @@ def def_unit(
         The newly-defined unit, or a matching unit that was already
         defined.
     """
+
     if represents is not None:
         result = Unit(s, represents, namespace=namespace, doc=doc, format=format)
     else:
@@ -2605,44 +2601,36 @@ def def_unit(
     return result
 
 
-KNOWN_GOOD = np.ndarray | float | int | complex
-
-
 def _condition_arg(value):
-    """Validate value is acceptable for conversion purposes.
+    """
+    Validate value is acceptable for conversion purposes.
 
-    Will convert into an array if not a scalar or array-like, where scalars
-    and arrays can be python and numpy types, anything that defines
-    ``__array_namespace__`` or anything that has a ``.dtype`` attribute.
+    Will convert into an array if not a scalar, and can be converted
+    into an array
 
     Parameters
     ----------
-    value : scalar or array-like
+    value : int or float value, or sequence of such values
 
     Returns
     -------
-    Scalar value or array
+    Scalar value or numpy array
 
     Raises
     ------
     ValueError
         If value is not as expected
-
     """
-    if (
-        isinstance(value, KNOWN_GOOD)
-        or hasattr(value, "dtype")
-        or hasattr(value, "__array_namespace__")
-    ):
+    if isinstance(value, (np.ndarray, float, int, complex, np.void)):
         return value
 
-    value = np.array(value)
-    if value.dtype.kind not in "ifc":
+    avalue = np.array(value)
+    if avalue.dtype.kind not in ["i", "f", "c"]:
         raise ValueError(
             "Value not scalar compatible or convertible to "
             "an int, float, or complex array"
         )
-    return value
+    return avalue
 
 
 def unit_scale_converter(val):
@@ -2654,8 +2642,10 @@ def unit_scale_converter(val):
     return 1.0 * _condition_arg(val)
 
 
-dimensionless_unscaled: Final[CompositeUnit] = CompositeUnit(
-    1, [], [], _error_check=False
-)
+dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
 # Abbreviation of the above, see #1980
-one: Final[CompositeUnit] = dimensionless_unscaled
+one = dimensionless_unscaled
+
+# Maintain error in old location for backward compatibility
+# TODO: Is this still needed? Should there be a deprecation warning?
+unit_format.fits.UnitScaleError = UnitScaleError

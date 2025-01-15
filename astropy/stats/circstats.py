@@ -10,37 +10,24 @@ are based on reference [1]_, which is also the basis for the R package
 'CircStats' [2]_.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import numpy as np
 
 from astropy.units import Quantity
 
-if TYPE_CHECKING:
-    from numpy.typing import NDArray
-
 __all__ = [
-    "circcorrcoef",
     "circmean",
-    "circmoment",
     "circstd",
     "circvar",
+    "circmoment",
+    "circcorrcoef",
     "rayleightest",
-    "vonmisesmle",
     "vtest",
+    "vonmisesmle",
 ]
 __doctest_requires__ = {"vtest": ["scipy"]}
 
 
-def _components(
-    data: NDArray | Quantity,
-    p: float = 1.0,
-    phi: float | NDArray | Quantity = 0.0,
-    axis: int | None = None,
-    weights: NDArray | None = None,
-) -> NDArray | Quantity:
+def _components(data, p=1, phi=0.0, axis=None, weights=None):
     # Utility function for computing the generalized rectangular components
     # of the circular data.
     if weights is None:
@@ -56,13 +43,7 @@ def _components(
     return C, S
 
 
-def _angle(
-    data: NDArray | Quantity,
-    p: float = 1.0,
-    phi: float | NDArray | Quantity = 0.0,
-    axis: int | None = None,
-    weights: NDArray | None = None,
-) -> NDArray | Quantity:
+def _angle(data, p=1, phi=0.0, axis=None, weights=None):
     # Utility function for computing the generalized sample mean angle
     C, S = _components(data, p, phi, axis, weights)
 
@@ -76,23 +57,13 @@ def _angle(
     return theta
 
 
-def _length(
-    data: NDArray | Quantity,
-    p: float = 1.0,
-    phi: float | NDArray | Quantity = 0.0,
-    axis: int | None = None,
-    weights: NDArray | None = None,
-) -> NDArray | Quantity:
+def _length(data, p=1, phi=0.0, axis=None, weights=None):
     # Utility function for computing the generalized sample length
     C, S = _components(data, p, phi, axis, weights)
     return np.hypot(S, C)
 
 
-def circmean(
-    data: NDArray | Quantity,
-    axis: int | None = None,
-    weights: NDArray | None = None,
-) -> NDArray | Quantity:
+def circmean(data, axis=None, weights=None):
     """Computes the circular mean angle of an array of circular data.
 
     Parameters
@@ -131,14 +102,10 @@ def circmean(
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
-    return _angle(data, 1.0, 0.0, axis, weights)
+    return _angle(data, 1, 0.0, axis, weights)
 
 
-def circvar(
-    data: NDArray | Quantity,
-    axis: int | None = None,
-    weights: NDArray | None = None,
-) -> NDArray | Quantity:
+def circvar(data, axis=None, weights=None):
     """Computes the circular variance of an array of circular data.
 
     There are some concepts for defining measures of dispersion for circular
@@ -184,21 +151,15 @@ def circvar(
 
     Notes
     -----
-    For Scipy < 1.9.0, ``scipy.stats.circvar`` uses a different
-    definition based on an approximation using the limit of small
-    angles that approaches the linear variance. For Scipy >= 1.9.0,
-    ``scipy.stats.cirvar`` uses a definition consistent with this
-    implementation.
+    The definition used here differs from the one in scipy.stats.circvar.
+    Precisely, Scipy circvar uses an approximation based on the limit of small
+    angles which approaches the linear variance.
     """
-    return 1.0 - _length(data, 1.0, 0.0, axis, weights)
+
+    return 1.0 - _length(data, 1, 0.0, axis, weights)
 
 
-def circstd(
-    data: NDArray | Quantity,
-    axis: int | None = None,
-    weights: NDArray | None = None,
-    method: str | None = "angular",
-) -> NDArray | Quantity:
+def circstd(data, axis=None, weights=None, method="angular"):
     """Computes the circular standard deviation of an array of circular data.
 
     The standard deviation implemented here is based on the definitions given
@@ -271,18 +232,12 @@ def circstd(
         raise ValueError("method should be either 'angular' or 'circular'")
 
     if method == "angular":
-        return np.sqrt(2.0 * (1.0 - _length(data, 1.0, 0.0, axis, weights)))
+        return np.sqrt(2.0 * (1.0 - _length(data, 1, 0.0, axis, weights)))
     else:
-        return np.sqrt(-2.0 * np.log(_length(data, 1.0, 0.0, axis, weights)))
+        return np.sqrt(-2.0 * np.log(_length(data, 1, 0.0, axis, weights)))
 
 
-def circmoment(
-    data: NDArray | Quantity,
-    p: float = 1.0,
-    centered: bool | None = False,
-    axis: int | None = None,
-    weights: NDArray | None = None,
-) -> NDArray | Quantity:
+def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
     """Computes the ``p``-th trigonometric circular moment for an array
     of circular data.
 
@@ -336,13 +291,7 @@ def circmoment(
     return _angle(data, p, phi, axis, weights), _length(data, p, phi, axis, weights)
 
 
-def circcorrcoef(
-    alpha: NDArray | Quantity,
-    beta: NDArray | Quantity,
-    axis: int | None = None,
-    weights_alpha: NDArray | None = None,
-    weights_beta: NDArray | None = None,
-) -> NDArray | Quantity:
+def circcorrcoef(alpha, beta, axis=None, weights_alpha=None, weights_beta=None):
     """Computes the circular correlation coefficient between two array of
     circular data.
 
@@ -405,11 +354,7 @@ def circcorrcoef(
     return rho
 
 
-def rayleightest(
-    data: NDArray | Quantity,
-    axis: int | None = None,
-    weights: NDArray | None = None,
-) -> float | Quantity:
+def rayleightest(data, axis=None, weights=None):
     """Performs the Rayleigh test of uniformity.
 
     This test is  used to identify a non-uniform distribution, i.e. it is
@@ -461,7 +406,7 @@ def rayleightest(
        <http://wexler.free.fr/library/files/wilkie%20(1983)%20rayleigh%20test%20for%20randomness%20of%20circular%20data.pdf>
     """
     n = np.size(data, axis=axis)
-    Rbar = _length(data, 1.0, 0.0, axis, weights)
+    Rbar = _length(data, 1, 0.0, axis, weights)
     z = n * Rbar * Rbar
 
     # see [3] and [4] for the formulae below
@@ -478,12 +423,7 @@ def rayleightest(
     return p_value
 
 
-def vtest(
-    data: NDArray | Quantity,
-    mu: float | Quantity | None = 0.0,
-    axis: int | None = None,
-    weights: NDArray | None = None,
-) -> float | Quantity:
+def vtest(data, mu=0.0, axis=None, weights=None):
     """Performs the Rayleigh test of uniformity where the alternative
     hypothesis H1 is assumed to have a known mean angle ``mu``.
 
@@ -552,28 +492,18 @@ def vtest(
     return p_value
 
 
-def _A1inv(x: NDArray | Quantity) -> NDArray | Quantity:
+def _A1inv(x):
     # Approximation for _A1inv(x) according R Package 'CircStats'
     # See http://www.scienceasia.org/2012.38.n1/scias38_118.pdf, equation (4)
-
-    kappa1 = np.where(
-        np.logical_and(0 <= x, x < 0.53), 2.0 * x + x * x * x + (5.0 * x**5) / 6.0, 0
-    )
-    kappa2 = np.where(
-        np.logical_and(0.53 <= x, x < 0.85), -0.4 + 1.39 * x + 0.43 / (1.0 - x), 0
-    )
-    kappa3 = np.where(
-        np.logical_or(x < 0, 0.85 <= x), 1.0 / (x * x * x - 4.0 * x * x + 3.0 * x), 0
-    )
-
-    return kappa1 + kappa2 + kappa3
+    if 0 <= x < 0.53:
+        return 2.0 * x + x * x * x + (5.0 * x**5) / 6.0
+    elif x < 0.85:
+        return -0.4 + 1.39 * x + 0.43 / (1.0 - x)
+    else:
+        return 1.0 / (x * x * x - 4.0 * x * x + 3.0 * x)
 
 
-def vonmisesmle(
-    data: NDArray | Quantity,
-    axis: int | None = None,
-    weights: NDArray | None = None,
-) -> tuple[float | Quantity, float | Quantity]:
+def vonmisesmle(data, axis=None):
     """Computes the Maximum Likelihood Estimator (MLE) for the parameters of
     the von Mises distribution.
 
@@ -584,11 +514,6 @@ def vonmisesmle(
         radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
         Axis along which the mle will be computed.
-    weights : numpy.ndarray, optional
-        In case of grouped data, the i-th element of ``weights`` represents a
-        weighting factor for each group such that ``sum(weights, axis)``
-        equals the number of observations. See [1]_, remark 1.4, page 22,
-        for detailed explanation.
 
     Returns
     -------
@@ -614,7 +539,7 @@ def vonmisesmle(
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
-    mu = circmean(data, axis=axis, weights=weights)
+    mu = circmean(data, axis=None)
 
-    kappa = _A1inv(_length(data, p=1.0, phi=0.0, axis=axis, weights=weights))
+    kappa = _A1inv(np.mean(np.cos(data - mu), axis))
     return mu, kappa

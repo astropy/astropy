@@ -2,7 +2,6 @@
 """
 Module to test statistic functions
 """
-
 import numpy as np
 
 # pylint: disable=invalid-name

@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import matplotlib as mpl
+
+
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import BaseCoordinateFrame, UnitSphericalRepresentation
-from astropy.utils.introspection import minversion
+from astropy.coordinates import BaseCoordinateFrame
 
 __all__ = [
     "select_step_degree",
@@ -12,8 +12,6 @@ __all__ = [
     "select_step_scalar",
     "transform_contour_set_inplace",
 ]
-
-MATPLOTLIB_LT_3_8 = not minversion(mpl, "3.8")
 
 
 def select_step_degree(dv):
@@ -94,6 +92,8 @@ def select_step_scalar(dv):
 def get_coord_meta(frame):
     coord_meta = {}
     coord_meta["type"] = ("longitude", "latitude")
+    coord_meta["wrap"] = (None, None)
+    coord_meta["unit"] = (u.deg, u.deg)
 
     from astropy.coordinates import frame_transform_graph
 
@@ -109,19 +109,13 @@ def get_coord_meta(frame):
     names = list(frame.representation_component_names.keys())
     coord_meta["name"] = names[:2]
 
-    # Add dummy data to the frame to determine the longitude wrap angle and the units
-    frame = frame.realize_frame(UnitSphericalRepresentation(0 * u.deg, 0 * u.deg))
-    coord_meta["wrap"] = (frame.spherical.lon.wrap_angle, None)
-    coord_meta["unit"] = (u.deg, u.deg)
-    coord_meta["format_unit"] = (frame.spherical.lon.unit, frame.spherical.lat.unit)
-
     return coord_meta
 
 
 def transform_contour_set_inplace(cset, transform):
     """
     Transform a contour set in-place using a specified
-    :class:`matplotlib.transform.Transform`.
+    :class:`matplotlib.transform.Transform`
 
     Using transforms with the native Matplotlib contour/contourf can be slow if
     the transforms have a non-negligible overhead (which is the case for
@@ -129,6 +123,7 @@ def transform_contour_set_inplace(cset, transform):
     contour line. It is more efficient to stack all the contour lines together
     temporarily and transform them in one go.
     """
+
     # The contours are represented as paths grouped into levels. Each can have
     # one or more paths. The approach we take here is to stack the vertices of
     # all paths and transform them in one go. The pos_level list helps us keep
@@ -139,28 +134,17 @@ def transform_contour_set_inplace(cset, transform):
     pos_level = []
     pos_segments = []
 
-    if MATPLOTLIB_LT_3_8:
-        for collection in cset.collections:
-            paths = collection.get_paths()
-            if len(paths) == 0:
-                continue
-            all_paths.append(paths)
-            # The last item in pos isn't needed for np.split and in fact causes
-            # issues if we keep it because it will cause an extra empty array to be
-            # returned.
-            pos = np.cumsum([len(x) for x in paths])
-            pos_segments.append(pos[:-1])
-            pos_level.append(pos[-1])
-    else:
-        paths = cset.get_paths()
-        if len(paths) > 0:
-            all_paths.append(paths)
-            # The last item in pos isn't needed for np.split and in fact causes
-            # issues if we keep it because it will cause an extra empty array to be
-            # returned.
-            pos = np.cumsum([len(x) for x in paths])
-            pos_segments.append(pos[:-1])
-            pos_level.append(pos[-1])
+    for collection in cset.collections:
+        paths = collection.get_paths()
+        if len(paths) == 0:
+            continue
+        all_paths.append(paths)
+        # The last item in pos isn't needed for np.split and in fact causes
+        # issues if we keep it because it will cause an extra empty array to be
+        # returned.
+        pos = np.cumsum([len(x) for x in paths])
+        pos_segments.append(pos[:-1])
+        pos_level.append(pos[-1])
 
     # As above the last item isn't needed
     pos_level = np.cumsum(pos_level)[:-1]

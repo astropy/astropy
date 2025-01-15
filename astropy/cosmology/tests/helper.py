@@ -2,16 +2,22 @@
 
 """
 This module provides the tools used to internally run the cosmology test suite
-from the installed astropy.  It makes use of the |pytest| testing framework.
+from the installed astropy.  It makes use of the `pytest`_ testing framework.
 """
 
+##############################################################################
+# IMPORTS
+
+# STDLIB
 import inspect
 
+# THIRD PARTY
 import pytest
 
+# LOCAL
 from astropy.cosmology import core
 
-__all__ = ["clean_registry", "get_redshift_methods"]
+__all__ = ["get_redshift_methods", "clean_registry"]
 
 ###############################################################################
 # FUNCTIONS
@@ -50,7 +56,7 @@ def get_redshift_methods(cosmology, include_private=True, include_z2=True):
     # Sieve out incompatible methods.
     # The index to check for redshift depends on whether cosmology is a class
     # or instance and does/doesn't include 'self'.
-    iz1 = int(isinstance(cosmology, type))
+    iz1 = 1 if inspect.isclass(cosmology) else 0
     for n in tuple(methods):
         try:
             sig = inspect.signature(getattr(cosmology, n))

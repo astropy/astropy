@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from contextlib import ExitStack
 
 import numpy as np
 import pytest
@@ -16,6 +17,8 @@ from astropy.coordinates import (
 )
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
+from astropy.utils.compat import NUMPY_LT_1_24
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_angle_arrays():
@@ -42,8 +45,18 @@ def test_angle_arrays():
     npt.assert_almost_equal(a6.value, 945.0)
     assert a6.unit is u.degree
 
-    with pytest.raises(ValueError):
-        Angle([a1, a2, a3], unit=u.degree)
+    with ExitStack() as stack:
+        if NUMPY_LT_1_24:
+            stack.enter_context(pytest.raises(TypeError))
+            stack.enter_context(
+                pytest.warns(
+                    DeprecationWarning, match="automatic object dtype is deprecated"
+                )
+            )
+        else:
+            stack.enter_context(pytest.raises(ValueError))
+
+        a7 = Angle([a1, a2, a3], unit=u.degree)
 
     a8 = Angle(["04:02:02", "03:02:01", "06:02:01"], unit=u.degree)
     npt.assert_almost_equal(a8.value, [4.03388889, 3.03361111, 6.03361111])
@@ -52,30 +65,7 @@ def test_angle_arrays():
     npt.assert_almost_equal(a9.value, a8.value)
 
     with pytest.raises(u.UnitsError):
-        Angle(["04:02:02", "03:02:01", "06:02:01"])
-
-
-def test_angle_from_pyarrow():
-    # Creating Angle instances from some array classes (e.g. pyarrow.array) failed
-    # even though creating Quantity instances succeeded.
-    # see https://github.com/astropy/astropy/issues/17255
-    pa = pytest.importorskip("pyarrow")
-
-    input_data = [1.1, 2.2]
-    arr = pa.array(input_data)
-    angle = Angle(arr, "deg")
-    npt.assert_array_equal(angle.value, input_data)
-
-
-def test_angle_from_pandas():
-    # see https://github.com/astropy/astropy/issues/17357
-    pd = pytest.importorskip("pandas")
-
-    input_data = ["10 0 0", "12 0 0"]
-    df = pd.DataFrame({"angle": input_data})
-    angle = Angle(df["angle"], unit=u.hourangle)
-    expected = Angle(input_data, u.hourangle)
-    npt.assert_array_equal(angle.value, expected.value)
+        a10 = Angle(["04:02:02", "03:02:01", "06:02:01"])
 
 
 def test_dms():
@@ -97,6 +87,11 @@ def test_hms():
     hours = hms[0] + hms[1] / 60.0 + hms[2] / 3600.0
     npt.assert_almost_equal(a1.hour, hours)
 
+    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hours"):
+        a2 = Angle(hms, unit=u.hour)
+
+    npt.assert_almost_equal(a2.radian, a1.radian)
+
 
 def test_array_coordinates_creation():
     """
@@ -106,9 +101,9 @@ def test_array_coordinates_creation():
     assert not c.ra.isscalar
 
     with pytest.raises(ValueError):
-        ICRS(np.array([1, 2]) * u.deg, np.array([3, 4, 5]) * u.deg)
+        c = ICRS(np.array([1, 2]) * u.deg, np.array([3, 4, 5]) * u.deg)
     with pytest.raises(ValueError):
-        ICRS(np.array([1, 2, 4, 5]) * u.deg, np.array([[3, 4], [5, 6]]) * u.deg)
+        c = ICRS(np.array([1, 2, 4, 5]) * u.deg, np.array([[3, 4], [5, 6]]) * u.deg)
 
     # make sure cartesian initialization also works
     cart = CartesianRepresentation(
@@ -121,9 +116,9 @@ def test_array_coordinates_creation():
 
     # but invalid strings cannot
     with pytest.raises(ValueError):
-        SkyCoord(Angle(["10m0s", "2h02m00.3s"]), Angle(["3d", "4d"]))
+        c = SkyCoord(Angle(["10m0s", "2h02m00.3s"]), Angle(["3d", "4d"]))
     with pytest.raises(ValueError):
-        SkyCoord(Angle(["1d0m0s", "2h02m00.3s"]), Angle(["3x", "4d"]))
+        c = SkyCoord(Angle(["1d0m0s", "2h02m00.3s"]), Angle(["3x", "4d"]))
 
 
 def test_array_coordinates_distances():
@@ -219,6 +214,23 @@ def test_array_precession():
     npt.assert_array_less(0.05, np.abs(fk5.dec.degree - fk5_2.dec.degree))
 
 
+def test_array_separation():
+    c1 = ICRS([0, 0] * u.deg, [0, 0] * u.deg)
+    c2 = ICRS([1, 2] * u.deg, [0, 0] * u.deg)
+
+    npt.assert_array_almost_equal(c1.separation(c2).degree, [1, 2])
+
+    c3 = ICRS([0, 3.0] * u.deg, [0.0, 0] * u.deg, distance=[1, 1.0] * u.kpc)
+    c4 = ICRS([1, 1.0] * u.deg, [0.0, 0] * u.deg, distance=[1, 1.0] * u.kpc)
+
+    # the 3-1 separation should be twice the 0-1 separation, but not *exactly* the same
+    sep = c3.separation_3d(c4)
+    sepdiff = sep[1] - (2 * sep[0])
+
+    assert abs(sepdiff.value) < 1e-5
+    assert sepdiff != 0
+
+
 def test_array_indexing():
     ra = np.linspace(0, 360, 10)
     dec = np.linspace(-90, 90, 10)
@@ -261,7 +273,7 @@ def test_array_len():
         c = ICRS(0 * u.deg, 0 * u.deg)
         len(c)
 
-    assert c.shape == ()
+    assert c.shape == tuple()
 
 
 def test_array_eq():

@@ -2,21 +2,19 @@
 """
 Contains the transformation functions for getting to "observed" systems from ICRS.
 """
-
 import erfa
 
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.builtin_frames.utils import atciqz, aticq
-from astropy.coordinates.erfa_astrom import erfa_astrom
 from astropy.coordinates.representation import (
     CartesianRepresentation,
     SphericalRepresentation,
     UnitSphericalRepresentation,
 )
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
-from astropy.utils.compat import COPY_IF_NEEDED
 
+from ..erfa_astrom import erfa_astrom
 from .altaz import AltAz
 from .hadec import HADec
 from .icrs import ICRS
@@ -39,7 +37,7 @@ def icrs_to_observed(icrs_coo, observed_frame):
         srepr = icrs_coo.spherical
     else:
         observer_icrs = CartesianRepresentation(
-            astrom["eb"], unit=u.au, xyz_axis=-1, copy=COPY_IF_NEEDED
+            astrom["eb"], unit=u.au, xyz_axis=-1, copy=False
         )
         srepr = (icrs_coo.cartesian - observer_icrs).represent_as(
             SphericalRepresentation
@@ -92,13 +90,10 @@ def observed_to_icrs(observed_coo, icrs_frame):
     # Topocentric CIRS
     cirs_ra, cirs_dec = erfa.atoiq(coord_type, lon, lat, astrom) << u.radian
     if is_unitspherical:
-        srepr = SphericalRepresentation(cirs_ra, cirs_dec, 1, copy=COPY_IF_NEEDED)
+        srepr = SphericalRepresentation(cirs_ra, cirs_dec, 1, copy=False)
     else:
         srepr = SphericalRepresentation(
-            lon=cirs_ra,
-            lat=cirs_dec,
-            distance=observed_coo.distance,
-            copy=COPY_IF_NEEDED,
+            lon=cirs_ra, lat=cirs_dec, distance=observed_coo.distance, copy=False
         )
 
     # BCRS (Astrometric) direction to source
@@ -106,16 +101,13 @@ def observed_to_icrs(observed_coo, icrs_frame):
 
     # Correct for parallax to get ICRS representation
     if is_unitspherical:
-        icrs_srepr = UnitSphericalRepresentation(bcrs_ra, bcrs_dec, copy=COPY_IF_NEEDED)
+        icrs_srepr = UnitSphericalRepresentation(bcrs_ra, bcrs_dec, copy=False)
     else:
         icrs_srepr = SphericalRepresentation(
-            lon=bcrs_ra,
-            lat=bcrs_dec,
-            distance=observed_coo.distance,
-            copy=COPY_IF_NEEDED,
+            lon=bcrs_ra, lat=bcrs_dec, distance=observed_coo.distance, copy=False
         )
         observer_icrs = CartesianRepresentation(
-            astrom["eb"], unit=u.au, xyz_axis=-1, copy=COPY_IF_NEEDED
+            astrom["eb"], unit=u.au, xyz_axis=-1, copy=False
         )
         newrepr = icrs_srepr.to_cartesian() + observer_icrs
         icrs_srepr = newrepr.represent_as(SphericalRepresentation)

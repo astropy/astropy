@@ -1,33 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, TypeVar, overload
-
 from astropy.cosmology import units as cu
 from astropy.io import registry as io_registry
 from astropy.units import add_enabled_units
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-    from typing import Any, Literal
-
-    from astropy.cosmology import Cosmology
-    from astropy.cosmology._io.model import _CosmologyModel
-    from astropy.cosmology._typing import _CosmoT
-    from astropy.table import Row, Table
-
 __all__ = [
-    "CosmologyFromFormat",
     "CosmologyRead",
-    "CosmologyToFormat",
     "CosmologyWrite",
+    "CosmologyFromFormat",
+    "CosmologyToFormat",
 ]
 __doctest_skip__ = __all__
-
-
-# NOTE: private b/c RTD error
-_MT = TypeVar("_MT", bound="Mapping")  # type: ignore[type-arg]
 
 
 # ==============================================================================
@@ -79,10 +62,10 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     -----
     """
 
-    def __init__(self, instance: Cosmology, cosmo_cls: type[Cosmology]) -> None:
+    def __init__(self, instance, cosmo_cls):
         super().__init__(instance, cosmo_cls, "read", registry=readwrite_registry)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Cosmology:
+    def __call__(self, *args, **kwargs):
         from astropy.cosmology.core import Cosmology
 
         # so subclasses can override, also pass the class as a kwarg.
@@ -136,10 +119,10 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
     -----
     """
 
-    def __init__(self, instance: Cosmology, cls: type[Cosmology]) -> None:
+    def __init__(self, instance, cls):
         super().__init__(instance, cls, "write", registry=readwrite_registry)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> None:
+    def __call__(self, *args, **kwargs):
         self.registry.write(self._instance, *args, **kwargs)
 
 
@@ -193,69 +176,13 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     -------
     out : `~astropy.cosmology.Cosmology` subclass instance
         `~astropy.cosmology.Cosmology` corresponding to ``obj`` contents.
+
     """
 
-    def __init__(self, instance: Cosmology, cosmo_cls: type[Cosmology]) -> None:
+    def __init__(self, instance, cosmo_cls):
         super().__init__(instance, cosmo_cls, "read", registry=convert_registry)
 
-    # ===============================================================
-    # __call__ overloads
-    # note: format: ... | None means the format can be auto-detected from the input.
-
-    @overload
-    def __call__(
-        self,
-        obj: _CosmoT,
-        *args: Any,
-        format: Literal["astropy.cosmology"] | None,
-        **kwargs: Any,
-    ) -> _CosmoT: ...
-
-    @overload
-    def __call__(
-        self,
-        obj: _CosmologyModel,
-        *args: Any,
-        format: Literal["astropy.model"] | None,
-        **kwargs: Any,
-    ) -> Cosmology: ...
-
-    @overload
-    def __call__(
-        self, obj: Row, *args: Any, format: Literal["astropy.row"] | None, **kwargs: Any
-    ) -> Cosmology: ...
-
-    @overload
-    def __call__(
-        self,
-        obj: Table,
-        *args: Any,
-        format: Literal["astropy.table"] | None,
-        **kwargs: Any,
-    ) -> Cosmology: ...
-
-    @overload
-    def __call__(
-        self,
-        obj: Mapping[str, Any],
-        *args: Any,
-        format: Literal["mapping"] | None,
-        **kwargs: Any,
-    ) -> Cosmology: ...
-
-    @overload
-    def __call__(
-        self, obj: str, *args: Any, format: Literal["yaml"], **kwargs: Any
-    ) -> Cosmology: ...
-
-    @overload
-    def __call__(
-        self, obj: Any, *args: Any, format: str | None = None, **kwargs: Any
-    ) -> Cosmology: ...
-
-    def __call__(
-        self, obj: Any, *args: Any, format: str | None = None, **kwargs: Any
-    ) -> Cosmology:
+    def __call__(self, obj, *args, format=None, **kwargs):
         from astropy.cosmology.core import Cosmology
 
         # so subclasses can override, also pass the class as a kwarg.
@@ -309,49 +236,11 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
         first argument is the output filename.
     **kwargs
         Keyword arguments passed through to data writer.
+
     """
 
-    def __init__(self, instance: Cosmology, cls: type[Cosmology]) -> None:
+    def __init__(self, instance, cls):
         super().__init__(instance, cls, "write", registry=convert_registry)
 
-    # ===============================================================
-    # __call__ overloads
-
-    @overload
-    def __call__(
-        self, format: Literal["astropy.cosmology"], *args: Any, **kwargs: Any
-    ) -> Cosmology: ...
-
-    @overload
-    def __call__(
-        self, format: Literal["astropy.model"], *args: Any, **kwargs: Any
-    ) -> _CosmologyModel: ...
-
-    @overload
-    def __call__(
-        self, format: Literal["astropy.row"], *args: Any, **kwargs: Any
-    ) -> Row: ...
-
-    @overload
-    def __call__(
-        self, format: Literal["astropy.table"], *args: Any, **kwargs: Any
-    ) -> Table: ...
-
-    @overload  # specific mapping option, where the mapping class is specified.
-    def __call__(
-        self, format: Literal["mapping"], *args: Any, cls: _MT, **kwargs: Any
-    ) -> _MT: ...
-
-    @overload
-    def __call__(
-        self, format: Literal["mapping"], *args: Any, **kwargs: Any
-    ) -> dict[str, Any]: ...
-
-    @overload
-    def __call__(self, format: Literal["yaml"], *args: Any, **kwargs: Any) -> str: ...
-
-    @overload
-    def __call__(self, format: str, *args: Any, **kwargs: Any) -> Any: ...
-
-    def __call__(self, format: str, *args: Any, **kwargs: Any) -> Any:
+    def __call__(self, format, *args, **kwargs):
         return self.registry.write(self._instance, None, *args, format=format, **kwargs)

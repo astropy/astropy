@@ -7,24 +7,12 @@ from numpy.testing import assert_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
 
-STR_PLANETARY_EXPECTED_EMPTY = """
-a_radius:
-b_radius:
-c_radius:
-bdis_obs:
-blon_obs:
-blat_obs:""".lstrip()
-
-
-STR_SOLAR_EXPECTED_EMPTY = """
+STR_EXPECTED_EMPTY = """
 rsun_ref:
 dsun_obs:
 crln_obs:
 hgln_obs:
 hglt_obs:""".lstrip()
-
-
-STR_EXPECTED_EMPTY = STR_SOLAR_EXPECTED_EMPTY + "\n" + STR_PLANETARY_EXPECTED_EMPTY
 
 
 def test_empty():
@@ -34,12 +22,6 @@ def test_empty():
     assert w.wcs.aux.crln_obs is None
     assert w.wcs.aux.hgln_obs is None
     assert w.wcs.aux.hglt_obs is None
-    assert w.wcs.aux.a_radius is None
-    assert w.wcs.aux.b_radius is None
-    assert w.wcs.aux.c_radius is None
-    assert w.wcs.aux.bdis_obs is None
-    assert w.wcs.aux.blon_obs is None
-    assert w.wcs.aux.blat_obs is None
     assert str(w.wcs.aux) == STR_EXPECTED_EMPTY
 
 
@@ -75,16 +57,12 @@ HGLT_OBS=            -6.820544 / [deg] Heliographic latitude of observer
 )
 
 
-STR_EXPECTED_GET = (
-    """
+STR_EXPECTED_GET = """
 rsun_ref: 696000000.000000
 dsun_obs: 147724815128.000000
 crln_obs: 22.814522
 hgln_obs: 8.431123
 hglt_obs: -6.820544""".lstrip()
-    + "\n"
-    + STR_PLANETARY_EXPECTED_EMPTY
-)
 
 
 def test_solar_aux_get():
@@ -97,16 +75,12 @@ def test_solar_aux_get():
     assert str(w.wcs.aux) == STR_EXPECTED_GET
 
 
-STR_EXPECTED_SET = (
-    """
+STR_EXPECTED_SET = """
 rsun_ref: 698000000.000000
 dsun_obs: 140000000000.000000
 crln_obs: 10.000000
 hgln_obs: 30.000000
 hglt_obs: 40.000000""".lstrip()
-    + "\n"
-    + STR_PLANETARY_EXPECTED_EMPTY
-)
 
 
 def test_solar_aux_set():
@@ -188,7 +162,7 @@ def test_unset_aux():
     w.wcs.aux.hglt_obs = None
     assert w.wcs.aux.hglt_obs is None
 
-    assert str(w.wcs.aux) == STR_EXPECTED_EMPTY
+    assert str(w.wcs.aux) == "rsun_ref:\ndsun_obs:\ncrln_obs:\nhgln_obs:\nhglt_obs:"
 
     header = w.to_header()
     assert "RSUN_REF" not in header

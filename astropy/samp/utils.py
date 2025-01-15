@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Utility functions and classes.
+Utility functions and classes
 """
+
 
 import inspect
 import queue
@@ -22,10 +23,9 @@ def internet_on():
     else:
         try:
             urlopen("http://google.com", timeout=1.0)
+            return True
         except Exception:
             return False
-        else:
-            return True
 
 
 __all__ = ["SAMPMsgReplierWrapper"]
@@ -83,6 +83,7 @@ class ServerProxyPool:
 
     def shutdown(self):
         """Shut down the proxy pool by closing all active connections."""
+
         while True:
             try:
                 proxy = self._proxies.get_nowait()

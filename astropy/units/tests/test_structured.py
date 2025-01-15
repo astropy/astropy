@@ -2,7 +2,6 @@
 """
 Test Structured units and quantities.
 """
-
 import copy
 
 import numpy as np
@@ -14,36 +13,37 @@ from astropy import units as u
 from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noqa: F401
 from astropy.units import Quantity, StructuredUnit, Unit, UnitBase
 from astropy.units.quantity import _structured_unit_like_dtype
+from astropy.utils.compat import NUMPY_LT_1_21_1
 from astropy.utils.masked import Masked
 
 
 class StructuredTestBase:
     @classmethod
-    def setup_class(cls):
-        cls.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
-        cls.pv_t_dtype = np.dtype([("pv", cls.pv_dtype), ("t", "f8")])
-        cls.p_unit = u.km
-        cls.v_unit = u.km / u.s
-        cls.t_unit = u.s
-        cls.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
-        cls.pv_t_dtype = np.dtype([("pv", cls.pv_dtype), ("t", "f8")])
-        cls.pv = np.array([(1.0, 0.25), (2.0, 0.5), (3.0, 0.75)], cls.pv_dtype)
-        cls.pv_t = np.array(
+    def setup_class(self):
+        self.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
+        self.pv_t_dtype = np.dtype([("pv", self.pv_dtype), ("t", "f8")])
+        self.p_unit = u.km
+        self.v_unit = u.km / u.s
+        self.t_unit = u.s
+        self.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
+        self.pv_t_dtype = np.dtype([("pv", self.pv_dtype), ("t", "f8")])
+        self.pv = np.array([(1.0, 0.25), (2.0, 0.5), (3.0, 0.75)], self.pv_dtype)
+        self.pv_t = np.array(
             [
                 ((4.0, 2.5), 0.0),
                 ((5.0, 5.0), 1.0),
                 ((6.0, 7.5), 2.0),
             ],
-            cls.pv_t_dtype,
+            self.pv_t_dtype,
         )
 
 
 class StructuredTestBaseWithUnits(StructuredTestBase):
     @classmethod
-    def setup_class(cls):
+    def setup_class(self):
         super().setup_class()
-        cls.pv_unit = StructuredUnit((cls.p_unit, cls.v_unit), ("p", "v"))
-        cls.pv_t_unit = StructuredUnit((cls.pv_unit, cls.t_unit), ("pv", "t"))
+        self.pv_unit = StructuredUnit((self.p_unit, self.v_unit), ("p", "v"))
+        self.pv_t_unit = StructuredUnit((self.pv_unit, self.t_unit), ("pv", "t"))
 
 
 class TestStructuredUnitBasics(StructuredTestBase):
@@ -109,21 +109,6 @@ class TestStructuredUnitBasics(StructuredTestBase):
             'l',
         )  # fmt: skip
 
-        dt = np.dtype(
-            [("t", "f8"),
-             ("pvhd1d2",
-              ([("p", "f8"), ("v", "f8"), ("hd1d2",
-                                           [("h", "f8"), ("d1d2",
-                                                          [("d1", "f8"), ("d2", "f8")]),
-                                            ]),
-                ], (5, 5))),  # Note: structured subarray to improve test!
-             ("l", "f8")
-             ])  # fmt: skip
-
-        su2 = StructuredUnit("(yr,(AU,AU/day,(km,(day,day))),m)", dt)
-        assert su2.field_names == su.field_names
-        assert su2 == su
-
     @pytest.mark.parametrize(
         "names, invalid",
         [
@@ -137,7 +122,7 @@ class TestStructuredUnitBasics(StructuredTestBase):
     )
     def test_initialization_names_invalid_list_errors(self, names, invalid):
         with pytest.raises(ValueError) as exc:
-            StructuredUnit("yr,(AU,AU/day)", names)
+            StructuredUnit("(yr,(AU,AU/day)", names)
         assert f"invalid entry {invalid}" in str(exc)
 
     def test_looks_like_unit(self):
@@ -245,6 +230,7 @@ class TestStructuredUnitsCopyPickle(StructuredTestBaseWithUnits):
         assert su_copy == self.pv_t_unit
         assert su_copy._units is not self.pv_t_unit._units
 
+    @pytest.mark.skipif(NUMPY_LT_1_21_1, reason="https://stackoverflow.com/q/69571643")
     def test_pickle(self, pickle_protocol):  # noqa: F811
         check_pickling_recovery(self.pv_t_unit, pickle_protocol)
 
@@ -289,11 +275,11 @@ class TestStructuredUnitAsMapping(StructuredTestBaseWithUnits):
 
 class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
     def test_physical_type_id(self):
-        pv_ptid = self.pv_unit._physical_type_id
+        pv_ptid = self.pv_unit._get_physical_type_id()
         assert len(pv_ptid) == 2
         assert pv_ptid.dtype.names == ("p", "v")
-        p_ptid = self.pv_unit["p"]._physical_type_id
-        v_ptid = self.pv_unit["v"]._physical_type_id
+        p_ptid = self.pv_unit["p"]._get_physical_type_id()
+        v_ptid = self.pv_unit["v"]._get_physical_type_id()
         # Expected should be (subclass of) void, with structured object dtype.
         expected = np.array((p_ptid, v_ptid), [("p", "O"), ("v", "O")])[()]
         assert pv_ptid == expected
@@ -305,8 +291,8 @@ class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
         assert pv_ptid[0] == p_ptid
         assert pv_ptid[1] == v_ptid
         # More complicated version.
-        pv_t_ptid = self.pv_t_unit._physical_type_id
-        t_ptid = self.t_unit._physical_type_id
+        pv_t_ptid = self.pv_t_unit._get_physical_type_id()
+        t_ptid = self.t_unit._get_physical_type_id()
         assert pv_t_ptid == np.array((pv_ptid, t_ptid), "O,O")[()]
         assert pv_t_ptid["pv"] == pv_ptid
         assert pv_t_ptid["t"] == t_ptid
@@ -628,10 +614,10 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
 
 class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
     @classmethod
-    def setup_class(cls):
+    def setup_class(self):
         super().setup_class()
-        cls.q_pv = cls.pv << cls.pv_unit
-        cls.q_pv_t = cls.pv_t << cls.pv_t_unit
+        self.q_pv = self.pv << self.pv_unit
+        self.q_pv_t = self.pv_t << self.pv_t_unit
 
     def test_empty_like(self):
         z = np.empty_like(self.q_pv)

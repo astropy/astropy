@@ -8,22 +8,21 @@ import numpy as np
 import pytest
 
 from astropy.cosmology import Cosmology, FlatCosmologyMixin, Planck18, cosmology_equal
-from astropy.cosmology._io.tests.base import ToFromTestMixinBase
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.funcs.comparison import (
-    _CANT_BROADCAST,
     _cosmology_not_equal,
     _CosmologyWrapper,
     _parse_format,
     _parse_formats,
 )
+from astropy.cosmology.io.tests.base import ToFromTestMixinBase
 
 
 class ComparisonFunctionTestBase(ToFromTestMixinBase):
     """Tests for cosmology comparison functions.
 
     This class inherits from
-    `astropy.cosmology._io.tests.base.ToFromTestMixinBase` because the cosmology
+    `astropy.cosmology.io.tests.base.ToFromTestMixinBase` because the cosmology
     comparison functions all have a kwarg ``format`` that allow the arguments to
     be converted to a |Cosmology| using the ``to_format`` architecture.
 
@@ -47,9 +46,7 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
 
     @pytest.fixture(
         scope="class",
-        params=sorted(
-            {k for k, _ in convert_registry._readers.keys()} - {"astropy.cosmology"}
-        ),
+        params={k for k, _ in convert_registry._readers.keys()} - {"astropy.cosmology"},
     )
     def format(self, request):
         return request.param
@@ -69,7 +66,8 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
     @pytest.fixture(scope="class")
     def pert_cosmo(self, cosmo):
         # change one parameter
-        p, v = next(iter(cosmo.parameters.items()))
+        p = cosmo.__parameters__[0]
+        v = getattr(cosmo, p)
         cosmo2 = cosmo.clone(
             **{p: v * 1.0001 if v != 0 else 0.001 * getattr(v, "unit", 1)}
         )
@@ -102,7 +100,7 @@ class Test_parse_format(ComparisonFunctionTestBase):
         converted = to_format(format)
 
         # Some raise a segfault! TODO: figure out why
-        if isinstance(converted, _CANT_BROADCAST):
+        if isinstance(converted, _CosmologyWrapper._cantbroadcast):
             converted = _CosmologyWrapper(converted)
 
         return converted
@@ -112,7 +110,7 @@ class Test_parse_format(ComparisonFunctionTestBase):
     def test_shortcut(self, cosmo):
         """Test the already-a-cosmology shortcut."""
         # A Cosmology
-        for fmt in (None, True, False, "astropy.cosmology"):
+        for fmt in {None, True, False, "astropy.cosmology"}:
             assert _parse_format(cosmo, fmt) is cosmo, f"{fmt} failed"
 
         # A Cosmology, but improperly formatted

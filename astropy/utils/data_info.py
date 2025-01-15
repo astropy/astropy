@@ -13,6 +13,7 @@ table column attributes such as name, format, dtype, meta, and description.
 # tests via their use in providing mixin column info, and in
 # astropy/tests/test_info for providing table and column info summary data.
 
+
 import os
 import re
 import sys
@@ -29,12 +30,12 @@ import numpy as np
 from . import metadata
 
 __all__ = [
+    "data_info_factory",
+    "dtype_info_name",
     "BaseColumnInfo",
     "DataInfo",
     "MixinInfo",
     "ParentDtypeInfo",
-    "data_info_factory",
-    "dtype_info_name",
 ]
 
 # Tuple of filterwarnings kwargs to ignore when calling info
@@ -99,8 +100,9 @@ def dtype_info_name(dtype):
     """
     dtype = np.dtype(dtype)
     if dtype.names is not None:
-        info_names = ", ".join(dtype_info_name(dt[0]) for dt in dtype.fields.values())
-        return f"({info_names})"
+        return "({})".format(
+            ", ".join(dtype_info_name(dt[0]) for dt in dtype.fields.values())
+        )
     if dtype.subdtype is not None:
         dtype, shape = dtype.subdtype
     else:
@@ -172,9 +174,25 @@ def data_info_factory(names, funcs):
     return func
 
 
+def _get_obj_attrs_map(obj, attrs):
+    """
+    Get the values for object ``attrs`` and return as a dict.  This
+    ignores any attributes that are None.  In the context of serializing
+    the supported core astropy classes this conversion will succeed and
+    results in more succinct and less python-specific YAML.
+    """
+    out = {}
+    for attr in attrs:
+        val = getattr(obj, attr, None)
+
+        if val is not None:
+            out[attr] = val
+    return out
+
+
 def _get_data_attribute(dat, attr=None):
     """
-    Get a data object attribute for the ``attributes`` info summary method.
+    Get a data object attribute for the ``attributes`` info summary method
     """
     if attr == "class":
         val = type(dat).__name__
@@ -228,11 +246,11 @@ class ParentAttribute:
 
 
 class DataInfoMeta(type):
-    def __new__(cls, name, bases, dct):
+    def __new__(mcls, name, bases, dct):
         # Ensure that we do not gain a __dict__, which would mean
         # arbitrary attributes could be set.
         dct.setdefault("__slots__", [])
-        return super().__new__(cls, name, bases, dct)
+        return super().__new__(mcls, name, bases, dct)
 
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
@@ -286,7 +304,7 @@ class DataInfo(metaclass=DataInfoMeta):
     _attr_defaults = {"dtype": np.dtype("O")}
     _attrs_no_copy = set()
     _info_summary_attrs = ("dtype", "shape", "unit", "format", "description", "class")
-    __slots__ = ["_attrs", "_parent_cls", "_parent_ref"]
+    __slots__ = ["_parent_cls", "_parent_ref", "_attrs"]
     # This specifies the list of object attributes which must be stored in
     # order to re-create the object after serialization.  This is independent
     # of normal `info` attributes like name or description.  Subclasses will
@@ -382,17 +400,13 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
         self._attrs = state
 
     def _represent_as_dict(self, attrs=None):
-        """Get the values for the parent ``attrs`` and return as a dict. This
-        ignores any attributes that are None.  In the context of serializing
-        the supported core astropy classes this conversion will succeed and
-        results in more succinct and less python-specific YAML.
+        """Get the values for the parent ``attrs`` and return as a dict.
+
         By default, uses '_represent_as_dict_attrs'.
         """
-        return {
-            key: val
-            for key in (self._represent_as_dict_attrs if attrs is None else attrs)
-            if (val := getattr(self._parent, key, None)) is not None
-        }
+        if attrs is None:
+            attrs = self._represent_as_dict_attrs
+        return _get_obj_attrs_map(self._parent, attrs)
 
     def _construct_from_dict(self, map):
         args = [map.pop(attr) for attr in self._construct_from_dict_args]
@@ -435,6 +449,7 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
 
         Examples
         --------
+
         >>> from astropy.table import Column
         >>> c = Column([1, 2], unit='m', dtype='int32')
         >>> c.info()
@@ -478,19 +493,17 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
             info["name"] = name
 
         options = option if isinstance(option, (list, tuple)) else [option]
-        for option_ in options:
-            if isinstance(option_, str):
-                if hasattr(self, "info_summary_" + option_):
-                    option_ = getattr(self, "info_summary_" + option_)
+        for option in options:
+            if isinstance(option, str):
+                if hasattr(self, "info_summary_" + option):
+                    option = getattr(self, "info_summary_" + option)
                 else:
-                    raise ValueError(
-                        f"option={option_} is not an allowed information type"
-                    )
+                    raise ValueError(f"{option=} is not an allowed information type")
 
             with warnings.catch_warnings():
                 for ignore_kwargs in IGNORE_WARNINGS:
                     warnings.filterwarnings("ignore", **ignore_kwargs)
-                info.update(option_(dat))
+                info.update(option(dat))
 
         if hasattr(dat, "mask"):
             n_bad = np.count_nonzero(dat.mask)
@@ -523,9 +536,9 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
 
 
 class BaseColumnInfo(DataInfo):
-    """Base info class for anything that can be a column in an astropy Table.
-
-    There are at least two classes that inherit from this:
+    """
+    Base info class for anything that can be a column in an astropy
+    Table.  There are at least two classes that inherit from this:
 
       ColumnInfo: for native astropy Column / MaskedColumn objects
       MixinInfo: for mixin column objects
@@ -544,7 +557,7 @@ class BaseColumnInfo(DataInfo):
     # like Time or SkyCoord will have different default serialization
     # representations depending on context.
     _serialize_context = None
-    __slots__ = ["_copy_indices", "_format_funcs"]
+    __slots__ = ["_format_funcs", "_copy_indices"]
 
     @property
     def parent_table(self):
@@ -794,6 +807,6 @@ class MixinInfo(BaseColumnInfo):
 
 
 class ParentDtypeInfo(MixinInfo):
-    """Mixin that gets info.dtype from parent."""
+    """Mixin that gets info.dtype from parent"""
 
     attrs_from_parent = {"dtype"}  # dtype and unit taken from parent

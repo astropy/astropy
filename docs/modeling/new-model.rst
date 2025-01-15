@@ -27,25 +27,25 @@ of two Gaussians:
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling.models import custom_model
-    from astropy.modeling.fitting import TRFLSQFitter
+    from astropy.modeling.fitting import LevMarLSQFitter
 
     # Define model
     @custom_model
-    def sum_of_gaussians(x, amplitude1=1.0, mean1=-1.0, sigma1=1.0,
-                            amplitude2=1.0, mean2=1.5, sigma2=1.0):
+    def sum_of_gaussians(x, amplitude1=1., mean1=-1., sigma1=1.,
+                            amplitude2=1., mean2=1., sigma2=1.):
         return (amplitude1 * np.exp(-0.5 * ((x - mean1) / sigma1)**2) +
                 amplitude2 * np.exp(-0.5 * ((x - mean2) / sigma2)**2))
 
-    # Generate fake data with some noise
+    # Generate fake data
     rng = np.random.default_rng(0)
     x = np.linspace(-5., 5., 200)
     m_ref = sum_of_gaussians(amplitude1=2., mean1=-0.5, sigma1=0.4,
                              amplitude2=0.5, mean2=2., sigma2=1.0)
-    y = m_ref(x) + rng.normal(0., 0.05, x.shape)
+    y = m_ref(x) + rng.normal(0., 0.1, x.shape)
 
     # Fit model to data
     m_init = sum_of_gaussians()
-    fit = TRFLSQFitter()
+    fit = LevMarLSQFitter()
     m = fit(m_init, x, y)
 
     # Plot the data and the best fit
@@ -87,9 +87,6 @@ define a "validator" method for each parameter, enabling custom code to check
 whether that parameter's value is valid according to the model definition (for
 example if it must be non-negative).  See the example in
 `Parameter.validator <astropy.modeling.Parameter.validator>` for more details.
-Note, that if pickling the model is important the validator function should be
-assigned directly to the instance ``Parameter._validator`` instead of using
-the decorator.
 
 ::
 

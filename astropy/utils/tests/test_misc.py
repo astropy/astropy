@@ -10,9 +10,7 @@ import numpy as np
 import pytest
 
 from astropy.io import fits
-from astropy.tests.helper import CI
 from astropy.utils import data, misc
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_isiterable():
@@ -23,13 +21,19 @@ def test_isiterable():
     assert misc.isiterable(np.array([1, 2, 3])) is True
 
 
+def test_signal_number_to_name_no_failure():
+    # Regression test for #5340: ensure signal_number_to_name throws no
+    # AttributeError (it used ".iteritems()" which was removed in Python3).
+    misc.signal_number_to_name(0)
+
+
 @pytest.mark.remote_data
 def test_api_lookup():
     try:
         strurl = misc.find_api_page("astropy.utils.misc", "dev", False, timeout=5)
         objurl = misc.find_api_page(misc, "dev", False, timeout=5)
-    except (urllib.error.URLError, TimeoutError):
-        if CI:
+    except urllib.error.URLError:
+        if os.environ.get("CI", False):
             pytest.xfail("Timed out in CI")
         else:
             raise
@@ -37,25 +41,17 @@ def test_api_lookup():
     assert strurl == objurl
     assert (
         strurl
-        == "http://devdocs.astropy.org/utils/ref_api.html#module-astropy.utils.misc"
+        == "http://devdocs.astropy.org/utils/index.html#module-astropy.utils.misc"
     )
 
     # Try a non-dev version
-    objurl = misc.find_api_page(misc, "stable", False, timeout=3)
+    objurl = misc.find_api_page(misc, "v3.2.1", False, timeout=3)
     assert (
         objurl
-        == "https://docs.astropy.org/en/stable/utils/ref_api.html#module-astropy.utils.misc"
+        == "https://docs.astropy.org/en/v3.2.1/utils/index.html#module-astropy.utils.misc"
     )
 
 
-def test_is_path_hidden_deprecation():
-    with pytest.warns(
-        AstropyDeprecationWarning, match="^The is_path_hidden function is deprecated"
-    ):
-        misc.is_path_hidden("data")
-
-
-# This is the only test that uses astropy/utils/tests/data/.hidden_file.txt
 def test_skip_hidden():
     path = data.get_pkg_data_path("data")
     for root, dirs, files in os.walk(path):
@@ -64,13 +60,11 @@ def test_skip_hidden():
         # break after the first level since the data dir contains some other
         # subdirectories that don't have these files
         break
-    with pytest.warns(
-        AstropyDeprecationWarning, match="^The .*_hidden function is deprecated"
-    ):
-        for root, dirs, files in misc.walk_skip_hidden(path):
-            assert ".hidden_file.txt" not in files
-            assert "local.dat" in files
-            break
+
+    for root, dirs, files in misc.walk_skip_hidden(path):
+        assert ".hidden_file.txt" not in files
+        assert "local.dat" in files
+        break
 
 
 def test_JsonCustomEncoder():
@@ -78,7 +72,7 @@ def test_JsonCustomEncoder():
 
     assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == "[0, 1, 2]"
     assert json.dumps(1 + 2j, cls=misc.JsonCustomEncoder) == "[1.0, 2.0]"
-    assert json.dumps({1, 2}, cls=misc.JsonCustomEncoder) == "[1, 2]"
+    assert json.dumps({1, 2, 1}, cls=misc.JsonCustomEncoder) == "[1, 2]"
     assert (
         json.dumps(b"hello world \xc3\x85", cls=misc.JsonCustomEncoder)
         == '"hello world \\u00c5"'
@@ -159,13 +153,3 @@ def test_dtype_bytes_or_chars():
     assert misc.dtype_bytes_or_chars(np.dtype(np.int32)) == 4
     assert misc.dtype_bytes_or_chars(np.array(b"12345").dtype) == 5
     assert misc.dtype_bytes_or_chars(np.array("12345").dtype) == 5
-
-
-def test_indent_deprecation():
-    with pytest.warns(AstropyDeprecationWarning, match=r"Use textwrap\.indent"):
-        misc.indent("Obsolete since Python 3.3")
-
-
-def test_format_exception_deprecation():
-    with pytest.warns(AstropyDeprecationWarning):
-        misc.format_exception("this is deprecated")

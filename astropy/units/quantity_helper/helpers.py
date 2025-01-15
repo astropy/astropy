@@ -11,19 +11,13 @@ from fractions import Fraction
 
 import numpy as np
 
-from astropy.units.core import dimensionless_unscaled, unit_scale_converter
-from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
-from astropy.utils.compat.numpycompat import (
-    NUMPY_LT_2_0,
-    NUMPY_LT_2_1,
-    NUMPY_LT_2_2,
-    NUMPY_LT_2_3,
+from astropy.units.core import (
+    UnitConversionError,
+    UnitsError,
+    UnitTypeError,
+    dimensionless_unscaled,
+    unit_scale_converter,
 )
-
-if NUMPY_LT_2_0:
-    from numpy.core import umath as np_umath
-else:
-    from numpy._core import umath as np_umath
 
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 
@@ -36,27 +30,9 @@ def _d(unit):
 
 
 def get_converter(from_unit, to_unit):
-    """Like Unit.get_converter, except returns None if no scaling is needed,
-    i.e., if the inferred scale is unity.
-    """
-    try:
-        converter = from_unit.get_converter(to_unit)
-    except AttributeError as exc:
-        # Check for lack of unit only now, to avoid delay for cases where a unit
-        # was present. Note that cases where dimensionless is expected are
-        # already short-circuited; here, we cover just the case where, e.g., the
-        # user has done u.add_enabled_equivalencies(u.dimensionless_angles()).
-        if from_unit is not None:  # pragma: no cover
-            raise
-        try:
-            converter = dimensionless_unscaled.get_converter(to_unit)
-        except UnitsError:
-            exc.add_note(
-                "Input without a 'unit' attribute? Such input is treated "
-                f"as dimensionless and cannot be converted to {to_unit}."
-            )
-            raise exc
-
+    """Like Unit._get_converter, except returns None if no scaling is needed,
+    i.e., if the inferred scale is unity."""
+    converter = from_unit._get_converter(to_unit)
     return None if converter is unit_scale_converter else converter
 
 
@@ -377,53 +353,6 @@ UNSUPPORTED_UFUNCS |= {
     np.lcm,
 }
 
-if not NUMPY_LT_2_0:
-    # string utilities - make no sense for Quantity.
-    UNSUPPORTED_UFUNCS |= {
-        np.bitwise_count,
-        np._core.umath.count,
-        np._core.umath.isalpha,
-        np._core.umath.isdigit,
-        np._core.umath.isspace,
-        np._core.umath.isnumeric,
-        np._core.umath.isdecimal,
-        np._core.umath.isalnum,
-        np._core.umath.istitle,
-        np._core.umath.islower,
-        np._core.umath.isupper,
-        np._core.umath.index,
-        np._core.umath.rindex,
-        np._core.umath.startswith,
-        np._core.umath.endswith,
-        np._core.umath.find,
-        np._core.umath.rfind,
-        np._core.umath.str_len,
-        np._core.umath._strip_chars,
-        np._core.umath._lstrip_chars,
-        np._core.umath._rstrip_chars,
-        np._core.umath._strip_whitespace,
-        np._core.umath._lstrip_whitespace,
-        np._core.umath._rstrip_whitespace,
-        np._core.umath._replace,
-        np._core.umath._expandtabs,
-        np._core.umath._expandtabs_length,
-    }
-if not NUMPY_LT_2_1:
-    UNSUPPORTED_UFUNCS |= {
-        np._core.umath._ljust,
-        np._core.umath._rjust,
-        np._core.umath._center,
-        np._core.umath._zfill,
-        np._core.umath._partition_index,
-        np._core.umath._rpartition,
-        np._core.umath._rpartition_index,
-        np._core.umath._partition,
-    }
-if not NUMPY_LT_2_3:
-    UNSUPPORTED_UFUNCS |= {
-        np._core.umath._slice,
-    }
-
 # SINGLE ARGUMENT UFUNCS
 
 # ufuncs that do not care about the unit and do not return a Quantity
@@ -462,8 +391,8 @@ dimensionless_to_dimensionless_ufuncs = (
 # Default numpy does not ship an "erf" ufunc, but some versions hacked by
 # intel do.  This is bad, since it means code written for that numpy will
 # not run on non-hacked numpy.  But still, we might as well support it.
-if isinstance(getattr(np_umath, "erf", None), np.ufunc):
-    dimensionless_to_dimensionless_ufuncs += (np_umath.erf,)
+if isinstance(getattr(np.core.umath, "erf", None), np.ufunc):
+    dimensionless_to_dimensionless_ufuncs += (np.core.umath.erf,)
 
 for ufunc in dimensionless_to_dimensionless_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
@@ -500,7 +429,7 @@ UFUNC_HELPERS[np.sqrt] = helper_sqrt
 UFUNC_HELPERS[np.square] = helper_square
 UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
 UFUNC_HELPERS[np.cbrt] = helper_cbrt
-UFUNC_HELPERS[np_umath._ones_like] = helper__ones_like
+UFUNC_HELPERS[np.core.umath._ones_like] = helper__ones_like
 UFUNC_HELPERS[np.modf] = helper_modf
 UFUNC_HELPERS[np.frexp] = helper_frexp
 
@@ -545,19 +474,15 @@ for ufunc in twoarg_comparison_ufuncs:
 # two argument ufuncs that do inverse trigonometry
 twoarg_invtrig_ufuncs = (np.arctan2,)
 # another private function in numpy; use getattr in case it disappears
-if isinstance(getattr(np_umath, "_arg", None), np.ufunc):
-    twoarg_invtrig_ufuncs += (np_umath._arg,)
+if isinstance(getattr(np.core.umath, "_arg", None), np.ufunc):
+    twoarg_invtrig_ufuncs += (np.core.umath._arg,)
 for ufunc in twoarg_invtrig_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_twoarg_invtrig
 
 # ufuncs handled as special cases
 UFUNC_HELPERS[np.multiply] = helper_multiplication
-UFUNC_HELPERS[np.matmul] = helper_multiplication
-if not NUMPY_LT_2_0:
-    UFUNC_HELPERS[np.vecdot] = helper_multiplication
-if not NUMPY_LT_2_2:
-    UFUNC_HELPERS[np.vecmat] = helper_multiplication
-    UFUNC_HELPERS[np.matvec] = helper_multiplication
+if isinstance(getattr(np, "matmul", None), np.ufunc):
+    UFUNC_HELPERS[np.matmul] = helper_multiplication
 UFUNC_HELPERS[np.divide] = helper_division
 UFUNC_HELPERS[np.true_divide] = helper_division
 UFUNC_HELPERS[np.power] = helper_power
@@ -568,7 +493,7 @@ UFUNC_HELPERS[np.heaviside] = helper_heaviside
 UFUNC_HELPERS[np.float_power] = helper_power
 UFUNC_HELPERS[np.divmod] = helper_divmod
 # Check for clip ufunc; note that np.clip is a wrapper function, not the ufunc.
-if isinstance(getattr(np_umath, "clip", None), np.ufunc):
-    UFUNC_HELPERS[np_umath.clip] = helper_clip
+if isinstance(getattr(np.core.umath, "clip", None), np.ufunc):
+    UFUNC_HELPERS[np.core.umath.clip] = helper_clip
 
 del ufunc

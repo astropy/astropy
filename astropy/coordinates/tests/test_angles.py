@@ -9,17 +9,15 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 import astropy.units as u
-from astropy.coordinates import (
-    Angle,
+from astropy.coordinates.angles import Angle, Latitude, Longitude
+from astropy.coordinates.errors import (
     IllegalHourError,
     IllegalMinuteError,
     IllegalMinuteWarning,
     IllegalSecondError,
     IllegalSecondWarning,
-    Latitude,
-    Longitude,
 )
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_create_angles():
@@ -48,6 +46,11 @@ def test_create_angles():
 
     a10 = Angle(3.60827466667, unit=u.hour)
     a11 = Angle("3:36:29.7888000120", unit=u.hour)
+    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hour"):
+        a12 = Angle((3, 36, 29.7888000120), unit=u.hour)  # *must* be a tuple
+    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hour"):
+        # Regression test for #5001
+        a13 = Angle((3, 36, 29.7888000120), unit="hour")
 
     Angle(0.944644098745, unit=u.radian)
 
@@ -90,32 +93,32 @@ def test_create_angles():
     assert_allclose(a5.radian, a6.radian)
 
     assert_allclose(a10.degree, a11.degree)
-    assert a11 == a14
+    assert a11 == a12 == a13 == a14
     assert a21 == a22
     assert a23 == -a24
     assert a24 == a25
 
     # check for illegal ranges / values
     with pytest.raises(IllegalSecondError):
-        Angle("12 32 99", unit=u.degree)
+        a = Angle("12 32 99", unit=u.degree)
 
     with pytest.raises(IllegalMinuteError):
-        Angle("12 99 23", unit=u.degree)
+        a = Angle("12 99 23", unit=u.degree)
 
     with pytest.raises(IllegalSecondError):
-        Angle("12 32 99", unit=u.hour)
+        a = Angle("12 32 99", unit=u.hour)
 
     with pytest.raises(IllegalMinuteError):
-        Angle("12 99 23", unit=u.hour)
+        a = Angle("12 99 23", unit=u.hour)
 
     with pytest.raises(IllegalHourError):
-        Angle("99 25 51.0", unit=u.hour)
+        a = Angle("99 25 51.0", unit=u.hour)
 
     with pytest.raises(ValueError):
-        Angle("12 25 51.0xxx", unit=u.hour)
+        a = Angle("12 25 51.0xxx", unit=u.hour)
 
     with pytest.raises(ValueError):
-        Angle("12h34321m32.2s")
+        a = Angle("12h34321m32.2s")
 
     assert a1 is not None
 
@@ -203,37 +206,13 @@ def test_angle_methods():
     a_var = a.var()
     assert type(a_var) is u.Quantity
     assert a_var == 1.0 * u.degree**2
-    if NUMPY_LT_2_0:
-        # np.ndarray.ptp() method removed in numpy 2.0.
-        a_ptp = a.ptp()
-        assert type(a_ptp) is Angle
-        assert a_ptp == 2.0 * u.degree
+    a_ptp = a.ptp()
+    assert type(a_ptp) is Angle
+    assert a_ptp == 2.0 * u.degree
     a_max = a.max()
     assert type(a_max) is Angle
     assert a_max == 2.0 * u.degree
     a_min = a.min()
-    assert type(a_min) is Angle
-    assert a_min == 0.0 * u.degree
-
-
-def test_angle_nan_functions():
-    # Most numpy functions tested as part of the Quantity tests.
-    # But check that we drop to Quantity when appropriate; see
-    # https://github.com/astropy/astropy/pull/17221#discussion_r1813060768
-    a = Angle([0.0, 2.0, np.nan], "deg")
-    a_mean = np.nanmean(a)
-    assert type(a_mean) is Angle
-    assert a_mean == 1.0 * u.degree
-    a_std = np.nanstd(a)
-    assert type(a_std) is Angle
-    assert a_std == 1.0 * u.degree
-    a_var = np.nanvar(a)
-    assert type(a_var) is u.Quantity
-    assert a_var == 1.0 * u.degree**2
-    a_max = np.nanmax(a)
-    assert type(a_max) is Angle
-    assert a_max == 2.0 * u.degree
-    a_min = np.nanmin(a)
     assert type(a_min) is Angle
     assert a_min == 0.0 * u.degree
 
@@ -373,7 +352,7 @@ def test_angle_formatting():
         f"Angle as DMS: {angle.to_string(unit=u.degree, precision=4, pad=True)}" == res
     )
 
-    res = "Angle as rad: 0.0629763 rad"
+    res = "Angle as rad: 0.0629763rad"
     assert f"Angle as rad: {angle.to_string(unit=u.radian)}" == res
 
     res = "Angle as rad decimal: 0.0629763"
@@ -403,23 +382,6 @@ def test_to_string_vector():
     )
     assert Angle([1.0 / 7.0], unit="deg").to_string()[0] == "0d08m34.28571429s"
     assert Angle(1.0 / 7.0, unit="deg").to_string() == "0d08m34.28571429s"
-
-
-@pytest.mark.parametrize(
-    "unit, sep, expected_string",
-    [
-        ("deg", "fromunit", "15d00m00s"),
-        ("deg", "dms", "15d00m00s"),
-        ("deg", "hms", "1h00m00s"),
-        ("hourangle", "fromunit", "15h00m00s"),
-        ("hourangle", "dms", "225d00m00s"),
-        ("hourangle", "hms", "15h00m00s"),
-    ],
-)
-def test_angle_to_string_seps(unit, sep, expected_string):
-    # see https://github.com/astropy/astropy/issues/11280
-    a = Angle(15, unit)
-    assert a.to_string(sep=sep) == expected_string
 
 
 def test_angle_format_roundtripping():
@@ -463,9 +425,9 @@ def test_radec():
     """
 
     with pytest.raises(u.UnitsError):
-        Longitude("4:08:15.162342")  # error - hours or degrees?
+        ra = Longitude("4:08:15.162342")  # error - hours or degrees?
     with pytest.raises(u.UnitsError):
-        Longitude("-4:08:15.162342")
+        ra = Longitude("-4:08:15.162342")
 
     # the "smart" initializer allows >24 to automatically do degrees, but the
     # Angle-based one does not
@@ -474,20 +436,29 @@ def test_radec():
     # ra = Longitude("26:34:15.345634")  # unambiguous b/c hours don't go past 24
     # assert_allclose(ra.degree, 26.570929342)
     with pytest.raises(u.UnitsError):
-        Longitude("26:34:15.345634")
+        ra = Longitude("26:34:15.345634")
 
     # ra = Longitude(68)
     with pytest.raises(u.UnitsError):
-        Longitude(68)
+        ra = Longitude(68)
 
     with pytest.raises(u.UnitsError):
-        Longitude(12)
+        ra = Longitude(12)
 
     with pytest.raises(ValueError):
-        Longitude("garbage containing a d and no units")
+        ra = Longitude("garbage containing a d and no units")
 
     ra = Longitude("12h43m23s")
     assert_allclose(ra.hour, 12.7230555556)
+
+    # TODO: again, fix based on >24 behavior
+    # ra = Longitude((56,14,52.52))
+    with pytest.raises(u.UnitsError):
+        ra = Longitude((56, 14, 52.52))
+    with pytest.raises(u.UnitsError):
+        ra = Longitude((12, 14, 52))  # ambiguous w/o units
+    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hours"):
+        ra = Longitude((12, 14, 52), unit=u.hour)
 
     # Units can be specified
     ra = Longitude("4:08:15.162342", unit=u.hour)
@@ -497,7 +468,7 @@ def test_radec():
     # nearly always specified in degrees, so this is the default.
     # dec = Latitude("-41:08:15.162342")
     with pytest.raises(u.UnitsError):
-        Latitude("-41:08:15.162342")
+        dec = Latitude("-41:08:15.162342")
     dec = Latitude("-41:08:15.162342", unit=u.degree)  # same as above
 
 
@@ -617,9 +588,9 @@ def test_angle_string():
     a = Angle("00:00:59W", u.hour)
     assert str(a) == "-0h00m59s"
     a = Angle(3.2, u.radian)
-    assert str(a) == "3.2 rad"
+    assert str(a) == "3.2rad"
     a = Angle(4.2, u.microarcsecond)
-    assert str(a) == "4.2 uarcsec"
+    assert str(a) == "4.2uarcsec"
     a = Angle("1.0uarcsec")
     assert a.value == 1.0
     assert a.unit == u.microarcsecond
@@ -716,13 +687,10 @@ def test_wrap_at_inplace():
 
 
 def test_latitude():
-    """Test input validation for setting Latitude angles."""
-
-    lim_exc = r"Latitude angle\(s\) must be within -90 deg <= angle <= 90 deg, got"
-    with pytest.raises(ValueError, match=rf"{lim_exc} \[91. 89.\] deg"):
-        Latitude([91, 89] * u.deg)
-    with pytest.raises(ValueError, match=f"{lim_exc} -91.0 deg"):
-        Latitude("-91d")
+    with pytest.raises(ValueError):
+        lat = Latitude(["91d", "89d"])
+    with pytest.raises(ValueError):
+        lat = Latitude("-91d")
 
     lat = Latitude(["90d", "89d"])
     # check that one can get items
@@ -734,31 +702,20 @@ def test_latitude():
     lat[1] = 45.0 * u.deg
     assert np.all(lat == Angle(["90d", "45d"]))
     # but not with values out of range
-    with pytest.raises(ValueError, match=f"{lim_exc} 90.001 deg"):
+    with pytest.raises(ValueError):
         lat[0] = 90.001 * u.deg
-    with pytest.raises(ValueError, match=f"{lim_exc} -90.001 deg"):
+    with pytest.raises(ValueError):
         lat[0] = -90.001 * u.deg
     # these should also not destroy input (#1851)
     assert np.all(lat == Angle(["90d", "45d"]))
 
-    # Check error message for long-ish input arrays (#13994).
-    with pytest.raises(
-        ValueError, match=rf"{lim_exc} -143.239\d* deg <= angle <= 171.887\d* deg"
-    ):
-        lat = Latitude([0, 1, 2, 3, -2.5, -1, -0.5] * u.radian)
-
-
-def test_latitude_manipulation():
-    """Test value manipulation operations on Latitude angles."""
-
-    lat = Latitude(["90d", "-29d"])
     # conserve type on unit change (closes #1423)
     angle = lat.to("radian")
     assert type(angle) is Latitude
     # but not on calculations
     angle = lat - 190 * u.deg
     assert type(angle) is Angle
-    assert_allclose(angle, [-100, -219] * u.deg)
+    assert angle[0] == -100 * u.deg
 
     lat = Latitude("80d")
     angle = lat / 2.0
@@ -773,47 +730,32 @@ def test_latitude_manipulation():
     assert type(angle) is Angle
     assert angle == -80 * u.deg
 
-
-def test_lon_as_lat():
-    """Test validation when trying to interoperate with longitudes."""
-
-    lon = Longitude(10, "deg")
+    # Test errors when trying to interoperate with longitudes.
     with pytest.raises(
         TypeError, match="A Latitude angle cannot be created from a Longitude angle"
     ):
-        Latitude(lon)
+        lon = Longitude(10, "deg")
+        lat = Latitude(lon)
 
     with pytest.raises(
         TypeError, match="A Longitude angle cannot be assigned to a Latitude angle"
     ):
+        lon = Longitude(10, "deg")
         lat = Latitude([20], "deg")
         lat[0] = lon
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
+    lon = Longitude(10, "deg")
     lat = Latitude(Angle(lon))
     assert lat.value == 10.0
-
     # Check setitem.
+    lon = Longitude(10, "deg")
     lat = Latitude([20], "deg")
     lat[0] = Angle(lon)
     assert lat.value[0] == 10.0
 
 
-@pytest.mark.parametrize("lon", ["12.3dW", "12h13m12sE", ["1d", "1dW"]])
-def test_lon_as_lat_str(lon):
-    with pytest.raises(TypeError, match="Latitude.*cannot be created from a Longitude"):
-        Latitude(lon)
-
-
-@pytest.mark.parametrize("lat", ["12.3dN", "12d13m12sS", ["1d", "1dS"]])
-def test_lat_as_lon_str(lat):
-    with pytest.raises(TypeError, match="Longitude.*cannot be created from a Latitude"):
-        Longitude(lat)
-
-
 def test_longitude():
-    """Test setting and manipulation operations on Longitude angles."""
-
     # Default wrapping at 360d with an array input
     lon = Longitude(["370d", "88d"])
     assert np.all(lon == Longitude(["10d", "88d"]))
@@ -891,28 +833,26 @@ def test_longitude():
     assert Longitude(0, u.deg, dtype=float).dtype == np.dtype(float)
     assert Longitude(0, u.deg, dtype=int).dtype == np.dtype(int)
 
-
-def test_lat_as_lon():
-    """Test validation when trying to interoperate with latitudes."""
-
-    lat = Latitude(10, "deg")
     # Test errors when trying to interoperate with latitudes.
     with pytest.raises(
         TypeError, match="A Longitude angle cannot be created from a Latitude angle"
     ):
-        Longitude(lat)
+        lat = Latitude(10, "deg")
+        lon = Longitude(lat)
 
     with pytest.raises(
         TypeError, match="A Latitude angle cannot be assigned to a Longitude angle"
     ):
+        lat = Latitude(10, "deg")
         lon = Longitude([20], "deg")
         lon[0] = lat
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
+    lat = Latitude(10, "deg")
     lon = Longitude(Angle(lat))
     assert lon.value == 10.0
-
     # Check setitem.
+    lat = Latitude(10, "deg")
     lon = Longitude([20], "deg")
     lon[0] = Angle(lat)
     assert lon.value[0] == 10.0
@@ -986,12 +926,15 @@ def test_empty_sep():
     assert a.to_string(sep="", precision=2, pad=True) == "050431.94"
 
 
-@pytest.mark.parametrize("angle_class", [Angle, Longitude])
-@pytest.mark.parametrize("unit", [u.hourangle, u.hour, None])
-def test_create_tuple_fail(angle_class, unit):
-    """Creating an angle from an (h,m,s) tuple should fail."""
-    with pytest.raises(TypeError, match="no longer supported"):
-        angle_class((12, 14, 52), unit=unit)
+def test_create_tuple():
+    """
+    Tests creation of an angle with an (h,m,s) tuple
+
+    (d, m, s) tuples are not tested because of sign ambiguity issues (#13162)
+    """
+    with pytest.warns(AstropyDeprecationWarning, match="hms_to_hours"):
+        a1 = Angle((1, 30, 0), unit=u.hourangle)
+    assert a1.value == 1.5
 
 
 def test_list_of_quantities():
@@ -1096,7 +1039,7 @@ def test_angle_with_cds_units_enabled():
     https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
     """
     # the problem is with the parser, so remove it temporarily
-    from astropy.coordinates.angles.formats import _AngleParser
+    from astropy.coordinates.angle_formats import _AngleParser
     from astropy.units import cds
 
     del _AngleParser._thread_local._parser
@@ -1153,8 +1096,8 @@ def test_angle_multithreading():
             "[nan, nan, nan] hourangle",
         ),
         (np.nan * u.rad, "nan", "nan rad"),
-        ([np.nan, 1, 0] * u.rad, "[nan 1 rad 0 rad]", "[nan, 1., 0.] rad"),
-        ([1.50, np.nan, 0] * u.rad, "[1.5 rad nan 0 rad]", "[1.5, nan, 0.] rad"),
+        ([np.nan, 1, 0] * u.rad, "[nan 1rad 0rad]", "[nan, 1., 0.] rad"),
+        ([1.50, np.nan, 0] * u.rad, "[1.5rad nan 0rad]", "[1.5, nan, 0.] rad"),
         ([np.nan, np.nan, np.nan] * u.rad, "[nan nan nan]", "[nan, nan, nan] rad"),
     ],
 )
@@ -1167,32 +1110,6 @@ def test_str_repr_angles_nan(cls, input, expstr, exprepr):
     # Deleting whitespaces since repr appears to be adding them for some values
     # making the test fail.
     assert repr(q).replace(" ", "") == f"<{cls.__name__}{exprepr}>".replace(" ", "")
-
-
-@pytest.mark.parametrize("sign", (-1, 1))
-@pytest.mark.parametrize(
-    "value,expected_value,dtype,expected_dtype",
-    [
-        (np.pi * 2, 0.0, None, np.float64),
-        (np.pi * 2, 0.0, np.float64, np.float64),
-        (np.float32(2 * np.pi), np.float32(0.0), None, np.float32),
-        (np.float32(2 * np.pi), np.float32(0.0), np.float32, np.float32),
-    ],
-)
-def test_longitude_wrap(value, expected_value, dtype, expected_dtype, sign):
-    """
-    Test that the wrapping of the Longitude value range in radians works
-    in both float32 and float64.
-    """
-    # This prevents upcasting to float64 as sign * value would do.
-    if sign < 0:
-        value = -value
-        expected_value = -expected_value
-
-    result = Longitude(value, u.rad, dtype=dtype)
-    assert result.value == expected_value
-    assert result.dtype == expected_dtype
-    assert result.unit == u.rad
 
 
 @pytest.mark.parametrize("sign", (-1, 1))
@@ -1214,7 +1131,7 @@ def test_latitude_limits(value, expected_value, dtype, expected_dtype, sign):
     Test that the validation of the Latitude value range in radians works
     in both float32 and float64.
 
-    As discussed in issue #13708, before, the float32 representation of pi/2
+    As discussed in issue #13708, before, the float32 represenation of pi/2
     was rejected as invalid because the comparison always used the float64
     representation.
     """
@@ -1234,7 +1151,6 @@ def test_latitude_limits(value, expected_value, dtype, expected_dtype, sign):
     [
         (0.50001 * np.pi, np.float32),
         (np.float32(0.50001 * np.pi), np.float32),
-        (np.float32(-0.50001 * np.pi), np.float32),
         (0.50001 * np.pi, np.float64),
     ],
 )
@@ -1243,11 +1159,7 @@ def test_latitude_out_of_limits(value, dtype):
     Test that values slightly larger than pi/2 are rejected for different dtypes.
     Test cases for issue #13708
     """
-    with pytest.raises(
-        ValueError,
-        match=r"Latitude angle\(s\) must be within -90 deg "
-        r"<= angle <= 90 deg, got -?90.001\d* deg",
-    ):
+    with pytest.raises(ValueError, match=r"Latitude angle\(s\) must be within.*"):
         Latitude(value, u.rad, dtype=dtype)
 
 

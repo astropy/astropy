@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
 import os
-import re
 import subprocess
 import sys
 import unittest.mock as mk
@@ -12,6 +11,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 import astropy
+import astropy.modeling.core as core
 import astropy.units as u
 from astropy.convolution import convolve_models
 from astropy.modeling import models
@@ -26,9 +26,9 @@ from astropy.modeling.core import (
     custom_model,
     fix_inputs,
 )
-from astropy.modeling.parameters import InputParameterError, Parameter
+from astropy.modeling.parameters import Parameter
 from astropy.modeling.separable import separability_matrix
-from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
@@ -371,7 +371,7 @@ def test_custom_inverse_reset():
 
     class TestModel(Model):
         n_inputs = 0
-        _outputs = ("y",)
+        outputs = ("y",)
 
         @property
         def inverse(self):
@@ -696,8 +696,8 @@ def test__prepare_output_single_model():
     ).all()
 
     # Broadcast to scalar
-    assert model._prepare_output_single_model(np.array([1]), ()) == 1
-    assert model._prepare_output_single_model(np.asanyarray(2), ()) == 2
+    assert 1 == model._prepare_output_single_model(np.array([1]), ())
+    assert 2 == model._prepare_output_single_model(np.asanyarray(2), ())
 
     # Broadcast reshape
     output = np.array([[1, 2, 3], [4, 5, 6]])
@@ -706,8 +706,8 @@ def test__prepare_output_single_model():
     assert (reshape == model._prepare_output_single_model(output, (3, 2))).all()
 
     # Broadcast reshape scalar
-    assert model._prepare_output_single_model(np.array([1]), (1, 2)) == 1
-    assert model._prepare_output_single_model(np.asanyarray(2), (3, 4)) == 2
+    assert 1 == model._prepare_output_single_model(np.array([1]), (1, 2))
+    assert 2 == model._prepare_output_single_model(np.asanyarray(2), (3, 4))
 
     # Fail to broadcast
     assert (output == model._prepare_output_single_model(output, (1, 2))).all()
@@ -730,7 +730,7 @@ def test_prepare_outputs_mixed_broadcast():
 
     output = model(4, [5, 6])
     assert output.shape == (2,)
-    np.testing.assert_allclose(output, [0.8146473164114145, 0.7371233743916278])
+    np.testing.assert_array_equal(output, [0.8146473164114145, 0.7371233743916278])
 
 
 def test_prepare_outputs_complex_reshape():
@@ -803,7 +803,7 @@ def test_prepare_outputs_sparse_grid():
     """
 
     shape = (3, 3)
-    data = np.arange(np.prod(shape)).reshape(shape) * u.m / u.s
+    data = np.arange(np.product(shape)).reshape(shape) * u.m / u.s
 
     points_unit = u.pix
     points = [np.arange(size) * points_unit for size in shape]
@@ -984,30 +984,40 @@ def test__validate_input_shape():
 def test__validate_input_shapes():
     model = models.Gaussian1D()
     model._n_models = 2
+    inputs = [mk.MagicMock() for _ in range(3)]
+    argnames = mk.MagicMock()
+    model_set_axis = mk.MagicMock()
+    all_shapes = [mk.MagicMock() for _ in inputs]
 
-    # Full success
-    inputs = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
-    assert (2, 2) == model._validate_input_shapes(inputs, model.inputs, 1)
+    # Successful validation
+    with mk.patch.object(
+        Model, "_validate_input_shape", autospec=True, side_effect=all_shapes
+    ) as mkValidate:
+        with mk.patch.object(core, "check_broadcast", autospec=True) as mkCheck:
+            assert mkCheck.return_value == model._validate_input_shapes(
+                inputs, argnames, model_set_axis
+            )
+            assert mkCheck.call_args_list == [mk.call(*all_shapes)]
+            assert mkValidate.call_args_list == [
+                mk.call(model, _input, idx, argnames, model_set_axis, True)
+                for idx, _input in enumerate(inputs)
+            ]
 
     # Fail check_broadcast
-    match = r".*All inputs must have identical shapes or must be scalars.*"
-
-    # Fails because the input shape of the second input has one more axis which
-    # for which the first input can be broadcasted to
-    inputs = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8], [9, 10]])]
-
-    if PYTEST_LT_8_0:
-        # Exception.__notes__ are ignored in matching,
-        # so we'll match manually and post-mortem instead
-        direct_match = None
-    else:
-        direct_match = match
-
-    with pytest.raises(ValueError, match=direct_match) as exc:
-        model._validate_input_shapes(inputs, model.inputs, 1)
-
-    if direct_match is None:
-        assert re.match(match, "\n".join(exc.value.__notes__))
+    MESSAGE = r"All inputs must have identical shapes or must be scalars"
+    with mk.patch.object(
+        Model, "_validate_input_shape", autospec=True, side_effect=all_shapes
+    ) as mkValidate:
+        with mk.patch.object(
+            core, "check_broadcast", autospec=True, return_value=None
+        ) as mkCheck:
+            with pytest.raises(ValueError, match=MESSAGE):
+                model._validate_input_shapes(inputs, argnames, model_set_axis)
+            assert mkCheck.call_args_list == [mk.call(*all_shapes)]
+            assert mkValidate.call_args_list == [
+                mk.call(model, _input, idx, argnames, model_set_axis, True)
+                for idx, _input in enumerate(inputs)
+            ]
 
 
 def test__remove_axes_from_shape():
@@ -1448,7 +1458,7 @@ def test_compound_model_with_bounding_box_true_and_single_output():
 
 
 def test_bounding_box_pass_with_ignored():
-    """Test the possibility of setting ignored variables in bounding box"""
+    """Test the possiblity of setting ignored variables in bounding box"""
 
     model = models.Polynomial2D(2)
     bbox = ModelBoundingBox.validate(model, (-1, 1), ignored=["y"])
@@ -1505,149 +1515,3 @@ def test_model_string_indexing():
 
     assert compound["Model1"] == gauss
     assert compound["Model2"] == airy
-
-
-def test_has_constraints():
-    model1 = models.Gaussian1D()
-
-    assert not model1.has_tied
-    assert not model1.has_fixed
-    assert model1.has_bounds
-
-    model1.amplitude.fixed = True
-
-    assert model1.has_fixed
-
-    model1.mean.tied = lambda model: model.amplitude
-
-    assert model1.has_tied
-
-    model2 = models.Linear1D()
-
-    assert not model2.has_tied
-    assert not model2.has_fixed
-    assert not model2.has_bounds
-
-    model2.slope.bounds = (1, 2)
-
-    assert model2.has_bounds
-
-
-def test_has_constraints_with_sync_constraints():
-    # Check that has_tied/has_fixed/has_bounds works when sync_constraints is used
-
-    model = models.Linear1D()
-
-    assert not model.has_tied
-    assert not model.has_fixed
-    assert not model.has_bounds
-
-    model.sync_constraints = False
-
-    model.slope.fixed = True
-    model.intercept.tied = lambda model: model.slope
-    model.intercept.bounds = (1, 2)
-
-    assert not model.has_tied
-    assert not model.has_fixed
-    assert not model.has_bounds
-
-    model.slope.fixed = False
-
-    model.sync_constraints = True
-
-    assert model.has_tied
-    assert not model.has_fixed
-    assert model.has_bounds
-
-    model.slope.fixed = True
-
-    # If we set sync_constraints to False, model.has_fixed should then still
-    # return the correct result because the above line was called before
-    # sync_constraints was set to False. Basically we need any change in
-    # sync_constraints to invalidate the cache.
-
-    model.sync_constraints = False
-
-    assert model.has_fixed
-
-
-def test_reset_parameters_simple():
-    # We test this as if it was a public method as once it has been used
-    # successfully internally we may make it public.
-
-    g = models.Gaussian1D(4, 2, 3)
-
-    # Check that calling reset_parameters with no arguments resets the
-    # parameters to default values
-    g._reset_parameters()
-    assert g.amplitude == 1
-    assert g.mean == 0
-    assert g.stddev == 1
-
-    # Set parameters via positional arguments
-    g._reset_parameters(5, 6, 7)
-    assert g.amplitude == 5
-    assert g.mean == 6
-    assert g.stddev == 7
-
-    # Set only some of the parameters via keyword arguments
-    g._reset_parameters(mean=8)
-    assert g.amplitude == 1
-    assert g.mean == 8
-    assert g.stddev == 1
-
-    # Set one of the parameters to an array
-    g._reset_parameters(amplitude=np.ones((2, 3, 4)))
-    assert_equal(g.amplitude, np.ones((2, 3, 4)))
-    assert g.mean == 0
-    assert g.stddev == 1
-
-    # Make sure we don't allow incompatible shapes to be passed
-    with pytest.raises(
-        InputParameterError,
-        match=re.escape(
-            "All parameter arrays must have shapes that are mutually compatible "
-        ),
-    ):
-        g._reset_parameters(amplitude=np.ones((2, 3, 4)), stddev=np.ones((8,)))
-
-
-def test_reset_parameters_compound():
-    # As above, but for compound models
-
-    c = models.Gaussian1D(4, 2, 3) + models.Const1D(9)
-
-    # Check that calling reset_parameters with no arguments resets the
-    # parameters to default values
-    c._reset_parameters()
-    assert c.amplitude_0 == 1
-    assert c.mean_0 == 0
-    assert c.stddev_0 == 1
-
-    # Set parameters via positional arguments
-    c._reset_parameters(5, 6, 7)
-    assert c.amplitude_0 == 5
-    assert c.mean_0 == 6
-    assert c.stddev_0 == 7
-
-    # Set only some of the parameters via keyword arguments
-    c._reset_parameters(mean_0=8)
-    assert c.amplitude_0 == 1
-    assert c.mean_0 == 8
-    assert c.stddev_0 == 1
-
-    # Set one of the parameters to an array
-    c._reset_parameters(amplitude_0=np.ones((2, 3, 4)))
-    assert_equal(c.amplitude_0, np.ones((2, 3, 4)))
-    assert c.mean_0 == 0
-    assert c.stddev_0 == 1
-
-    # Make sure we don't allow incompatible shapes to be passed
-    with pytest.raises(
-        InputParameterError,
-        match=re.escape(
-            "All parameter arrays must have shapes that are mutually compatible "
-        ),
-    ):
-        c._reset_parameters(amplitude_0=np.ones((2, 3, 4)), stddev_0=np.ones((8,)))

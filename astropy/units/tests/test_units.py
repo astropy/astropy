@@ -1,10 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Regression tests for the units package."""
-
-import itertools
-import operator
 import pickle
-from contextlib import nullcontext
 from fractions import Fraction
 
 import numpy as np
@@ -13,12 +9,7 @@ from numpy.testing import assert_allclose
 
 from astropy import constants as c
 from astropy import units as u
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.units import utils
-from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT, HAS_DASK
-from astropy.utils.exceptions import AstropyDeprecationWarning
-
-FLOAT_EPS = np.finfo(float).eps
 
 
 def test_initialisation():
@@ -37,28 +28,12 @@ def test_initialisation():
     assert u.Unit("") == u.dimensionless_unscaled
     assert u.one == u.dimensionless_unscaled
     assert u.Unit("10 m") == ten_meter
+    assert u.Unit(10.0) == u.CompositeUnit(10.0, [], [])
 
     assert u.Unit() == u.dimensionless_unscaled
 
 
-@pytest.mark.parametrize(
-    "input_,power_value,power_type",
-    [
-        pytest.param(2.0, 2, int, id="integer_as_float"),
-        pytest.param(Fraction(2, 1), 2, int, id="numerator_is_one"),
-        pytest.param(Fraction(1, 2), 0.5, float, id=r"numerator_is_power_of_two"),
-        pytest.param(np.float64(117 / 1123), 117 / 1123, float, id="float-like"),
-        pytest.param(np.int64(3), 3, int, id="int-like"),
-    ],
-)
-def test_power_types(input_, power_value, power_type):
-    # Regression test for #16779 - power could sometimes be a numpy number
-    powers = (u.m**input_).powers
-    assert list(map(type, powers)) == [power_type]
-    assert_allclose(powers, power_value)
-
-
-def test_raise_to_power():
+def test_invalid_power():
     x = u.m ** Fraction(1, 3)
     assert isinstance(x.powers[0], Fraction)
 
@@ -69,43 +44,13 @@ def test_raise_to_power():
     x = u.m ** (1.0 / 3.0)
     assert isinstance(x.powers[0], Fraction)
 
-    # Test power remains integer if possible
-    x = (u.m**2) ** 0.5
-    assert isinstance(x.powers[0], int)
-
-    x = (u.m**-6) ** (1 / 3)
-    assert isinstance(x.powers[0], int)
-
 
 def test_invalid_compare():
     assert not (u.m == u.s)
 
 
-@pytest.mark.parametrize(
-    "original,expectation",
-    [
-        pytest.param(1, 3600.0, id="small_int"),
-        pytest.param(2.0, 7200.0, id="small_float"),
-        pytest.param(10**25, 3.6e28, id="large_int"),
-        pytest.param(3e25, 1.08e29, id="large_float"),
-    ],
-)
-def test_convert(original, expectation):
-    result = u.h.get_converter(u.s)(original)
-    assert_allclose(result, expectation, rtol=1e-15, atol=0)
-    assert type(result) is float
-
-
-def test_convert_roundtrip():
-    c1 = u.cm.get_converter(u.m)
-    c2 = u.m.get_converter(u.cm)
-    assert_allclose(c1(c2(10.0)), c2(c1(10.0)), rtol=1e-15, atol=0)
-
-
-def test_convert_roundtrip_with_equivalency():
-    c1 = u.arcsec.get_converter(u.pc, u.parallax())
-    c2 = u.pc.get_converter(u.arcsec, u.parallax())
-    assert_allclose(c1(c2(10.0)), c2(c1(10.0)), rtol=1e-15, atol=0)
+def test_convert():
+    assert u.h._get_converter(u.s)(1) == 3600
 
 
 def test_convert_fail():
@@ -116,7 +61,7 @@ def test_convert_fail():
 
 
 def test_composite():
-    assert (u.cm / u.s * u.h).get_converter(u.m)(1) == 36
+    assert (u.cm / u.s * u.h)._get_converter(u.m)(1) == 36
     assert u.cm * u.cm == u.cm**2
 
     assert u.cm * u.cm * u.cm == u.cm**3
@@ -155,6 +100,12 @@ def test_units_conversion():
     assert_allclose(u.AU.to(u.pc), 4.84813681e-6)
     assert_allclose(u.cycle.to(u.rad), 6.283185307179586)
     assert_allclose(u.spat.to(u.sr), 12.56637061435917)
+
+
+def test_units_manipulation():
+    # Just do some manipulation and check it's happy
+    (u.kpc * u.yr) ** Fraction(1, 3) / u.Myr
+    (u.AA * u.erg) ** 9
 
 
 def test_decompose():
@@ -197,12 +148,12 @@ def test_multiple_solidus():
     ):
         assert u.Unit("m/s/kg").to_string() == "m / (kg s)"
 
-    with pytest.raises(ValueError, match="contains multiple slashes"):
+    with pytest.raises(ValueError):
         u.Unit("m/s/kg", format="vounit")
 
     # Regression test for #9000: solidi in exponents do not count towards this.
     x = u.Unit("kg(3/10) * m(5/2) / s", format="vounit")
-    assert x.to_string() == "m(5/2) kg(3/10) / s"
+    assert x.to_string() == "kg(3/10) m(5/2) / s"
 
 
 def test_unknown_unit3():
@@ -222,11 +173,11 @@ def test_unknown_unit3():
     assert unit == "FOO"
     assert unit != u.m
     # next two from gh-7603.
-    assert unit != None
+    assert unit != None  # noqa: E711
     assert unit not in (None, u.m)
 
     with pytest.raises(ValueError):
-        unit.get_converter(unit3)
+        unit._get_converter(unit3)
 
     _ = unit.to_string("latex")
     _ = unit2.to_string("cgs")
@@ -238,65 +189,9 @@ def test_unknown_unit3():
         u.Unit(None)
 
 
-@pytest.mark.parametrize(
-    "parse_strict,expectation",
-    [
-        pytest.param("silent", nullcontext(), id="silent"),
-        pytest.param(
-            "warn",
-            pytest.warns(u.UnitParserWarning, match=r"meant to be a multiplication,"),
-            id="warn",
-        ),
-        pytest.param(
-            "raise",
-            pytest.raises(ValueError, match=r"was meant to be a multiplication, "),
-            id="raise",
-        ),
-        pytest.param(
-            "error",
-            pytest.raises(
-                ValueError,
-                match=r"^'parse_strict' must be 'warn', 'raise' or 'silent'$",
-            ),
-            id="invalid",
-        ),
-    ],
-)
-def test_parse_strict_noncritical_error(parse_strict, expectation):
-    with expectation:
-        assert u.Unit("m(s)", format="ogip", parse_strict=parse_strict) == u.m * u.s
-
-
-def test_parse_strict_noncritical_error_default():
-    if PYTEST_LT_8_0:
-        # pytest < 8 does not know how to deal with `Exception.add_note`
-        match = (
-            r"^if 'm\(s\)' was meant to be a multiplication, it should have been "
-            r"written as 'm \(s\)'\.$"
-        )
-    else:
-        match = (
-            r"^if 'm\(s\)' was meant to be a multiplication, it should have been "
-            r"written as 'm \(s\)'\.\n"
-            "If you cannot change the unit string then try specifying the "
-            r"'parse_strict' argument\.$"
-        )
-    with pytest.raises(ValueError, match=match):
-        assert u.Unit("m(s)", format="ogip")
-
-
 def test_invalid_scale():
     with pytest.raises(TypeError):
         ["a", "b", "c"] * u.m
-
-
-@pytest.mark.parametrize("op", [operator.truediv, operator.lshift, operator.mul])
-def test_invalid_array_op(op):
-    # see https://github.com/astropy/astropy/issues/12836
-    with pytest.raises(
-        TypeError, match="The value must be a valid Python or Numpy numeric type"
-    ):
-        op(np.array(["cat"]), u.one)
 
 
 def test_cds_power():
@@ -312,9 +207,9 @@ def test_register():
     assert "foo" not in u.get_current_unit_registry().registry
 
 
-def test_in_units_deprecation():
-    with pytest.warns(AstropyDeprecationWarning, match=r"Use to\(\) instead\.$"):
-        assert (u.m / u.s).in_units(u.cm / u.s) == 100
+def test_in_units():
+    speed_unit = u.cm / u.s
+    _ = speed_unit.in_units(u.pc / u.hour, 1)
 
 
 def test_null_unit():
@@ -388,6 +283,13 @@ def test_empty_compose():
         u.m.compose(units=[])
 
 
+def _unit_as_str(unit):
+    # This function serves two purposes - it is used to sort the units to
+    # test alphabetically, and it is also use to allow pytest to show the unit
+    # in the [] when running the parametrized tests.
+    return str(unit)
+
+
 # We use a set to make sure we don't have any duplicates.
 COMPOSE_ROUNDTRIP = set()
 for val in u.__dict__.values():
@@ -395,7 +297,9 @@ for val in u.__dict__.values():
         COMPOSE_ROUNDTRIP.add(val)
 
 
-@pytest.mark.parametrize("unit", sorted(COMPOSE_ROUNDTRIP, key=str), ids=repr)
+@pytest.mark.parametrize(
+    "unit", sorted(COMPOSE_ROUNDTRIP, key=_unit_as_str), ids=_unit_as_str
+)
 def test_compose_roundtrip(unit):
     composed_list = unit.decompose().compose()
     found = False
@@ -422,12 +326,13 @@ for val in u.cgs.__dict__.values():
         COMPOSE_CGS_TO_SI.add(val)
 
 
-@pytest.mark.parametrize("unit", sorted(COMPOSE_CGS_TO_SI, key=str), ids=str)
+@pytest.mark.parametrize(
+    "unit", sorted(COMPOSE_CGS_TO_SI, key=_unit_as_str), ids=_unit_as_str
+)
 def test_compose_cgs_to_si(unit):
     si = unit.to_system(u.si)
     assert [x.is_equivalent(unit) for x in si]
     assert si[0] == unit.si
-    assert np.isclose(si[0].scale, unit.decompose(bases=u.si.bases).scale)
 
 
 # We use a set to make sure we don't have any duplicates.
@@ -442,7 +347,9 @@ for val in u.si.__dict__.values():
         COMPOSE_SI_TO_CGS.add(val)
 
 
-@pytest.mark.parametrize("unit", sorted(COMPOSE_SI_TO_CGS, key=str), ids=str)
+@pytest.mark.parametrize(
+    "unit", sorted(COMPOSE_SI_TO_CGS, key=_unit_as_str), ids=_unit_as_str
+)
 def test_compose_si_to_cgs(unit):
     # Can't convert things with Ampere to CGS without more context
     try:
@@ -455,7 +362,6 @@ def test_compose_si_to_cgs(unit):
     else:
         assert [x.is_equivalent(unit) for x in cgs]
         assert cgs[0] == unit.cgs
-        assert np.isclose(cgs[0].scale, unit.decompose(bases=u.cgs.bases).scale)
 
 
 def test_to_si():
@@ -473,22 +379,8 @@ def test_to_si():
 
 
 def test_to_cgs():
-    assert u.Pa.to_system(u.cgs)[0].bases[0] is u.Ba
-    assert u.Pa.to_system(u.cgs)[0].scale == 10.0
-
-
-@pytest.mark.parametrize(
-    "unit, system, expected_bases",
-    [
-        (u.Pa, "si", [u.Pa]),
-        (u.sr, "si", [u.rad]),
-        (u.Gal, "si", [u.m, u.s]),
-        (u.Gal, "cgs", [u.cm, u.s]),
-    ],
-)
-def test_to_system_best_unit(unit, system, expected_bases):
-    in_system = getattr(unit, system)
-    assert in_system.bases == expected_bases
+    assert u.Pa.to_system(u.cgs)[1]._bases[0] is u.Ba
+    assert u.Pa.to_system(u.cgs)[1]._scale == 10.0
 
 
 def test_decompose_to_cgs():
@@ -578,10 +470,15 @@ def test_compose_no_duplicates():
     assert len(composed) == 1
 
 
-@pytest.mark.parametrize(
-    "dtype", tuple(map("".join, itertools.product("<>", "if", "48")))
-)
-def test_endian_independence(dtype):
+def test_long_int():
+    """
+    Issue #672
+    """
+    sigma = 10**21 * u.M_p / u.cm**2
+    sigma.to(u.M_sun / u.pc**2)
+
+
+def test_endian_independence():
     """
     Regression test for #744
 
@@ -589,8 +486,11 @@ def test_endian_independence(dtype):
     converted because the dtype is '>f4', not 'float32', and the code was
     looking for the strings 'float' or 'int'.
     """
-    x = np.array([1, 2, 3], dtype=dtype)
-    assert u.m.to(u.cm, x).tolist() == [100.0, 200.0, 300.0]
+    for endian in ["<", ">"]:
+        for ntype in ["i", "f"]:
+            for byte in ["4", "8"]:
+                x = np.array([1, 2, 3], dtype=(endian + ntype + byte))
+                u.m.to(u.cm, x)
 
 
 def test_radian_base():
@@ -621,7 +521,7 @@ def test_pickling():
 
     assert other is u.m
 
-    new_unit = u.IrreducibleUnit(["foo"], format={"unicode": "bar"})
+    new_unit = u.IrreducibleUnit(["foo"], format={"baz": "bar"})
     # This is local, so the unit should not be registered.
     assert "foo" not in u.get_current_unit_registry().registry
 
@@ -630,7 +530,7 @@ def test_pickling():
     new_unit_copy = pickle.loads(p)
     assert new_unit_copy is not new_unit
     assert new_unit_copy.names == ["foo"]
-    assert new_unit_copy.to_string("unicode") == "bar"
+    assert new_unit_copy.get_format_name("baz") == "bar"
     # It should still not be registered.
     assert "foo" not in u.get_current_unit_registry().registry
 
@@ -647,7 +547,7 @@ def test_pickling():
         new_unit_copy = pickle.loads(p)
         assert new_unit_copy is not new_unit
         assert new_unit_copy.names == ["foo"]
-        assert new_unit_copy.to_string("unicode") == "bar"
+        assert new_unit_copy.get_format_name("baz") == "bar"
         assert "foo" in u.get_current_unit_registry().registry
 
     # And just to be sure, that it gets removed outside of the context.
@@ -688,11 +588,11 @@ def test_pickle_does_not_keep_memoized_hash(unit):
     to mimic separate sessions in a simple test. See gh-11872.
     """
     unit_hash = hash(unit)
-    assert "_hash" in vars(unit)
+    assert unit._hash is not None
     unit_copy = pickle.loads(pickle.dumps(unit))
     # unit is not registered so we get a copy.
     assert unit_copy is not unit
-    assert "_hash" not in vars(unit_copy)
+    assert unit_copy._hash is None
     assert hash(unit_copy) == unit_hash
     with u.add_enabled_units([unit]):
         # unit is registered, so we get a reference.
@@ -711,7 +611,7 @@ def test_pickle_unrecognized_unit():
     Issue #2047
     """
     a = u.Unit("asdf", parse_strict="silent")
-    assert isinstance(pickle.loads(pickle.dumps(a)), u.UnrecognizedUnit)
+    pickle.loads(pickle.dumps(a))
 
 
 def test_duplicate_define():
@@ -731,23 +631,9 @@ def test_repr_latex():
 
 
 def test_operations_with_strings():
-    with pytest.warns(
-        AstropyDeprecationWarning,
-        match=(
-            "^divisions involving a unit and a 'str' instance are deprecated since "
-            r"v7\.1\. Convert '5s' to a unit explicitly\.$"
-        ),
-    ):
-        assert u.m / "5s" == (u.m / (5.0 * u.s))
+    assert u.m / "5s" == (u.m / (5.0 * u.s))
 
-    with pytest.warns(
-        AstropyDeprecationWarning,
-        match=(
-            "^products involving a unit and a 'str' instance are deprecated since "
-            r"v7\.1\. Convert '5s' to a unit explicitly\.$"
-        ),
-    ):
-        assert u.m * "5s" == (5.0 * u.m * u.s)
+    assert u.m * "5s" == (5.0 * u.m * u.s)
 
 
 def test_comparison():
@@ -757,42 +643,30 @@ def test_comparison():
     assert u.cm <= u.m
 
     with pytest.raises(u.UnitsError):
-        u.m > u.kg  # noqa: B015
+        u.m > u.kg
 
 
 def test_compose_into_arbitrary_units():
     # Issue #1438
     from astropy.constants import G
 
-    G_decomposed = G.decompose([u.kg, u.km, u.Unit("100 s")])
-    assert_allclose(G_decomposed.unit.scale, 1e-4)
-    assert G_decomposed == G
+    G.decompose([u.kg, u.km, u.Unit("15 s")])
 
 
 def test_unit_multiplication_with_string():
-    with pytest.warns(
-        AstropyDeprecationWarning,
-        match=(
-            "^products involving a unit and a 'str' instance are deprecated since "
-            r"v7\.1\. Convert 'kg' to a unit explicitly\.$"
-        ),
-    ):
-        assert "kg" * u.cm == u.kg * u.cm
-    with pytest.warns(AstropyDeprecationWarning, match="^products involving .* 'str'"):
-        assert u.cm * "kg" == u.cm * u.kg
+    """Check that multiplication with strings produces the correct unit."""
+    u1 = u.cm
+    us = "kg"
+    assert us * u1 == u.Unit(us) * u1
+    assert u1 * us == u1 * u.Unit(us)
 
 
 def test_unit_division_by_string():
-    with pytest.warns(
-        AstropyDeprecationWarning,
-        match=(
-            "^divisions involving a unit and a 'str' instance are deprecated since "
-            r"v7\.1\. Convert 'kg' to a unit explicitly\.$"
-        ),
-    ):
-        assert "kg" / u.cm == u.kg / u.cm
-    with pytest.warns(AstropyDeprecationWarning, match="^divisions involving .* 'str'"):
-        assert u.cm / "kg" == u.cm / u.kg
+    """Check that multiplication with strings produces the correct unit."""
+    u1 = u.cm
+    us = "kg"
+    assert us / u1 == u.Unit(us) / u1
+    assert u1 / us == u1 / u.Unit(us)
 
 
 def test_sorted_bases():
@@ -829,7 +703,7 @@ def test_suggestions():
         ("M", "m"),
         ("metre", "meter"),
         ("angstroms", "Angstrom or angstrom"),
-        ("milimeter", "millimeter"),  # codespell:ignore milimeter
+        ("milimeter", "millimeter"),
         ("ångström", "Angstrom, angstrom, mAngstrom or mangstrom"),
         ("kev", "EV, eV, kV or keV"),
     ]:
@@ -886,34 +760,10 @@ def test_fractional_powers():
     assert isinstance(x.powers[0], Fraction)
     assert x.powers[0] == Fraction(7, 6)
 
-    # Regression test for #9258 (avoid fractions with crazy denominators).
+    # Regression test for #9258.
     x = (u.TeV ** (-2.2)) ** (1 / -2.2)
-    assert isinstance(x.powers[0], int)
-    assert x.powers[0] == 1
-    x = (u.TeV ** (-2.2)) ** (1 / -6.6)
     assert isinstance(x.powers[0], Fraction)
-    assert x.powers[0] == Fraction(1, 3)
-
-
-def test_large_fractional_powers():
-    # Ensure we keep fractions if the user passes them in
-    # and the powers are themselves simple fractions.
-    x1 = u.m ** Fraction(10, 11)
-    assert isinstance(x1.powers[0], Fraction)
-    assert x1.powers[0] == Fraction(10, 11)
-    x2 = x1 ** Fraction(10, 11)
-    assert isinstance(x2.powers[0], Fraction)
-    assert x2.powers[0] == Fraction(100, 121)
-    # Check powers that can be represented as simple fractions.
-    x3 = x2**0.5
-    assert isinstance(x3.powers[0], Fraction)
-    assert x3.powers[0] == Fraction(50, 121)
-    x4 = x3 ** (5 / 11)
-    assert isinstance(x4.powers[0], Fraction)
-    assert x4.powers[0] == Fraction(250, 1331)
-    x5 = x4**1.1
-    assert isinstance(x5.powers[0], Fraction)
-    assert x5.powers[0] == Fraction(25, 121)
+    assert x.powers[0] == Fraction(1, 1)
 
 
 def test_sqrt_mag():
@@ -936,22 +786,15 @@ def test_compare_with_none():
     # Ensure that equality comparisons with `None` work, and don't
     # raise exceptions.  We are deliberately not using `is None` here
     # because that doesn't trigger the bug.  See #3108.
-    assert not (u.m == None)
-    assert u.m != None
+    assert not (u.m == None)  # noqa: E711
+    assert u.m != None  # noqa: E711
 
 
-def test_sanitize_power_detect_fraction():
-    frac = utils.sanitize_power(1.1666666666666665)
+def test_validate_power_detect_fraction():
+    frac = utils.validate_power(1.1666666666666665)
     assert isinstance(frac, Fraction)
     assert frac.numerator == 7
     assert frac.denominator == 6
-
-
-def test_sanitize_power_zero_like():
-    # Regression test for #16779 - 0 should always be an int after sanitizing
-    power = utils.sanitize_power(np.float64(0))
-    assert type(power) is int
-    assert power == 0
 
 
 def test_complex_fractional_rounding_errors():
@@ -1073,110 +916,3 @@ def test_si_prefixes(name, symbol, multiplying_factor):
     value_ratio = base.value / quantity_from_symbol.value
 
     assert u.isclose(value_ratio, multiplying_factor)
-
-
-def test_cm_uniqueness():
-    # Ensure we have defined cm only once; see gh-15200.
-    assert u.si.cm is u.cgs.cm is u.cm
-    assert str(u.si.cm / u.cgs.cm) == ""  # was cm / cm
-
-
-@pytest.mark.parametrize("unit, power", [(u.m, 2), (u.m, 3), (u.m / u.s, 9)])
-def test_hash_represents_unit(unit, power):
-    # Regression test for gh-16055
-    tu = (unit**power) ** (1 / power)
-    assert hash(tu) == hash(unit)
-    tu2 = (unit ** (1 / power)) ** power
-    assert hash(tu2) == hash(unit)
-
-
-@pytest.mark.skipif(not HAS_ARRAY_API_STRICT, reason="tests array_api_strict")
-def test_array_api_strict_arrays():
-    # Ensure strict array api arrays can be passed in/out of Unit.to()
-    # Note that those have non-standard dtype.
-    import array_api_strict as xp
-
-    data1 = xp.asarray([1.0, 2.0, 3.0])
-    data2 = u.m.to(u.km, value=data1)
-    assert isinstance(data2, type(data1))
-    assert_allclose(data2, [0.001, 0.002, 0.003])
-
-    data3 = u.K.to(u.deg_C, value=data1, equivalencies=u.temperature())
-    assert isinstance(data3, type(data1))
-    assert_allclose(data3, [-272.15, -271.15, -270.15])
-
-
-@pytest.mark.skipif(not HAS_DASK, reason="tests dask.array")
-def test_dask_arrays():
-    # Make sure that dask arrays can be passed in/out of Unit.to()
-
-    from dask import array as da
-
-    data1 = da.from_array([1, 2, 3])
-
-    data2 = u.m.to(u.km, value=data1)
-
-    assert isinstance(data2, da.core.Array)
-
-    assert_allclose(data2.compute(), [0.001, 0.002, 0.003])
-
-    data3 = u.K.to(u.deg_C, value=data1, equivalencies=u.temperature())
-
-    assert isinstance(data3, da.core.Array)
-
-    assert_allclose(data3.compute(), [-272.15, -271.15, -270.15])
-
-
-def test_get_format_name_deprecation():
-    with pytest.warns(AstropyDeprecationWarning, match=r"Use to_string\(\) instead\.$"):
-        assert u.m.get_format_name("fits") == "m"
-
-
-def test_comparison_dimensionless_with_np_ma_masked():
-    # Found to be a problem indirectly in gh-17047;
-    # The path np.ma.masked.__eq__(u.dimensionless_unscaled)
-    # used to give a ZeroDivisionError.
-    comparison = u.dimensionless_unscaled == np.ma.masked
-    assert comparison is np.ma.masked
-
-
-def test_error_on_conversion_of_zero_to_unit():
-    # Found to be a problem indirectly in gh-17047; we allow conversion
-    # of numbers to units, but should not allow 0.
-    with pytest.raises(u.UnitScaleError, match="cannot create.*scale of 0"):
-        u.Unit(0)
-    with pytest.raises(u.UnitScaleError, match="cannot create.*scale of 0"):
-        u.dimensionless_unscaled.to(0)
-    # Also check some that do work.
-    assert u.dimensionless_unscaled.to(0.125) == 8
-    assert u.dimensionless_unscaled.to(8) == 0.125
-
-
-@pytest.mark.parametrize(
-    "unsanitized,sanitized",
-    [
-        pytest.param(complex(2, FLOAT_EPS), 2, id="almost_real_complex"),
-        pytest.param(complex(FLOAT_EPS, 2), 2j, id="almost_imaginary_complex"),
-    ],
-)
-def test_scale_sanitization(unsanitized, sanitized):
-    assert u.CompositeUnit(unsanitized, [u.m], [1]).scale == sanitized
-
-
-@pytest.mark.parametrize(
-    "scale",
-    [
-        5,
-        10.0,
-        7 + 3j,
-        Fraction(1, 3),
-        np.int32(100),
-        np.float32(0.01),
-        np.complex128(1 - 4j),
-    ],
-    ids=type,
-)
-def test_dimensionless_scale_factor_types(scale):
-    # Regression test for #17355 - Unit did not accept all scale factor
-    # types that CompositeUnit accepted
-    assert u.Unit(scale) == u.CompositeUnit(scale, [], [])

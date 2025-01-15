@@ -25,17 +25,3 @@ class TestPickle:
             t2d = pickle.dumps(t2, prot)
             t2l = pickle.loads(t2d)
             assert t2l == t2
-
-    def test_cache_not_shared(self):
-        t = Time(["2001:020", "2001:040", "2001:060", "2001:080"], out_subfmt="date")
-        # Ensure something is in the cache.
-        t.value
-        assert "format" in t.cache
-        td = pickle.dumps(t)
-        assert "format" in t.cache
-        tl = pickle.loads(td)
-        assert "format" in t.cache
-        assert "format" not in tl.cache
-        t[0] = "1999:099"
-        assert t.value[0] == "1999:099"
-        assert tl.value[0] == "2001:020"

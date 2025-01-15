@@ -75,89 +75,37 @@ Both will throw an exception if units do not cancel, e.g.::
 
 See: https://github.com/astropy/astropy/issues/7582
 
-Multiplying a `pandas.Series` with an `~astropy.units.Unit` does not produce a |Quantity|
------------------------------------------------------------------------------------------
-
-Quantities may work with certain operations on `~pandas.Series` but
-this behaviour is not tested.
-For example, multiplying a `~pandas.Series` instance
-with a unit will *not* return a |Quantity|. It will return a `~pandas.Series`
-object without any unit:
-
-.. doctest-requires:: pandas>=2.0
-
-   >>> import pandas as pd
-   >>> import astropy.units as u
-   >>> a = pd.Series([1., 2., 3.])
-   >>> a * u.m
-   0    1.0
-   1    2.0
-   2    3.0
-   dtype: float64
-
-To avoid this, it is best to initialize the |Quantity| directly:
-
-.. doctest-requires:: pandas>=2.0
-
-    >>> u.Quantity(a, u.m)
-    <Quantity [1., 2., 3.] m>
-
-Note that the overrides pandas provides are not complete, and
-as a consequence, using the (in-place) shift operator does work:
-
-.. doctest-requires:: pandas>=2.0
-
-   >>> b = a << u.m
-   >>> b
-   <Quantity [1., 2., 3.] m>
-   >>> a <<= u.m
-   >>> a
-   <Quantity [1., 2., 3.] m>
-
-But this is fragile as this may stop working in future versions of
-pandas if they decide to override the dunder methods.
-
-See: https://github.com/astropy/astropy/issues/11247
-
-Using Numpy array creation functions to initialize Quantity
------------------------------------------------------------
+Numpy array creation functions cannot be used to initialize Quantity
+--------------------------------------------------------------------
 Trying the following example will ignore the unit:
 
     >>> np.full(10, 1 * u.m)
     array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
 
-However, the following works as one would expect
-
-    >>> np.full(10, 1.0, like=u.Quantity([], u.m))
-    <Quantity [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.] m>
-
-and is equivalent to::
+A workaround for this at the moment would be to do::
 
     >>> np.full(10, 1) << u.m
     <Quantity [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.] m>
 
-`~numpy.zeros`, `~numpy.ones`, and `~numpy.empty` behave similarly.
+As well as with `~numpy.full` one cannot do `~numpy.zeros`, `~numpy.ones`, and `~numpy.empty`.
 
-`~numpy.arange` also supports the ``like`` keyword argument
+The `~numpy.arange` function does not work either::
 
-    >>> np.arange(0 * u.cm, 1 * u.cm, 1 * u.mm, like=u.Quantity([], u.cm))
-    <Quantity [0. , 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] cm>
+    >>> np.arange(0 * u.m, 10 * u.m, 1 * u.m)
+    Traceback (most recent call last):
+    ...
+    TypeError: only dimensionless scalar quantities can be converted to Python scalars
 
-Also note that the unit of the output array is dictated by that of the ``stop``
-argument, and that, like for quantities generally, the data has a floating-point
-dtype. If ``stop`` is a pure number, the unit of the output will default to that
-of the ``like`` argument.
+Workarounds include moving the units outside of the call to
+`~numpy.arange`::
 
-As with ``~numpy.full`` and similar functions, one may alternatively move the
-units outside of the call to `~numpy.arange`::
+    >>> np.arange(0, 10, 1) * u.m
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
 
-    >>> np.arange(0, 10, 1) << u.mm
-    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] mm>
+Also, `~numpy.linspace` does work:
 
-Or use `~numpy.linspace`:
-
-    >>> np.linspace(0 * u.cm, 9 * u.mm, 10)
-    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] mm>
+    >>> np.linspace(0 * u.m, 9 * u.m, 10)
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
 
 
 Quantities Lose Their Units When Broadcasted
@@ -187,44 +135,6 @@ This is analogous to the case of passing a Quantity to `~numpy.array`::
 
 See: https://github.com/astropy/astropy/issues/7832
 
-Chained Quantity comparisons to dimensionless zero can be misleading
---------------------------------------------------------------------
-
-When chaining comparisons using Quantities and dimensionless zero,
-the result may be misleading::
-
-   >>> 0 * u.Celsius == 0 * u.m  # Correct
-   False
-   >>> 0 * u.Celsius == 0 == 0 * u.m  # Misleading
-   np.True_
-
-What the second comparison is really doing is this::
-
-   >>> (0 * u.Celsius == 0) and (0 == 0 * u.m)
-   np.True_
-
-See: https://github.com/astropy/astropy/issues/15103
-
-def_unit should not be used for logarithmic unit
-------------------------------------------------
-
-When defining custom unit involving logarithmic unit, ``def_unit`` usage
-should be avoided because it might result in surprising behavior::
-
-    >>> dBW = u.def_unit('dBW', u.dB(u.W))
-    >>> 1 * dBW
-    Traceback (most recent call last):
-    ...
-    TypeError: unsupported operand type(s) for *: 'int' and 'Unit'
-
-Instead, it could be defined directly as such::
-
-    >>> dBW = u.dB(u.W)
-    >>> 1 * dBW
-    <Decibel 1. dB(W)>
-
-See: https://github.com/astropy/astropy/issues/5945
-
 mmap Support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------
 
@@ -252,14 +162,34 @@ means that an upstream fix in NumPy is required in order for
 ``astropy.units`` to control decomposing the input in these functions::
 
     >>> np.int64((15 * u.km) / (15 * u.imperial.foot))
-    np.int64(1)
+    1
     >>> np.int_((15 * u.km) / (15 * u.imperial.foot))
-    np.int64(1)
+    1
     >>> int((15 * u.km) / (15 * u.imperial.foot))
     3280
 
 To convert a dimensionless `~astropy.units.Quantity` to an integer, it is
 therefore recommended to use ``int(...)``.
+
+Inconsistent behavior when converting complex numbers to floats
+---------------------------------------------------------------
+
+Attempting to use `float` or NumPy's ``numpy.float`` on a standard
+complex number (e.g., ``5 + 6j``) results in a `TypeError`.  In
+contrast, using `float` or ``numpy.float`` on a complex number from
+NumPy (e.g., ``numpy.complex128``) drops the imaginary component and
+issues a ``numpy.ComplexWarning``.  This inconsistency persists between
+`~astropy.units.Quantity` instances based on standard and NumPy
+complex numbers.  To get the real part of a complex number, it is
+recommended to use ``numpy.real``.
+
+.. _structured_unit_deserialization_segfault:
+
+Structured units deserialization segfaults in big-endian
+--------------------------------------------------------
+
+Structured units deserialization with ``pickle`` may cause segmentation
+fault in big-endian machine with ``numpy<1.21.1``.
 
 Build/Installation/Test Issues
 ==============================
@@ -321,3 +251,15 @@ see something like::
 
 If so, you can go ahead and try running ``pip`` again (in the new
 terminal).
+
+
+Failing Logging Tests When Running the Tests in IPython
+-------------------------------------------------------
+
+When running the Astropy tests using ``astropy.test()`` in an IPython
+interpreter, some of the tests in the ``astropy/tests/test_logger.py`` *might*
+fail depending on the version of IPython or other factors.
+This is due to mutually incompatible behaviors in IPython and pytest, and is
+not due to a problem with the test itself or the feature being tested.
+
+See: https://github.com/astropy/astropy/issues/717

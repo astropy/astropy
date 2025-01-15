@@ -39,15 +39,8 @@ The Quick Way
 -------------
 
 ``astropy`` provides a convenience
-:func:`~astropy.visualization.mpl_normalize.simple_norm` function and
-a :class:`~astropy.visualization.mpl_normalize.SimpleNorm` class that
-can be useful for quick interactive analysis. These convenience tools
-create a :class:`~astropy.visualization.mpl_normalize.ImageNormalize`
-normalization object that can be used with Matplotlib's
-:meth:`~matplotlib.axes.Axes.imshow` method
-
-Here's an example using the
-:func:`~astropy.visualization.mpl_normalize.simple_norm` function:
+:func:`~astropy.visualization.mpl_normalize.simple_norm` function that can be
+useful for quick interactive analysis:
 
 .. plot::
     :include-source:
@@ -69,29 +62,12 @@ Here's an example using the
     im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
 
-Here's an example using the
-:class:`~astropy.visualization.mpl_normalize.SimpleNorm` class with its
-:meth:`~astropy.visualization.mpl_normalize.SimpleNorm.imshow`
-method:
-
-.. plot::
-    :include-source:
-    :align: center
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from astropy.visualization import SimpleNorm
-
-    # Generate a test image
-    image = np.arange(65536).reshape((256, 256))
-
-    # Create an ImageNormalize object
-    snorm = SimpleNorm('sqrt', percent=98)
-
-    # Display the image
-    fig, ax = plt.subplots()
-    axim = snorm.imshow(image, ax=ax, origin='lower')
-    fig.colorbar(axim)
+This convenience function combines a :class:`Stretch
+<astropy.visualization.stretch.BaseStretch>` object with an :class:`Interval
+<astropy.visualization.interval.BaseInterval>` object.
+We recommend using
+:class:`~astropy.visualization.mpl_normalize.ImageNormalize` directly
+in scripted programs instead of this convenience function.
 
 
 The detailed way
@@ -112,7 +88,7 @@ and the limits can be determined by calling the
 takes the array of values::
 
     >>> interval.get_limits([1, 3, 4, 5, 6])
-    (np.int64(1), np.int64(6))
+    (1, 6)
 
 The ``interval`` instance can also be called like a function to
 actually normalize values to the range::
@@ -132,7 +108,7 @@ normalization when values fall outside the limits::
     >>> from astropy.visualization import PercentileInterval
     >>> interval = PercentileInterval(50.)
     >>> interval.get_limits([1, 3, 4, 5, 6])
-    (np.float64(3.0), np.float64(5.0))
+    (3.0, 5.0)
     >>> interval([1, 3, 4, 5, 6])  # default is clip=True  # doctest: +FLOAT_CMP
     array([0. , 0. , 0.5, 1. , 1. ])
     >>> interval([1, 3, 4, 5, 6], clip=False)  # doctest: +FLOAT_CMP

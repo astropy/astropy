@@ -4,15 +4,13 @@
 This module contains simple functions for model selection.
 """
 
-from __future__ import annotations
-
 import numpy as np
 
 __all__ = [
-    "akaike_info_criterion",
-    "akaike_info_criterion_lsq",
     "bayesian_info_criterion",
     "bayesian_info_criterion_lsq",
+    "akaike_info_criterion",
+    "akaike_info_criterion_lsq",
 ]
 
 __doctest_requires__ = {
@@ -21,11 +19,7 @@ __doctest_requires__ = {
 }
 
 
-def bayesian_info_criterion(
-    log_likelihood: float,
-    n_params: int,
-    n_samples: int,
-) -> float:
+def bayesian_info_criterion(log_likelihood, n_params, n_samples):
     r"""Computes the Bayesian Information Criterion (BIC) given the log of the
     likelihood function evaluated at the estimated (or analytically derived)
     parameters, the number of parameters, and the number of samples.
@@ -101,7 +95,7 @@ def bayesian_info_criterion(
     >>> bic_g = bayesian_info_criterion(lnL_g, n_params_g, n_samples)
     >>> bic_t = bayesian_info_criterion(lnL_t, n_params_t, n_samples)
     >>> bic_g - bic_t # doctest: +FLOAT_CMP
-    np.float64(2.1948298140119391)
+    2.1948298140119391
 
     Therefore, there exist a moderate evidence that the increasing in
     likelihood for t-Student model is due to the larger number of parameters.
@@ -120,16 +114,13 @@ def bayesian_info_criterion(
     .. [5] Liddle, A. R. How many cosmological parameters? 2008.
        <https://arxiv.org/pdf/astro-ph/0401198v3.pdf>
     """
+
     return n_params * np.log(n_samples) - 2.0 * log_likelihood
 
 
 # NOTE: bic_t - bic_g doctest is skipped because it produced slightly
 # different result in arm64 and big-endian s390x CI jobs.
-def bayesian_info_criterion_lsq(
-    ssr: float,
-    n_params: int,
-    n_samples: int,
-) -> float:
+def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     r"""
     Computes the Bayesian Information Criterion (BIC) assuming that the
     observations come from a Gaussian distribution.
@@ -210,16 +201,13 @@ def bayesian_info_criterion_lsq(
     .. [3] Astropy Models and Fitting
         <https://docs.astropy.org/en/stable/modeling>
     """
+
     return bayesian_info_criterion(
         -0.5 * n_samples * np.log(ssr / n_samples), n_params, n_samples
     )
 
 
-def akaike_info_criterion(
-    log_likelihood: float,
-    n_params: int,
-    n_samples: int,
-) -> float:
+def akaike_info_criterion(log_likelihood, n_params, n_samples):
     r"""
     Computes the Akaike Information Criterion (AIC).
 
@@ -324,11 +312,7 @@ def akaike_info_criterion(
     return aic
 
 
-def akaike_info_criterion_lsq(
-    ssr: float,
-    n_params: int,
-    n_samples: int,
-) -> float:
+def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     r"""
     Computes the Akaike Information Criterion assuming that the observations
     are Gaussian distributed.
@@ -403,11 +387,11 @@ def akaike_info_criterion_lsq(
     >>> ssr_g2 = np.sum((g2_fit(x) - y)**2.0)
     >>> ssr_g1 = np.sum((g1_fit(x) - y)**2.0)
     >>> akaike_info_criterion_lsq(ssr_g3, 9, x.shape[0]) # doctest: +FLOAT_CMP
-    np.float64(-634.5257517810961)
+    -634.5257517810961
     >>> akaike_info_criterion_lsq(ssr_g2, 6, x.shape[0]) # doctest: +FLOAT_CMP
-    np.float64(-662.83834510232043)
+    -662.83834510232043
     >>> akaike_info_criterion_lsq(ssr_g1, 3, x.shape[0]) # doctest: +FLOAT_CMP
-    np.float64(-647.47312032659499)
+    -647.47312032659499
 
     Hence, from the AIC values, we would prefer to choose the model g2_fit.
     However, we can considerably support the model g3_fit, since the
@@ -420,6 +404,7 @@ def akaike_info_criterion_lsq(
     .. [2] Origin Lab. Comparing Two Fitting Functions.
        <https://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     """
+
     return akaike_info_criterion(
         -0.5 * n_samples * np.log(ssr / n_samples), n_params, n_samples
     )

@@ -403,7 +403,9 @@ class CCDData(NDDataArray):
             uncertainty_cls = self.uncertainty.__class__
             if uncertainty_cls not in _known_uncertainties:
                 raise ValueError(
-                    f"only uncertainties of type {_known_uncertainties} can be saved."
+                    "only uncertainties of type {} can be saved.".format(
+                        _known_uncertainties
+                    )
                 )
             uncertainty_name = _unc_cls_to_name[uncertainty_cls]
 
@@ -477,6 +479,7 @@ class CCDData(NDDataArray):
         This addresses that case by checking the length of the ``key`` and
         ``value`` and, if necessary, shortening the key.
         """
+
         if len(key) > 8 and len(value) > 72:
             short_name = key[:8]
             self.meta[f"HIERARCH {key.upper()}"] = (
@@ -508,12 +511,15 @@ def _generate_wcs_and_update_header(hdr):
 
     Parameters
     ----------
+
     hdr : astropy.io.fits.header or other dict-like
 
     Returns
     -------
+
     new_header, wcs
     """
+
     # Try constructing a WCS object.
     try:
         wcs = WCS(hdr)
@@ -522,7 +528,7 @@ def _generate_wcs_and_update_header(hdr):
         # cases (malformed header) it could fail...
         log.info(
             "An exception happened while extracting WCS information from "
-            f"the Header.\n{type(exc).__name__}: {str(exc)}"
+            "the Header.\n{}: {}".format(type(exc).__name__, str(exc))
         )
         return hdr, None
     # Test for success by checking to see if the wcs ctype has a non-empty
@@ -645,7 +651,7 @@ def fits_ccddata_reader(
     for key, msg in unsupport_open_keywords.items():
         if key in kwd:
             prefix = f"unsupported keyword: {key}."
-            raise TypeError(f"{prefix} {msg}")
+            raise TypeError(" ".join([prefix, msg]))
     with fits.open(filename, **kwd) as hdus:
         hdr = hdus[hdu].header
 
@@ -711,16 +717,16 @@ def fits_ccddata_reader(
                     fits_unit_string = u.Unit(fits_unit_string)
                 except ValueError:
                     raise ValueError(
-                        f"The Header value for the key BUNIT ({fits_unit_string}) "
-                        "cannot be interpreted as valid unit. To successfully read the "
+                        "The Header value for the key BUNIT ({}) cannot be "
+                        "interpreted as valid unit. To successfully read the "
                         "file as CCDData you can pass in a valid `unit` "
                         "argument explicitly or change the header of the FITS "
-                        "file before reading it."
+                        "file before reading it.".format(fits_unit_string)
                     )
             else:
                 log.info(
-                    f"using the unit {unit} passed to the FITS reader instead "
-                    f"of the unit {fits_unit_string} in the FITS file."
+                    "using the unit {} passed to the FITS reader instead "
+                    "of the unit {} in the FITS file.".format(unit, fits_unit_string)
                 )
 
         use_unit = unit or fits_unit_string

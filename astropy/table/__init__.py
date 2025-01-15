@@ -14,7 +14,6 @@ __all__ = [
     "JSViewer",
     "MaskedColumn",
     "NdarrayMixin",
-    "PprintIncludeExclude",
     "QTable",
     "Row",
     "SCEngine",
@@ -29,18 +28,19 @@ __all__ = [
     "TableMergeError",
     "TableReplaceWarning",
     "conf",
-    "conf",
     "connect",
-    "dstack",
     "hstack",
     "join",
-    "join_distance",
-    "join_skycoord",
     "registry",
     "represent_mixins_as_columns",
     "setdiff",
     "unique",
     "vstack",
+    "dstack",
+    "conf",
+    "join_skycoord",
+    "join_distance",
+    "PprintIncludeExclude",
 ]
 
 
@@ -125,3 +125,5 @@ with registry.delay_doc_updates(Table):
 
     if optional_deps.HAS_ASDF_ASTROPY:
         import asdf_astropy.io.connect
+    else:
+        import astropy.io.misc.asdf.connect

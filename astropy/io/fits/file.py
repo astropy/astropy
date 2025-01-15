@@ -111,7 +111,8 @@ def _normalize_fits_mode(mode):
     if mode is not None and mode not in IO_FITS_MODES:
         if TEXT_RE.match(mode):
             raise ValueError(
-                f"Text mode '{mode}' not supported: files must be opened in binary mode"
+                "Text mode '{}' not supported: "
+                "files must be opened in binary mode".format(mode)
             )
         new_mode = FILE_MODES.get(mode)
         if new_mode not in IO_FITS_MODES:
@@ -135,7 +136,6 @@ class _File:
         *,
         use_fsspec=None,
         fsspec_kwargs=None,
-        decompress_in_memory=False,
     ):
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
@@ -170,8 +170,8 @@ class _File:
             objmode = _normalize_fits_mode(fileobj_mode(fileobj))
             if mode is not None and mode != objmode:
                 raise ValueError(
-                    f"Requested FITS mode '{mode}' not compatible with open file "
-                    f"handle mode '{objmode}'"
+                    "Requested FITS mode '{}' not compatible with open file "
+                    "handle mode '{}'".format(mode, objmode)
                 )
             mode = objmode
         if mode is None:
@@ -228,20 +228,6 @@ class _File:
             self.compression = "zip"
         elif _is_bz2file(fileobj):
             self.compression = "bzip2"
-
-        if (
-            self.compression is not None
-            and decompress_in_memory
-            and mode in ("readonly", "copyonwrite", "denywrite")
-        ):
-            # By default blocks are decompressed on the fly, when calling
-            # self.read. This is good for memory usage, avoiding decompression
-            # of the whole file, but it can be slow. With
-            # decompress_in_memory=True it is possible to decompress instead
-            # the whole file in memory.
-            fd = self._file
-            self._file = io.BytesIO(self._file.read())
-            fd.close()
 
         if mode in ("readonly", "copyonwrite", "denywrite") or (
             self.compression and mode == "update"
@@ -307,6 +293,7 @@ class _File:
         Usually it's best not to use the `size` argument with this method, but
         it's provided for compatibility.
         """
+
         if not hasattr(self._file, "read"):
             raise EOFError
 
@@ -334,11 +321,15 @@ class _File:
 
             if actualsize > size:
                 raise ValueError(
-                    f"size {size} is too few bytes for a {shape} array of {dtype}"
+                    "size {} is too few bytes for a {} array of {}".format(
+                        size, shape, dtype
+                    )
                 )
             elif actualsize < size:
                 raise ValueError(
-                    f"size {size} is too many bytes for a {shape} array of {dtype}"
+                    "size {} is too many bytes for a {} array of {}".format(
+                        size, shape, dtype
+                    )
                 )
 
         filepos = self._file.tell()
@@ -369,21 +360,11 @@ class _File:
                         # using the ACCESS_COPY mode in mmap so that users can
                         # modify arrays. However, on some systems, the OS raises
                         # a '[Errno 12] Cannot allocate memory' OSError if the
-                        # address space is smaller than the file. Also on windows
-                        # a '[WinError 1455] The paging file is too small for
-                        # this operation to complete' Windows error is raised or
-                        # equiivalent a '[Errno 22] Invalid argument. The solution
+                        # address space is smaller than the file. The solution
                         # is to open the file in mode='denywrite', which at
                         # least allows the file to be opened even if the
                         # resulting arrays will be truly read-only.
-
-                        if (
-                            exc.errno == errno.ENOMEM
-                            or (
-                                exc.errno == errno.EINVAL
-                                and getattr(exc, "winerror", 0) == 1455
-                            )
-                        ) and self.mode == "readonly":
+                        if exc.errno == errno.ENOMEM and self.mode == "readonly":
                             warnings.warn(
                                 "Could not memory map array with "
                                 "mode='readonly', falling back to "
@@ -436,6 +417,7 @@ class _File:
         Also like file.write(), a flush() or close() may be needed before
         the file on disk reflects the data written.
         """
+
         if self.simulateonly:
             return
         if hasattr(self._file, "write"):
@@ -455,7 +437,7 @@ class _File:
         if self.size and pos > self.size:
             warnings.warn(
                 "File may have been truncated: actual file length "
-                f"({self.size}) is smaller than the expected size ({pos})",
+                "({}) is smaller than the expected size ({})".format(self.size, pos),
                 AstropyUserWarning,
             )
 
@@ -474,6 +456,7 @@ class _File:
         """
         Close the 'physical' FITS file.
         """
+
         if hasattr(self._file, "close"):
             self._file.close()
 
@@ -493,12 +476,8 @@ class _File:
 
         This will close the mmap if there are no arrays referencing it.
         """
-        # sys.getrefcount is CPython specific and not on PyPy.
-        if (
-            self._mmap is not None
-            and hasattr(sys, "getrefcount")
-            and sys.getrefcount(self._mmap) == 2 + refcount_delta
-        ):
+
+        if self._mmap is not None and sys.getrefcount(self._mmap) == 2 + refcount_delta:
             self._mmap.close()
             self._mmap = None
 
@@ -508,6 +487,7 @@ class _File:
         _File object state and is only meant for use within the ``_open_*``
         internal methods.
         """
+
         # The file will be overwritten...
         if (self.file_like and hasattr(fileobj, "len") and fileobj.len > 0) or (
             os.path.exists(self.name) and os.path.getsize(self.name) != 0
@@ -523,7 +503,7 @@ class _File:
                 raise OSError(NOT_OVERWRITING_MSG.format(self.name))
 
     def _try_read_compressed(self, obj_or_name, magic, mode, ext=""):
-        """Attempt to determine if the given file is compressed."""
+        """Attempt to determine if the given file is compressed"""
         is_ostream = mode == "ostream"
         if (is_ostream and ext == ".gz") or magic.startswith(GZIP_MAGIC):
             if mode == "append":
@@ -532,7 +512,7 @@ class _File:
                     "Use 'update' mode instead"
                 )
             # Handle gzip files
-            kwargs = {"mode": IO_FITS_MODES[mode]}
+            kwargs = dict(mode=IO_FITS_MODES[mode])
             if isinstance(obj_or_name, str):
                 kwargs["filename"] = obj_or_name
             else:
@@ -561,6 +541,7 @@ class _File:
 
     def _open_fileobj(self, fileobj, mode, overwrite):
         """Open a FITS file from a file object (including compressed files)."""
+
         closed = fileobj_closed(fileobj)
         # FIXME: this variable was unused, check if it was useful
         # fmode = fileobj_mode(fileobj) or IO_FITS_MODES[mode]
@@ -596,12 +577,15 @@ class _File:
         """Open a FITS file from a file-like object, i.e. one that has
         read and/or write methods.
         """
+
         self.file_like = True
         self._file = fileobj
 
         if fileobj_closed(fileobj):
             raise OSError(
-                f"Cannot read from/write to a closed file-like object ({fileobj!r})."
+                "Cannot read from/write to a closed file-like object ({!r}).".format(
+                    fileobj
+                )
             )
 
         if isinstance(fileobj, zipfile.ZipFile):
@@ -624,18 +608,19 @@ class _File:
         ):
             raise OSError(
                 "File-like object does not have a 'write' "
-                f"method, required for mode '{self.mode}'."
+                "method, required for mode '{}'.".format(self.mode)
             )
 
         # Any mode except for 'ostream' requires readability
         if self.mode != "ostream" and not hasattr(self._file, "read"):
             raise OSError(
                 "File-like object does not have a 'read' "
-                f"method, required for mode {self.mode!r}."
+                "method, required for mode {!r}.".format(self.mode)
             )
 
     def _open_filename(self, filename, mode, overwrite):
         """Open a FITS file from a filename string."""
+
         if mode == "ostream":
             self._overwrite_existing(overwrite, None, True)
 
@@ -666,6 +651,7 @@ class _File:
         If mmap.flush is found not to work, ``self.memmap = False`` is
         set and a warning is issued.
         """
+
         tmpfd, tmpname = tempfile.mkstemp()
         try:
             # Windows does not allow mappings on empty files
@@ -675,7 +661,9 @@ class _File:
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
             except OSError as exc:
                 warnings.warn(
-                    f"Failed to create mmap: {exc}; mmap use will be disabled",
+                    "Failed to create mmap: {}; mmap use will be disabled".format(
+                        str(exc)
+                    ),
                     AstropyUserWarning,
                 )
                 del exc
@@ -702,6 +690,7 @@ class _File:
         a file.  Allows reading only for now by extracting the file to a
         tempfile.
         """
+
         if mode in ("update", "append"):
             raise OSError("Writing to zipped fits files is not currently supported")
 

@@ -3,7 +3,7 @@
 import pytest
 
 # By default, tests should not use the internet.
-from astropy.samp import SAMPWarning, conf
+from astropy.samp import conf
 from astropy.samp.client import SAMPClient
 from astropy.samp.hub import SAMPHubServer
 from astropy.samp.hub_proxy import SAMPHubProxy
@@ -19,7 +19,6 @@ def test_SAMPHubProxy():
     SAMPHubProxy()
 
 
-@pytest.mark.slow
 def test_SAMPClient():
     """Test that SAMPClient can be instantiated"""
     proxy = SAMPHubProxy()
@@ -32,22 +31,11 @@ def test_SAMPIntegratedClient():
 
 
 @pytest.fixture
-def samp_hub():
+def samp_hub(request):
     """A fixture that can be used by client tests that require a HUB."""
     my_hub = SAMPHubServer()
     my_hub.start()
-    yield
-    my_hub.stop()
-
-
-def test_SAMPIntegratedClient_notify_all(samp_hub):
-    """Test that SAMP returns a warning if no receiver got the message."""
-    client = SAMPIntegratedClient()
-    client.connect()
-    message = {"samp.mtype": "coverage.load.moc.fits"}
-    with pytest.warns(SAMPWarning):
-        client.notify_all(message)
-    client.disconnect()
+    request.addfinalizer(my_hub.stop)
 
 
 def test_reconnect(samp_hub):

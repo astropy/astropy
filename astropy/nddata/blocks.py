@@ -7,7 +7,7 @@ import numpy as np
 
 from .decorators import support_nddata
 
-__all__ = ["block_reduce", "block_replicate", "reshape_as_blocks"]
+__all__ = ["reshape_as_blocks", "block_reduce", "block_replicate"]
 
 
 def _process_block_inputs(data, block_size):

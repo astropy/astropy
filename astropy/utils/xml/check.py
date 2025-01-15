@@ -4,6 +4,7 @@ A collection of functions for checking various XML-related strings for
 standards compliance.
 """
 
+
 import re
 import urllib.parse
 
@@ -54,7 +55,7 @@ def check_mime_content_type(content_type):
     Returns `True` if *content_type* is a valid MIME content type
     (syntactically at least), as defined by RFC 2045.
     """
-    ctrls = "".join(chr(x) for x in range(0x20))
+    ctrls = "".join(chr(x) for x in range(0, 0x20))
     token_regex = f'[^()<>@,;:\\"/[\\]?= {ctrls}\x7f]+'
     return (
         re.match(rf"(?P<type>{token_regex})/(?P<subtype>{token_regex})$", content_type)
@@ -70,7 +71,7 @@ def check_anyuri(uri):
         re.match(
             (
                 r"(([a-zA-Z][0-9a-zA-Z+\-\.]*:)?/{0,2}[0-9a-zA-Z;"
-                r"/?:@&=+$\.\-_!~*'()%]+)?(#[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?"
+                + r"/?:@&=+$\.\-_!~*'()%]+)?(#[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?"
             ),
             uri,
         )

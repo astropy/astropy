@@ -11,7 +11,7 @@ Using the SpectralCoord Class
     other, so care should be taken in those cases. It is possible that there
     will be API changes in future versions of Astropy based on user feedback. If
     you have specific ideas for how it might be improved, please  let us know on
-    the |astropy-dev mailing list| or at http://feedback.astropy.org.
+    the `astropy-dev mailing list`_ or at http://feedback.astropy.org.
 
 The |SpectralCoord| class provides an interface for representing and
 transforming spectral coordinates such as frequencies, wavelengths, and photon
@@ -253,7 +253,7 @@ For the target, the simplest way is to use the |SkyCoord| class::
 
 In this case we specified a radial velocity and a distance for the target (using
 the `T Tauri SIMBAD entry
-<https://simbad.unistra.fr/simbad/sim-id?Ident=T+Tauri>`_, but it is also
+<http://simbad.u-strasbg.fr/simbad/sim-id?Ident=T+Tauri>`_, but it is also
 possible to not specify these, which means the target is assumed to be
 stationary in the frame in which it is observed, and are assumed to be at large
 distance from the Sun (such that any parallax effects would be unimportant if
@@ -460,7 +460,7 @@ T Tau. We can convert these frequencies to velocities assuming the Doppler shift
           redshift=0.0
         doppler_rest=115.2712018 GHz
         doppler_convention=radio)
-      [-11.90160348, -27.50828539, -30.10939905] km / s>
+      [-11.90160353, -27.50828545, -30.1093991 ] km / s>
 
 Note that these resulting velocities are different from the ``radial_velocity``
 property (which is still zero here) - the latter is the difference in velocity

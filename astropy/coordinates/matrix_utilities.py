@@ -3,26 +3,40 @@
 """
 Utililies used for constructing and inspecting rotation matrices.
 """
+from functools import reduce
 
 import numpy as np
 
 from astropy import units as u
+from astropy.utils import deprecated
 
 from .angles import Angle
+
+
+@deprecated("5.2", alternative="@")
+def matrix_product(*matrices):
+    """Matrix multiply all arguments together.
+
+    Arguments should have dimension 2 or larger. Larger dimensional objects
+    are interpreted as stacks of matrices residing in the last two dimensions.
+
+    This function mostly exists for readability: using `~numpy.matmul`
+    directly, one would have ``matmul(matmul(m1, m2), m3)``, etc. For even
+    better readability, one might consider using `~numpy.matrix` for the
+    arguments (so that one could write ``m1 * m2 * m3``), but then it is not
+    possible to handle stacks of matrices. Once only python >=3.5 is supported,
+    this function can be replaced by ``m1 @ m2 @ m3``.
+    """
+    return reduce(np.matmul, matrices)
 
 
 def matrix_transpose(matrix):
     """Transpose a matrix or stack of matrices by swapping the last two axes.
 
     This function mostly exists for readability; seeing ``.swapaxes(-2, -1)``
-    it is not that obvious that one does a transpose.
-
-    Note that one cannot use `~numpy.ndarray.T`, as this transposes all axes
-    and thus does not work for stacks of matrices.  We also avoid
-    ``np.matrix_transpose`` (new in numpy 2.0), since it is slower, as it
-    first ensures the input is an array, while we ducktype, assuming the
-    input has a ``.swapaxes`` method.
-
+    it is not that obvious that one does a transpose.  Note that one cannot
+    use `~numpy.ndarray.T`, as this transposes all axes and thus does not
+    work for stacks of matrices.
     """
     return matrix.swapaxes(-2, -1)
 
@@ -73,7 +87,7 @@ def rotation_matrix(angle, axis="z", unit=None):
             * (1.0 - c)[..., np.newaxis, np.newaxis]
         )
 
-        for i in range(3):
+        for i in range(0, 3):
             R[..., i, i] += c
             a1 = (i + 1) % 3
             a2 = (i + 2) % 3
@@ -122,7 +136,7 @@ def angle_axis(matrix):
     return Angle(angle, u.radian), -axis / r
 
 
-def is_O3(matrix, atol=None):
+def is_O3(matrix):
     """Check whether a matrix is in the length-preserving group O(3).
 
     Parameters
@@ -130,11 +144,6 @@ def is_O3(matrix, atol=None):
     matrix : (..., N, N) array-like
         Must have attribute ``.shape`` and method ``.swapaxes()`` and not error
         when using `~numpy.isclose`.
-    atol : float, optional
-        The allowed absolute difference.
-        If `None` it defaults to 1e-15 or 5 * epsilon of the matrix's dtype, if floating.
-
-        .. versionadded:: 5.3
 
     Returns
     -------
@@ -150,20 +159,14 @@ def is_O3(matrix, atol=None):
     """
     # matrix is in O(3) (rotations, proper and improper).
     I = np.identity(matrix.shape[-1])
-    if atol is None:
-        if np.issubdtype(matrix.dtype, np.floating):
-            atol = np.finfo(matrix.dtype).eps * 5
-        else:
-            atol = 1e-15
-
     is_o3 = np.all(
-        np.isclose(matrix @ matrix.swapaxes(-2, -1), I, atol=atol), axis=(-2, -1)
+        np.isclose(matrix @ matrix.swapaxes(-2, -1), I, atol=1e-15), axis=(-2, -1)
     )
 
     return is_o3
 
 
-def is_rotation(matrix, allow_improper=False, atol=None):
+def is_rotation(matrix, allow_improper=False):
     """Check whether a matrix is a rotation, proper or improper.
 
     Parameters
@@ -175,11 +178,6 @@ def is_rotation(matrix, allow_improper=False, atol=None):
         Whether to restrict check to the SO(3), the group of proper rotations,
         or also allow improper rotations (with determinant -1).
         The default (False) is only SO(3).
-    atol : float, optional
-        The allowed absolute difference.
-        If `None` it defaults to 1e-15 or 5 * epsilon of the matrix's dtype, if floating.
-
-        .. versionadded:: 5.3
 
     Returns
     -------
@@ -200,19 +198,13 @@ def is_rotation(matrix, allow_improper=False, atol=None):
     For more information, see https://en.wikipedia.org/wiki/Orthogonal_group
 
     """
-    if atol is None:
-        if np.issubdtype(matrix.dtype, np.floating):
-            atol = np.finfo(matrix.dtype).eps * 5
-        else:
-            atol = 1e-15
-
     # matrix is in O(3).
-    is_o3 = is_O3(matrix, atol=atol)
+    is_o3 = is_O3(matrix)
 
     # determinant checks  for rotation (proper and improper)
     if allow_improper:  # determinant can be +/- 1
-        is_det1 = np.isclose(np.abs(np.linalg.det(matrix)), 1.0, atol=atol)
+        is_det1 = np.isclose(np.abs(np.linalg.det(matrix)), 1.0)
     else:  # restrict to SO(3)
-        is_det1 = np.isclose(np.linalg.det(matrix), 1.0, atol=atol)
+        is_det1 = np.isclose(np.linalg.det(matrix), 1.0)
 
     return is_o3 & is_det1

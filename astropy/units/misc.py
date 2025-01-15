@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This package defines miscellaneous units. They are also available in
-(and should be used through) the `astropy.units` namespace.
+This package defines miscellaneous units. They are also
+available in the `astropy.units` namespace.
 """
-# avoid ruff complaints about undefined names defined by def_unit
-# ruff: noqa: F821
 
-import numpy as np
 
 from astropy.constants import si as _si
 
@@ -17,8 +14,7 @@ from .core import UnitBase, binary_prefixes, def_unit, set_enabled_units, si_pre
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
 
-
-__all__: list[str] = []  #  Units are added at the end
+import numpy as _numpy
 
 _ns = globals()
 
@@ -39,14 +35,14 @@ def_unit(
 
 def_unit(
     ["cycle", "cy"],
-    2.0 * np.pi * si.rad,
+    2.0 * _numpy.pi * si.rad,
     namespace=_ns,
     prefixes=False,
     doc="cycle: angular measurement, a full turn or rotation",
 )
 def_unit(
     ["spat", "sp"],
-    4.0 * np.pi * si.sr,
+    4.0 * _numpy.pi * si.sr,
     namespace=_ns,
     prefixes=False,
     doc="spat: the solid angle of the sphere, 4pi sr",
@@ -104,30 +100,6 @@ def_unit(
     doc="Unified atomic mass unit",
 )
 
-##########################################################################
-# ENERGY
-
-def_unit(
-    ["eV", "electronvolt"],
-    _si.e.value * si.J,
-    namespace=_ns,
-    prefixes=True,
-    doc="Electron Volt",
-)
-
-# Here, explicitly convert the planck constant to 'eV s' since the constant
-# can override that to give a more precise value that takes into account
-# covariances between e and h.  Eventually, this may also be replaced with
-# just `_si.Ryd.to(eV)`.
-def_unit(
-    ["Ry", "rydberg"],
-    (_si.Ryd * _si.c * _si.h.to(eV * si.s)).to(eV),
-    namespace=_ns,
-    prefixes=True,
-    doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg constant",
-    format={"latex": r"R_{\infty}", "unicode": "R∞"},
-)
-
 
 ###########################################################################
 # COMPUTER
@@ -158,15 +130,20 @@ def_unit(
     prefixes=True,
 )
 
+
 ###########################################################################
-# ALL & DOCSTRING
+# CLEANUP
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+del UnitBase
+del def_unit
+del si
 
+###########################################################################
+# DOCSTRING
+
+# This generates a docstring for this module that describes all of the
+# standard units defined here.
+from .utils import generate_unit_summary as _generate_unit_summary
 
 if __doc__ is not None:
-    # This generates a docstring for this module that describes all of the
-    # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
     __doc__ += _generate_unit_summary(globals())

@@ -73,7 +73,7 @@ The following example illustrates a custom projection using a transform and
     coord_meta = {}
     coord_meta['name'] = 'lon', 'lat'
     coord_meta['type'] = 'longitude', 'latitude'
-    coord_meta['wrap'] = 180 * u.deg, None
+    coord_meta['wrap'] = 180, None
     coord_meta['unit'] = u.deg, u.deg
     coord_meta['format_unit'] = None, None
 

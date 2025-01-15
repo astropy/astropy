@@ -29,18 +29,14 @@ import astropy.units as u
 
 ################################################################################
 # Use the latest convention for the Galactocentric coordinates
-coord.galactocentric_frame_defaults.set("latest")
+coord.galactocentric_frame_defaults.set('latest')
 
 ################################################################################
 # For this example, let's work with the coordinates and barycentric radial
 # velocity of the star HD 155967, as obtained from
-# `Simbad <https://simbad.unistra.fr/simbad/>`_:
-icrs = coord.SkyCoord(
-    ra=258.58356362 * u.deg,
-    dec=14.55255619 * u.deg,
-    radial_velocity=-16.1 * u.km / u.s,
-    frame="icrs",
-)
+# `Simbad <https://simbad.u-strasbg.fr/simbad/>`_:
+icrs = coord.SkyCoord(ra=258.58356362*u.deg, dec=14.55255619*u.deg,
+                      radial_velocity=-16.1*u.km/u.s, frame='icrs')
 
 ################################################################################
 # We next need to decide on the velocity of the Sun in the assumed GSR frame.
@@ -72,7 +68,7 @@ print(rv_gsr)
 
 ################################################################################
 # We could wrap this in a function so we can control the solar velocity and
-# reuse the above code:
+# re-use the above code:
 def rv_to_gsr(c, v_sun=None):
     """Transform a barycentric radial velocity to the Galactic Standard of Rest
     (GSR).

@@ -1,7 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-from functools import cache
-
 from astropy import units as u
 from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribute
 from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
@@ -11,8 +8,9 @@ from astropy.coordinates.transformations import (
     FunctionTransform,
 )
 
+_skyoffset_cache = {}
 
-@cache
+
 def make_skyoffset_cls(framecls):
     """
     Create a new class that is the sky offset frame for a specific class of
@@ -40,15 +38,17 @@ def make_skyoffset_cls(framecls):
     just that class, as well as ensuring that only one example of such a class
     actually gets created in any given python session.
     """
+
+    if framecls in _skyoffset_cache:
+        return _skyoffset_cache[framecls]
+
     # Create a new SkyOffsetFrame subclass for this frame class.
     name = "SkyOffset" + framecls.__name__
     _SkyOffsetFramecls = type(
         name,
         (SkyOffsetFrame, framecls),
         {
-            "origin": CoordinateAttribute(
-                frame=framecls, default=None, doc="The origin of the offset frame"
-            ),
+            "origin": CoordinateAttribute(frame=framecls, default=None),
             # The following two have to be done because otherwise we use the
             # defaults of SkyOffsetFrame set by BaseCoordinateFrame.
             "_default_representation": framecls._default_representation,
@@ -62,6 +62,7 @@ def make_skyoffset_cls(framecls):
     )
     def skyoffset_to_skyoffset(from_skyoffset_coord, to_skyoffset_frame):
         """Transform between two skyoffset frames."""
+
         # This transform goes through the parent frames on each side.
         # from_frame -> from_frame.origin -> to_frame.origin -> to_frame
         tmp_from = from_skyoffset_coord.transform_to(from_skyoffset_coord.origin)
@@ -73,6 +74,7 @@ def make_skyoffset_cls(framecls):
     )
     def reference_to_skyoffset(reference_frame, skyoffset_frame):
         """Convert a reference coordinate to an sky offset frame."""
+
         # Define rotation matrices along the position angle vector, and
         # relative to the origin.
         origin = skyoffset_frame.origin.spherical
@@ -86,12 +88,14 @@ def make_skyoffset_cls(framecls):
         DynamicMatrixTransform, _SkyOffsetFramecls, framecls
     )
     def skyoffset_to_reference(skyoffset_coord, reference_frame):
-        """Convert an sky offset frame coordinate to the reference frame."""
+        """Convert an sky offset frame coordinate to the reference frame"""
+
         # use the forward transform, but just invert it
         R = reference_to_skyoffset(reference_frame, skyoffset_coord)
         # transpose is the inverse because R is a rotation matrix
         return matrix_transpose(R)
 
+    _skyoffset_cache[framecls] = _SkyOffsetFramecls
     return _SkyOffsetFramecls
 
 
@@ -135,12 +139,8 @@ class SkyOffsetFrame(BaseCoordinateFrame):
     of ``origin``.
     """
 
-    rotation = QuantityAttribute(
-        default=0, unit=u.deg, doc="The rotation angle for the frame orientation"
-    )
-    origin = CoordinateAttribute(
-        default=None, frame=None, doc="The origin of the offset frame"
-    )
+    rotation = QuantityAttribute(default=0, unit=u.deg)
+    origin = CoordinateAttribute(default=None, frame=None)
 
     def __new__(cls, *args, **kwargs):
         # We don't want to call this method if we've already set up

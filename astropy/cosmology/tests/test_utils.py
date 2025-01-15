@@ -1,22 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from math import inf
+
 import numpy as np
 import pytest
 
-import astropy.units as u
-from astropy.cosmology._utils import (
-    all_cls_vars,
+from astropy.cosmology.utils import (
     aszarr,
-    deprecated_keywords,
+    inf_like,
+    vectorize_if_needed,
     vectorize_redshift_method,
 )
-from astropy.utils.compat.optional_deps import HAS_PANDAS
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .test_core import invalid_zs, valid_zs, z_arr
+from .test_core import _zarr, invalid_zs, valid_zs
 
 
 def test_vectorize_redshift_method():
-    """Test :func:`astropy.cosmology._utils.vectorize_redshift_method`."""
+    """Test :func:`astropy.cosmology.utils.vectorize_redshift_method`."""
 
     class Class:
         @vectorize_redshift_method
@@ -45,6 +46,44 @@ def test_vectorize_redshift_method():
     assert isinstance(c.method([1, 2]), np.ndarray)
 
 
+def test_vectorize_if_needed():
+    """
+    Test :func:`astropy.cosmology.utils.vectorize_if_needed`.
+    There's no need to test 'veckw' because that is directly pasased to
+    `numpy.vectorize` which thoroughly tests the various inputs.
+
+    """
+
+    def func(x):
+        return x**2
+
+    with pytest.warns(AstropyDeprecationWarning):
+        # not vectorized
+        assert vectorize_if_needed(func, 2) == 4
+        # vectorized
+        assert all(vectorize_if_needed(func, [2, 3]) == [4, 9])
+
+
+@pytest.mark.parametrize(
+    "arr, expected",
+    [
+        (0.0, inf),  # float scalar
+        (1, inf),  # integer scalar should give float output
+        ([0.0, 1.0, 2.0, 3.0], (inf, inf, inf, inf)),
+        ([0, 1, 2, 3], (inf, inf, inf, inf)),  # integer list
+    ],
+)
+def test_inf_like(arr, expected):
+    """
+    Test :func:`astropy.cosmology.utils.inf_like`.
+    All inputs should give a float output.
+    These tests are also in the docstring, but it's better to have them also
+    in one consolidated location.
+    """
+    with pytest.warns(AstropyDeprecationWarning):
+        assert np.all(inf_like(arr) == expected)
+
+
 # -------------------------------------------------------------------
 
 
@@ -54,146 +93,17 @@ class Test_aszarr:
         list(
             zip(
                 valid_zs,
-                [0, 1, 1100, np.float64(3300), 2.0, 3.0, z_arr, z_arr, z_arr, z_arr],
+                [0, 1, 1100, np.float64(3300), 2.0, 3.0, _zarr, _zarr, _zarr, _zarr],
             )
         ),
     )
     def test_valid(self, z, expect):
-        """Test :func:`astropy.cosmology._utils.aszarr`."""
+        """Test :func:`astropy.cosmology.utils.aszarr`."""
         got = aszarr(z)
         assert np.array_equal(got, expect)
 
     @pytest.mark.parametrize("z, exc", invalid_zs)
     def test_invalid(self, z, exc):
-        """Test :func:`astropy.cosmology._utils.aszarr`."""
+        """Test :func:`astropy.cosmology.utils.aszarr`."""
         with pytest.raises(exc):
             aszarr(z)
-
-    @pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
-    def test_pandas(self):
-        import pandas as pd
-
-        x = pd.Series([1, 2, 3, 4, 5])
-
-        # Demonstrate Pandas doesn't work with units
-        assert not isinstance(x * u.km, u.Quantity)
-
-        # Test aszarr works with Pandas
-        assert isinstance(aszarr(x), np.ndarray)
-        np.testing.assert_array_equal(aszarr(x), x.values)
-
-
-# -------------------------------------------------------------------
-
-
-def test_all_cls_vars():
-    """Test :func:`astropy.cosmology._utils.all_cls_vars`."""
-
-    class ClassA:
-        a = 1
-        b = 2
-
-    all_vars = all_cls_vars(ClassA)
-    public_all_vars = {k: v for k, v in all_vars.items() if not k.startswith("_")}
-    assert public_all_vars == {"a": 1, "b": 2}
-
-    class ClassB(ClassA):
-        c = 3
-
-    all_vars = all_cls_vars(ClassB)
-    public_all_vars = {k: v for k, v in all_vars.items() if not k.startswith("_")}
-    assert public_all_vars == {"a": 1, "b": 2, "c": 3}
-    assert "a" not in vars(ClassB)
-    assert "b" not in vars(ClassB)
-
-
-class TestDeprecatedKeywords:
-    @classmethod
-    def setup_class(cls):
-        def noop(a, b, c, d):
-            # a minimal function that does nothing,
-            # with multiple positional-or-keywords arguments
-            return
-
-        cls.base_func = noop
-        cls.depr_funcs = {
-            1: deprecated_keywords("a", since="999.999.999")(noop),
-            2: deprecated_keywords("a", "b", since="999.999.999")(noop),
-            4: deprecated_keywords("a", "b", "c", "d", since="999.999.999")(noop),
-        }
-
-    def test_type_safety(self):
-        dec = deprecated_keywords(b"a", since="999.999.999")
-        with pytest.raises(TypeError, match=r"names\[0\] must be a string"):
-            dec(self.base_func)
-
-        dec = deprecated_keywords("a", since=b"999.999.999")
-        with pytest.raises(TypeError, match=r"since must be a string"):
-            dec(self.base_func)
-
-    @pytest.mark.parametrize("n_deprecated_keywords", [1, 2, 4])
-    def test_no_warn(self, n_deprecated_keywords):
-        func = self.depr_funcs[n_deprecated_keywords]
-        func(1, 2, 3, 4)
-
-    @pytest.mark.parametrize(
-        "n_deprecated_keywords, args, kwargs, match",
-        [
-            pytest.param(
-                1,
-                (),
-                {"a": 1, "b": 2, "c": 3, "d": 4},
-                r"Passing 'a' as keyword is deprecated since",
-                id="1 deprecation, 1 warn",
-            ),
-            pytest.param(
-                2,
-                (1,),
-                {"b": 2, "c": 3, "d": 4},
-                r"Passing 'b' as keyword is deprecated since",
-                id="2 deprecation, 1 warn",
-            ),
-            pytest.param(
-                2,
-                (),
-                {"a": 1, "b": 2, "c": 3, "d": 4},
-                r"Passing \['a', 'b'\] arguments as keywords is deprecated since",
-                id="2 deprecations, 2 warns",
-            ),
-            pytest.param(
-                4,
-                (),
-                {"a": 1, "b": 2, "c": 3, "d": 4},
-                (
-                    r"Passing \['a', 'b', 'c', 'd'\] arguments as keywords "
-                    "is deprecated since"
-                ),
-                id="4 deprecations, 4 warns",
-            ),
-            pytest.param(
-                4,
-                (1,),
-                {"b": 2, "c": 3, "d": 4},
-                r"Passing \['b', 'c', 'd'\] arguments as keywords is deprecated since",
-                id="4 deprecations, 3 warns",
-            ),
-            pytest.param(
-                4,
-                (1, 2),
-                {"c": 3, "d": 4},
-                r"Passing \['c', 'd'\] arguments as keywords is deprecated since",
-                id="4 deprecations, 2 warns",
-            ),
-            pytest.param(
-                4,
-                (1, 2, 3),
-                {"d": 4},
-                r"Passing 'd' as keyword is deprecated since",
-                id="4 deprecations, 1 warn",
-            ),
-        ],
-    )
-    def test_warn(self, n_deprecated_keywords, args, kwargs, match):
-        func = self.depr_funcs[n_deprecated_keywords]
-        with pytest.warns(FutureWarning, match=match):
-            func(*args, **kwargs)

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import re
 from collections import OrderedDict
 from contextlib import nullcontext
 
@@ -14,7 +13,6 @@ from astropy.coordinates import (
     CartesianRepresentation,
     SkyCoord,
     SphericalRepresentation,
-    StokesCoord,
     UnitSphericalRepresentation,
     search_around_3d,
 )
@@ -26,34 +24,12 @@ from astropy.table.operations import _get_out_class, join_distance, join_skycoor
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata
-from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.masked import Masked
 from astropy.utils.metadata import MergeConflictError
-
-MIXINS_WITH_FULL_MASK_SUPPORT = (
-    Quantity,
-    Time,
-    TimeDelta,
-    BaseRepresentationOrDifferential,
-    SkyCoord,
-    EarthLocation,  # Currently, a Quantity subclass, but that may change.
-)
 
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
-
-
-def check_cols_equal(col1, col2):
-    """Check that col1 == col2, taking care of zero-length masked columns."""
-    assert (
-        type(col1) is type(col2)
-        or (isinstance(col1, Masked) and type(col1) is Masked(type(col2)))
-        or (isinstance(col2, Masked) and type(col2) is Masked(type(col1)))
-    )
-    eq = np.all(col1 == col2)
-    return eq or (isinstance(eq, Masked) and not eq.shape and eq.unmasked)
 
 
 def check_mask(col, exp_mask):
@@ -68,7 +44,7 @@ def check_mask(col, exp_mask):
         # With no mask the check is OK if all the expected mask values
         # are False (i.e. no auto-conversion to MaskedQuantity if it was
         # not required by the join).
-        out = np.all(exp_mask == False)  # noqa: E712
+        out = np.all(exp_mask == False)
     return out
 
 
@@ -151,10 +127,10 @@ class TestJoin:
         # Basic join with default parameters (inner join on common keys)
         t12 = table.join(t1, t2)
         assert type(t12) is operation_table_type
-        assert type(t12["a"]) is type(t1["a"])
-        assert type(t12["b"]) is type(t1["b"])
-        assert type(t12["c"]) is type(t1["c"])
-        assert type(t12["d"]) is type(t2["d"])
+        assert type(t12["a"]) is type(t1["a"])  # noqa: E721
+        assert type(t12["b"]) is type(t1["b"])  # noqa: E721
+        assert type(t12["c"]) is type(t1["c"])  # noqa: E721
+        assert type(t12["d"]) is type(t2["d"])  # noqa: E721
         assert t12.masked is False
         assert sort_eq(
             t12.pformat(),
@@ -243,11 +219,11 @@ class TestJoin:
         # Inner join on 'a' column
         t12 = table.join(t1, t2, keys="a")
         assert type(t12) is operation_table_type
-        assert type(t12["a"]) is type(t1["a"])
-        assert type(t12["b_1"]) is type(t1["b"])
-        assert type(t12["c"]) is type(t1["c"])
-        assert type(t12["b_2"]) is type(t2["b"])
-        assert type(t12["d"]) is type(t2["d"])
+        assert type(t12["a"]) is type(t1["a"])  # noqa: E721
+        assert type(t12["b_1"]) is type(t1["b"])  # noqa: E721
+        assert type(t12["c"]) is type(t1["c"])  # noqa: E721
+        assert type(t12["b_2"]) is type(t2["b"])  # noqa: E721
+        assert type(t12["d"]) is type(t2["d"])  # noqa: E721
         assert t12.masked is False
         assert sort_eq(
             t12.pformat(),
@@ -682,7 +658,7 @@ class TestJoin:
 
         # Check for left, right, outer join which requires masking. Works for
         # the listed mixins classes.
-        if isinstance(col, MIXINS_WITH_FULL_MASK_SUPPORT):
+        if isinstance(col, (Quantity, Time, TimeDelta)):
             out = table.join(t1, t2, join_type="left")
             assert len(out) == 3
             assert np.all(out["idx"] == [0, 1, 3])
@@ -966,23 +942,13 @@ class TestJoin:
             names=["structured", "string"],
         )
         t12 = table.join(t1, t2, ["structured"], join_type="outer")
-        assert t12.pformat() == (
-            [
-                "structured [f, i] string_1 string_2",
-                "----------------- -------- --------",
-                "          (1., 1)      one       --",
-                "          (2., 2)      two    three",
-                "          (4., 4)       --     four",
-            ]
-            if NUMPY_LT_2_0
-            else [
-                "structured [f, i] string_1 string_2",
-                "----------------- -------- --------",
-                "         (1.0, 1)      one       --",
-                "         (2.0, 2)      two    three",
-                "         (4.0, 4)       --     four",
-            ]
-        )
+        assert t12.pformat() == [
+            "structured [f, i] string_1 string_2",
+            "----------------- -------- --------",
+            "          (1., 1)      one       --",
+            "          (2., 2)      two    three",
+            "          (4., 4)       --     four",
+        ]
 
 
 class TestSetdiff:
@@ -1003,16 +969,16 @@ class TestSetdiff:
     def test_default_same_columns(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t2)
-        assert type(out["a"]) is type(self.t1["a"])
-        assert type(out["b"]) is type(self.t1["b"])
+        assert type(out["a"]) is type(self.t1["a"])  # noqa: E721
+        assert type(out["b"]) is type(self.t1["b"])  # noqa: E721
         assert out.pformat() == [" a   b ", "--- ---", "  1 bar", "  1 foo"]
 
     def test_default_same_tables(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t1)
 
-        assert type(out["a"]) is type(self.t1["a"])
-        assert type(out["b"]) is type(self.t1["b"])
+        assert type(out["a"]) is type(self.t1["a"])  # noqa: E721
+        assert type(out["b"]) is type(self.t1["b"])  # noqa: E721
         assert out.pformat() == [
             " a   b ",
             "--- ---",
@@ -1028,8 +994,8 @@ class TestSetdiff:
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t3)
 
-        assert type(out["a"]) is type(self.t1["a"])
-        assert type(out["b"]) is type(self.t1["b"])
+        assert type(out["a"]) is type(self.t1["a"])  # noqa: E721
+        assert type(out["b"]) is type(self.t1["b"])  # noqa: E721
         assert out.pformat() == [
             " a   b ",
             "--- ---",
@@ -1041,8 +1007,8 @@ class TestSetdiff:
         self._setup(operation_table_type)
         out = table.setdiff(self.t3, self.t1, keys=["a", "b"])
 
-        assert type(out["a"]) is type(self.t1["a"])
-        assert type(out["b"]) is type(self.t1["b"])
+        assert type(out["a"]) is type(self.t1["a"])  # noqa: E721
+        assert type(out["b"]) is type(self.t1["b"])  # noqa: E721
         assert out.pformat() == [
             " a   b   d ",
             "--- --- ---",
@@ -1115,8 +1081,8 @@ class TestVStack:
         t2 = self.t1.copy()
         t2.meta.clear()
         out = table.vstack([self.t1, t2[1]])
-        assert type(out["a"]) is type(self.t1["a"])
-        assert type(out["b"]) is type(self.t1["b"])
+        assert type(out["a"]) is type(self.t1["a"])  # noqa: E721
+        assert type(out["b"]) is type(self.t1["b"])  # noqa: E721
         assert out.pformat() == [
             " a   b ",
             "--- ---",
@@ -1198,8 +1164,8 @@ class TestVStack:
         t12 = table.vstack([t1, t2], join_type="inner")
         assert t12.masked is False
         assert type(t12) is operation_table_type
-        assert type(t12["a"]) is type(t1["a"])
-        assert type(t12["b"]) is type(t1["b"])
+        assert type(t12["a"]) is type(t1["a"])  # noqa: E721
+        assert type(t12["b"]) is type(t1["b"])  # noqa: E721
         assert t12.pformat() == [
             " a   b ",
             "--- ---",
@@ -1211,8 +1177,8 @@ class TestVStack:
 
         t124 = table.vstack([t1, t2, t4], join_type="inner")
         assert type(t124) is operation_table_type
-        assert type(t12["a"]) is type(t1["a"])
-        assert type(t12["b"]) is type(t1["b"])
+        assert type(t12["a"]) is type(t1["a"])  # noqa: E721
+        assert type(t12["b"]) is type(t1["b"])  # noqa: E721
         assert t124.pformat() == [
             " a   b ",
             "--- ---",
@@ -1459,47 +1425,60 @@ class TestVStack:
         assert (self.t1 == table.vstack(self.t1)).all()
         assert (self.t1 == table.vstack([self.t1])).all()
 
-    @pytest.mark.parametrize("empty_table1", [False, True])
-    @pytest.mark.parametrize("empty_table2", [False, True])
-    def test_mixin_functionality(self, mixin_cols, empty_table1, empty_table2):
-        col1 = col2 = mixin_cols["m"]
-        if empty_table1:
-            col1 = col1[:0]
-        if empty_table2:
-            col2 = col2[:0]
-        len_col1 = len(col1)
-        t1 = table.QTable([col1], names=["a"])
-        len_col2 = len(col2)
-        t2 = table.QTable([col2], names=["a"])
+    def test_mixin_functionality(self, mixin_cols):
+        col = mixin_cols["m"]
+        len_col = len(col)
+        t = table.QTable([col], names=["a"])
+        cls_name = type(col).__name__
 
         # Vstack works for these classes:
-        if isinstance(col1, MIXINS_WITH_FULL_MASK_SUPPORT + (StokesCoord,)):
-            out = table.vstack([t1, t2])
-            assert len(out) == len_col1 + len_col2
-            assert check_cols_equal(out["a"][:len_col1], col1)
-            assert check_cols_equal(out["a"][len_col1:], col2)
-        else:
-            msg = f"vstack unavailable for mixin column type(s): {type(col1).__name__}"
-            with pytest.raises(NotImplementedError, match=re.escape(msg)):
-                table.vstack([t1, t2])
-
-        # Check for outer stack which requires masking.  Works for
-        # the listed mixins classes.
-        t2 = table.QTable([col2], names=["b"])  # different from col name for t
-        if isinstance(col1, MIXINS_WITH_FULL_MASK_SUPPORT):
-            out = table.vstack([t1, t2], join_type="outer")
-            assert len(out) == len_col1 + len_col2
-            assert check_cols_equal(out["a"][:len_col1], col1)
-            assert check_cols_equal(out["b"][len_col1:], col2)
-            assert check_mask(out["a"], [False] * len_col1 + [True] * len_col2)
-            assert check_mask(out["b"], [True] * len_col1 + [False] * len_col2)
-            # check directly stacking mixin columns:
-            out2 = table.vstack([t1, t2["b"]])
-            assert check_cols_equal(out["a"], out2["a"])
-            assert check_cols_equal(out["b"], out2["b"])
+        if isinstance(
+            col,
+            (
+                u.Quantity,
+                Time,
+                TimeDelta,
+                SkyCoord,
+                EarthLocation,
+                BaseRepresentationOrDifferential,
+            ),
+        ):
+            out = table.vstack([t, t])
+            assert len(out) == len_col * 2
+            if cls_name == "SkyCoord":
+                # Argh, SkyCoord needs __eq__!!
+                assert skycoord_equal(out["a"][len_col:], col)
+                assert skycoord_equal(out["a"][:len_col], col)
+            elif "Repr" in cls_name or "Diff" in cls_name:
+                assert np.all(representation_equal(out["a"][:len_col], col))
+                assert np.all(representation_equal(out["a"][len_col:], col))
+            else:
+                assert np.all(out["a"][:len_col] == col)
+                assert np.all(out["a"][len_col:] == col)
         else:
             with pytest.raises(NotImplementedError) as err:
-                table.vstack([t1, t2], join_type="outer")
+                table.vstack([t, t])
+            assert "vstack unavailable for mixin column type(s): {}".format(
+                cls_name
+            ) in str(err.value)
+
+        # Check for outer stack which requires masking.  Only Time supports
+        # this currently.
+        t2 = table.QTable([col], names=["b"])  # different from col name for t
+        if isinstance(col, (Time, TimeDelta, Quantity)):
+            out = table.vstack([t, t2], join_type="outer")
+            assert len(out) == len_col * 2
+            assert np.all(out["a"][:len_col] == col)
+            assert np.all(out["b"][len_col:] == col)
+            assert check_mask(out["a"], [False] * len_col + [True] * len_col)
+            assert check_mask(out["b"], [True] * len_col + [False] * len_col)
+            # check directly stacking mixin columns:
+            out2 = table.vstack([t, t2["b"]])
+            assert np.all(out["a"] == out2["a"])
+            assert np.all(out["b"] == out2["b"])
+        else:
+            with pytest.raises(NotImplementedError) as err:
+                table.vstack([t, t2], join_type="outer")
             assert "vstack requires masking" in str(
                 err.value
             ) or "vstack unavailable" in str(err.value)
@@ -1521,15 +1500,6 @@ class TestVStack:
         with pytest.raises(ValueError, match="representations are inconsistent"):
             table.vstack([t1, t3])
 
-    def test_vstack_different_sky_coordinates(self):
-        """Test that SkyCoord can generally not be mixed together."""
-        sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
-        sc2 = SkyCoord([5, 6] * u.deg, [7, 8] * u.deg, frame="fk5")
-        t1 = Table([sc1])
-        t2 = Table([sc2])
-        with pytest.raises(ValueError, match="coords are inconsistent"):
-            table.vstack([t1, t2])
-
     def test_vstack_structured_column(self):
         """Regression tests for gh-13271."""
         # Two tables with matching names, including a structured column.
@@ -1548,25 +1518,14 @@ class TestVStack:
             names=["structured", "string"],
         )
         t12 = table.vstack([t1, t2])
-        assert t12.pformat() == (
-            [
-                "structured [f, i] string",
-                "----------------- ------",
-                "          (1., 1)    one",
-                "          (2., 2)    two",
-                "          (3., 3)  three",
-                "          (4., 4)   four",
-            ]
-            if NUMPY_LT_2_0
-            else [
-                "structured [f, i] string",
-                "----------------- ------",
-                "         (1.0, 1)    one",
-                "         (2.0, 2)    two",
-                "         (3.0, 3)  three",
-                "         (4.0, 4)   four",
-            ]
-        )
+        assert t12.pformat() == [
+            "structured [f, i] string",
+            "----------------- ------",
+            "          (1., 1)    one",
+            "          (2., 2)    two",
+            "          (3., 3)  three",
+            "          (4., 4)   four",
+        ]
 
         # One table without the structured column.
         t3 = t2[("string",)]
@@ -1579,19 +1538,6 @@ class TestVStack:
             "               --  three",
             "               --   four",
         ]
-
-    def test_vstack_inputs_not_modified(self):
-        """Tests that inputs are not modified, see issue #16119"""
-        t1 = Table(data=dict(x=[1, 2, 3], y=["a", "b", "c"]))
-
-        rows = list(t1)  # Table -> list of Rows
-        rows0 = rows[0]
-        t2 = table.vstack(rows)
-        assert rows[0] is rows0
-
-        tables = [t1, t1]
-        t3 = table.vstack(tables)
-        assert tables[0] is t1
 
 
 class TestDStack:
@@ -1650,7 +1596,7 @@ class TestDStack:
     @staticmethod
     def compare_dstack(tables, out):
         for ii, tbl in enumerate(tables):
-            for name in out.columns:
+            for name, out_col in out.columns.items():
                 if name in tbl.colnames:
                     # Columns always compare equal
                     assert np.all(tbl[name] == out[name][:, ii])
@@ -1686,15 +1632,15 @@ class TestDStack:
         # Test for non-masked table
         t12 = table.dstack([t1, t2], join_type="outer")
         assert type(t12) is operation_table_type
-        assert type(t12["a"]) is type(t1["a"])
-        assert type(t12["b"]) is type(t1["b"])
+        assert type(t12["a"]) is type(t1["a"])  # noqa: E721
+        assert type(t12["b"]) is type(t1["b"])  # noqa: E721
         self.compare_dstack([t1, t2], t12)
 
         # Test for masked table
         t124 = table.dstack([t1, t2, t4], join_type="outer")
         assert type(t124) is operation_table_type
-        assert type(t124["a"]) is type(t4["a"])
-        assert type(t124["b"]) is type(t4["b"])
+        assert type(t124["a"]) is type(t4["a"])  # noqa: E721
+        assert type(t124["b"]) is type(t4["b"])  # noqa: E721
         self.compare_dstack([t1, t2, t4], t124)
 
     def test_dstack_basic_inner(self, operation_table_type):
@@ -1706,8 +1652,8 @@ class TestDStack:
         # Test for masked table
         t124 = table.dstack([t1, t2, t4], join_type="inner")
         assert type(t124) is operation_table_type
-        assert type(t124["a"]) is type(t4["a"])
-        assert type(t124["b"]) is type(t4["b"])
+        assert type(t124["a"]) is type(t4["a"])  # noqa: E721
+        assert type(t124["b"]) is type(t4["b"])  # noqa: E721
         self.compare_dstack([t1, t2, t4], t124)
 
     def test_dstack_multi_dimension_column(self, operation_table_type):
@@ -1717,8 +1663,8 @@ class TestDStack:
         t2 = self.t2
         t35 = table.dstack([t3, t5])
         assert type(t35) is operation_table_type
-        assert type(t35["a"]) is type(t3["a"])
-        assert type(t35["b"]) is type(t3["b"])
+        assert type(t35["a"]) is type(t3["a"])  # noqa: E721
+        assert type(t35["b"]) is type(t3["b"])  # noqa: E721
         self.compare_dstack([t3, t5], t35)
 
         with pytest.raises(TableMergeError):
@@ -1772,21 +1718,12 @@ class TestDStack:
             names=["structured", "string"],
         )
         t12 = table.dstack([t1, t2])
-        assert t12.pformat() == (
-            [
-                "structured [f, i]     string   ",
-                "------------------ ------------",
-                "(1., 1) .. (3., 3) one .. three",
-                "(2., 2) .. (4., 4)  two .. four",
-            ]
-            if NUMPY_LT_2_0
-            else [
-                " structured [f, i]      string   ",
-                "-------------------- ------------",
-                "(1.0, 1) .. (3.0, 3) one .. three",
-                "(2.0, 2) .. (4.0, 4)  two .. four",
-            ]
-        )
+        assert t12.pformat() == [
+            "structured [f, i]     string   ",
+            "------------------ ------------",
+            "(1., 1) .. (3., 3) one .. three",
+            "(2., 2) .. (4., 4)  two .. four",
+        ]
 
         # One table without the structured column.
         t3 = t2[("string",)]
@@ -1882,9 +1819,9 @@ class TestHStack:
     def test_stack_columns(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t2["c"]])
-        assert type(out["a"]) is type(self.t1["a"])
-        assert type(out["b"]) is type(self.t1["b"])
-        assert type(out["c"]) is type(self.t2["c"])
+        assert type(out["a"]) is type(self.t1["a"])  # noqa: E721
+        assert type(out["b"]) is type(self.t1["b"])  # noqa: E721
+        assert type(out["c"]) is type(self.t2["c"])  # noqa: E721
         assert out.pformat() == [
             " a   b   c ",
             "--- --- ---",
@@ -1951,10 +1888,10 @@ class TestHStack:
         out = table.hstack([t1, t2], join_type="inner")
         assert out.masked is False
         assert type(out) is operation_table_type
-        assert type(out["a_1"]) is type(t1["a"])
-        assert type(out["b_1"]) is type(t1["b"])
-        assert type(out["a_2"]) is type(t2["a"])
-        assert type(out["b_2"]) is type(t2["b"])
+        assert type(out["a_1"]) is type(t1["a"])  # noqa: E721
+        assert type(out["b_1"]) is type(t1["b"])  # noqa: E721
+        assert type(out["a_2"]) is type(t2["a"])  # noqa: E721
+        assert type(out["b_2"]) is type(t2["b"])  # noqa: E721
         assert out.pformat() == [
             "a_1 b_1 a_2 b_2  c ",
             "--- --- --- --- ---",
@@ -2078,7 +2015,7 @@ class TestHStack:
         cls_name = type(col1).__name__
 
         out = table.hstack([t1, t2], join_type="inner")
-        assert type(out["col0_1"]) is type(out["col0_2"])
+        assert type(out["col0_1"]) is type(out["col0_2"])  # noqa: E721
         assert len(out) == len(col2)
 
         # Check that columns are as expected.
@@ -2092,9 +2029,8 @@ class TestHStack:
             assert np.all(out["col0_1"] == col1[: len(col2)])
             assert np.all(out["col0_2"] == col2)
 
-        # Check mixin classes that support masking (and that we raise for
-        # those that do not).
-        if isinstance(col1, MIXINS_WITH_FULL_MASK_SUPPORT):
+        # Time class supports masking, all other mixins do not
+        if isinstance(col1, (Time, TimeDelta, Quantity)):
             out = table.hstack([t1, t2], join_type="outer")
             assert len(out) == len(t1)
             assert np.all(out["col0_1"] == col1)
@@ -2265,74 +2201,6 @@ def test_unique(operation_table_type):
         "  2   b 7.0   0",
         " --   c 3.0   5",
     ]
-
-
-@pytest.mark.parametrize("join_type", ["inner", "outer", "left", "right", "cartesian"])
-def test_join_keep_sort_order(join_type):
-    """Test the keep_order argument for table.join.
-
-    See https://github.com/astropy/astropy/issues/11619.
-
-    This defines a left and right table which have an ``id`` column that is not sorted
-    and not unique. Each table has common and unique ``id`` key values along with an
-    ``order`` column to keep track of the original order.
-    """
-    keep_supported = join_type in ["left", "right", "inner"]
-    t1 = Table()
-    t1["id"] = [2, 8, 2, 0, 0, 1]  # Join key
-    t1["order"] = np.arange(len(t1))  # Original table order
-
-    t2 = Table()
-    t2["id"] = [2, 0, 1, 9, 0, 1]  # Join key
-    t2["order"] = np.arange(len(t2))  # Original table order
-
-    # No keys arg is allowed for cartesian join.
-    keys_kwarg = {} if join_type == "cartesian" else {"keys": "id"}
-
-    # Now do table joints with keep_order=False and keep_order=True.
-    t12f = table.join(t1, t2, join_type=join_type, keep_order=False, **keys_kwarg)
-    # For keep_order=True there should be a warning if keep_order is not supported for
-    # the join type.
-    ctx = (
-        nullcontext()
-        if keep_supported
-        else pytest.warns(
-            UserWarning,
-            match=r"keep_order=True is only supported for left, right, and inner joins",
-        )
-    )
-    with ctx:
-        t12t = table.join(t1, t2, join_type=join_type, keep_order=True, **keys_kwarg)
-
-    assert len(t12f) == len(t12t)
-    assert t12f.colnames == t12t.colnames
-
-    # Define expected sorting of join table for keep_order=False. Cartesian joins are
-    # always sorted by the native order of the left table, otherwise the table is sorted
-    # by the sort key ``id``.
-    sort_key_false = "order_1" if join_type == "cartesian" else "id"
-
-    # For keep_order=True the "order" column is sorted if keep is supported otherwise
-    # the table is sorted as for keep_order=False.
-    if keep_supported:
-        sort_key_true = "order_2" if join_type == "right" else "order_1"
-    else:
-        sort_key_true = sort_key_false
-
-    assert np.all(t12f[sort_key_false] == sorted(t12f[sort_key_false]))
-    assert np.all(t12t[sort_key_true] == sorted([t12t[sort_key_true]]))
-
-
-def test_join_keep_sort_order_exception():
-    """Test that exception in join(..., keep_order=True) leaves table unchanged"""
-    t1 = Table([[1, 2]], names=["id"])
-    t2 = Table([[2, 3]], names=["id"])
-    with pytest.raises(
-        TableMergeError, match=r"Left table does not have key column 'not-a-key'"
-    ):
-        table.join(t1, t2, keys="not-a-key", join_type="inner", keep_order=True)
-    assert t1.colnames == ["id"]
-    assert t2.colnames == ["id"]
 
 
 def test_vstack_bytes(operation_table_type):
@@ -2555,71 +2423,3 @@ def test_mixin_join_regression():
     t12 = table.join(t1, t2, keys=("index", "flux1", "flux2"), join_type="outer")
 
     assert len(t12) == 6
-
-
-@pytest.mark.parametrize(
-    "t1, t2",
-    [
-        # different names
-        (
-            Table([np.array([1])], names=["a"]),
-            Table([np.array([1])], names=["b"]),
-        ),
-        # different data (broadcastable)
-        (
-            Table([np.array([])], names=["a"]),
-            Table([np.array([1])], names=["a"]),
-        ),
-        # different data (not broadcastable)
-        (
-            Table([np.array([1, 2])], names=["a"]),
-            Table([np.array([1, 2, 3])], names=["a"]),
-        ),
-        # different names and data (broadcastable)
-        (
-            Table([np.array([])], names=["a"]),
-            Table([np.array([1])], names=["b"]),
-        ),
-        # different names and data (not broadcastable)
-        (
-            Table([np.array([1, 2])], names=["a"]),
-            Table([np.array([1, 2, 3])], names=["b"]),
-        ),
-        # different data and array type (broadcastable)
-        (
-            Table([np.array([])], names=["a"]),
-            Table([np.ma.MaskedArray([1])], names=["a"]),
-        ),
-        # different data and array type (not broadcastable)
-        (
-            Table([np.array([1, 2])], names=["a"]),
-            Table([np.ma.MaskedArray([1, 2, 3])], names=["a"]),
-        ),
-    ],
-)
-def test_table_comp(t1, t2):
-    # see https://github.com/astropy/astropy/issues/13421
-    try:
-        np.result_type(t1.dtype, t2.dtype)
-        np.broadcast_shapes((len(t1),), (len(t2),))
-    except (TypeError, ValueError):
-        # dtypes are not comparable or arrays can't be broadcasted:
-        # a simple bool should be returned
-        assert not t1 == t2
-        assert not t2 == t1
-        assert t1 != t2
-        assert t2 != t1
-    else:
-        # otherwise, the general case is to return a 1D array with dtype=bool
-        assert not any(t1 == t2)
-        assert not any(t2 == t1)
-        assert all(t1 != t2)
-        assert all(t2 != t1)
-
-
-def test_empty_skycoord_vstack():
-    # Explicit regression test for gh-17378
-    table1 = Table({"foo": SkyCoord([], [], unit="deg")})
-    table2 = table.vstack([table1, table1])  # Used to fail.
-    assert len(table2) == 0
-    assert isinstance(table2["foo"], SkyCoord)

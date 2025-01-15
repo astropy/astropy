@@ -1,47 +1,31 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Methods for selecting the bin width of histograms.
+Methods for selecting the bin width of histograms
 
 Ported from the astroML project: https://www.astroml.org/
 """
-
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
 
 import numpy as np
 
 from .bayesian_blocks import bayesian_blocks
 
-if TYPE_CHECKING:
-    from typing import Literal
-
-    from numpy.typing import ArrayLike, NDArray
-
 __all__ = [
-    "calculate_bin_edges",
-    "freedman_bin_width",
     "histogram",
-    "knuth_bin_width",
     "scott_bin_width",
+    "freedman_bin_width",
+    "knuth_bin_width",
+    "calculate_bin_edges",
 ]
 
 
-def calculate_bin_edges(
-    a: ArrayLike,
-    bins: int
-    | list[float]
-    | Literal["blocks", "knuth", "scott", "freedman"]
-    | None = 10,
-    range: tuple[float, float] | None = None,
-    weights: ArrayLike | None = None,
-) -> NDArray[float]:
+def calculate_bin_edges(a, bins=10, range=None, weights=None):
     """
     Calculate histogram bin edges like ``numpy.histogram_bin_edges``.
 
     Parameters
     ----------
+
     a : array-like
         Input data. The bin edges are calculated over the flattened array.
 
@@ -61,11 +45,6 @@ def calculate_bin_edges(
         the value of the weight corresponding to ``a`` instead of returning the
         count of values. This argument does not affect determination of bin
         edges, though they may be used in the future as new methods are added.
-
-    Returns
-    -------
-    bins : ndarray
-        Histogram bin edges
     """
     # if range is specified, we need to truncate the data for
     # the bin-finding routines
@@ -111,22 +90,13 @@ def calculate_bin_edges(
     return bins
 
 
-def histogram(
-    a: ArrayLike,
-    bins: int
-    | list[float]
-    | Literal["blocks", "knuth", "scott", "freedman"]
-    | None = 10,
-    range: tuple[float, float] | None = None,
-    weights: ArrayLike | None = None,
-    **kwargs,
-) -> tuple[NDArray, NDArray]:
-    """Enhanced histogram function, providing adaptive binnings.
+def histogram(a, bins=10, range=None, weights=None, **kwargs):
+    """Enhanced histogram function, providing adaptive binnings
 
     This is a histogram function that enables the use of more sophisticated
     algorithms for determining bins.  Aside from the ``bins`` argument allowing
     a string specified how bins are computed, the parameters are the same
-    as `numpy.histogram`.
+    as ``numpy.histogram()``.
 
     Parameters
     ----------
@@ -154,8 +124,7 @@ def histogram(
         count of values. This argument does not affect determination of bin
         edges.
 
-    **kwargs : dict, optional
-        Extra arguments are described in `numpy.histogram`.
+    other keyword arguments are described in numpy.histogram().
 
     Returns
     -------
@@ -169,16 +138,14 @@ def histogram(
     --------
     numpy.histogram
     """
+
     bins = calculate_bin_edges(a, bins=bins, range=range, weights=weights)
     # Now we call numpy's histogram with the resulting bin edges
     return np.histogram(a, bins=bins, range=range, weights=weights, **kwargs)
 
 
-def scott_bin_width(
-    data: ArrayLike,
-    return_bins: bool | None = False,
-) -> float | tuple[float, NDArray]:
-    r"""Return the optimal histogram bin width using Scott's rule.
+def scott_bin_width(data, return_bins=False):
+    r"""Return the optimal histogram bin width using Scott's rule
 
     Scott's rule is a normal reference rule: it minimizes the integrated
     mean squared error in the bin approximation under the assumption that the
@@ -238,11 +205,8 @@ def scott_bin_width(
         return dx
 
 
-def freedman_bin_width(
-    data: ArrayLike,
-    return_bins: bool | None = False,
-) -> float | tuple[float, NDArray]:
-    r"""Return the optimal histogram bin width using the Freedman-Diaconis rule.
+def freedman_bin_width(data, return_bins=False):
+    r"""Return the optimal histogram bin width using the Freedman-Diaconis rule
 
     The Freedman-Diaconis rule is a normal reference rule like Scott's
     rule, but uses rank-based statistics for results which are more robust
@@ -316,11 +280,7 @@ def freedman_bin_width(
         return dx
 
 
-def knuth_bin_width(
-    data: ArrayLike,
-    return_bins: bool | None = False,
-    quiet: bool | None = True,
-) -> float | tuple[float, NDArray]:
+def knuth_bin_width(data, return_bins=False, quiet=True):
     r"""Return the optimal histogram bin width using Knuth's rule.
 
     Knuth's rule is a fixed-width, Bayesian approach to determining
@@ -384,7 +344,7 @@ def knuth_bin_width(
 
 
 class _KnuthF:
-    r"""Class which implements the function minimized by knuth_bin_width.
+    r"""Class which implements the function minimized by knuth_bin_width
 
     Parameters
     ----------
@@ -409,7 +369,7 @@ class _KnuthF:
     knuth_bin_width
     """
 
-    def __init__(self, data: ArrayLike) -> None:
+    def __init__(self, data):
         self.data = np.array(data, copy=True)
         if self.data.ndim != 1:
             raise ValueError("data should be 1-dimensional")
@@ -424,15 +384,15 @@ class _KnuthF:
         # create a reference to gammaln to use in self.eval()
         self.gammaln = special.gammaln
 
-    def bins(self, M: int) -> NDArray:
-        """Return the bin edges given M number of bins."""
+    def bins(self, M):
+        """Return the bin edges given M number of bins"""
         return np.linspace(self.data[0], self.data[-1], int(M) + 1)
 
-    def __call__(self, M: int) -> float:
+    def __call__(self, M):
         return self.eval(M)
 
-    def eval(self, M: int) -> float:
-        """Evaluate the Knuth function.
+    def eval(self, M):
+        """Evaluate the Knuth function
 
         Parameters
         ----------
@@ -445,8 +405,6 @@ class _KnuthF:
             evaluation of the negative Knuth loglikelihood function:
             smaller values indicate a better fit.
         """
-        if not np.isscalar(M):
-            M = M[0]
         M = int(M)
 
         if M <= 0:

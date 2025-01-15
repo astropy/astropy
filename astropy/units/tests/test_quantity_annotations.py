@@ -1,10 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# ruff: noqa: FA100, FA102
 
+# STDLIB
+import typing as T
+
+# THIRD PARTY
 import pytest
 
+# LOCAL
 from astropy import units as u
 from astropy.units import Quantity
+from astropy.units._typing import HAS_ANNOTATED
 
 
 def test_ignore_generic_type_annotations():
@@ -12,7 +17,6 @@ def test_ignore_generic_type_annotations():
 
     This test passes if the function works.
     """
-
     # one unit, one not (should be ignored)
     @u.quantity_input
     def func(x: u.m, y: str):
@@ -24,6 +28,7 @@ def test_ignore_generic_type_annotations():
     assert i_str == o_str
 
 
+@pytest.mark.skipif(not HAS_ANNOTATED, reason="need `Annotated`")
 class TestQuantityUnitAnnotations:
     """Test Quantity[Unit] type annotation."""
 
@@ -56,9 +61,10 @@ class TestQuantityUnitAnnotations:
         assert o_q == i_q
         assert o_q.unit == u.m
 
+    @pytest.mark.skipif(not HAS_ANNOTATED, reason="need `Annotated`")
     def test_optional_and_annotated(self):
         @u.quantity_input
-        def opt_func(x: Quantity[u.m] | None = None) -> Quantity[u.km]:
+        def opt_func(x: T.Optional[Quantity[u.m]] = None) -> Quantity[u.km]:
             if x is None:
                 return 1 * u.km
             return x
@@ -72,10 +78,11 @@ class TestQuantityUnitAnnotations:
         o_q = opt_func(i_q)
         assert o_q == 1 * u.km
 
+    @pytest.mark.skipif(not HAS_ANNOTATED, reason="need `Annotated`")
     def test_union_and_annotated(self):
         #  Union and Annotated
         @u.quantity_input
-        def union_func(x: Quantity[u.m] | (Quantity[u.s] | None)):
+        def union_func(x: T.Union[Quantity[u.m], Quantity[u.s], None]):
             if x is None:
                 return None
             else:
@@ -96,6 +103,18 @@ class TestQuantityUnitAnnotations:
     def test_not_unit_or_ptype(self):
         with pytest.raises(TypeError, match="unit annotation is not"):
             Quantity["definitely not a unit"]
+
+
+@pytest.mark.skipif(HAS_ANNOTATED, reason="requires py3.8 behavior")
+def test_not_unit_or_ptype():
+    """
+    Same as above test, but different behavior for python 3.8 b/c it passes
+    Quantity right through.
+    """
+    with pytest.warns(Warning):
+        annot = Quantity[u.km]
+
+    assert annot == u.km
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.3
+# GNU makefile for building WCSLIB 7.12
 #
 # Summary of the main targets
 # ---------------------------
@@ -34,7 +34,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 8.3 2024/05/13 16:33:01 mcalabre Exp $
+# $Id: GNUmakefile,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := .
@@ -92,12 +92,18 @@ install :
 	     $(INSTALL) -d -m 775 $(DOCDIR) ; \
 	   fi
 	   $(INSTALL) -m 444 CHANGES COPYING* README $(DOCDIR)
-	   $(INSTALL) -m 444 INSTALL THANKS VALIDATION $(DOCDIR)
 	-  if [ -h $(DOCLINK) ] ; then \
 	     $(RM) $(DOCLINK) ; \
+	     $(LN_S) $(notdir $(DOCDIR)) $(DOCLINK) ; \
 	   fi
-	   $(LN_S) $(notdir $(DOCDIR)) $(DOCLINK)
-	   $(MAKE) -k -C doxygen $@
+	-  if [ ! -d "$(PDFDIR)" ] ; then \
+	     $(INSTALL) -d -m 775 $(PDFDIR) ; \
+	   fi
+	   $(INSTALL) -m 444 wcslib.pdf $(PDFDIR)
+	-  if [ ! -d "$(HTMLDIR)/html" ] ; then \
+	     $(INSTALL) -d -m 775 $(HTMLDIR)/html ; \
+	   fi
+	   $(INSTALL) -m 444 html/* $(HTMLDIR)/html
 
 uninstall :
 	 @ for DIR in $(INSTDIR) ; do \
@@ -107,7 +113,8 @@ uninstall :
 	-  cd $(INCDIR) && $(RM) wcsconfig*.h
 	-  $(RM) $(DOCLINK)
 	-  $(RM) $(DOCDIR)
-	   $(MAKE) -k -C doxygen $@
+	-  $(RM) $(PDFDIR)
+	-  $(RM) $(HTMLDIR)
 
 clean cleaner :
 	   for DIR in $(SUBDIRS) doxygen ; do \
@@ -121,7 +128,7 @@ cleanest distclean realclean :
 	-  $(RM) *.log
 	-  $(RM) -r autom4te.cache autoscan.log
 	-  $(RM) -r api-sanity-check
-	-  $(RM) configure~ confdefs.h conftest.*
+	-  $(RM) confdefs.h conftest.*
 	-  $(RM) config.log config.status configure.lineno
 	-  $(RM) makedefs wcslib.pc
 	-  $(RM) wcsconfig.h wcsconfig_*.h
@@ -156,7 +163,6 @@ config.status : configure
 	-@ echo "  CFLAGS   = $${CFLAGS-(undefined)}"
 	-@ echo "  F77      = $${F77-(undefined)}"
 	-@ echo "  FFLAGS   = $${FFLAGS-(undefined)}"
-	-@ echo "  BINDC    = $${BINDC-(undefined)}"
 	-@ echo "  ARFLAGS  = $${ARFLAGS-(undefined)}"
 	-@ echo "  LDFLAGS  = $${LDFLAGS-(undefined)}"
 	-@ echo ''
@@ -211,7 +217,6 @@ configure : configure.ac
 	-@ echo ''
 	-@ $(TIMER)
 	   autoconf
-	-@ $(RM) configure~
 
 # Code development overrides must be included specifically before 'configure'
 # generates makedefs.

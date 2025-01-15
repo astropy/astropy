@@ -2,30 +2,24 @@
 """Checks for optional dependencies using lazy import from
 `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
 """
-
-from importlib.util import find_spec
+import importlib
+import warnings
 
 # First, the top-level packages:
-# TODO: This list is a duplicate of the dependencies in pyproject.toml "all", but
+# TODO: This list is a duplicate of the dependencies in setup.cfg "all", but
 # some of the package names are different from the pip-install name (e.g.,
 # beautifulsoup4 -> bs4).
-# Some optional parts of the standard library also find a place here,
-# but don't appear in pyproject.toml
 _optional_deps = [
+    "asdf",
     "asdf_astropy",
     "bleach",
     "bottleneck",
     "bs4",
-    "bz2",  # stdlib
-    "certifi",
-    "dask",
+    "bz2",
     "fsspec",
     "h5py",
     "html5lib",
-    "ipykernel",
     "IPython",
-    "ipywidgets",
-    "ipydatagrid",
     "jplephem",
     "lxml",
     "matplotlib",
@@ -37,21 +31,36 @@ _optional_deps = [
     "scipy",
     "skyfield",
     "sortedcontainers",
-    "lzma",  # stdlib
+    "lzma",
     "pyarrow",
     "pytest_mpl",
-    "array_api_strict",
 ]
-_deps = {k.upper(): k for k in _optional_deps}
+_formerly_optional_deps = ["yaml"]  # for backward compatibility
+_deps = {k.upper(): k for k in _optional_deps + _formerly_optional_deps}
 
 # Any subpackages that have different import behavior:
-_deps["PLT"] = "matplotlib"
+_deps["PLT"] = "matplotlib.pyplot"
 
 __all__ = [f"HAS_{pkg}" for pkg in _deps]
 
 
 def __getattr__(name):
     if name in __all__:
-        return find_spec(_deps[name.removeprefix("HAS_")]) is not None
+        module_name = name[4:]
+
+        if module_name == "YAML":
+            from astropy.utils.exceptions import AstropyDeprecationWarning
+
+            warnings.warn(
+                "PyYaml is now a strict dependency. HAS_YAML is deprecated as "
+                "of v5.0 and will be removed in a subsequent version.",
+                category=AstropyDeprecationWarning,
+            )
+
+        try:
+            importlib.import_module(_deps[module_name])
+        except (ImportError, ModuleNotFoundError):
+            return False
+        return True
 
     raise AttributeError(f"Module {__name__!r} has no attribute {name!r}.")

@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: dis.c,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -31,6 +31,12 @@
 #include "wcsprintf.h"
 #include "wcsutil.h"
 #include "dis.h"
+
+const int DISSET = 137;
+
+const int DIS_TPD        =    1;
+const int DIS_POLYNOMIAL =    2;
+const int DIS_DOTPD      = 1024;
 
 // Maximum number of DPja or DQia keywords.
 int NDPMAX = 256;
@@ -44,11 +50,8 @@ const char *dis_errmsg[] = {
   "Distort error",
   "De-distort error"};
 
-static const int DISSET = 137;
-
-static const int DIS_TPD        =    1;
-static const int DIS_POLYNOMIAL =    2;
-static const int DIS_DOTPD      = 1024;
+// Convenience macro for invoking wcserr_set().
+#define DIS_ERRMSG(status) WCSERR_SET(status), dis_errmsg[status]
 
 // Internal helper functions, not for general use.
 static int polyset(int j, struct disprm *dis);
@@ -77,9 +80,6 @@ static int tpd9(DISP2X_ARGS);
 #define I_DTYPE   0	// Distortion type code.
 #define I_NIPARM  1	// Full (allocated) length of iparm[].
 #define I_NDPARM  2	// No. of parameters in dparm[], excl. work space.
-
-// Convenience macro for invoking wcserr_set().
-#define DIS_ERRMSG(status) WCSERR_SET(status), dis_errmsg[status]
 
 //----------------------------------------------------------------------------
 
@@ -207,6 +207,7 @@ int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax)
 
       dis->disp2x = 0x0;
       dis->disx2p = 0x0;
+      dis->tmpmem = 0x0;
 
       dis->i_naxis = 0;
     }
@@ -299,6 +300,7 @@ int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax)
 
 
   // Set defaults.
+  dis->flag  = 0;
   dis->naxis = naxis;
 
   if (naxis) {
@@ -310,12 +312,10 @@ int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax)
     memset(dis->dp, 0, ndpmax*sizeof(struct dpkey));
   }
 
-  dis->totdis = 0.0;
   if (naxis) {
     memset(dis->maxdis, 0, naxis*sizeof(double));
   }
-
-  dis->flag = 0;
+  dis->totdis = 0.0;
 
   return 0;
 }
@@ -348,8 +348,8 @@ int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst)
   disdst->ndp = dissrc->ndp;
   memcpy(disdst->dp, dissrc->dp, dissrc->ndpmax*sizeof(struct dpkey));
 
-  disdst->totdis = dissrc->totdis;
   memcpy(disdst->maxdis, dissrc->maxdis, naxis*sizeof(double));
+  disdst->totdis = dissrc->totdis;
 
   return 0;
 }
@@ -402,6 +402,7 @@ int disfree(struct disprm *dis)
 
     if (dis->disp2x) free(dis->disp2x);
     if (dis->disx2p) free(dis->disx2p);
+    if (dis->tmpmem) free(dis->tmpmem);
   }
 
   dis->m_flag   = 0;
@@ -419,6 +420,7 @@ int disfree(struct disprm *dis)
   dis->dparm  = 0x0;
   dis->disp2x = 0x0;
   dis->disx2p = 0x0;
+  dis->tmpmem = 0x0;
 
   wcserr_clear(&(dis->err));
 
@@ -460,8 +462,8 @@ int dissize(const struct disprm *dis, int sizes[2])
   sizes[1] += exsizes[0] + exsizes[1];
 
   // The remaining arrays are allocated by disset().
-  if (abs(dis->flag) != DISSET) {
-    return 0;
+  if (dis->flag != DISSET) {
+    return DISERR_SUCCESS;
   }
 
   // dis::docorr[].
@@ -504,35 +506,10 @@ int dissize(const struct disprm *dis, int sizes[2])
   // dis::disx2p[].
   sizes[1] += naxis * sizeof(int (*)(DISX2P_ARGS));
 
-  return 0;
-}
+  // dis::tmpmem[].
+  sizes[1] += 5*naxis * sizeof(double);
 
-//----------------------------------------------------------------------------
-
-int disenq(const struct disprm *dis, int enquiry)
-
-{
-  // Initialize.
-  if (dis == 0x0) return DISERR_NULL_POINTER;
-
-  int answer = 0;
-
-  if (enquiry & DISENQ_MEM) {
-    if (dis->m_flag != DISSET) return 0;
-    answer = 1;
-  }
-
-  if (enquiry & DISENQ_SET) {
-    if (abs(dis->flag) != DISSET) return 0;
-    answer = 1;
-  }
-
-  if (enquiry & DISENQ_BYP) {
-    if (dis->flag != 1 && dis->flag != -DISSET) return 0;
-    answer = 1;
-  }
-
-  return answer;
+  return DISERR_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -542,7 +519,7 @@ int disprt(const struct disprm *dis)
 {
   if (dis == 0x0) return DISERR_NULL_POINTER;
 
-  if (abs(dis->flag) != DISSET) {
+  if (dis->flag != DISSET) {
     wcsprintf("The disprm struct is UNINITIALIZED.\n");
     return 0;
   }
@@ -550,8 +527,9 @@ int disprt(const struct disprm *dis)
   int naxis = dis->naxis;
 
 
-  // Parameters supplied.
   wcsprintf("       flag: %d\n", dis->flag);
+
+  // Parameters supplied.
   wcsprintf("      naxis: %d\n", naxis);
 
   WCSPRINTF_PTR("      dtype: ", dis->dtype, "\n");
@@ -572,14 +550,14 @@ int disprt(const struct disprm *dis)
     }
   }
 
-  wcsprintf("     totdis:  %#- 11.5g\n", dis->totdis);
-
   WCSPRINTF_PTR("     maxdis: ", dis->maxdis, "\n");
   wcsprintf("            ");
   for (int j = 0; j < naxis; j++) {
     wcsprintf("  %#- 11.5g", dis->maxdis[j]);
   }
   wcsprintf("\n");
+
+  wcsprintf("     totdis:  %#- 11.5g\n", dis->totdis);
 
   // Derived values.
   WCSPRINTF_PTR("     docorr: ", dis->docorr, "\n");
@@ -696,13 +674,12 @@ int disprt(const struct disprm *dis)
       wcsprintf("\n");
     }
   }
-
-  // Pointers to distortion functions.
   WCSPRINTF_PTR("     disx2p: ", dis->disx2p, "\n");
   for (int j = 0; j < naxis; j++) {
     wcsprintf("  disx2p[%d]: %s\n", j,
       wcsutil_fptr2str((void (*)(void))dis->disx2p[j], hext));
   }
+  WCSPRINTF_PTR("     tmpmem: ", dis->tmpmem, "\n");
 
   // Memory management.
   wcsprintf("     m_flag: %d\n", dis->m_flag);
@@ -772,7 +749,6 @@ int disset(struct disprm *dis)
   static const char *function = "disset";
 
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  if (dis->flag == -DISSET) return 0;
   struct wcserr **err = &(dis->err);
 
   int naxis = dis->naxis;
@@ -845,6 +821,8 @@ int disset(struct disprm *dis)
 
       free(dis->disp2x);
       free(dis->disx2p);
+
+      free(dis->tmpmem);
     }
 
     if ((dis->docorr = calloc(naxis, sizeof(int *))) == 0x0) {
@@ -922,6 +900,11 @@ int disset(struct disprm *dis)
       return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
     }
 
+    if ((dis->tmpmem = calloc(5*naxis, sizeof(double))) == 0x0) {
+      disfree(dis);
+      return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+    }
+
     dis->i_naxis = naxis;
   }
 
@@ -949,6 +932,7 @@ int disset(struct disprm *dis)
 
   memset(dis->disp2x, 0, naxis*sizeof(int (*)(DISP2X_ARGS)));
   memset(dis->disx2p, 0, naxis*sizeof(int (*)(DISX2P_ARGS)));
+  memset(dis->tmpmem, 0, naxis*sizeof(double));
 
 
   // Handle DPja or DQia keywords common to all distortions.
@@ -1139,8 +1123,7 @@ int disset(struct disprm *dis)
   }
 
   dis->ndis = ndis;
-
-  dis->flag = (dis->flag == 1) ? -DISSET : DISSET;
+  dis->flag = DISSET;
 
   return 0;
 }
@@ -1159,21 +1142,16 @@ int disp2x(
   if (dis == 0x0) return DISERR_NULL_POINTER;
   struct wcserr **err = &(dis->err);
 
-  int status = 0;
-  if (abs(dis->flag) != DISSET) {
+  if (dis->flag != DISSET) {
+    int status;
     if ((status = disset(dis))) return status;
   }
 
   int naxis = dis->naxis;
 
-  double *tmpcrd;
-  if ((tmpcrd = calloc(naxis, sizeof(double))) == 0x0) {
-    status = wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
-    goto cleanup;
-  }
-
 
   // Invoke the distortion functions for each axis.
+  double *tmpcrd = dis->tmpmem;
   for (int j = 0; j < naxis; j++) {
     if (dis->disp2x[j]) {
       double *offset = dis->offset[j];
@@ -1188,8 +1166,7 @@ int disp2x(
       double dtmp;
       if ((dis->disp2x[j])(0, dis->iparm[j], dis->dparm[j], Nhat, tmpcrd,
                            &dtmp)) {
-        status = wcserr_set(DIS_ERRMSG(DISERR_DISTORT));
-        goto cleanup;
+        return wcserr_set(DIS_ERRMSG(DISERR_DISTORT));
       }
 
       if (dis->docorr[j]) {
@@ -1205,9 +1182,7 @@ int disp2x(
     }
   }
 
-cleanup:
-  if (tmpcrd) free(tmpcrd);
-  return status;
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -1238,29 +1213,19 @@ int disx2p(
 
   const double TOL = 1.0e-13;
 
+  int status;
+
   // Initialize.
   if (dis == 0x0) return DISERR_NULL_POINTER;
   struct wcserr **err = &(dis->err);
 
-  int status = 0;
-  if (abs(dis->flag) != DISSET) {
-    if ((status = disset(dis))) return status;
-  }
-
   int naxis = dis->naxis;
 
-  double *tmpmem;
-  if ((tmpmem = calloc(5*naxis, sizeof(double))) == 0x0) {
-    status = wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
-    goto cleanup;
-  }
-
-  // Carve up working memory.
-  double *tmpcrd = tmpmem;
-  double *dcrd0  = tmpcrd + naxis;
-  double *dcrd1  = dcrd0  + naxis;
-  double *rcrd1  = dcrd1  + naxis;
-  double *delta  = rcrd1  + naxis;
+  // Carve up working memory, noting that disp2x() gets to it first.
+  double *dcrd0 = dis->tmpmem + naxis;
+  double *dcrd1 = dcrd0 + naxis;
+  double *rcrd1 = dcrd1 + naxis;
+  double *delta = rcrd1 + naxis;
 
 
   // Zeroth approximation.  The assumption here and below is that the
@@ -1276,6 +1241,7 @@ int disx2p(
     if (dis->disx2p[j]) {
       double *offset = dis->offset[j];
       double *scale  = dis->scale[j];
+      double *tmpcrd = dis->tmpmem;
 
       int Nhat = dis->Nhat[j];
       for (int jhat = 0; jhat < Nhat; jhat++) {
@@ -1286,8 +1252,7 @@ int disx2p(
       double rtmp;
       if ((status = (dis->disx2p[j])(1, dis->iparm[j], dis->dparm[j], Nhat,
                                      tmpcrd, &rtmp))) {
-        status = wcserr_set(DIS_ERRMSG(DISERR_DEDISTORT));
-        goto cleanup;
+        return wcserr_set(DIS_ERRMSG(DISERR_DEDISTORT));
       }
 
       if (dis->docorr[j]) {
@@ -1303,16 +1268,15 @@ int disx2p(
   // Quick return debugging hook, assumes inverse functions were defined.
   int itermax;
   if ((itermax = disitermax(-1)) == 0) {
-    goto cleanup;
+    return 0;
   }
 
 
   // Iteratively invert the (well-behaved!) distortion function.
-  int convergence = 0, iter;
+  int convergence, iter;
   for (iter = 0; iter < itermax; iter++) {
     if ((status = disp2x(dis, rawcrd, dcrd0))) {
-      wcserr_set(DIS_ERRMSG(status));
-      goto cleanup;
+      return wcserr_set(DIS_ERRMSG(status));
     }
 
     // Check for convergence.
@@ -1368,8 +1332,7 @@ int disx2p(
 
       // Compute discrd[] at the test point.
       if ((status = disp2x(dis, rcrd1, dcrd1))) {
-        wcserr_set(DIS_ERRMSG(status));
-        goto cleanup;
+        return wcserr_set(DIS_ERRMSG(status));
       }
 
       // Compute the next approximation.
@@ -1388,8 +1351,7 @@ int disx2p(
 
         // Compute discrd[] at the test point.
         if ((status = disp2x(dis, rcrd1, dcrd1))) {
-          wcserr_set(DIS_ERRMSG(status));
-          goto cleanup;
+          return wcserr_set(DIS_ERRMSG(status));
         }
 
         // Compute the next approximation.
@@ -1410,16 +1372,13 @@ int disx2p(
     }
     residual = sqrt(residual);
 
-    status = wcserr_set(WCSERR_SET(DISERR_DEDISTORT),
+    return wcserr_set(WCSERR_SET(DISERR_DEDISTORT),
       "Convergence not achieved after %d iterations, residual %#7.2g", iter,
         residual);
-    goto cleanup;
   }
 
 
-cleanup:
-  if (tmpmem) free(tmpmem);
-  return status;
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -1461,14 +1420,8 @@ int diswarp(
   // Quick return if no distortions.
   if (dis->ndis == 0) return 0;
 
-  double *tmpmem;
-  if ((tmpmem = calloc(4*(size_t)naxis, sizeof(double))) == 0x0) {
-    status = wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
-    goto cleanup;
-  }
-
-  // Carve up working memory.
-  double *pixinc = tmpmem;
+  // Carve up working memory, noting that disp2x() gets to it first.
+  double *pixinc = dis->tmpmem + naxis;
   double *pixend = pixinc + naxis;
   double *sumdis = pixend + naxis;
   double *ssqdis = sumdis + naxis;
@@ -1492,9 +1445,8 @@ int diswarp(
 
   // Get some more memory for coordinate vectors.
   double *pix0, *pix1;
-  if ((pix0 = calloc(2*(size_t)naxis, sizeof(double))) == 0x0) {
-    status = wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
-    goto cleanup;
+  if ((pix0 = calloc(2*naxis, sizeof(double))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
 
   pix1 = pix0 + naxis;
@@ -1578,10 +1530,7 @@ int diswarp(
 
 
 cleanup:
-  if (tmpmem) {
-    free(tmpmem);
-    if (pix0) free(pix0);
-  }
+  free(pix0);
 
   return status;
 }

@@ -26,11 +26,11 @@ from .sky_coordinate import SkyCoord
 
 __all__ = [
     "cartesian_to_spherical",
-    "concatenate",
-    "concatenate_representations",
-    "get_constellation",
-    "get_sun",
     "spherical_to_cartesian",
+    "get_sun",
+    "get_constellation",
+    "concatenate_representations",
+    "concatenate",
 ]
 
 
@@ -209,7 +209,7 @@ def get_constellation(coord, short_name=False, constellation_list="iau"):
     To determine which constellation a point on the sky is in, this precesses
     to B1875, and then uses the Delporte boundaries of the 88 modern
     constellations, as tabulated by
-    `Roman 1987 <https://cdsarc.cds.unistra.fr/viz-bin/cat/VI/42>`_.
+    `Roman 1987 <http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/42>`_.
     """
     if constellation_list != "iau":
         raise ValueError("only 'iau' us currently supported for constellation_list")
@@ -280,10 +280,16 @@ def _concatenate_components(reps_difs, names):
     concatenates all of the individual components for an iterable of
     representations or differentials.
     """
-    return [
-        np.concatenate(np.atleast_1d(*[getattr(x, name) for x in reps_difs]))
-        for name in names
-    ]
+    values = []
+    for name in names:
+        unit0 = getattr(reps_difs[0], name).unit
+        # Go via to_value because np.concatenate doesn't work with Quantity
+        data_vals = [getattr(x, name).to_value(unit0) for x in reps_difs]
+        concat_vals = np.concatenate(np.atleast_1d(*data_vals))
+        concat_vals = concat_vals << unit0
+        values.append(concat_vals)
+
+    return values
 
 
 def concatenate_representations(reps):

@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This package defines the astrophysics-specific units. They are also
-available in (and should be used through) the `astropy.units` namespace.
+This package defines the astrophysics-specific units.  They are also
+available in the `astropy.units` namespace.
 """
-# avoid ruff complaints about undefined names defined by def_unit
-# ruff: noqa: F821
 
-import numpy as np
 
 from astropy.constants import si as _si
 
@@ -17,8 +14,7 @@ from .core import UnitBase, def_unit, set_enabled_units
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
 
-
-__all__: list[str] = []  #  Units are added at the end
+import numpy as _numpy
 
 _ns = globals()
 
@@ -114,12 +110,17 @@ def_unit(
 ##########################################################################
 # ENERGY
 
+# Here, explicitly convert the planck constant to 'eV s' since the constant
+# can override that to give a more precise value that takes into account
+# covariances between e and h.  Eventually, this may also be replaced with
+# just `_si.Ryd.to(eV)`.
 def_unit(
-    ["foe", "Bethe", "bethe"],
-    1e51 * si.g * si.cm**2 / si.s**2,
+    ["Ry", "rydberg"],
+    (_si.Ryd * _si.c * _si.h.to(si.eV * si.s)).to(si.eV),
     namespace=_ns,
-    prefixes=False,
-    doc="foe or Bethe: 1e51 erg, used to measure energy emitted by a supernova",
+    prefixes=True,
+    doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg constant",
+    format={"latex": r"R_{\infty}", "unicode": "R∞"},
 )
 
 ###########################################################################
@@ -153,7 +154,7 @@ def_unit(
 )
 def_unit(
     ["R", "Rayleigh", "rayleigh"],
-    (1e10 / (4 * np.pi)) * ph * si.m**-2 * si.s**-1 * si.sr**-1,
+    (1e10 / (4 * _numpy.pi)) * ph * si.m**-2 * si.s**-1 * si.sr**-1,
     namespace=_ns,
     prefixes=True,
     doc="Rayleigh: photon flux",
@@ -215,13 +216,41 @@ def_unit(
 )
 
 ###########################################################################
-# ALL & DOCSTRING
+# CLEANUP
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+del UnitBase
+del def_unit
+del si
+
+
+###########################################################################
+# DOCSTRING
+
+# This generates a docstring for this module that describes all of the
+# standard units defined here.
+from .utils import generate_unit_summary as _generate_unit_summary
 
 if __doc__ is not None:
-    # This generates a docstring for this module that describes all of the
-    # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
     __doc__ += _generate_unit_summary(globals())
+
+
+# -------------------------------------------------------------------------
+
+
+def __getattr__(attr):
+    if attr == "littleh":
+        import warnings
+
+        from astropy.cosmology.units import littleh
+        from astropy.utils.exceptions import AstropyDeprecationWarning
+
+        warnings.warn(
+            "`littleh` is deprecated from module `astropy.units.astrophys` "
+            "since astropy 5.0 and may be removed in a future version. "
+            "Use `astropy.cosmology.units.littleh` instead.",
+            AstropyDeprecationWarning,
+        )
+
+        return littleh
+
+    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")

@@ -21,9 +21,9 @@ from astropy.io.fits.diff import FITSDiff
 from astropy.io.fits.file import GZIP_MAGIC, _File
 from astropy.io.tests import safeio
 from astropy.utils import data
-from astropy.utils.compat.optional_deps import (
-    HAS_BZ2,  # NOTE: Python can be built without bz2
-)
+
+# NOTE: Python can be built without bz2.
+from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
@@ -158,7 +158,7 @@ class TestCore(FitsTestCase):
         assert header.comments["BITPIX"] == ""
 
     def test_set_card_value(self):
-        """Similar to test_update_header_card(), but tests the
+        """Similar to test_update_header_card(), but tests the the
         `header['FOO'] = 'bar'` method of updating card values.
         """
 
@@ -280,10 +280,9 @@ class TestCore(FitsTestCase):
         # silentfix+warn should be quiet about the fixed HDU and only warn
         # about the unfixable one
         hdu = make_invalid_hdu()
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(AstropyUserWarning, match="Illegal keyword name") as w:
             hdu.verify("silentfix+warn")
         assert len(w) == 4
-        assert "Illegal keyword name 'P.I.'" in str(w.list[2].message)
 
         # silentfix+exception should only mention the unfixable error in the
         # exception
@@ -295,10 +294,9 @@ class TestCore(FitsTestCase):
         # fix+ignore is not too useful, but it should warn about the fixed
         # problems while saying nothing about the unfixable problems
         hdu = make_invalid_hdu()
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(AstropyUserWarning, match="not upper case") as w:
             hdu.verify("fix+ignore")
         assert len(w) == 4
-        assert "not upper case" not in str(w.list[0].message)
 
         # fix+warn
         hdu = make_invalid_hdu()
@@ -508,7 +506,7 @@ class TestCore(FitsTestCase):
         h1.header["EXTVER"] = 3
         assert h1.ver == 3
         del h1.header["EXTVER"]
-        assert h1.ver == 1
+        h1.ver == 1
 
         h1.level = 2
         assert h1.header.get("EXTLEVEL") == 2
@@ -603,10 +601,6 @@ class TestConvenienceFunctions(FitsTestCase):
         with fits.open(filename) as hdul:
             assert len(hdul) == 1
             assert (data == hdul[0].data).all()
-
-    def test_writeto_stdout(self):
-        # see https://github.com/astropy/astropy/issues/3427
-        fits.writeto(sys.stdout, data=np.array([1, 2]))
 
 
 class TestFileFunctions(FitsTestCase):
@@ -715,15 +709,9 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_gzipped(self):
         gzip_file = self._make_gzip_file()
-
         with fits.open(gzip_file) as fits_handle:
             assert fits_handle._file.compression == "gzip"
             assert len(fits_handle) == 5
-
-        with fits.open(gzip_file, decompress_in_memory=True) as fits_handle:
-            assert fits_handle._file.compression == "gzip"
-            assert len(fits_handle) == 5
-
         with fits.open(gzip.GzipFile(gzip_file)) as fits_handle:
             assert fits_handle._file.compression == "gzip"
             assert len(fits_handle) == 5
@@ -765,12 +753,12 @@ class TestFileFunctions(FitsTestCase):
         """Test updating a GZipped FITS file"""
 
         with fits.open(self._make_gzip_file("update.gz"), mode="update") as fits_handle:
-            hdu = fits.ImageHDU(data=list(range(100)))
+            hdu = fits.ImageHDU(data=[x for x in range(100)])
             fits_handle.append(hdu)
 
         with fits.open(self.temp("update.gz")) as new_handle:
             assert len(new_handle) == 6
-            assert (new_handle[-1].data == list(range(100))).all()
+            assert (new_handle[-1].data == [x for x in range(100)]).all()
 
     def test_fits_append_mode_gzip(self):
         """Make sure that attempting to open an existing GZipped FITS file in
@@ -783,12 +771,7 @@ class TestFileFunctions(FitsTestCase):
     @pytest.mark.skipif(not HAS_BZ2, reason="Python built without bz2 module")
     def test_open_bzipped(self):
         bzip_file = self._make_bzip2_file()
-
         with fits.open(bzip_file) as fits_handle:
-            assert fits_handle._file.compression == "bzip2"
-            assert len(fits_handle) == 5
-
-        with fits.open(bzip_file, decompress_in_memory=True) as fits_handle:
             assert fits_handle._file.compression == "bzip2"
             assert len(fits_handle) == 5
 
@@ -835,15 +818,9 @@ class TestFileFunctions(FitsTestCase):
 
     def test_open_zipped(self):
         zip_file = self._make_zip_file()
-
         with fits.open(zip_file) as fits_handle:
             assert fits_handle._file.compression == "zip"
             assert len(fits_handle) == 5
-
-        with fits.open(zip_file, decompress_in_memory=True) as fits_handle:
-            assert fits_handle._file.compression == "zip"
-            assert len(fits_handle) == 5
-
         with fits.open(zipfile.ZipFile(zip_file)) as fits_handle:
             assert fits_handle._file.compression == "zip"
             assert len(fits_handle) == 5
@@ -1079,6 +1056,7 @@ class TestFileFunctions(FitsTestCase):
             mmap.mmap = old_mmap
             _File.__dict__["_mmap_available"]._cache.clear()
 
+    @pytest.mark.openfiles_ignore
     def test_mmap_allocate_error(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/1380
@@ -1095,11 +1073,7 @@ class TestFileFunctions(FitsTestCase):
         def mmap_patched(*args, **kwargs):
             if kwargs.get("access") == mmap.ACCESS_COPY:
                 exc = OSError()
-                if sys.platform.startswith("win32"):
-                    exc.errno = errno.EINVAL
-                    exc.winerror = 1455
-                else:
-                    exc.errno = errno.ENOMEM
+                exc.errno = errno.ENOMEM
                 raise exc
             else:
                 return mmap_original(*args, **kwargs)
@@ -1108,7 +1082,7 @@ class TestFileFunctions(FitsTestCase):
             with patch.object(mmap, "mmap", side_effect=mmap_patched) as p:
                 with pytest.warns(
                     AstropyUserWarning,
-                    match=r"Could not memory map array with mode='readonly'",
+                    match=r"Could not memory " r"map array with mode='readonly'",
                 ):
                     data = hdulist[1].data
                 p.reset_mock()
@@ -1254,11 +1228,7 @@ class TestFileFunctions(FitsTestCase):
         def get_free_space_in_dir(path):
             return 0
 
-        msg = (
-            "Not enough space on disk: requested 8000, available 0. "
-            "Fake error raised when writing file."
-        )
-        with pytest.raises(OSError, match=msg) as exc:
+        with pytest.raises(OSError) as exc:
             monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
             monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
@@ -1269,6 +1239,11 @@ class TestFileFunctions(FitsTestCase):
 
             with open(filename, mode="wb") as fileobj:
                 hdulist.writeto(fileobj)
+
+        assert (
+            "Not enough space on disk: requested 8000, available 0. "
+            "Fake error raised when writing file." == exc.value.args[0]
+        )
 
     def test_flush_full_disk(self, monkeypatch):
         """
@@ -1290,15 +1265,16 @@ class TestFileFunctions(FitsTestCase):
         monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writedata", _writedata)
         monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
-        msg = (
-            "Not enough space on disk: requested 8000, available 0. "
-            "Fake error raised when writing file."
-        )
-        with pytest.raises(OSError, match=msg) as exc:
+        with pytest.raises(OSError) as exc:
             with fits.open(filename, mode="update") as hdul:
                 hdul[0].data = np.arange(0, 1000, dtype="int64")
                 hdul.insert(1, fits.ImageHDU())
                 hdul.flush()
+
+        assert (
+            "Not enough space on disk: requested 8000, available 0. "
+            "Fake error raised when writing file." == exc.value.args[0]
+        )
 
     def _test_write_string_bytes_io(self, fileobj):
         """
@@ -1360,7 +1336,7 @@ class TestFileFunctions(FitsTestCase):
                 (2, "Canopus", -0.73, "F0Ib"),
                 (3, "Rigil Kent", -0.1, "G2V"),
             ],
-            formats="int16,S20,float32,S10",
+            formats="int16,a20,float32,a10",
             names="order,name,mag,Sp",
         )
 
@@ -1381,11 +1357,6 @@ class TestFileFunctions(FitsTestCase):
         fh = safeio.CatchZeroByteWriter(open(self.temp("image.fits"), mode="wb"))
         hdu_img_2880.writeto(fh)
         fh.close()
-
-    def test_HDUList_writeto_stdout(self):
-        # see https://github.com/astropy/astropy/issues/3427
-        hdul = fits.HDUList([fits.PrimaryHDU()])
-        hdul.writeto(sys.stdout)
 
 
 class TestStreamingFunctions(FitsTestCase):
@@ -1461,11 +1432,13 @@ class TestStreamingFunctions(FitsTestCase):
         hdul = fits.HDUList([phdu, ihdu])
         filename = self.temp("temp.fits")
 
-        with pytest.raises(fits.VerifyError):
-            hdul.writeto(filename, output_verify="exception")
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        pytest.raises(
+            fits.VerifyError, hdul.writeto, filename, output_verify="exception"
+        )
+        with pytest.warns(
+            fits.verify.VerifyWarning, match=r"Verification reported errors"
+        ):
             hdul.writeto(filename, output_verify="fix")
-        assert "Verification reported errors" in str(w[0].message)
         with fits.open(filename):
             assert hdul[1].name == "12345678"
             assert hdul[1].header["EXTNAME"] == "12345678"

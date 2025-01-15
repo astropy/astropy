@@ -3,23 +3,24 @@ A module that provides functions for manipulating bit masks and data quality
 (DQ) arrays.
 
 """
-
 import numbers
 import warnings
+from collections import OrderedDict
 
 import numpy as np
 
 __all__ = [
-    "BitFlagNameMap",
-    "InvalidBitFlag",
     "bitfield_to_boolean_mask",
-    "extend_bit_flag_map",
     "interpret_bit_flags",
+    "BitFlagNameMap",
+    "extend_bit_flag_map",
+    "InvalidBitFlag",
 ]
 
 
 _ENABLE_BITFLAG_CACHING = True
-_SUPPORTED_FLAGS = int(np.bitwise_not(0, dtype="uint64", casting="unsafe"))
+_MAX_UINT_TYPE = np.maximum_sctype(np.uint)
+_SUPPORTED_FLAGS = int(np.bitwise_not(0, dtype=_MAX_UINT_TYPE, casting="unsafe"))
 
 
 def _is_bit_flag(n):
@@ -42,7 +43,7 @@ def _is_bit_flag(n):
     if n < 1:
         return False
 
-    return n.bit_count() == 1
+    return bin(n).count("1") == 1
 
 
 def _is_int(n):
@@ -53,6 +54,8 @@ def _is_int(n):
 
 class InvalidBitFlag(ValueError):
     """Indicates that a value is not an integer that is a power of 2."""
+
+    pass
 
 
 class BitFlag(int):
@@ -66,8 +69,8 @@ class BitFlag(int):
 
         if not (_is_int(val) and _is_bit_flag(val)):
             raise InvalidBitFlag(
-                f"Value '{val}' is not a valid bit flag: bit flag value must be "
-                "an integral power of two."
+                "Value '{}' is not a valid bit flag: bit flag value must be "
+                "an integral power of two.".format(val)
             )
 
         s = int.__new__(cls, val)
@@ -77,7 +80,7 @@ class BitFlag(int):
 
 
 class BitFlagNameMeta(type):
-    def __new__(cls, name, bases, members):
+    def __new__(mcls, name, bases, members):
         for k, v in members.items():
             if not k.startswith("_"):
                 v = BitFlag(v)
@@ -86,7 +89,7 @@ class BitFlagNameMeta(type):
         attrl = list(map(str.lower, attr))
 
         if _ENABLE_BITFLAG_CACHING:
-            cache = dict()
+            cache = OrderedDict()
 
         for b in bases:
             for k, v in b.__dict__.items():
@@ -113,7 +116,7 @@ class BitFlagNameMeta(type):
         else:
             members = {"_locked": True, "__version__": "", **members}
 
-        return super().__new__(cls, name, bases, members)
+        return super().__new__(mcls, name, bases, members)
 
     def __setattr__(cls, name, val):
         if name == "_locked":
@@ -173,7 +176,7 @@ class BitFlagNameMeta(type):
             items = dict(items)
 
         return extend_bit_flag_map(
-            cls.__name__ + "_" + "_".join(list(items)), cls, **items
+            cls.__name__ + "_" + "_".join([k for k in items]), cls, **items
         )
 
     def __iadd__(cls, other):
@@ -183,16 +186,20 @@ class BitFlagNameMeta(type):
 
     def __delattr__(cls, name):
         raise AttributeError(
-            f"{cls.__name__}: cannot delete {cls.mro()[-2].__name__} member."
+            "{:s}: cannot delete {:s} member.".format(
+                cls.__name__, cls.mro()[-2].__name__
+            )
         )
 
     def __delitem__(cls, name):
         raise AttributeError(
-            f"{cls.__name__}: cannot delete {cls.mro()[-2].__name__} member."
+            "{:s}: cannot delete {:s} member.".format(
+                cls.__name__, cls.mro()[-2].__name__
+            )
         )
 
     def __repr__(cls):
-        return f"<{cls.mro()[-2].__name__} '{cls.__name__}'>"
+        return f"<{cls.mro()[-2].__name__:s} '{cls.__name__:s}'>"
 
 
 class BitFlagNameMap(metaclass=BitFlagNameMeta):
@@ -208,6 +215,7 @@ class BitFlagNameMap(metaclass=BitFlagNameMeta):
 
     Examples
     --------
+
         >>> from astropy.nddata.bitmask import BitFlagNameMap
         >>> class ST_DQ(BitFlagNameMap):
         ...     __version__ = '1.0.0'  # optional
@@ -220,6 +228,8 @@ class BitFlagNameMap(metaclass=BitFlagNameMeta):
         ...     DEAD = 32
 
     """
+
+    pass
 
 
 def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
@@ -242,6 +252,7 @@ def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
 
     Examples
     --------
+
         >>> from astropy.nddata.bitmask import extend_bit_flag_map
         >>> ST_DQ = extend_bit_flag_map('ST_DQ', __version__='1.0.0', CR=1, CLOUDY=4, RAINY=8)
         >>> ST_CAM1_DQ = extend_bit_flag_map('ST_CAM1_DQ', ST_DQ, HOT=16, DEAD=32)
@@ -323,6 +334,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
 
     Examples
     --------
+
         >>> from astropy.nddata.bitmask import interpret_bit_flags, extend_bit_flag_map
         >>> ST_DQ = extend_bit_flag_map('ST_DQ', CR=1, CLOUDY=4, RAINY=8, HOT=16, DEAD=32)
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags(28))
@@ -435,9 +447,9 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
         allow_non_flags = len(bit_flags) == 1
 
     elif hasattr(bit_flags, "__iter__"):
-        if not all(_is_int(flag) for flag in bit_flags):
+        if not all([_is_int(flag) for flag in bit_flags]):
             if flag_name_map is not None and all(
-                isinstance(flag, str) for flag in bit_flags
+                [isinstance(flag, str) for flag in bit_flags]
             ):
                 bit_flags = [flag_name_map[f] for f in bit_flags]
             else:
@@ -457,7 +469,9 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     for v in bitset:
         if not _is_bit_flag(v) and not allow_non_flags:
             raise ValueError(
-                f"Input list contains invalid (not powers of two) bit flag: {v}"
+                "Input list contains invalid (not powers of two) bit flag: {:d}".format(
+                    v
+                )
             )
         bitmask += v
 
@@ -629,6 +643,7 @@ good_mask_value=False, dtype=numpy.bool_)
 
     Examples
     --------
+
         >>> from astropy.nddata import bitmask
         >>> import numpy as np
         >>> dqarr = np.asarray([[0, 0, 1, 2, 0, 8, 12, 0],

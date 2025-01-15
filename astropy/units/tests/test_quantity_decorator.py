@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # STDLIB
+import sys
 import typing
 
 # THIRD PARTY
@@ -9,6 +10,7 @@ import pytest
 
 # LOCAL
 from astropy import units as u
+from astropy.units._typing import HAS_ANNOTATED
 
 # list of pairs (target unit/physical type, input unit)
 x_inputs = [
@@ -348,17 +350,18 @@ def test_default_value_check():
 
 def test_str_unit_typo():
     @u.quantity_input
-    def myfunc_args(x: "kilograam"):  # noqa: F821
+    def myfunc_args(x: "kilograam"):
         return x
 
     with pytest.raises(ValueError):
         result = myfunc_args(u.kg)
 
 
+@pytest.mark.skipif(not HAS_ANNOTATED, reason="need `Annotated`")
 class TestTypeAnnotations:
     @pytest.mark.parametrize(
         "annot",
-        [u.m, u.Quantity[u.m], u.Quantity[u.m, "more"]],
+        [u.m, u.Quantity[u.m], u.Quantity[u.m, "more"]] if HAS_ANNOTATED else [None],
     )  # Note: parametrization is done even if test class is skipped
     def test_single_annotation_unit(self, annot):
         """Try a variety of valid annotations."""
@@ -463,6 +466,7 @@ def test_dimensionless_with_nondimensionless_input(val):
         myfunc(val)
 
 
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires py3.9+")
 def test_annotated_not_quantity():
     """Test when annotation looks like a Quantity[X], but isn't."""
 
@@ -476,6 +480,7 @@ def test_annotated_not_quantity():
     assert myfunc(1 * u.s) == 1 * u.s
 
 
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires py3.9+")
 def test_annotated_not_unit():
     """Test when annotation looks like a Quantity[X], but the unit's wrong."""
 

@@ -46,10 +46,12 @@ def fitsinfo(filename):
     filename : str
         The path to a FITS file.
     """
+
     try:
         fits.info(filename)
     except OSError as e:
         log.error(str(e))
+    return
 
 
 def main(args=None):

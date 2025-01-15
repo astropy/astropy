@@ -1,19 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
-from functools import lru_cache
 
 import numpy as np
 
 import astropy.units as u
-from astropy.coordinates import (
-    ITRS,
-    BaseBodycentricRepresentation,
-    BaseCoordinateFrame,
-    BaseGeodeticRepresentation,
-    CartesianRepresentation,
-    SphericalRepresentation,
-)
+from astropy.coordinates import ITRS, CartesianRepresentation, SphericalRepresentation
 from astropy.utils import unbroadcast
 
 from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
@@ -21,54 +13,22 @@ from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 __doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
 __all__ = [
+    "obsgeo_to_frame",
     "add_stokes_axis_to_wcs",
     "celestial_frame_to_wcs",
-    "custom_frame_to_wcs_mappings",
-    "custom_wcs_to_frame_mappings",
-    "fit_wcs_from_points",
-    "is_proj_plane_distorted",
-    "local_partial_pixel_derivatives",
-    "non_celestial_pixel_scales",
-    "obsgeo_to_frame",
-    "pixel_to_pixel",
-    "pixel_to_skycoord",
-    "proj_plane_pixel_area",
-    "proj_plane_pixel_scales",
-    "skycoord_to_pixel",
     "wcs_to_celestial_frame",
+    "proj_plane_pixel_scales",
+    "proj_plane_pixel_area",
+    "is_proj_plane_distorted",
+    "non_celestial_pixel_scales",
+    "skycoord_to_pixel",
+    "pixel_to_skycoord",
+    "custom_wcs_to_frame_mappings",
+    "custom_frame_to_wcs_mappings",
+    "pixel_to_pixel",
+    "local_partial_pixel_derivatives",
+    "fit_wcs_from_points",
 ]
-
-SOLAR_SYSTEM_OBJ_DICT = {
-    "EA": "Earth",
-    "SE": "Moon",
-    "ME": "Mercury",
-    "VE": "Venus",
-    "MA": "Mars",
-    "JU": "Jupiter",
-    "SA": "Saturn",
-    "UR": "Uranus",
-    "NE": "Neptune",
-}
-
-
-@lru_cache(maxsize=100)
-def solar_system_body_frame(object_name, representation_type):
-    return type(
-        f"{object_name}Frame",
-        (BaseCoordinateFrame,),
-        dict(name=object_name, representation_type=representation_type),
-    )
-
-
-@lru_cache(maxsize=100)
-def solar_system_body_representation_type(
-    object_name, baserepresentation, equatorial_radius, flattening
-):
-    return type(
-        f"{object_name}{baserepresentation.__name__[4:]}",
-        (baserepresentation,),
-        dict(_equatorial_radius=equatorial_radius, _flattening=flattening),
-    )
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -89,6 +49,7 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
     `~astropy.wcs.WCS`
         A new `~astropy.wcs.WCS` instance with an additional axis
     """
+
     inds = [i + 1 for i in range(wcs.wcs.naxis)]
     inds.insert(add_before_ind, 0)
     newwcs = wcs.sub(inds)
@@ -158,42 +119,6 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 representation_type=SphericalRepresentation,
                 obstime=wcs.wcs.dateobs or None,
             )
-        elif xcoord[2:4] in ("LN", "LT") and xcoord[:2] in SOLAR_SYSTEM_OBJ_DICT.keys():
-            # Coordinates on a planetary body, as defined in
-            # https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2018EA000388
-
-            object_name = SOLAR_SYSTEM_OBJ_DICT.get(xcoord[:2])
-
-            a_radius = wcs.wcs.aux.a_radius
-            b_radius = wcs.wcs.aux.b_radius
-            c_radius = wcs.wcs.aux.c_radius
-            if "bodycentric" in wcs.wcs.name.lower():
-                baserepresentation = BaseBodycentricRepresentation
-                representation_type_name = "BodycentricRepresentation"
-            else:
-                baserepresentation = BaseGeodeticRepresentation
-                representation_type_name = "GeodeticRepresentation"
-
-            if a_radius == b_radius:
-                equatorial_radius = a_radius * u.m
-                flattening = (a_radius - c_radius) / a_radius
-            else:
-                raise NotImplementedError(
-                    "triaxial systems are not supported at this time."
-                )
-
-            # create a new representation class
-            representation_type = solar_system_body_representation_type(
-                SOLAR_SYSTEM_OBJ_DICT.get(xcoord[:2]),
-                baserepresentation,
-                equatorial_radius,
-                flattening,
-            )
-
-            # create a new frame class
-            frame = solar_system_body_frame(
-                SOLAR_SYSTEM_OBJ_DICT.get(xcoord[:2]), representation_type
-            )
         else:
             frame = None
 
@@ -239,25 +164,6 @@ def _celestial_frame_to_wcs_builtin(frame, projection="TAN"):
         ycoord = "TLAT"
         wcs.wcs.radesys = "ITRS"
         wcs.wcs.dateobs = frame.obstime.utc.isot
-    # TODO: once we have a BaseBodyFrame, replace this with an isinstance check
-    elif hasattr(frame, "name") and frame.name in SOLAR_SYSTEM_OBJ_DICT.values():
-        xcoord = frame.name[:2].upper().replace("MO", "SE") + "LN"
-        ycoord = frame.name[:2].upper().replace("MO", "SE") + "LT"
-        if issubclass(frame.representation_type, BaseGeodeticRepresentation):
-            wcs.wcs.name = "Planetographic Body-Fixed"
-        elif issubclass(frame.representation_type, BaseBodycentricRepresentation):
-            wcs.wcs.name = "Bodycentric Body-Fixed"
-        else:
-            raise ValueError(
-                "Planetary coordinates in WCS require a geodetic or bodycentric "
-                "representation, not {frame.representation_type}."
-            )
-        wcs.wcs.aux.a_radius = frame.representation_type._equatorial_radius.value
-        wcs.wcs.aux.b_radius = frame.representation_type._equatorial_radius.value
-        wcs.wcs.aux.c_radius = wcs.wcs.aux.a_radius * (
-            1.0
-            - frame.representation_type._flattening.to(u.dimensionless_unscaled).value
-        )
     else:
         return None
 
@@ -272,7 +178,7 @@ FRAME_WCS_MAPPINGS = [[_celestial_frame_to_wcs_builtin]]
 
 class custom_wcs_to_frame_mappings:
     def __init__(self, mappings=[]):
-        if callable(mappings):
+        if hasattr(mappings, "__call__"):
             mappings = [mappings]
         WCS_FRAME_MAPPINGS.append(mappings)
 
@@ -289,7 +195,7 @@ custom_frame_mappings = custom_wcs_to_frame_mappings
 
 class custom_frame_to_wcs_mappings:
     def __init__(self, mappings=[]):
-        if callable(mappings):
+        if hasattr(mappings, "__call__"):
             mappings = [mappings]
         FRAME_WCS_MAPPINGS.append(mappings)
 
@@ -312,12 +218,13 @@ def wcs_to_celestial_frame(wcs):
 
     Returns
     -------
-    frame : :class:`~astropy.coordinates.BaseCoordinateFrame` subclass instance
-        An instance of a :class:`~astropy.coordinates.BaseCoordinateFrame`
+    frame : :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass instance
+        An instance of a :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame`
         subclass instance that best matches the specified WCS.
 
     Notes
     -----
+
     To extend this function to frames not defined in astropy.coordinates, you
     can write your own function which should take a :class:`~astropy.wcs.WCS`
     instance and should return either an instance of a frame, or `None` if no
@@ -347,8 +254,8 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
 
     Parameters
     ----------
-    frame : :class:`~astropy.coordinates.BaseCoordinateFrame` subclass instance
-        An instance of a :class:`~astropy.coordinates.BaseCoordinateFrame`
+    frame : :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass instance
+        An instance of a :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame`
         subclass instance for which to find the WCS
     projection : str
         Projection code to use in ctype, if applicable
@@ -360,6 +267,7 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
 
     Examples
     --------
+
     ::
 
         >>> from astropy.wcs.utils import celestial_frame_to_wcs
@@ -386,9 +294,10 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
 
     Notes
     -----
+
     To extend this function to frames not defined in astropy.coordinates, you
     can write your own function which should take a
-    :class:`~astropy.coordinates.BaseCoordinateFrame` subclass
+    :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass
     instance and a projection (given as a string) and should return either a WCS
     instance, or `None` if the WCS could not be determined. You can register
     this function temporarily with::
@@ -497,6 +406,7 @@ def proj_plane_pixel_area(wcs):
 
     Notes
     -----
+
     Depending on the application, square root of the pixel area can be used to
     represent a single pixel scale of an equivalent square pixel
     whose area is equal to the area of a generally non-square pixel.
@@ -593,6 +503,7 @@ def non_celestial_pixel_scales(inwcs):
     scale : `numpy.ndarray`
         The pixel scale along each axis.
     """
+
     if inwcs.is_celestial:
         raise ValueError("WCS is celestial, use celestial_pixel_scales instead")
 
@@ -643,6 +554,7 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     --------
     astropy.coordinates.SkyCoord.from_pixel
     """
+
     if _has_distortion(wcs) and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
@@ -715,6 +627,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
     --------
     astropy.coordinates.SkyCoord.from_pixel
     """
+
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import SkyCoord, UnitSphericalRepresentation
 
@@ -780,6 +693,7 @@ def _pixel_to_world_correlation_matrix(wcs):
     The shape of the matrix is ``(n_world, n_pix)``, where ``n_world`` is the
     number of high level world coordinates.
     """
+
     # We basically want to collapse the world dimensions together that are
     # combined into the same high-level objects.
 
@@ -811,6 +725,7 @@ def _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out):
     pixel transformation. The shape of the matrix is
     ``(n_pixel_out, n_pixel_in)``.
     """
+
     matrix1, classes1 = _pixel_to_world_correlation_matrix(wcs_in)
     matrix2, classes2 = _pixel_to_world_correlation_matrix(wcs_out)
 
@@ -862,6 +777,7 @@ def _split_matrix(matrix):
 
     and this function will return ``[([0, 1], [0, 1]), ([2], [2])]``.
     """
+
     pixel_used = []
 
     split_info = []
@@ -904,6 +820,7 @@ def pixel_to_pixel(wcs_in, wcs_out, *inputs):
     *inputs :
         Scalars or arrays giving the pixel coordinates to transform.
     """
+
     # Shortcut for scalars
     if np.isscalar(inputs[0]):
         world_outputs = wcs_in.pixel_to_world(*inputs)
@@ -962,6 +879,7 @@ def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
         If `True`, the matrix is normalized so that for each world entry
         the derivatives add up to 1.
     """
+
     # Find the world coordinates at the requested pixel
     pixel_ref = np.array(pixel)
     world_ref = np.array(wcs.pixel_to_world_values(*pixel_ref))
@@ -976,7 +894,7 @@ def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
         derivatives[:, i] = world_off - world_ref
 
     if normalize_by_world:
-        derivatives /= derivatives.sum(axis=1)[:, np.newaxis]
+        derivatives /= derivatives.sum(axis=0)[:, np.newaxis]
 
     return derivatives
 
@@ -1027,7 +945,8 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     w_obj: `~astropy.wcs.WCS`
         WCS object
     """
-    from astropy.modeling.models import SIP  # here to avoid circular import
+
+    from ..modeling.models import SIP  # here to avoid circular import
 
     # unpack params
     crpix = params[0:2]
@@ -1035,7 +954,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     a_params = params[6 : 6 + len(coeff_names)]
     b_params = params[6 + len(coeff_names) :]
 
-    # assign to wcs, used for transformations in this function
+    # assign to wcs, used for transfomations in this function
     w_obj.wcs.cd = cdx
     w_obj.wcs.crpix = crpix
 
@@ -1098,8 +1017,7 @@ def fit_wcs_from_points(
     Parameters
     ----------
     xy : (`numpy.ndarray`, `numpy.ndarray`) tuple
-        x & y pixel coordinates.  These should be in FITS convention, starting
-        from (1,1) as the center of the bottom-left pixel.
+        x & y pixel coordinates.
     world_coords : `~astropy.coordinates.SkyCoord`
         Skycoord object with world coordinates.
     proj_point : 'center' or ~astropy.coordinates.SkyCoord`
@@ -1122,6 +1040,7 @@ def fit_wcs_from_points(
     wcs : `~astropy.wcs.WCS`
         The best-fit WCS to the points given.
     """
+
     from scipy.optimize import least_squares
 
     import astropy.units as u
@@ -1140,8 +1059,8 @@ def fit_wcs_from_points(
     if (type(proj_point) != type(world_coords)) and (proj_point != "center"):
         raise ValueError(
             "proj_point must be set to 'center', or an"
-            "`~astropy.coordinates.SkyCoord` object with "
-            "a pair of points."
+            + "`~astropy.coordinates.SkyCoord` object with "
+            + "a pair of points."
         )
 
     use_center_as_proj_point = str(proj_point) == "center"
@@ -1181,14 +1100,15 @@ def fit_wcs_from_points(
     if type(projection) == str:
         if projection not in proj_codes:
             raise ValueError(
-                "Must specify valid projection code from list of supported types: ",
+                "Must specify valid projection code from list of "
+                + "supported types: ",
                 ", ".join(proj_codes),
             )
         # empty wcs to fill in with fit values
         wcs = celestial_frame_to_wcs(frame=world_coords.frame, projection=projection)
     else:  # if projection is not string, should be wcs object. use as template.
         wcs = copy.deepcopy(projection)
-        wcs.wcs.cdelt = (1.0, 1.0)  # make sure cdelt is 1
+        wcs.cdelt = (1.0, 1.0)  # make sure cdelt is 1
         wcs.sip = None
 
     # Change PC to CD, since cdelt will be set to 1
@@ -1196,7 +1116,7 @@ def fit_wcs_from_points(
         wcs.wcs.cd = wcs.wcs.pc
         wcs.wcs.__delattr__("pc")
 
-    if (sip_degree is not None) and (type(sip_degree) != int):
+    if (type(sip_degree) != type(None)) and (type(sip_degree) != int):
         raise ValueError("sip_degree must be None, or integer.")
 
     # compute bounding box for sources in image coordinates:
@@ -1306,7 +1226,7 @@ def fit_wcs_from_points(
 
 def obsgeo_to_frame(obsgeo, obstime):
     """
-    Convert a WCS obsgeo property into an ITRS coordinate frame.
+    Convert a WCS obsgeo property into an `~.builtin_frames.ITRS` coordinate frame.
 
     Parameters
     ----------
@@ -1316,16 +1236,17 @@ def obsgeo_to_frame(obsgeo, obstime):
 
     obstime : time-like
         The time associated with the coordinate, will be passed to
-        `~astropy.coordinates.ITRS` as the obstime keyword.
+        `~.builtin_frames.ITRS` as the obstime keyword.
 
     Returns
     -------
-    ~astropy.coordinates.ITRS
-        An `~astropy.coordinates.ITRS` coordinate frame
+    `~.builtin_frames.ITRS`
+        An `~.builtin_frames.ITRS` coordinate frame
         representing the coordinates.
 
     Notes
     -----
+
     The obsgeo array as accessed on a `.WCS` object is a length 6 numpy array
     where the first three elements are the coordinate in a cartesian
     representation and the second 3 are the coordinate in a spherical

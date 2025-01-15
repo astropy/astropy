@@ -9,7 +9,6 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -34,6 +33,8 @@ class StringTruncateWarning(UserWarning):
     This does not inherit from AstropyWarning because we want to use
     stacklevel=2 to show the user where the issue occurred in their code.
     """
+
+    pass
 
 
 # Always emit this warning, not just the first instance
@@ -121,7 +122,9 @@ class FalseArray(np.ndarray):
         val = np.asarray(val)
         if np.any(val):
             raise ValueError(
-                f"Cannot set any element of {type(self).__name__} class to True"
+                "Cannot set any element of {} class to True".format(
+                    self.__class__.__name__
+                )
             )
 
 
@@ -143,10 +146,6 @@ def _expand_string_array_for_values(arr, values):
 
     """
     if arr.dtype.kind in ("U", "S") and values is not np.ma.masked:
-        # Starting with numpy 2.0, np.char.str_len() propagates the mask for
-        # masked data. We want masked values to be preserved so unmask
-        # `values` prior to counting string lengths.
-        values = np.asarray(values)
         # Find the length of the longest string in the new values.
         values_str_len = np.char.str_len(values).max()
 
@@ -396,7 +395,7 @@ class ColumnInfo(BaseColumnInfo):
         else:
             units = [None] * len(names)
         for name, part_unit in zip(names, units):
-            part = self._parent.__class__(self._parent[name])
+            part = Column(self._parent[name])
             part.unit = part_unit
             part.description = None
             part.meta = {}
@@ -503,7 +502,7 @@ class ColumnInfo(BaseColumnInfo):
 
 
 class BaseColumn(_ColumnGetitemShim, np.ndarray):
-    meta = MetaData(default_factory=dict)
+    meta = MetaData()
 
     def __new__(
         cls,
@@ -516,7 +515,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         unit=None,
         format=None,
         meta=None,
-        copy=COPY_IF_NEEDED,
+        copy=False,
         copy_indices=True,
     ):
         if data is None:
@@ -551,8 +550,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                     format = data.info.format
                 if meta is None:
                     meta = data.info.meta
-                if name is None:
-                    name = data.info.name
 
         else:
             if np.dtype(dtype).char == "S":
@@ -661,7 +658,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         # Get the Column attributes
         names = ("_name", "_unit", "_format", "description", "meta", "indices")
-        attrs = dict(zip(names, state[-1]))
+        attrs = {name: val for name, val in zip(names, state[-1])}
 
         state = state[:-1]
 
@@ -719,7 +716,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if "info" in getattr(obj, "__dict__", {}):
             self.info = obj.info
 
-    def __array_wrap__(self, out_arr, context=None, return_scalar=False):
+    def __array_wrap__(self, out_arr, context=None):
         """
         __array_wrap__ is called at the end of every ufunc.
 
@@ -730,27 +727,21 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
            like sum() or mean()), a Column still linking to a parent_table
            makes little sense, so we return the output viewed as the
            column content (ndarray or MaskedArray).
-           For this case, if numpy tells us to ``return_scalar`` (for numpy
-           >= 2.0, otherwise assume to be true), we use "[()]" to ensure we
+           For this case, we use "[()]" to select everything, and to ensure we
            convert a zero rank array to a scalar. (For some reason np.sum()
            returns a zero rank scalar array while np.mean() returns a scalar;
-           So the [()] is needed for this case.)
+           So the [()] is needed for this case.
 
         2) When the output is created by any function that returns a boolean
            we also want to consistently return an array rather than a column
            (see #1446 and #1685)
         """
-        if NUMPY_LT_2_0:
-            out_arr = super().__array_wrap__(out_arr, context)
-            return_scalar = True
-        else:
-            out_arr = super().__array_wrap__(out_arr, context, return_scalar)
-
+        out_arr = super().__array_wrap__(out_arr, context)
         if self.shape != out_arr.shape or (
             isinstance(out_arr, BaseColumn)
             and (context is not None and context[0] in _comparison_functions)
         ):
-            return out_arr.data[()] if return_scalar else out_arr.data
+            return out_arr.data[()]
         else:
             return out_arr
 
@@ -777,6 +768,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         Format string for displaying values in this column.
         """
+
         return self._format
 
     @format.setter
@@ -792,8 +784,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             # revert to restore previous format if there was one
             self._format = prev_format
             raise ValueError(
-                f"Invalid format for column '{self.name}': could not display "
-                "values in this column using this format"
+                "Invalid format for column '{}': could not display "
+                "values in this column using this format".format(self.name)
             ) from err
 
     @property
@@ -852,7 +844,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def pformat(
         self,
-        max_lines=-1,
+        max_lines=None,
         show_name=True,
         show_unit=False,
         show_dtype=False,
@@ -860,19 +852,17 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
     ):
         """Return a list of formatted string representation of column values.
 
-        If ``max_lines=None`` is supplied then the height of the
+        If no value of ``max_lines`` is supplied then the height of the
         screen terminal is used to set ``max_lines``.  If the terminal
         height cannot be determined then the default will be
         determined using the ``astropy.conf.max_lines`` configuration
         item. If a negative value of ``max_lines`` is supplied then
-        there is no line limit applied (default).
+        there is no line limit applied.
 
         Parameters
         ----------
-        max_lines : int or None
-            Maximum lines of output (header + data rows).
-            -1 (default) implies no limit, ``None`` implies using the
-            height of the current terminal.
+        max_lines : int
+            Maximum lines of output (header + data rows)
 
         show_name : bool
             Include column name. Default is True.
@@ -906,7 +896,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
     def pprint(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False):
         """Print a formatted string representation of column values.
 
-        If ``max_lines=None`` (default) then the height of the
+        If no value of ``max_lines`` is supplied then the height of the
         screen terminal is used to set ``max_lines``.  If the terminal
         height cannot be determined then the default will be
         determined using the ``astropy.conf.max_lines`` configuration
@@ -1046,7 +1036,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def group_by(self, keys):
         """
-        Group this column by the specified ``keys``.
+        Group this column by the specified ``keys``
 
         This effectively splits the column into groups which correspond to
         unique values of the ``keys`` grouping object.  The output is a new
@@ -1070,7 +1060,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def _copy_groups(self, out):
         """
-        Copy current groups into a copy of self ``out``.
+        Copy current groups into a copy of self ``out``
         """
         if self.parent_table:
             if hasattr(self.parent_table, "_groups"):
@@ -1123,7 +1113,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def _copy_attrs(self, obj):
         """
-        Copy key column attributes from ``obj`` to self.
+        Copy key column attributes from ``obj`` to self
         """
         for attr in ("name", "unit", "_format", "description"):
             val = getattr(obj, attr, None)
@@ -1150,13 +1140,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                 arr = np.char.encode(arr, encoding="utf-8")
                 if isinstance(value, np.ma.MaskedArray):
                     arr = np.ma.array(arr, mask=value.mask, copy=False)
-                value = arr
+            value = arr
 
         return value
 
     def tolist(self):
         if self.dtype.kind == "S":
-            return np.char.chararray.decode(self, encoding="utf-8").tolist()
+            return np.chararray.decode(self, encoding="utf-8").tolist()
         else:
             return super().tolist()
 
@@ -1243,7 +1233,7 @@ class Column(BaseColumn):
         unit=None,
         format=None,
         meta=None,
-        copy=COPY_IF_NEEDED,
+        copy=False,
         copy_indices=True,
     ):
         if isinstance(data, MaskedColumn) and np.any(data.mask):
@@ -1353,8 +1343,8 @@ class Column(BaseColumn):
 
         if value_str_len > self_str_len:
             warnings.warn(
-                f"truncated right side string(s) longer than {self_str_len} "
-                "character(s) during assignment",
+                "truncated right side string(s) longer than {} "
+                "character(s) during assignment".format(self_str_len),
                 StringTruncateWarning,
                 stacklevel=3,
             )
@@ -1602,7 +1592,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         unit=None,
         format=None,
         meta=None,
-        copy=COPY_IF_NEEDED,
+        copy=False,
         copy_indices=True,
     ):
         if mask is None:
@@ -1678,8 +1668,8 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     @fill_value.setter
     def fill_value(self, val):
         """Set fill value both in the masked column view and in the parent table
-        if it exists.  Setting one or the other alone doesn't work.
-        """
+        if it exists.  Setting one or the other alone doesn't work."""
+
         # another ma bug workaround: If the value of fill_value for a string array is
         # requested but not yet set then it gets created as 'N/A'.  From this point onward
         # any new fill_values are truncated to 3 characters.  Note that this does not
@@ -1802,12 +1792,6 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return out
 
-    def convert_unit_to(self, new_unit, equivalencies=[]):
-        # This is a workaround to fix gh-9521
-        super().convert_unit_to(new_unit, equivalencies)
-        self._basedict["_unit"] = new_unit
-        self._optinfo["_unit"] = new_unit
-
     def _copy_attrs_slice(self, out):
         # Fixes issue #3023: when calling getitem with a MaskedArray subclass
         # the original object attributes are not copied.
@@ -1850,3 +1834,4 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     more = BaseColumn.more
     pprint = BaseColumn.pprint
     pformat = BaseColumn.pformat
+    convert_unit_to = BaseColumn.convert_unit_to

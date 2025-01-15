@@ -87,7 +87,6 @@ Advanced Topics
    Extending Fitters <new-fitter.rst>
    Adding support for units to models <add-units.rst>
    Joint Fitting <jointfitter.rst>
-   Parallel Fitting <parallel-fitting.rst>
 
 
 Pre-Defined Models
@@ -134,6 +133,6 @@ Reference/API
 =============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    reference_api

@@ -1,0 +1,27 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/coordinates/frames/baseframe-1.0.0"
+
+title: |
+  Represents a coordinate frame object from astropy
+
+description: |
+  This schema is designed to be extended by other schemas to restrict the
+  allowable frame_attributes.
+
+type: object
+properties:
+  data:
+    description: |
+      The representation object holding any data associated with the frame.
+    $ref: "../representation-1.0.0"
+  frame_attributes:
+    description: |
+      Attributes on the coordinate frame.
+    type: object
+
+
+additionalProperties: false
+required: [frame_attributes]
+...

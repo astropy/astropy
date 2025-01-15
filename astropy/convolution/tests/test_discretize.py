@@ -202,7 +202,7 @@ def test_dim_exception_1d():
     def f(x):
         return x**2
 
-    with pytest.raises(ValueError, match=r"y_range should not be input for a 1D model"):
+    with pytest.raises(ValueError, match=r"y range specified, but model is only 1-d\."):
         discretize_model(f, (-10, 11), (-10, 11))
 
 
@@ -214,7 +214,7 @@ def test_dim_exception_2d():
     def f(x, y):
         return x**2 + y**2
 
-    with pytest.raises(ValueError, match=r"y_range must be specified for a 2D model"):
+    with pytest.raises(ValueError, match=r"y range not specified, but model is 2-d"):
         discretize_model(f, (-10, 11))
 
 
@@ -265,10 +265,3 @@ def test_discretize_oversample():
     assert_allclose(vmax, 0.927, atol=1e-3)
     assert vmax_yx == (25, 5)
     assert_allclose(values_center, values_osf1)
-
-
-def test_oversample_factor():
-    gauss_1D = Gaussian1D(1, 0, 0.1)
-    msg = "factor must have an integer value"
-    with pytest.raises(ValueError, match=msg):
-        discretize_model(gauss_1D, (-1, 2), mode="oversample", factor=1.2)

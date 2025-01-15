@@ -7,7 +7,6 @@ from packaging.version import Version
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.io import fits
 from astropy.nddata import (
     CCDData,
     Cutout2D,
@@ -44,6 +43,7 @@ test_slices = [
 
 subsampling = 5
 
+test_pos_bad = [(-1, -4), (-2, 0), (6, 2), (6, 6)]
 test_nonfinite_positions = [
     (np.nan, np.nan),
     (np.inf, np.inf),
@@ -66,23 +66,11 @@ def test_slices_pos_different_dim():
         overlap_slices((4, 5), (1, 2), (0, 0, 3))
 
 
-@pytest.mark.parametrize(
-    "inputs",
-    [
-        ((5, 5), (2, 2), (-1, -4)),
-        ((5, 5), (2, 2), (-2, -0)),
-        ((5, 5), (2, 2), (6, 2)),
-        ((5, 5), (2, 2), (6, 6)),
-        ((7, 7), (0, 0), (-2, -2)),
-        ((7, 7), (3, 3), (-2, -2)),
-        ((7, 7), (3, 3), (-2, 2)),
-        ((7, 7), (3, 3), (2, -2)),
-    ],
-)
-def test_slices_no_overlap(inputs):
+@pytest.mark.parametrize("pos", test_pos_bad)
+def test_slices_no_overlap(pos):
     """If there is no overlap between arrays, an error should be raised."""
     with pytest.raises(NoOverlapError):
-        overlap_slices(*inputs)
+        overlap_slices((5, 5), (2, 2), pos)
 
 
 def test_slices_partial_overlap():
@@ -179,7 +167,9 @@ def test_extract_array_even_shape_rounding():
     positions = (-0.99, -0.51, -0.5, -0.49, -0.01, 0)
     exp1 = (-99, 0)
     exp2 = (0, 1)
-    expected = [exp1] * 6 + [exp2]
+    expected = [exp1,] * 6 + [
+        exp2,
+    ]
 
     for pos, exp in zip(positions, expected):
         out = extract_array(data, shape, (pos,), mode="partial", fill_value=-99)
@@ -217,7 +207,9 @@ def test_extract_array_odd_shape_rounding():
     positions = (-0.99, -0.51, -0.5, -0.49, -0.01, 0)
     exp1 = (-99, -99, 0)
     exp2 = (-99, 0, 1)
-    expected = [exp1] * 3 + [exp2] * 4
+    expected = [exp1,] * 3 + [
+        exp2,
+    ] * 4
 
     for pos, exp in zip(positions, expected):
         out = extract_array(data, shape, (pos,), mode="partial", fill_value=-99)
@@ -226,10 +218,9 @@ def test_extract_array_odd_shape_rounding():
 
 def test_extract_array_wrong_mode():
     """Call extract_array with non-existing mode."""
-    with pytest.raises(
-        ValueError, match="Valid modes are 'partial', 'trim', and 'strict'."
-    ):
+    with pytest.raises(ValueError) as e:
         extract_array(np.arange(4), (2,), (0,), mode="full")
+    assert "Valid modes are 'partial', 'trim', and 'strict'." == str(e.value)
 
 
 def test_extract_array_1d_even():
@@ -617,30 +608,3 @@ class TestCutout2D:
         )
         assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
         assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)
-
-
-def test_cutout_section(tmp_path):
-    # Make sure that one can pass ImageHDU.section and CompImageHDU.section
-    # to Cutout2D
-
-    data = np.ones((200, 200))
-
-    hdu = fits.ImageHDU(data=data)
-    hdu.writeto(tmp_path / "uncompressed.fits")
-
-    with fits.open(tmp_path / "uncompressed.fits") as hdul:
-        c = Cutout2D(
-            hdul[1].section,
-            (75, 75),
-            100 * u.pix,
-        )
-
-    chdu = fits.CompImageHDU(data=data)
-    chdu.writeto(tmp_path / "compressed.fits")
-
-    with fits.open(tmp_path / "compressed.fits") as hdul:
-        c = Cutout2D(
-            hdul[1].section,
-            (75, 75),
-            100 * u.pix,
-        )

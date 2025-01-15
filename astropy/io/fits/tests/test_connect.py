@@ -7,26 +7,20 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.io import fits
-from astropy.io.fits import (
-    BinTableHDU,
-    HDUList,
-    ImageHDU,
-    PrimaryHDU,
-    connect,
-    table_to_hdu,
-)
+from astropy.io.fits import BinTableHDU, HDUList, ImageHDU, PrimaryHDU, table_to_hdu
 from astropy.io.fits.column import (
     _fortran_to_python_format,
     _parse_tdisp_format,
     python_to_tdisp,
 )
 from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized_names
-from astropy.table import Column, MaskedColumn, QTable, Table
+from astropy.table import Column, QTable, Table
 from astropy.table.table_helpers import simple_table
 from astropy.time import Time
-from astropy.units import UnitScaleError
 from astropy.units import allclose as quantity_allclose
+from astropy.units.format.fits import UnitScaleError
 from astropy.units.quantity import QuantityInfo
+from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
@@ -43,8 +37,10 @@ unsupported_cols = {
     name: col
     for name, col in mixin_cols.items()
     if (
-        (isinstance(col, Time) and col.location.shape != ())
-        or (isinstance(col, np.ndarray) and col.dtype.kind == "O")
+        isinstance(col, Time)
+        and col.location.shape != ()
+        or isinstance(col, np.ndarray)
+        and col.dtype.kind == "O"
         or isinstance(col, u.LogQuantity)
     )
 }
@@ -54,7 +50,10 @@ mixin_cols = {
 
 
 def equal_data(a, b):
-    return all(np.all(a[name] == b[name]) for name in a.dtype.names)
+    for name in a.dtype.names:
+        if not np.all(a[name] == b[name]):
+            return False
+    return True
 
 
 class TestSingleTable:
@@ -176,7 +175,7 @@ class TestSingleTable:
         hdu = BinTableHDU(self.data)
         hdu.columns[0].unit = "Angstroms"
         hdu.columns[2].unit = "ergs/(cm.s.Angstroms)"
-        with u.set_enabled_aliases({"Angstroms": u.AA, "ergs": u.erg}):
+        with u.set_enabled_aliases(dict(Angstroms=u.AA, ergs=u.erg)):
             t = table_type.read(hdu)
         assert t["a"].unit == u.AA
         assert t["c"].unit == u.erg / (u.cm * u.s * u.AA)
@@ -293,7 +292,7 @@ class TestSingleTable:
         t2 = Table.read(filename, memmap=False)
         t3 = Table.read(filename, memmap=True)
         assert equal_data(t2, t3)
-        # To avoid issues with open files, we need to remove references to
+        # To avoid issues with --open-files, we need to remove references to
         # data that uses memory mapping and force the garbage collection
         del t1, t2, t3
         gc.collect()
@@ -308,7 +307,7 @@ class TestSingleTable:
         assert t2["b"].dtype.kind == "U"
         assert t3["b"].dtype.kind == "S"
         assert equal_data(t2, t3)
-        # To avoid issues with open files, we need to remove references to
+        # To avoid issues with --open-files, we need to remove references to
         # data that uses memory mapping and force the garbage collection
         del t1, t2, t3
         gc.collect()
@@ -410,61 +409,6 @@ class TestSingleTable:
 
         tab = Table.read(filename, mask_invalid=False)
         assert tab.mask is None
-
-    def test_heterogeneous_VLA_tables(self, tmp_path):
-        """
-        Check the behaviour of heterogeneous VLA object.
-        """
-        filename = tmp_path / "test_table_object.fits"
-        msg = "Column 'col1' contains unsupported object types or mixed types: "
-
-        # The column format fix the type of the arrays in the VLF object.
-        a = np.array([45, 30])
-        b = np.array([11.0, 12.0, 13])
-        var = np.array([a, b], dtype=object)
-        tab = Table({"col1": var})
-        with pytest.raises(TypeError, match=msg):
-            tab.write(filename)
-
-        # Strings in the VLF object can't be added to the table
-        a = np.array(["five", "thirty"])
-        b = np.array([11.0, 12.0, 13])
-        var = np.array([a, b], dtype=object)
-        with pytest.raises(TypeError, match=msg):
-            tab.write(filename)
-
-    def test_write_object_tables_with_unified(self, tmp_path):
-        """
-        Write objects with the unified I/O interface.
-        See https://github.com/astropy/astropy/issues/1906
-        """
-        filename = tmp_path / "test_table_object.fits"
-        msg = r"Column 'col1' contains unsupported object types or mixed types: {dtype\('O'\)}"
-        # Make a FITS table with an object column
-        tab = Table({"col1": [None]})
-        with pytest.raises(TypeError, match=msg):
-            tab.write(filename)
-
-    def test_write_VLA_tables_with_unified(self, tmp_path):
-        """
-        Write VLA objects with the unified I/O interface.
-        See https://github.com/astropy/astropy/issues/11323
-        """
-
-        filename = tmp_path / "test_table_VLA.fits"
-        # Make a FITS table with a variable-length array column
-        a = np.array([45, 30])
-        b = np.array([11, 12, 13])
-        c = np.array([45, 55, 65, 75])
-        var = np.array([a, b, c], dtype=object)
-
-        tabw = Table({"col1": var})
-        tabw.write(filename)
-
-        tab = Table.read(filename)
-        assert np.array_equal(tab[0]["col1"], np.array([45, 30]))
-        assert np.array_equal(tab[1]["col1"], np.array([11, 12, 13]))
-        assert np.array_equal(tab[2]["col1"], np.array([45, 55, 65, 75]))
 
 
 class TestMultipleHDU:
@@ -709,9 +653,6 @@ def test_scale_error():
     [
         ("EN10.5", ("EN", "10", "5", None)),
         ("F6.2", ("F", "6", "2", None)),
-        ("F12.10", ("F", "12", "10", None)),
-        ("ES12.11", ("ES", "12", "11", None)),
-        ("EN12.11", ("EN", "12", "11", None)),
         ("B5.10", ("B", "5", "10", None)),
         ("E10.5E3", ("E", "10", "5", "3")),
         ("A21", ("A", "21", None, None)),
@@ -764,7 +705,7 @@ def test_bool_column(tmp_path):
     """
 
     arr = np.ones(5, dtype=bool)
-    arr[::2] = False
+    arr[::2] == np.False_
 
     t = Table([arr])
     t.write(tmp_path / "test.fits", overwrite=True)
@@ -822,7 +763,7 @@ def test_convert_comment_convention():
     filename = get_pkg_data_filename("data/stddata.fits")
     with pytest.warns(
         AstropyUserWarning,
-        match=r"hdu= was not specified but multiple tables are present",
+        match=r"hdu= was not specified but " r"multiple tables are present",
     ):
         t = Table.read(filename)
 
@@ -876,7 +817,11 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
             # FITS does not perfectly preserve dtype: byte order can change, and
             # unicode gets stored as bytes.  So, we just check safe casting, to
             # ensure we do not, e.g., accidentally change integer to float, etc.
-            assert np.can_cast(a2, a1, casting="safe")
+            if NUMPY_LT_1_22 and a1.names:
+                # For old numpy, can_cast does not deal well with structured dtype.
+                assert a1.names == a2.names
+            else:
+                assert np.can_cast(a2, a1, casting="safe")
         else:
             assert np.all(a1 == a2)
 
@@ -1060,68 +1005,3 @@ def test_meta_not_modified(tmp_path):
     t.write(filename)
     assert len(t.meta) == 1
     assert t.meta["comments"] == ["a", "b"]
-
-
-def test_is_fits_gh_14305():
-    """Regression test for https://github.com/astropy/astropy/issues/14305"""
-    assert not connect.is_fits("", "foo.bar", None)
-
-
-def test_keep_masked_state_integer_columns(tmp_path):
-    """Regression test for https://github.com/astropy/astropy/issues/15417"""
-    filename = tmp_path / "test_masked.fits"
-    t = Table([[1, 2], [1.5, 2.5]], names=["a", "b"])
-    t["c"] = MaskedColumn([1, 2], mask=[True, False])
-    t.write(filename)
-    tr = Table.read(filename)
-    assert not isinstance(tr["a"], MaskedColumn)
-    assert not isinstance(tr["b"], MaskedColumn)
-    assert isinstance(tr["c"], MaskedColumn)
-
-
-def test_null_propagation_in_table_read(tmp_path):
-    """Checks that integer columns with a TNULL value set (e.g. masked columns)
-    have their TNULL value propagated when being read in by Table.read"""
-
-    # Could be anything except for 999999, which is the "default" fill_value
-    # for masked int arrays
-    NULL_VALUE = -1
-
-    output_filename = tmp_path / "null_table.fits"
-
-    data = np.asarray([1, 2, NULL_VALUE, 4], dtype=np.int32)
-
-    # Create table with BinTableHDU, with integer column containing a custom null
-    c = fits.Column(name="a", array=data, null=NULL_VALUE, format="J")
-    hdu = BinTableHDU.from_columns([c])
-    hdu.writeto(output_filename)
-
-    # Read the table in with Table.read, and ensure the column's fill_value is
-    # equal to NULL_VALUE
-    t = Table.read(output_filename)
-    assert t["a"].fill_value == NULL_VALUE
-
-
-def test_unsigned_int_dtype_propagation_for_zero_length_table():
-    # Regression test for gh-16501
-    tbl = Table(
-        [
-            Column(name="unsigned16", dtype="uint16"),
-            Column(name="unsigned32", dtype="uint32"),
-            Column(name="unsigned64", dtype="uint64"),
-        ]
-    )
-    hdu = BinTableHDU(tbl)
-    tbl2 = Table.read(hdu)
-    assert tbl.dtype == tbl2.dtype
-
-
-@pytest.mark.parametrize("table_type", [Table, QTable])
-def test_zero_length_string_columns_can_be_read_into_table(table_type, tmp_path):
-    filename = tmp_path / "zerodtable.fits"
-    data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
-    hdu = fits.BinTableHDU(data)
-    hdu.writeto(filename)
-    t = table_type.read(filename)
-    assert t["a"].dtype.itemsize == 0
-    assert t["a"].dtype == data["a"].dtype

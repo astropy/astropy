@@ -398,8 +398,8 @@ To add a segment that shows a physical scale, you can use the
 
     # Compute the angle corresponding to 10 pc at the distance of the galactic center
     gc_distance = 8.2 * u.kpc
-    scalebar_length = 10 * u.pc
-    scalebar_angle = (scalebar_length / gc_distance).to(
+    scalebar_lenght = 10 * u.pc
+    scalebar_angle = (scalebar_lenght / gc_distance).to(
         u.deg, equivalencies=u.dimensionless_angles()
     )
 

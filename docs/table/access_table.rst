@@ -40,7 +40,6 @@ to update the original table data or properties. See also the section on
   t['a'][1]    # Row 1 of column 'a'
   t[1]         # Row 1
   t[1]['a']    # Column 'a' of row 1
-  t[1][1:]     # Row 1, columns b and c
   t[2:5]       # Table object with rows 2:5
   t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
   t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
@@ -178,7 +177,7 @@ Accessing Properties
 
 The code below shows accessing the table columns as a |TableColumns| object,
 getting the column names, table metadata, and number of table rows. The table
-metadata is a :class:`dict` by default.
+metadata is an `~collections.OrderedDict` by default.
 ::
 
   >>> t.columns
@@ -210,7 +209,7 @@ column with a numerical index::
 
 
   >>> t['a'][1]  # Row 1 of column 'a'
-  np.int32(3)
+  3
 
 When a table column is printed, it is formatted according to the ``format``
 attribute (see :ref:`table_format_string`). Note the difference between the
@@ -237,7 +236,7 @@ Likewise a table row and a column from that row can be selected::
      3.000     4     5
 
   >>> t[1]['a']  # Column 'a' of row 1
-  np.int32(3)
+  3
 
 A |Row| object has the same columns and metadata as its parent table::
 
@@ -316,53 +315,17 @@ structured array by creating a copy or reference with :func:`numpy.array`::
   >>> data = np.array(t, copy=False)  # reference to data in t
 
 
-Possibly missing columns
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-In some cases it might not be guaranteed that a column is present in a table,
-but there does exist a good default value that can be used if it is not. The
-columns of a |Table| can be represented as a :class:`dict` subclass instance
-through the ``columns`` attribute, which means that a replacement for missing
-columns can be provided using the :meth:`dict.get` method::
-
-    >>> t.columns.get("b", np.zeros(len(t)))
-    <Column name='b' dtype='int32' length=5>
-     1
-     4
-     7
-    10
-    13
-    >>> t.columns.get("x", np.zeros(len(t)))
-    array([0., 0., 0., 0., 0.])
-
-In case of a single |Row| it is possible to use its
-:meth:`~astropy.table.Row.get` method without having to go through
-``columns``::
-
-    >>> row = t[2]
-    >>> row.get("c", -1)
-    np.int32(8)
-    >>> row.get("y", -1)
-    -1
-
-
 Table Equality
 --------------
 
 We can check table data equality using two different methods:
 
-- The ``==`` comparison operators. In the general case, this returns a 1D array
-  with ``dtype=bool`` mapping each row to ``True`` if and only if the *entire row*
-  matches. For incomparable data (different ``dtype`` or unbroacastable lengths),
-  a boolean ``False`` is returned.
-  This is in contrast to the behavior of ``numpy`` where trying to compare
-  structured arrays might raise exceptions.
+- The ``==`` comparison operator. This returns a `True` or `False` for
+  each row if the *entire row* matches. This is the same as the behavior of
+  ``numpy`` structured arrays.
 - Table :meth:`~astropy.table.Table.values_equal` to compare table values
   element-wise. This returns a boolean `True` or `False` for each table
   *element*, so you get a `~astropy.table.Table` of values.
-
-.. note:: both methods will report equality *after* broadcasting, which
-  matches ``numpy`` array comparison.
 
 Examples
 ^^^^^^^^
@@ -459,6 +422,7 @@ To print a formatted table::
    240  241  242  243  244  245  246 ...   263   264   265   266   267   268   269
    270  271  272  273  274  275  276 ...   293   294   295   296   297   298   299
    ...  ...  ...  ...  ...  ...  ... ...   ...   ...   ...   ...   ...   ...   ...
+  2670 2671 2672 2673 2674 2675 2676 ...  2693  2694  2695  2696  2697  2698  2699
   2700 2701 2702 2703 2704 2705 2706 ...  2723  2724  2725  2726  2727  2728  2729
   2730 2731 2732 2733 2734 2735 2736 ...  2753  2754  2755  2756  2757  2758  2759
   2760 2761 2762 2763 2764 2765 2766 ...  2783  2784  2785  2786  2787  2788  2789
@@ -823,7 +787,7 @@ that uses `"new style" format strings
 parameter substitutions corresponding to the field names in the structured
 array. Consider the example below including a column of parameters values where
 the value, min and max are stored in the in the column as fields named ``val``,
-``min``, and ``max``. By default the field values are shown as a tuple::
+``min``, and ``max``. By defaul the field values are shown as a tuple::
 
     >>> pars = np.array(
     ...   [(1.2345678, -20, 3),
@@ -834,10 +798,10 @@ the value, min and max are stored in the in the column as fields named ``val``,
     >>> t['a'] = [1, 2]
     >>> t['par'] = pars
     >>> print(t)
-     a     par [val, min, max]
-    --- -------------------------
-      1   (1.2345678, -20.0, 3.0)
-      2 (12.345678, 4.5678, 33.0)
+     a    par [val, min, max]
+    --- ------------------------
+      1    (1.2345678, -20., 3.)
+      2 (12.345678, 4.5678, 33.)
 
 
 However, setting the format string appropriately allows formatting each of the

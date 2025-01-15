@@ -7,11 +7,7 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.coordinates import (
-    EarthLocation,
-    SkyCoord,
-    galactocentric_frame_defaults,
-)
+from astropy.coordinates import EarthLocation, SkyCoord, galactocentric_frame_defaults
 from astropy.coordinates import representation as r
 from astropy.coordinates.attributes import (
     Attribute,
@@ -38,11 +34,10 @@ from astropy.coordinates.representation import (
     REPRESENTATION_CLASSES,
     CartesianDifferential,
 )
-from astropy.coordinates.tests.helper import skycoord_equal
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .test_representation import unitphysics  # this fixture is used below  # noqa: F401
 
@@ -109,7 +104,9 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.equinox.value == "B1950.000"
     assert mfk4.obstime.value == "B1980.000"
     assert mfk4.newattr == "newattr"
-    assert set(mfk4.get_frame_attr_defaults()) == {"equinox", "obstime", "newattr"}
+
+    with pytest.warns(AstropyDeprecationWarning):
+        assert set(mfk4.get_frame_attr_names()) == {"equinox", "obstime", "newattr"}
 
     mfk4 = MyFK4(equinox="J1980.0", obstime="J1990.0", newattr="world")
     assert mfk4.equinox.value == "J1980.000"
@@ -253,23 +250,12 @@ def test_no_data_nonscalar_frames():
     assert a1.obstime.shape == (3, 10)
     assert a1.temperature.shape == (3, 10)
     assert a1.shape == (3, 10)
-
-    match = r".*inconsistent shapes.*"
-    if PYTEST_LT_8_0:
-        # Exception.__notes__ are ignored in matching,
-        # so we'll match manually and post-mortem instead
-        direct_match = None
-    else:
-        direct_match = match
-
-    with pytest.raises(ValueError, match=direct_match) as exc:
+    with pytest.raises(ValueError) as exc:
         AltAz(
             obstime=Time("2012-01-01") + np.arange(10.0) * u.day,
             temperature=np.ones((3,)) * u.deg_C,
         )
-
-    if direct_match is None:
-        assert re.match(match, "\n".join(exc.value.__notes__))
+    assert "inconsistent shapes" in str(exc.value)
 
 
 def test_frame_repr():
@@ -486,25 +472,12 @@ def test_replicating():
 
     iclone = i.replicate_without_data()
     assert i.has_data
-    assert not i.isscalar
-    assert i.shape == (1,)
-    assert len(i) == 1
     assert not iclone.has_data
-    assert iclone.isscalar
-    assert iclone.shape == ()
-    with pytest.raises(TypeError, match="no len()"):
-        len(iclone)
 
     aa = AltAz(alt=1 * u.deg, az=2 * u.deg, obstime=Time("J2000"))
-    aaclone = aa.replicate_without_data(obstime=Time(["J2001"]))
-    assert aa.has_data
-    assert aa.isscalar
-    assert aa.shape == ()
+    aaclone = aa.replicate_without_data(obstime=Time("J2001"))
     assert not aaclone.has_data
-    assert not aaclone.isscalar
-    assert aaclone.shape == (1,)
-    assert len(aaclone) == 1
-    assert not np.any(aa.obstime == aaclone.obstime)
+    assert aa.obstime != aaclone.obstime
     assert aa.pressure == aaclone.pressure
     assert aa.obswl == aaclone.obswl
 
@@ -578,19 +551,12 @@ def test_transform():
 
 def test_transform_to_nonscalar_nodata_frame():
     # https://github.com/astropy/astropy/pull/5254#issuecomment-241592353
-    # Also checks that shape and length of all make sense.
     times = Time("2016-08-23") + np.linspace(0, 10, 12) * u.day
     coo1 = ICRS(
         ra=[[0.0], [10.0], [20.0]] * u.deg, dec=[[-30.0], [30.0], [60.0]] * u.deg
     )
-    assert coo1.shape == (3, 1)
-    assert len(coo1) == 3
-    fk5 = FK5(equinox=times)
-    assert fk5.shape == (12,)
-    assert len(fk5) == 12
-    coo2 = coo1.transform_to(fk5)
+    coo2 = coo1.transform_to(FK5(equinox=times))
     assert coo2.shape == (3, 12)
-    assert len(coo2) == 3
 
 
 def test_setitem_no_velocity():
@@ -721,6 +687,51 @@ def test_setitem_exceptions():
         sc1[0] = sc2[0]
 
 
+def test_sep():
+    i1 = ICRS(ra=0 * u.deg, dec=1 * u.deg)
+    i2 = ICRS(ra=0 * u.deg, dec=2 * u.deg)
+
+    sep = i1.separation(i2)
+    assert_allclose(sep.deg, 1.0)
+
+    i3 = ICRS(ra=[1, 2] * u.deg, dec=[3, 4] * u.deg, distance=[5, 6] * u.kpc)
+    i4 = ICRS(ra=[1, 2] * u.deg, dec=[3, 4] * u.deg, distance=[4, 5] * u.kpc)
+
+    sep3d = i3.separation_3d(i4)
+    assert_allclose(sep3d.to(u.kpc), np.array([1, 1]) * u.kpc)
+
+    # check that it works even with velocities
+    i5 = ICRS(
+        ra=[1, 2] * u.deg,
+        dec=[3, 4] * u.deg,
+        distance=[5, 6] * u.kpc,
+        pm_ra_cosdec=[1, 2] * u.mas / u.yr,
+        pm_dec=[3, 4] * u.mas / u.yr,
+        radial_velocity=[5, 6] * u.km / u.s,
+    )
+    i6 = ICRS(
+        ra=[1, 2] * u.deg,
+        dec=[3, 4] * u.deg,
+        distance=[7, 8] * u.kpc,
+        pm_ra_cosdec=[1, 2] * u.mas / u.yr,
+        pm_dec=[3, 4] * u.mas / u.yr,
+        radial_velocity=[5, 6] * u.km / u.s,
+    )
+
+    sep3d = i5.separation_3d(i6)
+    assert_allclose(sep3d.to(u.kpc), np.array([2, 2]) * u.kpc)
+
+    # 3d separations of dimensionless distances should still work
+    i7 = ICRS(ra=1 * u.deg, dec=2 * u.deg, distance=3 * u.one)
+    i8 = ICRS(ra=1 * u.deg, dec=2 * u.deg, distance=4 * u.one)
+    sep3d = i7.separation_3d(i8)
+    assert_allclose(sep3d, 1 * u.one)
+
+    # but should fail with non-dimensionless
+    with pytest.raises(ValueError):
+        i7.separation_3d(i3)
+
+
 def test_time_inputs():
     """
     Test validation and conversion of inputs for equinox and obstime attributes.
@@ -738,27 +749,12 @@ def test_time_inputs():
         c = FK4(1 * u.deg, 2 * u.deg, obstime="hello")
     assert "Invalid time input" in str(err.value)
 
-    # A vector time should work if the shapes match, and we automatically
-    # broadcast the basic data.
-    c = FK4([1, 2] * u.deg, [2, 3] * u.deg, obstime=["J2000", "J2001"])
-    assert c.shape == (2,)
-    c = FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])
-    assert c.shape == (2,)
-
-    # If the shapes are not broadcastable, then we should raise an exception.
-    match = r".*inconsistent shapes.*"
-    if PYTEST_LT_8_0:
-        # Exception.__notes__ are ignored in matching,
-        # so we'll match manually and post-mortem instead
-        direct_match = None
-    else:
-        direct_match = match
-
-    with pytest.raises(ValueError, match=direct_match) as exc:
-        FK4([1, 2, 3] * u.deg, [4, 5, 6] * u.deg, obstime=["J2000", "J2001"])
-
-    if direct_match is None:
-        assert re.match(match, "\n".join(exc.value.__notes__))
+    # A vector time should work if the shapes match, but we don't automatically
+    # broadcast the basic data (just like time).
+    FK4([1, 2] * u.deg, [2, 3] * u.deg, obstime=["J2000", "J2001"])
+    with pytest.raises(ValueError) as err:
+        FK4(1 * u.deg, 2 * u.deg, obstime=["J2000", "J2001"])
+    assert "shape" in str(err.value)
 
 
 def test_is_frame_attr_default():
@@ -820,39 +816,6 @@ def test_hadec_attributes():
 
     sr = hd2.represent_as(r.SphericalRepresentation)
     assert_allclose(sr.lon, -1 * u.hourangle)
-
-
-def test_itrs_earth_location():
-    loc = EarthLocation(lat=0 * u.deg, lon=0 * u.deg, height=0 * u.m)
-    sat = EarthLocation(
-        lat=-24.6609379 * u.deg, lon=160.34199789 * u.deg, height=420.17927591 * u.km
-    )
-
-    itrs_geo = sat.get_itrs()
-    eloc = itrs_geo.earth_location
-    assert_allclose(sat.lon, eloc.lon)
-    assert_allclose(sat.lat, eloc.lat)
-    assert_allclose(sat.height, eloc.height)
-
-    topo_itrs_repr = itrs_geo.cartesian - loc.get_itrs().cartesian
-    itrs_topo = ITRS(topo_itrs_repr, location=loc)
-    eloc = itrs_topo.earth_location
-    assert_allclose(sat.lon, eloc.lon)
-    assert_allclose(sat.lat, eloc.lat)
-    assert_allclose(sat.height, eloc.height)
-
-    obstime = Time("J2010")  # Anything different from default
-    topo_itrs_repr2 = sat.get_itrs(obstime).cartesian - loc.get_itrs(obstime).cartesian
-    itrs_topo2 = ITRS(topo_itrs_repr2, location=loc, obstime=obstime)
-    eloc2 = itrs_topo2.earth_location
-    assert_allclose(sat.lon, eloc2.lon)
-    assert_allclose(sat.lat, eloc2.lat)
-    assert_allclose(sat.height, eloc2.height)
-
-    wgs84 = ITRS(325 * u.deg, 2 * u.deg, representation_type="wgs84geodetic")
-    assert wgs84.lon == 325 * u.deg
-    assert wgs84.lat == 2 * u.deg
-    assert wgs84.height == 0.0 * u.m
 
 
 def test_representation():
@@ -935,9 +898,9 @@ def test_represent_as():
     cart1 = icrs.represent_as("cartesian")
     cart2 = icrs.represent_as(r.CartesianRepresentation)
 
-    assert cart1.x == cart2.x
-    assert cart1.y == cart2.y
-    assert cart1.z == cart2.z
+    cart1.x == cart2.x
+    cart1.y == cart2.y
+    cart1.z == cart2.z
 
     # now try with velocities
     icrs = ICRS(
@@ -953,6 +916,11 @@ def test_represent_as():
     rep2 = icrs.represent_as("cylindrical")
     assert isinstance(rep2, r.CylindricalRepresentation)
     assert isinstance(rep2.differentials["s"], r.CylindricalDifferential)
+
+    # single class with positional in_frame_units, verify that warning raised
+    with pytest.warns(AstropyWarning, match="argument position") as w:
+        icrs.represent_as(r.CylindricalRepresentation, False)
+    assert len(w) == 1
 
     # TODO: this should probably fail in the future once we figure out a better
     # workaround for dealing with UnitSphericalRepresentation's with
@@ -997,12 +965,8 @@ def test_equal():
     ne = sc1 != sc2
     assert np.all(eq == [True, False])
     assert np.all(ne == [False, True])
-    v = sc1[0] == sc2[0]
-    assert isinstance(v, (bool, np.bool_))
-    assert v
-    v = sc1[0] != sc2[0]
-    assert isinstance(v, (bool, np.bool_))
-    assert not v
+    assert isinstance(v := (sc1[0] == sc2[0]), (bool, np.bool_)) and v
+    assert isinstance(v := (sc1[0] != sc2[0]), (bool, np.bool_)) and not v
 
     # Broadcasting
     eq = sc1[0] == sc2
@@ -1018,12 +982,8 @@ def test_equal():
     ne = sc1 != sc2
     assert np.all(eq == [True, False])
     assert np.all(ne == [False, True])
-    v = sc1[0] == sc2[0]
-    assert isinstance(v, (bool, np.bool_))
-    assert v
-    v = sc1[0] != sc2[0]
-    assert isinstance(v, (bool, np.bool_))
-    assert not v
+    assert isinstance(v := (sc1[0] == sc2[0]), (bool, np.bool_)) and v
+    assert isinstance(v := (sc1[0] != sc2[0]), (bool, np.bool_)) and not v
 
     assert (FK4() == ICRS()) is False
     assert (FK4() == FK4(obstime="J1999")) is False
@@ -1033,7 +993,7 @@ def test_equal_exceptions():
     # Shape mismatch
     sc1 = FK4([1, 2, 3] * u.deg, [3, 4, 5] * u.deg)
     with pytest.raises(ValueError, match="cannot compare: shape mismatch"):
-        sc1 == sc1[:2]  # noqa: B015
+        sc1 == sc1[:2]
 
     # Different representation_type
     sc1 = FK4(1, 2, 3, representation_type="cartesian")
@@ -1045,7 +1005,7 @@ def test_equal_exceptions():
             "class: CartesianRepresentation vs. SphericalRepresentation"
         ),
     ):
-        sc1 == sc2  # noqa: B015
+        sc1 == sc2
 
     # Different differential type
     sc1 = FK4(1 * u.deg, 2 * u.deg, radial_velocity=1 * u.km / u.s)
@@ -1059,7 +1019,7 @@ def test_equal_exceptions():
             "class: RadialDifferential vs. UnitSphericalCosLatDifferential"
         ),
     ):
-        sc1 == sc2  # noqa: B015
+        sc1 == sc2
 
     # Different frame attribute
     sc1 = FK5(1 * u.deg, 2 * u.deg)
@@ -1070,7 +1030,7 @@ def test_equal_exceptions():
         r"frames: <FK5 Frame \(equinox=J2000.000\)> "
         r"vs. <FK5 Frame \(equinox=J1999.000\)>",
     ):
-        sc1 == sc2  # noqa: B015
+        sc1 == sc2
 
     # Different frame
     sc1 = FK4(1 * u.deg, 2 * u.deg)
@@ -1081,18 +1041,18 @@ def test_equal_exceptions():
         r"frames: <FK4 Frame \(equinox=B1950.000, obstime=B1950.000\)> "
         r"vs. <FK5 Frame \(equinox=J2000.000\)>",
     ):
-        sc1 == sc2  # noqa: B015
+        sc1 == sc2
 
     sc1 = FK4(1 * u.deg, 2 * u.deg)
     sc2 = FK4()
     with pytest.raises(
         ValueError, match="cannot compare: one frame has data and the other does not"
     ):
-        sc1 == sc2  # noqa: B015
+        sc1 == sc2
     with pytest.raises(
         ValueError, match="cannot compare: one frame has data and the other does not"
     ):
-        sc2 == sc1  # noqa: B015
+        sc2 == sc1
 
 
 def test_dynamic_attrs():
@@ -1120,25 +1080,10 @@ def test_nodata_error():
     assert "does not have associated data" in str(excinfo.value)
 
 
-def test_nodata_len_shape():
-    i = ICRS()
-    assert i.shape == ()
-    with pytest.raises(TypeError, match="Scalar.*has no len()"):
-        len(i)
-
-
 def test_len0_data():
     i = ICRS([] * u.deg, [] * u.deg)
     assert i.has_data
     repr(i)
-    assert len(i) == 0
-    assert i.shape == (0,)
-
-
-def test_len0_nodata():
-    fk5 = FK5(equinox=Time([], format="jyear"))
-    assert len(fk5) == 0
-    assert fk5.shape == (0,)
 
 
 def test_quantity_attributes():
@@ -1362,14 +1307,14 @@ def test_representation_subclass():
         attr_classes = r.UnitSphericalRepresentation.attr_classes
 
         def __repr__(self):
-            return "<NewUnitSphericalRepresentation spam spam spam>"
+            return "<NewUnitSphericalRepresentation: spam spam spam>"
 
     frame = FK5(
         NewUnitSphericalRepresentation(lon=32 * u.deg, lat=20 * u.deg),
         representation_type=NewSphericalRepresentation,
     )
 
-    assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000): spam spam spam>"
+    assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000):  spam spam spam>"
 
 
 def test_getitem_representation():
@@ -1567,7 +1512,7 @@ def test_galactocentric_defaults():
     with galactocentric_frame_defaults.set("latest"):
         params = galactocentric_frame_defaults.validate(galcen_latest)
         references = galcen_latest.frame_attribute_references
-        state = {"parameters": params, "references": references}
+        state = dict(parameters=params, references=references)
 
         assert galactocentric_frame_defaults.parameters == params
         assert galactocentric_frame_defaults.references == references
@@ -1682,92 +1627,15 @@ def test_frame_coord_comparison():
     assert not (frame == other)
     error_msg = "objects must have equivalent frames"
     with pytest.raises(TypeError, match=error_msg):
-        frame == SkyCoord(AltAz("0d", "1d"))  # noqa: B015
+        frame == SkyCoord(AltAz("0d", "1d"))
 
     coord = SkyCoord(ra=12 * u.hourangle, dec=5 * u.deg, frame=FK5(equinox="J1950"))
     frame = FK5(ra=12 * u.hourangle, dec=5 * u.deg, equinox="J2000")
     with pytest.raises(TypeError, match=error_msg):
-        coord == frame  # noqa: B015
+        coord == frame
 
     frame = ICRS()
     coord = SkyCoord(0 * u.deg, 0 * u.deg, frame=frame)
     error_msg = "Can only compare SkyCoord to Frame with data"
     with pytest.raises(ValueError, match=error_msg):
-        frame == coord  # noqa: B015
-
-
-@pytest.mark.parametrize(
-    ["s1", "s2"],
-    (
-        ((1,), (1,)),
-        ((2,), (1,)),
-        ((1,), (2,)),
-        ((2,), (2,)),
-        ((2, 1), (1,)),
-        ((1,), (2, 1)),
-        ((2, 1), (1, 3)),
-    ),
-)
-def test_altaz_broadcast(s1, s2):
-    """Note: Regression test for #5982"""
-    where = EarthLocation.from_geodetic(lat=45 * u.deg, lon=30 * u.deg, height=0 * u.m)
-    time = Time(np.full(s1, 58000.0), format="mjd")
-    angle = np.full(s2, 45.0) * u.deg
-    result = AltAz(alt=angle, az=angle, obstime=time, location=where)
-    assert result.shape == np.broadcast_shapes(s1, s2)
-
-
-def test_transform_altaz_array_obstime():
-    """Note: Regression test for #12965"""
-    obstime = Time("2010-01-01T00:00:00")
-    location = EarthLocation(0 * u.deg, 0 * u.deg, 0 * u.m)
-
-    frame1 = AltAz(location=location, obstime=obstime)
-    coord1 = SkyCoord(alt=80 * u.deg, az=0 * u.deg, frame=frame1)
-
-    obstimes = obstime + np.linspace(0, 15, 50) * u.min
-    frame2 = AltAz(location=location, obstime=obstimes)
-    coord2 = SkyCoord(alt=coord1.alt, az=coord1.az, frame=frame2)
-    assert np.all(coord2.alt == 80 * u.deg)
-    assert np.all(coord2.az == 0 * u.deg)
-    assert coord2.shape == (50,)
-
-    # test transformation to ICRS works
-    assert len(coord2.icrs) == 50
-
-
-def test_spherical_offsets_by_broadcast():
-    """Note: Regression test for #14383"""
-    assert SkyCoord(
-        ra=np.array([123, 134, 145]), dec=np.array([45, 56, 67]), unit=u.deg
-    ).spherical_offsets_by(2 * u.deg, 2 * u.deg).shape == (3,)
-
-
-@pytest.mark.parametrize("shape", [(1,), (2,)])
-def test_spherical_offsets_with_wrap(shape):
-    # see https://github.com/astropy/astropy/issues/16219
-    sc = SkyCoord(ra=np.broadcast_to(123.0, shape), dec=90.0, unit=u.deg)
-    scop = sc.spherical_offsets_by(+2 * u.deg, 0 * u.deg)
-    assert scop.shape == shape
-
-    scom = sc.spherical_offsets_by(-2 * u.deg, 0 * u.deg)
-    assert scom.shape == shape
-
-
-def test_insert():
-    # Tests are a subset of those in test_sky_coord.
-    c0 = ICRS([1, 2] * u.deg, [3, 4] * u.deg)
-    c1 = ICRS(5 * u.deg, 6 * u.deg)
-    c3 = ICRS([10, 20] * u.deg, [30, 40] * u.deg)
-
-    # Insert a scalar
-    c = c0.insert(1, c1)
-    assert skycoord_equal(c, ICRS([1, 5, 2] * u.deg, [3, 6, 4] * u.deg))
-
-    # Insert length=2 array at start of array
-    c = c0.insert(0, c3)
-    assert skycoord_equal(c, ICRS([10, 20, 1, 2] * u.deg, [30, 40, 3, 4] * u.deg))
-
-    # Insert length=2 array at end of array
-    c = c0.insert(2, c3)
-    assert skycoord_equal(c, ICRS([1, 2, 10, 20] * u.deg, [3, 4, 30, 40] * u.deg))
+        frame == coord

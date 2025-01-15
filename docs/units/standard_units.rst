@@ -56,7 +56,7 @@ Prefixes
 Most units can be used with prefixes, with both the standard `SI
 <https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ prefixes
 and the `IEEE 1514-2002
-<https://ieeexplore.ieee.org/document/5254933>`_ binary prefixes
+<https://ieeexplore.ieee.org/servlet/opac?punumber=5254929>`_ binary prefixes
 (for ``bit`` and ``byte``) supported:
 
 +------------------------------+

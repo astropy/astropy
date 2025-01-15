@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Tests for physical functions."""
-
 # pylint: disable=no-member, invalid-name
 import numpy as np
 import pytest
@@ -22,7 +21,6 @@ __doctest_skip__ = ["*"]
 
 
 fitters = [LevMarLSQFitter, TRFLSQFitter, LMLSQFitter, DogBoxLSQFitter]
-fitters_bounds = [LevMarLSQFitter, TRFLSQFitter, DogBoxLSQFitter]
 
 
 # BlackBody tests
@@ -80,11 +78,11 @@ def test_blackbody_return_units():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters_bounds)
+@pytest.mark.parametrize("fitter", fitters)
 def test_blackbody_fit(fitter):
     fitter = fitter()
 
-    if isinstance(fitter, (TRFLSQFitter, DogBoxLSQFitter)):
+    if isinstance(fitter, TRFLSQFitter) or isinstance(fitter, DogBoxLSQFitter):
         rtol = 0.54
         atol = 1e-15
     else:
@@ -96,8 +94,7 @@ def test_blackbody_fit(fitter):
     wav = np.array([0.5, 5, 10]) * u.micron
     fnu = np.array([1, 10, 5]) * u.Jy / u.sr
 
-    with np.errstate(divide="ignore", over="ignore"):
-        b_fit = fitter(b, wav, fnu, maxiter=1000)
+    b_fit = fitter(b, wav, fnu, maxiter=1000)
 
     assert_quantity_allclose(b_fit.temperature, 2840.7438355865065 * u.K, rtol=rtol)
     assert_quantity_allclose(b_fit.scale, 5.803783292762381e-17, atol=atol)
@@ -142,12 +139,9 @@ def test_blackbody_exceptions_and_warnings():
     bb = BlackBody(5000 * u.K)
 
     # Zero wavelength given for conversion to Hz
-    with (
-        pytest.warns(AstropyUserWarning, match="invalid") as w,
-        np.errstate(divide="ignore", invalid="ignore"),
-    ):
+    with pytest.warns(AstropyUserWarning, match="invalid") as w:
         bb(0 * u.AA)
-    assert len(w) == 1
+    assert len(w) == 3  # 2 of these are RuntimeWarning from zero divide
 
     # Negative wavelength given for conversion to Hz
     with pytest.warns(AstropyUserWarning, match="invalid") as w:
@@ -493,7 +487,7 @@ def test_NFW_evaluate(mass):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters_bounds)
+@pytest.mark.parametrize("fitter", fitters)
 def test_NFW_fit(fitter):
     """Test linear fitting of NFW model."""
     fitter = fitter()

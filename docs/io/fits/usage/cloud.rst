@@ -8,7 +8,7 @@ Obtaining subsets from cloud-hosted FITS files
 Astropy offers support for extracting data from FITS files stored in the cloud.
 Specifically, the `astropy.io.fits.open` function accepts the ``use_fsspec``
 and ``fsspec_kwargs`` parameters, which allow remote files to be accessed in an
-efficient way using the |fsspec| package.
+efficient way using the `fsspec`_ package.
 
 ``fsspec`` is an optional dependency of Astropy which supports reading
 files from a range of remote and distributed storage backends, such as Amazon
@@ -68,12 +68,11 @@ two *lazy data loading* features available in Astropy:
 1. The ``lazy_load_hdus`` parameter offered by `open` takes care of loading HDU
    header and data attributes on demand rather than reading all HDUs at once.
    This parameter is set to ``True`` by default.  You do not need to pass it
-   explicitly, unless you changed its default value in the
+   explicitely, unless you changed its default value in the
    :ref:`astropy:astropy_config`.
-2. The `ImageHDU.section` and `CompImageHDU.section` properties enables a
-   subset of a data array to be read into memory without downloading the entire
-   image or cube. See the :ref:`astropy:data-sections` part of the documentation
-   for more details.
+2. The `ImageHDU.section` property enables a subset of a data array to be
+   read into memory without downloading the entire image or cube. See the
+   :ref:`astropy:data-sections` part of the documentation for more details.
 
 Additional tips for achieving good performance when working with remote files
 are provided in the :ref:`astropy:optimizing_fsspec` section further down
@@ -81,11 +80,11 @@ this page.
 
 .. note::
 
-    The `ImageHDU.section` and `CompImageHDU.section` feature is only efficient
-    for files that are not externally compressed (such as ``.fits.gz`` files).
-    Files that are compressed using internal tile compression should work properly.
-    Use ``.section`` on an externally compressed image will cause the whole FITS
-    file to be downloaded.
+    The `ImageHDU.section` feature is only available for uncompressed FITS
+    image extensions.  This includes file-level compression like gzip as
+    well as compression internal to the FITS format, like tile compression.
+    Attempting to use ``.section`` on a compressed image will yield an
+    `AttributeError`.
 
 
 Subsetting FITS files hosted in Amazon S3 cloud storage
@@ -115,7 +114,7 @@ your code is running on a server in the same Amazon cloud region as the data.
 .. note::
 
     To open paths with prefix ``s3://``, fsspec requires an optional dependency
-    called |s3fs|.  A ``ModuleNotFoundError`` will be raised if this dependency
+    called `s3fs`_.  A ``ModuleNotFoundError`` will be raised if this dependency
     is missing. See :ref:`installing-astropy` for details on installing optional
     dependencies.
 
@@ -146,7 +145,7 @@ access keys, to the `fsspec.open` function as follows:
     Including secret access keys inside Python code is dangerous because you
     may accidentally end up revealing your keys when you share your code with
     others. A better practice is to store your access keys via a configuration
-    file or environment variables. See the |s3fs| documentation for guidance.
+    file or environment variables. See the `s3fs`_ documentation for guidance.
 
 
 Using :class:`~astropy.nddata.Cutout2D` with cloud-hosted FITS files
@@ -187,6 +186,17 @@ in combination with ``use_fsspec=True`` and ``.section`` as follows:
     ...                       position=position,
     ...                       size=size,
     ...                       wcs=wcs)
+
+As a final step, you can plot the cutout using Matplotlib as follows:
+
+.. doctest-requires:: fsspec
+
+    >>> import matplotlib.pyplot as plt
+    >>> from astropy.visualization import astropy_mpl_style
+    ...
+    >>> plt.style.use(astropy_mpl_style)  # doctest: +REMOTE_DATA
+    >>> plt.figure()  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> plt.imshow(cutout.data, cmap='gray')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 See :ref:`cutout_images` for more details on this feature.
 
@@ -254,4 +264,4 @@ For example, we can configure fsspec to make buffered reads with a minimum
 The ideal configuration will depend on the latency and throughput of the
 network, as well as the exact shape and volume of the data you seek to obtain.
 
-See the |fsspec| documentation for more information on its options.
+See the `fsspec documentation <fsspec_>`_ for more information on its options.

@@ -9,12 +9,6 @@ from astropy.coordinates.sites import (
 )
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import allclose as quantity_allclose
-from astropy.utils.exceptions import AstropyUserWarning
-
-
-@pytest.fixture
-def earthlocation_without_site_registry(monkeypatch):
-    monkeypatch.setattr(EarthLocation, "_site_registry", None)
 
 
 def test_builtin_sites():
@@ -92,93 +86,47 @@ def test_EarthLocation_basic():
         EarthLocation.of_site("nonexistent")
 
 
-@pytest.mark.parametrize(
-    "class_method,args",
-    [(EarthLocation.get_site_names, []), (EarthLocation.of_site, ["greenwich"])],
-)
-def test_Earthlocation_refresh_cache_is_mandatory_kwarg(class_method, args):
-    with pytest.raises(
-        TypeError,
-        match=(
-            rf".*{class_method.__name__}\(\) takes [12] positional "
-            "arguments? but [23] were given$"
-        ),
-    ):
-        class_method(*args, False)
-
-
-@pytest.mark.parametrize(
-    "class_method,args",
-    [(EarthLocation.get_site_names, []), (EarthLocation.of_site, ["greenwich"])],
-)
-@pytest.mark.parametrize("refresh_cache", [False, True])
-def test_Earthlocation_refresh_cache(class_method, args, refresh_cache, monkeypatch):
-    def get_site_registry_monkeypatched(force_download, force_builtin=False):
-        assert force_download is refresh_cache
-        return get_builtin_sites()
-
-    monkeypatch.setattr(
-        EarthLocation, "_get_site_registry", get_site_registry_monkeypatched
-    )
-
-    class_method(*args, refresh_cache=refresh_cache)
-
-
-@pytest.mark.parametrize(
-    "force_download,expectation",
-    [
-        (
-            False,
-            pytest.warns(
-                AstropyUserWarning, match=r"use the option 'refresh_cache=True'\.$"
-            ),
-        ),
-        (True, pytest.raises(OSError, match=r"^fail for test$")),
-        ("url", pytest.raises(OSError, match=r"^fail for test$")),
-    ],
-)
-@pytest.mark.parametrize(
-    "class_method,args",
-    [(EarthLocation.get_site_names, []), (EarthLocation.of_site, ["greenwich"])],
-)
-def test_EarthLocation_site_registry_connection_fail(
-    force_download,
-    expectation,
-    class_method,
-    args,
-    earthlocation_without_site_registry,
-    monkeypatch,
-):
-    def fail_download(*args, **kwargs):
-        raise OSError("fail for test")
-
-    monkeypatch.setattr(get_downloaded_sites, "__code__", fail_download.__code__)
-    with expectation:
-        class_method(*args, refresh_cache=force_download)
-
-
-@pytest.mark.parametrize(
-    "registry_kwarg",
-    ["force_builtin", pytest.param("force_download", marks=pytest.mark.remote_data)],
-)
-def test_EarthLocation_state(earthlocation_without_site_registry, registry_kwarg):
-    EarthLocation._get_site_registry(**{registry_kwarg: True})
-    assert isinstance(EarthLocation._site_registry, SiteRegistry)
+def test_EarthLocation_state_offline():
+    EarthLocation._site_registry = None
+    EarthLocation._get_site_registry(force_builtin=True)
+    assert EarthLocation._site_registry is not None
 
     oldreg = EarthLocation._site_registry
-    assert oldreg is EarthLocation._get_site_registry()
-    assert oldreg is not EarthLocation._get_site_registry(**{registry_kwarg: True})
+    newreg = EarthLocation._get_site_registry()
+    assert oldreg is newreg
+    newreg = EarthLocation._get_site_registry(force_builtin=True)
+    assert oldreg is not newreg
+
+
+@pytest.mark.remote_data(source="astropy")
+def test_EarthLocation_state_online():
+    EarthLocation._site_registry = None
+    EarthLocation._get_site_registry(force_download=True)
+    assert EarthLocation._site_registry is not None
+
+    oldreg = EarthLocation._site_registry
+    newreg = EarthLocation._get_site_registry()
+    assert oldreg is newreg
+    newreg = EarthLocation._get_site_registry(force_download=True)
+    assert oldreg is not newreg
 
 
 def test_registry():
     reg = SiteRegistry()
+
     assert len(reg.names) == 0
 
+    names = ["sitea", "site A"]
     loc = EarthLocation.from_geodetic(lat=1 * u.deg, lon=2 * u.deg, height=3 * u.km)
-    reg.add_site(["sitea", "site A"], loc)
+    reg.add_site(names, loc)
+
     assert len(reg.names) == 2
-    assert reg["SIteA"] is loc
-    assert reg["sIte a"] is loc
+
+    loc1 = reg["SIteA"]
+    assert loc1 is loc
+
+    loc2 = reg["sIte a"]
+    assert loc2 is loc
 
 
 def test_non_EarthLocation():
@@ -226,12 +174,12 @@ def check_builtin_matches_remote(download_url=True):
     if not all(matches.values()):
         # this makes sure we actually see which don't match
         print("In builtin registry but not in download:")
-        for name, is_in_dl in in_dl.items():
-            if not is_in_dl:
+        for name in in_dl:
+            if not in_dl[name]:
                 print("    ", name)
         print("In both but not the same value:")
-        for name, match in matches.items():
-            if not match and in_dl[name]:
+        for name in matches:
+            if not matches[name] and in_dl[name]:
                 print(
                     "    ",
                     name,
@@ -240,13 +188,17 @@ def check_builtin_matches_remote(download_url=True):
                     "download:",
                     dl_registry[name],
                 )
-        raise AssertionError(
-            "Builtin and download registry aren't consistent - failures printed to stdout"
+        assert False, (
+            "Builtin and download registry aren't consistent - failures printed to"
+            " stdout"
         )
 
 
 def test_meta_present():
+    reg = get_builtin_sites()
+
+    greenwich = reg["greenwich"]
     assert (
-        get_builtin_sites()["greenwich"].info.meta["source"]
+        greenwich.info.meta["source"]
         == "Ordnance Survey via http://gpsinformation.net/main/greenwich.htm and UNESCO"
     )

@@ -3,7 +3,7 @@ from copy import copy
 import pytest
 from numpy.testing import assert_equal
 
-from astropy.table import Column, Table
+from astropy.table import Table
 from astropy.table.mixins.registry import (
     MixinRegistryError,
     _handlers,
@@ -74,29 +74,10 @@ def test_get_mixin_handler_str():
     assert get_mixin_handler(FULL_QUALNAME) is handle_spam
 
 
-def test_add_column_to_empty_table():
+def test_add_column():
     t = Table()
-    t["a"] = SpamData()
-    # By default, we get an object column.
-    assert isinstance(t["a"], Column)
-    assert t["a"].dtype == object
-    # But after registration, we can get the intended mixin.
-    register_mixin_handler(FULL_QUALNAME, handle_spam)
-    t = Table()
-    t["a"] = SpamData()
-
-    assert len(t) == 5
-    assert isinstance(t["a"], SpamWrapper)
-    assert_equal(t["a"].data, [0, 1, 3, 4, 5])
-
-
-def test_add_column_to_existing_table():
-    # As above, but for a table that already has a column
-    # (addition used to depend on whether or a table was empty; gh-17102).
-    t = Table([[5, 6, 7, 8, 9]], names=["x"])
-    t["a"] = SpamData()
-    assert isinstance(t["a"], Column)
-    assert t["a"].dtype == object
+    with pytest.raises(TypeError):
+        t["a"] = SpamData()
 
     register_mixin_handler(FULL_QUALNAME, handle_spam)
 

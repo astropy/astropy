@@ -1,25 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# ruff: noqa: RUF009
-
 
 import numpy as np
 from numpy import sqrt
 
-from astropy.cosmology._utils import aszarr, deprecated_keywords
-from astropy.cosmology.core import dataclass_decorator
+import astropy.units as u
 from astropy.cosmology.parameter import Parameter
+from astropy.cosmology.utils import aszarr
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
 
-__all__ = ["FlatwCDM", "wCDM"]
+__all__ = ["wCDM", "FlatwCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 
 
-@dataclass_decorator
 class wCDM(FLRW):
-    """FLRW cosmology with a constant dark energy EoS and curvature.
+    """
+    FLRW cosmology with a constant dark energy equation of state and curvature.
 
     This has one additional attribute beyond those of FLRW.
 
@@ -80,54 +78,69 @@ class wCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    w0: Parameter = Parameter(
-        default=-1.0, doc="Dark energy equation of state.", fvalidate="float"
-    )
+    w0 = Parameter(doc="Dark energy equation of state.", fvalidate="float")
 
-    def __post_init__(self):
-        super().__post_init__()
+    def __init__(
+        self,
+        H0,
+        Om0,
+        Ode0,
+        w0=-1.0,
+        Tcmb0=0.0 * u.K,
+        Neff=3.04,
+        m_nu=0.0 * u.eV,
+        Ob0=None,
+        *,
+        name=None,
+        meta=None
+    ):
+        super().__init__(
+            H0=H0,
+            Om0=Om0,
+            Ode0=Ode0,
+            Tcmb0=Tcmb0,
+            Neff=Neff,
+            m_nu=m_nu,
+            Ob0=Ob0,
+            name=name,
+            meta=meta,
+        )
+        self.w0 = w0
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        if self.Tcmb0.value == 0:
-            inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_norel
-            inv_efunc_scalar_args = (self.Om0, self.Ode0, self.Ok0, self.w0)
+        if self._Tcmb0.value == 0:
+            self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0, self._w0)
         elif not self._massivenu:
-            inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_nomnu
-            inv_efunc_scalar_args = (
-                self.Om0,
-                self.Ode0,
-                self.Ok0,
-                self.Ogamma0 + self.Onu0,
-                self.w0,
+            self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0 + self._Onu0,
+                self._w0,
             )
         else:
-            inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc
-            inv_efunc_scalar_args = (
-                self.Om0,
-                self.Ode0,
-                self.Ok0,
-                self.Ogamma0,
+            self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
-                self.w0,
+                self._w0,
             )
 
-        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
-        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
-
-    @deprecated_keywords("z", since="7.0")
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
+        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -143,19 +156,15 @@ class wCDM(FLRW):
         units where c=1. Here this is :math:`w(z) = w_0`.
         """
         z = aszarr(z)
-        return self.w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
+        return self._w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
 
-    @deprecated_keywords("z", since="7.0")
     def de_density_scale(self, z):
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
+        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -169,19 +178,15 @@ class wCDM(FLRW):
         and in this case is given by
         :math:`I = \left(1 + z\right)^{3\left(1 + w_0\right)}`
         """
-        return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self.w0))
+        return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self._w0))
 
-    @deprecated_keywords("z", since="7.0")
     def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
+        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -190,29 +195,25 @@ class wCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        Or = self.Ogamma0 + (
-            self.Onu0
+        Or = self._Ogamma0 + (
+            self._Onu0
             if not self._massivenu
-            else self.Ogamma0 * self.nu_relative_density(z)
+            else self._Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return sqrt(
-            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
-            + self.Ode0 * zp1 ** (3.0 * (1.0 + self.w0))
+            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0)
+            + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
         )
 
-    @deprecated_keywords("z", since="7.0")
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
+        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -221,22 +222,23 @@ class wCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        Or = self.Ogamma0 + (
-            self.Onu0
+        Or = self._Ogamma0 + (
+            self._Onu0
             if not self._massivenu
-            else self.Ogamma0 * self.nu_relative_density(z)
+            else self._Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (
-            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
-            + self.Ode0 * zp1 ** (3.0 * (1.0 + self.w0))
+            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0)
+            + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
         ) ** (-0.5)
 
 
-@dataclass_decorator
 class FlatwCDM(FlatFLRWMixin, wCDM):
-    """FLRW cosmology with a constant dark energy EoS and no spatial curvature.
+    """
+    FLRW cosmology with a constant dark energy equation of state and no spatial
+    curvature.
 
     This has one additional attribute beyond those of FLRW.
 
@@ -295,51 +297,68 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
     To get an equivalent cosmology, but of type `astropy.cosmology.wCDM`,
     use :attr:`astropy.cosmology.FlatFLRWMixin.nonflat`.
 
-    >>> print(cosmo.nonflat)
-    wCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
+    >>> cosmo.nonflat
+    wCDM(H0=70.0 km / (Mpc s), Om0=0.3, ...
     """
 
-    def __post_init__(self):
-        super().__post_init__()
+    def __init__(
+        self,
+        H0,
+        Om0,
+        w0=-1.0,
+        Tcmb0=0.0 * u.K,
+        Neff=3.04,
+        m_nu=0.0 * u.eV,
+        Ob0=None,
+        *,
+        name=None,
+        meta=None
+    ):
+        super().__init__(
+            H0=H0,
+            Om0=Om0,
+            Ode0=0.0,
+            w0=w0,
+            Tcmb0=Tcmb0,
+            Neff=Neff,
+            m_nu=m_nu,
+            Ob0=Ob0,
+            name=name,
+            meta=meta,
+        )
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        if self.Tcmb0.value == 0:
-            inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_norel
-            inv_efunc_scalar_args = (self.Om0, self.Ode0, self.w0)
+        if self._Tcmb0.value == 0:
+            self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._w0)
         elif not self._massivenu:
-            inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_nomnu
-            inv_efunc_scalar_args = (
-                self.Om0,
-                self.Ode0,
-                self.Ogamma0 + self.Onu0,
-                self.w0,
+            self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ogamma0 + self._Onu0,
+                self._w0,
             )
         else:
-            inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc
-            inv_efunc_scalar_args = (
-                self.Om0,
-                self.Ode0,
-                self.Ogamma0,
+            self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ogamma0,
                 self._neff_per_nu,
                 self._nmasslessnu,
                 self._nu_y_list,
-                self.w0,
+                self._w0,
             )
-        object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
-        object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    @deprecated_keywords("z", since="7.0")
     def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
+        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -348,28 +367,25 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        Or = self.Ogamma0 + (
-            self.Onu0
+        Or = self._Ogamma0 + (
+            self._Onu0
             if not self._massivenu
-            else self.Ogamma0 * self.nu_relative_density(z)
+            else self._Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return sqrt(
-            zp1**3 * (Or * zp1 + self.Om0) + self.Ode0 * zp1 ** (3.0 * (1 + self.w0))
+            zp1**3 * (Or * zp1 + self._Om0)
+            + self._Ode0 * zp1 ** (3.0 * (1 + self._w0))
         )
 
-    @deprecated_keywords("z", since="7.0")
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
+        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -378,13 +394,14 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        Or = self.Ogamma0 + (
-            self.Onu0
+        Or = self._Ogamma0 + (
+            self._Onu0
             if not self._massivenu
-            else self.Ogamma0 * self.nu_relative_density(z)
+            else self._Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (
-            zp1**3 * (Or * zp1 + self.Om0) + self.Ode0 * zp1 ** (3.0 * (1.0 + self.w0))
+            zp1**3 * (Or * zp1 + self._Om0)
+            + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
         ) ** (-0.5)

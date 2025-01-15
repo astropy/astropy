@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 .. _read_write_tables:
 
 Reading and Writing Table Objects
@@ -27,34 +29,26 @@ method with the name of the file and the file format, for instance
 ``'ascii.daophot'``::
 
     >>> from astropy.table import Table
-    >>> t = Table.read('photometry.dat', format='ascii.daophot')  # doctest: +SKIP
+    >>> t = Table.read('photometry.dat', format='ascii.daophot')
 
 It is possible to load tables directly from the Internet using URLs. For
-example, download tables from `VizieR catalogs <https://vizier.unistra.fr/>`_
+example, download tables from `VizieR catalogs <https://vizier.u-strasbg.fr/>`_
 in CDS format (``'ascii.cds'``)::
 
     >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",
     ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe",
-    ...         format="ascii.cds")  # doctest: +SKIP
+    ...         format="ascii.cds")
 
 .. EXAMPLE END
-
-
-Similarly, for writing, the format can be explicitly specified::
-
-    >>> import astropy.units as u
-    >>> t = Table({'object': ['Mrk 421', 'BL Lac'], 'G': [13.2, 13.8] * u.mag})
-    >>> t.write('target_table.tex', format='latex')
 
 For certain file formats, the format can be automatically detected, for
 example from the filename extension::
 
-    >>> t = Table.read('target_table.tex')
+    >>> t = Table.read('table.tex')
 
-.. testcleanup::
+Similarly, for writing, the format can be explicitly specified::
 
-    >>> import pathlib
-    >>> pathlib.Path.unlink('target_table.tex')
+    >>> t.write(filename, format='latex')
 
 As for the :meth:`~astropy.table.Table.read` method, the format may
 be automatically identified in some cases.
@@ -73,33 +67,3 @@ The :ref:`table_io` has built-in support for the following data file formats:
 * :ref:`table_io_fits`
 * :ref:`table_io_votable`
 * :ref:`table_io_parquet`
-
-
-Reading and Writing Column Objects
-==================================
-
-.. EXAMPLE START: Reading and Writing Column Objects
-
-Individual table columns do not have their own functions for reading and writing
-but it is easy to select just a single column (here "obstime") from a table for writing::
-
-    >>> from astropy.time import Time
-    >>> tab = Table({'name': ['AB Aur', 'SU Aur'],
-    ...              'obstime': Time(['2013-05-23T14:23:12', '2011-11-11T11:11:11'])})
-    >>> tab[['obstime']].write('obstime.fits')
-
-Note the notation ``[['obstime']]`` in the last line - indexing a table with a list of strings
-gives us a new table with the columns given by the strings. Since the inner list has only
-one element, the resulting table has only one column.
-
-Then, we can read back that single-column table and extract the column from it::
-
-    >>> col = Table.read('obstime.fits').columns[0]
-    >>> type(col)
-    <class 'astropy.table.column.Column'>
-
-.. testcleanup::
-
-    >>> pathlib.Path.unlink('obstime.fits')
-
-.. EXAMPLE END

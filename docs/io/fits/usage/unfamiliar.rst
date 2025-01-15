@@ -94,9 +94,7 @@ The other difference is the need to specify the table type when using the
     >>> col3 = fits.Column(name='t1', format='I', array=[91, 92, 93], ascii=True)
     >>> hdu = fits.TableHDU.from_columns([col1, col2, col3])
     >>> hdu.data
-    FITS_rec([('abc', np.float64(11.0), np.int32(91)),
-              ('def', np.float64(12.0), np.int32(92)),
-              ('', np.float64(0.0), np.int32(93))],
+    FITS_rec([('abc', 11.0, 91), ('def', 12.0, 92), ('', 0.0, 93)],
              dtype=(numpy.record, [('abc', 'S3'), ('def', 'S15'), ('t1', 'S10')]))
 
 It should be noted that when the formats of the columns are unambiguously
@@ -114,8 +112,6 @@ using this shortcut is its ambiguity with the binary table ``'I'`` format, so
 specifying ``ascii=True`` is a good practice (though ``astropy`` will still
 figure out what you meant in most cases).
 
-
-.. _variable_length_array_tables:
 
 Variable Length Array Tables
 ============================
@@ -303,9 +299,9 @@ Examples
 To show the contents of the third group, including parameters and data::
 
     >>> hdul[0].data[2]  # doctest: +FLOAT_CMP
-    (np.float32(2.1), np.float32(42.0), np.float32(42.0), array([[[[30., 31., 32., 33., 34.],
+    (2.0999999, 42.0, 42.0, array([[[[30., 31., 32., 33., 34.],
              [35., 36., 37., 38., 39.],
-             [40., 41., 42., 43., 44.]]]], dtype='>f4'))
+             [40., 41., 42., 43., 44.]]]], dtype=float32))
 
 The data first lists all of the parameters, then the image array, for the
 specified group(s). As a reminder, the image data in this file has the shape of
@@ -323,9 +319,9 @@ the table :meth:`~FITS_rec.field` method, the argument can be either index or
 name::
 
     >>> hdul[0].data.par(0)[8]  # Access group parameter by name or by index  # doctest: +FLOAT_CMP
-    np.float32(8.1)
+    8.1
     >>> hdul[0].data.par('abc')[8]  # doctest: +FLOAT_CMP
-    np.float32(8.1)
+    8.1
 
 Note that the parameter name 'xyz' appears twice. This is a feature in the
 random access group, and it means to add the values together. Thus::
@@ -333,13 +329,13 @@ random access group, and it means to add the values together. Thus::
     >>> hdul[0].data.parnames  # get the parameter names
     ['abc', 'xyz', 'xyz']
     >>> hdul[0].data.par(1)[8]  # Duplicate parameter name 'xyz'
-    np.float32(42.0)
+    42.0
     >>> hdul[0].data.par(2)[8]
-    np.float32(42.0)
+    42.0
     >>> # When accessed by name, it adds the values together if the name is
     >>> # shared by more than one parameter
     >>> hdul[0].data.par('xyz')[8]
-    np.float64(84.0)
+    84.0
 
 The :meth:`~GroupData.par` is a method for either the entire data object or one
 data item (a group). So there are two possible ways to get a group parameter
@@ -347,9 +343,9 @@ for a certain group, this is similar to the situation in table data (with its
 :meth:`~FITS_rec.field` method)::
 
     >>> hdul[0].data.par(0)[8]  # doctest: +FLOAT_CMP
-    np.float32(8.1)
+    8.1
     >>> hdul[0].data[8].par(0)  # doctest: +FLOAT_CMP
-    np.float32(8.1)
+    8.1
 
 On the other hand, to modify a group parameter, we can either assign the new
 value directly (if accessing the row/group number last) or use the
@@ -468,11 +464,21 @@ Hcompress.
 
 For more details, reference "A FITS Image Compression Proposal" from:
 
-    https://www.aspbooks.org/a/volumes/article_details/?paper_id=20727
+    https://www.adass.org/adass/proceedings/adass99/P2-42/
 
 and "Registered FITS Convention, Tiled Image Compression Convention":
 
     https://fits.gsfc.nasa.gov/registry/tilecompression.html
+
+Compressed image data is accessed, in ``astropy``, using the optional
+``astropy.io.fits.compression`` module contained in a C shared library
+(compression.so). If an attempt is made to access an HDU containing compressed
+image data when the compression module is not available, the user is notified
+of the problem and the HDU is treated like a standard binary table HDU. This
+notification will only be made the first time compressed image data is
+encountered. In this way, the compression module is not required in order for
+``astropy`` to work.
+
 
 Header and Summary
 ------------------
@@ -482,7 +488,7 @@ any image header. The actual header stored in the FITS file is that of a binary
 table HDU with a set of special keywords, defined by the convention, to
 describe the structure of the compressed image. The conversion between binary
 table HDU header and image HDU header is all performed behind the scenes.
-Since the HDU is actually a binary table, it will never appear as a primary HDU in
+Since the HDU is actually a binary table, it may not appear as a primary HDU in
 a FITS file.
 
 Example
@@ -492,7 +498,7 @@ Example
   EXAMPLE START
   Accessing Compressed FITS Image HDU Headers
 
-The content of the decompressed HDU header may be accessed using the ``.header`` attribute::
+The content of the HDU header may be accessed using the ``.header`` attribute::
 
     >>> filename = fits.util.get_testdata_filepath('compressed_image.fits')
 
@@ -505,6 +511,38 @@ The content of the decompressed HDU header may be accessed using the ``.header``
     NAXIS2  =                   10 / length of original image axis
     PCOUNT  =                    0 / number of parameters
     GCOUNT  =                    1 / number of groups
+
+The contents of the corresponding binary table HDU may be accessed using the
+hidden ``._header`` attribute. However, all user interface with the HDU header
+should be accomplished through the image header (the ``.header`` attribute)::
+
+    >>> hdul[1]._header
+    XTENSION= 'BINTABLE'           / binary table extension
+    BITPIX  =                    8 / array data type
+    NAXIS   =                    2 / number of array dimensions
+    NAXIS1  =                    8 / width of table in bytes
+    NAXIS2  =                   10 / number of rows in table
+    PCOUNT  =                   60 / number of group parameters
+    GCOUNT  =                    1 / number of groups
+    TFIELDS =                    1 / number of fields in each row
+    TTYPE1  = 'COMPRESSED_DATA'    / label for field 1
+    TFORM1  = '1PB(6)  '           / data format of field: variable length array
+    ZIMAGE  =                    T / extension contains compressed image
+    ZTENSION= 'IMAGE   '           / Image extension
+    ZBITPIX =                   16 / data type of original image
+    ZNAXIS  =                    2 / dimension of original image
+    ZNAXIS1 =                   10 / length of original image axis
+    ZNAXIS2 =                   10 / length of original image axis
+    ZPCOUNT =                    0 / number of parameters
+    ZGCOUNT =                    1 / number of groups
+    ZTILE1  =                   10 / size of tiles to be compressed
+    ZTILE2  =                    1 / size of tiles to be compressed
+    ZCMPTYPE= 'RICE_1  '           / compression algorithm
+    ZNAME1  = 'BLOCKSIZE'          / compression block size
+    ZVAL1   =                   32 / pixels per block
+    ZNAME2  = 'BYTEPIX '           / bytes per pixel (1, 2, 4, or 8)
+    ZVAL2   =                    2 / bytes per pixel (1, 2, 4, or 8)
+    EXTNAME = 'COMPRESSED_IMAGE'   / name of this binary table extension
 
 The contents of the HDU can be summarized by using either the :func:`info`
 convenience function or method::
@@ -529,15 +567,15 @@ Data
 
 As with the header, the data of a compressed image HDU appears to the user as
 standard uncompressed image data. The actual data is stored in the FITS file
-as binary table data containing at least one column (COMPRESSED_DATA). Each
+as Binary Table data containing at least one column (COMPRESSED_DATA). Each
 row of this variable length column contains the byte stream that was generated
 as a result of compressing the corresponding image tile. Several optional
-columns may also appear. These include GZIP_COMPRESSED_DATA to hold the
-gzip-compressed data for tiles that cannot be compressed by the selected
-algorithm, as well as ZSCALE and ZZERO to hold the linear scale factor and zero
-point offset which may be needed to transform the raw uncompressed values back
-to the original image pixel values, and ZBLANK to hold the integer value used to
-represent undefined pixels (if any) in the image.
+columns may also appear. These include UNCOMPRESSED_DATA to hold the
+uncompressed pixel values for tiles that cannot be compressed, ZSCALE and ZZERO
+to hold the linear scale factor and zero point offset which may be needed to
+transform the raw uncompressed values back to the original image pixel values,
+and ZBLANK to hold the integer value used to represent undefined pixels (if
+any) in the image.
 
 Example
 ^^^^^^^

@@ -1,10 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from contextlib import ContextDecorator
-
 import numpy as np
 
-__all__ = ["quantity_support"]
 __doctest_skip__ = ["quantity_support"]
 
 
@@ -28,14 +25,26 @@ def quantity_support(format="latex_inline"):
 
     Parameters
     ----------
-    format : `astropy.units.format.Base` subclass or str
-        The name of a format or a formatter class.  If not
+    format : `astropy.units.format.Base` instance or str
+        The name of a format or a formatter object.  If not
         provided, defaults to ``latex_inline``.
 
     """
     from matplotlib import ticker, units
 
     from astropy import units as u
+
+    # import Angle just so we have a more or less complete list of Quantity
+    # subclasses loaded - matplotlib needs them all separately!
+    # NOTE: in matplotlib >=3.2, subclasses will be recognized automatically,
+    # and once that becomes our minimum version, we can remove this,
+    # adding just u.Quantity itself to the registry.
+    from astropy.coordinates import Angle  # noqa: F401
+
+    # Get all subclass for Quantity, since matplotlib checks on class,
+    # not subclass.
+    def all_issubclass(cls):
+        return {cls}.union([s for c in cls.__subclasses__() for s in all_issubclass(c)])
 
     def rad_fn(x, pos=None):
         n = int((x / np.pi) * 2.0 + 0.25)
@@ -50,12 +59,17 @@ def quantity_support(format="latex_inline"):
         else:
             return f"{n}π/2"
 
-    class MplQuantityConverter(units.ConversionInterface, ContextDecorator):
+    class MplQuantityConverter(units.ConversionInterface):
+        _all_issubclass_quantity = all_issubclass(u.Quantity)
+
         def __init__(self):
             # Keep track of original converter in case the context manager is
             # used in a nested way.
-            self._original_converter = {u.Quantity: units.registry.get(u.Quantity)}
-            units.registry[u.Quantity] = self
+            self._original_converter = {}
+
+            for cls in self._all_issubclass_quantity:
+                self._original_converter[cls] = units.registry.get(cls)
+                units.registry[cls] = self
 
         @staticmethod
         def axisinfo(unit, axis):
@@ -68,7 +82,7 @@ def quantity_support(format="latex_inline"):
             elif unit == u.degree:
                 return units.AxisInfo(
                     majloc=ticker.AutoLocator(),
-                    majfmt=ticker.FormatStrFormatter("%g°"),
+                    majfmt=ticker.FormatStrFormatter("%i°"),
                     label=unit.to_string(),
                 )
             elif unit is not None:
@@ -94,9 +108,10 @@ def quantity_support(format="latex_inline"):
             return self
 
         def __exit__(self, type, value, tb):
-            if self._original_converter[u.Quantity] is None:
-                del units.registry[u.Quantity]
-            else:
-                units.registry[u.Quantity] = self._original_converter[u.Quantity]
+            for cls in self._all_issubclass_quantity:
+                if self._original_converter[cls] is None:
+                    del units.registry[cls]
+                else:
+                    units.registry[cls] = self._original_converter[cls]
 
     return MplQuantityConverter()

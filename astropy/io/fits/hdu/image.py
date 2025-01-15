@@ -18,7 +18,7 @@ from astropy.utils import isiterable, lazyproperty
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU, _ValidHDU
 
-__all__ = ["ImageHDU", "PrimaryHDU", "Section"]
+__all__ = ["Section", "PrimaryHDU", "ImageHDU"]
 
 
 class _ImageBaseHDU(_ValidHDU):
@@ -133,9 +133,9 @@ class _ImageBaseHDU(_ValidHDU):
         # Set the name attribute if it was provided (if this is an ImageHDU
         # this will result in setting the EXTNAME keyword of the header as
         # well)
-        if kwargs.get("name"):
+        if "name" in kwargs and kwargs["name"]:
             self.name = kwargs["name"]
-        if kwargs.get("ver"):
+        if "ver" in kwargs and kwargs["ver"]:
             self.ver = kwargs["ver"]
 
         # Set to True if the data or header is replaced, indicating that
@@ -179,6 +179,7 @@ class _ImageBaseHDU(_ValidHDU):
         _ImageBaseHDU is sort of an abstract class for HDUs containing image
         data (as opposed to table data) and should never be used directly.
         """
+
         raise NotImplementedError
 
     @property
@@ -210,6 +211,7 @@ class _ImageBaseHDU(_ValidHDU):
         :ref:`astropy:data-sections` section of the documentation for
         more details.
         """
+
         return Section(self)
 
     @property
@@ -217,6 +219,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Shape of the image array--should be equivalent to ``self.data.shape``.
         """
+
         # Determine from the values read from the header
         return tuple(reversed(self._axes))
 
@@ -244,6 +247,7 @@ class _ImageBaseHDU(_ValidHDU):
         attribute returns the data scaled to its physical values unless the
         file was opened with ``do_not_scale_image_data=True``.
         """
+
         if len(self._axes) < 1:
             return
 
@@ -264,16 +268,19 @@ class _ImageBaseHDU(_ValidHDU):
             self._data_replaced = True
             was_unsigned = False
 
-        if data is not None:
-            if not isinstance(data, np.ndarray) and not _is_dask_array(data):
-                # Try to coerce the data into a numpy array--this will work, on
-                # some level, for most objects
-                try:
-                    data = np.array(data)
-                except Exception:  # pragma: no cover
-                    raise TypeError(
-                        f"data object {data!r} could not be coerced into an ndarray"
-                    )
+        if (
+            data is not None
+            and not isinstance(data, np.ndarray)
+            and not _is_dask_array(data)
+        ):
+            # Try to coerce the data into a numpy array--this will work, on
+            # some level, for most objects
+            try:
+                data = np.array(data)
+            except Exception:
+                raise TypeError(
+                    f"data object {data!r} could not be coerced into an ndarray"
+                )
 
             if data.shape == ():
                 raise TypeError(
@@ -283,7 +290,7 @@ class _ImageBaseHDU(_ValidHDU):
         self.__dict__["data"] = data
         self._modified = True
 
-        if data is None:
+        if self.data is None:
             self._axes = []
         else:
             # Set new values of bitpix, bzero, and bscale now, but wait to
@@ -319,18 +326,15 @@ class _ImageBaseHDU(_ValidHDU):
         # setting self.__dict__['data']
         return data
 
-    @property
-    def _data_shape(self):
-        return self.data.shape
-
     def update_header(self):
         """
         Update the header keywords to agree with the data.
         """
+
         if not (
             self._modified
             or self._header._modified
-            or (self._has_data and self.shape != self._data_shape)
+            or (self._has_data and self.shape != self.data.shape)
         ):
             # Not likely that anything needs updating
             return
@@ -349,8 +353,8 @@ class _ImageBaseHDU(_ValidHDU):
         # If the data's shape has changed (this may have happened without our
         # noticing either via a direct update to the data.shape attribute) we
         # need to update the internal self._axes
-        if self._has_data and self.shape != self._data_shape:
-            self._axes = list(self._data_shape)
+        if self._has_data and self.shape != self.data.shape:
+            self._axes = list(self.data.shape)
             self._axes.reverse()
 
         # Update the NAXIS keyword and ensure it's in the correct location in
@@ -378,7 +382,10 @@ class _ImageBaseHDU(_ValidHDU):
 
         # delete extra NAXISi's
         for idx in range(len(self._axes) + 1, old_naxis + 1):
-            self._header.remove(f"NAXIS{idx}", ignore_missing=True)
+            try:
+                del self._header["NAXIS" + str(idx)]
+            except KeyError:
+                pass
 
         if "BLANK" in self._header:
             self._blank = self._header["BLANK"]
@@ -392,6 +399,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Delete BSCALE/BZERO from header if necessary.
         """
+
         # Note that _dtype_for_bitpix determines the dtype based on the
         # "original" values of bitpix, bscale, and bzero, stored in
         # self._orig_bitpix, etc. It contains the logic for determining which
@@ -425,7 +433,7 @@ class _ImageBaseHDU(_ValidHDU):
             # factors
             return
 
-        for keyword in ("BSCALE", "BZERO"):
+        for keyword in ["BSCALE", "BZERO"]:
             try:
                 del self._header[keyword]
                 # Since _update_header_scale_info can, currently, be called
@@ -471,6 +479,7 @@ class _ImageBaseHDU(_ValidHDU):
         bscale, bzero : int, optional
             User-specified ``BSCALE`` and ``BZERO`` values
         """
+
         # Disable blank support for now
         self._scale_internal(
             type=type, option=option, bscale=bscale, bzero=bzero, blank=None
@@ -493,6 +502,7 @@ class _ImageBaseHDU(_ValidHDU):
         conversion of floats to ints without specifying a BLANK if there are
         NaN/inf values).
         """
+
         if self.data is None:
             return
 
@@ -549,16 +559,22 @@ class _ImageBaseHDU(_ValidHDU):
                 # We have to explicitly cast _zero to prevent numpy from raising an
                 # error when doing self.data -= zero, and we do this instead of
                 # self.data = self.data - zero to avoid doubling memory usage.
-                self.data -= np.array(_zero).astype(self.data.dtype, casting="unsafe")
+                np.add(self.data, -_zero, out=self.data, casting="unsafe")
             self._header["BZERO"] = _zero
         else:
-            self._header.remove("BZERO", ignore_missing=True)
+            try:
+                del self._header["BZERO"]
+            except KeyError:
+                pass
 
         if _scale and _scale != 1:
             self.data = self.data / _scale
             self._header["BSCALE"] = _scale
         else:
-            self._header.remove("BSCALE", ignore_missing=True)
+            try:
+                del self._header["BSCALE"]
+            except KeyError:
+                pass
 
         # Set blanks
         if blank is not None and issubclass(_type, np.integer):
@@ -568,10 +584,7 @@ class _ImageBaseHDU(_ValidHDU):
             self._header["BLANK"] = blank
 
         if self.data.dtype.type != _type:
-            if issubclass(_type, np.floating):
-                self.data = np.array(self.data, dtype=_type)
-            else:
-                self.data = np.array(np.around(self.data), dtype=_type)
+            self.data = np.array(np.around(self.data), dtype=_type)
 
         # Update the BITPIX Card to match the data
         self._bitpix = DTYPE2BITPIX[self.data.dtype.name]
@@ -608,9 +621,9 @@ class _ImageBaseHDU(_ValidHDU):
         # should be handled by the schema
         if not _is_int(self._blank):
             messages.append(
-                f"Invalid value for 'BLANK' keyword in header: {self._blank!r} "
+                "Invalid value for 'BLANK' keyword in header: {!r} "
                 "The 'BLANK' keyword must be an integer.  It will be "
-                "ignored in the meantime."
+                "ignored in the meantime.".format(self._blank)
             )
             self._blank = None
         if not self._bitpix > 0:
@@ -702,8 +715,9 @@ class _ImageBaseHDU(_ValidHDU):
             # NOTE: the inplace flag to byteswap needs to be False otherwise the array is
             # byteswapped in place every time it is computed and this affects
             # the input dask array.
-            output = output.map_blocks(M.byteswap, False)
-            output = output.view(output.dtype.newbyteorder("S"))
+            output = output.map_blocks(M.byteswap, False).map_blocks(
+                M.newbyteorder, "S"
+            )
 
         initial_position = fileobj.tell()
         n_bytes = output.nbytes
@@ -753,6 +767,7 @@ class _ImageBaseHDU(_ValidHDU):
         the BITPIX value in the header, and possibly on the BSCALE value as
         well.  Returns None if there should not be any change.
         """
+
         bitpix = self._orig_bitpix
         # Handle possible conversion to uints if enabled
         if self._uint and self._orig_bscale == 1:
@@ -781,6 +796,7 @@ class _ImageBaseHDU(_ValidHDU):
         since we can't do NaNs with integers, anyway, i.e. the user is
         responsible for managing blanks.
         """
+
         dtype = self._dtype_for_bitpix()
         # bool(dtype) is always False--have to explicitly compare to None; this
         # caused a fair amount of hair loss
@@ -801,14 +817,12 @@ class _ImageBaseHDU(_ValidHDU):
         factors to it.  Normally this is used for the entire image, but it
         supports alternate offset/shape for Section support.
         """
+
         code = BITPIX2DTYPE[self._orig_bitpix]
 
         raw_data = self._get_raw_data(shape, code, offset)
         raw_data.dtype = raw_data.dtype.newbyteorder(">")
 
-        return self._scale_data(raw_data)
-
-    def _scale_data(self, raw_data):
         if self._do_not_scale_image_data or (
             self._orig_bzero == 0 and self._orig_bscale == 1 and self._blank is None
         ):
@@ -876,6 +890,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Summarize the HDU: name, dimensions, and formats.
         """
+
         class_name = self.__class__.__name__
 
         # if data is touched, use data info.
@@ -911,6 +926,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
+
         if self._has_data:
             # We have the data to be used.
             d = self.data
@@ -939,7 +955,7 @@ class _ImageBaseHDU(_ValidHDU):
             else:
                 byteswapped = False
 
-            cs = self._compute_checksum(d.ravel().view(np.uint8))
+            cs = self._compute_checksum(d.flatten().view(np.uint8))
 
             # If the data was byteswapped in this method then return it to
             # its original little-endian order.
@@ -1050,8 +1066,7 @@ class Section:
             if isinstance(key, slice):
                 ks = range(*key.indices(axis))
                 break
-
-            if isiterable(key):
+            elif isiterable(key):
                 # Handle both integer and boolean arrays.
                 ks = np.arange(axis, dtype=int)[key]
                 break
@@ -1120,6 +1135,7 @@ class PrimaryHDU(_ImageBaseHDU):
             rescaled unless scale_back is explicitly set to `False`.
             (default: None)
         """
+
         super().__init__(
             data=data,
             header=header,
@@ -1143,7 +1159,7 @@ class PrimaryHDU(_ImageBaseHDU):
         # keyword to be True/False, have to check the value
         return (
             card.keyword == "SIMPLE"
-            and ("GROUPS" not in header or header["GROUPS"] is not True)
+            and ("GROUPS" not in header or header["GROUPS"] != True)  # noqa: E712
             and card.value
         )
 
@@ -1232,6 +1248,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             card of the ``header`` or 1.
             (default: None)
         """
+
         # This __init__ currently does nothing differently from the base class,
         # and is only explicitly defined for the docstring.
 
@@ -1257,6 +1274,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         """
         ImageHDU verify method.
         """
+
         errs = super()._verify(option=option)
         naxis = self._header.get("NAXIS", 0)
         # PCOUNT must == 0, GCOUNT must == 1; the former is verified in

@@ -2,7 +2,6 @@
 
 import platform
 import warnings
-from itertools import pairwise
 
 import numpy as np
 
@@ -10,7 +9,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from .index import get_index_by_names
 
-__all__ = ["ColumnGroups", "TableGroups"]
+__all__ = ["TableGroups", "ColumnGroups"]
 
 
 def table_group_by(table, keys):
@@ -61,27 +60,24 @@ def _table_group_by(table, keys):
         table_keys = keys
         if len(table_keys) != len(table):
             raise ValueError(
-                f"Input keys array length {len(table_keys)} does not match "
-                f"table length {len(table)}"
+                "Input keys array length {} does not match table length {}".format(
+                    len(table_keys), len(table)
+                )
             )
         table_index = None
         grouped_by_table_cols = False
 
     else:
         raise TypeError(
-            f"Keys input must be string, list, tuple, Table or numpy array, "
-            f"but got {type(keys)}"
+            "Keys input must be string, list, tuple, Table or numpy array, but got {}".format(
+                type(keys)
+            )
         )
-
-    # TODO: don't use represent_mixins_as_columns here, but instead ensure that
-    # keys_sort.argsort(kind="stable") works for all columns (including mixins).
 
     # If there is not already an available index and table_keys is a Table then ensure
     # that all cols (including mixins) are in a form that can sorted with the code below.
     if not table_index and isinstance(table_keys, Table):
-        table_keys_sort = represent_mixins_as_columns(table_keys)
-    else:
-        table_keys_sort = table_keys
+        table_keys = represent_mixins_as_columns(table_keys)
 
     # Get the argsort index `idx_sort`, accounting for particulars
     try:
@@ -89,15 +85,13 @@ def _table_group_by(table, keys):
         if table_index is not None:
             idx_sort = table_index.sorted_data()
         else:
-            idx_sort = table_keys_sort.argsort(kind="stable")
+            idx_sort = table_keys.argsort(kind="mergesort")
         stable_sort = True
     except TypeError:
-        # TODO: is this still needed?
-
         # Some versions (likely 1.6 and earlier) of numpy don't support
         # 'mergesort' for all data types.  MacOSX (Darwin) doesn't have a stable
         # sort by default, nor does Windows, while Linux does (or appears to).
-        idx_sort = table_keys_sort.argsort()
+        idx_sort = table_keys.argsort()
         stable_sort = platform.system() not in ("Darwin", "Windows")
 
     # Finally do the actual sort of table_keys values
@@ -110,17 +104,13 @@ def _table_group_by(table, keys):
     # If the sort is not stable (preserves original table order) then sort idx_sort in
     # place within each group.
     if not stable_sort:
-        for i0, i1 in pairwise(indices):
+        for i0, i1 in zip(indices[:-1], indices[1:]):
             idx_sort[i0:i1].sort()
 
     # Make a new table and set the _groups to the appropriate TableGroups object.
     # Take the subset of the original keys at the indices values (group boundaries).
     out = table.__class__(table[idx_sort])
-    if len(table) == 0:
-        out_keys = table_keys
-        indices = np.array([], dtype=int)
-    else:
-        out_keys = table_keys[indices[:-1]]
+    out_keys = table_keys[indices[:-1]]
     if isinstance(out_keys, Table):
         out_keys.meta["grouped_by_table_cols"] = grouped_by_table_cols
     out._groups = TableGroups(out, indices=indices, keys=out_keys)
@@ -130,7 +120,7 @@ def _table_group_by(table, keys):
 
 def column_group_by(column, keys):
     """
-    Get groups for ``column`` on specified ``keys``.
+    Get groups for ``column`` on specified ``keys``
 
     Parameters
     ----------
@@ -146,27 +136,21 @@ def column_group_by(column, keys):
     from .serialize import represent_mixins_as_columns
     from .table import Table
 
-    # TODO: don't use represent_mixins_as_columns here, but instead ensure that
-    # keys_sort.argsort(kind="stable") works for all columns (including mixins).
-
     if isinstance(keys, Table):
-        keys_sort = represent_mixins_as_columns(keys)
-    else:
-        keys_sort = keys
+        keys = represent_mixins_as_columns(keys)
+        keys = keys.as_array()
 
-    if len(keys_sort) != len(column):
+    if not isinstance(keys, np.ndarray):
+        raise TypeError(f"Keys input must be numpy array, but got {type(keys)}")
+
+    if len(keys) != len(column):
         raise ValueError(
-            f"Input keys array length {len(keys)} does not match "
-            f"column length {len(column)}"
+            "Input keys array length {} does not match column length {}".format(
+                len(keys), len(column)
+            )
         )
 
-    try:
-        idx_sort = keys_sort.argsort(kind="stable")
-    except AttributeError:
-        raise TypeError(
-            f"keys input ({keys.__class__.__name__}) must have an `argsort` method"
-        )
-
+    idx_sort = keys.argsort()
     keys = keys[idx_sort]
 
     # Get all keys
@@ -254,7 +238,7 @@ class ColumnGroups(BaseGroups):
     @property
     def indices(self):
         # If the parent column is in a table then use group indices from table
-        if self.parent_table is not None:
+        if self.parent_table:
             return self.parent_table.groups.indices
         else:
             if self._indices is None:
@@ -265,35 +249,36 @@ class ColumnGroups(BaseGroups):
     @property
     def keys(self):
         # If the parent column is in a table then use group indices from table
-        if self.parent_table is not None:
+        if self.parent_table:
             return self.parent_table.groups.keys
         else:
             return self._keys
 
     def aggregate(self, func):
+        from .column import MaskedColumn
+
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
+        masked = isinstance(par_col, MaskedColumn)
+        reduceat = hasattr(func, "reduceat")
+        sum_case = func is np.sum
+        mean_case = func is np.mean
         try:
-            # Short-cut for cases where .reduceat is known to work well.
-            if (
-                isinstance(par_col, np.ndarray)
-                and not hasattr(par_col, "mask")
-                and (hasattr(func, "reduceat") or func is np.sum or func is np.mean)
-            ):
-                if func is np.mean:
+            if not masked and (reduceat or sum_case or mean_case):
+                if mean_case:
                     vals = np.add.reduceat(par_col, i0s) / np.diff(self.indices)
                 else:
-                    if func is np.sum:
+                    if sum_case:
                         func = np.add
                     vals = func.reduceat(par_col, i0s)
             else:
-                # Count on class initializer to be able to concatenate lists.
-                vals = [func(par_col[i0:i1]) for i0, i1 in zip(i0s, i1s)]
+                vals = np.array([func(par_col[i0:i1]) for i0, i1 in zip(i0s, i1s)])
             out = par_col.__class__(vals)
         except Exception as err:
             raise TypeError(
-                f"Cannot aggregate column '{par_col.info.name}' "
-                f"with type '{par_col.info.dtype}': {err}"
+                "Cannot aggregate column '{}' with type '{}': {}".format(
+                    par_col.info.name, par_col.info.dtype, err
+                )
             ) from err
 
         out_info = out.info
@@ -381,6 +366,7 @@ class TableGroups(BaseGroups):
         out : Table
             New table with the aggregated rows.
         """
+
         i0s = self.indices[:-1]
         out_cols = []
         parent_table = self.parent_table

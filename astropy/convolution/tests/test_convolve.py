@@ -439,28 +439,6 @@ class TestConvolve1D:
 
         assert_array_almost_equal_nulp(z, (8 / 3.0, 4, 8, 12, 8), 10)
 
-    @pytest.mark.parametrize(
-        "array, exc_type, match",
-        [
-            (0, ValueError, "cannot convolve 0-dimensional arrays"),
-            (
-                [[1]],
-                ValueError,
-                r"array and kernel have differing number of dimensions\.",
-            ),
-            ([], ValueError, "cannot convolve empty array"),
-            (
-                np.ones((1, 1, 1, 1)),
-                NotImplementedError,
-                "convolve only supports 1, 2, and 3-dimensional arrays at this time",
-            ),
-        ],
-    )
-    def test_exceptions(self, array, exc_type, match):
-        kernel = [1]
-        with pytest.raises(exc_type, match=match):
-            convolve(array, kernel)
-
 
 class TestConvolve2D:
     def test_list(self):
@@ -1211,13 +1189,13 @@ def test_astropy_convolution_against_scipy():
 
 @pytest.mark.skipif(not HAS_PANDAS, reason="Requires pandas")
 def test_regression_6099():
-    import pandas as pd
+    import pandas
 
     wave = np.array(np.linspace(5000, 5100, 10))
     boxcar = 3
     nonseries_result = convolve(wave, np.ones((boxcar,)) / boxcar)
 
-    wave_series = pd.Series(wave)
+    wave_series = pandas.Series(wave)
     series_result = convolve(wave_series, np.ones((boxcar,)) / boxcar)
 
     assert_array_almost_equal(nonseries_result, series_result)

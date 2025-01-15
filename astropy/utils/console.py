@@ -8,11 +8,11 @@ import locale
 import math
 import multiprocessing
 import os
+import re
 import struct
 import sys
 import threading
 import time
-from shutil import get_terminal_size
 
 # concurrent.futures imports moved inside functions using them to avoid
 # import failure when running in pyodide/Emscripten
@@ -27,53 +27,98 @@ except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
 from astropy import conf
-from astropy.utils.compat.optional_deps import (
-    HAS_IPYKERNEL,
-    HAS_IPYTHON,
-    HAS_IPYWIDGETS,
-)
 
-from .decorators import classproperty, deprecated
+from .decorators import classproperty
 from .misc import isiterable
 
 __all__ = [
-    "ProgressBar",
-    "ProgressBarOrSpinner",
-    "Spinner",
-    "color_print",
-    "human_file_size",
-    "human_time",
     "isatty",
+    "color_print",
+    "human_time",
+    "human_file_size",
+    "ProgressBar",
+    "Spinner",
     "print_code_line",
+    "ProgressBarOrSpinner",
     "terminal_size",
 ]
+
+_DEFAULT_ENCODING = "utf-8"
 
 
 class _IPython:
     """Singleton class given access to IPython streams, etc."""
 
     @classproperty
+    def get_ipython(cls):
+        try:
+            from IPython import get_ipython
+        except ImportError:
+            pass
+        return get_ipython
+
+    @classproperty
     def OutStream(cls):
         if not hasattr(cls, "_OutStream"):
-            if HAS_IPYKERNEL:
-                from ipykernel.iostream import OutStream
+            cls._OutStream = None
+            try:
+                cls.get_ipython()
+            except NameError:
+                return None
 
-                cls._OutStream = OutStream
-            else:
-                cls._OutStream = None
+            try:
+                from ipykernel.iostream import OutStream
+            except ImportError:
+                try:
+                    from IPython.zmq.iostream import OutStream
+                except ImportError:
+                    from IPython import version_info
+
+                    if version_info[0] >= 4:
+                        return None
+
+                    try:
+                        from IPython.kernel.zmq.iostream import OutStream
+                    except ImportError:
+                        return None
+
+            cls._OutStream = OutStream
 
         return cls._OutStream
 
     @classproperty
     def ipyio(cls):
         if not hasattr(cls, "_ipyio"):
-            if HAS_IPYTHON:
+            try:
                 from IPython.utils import io
-
-                cls._ipyio = io
-            else:
+            except ImportError:
                 cls._ipyio = None
+            else:
+                cls._ipyio = io
         return cls._ipyio
+
+    @classmethod
+    def get_stream(cls, stream):
+        return getattr(cls.ipyio, stream)
+
+
+def _get_stdout(stderr=False):
+    """
+    This utility function contains the logic to determine what streams to use
+    by default for standard out/err.
+
+    Typically this will just return `sys.stdout`, but it contains additional
+    logic for use in IPython on Windows to determine the correct stream to use
+    (usually ``IPython.util.io.stdout`` but only if sys.stdout is a TTY).
+    """
+
+    if stderr:
+        stream = "stderr"
+    else:
+        stream = "stdout"
+
+    sys_stream = getattr(sys, stream)
+    return sys_stream
 
 
 def isatty(file):
@@ -96,10 +141,28 @@ def isatty(file):
     if _IPython.OutStream is None or (not isinstance(file, _IPython.OutStream)):
         return False
 
-    return getattr(file, "name", None) == "stdout"
+    # File is an IPython OutStream. Check whether:
+    # - File name is 'stdout'; or
+    # - File wraps a Console
+    if getattr(file, "name", None) == "stdout":
+        return True
+
+    if hasattr(file, "stream"):
+        # FIXME: pyreadline has no had new release since 2015, drop it when
+        #        IPython minversion is 5.x.
+        # On Windows, in IPython 2 the standard I/O streams will wrap
+        # pyreadline.Console objects if pyreadline is available; this should
+        # be considered a TTY.
+        try:
+            from pyreadline.console import Console as PyreadlineConsole
+        except ImportError:
+            return False
+
+        return isinstance(file.stream, PyreadlineConsole)
+
+    return False
 
 
-@deprecated("6.1", alternative="shutil.get_terminal_size")
 def terminal_size(file=None):
     """
     Returns a tuple (height, width) containing the height and width of
@@ -109,8 +172,9 @@ def terminal_size(file=None):
     before falling back on the width and height in astropy's
     configuration.
     """
+
     if file is None:
-        file = sys.stdout
+        file = _get_stdout()
 
     try:
         s = struct.pack("HHHH", 0, 0, 0, 0)
@@ -140,9 +204,9 @@ def terminal_size(file=None):
 
 
 def _color_text(text, color):
-    """Returns a string wrapped in ANSI color codes for coloring the text in a terminal.
-
-    ::
+    """
+    Returns a string wrapped in ANSI color codes for coloring the
+    text in a terminal::
 
         colored_text = color_text('Here is a message', 'blue')
 
@@ -187,6 +251,24 @@ def _color_text(text, color):
     return f"\033[{color_code}m{text}\033[0m"
 
 
+def _decode_preferred_encoding(s):
+    """Decode the supplied byte string using the preferred encoding
+    for the locale (`locale.getpreferredencoding`) or, if the default encoding
+    is invalid, fall back first on utf-8, then on latin-1 if the message cannot
+    be decoded with utf-8.
+    """
+
+    enc = locale.getpreferredencoding()
+    try:
+        try:
+            return s.decode(enc)
+        except LookupError:
+            enc = _DEFAULT_ENCODING
+        return s.decode(enc)
+    except UnicodeDecodeError:
+        return s.decode("latin-1")
+
+
 def _write_with_fallback(s, write, fileobj):
     """Write the supplied string with the given write function like
     ``write(s)``, but use a writer for the locale's preferred encoding in case
@@ -204,7 +286,7 @@ def _write_with_fallback(s, write, fileobj):
     try:
         Writer = codecs.getwriter(enc)
     except LookupError:
-        Writer = codecs.getwriter("utf-8")
+        Writer = codecs.getwriter(_DEFAULT_ENCODING)
 
     f = Writer(fileobj)
     write = f.write
@@ -243,7 +325,7 @@ def color_print(*args, end="\n", **kwargs):
         default, darkgrey, lightred, lightgreen, yellow, lightblue,
         lightmagenta, lightcyan, white, or '' (the empty string).
 
-    file : :term:`file-like (writeable)`, optional
+    file : writable file-like, optional
         Where to write to.  Defaults to `sys.stdout`.  If file is not
         a tty (as determined by calling its `isatty` member, if one
         exists), no coloring will be included.
@@ -252,7 +334,8 @@ def color_print(*args, end="\n", **kwargs):
         The ending of the message.  Defaults to ``\\n``.  The end will
         be printed after resetting any color or font state.
     """
-    file = kwargs.get("file", sys.stdout)
+
+    file = kwargs.get("file", _get_stdout())
 
     write = file.write
     if isatty(file) and conf.use_color:
@@ -278,6 +361,13 @@ def color_print(*args, end="\n", **kwargs):
             msg = args[i]
             write(msg)
         write(end)
+
+
+def strip_ansi_codes(s):
+    """
+    Remove ANSI color codes from the string.
+    """
+    return re.sub("\033\\[([0-9]+)(;[0-9]+)*m", "", s)
 
 
 def human_time(seconds):
@@ -323,8 +413,8 @@ def human_time(seconds):
         unit1, limit1 = units[i]
         unit2, limit2 = units[i + 1]
         if seconds >= limit1:
-            return (
-                f"{seconds // limit1:2d}{unit1}{(seconds % limit1) // limit2:2d}{unit2}"
+            return "{:2d}{}{:2d}{}".format(
+                seconds // limit1, unit1, (seconds % limit1) // limit2, unit2
             )
     return "  ~inf"
 
@@ -420,7 +510,7 @@ class ProgressBar:
             If `True`, the progress bar will display as an IPython
             notebook widget.
 
-        file : :term:`file-like (writeable)`, optional
+        file : writable file-like, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any, or special case hacks
@@ -428,7 +518,7 @@ class ProgressBar:
             completely silent.
         """
         if file is None:
-            file = sys.stdout
+            file = _get_stdout()
 
         if not ipython_widget and not isatty(file):
             self.update = self._silent_update
@@ -463,7 +553,7 @@ class ProgressBar:
         self.update(0)
 
     def _handle_resize(self, signum=None, frame=None):
-        terminal_width = get_terminal_size().columns
+        terminal_width = terminal_size(self._file)[1]
         self._bar_length = terminal_width - 37
 
     def __enter__(self):
@@ -495,6 +585,7 @@ class ProgressBar:
         """
         Update progress bar via the console or notebook accordingly.
         """
+
         # Update self.value
         if value is None:
             value = self._current_value + 1
@@ -511,6 +602,7 @@ class ProgressBar:
         Update the progress bar to the given value (out of the total
         given to the constructor).
         """
+
         if self._total == 0:
             frac = 1.0
         else:
@@ -553,17 +645,22 @@ class ProgressBar:
 
         This method is for use in the IPython notebook 2+.
         """
+
         # Create and display an empty progress bar widget,
         # if none exists.
-
         if not hasattr(self, "_widget"):
             # Import only if an IPython widget, i.e., widget in iPython NB
-            if not HAS_IPYWIDGETS:
-                raise ModuleNotFoundError("ipywidgets is not installed")
+            from IPython import version_info
 
-            from ipywidgets import widgets
+            if version_info[0] < 4:
+                from IPython.html import widgets
 
-            self._widget = widgets.FloatProgress()
+                self._widget = widgets.FloatProgressWidget()
+            else:
+                _IPython.get_ipython()
+                from ipywidgets import widgets
+
+                self._widget = widgets.FloatProgress()
             from IPython.display import display
 
             display(self._widget)
@@ -618,7 +715,7 @@ class ProgressBar:
             If `True`, the progress bar will display as an IPython
             notebook widget.
 
-        file : :term:`file-like (writeable)`, optional
+        file : writable file-like, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
@@ -638,6 +735,7 @@ class ProgressBar:
             other anomalies occur with the "fork" method (the default on
             Linux).
         """
+
         if multiprocess:
             function = _mapfunc(function)
             items = list(enumerate(items))
@@ -700,7 +798,7 @@ class ProgressBar:
             If `True`, the progress bar will display as an IPython
             notebook widget.
 
-        file : :term:`file-like (writeable)`, optional
+        file : writable file-like, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
@@ -727,7 +825,7 @@ class ProgressBar:
         results = []
 
         if file is None:
-            file = sys.stdout
+            file = _get_stdout()
 
         with cls(len(items), ipython_widget=ipython_widget, file=file) as bar:
             if bar._ipython_widget:
@@ -786,7 +884,7 @@ class Spinner:
             darkgrey, lightred, lightgreen, yellow, lightblue,
             lightmagenta, lightcyan, white.
 
-        file : :term:`file-like (writeable)`, optional
+        file : writable file-like, optional
             The file to write the spinner to.  Defaults to
             `sys.stdout`.  If ``file`` is not a tty (as determined by
             calling its `isatty` member, if any, or special case hacks
@@ -799,8 +897,9 @@ class Spinner:
         chars : str, optional
             The character sequence to use for the spinner
         """
+
         if file is None:
-            file = sys.stdout
+            file = _get_stdout()
 
         self._msg = msg
         self._color = color
@@ -827,15 +926,10 @@ class Spinner:
         write = file.write
         flush = file.flush
         try_fallback = True
-        terminal_width = get_terminal_size().columns
-        if len(self._msg) > terminal_width:
-            message = self._msg[: terminal_width - 8] + " ..."
-        else:
-            message = self._msg
 
         while True:
             write("\r")
-            color_print(message, self._color, file=file, end="")
+            color_print(self._msg, self._color, file=file, end="")
             write(" ")
             try:
                 if try_fallback:
@@ -888,6 +982,7 @@ class Spinner:
             Ignored (present just for compatibility with `ProgressBar.update`).
 
         """
+
         next(self)
 
     def _silent_iterator(self):
@@ -937,14 +1032,15 @@ class ProgressBarOrSpinner:
             lightred, lightgreen, yellow, lightblue, lightmagenta,
             lightcyan, white.
 
-        file : :term:`file-like (writeable)`, optional
+        file : writable file-like, optional
             The file to write the to.  Defaults to `sys.stdout`.  If
             ``file`` is not a tty (as determined by calling its `isatty`
             member, if any), only ``msg`` will be displayed: the
             `ProgressBar` or `Spinner` will be silent.
         """
+
         if file is None:
-            file = sys.stdout
+            file = _get_stdout()
 
         if total is None or not isatty(file):
             self._is_spinner = True
@@ -992,7 +1088,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         The character in the line to highlight.  ``col`` must be less
         than ``len(line)``.
 
-    file : :term:`file-like (writeable)`, optional
+    file : writable file-like, optional
         Where to write to.  Defaults to `sys.stdout`.
 
     tabwidth : int, optional
@@ -1005,8 +1101,9 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         truncated.  Defaults to 70 (this matches the default in the
         standard library's `textwrap` module).
     """
+
     if file is None:
-        file = sys.stdout
+        file = _get_stdout()
 
     if conf.unicode_output:
         ellipsis = "…"
@@ -1017,7 +1114,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
 
     if col is not None:
         if col >= len(line):
-            raise ValueError("col must be less than the line length.")
+            raise ValueError("col must be less the the line length.")
         ntabs = line[:col].count("\t")
         col += ntabs * (tabwidth - 1)
 
@@ -1045,8 +1142,8 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         color_print("^", "red", file=file)
 
 
-# The following three Getch* classes implement unbuffered character reading from
-# stdin on Windows, and Unix.  This is taken directly from ActiveState
+# The following four Getch* classes implement unbuffered character reading from
+# stdin on Windows, linux, MacOSX.  This is taken directly from ActiveState
 # Code Recipes:
 # http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
 #
@@ -1064,7 +1161,10 @@ class Getch:
         try:
             self.impl = _GetchWindows()
         except ImportError:
-            self.impl = _GetchUnix()
+            try:
+                self.impl = _GetchMacCarbon()
+            except (ImportError, AttributeError):
+                self.impl = _GetchUnix()
 
     def __call__(self):
         return self.impl()
@@ -1073,6 +1173,10 @@ class Getch:
 class _GetchUnix:
     def __init__(self):
         import sys  # noqa: F401
+
+        # import termios now or else you'll get the Unix
+        # version on the Mac
+        import termios  # noqa: F401
         import tty  # noqa: F401
 
     def __call__(self):
@@ -1098,3 +1202,35 @@ class _GetchWindows:
         import msvcrt
 
         return msvcrt.getch()
+
+
+class _GetchMacCarbon:
+    """
+    A function which returns the current ASCII key that is down;
+    if no ASCII key is down, the null string is returned.  The
+    page http://www.mactech.com/macintosh-c/chap02-1.html was
+    very helpful in figuring out how to do this.
+    """
+
+    def __init__(self):
+        import Carbon
+
+        Carbon.Evt  # see if it has this (in Unix, it doesn't)
+
+    def __call__(self):
+        import Carbon
+
+        if Carbon.Evt.EventAvail(0x0008)[0] == 0:  # 0x0008 is the keyDownMask
+            return ""
+        else:
+            #
+            # The event contains the following info:
+            # (what,msg,when,where,mod)=Carbon.Evt.GetNextEvent(0x0008)[1]
+            #
+            # The message (msg) contains the ASCII char which is
+            # extracted with the 0x000000FF charCodeMask; this
+            # number is converted to an ASCII character with chr() and
+            # returned
+            #
+            (what, msg, when, where, mod) = Carbon.Evt.GetNextEvent(0x0008)[1]
+            return chr(msg & 0x000000FF)

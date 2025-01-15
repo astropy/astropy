@@ -4,7 +4,7 @@
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import angular_separation
+from astropy.coordinates.angle_utilities import angular_separation
 from astropy.coordinates.builtin_frames import FK4, Galactic
 from astropy.table import Table
 from astropy.time import Time

@@ -1,0 +1,89 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/fits/fits-1.0.0"
+title: >
+  A FITS file inside of an ASDF file.
+description: |
+  This schema is useful for distributing ASDF files that can
+  automatically be converted to FITS files by specifying the exact
+  content of the resulting FITS file.
+
+  Not all kinds of data in FITS are directly representable in ASDF.
+  For example, applying an offset and scale to the data using the
+  `BZERO` and `BSCALE` keywords.  In these cases, it will not be
+  possible to store the data in the native format from FITS and also
+  be accessible in its proper form in the ASDF file.
+
+  Only image and binary table extensions are supported.
+
+examples:
+  -
+    - A simple FITS file with a primary header and two extensions
+    - |
+        !<tag:astropy.org:astropy/fits/fits-1.0.0>
+            - header:
+              - [SIMPLE, true, conforms to FITS standard]
+              - [BITPIX, 8, array data type]
+              - [NAXIS, 0, number of array dimensions]
+              - [EXTEND, true]
+              - []
+              - ['', Top Level MIRI Metadata]
+              - []
+              - [DATE, '2013-08-30T10:49:55.070373', The date this file was created (UTC)]
+              - [FILENAME, MiriDarkReferenceModel_test.fits, The name of the file]
+              - [TELESCOP, JWST, The telescope used to acquire the data]
+              - []
+              - ['', Information about the observation]
+              - []
+              - [DATE-OBS, '2013-08-30T10:49:55.000000', The date the observation was made (UTC)]
+            - data: !core/ndarray-1.0.0
+                datatype: float32
+                shape: [2, 3, 3, 4]
+                source: 0
+                byteorder: big
+              header:
+              - [XTENSION, IMAGE, Image extension]
+              - [BITPIX, -32, array data type]
+              - [NAXIS, 4, number of array dimensions]
+              - [NAXIS1, 4]
+              - [NAXIS2, 3]
+              - [NAXIS3, 3]
+              - [NAXIS4, 2]
+              - [PCOUNT, 0, number of parameters]
+              - [GCOUNT, 1, number of groups]
+              - [EXTNAME, SCI, extension name]
+              - [BUNIT, DN, Units of the data array]
+            - data: !core/ndarray-1.0.0
+                datatype: float32
+                shape: [2, 3, 3, 4]
+                source: 1
+                byteorder: big
+              header:
+              - [XTENSION, IMAGE, Image extension]
+              - [BITPIX, -32, array data type]
+              - [NAXIS, 4, number of array dimensions]
+              - [NAXIS1, 4]
+              - [NAXIS2, 3]
+              - [NAXIS3, 3]
+              - [NAXIS4, 2]
+              - [PCOUNT, 0, number of parameters]
+              - [GCOUNT, 1, number of groups]
+              - [EXTNAME, ERR, extension name]
+              - [BUNIT, DN, Units of the error array]
+
+allOf:
+  - tag: "tag:astropy.org:astropy/fits/fits-1.0.0"
+  - type: array
+    items:
+      type: object
+      properties:
+        data:
+          description: "The data part of the HDU."
+          anyOf:
+            - $ref: "tag:stsci.edu:asdf/core/ndarray-1.0.0"
+            - $ref: "../table/table-1.0.0"
+            # Retain backwards compatibility with table defined by ASDF Standard
+            - $ref: "tag:stsci.edu:asdf/core/table-1.0.0"
+            - type: "null"
+          default: null

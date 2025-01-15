@@ -1,23 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 
-from pathlib import Path
-
-from numpy import get_include as get_numpy_include
+import numpy
 from setuptools import Extension
 
-ROOT = Path(__file__).parent.relative_to(Path.cwd())
+ROOT = os.path.relpath(os.path.dirname(__file__))
 
 
 def get_extensions():
-    sources = [ROOT / "_np_utils.pyx", ROOT / "_column_mixins.pyx"]
-    include_dirs = [get_numpy_include()]
+    sources = ["_np_utils.pyx", "_column_mixins.pyx"]
+    include_dirs = [numpy.get_include()]
 
     exts = [
         Extension(
-            name=f"astropy.table.{source.stem}",
-            define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
-            sources=[str(source)],
+            name="astropy.table." + os.path.splitext(source)[0],
+            sources=[os.path.join(ROOT, source)],
             include_dirs=include_dirs,
         )
         for source in sources

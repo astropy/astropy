@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: prj.c,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -57,6 +57,36 @@ const char prj_codes[28][4] =
    "CEA", "CAR", "MER", "COP", "COE", "COD", "COO", "SFL", "PAR", "MOL",
    "AIT", "BON", "PCO", "TSC", "CSC", "QSC", "HPX", "XPH"};
 
+const int AZP = 101;
+const int SZP = 102;
+const int TAN = 103;
+const int STG = 104;
+const int SIN = 105;
+const int ARC = 106;
+const int ZPN = 107;
+const int ZEA = 108;
+const int AIR = 109;
+const int CYP = 201;
+const int CEA = 202;
+const int CAR = 203;
+const int MER = 204;
+const int SFL = 301;
+const int PAR = 302;
+const int MOL = 303;
+const int AIT = 401;
+const int COP = 501;
+const int COE = 502;
+const int COD = 503;
+const int COO = 504;
+const int BON = 601;
+const int PCO = 602;
+const int TSC = 701;
+const int CSC = 702;
+const int QSC = 703;
+const int HPX = 801;
+const int XPH = 802;
+
+
 // Map status return value to message.
 const char *prj_errmsg[] = {
   "Success",
@@ -64,35 +94,6 @@ const char *prj_errmsg[] = {
   "Invalid projection parameters",
   "One or more of the (x,y) coordinates were invalid",
   "One or more of the (phi,theta) coordinates were invalid"};
-
-static const int AZP = 101;
-static const int SZP = 102;
-static const int TAN = 103;
-static const int STG = 104;
-static const int SIN = 105;
-static const int ARC = 106;
-static const int ZPN = 107;
-static const int ZEA = 108;
-static const int AIR = 109;
-static const int CYP = 201;
-static const int CEA = 202;
-static const int CAR = 203;
-static const int MER = 204;
-static const int SFL = 301;
-static const int PAR = 302;
-static const int MOL = 303;
-static const int AIT = 401;
-static const int COP = 501;
-static const int COE = 502;
-static const int COD = 503;
-static const int COO = 504;
-static const int BON = 601;
-static const int PCO = 602;
-static const int TSC = 701;
-static const int CSC = 702;
-static const int QSC = 703;
-static const int HPX = 801;
-static const int XPH = 802;
 
 // Convenience macros for generating common error messages.
 #define PRJERR_BAD_PARAM_SET(function) \
@@ -120,7 +121,7 @@ static const int XPH = 802;
 * prjfree frees any memory that may have been allocated to store an error
 *        message in the prjprm struct.
 *
-* prjsize computes the size of a prjprm struct.
+* prjsize computed the size of a prjprm struct.
 *
 * prjprt prints the contents of a prjprm struct.
 *
@@ -141,21 +142,25 @@ static const int XPH = 802;
 int prjini(struct prjprm *prj)
 
 {
+  register int k;
+
   if (prj == 0x0) return PRJERR_NULL_POINTER;
+
+  prj->flag = 0;
 
   strcpy(prj->code, "   ");
   prj->pv[0]  = 0.0;
   prj->pv[1]  = UNDEFINED;
   prj->pv[2]  = UNDEFINED;
   prj->pv[3]  = UNDEFINED;
-  for (int k = 4; k < PVN; prj->pv[k++] = 0.0);
+  for (k = 4; k < PVN; prj->pv[k++] = 0.0);
   prj->r0     = 0.0;
   prj->phi0   = UNDEFINED;
   prj->theta0 = UNDEFINED;
   prj->bounds = 7;
 
   strcpy(prj->name, "undefined");
-  for (int k = 9; k < 40; prj->name[k++] = '\0');
+  for (k = 9; k < 40; prj->name[k++] = '\0');
   prj->category  = 0;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -169,13 +174,11 @@ int prjini(struct prjprm *prj)
   prj->err = 0x0;
 
   prj->padding = 0x0;
-  for (int k = 0; k < 10; prj->w[k++] = 0.0);
+  for (k = 0; k < 10; prj->w[k++] = 0.0);
   prj->m = 0;
   prj->n = 0;
   prj->prjx2s = 0x0;
   prj->prjs2x = 0x0;
-
-  prj->flag = 0;
 
   return 0;
 }
@@ -199,7 +202,7 @@ int prjsize(const struct prjprm *prj, int sizes[2])
 {
   if (prj == 0x0) {
     sizes[0] = sizes[1] = 0;
-    return 0;
+    return PRJERR_SUCCESS;
   }
 
   // Base size, in bytes.
@@ -208,36 +211,13 @@ int prjsize(const struct prjprm *prj, int sizes[2])
   // Total size of allocated memory, in bytes.
   sizes[1] = 0;
 
-  // prjprm::err.
   int exsizes[2];
+
+  // prjprm::err.
   wcserr_size(prj->err, exsizes);
   sizes[1] += exsizes[0] + exsizes[1];
 
-  return 0;
-}
-
-//----------------------------------------------------------------------------
-
-int prjenq(const struct prjprm *prj, int enquiry)
-
-{
-  // Initialize.
-  if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int answer = 0;
-  int absflag = abs(prj->flag);
-
-  if (enquiry & PRJENQ_SET) {
-    if (absflag < 100 || 1000 < absflag) return 0;
-    answer = 1;
-  }
-
-  if (enquiry & PRJENQ_BYP) {
-    if (prj->flag != 1 && !(-1000 < prj->flag && prj->flag < -100)) return 0;
-    answer = 1;
-  }
-
-  return answer;
+  return PRJERR_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -245,15 +225,17 @@ int prjenq(const struct prjprm *prj, int enquiry)
 int prjprt(const struct prjprm *prj)
 
 {
+  char hext[32];
+  int  i, n;
+
   if (prj == 0x0) return PRJERR_NULL_POINTER;
 
-  // Parameters supplied.
   wcsprintf("       flag: %d\n",  prj->flag);
-  wcsprintf("       code: \"%s\"\n", prj->code);
+  wcsprintf("       code: \"%s\"\n",  prj->code);
   wcsprintf("         r0: %9f\n", prj->r0);
   wcsprintf("         pv:");
   if (prj->pvrange) {
-    int n = (prj->pvrange)%100;
+    n = (prj->pvrange)%100;
 
     if (prj->pvrange/100) {
       wcsprintf(" (0)");
@@ -262,7 +244,7 @@ int prjprt(const struct prjprm *prj)
       n--;
     }
 
-    for (int i = 1; i <= n; i++) {
+    for (i = 1; i <= n; i++) {
       if (i%5 == 1) {
         wcsprintf("\n           ");
       }
@@ -289,7 +271,6 @@ int prjprt(const struct prjprm *prj)
   }
   wcsprintf("     bounds: %d\n",  prj->bounds);
 
-  // Derived values.
   wcsprintf("\n");
   wcsprintf("       name: \"%s\"\n", prj->name);
   wcsprintf("   category: %d (%s)\n", prj->category,
@@ -303,27 +284,22 @@ int prjprt(const struct prjprm *prj)
   wcsprintf("         x0: %f\n", prj->x0);
   wcsprintf("         y0: %f\n", prj->y0);
 
-  // Error handling.
   WCSPRINTF_PTR("        err: ", prj->err, "\n");
   if (prj->err) {
     wcserr_prt(prj->err, "             ");
   }
 
-  // Work arrays.
   wcsprintf("        w[]:");
-  for (int i = 0; i < 5; i++) {
+  for (i = 0; i < 5; i++) {
     wcsprintf("  %#- 11.5g", prj->w[i]);
   }
   wcsprintf("\n            ");
-  for (int i = 5; i < 10; i++) {
+  for (i = 5; i < 10; i++) {
     wcsprintf("  %#- 11.5g", prj->w[i]);
   }
   wcsprintf("\n");
   wcsprintf("          m: %d\n", prj->m);
   wcsprintf("          n: %d\n", prj->n);
-
-  // Pointers to projection functions.
-  char hext[32];
   wcsprintf("     prjx2s: %s\n",
     wcsutil_fptr2str((void (*)(void))prj->prjx2s, hext));
   wcsprintf("     prjs2x: %s\n",
@@ -358,13 +334,15 @@ int prjbchk(
   int stat[])
 
 {
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  int    status  = 0;
-  for (int itheta = 0; itheta < ntheta; itheta++) {
-    for (int iphi = 0; iphi < nphi; iphi++, phip += spt, thetap += spt,
-         statp++) {
+  int status = 0;
+  register int iphi, itheta, *statp;
+  register double *phip, *thetap;
+
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (itheta = 0; itheta < ntheta; itheta++) {
+    for (iphi = 0; iphi < nphi; iphi++, phip += spt, thetap += spt, statp++) {
       // Skip values already marked as illegal.
       if (*statp == 0) {
         if (*phip < -180.0) {
@@ -412,14 +390,14 @@ int prjset(struct prjprm *prj)
 {
   static const char *function = "prjset";
 
+  int status;
+  struct wcserr **err;
+
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag < 0) return 0;
-  struct wcserr **err = &(prj->err);
+  err = &(prj->err);
 
   // Invoke the relevant initialization routine.
   prj->code[3] = '\0';
-
-  int status;
   if (strcmp(prj->code, "AZP") == 0) {
     status = azpset(prj);
   } else if (strcmp(prj->code, "SZP") == 0) {
@@ -500,11 +478,11 @@ int prjx2s(
   int stat[])
 
 {
+  int status;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) < 100) {
+  if (prj->flag == 0) {
     if ((status = prjset(prj))) return status;
   }
 
@@ -526,11 +504,11 @@ int prjs2x(
   int stat[])
 
 {
+  int status;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) < 100) {
+  if (prj->flag == 0) {
     if ((status = prjset(prj))) return status;
   }
 
@@ -542,12 +520,15 @@ int prjs2x(
 * outside use.  It forces (x,y) = (0,0) at (phi0,theta0).
 *---------------------------------------------------------------------------*/
 
-static int prjoff(
+int prjoff(
   struct prjprm *prj,
   const double phi0,
   const double theta0)
 
 {
+  int    stat;
+  double x0, y0;
+
   if (prj == 0x0) return PRJERR_NULL_POINTER;
 
   prj->x0 = 0.0;
@@ -559,8 +540,6 @@ static int prjoff(
     prj->theta0 = theta0;
 
   } else {
-    double x0, y0;
-    int    stat;
     if (prj->prjs2x(prj, 1, 1, 1, 1, &(prj->phi0), &(prj->theta0), &x0, &y0,
                     &stat)) {
       return PRJERR_BAD_PARAM_SET("prjoff");
@@ -606,8 +585,8 @@ int azpset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -AZP) return 0;
 
+  prj->flag = AZP;
   strcpy(prj->code, "AZP");
 
   if (undefined(prj->pv[1])) prj->pv[1] = 0.0;
@@ -649,8 +628,6 @@ int azpset(struct prjprm *prj)
   prj->prjx2s = azpx2s;
   prj->prjs2x = azps2x;
 
-  prj->flag = (prj->flag == 1) ? -AZP : AZP;
-
   return prjoff(prj, 0.0, 90.0);
 }
 
@@ -669,17 +646,20 @@ int azpx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double a, b, q, r, s, t, xj, yj, yc, yc2;
   const double tol = 1.0e-13;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != AZP) {
+  if (prj->flag != AZP) {
     if ((status = azpset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -693,15 +673,14 @@ int azpx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  double *phip, *thetap;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
     phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -709,23 +688,22 @@ int azpx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  int *statp  = stat;
-
+  yp = y;
   phip   = phi;
   thetap = theta;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj = *yp + prj->y0;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj = *yp + prj->y0;
 
-    double yc  = yj*prj->w[3];
-    double yc2 = yc*yc;
+    yc  = yj*prj->w[3];
+    yc2 = yc*yc;
 
-    double q = prj->w[0] + yj*prj->w[4];
+    q = prj->w[0] + yj*prj->w[4];
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
-      double r = sqrt(xj*xj + yc2);
+      r = sqrt(xj*xj + yc2);
       if (r == 0.0) {
         *phip = 0.0;
         *thetap = 90.0;
@@ -734,8 +712,8 @@ int azpx2s(
       } else {
         *phip = atan2d(xj, -yc);
 
-        double s = r / q;
-        double t = s*prj->pv[1]/sqrt(s*s + 1.0);
+        s = r / q;
+        t = s*prj->pv[1]/sqrt(s*s + 1.0);
 
         s = atan2d(1.0, s);
 
@@ -751,8 +729,8 @@ int azpx2s(
           t = asind(t);
         }
 
-        double a = s - t;
-        double b = s + t + 180.0;
+        a = s - t;
+        b = s + t + 180.0;
 
         if (a > 90.0) a -= 360.0;
         if (b > 90.0) b -= 360.0;
@@ -787,15 +765,19 @@ int azps2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double a, b, cosphi, costhe, r, s, sinphi, sinthe, t;
+  register int iphi, itheta, istat, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != AZP) {
+  if (prj->flag != AZP) {
     if ((status = azpset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -809,16 +791,15 @@ int azps2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinphi;
       *yp = cosphi;
       xp += rowlen;
@@ -828,17 +809,16 @@ int azps2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double sinthe, costhe;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     sincosd(*thetap, &sinthe, &costhe);
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
-      double s = prj->w[1]*(*yp);
-      double t = (prj->pv[1] + sinthe) + costhe*s;
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      s = prj->w[1]*(*yp);
+      t = (prj->pv[1] + sinthe) + costhe*s;
 
       if (t == 0.0) {
         *xp = 0.0;
@@ -847,10 +827,10 @@ int azps2x(
         if (!status) status = PRJERR_BAD_WORLD_SET("azps2x");
 
       } else {
-        double r = prj->w[0]*costhe/t;
+        r = prj->w[0]*costhe/t;
 
         // Bounds checking.
-        int istat = 0;
+        istat = 0;
         if (prj->bounds&1) {
           if (*thetap < prj->w[5]) {
             // Overlap.
@@ -864,9 +844,8 @@ int azps2x(
             if (fabs(t) <= 1.0) {
               s = atand(-s);
               t = asind(t);
-
-              double a = s - t;
-              double b = s + t + 180.0;
+              a = s - t;
+              b = s + t + 180.0;
 
               if (a > 90.0) a -= 360.0;
               if (b > 90.0) b -= 360.0;
@@ -927,8 +906,8 @@ int szpset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -SZP) return 0;
 
+  prj->flag = SZP;
   strcpy(prj->code, "SZP");
 
   if (undefined(prj->pv[1])) prj->pv[1] =  0.0;
@@ -968,8 +947,6 @@ int szpset(struct prjprm *prj)
   prj->prjx2s = szpx2s;
   prj->prjs2x = szps2x;
 
-  prj->flag = (prj->flag == 1) ? -SZP : SZP;
-
   return prjoff(prj, 0.0, 90.0);
 }
 
@@ -988,17 +965,20 @@ int szpx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double a, b, c, d, r2, sinth1, sinth2, sinthe, t, x1, xr, xy, y1, yr, z;
   const double tol = 1.0e-13;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != SZP) {
+  if (prj->flag != SZP) {
     if ((status = szpset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -1012,14 +992,14 @@ int szpx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xr = (*xp + prj->x0)*prj->w[0];
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xr = (*xp + prj->x0)*prj->w[0];
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xr;
       phip += rowlen;
     }
@@ -1027,33 +1007,32 @@ int szpx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int     *statp = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yr = (*yp + prj->y0)*prj->w[0];
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yr = (*yp + prj->y0)*prj->w[0];
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xr = *phip;
-      double r2 = xr*xr + yr*yr;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xr = *phip;
+      r2 = xr*xr + yr*yr;
 
-      double x1 = (xr - prj->w[1])/prj->w[3];
-      double y1 = (yr - prj->w[2])/prj->w[3];
-      double xy = xr*x1 + yr*y1;
+      x1 = (xr - prj->w[1])/prj->w[3];
+      y1 = (yr - prj->w[2])/prj->w[3];
+      xy = xr*x1 + yr*y1;
 
-      double z;
       if (r2 < 1.0e-10) {
         // Use small angle formula.
         z = r2/2.0;
         *thetap = 90.0 - R2D*sqrt(r2/(1.0 + xy));
 
       } else {
-        double t = x1*x1 + y1*y1;
-        double a = t + 1.0;
-        double b = xy - t;
-        double c = r2 - xy - xy + t - 1.0;
-        double d = b*b - a*c;
+        t = x1*x1 + y1*y1;
+        a = t + 1.0;
+        b = xy - t;
+        c = r2 - xy - xy + t - 1.0;
+        d = b*b - a*c;
 
         // Check for a solution.
         if (d < 0.0) {
@@ -1066,9 +1045,9 @@ int szpx2s(
         d = sqrt(d);
 
         // Choose solution closest to pole.
-        double sinth1 = (-b + d)/a;
-        double sinth2 = (-b - d)/a;
-        double sinthe = (sinth1 > sinth2) ? sinth1 : sinth2;
+        sinth1 = (-b + d)/a;
+        sinth2 = (-b - d)/a;
+        sinthe = (sinth1 > sinth2) ? sinth1 : sinth2;
         if (sinthe > 1.0) {
           if (sinthe-1.0 < tol) {
             sinthe = 1.0;
@@ -1125,15 +1104,19 @@ int szps2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double a, b, cosphi, r, s, sinphi, t, u, v;
+  register int iphi, itheta, istat, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != SZP) {
+  if (prj->flag != SZP) {
     if ((status = szpset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -1147,16 +1130,15 @@ int szps2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinphi;
       *yp = cosphi;
       xp += rowlen;
@@ -1166,16 +1148,16 @@ int szps2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double s = 1.0 - sind(*thetap);
-    double t = prj->w[3] - s;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    s = 1.0 - sind(*thetap);
+    t = prj->w[3] - s;
 
     if (t == 0.0) {
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp = 0.0;
         *yp = 0.0;
         *statp = 1;
@@ -1184,13 +1166,13 @@ int szps2x(
       if (!status) status = PRJERR_BAD_WORLD_SET("szps2x");
 
     } else {
-      double r = prj->w[6]*cosd(*thetap)/t;
-      double u = prj->w[4]*s/t + prj->x0;
-      double v = prj->w[5]*s/t + prj->y0;
+      r = prj->w[6]*cosd(*thetap)/t;
+      u = prj->w[4]*s/t + prj->x0;
+      v = prj->w[5]*s/t + prj->y0;
 
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         // Bounds checking.
-        int istat = 0;
+        istat = 0;
         if (prj->bounds&1) {
           if (*thetap < prj->w[8]) {
             // Divergence.
@@ -1205,9 +1187,8 @@ int szps2x(
             if (fabs(t) <= 1.0) {
               s = atan2d(s, prj->w[3] - 1.0);
               t = asind(t);
-
-              double a = s - t;
-              double b = s + t + 180.0;
+              a = s - t;
+              b = s + t + 180.0;
 
               if (a > 90.0) a -= 360.0;
               if (b > 90.0) b -= 360.0;
@@ -1252,8 +1233,8 @@ int tanset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -TAN) return 0;
 
+  prj->flag = TAN;
   strcpy(prj->code, "TAN");
 
   if (prj->r0 == 0.0) prj->r0 = R2D;
@@ -1269,8 +1250,6 @@ int tanset(struct prjprm *prj)
 
   prj->prjx2s = tanx2s;
   prj->prjs2x = tans2x;
-
-  prj->flag = (prj->flag == 1) ? -TAN : TAN;
 
   return prjoff(prj, 0.0, 90.0);
 }
@@ -1290,15 +1269,19 @@ int tanx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double r, xj, yj, yj2;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != TAN) {
+  if (prj->flag != TAN) {
     if ((status = tanset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -1312,14 +1295,14 @@ int tanx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -1327,18 +1310,18 @@ int tanx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj  = *yp + prj->y0;
-    double yj2 = yj*yj;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj  = *yp + prj->y0;
+    yj2 = yj*yj;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
-      double r = sqrt(xj*xj + yj2);
+      r = sqrt(xj*xj + yj2);
       if (r == 0.0) {
         *phip = 0.0;
       } else {
@@ -1374,15 +1357,19 @@ int tans2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, r, s, sinphi;
+  register int iphi, itheta, istat, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != TAN) {
+  if (prj->flag != TAN) {
     if ((status = tanset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -1396,16 +1383,15 @@ int tans2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinphi;
       *yp = cosphi;
       xp += rowlen;
@@ -1415,14 +1401,14 @@ int tans2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double s = sind(*thetap);
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    s = sind(*thetap);
     if (s == 0.0) {
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp = 0.0;
         *yp = 0.0;
         *statp = 1;
@@ -1430,10 +1416,10 @@ int tans2x(
       if (!status) status = PRJERR_BAD_WORLD_SET("tans2x");
 
     } else {
-      double r =  prj->r0*cosd(*thetap)/s;
+      r =  prj->r0*cosd(*thetap)/s;
 
       // Bounds checking.
-      int istat = 0;
+      istat = 0;
       if (prj->bounds&1) {
         if (s < 0.0) {
           istat = 1;
@@ -1441,7 +1427,7 @@ int tans2x(
         }
       }
 
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp =  r*(*xp) - prj->x0;
         *yp = -r*(*yp) - prj->y0;
         *statp = istat;
@@ -1475,8 +1461,8 @@ int stgset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -STG) return 0;
 
+  prj->flag = STG;
   strcpy(prj->code, "STG");
 
   strcpy(prj->name, "stereographic");
@@ -1500,8 +1486,6 @@ int stgset(struct prjprm *prj)
   prj->prjx2s = stgx2s;
   prj->prjs2x = stgs2x;
 
-  prj->flag = (prj->flag == 1) ? -STG : STG;
-
   return prjoff(prj, 0.0, 90.0);
 }
 
@@ -1520,15 +1504,19 @@ int stgx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double r, xj, yj, yj2;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != STG) {
+  if (prj->flag != STG) {
     if ((status = stgset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -1540,14 +1528,14 @@ int stgx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -1555,18 +1543,18 @@ int stgx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj  = *yp + prj->y0;
-    double yj2 = yj*yj;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj  = *yp + prj->y0;
+    yj2 = yj*yj;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj  = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj  = *phip;
 
-      double r = sqrt(xj*xj + yj2);
+      r = sqrt(xj*xj + yj2);
       if (r == 0.0) {
         *phip = 0.0;
       } else {
@@ -1596,15 +1584,19 @@ int stgs2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, r, s, sinphi;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != STG) {
+  if (prj->flag != STG) {
     if ((status = stgset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -1618,16 +1610,15 @@ int stgs2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinphi;
       *yp = cosphi;
       xp += rowlen;
@@ -1637,14 +1628,14 @@ int stgs2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double s = 1.0 + sind(*thetap);
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    s = 1.0 + sind(*thetap);
     if (s == 0.0) {
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp = 0.0;
         *yp = 0.0;
         *statp = 1;
@@ -1652,9 +1643,9 @@ int stgs2x(
       if (!status) status = PRJERR_BAD_WORLD_SET("stgs2x");
 
     } else {
-      double r = prj->w[0]*cosd(*thetap)/s;
+      r = prj->w[0]*cosd(*thetap)/s;
 
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp =  r*(*xp) - prj->x0;
         *yp = -r*(*yp) - prj->y0;
         *statp = 0;
@@ -1693,8 +1684,8 @@ int sinset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -SIN) return 0;
 
+  prj->flag = SIN;
   strcpy(prj->code, "SIN");
 
   if (undefined(prj->pv[1])) prj->pv[1] = 0.0;
@@ -1718,8 +1709,6 @@ int sinset(struct prjprm *prj)
   prj->prjx2s = sinx2s;
   prj->prjs2x = sins2x;
 
-  prj->flag = (prj->flag == 1) ? -SIN : SIN;
-
   return prjoff(prj, 0.0, 90.0);
 }
 
@@ -1738,20 +1727,24 @@ int sinx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
   const double tol = 1.0e-13;
+  double a, b, c, d, eta, r2, sinth1, sinth2, sinthe, x0, xi, x1, xy, y0, y02,
+         y1, z;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != SIN) {
+  if (prj->flag != SIN) {
     if ((status = sinset(prj))) return status;
   }
 
-  double xi  = prj->pv[1];
-  double eta = prj->pv[2];
+  xi  = prj->pv[1];
+  eta = prj->pv[2];
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -1765,14 +1758,14 @@ int sinx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double x0 = (*xp + prj->x0)*prj->w[0];
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    x0 = (*xp + prj->x0)*prj->w[0];
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = x0;
       phip += rowlen;
     }
@@ -1780,18 +1773,18 @@ int sinx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double y0 = (*yp + prj->y0)*prj->w[0];
-    double y02 = y0*y0;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    y0 = (*yp + prj->y0)*prj->w[0];
+    y02 = y0*y0;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       // Compute intermediaries.
-      double x0 = *phip;
-      double r2 = x0*x0 + y02;
+      x0 = *phip;
+      r2 = x0*x0 + y02;
 
       if (prj->w[1] == 0.0) {
         // Orthographic projection.
@@ -1813,19 +1806,18 @@ int sinx2s(
 
       } else {
         // "Synthesis" projection.
-        double xy = x0*xi + y0*eta;
+        xy = x0*xi + y0*eta;
 
-        double z;
         if (r2 < 1.0e-10) {
           // Use small angle formula.
           z = r2/2.0;
           *thetap = 90.0 - R2D*sqrt(r2/(1.0 + xy));
 
         } else {
-          double a = prj->w[2];
-          double b = xy - prj->w[1];
-          double c = r2 - xy - xy + prj->w[3];
-          double d = b*b - a*c;
+          a = prj->w[2];
+          b = xy - prj->w[1];
+          c = r2 - xy - xy + prj->w[3];
+          d = b*b - a*c;
 
           // Check for a solution.
           if (d < 0.0) {
@@ -1838,9 +1830,9 @@ int sinx2s(
           d = sqrt(d);
 
           // Choose solution closest to pole.
-          double sinth1 = (-b + d)/a;
-          double sinth2 = (-b - d)/a;
-          double sinthe = (sinth1 > sinth2) ? sinth1 : sinth2;
+          sinth1 = (-b + d)/a;
+          sinth2 = (-b - d)/a;
+          sinthe = (sinth1 > sinth2) ? sinth1 : sinth2;
           if (sinthe > 1.0) {
             if (sinthe-1.0 < tol) {
               sinthe = 1.0;
@@ -1867,8 +1859,8 @@ int sinx2s(
           z = 1.0 - sinthe;
         }
 
-        double x1 = -y0 + eta*z;
-        double y1 =  x0 -  xi*z;
+        x1 = -y0 + eta*z;
+        y1 =  x0 -  xi*z;
         if (x1 == 0.0 && y1 == 0.0) {
           *phip = 0.0;
         } else {
@@ -1904,15 +1896,19 @@ int sins2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, costhe, sinphi, r, t, z, z1, z2;
+  register int iphi, itheta, istat, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != SIN) {
+  if (prj->flag != SIN) {
     if ((status = sinset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -1926,16 +1922,15 @@ int sins2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinphi;
       *yp = cosphi;
       xp += rowlen;
@@ -1945,14 +1940,12 @@ int sins2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double costhe, z;
-
-    double t = (90.0 - fabs(*thetap))*D2R;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    t = (90.0 - fabs(*thetap))*D2R;
     if (t < 1.0e-5) {
       if (*thetap > 0.0) {
          z = t*t/2.0;
@@ -1964,11 +1957,11 @@ int sins2x(
       z = 1.0 - sind(*thetap);
       costhe = cosd(*thetap);
     }
-    double r = prj->r0*costhe;
+    r = prj->r0*costhe;
 
     if (prj->w[1] == 0.0) {
       // Orthographic projection.
-      int istat = 0;
+      istat = 0;
       if (prj->bounds&1) {
         if (*thetap < 0.0) {
           istat = 1;
@@ -1976,7 +1969,7 @@ int sins2x(
         }
       }
 
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp =  r*(*xp) - prj->x0;
         *yp = -r*(*yp) - prj->y0;
         *statp = istat;
@@ -1985,11 +1978,11 @@ int sins2x(
     } else {
       // "Synthesis" projection.
       z *= prj->r0;
-      double z1 = prj->pv[1]*z - prj->x0;
-      double z2 = prj->pv[2]*z - prj->y0;
+      z1 = prj->pv[1]*z - prj->x0;
+      z2 = prj->pv[2]*z - prj->y0;
 
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
-        int istat = 0;
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+        istat = 0;
         if (prj->bounds&1) {
           t = -atand(prj->pv[1]*(*xp) - prj->pv[2]*(*yp));
           if (*thetap < t) {
@@ -2031,8 +2024,8 @@ int arcset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -ARC) return 0;
 
+  prj->flag = ARC;
   strcpy(prj->code, "ARC");
 
   strcpy(prj->name, "zenithal/azimuthal equidistant");
@@ -2056,8 +2049,6 @@ int arcset(struct prjprm *prj)
   prj->prjx2s = arcx2s;
   prj->prjs2x = arcs2x;
 
-  prj->flag = (prj->flag == 1) ? -ARC : ARC;
-
   return prjoff(prj, 0.0, 90.0);
 }
 
@@ -2076,15 +2067,19 @@ int arcx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double r, xj, yj, yj2;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != ARC) {
+  if (prj->flag != ARC) {
     if ((status = arcset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -2098,14 +2093,14 @@ int arcx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -2113,18 +2108,18 @@ int arcx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj  = *yp + prj->y0;
-    double yj2 = yj*yj;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj  = *yp + prj->y0;
+    yj2 = yj*yj;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
-      double r = sqrt(xj*xj + yj2);
+      r = sqrt(xj*xj + yj2);
       if (r == 0.0) {
         *phip = 0.0;
         *thetap = 90.0;
@@ -2161,15 +2156,19 @@ int arcs2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, r, sinphi;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != ARC) {
+  if (prj->flag != ARC) {
     if ((status = arcset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -2181,16 +2180,15 @@ int arcs2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinphi;
       *yp = cosphi;
       xp += rowlen;
@@ -2200,14 +2198,14 @@ int arcs2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double r =  prj->w[0]*(90.0 - *thetap);
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    r =  prj->w[0]*(90.0 - *thetap);
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - prj->y0;
       *statp = 0;
@@ -2243,12 +2241,14 @@ int arcs2x(
 int zpnset(struct prjprm *prj)
 
 {
+  int j, k, m;
+  double d, d1, d2, r, zd, zd1, zd2;
   const double tol = 1.0e-13;
 
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -ZPN) return 0;
 
   strcpy(prj->code, "ZPN");
+  prj->flag = ZPN;
 
   if (undefined(prj->pv[1])) prj->pv[1] = 0.0;
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
@@ -2265,7 +2265,6 @@ int zpnset(struct prjprm *prj)
   prj->divergent = 0;
 
   // Find the highest non-zero coefficient.
-  int k;
   for (k = PVN-1; k >= 0 && prj->pv[k] == 0.0; k--);
   if (k < 0) {
     return PRJERR_BAD_PARAM_SET("zpnset");
@@ -2279,22 +2278,17 @@ int zpnset(struct prjprm *prj)
 
   } else {
     // Find the point of inflection closest to the pole.
-    double d, d1, d2;
-
-    d1 = prj->pv[1];
+    zd1 = 0.0;
+    d1  = prj->pv[1];
     if (d1 <= 0.0) {
       return PRJERR_BAD_PARAM_SET("zpnset");
     }
 
     // Find the point where the derivative first goes negative.
-    int j;
-    double zd, zd1, zd2;
-
-    zd1 = 0.0;
     for (j = 0; j < 180; j++) {
       zd2 = j*D2R;
       d2  = 0.0;
-      for (int m = k; m > 0; m--) {
+      for (m = k; m > 0; m--) {
         d2 = d2*zd2 + m*prj->pv[m];
       }
 
@@ -2313,7 +2307,7 @@ int zpnset(struct prjprm *prj)
         zd = zd1 - d1*(zd2-zd1)/(d2-d1);
 
         d = 0.0;
-        for (int m = k; m > 0; m--) {
+        for (m = k; m > 0; m--) {
           d = d*zd + m*prj->pv[m];
         }
 
@@ -2329,8 +2323,8 @@ int zpnset(struct prjprm *prj)
       }
     }
 
-    double r = 0.0;
-    for (int m = k; m >= 0; m--) {
+    r = 0.0;
+    for (m = k; m >= 0; m--) {
       r = r*zd + prj->pv[m];
     }
     prj->w[0] = zd;
@@ -2339,8 +2333,6 @@ int zpnset(struct prjprm *prj)
 
   prj->prjx2s = zpnx2s;
   prj->prjs2x = zpns2x;
-
-  prj->flag = (prj->flag == 1) ? -ZPN : ZPN;
 
   return prjoff(prj, 0.0, 90.0);
 }
@@ -2360,19 +2352,22 @@ int zpnx2s(
   int stat[])
 
 {
+  int j, k, m, mx, my, rowlen, rowoff, status;
+  double a, b, c, d, lambda, r, r1, r2, rt, xj, yj, yj2, zd, zd1, zd2;
   const double tol = 1.0e-13;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != ZPN) {
+  if (prj->flag != ZPN) {
     if ((status = zpnset(prj))) return status;
   }
 
-  int k = prj->n;
+  k = prj->n;
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -2386,14 +2381,14 @@ int zpnx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -2401,25 +2396,24 @@ int zpnx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj  = *yp + prj->y0;
-    double yj2 = yj*yj;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj  = *yp + prj->y0;
+    yj2 = yj*yj;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
-      double r = sqrt(xj*xj + yj2)/prj->r0;
+      r = sqrt(xj*xj + yj2)/prj->r0;
       if (r == 0.0) {
         *phip = 0.0;
       } else {
         *phip = atan2d(xj, -yj);
       }
 
-      double zd;
       if (k < 1) {
         // Constant - no solution.
         return PRJERR_BAD_PARAM_SET("zpnx2s");
@@ -2430,11 +2424,11 @@ int zpnx2s(
 
       } else if (k == 2) {
         // Quadratic.
-        double a = prj->pv[2];
-        double b = prj->pv[1];
-        double c = prj->pv[0] - r;
+        a = prj->pv[2];
+        b = prj->pv[1];
+        c = prj->pv[0] - r;
 
-        double d = b*b - 4.0*a*c;
+        d = b*b - 4.0*a*c;
         if (d < 0.0) {
           *thetap = 0.0;
           *statp  = 1;
@@ -2444,9 +2438,8 @@ int zpnx2s(
         d = sqrt(d);
 
         // Choose solution closest to pole.
-        double zd1 = (-b + d)/(2.0*a);
-        double zd2 = (-b - d)/(2.0*a);
-
+        zd1 = (-b + d)/(2.0*a);
+        zd2 = (-b - d)/(2.0*a);
         zd  = (zd1<zd2) ? zd1 : zd2;
         if (zd < -tol) zd = (zd1>zd2) ? zd1 : zd2;
         if (zd < 0.0) {
@@ -2468,10 +2461,10 @@ int zpnx2s(
         }
       } else {
         // Higher order - solve iteratively.
-        double zd1 = 0.0;
-        double r1  = prj->pv[0];
-        double zd2 = prj->w[0];
-        double r2  = prj->w[1];
+        zd1 = 0.0;
+        r1  = prj->pv[0];
+        zd2 = prj->w[0];
+        r2  = prj->w[1];
 
         if (r < r1) {
           if (r < r1-tol) {
@@ -2491,8 +2484,8 @@ int zpnx2s(
           zd = zd2;
         } else {
           // Dissect the interval.
-          for (int j = 0; j < 100; j++) {
-            double lambda = (r2 - r)/(r2 - r1);
+          for (j = 0; j < 100; j++) {
+            lambda = (r2 - r)/(r2 - r1);
             if (lambda < 0.1) {
               lambda = 0.1;
             } else if (lambda > 0.9) {
@@ -2501,8 +2494,8 @@ int zpnx2s(
 
             zd = zd2 - lambda*(zd2 - zd1);
 
-            double rt = 0.0;
-            for (int m = k; m >= 0; m--) {
+            rt = 0.0;
+            for (m = k; m >= 0; m--) {
               rt = (rt * zd) + prj->pv[m];
             }
 
@@ -2550,15 +2543,19 @@ int zpns2x(
   int stat[])
 
 {
+  int m, mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, r, s, sinphi;
+  register int iphi, itheta, istat, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != ZPN) {
+  if (prj->flag != ZPN) {
     if ((status = zpnset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -2572,16 +2569,15 @@ int zpns2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinphi;
       *yp = cosphi;
       xp += rowlen;
@@ -2591,21 +2587,21 @@ int zpns2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double s = (90.0 - *thetap)*D2R;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    s = (90.0 - *thetap)*D2R;
 
-    double r = 0.0;
-    for (int m = prj->n; m >= 0; m--) {
+    r = 0.0;
+    for (m = prj->n; m >= 0; m--) {
       r = r*s + prj->pv[m];
     }
     r *= prj->r0;
 
     // Bounds checking.
-    int istat = 0;
+    istat = 0;
     if (prj->bounds&1) {
       if (s > prj->w[0]) {
         istat = 1;
@@ -2613,7 +2609,7 @@ int zpns2x(
       }
     }
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - prj->y0;
       *statp = istat;
@@ -2646,8 +2642,8 @@ int zeaset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -ZEA) return 0;
 
+  prj->flag = ZEA;
   strcpy(prj->code, "ZEA");
 
   strcpy(prj->name, "zenithal/azimuthal equal area");
@@ -2671,8 +2667,6 @@ int zeaset(struct prjprm *prj)
   prj->prjx2s = zeax2s;
   prj->prjs2x = zeas2x;
 
-  prj->flag = (prj->flag == 1) ? -ZEA : ZEA;
-
   return prjoff(prj, 0.0, 90.0);
 }
 
@@ -2691,17 +2685,20 @@ int zeax2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double r, s, xj, yj, yj2;
   const double tol = 1.0e-12;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != ZEA) {
+  if (prj->flag != ZEA) {
     if ((status = zeaset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -2715,14 +2712,14 @@ int zeax2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -2730,25 +2727,25 @@ int zeax2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj  = *yp + prj->y0;
-    double yj2 = yj*yj;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj  = *yp + prj->y0;
+    yj2 = yj*yj;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj  = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj  = *phip;
 
-      double r = sqrt(xj*xj + yj2);
+      r = sqrt(xj*xj + yj2);
       if (r == 0.0) {
         *phip = 0.0;
       } else {
         *phip = atan2d(xj, -yj);
       }
 
-      double s = r*prj->w[1];
+      s = r*prj->w[1];
       if (fabs(s) > 1.0) {
         if (fabs(r - prj->w[0]) < tol) {
           *thetap = -90.0;
@@ -2790,15 +2787,19 @@ int zeas2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, r, sinphi;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != ZEA) {
+  if (prj->flag != ZEA) {
     if ((status = zeaset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -2810,16 +2811,15 @@ int zeas2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinphi;
       *yp = cosphi;
       xp += rowlen;
@@ -2829,14 +2829,14 @@ int zeas2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double r =  prj->w[0]*sind((90.0 - *thetap)/2.0);
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    r =  prj->w[0]*sind((90.0 - *thetap)/2.0);
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - prj->y0;
       *statp = 0;
@@ -2879,10 +2879,11 @@ int airset(struct prjprm *prj)
 
 {
   const double tol = 1.0e-4;
+  double cosxi;
 
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -AIR) return 0;
 
+  prj->flag = AIR;
   strcpy(prj->code, "AIR");
 
   if (undefined(prj->pv[1])) prj->pv[1] = 90.0;
@@ -2902,7 +2903,7 @@ int airset(struct prjprm *prj)
     prj->w[1] = -0.5;
     prj->w[2] =  1.0;
   } else if (prj->pv[1] > -90.0) {
-    double cosxi = cosd((90.0 - prj->pv[1])/2.0);
+    cosxi = cosd((90.0 - prj->pv[1])/2.0);
     prj->w[1] = log(cosxi)*(cosxi*cosxi)/(1.0-cosxi*cosxi);
     prj->w[2] = 0.5 - prj->w[1];
   } else {
@@ -2916,8 +2917,6 @@ int airset(struct prjprm *prj)
 
   prj->prjx2s = airx2s;
   prj->prjs2x = airs2x;
-
-  prj->flag = (prj->flag == 1) ? -AIR : AIR;
 
   return prjoff(prj, 0.0, 90.0);
 }
@@ -2937,17 +2936,20 @@ int airx2s(
   int stat[])
 
 {
+  int k, mx, my, rowlen, rowoff, status;
+  double cosxi, lambda, r, r1, r2, rt, tanxi, x1, x2, xi, xj, yj, yj2;
   const double tol = 1.0e-12;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != AIR) {
+  if (prj->flag != AIR) {
     if ((status = airset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -2961,14 +2963,14 @@ int airx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -2976,40 +2978,36 @@ int airx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj  = *yp + prj->y0;
-    double yj2 = yj*yj;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj  = *yp + prj->y0;
+    yj2 = yj*yj;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
-      double r = sqrt(xj*xj + yj2)/prj->w[0];
+      r = sqrt(xj*xj + yj2)/prj->w[0];
       if (r == 0.0) {
         *phip = 0.0;
       } else {
         *phip = atan2d(xj, -yj);
       }
 
-      double xi;
+
       if (r == 0.0) {
         xi = 0.0;
       } else if (r < prj->w[5]) {
         xi = r*prj->w[6];
       } else {
         // Find a solution interval.
-        double x1 = 1.0;
-        double x2 = 1.0;
-        double r1 = 0.0;
-        double r2 = 0.0;
-
-        int k;
+        x1 = x2 = 1.0;
+        r1 = r2 = 0.0;
         for (k = 0; k < 30; k++) {
           x2 = x1/2.0;
-          double tanxi = sqrt(1.0-x2*x2)/x2;
+          tanxi = sqrt(1.0-x2*x2)/x2;
           r2 = -(log(x2)/tanxi + prj->w[1]*tanxi);
 
           if (r2 >= r) break;
@@ -3023,10 +3021,9 @@ int airx2s(
           continue;
         }
 
-        double cosxi;
         for (k = 0; k < 100; k++) {
           // Weighted division of the interval.
-          double lambda = (r2-r)/(r2-r1);
+          lambda = (r2-r)/(r2-r1);
           if (lambda < 0.1) {
             lambda = 0.1;
           } else if (lambda > 0.9) {
@@ -3034,8 +3031,8 @@ int airx2s(
           }
           cosxi = x2 - lambda*(x2-x1);
 
-          double tanxi = sqrt(1.0-cosxi*cosxi)/cosxi;
-          double rt = -(log(cosxi)/tanxi + prj->w[1]*tanxi);
+          tanxi = sqrt(1.0-cosxi*cosxi)/cosxi;
+          rt = -(log(cosxi)/tanxi + prj->w[1]*tanxi);
 
           if (rt < r) {
             if (r-rt < tol) break;
@@ -3086,15 +3083,19 @@ int airs2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, cosxi, r, tanxi, xi, sinphi;
+  register int iphi, itheta, istat, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != AIR) {
+  if (prj->flag != AIR) {
     if ((status = airset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -3108,16 +3109,15 @@ int airs2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinphi;
       *yp = cosphi;
       xp += rowlen;
@@ -3127,23 +3127,22 @@ int airs2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    int istat = 0;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    istat = 0;
 
-    double r;
     if (*thetap == 90.0) {
       r = 0.0;
     } else if (*thetap > -90.0) {
-      double xi = D2R*(90.0 - *thetap)/2.0;
+      xi = D2R*(90.0 - *thetap)/2.0;
       if (xi < prj->w[4]) {
         r = xi*prj->w[3];
       } else {
-        double cosxi = cosd((90.0 - *thetap)/2.0);
-        double tanxi = sqrt(1.0 - cosxi*cosxi)/cosxi;
+        cosxi = cosd((90.0 - *thetap)/2.0);
+        tanxi = sqrt(1.0 - cosxi*cosxi)/cosxi;
         r = -prj->w[0]*(log(cosxi)/tanxi + prj->w[1]*tanxi);
       }
     } else {
@@ -3152,7 +3151,7 @@ int airs2x(
       if (!status) status = PRJERR_BAD_WORLD_SET("airs2x");
     }
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - prj->y0;
       *statp = istat;
@@ -3193,8 +3192,8 @@ int cypset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -CYP) return 0;
 
+  prj->flag = CYP;
   strcpy(prj->code, "CYP");
 
   if (undefined(prj->pv[1])) prj->pv[1] = 1.0;
@@ -3244,8 +3243,6 @@ int cypset(struct prjprm *prj)
   prj->prjx2s = cypx2s;
   prj->prjs2x = cyps2x;
 
-  prj->flag = (prj->flag == 1) ? -CYP : CYP;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -3264,15 +3261,19 @@ int cypx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double eta, s, t;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != CYP) {
+  if (prj->flag != CYP) {
     if ((status = cypset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -3286,14 +3287,14 @@ int cypx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double s = prj->w[1]*(*xp + prj->x0);
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    s = prj->w[1]*(*xp + prj->x0);
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = s;
       phip += rowlen;
     }
@@ -3301,14 +3302,14 @@ int cypx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double eta = prj->w[3]*(*yp + prj->y0);
-    double t = atan2d(eta,1.0) + asind(eta*prj->pv[1]/sqrt(eta*eta+1.0));
+  yp = y;
+  thetap = theta;
+  statp = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    eta = prj->w[3]*(*yp + prj->y0);
+    t = atan2d(eta,1.0) + asind(eta*prj->pv[1]/sqrt(eta*eta+1.0));
 
-    for (int ix = 0; ix < mx; ix++, thetap += spt, statp++) {
+    for (ix = 0; ix < mx; ix++, thetap += spt, statp++) {
       *thetap = t;
       *statp  = 0;
     }
@@ -3338,15 +3339,19 @@ int cyps2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double eta, xi;
+  register int iphi, itheta, istat, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != CYP) {
+  if (prj->flag != CYP) {
     if ((status = cypset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -3360,14 +3365,14 @@ int cyps2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double xi = prj->w[0]*(*phip) - prj->x0;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    xi = prj->w[0]*(*phip) - prj->x0;
 
-    double *xp = x + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = xi;
       xp += rowlen;
     }
@@ -3375,13 +3380,13 @@ int cyps2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double eta = prj->pv[1] + cosd(*thetap);
+  thetap = theta;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    eta = prj->pv[1] + cosd(*thetap);
 
-    int istat = 0;
+    istat = 0;
     if (eta == 0.0) {
       istat = 1;
       if (!status) status = PRJERR_BAD_WORLD_SET("cyps2x");
@@ -3391,7 +3396,7 @@ int cyps2x(
     }
 
     eta -= prj->y0;
-    for (int iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
       *yp = eta;
       *statp = istat;
     }
@@ -3429,8 +3434,8 @@ int ceaset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -CEA) return 0;
 
+  prj->flag = CEA;
   strcpy(prj->code, "CEA");
 
   if (undefined(prj->pv[1])) prj->pv[1] = 1.0;
@@ -3466,8 +3471,6 @@ int ceaset(struct prjprm *prj)
   prj->prjx2s = ceax2s;
   prj->prjs2x = ceas2x;
 
-  prj->flag = (prj->flag == 1) ? -CEA : CEA;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -3486,17 +3489,20 @@ int ceax2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double s;
   const double tol = 1.0e-13;
+  register int istat, ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != CEA) {
+  if (prj->flag != CEA) {
     if ((status = ceaset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -3510,14 +3516,14 @@ int ceax2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double s = prj->w[1]*(*xp + prj->x0);
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    s = prj->w[1]*(*xp + prj->x0);
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = s;
       phip += rowlen;
     }
@@ -3525,13 +3531,13 @@ int ceax2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double s = prj->w[3]*(*yp + prj->y0);
+  yp = y;
+  thetap = theta;
+  statp = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    s = prj->w[3]*(*yp + prj->y0);
 
-    int istat = 0;
+    istat = 0;
     if (fabs(s) > 1.0) {
       if (fabs(s) > 1.0+tol) {
         s = 0.0;
@@ -3544,7 +3550,7 @@ int ceax2s(
       s = asind(s);
     }
 
-    for (int ix = 0; ix < mx; ix++, thetap += spt, statp++) {
+    for (ix = 0; ix < mx; ix++, thetap += spt, statp++) {
       *thetap = s;
       *statp  = istat;
     }
@@ -3574,15 +3580,19 @@ int ceas2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double eta, xi;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != CEA) {
+  if (prj->flag != CEA) {
     if ((status = ceaset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -3594,14 +3604,14 @@ int ceas2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double xi = prj->w[0]*(*phip) - prj->x0;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    xi = prj->w[0]*(*phip) - prj->x0;
 
-    double *xp = x + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = xi;
       xp += rowlen;
     }
@@ -3609,13 +3619,13 @@ int ceas2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double eta = prj->w[2]*sind(*thetap) - prj->y0;
+  thetap = theta;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    eta = prj->w[2]*sind(*thetap) - prj->y0;
 
-    for (int iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
       *yp = eta;
       *statp = 0;
     }
@@ -3647,8 +3657,8 @@ int carset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -CAR) return 0;
 
+  prj->flag = CAR;
   strcpy(prj->code, "CAR");
 
   strcpy(prj->name, "plate caree");
@@ -3672,8 +3682,6 @@ int carset(struct prjprm *prj)
   prj->prjx2s = carx2s;
   prj->prjs2x = cars2x;
 
-  prj->flag = (prj->flag == 1) ? -CAR : CAR;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -3692,15 +3700,19 @@ int carx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double s, t;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != CAR) {
+  if (prj->flag != CAR) {
     if ((status = carset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -3714,14 +3726,14 @@ int carx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double s = prj->w[1]*(*xp + prj->x0);
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    s = prj->w[1]*(*xp + prj->x0);
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = s;
       phip += rowlen;
     }
@@ -3729,13 +3741,13 @@ int carx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double t = prj->w[1]*(*yp + prj->y0);
+  yp = y;
+  thetap = theta;
+  statp = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    t = prj->w[1]*(*yp + prj->y0);
 
-    for (int ix = 0; ix < mx; ix++, thetap += spt, statp++) {
+    for (ix = 0; ix < mx; ix++, thetap += spt, statp++) {
       *thetap = t;
       *statp  = 0;
     }
@@ -3765,15 +3777,19 @@ int cars2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double eta, xi;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != CAR) {
+  if (prj->flag != CAR) {
     if ((status = carset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -3785,14 +3801,14 @@ int cars2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double xi = prj->w[0]*(*phip) - prj->x0;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    xi = prj->w[0]*(*phip) - prj->x0;
 
-    double *xp = x + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = xi;
       xp += rowlen;
     }
@@ -3800,13 +3816,13 @@ int cars2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double eta = prj->w[0]*(*thetap) - prj->y0;
+  thetap = theta;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    eta = prj->w[0]*(*thetap) - prj->y0;
 
-    for (int iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
       *yp = eta;
       *statp = 0;
     }
@@ -3838,8 +3854,8 @@ int merset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -MER) return 0;
 
+  prj->flag = MER;
   strcpy(prj->code, "MER");
 
   strcpy(prj->name, "Mercator's");
@@ -3863,8 +3879,6 @@ int merset(struct prjprm *prj)
   prj->prjx2s = merx2s;
   prj->prjs2x = mers2x;
 
-  prj->flag = (prj->flag == 1) ? -MER : MER;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -3883,15 +3897,19 @@ int merx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double s, t;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != MER) {
+  if (prj->flag != MER) {
     if ((status = merset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -3905,14 +3923,14 @@ int merx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double s = prj->w[1]*(*xp + prj->x0);
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    s = prj->w[1]*(*xp + prj->x0);
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = s;
       phip += rowlen;
     }
@@ -3920,13 +3938,13 @@ int merx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double t = 2.0*atand(exp((*yp + prj->y0)/prj->r0)) - 90.0;
+  yp = y;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    t = 2.0*atand(exp((*yp + prj->y0)/prj->r0)) - 90.0;
 
-    for (int ix = 0; ix < mx; ix++, thetap += spt, statp++) {
+    for (ix = 0; ix < mx; ix++, thetap += spt, statp++) {
       *thetap = t;
       *statp  = 0;
     }
@@ -3956,15 +3974,19 @@ int mers2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double eta, xi;
+  register int iphi, itheta, istat, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != MER) {
+  if (prj->flag != MER) {
     if ((status = merset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -3978,14 +4000,14 @@ int mers2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double xi  = prj->w[0]*(*phip) - prj->x0;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    xi  = prj->w[0]*(*phip) - prj->x0;
 
-    double *xp = x + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = xi;
       xp += rowlen;
     }
@@ -3993,13 +4015,12 @@ int mers2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    int istat = 0;
+  thetap = theta;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    istat = 0;
 
-    double eta;
     if (*thetap <= -90.0 || *thetap >= 90.0) {
       eta = 0.0;
       istat = 1;
@@ -4008,7 +4029,7 @@ int mers2x(
       eta = prj->r0*log(tand((*thetap+90.0)/2.0)) - prj->y0;
     }
 
-    for (int iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
       *yp = eta;
       *statp = istat;
     }
@@ -4040,8 +4061,8 @@ int sflset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -SFL) return 0;
 
+  prj->flag = SFL;
   strcpy(prj->code, "SFL");
 
   strcpy(prj->name, "Sanson-Flamsteed");
@@ -4065,8 +4086,6 @@ int sflset(struct prjprm *prj)
   prj->prjx2s = sflx2s;
   prj->prjs2x = sfls2x;
 
-  prj->flag = (prj->flag == 1) ? -SFL : SFL;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -4085,15 +4104,19 @@ int sflx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double s, t, yj;
+  register int istat, ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != SFL) {
+  if (prj->flag != SFL) {
     if ((status = sflset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -4107,14 +4130,14 @@ int sflx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double s = prj->w[1]*(*xp + prj->x0);
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    s = prj->w[1]*(*xp + prj->x0);
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = s;
       phip += rowlen;
     }
@@ -4122,15 +4145,15 @@ int sflx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj = *yp + prj->y0;
-    double s = cos(yj/prj->r0);
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj = *yp + prj->y0;
+    s = cos(yj/prj->r0);
 
-    int istat = 0;
+    istat = 0;
     if (s == 0.0) {
       istat = 1;
       if (!status) status = PRJERR_BAD_PIX_SET("sflx2s");
@@ -4138,9 +4161,9 @@ int sflx2s(
       s = 1.0/s;
     }
 
-    double t = prj->w[1]*yj;
+    t = prj->w[1]*yj;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       *phip  *= s;
       *thetap = t;
       *statp  = istat;
@@ -4171,15 +4194,19 @@ int sfls2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double eta, xi;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != SFL) {
+  if (prj->flag != SFL) {
     if ((status = sflset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -4191,14 +4218,14 @@ int sfls2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double xi = prj->w[0]*(*phip);
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    xi = prj->w[0]*(*phip);
 
-    double *xp = x + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = xi;
       xp += rowlen;
     }
@@ -4206,15 +4233,15 @@ int sfls2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double xi  = cosd(*thetap);
-    double eta = prj->w[0]*(*thetap) - prj->y0;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    xi  = cosd(*thetap);
+    eta = prj->w[0]*(*thetap) - prj->y0;
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp = xi*(*xp) - prj->x0;
       *yp = eta;
       *statp = 0;
@@ -4249,8 +4276,8 @@ int parset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -PAR) return 0;
 
+  prj->flag = PAR;
   strcpy(prj->code, "PAR");
 
   strcpy(prj->name, "parabolic");
@@ -4278,8 +4305,6 @@ int parset(struct prjprm *prj)
   prj->prjx2s = parx2s;
   prj->prjs2x = pars2x;
 
-  prj->flag = (prj->flag == 1) ? -PAR : PAR;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -4298,17 +4323,20 @@ int parx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double r, s, t, xj;
   const double tol = 1.0e-13;
+  register int istat, ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != PAR) {
+  if (prj->flag != PAR) {
     if ((status = parset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -4322,17 +4350,17 @@ int parx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
-    double s = prj->w[1]*xj;
-    double t = fabs(xj) - tol;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
+    s = prj->w[1]*xj;
+    t = fabs(xj) - tol;
 
-    double *phip   = phi   + rowoff;
-    double *thetap = theta + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip   = phi   + rowoff;
+    thetap = theta + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip   = s;
       *thetap = t;
       phip   += rowlen;
@@ -4342,15 +4370,14 @@ int parx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double r = prj->w[3]*(*yp + prj->y0);
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    r = prj->w[3]*(*yp + prj->y0);
 
-    int istat = 0;
-    double s, t;
+    istat = 0;
     if (r > 1.0 || r < -1.0) {
       s = 0.0;
       t = 0.0;
@@ -4369,7 +4396,7 @@ int parx2s(
       t = 3.0*asind(r);
     }
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       if (istat < 0) {
         if (*thetap < 0.0) {
           *statp = 0;
@@ -4410,15 +4437,19 @@ int pars2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double eta, s, xi;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != PAR) {
+  if (prj->flag != PAR) {
     if ((status = parset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -4430,14 +4461,14 @@ int pars2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double xi = prj->w[0]*(*phip);
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    xi = prj->w[0]*(*phip);
 
-    double *xp = x + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = xi;
       xp += rowlen;
     }
@@ -4445,16 +4476,16 @@ int pars2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double s = sind((*thetap)/3.0);
-    double xi = (1.0 - 4.0*s*s);
-    double eta = prj->w[2]*s - prj->y0;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    s = sind((*thetap)/3.0);
+    xi = (1.0 - 4.0*s*s);
+    eta = prj->w[2]*s - prj->y0;
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp = xi*(*xp) - prj->x0;
       *yp = eta;
       *statp = 0;
@@ -4489,8 +4520,8 @@ int molset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -MOL) return 0;
 
+  prj->flag = MOL;
   strcpy(prj->code, "MOL");
 
   if (prj->r0 == 0.0) prj->r0 = R2D;
@@ -4513,8 +4544,6 @@ int molset(struct prjprm *prj)
   prj->prjx2s = molx2s;
   prj->prjs2x = mols2x;
 
-  prj->flag = (prj->flag == 1) ? -MOL : MOL;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -4533,17 +4562,20 @@ int molx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double r, s, t, xj, y0, yj, z;
   const double tol = 1.0e-12;
+  register int istat, ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != MOL) {
+  if (prj->flag != MOL) {
     if ((status = molset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -4557,17 +4589,17 @@ int molx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
-    double s = prj->w[3]*xj;
-    double t = fabs(xj) - tol;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
+    s = prj->w[3]*xj;
+    t = fabs(xj) - tol;
 
-    double *phip   = phi   + rowoff;
-    double *thetap = theta + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip   = phi   + rowoff;
+    thetap = theta + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip   = s;
       *thetap = t;
       phip   += rowlen;
@@ -4577,17 +4609,16 @@ int molx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj = *yp + prj->y0;
-    double y0 = yj/prj->r0;
-    double r  = 2.0 - y0*y0;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj = *yp + prj->y0;
+    y0 = yj/prj->r0;
+    r  = 2.0 - y0*y0;
 
-    int istat = 0;
-    double s;
+    istat = 0;
     if (r <= tol) {
       if (r < -tol) {
         istat = 1;
@@ -4605,7 +4636,7 @@ int molx2s(
       s = 1.0/r;
     }
 
-    double z = yj*prj->w[2];
+    z = yj*prj->w[2];
     if (fabs(z) > 1.0) {
       if (fabs(z) > 1.0+tol) {
         z = 0.0;
@@ -4628,9 +4659,9 @@ int molx2s(
       }
     }
 
-    double t = asind(z);
+    t = asind(z);
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       if (istat < 0) {
         if (*thetap < 0.0) {
           *statp = 0;
@@ -4671,17 +4702,20 @@ int mols2x(
   int stat[])
 
 {
+  int k, mphi, mtheta, rowlen, rowoff, status;
+  double eta, gamma, resid, u, v, v0, v1, xi;
   const double tol = 1.0e-13;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != MOL) {
+  if (prj->flag != MOL) {
     if ((status = molset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -4693,14 +4727,14 @@ int mols2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double xi = prj->w[1]*(*phip);
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    xi = prj->w[1]*(*phip);
 
-    double *xp = x + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = xi;
       xp += rowlen;
     }
@@ -4708,13 +4742,11 @@ int mols2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double xi, eta;
-
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     if (fabs(*thetap) == 90.0) {
       xi  = 0.0;
       eta = copysign(prj->w[0], *thetap);
@@ -4724,12 +4756,12 @@ int mols2x(
       eta = 0.0;
 
     } else {
-      double u  = PI*sind(*thetap);
-      double v0 = -PI;
-      double v1 =  PI;
-      double v  = u;
-      for (int k = 0; k < 100; k++) {
-        double resid = (v - u) + sin(v);
+      u  = PI*sind(*thetap);
+      v0 = -PI;
+      v1 =  PI;
+      v  = u;
+      for (k = 0; k < 100; k++) {
+        resid = (v - u) + sin(v);
         if (resid < 0.0) {
           if (resid > -tol) break;
           v0 = v;
@@ -4740,13 +4772,13 @@ int mols2x(
         v = (v0 + v1)/2.0;
       }
 
-      double gamma = v/2.0;
+      gamma = v/2.0;
       xi  = cos(gamma);
       eta = prj->w[0]*sin(gamma);
     }
 
     eta -= prj->y0;
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp = xi*(*xp) - prj->x0;
       *yp = eta;
       *statp = 0;
@@ -4781,8 +4813,8 @@ int aitset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -AIT) return 0;
 
+  prj->flag = AIT;
   strcpy(prj->code, "AIT");
 
   if (prj->r0 == 0.0) prj->r0 = R2D;
@@ -4804,8 +4836,6 @@ int aitset(struct prjprm *prj)
   prj->prjx2s = aitx2s;
   prj->prjs2x = aits2x;
 
-  prj->flag = (prj->flag == 1) ? -AIT : AIT;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -4824,17 +4854,20 @@ int aitx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double s, t, x0, xj, y0, yj, yj2, z;
   const double tol = 1.0e-13;
+  register int ix, iy, istat, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != AIT) {
+  if (prj->flag != AIT) {
     if ((status = aitset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -4848,17 +4881,17 @@ int aitx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
-    double s  = 1.0 - xj*xj*prj->w[2];
-    double t  = xj*prj->w[3];
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
+    s  = 1.0 - xj*xj*prj->w[2];
+    t  = xj*prj->w[3];
 
-    double *phip   = phi   + rowoff;
-    double *thetap = theta + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip   = phi   + rowoff;
+    thetap = theta + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip   = s;
       *thetap = t;
       phip   += rowlen;
@@ -4868,18 +4901,18 @@ int aitx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj  = *yp + prj->y0;
-    double yj2 = yj*yj*prj->w[1];
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj  = *yp + prj->y0;
+    yj2 = yj*yj*prj->w[1];
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double s = *phip - yj2;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      s = *phip - yj2;
 
-      int istat = 0;
+      istat = 0;
       if (s < 0.5) {
         if (s < 0.5-tol) {
           istat = 1;
@@ -4889,16 +4922,16 @@ int aitx2s(
         s = 0.5;
       }
 
-      double z = sqrt(s);
-      double x0 = 2.0*z*z - 1.0;
-      double y0 = z*(*thetap);
+      z = sqrt(s);
+      x0 = 2.0*z*z - 1.0;
+      y0 = z*(*thetap);
       if (x0 == 0.0 && y0 == 0.0) {
         *phip = 0.0;
       } else {
         *phip = 2.0*atan2d(y0, x0);
       }
 
-      double t = z*yj/prj->r0;
+      t = z*yj/prj->r0;
       if (fabs(t) > 1.0) {
         if (fabs(t) > 1.0+tol) {
           istat = 1;
@@ -4939,15 +4972,19 @@ int aits2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, costhe, sinphi, sinthe, w;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != AIT) {
+  if (prj->flag != AIT) {
     if ((status = aitset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -4959,17 +4996,16 @@ int aits2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double w = (*phip)/2.0;
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    w = (*phip)/2.0;
     sincosd(w, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinphi;
       *yp = cosphi;
       xp += rowlen;
@@ -4979,16 +5015,15 @@ int aits2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double sinthe, costhe;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     sincosd(*thetap, &sinthe, &costhe);
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
-      double w = sqrt(prj->w[0]/(1.0 + costhe*(*yp)));
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      w = sqrt(prj->w[0]/(1.0 + costhe*(*yp)));
       *xp = 2.0*w*costhe*(*xp) - prj->x0;
       *yp = w*sinthe - prj->y0;
       *statp = 0;
@@ -5030,9 +5065,10 @@ int copset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -COP) return 0;
 
+  prj->flag = COP;
   strcpy(prj->code, "COP");
+  strcpy(prj->name, "conic perspective");
 
   if (undefined(prj->pv[1])) {
     return PRJERR_BAD_PARAM_SET("copset");
@@ -5040,7 +5076,6 @@ int copset(struct prjprm *prj)
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "conic perspective");
   prj->category  = CONIC;
   prj->pvrange   = 102;
   prj->simplezen = 0;
@@ -5069,8 +5104,6 @@ int copset(struct prjprm *prj)
   prj->prjx2s = copx2s;
   prj->prjs2x = cops2x;
 
-  prj->flag = (prj->flag == 1) ? -COP : COP;
-
   return prjoff(prj, 0.0, prj->pv[1]);
 }
 
@@ -5089,15 +5122,18 @@ int copx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double alpha, dy, dy2, r, xj;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != COP) {
+  if (prj->flag != COP) {
     if ((status = copset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -5111,14 +5147,14 @@ int copx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -5126,21 +5162,20 @@ int copx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double dy  = prj->w[2] - (*yp + prj->y0);
-    double dy2 = dy*dy;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    dy  = prj->w[2] - (*yp + prj->y0);
+    dy2 = dy*dy;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
-      double r = sqrt(xj*xj + dy2);
+      r = sqrt(xj*xj + dy2);
       if (prj->pv[1] < 0.0) r = -r;
 
-      double alpha;
       if (r == 0.0) {
         alpha = 0.0;
       } else {
@@ -5177,15 +5212,18 @@ int cops2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double alpha, cosalpha, r, s, t, sinalpha, y0;
+  register int iphi, itheta, istat, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != COP) {
+  if (prj->flag != COP) {
     if ((status = copset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -5199,17 +5237,16 @@ int cops2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double alpha = prj->w[0]*(*phip);
-    double sinalpha, cosalpha;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    alpha = prj->w[0]*(*phip);
     sincosd(alpha, &sinalpha, &cosalpha);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinalpha;
       *yp = cosalpha;
       xp += rowlen;
@@ -5219,17 +5256,16 @@ int cops2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  double y0 = prj->y0 - prj->w[2];
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double t = *thetap - prj->pv[1];
-    double s = cosd(t);
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  y0 = prj->y0 - prj->w[2];
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    t = *thetap - prj->pv[1];
+    s = cosd(t);
 
-    int istat = 0;
-    double r;
+    istat = 0;
     if (s == 0.0) {
       // Latitude of divergence.
       r = 0.0;
@@ -5260,7 +5296,7 @@ int cops2x(
       }
     }
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - y0;
       *statp = istat;
@@ -5304,10 +5340,13 @@ int cops2x(
 int coeset(struct prjprm *prj)
 
 {
-  if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -COE) return 0;
+  double theta1, theta2;
 
+  if (prj == 0x0) return PRJERR_NULL_POINTER;
+
+  prj->flag = COE;
   strcpy(prj->code, "COE");
+  strcpy(prj->name, "conic equal area");
 
   if (undefined(prj->pv[1])) {
     return PRJERR_BAD_PARAM_SET("coeset");
@@ -5315,7 +5354,6 @@ int coeset(struct prjprm *prj)
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "conic equal area");
   prj->category  = CONIC;
   prj->pvrange   = 102;
   prj->simplezen = 0;
@@ -5324,8 +5362,8 @@ int coeset(struct prjprm *prj)
   prj->global    = 1;
   prj->divergent = 0;
 
-  double theta1 = prj->pv[1] - prj->pv[2];
-  double theta2 = prj->pv[1] + prj->pv[2];
+  theta1 = prj->pv[1] - prj->pv[2];
+  theta2 = prj->pv[1] + prj->pv[2];
 
   prj->w[0] = (sind(theta1) + sind(theta2))/2.0;
   if (prj->w[0] == 0.0) {
@@ -5346,8 +5384,6 @@ int coeset(struct prjprm *prj)
   prj->prjx2s = coex2s;
   prj->prjs2x = coes2x;
 
-  prj->flag = (prj->flag == 1) ? -COE : COE;
-
   return prjoff(prj, 0.0, prj->pv[1]);
 }
 
@@ -5366,17 +5402,19 @@ int coex2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double alpha, dy, dy2, r, t, w, xj;
   const double tol = 1.0e-12;
+  register int ix, iy, istat, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != COE) {
+  if (prj->flag != COE) {
     if ((status = coeset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -5390,14 +5428,14 @@ int coex2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -5405,33 +5443,31 @@ int coex2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double dy  = prj->w[2] - (*yp + prj->y0);
-    double dy2 = dy*dy;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    dy  = prj->w[2] - (*yp + prj->y0);
+    dy2 = dy*dy;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
-      double r = sqrt(xj*xj + dy2);
+      r = sqrt(xj*xj + dy2);
       if (prj->pv[1] < 0.0) r = -r;
 
-      double alpha;
       if (r == 0.0) {
         alpha = 0.0;
       } else {
         alpha = atan2d(xj/r, dy/r);
       }
 
-      int istat = 0;
-      double t;
+      istat = 0;
       if (fabs(r - prj->w[8]) < tol) {
         t = -90.0;
       } else {
-        double w = (prj->w[6] - r*r)*prj->w[7];
+        w = (prj->w[6] - r*r)*prj->w[7];
         if (fabs(w) > 1.0) {
           if (fabs(w-1.0) < tol) {
             t = 90.0;
@@ -5477,15 +5513,18 @@ int coes2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double alpha, cosalpha, r, sinalpha, y0;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != COE) {
+  if (prj->flag != COE) {
     if ((status = coeset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -5497,17 +5536,16 @@ int coes2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double alpha = prj->w[0]*(*phip);
-    double sinalpha, cosalpha;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    alpha = prj->w[0]*(*phip);
     sincosd(alpha, &sinalpha, &cosalpha);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinalpha;
       *yp = cosalpha;
       xp += rowlen;
@@ -5517,20 +5555,19 @@ int coes2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  double y0 = prj->y0 - prj->w[2];
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double r;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  y0 = prj->y0 - prj->w[2];
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     if (*thetap == -90.0) {
       r = prj->w[8];
     } else {
       r = prj->w[3]*sqrt(prj->w[4] - prj->w[5]*sind(*thetap));
     }
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - y0;
       *statp = 0;
@@ -5570,9 +5607,10 @@ int codset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -COD) return 0;
 
+  prj->flag = COD;
   strcpy(prj->code, "COD");
+  strcpy(prj->name, "conic equidistant");
 
   if (undefined(prj->pv[1])) {
     return PRJERR_BAD_PARAM_SET("codset");
@@ -5580,7 +5618,6 @@ int codset(struct prjprm *prj)
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "conic equidistant");
   prj->category  = CONIC;
   prj->pvrange   = 102;
   prj->simplezen = 0;
@@ -5606,8 +5643,6 @@ int codset(struct prjprm *prj)
   prj->prjx2s = codx2s;
   prj->prjs2x = cods2x;
 
-  prj->flag = (prj->flag == 1) ? -COD : COD;
-
   return prjoff(prj, 0.0, prj->pv[1]);
 }
 
@@ -5626,15 +5661,18 @@ int codx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double alpha, dy, dy2, r, xj;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != COD) {
+  if (prj->flag != COD) {
     if ((status = codset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -5648,14 +5686,14 @@ int codx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -5663,21 +5701,20 @@ int codx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double dy  = prj->w[2] - (*yp + prj->y0);
-    double dy2 = dy*dy;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    dy  = prj->w[2] - (*yp + prj->y0);
+    dy2 = dy*dy;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
-      double r = sqrt(xj*xj + dy2);
+      r = sqrt(xj*xj + dy2);
       if (prj->pv[1] < 0.0) r = -r;
 
-      double alpha;
       if (r == 0.0) {
         alpha = 0.0;
       } else {
@@ -5714,15 +5751,18 @@ int cods2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double alpha, cosalpha, r, sinalpha, y0;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != COD) {
+  if (prj->flag != COD) {
     if ((status = codset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -5734,17 +5774,16 @@ int cods2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double alpha = prj->w[0]*(*phip);
-    double sinalpha, cosalpha;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    alpha = prj->w[0]*(*phip);
     sincosd(alpha, &sinalpha, &cosalpha);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinalpha;
       *yp = cosalpha;
       xp += rowlen;
@@ -5754,15 +5793,15 @@ int cods2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  double y0 = prj->y0 - prj->w[2];
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double r = prj->w[3] - *thetap;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  y0 = prj->y0 - prj->w[2];
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    r = prj->w[3] - *thetap;
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - y0;
       *statp = 0;
@@ -5804,10 +5843,13 @@ int cods2x(
 int cooset(struct prjprm *prj)
 
 {
-  if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -COO) return 0;
+  double cos1, cos2, tan1, tan2, theta1, theta2;
 
+  if (prj == 0x0) return PRJERR_NULL_POINTER;
+
+  prj->flag = COO;
   strcpy(prj->code, "COO");
+  strcpy(prj->name, "conic orthomorphic");
 
   if (undefined(prj->pv[1])) {
     return PRJERR_BAD_PARAM_SET("cooset");
@@ -5815,7 +5857,6 @@ int cooset(struct prjprm *prj)
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "conic orthomorphic");
   prj->category  = CONIC;
   prj->pvrange   = 102;
   prj->simplezen = 0;
@@ -5824,17 +5865,17 @@ int cooset(struct prjprm *prj)
   prj->global    = 0;
   prj->divergent = 1;
 
-  double theta1 = prj->pv[1] - prj->pv[2];
-  double theta2 = prj->pv[1] + prj->pv[2];
+  theta1 = prj->pv[1] - prj->pv[2];
+  theta2 = prj->pv[1] + prj->pv[2];
 
-  double tan1 = tand((90.0 - theta1)/2.0);
-  double cos1 = cosd(theta1);
+  tan1 = tand((90.0 - theta1)/2.0);
+  cos1 = cosd(theta1);
 
   if (theta1 == theta2) {
     prj->w[0] = sind(theta1);
   } else {
-    double tan2 = tand((90.0 - theta2)/2.0);
-    double cos2 = cosd(theta2);
+    tan2 = tand((90.0 - theta2)/2.0);
+    cos2 = cosd(theta2);
     prj->w[0] = log(cos2/cos1)/log(tan2/tan1);
   }
   if (prj->w[0] == 0.0) {
@@ -5852,8 +5893,6 @@ int cooset(struct prjprm *prj)
 
   prj->prjx2s = coox2s;
   prj->prjs2x = coos2x;
-
-  prj->flag = (prj->flag == 1) ? -COO : COO;
 
   return prjoff(prj, 0.0, prj->pv[1]);
 }
@@ -5873,15 +5912,18 @@ int coox2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double alpha, dy, dy2, r, t, xj;
+  register int ix, iy, istat, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != COO) {
+  if (prj->flag != COO) {
     if ((status = cooset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -5895,14 +5937,14 @@ int coox2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -5910,29 +5952,27 @@ int coox2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double dy  = prj->w[2] - (*yp + prj->y0);
-    double dy2 = dy*dy;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    dy  = prj->w[2] - (*yp + prj->y0);
+    dy2 = dy*dy;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
-      double r = sqrt(xj*xj + dy2);
+      r = sqrt(xj*xj + dy2);
       if (prj->pv[1] < 0.0) r = -r;
 
-      double alpha;
       if (r == 0.0) {
         alpha = 0.0;
       } else {
         alpha = atan2d(xj/r, dy/r);
       }
 
-      int istat = 0;
-      double t;
+      istat = 0;
       if (r == 0.0) {
         if (prj->w[0] < 0.0) {
           t = -90.0;
@@ -5975,15 +6015,18 @@ int coos2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double alpha, cosalpha, r, sinalpha, y0;
+  register int iphi, itheta, istat, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != COO) {
+  if (prj->flag != COO) {
     if ((status = cooset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -5997,17 +6040,16 @@ int coos2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double alpha = prj->w[0]*(*phip);
-    double sinalpha, cosalpha;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    alpha = prj->w[0]*(*phip);
     sincosd(alpha, &sinalpha, &cosalpha);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = sinalpha;
       *yp = cosalpha;
       xp += rowlen;
@@ -6017,15 +6059,14 @@ int coos2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  double y0 = prj->y0 - prj->w[2];
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    int istat = 0;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  y0 = prj->y0 - prj->w[2];
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    istat = 0;
 
-    double r;
     if (*thetap == -90.0) {
       r = 0.0;
       if (prj->w[0] >= 0.0) {
@@ -6036,7 +6077,7 @@ int coos2x(
       r = prj->w[3]*pow(tand((90.0 - *thetap)/2.0),prj->w[0]);
     }
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - y0;
       *statp = istat;
@@ -6072,9 +6113,10 @@ int bonset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -BON) return 0;
 
+  prj->flag = BON;
   strcpy(prj->code, "BON");
+  strcpy(prj->name, "Bonne's");
 
   if (undefined(prj->pv[1])) {
     return PRJERR_BAD_PARAM_SET("bonset");
@@ -6085,7 +6127,6 @@ int bonset(struct prjprm *prj)
     return sflset(prj);
   }
 
-  strcpy(prj->name, "Bonne's");
   prj->category  = POLYCONIC;
   prj->pvrange   = 101;
   prj->simplezen = 0;
@@ -6106,8 +6147,6 @@ int bonset(struct prjprm *prj)
   prj->prjx2s = bonx2s;
   prj->prjs2x = bons2x;
 
-  prj->flag = (prj->flag == 1) ? -BON : BON;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -6126,6 +6165,13 @@ int bonx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double alpha, dy, dy2, costhe, r, s, t, xj;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->pv[1] == 0.0) {
@@ -6133,12 +6179,10 @@ int bonx2s(
     return sflx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat);
   }
 
-  int status;
-  if (abs(prj->flag) != BON) {
+  if (prj->flag != BON) {
     if ((status = bonset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -6152,14 +6196,14 @@ int bonx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -6167,30 +6211,28 @@ int bonx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double dy  = prj->w[2] - (*yp + prj->y0);
-    double dy2 = dy*dy;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    dy  = prj->w[2] - (*yp + prj->y0);
+    dy2 = dy*dy;
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
-      double r = sqrt(xj*xj + dy2);
+      r = sqrt(xj*xj + dy2);
       if (prj->pv[1] < 0.0) r = -r;
 
-      double alpha;
       if (r == 0.0) {
         alpha = 0.0;
       } else {
         alpha = atan2d(xj/r, dy/r);
       }
 
-      double s;
-      double t = (prj->w[2] - r)/prj->w[1];
-      double costhe = cosd(t);
+      t = (prj->w[2] - r)/prj->w[1];
+      costhe = cosd(t);
       if (costhe == 0.0) {
         s = 0.0;
       } else {
@@ -6227,6 +6269,12 @@ int bons2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double alpha, cosalpha, r, s, sinalpha, y0;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->pv[1] == 0.0) {
@@ -6234,12 +6282,10 @@ int bons2x(
     return sfls2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat);
   }
 
-  int status;
-  if (abs(prj->flag) != BON) {
+  if (prj->flag != BON) {
     if ((status = bonset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -6249,16 +6295,18 @@ int bons2x(
     ntheta = nphi;
   }
 
+  y0 = prj->y0 - prj->w[2];
+
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double s = prj->r0*(*phip);
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    s = prj->r0*(*phip);
 
-    double *xp = x + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = s;
       xp += rowlen;
     }
@@ -6266,18 +6314,16 @@ int bons2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  double y0 = prj->y0 - prj->w[2];
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double r = prj->w[2] - prj->w[1]*(*thetap);
-    double s = cosd(*thetap)/r;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    r = prj->w[2] - prj->w[1]*(*thetap);
+    s = cosd(*thetap)/r;
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
-      double alpha = s*(*xp);
-      double sinalpha, cosalpha;
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      alpha = s*(*xp);
       sincosd(alpha, &sinalpha, &cosalpha);
       *xp =  r*sinalpha - prj->x0;
       *yp = -r*cosalpha - y0;
@@ -6313,8 +6359,8 @@ int pcoset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -PCO) return 0;
 
+  prj->flag = PCO;
   strcpy(prj->code, "PCO");
 
   strcpy(prj->name, "polyconic");
@@ -6341,8 +6387,6 @@ int pcoset(struct prjprm *prj)
   prj->prjx2s = pcox2s;
   prj->prjs2x = pcos2x;
 
-  prj->flag = (prj->flag == 1) ? -PCO : PCO;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -6361,17 +6405,21 @@ int pcox2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double f, fneg, fpos, lambda, tanthe, the, theneg, thepos, w, x1, xj, xx,
+         yj, ymthe, y1;
   const double tol = 1.0e-12;
+  register int ix, iy, k, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != PCO) {
+  if (prj->flag != PCO) {
     if ((status = pcoset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -6385,14 +6433,14 @@ int pcox2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xj = *xp + prj->x0;
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xj = *xp + prj->x0;
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xj;
       phip += rowlen;
     }
@@ -6400,16 +6448,16 @@ int pcox2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yj = *yp + prj->y0;
-    double w  = fabs(yj*prj->w[1]);
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yj = *yp + prj->y0;
+    w  = fabs(yj*prj->w[1]);
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xj = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xj = *phip;
 
       if (w < tol) {
         *phip = xj*prj->w[1];
@@ -6420,7 +6468,6 @@ int pcox2s(
         *thetap = copysign(90.0, yj);
 
       } else {
-        double the, ymthe, tanthe;
         if (w < 1.0e-4) {
           // To avoid cot(theta) blowing up near theta == 0.
           the    = yj / (prj->w[0] + prj->w[3]*xj*xj);
@@ -6429,17 +6476,17 @@ int pcox2s(
 
         } else {
           // Iterative solution using weighted division of the interval.
-          double thepos = yj / prj->w[0];
-          double theneg = 0.0;
+          thepos = yj / prj->w[0];
+          theneg = 0.0;
 
           // Setting fneg = -fpos halves the interval in the first iter.
-          double xx = xj*xj;
-          double fpos =  xx;
-          double fneg = -xx;
+          xx = xj*xj;
+          fpos  =  xx;
+          fneg  = -xx;
 
-          for (int k = 0; k < 64; k++) {
+          for (k = 0; k < 64; k++) {
             // Weighted division of the interval.
-            double lambda = fpos/(fpos-fneg);
+            lambda = fpos/(fpos-fneg);
             if (lambda < 0.1) {
               lambda = 0.1;
             } else if (lambda > 0.9) {
@@ -6450,7 +6497,7 @@ int pcox2s(
             // Compute the residue.
             ymthe  = yj - prj->w[0]*the;
             tanthe = tand(the);
-            double f = xx + ymthe*(ymthe - prj->w[2]/tanthe);
+            f = xx + ymthe*(ymthe - prj->w[2]/tanthe);
 
             // Check for convergence.
             if (fabs(f) < tol) break;
@@ -6467,8 +6514,8 @@ int pcox2s(
           }
         }
 
-        double x1 = prj->r0 - ymthe*tanthe;
-        double y1 = xj*tanthe;
+        x1 = prj->r0 - ymthe*tanthe;
+        y1 = xj*tanthe;
         if (x1 == 0.0 && y1 == 0.0) {
           *phip = 0.0;
         } else {
@@ -6506,15 +6553,18 @@ int pcos2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double cospsi, costhe, cotthe, sinpsi, sinthe, therad;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != PCO) {
+  if (prj->flag != PCO) {
     if ((status = pcoset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -6526,12 +6576,12 @@ int pcos2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double *xp = x + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    xp = x + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = *phip;
       xp += rowlen;
     }
@@ -6539,13 +6589,13 @@ int pcos2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     if (*thetap == 0.0) {
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp =  prj->w[0]*(*xp) - prj->x0;
         *yp = -prj->y0;
         *statp = 0;
@@ -6553,21 +6603,19 @@ int pcos2x(
 
     } else if (fabs(*thetap) < 1.0e-4) {
       // To avoid cot(theta) blowing up near theta == 0.
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp = prj->w[0]*(*xp)*cosd(*thetap) - prj->x0;
         *yp = (prj->w[0] + prj->w[3]*(*xp)*(*xp))*(*thetap) - prj->y0;
         *statp = 0;
       }
 
     } else {
-      double therad = (*thetap)*D2R;
-      double sinthe, costhe;
+      therad = (*thetap)*D2R;
       sincosd(*thetap, &sinthe, &costhe);
 
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
-        double sinpsi, cospsi;
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         sincosd((*xp)*sinthe, &sinpsi, &cospsi);
-        double cotthe = costhe/sinthe;
+        cotthe = costhe/sinthe;
         *xp = prj->r0*cotthe*sinpsi - prj->x0;
         *yp = prj->r0*(cotthe*(1.0 - cospsi) + therad) - prj->y0;
         *statp = 0;
@@ -6601,8 +6649,8 @@ int tscset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -TSC) return 0;
 
+  prj->flag = TSC;
   strcpy(prj->code, "TSC");
 
   strcpy(prj->name, "tangential spherical cube");
@@ -6626,8 +6674,6 @@ int tscset(struct prjprm *prj)
   prj->prjx2s = tscx2s;
   prj->prjs2x = tscs2x;
 
-  prj->flag = (prj->flag == 1) ? -TSC : TSC;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -6646,15 +6692,19 @@ int tscx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double l, m, n, xf, yf;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != TSC) {
+  if (prj->flag != TSC) {
     if ((status = tscset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -6668,14 +6718,14 @@ int tscx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xf = (*xp + prj->x0)*prj->w[1];
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xf = (*xp + prj->x0)*prj->w[1];
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xf;
       phip += rowlen;
     }
@@ -6683,15 +6733,15 @@ int tscx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yf = (*yp + prj->y0)*prj->w[1];
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yf = (*yp + prj->y0)*prj->w[1];
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xf = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xf = *phip;
 
       // Bounds checking.
       if (fabs(xf) <= 1.0) {
@@ -6716,7 +6766,6 @@ int tscx2s(
       if (xf < -1.0) xf += 8.0;
 
       // Determine the face.
-      double l, m, n;
       if (xf > 5.0) {
         // face = 4
         xf = xf - 6.0;
@@ -6789,17 +6838,19 @@ int tscs2x(
   int stat[])
 
 {
+  int face, mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, costhe, l, m, n, sinphi, sinthe, x0, xf, y0, yf, zeta;
   const double tol = 1.0e-12;
+  register int iphi, istat, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != TSC) {
+  if (prj->flag != TSC) {
     if ((status = tscset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -6813,16 +6864,15 @@ int tscs2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = cosphi;
       *yp = sinphi;
       xp += rowlen;
@@ -6832,21 +6882,20 @@ int tscs2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double sinthe, costhe;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     sincosd(*thetap, &sinthe, &costhe);
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
-      double l = costhe*(*xp);
-      double m = costhe*(*yp);
-      double n = sinthe;
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      l = costhe*(*xp);
+      m = costhe*(*yp);
+      n = sinthe;
 
-      int face = 0;
-      double zeta = n;
+      face = 0;
+      zeta = n;
       if (l > zeta) {
         face = 1;
         zeta = l;
@@ -6868,7 +6917,6 @@ int tscs2x(
         zeta = -n;
       }
 
-      double xf, yf, x0, y0;
       switch (face) {
       case 1:
         xf =  m/zeta;
@@ -6909,7 +6957,7 @@ int tscs2x(
         break;
       }
 
-      int istat = 0;
+      istat = 0;
       if (fabs(xf) > 1.0) {
         if (fabs(xf) > 1.0+tol) {
           istat = 1;
@@ -6957,8 +7005,8 @@ int cscset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -CSC) return 0;
 
+  prj->flag = CSC;
   strcpy(prj->code, "CSC");
 
   strcpy(prj->name, "COBE quadrilateralized spherical cube");
@@ -6982,8 +7030,6 @@ int cscset(struct prjprm *prj)
   prj->prjx2s = cscx2s;
   prj->prjs2x = cscs2x;
 
-  prj->flag = (prj->flag == 1) ? -CSC : CSC;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -7002,6 +7048,13 @@ int cscx2s(
   int stat[])
 
 {
+  int face, mx, my, rowlen, rowoff, status;
+  double l, m, n, t;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+  float chi, psi, xf, xx, yf, yy, z0, z1, z2, z3, z4, z5, z6;
   const float p00 = -0.27292696f;
   const float p10 = -0.07629969f;
   const float p20 = -0.22797056f;
@@ -7033,13 +7086,10 @@ int cscx2s(
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != CSC) {
+  if (prj->flag != CSC) {
     if ((status = cscset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -7053,14 +7103,14 @@ int cscx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    float xf = (float)((*xp + prj->x0)*prj->w[1]);
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xf = (float)((*xp + prj->x0)*prj->w[1]);
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xf;
       phip += rowlen;
     }
@@ -7068,15 +7118,15 @@ int cscx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    float yf = (float)((*yp + prj->y0)*prj->w[1]);
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yf = (float)((*yp + prj->y0)*prj->w[1]);
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      float xf = (float)(*phip);
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xf = (float)(*phip);
 
       // Bounds checking.
       if (fabs((double)xf) <= 1.0) {
@@ -7101,7 +7151,6 @@ int cscx2s(
       if (xf < -1.0f) xf += 8.0f;
 
       // Determine the face.
-      int face = 0;
       if (xf > 5.0f) {
         face = 4;
         xf = xf - 6.0f;
@@ -7121,10 +7170,9 @@ int cscx2s(
         face = 1;
       }
 
-      float xx  =  xf*xf;
-      float yy  =  yf*yf;
+      xx  =  xf*xf;
+      yy  =  yf*yf;
 
-      float z0, z1, z2, z3, z4, z5, z6;
       z0 = p00 + xx*(p10 + xx*(p20 + xx*(p30 + xx*(p40 + xx*(p50 +
                  xx*(p60))))));
       z1 = p01 + xx*(p11 + xx*(p21 + xx*(p31 + xx*(p41 + xx*(p51)))));
@@ -7134,7 +7182,6 @@ int cscx2s(
       z5 = p05 + xx*(p15);
       z6 = p06;
 
-      float chi;
       chi = z0 + yy*(z1 + yy*(z2 + yy*(z3 + yy*(z4 + yy*(z5 + yy*z6)))));
       chi = xf + xf*(1.0f - xx)*chi;
 
@@ -7147,12 +7194,10 @@ int cscx2s(
       z5 = p05 + yy*(p15);
       z6 = p06;
 
-      float psi;
       psi = z0 + xx*(z1 + xx*(z2 + xx*(z3 + xx*(z4 + xx*(z5 + xx*z6)))));
       psi = yf + yf*(1.0f - yy)*psi;
 
-      double l, m, n;
-      double t = 1.0/sqrt((double)(chi*chi + psi*psi) + 1.0);
+      t = 1.0/sqrt((double)(chi*chi + psi*psi) + 1.0);
       switch (face) {
       case 1:
         l =  t;
@@ -7222,8 +7267,15 @@ int cscs2x(
   int stat[])
 
 {
+  int face, mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, costhe, eta, l, m, n, sinphi, sinthe, xi, zeta;
   const double tol = 1.0e-7;
+  register int iphi, istat, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
 
+  float chi, chi2, chi2psi2, chi4, chipsi, psi, psi2, psi4, chi2co, psi2co,
+        x0, xf, y0, yf;
   const float gstar  =  1.37484847732f;
   const float mm     =  0.004869491981f;
   const float gamma  = -0.13161671474f;
@@ -7240,13 +7292,10 @@ int cscs2x(
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != CSC) {
+  if (prj->flag != CSC) {
     if ((status = cscset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -7260,16 +7309,15 @@ int cscs2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = cosphi;
       *yp = sinphi;
       xp += rowlen;
@@ -7279,21 +7327,20 @@ int cscs2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double sinthe, costhe;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     sincosd(*thetap, &sinthe, &costhe);
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
-      double l = costhe*(*xp);
-      double m = costhe*(*yp);
-      double n = sinthe;
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      l = costhe*(*xp);
+      m = costhe*(*yp);
+      n = sinthe;
 
-      int face = 0;
-      double zeta = n;
+      face = 0;
+      zeta = n;
       if (l > zeta) {
         face = 1;
         zeta = l;
@@ -7315,8 +7362,6 @@ int cscs2x(
         zeta = -n;
       }
 
-      double eta, xi;
-      float  x0, y0;
       switch (face) {
       case 1:
         xi  =  m;
@@ -7357,21 +7402,20 @@ int cscs2x(
         break;
       }
 
-      float chi = (float)( xi/zeta);
-      float psi = (float)(eta/zeta);
+      chi = (float)( xi/zeta);
+      psi = (float)(eta/zeta);
 
-      float chi2 = chi*chi;
-      float psi2 = psi*psi;
-      float chi2co = 1.0f - chi2;
-      float psi2co = 1.0f - psi2;
+      chi2 = chi*chi;
+      psi2 = psi*psi;
+      chi2co = 1.0f - chi2;
+      psi2co = 1.0f - psi2;
 
       // Avoid floating underflows.
-      float chipsi = (float)fabs((double)(chi*psi));
-      float chi4   = (chi2 > 1.0e-16f) ? chi2*chi2 : 0.0f;
-      float psi4   = (psi2 > 1.0e-16f) ? psi2*psi2 : 0.0f;
-      float chi2psi2 = (chipsi > 1.0e-16f) ? chi2*psi2 : 0.0f;
+      chipsi = (float)fabs((double)(chi*psi));
+      chi4   = (chi2 > 1.0e-16f) ? chi2*chi2 : 0.0f;
+      psi4   = (psi2 > 1.0e-16f) ? psi2*psi2 : 0.0f;
+      chi2psi2 = (chipsi > 1.0e-16f) ? chi2*psi2 : 0.0f;
 
-      float xf, yf;
       xf = chi*(chi2 + chi2co*(gstar + psi2*(gamma*chi2co + mm*chi2 +
                 psi2co*(c00 + c10*chi2 + c01*psi2 + c11*chi2psi2 + c20*chi4 +
                 c02*psi4)) + chi2*(omega1 - chi2co*(d0 + d1*chi2))));
@@ -7379,7 +7423,7 @@ int cscs2x(
                 chi2co*(c00 + c10*psi2 + c01*chi2 + c11*chi2psi2 + c20*psi4 +
                 c02*chi4)) + psi2*(omega1 - psi2co*(d0 + d1*psi2))));
 
-      int istat = 0;
+      istat = 0;
       if (fabs((double)xf) > 1.0) {
         if (fabs((double)xf) > 1.0+tol) {
           istat = 1;
@@ -7427,8 +7471,8 @@ int qscset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -QSC) return 0;
 
+  prj->flag = QSC;
   strcpy(prj->code, "QSC");
 
   strcpy(prj->name, "quadrilateralized spherical cube");
@@ -7452,8 +7496,6 @@ int qscset(struct prjprm *prj)
   prj->prjx2s = qscx2s;
   prj->prjs2x = qscs2x;
 
-  prj->flag = (prj->flag == 1) ? -QSC : QSC;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -7472,17 +7514,20 @@ int qscx2s(
   int stat[])
 
 {
+  int direct, face, mx, my, rowlen, rowoff, status;
+  double cosw, l, m, n, omega, sinw, tau, xf, yf, w, zeco, zeta;
   const double tol = 1.0e-12;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != QSC) {
+  if (prj->flag != QSC) {
     if ((status = qscset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -7496,14 +7541,14 @@ int qscx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xf = (*xp + prj->x0)*prj->w[1];
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xf = (*xp + prj->x0)*prj->w[1];
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xf;
       phip += rowlen;
     }
@@ -7511,15 +7556,15 @@ int qscx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yf = (*yp + prj->y0)*prj->w[1];
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yf = (*yp + prj->y0)*prj->w[1];
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xf = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xf = *phip;
 
       // Bounds checking.
       if (fabs(xf) <= 1.0) {
@@ -7543,7 +7588,6 @@ int qscx2s(
       // Map negative faces to the other side.
       if (xf < -1.0) xf += 8.0;
 
-      int face = 0;
       // Determine the face.
       if (xf > 5.0) {
         face = 4;
@@ -7564,8 +7608,7 @@ int qscx2s(
         face = 1;
       }
 
-      double omega, tau, w, zeta, zeco;
-      int direct = (fabs(xf) > fabs(yf));
+      direct = (fabs(xf) > fabs(yf));
       if (direct) {
         if (xf == 0.0) {
           omega = 0.0;
@@ -7587,7 +7630,6 @@ int qscx2s(
           zeco = 0.0;
         } else {
           w = 15.0*xf/yf;
-          double sinw, cosw;
           sincosd(w, &sinw, &cosw);
           omega = sinw/(cosw - SQRT2INV);
           tau  = 1.0 + omega*omega;
@@ -7612,7 +7654,6 @@ int qscx2s(
         w = sqrt(zeco*(2.0-zeco)/tau);
       }
 
-      double l, m, n;
       switch (face) {
       case 1:
         l = zeta;
@@ -7724,17 +7765,21 @@ int qscs2x(
   int stat[])
 
 {
+  int face, mphi, mtheta, rowlen, rowoff, status;
+  double cosphi, costhe, eta, l, m, n, omega, p, sinphi, sinthe, t, tau, x0,
+         xf, xi, y0, yf, zeco, zeta;
   const double tol = 1.0e-12;
+  register int iphi, istat, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != QSC) {
+  if (prj->flag != QSC) {
     if ((status = qscset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -7748,16 +7793,15 @@ int qscs2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double sinphi, cosphi;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     sincosd(*phip, &sinphi, &cosphi);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       *xp = cosphi;
       *yp = sinphi;
       xp += rowlen;
@@ -7767,15 +7811,14 @@ int qscs2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double sinthe, costhe;
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     sincosd(*thetap, &sinthe, &costhe);
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       if (fabs(*thetap) == 90.0) {
         *xp = -prj->x0;
         *yp = copysign(2.0*prj->w[0], *thetap) - prj->y0;
@@ -7783,12 +7826,12 @@ int qscs2x(
         continue;
       }
 
-      double l = costhe*(*xp);
-      double m = costhe*(*yp);
-      double n = sinthe;
+      l = costhe*(*xp);
+      m = costhe*(*yp);
+      n = sinthe;
 
-      int face = 0;
-      double zeta = n;
+      face = 0;
+      zeta = n;
       if (l > zeta) {
         face = 1;
         zeta = l;
@@ -7810,17 +7853,16 @@ int qscs2x(
         zeta = -n;
       }
 
-      double zeco = 1.0 - zeta;
+      zeco = 1.0 - zeta;
 
-      double xi, eta, x0, y0;
       switch (face) {
       case 1:
         xi  = m;
         eta = n;
         if (zeco < 1.0e-8) {
           // Small angle formula.
-          double t = (*thetap)*D2R;
-          double p = atan2(*yp, *xp);
+          t = (*thetap)*D2R;
+          p = atan2(*yp, *xp);
           zeco = (p*p + t*t)/2.0;
         }
         x0 = 0.0;
@@ -7831,8 +7873,8 @@ int qscs2x(
         eta =  n;
         if (zeco < 1.0e-8) {
           // Small angle formula.
-          double t = (*thetap)*D2R;
-          double p = atan2(*yp, *xp) - PI/2.0;
+          t = (*thetap)*D2R;
+          p = atan2(*yp, *xp) - PI/2.0;
           zeco = (p*p + t*t)/2.0;
         }
         x0 = 2.0;
@@ -7843,8 +7885,8 @@ int qscs2x(
         eta =  n;
         if (zeco < 1.0e-8) {
           // Small angle formula.
-          double t = (*thetap)*D2R;
-          double p = atan2(*yp, *xp);
+          t = (*thetap)*D2R;
+          p = atan2(*yp, *xp);
           p -= copysign(PI, p);
           zeco = (p*p + t*t)/2.0;
         }
@@ -7856,8 +7898,8 @@ int qscs2x(
         eta = n;
         if (zeco < 1.0e-8) {
           // Small angle formula.
-          double t = (*thetap)*D2R;
-          double p = atan2(*yp, *xp) + PI/2.0;
+          t = (*thetap)*D2R;
+          p = atan2(*yp, *xp) + PI/2.0;
           zeco = (p*p + t*t)/2.0;
         }
         x0 = 6;
@@ -7868,7 +7910,7 @@ int qscs2x(
         eta =  l;
         if (zeco < 1.0e-8) {
           // Small angle formula.
-          double t = (*thetap + 90.0)*D2R;
+          t = (*thetap + 90.0)*D2R;
           zeco = t*t/2.0;
         }
         x0 =  0.0;
@@ -7880,7 +7922,7 @@ int qscs2x(
         eta = -l;
         if (zeco < 1.0e-8) {
           // Small angle formula.
-          double t = (90.0 - *thetap)*D2R;
+          t = (90.0 - *thetap)*D2R;
           zeco = t*t/2.0;
         }
         x0 = 0.0;
@@ -7888,9 +7930,8 @@ int qscs2x(
         break;
       }
 
-      double omega, tau;
-      double xf = 0.0;
-      double yf = 0.0;
+      xf = 0.0;
+      yf = 0.0;
       if (xi != 0.0 || eta != 0.0) {
         if (-xi > fabs(eta)) {
           omega = eta/xi;
@@ -7915,7 +7956,7 @@ int qscs2x(
         }
       }
 
-      int istat = 0;
+      istat = 0;
       if (fabs(xf) > 1.0) {
         if (fabs(xf) > 1.0+tol) {
           istat = 1;
@@ -7977,8 +8018,8 @@ int hpxset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -HPX) return 0;
 
+  prj->flag = HPX;
   strcpy(prj->code, "HPX");
 
   if (undefined(prj->pv[1])) prj->pv[1] = 4.0;
@@ -8021,8 +8062,6 @@ int hpxset(struct prjprm *prj)
   prj->prjx2s = hpxx2s;
   prj->prjs2x = hpxs2x;
 
-  prj->flag = (prj->flag == 1) ? -HPX : HPX;
-
   return prjoff(prj, 0.0, 0.0);
 }
 
@@ -8041,15 +8080,22 @@ int hpxx2s(
   int stat[])
 
 {
+  int h, mx, my, offset, rowlen, rowoff, status;
+  double absy, r, s, sigma, slim, t, ylim, yr;
+  register int istat, ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != HPX) {
+  if (prj->flag != HPX) {
     if ((status = hpxset(prj))) return status;
   }
 
-  int mx, my;
+  slim = prj->w[6] + 1e-12;
+  ylim = prj->w[9] * prj->w[4];
+
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -8063,19 +8109,18 @@ int hpxx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double s = prj->w[1] * (*xp + prj->x0);
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    s = prj->w[1] * (*xp + prj->x0);
     // x_c for K odd or theta > 0.
-    double t;
     t = -180.0 + (2.0 * floor((*xp + 180.0) * prj->w[7]) + 1.0) * prj->w[6];
     t = prj->w[1] * (*xp - t);
 
-    double *phip   = phi + rowoff;
-    double *thetap = theta + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip   = phi + rowoff;
+    thetap = theta + rowoff;
+    for (iy = 0; iy < my; iy++) {
       // theta[] is used to hold (x - x_c).
       *phip   = s;
       *thetap = t;
@@ -8086,34 +8131,29 @@ int hpxx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yr = prj->w[1]*(*yp + prj->y0);
+    absy = fabs(yr);
 
-  double slim = prj->w[6] + 1e-12;
-  double ylim = prj->w[9] * prj->w[4];
-
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yr = prj->w[1]*(*yp + prj->y0);
-    double absy = fabs(yr);
-
-    int istat = 0;
+    istat = 0;
     if (absy <= prj->w[5]) {
       // Equatorial regime.
-      double t = asind(yr/prj->w[3]);
-      for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      t = asind(yr/prj->w[3]);
+      for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
         *thetap = t;
         *statp  = 0;
       }
 
     } else if (absy <= ylim) {
       // Polar regime.
-      int offset = (prj->n || *yp > 0.0) ? 0 : 1;
+      offset = (prj->n || *yp > 0.0) ? 0 : 1;
 
-      double sigma = prj->w[4] - absy / prj->w[6];
+      sigma = prj->w[4] - absy / prj->w[6];
 
-      double s, t;
       if (sigma == 0.0) {
         s = 1e9;
         t = 90.0;
@@ -8132,10 +8172,10 @@ int hpxx2s(
       }
       if (*yp < 0.0) t = -t;
 
-      for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
         if (offset) {
           // Offset the southern polar half-facets for even K.
-          int h = (int)floor(*phip / prj->w[6]) + prj->m;
+          h = (int)floor(*phip / prj->w[6]) + prj->m;
           if (h%2) {
             *thetap -= prj->w[6];
           } else {
@@ -8144,7 +8184,7 @@ int hpxx2s(
         }
 
         // Recall that theta[] holds (x - x_c).
-        double r = s * *thetap;
+        r = s * *thetap;
 
         // Bounds checking.
         if (prj->bounds&2) {
@@ -8162,7 +8202,7 @@ int hpxx2s(
 
     } else {
       // Beyond latitude range.
-      for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
         *phip   = 0.0;
         *thetap = 0.0;
         *statp  = 1;
@@ -8195,15 +8235,19 @@ int hpxs2x(
   int stat[])
 
 {
+  int h, mphi, mtheta, offset, rowlen, rowoff, status;
+  double abssin, eta, sigma, sinthe, t, xi;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != HPX) {
+  if (prj->flag != HPX) {
     if ((status = hpxset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -8215,20 +8259,19 @@ int hpxs2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
-    double xi = prj->w[0] * (*phip) - prj->x0;
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    xi = prj->w[0] * (*phip) - prj->x0;
 
     // phi_c for K odd or theta > 0.
-    double t;
     t = -180.0 + (2.0*floor((*phip+180.0) * prj->w[7]) + 1.0) * prj->w[6];
     t = prj->w[0] * (*phip - t);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       // y[] is used to hold (phi - phi_c).
       *xp = xi;
       *yp = t;
@@ -8239,38 +8282,37 @@ int hpxs2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double sinthe = sind(*thetap);
-    double abssin = fabs(sinthe);
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    sinthe = sind(*thetap);
+    abssin = fabs(sinthe);
 
-    double eta;
     if (abssin <= prj->w[2]) {
       // Equatorial regime.
       eta = prj->w[8] * sinthe - prj->y0;
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *yp = eta;
         *statp = 0;
       }
 
     } else {
       // Polar regime.
-      int offset = (prj->n || *thetap > 0.0) ? 0 : 1;
+      offset = (prj->n || *thetap > 0.0) ? 0 : 1;
 
-      double sigma = sqrt(prj->pv[2]*(1.0 - abssin));
-      double xi = sigma - 1.0;
+      sigma = sqrt(prj->pv[2]*(1.0 - abssin));
+      xi = sigma - 1.0;
 
       eta = prj->w[9] * (prj->w[4] - sigma);
       if (*thetap < 0) eta = -eta;
       eta -= prj->y0;
 
-      for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         if (offset) {
           // Offset the southern polar half-facets for even K.
-          int h = (int)floor((*xp + prj->x0) / prj->w[9]) + prj->m;
+          h = (int)floor((*xp + prj->x0) / prj->w[9]) + prj->m;
           if (h%2) {
             *yp -= prj->w[9];
           } else {
@@ -8320,8 +8362,8 @@ int xphset(struct prjprm *prj)
 
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-  if (prj->flag == -XPH) return 0;
 
+  prj->flag = XPH;
   strcpy(prj->code, "XPH");
 
   strcpy(prj->name, "butterfly");
@@ -8353,8 +8395,6 @@ int xphset(struct prjprm *prj)
   prj->prjx2s = xphx2s;
   prj->prjs2x = xphs2x;
 
-  prj->flag = (prj->flag == 1) ? -XPH : XPH;
-
   return prjoff(prj, 0.0, 90.0);
 }
 
@@ -8373,17 +8413,20 @@ int xphx2s(
   int stat[])
 
 {
+  int mx, my, rowlen, rowoff, status;
+  double abseta, eta, eta1, sigma, xi, xi1, xr, yr;
   const double tol = 1.0e-12;
+  register int istat, ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
 
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != XPH) {
+  if (prj->flag != XPH) {
     if ((status = xphset(prj))) return status;
   }
 
-  int mx, my;
   if (ny > 0) {
     mx = nx;
     my = ny;
@@ -8397,14 +8440,14 @@ int xphx2s(
 
 
   // Do x dependence.
-  const double *xp = x;
-  int rowoff = 0;
-  int rowlen = nx*spt;
-  for (int ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
-    double xr = (*xp + prj->x0)*prj->w[1];
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xr = (*xp + prj->x0)*prj->w[1];
 
-    double *phip = phi + rowoff;
-    for (int iy = 0; iy < my; iy++) {
+    phip = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
       *phip = xr;
       phip  += rowlen;
     }
@@ -8412,17 +8455,16 @@ int xphx2s(
 
 
   // Do y dependence.
-  const double *yp = y;
-  double *phip   = phi;
-  double *thetap = theta;
-  int    *statp  = stat;
-  for (int iy = 0; iy < ny; iy++, yp += sxy) {
-    double yr = (*yp + prj->y0)*prj->w[1];
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yr = (*yp + prj->y0)*prj->w[1];
 
-    for (int ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
-      double xr = *phip;
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
+      xr = *phip;
 
-      double xi1, eta1;
       if (xr <= 0.0 && 0.0 < yr) {
         xi1  = -xr - yr;
         eta1 =  xr - yr;
@@ -8441,16 +8483,16 @@ int xphx2s(
         *phip = 90.0;
       }
 
-      double xi  = xi1  + 45.0;
-      double eta = eta1 + 90.0;
-      double abseta = fabs(eta);
+      xi  = xi1  + 45.0;
+      eta = eta1 + 90.0;
+      abseta = fabs(eta);
 
       if (abseta <= 90.0) {
         if (abseta <= 45.0) {
           // Equatorial regime.
           *phip  += xi;
           *thetap = asind(eta/67.5);
-          int istat = 0;
+          istat = 0;
 
           // Bounds checking.
           if (prj->bounds&2) {
@@ -8464,7 +8506,7 @@ int xphx2s(
 
         } else {
           // Polar regime.
-          double sigma = (90.0 - abseta) / 45.0;
+          sigma = (90.0 - abseta) / 45.0;
 
           // Ensure an exact result for points on the boundary.
           if (xr == 0.0) {
@@ -8491,7 +8533,7 @@ int xphx2s(
           if (eta < 0.0) *thetap = -(*thetap);
 
           // Bounds checking.
-          int istat = 0;
+          istat = 0;
           if (prj->bounds&2) {
             if (eta < -45.0 && eta+90.0+tol < fabs(xi1)) {
               istat = 1;
@@ -8536,15 +8578,19 @@ int xphs2x(
   int stat[])
 
 {
+  int mphi, mtheta, rowlen, rowoff, status;
+  double abssin, chi, eta, psi, sigma, sinthe, xi;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
   // Initialize.
   if (prj == 0x0) return PRJERR_NULL_POINTER;
-
-  int status;
-  if (abs(prj->flag) != XPH) {
+  if (prj->flag != XPH) {
     if ((status = xphset(prj))) return status;
   }
 
-  int mphi, mtheta;
   if (ntheta > 0) {
     mphi   = nphi;
     mtheta = ntheta;
@@ -8556,12 +8602,10 @@ int xphs2x(
 
 
   // Do phi dependence.
-  const double *phip = phi;
-  int rowoff = 0;
-  int rowlen = nphi*sxy;
-
-  double chi, psi;
-  for (int iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
     chi = *phip;
     if (180.0 <= fabs(chi)) {
       chi = fmod(chi, 360.0);
@@ -8576,9 +8620,9 @@ int xphs2x(
     chi += 180.0;
     psi = fmod(chi, 90.0);
 
-    double *xp = x + rowoff;
-    double *yp = y + rowoff;
-    for (int itheta = 0; itheta < mtheta; itheta++) {
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
       // y[] is used to hold phi (rounded).
       *xp = psi;
       *yp = chi - 180.0;
@@ -8589,16 +8633,15 @@ int xphs2x(
 
 
   // Do theta dependence.
-  const double *thetap = theta;
-  double *xp = x;
-  double *yp = y;
-  int *statp = stat;
-  for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-    double sinthe = sind(*thetap);
-    double abssin = fabs(sinthe);
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    sinthe = sind(*thetap);
+    abssin = fabs(sinthe);
 
-    for (int iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
-      double xi, eta;
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       if (abssin <= prj->w[2]) {
         // Equatorial regime.
         xi  = *xp;
@@ -8606,7 +8649,6 @@ int xphs2x(
 
       } else {
         // Polar regime.
-        double sigma;
         if (*thetap < prj->w[5]) {
           sigma = sqrt(3.0*(1.0 - abssin));
         } else {

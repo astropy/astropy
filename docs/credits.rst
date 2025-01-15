@@ -7,7 +7,6 @@ Core Package Contributors
 
 * Aaron Meisner
 * Aarya Patil
-* Abdu Zoghbi
 * Abhinuv Nitin Pitale
 * Abigail Stevens
 * Adam Broussard
@@ -21,7 +20,6 @@ Core Package Contributors
 * Akshat1Nar
 * Al Niessner
 * Albert Y. Shih
-* Albert Zhang
 * Aleh Khvalko
 * Alex Conley
 * Alex de la Vega
@@ -30,16 +28,11 @@ Core Package Contributors
 * Alex Rudy
 * Alexander Bakanov
 * Alexandre Beelen
-* Alexandre R. Bomfim Junior
-* Alfio Puglisi
-* Alpha-Ursae-Minoris
 * Amit Kumar
-* AMHermansen
 * Ana Posses
 * Anany Shrey Jain
 * Anchit Jain
 * Andreas Baumbach
-* Andreas Faisst
 * Andrej Rode
 * Andrew Hearin
 * Andrii Oriekhov
@@ -56,7 +49,6 @@ Core Package Contributors
 * Arthur Eigenbrot
 * Asish Panda
 * Asra Nizami
-* arthurxvtv
 * athul
 * Austen Groener
 * Axel Donath
@@ -71,11 +63,8 @@ Core Package Contributors
 * Bhavya Khandelwal
 * Bharath Saiguha
 * Bili Dong
-* Bill Cleveland
 * Bogdan Nicula
 * Bojan Nikolic
-* Brandie-M
-* Brett Graham
 * Brett Morris
 * Brett Woltz
 * Brian Soto
@@ -85,8 +74,6 @@ Core Package Contributors
 * Bruno Oliveira
 * Bryce Kalmbach
 * Bryce Nordgren
-* Caden Gobat
-* CaioCoutinhoP
 * Carl Osterwisch
 * Carl Schaffer
 * Chiara Marmo
@@ -116,7 +103,6 @@ Core Package Contributors
 * Daniel Ruschel Dutra
 * Daniel Ryan
 * Danny Goldstein
-* Dany Vohl
 * Daria Cara
 * David Kirkby
 * David M. Palmer
@@ -125,7 +111,6 @@ Core Package Contributors
 * David Shiga
 * David Shupe
 * David Stansby
-* Deen-Dot
 * Demitri Muna
 * Derek Homeier
 * Devin Crichton
@@ -133,16 +118,13 @@ Core Package Contributors
 * Diego Asterio de Zaballa
 * disha
 * Dominik Klaes
-* Doron Behar
-* Doug Branton
 * Douglas Burke
 * Drew Leonard
 * Duncan Macleod
 * Dylan Gregersen
 * E\. Madison Bray
 * E\. Rykoff
-* E.C. Herenz
-* Eduardo Olinto
+* Ed Slavich
 * Edward Betts
 * Edward Slavich
 * Eero Vaher
@@ -160,8 +142,6 @@ Core Package Contributors
 * Esteban Pardo Sánchez
 * Even Rouault
 * Evert Rol
-* Felipe Cybis Pereira
-* Felipe Gameleira
 * Felix Yan
 * fockez
 * Francesc Vilardell
@@ -180,7 +160,6 @@ Core Package Contributors
 * Gerrit Schellenberger
 * Giang Nguyen
 * Giorgio Calderone
-* Gordon Gibb
 * Graham Kanarek
 * Grant Jenks
 * Gregory Dubois-Felsmann
@@ -191,11 +170,7 @@ Core Package Contributors
 * Hannes Breytenbach
 * Hans Moritz Günther
 * Harry Ferguson
-* Heinz-Alexander Fuetterer
-* Henrike F
-* Henry Schreiner
 * Helen Sherwood-Taylor
-* Hélvio Peixoto
 * Himanshu Pathak
 * homeboy445
 * Hood Chatham
@@ -212,11 +187,9 @@ Core Package Contributors
 * James Davies
 * James Dearman
 * James Noss
-* James O'Keeffe
 * James Taylor
 * James Tocknell
 * James Turner
-* Jamie Kennea
 * Jan Skowron
 * Jane Rigby
 * Jani Šumak
@@ -224,7 +197,6 @@ Core Package Contributors
 * Javier Pascual Granado
 * JC Hsu
 * Jean Connelly
-* Jeff Jennings
 * Jeff Taylor
 * Jeffrey McBeth
 * Jero Bado
@@ -250,8 +222,6 @@ Core Package Contributors
 * Joseph Ryan
 * Joseph Schlitz
 * José Sabater Montes
-* Jost Migenda
-* JP Maia
 * Juan Luis Cano Rodríguez
 * Juanjo Bazán
 * Julien Woillez
@@ -279,7 +249,6 @@ Core Package Contributors
 * Laura Hayes
 * Laura Watkins
 * Lauren Glattly
-* Laurent Michel
 * Laurie Stephey
 * Leah Fulmer
 * Lee Spitler
@@ -312,8 +281,6 @@ Core Package Contributors
 * Mangala Gowri Krishnamoorthy
 * Manish Biswas
 * Manodeep Sinha
-* Manon Marchand
-* Marcello Nascif
 * Mark Fardal
 * Mark Taylor
 * Markus Demleitner
@@ -335,16 +302,13 @@ Core Package Contributors
 * Max Mahlke
 * Max Silbiger
 * Max Voronkov
-* Maximilian Linhoff
-* Maximillian Weber
+* Maximilian Nöthe
 * Médéric Boquien
 * Megan Sosey
-* Melissa Weber Mendonça
 * Michael Brewer
 * Michael Droettboom
 * Michael Hirsch
 * Michael Hoenig
-* Michael Kelley
 * Michael Lindner-D'Addario
 * Michael Mueller
 * Michael Seifert
@@ -352,8 +316,6 @@ Core Package Contributors
 * Michael Zhang
 * Michele Costa
 * Michele Mastropietro
-* Michele Peresano
-* Michiel De Wilde
 * Miguel de Val-Borro
 * Mihai Cara
 * Mike Alexandersen
@@ -364,8 +326,6 @@ Core Package Contributors
 * Moataz Hisham
 * Mohan Agrawal
 * Molly Peeples
-* Mridul Seth
-* Mubin Manasia
 * mzhengxi
 * Nabil Freij
 * Nadia Dencheva
@@ -388,7 +348,6 @@ Core Package Contributors
 * odidev
 * Ole Streicher
 * Orion Poplawski
-* omahs
 * orionlee
 * Param Patidar
 * Parikshit Sakurikar
@@ -405,14 +364,10 @@ Core Package Contributors
 * Peter Teuben
 * Peter Yoachim
 * Pey Lian Lim
-* Piyush Sharma
-* Porter Averett
-* Prajwel Joseph
 * Prasanth Nair
 * Pratik Patel
 * Pritish Chakraborty
 * Pushkar Kopparla
-* Raghuram Devarakonda
 * Ralf Gommers
 * Rashid Khan
 * Rasmus Handberg
@@ -428,7 +383,6 @@ Core Package Contributors
 * Roban Hultman Kramer
 * Robel Geda
 * Robert Cross
-* Robert Queenin
 * Rocio Kiman
 * Rohan Rajpal
 * Rohit Kapoor
@@ -441,31 +395,24 @@ Core Package Contributors
 * Ryan Cooke
 * Ryan Fox
 * Sadie Bartholomew
-* Sam Holt
 * Sam Van Kooten
 * Sam Verstocken
-* Samruddhi Khandale
 * Samuel Brice
-* Sandeep Desai
 * Sanjeev Dubey
 * Sara Ogaz
 * Sarah Graves
 * Sarah Kendrew
 * Sarah Weissman
-* Saransh Chopra
 * Sashank Mishra
 * sashmish
 * Saurav Sachidanand
 * Scott Thomas
 * Sébastien Maret
 * Sebastian Meßlinger
-* Sedona Price
 * Semyeong Oh
 * Serge Montagnac
 * Sergio Pascual
-* Shaheer Ahmad
 * Shailesh Ahuja
-* Shane Maloney
 * Shankar Kulumani
 * Shantanu Srivastava
 * Shilpi Jain
@@ -474,18 +421,15 @@ Core Package Contributors
 * Shresth Verma
 * Shreyas Bapat
 * Sigurd Næss
-* Simon Alinder
 * Simon Conseil
 * Simon Gibbons
 * Simon Liedtke
 * Simon Torres
-* Somia Floret
 * Sourabh Cheedella
 * Srikrishna Sekhar
 * srirajshukla
 * Stefan Becker
 * Stefan Nelson
-* Stephen Bailey
 * Stephen Portillo
 * Steve Crawford
 * Steve Guest
@@ -499,15 +443,9 @@ Core Package Contributors
 * T\. Carl Beery
 * T\. E\. Pickering
 * Tanuj Rastogi
-* Tanvi Pooranmal Meena
-* Thais Borges
-* Thomas J. Fan
 * Thomas Erben
 * Thomas Robitaille
-* Thomas Vandal
 * Thompson Le Blanc
-* Tiago Gomes
-* Tiago Ribeiro
 * Tiffany Jansen
 * Tim Gates
 * Tim Jenness
@@ -538,11 +476,9 @@ Core Package Contributors
 * Yash Sharma
 * Yingqi Ying
 * Zac Hatfield-Dodds
-* Zach Burnett
 * Zach Edwards
 * Zachary Kurtz
 * Zeljko Ivezic
-* Zhen-Kai Gao
 * Zhiyuan Ma
 * Zlatan Vasović
 * Zé Vinicius
@@ -553,7 +489,7 @@ Other Credits
 * Kyle Barbary for designing the Astropy logos and documentation themes.
 * Andrew Pontzen and the `pynbody <https://github.com/pynbody/pynbody>`_ team
   (For code that grew into :mod:`astropy.units`)
-* Everyone on the |astropy-dev mailing list| and the |Astropy mailing list|
+* Everyone on the `astropy-dev mailing list`_ and the `Astropy mailing list`_
   for contributing to many discussions and decisions!
 
 (If you have contributed to the ``astropy`` core package and your name is missing,

@@ -686,10 +686,10 @@ class Test_BoundingDomain:
         bounding_box = self.BoundingDomain(mk.MagicMock())
 
         # set no unit
-        assert bounding_box._set_outputs_unit(27, None) == 27
+        assert 27 == bounding_box._set_outputs_unit(27, None)
 
         # set unit
-        assert bounding_box._set_outputs_unit(27, u.m) == 27 * u.m
+        assert 27 * u.m == bounding_box._set_outputs_unit(27, u.m)
 
     def test_evaluate(self):
         bounding_box = self.BoundingDomain(Gaussian2D())
@@ -1644,7 +1644,7 @@ class TestModelBoundingBox:
         inputs = (x, y)
         valid_index, all_out = bounding_box._valid_index(input_shape, inputs)
         assert len(valid_index) == 1
-        assert (valid_index[0] == list(range(13))).all()
+        assert (valid_index[0] == [idx for idx in range(13)]).all()
         assert not all_out and isinstance(all_out, bool)
 
         # Normal array input, some inside and some outside
@@ -1698,7 +1698,7 @@ class TestModelBoundingBox:
         )
         assert (np.array(new_inputs) == np.array(inputs)).all()
         assert len(valid_index) == 1
-        assert (valid_index[0] == list(range(13))).all()
+        assert (valid_index[0] == [idx for idx in range(13)]).all()
         assert not all_out and isinstance(all_out, bool)
 
         # Normal array input, some inside and some outside
@@ -2367,7 +2367,7 @@ class TestCompoundBoundingBox:
         bounding_box = CompoundBoundingBox({}, Gaussian2D(), ((1, True),))
         assert len(bounding_box.bounding_boxes) == 0
 
-        # Singular
+        # Singlar
         assert bounding_box._get_selector_key(5) == (5,)
         assert bounding_box._get_selector_key((5,)) == (5,)
         assert bounding_box._get_selector_key([5]) == (5,)

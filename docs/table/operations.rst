@@ -111,13 +111,6 @@ values and the indices of the group boundaries for those key values. The groups
 here correspond to the row slices ``0:4``, ``4:7``, and ``7:10`` in the
 ``obs_by_name`` table.
 
-The output grouped table has two important properties:
-
-- The groups in the order of the lexically sorted key values (``M101``, ``M31``,
-  ``M82`` in our example).
-- The rows within each group are in the same order as they appear in the
-  original table.
-
 The initial argument (``keys``) for the :func:`~astropy.table.Table.group_by`
 function can take a number of input data types:
 
@@ -1186,8 +1179,8 @@ a generic distance between column values using the
 :func:`~astropy.table.join_distance` join function. This can apply to 1D or 2D
 (vector) columns. This will look very similar to the coordinates example, but
 here there is a bit more flexibility. The matching is done using
-:class:`scipy.spatial.KDTree` and
-:meth:`scipy.spatial.KDTree.query_ball_tree`, and the behavior of these can be
+:class:`scipy.spatial.cKDTree` and
+:meth:`scipy.spatial.cKDTree.query_ball_tree`, and the behavior of these can be
 controlled via the ``kdtree_args`` and ``query_args`` arguments, respectively.
 
 .. _unique-rows:

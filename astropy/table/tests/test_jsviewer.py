@@ -7,13 +7,7 @@ from astropy import extern
 from astropy.coordinates import SkyCoord
 from astropy.table.table import Table
 from astropy.time import Time
-from astropy.utils.compat.optional_deps import (
-    HAS_BLEACH,
-    HAS_IPYDATAGRID,
-    HAS_IPYTHON,
-    HAS_PANDAS,
-)
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 EXTERN_DIR = abspath(join(dirname(extern.__file__), "jquery", "data"))
@@ -104,9 +98,11 @@ def test_write_jsviewer_default(tmp_path):
         length="50",
         display_length="10, 25, 50, 100, 500, 1000",
         datatables_css_url=(
-            "https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"
+            "https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css"
         ),
-        datatables_js_url=("https://cdn.datatables.net/2.1.8/js/dataTables.min.js"),
+        datatables_js_url=(
+            "https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"
+        ),
         jquery_url="https://code.jquery.com/" + JQUERY_MIN_JS,
     )
     with open(tmpfile) as f:
@@ -153,9 +149,11 @@ def test_write_jsviewer_mixin(tmp_path, mixin):
         length="50",
         display_length="10, 25, 50, 100, 500, 1000",
         datatables_css_url=(
-            "https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"
+            "https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css"
         ),
-        datatables_js_url=("https://cdn.datatables.net/2.1.8/js/dataTables.min.js"),
+        datatables_js_url=(
+            "https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"
+        ),
         jquery_url="https://code.jquery.com/" + JQUERY_MIN_JS,
     )
     with open(tmpfile) as f:
@@ -187,31 +185,52 @@ def test_write_jsviewer_options(tmp_path):
         length="5",
         display_length="5, 10, 25, 50, 100, 500, 1000",
         datatables_css_url=(
-            "https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"
+            "https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css"
         ),
-        datatables_js_url=("https://cdn.datatables.net/2.1.8/js/dataTables.min.js"),
+        datatables_js_url=(
+            "https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"
+        ),
         jquery_url="https://code.jquery.com/" + JQUERY_MIN_JS,
     )
     with open(tmpfile) as f:
         assert f.read().strip() == ref.strip()
 
 
-@pytest.mark.skipif(not HAS_IPYTHON, reason="requires IPython")
-def test_show_in_notebook_classic():
+def test_write_jsviewer_local(tmp_path):
+    t = Table()
+    t["a"] = [1, 2, 3, 4, 5]
+    t["b"] = ["a", "b", "c", "d", "e"]
+    t["a"].unit = "m"
+
+    tmpfile = tmp_path / "test.html"
+
+    t.write(
+        tmpfile, format="jsviewer", table_id="test", jskwargs={"use_local_files": True}
+    )
+    ref = REFERENCE % dict(
+        lines=format_lines(t["a"], t["b"]),
+        table_class="display compact",
+        table_id="test",
+        length="50",
+        display_length="10, 25, 50, 100, 500, 1000",
+        datatables_css_url="file://" + join(EXTERN_DIR, "css", "jquery.dataTables.css"),
+        datatables_js_url="file://"
+        + join(EXTERN_DIR, "js", "jquery.dataTables.min.js"),
+        jquery_url="file://" + join(EXTERN_DIR, "js", JQUERY_MIN_JS),
+    )
+    with open(tmpfile) as f:
+        assert f.read().strip() == ref.strip()
+
+
+@pytest.mark.skipif(not HAS_IPYTHON, reason="requires iPython")
+def test_show_in_notebook():
     t = Table()
     t["a"] = [1, 2, 3, 4, 5]
     t["b"] = ["b", "c", "a", "d", "e"]
 
-    with pytest.warns(AstropyDeprecationWarning):
-        htmlstr_windx = t.show_in_notebook(
-            backend="classic"
-        ).data  # should default to 'idx'
-        htmlstr_windx_named = t.show_in_notebook(
-            backend="classic", show_row_index="realidx"
-        ).data
-        htmlstr_woindx = t.show_in_notebook(
-            backend="classic", show_row_index=False
-        ).data
+    htmlstr_windx = t.show_in_notebook().data  # should default to 'idx'
+    htmlstr_windx_named = t.show_in_notebook(show_row_index="realidx").data
+    htmlstr_woindx = t.show_in_notebook(show_row_index=False).data
 
     assert (
         textwrap.dedent(
@@ -233,22 +252,3 @@ def test_show_in_notebook_classic():
     )
 
     assert "<thead><tr><th>a</th><th>b</th></tr></thead>" in htmlstr_woindx
-
-
-@pytest.mark.skipif(
-    not HAS_IPYDATAGRID or not HAS_PANDAS, reason="requires ipydatagrid and pandas"
-)
-# https://github.com/bqplot/bqplot/issues/1624 and such
-@pytest.mark.filterwarnings(r"ignore:((.|\n)*)traitlets((.|\n)*):DeprecationWarning")
-def test_show_in_notebook_ipydatagrid():
-    from ipydatagrid import DataGrid
-
-    t = Table()
-    dg = t.show_in_notebook()
-    assert isinstance(dg, DataGrid)
-
-
-def test_show_in_notebook_invalid_backend():
-    t = Table()
-    with pytest.raises(NotImplementedError, match=".* backend is not supported"):
-        t.show_in_notebook(backend="foo")

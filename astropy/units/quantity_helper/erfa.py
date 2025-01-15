@@ -5,8 +5,7 @@
 from erfa import dt_eraASTROM, dt_eraLDBODY, dt_pv
 from erfa import ufunc as erfa_ufunc
 
-from astropy.units.core import dimensionless_unscaled
-from astropy.units.errors import UnitsError, UnitTypeError
+from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from astropy.units.structured import StructuredUnit
 
 from . import UFUNC_HELPERS
@@ -21,9 +20,8 @@ from .helpers import (
 erfa_ufuncs = (
     "s2c", "s2p", "c2s", "p2s", "pm", "pdp", "pxp", "rxp", "cpv", "p2pv", "pv2p",
     "pv2s", "pvdpv", "pvm", "pvmpv", "pvppv", "pvstar", "pvtob", "pvu", "pvup",
-    "pvxpv", "rxpv", "s2pv", "s2xpv", "starpv", "sxpv", "trxpv", "gd2gc", "gd2gce",
-    "gc2gd", "gc2gde", "ldn", "aper", "apio", "atciq", "atciqn", "atciqz", "aticq",
-    "atioq", "atoiq",
+    "pvxpv", "rxpv", "s2pv", "s2xpv", "starpv", "sxpv", "trxpv", "gd2gc", "gc2gd",
+    "ldn", "aper", "apio", "atciq", "atciqn", "atciqz", "aticq", "atioq", "atoiq",
 )  # fmt: skip
 
 
@@ -100,21 +98,6 @@ def helper_gc2gd(f, nounit, unit1):
         )
 
 
-def helper_gc2gde(f, unit_r, unit_flat, unit_xyz):
-    from astropy.units.si import m, radian
-
-    return [
-        get_converter(unit_r, m),
-        get_converter(_d(unit_flat), dimensionless_unscaled),
-        get_converter(unit_xyz, m),
-    ], (
-        radian,
-        radian,
-        m,
-        None,
-    )
-
-
 def helper_gd2gc(f, nounit, unit1, unit2, unit3):
     from astropy.units.si import m, radian
 
@@ -132,18 +115,6 @@ def helper_gd2gc(f, nounit, unit1, unit2, unit3):
             f"Can only apply '{f.__name__}' function to lon, lat "
             "with angle and height with length units"
         )
-
-
-def helper_gd2gce(f, unit_r, unit_flat, unit_long, unit_lat, unit_h):
-    from astropy.units.si import m, radian
-
-    return [
-        get_converter(unit_r, m),
-        get_converter(_d(unit_flat), dimensionless_unscaled),
-        get_converter(unit_long, radian),
-        get_converter(unit_lat, radian),
-        get_converter(unit_h, m),
-    ], (m, None)
 
 
 def helper_p2pv(f, unit1):
@@ -452,9 +423,7 @@ def get_erfa_helpers():
     ERFA_HELPERS[erfa_ufunc.sxpv] = helper_multiplication
     ERFA_HELPERS[erfa_ufunc.trxpv] = helper_multiplication
     ERFA_HELPERS[erfa_ufunc.gc2gd] = helper_gc2gd
-    ERFA_HELPERS[erfa_ufunc.gc2gde] = helper_gc2gde
     ERFA_HELPERS[erfa_ufunc.gd2gc] = helper_gd2gc
-    ERFA_HELPERS[erfa_ufunc.gd2gce] = helper_gd2gce
     ERFA_HELPERS[erfa_ufunc.ldn] = helper_ldn
     ERFA_HELPERS[erfa_ufunc.aper] = helper_aper
     ERFA_HELPERS[erfa_ufunc.apio] = helper_apio

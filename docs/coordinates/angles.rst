@@ -81,41 +81,41 @@ There are many ways to represent the value of an |Angle|::
     >>> a  # doctest: +FLOAT_CMP
     <Angle 1. rad>
     >>> a.radian
-    np.float64(1.0)
+    1.0
     >>> a.degree  # doctest: +FLOAT_CMP
-    np.float64(57.29577951308232)
+    57.29577951308232
     >>> a.hour  # doctest: +FLOAT_CMP
-    np.float64(3.8197186342054885)
+    3.8197186342054885
     >>> a.hms  # doctest: +FLOAT_CMP
-    hms_tuple(h=np.float64(3.0), m=np.float64(49.0), s=np.float64(10.987083139758766))
+    hms_tuple(h=3.0, m=49.0, s=10.987083139758766)
     >>> a.dms  # doctest: +FLOAT_CMP
-    dms_tuple(d=np.float64(57.0), m=np.float64(17.0), s=np.float64(44.806247096362313))
+    dms_tuple(d=57.0, m=17.0, s=44.806247096362313)
     >>> a.signed_dms  # doctest: +FLOAT_CMP
-    signed_dms_tuple(sign=np.float64(1.0), d=np.float64(57.0), m=np.float64(17.0), s=np.float64(44.806247096362313))
+    signed_dms_tuple(sign=1.0, d=57.0, m=17.0, s=44.806247096362313)
     >>> (-a).dms  # doctest: +FLOAT_CMP
-    dms_tuple(d=np.float64(-57.0), m=np.float64(-17.0), s=np.float64(-44.806247096362313))
+    dms_tuple(d=-57.0, m=-17.0, s=-44.806247096362313)
     >>> (-a).signed_dms  # doctest: +FLOAT_CMP
-    signed_dms_tuple(sign=np.float64(-1.0), d=np.float64(57.0), m=np.float64(17.0), s=np.float64(44.806247096362313))
+    signed_dms_tuple(sign=-1.0, d=57.0, m=17.0, s=44.806247096362313)
     >>> a.arcminute  # doctest: +FLOAT_CMP
-    np.float64(3437.7467707849396)
+    3437.7467707849396
     >>> f"{a}"
     '1.0 rad'
     >>> f"{a:latex}"
-    np.str_('$1\\;\\mathrm{rad}$')
+    '$1\\mathrm{rad}$'
     >>> f"{a.to(u.deg):latex}"
-    np.str_('$57^\\circ17{}^\\prime44.8062471{}^{\\prime\\prime}$')
+    '$57^\\circ17{}^\\prime44.8062471{}^{\\prime\\prime}$'
     >>> a.to_string()
-    np.str_('1 rad')
+    '1rad'
     >>> a.to_string(unit=u.degree)
-    np.str_('57d17m44.8062471s')
+    '57d17m44.8062471s'
     >>> a.to_string(unit=u.degree, sep=':')
-    np.str_('57:17:44.8062471')
+    '57:17:44.8062471'
     >>> a.to_string(unit=u.degree, sep=('deg', 'm', 's'))
-    np.str_('57deg17m44.8062471s')
+    '57deg17m44.8062471s'
     >>> a.to_string(unit=u.hour)
-    np.str_('3h49m10.98708314s')
+    '3h49m10.98708314s'
     >>> a.to_string(unit=u.hour, decimal=True)
-    np.str_('3.81972')
+    '3.81972'
 
 ..
   EXAMPLE END
@@ -174,12 +174,6 @@ The :meth:`~astropy.coordinates.Angle.wrap_at` method allows taking an angle or
 angles and wrapping to be within a single 360 degree slice. The
 :meth:`~astropy.coordinates.Angle.is_within_bounds` method returns a
 boolean indicating whether an angle or angles is within the specified bounds.
-
-.. Note::
-    While creating |Angle| instances from arrays with integral data types
-    is technically possible (for example with ``dtype=int``), it is very
-    limited in functionality and in particular wrapping is not supported for
-    such objects.
 
 
 Longitude and Latitude Objects

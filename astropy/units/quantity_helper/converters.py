@@ -5,15 +5,19 @@ import threading
 
 import numpy as np
 
-from astropy.units.core import dimensionless_unscaled
-from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
+from astropy.units.core import (
+    UnitConversionError,
+    UnitsError,
+    UnitTypeError,
+    dimensionless_unscaled,
+)
 
 __all__ = [
+    "can_have_arbitrary_unit",
+    "converters_and_unit",
+    "check_output",
     "UFUNC_HELPERS",
     "UNSUPPORTED_UFUNCS",
-    "can_have_arbitrary_unit",
-    "check_output",
-    "converters_and_unit",
 ]
 
 
@@ -117,7 +121,7 @@ UNSUPPORTED_UFUNCS = UFUNC_HELPERS.UNSUPPORTED
 
 
 def can_have_arbitrary_unit(value):
-    """Test whether the items in value can have arbitrary units.
+    """Test whether the items in value can have arbitrary units
 
     Numbers whose value does not change upon a unit change, i.e.,
     zero, infinity, or not-a-number
@@ -161,6 +165,7 @@ def converters_and_unit(function, method, *args):
     UnitTypeError : when the conversion to the required (or consistent) units
         is not possible.
     """
+
     # Check whether we support this ufunc, by getting the helper function
     # (defined in helpers) which returns a list of function(s) that convert the
     # input(s) to the unit required for the ufunc, as well as the unit the
@@ -226,7 +231,7 @@ def converters_and_unit(function, method, *args):
                     # Changing the unit does not work for, e.g., array-shaped
                     # power, but this is OK if we're (scaled) dimensionless.
                     try:
-                        converters[0] = units[0].get_converter(dimensionless_unscaled)
+                        converters[0] = units[0]._get_converter(dimensionless_unscaled)
                     except UnitConversionError:
                         raise exc
                     else:

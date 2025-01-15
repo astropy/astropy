@@ -1,0 +1,1 @@
+The minimum version required for numpy is now 1.20 and that for scipy 1.5.

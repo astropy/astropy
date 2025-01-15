@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from pathlib import Path
-from warnings import warn
+from os.path import abspath, dirname, join
 
 import astropy.config as _config
 import astropy.io.registry as io_registry
@@ -20,12 +19,12 @@ class Conf(_config.ConfigNamespace):
     )
 
     datatables_url = _config.ConfigItem(
-        "https://cdn.datatables.net/2.1.8/js/dataTables.min.js",
+        "https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js",
         "The URL to the jquery datatables library.",
     )
 
     css_urls = _config.ConfigItem(
-        ["https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"],
+        ["https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css"],
         "The URLs to the css file(s) to include.",
         cfgtype="string_list",
     )
@@ -33,9 +32,9 @@ class Conf(_config.ConfigNamespace):
 
 conf = Conf()
 
-_TABLE_DIR = Path(extern.__file__).parent
-EXTERN_JS_DIR = _TABLE_DIR.joinpath("jquery", "data", "js").resolve()
-EXTERN_CSS_DIR = _TABLE_DIR.joinpath("jquery", "data", "css").resolve()
+
+EXTERN_JS_DIR = abspath(join(dirname(extern.__file__), "jquery", "data", "js"))
+EXTERN_CSS_DIR = abspath(join(dirname(extern.__file__), "jquery", "data", "css"))
 
 _SORTING_SCRIPT_PART_1 = """
 var astropy_sort_num = function(a, b) {{
@@ -76,7 +75,7 @@ require(["datatables"], function(){{
     }});
 }});
 </script>
-""" % dict(  # noqa: UP031
+""" % dict(
     sorting_script1=_SORTING_SCRIPT_PART_1, sorting_script2=_SORTING_SCRIPT_PART_2
 )
 
@@ -132,11 +131,7 @@ class JSViewer:
     """
 
     def __init__(self, use_local_files=False, display_length=50):
-        if use_local_files:
-            warn(
-                "`use_local_files` is deprecated and has no effect; for security reasons no static versions of the required js libraries are included in astropy.",
-                DeprecationWarning,
-            )
+        self._use_local_files = use_local_files
         self.display_length_menu = [
             [10, 25, 50, 100, 500, 1000, -1],
             [10, 25, 50, 100, 500, 1000, "All"],
@@ -148,14 +143,26 @@ class JSViewer:
 
     @property
     def jquery_urls(self):
-        return [conf.jquery_url, conf.datatables_url]
+        if self._use_local_files:
+            return [
+                "file://" + join(EXTERN_JS_DIR, "jquery-3.6.0.min.js"),
+                "file://" + join(EXTERN_JS_DIR, "jquery.dataTables.min.js"),
+            ]
+        else:
+            return [conf.jquery_url, conf.datatables_url]
 
     @property
     def css_urls(self):
-        return conf.css_urls
+        if self._use_local_files:
+            return ["file://" + join(EXTERN_CSS_DIR, "jquery.dataTables.css")]
+        else:
+            return conf.css_urls
 
     def _jstable_file(self):
-        return conf.datatables_url[:-3]
+        if self._use_local_files:
+            return "file://" + join(EXTERN_JS_DIR, "jquery.dataTables.min")
+        else:
+            return conf.datatables_url[:-3]
 
     def ipynb(self, table_id, css=None, sort_columns="[]"):
         html = f"<style>{css if css is not None else DEFAULT_CSS_NB}</style>"

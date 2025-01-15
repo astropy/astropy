@@ -14,37 +14,57 @@
 Handles a "generic" string format for units
 """
 
-from __future__ import annotations
-
 import re
 import unicodedata
 import warnings
 from fractions import Fraction
-from typing import TYPE_CHECKING
 
-from astropy.units.core import CompositeUnit, Unit, get_current_unit_registry
-from astropy.units.errors import UnitsWarning
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
-from .base import Base, _ParsingFormatMixin
-
-if TYPE_CHECKING:
-    from re import Match, Pattern
-    from typing import ClassVar, Final
-
-    import numpy as np
-
-    from astropy.extern.ply.lex import Lexer
-    from astropy.units import UnitBase
-    from astropy.units.typing import UnitScale
-    from astropy.utils.parsing import ThreadSafeParser
+from . import core, utils
+from .base import Base
 
 
-class _GenericParserMixin(_ParsingFormatMixin):
-    """Provide the parser used by Generic, FITS and VOUnit."""
+def _to_string(cls, unit):
+    if isinstance(unit, core.CompositeUnit):
+        parts = []
 
-    _tokens: ClassVar[tuple[str, ...]] = (
+        if cls._show_scale and unit.scale != 1:
+            parts.append(f"{unit.scale:g}")
+
+        if len(unit.bases):
+            positives, negatives = utils.get_grouped_by_powers(unit.bases, unit.powers)
+            if len(positives):
+                parts.append(cls._format_unit_list(positives))
+            elif len(parts) == 0:
+                parts.append("1")
+
+            if len(negatives):
+                parts.append("/")
+                unit_list = cls._format_unit_list(negatives)
+                if len(negatives) == 1:
+                    parts.append(f"{unit_list}")
+                else:
+                    parts.append(f"({unit_list})")
+
+        return " ".join(parts)
+    elif isinstance(unit, core.NamedUnit):
+        return cls._get_unit_name(unit)
+
+
+class Generic(Base):
+    """
+    A "generic" format.
+
+    The syntax of the format is based directly on the FITS standard,
+    but instead of only supporting the units that FITS knows about, it
+    supports any unit available in the `astropy.units` namespace.
+    """
+
+    _show_scale = True
+
+    _tokens = (
         "COMMA",
         "DOUBLE_STAR",
         "STAR",
@@ -61,7 +81,31 @@ class _GenericParserMixin(_ParsingFormatMixin):
     )
 
     @classproperty(lazy=True)
-    def _lexer(cls) -> Lexer:
+    def _all_units(cls):
+        return cls._generate_unit_names()
+
+    @classproperty(lazy=True)
+    def _units(cls):
+        return cls._all_units[0]
+
+    @classproperty(lazy=True)
+    def _deprecated_units(cls):
+        return cls._all_units[1]
+
+    @classproperty(lazy=True)
+    def _functions(cls):
+        return cls._all_units[2]
+
+    @classproperty(lazy=True)
+    def _parser(cls):
+        return cls._make_parser()
+
+    @classproperty(lazy=True)
+    def _lexer(cls):
+        return cls._make_lexer()
+
+    @classmethod
+    def _make_lexer(cls):
         tokens = cls._tokens
 
         t_COMMA = r"\,"
@@ -103,11 +147,8 @@ class _GenericParserMixin(_ParsingFormatMixin):
             r"((sqrt)|(ln)|(exp)|(log)|(mag)|(dB)|(dex))(?=\ *\()"
             return t
 
-        # A possible unit is something that consists of characters not used
-        # for anything else: no spaces, no digits, signs, periods, stars,
-        # carets, parentheses or commas.
         def t_UNIT(t):
-            r"[^\s\d+\-\./\*\^\(\)\,]+"
+            "%|([YZEPTGMkhdcmu\N{MICRO SIGN}npfazy]?'((?!\\d)\\w)+')|((?!\\d)\\w)+"
             t.value = cls._get_unit(t)
             return t
 
@@ -121,8 +162,8 @@ class _GenericParserMixin(_ParsingFormatMixin):
             lextab="generic_lextab", package="astropy/units", reflags=int(re.UNICODE)
         )
 
-    @classproperty(lazy=True)
-    def _parser(cls) -> ThreadSafeParser:
+    @classmethod
+    def _make_parser(cls):
         """
         The grammar here is based on the description in the `FITS
         standard
@@ -164,7 +205,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
             structured_unit : subunit COMMA
                             | subunit COMMA subunit
             """
-            from astropy.units.structured import StructuredUnit
+            from ..structured import StructuredUnit
 
             inputs = (p[1],) if len(p) == 3 else (p[1], p[3])
             units = ()
@@ -175,7 +216,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
                     units += subunit
                 elif isinstance(subunit, StructuredUnit):
                     # Structured unit whose entries should be
-                    # individually added to the new StructuredUnit.
+                    # individiually added to the new StructuredUnit.
                     units += subunit.values()
                 else:
                     # Regular unit to be added to the StructuredUnit.
@@ -204,18 +245,22 @@ class _GenericParserMixin(_ParsingFormatMixin):
                  | factor product inverse_unit
                  | factor
             """
+            from astropy.units.core import Unit
+
             if len(p) == 2:
                 p[0] = Unit(p[1])
             elif len(p) == 3:
-                p[0] = CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
+                p[0] = Unit(p[1] * p[2])
             elif len(p) == 4:
-                p[0] = CompositeUnit(p[1] * p[3].scale, p[3].bases, p[3].powers)
+                p[0] = Unit(p[1] * p[3])
 
         def p_division_product_of_units(p):
             """
             division_product_of_units : division_product_of_units division product_of_units
                                       | product_of_units
             """
+            from astropy.units.core import Unit
+
             if len(p) == 4:
                 p[0] = Unit(p[1] / p[3])
             else:
@@ -375,11 +420,13 @@ class _GenericParserMixin(_ParsingFormatMixin):
             product : STAR
                     | PERIOD
             """
+            pass
 
         def p_division(p):
             """
             division : SOLIDUS
             """
+            pass
 
         def p_power(p):
             """
@@ -415,7 +462,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
                 p[0] = p[3] ** 0.5
                 return
             elif p[1] in ("mag", "dB", "dex"):
-                function_unit = cls._validate_unit(p[1])
+                function_unit = cls._parse_unit(p[1])
                 # In Generic, this is callable, but that does not have to
                 # be the case in subclasses (e.g., in VOUnit it is not).
                 if callable(function_unit):
@@ -429,27 +476,26 @@ class _GenericParserMixin(_ParsingFormatMixin):
 
         return parsing.yacc(tabmodule="generic_parsetab", package="astropy/units")
 
+    @classmethod
+    def _get_unit(cls, t):
+        try:
+            return cls._parse_unit(t.value)
+        except ValueError as e:
+            registry = core.get_current_unit_registry()
+            if t.value in registry.aliases:
+                return registry.aliases[t.value]
 
-class Generic(Base, _GenericParserMixin):
-    """
-    A "generic" format.
-
-    The syntax of the format is based directly on the FITS standard,
-    but instead of only supporting the units that FITS knows about, it
-    supports any unit available in the `astropy.units` namespace.
-    """
+            raise ValueError(f"At col {t.lexpos}, {str(e)}")
 
     @classmethod
-    def _validate_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
-        registry = get_current_unit_registry().registry
+    def _parse_unit(cls, s, detailed_exception=True):
+        registry = core.get_current_unit_registry().registry
         if s in cls._unit_symbols:
             s = cls._unit_symbols[s]
 
         elif not s.isascii():
             if s[0] == "\N{MICRO SIGN}":
                 s = "u" + s[1:]
-            elif s[0] == "°":
-                s = "deg" if len(s) == 1 else "deg_" + s[1:]
             if s[-1] in cls._prefixable_unit_symbols:
                 s = s[:-1] + cls._prefixable_unit_symbols[s[-1]]
             elif len(s) > 1 and s[-1] in cls._unit_suffix_symbols:
@@ -465,7 +511,7 @@ class Generic(Base, _GenericParserMixin):
         else:
             raise ValueError()
 
-    _unit_symbols: ClassVar[dict[str, str]] = {
+    _unit_symbols = {
         "%": "percent",
         "\N{PRIME}": "arcmin",
         "\N{DOUBLE PRIME}": "arcsec",
@@ -473,13 +519,13 @@ class Generic(Base, _GenericParserMixin):
         "e\N{SUPERSCRIPT MINUS}": "electron",
     }
 
-    _prefixable_unit_symbols: ClassVar[dict[str, str]] = {
+    _prefixable_unit_symbols = {
         "\N{GREEK CAPITAL LETTER OMEGA}": "Ohm",
         "\N{LATIN CAPITAL LETTER A WITH RING ABOVE}": "Angstrom",
         "\N{SCRIPT SMALL L}": "l",
     }
 
-    _unit_suffix_symbols: ClassVar[dict[str, str]] = {
+    _unit_suffix_symbols = {
         "\N{CIRCLED DOT OPERATOR}": "sun",
         "\N{SUN}": "sun",
         "\N{CIRCLED PLUS}": "earth",
@@ -489,7 +535,7 @@ class Generic(Base, _GenericParserMixin):
         "\N{LATIN SUBSCRIPT SMALL LETTER P}": "_p",
     }
 
-    _translations: ClassVar[dict[int, str]] = str.maketrans(
+    _translations = str.maketrans(
         {
             "\N{GREEK SMALL LETTER MU}": "\N{MICRO SIGN}",
             "\N{MINUS SIGN}": "-",
@@ -501,7 +547,7 @@ class Generic(Base, _GenericParserMixin):
     since then a string like 'µ' would be interpreted as unit mass.
     """
 
-    _superscripts: Final[str] = (
+    _superscripts = (
         "\N{SUPERSCRIPT MINUS}"
         "\N{SUPERSCRIPT PLUS SIGN}"
         "\N{SUPERSCRIPT ZERO}"
@@ -516,19 +562,22 @@ class Generic(Base, _GenericParserMixin):
         "\N{SUPERSCRIPT NINE}"
     )
 
-    _superscript_translations: ClassVar[dict[int, int]] = str.maketrans(
-        _superscripts, "-+0123456789"
-    )
-    _regex_superscript: ClassVar[Pattern[str]] = re.compile(
-        f"[{_superscripts}]?[{_superscripts[2:]}]+"
-    )
+    _superscript_translations = str.maketrans(_superscripts, "-+0123456789")
+    _regex_superscript = re.compile(f"[{_superscripts}]?[{_superscripts[2:]}]+")
+    _regex_deg = re.compile("°([CF])?")
 
     @classmethod
-    def _convert_superscript(cls, m: Match[str]) -> str:
+    def _convert_superscript(cls, m):
         return f"({m.group().translate(cls._superscript_translations)})"
 
     @classmethod
-    def parse(cls, s: str, debug: bool = False) -> UnitBase:
+    def _convert_deg(cls, m):
+        if len(m.string) == 1:
+            return "deg"
+        return m.string.replace("°", "deg_")
+
+    @classmethod
+    def parse(cls, s, debug=False):
         if not isinstance(s, str):
             s = s.decode("ascii")
         elif not s.isascii():
@@ -545,21 +594,66 @@ class Generic(Base, _GenericParserMixin):
             # Translate superscripts to parenthesized numbers; this ensures
             # that mixes of superscripts and regular numbers fail.
             s = cls._regex_superscript.sub(cls._convert_superscript, s)
+            # Translate possible degrees.
+            s = cls._regex_deg.sub(cls._convert_deg, s)
 
-        result = cls._do_parse(s, debug)
-
+        result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)
         n_slashes = s.count("/")
         if n_slashes > 1 and (n_slashes - len(re.findall(r"\(\d+/\d+\)", s))) > 1:
             warnings.warn(
-                f"'{s}' contains multiple slashes, which is "
-                "discouraged by the FITS standard",
-                UnitsWarning,
+                "'{}' contains multiple slashes, which is "
+                "discouraged by the FITS standard".format(s),
+                core.UnitsWarning,
             )
         return result
 
     @classmethod
-    def format_exponential_notation(
-        cls, val: UnitScale | np.number, format_spec: str = "g"
-    ) -> str:
-        return format(val, format_spec)
+    def _do_parse(cls, s, debug=False):
+        try:
+            # This is a short circuit for the case where the string
+            # is just a single unit name
+            return cls._parse_unit(s, detailed_exception=False)
+        except ValueError as e:
+            try:
+                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
+            except ValueError as e:
+                if str(e):
+                    raise
+                else:
+                    raise ValueError(f"Syntax error parsing unit '{s}'")
+
+    @classmethod
+    def _get_unit_name(cls, unit):
+        return unit.get_format_name("generic")
+
+    @classmethod
+    def _format_unit_list(cls, units):
+        out = []
+        units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
+
+        for base, power in units:
+            if power == 1:
+                out.append(cls._get_unit_name(base))
+            else:
+                power = utils.format_power(power)
+                if "/" in power or "." in power:
+                    out.append(f"{cls._get_unit_name(base)}({power})")
+                else:
+                    out.append(f"{cls._get_unit_name(base)}{power}")
+        return " ".join(out)
+
+    @classmethod
+    def to_string(cls, unit):
+        return _to_string(cls, unit)
+
+
+class Unscaled(Generic):
+    """
+    A format that doesn't display the scale part of the unit, other
+    than that, it is identical to the `Generic` format.
+
+    This is used in some error messages where the scale is irrelevant.
+    """
+
+    _show_scale = False

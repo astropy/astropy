@@ -8,9 +8,10 @@ Classes to read DAOphot table format
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
+
 import itertools as itt
 import re
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 
 import numpy as np
 
@@ -28,7 +29,7 @@ class DaophotHeader(core.BaseHeader):
     # Regex for extracting the format strings
     re_format = re.compile(r"%-?(\d+)\.?\d?[sdfg]")
     re_header_keyword = re.compile(
-        r"[#]K\s+ (?P<name> \w+)\s* = (?P<stuff> .+) $", re.VERBOSE
+        r"[#]K" r"\s+ (?P<name> \w+)" r"\s* = (?P<stuff> .+) $", re.VERBOSE
     )
     aperture_values = ()
 
@@ -36,12 +37,10 @@ class DaophotHeader(core.BaseHeader):
         core.BaseHeader.__init__(self)
 
     def parse_col_defs(self, grouped_lines_dict):
-        """Parse a series of column definition lines.
-
-        Examples
-        --------
-        When parsing, there may be several such blocks in a single file
-        (where continuation characters have already been stripped).
+        """
+        Parse a series of column definition lines like below.  There may be several
+        such blocks in a single file (where continuation characters have already been
+        stripped).
         #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER
         #U ##    pixels    pixels    magnitudes  magnitudes    counts         ##
         #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d
@@ -89,7 +88,9 @@ class DaophotHeader(core.BaseHeader):
         self.col_widths = col_widths
 
         # merge the multi-line header data into single line data
-        return {k: list(itt.chain(*v)) for (k, v) in coldef_dict.items()}
+        coldef_dict = {k: sum(v, []) for (k, v) in coldef_dict.items()}
+
+        return coldef_dict
 
     def update_meta(self, lines, meta):
         """
@@ -118,7 +119,7 @@ class DaophotHeader(core.BaseHeader):
 
             # Update the table_meta keywords if necessary
             if "#K" in grouped_lines_dict:
-                keywords = dict(
+                keywords = OrderedDict(
                     map(self.extract_keyword_line, grouped_lines_dict["#K"])
                 )
                 table_meta["keywords"] = keywords
@@ -134,7 +135,7 @@ class DaophotHeader(core.BaseHeader):
 
     def extract_keyword_line(self, line):
         """
-        Extract info from a header keyword line (#K).
+        Extract info from a header keyword line (#K)
         """
         m = self.re_header_keyword.match(line)
         if m:
@@ -162,6 +163,7 @@ class DaophotHeader(core.BaseHeader):
         col : list
             List of table Columns
         """
+
         if not self.names:
             raise core.InconsistentTableError("No column names found in DAOphot header")
 
@@ -178,7 +180,7 @@ class DaophotHeader(core.BaseHeader):
                 col.format = fmt
 
         # Set column start and end positions.
-        col_width = list(itt.chain.from_iterable(self.col_widths))
+        col_width = sum(self.col_widths, [])
         ends = np.cumsum(col_width)
         starts = ends - col_width
         for i, col in enumerate(self.cols):
@@ -230,6 +232,7 @@ class DaophotInputter(core.ContinuationLinesInputter):
         continued rows in a datablock.  For efficiency, depth gives the upper
         limit of lines to search.
         """
+
         # The list of apertures given in the #K APERTURES keyword may not be
         # complete!!  This happens if the string description of the aperture
         # list is longer than the field width of the #K APERTURES field.  In

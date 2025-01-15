@@ -1,0 +1,2 @@
+Enable check for poorly conditioned fits in ``LinearLSQFitter`` for polynomial
+models with fixed inputs.

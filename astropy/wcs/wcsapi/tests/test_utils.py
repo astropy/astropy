@@ -1,4 +1,4 @@
-import pytest
+from pytest import raises
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
@@ -19,7 +19,7 @@ def test_noconstruct():
 
 
 def test_invalid():
-    with pytest.raises(ValueError) as exc:
+    with raises(ValueError) as exc:
         deserialize_class(("astropy.units.Quantity", (), {"unit": "deg"}, ()))
     assert exc.value.args[0] == "Expected a tuple of three values"
 

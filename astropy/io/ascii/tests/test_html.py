@@ -8,9 +8,7 @@ Requires `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_
 to be installed.
 """
 
-import os
 from io import StringIO
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -303,24 +301,17 @@ def test_htmlsplitter():
         list(splitter([]))
 
 
-@pytest.mark.parametrize(
-    "get_table",
-    [
-        lambda path: os.fspath(path),
-        lambda path: Path(path),
-        lambda path: Path(path).read_text(),
-    ],
-)
 @pytest.mark.skipif(not HAS_BS4, reason="requires BeautifulSoup4")
-def test_htmlheader_start(get_table):
+def test_htmlheader_start():
     """
     Test to ensure that the start_line method of HTMLHeader
     returns the first line of header data. Uses t/html.html
     for sample input.
     """
 
-    table_file = "data/html.html"
-    table = get_table(table_file)
+    f = "data/html.html"
+    with open(f) as fd:
+        table = fd.read()
 
     inputter = html.HTMLInputter()
     inputter.html = {}
@@ -676,7 +667,7 @@ def test_raw_html_write_clean():
         format="ascii.html",
         htmldict={
             "raw_html_cols": t.colnames,
-            "raw_html_clean_kwargs": {"tags": list(bleach.ALLOWED_TAGS) + ["p"]},
+            "raw_html_clean_kwargs": {"tags": bleach.ALLOWED_TAGS + ["p"]},
         },
     )
     expected = """\

@@ -43,6 +43,7 @@ def time_support(*, scale=None, format=None, simplify=True):
         If possible, simplify labels, e.g. by removing 00:00:00.000 times from
         ISO strings if all labels fall on that time.
     """
+
     import matplotlib.units as units
     from matplotlib.ticker import MaxNLocator, ScalarFormatter
 
@@ -154,6 +155,13 @@ def time_support(*, scale=None, format=None, simplify=True):
             self.set_useOffset(False)
             self.set_scientific(False)
 
+        def __call__(self, value, pos=None):
+            # Needed for Matplotlib <3.1
+            if self._converter.format in STR_FORMATS:
+                return self.format_ticks([value])[0]
+            else:
+                return super().__call__(value, pos=pos)
+
         def format_ticks(self, values):
             if len(values) == 0:
                 return []
@@ -162,11 +170,11 @@ def time_support(*, scale=None, format=None, simplify=True):
                 formatted = getattr(times, self._converter.format)
                 if self._converter.simplify:
                     if self._converter.format in ("fits", "iso", "isot"):
-                        if all(x.endswith("00:00:00.000") for x in formatted):
+                        if all([x.endswith("00:00:00.000") for x in formatted]):
                             split = " " if self._converter.format == "iso" else "T"
                             formatted = [x.split(split)[0] for x in formatted]
                     elif self._converter.format == "yday":
-                        if all(x.endswith(":001:00:00:00.000") for x in formatted):
+                        if all([x.endswith(":001:00:00:00.000") for x in formatted]):
                             formatted = [x.split(":", 1)[0] for x in formatted]
                 return formatted
             elif self._converter.format == "byear_str":

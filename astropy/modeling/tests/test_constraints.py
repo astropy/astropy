@@ -4,7 +4,6 @@
 import platform
 import types
 import warnings
-from contextlib import nullcontext
 
 import numpy as np
 import pytest
@@ -14,11 +13,8 @@ from numpy.testing import assert_allclose
 from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
-from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
-
-SCIPY_LT_1_11_2 = not minversion("scipy", "1.11.2") if HAS_SCIPY else True
 
 fitters = [
     fitting.LevMarLSQFitter,
@@ -183,7 +179,6 @@ class TestBounds:
         assert intercept + 10**-5 >= bounds["intercept"][0]
         assert intercept - 10**-5 <= bounds["intercept"][1]
 
-    @pytest.mark.filterwarnings("ignore:The fit may be unsuccessful")
     @pytest.mark.parametrize("fitter", fitters)
     def test_bounds_gauss2d_lsq(self, fitter):
         fitter = fitter()
@@ -204,11 +199,12 @@ class TestBounds:
             theta=0.5,
             bounds=bounds,
         )
-        if isinstance(fitter, fitting.TRFLSQFitter):
-            ctx = np.errstate(invalid="ignore", divide="ignore")
+        if isinstance(fitter, fitting.LevMarLSQFitter) or isinstance(
+            fitter, fitting.DogBoxLSQFitter
+        ):
+            with pytest.warns(AstropyUserWarning, match="The fit may be unsuccessful"):
+                model = fitter(gauss, X, Y, self.data)
         else:
-            ctx = nullcontext()
-        with ctx:
             model = fitter(gauss, X, Y, self.data)
         x_mean = model.x_mean.value
         y_mean = model.y_mean.value
@@ -445,20 +441,13 @@ def test_fit_with_fixed_and_bound_constraints(fitter):
     x = np.linspace(0, 10, 10)
     y = np.exp(-(x**2) / 2)
 
-    if isinstance(fitter, fitting.TRFLSQFitter):
-        ctx = np.errstate(invalid="ignore", divide="ignore")
-    else:
-        ctx = nullcontext()
+    fitted_1 = fitter(m, x, y)
+    assert fitted_1.mean >= 4
+    assert fitted_1.mean <= 5
+    assert fitted_1.amplitude == 3.0
 
-    with ctx:
-        fitted_1 = fitter(m, x, y)
-        assert fitted_1.mean >= 4
-        assert fitted_1.mean <= 5
-        assert fitted_1.amplitude == 3.0
-
-        m.amplitude.fixed = False
-        # Cannot enter np.errstate twice, so we need to indent everything in between.
-        _ = fitter(m, x, y)
+    m.amplitude.fixed = False
+    _ = fitter(m, x, y)
     # It doesn't matter anymore what the amplitude ends up as so long as the
     # bounds constraint was still obeyed
     assert fitted_1.mean >= 4
@@ -556,7 +545,9 @@ def test_gaussian2d_positive_stddev(fitter):
     # fmt: on
 
     g_init = models.Gaussian2D(x_mean=8, y_mean=8)
-    if isinstance(fitter, (fitting.TRFLSQFitter, fitting.DogBoxLSQFitter)):
+    if isinstance(fitter, fitting.TRFLSQFitter) or isinstance(
+        fitter, fitting.DogBoxLSQFitter
+    ):
         pytest.xfail("TRFLSQFitter seems to be broken for this test.")
 
     y, x = np.mgrid[:17, :17]

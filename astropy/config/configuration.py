@@ -9,8 +9,6 @@ configuration files for Astropy and affiliated packages.
     found at https://configobj.readthedocs.io .
 """
 
-from __future__ import annotations
-
 import contextlib
 import importlib
 import io
@@ -18,30 +16,27 @@ import os
 import pkgutil
 import warnings
 from contextlib import contextmanager, nullcontext
-from inspect import getdoc
-from pathlib import Path
+from os import path
 from textwrap import TextWrapper
-from typing import TYPE_CHECKING
 from warnings import warn
 
 from astropy.extern.configobj import configobj, validate
-from astropy.utils import find_current_module, isiterable, silence
+from astropy.utils import find_current_module, silence
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.introspection import resolve_name
 
-from .paths import get_config_dir_path
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
-    from typing import Final
+from .paths import get_config_dir
 
 __all__ = (
-    "ConfigItem",
-    "ConfigNamespace",
     "InvalidConfigurationItemWarning",
-    "create_config_file",
-    "generate_config",
+    "ConfigurationMissingWarning",
     "get_config",
     "reload_config",
+    "ConfigNamespace",
+    "ConfigItem",
+    "generate_config",
+    "create_config_file",
 )
 
 
@@ -49,6 +44,17 @@ class InvalidConfigurationItemWarning(AstropyWarning):
     """A Warning that is issued when the configuration value specified in the
     astropy configuration file does not match the type expected for that
     configuration value.
+    """
+
+
+# This was raised with Astropy < 4.3 when the configuration file was not found.
+# It is kept for compatibility and should be removed at some point.
+@deprecated("5.0")
+class ConfigurationMissingWarning(AstropyWarning):
+    """A Warning that is issued when the configuration directory cannot be
+    accessed (usually due to a permissions problem). If this warning appears,
+    configuration items will be set to their defaults rather than read from the
+    configuration file, and no configuration will persist across sessions.
     """
 
 
@@ -72,7 +78,17 @@ class ConfigurationChangedWarning(AstropyWarning):
     """
 
 
-class ConfigNamespace:
+class _ConfigNamespaceMeta(type):
+    def __init__(cls, name, bases, dict):
+        if cls.__bases__[0] is object:
+            return
+
+        for key, val in dict.items():
+            if isinstance(val, ConfigItem):
+                val.name = key
+
+
+class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
     """
     A namespace of configuration items.  Each subpackage with
     configuration items should define a subclass of this class,
@@ -91,64 +107,25 @@ class ConfigNamespace:
         conf = Conf()
     """
 
-    def __iter__(self) -> Generator[str, None, None]:
+    def __iter__(self):
         for key, val in self.__class__.__dict__.items():
             if isinstance(val, ConfigItem):
                 yield key
 
-    def __str__(self):
-        if (docstring := getdoc(self)) is not None:
-            header = f"{docstring}\n\n"
-        else:
-            current_module = str(find_current_module(2)).split("'")[1]
-            header = f"Configuration parameters for `{current_module}`\n\n"
-        return header + "\n\n".join(map(str, self.values()))
-
     keys = __iter__
     """Iterate over configuration item names."""
 
-    def values(self) -> Generator[ConfigItem, None, None]:
+    def values(self):
         """Iterate over configuration item values."""
         for val in self.__class__.__dict__.values():
             if isinstance(val, ConfigItem):
                 yield val
 
-    def items(self) -> Generator[tuple[str, ConfigItem], None, None]:
+    def items(self):
         """Iterate over configuration item ``(name, value)`` pairs."""
         for key, val in self.__class__.__dict__.items():
             if isinstance(val, ConfigItem):
                 yield key, val
-
-    def help(self, name: str | None = None) -> None:
-        """Print info about configuration items.
-
-        Parameters
-        ----------
-        name : `str`, optional
-            Name of the configuration item to be described. If no name is
-            provided then info about all the configuration items will be
-            printed.
-
-        Examples
-        --------
-        >>> from astropy import conf
-        >>> conf.help("unicode_output")
-        ConfigItem: unicode_output
-          cfgtype='boolean'
-          defaultvalue=False
-          description='When True, use Unicode characters when outputting values, and displaying widgets at the console.'
-          module=astropy
-          value=False
-        """
-        if name is None:
-            print(self)
-        else:
-            try:
-                print(type(self).__dict__[name])
-            except KeyError:
-                raise KeyError(
-                    f"'{name}' is not among configuration items {tuple(self)}"
-                ) from None
 
     def set_temp(self, attr, value):
         """
@@ -192,7 +169,7 @@ class ConfigNamespace:
         for item in self.values():
             item.reload()
 
-    def reset(self, attr: str | None = None) -> None:
+    def reset(self, attr=None):
         """
         Reset a configuration item to its default.
 
@@ -281,13 +258,14 @@ class ConfigItem:
     def __init__(
         self, defaultvalue="", description=None, cfgtype=None, module=None, aliases=None
     ):
+        from astropy.utils import isiterable
+
         if module is None:
             module = find_current_module(2)
             if module is None:
-                raise RuntimeError(
-                    "Cannot automatically determine get_config module, "
-                    "because it is not called from inside a valid module"
-                )
+                msg1 = "Cannot automatically determine get_config module, "
+                msg2 = "because it is not called from inside a valid module"
+                raise RuntimeError(msg1 + msg2)
             else:
                 module = module.__name__
 
@@ -324,22 +302,13 @@ class ConfigItem:
         else:
             self.aliases = aliases
 
-    def __set_name__(self, owner, name):
-        self.name = name
-
     def __set__(self, obj, value):
         return self.set(value)
 
     def __get__(self, obj, objtype=None):
         if obj is None:
             return self
-        # cache value on the descriptor itself, to avoid repeated accesses
-        # to the ConfigObj object which is much slower
-        try:
-            return self.value
-        except AttributeError:
-            val = self.value = self()
-            return val
+        return self()
 
     def set(self, value):
         """
@@ -366,11 +335,9 @@ class ConfigItem:
                 f" {e.args[0]}"
             )
 
-        # store value on the ConfigObj instance...
         sec = get_config(self.module, rootname=self.rootname)
+
         sec[self.name] = value
-        # and on the descriptor
-        self.value = value
 
     @contextmanager
     def set_temp(self, value):
@@ -394,8 +361,8 @@ class ConfigItem:
 
         """
         initval = self()
+        self.set(value)
         try:
-            self.set(value)
             yield
         finally:
             self.set(initval)
@@ -410,11 +377,7 @@ class ConfigItem:
             The new value loaded from the configuration file.
 
         """
-        try:
-            del self.value
-        except AttributeError:
-            pass
-
+        self.set(self.defaultvalue)
         baseobj = get_config(self.module, True, rootname=self.rootname)
         secname = baseobj.name
 
@@ -433,13 +396,13 @@ class ConfigItem:
             baseobj[self.name] = newobj[self.name]
         return baseobj.get(self.name)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return (
             f"<{self.__class__.__name__}: name={self.name!r} value={self()!r} at"
             f" 0x{id(self):x}>"
         )
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "\n".join(
             (
                 f"{self.__class__.__name__}: {self.name}",
@@ -452,7 +415,7 @@ class ConfigItem:
         )
 
     def __call__(self):
-        """Returns the value of this ``ConfigItem``.
+        """Returns the value of this ``ConfigItem``
 
         Returns
         -------
@@ -524,7 +487,7 @@ class ConfigItem:
 
     def _validate_val(self, val):
         """Validates the provided value based on cfgtype and returns the
-        type-cast value.
+        type-cast value
 
         throws the underlying configobj exception if it fails
         """
@@ -536,7 +499,7 @@ class ConfigItem:
 
 # this dictionary stores the primary copy of the ConfigObj's for each
 # root package
-_cfgobjs: Final[dict[str, configobj.ConfigObj]] = {}
+_cfgobjs = {}
 
 
 def get_config_filename(packageormod=None, rootname=None):
@@ -589,6 +552,7 @@ def get_config(packageormod=None, reload=False, rootname=None):
         If ``packageormod`` is `None`, but the package this item is created
         from cannot be determined.
     """
+
     if packageormod is None:
         packageormod = find_current_module(2)
         if packageormod is None:
@@ -613,21 +577,17 @@ def get_config(packageormod=None, reload=False, rootname=None):
         else:
             rootname = "astropy"  # so we don't break affiliated packages
 
-    cobj = _cfgobjs.get(pkgname)
+    cobj = _cfgobjs.get(pkgname, None)
 
     if cobj is None or reload:
         cfgfn = None
         try:
             # This feature is intended only for use by the unit tests
             if _override_config_file is not None:
-                cfgfn = Path(_override_config_file)
+                cfgfn = _override_config_file
             else:
-                cfgfn = (
-                    get_config_dir_path(rootname=rootname)
-                    .joinpath(pkgname)
-                    .with_suffix(".cfg")
-                )
-            cobj = configobj.ConfigObj(str(cfgfn), interpolation=False)
+                cfgfn = path.join(get_config_dir(rootname=rootname), pkgname + ".cfg")
+            cobj = configobj.ConfigObj(cfgfn, interpolation=False)
         except OSError:
             # This can happen when HOME is not set
             cobj = configobj.ConfigObj(interpolation=False)
@@ -776,6 +736,111 @@ def is_unedited_config_file(content, template_content=None):
     return not any(len(v) > 0 for v in raw_cfg.values())
 
 
+# This function is no more used by astropy but it is kept for the other
+# packages that may use it (e.g. astroquery). It should be removed at some
+# point.
+# this is not in __all__ because it's not intended that a user uses it
+@deprecated("5.0")
+def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname="astropy"):
+    """
+    Checks if the configuration file for the specified package exists,
+    and if not, copy over the default configuration.  If the
+    configuration file looks like it has already been edited, we do
+    not write over it, but instead write a file alongside it named
+    ``pkg.version.cfg`` as a "template" for the user.
+
+    Parameters
+    ----------
+    pkg : str
+        The package to be updated.
+    default_cfg_dir_or_fn : str
+        The filename or directory name where the default configuration file is.
+        If a directory name, ``'pkg.cfg'`` will be used in that directory.
+    version : str, optional
+        The current version of the given package.  If not provided, it will
+        be obtained from ``pkg.__version__``.
+    rootname : str
+        Name of the root configuration directory.
+
+    Returns
+    -------
+    updated : bool
+        If the profile was updated, `True`, otherwise `False`.
+
+    Raises
+    ------
+    AttributeError
+        If the version number of the package could not determined.
+
+    """
+
+    if path.isdir(default_cfg_dir_or_fn):
+        default_cfgfn = path.join(default_cfg_dir_or_fn, pkg + ".cfg")
+    else:
+        default_cfgfn = default_cfg_dir_or_fn
+
+    if not path.isfile(default_cfgfn):
+        # There is no template configuration file, which basically
+        # means the affiliated package is not using the configuration
+        # system, so just return.
+        return False
+
+    cfgfn = get_config(pkg, rootname=rootname).filename
+
+    with open(default_cfgfn, encoding="latin-1") as fr:
+        template_content = fr.read()
+
+    doupdate = False
+    if cfgfn is not None:
+        if path.exists(cfgfn):
+            with open(cfgfn, encoding="latin-1") as fd:
+                content = fd.read()
+
+            identical = content == template_content
+
+            if not identical:
+                doupdate = is_unedited_config_file(content, template_content)
+        elif path.exists(path.dirname(cfgfn)):
+            doupdate = True
+            identical = False
+
+    if version is None:
+        version = resolve_name(pkg, "__version__")
+
+    # Don't install template files for dev versions, or we'll end up
+    # spamming `~/.astropy/config`.
+    if version and "dev" not in version and cfgfn is not None:
+        template_path = path.join(
+            get_config_dir(rootname=rootname), f"{pkg}.{version}.cfg"
+        )
+        needs_template = not path.exists(template_path)
+    else:
+        needs_template = False
+
+    if doupdate or needs_template:
+        if needs_template:
+            with open(template_path, "w", encoding="latin-1") as fw:
+                fw.write(template_content)
+            # If we just installed a new template file and we can't
+            # update the main configuration file because it has user
+            # changes, display a warning.
+            if not identical and not doupdate:
+                warn(
+                    f"The configuration options in {pkg} {version} may have changed, "
+                    "your configuration file was not updated in order to "
+                    "preserve local changes.  A new configuration template "
+                    f"has been saved to '{template_path}'.",
+                    ConfigurationChangedWarning,
+                )
+
+        if doupdate and not identical:
+            with open(cfgfn, "w", encoding="latin-1") as fw:
+                fw.write(template_content)
+            return True
+
+    return False
+
+
 def create_config_file(pkg, rootname="astropy", overwrite=False):
     """
     Create the default configuration file for the specified package.
@@ -797,10 +862,11 @@ def create_config_file(pkg, rootname="astropy", overwrite=False):
         If the profile was updated, `True`, otherwise `False`.
 
     """
+
     # local import to prevent using the logger before it is configured
     from astropy.logger import log
 
-    cfgfn = Path(get_config_filename(pkg, rootname=rootname))
+    cfgfn = get_config_filename(pkg, rootname=rootname)
 
     # generate the default config template
     template_content = io.StringIO()
@@ -811,7 +877,7 @@ def create_config_file(pkg, rootname="astropy", overwrite=False):
     doupdate = True
 
     # if the file already exists, check that it has not been modified
-    if cfgfn is not None and cfgfn.is_file():
+    if cfgfn is not None and path.exists(cfgfn):
         with open(cfgfn, encoding="latin-1") as fd:
             content = fd.read()
 

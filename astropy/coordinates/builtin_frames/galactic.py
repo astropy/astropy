@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from astropy import units as u
-from astropy.coordinates import Angle
 from astropy.coordinates import representation as r
+from astropy.coordinates.angles import Angle
 from astropy.coordinates.baseframe import (
     BaseCoordinateFrame,
     RepresentationMapping,

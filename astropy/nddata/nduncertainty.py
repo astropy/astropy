@@ -11,65 +11,14 @@ from astropy import log
 from astropy.units import Quantity, Unit, UnitConversionError
 
 __all__ = [
-    "IncompatibleUncertaintiesException",
-    "InverseVariance",
     "MissingDataAssociationException",
+    "IncompatibleUncertaintiesException",
     "NDUncertainty",
     "StdDevUncertainty",
     "UnknownUncertainty",
     "VarianceUncertainty",
+    "InverseVariance",
 ]
-
-# mapping from collapsing operations to the complementary methods used for `to_variance`
-collapse_to_variance_mapping = {
-    np.sum: np.square,
-    np.mean: np.square,
-}
-
-
-def _move_preserved_axes_first(arr, preserve_axes):
-    # When collapsing an ND array and preserving M axes, move the
-    # preserved axes to the first M axes of the output. For example,
-    # if arr.shape == (6, 5, 4, 3, 2) and we're preserving axes (1, 2),
-    # then the output should have shape (20, 6, 3, 2). Axes 1 and 2 have
-    # shape 5 and 4, so we take their product and put them both in the zeroth
-    # axis.
-    zeroth_axis_after_reshape = np.prod(np.array(arr.shape)[list(preserve_axes)])
-    collapse_axes = [i for i in range(arr.ndim) if i not in preserve_axes]
-    return arr.reshape(
-        [zeroth_axis_after_reshape] + np.array(arr.shape)[collapse_axes].tolist()
-    )
-
-
-def _unravel_preserved_axes(arr, collapsed_arr, preserve_axes):
-    # After reshaping an array with _move_preserved_axes_first and collapsing
-    # the result, convert the reshaped first axis back into the shape of each
-    # of the original preserved axes.
-    # For example, if arr.shape == (6, 5, 4, 3, 2) and we're preserving axes (1, 2),
-    # then the output of _move_preserved_axes_first should have shape (20, 6, 3, 2).
-    # This method unravels the first axis in the output *after* a collapse, so the
-    # output with shape (20,) becomes shape (5, 4).
-    if collapsed_arr.ndim != len(preserve_axes):
-        arr_shape = np.array(arr.shape)
-        return collapsed_arr.reshape(arr_shape[np.asarray(preserve_axes)])
-    return collapsed_arr
-
-
-def from_variance_for_mean(x, axis):
-    if axis is None:
-        # do operation on all dimensions:
-        denom = np.ma.count(x)
-    else:
-        denom = np.ma.count(x, axis)
-    return np.sqrt(np.ma.sum(x, axis)) / denom
-
-
-# mapping from collapsing operations to the complementary methods used for `from_variance`
-collapse_from_variance_mapping = {
-    np.sum: lambda x, axis: np.sqrt(np.ma.sum(x, axis)),
-    np.mean: from_variance_for_mean,
-    np.median: None,
-}
 
 
 class IncompatibleUncertaintiesException(Exception):
@@ -161,7 +110,8 @@ class NDUncertainty(metaclass=ABCMeta):
 
     @property
     def supports_correlated(self):
-        """`bool` : Supports uncertainty propagation with correlated uncertainties?
+        """`bool` : Supports uncertainty propagation with correlated \
+                 uncertainties?
 
         .. versionadded:: 1.2
         """
@@ -175,7 +125,7 @@ class NDUncertainty(metaclass=ABCMeta):
     @array.setter
     def array(self, value):
         if isinstance(value, (list, np.ndarray)):
-            value = np.asarray(value)
+            value = np.array(value, subok=False, copy=False)
         self._array = value
 
     @property
@@ -199,8 +149,9 @@ class NDUncertainty(metaclass=ABCMeta):
                     self._data_unit_to_uncertainty_unit(parent_unit).to(value)
                 except UnitConversionError:
                     raise UnitConversionError(
-                        f"Unit {value} is incompatible with unit {parent_unit} of "
-                        "parent nddata"
+                        "Unit {} is incompatible with unit {} of parent nddata".format(
+                            value, parent_unit
+                        )
                     )
 
             self._unit = Unit(value)
@@ -264,16 +215,12 @@ class NDUncertainty(metaclass=ABCMeta):
         # with empty parent (Value=None)
         if value is not None:
             parent_unit = self.parent_nddata.unit
-            # this will get the unit for masked quantity input:
-            parent_data_unit = getattr(self.parent_nddata.data, "unit", None)
-            if parent_unit is None and parent_data_unit is None:
-                self.unit = None
-            elif self.unit is None and parent_unit is not None:
-                # Set the uncertainty's unit to the appropriate value
-                self.unit = self._data_unit_to_uncertainty_unit(parent_unit)
-            elif parent_data_unit is not None:
-                # if the parent_nddata object has a unit, use it:
-                self.unit = self._data_unit_to_uncertainty_unit(parent_data_unit)
+            if self.unit is None:
+                if parent_unit is None:
+                    self.unit = None
+                else:
+                    # Set the uncertainty's unit to the appropriate value
+                    self.unit = self._data_unit_to_uncertainty_unit(parent_unit)
             else:
                 # Check that units of uncertainty are compatible with those of
                 # the parent. If they are, no need to change units of the
@@ -283,9 +230,9 @@ class NDUncertainty(metaclass=ABCMeta):
                     unit_from_data.to(self.unit)
                 except UnitConversionError:
                     raise UnitConversionError(
-                        f"Unit {self.unit} of uncertainty "
-                        f"incompatible with unit {parent_unit} of "
-                        "data"
+                        "Unit {} of uncertainty "
+                        "incompatible with unit {} of "
+                        "data".format(self.unit, parent_unit)
                     )
 
     @abstractmethod
@@ -304,7 +251,7 @@ class NDUncertainty(metaclass=ABCMeta):
         except AttributeError:
             # In case it wasn't possible to use array2string
             body = str(self.array)
-        return f"{prefix}{body})"
+        return "".join([prefix, body, ")"])
 
     def __getstate__(self):
         # Because of the weak reference the class wouldn't be picklable.
@@ -329,7 +276,7 @@ class NDUncertainty(metaclass=ABCMeta):
         """Normal slicing on the array, keep the unit and return a reference."""
         return self.__class__(self.array[item], unit=self.unit, copy=False)
 
-    def propagate(self, operation, other_nddata, result_data, correlation, axis=None):
+    def propagate(self, operation, other_nddata, result_data, correlation):
         """Calculate the resulting uncertainty given an operation on the data.
 
         .. versionadded:: 1.2
@@ -351,9 +298,6 @@ class NDUncertainty(metaclass=ABCMeta):
             The correlation (rho) is defined between the uncertainties in
             sigma_AB = sigma_A * sigma_B * rho. A value of ``0`` means
             uncorrelated operands.
-
-        axis : int or tuple of ints, optional
-            Axis over which to perform a collapsing operation.
 
         Returns
         -------
@@ -380,31 +324,24 @@ class NDUncertainty(metaclass=ABCMeta):
         if not self.supports_correlated:
             if isinstance(correlation, np.ndarray) or correlation != 0:
                 raise ValueError(
-                    f"{type(self).__name__} does not support uncertainty propagation"
+                    "{} does not support uncertainty propagation"
                     " with correlation."
+                    "".format(self.__class__.__name__)
                 )
 
-        if other_nddata is not None:
-            # Get the other uncertainty (and convert it to a matching one)
-            other_uncert = self._convert_uncertainty(other_nddata.uncertainty)
+        # Get the other uncertainty (and convert it to a matching one)
+        other_uncert = self._convert_uncertainty(other_nddata.uncertainty)
 
-            if operation.__name__ == "add":
-                result = self._propagate_add(other_uncert, result_data, correlation)
-            elif operation.__name__ == "subtract":
-                result = self._propagate_subtract(
-                    other_uncert, result_data, correlation
-                )
-            elif operation.__name__ == "multiply":
-                result = self._propagate_multiply(
-                    other_uncert, result_data, correlation
-                )
-            elif operation.__name__ in ["true_divide", "divide"]:
-                result = self._propagate_divide(other_uncert, result_data, correlation)
-            else:
-                raise ValueError(f"unsupported operation: {operation.__name__}")
+        if operation.__name__ == "add":
+            result = self._propagate_add(other_uncert, result_data, correlation)
+        elif operation.__name__ == "subtract":
+            result = self._propagate_subtract(other_uncert, result_data, correlation)
+        elif operation.__name__ == "multiply":
+            result = self._propagate_multiply(other_uncert, result_data, correlation)
+        elif operation.__name__ in ["true_divide", "divide"]:
+            result = self._propagate_divide(other_uncert, result_data, correlation)
         else:
-            # assume this is a collapsing operation:
-            result = self._propagate_collapse(operation, axis)
+            raise ValueError("unsupported operation")
 
         return self.__class__(result, copy=False)
 
@@ -548,115 +485,6 @@ class _VariancePropagationMixin:
     variance).
     """
 
-    def _propagate_collapse(self, numpy_op, axis=None):
-        """
-        Error propagation for collapse operations on variance or
-        variance-like uncertainties. Uncertainties are calculated using the
-        formulae for variance but can be used for uncertainty convertible to
-        a variance.
-
-        Parameters
-        ----------
-        numpy_op : function
-            Numpy operation like `np.sum` or `np.max` to use in the collapse
-
-        subtract : bool, optional
-            If ``True``, propagate for subtraction, otherwise propagate for
-            addition.
-
-        axis : tuple, optional
-            Axis on which to compute collapsing operations.
-        """
-        try:
-            result_unit_sq = self.parent_nddata.unit**2
-        except (AttributeError, TypeError):
-            result_unit_sq = None
-
-        if self.array is not None:
-            # Formula: sigma**2 = dA
-
-            if numpy_op in [np.min, np.max]:
-                # Find the indices of the min/max in parent data along each axis,
-                # return the uncertainty at the corresponding entry:
-                return self._get_err_at_extremum(numpy_op, axis=axis)
-
-            # np.sum and np.mean operations use similar pattern
-            # to `_propagate_add_sub`, for example:
-            else:
-                # lookup the mapping for to_variance and from_variance for this
-                # numpy operation:
-                to_variance = collapse_to_variance_mapping[numpy_op]
-                from_variance = collapse_from_variance_mapping[numpy_op]
-                masked_uncertainty = np.ma.masked_array(
-                    self.array, self.parent_nddata.mask
-                )
-                if (
-                    self.unit is not None
-                    and to_variance(self.unit) != self.parent_nddata.unit**2
-                ):
-                    # If the uncertainty has a different unit than the result we
-                    # need to convert it to the results unit.
-                    this = (
-                        to_variance(masked_uncertainty << self.unit)
-                        .to(result_unit_sq)
-                        .value
-                    )
-                else:
-                    this = to_variance(masked_uncertainty)
-
-                return from_variance(this, axis=axis)
-
-    def _get_err_at_extremum(self, extremum, axis):
-        """
-        Return the value of the ``uncertainty`` array at the indices
-        which satisfy the ``extremum`` function applied to the ``measurement`` array,
-        where we expect ``extremum`` to be np.argmax or np.argmin, and
-        we expect a two-dimensional output.
-
-        Assumes the ``measurement`` and ``uncertainty`` array dimensions
-        are ordered such that the zeroth dimension is the one to preserve.
-        For example, if you start with array with shape (a, b, c), this
-        function applies the ``extremum`` function to the last two dimensions,
-        with shapes b and c.
-
-        This operation is difficult to cast in a vectorized way. Here
-        we implement it with a list comprehension, which is likely not the
-        most performant solution.
-        """
-        if axis is not None and not hasattr(axis, "__len__"):
-            # this is a single axis:
-            axis = [axis]
-
-        if extremum is np.min:
-            arg_extremum = np.ma.argmin
-        elif extremum is np.max:
-            arg_extremum = np.ma.argmax
-
-        all_axes = np.arange(self.array.ndim)
-
-        if axis is None:
-            # collapse over all dimensions
-            ind = arg_extremum(np.asanyarray(self.parent_nddata).ravel())
-            return self.array.ravel()[ind]
-
-        # collapse an ND array over arbitrary dimensions:
-        preserve_axes = [ax for ax in all_axes if ax not in axis]
-        meas = np.ma.masked_array(
-            _move_preserved_axes_first(self.parent_nddata.data, preserve_axes),
-            _move_preserved_axes_first(self.parent_nddata.mask, preserve_axes),
-        )
-        err = _move_preserved_axes_first(self.array, preserve_axes)
-
-        result = np.array(
-            [e[np.unravel_index(arg_extremum(m), m.shape)] for m, e in zip(meas, err)]
-        )
-
-        return _unravel_preserved_axes(
-            self.parent_nddata.data,
-            result,
-            preserve_axes,
-        )
-
     def _propagate_add_sub(
         self,
         other_uncert,
@@ -674,6 +502,7 @@ class _VariancePropagationMixin:
 
         Parameters
         ----------
+
         other_uncert : `~astropy.nddata.NDUncertainty` instance
             The uncertainty, if any, of the other operand.
 
@@ -767,6 +596,7 @@ class _VariancePropagationMixin:
 
         Parameters
         ----------
+
         other_uncert : `~astropy.nddata.NDUncertainty` instance
             The uncertainty, if any, of the other operand.
 
@@ -990,10 +820,6 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
             from_variance=np.sqrt,
         )
 
-    def _propagate_collapse(self, numpy_operation, axis):
-        # defer to _VariancePropagationMixin
-        return super()._propagate_collapse(numpy_operation, axis=axis)
-
     def _data_unit_to_uncertainty_unit(self, value):
         return value
 
@@ -1105,7 +931,7 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
 
 
 def _inverse(x):
-    """Just a simple inverse for use in the InverseVariance."""
+    """Just a simple inverse for use in the InverseVariance"""
     return 1 / x
 
 

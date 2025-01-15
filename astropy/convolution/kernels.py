@@ -8,30 +8,33 @@ from astropy.modeling import models
 from astropy.modeling.core import Fittable1DModel, Fittable2DModel
 
 from .core import Kernel, Kernel1D, Kernel2D
-from .utils import KernelSizeError, has_even_axis
+from .utils import has_even_axis, raise_even_kernel_exception
 
 __all__ = [
-    "AiryDisk2DKernel",
-    "Box1DKernel",
-    "Box2DKernel",
-    "CustomKernel",
     "Gaussian1DKernel",
     "Gaussian2DKernel",
-    "Model1DKernel",
-    "Model2DKernel",
-    "Moffat2DKernel",
-    "RickerWavelet1DKernel",
-    "RickerWavelet2DKernel",
-    "Ring2DKernel",
+    "CustomKernel",
+    "Box1DKernel",
+    "Box2DKernel",
     "Tophat2DKernel",
     "Trapezoid1DKernel",
+    "RickerWavelet1DKernel",
+    "RickerWavelet2DKernel",
+    "AiryDisk2DKernel",
+    "Moffat2DKernel",
+    "Model1DKernel",
+    "Model2DKernel",
     "TrapezoidDisk2DKernel",
+    "Ring2DKernel",
 ]
 
 
 def _round_up_to_odd_integer(value):
     i = math.ceil(value)
-    return i + 1 if i % 2 == 0 else i
+    if i % 2 == 0:
+        return i + 1
+    else:
+        return i
 
 
 class Gaussian1DKernel(Kernel1D):
@@ -878,7 +881,7 @@ class Model1DKernel(Kernel1D):
     TypeError
         If model is not an instance of `~astropy.modeling.Fittable1DModel`
 
-    See Also
+    See also
     --------
     Model2DKernel : Create kernel from `~astropy.modeling.Fittable2DModel`
     CustomKernel : Create kernel from list or array
@@ -946,7 +949,7 @@ class Model2DKernel(Kernel2D):
     TypeError
         If model is not an instance of `~astropy.modeling.Fittable2DModel`
 
-    See Also
+    See also
     --------
     Model1DKernel : Create kernel from `~astropy.modeling.Fittable1DModel`
     CustomKernel : Create kernel from list or array
@@ -994,7 +997,7 @@ class CustomKernel(Kernel):
     `~astropy.convolution.KernelSizeError`
         If array size is even.
 
-    See Also
+    See also
     --------
     Model2DKernel, Model1DKernel
 
@@ -1031,7 +1034,7 @@ class CustomKernel(Kernel):
     @array.setter
     def array(self, array):
         """
-        Filter kernel array setter.
+        Filter kernel array setter
         """
         if isinstance(array, np.ndarray):
             self._array = array.astype(np.float64)
@@ -1042,7 +1045,7 @@ class CustomKernel(Kernel):
 
         # Check if array is odd in all axes
         if has_even_axis(self):
-            raise KernelSizeError("Kernel size must be odd in all axes.")
+            raise_even_kernel_exception()
 
         # Check if array is bool
         ones = self._array == 1.0

@@ -4,13 +4,37 @@ Contains a class that makes it simple to stream out well-formed and
 nicely-indented XML.
 """
 
+# STDLIB
 import contextlib
 import textwrap
 
-from astropy.utils.compat.optional_deps import HAS_BLEACH
+try:
+    from . import _iterparser
+except ImportError:
 
-from ._iterparser import escape_xml as xml_escape
-from ._iterparser import escape_xml_cdata as xml_escape_cdata
+    def xml_escape_cdata(s):
+        """
+        Escapes &, < and > in an XML CDATA string.
+        """
+        s = s.replace("&", "&amp;")
+        s = s.replace("<", "&lt;")
+        s = s.replace(">", "&gt;")
+        return s
+
+    def xml_escape(s):
+        """
+        Escapes &, ', ", < and > in an XML attribute value.
+        """
+        s = s.replace("&", "&amp;")
+        s = s.replace("'", "&apos;")
+        s = s.replace('"', "&quot;")
+        s = s.replace("<", "&lt;")
+        s = s.replace(">", "&gt;")
+        return s
+
+else:
+    xml_escape_cdata = _iterparser.escape_xml_cdata
+    xml_escape = _iterparser.escape_xml
 
 
 class XMLWriter:
@@ -37,7 +61,7 @@ class XMLWriter:
         """
         Parameters
         ----------
-        file : :term:`file-like (writeable)`
+        file : writable file-like
         """
         self.write = file.write
         if hasattr(file, "flush"):
@@ -160,13 +184,14 @@ class XMLWriter:
 
         if method == "bleach_clean":
             # NOTE: bleach is imported locally to avoid importing it when
-            # it is not necessary
-            if not HAS_BLEACH:
+            # it is not nocessary
+            try:
+                import bleach
+            except ImportError:
                 raise ValueError(
                     "bleach package is required when HTML escaping is disabled.\n"
                     'Use "pip install bleach".'
                 )
-            import bleach
 
             if clean_kwargs is None:
                 clean_kwargs = {}
@@ -190,6 +215,7 @@ class XMLWriter:
 
         Examples
         --------
+
         >>> with writer.tag('foo'):  # doctest: +SKIP
         ...     writer.element('bar')
         ... # </foo> is implicitly closed here
@@ -278,15 +304,6 @@ class XMLWriter:
         if text:
             self.data(text)
         self.end(indent=False, wrap=wrap)
-
-    def string_element(self, xml_string):
-        """
-        Reformat the indentation in the XML to insert the MIVOT block.
-        """
-        self._flush()
-        indent = self.get_indentation_spaces()
-        str_to_write = indent + xml_string.replace("\n", f"\n{indent}").strip() + "\n"
-        self.write(str_to_write)
 
     def flush(self):
         pass  # replaced by the constructor

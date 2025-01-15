@@ -2,7 +2,6 @@
 """
 Tests that relate to fitting models with quantity parameters
 """
-
 import numpy as np
 import pytest
 
@@ -23,12 +22,6 @@ fitters = [
     fitting.LevMarLSQFitter,
     fitting.TRFLSQFitter,
     fitting.LMLSQFitter,
-    fitting.DogBoxLSQFitter,
-]
-
-fitters_bounds = [
-    fitting.LevMarLSQFitter,
-    fitting.TRFLSQFitter,
     fitting.DogBoxLSQFitter,
 ]
 
@@ -91,7 +84,7 @@ def models_with_custom_names():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters_bounds)
+@pytest.mark.parametrize("fitter", fitters)
 def test_fitting_simple(fitter):
     fitter = fitter()
 
@@ -109,7 +102,7 @@ def test_fitting_simple(fitter):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters_bounds)
+@pytest.mark.parametrize("fitter", fitters)
 def test_fitting_with_initial_values(fitter):
     fitter = fitter()
 
@@ -127,7 +120,7 @@ def test_fitting_with_initial_values(fitter):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters_bounds)
+@pytest.mark.parametrize("fitter", fitters)
 def test_fitting_missing_data_units(fitter):
     """
     Raise an error if the model has units but the data doesn't
@@ -158,7 +151,7 @@ def test_fitting_missing_data_units(fitter):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters_bounds)
+@pytest.mark.parametrize("fitter", fitters)
 def test_fitting_missing_model_units(fitter):
     """
     Proceed if the data has units but the model doesn't
@@ -183,7 +176,7 @@ def test_fitting_missing_model_units(fitter):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters_bounds)
+@pytest.mark.parametrize("fitter", fitters)
 def test_fitting_incompatible_units(fitter):
     """
     Raise an error if the data and model have incompatible units
@@ -200,7 +193,7 @@ def test_fitting_incompatible_units(fitter):
 @pytest.mark.filterwarnings(r"ignore:The fit may be unsuccessful.*")
 @pytest.mark.filterwarnings(r"ignore:divide by zero encountered.*")
 @pytest.mark.parametrize("model", compound_models_no_units)
-@pytest.mark.parametrize("fitter", fitters_bounds)
+@pytest.mark.parametrize("fitter", fitters)
 def test_compound_without_units(model, fitter):
     fitter = fitter()
 
@@ -211,12 +204,12 @@ def test_compound_without_units(model, fitter):
     res_fit = fitter(model, x, y * u.Hz)
     for param_name in res_fit.param_names:
         print(getattr(res_fit, param_name))
-    assert all(res_fit[i]._has_units for i in range(3))
+    assert all([res_fit[i]._has_units for i in range(3)])
     z = res_fit(x)
     assert isinstance(z, u.Quantity)
 
     res_fit = fitter(model, np.arange(10) * u.Unit("Angstrom"), y)
-    assert all(res_fit[i]._has_units for i in range(3))
+    assert all([res_fit[i]._has_units for i in range(3)])
     z = res_fit(x)
     assert isinstance(z, np.ndarray)
 
@@ -224,7 +217,7 @@ def test_compound_without_units(model, fitter):
 # FIXME: See https://github.com/astropy/astropy/issues/10675
 # @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.skip(reason="Flaky and ill-conditioned")
-@pytest.mark.parametrize("fitter", fitters_bounds)
+@pytest.mark.parametrize("fitter", fitters)
 def test_compound_fitting_with_units(fitter):
     fitter = fitter()
 
@@ -241,12 +234,12 @@ def test_compound_fitting_with_units(fitter):
     z = model(x, y)
     res = fitter(model, x, y, z)
     assert isinstance(res(x, y), np.ndarray)
-    assert all(res[i]._has_units for i in range(2))
+    assert all([res[i]._has_units for i in range(2)])
 
     model = models.Gaussian2D() + models.Planar2D()
     res = fitter(model, x, y, z)
     assert isinstance(res(x, y), np.ndarray)
-    assert all(res[i]._has_units for i in range(2))
+    assert all([res[i]._has_units for i in range(2)])
 
     # A case of a mixture of models with and without units
     model = models.BlackBody(temperature=3000 * u.K) * models.Const1D(amplitude=1.0)

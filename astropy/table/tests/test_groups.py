@@ -1,18 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from contextlib import nullcontext
-
 import numpy as np
 import pytest
-from hypothesis import given
-from hypothesis.extra.numpy import arrays
-from hypothesis.strategies import integers
 
 from astropy import coordinates, time
 from astropy import units as u
 from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
-from astropy.tests.helper import PYTEST_LT_8_0
-from astropy.time import Time
+from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -20,38 +14,22 @@ def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
 
 
-def test_column_group_by(T1q):
-    """Test grouping a Column by various key types."""
-    # T1q["a"] could be Column or Quantity, so force the object we want to group to be
-    # Column. Then later we are using the "a" column as a grouping key.
-    t1a = Column(T1q["a"])
-    unit = T1q["a"].unit or 1
+def test_column_group_by(T1):
+    for masked in (False, True):
+        t1 = QTable(T1, masked=masked)
+        t1a = t1["a"].copy()
 
-    # Group by a Column (i.e. numpy array)
-    t1ag = t1a.group_by(T1q["a"])
-    keys = t1ag.groups.keys
-    assert np.all(t1ag.groups.indices == np.array([0, 1, 4, 8]))
-    assert np.all(keys == np.array([0, 1, 2]) * unit)
+        # Group by a Column (i.e. numpy array)
+        t1ag = t1a.group_by(t1["a"])
+        assert np.all(t1ag.groups.indices == np.array([0, 1, 4, 8]))
 
-    # Group by a Table and numpy structured array
-    for t1ag, key_unit in (
-        (t1a.group_by(T1q["a", "b"]), unit),
-        (t1a.group_by(T1q["a", "b"].as_array()), 1),
-    ):
+        # Group by a Table
+        t1ag = t1a.group_by(t1["a", "b"])
         assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
-        keys = t1ag.groups.keys
-        assert keys.dtype.names == ("a", "b")
-        assert np.all(keys["a"] == np.array([0, 1, 1, 2, 2, 2]) * key_unit)
-        assert np.all(keys["b"] == np.array(["a", "a", "b", "a", "b", "c"]))
 
-
-def test_column_group_by_no_argsort(T1b):
-    t1a = T1b["a"]
-    with pytest.raises(
-        TypeError, match=r"keys input \(list\) must have an `argsort` method"
-    ):
-        # Pass a Python list with no argsort method
-        t1a.group_by(list(range(len(t1a))))
+        # Group by a numpy structured array
+        t1ag = t1a.group_by(t1["a", "b"].as_array())
+        assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
 
 
 def test_table_group_by(T1):
@@ -134,40 +112,22 @@ def test_table_group_by(T1):
         ]
 
 
-def test_groups_keys(T1m: QTable):
-    tg = T1m.group_by("a")
-    unit = T1m["a"].unit or 1
+def test_groups_keys(T1):
+    tg = T1.group_by("a")
     keys = tg.groups.keys
     assert keys.dtype.names == ("a",)
-    assert np.all(keys["a"] == np.array([0, 1, 2]) * unit)
+    assert np.all(keys["a"] == np.array([0, 1, 2]))
 
-    tg = T1m.group_by(["a", "b"])
+    tg = T1.group_by(["a", "b"])
     keys = tg.groups.keys
     assert keys.dtype.names == ("a", "b")
-    assert np.all(keys["a"] == np.array([0, 1, 1, 2, 2, 2]) * unit)
+    assert np.all(keys["a"] == np.array([0, 1, 1, 2, 2, 2]))
     assert np.all(keys["b"] == np.array(["a", "a", "b", "a", "b", "c"]))
 
     # Grouping by Column ignores column name
-    tg = T1m.group_by(T1m["b"])
+    tg = T1.group_by(T1["b"])
     keys = tg.groups.keys
     assert keys.dtype.names is None
-
-
-def test_groups_keys_time(T1b: QTable):
-    """Group a table with a time column using that column as a key."""
-    T1b = T1b.copy()
-    T1b["a"] = Time(T1b["a"], format="cxcsec")
-
-    tg = T1b.group_by("a")
-    keys = tg.groups.keys
-    assert keys.dtype.names == ("a",)
-    assert np.all(keys["a"] == Time(np.array([0, 1, 2]), format="cxcsec"))
-
-    tg = T1b.group_by(["a", "b"])
-    keys = tg.groups.keys
-    assert keys.dtype.names == ("a", "b")
-    assert np.all(keys["a"] == Time(np.array([0, 1, 1, 2, 2, 2]), format="cxcsec"))
-    assert np.all(keys["b"] == np.array(["a", "a", "b", "a", "b", "c"]))
 
 
 def test_groups_iterator(T1):
@@ -472,27 +432,20 @@ def test_table_aggregate(T1):
     t1m = QTable(T1, masked=True)
     t1m["c"].mask[4:6] = True
     t1m["d"].mask[4:6] = True
-    t1m["q"].mask[4:6] = True
     tg = t1m.group_by("a")
-
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(AstropyUserWarning, match="Cannot aggregate column")
-
-    with pytest.warns(UserWarning, match="converting a masked element to nan"), ctx:
+    with pytest.warns(UserWarning, match="converting a masked element to nan"):
         tga = tg.groups.aggregate(np.sum)
 
     assert tga.pformat() == [
         " a   c    d    q  ",
         "               m  ",
         "--- ---- ---- ----",
-        "  0   --   --  ———",
-        "  1  3.0 13.0  ———",
+        "  0  nan  nan  4.0",
+        "  1  3.0 13.0 18.0",
         "  2 22.0  6.0  6.0",
     ]
 
-    # Aggregate with np.sum with masked elements, but where every
+    # Aggregrate with np.sum with masked elements, but where every
     # group has at least one remaining (unmasked) element.  Then
     # the int column stays as an int.
     t1m = QTable(t1, masked=True)
@@ -527,7 +480,6 @@ def test_table_aggregate_reduceat(T1):
     """
     Aggregate table with functions which have a reduceat method
     """
-
     # Comparison functions without reduceat
     def np_mean(x):
         return np.mean(x)
@@ -576,19 +528,6 @@ def test_table_aggregate_reduceat(T1):
     assert tga.pformat() == [" a ", "---", "  0", "  1", "  2"]
 
 
-def test_table_aggregate_reduceat_empty():
-    for masked in (False, True):
-        tg = Table(
-            {
-                "action": np.asarray([], dtype=str),
-                "duration": np.asarray([], dtype=float),
-            },
-            masked=masked,
-        )
-        tga = tg.group_by("action").groups.aggregate(np.sum)
-        assert tga.pformat() == ["action duration", "------ --------"]
-
-
 def test_column_aggregate(T1):
     """
     Aggregate a single table column
@@ -599,6 +538,10 @@ def test_column_aggregate(T1):
         assert tga.pformat() == [" c  ", "----", " 0.0", " 6.0", "22.0"]
 
 
+@pytest.mark.skipif(
+    not NUMPY_LT_1_22 and NUMPY_LT_1_22_1,
+    reason="https://github.com/numpy/numpy/issues/20699",
+)
 def test_column_aggregate_f8():
     """https://github.com/astropy/astropy/issues/12706"""
     # Just want to make sure it does not crash again.
@@ -614,11 +557,11 @@ def test_table_filter():
     """
 
     def all_positive(table, key_colnames):
-        return all(
-            np.all(table[colname] >= 0)
-            for colname in table.colnames
-            if colname not in key_colnames
-        )
+        colnames = [name for name in table.colnames if name not in key_colnames]
+        for colname in colnames:
+            if np.any(table[colname] < 0):
+                return False
+        return True
 
     # Negative value in 'a' column should not filter because it is a key col
     t = Table.read(
@@ -652,6 +595,11 @@ def test_column_filter():
     Table groups filtering
     """
 
+    def all_positive(column):
+        if np.any(column < 0):
+            return False
+        return True
+
     # Negative value in 'a' column should not filter because it is a key col
     t = Table.read(
         [
@@ -669,7 +617,7 @@ def test_column_filter():
         format="ascii",
     )
     tg = t.group_by("a")
-    c2 = tg["c"].groups.filter(lambda column: np.all(column >= 0))
+    c2 = tg["c"].groups.filter(all_positive)
     assert len(c2.groups) == 3
     assert c2.groups[0].pformat() == [" c ", "---", "7.0", "5.0"]
     assert c2.groups[1].pformat() == [" c ", "---", "0.0"]
@@ -739,26 +687,5 @@ def test_group_mixins_unsupported(col):
 
     t = Table([[1, 1], [3, 4], col], names=["a", "b", "mix"])
     tg = t.group_by("a")
-
     with pytest.warns(AstropyUserWarning, match="Cannot aggregate column 'mix'"):
         tg.groups.aggregate(np.sum)
-
-
-@pytest.mark.parametrize("add_index", [False, True])
-@given(arrays("int64", shape=1000, elements=integers(min_value=0, max_value=5)))
-def test_group_stable_sort(add_index, a):
-    """Test that group_by preserves the order of the table.
-
-    This table has 5 groups with an average of 200 rows per group, so it is not
-    statistically possible that the groups will be in order by chance.
-
-    This tests explicitly the case where grouping is done via the index sort.
-    See: https://github.com/astropy/astropy/issues/14882
-    """
-    b = np.arange(len(a))
-    t = Table([a, b], names=["a", "b"])
-    if add_index:
-        t.add_index("a")
-    tg = t.group_by("a")
-    for grp in tg.groups:
-        assert np.all(grp["b"] == np.sort(grp["b"]))

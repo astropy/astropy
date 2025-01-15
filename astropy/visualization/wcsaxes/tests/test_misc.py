@@ -1,8 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import warnings
-from contextlib import nullcontext
 
-import matplotlib as mpl
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -19,20 +18,19 @@ from astropy.visualization.wcsaxes.frame import (
     RectangularFrame,
     RectangularFrame1D,
 )
-from astropy.visualization.wcsaxes.ticklabels import TickLabels
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import HighLevelWCSWrapper, SlicedLowLevelWCS
 
-ft_version = Version(mpl.ft2font.__freetype_version__)
+ft_version = Version(matplotlib.ft2font.__freetype_version__)
 FREETYPE_261 = ft_version == Version("2.6.1")
 
 # We cannot use matplotlib.checkdep_usetex() anymore, see
 # https://github.com/matplotlib/matplotlib/issues/23244
 TEX_UNAVAILABLE = True
 
-MATPLOTLIB_LT_3_7 = Version(mpl.__version__) < Version("3.7")
+MATPLOTLIB_DEV = Version(matplotlib.__version__).is_devrelease
 
 
 def teardown_function(function):
@@ -94,7 +92,7 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmp_path, grid_type):
     # (since this is normal).
     # BUT our own catch_warning was ignoring some warnings before, so now we
     # have to catch it. Otherwise, the pytest filterwarnings=error
-    # setting in pyproject.toml will fail this test.
+    # setting in setup.cfg will fail this test.
     # There are actually multiple warnings but they are all similar.
     with warnings.catch_warnings():
         warnings.filterwarnings(
@@ -161,13 +159,13 @@ def test_set_label_properties(ignore_matplotlibrc):
     ax.set_xlabel("Test x label", labelpad=2, color="red")
     ax.set_ylabel("Test y label", labelpad=3, color="green")
 
-    assert ax.coords[0]._axislabels.get_text() == "Test x label"
-    assert ax.coords[0]._axislabels.get_minpad("b") == 2
-    assert ax.coords[0]._axislabels.get_color() == "red"
+    assert ax.coords[0].axislabels.get_text() == "Test x label"
+    assert ax.coords[0].axislabels.get_minpad("b") == 2
+    assert ax.coords[0].axislabels.get_color() == "red"
 
-    assert ax.coords[1]._axislabels.get_text() == "Test y label"
-    assert ax.coords[1]._axislabels.get_minpad("l") == 3
-    assert ax.coords[1]._axislabels.get_color() == "green"
+    assert ax.coords[1].axislabels.get_text() == "Test y label"
+    assert ax.coords[1].axislabels.get_minpad("l") == 3
+    assert ax.coords[1].axislabels.get_color() == "green"
 
     assert ax.get_xlabel() == "Test x label"
     assert ax.get_ylabel() == "Test y label"
@@ -327,15 +325,9 @@ def test_contour_empty():
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
-
-    if MATPLOTLIB_LT_3_7:
-        ctx = pytest.warns(
-            UserWarning, match="No contour levels were found within the data range"
-        )
-    else:
-        ctx = nullcontext()
-
-    with ctx:
+    with pytest.warns(
+        UserWarning, match="No contour levels were found within the data range"
+    ):
         ax.contour(np.zeros((4, 4)), transform=ax.get_transform("world"))
 
 
@@ -412,11 +404,11 @@ def test_invalid_slices_errors(ignore_matplotlibrc):
 EXPECTED_REPR_1 = """
 <CoordinatesMap with 3 world coordinates:
 
-  index            aliases                type   ...    wrap   format_unit visible
-  ----- ------------------------------ --------- ... --------- ----------- -------
-      0                   distmod dist    scalar ...      None                  no
-      1 pos.galactic.lon glon-car glon longitude ... 360.0 deg         deg     yes
-      2 pos.galactic.lat glat-car glat  latitude ...      None         deg     yes
+  index            aliases                type   unit wrap format_unit visible
+  ----- ------------------------------ --------- ---- ---- ----------- -------
+      0                   distmod dist    scalar      None                  no
+      1 pos.galactic.lon glon-car glon longitude  deg  360         deg     yes
+      2 pos.galactic.lat glat-car glat  latitude  deg None         deg     yes
 
 >
  """.strip()
@@ -424,11 +416,11 @@ EXPECTED_REPR_1 = """
 EXPECTED_REPR_2 = """
 <CoordinatesMap with 3 world coordinates:
 
-  index            aliases                type   ...    wrap   format_unit visible
-  ----- ------------------------------ --------- ... --------- ----------- -------
-      0                   distmod dist    scalar ...      None                 yes
-      1 pos.galactic.lon glon-car glon longitude ... 360.0 deg         deg     yes
-      2 pos.galactic.lat glat-car glat  latitude ...      None         deg     yes
+  index            aliases                type   unit wrap format_unit visible
+  ----- ------------------------------ --------- ---- ---- ----------- -------
+      0                   distmod dist    scalar      None                 yes
+      1 pos.galactic.lon glon-car glon longitude  deg  360         deg     yes
+      2 pos.galactic.lat glat-car glat  latitude  deg None         deg     yes
 
 >
  """.strip()
@@ -500,43 +492,6 @@ def test_simplify_labels_usetex(ignore_matplotlibrc, tmp_path):
     fig.savefig(tmp_path / "plot.png")
 
 
-@pytest.mark.parametrize(
-    "usetex, unicode_minus, label_str",
-    [
-        (True, True, "$-{}$"),
-        (True, False, "$-{}$"),
-        (False, True, "\N{MINUS SIGN}{}"),
-        (False, False, "-{}"),
-    ],
-)
-def test_simplify_labels_minus_sign(
-    ignore_matplotlibrc, usetex, unicode_minus, label_str
-):
-    # Ensure minus signs aren't removed from the front of labels across a grid of configuration possibilities
-    if usetex and TEX_UNAVAILABLE:
-        pytest.skip("TeX is unavailable")
-
-    ticklabels = TickLabels(None)
-    expected_labels = []
-    for i in range(1, 6):
-        label = label_str.format(i)
-        ticklabels.add(
-            axis="axis",
-            world=0,
-            angle=0,
-            text=label,
-            axis_displacement=0,
-            data=(i, i),
-        )
-        expected_labels.append(label)
-
-    with mpl.rc_context(
-        rc={"text.usetex": usetex, "axes.unicode_minus": unicode_minus}
-    ):
-        ticklabels.simplify_labels()
-    assert ticklabels.text["axis"] == expected_labels
-
-
 @pytest.mark.parametrize("frame_class", [RectangularFrame, EllipticalFrame])
 def test_set_labels_with_coords(ignore_matplotlibrc, frame_class):
     """Test if ``axis.set_xlabel()`` calls the correct ``coords[i]_set_axislabel()`` in a
@@ -605,91 +560,3 @@ def test_multiple_draws_grid_contours(tmp_path):
     ax.grid(color="black", grid_type="contours")
     fig.savefig(tmp_path / "plot.png")
     fig.savefig(tmp_path / "plot.png")
-
-
-def test_get_coord_range_nan_regression():
-    # Test to make sure there is no internal casting of NaN to integers
-    # NumPy 1.24 raises a RuntimeWarning if a NaN is cast to an integer
-
-    wcs = WCS(TARGET_HEADER)
-    wcs.wcs.crval[0] = 0  # Re-position the longitude wrap to the middle
-    ax = plt.subplot(1, 1, 1, projection=wcs)
-
-    # Set the Y limits within valid latitudes/declinations
-    ax.set_ylim(300, 500)
-
-    # Set the X limits within valid longitudes/RAs, so the world coordinates have no NaNs
-    ax.set_xlim(300, 700)
-    assert np.allclose(
-        ax.coords.get_coord_range(),
-        np.array(
-            [
-                (-123.5219272110385, 122.49684897692201),
-                (-44.02289164685554, 44.80732766607591),
-            ]
-        ),
-    )
-
-    # Extend the X limits to include invalid longitudes/RAs, so the world coordinates have NaNs
-    ax.set_xlim(0, 700)
-    assert np.allclose(
-        ax.coords.get_coord_range(),
-        np.array(
-            [(-131.3193386797236, 180.0), (-44.02289164685554, 44.80732766607591)]
-        ),
-    )
-
-
-def test_imshow_error():
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1, projection=WCS())
-    with pytest.raises(ValueError, match="Cannot use images with origin='upper"):
-        ax.imshow(np.ones(100).reshape(10, 10), origin="upper")
-
-
-def test_label_setting():
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1, projection=WCS())
-    # Check both xlabel and label kwargs work
-    ax.set_xlabel(xlabel="label")
-    ax.set_xlabel(label="label")
-    # Check no label errors:
-    with pytest.raises(
-        TypeError, match=r"set_xlabel\(\) missing 1 required positional argument"
-    ):
-        ax.set_xlabel()
-
-    # Check both xlabel and label kwargs work
-    ax.set_ylabel(ylabel="label")
-    ax.set_ylabel(label="label")
-    # Check no label errors:
-    with pytest.raises(
-        TypeError, match=r"set_ylabel\(\) missing 1 required positional argument"
-    ):
-        ax.set_ylabel()
-
-
-def test_invisible_bbox():
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1, projection=WCS())
-
-    assert ax.get_tightbbox(fig.canvas.get_renderer()) is not None
-    ax.set_visible(False)
-    assert ax.get_tightbbox(fig.canvas.get_renderer()) is None
-
-
-def test_get_axislabel_default():
-    wcs = WCS(naxis=2)
-    wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
-
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1, projection=wcs)
-    assert ax.coords[0].get_axislabel() == "pos.eq.ra"
-    assert ax.coords[1].get_axislabel() == "pos.eq.dec"
-
-    # Make sure that setting axis labels explicitly works, including to an
-    # empty string
-    ax.coords[0].set_axislabel("Right Ascension")
-    ax.coords[1].set_axislabel("")
-    assert ax.coords[0].get_axislabel() == "Right Ascension"
-    assert ax.coords[1].get_axislabel() == ""

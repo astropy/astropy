@@ -10,7 +10,6 @@ from numpy import testing as npt
 from astropy import units as u
 from astropy.coordinates import CartesianRepresentation, Distance, Latitude, Longitude
 from astropy.coordinates.builtin_frames import ICRS, Galactic
-from astropy.table import Column
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyWarning
@@ -314,19 +313,3 @@ def test_distance_to_quantity_when_not_units_of_length():
 def test_distance_nan():
     # Check that giving NaNs to Distance doesn't emit a warning
     Distance([0, np.nan, 1] * u.m)
-
-
-def test_distance_parallax_angle_like():
-    """Test angle-like behavior of Distance.parallax for object with a unit attribute.
-
-    Adapted from #15693
-    """
-    assert quantity_allclose(
-        Distance(parallax=Column([1.0, 2.0, 4.0], unit=u.mas)),
-        [1000, 500, 250] * u.pc,
-    )
-
-    class FloatMas(float):
-        unit = u.mas
-
-    assert Distance(parallax=FloatMas(1.0)) == 1000 * u.pc

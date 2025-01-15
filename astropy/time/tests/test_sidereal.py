@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import functools
 import itertools
-import sys
 
 import erfa
 import numpy as np
@@ -18,10 +17,6 @@ within_1_second = functools.partial(np.allclose, rtol=1.0, atol=1.0 / 3600.0)
 within_2_seconds = functools.partial(np.allclose, rtol=1.0, atol=2.0 / 3600.0)
 
 
-@pytest.mark.skipif(
-    sys.flags.optimize >= 2,
-    reason="docstrings are not testable in optimized mode",
-)
 def test_doc_string_contains_models():
     """The doc string is formatted; this ensures this remains working."""
     for kind in ("mean", "apparent"):
@@ -147,7 +142,7 @@ class TestST:
         assert allclose_hours(gst.value, gst_compare)
 
     def test_era(self):
-        """Compare ERA relative to erfa.era00 test case."""
+        """Comare ERA relative to erfa.era00 test case."""
         t = Time(2400000.5, 54388.0, format="jd", location=(0, 0), scale="ut1")
         era = t.earth_rotation_angle()
         expected = 0.4022837240028158102 * u.radian

@@ -223,7 +223,7 @@ the containment criteria are noted in the documentation. For example, see
 
     Accessing the `Model.bounding_box <astropy.modeling.Model.bounding_box>`
     property when it has not been set, or does not have a default will
-    result in a ``NotImplementedError``. If this behavior is undesirable,
+    result in a ``NotImplementedError``. If this behavior is undesireable,
     then one can instead use the `Model.get_bounding_box <astropy.modeling.Model.get_bounding_box>`
     method instead. This method will return the bounding box if one exists
     (by setting or default) otherwise it will return ``None`` instead
@@ -319,7 +319,7 @@ a bounding box, then one can use the
 method ::
 
     >>> model1.bounding_box.bounding_box()
-    ((np.float64(-4.0), np.float64(4.0)), (np.float64(-3.0), np.float64(3.0)), (np.float64(-2.0), np.float64(2.0)))
+    ((-4.0, 4.0), (-3.0, 3.0), (-2.0, 2.0))
     >>> model2.bounding_box.bounding_box()
     (-1, 1)
     >>> model3.bounding_box.bounding_box()
@@ -430,7 +430,7 @@ or not. In this case, it makes sense for the selector argument to be ignored ::
     >>> model1(0.5, 1.5, 0, with_bounding_box=True)
     (1.5, 3.5, 0.0)
     >>> model1(0.5, 1.5, 1, with_bounding_box=True)
-    (np.float64(nan), np.float64(nan), np.float64(nan))
+    (nan, nan, nan)
 
 Multiple selector arguments can also be used, in this case the keys of the
 dictionary of bounding boxes need to be specified as tuples of values ::
@@ -493,7 +493,7 @@ dictionary of bounding boxes need to be specified as tuples of values ::
     >>> model2(0.5, 1.5, 0, 0, with_bounding_box=True)
     (1.5, 3.5, 0.0, 0.0)
     >>> model2(0.5, 1.5, 1, 1, with_bounding_box=True)
-    (np.float64(nan), np.float64(nan), np.float64(nan), np.float64(nan))
+    (nan, nan, nan, nan)
 
 Note that one can also specify the ordering for all the bounding boxes
 comprising the compound bounding using the ``order`` keyword argument.
@@ -942,7 +942,7 @@ format. This can be useful in many contexts, one of which is the implementation 
 
 Serializing a model to disk is possible by assigning the object to ``AsdfFile.tree``:
 
-.. doctest-requires:: asdf-astropy
+.. doctest-requires:: asdf
 
     >>> from asdf import AsdfFile
     >>> from astropy.modeling import models
@@ -953,7 +953,7 @@ Serializing a model to disk is possible by assigning the object to ``AsdfFile.tr
 
 To read the file and create the model:
 
-.. doctest-requires:: asdf-astropy
+.. doctest-requires:: asdf
 
     >>> import asdf
     >>> with asdf.open('rotation.asdf') as f:
@@ -970,4 +970,4 @@ To read the file and create the model:
 
 Compound models can also be serialized. Please note that some model attributes (e.g ``meta``,
 ``tied`` parameter constraints used in fitting), as well as model sets are not yet serializable.
-For more information on serialization of models, see :ref:`asdf-astropy:asdf-astropy`.
+For more information on serialization of models, see :ref:`asdf_dev`.

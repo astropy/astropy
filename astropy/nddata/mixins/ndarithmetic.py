@@ -10,7 +10,6 @@ from astropy.nddata.nduncertainty import NDUncertainty
 from astropy.units import dimensionless_unscaled
 from astropy.utils import format_doc, sharedmethod
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.masked import Masked
 
 __all__ = ["NDArithmeticMixin"]
 
@@ -172,8 +171,6 @@ class NDArithmeticMixin:
         handle_meta=None,
         uncertainty_correlation=0,
         compare_wcs="first_found",
-        operation_ignores_mask=False,
-        axis=None,
         **kwds,
     ):
         """
@@ -208,14 +205,6 @@ class NDArithmeticMixin:
         uncertainty_correlation : ``Number`` or `~numpy.ndarray`, optional
             see :meth:`NDArithmeticMixin.add`
 
-        operation_ignores_mask : bool, optional
-            When True, masked values will be excluded from operations;
-            otherwise the operation will be performed on all values,
-            including masked ones.
-
-        axis : int or tuple of ints, optional
-            axis or axes over which to perform collapse operations like min, max, sum or mean.
-
         kwargs :
             Any other parameter that should be passed to the
             different :meth:`NDArithmeticMixin._arithmetic_mask` (or wcs, ...)
@@ -237,10 +226,10 @@ class NDArithmeticMixin:
         # Find the appropriate keywords for the appropriate method (not sure
         # if data and uncertainty are ever used ...)
         kwds2 = {"mask": {}, "meta": {}, "wcs": {}, "data": {}, "uncertainty": {}}
-        for i, kwd in kwds.items():
+        for i in kwds:
             splitted = i.split("_", 1)
             try:
-                kwds2[splitted[0]][splitted[1]] = kwd
+                kwds2[splitted[0]][splitted[1]] = kwds[i]
             except KeyError:
                 raise KeyError(f"Unknown prefix {splitted[0]} for parameter {i}")
 
@@ -250,7 +239,7 @@ class NDArithmeticMixin:
         if compare_wcs is None:
             kwargs["wcs"] = None
         elif compare_wcs in ["ff", "first_found"]:
-            if self.wcs is None and hasattr(operand, "wcs"):
+            if self.wcs is None:
                 kwargs["wcs"] = deepcopy(operand.wcs)
             else:
                 kwargs["wcs"] = deepcopy(self.wcs)
@@ -259,41 +248,9 @@ class NDArithmeticMixin:
                 operation, operand, compare_wcs, **kwds2["wcs"]
             )
 
-        # collapse operations on masked quantities/arrays which are supported by
-        # the astropy.utils.masked or np.ma modules should use those modules to
-        # do the arithmetic on the data and propagate masks.
-        use_masked_arith = operand is None and self.mask is not None
-        if use_masked_arith:
-            # if we're *including* masked values in the operation,
-            # use the astropy Masked module:
-            if not operation_ignores_mask:
-                # call the numpy operation on a Masked NDDataArray
-                # representation of the nddata, with units when available:
-                if self.unit is not None and not hasattr(self.data, "unit"):
-                    masked_input = Masked(self.data << self.unit, mask=self.mask)
-                else:
-                    masked_input = Masked(self.data, mask=self.mask)
-            # if we're *excluding* masked values in the operation,
-            # we use the numpy.ma module:
-            else:
-                masked_input = np.ma.masked_array(self.data, self.mask)
-            result = operation(masked_input, axis=axis)
-            # since result may be e.g. a float if operation is a sum over all axes,
-            # let's ensure that result is a masked array, since we'll assume this later:
-            if not hasattr(result, "mask"):
-                result = np.ma.masked_array(
-                    result, mask=np.zeros_like(result, dtype=bool)
-                )
-        else:
-            # Then calculate the resulting data (which can but needs not be a
-            # quantity)
-            result = self._arithmetic_data(
-                operation, operand, axis=axis, **kwds2["data"]
-            )
-
-        # preserve original units
-        if not hasattr(result, "unit") and hasattr(self, "unit"):
-            kwargs["unit"] = self.unit
+        # Then calculate the resulting data (which can but not needs to be a
+        # quantity)
+        result = self._arithmetic_data(operation, operand, **kwds2["data"])
 
         # Determine the other properties
         if propagate_uncertainties is None:
@@ -309,22 +266,17 @@ class NDArithmeticMixin:
                 operand,
                 result,
                 uncertainty_correlation,
-                axis=axis,
                 **kwds2["uncertainty"],
             )
 
         # If both are None, there is nothing to do.
-        if self.psf is not None or (operand is not None and operand.psf is not None):
+        if self.psf is not None or operand.psf is not None:
             warnings.warn(
                 f"Not setting psf attribute during {operation.__name__}.",
                 AstropyUserWarning,
             )
 
         if handle_mask is None:
-            pass
-        elif hasattr(result, "mask"):
-            # if numpy.ma or astropy.utils.masked is being used, the constructor
-            # will pick up the mask from the masked object:
             kwargs["mask"] = None
         elif handle_mask in ["ff", "first_found"]:
             if self.mask is None:
@@ -333,7 +285,7 @@ class NDArithmeticMixin:
                 kwargs["mask"] = deepcopy(self.mask)
         else:
             kwargs["mask"] = self._arithmetic_mask(
-                operation, operand, handle_mask, axis=axis, **kwds2["mask"]
+                operation, operand, handle_mask, **kwds2["mask"]
             )
 
         if handle_meta is None:
@@ -353,7 +305,7 @@ class NDArithmeticMixin:
 
     def _arithmetic_data(self, operation, operand, **kwds):
         """
-        Calculate the resulting data.
+        Calculate the resulting data
 
         Parameters
         ----------
@@ -374,25 +326,20 @@ class NDArithmeticMixin:
             array, but if any of the operands had a unit the return is a
             Quantity.
         """
+
         # Do the calculation with or without units
-        if self.unit is None and hasattr(operand, "data"):
-            if hasattr(operand, "unit") and operand.unit is None:
-                result = operation(self.data, operand.data)
-            else:
-                result = operation(
-                    self.data << dimensionless_unscaled, operand.data << operand.unit
-                )
-        elif hasattr(operand, "unit"):
-            if operand.unit is not None:
-                result = operation(self.data << self.unit, operand.data << operand.unit)
-            else:
-                result = operation(
-                    self.data << self.unit, operand.data << dimensionless_unscaled
-                )
-        elif operand is not None:
-            result = operation(self.data << self.unit, operand.data << operand.unit)
+        if self.unit is None and operand.unit is None:
+            result = operation(self.data, operand.data)
+        elif self.unit is None:
+            result = operation(
+                self.data << dimensionless_unscaled, operand.data << operand.unit
+            )
+        elif operand.unit is None:
+            result = operation(
+                self.data << self.unit, operand.data << dimensionless_unscaled
+            )
         else:
-            result = operation(self.data, axis=kwds["axis"])
+            result = operation(self.data << self.unit, operand.data << operand.unit)
 
         return result
 
@@ -425,6 +372,7 @@ class NDArithmeticMixin:
             subclass that ``self`` had (or ``operand`` if self had no
             uncertainty). ``None`` only if both had no uncertainty.
         """
+
         # Make sure these uncertainties are NDUncertainties so this kind of
         # propagation is possible.
         if self.uncertainty is not None and not isinstance(
@@ -434,10 +382,8 @@ class NDArithmeticMixin:
                 "Uncertainty propagation is only defined for "
                 "subclasses of NDUncertainty."
             )
-        if (
-            operand is not None
-            and operand.uncertainty is not None
-            and not isinstance(operand.uncertainty, NDUncertainty)
+        if operand.uncertainty is not None and not isinstance(
+            operand.uncertainty, NDUncertainty
         ):
             raise TypeError(
                 "Uncertainty propagation is only defined for "
@@ -448,9 +394,7 @@ class NDArithmeticMixin:
         # TODO: There is no enforced requirement that actually forbids the
         # uncertainty to have negative entries but with correlation the
         # sign of the uncertainty DOES matter.
-        if self.uncertainty is None and (
-            not hasattr(operand, "uncertainty") or operand.uncertainty is None
-        ):
+        if self.uncertainty is None and operand.uncertainty is None:
             # Neither has uncertainties so the result should have none.
             return None
         elif self.uncertainty is None:
@@ -464,7 +408,7 @@ class NDArithmeticMixin:
             self.uncertainty = None
             return result_uncert
 
-        elif operand is not None and operand.uncertainty is None:
+        elif operand.uncertainty is None:
             # As with self.uncertainty is None but the other way around.
             operand.uncertainty = self.uncertainty.__class__(None)
             result_uncert = self.uncertainty.propagate(
@@ -475,16 +419,11 @@ class NDArithmeticMixin:
 
         else:
             # Both have uncertainties so just propagate.
+            return self.uncertainty.propagate(operation, operand, result, correlation)
 
-            # only supply the axis kwarg if one has been specified for a collapsing operation
-            axis_kwarg = dict(axis=kwds["axis"]) if "axis" in kwds else dict()
-            return self.uncertainty.propagate(
-                operation, operand, result, correlation, **axis_kwarg
-            )
-
-    def _arithmetic_mask(self, operation, operand, handle_mask, axis=None, **kwds):
+    def _arithmetic_mask(self, operation, operand, handle_mask, **kwds):
         """
-        Calculate the resulting mask.
+        Calculate the resulting mask
 
         This is implemented as the piecewise ``or`` operation if both have a
         mask.
@@ -512,21 +451,17 @@ class NDArithmeticMixin:
             If neither had a mask ``None`` is returned. Otherwise
             ``handle_mask`` must create (and copy) the returned mask.
         """
+
         # If only one mask is present we need not bother about any type checks
-        if (
-            self.mask is None and operand is not None and operand.mask is None
-        ) or handle_mask is None:
+        if self.mask is None and operand.mask is None:
             return None
-        elif self.mask is None and operand is not None:
+        elif self.mask is None:
             # Make a copy so there is no reference in the result.
             return deepcopy(operand.mask)
-        elif operand is None or getattr(operand, "mask", None) is None:
-            # first condition lets through masks within collapse operations,
-            # second lets through masks when doing arithmetic on an
-            # operand without a mask:
+        elif operand.mask is None:
             return deepcopy(self.mask)
         else:
-            # Now let's calculate the resulting mask (operation enforces copy)
+            # Now lets calculate the resulting mask (operation enforces copy)
             return handle_mask(self.mask, operand.mask, **kwds)
 
     def _arithmetic_wcs(self, operation, operand, compare_wcs, **kwds):
@@ -564,7 +499,8 @@ class NDArithmeticMixin:
         result_wcs : any type
             The ``wcs`` of the first operand is returned.
         """
-        # ok, not really arithmetic but we need to check which wcs makes sense
+
+        # ok, not really arithmetics but we need to check which wcs makes sense
         # for the result and this is an ideal place to compare the two WCS,
         # too.
 
@@ -630,41 +566,17 @@ class NDArithmeticMixin:
         )
 
     @sharedmethod
-    def sum(self, **kwargs):
-        return self._prepare_then_do_arithmetic(np.sum, **kwargs)
-
-    @sharedmethod
-    def mean(self, **kwargs):
-        return self._prepare_then_do_arithmetic(np.mean, **kwargs)
-
-    @sharedmethod
-    def min(self, **kwargs):
-        # use the provided propagate_uncertainties if available, otherwise default is False:
-        propagate_uncertainties = kwargs.pop("propagate_uncertainties", None)
-        return self._prepare_then_do_arithmetic(
-            np.min, propagate_uncertainties=propagate_uncertainties, **kwargs
-        )
-
-    @sharedmethod
-    def max(self, **kwargs):
-        # use the provided propagate_uncertainties if available, otherwise default is False:
-        propagate_uncertainties = kwargs.pop("propagate_uncertainties", None)
-        return self._prepare_then_do_arithmetic(
-            np.max, propagate_uncertainties=propagate_uncertainties, **kwargs
-        )
-
-    @sharedmethod
     def _prepare_then_do_arithmetic(
-        self_or_cls, operation, operand=None, operand2=None, **kwargs
+        self_or_cls, operation, operand, operand2, **kwargs
     ):
-        """Intermediate method called by public arithmetic (i.e. ``add``)
+        """Intermediate method called by public arithmetics (i.e. ``add``)
         before the processing method (``_arithmetic``) is invoked.
 
         .. warning::
             Do not override this method in subclasses.
 
         This method checks if it was called as instance or as class method and
-        then wraps the operands and the result from ``_arithmetic`` in the
+        then wraps the operands and the result from ``_arithmetics`` in the
         appropriate subclass.
 
         Parameters
@@ -694,6 +606,7 @@ class NDArithmeticMixin:
             # True means it was called on the instance, so self_or_cls is
             # a reference to self
             cls = self_or_cls.__class__
+
             if operand2 is None:
                 # Only one operand was given. Set operand2 to operand and
                 # operand to self so that we call the appropriate method of the
@@ -721,33 +634,15 @@ class NDArithmeticMixin:
             operand = cls(operand)
 
         # At this point operand, operand2, kwargs and cls are determined.
-        if operand2 is not None and not issubclass(
-            operand2.__class__, NDArithmeticMixin
-        ):
-            # Let's try to convert operand2 to the class of operand to allow for
-            # arithmetic operations with numbers, lists, numpy arrays, numpy masked
-            # arrays, astropy quantities, masked quantities and of other subclasses
-            # of NDData.
-            operand2 = cls(operand2)
 
-            # Now call the _arithmetics method to do the arithmetic.
-            result, init_kwds = operand._arithmetic(operation, operand2, **kwargs)
-        elif issubclass(operand2.__class__, NDArithmeticMixin):
-            # calling as class method:
-            result, init_kwds = cls._arithmetic(
-                operand,
-                operation,
-                operand2,
-                **kwargs,
-            )
-        else:
-            # otherwise call the _arithmetic method on self for a collapse operation:
-            # for collapse operations, use astropy.utils.masked rather than handle_mask
-            result, init_kwds = self_or_cls._arithmetic(
-                operation,
-                operand2,
-                **kwargs,
-            )
+        # Let's try to convert operand2 to the class of operand to allows for
+        # arithmetic operations with numbers, lists, numpy arrays, numpy masked
+        # arrays, astropy quantities, masked quantities and of other subclasses
+        # of NDData.
+        operand2 = cls(operand2)
+
+        # Now call the _arithmetics method to do the arithmetics.
+        result, init_kwds = operand._arithmetic(operation, operand2, **kwargs)
 
         # Return a new class based on the result
         return cls(result, **init_kwds)

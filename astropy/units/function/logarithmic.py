@@ -10,30 +10,33 @@ from astropy.units import (
     UnitsError,
     UnitTypeError,
     dimensionless_unscaled,
+    photometric,
 )
-from astropy.utils import lazyproperty
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 from .core import FunctionQuantity, FunctionUnitBase
+from .units import dB, dex, mag
 
 __all__ = [
-    "Decibel",
-    "DecibelUnit",
-    "Dex",
-    "DexUnit",
-    "LogQuantity",
     "LogUnit",
     "MagUnit",
+    "DexUnit",
+    "DecibelUnit",
+    "LogQuantity",
     "Magnitude",
+    "Decibel",
+    "Dex",
+    "STmag",
+    "ABmag",
+    "M_bol",
+    "m_bol",
 ]
 
 
 class LogUnit(FunctionUnitBase):
-    """Logarithmic unit containing a physical one.
+    """Logarithmic unit containing a physical one
 
     Usually, logarithmic units are instantiated via specific subclasses
-    such `~astropy.units.MagUnit`, `~astropy.units.DecibelUnit`, and
-    `~astropy.units.DexUnit`.
+    such `MagUnit`, `DecibelUnit`, and `DexUnit`.
 
     Parameters
     ----------
@@ -47,10 +50,8 @@ class LogUnit(FunctionUnitBase):
     """
 
     # the four essential overrides of FunctionUnitBase
-    @lazyproperty
+    @property
     def _default_function_unit(self):
-        from .units import dex
-
         return dex
 
     @property
@@ -59,19 +60,12 @@ class LogUnit(FunctionUnitBase):
 
     def from_physical(self, x):
         """Transformation from value in physical to value in logarithmic units.
-        Used in equivalency.
-        """
-        # Local import to avoid circular dependency.
-        from .units import dex
-
+        Used in equivalency."""
         return dex.to(self._function_unit, np.log10(x))
 
     def to_physical(self, x):
         """Transformation from value in logarithmic to value in physical units.
-        Used in equivalency.
-        """
-        from .units import dex
-
+        Used in equivalency."""
         return 10 ** self._function_unit.to(dex, x)
 
     # ^^^^ the four essential overrides of FunctionUnitBase
@@ -132,7 +126,7 @@ class LogUnit(FunctionUnitBase):
 
 
 class MagUnit(LogUnit):
-    """Logarithmic physical units expressed in magnitudes.
+    """Logarithmic physical units expressed in magnitudes
 
     Parameters
     ----------
@@ -145,10 +139,8 @@ class MagUnit(LogUnit):
         unit such as ``2 mag``.
     """
 
-    @lazyproperty
+    @property
     def _default_function_unit(self):
-        from .units import mag
-
         return mag
 
     @property
@@ -157,7 +149,7 @@ class MagUnit(LogUnit):
 
 
 class DexUnit(LogUnit):
-    """Logarithmic physical units expressed in magnitudes.
+    """Logarithmic physical units expressed in magnitudes
 
     Parameters
     ----------
@@ -170,10 +162,8 @@ class DexUnit(LogUnit):
         unit such as ``0.5 dex``.
     """
 
-    @lazyproperty
+    @property
     def _default_function_unit(self):
-        from .units import dex
-
         return dex
 
     @property
@@ -191,7 +181,7 @@ class DexUnit(LogUnit):
 
 
 class DecibelUnit(LogUnit):
-    """Logarithmic physical units expressed in dB.
+    """Logarithmic physical units expressed in dB
 
     Parameters
     ----------
@@ -204,10 +194,8 @@ class DecibelUnit(LogUnit):
         unit such as ``2 dB``.
     """
 
-    @lazyproperty
+    @property
     def _default_function_unit(self):
-        from .units import dB
-
         return dB
 
     @property
@@ -216,11 +204,11 @@ class DecibelUnit(LogUnit):
 
 
 class LogQuantity(FunctionQuantity):
-    """A representation of a (scaled) logarithm of a number with a unit.
+    """A representation of a (scaled) logarithm of a number with a unit
 
     Parameters
     ----------
-    value : number, `~astropy.units.Quantity`, `~astropy.units.LogQuantity`, or sequence of quantity-like.
+    value : number, `~astropy.units.Quantity`, `~astropy.units.function.logarithmic.LogQuantity`, or sequence of quantity-like.
         The numerical value of the logarithmic quantity. If a number or
         a `~astropy.units.Quantity` with a logarithmic unit, it will be
         converted to ``unit`` and the physical unit will be inferred from
@@ -228,8 +216,8 @@ class LogQuantity(FunctionQuantity):
         it will converted to the logarithmic unit, after, if necessary,
         converting it to the physical unit inferred from ``unit``.
 
-    unit : str, `~astropy.units.UnitBase`, or `~astropy.units.FunctionUnitBase`, optional
-        For an `~astropy.units.FunctionUnitBase` instance, the
+    unit : str, `~astropy.units.UnitBase`, or `~astropy.units.function.FunctionUnitBase`, optional
+        For an `~astropy.units.function.FunctionUnitBase` instance, the
         physical unit will be taken from it; for other input, it will be
         inferred from ``value``. By default, ``unit`` is set by the subclass.
 
@@ -248,7 +236,7 @@ class LogQuantity(FunctionQuantity):
 
     Examples
     --------
-    Typically, use is made of an `~astropy.units.FunctionQuantity`
+    Typically, use is made of an `~astropy.units.function.FunctionQuantity`
     subclass, as in::
 
         >>> import astropy.units as u
@@ -335,7 +323,7 @@ class LogQuantity(FunctionQuantity):
     def __truediv__(self, other):
         # Divide by a float or a dimensionless quantity
         if isinstance(other, numbers.Number):
-            # Dividing a log means putting the denominator into the exponent
+            # Dividing a log means putting the nominator into the exponent
             # of the unit
             new_physical_unit = self.unit.physical_unit ** (1 / other)
             result = self.view(np.ndarray) / other
@@ -399,21 +387,9 @@ class LogQuantity(FunctionQuantity):
         unit = self.unit._copy(dimensionless_unscaled)
         return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof, unit=unit)
 
-    if NUMPY_LT_2_0:
-
-        def ptp(self, axis=None, out=None):
-            unit = self.unit._copy(dimensionless_unscaled)
-            return self._wrap_function(np.ptp, axis, out=out, unit=unit)
-
-    else:
-
-        def __array_function__(self, function, types, args, kwargs):
-            # TODO: generalize this to all supported functions!
-            if function is np.ptp:
-                unit = self.unit._copy(dimensionless_unscaled)
-                return self._wrap_function(np.ptp, *args[1:], unit=unit, **kwargs)
-            else:
-                return super().__array_function__(function, types, args, kwargs)
+    def ptp(self, axis=None, out=None):
+        unit = self.unit._copy(dimensionless_unscaled)
+        return self._wrap_function(np.ptp, axis, out=out, unit=unit)
 
     def diff(self, n=1, axis=-1):
         unit = self.unit._copy(dimensionless_unscaled)
@@ -438,3 +414,25 @@ class Decibel(LogQuantity):
 
 class Magnitude(LogQuantity):
     _unit_class = MagUnit
+
+
+dex._function_unit_class = DexUnit
+dB._function_unit_class = DecibelUnit
+mag._function_unit_class = MagUnit
+
+
+STmag = MagUnit(photometric.STflux)
+STmag.__doc__ = "ST magnitude: STmag=-21.1 corresponds to 1 erg/s/cm2/A"
+
+ABmag = MagUnit(photometric.ABflux)
+ABmag.__doc__ = "AB magnitude: ABmag=-48.6 corresponds to 1 erg/s/cm2/Hz"
+
+M_bol = MagUnit(photometric.Bol)
+M_bol.__doc__ = (
+    f"Absolute bolometric magnitude: M_bol=0 corresponds to L_bol0={photometric.Bol.si}"
+)
+
+m_bol = MagUnit(photometric.bol)
+m_bol.__doc__ = (
+    f"Apparent bolometric magnitude: m_bol=0 corresponds to f_bol0={photometric.bol.si}"
+)

@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Helpers functions for different kinds of WCSAxes instances.
+Helpers functions for different kinds of WCSAxes instances
 """
 
 import numpy as np
-from matplotlib.offsetbox import AnchoredOffsetbox, AuxTransformBox
-from matplotlib.patches import Ellipse
-from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredEllipse, AnchoredSizeBar
 
 import astropy.units as u
 from astropy.wcs.utils import proj_plane_pixel_scales
@@ -39,7 +37,7 @@ def add_beam(
     **kwargs,
 ):
     """
-    Display the beam shape and size.
+    Display the beam shape and size
 
     Parameters
     ----------
@@ -81,6 +79,7 @@ def add_beam(
       (e.g., rectangular pixels)
 
     """
+
     if header and major:
         raise ValueError(
             "Either header or major/minor/angle must be specified, not both."
@@ -111,17 +110,21 @@ def add_beam(
     minor /= degrees_per_pixel
     major /= degrees_per_pixel
 
-    aux_tr_box = AuxTransformBox(ax.transData)
-    ellipse = Ellipse((0, 0), width=minor, height=major, angle=angle, **kwargs)
-    aux_tr_box.add_artist(ellipse)
-    box = AnchoredOffsetbox(
-        child=aux_tr_box,
+    corner = CORNERS[corner]
+
+    beam = AnchoredEllipse(
+        ax.transData,
+        width=minor,
+        height=major,
+        angle=angle,
+        loc=corner,
         pad=pad,
         borderpad=borderpad,
-        loc=CORNERS[corner],
         frameon=frame,
     )
-    ax.add_artist(box)
+    beam.ellipse.set(**kwargs)
+
+    ax.add_artist(beam)
 
 
 def add_scalebar(
@@ -134,7 +137,7 @@ def add_scalebar(
     pad=0.5,
     **kwargs,
 ):
-    """Add a scale bar.
+    """Add a scale bar
 
     Parameters
     ----------
@@ -142,7 +145,7 @@ def add_scalebar(
         WCSAxes instance in which the scale bar is displayed. The WCS must be
         celestial.
     length : float or :class:`~astropy.units.Quantity`
-        The length of the scalebar in degrees or an angular quantity
+        The lenght of the scalebar in degrees or an angular quantity
     label : str, optional
         Label to place below the scale bar
     corner : str, optional
@@ -170,6 +173,7 @@ def add_scalebar(
       (e.g., rectangular pixels)
 
     """
+
     if isinstance(length, u.Quantity):
         length = length.to(u.degree).value
 

@@ -8,19 +8,19 @@ It is unlikely users will need to work with these classes directly,
 unless they define their own models.
 """
 
+
 import functools
 import numbers
 import operator
 
 import numpy as np
 
-from astropy.units import MagUnit, Quantity, dimensionless_unscaled
+from astropy.units import MagUnit, Quantity
 from astropy.utils import isiterable
-from astropy.utils.compat import COPY_IF_NEEDED
 
 from .utils import array_repr_oneline, get_inputs_and_params
 
-__all__ = ["InputParameterError", "Parameter", "ParameterError"]
+__all__ = ["Parameter", "InputParameterError", "ParameterError"]
 
 
 class ParameterError(Exception):
@@ -36,7 +36,8 @@ class ParameterDefinitionError(ParameterError):
 
 
 def _tofloat(value):
-    """Convert a parameter to float or float array."""
+    """Convert a parameter to float or float array"""
+
     if isiterable(value):
         try:
             value = np.asanyarray(value, dtype=float)
@@ -121,19 +122,21 @@ class Parameter:
     This class represents a model's parameter (in a somewhat broad sense). It
     serves a number of purposes:
 
-    #. A type to be recognized by models and treated specially at class
-       initialization (i.e., if it is found that there is a class definition
-       of a Parameter, the model initializer makes a copy at the instance level).
+    1) A type to be recognized by models and treated specially at class
+    initialization (i.e., if it is found that there is a class definition
+    of a Parameter, the model initializer makes a copy at the instance level).
 
-    #. Managing the handling of allowable parameter values and once defined,
-       ensuring updates are consistent with the Parameter definition. This
-       includes the optional use of units and quantities as well as transforming
-       values to an internally consistent representation (e.g., from degrees to
-       radians through the use of getters and setters).
+    2) Managing the handling of allowable parameter values and once defined,
+    ensuring updates are consistent with the Parameter definition. This
+    includes the optional use of units and quantities as well as transforming
+    values to an internally consistent representation (e.g., from degrees to
+    radians through the use of getters and setters).
 
-    #. Holding attributes of parameters relevant to fitting, such as whether
-       the parameter may be varied in fitting, or whether there are constraints
-       that must be satisfied.
+    3) Holding attributes of parameters relevant to fitting, such as whether
+    the parameter may be varied in fitting, or whether there are constraints
+    that must be satisfied.
+
+
 
     See :ref:`astropy:modeling-parameters` for more details.
 
@@ -156,18 +159,14 @@ class Parameter:
         if specified, the parameter will be in these units, and when the
         parameter is updated in future, it should be set to a
         :class:`~astropy.units.Quantity` that has equivalent units.
-    getter : callable or `None`, optional
-        A function that wraps the raw (internal) value of the parameter
-        when returning the value through the parameter proxy (e.g., a
-        parameter may be stored internally as radians but returned to
-        the user as degrees). The internal value is what is used for
-        computations while the proxy value is what users will interact
-        with (passing and viewing). If ``getter`` is not `None`, then a
-        ``setter`` must also be input.
-    setter : callable or `None`, optional
-        A function that wraps any values assigned to this parameter; should
-        be the inverse of ``getter``.  If ``setter`` is not `None`, then a
-        ``getter`` must also be input.
+    getter : callable
+        a function that wraps the raw (internal) value of the parameter
+        when returning the value through the parameter proxy (eg. a
+        parameter may be stored internally as radians but returned to the
+        user as degrees)
+    setter : callable
+        a function that wraps any values assigned to this parameter; should
+        be the inverse of getter
     fixed : bool
         if True the parameter is not varied during fitting
     tied : callable or False
@@ -214,11 +213,6 @@ class Parameter:
 
         self._model = None
         self._model_required = False
-
-        if (setter is not None and getter is None) or (
-            getter is not None and setter is None
-        ):
-            raise ValueError("setter and getter must both be input")
         self._setter = self._create_value_wrapper(setter, None)
         self._getter = self._create_value_wrapper(getter, None)
         self._name = name
@@ -315,7 +309,7 @@ class Parameter:
         args = f"'{self._name}'"
         args += f", value={self.value}"
 
-        if self.unit is not None and self.unit != dimensionless_unscaled:
+        if self.unit is not None:
             args += f", unit={self.unit}"
 
         for cons in self.constraints:
@@ -329,19 +323,20 @@ class Parameter:
 
     @property
     def name(self):
-        """Parameter name."""
+        """Parameter name"""
+
         return self._name
 
     @property
     def default(self):
-        """Parameter default value."""
+        """Parameter default value"""
         return self._default
 
     @property
     def value(self):
         """The unadorned value proxied by this parameter."""
         if self._getter is None and self._setter is None:
-            value = self._value
+            return np.float64(self._value)
         else:
             # This new implementation uses the names of internal_unit
             # in place of raw_unit used previously. The contrast between
@@ -349,17 +344,15 @@ class Parameter:
             # units that the parameter advertises to what it actually
             # uses internally.
             if self.internal_unit:
-                value = self._getter(
-                    self._internal_value, self.internal_unit, self.unit
-                ).value
-            else:
-                value = self._getter(self._internal_value)
-
-        if value.size == 1:
-            # return scalar number as np.float64 object
-            return np.float64(value.item())
-
-        return np.float64(value)
+                return np.float64(
+                    self._getter(
+                        self._internal_value, self.internal_unit, self.unit
+                    ).value
+                )
+            elif self._getter:
+                return np.float64(self._getter(self._internal_value))
+            elif self._setter:
+                return np.float64(self._internal_value)
 
     @value.setter
     def value(self, value):
@@ -384,6 +377,7 @@ class Parameter:
         model class, rather than a model instance) this is the required/
         default unit for the parameter.
         """
+
         return self._unit
 
     @unit.setter
@@ -413,7 +407,7 @@ class Parameter:
     @property
     def internal_unit(self):
         """
-        Return the internal unit the parameter uses for the internal value stored.
+        Return the internal unit the parameter uses for the internal value stored
         """
         return self._internal_unit
 
@@ -424,16 +418,6 @@ class Parameter:
         representation used internally.
         """
         self._internal_unit = internal_unit
-
-    @property
-    def input_unit(self):
-        """Unit for the input value."""
-        if self.internal_unit is not None:
-            return self.internal_unit
-        elif self.unit is not None:
-            return self.unit
-        else:
-            return None
 
     @property
     def quantity(self):
@@ -471,11 +455,13 @@ class Parameter:
     @property
     def size(self):
         """The size of this parameter's value array."""
+
         return np.size(self.value)
 
     @property
     def std(self):
         """Standard deviation, if available from fit."""
+
         return self._std
 
     @std.setter
@@ -519,23 +505,27 @@ class Parameter:
 
         A callable which provides the relationship of the two parameters.
         """
+
         return self._tied
 
     @tied.setter
     def tied(self, value):
-        """Tie a parameter."""
+        """Tie a parameter"""
+
         if not callable(value) and value not in (False, None):
             raise TypeError("Tied must be a callable or set to False or None")
         self._tied = value
 
     @property
     def bounds(self):
-        """The minimum and maximum values of a parameter as a tuple."""
+        """The minimum and maximum values of a parameter as a tuple"""
+
         return self._bounds
 
     @bounds.setter
     def bounds(self, value):
-        """Set the minimum and maximum values of a parameter from a tuple."""
+        """Set the minimum and maximum values of a parameter from a tuple"""
+
         _min, _max = value
         if _min is not None:
             if not isinstance(_min, (numbers.Number, Quantity)):
@@ -557,22 +547,26 @@ class Parameter:
 
     @property
     def min(self):
-        """A value used as a lower bound when fitting a parameter."""
+        """A value used as a lower bound when fitting a parameter"""
+
         return self.bounds[0]
 
     @min.setter
     def min(self, value):
-        """Set a minimum value of a parameter."""
+        """Set a minimum value of a parameter"""
+
         self.bounds = (value, self.max)
 
     @property
     def max(self):
-        """A value used as an upper bound when fitting a parameter."""
+        """A value used as an upper bound when fitting a parameter"""
+
         return self.bounds[1]
 
     @max.setter
     def max(self, value):
         """Set a maximum value of a parameter."""
+
         self.bounds = (self.min, value)
 
     @property
@@ -586,10 +580,6 @@ class Parameter:
         return value is ignored, but it may raise an exception if the value
         set on the parameter is invalid (typically an `InputParameterError`
         should be raised, though this is not currently a requirement).
-
-        Note: Using this method as a decorator will cause problems with
-        pickling the model. An alternative is to assign the actual validator
-        function to ``Parameter._validator`` (see examples in modeling).
 
         """
 
@@ -607,7 +597,7 @@ class Parameter:
         return validator
 
     def validate(self, value):
-        """Run the validator on this parameter."""
+        """Run the validator on this parameter"""
         if self._validator is not None and self._model is not None:
             self._validator(self._model, value)
 
@@ -640,6 +630,7 @@ class Parameter:
             Parameter(self.name, self.description, ...)
 
         """
+
         kwargs = locals().copy()
         del kwargs["self"]
 
@@ -697,6 +688,7 @@ class Parameter:
         a second argument then this creates a partial function using the model
         instance as the second argument.
         """
+
         if isinstance(wrapper, np.ufunc):
             if wrapper.nin != 1:
                 raise TypeError(
@@ -704,8 +696,6 @@ class Parameter:
                     "getter/setter may only take one input "
                     "argument"
                 )
-
-            return _wrap_ufunc(wrapper)
         elif wrapper is None:
             # Just allow non-wrappers to fall through silently, for convenience
             return None
@@ -730,12 +720,12 @@ class Parameter:
 
         return wrapper
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None):
         # Make np.asarray(self) work a little more straightforwardly
         arr = np.asarray(self.value, dtype=dtype)
 
         if self.unit is not None:
-            arr = Quantity(arr, self.unit, copy=copy, subok=True)
+            arr = Quantity(arr, self.unit, copy=False, subok=True)
 
         return arr
 
@@ -767,25 +757,8 @@ def param_repr_oneline(param):
     Like array_repr_oneline but works on `Parameter` objects and supports
     rendering parameters with units like quantities.
     """
+
     out = array_repr_oneline(param.value)
-    if param.unit is not None and param.unit != dimensionless_unscaled:
+    if param.unit is not None:
         out = f"{out} {param.unit!s}"
     return out
-
-
-def _wrap_ufunc(ufunc):
-    def _wrapper(value, raw_unit=None, orig_unit=None):
-        """
-        Wrap ufuncs to support passing in units
-            raw_unit is the unit of the value
-            orig_unit is the value after the ufunc has been applied
-            it is assumed ufunc(raw_unit) == orig_unit
-        """
-        if orig_unit is not None:
-            return ufunc(value) * orig_unit
-        elif raw_unit is not None:
-            return ufunc(value * raw_unit)
-
-        return ufunc(value)
-
-    return _wrapper

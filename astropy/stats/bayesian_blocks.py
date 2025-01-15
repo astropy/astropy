@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Bayesian Blocks for Time Series Analysis.
-
+"""
 Bayesian Blocks for Time Series Analysis
 ========================================
 
@@ -44,38 +43,20 @@ References
    straight lines. J. Amer. Statist. Assoc. 64, 1079–1084.
    https://www.tandfonline.com/doi/abs/10.1080/01621459.1969.10501038
 """
-
-from __future__ import annotations
-
 import warnings
 from inspect import signature
-from typing import TYPE_CHECKING
 
 import numpy as np
 
 from astropy.utils.exceptions import AstropyUserWarning
 
-if TYPE_CHECKING:
-    from collections.abc import KeysView
-    from typing import Literal
-
-    from numpy.typing import ArrayLike, NDArray
-
-# TODO: typing: use a custom-defined 'ArrayLike-but-not-a-scalar' type for `float | ArrayLike` or `ArrayLike | float` hints
-
 # TODO: implement other fitness functions from appendix C of Scargle 2013
 
-__all__ = ["Events", "FitnessFunc", "PointMeasures", "RegularEvents", "bayesian_blocks"]
+__all__ = ["FitnessFunc", "Events", "RegularEvents", "PointMeasures", "bayesian_blocks"]
 
 
-def bayesian_blocks(
-    t: ArrayLike,
-    x: ArrayLike | None = None,
-    sigma: ArrayLike | float | None = None,
-    fitness: Literal["events", "regular_events", "measures"] | FitnessFunc = "events",
-    **kwargs,
-) -> NDArray[float]:
-    r"""Compute optimal segmentation of data with Scargle's Bayesian Blocks.
+def bayesian_blocks(t, x=None, sigma=None, fitness="events", **kwargs):
+    r"""Compute optimal segmentation of data with Scargle's Bayesian Blocks
 
     This is a flexible implementation of the Bayesian Blocks algorithm
     described in Scargle 2013 [1]_.
@@ -125,6 +106,7 @@ def bayesian_blocks(
 
     Examples
     --------
+
     .. testsetup::
 
         >>> np.random.seed(12345)
@@ -191,7 +173,7 @@ def bayesian_blocks(
 
 
 class FitnessFunc:
-    """Base class for bayesian blocks fitness functions.
+    """Base class for bayesian blocks fitness functions
 
     Derived classes should overload the following method:
 
@@ -227,22 +209,12 @@ class FitnessFunc:
        https://ui.adsabs.harvard.edu/abs/2013ApJ...764..167S
     """
 
-    def __init__(
-        self,
-        p0: float = 0.05,
-        gamma: float | None = None,
-        ncp_prior: float | None = None,
-    ) -> None:
+    def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
         self.p0 = p0
         self.gamma = gamma
         self.ncp_prior = ncp_prior
 
-    def validate_input(
-        self,
-        t: ArrayLike,
-        x: ArrayLike | None = None,
-        sigma: float | ArrayLike | None = None,
-    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
+    def validate_input(self, t, x=None, sigma=None):
         """Validate inputs to the model.
 
         Parameters
@@ -256,7 +228,7 @@ class FitnessFunc:
 
         Returns
         -------
-        t, x, sigma : array-like, float
+        t, x, sigma : array-like, float or None
             validated and perhaps modified versions of inputs
         """
         # validate array input
@@ -273,7 +245,7 @@ class FitnessFunc:
             if sigma is not None:
                 raise ValueError("If sigma is specified, x must be specified")
             else:
-                sigma = 1.0
+                sigma = 1
 
             if len(unq_t) == len(t):
                 x = np.ones_like(t)
@@ -300,7 +272,7 @@ class FitnessFunc:
 
         # verify the given sigma value
         if sigma is None:
-            sigma = 1.0
+            sigma = 1
         else:
             sigma = np.asarray(sigma, dtype=float)
             if sigma.shape not in [(), (1,), (t.size,)]:
@@ -311,10 +283,10 @@ class FitnessFunc:
     def fitness(self, **kwargs):
         raise NotImplementedError()
 
-    def p0_prior(self, N: int) -> float:
-        """Empirical prior, parametrized by the false alarm probability ``p0``.
-
-        See eq. 21 in Scargle (2013).
+    def p0_prior(self, N):
+        """
+        Empirical prior, parametrized by the false alarm probability ``p0``
+        See  eq. 21 in Scargle (2013)
 
         Note that there was an error in this equation in the original Scargle
         paper (the "log" was missing). The following corrected form is taken
@@ -325,14 +297,15 @@ class FitnessFunc:
     # the fitness_args property will return the list of arguments accepted by
     # the method fitness().  This allows more efficient computation below.
     @property
-    def _fitness_args(self) -> KeysView[str]:
+    def _fitness_args(self):
         return signature(self.fitness).parameters.keys()
 
-    def compute_ncp_prior(self, N: int) -> float:
+    def compute_ncp_prior(self, N):
         """
         If ``ncp_prior`` is not explicitly defined, compute it from ``gamma``
         or ``p0``.
         """
+
         if self.gamma is not None:
             return -np.log(self.gamma)
         elif self.p0 is not None:
@@ -343,12 +316,7 @@ class FitnessFunc:
                 "``gamma`` nor ``p0`` is defined."
             )
 
-    def fit(
-        self,
-        t: ArrayLike,
-        x: ArrayLike | None = None,
-        sigma: ArrayLike | float | None = None,
-    ) -> NDArray[float]:
+    def fit(self, t, x=None, sigma=None):
         """Fit the Bayesian Blocks model given the specified fitness function.
 
         Parameters
@@ -447,7 +415,7 @@ class FitnessFunc:
 
 
 class Events(FitnessFunc):
-    r"""Bayesian blocks fitness for binned or unbinned events.
+    r"""Bayesian blocks fitness for binned or unbinned events
 
     Parameters
     ----------
@@ -471,16 +439,11 @@ class Events(FitnessFunc):
         If ``ncp_prior`` is specified, ``gamma`` and ``p0`` is ignored.
     """
 
-    def fitness(self, N_k: NDArray[float], T_k: NDArray[float]) -> NDArray[float]:
+    def fitness(self, N_k, T_k):
         # eq. 19 from Scargle 2013
         return N_k * (np.log(N_k / T_k))
 
-    def validate_input(
-        self,
-        t: ArrayLike,
-        x: ArrayLike | None,
-        sigma: float | ArrayLike | None,
-    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
+    def validate_input(self, t, x, sigma):
         t, x, sigma = super().validate_input(t, x, sigma)
         if x is not None and np.any(x % 1 > 0):
             raise ValueError("x must be integer counts for fitness='events'")
@@ -488,7 +451,7 @@ class Events(FitnessFunc):
 
 
 class RegularEvents(FitnessFunc):
-    r"""Bayesian blocks fitness for regular events.
+    r"""Bayesian blocks fitness for regular events
 
     This is for data which has a fundamental "tick" length, so that all
     measured values are multiples of this tick length.  In each tick, there
@@ -502,10 +465,6 @@ class RegularEvents(FitnessFunc):
         False alarm probability, used to compute the prior on :math:`N_{\rm
         blocks}` (see eq. 21 of Scargle 2013). If gamma is specified, p0 is
         ignored.
-    gamma : float, optional
-        If specified, then use this gamma to compute the general prior form,
-        :math:`p \sim {\tt gamma}^{N_{\rm blocks}}`.  If gamma is specified, p0
-        is ignored.
     ncp_prior : float, optional
         If specified, use the value of ``ncp_prior`` to compute the prior as
         above, using the definition :math:`{\tt ncp\_prior} = -\ln({\tt
@@ -513,28 +472,17 @@ class RegularEvents(FitnessFunc):
         ignored.
     """
 
-    def __init__(
-        self,
-        dt: float,
-        p0: float = 0.05,
-        gamma: float | None = None,
-        ncp_prior: float | None = None,
-    ) -> None:
+    def __init__(self, dt, p0=0.05, gamma=None, ncp_prior=None):
         self.dt = dt
         super().__init__(p0, gamma, ncp_prior)
 
-    def validate_input(
-        self,
-        t: ArrayLike,
-        x: ArrayLike | None = None,
-        sigma: float | ArrayLike | None = None,
-    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
+    def validate_input(self, t, x, sigma):
         t, x, sigma = super().validate_input(t, x, sigma)
         if not np.all((x == 0) | (x == 1)):
             raise ValueError("Regular events must have only 0 and 1 in x")
         return t, x, sigma
 
-    def fitness(self, T_k: NDArray[float], N_k: NDArray[float]) -> NDArray[float]:
+    def fitness(self, T_k, N_k):
         # Eq. C23 of Scargle 2013
         M_k = T_k / self.dt
         N_over_M = N_k / M_k
@@ -554,7 +502,7 @@ class RegularEvents(FitnessFunc):
 
 
 class PointMeasures(FitnessFunc):
-    r"""Bayesian blocks fitness for point measures.
+    r"""Bayesian blocks fitness for point measures
 
     Parameters
     ----------
@@ -562,10 +510,6 @@ class PointMeasures(FitnessFunc):
         False alarm probability, used to compute the prior on :math:`N_{\rm
         blocks}` (see eq. 21 of Scargle 2013). If gamma is specified, p0 is
         ignored.
-    gamma : float, optional
-        If specified, then use this gamma to compute the general prior form,
-        :math:`p \sim {\tt gamma}^{N_{\rm blocks}}`.  If gamma is specified, p0
-        is ignored.
     ncp_prior : float, optional
         If specified, use the value of ``ncp_prior`` to compute the prior as
         above, using the definition :math:`{\tt ncp\_prior} = -\ln({\tt
@@ -573,24 +517,14 @@ class PointMeasures(FitnessFunc):
         ignored.
     """
 
-    def __init__(
-        self,
-        p0: float = 0.05,
-        gamma: float | None = None,
-        ncp_prior: float | None = None,
-    ) -> None:
+    def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
         super().__init__(p0, gamma, ncp_prior)
 
-    def fitness(self, a_k: NDArray[float], b_k: ArrayLike) -> NDArray[float]:
+    def fitness(self, a_k, b_k):
         # eq. 41 from Scargle 2013
         return (b_k * b_k) / (4 * a_k)
 
-    def validate_input(
-        self,
-        t: ArrayLike,
-        x: ArrayLike | None,
-        sigma: float | ArrayLike | None,
-    ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
+    def validate_input(self, t, x, sigma):
         if x is None:
             raise ValueError("x must be specified for point measures")
         return super().validate_input(t, x, sigma)

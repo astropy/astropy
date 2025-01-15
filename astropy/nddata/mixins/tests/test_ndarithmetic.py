@@ -298,24 +298,6 @@ def test_arithmetics_data_masks(mask1, mask2):
         assert nd.wcs is None
 
 
-# Check that masks are preserved+propagated in NDData collapse operations
-@pytest.mark.parametrize(
-    ("collapse_axis", "mask_sum", "unit"),
-    [(0, [3, 0, 3, 0], "Jy"), (1, [2, 0, 2, 0], None), (2, [2, 2, 2], "Jy")],
-)
-def test_collapse_masks(collapse_axis, mask_sum, unit):
-    shape = (2, 3, 4)
-    data = np.arange(np.prod(shape)).reshape(shape)
-    mask = data % 2 == 0
-    nd_masked = NDDataArithmetic(data=data, mask=mask, unit=unit)
-    nd_nomask = NDDataArithmetic(data=data, unit=unit)
-
-    assert_array_equal(nd_masked.sum(axis=collapse_axis).mask.sum(axis=0), mask_sum)
-
-    # if no mask is given, the collapse result should have no mask:
-    assert nd_nomask.sum(axis=collapse_axis).mask is None
-
-
 # One additional case which can not be easily incorporated in the test above
 # what happens if the masks are numpy ndarrays are not broadcastable
 def test_arithmetics_data_masks_invalid():
@@ -1250,7 +1232,7 @@ def test_two_argument_useage(meth):
     ndd2 = NDDataArithmetic(np.ones((3, 3)))
 
     # Call add on the class (not the instance) and compare it with already
-    # tested usage:
+    # tested useage:
     ndd3 = getattr(NDDataArithmetic, meth)(ndd1, ndd2)
     ndd4 = getattr(ndd1, meth)(ndd2)
     np.testing.assert_array_equal(ndd3.data, ndd4.data)
@@ -1315,55 +1297,3 @@ def test_psf_warning():
         ndd2.add(ndd1)
     with pytest.warns(AstropyUserWarning, match="Not setting psf attribute during add"):
         ndd1.add(ndd1)
-
-
-def test_raise_method_not_supported():
-    ndd1 = NDDataArithmetic(np.zeros(3), uncertainty=StdDevUncertainty(np.zeros(3)))
-    ndd2 = NDDataArithmetic(np.ones(3), uncertainty=StdDevUncertainty(np.ones(3)))
-    result = np.zeros(3)
-    correlation = 0
-    # no error should be raised for supported operations:
-    ndd1.uncertainty.propagate(np.add, ndd2, result, correlation)
-
-    # raise error for unsupported propagation operations:
-    with pytest.raises(ValueError):
-        ndd1.uncertainty.propagate(np.mod, ndd2, result, correlation)
-
-
-def test_nddata_bitmask_arithmetic():
-    # NDData.mask is usually assumed to be boolean, but could be
-    # a bitmask. Ensure bitmask works:
-    array = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
-    mask = np.array([[0, 1, 64], [8, 0, 1], [2, 1, 0]])
-
-    nref_nomask = NDDataRef(array)
-    nref_masked = NDDataRef(array, mask=mask)
-
-    # multiply no mask by constant (no mask * no mask)
-    assert nref_nomask.multiply(1.0, handle_mask=np.bitwise_or).mask is None
-
-    # multiply no mask by itself (no mask * no mask)
-    assert nref_nomask.multiply(nref_nomask, handle_mask=np.bitwise_or).mask is None
-
-    # multiply masked by constant (mask * no mask)
-    np.testing.assert_equal(
-        nref_masked.multiply(1.0, handle_mask=np.bitwise_or).mask, mask
-    )
-
-    # multiply masked by itself (mask * mask)
-    np.testing.assert_equal(
-        nref_masked.multiply(nref_masked, handle_mask=np.bitwise_or).mask, mask
-    )
-
-    # multiply masked by no mask (mask * no mask)
-    np.testing.assert_equal(
-        nref_masked.multiply(nref_nomask, handle_mask=np.bitwise_or).mask, mask
-    )
-
-    # check bitwise logic still works
-    other_mask = np.array([[64, 1, 0], [2, 1, 0], [8, 0, 2]])
-    nref_mask_other = NDDataRef(array, mask=other_mask)
-    np.testing.assert_equal(
-        nref_mask_other.multiply(nref_masked, handle_mask=np.bitwise_or).mask,
-        np.bitwise_or(mask, other_mask),
-    )

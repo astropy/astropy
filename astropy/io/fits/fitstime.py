@@ -32,30 +32,30 @@ FITS_TIME_UNIT = ["s", "d", "a", "cy", "min", "h", "yr", "ta", "Ba"]
 
 
 # Global time reference coordinate keywords
-OBSGEO_XYZ = ("OBSGEO-X", "OBSGEO-Y", "OBSGEO-Z")
-OBSGEO_LBH = ("OBSGEO-L", "OBSGEO-B", "OBSGEO-H")
 TIME_KEYWORDS = (
-    (
-        "DATE",
-        "DATE-AVG",
-        "DATE-BEG",
-        "DATE-END",
-        "DATE-OBS",
-        "DATEREF",
-        "JDREF",
-        "MJD-AVG",
-        "MJD-BEG",
-        "MJD-END",
-        "MJD-OBS",
-        "MJDREF",
-        "TIMEOFFS",
-        "TIMESYS",
-        "TIMEUNIT",
-        "TREFDIR",
-        "TREFPOS",
-    )
-    + OBSGEO_LBH
-    + OBSGEO_XYZ
+    "TIMESYS",
+    "MJDREF",
+    "JDREF",
+    "DATEREF",
+    "TREFPOS",
+    "TREFDIR",
+    "TIMEUNIT",
+    "TIMEOFFS",
+    "OBSGEO-X",
+    "OBSGEO-Y",
+    "OBSGEO-Z",
+    "OBSGEO-L",
+    "OBSGEO-B",
+    "OBSGEO-H",
+    "DATE",
+    "DATE-OBS",
+    "DATE-AVG",
+    "DATE-BEG",
+    "DATE-END",
+    "MJD-OBS",
+    "MJD-AVG",
+    "MJD-BEG",
+    "MJD-END",
 )
 
 
@@ -97,6 +97,7 @@ def _verify_global_info(global_info):
     global_info : dict
         Global time reference frame information.
     """
+
     # Translate FITS deprecated scale into astropy scale, or else just convert
     # to lower case for further checks.
     global_info["scale"] = FITS_DEPRECATED_SCALES.get(
@@ -145,7 +146,11 @@ def _verify_global_info(global_info):
         global_info["format"] = None
 
     # Check if geocentric global location is specified
-    obs_geo = [global_info[attr] for attr in OBSGEO_XYZ if attr in global_info]
+    obs_geo = [
+        global_info[attr]
+        for attr in ("OBSGEO-X", "OBSGEO-Y", "OBSGEO-Z")
+        if attr in global_info
+    ]
 
     # Location full specification is (X, Y, Z)
     if len(obs_geo) == 3:
@@ -156,13 +161,17 @@ def _verify_global_info(global_info):
         # First warn the user if geocentric location is partially specified
         if obs_geo:
             warnings.warn(
-                f"The geocentric observatory location {obs_geo} is not completely "
-                "specified (X, Y, Z) and will be ignored.",
+                "The geocentric observatory location {} is not completely "
+                "specified (X, Y, Z) and will be ignored.".format(obs_geo),
                 AstropyUserWarning,
             )
 
         # Check geodetic location
-        obs_geo = [global_info[attr] for attr in OBSGEO_LBH if attr in global_info]
+        obs_geo = [
+            global_info[attr]
+            for attr in ("OBSGEO-L", "OBSGEO-B", "OBSGEO-H")
+            if attr in global_info
+        ]
 
         if len(obs_geo) == 3:
             global_info["location"] = EarthLocation.from_geodetic(*obs_geo)
@@ -173,8 +182,8 @@ def _verify_global_info(global_info):
             # Warn the user if geodetic location is partially specified
             if obs_geo:
                 warnings.warn(
-                    f"The geodetic observatory location {obs_geo} is not completely "
-                    "specified (lon, lat, alt) and will be ignored.",
+                    "The geodetic observatory location {} is not completely "
+                    "specified (lon, lat, alt) and will be ignored.".format(obs_geo),
                     AstropyUserWarning,
                 )
             global_info["location"] = None
@@ -203,6 +212,7 @@ def _verify_column_info(column_info, global_info):
     column_info : dict
         Column-specific time reference frame override information.
     """
+
     scale = column_info.get("TCTYP", None)
     unit = column_info.get("TCUNI", None)
     location = column_info.get("TRPOS", None)
@@ -228,12 +238,10 @@ def _verify_column_info(column_info, global_info):
 
         elif scale == "GPS":
             warnings.warn(
-                (
-                    f'Table column "{column_info}" has a FITS recognized time scale '
-                    'value "GPS". In Astropy, "GPS" is a time from epoch format which '
-                    "runs synchronously with TAI; GPS runs ahead of TAI approximately "
-                    "by 19 s. Hence, this format will be used."
-                ),
+                'Table column "{}" has a FITS recognized time scale value "GPS". '
+                'In Astropy, "GPS" is a time from epoch format which runs '
+                "synchronously with TAI; GPS runs ahead of TAI approximately "
+                "by 19 s. Hence, this format will be used.".format(column_info),
                 AstropyUserWarning,
             )
             column_info["scale"] = "tai"
@@ -241,13 +249,11 @@ def _verify_column_info(column_info, global_info):
 
         elif scale == "LOCAL":
             warnings.warn(
-                (
-                    f'Table column "{column_info}" has a FITS recognized time scale '
-                    'value "LOCAL". However, the standard states that "LOCAL" should '
-                    "be tied to one of the existing scales because it is intrinsically "
-                    "unreliable and/or ill-defined. Astropy will thus use the global "
-                    "time scale (TIMESYS) as the default."
-                ),
+                'Table column "{}" has a FITS recognized time scale value "LOCAL". '
+                'However, the standard states that "LOCAL" should be tied to one '
+                "of the existing scales because it is intrinsically unreliable "
+                "and/or ill-defined. Astropy will thus use the global time scale "
+                "(TIMESYS) as the default.".format(column_info),
                 AstropyUserWarning,
             )
             column_info["scale"] = global_info["scale"]
@@ -314,6 +320,7 @@ def _get_info_if_time_column(col, global_info):
     This is only applicable to the special-case where a column has the
     name 'TIME' and a time unit.
     """
+
     # Column with TTYPEn = 'TIME' and lacking any TC*n or time
     # specific keywords will be controlled by the global keywords.
     if col.info.name.upper() == "TIME" and col.info.unit in FITS_TIME_UNIT:
@@ -328,8 +335,8 @@ def _get_info_if_time_column(col, global_info):
             column_info["location"] = global_info["location"]
             if column_info["location"] is None:
                 warnings.warn(
-                    f'Time column "{col.info.name}" reference position will be ignored '
-                    "due to unspecified observatory position.",
+                    'Time column "{}" reference position will be ignored '
+                    "due to unspecified observatory position.".format(col.info.name),
                     AstropyUserWarning,
                 )
 
@@ -351,7 +358,7 @@ def _convert_global_time(table, global_info):
         Global time reference frame information.
     """
     # Read in Global Informational keywords as Time
-    for key in global_info:
+    for key, value in global_info.items():
         # FITS uses a subset of ISO-8601 for DATE-xxx
         if key not in table.meta:
             try:
@@ -403,6 +410,7 @@ def _convert_time_column(col, column_info):
     column_info : dict
         Column-specific time reference frame override information.
     """
+
     # The code might fail while attempting to read FITS files not written by astropy.
     try:
         # ISO-8601 is the only string representation of time in FITS
@@ -461,8 +469,8 @@ def _convert_time_column(col, column_info):
         return ref_time + delta_time
     except Exception as err:
         warnings.warn(
-            f'The exception "{err}" was encountered while trying to convert the time '
-            f'column "{col.info.name}" to Astropy Time.',
+            'The exception "{}" was encountered while trying to convert the time '
+            'column "{}" to Astropy Time.'.format(err, col.info.name),
             AstropyUserWarning,
         )
         return col
@@ -489,6 +497,7 @@ def fits_to_time(hdr, table):
     hdr : `~astropy.io.fits.header.Header`
         Modified FITS Header (time metadata removed)
     """
+
     # Set defaults for global time scale, reference, etc.
     global_info = {"TIMESYS": "UTC", "TREFPOS": "TOPOCENTER"}
 
@@ -510,7 +519,9 @@ def fits_to_time(hdr, table):
             time_columns[int(idx)][base] = value
             hcopy.remove(key)
 
-        elif value in OBSGEO_XYZ and re.match("TTYPE[0-9]+", key):
+        elif value in ("OBSGEO-X", "OBSGEO-Y", "OBSGEO-Z") and re.match(
+            "TTYPE[0-9]+", key
+        ):
             global_info[value] = table[value]
 
     # Verify and get the global time reference frame information
@@ -599,11 +610,9 @@ def time_to_fits(table):
 
         # The following is necessary to deal with multi-dimensional ``Time`` objects
         # (i.e. where Time.shape is non-trivial).
-        # Note: easier would be np.stack([col.jd1, col.jd2], axis=-1), but that
-        # fails for np.ma.MaskedArray, as it returns just the data, ignoring the mask.
-        jd12 = np.empty_like(col.jd1, shape=col.jd1.shape + (2,))
-        jd12[..., 0] = col.jd1
-        jd12[..., 1] = col.jd2
+        jd12 = np.stack([col.jd1, col.jd2], axis=-1)
+        # Roll the 0th (innermost) axis backwards, until it lies in the last position
+        # (jd12.ndim)
         newtable.replace_column(col.info.name, col_cls(jd12, unit="d"))
 
         # Time column-specific override keywords
@@ -611,15 +620,13 @@ def time_to_fits(table):
         coord_meta[col.info.name]["coord_unit"] = "d"
 
         # Time column reference position
-        if col.location is None:
+        if getattr(col, "location") is None:
             coord_meta[col.info.name]["time_ref_pos"] = None
             if location is not None:
                 warnings.warn(
-                    (
-                        f'Time Column "{col.info.name}" has no specified location, '
-                        "but global Time Position is present, which will be the "
-                        "default for this column in FITS specification."
-                    ),
+                    'Time Column "{}" has no specified location, but global Time '
+                    "Position is present, which will be the default for this column "
+                    "in FITS specification.".format(col.info.name),
                     AstropyUserWarning,
                 )
         else:
@@ -627,10 +634,8 @@ def time_to_fits(table):
             # Compatibility of Time Scales and Reference Positions
             if col.scale in BARYCENTRIC_SCALES:
                 warnings.warn(
-                    (
-                        f'Earth Location "TOPOCENTER" for Time Column "{col.info.name}" '
-                        f'is incompatible with scale "{col.scale.upper()}".'
-                    ),
+                    'Earth Location "TOPOCENTER" for Time Column "{}" is incompatible '
+                    'with scale "{}".'.format(col.info.name, col.scale.upper()),
                     AstropyUserWarning,
                 )
 
@@ -656,8 +661,10 @@ def time_to_fits(table):
             elif np.any(location != col.location):
                 raise ValueError(
                     "Multiple Time Columns with different geocentric "
-                    f"observatory locations ({location}, {col.location}) encountered."
-                    "This is not supported by the FITS standard."
+                    "observatory locations ({}, {}) encountered."
+                    "This is not supported by the FITS standard.".format(
+                        location, col.location
+                    )
                 )
 
     return newtable, hdr

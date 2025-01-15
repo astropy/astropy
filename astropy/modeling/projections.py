@@ -12,6 +12,7 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 """
 
+
 import abc
 from itertools import chain, product
 
@@ -64,21 +65,19 @@ projcodes = [code for _, code in _PROJ_NAME_CODE]
 
 
 __all__ = [
-    "AffineTransformation2D",
-    "Conic",
-    "Cylindrical",
-    "HEALPix",
-    "Pix2SkyProjection",
     "Projection",
-    "PseudoConic",
-    "PseudoCylindrical",
-    "QuadCube",
+    "Pix2SkyProjection",
     "Sky2PixProjection",
     "Zenithal",
+    "Cylindrical",
+    "PseudoCylindrical",
+    "Conic",
+    "PseudoConic",
+    "QuadCube",
+    "HEALPix",
+    "AffineTransformation2D",
     "projcodes",
-]
-
-__all__ += list(map("_".join, product(["Pix2Sky", "Sky2Pix"], chain(*_PROJ_NAME_CODE))))
+] + list(map("_".join, product(["Pix2Sky", "Sky2Pix"], chain(*_PROJ_NAME_CODE))))
 
 
 class _ParameterDS(Parameter):
@@ -139,7 +138,7 @@ class Projection(Model):
 
         .. warning::
             This method assumes that the order in which PVi values (i>0)
-            are to be assigned is identical to the order of model parameters
+            are to be asigned is identical to the order of model parameters
             in ``param_names``. That is, pv[1] = model.parameters[0], ...
 
         """
@@ -158,18 +157,6 @@ class Projection(Model):
         if dirty:
             self._prj.pv = None, *pv
             self._prj.set()
-
-    def __getstate__(self):
-        return {
-            "p": self.parameters,
-            "fixed": self.fixed,
-            "tied": self.tied,
-            "bounds": self.bounds,
-        }
-
-    def __setstate__(self, state):
-        params = state.pop("p")
-        return self.__init__(*params, **state)
 
 
 class Pix2SkyProjection(Projection):
@@ -311,7 +298,6 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
         Look angle γ in degrees.  Default is 0°.
 
     """
-
     mu = _ParameterDS(
         default=0.0, description="Distance from point of projection to center of sphere"
     )
@@ -322,13 +308,12 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
         description="Look angle γ in degrees (Default = 0°)",
     )
 
-    def _mu_validator(self, value):
+    @mu.validator
+    def mu(self, value):
         if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1"
             )
-
-    mu._validator = _mu_validator
 
 
 class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
@@ -357,7 +342,6 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
         Look angle γ in degrees. Default is 0°.
 
     """
-
     mu = _ParameterDS(
         default=0.0, description="Distance from point of projection to center of sphere"
     )
@@ -368,13 +352,12 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
         description="Look angle γ in degrees (Default=0°)",
     )
 
-    def _mu_validator(self, value):
+    @mu.validator
+    def mu(self, value):
         if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1"
             )
-
-    mu._validator = _mu_validator
 
 
 class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
@@ -398,7 +381,6 @@ class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
         is 90°.
 
     """
-
     mu = _ParameterDS(
         default=0.0, description="Distance from point of projection to center of sphere"
     )
@@ -415,13 +397,12 @@ class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
         description="The latitude θ₀ of the reference point, in degrees (Default=0°)",
     )
 
-    def _mu_validator(self, value):
+    @mu.validator
+    def mu(self, value):
         if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1"
             )
-
-    mu._validator = _mu_validator
 
 
 class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
@@ -445,7 +426,6 @@ class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
         is 90°.
 
     """
-
     mu = _ParameterDS(
         default=0.0, description="Distance from point of projection to center of sphere"
     )
@@ -462,13 +442,12 @@ class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
         description="The latitude θ₀ of the reference point, in degrees",
     )
 
-    def _mu_validator(self, value):
+    @mu.validator
+    def mu(self, value):
         if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1"
             )
-
-    mu._validator = _mu_validator
 
 
 class Pix2Sky_Gnomonic(Pix2SkyProjection, Zenithal):
@@ -553,7 +532,6 @@ class Pix2Sky_SlantOrthographic(Pix2SkyProjection, Zenithal):
         Obliqueness parameter, η.  Default is 0.0.
 
     """
-
     xi = _ParameterDS(default=0.0, description="Obliqueness parameter")
     eta = _ParameterDS(default=0.0, description="Obliqueness parameter")
 
@@ -579,7 +557,6 @@ class Sky2Pix_SlantOrthographic(Sky2PixProjection, Zenithal):
         y &= \frac{180^\circ}{\pi}[\cos \theta \cos \phi + \eta(1 - \sin \theta)]
 
     """
-
     xi = _ParameterDS(default=0.0)
     eta = _ParameterDS(default=0.0)
 
@@ -651,7 +628,6 @@ class Pix2Sky_Airy(Pix2SkyProjection, Zenithal):
         The latitude :math:`\theta_b` at which to minimize the error,
         in degrees.  Default is 90°.
     """
-
     theta_b = _ParameterDS(default=90.0)
 
 
@@ -680,7 +656,6 @@ class Sky2Pix_Airy(Sky2PixProjection, Zenithal):
         in degrees.  Default is 90°.
 
     """
-
     theta_b = _ParameterDS(
         default=90.0,
         description="The latitude at which to minimize the error,in degrees",
@@ -693,7 +668,6 @@ class Cylindrical(Projection):
     Cylindrical projections are so-named because the surface of
     projection is a cylinder.
     """
-
     _separable = True
 
 
@@ -722,21 +696,18 @@ class Pix2Sky_CylindricalPerspective(Pix2SkyProjection, Cylindrical):
         Radius of the cylinder in spherical radii, λ. Default is 1.
 
     """
-
     mu = _ParameterDS(default=1.0)
     lam = _ParameterDS(default=1.0)
 
-    def _mu_validator(self, value):
+    @mu.validator
+    def mu(self, value):
         if np.any(value == -self.lam):
             raise InputParameterError("CYP projection is not defined for mu = -lambda")
 
-    mu._validator = _mu_validator
-
-    def _lam_validator(self, value):
+    @lam.validator
+    def lam(self, value):
         if np.any(value == -self.mu):
             raise InputParameterError("CYP projection is not defined for lambda = -mu")
-
-    lam._validator = _lam_validator
 
 
 class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
@@ -759,7 +730,6 @@ class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
         Radius of the cylinder in spherical radii, λ.  Default is 0.
 
     """
-
     mu = _ParameterDS(
         default=1.0, description="Distance from center of sphere in spherical radii"
     )
@@ -767,17 +737,15 @@ class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
         default=1.0, description="Radius of the cylinder in spherical radii"
     )
 
-    def _mu_validator(self, value):
+    @mu.validator
+    def mu(self, value):
         if np.any(value == -self.lam):
             raise InputParameterError("CYP projection is not defined for mu = -lambda")
 
-    mu._validator = _mu_validator
-
-    def _lam_validator(self, value):
+    @lam.validator
+    def lam(self, value):
         if np.any(value == -self.mu):
             raise InputParameterError("CYP projection is not defined for lambda = -mu")
-
-    lam._validator = _lam_validator
 
 
 class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
@@ -795,7 +763,6 @@ class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
     lam : float
         Radius of the cylinder in spherical radii, λ.  Default is 1.
     """
-
     lam = _ParameterDS(default=1)
 
 
@@ -814,7 +781,6 @@ class Sky2Pix_CylindricalEqualArea(Sky2PixProjection, Cylindrical):
     lam : float
         Radius of the cylinder in spherical radii, λ.  Default is 0.
     """
-
     lam = _ParameterDS(default=1)
 
 
@@ -888,7 +854,6 @@ class PseudoCylindrical(Projection):
     lengths toward the polar regions in order to reduce lateral
     distortion there.  Consequently, the meridians are curved.
     """
-
     _separable = True
 
 
@@ -1027,7 +992,6 @@ class Conic(Projection):
     .. math::
         C = \frac{180^\circ \cos \theta}{\pi R_\theta}
     """
-
     sigma = _ParameterDS(default=90.0, getter=_to_orig_unit, setter=_to_radian)
     delta = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
@@ -1330,7 +1294,6 @@ class Pix2Sky_BonneEqualArea(Pix2SkyProjection, PseudoConic):
     theta1 : float
         Bonne conformal latitude, in degrees.
     """
-
     _separable = True
 
     theta1 = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
@@ -1358,7 +1321,6 @@ class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
     theta1 : float
         Bonne conformal latitude, in degrees.
     """
-
     _separable = True
 
     theta1 = _ParameterDS(
@@ -1469,7 +1431,6 @@ class Pix2Sky_HEALPix(Pix2SkyProjection, HEALPix):
         The number of facets in latitude direction.
 
     """
-
     _separable = True
 
     H = _ParameterDS(
@@ -1495,7 +1456,6 @@ class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
         The number of facets in latitude direction.
 
     """
-
     _separable = True
 
     H = _ParameterDS(
@@ -1548,21 +1508,23 @@ class AffineTransformation2D(Model):
     matrix = Parameter(default=[[1.0, 0.0], [0.0, 1.0]])
     translation = Parameter(default=[0.0, 0.0])
 
-    def _matrix_validator(self, value):
+    @matrix.validator
+    def matrix(self, value):
         """Validates that the input matrix is a 2x2 2D array."""
+
         if np.shape(value) != (2, 2):
             raise InputParameterError(
                 "Expected transformation matrix to be a 2x2 array"
             )
 
-    matrix._validator = _matrix_validator
-
-    def _translation_validator(self, value):
+    @translation.validator
+    def translation(self, value):
         """
         Validates that the translation vector is a 2D vector.  This allows
         either a "row" vector or a "column" vector where in the latter case the
         resultant Numpy array has ``ndim=2`` but the shape is ``(1, 2)``.
         """
+
         if not (
             (np.ndim(value) == 1 and np.shape(value) == (2,))
             or (np.ndim(value) == 2 and np.shape(value) == (1, 2))
@@ -1571,8 +1533,6 @@ class AffineTransformation2D(Model):
                 "Expected translation vector to be a 2 element row or column "
                 "vector array"
             )
-
-    translation._validator = _translation_validator
 
     def __init__(self, matrix=matrix, translation=translation, **kwargs):
         super().__init__(matrix=matrix, translation=translation, **kwargs)
@@ -1586,6 +1546,7 @@ class AffineTransformation2D(Model):
 
         Raises `~astropy.modeling.InputParameterError` if the transformation cannot be inverted.
         """
+
         det = np.linalg.det(self.matrix.value)
 
         if det == 0:
@@ -1656,15 +1617,12 @@ class AffineTransformation2D(Model):
 
     @property
     def input_units(self):
-        translation_unit = self.translation.input_unit
-        matrix_unit = self.matrix.input_unit
-
-        if translation_unit is None and matrix_unit is None:
+        if self.translation.unit is None and self.matrix.unit is None:
             return None
-        elif translation_unit is not None:
-            return dict(zip(self.inputs, [translation_unit] * 2))
+        elif self.translation.unit is not None:
+            return dict(zip(self.inputs, [self.translation.unit] * 2))
         else:
-            return dict(zip(self.inputs, [matrix_unit] * 2))
+            return dict(zip(self.inputs, [self.matrix.unit] * 2))
 
 
 for long_name, short_name in _PROJ_NAME_CODE:

@@ -22,7 +22,7 @@ To decompose a unit with :meth:`~astropy.units.core.UnitBase.decompose`::
   >>> u.Ry
   Unit("Ry")
   >>> u.Ry.decompose()
-  Unit("2.17987e-18 m2 kg / s2")
+  Unit("2.17987e-18 kg m2 / s2")
 
 To get the list of units in the decomposition, the
 `~astropy.units.core.UnitBase.bases` and `~astropy.units.core.UnitBase.powers`
@@ -36,7 +36,7 @@ You can limit the selection of units that you want to decompose by
 using the ``bases`` keyword argument::
 
   >>> u.Ry.decompose(bases=[u.m, u.N])
-  Unit("2.17987e-18 N m")
+  Unit("2.17987e-18 m N")
 
 This is also useful to decompose to a particular system. For example,
 to decompose the Rydberg unit of energy in terms of `CGS
@@ -70,7 +70,6 @@ To recompose a unit with :meth:`~astropy.units.core.UnitBase.compose`::
   >>> x = u.Ry.decompose()
   >>> x.compose()
   [Unit("Ry"),
-   Unit("2.17987e-62 foe"),
    Unit("2.17987e-18 J"),
    Unit("2.17987e-11 erg"),
    Unit("13.6057 eV")]
@@ -105,7 +104,7 @@ imaginable. In that case, the system will do its best to reduce the
 unit to the fewest possible symbols::
 
    >>> (u.cd * u.sr * u.V * u.s).compose()
-   [Unit("Wb lm"), Unit("1e+08 Mx lm")]
+   [Unit("lm Wb"), Unit("1e+08 lm Mx")]
 
 .. EXAMPLE END
 
@@ -123,26 +122,22 @@ Examples
 To convert between unit systems::
 
    >>> u.Pa.to_system(u.cgs)
-   [Unit("10 Ba"), Unit("10 P / s")]
+   [Unit("10 P / s"), Unit("10 Ba")]
 
 There is also a shorthand for this which only returns the first of
 many possible matches::
 
    >>> u.Pa.cgs
-   Unit("10 Ba")
+   Unit("10 P / s")
 
 This is equivalent to decomposing into the new system and then
-composing into the simplest units possible in that system, though
+composing into the most complex units possible, though
 :meth:`~astropy.units.core.UnitBase.to_system` adds some extra logic to
-return the results sorted such that if a simple combination of base
-units exists, it will be put sorted to the front::
+return the results sorted in the most useful order::
 
-   >>> unit = u.m**2 / u.s
-   >>> unit.decompose(bases=u.cgs.bases)
-   Unit("10000 cm2 / s")
+   >>> u.Pa.decompose(bases=u.cgs.bases)
+   Unit("10 g / (cm s2)")
    >>> _.compose(units=u.cgs)
-   [Unit("10000 St"), Unit("10000 cm2 / s")]
-   >>> unit.to_system(u.cgs)
-   [Unit("10000 cm2 / s"), Unit("10000 St")]
+   [Unit("10 Ba"), Unit("10 P / s")]
 
 .. EXAMPLE END

@@ -4,8 +4,8 @@
 
 from astropy import log
 from astropy.wcs.wcsapi import (
-    BaseHighLevelWCS,  # noqa: F401
-    BaseLowLevelWCS,  # noqa: F401
+    BaseHighLevelWCS,
+    BaseLowLevelWCS,
     HighLevelWCSWrapper,
     SlicedLowLevelWCS,
 )
@@ -42,7 +42,7 @@ class NDSlicingMixin:
         >>> nd2 = NDDataSliceable(nd, mask=mask)
         >>> nd2slc = nd2[1:3]
         >>> nd2slc[nd2slc.mask]
-        NDDataSliceable([—])
+        NDDataSliceable([3])
 
     Be aware that changing values of the sliced instance will change the values
     of the original::
@@ -50,9 +50,9 @@ class NDSlicingMixin:
         >>> nd3 = nd2[1:3]
         >>> nd3.data[0] = 100
         >>> nd2
-        NDDataSliceable([———, 100, ———, ———,   5])
+        NDDataSliceable([  1, 100,   3,   4,   5])
 
-    See Also
+    See also
     --------
     NDDataRef
     NDDataArray
@@ -105,9 +105,8 @@ class NDSlicingMixin:
             return None
         try:
             return self.uncertainty[item]
-        except (TypeError, KeyError):
+        except TypeError:
             # Catching TypeError in case the object has no __getitem__ method.
-            # Catching KeyError for Python 3.12.
             # But let IndexError raise.
             log.info("uncertainty cannot be sliced.")
         return self.uncertainty
@@ -117,7 +116,7 @@ class NDSlicingMixin:
             return None
         try:
             return self.mask[item]
-        except (TypeError, KeyError):
+        except TypeError:
             log.info("mask cannot be sliced.")
         return self.mask
 

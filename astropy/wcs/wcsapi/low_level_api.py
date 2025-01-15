@@ -64,7 +64,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim` scalars or arrays in units given by
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_units`. Note that pixel coordinates are
         assumed to be 0 at the center of the first pixel in each dimension. If a
-        pixel is in a region where the WCS is not defined, NaN should be returned.
+        pixel is in a region where the WCS is not defined, NaN can be returned.
         The coordinates should be specified in the ``(x, y)`` order, where for
         an image, ``x`` is the horizontal coordinate and ``y`` is the vertical
         coordinate.
@@ -99,7 +99,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` scalars or arrays. Note that pixel
         coordinates are assumed to be 0 at the center of the first pixel in each
         dimension. If a world coordinate does not have a matching pixel
-        coordinate, NaN should be returned.  The coordinates should be returned in
+        coordinate, NaN can be returned.  The coordinates should be returned in
         the ``(x, y)`` order, where for an image, ``x`` is the horizontal
         coordinate and ``y`` is the vertical coordinate.
 
@@ -128,7 +128,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         else:
             pixel_arrays = pixel_arrays[::-1]
         array_indices = tuple(
-            np.asarray(np.floor(pixel + 0.5), dtype=int) for pixel in pixel_arrays
+            np.asarray(np.floor(pixel + 0.5), dtype=np.int_) for pixel in pixel_arrays
         )
         return array_indices[0] if self.pixel_n_dim == 1 else array_indices
 
@@ -274,9 +274,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         within a certain range of pixel values, for example when defining a
         WCS that includes fitted distortions. This is an optional property,
         and it should return `None` if a shape is not known or relevant.
-
-        The bounds can be a mix of values along dimensions where bounds exist,
-        and None for other dimensions, e.g. ``[(xmin, xmax), None]``.
         """
         return None
 
@@ -328,9 +325,9 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         return False
 
     def _as_mpl_axes(self):
-        """Compatibility hook for Matplotlib and WCSAxes.
-
-        With this method, one can do::
+        """
+        Compatibility hook for Matplotlib and WCSAxes. With this method, one can
+        do::
 
             from astropy.wcs import WCS
             import matplotlib.pyplot as plt
@@ -354,7 +351,7 @@ with open(UCDS_FILE) as f:
 
 def validate_physical_types(physical_types):
     """
-    Validate a list of physical types against the UCD1+ standard.
+    Validate a list of physical types against the UCD1+ standard
     """
     for physical_type in physical_types:
         if (

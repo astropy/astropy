@@ -4,46 +4,20 @@
 Tests for miscellaneous functionality in the `funcs` module
 """
 
+
 import numpy as np
 import pytest
 from numpy import testing as npt
 
 from astropy import units as u
-from astropy.coordinates import FK5, ICRS, SkyCoord
-from astropy.coordinates import representation as r
-from astropy.coordinates.funcs import (
-    concatenate,
-    concatenate_representations,
-    get_constellation,
-    get_sun,
-)
 from astropy.time import Time
-
-CARTESIAN_POS = r.CartesianRepresentation([1, 2, 3] * u.kpc)
-CARTESIAN_VEL = r.CartesianDifferential([8, 9, 10] * u.km / u.s)
-CARTESIAN_POS_AND_VEL = CARTESIAN_POS.with_differentials(CARTESIAN_VEL)
-
-RADIAL_VEL = r.RadialDifferential(1 * u.km / u.s)
-SPHERICAL_COS_LAT_VEL = r.SphericalCosLatDifferential(
-    1 * u.mas / u.yr, 2 * u.mas / u.yr, 3 * u.km / u.s
-)
-SPHERICAL_POS = r.SphericalRepresentation(
-    lon=1 * u.deg, lat=2.0 * u.deg, distance=10 * u.pc
-)
-UNIT_SPHERICAL_POS = r.UnitSphericalRepresentation(lon=1 * u.deg, lat=2.0 * u.deg)
-CARTESIAN_POS_2D_ARR = r.CartesianRepresentation(np.ones((3, 100)) * u.kpc)
-CARTESIAN_POS_3D_ARR = r.CartesianRepresentation(np.ones((3, 16, 8)) * u.kpc)
-UNIT_SPHERICAL_COS_LAT_VEL = r.UnitSphericalCosLatDifferential(
-    1 * u.mas / u.yr, 2 * u.mas / u.yr
-)
-CARTESIAN_VEL_2D_ARR = r.CartesianDifferential(*np.ones((3, 100)) * u.km / u.s)
-CARTESIAN_VEL_3D_ARR = r.CartesianDifferential(*np.ones((3, 16, 8)) * u.km / u.s)
 
 
 def test_sun():
     """
     Test that `get_sun` works and it behaves roughly as it should (in GCRS)
     """
+    from astropy.coordinates.funcs import get_sun
 
     northern_summer_solstice = Time("2010-6-21")
     northern_winter_solstice = Time("2010-12-21")
@@ -60,6 +34,9 @@ def test_sun():
 
 
 def test_constellations(recwarn):
+    from astropy.coordinates import FK5, ICRS, SkyCoord
+    from astropy.coordinates.funcs import get_constellation
+
     inuma = ICRS(9 * u.hour, 65 * u.deg)
 
     n_prewarn = len(recwarn)
@@ -69,7 +46,7 @@ def test_constellations(recwarn):
 
     assert res == "Ursa Major"
     assert res_short == "UMa"
-    assert isinstance(res, str) or getattr(res, "shape", None) == ()
+    assert isinstance(res, str) or getattr(res, "shape", None) == tuple()
 
     # these are taken from the ReadMe for Roman 1987
     ras = [9, 23.5, 5.12, 9.4555, 12.8888, 15.6687, 19, 6.2222]
@@ -81,13 +58,17 @@ def test_constellations(recwarn):
 
     # test on a SkyCoord, *and* test Boötes, which is special in that it has a
     # non-ASCII character
-    boores = get_constellation(SkyCoord(15 * u.hour, 30 * u.deg, frame="icrs"))
+    bootest = SkyCoord(15 * u.hour, 30 * u.deg, frame="icrs")
+    boores = get_constellation(bootest)
     assert boores == "Boötes"
-    assert isinstance(boores, str) or getattr(boores, "shape", None) == ()
+    assert isinstance(boores, str) or getattr(boores, "shape", None) == tuple()
 
 
 @pytest.mark.xfail
 def test_constellation_edge_cases():
+    from astropy.coordinates import FK5
+    from astropy.coordinates.funcs import get_constellation
+
     # Test edge cases close to borders, using B1875.0 coordinates
     # Look for HMS / DMS roundoff-to-decimal issues from Roman (1987) data,
     # and misuse of PrecessedGeocentric, as documented in
@@ -122,6 +103,9 @@ def test_constellation_edge_cases():
 
 
 def test_concatenate():
+    from astropy.coordinates import FK5, ICRS, SkyCoord
+    from astropy.coordinates.funcs import concatenate
+
     # Just positions
     fk5 = FK5(1 * u.deg, 2 * u.deg)
     sc = SkyCoord(3 * u.deg, 4 * u.deg, frame="fk5")
@@ -160,50 +144,80 @@ def test_concatenate():
         concatenate([fr, fr2])
 
 
-@pytest.mark.parametrize(
-    "rep",
-    (
-        CARTESIAN_POS,
-        SPHERICAL_POS,
-        UNIT_SPHERICAL_POS,
-        CARTESIAN_POS_2D_ARR,
-        CARTESIAN_POS_3D_ARR,
-        CARTESIAN_POS_AND_VEL,
-        SPHERICAL_POS.with_differentials(SPHERICAL_COS_LAT_VEL),
-        UNIT_SPHERICAL_POS.with_differentials(SPHERICAL_COS_LAT_VEL),
-        UNIT_SPHERICAL_POS.with_differentials(UNIT_SPHERICAL_COS_LAT_VEL),
-        UNIT_SPHERICAL_POS.with_differentials({"s": RADIAL_VEL}),
-        CARTESIAN_POS_2D_ARR.with_differentials(CARTESIAN_VEL_2D_ARR),
-        CARTESIAN_POS_3D_ARR.with_differentials(CARTESIAN_VEL_3D_ARR),
-    ),
-)
-@pytest.mark.parametrize("n", (2, 4))
-def test_concatenate_representations(rep, n):
-    # Test that combining with itself succeeds
-    expected_shape = (n * rep.shape[0],) + rep.shape[1:] if rep.shape else (n,)
+def test_concatenate_representations():
+    from astropy.coordinates import representation as r
+    from astropy.coordinates.funcs import concatenate_representations
 
-    tmp = concatenate_representations(n * (rep,))
-    assert tmp.shape == expected_shape
+    # fmt: off
+    reps = [r.CartesianRepresentation([1, 2, 3.]*u.kpc),
+            r.SphericalRepresentation(lon=1*u.deg, lat=2.*u.deg,
+                                      distance=10*u.pc),
+            r.UnitSphericalRepresentation(lon=1*u.deg, lat=2.*u.deg),
+            r.CartesianRepresentation(np.ones((3, 100)) * u.kpc),
+            r.CartesianRepresentation(np.ones((3, 16, 8)) * u.kpc)]
 
-    if "s" in rep.differentials:
-        assert tmp.differentials["s"].shape == expected_shape
+    reps.append(reps[0].with_differentials(
+        r.CartesianDifferential([1, 2, 3.] * u.km/u.s)))
+    reps.append(reps[1].with_differentials(
+        r.SphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr, 3*u.km/u.s)))
+    reps.append(reps[2].with_differentials(
+        r.SphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr, 3*u.km/u.s)))
+    reps.append(reps[2].with_differentials(
+        r.UnitSphericalCosLatDifferential(1*u.mas/u.yr, 2*u.mas/u.yr)))
+    reps.append(reps[2].with_differentials(
+        {'s': r.RadialDifferential(1*u.km/u.s)}))
+    reps.append(reps[3].with_differentials(
+        r.CartesianDifferential(*np.ones((3, 100)) * u.km/u.s)))
+    reps.append(reps[4].with_differentials(
+        r.CartesianDifferential(*np.ones((3, 16, 8)) * u.km/u.s)))
+    # fmt: on
 
+    # Test that combining all of the above with itself succeeds
+    for rep in reps:
+        if not rep.shape:
+            expected_shape = (2,)
+        else:
+            expected_shape = (2 * rep.shape[0],) + rep.shape[1:]
 
-def test_concatenate_representations_invalid_input():
+        tmp = concatenate_representations((rep, rep))
+        assert tmp.shape == expected_shape
+
+        if "s" in rep.differentials:
+            assert tmp.differentials["s"].shape == expected_shape
+
+    # Try combining 4, just for something different
+    for rep in reps:
+        if not rep.shape:
+            expected_shape = (4,)
+        else:
+            expected_shape = (4 * rep.shape[0],) + rep.shape[1:]
+
+        tmp = concatenate_representations((rep, rep, rep, rep))
+        assert tmp.shape == expected_shape
+
+        if "s" in rep.differentials:
+            assert tmp.differentials["s"].shape == expected_shape
+
     # Test that combining pairs fails
     with pytest.raises(TypeError):
-        concatenate_representations((CARTESIAN_POS, SPHERICAL_POS))
+        concatenate_representations((reps[0], reps[1]))
 
     with pytest.raises(ValueError):
-        concatenate_representations((CARTESIAN_POS, CARTESIAN_POS_AND_VEL))
+        concatenate_representations((reps[0], reps[5]))
 
     # Check that passing in a single object fails
     with pytest.raises(TypeError):
-        concatenate_representations(CARTESIAN_POS)
+        concatenate_representations(reps[0])
 
 
 def test_concatenate_representations_different_units():
-    concat = concatenate_representations(
-        [r.CartesianRepresentation([1, 2, 3] * unit) for unit in (u.pc, u.kpc)]
-    )
-    assert np.array_equal(concat.xyz, [[1, 1000], [2, 2000], [3, 3000]] * u.pc)
+    from astropy.coordinates import representation as r
+    from astropy.coordinates.funcs import concatenate_representations
+
+    reps = [
+        r.CartesianRepresentation([1, 2, 3.0] * u.pc),
+        r.CartesianRepresentation([1, 2, 3.0] * u.kpc),
+    ]
+    concat = concatenate_representations(reps)
+    assert concat.shape == (2,)
+    assert np.all(concat.xyz == ([[1.0, 2.0, 3.0], [1000.0, 2000.0, 3000.0]] * u.pc).T)
