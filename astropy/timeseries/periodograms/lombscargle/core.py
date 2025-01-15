@@ -1,4 +1,4 @@
-"""Main Lomb-Scargle Implementation."""
+"""Main Lomb-Scargle Implementation"""
 
 import numpy as np
 
@@ -68,7 +68,7 @@ class LombScargle(BasePeriodogram):
 
     >>> frequency, power = LombScargle(t, y).autopower()
     >>> frequency[np.argmax(power)]  # doctest: +FLOAT_CMP
-    np.float64(1.0007641728995051)
+    1.0007641728995051
 
     Compute the Lomb-Scargle periodogram at a user-specified frequency grid:
 
@@ -397,6 +397,7 @@ class LombScargle(BasePeriodogram):
         current _tstart value. If the times provided are relative, they are
         returned without conversion (though we still do some checks).
         """
+
         if isinstance(times, TimeDelta):
             times = times.to("day")
 
@@ -457,7 +458,7 @@ class LombScargle(BasePeriodogram):
         return y_fit * get_unit(self.y)
 
     def offset(self):
-        """Return the offset of the model.
+        """Return the offset of the model
 
         The offset of the model is the (weighted) mean of the y values.
         Note that if self.center_data is False, the offset is 0 by definition.
@@ -526,7 +527,7 @@ class LombScargle(BasePeriodogram):
         return parameters
 
     def design_matrix(self, frequency, t=None):
-        """Compute the design matrix for a given frequency.
+        """Compute the design matrix for a given frequency
 
         Parameters
         ----------

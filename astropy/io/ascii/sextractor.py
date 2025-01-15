@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""sextractor.py:
-  Classes to read SExtractor table format.
+""" sextractor.py:
+  Classes to read SExtractor table format
 
 Built on daophot.py:
 :Copyright: Smithsonian Astrophysical Observatory (2011)
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
+
 
 import re
 
@@ -29,6 +30,7 @@ class SExtractorHeader(core.BaseHeader):
             List of table lines
 
         """
+
         # This assumes that the columns are listed in order, one per line with a
         # header comment string of the format: "# 1 ID short description [unit]"
         # However, some may be missing and must be inferred from skipped column numbers
@@ -52,16 +54,15 @@ class SExtractorHeader(core.BaseHeader):
             if not line.startswith("#"):
                 dataline = line  # save for later to infer the actual number of columns
                 break  # End of header lines
-
-            match = re_name_def.search(line)
-            if match:
-                colnumber = int(match.group("colnumber"))
-                colname = match.group("colname")
-                coldescr = match.group("coldescr")
-                # If no units are given, colunit = None
-                colunit = match.group("colunit")
-                columns[colnumber] = (colname, coldescr, colunit)
-
+            else:
+                match = re_name_def.search(line)
+                if match:
+                    colnumber = int(match.group("colnumber"))
+                    colname = match.group("colname")
+                    coldescr = match.group("coldescr")
+                    # If no units are given, colunit = None
+                    colunit = match.group("colunit")
+                    columns[colnumber] = (colname, coldescr, colunit)
         # Handle skipped column numbers
         colnumbers = sorted(columns)
         # Handle the case where the last column is array-like by append a pseudo column

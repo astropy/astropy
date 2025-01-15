@@ -2,44 +2,25 @@
 """Helpers for letting numpy functions interact with Masked arrays.
 
 The module supplies helper routines for numpy functions that propagate
-masks appropriately, for use in the ``__array_function__``
+masks appropriately., for use in the ``__array_function__``
 implementation of `~astropy.utils.masked.MaskedNDArray`.  They are not
 very useful on their own, but the ones with docstrings are included in
 the documentation so that there is a place to find out how the mask is
 interpreted.
 
 """
-
-import warnings
-
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_24, NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
-
-if NUMPY_LT_2_0:
-    import numpy.core as np_core
-    from numpy.lib.function_base import (
-        _check_interpolation_as_method,
-        _quantile_is_valid,
-        _ureduce,
-    )
-else:
-    import numpy._core as np_core
-    from numpy.lib._function_base_impl import (
-        _check_interpolation_as_method,
-        _quantile_is_valid,
-        _ureduce,
-    )
-
+from astropy.utils.compat import NUMPY_LT_1_23
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
 # The latter are added to __all__ at the end.
 __all__ = [
+    "MASKED_SAFE_FUNCTIONS",
     "APPLY_TO_BOTH_FUNCTIONS",
     "DISPATCHED_FUNCTIONS",
-    "MASKED_SAFE_FUNCTIONS",
     "UNSUPPORTED_FUNCTIONS",
 ]
 
@@ -94,28 +75,11 @@ For most, masked input simply makes no sense, but for others it may have
 been lack of time.  Issues or PRs for support for functions are welcome.
 """
 
-
-SUPPORTED_NEP35_FUNCTIONS = set()
-"""Set of supported numpy functions with a 'like' keyword argument that dispatch
-on it (NEP 35).
-"""
-if not NUMPY_LT_2_2:
-    # in numpy 2.2 these are auto detected by numpy itself
-    # xref https://github.com/numpy/numpy/issues/27451
-    SUPPORTED_NEP35_FUNCTIONS |= set()
-    UNSUPPORTED_FUNCTIONS |= {
-        np.arange,
-        np.empty, np.ones, np.zeros, np.full,
-        np.array, np.asarray, np.asanyarray, np.ascontiguousarray, np.asfortranarray,
-        np.frombuffer, np.fromfile, np.fromfunction, np.fromiter, np.fromstring,
-        np.require, np.identity, np.eye, np.tri, np.genfromtxt, np.loadtxt,
-    }  # fmt: skip
-
 # Almost all from np.core.fromnumeric defer to methods so are OK.
 MASKED_SAFE_FUNCTIONS |= {
     getattr(np, name)
-    for name in np_core.fromnumeric.__all__
-    if name not in {"choose", "put", "resize", "searchsorted", "where", "alen", "ptp"}
+    for name in np.core.fromnumeric.__all__
+    if name not in {"choose", "put", "resize", "searchsorted", "where", "alen"}
 }
 MASKED_SAFE_FUNCTIONS |= {
     # built-in from multiarray
@@ -129,45 +93,24 @@ MASKED_SAFE_FUNCTIONS |= {
     np.isclose, np.allclose, np.flatnonzero, np.argwhere,
     # np.core.shape_base
     np.atleast_1d, np.atleast_2d, np.atleast_3d, np.stack, np.hstack, np.vstack,
-    # np.lib._function_base_impl
-    np.average, np.diff, np.extract, np.meshgrid, np.gradient,
+    # np.lib.function_base
+    np.average, np.diff, np.extract, np.meshgrid, np.trapz, np.gradient,
     # np.lib.index_tricks
     np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
     np.fill_diagonal,
     # np.lib.shape_base
-    np.column_stack, np.dstack,
+    np.column_stack, np.row_stack, np.dstack,
     np.array_split, np.split, np.hsplit, np.vsplit, np.dsplit,
     np.expand_dims, np.apply_along_axis, np.kron, np.tile,
     np.take_along_axis, np.put_along_axis,
-    # np.lib.type_check (all but nan_to_num)
+    # np.lib.type_check (all but asfarray, nan_to_num)
     np.iscomplexobj, np.isrealobj, np.imag, np.isreal, np.real,
     np.real_if_close, np.common_type,
     # np.lib.ufunclike
     np.fix, np.isneginf, np.isposinf,
-    # np.lib._function_base_impl
+    # np.lib.function_base
     np.angle, np.i0,
-    # np.lib._arraysetops_impl
-    np.intersect1d, np.setxor1d, np.union1d, np.unique,
 }  # fmt: skip
-
-
-if NUMPY_LT_2_0:
-    # Safe in < 2.0, because it deferred to the method. Overridden in >= 2.0.
-    MASKED_SAFE_FUNCTIONS |= {np.ptp}
-    # Removed in numpy 2.0.  Just an alias to vstack.
-    MASKED_SAFE_FUNCTIONS |= {np.row_stack}  # noqa: NPY201
-    # renamed in numpy 2.0
-    MASKED_SAFE_FUNCTIONS |= {np.trapz}  # noqa: NPY201
-if not NUMPY_LT_2_0:
-    # new in numpy 2.0
-    MASKED_SAFE_FUNCTIONS |= {
-        np.astype, np.trapezoid,
-        np.unique_all, np.unique_counts, np.unique_inverse, np.unique_values,
-    }  # fmt: skip
-if not NUMPY_LT_2_1:
-    MASKED_SAFE_FUNCTIONS |= {
-        np.unstack,
-    }  # fmt: skip
 IGNORED_FUNCTIONS = {
     # I/O - useless for Masked, since no way to store the mask.
     np.save, np.savez, np.savetxt, np.savez_compressed,
@@ -178,7 +121,7 @@ IGNORED_FUNCTIONS = {
 IGNORED_FUNCTIONS |= {
     np.pad, np.searchsorted, np.digitize,
     np.is_busday, np.busday_count, np.busday_offset,
-    # numpy.lib._function_base_impl
+    # numpy.lib.function_base
     np.cov, np.corrcoef, np.trim_zeros,
     # numpy.core.numeric
     np.correlate, np.convolve,
@@ -188,6 +131,19 @@ IGNORED_FUNCTIONS |= {
     np.dot, np.vdot, np.inner, np.tensordot, np.cross,
     np.einsum, np.einsum_path,
 }  # fmt: skip
+
+# Really should do these...
+IGNORED_FUNCTIONS |= {
+    getattr(np, setopsname) for setopsname in np.lib.arraysetops.__all__
+}
+
+
+if NUMPY_LT_1_23:
+    IGNORED_FUNCTIONS |= {
+        # Deprecated, removed in numpy 1.23
+        np.asscalar,
+        np.alen,
+    }
 
 # Explicitly unsupported functions
 UNSUPPORTED_FUNCTIONS |= {
@@ -205,22 +161,18 @@ apply_to_both = FunctionAssigner(APPLY_TO_BOTH_FUNCTIONS)
 dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
 
 
-def _get_data_and_mask_array(array):
-    """Like get_data_and_mask, but always returns a mask array."""
-    from .core import get_data_and_mask
-
-    data, mask = get_data_and_mask(array)
-    if mask is None:
-        mask = np.zeros(np.shape(data), bool)
-    return data, mask
-
-
-def _get_data_and_mask_arrays(arrays):
+def _get_data_and_masks(*args):
     """Separate out arguments into tuples of data and masks.
 
     An all-False mask is created if an argument does not have a mask.
     """
-    return tuple(zip(*[_get_data_and_mask_array(array) for array in arrays]))
+    from .core import Masked
+
+    data, masks = Masked._get_data_and_masks(*args)
+    masks = tuple(
+        m if m is not None else np.zeros(np.shape(d), bool) for d, m in zip(data, masks)
+    )
+    return data, masks
 
 
 # Following are simple ufunc-like functions which should just copy the mask.
@@ -247,42 +199,36 @@ def unwrap(p, *args, **kwargs):
 @dispatched_function
 def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
     data = np.nan_to_num(x.unmasked, copy=copy, nan=nan, posinf=posinf, neginf=neginf)
-    if copy:
-        return (data, x.mask.copy(), None)
-    else:
-        return (x, None, None)
+    return (data, x.mask.copy(), None) if copy else x
 
 
 # Following are simple functions related to shapes, where the same function
 # should be applied to the data and the mask.  They cannot all share the
 # same helper, because the first arguments have different names.
 @apply_to_both(
-    helps=(
-        {np.copy, np.resize, np.moveaxis, np.rollaxis, np.roll}
-        | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
-    )
+    helps={np.copy, np.asfarray, np.resize, np.moveaxis, np.rollaxis, np.roll}
 )
 def masked_a_helper(a, *args, **kwargs):
-    data, mask = _get_data_and_mask_array(a)
-    return (data,) + args, (mask,) + args, kwargs, None
+    data, mask = _get_data_and_masks(a)
+    return data + args, mask + args, kwargs, None
 
 
 @apply_to_both(helps={np.flip, np.flipud, np.fliplr, np.rot90, np.triu, np.tril})
 def masked_m_helper(m, *args, **kwargs):
-    data, mask = _get_data_and_mask_array(m)
-    return (data,) + args, (mask,) + args, kwargs, None
+    data, mask = _get_data_and_masks(m)
+    return data + args, mask + args, kwargs, None
 
 
 @apply_to_both(helps={np.diag, np.diagflat})
 def masked_v_helper(v, *args, **kwargs):
-    data, mask = _get_data_and_mask_array(v)
-    return (data,) + args, (mask,) + args, kwargs, None
+    data, mask = _get_data_and_masks(v)
+    return data + args, mask + args, kwargs, None
 
 
 @apply_to_both(helps={np.delete})
 def masked_arr_helper(array, *args, **kwargs):
-    data, mask = _get_data_and_mask_array(array)
-    return (data,) + args, (mask,) + args, kwargs, None
+    data, mask = _get_data_and_masks(array)
+    return data + args, mask + args, kwargs, None
 
 
 @apply_to_both
@@ -294,154 +240,72 @@ def broadcast_to(array, shape, subok=False):
     the unmasked data and mask are allowed, i.e., for ``subok=False``,
     a `~astropy.utils.masked.MaskedNDArray` will be returned.
     """
-    data, mask = _get_data_and_mask_array(array)
-    return (data,), (mask,), dict(shape=shape, subok=subok), None
+    data, mask = _get_data_and_masks(array)
+    return data, mask, dict(shape=shape, subok=subok), None
 
 
 @dispatched_function
 def outer(a, b, out=None):
-    return np.multiply.outer(np.ravel(a), np.ravel(b), out=out), None, None
+    return np.multiply.outer(np.ravel(a), np.ravel(b), out=out)
 
 
-if not NUMPY_LT_2_0:
+@dispatched_function
+def empty_like(prototype, dtype=None, order="K", subok=True, shape=None):
+    """Return a new array with the same shape and type as a given array.
 
-    @dispatched_function
-    def empty_like(
-        prototype, dtype=None, order="K", subok=True, shape=None, *, device=None
-    ):
-        """Return a new array with the same shape and type as a given array.
-
-        Like `numpy.empty_like`, but will add an empty mask.
-        """
-        unmasked = np.empty_like(
-            prototype.unmasked,
-            dtype=dtype,
-            order=order,
-            subok=subok,
-            shape=shape,
-            device=device,
+    Like `numpy.empty_like`, but will add an empty mask.
+    """
+    unmasked = np.empty_like(
+        prototype.unmasked, dtype=dtype, order=order, subok=subok, shape=shape
+    )
+    if dtype is not None:
+        dtype = (
+            np.ma.make_mask_descr(unmasked.dtype)
+            if unmasked.dtype.names
+            else np.dtype("?")
         )
-        if dtype is not None:
-            dtype = (
-                np.ma.make_mask_descr(unmasked.dtype)
-                if unmasked.dtype.names
-                else np.dtype("?")
-            )
-        mask = np.empty_like(
-            prototype.mask,
-            dtype=dtype,
-            order=order,
-            subok=subok,
-            shape=shape,
-            device=device,
-        )
+    mask = np.empty_like(
+        prototype.mask, dtype=dtype, order=order, subok=subok, shape=shape
+    )
 
-        return unmasked, mask, None
+    return unmasked, mask, None
 
-    @dispatched_function
-    def zeros_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None):
-        """Return an array of zeros with the same shape and type as a given array.
 
-        Like `numpy.zeros_like`, but will add an all-false mask.
-        """
-        unmasked = np.zeros_like(
-            a.unmasked,
-            dtype=dtype,
-            order=order,
-            subok=subok,
-            shape=shape,
-            device=device,
-        )
-        return unmasked, False, None
+@dispatched_function
+def zeros_like(a, dtype=None, order="K", subok=True, shape=None):
+    """Return an array of zeros with the same shape and type as a given array.
 
-    @dispatched_function
-    def ones_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None):
-        """Return an array of ones with the same shape and type as a given array.
+    Like `numpy.zeros_like`, but will add an all-false mask.
+    """
+    unmasked = np.zeros_like(
+        a.unmasked, dtype=dtype, order=order, subok=subok, shape=shape
+    )
+    return unmasked, False, None
 
-        Like `numpy.ones_like`, but will add an all-false mask.
-        """
-        unmasked = np.ones_like(
-            a.unmasked,
-            dtype=dtype,
-            order=order,
-            subok=subok,
-            shape=shape,
-            device=device,
-        )
-        return unmasked, False, None
 
-    @dispatched_function
-    def full_like(
-        a, fill_value, dtype=None, order="K", subok=True, shape=None, *, device=None
-    ):
-        """Return a full array with the same shape and type as a given array.
+@dispatched_function
+def ones_like(a, dtype=None, order="K", subok=True, shape=None):
+    """Return an array of ones with the same shape and type as a given array.
 
-        Like `numpy.full_like`, but with a mask that is also set.
-        If ``fill_value`` is `numpy.ma.masked`, the data will be left unset
-        (i.e., as created by `numpy.empty_like`).
-        """
-        result = np.empty_like(
-            a, dtype=dtype, order=order, subok=subok, shape=shape, device=device
-        )
-        result[...] = fill_value
-        return result, None, None
+    Like `numpy.ones_like`, but will add an all-false mask.
+    """
+    unmasked = np.ones_like(
+        a.unmasked, dtype=dtype, order=order, subok=subok, shape=shape
+    )
+    return unmasked, False, None
 
-else:
 
-    @dispatched_function
-    def empty_like(prototype, dtype=None, order="K", subok=True, shape=None):
-        """Return a new array with the same shape and type as a given array.
+@dispatched_function
+def full_like(a, fill_value, dtype=None, order="K", subok=True, shape=None):
+    """Return a full array with the same shape and type as a given array.
 
-        Like `numpy.empty_like`, but will add an empty mask.
-        """
-        unmasked = np.empty_like(
-            prototype.unmasked, dtype=dtype, order=order, subok=subok, shape=shape
-        )
-        if dtype is not None:
-            dtype = (
-                np.ma.make_mask_descr(unmasked.dtype)
-                if unmasked.dtype.names
-                else np.dtype("?")
-            )
-        mask = np.empty_like(
-            prototype.mask, dtype=dtype, order=order, subok=subok, shape=shape
-        )
-
-        return unmasked, mask, None
-
-    @dispatched_function
-    def zeros_like(a, dtype=None, order="K", subok=True, shape=None):
-        """Return an array of zeros with the same shape and type as a given array.
-
-        Like `numpy.zeros_like`, but will add an all-false mask.
-        """
-        unmasked = np.zeros_like(
-            a.unmasked, dtype=dtype, order=order, subok=subok, shape=shape
-        )
-        return unmasked, False, None
-
-    @dispatched_function
-    def ones_like(a, dtype=None, order="K", subok=True, shape=None):
-        """Return an array of ones with the same shape and type as a given array.
-
-        Like `numpy.ones_like`, but will add an all-false mask.
-        """
-        unmasked = np.ones_like(
-            a.unmasked, dtype=dtype, order=order, subok=subok, shape=shape
-        )
-        return unmasked, False, None
-
-    @dispatched_function
-    def full_like(a, fill_value, dtype=None, order="K", subok=True, shape=None):
-        """Return a full array with the same shape and type as a given array.
-
-        Like `numpy.full_like`, but with a mask that is also set.
-        If ``fill_value`` is `numpy.ma.masked`, the data will be left unset
-        (i.e., as created by `numpy.empty_like`).
-        """
-        result = np.empty_like(a, dtype=dtype, order=order, subok=subok, shape=shape)
-        result[...] = fill_value
-        return result, None, None
+    Like `numpy.full_like`, but with a mask that is also set.
+    If ``fill_value`` is `numpy.ma.masked`, the data will be left unset
+    (i.e., as created by `numpy.empty_like`).
+    """
+    result = np.empty_like(a, dtype=dtype, order=order, subok=subok, shape=shape)
+    result[...] = fill_value
+    return result
 
 
 @dispatched_function
@@ -451,18 +315,17 @@ def put(a, ind, v, mode="raise"):
     Like `numpy.put`, but for masked array ``a`` and possibly masked
     value ``v``.  Masked indices ``ind`` are not supported.
     """
-    from astropy.utils.masked import Masked, get_data_and_mask
+    from astropy.utils.masked import Masked
 
     if isinstance(ind, Masked) or not isinstance(a, Masked):
         raise NotImplementedError
 
-    if v is np.ma.masked or v is np.ma.nomask:
-        v_mask = v is np.ma.masked
-    else:
-        v_data, v_mask = get_data_and_mask(v)
+    v_data, v_mask = a._get_data_and_mask(v)
+    if v_data is not None:
         np.put(a.unmasked, ind, v_data, mode=mode)
     # v_mask of None will be correctly interpreted as False.
     np.put(a.mask, ind, v_mask, mode=mode)
+    return None
 
 
 @dispatched_function
@@ -472,17 +335,16 @@ def putmask(a, mask, values):
     Like `numpy.putmask`, but for masked array ``a`` and possibly masked
     ``values``.  Masked ``mask`` is not supported.
     """
-    from astropy.utils.masked import Masked, get_data_and_mask
+    from astropy.utils.masked import Masked
 
     if isinstance(mask, Masked) or not isinstance(a, Masked):
         raise NotImplementedError
 
-    if values is np.ma.masked or values is np.ma.nomask:
-        values_mask = values is np.ma.masked
-    else:
-        values_data, values_mask = get_data_and_mask(values)
+    values_data, values_mask = a._get_data_and_mask(values)
+    if values_data is not None:
         np.putmask(a.unmasked, mask, values_data)
     np.putmask(a.mask, mask, values_mask)
+    return None
 
 
 @dispatched_function
@@ -492,17 +354,16 @@ def place(arr, mask, vals):
     Like `numpy.place`, but for masked array ``a`` and possibly masked
     ``values``.  Masked ``mask`` is not supported.
     """
-    from astropy.utils.masked import Masked, get_data_and_mask
+    from astropy.utils.masked import Masked
 
     if isinstance(mask, Masked) or not isinstance(arr, Masked):
         raise NotImplementedError
 
-    if vals is np.ma.masked or vals is np.ma.nomask:
-        vals_mask = vals is np.ma.masked
-    else:
-        vals_data, vals_mask = get_data_and_mask(vals)
+    vals_data, vals_mask = arr._get_data_and_mask(vals)
+    if vals_data is not None:
         np.place(arr.unmasked, mask, vals_data)
     np.place(arr.mask, mask, vals_mask)
+    return None
 
 
 @dispatched_function
@@ -512,17 +373,18 @@ def copyto(dst, src, casting="same_kind", where=True):
     Like `numpy.copyto`, but for masked destination ``dst`` and possibly
     masked source ``src``.
     """
-    from astropy.utils.masked import Masked, get_data_and_mask
+    from astropy.utils.masked import Masked
 
     if not isinstance(dst, Masked) or isinstance(where, Masked):
         raise NotImplementedError
 
-    if src is np.ma.masked or src is np.ma.nomask:
-        src_mask = src is np.ma.masked
-    else:
-        src_data, src_mask = get_data_and_mask(src)
+    src_data, src_mask = dst._get_data_and_mask(src)
+
+    if src_data is not None:
         np.copyto(dst.unmasked, src_data, casting=casting, where=where)
-    np.copyto(dst.mask, src_mask, where=where)
+    if src_mask is not None:
+        np.copyto(dst.mask, src_mask, where=where)
+    return None
 
 
 @dispatched_function
@@ -549,7 +411,7 @@ def bincount(x, weights=None, minlength=0):
     Any masked entries in ``weights`` will lead the corresponding bin to
     be masked.
     """
-    from astropy.utils.masked import Masked, get_data_and_mask
+    from astropy.utils.masked import Masked
 
     if weights is not None:
         weights = np.asanyarray(weights)
@@ -560,54 +422,39 @@ def bincount(x, weights=None, minlength=0):
         x = x.unmasked[~x.mask]
     mask = None
     if weights is not None:
-        weights, w_mask = get_data_and_mask(weights)
+        weights, w_mask = Masked._get_data_and_mask(weights)
         if w_mask is not None:
             mask = np.bincount(x, w_mask.astype(int), minlength=minlength).astype(bool)
     result = np.bincount(x, weights, minlength=0)
     return result, mask, None
 
 
-if NUMPY_LT_2_0:
-
-    @dispatched_function
-    def msort(a):
-        result = a.copy()
-        result.sort(axis=0)
-        return result, None, None
-
-else:
-    # Used to work via ptp method, but now need to override, otherwise
-    # plain reduction is used, which gives different mask.
-    @dispatched_function
-    def ptp(a, axis=None, out=None, keepdims=np._NoValue):
-        if keepdims is np._NoValue:
-            keepdims = False
-        result = a.max(axis=axis, out=out, keepdims=keepdims)
-        result -= a.min(axis=axis, keepdims=keepdims)
-        return result, None, None
+@dispatched_function
+def msort(a):
+    result = a.copy()
+    result.sort(axis=0)
+    return result
 
 
 @dispatched_function
 def sort_complex(a):
-    # Just a copy of np.lib._function_base_impl.sort_complex, to avoid the asarray.
+    # Just a copy of function_base.sort_complex, to avoid the asarray.
     b = a.copy()
     b.sort()
     if not issubclass(b.dtype.type, np.complexfloating):  # pragma: no cover
         if b.dtype.char in "bhBH":
-            result = b.astype("F")
+            return b.astype("F")
         elif b.dtype.char == "g":
-            result = b.astype("G")
+            return b.astype("G")
         else:
-            result = b.astype("D")
+            return b.astype("D")
     else:
-        result = b
-
-    return result, None, None
+        return b
 
 
 @dispatched_function
 def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
-    data, masks = _get_data_and_mask_arrays(arrays)
+    data, masks = _get_data_and_masks(*arrays)
     if out is None:
         return (
             np.concatenate(data, axis=axis, dtype=dtype, casting=casting),
@@ -621,12 +468,12 @@ def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
             raise NotImplementedError
         np.concatenate(masks, out=out.mask, axis=axis)
         np.concatenate(data, out=out.unmasked, axis=axis, dtype=dtype, casting=casting)
-        return out, None, None
+        return out
 
 
 @apply_to_both
 def append(arr, values, axis=None):
-    data, masks = _get_data_and_mask_arrays((arr, values))
+    data, masks = _get_data_and_masks(arr, values)
     return data, masks, dict(axis=axis), None
 
 
@@ -641,8 +488,8 @@ def block(arrays):
     # shortest and easiest.
     from astropy.utils.masked import Masked
 
-    arrays, list_ndim, result_ndim, final_size = np_core.shape_base._block_setup(arrays)
-    shape, slices, arrays = np_core.shape_base._block_info_recursion(
+    arrays, list_ndim, result_ndim, final_size = np.core.shape_base._block_setup(arrays)
+    shape, slices, arrays = np.core.shape_base._block_info_recursion(
         arrays, list_ndim, result_ndim
     )
     dtype = np.result_type(*[arr.dtype for arr in arrays])
@@ -652,11 +499,11 @@ def block(arrays):
     result = Masked(np.empty(shape=shape, dtype=dtype, order=order))
     for the_slice, arr in zip(slices, arrays):
         result[(Ellipsis,) + the_slice] = arr
-    return result, None, None
+    return result
 
 
 @dispatched_function
-def broadcast_arrays(*args, subok=False):
+def broadcast_arrays(*args, subok=True):
     """Broadcast arrays to a common shape.
 
     Like `numpy.broadcast_arrays`, applied to both unmasked data and masks.
@@ -672,17 +519,16 @@ def broadcast_arrays(*args, subok=False):
     ]
     results = np.broadcast_arrays(*data, subok=subok)
 
-    return_type = list if NUMPY_LT_2_0 else tuple
-    shape = results[0].shape
+    shape = results[0].shape if isinstance(results, list) else results.shape
     masks = [
         (np.broadcast_to(arg.mask, shape, subok=subok) if is_masked else None)
         for arg, is_masked in zip(args, are_masked)
     ]
-    results = return_type(
+    results = [
         (Masked(result, mask) if mask is not None else result)
         for (result, mask) in zip(results, masks)
-    )
-    return results, None, None
+    ]
+    return results if len(results) > 1 else results[0]
 
 
 @apply_to_both
@@ -697,9 +543,8 @@ def insert(arr, obj, values, axis=None):
     if isinstance(obj, Masked) or not isinstance(arr, Masked):
         raise NotImplementedError
 
-    arr_data, arr_mask = _get_data_and_mask_array(arr)
-    val_data, val_mask = _get_data_and_mask_array(values)
-    return (arr_data, obj, val_data, axis), (arr_mask, obj, val_mask, axis), {}, None
+    (arr_data, val_data), (arr_mask, val_mask) = _get_data_and_masks(arr, values)
+    return ((arr_data, obj, val_data, axis), (arr_mask, obj, val_mask, axis), {}, None)
 
 
 @dispatched_function
@@ -709,29 +554,25 @@ def count_nonzero(a, axis=None, *, keepdims=False):
     Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
     """
     filled = a.filled(np.zeros((), a.dtype))
-    return np.count_nonzero(filled, axis, keepdims=keepdims), None, None
+    return np.count_nonzero(filled, axis, keepdims=keepdims)
 
 
-def _masked_median_1d(a, overwrite_input, keepdims):
+def _masked_median_1d(a, overwrite_input):
     # TODO: need an in-place mask-sorting option.
     unmasked = a.unmasked[~a.mask]
     if unmasked.size:
-        return a.from_unmasked(
-            np.median(unmasked, overwrite_input=overwrite_input, keepdims=keepdims)
-        )
+        return a.from_unmasked(np.median(unmasked, overwrite_input=overwrite_input))
     else:
         return a.from_unmasked(np.zeros_like(a.unmasked, shape=(1,))[0], mask=True)
 
 
-def _masked_median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
+def _masked_median(a, axis=None, out=None, overwrite_input=False):
     # As for np.nanmedian, but without a fast option as yet.
     if axis is None or a.ndim == 1:
         part = a.ravel()
-        result = _masked_median_1d(part, overwrite_input, keepdims)
+        result = _masked_median_1d(part, overwrite_input)
     else:
-        result = np.apply_along_axis(
-            _masked_median_1d, axis, a, overwrite_input, keepdims
-        )
+        result = np.apply_along_axis(_masked_median_1d, axis, a, overwrite_input)
     if out is not None:
         out[...] = result
     return result
@@ -745,44 +586,20 @@ def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
         raise NotImplementedError
 
     a = Masked(a)
-
-    if NUMPY_LT_1_24:
-        r, k = _ureduce(
-            a,
-            func=_masked_median,
-            axis=axis,
-            out=out,
-            overwrite_input=overwrite_input,
-        )
-        result = (r.reshape(k) if keepdims else r) if out is None else out
-
-    else:
-        result = _ureduce(
-            a,
-            func=_masked_median,
-            axis=axis,
-            out=out,
-            overwrite_input=overwrite_input,
-            keepdims=keepdims,
-        )
-    return result, None, None
+    r, k = np.lib.function_base._ureduce(
+        a, func=_masked_median, axis=axis, out=out, overwrite_input=overwrite_input
+    )
+    return (r.reshape(k) if keepdims else r) if out is None else out
 
 
 def _masked_quantile_1d(a, q, **kwargs):
     """
     Private function for rank 1 arrays. Compute quantile ignoring NaNs.
-    See nanpercentile for parameter usage.
+    See nanpercentile for parameter usage
     """
     unmasked = a.unmasked[~a.mask]
     if unmasked.size:
-        if NUMPY_LT_2_0:
-            if "weights" in kwargs:
-                kwargs.pop("weights")
-            result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
-        else:
-            result = np.lib._function_base_impl._quantile_unchecked(
-                unmasked, q, **kwargs
-            )
+        result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
         return a.from_unmasked(result)
     else:
         return a.from_unmasked(np.zeros_like(a.unmasked, shape=q.shape), True)
@@ -806,111 +623,23 @@ def _masked_quantile(a, q, axis=None, out=None, **kwargs):
     return result
 
 
-def _preprocess_quantile(a, q, axis=None, out=None, **kwargs):
+@dispatched_function
+def quantile(a, q, axis=None, out=None, **kwargs):
     from astropy.utils.masked import Masked
 
-    if isinstance(q, Masked) or (out is not None and not isinstance(out, Masked)):
+    if isinstance(q, Masked) or out is not None and not isinstance(out, Masked):
         raise NotImplementedError
 
     a = Masked(a)
     q = np.asanyarray(q)
-    if not _quantile_is_valid(q):
+    if not np.lib.function_base._quantile_is_valid(q):
         raise ValueError("Quantiles must be in the range [0, 1]")
 
-    if (interpolation := kwargs.pop("interpolation")) is not None:
-        # we have to duplicate logic from np.quantile here to avoid
-        # passing down the 'interpolation' keyword argument, as it's not
-        # supported by np.lib._function_base_impl._quantile_unchecked
-        kwargs["method"] = _check_interpolation_as_method(
-            kwargs.get("method", "linear"), interpolation, "quantile"
-        )
-    return a, q, axis, out, kwargs
-
-
-if NUMPY_LT_1_24:
-
-    @dispatched_function
-    def quantile(
-        a,
-        q,
-        axis=None,
-        out=None,
-        overwrite_input=False,
-        method="linear",
-        keepdims=False,
-        *,
-        interpolation=None,
-    ):
-        a, q, axis, out, kwargs = _preprocess_quantile(
-            a,
-            q,
-            axis,
-            out,
-            overwrite_input=overwrite_input,
-            method=method,
-            keepdims=keepdims,
-            interpolation=interpolation,
-        )
-        keepdims = kwargs.pop("keepdims", False)
-        r, k = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
-        result = (r.reshape(q.shape + k) if keepdims else r) if out is None else out
-        return result, None, None
-
-elif NUMPY_LT_2_0:
-
-    @dispatched_function
-    def quantile(
-        a,
-        q,
-        axis=None,
-        out=None,
-        overwrite_input=False,
-        method="linear",
-        keepdims=False,
-        *,
-        interpolation=None,
-    ):
-        a, q, axis, out, kwargs = _preprocess_quantile(
-            a,
-            q,
-            axis,
-            out,
-            overwrite_input=overwrite_input,
-            method=method,
-            keepdims=keepdims,
-            interpolation=interpolation,
-        )
-        result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
-        return result, None, None
-
-else:
-
-    @dispatched_function
-    def quantile(
-        a,
-        q,
-        axis=None,
-        out=None,
-        overwrite_input=False,
-        method="linear",
-        keepdims=False,
-        *,
-        weights=None,
-        interpolation=None,
-    ):
-        a, q, axis, out, kwargs = _preprocess_quantile(
-            a,
-            q,
-            axis,
-            out,
-            overwrite_input=overwrite_input,
-            method=method,
-            keepdims=keepdims,
-            weights=weights,
-            interpolation=interpolation,
-        )
-        result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
-        return result, None, None
+    keepdims = kwargs.pop("keepdims", False)
+    r, k = np.lib.function_base._ureduce(
+        a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
+    )
+    return (r.reshape(k) if keepdims else r) if out is None else out
 
 
 @dispatched_function
@@ -921,37 +650,36 @@ def percentile(a, q, *args, **kwargs):
 
 @dispatched_function
 def array_equal(a1, a2, equal_nan=False):
-    a1d, a1m = _get_data_and_mask_array(a1)
-    a2d, a2m = _get_data_and_mask_array(a2)
+    (a1d, a2d), (a1m, a2m) = _get_data_and_masks(a1, a2)
     if a1d.shape != a2d.shape:
-        return False, None, None
+        return False
 
     equal = a1d == a2d
     if equal_nan:
         equal |= np.isnan(a1d) & np.isnan(a2d)
-    return bool((equal | a1m | a2m).all()), None, None
+    return bool((equal | a1m | a2m).all())
 
 
 @dispatched_function
 def array_equiv(a1, a2):
-    return bool((a1 == a2).all()), None, None
+    return bool((a1 == a2).all())
 
 
 @dispatched_function
 def where(condition, *args):
-    from astropy.utils.masked import Masked, get_data_and_mask
+    from astropy.utils.masked import Masked
 
     if not args:
         return condition.nonzero(), None, None
 
-    condition, c_mask = get_data_and_mask(condition)
+    condition, c_mask = Masked._get_data_and_mask(condition)
 
-    data, masks = _get_data_and_mask_arrays(args)
+    data, masks = _get_data_and_masks(*args)
     unmasked = np.where(condition, *data)
     mask = np.where(condition, *masks)
     if c_mask is not None:
         mask |= c_mask
-    return Masked(unmasked, mask=mask), None, None
+    return Masked(unmasked, mask=mask)
 
 
 @dispatched_function
@@ -964,9 +692,9 @@ def choose(a, choices, out=None, mode="raise"):
     if chosen.
 
     """
-    from astropy.utils.masked import Masked, get_data_and_mask
+    from astropy.utils.masked import Masked
 
-    a_data, a_mask = get_data_and_mask(a)
+    a_data, a_mask = Masked._get_data_and_mask(a)
     if a_mask is not None and mode == "raise":
         # Avoid raising on masked indices.
         a_data = a.filled(fill_value=0)
@@ -977,7 +705,7 @@ def choose(a, choices, out=None, mode="raise"):
             raise NotImplementedError
         kwargs["out"] = out.unmasked
 
-    data, masks = _get_data_and_mask_arrays(choices)
+    data, masks = _get_data_and_masks(*choices)
     data_chosen = np.choose(a_data, data, **kwargs)
     if out is not None:
         kwargs["out"] = out.mask
@@ -986,7 +714,7 @@ def choose(a, choices, out=None, mode="raise"):
     if a_mask is not None:
         mask_chosen |= a_mask
 
-    return Masked(data_chosen, mask_chosen) if out is None else out, None, None
+    return Masked(data_chosen, mask_chosen) if out is None else out
 
 
 @apply_to_both
@@ -1001,7 +729,7 @@ def select(condlist, choicelist, default=0):
 
     condlist = [c.unmasked if isinstance(c, Masked) else c for c in condlist]
 
-    data_list, mask_list = _get_data_and_mask_arrays(choicelist)
+    data_list, mask_list = _get_data_and_masks(*choicelist)
     default = Masked(default) if default is not np.ma.masked else Masked(0, mask=True)
     return (
         (condlist, data_list, default.unmasked),
@@ -1019,7 +747,7 @@ def piecewise(x, condlist, funclist, *args, **kw):
     Any masks in ``condlist`` are ignored.
 
     """
-    # Copied implementation from numpy.lib._function_base_impl.piecewise,
+    # Copied implementation from numpy.lib.function_base.piecewise,
     # just to ensure output is Masked.
     n2 = len(funclist)
     # undocumented: single condition is promoted to a list of one condition
@@ -1058,7 +786,7 @@ def piecewise(x, condlist, funclist, *args, **kw):
     for item, value in zip(where, what):
         y[item] = value
 
-    return y, None, None
+    return y
 
 
 @dispatched_function
@@ -1069,12 +797,11 @@ def interp(x, xp, fp, *args, **kwargs):
     are ignored.  Any masked values in ``x`` will still be evaluated,
     but masked on output.
     """
-    from astropy.utils.masked import Masked, get_data_and_mask
+    from astropy.utils.masked import Masked
 
-    xd, xm = get_data_and_mask(x)
+    xd, xm = Masked._get_data_and_mask(x)
     if isinstance(xp, Masked) or isinstance(fp, Masked):
-        xp, xpm = _get_data_and_mask_array(xp)
-        fp, fpm = _get_data_and_mask_array(fp)
+        (xp, fp), (xpm, fpm) = _get_data_and_masks(xp, fp)
         if xp.ndim == fp.ndim == 1:
             # Avoid making arrays 1-D; will just raise below.
             m = xpm | fpm
@@ -1082,7 +809,7 @@ def interp(x, xp, fp, *args, **kwargs):
             fp = fp[~m]
 
     result = np.interp(xd, xp, fp, *args, **kwargs)
-    return (result if xm is None else Masked(result, xm.copy())), None, None
+    return result if xm is None else Masked(result, xm.copy())
 
 
 @dispatched_function
@@ -1108,7 +835,7 @@ def lexsort(keys, axis=-1):
         else:
             new_keys.append(key)
 
-    return np.lexsort(new_keys, axis=axis), None, None
+    return np.lexsort(new_keys, axis=axis)
 
 
 @dispatched_function
@@ -1137,7 +864,7 @@ def apply_over_axes(func, a, axes):
                     "function is not returning an array of the correct shape"
                 )
 
-    return val, None, None
+    return val
 
 
 class MaskedFormat:
@@ -1191,10 +918,7 @@ class MaskedFormat:
 
     @classmethod
     def from_data(cls, data, **options):
-        if NUMPY_LT_2_0:
-            from numpy.core.arrayprint import _get_format_function
-        else:
-            from numpy._core.arrayprint import _get_format_function
+        from numpy.core.arrayprint import _get_format_function
 
         return cls(_get_format_function(data, **options))
 
@@ -1203,10 +927,7 @@ def _array2string(a, options, separator=" ", prefix=""):
     # Mostly copied from numpy.core.arrayprint, except:
     # - The format function is wrapped in a mask-aware class;
     # - Arrays scalars are not cast as arrays.
-    if NUMPY_LT_2_0:
-        from numpy.core.arrayprint import _formatArray, _leading_trailing
-    else:
-        from numpy._core.arrayprint import _formatArray, _leading_trailing
+    from numpy.core.arrayprint import _formatArray, _leading_trailing
 
     data = np.asarray(a)
 
@@ -1252,25 +973,9 @@ def array2string(
     sign=None,
     floatmode=None,
     suffix="",
-    *,
-    legacy=None,
 ):
     # Copied from numpy.core.arrayprint, but using _array2string above.
-    if NUMPY_LT_2_1:
-        if NUMPY_LT_2_0:
-            from numpy.core.arrayprint import _format_options
-        else:
-            from numpy._core.arrayprint import _format_options
-        options = _format_options.copy()
-    else:
-        from numpy._core.printoptions import format_options
-
-        options = format_options.get().copy()
-
-    if NUMPY_LT_2_0:
-        from numpy.core.arrayprint import _make_options_dict
-    else:
-        from numpy._core.arrayprint import _make_options_dict
+    from numpy.core.arrayprint import _format_options, _make_options_dict
 
     overrides = _make_options_dict(
         precision,
@@ -1284,59 +989,21 @@ def array2string(
         formatter,
         floatmode,
     )
+    options = _format_options.copy()
     options.update(overrides)
 
     options["linewidth"] -= len(suffix)
 
-    if legacy is not None:
-        warnings.warn(f"{legacy=} is ignored.")
-
     # treat as a null array if any of shape elements == 0
     if a.size == 0:
-        result = "[]"
-    else:
-        result = _array2string(a, options, separator, prefix)
+        return "[]"
 
-    return result, None, None
-
-
-def _array_str_scalar(x):
-    # This wraps np.array_str for use as a format function in
-    # MaskedFormat. We cannot use it directly as format functions
-    # expect numpy scalars, while np.array_str expects an array.
-    return np.array_str(np.array(x))
+    return _array2string(a, options, separator, prefix)
 
 
 @dispatched_function
 def array_str(a, max_line_width=None, precision=None, suppress_small=None):
-    # Override to change special treatment of array scalars, since the numpy
-    # code turns the masked array scalar into a regular array scalar.
-    # By going through MaskedFormat, we can replace the string as needed.
-    if a.shape == ():
-        if a.dtype.names is None:
-            return MaskedFormat(_array_str_scalar)(a), None, None
-        elif not NUMPY_LT_2_0:
-            from numpy._core.arrayprint import StructuredVoidFormat
-
-            # Following numpy._core.arrayprint._void_scalar_to_string
-            if NUMPY_LT_2_1:
-                from numpy._core.arrayprint import _format_options
-
-                options = _format_options.copy()
-            else:
-                from numpy._core.printoptions import format_options
-
-                options = format_options.get().copy()
-
-            if options.get("formatter") is None:
-                options["formatter"] = {}
-            options["formatter"].setdefault("float_kind", str)
-            return (
-                MaskedFormat(StructuredVoidFormat.from_data(a, **options))(a),
-                None,
-                None,
-            )
-
+    # Override to avoid special treatment of array scalars.
     return array2string(a, max_line_width, precision, suppress_small, " ", "")
 
 
@@ -1346,12 +1013,12 @@ _nanfunc_fill_values = {"nansum": 0, "nancumsum": 0, "nanprod": 1, "nancumprod":
 
 def masked_nanfunc(nanfuncname):
     np_func = getattr(np, nanfuncname[3:])
-    fill_value = _nanfunc_fill_values.get(nanfuncname)
+    fill_value = _nanfunc_fill_values.get(nanfuncname, None)
 
     def nanfunc(a, *args, **kwargs):
-        from astropy.utils.masked import Masked, get_data_and_mask
+        from astropy.utils.masked import Masked
 
-        a, mask = get_data_and_mask(a)
+        a, mask = Masked._get_data_and_mask(a)
         if issubclass(a.dtype.type, np.inexact):
             nans = np.isnan(a)
             mask = nans if mask is None else (nans | mask)
@@ -1361,7 +1028,7 @@ def masked_nanfunc(nanfuncname):
             if fill_value is not None:
                 a = a.filled(fill_value)
 
-        return np_func(a, *args, **kwargs), None, None
+        return np_func(a, *args, **kwargs)
 
     doc = f"Like `numpy.{nanfuncname}`, skipping masked values as well.\n\n"
     if fill_value is not None:
@@ -1387,104 +1054,16 @@ def masked_nanfunc(nanfuncname):
     return nanfunc
 
 
-_nplibnanfunctions = np.lib.nanfunctions if NUMPY_LT_2_0 else np.lib._nanfunctions_impl
-for nanfuncname in _nplibnanfunctions.__all__:
+for nanfuncname in np.lib.nanfunctions.__all__:
     globals()[nanfuncname] = dispatched_function(
         masked_nanfunc(nanfuncname), helps=getattr(np, nanfuncname)
     )
 
 
-@dispatched_function
-def ediff1d(ary, to_end=None, to_begin=None):
-    from astropy.utils.masked import Masked
-
-    # ediff1d works fine if ary is Masked, but not if it is not (and
-    # we got here because to_end and/or to_begin are Masked).
-    if not isinstance(ary, Masked):
-        ary = Masked(ary)
-
-    return np.ediff1d.__wrapped__(ary, to_end, to_begin), None, None
-
-
-def _in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
-    # Copy sorting implementation from _arraysetops_impl._in1d;
-    # the others cannot work in the presence of a mask.
-    if kind == "table":
-        raise ValueError(
-            "The 'table' method is not supported for Masked arrays."
-            "Please select 'sort' or None for kind."
-        )
-
-    # Straight copy from here on.
-    if not assume_unique:
-        ar1, rev_idx = np.unique(ar1, return_inverse=True)
-        ar2 = np.unique(ar2)
-
-    ar = np.concatenate((ar1, ar2))
-    # We need this to be a stable sort, so always use 'mergesort'
-    # here. The values from the first array should always come before
-    # the values from the second array.
-    order = ar.argsort(kind="mergesort")
-    sar = ar[order]
-    if invert:
-        bool_ar = sar[1:] != sar[:-1]
-    else:
-        bool_ar = sar[1:] == sar[:-1]
-    flag = np.concatenate((bool_ar, [invert]))
-    ret = np.empty(ar.shape, dtype=bool)
-    ret[order] = flag
-    return ret[: len(ar1)] if assume_unique else ret[rev_idx]
-
-
-def _copy_of_mask(a):
-    mask = getattr(a, "mask", None)
-    return mask.copy() if mask is not None else False
-
-
-if NUMPY_LT_1_24:  # "kind" argument introduced in 1.24.
-
-    @dispatched_function
-    def in1d(ar1, ar2, assume_unique=False, invert=False):
-        mask = _copy_of_mask(ar1).ravel()
-        return _in1d(ar1, ar2, assume_unique, invert), mask, None
-
-    @dispatched_function
-    def isin(element, test_elements, assume_unique=False, invert=False):
-        element = np.asanyarray(element)
-        result = _in1d(element, test_elements, assume_unique, invert)
-        result.shape = element.shape
-        return result, _copy_of_mask(element), None
-
-else:
-
-    @dispatched_function
-    def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
-        mask = _copy_of_mask(ar1).ravel()
-        return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
-
-    @dispatched_function
-    def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
-        element = np.asanyarray(element)
-        result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
-        result.shape = element.shape
-        return result, _copy_of_mask(element), None
-
-
-@dispatched_function
-def setdiff1d(ar1, ar2, assume_unique=False):
-    # Again, mostly just to avoid an asarray call.
-    if assume_unique:
-        ar1 = np.asanyarray(ar1).ravel()
-    else:
-        ar1 = np.unique(ar1)
-        ar2 = np.unique(ar2)
-    return ar1[np.isin(ar1, ar2, assume_unique=True, invert=True)], None, None
-
-
 # Add any dispatched or helper function that has a docstring to
 # __all__, so they will be typeset by sphinx. The logic is that for
 # those presumably the use of the mask is not entirely obvious.
-__all__ += sorted(  # noqa: PLE0605
+__all__ += sorted(
     helper.__name__
     for helper in (
         set(APPLY_TO_BOTH_FUNCTIONS.values()) | set(DISPATCHED_FUNCTIONS.values())

@@ -4,8 +4,7 @@ A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
 
-from __future__ import annotations
-
+import abc
 import contextlib
 import difflib
 import inspect
@@ -13,32 +12,35 @@ import json
 import locale
 import os
 import re
+import signal
 import sys
 import threading
 import traceback
 import unicodedata
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
-from itertools import chain
-from typing import TYPE_CHECKING
 
-from astropy.utils import deprecated
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+from astropy.utils.decorators import deprecated
 
 __all__ = [
-    "JsonCustomEncoder",
-    "NumpyRNGContext",
-    "dtype_bytes_or_chars",
-    "find_api_page",
-    "format_exception",
-    "indent",
-    "is_path_hidden",
     "isiterable",
     "silence",
+    "format_exception",
+    "NumpyRNGContext",
+    "find_api_page",
+    "is_path_hidden",
     "walk_skip_hidden",
+    "JsonCustomEncoder",
+    "indent",
+    "dtype_bytes_or_chars",
+    "OrderedDescriptor",
+    "OrderedDescriptorContainer",
 ]
+
+
+# Because they are deprecated.
+__doctest_skip__ = ["OrderedDescriptor", "OrderedDescriptorContainer"]
+
 
 NOT_OVERWRITING_MSG = (
     "File {} already exists. If you mean to replace it "
@@ -54,6 +56,7 @@ _NOT_OVERWRITING_MSG_MATCH = (
 
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
+
     try:
         iter(obj)
         return True
@@ -61,9 +64,9 @@ def isiterable(obj):
         return False
 
 
-@deprecated(since="6.1", alternative="textwrap.indent()")
 def indent(s, shift=1, width=4):
     """Indent a block of text.  The indentation is applied to each line."""
+
     indented = "\n".join(" " * (width * shift) + l if l else "" for l in s.splitlines())
     if s[-1] == "\n":
         indented += "\n"
@@ -81,6 +84,7 @@ class _DummyFile:
 @contextlib.contextmanager
 def silence():
     """A context manager that silences sys.stdout and sys.stderr."""
+
     old_stdout = sys.stdout
     old_stderr = sys.stderr
     sys.stdout = _DummyFile()
@@ -90,10 +94,8 @@ def silence():
     sys.stderr = old_stderr
 
 
-@deprecated(since="7.0")
 def format_exception(msg, *args, **kwargs):
-    """Fill in information about the exception that occurred.
-
+    """
     Given an exception message string, uses new-style formatting arguments
     ``{filename}``, ``{lineno}``, ``{func}`` and/or ``{text}`` to fill in
     information about the exception that occurred.  For example:
@@ -115,6 +117,7 @@ def format_exception(msg, *args, **kwargs):
         outside of an ``except`` clause - if it is, this will substitute
         '<unknown>' for the 4 formatting arguments.
     """
+
     tb = traceback.extract_tb(sys.exc_info()[2], limit=1)
     if len(tb) > 0:
         filename, lineno, func, text = tb[0]
@@ -299,8 +302,21 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     return resurl
 
 
-# _has_hidden_attribute() can be deleted together with deprecated is_path_hidden() and
-# walk_skip_hidden().
+def signal_number_to_name(signum):
+    """
+    Given an OS signal number, returns a signal name.  If the signal
+    number is unknown, returns ``'UNKNOWN'``.
+    """
+    # Since these numbers and names are platform specific, we use the
+    # builtin signal module and build a reverse mapping.
+
+    signal_to_name_map = {
+        k: v for v, k in signal.__dict__.items() if v.startswith("SIG")
+    }
+
+    return signal_to_name_map.get(signum, "UNKNOWN")
+
+
 if sys.platform == "win32":
     import ctypes
 
@@ -308,7 +324,7 @@ if sys.platform == "win32":
         """
         Returns True if the given filepath has the hidden attribute on
         MS-Windows.  Based on a post here:
-        https://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection.
+        https://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection
         """
         if isinstance(filepath, bytes):
             filepath = filepath.decode(sys.getfilesystemencoding())
@@ -325,7 +341,6 @@ else:
         return False
 
 
-@deprecated(since="6.0")
 def is_path_hidden(filepath):
     """
     Determines if a given file or directory is hidden.
@@ -348,7 +363,6 @@ def is_path_hidden(filepath):
     return is_dotted or _has_hidden_attribute(filepath)
 
 
-@deprecated(since="6.0")
 def walk_skip_hidden(top, onerror=None, followlinks=False):
     """
     A wrapper for `os.walk` that skips hidden files and directories.
@@ -357,7 +371,7 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
     `os.walk`: the directories must always be recursed top-down when
     using this function.
 
-    See Also
+    See also
     --------
     os.walk : For a description of the parameters
     """
@@ -418,7 +432,7 @@ class JsonCustomEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def strip_accents(s: str) -> str:
+def strip_accents(s):
     """
     Remove accents from a Unicode string.
 
@@ -429,13 +443,7 @@ def strip_accents(s: str) -> str:
     )
 
 
-def did_you_mean(
-    s: str,
-    candidates: Iterable[str],
-    n: int = 3,
-    cutoff: float = 0.8,
-    fix: Callable[[str], list[str]] | None = None,
-) -> str:
+def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
     """
     When a string isn't found in a set of candidates, we can be nice
     to provide a list of alternatives in the exception.  This
@@ -445,9 +453,7 @@ def did_you_mean(
     ----------
     s : str
 
-    candidates : iterable of str
-        Note that str itself does not cause an error, but the output
-        might not be what was expected.
+    candidates : sequence of str or dict of str keys
 
     n : int
         The maximum number of results to include.  See
@@ -460,7 +466,7 @@ def did_you_mean(
 
     fix : callable
         A callable to modify the results after matching.  It should
-        take a single string and return a list of strings
+        take a single string and return a sequence of strings
         containing the fixed matches.
 
     Returns
@@ -469,32 +475,345 @@ def did_you_mean(
         Returns the string "Did you mean X, Y, or Z?", or the empty
         string if no alternatives were found.
     """
-    s_lower = strip_accents(s).lower()
+    if isinstance(s, str):
+        s = strip_accents(s)
+    s_lower = s.lower()
 
     # Create a mapping from the lower case name to all capitalization
     # variants of that name.
-    candidates_lower = defaultdict(list)
+    candidates_lower = {}
     for candidate in candidates:
-        candidates_lower[candidate.lower()].append(candidate)
+        candidate_lower = candidate.lower()
+        candidates_lower.setdefault(candidate_lower, [])
+        candidates_lower[candidate_lower].append(candidate)
 
     # The heuristic here is to first try "singularizing" the word.  If
     # that doesn't match anything use difflib to find close matches in
     # original, lower and upper case.
-    matches: Iterable[str] = (
-        [s_lower[:-1]]
-        if s_lower.endswith("s") and s_lower[:-1] in candidates_lower
-        else difflib.get_close_matches(s_lower, candidates_lower, n=n, cutoff=cutoff)
-    )
+    if s_lower.endswith("s") and s_lower[:-1] in candidates_lower:
+        matches = [s_lower[:-1]]
+    else:
+        matches = difflib.get_close_matches(
+            s_lower, candidates_lower, n=n, cutoff=cutoff
+        )
 
-    if not matches:
-        return ""
-    matches = chain.from_iterable(candidates_lower[match] for match in matches)
-    if fix is not None:
-        matches = chain.from_iterable(fix(match) for match in matches)
-    *first_matches, suggestion = sorted(set(matches))
-    if first_matches:
-        suggestion = ", ".join(first_matches) + " or " + suggestion
-    return f"Did you mean {suggestion}?"
+    if len(matches):
+        capitalized_matches = set()
+        for match in matches:
+            capitalized_matches.update(candidates_lower[match])
+        matches = capitalized_matches
+
+        if fix is not None:
+            mapped_matches = []
+            for match in matches:
+                mapped_matches.extend(fix(match))
+            matches = mapped_matches
+
+        matches = list(set(matches))
+        matches = sorted(matches)
+
+        if len(matches) == 1:
+            matches = matches[0]
+        else:
+            matches = ", ".join(matches[:-1]) + " or " + matches[-1]
+        return f"Did you mean {matches}?"
+
+    return ""
+
+
+_ordered_descriptor_deprecation_message = """\
+The {func} {obj_type} is deprecated and may be removed in a future version.
+
+    You can replace its functionality with a combination of the
+    __init_subclass__ and __set_name__ magic methods introduced in Python 3.6.
+    See https://github.com/astropy/astropy/issues/11094 for recipes on how to
+    replicate their functionality.
+"""
+
+
+@deprecated("4.3", _ordered_descriptor_deprecation_message)
+class OrderedDescriptor(metaclass=abc.ABCMeta):
+    """
+    Base class for descriptors whose order in the class body should be
+    preserved.  Intended for use in concert with the
+    `OrderedDescriptorContainer` metaclass.
+
+    Subclasses of `OrderedDescriptor` must define a value for a class attribute
+    called ``_class_attribute_``.  This is the name of a class attribute on the
+    *container* class for these descriptors, which will be set to an
+    `~collections.OrderedDict` at class creation time.  This
+    `~collections.OrderedDict` will contain a mapping of all class attributes
+    that were assigned instances of the `OrderedDescriptor` subclass, to the
+    instances themselves.  See the documentation for
+    `OrderedDescriptorContainer` for a concrete example.
+
+    Optionally, subclasses of `OrderedDescriptor` may define a value for a
+    class attribute called ``_name_attribute_``.  This should be the name of
+    an attribute on instances of the subclass.  When specified, during
+    creation of a class containing these descriptors, the name attribute on
+    each instance will be set to the name of the class attribute it was
+    assigned to on the class.
+
+    .. note::
+
+        Although this class is intended for use with *descriptors* (i.e.
+        classes that define any of the ``__get__``, ``__set__``, or
+        ``__delete__`` magic methods), this base class is not itself a
+        descriptor, and technically this could be used for classes that are
+        not descriptors too.  However, use with descriptors is the original
+        intended purpose.
+    """
+
+    # This id increments for each OrderedDescriptor instance created, so they
+    # are always ordered in the order they were created.  Class bodies are
+    # guaranteed to be executed from top to bottom.  Not sure if this is
+    # thread-safe though.
+    _nextid = 1
+
+    @property
+    @abc.abstractmethod
+    def _class_attribute_(self):
+        """
+        Subclasses should define this attribute to the name of an attribute on
+        classes containing this subclass.  That attribute will contain the mapping
+        of all instances of that `OrderedDescriptor` subclass defined in the class
+        body.  If the same descriptor needs to be used with different classes,
+        each with different names of this attribute, multiple subclasses will be
+        needed.
+        """
+
+    _name_attribute_ = None
+    """
+    Subclasses may optionally define this attribute to specify the name of an
+    attribute on instances of the class that should be filled with the
+    instance's attribute name at class creation time.
+    """
+
+    def __init__(self, *args, **kwargs):
+        # The _nextid attribute is shared across all subclasses so that
+        # different subclasses of OrderedDescriptors can be sorted correctly
+        # between themselves
+        self.__order = OrderedDescriptor._nextid
+        OrderedDescriptor._nextid += 1
+        super().__init__()
+
+    def __lt__(self, other):
+        """
+        Defined for convenient sorting of `OrderedDescriptor` instances, which
+        are defined to sort in their creation order.
+        """
+
+        if isinstance(self, OrderedDescriptor) and isinstance(other, OrderedDescriptor):
+            try:
+                return self.__order < other.__order
+            except AttributeError:
+                raise RuntimeError(
+                    f"Could not determine ordering for {self} and {other}; at least "
+                    "one of them is not calling super().__init__ in its "
+                    "__init__."
+                )
+        else:
+            return NotImplemented
+
+
+@deprecated("4.3", _ordered_descriptor_deprecation_message)
+class OrderedDescriptorContainer(type):
+    """
+    Classes should use this metaclass if they wish to use `OrderedDescriptor`
+    attributes, which are class attributes that "remember" the order in which
+    they were defined in the class body.
+
+    Every subclass of `OrderedDescriptor` has an attribute called
+    ``_class_attribute_``.  For example, if we have
+
+    .. code:: python
+
+        class ExampleDecorator(OrderedDescriptor):
+            _class_attribute_ = '_examples_'
+
+    Then when a class with the `OrderedDescriptorContainer` metaclass is
+    created, it will automatically be assigned a class attribute ``_examples_``
+    referencing an `~collections.OrderedDict` containing all instances of
+    ``ExampleDecorator`` defined in the class body, mapped to by the names of
+    the attributes they were assigned to.
+
+    When subclassing a class with this metaclass, the descriptor dict (i.e.
+    ``_examples_`` in the above example) will *not* contain descriptors
+    inherited from the base class.  That is, this only works by default with
+    decorators explicitly defined in the class body.  However, the subclass
+    *may* define an attribute ``_inherit_decorators_`` which lists
+    `OrderedDescriptor` classes that *should* be added from base classes.
+    See the examples section below for an example of this.
+
+    Examples
+    --------
+
+    >>> from astropy.utils import OrderedDescriptor, OrderedDescriptorContainer
+    >>> class TypedAttribute(OrderedDescriptor):
+    ...     \"\"\"
+    ...     Attributes that may only be assigned objects of a specific type,
+    ...     or subclasses thereof.  For some reason we care about their order.
+    ...     \"\"\"
+    ...
+    ...     _class_attribute_ = 'typed_attributes'
+    ...     _name_attribute_ = 'name'
+    ...     # A default name so that instances not attached to a class can
+    ...     # still be repr'd; useful for debugging
+    ...     name = '<unbound>'
+    ...
+    ...     def __init__(self, type):
+    ...         # Make sure not to forget to call the super __init__
+    ...         super().__init__()
+    ...         self.type = type
+    ...
+    ...     def __get__(self, obj, objtype=None):
+    ...         if obj is None:
+    ...             return self
+    ...         if self.name in obj.__dict__:
+    ...             return obj.__dict__[self.name]
+    ...         else:
+    ...             raise AttributeError(self.name)
+    ...
+    ...     def __set__(self, obj, value):
+    ...         if not isinstance(value, self.type):
+    ...             raise ValueError('{0}.{1} must be of type {2!r}'.format(
+    ...                 obj.__class__.__name__, self.name, self.type))
+    ...         obj.__dict__[self.name] = value
+    ...
+    ...     def __delete__(self, obj):
+    ...         if self.name in obj.__dict__:
+    ...             del obj.__dict__[self.name]
+    ...         else:
+    ...             raise AttributeError(self.name)
+    ...
+    ...     def __repr__(self):
+    ...         if isinstance(self.type, tuple) and len(self.type) > 1:
+    ...             typestr = '({0})'.format(
+    ...                 ', '.join(t.__name__ for t in self.type))
+    ...         else:
+    ...             typestr = self.type.__name__
+    ...         return '<{0}(name={1}, type={2})>'.format(
+    ...                 self.__class__.__name__, self.name, typestr)
+    ...
+
+    Now let's create an example class that uses this ``TypedAttribute``::
+
+        >>> class Point2D(metaclass=OrderedDescriptorContainer):
+        ...     x = TypedAttribute((float, int))
+        ...     y = TypedAttribute((float, int))
+        ...
+        ...     def __init__(self, x, y):
+        ...         self.x, self.y = x, y
+        ...
+        >>> p1 = Point2D(1.0, 2.0)
+        >>> p1.x
+        1.0
+        >>> p1.y
+        2.0
+        >>> p2 = Point2D('a', 'b')  # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+            ...
+        ValueError: Point2D.x must be of type (float, int>)
+
+    We see that ``TypedAttribute`` works more or less as advertised, but
+    there's nothing special about that.  Let's see what
+    `OrderedDescriptorContainer` did for us::
+
+        >>> Point2D.typed_attributes
+        OrderedDict([('x', <TypedAttribute(name=x, type=(float, int))>),
+        ('y', <TypedAttribute(name=y, type=(float, int))>)])
+
+    If we create a subclass, it does *not* by default add inherited descriptors
+    to ``typed_attributes``::
+
+        >>> class Point3D(Point2D):
+        ...     z = TypedAttribute((float, int))
+        ...
+        >>> Point3D.typed_attributes
+        OrderedDict([('z', <TypedAttribute(name=z, type=(float, int))>)])
+
+    However, if we specify ``_inherit_descriptors_`` from ``Point2D`` then
+    it will do so::
+
+        >>> class Point3D(Point2D):
+        ...     _inherit_descriptors_ = (TypedAttribute,)
+        ...     z = TypedAttribute((float, int))
+        ...
+        >>> Point3D.typed_attributes
+        OrderedDict([('x', <TypedAttribute(name=x, type=(float, int))>),
+        ('y', <TypedAttribute(name=y, type=(float, int))>),
+        ('z', <TypedAttribute(name=z, type=(float, int))>)])
+
+    .. note::
+
+        Hopefully it is clear from these examples that this construction
+        also allows a class of type `OrderedDescriptorContainer` to use
+        multiple different `OrderedDescriptor` classes simultaneously.
+    """
+
+    _inherit_descriptors_ = ()
+
+    def __init__(cls, cls_name, bases, members):
+        descriptors = defaultdict(list)
+        seen = set()
+        inherit_descriptors = ()
+        descr_bases = {}
+
+        for mro_cls in cls.__mro__:
+            for name, obj in mro_cls.__dict__.items():
+                if name in seen:
+                    # Checks if we've already seen an attribute of the given
+                    # name (if so it will override anything of the same name in
+                    # any base class)
+                    continue
+
+                seen.add(name)
+
+                if not isinstance(obj, OrderedDescriptor) or (
+                    inherit_descriptors and not isinstance(obj, inherit_descriptors)
+                ):
+                    # The second condition applies when checking any
+                    # subclasses, to see if we can inherit any descriptors of
+                    # the given type from subclasses (by default inheritance is
+                    # disabled unless the class has _inherit_descriptors_
+                    # defined)
+                    continue
+
+                if obj._name_attribute_ is not None:
+                    setattr(obj, obj._name_attribute_, name)
+
+                # Don't just use the descriptor's class directly; instead go
+                # through its MRO and find the class on which _class_attribute_
+                # is defined directly.  This way subclasses of some
+                # OrderedDescriptor *may* override _class_attribute_ and have
+                # its own _class_attribute_, but by default all subclasses of
+                # some OrderedDescriptor are still grouped together
+                # TODO: It might be worth clarifying this in the docs
+                if obj.__class__ not in descr_bases:
+                    for obj_cls_base in obj.__class__.__mro__:
+                        if "_class_attribute_" in obj_cls_base.__dict__:
+                            descr_bases[obj.__class__] = obj_cls_base
+                            descriptors[obj_cls_base].append((obj, name))
+                            break
+                else:
+                    # Make sure to put obj first for sorting purposes
+                    obj_cls_base = descr_bases[obj.__class__]
+                    descriptors[obj_cls_base].append((obj, name))
+
+            if not getattr(mro_cls, "_inherit_descriptors_", False):
+                # If _inherit_descriptors_ is undefined then we don't inherit
+                # any OrderedDescriptors from any of the base classes, and
+                # there's no reason to continue through the MRO
+                break
+            else:
+                inherit_descriptors = mro_cls._inherit_descriptors_
+
+        for descriptor_cls, instances in descriptors.items():
+            instances.sort()
+            instances = OrderedDict((key, value) for value, key in instances)
+            setattr(cls, descriptor_cls._class_attribute_, instances)
+
+        super().__init__(cls_name, bases, members)
 
 
 LOCALE_LOCK = threading.Lock()
@@ -515,7 +834,7 @@ def _set_locale(name):
     This code taken from https://stackoverflow.com/questions/18593661/how-do-i-strftime-a-date-object-in-a-different-locale.
 
     Parameters
-    ----------
+    ==========
     name : str
         Locale name, e.g. "C" or "fr_FR".
     """
@@ -532,6 +851,12 @@ def _set_locale(name):
                 yield
             finally:
                 locale.setlocale(locale.LC_ALL, saved)
+
+
+set_locale = deprecated("4.0")(_set_locale)
+set_locale.__doc__ = """Deprecated version of :func:`_set_locale` above.
+See https://github.com/astropy/astropy/issues/9196
+"""
 
 
 def dtype_bytes_or_chars(dtype):
@@ -572,12 +897,12 @@ def _hungry_for(option):  # pragma: no cover
 
 
 def pizza():  # pragma: no cover
-    """``/pizza``."""
+    """``/pizza``"""
     _hungry_for("pizza")
 
 
 def coffee(is_adam=False, is_brigitta=False):  # pragma: no cover
-    """``/coffee``."""
+    """``/coffee``"""
     if is_adam and is_brigitta:
         raise ValueError("There can be only one!")
     if is_adam:

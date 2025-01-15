@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: spc.c,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -68,6 +68,7 @@ const char *spc_errmsg[] = {
 // Map error returns for lower-level routines.  SPXERR_BAD_INSPEC_COORD
 // maps to either SPCERR_BAD_X or SPCERR_BAD_SPEC depending on context.
 const int spc_spxerr[] = {
+
   SPCERR_SUCCESS,		//  0: SPXERR_SUCCESS
   SPCERR_NULL_POINTER,		//  1: SPXERR_NULL_POINTER
   SPCERR_BAD_SPEC_PARAMS,	//  2: SPXERR_BAD_SPEC_PARAMS
@@ -86,7 +87,11 @@ const int spc_spxerr[] = {
 int spcini(struct spcprm *spc)
 
 {
+  register int k;
+
   if (spc == 0x0) return SPCERR_NULL_POINTER;
+
+  spc->flag = 0;
 
   memset(spc->type, 0, 8);
   strcpy(spc->type, "    ");
@@ -96,11 +101,11 @@ int spcini(struct spcprm *spc)
   spc->restfrq =  0.0;
   spc->restwav =  0.0;
 
-  for (int k = 0; k < 7; k++) {
+  for (k = 0; k < 7; k++) {
     spc->pv[k] = UNDEFINED;
   }
 
-  for (int k = 0; k < 6; k++) {
+  for (k = 0; k < 6; k++) {
     spc->w[k] = 0.0;
   }
 
@@ -114,8 +119,6 @@ int spcini(struct spcprm *spc)
   spc->spxP2S = 0x0;
   spc->spxS2P = 0x0;
   spc->spxP2X = 0x0;
-
-  spc->flag = 0;
 
   return 0;
 }
@@ -139,7 +142,7 @@ int spcsize(const struct spcprm *spc, int sizes[2])
 {
   if (spc == 0x0) {
     sizes[0] = sizes[1] = 0;
-    return 0;
+    return SPCERR_SUCCESS;
   }
 
   // Base size, in bytes.
@@ -148,36 +151,13 @@ int spcsize(const struct spcprm *spc, int sizes[2])
   // Total size of allocated memory, in bytes.
   sizes[1] = 0;
 
-  // spcprm::err.
   int exsizes[2];
+
+  // spcprm::err.
   wcserr_size(spc->err, exsizes);
   sizes[1] += exsizes[0] + exsizes[1];
 
-  return 0;
-}
-
-//----------------------------------------------------------------------------
-
-int spcenq(const struct spcprm *spc, int enquiry)
-
-{
-  // Initialize.
-  if (spc == 0x0) return SPCERR_NULL_POINTER;
-
-  int absflag = abs(spc->flag);
-  int answer  = 0;
-
-  if (enquiry & SPCENQ_SET) {
-    if (absflag < 100 || 1000 < absflag) return 0;
-    answer = 1;
-  }
-
-  if (enquiry & SPCENQ_BYP) {
-    if (spc->flag != 1 && !(-1000 < spc->flag && spc->flag < -100)) return 0;
-    answer = 1;
-  }
-
-  return answer;
+  return SPCERR_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -185,9 +165,11 @@ int spcenq(const struct spcprm *spc, int enquiry)
 int spcprt(const struct spcprm *spc)
 
 {
+  char hext[32];
+  int  i;
+
   if (spc == 0x0) return SPCERR_NULL_POINTER;
 
-  // Parameters supplied.
   wcsprintf("       flag: %d\n", spc->flag);
   wcsprintf("       type: \"%s\"\n", spc->type);
   wcsprintf("       code: \"%s\"\n", spc->code);
@@ -201,7 +183,7 @@ int spcprt(const struct spcprm *spc)
 
   wcsprintf("         pv:");
   if (spc->isGrism) {
-    for (int i = 0; i < 5; i++) {
+    for (i = 0; i < 5; i++) {
       if (undefined(spc->pv[i])) {
         wcsprintf("  UNDEFINED   ");
       } else {
@@ -209,7 +191,7 @@ int spcprt(const struct spcprm *spc)
       }
     }
     wcsprintf("\n            ");
-    for (int i = 5; i < 7; i++) {
+    for (i = 5; i < 7; i++) {
       if (undefined(spc->pv[i])) {
         wcsprintf("  UNDEFINED   ");
       } else {
@@ -222,14 +204,13 @@ int spcprt(const struct spcprm *spc)
     wcsprintf(" (not used)\n");
   }
 
-  // Derived values.
   wcsprintf("          w:");
-  for (int i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++) {
     wcsprintf("  %#- 11.5g", spc->w[i]);
   }
   if (spc->isGrism) {
     wcsprintf("\n            ");
-    for (int i = 3; i < 6; i++) {
+    for (i = 3; i < 6; i++) {
       wcsprintf("  %#- 11.5g", spc->w[i]);
     }
     wcsprintf("\n");
@@ -239,14 +220,11 @@ int spcprt(const struct spcprm *spc)
 
   wcsprintf("    isGrism: %d\n", spc->isGrism);
 
-  // Error handling.
   WCSPRINTF_PTR("        err: ", spc->err, "\n");
   if (spc->err) {
     wcserr_prt(spc->err, "             ");
   }
 
-  // Pointers to spectral functions.
-  char hext[32];
   wcsprintf("     spxX2P: %s\n",
     wcsutil_fptr2str((void (*)(void))spc->spxX2P, hext));
   wcsprintf("     spxP2S: %s\n",
@@ -280,9 +258,14 @@ int spcset(struct spcprm *spc)
 {
   static const char *function = "spcset";
 
+  char   ctype[9], ptype, xtype;
+  int    restreq, status;
+  double alpha, beta_r, crvalX, dn_r, dXdS, epsilon, G, m, lambda_r, n_r,
+         t, restfrq, restwav, theta;
+  struct wcserr **err;
+
   if (spc == 0x0) return SPCERR_NULL_POINTER;
-  if (spc->flag < 0) return 0;
-  struct wcserr **err = &(spc->err);
+  err = &(spc->err);
 
   if (undefined(spc->crval)) {
     return wcserr_set(WCSERR_SET(SPCERR_BAD_SPEC_PARAMS),
@@ -297,18 +280,13 @@ int spcset(struct spcprm *spc)
 
 
   // Analyse the spectral axis type.
-  char ctype[9];
   memset(ctype, 0, 9);
   memcpy(ctype, spc->type, 4);
   if (*(spc->code) != ' ') {
     sprintf(ctype+4, "-%s", spc->code);
   }
-
-  double restfrq = spc->restfrq;
-  double restwav = spc->restwav;
-  char   ptype, xtype;
-  int    restreq, status;
-  double crvalX, dXdS;
+  restfrq = spc->restfrq;
+  restwav = spc->restwav;
   if ((status = spcspxe(ctype, spc->crval, restfrq, restwav, &ptype, &xtype,
                         &restreq, &crvalX, &dXdS, &(spc->err)))) {
     return status;
@@ -347,35 +325,34 @@ int spcset(struct spcprm *spc)
 
 
   // Set pointers-to-functions for the linear part of the transformation.
-  int flag = 0;
   if (ptype == 'F') {
     if (strcmp(spc->type, "FREQ") == 0) {
       // Frequency.
-      flag = FREQ;
+      spc->flag = FREQ;
       spc->spxP2S = 0x0;
       spc->spxS2P = 0x0;
 
     } else if (strcmp(spc->type, "AFRQ") == 0) {
       // Angular frequency.
-      flag = AFRQ;
+      spc->flag = AFRQ;
       spc->spxP2S = freqafrq;
       spc->spxS2P = afrqfreq;
 
     } else if (strcmp(spc->type, "ENER") == 0) {
       // Photon energy.
-      flag = ENER;
+      spc->flag = ENER;
       spc->spxP2S = freqener;
       spc->spxS2P = enerfreq;
 
     } else if (strcmp(spc->type, "WAVN") == 0) {
       // Wave number.
-      flag = WAVN;
+      spc->flag = WAVN;
       spc->spxP2S = freqwavn;
       spc->spxS2P = wavnfreq;
 
     } else if (strcmp(spc->type, "VRAD") == 0) {
       // Radio velocity.
-      flag = VRAD;
+      spc->flag = VRAD;
       spc->spxP2S = freqvrad;
       spc->spxS2P = vradfreq;
     }
@@ -383,19 +360,19 @@ int spcset(struct spcprm *spc)
   } else if (ptype == 'W') {
     if (strcmp(spc->type, "WAVE") == 0) {
       // Vacuum wavelengths.
-      flag = WAVE;
+      spc->flag = WAVE;
       spc->spxP2S = 0x0;
       spc->spxS2P = 0x0;
 
     } else if (strcmp(spc->type, "VOPT") == 0) {
       // Optical velocity.
-      flag = VOPT;
+      spc->flag = VOPT;
       spc->spxP2S = wavevopt;
       spc->spxS2P = voptwave;
 
     } else if (strcmp(spc->type, "ZOPT") == 0) {
       // Redshift.
-      flag = ZOPT;
+      spc->flag = ZOPT;
       spc->spxP2S = wavezopt;
       spc->spxS2P = zoptwave;
     }
@@ -403,7 +380,7 @@ int spcset(struct spcprm *spc)
   } else if (ptype == 'A') {
     if (strcmp(spc->type, "AWAV") == 0) {
       // Air wavelengths.
-      flag = AWAV;
+      spc->flag = AWAV;
       spc->spxP2S = 0x0;
       spc->spxS2P = 0x0;
     }
@@ -411,13 +388,13 @@ int spcset(struct spcprm *spc)
   } else if (ptype == 'V') {
     if (strcmp(spc->type, "VELO") == 0) {
       // Relativistic velocity.
-      flag = VELO;
+      spc->flag = VELO;
       spc->spxP2S = 0x0;
       spc->spxS2P = 0x0;
 
     } else if (strcmp(spc->type, "BETA") == 0) {
       // Velocity ratio (v/c).
-      flag = BETA;
+      spc->flag = BETA;
       spc->spxP2S = velobeta;
       spc->spxS2P = betavelo;
     }
@@ -446,7 +423,7 @@ int spcset(struct spcprm *spc)
       spc->spxP2X = velofreq;
     }
 
-    flag += F2S;
+    spc->flag += F2S;
 
   } else if (xtype == 'W' || xtype == 'w') {
     // Axis is linear in vacuum wavelengths.
@@ -468,11 +445,11 @@ int spcset(struct spcprm *spc)
     }
 
     if (xtype == 'W') {
-      flag += W2S;
+      spc->flag += W2S;
     } else {
       // Grism in vacuum.
       spc->isGrism = 1;
-      flag += GRI;
+      spc->flag += GRI;
     }
 
   } else if (xtype == 'A' || xtype == 'a') {
@@ -495,11 +472,11 @@ int spcset(struct spcprm *spc)
     }
 
     if (xtype == 'A') {
-      flag += A2S;
+      spc->flag += A2S;
     } else {
       // Grism in air.
       spc->isGrism = 2;
-      flag += GRA;
+      spc->flag += GRA;
     }
 
   } else if (xtype == 'V') {
@@ -521,14 +498,14 @@ int spcset(struct spcprm *spc)
       spc->spxP2X = 0x0;
     }
 
-    flag += V2S;
+    spc->flag += V2S;
   }
 
 
   // Check for grism axes.
   if (spc->isGrism) {
     // Axis is linear in "grism parameter"; work in wavelength.
-    double lambda_r = crvalX;
+    lambda_r = crvalX;
 
     // Set defaults.
     if (undefined(spc->pv[0])) spc->pv[0] = 0.0;
@@ -540,16 +517,16 @@ int spcset(struct spcprm *spc)
     if (undefined(spc->pv[6])) spc->pv[6] = 0.0;
 
     // Compute intermediaries.
-    double G       = spc->pv[0];
-    double m       = spc->pv[1];
-    double alpha   = spc->pv[2];
-    double n_r     = spc->pv[3];
-    double dn_r    = spc->pv[4];
-    double epsilon = spc->pv[5];
-    double theta   = spc->pv[6];
+    G       = spc->pv[0];
+    m       = spc->pv[1];
+    alpha   = spc->pv[2];
+    n_r     = spc->pv[3];
+    dn_r    = spc->pv[4];
+    epsilon = spc->pv[5];
+    theta   = spc->pv[6];
 
-    double t = G*m/cosd(epsilon);
-    double beta_r = asind(t*lambda_r - n_r*sind(alpha));
+    t = G*m/cosd(epsilon);
+    beta_r = asind(t*lambda_r - n_r*sind(alpha));
 
     t -= dn_r*sind(alpha);
 
@@ -559,8 +536,6 @@ int spcset(struct spcprm *spc)
     spc->w[4] = (n_r - dn_r*lambda_r)*sind(alpha);
     spc->w[5] = 1.0 / t;
   }
-
-  spc->flag = (spc->flag == 1) ? -flag : flag;
 
   return 0;
 }
@@ -579,20 +554,27 @@ int spcx2s(
 {
   static const char *function = "spcx2s";
 
+  int statP2S, status = 0, statX2P;
+  double beta;
+  register int ix;
+  register int *statp;
+  register const double *xp;
+  register double *specp;
+  struct wcserr **err;
+
   // Initialize.
   if (spc == 0x0) return SPCERR_NULL_POINTER;
-  struct wcserr **err = &(spc->err);
+  err = &(spc->err);
 
-  int status = 0;
-  if (abs(spc->flag) < 100) {
+  if (spc->flag == 0) {
     if ((status = spcset(spc))) return status;
   }
 
   // Convert intermediate world coordinate x to X.
-  const double *xp = x;
-  double *specp = spec;
-  int    *statp = stat;
-  for (int ix = 0; ix < nx; ix++, xp += sx, specp += sspec, statp++) {
+  xp = x;
+  specp = spec;
+  statp = stat;
+  for (ix = 0; ix < nx; ix++, xp += sx, specp += sspec, statp++) {
     *specp = spc->w[1] + (*xp)*spc->w[2];
     *statp = 0;
   }
@@ -600,8 +582,8 @@ int spcx2s(
   // If X is the grism parameter then convert it to wavelength.
   if (spc->isGrism) {
     specp = spec;
-    for (int ix = 0; ix < nx; ix++, specp += sspec) {
-      double beta = atand(*specp) + spc->w[3];
+    for (ix = 0; ix < nx; ix++, specp += sspec) {
+      beta = atand(*specp) + spc->w[3];
       *specp = (sind(beta) + spc->w[4]) * spc->w[5];
     }
   }
@@ -609,7 +591,6 @@ int spcx2s(
   // Apply the non-linear step of the algorithm chain to convert the
   // X-type spectral variable to P-type intermediate spectral variable.
   if (spc->spxX2P) {
-    int statX2P;
     if ((statX2P = spc->spxX2P(spc->w[0], nx, sspec, sspec, spec, spec,
                                stat))) {
       if (statX2P == SPXERR_BAD_INSPEC_COORD) {
@@ -626,7 +607,6 @@ int spcx2s(
   // Apply the linear step of the algorithm chain to convert P-type
   // intermediate spectral variable to the required S-type variable.
   if (spc->spxP2S) {
-    int statP2S;
     if ((statP2S = spc->spxP2S(spc->w[0], nx, sspec, sspec, spec, spec,
                                stat))) {
       if (statP2S == SPXERR_BAD_INSPEC_COORD) {
@@ -660,19 +640,25 @@ int spcs2x(
 {
   static const char *function = "spcs2x";
 
+  int statP2X, status = 0, statS2P;
+  double beta, s;
+  register int ispec;
+  register int *statp;
+  register const double *specp;
+  register double *xp;
+  struct wcserr **err;
+
   // Initialize.
   if (spc == 0x0) return SPCERR_NULL_POINTER;
-  struct wcserr **err = &(spc->err);
+  err = &(spc->err);
 
-  int status = 0;
-  if (abs(spc->flag) < 100) {
+  if (spc->flag == 0) {
     if ((status = spcset(spc))) return status;
   }
 
   // Apply the linear step of the algorithm chain to convert the S-type
   // spectral variable to P-type intermediate spectral variable.
   if (spc->spxS2P) {
-    int statS2P;
     if ((statS2P = spc->spxS2P(spc->w[0], nspec, sspec, sx, spec, x, stat))) {
       if (statS2P == SPXERR_BAD_INSPEC_COORD) {
         status = SPCERR_BAD_SPEC;
@@ -686,11 +672,10 @@ int spcs2x(
 
   } else {
     // Just a copy.
-    double *xp = x;
-    const double *specp = spec;
-    int *statp = stat;
-    for (int ispec = 0; ispec < nspec; ispec++, specp += sspec, xp += sx,
-         statp++) {
+    xp = x;
+    specp = spec;
+    statp = stat;
+    for (ispec = 0; ispec < nspec; ispec++, specp += sspec, xp += sx, statp++) {
       *xp = *specp;
       *statp = 0;
     }
@@ -700,7 +685,6 @@ int spcs2x(
   // Apply the non-linear step of the algorithm chain to convert P-type
   // intermediate spectral variable to X-type spectral variable.
   if (spc->spxP2X) {
-    int statP2X;
     if ((statP2X = spc->spxP2X(spc->w[0], nspec, sx, sx, x, x, stat))) {
       if (statP2X == SPCERR_BAD_SPEC) {
         status = SPCERR_BAD_SPEC;
@@ -715,14 +699,14 @@ int spcs2x(
 
   if (spc->isGrism) {
     // Convert X-type spectral variable (wavelength) to grism parameter.
-    double *xp = x;
-    int *statp = stat;
-    for (int ispec = 0; ispec < nspec; ispec++, xp += sx, statp++) {
+    xp = x;
+    statp = stat;
+    for (ispec = 0; ispec < nspec; ispec++, xp += sx, statp++) {
       if (*statp) continue;
 
-      double s = *xp/spc->w[5] - spc->w[4];
+      s = *xp/spc->w[5] - spc->w[4];
       if (fabs(s) <= 1.0) {
-        double beta = asind(s);
+        beta = asind(s);
         *xp = tand(beta - spc->w[3]);
       } else {
         *statp = 1;
@@ -732,9 +716,9 @@ int spcs2x(
 
 
   // Convert X-type spectral variable to intermediate world coordinate x.
-  double *xp = x;
-  int *statp = stat;
-  for (int ispec = 0; ispec < nspec; ispec++, xp += sx, statp++) {
+  xp = x;
+  statp = stat;
+  for (ispec = 0; ispec < nspec; ispec++, xp += sx, statp++) {
     if (*statp) continue;
 
     *xp -= spc->w[1];
@@ -780,20 +764,15 @@ int spctype(
 {
   static const char *function = "spctype";
 
-  // Compiler balm for premature return on error.
-  if (ptype)   *ptype = ' ';
-  if (xtype)   *xtype = ' ';
-  if (restreq) *restreq = 0;
+  char ctype[9], ptype_t, sname_t[32], units_t[8], xtype_t;
+  int  restreq_t = 0;
 
   if (err) *err = 0x0;
 
   // Copy with blank padding.
-  char ctype[9];
   sprintf(ctype, "%-8.8s", ctypei);
   ctype[8] = '\0';
 
-  char sname_t[32], units_t[8], ptype_t;
-  int  restreq_t = 0;
   // Validate the S-type spectral variable.
   if (strncmp(ctype, "FREQ", 4) == 0) {
     strcpy(sname_t, "Frequency");
@@ -849,7 +828,6 @@ int spctype(
 
 
   // Determine X-type and validate the spectral algorithm code.
-  char xtype_t;
   if ((xtype_t = ctype[5]) == ' ') {
     // The algorithm code must be completely blank.
     if (strcmp(ctype+4, "    ") != 0) {
@@ -929,6 +907,7 @@ int spctype(
   if (xtype) *xtype = xtype_t;
   if (restreq) *restreq = restreq_t;
 
+
   return 0;
 }
 
@@ -967,9 +946,13 @@ int spcspxe(
 {
   static const char *function = "spcspxe";
 
-  // Analyse the spectral axis code.
-  char stype[5], scode[4];
+  char scode[4], stype[5], type[8];
   int  status;
+  double dPdS, dXdP;
+  struct spxprm spx;
+
+
+  // Analyse the spectral axis code.
   if ((status = spctype(ctypeS, stype, scode, 0x0, 0x0, ptype, xtype, restreq,
                         err))) {
     return status;
@@ -988,10 +971,7 @@ int spcspxe(
   }
 
   // Compute all spectral parameters and their derivatives.
-  char type[8];
   strcpy(type, stype);
-
-  struct spxprm spx;
   spx.err = (err ? *err : 0x0);
   if ((status = specx(type, crvalS, restfrq, restwav, &spx))) {
     status = spc_spxerr[status];
@@ -1007,8 +987,8 @@ int spcspxe(
 
 
   // Transform S-P (linear) and P-X (non-linear).
-  double dPdS = 0.0;
-  double dXdP = 0.0;
+  dPdS = 0.0;
+  dXdP = 0.0;
   if (*ptype == 'F') {
     if (strcmp(stype, "FREQ") == 0) {
       dPdS = 1.0;
@@ -1140,13 +1120,12 @@ int spcxpse(
 {
   static const char *function = "spcxpse";
 
-  // Compiler balm for premature return on error.
-  *crvalS  = 0.0;
-  *dSdX    = 0.0;
+  char scode[4], stype[5], type[8];
+  int  status;
+  double dPdX, dSdP;
+  struct spxprm spx;
 
   // Analyse the spectral axis type.
-  char stype[5], scode[4];
-  int status;
   if ((status = spctype(ctypeS, stype, scode, 0x0, 0x0, ptype, xtype, restreq,
                         err))) {
     return status;
@@ -1165,7 +1144,6 @@ int spcxpse(
   }
 
   // Compute all spectral parameters and their derivatives.
-  char type[8];
   if (*xtype == 'F') {
     strcpy(type, "FREQ");
   } else if (*xtype == 'W' || *xtype == 'w') {
@@ -1176,7 +1154,6 @@ int spcxpse(
     strcpy(type, "VELO");
   }
 
-  struct spxprm spx;
   spx.err = (err ? *err : 0x0);
   if (specx(type, crvalX, restfrq, restwav, &spx)) {
     status = spc_spxerr[status];
@@ -1192,8 +1169,8 @@ int spcxpse(
 
 
   // Transform X-P (non-linear) and P-S (linear).
-  double dPdX = 0.0;
-  double dSdP = 0.0;
+  dPdX = 0.0;
+  dSdP = 0.0;
   if (*ptype == 'F') {
     if (*xtype == 'F') {
       dPdX = 1.0;
@@ -1318,15 +1295,14 @@ int spctrne(
 {
   static const char *function = "spctrne";
 
-  // Compiler balm for premature return on error.
-  *crvalS2 = 0.0;
-  *cdeltS2 = 0.0;
+  char *cp, ptype1, ptype2, stype1[5], stype2[5], xtype1, xtype2;
+  int  restreq, status;
+  double crvalX, dS2dX, dXdS1;
 
   if (restfrq == 0.0 && restwav == 0.0) {
     // If translating between two velocity-characteristic types, or between
     // two wave-characteristic types, then we may need to set a dummy rest
     // frequency or wavelength to perform the calculations.
-    char stype1[5], stype2[5];
     strncpy(stype1, ctypeS1, 4);
     strncpy(stype2, ctypeS2, 4);
     stype1[4] = stype2[4] = '\0';
@@ -1336,16 +1312,12 @@ int spctrne(
     }
   }
 
-  char   ptype1, xtype1;
-  int    status, restreq;
-  double crvalX, dXdS1;
   if ((status = spcspxe(ctypeS1, crvalS1, restfrq, restwav, &ptype1, &xtype1,
                         &restreq, &crvalX, &dXdS1, err))) {
     return status;
   }
 
   // Pad with blanks.
-  char *cp;
   ctypeS2[8] = '\0';
   for (cp = ctypeS2; *cp; cp++);
   while (cp < ctypeS2+8) *(cp++) = ' ';
@@ -1362,8 +1334,6 @@ int spctrne(
     }
   }
 
-  char   ptype2, xtype2;
-  double dS2dX;
   if ((status = spcxpse(ctypeS2, crvalX, restfrq, restwav, &ptype2, &xtype2,
                         &restreq, crvalS2, &dS2dX, err))) {
     return status;
@@ -1399,6 +1369,8 @@ int spcaips(
 {
   const char *frames[] = {"LSRK", "BARYCENT", "TOPOCENT",
                           "LSRD", "GEOCENTR", "SOURCE", "GALACTOC"};
+  char *fcode;
+  int  ivf, status;
 
   // Make a null-filled copy of ctypeA.
   if (ctype != ctypeA) strncpy(ctype, ctypeA, 8);
@@ -1407,12 +1379,11 @@ int spcaips(
   *specsys = '\0';
 
   // Is it a recognized AIPS-convention type?
-  int status = SPCERR_NO_CHANGE;
+  status = SPCERR_NO_CHANGE;
   if (strncmp(ctype, "FREQ", 4) == 0 ||
       strncmp(ctype, "VELO", 4) == 0 ||
       strncmp(ctype, "FELO", 4) == 0) {
     // Look for the Doppler frame.
-    char *fcode;
     if (*(fcode = ctype+4)) {
       if (strcmp(fcode, "-LSR") == 0) {
         strcpy(specsys, "LSRK");
@@ -1430,7 +1401,7 @@ int spcaips(
     }
 
     // VELREF takes precedence if present.
-    int ivf = velref%256;
+    ivf = velref%256;
     if (0 < ivf && ivf <= 7) {
       strcpy(specsys, frames[ivf-1]);
       status = 0;

@@ -1,13 +1,13 @@
 # The purpose of these tests are to ensure that calling quantities using
 # array methods returns quantities with the right units, or raises exceptions.
+import sys
 
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
-from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT
+from astropy.utils.compat import NUMPY_LT_1_21_1, NUMPY_LT_1_22
 
 
 class TestQuantityArrayCopy:
@@ -62,8 +62,10 @@ class TestQuantityArrayCopy:
         # and that getting a range works as well
         assert np.all(q_flat[0:2] == np.arange(2.0) * u.m / u.s)
         # as well as getting items via iteration
-        q_flat_list = list(q.flat)
-        assert np.all(u.Quantity(q_flat_list) == u.Quantity(list(q.value.flat), q.unit))
+        q_flat_list = [_q for _q in q.flat]
+        assert np.all(
+            u.Quantity(q_flat_list) == u.Quantity([_a for _a in q.value.flat], q.unit)
+        )
         # check that flat works like a view of the real array
         q_flat[8] = -1.0 * u.km / u.s
         assert q_flat[8] == -1.0 * u.km / u.s
@@ -123,6 +125,9 @@ class TestQuantityReshapeFuncs:
         assert q_swapaxes.unit == q.unit
         assert np.all(q_swapaxes.value == q.value.swapaxes(0, 2))
 
+    @pytest.mark.xfail(
+        sys.byteorder == "big" and NUMPY_LT_1_21_1, reason="Numpy GitHub Issue 19153"
+    )
     def test_flat_attributes(self):
         """While ``flat`` doesn't make a copy, it changes the shape."""
         q = np.arange(6.0).reshape(3, 1, 2) * u.m
@@ -227,6 +232,7 @@ class TestQuantityStatsFuncs:
         q1 = np.array([6.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         assert np.argmin(q1) == 1
 
+    @pytest.mark.skipif(NUMPY_LT_1_22, reason="keepdims only introduced in numpy 1.22")
     def test_argmin_keepdims(self):
         q1 = np.array([[6.0, 2.0], [4.0, 5.0]]) * u.m
         assert_array_equal(q1.argmin(axis=0, keepdims=True), np.array([[1, 0]]))
@@ -249,6 +255,7 @@ class TestQuantityStatsFuncs:
         q1 = np.array([5.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         assert np.argmax(q1) == 4
 
+    @pytest.mark.skipif(NUMPY_LT_1_22, reason="keepdims only introduced in numpy 1.22")
     def test_argmax_keepdims(self):
         q1 = np.array([[6.0, 2.0], [4.0, 5.0]]) * u.m
         assert_array_equal(q1.argmax(axis=0, keepdims=True), np.array([[0, 1]]))
@@ -348,6 +355,37 @@ class TestQuantityStatsFuncs:
         q1.cumsum(out=q1)
         assert np.all(q2 == qi)
 
+    def test_nansum(self):
+        q1 = np.array([1.0, 2.0, np.nan]) * u.m
+        assert np.all(q1.nansum() == 3.0 * u.m)
+        assert np.all(np.nansum(q1) == 3.0 * u.m)
+
+        q2 = np.array([[np.nan, 5.0, 9.0], [1.0, np.nan, 1.0]]) * u.s
+        assert np.all(q2.nansum(0) == np.array([1.0, 5.0, 10.0]) * u.s)
+        assert np.all(np.nansum(q2, 0) == np.array([1.0, 5.0, 10.0]) * u.s)
+
+    def test_nansum_inplace(self):
+        q1 = np.array([1.0, 2.0, np.nan]) * u.m
+        qi = 1.5 * u.s
+        qout = q1.nansum(out=qi)
+        assert qout is qi
+        assert qi == np.nansum(q1.value) * q1.unit
+
+        qi2 = 1.5 * u.s
+        qout2 = np.nansum(q1, out=qi2)
+        assert qout2 is qi2
+        assert qi2 == np.nansum(q1.value) * q1.unit
+
+    @pytest.mark.xfail(
+        NUMPY_LT_1_22, reason="'where' keyword argument not supported for numpy < 1.22"
+    )
+    def test_nansum_where(self):
+        q1 = np.array([1.0, 2.0, np.nan, 4.0]) * u.m
+        initial = 0 * u.m
+        where = q1 < 4 * u.m
+        assert np.all(q1.nansum(initial=initial, where=where) == 3.0 * u.m)
+        assert np.all(np.nansum(q1, initial=initial, where=where) == 3.0 * u.m)
+
     def test_prod(self):
         q1 = np.array([1, 2, 6]) * u.m
         with pytest.raises(u.UnitsError) as exc:
@@ -430,18 +468,6 @@ class TestArrayConversion:
     def test_item(self):
         q1 = u.Quantity(np.array([1, 2, 3]), u.m / u.km, dtype=int)
         assert q1.item(1) == 2 * q1.unit
-
-        q1[1] = 1
-        assert q1[1] == 1000 * u.m / u.km
-        q1[1] = 100 * u.cm / u.km
-        assert q1[1] == 1 * u.m / u.km
-        with pytest.raises(TypeError):
-            q1[1] = 1.5 * u.m / u.km
-
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="itemset method removed in numpy 2.0")
-    def test_itemset(self):
-        q1 = u.Quantity(np.array([1, 2, 3]), u.m / u.km, dtype=int)
-        assert q1.item(1) == 2 * q1.unit
         q1.itemset(1, 1)
         assert q1.item(1) == 1000 * u.m / u.km
         q1.itemset(1, 100 * u.cm / u.km)
@@ -450,6 +476,13 @@ class TestArrayConversion:
             q1.itemset(1, 1.5 * u.m / u.km)
         with pytest.raises(ValueError):
             q1.itemset()
+
+        q1[1] = 1
+        assert q1[1] == 1000 * u.m / u.km
+        q1[1] = 100 * u.cm / u.km
+        assert q1[1] == 1 * u.m / u.km
+        with pytest.raises(TypeError):
+            q1[1] = 1.5 * u.m / u.km
 
     def test_take_put(self):
         q1 = np.array([1, 2, 3]) * u.m / u.km
@@ -574,13 +607,9 @@ class TestArrayConversion:
             q1.dumps()
 
 
-class TestStructuredArray:
-    """Structured arrays are not specifically supported, but we should not
-    prevent their use unnecessarily.
-
-    Note that these tests use simple units.  Now that structured units are
-    supported, it may make sense to deprecate this.
-    """
+class TestRecArray:
+    """Record arrays are not specifically supported, but we should not
+    prevent their use unnecessarily"""
 
     def setup_method(self):
         self.ra = (
@@ -595,28 +624,3 @@ class TestStructuredArray:
         qra = u.Quantity(self.ra, u.m)
         qra[1] = qra[2]
         assert qra[1] == qra[2]
-
-    def test_assignment_with_non_structured(self):
-        qra = u.Quantity(self.ra, u.m)
-        qra[1] = 0
-        assert qra[1] == np.zeros(3).view(qra.dtype)
-
-    def test_assignment_with_different_names(self):
-        qra = u.Quantity(self.ra, u.m)
-        dtype = np.dtype([("x", "f8"), ("y", "f8"), ("z", "f8")])
-        value = np.array((-1.0, -2.0, -3.0), dtype) << u.km
-        qra[1] = value
-        assert qra[1] == value
-        assert qra[1].value == np.array((-1000.0, -2000.0, -3000.0), qra.dtype)
-        # Ensure we do not override dtype names of value.
-        assert value.dtype.names == ("x", "y", "z")
-
-
-@pytest.mark.skipif(not HAS_ARRAY_API_STRICT, reason="requires array_api_strict")
-def test_array_api_init():
-    import array_api_strict as xp
-
-    array = xp.asarray([1, 2, 3])
-    quantity_array = u.Quantity(array, u.m)
-    assert type(quantity_array) is u.Quantity
-    assert_array_equal(quantity_array, [1, 2, 3] * u.m)

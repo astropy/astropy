@@ -4,17 +4,8 @@
 Handles the "Unicode" unit format.
 """
 
-from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from . import console
-
-if TYPE_CHECKING:
-    from typing import ClassVar
-
-    from astropy.units import NamedUnit
-    from astropy.units.typing import UnitPower
+from . import console, utils
 
 
 class Unicode(console.Console):
@@ -26,51 +17,51 @@ class Unicode(console.Console):
 
       >>> import astropy.units as u
       >>> print(u.bar.decompose().to_string('unicode'))
-      100000 kg m⁻¹ s⁻²
-      >>> print(u.bar.decompose().to_string('unicode', fraction='multiline'))
               kg
       100000 ────
              m s²
-      >>> print(u.bar.decompose().to_string('unicode', fraction='inline'))
-      100000 kg / (m s²)
     """
 
-    _times: ClassVar[str] = "×"
-    _line: ClassVar[str] = "─"
+    _times = "×"
+    _line = "─"
 
     @classmethod
-    def _format_mantissa(cls, m: str) -> str:
-        return m.replace("-", "−")
+    def _get_unit_name(cls, unit):
+        return unit.get_format_name("unicode")
 
     @classmethod
-    def _format_unit_power(cls, unit: NamedUnit, power: UnitPower = 1) -> str:
-        name = unit._get_format_name(cls.name)
-        # Check for superscript units
-        if power != 1:
-            if name in ("°", "e⁻", "″", "′", "ʰ"):
-                name = unit.short_names[0]
-            name += cls._format_power(power)
-        return name
+    def format_exponential_notation(cls, val):
+        m, ex = utils.split_mantissa_exponent(val)
+
+        parts = []
+        if m:
+            parts.append(m.replace("-", "−"))
+
+        if ex:
+            parts.append(f"10{cls._format_superscript(ex)}")
+
+        return cls._times.join(parts)
 
     @classmethod
-    def _format_superscript(cls, number: str) -> str:
-        mapping = str.maketrans(
-            {
-                "0": "⁰",
-                "1": "¹",
-                "2": "²",
-                "3": "³",
-                "4": "⁴",
-                "5": "⁵",
-                "6": "⁶",
-                "7": "⁷",
-                "8": "⁸",
-                "9": "⁹",
-                "-": "⁻",
-                "−": "⁻",
-                # This is actually a "raised omission bracket", but it's
-                # the closest thing I could find to a superscript solidus.
-                "/": "⸍",
-            }
-        )
-        return number.translate(mapping)
+    def _format_superscript(cls, number):
+        mapping = {
+            "0": "⁰",
+            "1": "¹",
+            "2": "²",
+            "3": "³",
+            "4": "⁴",
+            "5": "⁵",
+            "6": "⁶",
+            "7": "⁷",
+            "8": "⁸",
+            "9": "⁹",
+            "-": "⁻",
+            "−": "⁻",
+            # This is actually a "raised omission bracket", but it's
+            # the closest thing I could find to a superscript solidus.
+            "/": "⸍",
+        }
+        output = []
+        for c in number:
+            output.append(mapping[c])
+        return "".join(output)

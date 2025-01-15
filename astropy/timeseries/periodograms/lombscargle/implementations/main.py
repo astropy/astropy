@@ -1,15 +1,13 @@
 """
-Main Lomb-Scargle Implementation.
+Main Lomb-Scargle Implementation
 
 The ``lombscargle`` function here is essentially a sophisticated switch
 statement for the various implementations available in this submodule
 """
 
-__all__ = ["available_methods", "lombscargle"]
+__all__ = ["lombscargle", "available_methods"]
 
 import numpy as np
-
-from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .chi2_impl import lombscargle_chi2
 from .cython_impl import lombscargle_cython
@@ -32,7 +30,11 @@ def available_methods():
     methods = ["auto", "slow", "chi2", "cython", "fast", "fastchi2"]
 
     # Scipy required for scipy algorithm (obviously)
-    if HAS_SCIPY:
+    try:
+        import scipy  # noqa: F401
+    except ImportError:
+        pass
+    else:
         methods.append("scipy")
     return methods
 
@@ -50,7 +52,7 @@ def _is_regular(frequency):
 
 
 def _get_frequency_grid(frequency, assume_regular_frequency=False):
-    """Utility to get grid parameters from a frequency array.
+    """Utility to get grid parameters from a frequency array
 
     Parameters
     ----------
@@ -78,7 +80,7 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
 def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_frequency):
     """
     Validate the method argument, and if method='auto'
-    choose the appropriate method.
+    choose the appropriate method
     """
     methods = available_methods()
     prefer_fast = len(frequency) > 200 and (

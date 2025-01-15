@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module provides functions to help with testing against iraf tasks.
+This module provides functions to help with testing against iraf tasks
 """
 
-from pathlib import Path
 
 import numpy as np
 
@@ -14,7 +13,7 @@ iraf_models_map = {1.0: "Chebyshev", 2.0: "Legendre", 3.0: "Spline3", 4.0: "Spli
 
 def get_records(fname):
     """
-    Read the records of an IRAF database file into a python list.
+    Read the records of an IRAF database file into a python list
 
     Parameters
     ----------
@@ -25,12 +24,17 @@ def get_records(fname):
     -------
         A list of records
     """
-    return [Record(r) for r in Path(fname).read_text().split("begin")[1:]]
+    f = open(fname)
+    dtb = f.read()
+    f.close()
+    recs = dtb.split("begin")[1:]
+    records = [Record(r) for r in recs]
+    return records
 
 
 def get_database_string(fname):
     """
-    Read an IRAF database file.
+    Read an IRAF database file
 
     Parameters
     ----------
@@ -41,12 +45,16 @@ def get_database_string(fname):
     -------
         the database file as a string
     """
-    return Path(fname).read_text()
+    f = open(fname)
+    dtb = f.read()
+    f.close()
+    return dtb
 
 
 class Record:
+
     """
-    A base class for all records - represents an IRAF database record.
+    A base class for all records - represents an IRAF database record
 
     Attributes
     ----------
@@ -111,8 +119,9 @@ class Record:
 
 
 class IdentifyRecord(Record):
+
     """
-    Represents a database record for the onedspec.identify task.
+    Represents a database record for the onedspec.identify task
 
     Attributes
     ----------
@@ -137,7 +146,7 @@ class IdentifyRecord(Record):
 
     def __init__(self, recstr):
         super().__init__(recstr)
-        self._flatcoeff = self.fields["coefficients"].ravel()
+        self._flatcoeff = self.fields["coefficients"].flatten()
         self.x = self.fields["features"][:, 0]
         self.y = self.get_ydata()
         self.z = self.fields["features"][:, 1]
@@ -173,8 +182,9 @@ class IdentifyRecord(Record):
 
 
 class FitcoordsRecord(Record):
+
     """
-    Represents a database record for the longslit.fitccords task.
+    Represents a database record for the longslit.fitccords task
 
     Attributes
     ----------
@@ -195,7 +205,7 @@ class FitcoordsRecord(Record):
 
     def __init__(self, recstr):
         super().__init__(recstr)
-        self._surface = self.fields["surface"].ravel()
+        self._surface = self.fields["surface"].flatten()
         self.modelname = iraf_models_map[self._surface[0]]
         self.xorder = self._surface[1]
         self.yorder = self._surface[2]
@@ -208,8 +218,9 @@ class FitcoordsRecord(Record):
 
 
 class IDB:
+
     """
-    Base class for an IRAF identify database.
+    Base class for an IRAF identify database
 
     Attributes
     ----------
@@ -238,8 +249,9 @@ class IDB:
 
 
 class ReidentifyRecord(IDB):
+
     """
-    Represents a database record for the onedspec.reidentify task.
+    Represents a database record for the onedspec.reidentify task
     """
 
     def __init__(self, databasestr):

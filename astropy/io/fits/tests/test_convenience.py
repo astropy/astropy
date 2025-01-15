@@ -250,7 +250,7 @@ class TestConvenience(FitsTestCase):
 
         hdus = [fits.PrimaryHDU(np.zeros((10, 10))), fits.ImageHDU(np.zeros((10, 10)))]
 
-        # Try to update a non-existent file
+        # Try to update a non-existant file
         with pytest.raises(FileNotFoundError, match="No such file"):
             fits.update(
                 filename, np.zeros((10, 10)), header=fits.Header([("WHAT", 100)]), ext=1
@@ -291,6 +291,7 @@ class TestConvenience(FitsTestCase):
         # Test HDU object inputs
         with fits.open(self.data("stddata.fits"), mode="readonly") as in1:
             with fits.open(self.data("checksum.fits"), mode="readonly") as in2:
+
                 assert printdiff(in1[0], in2[0]) is None
 
                 with pytest.raises(ValueError):

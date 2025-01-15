@@ -1,16 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Mathematical models."""
-
 # pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
-import warnings
-
 import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
-from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .core import Fittable1DModel, Fittable2DModel
 from .parameters import InputParameterError, Parameter
@@ -18,42 +13,40 @@ from .utils import ellipse_extent
 
 __all__ = [
     "AiryDisk2D",
-    "ArcCosine1D",
-    "ArcSine1D",
-    "ArcTangent1D",
+    "Moffat1D",
+    "Moffat2D",
     "Box1D",
     "Box2D",
     "Const1D",
     "Const2D",
-    "Cosine1D",
-    "Disk2D",
     "Ellipse2D",
-    "Exponential1D",
+    "Disk2D",
     "Gaussian1D",
     "Gaussian2D",
-    "GeneralSersic2D",
-    "KingProjectedAnalytic1D",
     "Linear1D",
-    "Logarithmic1D",
     "Lorentz1D",
-    "Lorentz2D",
-    "Moffat1D",
-    "Moffat2D",
-    "Multiply",
-    "Planar2D",
-    "RedshiftScaleFactor",
     "RickerWavelet1D",
     "RickerWavelet2D",
-    "Ring2D",
+    "RedshiftScaleFactor",
+    "Multiply",
+    "Planar2D",
     "Scale",
     "Sersic1D",
     "Sersic2D",
     "Shift",
     "Sine1D",
+    "Cosine1D",
     "Tangent1D",
+    "ArcSine1D",
+    "ArcCosine1D",
+    "ArcTangent1D",
     "Trapezoid1D",
     "TrapezoidDisk2D",
+    "Ring2D",
     "Voigt1D",
+    "KingProjectedAnalytic1D",
+    "Exponential1D",
+    "Logarithmic1D",
 ]
 
 TWOPI = 2 * np.pi
@@ -81,8 +74,8 @@ class Gaussian1D(Fittable1DModel):
 
     Notes
     -----
-    The ``x``, ``mean``, and ``stddev`` inputs must have compatible
-    units or be unitless numbers.
+    Either all or none of input ``x``, ``mean`` and ``stddev`` must be provided
+    consistently with compatible units or as unitless numbers.
 
     Model formula:
 
@@ -166,7 +159,7 @@ class Gaussian1D(Fittable1DModel):
     def bounding_box(self, factor=5.5):
         """
         Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``.
+        ``(x_low, x_high)``
 
         Parameters
         ----------
@@ -201,6 +194,7 @@ class Gaussian1D(Fittable1DModel):
             order='C'
         )
         """
+
         x0 = self.mean
         dx = factor * self.stddev
 
@@ -223,6 +217,7 @@ class Gaussian1D(Fittable1DModel):
         """
         Gaussian1D model function derivatives.
         """
+
         d_amplitude = np.exp(-0.5 / stddev**2 * (x - mean) ** 2)
         d_mean = amplitude * d_amplitude * (x - mean) / stddev**2
         d_stddev = amplitude * d_amplitude * (x - mean) ** 2 / stddev**3
@@ -230,9 +225,9 @@ class Gaussian1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.mean.input_unit is None:
+        if self.mean.unit is None:
             return None
-        return {self.inputs[0]: self.mean.input_unit}
+        return {self.inputs[0]: self.mean.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -275,8 +270,8 @@ class Gaussian2D(Fittable2DModel):
 
     Notes
     -----
-    The ``x, y``, ``[x,y]_mean``, and ``[x,y]_stddev`` inputs must have
-    compatible units or be unitless numbers.
+    Either all or none of input ``x, y``, ``[x,y]_mean`` and ``[x,y]_stddev``
+    must be provided consistently with compatible units or as unitless numbers.
 
     Model formula:
 
@@ -415,7 +410,7 @@ class Gaussian2D(Fittable2DModel):
     def bounding_box(self, factor=5.5):
         """
         Tuple defining the default ``bounding_box`` limits in each dimension,
-        ``((y_low, y_high), (x_low, x_high))``.
+        ``((y_low, y_high), (x_low, x_high))``
 
         The default offset from the mean is 5.5-sigma, corresponding
         to a relative error < 1e-7. The limits are adjusted for rotation.
@@ -455,6 +450,7 @@ class Gaussian2D(Fittable2DModel):
             order='C'
         )
         """
+
         a = factor * self.x_stddev
         b = factor * self.y_stddev
         dx, dy = ellipse_extent(a, b, self.theta)
@@ -466,7 +462,8 @@ class Gaussian2D(Fittable2DModel):
 
     @staticmethod
     def evaluate(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
-        """Two dimensional Gaussian function."""
+        """Two dimensional Gaussian function"""
+
         cost2 = np.cos(theta) ** 2
         sint2 = np.sin(theta) ** 2
         sin2t = np.sin(2.0 * theta)
@@ -483,7 +480,8 @@ class Gaussian2D(Fittable2DModel):
 
     @staticmethod
     def fit_deriv(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
-        """Two dimensional Gaussian function derivative with respect to parameters."""
+        """Two dimensional Gaussian function derivative with respect to parameters"""
+
         cost = np.cos(theta)
         sint = np.sin(theta)
         cost2 = np.cos(theta) ** 2
@@ -535,13 +533,9 @@ class Gaussian2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        x_unit = self.x_mean.input_unit
-        y_unit = self.y_mean.input_unit
-
-        if x_unit is None and y_unit is None:
+        if self.x_mean.unit is None and self.y_mean.unit is None:
             return None
-
-        return {self.inputs[0]: x_unit, self.inputs[1]: y_unit}
+        return {self.inputs[0]: self.x_mean.unit, self.inputs[1]: self.y_mean.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -576,18 +570,19 @@ class Shift(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.offset.input_unit is None:
+        if self.offset.unit is None:
             return None
-        return {self.inputs[0]: self.offset.input_unit}
+        return {self.inputs[0]: self.offset.unit}
 
     @property
     def inverse(self):
-        """One dimensional inverse Shift model function."""
+        """One dimensional inverse Shift model function"""
+
         inv = self.copy()
         inv.offset *= -1
 
         try:
-            self.bounding_box  # noqa: B018
+            self.bounding_box
         except NotImplementedError:
             pass
         else:
@@ -599,17 +594,18 @@ class Shift(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, offset):
-        """One dimensional Shift model function."""
+        """One dimensional Shift model function"""
         return x + offset
 
     @staticmethod
     def sum_of_implicit_terms(x):
-        """Evaluate the implicit term (x) of one dimensional Shift model."""
+        """Evaluate the implicit term (x) of one dimensional Shift model"""
         return x
 
     @staticmethod
     def fit_deriv(x, *params):
-        """One dimensional Shift model derivative with respect to parameter."""
+        """One dimensional Shift model derivative with respect to parameter"""
+
         d_offset = np.ones_like(x)
         return [d_offset]
 
@@ -628,6 +624,7 @@ class Scale(Fittable1DModel):
 
     Notes
     -----
+
     If ``factor`` is a `~astropy.units.Quantity` then the units will be
     stripped before the scaling operation.
 
@@ -644,18 +641,18 @@ class Scale(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.factor.input_unit is None:
+        if self.factor.unit is None:
             return None
-        return {self.inputs[0]: self.factor.input_unit}
+        return {self.inputs[0]: self.factor.unit}
 
     @property
     def inverse(self):
-        """One dimensional inverse Scale model function."""
+        """One dimensional inverse Scale model function"""
         inv = self.copy()
         inv.factor = 1 / self.factor
 
         try:
-            self.bounding_box  # noqa: B018
+            self.bounding_box
         except NotImplementedError:
             pass
         else:
@@ -667,7 +664,7 @@ class Scale(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, factor):
-        """One dimensional Scale model function."""
+        """One dimensional Scale model function"""
         if isinstance(factor, u.Quantity):
             factor = factor.value
 
@@ -675,7 +672,8 @@ class Scale(Fittable1DModel):
 
     @staticmethod
     def fit_deriv(x, *params):
-        """One dimensional Scale model derivative with respect to parameter."""
+        """One dimensional Scale model derivative with respect to parameter"""
+
         d_factor = x
         return [d_factor]
 
@@ -701,12 +699,12 @@ class Multiply(Fittable1DModel):
 
     @property
     def inverse(self):
-        """One dimensional inverse multiply model function."""
+        """One dimensional inverse multiply model function"""
         inv = self.copy()
         inv.factor = 1 / self.factor
 
         try:
-            self.bounding_box  # noqa: B018
+            self.bounding_box
         except NotImplementedError:
             pass
         else:
@@ -718,12 +716,13 @@ class Multiply(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, factor):
-        """One dimensional multiply model function."""
+        """One dimensional multiply model function"""
         return factor * x
 
     @staticmethod
     def fit_deriv(x, *params):
-        """One dimensional multiply model derivative with respect to parameter."""
+        """One dimensional multiply model derivative with respect to parameter"""
+
         d_factor = x
         return [d_factor]
 
@@ -753,23 +752,26 @@ class RedshiftScaleFactor(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, z):
-        """One dimensional RedshiftScaleFactor model function."""
+        """One dimensional RedshiftScaleFactor model function"""
+
         return (1 + z) * x
 
     @staticmethod
     def fit_deriv(x, z):
-        """One dimensional RedshiftScaleFactor model derivative."""
+        """One dimensional RedshiftScaleFactor model derivative"""
+
         d_z = x
         return [d_z]
 
     @property
     def inverse(self):
-        """Inverse RedshiftScaleFactor model."""
+        """Inverse RedshiftScaleFactor model"""
+
         inv = self.copy()
         inv.z = 1.0 / (1.0 + self.z) - 1.0
 
         try:
-            self.bounding_box  # noqa: B018
+            self.bounding_box
         except NotImplementedError:
             pass
         else:
@@ -787,16 +789,11 @@ class Sersic1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float
-        Surface brightness at ``r_eff``.
+        Surface brightness at r_eff.
     r_eff : float
-        Effective (half-light) radius.
+        Effective (half-light) radius
     n : float
-        Sersic index controlling the shape of the profile. Particular
-        values of ``n`` are equivalent to the following profiles:
-
-            * n=4 : `de Vaucouleurs <https://en.wikipedia.org/wiki/De_Vaucouleurs%27s_law>`_ :math:`r^{1/4}` profile
-            * n=1 : Exponential profile
-            * n=0.5 : Gaussian profile
+        Sersic Index.
 
     See Also
     --------
@@ -804,31 +801,18 @@ class Sersic1D(Fittable1DModel):
 
     Notes
     -----
-    The ``r`` and ``r_eff`` inputs must have compatible units or be
-    unitless numbers.
-
     Model formula:
 
     .. math::
 
-        I(r) = I_{e} \exp\left\{
-               -b_{n} \left[\left(\frac{r}{r_{e}}\right)^{(1/n)}
-               -1\right]\right\}
+        I(r)=I_e\exp\left\{-b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]\right\}
 
-    where :math:`I_{e}` is the ``amplitude`` and :math:`r_{e}` is ``reff``.
-
-    The constant :math:`b_{n}` is defined such that :math:`r_{e}`
-    contains half the total luminosity. It can be solved for numerically
-    from the following equation:
+    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
+    luminosity, and can be solved for numerically.
 
     .. math::
 
-        \Gamma(2n) = 2\gamma (2n, b_{n})
-
-    where :math:`\Gamma(a)` is the `gamma function
-    <https://en.wikipedia.org/wiki/Gamma_function>`_ and
-    :math:`\gamma(a, x)` is the `lower incomplete gamma function
-    <https://en.wikipedia.org/wiki/Incomplete_gamma_function>`_.
+        \Gamma(2n) = 2\gamma (b_n,2n)
 
     Examples
     --------
@@ -842,17 +826,17 @@ class Sersic1D(Fittable1DModel):
         plt.figure()
         plt.subplot(111, xscale='log', yscale='log')
         s1 = Sersic1D(amplitude=1, r_eff=5)
-        r = np.arange(0, 100, 0.01)
+        r=np.arange(0, 100, .01)
 
         for n in range(1, 10):
              s1.n = n
-             plt.plot(r, s1(r))
+             plt.plot(r, s1(r), color=str(float(n) / 15))
 
         plt.axis([1e-1, 30, 1e-2, 1e3])
         plt.xlabel('log Radius')
         plt.ylabel('log Surface Brightness')
-        plt.text(0.25, 1.5, 'n=1')
-        plt.text(0.25, 300, 'n=10')
+        plt.text(.25, 1.5, 'n=1')
+        plt.text(.25, 300, 'n=10')
         plt.xticks([])
         plt.yticks([])
         plt.show()
@@ -864,12 +848,13 @@ class Sersic1D(Fittable1DModel):
 
     amplitude = Parameter(default=1, description="Surface brightness at r_eff")
     r_eff = Parameter(default=1, description="Effective (half-light) radius")
-    n = Parameter(default=4, description="Sersic index")
+    n = Parameter(default=4, description="Sersic Index")
     _gammaincinv = None
 
     @classmethod
     def evaluate(cls, r, amplitude, r_eff, n):
         """One dimensional Sersic profile function."""
+
         if cls._gammaincinv is None:
             from scipy.special import gammaincinv
 
@@ -881,9 +866,9 @@ class Sersic1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.r_eff.input_unit is None:
+        if self.r_eff.unit is None:
             return None
-        return {self.inputs[0]: self.r_eff.input_unit}
+        return {self.inputs[0]: self.r_eff.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -894,7 +879,7 @@ class Sersic1D(Fittable1DModel):
 
 class _Trigonometric1D(Fittable1DModel):
     """
-    Base class for one dimensional trigonometric and inverse trigonometric models.
+    Base class for one dimensional trigonometric and inverse trigonometric models
 
     Parameters
     ----------
@@ -912,9 +897,9 @@ class _Trigonometric1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.frequency.input_unit is None:
+        if self.frequency.unit is None:
             return None
-        return {self.inputs[0]: 1.0 / self.frequency.input_unit}
+        return {self.inputs[0]: 1.0 / self.frequency.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -971,7 +956,7 @@ class Sine1D(_Trigonometric1D):
 
     @staticmethod
     def evaluate(x, amplitude, frequency, phase):
-        """One dimensional Sine model function."""
+        """One dimensional Sine model function"""
         # Note: If frequency and x are quantities, they should normally have
         # inverse units, so that argument ends up being dimensionless. However,
         # np.sin of a dimensionless quantity will crash, so we remove the
@@ -984,7 +969,8 @@ class Sine1D(_Trigonometric1D):
 
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
-        """One dimensional Sine model derivative."""
+        """One dimensional Sine model derivative"""
+
         d_amplitude = np.sin(TWOPI * frequency * x + TWOPI * phase)
         d_frequency = (
             TWOPI * x * amplitude * np.cos(TWOPI * frequency * x + TWOPI * phase)
@@ -994,7 +980,8 @@ class Sine1D(_Trigonometric1D):
 
     @property
     def inverse(self):
-        """One dimensional inverse of Sine."""
+        """One dimensional inverse of Sine"""
+
         return ArcSine1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1048,7 +1035,7 @@ class Cosine1D(_Trigonometric1D):
 
     @staticmethod
     def evaluate(x, amplitude, frequency, phase):
-        """One dimensional Cosine model function."""
+        """One dimensional Cosine model function"""
         # Note: If frequency and x are quantities, they should normally have
         # inverse units, so that argument ends up being dimensionless. However,
         # np.sin of a dimensionless quantity will crash, so we remove the
@@ -1061,7 +1048,8 @@ class Cosine1D(_Trigonometric1D):
 
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
-        """One dimensional Cosine model derivative."""
+        """One dimensional Cosine model derivative"""
+
         d_amplitude = np.cos(TWOPI * frequency * x + TWOPI * phase)
         d_frequency = -(
             TWOPI * x * amplitude * np.sin(TWOPI * frequency * x + TWOPI * phase)
@@ -1071,7 +1059,8 @@ class Cosine1D(_Trigonometric1D):
 
     @property
     def inverse(self):
-        """One dimensional inverse of Cosine."""
+        """One dimensional inverse of Cosine"""
+
         return ArcCosine1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1134,7 +1123,7 @@ class Tangent1D(_Trigonometric1D):
 
     @staticmethod
     def evaluate(x, amplitude, frequency, phase):
-        """One dimensional Tangent model function."""
+        """One dimensional Tangent model function"""
         # Note: If frequency and x are quantities, they should normally have
         # inverse units, so that argument ends up being dimensionless. However,
         # np.sin of a dimensionless quantity will crash, so we remove the
@@ -1147,7 +1136,8 @@ class Tangent1D(_Trigonometric1D):
 
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
-        """One dimensional Tangent model derivative."""
+        """One dimensional Tangent model derivative"""
+
         sec = 1 / (np.cos(TWOPI * frequency * x + TWOPI * phase)) ** 2
 
         d_amplitude = np.tan(TWOPI * frequency * x + TWOPI * phase)
@@ -1157,7 +1147,8 @@ class Tangent1D(_Trigonometric1D):
 
     @property
     def inverse(self):
-        """One dimensional inverse of Tangent."""
+        """One dimensional inverse of Tangent"""
+
         return ArcTangent1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1165,8 +1156,9 @@ class Tangent1D(_Trigonometric1D):
     def bounding_box(self):
         """
         Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``.
+        ``(x_low, x_high)``
         """
+
         bbox = [
             (-1 / 4 - self.phase) / self.frequency,
             (1 / 4 - self.phase) / self.frequency,
@@ -1180,14 +1172,14 @@ class Tangent1D(_Trigonometric1D):
 
 class _InverseTrigonometric1D(_Trigonometric1D):
     """
-    Base class for one dimensional inverse trigonometric models.
+    Base class for one dimensional inverse trigonometric models
     """
 
     @property
     def input_units(self):
-        if self.amplitude.input_unit is None:
+        if self.amplitude.unit is None:
             return None
-        return {self.inputs[0]: self.amplitude.input_unit}
+        return {self.inputs[0]: self.amplitude.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -1251,7 +1243,7 @@ class ArcSine1D(_InverseTrigonometric1D):
 
     @staticmethod
     def evaluate(x, amplitude, frequency, phase):
-        """One dimensional ArcSine model function."""
+        """One dimensional ArcSine model function"""
         # Note: If frequency and x are quantities, they should normally have
         # inverse units, so that argument ends up being dimensionless. However,
         # np.sin of a dimensionless quantity will crash, so we remove the
@@ -1267,7 +1259,8 @@ class ArcSine1D(_InverseTrigonometric1D):
 
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
-        """One dimensional ArcSine model derivative."""
+        """One dimensional ArcSine model derivative"""
+
         d_amplitude = -x / (
             TWOPI * frequency * amplitude**2 * np.sqrt(1 - (x / amplitude) ** 2)
         )
@@ -1278,13 +1271,15 @@ class ArcSine1D(_InverseTrigonometric1D):
     def bounding_box(self):
         """
         Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``.
+        ``(x_low, x_high)``
         """
+
         return -1 * self.amplitude, 1 * self.amplitude
 
     @property
     def inverse(self):
-        """One dimensional inverse of ArcSine."""
+        """One dimensional inverse of ArcSine"""
+
         return Sine1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1345,7 +1340,7 @@ class ArcCosine1D(_InverseTrigonometric1D):
 
     @staticmethod
     def evaluate(x, amplitude, frequency, phase):
-        """One dimensional ArcCosine model function."""
+        """One dimensional ArcCosine model function"""
         # Note: If frequency and x are quantities, they should normally have
         # inverse units, so that argument ends up being dimensionless. However,
         # np.sin of a dimensionless quantity will crash, so we remove the
@@ -1361,7 +1356,8 @@ class ArcCosine1D(_InverseTrigonometric1D):
 
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
-        """One dimensional ArcCosine model derivative."""
+        """One dimensional ArcCosine model derivative"""
+
         d_amplitude = x / (
             TWOPI * frequency * amplitude**2 * np.sqrt(1 - (x / amplitude) ** 2)
         )
@@ -1372,13 +1368,15 @@ class ArcCosine1D(_InverseTrigonometric1D):
     def bounding_box(self):
         """
         Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high)``.
+        ``(x_low, x_high)``
         """
+
         return -1 * self.amplitude, 1 * self.amplitude
 
     @property
     def inverse(self):
-        """One dimensional inverse of ArcCosine."""
+        """One dimensional inverse of ArcCosine"""
+
         return Cosine1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1433,7 +1431,7 @@ class ArcTangent1D(_InverseTrigonometric1D):
 
     @staticmethod
     def evaluate(x, amplitude, frequency, phase):
-        """One dimensional ArcTangent model function."""
+        """One dimensional ArcTangent model function"""
         # Note: If frequency and x are quantities, they should normally have
         # inverse units, so that argument ends up being dimensionless. However,
         # np.sin of a dimensionless quantity will crash, so we remove the
@@ -1449,7 +1447,8 @@ class ArcTangent1D(_InverseTrigonometric1D):
 
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
-        """One dimensional ArcTangent model derivative."""
+        """One dimensional ArcTangent model derivative"""
+
         d_amplitude = -x / (
             TWOPI * frequency * amplitude**2 * (1 + (x / amplitude) ** 2)
         )
@@ -1459,7 +1458,8 @@ class ArcTangent1D(_InverseTrigonometric1D):
 
     @property
     def inverse(self):
-        """One dimensional inverse of ArcTangent."""
+        """One dimensional inverse of ArcTangent"""
+
         return Tangent1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1494,12 +1494,14 @@ class Linear1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, slope, intercept):
-        """One dimensional Line model function."""
+        """One dimensional Line model function"""
+
         return slope * x + intercept
 
     @staticmethod
     def fit_deriv(x, *params):
-        """One dimensional Line model derivative with respect to parameters."""
+        """One dimensional Line model derivative with respect to parameters"""
+
         d_slope = x
         d_intercept = np.ones_like(x)
         return [d_slope, d_intercept]
@@ -1512,9 +1514,9 @@ class Linear1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.intercept.input_unit is None and self.slope.input_unit is None:
+        if self.intercept.unit is None and self.slope.unit is None:
             return None
-        return {self.inputs[0]: self.intercept.input_unit / self.slope.input_unit}
+        return {self.inputs[0]: self.intercept.unit / self.slope.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -1552,12 +1554,14 @@ class Planar2D(Fittable2DModel):
 
     @staticmethod
     def evaluate(x, y, slope_x, slope_y, intercept):
-        """Two dimensional Plane model function."""
+        """Two dimensional Plane model function"""
+
         return slope_x * x + slope_y * y + intercept
 
     @staticmethod
     def fit_deriv(x, y, *params):
-        """Two dimensional Plane model derivative with respect to parameters."""
+        """Two dimensional Plane model derivative with respect to parameters"""
+
         d_slope_x = x
         d_slope_y = y
         d_intercept = np.ones_like(x)
@@ -1578,21 +1582,21 @@ class Lorentz1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float or `~astropy.units.Quantity`.
-        Peak value. For a normalized profile (integrating to 1),
-        set amplitude = 2 / (np.pi * fwhm).
+        Peak value - for a normalized profile (integrating to 1),
+        set amplitude = 2 / (np.pi * fwhm)
     x_0 : float or `~astropy.units.Quantity`.
-        Position of the peak.
+        Position of the peak
     fwhm : float or `~astropy.units.Quantity`.
-        Full width at half maximum (FWHM).
+        Full width at half maximum (FWHM)
 
     See Also
     --------
-    Lorentz2D, Gaussian1D, Box1D, RickerWavelet1D
+    Gaussian1D, Box1D, RickerWavelet1D
 
     Notes
     -----
-    The ``x``, ``x_0``, and ``fwhm`` inputs must have compatible units
-    or be unitless numbers.
+    Either all or none of input ``x``, position ``x_0`` and ``fwhm`` must be provided
+    consistently with compatible units or as unitless numbers.
 
     Model formula:
 
@@ -1600,8 +1604,7 @@ class Lorentz1D(Fittable1DModel):
 
         f(x) = \\frac{A \\gamma^{2}}{\\gamma^{2} + \\left(x - x_{0}\\right)^{2}}
 
-    where :math:`\\gamma` is the half width at half maximum (HWHM),
-    which is half the FWHM.
+    where :math:`\\gamma` is half of given FWHM.
 
     Examples
     --------
@@ -1619,10 +1622,9 @@ class Lorentz1D(Fittable1DModel):
 
         for factor in range(1, 4):
             s1.amplitude = factor
-            plt.plot(r, s1(r), lw=2, label=f'Amplitude={factor}')
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
 
         plt.axis([-5, 5, -1, 4])
-        plt.legend()
         plt.show()
     """
 
@@ -1632,17 +1634,19 @@ class Lorentz1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, fwhm):
-        """One dimensional Lorentzian model function."""
+        """One dimensional Lorentzian model function"""
+
         return amplitude * ((fwhm / 2.0) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.0) ** 2)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, fwhm):
-        """One dimensional Lorentzian model derivative with respect to parameters."""
-        gamma = fwhm / 2.0
-        denom = gamma**2 + (x - x_0) ** 2
-        d_amplitude = gamma**2 / denom
-        d_x_0 = amplitude * gamma**2 * 2 * (x - x_0) / denom**2
-        d_fwhm = amplitude * gamma * (x - x_0) ** 2 / denom**2
+        """One dimensional Lorentzian model derivative with respect to parameters"""
+
+        d_amplitude = fwhm**2 / (fwhm**2 + (x - x_0) ** 2)
+        d_x_0 = (
+            amplitude * d_amplitude * (2 * x - 2 * x_0) / (fwhm**2 + (x - x_0) ** 2)
+        )
+        d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
         return [d_amplitude, d_x_0, d_fwhm]
 
     def bounding_box(self, factor=25):
@@ -1665,131 +1669,13 @@ class Lorentz1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.input_unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
             "x_0": inputs_unit[self.inputs[0]],
-            "fwhm": inputs_unit[self.inputs[0]],
-            "amplitude": outputs_unit[self.outputs[0]],
-        }
-
-
-class Lorentz2D(Fittable2DModel):
-    """
-    Two-dimensional Lorentzian model.
-
-    Parameters
-    ----------
-    amplitude : float or `~astropy.units.Quantity`.
-        Peak value.
-    x_0 : float or `~astropy.units.Quantity`.
-        Position of the peak in x.
-    y_0 : float or `~astropy.units.Quantity`.
-        Position of the peak in y.
-    fwhm : float or `~astropy.units.Quantity`.
-        Full width at half maximum (FWHM).
-
-    See Also
-    --------
-    Lorentz1D, Gaussian2D, Moffat2D
-
-    Notes
-    -----
-    The ``x``, ``y``, ``x_0``, ``y_0``, and ``fwhm`` inputs must have
-    compatible units or as unitless numbers.
-
-    Model formula:
-
-    .. math::
-
-        f(x, y) = \\frac{A \\gamma^{2}}{\\gamma^{2}
-                  + \\left(x - x_{0}\\right)^2 + \\left(y - y_{0}\\right)^{2}}
-
-    where :math:`\\gamma` is the half width at half maximum (HWHM), which
-    is half the FWHM.
-
-    The area under the `Lorentz2D` profile is infinite, therefore this
-    model profile cannot be normalized to sum to 1.
-
-    Examples
-    --------
-    .. plot::
-        :include-source:
-
-        import numpy as np
-        import matplotlib.pyplot as plt
-
-        from astropy.modeling.models import Lorentz2D
-
-        plt.figure()
-        model = Lorentz2D(x_0=12, y_0=12, fwhm=3)
-        yy, xx = np.mgrid[:25, :25]
-        data = model(xx, yy)
-
-        plt.imshow(data)
-        plt.show()
-    """
-
-    amplitude = Parameter(default=1, description="Peak value")
-    x_0 = Parameter(default=0, description="Position of the peak in x")
-    y_0 = Parameter(default=0, description="Position of the peak in y")
-    fwhm = Parameter(default=1, description="Full width at half maximum")
-
-    @staticmethod
-    def evaluate(x, y, amplitude, x_0, y_0, fwhm):
-        """Two dimensional Lorentzian model function."""
-        return amplitude * (
-            ((fwhm / 2.0) ** 2) / ((x - x_0) ** 2 + (y - y_0) ** 2 + (fwhm / 2.0) ** 2)
-        )
-
-    @staticmethod
-    def fit_deriv(x, y, amplitude, x_0, y_0, fwhm):
-        """Two dimensional Lorentzian model derivative with respect to parameters."""
-        gamma = fwhm / 2.0
-        r2 = (x - x_0) ** 2 + (y - y_0) ** 2
-        denom = gamma**2 + r2
-        denom2 = denom**2
-        d_amplitude = gamma**2 / denom
-        d_x_0 = amplitude * gamma**2 * 2 * (x - x_0) / denom2
-        d_y_0 = amplitude * gamma**2 * 2 * (y - y_0) / denom2
-        d_fwhm = (amplitude * (fwhm / 2) * r2) / denom2
-        return [d_amplitude, d_x_0, d_y_0, d_fwhm]
-
-    def bounding_box(self, factor=25):
-        """Tuple defining the default ``bounding_box`` limits,
-        ``(x_low, x_high), (y_low, y_high)``.
-
-        Parameters
-        ----------
-        factor : float
-            The multiple of FWHM used to define the limits.
-            Default is chosen to include most (99%) of the
-            area under the curve, while still showing the
-            central feature of interest.
-        """
-        x0 = self.x_0
-        y0 = self.y_0
-        dx = factor * self.fwhm
-        return ((x0 - dx, x0 + dx), (y0 - dx, y0 + dx))
-
-    @property
-    def input_units(self):
-        x_unit = self.x_0.input_unit
-        y_unit = self.y_0.input_unit
-        if x_unit is None and y_unit is None:
-            return None
-
-        return {self.inputs[0]: x_unit, self.inputs[1]: y_unit}
-
-    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
-            raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {
-            "x_0": inputs_unit[self.inputs[0]],
-            "y_0": inputs_unit[self.inputs[0]],
             "fwhm": inputs_unit[self.inputs[0]],
             "amplitude": outputs_unit[self.outputs[0]],
         }
@@ -1823,9 +1709,8 @@ class Voigt1D(Fittable1DModel):
 
     Notes
     -----
-    The ``x``, ``x_0``, and ``fwhm_*`` inputs must have compatible units
-    or be unitless numbers.
-
+    Either all or none of input ``x``, position ``x_0`` and the ``fwhm_*`` must be provided
+    consistently with compatible units or as unitless numbers.
     Voigt function is calculated as real part of the complex error function computed from either
     Humlicek's rational approximations (JQSRT 21:309, 1979; 27:437, 1982) following
     Schreier 2018 (MNRAS 479, 3068; and ``hum2zpf16m`` from his cpfX.py module); or
@@ -1869,23 +1754,9 @@ class Voigt1D(Fittable1DModel):
         amplitude_L=amplitude_L.default,
         fwhm_L=fwhm_L.default,
         fwhm_G=fwhm_G.default,
-        method=None,
+        method="humlicek2",
         **kwargs,
     ):
-        if str(method).lower() == "humlicek2" and HAS_SCIPY:
-            warnings.warn(
-                f"{method} has been deprecated since Astropy 5.3 and will be removed in a future version.\n"
-                "It is recommended to always use the `~scipy.special.wofz` implementation "
-                "when `scipy` is installed.",
-                AstropyDeprecationWarning,
-            )
-
-        if method is None:
-            if HAS_SCIPY:
-                method = "wofz"
-            else:
-                method = "humlicek2"
-
         if str(method).lower() in ("wofz", "scipy"):
             from scipy.special import wofz
 
@@ -1904,22 +1775,20 @@ class Voigt1D(Fittable1DModel):
 
     def _wrap_wofz(self, z):
         """Call complex error (Faddeeva) function w(z) implemented by algorithm `method`;
-        cache results for consecutive calls from `evaluate`, `fit_deriv`.
-        """
+        cache results for consecutive calls from `evaluate`, `fit_deriv`."""
+
         if z.shape == self._last_z.shape and np.allclose(
             z, self._last_z, rtol=1.0e-14, atol=1.0e-15
         ):
             return self._last_w
 
-        self._last_z = (
-            z.to_value(u.dimensionless_unscaled) if isinstance(z, u.Quantity) else z
-        )
-        self._last_w = self._faddeeva(self._last_z)
-
+        self._last_w = self._faddeeva(z)
+        self._last_z = z
         return self._last_w
 
     def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):
         """One dimensional Voigt function scaled to Lorentz peak amplitude."""
+
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * self.sqrt_ln2 / fwhm_G
         # The normalised Voigt profile is w.real * self.sqrt_ln2 / (self.sqrt_pi * fwhm_G) * 2 ;
         # for the legacy definition we multiply with np.pi * fwhm_L / 2 * amplitude_L
@@ -1929,6 +1798,7 @@ class Voigt1D(Fittable1DModel):
         """
         Derivative of the one dimensional Voigt function with respect to parameters.
         """
+
         s = self.sqrt_ln2 / fwhm_G
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * s
         # V * constant from McLean implementation (== their Voigt function)
@@ -1946,9 +1816,9 @@ class Voigt1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.input_unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -1960,7 +1830,7 @@ class Voigt1D(Fittable1DModel):
 
     @staticmethod
     def _hum2zpf16c(z, s=10.0):
-        """Complex error function w(z = x + iy) combining Humlicek's rational approximations.
+        """Complex error function w(z) for z = x + iy combining Humlicek's rational approximations:
 
         |x| + y > 10:  Humlicek (JQSRT, 1982) rational approximation for region II;
         else:          Humlicek (JQSRT, 1979) rational approximation with n=16 and delta=y0=1.35
@@ -1970,6 +1840,7 @@ class Voigt1D(Fittable1DModel):
         Originally licensed under a 3-clause BSD style license - see
         https://atmos.eoc.dlr.de/tools/lbl4IR/cpfX.py
         """
+
         # Optimized (single fraction) Humlicek region I rational approximation for n=16, delta=1.35
 
         # fmt: off
@@ -2084,7 +1955,8 @@ class Const1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude):
-        """One dimensional Constant model function."""
+        """One dimensional Constant model function"""
+
         if amplitude.size == 1:
             # This is slightly faster than using ones_like and multiplying
             x = np.empty_like(amplitude, shape=x.shape, dtype=x.dtype)
@@ -2100,7 +1972,8 @@ class Const1D(Fittable1DModel):
 
     @staticmethod
     def fit_deriv(x, amplitude):
-        """One dimensional Constant model derivative with respect to parameters."""
+        """One dimensional Constant model derivative with respect to parameters"""
+
         d_amplitude = np.ones_like(x)
         return [d_amplitude]
 
@@ -2139,7 +2012,8 @@ class Const2D(Fittable2DModel):
 
     @staticmethod
     def evaluate(x, y, amplitude):
-        """Two dimensional Constant model function."""
+        """Two dimensional Constant model function"""
+
         if amplitude.size == 1:
             # This is slightly faster than using ones_like and multiplying
             x = np.empty_like(amplitude, shape=x.shape, dtype=x.dtype)
@@ -2226,7 +2100,7 @@ class Ellipse2D(Fittable2DModel):
         y, x = np.mgrid[0:50, 0:50]
         fig, ax = plt.subplots(1, 1)
         ax.imshow(e(x, y), origin='lower', interpolation='none', cmap='Greys_r')
-        e2 = mpatches.Ellipse((x0, y0), 2*a, 2*b, angle=theta.degree, edgecolor='red',
+        e2 = mpatches.Ellipse((x0, y0), 2*a, 2*b, theta.degree, edgecolor='red',
                               facecolor='none')
         ax.add_patch(e2)
         plt.show()
@@ -2247,6 +2121,7 @@ class Ellipse2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
         """Two dimensional Ellipse model function."""
+
         xx = x - x_0
         yy = y - y_0
         cost = np.cos(theta)
@@ -2267,6 +2142,7 @@ class Ellipse2D(Fittable2DModel):
 
         ``((y_low, y_high), (x_low, x_high))``
         """
+
         a = self.a
         b = self.b
         theta = self.theta
@@ -2276,12 +2152,9 @@ class Ellipse2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {
-            self.inputs[0]: self.x_0.input_unit,
-            self.inputs[1]: self.y_0.input_unit,
-        }
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2339,7 +2212,8 @@ class Disk2D(Fittable2DModel):
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0):
-        """Two dimensional Disk model function."""
+        """Two dimensional Disk model function"""
+
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         result = np.select([rr <= R_0**2], [amplitude])
 
@@ -2354,6 +2228,7 @@ class Disk2D(Fittable2DModel):
 
         ``((y_low, y_high), (x_low, x_high))``
         """
+
         return (
             (self.y_0 - self.R_0, self.y_0 + self.R_0),
             (self.x_0 - self.R_0, self.x_0 + self.R_0),
@@ -2361,12 +2236,9 @@ class Disk2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        x_unit = self.x_0.input_unit
-        y_unit = self.y_0.input_unit
-
-        if x_unit is None and y_unit is None:
+        if self.x_0.unit is None and self.y_0.unit is None:
             return None
-        return {self.inputs[0]: x_unit, self.inputs[1]: y_unit}
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2465,6 +2337,7 @@ class Ring2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, r_in, width):
         """Two dimensional Ring model function."""
+
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         r_range = np.logical_and(rr >= r_in**2, rr <= (r_in + width) ** 2)
         result = np.select([r_range], [amplitude])
@@ -2480,18 +2353,16 @@ class Ring2D(Fittable2DModel):
 
         ``((y_low, y_high), (x_low, x_high))``
         """
+
         dr = self.r_in + self.width
 
         return ((self.y_0 - dr, self.y_0 + dr), (self.x_0 - dr, self.x_0 + dr))
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {
-            self.inputs[0]: self.x_0.input_unit,
-            self.inputs[1]: self.y_0.input_unit,
-        }
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2567,7 +2438,8 @@ class Box1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, width):
-        """One dimensional Box model function."""
+        """One dimensional Box model function"""
+
         inside = np.logical_and(x >= x_0 - width / 2.0, x <= x_0 + width / 2.0)
         return np.select([inside], [amplitude], 0)
 
@@ -2578,15 +2450,16 @@ class Box1D(Fittable1DModel):
 
         ``(x_low, x_high))``
         """
+
         dx = self.width / 2
 
         return (self.x_0 - dx, self.x_0 + dx)
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.input_unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     @property
     def return_units(self):
@@ -2651,7 +2524,8 @@ class Box2D(Fittable2DModel):
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, x_width, y_width):
-        """Two dimensional Box model function."""
+        """Two dimensional Box model function"""
+
         x_range = np.logical_and(x >= x_0 - x_width / 2.0, x <= x_0 + x_width / 2.0)
         y_range = np.logical_and(y >= y_0 - y_width / 2.0, y <= y_0 + y_width / 2.0)
 
@@ -2668,6 +2542,7 @@ class Box2D(Fittable2DModel):
 
         ``((y_low, y_high), (x_low, x_high))``
         """
+
         dx = self.x_width / 2
         dy = self.y_width / 2
 
@@ -2675,12 +2550,9 @@ class Box2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {
-            self.inputs[0]: self.x_0.input_unit,
-            self.inputs[1]: self.y_0.input_unit,
-        }
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -2741,7 +2613,8 @@ class Trapezoid1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, width, slope):
-        """One dimensional Trapezoid model function."""
+        """One dimensional Trapezoid model function"""
+
         # Compute the four points where the trapezoid changes slope
         # x1 <= x2 <= x3 <= x4
         x2 = x_0 - width / 2.0
@@ -2769,15 +2642,16 @@ class Trapezoid1D(Fittable1DModel):
 
         ``(x_low, x_high))``
         """
+
         dx = self.width / 2 + self.amplitude / self.slope
 
         return (self.x_0 - dx, self.x_0 + dx)
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.input_unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -2820,7 +2694,8 @@ class TrapezoidDisk2D(Fittable2DModel):
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
-        """Two dimensional Trapezoid Disk model function."""
+        """Two dimensional Trapezoid Disk model function"""
+
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
         range_1 = r <= R_0
         range_2 = np.logical_and(r > R_0, r <= R_0 + amplitude / slope)
@@ -2839,19 +2714,16 @@ class TrapezoidDisk2D(Fittable2DModel):
 
         ``((y_low, y_high), (x_low, x_high))``
         """
+
         dr = self.R_0 + self.amplitude / self.slope
 
         return ((self.y_0 - dr, self.y_0 + dr), (self.x_0 - dr, self.x_0 + dr))
 
     @property
     def input_units(self):
-        x_unit = self.x_0.input_unit
-        y_unit = self.y_0.input_unit
-
-        if x_unit is None and y_unit is None:
+        if self.x_0.unit is None and self.y_0.unit is None:
             return None
-
-        return {self.inputs[0]: x_unit, self.inputs[1]: y_unit}
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2929,7 +2801,8 @@ class RickerWavelet1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, sigma):
-        """One dimensional Ricker Wavelet model function."""
+        """One dimensional Ricker Wavelet model function"""
+
         xx_ww = (x - x_0) ** 2 / (2 * sigma**2)
         return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
 
@@ -2950,9 +2823,9 @@ class RickerWavelet1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.input_unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -3006,18 +2879,16 @@ class RickerWavelet2D(Fittable2DModel):
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, sigma):
-        """Two dimensional Ricker Wavelet model function."""
+        """Two dimensional Ricker Wavelet model function"""
+
         rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma**2)
         return amplitude * (1 - rr_ww) * np.exp(-rr_ww)
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {
-            self.inputs[0]: self.x_0.input_unit,
-            self.inputs[1]: self.y_0.input_unit,
-        }
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -3092,7 +2963,8 @@ class AiryDisk2D(Fittable2DModel):
 
     @classmethod
     def evaluate(cls, x, y, amplitude, x_0, y_0, radius):
-        """Two dimensional Airy model function."""
+        """Two dimensional Airy model function"""
+
         if cls._rz is None:
             from scipy.special import j1, jn_zeros
 
@@ -3120,12 +2992,9 @@ class AiryDisk2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {
-            self.inputs[0]: self.x_0.input_unit,
-            self.inputs[1]: self.y_0.input_unit,
-        }
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -3208,12 +3077,14 @@ class Moffat1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, gamma, alpha):
-        """One dimensional Moffat model function."""
+        """One dimensional Moffat model function"""
+
         return amplitude * (1 + ((x - x_0) / gamma) ** 2) ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, gamma, alpha):
-        """One dimensional Moffat model derivative with respect to parameters."""
+        """One dimensional Moffat model derivative with respect to parameters"""
+
         fac = 1 + (x - x_0) ** 2 / gamma**2
         d_A = fac ** (-alpha)
         d_x_0 = 2 * amplitude * alpha * (x - x_0) * d_A / (fac * gamma**2)
@@ -3223,9 +3094,9 @@ class Moffat1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.input_unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -3264,10 +3135,6 @@ class Moffat2D(Fittable2DModel):
 
         f(x, y) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2} +
         \\left(y - y_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
-
-    Note that if :math:`\\alpha` is 1, the `Moffat2D` profile is a
-    `Lorentz2D` profile. In that case, the integral of the profile is
-    infinite.
     """
 
     amplitude = Parameter(default=1, description="Amplitude (peak value) of the model")
@@ -3292,13 +3159,15 @@ class Moffat2D(Fittable2DModel):
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):
-        """Two dimensional Moffat model function."""
+        """Two dimensional Moffat model function"""
+
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma**2
         return amplitude * (1 + rr_gg) ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, y, amplitude, x_0, y_0, gamma, alpha):
-        """Two dimensional Moffat model derivative with respect to parameters."""
+        """Two dimensional Moffat model derivative with respect to parameters"""
+
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma**2
         d_A = (1 + rr_gg) ** (-alpha)
         d_x_0 = 2 * amplitude * alpha * d_A * (x - x_0) / (gamma**2 * (1 + rr_gg))
@@ -3309,13 +3178,10 @@ class Moffat2D(Fittable2DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
         else:
-            return {
-                self.inputs[0]: self.x_0.input_unit,
-                self.inputs[1]: self.y_0.input_unit,
-            }
+            return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -3338,25 +3204,17 @@ class Sersic2D(Fittable2DModel):
     Parameters
     ----------
     amplitude : float
-        Surface brightness at ``r_eff``.
+        Surface brightness at r_eff.
     r_eff : float
-        Effective (half-light) radius.
+        Effective (half-light) radius
     n : float
-        Sersic index controlling the shape of the profile. Particular
-        values of ``n`` are equivalent to the following profiles:
-
-            * n=4 : `de Vaucouleurs <https://en.wikipedia.org/wiki/De_Vaucouleurs%27s_law>`_ :math:`r^{1/4}` profile
-            * n=1 : Exponential profile
-            * n=0.5 : Gaussian profile
+        Sersic Index.
     x_0 : float, optional
         x position of the center.
     y_0 : float, optional
         y position of the center.
     ellip : float, optional
-        Ellipticity of the isophote, defined as 1.0 minus the ratio of
-        the lengths of the semimajor and semiminor axes:
-
-        .. math:: ellip = 1 - \frac{b}{a}
+        Ellipticity.
     theta : float or `~astropy.units.Quantity`, optional
         The rotation angle as an angular quantity
         (`~astropy.units.Quantity` or `~astropy.coordinates.Angle`)
@@ -3365,48 +3223,24 @@ class Sersic2D(Fittable2DModel):
 
     See Also
     --------
-    GeneralSersic2D, Gaussian2D, Moffat2D
+    Gaussian2D, Moffat2D
 
     Notes
     -----
-    The ``x``, ``y``, ``x_0``, ``y_0``, and ``r_eff`` inputs must have
-    compatible units or be unitless numbers.
-
     Model formula:
 
     .. math::
 
-        I(x, y) = I_{e} \exp\left\{
-                  -b_{n} \left[\left(\frac{r(x, y)}{r_{e}}\right)^{(1/n)}
-                  -1\right]\right\}
+        I(x,y) = I(r) = I_e\exp\left\{
+                -b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
+            \right\}
 
-    where :math:`I_{e}` is the ``amplitude``, :math:`r_{e}` is ``reff``,
-    and :math:`r(x, y)` is a rotated ellipse defined as:
-
-    .. math::
-
-        r(x, y)^2 = A^2 + \left(\frac{B}{1 - ellip}\right)^2
+    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
+    luminosity, and can be solved for numerically.
 
     .. math::
 
-        A = (x - x_0) \cos(\theta) + (y - y_0) \sin(\theta)
-
-    .. math::
-
-        B = -(x - x_0) \sin(\theta) + (y - y_0) \cos(\theta)
-
-    The constant :math:`b_{n}` is defined such that :math:`r_{e}`
-    contains half the total luminosity. It can be solved for numerically
-    from the following equation:
-
-    .. math::
-
-        \Gamma(2n) = 2\gamma (2n, b_{n})
-
-    where :math:`\Gamma(a)` is the `gamma function
-    <https://en.wikipedia.org/wiki/Gamma_function>`_ and
-    :math:`\gamma(a, x)` is the `lower incomplete gamma function
-    <https://en.wikipedia.org/wiki/Incomplete_gamma_function>`_.
+        \Gamma(2n) = 2\gamma (2n,b_n)
 
     Examples
     --------
@@ -3417,21 +3251,22 @@ class Sersic2D(Fittable2DModel):
         from astropy.modeling.models import Sersic2D
         import matplotlib.pyplot as plt
 
-        x, y = np.meshgrid(np.arange(100), np.arange(100))
+        x,y = np.meshgrid(np.arange(100), np.arange(100))
 
-        mod = Sersic2D(amplitude=1, r_eff=25, n=4, x_0=50, y_0=50,
-                       ellip=0.5, theta=-1)
+        mod = Sersic2D(amplitude = 1, r_eff = 25, n=4, x_0=50, y_0=50,
+                       ellip=.5, theta=-1)
         img = mod(x, y)
         log_img = np.log10(img)
 
-        fig, ax = plt.subplots()
-        im = ax.imshow(log_img, origin='lower', interpolation='nearest',
-                       vmin=-1, vmax=2)
-        cbar = fig.colorbar(im, ax=ax)
-        cbar.set_label('Log Brightness', rotation=270, labelpad=25)
-        cbar.set_ticks([-1, 0, 1, 2])
+
+        plt.figure()
+        plt.imshow(log_img, origin='lower', interpolation='nearest',
+                   vmin=-1, vmax=2)
         plt.xlabel('x')
         plt.ylabel('y')
+        cbar = plt.colorbar()
+        cbar.set_label('Log Brightness', rotation=270, labelpad=25)
+        cbar.set_ticks([-1, 0, 1, 2], update_ticks=True)
         plt.show()
 
     References
@@ -3451,31 +3286,31 @@ class Sersic2D(Fittable2DModel):
             "Rotation angle either as a float (in radians) or a |Quantity| angle"
         ),
     )
+    _gammaincinv = None
 
     @classmethod
-    def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta, c=0):
+    def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta):
         """Two dimensional Sersic profile function."""
-        from scipy.special import gammaincinv
 
-        bn = gammaincinv(2.0 * n, 0.5)
-        cos_theta = np.cos(theta)
-        sin_theta = np.sin(theta)
-        x_maj = np.abs((x - x_0) * cos_theta + (y - y_0) * sin_theta)
-        x_min = np.abs(-(x - x_0) * sin_theta + (y - y_0) * cos_theta)
+        if cls._gammaincinv is None:
+            from scipy.special import gammaincinv
 
-        b = (1 - ellip) * r_eff
-        expon = 2.0 + c
-        inv_expon = 1.0 / expon
-        z = ((x_maj / r_eff) ** expon + (x_min / b) ** expon) ** inv_expon
-        return amplitude * np.exp(-bn * (z ** (1 / n) - 1.0))
+            cls._gammaincinv = gammaincinv
+
+        bn = cls._gammaincinv(2.0 * n, 0.5)
+        a, b = r_eff, (1 - ellip) * r_eff
+        cos_theta, sin_theta = np.cos(theta), np.sin(theta)
+        x_maj = (x - x_0) * cos_theta + (y - y_0) * sin_theta
+        x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
+        z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
+
+        return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is not None:
-            return {
-                self.inputs[0]: self.x_0.input_unit,
-                self.inputs[1]: self.y_0.input_unit,
-            }
+        if self.x_0.unit is None:
+            return None
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -3490,164 +3325,6 @@ class Sersic2D(Fittable2DModel):
             "theta": u.rad,
             "amplitude": outputs_unit[self.outputs[0]],
         }
-
-
-class GeneralSersic2D(Sersic2D):
-    r"""
-    Generalized two dimensional Sersic surface brightness profile that
-    allows for "boxy" or "disky" (kite-like) isophote shapes.
-
-    Parameters
-    ----------
-    amplitude : float
-        Surface brightness at ``r_eff``.
-    r_eff : float
-        Effective (half-light) radius.
-    n : float
-        Sersic index controlling the shape of the profile. Particular
-        values of ``n`` are equivalent to the following profiles:
-
-            * n=4 : `de Vaucouleurs <https://en.wikipedia.org/wiki/De_Vaucouleurs%27s_law>`_ :math:`r^{1/4}` profile
-            * n=1 : Exponential profile
-            * n=0.5 : Gaussian profile
-    x_0 : float, optional
-        x position of the center.
-    y_0 : float, optional
-        y position of the center.
-    ellip : float, optional
-        Ellipticity of the isophote, defined as 1.0 minus the ratio of
-        the lengths of the semimajor and semiminor axes:
-
-        .. math:: ellip = 1 - \frac{b}{a}
-    theta : float or `~astropy.units.Quantity`, optional
-        The rotation angle as an angular quantity
-        (`~astropy.units.Quantity` or `~astropy.coordinates.Angle`)
-        or a value in radians (as a float). The rotation angle
-        increases counterclockwise from the positive x axis.
-    c : float, optional
-        Parameter controlling the shape of the generalized ellipses.
-        Negative values correspond to disky (kite-like) isophotes and
-        positive values correspond to boxy isophotes. Setting ``c=0``
-        provides perfectly elliptical isophotes (the same model as
-        `Sersic2D`).
-
-    See Also
-    --------
-    Sersic2D, Gaussian2D, Moffat2D
-
-    Notes
-    -----
-    Model formula:
-
-    .. math::
-
-        I(x, y) = I_{e} \exp\left\{
-                  -b_{n} \left[\left(\frac{r(x, y)}{r_{e}}\right)^{(1/n)}
-                  -1\right]\right\}
-
-    where :math:`I_{e}` is the ``amplitude``, :math:`r_{e}`
-    is ``reff``, and :math:`r(x, y)` is a rotated
-    "generalized" ellipse (see `Athanassoula et al. 1990
-    <https://ui.adsabs.harvard.edu/abs/1990MNRAS.245..130A/abstract>`_)
-    defined as:
-
-    .. math::
-
-        r(x, y)^2 = |A|^{c + 2}
-                    + \left(\frac{|B|}{1 - ellip}\right)^{c + 2}
-
-    .. math::
-
-        A = (x - x_0) \cos(\theta) + (y - y_0) \sin(\theta)
-
-    .. math::
-
-        B = -(x - x_0) \sin(\theta) + (y - y_0) \cos(\theta)
-
-    The constant :math:`b_{n}` is defined such that :math:`r_{e}`
-    contains half the total luminosity. It can be solved for numerically
-    from the following equation:
-
-    .. math::
-
-        \Gamma(2n) = 2\gamma (2n, b_{n})
-
-    where :math:`\Gamma(a)` is the `gamma function
-    <https://en.wikipedia.org/wiki/Gamma_function>`_ and
-    :math:`\gamma(a, x)` is the `lower incomplete gamma function
-    <https://en.wikipedia.org/wiki/Incomplete_gamma_function>`_.
-
-    Examples
-    --------
-    .. plot::
-        :include-source:
-
-        import numpy as np
-        from astropy.modeling.models import GeneralSersic2D
-        import matplotlib.pyplot as plt
-
-        x, y = np.meshgrid(np.arange(100), np.arange(100))
-
-        mod = GeneralSersic2D(amplitude=1, r_eff=25, n=4, x_0=50, y_0=50,
-                              c=-1.0, ellip=0.5, theta=-1)
-        img = mod(x, y)
-        log_img = np.log10(img)
-
-        fig, ax = plt.subplots()
-        im = ax.imshow(log_img, origin='lower', interpolation='nearest',
-                       vmin=-1, vmax=2)
-        cbar = fig.colorbar(im, ax=ax)
-        cbar.set_label('Log Brightness', rotation=270, labelpad=25)
-        cbar.set_ticks([-1, 0, 1, 2])
-        plt.title('Disky isophote with c=-1.0')
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.show()
-
-    .. plot::
-        :include-source:
-
-        import numpy as np
-        from astropy.modeling.models import GeneralSersic2D
-        import matplotlib.pyplot as plt
-
-        x, y = np.meshgrid(np.arange(100), np.arange(100))
-
-        mod = GeneralSersic2D(amplitude=1, r_eff=25, n=4, x_0=50, y_0=50,
-                              c=1.0, ellip=0.5, theta=-1)
-        img = mod(x, y)
-        log_img = np.log10(img)
-
-        fig, ax = plt.subplots()
-        im = ax.imshow(log_img, origin='lower', interpolation='nearest',
-                       vmin=-1, vmax=2)
-        cbar = fig.colorbar(im, ax=ax)
-        cbar.set_label('Log Brightness', rotation=270, labelpad=25)
-        cbar.set_ticks([-1, 0, 1, 2])
-        plt.title('Boxy isophote with c=1.0')
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.show()
-
-    References
-    ----------
-    .. [1] http://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
-    .. [2] https://ui.adsabs.harvard.edu/abs/1990MNRAS.245..130A/abstract
-    """
-
-    amplitude = Parameter(default=1, description="Surface brightness at r_eff")
-    r_eff = Parameter(default=1, description="Effective (half-light) radius")
-    n = Parameter(default=4, description="Sersic Index")
-    x_0 = Parameter(default=0, description="X position of the center")
-    y_0 = Parameter(default=0, description="Y position of the center")
-    ellip = Parameter(default=0, description="Ellipticity")
-    theta = Parameter(
-        default=0.0,
-        description=(
-            "Rotation angle either as a float (in radians) or a |Quantity| angle"
-        ),
-    )
-    c = Parameter(default=0, description="Isophote shape parameter")
 
 
 class KingProjectedAnalytic1D(Fittable1DModel):
@@ -3667,6 +3344,7 @@ class KingProjectedAnalytic1D(Fittable1DModel):
 
     Notes
     -----
+
     This model approximates a King model with an analytic function. The derivation of this
     equation can be found in King '62 (equation 14). This is just an approximation of the
     full model and the parameters derived from this model should be taken with caution.
@@ -3723,52 +3401,83 @@ class KingProjectedAnalytic1D(Fittable1DModel):
 
     @property
     def concentration(self):
-        """Concentration parameter of the king model."""
+        """Concentration parameter of the king model"""
         return np.log10(np.abs(self.r_tide / self.r_core))
 
     @staticmethod
-    def _core_func(x, r_core, r_tide, power=1):
-        return (
-            1.0 / np.sqrt(x**2 + r_core**2) ** power
-            - 1.0 / np.sqrt(r_tide**2 + r_core**2) ** power
-        )
-
-    @staticmethod
-    def _filter(x, r_tide, result):
-        """Set invalid r values to 0"""
-        bounds = (x >= r_tide) | (x < 0)
-        result[bounds] = result[bounds] * 0.0
-
-    def evaluate(self, x, amplitude, r_core, r_tide):
+    def evaluate(x, amplitude, r_core, r_tide):
         """
         Analytic King model function.
         """
-        result = amplitude * r_core**2 * self._core_func(x, r_core, r_tide) ** 2
-        self._filter(x, r_tide, result)
+
+        result = (
+            amplitude
+            * r_core**2
+            * (
+                1 / np.sqrt(x**2 + r_core**2)
+                - 1 / np.sqrt(r_tide**2 + r_core**2)
+            )
+            ** 2
+        )
+
+        # Set invalid r values to 0
+        bounds = (x >= r_tide) | (x < 0)
+        result[bounds] = result[bounds] * 0.0
 
         return result
 
-    def fit_deriv(self, x, amplitude, r_core, r_tide):
+    @staticmethod
+    def fit_deriv(x, amplitude, r_core, r_tide):
         """
         Analytic King model function derivatives.
         """
-        d_amplitude = r_core**2 * self._core_func(x, r_core, r_tide) ** 2
-        self._filter(x, r_tide, d_amplitude)
+        d_amplitude = (
+            r_core**2
+            * (
+                1 / np.sqrt(x**2 + r_core**2)
+                - 1 / np.sqrt(r_tide**2 + r_core**2)
+            )
+            ** 2
+        )
 
         d_r_core = (
-            -2.0
+            2
             * amplitude
-            * r_core**3
-            * self._core_func(x, r_core, r_tide, power=3)
-            * self._core_func(x, r_core, r_tide)
-            + 2 * amplitude * r_core * self._core_func(x, r_core, r_tide) ** 2
+            * r_core**2
+            * (
+                r_core / (r_core**2 + r_tide**2) ** (3 / 2)
+                - r_core / (r_core**2 + x**2) ** (3 / 2)
+            )
+            * (
+                1.0 / np.sqrt(r_core**2 + x**2)
+                - 1.0 / np.sqrt(r_core**2 + r_tide**2)
+            )
+            + 2
+            * amplitude
+            * r_core
+            * (
+                1.0 / np.sqrt(r_core**2 + x**2)
+                - 1.0 / np.sqrt(r_core**2 + r_tide**2)
+            )
+            ** 2
         )
-        self._filter(x, r_tide, d_r_core)
 
         d_r_tide = (
-            2 * amplitude * r_core**2 * r_tide * self._core_func(x, r_core, r_tide)
+            2
+            * amplitude
+            * r_core**2
+            * r_tide
+            * (
+                1.0 / np.sqrt(r_core**2 + x**2)
+                - 1.0 / np.sqrt(r_core**2 + r_tide**2)
+            )
         ) / (r_core**2 + r_tide**2) ** (3 / 2)
-        self._filter(x, r_tide, d_r_tide)
+
+        # Set invalid r values to 0
+        bounds = (x >= r_tide) | (x < 0)
+        d_amplitude[bounds] = d_amplitude[bounds] * 0
+        d_r_core[bounds] = d_r_core[bounds] * 0
+        d_r_tide[bounds] = d_r_tide[bounds] * 0
 
         return [d_amplitude, d_r_core, d_r_tide]
 
@@ -3781,13 +3490,14 @@ class KingProjectedAnalytic1D(Fittable1DModel):
 
         ``(r_low, r_high)``
         """
+
         return (0 * self.r_tide, 1 * self.r_tide)
 
     @property
     def input_units(self):
-        if self.r_core.input_unit is None:
+        if self.r_core.unit is None:
             return None
-        return {self.inputs[0]: self.r_core.input_unit}
+        return {self.inputs[0]: self.r_core.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -3830,17 +3540,16 @@ class Logarithmic1D(Fittable1DModel):
         new_tau = self.amplitude
         return Exponential1D(amplitude=new_amplitude, tau=new_tau)
 
-    def _tau_validator(self, val):
+    @tau.validator
+    def tau(self, val):
         if np.all(val == 0):
             raise ValueError("0 is not an allowed value for tau")
 
-    tau._validator = _tau_validator
-
     @property
     def input_units(self):
-        if self.tau.input_unit is None:
+        if self.tau.unit is None:
             return None
-        return {self.inputs[0]: self.tau.input_unit}
+        return {self.inputs[0]: self.tau.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -3872,7 +3581,7 @@ class Exponential1D(Fittable1DModel):
 
     @staticmethod
     def fit_deriv(x, amplitude, tau):
-        """Derivative with respect to parameters."""
+        """Derivative with respect to parameters"""
         d_amplitude = np.exp(x / tau)
         d_tau = -amplitude * (x / tau**2) * np.exp(x / tau)
         return [d_amplitude, d_tau]
@@ -3883,18 +3592,17 @@ class Exponential1D(Fittable1DModel):
         new_tau = self.amplitude
         return Logarithmic1D(amplitude=new_amplitude, tau=new_tau)
 
-    def _tau_validator(self, val):
-        """tau cannot be 0."""
+    @tau.validator
+    def tau(self, val):
+        """tau cannot be 0"""
         if np.all(val == 0):
             raise ValueError("0 is not an allowed value for tau")
 
-    tau._validator = _tau_validator
-
     @property
     def input_units(self):
-        if self.tau.input_unit is None:
+        if self.tau.unit is None:
             return None
-        return {self.inputs[0]: self.tau.input_unit}
+        return {self.inputs[0]: self.tau.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {

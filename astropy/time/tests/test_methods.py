@@ -12,7 +12,6 @@ from astropy.time import Time
 from astropy.time.utils import day_frac
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 from astropy.utils import iers
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -21,7 +20,6 @@ needs_array_function = pytest.mark.xfail(
 
 def assert_time_all_equal(t1, t2):
     """Checks equality of shape and content."""
-    __tracebackhide__ = True
     assert t1.shape == t2.shape
     assert np.all(t1 == t2)
 
@@ -634,13 +632,10 @@ class TestArithmetic:
     def test_ptp(self, use_mask):
         self.create_data(use_mask)
 
-        assert np.ptp(self.t0) == self.t0.max() - self.t0.min()
-        assert np.all(np.ptp(self.t0, axis=0) == self.t0.max(0) - self.t0.min(0))
-        assert np.ptp(self.t0, axis=0).shape == (5, 5)
-        assert np.ptp(self.t0, 0, keepdims=True).shape == (1, 5, 5)
-
-        with pytest.warns(AstropyDeprecationWarning):
-            assert self.t0.ptp() == self.t0.max() - self.t0.min()
+        assert self.t0.ptp() == self.t0.max() - self.t0.min()
+        assert np.all(self.t0.ptp(0) == self.t0.max(0) - self.t0.min(0))
+        assert self.t0.ptp(0).shape == (5, 5)
+        assert self.t0.ptp(0, keepdims=True).shape == (1, 5, 5)
 
     def test_sort(self, use_mask):
         self.create_data(use_mask)
@@ -732,7 +727,7 @@ class TestArithmetic:
 
     def test_mean_leap_second(self, use_mask):
         # Check that leap second is dealt with correctly: for UTC, across a leap
-        # second boundary, one cannot just average jd, but has to go through TAI.
+        # second bounday, one cannot just average jd, but has to go through TAI.
         if use_mask == "not_masked":
             t = Time(["2012-06-30 23:59:60.000", "2012-07-01 00:00:01.000"])
             mean_expected = t[0] + (t[1] - t[0]) / 2

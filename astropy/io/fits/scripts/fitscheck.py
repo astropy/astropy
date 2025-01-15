@@ -39,6 +39,7 @@ Example uses of fitscheck:
 
 """
 
+
 import argparse
 import logging
 import sys
@@ -172,12 +173,16 @@ def verify_checksums(filename):
                 if not OPTIONS.ignore_missing:
                     if not hdu._checksum:
                         log.warning(
-                            f"MISSING {filename!r} .. Checksum not found in HDU #{i}"
+                            "MISSING {!r} .. Checksum not found in HDU #{}".format(
+                                filename, i
+                            )
                         )
                         return 1
                     if not hdu._datasum:
                         log.warning(
-                            f"MISSING {filename!r} .. Datasum not found in HDU #{i}"
+                            "MISSING {!r} .. Datasum not found in HDU #{}".format(
+                                filename, i
+                            )
                         )
                         return 1
 
@@ -194,6 +199,7 @@ def verify_checksums(filename):
 
 def verify_compliance(filename):
     """Check for FITS standard compliance."""
+
     with fits.open(filename) as hdulist:
         try:
             hdulist.verify("exception")
@@ -209,6 +215,7 @@ def update(filename):
 
     Also updates fixes standards violations if possible and requested.
     """
+
     output_verify = "silentfix" if OPTIONS.compliance else "ignore"
 
     # For unit tests we reset temporarily the warning filters. Indeed, before
@@ -232,13 +239,14 @@ def process_file(filename):
     Handle a single .fits file,  returning the count of checksum and compliance
     errors.
     """
+
     try:
         checksum_errors = verify_checksums(filename)
         if OPTIONS.compliance:
             compliance_errors = verify_compliance(filename)
         else:
             compliance_errors = 0
-        if (OPTIONS.write_file and checksum_errors == 0) or OPTIONS.force:
+        if OPTIONS.write_file and checksum_errors == 0 or OPTIONS.force:
             update(filename)
         return checksum_errors + compliance_errors
     except Exception as e:
@@ -251,6 +259,7 @@ def main(args=None):
     Processes command line parameters into options and files,  then checks
     or update FITS DATASUM and CHECKSUM keywords for the specified files.
     """
+
     errors = 0
     fits_files = handle_options(args or sys.argv[1:])
     setup_logging()

@@ -1,0 +1,207 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/coordinates/representation-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/representation-1.0.0"
+
+title: |
+  Representation of points or differentials in two or three dimensional space.
+
+description: |
+  Representation of points or differentials in two or three dimensional space.
+
+examples:
+  -
+    - A SphericalRepresentation
+    - |
+        !<tag:astropy.org:astropy/coordinates/representation-1.0.0>
+          components:
+            distance: !unit/quantity-1.1.0 {unit: !unit/unit-1.0.0 AU, value: 1.0}
+            lat: !<tag:astropy.org:astropy/coordinates/latitude-1.0.0> {unit: !unit/unit-1.0.0 deg,
+              value: 10.0}
+            lon: !<tag:astropy.org:astropy/coordinates/longitude-1.0.0>
+              unit: !unit/unit-1.0.0 deg
+              value: 10.0
+              wrap_angle: !<tag:astropy.org:astropy/coordinates/angle-1.0.0> {unit: !unit/unit-1.0.0 deg,
+                value: 360.0}
+          type: SphericalRepresentation
+  -
+    - A CartesianDifferential
+    - |
+        !<tag:astropy.org:astropy/coordinates/representation-1.0.0>
+          components:
+            d_x: !unit/quantity-1.1.0 {unit: !unit/unit-1.0.0 km s-1, value: 100.0}
+            d_y: !unit/quantity-1.1.0 {unit: !unit/unit-1.0.0 km s-1, value: 200.0}
+            d_z: !unit/quantity-1.1.0 {unit: !unit/unit-1.0.0 km s-1, value: 3141.0}
+          type: CartesianDifferential
+
+type: object
+properties:
+  type:
+    type: string
+    enum:
+      - CartesianRepresentation
+      - SphericalRepresentation
+      - UnitSphericalRepresentation
+      - RadialRepresentation
+      - PhysicsSphericalRepresentation
+      - CylindricalRepresentation
+      - CartesianDifferential
+      - SphericalDifferential
+      - UnitSphericalCosLatDifferential
+      - UnitSphericalDifferential
+      - SphericalCosLatDifferential
+      - RadialDifferential
+      - PhysicsSphericalDifferential
+      - CylindricalDifferential
+
+  components:
+    anyOf:
+      # CartesianRepresentation
+      - type: object
+        properties:
+          x:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          y:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          z:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # SphericalRepresentation
+      - type: object
+        properties:
+          lat:
+            $ref: "latitude-1.0.0"
+          lon:
+            $ref: "longitude-1.0.0"
+          distance:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # UnitSphericalRepresentation
+      - type: object
+        properties:
+          lat:
+            $ref: "latitude-1.0.0"
+          lon:
+            $ref: "longitude-1.0.0"
+
+      # RadialRepresentation
+      - type: object
+        properties:
+          distance:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # PhysicsSphericalRepresentation
+      - type: object
+        properties:
+          phi:
+            $ref: "angle-1.0.0"
+          theta:
+            $ref: "angle-1.0.0"
+          r:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # CylindricalRepresentation
+      - type: object
+        properties:
+          rho:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          phi:
+            $ref: "angle-1.0.0"
+          z:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # CartesianDifferential
+      - type: object
+        properties:
+          d_x:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_y:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_z:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # SphericalDifferential
+      - type: object
+        properties:
+          d_lon:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_lat:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_distance:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # UnitSphericalCosLatDifferential
+      - type: object
+        properties:
+          d_lon_coslat:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_lat:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # UnitSphericalDifferential
+      - type: object
+        properties:
+          d_lon:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_lat:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # SphericalCosLatDifferential
+      - type: object
+        properties:
+          d_lon_coslat:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_lat:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_distance:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # SphericalDifferential
+      - type: object
+        properties:
+          d_lon:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_lat:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_distance:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # RadialDifferential
+      - type: object
+        properties:
+          d_phi:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_theta:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_r:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # PhysicsSphericalDifferential
+      - type: object
+        properties:
+          d_phi:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_theta:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_r:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # RadialDifferential
+      - type: object
+        properties:
+          d_distance:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+      # CylindricalDifferential
+      - type: object
+        properties:
+          d_rho:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_phi:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+          d_z:
+            $ref: "tag:stsci.edu:asdf/unit/quantity-1.1.0"
+
+required: [type, components]
+...

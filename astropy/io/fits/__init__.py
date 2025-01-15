@@ -78,7 +78,6 @@ from .convenience import *
 from .diff import *
 from .fitsrec import FITS_rec, FITS_record
 from .hdu import *
-from .hdu.compressed import CompImageSection
 from .hdu.groups import GroupData
 from .hdu.hdulist import fitsopen as open
 from .hdu.image import Section

@@ -12,40 +12,28 @@
 
 """Handles the CDS string format for units."""
 
-from __future__ import annotations
-
+import operator
 import re
-from typing import TYPE_CHECKING
 
-from astropy.units.core import CompositeUnit, Unit
 from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
+from astropy.utils.misc import did_you_mean
 
-from .base import Base, _ParsingFormatMixin
-
-if TYPE_CHECKING:
-    from typing import ClassVar, Literal
-
-    from astropy.extern.ply.lex import Lexer
-    from astropy.units import UnitBase
-    from astropy.utils.parsing import ThreadSafeParser
+from . import core, utils
+from .base import Base
 
 
-class CDS(Base, _ParsingFormatMixin):
+class CDS(Base):
     """
     Support the `Centre de Données astronomiques de Strasbourg
-    <https://cds.unistra.fr/>`_ `Standards for Astronomical
-    Catalogues 2.0 <https://vizier.unistra.fr/vizier/doc/catstd-3.2.htx>`_
+    <http://cds.u-strasbg.fr/>`_ `Standards for Astronomical
+    Catalogues 2.0 <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_
     format, and the `complete set of supported units
-    <https://vizier.unistra.fr/viz-bin/Unit>`_.  This format is used
+    <https://vizier.u-strasbg.fr/viz-bin/Unit>`_.  This format is used
     by VOTable up to version 1.2.
     """
 
-    _space: ClassVar[str] = "."
-    _times: ClassVar[str] = "x"
-    _scale_unit_separator: ClassVar[str] = ""
-
-    _tokens: ClassVar[tuple[str, ...]] = (
+    _tokens = (
         "PRODUCT",
         "DIVISION",
         "OPEN_PAREN",
@@ -61,14 +49,32 @@ class CDS(Base, _ParsingFormatMixin):
     )
 
     @classproperty(lazy=True)
-    def _units(cls) -> dict[str, UnitBase]:
+    def _units(cls):
+        return cls._generate_unit_names()
+
+    @classproperty(lazy=True)
+    def _parser(cls):
+        return cls._make_parser()
+
+    @classproperty(lazy=True)
+    def _lexer(cls):
+        return cls._make_lexer()
+
+    @staticmethod
+    def _generate_unit_names():
         from astropy import units as u
         from astropy.units import cds
 
-        return {k: v for k, v in cds.__dict__.items() if isinstance(v, u.UnitBase)}
+        names = {}
 
-    @classproperty(lazy=True)
-    def _lexer(cls) -> Lexer:
+        for key, val in cds.__dict__.items():
+            if isinstance(val, u.UnitBase):
+                names[key] = val
+
+        return names
+
+    @classmethod
+    def _make_lexer(cls):
         tokens = cls._tokens
 
         t_PRODUCT = r"\."
@@ -104,10 +110,8 @@ class CDS(Base, _ParsingFormatMixin):
             r"[x×]"
             return t
 
-        # Most units are just combinations of letters with no numbers, but there
-        # are a few special ones (\h is Planch constant) and three that end in 0.
         def t_UNIT(t):
-            r"%|°|\\h|(a|eps|mu)0|((?!\d)\w)+"
+            r"\%|°|\\h|((?!\d)\w)+"
             t.value = cls._get_unit(t)
             return t
 
@@ -127,15 +131,17 @@ class CDS(Base, _ParsingFormatMixin):
             lextab="cds_lextab", package="astropy/units", reflags=int(re.UNICODE)
         )
 
-    @classproperty(lazy=True)
-    def _parser(cls) -> ThreadSafeParser:
+    @classmethod
+    def _make_parser(cls):
         """
         The grammar here is based on the description in the `Standards
         for Astronomical Catalogues 2.0
-        <https://vizier.unistra.fr/vizier/doc/catstd-3.2.htx>`_, which is not
+        <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_, which is not
         terribly precise.  The exact grammar is here is based on the
-        YACC grammar in the `unity library <https://purl.org/nxg/dist/unity/>`_.
+        YACC grammar in the `unity library
+        <https://bitbucket.org/nxg/unity/>`_.
         """
+
         tokens = cls._tokens
 
         def p_main(p):
@@ -148,9 +154,10 @@ class CDS(Base, _ParsingFormatMixin):
                  | factor
             """
             from astropy.units import dex
+            from astropy.units.core import Unit
 
             if len(p) == 3:
-                p[0] = CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
+                p[0] = Unit(p[1] * p[2])
             elif len(p) == 4:
                 p[0] = dex(p[2])
             else:
@@ -176,7 +183,7 @@ class CDS(Base, _ParsingFormatMixin):
         def p_division_of_units(p):
             """
             division_of_units : DIVISION unit_expression
-                              | combined_units DIVISION unit_expression
+                              | unit_expression DIVISION combined_units
             """
             if len(p) == 3:
                 p[0] = p[2] ** -1
@@ -257,33 +264,96 @@ class CDS(Base, _ParsingFormatMixin):
         return parsing.yacc(tabmodule="cds_parsetab", package="astropy/units")
 
     @classmethod
-    def parse(cls, s: str, debug: bool = False) -> UnitBase:
+    def _get_unit(cls, t):
+        try:
+            return cls._parse_unit(t.value)
+        except ValueError as e:
+            registry = core.get_current_unit_registry()
+            if t.value in registry.aliases:
+                return registry.aliases[t.value]
+
+            raise ValueError(f"At col {t.lexpos}, {str(e)}")
+
+    @classmethod
+    def _parse_unit(cls, unit, detailed_exception=True):
+        if unit not in cls._units:
+            if detailed_exception:
+                raise ValueError(
+                    "Unit '{}' not supported by the CDS SAC standard. {}".format(
+                        unit, did_you_mean(unit, cls._units)
+                    )
+                )
+            else:
+                raise ValueError()
+
+        return cls._units[unit]
+
+    @classmethod
+    def parse(cls, s, debug=False):
         if " " in s:
             raise ValueError("CDS unit must not contain whitespace")
+
         if not isinstance(s, str):
             s = s.decode("ascii")
 
-        return cls._do_parse(s, debug)
+        # This is a short circuit for the case where the string
+        # is just a single unit name
+        try:
+            return cls._parse_unit(s, detailed_exception=False)
+        except ValueError:
+            try:
+                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
+            except ValueError as e:
+                if str(e):
+                    raise ValueError(str(e))
+                else:
+                    raise ValueError("Syntax error")
+
+    @staticmethod
+    def _get_unit_name(unit):
+        return unit.get_format_name("cds")
 
     @classmethod
-    def _format_mantissa(cls, m: str) -> str:
-        return "" if m == "1" else m
+    def _format_unit_list(cls, units):
+        out = []
+        for base, power in units:
+            if power == 1:
+                out.append(cls._get_unit_name(base))
+            else:
+                out.append(f"{cls._get_unit_name(base)}{int(power)}")
+        return ".".join(out)
 
     @classmethod
-    def _format_superscript(cls, number: str) -> str:
-        return number if number.startswith("-") else "+" + number
-
-    @classmethod
-    def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
-    ) -> str:
+    def to_string(cls, unit):
         # Remove units that aren't known to the format
-        unit = cls._decompose_to_known_units(unit)
+        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
-        if not unit.bases:
-            if unit.scale == 1:
+        if isinstance(unit, core.CompositeUnit):
+            if unit == core.dimensionless_unscaled:
                 return "---"
             elif is_effectively_unity(unit.scale * 100.0):
                 return "%"
 
-        return super().to_string(unit, fraction=fraction)
+            if unit.scale == 1:
+                s = ""
+            else:
+                m, e = utils.split_mantissa_exponent(unit.scale)
+                parts = []
+                if m not in ("", "1"):
+                    parts.append(m)
+                if e:
+                    if not e.startswith("-"):
+                        e = "+" + e
+                    parts.append(f"10{e}")
+                s = "x".join(parts)
+
+            pairs = list(zip(unit.bases, unit.powers))
+            if len(pairs) > 0:
+                pairs.sort(key=operator.itemgetter(1), reverse=True)
+
+                s += cls._format_unit_list(pairs)
+
+        elif isinstance(unit, core.NamedUnit):
+            s = cls._get_unit_name(unit)
+
+        return s

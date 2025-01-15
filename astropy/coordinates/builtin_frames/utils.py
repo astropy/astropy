@@ -11,10 +11,11 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates.earth import EarthLocation
-from astropy.coordinates.representation import CartesianDifferential
 from astropy.time import Time
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
+
+from ..representation import CartesianDifferential
 
 # We use tt as the time scale for this equinoxes, primarily because it is the
 # convention for J2000 (it is unclear if there is any "right answer" for B1950)
@@ -39,7 +40,7 @@ _DEFAULT_PM = (0.035, 0.29) * u.arcsec
 
 def get_polar_motion(time):
     """
-    gets the two polar motion components in radians for use with apio.
+    gets the two polar motion components in radians for use with apio
     """
     # Get the polar motion from the IERS table
     iers_table = iers.earth_orientation_table.get()
@@ -69,7 +70,7 @@ def get_polar_motion(time):
 
 def _warn_iers(ierserr):
     """
-    Generate a warning for an IERSRangeerror.
+    Generate a warning for an IERSRangeerror
 
     Parameters
     ----------
@@ -330,7 +331,7 @@ def atciqz(srepr, astrom):
 
 def prepare_earth_position_vel(time):
     """
-    Get barycentric position and velocity, and heliocentric position of Earth.
+    Get barycentric position and velocity, and heliocentric position of Earth
 
     Parameters
     ----------

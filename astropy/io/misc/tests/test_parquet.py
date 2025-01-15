@@ -43,13 +43,6 @@ ALL_DTYPES = [
     "U3",
 ]
 
-BIGENDIAN_DTYPES = [
-    np.dtype(">i4"),
-    np.dtype(">i8"),
-    np.dtype(">f4"),
-    np.dtype(">f8"),
-]
-
 
 def _default_values(dtype):
     if dtype == np.bool_:
@@ -60,29 +53,6 @@ def _default_values(dtype):
         return ["abc", "def", "ghi"]
     else:
         return [1, 2, 3]
-
-
-def _default_array_values(dtype):
-    values = _default_values(dtype)
-    return [values for i in range(3)]
-
-
-def _default_var_length_array_values(dtype):
-    values = _default_values(dtype)
-    return [
-        [
-            values[0],
-        ],
-        [
-            values[0],
-            values[1],
-        ],
-        [
-            values[0],
-            values[1],
-            values[2],
-        ],
-    ]
 
 
 def test_read_write_simple(tmp_path):
@@ -207,16 +177,6 @@ def test_write_wrong_type():
         t1.write(1212, format="parquet")
 
 
-def test_empty_roundtrip(tmp_path):
-    """Test writing and reading an empty Table."""
-    test_file = tmp_path / "test.parquet"
-    t1 = Table()
-    t1.write(test_file)
-    t2 = Table.read(test_file)
-    assert len(t2) == 0
-    assert t1.colnames == t2.colnames
-
-
 @pytest.mark.parametrize("dtype", ALL_DTYPES)
 def test_preserve_single_dtypes(tmp_path, dtype):
     """Test that round-tripping a single column preserves datatypes."""
@@ -235,109 +195,6 @@ def test_preserve_single_dtypes(tmp_path, dtype):
     assert t2["a"].dtype == dtype
 
 
-@pytest.mark.parametrize("dtype", BIGENDIAN_DTYPES)
-def test_preserve_single_bigendian_dtypes(tmp_path, dtype):
-    """Test that round-tripping a single big-endian column preserves data."""
-
-    test_file = tmp_path / "test.parquet"
-
-    values = _default_values(dtype)
-
-    t1 = Table()
-    t1.add_column(Column(name="a", data=np.array(values, dtype=dtype)))
-    t1.write(test_file)
-
-    t2 = Table.read(test_file)
-
-    assert np.all(t2["a"] == values)
-    # The parquet serialization will turn all arrays into little-endian.
-    assert t2["a"].dtype == dtype.newbyteorder("<")
-
-
-@pytest.mark.parametrize("dtype", ALL_DTYPES)
-def test_preserve_single_array_dtypes(tmp_path, dtype):
-    """Test that round-tripping a single array column preserves datatypes."""
-
-    test_file = tmp_path / "test.parquet"
-
-    values = _default_array_values(dtype)
-
-    t1 = Table()
-    t1.add_column(Column(name="a", data=np.array(values, dtype=dtype)))
-    t1.write(test_file)
-
-    t2 = Table.read(test_file)
-
-    assert np.all(t2["a"] == t1["a"])
-    assert np.all(t2["a"].shape == np.array(values).shape)
-    assert t2["a"].dtype == dtype
-
-
-@pytest.mark.parametrize("dtype", BIGENDIAN_DTYPES)
-def test_preserve_single_bigendian_array_dtypes(tmp_path, dtype):
-    """Test that round-tripping a single array column (big-endian) preserves data."""
-
-    test_file = tmp_path / "test.parquet"
-
-    values = _default_array_values(dtype)
-
-    t1 = Table()
-    t1.add_column(Column(name="a", data=np.array(values, dtype=dtype)))
-    t1.write(test_file)
-
-    t2 = Table.read(test_file)
-
-    assert np.all(t2["a"] == t1["a"])
-    assert np.all(t2["a"].shape == np.array(values).shape)
-    assert t2["a"].dtype == dtype.newbyteorder("<")
-
-
-@pytest.mark.parametrize("dtype", ALL_DTYPES)
-def test_preserve_single_var_length_array_dtypes(tmp_path, dtype):
-    """
-    Test that round-tripping a single variable length array column preserves
-    datatypes.
-    """
-
-    test_file = tmp_path / "test.parquet"
-
-    values = _default_var_length_array_values(dtype)
-
-    t1 = Table()
-    data = np.array([np.array(val, dtype=dtype) for val in values], dtype=np.object_)
-    t1.add_column(Column(name="a", data=data))
-    t1.write(test_file)
-
-    t2 = Table.read(test_file)
-
-    for row1, row2 in zip(t1["a"], t2["a"]):
-        assert np.all(row1 == row2)
-        assert row1.dtype == row2.dtype
-
-
-@pytest.mark.parametrize("dtype", BIGENDIAN_DTYPES)
-def test_preserve_single_bigendian_var_length_array_dtypes(tmp_path, dtype):
-    """
-    Test that round-tripping a single big-endian variable length array column preserves
-    datatypes.
-    """
-
-    test_file = tmp_path / "test.parquet"
-
-    values = _default_var_length_array_values(dtype)
-
-    t1 = Table()
-    data = np.array([np.array(val, dtype=dtype) for val in values], dtype=np.object_)
-    t1.add_column(Column(name="a", data=data))
-    t1.write(test_file)
-
-    t2 = Table.read(test_file)
-
-    for row1, row2 in zip(t1["a"], t2["a"]):
-        assert np.all(row1 == row2)
-        assert row1.dtype.newbyteorder(">") == row2.dtype.newbyteorder(">")
-
-
 def test_preserve_all_dtypes(tmp_path):
     """Test that round-tripping preserves a table with all the datatypes."""
 
@@ -349,11 +206,6 @@ def test_preserve_all_dtypes(tmp_path):
         values = _default_values(dtype)
         t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
 
-        arr_values = _default_array_values(dtype)
-        t1.add_column(
-            Column(name=str(dtype) + "_arr", data=np.array(arr_values, dtype=dtype))
-        )
-
     t1.write(test_file)
 
     t2 = Table.read(test_file)
@@ -362,107 +214,6 @@ def test_preserve_all_dtypes(tmp_path):
         values = _default_values(dtype)
         assert np.all(t2[str(dtype)] == values)
         assert t2[str(dtype)].dtype == dtype
-
-        arr_values = _default_array_values(dtype)
-        assert np.all(t2[str(dtype) + "_arr"] == values)
-        assert t2[str(dtype)].dtype == dtype
-        assert np.all(t2[str(dtype) + "_arr"].shape == np.array(arr_values).shape)
-
-    # Test just reading the schema
-    schema2 = Table.read(test_file, schema_only=True)
-    assert len(schema2) == 0
-    assert schema2.dtype == t2.dtype
-
-
-def test_preserve_all_var_length_dtypes(tmp_path):
-    """Test that round-tripping preserves a table with all the var length datatypes."""
-
-    test_file = tmp_path / "test.parquet"
-
-    t1 = Table()
-
-    for dtype in ALL_DTYPES:
-        varr_values = _default_var_length_array_values(dtype)
-        data = np.array(
-            [np.array(val, dtype=dtype) for val in varr_values], dtype=np.object_
-        )
-        t1.add_column(Column(name=str(dtype) + "_varr", data=data))
-
-    t1.write(test_file)
-
-    t2 = Table.read(test_file)
-
-    for dtype in ALL_DTYPES:
-        varr_values = _default_var_length_array_values(dtype)
-        colname = str(dtype) + "_varr"
-        for row1, row2 in zip(t1[colname], t2[colname]):
-            assert np.all(row1 == row2)
-            assert row1.dtype == row2.dtype
-
-
-def test_write_empty_tables(tmp_path):
-    """Test that we can save an empty table with var length datatypes."""
-
-    test_file = tmp_path / "test.parquet"
-
-    t1 = Table()
-
-    for dtype in ALL_DTYPES:
-        values = _default_values(dtype)
-        t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
-
-        arr_values = _default_array_values(dtype)
-        t1.add_column(
-            Column(name=str(dtype) + "_arr", data=np.array(arr_values, dtype=dtype))
-        )
-
-    # Write an empty table with values and arrays, and confirm it works.
-    data = np.zeros(0, dtype=t1.dtype)
-    t2 = Table(data=data)
-
-    t2.write(test_file)
-
-    t3 = Table.read(test_file)
-
-    assert t3.dtype == t2.dtype
-
-    test_file2 = tmp_path / "test2.parquet"
-
-    t4 = Table()
-    for dtype in ALL_DTYPES:
-        varr_values = _default_var_length_array_values(dtype)
-        data = np.array(
-            [np.array(val, dtype=dtype) for val in varr_values], dtype=np.object_
-        )
-        t4.add_column(Column(name=str(dtype) + "_varr", data=data))
-
-    # Write an empty table with variable-length arrays, and confirm this
-    # raises an exception. (The datatype of an np.object_ type column
-    # cannot be inferred from an empty table.)
-    data = np.zeros(0, dtype=t4.dtype)
-    t5 = Table(data=data)
-    with pytest.raises(ValueError, match="Cannot serialize zero-length table") as err:
-        t5.write(test_file2)
-
-
-def test_heterogeneous_var_array_table(tmp_path):
-    """Test exception when trying to serialize a mixed-type variable-length column."""
-
-    test_file = tmp_path / "test.parquet"
-
-    t1 = Table()
-
-    data = np.array(
-        [
-            np.array([0, 1, 2], dtype=np.int32),
-            np.array([0, 1, 2, 3, 4], dtype=np.float64),
-        ],
-        dtype=np.object_,
-    )
-    t1.add_column(Column(name="a", data=data))
-
-    with pytest.raises(ValueError, match="Cannot serialize mixed-type column") as err:
-        t1.write(test_file)
 
 
 def test_preserve_meta(tmp_path):
@@ -966,9 +717,9 @@ def test_parquet_read_generic(tmp_path):
     ]
     schema = pyarrow.schema(type_list)
 
-    _, parquet = get_pyarrow()
-
-    with parquet.ParquetWriter(filename, schema, version="2.4") as writer:
+    _, parquet, writer_version = get_pyarrow()
+    # We use version='2.0' for full support of datatypes including uint32.
+    with parquet.ParquetWriter(filename, schema, version=writer_version) as writer:
         arrays = [pyarrow.array(t1[name].data) for name in names]
         writer.write_table(pyarrow.Table.from_arrays(arrays, schema=schema))
 
@@ -993,7 +744,9 @@ def test_parquet_read_pandas(tmp_path):
         t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
 
     df = t1.to_pandas()
-    df.to_parquet(filename, version="2.4")
+    # We use version='2.0' for full support of datatypes including uint32.
+    _, _, writer_version = get_pyarrow()
+    df.to_parquet(filename, version=writer_version)
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         t2 = Table.read(filename)

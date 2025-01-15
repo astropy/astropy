@@ -1,5 +1,8 @@
 """Testing :mod:`astropy.cosmology.units`."""
 
+##############################################################################
+# IMPORTS
+
 import pytest
 
 import astropy.cosmology.units as cu
@@ -7,10 +10,34 @@ import astropy.units as u
 from astropy.cosmology import Planck13, default_cosmology
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 ##############################################################################
 # TESTS
 ##############################################################################
+
+
+def test_has_expected_units():
+    """
+    Test that this module has the expected set of units. Some of the units are
+    imported from :mod:`astropy.units`, or vice versa. Here we test presence,
+    not usage. Units from :mod:`astropy.units` are tested in that module. Units
+    defined in :mod:`astropy.cosmology` will be tested subsequently.
+    """
+    with pytest.warns(AstropyDeprecationWarning, match="`littleh`"):
+        assert u.astrophys.littleh is cu.littleh
+
+
+def test_has_expected_equivalencies():
+    """
+    Test that this module has the expected set of equivalencies. Many of the
+    equivalencies are imported from :mod:`astropy.units`, so here we test
+    presence, not usage. Equivalencies from :mod:`astropy.units` are tested in
+    that module. Equivalencies defined in :mod:`astropy.cosmology` will be
+    tested subsequently.
+    """
+    with pytest.warns(AstropyDeprecationWarning, match="`with_H0`"):
+        assert u.equivalencies.with_H0 is cu.with_H0
 
 
 def test_littleh():

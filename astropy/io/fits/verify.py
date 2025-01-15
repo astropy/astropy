@@ -2,8 +2,8 @@
 
 import operator
 import warnings
-from textwrap import indent
 
+from astropy.utils import indent
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -45,6 +45,7 @@ class _Verify:
         """
         Execute the verification with selected option.
         """
+
         text = err_text
 
         if option in ["warn", "exception"]:
@@ -72,6 +73,7 @@ class _Verify:
             ``"silentfix"`` with ``"+ignore"``, ``"+warn"``, or ``"+exception"``
             (e.g. ``"fix+warn"``).  See :ref:`astropy:verify` for more info.
         """
+
         opt = option.lower()
         if opt not in VERIFY_OPTIONS:
             raise ValueError(f"Option {option!r} not recognized.")
@@ -147,13 +149,14 @@ class _ErrList(list):
         Iterate the nested structure as a list of strings with appropriate
         indentations for each level of structure.
         """
+
         element = 0
         # go through the list twice, first time print out all top level
         # messages
         for item in self:
             if not isinstance(item, _ErrList):
                 if filter is None or filter(item):
-                    yield item[0], indent(item[1], 4 * shift * " ")
+                    yield item[0], indent(item[1], shift=shift)
 
         # second time go through the next level items, each of the next level
         # must present, even it has nothing.
@@ -169,7 +172,7 @@ class _ErrList(list):
                     if self.unit:
                         # This line is sort of a header for the next level in
                         # the hierarchy
-                        yield None, indent(f"{self.unit} {element}:", 4 * shift * " ")
+                        yield None, indent(f"{self.unit} {element}:", shift=shift)
                     yield first_line
 
                 yield from next_lines

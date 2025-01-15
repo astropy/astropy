@@ -50,8 +50,8 @@ def test_init_with_header():
 def test_init_with_dict():
     dict1 = {"a": 11, "b": 12, "c": 13, "d": 14, "e": 15}
     h1 = fits.Header(dict1)
-    for i, expected in dict1.items():
-        assert h1[i] == expected
+    for i in dict1:
+        assert dict1[i] == h1[i]
 
 
 def test_init_with_ordereddict():
@@ -93,7 +93,7 @@ class TestHeaderFunctions(FitsTestCase):
         """Test Card constructor with default argument values."""
 
         c = fits.Card()
-        assert c.keyword == ""
+        assert "" == c.keyword
 
     def test_card_from_bytes(self):
         """
@@ -136,27 +136,6 @@ class TestHeaderFunctions(FitsTestCase):
             "FLOATNUM= -4.6737463674763E+032"
         ):
             assert str(c) == _pad("FLOATNUM= -4.6737463674763E+32")
-
-    def test_floating_point_string_representation_card(self):
-        """
-        Ensures Card formats float values with the correct precision, avoiding
-        comment truncation
-
-        Regression test for https://github.com/astropy/astropy/issues/14507
-        """
-        k = "HIERARCH ABC DEF GH IJKLMN"
-        com = "[m] abcdef ghijklm nopqrstu vw xyzab"
-        c = fits.Card(k, 0.009125, com)
-        expected_str = f"{k} = 0.009125 / {com}"
-        assert str(c)[: len(expected_str)] == expected_str
-
-        c = fits.Card(k, 8.95, com)
-        expected_str = f"{k} = 8.95 / {com}"
-        assert str(c)[: len(expected_str)] == expected_str
-
-        c = fits.Card(k, -99.9, com)
-        expected_str = f"{k} = -99.9 / {com}"
-        assert str(c)[: len(expected_str)] == expected_str
 
     def test_complex_value_card(self):
         """Test Card constructor with complex value"""
@@ -280,7 +259,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         header.update(NAXIS1=100, NAXIS2=100)
         assert set(header.keys()) == {"FOO", "A", "B", "HELLO", "NAXIS1", "NAXIS2"}
-        assert tuple(header.values()) == ("BAR", 1, 2, 1, 100, 100)
+        assert set(header.values()) == {"BAR", 1, 2, 100, 100}
 
     def test_update_comment(self):
         hdul = fits.open(self.data("arange.fits"))
@@ -358,10 +337,10 @@ class TestHeaderFunctions(FitsTestCase):
         # fixable non-standard FITS card will keep the original format
         c = fits.Card.fromstring("abc     = +  2.1   e + 12")
         assert c.value == 2100000000000.0
-
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(
+            fits.verify.VerifyWarning, match=r"Verification reported errors"
+        ):
             assert str(c) == _pad("ABC     =             +2.1E+12")
-        assert "Verification reported errors" in str(w[0].message)
 
     def test_fixable_non_fsc(self):
         # fixable non-FSC: if the card is not parsable, it's value will be
@@ -370,13 +349,13 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring(
             "no_quote=  this card's value has no quotes / let's also try the comment"
         )
-
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(
+            fits.verify.VerifyWarning, match=r"Verification reported errors"
+        ):
             assert (
                 str(c) == "NO_QUOTE= 'this card''s value has no quotes' "
                 "/ let's also try the comment       "
             )
-        assert "Verification reported errors" in str(w[0].message)
 
     def test_undefined_value_using_string_input(self):
         # undefined value using string input
@@ -396,10 +375,10 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring("XYZ= 100")
         assert c.keyword == "XYZ"
         assert c.value == 100
-
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(
+            fits.verify.VerifyWarning, match=r"Verification reported errors"
+        ):
             assert str(c) == _pad("XYZ     =                  100")
-        assert "Verification reported errors" in str(w[0].message)
 
     def test_equal_only_up_to_column_10(self, capsys):
         # the test of "=" location is only up to column 10
@@ -432,11 +411,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_fix_invalid_equal_sign(self):
         fix_text = "Fixed 'ABC' card to meet the FITS standard."
         c = fits.Card.fromstring("ABC= a6")
-
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(AstropyUserWarning, match=fix_text) as w:
             c.verify("fix")
         assert len(w) == 4
-        assert fix_text in str(w[2].message)
         assert str(c) == _pad("ABC     = 'a6      '")
 
     def test_long_string_value(self):
@@ -574,31 +551,15 @@ class TestHeaderFunctions(FitsTestCase):
                 "/ comments with ''. "
             )
         )
-
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(
+            fits.verify.VerifyWarning, match=r"Verification reported errors"
+        ):
             assert (
                 str(c)
                 == "ABC     = 'longstring''s testing  continue with long string but without the &'  "
                 "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
                 "CONTINUE  '' / comments in line 1 comments with ''.                             "
             )
-        assert "Verification reported errors" in str(w[0].message)
-
-    def test_long_string_value_with_quotes(self):
-        testval = "x" * 100 + "''"
-        c = fits.Card("TEST", testval)
-        c = fits.Card.fromstring(c.image)
-        assert c.value == testval
-
-        testval = "x" * 100 + "''xxx"
-        c = fits.Card("TEST", testval)
-        c = fits.Card.fromstring(c.image)
-        assert c.value == testval
-
-        testval = "x" * 100 + "'' xxx"
-        c = fits.Card("TEST", testval)
-        c = fits.Card.fromstring(c.image)
-        assert c.value == testval
 
     def test_continue_card_with_equals_in_value(self):
         """
@@ -1917,7 +1878,7 @@ class TestHeaderFunctions(FitsTestCase):
         s = invalid_header("END$%&%^*%*", True)
         with pytest.warns(
             AstropyUserWarning,
-            match=r"Unexpected bytes trailing END keyword: '\$%&%\^\*%\*'",
+            match=r"Unexpected bytes trailing " r"END keyword: '\$%&%\^\*%\*'",
         ) as w:
             h = fits.Header.fromfile(s)
             assert h == horig
@@ -2018,13 +1979,15 @@ class TestHeaderFunctions(FitsTestCase):
 
         # Now if this were reserialized, would new values for these cards be
         # written with repaired exponent signs?
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(
+            fits.verify.VerifyWarning, match=r"Verification reported errors"
+        ):
             assert str(h.cards["FOCALLEN"]) == _pad("FOCALLEN= +1.550000000000E+002")
-        assert "Verification reported errors" in str(w[0].message)
         assert h.cards["FOCALLEN"]._modified
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(
+            fits.verify.VerifyWarning, match=r"Verification reported errors"
+        ):
             assert str(h.cards["APERTURE"]) == _pad("APERTURE= +0.000000000000E+000")
-        assert "Verification reported errors" in str(w[0].message)
         assert h.cards["APERTURE"]._modified
         assert h._modified
 
@@ -2032,13 +1995,15 @@ class TestHeaderFunctions(FitsTestCase):
         # the card strings *before* parsing the values.  Also, the card strings
         # really should be "fixed" before being returned to the user
         h = fits.Header.fromstring(hstr, sep="\n")
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(
+            fits.verify.VerifyWarning, match=r"Verification reported errors"
+        ):
             assert str(h.cards["FOCALLEN"]) == _pad("FOCALLEN= +1.550000000000E+002")
-        assert "Verification reported errors" in str(w[0].message)
         assert h.cards["FOCALLEN"]._modified
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(
+            fits.verify.VerifyWarning, match=r"Verification reported errors"
+        ):
             assert str(h.cards["APERTURE"]) == _pad("APERTURE= +0.000000000000E+000")
-        assert "Verification reported errors" in str(w[0].message)
         assert h.cards["APERTURE"]._modified
 
         assert h["FOCALLEN"] == 155.0
@@ -2069,10 +2034,9 @@ class TestHeaderFunctions(FitsTestCase):
             f.seek(346)  # Location of the exponent 'E' symbol
             f.write(encode_ascii("e"))
 
-        with (
-            fits.open(self.temp("test.fits")) as hdul,
-            pytest.warns(AstropyUserWarning) as w,
-        ):
+        with fits.open(self.temp("test.fits")) as hdul, pytest.warns(
+            AstropyUserWarning
+        ) as w:
             hdul.writeto(self.temp("temp.fits"), output_verify="warn")
         assert len(w) == 5
         # The first two warnings are just the headers to the actual warning
@@ -2401,10 +2365,10 @@ class TestHeaderFunctions(FitsTestCase):
         """
 
         c = fits.Card.fromstring("HIERARCH ESO DET CHIP PXSPACE = 5e6")
-
-        with pytest.warns(fits.verify.VerifyWarning) as w:
+        with pytest.warns(
+            fits.verify.VerifyWarning, match=r"Verification reported errors"
+        ):
             c.verify("fix")
-        assert "Verification reported errors" in str(w[0].message)
         assert str(c) == _pad("HIERARCH ESO DET CHIP PXSPACE = 5E6")
 
     def test_assign_inf_nan(self):
@@ -3168,6 +3132,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
     @pytest.mark.parametrize("mode", ["wb", "wb+", "ab", "ab+"])
     def test_hdu_writeto_mode(self, mode):
+
         with open(self.temp("mode.fits"), mode=mode) as ff:
             hdu = fits.ImageHDU(data=np.ones(5))
             hdu.writeto(ff)

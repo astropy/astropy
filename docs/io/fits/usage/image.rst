@@ -57,7 +57,7 @@ Here is a summary of reading and updating image data values::
            [314, 314, 314, 314, 312, 313, 314, 314, 314, 311],
            [314, 313, 312, 313, 313, 314, 312, 312, 311, 314],
            [313, 313, 313, 314, 313, 313, 315, 313, 312, 313],
-           [314, 313, 313, 314, 313, 312, 312, 314, 310, 314]], dtype='>i2')
+           [314, 313, 313, 314, 313, 312, 312, 314, 310, 314]], dtype=int16)
     >>> data[1,4] = 999  # update a pixel value
     >>> data[30:40, 10:20] = 0  # update values of a subsection
     >>> data[3] = data[2]    # copy the 3rd row to the 4th row
@@ -133,7 +133,7 @@ touched::
     >>> hdu.header['bzero']
     1500.0
     >>> hdu.data[0, 0]  # once data is touched, it is scaled  #  doctest: +FLOAT_CMP
-    np.float32(557.7563)
+    557.7563
     >>> hdu.data.dtype.name
     'float32'
     >>> hdu.header['bitpix']  # BITPIX is also updated
@@ -243,13 +243,6 @@ However, it remains very useful in the following circumstances:
   system — in such cases it may be necessary to use sections.
 * Memory mapping does not work for accessing remote FITS files.
   In this case sections may be your only option. See :ref:`astropy:fits_io_cloud`.
-
-In addition, for compressed FITS files, :attr:`CompImageHDU.section` can be used
-to access and decompress only parts of the data, and can provide a significant
-speedup. Note however that accessing data using :attr:`CompImageHDU.section` will
-always load tiles one at a time from disk, and therefore when accessing a large
-fraction of the data (or slicing it in a way that would cause most tiles to be
-loaded) you may obtain better performance by using :attr:`CompImageHDU.data`.
 
 Example
 -------

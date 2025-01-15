@@ -40,49 +40,20 @@ import operator
 import numpy as np
 from numpy.lib import recfunctions as rfn
 
-from astropy.units.core import dimensionless_unscaled
-from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
+from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from astropy.utils import isiterable
-from astropy.utils.compat import (
-    COPY_IF_NEEDED,
-    NUMPY_LT_1_24,
-    NUMPY_LT_2_0,
-    NUMPY_LT_2_1,
-    NUMPY_LT_2_2,
-)
-
-if NUMPY_LT_2_0:
-    import numpy.core as np_core
-else:
-    import numpy._core as np_core
+from astropy.utils.compat import NUMPY_LT_1_23
 
 # In 1.17, overrides are enabled by default, but it is still possible to
 # turn them off using an environment variable.  We use getattr since it
 # is planned to remove that possibility in later numpy versions.
-ARRAY_FUNCTION_ENABLED = getattr(np_core.overrides, "ENABLE_ARRAY_FUNCTION", True)
+ARRAY_FUNCTION_ENABLED = getattr(np.core.overrides, "ENABLE_ARRAY_FUNCTION", True)
 SUBCLASS_SAFE_FUNCTIONS = set()
 """Functions with implementations supporting subclasses like Quantity."""
 FUNCTION_HELPERS = {}
 """Functions with implementations usable with proper unit conversion."""
 DISPATCHED_FUNCTIONS = {}
 """Functions for which we provide our own implementation."""
-
-if NUMPY_LT_2_2:
-    # in numpy 2.2 these are auto detected by numpy itself
-    # xref https://github.com/numpy/numpy/issues/27451
-    SUPPORTED_NEP35_FUNCTIONS = {
-        np.arange,
-        np.empty, np.ones, np.zeros, np.full,
-        np.array, np.asarray, np.asanyarray, np.ascontiguousarray, np.asfortranarray,
-        np.frombuffer, np.fromfile, np.fromfunction, np.fromiter, np.fromstring,
-        np.require, np.identity, np.eye, np.tri, np.genfromtxt, np.loadtxt,
-    }  # fmt: skip
-    """Functions that support a 'like' keyword argument and dispatch on it (NEP 35)"""
-else:
-    # When our minimum becomes numpy>=2.2, this can be removed, here and in the tests
-    SUPPORTED_NEP35_FUNCTIONS = set()
-
-"""Functions that support a 'like' keyword argument and dispatch on it (NEP 35)"""
 UNSUPPORTED_FUNCTIONS = set()
 """Functions that cannot sensibly be used with quantities."""
 SUBCLASS_SAFE_FUNCTIONS |= {
@@ -99,54 +70,23 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.put, np.fill_diagonal, np.tile, np.repeat,
     np.split, np.array_split, np.hsplit, np.vsplit, np.dsplit,
     np.stack, np.column_stack, np.hstack, np.vstack, np.dstack,
-    np.max, np.min, np.amax, np.amin, np.ptp, np.sum, np.cumsum,
-    np.prod, np.cumprod,
+    np.amax, np.amin, np.ptp, np.sum, np.cumsum,
+    np.prod, np.product, np.cumprod, np.cumproduct,
     np.round, np.around,
     np.fix, np.angle, np.i0, np.clip,
     np.isposinf, np.isneginf, np.isreal, np.iscomplex,
-    np.average, np.mean, np.std, np.var, np.trace,
+    np.average, np.mean, np.std, np.var, np.median, np.trace,
     np.nanmax, np.nanmin, np.nanargmin, np.nanargmax, np.nanmean,
-    np.nansum, np.nancumsum, np.nanprod, np.nancumprod,
-    np.einsum_path, np.linspace,
-    np.sort, np.partition, np.meshgrid,
+    np.nanmedian, np.nansum, np.nancumsum, np.nanstd, np.nanvar,
+    np.nanprod, np.nancumprod,
+    np.einsum_path, np.trapz, np.linspace,
+    np.sort, np.msort, np.partition, np.meshgrid,
     np.common_type, np.result_type, np.can_cast, np.min_scalar_type,
     np.iscomplexobj, np.isrealobj,
     np.shares_memory, np.may_share_memory,
     np.apply_along_axis, np.take_along_axis, np.put_along_axis,
     np.linalg.cond, np.linalg.multi_dot,
 }  # fmt: skip
-
-SUBCLASS_SAFE_FUNCTIONS |= {np.median}
-
-if NUMPY_LT_2_0:
-    # functions (re)moved in numpy 2.0; alias for np.round in NUMPY_LT_1_25
-    SUBCLASS_SAFE_FUNCTIONS |= {
-        np.msort,
-        np.round_,  # noqa: NPY003, NPY201
-        np.trapz,  # noqa: NPY201
-        np.product,  # noqa: NPY003, NPY201
-        np.cumproduct,  # noqa: NPY003, NPY201
-    }
-if not NUMPY_LT_2_0:
-    # Array-API compatible versions (matrix axes always at end).
-    SUBCLASS_SAFE_FUNCTIONS |= {
-        np.matrix_transpose, np.linalg.matrix_transpose,
-        np.linalg.diagonal, np.linalg.trace,
-        np.linalg.matrix_norm, np.linalg.vector_norm, np.linalg.vecdot,
-    }  # fmt: skip
-
-    # these work out of the box (and are tested), because they
-    # delegate to other, already wrapped functions from the np namespace
-    SUBCLASS_SAFE_FUNCTIONS |= {
-        np.linalg.cross, np.linalg.svdvals, np.linalg.tensordot, np.linalg.matmul,
-        np.unique_all, np.unique_counts, np.unique_inverse, np.unique_values,
-        np.astype,
-    }  # fmt: skip
-
-    # trapz was renamed to trapezoid
-    SUBCLASS_SAFE_FUNCTIONS |= {np.trapezoid}
-if not NUMPY_LT_2_1:
-    SUBCLASS_SAFE_FUNCTIONS |= {np.unstack, np.cumulative_prod, np.cumulative_sum}
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
@@ -157,13 +97,8 @@ UNSUPPORTED_FUNCTIONS |= {
     np.packbits, np.unpackbits, np.unravel_index,
     np.ravel_multi_index, np.ix_, np.cov, np.corrcoef,
     np.busday_count, np.busday_offset, np.datetime_as_string,
-    np.is_busday, np.all, np.any,
+    np.is_busday, np.all, np.any, np.sometrue, np.alltrue,
 }  # fmt: skip
-
-if NUMPY_LT_2_0:
-    UNSUPPORTED_FUNCTIONS |= {  # removed in numpy 2.0
-        np.sometrue, np.alltrue,  # noqa: NPY003, NPY201
-    }  # fmt: skip
 
 # Could be supported if we had a natural logarithm unit.
 UNSUPPORTED_FUNCTIONS |= {np.linalg.slogdet}
@@ -183,6 +118,12 @@ IGNORED_FUNCTIONS = {
     # functions taking record arrays (which are deprecated)
     rfn.rec_append_fields, rfn.rec_drop_fields, rfn.rec_join,
 }  # fmt: skip
+if NUMPY_LT_1_23:
+    IGNORED_FUNCTIONS |= {
+        # Deprecated, removed in numpy 1.23
+        np.asscalar,
+        np.alen,
+    }
 UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
 
@@ -220,16 +161,18 @@ function_helper = FunctionAssigner(FUNCTION_HELPERS)
 dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
 
 
+# fmt: off
 @function_helper(
     helps={
-        np.copy, np.real_if_close, np.sort_complex, np.resize,
+        np.copy, np.asfarray, np.real_if_close, np.sort_complex, np.resize,
         np.fft.fft, np.fft.ifft, np.fft.rfft, np.fft.irfft,
         np.fft.fft2, np.fft.ifft2, np.fft.rfft2, np.fft.irfft2,
         np.fft.fftn, np.fft.ifftn, np.fft.rfftn, np.fft.irfftn,
         np.fft.hfft, np.fft.ihfft,
         np.linalg.eigvals, np.linalg.eigvalsh,
-    } | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
-)  # fmt: skip
+    }
+)
+# fmt: on
 def invariant_a_helper(a, *args, **kwargs):
     return (a.view(np.ndarray),) + args, kwargs, a.unit, None
 
@@ -260,47 +203,6 @@ def like_helper(a, *args, **kwargs):
     return (a.view(np.ndarray),) + args, kwargs, unit, None
 
 
-def _quantity_out_as_array(out):
-    from astropy.units import Quantity
-
-    if isinstance(out, Quantity):
-        return out.view(np.ndarray)
-    else:
-        # TODO: for an ndarray output, one could in principle
-        # try converting the input to dimensionless.
-        raise NotImplementedError
-
-
-# nanvar is safe for Quantity and was previously in SUBCLASS_FUNCTIONS, but it
-# is not safe for Angle, since the resulting unit is inconsistent with being
-# an Angle. By using FUNCTION_HELPERS, the unit gets passed through
-# _result_as_quantity, which will correctly drop to Quantity.
-# A side effect would be that np.nanstd then also produces Quantity; this
-# is avoided by it being helped below.
-@function_helper
-def nanvar(a, axis=None, dtype=None, out=None, ddof=0, keepdims=np._NoValue, **kwargs):
-    a = _as_quantity(a)
-    out_array = None if out is None else _quantity_out_as_array(out)
-    return (
-        (a.view(np.ndarray), axis, dtype, out_array, ddof, keepdims),
-        kwargs,
-        a.unit**2,
-        out,
-    )
-
-
-@function_helper
-def nanstd(a, axis=None, dtype=None, out=None, ddof=0, keepdims=np._NoValue, **kwargs):
-    a = _as_quantity(a)
-    out_array = None if out is None else _quantity_out_as_array(out)
-    return (
-        (a.view(np.ndarray), axis, dtype, out_array, ddof, keepdims),
-        kwargs,
-        a.unit,
-        out,
-    )
-
-
 @function_helper
 def sinc(x):
     from astropy.units.si import radian
@@ -315,21 +217,15 @@ def sinc(x):
 
 
 @dispatched_function
-def unwrap(p, discont=None, axis=-1, *, period=2 * np.pi):
+def unwrap(p, discont=None, axis=-1):
     from astropy.units.si import radian
 
     if discont is None:
         discont = np.pi << radian
 
-    if period == 2 * np.pi:
-        period <<= radian
-
-    p, discont, period = _as_quantities(p, discont, period)
+    p, discont = _as_quantities(p, discont)
     result = np.unwrap.__wrapped__(
-        p.to_value(radian),
-        discont.to_value(radian),
-        axis=axis,
-        period=period.to_value(radian),
+        p.to_value(radian), discont.to_value(radian), axis=axis
     )
     result = radian.to(p.unit, result)
     return result, p.unit, None
@@ -402,7 +298,7 @@ def _as_quantity(a):
     from astropy.units import Quantity
 
     try:
-        return Quantity(a, copy=COPY_IF_NEEDED, subok=True)
+        return Quantity(a, copy=False, subok=True)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
@@ -414,9 +310,7 @@ def _as_quantities(*args):
 
     try:
         # Note: this should keep the dtype the same
-        return tuple(
-            Quantity(a, copy=COPY_IF_NEEDED, subok=True, dtype=None) for a in args
-        )
+        return tuple(Quantity(a, copy=False, subok=True, dtype=None) for a in args)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
@@ -428,6 +322,7 @@ def _quantities2arrays(*args, unit_from_first=False):
     If unit_from_first, take the unit of the first argument regardless
     whether it actually defined a unit (e.g., dimensionless for arrays).
     """
+
     # Turn first argument into a quantity.
     q = _as_quantity(args[0])
     if len(args) == 1:
@@ -462,8 +357,15 @@ def _quantities2arrays(*args, unit_from_first=False):
 
 def _iterable_helper(*args, out=None, **kwargs):
     """Convert arguments to Quantity, and treat possible 'out'."""
+    from astropy.units import Quantity
+
     if out is not None:
-        kwargs["out"] = _quantity_out_as_array(out)  # raises if not Quantity.
+        if isinstance(out, Quantity):
+            kwargs["out"] = out.view(np.ndarray)
+        else:
+            # TODO: for an ndarray output, we could in principle
+            # try converting all Quantity to dimensionless.
+            raise NotImplementedError
 
     arrays, unit = _quantities2arrays(*args)
     return arrays, kwargs, unit, out
@@ -477,187 +379,6 @@ def concatenate(arrays, axis=0, out=None, **kwargs):
     return (arrays,), kwargs, unit, out
 
 
-def _block(arrays, max_depth, result_ndim, depth=0):
-    # Block by concatenation, copied from np._core.shape_base,
-    # but ensuring that we call regular concatenate.
-    if depth < max_depth:
-        arrs = [_block(arr, max_depth, result_ndim, depth + 1) for arr in arrays]
-        # The one difference with the numpy code.
-        return np.concatenate(arrs, axis=-(max_depth - depth))
-    else:
-        return np_core.shape_base._atleast_nd(arrays, result_ndim)
-
-
-UNIT_FROM_LIKE_ARG = object()
-
-if NUMPY_LT_2_0:
-
-    @function_helper
-    def arange(*args, start=None, stop=None, step=None, dtype=None):
-        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype)
-else:
-
-    @function_helper
-    def arange(*args, start=None, stop=None, step=None, dtype=None, device=None):
-        return arange_impl(
-            *args, start=start, stop=stop, step=step, dtype=dtype, device=device
-        )
-
-
-def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
-    # NumPy is supposed to validate the input parameters before this dispatched
-    # function is reached. Nevertheless, we'll sprinkle a few rundundant
-    # sanity checks in the form of `assert` statements.
-    # As they are not part of the business logic, it is fine if they are
-    # compiled-away (e.g. the Python interpreter runs with -O)
-    assert len(args) <= 4
-
-    # bind positional arguments to their meaningful names
-    # following the (complex) logic of np.arange
-    match args:
-        case (pos1,):
-            assert stop is None or start is None
-            if stop is None:
-                stop = pos1
-            elif start is None:
-                start = pos1
-        case start, stop, *rest:
-            if start is not None and stop is None:
-                start, stop = stop, start
-            match rest:
-                # rebind step and dtype if possible
-                case (step,):
-                    pass
-                case step, dtype:
-                    pass
-
-    # as the only required argument, we want stop to set the unit of the output
-    # so it's important that it comes first in the qty_kwargs
-    qty_kwargs = {
-        k: v
-        for k, v in (("stop", stop), ("start", start), ("step", step))
-        if v is not None
-    }
-    out_unit = getattr(stop, "unit", UNIT_FROM_LIKE_ARG)
-    if out_unit is UNIT_FROM_LIKE_ARG:
-        if hasattr(start, "unit") or hasattr(step, "unit"):
-            raise TypeError(
-                "stop without a unit cannot be combined with "
-                "start or step with a unit."
-            )
-        kwargs.update(qty_kwargs)
-    else:
-        # Convert possible start, step to stop units.
-        new_values, _ = _quantities2arrays(*qty_kwargs.values())
-        kwargs.update(zip(qty_kwargs.keys(), new_values))
-
-    kwargs["dtype"] = dtype
-    return (), kwargs, out_unit, None
-
-
-if NUMPY_LT_2_0:
-
-    @function_helper(helps={np.empty, np.ones, np.zeros})
-    def creation_helper(shape, dtype=None, order="C"):
-        return (shape, dtype, order), {}, UNIT_FROM_LIKE_ARG, None
-else:
-
-    @function_helper(helps={np.empty, np.ones, np.zeros})
-    def creation_helper(shape, dtype=None, order="C", *, device=None):
-        return (shape, dtype, order), {"device": device}, UNIT_FROM_LIKE_ARG, None
-
-
-if NUMPY_LT_2_0:
-
-    @function_helper
-    def full(shape, fill_value, dtype=None, order="C"):
-        return full_impl(shape, fill_value, dtype, order)
-else:
-
-    @function_helper
-    def full(shape, fill_value, dtype=None, order="C", *, device=None):
-        return full_impl(shape, fill_value, dtype, order, device=device)
-
-
-def full_impl(shape, fill_value, *args, **kwargs):
-    out_unit = getattr(fill_value, "unit", UNIT_FROM_LIKE_ARG)
-    if out_unit is not UNIT_FROM_LIKE_ARG:
-        fill_value = _as_quantity(fill_value).value
-    return (shape, fill_value) + args, kwargs, out_unit, None
-
-
-@function_helper
-def require(a, dtype=None, requirements=None):
-    out_unit = getattr(a, "unit", UNIT_FROM_LIKE_ARG)
-    if out_unit is not UNIT_FROM_LIKE_ARG:
-        a = _as_quantity(a).value
-    return (a, dtype, requirements), {}, out_unit, None
-
-
-@function_helper
-def array(object, dtype=None, *, copy=True, order="K", subok=False, ndmin=0):
-    out_unit = getattr(object, "unit", UNIT_FROM_LIKE_ARG)
-    if out_unit is not UNIT_FROM_LIKE_ARG:
-        object = _as_quantity(object).value
-    kwargs = {"copy": copy, "order": order, "subok": subok, "ndmin": ndmin}
-    return (object, dtype), kwargs, out_unit, None
-
-
-if NUMPY_LT_2_0:
-    asarray_impl_1_helps = {np.asarray, np.asanyarray}
-    asarray_impl_2_helps = {}
-elif NUMPY_LT_2_1:
-    asarray_impl_1_helps = {np.asanyarray}
-    asarray_impl_2_helps = {np.asarray}
-else:
-    asarray_impl_1_helps = {}
-    asarray_impl_2_helps = {np.asarray, np.asanyarray}
-
-
-@function_helper(helps=asarray_impl_1_helps)
-def asarray_impl_1(a, dtype=None, order=None):
-    out_unit = getattr(a, "unit", UNIT_FROM_LIKE_ARG)
-    if out_unit is not UNIT_FROM_LIKE_ARG:
-        a = _as_quantity(a).value
-    return (a, dtype, order), {}, out_unit, None
-
-
-@function_helper(helps=asarray_impl_2_helps)
-def asarray_impl_2(a, dtype=None, order=None, *, device=None, copy=None):
-    out_unit = getattr(a, "unit", UNIT_FROM_LIKE_ARG)
-    if out_unit is not UNIT_FROM_LIKE_ARG:
-        a = _as_quantity(a).value
-    return (a, dtype, order), {"device": device, "copy": copy}, out_unit, None
-
-
-@function_helper(helps={np.ascontiguousarray, np.asfortranarray})
-def aslayoutarray_helper(a, dtype=None):
-    out_unit = getattr(a, "unit", UNIT_FROM_LIKE_ARG)
-    if out_unit is not UNIT_FROM_LIKE_ARG:
-        a = _as_quantity(a).value
-    return (a, dtype), {}, out_unit, None
-
-
-@function_helper
-def fromfunction(function, shape, *, dtype=float, **kwargs):
-    zero_arg = np.zeros(len(shape), dtype)
-    try:
-        out_unit = function(*zero_arg).unit
-    except Exception:
-        out_unit = UNIT_FROM_LIKE_ARG
-    return (function, shape), {"dtype": dtype, **kwargs}, out_unit, None
-
-
-@function_helper(helps={
-        np.frombuffer, np.fromfile, np.fromiter, np.fromstring,
-        np.identity, np.eye, np.tri,
-        np.genfromtxt, np.loadtxt,
-    }
-)  # fmt: skip
-def generic_like_array_function_helper(*args, **kwargs):
-    return args, kwargs, UNIT_FROM_LIKE_ARG, None
-
-
 @dispatched_function
 def block(arrays):
     # We need to override block since the numpy implementation can take two
@@ -665,20 +386,30 @@ def block(arrays):
     # result array in which parts are set.  Each assumes array input and
     # cannot be used directly.  Since it would be very costly to inspect all
     # arrays and then turn them back into a nested list, we just copy here the
-    # first implementation, np.core.shape_base._block, which is the easiest to
-    # adjust while making sure that both units and class are properly kept.
-    (arrays, list_ndim, result_ndim, final_size) = np_core.shape_base._block_setup(
+    # second implementation, np.core.shape_base._block_slicing, since it is
+    # shortest and easiest.
+    (arrays, list_ndim, result_ndim, final_size) = np.core.shape_base._block_setup(
         arrays
     )
-    result = _block(arrays, list_ndim, result_ndim)
-    if list_ndim == 0:
-        result = result.copy()
-    return result, None, None
+    shape, slices, arrays = np.core.shape_base._block_info_recursion(
+        arrays, list_ndim, result_ndim
+    )
+    # Here, one line of difference!
+    arrays, unit = _quantities2arrays(*arrays)
+    # Back to _block_slicing
+    dtype = np.result_type(*[arr.dtype for arr in arrays])
+    F_order = all(arr.flags["F_CONTIGUOUS"] for arr in arrays)
+    C_order = all(arr.flags["C_CONTIGUOUS"] for arr in arrays)
+    order = "F" if F_order and not C_order else "C"
+    result = np.empty(shape=shape, dtype=dtype, order=order)
+    for the_slice, arr in zip(slices, arrays):
+        result[(Ellipsis,) + the_slice] = arr
+    return result, unit, None
 
 
 @function_helper
-def choose(a, choices, out=None, mode="raise"):
-    choices, kwargs, unit, out = _iterable_helper(*choices, out=out, mode=mode)
+def choose(a, choices, out=None, **kwargs):
+    choices, kwargs, unit, out = _iterable_helper(*choices, out=out, **kwargs)
     return (a, choices), kwargs, unit, out
 
 
@@ -694,7 +425,7 @@ def select(condlist, choicelist, default=0):
 def piecewise(x, condlist, funclist, *args, **kw):
     from astropy.units import Quantity
 
-    # Copied implementation from numpy.lib._function_base_impl.piecewise,
+    # Copied implementation from numpy.lib.function_base.piecewise,
     # taking care of units of function outputs.
     n2 = len(funclist)
     # undocumented: single condition is promoted to a list of one condition
@@ -815,13 +546,6 @@ def percentile(a, q, *args, **kwargs):
 
 
 @function_helper
-def nanmedian(a, axis=None, out=None, overwrite_input=False, keepdims=np._NoValue):
-    return _iterable_helper(
-        a, axis=axis, out=out, overwrite_input=overwrite_input, keepdims=keepdims
-    )
-
-
-@function_helper
 def count_nonzero(a, *args, **kwargs):
     return (a.value,) + args, kwargs, None, None
 
@@ -837,22 +561,16 @@ def close(a, b, rtol=1e-05, atol=1e-08, *args, **kwargs):
     return (a, b, rtol, atol) + args, kwargs, None, None
 
 
-@dispatched_function
-def array_equal(a1, a2, equal_nan=False):
-    try:
-        args, unit = _quantities2arrays(a1, a2)
-    except UnitConversionError:
-        return False, None, None
-    return np.array_equal(*args, equal_nan=equal_nan), None, None
+@function_helper
+def array_equal(a1, a2):
+    args, unit = _quantities2arrays(a1, a2)
+    return args, {}, None, None
 
 
-@dispatched_function
+@function_helper
 def array_equiv(a1, a2):
-    try:
-        args, unit = _quantities2arrays(a1, a2)
-    except UnitConversionError:
-        return False, None, None
-    return np.array_equiv(*args), None, None
+    args, unit = _quantities2arrays(a1, a2)
+    return args, {}, None, None
 
 
 @function_helper(helps={np.dot, np.outer})
@@ -872,39 +590,33 @@ def dot_like(a, b, out=None):
 @function_helper(
     helps={
         np.cross,
-        np.kron,
+        np.inner,
+        np.vdot,
         np.tensordot,
+        np.kron,
+        np.correlate,
+        np.convolve,
     }
 )
-def cross_like_a_b(a, b, *args, **kwargs):
+def cross_like(a, b, *args, **kwargs):
     a, b = _as_quantities(a, b)
     unit = a.unit * b.unit
     return (a.view(np.ndarray), b.view(np.ndarray)) + args, kwargs, unit, None
 
 
-@function_helper(
-    helps={
-        np.inner,
-        np.vdot,
-        np.correlate,
-        np.convolve,
-    }
-)
-def cross_like_a_v(a, v, *args, **kwargs):
-    a, v = _as_quantities(a, v)
-    unit = a.unit * v.unit
-    return (a.view(np.ndarray), v.view(np.ndarray)) + args, kwargs, unit, None
-
-
 @function_helper
-def einsum(*operands, out=None, **kwargs):
-    subscripts, *operands = operands
+def einsum(subscripts, *operands, out=None, **kwargs):
+    from astropy.units import Quantity
 
     if not isinstance(subscripts, str):
         raise ValueError('only "subscripts" string mode supported for einsum.')
 
     if out is not None:
-        kwargs["out"] = _quantity_out_as_array(out)
+        if not isinstance(out, Quantity):
+            raise NotImplementedError
+
+        else:
+            kwargs["out"] = out.view(np.ndarray)
 
     qs = _as_quantities(*operands)
     unit = functools.reduce(operator.mul, (q.unit for q in qs), dimensionless_unscaled)
@@ -940,27 +652,8 @@ def _check_bins(bins, unit):
         return bins
 
 
-def _check_range(range, unit):
-    range = _as_quantity(range)
-    range = range.to_value(unit)
-    return range
-
-
 @function_helper
-def histogram_bin_edges(a, bins=10, range=None, weights=None):
-    # weights is currently unused
-    a = _as_quantity(a)
-    if not isinstance(bins, str):
-        bins = _check_bins(bins, a.unit)
-
-    if range is not None:
-        range = _check_range(range, a.unit)
-
-    return (a.value, bins, range, weights), {}, a.unit, None
-
-
-@function_helper
-def histogram(a, bins=10, range=None, density=None, weights=None):
+def histogram(a, bins=10, range=None, weights=None, density=None):
     if weights is not None:
         weights = _as_quantity(weights)
         unit = weights.unit
@@ -971,9 +664,6 @@ def histogram(a, bins=10, range=None, density=None, weights=None):
     a = _as_quantity(a)
     if not isinstance(bins, str):
         bins = _check_bins(bins, a.unit)
-
-    if range is not None:
-        range = _check_range(range, a.unit)
 
     if density:
         unit = (unit or 1) / a.unit
@@ -986,8 +676,18 @@ def histogram(a, bins=10, range=None, density=None, weights=None):
     )
 
 
+@function_helper(helps=np.histogram_bin_edges)
+def histogram_bin_edges(a, bins=10, range=None, weights=None):
+    # weights is currently unused
+    a = _as_quantity(a)
+    if not isinstance(bins, str):
+        bins = _check_bins(bins, a.unit)
+
+    return (a.value, bins, range, weights), {}, a.unit, None
+
+
 @function_helper
-def histogram2d(x, y, bins=10, range=None, density=None, weights=None):
+def histogram2d(x, y, bins=10, range=None, weights=None, density=None):
     from astropy.units import Quantity
 
     if weights is not None:
@@ -1014,11 +714,6 @@ def histogram2d(x, y, bins=10, range=None, density=None, weights=None):
             bins = _check_bins(bins, x.unit)
             y = y.to(x.unit)
 
-    if range is not None:
-        range = tuple(
-            _check_range(r, unit) for (r, unit) in zip(range, (x.unit, y.unit))
-        )
-
     if density:
         unit = (unit or 1) / x.unit / y.unit
 
@@ -1031,7 +726,7 @@ def histogram2d(x, y, bins=10, range=None, density=None, weights=None):
 
 
 @function_helper
-def histogramdd(sample, bins=10, range=None, density=None, weights=None):
+def histogramdd(sample, bins=10, range=None, weights=None, density=None):
     if weights is not None:
         weights = _as_quantity(weights)
         unit = weights.unit
@@ -1067,9 +762,6 @@ def histogramdd(sample, bins=10, range=None, density=None, weights=None):
             )
         bins = [_check_bins(b, unit) for (b, unit) in zip(bins, sample_units)]
 
-    if range is not None:
-        range = tuple(_check_range(r, unit) for (r, unit) in zip(range, sample_units))
-
     if density:
         unit = functools.reduce(operator.truediv, sample_units, (unit or 1))
 
@@ -1079,51 +771,6 @@ def histogramdd(sample, bins=10, range=None, density=None, weights=None):
         (unit, sample_units),
         None,
     )
-
-
-if NUMPY_LT_1_24:
-
-    @function_helper(helps={np.histogram})
-    def histogram_pre_1_24(
-        a, bins=10, range=None, normed=None, weights=None, density=None
-    ):
-        args, kwargs, unit, out = histogram(
-            a, bins=bins, range=range, weights=weights, density=density or normed
-        )
-        kwargs["normed"] = normed
-        kwargs["density"] = density
-        return args, kwargs, unit, out
-
-    @function_helper(helps={np.histogram2d})
-    def histogram2d_pre_1_24(
-        x, y, bins=10, range=None, normed=None, weights=None, density=None
-    ):
-        args, kwargs, unit, out = histogram2d(
-            x,
-            y,
-            bins=bins,
-            range=range,
-            weights=weights,
-            density=density or normed,
-        )
-        kwargs["normed"] = normed
-        kwargs["density"] = density
-        return args, kwargs, unit, out
-
-    @function_helper(helps={np.histogramdd})
-    def histogramdd_pre_1_24(
-        sample, bins=10, range=None, normed=None, weights=None, density=None
-    ):
-        args, kwargs, unit, out = histogramdd(
-            sample,
-            bins=bins,
-            range=range,
-            weights=weights,
-            density=density or normed,
-        )
-        kwargs["normed"] = normed
-        kwargs["density"] = density
-        return args, kwargs, unit, out
 
 
 @function_helper
@@ -1139,7 +786,7 @@ def diff(a, n=1, axis=-1, prepend=np._NoValue, append=np._NoValue):
 @function_helper
 def gradient(f, *varargs, **kwargs):
     f = _as_quantity(f)
-    axis = kwargs.get("axis")
+    axis = kwargs.get("axis", None)
     if axis is None:
         n_axis = f.ndim
     elif isinstance(axis, tuple):
@@ -1201,26 +848,14 @@ def interp(x, xp, fp, *args, **kwargs):
 
 @function_helper
 def unique(
-    ar,
-    return_index=False,
-    return_inverse=False,
-    return_counts=False,
-    axis=None,
-    **kwargs,
+    ar, return_index=False, return_inverse=False, return_counts=False, axis=None
 ):
-    # having **kwargs allows to support equal_nan (for not NUMPY_LT_1_24) without
-    # introducing it pre-maturely in older supported numpy versions
     unit = ar.unit
     n_index = sum(bool(i) for i in (return_index, return_inverse, return_counts))
     if n_index:
         unit = [unit] + n_index * [None]
 
-    return (
-        (ar.value, return_index, return_inverse, return_counts, axis),
-        kwargs,
-        unit,
-        None,
-    )
+    return (ar.value, return_index, return_inverse, return_counts, axis), {}, unit, None
 
 
 @function_helper
@@ -1237,18 +872,10 @@ def twosetop(ar1, ar2, *args, **kwargs):
     return (ar1, ar2) + args, kwargs, unit, None
 
 
-@function_helper
-def isin(element, test_elements, *args, **kwargs):
-    # This tests whether element is in test_elements, so we should change the unit of
-    # element to that of test_elements.
-    (ar1, ar2), unit = _quantities2arrays(element, test_elements)
-    return (ar1, ar2) + args, kwargs, None, None
-
-
-@function_helper  # np.in1d deprecated in not NUMPY_LT_2_0.
-def in1d(ar1, ar2, *args, **kwargs):
+@function_helper(helps=(np.isin, np.in1d))
+def setcheckop(ar1, ar2, *args, **kwargs):
     # This tests whether ar1 is in ar2, so we should change the unit of
-    # ar1 to that of ar2.
+    # a1 to that of a2.
     (ar2, ar1), unit = _quantities2arrays(ar2, ar1)
     return (ar1, ar2) + args, kwargs, None, None
 
@@ -1303,12 +930,12 @@ def array_repr(arr, *args, **kwargs):
 
 
 @dispatched_function
-def array_str(a, *args, **kwargs):
+def array_str(arr, *args, **kwargs):
     # TODO: The addition of the unit doesn't worry about line length.
     # Could copy & adapt _array_repr_implementation from
     # numpy.core.arrayprint.py
-    no_unit = np.array_str(a.value, *args, **kwargs)
-    return no_unit + a._unitstr, None, None
+    no_unit = np.array_str(arr.value, *args, **kwargs)
+    return no_unit + arr._unitstr, None, None
 
 
 @function_helper
@@ -1320,19 +947,15 @@ def array2string(a, *args, **kwargs):
     # also work around this by passing on a formatter (as is done in Angle).
     # So, we do nothing if the formatter argument is present and has the
     # relevant formatter for our dtype.
-    formatter = args[6] if len(args) >= 7 else kwargs.get("formatter")
+    formatter = args[6] if len(args) >= 7 else kwargs.get("formatter", None)
 
     if formatter is None:
         a = a.value
     else:
         # See whether it covers our dtype.
-        if NUMPY_LT_2_0:
-            from numpy.core.arrayprint import _get_format_function, _make_options_dict
-        else:
-            from numpy._core.arrayprint import _get_format_function, _make_options_dict
+        from numpy.core.arrayprint import _get_format_function
 
         with np.printoptions(formatter=formatter) as options:
-            options = _make_options_dict(**options)
             try:
                 ff = _get_format_function(a.value, **options)
             except Exception:
@@ -1341,7 +964,7 @@ def array2string(a, *args, **kwargs):
                 pass
             else:
                 # If the selected format function is that of numpy, we know
-                # things will fail if we pass in the Quantity, so use .value.
+                # things will fail
                 if "numpy" in ff.__module__:
                     a = a.value
 
@@ -1371,11 +994,11 @@ def _interpret_tol(tol, unit):
 
 
 @function_helper(module=np.linalg)
-def matrix_rank(A, tol=None, *args, **kwargs):
+def matrix_rank(M, tol=None, *args, **kwargs):
     if tol is not None:
-        tol = _interpret_tol(tol, A.unit)
+        tol = _interpret_tol(tol, M.unit)
 
-    return (A.view(np.ndarray), tol) + args, kwargs, None, None
+    return (M.view(np.ndarray), tol) + args, kwargs, None, None
 
 
 @function_helper(helps={np.linalg.inv, np.linalg.tensorinv})
@@ -1383,29 +1006,11 @@ def inv(a, *args, **kwargs):
     return (a.view(np.ndarray),) + args, kwargs, 1 / a.unit, None
 
 
-if NUMPY_LT_2_0:
+@function_helper(module=np.linalg)
+def pinv(a, rcond=1e-15, *args, **kwargs):
+    rcond = _interpret_tol(rcond, a.unit)
 
-    @function_helper(module=np.linalg)
-    def pinv(a, rcond=1e-15, *args, **kwargs):
-        rcond = _interpret_tol(rcond, a.unit)
-
-        return (a.view(np.ndarray), rcond) + args, kwargs, 1 / a.unit, None
-
-else:
-
-    @function_helper(module=np.linalg)
-    def pinv(a, rcond=None, hermitian=False, *, rtol=np._NoValue):
-        if rcond is not None:
-            rcond = _interpret_tol(rcond, a.unit)
-        if rtol is not np._NoValue and rtol is not None:
-            rtol = _interpret_tol(rtol, a.unit)
-
-        return (
-            (a.view(np.ndarray),),
-            dict(rcond=rcond, hermitian=hermitian, rtol=rtol),
-            1 / a.unit,
-            None,
-        )
+    return (a.view(np.ndarray), rcond) + args, kwargs, 1 / a.unit, None
 
 
 @function_helper(module=np.linalg)
@@ -1426,7 +1031,7 @@ def solve(a, b, *args, **kwargs):
 
 
 @function_helper(module=np.linalg)
-def lstsq(a, b, rcond="warn" if NUMPY_LT_2_0 else None):
+def lstsq(a, b, rcond="warn"):
     a, b = _as_quantities(a, b)
 
     if rcond not in (None, "warn", -1):
@@ -1456,17 +1061,9 @@ def matrix_power(a, n):
     return (a.value, n), {}, a.unit**n, None
 
 
-if NUMPY_LT_2_0:
-
-    @function_helper(module=np.linalg)
-    def cholesky(a):
-        return (a.value,), {}, a.unit**0.5, None
-
-else:
-
-    @function_helper(module=np.linalg)
-    def cholesky(a, /, *, upper=False):
-        return (a.value,), {"upper": upper}, a.unit**0.5, None
+@function_helper(module=np.linalg)
+def cholesky(a):
+    return (a.value,), {}, a.unit**0.5, None
 
 
 @function_helper(module=np.linalg)
@@ -1488,17 +1085,6 @@ def eig(a, *args, **kwargs):
     from astropy.units import dimensionless_unscaled
 
     return (a.value,) + args, kwargs, (a.unit, dimensionless_unscaled), None
-
-
-if not NUMPY_LT_2_0:
-    # these functions were added in numpy 2.0
-
-    @function_helper(module=np.linalg)
-    def outer(x1, x2, /):
-        # maybe this one can be marked as subclass-safe in the near future ?
-        # see https://github.com/numpy/numpy/pull/25101#discussion_r1419879122
-        x1, x2 = _as_quantities(x1, x2)
-        return (x1.view(np.ndarray), x2.view(np.ndarray)), {}, x1.unit * x2.unit, None
 
 
 # ======================= np.lib.recfunctions =======================
@@ -1526,7 +1112,7 @@ def structured_to_unstructured(arr, *args, **kwargs):
 
 
 def _build_structured_unit(dtype, unit):
-    """Build structured unit from dtype.
+    """Build structured unit from dtype
 
     Parameters
     ----------
@@ -1544,7 +1130,7 @@ def _build_structured_unit(dtype, unit):
 
 
 @function_helper(module=np.lib.recfunctions)
-def unstructured_to_structured(arr, dtype=None, *args, **kwargs):
+def unstructured_to_structured(arr, dtype, *args, **kwargs):
     from astropy.units import StructuredUnit
 
     target_unit = StructuredUnit(_build_structured_unit(dtype, arr.unit))

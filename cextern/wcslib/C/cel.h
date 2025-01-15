@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: cel.h,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.12 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -49,8 +49,7 @@
 * Routine celini() is provided to initialize the celprm struct with default
 * values, celfree() reclaims any memory that may have been allocated to store
 * an error message, celsize() computes its total size including allocated
-* memory, celenq() returns information about the state of the struct, and
-* celprt() prints its contents.
+* memory, and celprt() prints its contents.
 *
 * celperr() prints the error message(s), if any, stored in a celprm struct and
 * the prjprm struct that it contains.
@@ -128,26 +127,6 @@
 *                         0: Success.
 *
 *
-* celenq() - enquire about the state of a celprm struct
-* -----------------------------------------------------
-* celenq() may be used to obtain information about the state of a celprm
-* struct.  The function returns a true/false answer for the enquiry asked.
-*
-* Given:
-*   cel       const struct celprm*
-*                       Celestial transformation parameters.
-*
-*   enquiry   int       Enquiry according to the following parameters:
-*                         CELENQ_SET: the struct has been set up by celset().
-*                         CELENQ_BYP: the struct is in bypass mode (see
-*                                     celset()).
-*
-* Function return value:
-*             int       Enquiry result:
-*                         0: No.
-*                         1: Yes.
-*
-*
 * celprt() - Print routine for the celprm struct
 * ----------------------------------------------
 * celprt() prints the contents of a celprm struct using wcsprintf().  Mainly
@@ -191,13 +170,6 @@
 * Note that this routine need not be called directly; it will be invoked by
 * celx2s() and cels2x() if celprm::flag is anything other than a predefined
 * magic value.
-
-* celset() normally operates regardless of the value of celprm::flag; i.e.
-* even if a struct was previously set up it will be reset unconditionally.
-* However, a celprm struct may be put into "bypass" mode by invoking celset()
-* initially with celprm::flag == 1 (rather than 0).  celset() will return
-* immediately if invoked on a struct in that state.  To take a struct out of
-* bypass mode, simply reset celprm::flag to zero.  See also celenq().
 *
 * Given and returned:
 *   cel       struct celprm*
@@ -313,8 +285,8 @@
 * Returned celprm struct members must not be modified by the user.
 *
 *   int flag
-*     (Given and returned) This flag must be set to zero (or 1, see celset())
-*     whenever any of the following celprm struct members are set or changed:
+*     (Given and returned) This flag must be set to zero whenever any of the
+*     following celprm struct members are set or changed:
 *
 *       - celprm::offset,
 *       - celprm::phi0,
@@ -416,7 +388,6 @@
 *   void *padding
 *     (An unused variable inserted for alignment purposes only.)
 *
-*
 * Global variable: const char *cel_errmsg[] - Status return messages
 * ------------------------------------------------------------------
 * Status messages to match the status value returned from each function.
@@ -432,10 +403,6 @@
 extern "C" {
 #endif
 
-enum celenq_enum {
-  CELENQ_SET = 2,		// celprm struct has been set up.
-  CELENQ_BYP = 4,		// celprm struct is in bypass mode.
-};
 
 extern const char *cel_errmsg[];
 
@@ -492,8 +459,6 @@ int celini(struct celprm *cel);
 int celfree(struct celprm *cel);
 
 int celsize(const struct celprm *cel, int sizes[2]);
-
-int celenq(const struct celprm *cel, int enquiry);
 
 int celprt(const struct celprm *cel);
 

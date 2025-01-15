@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Indexing for Table columns.
-
+"""
 The Index class can use several implementations as its
 engine. Any implementation should implement the following:
 
@@ -43,6 +42,8 @@ class QueryError(ValueError):
     """
     Indicates that a given index cannot handle the supplied query.
     """
+
+    pass
 
 
 class Index:
@@ -92,7 +93,7 @@ class Index:
             raise ValueError("Cannot create index without at least one column")
         elif len(columns) == 1:
             col = columns[0]
-            row_index = Column(col.argsort(kind="stable"))
+            row_index = Column(col.argsort())
             data = Table([col[row_index]])
         else:
             num_rows = len(columns[0])
@@ -115,7 +116,7 @@ class Index:
             try:
                 lines = table[np.lexsort(sort_columns)]
             except TypeError:  # arbitrary mixins might not work with lexsort
-                lines = table[table.argsort(kind="stable")]
+                lines = table[table.argsort()]
             data = lines[lines.colnames[:-1]]
             row_index = lines[lines.colnames[-1]]
 
@@ -204,8 +205,9 @@ class Index:
             col_len = len(self.columns[0])
             return range(*row_specifier.indices(col_len))
         raise ValueError(
-            f"Expected int, array of ints, or slice but got {row_specifier} "
-            "in remove_rows"
+            "Expected int, array of ints, or slice but got {} in remove_rows".format(
+                row_specifier
+            )
         )
 
     def remove_rows(self, row_specifier):
@@ -226,7 +228,7 @@ class Index:
             rows.append(row)
         # second pass - row order is reversed to maintain
         # correct row numbers
-        for row in sorted(rows, reverse=True):
+        for row in reversed(sorted(rows)):
             self.data.shift_left(row)
 
     def remove_row(self, row, reorder=True):
@@ -671,7 +673,8 @@ def get_index_by_names(table, names):
         index_names = [col.info.name for col in index.columns]
         if index_names == names:
             return index
-    return None
+    else:
+        return None
 
 
 class _IndexModeContext:
@@ -713,7 +716,7 @@ class _IndexModeContext:
             raise ValueError(
                 "Expected a mode of either 'freeze', "
                 "'discard_on_copy', or 'copy_on_getitem', got "
-                f"'{mode}'"
+                "'{}'".format(mode)
             )
 
     def __enter__(self):
@@ -751,6 +754,7 @@ class _IndexModeContext:
         case where a copy of the indices is not needed.  See the docstring for
         ``astropy.table._column_mixins`` for more information on that.
         """
+
         if cls in self._col_subclasses:
             return self._col_subclasses[cls]
 
@@ -825,13 +829,13 @@ class TableLoc:
     def __init__(self, table):
         self.table = table
         self.indices = table.indices
+        if len(self.indices) == 0:
+            raise ValueError("Cannot create TableLoc object with no indices")
 
     def _get_rows(self, item):
         """
         Retrieve Table rows indexes by value slice.
         """
-        if len(self.indices) == 0:
-            raise ValueError("Can only use TableLoc for a table with indices")
 
         if isinstance(item, tuple):
             key, item = item
@@ -947,9 +951,6 @@ class TableILoc(TableLoc):
         super().__init__(table)
 
     def __getitem__(self, item):
-        if len(self.indices) == 0:
-            raise ValueError("Can only use TableILoc for a table with indices")
-
         if isinstance(item, tuple):
             key, item = item
         else:

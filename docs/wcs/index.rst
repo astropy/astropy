@@ -112,7 +112,6 @@ Examples creating a WCS programmatically
 
    Example of Imaging WCS <example_create_imaging.rst>
    Example of Cube WCS <example_cube_wcs.rst>
-   Example of a Planetary WCS <creating_planetary_wcs.rst>
    Loading From a FITS File <loading_from_fits.rst>
 
 WCS Tools
@@ -152,7 +151,7 @@ Reference/API
 =============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    reference_api
 

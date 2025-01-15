@@ -3,20 +3,10 @@
 This module implements functions and classes for spatial statistics.
 """
 
-from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING
 
 import numpy as np
-
-if TYPE_CHECKING:
-    from typing import Literal, TypeAlias
-
-    from numpy.typing import NDArray
-
-    # TODO: consider replacing with `StrEnum`
-    _ModeOps: TypeAlias = Literal["none", "translation", "ohser", "var-width", "ripley"]
 
 __all__ = ["RipleysKEstimator"]
 
@@ -68,14 +58,7 @@ class RipleysKEstimator:
        Point Fields, Akademie Verlag GmbH, Chichester.
     """
 
-    def __init__(
-        self,
-        area: float,
-        x_max: float | None = None,
-        y_max: float | None = None,
-        x_min: float | None = None,
-        y_min: float | None = None,
-    ) -> None:
+    def __init__(self, area, x_max=None, y_max=None, x_min=None, y_min=None):
         self.area = area
         self.x_max = x_max
         self.y_max = y_max
@@ -83,22 +66,22 @@ class RipleysKEstimator:
         self.y_min = y_min
 
     @property
-    def area(self) -> float:
+    def area(self):
         return self._area
 
     @area.setter
-    def area(self, value: float) -> None:
+    def area(self, value):
         if isinstance(value, (float, int)) and value > 0:
             self._area = value
         else:
             raise ValueError(f"area is expected to be a positive number. Got {value}.")
 
     @property
-    def y_max(self) -> float | None:
+    def y_max(self):
         return self._y_max
 
     @y_max.setter
-    def y_max(self, value: float | None) -> None:
+    def y_max(self, value):
         if value is None or isinstance(value, (float, int)):
             self._y_max = value
         else:
@@ -107,11 +90,11 @@ class RipleysKEstimator:
             )
 
     @property
-    def x_max(self) -> float | None:
+    def x_max(self):
         return self._x_max
 
     @x_max.setter
-    def x_max(self, value: float | None) -> None:
+    def x_max(self, value):
         if value is None or isinstance(value, (float, int)):
             self._x_max = value
         else:
@@ -120,36 +103,31 @@ class RipleysKEstimator:
             )
 
     @property
-    def y_min(self) -> float | None:
+    def y_min(self):
         return self._y_min
 
     @y_min.setter
-    def y_min(self, value: float | None) -> None:
+    def y_min(self, value):
         if value is None or isinstance(value, (float, int)):
             self._y_min = value
         else:
             raise ValueError(f"y_min is expected to be a real number. Got {value}.")
 
     @property
-    def x_min(self) -> float | None:
+    def x_min(self):
         return self._x_min
 
     @x_min.setter
-    def x_min(self, value: float | None) -> None:
+    def x_min(self, value):
         if value is None or isinstance(value, (float, int)):
             self._x_min = value
         else:
             raise ValueError(f"x_min is expected to be a real number. Got {value}.")
 
-    def __call__(
-        self,
-        data: NDArray[float],
-        radii: NDArray[float],
-        mode: _ModeOps = "none",
-    ) -> NDArray[float]:
+    def __call__(self, data, radii, mode="none"):
         return self.evaluate(data=data, radii=radii, mode=mode)
 
-    def _pairwise_diffs(self, data: NDArray[float]) -> NDArray[float]:
+    def _pairwise_diffs(self, data):
         npts = len(data)
         diff = np.zeros(shape=(npts * (npts - 1) // 2, 2), dtype=np.double)
         k = 0
@@ -160,7 +138,7 @@ class RipleysKEstimator:
 
         return diff
 
-    def poisson(self, radii: NDArray[float]) -> NDArray[float]:
+    def poisson(self, radii):
         """
         Evaluates the Ripley K function for the homogeneous Poisson process,
         also known as Complete State of Randomness (CSR).
@@ -175,38 +153,26 @@ class RipleysKEstimator:
         output : 1D array
             Ripley's K function evaluated at ``radii``.
         """
+
         return np.pi * radii * radii
 
-    def Lfunction(
-        self,
-        data: NDArray[float],
-        radii: NDArray[float],
-        mode: _ModeOps = "none",
-    ) -> NDArray[float]:
+    def Lfunction(self, data, radii, mode="none"):
         """
         Evaluates the L function at ``radii``. For parameter description
         see ``evaluate`` method.
         """
+
         return np.sqrt(self.evaluate(data, radii, mode=mode) / np.pi)
 
-    def Hfunction(
-        self,
-        data: NDArray[float],
-        radii: NDArray[float],
-        mode: _ModeOps = "none",
-    ) -> NDArray[float]:
+    def Hfunction(self, data, radii, mode="none"):
         """
         Evaluates the H function at ``radii``. For parameter description
         see ``evaluate`` method.
         """
+
         return self.Lfunction(data, radii, mode=mode) - radii
 
-    def evaluate(
-        self,
-        data: NDArray[float],
-        radii: NDArray[float],
-        mode: _ModeOps = "none",
-    ) -> NDArray[float]:
+    def evaluate(self, data, radii, mode="none"):
         """
         Evaluates the Ripley K estimator for a given set of values ``radii``.
 
@@ -255,6 +221,7 @@ class RipleysKEstimator:
         ripley : 1D array
             Ripley's K function estimator evaluated at ``radii``.
         """
+
         data = np.asarray(data)
 
         if not data.shape[1] == 2:

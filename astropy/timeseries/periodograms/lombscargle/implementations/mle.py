@@ -2,7 +2,7 @@ import numpy as np
 
 
 def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
-    """Compute the Lomb-Scargle design matrix at the given frequency.
+    """Compute the Lomb-Scargle design matrix at the given frequency
 
     This is the matrix X such that the periodic model at the given frequency
     can be expressed :math:`\\hat{y} = X \\theta`.
@@ -53,7 +53,7 @@ def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
 
 
 def periodic_fit(t, y, dy, frequency, t_fit, center_data=True, fit_mean=True, nterms=1):
-    """Compute the Lomb-Scargle model fit at a given frequency.
+    """Compute the Lomb-Scargle model fit at a given frequency
 
     Parameters
     ----------

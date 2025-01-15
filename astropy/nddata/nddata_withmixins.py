@@ -4,6 +4,7 @@
 This module implements a class based on NDData with all Mixins.
 """
 
+
 from .mixins.ndarithmetic import NDArithmeticMixin
 from .mixins.ndio import NDIOMixin
 from .mixins.ndslicing import NDSlicingMixin
@@ -17,14 +18,14 @@ class NDDataRef(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
 
     This class implements a `NDData`-like container that supports reading and
     writing as implemented in the ``astropy.io.registry`` and also slicing
-    (indexing) and simple arithmetic (add, subtract, divide and multiply).
+    (indexing) and simple arithmetics (add, subtract, divide and multiply).
 
     Notes
     -----
     A key distinction from `NDDataArray` is that this class does not attempt
     to provide anything that was not defined in any of the parent classes.
 
-    See Also
+    See also
     --------
     NDData
     NDArithmeticMixin
@@ -34,7 +35,7 @@ class NDDataRef(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
     Examples
     --------
     The mixins allow operation that are not possible with `NDData` or
-    `NDDataBase`, i.e. simple arithmetic::
+    `NDDataBase`, i.e. simple arithmetics::
 
         >>> from astropy.nddata import NDDataRef, StdDevUncertainty
         >>> import numpy as np
@@ -67,3 +68,5 @@ class NDDataRef(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
     See `NDSlicingMixin` for a description how slicing works (which attributes)
     are sliced.
     """
+
+    pass

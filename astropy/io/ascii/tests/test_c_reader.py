@@ -4,7 +4,6 @@ import functools
 import io
 import os
 import re
-import sys
 from contextlib import nullcontext
 from io import BytesIO
 from textwrap import dedent
@@ -12,7 +11,6 @@ from textwrap import dedent
 import numpy as np
 import pytest
 from numpy import ma
-from numpy.testing import assert_allclose
 
 from astropy.io import ascii
 from astropy.io.ascii.core import (
@@ -32,7 +30,10 @@ from astropy.table import MaskedColumn, Table
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
 
-StringIO = lambda x: BytesIO(x.encode("ascii"))
+from .common import assert_almost_equal, assert_equal, assert_true
+
+StringIO = lambda x: BytesIO(x.encode("ascii"))  # noqa: E731
+CI = os.environ.get("CI", False)
 
 
 def assert_table_equal(t1, t2, check_meta=False, rtol=1.0e-15, atol=1.0e-300):
@@ -40,26 +41,24 @@ def assert_table_equal(t1, t2, check_meta=False, rtol=1.0e-15, atol=1.0e-300):
     Test equality of all columns in a table, with stricter tolerances for
     float columns than the np.allclose default.
     """
-    __tracebackhide__ = True
-
-    assert len(t1) == len(t2)
-    assert t1.colnames == t2.colnames
+    assert_equal(len(t1), len(t2))
+    assert_equal(t1.colnames, t2.colnames)
     if check_meta:
-        assert t1.meta == t2.meta
+        assert_equal(t1.meta, t2.meta)
     for name in t1.colnames:
         if len(t1) != 0:
-            assert t1[name].dtype.kind == t2[name].dtype.kind
+            assert_equal(t1[name].dtype.kind, t2[name].dtype.kind)
         if not isinstance(t1[name], MaskedColumn):
             for i, el in enumerate(t1[name]):
                 try:
                     if not isinstance(el, str) and np.isnan(el):
-                        assert not isinstance(t2[name][i], str) and np.isnan(
-                            t2[name][i]
+                        assert_true(
+                            not isinstance(t2[name][i], str) and np.isnan(t2[name][i])
                         )
                     elif isinstance(el, str):
-                        assert el == t2[name][i]
+                        assert_equal(el, t2[name][i])
                     else:
-                        assert_allclose(el, t2[name][i], rtol=rtol, atol=atol)
+                        assert_almost_equal(el, t2[name][i], rtol=rtol, atol=atol)
                 except (TypeError, NotImplementedError):
                     pass  # ignore for now
 
@@ -72,8 +71,9 @@ _filename_counter = 0
 def _read(
     tmp_path,
     table,
-    reader_cls=None,
+    Reader=None,
     format=None,
+    parallel=False,
     check_meta=False,
     **kwargs,
 ):
@@ -81,7 +81,7 @@ def _read(
     global _filename_counter
 
     table += "\n"
-    reader = reader_cls(**kwargs)
+    reader = Reader(**kwargs)
     t1 = reader.read(table)
     t2 = reader.read(StringIO(table))
     t3 = reader.read(table.splitlines())
@@ -92,6 +92,14 @@ def _read(
     assert_table_equal(t3, t4, check_meta=check_meta)
     assert_table_equal(t4, t5, check_meta=check_meta)
 
+    if parallel:
+        if CI:
+            pytest.xfail("Multiprocessing can sometimes fail on CI")
+        t6 = ascii.read(
+            table, format=format, guess=False, fast_reader={"parallel": True}, **kwargs
+        )
+        assert_table_equal(t1, t6, check_meta=check_meta)
+
     filename = tmp_path / f"table{_filename_counter}.txt"
     _filename_counter += 1
 
@@ -100,43 +108,51 @@ def _read(
         f.flush()
 
     t7 = ascii.read(filename, format=format, guess=False, **kwargs)
+    if parallel:
+        t8 = ascii.read(
+            filename,
+            format=format,
+            guess=False,
+            fast_reader={"parallel": True},
+            **kwargs,
+        )
 
     assert_table_equal(t1, t7, check_meta=check_meta)
+    if parallel:
+        assert_table_equal(t1, t8, check_meta=check_meta)
     return t1
 
 
 @pytest.fixture(scope="function")
 def read_basic(tmp_path, request):
-    return functools.partial(_read, tmp_path, reader_cls=FastBasic, format="basic")
+    return functools.partial(_read, tmp_path, Reader=FastBasic, format="basic")
 
 
 @pytest.fixture(scope="function")
 def read_csv(tmp_path, request):
-    return functools.partial(_read, tmp_path, reader_cls=FastCsv, format="csv")
+    return functools.partial(_read, tmp_path, Reader=FastCsv, format="csv")
 
 
 @pytest.fixture(scope="function")
 def read_tab(tmp_path, request):
-    return functools.partial(_read, tmp_path, reader_cls=FastTab, format="tab")
+    return functools.partial(_read, tmp_path, Reader=FastTab, format="tab")
 
 
 @pytest.fixture(scope="function")
 def read_commented_header(tmp_path, request):
     return functools.partial(
-        _read, tmp_path, reader_cls=FastCommentedHeader, format="commented_header"
+        _read, tmp_path, Reader=FastCommentedHeader, format="commented_header"
     )
 
 
 @pytest.fixture(scope="function")
 def read_rdb(tmp_path, request):
-    return functools.partial(_read, tmp_path, reader_cls=FastRdb, format="rdb")
+    return functools.partial(_read, tmp_path, Reader=FastRdb, format="rdb")
 
 
 @pytest.fixture(scope="function")
 def read_no_header(tmp_path, request):
-    return functools.partial(
-        _read, tmp_path, reader_cls=FastNoHeader, format="no_header"
-    )
+    return functools.partial(_read, tmp_path, Reader=FastNoHeader, format="no_header")
 
 
 @pytest.mark.parametrize("delimiter", [",", "\t", " ", "csv"])
@@ -207,11 +223,12 @@ def test_embedded_newlines(delimiter, quotechar, fast):
     assert all(np.all(col) for col in eq.itercols())
 
 
-def test_simple_data(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_simple_data(parallel, read_basic):
     """
     Make sure the fast reader works with basic input data.
     """
-    table = read_basic("A B C\n1 2 3\n4 5 6")
+    table = read_basic("A B C\n1 2 3\n4 5 6", parallel=parallel)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=("A", "B", "C"))
     assert_table_equal(table, expected)
 
@@ -229,26 +246,30 @@ def test_read_types():
     assert_table_equal(t2, t3)
 
 
-def test_supplied_names(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_supplied_names(parallel, read_basic):
     """
     If passed as a parameter, names should replace any
     column names found in the header.
     """
-    table = read_basic("A B C\n1 2 3\n4 5 6", names=("X", "Y", "Z"))
+    table = read_basic("A B C\n1 2 3\n4 5 6", names=("X", "Y", "Z"), parallel=parallel)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=("X", "Y", "Z"))
     assert_table_equal(table, expected)
 
 
-def test_no_header(read_basic, read_no_header):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_no_header(parallel, read_basic, read_no_header):
     """
     The header should not be read when header_start=None. Unless names is
     passed, the column names should be auto-generated.
     """
     # Cannot set header_start=None for basic format
     with pytest.raises(ValueError):
-        read_basic("A B C\n1 2 3\n4 5 6", header_start=None, data_start=0)
+        read_basic(
+            "A B C\n1 2 3\n4 5 6", header_start=None, data_start=0, parallel=parallel
+        )
 
-    t2 = read_no_header("A B C\n1 2 3\n4 5 6")
+    t2 = read_no_header("A B C\n1 2 3\n4 5 6", parallel=parallel)
     expected = Table(
         [["A", "1", "4"], ["B", "2", "5"], ["C", "3", "6"]],
         names=("col1", "col2", "col3"),
@@ -256,37 +277,45 @@ def test_no_header(read_basic, read_no_header):
     assert_table_equal(t2, expected)
 
 
-def test_no_header_supplied_names(read_basic, read_no_header):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_no_header_supplied_names(parallel, read_basic, read_no_header):
     """
     If header_start=None and names is passed as a parameter, header
     data should not be read and names should be used instead.
     """
-    table = read_no_header("A B C\n1 2 3\n4 5 6", names=("X", "Y", "Z"))
+    table = read_no_header(
+        "A B C\n1 2 3\n4 5 6", names=("X", "Y", "Z"), parallel=parallel
+    )
     expected = Table(
         [["A", "1", "4"], ["B", "2", "5"], ["C", "3", "6"]], names=("X", "Y", "Z")
     )
     assert_table_equal(table, expected)
 
 
-def test_comment(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_comment(parallel, read_basic):
     """
     Make sure that line comments are ignored by the C reader.
     """
-    table = read_basic("# comment\nA B C\n # another comment\n1 2 3\n4 5 6")
+    table = read_basic(
+        "# comment\nA B C\n # another comment\n1 2 3\n4 5 6", parallel=parallel
+    )
     expected = Table([[1, 4], [2, 5], [3, 6]], names=("A", "B", "C"))
     assert_table_equal(table, expected)
 
 
-def test_empty_lines(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_empty_lines(parallel, read_basic):
     """
     Make sure that empty lines are ignored by the C reader.
     """
-    table = read_basic("\n\nA B C\n1 2 3\n\n\n4 5 6\n\n\n\n")
+    table = read_basic("\n\nA B C\n1 2 3\n\n\n4 5 6\n\n\n\n", parallel=parallel)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=("A", "B", "C"))
     assert_table_equal(table, expected)
 
 
-def test_lstrip_whitespace(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_lstrip_whitespace(parallel, read_basic):
     """
     Test to make sure the reader ignores whitespace at the beginning of fields.
     """
@@ -296,22 +325,24 @@ def test_lstrip_whitespace(read_basic):
   a, b,   c
   \n"""
 
-    table = read_basic(text, delimiter=",")
+    table = read_basic(text, delimiter=",", parallel=parallel)
     expected = Table([["A", "a"], ["B", "b"], ["C", "c"]], names=("1", "2", "3"))
     assert_table_equal(table, expected)
 
 
-def test_rstrip_whitespace(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_rstrip_whitespace(parallel, read_basic):
     """
     Test to make sure the reader ignores whitespace at the end of fields.
     """
     text = " 1 ,2 \t,3  \nA\t,B ,C\t \t \n  \ta ,b , c \n"
-    table = read_basic(text, delimiter=",")
+    table = read_basic(text, delimiter=",", parallel=parallel)
     expected = Table([["A", "a"], ["B", "b"], ["C", "c"]], names=("1", "2", "3"))
     assert_table_equal(table, expected)
 
 
-def test_conversion(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_conversion(parallel, read_basic):
     """
     The reader should try to convert each column to ints. If this fails, the
     reader should try to convert to floats. Failing this, i.e. on parsing
@@ -324,18 +355,19 @@ A B C D E F G H
 2. 1 9 -.1e1 10.0 8.7 6 -5.3e4
 4 2 -12 .4 +.e1 - + six
 """
-    table = read_basic(text)
-    assert table["A"].dtype.kind == "f"
+    table = read_basic(text, parallel=parallel)
+    assert_equal(table["A"].dtype.kind, "f")
     assert table["B"].dtype.kind in ("S", "U")
-    assert table["C"].dtype.kind == "i"
-    assert table["D"].dtype.kind == "f"
+    assert_equal(table["C"].dtype.kind, "i")
+    assert_equal(table["D"].dtype.kind, "f")
     assert table["E"].dtype.kind in ("S", "U")
     assert table["F"].dtype.kind in ("S", "U")
     assert table["G"].dtype.kind in ("S", "U")
     assert table["H"].dtype.kind in ("S", "U")
 
 
-def test_delimiter(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_delimiter(parallel, read_basic):
     """
     Make sure that different delimiters work as expected.
     """
@@ -349,32 +381,36 @@ def test_delimiter(read_basic):
     expected = Table([[1, 2], ["A", "B"], [-1, -2]], names=("COL1", "COL2", "COL3"))
 
     for sep in " ,\t#;":
-        table = read_basic(
-            text.replace(" ", sep),
-            delimiter=sep,
-        )
+        table = read_basic(text.replace(" ", sep), delimiter=sep, parallel=parallel)
         assert_table_equal(table, expected)
 
 
-def test_include_names(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_include_names(parallel, read_basic):
     """
     If include_names is not None, the parser should read only those columns in include_names.
     """
-    table = read_basic("A B C D\n1 2 3 4\n5 6 7 8", include_names=["A", "D"])
+    table = read_basic(
+        "A B C D\n1 2 3 4\n5 6 7 8", include_names=["A", "D"], parallel=parallel
+    )
     expected = Table([[1, 5], [4, 8]], names=("A", "D"))
     assert_table_equal(table, expected)
 
 
-def test_exclude_names(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_exclude_names(parallel, read_basic):
     """
     If exclude_names is not None, the parser should exclude the columns in exclude_names.
     """
-    table = read_basic("A B C D\n1 2 3 4\n5 6 7 8", exclude_names=["A", "D"])
+    table = read_basic(
+        "A B C D\n1 2 3 4\n5 6 7 8", exclude_names=["A", "D"], parallel=parallel
+    )
     expected = Table([[2, 6], [3, 7]], names=("B", "C"))
     assert_table_equal(table, expected)
 
 
-def test_include_exclude_names(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_include_exclude_names(parallel, read_basic):
     """
     Make sure that include_names is applied before exclude_names if both are specified.
     """
@@ -386,7 +422,10 @@ def test_include_exclude_names(read_basic):
     """
     )
     table = read_basic(
-        text, include_names=["A", "B", "D", "F", "H"], exclude_names=["B", "F"]
+        text,
+        include_names=["A", "B", "D", "F", "H"],
+        exclude_names=["B", "F"],
+        parallel=parallel,
     )
     expected = Table([[1, 9], [4, 12], [8, 16]], names=("A", "D", "H"))
     assert_table_equal(table, expected)
@@ -398,14 +437,10 @@ def test_doubled_quotes(read_csv):
     field was incorrect.
 
     """
-    tbl = "\n".join(  # noqa: FLY002
-        [
-            "a,b",
-            '"d""","d""q"',
-            '"""q",""""',
-        ]
-    )
     # fmt: off
+    tbl = '\n'.join(['a,b',
+                     '"d""","d""q"',
+                     '"""q",""""'])
     expected = Table([['d"', '"q'],
                       ['d"q', '"']],
                      names=('a', 'b'))
@@ -433,17 +468,20 @@ def test_doubled_quotes_segv():
     tbl = dedent(
         """
     "ID","TIMESTAMP","addendum_id","bib_reference","bib_reference_url","client_application","client_category","client_sort_key","color","coordsys","creator","creator_did","data_pixel_bitpix","dataproduct_subtype","dataproduct_type","em_max","em_min","format","hips_builder","hips_copyright","hips_creation_date","hips_creation_date_1","hips_creator","hips_data_range","hips_estsize","hips_frame","hips_glu_tag","hips_hierarchy","hips_initial_dec","hips_initial_fov","hips_initial_ra","hips_lon_asc","hips_master_url","hips_order","hips_order_1","hips_order_4","hips_order_min","hips_overlay","hips_pixel_bitpix","hips_pixel_cut","hips_pixel_scale","hips_progenitor_url","hips_publisher","hips_release_date","hips_release_date_1","hips_rgb_blue","hips_rgb_green","hips_rgb_red","hips_sampling","hips_service_url","hips_service_url_1","hips_service_url_2","hips_service_url_3","hips_service_url_4","hips_service_url_5","hips_service_url_6","hips_service_url_7","hips_service_url_8","hips_skyval","hips_skyval_method","hips_skyval_value","hips_status","hips_status_1","hips_status_2","hips_status_3","hips_status_4","hips_status_5","hips_status_6","hips_status_7","hips_status_8","hips_tile_format","hips_tile_format_1","hips_tile_format_4","hips_tile_width","hips_version","hipsgen_date","hipsgen_date_1","hipsgen_date_10","hipsgen_date_11","hipsgen_date_12","hipsgen_date_2","hipsgen_date_3","hipsgen_date_4","hipsgen_date_5","hipsgen_date_6","hipsgen_date_7","hipsgen_date_8","hipsgen_date_9","hipsgen_params","hipsgen_params_1","hipsgen_params_10","hipsgen_params_11","hipsgen_params_12","hipsgen_params_2","hipsgen_params_3","hipsgen_params_4","hipsgen_params_5","hipsgen_params_6","hipsgen_params_7","hipsgen_params_8","hipsgen_params_9","label","maxOrder","moc_access_url","moc_order","moc_release_date","moc_sky_fraction","obs_ack","obs_collection","obs_copyrigh_url","obs_copyright","obs_copyright_1","obs_copyright_url","obs_copyright_url_1","obs_description","obs_description_url","obs_descrition_url","obs_id","obs_initial_dec","obs_initial_fov","obs_initial_ra","obs_provenance","obs_regime","obs_title","ohips_frame","pixelCut","pixelRange","prov_did","prov_progenitor","prov_progenitor_url","publisher_did","publisher_id","s_pixel_scale","t_max","t_min"
-    "CDS/P/2MASS/H","1524123841000","","2006AJ....131.1163S","http://cdsbib.unistra.fr/cgi-bin/cdsbib?2006AJ....131.1163S","AladinDesktop","Image/Infrared/2MASS","04-001-03","","","","ivo://CDS/P/2MASS/H","","","image","1.798E-6","1.525E-6","","Aladin/HipsGen v9.017","CNRS/Unistra","2013-05-06T20:36Z","","CDS (A.Oberto)","","","equatorial","","mean","","","","","","9","","","","","","0 60","2.236E-4","","","2016-04-22T13:48Z","","","","","","http://alasky.unistra.fr/2MASS/H","https://irsa.ipac.caltech.edu/data/hips/CDS/2MASS/H","http://alaskybis.unistra.fr/2MASS/H","https://alaskybis.unistra.fr/2MASS/H","","","","","","","","","public master clonableOnce","public mirror unclonable","public mirror clonableOnce","public mirror clonableOnce","","","","","","jpeg fits","","","512","1.31","","","","","","","","","","","","","","","","","","","","","","","","","","","","","http://alasky.unistra.fr/2MASS/H/Moc.fits","9","","1","University of Massachusetts & IPAC/Caltech","The Two Micron All Sky Survey - H band (2MASS H)","","University of Massachusetts & IPAC/Caltech","","http://www.ipac.caltech.edu/2mass/","","2MASS has uniformly scanned the entire sky in three near-infrared bands to detect and characterize point sources brighter than about 1 mJy in each band, with signal-to-noise ratio (SNR) greater than 10, using a pixel size of 2.0"". This has achieved an 80,000-fold improvement in sensitivity relative to earlier surveys. 2MASS used two highly-automated 1.3-m telescopes, one at Mt. Hopkins, AZ, and one at CTIO, Chile. Each telescope was equipped with a three-channel camera, each channel consisting of a 256x256 array of HgCdTe detectors, capable of observing the sky simultaneously at J (1.25 microns), H (1.65 microns), and Ks (2.17 microns). The University of Massachusetts (UMass) was responsible for the overall management of the project, and for developing the infrared cameras and on-site computing systems at both facilities. The Infrared Processing and Analysis Center (IPAC) is responsible for all data processing through the Production Pipeline, and construction and distribution of the data products. Funding is provided primarily by NASA and the NSF","","","","+0","0.11451621372724685","0","","Infrared","2MASS H (1.66um)","","","","","IPAC/NASA","","","","","51941","50600"
+    "CDS/P/2MASS/H","1524123841000","","2006AJ....131.1163S","http://cdsbib.u-strasbg.fr/cgi-bin/cdsbib?2006AJ....131.1163S","AladinDesktop","Image/Infrared/2MASS","04-001-03","","","","ivo://CDS/P/2MASS/H","","","image","1.798E-6","1.525E-6","","Aladin/HipsGen v9.017","CNRS/Unistra","2013-05-06T20:36Z","","CDS (A.Oberto)","","","equatorial","","mean","","","","","","9","","","","","","0 60","2.236E-4","","","2016-04-22T13:48Z","","","","","","http://alasky.u-strasbg.fr/2MASS/H","https://irsa.ipac.caltech.edu/data/hips/CDS/2MASS/H","http://alaskybis.u-strasbg.fr/2MASS/H","https://alaskybis.u-strasbg.fr/2MASS/H","","","","","","","","","public master clonableOnce","public mirror unclonable","public mirror clonableOnce","public mirror clonableOnce","","","","","","jpeg fits","","","512","1.31","","","","","","","","","","","","","","","","","","","","","","","","","","","","","http://alasky.u-strasbg.fr/2MASS/H/Moc.fits","9","","1","University of Massachusetts & IPAC/Caltech","The Two Micron All Sky Survey - H band (2MASS H)","","University of Massachusetts & IPAC/Caltech","","http://www.ipac.caltech.edu/2mass/","","2MASS has uniformly scanned the entire sky in three near-infrared bands to detect and characterize point sources brighter than about 1 mJy in each band, with signal-to-noise ratio (SNR) greater than 10, using a pixel size of 2.0"". This has achieved an 80,000-fold improvement in sensitivity relative to earlier surveys. 2MASS used two highly-automated 1.3-m telescopes, one at Mt. Hopkins, AZ, and one at CTIO, Chile. Each telescope was equipped with a three-channel camera, each channel consisting of a 256x256 array of HgCdTe detectors, capable of observing the sky simultaneously at J (1.25 microns), H (1.65 microns), and Ks (2.17 microns). The University of Massachusetts (UMass) was responsible for the overall management of the project, and for developing the infrared cameras and on-site computing systems at both facilities. The Infrared Processing and Analysis Center (IPAC) is responsible for all data processing through the Production Pipeline, and construction and distribution of the data products. Funding is provided primarily by NASA and the NSF","","","","+0","0.11451621372724685","0","","Infrared","2MASS H (1.66um)","","","","","IPAC/NASA","","","","","51941","50600"
     """
     )
     ascii.read(tbl, format="csv", fast_reader=True, guess=False)
 
 
-def test_quoted_fields(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_quoted_fields(parallel, read_basic):
     """
     The character quotechar (default '"') should denote the start of a field which can
     contain the field delimiter and newlines.
     """
+    if parallel:
+        pytest.xfail("Multiprocessing can fail with quoted fields")
     text = dedent(
         """
     "A B" C D
@@ -452,12 +490,12 @@ def test_quoted_fields(read_basic):
     d"
     """
     )
-    table = read_basic(text)
+    table = read_basic(text, parallel=parallel)
     expected = Table(
         [["1.5", "a"], ["2.1", "b"], ["-37.1", "c\nd"]], names=("A B", "C", "D")
     )
     assert_table_equal(table, expected)
-    table = read_basic(text.replace('"', "'"), quotechar="'")
+    table = read_basic(text.replace('"', "'"), quotechar="'", parallel=parallel)
     assert_table_equal(table, expected)
 
 
@@ -474,9 +512,9 @@ def test_quoted_fields(read_basic):
             "converters",
             {i + 1: ascii.convert_numpy(np.uint) for i in range(3)},
         ),  # passing converters
-        ("inputter_cls", ascii.ContinuationLinesInputter),  # passing inputter_cls
-        ("header_splitter_cls", ascii.DefaultSplitter),  # passing Splitter
-        ("data_splitter_cls", ascii.DefaultSplitter),
+        ("Inputter", ascii.ContinuationLinesInputter),  # passing Inputter
+        ("header_Splitter", ascii.DefaultSplitter),  # passing Splitter
+        ("data_Splitter", ascii.DefaultSplitter),
     ],
 )
 def test_invalid_parameters(key, val):
@@ -495,8 +533,8 @@ def test_invalid_parameters_other():
     with pytest.raises(FastOptionsError):  # don't fall back on the slow reader
         ascii.read("1 2 3\n4 5 6", format="basic", fast_reader={"foo": 7})
     with pytest.raises(ParameterError):
-        # outputter_cls cannot be specified in constructor
-        FastBasic(outputter_cls=ascii.TableOutputter).read("1 2 3\n4 5 6")
+        # Outputter cannot be specified in constructor
+        FastBasic(Outputter=ascii.TableOutputter).read("1 2 3\n4 5 6")
 
 
 def test_too_many_cols1():
@@ -557,7 +595,8 @@ def test_too_many_cols4():
     assert "Unable to guess table format with the guesses listed below" in str(e.value)
 
 
-def test_not_enough_cols(read_csv):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_not_enough_cols(parallel, read_csv):
     """
     If a row does not have enough columns, the FastCsv reader should add empty
     fields while the FastBasic reader should raise an error.
@@ -568,7 +607,7 @@ A,B,C
 4,5
 6,7,8
 """
-    table = read_csv(text)
+    table = read_csv(text, parallel=parallel)
     assert table["B"][1] is not ma.masked
     assert table["C"][1] is ma.masked
 
@@ -576,7 +615,8 @@ A,B,C
         table = FastBasic(delimiter=",").read(text)
 
 
-def test_data_end(read_basic, read_rdb):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_data_end(parallel, read_basic, read_rdb):
     """
     The parameter data_end should specify where data reading ends.
     """
@@ -587,12 +627,12 @@ A B C
 7 8 9
 10 11 12
 """
-    table = read_basic(text, data_end=3)
+    table = read_basic(text, data_end=3, parallel=parallel)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=("A", "B", "C"))
     assert_table_equal(table, expected)
 
     # data_end supports negative indexing
-    table = read_basic(text, data_end=-2)
+    table = read_basic(text, data_end=-2, parallel=parallel)
     assert_table_equal(table, expected)
 
     text = """
@@ -603,22 +643,23 @@ N\tN\tS
 5\t6\tc
 """
     # make sure data_end works with RDB
-    table = read_rdb(text, data_end=-1)
+    table = read_rdb(text, data_end=-1, parallel=parallel)
     expected = Table([[1, 3], [2, 4], ["a", "b"]], names=("A", "B", "C"))
     assert_table_equal(table, expected)
 
     # positive index
-    table = read_rdb(text, data_end=3)
+    table = read_rdb(text, data_end=3, parallel=parallel)
     expected = Table([[1], [2], ["a"]], names=("A", "B", "C"))
     assert_table_equal(table, expected)
 
     # empty table if data_end is too small
-    table = read_rdb(text, data_end=1)
+    table = read_rdb(text, data_end=1, parallel=parallel)
     expected = Table([[], [], []], names=("A", "B", "C"))
     assert_table_equal(table, expected)
 
 
-def test_inf_nan(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_inf_nan(parallel, read_basic):
     """
     Test that inf and nan-like values are correctly parsed on all platforms.
 
@@ -656,12 +697,13 @@ def test_inf_nan(read_basic):
         }
     )
 
-    table = read_basic(text)
+    table = read_basic(text, parallel=parallel)
     assert table["A"].dtype.kind == "f"
     assert_table_equal(table, expected)
 
 
-def test_fill_values(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_fill_values(parallel, read_basic):
     """
     Make sure that the parameter fill_values works as intended. If fill_values
     is not specified, the default behavior should be to convert '' to 0.
@@ -673,44 +715,50 @@ a, -999, -3.4
 nan, 5, -9999
 8, nan, 7.6e12
 """
-    table = read_basic(text, delimiter=",")
+    table = read_basic(text, delimiter=",", parallel=parallel)
     # The empty value in row A should become a masked '0'
     assert isinstance(table["A"], MaskedColumn)
     assert table["A"][0] is ma.masked
     # '0' rather than 0 because there is a string in the column
-    assert table["A"].data.data[0] == "0"
+    assert_equal(table["A"].data.data[0], "0")
     assert table["A"][1] is not ma.masked
 
-    table = read_basic(text, delimiter=",", fill_values=("-999", "0"))
+    table = read_basic(
+        text, delimiter=",", fill_values=("-999", "0"), parallel=parallel
+    )
     assert isinstance(table["B"], MaskedColumn)
     assert table["A"][0] is not ma.masked  # empty value unaffected
     assert table["C"][2] is not ma.masked  # -9999 is not an exact match
     assert table["B"][1] is ma.masked
     # Numeric because the rest of the column contains numeric data
-    assert table["B"].data.data[1] == 0.0
+    assert_equal(table["B"].data.data[1], 0.0)
     assert table["B"][0] is not ma.masked
 
-    table = read_basic(text, delimiter=",", fill_values=[])
+    table = read_basic(text, delimiter=",", fill_values=[], parallel=parallel)
     # None of the columns should be masked
     for name in "ABC":
         assert not isinstance(table[name], MaskedColumn)
 
     table = read_basic(
-        text, delimiter=",", fill_values=[("", "0", "A"), ("nan", "999", "A", "C")]
+        text,
+        delimiter=",",
+        fill_values=[("", "0", "A"), ("nan", "999", "A", "C")],
+        parallel=parallel,
     )
     assert np.isnan(table["B"][3])  # nan filling skips column B
     # should skip masking as well as replacing nan
     assert table["B"][3] is not ma.masked
     assert table["A"][0] is ma.masked
     assert table["A"][2] is ma.masked
-    assert table["A"].data.data[0] == "0"
-    assert table["A"].data.data[2] == "999"
+    assert_equal(table["A"].data.data[0], "0")
+    assert_equal(table["A"].data.data[2], "999")
     assert table["C"][0] is ma.masked
-    assert_allclose(table["C"].data.data[0], 999.0)
-    assert_allclose(table["C"][1], -3.4)  # column is still of type float
+    assert_almost_equal(table["C"].data.data[0], 999.0)
+    assert_almost_equal(table["C"][1], -3.4)  # column is still of type float
 
 
-def test_fill_include_exclude_names(read_csv):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_fill_include_exclude_names(parallel, read_csv):
     """
     fill_include_names and fill_exclude_names should filter missing/empty value handling
     in the same way that include_names and exclude_names filter output columns.
@@ -721,24 +769,27 @@ A, B, C
 3, , 4
 5, 5,
 """
-    table = read_csv(text, fill_include_names=["A", "B"])
+    table = read_csv(text, fill_include_names=["A", "B"], parallel=parallel)
     assert table["A"][0] is ma.masked
     assert table["B"][1] is ma.masked
     assert table["C"][2] is not ma.masked  # C not in fill_include_names
 
-    table = read_csv(text, fill_exclude_names=["A", "B"])
+    table = read_csv(text, fill_exclude_names=["A", "B"], parallel=parallel)
     assert table["C"][2] is ma.masked
     assert table["A"][0] is not ma.masked
     assert table["B"][1] is not ma.masked  # A and B excluded from fill handling
 
-    table = read_csv(text, fill_include_names=["A", "B"], fill_exclude_names=["B"])
+    table = read_csv(
+        text, fill_include_names=["A", "B"], fill_exclude_names=["B"], parallel=parallel
+    )
     assert table["A"][0] is ma.masked
     # fill_exclude_names applies after fill_include_names
     assert table["B"][1] is not ma.masked
     assert table["C"][2] is not ma.masked
 
 
-def test_many_rows(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_many_rows(parallel, read_basic):
     """
     Make sure memory reallocation works okay when the number of rows
     is large (so that each column string is longer than INITIAL_COL_SIZE).
@@ -748,12 +799,13 @@ def test_many_rows(read_basic):
         text += " ".join([str(i) for i in range(3)])
         text += "\n"
 
-    table = read_basic(text)
+    table = read_basic(text, parallel=parallel)
     expected = Table([[0] * 500, [1] * 500, [2] * 500], names=("A", "B", "C"))
     assert_table_equal(table, expected)
 
 
-def test_many_columns(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_many_columns(parallel, read_basic):
     """
     Make sure memory reallocation works okay when the number of columns
     is large (so that each header string is longer than INITIAL_HEADER_SIZE).
@@ -761,7 +813,7 @@ def test_many_columns(read_basic):
     # create a string with 500 columns and two data rows
     text = " ".join([str(i) for i in range(500)])
     text += "\n" + text + "\n" + text
-    table = read_basic(text)
+    table = read_basic(text, parallel=parallel)
     expected = Table([[i, i] for i in range(500)], names=[str(i) for i in range(500)])
     assert_table_equal(table, expected)
 
@@ -775,10 +827,25 @@ def test_fast_reader():
     with pytest.raises(ParameterError):  # C reader can't handle regex comment
         ascii.read(text, format="fast_basic", guess=False, comment="##")
 
-    # Enable the fast converter
-    ascii.read(
-        text, format="basic", guess=False, fast_reader={"use_fast_converter": True}
-    )
+    # Enable multiprocessing and the fast converter
+    try:
+        ascii.read(
+            text,
+            format="basic",
+            guess=False,
+            fast_reader={"parallel": True, "use_fast_converter": True},
+        )
+    except NotImplementedError:
+        # Might get this on Windows, try without parallel...
+        if os.name == "nt":
+            ascii.read(
+                text,
+                format="basic",
+                guess=False,
+                fast_reader={"parallel": False, "use_fast_converter": True},
+            )
+        else:
+            raise
 
     # Should raise an error if fast_reader has an invalid key
     with pytest.raises(FastOptionsError):
@@ -790,32 +857,37 @@ def test_fast_reader():
     ascii.read(text, format="basic", guess=False, comment="##")
 
 
-def test_read_tab(read_tab):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_read_tab(parallel, read_tab):
     """
     The fast reader for tab-separated values should not strip whitespace, unlike
     the basic reader.
     """
+    if parallel:
+        pytest.xfail("Multiprocessing can fail with quoted fields")
     text = '1\t2\t3\n  a\t b \t\n c\t" d\n e"\t  '
-    table = read_tab(text)
-    assert table["1"][0] == "  a"  # preserve line whitespace
-    assert table["2"][0] == " b "  # preserve field whitespace
+    table = read_tab(text, parallel=parallel)
+    assert_equal(table["1"][0], "  a")  # preserve line whitespace
+    assert_equal(table["2"][0], " b ")  # preserve field whitespace
     assert table["3"][0] is ma.masked  # empty value should be masked
-    assert table["2"][1] == " d\n e"  # preserve whitespace in quoted fields
-    assert table["3"][1] == "  "  # preserve end-of-line whitespace
+    assert_equal(table["2"][1], " d\n e")  # preserve whitespace in quoted fields
+    assert_equal(table["3"][1], "  ")  # preserve end-of-line whitespace
 
 
-def test_default_data_start(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_default_data_start(parallel, read_basic):
     """
     If data_start is not explicitly passed to read(), data processing should
     beginning right after the header.
     """
     text = "ignore this line\na b c\n1 2 3\n4 5 6"
-    table = read_basic(text, header_start=1)
+    table = read_basic(text, header_start=1, parallel=parallel)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=("a", "b", "c"))
     assert_table_equal(table, expected)
 
 
-def test_commented_header(read_commented_header):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_commented_header(parallel, read_commented_header):
     """
     The FastCommentedHeader reader should mimic the behavior of the
     CommentedHeader by overriding the default header behavior of FastBasic.
@@ -825,32 +897,29 @@ def test_commented_header(read_commented_header):
  1 2 3
  4 5 6
 """
-    t1 = read_commented_header(text)
+    t1 = read_commented_header(text, parallel=parallel)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=("A", "B", "C"))
     assert_table_equal(t1, expected)
 
     text = "# first commented line\n # second commented line\n\n" + text
-    t2 = read_commented_header(text, header_start=2, data_start=0)
+    t2 = read_commented_header(text, header_start=2, data_start=0, parallel=parallel)
     assert_table_equal(t2, expected)
     # negative indexing allowed
-    t3 = read_commented_header(text, header_start=-1, data_start=0)
+    t3 = read_commented_header(text, header_start=-1, data_start=0, parallel=parallel)
     assert_table_equal(t3, expected)
 
     text += "7 8 9"
-    t4 = read_commented_header(text, header_start=2, data_start=2)
+    t4 = read_commented_header(text, header_start=2, data_start=2, parallel=parallel)
     expected = Table([[7], [8], [9]], names=("A", "B", "C"))
     assert_table_equal(t4, expected)
 
     with pytest.raises(ParameterError):
         # data_start cannot be negative
-        read_commented_header(
-            text,
-            header_start=-1,
-            data_start=-1,
-        )
+        read_commented_header(text, header_start=-1, data_start=-1, parallel=parallel)
 
 
-def test_rdb(read_rdb):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_rdb(parallel, read_rdb):
     """
     Make sure the FastRdb reader works as expected.
     """
@@ -860,40 +929,37 @@ A\tB\tC
 1n\tS\t4N
 1\t 9\t4.3
 """
-    table = read_rdb(text)
+    table = read_rdb(text, parallel=parallel)
     expected = Table([[1], [" 9"], [4.3]], names=("A", "B", "C"))
     assert_table_equal(table, expected)
-    assert table["A"].dtype.kind == "i"
+    assert_equal(table["A"].dtype.kind, "i")
     assert table["B"].dtype.kind in ("S", "U")
-    assert table["C"].dtype.kind == "f"
+    assert_equal(table["C"].dtype.kind, "f")
 
     with pytest.raises(ValueError) as e:
         text = "A\tB\tC\nN\tS\tN\n4\tb\ta"  # C column contains non-numeric data
-        read_rdb(
-            text,
-        )
+        read_rdb(text, parallel=parallel)
     assert "Column C failed to convert" in str(e.value)
 
     with pytest.raises(ValueError) as e:
         text = "A\tB\tC\nN\tN\n1\t2\t3"  # not enough types specified
-        read_rdb(
-            text,
-        )
+        read_rdb(text, parallel=parallel)
     assert "mismatch between number of column names and column types" in str(e.value)
 
     with pytest.raises(ValueError) as e:
         text = "A\tB\tC\nN\tN\t5\n1\t2\t3"  # invalid type for column C
-        read_rdb(
-            text,
-        )
+        read_rdb(text, parallel=parallel)
     assert "type definitions do not all match [num](N|S)" in str(e.value)
 
 
-def test_data_start(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_data_start(parallel, read_basic):
     """
     Make sure that data parsing begins at data_start (ignoring empty and
     commented lines but not taking quoted values into account).
     """
+    if parallel:
+        pytest.xfail("Multiprocessing can fail with quoted fields")
     text = """
 A B C
 1 2 3
@@ -904,28 +970,25 @@ A B C
 # comment
 10 11 12
 """
-    table = read_basic(text, data_start=2)
+    table = read_basic(text, data_start=2, parallel=parallel)
     expected = Table(
         [[4, 7, 10], [5, 8, 11], ["6", "9\n1", "12"]], names=("A", "B", "C")
     )
     assert_table_equal(table, expected)
 
-    table = read_basic(text, data_start=3)
+    table = read_basic(text, data_start=3, parallel=parallel)
     # ignore empty line
     expected = Table([[7, 10], [8, 11], ["9\n1", "12"]], names=("A", "B", "C"))
     assert_table_equal(table, expected)
 
     with pytest.raises(InconsistentTableError) as e:
         # tries to begin in the middle of quoted field
-        read_basic(
-            text,
-            data_start=4,
-        )
+        read_basic(text, data_start=4, parallel=parallel)
     assert "header columns (3) inconsistent with data columns in data line 0" in str(
         e.value
     )
 
-    table = read_basic(text, data_start=5)
+    table = read_basic(text, data_start=5, parallel=parallel)
     # ignore commented line
     expected = Table([[10], [11], [12]], names=("A", "B", "C"))
     assert_table_equal(table, expected)
@@ -939,41 +1002,51 @@ A B C
 # comment
 10 11 12
 """
+    # make sure reading works as expected in parallel
+    table = read_basic(text, data_start=2, parallel=parallel)
+    expected = Table([[4, 7, 10], [5, 8, 11], [6, 9, 12]], names=("A", "B", "C"))
+    assert_table_equal(table, expected)
 
 
-def test_quoted_empty_values(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_quoted_empty_values(parallel, read_basic):
     """
     Quoted empty values spanning multiple lines should be treated correctly.
     """
+    if parallel:
+        pytest.xfail("Multiprocessing can fail with quoted fields")
     text = 'a b c\n1 2 " \n "'
-    table = read_basic(text)
+    table = read_basic(text, parallel=parallel)
     assert table["c"][0] == "\n"  # empty value masked by default
 
 
-def test_csv_comment_default(read_csv):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_csv_comment_default(parallel, read_csv):
     """
     Unless the comment parameter is specified, the CSV reader should
     not treat any lines as comments.
     """
     text = "a,b,c\n#1,2,3\n4,5,6"
-    table = read_csv(text)
+    table = read_csv(text, parallel=parallel)
     expected = Table([["#1", "4"], [2, 5], [3, 6]], names=("a", "b", "c"))
     assert_table_equal(table, expected)
 
 
-def test_whitespace_before_comment(read_tab):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_whitespace_before_comment(parallel, read_tab):
     """
     Readers that don't strip whitespace from data (Tab, RDB)
     should still treat lines with leading whitespace and then
     the comment char as comment lines.
     """
     text = "a\tb\tc\n # comment line\n1\t2\t3"
-    table = read_tab(text)
+    table = read_tab(text, parallel=parallel)
     expected = Table([[1], [2], [3]], names=("a", "b", "c"))
     assert_table_equal(table, expected)
 
 
-def test_strip_line_trailing_whitespace(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_strip_line_trailing_whitespace(parallel, read_basic):
     """
     Readers that strip whitespace from lines should ignore
     trailing whitespace after the last data value of each
@@ -987,25 +1060,27 @@ def test_strip_line_trailing_whitespace(read_basic):
     )
 
     text = "a b c\n 1 2 3   \t \n 4 5 6 "
-    table = read_basic(text)
+    table = read_basic(text, parallel=parallel)
     expected = Table([[1, 4], [2, 5], [3, 6]], names=("a", "b", "c"))
     assert_table_equal(table, expected)
 
 
-def test_no_data(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_no_data(parallel, read_basic):
     """
     As long as column names are supplied, the C reader
     should return an empty table in the absence of data.
     """
-    table = read_basic("a b c")
+    table = read_basic("a b c", parallel=parallel)
     expected = Table([[], [], []], names=("a", "b", "c"))
     assert_table_equal(table, expected)
 
-    table = read_basic("a b c\n1 2 3", data_start=2)
+    table = read_basic("a b c\n1 2 3", data_start=2, parallel=parallel)
     assert_table_equal(table, expected)
 
 
-def test_line_endings(read_basic, read_commented_header, read_rdb):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_line_endings(parallel, read_basic, read_commented_header, read_rdb):
     """
     Make sure the fast reader accepts CR and CR+LF
     as newlines.
@@ -1014,18 +1089,14 @@ def test_line_endings(read_basic, read_commented_header, read_rdb):
     expected = Table([[1, 4, 7], [2, 5, 8], [3, 6, 9]], names=("a", "b", "c"))
 
     for newline in ("\r\n", "\r"):
-        table = read_basic(
-            text.replace("\n", newline),
-        )
+        table = read_basic(text.replace("\n", newline), parallel=parallel)
         assert_table_equal(table, expected)
 
     # Make sure the splitlines() method of FileString
     # works with CR/CR+LF line endings
     text = "#" + text
     for newline in ("\r\n", "\r"):
-        table = read_commented_header(
-            text.replace("\n", newline),
-        )
+        table = read_commented_header(text.replace("\n", newline), parallel=parallel)
         assert_table_equal(table, expected)
 
     expected = Table(
@@ -1036,14 +1107,13 @@ def test_line_endings(read_basic, read_commented_header, read_rdb):
     expected["c"][0] = np.ma.masked
     text = "a\tb\tc\nN\tN\tN\n\t2\t\n4\t5\t6\n7\t8\t9\n"
     for newline in ("\r\n", "\r"):
-        table = read_rdb(
-            text.replace("\n", newline),
-        )
+        table = read_rdb(text.replace("\n", newline), parallel=parallel)
         assert_table_equal(table, expected)
         assert np.all(table == expected)
 
 
-def test_store_comments(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_store_comments(parallel, read_basic):
     """
     Make sure that the output Table produced by the fast
     reader stores any comment lines in its meta attribute.
@@ -1056,30 +1126,32 @@ a b c
 1 2 3
 4 5 6
 """
-    table = read_basic(text, check_meta=True)
-    assert table.meta["comments"] == ["header comment", "comment 2", "comment 3"]
+    table = read_basic(text, parallel=parallel, check_meta=True)
+    assert_equal(table.meta["comments"], ["header comment", "comment 2", "comment 3"])
 
 
-def test_empty_quotes(read_basic):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_empty_quotes(parallel, read_basic):
     """
     Make sure the C reader doesn't segfault when the
     input data contains empty quotes. [#3407]
     """
-    table = read_basic('a b\n1 ""\n2 ""')
+    table = read_basic('a b\n1 ""\n2 ""', parallel=parallel)
     expected = Table([[1, 2], [0, 0]], names=("a", "b"))
     assert_table_equal(table, expected)
 
 
-def test_fast_tab_with_names(read_tab):
+@pytest.mark.parametrize("parallel", [True, False])
+def test_fast_tab_with_names(parallel, read_tab):
     """
     Make sure the C reader doesn't segfault when the header for the
     first column is missing [#3545]
     """
     content = """#
 \tdecDeg\tRate_pn_offAxis\tRate_mos2_offAxis\tObsID\tSourceID\tRADeg\tversion\tCounts_pn\tRate_pn\trun\tRate_mos1\tRate_mos2\tInserted_pn\tInserted_mos2\tbeta\tRate_mos1_offAxis\trcArcsec\tname\tInserted\tCounts_mos1\tInserted_mos1\tCounts_mos2\ty\tx\tCounts\toffAxis\tRot
--3.007559\t0.0000\t0.0010\t0013140201\t0\t213.462574\t0\t2\t0.0002\t0\t0.0001\t0.0001\t0\t1\t0.66\t0.0217\t3.0\tfakeXMMXCS J1413.8-0300\t3\t1\t2\t1\t398.000\t127.000\t5\t13.9\t72.3\t"""
+-3.007559\t0.0000\t0.0010\t0013140201\t0\t213.462574\t0\t2\t0.0002\t0\t0.0001\t0.0001\t0\t1\t0.66\t0.0217\t3.0\tfakeXMMXCS J1413.8-0300\t3\t1\t2\t1\t398.000\t127.000\t5\t13.9\t72.3\t"""  # noqa: E501
     head = [f"A{i}" for i in range(28)]
-    read_tab(content, data_start=1, names=head)
+    read_tab(content, data_start=1, parallel=parallel, names=head)
 
 
 @pytest.mark.hugemem
@@ -1149,9 +1221,10 @@ def test_read_big_table2(tmp_path):
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize(
     "fast_reader",
-    [False, {"use_fast_converter": False}, {"use_fast_converter": True}],
+    [False, dict(use_fast_converter=False), dict(use_fast_converter=True)],
 )
-def test_data_out_of_range(fast_reader, guess):
+@pytest.mark.parametrize("parallel", [False, True])
+def test_data_out_of_range(parallel, fast_reader, guess):
     """
     Numbers with exponents beyond float64 range (|~4.94e-324 to 1.7977e+308|)
     shall be returned as 0 and +-inf respectively by the C parser, just like
@@ -1163,16 +1236,25 @@ def test_data_out_of_range(fast_reader, guess):
 
     # Update fast_reader dict; adapt relative precision for fast_converter
     if fast_reader:
+        fast_reader["parallel"] = parallel
         if fast_reader.get("use_fast_converter"):
             rtol = 1.0e-15
-        elif sys.maxsize < 2**32:
+        elif np.iinfo(np.int_).dtype == np.dtype(np.int32):
             # On 32bit the standard C parser (strtod) returns strings for these
             pytest.xfail("C parser cannot handle float64 on 32bit systems")
 
-    if not fast_reader:
+    if parallel:
+        if not fast_reader:
+            pytest.skip("Multiprocessing only available in fast reader")
+        elif CI:
+            pytest.xfail("Multiprocessing can sometimes fail on CI")
+
+    test_for_warnings = fast_reader and not parallel
+    if not parallel and not fast_reader:
         ctx = nullcontext()
     else:
         ctx = pytest.warns()
+
     fields = ["10.1E+199", "3.14e+313", "2048e+306", "0.6E-325", "-2.e345"]
     values = np.array([1.01e200, np.inf, np.inf, 0.0, -np.inf])
     # NOTE: Warning behavior varies for the parameters being passed in.
@@ -1183,14 +1265,14 @@ def test_data_out_of_range(fast_reader, guess):
             guess=guess,
             fast_reader=fast_reader,
         )
-    if fast_reader:  # Assert precision warnings for cols 2-5
+    if test_for_warnings:  # Assert precision warnings for cols 2-5
         assert len(w) == 4
         for i in range(len(w)):
             assert f"OverflowError converting to FloatType in column col{i+2}" in str(
                 w[i].message
             )
     read_values = np.array([col[0] for col in t.itercols()])
-    assert_allclose(read_values, values, rtol=rtol, atol=1.0e-324)
+    assert_almost_equal(read_values, values, rtol=rtol, atol=1.0e-324)
 
     # Test some additional corner cases
     fields = [
@@ -1212,17 +1294,14 @@ def test_data_out_of_range(fast_reader, guess):
             guess=guess,
             fast_reader=fast_reader,
         )
-    if fast_reader:  # Assert precision warnings for cols 4-6
-        if sys.platform == "win32" and not fast_reader.get("use_fast_converter"):
-            assert len(w) == 2
-        else:
-            assert len(w) == 3
+    if test_for_warnings:  # Assert precision warnings for cols 4-6
+        assert len(w) == 3
         for i in range(len(w)):
             assert f"OverflowError converting to FloatType in column col{i+4}" in str(
                 w[i].message
             )
     read_values = np.array([col[0] for col in t.itercols()])
-    assert_allclose(read_values, values, rtol=rtol, atol=1.0e-324)
+    assert_almost_equal(read_values, values, rtol=rtol, atol=1.0e-324)
 
     # Test corner cases again with non-standard exponent_style (auto-detection)
     if fast_reader and fast_reader.get("use_fast_converter"):
@@ -1246,24 +1325,20 @@ def test_data_out_of_range(fast_reader, guess):
             guess=guess,
             fast_reader=fast_reader,
         )
-    if fast_reader:
-        # CI Windows identifies as "win32" but has 64 bit compiler;
-        # its `strtod` not emitting certain warnings.
-        if sys.platform == "win32" and not fast_reader.get("use_fast_converter"):
-            assert len(w) == 2
-        else:
-            assert len(w) == 3
+    if test_for_warnings:
+        assert len(w) == 3
     read_values = np.array([col[0] for col in t.itercols()])
-    assert_allclose(read_values, values, rtol=rtol, atol=1.0e-324)
+    assert_almost_equal(read_values, values, rtol=rtol, atol=1.0e-324)
 
 
 @pytest.mark.parametrize("guess", [True, False])
 # fast_reader configurations: False| 'use_fast_converter'=False|True
 @pytest.mark.parametrize(
     "fast_reader",
-    [False, {"use_fast_converter": False}, {"use_fast_converter": True}],
+    [False, dict(use_fast_converter=False), dict(use_fast_converter=True)],
 )
-def test_data_at_range_limit(fast_reader, guess):
+@pytest.mark.parametrize("parallel", [False, True])
+def test_data_at_range_limit(parallel, fast_reader, guess):
     """
     Test parsing of fixed-format float64 numbers near range limits
     (|~4.94e-324 to 1.7977e+308|) - within limit for full precision
@@ -1274,21 +1349,20 @@ def test_data_at_range_limit(fast_reader, guess):
     # Python reader and strtod() are expected to return precise results
     rtol = 1.0e-30
 
-    # CI "win32" 64 bit compiler with `strtod` not emitting certain warnings.
-    if sys.platform == "win32":
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns()
-
     # Update fast_reader dict; adapt relative precision for fast_converter
     if fast_reader:
-        # `xstrtod` behaves the same on win32
+        fast_reader["parallel"] = parallel
         if fast_reader.get("use_fast_converter"):
             rtol = 1.0e-15
-            ctx = pytest.warns()
-        elif sys.maxsize < 2**32:
+        elif np.iinfo(np.int_).dtype == np.dtype(np.int32):
             # On 32bit the standard C parser (strtod) returns strings for these
             pytest.xfail("C parser cannot handle float64 on 32bit systems")
+
+    if parallel:
+        if not fast_reader:
+            pytest.skip("Multiprocessing only available in fast reader")
+        elif CI:
+            pytest.xfail("Multiprocessing can sometimes fail on CI")
 
     # Test very long fixed-format strings (to strtod range limit w/o Overflow)
     for D in 99, 202, 305:
@@ -1298,7 +1372,7 @@ def test_data_at_range_limit(fast_reader, guess):
             guess=guess,
             fast_reader=fast_reader,
         )
-        assert_allclose(t["col1"][0], 10.0 ** -(D + 1), rtol=rtol, atol=1.0e-324)
+        assert_almost_equal(t["col1"][0], 10.0 ** -(D + 1), rtol=rtol, atol=1.0e-324)
     for D in 99, 202, 308:
         t = ascii.read(
             StringIO("1" + D * "0" + ".0"),
@@ -1306,7 +1380,7 @@ def test_data_at_range_limit(fast_reader, guess):
             guess=guess,
             fast_reader=fast_reader,
         )
-        assert_allclose(t["col1"][0], 10.0**D, rtol=rtol, atol=1.0e-324)
+        assert_almost_equal(t["col1"][0], 10.0**D, rtol=rtol, atol=1.0e-324)
 
     # 0.0 is always exact (no Overflow warning)!
     for s in "0.0", "0.0e+0", 399 * "0" + "." + 365 * "0":
@@ -1316,9 +1390,11 @@ def test_data_at_range_limit(fast_reader, guess):
         assert t["col1"][0] == 0.0
 
     # Test OverflowError at precision limit with laxer rtol
-    if not fast_reader:
+    if parallel:
+        pytest.skip("Catching warnings broken in parallel mode")
+    elif not fast_reader:
         pytest.skip("Python/numpy reader does not raise on Overflow")
-    with ctx as w:
+    with pytest.warns() as warning_lines:
         t = ascii.read(
             StringIO("0." + 314 * "0" + "1"),
             format="no_header",
@@ -1326,24 +1402,26 @@ def test_data_at_range_limit(fast_reader, guess):
             fast_reader=fast_reader,
         )
 
-    if not isinstance(ctx, nullcontext):
-        assert len(w) == 1, f"Expected 1 warning, found {len(w)}"
+    n_warns = len(warning_lines)
+    assert n_warns in (0, 1), f"Expected 0 or 1 warning, found {n_warns}"
+    if n_warns == 1:
         assert (
             "OverflowError converting to FloatType in column col1, possibly "
-            "resulting in degraded precision" in str(w[0].message)
+            "resulting in degraded precision" in str(warning_lines[0].message)
         )
 
-    assert_allclose(t["col1"][0], 1.0e-315, rtol=1.0e-10, atol=1.0e-324)
+    assert_almost_equal(t["col1"][0], 1.0e-315, rtol=1.0e-10, atol=1.0e-324)
 
 
 @pytest.mark.parametrize("guess", [True, False])
-def test_int_out_of_range(guess):
+@pytest.mark.parametrize("parallel", [False, True])
+def test_int_out_of_range(parallel, guess):
     """
     Integer numbers outside int range shall be returned as string columns
     consistent with the standard (Python) parser (no 'upcasting' to float).
     """
-    imin = np.iinfo(np.int64).min + 1
-    imax = np.iinfo(np.int64).max - 1
+    imin = np.iinfo(int).min + 1
+    imax = np.iinfo(int).max - 1
     huge = f"{imax+2:d}"
 
     text = f"P M S\n {imax:d} {imin:d} {huge:s}"
@@ -1351,9 +1429,13 @@ def test_int_out_of_range(guess):
     # NOTE: Warning behavior varies for the parameters being passed in.
     with pytest.warns() as w:
         table = ascii.read(
-            text,
-            format="basic",
-            guess=guess,
+            text, format="basic", guess=guess, fast_reader={"parallel": parallel}
+        )
+    if not parallel:
+        assert len(w) == 1
+        assert (
+            "OverflowError converting to IntType in column S, reverting to String"
+            in str(w[0].message)
         )
     assert_table_equal(table, expected)
 
@@ -1361,7 +1443,15 @@ def test_int_out_of_range(guess):
     text = f"P M S\n000{imax:d} -0{-imin:d} 00{huge:s}"
     expected = Table([[imax], [imin], ["00" + huge]], names=("P", "M", "S"))
     with pytest.warns() as w:
-        table = ascii.read(text, format="basic", guess=guess)
+        table = ascii.read(
+            text, format="basic", guess=guess, fast_reader={"parallel": parallel}
+        )
+    if not parallel:
+        assert len(w) == 1
+        assert (
+            "OverflowError converting to IntType in column S, reverting to String"
+            in str(w[0].message)
+        )
     assert_table_equal(table, expected)
 
 
@@ -1370,8 +1460,9 @@ def test_int_out_of_order(guess):
     """
     Mixed columns should be returned as float, but if the out-of-range integer
     shows up first, it will produce a string column - with both readers.
+    Broken with the parallel fast_reader.
     """
-    imax = np.iinfo(np.int64).max - 1
+    imax = np.iinfo(int).max - 1
     text = f"A B\n 12.3 {imax:d}0\n {imax:d}0 45.6e7"
     expected = Table([[12.3, 10.0 * imax], [f"{imax:d}0", "45.6e7"]], names=("A", "B"))
 
@@ -1392,7 +1483,8 @@ def test_int_out_of_order(guess):
 
 
 @pytest.mark.parametrize("guess", [True, False])
-def test_fortran_reader(guess):
+@pytest.mark.parametrize("parallel", [False, True])
+def test_fortran_reader(parallel, guess):
     """
     Make sure that ascii.read() can read Fortran-style exponential notation
     using the fast_reader.
@@ -1403,7 +1495,7 @@ def test_fortran_reader(guess):
     atol = 0.0
     text = (
         "A B C D\n100.01{:s}99       2.0  2.0{:s}-103 3\n"
-        " 4.2{:s}-1 5.0{:s}-1     0.6{:s}4 .017{:s}+309"
+        + " 4.2{:s}-1 5.0{:s}-1     0.6{:s}4 .017{:s}+309"
     )
     expc = Table(
         [[1.0001e101, 0.42], [2, 0.5], [2.0e-103, 6.0e3], [3, 1.7e307]],
@@ -1425,6 +1517,7 @@ def test_fortran_reader(guess):
             guess=guess,
             fast_reader={
                 "use_fast_converter": False,
+                "parallel": parallel,
                 "exponent_style": "D",
             },
         )
@@ -1436,7 +1529,7 @@ def test_fortran_reader(guess):
         table = ascii.read(
             text.format(*c),
             guess=guess,
-            fast_reader={"exponent_style": s},
+            fast_reader={"parallel": parallel, "exponent_style": s},
         )
         assert_table_equal(table, expc, rtol=rtol, atol=atol)
 
@@ -1444,19 +1537,24 @@ def test_fortran_reader(guess):
     # any character and mixed whitespace separators
     text = (
         "A B\t\t C D\n1.0001+101 2.0+000\t 0.0002-099 3\n "
-        "0.42-000 \t 0.5 6.+003   0.000000000000000000000017+330"
+        + "0.42-000 \t 0.5 6.+003   0.000000000000000000000017+330"
     )
-    table = ascii.read(text, guess=guess, fast_reader={"exponent_style": "A"})
+    table = ascii.read(
+        text, guess=guess, fast_reader={"parallel": parallel, "exponent_style": "A"}
+    )
     assert_table_equal(table, expc, rtol=rtol, atol=atol)
 
 
 @pytest.mark.parametrize("guess", [True, False])
-def test_fortran_invalid_exp(guess):
+@pytest.mark.parametrize("parallel", [False, True])
+def test_fortran_invalid_exp(parallel, guess):
     """
     Test Fortran-style exponential notation in the fast_reader with invalid
     exponent-like patterns (no triple-digits) to make sure they are returned
     as strings instead, as with the standard C parser.
     """
+    if parallel and CI:
+        pytest.xfail("Multiprocessing can sometimes fail on CI")
 
     formats = {"basic": " ", "tab": "\t", "csv": ","}
     header = ["S1", "F2", "S2", "F3", "S3", "F4", "F5", "S4", "I1", "F6", "F7"]
@@ -1481,7 +1579,7 @@ def test_fortran_invalid_exp(guess):
             StringIO(s.join(header) + "\n" + s.join(fields)),
             format=f,
             guess=guess,
-            fast_reader={"exponent_style": "A"},
+            fast_reader={"parallel": parallel, "exponent_style": "A"},
         )
         assert_table_equal(t1, Table([[col] for col in vals_a], names=header))
 
@@ -1495,7 +1593,7 @@ def test_fortran_invalid_exp(guess):
         t2 = ascii.read(
             StringIO(s.join(header) + "\n" + s.join(fields)),
             guess=guess,
-            fast_reader={"exponent_style": "a"},
+            fast_reader={"parallel": parallel, "exponent_style": "a"},
         )
 
         assert_table_equal(t2, Table([[col] for col in vals_a], names=header))
@@ -1505,7 +1603,7 @@ def test_fortran_invalid_exp(guess):
         t3 = ascii.read(
             StringIO(s.join(header) + "\n" + s.join(fields)),
             guess=guess,
-            fast_reader={"use_fast_converter": True},
+            fast_reader={"parallel": parallel, "use_fast_converter": True},
         )
 
         assert_table_equal(t3, Table([[col] for col in vals_e], names=header))
@@ -1515,7 +1613,7 @@ def test_fortran_invalid_exp(guess):
         t4 = ascii.read(
             StringIO(s.join(header) + "\n" + s.join(fields)),
             guess=guess,
-            fast_reader={"exponent_style": "D"},
+            fast_reader={"parallel": parallel, "exponent_style": "D"},
         )
 
         assert_table_equal(t4, Table([[col] for col in vals_d], names=header))
@@ -1525,13 +1623,13 @@ def test_fortran_invalid_exp(guess):
         t5 = ascii.read(
             StringIO(s.join(header) + "\n" + s.join(fields)),
             guess=guess,
-            fast_reader={"use_fast_converter": False},
+            fast_reader={"parallel": parallel, "use_fast_converter": False},
         )
 
         read_values = [col[0] for col in t5.itercols()]
         if os.name == "nt":
             # Apparently C strtod() on (some?) MSVC recognizes 'd' exponents!
-            assert read_values in (vals_v, vals_e)
+            assert read_values == vals_v or read_values == vals_e
         else:
             assert read_values == vals_e
 
@@ -1550,7 +1648,7 @@ def test_fortran_reader_notbasic():
     """
     )[1:-1]
 
-    t1 = ascii.read(tabstr.split("\n"), fast_reader={"exponent_style": "D"})
+    t1 = ascii.read(tabstr.split("\n"), fast_reader=dict(exponent_style="D"))
 
     assert t1["b"].dtype.kind == "f"
 
@@ -1565,7 +1663,7 @@ def test_fortran_reader_notbasic():
     )[1:-1]
 
     t2 = ascii.read(
-        tabrdb.split("\n"), format="rdb", fast_reader={"exponent_style": "fortran"}
+        tabrdb.split("\n"), format="rdb", fast_reader=dict(exponent_style="fortran")
     )
 
     assert t2["b"].dtype.kind == "f"
@@ -1603,7 +1701,7 @@ def test_fortran_reader_notbasic():
             tabrst.split("\n"),
             format="rst",
             guess=False,
-            fast_reader={"use_fast_converter": False},
+            fast_reader=dict(use_fast_converter=False),
         )
 
     tabrst = tabrst.replace("E", "D")
@@ -1613,13 +1711,13 @@ def test_fortran_reader_notbasic():
             tabrst.split("\n"),
             format="rst",
             guess=False,
-            fast_reader={"exponent_style": "D"},
+            fast_reader=dict(exponent_style="D"),
         )
 
 
 @pytest.mark.parametrize("guess", [True, False])
 @pytest.mark.parametrize(
-    "fast_reader", [{"exponent_style": "D"}, {"exponent_style": "A"}]
+    "fast_reader", [dict(exponent_style="D"), dict(exponent_style="A")]
 )
 def test_dict_kwarg_integrity(fast_reader, guess):
     """
@@ -1633,7 +1731,9 @@ def test_dict_kwarg_integrity(fast_reader, guess):
     assert fast_reader.get("exponent_style", None) == expstyle
 
 
-@pytest.mark.parametrize("fast_reader", [False, {}])
+@pytest.mark.parametrize(
+    "fast_reader", [False, dict(parallel=True), dict(parallel=False)]
+)
 def test_read_empty_basic_table_with_comments(fast_reader):
     """
     Test for reading a "basic" format table that has no data but has comments.
@@ -1651,7 +1751,7 @@ def test_read_empty_basic_table_with_comments(fast_reader):
 
 
 @pytest.mark.parametrize(
-    "fast_reader", [{"use_fast_converter": True}, {"exponent_style": "A"}]
+    "fast_reader", [dict(use_fast_converter=True), dict(exponent_style="A")]
 )
 def test_conversion_fast(fast_reader):
     """
@@ -1667,10 +1767,10 @@ def test_conversion_fast(fast_reader):
     4 2 -12 .4 +.e1 - + six
     """
     table = ascii.read(text, fast_reader=fast_reader)
-    assert table["A"].dtype.kind == "f"
+    assert_equal(table["A"].dtype.kind, "f")
     assert table["B"].dtype.kind in ("S", "U")
-    assert table["C"].dtype.kind == "i"
-    assert table["D"].dtype.kind == "f"
+    assert_equal(table["C"].dtype.kind, "i")
+    assert_equal(table["D"].dtype.kind, "f")
     assert table["E"].dtype.kind in ("S", "U")
     assert table["F"].dtype.kind in ("S", "U")
     assert table["G"].dtype.kind in ("S", "U")
@@ -1690,9 +1790,7 @@ def test_newline_as_delimiter(delimiter, fast_reader):
         eol = "\r"
 
     inp0 = ["a  | b | c ", " 1 | '2' | 3.00000 "]
-    inp1 = (
-        f"a {delimiter:s} b {delimiter:s}c{eol:s} 1 {delimiter:s}'2'{delimiter:s} 3.0"
-    )
+    inp1 = "a {0:s} b {0:s}c{1:s} 1 {0:s}'2'{0:s} 3.0".format(delimiter, eol)
     inp2 = [f"a {delimiter} b{delimiter} c", f"1{delimiter} '2' {delimiter} 3.0"]
 
     t0 = ascii.read(inp0, delimiter="|", fast_reader=fast_reader)
@@ -1707,16 +1805,14 @@ def test_newline_as_delimiter(delimiter, fast_reader):
     assert_table_equal(t2, t0)
 
     inp0 = 'a {0:s} b {0:s} c{1:s} 1 {0:s}"2"{0:s} 3.0'.format("|", eol)
-    inp1 = (
-        f'a {delimiter:s} b {delimiter:s} c{eol:s} 1 {delimiter:s}"2"{delimiter:s} 3.0'
-    )
+    inp1 = 'a {0:s} b {0:s} c{1:s} 1 {0:s}"2"{0:s} 3.0'.format(delimiter, eol)
 
     t0 = ascii.read(inp0, delimiter="|", fast_reader=fast_reader)
     t1 = ascii.read(inp1, delimiter=delimiter, fast_reader=fast_reader)
 
     if not fast_reader:
         pytest.xfail("Quoted fields are not parsed correctly by BaseSplitter")
-    assert t1["b"].dtype.kind == "i"
+    assert_equal(t1["b"].dtype.kind, "i")
 
 
 @pytest.mark.parametrize("delimiter", [" ", "|", "\n", "\r"])
@@ -1728,7 +1824,7 @@ def test_single_line_string(delimiter, fast_reader):
     at least treated consistently.
     """
     expected = Table([[1], [2], [3.00]], names=("col1", "col2", "col3"))
-    text = f"1{delimiter:s}2{delimiter:s}3.0"
+    text = "1{0:s}2{0:s}3.0".format(delimiter)
 
     if delimiter in ("\r", "\n"):
         t1 = ascii.read(

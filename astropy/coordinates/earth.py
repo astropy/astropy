@@ -1,51 +1,45 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import collections
 import json
 import socket
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import NamedTuple
 from warnings import warn
 
+import erfa
 import numpy as np
 
 from astropy import constants as consts
 from astropy import units as u
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils import data
-from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle, Latitude, Longitude
 from .errors import UnknownSiteException
 from .matrix_utilities import matrix_transpose
 from .representation import (
+    BaseRepresentation,
     CartesianDifferential,
     CartesianRepresentation,
 )
-from .representation.geodetic import ELLIPSOIDS
 
 __all__ = [
     "EarthLocation",
+    "BaseGeodeticRepresentation",
+    "WGS84GeodeticRepresentation",
+    "WGS72GeodeticRepresentation",
+    "GRS80GeodeticRepresentation",
 ]
 
+GeodeticLocation = collections.namedtuple("GeodeticLocation", ["lon", "lat", "height"])
 
-class GeodeticLocation(NamedTuple):
-    """A namedtuple for geodetic coordinates.
-
-    The longitude is increasing to the east, so west longitudes are negative.
-    """
-
-    lon: Longitude
-    """The longitude, increasting to the east."""
-
-    lat: Latitude
-    """The latitude."""
-
-    height: u.Quantity
-    """The height above the reference ellipsoid."""
-
+ELLIPSOIDS = {}
+"""Available ellipsoids (defined in erfam.h, with numbers exposed in erfa)."""
+# Note: they get filled by the creation of the geodetic classes.
 
 OMEGA_EARTH = (1.002_737_811_911_354_48 * u.cycle / u.day).to(
     1 / u.s, u.dimensionless_angles()
@@ -82,12 +76,12 @@ def _get_json_result(url, err_str, use_google):
     except urllib.error.URLError as e:
         # This catches a timeout error, see:
         #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
-        msg = (
-            "connection timed out" if isinstance(e.reason, socket.timeout) else e.reason
-        )
-        raise NameResolveError(err_str.format(msg=msg)) from e
+        if isinstance(e.reason, socket.timeout):
+            raise NameResolveError(err_str.format(msg="connection timed out")) from e
+        else:
+            raise NameResolveError(err_str.format(msg=e.reason)) from e
 
-    except TimeoutError:
+    except socket.timeout:
         # There are some cases where urllib2 does not catch socket.timeout
         # especially while receiving response data on an already previously
         # working request
@@ -208,7 +202,6 @@ class EarthLocation(u.Quantity):
     _ellipsoid = "WGS84"
     _location_dtype = np.dtype({"names": ["x", "y", "z"], "formats": [np.float64] * 3})
     _array_dtype = np.dtype((np.float64, (3,)))
-    _site_registry = None
 
     info = EarthLocationInfo()
 
@@ -266,21 +259,17 @@ class EarthLocation(u.Quantity):
         if unit.physical_type != "length":
             raise u.UnitsError("Geocentric coordinates should be in units of length.")
 
-        # TODO: this part could be removed, with the try/except around the
-        # assignment to struct["x"], ..., below.  But this is a small API change
-        # in that it will no longer possible to initialize with a unit-full x,
-        # and unit-less y, z. Arguably, though, that would just solve a bug.
         try:
-            x = u.Quantity(x, unit, copy=COPY_IF_NEEDED)
-            y = u.Quantity(y, unit, copy=COPY_IF_NEEDED)
-            z = u.Quantity(z, unit, copy=COPY_IF_NEEDED)
+            x = u.Quantity(x, unit, copy=False)
+            y = u.Quantity(y, unit, copy=False)
+            z = u.Quantity(z, unit, copy=False)
         except u.UnitsError:
             raise u.UnitsError("Geocentric coordinate units should all be consistent.")
 
-        x, y, z = np.broadcast_arrays(x, y, z, subok=True)
-        struct = np.empty_like(x, dtype=cls._location_dtype)
-        struct["x"], struct["y"], struct["z"] = x, y, z
-        return super().__new__(cls, struct, unit, copy=False)
+        x, y, z = np.broadcast_arrays(x, y, z)
+        struc = np.empty(x.shape, cls._location_dtype)
+        struc["x"], struc["y"], struc["z"] = x, y, z
+        return super().__new__(cls, struc, unit, copy=False)
 
     @classmethod
     def from_geodetic(cls, lon, lat, height=0.0, ellipsoid=None):
@@ -317,11 +306,11 @@ class EarthLocation(u.Quantity):
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=cls._ellipsoid)
         # As wrapping fails on readonly input, we do so manually
-        lon = Angle(lon, u.degree, copy=COPY_IF_NEEDED).wrap_at(180 * u.degree)
-        lat = Latitude(lat, u.degree, copy=COPY_IF_NEEDED)
+        lon = Angle(lon, u.degree, copy=False).wrap_at(180 * u.degree)
+        lat = Latitude(lat, u.degree, copy=False)
         # don't convert to m by default, so we can use the height unit below.
         if not isinstance(height, u.Quantity):
-            height = u.Quantity(height, u.m, copy=COPY_IF_NEEDED)
+            height = u.Quantity(height, u.m, copy=False)
         # get geocentric coordinates.
         geodetic = ELLIPSOIDS[ellipsoid](lon, lat, height, copy=False)
         xyz = geodetic.to_cartesian().get_xyz(xyz_axis=-1) << height.unit
@@ -330,7 +319,7 @@ class EarthLocation(u.Quantity):
         return self
 
     @classmethod
-    def of_site(cls, site_name, *, refresh_cache=False):
+    def of_site(cls, site_name):
         """
         Return an object of this class for a known observatory/site by name.
 
@@ -342,26 +331,21 @@ class EarthLocation(u.Quantity):
         dictionary of sites obtained using this method (see the examples below).
 
         .. note::
-            This function is meant to access the site registry from the astropy
-            data server, which is saved in the user's local cache.  If you would
-            like a site to be added there, issue a pull request to the
+            When this function is called, it will attempt to download site
+            information from the astropy data server. If you would like a site
+            to be added, issue a pull request to the
             `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
-            If the cache already exists the function will use it even if the
-            version in the astropy-data repository has been updated unless the
-            ``refresh_cache=True`` option is used.  If there is no cache and the
-            online version cannot be reached, this function falls back on a
-            built-in list, which currently only contains the Greenwich Royal
-            Observatory as an example case.
+            If a site cannot be found in the registry (i.e., an internet
+            connection is not available), it will fall back on a built-in list,
+            In the future, this bundled list might include a version-controlled
+            list of canonical observatories extracted from the online version,
+            but it currently only contains the Greenwich Royal Observatory as an
+            example case.
 
         Parameters
         ----------
         site_name : str
             Name of the observatory (case-insensitive).
-        refresh_cache : bool, optional
-            If `True`, force replacement of the cached registry with a
-            newly downloaded version.  (Default: `False`)
-
-            .. versionadded:: 5.3
 
         Returns
         -------
@@ -387,8 +371,8 @@ class EarthLocation(u.Quantity):
         See Also
         --------
         get_site_names : the list of sites that this function can access
-        """
-        registry = cls._get_site_registry(force_download=refresh_cache)
+        """  # noqa: E501
+        registry = cls._get_site_registry()
         try:
             el = registry[site_name]
         except UnknownSiteException as e:
@@ -453,6 +437,7 @@ class EarthLocation(u.Quantity):
         .. [4] https://developers.google.com/maps/documentation/geocoding/get-api-key
 
         """
+
         use_google = google_api_key is not None
 
         # Fail fast if invalid options are passed:
@@ -504,30 +489,19 @@ class EarthLocation(u.Quantity):
         return cls.from_geodetic(lon=lon * u.deg, lat=lat * u.deg, height=height)
 
     @classmethod
-    def get_site_names(cls, *, refresh_cache=False):
+    def get_site_names(cls):
         """
         Get list of names of observatories for use with
         `~astropy.coordinates.EarthLocation.of_site`.
 
         .. note::
-            This function is meant to access the site registry from the astropy
-            data server, which is saved in the user's local cache.  If you would
-            like a site to be added there, issue a pull request to the
+            When this function is called, it will first attempt to
+            download site information from the astropy data server.  If it
+            cannot (i.e., an internet connection is not available), it will fall
+            back on the list included with astropy (which is a limited and dated
+            set of sites).  If you think a site should be added, issue a pull
+            request to the
             `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
-            If the cache already exists the function will use it even if the
-            version in the astropy-data repository has been updated unless the
-            ``refresh_cache=True`` option is used.  If there is no cache and the
-            online version cannot be reached, this function falls back on a
-            built-in list, which currently only contains the Greenwich Royal
-            Observatory as an example case.
-
-        Parameters
-        ----------
-        refresh_cache : bool, optional
-            If `True`, force replacement of the cached registry with a
-            newly downloaded version.  (Default: `False`)
-
-            .. versionadded:: 5.3
 
         Returns
         -------
@@ -539,7 +513,7 @@ class EarthLocation(u.Quantity):
         of_site : Gets the actual location object for one of the sites names
             this returns.
         """
-        return cls._get_site_registry(force_download=refresh_cache).names
+        return cls._get_site_registry().names
 
     @classmethod
     def _get_site_registry(cls, force_download=False, force_builtin=False):
@@ -569,25 +543,29 @@ class EarthLocation(u.Quantity):
             raise ValueError("Cannot have both force_builtin and force_download True")
 
         if force_builtin:
-            cls._site_registry = get_builtin_sites()
+            reg = cls._site_registry = get_builtin_sites()
         else:
-            if force_download or not cls._site_registry:
+            reg = getattr(cls, "_site_registry", None)
+            if force_download or not reg:
                 try:
                     if isinstance(force_download, str):
-                        cls._site_registry = get_downloaded_sites(force_download)
+                        reg = get_downloaded_sites(force_download)
                     else:
-                        cls._site_registry = get_downloaded_sites()
+                        reg = get_downloaded_sites()
                 except OSError:
                     if force_download:
                         raise
                     msg = (
-                        "Could not access the main site list. Falling back on the "
-                        "built-in version, which is rather limited. If you want to "
-                        "retry the download, use the option 'refresh_cache=True'."
+                        "Could not access the online site list. Falling "
+                        "back on the built-in version, which is rather "
+                        "limited. If you want to retry the download, do "
+                        "{0}._get_site_registry(force_download=True)"
                     )
-                    warn(msg, AstropyUserWarning)
-                    cls._site_registry = get_builtin_sites()
-        return cls._site_registry
+                    warn(AstropyUserWarning(msg.format(cls.__name__)))
+                    reg = get_builtin_sites()
+                cls._site_registry = reg
+
+        return reg
 
     @property
     def ellipsoid(self):
@@ -658,33 +636,28 @@ class EarthLocation(u.Quantity):
     # mostly for symmetry with geodetic and to_geodetic.
     @property
     def geocentric(self):
-        """Convert to a tuple with X, Y, and Z as quantities."""
+        """Convert to a tuple with X, Y, and Z as quantities"""
         return self.to_geocentric()
 
     def to_geocentric(self):
-        """Convert to a tuple with X, Y, and Z as quantities."""
+        """Convert to a tuple with X, Y, and Z as quantities"""
         return (self.x, self.y, self.z)
 
-    def get_itrs(self, obstime=None, location=None):
+    def get_itrs(self, obstime=None):
         """
         Generates an `~astropy.coordinates.ITRS` object with the location of
-        this object at the requested ``obstime``, either geocentric, or
-        topocentric relative to a given ``location``.
+        this object at the requested ``obstime``.
 
         Parameters
         ----------
         obstime : `~astropy.time.Time` or None
             The ``obstime`` to apply to the new `~astropy.coordinates.ITRS`, or
             if None, the default ``obstime`` will be used.
-        location : `~astropy.coordinates.EarthLocation` or None
-            A possible observer's location, for a topocentric ITRS position.
-            If not given (default), a geocentric ITRS object will be created.
 
         Returns
         -------
         itrs : `~astropy.coordinates.ITRS`
-            The new object in the ITRS frame, either geocentric or topocentric
-            relative to the given ``location``.
+            The new object in the ITRS frame
         """
         # Broadcast for a single position at multiple times, but don't attempt
         # to be more general here.
@@ -694,18 +667,7 @@ class EarthLocation(u.Quantity):
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import ITRS
 
-        if location is None:
-            # No location provided, return geocentric ITRS coordinates
-            return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
-        else:
-            return ITRS(
-                self.x - location.x,
-                self.y - location.y,
-                self.z - location.z,
-                copy=False,
-                obstime=obstime,
-                location=location,
-            )
+        return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
 
     itrs = property(
         get_itrs,
@@ -902,7 +864,8 @@ class EarthLocation(u.Quantity):
     def __len__(self):
         if self.shape == ():
             raise IndexError("0-d EarthLocation arrays cannot be indexed")
-        return super().__len__()
+        else:
+            return super().__len__()
 
     def _to_value(self, unit, equivalencies=[]):
         """Helper method for to and to_value."""
@@ -914,3 +877,87 @@ class EarthLocation(u.Quantity):
             equivalencies = self._equivalencies
         new_array = self.unit.to(unit, array_view, equivalencies=equivalencies)
         return new_array.view(self.dtype).reshape(self.shape)
+
+
+geodetic_base_doc = """{__doc__}
+
+    Parameters
+    ----------
+    lon, lat : angle-like
+        The longitude and latitude of the point(s), in angular units. The
+        latitude should be between -90 and 90 degrees, and the longitude will
+        be wrapped to an angle between 0 and 360 degrees. These can also be
+        instances of `~astropy.coordinates.Angle` and either
+        `~astropy.coordinates.Longitude` not `~astropy.coordinates.Latitude`,
+        depending on the parameter.
+    height : `~astropy.units.Quantity` ['length']
+        The height to the point(s).
+    copy : bool, optional
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
+
+"""
+
+
+@format_doc(geodetic_base_doc)
+class BaseGeodeticRepresentation(BaseRepresentation):
+    """Base geodetic representation."""
+
+    attr_classes = {"lon": Longitude, "lat": Latitude, "height": u.Quantity}
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if "_ellipsoid" in cls.__dict__:
+            ELLIPSOIDS[cls._ellipsoid] = cls
+
+    def __init__(self, lon, lat=None, height=None, copy=True):
+        if height is None and not isinstance(lon, self.__class__):
+            height = 0 << u.m
+
+        super().__init__(lon, lat, height, copy=copy)
+        if not self.height.unit.is_equivalent(u.m):
+            raise u.UnitTypeError(
+                f"{self.__class__.__name__} requires height with units of length."
+            )
+
+    def to_cartesian(self):
+        """
+        Converts WGS84 geodetic coordinates to 3D rectangular (geocentric)
+        cartesian coordinates.
+        """
+        xyz = erfa.gd2gc(
+            getattr(erfa, self._ellipsoid), self.lon, self.lat, self.height
+        )
+        return CartesianRepresentation(xyz, xyz_axis=-1, copy=False)
+
+    @classmethod
+    def from_cartesian(cls, cart):
+        """
+        Converts 3D rectangular cartesian coordinates (assumed geocentric) to
+        WGS84 geodetic coordinates.
+        """
+        lon, lat, height = erfa.gc2gd(
+            getattr(erfa, cls._ellipsoid), cart.get_xyz(xyz_axis=-1)
+        )
+        return cls(lon, lat, height, copy=False)
+
+
+@format_doc(geodetic_base_doc)
+class WGS84GeodeticRepresentation(BaseGeodeticRepresentation):
+    """Representation of points in WGS84 3D geodetic coordinates."""
+
+    _ellipsoid = "WGS84"
+
+
+@format_doc(geodetic_base_doc)
+class WGS72GeodeticRepresentation(BaseGeodeticRepresentation):
+    """Representation of points in WGS72 3D geodetic coordinates."""
+
+    _ellipsoid = "WGS72"
+
+
+@format_doc(geodetic_base_doc)
+class GRS80GeodeticRepresentation(BaseGeodeticRepresentation):
+    """Representation of points in GRS80 3D geodetic coordinates."""
+
+    _ellipsoid = "GRS80"

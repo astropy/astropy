@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sundry function and class decorators."""
 
+
 import functools
 import inspect
-import sys
 import textwrap
 import threading
 import types
@@ -37,8 +37,6 @@ def deprecated(
     pending=False,
     obj_type=None,
     warning_type=AstropyDeprecationWarning,
-    *,
-    pending_warning_type=AstropyPendingDeprecationWarning,
 ):
     """
     Used to mark a function or class as deprecated.
@@ -48,8 +46,8 @@ def deprecated(
     Parameters
     ----------
     since : str
-        The release at which this API became deprecated.
-        This is required.
+        The release at which this API became deprecated.  This is
+        required.
 
     message : str, optional
         Override the default deprecation message.  The format
@@ -76,7 +74,7 @@ def deprecated(
         tell the user about this alternative if provided.
 
     pending : bool, optional
-        If True, uses a ``pending_warning_type`` instead of a
+        If True, uses a AstropyPendingDeprecationWarning instead of a
         ``warning_type``.
 
     obj_type : str, optional
@@ -86,12 +84,8 @@ def deprecated(
     warning_type : Warning
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
-
-    pending_warning_type : Warning
-        Pending warning to be issued.
-        This only works if ``pending`` is set to True.
-        Default is `~astropy.utils.exceptions.AstropyPendingDeprecationWarning`.
     """
+
     method_types = (classmethod, staticmethod, types.MethodType)
 
     def deprecate_doc(old_doc, message):
@@ -123,16 +117,17 @@ def deprecated(
         Returns a wrapped function that displays ``warning_type``
         when it is called.
         """
+
         if isinstance(func, method_types):
             func_wrapper = type(func)
         else:
-            func_wrapper = lambda f: f
+            func_wrapper = lambda f: f  # noqa: E731
 
         func = get_function(func)
 
         def deprecated_func(*args, **kwargs):
             if pending:
-                category = pending_warning_type
+                category = AstropyPendingDeprecationWarning
             else:
                 category = warning_type
 
@@ -144,11 +139,10 @@ def deprecated(
         # functools.wraps on it, but we normally don't care.
         # This crazy way to get the type of a wrapper descriptor is
         # straight out of the Python 3.3 inspect module docs.
-        if type(func) is not type(str.__dict__["__add__"]):
+        if type(func) is not type(str.__dict__["__add__"]):  # noqa: E721
             deprecated_func = functools.wraps(func)(deprecated_func)
 
         deprecated_func.__doc__ = deprecate_doc(deprecated_func.__doc__, message)
-        deprecated_func.__deprecated__ = message
 
         return func_wrapper(deprecated_func)
 
@@ -168,7 +162,6 @@ def deprecated(
           with pickle and will look weird in the Sphinx docs.
         """
         cls.__doc__ = deprecate_doc(cls.__doc__, message)
-        cls.__deprecated__ = message
         if cls.__new__ is object.__new__:
             cls.__init__ = deprecate_function(
                 get_function(cls.__init__), message, warning_type
@@ -218,10 +211,12 @@ def deprecated(
 
         message = (
             message.format(
-                func=name,
-                name=name,
-                alternative=alternative,
-                obj_type=obj_type_name,
+                **{
+                    "func": name,
+                    "name": name,
+                    "alternative": alternative,
+                    "obj_type": obj_type_name,
+                }
             )
         ) + altmessage
 
@@ -243,7 +238,6 @@ def deprecated_attribute(
     alternative=None,
     pending=False,
     warning_type=AstropyDeprecationWarning,
-    pending_warning_type=AstropyPendingDeprecationWarning,
 ):
     """
     Used to mark a public attribute as deprecated.  This creates a
@@ -281,13 +275,9 @@ def deprecated_attribute(
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
-    pending_warning_type : Warning
-        Pending warning to be issued.
-        This only works if ``pending`` is set to True.
-        Default is `~astropy.utils.exceptions.AstropyPendingDeprecationWarning`.
-
     Examples
     --------
+
     ::
 
         class MyClass:
@@ -315,7 +305,6 @@ def deprecated_attribute(
         alternative=alternative,
         pending=pending,
         warning_type=warning_type,
-        pending_warning_type=pending_warning_type,
     )
 
     @specific_deprecated
@@ -661,6 +650,7 @@ class classproperty(property):
 
     Examples
     --------
+
     ::
 
         >>> class Foo:
@@ -747,7 +737,7 @@ class classproperty(property):
         # the doc argument was used rather than taking the docstring
         # from fget
         # Related Python issue: https://bugs.python.org/issue24766
-        if doc is not None and sys.flags.optimize < 2:
+        if doc is not None:
             self.__doc__ = doc
 
     def __get__(self, obj, objtype):
@@ -875,7 +865,7 @@ class lazyproperty(property):
 
 class sharedmethod(classmethod):
     """
-    This is a method decorator that allows both an instance method and a
+    This is a method decorator that allows both an instancemethod and a
     `classmethod` to share the same name.
 
     When using `sharedmethod` on a method defined in a class's body, it
@@ -902,7 +892,7 @@ class sharedmethod(classmethod):
         additional args were (3, 4)
 
     This also supports a more advanced usage, where the `classmethod`
-    implementation can be written separately.  If the class' *metaclass*
+    implementation can be written separately.  If the class's *metaclass*
     has a method of the same name as the `sharedmethod`, the version on
     the metaclass is delegated to::
 
@@ -984,6 +974,7 @@ def format_doc(docstring, *args, **kwargs):
 
     Examples
     --------
+
     Replacing the current docstring is very easy::
 
         >>> from astropy.utils.decorators import format_doc
@@ -1134,9 +1125,6 @@ def format_doc(docstring, *args, **kwargs):
     on an object to first parse the new docstring and then to parse the
     original docstring or the ``args`` and ``kwargs``.
     """
-    if sys.flags.optimize >= 2:
-        # docstrings are dropped at runtime, so let's return a noop decorator
-        return lambda func: func
 
     def set_docstring(obj):
         if docstring is None:

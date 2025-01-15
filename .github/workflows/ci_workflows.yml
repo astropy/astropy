@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check base branch
-      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
+      uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
       with:
         script: |
@@ -46,15 +46,10 @@ jobs:
 
   tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d68193b68216da64eafaa618f53c59f5d271c56e  # v1.14.0
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
-      setenv: |
-        ARCH_ON_CI: "normal"
-        IS_CRON: "false"
       submodules: false
-      coverage: ''
+      coverage: codecov
       libraries: |
         apt:
           - language-pack-fr
@@ -62,66 +57,74 @@ jobs:
       envs: |
         # NOTE: this coverage test is needed for tests and code that
         #       run only with minimal dependencies.
-        - name: Python 3.12 with minimal dependencies and full coverage
-          linux: py312-test-cov
-          coverage: codecov
+        - name: Python 3.10 with minimal dependencies and full coverage
+          linux: py310-test-cov
 
-        - name: Python 3.12 in Parallel with all optional dependencies
-          linux: py312-test-alldeps-fitsio
-          libraries:
-            apt:
-              - language-pack-fr
-              - tzdata
-              - libbz2-dev
-              - libcfitsio-dev
+        # NOTE: In the build below we also check that tests do not open and
+        # leave open any files. This has a performance impact on running the
+        # tests, hence why it is not enabled by default.
+        - name: Python 3.9 with all optional dependencies
+          linux: py39-test-alldeps
           toxargs: -v --develop
-          posargs: -n=4 --run-slow
+          posargs: --open-files --run-slow
 
-        - name: Python 3.11 with oldest supported version of all dependencies
-          linux: py311-test-oldestdeps-alldeps-cov-clocale
+        - name: Python 3.8 with oldest supported version of all dependencies
+          linux: py38-test-oldestdeps-alldeps-cov-clocale
           posargs: --remote-data=astropy
-          coverage: codecov
 
-        - name: Python 3.12 with all optional dependencies (Windows)
-          windows: py312-test-alldeps
+        - name: Python 3.9 with all optional dependencies (Windows)
+          windows: py39-test-alldeps
           posargs: --durations=50
 
-        - name: Python 3.12 with all optional dependencies (MacOS X)
-          macos: py312-test-alldeps
+        - name: Python 3.9 with all optional dependencies (MacOS X)
+          macos: py39-test-alldeps
           posargs: --durations=50 --run-slow
-          runs-on: macos-latest
-
-        - name: Python 3.11 Double test (Run tests twice)
-          linux: py311-test-double
 
   allowed_failures:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d68193b68216da64eafaa618f53c59f5d271c56e  # v1.14.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
-      setenv: |
-        ARCH_ON_CI: "normal"
-        IS_CRON: "false"
       submodules: false
-      coverage: ''
+      coverage: codecov
       libraries: |
         apt:
           - language-pack-de
           - tzdata
+          - libopenblas-dev  # To enable compiling scipy from source if a wheel dosen't exist
       envs: |
-        - name: (Allowed Failure) Python 3.13 with remote data and dev version of key dependencies
-          linux: py313-test-devdeps
-          posargs: --remote-data=any --verbose
+        - name: (Allowed Failure) Python 3.11 with remote data and dev version of key dependencies
+          linux: py311-test-devdeps
+          posargs: --remote-data=any
 
-  test_wheel_building:
+  parallel_and_32bit:
+    name: 32-bit and parallel
+    runs-on: ubuntu-latest
     needs: [initial_checks]
-    # This ensures that a couple of wheel targets work fine in pull requests and pushes
-    permissions:
-      contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@d68193b68216da64eafaa618f53c59f5d271c56e  # v1.14.0
-    with:
-      upload_to_pypi: false
-      upload_to_anaconda: false
-      test_extras: test
-      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
-      targets: |
-        - cp311-manylinux_x86_64
+    container:
+      image: quay.io/pypa/manylinux2014_i686:2022-04-03-da6ecb3
+    steps:
+    # TODO: Use newer checkout actions when https://github.com/actions/checkout/issues/334 fixed
+    - name: Checkout code
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 0
+    - name: Write configuration items to standard location to make sure they are ignored in parallel mode
+      run: |
+        mkdir -p $HOME/.astropy/config/
+        printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
+    # In addition to testing 32-bit, we also use the 3.8 builds to
+    # test the ability to run the test suite in parallel.
+    # Numpy is pinned to avoid building it from source for numpy 1.21.5
+    - name: Install dependencies for Python 3.8
+      run: /opt/python/cp38-cp38/bin/pip install tox
+    - name: Run tests for Python 3.8
+      run: /opt/python/cp38-cp38/bin/python -m tox -e py38-numpy120-test -- -n=4 --durations=50
+    # We use the 3.8 build to check that running tests twice in a row in the
+    # same Python session works without issues. This catches cases where
+    # running the tests changes the module state permanently. Note that we
+    # shouldn't also test the parallel build here since that enforces a degree
+    # of isolation of tests which will interfere with what we are trying to do
+    # here.
+    # Numpy is pinned to avoid building it from source for numpy 1.21.5
+    - name: Run tests for Python 3.8
+      run: /opt/python/cp38-cp38/bin/python -m tox -e py38-numpy120-test-double

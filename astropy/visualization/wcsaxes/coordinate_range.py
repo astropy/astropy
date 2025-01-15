@@ -6,7 +6,6 @@ import warnings
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 # Algorithm inspired by PGSBOX from WCSLIB by M. Calabretta
 
@@ -22,7 +21,7 @@ def wrap_180(values):
 
 def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wraps):
     """
-    Find the range of coordinates to use for ticks/grids.
+    Find the range of coordinates to use for ticks/grids
 
     Parameters
     ----------
@@ -38,7 +37,7 @@ def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wra
         ``'scalar'`` value.
     coord_units : list of `astropy.units.Unit`
         The units for each coordinate.
-    coord_wraps : list of `astropy.units.Quantity`
+    coord_wraps : list of float
         The wrap angles for longitudes.
     """
     # Sample coordinates on a NX x NY grid.
@@ -72,7 +71,7 @@ def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wra
                 reset = np.abs(wjump) > 180.0
             if np.any(reset):
                 wjump = wjump + np.sign(wjump) * 180.0
-                wjump = 360.0 * np.trunc(wjump / 360.0)
+                wjump = 360.0 * (wjump / 360.0).astype(int)
                 xw[0, 1:][reset] -= wjump[reset]
 
             # Now iron out coordinates along all columns, starting with first row.
@@ -81,7 +80,7 @@ def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wra
                 reset = np.abs(wjump) > 180.0
             if np.any(reset):
                 wjump = wjump + np.sign(wjump) * 180.0
-                wjump = 360.0 * np.trunc(wjump / 360.0)
+                wjump = 360.0 * (wjump / 360.0).astype(int)
                 xw[1:][reset] -= wjump[reset]
 
         with warnings.catch_warnings():
@@ -119,15 +118,8 @@ def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wra
         x_range = xw_max - xw_min
         if coord_type == "longitude":
             if x_range > 300.0:
-                coord_wrap = coord_wraps[coord_index]
-                if not isinstance(coord_wrap, u.Quantity):
-                    warnings.warn(
-                        "Passing 'coord_wraps' as numbers is deprecated. Use a Quantity with units convertible to angular degrees instead.",
-                        AstropyDeprecationWarning,
-                    )
-                    coord_wrap = coord_wrap * u.deg
-                xw_min = coord_wrap.to_value(u.deg) - 360
-                xw_max = coord_wrap.to_value(u.deg) - np.spacing(360.0)
+                xw_min = coord_wraps[coord_index] - 360
+                xw_max = coord_wraps[coord_index] - np.spacing(360.0)
             elif xw_min < 0.0:
                 xw_min = max(-180.0, xw_min - 0.1 * x_range)
                 xw_max = min(+180.0, xw_max + 0.1 * x_range)

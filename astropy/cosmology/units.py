@@ -1,45 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Cosmological units and equivalencies."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+"""Cosmological units and equivalencies.
+"""  # (newline needed for unit summary)
 
 import astropy.units as u
-from astropy.units import Equivalency
 from astropy.units.utils import generate_unit_summary as _generate_unit_summary
 
-if TYPE_CHECKING:
-    import sys
-    from typing import Literal
-
-    from astropy.cosmology.core import Cosmology
-    from astropy.cosmology.funcs.optimize import _ZAtValueKWArgs
-    from astropy.units import Quantity
-
-    if sys.version_info < (3, 12):
-        from typing import Any
-
-        _UnpackZAtValueKWArgs = Any
-    else:
-        from typing import TypeAlias
-
-        from typing_extensions import Unpack
-
-        _UnpackZAtValueKWArgs: TypeAlias = Unpack[_ZAtValueKWArgs]
-
-
 __all__ = [
-    # redshift equivalencies
-    "dimensionless_redshift",
     "littleh",
     "redshift",
+    # redshift equivalencies
+    "dimensionless_redshift",
+    "with_redshift",
     "redshift_distance",
     "redshift_hubble",
     "redshift_temperature",
     # other equivalencies
     "with_H0",
-    "with_redshift",
 ]
 
 __doctest_requires__ = {("with_redshift", "redshift_distance"): ["scipy"]}
@@ -79,22 +56,18 @@ littleh = u.def_unit(
 # Equivalencies
 
 
-def dimensionless_redshift() -> Equivalency:
+def dimensionless_redshift():
     """Allow redshift to be 1-to-1 equivalent to dimensionless.
 
-    It is special compared to other equivalency pairs in that it allows
-    this independent of the power to which the redshift is raised, and
-    independent of whether it is part of a more complicated unit. It is
-    similar to u.dimensionless_angles() in this respect.
+    It is special compared to other equivalency pairs in that it
+    allows this independent of the power to which the redshift is raised,
+    and independent of whether it is part of a more complicated unit.
+    It is similar to u.dimensionless_angles() in this respect.
     """
-    return Equivalency([(redshift, None)], "dimensionless_redshift")
+    return u.Equivalency([(redshift, None)], "dimensionless_redshift")
 
 
-def redshift_distance(
-    cosmology: Cosmology | str | None = None,
-    kind: Literal["comoving", "lookback", "luminosity"] = "comoving",
-    **atzkw: _UnpackZAtValueKWArgs,
-) -> Equivalency:
+def redshift_distance(cosmology=None, kind="comoving", **atzkw):
     """Convert quantities between redshift and distance.
 
     Care should be taken to not misinterpret a relativistic, gravitational, etc
@@ -106,26 +79,17 @@ def redshift_distance(
         A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
         If None, will use the default cosmology
         (controlled by :class:`~astropy.cosmology.default_cosmology`).
-    kind : {'comoving', 'lookback', 'luminosity'}, optional
+    kind : {'comoving', 'lookback', 'luminosity'} or None, optional
         The distance type for the Equivalency.
         Note this does NOT include the angular diameter distance as this
         distance measure is not monotonic.
     **atzkw
-        keyword arguments for :func:`~astropy.cosmology.z_at_value`, which is used to
-        convert distance to redshift.
+        keyword arguments for :func:`~astropy.cosmology.z_at_value`
 
     Returns
     -------
     `~astropy.units.equivalencies.Equivalency`
         Equivalency between redshift and temperature.
-
-    Raises
-    ------
-    `~astropy.cosmology.CosmologyError`
-        If the distance corresponds to a redshift that is larger than ``zmax``.
-    Exception
-        See :func:`~astropy.cosmology.z_at_value` for possible exceptions, e.g. if the
-        distance maps to a redshift that is larger than ``zmax``, the maximum redshift.
 
     Examples
     --------
@@ -134,16 +98,8 @@ def redshift_distance(
     >>> from astropy.cosmology import WMAP9
 
     >>> z = 1100 * cu.redshift
-    >>> d = z.to(u.Mpc, cu.redshift_distance(WMAP9, kind="comoving"))
-    >>> d  # doctest: +FLOAT_CMP
+    >>> z.to(u.Mpc, cu.redshift_distance(WMAP9, kind="comoving"))  # doctest: +FLOAT_CMP
     <Quantity 14004.03157418 Mpc>
-
-    The reverse operation is also possible, though not always as simple. To convert a
-    very large distance to a redshift it might be necessary to specify a large enough
-    ``zmax`` value. See :func:`~astropy.cosmology.z_at_value` for details.
-
-    >>> d.to(cu.redshift, cu.redshift_distance(WMAP9, kind="comoving", zmax=1200))  # doctest: +FLOAT_CMP
-    <Quantity 1100.000 redshift>
     """
     from astropy.cosmology import default_cosmology, z_at_value
 
@@ -166,16 +122,14 @@ def redshift_distance(
         """Distance to redshift."""
         return z_at_value(method, d << u.Mpc, **atzkw)
 
-    return Equivalency(
+    return u.Equivalency(
         [(redshift, u.Mpc, z_to_distance, distance_to_z)],
         "redshift_distance",
         {"cosmology": cosmology, "distance": kind},
     )
 
 
-def redshift_hubble(
-    cosmology: Cosmology | str | None = None, **atzkw: _UnpackZAtValueKWArgs
-) -> Equivalency:
+def redshift_hubble(cosmology=None, **atzkw):
     """Convert quantities between redshift and Hubble parameter and little-h.
 
     Care should be taken to not misinterpret a relativistic, gravitational, etc
@@ -233,7 +187,7 @@ def redshift_hubble(
         """:math:`h`-unit Quantity to redshift."""
         return hubble_to_z(h * 100)
 
-    return Equivalency(
+    return u.Equivalency(
         [
             (redshift, u.km / u.s / u.Mpc, z_to_hubble, hubble_to_z),
             (redshift, littleh, z_to_littleh, littleh_to_z),
@@ -243,9 +197,7 @@ def redshift_hubble(
     )
 
 
-def redshift_temperature(
-    cosmology: Cosmology | str | None = None, **atzkw: _UnpackZAtValueKWArgs
-) -> Equivalency:
+def redshift_temperature(cosmology=None, **atzkw):
     """Convert quantities between redshift and CMB temperature.
 
     Care should be taken to not misinterpret a relativistic, gravitational, etc
@@ -288,7 +240,7 @@ def redshift_temperature(
     def Tcmb_to_z(T):
         return z_at_value(cosmology.Tcmb, T << u.K, **atzkw)
 
-    return Equivalency(
+    return u.Equivalency(
         [(redshift, u.K, z_to_Tcmb, Tcmb_to_z)],
         "redshift_temperature",
         {"cosmology": cosmology},
@@ -296,13 +248,8 @@ def redshift_temperature(
 
 
 def with_redshift(
-    cosmology: Cosmology | str | None = None,
-    *,
-    distance: Literal["comoving", "lookback", "luminosity"] = "comoving",
-    hubble: bool = True,
-    Tcmb: bool = True,
-    atzkw: _ZAtValueKWArgs | None = None,
-) -> Equivalency:
+    cosmology=None, *, distance="comoving", hubble=True, Tcmb=True, atzkw=None
+):
     """Convert quantities between measures of cosmological distance.
 
     Note: by default all equivalencies are on and must be explicitly turned off.
@@ -369,7 +316,7 @@ def with_redshift(
         cosmology = default_cosmology.get()
 
     atzkw = atzkw if atzkw is not None else {}
-    equivs: list[Equivalency] = []  # will append as built
+    equivs = []  # will append as built
 
     # Hubble <-> Redshift
     if hubble:
@@ -384,7 +331,7 @@ def with_redshift(
         equivs.extend(redshift_distance(cosmology, kind=distance, **atzkw))
 
     # -----------
-    return Equivalency(
+    return u.Equivalency(
         equivs,
         "with_redshift",
         {"cosmology": cosmology, "distance": distance, "hubble": hubble, "Tcmb": Tcmb},
@@ -394,14 +341,16 @@ def with_redshift(
 # ===================================================================
 
 
-def with_H0(H0: Quantity | None = None) -> Equivalency:
-    """Convert between quantities with little-h and the equivalent physical units.
+def with_H0(H0=None):
+    """
+    Convert between quantities with little-h and the equivalent physical units.
 
     Parameters
     ----------
-    H0 : None or Quantity ['frequency']
-        The value of the Hubble constant to assume. If a |Quantity|, will assume the
-        quantity *is* ``H0``. If `None` (default), use the ``H0`` attribute from
+    H0 : None or `~astropy.units.Quantity` ['frequency']
+        The value of the Hubble constant to assume. If a
+        `~astropy.units.Quantity`, will assume the quantity *is* ``H0``. If
+        `None` (default), use the ``H0`` attribute from
         :mod:`~astropy.cosmology.default_cosmology`.
 
     References
@@ -416,7 +365,7 @@ def with_H0(H0: Quantity | None = None) -> Equivalency:
 
     h100_val_unit = u.Unit(100 / (H0.to_value((u.km / u.s) / u.Mpc)) * littleh)
 
-    return Equivalency([(h100_val_unit, None)], "with_H0", kwargs={"H0": H0})
+    return u.Equivalency([(h100_val_unit, None)], "with_H0", kwargs={"H0": H0})
 
 
 # ===================================================================
@@ -432,4 +381,4 @@ u.add_enabled_equivalencies(dimensionless_redshift())
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
 if __doc__ is not None:
-    __doc__ += "\n" + _generate_unit_summary(_ns)
+    __doc__ += _generate_unit_summary(_ns)

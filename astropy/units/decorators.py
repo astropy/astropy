@@ -2,17 +2,21 @@
 
 __all__ = ["quantity_input"]
 
-import contextlib
 import inspect
-import typing as T
 from collections.abc import Sequence
 from functools import wraps
 from numbers import Number
 
 import numpy as np
 
-from .core import Unit, UnitBase, add_enabled_equivalencies, dimensionless_unscaled
-from .errors import UnitsError
+from . import _typing as T
+from .core import (
+    Unit,
+    UnitBase,
+    UnitsError,
+    add_enabled_equivalencies,
+    dimensionless_unscaled,
+)
 from .physical import PhysicalType, get_physical_type
 from .quantity import Quantity
 
@@ -46,6 +50,7 @@ def _validate_arg_value(
     Validates the object passed in to the wrapped function, ``arg``, with target
     unit or physical type, ``target``.
     """
+
     if len(targets) == 0:
         return
 
@@ -54,9 +59,9 @@ def _validate_arg_value(
     # If dimensionless is an allowed unit and the argument is unit-less,
     #   allow numbers or numpy arrays with numeric dtypes
     if (
-        not strict_dimensionless
+        dimensionless_unscaled in allowed_units
+        and not strict_dimensionless
         and not hasattr(arg, "unit")
-        and dimensionless_unscaled in allowed_units
     ):
         if isinstance(arg, Number):
             return
@@ -87,10 +92,10 @@ def _validate_arg_value(
             "be in units convertible to"
         )
         if len(targets) > 1:
-            targ_names = ", ".join([f"'{targ}'" for targ in targets])
+            targ_names = ", ".join([f"'{str(targ)}'" for targ in targets])
             raise UnitsError(f"{error_msg} one of: {targ_names}.")
         else:
-            raise UnitsError(f"{error_msg} '{targets[0]}'.")
+            raise UnitsError(f"{error_msg} '{str(targets[0])}'.")
 
 
 def _parse_annotation(target):
@@ -153,6 +158,7 @@ class QuantityInput:
 
         Notes
         -----
+
         The checking of arguments inside variable arguments to a function is not
         supported (i.e. \*arg or \**kwargs).
 
@@ -161,6 +167,7 @@ class QuantityInput:
 
         Examples
         --------
+
         .. code-block:: python
 
             import astropy.units as u
@@ -304,15 +311,8 @@ class QuantityInput:
                     self.strict_dimensionless,
                 )
 
-            if self.equivalencies:
-                equiv_context = add_enabled_equivalencies(self.equivalencies)
-            else:
-                # Avoid creating a duplicate registry if we don't have
-                # equivalencies to add. (If we're wrapping a short function,
-                # the time spent duplicating the registry is quite noticeable.)
-                equiv_context = contextlib.nullcontext()
             # Call the original function with any equivalencies in force.
-            with equiv_context:
+            with add_enabled_equivalencies(self.equivalencies):
                 return_ = wrapped_function(*func_args, **func_kwargs)
 
             # Return

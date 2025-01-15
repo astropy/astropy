@@ -1,8 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import abc
 import contextlib
 import re
 import warnings
+from collections import OrderedDict
 from operator import itemgetter
 
 import numpy as np
@@ -13,11 +15,13 @@ __all__ = ["IORegistryError"]
 class IORegistryError(Exception):
     """Custom error for registry clashes."""
 
+    pass
+
 
 # -----------------------------------------------------------------------------
 
 
-class _UnifiedIORegistryBase:
+class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
     """Base class for registries in Astropy's Unified IO.
 
     This base class provides identification functions and miscellaneous
@@ -36,18 +40,15 @@ class _UnifiedIORegistryBase:
 
     def __init__(self):
         # registry of identifier functions
-        self._identifiers = {}
+        self._identifiers = OrderedDict()
 
         # what this class can do: e.g. 'read' &/or 'write'
-        self._registries = {}
-        self._registries["identify"] = {
-            "attr": "_identifiers",
-            "column": "Auto-identify",
-        }
+        self._registries = dict()
+        self._registries["identify"] = dict(attr="_identifiers", column="Auto-identify")
         self._registries_order = ("identify",)  # match keys in `_registries`
 
         # If multiple formats are added to one class the update of the docs is quite
-        # expensive. Classes for which the doc update is temporarily delayed are added
+        # expensive. Classes for which the doc update is temporarly delayed are added
         # to this set.
         self._delayed_docs_classes = set()
 
@@ -251,7 +252,7 @@ class _UnifiedIORegistryBase:
             register_identifier('ipac', Table, my_identifier)
             unregister_identifier('ipac', Table)
         """
-        if not (data_format, data_class) in self._identifiers or force:  # noqa: E713
+        if not (data_format, data_class) in self._identifiers or force:
             self._identifiers[(data_format, data_class)] = identifier
         else:
             raise IORegistryError(
@@ -261,7 +262,7 @@ class _UnifiedIORegistryBase:
 
     def unregister_identifier(self, data_format, data_class):
         """
-        Unregister an identifier function.
+        Unregister an identifier function
 
         Parameters
         ----------
@@ -327,10 +328,10 @@ class _UnifiedIORegistryBase:
         return format_table_str
 
     def _is_best_match(self, class1, class2, format_classes):
-        """Determine if class2 is the "best" match for class1 in the list of classes.
-
-        It is assumed that (class2 in classes) is True.
-        class2 is the best match if:
+        """
+        Determine if class2 is the "best" match for class1 in the list
+        of classes.  It is assumed that (class2 in classes) is True.
+        class2 is the the best match if:
 
         - ``class1`` is a subclass of ``class2`` AND
         - ``class2`` is the nearest ancestor of ``class1`` that is in classes
@@ -341,7 +342,7 @@ class _UnifiedIORegistryBase:
             for parent in class1.__mro__:
                 if parent is class2:  # class2 is closest registered ancestor
                     return True
-                if parent in classes:  # class2 was superseded
+                if parent in classes:  # class2 was superceded
                     return False
         return False
 

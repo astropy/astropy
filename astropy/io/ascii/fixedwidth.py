@@ -8,6 +8,7 @@ fixedwidth.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
+
 from . import basic, core
 from .core import DefaultSplitter, InconsistentTableError
 
@@ -70,7 +71,7 @@ class FixedWidthHeader(basic.BasicHeader):
     """ Splitter class for splitting data lines into columns """
     position_line = None  # secondary header line position
     """ row index of line that specifies position (default = 1) """
-    set_of_position_line_characters = set(r"""`~!#$%^&*-_+=\|":'""")
+    set_of_position_line_characters = set(r'`~!#$%^&*-_+=\|":' + "'")
 
     def get_line(self, lines, index):
         for i, line in enumerate(self.process_lines(lines)):
@@ -201,6 +202,7 @@ class FixedWidthHeader(basic.BasicHeader):
             List of ending indices.
 
         """
+
         # If column positions are already specified then just use those.
         # If neither column starts or ends are given, figure out positions
         # between delimiters. Otherwise, either the starts or the ends have
@@ -261,7 +263,10 @@ class FixedWidthData(basic.BasicData):
         header_rows = getattr(self, "header_rows", default_header_rows)
         # First part is getting the widths of each column.
         # List (rows) of list (column values) for data lines
-        vals_list = list(zip(*self.str_vals()))
+        vals_list = []
+        col_str_iters = self.str_vals()
+        for vals in zip(*col_str_iters):
+            vals_list.append(vals)
 
         # List (rows) of list (columns values) for header lines.
         hdrs_list = []
@@ -281,7 +286,7 @@ class FixedWidthData(basic.BasicData):
         if hdrs_list:
             for i_col in range(len(self.cols)):
                 widths[i_col] = max(
-                    widths[i_col], *(len(vals[i_col]) for vals in hdrs_list)
+                    widths[i_col], max(len(vals[i_col]) for vals in hdrs_list)
                 )
 
         # Now collect formatted header and data lines into the output lines
@@ -353,13 +358,13 @@ class FixedWidth(basic.Basic):
 
 
 class FixedWidthNoHeaderHeader(FixedWidthHeader):
-    """Header reader for fixed with tables with no header line."""
+    """Header reader for fixed with tables with no header line"""
 
     start_line = None
 
 
 class FixedWidthNoHeaderData(FixedWidthData):
-    """Data reader for fixed width tables with no header line."""
+    """Data reader for fixed width tables with no header line"""
 
     start_line = 0
 

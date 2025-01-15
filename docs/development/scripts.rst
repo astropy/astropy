@@ -1,6 +1,6 @@
-********************
-Command-Line Scripts
-********************
+****************************
+Writing Command-Line Scripts
+****************************
 
 Command-line scripts in Astropy should follow a consistent scheme to promote
 readability and compatibility.
@@ -47,7 +47,8 @@ Contents of ``/astropy/somepackage/somemod.py`` ::
 
         do_something(res.stuff,res.op)
 
-Then add the script to the ``pyproject.toml`` under this section::
+Then add the script to the ``setup.cfg`` under this section::
 
-    [project.scripts]
-    somescript = "astropy.somepackage.somemod:main"
+    [options.entry_points]
+    console_scripts =
+        somescript = astropy.somepackage.somemod:main

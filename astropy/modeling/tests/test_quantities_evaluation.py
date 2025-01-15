@@ -3,7 +3,6 @@
 """
 Tests that relate to evaluating models with quantity parameters
 """
-
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose

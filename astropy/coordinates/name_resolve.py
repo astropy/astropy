@@ -11,6 +11,7 @@ reference for that measurement and input the coordinates manually.
 # Standard library
 import os
 import re
+import socket
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -32,7 +33,7 @@ class sesame_url(ScienceState):
     """
 
     _value = [
-        "https://cds.unistra.fr/cgi-bin/nph-sesame/",
+        "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
         "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/",
     ]
 
@@ -48,10 +49,6 @@ class sesame_database(ScienceState):
     using the name resolve mechanism in the coordinates
     subpackage. Default is to search all databases, but this can be
     'all', 'simbad', 'ned', or 'vizier'.
-
-    If 'all' is selected, the answer is first requested from SIMBAD,
-    then NED, and then VizieR. The first positive answer stops the
-    requests.
     """
 
     _value = "all"
@@ -84,6 +81,7 @@ def _parse_response(resp_data):
     dec : str
         The string Declination parsed from the HTTP response.
     """
+
     pattr = re.compile(r"%J\s*([0-9\.]+)\s*([\+\-\.0-9]+)")
     matched = pattr.search(resp_data)
 
@@ -96,10 +94,10 @@ def _parse_response(resp_data):
 
 def get_icrs_coordinates(name, parse=False, cache=False):
     """
-    Retrieve an ICRS object by using `Sesame <https://cds.unistra.fr/cgi-bin/Sesame>`_
-    to retrieve coordinates for the specified name. By default, this will
-    search all available databases (SIMBAD, NED and VizieR) until a match is found.
-    If you would like to specify the database, use the science state
+    Retrieve an ICRS object by using an online name resolving service to
+    retrieve coordinates for the specified name. By default, this will
+    search all available databases until a match is found. If you would like
+    to specify the database, use the science state
     ``astropy.coordinates.name_resolve.sesame_database``. You can also
     specify a list of servers to use for querying Sesame using the science
     state ``astropy.coordinates.name_resolve.sesame_url``. This will try
@@ -133,6 +131,7 @@ def get_icrs_coordinates(name, parse=False, cache=False):
         The object's coordinates in the ICRS frame.
 
     """
+
     # if requested, first try extract coordinates embedded in the object name.
     # Do this first since it may be much faster than doing the sesame query
     if parse:
@@ -148,11 +147,6 @@ def get_icrs_coordinates(name, parse=False, cache=False):
     database = sesame_database.get()
     # The web API just takes the first letter of the database name
     db = database.upper()[0]
-
-    # the A option does not set a preferred order for the database
-    if db == "A":
-        # we look into SIMBAD, NED, and then VizieR. This is the default Sesame behavior.
-        db = "SNV"
 
     # Make sure we don't have duplicates in the url list
     urls = []
@@ -179,7 +173,7 @@ def get_icrs_coordinates(name, parse=False, cache=False):
         except urllib.error.URLError as e:
             exceptions.append(e)
             continue
-        except TimeoutError as e:
+        except socket.timeout as e:
             # There are some cases where urllib2 does not catch socket.timeout
             # especially while receiving response data on an already previously
             # working request
@@ -201,7 +195,7 @@ def get_icrs_coordinates(name, parse=False, cache=False):
     ra, dec = _parse_response(resp_data)
 
     if ra is None or dec is None:
-        if db == "SNV":
+        if db == "A":
             err = f"Unable to find coordinates for name '{name}' using {url}"
         else:
             err = (

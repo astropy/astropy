@@ -8,17 +8,10 @@ latex.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
 
 from . import core
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
-    from re import Pattern
-    from typing import ClassVar, Final
 
 latexdicts = {
     "AA": {
@@ -49,12 +42,12 @@ latexdicts = {
 }
 
 
-RE_COMMENT: Final[Pattern[str]] = re.compile(r"(?<!\\)%")  # % character but not \%
+RE_COMMENT = re.compile(r"(?<!\\)%")  # % character but not \%
 
 
 def add_dictval_to_list(adict, key, alist):
     """
-    Add a value from a dictionary to a list.
+    Add a value from a dictionary to a list
 
     Parameters
     ----------
@@ -70,9 +63,9 @@ def add_dictval_to_list(adict, key, alist):
             alist.extend(adict[key])
 
 
-def find_latex_line(lines: list[str], latex: str) -> int | None:
+def find_latex_line(lines, latex):
     """
-    Find the first line which matches a pattern.
+    Find the first line which matches a patters
 
     Parameters
     ----------
@@ -87,15 +80,16 @@ def find_latex_line(lines: list[str], latex: str) -> int | None:
         Line number. Returns None, if no match was found
 
     """
-    re_string = re.compile(r"\s*" + latex.replace("\\", "\\\\"))
+    re_string = re.compile(latex.replace("\\", "\\\\"))
     for i, line in enumerate(lines):
         if re_string.match(line):
             return i
-    return None
+    else:
+        return None
 
 
 class LatexInputter(core.BaseInputter):
-    def process_lines(self, lines: list[str]) -> list[str]:
+    def process_lines(self, lines):
         return [lin.strip() for lin in lines]
 
 
@@ -104,39 +98,41 @@ class LatexSplitter(core.BaseSplitter):
 
     delimiter = "&"
 
-    def __call__(self, lines: list[str]) -> Generator[list[str], None, None]:
+    def __call__(self, lines):
         last_line = RE_COMMENT.split(lines[-1])[0].strip()
         if not last_line.endswith(r"\\"):
             lines[-1] = last_line + r"\\"
 
         return super().__call__(lines)
 
-    def process_line(self, line: str) -> str:
+    def process_line(self, line):
         """Remove whitespace at the beginning or end of line. Also remove
-        \\ at end of line.
-        """
-        line = RE_COMMENT.split(line)[0].strip()
-        if not line.endswith(r"\\"):
+        \\ at end of line"""
+        line = RE_COMMENT.split(line)[0]
+        line = line.strip()
+        if line.endswith(r"\\"):
+            line = line.rstrip(r"\\")
+        else:
             raise core.InconsistentTableError(
                 r"Lines in LaTeX table have to end with \\"
             )
-        return line.removesuffix(r"\\")
+        return line
 
-    def process_val(self, val: str) -> str:
+    def process_val(self, val):
         """Remove whitespace and {} at the beginning or end of value."""
         val = val.strip()
         if val and (val[0] == "{") and (val[-1] == "}"):
             val = val[1:-1]
         return val
 
-    def join(self, vals: list[str]) -> str:
-        """Join values together and add a few extra spaces for readability."""
+    def join(self, vals):
+        """Join values together and add a few extra spaces for readability"""
         delimiter = " " + self.delimiter + " "
         return delimiter.join(x.strip() for x in vals) + r" \\"
 
 
 class LatexHeader(core.BaseHeader):
-    """Class to read the header of Latex Tables."""
+    """Class to read the header of Latex Tables"""
 
     header_start = r"\begin{tabular}"
     splitter_class = LatexSplitter
@@ -148,7 +144,7 @@ class LatexHeader(core.BaseHeader):
         else:
             return None
 
-    def _get_units(self) -> dict[str, str]:
+    def _get_units(self):
         units = {}
         col_units = [col.info.unit for col in self.cols]
         for name, unit in zip(self.colnames, col_units):
@@ -185,9 +181,9 @@ class LatexHeader(core.BaseHeader):
 
 
 class LatexData(core.BaseData):
-    """Class to read the data in LaTeX tables."""
+    """Class to read the data in LaTeX tables"""
 
-    data_start: ClassVar[str | None] = None
+    data_start = None
     data_end = r"\end{tabular}"
     splitter_class = LatexSplitter
 
@@ -228,52 +224,6 @@ class Latex(core.BaseReader):
     This class can also read simple LaTeX tables (one line per table
     row, no ``\multicolumn`` or similar constructs), specifically, it
     can read the tables that it writes.
-    When reading, it will look for the Latex commands to start and end tabular
-    data (``\begin{tabular}`` and ``\end{tabular}``). That means that
-    those lines have to be present in the input file; the benefit is that this
-    reader can be used on a LaTeX file with text, tables, and figures and it
-    will read the first valid table.
-
-    .. note:: **Units in LaTeX tables**
-
-        The LaTeX writer will output units in the table if they are present in the
-        column info::
-
-            >>> import io
-            >>> out = io.StringIO()
-            >>> import sys
-            >>> import astropy.units as u
-            >>> from astropy.table import Table
-            >>> t = Table({'v': [1, 2] * u.km/u.s, 'class': ['star', 'jet']})
-            >>> t.write(out, format='ascii.latex')
-            >>> print(out.getvalue())
-            \begin{table}
-            \begin{tabular}{cc}
-            v & class \\
-            $\mathrm{km\,s^{-1}}$ &  \\
-            1.0 & star \\
-            2.0 & jet \\
-            \end{tabular}
-            \end{table}
-
-        However, it will fail to read a table with units. There are so
-        many ways to write units in LaTeX (enclosed in parenthesis or square brackets,
-        as a separate row are as part of the column headers, using plain text, LaTeX
-        symbols etc. ) that it is not feasible to implement a
-        general reader for this. If you need to read a table with units, you can
-        skip reading the lines with units to just read the numerical values using the
-        ``data_start`` parameter to set the first line where numerical data values appear::
-
-            >>> Table.read(out.getvalue(), format='ascii.latex', data_start=4)
-            <Table length=2>
-               v    class
-            float64  str4
-            ------- -----
-                1.0  star
-                2.0   jet
-
-        Alternatively, you can write a custom reader using your knowledge of the exact
-        format of the units in that case, by extending this class.
 
     Reading a LaTeX table, the following keywords are accepted:
 
@@ -297,8 +247,8 @@ class Latex(core.BaseReader):
             The default is ``\\begin{table}``.  The following would generate a table,
             which spans the whole page in a two-column document::
 
-                ascii.write(data, sys.stdout, format="latex",
-                            latexdict={'tabletype': 'table*'})
+                ascii.write(data, sys.stdout, Writer = ascii.Latex,
+                            latexdict = {'tabletype': 'table*'})
 
             If ``None``, the table environment will be dropped, keeping only
             the ``tabular`` environment.
@@ -329,8 +279,8 @@ class Latex(core.BaseReader):
 
               from astropy.io import ascii
               data = {'name': ['bike', 'car'], 'mass': [75,1200], 'speed': [10, 130]}
-              ascii.write(data, format="latex",
-                          latexdict={'units': {'mass': 'kg', 'speed': 'km/h'}})
+              ascii.write(data, Writer=ascii.Latex,
+                               latexdict = {'units': {'mass': 'kg', 'speed': 'km/h'}})
 
             If the column has no entry in the ``units`` dictionary, it defaults
             to the **unit** attribute of the column. If this attribute is not
@@ -341,18 +291,18 @@ class Latex(core.BaseReader):
 
             from astropy.io import ascii
             data = {'cola': [1,2], 'colb': [3,4]}
-            ascii.write(data, format="latex", latexdict=ascii.latex.latexdicts['template'])
+            ascii.write(data, Writer=ascii.Latex, latexdict=ascii.latex.latexdicts['template'])
 
         Some table styles are predefined in the dictionary
         ``ascii.latex.latexdicts``. The following generates in table in
         style preferred by A&A and some other journals::
 
-            ascii.write(data, format="latex", latexdict=ascii.latex.latexdicts['AA'])
+            ascii.write(data, Writer=ascii.Latex, latexdict=ascii.latex.latexdicts['AA'])
 
         As an example, this generates a table, which spans all columns
         and is centered on the page::
 
-            ascii.write(data, format="latex", col_align='|lr|',
+            ascii.write(data, Writer=ascii.Latex, col_align='|lr|',
                         latexdict={'preamble': r'\begin{center}',
                                    'tablefoot': r'\end{center}',
                                    'tabletype': 'table*'})
@@ -369,7 +319,6 @@ class Latex(core.BaseReader):
             latexdict['col_align'] = col_align
 
     """
-
     _format_name = "latex"
     _io_registry_format_aliases = ["latex"]
     _io_registry_suffix = ".tex"
@@ -435,11 +384,11 @@ class AASTexHeaderSplitter(LatexSplitter):
         \tablehead{\colhead{col1} & ... & \colhead{coln}}
     """
 
-    def __call__(self, lines: list[str]) -> Generator[list[str], None, None]:
+    def __call__(self, lines):
         return super(LatexSplitter, self).__call__(lines)
 
-    def process_line(self, line: str) -> str:
-        """extract column names from tablehead."""
+    def process_line(self, line):
+        """extract column names from tablehead"""
         line = line.split("%")[0]
         line = line.replace(r"\tablehead", "")
         line = line.strip()
@@ -449,7 +398,7 @@ class AASTexHeaderSplitter(LatexSplitter):
             raise core.InconsistentTableError(r"\tablehead is missing {}")
         return line.replace(r"\colhead", "")
 
-    def join(self, vals: list[str]) -> str:
+    def join(self, vals):
         return " & ".join([r"\colhead{" + str(x) + "}" for x in vals])
 
 
@@ -460,7 +409,6 @@ class AASTexHeader(LatexHeader):
 
     This header is modified to take that into account.
     """
-
     header_start = r"\tablehead"
     splitter_class = AASTexHeaderSplitter
 
@@ -497,8 +445,7 @@ class AASTexHeader(LatexHeader):
 
 
 class AASTexData(LatexData):
-    r"""In a `deluxetable`_ the data is enclosed in `\startdata` and `\enddata`."""
-
+    r"""In a `deluxetable`_ the data is enclosed in `\startdata` and `\enddata`"""
     data_start = r"\startdata"
     data_end = r"\enddata"
 

@@ -21,11 +21,17 @@ Examples
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .core import Model
 
-__all__ = ["Tabular1D", "Tabular2D", "tabular_model"]
+try:
+    from scipy.interpolate import interpn
+
+    has_scipy = True
+except ImportError:
+    has_scipy = False
+
+__all__ = ["tabular_model", "Tabular1D", "Tabular2D"]
 
 __doctest_requires__ = {"tabular_model": ["scipy"]}
 
@@ -229,13 +235,10 @@ class _Tabular(Model):
         inputs = np.broadcast_arrays(*inputs)
 
         shape = inputs[0].shape
-        inputs = [inp.ravel() for inp in inputs[: self.n_inputs]]
+        inputs = [inp.flatten() for inp in inputs[: self.n_inputs]]
         inputs = np.array(inputs).T
-        if not HAS_SCIPY:  # pragma: no cover
-            raise ModuleNotFoundError("Tabular model requires scipy.")
-
-        from scipy.interpolate import interpn
-
+        if not has_scipy:  # pragma: no cover
+            raise ImportError("Tabular model requires scipy.")
         result = interpn(
             self.points,
             self.lookup_table,
@@ -303,8 +306,10 @@ def tabular_model(dim, name=None):
 
     Examples
     --------
-    >>> import numpy as np
-    >>> from astropy.modeling.models import tabular_model
+    >>> table = np.array([[3., 0., 0.],
+    ...                   [0., 2., 0.],
+    ...                   [0., 0., 0.]])
+
     >>> tab = tabular_model(2, name='Tabular2D')
     >>> print(tab)
     <class 'astropy.modeling.tabular.Tabular2D'>
@@ -312,17 +317,16 @@ def tabular_model(dim, name=None):
     N_inputs: 2
     N_outputs: 1
 
-    Setting ``fill_value`` to `None` allows extrapolation.
-
     >>> points = ([1, 2, 3], [1, 2, 3])
-    >>> table = np.array([[3., 0., 0.],
-    ...                   [0., 2., 0.],
-    ...                   [0., 0., 0.]])
-    >>> model = tab(points, lookup_table=table, name='my_table',
-    ...             bounds_error=False, fill_value=None, method='nearest')
+
+    Setting fill_value to None, allows extrapolation.
+    >>> m = tab(points, lookup_table=table, name='my_table',
+    ...         bounds_error=False, fill_value=None, method='nearest')
+
     >>> xinterp = [0, 1, 1.5, 2.72, 3.14]
-    >>> model(xinterp, xinterp)  # doctest: +FLOAT_CMP
+    >>> m(xinterp, xinterp)  # doctest: +FLOAT_CMP
     array([3., 3., 3., 0., 0.])
+
     """
     if dim < 1:
         raise ValueError("Lookup table must have at least one dimension.")

@@ -5,7 +5,6 @@ from astropy.samp import conf
 from astropy.samp.errors import SAMPProxyError
 from astropy.samp.hub import SAMPHubServer
 from astropy.samp.integrated_client import SAMPIntegratedClient
-from astropy.tests.helper import CI
 
 from .test_helpers import TEST_REPLY, Receiver, assert_output, random_params
 
@@ -14,7 +13,6 @@ def setup_module(module):
     conf.use_internet = False
 
 
-@pytest.mark.skipif(CI, reason="flaky in CI")
 class TestStandardProfile:
     @property
     def hub_init_kwargs(self):

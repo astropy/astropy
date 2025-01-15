@@ -15,7 +15,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
 
-__all__ = ["NFW", "BlackBody", "Drude1D", "Plummer1D"]
+__all__ = ["BlackBody", "Drude1D", "Plummer1D", "NFW"]
 
 
 class BlackBody(Fittable1DModel):
@@ -37,6 +37,7 @@ class BlackBody(Fittable1DModel):
 
     Notes
     -----
+
     Model formula:
 
         .. math:: B_{\\nu}(T) = A \\frac{2 h \\nu^{3} / c^{2}}{exp(h \\nu / k T) - 1}
@@ -47,7 +48,7 @@ class BlackBody(Fittable1DModel):
     >>> from astropy import units as u
     >>> bb = models.BlackBody(temperature=5000*u.K)
     >>> bb(6000 * u.AA)  # doctest: +FLOAT_CMP
-    <Quantity 1.53254685e-05 erg / (Hz s sr cm2)>
+    <Quantity 1.53254685e-05 erg / (cm2 Hz s sr)>
 
     .. plot::
         :include-source:
@@ -97,7 +98,7 @@ class BlackBody(Fittable1DModel):
     }
 
     def __init__(self, *args, **kwargs):
-        scale = kwargs.get("scale")
+        scale = kwargs.get("scale", None)
 
         # Support scale with non-dimensionless unit by stripping the unit and
         # storing as self._output_units.
@@ -267,6 +268,7 @@ class Drude1D(Fittable1DModel):
 
     Examples
     --------
+
     .. plot::
         :include-source:
 
@@ -296,7 +298,7 @@ class Drude1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, x_0, fwhm):
         """
-        One dimensional Drude model function.
+        One dimensional Drude model function
         """
         return (
             amplitude
@@ -318,7 +320,10 @@ class Drude1D(Fittable1DModel):
                 (1 / x_0)
                 + d_amplitude
                 * (x_0**2 / fwhm**2)
-                * ((-x / x_0 - 1 / x) * (x / x_0 - x_0 / x) - (2 * fwhm**2 / x_0**3))
+                * (
+                    (-x / x_0 - 1 / x) * (x / x_0 - x_0 / x)
+                    - (2 * fwhm**2 / x_0**3)
+                )
             )
         )
         d_fwhm = (2 * amplitude * d_amplitude / fwhm) * (1 - d_amplitude)
@@ -326,9 +331,9 @@ class Drude1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.input_unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -343,12 +348,11 @@ class Drude1D(Fittable1DModel):
             return None
         return {self.outputs[0]: self.amplitude.unit}
 
-    def _x_0_validator(self, val):
+    @x_0.validator
+    def x_0(self, val):
         """Ensure `x_0` is not 0."""
         if np.any(val == 0):
             raise InputParameterError("0 is not an allowed value for x_0")
-
-    x_0._validator = _x_0_validator
 
     def bounding_box(self, factor=50):
         """Tuple defining the default ``bounding_box`` limits,
@@ -416,13 +420,10 @@ class Plummer1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        mass_unit = self.mass.input_unit
-        r_plum_unit = self.r_plum.input_unit
-
-        if mass_unit is None and r_plum_unit is None:
+        if self.mass.unit is None and self.r_plum.unit is None:
             return None
-
-        return {self.inputs[0]: r_plum_unit}
+        else:
+            return {self.inputs[0]: self.r_plum.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -463,6 +464,7 @@ class NFW(Fittable1DModel):
 
     Notes
     -----
+
     Model formula:
 
     .. math:: \rho(r)=\frac{\delta_c\rho_{c}}{r/r_s(1+r/r_s)^2}
@@ -531,7 +533,7 @@ class NFW(Fittable1DModel):
 
     def evaluate(self, r, mass, concentration, redshift):
         """
-        One dimensional NFW profile function.
+        One dimensional NFW profile function
 
         Parameters
         ----------
@@ -649,6 +651,7 @@ class NFW(Fittable1DModel):
 
         Notes
         -----
+
         Model formula:
 
         .. math:: A_{NFW} = [\ln(1+y) - \frac{y}{1+y}]
@@ -679,7 +682,7 @@ class NFW(Fittable1DModel):
     @property
     def rho_scale(self):
         r"""
-        Scale density of the NFW profile. Often written in the literature as :math:`\rho_s`.
+        Scale density of the NFW profile. Often written in the literature as :math:`\rho_s`
         """
         return self.density_s
 
@@ -750,6 +753,7 @@ class NFW(Fittable1DModel):
 
         Notes
         -----
+
         Model formula:
 
         .. math:: v_{circ}(r)^2 = \frac{1}{x}\frac{\ln(1+cx)-(cx)/(1+cx)}{\ln(1+c)-c/(1+c)}

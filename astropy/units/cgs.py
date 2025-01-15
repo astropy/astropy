@@ -1,23 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This package defines the CGS units.  They are also available in
-(and should be used through) the `astropy.units` namespace.
+This package defines the CGS units.  They are also available in the
+top-level `astropy.units` namespace.
+
 """
-# avoid ruff complaints about undefined names defined by def_unit
-# ruff: noqa: F821
 
 from fractions import Fraction
-
-import numpy as np
 
 from . import si
 from .core import UnitBase, def_unit
 
-__all__: list[str] = []  #  Units are added at the end
-
 _ns = globals()
 
-cm = si.cm
+def_unit(["cm", "centimeter"], si.cm, namespace=_ns, prefixes=False)
 g = si.g
 s = si.s
 C = si.C
@@ -165,13 +160,6 @@ def_unit(
     namespace=_ns,
     doc="Maxwell: CGS unit for magnetic flux",
 )
-def_unit(
-    ["Oe", "Oersted", "oersted"],
-    1e3 / (4 * np.pi) * si.A / si.m,
-    namespace=_ns,
-    prefixes=True,
-    doc="Oersted: CGS unit for magnetic field strength",
-)
 
 
 ###########################################################################
@@ -181,13 +169,20 @@ bases = {cm, g, s, rad, cd, K, mol}
 
 
 ###########################################################################
-# ALL & DOCSTRING
+# CLEANUP
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+del UnitBase
+del def_unit
+del si
+del Fraction
+
+
+###########################################################################
+# DOCSTRING
+
+# This generates a docstring for this module that describes all of the
+# standard units defined here.
+from .utils import generate_unit_summary as _generate_unit_summary
 
 if __doc__ is not None:
-    # This generates a docstring for this module that describes all of the
-    # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
     __doc__ += _generate_unit_summary(globals())

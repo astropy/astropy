@@ -5,11 +5,9 @@ from collections.abc import Mapping
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
 
 import astropy.units as u
-from astropy.table import Column, MaskedColumn, QTable, Table, TableColumns
-from astropy.utils.masked import Masked
+from astropy.table import Column, MaskedColumn, Table, TableColumns
 
 
 class DictLike(Mapping):
@@ -54,7 +52,7 @@ class TestTableColumnsInit:
             assert col[0] in tc_tuple
             assert tc_tuple[col[0]] is col[1]
 
-        col_dict = {"x1": x1, "x2": x2, "x3": x3}
+        col_dict = dict([("x1", x1), ("x2", x2), ("x3", x3)])
         tc_dict = TableColumns(col_dict)
         for col in tc_dict.keys():
             assert col in tc_dict
@@ -197,7 +195,6 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
     def _setup(self, table_type):
         self.data = [{"a": 1, "b": 2, "c": 3}, {"a": 3, "b": 4, "c": 5}]
         self.data_ragged = [{"a": 1, "b": 2}, {"a": 2, "c": 4}]
-        self.data_acb = [{"a": 2, "c": 4}, {"a": 1, "b": 2}]
 
     def test_names(self, table_type):
         self._setup(table_type)
@@ -208,14 +205,6 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
         self._setup(table_type)
         t = table_type(self.data, names=("c", "b", "a"))
         assert t.colnames == ["c", "b", "a"]
-
-    def test_rows_without_names_args(self, table_type):
-        # see https://github.com/astropy/astropy/pull/15735
-        self._setup(table_type)
-        t1 = table_type(rows=self.data)
-        assert t1.colnames == ["a", "b", "c"]
-        t2 = table_type(rows=self.data_acb)
-        assert t2.colnames == ["a", "c", "b"]
 
     def test_missing_data_init_from_dict(self, table_type):
         self._setup(table_type)
@@ -234,34 +223,12 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
             assert type(t["c"]) is MaskedColumn
 
 
-def test_qtable_uses_masked_quantity_as_needed():
-    data = [{"a": 1 * u.m, "b": 1}, {"a": 2 * u.Mm, "b": 2}]
-    data_ragged = [{"a": 1 * u.m, "b": 1}, {"a": 2 * u.Mm}, {"b": 3}]
-    t = QTable(data)
-    assert t.colnames == ["a", "b"]
-    assert isinstance(t["a"], u.Quantity)
-    assert isinstance(t["b"], Column)
-    assert t["a"].unit == u.m
-    assert_array_equal(t["a"], [1, 2000000] * u.m)
-    assert not t.masked
-
-    t2 = QTable(data_ragged)
-    assert t2.colnames == ["a", "b"]
-    assert isinstance(t2["a"], Masked(u.Quantity))
-    assert isinstance(t2["b"], MaskedColumn)
-    assert t2["a"].unit == u.m
-    assert np.all(t2["a"] == [1, 2000000, 0] * u.m)
-    assert_array_equal(t2["a"].mask, [False, False, True])
-    assert_array_equal(t2["b"].mask, [False, True, False])
-
-
 class TestInitFromListOfMapping(TestInitFromListOfDicts):
     """Test that init from a Mapping that is not a dict subclass works"""
 
     def _setup(self, table_type):
         self.data = [DictLike(a=1, b=2, c=3), DictLike(a=3, b=4, c=5)]
         self.data_ragged = [DictLike(a=1, b=2), DictLike(a=2, c=4)]
-        self.data_acb = [DictLike(a=2, c=4), DictLike(a=1, b=2)]
         # Make sure data rows are not a dict subclass
         assert not isinstance(self.data[0], dict)
 
@@ -340,11 +307,13 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
 @pytest.mark.usefixtures("table_type")
 class TestInitFromDict(BaseInitFromDictLike):
     def _setup(self, table_type):
-        self.data = {
-            "a": Column([1, 3], name="x"),
-            "b": [2, 4],
-            "c": np.array([3, 5], dtype="i8"),
-        }
+        self.data = dict(
+            [
+                ("a", Column([1, 3], name="x")),
+                ("b", [2, 4]),
+                ("c", np.array([3, 5], dtype="i8")),
+            ]
+        )
 
 
 @pytest.mark.usefixtures("table_type")
@@ -575,7 +544,7 @@ def test_init_and_ref_from_dict(table_type, copy):
     """
     x1 = np.arange(10.0)
     x2 = np.zeros(10)
-    col_dict = {"x1": x1, "x2": x2}
+    col_dict = dict([("x1", x1), ("x2", x2)])
     t = table_type(col_dict, copy=copy)
     assert set(t.colnames) == {"x1", "x2"}
     assert t["x1"].shape == (10,)
@@ -605,8 +574,8 @@ def test_init_from_row_OrderedDict(table_type):
     row1 = OrderedDict([("b", 1), ("a", 0)])
     row2 = {"a": 10, "b": 20}
     rows12 = [row1, row2]
-    row3 = {"b": 1, "a": 0}
-    row4 = {"b": 11, "a": 10}
+    row3 = dict([("b", 1), ("a", 0)])
+    row4 = dict([("b", 11), ("a", 10)])
     rows34 = [row3, row4]
     t1 = table_type(rows=rows12)
     t2 = table_type(rows=rows34)
@@ -650,16 +619,3 @@ def test_init_Table_from_list_of_quantity():
     assert np.all(t["x"] == [5, 10])
     assert t["y"][0] == 1 * u.m
     assert t["y"][1] == 3
-
-
-def test_init_QTable_and_set_units():
-    """
-    Test fix for #14336 where providing units to QTable init fails.
-
-    This applies when the input is a Quantity.
-    """
-    t = QTable([[1, 2] * u.km, [1, 2]], units={"col0": u.m, "col1": u.s})
-    assert t["col0"].unit == u.m
-    assert np.all(t["col0"].value == [1000, 2000])
-    assert t["col1"].unit == u.s
-    assert np.all(t["col1"].value == [1, 2])

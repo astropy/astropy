@@ -7,11 +7,8 @@ not meant to be used directly, but instead are available as readers/writers in
 
 import os
 import warnings
-from pathlib import Path
 
 import numpy as np
-
-from astropy.utils.compat.optional_deps import HAS_H5PY
 
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
@@ -30,7 +27,7 @@ def meta_path(path):
 
 def _find_all_structured_arrays(handle):
     """
-    Find all structured arrays in an HDF5 file.
+    Find all structured arrays in an HDF5 file
     """
     import h5py
 
@@ -55,17 +52,17 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
     elif filepath is not None:
         return filepath.endswith((".hdf5", ".h5"))
 
-    if HAS_H5PY:
+    try:
         import h5py
-
-        return isinstance(args[0], (h5py.File, h5py.Group, h5py.Dataset))
-    else:
+    except ImportError:
         return False
+    else:
+        return isinstance(args[0], (h5py.File, h5py.Group, h5py.Dataset))
 
 
 def read_table_hdf5(input, path=None, character_as_bytes=True):
     """
-    Read a Table object from an HDF5 file.
+    Read a Table object from an HDF5 file
 
     This requires `h5py <http://www.h5py.org/>`_ to be installed. If more than one
     table is present in the HDF5 file or group, the first table is read in and
@@ -84,9 +81,11 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
         If `True` then Table columns are left as bytes.
         If `False` then Table columns are converted to unicode.
     """
-    if not HAS_H5PY:
-        raise ModuleNotFoundError("h5py is required to read and write HDF5 files")
-    import h5py
+
+    try:
+        import h5py
+    except ImportError:
+        raise Exception("h5py is required to read and write HDF5 files")
 
     # This function is iterative, and only gets to writing the file when
     # the input is an hdf5 Group. Moreover, the input variable is changed in
@@ -151,7 +150,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
     # Create a Table object
     from astropy.table import Table, meta, serialize
 
-    table = Table(np.array(input, copy=True), copy=False)
+    table = Table(np.array(input))
 
     # Read the meta-data from the file. For back-compatibility, we can read
     # the old file format where the serialized metadata were saved in the
@@ -219,7 +218,7 @@ def write_table_hdf5(
     **create_dataset_kwargs,
 ):
     """
-    Write a Table object to an HDF5 file.
+    Write a Table object to an HDF5 file
 
     This requires `h5py <http://www.h5py.org/>`_ to be installed.
 
@@ -227,7 +226,7 @@ def write_table_hdf5(
     ----------
     table : `~astropy.table.Table`
         Data table that is to be written to file.
-    output : str or os.PathLike[str] or :class:`h5py.File` or :class:`h5py.Group`
+    output : str or :class:`h5py.File` or :class:`h5py.Group`
         If a string, the filename to write the table to. If an h5py object,
         either the file or the group object to write the table to.
     path : str
@@ -254,11 +253,13 @@ def write_table_hdf5(
         Additional keyword arguments are passed to
         ``h5py.File.create_dataset()`` or ``h5py.Group.create_dataset()``.
     """
+
     from astropy.table import meta
 
-    if not HAS_H5PY:
-        raise ModuleNotFoundError("h5py is required to read and write HDF5 files")
-    import h5py
+    try:
+        import h5py
+    except ImportError:
+        raise Exception("h5py is required to read and write HDF5 files")
 
     if path is None:
         # table is just an arbitrary, hardcoded string here.
@@ -292,12 +293,12 @@ def write_table_hdf5(
         else:
             output_group = output
 
-    elif isinstance(output, (str, os.PathLike)):
-        output = Path(output)
-        if output.exists() and not append:
-            if not overwrite:
+    elif isinstance(output, str):
+        if os.path.exists(output) and not append:
+            if overwrite and not append:
+                os.remove(output)
+            else:
                 raise OSError(NOT_OVERWRITING_MSG.format(output))
-            output.unlink()
 
         # Open the file for appending or writing
         f = h5py.File(output, "a" if append else "w")

@@ -43,7 +43,6 @@ def main_col(request):
 
 
 def assert_col_equal(col, array):
-    __tracebackhide__ = True
     if isinstance(col, Time):
         assert np.all(col == Time(array, format="jyear"))
     else:
@@ -245,19 +244,19 @@ class TestIndex(SetupData):
         for i in range(6, 51):
             t.add_row((1.0, "A", i))
 
-        assert_col_equal(t["a"], list(range(1, 51)))
-        assert np.all(t.indices[0].sorted_data() == list(range(50)))
+        assert_col_equal(t["a"], [i for i in range(1, 51)])
+        assert np.all(t.indices[0].sorted_data() == [i for i in range(50)])
 
         evens = t[::2]
-        assert np.all(evens.indices[0].sorted_data() == list(range(25)))
+        assert np.all(evens.indices[0].sorted_data() == [i for i in range(25)])
         reverse = evens[::-1]
         index = reverse.indices[0]
         assert (index.start, index.stop, index.step) == (48, -2, -2)
-        assert np.all(index.sorted_data() == list(range(24, -1, -1)))
+        assert np.all(index.sorted_data() == [i for i in range(24, -1, -1)])
 
         # modify slice of slice
         reverse[-10:] = 0
-        expected = np.array(list(range(1, 51)))
+        expected = np.array([i for i in range(1, 51)])
         expected[:20][expected[:20] % 2 == 1] = 0
         assert_col_equal(t["a"], expected)
         assert_col_equal(evens["a"], expected[::2])
@@ -267,16 +266,18 @@ class TestIndex(SetupData):
             t.indices[0].sorted_data()
             == (
                 [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
-                + list(range(20, 50))
+                + [i for i in range(20, 50)]
             )
         )
-        assert np.all(evens.indices[0].sorted_data() == list(range(25)))
-        assert np.all(reverse.indices[0].sorted_data() == list(range(24, -1, -1)))
+        assert np.all(evens.indices[0].sorted_data() == [i for i in range(25)])
+        assert np.all(
+            reverse.indices[0].sorted_data() == [i for i in range(24, -1, -1)]
+        )
 
         # try different step sizes of slice
         t2 = t[1:20:2]
         assert_col_equal(t2["a"], [2, 4, 6, 8, 10, 12, 14, 16, 18, 20])
-        assert np.all(t2.indices[0].sorted_data() == list(range(10)))
+        assert np.all(t2.indices[0].sorted_data() == [i for i in range(10)])
         t3 = t2[::3]
         assert_col_equal(t3["a"], [2, 8, 14, 20])
         assert np.all(t3.indices[0].sorted_data() == [0, 1, 2, 3])
@@ -605,21 +606,3 @@ def test_hstack_qtable_table():
 def test_index_slice_exception():
     with pytest.raises(TypeError, match="index_slice must be tuple or slice"):
         SlicedIndex(None, None)
-
-
-@pytest.mark.parametrize(
-    "masked",
-    [pytest.param(False, id="raw-array"), pytest.param(True, id="masked array")],
-)
-def test_nd_columun_as_index(masked):
-    # see https://github.com/astropy/astropy/issues/13292
-    # and https://github.com/astropy/astropy/pull/16360
-    t = Table()
-    data = np.arange(0, 6)
-    if masked:
-        data = np.ma.masked_inside(data, 2, 4)
-    t.add_column(data.reshape(3, -1), name="arr")
-    with pytest.raises(
-        ValueError, match="Multi-dimensional column 'arr' cannot be used as an index."
-    ):
-        t.add_index("arr")

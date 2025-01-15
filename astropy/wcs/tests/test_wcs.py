@@ -19,9 +19,8 @@ from astropy import units as u
 from astropy import wcs
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.io.fits.verify import VerifyWarning
 from astropy.nddata import Cutout2D
-from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.data import (
     get_pkg_data_contents,
     get_pkg_data_filename,
@@ -137,10 +136,9 @@ def test_fixes():
     """
     header = get_pkg_data_contents("data/nonstandard_units.hdr", encoding="binary")
 
-    with (
-        pytest.raises(wcs.InvalidTransformError),
-        pytest.warns(wcs.FITSFixedWarning) as w,
-    ):
+    with pytest.raises(wcs.InvalidTransformError), pytest.warns(
+        wcs.FITSFixedWarning
+    ) as w:
         wcs.WCS(header, translate_units="dhs")
 
     if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
@@ -606,7 +604,7 @@ def test_all_world2pix(
         [i.flatten() for i in np.meshgrid(*map(range, naxesi_l, naxesi_u))]
     )[0]
 
-    # Generate random data (in image coordinates):
+    # Generage random data (in image coordinates):
     with NumpyRNGContext(123456789):
         rnd_pix = np.random.rand(random_npts, ncoord)
 
@@ -787,16 +785,11 @@ def test_validate_faulty_wcs():
 def test_error_message():
     header = get_pkg_data_contents("data/invalid_header.hdr", encoding="binary")
 
-    # make WCS transformation invalid
-    hdr = fits.Header.fromstring(header)
-    del hdr["PV?_*"]
-    hdr["PV1_1"] = 110
-    hdr["PV1_2"] = 110
-    hdr["PV2_1"] = -110
-    hdr["PV2_2"] = -110
     with pytest.raises(wcs.InvalidTransformError):
+        # Both lines are in here, because 0.4 calls .set within WCS.__init__,
+        # whereas 0.3 and earlier did not.
         with pytest.warns(wcs.FITSFixedWarning):
-            w = wcs.WCS(hdr, _do_set=False)
+            w = wcs.WCS(header, _do_set=False)
             w.all_pix2world([[536.0, 894.0]], 0)
 
 
@@ -970,14 +963,7 @@ def test_sip_tpv_agreement():
         os.path.join("data", "tpvonly.hdr"), encoding="binary"
     )
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(
-            AstropyWarning, match="Some non-standard WCS keywords were excluded"
-        )
-
-    with pytest.warns(wcs.FITSFixedWarning), ctx:
+    with pytest.warns(wcs.FITSFixedWarning):
         w_sip = wcs.WCS(sip_header)
         w_tpv = wcs.WCS(tpv_header)
 
@@ -1001,148 +987,6 @@ def test_sip_tpv_agreement():
             w_sip2.all_pix2world([w_sip.wcs.crpix], 1),
             w_tpv2.all_pix2world([w_tpv.wcs.crpix], 1),
         )
-
-
-def test_tpv_ctype_sip():
-    sip_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "siponly.hdr"), encoding="binary")
-    )
-    tpv_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "tpvonly.hdr"), encoding="binary")
-    )
-    sip_header.update(tpv_header)
-    sip_header["CTYPE1"] = "RA---TAN-SIP"
-    sip_header["CTYPE2"] = "DEC--TAN-SIP"
-
-    if PYTEST_LT_8_0:
-        ctx1 = ctx2 = nullcontext()
-    else:
-        ctx1 = pytest.warns(
-            wcs.FITSFixedWarning, match=".*RADECSYS keyword is deprecated, use RADESYSa"
-        )
-        ctx2 = pytest.warns(
-            wcs.FITSFixedWarning, match=".*Set MJD-OBS to .* from DATE-OBS"
-        )
-
-    with (
-        pytest.warns(
-            wcs.FITSFixedWarning,
-            match="Removed redundant SCAMP distortion parameters "
-            "because SIP parameters are also present",
-        ),
-        ctx1,
-        ctx2,
-    ):
-        w_sip = wcs.WCS(sip_header)
-
-    assert w_sip.sip is not None
-
-
-def test_tpv_ctype_tpv():
-    sip_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "siponly.hdr"), encoding="binary")
-    )
-    tpv_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "tpvonly.hdr"), encoding="binary")
-    )
-    sip_header.update(tpv_header)
-    sip_header["CTYPE1"] = "RA---TPV"
-    sip_header["CTYPE2"] = "DEC--TPV"
-
-    if PYTEST_LT_8_0:
-        ctx1 = ctx2 = nullcontext()
-    else:
-        ctx1 = pytest.warns(
-            wcs.FITSFixedWarning, match=".*RADECSYS keyword is deprecated, use RADESYSa"
-        )
-        ctx2 = pytest.warns(
-            wcs.FITSFixedWarning, match=".*Set MJD-OBS to .* from DATE-OBS"
-        )
-
-    with (
-        pytest.warns(
-            wcs.FITSFixedWarning,
-            match="Removed redundant SIP distortion parameters "
-            "because CTYPE explicitly specifies TPV distortions",
-        ),
-        ctx1,
-        ctx2,
-    ):
-        w_sip = wcs.WCS(sip_header)
-
-    assert w_sip.sip is None
-
-
-def test_tpv_ctype_tan():
-    sip_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "siponly.hdr"), encoding="binary")
-    )
-    tpv_header = fits.Header.fromstring(
-        get_pkg_data_contents(os.path.join("data", "tpvonly.hdr"), encoding="binary")
-    )
-    sip_header.update(tpv_header)
-    sip_header["CTYPE1"] = "RA---TAN"
-    sip_header["CTYPE2"] = "DEC--TAN"
-
-    if PYTEST_LT_8_0:
-        ctx1 = ctx2 = nullcontext()
-    else:
-        ctx1 = pytest.warns(
-            wcs.FITSFixedWarning, match=".*RADECSYS keyword is deprecated, use RADESYSa"
-        )
-        ctx2 = pytest.warns(
-            wcs.FITSFixedWarning, match=".*Set MJD-OBS to .* from DATE-OBS"
-        )
-
-    with (
-        pytest.warns(
-            wcs.FITSFixedWarning,
-            match="Removed redundant SIP distortion parameters "
-            "because SCAMP' PV distortions are also present",
-        ),
-        ctx1,
-        ctx2,
-    ):
-        w_sip = wcs.WCS(sip_header)
-
-    assert w_sip.sip is None
-
-
-def test_car_sip_with_pv():
-    # https://github.com/astropy/astropy/issues/14255
-    header_dict = {
-        "SIMPLE": True,
-        "BITPIX": -32,
-        "NAXIS": 2,
-        "NAXIS1": 1024,
-        "NAXIS2": 1024,
-        "CRPIX1": 512.0,
-        "CRPIX2": 512.0,
-        "CDELT1": 0.01,
-        "CDELT2": 0.01,
-        "CRVAL1": 120.0,
-        "CRVAL2": 29.0,
-        "CTYPE1": "RA---CAR-SIP",
-        "CTYPE2": "DEC--CAR-SIP",
-        "PV1_1": 120.0,
-        "PV1_2": 29.0,
-        "PV1_0": 1.0,
-        "A_ORDER": 2,
-        "A_2_0": 5.0e-4,
-        "B_ORDER": 2,
-        "B_2_0": 5.0e-4,
-    }
-
-    w = wcs.WCS(header_dict)
-
-    assert w.sip is not None
-
-    assert w.wcs.get_pv() == [(1, 1, 120.0), (1, 2, 29.0), (1, 0, 1.0)]
-
-    assert np.allclose(
-        w.all_pix2world(header_dict["CRPIX1"], header_dict["CRPIX2"], 1),
-        [header_dict["CRVAL1"], header_dict["CRVAL2"]],
-    )
 
 
 @pytest.mark.skipif(
@@ -1472,15 +1316,7 @@ def test_to_fits_1():
     Test to_fits() with LookupTable distortion.
     """
     fits_name = get_pkg_data_filename("data/dist.fits")
-
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(
-            wcs.FITSFixedWarning, match="The WCS transformation has more axes"
-        )
-
-    with pytest.warns(AstropyDeprecationWarning), ctx:
+    with pytest.warns(AstropyDeprecationWarning):
         w = wcs.WCS(fits_name)
     wfits = w.to_fits()
     assert isinstance(wfits, fits.HDUList)
@@ -1615,7 +1451,7 @@ def test_cunit():
     assert w1.wcs.cunit != ["a", "b", "c"]
     # Comparison is not implemented TypeError will raise
     with pytest.raises(TypeError):
-        w1.wcs.cunit < w2.wcs.cunit  # noqa: B015
+        w1.wcs.cunit < w2.wcs.cunit
 
 
 class TestWcsWithTime:
@@ -1751,17 +1587,12 @@ def test_distortion_header(tmp_path):
     """
     path = get_pkg_data_filename("data/dss.14.29.56-62.41.05.fits.gz")
     cen = np.array((50, 50))
-    size = np.array((20, 20))
-
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(VerifyWarning)
+    siz = np.array((20, 20))
 
     with fits.open(path) as hdulist:
-        with ctx, pytest.warns(wcs.FITSFixedWarning):
+        with pytest.warns(wcs.FITSFixedWarning):
             w = wcs.WCS(hdulist[0].header)
-        cut = Cutout2D(hdulist[0].data, position=cen, size=size, wcs=w)
+        cut = Cutout2D(hdulist[0].data, position=cen, size=siz, wcs=w)
 
     # This converts the DSS plate solution model with AMD[XY]n coefficients into a
     # Template Polynomial Distortion model (TPD.FWD.n coefficients);
@@ -1786,7 +1617,7 @@ def test_distortion_header(tmp_path):
     assert w.pixel_to_world(*cen).separation(w0.pixel_to_world(*cen)) < 1.0e-3 * u.mas
 
     assert (
-        w.pixel_to_world(*cen).separation(w1.pixel_to_world(*(size / 2)))
+        w.pixel_to_world(*cen).separation(w1.pixel_to_world(*(siz / 2)))
         < 1.0e-3 * u.mas
     )
 
@@ -1797,7 +1628,7 @@ def test_distortion_header(tmp_path):
         w2 = wcs.WCS(hdulist[0].header)
 
     assert (
-        w.pixel_to_world(*cen).separation(w2.pixel_to_world(*(size / 2)))
+        w.pixel_to_world(*cen).separation(w2.pixel_to_world(*(siz / 2)))
         < 1.0e-3 * u.mas
     )
 
@@ -1858,7 +1689,7 @@ def test_swapaxes_same_val_roundtrip():
     w.wcs.cdelt = [1.0, 1.0, 1.0]
     w.wcs.set()
     axes_order = [3, 2, 1]
-    axes_order0 = [i - 1 for i in axes_order]
+    axes_order0 = list(i - 1 for i in axes_order)
     ws = w.sub(axes_order)
     imcoord = np.array([3, 5, 7])
     imcoords = imcoord[axes_order0]
@@ -1870,84 +1701,3 @@ def test_swapaxes_same_val_roundtrip():
 
     # check round-tripping:
     assert np.allclose(w.wcs_world2pix([val_ref], 0)[0], imcoord, rtol=0, atol=1e-8)
-
-
-def test_DistortionLookupTable():
-    img_world_wcs = wcs.WCS(naxis=2)
-    # A simple "pixel coordinates are world coordinates" WCS, to which we'll
-    # add distortion lookup tables
-    img_world_wcs.wcs.crpix = 1, 1
-    img_world_wcs.wcs.crval = 0, 0
-    img_world_wcs.wcs.cdelt = 1, 1
-
-    # Create maps with zero distortion except at one particular pixel
-    x_dist_array = np.zeros((25, 25))
-    x_dist_array[10, 20] = 0.5
-    map_x = wcs.DistortionLookupTable(
-        x_dist_array.astype(np.float32), (5, 10), (10, 20), (2, 2)
-    )
-
-    y_dist_array = np.zeros((25, 25))
-    y_dist_array[10, 5] = 0.7
-    map_y = wcs.DistortionLookupTable(
-        y_dist_array.astype(np.float32), (5, 10), (10, 20), (3, 3)
-    )
-
-    img_world_wcs.cpdis1 = map_x
-    img_world_wcs.cpdis2 = map_y
-
-    # The x distortion of 0.5 pixels should appear at a specific spot in the
-    # image, and we need to work out what that is so we can check it. The
-    # distortion is at array index (10, 20), which is a 1-based pixel
-    # coordinate of (21, 11) and therefore at an offset of (16, 1) from the
-    # lookup table's CRPIX of (5, 10). CDELT is 2 image pixels / distortion
-    # pixel, so the distortion applies to the image pixel which is at an offset
-    # of (32, 2) from the CRVAL of (10, 20), meaning we should see the
-    # distortion at the 1-based image pixel coordinate of (42, 22).
-    assert_allclose(map_x.get_offset(42, 22), 0.5)
-    # And we should see it applied at the 0-based coordinate (41, 21) with our
-    # simple img<->world wcs.
-    assert_allclose(img_world_wcs.pixel_to_world_values(41, 21), [41.5, 21])
-    # Similarly for the y distortion, the distortion is at array index (10, 5),
-    # which is a 1-based pixel coordinate of (6, 11) and therefore at an offset
-    # of (1, 1) from the lookup table's CRPIX of (5, 10). CDELT is 3 image
-    # pixels / distortion pixel, so the distortion applies to the image pixel
-    # which is at an offset of (3, 3) from the CRVAL of (10, 20), meaning we
-    # should see the distortion at the 1-based image pixel coordinate of (13,
-    # 23).
-    assert_allclose(map_y.get_offset(13, 23), 0.7)
-    # And we should see it applied at the 0-based coordinate (12, 22) with our
-    # simple img<->world wcs.
-    assert_allclose(img_world_wcs.pixel_to_world_values(12, 22), [12, 22.7])
-
-    # Now check that when we move the image location by the equivalent of 1/2
-    # distortion-array pixel, we see only half the distortion.
-    for dx, dy in [(0.5, 0), (-0.5, 0), (0, 0.5), (0, -0.5)]:
-        # Scale dx, dy by 2 for the CDELT in the x distortion table (since
-        # we're looking for the x distortion).
-        assert_allclose(
-            img_world_wcs.pixel_to_world_values(41 + dx * 2, 21 + dy * 2),
-            [41 + dx * 2 + 0.25, 21 + dy * 2],
-        )
-        # Scale dx, dy by 3 for the CDELT in the y distortion table (since
-        # we're looking for the y distortion).
-        assert_allclose(
-            img_world_wcs.pixel_to_world_values(12 + dx * 3, 22 + dy * 3),
-            [12 + dx * 3, 22 + dy * 3 + 0.35],
-        )
-
-    # Now check that when we move the image location by the equivalent of 1
-    # distortion-array pixel, we see no distortion.
-    for dx, dy in [(2, 0), (-2, 0), (0, 2), (0, -2)]:
-        # Scale dx, dy by 2 for the CDELT in the x distortion table (since
-        # we're looking for the x distortion).
-        assert_allclose(
-            img_world_wcs.pixel_to_world_values(41 + dx * 2, 21 + dy * 2),
-            [41 + dx * 2, 21 + dy * 2],
-        )
-        # Scale dx, dy by 3 for the CDELT in the y distortion table (since
-        # we're looking for the y distortion).
-        assert_allclose(
-            img_world_wcs.pixel_to_world_values(12 + dx * 3, 22 + dy * 3),
-            [12 + dx * 3, 22 + dy * 3],
-        )

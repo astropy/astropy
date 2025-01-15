@@ -9,6 +9,7 @@ from astropy.table import QTable, Table, groups
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 from astropy.units import Quantity, UnitsError
+from astropy.utils.decorators import deprecated_renamed_argument
 
 __all__ = ["TimeSeries"]
 
@@ -152,6 +153,7 @@ class TimeSeries(BaseTimeSeries):
         """
         return self["time"]
 
+    @deprecated_renamed_argument("midpoint_epoch", "epoch_time", "4.0")
     def fold(
         self,
         period=None,
@@ -194,6 +196,7 @@ class TimeSeries(BaseTimeSeries):
         folded_timeseries : `~astropy.timeseries.TimeSeries`
             The folded time series object with phase as the ``time`` column.
         """
+
         if not isinstance(period, Quantity) or period.unit.physical_type != "time":
             raise UnitsError("period should be a Quantity in units of time")
 
@@ -313,7 +316,7 @@ class TimeSeries(BaseTimeSeries):
         return result
 
     @classmethod
-    def from_pandas(cls, df, time_scale="utc"):
+    def from_pandas(self, df, time_scale="utc"):
         """
         Convert a :class:`~pandas.DataFrame` to a
         :class:`astropy.timeseries.TimeSeries`.
@@ -354,7 +357,7 @@ class TimeSeries(BaseTimeSeries):
 
     @classmethod
     def read(
-        cls,
+        self,
         filename,
         time_column=None,
         time_format=None,
@@ -408,7 +411,7 @@ class TimeSeries(BaseTimeSeries):
         """
         try:
             # First we try the readers defined for the BinnedTimeSeries class
-            return super().read(filename, *args, format=format, **kwargs)
+            return super().read(filename, format=format, *args, **kwargs)
 
         except TypeError:
             # Otherwise we fall back to the default Table readers
@@ -419,7 +422,7 @@ class TimeSeries(BaseTimeSeries):
                     " are being used."
                 )
 
-            table = Table.read(filename, *args, format=format, **kwargs)
+            table = Table.read(filename, format=format, *args, **kwargs)
 
             if time_column in table.colnames:
                 time = Time(

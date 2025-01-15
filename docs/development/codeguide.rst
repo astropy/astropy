@@ -13,24 +13,32 @@ Interface and Dependencies
 ==========================
 
 * All code must be compatible with the versions of Python indicated by the
-  ``requires-python`` key  under ``[project]`` in the `pyproject.toml
-  <https://github.com/astropy/astropy/blob/main/pyproject.toml>`_ file of the
+  ``python_requires`` key in the `setup.cfg
+  <https://github.com/astropy/astropy/blob/main/setup.cfg>`_ file of the
   core package.
+
+* Usage of ``six``, ``__future__``, and ``2to3`` is no longer acceptable.
+
+* `f-strings <https://docs.python.org/3/reference/lexical_analysis.html#f-strings>`_
+  should be used when possible, and if not, Python 3
+  formatting should be used (i.e. ``"{0:s}".format("spam")``)
+  instead of the ``%`` operator (``"%s" % "spam"``).
 
 * The core package should be importable with no
   dependencies other than components already in the Astropy core, the
   `Python Standard Library <https://docs.python.org/3/library/index.html>`_,
-  and |NumPy| |minimum_numpy_version| or later.
+  and NumPy_ |minimum_numpy_version| or later.
 
-* Additional dependencies - such as |SciPy|, |Matplotlib|, or other
+* Additional dependencies - such as SciPy_, Matplotlib_, or other
   third-party packages - are allowed for sub-modules or in function
   calls, but they must be noted in the package documentation and
   should only affect the relevant component.  In functions and
   methods, the optional dependency should use a normal ``import``
   statement, which will raise an ``ImportError`` if the dependency is
   not available. In the astropy core package, such optional dependencies should
-  be recorded in the ``pyproject.toml`` file in the ``[project.optional-dependencies]``
-  entry (put it in the appropriate category of optional dependencies).
+  be recorded in the ``setup.cfg`` file in the ``extras_require``
+  entry, under ``all`` (or ``test_all`` if the dependency is only
+  needed for testing).
 
   At the module level, one can subclass a class from an optional dependency
   like so::
@@ -40,7 +48,7 @@ Interface and Dependencies
       except ImportError:
           warn(AstropyWarning('opdep is not present, so <functionality>'
                               'will not work.'))
-          class Superclass: pass
+          class Superclass(object): pass
 
       class Customclass(Superclass):
           ...
@@ -124,46 +132,68 @@ Coding Style/Conventions
 ========================
 
 * The code should follow the standard `PEP8 Style Guide for Python Code
-  <https://www.python.org/dev/peps/pep-0008/>`_.
+  <https://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
+  using only 4 spaces for indentation, and never tabs.
 
   * ``astropy`` itself enforces this style guide using the
-    `ruff format <https://docs.astral.sh/ruff/formatter/>`_ code formatter, which closely follows the
-    `The Black Code Style <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_.
+    `black <https://black.readthedocs.io/en/stable/>`_ code formatter.
 
-  * In the rare cases that ruff_ formatting is undesirable, it is possible to
-    `disable formatting locally <https://docs.astral.sh/ruff/formatter/#format-suppression>`_.
+  * We recognize that sometimes ``black`` will autoformat things in undesirable
+    ways, e.g., matrices.  In the cases that ``black`` produces undesirable code
+    formatting:
 
-      .. note::
-        When a list or array should be formatted as one item per line then this is best
-        achieved by using the
-        `magic trailing comma <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#the-magic-trailing-comma>`_.
-        This is frequently sufficient for keeping matrices formatted as one row
-        per line while still allowing ruff_ to check the code::
+      * one can wrap code the code in ``# fmt: off`` and ``# fmt: on`` to disable
+        ``black`` formatting over multiple lines.
 
-            arr = [
-                [0, 1],
-                [1, 0],  # notice the trailing comma.
-            ]
+      * or one can add a single ``# fmt: skip`` comment to the end of a line to
+        disable ``black`` formatting for that line.
 
+    This should be done sparingly, and only
+    when ``black`` produces undesirable formatting.
 
-* Our testing infrastructure currently enforces a subset of the |PEP8| style guide. In
-  addition, these checks also enforce `isort <https://pycqa.github.io/isort/>`_ to sort
-  the module imports and a large set of style-checks supported by ruff_.
+* Our testing infrastructure currently enforces a subset of the PEP8 style
+  guide. In addition, these checks also enforce
+  `isort <https://pycqa.github.io/isort/>`_ to sort the module imports.
 
-  * We provide a `pre-commit <https://pre-commit.com/>`_ configuration which
-    automatically enforces and fixes (whenever possible) the coding style, see
-    :ref:`pre-commit` for details on how to set up and use this. We note that the
-    particular set of |PEP8| and style-related checks that are used in Astropy do not
-    need to be used in affiliated packages. In particular, the set of ruff_ checks is
-    not required for affiliated packages.
+  * We provide a ``pre-commit`` hook which automatically enforces and fixes
+    (whenever possible) the coding style, see :ref:`pre-commit` for details on
+    how to setup and use this.
+
+  * Alternately, you can manually check and fix your changes by running the
+    following `tox <https://tox.readthedocs.io/>`__ command::
+
+      tox -e codestyle
+
+* Following PEP8's recommendation, absolute imports are to be used in general.
+  The exception to this is relative imports of the form
+  ``from . import modname``, best when referring to files within the same
+  sub-module.  This makes it clearer what code is from the current submodule
+  as opposed to from another.
 
   .. note:: There are multiple options for testing PEP8 compliance of code,
             see :doc:`testguide` for more information.
+            See :doc:`codeguide_emacs` for some configuration options for Emacs
+            that helps in ensuring conformance to PEP8.
 
-* ``astropy`` source code should contain a comment at the beginning of the file
-  pointing to the license for the ``astropy`` source code.  This line should say::
+* Astropy source code should contain a comment at the beginning of the file (or
+  immediately after the ``#!/usr/bin env python`` command, if relevant)
+  pointing to the license for the Astropy source code.  This line should say::
 
       # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+* The following naming conventions::
+
+    import numpy as np
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
+  should be used wherever relevant. On the other hand::
+
+    from packagename import *
+
+  should never be used, except as a tool to flatten the namespace of a module.
+  An example of the allowed usage is given in the :ref:`import-star-example`
+  example.
 
 * Classes should either use direct variable access, or Python’s property
   mechanism for setting object instance variables. ``get_value``/``set_value``
@@ -240,9 +270,11 @@ accept, and conservative in what you send."
 
 The following example class shows a way to implement this::
 
+    # -*- coding: utf-8 -*-
+
     from astropy import conf
 
-    class FloatList:
+    class FloatList(object):
         def __init__(self, init):
             if isinstance(init, str):
                 init = init.split('‖')
@@ -330,10 +362,10 @@ Properties vs. get\_/set\_
 --------------------------
 
 This example shows a sample class illustrating the guideline regarding the use
-of `properties <https://docs.python.org/3/library/functions.html#property>`_ as
-opposed to getter/setter methods.
+of properties as opposed to getter/setter methods.
 
-Let's assume you've defined a ``Star`` class and create an instance like this::
+Let's assuming you've defined a ``Star`` class and create an instance
+like this::
 
     >>> s = Star(B=5.48, V=4.83)
 
@@ -366,7 +398,7 @@ multiple inheritance case::
 
     # This is dangerous and bug-prone!
 
-    class A:
+    class A(object):
         def method(self):
             print('Doing A')
 
@@ -422,7 +454,7 @@ class should be handed control in the next `super` call::
 
     # This is safer
 
-    class A:
+    class A(object):
         def method(self):
             print('Doing A')
 
@@ -460,12 +492,66 @@ directly.  But as soon as a class is used in a multiple-inheritance
 hierarchy it must use ``super()`` in order to cooperate with other classes in
 the hierarchy.
 
-.. note:: For more information on the benefits of `super`, see
+.. note:: For more information on the the benefits of `super`, see
           https://rhettinger.wordpress.com/2011/05/26/super-considered-super/
+
+.. _import-star-example:
+
+Acceptable use of ``from module import *``
+------------------------------------------
+
+``from module import *`` is discouraged in a module that contains
+implementation code, as it impedes clarity and often imports unused variables.
+It can, however, be used for a package that is laid out in the following
+manner::
+
+    packagename
+    packagename/__init__.py
+    packagename/submodule1.py
+    packagename/submodule2.py
+
+In this case, ``packagename/__init__.py`` may be::
+
+    """
+    A docstring describing the package goes here
+    """
+    from submodule1 import *
+    from submodule2 import *
+
+This allows functions or classes in the submodules to be used directly as
+``packagename.foo`` rather than ``packagename.submodule1.foo``. If this is
+used, it is strongly recommended that the submodules make use of the ``__all__``
+variable to specify which modules should be imported. Thus, ``submodule2.py``
+might read::
+
+    from numpy import array, linspace
+
+    __all__ = ['foo', 'AClass']
+
+    def foo(bar):
+        # the function would be defined here
+        pass
+
+    class AClass(object):
+        # the class is defined here
+        pass
+
+This ensures that ``from submodule import *`` only imports ``foo`` and
+``AClass``, but not `numpy.array` or `numpy.linspace`.
+
+
+Additional Resources
+====================
+
+Further tips and hints relating to the coding guidelines are included below.
+
+.. toctree::
+    :maxdepth: 1
+
+    codeguide_emacs
 
 .. _Numpy: https://numpy.org/
 .. _Scipy: https://www.scipy.org/
 .. _matplotlib: https://matplotlib.org/
 .. _Cython: https://cython.org/
 .. _PyPI: https://pypi.org/project
-.. _ruff: https://docs.astral.sh/ruff/

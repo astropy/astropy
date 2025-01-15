@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from pathlib import Path
+import os
 
-dpath = str(Path(__file__).parent.resolve())
+dpath = os.path.split(os.path.abspath(__file__))[0]

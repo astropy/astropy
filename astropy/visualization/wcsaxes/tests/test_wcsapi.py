@@ -19,12 +19,10 @@ from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFra
 from astropy.visualization.wcsaxes.wcsapi import (
     WCSWorld2PixelTransform,
     apply_slices,
-    custom_ucd_coord_meta_mapping,
     transform_coord_meta_from_wcs,
 )
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
-from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping
 
 
 @pytest.fixture
@@ -147,9 +145,9 @@ def test_coord_type_from_ctype(cube_wcs):
     ticks_position = coord_meta["default_ticks_position"]
 
     # These axes are swapped due to the pixel derivatives
-    assert axislabel_position == ["#", "#", "#"]
-    assert ticklabel_position == ["#", "#", "#"]
-    assert ticks_position == ["#", "#", "#"]
+    assert axislabel_position == ["l", "r", "b"]
+    assert ticklabel_position == ["l", "r", "b"]
+    assert ticks_position == ["l", "r", "b"]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["GLON-TAN", "GLAT-TAN"]
@@ -181,7 +179,7 @@ def test_coord_type_from_ctype(cube_wcs):
 
     assert coord_meta["type"] == ["longitude", "latitude"]
     assert coord_meta["format_unit"] == [u.arcsec, u.arcsec]
-    assert coord_meta["wrap"] == [180.0 * u.deg, None]
+    assert coord_meta["wrap"] == [180.0, None]
 
     _, coord_meta = transform_coord_meta_from_wcs(
         wcs, RectangularFrame, slices=("y", "x")
@@ -192,9 +190,9 @@ def test_coord_type_from_ctype(cube_wcs):
     ticks_position = coord_meta["default_ticks_position"]
 
     # These axes should be swapped because of slices
-    assert axislabel_position == ["#", "#"]
-    assert ticklabel_position == ["#", "#"]
-    assert ticks_position == ["brtl", "brtl"]
+    assert axislabel_position == ["l", "b"]
+    assert ticklabel_position == ["l", "b"]
+    assert ticks_position == ["bltr", "bltr"]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["HGLN-TAN", "HGLT-TAN"]
@@ -207,7 +205,7 @@ def test_coord_type_from_ctype(cube_wcs):
 
     assert coord_meta["type"] == ["longitude", "latitude"]
     assert coord_meta["format_unit"] == [u.deg, u.deg]
-    assert coord_meta["wrap"] == [180.0 * u.deg, None]
+    assert coord_meta["wrap"] == [180.0, None]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["CRLN-TAN", "CRLT-TAN"]
@@ -220,7 +218,7 @@ def test_coord_type_from_ctype(cube_wcs):
 
     assert coord_meta["type"] == ["longitude", "latitude"]
     assert coord_meta["format_unit"] == [u.deg, u.deg]
-    assert coord_meta["wrap"] == [360.0 * u.deg, None]
+    assert coord_meta["wrap"] == [360.0, None]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
@@ -236,25 +234,6 @@ def test_coord_type_from_ctype(cube_wcs):
     assert coord_meta["wrap"] == [None, None]
 
     wcs = WCS(naxis=2)
-    wcs.wcs.ctype = ["HHLN-TAN", "HHLT-TAN"]
-    wcs.wcs.crpix = [256.0] * 2
-    wcs.wcs.cdelt = [-0.05] * 2
-    wcs.wcs.crval = [50.0] * 2
-    wcs.wcs.set()
-
-    custom_mapping = {
-        "HHLN": "custom:pos.custom.lon",
-        "HHLT": "custom:pos.custom.lat",
-    }
-    with custom_ctype_to_ucd_mapping(custom_mapping):
-        _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
-
-    # Ensure these custom types get mapped to longitude and latitude
-    assert coord_meta["type"] == ["longitude", "latitude"]
-    assert coord_meta["format_unit"] == [u.deg, u.deg]
-    assert coord_meta["wrap"] == [None, None]
-
-    wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["spam", "spam"]
     wcs.wcs.crpix = [256.0] * 2
     wcs.wcs.cdelt = [-0.05] * 2
@@ -265,127 +244,6 @@ def test_coord_type_from_ctype(cube_wcs):
 
     assert coord_meta["type"] == ["scalar", "scalar"]
     assert coord_meta["format_unit"] == [u.one, u.one]
-    assert coord_meta["wrap"] == [None, None]
-
-    myframe_mapping = {
-        "custom:pos.myframe.lon": {
-            "coord_wrap": 180.0 * u.deg,
-            "format_unit": u.arcsec,
-            "coord_type": "longitude",
-        },
-        "custom:pos.myframe.lat": {"format_unit": u.arcsec, "coord_type": "latitude"},
-    }
-
-
-def test_custom_coord_type_from_ctype():
-    wcs = WCS(naxis=1)
-    wcs.wcs.ctype = ["eggs"]
-    wcs.wcs.cunit = ["deg"]
-
-    custom_mapping = {
-        "eggs": "custom:pos.eggs",
-    }
-    with custom_ctype_to_ucd_mapping(custom_mapping):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection=wcs)
-        assert ax.coords["eggs"].coord_type == "scalar"
-        assert ax.coords["eggs"].coord_wrap == None
-        assert ax.coords["eggs"].get_format_unit() == u.deg
-
-        custom_meta = {
-            "pos.eggs": {
-                "coord_wrap": 360.0 * u.deg,
-                "format_unit": u.arcsec,
-                "coord_type": "longitude",
-            }
-        }
-        with custom_ucd_coord_meta_mapping(custom_meta):
-            ax = fig.add_subplot(111, projection=wcs)
-            ax.coords
-            assert ax.coords["eggs"].coord_type == "longitude"
-            assert ax.coords["eggs"].coord_wrap == 360 * u.deg
-            assert ax.coords["eggs"].get_format_unit() == u.arcsec
-
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection=wcs)
-        assert ax.coords["eggs"].coord_type == "scalar"
-        assert ax.coords["eggs"].coord_wrap == None
-        assert ax.coords["eggs"].get_format_unit() == u.deg
-
-
-def test_custom_coord_type_from_ctype_nested():
-    wcs = WCS(naxis=2)
-    wcs.wcs.ctype = ["eggs", "spam"]
-    wcs.wcs.cunit = ["deg", "deg"]
-
-    custom_mapping = {
-        "eggs": "custom:pos.eggs",
-        "spam": "custom:pos.spam",
-    }
-
-    with custom_ctype_to_ucd_mapping(custom_mapping):
-        fig = plt.figure()
-        custom_meta_1 = {
-            "pos.eggs": {
-                "coord_wrap": 360.0 * u.deg,
-                "format_unit": u.arcsec,
-                "coord_type": "longitude",
-            }
-        }
-        with custom_ucd_coord_meta_mapping(custom_meta_1):
-            custom_meta_2 = {
-                "pos.spam": {
-                    "format_unit": u.deg,
-                    "coord_type": "latitude",
-                }
-            }
-            with custom_ucd_coord_meta_mapping(custom_meta_2):
-                ax = fig.add_subplot(111, projection=wcs)
-                ax.coords
-                assert ax.coords["eggs"].coord_type == "longitude"
-                assert ax.coords["eggs"].coord_wrap == 360 * u.deg
-                assert ax.coords["eggs"].get_format_unit() == u.arcsec
-                assert ax.coords["spam"].coord_type == "latitude"
-                assert ax.coords["spam"].get_format_unit() == u.deg
-
-        # Now test the mappings have been removed
-        fig2 = plt.figure()
-        ax = fig.add_subplot(111, projection=wcs)
-        assert ax.coords["eggs"].coord_type == "scalar"
-        assert ax.coords["eggs"].coord_wrap == None
-        assert ax.coords["eggs"].get_format_unit() == u.deg
-        assert ax.coords["spam"].coord_type == "scalar"
-        assert ax.coords["spam"].coord_wrap == None
-
-
-def test_custom_coord_type_1d_2d_wcs_overwrite():
-    wcs = WCS(naxis=2)
-    wcs.wcs.ctype = ["HGLN-TAN", "HGLT-TAN"]
-    wcs.wcs.crpix = [256.0] * 2
-    wcs.wcs.cdelt = [-0.05] * 2
-    wcs.wcs.crval = [50.0] * 2
-    wcs.wcs.set()
-
-    custom_meta = {
-        "custom:pos.heliographic.stonyhurst.lon": {
-            "format_unit": u.arcsec,
-            # This also tests that we don't overwrite the custom meta with the
-            # stock meta that will set to longitude when the UCD ends in lon
-            "coord_type": "latitude",
-        }
-    }
-
-    with pytest.raises(
-        ValueError, match="pos.heliographic.stonyhurst.lon already exists"
-    ):
-        with custom_ucd_coord_meta_mapping(custom_meta):
-            _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
-
-    with custom_ucd_coord_meta_mapping(custom_meta, overwrite=True):
-        _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
-
-    assert coord_meta["type"] == ["latitude", "latitude"]
-    assert coord_meta["format_unit"] == [u.arcsec, u.deg]
     assert coord_meta["wrap"] == [None, None]
 
 
@@ -450,9 +308,9 @@ def test_coord_meta_4d(wcs_4d):
     ticklabel_position = coord_meta["default_ticklabel_position"]
     ticks_position = coord_meta["default_ticks_position"]
 
-    assert axislabel_position == ["", "", "#", "#"]
-    assert ticklabel_position == ["", "", "#", "#"]
-    assert ticks_position == ["", "", "brtl", "brtl"]
+    assert axislabel_position == ["", "", "b", "l"]
+    assert ticklabel_position == ["", "", "b", "l"]
+    assert ticks_position == ["", "", "bltr", "bltr"]
 
 
 def test_coord_meta_4d_line_plot(wcs_4d):
@@ -465,9 +323,9 @@ def test_coord_meta_4d_line_plot(wcs_4d):
     ticks_position = coord_meta["default_ticks_position"]
 
     # These axes are swapped due to the pixel derivatives
-    assert axislabel_position == ["", "", "#", "#"]
-    assert ticklabel_position == ["", "", "#", "#"]
-    assert ticks_position == ["", "", "#", "#"]
+    assert axislabel_position == ["", "", "t", "b"]
+    assert ticklabel_position == ["", "", "t", "b"]
+    assert ticks_position == ["", "", "t", "b"]
 
 
 @pytest.fixture
@@ -500,11 +358,11 @@ def test_apply_slices(sub_wcs, wcs_slice, wcsaxes_slices, world_map, ndim):
 def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
     slices_wcsaxes = [0, "x", "y"]
 
-    for sub_wcs_ in (sub_wcs, SlicedLowLevelWCS(wcs_4d, wcs_slice)):
+    for sub_wcs in (sub_wcs, SlicedLowLevelWCS(wcs_4d, wcs_slice)):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=FutureWarning)
             _, coord_meta = transform_coord_meta_from_wcs(
-                sub_wcs_, RectangularFrame, slices=slices_wcsaxes
+                sub_wcs, RectangularFrame, slices=slices_wcsaxes
             )
 
         assert all(len(x) == 3 for x in coord_meta.values())
@@ -515,7 +373,7 @@ def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
             ("custom:pos.helioprojective.lon", "hpln-tan", "hpln"),
         ]
         assert coord_meta["type"] == ["scalar", "latitude", "longitude"]
-        assert coord_meta["wrap"] == [None, None, 180.0 * u.deg]
+        assert coord_meta["wrap"] == [None, None, 180.0]
         assert coord_meta["unit"] == [u.Unit("min"), u.Unit("deg"), u.Unit("deg")]
         assert coord_meta["visible"] == [False, True, True]
         assert coord_meta["format_unit"] == [
@@ -523,13 +381,13 @@ def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
             u.Unit("arcsec"),
             u.Unit("arcsec"),
         ]
-        assert coord_meta["default_axislabel_position"] == ["", "#", "#"]
-        assert coord_meta["default_ticklabel_position"] == ["", "#", "#"]
-        assert coord_meta["default_ticks_position"] == ["", "brtl", "brtl"]
+        assert coord_meta["default_axislabel_position"] == ["", "b", "l"]
+        assert coord_meta["default_ticklabel_position"] == ["", "b", "l"]
+        assert coord_meta["default_ticks_position"] == ["", "bltr", "bltr"]
 
         # Validate the axes initialize correctly
         plt.clf()
-        plt.subplot(projection=sub_wcs_, slices=slices_wcsaxes)
+        plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
 
 
 class LowLevelWCS5D(BaseLowLevelWCS):
@@ -623,10 +481,10 @@ def test_edge_axes():
     lat = ax.coords[1]
     fig.canvas.draw()
     np.testing.assert_equal(
-        lon._ticks.world["b"], np.array([90.0, 180.0, 180.0, 270.0, 0.0])
+        lon.ticks.world["b"], np.array([90.0, 180.0, 180.0, 270.0, 0.0])
     )
     np.testing.assert_equal(
-        lat._ticks.world["l"], np.array([-90.0, -60.0, -30.0, 0.0, 30.0, 60.0, 90.0])
+        lat.ticks.world["l"], np.array([-90.0, -60.0, -30.0, 0.0, 30.0, 60.0, 90.0])
     )
 
 
@@ -661,9 +519,9 @@ def test_coord_meta_wcsapi():
         u.Unit("deg"),
         u.one,
     ]
-    assert coord_meta["default_axislabel_position"] == ["#", "#", "#", "#", "#"]
-    assert coord_meta["default_ticklabel_position"] == ["#", "#", "#", "#", "#"]
-    assert coord_meta["default_ticks_position"] == ["#", "#", "#", "#", "#"]
+    assert coord_meta["default_axislabel_position"] == ["b", "l", "t", "r", ""]
+    assert coord_meta["default_ticklabel_position"] == ["b", "l", "t", "r", ""]
+    assert coord_meta["default_ticks_position"] == ["b", "l", "t", "r", ""]
     assert coord_meta["default_axis_label"] == [
         "Frequency",
         "time",
@@ -680,75 +538,4 @@ def test_wcsapi_5d_with_names(plt_close):
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=LowLevelWCS5D())
     ax.set_xlim(-0.5, 148.5)
     ax.set_ylim(-0.5, 148.5)
-    return fig
-
-
-class LowLevelWCSCelestial2D(BaseLowLevelWCS):
-    # APE 14 WCS that has celestial coordinates that are deliberately not in degrees
-
-    @property
-    def pixel_n_dim(self):
-        return 2
-
-    @property
-    def world_n_dim(self):
-        return 2
-
-    @property
-    def world_axis_physical_types(self):
-        return [
-            "pos.eq.ra",
-            "pos.eq.dec",
-        ]
-
-    @property
-    def world_axis_units(self):
-        return ["arcsec", "arcsec"]
-
-    @property
-    def world_axis_names(self):
-        return ["RA", "DEC"]
-
-    # Since the units are in arcsec, we can just go for an identity transform
-    # where 1 pixel = 1" since this is not completely unrealistic
-
-    def pixel_to_world_values(self, *pixel_arrays):
-        return pixel_arrays
-
-    def world_to_pixel_values(self, *world_arrays):
-        return world_arrays
-
-    @property
-    def world_axis_object_components(self):
-        return [
-            ("celestial", 0, "spherical.lon.arcsec"),
-            ("celestial", 1, "spherical.lat.arcsec"),
-        ]
-
-    @property
-    def world_axis_object_classes(self):
-        return {
-            "celestial": (SkyCoord, (), {"unit": "arcsec"}),
-        }
-
-
-@figure_test
-def test_wcsapi_2d_celestial_arcsec(plt_close):
-    # Regression test for plot_coord/scatter_coord/text_coord with celestial WCS that is not in degrees
-    fig = plt.figure(figsize=(6, 6))
-    ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=LowLevelWCSCelestial2D())
-    ax.set_xlim(-0.5, 200.5)
-    ax.set_ylim(-0.5, 200.5)
-    ax.coords[0].set_format_unit("arcsec")
-    ax.plot_coord(SkyCoord([50, 150], [100, 100], unit="arcsec"), "ro")
-    ax.scatter_coord(
-        SkyCoord([100, 100], [50, 150], unit="arcsec"), color="green", s=50
-    )
-    ax.text_coord(
-        SkyCoord(50, 50, unit="arcsec"),
-        "Plot Label",
-        color="blue",
-        ha="right",
-        va="top",
-    )
     return fig

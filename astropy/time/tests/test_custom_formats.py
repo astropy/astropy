@@ -186,6 +186,7 @@ def test_mjd_longdouble_preserves_precision(custom_format_name):
         ({1, 2}, {3, 4}),
         ([1, 2], [3, 4]),
         (lambda: 4, lambda: 7),
+        (np.arange(3), np.arange(4)),
     ],
 )
 def test_custom_format_cannot_make_bogus_jd1(custom_format_name, jd1, jd2):

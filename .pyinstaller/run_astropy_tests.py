@@ -3,7 +3,7 @@ import shutil
 import sys
 
 import erfa  # noqa: F401
-import matplotlib as mpl
+import matplotlib
 import pytest
 
 import astropy  # noqa: F401
@@ -86,7 +86,7 @@ shutil.copy2(
 
 # matplotlib hook in pyinstaller 5.0 and later no longer collects every backend, see
 # https://github.com/pyinstaller/pyinstaller/issues/6760
-mpl.use("svg")
+matplotlib.use("svg")
 
 # We skip a few tests, which are generally ones that rely on explicitly
 # checking the name of the current module (which ends up starting with
@@ -119,6 +119,7 @@ sys.exit(
         plugins=[
             "pytest_astropy.plugin",
             "pytest_doctestplus.plugin",
+            "pytest_openfiles.plugin",
             "pytest_remotedata.plugin",
             "pytest_astropy_header.display",
         ],

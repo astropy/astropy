@@ -6,8 +6,6 @@ from operator import index as operator_index
 
 import numpy as np
 
-from astropy.utils.compat import COPY_IF_NEEDED
-
 
 class Row:
     """A class to represent one row of a Table object.
@@ -26,9 +24,9 @@ class Row:
       ----- -----
           2     4
       >>> row['a']
-      np.int32(2)
+      2
       >>> row[1]
-      np.int32(4)
+      4
     """
 
     def __init__(self, table, index):
@@ -39,7 +37,9 @@ class Row:
 
         if index < -n or index >= n:
             raise IndexError(
-                f"index {index} out of range for table with length {len(table)}"
+                "index {} out of range for table with length {}".format(
+                    index, len(table)
+                )
             )
 
         # Finally, ensure the index is positive [#8422] and set Row attributes
@@ -56,9 +56,6 @@ class Row:
             if self._table._is_list_or_tuple_of_str(item):
                 cols = [self._table[name] for name in item]
                 out = self._table.__class__(cols, copy=False)[self._index]
-            elif isinstance(item, slice):
-                # https://github.com/astropy/astropy/issues/14007
-                out = tuple(self.values())[item]
             else:
                 # This is only to raise an exception
                 out = self._table.columns[item][self._index]
@@ -90,7 +87,7 @@ class Row:
             )
         return self.as_void() != other
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None):
         """Support converting Row to np.array via np.array(table).
 
         Coercion to a different dtype via np.array(table, dtype) is not
@@ -101,7 +98,7 @@ class Row:
         if dtype is not None:
             raise ValueError("Datatype coercion is not allowed")
 
-        return np.array(self.as_void(), copy=copy)
+        return np.asarray(self.as_void())
 
     def __len__(self):
         return len(self._table.columns)
@@ -110,35 +107,6 @@ class Row:
         index = self._index
         for col in self._table.columns.values():
             yield col[index]
-
-    def get(self, key, default=None, /):
-        """Return the value for key if key is in the columns, else default.
-
-        Parameters
-        ----------
-        key : `str`, positional-only
-            The name of the column to look for.
-        default : `object`, optional, positional-only
-            The value to return if the ``key`` is not among the columns.
-
-        Returns
-        -------
-        `object`
-            The value in the ``key`` column of the row if present,
-            ``default`` otherwise.
-
-        Examples
-        --------
-        >>> from astropy.table import Table
-        >>> t = Table({"a": [2, 3, 5], "b": [7, 11, 13]})
-        >>> t[0].get("a")
-        np.int64(2)
-        >>> t[1].get("b", 0)
-        np.int64(11)
-        >>> t[2].get("c", 0)
-        0
-        """
-        return self[key] if key in self._table.columns else default
 
     def keys(self):
         return self._table.columns.keys()

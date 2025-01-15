@@ -1,46 +1,14 @@
-# /// script
-# requires-python = ">=3.10, <3.13"
-# dependencies = [
-#     "starlink-pyast==3.15.4",
-#     "numpy==1.26.4",
-#     "astropy",
-# ]
-# ///
-# above are PEP 723 script metadata for later reference, but they are
-# insufficient to run the script: starlink-pyast doesn't have wheels or proper
-# build time requirements specifications.
-# It must be build from source and without isolation, for instance, as follows
-# pip install 'numpy==1.26.4' 'setuptools==74.1.2'
-# pip install 'starlink-pyast==3.15.4' --no-build-isolation
-# pip install astropy
 """
 This series of functions are used to generate the reference CSV files
 used by the accuracy tests.  Running this as a command-line script will
 generate them all.
 """
 
-from pathlib import Path
+import os
 
 import numpy as np
 
 from astropy.table import Column, Table
-
-FILE_PATH = Path(__file__)
-DATA_DIR = FILE_PATH.parent / "data"
-
-
-GEN_FILE_HEADER = (
-    f"# This file was generated with the {FILE_PATH.name} script, "
-    "and the reference values were computed using AST\n"
-)
-
-
-def float_column_formats(table: Table) -> dict[str, str]:
-    return {
-        col.name: ".12g"
-        for col in table.itercols()
-        if np.issubdtype(col.dtype, np.floating)
-    }
 
 
 def ref_fk4_no_e_fk4(fnout="fk4_no_e_fk4.csv"):
@@ -48,6 +16,7 @@ def ref_fk4_no_e_fk4(fnout="fk4_no_e_fk4.csv"):
     Accuracy tests for the FK4 (with no E-terms of aberration) to/from FK4
     conversion, with arbitrary equinoxes and epoch of observation.
     """
+
     import starlink.Ast as Ast
 
     np.random.seed(12345)
@@ -92,10 +61,12 @@ def ref_fk4_no_e_fk4(fnout="fk4_no_e_fk4.csv"):
     t.add_column(Column(name="dec_fk4ne", data=dec_fk4ne))
     t.add_column(Column(name="ra_fk4", data=ra_fk4))
     t.add_column(Column(name="dec_fk4", data=dec_fk4))
-
-    with open(DATA_DIR / fnout, "w") as fh:
-        fh.write(GEN_FILE_HEADER)
-        t.write(fh, format="ascii", delimiter=",", formats=float_column_formats(t))
+    f = open(os.path.join("data", fnout), "wb")
+    f.write(
+        f"# This file was generated with the {os.path.basename(__file__)} script, and"
+        " the reference values were computed using AST\n"
+    )
+    t.write(f, format="ascii", delimiter=",")
 
 
 def ref_fk4_no_e_fk5(fnout="fk4_no_e_fk5.csv"):
@@ -103,6 +74,7 @@ def ref_fk4_no_e_fk5(fnout="fk4_no_e_fk5.csv"):
     Accuracy tests for the FK4 (with no E-terms of aberration) to/from FK5
     conversion, with arbitrary equinoxes and epoch of observation.
     """
+
     import starlink.Ast as Ast
 
     np.random.seed(12345)
@@ -155,9 +127,12 @@ def ref_fk4_no_e_fk5(fnout="fk4_no_e_fk5.csv"):
     t.add_column(Column(name="dec_fk5", data=dec_fk5))
     t.add_column(Column(name="ra_fk4", data=ra_fk4))
     t.add_column(Column(name="dec_fk4", data=dec_fk4))
-    with open(DATA_DIR / fnout, "w") as fh:
-        fh.write(GEN_FILE_HEADER)
-        t.write(fh, format="ascii", delimiter=",", formats=float_column_formats(t))
+    f = open(os.path.join("data", fnout), "wb")
+    f.write(
+        f"# This file was generated with the {os.path.basename(__file__)} script, and"
+        " the reference values were computed using AST\n"
+    )
+    t.write(f, format="ascii", delimiter=",")
 
 
 def ref_galactic_fk4(fnout="galactic_fk4.csv"):
@@ -165,6 +140,7 @@ def ref_galactic_fk4(fnout="galactic_fk4.csv"):
     Accuracy tests for the ICRS (with no E-terms of aberration) to/from FK5
     conversion, with arbitrary equinoxes and epoch of observation.
     """
+
     import starlink.Ast as Ast
 
     np.random.seed(12345)
@@ -213,9 +189,12 @@ def ref_galactic_fk4(fnout="galactic_fk4.csv"):
     t.add_column(Column(name="dec_fk4", data=dec_fk4))
     t.add_column(Column(name="lon_gal", data=lon_gal))
     t.add_column(Column(name="lat_gal", data=lat_gal))
-    with open(DATA_DIR / fnout, "w") as fh:
-        fh.write(GEN_FILE_HEADER)
-        t.write(fh, format="ascii", delimiter=",", formats=float_column_formats(t))
+    f = open(os.path.join("data", fnout), "wb")
+    f.write(
+        f"# This file was generated with the {os.path.basename(__file__)} script, and"
+        " the reference values were computed using AST\n"
+    )
+    t.write(f, format="ascii", delimiter=",")
 
 
 def ref_icrs_fk5(fnout="icrs_fk5.csv"):
@@ -223,6 +202,7 @@ def ref_icrs_fk5(fnout="icrs_fk5.csv"):
     Accuracy tests for the ICRS (with no E-terms of aberration) to/from FK5
     conversion, with arbitrary equinoxes and epoch of observation.
     """
+
     import starlink.Ast as Ast
 
     np.random.seed(12345)
@@ -271,13 +251,15 @@ def ref_icrs_fk5(fnout="icrs_fk5.csv"):
     t.add_column(Column(name="dec_fk5", data=dec_fk5))
     t.add_column(Column(name="ra_icrs", data=ra_icrs))
     t.add_column(Column(name="dec_icrs", data=dec_icrs))
-    with open(DATA_DIR / fnout, "w") as fh:
-        fh.write(GEN_FILE_HEADER)
-        t.write(fh, format="ascii", delimiter=",", formats=float_column_formats(t))
+    f = open(os.path.join("data", fnout), "wb")
+    f.write(
+        f"# This file was generated with the {os.path.basename(__file__)} script, and"
+        " the reference values were computed using AST\n"
+    )
+    t.write(f, format="ascii", delimiter=",")
 
 
 if __name__ == "__main__":
-    DATA_DIR.mkdir(exist_ok=True)
     ref_fk4_no_e_fk4()
     ref_fk4_no_e_fk5()
     ref_galactic_fk4()

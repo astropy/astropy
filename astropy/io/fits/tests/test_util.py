@@ -4,7 +4,6 @@ import gzip
 import os
 import signal
 import sys
-import threading
 
 import numpy as np
 import pytest
@@ -13,7 +12,6 @@ from numpy.testing import assert_equal
 from astropy.io.fits import util
 from astropy.io.fits.util import _rstrip_inplace, ignore_sigint
 from astropy.utils.compat.optional_deps import HAS_PIL
-from astropy.utils.exceptions import AstropyUserWarning
 
 if HAS_PIL:
     from PIL import Image
@@ -24,12 +22,9 @@ from .conftest import FitsTestCase
 class TestUtils(FitsTestCase):
     @pytest.mark.skipif(sys.platform.startswith("win"), reason="Cannot test on Windows")
     def test_ignore_sigint(self):
-        if threading.active_count() > 1:  # Only check when test starts.
-            pytest.skip("Cannot test when multiple threads are active")
-
         @ignore_sigint
-        def runme():
-            with pytest.warns(AstropyUserWarning) as w:
+        def test():
+            with pytest.warns(UserWarning) as w:
                 pid = os.getpid()
                 os.kill(pid, signal.SIGINT)
                 # One more time, for good measure
@@ -39,7 +34,7 @@ class TestUtils(FitsTestCase):
                 str(w[0].message) == "KeyboardInterrupt ignored until test is complete!"
             )
 
-        pytest.raises(KeyboardInterrupt, runme)
+        pytest.raises(KeyboardInterrupt, test)
 
     def test_realign_dtype(self):
         """

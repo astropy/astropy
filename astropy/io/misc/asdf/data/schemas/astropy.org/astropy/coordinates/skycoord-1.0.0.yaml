@@ -1,0 +1,20 @@
+%YAML 1.1
+---
+$schema: "http://stsci.edu/schemas/yaml-schema/draft-01"
+id: "http://astropy.org/schemas/astropy/coordinates/skycoord-1.0.0"
+tag: "tag:astropy.org:astropy/coordinates/skycoord-1.0.0"
+
+title: |
+  Represents a SkyCoord object from astropy
+
+allOf:
+  - type: object
+    properties:
+      frame:
+        description: |
+          A string describing the kind of frame that is represented by this
+          SkyCoord object. This value is used when reconstructing SkyCoord.
+        type: string
+required: [frame]
+additionalProperties: true
+...

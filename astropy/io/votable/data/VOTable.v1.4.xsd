@@ -254,7 +254,7 @@
   <xs:annotation>
     <xs:documentation>
         This is a time origin of a time coordinate, given as a 
-        Julian Date for the time scale and reference point
+        Julian Date for the the time scale and reference point
         defined.  It is usually given as a floating point
         literal; for convenience, the magic strings “MJD-origin” 
         (standing for 2400000.5) and “JD-origin” (standing for 0) 

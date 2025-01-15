@@ -3,12 +3,11 @@
 # a mix-in)
 
 import warnings
-from contextlib import nullcontext
 from itertools import product
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_array_equal, assert_equal
+from numpy.testing import assert_allclose, assert_equal
 from packaging.version import Version
 
 from astropy import units as u
@@ -20,14 +19,13 @@ from astropy.coordinates import (
     Galactic,
     SkyCoord,
     SpectralCoord,
-    StokesCoord,
 )
-from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
-from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
-from astropy.units import Quantity, UnitsWarning
+from astropy.units import Quantity
+from astropy.units.core import UnitsWarning
 from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
@@ -147,7 +145,7 @@ def test_simple_celestial():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], ICRS)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
 
     assert_allclose(wcs.pixel_to_world_values(29, 39), (10, 20))
     assert_allclose(wcs.array_index_to_world_values(39, 29), (10, 20))
@@ -277,7 +275,7 @@ def test_spectral_cube():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
 
     assert wcs.world_axis_object_classes["spectral"][0] is Quantity
     assert wcs.world_axis_object_classes["spectral"][1] == ()
@@ -397,7 +395,7 @@ def test_spectral_cube_nonaligned():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
 
     assert wcs.world_axis_object_classes["spectral"][0] is Quantity
     assert wcs.world_axis_object_classes["spectral"][1] == ()
@@ -444,7 +442,7 @@ CTYPE3A = 'TT' / alternative linear time (TT)
 CRVAL3A = 2440.525 / Relative time of first frame
 CUNIT3A = 's' / Time unit
 CRPIX3A = 1.0 / Pixel coordinate at ref point
-OBSGEO-B= -24.6157 / [deg] Tel geodetic latitude (=North)+
+OBSGEO-B= -24.6157 / [deg] Tel geodetic latitute (=North)+
 OBSGEO-L= -70.3976 / [deg] Tel geodetic longitude (=East)+
 OBSGEO-H= 2530.0000 / [m] Tel height above reference ellipsoid
 CRDER3  = 0.0819 / random error in timings from fit
@@ -493,7 +491,7 @@ def test_time_cube():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], ICRS)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
 
     assert wcs.world_axis_object_classes["time"][0] is Time
     assert wcs.world_axis_object_classes["time"][1] == ()
@@ -806,19 +804,9 @@ def test_time_1d_unsupported_ctype(header_time_1d_no_obs):
     # Case where the MJDREF is split into two for high precision
     header_time_1d_no_obs["CTYPE1"] = "UT(WWV)"
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(
-            UserWarning, match="Missing or incomplete observer location information"
-        )
-
     wcs = WCS(header_time_1d_no_obs)
-    with (
-        pytest.warns(
-            UserWarning, match="Dropping unsupported sub-scale WWV from scale UT"
-        ),
-        ctx,
+    with pytest.warns(
+        UserWarning, match="Dropping unsupported sub-scale WWV from scale UT"
     ):
         time = wcs.pixel_to_world(10)
 
@@ -917,7 +905,7 @@ def test_caching_components_and_classes():
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
     assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], ICRS)
-    assert wcs.world_axis_object_classes["celestial"][2]["unit"] == (u.deg, u.deg)
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
 
     wcs.wcs.radesys = "FK5"
 
@@ -1002,6 +990,23 @@ def test_sub_wcsapi_attributes():
     ]
     assert wcs_sub4.world_axis_units == ["deg", "deg"]
     assert wcs_sub4.world_axis_names == ["", ""]
+
+
+HEADER_POLARIZED = """
+CTYPE1  = 'HPLT-TAN'
+CTYPE2  = 'HPLN-TAN'
+CTYPE3  = 'STOKES'
+"""
+
+
+@pytest.fixture
+def header_polarized():
+    return Header.fromstring(HEADER_POLARIZED, sep="\n")
+
+
+def test_phys_type_polarization(header_polarized):
+    w = WCS(header_polarized)
+    assert w.world_axis_physical_types[2] == "phys.polarization.stokes"
 
 
 ###############################################################################
@@ -1305,7 +1310,7 @@ def test_spectral_with_time_kw(header_spectral_with_time):
             rtol=1e-3,
         )
 
-    # Check with MJD-AVG and TIMESYS
+    # Chek with MJD-AVG and TIMESYS
     hdr = header_spectral_with_time.copy()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", (VerifyWarning, FITSFixedWarning))
@@ -1343,185 +1348,3 @@ def test_spectral_with_time_kw(header_spectral_with_time):
     # Check fall back to scale='utc'
     del hdr["TIMESYS"]
     check_wcs(hdr)
-
-
-def test_fits_tab_time_and_units():
-    """
-    This test is a regression test for https://github.com/astropy/astropy/issues/12095
-
-    It checks the following:
-      - If a spatial WCS isn't converted to units of deg by wcslib it still works.
-      - If TIMESYS is upper case we parse it correctly
-      - If a TIME CTYPE key has an algorithm code (in this case -TAB) it still works.
-
-    The file used here was generated by gWCS and then edited to add the TIMESYS key.
-    """
-    with (
-        fits.open(get_pkg_data_filename("data/example_4d_tab.fits")) as hdul,
-        pytest.warns(FITSFixedWarning),
-    ):
-        w = WCS(header=hdul[0].header, fobj=hdul)
-
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", message=r".*dubious year \(Note \d\)")
-        world = w.pixel_to_world(0, 0, 0, 0)
-
-    assert isinstance(world[0], SkyCoord)
-    assert world[0].data.lat.unit is u.arcsec
-    assert world[0].data.lon.unit is u.arcsec
-    assert u.allclose(world[0].l, 0.06475506 * u.deg)
-    assert u.allclose(world[0].b, -0.02430561 * u.deg)
-    assert isinstance(world[1], SpectralCoord)
-    assert u.allclose(world[1], 24.96 * u.Hz)
-    assert isinstance(world[2], Time)
-    assert world[2].scale == "utc"
-    assert u.allclose(world[2].mjd, 0.00032986111111110716)
-
-
-################################################################################
-# Tests with Stokes
-################################################################################
-
-
-HEADER_POLARIZED = """
-CTYPE1  = 'HPLT-TAN'
-CTYPE2  = 'HPLN-TAN'
-CTYPE3  = 'STOKES'
-"""
-
-
-@pytest.fixture
-def header_polarized():
-    return Header.fromstring(HEADER_POLARIZED, sep="\n")
-
-
-@pytest.fixture
-def wcs_polarized(header_polarized):
-    return WCS(header_polarized)
-
-
-def test_phys_type_polarization(wcs_polarized):
-    w = wcs_polarized
-    assert w.world_axis_physical_types[2] == "phys.polarization.stokes"
-
-
-def test_pixel_to_world_stokes(wcs_polarized):
-    w = wcs_polarized
-    world = w.pixel_to_world(0, 0, 0)
-    assert world[2] == 1
-    assert isinstance(world[2], StokesCoord)
-    assert_equal(world[2].symbol, "I")
-
-    world = w.pixel_to_world(0, 0, [0, 1, 2, 3])
-    assert isinstance(world[2], StokesCoord)
-    assert_array_equal(world[2], [1, 2, 3, 4])
-    assert_array_equal(world[2].symbol, ["I", "Q", "U", "V"])
-
-
-@pytest.mark.parametrize("direction", ("world_to_pixel", "pixel_to_world"))
-def test_out_of_bounds(direction):
-    # Make sure that we correctly deal with any out-of-bound values in the
-    # low-level API.
-
-    wcs = WCS(naxis=2)
-    wcs.wcs.crpix = (1, 1)
-    wcs.wcs.set()
-
-    func = (
-        wcs.world_to_pixel_values
-        if direction == "world_to_pixel"
-        else wcs.pixel_to_world_values
-    )
-
-    xp = np.arange(5) + 1
-    yp = np.arange(5) + 1
-
-    # Before setting bounds
-
-    # Python Scalars
-    xw, yw = func(1, 1)
-    assert_array_equal(xw, 1)
-    assert_array_equal(yw, 1)
-
-    # Numpy Scalars
-    xw, yw = func(xp[0], yp[0])
-    assert_array_equal(xw, 1)
-    assert_array_equal(yw, 1)
-
-    # Arrays
-    xw, yw = func(xp, yp)
-    assert_array_equal(xw, [1, 2, 3, 4, 5])
-    assert_array_equal(yw, [1, 2, 3, 4, 5])
-
-    # Mixed
-    xw, yw = func(xp[0], yp)
-    assert_array_equal(xw, 1)
-    assert_array_equal(yw, [1, 2, 3, 4, 5])
-
-    # Setting bounds on one dimension
-
-    wcs.pixel_bounds = [(-0.5, 3.5), None]
-
-    # Python Scalars
-
-    xw, yw = func(1, 1)
-    assert_array_equal(xw, 1)
-    assert_array_equal(yw, 1)
-
-    xw, yw = func(5, 5)
-    assert_array_equal(xw, np.nan)
-    assert_array_equal(yw, 5)
-
-    # Numpy Scalars
-
-    xw, yw = func(xp[0], yp[0])
-    assert_array_equal(xw, 1)
-    assert_array_equal(yw, 1)
-
-    xw, yw = func(xp[-1], yp[-1])
-    assert_array_equal(xw, np.nan)
-    assert_array_equal(yw, 5)
-
-    # Arrays
-    xw, yw = func(xp, yp)
-    assert_array_equal(xw, [1, 2, 3, np.nan, np.nan])
-    assert_array_equal(yw, [1, 2, 3, 4, 5])
-
-    # Mixed
-    xw, yw = func(xp[-1], yp)
-    assert_array_equal(xw, np.nan)
-    assert_array_equal(yw, [1, 2, 3, 4, 5])
-
-    # Setting bounds on both dimensions
-
-    wcs.pixel_bounds = [(-0.5, 3.5), (2.5, 5.5)]
-
-    # Python Scalars
-
-    xw, yw = func(1, 1)
-    assert_array_equal(xw, 1)
-    assert_array_equal(yw, np.nan)
-
-    xw, yw = func(5, 5)
-    assert_array_equal(xw, np.nan)
-    assert_array_equal(yw, 5)
-
-    # Numpy Scalars
-
-    xw, yw = func(xp[0], yp[0])
-    assert_array_equal(xw, 1)
-    assert_array_equal(yw, np.nan)
-
-    xw, yw = func(xp[-1], yp[-1])
-    assert_array_equal(xw, np.nan)
-    assert_array_equal(yw, 5)
-
-    # Arrays
-    xw, yw = func(xp, yp)
-    assert_array_equal(xw, [1, 2, 3, np.nan, np.nan])
-    assert_array_equal(yw, [np.nan, np.nan, 3, 4, 5])
-
-    # Mixed
-    xw, yw = func(xp[-1], yp)
-    assert_array_equal(xw, np.nan)
-    assert_array_equal(yw, [np.nan, np.nan, 3, 4, 5])

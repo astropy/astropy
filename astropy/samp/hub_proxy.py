@@ -46,6 +46,7 @@ class SAMPHubProxy:
             The number of socket connections opened to communicate with the
             Hub.
         """
+
         self._connected = False
         self.lockfile = {}
 

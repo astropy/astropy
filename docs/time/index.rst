@@ -12,7 +12,7 @@ dates. Specific emphasis is placed on supporting time scales (e.g., UTC, TAI,
 UT1, TDB) and time representations (e.g., JD, MJD, ISO 8601) that are used in
 astronomy and required to calculate, for example, sidereal times and barycentric
 corrections. The `astropy.time` package is based on fast and memory efficient
-|PyERFA| wrappers around the |ERFA| time and calendar routines.
+PyERFA_ wrappers around the ERFA_ time and calendar routines.
 
 All time manipulations and arithmetic operations are done internally using two
 64-bit floats to represent time. Floating point algorithms from [#]_ are used so
@@ -48,17 +48,9 @@ To create a |Time| object:
   <Time object: scale='utc' format='isot' value=2010-01-01T00:00:00.000>
 
 The ``format`` argument specifies how to interpret the input values (e.g., ISO,
-JD, or Unix time). By default, the same format will be used to represent the
-time for output. One can change this format later as needed, but because this
-is just for representation, that does not affect the internal representation
-(which is always by two 64-bit values, the ``jd1`` and ``jd2`` attributes), nor
-any computations with the object.
-
-The ``scale``  argument specifies the `time scale`_ for the values
-(e.g., UTC, TT, or UT1). The ``scale`` argument is optional and defaults
-to UTC except for `Time from Epoch Formats`_. It is possible to change
-it (e.g., from UTC to TDB), which will cause the internal values to be
-adjusted accordingly.
+JD, or Unix time). The ``scale`` argument specifies the `time scale`_ for the
+values (e.g., UTC, TT, or UT1). The ``scale`` argument is optional and defaults
+to UTC except for `Time from Epoch Formats`_.
 
 .. EXAMPLE END
 
@@ -126,7 +118,7 @@ useful for :ref:`table_operations` such as joining and stacking::
 
   >>> t2[0] = np.ma.masked  # Declare that first time is missing or invalid
   >>> print(t2)
-  [                      ——— '2014-12-25T00:00:00.000']
+  [-- '2014-12-25T00:00:00.000']
 
 Finally, some further examples of what is possible. For details, see
 the API documentation below.
@@ -293,7 +285,7 @@ can have higher precision than the standard 64-bit float::
 
   >>> tm = Time('51544.000000000000001', format='mjd')  # String input
   >>> tm.mjd  # float64 output loses last digit but Decimal gets it
-  np.float64(51544.0)
+  51544.0
   >>> tm.to_value('mjd', subfmt='decimal')  # doctest: +SKIP
   Decimal('51544.00000000000000099920072216264')
   >>> tm.to_value('mjd', subfmt='str')
@@ -330,7 +322,6 @@ Format           Subformats
 ================ ========================================
 ``jd``           float, long, decimal, str, bytes
 ``sec``          float, long, decimal, str, bytes
-``quantity_str`` multi, yr, d, hr, min, s
 ================ ========================================
 
 Time from Epoch Formats
@@ -382,7 +373,7 @@ local  Local Time Scale          (LOCAL)
 ====== =================================
 
 .. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
-.. [#] |SOFA| Time Scale and Calendar Tools
+.. [#] SOFA_ Time Scale and Calendar Tools
        `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
 
 .. note:: The ``local`` time scale is meant for free-running clocks or
@@ -416,7 +407,7 @@ returning scalar or array objects as appropriate::
   >>> from astropy.time import Time
   >>> t = Time(100.0, format='mjd')
   >>> t.jd
-  np.float64(2400100.5)
+  2400100.5
   >>> t = Time([100.0, 200.0, 300.], format='mjd')
   >>> t.jd  # doctest: +FLOAT_CMP
   array([2400100.5, 2400200.5, 2400300.5])
@@ -487,10 +478,10 @@ Some arithmetic methods are supported as well: :meth:`~astropy.time.Time.min`,
 
 To apply arithmetic methods to |Time| instances::
 
-  >>> t.max()
+  >> t.max()
   <Time object: scale='utc' format='mjd' value=50002.5>
-  >>> t.min()
-  <Time object: scale='utc' format='mjd' value=50000.0>
+  >> t.ptp(axis=0)  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='tai' format='jd' value=[2. 2.]>
 
 .. EXAMPLE END
 
@@ -513,7 +504,7 @@ Example
 
 To infer input format::
 
-  >>> from datetime import datetime, timezone
+  >>> from datetime import datetime
   >>> t = Time(datetime(2010, 1, 2, 1, 2, 3))
   >>> t.format
   'datetime'
@@ -533,7 +524,7 @@ requiring no better than microsecond precision over human time scales (~100
 years) can safely ignore the internal representation details and skip this
 section.
 
-This representation is driven by the underlying |ERFA| C-library implementation.
+This representation is driven by the underlying ERFA_ C-library implementation.
 The ERFA routines take care throughout to maintain overall precision of the
 double pair. Users are free to choose the way in which total JD is
 provided, though internally one part contains integer days and the
@@ -576,7 +567,7 @@ val
 ^^^
 
 The ``val`` argument specifies the input time or times and can be a single
-string or number, or it can be a Python list or ``numpy`` array of strings or
+string or number, or it can be a Python list or ```numpy`` array of strings or
 numbers. To initialize a |Time| object based on a specified time, it *must* be
 present.
 
@@ -609,12 +600,12 @@ the highest precision. For example::
 
   >>> t = Time(100.0, 0.000001, format='mjd', scale='tt')
   >>> t.jd, t.jd1, t.jd2  # doctest: +FLOAT_CMP
-  (np.float64(2400100.500001), 2400101.0, -0.499999)
+  (2400100.500001, 2400101.0, -0.499999)
 
 format
 ^^^^^^
 
-The ``format`` argument sets the time `time format`_, and as mentioned it is
+The ```format`` argument sets the time `time format`_, and as mentioned it is
 required unless the format can be unambiguously determined from the input times.
 
 
@@ -633,7 +624,7 @@ precision
 The ``precision`` setting affects string formats when outputting a value that
 includes seconds. It must be an integer between 0 and 9. There is no effect
 when inputting time values from strings. The default precision is 3. Note
-that the limit of 9 digits is driven by the way that |ERFA| handles fractional
+that the limit of 9 digits is driven by the way that ERFA_ handles fractional
 seconds. In practice this should should not be an issue.  ::
 
   >>> t = Time('B1950.0', precision=3)
@@ -697,7 +688,7 @@ This optional parameter specifies the observer location, using an
 either a tuple with geocentric coordinates (X, Y, Z), or a tuple with geodetic
 coordinates (longitude, latitude, height; with height defaulting to zero).
 They are used for time scales that are sensitive to observer location
-(currently, only TDB, which relies on the |PyERFA| routine `erfa.dtdb` to
+(currently, only TDB, which relies on the PyERFA_ routine `erfa.dtdb` to
 determine the time offset between TDB and TT), as well as for sidereal time if
 no explicit longitude is given.
 
@@ -718,7 +709,7 @@ The current time can be determined as a |Time| object using the
 `~astropy.time.Time.now` class method::
 
   >>> nt = Time.now()
-  >>> ut = Time(datetime.now(tz=timezone.utc), scale='utc')
+  >>> ut = Time(datetime.utcnow(), scale='utc')
 
 The two should be very close to each other.
 
@@ -854,133 +845,71 @@ Example
 
 .. EXAMPLE START: Missing Values in Time and TimeDelta Objects
 
-You can set one or more items as missing when creating the object in one of two ways.
-First with a numpy masked array::
+To set one or more items as missing, assign the special value
+`numpy.ma.masked`::
 
-  >>> dates = np.ma.array(['2001:020', '...', '2001:060'], mask=[False, True, False])
-  >>> print(Time(dates, out_subfmt="date"))
-  ['2001:020'        ——— '2001:060']
-
-Second with the `astropy.utils.masked.Masked` class::
-
-  >>> from astropy.utils.masked import Masked
-  >>> dates = Masked(['2001:020', '', '2001:060'], mask=[False, True, False])
-  >>> t = Time(dates, out_subfmt="date")
-  >>> print(t)
-  ['2001:020'        ——— '2001:060']
-
-You can also use the special `numpy.ma.masked` to set a value as missing in an existing
-|Time| object::
-
-  >>> t = Time(["2001:020", "2001:040", "2001:060", "2001:080"], out_subfmt="date")
+  >>> t = Time(['2001:020', '2001:040', '2001:060', '2001:080'],
+  ...          out_subfmt='date')
   >>> t[2] = np.ma.masked
   >>> print(t)
-  ['2001:020' '2001:040'        ——— '2001:080']
+  ['2001:020' '2001:040' -- '2001:080']
 
-If you want to get unmasked data, you can get those either by removing the mask using
-the `~astropy.time.Time.unmasked` attribute, or by filling any masked data with a chosen
-value::
-
-  >>> print(t.unmasked)
-  ['2001:020' '2001:040' '2001:060' '2001:080']
-  >>> t_filled = t.filled('1999:365')
-  >>> print(t_filled)
-  ['2001:020' '2001:040' '1999:365' '2001:080']
-
-You can also unset the mask on individual elements by assigning another special value,
-`numpy.ma.nomask`::
-
-  >>> t[2] = np.ma.nomask
-  >>> print(t)
-  ['2001:020' '2001:040' '2001:060' '2001:080']
-
-A subtle difference between the two approaches is that when you unset
-the mask by setting with `numpy.ma.nomask`, a mask is still present
-internally, and hence any output will have a mask as well.  In
-contrast, using `~astropy.time.Time.unmasked` or
-:meth:`~astropy.time.Time.filled` removes all masking, and hence any
-output is not masked. The `~astropy.time.Time.masked` property can be
-used to check whether or not a mask is in use internally::
-
-  >>> t.masked
-  True
-  >>> t.value
-  MaskedNDArray(['2001:020', '2001:040', '2001:060', '2001:080'],
-              dtype='<U8')
-  >>> t_filled.masked
-  False
-  >>> t_filled.value
-  array(['2001:020', '2001:040', '1999:365', '2001:080'], dtype='<U8')
-
-.. note:: When setting the mask, actual time data are kept. However,
-          when *initializing* with a masked array, any masked time
-          input data are overwritten internally, with a time
-          equivalent to ``2000-01-01 12:00:00`` (in the same scale and
-          format as the other values). This is to ensure no errors or
-          warnings are raised by invalid data hidden by the mask.
-          Hence, for initialization with masked data, there is no way
-          to recover the original masked values::
-
-            >>> dates = Masked(['2001:020', '2001:040', '2001:060'],
-            ...                mask=[False, True, False])
-            >>> tm = Time(dates, out_subfmt="date")
-            >>> tm[2] = np.ma.masked
-            >>> print(tm)
-            ['2001:020'        ———        ———]
-            >>> print(tm.unmasked)
-            ['2001:020' '2000:001' '2001:060']
+.. note:: The operation of setting an array element to `numpy.ma.masked`
+   (missing) *overwrites* the actual time data and therefore there is no way to
+   recover the original value. In this sense, the `numpy.ma.masked` value
+   behaves just like any other valid |Time| value when setting. This is
+   similar to how `Pandas missing data
+   <https://pandas.pydata.org/pandas-docs/stable/missing_data.html>`_ works,
+   but somewhat different from `NumPy masked arrays
+   <https://numpy.org/doc/stable/reference/maskedarray.html>`_ which
+   maintain a separate mask array and retain the underlying data. In the
+   |Time| object the ``mask`` attribute is read-only and cannot be directly set.
 
 .. EXAMPLE END
 
 Once one or more values in the object are masked, any operations will
 propagate those values as masked, and access to format attributes such
-as ``unix`` or ``value`` will return a |Masked| object::
+as ``unix`` or ``value`` will return a `~numpy.ma.MaskedArray`
+object::
 
-  >>> t[1:3] = np.ma.masked
-  >>> t.isot
-  MaskedNDArray(['2001-01-20',          ———,          ———, '2001-03-21'],
-                dtype='<U10')
+  >>> t.unix  # doctest: +SKIP
+  masked_array(data = [979948800.0 981676800.0 -- 985132800.0],
+               mask = [False False  True False],
+         fill_value = 1e+20)
 
-You can view the ``mask``, but note that it is read-only.  Setting and
-clearing the mask is always done by setting the item to
-`~numpy.ma.masked` and `~numpy.ma.nomask`, respectively.
+You can view the ``mask``, but note that it is read-only and
+setting the mask is always done by setting the item to `~numpy.ma.masked`.
 
   >>> t.mask
-  array([False, True,  True, False])
+  array([False, False,  True, False]...)
+  >>> t[:2] = np.ma.masked
 
-Choice of Masked Array Type
-"""""""""""""""""""""""""""
+.. warning:: The internal implementation of missing value support is provisional
+   and may change in a subsequent release. This would impact information in the
+   next section. However, the documented API for using missing values with
+   |Time| and |TimeDelta| objects is stable.
 
-|Time| internally uses astropy's |Masked| class to represent the mask.  It is
-possible to initialize with data using numpy's `~numpy.ma.MaskedArray` class,
-but by default all output will use |Masked|. For backward compatibility, it is
-possible to set `~astropy.time.Conf.masked_array_type` to "numpy" to ensure
-that output uses `~numpy.ma.MaskedArray` where possible (for all but |Quantity|).
-
-
-Custom Format Classes and Masked Values
-"""""""""""""""""""""""""""""""""""""""
+Custom Format Classes and Missing Values
+""""""""""""""""""""""""""""""""""""""""
 
 For advanced users who have written a custom time format via a
-`~astropy.time.TimeFormat` subclass, it may be necessary to modify your class
-*if you wish to support masked values*, and especially if you earlier
-supported having *missing values* by setting the ``jd2`` attribute to
-``numpy.nan``. For applications that do not need masked or missing values, no
-changes are required.
+`~astropy.time.TimeFormat` subclass, it may be necessary to modify your
+class *if you wish to support missing values*. For applications that
+do not take advantage of missing values no changes are required.
 
-Prior to astropy 6.0, missing values in a `~astropy.time.TimeFormat` subclass
-object were marked by setting the corresponding entries of the ``jd2``
-attribute to be ``numpy.nan`` (but this was never done directly by the user).
-Since astropy 6.0, instead |Masked| arrays are used, and these are written to
-propagate properly through (almost) all numpy and |ERFA| functions.
+Missing values in a `~astropy.time.TimeFormat` subclass object are marked by
+setting the corresponding entries of the ``jd2`` attribute to be ``numpy.nan``
+(but this is never done directly by the user). For most array operations and
+``numpy`` functions the ``numpy.nan`` entries are propagated as expected and
+all is well. However, this is not always the case, and in particular the `ERFA`_
+routines do not generally support ``numpy.nan`` values gracefully.
 
-In general, very few modifications should be needed to support |Masked|
-arrays. Generally, on input, no changes are needed since the format will be
-given unmasked values (with any masked input values replaced with the default
-value to ensure that only valid values are passed in). Some care may
-need to be taken, though, that the mask is propagated properly in calculating
-output values from ``jd1`` to ``jd2`` in the ``value`` property.
-
+In cases where ``numpy.nan`` is not acceptable, format class methods should use
+the ``jd2_filled`` property instead of ``jd2``. This replaces ``numpy.nan`` with
+``0.0``. Since ``jd2`` is always in the range -1 to +1, substituting ``0.0``
+will allow functions to return "reasonable" values which will then be masked in
+any subsequent outputs. See the ``value`` property of the
+`~astropy.time.TimeDecimalYear` format for any example.
 
 Get Representation
 ^^^^^^^^^^^^^^^^^^
@@ -995,11 +924,11 @@ available format names is in the `time format`_ section.
 
   >>> t = Time('2010-01-01 00:00:00', format='iso', scale='utc')
   >>> t.jd        # JD representation of time in current scale (UTC)
-  np.float64(2455197.5)
+  2455197.5
   >>> t.iso       # ISO representation of time in current scale (UTC)
   '2010-01-01 00:00:00.000'
   >>> t.unix      # seconds since 1970.0 (UTC)
-  np.float64(1262304000.0)
+  1262304000.0
   >>> t.datetime  # Representation as datetime.datetime object
   datetime.datetime(2010, 1, 1, 0, 0)
 
@@ -1013,10 +942,9 @@ To get the representation of a |Time| object::
   >>> import matplotlib.pyplot as plt  # doctest: +SKIP
   >>> jyear = np.linspace(2000, 2001, 20)  # doctest: +SKIP
   >>> t = Time(jyear, format='jyear')  # doctest: +SKIP
-  >>> fig, ax = plt.subplots()  # doctest: +SKIP
-  >>> ax.scatter(t.datetime, jyear)  # doctest: +SKIP
-  >>> fig.autofmt_xdate()  # orient date labels at a slant  # doctest: +SKIP
-  >>> fig.show()  # doctest: +SKIP
+  >>> plt.plot_date(t.plot_date, jyear)  # doctest: +SKIP
+  >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant  # doctest: +SKIP
+  >>> plt.draw()  # doctest: +SKIP
 
 .. EXAMPLE END
 
@@ -1098,7 +1026,7 @@ Transformation Offsets
 
 Time scale transformations that cross one of the orange circles in the image
 above require an additional offset time value that is model or
-observation dependent. See |SOFA| `Time Scale and Calendar Tools
+observation dependent. See SOFA_ `Time Scale and Calendar Tools
 <http://www.iausofa.org/sofa_ts_c.pdf>`_ for further details.
 
 The two attributes :attr:`~astropy.time.Time.delta_ut1_utc` and
@@ -1113,7 +1041,7 @@ UT1 - UTC and TDB - TT, respectively. As an example::
 
 For the UT1 to UTC offset, you have to interpolate the observed values provided
 by the `International Earth Rotation and Reference Systems (IERS) Service
-<https://www.iers.org>`_. ``astropy`` will automatically download and use values
+<http://www.iers.org>`_. ``astropy`` will automatically download and use values
 from the IERS which cover times spanning from 1973-Jan-01 through one year into
 the future. In addition, the ``astropy`` package is bundled with a data table of
 values provided in Bulletin B, which cover the period from 1962 to shortly
@@ -1144,7 +1072,7 @@ scale along with the auto-download feature::
 In the case of the TDB to TT offset, most users need only provide the ``lon``
 and ``lat`` values when creating the |Time| object. If the
 :attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set, then
-the |PyERFA| routine `erfa.dtdb` will be used to compute the TDB to TT
+the PyERFA_ routine `erfa.dtdb` will be used to compute the TDB to TT
 offset. Note that if ``lon`` and ``lat`` are not explicitly initialized,
 values of 0.0 degrees for both will be used.
 
@@ -1153,7 +1081,7 @@ Example
 
 .. EXAMPLE START: Transformation Offsets in Time Objects
 
-The following code replicates an example in the |SOFA| `Time Scale and Calendar
+The following code replicates an example in the SOFA_ `Time Scale and Calendar
 Tools <http://www.iausofa.org/sofa_ts_c.pdf>`_ document. It does the transform
 from UTC to all supported time scales (TAI, TCB, TCG, TDB, TT, UT1, UTC). This
 requires an observer location (here, latitude and longitude).
@@ -1216,7 +1144,7 @@ Apparent or mean sidereal time can be calculated using
 :meth:`~astropy.time.Time.sidereal_time`. The method returns a |Longitude|
 with units of hour angle, which by default is for the longitude corresponding to
 the location with which the |Time| object is initialized. Like the scale
-transformations, |ERFA| C-library routines are used under the hood, which support
+transformations, ERFA_ C-library routines are used under the hood, which support
 calculations following different IAU resolutions.
 
 Similarly, one can calculate the Earth rotation angle with
@@ -1253,8 +1181,6 @@ To calculate sidereal time::
 
 .. EXAMPLE END
 
-.. _time-delta:
-
 Time Deltas
 -----------
 
@@ -1278,14 +1204,13 @@ day is exactly 86400 seconds. Hence, the scale cannot be UTC.
 
 The available time formats are:
 
-============  ===================================================
-Format        Class
-============  ===================================================
-sec           :class:`~astropy.time.TimeDeltaSec`
-jd            :class:`~astropy.time.TimeDeltaJD`
-datetime      :class:`~astropy.time.TimeDeltaDatetime`
-quantity_str  :class:`~astropy.time.TimeDeltaQuantityString`
-============  ===================================================
+=========  ===================================================
+Format     Class
+=========  ===================================================
+sec        :class:`~astropy.time.TimeDeltaSec`
+jd         :class:`~astropy.time.TimeDeltaJD`
+datetime   :class:`~astropy.time.TimeDeltaDatetime`
+=========  ===================================================
 
 Examples
 ^^^^^^^^
@@ -1300,7 +1225,7 @@ Use of the |TimeDelta| object is illustrated in the few examples below::
   >>> dt
   <TimeDelta object: scale='tai' format='jd' value=31.0>
   >>> dt.sec
-  np.float64(2678400.0)
+  2678400.0
 
   >>> from astropy.time import TimeDelta
   >>> dt2 = TimeDelta(50.0, format='sec')
@@ -1324,31 +1249,17 @@ Use of the |TimeDelta| object is illustrated in the few examples below::
   >>> t1 + 1 * u.hour
   <Time object: scale='utc' format='iso' value=2010-01-01 01:00:00.000>
 
-A human-readable multi-scale format for string representation of a time delta is
-available via the ``quantity_str`` format. See the
-:class:`~astropy.time.TimeDeltaQuantityString` class docstring for more details::
-
-  >>> TimeDelta(40.1 * u.hr).quantity_str
-  '1d 16hr 6min'
-  >>> t4 = TimeDelta("-1yr 2d 23hr 10min 5.6s")
-  >>> print(t4)
-  -368d 5hr 10min 5.6s
-  >>> t4.to_value(subfmt="d")
-  '-368.215d'
-
-The now deprecated default assumes days for numeric inputs::
-
+  # The now deprecated default assumes days for numeric inputs
   >>> t1 + 5.0  # doctest: +SHOW_WARNINGS +ELLIPSIS
   <Time object: scale='utc' format='iso' value=2010-01-06 00:00:00.000>
   TimeDeltaMissingUnitWarning: Numerical value without unit or explicit format passed to TimeDelta, assuming days
-
 
 The |TimeDelta| has a `~astropy.time.TimeDelta.to_value` method which supports
 controlling the type of the output representation by providing either a format
 name and optional `subformat`_ or a valid ``astropy`` unit::
 
   >>> dt.to_value(u.hr)
-  np.float64(744.0)
+  744.0
   >>> dt.to_value('jd', 'str')
   '31.0'
 
@@ -1486,7 +1397,7 @@ the TDB timescale::
 .. EXAMPLE START: Calculating Light Travel Time Using JPL Ephemerides
 
 By default, the light travel time is calculated using the position and velocity
-of Earth and the Sun from |ERFA|
+of Earth and the Sun from ERFA_
 routines, but you can also get more precise calculations using the JPL
 ephemerides (which are derived from dynamical models). An example using the JPL
 ephemerides is:
@@ -1538,7 +1449,7 @@ To use |Quantity| objects with units of time::
   Traceback (most recent call last):
     ...
   ValueError: Input values did not match the format class byear:
-  ValueError: cannot use Quantities for 'byear' format, as the unit of year is defined as 365.25 days, while the length of year is variable in this format. Use float instead.
+  ValueError: Cannot use Quantities for 'byear' format, as the interpretation would be ambiguous. Use float with Besselian year instead.
 
   >>> TimeDelta(10.*u.yr)            # With a quantity, no format is required
   <TimeDelta object: scale='None' format='jd' value=3652.5>
@@ -1671,9 +1582,9 @@ from the `~astropy.time.TimeFromEpoch` class and define a few class attributes::
 
   >>> t = Time('2000-01-01')
   >>> t.unix_leap
-  np.float64(946684832.0)
+  946684832.0
   >>> t.unix_leap - t.unix
-  np.float64(32.0)
+  32.0
 
 .. EXAMPLE END
 
@@ -1773,19 +1684,17 @@ method::
 Reference/API
 =============
 
-.. toctree::
-   :maxdepth: 2
-
-   ref_api
+.. automodapi:: astropy.time
+   :inherited-members:
 
 
 Acknowledgments and Licenses
 ============================
 
-This package makes use of the |PyERFA| wrappers of the |ERFA| ANSI C library. The copyright of the |ERFA|
+This package makes use of the PyERFA_ wrappers of the ERFA_ ANSI C library. The copyright of the ERFA_
 software belongs to the NumFOCUS Foundation. The library is made available
 under the terms of the "BSD-three clauses" license.
 
-The |ERFA| library is derived, with permission, from the International
-Astronomical Union's "Standards of Fundamental Astronomy" (|SOFA|) library,
+The ERFA_ library is derived, with permission, from the International
+Astronomical Union's "Standards of Fundamental Astronomy" (SOFA_) library,
 available from http://www.iausofa.org.

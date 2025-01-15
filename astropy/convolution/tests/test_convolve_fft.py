@@ -90,7 +90,6 @@ def assert_floatclose(x, y):
     """
     # The number used is set by the fact that the Windows FFT sometimes
     # returns an answer that is EXACTLY 10*np.spacing.
-    __tracebackhide__ = True
     assert_allclose(x, y, atol=10 * np.spacing(x.max()), rtol=0.0)
 
 
@@ -976,15 +975,20 @@ def test_input_unmodified_with_nan(
     assert np.all(np.isnan(y[kernel_is_nan]))
 
 
-@pytest.mark.parametrize("error_kwarg", ["psf_pad", "fft_pad", "dealias"])
+@pytest.mark.parametrize(
+    "error_kwarg", [{"psf_pad": True}, {"fft_pad": True}, {"dealias": True}]
+)
 def test_convolve_fft_boundary_wrap_error(error_kwarg):
     x = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=">f8")
     y = np.array([[1.0]], dtype=">f8")
-    np.testing.assert_array_equal(convolve_fft(x, y, boundary="wrap"), x)
-    with pytest.raises(
-        ValueError, match=rf"^With boundary='wrap', {error_kwarg} cannot be enabled\.$"
-    ):
-        convolve_fft(x, y, boundary="wrap", **{error_kwarg: True})
+    assert (convolve_fft(x, y, boundary="wrap") == x).all()
+
+    with pytest.raises(ValueError) as err:
+        convolve_fft(x, y, boundary="wrap", **error_kwarg)
+    assert (
+        str(err.value)
+        == f"With boundary='wrap', {list(error_kwarg.keys())[0]} cannot be enabled."
+    )
 
 
 def test_convolve_fft_boundary_extend_error():

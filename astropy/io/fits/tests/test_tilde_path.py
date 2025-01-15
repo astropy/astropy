@@ -69,7 +69,7 @@ class TestTildePaths(FitsTestCase):
                 (2, "Canopys", -0.73, "F0Ib"),
                 (3, "Rigil Kent", -0.1, "G2V"),
             ],
-            formats="int16,S20,float32,S10",
+            formats="int16,a20,float32,a10",
             names="order,name,mag,Sp",
         )
         hdu = fits.BinTableHDU(bright)
@@ -106,7 +106,7 @@ class TestTildePaths(FitsTestCase):
                 (2, "Canopys", -0.73, "F0Ib"),
                 (3, "Rigil Kent", -0.1, "G2V"),
             ],
-            formats="int16,S20,float32,S10",
+            formats="int16,a20,float32,a10",
             names="order,name,mag,Sp",
         )
         hdu = fits.BinTableHDU(bright)
@@ -123,7 +123,7 @@ class TestTildePaths(FitsTestCase):
                 (2, "Canopys", -0.73, "F0Ib"),
                 (3, "Rigil Kent", -0.1, "G2V"),
             ],
-            formats="int16,S20,float32,S10",
+            formats="int16,a20,float32,a10",
             names="order,name,mag,Sp",
         )
         hdu = fits.TableHDU.from_columns(bright, nrows=2)

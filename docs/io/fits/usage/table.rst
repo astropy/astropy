@@ -36,7 +36,7 @@ Here is a sample record array::
     >>> bright = np.rec.array([(1,'Sirius', -1.45, 'A1V'),
     ...                        (2,'Canopus', -0.73, 'F0Ib'),
     ...                        (3,'Rigil Kent', -0.1, 'G2V')],
-    ...                       formats='int16,S20,float32,S10',
+    ...                       formats='int16,a20,float32,a10',
     ...                       names='order,name,mag,Sp')
 
 In this example, there are three records (rows) and four fields (columns). The
@@ -299,7 +299,7 @@ name and format. Here is a summary of all allowed formats for a binary table:
 
 We will concentrate on binary tables in this chapter. ASCII tables will be
 discussed in a later chapter. The less frequently used X format (bit array) and
-P format (used in :ref:`variable_length_array_tables`) will also be discussed in a later
+P format (used in variable length tables) will also be discussed in a later
 chapter.
 
 Besides the required name and format arguments in constructing a

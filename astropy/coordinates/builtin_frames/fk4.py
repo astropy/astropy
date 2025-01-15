@@ -14,7 +14,6 @@ from astropy.coordinates.transformations import (
     DynamicMatrixTransform,
     FunctionTransformWithFiniteDifference,
 )
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import format_doc
 
 from .baseradec import BaseRADecFrame, doc_components
@@ -45,12 +44,8 @@ class FK4(BaseRADecFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    equinox = TimeAttribute(default=EQUINOX_B1950, doc="The equinox time")
-    obstime = TimeAttribute(
-        default=None,
-        secondary_attribute="equinox",
-        doc="The reference time (e.g., time of observation)",
-    )
+    equinox = TimeAttribute(default=EQUINOX_B1950)
+    obstime = TimeAttribute(default=None, secondary_attribute="equinox")
 
 
 # the "self" transform
@@ -74,12 +69,8 @@ class FK4NoETerms(BaseRADecFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    equinox = TimeAttribute(default=EQUINOX_B1950, doc="The equinox time")
-    obstime = TimeAttribute(
-        default=None,
-        secondary_attribute="equinox",
-        doc="The reference time (e.g., time of observation)",
-    )
+    equinox = TimeAttribute(default=EQUINOX_B1950)
+    obstime = TimeAttribute(default=None, secondary_attribute="equinox")
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):
@@ -117,7 +108,7 @@ def fk4noe_to_fk4noe(fk4necoord1, fk4neframe2):
 # implement the transformation between these two.
 def fk4_e_terms(equinox):
     """
-    Return the e-terms of aberration vector.
+    Return the e-terms of aberration vector
 
     Parameters
     ----------
@@ -162,11 +153,7 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     # the observing time/epoch) of the coordinates. See issue #1496 for a
     # discussion of this.
     eterms_a = CartesianRepresentation(
-        u.Quantity(
-            fk4_e_terms(fk4coord.equinox),
-            u.dimensionless_unscaled,
-            copy=COPY_IF_NEEDED,
-        ),
+        u.Quantity(fk4_e_terms(fk4coord.equinox), u.dimensionless_unscaled, copy=False),
         copy=False,
     )
     rep = rep - eterms_a + eterms_a.dot(rep) * rep
@@ -216,9 +203,7 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
     # discussion of this.
     eterms_a = CartesianRepresentation(
         u.Quantity(
-            fk4_e_terms(fk4noecoord.equinox),
-            u.dimensionless_unscaled,
-            copy=COPY_IF_NEEDED,
+            fk4_e_terms(fk4noecoord.equinox), u.dimensionless_unscaled, copy=False
         ),
         copy=False,
     )

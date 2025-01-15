@@ -1,17 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Comparison functions for `astropy.cosmology.Cosmology`.
+"""
+Comparison functions for `astropy.cosmology.Cosmology`.
 
 This module is **NOT** public API. To use these functions, import them from
-the top-level namespace -- :mod:`astropy.cosmology`. This module will be
-moved.
+the top-level namespace -- :mod:`astropy.cosmology`.
+This module will be moved.
 """
 
 from __future__ import annotations
 
 import functools
 import inspect
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import Any, Callable, Tuple, Union
 
 import numpy as np
 from numpy import False_, True_, ndarray
@@ -19,18 +19,15 @@ from numpy import False_, True_, ndarray
 from astropy import table
 from astropy.cosmology.core import Cosmology
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Any, TypeAlias
-
-__all__: list[str] = []  # Nothing is scoped here
+__all__ = []  # Nothing is scoped here
 
 
 ##############################################################################
 # PARAMETERS
 
-_FormatType: TypeAlias = bool | None | str
-_FormatsType: TypeAlias = _FormatType | tuple[_FormatType, ...]
+_FormatType = Union[bool, None, str]
+_FormatsT = Union[_FormatType, Tuple[_FormatType, ...]]
+_CompFnT = Callable[[Any, _FormatType], Cosmology]
 
 _COSMO_AOK: set[Any] = {None, True_, False_, "astropy.cosmology"}
 # The numpy bool also catches real bool for ops "==" and "in"
@@ -40,28 +37,40 @@ _COSMO_AOK: set[Any] = {None, True_, False_, "astropy.cosmology"}
 # UTILITIES
 
 
-_CANT_BROADCAST: tuple[type, ...] = (table.Row, table.Table)
-"""Things that cannot broadcast.
-
-Have to deal with things that do not broadcast well. e.g.
-`~astropy.table.Row` cannot be used in an array, even if ``dtype=object``
-and will raise a segfault when used in a `numpy.ufunc`.
-"""
-
-
-@dataclass(frozen=True)
 class _CosmologyWrapper:
-    """A private wrapper class to hide things from :mod:`numpy`.
-
+    """
+    A private wrapper class to hide things from :mod:`numpy`.
     This should never be exposed to the user.
     """
 
     __slots__ = ("wrapped",)
+    # Use less memory and speed up initilization.
+
+    _cantbroadcast: tuple[type, ...] = (table.Row, table.Table)
+    """
+    Have to deal with things that do not broadcast well. e.g.
+    `~astropy.table.Row` cannot be used in an array, even if ``dtype=object``
+    and will raise a segfault when used in a `numpy.ufunc`.
+    """
 
     wrapped: Any
 
+    def __init__(self, wrapped: Any) -> None:
+        self.wrapped = wrapped
 
-@functools.partial(np.frompyfunc, nin=2, nout=1)
+
+# TODO! when py3.9+ use @functools.partial(np.frompyfunc, nin=2, nout=1)
+# TODO! https://github.com/numpy/numpy/issues/9477 segfaults on astropy.row
+# and np.vectorize can't coerce table to dtypes
+def _wrap_to_ufunc(nin: int, nout: int) -> Callable[[_CompFnT], np.ufunc]:
+    def wrapper(pyfunc: _CompFnT) -> np.ufunc:
+        ufunc = np.frompyfunc(pyfunc, 2, 1)
+        return ufunc
+
+    return wrapper
+
+
+@_wrap_to_ufunc(2, 1)
 def _parse_format(cosmo: Any, format: _FormatType, /) -> Cosmology:
     """Parse Cosmology-like input into Cosmologies, given a format hint.
 
@@ -113,7 +122,7 @@ def _parse_format(cosmo: Any, format: _FormatType, /) -> Cosmology:
     return out
 
 
-def _parse_formats(*cosmos: object, format: _FormatsType) -> ndarray:
+def _parse_formats(*cosmos: object, format: _FormatsT) -> ndarray:
     """Parse Cosmology-like to |Cosmology|, using provided formats.
 
     ``format`` is broadcast to match the shape of the cosmology arguments. Note
@@ -147,9 +156,9 @@ def _parse_formats(*cosmos: object, format: _FormatsType) -> ndarray:
     # Have to deal with things that do not broadcast well.
     # astropy.row cannot be used in an array, even if dtype=object
     # and will raise a segfault when used in a ufunc.
+    towrap = (isinstance(cosmo, _CosmologyWrapper._cantbroadcast) for cosmo in cosmos)
     wcosmos = [
-        c if not isinstance(c, _CANT_BROADCAST) else _CosmologyWrapper(c)
-        for c in cosmos
+        c if not wrap else _CosmologyWrapper(c) for c, wrap in zip(cosmos, towrap)
     ]
 
     return _parse_format(wcosmos, formats)
@@ -186,7 +195,7 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
 
     # Make wrapper function that parses cosmology-like inputs
     @functools.wraps(pyfunc)
-    def wrapper(*cosmos: Any, format: _FormatsType = False, **kwargs: Any) -> bool:
+    def wrapper(*cosmos: Any, format: _FormatsT = False, **kwargs: Any) -> bool:
         if len(cosmos) > nin:
             raise TypeError(
                 f"{wrapper.__wrapped__.__name__} takes {nin} positional"

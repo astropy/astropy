@@ -38,7 +38,7 @@ class SAMPWebHubProxy(SAMPHubProxy):
 
     def connect(self, pool_size=20, web_port=21012):
         """
-        Connect to the current SAMP Hub on localhost:web_port.
+        Connect to the current SAMP Hub on localhost:web_port
 
         Parameters
         ----------
@@ -46,6 +46,7 @@ class SAMPWebHubProxy(SAMPHubProxy):
             The number of socket connections opened to communicate with the
             Hub.
         """
+
         self._connected = False
 
         try:
@@ -195,12 +196,12 @@ class SAMPWebClient(SAMPClient):
 
             if result["samp.self-id"] == "":
                 raise SAMPClientError(
-                    "Registration failed - samp.self-id was not set by the hub."
+                    "Registation failed - samp.self-id was not set by the hub."
                 )
 
             if result["samp.private-key"] == "":
                 raise SAMPClientError(
-                    "Registration failed - samp.private-key was not set by the hub."
+                    "Registation failed - samp.private-key was not set by the hub."
                 )
 
             self._public_id = result["samp.self-id"]

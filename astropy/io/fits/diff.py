@@ -5,7 +5,6 @@ FITS files, individual HDUs, FITS headers, or just FITS data.
 
 Used to implement the fitsdiff program.
 """
-
 import fnmatch
 import glob
 import io
@@ -20,7 +19,12 @@ from itertools import islice
 import numpy as np
 
 from astropy import __version__
-from astropy.utils.diff import diff_values, report_diff_values, where_not_allclose
+from astropy.utils.diff import (
+    diff_values,
+    fixed_width_indent,
+    report_diff_values,
+    where_not_allclose,
+)
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 from .card import BLANK_CARD, Card
@@ -51,12 +55,6 @@ _COL_ATTRS = [
 ]
 
 
-def _get_differences(a, b):
-    relative = abs(b - a) / abs(b)
-    absolute = float(abs(b - a))
-    return relative, absolute
-
-
 class _BaseDiff:
     """
     Base class for all FITS diff objects.
@@ -79,6 +77,7 @@ class _BaseDiff:
         appropriate subclass of ``_BaseDiff`` for the objects being compared
         (for example, use `HeaderDiff` to compare two `Header` objects.
         """
+
         self.a = a
         self.b = b
 
@@ -93,6 +92,7 @@ class _BaseDiff:
         A ``_BaseDiff`` object acts as `True` in a boolean context if the two
         objects compared are different.  Otherwise it acts as `False`.
         """
+
         return not self.identical
 
     @classmethod
@@ -112,6 +112,7 @@ class _BaseDiff:
             >>> list(hd.ignore_keywords)
             ['*']
         """
+
         sig = signature(cls.__init__)
         # The first 3 arguments of any Diff initializer are self, a, and b.
         kwargs = {}
@@ -131,6 +132,7 @@ class _BaseDiff:
         attribute, which contains a non-empty value if and only if some
         difference was found between the two objects being compared.
         """
+
         return not any(
             getattr(self, attr) for attr in self.__dict__ if attr.startswith("diff_")
         )
@@ -161,6 +163,7 @@ class _BaseDiff:
         -------
         report : str or None
         """
+
         return_string = False
         filepath = None
 
@@ -188,7 +191,7 @@ class _BaseDiff:
             return fileobj.getvalue()
 
     def _writeln(self, text):
-        self._fileobj.write(textwrap.indent(text, self._indent * "  ") + "\n")
+        self._fileobj.write(fixed_width_indent(text, self._indent) + "\n")
 
     def _diff(self):
         raise NotImplementedError
@@ -288,11 +291,16 @@ class FITSDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
+
         if isinstance(a, (str, os.PathLike)):
             try:
                 a = fitsopen(a)
             except Exception as exc:
-                raise OSError(f"error opening file a ({a})") from exc
+                raise OSError(
+                    "error opening file a ({}): {}: {}".format(
+                        a, exc.__class__.__name__, exc.args[0]
+                    )
+                )
             close_a = True
         else:
             close_a = False
@@ -301,7 +309,11 @@ class FITSDiff(_BaseDiff):
             try:
                 b = fitsopen(b)
             except Exception as exc:
-                raise OSError(f"error opening file b ({b})") from exc
+                raise OSError(
+                    "error opening file b ({}): {}: {}".format(
+                        b, exc.__class__.__name__, exc.args[0]
+                    )
+                )
             close_b = True
         else:
             close_b = False
@@ -357,10 +369,20 @@ class FITSDiff(_BaseDiff):
             a_names = [hdu.name for hdu in self.a]
             b_names = [hdu.name for hdu in self.b]
             for pattern in self.ignore_hdu_patterns:
-                a_ignored = fnmatch.filter(a_names, pattern)
-                self.a = HDUList([h for h in self.a if h.name not in a_ignored])
-                b_ignored = fnmatch.filter(b_names, pattern)
-                self.b = HDUList([h for h in self.b if h.name not in b_ignored])
+                self.a = HDUList(
+                    [
+                        h
+                        for h in self.a
+                        if h.name not in fnmatch.filter(a_names, pattern)
+                    ]
+                )
+                self.b = HDUList(
+                    [
+                        h
+                        for h in self.b
+                        if h.name not in fnmatch.filter(b_names, pattern)
+                    ]
+                )
 
         # For now, just compare the extensions one by one in order.
         # Might allow some more sophisticated types of diffing later.
@@ -390,38 +412,49 @@ class FITSDiff(_BaseDiff):
 
         if self.ignore_hdus:
             ignore_hdus = " ".join(sorted(self.ignore_hdus))
-            self._writeln(" HDU(s) not to be compared:\n" + wrapper.fill(ignore_hdus))
+            self._writeln(f" HDU(s) not to be compared:\n{wrapper.fill(ignore_hdus)}")
 
         if self.ignore_hdu_patterns:
             ignore_hdu_patterns = " ".join(sorted(self.ignore_hdu_patterns))
             self._writeln(
-                " HDU(s) not to be compared:\n" + wrapper.fill(ignore_hdu_patterns)
+                " HDU(s) not to be compared:\n{}".format(
+                    wrapper.fill(ignore_hdu_patterns)
+                )
             )
 
         if self.ignore_keywords:
             ignore_keywords = " ".join(sorted(self.ignore_keywords))
             self._writeln(
-                " Keyword(s) not to be compared:\n" + wrapper.fill(ignore_keywords)
+                " Keyword(s) not to be compared:\n{}".format(
+                    wrapper.fill(ignore_keywords)
+                )
             )
 
         if self.ignore_comments:
             ignore_comments = " ".join(sorted(self.ignore_comments))
             self._writeln(
-                " Keyword(s) whose comments are not to be compared:\n"
-                + wrapper.fill(ignore_comments)
+                " Keyword(s) whose comments are not to be compared:\n{}".format(
+                    wrapper.fill(ignore_comments)
+                )
             )
 
         if self.ignore_fields:
             ignore_fields = " ".join(sorted(self.ignore_fields))
             self._writeln(
-                " Table column(s) not to be compared:\n" + wrapper.fill(ignore_fields)
+                " Table column(s) not to be compared:\n{}".format(
+                    wrapper.fill(ignore_fields)
+                )
             )
 
         self._writeln(
-            f" Maximum number of different data values to be reported: {self.numdiffs}"
+            " Maximum number of different data values to be reported: {}".format(
+                self.numdiffs
+            )
         )
         self._writeln(
-            f" Relative tolerance: {self.rtol}, Absolute tolerance: {self.atol}"
+            " Relative tolerance: {}, Absolute tolerance: {}".format(
+                self.rtol, self.atol
+            )
         )
 
         if self.diff_hdu_count:
@@ -551,6 +584,7 @@ class HDUDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
+
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
         self.ignore_comments = {k.upper() for k in ignore_comments}
         self.ignore_fields = {k.upper() for k in ignore_fields}
@@ -761,6 +795,7 @@ class HeaderDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
+
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
         self.ignore_comments = {k.upper() for k in ignore_comments}
 
@@ -849,8 +884,10 @@ class HeaderDiff(_BaseDiff):
         valuesa, commentsa = get_header_values_comments(cardsa)
         valuesb, commentsb = get_header_values_comments(cardsb)
 
-        keywordsa = set(valuesa)
-        keywordsb = set(valuesb)
+        # Normalize all keyword to upper-case for comparison's sake;
+        # TODO: HIERARCH keywords should be handled case-sensitively I think
+        keywordsa = {k.upper() for k in valuesa}
+        keywordsb = {k.upper() for k in valuesb}
 
         self.common_keywords = sorted(keywordsa.intersection(keywordsb))
         if len(cardsa) != len(cardsb):
@@ -1044,6 +1081,7 @@ class ImageDataDiff(_BaseDiff):
 
             .. versionadded:: 2.0
         """
+
         self.numdiffs = numdiffs
         self.rtol = rtol
         self.atol = atol
@@ -1115,12 +1153,8 @@ class ImageDataDiff(_BaseDiff):
         if not self.diff_pixels:
             return
 
-        max_relative = 0
-        max_absolute = 0
-
         for index, values in self.diff_pixels:
-            # Convert to int to avoid np.int64 in list repr.
-            index = [int(x + 1) for x in reversed(index)]
+            index = [x + 1 for x in reversed(index)]
             self._writeln(f" Data differs at {index}:")
             report_diff_values(
                 values[0],
@@ -1130,18 +1164,14 @@ class ImageDataDiff(_BaseDiff):
                 rtol=self.rtol,
                 atol=self.atol,
             )
-            rdiff, adiff = _get_differences(values[0], values[1])
-            max_relative = max(max_relative, rdiff)
-            max_absolute = max(max_absolute, adiff)
 
         if self.diff_total > self.numdiffs:
             self._writeln(" ...")
         self._writeln(
-            f" {self.diff_total} different pixels found "
-            f"({self.diff_ratio:.2%} different)."
+            " {} different pixels found ({:.2%} different).".format(
+                self.diff_total, self.diff_ratio
+            )
         )
-        self._writeln(f" Maximum relative difference: {max_relative}")
-        self._writeln(f" Maximum absolute difference: {max_absolute}")
 
 
 class RawDataDiff(ImageDataDiff):
@@ -1183,6 +1213,7 @@ class RawDataDiff(ImageDataDiff):
             are kept in memory or output.  If a negative value is given, then
             numdiffs is treated as unlimited (default: 10).
         """
+
         self.diff_dimensions = ()
         self.diff_bytes = []
 
@@ -1226,8 +1257,9 @@ class RawDataDiff(ImageDataDiff):
 
         self._writeln(" ...")
         self._writeln(
-            f" {self.diff_total} different bytes found "
-            f"({self.diff_ratio:.2%} different)."
+            " {} different bytes found ({:.2%} different).".format(
+                self.diff_total, self.diff_ratio
+            )
         )
 
 
@@ -1319,6 +1351,7 @@ class TableDataDiff(_BaseDiff):
 
             .. versionadded:: 2.0
         """
+
         self.ignore_fields = set(ignore_fields)
         self.numdiffs = numdiffs
         self.rtol = rtol
@@ -1456,7 +1489,7 @@ class TableDataDiff(_BaseDiff):
                 arrb.dtype, np.floating
             ):
                 diffs = where_not_allclose(arra, arrb, rtol=self.rtol, atol=self.atol)
-            elif "P" in col.format or "Q" in col.format:
+            elif "P" in col.format:
                 diffs = (
                     [
                         idx
@@ -1548,15 +1581,18 @@ class TableDataDiff(_BaseDiff):
 
         if self.diff_values and self.numdiffs < self.diff_total:
             self._writeln(
-                f" ...{self.diff_total - self.numdiffs} additional difference(s) found."
+                " ...{} additional difference(s) found.".format(
+                    self.diff_total - self.numdiffs
+                )
             )
 
         if self.diff_total > self.numdiffs:
             self._writeln(" ...")
 
         self._writeln(
-            f" {self.diff_total} different table data element(s) found "
-            f"({self.diff_ratio:.2%} different)."
+            " {} different table data element(s) found ({:.2%} different).".format(
+                self.diff_total, self.diff_ratio
+            )
         )
 
 
@@ -1565,6 +1601,7 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
     Write a diff between two header keyword values or comments to the specified
     file-like object.
     """
+
     if keyword in diffs:
         vals = diffs[keyword]
         for idx, val in enumerate(vals):
@@ -1575,8 +1612,9 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
             else:
                 dup = f"[{idx + 1}]"
             fileobj.write(
-                textwrap.indent(
-                    f" Keyword {keyword:8}{dup} has different {attr}:\n", ind * "  "
+                fixed_width_indent(
+                    f" Keyword {keyword:8}{dup} has different {attr}:\n",
+                    ind,
                 )
             )
             report_diff_values(val[0], val[1], fileobj=fileobj, indent_width=ind + 1)

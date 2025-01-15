@@ -33,8 +33,8 @@ class TestTimeComparisons:
                 op(t1, None)
         # Keep == and != as they are specifically meant to test Time.__eq__
         # and Time.__ne__
-        assert (t1 == None) is False
-        assert (t1 != None) is True
+        assert (t1 == None) is False  # noqa: E711
+        assert (t1 != None) is True  # noqa: E711
 
     def test_time(self):
         t1_lt_t2 = self.t1 < self.t2
@@ -89,7 +89,7 @@ class TestTimeComparisons:
     def test_timedelta(self):
         dt = self.t2 - self.t1
         with pytest.raises(TypeError):
-            self.t1 > dt  # noqa: B015
+            self.t1 > dt
         dt_gt_td0 = dt > TimeDelta(0.0, format="sec")
         assert np.all(
             dt_gt_td0

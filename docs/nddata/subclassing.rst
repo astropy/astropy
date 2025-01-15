@@ -156,16 +156,16 @@ on the class or the instance::
     >>> ndd = NDDataPower([1,2,3])
 
     >>> # using it on the instance with one operand
-    >>> ndd.pow(3)  # doctest: +ELLIPSIS
-    NDDataPower([ 1,  8, 27]...)
+    >>> ndd.pow(3)
+    NDDataPower([ 1,  8, 27])
 
     >>> # using it on the instance with two operands
-    >>> ndd.pow([1,2,3], [3,4,5])  # doctest: +ELLIPSIS
-    NDDataPower([ 1, 16, 243]...)
+    >>> ndd.pow([1,2,3], [3,4,5])
+    NDDataPower([  1,  16, 243])
 
     >>> # or using it as classmethod
-    >>> NDDataPower.pow(6, [1,2,3])  # doctest: +ELLIPSIS
-    NDDataPower([ 6, 36, 216]...)
+    >>> NDDataPower.pow(6, [1,2,3])
+    NDDataPower([  6,  36, 216])
 
 To allow propagation also with ``uncertainty`` see subclassing
 `~astropy.nddata.NDUncertainty`.
@@ -195,7 +195,7 @@ Examples
   EXAMPLE START
   Customizing Existing Properties During Arithmetic in NDData
 
-To customize how the ``meta`` will be affected during arithmetic::
+To customize how the ``meta`` will be affected during arithmetics::
 
     >>> from astropy.nddata import NDDataRef
 
@@ -222,11 +222,11 @@ be anything except ``None`` or ``"first_found"``::
     >>> ndd = NDDataWithMetaArithmetics([1,2,3], meta={'exposure': 10})
     >>> ndd2 = ndd.add(10, handle_meta='')
     >>> ndd2.meta
-    {'exposure': np.int64(20)}
+    {'exposure': 20}
 
     >>> ndd3 = ndd.multiply(0.5, handle_meta='')
     >>> ndd3.meta
-    {'exposure': np.float64(5.0)}
+    {'exposure': 5.0}
 
 .. warning::
   To use these internal `_arithmetic_*` methods there are some restrictions on
@@ -275,12 +275,12 @@ To change the default value of an existing parameter for arithmetic methods::
 
     >>> ndd1 = NDDDiffAritDefaults(1, mask=False)
     >>> ndd2 = NDDDiffAritDefaults(1, mask=True)
-    >>> # No mask handling logic will return no mask:
-    >>> ndd1.add(ndd2).mask
+    >>> ndd1.add(ndd2).mask is None  # it will be None
+    True
 
     >>> # But giving other values is still possible:
     >>> ndd1.add(ndd2, handle_mask=np.logical_or).mask
-    np.True_
+    True
 
     >>> ndd1.add(ndd2, handle_mask="ff").mask
     False
@@ -319,7 +319,7 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     ...         # take all args and kwargs to allow arithmetic on the other properties
     ...         # to work like before.
     ...
-    ...         # do the arithmetic on the flags (pop the relevant kwargs, if any!!!)
+    ...         # do the arithmetics on the flags (pop the relevant kwargs, if any!!!)
     ...         if self.flags is not None and operand.flags is not None:
     ...             result_flags = np.logical_or(self.flags, operand.flags)
     ...             # np.logical_or is just a suggestion you can do what you want

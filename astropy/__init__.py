@@ -6,59 +6,8 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
+import pathlib
 import sys
-from pathlib import Path
-
-from astropy.utils.system_info import system_info
-
-__all__ = [  # noqa: RUF100, RUF022
-    "__version__",
-    "__bibtex__",
-    # Subpackages (mostly lazy-loaded)
-    "config",
-    "constants",
-    "convolution",
-    "coordinates",
-    "cosmology",
-    "io",
-    "modeling",
-    "nddata",
-    "samp",
-    "stats",
-    "table",
-    "tests",
-    "time",
-    "timeseries",
-    "uncertainty",
-    "units",
-    "utils",
-    "visualization",
-    "wcs",
-    # Functions
-    "test",
-    "log",
-    "find_api_page",
-    "online_help",
-    "online_docs_root",
-    "conf",
-    "physical_constants",
-    "astronomical_constants",
-    "system_info",
-]
-
-
-def __getattr__(attr):
-    if attr in __all__:
-        from importlib import import_module
-
-        return import_module("astropy." + attr)
-
-    raise AttributeError(f"module 'astropy' has no attribute {attr!r}")
-
-
-def __dir__():
-    return sorted(set(globals()).union(__all__))
-
 
 from .version import version as __version__
 
@@ -119,7 +68,7 @@ from .utils.state import ScienceState
 
 class base_constants_version(ScienceState):
     """
-    Base class for the real version-setters below.
+    Base class for the real version-setters below
     """
 
     _value = "test"
@@ -149,7 +98,7 @@ class base_constants_version(ScienceState):
 
 class physical_constants(base_constants_version):
     """
-    The version of physical constants to use.
+    The version of physical constants to use
     """
 
     # Maintainers: update when new constants are added
@@ -167,7 +116,7 @@ class physical_constants(base_constants_version):
 
 class astronomical_constants(base_constants_version):
     """
-    The version of astronomical constants to use.
+    The version of astronomical constants to use
     """
 
     # Maintainers: update when new constants are added
@@ -192,12 +141,12 @@ test = TestRunner.make_test_runner_in(__path__[0])
 # configuration file with the defaults
 def _initialize_astropy():
     try:
-        from .utils import _compiler
+        from .utils import _compiler  # noqa: F401
     except ImportError:
         # If this __init__.py file is in ./astropy/ then import is within a source
         # dir .astropy-root is a file distributed with the source, but that should
         # not installed
-        if (Path(__file__).parent.parent / ".astropy-root").exists():
+        if (pathlib.Path(__file__).parent.parent / ".astropy-root").exists():
             raise ImportError(
                 "You appear to be trying to import astropy from "
                 "within a source checkout or from an editable "
@@ -214,8 +163,14 @@ def _initialize_astropy():
 
 # Set the bibtex entry to the article referenced in CITATION.
 def _get_bibtex():
-    refs = (Path(__file__).parent / "CITATION").read_text().split("@ARTICLE")[1:]
-    return f"@ARTICLE{refs[0]}" if refs else ""
+    citation_file = pathlib.Path(__file__).parent / "CITATION"
+
+    with open(citation_file) as citation:
+        refs = citation.read().split("@ARTICLE")[1:]
+        if len(refs) == 0:
+            return ""
+        bibtexreference = f"@ARTICLE{refs[0]}"
+    return bibtexreference
 
 
 __citation__ = __bibtex__ = _get_bibtex()
@@ -226,7 +181,7 @@ log = _init_log()
 
 _initialize_astropy()
 
-from .utils.misc import find_api_page
+from .utils.misc import find_api_page  # noqa: F401
 
 
 def online_help(query):
@@ -247,21 +202,36 @@ def online_help(query):
     webbrowser.open(url)
 
 
+__dir_inc__ = [
+    "__version__",
+    "__githash__",
+    "__bibtex__",
+    "test",
+    "log",
+    "find_api_page",
+    "online_help",
+    "online_docs_root",
+    "conf",
+    "physical_constants",
+    "astronomical_constants",
+]
+
+
 from types import ModuleType as __module_type__
 
-# Clean up top-level namespace--delete everything that isn't in __all__
+# Clean up top-level namespace--delete everything that isn't in __dir_inc__
 # or is a magic attribute, and that isn't a submodule of this package
 for varname in dir():
     if not (
         (varname.startswith("__") and varname.endswith("__"))
-        or varname in __all__
+        or varname in __dir_inc__
         or (
             varname[0] != "_"
             and isinstance(locals()[varname], __module_type__)
             and locals()[varname].__name__.startswith(__name__ + ".")
         )
     ):
-        # The last clause in the above disjunction deserves explanation:
+        # The last clause in the the above disjunction deserves explanation:
         # When using relative imports like ``from .. import config``, the
         # ``config`` variable is automatically created in the namespace of
         # whatever module ``..`` resolves to (in this case astropy).  This

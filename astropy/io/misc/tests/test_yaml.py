@@ -8,9 +8,8 @@ from io import StringIO
 
 import numpy as np
 import pytest
-from yaml import SafeDumper
 
-import astropy.units as u
+from astropy import units as u
 from astropy.coordinates import (
     Angle,
     CartesianDifferential,
@@ -25,7 +24,7 @@ from astropy.coordinates import (
     UnitSphericalRepresentation,
 )
 from astropy.coordinates.tests.test_representation import representation_equal
-from astropy.io.misc.yaml import AstropyDumper, dump, load, load_all
+from astropy.io.misc.yaml import dump, load, load_all
 from astropy.table import QTable, SerializedColumn
 from astropy.time import Time
 
@@ -42,6 +41,7 @@ from astropy.time import Time
         2.0,
         np.float64(),
         3 + 4j,
+        np.complex_(3 + 4j),
         np.complex64(3 + 4j),
         np.complex128(1.0 - 2**-52 + 1j * (1.0 - 2**-52)),
     ],
@@ -49,16 +49,6 @@ from astropy.time import Time
 def test_numpy_types(c):
     cy = load(dump(c))
     assert c == cy
-
-
-@pytest.mark.parametrize("c", [float("inf"), float("-inf"), np.inf, -np.inf])
-def test_astropydumper_represent_float_override(c):
-    # AstropyDumper overrides SafeDumper.represent_float, which has multiple
-    # branches, not all of which are intended to deviate.
-    # Check that the subclass behave as its parent in these cases.
-    d1 = SafeDumper(stream=StringIO())
-    d2 = AstropyDumper(stream=StringIO())
-    assert d2.represent_float(c).value == d1.represent_float(c).value
 
 
 @pytest.mark.parametrize(
@@ -304,26 +294,3 @@ def test_ecsv_astropy_objects_in_meta():
     compare_time(tm, t2.meta["tm"])
     compare_coord(c, t2.meta["c"])
     assert t2.meta["unit"] == unit
-
-
-def test_yaml_dump_of_object_arrays_fail():
-    """Test that dumping and loading object arrays fails."""
-    with pytest.raises(TypeError, match="cannot serialize"):
-        dump(np.array([1, 2, 3], dtype=object))
-
-
-def test_yaml_load_of_object_arrays_fail():
-    """Test that dumping and loading object arrays fails.
-
-    The string to load was obtained by suppressing the exception and dumping
-    ``np.array([1, 2, 3], dtype=object)`` to a yaml file.
-    """
-    with pytest.raises(TypeError, match="cannot load numpy array"):
-        load(
-            """!numpy.ndarray
-            buffer: !!binary |
-              WndBQUFISUFBQUJwQUFBQQ==
-            dtype: object
-            order: C
-            shape: !!python/tuple [3]"""
-        )

@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: tab.h,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.12 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -50,8 +50,7 @@
 *
 * tabini(), tabmem(), tabcpy(), and tabfree() are provided to manage the
 * tabprm struct, tabsize() computes its total size including allocated memory,
-* tabenq() returns information about the state of the struct, and tabprt()
-* prints its contents.
+* and tabprt() prints its contents.
 *
 * tabperr() prints the error message(s) (if any) stored in a tabprm struct.
 *
@@ -263,31 +262,6 @@
 *                         0: Success.
 *
 *
-* tabenq() - enquire about the state of a tabprm struct
-* -----------------------------------------------------
-* tabenq() may be used to obtain information about the state of a tabprm
-* struct.  The function returns a true/false answer for the enquiry asked.
-*
-* Given:
-*   tab       const struct tabprm*
-*                       Tabular transformation parameters.
-*
-*   enquiry   int       Enquiry according to the following parameters:
-*                         TABENQ_MEM: memory in the struct is being managed by
-*                                     WCSLIB (see tabini()).
-*                         TABENQ_SET: the struct has been set up by tabset().
-*                         TABENQ_BYP: the struct is in bypass mode (see
-*                                     tabset()).
-*                       These may be combined by logical OR, e.g.
-*                       TABENQ_MEM | TABENQ_SET.  The enquiry result will be
-*                       the logical AND of the individual results.
-*
-* Function return value:
-*             int       Enquiry result:
-*                         0: No.
-*                         1: Yes.
-*
-*
 * tabprt() - Print routine for the tabprm struct
 * ----------------------------------------------
 * tabprt() prints the contents of a tabprm struct using wcsprintf().  Mainly
@@ -330,13 +304,6 @@
 * Note that this routine need not be called directly; it will be invoked by
 * tabx2s() and tabs2x() if tabprm::flag is anything other than a predefined
 * magic value.
-*
-* tabset() normally operates regardless of the value of tabprm::flag; i.e.
-* even if a struct was previously set up it will be reset unconditionally.
-* However, a tabprm struct may be put into "bypass" mode by invoking tabset()
-* initially with tabprm::flag == 1 (rather than 0).  tabset() will return
-* immediately if invoked on a struct in that state.  To take a struct out of
-* bypass mode, simply reset tabprm::flag to zero.  See also tabenq().
 *
 * Given and returned:
 *   tab       struct tabprm*
@@ -434,8 +401,8 @@
 * internal use only.
 *
 *   int flag
-*     (Given and returned) This flag must be set to zero (or 1, see tabset())
-*     whenever any of the following tabprm members are set or changed:
+*     (Given and returned) This flag must be set to zero whenever any of the
+*     following tabprm structure members are set or changed:
 *
 *       - tabprm::M (q.v., not normally set by the user),
 *       - tabprm::K (q.v., not normally set by the user),
@@ -589,11 +556,6 @@
 extern "C" {
 #endif
 
-enum tabenq_enum {
-  TABENQ_MEM = 1,		// tabprm struct memory is managed by WCSLIB.
-  TABENQ_SET = 2,		// tabprm struct has been set up.
-  TABENQ_BYP = 4,		// tabprm struct is in bypass mode.
-};
 
 extern const char *tab_errmsg[];
 
@@ -672,8 +634,6 @@ int tabcmp(int cmp, double tol, const struct tabprm *tab1,
 int tabfree(struct tabprm *tab);
 
 int tabsize(const struct tabprm *tab, int size[2]);
-
-int tabenq(const struct tabprm *tab, int enquiry);
 
 int tabprt(const struct tabprm *tab);
 

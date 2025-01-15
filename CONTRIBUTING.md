@@ -53,7 +53,7 @@ requests](https://help.github.com/en/github/collaborating-with-issues-and-pull-r
 from GitHub users' forks of the [astropy
 repository](https://github.com/astropy/astropy). If you are new to this
 style of development, you will want to read over our [development
-workflow](https://docs.astropy.org/en/latest/development/quickstart.html).
+workflow](https://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
 
 You may also/instead be interested in contributing to an
 [astropy affiliated package](https://www.astropy.org/affiliated/).
@@ -86,9 +86,6 @@ include the following:
   [astropy-benchmarks](https://github.com/astropy/astropy-benchmarks)
   repository. You can find out more about how to do this
   [in the README for that repository](https://github.com/astropy/astropy-benchmarks#contributing-benchmarks).
-  A maintainer will also be able to run comparative benchmarks using
-  GitHub Actions on your changes to catch performance changes. The PR
-  needs to have the `benchmark` label to run the workflow.
 
 - **Changelog entry**: whether you are fixing a bug or adding new
   functionality, you should add a changelog fragment in the ``docs/changes/``
@@ -124,8 +121,9 @@ requirements for inclusion in the package:
 
 **Code Quality**
   * Are the [coding guidelines](https://docs.astropy.org/en/latest/development/codeguide.html) followed?
-  * Is the code compatible with the supported versions of Python (see [pyproject.toml](https://github.com/astropy/astropy/blob/main/pyproject.toml))?
-  * Are there dependencies other than the run-time dependencies listed in pyproject.toml?
+  * Is the code compatible with Python >=3.8?
+  * Are there dependencies other than the `astropy` core, the Python Standard
+    Library, and NumPy 1.18.0 or later?
     * Is the package importable even if the C-extensions are not built?
     * Are additional dependencies handled appropriately?
     * Do functions that require additional dependencies raise an `ImportError`

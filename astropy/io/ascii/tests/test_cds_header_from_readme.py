@@ -2,14 +2,15 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.io import ascii
 
-from .common import (
-    setup_function,  # noqa: F401
-    teardown_function,  # noqa: F401
+from .common import (  # noqa: F401
+    assert_almost_equal,
+    assert_equal,
+    setup_function,
+    teardown_function,
 )
 
 
@@ -19,7 +20,7 @@ def read_table1(readme, data):
 
 
 def read_table2(readme, data):
-    reader = ascii.get_reader(reader_cls=ascii.Cds, readme=readme)
+    reader = ascii.get_reader(Reader=ascii.Cds, readme=readme)
     reader.outputter = ascii.TableOutputter()
     return reader.read(data)
 
@@ -33,20 +34,17 @@ def test_description():
     data = "data/cds/description/table.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        assert len(table) == 2
-        assert table["Cluster"].description == "Cluster name"
-        assert table["Star"].description == ""
-        assert table["Wave"].description == "wave ? Wavelength in Angstroms"
-        assert table["El"].description == "a"
-        assert table["ion"].description == "- Ionization stage (1 for neutral element)"
-        assert table["loggf"].description == (
-            "log10 of the gf value - logarithm base 10 of stat. weight times "
-            "oscillator strength"
+        assert_equal(len(table), 2)
+        assert_equal(table["Cluster"].description, "Cluster name")
+        assert_equal(table["Star"].description, "")
+        assert_equal(table["Wave"].description, "wave? Wavelength in Angstroms")
+        assert_equal(table["El"].description, "a")
+        assert_equal(
+            table["ion"].description, "- Ionization stage (1 for neutral element)"
         )
-        assert table["EW"].description == "Equivalent width (in mA)"
-        assert (
-            table["Q"].description
-            == "DAOSPEC quality parameter Q (large values are bad)"
+        assert_equal(table["EW"].description, "Equivalent width (in mA)")
+        assert_equal(
+            table["Q"].description, "DAOSPEC quality parameter Q(large values are bad)"
         )
 
 
@@ -55,15 +53,15 @@ def test_multi_header():
     data = "data/cds/multi/lhs2065.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        assert len(table) == 18
-        assert_allclose(table["Lambda"][-1], 6479.32)
-        assert table["Fnu"][-1] == "0.285937"
+        assert_equal(len(table), 18)
+        assert_almost_equal(table["Lambda"][-1], 6479.32)
+        assert_equal(table["Fnu"][-1], "0.285937")
     data = "data/cds/multi/lp944-20.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        assert len(table) == 18
-        assert_allclose(table["Lambda"][0], 6476.09)
-        assert table["Fnu"][-1] == "0.489005"
+        assert_equal(len(table), 18)
+        assert_almost_equal(table["Lambda"][0], 6476.09)
+        assert_equal(table["Fnu"][-1], "0.489005")
 
 
 def test_glob_header():
@@ -71,9 +69,9 @@ def test_glob_header():
     data = "data/cds/glob/lmxbrefs.dat"
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        assert len(table) == 291
-        assert table["Name"][-1] == "J1914+0953"
-        assert table["BibCode"][-2] == "2005A&A...432..235R"
+        assert_equal(len(table), 291)
+        assert_equal(table["Name"][-1], "J1914+0953")
+        assert_equal(table["BibCode"][-2], "2005A&A...432..235R")
 
 
 def test_header_from_readme():
@@ -201,47 +199,59 @@ def test_cds_function_units2(reader_cls):
     assert table["vturb"].unit == u.km / u.s
     assert table["[Fe/H]"].unit == u.dex(u.one)
     assert table["e_[Fe/H]"].unit == u.dex(u.one)
-    assert_allclose(
+    assert_almost_equal(
         table["[Fe/H]"].to(u.one), 10.0 ** (np.array([-2.07, -1.50, -2.11, -1.64]))
     )
 
 
 def test_cds_ignore_nullable():
-    # Make sure CDS reader_cls does not ignore nullabilty for columns
+    # Make sure CDS Reader does not ignore nullabilty for columns
     # with a limit specifier
     readme = "data/cds/null/ReadMe"
     data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    assert r.header.cols[6].description == "Temperature class codified (10)"
-    assert r.header.cols[8].description == "Luminosity class codified (11)"
-    assert r.header.cols[5].description == "Pericenter position angle (18)"
+    assert_equal(r.header.cols[6].description, "Temperature class codified (10)")
+    assert_equal(r.header.cols[8].description, "Luminosity class codified (11)")
+    assert_equal(r.header.cols[5].description, "Pericenter position angle (18)")
 
 
 def test_cds_no_whitespace():
-    # Make sure CDS reader_cls only checks null values when an '=' symbol is present,
+    # Make sure CDS Reader only checks null values when an '=' symbol is present,
     # and read description text even if there is no whitespace after '?'.
     readme = "data/cds/null/ReadMe1"
-    data = "data/cds/null/table1.dat"
+    data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    assert r.header.cols[6].description == "Temperature class codified (10)"
-    assert r.header.cols[6].null == ""
-    assert r.header.cols[7].description == "Equivalent width (in mA)"
-    assert r.header.cols[7].null == "-9.9"
-    assert r.header.cols[10].description == (
-        "DAOSPEC quality parameter Q (large values are bad)"
+    assert_equal(r.header.cols[6].description, "Temperature class codified (10)")
+    assert_equal(r.header.cols[6].null, "")
+    assert_equal(r.header.cols[7].description, "Equivalent width (in mA)")
+    assert_equal(r.header.cols[7].null, "-9.9")
+    assert_equal(
+        r.header.cols[10].description,
+        "DAOSPEC quality parameter Q(large values are bad)",
     )
-    assert r.header.cols[10].null == "-9.999"
+    assert_equal(r.header.cols[10].null, "-9.999")
 
 
 def test_cds_order():
-    # Make sure CDS reader_cls does not ignore order specifier that maybe present after
+    # Make sure CDS Reader does not ignore order specifier that maybe present after
     # the null specifier '?'
     readme = "data/cds/null/ReadMe1"
-    data = "data/cds/null/table1.dat"
+    data = "data/cds/null/table.dat"
     r = ascii.Cds(readme)
     r.read(data)
-    assert r.header.cols[5].description == "Catalogue Identification Number"
-    assert r.header.cols[8].description == "Another equivalent width (in mA)"
-    assert r.header.cols[9].description == "Luminosity class codified (11)"
+    assert_equal(r.header.cols[5].description, "Catalogue Identification Number")
+    assert_equal(r.header.cols[8].description, "Equivalent width (in mA)")
+    assert_equal(r.header.cols[9].description, "Luminosity class codified (11)")
+
+
+if __name__ == "__main__":  # run from main directory; not from test/
+    test_header_from_readme()
+    test_multi_header()
+    test_glob_header()
+    test_description()
+    test_cds_units()
+    test_cds_ignore_nullable()
+    test_cds_no_whitespace()
+    test_cds_order()

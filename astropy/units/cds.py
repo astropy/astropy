@@ -3,9 +3,9 @@
 """
 This package defines units used in the CDS format, both the units
 defined in `Centre de Données astronomiques de Strasbourg
-<https://cds.unistra.fr/>`_ `Standards for Astronomical Catalogues 2.0
-<https://vizier.unistra.fr/vizier/doc/catstd-3.2.htx>`_ format and the `complete
-set of supported units <https://vizier.unistra.fr/viz-bin/Unit>`_.
+<http://cds.u-strasbg.fr/>`_ `Standards for Astronomical Catalogues 2.0
+<http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_ format and the `complete
+set of supported units <https://vizier.u-strasbg.fr/viz-bin/Unit>`_.
 This format is used by VOTable up to version 1.2.
 
 These units are not available in the top-level `astropy.units`
@@ -20,29 +20,14 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
 
     >>> from astropy.units import cds
     >>> cds.enable()  # doctest: +SKIP
-
-Note, however, that this can introduce conflicts between CDS and other
-units in the top-level namespace. A safer way to use CDS units is to enable
-them inside a context manager. For instance, you could do the following if
-you have a string that uses CDS units:
-
->>> import astropy.units as u
->>> unit_string = "mmHg"
->>> with cds.enable():
-...     pressure_unit = u.Unit(unit_string)
->>> (720*pressure_unit).to(u.bar)
-<Quantity 0.95992119 bar>
 """
-
-__all__ = ["enable"]  #  Units are added at the end
-
-from .core import UnitBase
 
 _ns = globals()
 
 
 def _initialize_module():
     """Initialize CDS units module."""
+
     # Local imports to avoid polluting top-level namespace
     import numpy as np
 
@@ -59,7 +44,7 @@ def _initialize_module():
     prefixes = [(short, short, factor) for (short, long, factor) in prefixes]
 
     # The following units are defined in alphabetical order, directly from
-    # here: https://vizier.unistra.fr/viz-bin/Unit
+    # here: https://vizier.u-strasbg.fr/viz-bin/Unit
 
     mapping = [
         (["A"], u.A, "Ampere"),
@@ -68,7 +53,7 @@ def _initialize_module():
         (["al"], u.lyr, "Light year", ["c", "d"]),
         (["lyr"], u.lyr, "Light year"),
         (["alpha"], _si.alpha, "Fine structure constant"),
-        (["Angstrom", "Å", "Angstroem", "AA"], u.AA, "Angstrom"),
+        ((["AA", "Å"], ["Angstrom", "Angstroem"]), u.AA, "Angstrom"),
         (["arcmin", "arcm"], u.arcminute, "minute of arc"),
         (["arcsec", "arcs"], u.arcsecond, "second of arc"),
         (["atm"], _si.atm, "atmosphere"),
@@ -119,7 +104,7 @@ def _initialize_module():
         (["mmHg"], 133.322387415 * u.Pa, "millimeter of mercury"),
         (["mol"], u.mol, "mole"),
         (["mp"], _si.m_p, "proton mass"),
-        (["solMass", "Msun"], u.solMass, "solar mass"),
+        (["Msun", "solMass"], u.solMass, "solar mass"),
         ((["mu0", "µ0"], []), _si.mu0, "magnetic constant"),
         (["muB"], _si.muB, "Bohr magneton"),
         (["N"], u.N, "Newton"),
@@ -183,15 +168,13 @@ _initialize_module()
 
 
 ###########################################################################
-# ALL & DOCSTRING
+# DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+# This generates a docstring for this module that describes all of the
+# standard units defined here.
+from .utils import generate_unit_summary as _generate_unit_summary
 
 if __doc__ is not None:
-    # This generates a docstring for this module that describes all of the
-    # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
     __doc__ += _generate_unit_summary(globals())
 
 

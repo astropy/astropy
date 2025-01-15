@@ -4,20 +4,20 @@ import functools
 
 from .core import UnifiedIORegistry
 
-__all__ = [  # noqa: F822
-    "delay_doc_updates",
-    "get_formats",
-    "get_reader",
-    "get_writer",
-    "identify_format",
-    "read",
-    "register_identifier",
+__all__ = [
     "register_reader",
     "register_writer",
-    "unregister_identifier",
+    "register_identifier",
     "unregister_reader",
     "unregister_writer",
+    "unregister_identifier",
+    "get_reader",
+    "get_writer",
+    "get_formats",
+    "read",
     "write",
+    "identify_format",
+    "delay_doc_updates",
 ]
 
 # make a default global-state registry  (not publicly scoped, but often accessed)

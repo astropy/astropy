@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Contains the transformation functions for getting from ICRS/HCRS to CIRS and
-anything in between (currently that means GCRS).
+anything in between (currently that means GCRS)
 """
 
 import numpy as np
 
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
-from astropy.coordinates.erfa_astrom import erfa_astrom
 from astropy.coordinates.representation import (
     CartesianRepresentation,
     SphericalRepresentation,
@@ -18,8 +17,8 @@ from astropy.coordinates.transformations import (
     AffineTransform,
     FunctionTransformWithFiniteDifference,
 )
-from astropy.utils.compat import COPY_IF_NEEDED
 
+from ..erfa_astrom import erfa_astrom
 from .cirs import CIRS
 from .gcrs import GCRS
 from .hcrs import HCRS
@@ -34,7 +33,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
     astrom = erfa_astrom.get().apco(cirs_frame)
 
     if (
-        icrs_coo.data.name == "unitspherical"
+        icrs_coo.data.get_name() == "unitspherical"
         or icrs_coo.data.to_cartesian().x.unit == u.one
     ):
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -42,8 +41,8 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
         cirs_ra, cirs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = UnitSphericalRepresentation(
-            lat=u.Quantity(cirs_dec, u.radian, copy=COPY_IF_NEEDED),
-            lon=u.Quantity(cirs_ra, u.radian, copy=COPY_IF_NEEDED),
+            lat=u.Quantity(cirs_dec, u.radian, copy=False),
+            lon=u.Quantity(cirs_ra, u.radian, copy=False),
             copy=False,
         )
     else:
@@ -52,15 +51,15 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
         # no parallax/PM. This ensures reversibility and is more sensible for
         # inside solar system objects
         astrom_eb = CartesianRepresentation(
-            astrom["eb"], unit=u.au, xyz_axis=-1, copy=COPY_IF_NEEDED
+            astrom["eb"], unit=u.au, xyz_axis=-1, copy=False
         )
         newcart = icrs_coo.cartesian - astrom_eb
         srepr = newcart.represent_as(SphericalRepresentation)
         cirs_ra, cirs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = SphericalRepresentation(
-            lat=u.Quantity(cirs_dec, u.radian, copy=COPY_IF_NEEDED),
-            lon=u.Quantity(cirs_ra, u.radian, copy=COPY_IF_NEEDED),
+            lat=u.Quantity(cirs_dec, u.radian, copy=False),
+            lon=u.Quantity(cirs_ra, u.radian, copy=False),
             distance=srepr.distance,
             copy=False,
         )
@@ -77,14 +76,14 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
     i_ra, i_dec = aticq(srepr.without_differentials(), astrom)
 
     if (
-        cirs_coo.data.name == "unitspherical"
+        cirs_coo.data.get_name() == "unitspherical"
         or cirs_coo.data.to_cartesian().x.unit == u.one
     ):
         # if no distance, just use the coordinate direction to yield the
         # infinite-distance/no parallax answer
         newrep = UnitSphericalRepresentation(
-            lat=u.Quantity(i_dec, u.radian, copy=COPY_IF_NEEDED),
-            lon=u.Quantity(i_ra, u.radian, copy=COPY_IF_NEEDED),
+            lat=u.Quantity(i_dec, u.radian, copy=False),
+            lon=u.Quantity(i_ra, u.radian, copy=False),
             copy=False,
         )
     else:
@@ -94,14 +93,14 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
         # the distance in intermedrep is *not* a real distance as it does not
         # include the offset back to the SSB
         intermedrep = SphericalRepresentation(
-            lat=u.Quantity(i_dec, u.radian, copy=COPY_IF_NEEDED),
-            lon=u.Quantity(i_ra, u.radian, copy=COPY_IF_NEEDED),
+            lat=u.Quantity(i_dec, u.radian, copy=False),
+            lon=u.Quantity(i_ra, u.radian, copy=False),
             distance=srepr.distance,
             copy=False,
         )
 
         astrom_eb = CartesianRepresentation(
-            astrom["eb"], unit=u.au, xyz_axis=-1, copy=COPY_IF_NEEDED
+            astrom["eb"], unit=u.au, xyz_axis=-1, copy=False
         )
         newrep = intermedrep + astrom_eb
 
@@ -117,7 +116,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     astrom = erfa_astrom.get().apcs(gcrs_frame)
 
     if (
-        icrs_coo.data.name == "unitspherical"
+        icrs_coo.data.get_name() == "unitspherical"
         or icrs_coo.data.to_cartesian().x.unit == u.one
     ):
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -125,8 +124,8 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         gcrs_ra, gcrs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = UnitSphericalRepresentation(
-            lat=u.Quantity(gcrs_dec, u.radian, copy=COPY_IF_NEEDED),
-            lon=u.Quantity(gcrs_ra, u.radian, copy=COPY_IF_NEEDED),
+            lat=u.Quantity(gcrs_dec, u.radian, copy=False),
+            lon=u.Quantity(gcrs_ra, u.radian, copy=False),
             copy=False,
         )
     else:
@@ -135,7 +134,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         # parallax/PM. This ensures reversibility and is more sensible for
         # inside solar system objects
         astrom_eb = CartesianRepresentation(
-            astrom["eb"], unit=u.au, xyz_axis=-1, copy=COPY_IF_NEEDED
+            astrom["eb"], unit=u.au, xyz_axis=-1, copy=False
         )
         newcart = icrs_coo.cartesian - astrom_eb
 
@@ -143,8 +142,8 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         gcrs_ra, gcrs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = SphericalRepresentation(
-            lat=u.Quantity(gcrs_dec, u.radian, copy=COPY_IF_NEEDED),
-            lon=u.Quantity(gcrs_ra, u.radian, copy=COPY_IF_NEEDED),
+            lat=u.Quantity(gcrs_dec, u.radian, copy=False),
+            lon=u.Quantity(gcrs_ra, u.radian, copy=False),
             distance=srepr.distance,
             copy=False,
         )
@@ -162,14 +161,14 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
     i_ra, i_dec = aticq(srepr.without_differentials(), astrom)
 
     if (
-        gcrs_coo.data.name == "unitspherical"
+        gcrs_coo.data.get_name() == "unitspherical"
         or gcrs_coo.data.to_cartesian().x.unit == u.one
     ):
         # if no distance, just use the coordinate direction to yield the
         # infinite-distance/no parallax answer
         newrep = UnitSphericalRepresentation(
-            lat=u.Quantity(i_dec, u.radian, copy=COPY_IF_NEEDED),
-            lon=u.Quantity(i_ra, u.radian, copy=COPY_IF_NEEDED),
+            lat=u.Quantity(i_dec, u.radian, copy=False),
+            lon=u.Quantity(i_ra, u.radian, copy=False),
             copy=False,
         )
     else:
@@ -179,14 +178,14 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
         # the distance in intermedrep is *not* a real distance as it does not
         # include the offset back to the SSB
         intermedrep = SphericalRepresentation(
-            lat=u.Quantity(i_dec, u.radian, copy=COPY_IF_NEEDED),
-            lon=u.Quantity(i_ra, u.radian, copy=COPY_IF_NEEDED),
+            lat=u.Quantity(i_dec, u.radian, copy=False),
+            lon=u.Quantity(i_ra, u.radian, copy=False),
             distance=srepr.distance,
             copy=False,
         )
 
         astrom_eb = CartesianRepresentation(
-            astrom["eb"], unit=u.au, xyz_axis=-1, copy=COPY_IF_NEEDED
+            astrom["eb"], unit=u.au, xyz_axis=-1, copy=False
         )
         newrep = intermedrep + astrom_eb
 
@@ -209,10 +208,10 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     i_ra, i_dec = aticq(srepr.without_differentials(), astrom)
 
     # convert to Quantity objects
-    i_ra = u.Quantity(i_ra, u.radian, copy=COPY_IF_NEEDED)
-    i_dec = u.Quantity(i_dec, u.radian, copy=COPY_IF_NEEDED)
+    i_ra = u.Quantity(i_ra, u.radian, copy=False)
+    i_dec = u.Quantity(i_dec, u.radian, copy=False)
     if (
-        gcrs_coo.data.name == "unitspherical"
+        gcrs_coo.data.get_name() == "unitspherical"
         or gcrs_coo.data.to_cartesian().x.unit == u.one
     ):
         # if no distance, just use the coordinate direction to yield the
@@ -235,7 +234,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
         # against the shape of the pv array.
         # broadcast em to eh and scale eh
         eh = astrom["eh"] * astrom["em"][..., np.newaxis]
-        eh = CartesianRepresentation(eh, unit=u.au, xyz_axis=-1, copy=COPY_IF_NEEDED)
+        eh = CartesianRepresentation(eh, unit=u.au, xyz_axis=-1, copy=False)
 
         newrep = intermedrep.to_cartesian() + eh
 

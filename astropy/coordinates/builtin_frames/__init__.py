@@ -75,20 +75,15 @@ from . import ecliptic_transforms
 from .lsr import LSR, LSRD, LSRK, GalacticLSR
 
 # we define an __all__ because otherwise the transformation modules
-# get included.  Note that the order here determines the order in the
-# documentation of the built-in frames (see make_transform_graphs_docs).
-
-# ignoring RUF022 here because case-sensitive  alphanumeric sorting doesn't work here
-# (as of ruff 0.8). RUF100 also ignored so older versions of ruff don't remove
-# the first noqa comment
-# ref https://github.com/astropy/astropy/pull/17437#discussion_r1856780149
-__all__ = [  # noqa: RUF022, RUF100
+# get included
+__all__ = [
     "ICRS",
     "FK5",
     "FK4",
     "FK4NoETerms",
     "Galactic",
     "Galactocentric",
+    "galactocentric_frame_defaults",
     "Supergalactic",
     "AltAz",
     "HADec",
@@ -105,41 +100,17 @@ __all__ = [  # noqa: RUF022, RUF100
     "GeocentricTrueEcliptic",
     "BarycentricTrueEcliptic",
     "HeliocentricTrueEcliptic",
-    "HeliocentricEclipticIAU76",
-    "CustomBarycentricEcliptic",
+    "SkyOffsetFrame",
+    "GalacticLSR",
     "LSR",
     "LSRK",
     "LSRD",
-    "GalacticLSR",
-    "SkyOffsetFrame",
     "BaseEclipticFrame",
     "BaseRADecFrame",
-    "galactocentric_frame_defaults",
     "make_transform_graph_docs",
+    "HeliocentricEclipticIAU76",
+    "CustomBarycentricEcliptic",
 ]
-
-
-def _get_doc_header(cls):
-    """Get the first line of a docstring.
-
-    Skips possible empty first lines, and then combine following text until
-    the first period or a fully empty line.
-    """
-    out = []
-
-    # NOTE: cls.__doc__ is None for -OO flag
-    if not cls.__doc__:
-        return ""
-
-    for line in cls.__doc__.splitlines():
-        if line:
-            parts = line.split(".")
-            out.append(parts[0].strip())
-            if len(parts) > 1:
-                break
-        elif out:
-            break
-    return " ".join(out) + "."
 
 
 def make_transform_graph_docs(transform_graph):
@@ -150,7 +121,7 @@ def make_transform_graph_docs(transform_graph):
 
     Parameters
     ----------
-    transform_graph : `~astropy.coordinates.TransformGraph`
+    transform_graph : `~.coordinates.TransformGraph`
 
     Returns
     -------
@@ -160,16 +131,11 @@ def make_transform_graph_docs(transform_graph):
     """
     from textwrap import dedent
 
-    coosys = {
-        (cls := transform_graph.lookup_name(item)).__name__: cls
-        for item in transform_graph.get_names()
-    }
+    coosys = [transform_graph.lookup_name(item) for item in transform_graph.get_names()]
 
     # currently, all of the priorities are set to 1, so we don't need to show
     #   then in the transform graph.
-    graphstr = transform_graph.to_dot_graph(
-        addnodes=list(coosys.values()), priorities=False
-    )
+    graphstr = transform_graph.to_dot_graph(addnodes=coosys, priorities=False)
 
     docstr = """
     The diagram below shows all of the built in coordinate systems,
@@ -179,11 +145,11 @@ def make_transform_graph_docs(transform_graph):
     defining new transformations between these systems, but the
     pre-defined transformations should be sufficient for typical usage.
 
-    The color of an edge in the graph (i.e., the transformations between two
+    The color of an edge in the graph (i.e. the transformations between two
     frames) is set by the type of transformation; the legend box defines the
     mapping from transform class name to color.
 
-    .. Wrap the graph in a div with a custom class to allow theming.
+    .. Wrap the graph in a div with a custom class to allow themeing.
     .. container:: frametransformgraph
 
         .. graphviz::
@@ -192,8 +158,8 @@ def make_transform_graph_docs(transform_graph):
 
     docstr = dedent(docstr) + "        " + graphstr.replace("\n", "\n        ")
 
-    # colors are in dictionary mapping transform class to color
-    from astropy.coordinates.transformations.graph import trans_to_color
+    # colors are in dictionary at the bottom of transformations.py
+    from astropy.coordinates.transformations import trans_to_color
 
     html_list_items = []
     for cls, color in trans_to_color.items():
@@ -204,36 +170,20 @@ def make_transform_graph_docs(transform_graph):
                     <span style="font-size: 24px; color: {color};"><b>➝</b></span>
                 </p>
             </li>
-        """
+        """  # noqa: E501
         html_list_items.append(block)
 
     nl = "\n"
     graph_legend = f"""
     .. raw:: html
 
-        <ul class="cooframelegend">
+        <ul>
             {nl.join(html_list_items)}
         </ul>
     """
     docstr = docstr + dedent(graph_legend)
 
-    # Add table with built-in frame classes.
-    template = """
-       * - `~astropy.coordinates.{}`
-         - {}
-    """
-    table = """
-    Built-in Frame Classes
-    ^^^^^^^^^^^^^^^^^^^^^^
-    .. list-table::
-       :widths: 20 80
-    """ + "".join(
-        template.format(name, _get_doc_header(coosys[name]))
-        for name in __all__
-        if name in coosys
-    )
-
-    return docstr + dedent(table)
+    return docstr
 
 
 _transform_graph_docs = make_transform_graph_docs(frame_transform_graph)

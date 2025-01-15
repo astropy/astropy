@@ -132,7 +132,7 @@ def tableclass(request):
     return table.Table if request.param else SubclassTable
 
 
-@pytest.fixture(params=list(range(pickle.HIGHEST_PROTOCOL + 1)))
+@pytest.fixture(params=list(range(0, pickle.HIGHEST_PROTOCOL + 1)))
 def protocol(request):
     """
     Fixture to run all the tests for all available pickle protocols.
@@ -168,16 +168,13 @@ MIXIN_COLS = {
         [0, 1, 2, 3] * u.mas / u.yr, [0, 1, 2, 3] * u.mas / u.yr, 10 * u.km / u.s
     ),
     "arraywrap": ArrayWrapper([0, 1, 2, 3]),
-    "arrayswap": ArrayWrapper(
-        np.arange(4, dtype="i").byteswap().view(np.dtype("i").newbyteorder())
-    ),
+    "arrayswap": ArrayWrapper(np.arange(4, dtype="i").byteswap().newbyteorder()),
     "ndarraylil": np.array(
         [(7, "a"), (8, "b"), (9, "c"), (9, "c")], dtype="<i4,|S1"
     ).view(table.NdarrayMixin),
     "ndarraybig": np.array(
         [(7, "a"), (8, "b"), (9, "c"), (9, "c")], dtype=">i4,|S1"
     ).view(table.NdarrayMixin),
-    "stokescoord": coordinates.StokesCoord(range(1, 5)),
 }
 MIXIN_COLS["earthlocation"] = coordinates.EarthLocation(
     lon=MIXIN_COLS["longitude"],
@@ -206,7 +203,8 @@ def mixin_cols(request):
     return cols
 
 
-def _get_test_table():
+@pytest.fixture(params=[False, True])
+def T1(request):
     T = QTable.read(
         [
             " a b c d",
@@ -225,42 +223,7 @@ def _get_test_table():
     T.meta.update({"ta": 1})
     T["c"].meta.update({"a": 1})
     T["c"].description = "column c"
-    return T
-
-
-@pytest.fixture
-def T1b(request):
-    """Basic table"""
-    T = _get_test_table()
-    return T
-
-
-@pytest.fixture(params=[False, True])
-def T1(request):
-    """Basic table with or without index on integer column a"""
-    T = _get_test_table()
     if request.param:
-        T.add_index("a")
-    return T
-
-
-@pytest.fixture(params=[False, True])
-def T1q(request):
-    """Basic table where a column is integer or Quantity"""
-    T = _get_test_table()
-    if request.param:
-        T["a"] = T["a"] * u.m
-    return T
-
-
-@pytest.fixture(params=[(False, False), (False, True), (True, False), (True, True)])
-def T1m(request):
-    """Basic table with or without index on column a, where a is integer or Quantity"""
-    T = _get_test_table()
-    add_index, is_quantity = request.param
-    if is_quantity:
-        T["a"] = T["a"] * u.m
-    if add_index:
         T.add_index("a")
     return T
 

@@ -34,6 +34,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
         which are forwarded to the server's ``_dispatch`` method for
         handling.
         """
+
         # Check that the path is legal
         if not self.is_rpc_path_valid():
             self.report_404()
@@ -154,9 +155,8 @@ class ThreadingXMLRPCServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
             socketserver.BaseServer.handle_error(self, request, client_address)
         else:
             warnings.warn(
-                (
-                    "Exception happened during processing of request from "
-                    f"{client_address}: {sys.exc_info()[1]}"
+                "Exception happened during processing of request from {}: {}".format(
+                    client_address, sys.exc_info()[1]
                 ),
                 SAMPWarning,
             )

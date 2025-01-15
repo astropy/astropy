@@ -1,32 +1,39 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Functions related to Python runtime introspection."""
 
-from __future__ import annotations
-
+import collections
+import importlib
 import inspect
 import os
 import sys
-from importlib import import_module, metadata
-from importlib.metadata import packages_distributions
-from typing import TYPE_CHECKING
+import types
+from importlib import metadata
 
 from packaging.version import Version
 
-from .decorators import deprecated
+from astropy.utils.decorators import deprecated_renamed_argument
 
-if TYPE_CHECKING:
-    from types import FrameType, ModuleType
-    from typing import Literal
-
-__all__ = ["find_current_module", "isinstancemethod", "minversion", "resolve_name"]
+__all__ = ["resolve_name", "minversion", "find_current_module", "isinstancemethod"]
 
 __doctest_skip__ = ["find_current_module"]
 
+if sys.version_info[:2] >= (3, 10):
+    from importlib.metadata import packages_distributions
+else:
 
-@deprecated(
-    since="7.0", alternative="importlib (e.g. importlib.import_module for modules)"
-)
-def resolve_name(name: str, *additional_parts: str) -> object:
+    def packages_distributions():
+        """
+        Return a mapping of top-level packages to their distributions.
+        Note: copied from https://github.com/python/importlib_metadata/pull/287
+        """
+        pkg_to_dist = collections.defaultdict(list)
+        for dist in metadata.distributions():
+            for pkg in (dist.read_text("top_level.txt") or "").split():
+                pkg_to_dist[pkg].append(dist.metadata["Name"])
+        return dict(pkg_to_dist)
+
+
+def resolve_name(name, *additional_parts):
     """Resolve a name like ``module.object`` to an object and return it.
 
     This ends up working like ``from module import object`` but is easier
@@ -35,6 +42,7 @@ def resolve_name(name: str, *additional_parts: str) -> object:
 
     Parameters
     ----------
+
     name : `str`
         A dotted path to a Python object--that is, the name of a function,
         class, or other object in a module with the full path to that module,
@@ -45,11 +53,20 @@ def resolve_name(name: str, *additional_parts: str) -> object:
         If more than one positional arguments are given, those arguments are
         automatically dotted together with ``name``.
 
+    Examples
+    --------
+
+    >>> resolve_name('astropy.utils.introspection.resolve_name')
+    <function resolve_name at 0x...>
+    >>> resolve_name('astropy', 'utils', 'introspection', 'resolve_name')
+    <function resolve_name at 0x...>
+
     Raises
     ------
     `ImportError`
         If the module or named object is not found.
     """
+
     additional_parts = ".".join(additional_parts)
 
     if additional_parts:
@@ -88,10 +105,15 @@ def resolve_name(name: str, *additional_parts: str) -> object:
     return ret
 
 
-def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -> bool:
+@deprecated_renamed_argument("version_path", None, "5.0")
+def minversion(module, version, inclusive=True, version_path="__version__"):
     """
     Returns `True` if the specified Python module satisfies a minimum version
     requirement, and `False` if not.
+
+    .. deprecated::
+        ``version_path`` is not used anymore and is deprecated in
+        ``astropy`` 5.0.
 
     Parameters
     ----------
@@ -110,18 +132,19 @@ def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -
 
     Examples
     --------
+
     >>> import astropy
     >>> minversion(astropy, '0.4.4')
     True
     """
-    if inspect.ismodule(module):
+    if isinstance(module, types.ModuleType):
         module_name = module.__name__
         module_version = getattr(module, "__version__", None)
     elif isinstance(module, str):
         module_name = module
         module_version = None
         try:
-            module = import_module(module_name)
+            module = resolve_name(module_name)
         except ImportError:
             return False
     else:
@@ -148,9 +171,7 @@ def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -
         return Version(module_version) > Version(version)
 
 
-def find_current_module(
-    depth: int = 1, finddiff: bool | list[Literal[True] | str | ModuleType] = False
-) -> ModuleType | None:
+def find_current_module(depth=1, finddiff=False):
     """
     Determines the module/package from which this function is called.
 
@@ -227,6 +248,7 @@ def find_current_module(
         pkg.mod1
 
     """
+
     frm = inspect.currentframe()
     for i in range(depth):
         frm = frm.f_back
@@ -243,7 +265,7 @@ def find_current_module(
                 if inspect.ismodule(fd):
                     diffmods.append(fd)
                 elif isinstance(fd, str):
-                    diffmods.append(import_module(fd))
+                    diffmods.append(importlib.import_module(fd))
                 elif fd is True:
                     diffmods.append(currmod)
                 else:
@@ -259,7 +281,7 @@ def find_current_module(
         return _get_module_from_frame(frm)
 
 
-def _get_module_from_frame(frm: FrameType) -> ModuleType | None:
+def _get_module_from_frame(frm):
     """Uses inspect.getmodule() to get the module that the current frame's
     code is running in.
 
@@ -268,6 +290,7 @@ def _get_module_from_frame(frm: FrameType) -> ModuleType | None:
     reliable in general, but more reliable than inspect.getmodule() for this
     particular case.
     """
+
     mod = inspect.getmodule(frm)
     if mod is not None:
         return mod
@@ -300,7 +323,6 @@ def _get_module_from_frame(frm: FrameType) -> ModuleType | None:
     return None
 
 
-@deprecated(since="6.1")
 def find_mod_objs(modname, onlylocals=False):
     """Returns all the public attributes of a module referenced by name.
 
@@ -335,12 +357,13 @@ def find_mod_objs(modname, onlylocals=False):
         the other arguments)
 
     """
-    mod = import_module(modname)
+
+    mod = resolve_name(modname)
 
     if hasattr(mod, "__all__"):
-        pkgitems = [(k, getattr(mod, k)) for k in mod.__all__]
+        pkgitems = [(k, mod.__dict__[k]) for k in mod.__all__]
     else:
-        pkgitems = [(k, getattr(mod, k)) for k in dir(mod) if k[0] != "_"]
+        pkgitems = [(k, mod.__dict__[k]) for k in dir(mod) if k[0] != "_"]
 
     # filter out modules and pull the names and objs out
     ismodule = inspect.ismodule
@@ -368,7 +391,6 @@ def find_mod_objs(modname, onlylocals=False):
 
 # Note: I would have preferred call this is_instancemethod, but this naming is
 # for consistency with other functions in the `inspect` module
-@deprecated(since="6.1")
 def isinstancemethod(cls, obj):
     """
     Returns `True` if the given object is an instance method of the class
@@ -385,8 +407,36 @@ def isinstancemethod(cls, obj):
         A member of the provided class (the membership is not checked directly,
         but this function will always return `False` if the given object is not
         a member of the given class).
+
+    Examples
+    --------
+    >>> class MetaClass(type):
+    ...     def a_classmethod(cls): pass
+    ...
+    >>> class MyClass(metaclass=MetaClass):
+    ...     def an_instancemethod(self): pass
+    ...
+    ...     @classmethod
+    ...     def another_classmethod(cls): pass
+    ...
+    ...     @staticmethod
+    ...     def a_staticmethod(): pass
+    ...
+    >>> isinstancemethod(MyClass, MyClass.a_classmethod)
+    False
+    >>> isinstancemethod(MyClass, MyClass.another_classmethod)
+    False
+    >>> isinstancemethod(MyClass, MyClass.a_staticmethod)
+    False
+    >>> isinstancemethod(MyClass, MyClass.an_instancemethod)
+    True
     """
-    if not inspect.isfunction(obj):
+
+    return _isinstancemethod(cls, obj)
+
+
+def _isinstancemethod(cls, obj):
+    if not isinstance(obj, types.FunctionType):
         return False
 
     # Unfortunately it seems the easiest way to get to the original

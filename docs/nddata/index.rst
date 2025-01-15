@@ -55,7 +55,7 @@ additional ``meta`` attributes:
     >>> ndd = NDData(data, mask=mask, unit=unit, uncertainty=uncertainty,
     ...              meta=meta)
     >>> ndd
-    NDData([1, 2, —, —], unit='erg / s')
+    NDData([1, 2, 3, 4], unit='erg / s')
 
 The representation only displays the ``data``; the other attributes need to be
 accessed directly, for example, ``ndd.mask`` to access the mask.
@@ -68,7 +68,7 @@ Building upon this pure container, `~astropy.nddata.NDDataRef` implements:
 
 + A ``read`` and ``write`` method to access ``astropy``'s unified file I/O
   interface.
-+ Simple arithmetic like addition, subtraction, division, and multiplication.
++ Simple arithmetics like addition, subtraction, division, and multiplication.
 + Slicing.
 
 Instances are created in the same way::
@@ -76,14 +76,14 @@ Instances are created in the same way::
     >>> from astropy.nddata import NDDataRef
     >>> ndd = NDDataRef(ndd)
     >>> ndd
-    NDDataRef([1, 2, —, —], unit='erg / s')
+    NDDataRef([1, 2, 3, 4], unit='erg / s')
 
 But also support arithmetic (:ref:`nddata_arithmetic`) like addition::
 
     >>> import astropy.units as u
     >>> ndd2 = ndd.add([4, -3.5, 3, 2.5] * u.erg / u.s)
     >>> ndd2
-    NDDataRef([ 5. , -1.5,  ———,  ———], unit='erg / s')
+    NDDataRef([ 5. , -1.5,  6. ,  6.5], unit='erg / s')
 
 Because these operations have a wide range of options, these are not available
 using arithmetic operators like ``+``.
@@ -92,7 +92,7 @@ Slicing or indexing (:ref:`nddata_slicing`) is possible (with warnings issued if
 some attribute cannot be sliced)::
 
     >>> ndd2[2:]  # discard the first two elements  # doctest: +FLOAT_CMP
-    NDDataRef([———, ———], unit='erg / s')
+    NDDataRef([6. , 6.5], unit='erg / s')
     >>> ndd2[1]   # get the second element  # doctest: +FLOAT_CMP
     NDDataRef(-1.5, unit='erg / s')
 
@@ -231,12 +231,10 @@ changes as expected::
     >>> ccd2 = ccd.copy()
     >>> added_ccds = ccd.add(ccd2, handle_meta='first_found')
     >>> added_ccds.uncertainty.array[0, 0] / ccd.uncertainty.array[0, 0] / np.sqrt(2) # doctest: +FLOAT_CMP
-    np.float64(0.99999999999999989)
+    0.99999999999999989
 
 ..
   EXAMPLE END
-
-.. _nddata_reading_writing:
 
 Reading and Writing
 -------------------
@@ -443,7 +441,7 @@ differences between them are:
 More General Gridded Data Classes
 ---------------------------------
 
-There are two generic classes in the ``nddata`` package that are of
+There are two additional classes in the ``nddata`` package that are of
 interest primarily to users who either need a custom image class that goes
 beyond the classes discussed so far, or who are working with gridded data that
 is not an image.
@@ -465,7 +463,7 @@ for an image class that goes beyond what `~astropy.nddata.CCDData` does.
 
 + The `SunPy project <https://sunpy.org/>`_ uses `~astropy.nddata.NDData` as the
   foundation for its
-  `Map classes <https://docs.sunpy.org/en/stable/reference/map.html>`_.
+  `Map classes <https://docs.sunpy.org/en/stable/code_ref/map.html>`_.
 + The class `~astropy.nddata.NDDataRef` is used in
   `specutils <https://specutils.readthedocs.io/en/latest/>`_ as the basis for
   `Spectrum1D <https://specutils.readthedocs.io/en/latest/api/specutils.Spectrum1D.html>`_, which adds several methods useful for
@@ -499,9 +497,13 @@ Using ``nddata``
 Reference/API
 =============
 
-.. toctree::
-   :maxdepth: 2
+.. automodapi:: astropy.nddata
+    :no-inheritance-diagram:
 
-   ref_api
+.. automodapi:: astropy.nddata.bitmask
+    :no-inheritance-diagram:
+
+.. automodapi:: astropy.nddata.utils
+    :no-inheritance-diagram:
 
 .. _APE 7: https://github.com/astropy/astropy-APEs/blob/main/APE7.rst

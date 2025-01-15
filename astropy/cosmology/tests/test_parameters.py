@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# STDLIB
 from types import MappingProxyType
 
+# THIRD PARTY
 import numpy as np
 import pytest
 
+# LOCAL
 from astropy.cosmology import parameters, realizations
 
 
@@ -33,8 +36,8 @@ def test_getting_parameters(name):
     assert params["name"] == cosmo.name
     assert params["cosmology"] == cosmo.__class__.__qualname__
     # All the cosmology parameters are equal
-    for k, v in cosmo.parameters.items():
-        np.testing.assert_array_equal(params[k], v)
+    for n in cosmo.__parameters__:
+        assert np.array_equal(params[n], getattr(cosmo, n))
     # All the metadata is included. Parameter values take precedence, so only
     # checking the keys.
     assert set(cosmo.meta.keys()).issubset(params.keys())

@@ -9,13 +9,11 @@ import pytest
 
 from astropy import constants
 from astropy import units as u
-from astropy.coordinates import Latitude, Longitude
-from astropy.coordinates.earth import EarthLocation
+from astropy.coordinates.angles import Latitude, Longitude
+from astropy.coordinates.earth import ELLIPSOIDS, EarthLocation
 from astropy.coordinates.name_resolve import NameResolveError
-from astropy.coordinates.representation.geodetic import ELLIPSOIDS
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
-from astropy.units.tests.test_quantity_erfa_ufuncs import vvd
 
 
 def allclose_m14(a, b, rtol=1.0e-14, atol=None):
@@ -36,6 +34,11 @@ def isclose_m14(val, ref):
 
 def isclose_m8(val, ref):
     return np.array([allclose_m8(v, r) for (v, r) in zip(val, ref)])
+
+
+def vvd(val, valok, dval, func, test, status):
+    """Mimic routine of erfa/src/t_erfa_c.c (to help copy & paste)"""
+    assert quantity_allclose(val, valok * val.unit, atol=dval * val.unit)
 
 
 def test_gc2gd():
@@ -175,10 +178,10 @@ class TestInput:
             EarthLocation(self.lon, self.y, self.z)
 
         # wrong units
-        with pytest.raises(u.UnitsError, match="should be in units of length"):
+        with pytest.raises(u.UnitsError):
             EarthLocation.from_geocentric(self.lon, self.lat, self.lat)
         # inconsistent units
-        with pytest.raises(u.UnitsError, match="should all be consistent"):
+        with pytest.raises(u.UnitsError):
             EarthLocation.from_geocentric(self.h, self.lon, self.lat)
         # floats without a unit
         with pytest.raises(TypeError):

@@ -1,8 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Power law model variants.
+Power law model variants
 """
-
 # pylint: disable=invalid-name
 import numpy as np
 
@@ -12,12 +11,12 @@ from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
 
 __all__ = [
+    "PowerLaw1D",
     "BrokenPowerLaw1D",
+    "SmoothlyBrokenPowerLaw1D",
     "ExponentialCutoffPowerLaw1D",
     "LogParabola1D",
-    "PowerLaw1D",
     "Schechter1D",
-    "SmoothlyBrokenPowerLaw1D",
 ]
 
 
@@ -52,13 +51,14 @@ class PowerLaw1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha):
-        """One dimensional power law model function."""
+        """One dimensional power law model function"""
         xx = x / x_0
         return amplitude * xx ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, alpha):
-        """One dimensional power law derivative with respect to parameters."""
+        """One dimensional power law derivative with respect to parameters"""
+
         xx = x / x_0
 
         d_amplitude = xx ** (-alpha)
@@ -69,9 +69,9 @@ class PowerLaw1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.input_unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -121,14 +121,16 @@ class BrokenPowerLaw1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_break, alpha_1, alpha_2):
-        """One dimensional broken power law model function."""
+        """One dimensional broken power law model function"""
+
         alpha = np.where(x < x_break, alpha_1, alpha_2)
         xx = x / x_break
         return amplitude * xx ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2):
-        """One dimensional broken power law derivative with respect to parameters."""
+        """One dimensional broken power law derivative with respect to parameters"""
+
         alpha = np.where(x < x_break, alpha_1, alpha_2)
         xx = x / x_break
 
@@ -142,9 +144,9 @@ class BrokenPowerLaw1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_break.input_unit is None:
+        if self.x_break.unit is None:
             return None
-        return {self.inputs[0]: self.x_break.input_unit}
+        return {self.inputs[0]: self.x_break.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -254,21 +256,20 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     alpha_2 = Parameter(default=2, description="Power law index after break point")
     delta = Parameter(default=1, min=1.0e-3, description="Smoothness Parameter")
 
-    def _amplitude_validator(self, value):
+    @amplitude.validator
+    def amplitude(self, value):
         if np.any(value <= 0):
             raise InputParameterError("amplitude parameter must be > 0")
 
-    amplitude._validator = _amplitude_validator
-
-    def _delta_validator(self, value):
+    @delta.validator
+    def delta(self, value):
         if np.any(value < 0.001):
             raise InputParameterError("delta parameter must be >= 0.001")
 
-    delta._validator = _delta_validator
-
     @staticmethod
     def evaluate(x, amplitude, x_break, alpha_1, alpha_2, delta):
-        """One dimensional smoothly broken power law model function."""
+        """One dimensional smoothly broken power law model function"""
+
         # Pre-calculate `x/x_b`
         xx = x / x_break
 
@@ -324,8 +325,8 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     @staticmethod
     def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2, delta):
         """One dimensional smoothly broken power law derivative with respect
-        to parameters.
-        """
+        to parameters"""
+
         # Pre-calculate `x_b` and `x/x_b` and `logt` (see comments in
         # SmoothlyBrokenPowerLaw1D.evaluate)
         xx = x / x_break
@@ -386,9 +387,9 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_break.input_unit is None:
+        if self.x_break.unit is None:
             return None
-        return {self.inputs[0]: self.x_break.input_unit}
+        return {self.inputs[0]: self.x_break.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -431,15 +432,17 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, x_cutoff):
-        """One dimensional exponential cutoff power law model function."""
+        """One dimensional exponential cutoff power law model function"""
+
         xx = x / x_0
         return amplitude * xx ** (-alpha) * np.exp(-x / x_cutoff)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, alpha, x_cutoff):
         """
-        One dimensional exponential cutoff power law derivative with respect to parameters.
+        One dimensional exponential cutoff power law derivative with respect to parameters
         """
+
         xx = x / x_0
         xc = x / x_cutoff
 
@@ -452,9 +455,9 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.input_unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -501,14 +504,16 @@ class LogParabola1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, beta):
-        """One dimensional log parabola model function."""
+        """One dimensional log parabola model function"""
+
         xx = x / x_0
         exponent = -alpha - beta * np.log(xx)
         return amplitude * xx**exponent
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, alpha, beta):
-        """One dimensional log parabola derivative with respect to parameters."""
+        """One dimensional log parabola derivative with respect to parameters"""
+
         xx = x / x_0
         log_xx = np.log(xx)
         exponent = -alpha - beta * log_xx
@@ -521,9 +526,9 @@ class LogParabola1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.x_0.input_unit is None:
+        if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.input_unit}
+        return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {
@@ -594,7 +599,7 @@ class Schechter1D(Fittable1DModel):
         ax.set_xlim(-22.6, -17)
         ax.set_ylim(1.e-7, 1.e-2)
         ax.set_xlabel('$M_{UV}$')
-        ax.set_ylabel(r'$\phi$ [mag$^{-1}$ Mpc$^{-3}]$')
+        ax.set_ylabel('$\phi$ [mag$^{-1}$ Mpc$^{-3}]$')
 
     References
     ----------
@@ -628,6 +633,7 @@ class Schechter1D(Fittable1DModel):
 
     def evaluate(self, mag, phi_star, m_star, alpha):
         """Schechter luminosity function model function."""
+
         factor = self._factor(mag, m_star)
 
         return 0.4 * np.log(10) * phi_star * factor ** (alpha + 1) * np.exp(-factor)
@@ -650,9 +656,9 @@ class Schechter1D(Fittable1DModel):
 
     @property
     def input_units(self):
-        if self.m_star.input_unit is None:
+        if self.m_star.unit is None:
             return None
-        return {self.inputs[0]: self.m_star.input_unit}
+        return {self.inputs[0]: self.m_star.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {

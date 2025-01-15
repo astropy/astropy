@@ -7,19 +7,7 @@ from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 from packaging.version import Version
 
 from astropy import units as u
-from astropy.coordinates import ITRS, BaseCoordinateFrame, EarthLocation, SkyCoord
-from astropy.coordinates.representation import SphericalRepresentation
-from astropy.coordinates.representation.geodetic import (
-    BaseBodycentricRepresentation,
-    BaseGeodeticRepresentation,
-)
-
-# Preserve the original REPRESENTATION_CLASSES dict so that importing
-#   the test file doesn't add a persistent test subclass
-from astropy.coordinates.tests.test_representation import (  # noqa: F401
-    setup_function,
-    teardown_function,
-)
+from astropy.coordinates import ITRS, EarthLocation, SkyCoord
 from astropy.io import fits
 from astropy.time import Time
 from astropy.units import Quantity
@@ -29,8 +17,6 @@ from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs import _wcs
 from astropy.wcs.utils import (
-    FRAME_WCS_MAPPINGS,
-    WCS_FRAME_MAPPINGS,
     _pixel_to_pixel_correlation_matrix,
     _pixel_to_world_correlation_matrix,
     _split_matrix,
@@ -53,7 +39,6 @@ from astropy.wcs.wcs import (
     WCS,
     WCSSUB_LATITUDE,
     WCSSUB_LONGITUDE,
-    DistortionLookupTable,
     FITSFixedWarning,
     Sip,
 )
@@ -212,37 +197,6 @@ def test_slice_with_sip():
     )
 
 
-def test_slice_with_cpdis_tables():
-    # A basic WCS
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.crval = [1, 1]
-    mywcs.wcs.cdelt = [0.1, 0.1]
-    mywcs.wcs.crpix = [1, 1]
-    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-
-    # Arbitrary distortion maps for X and Y
-    distortion_array = np.arange(25 * 25, dtype=np.float32).reshape((25, 25))
-    mywcs.cpdis1 = DistortionLookupTable(distortion_array, (1, 1), (1, 1), (10, 10))
-    mywcs.cpdis2 = DistortionLookupTable(distortion_array, (1, 1), (1, 1), (10, 10))
-
-    # Test that equivalent pixels produce the same coordinates, whether or not
-    # they've been sliced out.
-    coord_from_slice = mywcs[40:, 50:].pixel_to_world(30, 60)
-    coord_from_full = mywcs.pixel_to_world(50 + 30, 40 + 60)
-
-    assert coord_from_full == coord_from_slice
-
-    # Test the same with a step size. (Note, per discussion in gh-10897,
-    # slicing a WCS means "binning", rather than "resampling", so there's a
-    # quarter-pixel offset to get the "equivalent" spot. The centers of the
-    # post-slice pixels are at the dividing line between the two "input" pixels
-    # that form this binned, post-slice pixel.)
-    coord_from_slice = mywcs[50::2, 50::2].pixel_to_world(24.75, 24.75)
-    coord_from_full = mywcs.pixel_to_world(100, 100)
-
-    assert coord_from_full == coord_from_slice
-
-
 def test_slice_getitem():
     mywcs = WCS(naxis=2)
     mywcs.wcs.crval = [1, 1]
@@ -290,20 +244,6 @@ def test_slice_wcs():
 
     with pytest.raises(IndexError, match="Slicing WCS with a step is not supported."):
         mywcs[0, ::2]
-
-
-def test_slice_drop_dimensions_order():
-    # Regression test for a bug that caused WCS.slice to ignore
-    # ``numpy_order=False`` if dimensions were dropped.
-
-    wcs = WCS(naxis=3)
-    wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
-
-    wcs_sliced_1 = wcs.slice([0, slice(None), slice(None)], numpy_order=True)
-    assert wcs_sliced_1.world_axis_physical_types == ["pos.eq.ra", "pos.eq.dec"]
-
-    wcs_sliced_2 = wcs.slice([slice(None), slice(None), 0], numpy_order=False)
-    assert wcs_sliced_2.world_axis_physical_types == ["pos.eq.ra", "pos.eq.dec"]
 
 
 def test_axis_names():
@@ -356,6 +296,7 @@ def test_wcs_to_celestial_frame():
     mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     mywcs.wcs.equinox = 1987.0
     mywcs.wcs.set()
+    print(mywcs.to_header())
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, FK5)
     assert frame.equinox == Time(1987.0, format="jyear")
@@ -410,76 +351,6 @@ def test_wcs_to_celestial_frame():
     mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, Galactic)
-
-
-def test_wcs_to_body_frame():
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ["VELN-TAN", "VELT-TAN"]
-    mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
-    mywcs.wcs.name = "Venus Geodetic Body-Fixed"
-
-    mywcs.wcs.aux.a_radius = 6051800.0
-    mywcs.wcs.aux.b_radius = 6051800.0
-    mywcs.wcs.aux.c_radius = 6051800.0
-    framev = wcs_to_celestial_frame(mywcs)
-    assert issubclass(framev, BaseCoordinateFrame)
-    assert issubclass(framev.representation_type, BaseGeodeticRepresentation)
-    assert framev.name == "Venus"
-    assert framev.representation_type._equatorial_radius == 6051800.0 * u.m
-    assert framev.representation_type._flattening == 0.0
-
-    # Check that frames are cached appropriately
-    framev2 = wcs_to_celestial_frame(mywcs)
-    assert framev2.representation_type is framev.representation_type
-    assert framev2 is framev
-
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ["MALN-TAN", "MALT-TAN"]
-    mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
-    mywcs.wcs.name = "Mars Bodycentric Body-Fixed"
-
-    mywcs.wcs.aux.a_radius = 3396190.0
-    mywcs.wcs.aux.b_radius = 3396190.0
-    mywcs.wcs.aux.c_radius = 3376190.0
-    framem = wcs_to_celestial_frame(mywcs)
-    assert issubclass(framem, BaseCoordinateFrame)
-    assert issubclass(framem.representation_type, BaseBodycentricRepresentation)
-    assert framem.name == "Mars"
-    assert framem.representation_type._equatorial_radius == 3396190.0 * u.m
-    assert_almost_equal(framem.representation_type._flattening, 0.005888952031541227)
-    assert framem.representation_type is not framev.representation_type
-    assert framem is not framev
-
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ["EALN-TAN", "EALT-TAN"]
-    mywcs.wcs.name = "Earth Geodetic Body-Fixed"
-    mywcs.wcs.aux.a_radius = 6378137.0
-    mywcs.wcs.aux.b_radius = 6378137.0
-    mywcs.wcs.aux.c_radius = 6356752.3
-    mywcs.wcs.set()
-    frame = wcs_to_celestial_frame(mywcs)
-    assert issubclass(frame, BaseCoordinateFrame)
-    assert issubclass(frame.representation_type, BaseGeodeticRepresentation)
-    assert frame.representation_type._equatorial_radius == 6378137.0 * u.m
-    assert_almost_equal(frame.representation_type._flattening, 0.0033528128981864433)
-
-    unknown_wcs = WCS(naxis=2)
-    unknown_wcs.wcs.ctype = ["UTLN-TAN", "UTLT-TAN"]
-    with pytest.raises(
-        ValueError,
-        match="Could not determine celestial frame corresponding to the specified WCS object",
-    ):
-        frame = wcs_to_celestial_frame(unknown_wcs)
-
-    triaxial_wcs = WCS(naxis=2)
-    triaxial_wcs.wcs.ctype = ["MELN-TAN", "MELT-TAN"]
-    triaxial_wcs.wcs.aux.a_radius = 2439700.0
-    triaxial_wcs.wcs.aux.b_radius = 2439900.0
-    triaxial_wcs.wcs.aux.c_radius = 2438800.0
-    with pytest.raises(
-        NotImplementedError, match="triaxial systems are not supported at this time"
-    ):
-        frame = wcs_to_celestial_frame(triaxial_wcs)
 
 
 def test_wcs_to_celestial_frame_correlated():
@@ -600,53 +471,6 @@ def test_celestial_frame_to_wcs():
     assert tuple(mywcs.wcs.ctype) == ("TLON-CAR", "TLAT-CAR")
     assert mywcs.wcs.radesys == "ITRS"
     assert mywcs.wcs.dateobs == Time("J2000").utc.fits
-
-
-def test_body_to_wcs_frame():
-    class IAUMARS2000GeodeticRepresentation(BaseGeodeticRepresentation):
-        _equatorial_radius = 3396190.0 * u.m
-        _flattening = 0.5886007555512007 * u.percent
-
-    class IAUMARS2000BodycentricRepresentation(BaseBodycentricRepresentation):
-        _equatorial_radius = 3396190.0 * u.m
-        _flattening = 0.5886007555512007 * u.percent
-
-    class IAUMARS2000BodyFrame(BaseCoordinateFrame):
-        name = "Mars"
-
-    frame = IAUMARS2000BodyFrame()
-
-    frame.representation_type = IAUMARS2000GeodeticRepresentation
-
-    mywcs = celestial_frame_to_wcs(frame, projection="CAR")
-    assert mywcs.wcs.ctype[0] == "MALN-CAR"
-    assert mywcs.wcs.ctype[1] == "MALT-CAR"
-    assert mywcs.wcs.name == "Planetographic Body-Fixed"
-    assert mywcs.wcs.aux.a_radius == 3396190.0
-    assert mywcs.wcs.aux.b_radius == 3396190.0
-    assert_almost_equal(mywcs.wcs.aux.c_radius, 3376200.0)
-
-    frame.representation_type = IAUMARS2000BodycentricRepresentation
-    mywcs = celestial_frame_to_wcs(frame, projection="CAR")
-    assert mywcs.wcs.ctype[0] == "MALN-CAR"
-    assert mywcs.wcs.ctype[1] == "MALT-CAR"
-    assert mywcs.wcs.name == "Bodycentric Body-Fixed"
-
-    assert mywcs.wcs.aux.a_radius == 3396190.0
-    assert mywcs.wcs.aux.b_radius == 3396190.0
-    assert_almost_equal(mywcs.wcs.aux.c_radius, 3376200.0)
-
-    class IAUMARSSphereFrame(BaseCoordinateFrame):
-        name = "Mars"
-        representation_type = SphericalRepresentation
-
-    frame = IAUMARSSphereFrame()
-
-    with pytest.raises(
-        ValueError,
-        match="Planetary coordinates in WCS require a geodetic or bodycentric",
-    ):
-        celestial_frame_to_wcs(frame, projection="CAR")
 
 
 def test_celestial_frame_to_wcs_extend():
@@ -944,38 +768,6 @@ def test_local_pixel_derivatives(spatial_wcs_2d_small_angle):
     )
     np.testing.assert_allclose(np.diag(derivs), [1, 1])
     np.testing.assert_allclose(derivs[not_diag].flat, [0, 0], atol=1e-8)
-
-
-def test_local_pixel_derivatives_cube():
-    cube_wcs = WCS(naxis=3)
-    cube_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
-    cube_wcs.wcs.crval = 10, 20, 30
-    cube_wcs.wcs.cdelt = 0.0001, 0.0001, 0.01
-    cube_wcs.wcs.cunit = "deg", "deg", "GHz"
-    cube_wcs.wcs.set()
-
-    derivs = local_partial_pixel_derivatives(cube_wcs, 0, 0, 0)
-    np.testing.assert_allclose(
-        derivs, [[0.0001, 0, 0], [0, 0.0001, 0], [0, 0, 1e7]], rtol=0.1, atol=1e-5
-    )
-
-    derivs = local_partial_pixel_derivatives(cube_wcs, 0, 0, 0, normalize_by_world=True)
-    np.testing.assert_allclose(
-        derivs, [[1, 0, 0], [0, 1, 0], [0, 0, 1]], rtol=0.1, atol=1e-5
-    )
-
-    # Slice WCS so that there are two pixel and three world coordinates
-    sliced_wcs = cube_wcs[:, 0, :]
-
-    derivs = local_partial_pixel_derivatives(sliced_wcs, 0, 0, 0)
-    np.testing.assert_allclose(
-        derivs, [[0.0001, 0], [0, 0], [0, 1e7]], rtol=0.1, atol=1e-5
-    )
-
-    derivs = local_partial_pixel_derivatives(
-        sliced_wcs, 0, 0, 0, normalize_by_world=True
-    )
-    np.testing.assert_allclose(derivs, [[1, 0], [1, 0], [0, 1]], rtol=0.1, atol=1e-5)
 
 
 def test_pixel_to_world_correlation_matrix_celestial():
@@ -1572,58 +1364,6 @@ def test_issue10991():
     assert (fit_wcs.wcs.crval == [projlon, projlat]).all()
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-def test_fit_wcs_from_points_returned_object_attributes():
-    xy = (
-        np.array(
-            [
-                2810.156,
-                650.236,
-                1820.927,
-                3425.779,
-                2750.369,
-            ]
-        ),
-        np.array(
-            [
-                1670.347,
-                360.325,
-                165.663,
-                900.922,
-                700.148,
-            ]
-        ),
-    )
-    ra, dec = (
-        np.array(
-            [
-                246.75001315,
-                246.72033646,
-                246.72303144,
-                246.74164072,
-                246.73540614,
-            ]
-        ),
-        np.array(
-            [
-                43.48690547,
-                43.46792989,
-                43.48075238,
-                43.49560501,
-                43.48903538,
-            ]
-        ),
-    )
-    radec = SkyCoord(ra, dec, unit=(u.deg, u.deg))
-
-    placeholder_wcs = celestial_frame_to_wcs(frame=radec.frame, projection="TAN")
-    estimated_wcs = fit_wcs_from_points(xy, radec, projection=placeholder_wcs)
-
-    estimated_wcs_attributes = sorted(dir(estimated_wcs))
-    placeholder_wcs_attributes = sorted(dir(placeholder_wcs))
-    assert estimated_wcs_attributes == placeholder_wcs_attributes
-
-
 @pytest.mark.remote_data
 @pytest.mark.parametrize("x_in,y_in", [[0, 0], [np.arange(5), np.arange(5)]])
 def test_pixel_to_world_itrs(x_in, y_in):
@@ -1728,40 +1468,3 @@ def test_obsgeo_infinite(dkist_location):
 def test_obsgeo_invalid(obsgeo):
     with pytest.raises(ValueError):
         obsgeo_to_frame(obsgeo, None)
-
-
-def test_custom_wcs_to_from_frame():
-    # See https://github.com/astropy/astropy/issues/15625
-    # test from Sam van Kooten
-
-    class CustomFrame(BaseCoordinateFrame):
-        obstime = Time("2017-08-17T12:41:04.43")
-
-    def custom_wcs_frame_mapping(wcs):
-        ctypes = {c[:4] for c in wcs.wcs.ctype}
-        if not ({"CSLN", "CSLT"} <= ctypes):
-            return None
-
-        dateobs = wcs.wcs.dateavg or wcs.wcs.dateobs or None
-        custom_frame = CustomFrame()
-        return custom_frame
-
-    def custom_frame_wcs_mapping(frame, projection="TAN"):
-        if not isinstance(frame, CustomFrame):
-            return None
-        wcs = WCS(naxis=2)
-        wcs.wcs.ctype = [f"CSLN-{projection}", f"CSLT-{projection}"]
-        return wcs
-
-    WCS_FRAME_MAPPINGS.append([custom_wcs_frame_mapping])
-    FRAME_WCS_MAPPINGS.append([custom_frame_wcs_mapping])
-
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ["CSLN-TAN", "CSLT-TAN"]
-    custom_frame = custom_wcs_frame_mapping(mywcs)
-    assert isinstance(custom_frame, CustomFrame)
-
-    custom_wcs = custom_frame_wcs_mapping(custom_frame)
-    print(custom_wcs.wcs.ctype)
-    assert custom_wcs.wcs.ctype[0] == "CSLN-TAN"
-    assert custom_wcs.wcs.ctype[1] == "CSLT-TAN"

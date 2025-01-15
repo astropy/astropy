@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 8.3 2024/05/13 16:33:01 mcalabre Exp $
+# $Id: configure.ac,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB],[8.3],[mark@calabretta.id.au],[wcslib-8.3])
-AC_PREREQ([2.71])
-AC_REVISION([$Revision: 8.3 $])
+AC_INIT([WCSLIB], [7.12], [mark@calabretta.id.au], [wcslib-7.12])
+AC_PREREQ([2.53])
+AC_REVISION([$Revision: 7.12 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -57,15 +57,7 @@ fi
 # Look for an ANSI C compiler.
 AC_PROG_CPP
 AC_PROG_CC
-if test "x$ac_cv_c_compiler_gnu" = xyes ; then
-  # Get gcc version number.
-  GCC_VERSION=`$CC -dumpfullversion`
-  AC_MSG_NOTICE([Using gcc version $GCC_VERSION])
-else
-  GCC_VERSION=
-fi
-AC_SUBST([GCC_VERSION])
-
+AC_PROG_CC_STDC
 AC_C_CONST
 AC_TYPE_SIZE_T
 if test "x$ac_cv_prog_cc_stdc" = xno -o \
@@ -89,6 +81,8 @@ AC_TYPE_UINT8_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 
+# Check for ANSI C headers.
+AC_HEADER_STDC
 AC_CHECK_HEADERS([ctype.h errno.h limits.h locale.h math.h setjmp.h stdarg.h \
                   stdio.h stdlib.h string.h])
 if test "x$ac_cv_header_stdc" = xno; then
@@ -117,6 +111,7 @@ AC_CHECK_LIB([m], [floor])
 AC_FUNC_FSEEKO
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
+AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_STAT
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([floor memset pow setlocale sqrt strchr strstr])
@@ -254,22 +249,6 @@ else
 
     # F77 name mangling (defines the F77_FUNC preprocessor macro).
     AC_F77_WRAPPERS
-
-    if test "x$BINDC" = x ; then
-      AC_ARG_WITH([bindc], [AS_HELP_STRING([--with-bindc],
-              [use Fortran 2003 BIND(C) wrappers - recommended for Link Time
-               Optimization (LTO)])], [])
-      if test "x$with_bindc" = xyes ; then
-        BINDC=yes
-      fi
-    fi
-
-    if test "x$BINDC" = xyes ; then
-      AC_MSG_NOTICE([using Fortran 2003 BIND(C) wrappers.])
-    else
-      BINDC=
-    fi
-    AC_SUBST([BINDC])
 
     SUBDIRS="C Fortran"
     TSTDIRS="C Fortran"

@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz."""
+"""Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz.
 
+"""
+import os
 import warnings
 from importlib import metadata
 
@@ -28,9 +30,9 @@ from astropy.coordinates import (
     SphericalRepresentation,
     UnitSphericalRepresentation,
     get_sun,
-    golden_spiral_grid,
     solar_system_ephemeris,
 )
+from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import (
     cirs_to_itrs_mat,
     gcrs_to_cirs_mat,
@@ -38,15 +40,18 @@ from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import 
     tete_to_itrs_mat,
 )
 from astropy.coordinates.builtin_frames.utils import get_jd12
-from astropy.coordinates.solar_system import get_body
-from astropy.tests.helper import CI
+from astropy.coordinates.solar_system import (
+    _apparent_position_in_true_coordinates,
+    get_body,
+)
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
 from astropy.utils import iers
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+
+CI = os.environ.get("CI", False) == "true"
 
 
 def test_icrs_cirs():
@@ -748,7 +753,7 @@ def test_teme_itrf():
     Test case transform from TEME to ITRF.
 
     Test case derives from example on appendix C of Vallado, Crawford, Hujsak & Kelso (2006).
-    See https://celestrak.org/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf
+    See https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf
     """
     v_itrf = CartesianDifferential(
         -3.225636520, -2.872451450, 5.531924446, unit=u.km / u.s
@@ -870,7 +875,7 @@ def test_earth_orientation_table(monkeypatch):
         with warnings.catch_warnings():
             # Server occasionally blocks IERS download in CI.
             warnings.filterwarnings("ignore", message=r".*using local IERS-B.*")
-            # This also captures unclosed socket warning that is ignored in pyproject.toml
+            # This also captures unclosed socket warning that is ignored in setup.cfg
             warnings.filterwarnings("ignore", message=r".*unclosed.*")
             altaz_auto = sc.transform_to(altaz)
     else:
@@ -886,7 +891,7 @@ def test_earth_orientation_table(monkeypatch):
 
     # Check we returned to regular IERS system.
     altaz_auto2 = sc.transform_to(altaz)
-    assert_allclose(altaz_auto2.separation(altaz_auto), 0 * u.deg)
+    assert altaz_auto2.separation(altaz_auto) == 0.0
 
 
 @pytest.mark.remote_data
@@ -980,6 +985,12 @@ def test_tete_transforms():
     tete_rt = tete_coo1.transform_to(ITRS(obstime=time)).transform_to(tete_coo1)
     assert_allclose(tete_rt.separation_3d(tete_coo1), 0 * u.mm, atol=1 * u.mm)
 
+    # ensure deprecated routine remains consistent
+    # make sure test raises warning!
+    with pytest.warns(AstropyDeprecationWarning, match="The use of"):
+        tete_alt = _apparent_position_in_true_coordinates(moon)
+    assert_allclose(tete_coo1.separation_3d(tete_alt), 0 * u.mm, atol=100 * u.mm)
+
 
 def test_straight_overhead():
     """
@@ -1025,12 +1036,24 @@ def test_itrs_straight_overhead():
     obj = EarthLocation(-1 * u.deg, 52 * u.deg, height=10.0 * u.km)
     home = EarthLocation(-1 * u.deg, 52 * u.deg, height=0.0 * u.km)
 
+    # An object that appears straight overhead - FOR A GEOCENTRIC OBSERVER.
+    itrs_geo = obj.get_itrs(t).cartesian
+
+    # now get the Geocentric ITRS position of observatory
+    obsrepr = home.get_itrs(t).cartesian
+
+    # topocentric ITRS position of a straight overhead object
+    itrs_repr = itrs_geo - obsrepr
+
+    # create a ITRS object that appears straight overhead for a TOPOCENTRIC OBSERVER
+    itrs_topo = ITRS(itrs_repr, obstime=t, location=home)
+
     # Check AltAz (though Azimuth can be anything so is not tested).
-    aa = obj.get_itrs(t, location=home).transform_to(AltAz(obstime=t, location=home))
+    aa = itrs_topo.transform_to(AltAz(obstime=t, location=home))
     assert_allclose(aa.alt, 90 * u.deg, atol=1 * u.uas, rtol=0)
 
     # Check HADec.
-    hd = obj.get_itrs(t, location=home).transform_to(HADec(obstime=t, location=home))
+    hd = itrs_topo.transform_to(HADec(obstime=t, location=home))
     assert_allclose(hd.ha, 0 * u.hourangle, atol=1 * u.uas, rtol=0)
     assert_allclose(hd.dec, 52 * u.deg, atol=1 * u.uas, rtol=0)
 
@@ -1061,9 +1084,6 @@ def test_aa_hd_high_precision():
     Updated 2020-11-29, after the comparison between codes became even better,
     down to 100 nas.
 
-    Updated 2023-02-14, after IERS changes the IERS B format and analysis,
-    causing small deviations.
-
     NOTE: the agreement reflects consistency in approach between two codes,
     not necessarily absolute precision.  If this test starts failing, the
     tolerance can and should be weakened *if* it is clear that the change is
@@ -1085,9 +1105,8 @@ def test_aa_hd_high_precision():
     # Numbers from
     # https://github.com/astropy/astropy/pull/11073#issuecomment-735486271
     # updated in https://github.com/astropy/astropy/issues/11683
-    # and again after the IERS_B change.
-    TARGET_AZ, TARGET_EL = 15.032673662647138 * u.deg, 50.303110087520054 * u.deg
-    TARGET_DISTANCE = 376252.88325051306 * u.km
+    TARGET_AZ, TARGET_EL = 15.032673509956 * u.deg, 50.303110133923 * u.deg
+    TARGET_DISTANCE = 376252883.247239 * u.m
     assert_allclose(moon_aa.az, TARGET_AZ, atol=0.1 * u.uas, rtol=0)
     assert_allclose(moon_aa.alt, TARGET_EL, atol=0.1 * u.uas, rtol=0)
     assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=0.1 * u.mm, rtol=0)
@@ -1096,8 +1115,8 @@ def test_aa_hd_high_precision():
         moon_aa.alt.to_value(u.radian),
         lat.to_value(u.radian),
     )
-    ha = u.Quantity(ha, u.radian, copy=COPY_IF_NEEDED)
-    dec = u.Quantity(dec, u.radian, copy=COPY_IF_NEEDED)
+    ha = u.Quantity(ha, u.radian, copy=False)
+    dec = u.Quantity(dec, u.radian, copy=False)
     assert_allclose(moon_hd.ha, ha, atol=0.1 * u.uas, rtol=0)
     assert_allclose(moon_hd.dec, dec, atol=0.1 * u.uas, rtol=0)
 
@@ -1110,8 +1129,8 @@ def test_aa_high_precision_nodata():
     with a version of the code that passes the tests above, but for the internal solar system
     ephemerides to avoid the use of remote data.
     """
-    # Last updated when the new IERS B format and analysis was introduced.
-    TARGET_AZ, TARGET_EL = 15.0323151 * u.deg, 50.30271925 * u.deg
+    # Last updated when switching to erfa 2.0.0 and its moon98 function.
+    TARGET_AZ, TARGET_EL = 15.03231495 * u.deg, 50.3027193 * u.deg
     lat = -22.959748 * u.deg
     lon = -67.787260 * u.deg
     elev = 5186 * u.m

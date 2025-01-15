@@ -5,17 +5,9 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy import units as u
-from astropy.coordinates import Angle
 from astropy.stats import mad_std
-from astropy.stats.sigma_clipping import (
-    SigmaClip,
-    SigmaClippedStats,
-    sigma_clip,
-    sigma_clipped_stats,
-)
-from astropy.table import MaskedColumn
-from astropy.utils.compat import COPY_IF_NEEDED
-from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
+from astropy.stats.sigma_clipping import SigmaClip, sigma_clip, sigma_clipped_stats
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NumpyRNGContext
 
@@ -98,24 +90,6 @@ def test_sigma_clip_scalar_mask():
     assert result.mask.shape != ()
 
 
-def test_sigma_clip_masked_array():
-    """
-    Regression test to check that MaskedArray masks are propagated
-    correctly if cenfunc/stdfunc is not the default, axis is not None,
-    and masked=False.
-    """
-    arr = np.ones(10).astype(float)
-    arr[-2:] = 5
-    arr = np.ma.masked_where(arr > 1, arr)
-    out = sigma_clip(arr, cenfunc=np.mean, axis=0, masked=False)
-    assert np.all(np.isnan(out[-2:]))
-    assert_allclose(np.nanmean(out), 1.0)
-
-    out = sigma_clip(arr, stdfunc=np.std, axis=0, masked=False)
-    assert np.all(np.isnan(out[-2:]))
-    assert_allclose(np.nanmean(out), 1.0)
-
-
 def test_sigma_clip_class():
     with NumpyRNGContext(12345):
         data = np.random.randn(100)
@@ -187,119 +161,6 @@ def test_sigma_clipped_stats_ddof():
         assert median1 == median2
         assert_allclose(stddev1, 0.98156805711673156)
         assert_allclose(stddev2, 0.98161731654802831)
-
-
-def test_sigma_clipped_stats_masked_col():
-    # see https://github.com/astropy/astropy/issues/13281
-    arr = np.ma.masked_array([1, 2, 3], mask=[False, True, False])
-    sigma_clipped_stats(arr)
-
-    col = MaskedColumn(data=arr)
-    sigma_clipped_stats(col)
-
-
-@pytest.mark.parametrize("units", [False, True])
-@pytest.mark.parametrize("sigma", np.linspace(2, 5, 10))
-def test_sigmaclippedstats_stats(units, sigma):
-    """Test SigmaClippedStats class."""
-    data = np.ones((101, 205))
-    rng = np.random.default_rng(0)
-    idx = rng.integers(0, 100, 10)
-    data[idx, idx] = 1000
-
-    if units:
-        unit = u.m
-        data <<= unit
-    else:
-        unit = 1
-
-    stats = SigmaClippedStats(data, sigma=sigma)
-    assert stats.min() == 1.0 * unit
-    assert stats.max() == 1.0 * unit
-    assert stats.sum() == np.sum(data) - (1000 * 10) * unit
-    assert stats.mean() == 1.0 * unit
-    assert stats.median() == 1.0 * unit
-    assert stats.mode() == 1.0 * unit
-    assert stats.mode(median_factor=3.5, mean_factor=2.5) == 1.0 * unit
-    assert stats.std() == 0.0 * unit
-    assert stats.var() == 0.0 * unit**2
-    assert stats.mad_std() == 0.0 * unit
-    assert stats.biweight_location() == 1.0 * unit
-    assert stats.biweight_scale() == 0.0 * unit
-
-    # test nanvar with Angle
-    data = Angle([10, 20, 30, 40], "deg")
-    stats = SigmaClippedStats(data, sigma=5)
-    assert isinstance(stats.mean(), u.Quantity)
-    assert isinstance(stats.var(), u.Quantity)
-    assert not isinstance(stats.var(), Angle)
-    assert stats.mean() == 25 * u.deg
-    assert stats.var() == 125 * u.deg**2
-
-
-def test_sigmaclippedstats_mask():
-    data = np.ones((101, 205))
-    rng = np.random.default_rng(0)
-    idx = rng.integers(0, 100, 10)
-    data[idx, idx] = 1000
-    stats = SigmaClippedStats(data, sigma=3.2)
-    assert stats.min() == 1.0
-    assert stats.max() == 1.0
-    assert stats.sum() == np.sum(data) - 1000 * 10
-    assert stats.mean() == 1.0
-    assert stats.median() == 1.0
-    assert stats.mode() == 1.0
-    assert stats.mode(median_factor=3.5, mean_factor=2.5) == 1.0
-    assert stats.std() == 0.0
-    assert stats.var() == 0.0
-    assert stats.mad_std() == 0.0
-    assert stats.biweight_location() == 1.0
-    assert stats.biweight_scale() == 0.0
-
-    mask = np.zeros_like(data, dtype=bool)
-    mask[idx, idx] = True
-    stats3 = SigmaClippedStats(data, sigma=3.2, mask=mask)
-    assert stats3.mode() == stats.mode()
-
-    mask = np.zeros_like(data, dtype=bool)
-    stats4 = SigmaClippedStats(data, sigma=3.2, mask_value=1000)
-    assert stats4.mode() == stats3.mode()
-
-    data = np.ones((101, 205))
-    mask = np.ones_like(data, dtype=bool)
-    match = "input data is all masked"
-    with pytest.raises(ValueError, match=match):
-        SigmaClippedStats(data, sigma=3, mask=mask)
-
-
-def test_sigmaclippedstats_axis():
-    data = np.ones((101, 205))
-    stats = SigmaClippedStats(data, sigma=2.8, axis=1)
-    shape = (data.shape[0],)
-    assert stats.mean().shape == shape
-    assert stats.mode().shape == shape
-    assert stats.var().shape == shape
-    assert stats.mad_std().shape == shape
-    assert stats.biweight_location().shape == shape
-
-
-@pytest.mark.slow
-@pytest.mark.skipif(
-    not HAS_BOTTLENECK,
-    reason="test a workaround for upstream bug in bottleneck",
-)
-@pytest.mark.parametrize("shape", [(1024, 1024), (6388, 9576)])
-def test_sigma_clip_large_float32_arrays(shape):
-    # see https://github.com/astropy/astropy/issues/17185
-    rng = np.random.default_rng(0)
-
-    expected = (0.5, 0.5, 0.288)  # mean, median, stddev
-
-    arr = rng.random(size=shape, dtype="f4")
-    for byteorder in (">", "<"):
-        data = arr.astype(dtype=f"{byteorder}f4", copy=COPY_IF_NEEDED)
-        res = sigma_clipped_stats(data, sigma=3, maxiters=5)
-        assert_allclose(res, expected, rtol=3e-3)
 
 
 def test_invalid_sigma_clip():
@@ -631,23 +492,17 @@ def test_sigma_clip_axis_shapes(axis, bounds_shape):
     "dtype", [">f2", "<f2", ">f4", "<f4", ">f8", "<f8", "<i4", ">i8"]
 )
 def test_sigma_clip_dtypes(dtype):
-    # Compare the outputs for various dtypes
+    # Check the shapes of the output for different use cases
+
     with NumpyRNGContext(12345):
         array = np.random.randint(-5, 5, 1000).astype(float)
     array[30] = 100
+
     reference = sigma_clip(array, copy=True, masked=False)
+
     actual = sigma_clip(array.astype(dtype), copy=True, masked=False)
+
     assert_equal(reference, actual)
-
-    # Check that the output dtype is the same as the input dtype
-    arr = np.ones((10, 10), dtype=np.float32)
-    arr2 = sigma_clip(arr, cenfunc=np.mean, axis=0, masked=False)
-    assert arr2.dtype == arr.dtype
-
-    # Check that int dtype is converted to float32, not float
-    arr = np.ones((10, 10), dtype=int)
-    arr2 = sigma_clip(arr, axis=0, masked=False)
-    assert arr2.dtype == np.float32
 
 
 def test_mad_std():
@@ -714,12 +569,3 @@ def test_mad_std_large():
     )
 
     assert_allclose(result1, result2)
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_propagation_of_mask():
-    # Quick test to check that the mask is propagated correctly
-    x = np.array([1, 1, 1, 1, 1, 1, 1, 1, 5, 5]).astype(float)
-    y = np.ma.masked_where(x > 1, x)
-
-    assert_allclose(sigma_clipped_stats(y, grow=1), (1, 1, 0))

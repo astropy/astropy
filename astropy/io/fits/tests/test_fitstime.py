@@ -15,7 +15,6 @@ from astropy.time import Time, TimeDelta
 from astropy.time.core import BARYCENTRIC_SCALES
 from astropy.time.formats import FITS_DEPRECATED_SCALES
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.masked import Masked
 
 from .conftest import FitsTestCase
 
@@ -42,14 +41,11 @@ class TestFitsTime(FitsTestCase):
         columns in a ``Table``.
         """
         t = table_types()
-        # Check that vectorized location is stored using Green Bank convention
-        t["a"] = Time(
-            self.time,
-            format="isot",
-            scale="utc",
-            location=EarthLocation([1.0, 2.0], [2.0, 3.0], [3.0, 4.0], unit="Mm"),
-        )
+        t["a"] = Time(self.time, format="isot", scale="utc")
         t["b"] = Time(self.time, format="isot", scale="tt")
+
+        # Check that vectorized location is stored using Green Bank convention
+        t["a"].location = EarthLocation([1.0, 2.0], [2.0, 3.0], [3.0, 4.0], unit="Mm")
 
         with pytest.warns(
             AstropyUserWarning,
@@ -86,19 +82,15 @@ class TestFitsTime(FitsTestCase):
         assert tm["b"].location == t["b"].location
 
         # Check that multiple Time columns with different locations raise an exception
-        t["a"] = Time(
-            self.time, format="isot", scale="utc", location=EarthLocation(1, 2, 3)
-        )
-        t["b"] = Time(
-            self.time, format="isot", scale="tt", location=EarthLocation(2, 3, 4)
-        )
+        t["a"].location = EarthLocation(1, 2, 3)
+        t["b"].location = EarthLocation(2, 3, 4)
 
         with pytest.raises(ValueError) as err:
             table, hdr = time_to_fits(t)
             assert "Multiple Time Columns with different geocentric" in str(err.value)
 
         # Check that Time column with no location specified will assume global location
-        t["b"] = Time(self.time, format="isot", scale="tt", location=None)
+        t["b"].location = None
 
         with pytest.warns(
             AstropyUserWarning,
@@ -111,9 +103,7 @@ class TestFitsTime(FitsTestCase):
         assert len(w) == 1
 
         # Check that multiple Time columns with same location can be written
-        t["b"] = Time(
-            self.time, format="isot", scale="tt", location=EarthLocation(1, 2, 3)
-        )
+        t["b"].location = EarthLocation(1, 2, 3)
 
         table, hdr = time_to_fits(t)
 
@@ -169,16 +159,15 @@ class TestFitsTime(FitsTestCase):
 
         assert tm["a"].location == t["a"].location
 
-    @pytest.mark.parametrize("masked_cls", (np.ma.MaskedArray, Masked))
     @pytest.mark.parametrize("mask", (False, [True, False]))
     @pytest.mark.parametrize("serialize_method", ("jd1_jd2", "formatted_value"))
-    def test_time_to_fits_serialize_method(self, serialize_method, mask, masked_cls):
+    def test_time_to_fits_serialize_method(self, serialize_method, mask):
         """
         Test the data returned by ``time_to_fits`` for masked values.
         """
-        a = Time(masked_cls(self.time, mask=mask))
+        a = Time(np.ma.MaskedArray(self.time, mask=mask))
         b = Time(
-            masked_cls([[1, 2], [3, 4]], mask=np.broadcast_to(mask, (2, 2))),
+            np.ma.MaskedArray([[1, 2], [3, 4]], mask=np.broadcast_to(mask, (2, 2))),
             format="cxcsec",
         )
         assert b.masked is a.masked is (mask is not False)
@@ -400,7 +389,7 @@ class TestFitsTime(FitsTestCase):
         filename = self.data("chandra_time.fits")
         with pytest.warns(
             AstropyUserWarning,
-            match=r'Time column "time" reference position will be ignored',
+            match=r'Time column "time" reference ' r"position will be ignored",
         ):
             tm = table_types.read(filename, astropy_native=True)
 

@@ -22,12 +22,7 @@ import numpy as np
 
 from astropy.utils.exceptions import AstropyUserWarning
 
-from .utils import (
-    KernelArithmeticError,
-    add_kernel_arrays_1D,
-    add_kernel_arrays_2D,
-    discretize_model,
-)
+from .utils import add_kernel_arrays_1D, add_kernel_arrays_2D, discretize_model
 
 MAX_NORMALIZATION = 100
 
@@ -47,9 +42,6 @@ class Kernel:
     _separable = False
     _is_bool = True
     _model = None
-
-    # numpy should not try to do any arithmetic
-    __array_ufunc__ = None
 
     def __init__(self, array):
         self._array = np.asanyarray(array)
@@ -106,6 +98,7 @@ class Kernel:
                 * 'peak'
                     Kernel is normalized such that its peak = 1.
         """
+
         if mode == "integral":
             normalization = self._array.sum()
         elif mode == "peak":
@@ -177,11 +170,20 @@ class Kernel:
         """
         return kernel_arithmetics(self, value, "mul")
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(self):
         """
         Array representation of the kernel.
         """
         return self._array
+
+    def __array_wrap__(self, array, context=None):
+        """
+        Wrapper for multiplication with numpy arrays.
+        """
+        if type(context[0]) == np.ufunc:
+            return NotImplemented
+        else:
+            return array
 
 
 class Kernel1D(Kernel):
@@ -343,10 +345,10 @@ def kernel_arithmetics(kernel, value, operation):
     if isinstance(kernel, Kernel1D) and isinstance(value, Kernel1D):
         if operation == "add":
             new_array = add_kernel_arrays_1D(kernel.array, value.array)
-        elif operation == "sub":
+        if operation == "sub":
             new_array = add_kernel_arrays_1D(kernel.array, -value.array)
-        elif operation == "mul":
-            raise KernelArithmeticError(
+        if operation == "mul":
+            raise Exception(
                 "Kernel operation not supported. Maybe you want "
                 "to use convolve(kernel1, kernel2) instead."
             )
@@ -358,10 +360,10 @@ def kernel_arithmetics(kernel, value, operation):
     elif isinstance(kernel, Kernel2D) and isinstance(value, Kernel2D):
         if operation == "add":
             new_array = add_kernel_arrays_2D(kernel.array, value.array)
-        elif operation == "sub":
+        if operation == "sub":
             new_array = add_kernel_arrays_2D(kernel.array, -value.array)
-        elif operation == "mul":
-            raise KernelArithmeticError(
+        if operation == "mul":
+            raise Exception(
                 "Kernel operation not supported. Maybe you want "
                 "to use convolve(kernel1, kernel2) instead."
             )
@@ -371,10 +373,11 @@ def kernel_arithmetics(kernel, value, operation):
 
     # kernel and number
     elif isinstance(kernel, (Kernel1D, Kernel2D)) and np.isscalar(value):
-        if operation != "mul":
-            raise KernelArithmeticError("Kernel operation not supported.")
-        new_kernel = copy.copy(kernel)
-        new_kernel._array *= value
+        if operation == "mul":
+            new_kernel = copy.copy(kernel)
+            new_kernel._array *= value
+        else:
+            raise Exception("Kernel operation not supported.")
     else:
-        raise KernelArithmeticError("Kernel operation not supported.")
+        raise Exception("Kernel operation not supported.")
     return new_kernel

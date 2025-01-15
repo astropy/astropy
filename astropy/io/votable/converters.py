@@ -4,11 +4,12 @@ This module handles the conversion of various VOTABLE datatypes
 to/from TABLEDATA_ and BINARY_ formats.
 """
 
+
 # STDLIB
 import re
-import struct
 import sys
-from math import prod
+from struct import pack as _struct_pack
+from struct import unpack as _struct_unpack
 
 # THIRD-PARTY
 import numpy as np
@@ -40,7 +41,7 @@ from .exceptions import (
     warn_or_raise,
 )
 
-__all__ = ["Converter", "get_converter", "table_column_to_votable_datatype"]
+__all__ = ["get_converter", "Converter", "table_column_to_votable_datatype"]
 
 
 pedantic_array_splitter = re.compile(r" +")
@@ -55,6 +56,10 @@ files in the wild use them.
 _zero_int = b"\0\0\0\0"
 _empty_bytes = b""
 _zero_byte = b"\0"
+
+
+struct_unpack = _struct_unpack
+struct_pack = _struct_pack
 
 
 if sys.byteorder == "little":
@@ -150,7 +155,7 @@ def bool_to_bitarray(value):
     if bit_no != 7:
         bytes.append(byte)
 
-    return struct.pack(f"{len(bytes)}B", *bytes)
+    return struct_pack(f"{len(bytes)}B", *bytes)
 
 
 class Converter:
@@ -178,11 +183,11 @@ class Converter:
 
     @staticmethod
     def _parse_length(read):
-        return struct.unpack(">I", read(4))[0]
+        return struct_unpack(">I", read(4))[0]
 
     @staticmethod
     def _write_length(length):
-        return struct.pack(">I", int(length))
+        return struct_pack(">I", int(length))
 
     def supports_empty_values(self, config):
         """
@@ -298,7 +303,7 @@ class Converter:
 
 class Char(Converter):
     """
-    Handles the char datatype. (7-bit unsigned characters).
+    Handles the char datatype. (7-bit unsigned characters)
 
     Missing values are not handled for string or unicode types.
     """
@@ -375,7 +380,7 @@ class Char(Converter):
         return read(length).decode("ascii"), False
 
     def _binparse_fixed(self, read):
-        s = struct.unpack(self._struct_format, read(self.arraysize))[0]
+        s = struct_unpack(self._struct_format, read(self.arraysize))[0]
         end = s.find(_zero_byte)
         s = s.decode("ascii")
         if end != -1:
@@ -400,7 +405,7 @@ class Char(Converter):
                 value = value.encode("ascii")
             except ValueError:
                 vo_raise(E24, (value, self.field_name))
-        return struct.pack(self._struct_format, value)
+        return struct_pack(self._struct_format, value)
 
 
 class UnicodeChar(Converter):
@@ -449,7 +454,7 @@ class UnicodeChar(Converter):
         return read(length * 2).decode("utf_16_be"), False
 
     def _binparse_fixed(self, read):
-        s = struct.unpack(self._struct_format, read(self.arraysize * 2))[0]
+        s = struct_unpack(self._struct_format, read(self.arraysize * 2))[0]
         s = s.decode("utf_16_be")
         end = s.find("\0")
         if end != -1:
@@ -465,7 +470,7 @@ class UnicodeChar(Converter):
     def _binoutput_fixed(self, value, mask):
         if mask:
             value = ""
-        return struct.pack(self._struct_format, value.encode("utf_16_be"))
+        return struct_pack(self._struct_format, value.encode("utf_16_be"))
 
 
 class Array(Converter):
@@ -599,7 +604,11 @@ class NumericArray(Array):
         self._base = base
         self._arraysize = arraysize
         self.format = f"{tuple(arraysize)}{base.format}"
-        self._items = prod(arraysize)
+
+        self._items = 1
+        for dim in arraysize:
+            self._items *= dim
+
         self._memsize = np.dtype(self.format).itemsize
         self._bigendian_format = ">" + self.format
 
@@ -704,7 +713,7 @@ class FloatingPoint(Numeric):
         width = field.width
 
         if precision is None:
-            format_parts = ["{!s:>"]
+            format_parts = ["{!r:>"]
         else:
             format_parts = ["{:"]
 
@@ -772,7 +781,7 @@ class FloatingPoint(Numeric):
             result = self._output_format.format(value)
             if result.startswith("array"):
                 raise RuntimeError()
-            if self._output_format[2] == "s" and result.endswith(".0"):
+            if self._output_format[2] == "r" and result.endswith(".0"):
                 result = result[:-2]
             return result
         elif np.isnan(value):
@@ -1052,7 +1061,7 @@ class Complex(FloatingPoint, Array):
                 value = self.null
         real = self._output_format.format(float(value.real))
         imag = self._output_format.format(float(value.imag))
-        if self._output_format[2] == "s":
+        if self._output_format[2] == "r":
             if real.endswith(".0"):
                 real = real[:-2]
             if imag.endswith(".0"):
@@ -1353,9 +1362,11 @@ numpy_dtype_to_field_mapping = {
     np.int64().dtype.num: "long",
     np.complex64().dtype.num: "floatComplex",
     np.complex128().dtype.num: "doubleComplex",
-    np.str_().dtype.num: "unicodeChar",
-    np.bytes_().dtype.num: "char",
+    np.unicode_().dtype.num: "unicodeChar",
 }
+
+
+numpy_dtype_to_field_mapping[np.bytes_().dtype.num] = "char"
 
 
 def _all_matching_dtype(column):

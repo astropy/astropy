@@ -9,6 +9,10 @@ Cosmological Calculations (`astropy.cosmology`)
 .. |w0wzCDM| replace:: :class:`~astropy.cosmology.w0wzCDM`
 .. |w0waCDM| replace:: :class:`~astropy.cosmology.w0waCDM`
 .. |wpwaCDM| replace:: :class:`~astropy.cosmology.wpwaCDM`
+.. |WMAP7| replace:: :ref:`WMAP7 <astropy:WMAP7>`
+.. |WMAP9| replace:: :ref:`WMAP9 <astropy:WMAP9>`
+.. |Planck13| replace:: :ref:`Planck13 <astropy:Planck13>`
+.. |Planck15| replace:: :ref:`Planck15 <astropy:Planck15>`
 .. |z_at_value| replace:: :func:`~astropy.cosmology.z_at_value`
 
 Introduction
@@ -19,9 +23,6 @@ cosmologies and utility functions for calculating commonly used quantities that
 depend on a cosmological model. This includes distances, ages, and lookback
 times corresponding to a measured redshift or the transverse separation
 corresponding to a measured angular separation.
-
-A number of preloaded cosmologies are available from analyses using
-the WMAP and Planck satellite data. See :ref:`astropy-cosmology-realizations`.
 
 :mod:`astropy.cosmology.units` extends the :mod:`astropy.units` sub-package,
 adding and collecting cosmological units and equivalencies, like :math:`h` for
@@ -79,9 +80,9 @@ classes::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=2.725)
-  >>> print(cosmo)  # doctest: +FLOAT_CMP
+  >>> cosmo  # doctest: +FLOAT_CMP
   FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.0)
+                Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=None)
 
 Note the presence of additional cosmological parameters (e.g., ``Neff``, the
 number of effective neutrino species) with default values; these can also be
@@ -98,7 +99,7 @@ floating point or array values::
   >>> from astropy.cosmology import WMAP9 as cosmo
   >>> H0 = cosmo.H(0)
   >>> H0.value, H0.unit  # doctest: +FLOAT_CMP
-  (np.float64(69.32), Unit("km / (Mpc s)"))
+  (69.32, Unit("km / (Mpc s)"))
 
 
 Using `astropy.cosmology`
@@ -107,10 +108,12 @@ Using `astropy.cosmology`
 More detailed information on using the package is provided on separate pages,
 listed below.
 
-* :ref:`astropy-cosmology-realizations`
-* :ref:`Units and Equivalencies <astropy-cosmology-units-and-equivalencies>`
-* :ref:`cosmology_io`
-* :ref:`For Developers <astropy-cosmology-for-developers>`
+.. toctree::
+   :maxdepth: 1
+
+   Reading and Writing <io>
+   Units and Equivalencies <units>
+
 
 Most of the functionality is enabled by the |FLRW| object. This represents a
 homogeneous and isotropic cosmology (characterized by the
@@ -131,9 +134,9 @@ parameter and Omega matter (both at z=0)::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
-  >>> print(cosmo)
+  >>> cosmo
   FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=0.0 K,
-                Neff=3.04, m_nu=None, Ob0=0.0)
+                Neff=3.04, m_nu=None, Ob0=None)
 
 This can also be done more explicitly using units, which is recommended::
 
@@ -203,31 +206,32 @@ instantiation by passing the keyword argument ``Ob0``::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Ob0=0.05)
-  >>> print(cosmo)
+  >>> cosmo
   FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=0.0 K,
                 Neff=3.04, m_nu=None, Ob0=0.05)
 
-In this case the dark matter-only density at redshift 0 is available as class attribute
-``Odm0`` and the redshift evolution of dark and baryonic matter densities can be
-computed using the methods ``Odm`` and ``Ob``, respectively. If ``Ob0`` is not
-specified, it will be set to 0 and thus ignored in further calculations.
+In this case the dark matter-only density at redshift 0 is available as class
+attribute ``Odm0`` and the redshift evolution of dark and baryonic matter
+densities can be computed using the methods ``Odm`` and ``Ob``, respectively.
+If ``Ob0`` is not specified at class instantiation, it defaults to ``None`` and
+any method relying on it being specified will raise a ``ValueError``:
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo.Odm(1)
-  np.float64(0.7741935483870968)
-
-  >>> cosmo.Ob(1)
-  np.float64(0.0)
+  Traceback (most recent call last):
+  ...
+  ValueError: Baryonic density not set for this cosmology, unclear
+  meaning of dark matter density
 
 Cosmological instances have an optional ``name`` attribute which can be used to
 describe the cosmology::
 
   >>> from astropy.cosmology import FlatwCDM
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
-  >>> print(cosmo)
-  FlatwCDM(name="SNLS3+WMAP7", H0=71.58 km / (Mpc s), Om0=0.262, Tcmb0=0.0 K, Neff=3.04,
-           m_nu=None, Ob0=0.0, w0=-1.016)
+  >>> cosmo
+  FlatwCDM(name="SNLS3+WMAP7", H0=71.58 km / (Mpc s), Om0=0.262,
+           w0=-1.016, Tcmb0=0.0 K, Neff=3.04, m_nu=None, Ob0=None)
 
 ..
   EXAMPLE END
@@ -257,7 +261,7 @@ To make a copy of a cosmological instance using the ``clone`` operation:
   >>> WMAP9.Om0, newcosmo.Om0  # some changed  # doctest: +FLOAT_CMP
   (0.2865, 0.3141)
   >>> WMAP9.Ode0, newcosmo.Ode0  # Indirectly changed since this is flat  # doctest: +FLOAT_CMP
-  (np.float64(0.7134130719051658), np.float64(0.6858130719051657))
+  (0.7134130719051658, 0.6858130719051657)
 
 ..
   EXAMPLE END
@@ -305,8 +309,39 @@ the WMAP and Planck satellite data. For example:
   >>> Planck13.lookback_time(2)  # lookback time in Gyr at z=2  # doctest: +FLOAT_CMP
   <Quantity 10.51184138 Gyr>
 
-A full list of the predefined cosmologies can be found in
-:ref:`astropy-cosmology-realizations`.
+A full list of the predefined cosmologies is given by
+``cosmology.realizations.available`` and summarized below:
+
+===========  ============================== ====  ===== =======
+Name         Source                         H0    Om    Flat
+===========  ============================== ====  ===== =======
+_`WMAP1`     Spergel et al. 2003            72.0  0.257 Yes
+_`WMAP3`     Spergel et al. 2007            70.1  0.276 Yes
+_`WMAP5`     Komatsu et al. 2009            70.2  0.277 Yes
+_`WMAP7`     Komatsu et al. 2011            70.4  0.272 Yes
+_`WMAP9`     Hinshaw et al. 2013            69.3  0.287 Yes
+_`Planck13`  Planck Collab 2013, Paper XVI  67.8  0.307 Yes
+_`Planck15`  Planck Collab 2015, Paper XIII 67.7  0.307 Yes
+_`Planck18`  Planck Collab 2018, Paper VI   67.7  0.310 Yes
+===========  ============================== ====  ===== =======
+
+.. note::
+
+  Unlike the Planck 2015 paper, the Planck 2018 paper includes massive
+  neutrinos in ``Om0`` but the Planck18 object includes them in ``m_nu``
+  instead for consistency. Hence, the ``Om0`` value in Planck18 differs
+  slightly from the Planck 2018 paper but represents the same cosmological
+  model.
+
+Currently, all are instances of |FlatLambdaCDM|. More details about exactly
+where each set of parameters comes from are available in the docstring for each
+object::
+
+  >>> from astropy.cosmology import WMAP7
+  >>> print(WMAP7.__doc__)
+  WMAP7 instance of FlatLambdaCDM cosmology
+  (from Komatsu et al. 2011, ApJS, 192, 18, doi: 10.1088/0067-0049/192/2/18.
+   Table 1 (WMAP + BAO + H0 ML).)
 
 
 Specifying a Dark Energy Model
@@ -377,7 +412,7 @@ be found as a function of redshift::
 
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.Ogamma0, WMAP7.Onu0  # Current epoch values  # doctest: +FLOAT_CMP
-  (np.float64(4.985694972799396e-05), np.float64(3.442154948307989e-05))
+  (4.985694972799396e-05, 3.442154948307989e-05)
   >>> z = np.array([0, 1.0, 2.0])
   >>> WMAP7.Ogamma(z), WMAP7.Onu(z)  # doctest: +FLOAT_CMP
   (array([4.98603986e-05, 2.74593395e-04, 4.99915942e-04]),
@@ -390,7 +425,7 @@ set ``Tcmb0`` to 0 (which is also the default)::
   >>> import astropy.units as u
   >>> cos = FlatLambdaCDM(70.4 * u.km / u.s / u.Mpc, 0.272, Tcmb0 = 0.0 * u.K)
   >>> cos.Ogamma0, cos.Onu0
-  (np.float64(0.0), np.float64(0.0))
+  (0.0, 0.0)
 
 You can include photons but exclude any contributions from neutrinos by setting
 ``Tcmb0`` to be non-zero (2.725 K is the standard value for our Universe) but
@@ -475,11 +510,15 @@ better than that, despite the fact that five digits are quoted in the papers.
 Reference/API
 =============
 
-.. toctree::
-   :maxdepth: 2
+More detailed information on using the package is provided on separate pages,
+listed below.
 
-   realizations
-   Units and Equivalencies <units>
-   io/index
+.. toctree::
+   :maxdepth: 1
+
+   Reading and Writing <io>
    For Developers <dev>
-   ref_api
+
+
+.. automodapi:: astropy.cosmology
+   :inherited-members:

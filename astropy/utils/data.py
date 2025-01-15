@@ -13,72 +13,62 @@ import io
 import os
 import re
 import shutil
+
+# import ssl moved inside functions using ssl to avoid import failure
+# when running in pyodide/Emscripten
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
-from importlib import import_module
-from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir
-from types import MappingProxyType
+from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir, mkdtemp
 from warnings import warn
 
-import astropy_iers_data
+try:
+    import certifi
+except ImportError:
+    # certifi support is optional; when available it will be used for TLS/SSL
+    # downloads
+    certifi = None
 
 import astropy.config.paths
 from astropy import config as _config
-from astropy.utils.compat.optional_deps import (
-    HAS_BZ2,
-    HAS_CERTIFI,
-    HAS_FSSPEC,
-    HAS_LZMA,
-)
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.introspection import find_current_module
+from astropy.utils.compat.optional_deps import HAS_FSSPEC
+from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.introspection import find_current_module, resolve_name
 
 # Order here determines order in the autosummary
 __all__ = [
-    "CacheDamaged",
-    "CacheMissingWarning",
     "Conf",
-    "cache_contents",
-    "cache_total_size",
-    "check_download_cache",
-    "check_free_space_in_dir",
-    "clear_download_cache",
-    "compute_hash",
     "conf",
     "download_file",
     "download_files_in_parallel",
-    "export_download_cache",
-    "get_cached_urls",
-    "get_file_contents",
-    "get_free_space_in_dir",
-    "get_pkg_data_contents",
-    "get_pkg_data_filename",
-    "get_pkg_data_filenames",
-    "get_pkg_data_fileobj",
-    "get_pkg_data_fileobjs",
-    "get_pkg_data_path",
     "get_readable_fileobj",
-    "import_download_cache",
-    "import_file_to_cache",
+    "get_pkg_data_fileobj",
+    "get_pkg_data_filename",
+    "get_pkg_data_contents",
+    "get_pkg_data_fileobjs",
+    "get_pkg_data_filenames",
+    "get_pkg_data_path",
     "is_url",
     "is_url_in_cache",
+    "get_cached_urls",
+    "cache_total_size",
+    "cache_contents",
+    "export_download_cache",
+    "import_download_cache",
+    "import_file_to_cache",
+    "check_download_cache",
+    "clear_download_cache",
+    "compute_hash",
+    "get_free_space_in_dir",
+    "check_free_space_in_dir",
+    "get_file_contents",
+    "CacheMissingWarning",
+    "CacheDamaged",
 ]
 
 _dataurls_to_alias = {}
-
-
-_IERS_DATA_REDIRECTS = {
-    "Leap_Second.dat": (
-        "IERS_LEAP_SECOND_FILE",
-        astropy_iers_data.IERS_LEAP_SECOND_FILE,
-    ),
-    "ReadMe.finals2000A": ("IERS_A_README", astropy_iers_data.IERS_A_README),
-    "ReadMe.eopc04": ("IERS_B_README", astropy_iers_data.IERS_B_README),
-    "eopc04.1962-now": ("IERS_B_FILE", astropy_iers_data.IERS_B_FILE),
-}
 
 
 class _NonClosingBufferedReader(io.BufferedReader):
@@ -128,12 +118,10 @@ class Conf(_config.ConfigNamespace):
         True, "If False, prevents any attempt to download from Internet."
     )
     compute_hash_block_size = _config.ConfigItem(
-        2**16,  # 64K
-        "Block size for computing file hashes.",
+        2**16, "Block size for computing file hashes."  # 64K
     )
     download_block_size = _config.ConfigItem(
-        2**16,  # 64K
-        "Number of bytes of remote data to download per step.",
+        2**16, "Number of bytes of remote data to download per step."  # 64K
     )
     delete_temporary_downloads_at_exit = _config.ConfigItem(
         True,
@@ -217,6 +205,7 @@ def get_readable_fileobj(
 
     Notes
     -----
+
     This function is a context manager, and should be used for example
     as::
 
@@ -283,7 +272,7 @@ def get_readable_fileobj(
         ``name_or_obj`` starts with the Amazon S3 storage prefix ``s3://``
         or the Google Cloud Storage prefix ``gs://``.  Can also be used for paths
         with other prefixes (e.g. ``http://``) but in this case you must
-        explicitly pass ``use_fsspec=True``.
+        explicitely pass ``use_fsspec=True``.
         Use of this feature requires the optional ``fsspec`` package.
         A ``ModuleNotFoundError`` will be raised if the dependency is missing.
 
@@ -306,8 +295,9 @@ def get_readable_fileobj(
 
     Returns
     -------
-    file : :term:`file-like (readable)`
+    file : readable file-like
     """
+
     # close_fds is a list of file handles created by this function
     # that need to be closed.  We don't want to always just close the
     # returned file handle, because it may simply be the file handle
@@ -402,14 +392,14 @@ def get_readable_fileobj(
             fileobj_new.seek(0)
             fileobj = fileobj_new
     elif signature[:3] == b"BZh":  # bzip2
-        if not HAS_BZ2:
+        try:
+            import bz2
+        except ImportError:
             for fd in close_fds:
                 fd.close()
             raise ModuleNotFoundError(
                 "This Python installation does not provide the bz2 module."
             )
-        import bz2
-
         try:
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
@@ -427,17 +417,17 @@ def get_readable_fileobj(
             close_fds.append(fileobj_new)
             fileobj = fileobj_new
     elif signature[:3] == b"\xfd7z":  # xz
-        if not HAS_LZMA:
+        try:
+            import lzma
+
+            fileobj_new = lzma.LZMAFile(fileobj, mode="rb")
+            fileobj_new.read(1)  # need to check that the file is really xz
+        except ImportError:
             for fd in close_fds:
                 fd.close()
             raise ModuleNotFoundError(
                 "This Python installation does not provide the lzma module."
             )
-        import lzma
-
-        try:
-            fileobj_new = lzma.LZMAFile(fileobj, mode="rb")
-            fileobj_new.read(1)  # need to check that the file is really xz
         except (OSError, EOFError):  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
@@ -459,9 +449,11 @@ def get_readable_fileobj(
         # A bz2.BZ2File can not be wrapped by a TextIOWrapper,
         # so we decompress it to a temporary file and then
         # return a handle to that.
-        if HAS_BZ2:
+        try:
             import bz2
-
+        except ImportError:
+            pass
+        else:
             if isinstance(fileobj, bz2.BZ2File):
                 tmp = NamedTemporaryFile("wb", delete=False)
                 data = fileobj.read()
@@ -580,6 +572,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
 
     Examples
     --------
+
     This will retrieve a data file and its contents for the `astropy.wcs`
     tests::
 
@@ -613,7 +606,8 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     --------
     get_pkg_data_contents : returns the contents of a file or url as a bytes object
     get_pkg_data_filename : returns a local name for a file containing the data
-    """
+    """  # noqa: E501
+
     datafn = get_pkg_data_path(data_name, package=package)
     if os.path.isdir(datafn):
         raise OSError(
@@ -694,6 +688,7 @@ def get_pkg_data_filename(
 
     Examples
     --------
+
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
@@ -718,6 +713,7 @@ def get_pkg_data_filename(
     get_pkg_data_contents : returns the contents of a file or url as a bytes object
     get_pkg_data_fileobj : returns a file-like object with the data
     """
+
     if remote_timeout is None:
         # use configfile default
         remote_timeout = conf.remote_timeout
@@ -824,6 +820,7 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
     get_pkg_data_fileobj : returns a file-like object with the data
     get_pkg_data_filename : returns a local name for a file containing the data
     """
+
     with get_pkg_data_fileobj(
         data_name, package=package, encoding=encoding, cache=cache
     ) as fd:
@@ -874,6 +871,7 @@ def get_pkg_data_filenames(datadir, package=None, pattern="*"):
         ...         fcontents = f.read()
         ...
     """
+
     path = get_pkg_data_path(datadir, package=package)
     if os.path.isfile(path):
         raise OSError(
@@ -944,6 +942,7 @@ def get_pkg_data_fileobjs(datadir, package=None, pattern="*", encoding=None):
         ...     fcontents = fd.read()
         ...
     """
+
     for fn in get_pkg_data_filenames(datadir, package=package, pattern=pattern):
         with get_readable_fileobj(fn, encoding=encoding) as fd:
             yield fd
@@ -975,7 +974,7 @@ def compute_hash(localfn):
         ``localfn`` file.
     """
     with open(localfn, "rb") as f:
-        h = hashlib.md5(usedforsecurity=False)
+        h = hashlib.md5()
         block = f.read(conf.compute_hash_block_size)
         while block:
             h.update(block)
@@ -1027,21 +1026,9 @@ def get_pkg_data_path(*path, package=None):
         else:
             package = module.__package__
     else:
-        # Backward-compatibility for files that used to exist in astropy.utils.iers
-        if package == "astropy.utils.iers":
-            filename = os.path.basename(path[-1])
-            if filename in _IERS_DATA_REDIRECTS:
-                warn(
-                    f"Accessing {filename} in this way is deprecated in v6.0, "
-                    f"use astropy.utils.iers.{_IERS_DATA_REDIRECTS[filename][0]} "
-                    "instead.",
-                    AstropyDeprecationWarning,
-                )
-                return _IERS_DATA_REDIRECTS[filename][1]
-
         # package errors if it isn't a str
         # so there is no need for checks in the containing if/else
-        module = import_module(package)
+        module = resolve_name(package)
 
     # module path within package
     module_path = os.path.dirname(module.__file__)
@@ -1049,7 +1036,8 @@ def get_pkg_data_path(*path, package=None):
 
     # Check that file is inside tree.
     rootpkgname = package.partition(".")[0]
-    root_dir = os.path.dirname(import_module(rootpkgname).__file__)
+    rootpkg = resolve_name(rootpkgname)
+    root_dir = os.path.dirname(rootpkg.__file__)
     if not _is_inside(full_path, root_dir):
         raise RuntimeError(
             f"attempted to get a local data file outside of the {rootpkgname} tree."
@@ -1176,9 +1164,7 @@ def _build_urlopener(ftp_tls=False, ssl_context=None, allow_insecure=False):
             "requires passing 'certfile' as well"
         )
 
-    if "cafile" not in ssl_context and HAS_CERTIFI:
-        import certifi
-
+    if "cafile" not in ssl_context and certifi is not None:
         ssl_context["cafile"] = certifi.where()
 
     ssl_context = ssl.create_default_context(**ssl_context)
@@ -1235,7 +1221,7 @@ def _try_url_open(
                 "misconfigured or your local root CA certificates are "
                 "out-of-date; in the latter case this can usually be "
                 'addressed by installing the Python package "certifi" '
-                "(see the documentation for astropy.utils.data.download_file)"
+                "(see the documentation for astropy.utils.data.download_url)"
             )
             if not allow_insecure:
                 msg += (
@@ -1298,12 +1284,7 @@ def _download_file_from_source(
             )
         except urllib.error.URLError as e:
             # e.reason might not be a string, e.g. socket.gaierror
-            # URLError changed to report original exception in Python 3.11 (bpo-43564)
-            if (
-                str(e.reason)
-                .removeprefix("ftp error: ")
-                .startswith(("error_perm", "5"))
-            ):
+            if str(e.reason).startswith("ftp error: error_perm"):
                 ftp_tls = True
             else:
                 raise
@@ -1583,6 +1564,7 @@ def download_file(
     if missing_cache:
         warn(CacheMissingWarning(missing_cache, f_name))
     if conf.delete_temporary_downloads_at_exit:
+        global _tempfilestodel
         _tempfilestodel.append(f_name)
     return os.path.abspath(f_name)
 
@@ -1776,6 +1758,8 @@ _tempfilestodel = []
 
 @atexit.register
 def _deltemps():
+    global _tempfilestodel
+
     if _tempfilestodel is not None:
         while len(_tempfilestodel) > 0:
             fn = _tempfilestodel.pop()
@@ -1852,9 +1836,9 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
                 filepath = os.path.join(dldir, d)
             if os.path.exists(filepath):
                 _rmtree(filepath)
-            elif len(hashorurl) == 2 * hashlib.md5(
-                usedforsecurity=False
-            ).digest_size and re.match(r"[0-9a-f]+", hashorurl):
+            elif len(hashorurl) == 2 * hashlib.md5().digest_size and re.match(
+                r"[0-9a-f]+", hashorurl
+            ):
                 # It's the hash of some file contents, we have to find the right file
                 filename = _find_hash_fn(hashorurl)
                 if filename is not None:
@@ -1881,15 +1865,17 @@ def _get_download_cache_loc(pkgname="astropy"):
         The path to the data cache directory.
     """
     try:
-        datadir = astropy.config.paths.get_cache_dir_path(pkgname) / "download" / "url"
+        datadir = os.path.join(
+            astropy.config.paths.get_cache_dir(pkgname), "download", "url"
+        )
 
-        if not datadir.exists():
+        if not os.path.exists(datadir):
             try:
-                datadir.mkdir(parents=True)
+                os.makedirs(datadir)
             except OSError:
-                if not datadir.exists():
+                if not os.path.exists(datadir):
                     raise
-        elif not datadir.is_dir():
+        elif not os.path.isdir(datadir):
             raise OSError(f"Data cache directory {datadir} is not a directory")
 
         return datadir
@@ -1910,10 +1896,15 @@ def _url_to_dirname(url):
     if urlobj[0].lower() in ["http", "https"] and urlobj[1] and urlobj[2] == "":
         urlobj[2] = "/"
     url_c = urllib.parse.urlunsplit(urlobj)
-    return hashlib.md5(url_c.encode("utf-8"), usedforsecurity=False).hexdigest()
+    return hashlib.md5(url_c.encode("utf-8")).hexdigest()
 
 
-_NOTHING = MappingProxyType({})
+class ReadOnlyDict(dict):
+    def __setitem__(self, key, value):
+        raise TypeError("This object is read-only.")
+
+
+_NOTHING = ReadOnlyDict({})
 
 
 class CacheDamaged(ValueError):
@@ -2019,6 +2010,32 @@ def check_download_cache(pkgname="astropy"):
         raise CacheDamaged("\n".join(messages), bad_files=bad_files)
 
 
+@contextlib.contextmanager
+def _SafeTemporaryDirectory(suffix=None, prefix=None, dir=None):
+    """Temporary directory context manager
+
+    This will not raise an exception if the temporary directory goes away
+    before it's supposed to be deleted. Specifically, what is deleted will
+    be the directory *name* produced; if no such directory exists, no
+    exception will be raised.
+
+    It would be safer to delete it only if it's really the same directory
+    - checked by file descriptor - and if it's still called the same thing.
+    But that opens a platform-specific can of worms.
+
+    It would also be more robust to use ExitStack and TemporaryDirectory,
+    which is more aggressive about removing readonly things.
+    """
+    d = mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
+    try:
+        yield d
+    finally:
+        try:
+            shutil.rmtree(d)
+        except OSError:
+            pass
+
+
 def _rmtree(path, replace=None):
     """More-atomic rmtree. Ignores missing directory."""
     with TemporaryDirectory(
@@ -2037,13 +2054,6 @@ def _rmtree(path, replace=None):
                 )
             )
             raise
-        except OSError as e:
-            if e.errno == errno.EXDEV:
-                warn(e.strerror, AstropyWarning)
-                shutil.move(path, os.path.join(d, "to-zap"))
-            else:
-                raise
-
         if replace is not None:
             try:
                 os.rename(replace, path)
@@ -2054,9 +2064,6 @@ def _rmtree(path, replace=None):
                 if e.errno == errno.ENOTEMPTY:
                     # already there, fine
                     pass
-                elif e.errno == errno.EXDEV:
-                    warn(e.strerror, AstropyWarning)
-                    shutil.move(replace, path)
                 else:
                     raise
 
@@ -2100,9 +2107,7 @@ def import_file_to_cache(
     cache_dirname = _url_to_dirname(url_key)
     local_dirname = os.path.join(cache_dir, cache_dirname)
     local_filename = os.path.join(local_dirname, "contents")
-    with TemporaryDirectory(
-        prefix="temp_dir", dir=cache_dir, ignore_cleanup_errors=True
-    ) as temp_dir:
+    with _SafeTemporaryDirectory(prefix="temp_dir", dir=cache_dir) as temp_dir:
         temp_filename = os.path.join(temp_dir, "contents")
         # Make sure we're on the same filesystem
         # This will raise an exception if the url_key doesn't turn into a valid filename
@@ -2178,7 +2183,7 @@ def cache_contents(pkgname="astropy"):
                     os.path.join(dldir, entry.name, "url"), encoding="utf-8"
                 )
                 r[url] = os.path.abspath(os.path.join(dldir, entry.name, "contents"))
-    return MappingProxyType(r)
+    return ReadOnlyDict(r)
 
 
 def export_download_cache(

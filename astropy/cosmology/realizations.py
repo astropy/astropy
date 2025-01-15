@@ -1,56 +1,31 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Built-in cosmologies.
 
-See :attr:`~astropy.cosmology.realizations.available` for a full list.
-"""
-
-from __future__ import annotations
-
-__all__ = [  # noqa: F822 (undefined name)
-    # Realizations (dynamic attribute, see __getattr__)
-    "WMAP1",
-    "WMAP3",
-    "WMAP5",
-    "WMAP7",
-    "WMAP9",
-    "Planck13",
-    "Planck15",
-    "Planck18",
-    "available",
-    "default_cosmology",
-]
-
+# STDLIB
 import pathlib
 import sys
-from typing import TYPE_CHECKING
+from typing import Optional, Union
 
+# LOCAL
 from astropy.utils.data import get_pkg_data_path
+from astropy.utils.decorators import deprecated
 from astropy.utils.state import ScienceState
 
 from .core import Cosmology
 
-if TYPE_CHECKING:
-    from typing import ClassVar
-
-__doctest_requires__ = {"*": ["scipy"]}
-
 _COSMOLOGY_DATA_DIR = pathlib.Path(
     get_pkg_data_path("cosmology", "data", package="astropy")
 )
-available = (
-    "WMAP1",
-    "WMAP3",
-    "WMAP5",
-    "WMAP7",
-    "WMAP9",
-    "Planck13",
-    "Planck15",
-    "Planck18",
-)
+available = tuple(sorted(p.stem for p in _COSMOLOGY_DATA_DIR.glob("*.ecsv")))
 
 
-def __getattr__(name: str) -> Cosmology:
-    """Make specific realizations from data files with lazy import from ``PEP 562``.
+__all__ = ["available", "default_cosmology"] + list(available)
+
+__doctest_requires__ = {"*": ["scipy"]}
+
+
+def __getattr__(name):
+    """Make specific realizations from data files with lazy import from
+    `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
 
     Raises
     ------
@@ -63,11 +38,9 @@ def __getattr__(name: str) -> Cosmology:
     cosmo = Cosmology.read(
         str(_COSMOLOGY_DATA_DIR / name) + ".ecsv", format="ascii.ecsv"
     )
-    object.__setattr__(
-        cosmo,
-        "__doc__",
+    cosmo.__doc__ = (
         f"{name} instance of {cosmo.__class__.__qualname__} "
-        f"cosmology\n(from {cosmo.meta['reference']})",
+        f"cosmology\n(from {cosmo.meta['reference']})"
     )
 
     # Cache in this module so `__getattr__` is only called once per `name`.
@@ -76,7 +49,7 @@ def __getattr__(name: str) -> Cosmology:
     return cosmo
 
 
-def __dir__() -> list[str]:
+def __dir__():
     """Directory, including lazily-imported objects."""
     return __all__
 
@@ -105,15 +78,24 @@ class default_cosmology(ScienceState):
     To get the default cosmology:
 
         >>> default_cosmology.get()
-        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>,
-                      Om0=0.30966, ...
+        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966, ...
     """
 
-    _default_value: ClassVar[str] = "Planck18"
-    _value: ClassVar[str | Cosmology] = "Planck18"
+    _default_value = "Planck18"
+    _value = "Planck18"
+
+    @deprecated("5.0", alternative="get")
+    @classmethod
+    def get_cosmology_from_string(cls, arg):
+        """Return a cosmology instance from a string."""
+        if arg == "no_default":
+            value = None
+        else:
+            value = cls._get_from_registry(arg)
+        return value
 
     @classmethod
-    def validate(cls, value: Cosmology | str | None) -> Cosmology | None:
+    def validate(cls, value: Union[Cosmology, str, None]) -> Optional[Cosmology]:
         """Return a Cosmology given a value.
 
         Parameters

@@ -230,6 +230,8 @@ def test_data_info_subclass():
         Confusingly named Column on purpose, but that is legal.
         """
 
+        pass
+
     for data in ([], [1, 2]):
         c = Column(data, dtype="int64")
         cinfo = c.info(out=None)

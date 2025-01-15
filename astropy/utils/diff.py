@@ -1,15 +1,22 @@
 import difflib
 import functools
+import numbers
 import sys
-from textwrap import indent
 
 import numpy as np
 
+from .misc import indent
+
 __all__ = [
+    "fixed_width_indent",
     "diff_values",
     "report_diff_values",
     "where_not_allclose",
 ]
+
+
+# Smaller default shift-width for indent
+fixed_width_indent = functools.partial(indent, width=2)
 
 
 def diff_values(a, b, rtol=0.0, atol=0.0):
@@ -40,18 +47,6 @@ def diff_values(a, b, rtol=0.0, atol=0.0):
         return a != b
 
 
-def _ignore_astropy_terminal_size(func):
-    @functools.wraps(func)
-    def inner(*args, **kwargs):
-        from astropy import conf
-
-        with conf.set_temp("max_width", -1), conf.set_temp("max_lines", -1):
-            return func(*args, **kwargs)
-
-    return inner
-
-
-@_ignore_astropy_terminal_size
 def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=0.0):
     """
     Write a diff report between two values to the specified file-like object.
@@ -79,10 +74,11 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
         `True` if no diff, else `False`.
 
     """
-    indent_prefix = indent_width * "  "
     if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
         if a.shape != b.shape:
-            fileobj.write(indent("  Different array shapes:\n", indent_prefix))
+            fileobj.write(
+                fixed_width_indent("  Different array shapes:\n", indent_width)
+            )
             report_diff_values(
                 str(a.shape),
                 str(b.shape),
@@ -100,7 +96,7 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
 
         for idx in diff_indices[:3]:
             lidx = idx.tolist()
-            fileobj.write(indent(f"  at {lidx!r}:\n", indent_prefix))
+            fileobj.write(fixed_width_indent(f"  at {lidx!r}:\n", indent_width))
             report_diff_values(
                 a[tuple(idx)],
                 b[tuple(idx)],
@@ -112,7 +108,9 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
 
         if num_diffs > 3:
             fileobj.write(
-                indent(f"  ...and at {num_diffs - 3:d} more indices.\n", indent_prefix)
+                fixed_width_indent(
+                    f"  ...and at {num_diffs - 3:d} more indices.\n", indent_width
+                )
             )
             return False
 
@@ -125,8 +123,12 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
         lnpad = " "
         sign_a = "a>"
         sign_b = "b>"
-        a = str(a)
-        b = str(b)
+        if isinstance(a, numbers.Number):
+            a = repr(a)
+            b = repr(b)
+        else:
+            a = str(a)
+            b = str(b)
     else:
         padding = max(len(typea.__name__), len(typeb.__name__)) + 3
         lnpad = (padding + 1) * " "
@@ -135,8 +137,22 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
 
         is_a_str = isinstance(a, str)
         is_b_str = isinstance(b, str)
-        a = repr(a) if is_a_str and not is_b_str else str(a)
-        b = repr(b) if is_b_str and not is_a_str else str(b)
+        a = (
+            repr(a)
+            if (
+                (is_a_str and not is_b_str)
+                or (not is_a_str and isinstance(a, numbers.Number))
+            )
+            else str(a)
+        )
+        b = (
+            repr(b)
+            if (
+                (is_b_str and not is_a_str)
+                or (not is_b_str and isinstance(b, numbers.Number))
+            )
+            else str(b)
+        )
 
     identical = True
 
@@ -149,7 +165,9 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
             line = sign_b + line[1:]
         else:
             line = lnpad + line
-        fileobj.write(indent("  {}\n".format(line.rstrip("\n")), indent_prefix))
+        fileobj.write(
+            fixed_width_indent("  {}\n".format(line.rstrip("\n")), indent_width)
+        )
 
     return identical
 

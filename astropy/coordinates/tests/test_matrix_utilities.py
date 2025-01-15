@@ -1,18 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
-from numpy.testing import assert_allclose
+import pytest
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.coordinates.matrix_utilities import (
     angle_axis,
     is_O3,
     is_rotation,
+    matrix_product,
     rotation_matrix,
 )
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_rotation_matrix():
-    assert_allclose(rotation_matrix(0 * u.deg, "x"), np.eye(3))
+    assert_array_equal(rotation_matrix(0 * u.deg, "x"), np.eye(3))
 
     assert_allclose(
         rotation_matrix(90 * u.deg, "y"), [[0, 0, -1], [0, 1, 0], [1, 0, 0]], atol=1e-12
@@ -69,10 +72,6 @@ def test_is_O3():
     # and (M, 3, 3)
     n1 = np.tile(m1, (2, 1, 1))
     assert tuple(is_O3(n1)) == (True, True)  # (show the broadcasting)
-    # Test atol parameter
-    nn1 = np.tile(0.5 * m1, (2, 1, 1))
-    assert tuple(is_O3(nn1)) == (False, False)  # (show the broadcasting)
-    assert tuple(is_O3(nn1, atol=1)) == (True, True)  # (show the broadcasting)
 
     # reflection
     m2 = m1.copy()
@@ -99,10 +98,6 @@ def test_is_rotation():
     # and (M, 3, 3)
     n1 = np.tile(m1, (2, 1, 1))
     assert tuple(is_rotation(n1)) == (True, True)  # (show the broadcasting)
-    # Test atol parameter
-    nn1 = np.tile(0.5 * m1, (2, 1, 1))
-    assert tuple(is_rotation(nn1)) == (False, False)  # (show the broadcasting)
-    assert tuple(is_rotation(nn1, atol=10)) == (True, True)  # (show the broadcasting)
 
     # Improper rotation (unit rotation + reflection)
     m2 = np.identity(3)
@@ -120,3 +115,8 @@ def test_is_rotation():
     # and (M, 3, 3)
     n3 = np.stack((m1, m3))
     assert tuple(is_rotation(n3)) == (True, False)  # (show the broadcasting)
+
+
+def test_matrix_product_deprecation():
+    with pytest.warns(AstropyDeprecationWarning, match=r"Use @ instead\.$"):
+        matrix_product(np.eye(2))

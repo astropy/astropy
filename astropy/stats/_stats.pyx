@@ -3,8 +3,6 @@ cimport cython
 cimport numpy as np
 from libc cimport math
 
-np.import_array()
-
 ctypedef fused dtype:
     np.uint8_t
     np.uint16_t

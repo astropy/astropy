@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import operator
 
 import numpy as np
 import pytest
@@ -21,10 +20,10 @@ if HAS_SCIPY:
 
 class TestInit:
     @classmethod
-    def setup_class(cls):
-        cls.rates = np.array([1, 5, 30, 400])[:, np.newaxis]
-        cls.parr = np.random.poisson(cls.rates, (4, 1000))
-        cls.parr_t = np.random.poisson(cls.rates.squeeze(), (1000, 4))
+    def setup_class(self):
+        self.rates = np.array([1, 5, 30, 400])[:, np.newaxis]
+        self.parr = np.random.poisson(self.rates, (4, 1000))
+        self.parr_t = np.random.poisson(self.rates.squeeze(), (1000, 4))
 
     def test_numpy_init(self):
         # Test that we can initialize directly from a Numpy array
@@ -135,7 +134,9 @@ class TestDistributionStatistics:
         expected = np.var(self.data, axis=-1) * self.distr.unit**2
         pdf_var = self.distr.pdf_var()
         assert_quantity_allclose(pdf_var, expected)
-        assert_quantity_allclose(pdf_var, [9, 4, 16, 25] * self.distr.unit**2, rtol=0.1)
+        assert_quantity_allclose(
+            pdf_var, [9, 4, 16, 25] * self.distr.unit**2, rtol=0.1
+        )
 
         # make sure the right type comes out - should be a Quantity because it's
         # now a summary statistic
@@ -223,7 +224,9 @@ class TestDistributionStatistics:
         expected = np.median(self.data + another_data / 1000, axis=-1) * self.distr.unit
         assert_quantity_allclose(combined_distr.pdf_median(), expected)
 
-        expected = np.var(self.data + another_data / 1000, axis=-1) * self.distr.unit**2
+        expected = (
+            np.var(self.data + another_data / 1000, axis=-1) * self.distr.unit**2
+        )
         assert_quantity_allclose(combined_distr.pdf_var(), expected)
 
 
@@ -317,7 +320,7 @@ def test_reprs():
     ],
 )
 def test_wrong_kw_fails(func, kws):
-    with pytest.raises(TypeError, match="missing 1 required"):
+    with pytest.raises(Exception):
         kw_temp = kws.copy()
         kw_temp["n_sample"] = 100  # note the missing "s"
         assert func(**kw_temp).n_samples == 100
@@ -441,43 +444,6 @@ def test_distr_angle_view_as_quantity():
     assert isinstance(qd3, u.Quantity)
     assert isinstance(qd3, Distribution)
     assert_array_equal(qd3.distribution, qd.distribution)
-    # Simple view with no arguments
-    qd4 = qd3.view()
-    assert qd4.__class__ is qd3.__class__
-    assert np.may_share_memory(qd4, qd3)
-
-
-def test_distr_view_different_dtype1():
-    # Viewing with a new dtype should follow the same rules as for a
-    # regular array with the same dtype.
-    c = Distribution([2.0j, 3.0, 4.0j])
-    r = c.view("2f8")
-    assert r.shape == c.shape + (2,)
-    assert np.may_share_memory(r, c)
-    expected = np.moveaxis(c.distribution.view("2f8"), -2, -1)
-    assert_array_equal(r.distribution, expected)
-    c2 = r.view("c16")
-    assert_array_equal(c2.distribution, c.distribution)
-    assert np.may_share_memory(c2, c)
-
-
-def test_distr_view_different_dtype2():
-    # Viewing with a new dtype should follow the same rules as for a
-    # regular array with the same dtype.
-    uint32 = Distribution(
-        np.array([[0x01020304, 0x05060708], [0x11121314, 0x15161718]], dtype="u4")
-    )
-    uint8 = uint32.view("4u1")
-    assert uint8.shape == uint32.shape + (4,)
-    assert np.may_share_memory(uint8, uint32)
-    expected = np.moveaxis(uint32.distribution.view("4u1"), -2, -1)
-    assert_array_equal(uint8.distribution, expected)
-    uint32_2 = uint8.view("u4")
-    assert np.may_share_memory(uint32_2, uint32)
-    assert_array_equal(uint32_2.distribution, uint32.distribution)
-    uint8_2 = uint8.T
-    with pytest.raises(ValueError, match="last axis must be contiguous"):
-        uint8_2.view("u4")
 
 
 def test_distr_cannot_view_new_dtype():
@@ -486,18 +452,16 @@ def test_distr_cannot_view_new_dtype():
     # to do with a view as a new dtype, we just error on it.
     # TODO: with a lot of thought, this restriction can likely be relaxed.
     distr = Distribution([2.0, 3.0, 4.0])
-    with pytest.raises(ValueError, match="can only be viewed"):
-        distr.view(np.dtype("2i8"))
-
-    with pytest.raises(ValueError, match="can only be viewed"):
-        distr.view(np.dtype("2i8"), distr.__class__)
+    with pytest.raises(ValueError, match="with a new dtype"):
+        distr.view(np.dtype("f8"))
 
     # Check subclass just in case.
     ad = Angle(distr, "deg")
-    with pytest.raises(ValueError, match="can only be viewed"):
-        ad.view(np.dtype("2i8"))
-    with pytest.raises(ValueError, match="can only be viewed"):
-        ad.view("2i8", distr.__class__)
+    with pytest.raises(ValueError, match="with a new dtype"):
+        ad.view(np.dtype("f8"))
+
+    with pytest.raises(ValueError, match="with a new dtype"):
+        ad.view(np.dtype("f8"), Distribution)
 
 
 def test_scalar_quantity_distribution():
@@ -507,184 +471,3 @@ def test_scalar_quantity_distribution():
     assert isinstance(sin_angles, Distribution)
     assert isinstance(sin_angles, u.Quantity)
     assert_array_equal(sin_angles, Distribution(np.sin([90.0, 30.0, 0.0] * u.deg)))
-
-
-@pytest.mark.parametrize("op", [operator.eq, operator.ne, operator.gt])
-class TestComparison:
-    @classmethod
-    def setup_class(cls):
-        cls.d = Distribution([90.0, 30.0, 0.0])
-
-        class Override:
-            __array_ufunc__ = None
-
-            def __eq__(self, other):
-                return "eq"
-
-            def __ne__(self, other):
-                return "ne"
-
-            def __lt__(self, other):
-                return "gt"  # Since it is called for the reverse of gt
-
-        cls.override = Override()
-
-    def test_distribution_can_be_compared_to_non_distribution(self, op):
-        result = op(self.d, 0.0)
-        assert_array_equal(result, Distribution(op(self.d.distribution, 0.0)))
-
-    def test_distribution_comparison_defers_correctly(self, op):
-        result = op(self.d, self.override)
-        assert result == op.__name__
-
-
-class TestSetItemWithSelection:
-    def test_setitem(self):
-        d = Distribution([90.0, 30.0, 0.0])
-        d[d > 50] = 0.0
-        assert_array_equal(d, Distribution([0.0, 30.0, 0.0]))
-
-    def test_inplace_operation(self):
-        d = Distribution([90.0, 30.0, 0.0])
-        d[d > 50] *= -1.0
-        assert_array_equal(d, Distribution([-90.0, 30.0, 0.0]))
-
-
-ADVANCED_INDICES = [
-    (np.array([[1, 2], [0, 1]]), np.array([[1, 3], [0, 2]])),
-    # Same advanced index, but also using negative numbers
-    (np.array([[-2, -1], [0, -2]]), np.array([[1, -1], [-4, -2]])),
-]
-
-
-class TestGetSetItemAdvancedIndex:
-    @classmethod
-    def setup_class(cls):
-        cls.distribution = np.arange(60.0).reshape(3, 4, 5)
-        cls.d = Distribution(cls.distribution)
-
-    def test_setup(self):
-        ai1, ai2 = ADVANCED_INDICES[:2]
-        # Check that the first two indices produce the same output.
-        assert_array_equal(self.distribution[ai1], self.distribution[ai2])
-
-    @pytest.mark.parametrize("item", ADVANCED_INDICES)
-    def test_getitem(self, item):
-        v = self.d[item]
-        assert v.shape == item[0].shape
-        assert_array_equal(v.distribution, self.distribution[item])
-
-    @pytest.mark.parametrize("item", [([0, 4],), ([0], [0], [0])])
-    def test_getitem_bad(self, item):
-        with pytest.raises(IndexError):
-            self.d[item]
-
-    @pytest.mark.parametrize("item", ADVANCED_INDICES)
-    def test_setitem(self, item):
-        d = self.d.copy()
-        d[item] = 0.0
-        distribution = self.distribution.copy()
-        distribution[item] = 0.0
-        assert_array_equal(d.distribution, distribution)
-        d[item] = self.d[item]
-        assert_array_equal(d.distribution, self.distribution)
-
-
-class TestQuantityDistributionGetSetItemAdvancedIndex(TestGetSetItemAdvancedIndex):
-    @classmethod
-    def setup_class(cls):
-        cls.distribution = np.arange(60.0).reshape(3, 4, 5) << u.m
-        cls.d = Distribution(cls.distribution)
-
-
-class StructuredDtypeBase:
-    @classmethod
-    def setup_class(cls):
-        cls.dtype = np.dtype([("a", "f8"), ("b", "(2,2)f8")])
-        data = np.arange(5.0) + (np.arange(60.0) * 10).reshape(3, 4, 5, 1)
-        cls.distribution = data.view(cls.dtype).reshape(3, 4, 5)
-        cls.d = Distribution(cls.distribution)
-
-
-class TestStructuredQuantityDistributionInit(StructuredDtypeBase):
-    @classmethod
-    def setup_class(cls):
-        super().setup_class()
-        cls.unit = u.Unit("km, m")
-        cls.d_unit = cls.unit
-
-    def test_init_via_structured_samples(self):
-        distribution = self.distribution << self.unit
-        d = Distribution(distribution)
-        assert d.unit == self.d_unit
-        assert_array_equal(d.distribution, distribution)
-        assert_array_equal(d.value.distribution, self.distribution)
-
-    def test_init_via_structured_distribution(self):
-        d = self.d << self.unit
-        assert d.unit == self.d_unit
-
-
-class TestStructuredAdvancedIndex(StructuredDtypeBase, TestGetSetItemAdvancedIndex):
-    def test_init(self):
-        assert self.d.shape == (3, 4)
-        assert self.d.n_samples == 5
-        assert_array_equal(self.d.distribution, self.distribution)
-
-
-class TestStructuredDistribution(StructuredDtypeBase):
-    @classmethod
-    def setup_class(cls):
-        super().setup_class()
-        cls.item = (0.0, [[-1.0, -2.0], [-3.0, -4.0]])
-        cls.b_item = [[-1.0, -2.0], [-3.0, -4.0]]
-
-    @pytest.mark.parametrize("item", [-2, slice(1, 3), "a", "b"])
-    def test_getitem(self, item):
-        d_i = self.d[item]
-        assert isinstance(d_i, Distribution)
-        if item in self.dtype.names:
-            assert d_i.shape == self.d.shape + self.dtype[item].shape
-        else:
-            assert d_i.shape == np.ones(self.d.shape)[item].shape
-        assert np.may_share_memory(d_i, self.d)
-        expected = self.distribution[item]
-        if isinstance(item, str):
-            # Sample axis should always be at the end.
-            expected = np.moveaxis(self.distribution[item], self.d.ndim, -1)
-        assert_array_equal(d_i.distribution, expected)
-
-    @pytest.mark.parametrize("item", [1, slice(0, 2)])
-    def test_setitem_index_slice(self, item):
-        d = self.d.copy()
-        distribution = self.distribution.copy()
-        value = self.item
-        d[item] = value
-        distribution[item] = value
-        assert_array_equal(d.distribution, distribution)
-        d[item] = self.d[item]
-        assert_array_equal(d.distribution, self.distribution)
-
-    @pytest.mark.parametrize("item", ["a", "b"])
-    def test_setitem_field(self, item):
-        d = self.d.copy()
-        d[item] = 0.0
-        assert_array_equal(d.distribution[item], np.zeros_like(self.distribution[item]))
-        if item == "b":
-            value = self.b_item  # selected to be a bit tricky.
-            d[item] = value
-            assert_array_equal(
-                d.distribution[item], np.full_like(self.distribution[item], value)
-            )
-        d[item] = self.d[item] * 2.0
-        assert_array_equal(d.distribution[item], self.distribution[item] * 2)
-
-
-class TestStructuredQuantityDistribution(TestStructuredDistribution):
-    @classmethod
-    def setup_class(cls):
-        super().setup_class()
-        cls.distribution = cls.distribution * u.Unit("km,m")
-        cls.d = cls.d * u.Unit("km,m")
-        cls.item = cls.item * u.Unit("Mm,km")
-        cls.b_item = cls.b_item * u.km

@@ -77,32 +77,28 @@ class TestFITSDiff_script(FitsTestCase):
         numdiff = fitsdiff.main([tmp_a, tmp_b])
         out, err = capsys.readouterr()
         assert numdiff == 1
-        assert out.splitlines()[-6:] == [
+        assert out.splitlines()[-4:] == [
             "        a> 9",
             "        b> 10",
             "     ...",
             "     100 different pixels found (100.00% different).",
-            "     Maximum relative difference: 1.0",
-            "     Maximum absolute difference: 1.0",
         ]
 
         numdiff = fitsdiff.main(["-n", "1", tmp_a, tmp_b])
         out, err = capsys.readouterr()
         assert numdiff == 1
-        assert out.splitlines()[-6:] == [
+        assert out.splitlines()[-4:] == [
             "        a> 0",
             "        b> 1",
             "     ...",
             "     100 different pixels found (100.00% different).",
-            "     Maximum relative difference: 1.0",
-            "     Maximum absolute difference: 1.0",
         ]
 
     def test_outputfile(self):
         a = np.arange(100).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
-        b[1, 0] = 20
+        b[1, 0] = 12
         hdu_b = PrimaryHDU(data=b)
         tmp_a = self.temp("testa.fits")
         tmp_b = self.temp("testb.fits")
@@ -113,13 +109,11 @@ class TestFITSDiff_script(FitsTestCase):
         assert numdiff == 1
         with open(self.temp("diff.txt")) as f:
             out = f.read()
-        assert out.splitlines()[-6:] == [
+        assert out.splitlines()[-4:] == [
             "     Data differs at [1, 2]:",
             "        a> 10",
-            "        b> 20",
+            "        b> 12",
             "     1 different pixels found (1.00% different).",
-            "     Maximum relative difference: 0.5",
-            "     Maximum absolute difference: 10.0",
         ]
 
     def test_atol(self):
@@ -156,7 +150,7 @@ class TestFITSDiff_script(FitsTestCase):
         a = np.arange(100, dtype=float).reshape(10, 10)
         hdu_a = PrimaryHDU(data=a)
         b = a.copy()
-        b[1, 0] = 20
+        b[1, 0] = 11
         hdu_b = PrimaryHDU(data=b)
         tmp_a = self.temp("testa.fits")
         tmp_b = self.temp("testb.fits")
@@ -179,12 +173,10 @@ Primary HDU:
    Data contains differences:
      Data differs at [1, 2]:
         a> 10.0
-         ? ^
-        b> 20.0
-         ? ^
+         ?  ^
+        b> 11.0
+         ?  ^
      1 different pixels found (1.00% different).
-     Maximum relative difference: 0.5
-     Maximum absolute difference: 10.0
 """
         )
         assert err == ""
@@ -256,7 +248,11 @@ No differences found.
         tmp_d = self.temp("sub/")
         assert fitsdiff.main(["-q", self.data_dir, tmp_d]) == 1
         assert fitsdiff.main(["-q", tmp_d, self.data_dir]) == 1
-        assert fitsdiff.main(["-q", self.data_dir, self.data_dir]) == 0
+        with pytest.warns(
+            UserWarning,
+            match=r"Field 'ORBPARM' has a repeat " r"count of 0 in its format code",
+        ):
+            assert fitsdiff.main(["-q", self.data_dir, self.data_dir]) == 0
 
         # no match
         tmp_c = self.data("arange.fits")
@@ -265,7 +261,11 @@ No differences found.
         assert "'arange.fits' has no match in" in err
 
         # globbing
-        assert fitsdiff.main(["-q", self.data_dir + "/*.fits", self.data_dir]) == 0
+        with pytest.warns(
+            UserWarning,
+            match=r"Field 'ORBPARM' has a repeat " r"count of 0 in its format code",
+        ):
+            assert fitsdiff.main(["-q", self.data_dir + "/*.fits", self.data_dir]) == 0
         assert fitsdiff.main(["-q", self.data_dir + "/g*.fits", tmp_d]) == 0
 
         # one file and a directory

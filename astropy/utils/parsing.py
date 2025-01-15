@@ -3,26 +3,17 @@
 Wrappers for PLY to provide thread safety.
 """
 
-from __future__ import annotations
-
 import contextlib
 import functools
+import os
 import re
 import threading
-from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from collections.abc import Generator
-    from types import ModuleType
-
-    from astropy.extern.ply.lex import Lexer
-    from astropy.extern.ply.yacc import LRParser
-
-__all__ = ["ThreadSafeParser", "lex", "yacc"]
+__all__ = ["lex", "ThreadSafeParser", "yacc"]
 
 
-_TAB_HEADER = """# Licensed under a 3-clause BSD style license - see LICENSE.rst
+_TAB_HEADER = """# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # This file was automatically generated from ply. To re-generate this file,
 # remove it from this folder, then build astropy and run the tests in-place:
@@ -36,18 +27,23 @@ _TAB_HEADER = """# Licensed under a 3-clause BSD style license - see LICENSE.rst
 _LOCK = threading.RLock()
 
 
+def _add_tab_header(filename, package):
+    with open(filename) as f:
+        contents = f.read()
+
+    with open(filename, "w") as f:
+        f.write(_TAB_HEADER.format(package=package))
+        f.write(contents)
+
+
 @contextlib.contextmanager
-def _patch_ply_module(
-    module: ModuleType, file: Path, package: str
-) -> Generator[None, None, None]:
+def _patch_get_caller_module_dict(module):
     """Temporarily replace the module's get_caller_module_dict.
 
     This is a function inside ``ply.lex`` and ``ply.yacc`` (each has a copy)
     that is used to retrieve the caller's local symbols. Here, we patch the
     function to instead retrieve the grandparent's local symbols to account
     for a wrapper layer.
-
-    Additionally, a custom header is inserted into any files ``ply`` writes.
     """
     original = module.get_caller_module_dict
 
@@ -56,15 +52,12 @@ def _patch_ply_module(
         # Add 2, not 1, because the wrapper itself adds another level
         return original(levels + 2)
 
-    file_exists = file.exists() or file.with_suffix(".pyc").exists()
     module.get_caller_module_dict = wrapper
     yield
     module.get_caller_module_dict = original
-    if not file_exists:
-        file.write_text(_TAB_HEADER.format(package=package) + file.read_text())
 
 
-def lex(lextab: str, package: str, reflags: int = int(re.VERBOSE)) -> Lexer:
+def lex(lextab, package, reflags=int(re.VERBOSE)):
     """Create a lexer from local variables.
 
     It automatically compiles the lexer in optimized mode, writing to
@@ -91,11 +84,20 @@ def lex(lextab: str, package: str, reflags: int = int(re.VERBOSE)) -> Lexer:
     """
     from astropy.extern.ply import lex
 
-    caller_dir = Path(lex.get_caller_module_dict(2)["__file__"]).parent
-    with _LOCK, _patch_ply_module(lex, caller_dir / (lextab + ".py"), package):
-        return lex.lex(
-            optimize=True, lextab=lextab, outputdir=caller_dir, reflags=reflags
-        )
+    caller_file = lex.get_caller_module_dict(2)["__file__"]
+    lextab_filename = os.path.join(os.path.dirname(caller_file), lextab + ".py")
+    with _LOCK:
+        lextab_exists = os.path.exists(lextab_filename)
+        with _patch_get_caller_module_dict(lex):
+            lexer = lex.lex(
+                optimize=True,
+                lextab=lextab,
+                outputdir=os.path.dirname(caller_file),
+                reflags=reflags,
+            )
+        if not lextab_exists:
+            _add_tab_header(lextab_filename, package)
+        return lexer
 
 
 class ThreadSafeParser:
@@ -104,7 +106,7 @@ class ThreadSafeParser:
     It provides a :meth:`parse` method that is thread-safe.
     """
 
-    def __init__(self, parser: LRParser) -> None:
+    def __init__(self, parser):
         self.parser = parser
         self._lock = threading.RLock()
 
@@ -114,7 +116,7 @@ class ThreadSafeParser:
             return self.parser.parse(*args, **kwargs)
 
 
-def yacc(tabmodule: str, package: str) -> ThreadSafeParser:
+def yacc(tabmodule, package):
     """Create a parser from local variables.
 
     It automatically compiles the parser in optimized mode, writing to
@@ -138,13 +140,19 @@ def yacc(tabmodule: str, package: str) -> ThreadSafeParser:
     """
     from astropy.extern.ply import yacc
 
-    caller_dir = Path(yacc.get_caller_module_dict(2)["__file__"]).parent
-    with _LOCK, _patch_ply_module(yacc, caller_dir / (tabmodule + ".py"), package):
-        parser = yacc.yacc(
-            tabmodule=tabmodule,
-            outputdir=caller_dir,
-            debug=False,
-            optimize=True,
-            write_tables=True,
-        )
+    caller_file = yacc.get_caller_module_dict(2)["__file__"]
+    tab_filename = os.path.join(os.path.dirname(caller_file), tabmodule + ".py")
+    with _LOCK:
+        tab_exists = os.path.exists(tab_filename)
+        with _patch_get_caller_module_dict(yacc):
+            parser = yacc.yacc(
+                tabmodule=tabmodule,
+                outputdir=os.path.dirname(caller_file),
+                debug=False,
+                optimize=True,
+                write_tables=True,
+            )
+        if not tab_exists:
+            _add_tab_header(tab_filename, package)
+
     return ThreadSafeParser(parser)

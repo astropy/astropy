@@ -7,9 +7,9 @@ library at some point in the future, if something appropriate could be
 found.
 """
 
+
 import os
 import subprocess
-from signal import Signals
 
 
 def validate_schema(filename, schema_file):
@@ -30,6 +30,7 @@ def validate_schema(filename, schema_file):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
+
     base, ext = os.path.splitext(schema_file)
     if ext == ".xsd":
         schema_part = "--schema"
@@ -48,8 +49,12 @@ def validate_schema(filename, schema_file):
     if p.returncode == 127:
         raise OSError("xmllint not found, so can not validate schema")
     elif p.returncode < 0:
+        from astropy.utils.misc import signal_number_to_name
+
         raise OSError(
-            f"xmllint was terminated by signal '{Signals(-p.returncode).name}'"
+            "xmllint was terminated by signal '{}'".format(
+                signal_number_to_name(-p.returncode)
+            )
         )
 
     return p.returncode, stdout, stderr

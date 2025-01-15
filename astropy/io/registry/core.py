@@ -2,6 +2,7 @@
 
 import os
 import sys
+from collections import OrderedDict
 
 from .base import IORegistryError, _UnifiedIORegistryBase
 
@@ -65,8 +66,8 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
 
     def __init__(self):
         super().__init__()  # set _identifiers
-        self._readers = {}
-        self._registries["read"] = {"attr": "_readers", "column": "Read"}
+        self._readers = OrderedDict()
+        self._registries["read"] = dict(attr="_readers", column="Read")
         self._registries_order = ("read", "identify")
 
     # =========================================================================
@@ -96,7 +97,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
             preferred over lower priorities, with the default priority being 0
             (negative numbers are allowed though).
         """
-        if (data_format, data_class) not in self._readers or force:
+        if not (data_format, data_class) in self._readers or force:
             self._readers[(data_format, data_class)] = function, priority
         else:
             raise IORegistryError(
@@ -109,7 +110,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
 
     def unregister_reader(self, data_format, data_class):
         """
-        Unregister a reader function.
+        Unregister a reader function
 
         Parameters
         ----------
@@ -118,6 +119,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         data_class : class
             The class of the object that the reader produces.
         """
+
         if (data_format, data_class) in self._readers:
             self._readers.pop((data_format, data_class))
         else:
@@ -149,12 +151,13 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         for reader_format, reader_class in readers:
             if self._is_best_match(data_class, reader_class, readers):
                 return self._readers[(reader_format, reader_class)][0]
-        format_table_str = self._get_format_table_str(data_class, "Read")
-        raise IORegistryError(
-            f"No reader defined for format '{data_format}' and class"
-            f" '{data_class.__name__}'.\n\nThe available formats"
-            f" are:\n\n{format_table_str}"
-        )
+        else:
+            format_table_str = self._get_format_table_str(data_class, "Read")
+            raise IORegistryError(
+                f"No reader defined for format '{data_format}' and class"
+                f" '{data_class.__name__}'.\n\nThe available formats"
+                f" are:\n\n{format_table_str}"
+            )
 
     def read(self, cls, *args, format=None, cache=False, **kwargs):
         """
@@ -212,11 +215,6 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                     "read", cls, path, fileobj, args, kwargs
                 )
 
-                # We need to keep track the original path in case it uses a
-                # relative path to the parquet binary
-                if format == "votable":
-                    kwargs.update({"filename": path})
-
             reader = self.get_reader(format, cls)
             data = reader(*args, **kwargs)
 
@@ -225,7 +223,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                 # registered.  This returns the parent class, so try coercing
                 # to desired subclass.
                 try:
-                    data = cls(data, copy=False)
+                    data = cls(data)
                 except Exception:
                     raise TypeError(
                         f"could not convert reader output to {cls.__name__} class."
@@ -248,8 +246,8 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
 
     def __init__(self):
         super().__init__()
-        self._writers = {}
-        self._registries["write"] = {"attr": "_writers", "column": "Write"}
+        self._writers = OrderedDict()
+        self._registries["write"] = dict(attr="_writers", column="Write")
         self._registries_order = ("write", "identify")
 
     # =========================================================================
@@ -279,7 +277,7 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
             over lower priorities, with the default priority being 0 (negative
             numbers are allowed though).
         """
-        if not (data_format, data_class) in self._writers or force:  # noqa: E713
+        if not (data_format, data_class) in self._writers or force:
             self._writers[(data_format, data_class)] = function, priority
         else:
             raise IORegistryError(
@@ -292,7 +290,7 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
 
     def unregister_writer(self, data_format, data_class):
         """
-        Unregister a writer function.
+        Unregister a writer function
 
         Parameters
         ----------
@@ -301,6 +299,7 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
         data_class : class
             The class of the object that can be written.
         """
+
         if (data_format, data_class) in self._writers:
             self._writers.pop((data_format, data_class))
         else:
@@ -332,13 +331,13 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
         for writer_format, writer_class in writers:
             if self._is_best_match(data_class, writer_class, writers):
                 return self._writers[(writer_format, writer_class)][0]
-
-        format_table_str = self._get_format_table_str(data_class, "Write")
-        raise IORegistryError(
-            f"No writer defined for format '{data_format}' and class"
-            f" '{data_class.__name__}'.\n\nThe available formats"
-            f" are:\n\n{format_table_str}"
-        )
+        else:
+            format_table_str = self._get_format_table_str(data_class, "Write")
+            raise IORegistryError(
+                f"No writer defined for format '{data_format}' and class"
+                f" '{data_class.__name__}'.\n\nThe available formats"
+                f" are:\n\n{format_table_str}"
+            )
 
     def write(self, data, *args, format=None, **kwargs):
         """

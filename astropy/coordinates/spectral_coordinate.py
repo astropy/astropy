@@ -13,7 +13,6 @@ from astropy.coordinates import (
 )
 from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
 from astropy.coordinates.spectral_quantity import SpectralQuantity
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["SpectralCoord"]
@@ -50,6 +49,7 @@ def _apply_relativistic_doppler_shift(scoord, velocity):
     Positive velocities are assumed to redshift the spectral quantity,
     while negative velocities blueshift the spectral quantity.
     """
+
     # NOTE: we deliberately don't keep sub-classes of SpectralQuantity intact
     # since we can't guarantee that their metadata would be correct/consistent.
     squantity = scoord.view(SpectralQuantity)
@@ -86,6 +86,7 @@ def update_differentials_to_match(
     the frame of the original coordinate, otherwise it will be in the frame of
     the velocity reference.
     """
+
     if not velocity_reference.data.differentials:
         raise ValueError("Reference frame has no velocities")
 
@@ -150,7 +151,7 @@ class SpectralCoord(SpectralQuantity):
               in those cases. It is possible that there will be API changes in
               future versions of Astropy based on user feedback. If you have
               specific ideas for how it might be improved, please  let us know
-              on the |astropy-dev mailing list| or at
+              on the `astropy-dev mailing list`_ or at
               http://feedback.astropy.org.
 
     Parameters
@@ -264,6 +265,7 @@ class SpectralCoord(SpectralQuantity):
             The name of the object being validated (e.g. 'target' or 'observer'),
             which is then used in error messages.
         """
+
         if coord is None:
             return
 
@@ -355,12 +357,14 @@ class SpectralCoord(SpectralQuantity):
         sc : `SpectralCoord` object
             Replica of this object
         """
+
         if isinstance(value, u.Quantity):
             if unit is not None:
                 raise ValueError(
                     "Cannot specify value as a Quantity and also specify unit"
                 )
-            value, unit = value.value, value.unit
+            else:
+                value, unit = value.value, value.unit
 
         value = value if value is not None else self.value
         unit = unit or self.unit
@@ -369,7 +373,7 @@ class SpectralCoord(SpectralQuantity):
         doppler_convention = doppler_convention or self.doppler_convention
         doppler_rest = doppler_rest or self.doppler_rest
 
-        # If value is being taken from self and copy is True
+        # If value is being taken from self and copy is Tru
         if copy:
             value = value.copy()
 
@@ -393,7 +397,7 @@ class SpectralCoord(SpectralQuantity):
                 redshift=redshift,
                 doppler_convention=doppler_convention,
                 doppler_rest=doppler_rest,
-                copy=COPY_IF_NEEDED,
+                copy=False,
             )
 
     @property
@@ -521,6 +525,7 @@ class SpectralCoord(SpectralQuantity):
         `~astropy.units.Quantity` ['speed']
             The radial velocity of the target with respect to the observer.
         """
+
         # Convert observer and target to ICRS to avoid finite differencing
         # calculations that lack numerical precision.
         observer_icrs = observer.transform_to(ICRS())
@@ -604,6 +609,7 @@ class SpectralCoord(SpectralQuantity):
             The new coordinate object representing the spectral data
             transformed based on the observer's new velocity frame.
         """
+
         if self.observer is None or self.target is None:
             raise ValueError(
                 "This method can only be used if both observer "
@@ -693,6 +699,7 @@ class SpectralCoord(SpectralQuantity):
             to incorporate the shift. This is always a new object even if
             ``target_shift`` and ``observer_shift`` are both `None`.
         """
+
         if observer_shift is not None and (
             self.target is None or self.observer is None
         ):
@@ -766,6 +773,7 @@ class SpectralCoord(SpectralQuantity):
         """
         Transforms the spectral axis to the rest frame.
         """
+
         if self.observer is not None and self.target is not None:
             return self.with_observer_stationary_relative_to(self.target)
 

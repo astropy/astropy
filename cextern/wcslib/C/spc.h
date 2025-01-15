@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: spc.h,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.12 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -50,8 +50,7 @@
 * Routine spcini() is provided to initialize the spcprm struct with default
 * values, spcfree() reclaims any memory that may have been allocated to store
 * an error message, spcsize() computes its total size including allocated
-* memory, spcenq() returns information about the state of the struct, and
-* spcprt() prints its contents.
+* memory, and spcprt() prints its contents.
 *
 * spcperr() prints the error message(s) (if any) stored in a spcprm struct.
 *
@@ -239,31 +238,6 @@
 *                         0: Success.
 *
 *
-* spcenq() - enquire about the state of a spcprm struct
-* -----------------------------------------------------
-* spcenq() may be used to obtain information about the state of a spcprm
-* struct.  The function returns a true/false answer for the enquiry asked.
-*
-* Given:
-*   spc       const struct spcprm*
-*                       Spectral transformation parameters.
-*
-*   enquiry   int       Enquiry according to the following parameters:
-*                         SPCENQ_MEM: memory in the struct is being managed by
-*                                     WCSLIB (see spcini()).
-*                         SPCENQ_SET: the struct has been set up by spcset().
-*                         SPCENQ_BYP: the struct is in bypass mode (see
-*                                     spcset()).
-*                       These may be combined by logical OR, e.g.
-*                       SPCENQ_MEM | SPCENQ_SET.  The enquiry result will be
-*                       the logical AND of the individual results.
-*
-* Function return value:
-*             int       Enquiry result:
-*                         0: No.
-*                         1: Yes.
-*
-*
 * spcprt() - Print routine for the spcprm struct
 * ----------------------------------------------
 * spcprt() prints the contents of a spcprm struct using wcsprintf().  Mainly
@@ -306,13 +280,6 @@
 * Note that this routine need not be called directly; it will be invoked by
 * spcx2s() and spcs2x() if spcprm::flag is anything other than a predefined
 * magic value.
-*
-* spcset() normally operates regardless of the value of spcprm::flag; i.e.
-* even if a struct was previously set up it will be reset unconditionally.
-* However, a spcprm struct may be put into "bypass" mode by invoking spcset()
-* initially with spcprm::flag == 1 (rather than 0).  spcset() will return
-* immediately if invoked on a struct in that state.  To take a struct out of
-* bypass mode, simply reset spcprm::flag to zero.  See also spcenq().
 *
 * Given and returned:
 *   spc       struct spcprm*
@@ -746,8 +713,8 @@
 * internal use only.
 *
 *   int flag
-*     (Given and returned) This flag must be set to zero (or 1, see spcset())
-*     whenever any of the following spcprm members are set or changed:
+*     (Given and returned) This flag must be set to zero whenever any of the
+*     following spcprm structure members are set or changed:
 *
 *       - spcprm::type,
 *       - spcprm::code,
@@ -848,10 +815,6 @@
 extern "C" {
 #endif
 
-enum spcenq_enum {
-  SPCENQ_SET = 2,		// spcprm struct has been set up.
-  SPCENQ_BYP = 4,		// spcprm struct is in bypass mode.
-};
 
 extern const char *spc_errmsg[];
 
@@ -925,8 +888,6 @@ int spcini(struct spcprm *spc);
 int spcfree(struct spcprm *spc);
 
 int spcsize(const struct spcprm *spc, int sizes[2]);
-
-int spcenq(const struct spcprm *spc, int enquiry);
 
 int spcprt(const struct spcprm *spc);
 

@@ -13,7 +13,6 @@ import warnings
 
 import numpy as np
 from matplotlib import rcParams
-from matplotlib.ticker import Formatter
 
 from astropy import units as u
 from astropy.coordinates import Angle
@@ -58,16 +57,9 @@ CUSTOM_UNITS = {
 }
 
 
-def _fix_minus(labels: list[str], /) -> list[str]:
-    # correctly support axes.unicode_minus, but do it in a
-    # way that preserves arbitrary separators: only fix the leading character
-    # see https://github.com/astropy/astropy/issues/15898
-    return [Formatter.fix_minus(s[0]) + s[1:] for s in labels]
-
-
 class BaseFormatterLocator:
     """
-    A joint formatter/locator.
+    A joint formatter/locator
     """
 
     def __init__(
@@ -107,7 +99,7 @@ class BaseFormatterLocator:
         if not values.unit.is_equivalent(self._unit):
             raise UnitsError(
                 "value should be in units compatible with "
-                f"coordinate units ({self._unit}) but found {values.unit}"
+                "coordinate units ({}) but found {}".format(self._unit, values.unit)
             )
         self._number = None
         self._spacing = None
@@ -162,12 +154,7 @@ class BaseFormatterLocator:
 
 class AngleFormatterLocator(BaseFormatterLocator):
     """
-    A joint formatter/locator.
-
-    Parameters
-    ----------
-    number : int, optional
-        Number of ticks.
+    A joint formatter/locator
     """
 
     def __init__(
@@ -197,7 +184,6 @@ class AngleFormatterLocator(BaseFormatterLocator):
         self._decimal = decimal
         self._sep = None
         self.show_decimal_unit = show_decimal_unit
-        self._alwayssign = False
 
         super().__init__(
             values=values,
@@ -262,10 +248,6 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
         if value is None:
             return
-
-        self._alwayssign = value.startswith("+")
-        if self._alwayssign:
-            value = value[1:]
 
         if DMS_RE.match(value) is not None:
             self._decimal = False
@@ -365,9 +347,6 @@ class AngleFormatterLocator(BaseFormatterLocator):
             if self.spacing is not None:
                 # spacing was manually specified
                 spacing_value = self.spacing.to_value(self._unit)
-
-            elif self.number == 0:
-                return [] * self._unit, np.nan * self._unit
 
             elif self.number is not None:
                 # number of ticks was specified, work out optimal spacing
@@ -503,17 +482,16 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 fields=fields,
                 sep=sep,
                 format=fmt,
-                alwayssign=self._alwayssign,
             ).tolist()
 
-            return _fix_minus(string)
+            return string
         else:
             return []
 
 
 class ScalarFormatterLocator(BaseFormatterLocator):
     """
-    A joint formatter/locator.
+    A joint formatter/locator
     """
 
     def __init__(
@@ -525,12 +503,15 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         unit=None,
         format_unit=None,
     ):
-        if unit is None:
-            if spacing is not None:
-                unit = spacing.unit
-            elif values is not None:
-                unit = values.unit
-        format_unit = format_unit or unit
+        if unit is not None:
+            unit = unit
+            format_unit = format_unit or unit
+        elif spacing is not None:
+            unit = spacing.unit
+            format_unit = format_unit or spacing.unit
+        elif values is not None:
+            unit = values.unit
+            format_unit = format_unit or values.unit
 
         super().__init__(
             values=values,
@@ -648,14 +629,10 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             else:
                 precision = self._precision
 
-            return _fix_minus(
-                [
-                    ("{0:." + str(precision) + "f}").format(
-                        x.to_value(self._format_unit)
-                    )
-                    for x in values
-                ]
-            )
+            return [
+                ("{0:." + str(precision) + "f}").format(x.to_value(self._format_unit))
+                for x in values
+            ]
 
         else:
             return []

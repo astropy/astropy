@@ -13,8 +13,6 @@ from numpy.lib.recfunctions import drop_fields
 cimport cython
 cimport numpy as np
 
-np.import_array()
-
 DTYPE = int
 ctypedef np.intp_t DTYPE_t
 
@@ -28,8 +26,8 @@ def join_inner(np.ndarray[DTYPE_t, ndim=1] idxs,
     Do the inner-loop cartesian product for np_utils.join() processing.
     (The "inner" is about the inner loop, not inner join).
     """
-    cdef DTYPE_t n_out = 0
-    cdef DTYPE_t max_key_idxs = 0
+    cdef int n_out = 0
+    cdef int max_key_idxs = 0
     cdef DTYPE_t ii, key_idxs, n_left, n_right, idx0, idx1, idx, i
     cdef DTYPE_t i_left, i_right, i_out
     cdef int masked

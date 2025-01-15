@@ -54,8 +54,7 @@ Byte-by-byte Description of file: table.dat
       24  I1    ---       ion       ?=0
                                     - Ionization stage (1 for neutral element)
   26- 30  F5.2  eV        chiEx     Excitation potential
-  32- 37  F6.2  ---       loggf     log10 of the gf value - logarithm base
-                                    10 of stat. weight times oscillator strength 
+  32- 37  F6.2  ---       loggf     Logarithm of the oscillator strength
   39- 43  F5.1  0.1pm     EW        ?=-9.9 Equivalent width (in mA)
   46- 49  F4.1  0.1pm   e_EW        ?=-9.9 rms uncertainty on EW
   51- 56  F6.3  ---       Q         ?=-9.999 DAOSPEC quality parameter Q

@@ -1,17 +1,11 @@
 import abc
-import numbers
 from collections import OrderedDict, defaultdict
 
 import numpy as np
 
 from .utils import deserialize_class
 
-__all__ = [
-    "BaseHighLevelWCS",
-    "HighLevelWCSMixin",
-    "high_level_objects_to_values",
-    "values_to_high_level_objects",
-]
+__all__ = ["BaseHighLevelWCS", "HighLevelWCSMixin"]
 
 
 def rec_getattr(obj, att):
@@ -29,14 +23,13 @@ def default_order(components):
 
 
 def _toindex(value):
-    """Convert value to an int or an int array.
-
+    """
+    Convert value to an int or an int array.
     Input coordinates converted to integers
     corresponding to the center of the pixel.
     The convention is that the center of the pixel is
     (0, 0), while the lower left corner is (-0.5, -0.5).
     The outputs are used to index the mask.
-
     Examples
     --------
     >>> _toindex(np.array([-0.5, 0.49999]))
@@ -46,15 +39,7 @@ def _toindex(value):
     >>> _toindex(np.array([1.5, 2.49999]))
     array([2, 2])
     """
-    arr = np.floor(np.asarray(value) + 0.5)
-
-    fill_value = np.iinfo(int).min
-    if np.isscalar(arr):
-        if np.isnan(arr):
-            arr = fill_value
-    else:
-        arr[np.isnan(arr)] = fill_value
-    indx = np.asarray(arr, dtype=int)
+    indx = np.asarray(np.floor(np.asarray(value) + 0.5), dtype=int)
     return indx
 
 
@@ -126,7 +111,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         pixel indexing and ordering conventions. The indices should be returned
         as rounded integers.
         """
-        if self.low_level_wcs.pixel_n_dim == 1:
+        if self.pixel_n_dim == 1:
             return _toindex(self.world_to_pixel(*world_objects))
         else:
             return tuple(_toindex(self.world_to_pixel(*world_objects)[::-1]).tolist())
@@ -138,8 +123,7 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
 
     This function uses the information in ``wcs.world_axis_object_classes`` and
     ``wcs.world_axis_object_components`` to convert the high level objects
-    (such as `~.SkyCoord`) to low level "values" which should be scalars or
-    Numpy arrays.
+    (such as `~.SkyCoord`) to low level "values" `~.Quantity` objects.
 
     This is used in `.HighLevelWCSMixin.world_to_pixel`, but provided as a
     separate function for use in other places where needed.
@@ -232,7 +216,7 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
             if not isinstance(w, klass):
                 raise ValueError(
                     "Expected the following order of world arguments:"
-                    f" {', '.join([k.__name__ for (k, *_) in classes.values()])}"
+                    f" {', '.join([k.__name__ for (k, _, _) in classes.values()])}"
                 )
 
             # FIXME: For now SkyCoord won't auto-convert upon initialization
@@ -255,17 +239,6 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
         else:
             world.append(rec_getattr(objects[key], attr))
 
-    # Check the type of the return values - should be scalars or plain Numpy
-    # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
-    # we don't want to match Numpy subclasses.
-    for w in world:
-        if not isinstance(w, numbers.Number) and not type(w) == np.ndarray:
-            raise TypeError(
-                f"WCS world_axis_object_components results in "
-                f"values which are not scalars or plain Numpy "
-                f"arrays (got {type(w)})"
-            )
-
     return world
 
 
@@ -275,7 +248,7 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
 
     This function uses the information in ``wcs.world_axis_object_classes`` and
     ``wcs.world_axis_object_components`` to convert low level "values"
-    `~.Quantity` objects, to high level objects (such as `~.SkyCoord`).
+    `~.Quantity` objects, to high level objects (such as `~.SkyCoord).
 
     This is used in `.HighLevelWCSMixin.pixel_to_world`, but provided as a
     separate function for use in other places where needed.
@@ -288,16 +261,6 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
     low_level_wcs: `.BaseLowLevelWCS`
         The WCS object to use to interpret the coordinates.
     """
-    # Check the type of the input values - should be scalars or plain Numpy
-    # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
-    # we don't want to match Numpy subclasses.
-    for w in world_values:
-        if not isinstance(w, numbers.Number) and not type(w) == np.ndarray:
-            raise TypeError(
-                f"Expected world coordinates as scalars or plain Numpy "
-                f"arrays (got {type(w)})"
-            )
-
     # Cache the classes and components since this may be expensive
     components = low_level_wcs.world_axis_object_components
     classes = low_level_wcs.world_axis_object_classes
@@ -362,7 +325,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         # Compute the world coordinate values
         world_values = self.low_level_wcs.pixel_to_world_values(*pixel_arrays)
 
-        if self.low_level_wcs.world_n_dim == 1:
+        if self.world_n_dim == 1:
             world_values = (world_values,)
 
         pixel_values = values_to_high_level_objects(

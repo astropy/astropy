@@ -25,8 +25,8 @@ class CommonTimeSeriesTests:
         assert isinstance(ts, self.series.__class__)
 
     def test_row_indexing(self):
-        assert self.series[1][self.time_attr] == Time("2015-01-21T12:30:32")
-        assert self.series[self.time_attr][1] == Time("2015-01-21T12:30:32")
+        self.series[0][self.time_attr] == Time("2015-01-21T12:30:32")
+        self.series[self.time_attr][0] == Time("2015-01-21T12:30:32")
 
     def test_column_indexing(self):
         assert_equal(self.series["a"], [1, 2, 11])

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Test the Logarithmic Units and Quantities
+    Test the Logarithmic Units and Quantities
 """
 
 import itertools
@@ -13,7 +13,6 @@ from numpy.testing import assert_allclose
 from astropy import constants as c
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 lu_units = [u.dex, u.mag, u.decibel]
 
@@ -207,9 +206,9 @@ class TestLogUnitStrings:
 
         lu5 = u.mag(u.ct / u.s)
         assert lu5.to_string("latex") == (
-            r"$\mathrm{mag}$$\mathrm{\left( \mathrm{\frac{ct}{s}} \right)}$"
+            r"$\mathrm{mag}$$\mathrm{\left( " r"\mathrm{\frac{ct}{s}} \right)}$"
         )
-        latex_str = r"$\mathrm{mag}$$\mathrm{\left( \mathrm{ct\,s^{-1}} \right)}$"
+        latex_str = r"$\mathrm{mag}$$\mathrm{\left( \mathrm{ct\,s^{-1}} " r"\right)}$"
         assert lu5.to_string("latex_inline") == latex_str
 
 
@@ -710,7 +709,7 @@ class TestLogQuantityArithmetic:
     )
     @pytest.mark.parametrize("fac", [1.0, 2, 0.4])
     def test_multiplication_division(self, other, fac):
-        """Check that multiplication and division work as expected"""
+        """Check that multiplication and division works as expectes"""
 
         lq_sf = fac * other
         assert lq_sf.unit.physical_unit == other.unit.physical_unit**fac
@@ -945,7 +944,7 @@ class TestLogQuantityComparisons:
     def test_comparison_to_non_quantities_fails(self):
         lq = u.Magnitude(np.arange(1.0, 10.0) * u.Jy)
         with pytest.raises(TypeError):
-            lq > "a"  # noqa: B015
+            lq > "a"
 
         assert not (lq == "a")
         assert lq != "a"
@@ -962,21 +961,21 @@ class TestLogQuantityComparisons:
         assert not (lq1 == lq4)
         assert lq1 != lq4
         with pytest.raises(u.UnitsError):
-            lq1 < lq4  # noqa: B015
+            lq1 < lq4
         q5 = 1.5 * u.Jy
         assert np.all((lq1 > q5) == np.array([True, False, False]))
         assert np.all((q5 < lq1) == np.array([True, False, False]))
         with pytest.raises(u.UnitsError):
-            lq1 >= 2.0 * u.m  # noqa: B015
+            lq1 >= 2.0 * u.m
         with pytest.raises(u.UnitsError):
-            lq1 <= lq1.value * u.mag  # noqa: B015
+            lq1 <= lq1.value * u.mag
         # For physically dimensionless, we can compare with the function unit.
         lq6 = u.Magnitude(np.arange(1.0, 4.0))
         fv6 = lq6.value * u.mag
         assert np.all(lq6 == fv6)
         # but not some arbitrary unit, of course.
         with pytest.raises(u.UnitsError):
-            lq6 < 2.0 * u.m  # noqa: B015
+            lq6 < 2.0 * u.m
 
 
 class TestLogQuantityMethods:
@@ -995,6 +994,7 @@ class TestLogQuantityMethods:
             "trace",
             "std",
             "var",
+            "ptp",
             "diff",
             "ediff1d",
         ),
@@ -1003,19 +1003,12 @@ class TestLogQuantityMethods:
         for mag in self.mags:
             res = getattr(mag, method)()
             assert np.all(res.value == getattr(mag._function_view, method)().value)
-            if method in ("std", "diff", "ediff1d"):
+            if method in ("std", "ptp", "diff", "ediff1d"):
                 assert res.unit == u.mag()
             elif method == "var":
                 assert res.unit == u.mag**2
             else:
                 assert res.unit == mag.unit
-
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="ptp method removed in numpy 2.0")
-    def test_always_ok_ptp(self):
-        for mag in self.mags:
-            res = mag.ptp()
-            assert np.all(res.value == mag._function_view.ptp().value)
-            assert res.unit == u.mag()
 
     def test_clip(self):
         for mag in self.mags:
@@ -1024,7 +1017,7 @@ class TestLogQuantityMethods:
                 == mag.value.clip(2.0, 4.0)
             )
 
-    @pytest.mark.parametrize("method", ("sum", "cumsum"))
+    @pytest.mark.parametrize("method", ("sum", "cumsum", "nansum"))
     def test_only_ok_if_dimensionless(self, method):
         res = getattr(self.m1, method)()
         assert np.all(res.value == getattr(self.m1._function_view, method)().value)
@@ -1041,17 +1034,3 @@ class TestLogQuantityMethods:
             getattr(self.mJy, method)()
         with pytest.raises(TypeError):
             getattr(self.m1, method)()
-
-
-class TestLogQuantityFunctions:
-    # TODO: add tests for all supported functions!
-    def setup_method(self):
-        self.mJy = np.arange(1.0, 5.0).reshape(2, 2) * u.mag(u.Jy)
-        self.m1 = np.arange(1.0, 5.5, 0.5).reshape(3, 3) * u.mag()
-        self.mags = (self.mJy, self.m1)
-
-    def test_ptp(self):
-        for mag in self.mags:
-            res = np.ptp(mag)
-            assert np.all(res.value == np.ptp(mag._function_view).value)
-            assert res.unit == u.mag()

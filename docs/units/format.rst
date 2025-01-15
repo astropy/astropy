@@ -52,16 +52,8 @@ attributes within format strings::
     '10.500 in km'
 
 This might not work well with LaTeX strings, in which case it would be better
-to use the `Quantity.to_string() <astropy.units.Quantity.to_string()>` method.
-Just like how `table.Column() <astropy.table.Column()>` takes a format specifier
-or callable for formatting, you can also optionally specify a format via the
-``formatter`` parameter with either type or additionally with a dictionary, the
-added benefit being a more flexible or tighter LaTeX output. It relies on
-:func:`numpy.array2string()` for directly handling the ``formatter``, which will
-effectively override the default LaTeX formatting for the scientific and complex
-notations provided by `Quantity.to_string() <astropy.units.Quantity.to_string()>`
-unless the ``formatter`` is simply just a format specifier string or `None`
-(by default)::
+to use the `Quantity.to_string() <astropy.units.Quantity.to_string()>`
+method::
 
     >>> q = 1.2478e12 * u.pc/u.Myr
     >>> f"{q:latex}"  # Might not have the number of digits we would like
@@ -70,10 +62,6 @@ unless the ``formatter`` is simply just a format specifier string or `None`
     '1.248e+12 $\\mathrm{\\frac{pc}{Myr}}$'
     >>> q.to_string(format="latex", precision=4)  # Right number of LaTeX digits
     '$1.248 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
-    >>> q.to_string(format="latex", formatter=".2e")  # Specifying format_spec
-    '$1.25 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
-    >>> q.to_string(format="latex", formatter=lambda x: f"\\approx {float(x):.2e}")  # Custom formatting (overwrites)
-    '$\\approx 1.25e+12 \\; \\mathrm{\\frac{pc}{Myr}}$'
 
 Because |ndarray| does not accept most format specifiers, using specifiers like
 ``.3f`` will not work when applied to a |ndarray| or non-scalar |Quantity|. Use
@@ -102,13 +90,15 @@ take an optional parameter to select a different format::
     '$10 \\; \\mathrm{km}$'
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> f"{fluxunit}"
-    'erg / (s cm2)'
-    >>> print(f"{fluxunit:unicode}")
-    erg s⁻¹ cm⁻²
+    'erg / (cm2 s)'
+    >>> print(f"{fluxunit:console}")
+     erg
+    ------
+    s cm^2
     >>> f"{fluxunit:latex}"
     '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
     >>> f"{fluxunit:>20s}"
-    '       erg / (s cm2)'
+    '       erg / (cm2 s)'
 
 The `UnitBase.to_string() <astropy.units.core.UnitBase.to_string>` method is an
 alternative way to format units as strings, and is the underlying
@@ -129,9 +119,9 @@ formats using the `~astropy.units.Unit` class::
   >>> u.Unit("m")
   Unit("m")
   >>> u.Unit("erg / (s cm2)")
-  Unit("erg / (s cm2)")
+  Unit("erg / (cm2 s)")
   >>> u.Unit("erg.s-1.cm-2", format="cds")
-  Unit("erg / (s cm2)")
+  Unit("erg / (cm2 s)")
 
 It is also possible to create a scalar |Quantity| from a string::
 
@@ -167,8 +157,8 @@ formats:
 
   - ``"cds"``: `Standards for astronomical catalogues from Centre de
     Données astronomiques de Strasbourg
-    <https://vizier.unistra.fr/vizier/doc/catstd-3.2.htx>`_: This is the
-    standard used by `Vizier tables <https://vizier.unistra.fr/>`__,
+    <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_: This is the
+    standard used by `Vizier tables <http://vizier.u-strasbg.fr/>`__,
     as well as what is used by VOTable versions 1.3 and earlier.
 
   - ``"ogip"``: A standard for storing units as recommended by the
@@ -182,7 +172,7 @@ following formats:
     `IAU Style Manual
     <https://www.iau.org/static/publications/stylemanual1989.pdf>`_
     recommendations for unit presentation. This format is
-    automatically used when printing a unit in the |IPython| notebook::
+    automatically used when printing a unit in the `IPython`_ notebook::
 
         >>> f"{fluxunit:latex}"
         '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
@@ -210,20 +200,10 @@ following formats:
 
        \mathrm{erg\,s^{-1}\,cm^{-2}}
 
-  - ``"console"``: Writes a representation of the unit useful for
-    display in a text console::
+  - ``"console"``: Writes a multiline representation of the unit
+    useful for display in a text console::
 
       >>> print(fluxunit.to_string('console'))
-       erg s^-1 cm^-2
-
-    It is also possible to use a fraction, either on a single line,
-
-      >>> print(fluxunit.to_string('console', fraction='inline'))
-      erg / (s cm^2)
-
-    or using a multiline representation:
-
-      >>> print(fluxunit.to_string('console', fraction='multiline'))
        erg
       ------
       s cm^2
@@ -232,10 +212,6 @@ following formats:
     characters::
 
       >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
-      2.1798724×10⁻¹⁸ m² kg s⁻²
-      >>> print(u.Ry.decompose().to_string('unicode', fraction=True))  # doctest: +FLOAT_CMP
-      2.1798724×10⁻¹⁸ m² kg / s²
-      >>> print(u.Ry.decompose().to_string('unicode', fraction='multiline'))  # doctest: +FLOAT_CMP
                       m² kg
       2.1798724×10⁻¹⁸ ─────
                        s²
@@ -245,10 +221,12 @@ following formats:
 Dealing with Unrecognized Units
 ===============================
 
-Since many files found in the wild have unit strings that do not correspond to
-any given standard, :mod:`astropy.units` contains functionality for both
-validating the strings, and for reading in datasets that contain invalid unit
-strings.
+Since many files found in the wild have unit strings that do not
+correspond to any given standard, `astropy.units` also has a
+consistent way to store and pass around unit strings that did not
+parse.  In addition, it provides tools for transforming non-standard,
+legacy or misspelt unit strings into their standardized form,
+preventing the further propagation of these unit strings.
 
 By default, passing an unrecognized unit string raises an exception::
 
@@ -263,30 +241,25 @@ By default, passing an unrecognized unit string raises an exception::
   code, enable it with 'u.add_enabled_units'. For details, see
   https://docs.astropy.org/en/latest/units/combining_and_defining.html
 
-However, the :class:`~astropy.units.Unit` constructor obeys the keyword
+However, the `~astropy.units.Unit` constructor has the keyword
 argument ``parse_strict`` that can take one of three values to control
 this behavior:
 
   - ``'raise'``: (default) raise a :class:`ValueError`.
 
-  - ``'warn'``: emit a :class:`~astropy.units.UnitParserWarning`, and return a
-    unit.
+  - ``'warn'``: emit a :class:`~astropy.units.UnitsWarning`, and return an
+    `~astropy.units.UnrecognizedUnit` instance.
 
-  - ``'silent'``: return a unit without raising errors or emitting warnings.
+  - ``'silent'``: return an `~astropy.units.UnrecognizedUnit`
+    instance.
 
-The type of unit returned when ``parse_strict`` is ``'warn'`` or ``'silent'``
-depends on how serious the standard violation is.
-In case of a minor standard violation, :class:`~astropy.units.Unit` can
-sometimes nonetheless parse the unit.
-The warning message (if ``parse_strict='warn'``) will then contain information
-about how the invalid string was interpreted.
-In case of more serious standard violations an
-:class:`~astropy.units.UnrecognizedUnit` instance is returned instead.
-In such cases, particularly in case of misspelt units, it might be helpful to
-register additional unit aliases with
+By either adding additional unit aliases for the misspelt units with
 :func:`~astropy.units.set_enabled_aliases` (e.g., 'Angstroms' for 'Angstrom';
-as demonstrated below), or to define new units via
+as demonstrated below), or defining new units via
 :func:`~astropy.units.def_unit` and :func:`~astropy.units.add_enabled_units`,
+we can use ``parse_strict='raise'`` to rapidly find issues with the units used,
+while also being able to read in older datasets where the unit usage may have
+been less standard.
 
 
 Examples

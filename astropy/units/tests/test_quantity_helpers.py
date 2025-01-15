@@ -2,7 +2,6 @@
 Test ``allclose`` and ``isclose``.
 ``allclose`` was ``quantity_allclose`` in ``astropy.tests.helper``.
 """
-
 import numpy as np
 import pytest
 

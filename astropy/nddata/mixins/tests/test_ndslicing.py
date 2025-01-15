@@ -8,11 +8,7 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.nddata import NDData, NDSlicingMixin
 from astropy.nddata import _testing as nd_testing
-from astropy.nddata.nduncertainty import (
-    NDUncertainty,
-    StdDevUncertainty,
-    UnknownUncertainty,
-)
+from astropy.nddata.nduncertainty import NDUncertainty, StdDevUncertainty
 
 
 # Just add the Mixin to NDData
@@ -157,7 +153,7 @@ def test_slicing_all_npndarray_shape_diff():
 def test_slicing_all_something_wrong():
     data = np.arange(10)
     mask = [False] * 10
-    uncertainty = UnknownUncertainty({"rdnoise": 2.9, "gain": 1.4})
+    uncertainty = {"rdnoise": 2.9, "gain": 1.4}
     naxis = 1
     wcs = nd_testing._create_wcs_simple(
         naxis=naxis,
@@ -173,9 +169,7 @@ def test_slicing_all_something_wrong():
     assert_array_equal(data[2:5], nd2.data)
     assert_array_equal(mask[2:5], nd2.mask)
     # Not sliced attributes (they will raise a Info nevertheless)
-    assert uncertainty.array == nd2.uncertainty.array
-    assert uncertainty.uncertainty_type == nd2.uncertainty.uncertainty_type
-    assert uncertainty.unit == nd2.uncertainty.unit
+    uncertainty is nd2.uncertainty
     assert nd2.wcs.pixel_to_world(1) == nd.wcs.pixel_to_world(3)
 
 

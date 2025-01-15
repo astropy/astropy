@@ -3,18 +3,159 @@
 """
 This module provides utility functions for the models package.
 """
-
 import warnings
 
 # pylint: disable=invalid-name
 from collections import UserDict
+from collections.abc import MutableMapping
 from inspect import signature
 
 import numpy as np
 
 from astropy import units as u
+from astropy.utils.decorators import deprecated
 
-__all__ = ["ellipse_extent", "poly_map_domain"]
+__doctest_skip__ = ["AliasDict"]
+__all__ = ["AliasDict", "poly_map_domain", "comb", "ellipse_extent"]
+
+
+deprecation_msg = """
+AliasDict is deprecated because it no longer serves a function anywhere
+inside astropy.
+"""
+
+
+@deprecated("5.0", deprecation_msg)
+class AliasDict(MutableMapping):
+    """
+    Creates a `dict` like object that wraps an existing `dict` or other
+    `MutableMapping`, along with a `dict` of *key aliases* that translate
+    between specific keys in this dict to different keys in the underlying
+    dict.
+
+    In other words, keys that do not have an associated alias are accessed and
+    stored like a normal `dict`.  However, a key that has an alias is accessed
+    and stored to the "parent" dict via the alias.
+
+    Parameters
+    ----------
+    parent : dict-like
+        The parent `dict` that aliased keys and accessed from and stored to.
+
+    aliases : dict-like
+        Maps keys in this dict to their associated keys in the parent dict.
+
+    Examples
+    --------
+
+    >>> parent = {'a': 1, 'b': 2, 'c': 3}
+    >>> aliases = {'foo': 'a', 'bar': 'c'}
+    >>> alias_dict = AliasDict(parent, aliases)
+    >>> alias_dict['foo']
+    1
+    >>> alias_dict['bar']
+    3
+
+    Keys in the original parent dict are not visible if they were not
+    aliased:
+
+    >>> alias_dict['b']
+    Traceback (most recent call last):
+    ...
+    KeyError: 'b'
+
+    Likewise, updates to aliased keys are reflected back in the parent dict:
+
+    >>> alias_dict['foo'] = 42
+    >>> alias_dict['foo']
+    42
+    >>> parent['a']
+    42
+
+    However, updates/insertions to keys that are *not* aliased are not
+    reflected in the parent dict:
+
+    >>> alias_dict['qux'] = 99
+    >>> alias_dict['qux']
+    99
+    >>> 'qux' in parent
+    False
+
+    In particular, updates on the `AliasDict` to a key that is equal to
+    one of the aliased keys in the parent dict does *not* update the parent
+    dict.  For example, ``alias_dict`` aliases ``'foo'`` to ``'a'``.  But
+    assigning to a key ``'a'`` on the `AliasDict` does not impact the
+    parent:
+
+    >>> alias_dict['a'] = 'nope'
+    >>> alias_dict['a']
+    'nope'
+    >>> parent['a']
+    42
+    """
+
+    _store_type = dict
+    """
+    Subclasses may override this to use other mapping types as the underlying
+    storage, for example an `OrderedDict`.  However, even in this case
+    additional work may be needed to get things like the ordering right.
+    """
+
+    def __init__(self, parent, aliases):
+        self._parent = parent
+        self._store = self._store_type()
+        self._aliases = dict(aliases)
+
+    def __getitem__(self, key):
+        if key in self._aliases:
+            try:
+                return self._parent[self._aliases[key]]
+            except KeyError:
+                raise KeyError(key)
+
+        return self._store[key]
+
+    def __setitem__(self, key, value):
+        if key in self._aliases:
+            self._parent[self._aliases[key]] = value
+        else:
+            self._store[key] = value
+
+    def __delitem__(self, key):
+        if key in self._aliases:
+            try:
+                del self._parent[self._aliases[key]]
+            except KeyError:
+                raise KeyError(key)
+        else:
+            del self._store[key]
+
+    def __iter__(self):
+        """
+        First iterates over keys from the parent dict (if the aliased keys are
+        present in the parent), followed by any keys in the local store.
+        """
+
+        for key, alias in self._aliases.items():
+            if alias in self._parent:
+                yield key
+
+        for key in self._store:
+            yield key
+
+    def __len__(self):
+        return len(list(iter(self)))
+
+    def __repr__(self):
+        # repr() just like any other dict--this should look transparent
+        store_copy = self._store_type()
+        for key, alias in self._aliases.items():
+            if alias in self._parent:
+                store_copy[key] = self._parent[alias]
+
+        store_copy.update(self._store)
+
+        return repr(store_copy)
 
 
 def make_binary_operator_eval(oper, f, g):
@@ -29,6 +170,7 @@ def make_binary_operator_eval(oper, f, g):
 
     Example
     -------
+
     >>> from operator import add
     >>> def prod(x, y):
     ...     return (x * y,)
@@ -37,6 +179,7 @@ def make_binary_operator_eval(oper, f, g):
     >>> sum_of_prod(3, 5)
     (30,)
     """
+
     return lambda inputs, params: tuple(
         oper(x, y) for x, y in zip(f(inputs, params), g(inputs, params))
     )
@@ -72,6 +215,27 @@ def _validate_domain_window(value):
     return value
 
 
+@deprecated("5.3", alternative="math.comb")
+def comb(N, k):
+    """
+    The number of combinations of N things taken k at a time.
+
+    Parameters
+    ----------
+    N : int, array
+        Number of things.
+    k : int, array
+        Number of elements taken.
+
+    """
+    if (k > N) or (N < 0) or (k < 0):
+        return 0
+    val = 1
+    for j in range(min(k, N - k)):
+        val = (val * (N - j)) / (j + 1)
+    return val
+
+
 def array_repr_oneline(array):
     """
     Represents a multi-dimensional Numpy array flattened onto a single line.
@@ -89,6 +253,7 @@ def combine_labels(left, right):
     However if *any* of the labels conflict, this appends '0' to the left-hand
     labels and '1' to the right-hand labels so there is no ambiguity).
     """
+
     if set(left).intersection(right):
         left = tuple(label + "0" for label in left)
         right = tuple(label + "1" for label in right)

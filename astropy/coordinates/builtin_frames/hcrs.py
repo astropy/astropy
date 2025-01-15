@@ -40,9 +40,7 @@ class HCRS(BaseRADecFrame):
     The frame attributes are listed under **Other Parameters**.
     """
 
-    obstime = TimeAttribute(
-        default=DEFAULT_OBSTIME, doc="The reference time (e.g., time of observation)"
-    )
+    obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
 # Transformations are defined in icrs_circ_transforms.py

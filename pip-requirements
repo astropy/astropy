@@ -1,0 +1,10 @@
+# The pip-requirements file should no longer be used. Instead, to install
+# astropy along with its dependencies, you can use:
+#
+#   pip install .
+#
+# to install only the minimal dependencies, or e.g.:
+#
+#   pip install .[all]
+#
+# to install all optional dependencies.

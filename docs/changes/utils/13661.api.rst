@@ -1,0 +1,1 @@
+``astropy.utils.misc.possible_filename`` has been removed.

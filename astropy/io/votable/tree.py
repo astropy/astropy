@@ -6,9 +6,9 @@ import base64
 import codecs
 import gzip
 import io
-import os
 import re
 import urllib.request
+import warnings
 
 # THIRD-PARTY
 import numpy as np
@@ -17,13 +17,13 @@ from numpy import ma
 # LOCAL
 from astropy import __version__ as astropy_version
 from astropy.io import fits
-from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
-from astropy.utils.xml import iterparser
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.xml.writer import XMLWriter
 
-from . import converters, util, xmlutil
+from . import converters
 from . import ucd as ucd_mod
+from . import util, xmlutil
 from .exceptions import (
     E06,
     E08,
@@ -42,7 +42,6 @@ from .exceptions import (
     E22,
     E23,
     E25,
-    E26,
     W06,
     W07,
     W08,
@@ -78,8 +77,6 @@ from .exceptions import (
     W52,
     W53,
     W54,
-    W56,
-    W57,
     vo_raise,
     vo_reraise,
     vo_warn,
@@ -96,21 +93,20 @@ except ImportError:
 
 
 __all__ = [
-    "CooSys",
-    "Element",
-    "Field",
-    "FieldRef",
-    "Group",
-    "Info",
     "Link",
-    "MivotBlock",
-    "Param",
-    "ParamRef",
-    "Resource",
-    "TableElement",
-    "TimeSys",
-    "VOTableFile",
+    "Info",
     "Values",
+    "Field",
+    "Param",
+    "CooSys",
+    "TimeSys",
+    "FieldRef",
+    "ParamRef",
+    "Group",
+    "Table",
+    "Resource",
+    "VOTableFile",
+    "Element",
 ]
 
 
@@ -192,8 +188,9 @@ def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
         for element in lookup_by_attr(self, ref, before=before):
             return element
         raise KeyError(
-            f"No {element_name} with {attr} '{ref}' found before the referencing "
-            f"{element_name}"
+            "No {} with {} '{}' found before the referencing {}".format(
+                element_name, attr, ref, element_name
+            )
         )
 
     if unique:
@@ -231,8 +228,9 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
             if ref in (element.ID, element.name):
                 return element
         raise KeyError(
-            f"No {element_name} with ID or name '{ref}' found before the referencing "
-            f"{element_name}"
+            "No {} with ID or name '{}' found before the referencing {}".format(
+                element_name, ref, element_name
+            )
         )
 
     lookup_by_id_or_name.__doc__ = doc
@@ -675,9 +673,8 @@ class Link(SimpleElement, _IDProperty):
 
     @property
     def content_role(self):
-        """Defines the MIME role of the referenced object.
-
-        Must be one of:
+        """
+        Defines the MIME role of the referenced object.  Must be one of:
 
           None, 'query', 'hints', 'doc', 'location' or 'type'
         """
@@ -995,9 +992,10 @@ class Values(Element, _IDProperty):
 
     @property
     def type(self):
-        """Defines the applicability of the domain defined by this VALUES_ element [*required*].
-
-        Must be one of the following strings:
+        """
+        [*required*] Defines the applicability of the domain defined
+        by this VALUES_ element.  Must be one of the following
+        strings:
 
           - 'legal': The domain of this column applies in general to
             this datatype. (default)
@@ -1053,7 +1051,10 @@ class Values(Element, _IDProperty):
 
     @min.setter
     def min(self, min):
-        self._min = self._parse_minmax(min)
+        if hasattr(self._field, "converter") and min is not None:
+            self._min = self._field.converter.parse(min)[0]
+        else:
+            self._min = min
 
     @min.deleter
     def min(self):
@@ -1086,7 +1087,10 @@ class Values(Element, _IDProperty):
 
     @max.setter
     def max(self, max):
-        self._max = self._parse_minmax(max)
+        if hasattr(self._field, "converter") and max is not None:
+            self._max = self._field.converter.parse(max)[0]
+        else:
+            self._max = max
 
     @max.deleter
     def max(self):
@@ -1160,39 +1164,10 @@ class Values(Element, _IDProperty):
 
         return self
 
-    def _parse_minmax(self, val):
-        retval = val
-        if hasattr(self._field, "converter") and val is not None:
-            parsed_val = None
-            if self._field.arraysize is None:
-                # Use the default parser.
-                parsed_val = self._field.converter.parse(val, config=self._config)[0]
-            else:
-                # Set config to ignore verification (prevent warnings and exceptions) on parse.
-                ignore_warning_config = self._config.copy()
-                ignore_warning_config["verify"] = "ignore"
-
-                # max should be a scalar except for certain xtypes so try scalar parsing first.
-                try:
-                    parsed_val = self._field.converter.parse_scalar(
-                        val, config=ignore_warning_config
-                    )[0]
-                except ValueError as ex:
-                    pass  # Ignore ValueError returned for array vals by some parsers (like int)
-                finally:
-                    if parsed_val is None:
-                        # Try the array parsing to support certain xtypes and historical array values.
-                        parsed_val = self._field.converter.parse(
-                            val, config=ignore_warning_config
-                        )[0]
-
-            retval = parsed_val
-        return retval
-
     def is_defaults(self):
         """
         Are the settings on this ``VALUE`` element all the same as the
-        XML defaults?.
+        XML defaults?
         """
         # If there's nothing meaningful or non-default to write,
         # don't write anything.
@@ -1454,9 +1429,9 @@ class Field(
 
     @property
     def datatype(self):
-        """The datatype of the column [*required*].
-
-        Valid values (as defined by the spec) are:
+        """
+        [*required*] The datatype of the column.  Valid values (as
+        defined by the spec) are:
 
           'boolean', 'bit', 'unsignedByte', 'short', 'int', 'long',
           'char', 'unicodeChar', 'float', 'double', 'floatComplex', or
@@ -1704,7 +1679,7 @@ class Field(
             column.unit = self.unit
         if (
             isinstance(self.converter, converters.FloatingPoint)
-            and self.converter.output_format != "{!s:>}"
+            and self.converter.output_format != "{!r:>}"
         ):
             column.format = self.converter.output_format
         elif isinstance(self.converter, converters.Char):
@@ -1834,7 +1809,7 @@ class CooSys(SimpleElement):
     name, documented below.
     """
 
-    _attr_list = ["ID", "equinox", "epoch", "system", "refposition"]
+    _attr_list = ["ID", "equinox", "epoch", "system"]
     _element_name = "COOSYS"
 
     def __init__(
@@ -1846,7 +1821,6 @@ class CooSys(SimpleElement):
         id=None,
         config=None,
         pos=None,
-        refposition=None,
         **extra,
     ):
         if config is None:
@@ -1866,11 +1840,6 @@ class CooSys(SimpleElement):
         self.equinox = equinox
         self.epoch = epoch
         self.system = system
-        self.refposition = refposition
-
-        # refposition introduced in v1.5.
-        if self.refposition is not None and not config.get("version_1_5_or_later"):
-            warn_or_raise(W57, W57, (), config, pos)
 
         warn_unknown_attrs("COOSYS", extra.keys(), config, pos)
 
@@ -1893,9 +1862,8 @@ class CooSys(SimpleElement):
 
     @property
     def system(self):
-        """Specifies the type of coordinate system.
-
-        Valid choices are:
+        """
+        Specifies the type of coordinate system.  Valid choices are:
 
           'eq_FK4', 'eq_FK5', 'ICRS', 'ecl_FK4', 'ecl_FK5', 'galactic',
           'supergalactic', 'xy', 'barycentric', or 'geo_app'
@@ -1916,10 +1884,7 @@ class CooSys(SimpleElement):
             "barycentric",
             "geo_app",
         ):
-            if not self._config.get("version_1_5_or_later"):
-                # Starting in v1.5, system values come from the IVOA refframe vocabulary
-                # (http://www.ivoa.net/rdf/refframe).  For now we are not checking those values.
-                warn_or_raise(E16, E16, system, self._config, self._pos)
+            warn_or_raise(E16, E16, system, self._config, self._pos)
         self._system = system
 
     @system.deleter
@@ -2028,7 +1993,7 @@ class TimeSys(SimpleElement):
     def timeorigin(self):
         """
         Specifies the time origin of the time coordinate,
-        given as a Julian Date for the time scale and
+        given as a Julian Date for the the time scale and
         reference point defined. It is usually given as a
         floating point literal; for convenience, the magic
         strings "MJD-origin" (standing for 2400000.5) and
@@ -2111,7 +2076,7 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
         self, table, ref, ucd=None, utype=None, config=None, pos=None, **extra
     ):
         """
-        *table* is the :class:`TableElement` object that this :class:`FieldRef`
+        *table* is the :class:`Table` object that this :class:`FieldRef`
         is a member of.
 
         *ref* is the ID to reference a :class:`Field` object defined
@@ -2384,9 +2349,7 @@ class Group(
                 yield from entry.iter_groups()
 
 
-class TableElement(
-    Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionProperty
-):
+class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionProperty):
     """
     TABLE_ element: optionally contains data.
 
@@ -2400,7 +2363,7 @@ class TableElement(
         For those fields, the numpy array's column type is "object"
         (``"O"``), and another masked array is stored there.
 
-    If the TableElement contains no data, (for example, its enclosing
+    If the Table contains no data, (for example, its enclosing
     :class:`Resource` has :attr:`~Resource.type` == 'meta') *array*
     will have zero-length.
 
@@ -2446,7 +2409,6 @@ class TableElement(
         self.format = "tabledata"
 
         self._fields = HomogeneousList(Field)
-        self._all_fields = HomogeneousList(Field)
         self._params = HomogeneousList(Param)
         self._groups = HomogeneousList(Group)
         self._links = HomogeneousList(Link)
@@ -2457,10 +2419,7 @@ class TableElement(
         warn_unknown_attrs("TABLE", extra.keys(), config, pos)
 
     def __repr__(self):
-        s = repr(self.to_table())
-        if s.startswith("<Table"):
-            s = "<VO" + s[1:]
-        return s
+        return repr(self.to_table())
 
     def __bytes__(self):
         return bytes(self.to_table())
@@ -2491,13 +2450,11 @@ class TableElement(
                 ref = None
             else:
                 self._fields = table.fields
-                self._all_fields = table.all_fields
                 self._params = table.params
                 self._groups = table.groups
                 self._links = table.links
         else:
             del self._fields[:]
-            del self._all_fields[:]
             del self._params[:]
             del self._groups[:]
             del self._links[:]
@@ -2509,9 +2466,9 @@ class TableElement(
 
     @property
     def format(self):
-        """The serialization format of the table [*required*].
-
-        Must be one of:
+        """
+        [*required*] The serialization format of the table.  Must be
+        one of:
 
           'tabledata' (TABLEDATA_), 'binary' (BINARY_), 'binary2' (BINARY2_)
           'fits' (FITS_).
@@ -2562,22 +2519,6 @@ class TableElement(
         return self._fields
 
     @property
-    def all_fields(self):
-        """
-        A list of :class:`Field` objects describing the types of each
-        of the data columns. Contrary to ``fields``, this property should
-        list every field that's available on disk, including deselected columns.
-        """
-        # since we support extending self.fields directly via list.extend
-        # and list.append, self._all_fields may go out of sync.
-        # To remedy this issue, we sync back the public property upon access.
-        for field in self._fields:
-            if field not in self._all_fields:
-                self._all_fields.append(field)
-
-        return self._all_fields
-
-    @property
     def params(self):
         """
         A list of parameters (constant-valued columns) for the
@@ -2619,35 +2560,18 @@ class TableElement(
         """
         return self._empty
 
-    def create_arrays(
-        self,
-        nrows=0,
-        config=None,
-        *,
-        colnumbers=None,
-    ):
+    def create_arrays(self, nrows=0, config=None):
         """
         Create a new array to hold the data based on the current set
         of fields, and store them in the *array* and member variable.
         Any data in the existing array will be lost.
 
         *nrows*, if provided, is the number of rows to allocate.
-        *colnumbers*, if provided, is the list of column indices to select.
-        By default, all columns are selected.
         """
         if nrows is None:
             nrows = 0
-        if colnumbers is None:
-            colnumbers = list(range(len(self.all_fields)))
 
-        new_fields = HomogeneousList(
-            Field,
-            values=[f for i, f in enumerate(self.all_fields) if i in colnumbers],
-        )
-        if new_fields != self._fields:
-            self._fields = new_fields
-
-        fields = self.all_fields
+        fields = self.fields
 
         if len(fields) == 0:
             array = np.recarray((nrows,), dtype="O")
@@ -2657,9 +2581,7 @@ class TableElement(
             Field.uniqify_names(fields)
 
             dtype = []
-            for i, x in enumerate(fields):
-                if i not in colnumbers:
-                    continue
+            for x in fields:
                 if x._unique_name == x.ID:
                     id = x.ID
                 else:
@@ -2690,14 +2612,10 @@ class TableElement(
             return 512
         return int(np.ceil(size * RESIZE_AMOUNT))
 
-    def add_field(self, field: Field) -> None:
-        self.fields.append(field)
-        self.all_fields.append(field)
-
-    def _register_field(self, iterator, tag, data, config, pos) -> None:
+    def _add_field(self, iterator, tag, data, config, pos):
         field = Field(self._votable, config=config, pos=pos, **data)
+        self.fields.append(field)
         field.parse(iterator, config)
-        self._all_fields.append(field)
 
     def _add_param(self, iterator, tag, data, config, pos):
         param = Param(self._votable, config=config, pos=pos, **data)
@@ -2763,7 +2681,7 @@ class TableElement(
                         self.description = data or None
         else:
             tag_mapping = {
-                "FIELD": self._register_field,
+                "FIELD": self._add_field,
                 "PARAM": self._add_param,
                 "GROUP": self._add_group,
                 "LINK": self._add_link,
@@ -2774,7 +2692,7 @@ class TableElement(
             for start, tag, data, pos in iterator:
                 if start:
                     if tag == "DATA":
-                        if len(self.all_fields) == 0:
+                        if len(self.fields) == 0:
                             warn_or_raise(E25, E25, None, config, pos)
                         warn_unknown_attrs("DATA", data.keys(), config, pos)
                         break
@@ -2789,14 +2707,14 @@ class TableElement(
                         self.description = data or None
                     elif tag == "TABLE":
                         # For error checking purposes
-                        Field.uniqify_names(self.all_fields)
+                        Field.uniqify_names(self.fields)
                         # We still need to create arrays, even if the file
                         # contains no DATA section
                         self.create_arrays(nrows=0, config=config)
                         return self
 
-        fields = self.all_fields
-        Field.uniqify_names(fields)
+        self.create_arrays(nrows=self._nrows, config=config)
+        fields = self.fields
         names = [x.ID for x in fields]
         # Deal with a subset of the columns, if requested.
         if not columns:
@@ -2813,61 +2731,45 @@ class TableElement(
                 try:
                     colnumbers = [names.index(x) for x in columns]
                 except ValueError:
-                    # convert to builtin str because representation of numpy strings
-                    # differ in numpy 2 and may be confusing to users
-                    missing_columns = [
-                        str(name) for name in columns if name not in names
-                    ]
-                    raise ValueError(
-                        f"Columns {missing_columns} were not found in fields list"
-                    ) from None
+                    raise ValueError(f"Columns '{columns}' not found in fields list")
             else:
                 raise TypeError("Invalid columns list")
 
-        self.create_arrays(nrows=self._nrows, config=config, colnumbers=colnumbers)
-
         if (not skip_table) and (len(fields) > 0):
             for start, tag, data, pos in iterator:
-                if not start:
-                    continue
-
-                if tag == "TABLEDATA":
-                    warn_unknown_attrs("TABLEDATA", data.keys(), config, pos)
-                    self.array = self._parse_tabledata(iterator, colnumbers, config)
-                elif tag == "BINARY":
-                    warn_unknown_attrs("BINARY", data.keys(), config, pos)
-                    self.array = self._parse_binary(
-                        1, iterator, colnumbers, config, pos
-                    )
-                elif tag == "BINARY2":
-                    if not config["version_1_3_or_later"]:
-                        warn_or_raise(W52, W52, config["version"], config, pos)
-                    self.array = self._parse_binary(
-                        2, iterator, colnumbers, config, pos
-                    )
-                elif tag == "FITS":
-                    if config.get("columns") is not None:
-                        raise NotImplementedError
-                    warn_unknown_attrs("FITS", data.keys(), config, pos, ["extnum"])
-                    try:
-                        extnum = int(data.get("extnum", 0))
-                        if extnum < 0:
-                            raise ValueError("'extnum' cannot be negative.")
-                    except ValueError:
-                        vo_raise(E17, (), config, pos)
-                    self.array = self._parse_fits(iterator, extnum, config)
-
-                elif tag == "PARQUET":
-                    if (data["type"] == "VOTable-remote-file") | (
-                        data["type"] == "VOTable-remote-partition"
-                    ):
-                        warn_unknown_attrs("PARQUET", data.keys(), config, pos)
-                        self.array = self._parse_parquet(iterator, config)
-
-                else:
-                    warn_or_raise(W37, W37, tag, config, pos)
-
-                break
+                if start:
+                    if tag == "TABLEDATA":
+                        warn_unknown_attrs("TABLEDATA", data.keys(), config, pos)
+                        self.array = self._parse_tabledata(
+                            iterator, colnumbers, fields, config
+                        )
+                        break
+                    elif tag == "BINARY":
+                        warn_unknown_attrs("BINARY", data.keys(), config, pos)
+                        self.array = self._parse_binary(
+                            1, iterator, colnumbers, fields, config, pos
+                        )
+                        break
+                    elif tag == "BINARY2":
+                        if not config["version_1_3_or_later"]:
+                            warn_or_raise(W52, W52, config["version"], config, pos)
+                        self.array = self._parse_binary(
+                            2, iterator, colnumbers, fields, config, pos
+                        )
+                        break
+                    elif tag == "FITS":
+                        warn_unknown_attrs("FITS", data.keys(), config, pos, ["extnum"])
+                        try:
+                            extnum = int(data.get("extnum", 0))
+                            if extnum < 0:
+                                raise ValueError("'extnum' cannot be negative.")
+                        except ValueError:
+                            vo_raise(E17, (), config, pos)
+                        self.array = self._parse_fits(iterator, extnum, config)
+                        break
+                    else:
+                        warn_or_raise(W37, W37, tag, config, pos)
+                        break
 
         for start, tag, data, pos in iterator:
             if not start and tag == "DATA":
@@ -2885,7 +2787,7 @@ class TableElement(
 
         return self
 
-    def _parse_tabledata(self, iterator, colnumbers, config):
+    def _parse_tabledata(self, iterator, colnumbers, fields, config):
         # Since we don't know the number of rows up front, we'll
         # reallocate the record array to make room as we go.  This
         # prevents the need to scan through the XML twice.  The
@@ -2897,15 +2799,14 @@ class TableElement(
         array = self.array
         del self.array
 
-        fields = self.all_fields
         parsers = [field.converter.parse for field in fields]
         binparsers = [field.converter.binparse for field in fields]
 
         numrows = 0
         alloc_rows = len(array)
         colnumbers_bits = [i in colnumbers for i in range(len(fields))]
-        row_default = [field.converter.default for field in self.fields]
-        mask_default = [True] * len(self.fields)
+        row_default = [x.converter.default for x in fields]
+        mask_default = [True] * len(fields)
         array_chunk = []
         mask_chunk = []
         chunk_size = config.get("chunk_size", DEFAULT_CHUNK_SIZE)
@@ -2914,8 +2815,7 @@ class TableElement(
                 # Now parse one row
                 row = row_default[:]
                 row_mask = mask_default[:]
-                i = 0  # index of the column being read from disk
-                j = 0  # index of the column being written in array (not necessarily == i)
+                i = 0
                 for start, tag, data, pos in iterator:
                     if start:
                         binary = data.get("encoding", None) == "base64"
@@ -2938,9 +2838,8 @@ class TableElement(
                                                 e,
                                                 config,
                                                 pos,
-                                                (
-                                                    f"(in row {len(array_chunk):d}, "
-                                                    f"col '{fields[i].ID}')"
+                                                "(in row {:d}, col '{}')".format(
+                                                    len(array_chunk), fields[i].ID
                                                 ),
                                             )
                                     else:
@@ -2953,18 +2852,16 @@ class TableElement(
                                                 e,
                                                 config,
                                                 pos,
-                                                (
-                                                    f"(in row {len(array_chunk):d}, "
-                                                    f"col '{fields[i].ID}')"
+                                                "(in row {:d}, col '{}')".format(
+                                                    len(array_chunk), fields[i].ID
                                                 ),
                                             )
                                 except Exception as e:
                                     if invalid == "exception":
                                         vo_reraise(e, config, pos)
                                 else:
-                                    row[j] = value
-                                    row_mask[j] = mask_value
-                                    j += 1
+                                    row[i] = value
+                                    row_mask[i] = mask_value
                         elif tag == "TR":
                             break
                         else:
@@ -3039,10 +2936,10 @@ class TableElement(
             string_io.seek(0)
             read = string_io.read
         else:
-            vo_prot = ("http", "https", "ftp", "file")
-            if not href.startswith(vo_prot):
+            if not href.startswith(("http", "ftp", "file")):
                 vo_raise(
-                    f"The vo package only supports remote data through {vo_prot}",
+                    "The vo package only supports remote data through http, "
+                    + "ftp or file",
                     self._config,
                     self._pos,
                     NotImplementedError,
@@ -3070,7 +2967,9 @@ class TableElement(
 
         return careful_read
 
-    def _parse_binary(self, mode, iterator, colnumbers, config, pos):
+    def _parse_binary(self, mode, iterator, colnumbers, fields, config, pos):
+        fields = self.fields
+
         careful_read = self._get_binary_data_stream(iterator, config)
 
         # Need to have only one reference so that we can resize the
@@ -3078,7 +2977,6 @@ class TableElement(
         array = self.array
         del self.array
 
-        fields = self.all_fields
         binparsers = [field.converter.binparse for field in fields]
 
         numrows = 0
@@ -3126,11 +3024,11 @@ class TableElement(
             except EOFError:
                 break
 
-            row = [x.converter.default for x in self.fields]
-            row_mask = [False] * len(self.fields)
-            for j, i in enumerate(colnumbers):
-                row[j] = row_data[i]
-                row_mask[j] = row_mask_data[i]
+            row = [x.converter.default for x in fields]
+            row_mask = [False] * len(fields)
+            for i in colnumbers:
+                row[i] = row_data[i]
+                row_mask[i] = row_mask_data[i]
 
             array[numrows] = tuple(row)
             array.mask[numrows] = tuple(row_mask)
@@ -3177,82 +3075,12 @@ class TableElement(
                     self._pos,
                     NotImplementedError,
                 )
+
         hdulist = fits.open(fd)
 
         array = hdulist[int(extnum)].data
         if array.dtype != self.array.dtype:
             warn_or_raise(W19, W19, (), self._config, self._pos)
-
-        return array
-
-    def _parse_parquet(self, iterator, config):
-        """
-        Functionality to parse parquet files that are embedded
-        in VOTables.
-        """
-        from astropy.table import Table
-
-        for start, tag, data, pos in iterator:
-            if tag == "STREAM":
-                if start:
-                    warn_unknown_attrs(
-                        "STREAM",
-                        data.keys(),
-                        config,
-                        pos,
-                        ["type", "href", "actuate", "encoding", "expires", "rights"],
-                    )
-                    href = data["href"]
-                    encoding = data.get("encoding", None)
-                else:
-                    break
-
-            else:  # in this case, there is no STREAM, hence no file linked.
-                href = ""
-
-        if not href.startswith(("http", "ftp", "file")):
-            vo_raise(
-                "The vo package only supports remote data through http, ftp or file",
-                self._config,
-                self._pos,
-                NotImplementedError,
-            )
-
-        try:
-            # Hack to keep windows working
-            try:
-                fd = urllib.request.urlopen(href)
-            except urllib.error.URLError:
-                # Hack to keep windows working
-                if href.startswith("file://"):
-                    fd = urllib.request.urlopen(f"file:{href[7:]}")
-                # Relative path to parquet part should be relative from the votable
-                elif href.startswith("file:"):
-                    parquet = os.path.join(
-                        os.path.dirname(config["filename"]), href[5:]
-                    )
-                    fd = urllib.request.urlopen(f"file:{parquet}")
-
-            if encoding is not None:
-                if encoding == "gzip":
-                    fd = gzip.GzipFile(href, "r", fileobj=fd)
-                elif encoding == "base64":
-                    fd = codecs.EncodedFile(fd, "base64")
-                else:
-                    vo_raise(
-                        f"Unknown encoding type '{encoding}'",
-                        self._config,
-                        self._pos,
-                        NotImplementedError,
-                    )
-
-            array = Table.read(fd, format="parquet")
-        finally:
-            if hasattr(fd, "close"):
-                fd.close()
-
-        if array.dtype != self.array.dtype:
-            warn_or_raise(W56, W56, (), self._config, self._pos)
 
         return array
 
@@ -3349,8 +3177,8 @@ class TableElement(
                             except Exception as e:
                                 vo_reraise(
                                     e,
-                                    additional=(
-                                        f"(in row {row:d}, col '{self.fields[i].ID}')"
+                                    additional="(in row {:d}, col '{}')".format(
+                                        row, self.fields[i].ID
                                     ),
                                 )
                             if len(val):
@@ -3377,23 +3205,14 @@ class TableElement(
                 for row in range(len(array)):
                     array_row = array.data[row]
                     array_mask = array.mask[row]
+
                     if mode == 2:
                         flattened = np.array([np.all(x) for x in array_mask])
                         data.write(converters.bool_to_bitarray(flattened))
 
                     for i, converter in fields_basic:
                         try:
-                            # BINARY2 cannot handle individual array element masks
-                            converter_type = converter.__self__.__class__
-                            # Delegate converter to handle the mask
-                            delegate_condition = issubclass(
-                                converter_type, converters.Array
-                            )
-                            if mode == 1 or delegate_condition:
-                                chunk = converter(array_row[i], array_mask[i])
-                            else:
-                                # Mask is already handled by BINARY2 behaviour
-                                chunk = converter(array_row[i], None)
+                            chunk = converter(array_row[i], array_mask[i])
                             assert type(chunk) == bytes
                         except Exception as e:
                             vo_reraise(
@@ -3456,7 +3275,7 @@ class TableElement(
     @classmethod
     def from_table(cls, votable, table):
         """
-        Create a `TableElement` instance from a given `astropy.table.Table`
+        Create a `Table` instance from a given `astropy.table.Table`
         instance.
         """
         kwargs = {}
@@ -3470,7 +3289,7 @@ class TableElement(
 
         for colname in table.colnames:
             column = table[colname]
-            new_table.add_field(Field.from_table_column(votable, column))
+            new_table.fields.append(Field.from_table_column(votable, column))
 
         if table.mask is None:
             new_table.array = ma.array(np.asarray(table))
@@ -3485,7 +3304,7 @@ class TableElement(
         TABLE.
         """
         yield from self.params
-        yield from self.all_fields
+        yield from self.fields
         for group in self.groups:
             yield from group.iter_fields_and_params()
 
@@ -3552,173 +3371,6 @@ class TableElement(
         yield from self.infos
 
 
-class MivotBlock(Element):
-    """
-    MIVOT Block holder:
-    Processing VO model views on data is out of the scope of Astropy.
-    This is why the only VOmodel-related feature implemented here the
-    extraction or the writing of a mapping block from/to a VOTable
-    There is no syntax validation other than the allowed tag names.
-    The mapping block is handled as a correctly indented XML string
-    which is meant to be parsed by the calling API (e.g., PyVO).
-
-    The constructor takes "content" as a parameter, it is the string
-    serialization of the MIVOT block.
-    If it is None, the instance is meant to be set by the Resource parser.
-    Orherwise, the parameter value is parsed to make sure it matches
-    the MIVOT XML structure.
-
-    """
-
-    def __init__(self, content=None):
-        if content is not None:
-            self._content = content.strip()
-            self.check_content_format()
-        else:
-            self._content = ""
-        self._indent_level = 0
-        self._on_error = False
-
-    def __str__(self):
-        return self._content
-
-    def _add_statement(self, start, tag, data, config, pos):
-        """
-        Convert the tag as a string and append it to the mapping
-        block string with the correct indentation level.
-        The signature is the same as for all _add_* methods of the parser.
-        """
-        if self._on_error is True:
-            return
-        # The first mapping tag (<VODML>) is consumed by the host RESOURCE
-        # To check that the content is a mapping block. This cannot be done here
-        # because that RESOURCE might have another content
-        if self._content == "":
-            self._content = '<VODML xmlns="http://www.ivoa.net/xml/mivot">\n'
-            self._indent_level += 1
-
-        ele_content = ""
-        if start:
-            element = "<" + tag
-            for k, v in data.items():
-                element += f" {k}='{v}'"
-            element += ">\n"
-        else:
-            if data:
-                ele_content = f"{data}\n"
-            element = f"</{tag}>\n"
-
-        if start is False:
-            self._indent_level -= 1
-        # The content is formatted on the fly: not mandatory but cool for debugging
-        indent = "".join(" " for _ in range(2 * self._indent_level))
-        if ele_content:
-            self._content += indent + "  " + ele_content
-        self._content += indent + element
-        if start is True:
-            self._indent_level += 1
-
-    def _unknown_mapping_tag(self, start, tag, data, config, pos):
-        """
-        In case of unexpected tag, the parsing stops and the mapping block
-        is set with a REPORT tag telling what went wrong.
-        The signature si that same as for all _add_* methods of the parser.
-        """
-        self._content = (
-            f'<VODML xmlns="http://www.ivoa.net/xml/mivot">\n '
-            f'<REPORT status="KO">Unknown mivot block statement: {tag}</REPORT>\n</VODML>'
-        )
-        self._on_error = True
-        warn_or_raise(W10, W10, tag, config, pos=pos)
-
-    @property
-    def content(self):
-        """
-        The XML mapping block serialized as string.
-        If there is not mapping block, an empty block is returned in order to
-        prevent client code to deal with None blocks.
-        """
-        if self._content == "":
-            self._content = (
-                '<VODML xmlns="http://www.ivoa.net/xml/mivot">\n '
-                '<REPORT status="KO">No Mivot block</REPORT>\n</VODML>\n'
-            )
-        return self._content
-
-    def parse(self, votable, iterator, config):
-        """
-        Regular parser similar to others VOTable components.
-        """
-        model_mapping_mapping = {
-            "VODML": self._add_statement,
-            "GLOBALS": self._add_statement,
-            "REPORT": self._add_statement,
-            "MODEL": self._add_statement,
-            "TEMPLATES": self._add_statement,
-            "COLLECTION": self._add_statement,
-            "INSTANCE": self._add_statement,
-            "ATTRIBUTE": self._add_statement,
-            "REFERENCE": self._add_statement,
-            "JOIN": self._add_statement,
-            "WHERE": self._add_statement,
-            "PRIMARY_KEY": self._add_statement,
-            "FOREIGN_KEY": self._add_statement,
-        }
-        for start, tag, data, pos in iterator:
-            model_mapping_mapping.get(tag, self._unknown_mapping_tag)(
-                start, tag, data, config, pos
-            )
-            if start is False and tag == "VODML":
-                break
-
-        return self
-
-    def to_xml(self, w):
-        """
-        Tells the writer to insert the MIVOT block in its output stream.
-        """
-        w.string_element(self._content)
-
-    def check_content_format(self):
-        """
-        Check if the content is on xml format by building a VOTable,
-        putting a MIVOT block in the first resource and trying to parse the VOTable.
-        """
-        if not self._content.startswith("<"):
-            vo_raise(E26)
-
-        in_memory_votable = VOTableFile()
-        mivot_resource = Resource()
-        mivot_resource.type = "meta"
-        mivot_resource.mivot_block = self
-        # pack the meta resource in a top level resource
-        result_resource = Resource()
-        result_resource.type = "results"
-        result_resource.resources.append(mivot_resource)
-        data_table = TableElement(in_memory_votable)
-        data_table.name = "t1"
-        result_resource.tables.append(data_table)
-        in_memory_votable.resources.append(result_resource)
-
-        # Push the VOTable in an IOSTream (emulates a disk saving)
-        buff = io.BytesIO()
-        in_memory_votable.to_xml(buff)
-
-        # Read the IOStream (emulates a disk readout)
-        buff.seek(0)
-        config = {}
-
-        with iterparser.get_xml_iterator(
-            buff, _debug_python_based_parser=None
-        ) as iterator:
-            return VOTableFile(config=config, pos=(1, 1)).parse(iterator, config)
-
-
-@deprecated("6.0", alternative="TableElement")
-class Table(TableElement):
-    pass
-
-
 class Resource(
     Element, _IDProperty, _NameProperty, _UtypeProperty, _DescriptionProperty
 ):
@@ -3759,10 +3411,9 @@ class Resource(
         self._params = HomogeneousList(Param)
         self._infos = HomogeneousList(Info)
         self._links = HomogeneousList(Link)
-        self._tables = HomogeneousList(TableElement)
+        self._tables = HomogeneousList(Table)
         self._resources = HomogeneousList(Resource)
 
-        self._mivot_block = MivotBlock()
         warn_unknown_attrs("RESOURCE", kwargs.keys(), config, pos)
 
     def __repr__(self):
@@ -3773,9 +3424,8 @@ class Resource(
 
     @property
     def type(self):
-        """The type of the resource [*required*].
-
-        Must be either:
+        """
+        [*required*] The type of the resource.  Must be either:
 
           - 'results': This resource contains actual result values
             (default)
@@ -3792,33 +3442,12 @@ class Resource(
         self._type = type
 
     @property
-    def mivot_block(self):
-        """
-        Returns the MIVOT block instance.
-        If the host resource is of type results, it is taken from the first
-        child resource with a MIVOT block, if any.
-        Otherwise, it is taken from the host resource.
-        """
-        if self.type == "results":
-            for resource in self.resources:
-                if str(resource._mivot_block).strip() != "":
-                    return resource._mivot_block
-        return self._mivot_block
-
-    @mivot_block.setter
-    def mivot_block(self, mivot_block):
-        if self.type == "results":
-            vo_raise(E26)
-        self._mivot_block = mivot_block
-
-    @property
     def extra_attributes(self):
-        """Dictionary of extra attributes of the RESOURCE_ element.
-
-        This is dictionary of string keys to string values containing any
+        """
+        A dictionary of string keys to string values containing any
         extra attributes of the RESOURCE_ element that are not defined
-        in the specification. The specification explicitly allows
-        for extra attributes here, but nowhere else.
+        in the specification.  (The specification explicitly allows
+        for extra attributes here, but nowhere else.)
         """
         return self._extra_attributes
 
@@ -3849,7 +3478,7 @@ class Resource(
     @property
     def groups(self):
         """
-        A list of groups.
+        A list of groups
         """
         return self._groups
 
@@ -3874,7 +3503,7 @@ class Resource(
     def tables(self):
         """
         A list of tables in the resource.  Must contain only
-        `TableElement` objects.
+        `Table` objects.
         """
         return self._tables
 
@@ -3887,7 +3516,7 @@ class Resource(
         return self._resources
 
     def _add_table(self, iterator, tag, data, config, pos):
-        table = TableElement(self._votable, config=config, pos=pos, **data)
+        table = Table(self._votable, config=config, pos=pos, **data)
         self.tables.append(table)
         table.parse(iterator, config)
 
@@ -3942,11 +3571,7 @@ class Resource(
         }
 
         for start, tag, data, pos in iterator:
-            # If the resource content starts with VODML,
-            # the parsing is delegated to the MIVOT parser
-            if tag == "VODML":
-                self._mivot_block.parse(votable, iterator, config)
-            elif start:
+            if start:
                 tag_mapping.get(tag, self._add_unknown_tag)(
                     iterator, tag, data, config, pos
                 )
@@ -3967,33 +3592,17 @@ class Resource(
         with w.tag("RESOURCE", attrib=attrs):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
-            if self.mivot_block is not None and self.type == "meta":
-                self.mivot_block.to_xml(w)
-            element_sets = [
+            for element_set in (
                 self.coordinate_systems,
                 self.time_systems,
                 self.params,
                 self.infos,
                 self.links,
-            ]
-            if kwargs["version_1_2_or_later"]:
-                element_sets.append(self.groups)
-
-            for element_set in element_sets:
+                self.tables,
+                self.resources,
+            ):
                 for element in element_set:
                     element.to_xml(w, **kwargs)
-
-            # The mivot_block should be before the table
-            for elm in self.resources:
-                if elm.type == "meta" and elm.mivot_block is not None:
-                    elm.to_xml(w, **kwargs)
-
-            for elm in self.tables:
-                elm.to_xml(w, **kwargs)
-
-            for elm in self.resources:
-                if elm.type != "meta":
-                    elm.to_xml(w, **kwargs)
 
     def iter_tables(self):
         """
@@ -4074,9 +3683,15 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._groups = HomogeneousList(Group)
 
         version = str(version)
-        if version not in self._version_namespace_map:
+        if version == "1.0":
+            warnings.warn(
+                "VOTable 1.0 support is deprecated in astropy 4.3 and will be "
+                "removed in a future release",
+                AstropyDeprecationWarning,
+            )
+        elif (version != "1.0") and (version not in self._version_namespace_map):
             allowed_from_map = "', '".join(self._version_namespace_map)
-            raise ValueError(f"'version' should be in ('{allowed_from_map}').")
+            raise ValueError(f"'version' should be in ('1.0', '{allowed_from_map}').")
 
         self._version = version
 
@@ -4189,7 +3804,6 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         config["version_1_2_or_later"] = util.version_compare(self.version, "1.2") >= 0
         config["version_1_3_or_later"] = util.version_compare(self.version, "1.3") >= 0
         config["version_1_4_or_later"] = util.version_compare(self.version, "1.4") >= 0
-        config["version_1_5_or_later"] = util.version_compare(self.version, "1.5") >= 0
         return config
 
     # Map VOTable version numbers to namespace URIs and schema information.
@@ -4231,14 +3845,6 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             "schema_location_value": (
                 "http://www.ivoa.net/xml/VOTable/v1.3"
                 " http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"
-            ),
-        },
-        "1.5": {
-            "namespace_uri": "http://www.ivoa.net/xml/VOTable/v1.3",
-            "schema_location_attr": "xsi:schemaLocation",
-            "schema_location_value": (
-                "http://www.ivoa.net/xml/VOTable/v1.3"
-                " http://www.ivoa.net/xml/VOTable/VOTable-1.5.xsd"
             ),
         },
     }
@@ -4325,7 +3931,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             Override the format of the table(s) data to write.  Must
             be one of ``tabledata`` (text representation), ``binary`` or
             ``binary2``.  By default, use the format that was specified
-            in each `TableElement` object as it was created or read in.  See
+            in each `Table` object as it was created or read in.  See
             :ref:`astropy:votable-serialization`.
         """
         if tabledata_format is not None:
@@ -4340,8 +3946,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         }
         kwargs.update(self._get_version_checks())
 
-        with util.convert_to_writable_filelike(fd, compressed=compressed) as fh:
-            w = XMLWriter(fh)
+        with util.convert_to_writable_filelike(fd, compressed=compressed) as fd:
+            w = XMLWriter(fd)
             version = self.version
             if _astropy_version is None:
                 lib_version = astropy_version
@@ -4379,8 +3985,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                     self.resources,
                 ]
                 if kwargs["version_1_2_or_later"]:
-                    element_sets.append(self.groups)
-
+                    element_sets[0] = self.groups
                 for element_set in element_sets:
                     for element in element_set:
                         element.to_xml(w, **kwargs)
@@ -4568,14 +4173,6 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         "ID", True, "iter_info", "INFO", """Looks up a INFO element by the given ID."""
     )
 
-    get_infos_by_name = _lookup_by_attr_factory(
-        "name",
-        False,
-        "iter_info",
-        "INFO",
-        """Returns all INFO children with the given name.""",
-    )
-
     def set_all_tables_format(self, format):
         """
         Set the output storage format of all tables in the file.
@@ -4592,11 +4189,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         Parameters
         ----------
         table_id : str, optional
-            Set the given ID attribute on the returned TableElement instance.
+            Set the given ID attribute on the returned Table instance.
         """
         votable_file = cls()
         resource = Resource()
-        votable = TableElement.from_table(votable_file, table)
+        votable = Table.from_table(votable_file, table)
         if table_id is not None:
             votable.ID = table_id
         resource.tables.append(votable)

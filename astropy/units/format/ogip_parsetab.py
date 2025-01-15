@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # This file was automatically generated from ply. To re-generate this file,
@@ -16,9 +17,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'CLOSE_PAREN DIVISION FUNCNAME LIT10 OPEN_PAREN POWER SIGN STAR UFLOAT UINT UNIT UNKNOWN WHITESPACE\n            main : UNKNOWN\n                 | complete_expression\n                 | scale_factor complete_expression\n                 | scale_factor WHITESPACE complete_expression\n            \n            complete_expression : unit_expression\n                                | product_of_units\n                                | division_of_units\n            \n            product_of_units : complete_expression product unit_expression\n            \n            division_of_units : DIVISION unit_expression\n                              | complete_expression DIVISION unit_expression\n            \n            unit_expression : UNIT\n                            | function\n                            | UNIT POWER numeric_power\n                            | UNIT OPEN_PAREN complete_expression CLOSE_PAREN\n                            | OPEN_PAREN complete_expression CLOSE_PAREN\n                            | UNIT OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power\n                            | OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power\n            \n            function : FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN\n                     | FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power\n            \n            scale_factor : LIT10 POWER numeric_power\n                         | LIT10\n                         | signed_float\n                         | signed_float POWER numeric_power\n                         | signed_int POWER numeric_power\n            \n            product : WHITESPACE\n                    | STAR\n                    | WHITESPACE STAR\n                    | WHITESPACE STAR WHITESPACE\n                    | STAR WHITESPACE\n            \n            numeric_power : UINT\n                          | signed_float\n                          | OPEN_PAREN signed_int CLOSE_PAREN\n                          | OPEN_PAREN signed_float CLOSE_PAREN\n                          | OPEN_PAREN signed_float DIVISION UINT CLOSE_PAREN\n            \n            sign : SIGN\n                 |\n            \n            signed_int : SIGN UINT\n            \n            signed_float : sign UINT\n                         | sign UFLOAT\n            '
+_lr_signature = 'CLOSE_PAREN DIVISION LIT10 OPEN_PAREN SIGN STAR STARSTAR UFLOAT UINT UNIT UNKNOWN WHITESPACE\n            main : UNKNOWN\n                 | complete_expression\n                 | scale_factor complete_expression\n                 | scale_factor WHITESPACE complete_expression\n            \n            complete_expression : product_of_units\n            \n            product_of_units : unit_expression\n                             | division unit_expression\n                             | product_of_units product unit_expression\n                             | product_of_units division unit_expression\n            \n            unit_expression : unit\n                            | UNIT OPEN_PAREN complete_expression CLOSE_PAREN\n                            | OPEN_PAREN complete_expression CLOSE_PAREN\n                            | UNIT OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power\n                            | OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power\n            \n            scale_factor : LIT10 power numeric_power\n                         | LIT10\n                         | signed_float\n                         | signed_float power numeric_power\n                         | signed_int power numeric_power\n            \n            division : DIVISION\n                     | WHITESPACE DIVISION\n                     | WHITESPACE DIVISION WHITESPACE\n                     | DIVISION WHITESPACE\n            \n            product : WHITESPACE\n                    | STAR\n                    | WHITESPACE STAR\n                    | WHITESPACE STAR WHITESPACE\n                    | STAR WHITESPACE\n            \n            power : STARSTAR\n            \n            unit : UNIT\n                 | UNIT power numeric_power\n            \n            numeric_power : UINT\n                          | signed_float\n                          | OPEN_PAREN signed_int CLOSE_PAREN\n                          | OPEN_PAREN signed_float CLOSE_PAREN\n                          | OPEN_PAREN signed_float division UINT CLOSE_PAREN\n            \n            sign : SIGN\n                 |\n            \n            signed_int : SIGN UINT\n            \n            signed_float : sign UINT\n                         | sign UFLOAT\n            '
     
-_lr_action_items = {'UNKNOWN':([0,],[2,]),'LIT10':([0,],[8,]),'UNIT':([0,4,8,9,13,14,18,19,20,21,23,28,31,32,34,37,38,40,41,42,45,46,51,57,58,66,],[11,11,-21,-22,11,11,11,11,-25,-26,11,11,-38,-39,11,-27,-29,-20,-30,-31,-23,-24,-28,-32,-33,-34,]),'OPEN_PAREN':([0,4,8,9,11,13,14,17,18,19,20,21,23,24,25,26,27,28,31,32,34,37,38,40,41,42,45,46,51,55,57,58,60,62,66,],[13,13,-21,-22,28,13,13,34,13,13,-25,-26,13,43,43,43,43,13,-38,-39,13,-27,-29,-20,-30,-31,-23,-24,-28,43,-32,-33,43,43,-34,]),'DIVISION':([0,3,4,5,6,7,8,9,11,12,13,22,23,28,29,30,31,32,34,35,36,39,40,41,42,45,46,47,48,49,50,53,54,56,57,58,61,64,65,66,],[14,19,14,-5,-6,-7,-21,-22,-11,-12,14,19,14,14,19,-9,-38,-39,14,-8,-10,19,-20,-30,-31,-23,-24,-13,19,-15,19,59,-14,-18,-32,-33,-17,-16,-19,-34,]),'SIGN':([0,24,25,26,27,43,55,60,62,],[16,44,44,44,44,16,44,44,44,]),'FUNCNAME':([0,4,8,9,13,14,18,19,20,21,23,28,31,32,34,37,38,40,41,42,45,46,51,57,58,66,],[17,17,-21,-22,17,17,17,17,-25,-26,17,17,-38,-39,17,-27,-29,-20,-30,-31,-23,-24,-28,-32,-33,-34,]),'UINT':([0,15,16,24,25,26,27,43,44,55,59,60,62,],[-36,31,33,41,41,41,41,-36,-35,41,63,41,41,]),'UFLOAT':([0,15,16,24,25,26,27,43,44,55,60,62,],[-36,32,-35,-36,-36,-36,-36,-36,-35,-36,-36,-36,]),'$end':([1,2,3,5,6,7,11,12,22,30,31,32,35,36,39,41,42,47,49,54,56,57,58,61,64,65,66,],[0,-1,-2,-5,-6,-7,-11,-12,-3,-9,-38,-39,-8,-10,-4,-30,-31,-13,-15,-14,-18,-32,-33,-17,-16,-19,-34,]),'WHITESPACE':([3,4,5,6,7,8,9,11,12,21,22,29,30,31,32,35,36,37,39,40,41,42,45,46,47,48,49,50,54,56,57,58,61,64,65,66,],[20,23,-5,-6,-7,-21,-22,-11,-12,38,20,20,-9,-38,-39,-8,-10,51,20,-20,-30,-31,-23,-24,-13,20,-15,20,-14,-18,-32,-33,-17,-16,-19,-34,]),'STAR':([3,5,6,7,11,12,20,22,29,30,31,32,35,36,39,41,42,47,48,49,50,54,56,57,58,61,64,65,66,],[21,-5,-6,-7,-11,-12,37,21,21,-9,-38,-39,-8,-10,21,-30,-31,-13,21,-15,21,-14,-18,-32,-33,-17,-16,-19,-34,]),'CLOSE_PAREN':([5,6,7,11,12,29,30,31,32,33,35,36,41,42,47,48,49,50,52,53,54,56,57,58,61,63,64,65,66,],[-5,-6,-7,-11,-12,49,-9,-38,-39,-37,-8,-10,-30,-31,-13,54,-15,56,57,58,-14,-18,-32,-33,-17,66,-16,-19,-34,]),'POWER':([8,9,10,11,31,32,33,49,54,56,],[24,25,26,27,-38,-39,-37,55,60,62,]),}
+_lr_action_items = {'UNKNOWN':([0,],[2,]),'LIT10':([0,],[7,]),'SIGN':([0,25,26,27,28,34,47,59,63,],[13,48,-29,48,48,48,13,48,48,]),'UNIT':([0,4,7,8,11,16,17,19,20,21,22,23,24,30,31,33,36,38,39,42,43,44,45,46,49,50,54,55,60,61,67,],[15,15,-16,-17,15,15,-20,15,-21,15,15,-24,-25,-40,-41,15,-23,-20,-22,-26,-28,-15,-32,-33,-18,-19,-22,-27,-34,-35,-36,]),'OPEN_PAREN':([0,4,7,8,11,15,16,17,19,20,21,22,23,24,25,26,27,28,30,31,33,34,36,38,39,42,43,44,45,46,49,50,54,55,59,60,61,63,67,],[16,16,-16,-17,16,33,16,-20,16,-21,16,16,-24,-25,47,-29,47,47,-40,-41,16,47,-23,-20,-22,-26,-28,-15,-32,-33,-18,-19,-22,-27,47,-34,-35,47,-36,]),'DIVISION':([0,4,5,6,7,8,10,14,15,16,19,23,29,30,31,33,40,41,44,45,46,49,50,52,53,57,58,60,61,64,66,67,],[17,17,20,17,-16,-17,-6,-10,-30,17,38,20,-7,-40,-41,17,-8,-9,-15,-32,-33,-18,-19,-31,-12,17,-11,-34,-35,-14,-13,-36,]),'WHITESPACE':([0,4,6,7,8,10,14,15,16,17,19,20,24,29,30,31,33,38,40,41,42,44,45,46,49,50,52,53,57,58,60,61,64,66,67,],[5,19,23,-16,-17,-6,-10,-30,5,36,5,39,43,-7,-40,-41,5,54,-8,-9,55,-15,-32,-33,-18,-19,-31,-12,5,-11,-34,-35,-14,-13,-36,]),'UINT':([0,12,13,17,20,25,26,27,28,34,36,39,47,48,59,62,63,],[-38,30,32,-20,-21,45,-29,45,45,45,-23,-22,-38,-37,45,65,45,]),'UFLOAT':([0,12,13,25,26,27,28,34,47,48,59,63,],[-38,31,-37,-38,-29,-38,-38,-38,-38,-37,-38,-38,]),'$end':([1,2,3,6,10,14,15,18,29,30,31,37,40,41,45,46,52,53,58,60,61,64,66,67,],[0,-1,-2,-5,-6,-10,-30,-3,-7,-40,-41,-4,-8,-9,-32,-33,-31,-12,-11,-34,-35,-14,-13,-36,]),'CLOSE_PAREN':([6,10,14,15,29,30,31,32,35,40,41,45,46,51,52,53,56,57,58,60,61,64,65,66,67,],[-5,-6,-10,-30,-7,-40,-41,-39,53,-8,-9,-32,-33,58,-31,-12,60,61,-11,-34,-35,-14,67,-13,-36,]),'STAR':([6,10,14,15,23,29,30,31,40,41,45,46,52,53,58,60,61,64,66,67,],[24,-6,-10,-30,42,-7,-40,-41,-8,-9,-32,-33,-31,-12,-11,-34,-35,-14,-13,-36,]),'STARSTAR':([7,8,9,15,30,31,32,53,58,],[26,26,26,26,-40,-41,-39,26,26,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -27,7 +28,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'main':([0,],[1,]),'complete_expression':([0,4,13,23,28,34,],[3,22,29,39,48,50,]),'scale_factor':([0,],[4,]),'unit_expression':([0,4,13,14,18,19,23,28,34,],[5,5,5,30,35,36,5,5,5,]),'product_of_units':([0,4,13,23,28,34,],[6,6,6,6,6,6,]),'division_of_units':([0,4,13,23,28,34,],[7,7,7,7,7,7,]),'signed_float':([0,24,25,26,27,43,55,60,62,],[9,42,42,42,42,53,42,42,42,]),'signed_int':([0,43,],[10,52,]),'function':([0,4,13,14,18,19,23,28,34,],[12,12,12,12,12,12,12,12,12,]),'sign':([0,24,25,26,27,43,55,60,62,],[15,15,15,15,15,15,15,15,15,]),'product':([3,22,29,39,48,50,],[18,18,18,18,18,18,]),'numeric_power':([24,25,26,27,55,60,62,],[40,45,46,47,61,64,65,]),}
+_lr_goto_items = {'main':([0,],[1,]),'complete_expression':([0,4,16,19,33,],[3,18,35,37,51,]),'scale_factor':([0,],[4,]),'product_of_units':([0,4,16,19,33,],[6,6,6,6,6,]),'signed_float':([0,25,27,28,34,47,59,63,],[8,46,46,46,46,57,46,46,]),'signed_int':([0,47,],[9,56,]),'unit_expression':([0,4,11,16,19,21,22,33,],[10,10,29,10,10,40,41,10,]),'division':([0,4,6,16,19,33,57,],[11,11,22,11,11,11,62,]),'sign':([0,25,27,28,34,47,59,63,],[12,12,12,12,12,12,12,12,]),'unit':([0,4,11,16,19,21,22,33,],[14,14,14,14,14,14,14,14,]),'product':([6,],[21,]),'power':([7,8,9,15,53,58,],[25,27,28,34,59,63,]),'numeric_power':([25,27,28,34,59,63,],[44,49,50,52,64,66,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -37,43 +38,45 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> main","S'",1,None,None,None),
-  ('main -> UNKNOWN','main',1,'p_main','ogip.py',165),
-  ('main -> complete_expression','main',1,'p_main','ogip.py',166),
-  ('main -> scale_factor complete_expression','main',2,'p_main','ogip.py',167),
-  ('main -> scale_factor WHITESPACE complete_expression','main',3,'p_main','ogip.py',168),
-  ('complete_expression -> unit_expression','complete_expression',1,'p_complete_expression','ogip.py',180),
-  ('complete_expression -> product_of_units','complete_expression',1,'p_complete_expression','ogip.py',181),
-  ('complete_expression -> division_of_units','complete_expression',1,'p_complete_expression','ogip.py',182),
-  ('product_of_units -> complete_expression product unit_expression','product_of_units',3,'p_product_of_units','ogip.py',190),
-  ('division_of_units -> DIVISION unit_expression','division_of_units',2,'p_division_of_units','ogip.py',196),
-  ('division_of_units -> complete_expression DIVISION unit_expression','division_of_units',3,'p_division_of_units','ogip.py',197),
-  ('unit_expression -> UNIT','unit_expression',1,'p_unit_expression','ogip.py',207),
-  ('unit_expression -> function','unit_expression',1,'p_unit_expression','ogip.py',208),
-  ('unit_expression -> UNIT POWER numeric_power','unit_expression',3,'p_unit_expression','ogip.py',209),
-  ('unit_expression -> UNIT OPEN_PAREN complete_expression CLOSE_PAREN','unit_expression',4,'p_unit_expression','ogip.py',210),
-  ('unit_expression -> OPEN_PAREN complete_expression CLOSE_PAREN','unit_expression',3,'p_unit_expression','ogip.py',211),
-  ('unit_expression -> UNIT OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power','unit_expression',6,'p_unit_expression','ogip.py',212),
-  ('unit_expression -> OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power','unit_expression',5,'p_unit_expression','ogip.py',213),
-  ('function -> FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN','function',4,'p_function','ogip.py',242),
-  ('function -> FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power','function',6,'p_function','ogip.py',243),
-  ('scale_factor -> LIT10 POWER numeric_power','scale_factor',3,'p_scale_factor','ogip.py',258),
-  ('scale_factor -> LIT10','scale_factor',1,'p_scale_factor','ogip.py',259),
-  ('scale_factor -> signed_float','scale_factor',1,'p_scale_factor','ogip.py',260),
-  ('scale_factor -> signed_float POWER numeric_power','scale_factor',3,'p_scale_factor','ogip.py',261),
-  ('scale_factor -> signed_int POWER numeric_power','scale_factor',3,'p_scale_factor','ogip.py',262),
-  ('product -> WHITESPACE','product',1,'p_product','ogip.py',277),
-  ('product -> STAR','product',1,'p_product','ogip.py',278),
-  ('product -> WHITESPACE STAR','product',2,'p_product','ogip.py',279),
-  ('product -> WHITESPACE STAR WHITESPACE','product',3,'p_product','ogip.py',280),
-  ('product -> STAR WHITESPACE','product',2,'p_product','ogip.py',281),
-  ('numeric_power -> UINT','numeric_power',1,'p_numeric_power','ogip.py',286),
-  ('numeric_power -> signed_float','numeric_power',1,'p_numeric_power','ogip.py',287),
-  ('numeric_power -> OPEN_PAREN signed_int CLOSE_PAREN','numeric_power',3,'p_numeric_power','ogip.py',288),
-  ('numeric_power -> OPEN_PAREN signed_float CLOSE_PAREN','numeric_power',3,'p_numeric_power','ogip.py',289),
-  ('numeric_power -> OPEN_PAREN signed_float DIVISION UINT CLOSE_PAREN','numeric_power',5,'p_numeric_power','ogip.py',290),
-  ('sign -> SIGN','sign',1,'p_sign','ogip.py',308),
-  ('sign -> <empty>','sign',0,'p_sign','ogip.py',309),
-  ('signed_int -> SIGN UINT','signed_int',2,'p_signed_int','ogip.py',318),
-  ('signed_float -> sign UINT','signed_float',2,'p_signed_float','ogip.py',324),
-  ('signed_float -> sign UFLOAT','signed_float',2,'p_signed_float','ogip.py',325),
+  ('main -> UNKNOWN','main',1,'p_main','ogip.py',184),
+  ('main -> complete_expression','main',1,'p_main','ogip.py',185),
+  ('main -> scale_factor complete_expression','main',2,'p_main','ogip.py',186),
+  ('main -> scale_factor WHITESPACE complete_expression','main',3,'p_main','ogip.py',187),
+  ('complete_expression -> product_of_units','complete_expression',1,'p_complete_expression','ogip.py',198),
+  ('product_of_units -> unit_expression','product_of_units',1,'p_product_of_units','ogip.py',204),
+  ('product_of_units -> division unit_expression','product_of_units',2,'p_product_of_units','ogip.py',205),
+  ('product_of_units -> product_of_units product unit_expression','product_of_units',3,'p_product_of_units','ogip.py',206),
+  ('product_of_units -> product_of_units division unit_expression','product_of_units',3,'p_product_of_units','ogip.py',207),
+  ('unit_expression -> unit','unit_expression',1,'p_unit_expression','ogip.py',221),
+  ('unit_expression -> UNIT OPEN_PAREN complete_expression CLOSE_PAREN','unit_expression',4,'p_unit_expression','ogip.py',222),
+  ('unit_expression -> OPEN_PAREN complete_expression CLOSE_PAREN','unit_expression',3,'p_unit_expression','ogip.py',223),
+  ('unit_expression -> UNIT OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power','unit_expression',6,'p_unit_expression','ogip.py',224),
+  ('unit_expression -> OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power','unit_expression',5,'p_unit_expression','ogip.py',225),
+  ('scale_factor -> LIT10 power numeric_power','scale_factor',3,'p_scale_factor','ogip.py',259),
+  ('scale_factor -> LIT10','scale_factor',1,'p_scale_factor','ogip.py',260),
+  ('scale_factor -> signed_float','scale_factor',1,'p_scale_factor','ogip.py',261),
+  ('scale_factor -> signed_float power numeric_power','scale_factor',3,'p_scale_factor','ogip.py',262),
+  ('scale_factor -> signed_int power numeric_power','scale_factor',3,'p_scale_factor','ogip.py',263),
+  ('division -> DIVISION','division',1,'p_division','ogip.py',278),
+  ('division -> WHITESPACE DIVISION','division',2,'p_division','ogip.py',279),
+  ('division -> WHITESPACE DIVISION WHITESPACE','division',3,'p_division','ogip.py',280),
+  ('division -> DIVISION WHITESPACE','division',2,'p_division','ogip.py',281),
+  ('product -> WHITESPACE','product',1,'p_product','ogip.py',287),
+  ('product -> STAR','product',1,'p_product','ogip.py',288),
+  ('product -> WHITESPACE STAR','product',2,'p_product','ogip.py',289),
+  ('product -> WHITESPACE STAR WHITESPACE','product',3,'p_product','ogip.py',290),
+  ('product -> STAR WHITESPACE','product',2,'p_product','ogip.py',291),
+  ('power -> STARSTAR','power',1,'p_power','ogip.py',297),
+  ('unit -> UNIT','unit',1,'p_unit','ogip.py',303),
+  ('unit -> UNIT power numeric_power','unit',3,'p_unit','ogip.py',304),
+  ('numeric_power -> UINT','numeric_power',1,'p_numeric_power','ogip.py',313),
+  ('numeric_power -> signed_float','numeric_power',1,'p_numeric_power','ogip.py',314),
+  ('numeric_power -> OPEN_PAREN signed_int CLOSE_PAREN','numeric_power',3,'p_numeric_power','ogip.py',315),
+  ('numeric_power -> OPEN_PAREN signed_float CLOSE_PAREN','numeric_power',3,'p_numeric_power','ogip.py',316),
+  ('numeric_power -> OPEN_PAREN signed_float division UINT CLOSE_PAREN','numeric_power',5,'p_numeric_power','ogip.py',317),
+  ('sign -> SIGN','sign',1,'p_sign','ogip.py',328),
+  ('sign -> <empty>','sign',0,'p_sign','ogip.py',329),
+  ('signed_int -> SIGN UINT','signed_int',2,'p_signed_int','ogip.py',338),
+  ('signed_float -> sign UINT','signed_float',2,'p_signed_float','ogip.py',344),
+  ('signed_float -> sign UFLOAT','signed_float',2,'p_signed_float','ogip.py',345),
 ]

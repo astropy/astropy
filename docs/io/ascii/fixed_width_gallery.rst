@@ -463,9 +463,9 @@ Fixed Width Two Line
 Custom Header Rows
 ==================
 
-The ``fixed_width``, ``fixed_width_two_line``, and ``rst`` formats normally include a
-single row with the column names in the header.  However, for these formats you can
-customize the column attributes which appear as header rows. The available
+The ``fixed_width`` and ``fixed_width_two_line`` formats normally include a
+single initial row with the column names in the header.  However, it is possible
+to customize the column attributes which appear as header rows. The available
 column attributes are ``name``, ``dtype``, ``format``, ``description`` and
 ``unit``.  This is done by listing the desired the header rows using the
 ``header_rows`` keyword argument.
@@ -494,7 +494,7 @@ column attributes are ``name``, ``dtype``, ``format``, ``description`` and
     |     2 |    2.00 |        d |     5 |
     |     3 |    3.00 |        e |     6 |
 
-In this example the 1st row is the ``name``, the 2nd row is the ``unit``, and
+In this example the 1st row is the ``dtype``, the 2nd row is the ``name``, and
 so forth. You must supply the ``name`` value in the ``header_rows`` list in
 order to get an output with the column name included.
 

@@ -27,7 +27,7 @@ static PyMethodDef module_methods[] = {{NULL, NULL, 0, NULL}};
   ob = PyModule_Create(&moduledef);
 
 MOD_INIT(_fast_sigma_clip) {
-    PyObject *m, *d = NULL;
+    PyObject *m, *d;
     PyUFuncObject *ufunc;
     static char types[9] = {
         NPY_DOUBLE, /* data array */

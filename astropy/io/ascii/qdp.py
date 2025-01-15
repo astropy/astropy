@@ -4,13 +4,10 @@ This package contains functions for reading and writing QDP tables that are
 not meant to be used directly, but instead are available as readers/writers in
 `astropy.table`. See :ref:`astropy:table_io` for more details.
 """
-
 import copy
-import os
 import re
 import warnings
 from collections.abc import Iterable
-from pathlib import Path
 
 import numpy as np
 
@@ -21,7 +18,7 @@ from . import basic, core
 
 
 def _line_type(line, delimiter=None):
-    """Interpret a QDP file line.
+    """Interpret a QDP file line
 
     Parameters
     ----------
@@ -71,7 +68,7 @@ def _line_type(line, delimiter=None):
     _new_re = rf"NO({sep}NO)+"
     _data_re = rf"({_decimal_re}|NO|[-+]?nan)({sep}({_decimal_re}|NO|[-+]?nan))*)"
     _type_re = rf"^\s*((?P<command>{_command_re})|(?P<new>{_new_re})|(?P<data>{_data_re})?\s*(\!(?P<comment>.*))?\s*$"
-    _line_type_re = re.compile(_type_re, re.IGNORECASE)
+    _line_type_re = re.compile(_type_re)
     line = line.strip()
     if not line:
         return "comment"
@@ -89,7 +86,7 @@ def _line_type(line, delimiter=None):
 
 
 def _get_type_from_list_of_lines(lines, delimiter=None):
-    """Read through the list of QDP file lines and label each line by type.
+    """Read through the list of QDP file lines and label each line by type
 
     Parameters
     ----------
@@ -122,6 +119,7 @@ def _get_type_from_list_of_lines(lines, delimiter=None):
         ...
     ValueError: Inconsistent number of columns
     """
+
     types = [_line_type(line, delimiter=delimiter) for line in lines]
     current_ncol = None
     for type_ in types:
@@ -138,9 +136,9 @@ def _get_type_from_list_of_lines(lines, delimiter=None):
 def _get_lines_from_file(qdp_file):
     if "\n" in qdp_file:
         lines = qdp_file.split("\n")
-    elif isinstance(qdp_file, (str, os.PathLike)):
+    elif isinstance(qdp_file, str):
         with open(qdp_file) as fobj:
-            lines = [line.strip() for line in fobj]
+            lines = [line.strip() for line in fobj.readlines()]
     elif isinstance(qdp_file, Iterable):
         lines = qdp_file
     else:
@@ -150,7 +148,7 @@ def _get_lines_from_file(qdp_file):
 
 
 def _interpret_err_lines(err_specs, ncols, names=None):
-    """Give list of column names from the READ SERR and TERR commands.
+    """Give list of column names from the READ SERR and TERR commands
 
     Parameters
     ----------
@@ -193,6 +191,7 @@ def _interpret_err_lines(err_specs, ncols, names=None):
         ...
     ValueError: Inconsistent number of input colnames
     """
+
     colnames = ["" for i in range(ncols)]
     if err_specs is None:
         serr_cols = terr_cols = []
@@ -238,7 +237,7 @@ def _interpret_err_lines(err_specs, ncols, names=None):
 
 
 def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
-    """Get all tables from a QDP file.
+    """Get all tables from a QDP file
 
     Parameters
     ----------
@@ -258,6 +257,7 @@ def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
     list of `~astropy.table.Table`
         List containing all the tables present inside the QDP file
     """
+
     lines = _get_lines_from_file(qdp_file)
     contents, ncol = _get_type_from_list_of_lines(lines, delimiter=delimiter)
 
@@ -309,7 +309,7 @@ def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
 
             values = []
             for v in line.split(delimiter):
-                if v.upper() == "NO":
+                if v == "NO":
                     values.append(np.ma.masked)
                 else:
                     # Understand if number is int or float
@@ -346,7 +346,7 @@ def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
 
 
 def _understand_err_col(colnames):
-    """Get which column names are error columns.
+    """Get which column names are error columns
 
     Examples
     --------
@@ -386,7 +386,7 @@ def _understand_err_col(colnames):
 
 
 def _read_table_qdp(qdp_file, names=None, table_id=None, delimiter=None):
-    """Read a table from a QDP file.
+    """Read a table from a QDP file
 
     Parameters
     ----------
@@ -426,7 +426,7 @@ def _read_table_qdp(qdp_file, names=None, table_id=None, delimiter=None):
 
 
 def _write_table_qdp(table, filename=None, err_specs=None):
-    """Write a table to a QDP file.
+    """Write a table to a QDP file
 
     Parameters
     ----------
@@ -488,14 +488,15 @@ def _write_table_qdp(table, filename=None, err_specs=None):
     fobj.close()
 
     if filename is not None:
-        Path(filename).write_text(full_string)
+        with open(filename, "w") as fobj:
+            print(full_string, file=fobj)
 
     return full_string.split("\n")
 
 
 class QDPSplitter(core.DefaultSplitter):
     """
-    Split on space for QDP tables.
+    Split on space for QDP tables
     """
 
     delimiter = " "
@@ -503,7 +504,7 @@ class QDPSplitter(core.DefaultSplitter):
 
 class QDPHeader(basic.CommentedHeaderHeader):
     """
-    Header that uses the :class:`astropy.io.ascii.basic.QDPSplitter`.
+    Header that uses the :class:`astropy.io.ascii.basic.QDPSplitter`
     """
 
     splitter_class = QDPSplitter
@@ -513,7 +514,7 @@ class QDPHeader(basic.CommentedHeaderHeader):
 
 class QDPData(basic.BasicData):
     """
-    Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`.
+    Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`
     """
 
     splitter_class = QDPSplitter

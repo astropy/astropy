@@ -1,24 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import numpy as np
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import TypeVar
-
-    from numpy.typing import NDArray
-
-    DT = TypeVar("DT", bound=np.generic)
 
 __all__ = ["jackknife_resampling", "jackknife_stats"]
 __doctest_requires__ = {"jackknife_stats": ["scipy"]}
 
 
-def jackknife_resampling(data: NDArray[DT]) -> NDArray[DT]:
+def jackknife_resampling(data):
     """Performs jackknife resampling on numpy arrays.
 
     Jackknife resampling is a technique to generate 'n' deterministic samples
@@ -51,6 +39,7 @@ def jackknife_resampling(data: NDArray[DT]) -> NDArray[DT]:
 
     .. [3] Jackknife resampling <https://en.wikipedia.org/wiki/Jackknife_resampling>
     """
+
     n = data.shape[0]
     if n <= 0:
         raise ValueError("data must contain at least one measurement.")
@@ -63,11 +52,7 @@ def jackknife_resampling(data: NDArray[DT]) -> NDArray[DT]:
     return resamples
 
 
-def jackknife_stats(
-    data: NDArray,
-    statistic: Callable,
-    confidence_level: float = 0.95,
-) -> tuple[float | NDArray, float | NDArray, float | NDArray, NDArray]:
+def jackknife_stats(data, statistic, confidence_level=0.95):
     """Performs jackknife estimation on the basis of jackknife resamples.
 
     This function requires `SciPy <https://www.scipy.org/>`_ to be installed.
@@ -132,11 +117,11 @@ def jackknife_stats(
     >>> estimate, bias, stderr, conf_interval = jackknife_stats(
     ...     data, test_statistic, 0.95)
     >>> estimate
-    np.float64(4.5)
+    4.5
     >>> bias
-    np.float64(0.0)
+    0.0
     >>> stderr  # doctest: +FLOAT_CMP
-    np.float64(0.95742710775633832)
+    0.95742710775633832
     >>> conf_interval
     array([2.62347735,  6.37652265])
 

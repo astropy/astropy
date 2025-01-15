@@ -9,29 +9,32 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.io.fits.hdu.compressed import CompImageSection
 from astropy.io.fits.hdu.image import Section
 from astropy.utils import lazyproperty
 from astropy.wcs import Sip
 from astropy.wcs.utils import proj_plane_pixel_scales, skycoord_to_pixel
 
 __all__ = [
-    "Cutout2D",
+    "extract_array",
+    "add_array",
+    "subpixel_indices",
+    "overlap_slices",
     "NoOverlapError",
     "PartialOverlapError",
-    "add_array",
-    "extract_array",
-    "overlap_slices",
-    "subpixel_indices",
+    "Cutout2D",
 ]
 
 
 class NoOverlapError(ValueError):
     """Raised when determining the overlap of non-overlapping arrays."""
 
+    pass
+
 
 class PartialOverlapError(ValueError):
     """Raised when arrays only partially overlap."""
+
+    pass
 
 
 def overlap_slices(large_array_shape, small_array_shape, position, mode="partial"):
@@ -81,6 +84,7 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode="partial
         that ``small_array[slices_small]`` extracts the region that is
         inside the large array.
     """
+
     if mode not in ["partial", "trim", "strict"]:
         raise ValueError('Mode can be only "partial", "trim", or "strict".')
     if np.isscalar(small_array_shape):
@@ -115,7 +119,7 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode="partial
     ]
 
     for e_max in indices_max:
-        if e_max < 0 or (e_max == 0 and small_array_shape != (0, 0)):
+        if e_max < 0:
             raise NoOverlapError("Arrays do not overlap.")
     for e_min, large_shape in zip(indices_min, large_array_shape):
         if e_min >= large_shape:
@@ -225,6 +229,7 @@ def extract_array(
            [75, 76, 77, 78, 79],
            [85, 86, 87, 88, 89]])
     """
+
     if np.isscalar(shape):
         shape = (shape,)
     if np.isscalar(position):
@@ -342,6 +347,7 @@ def subpixel_indices(position, subsampling):
 
     Examples
     --------
+
     If no subsampling is used, then the subpixel indices returned are always 0:
 
     >>> from astropy.nddata.utils import subpixel_indices
@@ -406,7 +412,7 @@ class Cutout2D:
         `~astropy.units.Quantity` objects.  Such
         `~astropy.units.Quantity` objects must be in pixel or
         angular units.  For all cases, ``size`` will be converted to
-        an integer number of pixels, rounding the nearest
+        an integer number of pixels, rounding the the nearest
         integer.  See the ``mode`` keyword for additional details on
         the final cutout size.
 
@@ -569,7 +575,7 @@ class Cutout2D:
         # so evaluate each axis separately
         for axis, side in enumerate(size):
             if not isinstance(side, u.Quantity):
-                shape[axis] = int(np.round(side))  # pixels
+                shape[axis] = int(np.round(size[axis]))  # pixels
             else:
                 if side.unit == u.pixel:
                     shape[axis] = int(np.round(side.value))
@@ -588,9 +594,7 @@ class Cutout2D:
                         "shape can contain Quantities with only pixel or angular units"
                     )
 
-        if not isinstance(
-            data, (Section, CompImageSection)
-        ):  # Accept lazy-loaded image sections
+        if not isinstance(data, Section):  # Accept lazy-loaded image sections
             data = np.asanyarray(data)
         # reverse position because extract_array and overlap_slices
         # use (y, x), but keep the input position
@@ -667,10 +671,6 @@ class Cutout2D:
         original_position : tuple
             The corresponding ``(x, y)`` pixel position in the original
             large array.
-
-        See Also
-        --------
-        to_cutout_position
         """
         return tuple(cutout_position[i] + self.origin_original[i] for i in [0, 1])
 
@@ -689,10 +689,6 @@ class Cutout2D:
         cutout_position : tuple
             The corresponding ``(x, y)`` pixel position in the cutout
             array.
-
-        See Also
-        --------
-        to_original_position
         """
         return tuple(original_position[i] - self.origin_original[i] for i in [0, 1])
 
@@ -720,6 +716,7 @@ class Cutout2D:
             ``ax=None``.  Otherwise the output ``ax`` is the same as the
             input ``ax``.
         """
+
         import matplotlib.patches as mpatches
         import matplotlib.pyplot as plt
 
@@ -731,7 +728,7 @@ class Cutout2D:
         height, width = self.shape
         hw, hh = width / 2.0, height / 2.0
         pos_xy = self.position_original - np.array([hw, hh])
-        patch = mpatches.Rectangle(pos_xy, width, height, angle=0.0, **kwargs)
+        patch = mpatches.Rectangle(pos_xy, width, height, 0.0, **kwargs)
         ax.add_patch(patch)
         return ax
 

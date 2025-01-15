@@ -139,7 +139,6 @@ class TestAngleFormatterLocator:
             ("dd", "15\xb0"),
             ("dd:mm", "15\xb024'"),
             ("dd:mm:ss", "15\xb023'32\""),
-            ("+dd:mm:ss", "+15\xb023'32\""),
             ("dd:mm:ss.s", "15\xb023'32.0\""),
             ("dd:mm:ss.ssss", "15\xb023'32.0316\""),
             ("hh", "1h"),
@@ -157,7 +156,6 @@ class TestAngleFormatterLocator:
             ("s", '55412"'),
             ("s.s", '55412.0"'),
             ("s.ss", '55412.03"'),
-            ("+s.ss", '+55412.03"'),
         ],
     )
     def test_format(self, format, string):
@@ -409,8 +407,8 @@ class TestAngleFormatterLocator:
                 True,
                 True,
                 0.001 * u.arcsec,
-                "55412032 mas",
-                r"$55412032\;\mathrm{mas}$",
+                "55412032mas",
+                r"$55412032\mathrm{mas}$",
             ),
             (u.degree, True, False, 15 * u.degree, "15", "15"),
             (u.degree, True, False, 0.12 * u.degree, "15.39", "15.39"),
@@ -457,22 +455,6 @@ class TestAngleFormatterLocator:
             ),
         ):
             AngleFormatterLocator(unit=u.arcmin, decimal=False)
-
-    @pytest.mark.parametrize(
-        "unicode_minus, expected_char",
-        [
-            (True, "\N{MINUS SIGN}"),
-            (False, "-"),
-        ],
-    )
-    @pytest.mark.parametrize("cls", [AngleFormatterLocator, ScalarFormatterLocator])
-    def test_unicode_minus(self, cls, unicode_minus, expected_char):
-        # see https://github.com/astropy/astropy/issues/15898
-        fl = cls()
-        with rc_context(rc={"axes.unicode_minus": unicode_minus}):
-            minus_one, _ = fl.formatter([-1.0, 1.0] * u.deg, spacing=2 * u.deg)
-
-        assert minus_one.startswith(expected_char)
 
 
 class TestScalarFormatterLocator:

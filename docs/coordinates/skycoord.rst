@@ -161,8 +161,7 @@ describe a user input of that element type. Elements in square brackets are
 optional. For nonspherical inputs, see the `Representations`_ section.
 
 
-LON, LAT
-^^^^^^^^
+**LON**, **LAT**
 
 Longitude and latitude value can be specified as separate positional arguments.
 The following options are available for longitude and latitude:
@@ -196,8 +195,7 @@ The following options are available for longitude and latitude:
         >>> ICRS(0, 0, unit=u.deg) # doctest: +SKIP
         UnitTypeError: Longitude instances require units equivalent to 'rad', but no unit was given.
 
-DISTANCE
-^^^^^^^^
+**DISTANCE**
 
 The distance to the object from the frame center can be optionally specified:
 
@@ -210,11 +208,7 @@ The distance to the object from the frame center can be optionally specified:
 - List, or |Quantity|, or `~astropy.coordinates.Distance` array, or NumPy array
   of angle values
 
-
-.. _coordinates-initialization-coord:
-
-COORD
-^^^^^
+**COORD**
 
 This input form uses a single object to supply coordinate data. For the case
 of spherical coordinate frames, the coordinate can include one or more
@@ -487,6 +481,7 @@ documentation::
   sc.gcrs                                sc.separation_3d
   sc.geocentrictrueecliptic              sc.shape
   sc.get_constellation                   sc.size
+  sc.get_frame_attr_names                sc.skyoffset_frame
   sc.guess_from_table                    sc.spherical
   sc.has_data                            sc.spherical_offsets_to
   sc.hcrs                                sc.squeeze
@@ -539,7 +534,7 @@ lies in some less obvious attributes::
   {'l': Unit("deg"), 'b': Unit("deg")}
 
   >>> sc_gal.representation_type
-  <class 'astropy.coordinates...SphericalRepresentation'>
+  <class 'astropy.coordinates.representation.SphericalRepresentation'>
 
 Together these tell the object that ``l`` and ``b`` are the longitude and
 latitude, and that they should both be displayed in units of degrees as
@@ -585,6 +580,7 @@ class), and |SkyCoord| (a.k.a. high-level class; see
   sc.frame.flatten                             sc.frame.reshape
   sc.frame.frame_attributes                    sc.frame.separation
   sc.frame.frame_specific_representation_info  sc.frame.separation_3d
+  sc.frame.get_frame_attr_names                sc.frame.shape
   sc.frame.has_data                            sc.frame.size
   sc.frame.is_equivalent_frame                 sc.frame.spherical
   sc.frame.is_frame_attr_default               sc.frame.squeeze
@@ -765,7 +761,7 @@ can specify one or more coordinate positions as follows:
 **REPRESENTATION**
 
 The representation can be supplied either as a
-`~astropy.coordinates.BaseRepresentation` class (e.g.,
+`~astropy.coordinates.representation.BaseRepresentation` class (e.g.,
 `~astropy.coordinates.CartesianRepresentation`) or as a string name
 that is simply the class name in lowercase without the
 ``'representation'`` suffix (e.g., ``'cartesian'``).
@@ -800,19 +796,19 @@ and how it names all of the components, first make an instance of that frame
 without any data, and then print the ``representation_info`` property::
 
     >>> ICRS().representation_info  # doctest: +SKIP
-    {astropy.coordinates...CartesianRepresentation:
+    {astropy.coordinates.representation.CartesianRepresentation:
       {'names': ('x', 'y', 'z'),
        'units': (None, None, None)},
-     astropy.coordinates...SphericalRepresentation:
+     astropy.coordinates.representation.SphericalRepresentation:
       {'names': ('ra', 'dec', 'distance'),
        'units': (Unit("deg"), Unit("deg"), None)},
-     astropy.coordinates...UnitSphericalRepresentation:
+     astropy.coordinates.representation.UnitSphericalRepresentation:
       {'names': ('ra', 'dec'),
        'units': (Unit("deg"), Unit("deg"))},
-     astropy.coordinates...PhysicsSphericalRepresentation:
+     astropy.coordinates.representation.PhysicsSphericalRepresentation:
       {'names': ('phi', 'theta', 'r'),
        'units': (Unit("deg"), Unit("deg"), None)},
-     astropy.coordinates...CylindricalRepresentation:
+     astropy.coordinates.representation.CylindricalRepresentation:
       {'names': ('rho', 'phi', 'z'),
        'units': (None, Unit("deg"), None)}
     }
@@ -834,7 +830,7 @@ names for that frame to the component name on the representation class::
     >>> import astropy.units as u
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
     >>> icrs.representation_type
-    <class 'astropy.coordinates...SphericalRepresentation'>
+    <class 'astropy.coordinates.representation.SphericalRepresentation'>
     >>> icrs.representation_component_names
     {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
 
@@ -905,7 +901,7 @@ state of the |SkyCoord| object, you should instead use the
     <CartesianRepresentation (x, y, z) in kpc
         (1., 2., 3.)>
     >>> c.representation_type
-    <class 'astropy.coordinates...SphericalRepresentation'>
+    <class 'astropy.coordinates.representation.SphericalRepresentation'>
 
 ..
   EXAMPLE END
@@ -1132,18 +1128,18 @@ FK4 => ICRS => FK4 and then compare::
 
   >>> sc1 = SkyCoord(1*u.deg, 2*u.deg, frame='fk4')
   >>> sc1.icrs.fk4 == sc1
-  np.False_
+  False
 
 Matching Within Tolerance
 -------------------------
 
 To test if coordinates are within a certain angular distance of one other, use the
-:meth:`~astropy.coordinates.BaseCoordinateFrame.separation` method::
+`~astropy.coordinates.SkyCoord.separation` method::
 
   >>> sc1.icrs.fk4.separation(sc1).to(u.arcsec)  # doctest: +SKIP
   <Angle 7.98873629e-13 arcsec>
   >>> sc1.icrs.fk4.separation(sc1) < 1e-9 * u.arcsec
-  np.True_
+  True
 
 Exact Equality
 --------------
@@ -1173,7 +1169,7 @@ In the first example we show simple comparisons using array-valued coordinates::
   >>> sc2 == sc2[1]  # Broadcasting comparison with a scalar
   array([False,  True])
   >>> sc2[0] == sc2[1]  # Scalar to scalar comparison
-  np.False_
+  False
   >>> sc1 != sc2  # Not equal
   array([False,  True])
 
@@ -1243,8 +1239,8 @@ means that attributes such as ``obstime`` can become columns or metadata::
       0.0    20.0
      20.0     0.0
   >>> t.meta
-  {'representation_type': 'spherical', 'frame': 'galactic',
-   'obstime': <Time object: scale='tt' format='jyear' value=2000.0>}
+  {'obstime': <Time object: scale='tt' format='jyear' value=2000.0>,
+   'representation_type': 'spherical', 'frame': 'galactic'}
 
 Convenience Methods
 ===================
@@ -1254,9 +1250,9 @@ the available docstrings below:
 
 - `~astropy.coordinates.SkyCoord.match_to_catalog_sky`,
 - `~astropy.coordinates.SkyCoord.match_to_catalog_3d`,
-- `~astropy.coordinates.BaseCoordinateFrame.position_angle`,
-- `~astropy.coordinates.BaseCoordinateFrame.separation`,
-- `~astropy.coordinates.BaseCoordinateFrame.separation_3d`
+- `~astropy.coordinates.SkyCoord.position_angle`,
+- `~astropy.coordinates.SkyCoord.separation`,
+- `~astropy.coordinates.SkyCoord.separation_3d`
 - `~astropy.coordinates.SkyCoord.apply_space_motion`
 
 Additional information and examples can be found in the section on

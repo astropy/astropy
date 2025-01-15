@@ -1,7 +1,7 @@
 /******************************************************************************
  * C extension code for astropy.utils.xml.iterparse
  *
- * Everything in this file could be implemented in Python and
+ * Everything in this file has an alternate Python implementation and
  * is included for performance reasons only.
  *
  * It has two main parts:
@@ -121,7 +121,7 @@ typedef struct {
     Py_ssize_t queue_write_idx;
 
     /* Store the last Python exception so it can be returned when
-       dequeuing events */
+       dequeing events */
     PyObject*  error_type;
     PyObject*  error_value;
     PyObject*  error_traceback;

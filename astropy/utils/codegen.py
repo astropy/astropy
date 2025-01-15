@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Utilities for generating new Python code at runtime."""
 
+
 import inspect
+import itertools
 import keyword
 import os
 import re
@@ -45,6 +47,7 @@ def make_function_with_signature(
 
     Note, the names may only be valid Python variable names.
     """
+
     pos_args = []
     key_args = []
 
@@ -54,7 +57,7 @@ def make_function_with_signature(
         iter_kwargs = iter(kwargs)
 
     # Check that all the argument names are valid
-    for item in (*args, *iter_kwargs):
+    for item in itertools.chain(args, iter_kwargs):
         if isinstance(item, tuple):
             argname = item[0]
             key_args.append(item)
@@ -88,7 +91,7 @@ def make_function_with_signature(
         default_var = f"_kwargs{idx}"
         local_vars[default_var] = value
         def_signature.append(f", {key}={default_var}")
-        call_signature.append(f", {key}={key}")
+        call_signature.append(", {0}={0}".format(key))
 
     if varkwargs:
         def_signature.append(f", **{varkwargs}")
@@ -120,7 +123,9 @@ def make_function_with_signature(
         """{0}\
     def {name}({sig1}):
         return __{name}__func({sig2})
-    """.format("\n" * lineno, name=name, sig1=def_signature, sig2=call_signature)
+    """.format(
+            "\n" * lineno, name=name, sig1=def_signature, sig2=call_signature
+        )
     )
 
     code = compile(template, filename, "single")

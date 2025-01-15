@@ -2,61 +2,53 @@
 
 """Testing :mod:`astropy.cosmology.core`."""
 
-from __future__ import annotations
+##############################################################################
+# IMPORTS
 
+# STDLIB
 import abc
 import inspect
 import pickle
-from typing import TYPE_CHECKING
 
+# THIRD PARTY
 import numpy as np
 import pytest
 
+# LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import Cosmology, FlatCosmologyMixin, Parameter
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, dataclass_decorator
-from astropy.cosmology.parameter.tests.test_descriptors import (
-    ParametersAttributeTestMixin,
-)
-from astropy.cosmology.parameter.tests.test_parameter import ParameterTestMixin
-from astropy.cosmology.tests.test_connect import (
-    ReadWriteTestMixin,
-    ToFromFormatTestMixin,
-)
+from astropy.cosmology import Cosmology, FlatCosmologyMixin
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.parameter import Parameter
 from astropy.table import Column, QTable, Table
+from astropy.utils.compat import PYTHON_LT_3_11
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.metadata import MetaData
 
-if TYPE_CHECKING:
-    from numpy.typing import NDArray
+from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
+from .test_parameter import ParameterTestMixin
 
 ##############################################################################
 # SETUP / TEARDOWN
 
 
-def make_valid_zs(max_z: float = 1e5) -> tuple[list, NDArray[float], list, list]:
-    """Make a list of valid redshifts for testing."""
-    # scalar
-    scalar_zs = [
-        0,
-        1,
-        min(1100, max_z),  # interesting times
-        # FIXME! np.inf breaks some funcs. 0 * inf is an error
-        np.float64(min(3300, max_z)),  # different type
-        2 * cu.redshift,
-        3 * u.one,  # compatible units
-    ]
-    # array
-    _zarr = np.linspace(0, min(1e5, max_z), num=20)
-    array_zs = [
-        _zarr,  # numpy
-        _zarr.tolist(),  # pure python
-        Column(_zarr),  # table-like
-        _zarr * cu.redshift,  # Quantity
-    ]
-    return scalar_zs, _zarr, array_zs, scalar_zs + array_zs
-
-
-scalar_zs, z_arr, array_zs, valid_zs = make_valid_zs()
+scalar_zs = [
+    0,
+    1,
+    1100,  # interesting times
+    # FIXME! np.inf breaks some funcs. 0 * inf is an error
+    np.float64(3300),  # different type
+    2 * cu.redshift,
+    3 * u.one,  # compatible units
+]
+_zarr = np.linspace(0, 1e5, num=20)
+array_zs = [
+    _zarr,  # numpy
+    _zarr.tolist(),  # pure python
+    Column(_zarr),  # table-like
+    _zarr * cu.redshift,  # Quantity
+]
+valid_zs = scalar_zs + array_zs
 
 invalid_zs = [
     (None, TypeError),  # wrong type
@@ -66,13 +58,18 @@ invalid_zs = [
 ]
 
 
-@dataclass_decorator
 class SubCosmology(Cosmology):
     """Defined here to be serializable."""
 
-    H0: Parameter = Parameter(unit="km/(s Mpc)")
-    Tcmb0: Parameter = Parameter(default=0 * u.K, unit=u.K)
-    m_nu: Parameter = Parameter(default=0 * u.eV, unit=u.eV)
+    H0 = Parameter(unit="km/(s Mpc)")
+    Tcmb0 = Parameter(unit=u.K)
+    m_nu = Parameter(unit=u.eV)
+
+    def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
+        super().__init__(name=name, meta=meta)
+        self.H0 = H0
+        self.Tcmb0 = Tcmb0
+        self.m_nu = m_nu
 
     @property
     def is_flat(self):
@@ -88,7 +85,7 @@ class MetaTestMixin:
     """Tests for a :class:`astropy.utils.metadata.MetaData` on a Cosmology."""
 
     def test_meta_on_class(self, cosmo_cls):
-        assert cosmo_cls.meta is None
+        assert isinstance(cosmo_cls.meta, MetaData)
 
     def test_meta_on_instance(self, cosmo):
         assert isinstance(cosmo.meta, dict)  # test type
@@ -97,26 +94,41 @@ class MetaTestMixin:
 
     def test_meta_mutable(self, cosmo):
         """The metadata is NOT immutable on a cosmology"""
-        key = next(iter(cosmo.meta.keys()))  # select some key
+        key = tuple(cosmo.meta.keys())[0]  # select some key
         cosmo.meta[key] = cosmo.meta.pop(key)  # will error if immutable
 
 
-class CosmologyTest(
+class TestCosmology(
     ParameterTestMixin,
-    ParametersAttributeTestMixin,
     MetaTestMixin,
     ReadWriteTestMixin,
     ToFromFormatTestMixin,
     metaclass=abc.ABCMeta,
 ):
-    """Test subclasses of :class:`astropy.cosmology.Cosmology`."""
+    """Test :class:`astropy.cosmology.Cosmology`.
 
-    @abc.abstractmethod
+    Subclasses should define tests for:
+
+    - ``test_clone_change_param()``
+    - ``test_repr()``
+    """
+
     def setup_class(self):
-        """Setup for testing."""
+        """
+        Setup for testing.
+        Cosmology should not be instantiated, so tests are done on a subclass.
+        """
+        # make sure SubCosmology is known
+        _COSMOLOGY_CLASSES["SubCosmology"] = SubCosmology
+
+        self.cls = SubCosmology
+        self._cls_args = dict(
+            H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV
+        )
+        self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
 
     def teardown_class(self):
-        pass
+        _COSMOLOGY_CLASSES.pop("SubCosmology", None)
 
     @property
     def cls_args(self):
@@ -130,14 +142,14 @@ class CosmologyTest(
     @pytest.fixture(scope="function")  # ensure not cached.
     def ba(self):
         """Return filled `inspect.BoundArguments` for cosmology."""
-        ba = inspect.signature(self.cls).bind(*self.cls_args, **self.cls_kwargs)
+        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
         ba.apply_defaults()
         return ba
 
     @pytest.fixture(scope="class")
     def cosmo(self, cosmo_cls):
         """The cosmology instance with which to test."""
-        ba = inspect.signature(self.cls).bind(*self.cls_args, **self.cls_kwargs)
+        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
         ba.apply_defaults()
         return cosmo_cls(*ba.args, **ba.kwargs)
 
@@ -150,29 +162,34 @@ class CosmologyTest(
     def test_init_subclass(self, cosmo_cls):
         """Test creating subclasses registers classes and manages Parameters."""
 
-        # -----------------------------------------------------------
-        # Normal subclass creation
-
         class InitSubclassTest(cosmo_cls):
             pass
 
         # test parameters
-        assert InitSubclassTest.parameters == cosmo_cls.parameters
+        assert InitSubclassTest.__parameters__ == cosmo_cls.__parameters__
 
         # test and cleanup registry
         registrant = _COSMOLOGY_CLASSES.pop(InitSubclassTest.__qualname__)
         assert registrant is InitSubclassTest
 
-        # -----------------------------------------------------------
-        # Skip
+    def test_init_signature(self, cosmo_cls, cosmo):
+        """Test class-property ``_init_signature``."""
+        # test presence
+        assert hasattr(cosmo_cls, "_init_signature")
+        assert hasattr(cosmo, "_init_signature")
 
-        class UnRegisteredSubclassTest(cosmo_cls):
-            @classmethod
-            def _register_cls(cls):
-                """Override to not register."""
+        # test internal consistency, so following tests can use either cls or instance.
+        assert cosmo_cls._init_signature == cosmo._init_signature
 
-        assert UnRegisteredSubclassTest.parameters == cosmo_cls.parameters
-        assert UnRegisteredSubclassTest.__qualname__ not in _COSMOLOGY_CLASSES
+        # test matches __init__, but without 'self'
+        sig = inspect.signature(cosmo.__init__)  # (instances don't have self)
+        assert set(sig.parameters.keys()) == set(
+            cosmo._init_signature.parameters.keys()
+        )
+        assert all(
+            np.all(sig.parameters[k].default == p.default)
+            for k, p in cosmo._init_signature.parameters.items()
+        )
 
     # ---------------------------------------------------------------
     # instance-level
@@ -190,22 +207,23 @@ class CosmologyTest(
 
     def test_name(self, cosmo):
         """Test property ``name``."""
+        assert cosmo.name is cosmo._name  # accesses private attribute
         assert cosmo.name is None or isinstance(cosmo.name, str)  # type
         assert cosmo.name == self.cls_kwargs["name"]  # test has expected value
 
-    def test_name_immutable(self, cosmo):
-        """The name field should be immutable."""
-        match = "cannot assign to field 'name'"
+        # immutable
+        match = (
+            "can't set"
+            if PYTHON_LT_3_11
+            else f"property 'name' of {cosmo.__class__.__name__!r} object has no setter"
+        )
         with pytest.raises(AttributeError, match=match):
             cosmo.name = None
 
-    def test_name_on_cls(self, cosmo_cls):
-        """Test accessing :attr:`~astropy.cosmology.Cosmology.name` from the class."""
-        assert cosmo_cls.name is None
-
-    @abc.abstractmethod
     def test_is_flat(self, cosmo_cls, cosmo):
-        """Test property ``is_flat``."""
+        """Test property ``is_flat``. It's an ABC."""
+        with pytest.raises(NotImplementedError, match="is_flat is not implemented"):
+            cosmo.is_flat
 
     # ------------------------------------------------
     # clone
@@ -220,7 +238,7 @@ class CosmologyTest(
         c = cosmo.clone(name="cloned cosmo")
         assert c.name == "cloned cosmo"  # changed
         # show name is the only thing changed
-        object.__setattr__(c, "name", cosmo.name)  # first change name back
+        c._name = cosmo.name  # first change name back
         assert c == cosmo
         assert c.meta == cosmo.meta
 
@@ -282,6 +300,35 @@ class CosmologyTest(
         assert (cosmo != newcosmo) and (newcosmo != cosmo)
         assert cosmo.__equiv__(newcosmo) and newcosmo.__equiv__(cosmo)
 
+    # ---------------------------------------------------------------
+
+    def test_repr(self, cosmo_cls, cosmo):
+        """Test method ``.__repr__()``.
+
+        This is a very general test and it is probably good to have a
+        hard-coded comparison.
+        """
+        r = repr(cosmo)
+
+        # class in string rep
+        assert cosmo_cls.__qualname__ in r
+        assert r.index(cosmo_cls.__qualname__) == 0  # it's the first thing
+        r = r[len(cosmo_cls.__qualname__) + 1 :]  # remove
+
+        # name in string rep
+        if cosmo.name is not None:
+            assert f'name="{cosmo.name}"' in r
+            assert r.index("name=") == 0
+            r = r[6 + len(cosmo.name) + 3 :]  # remove
+
+        # parameters in string rep
+        ps = {k: getattr(cosmo, k) for k in cosmo.__parameters__}
+        for k, v in ps.items():
+            sv = f"{k}={v}"
+            assert sv in r
+            assert r.index(k) == 0
+            r = r[len(sv) + 2 :]  # remove
+
     # ------------------------------------------------
 
     @pytest.mark.parametrize("in_meta", [True, False])
@@ -292,7 +339,7 @@ class CosmologyTest(
 
         assert isinstance(tbl, table_cls)
         # the name & all parameters are columns
-        for n in ("name", *cosmo.parameters):
+        for n in ("name", *cosmo.__parameters__):
             assert n in tbl.colnames
             assert np.all(tbl[n] == getattr(cosmo, n))
         # check if Cosmology is in metadata or a column
@@ -314,7 +361,7 @@ class CosmologyTest(
         Test immutability of cosmologies.
         The metadata is mutable: see ``test_meta_mutable``.
         """
-        for n in (*cosmo.parameters, *cosmo._derived_parameters):
+        for n in cosmo.__all_parameters__:
             with pytest.raises(AttributeError):
                 setattr(cosmo, n, getattr(cosmo, n))
 
@@ -338,41 +385,26 @@ class CosmologyTest(
         assert unpickled.meta == cosmo.meta
 
 
-class TestCosmology(CosmologyTest):
-    """Test :class:`astropy.cosmology.Cosmology`.
-
-    Subclasses should define tests for:
-
-    - ``test_clone_change_param()``
-    - ``test_repr()``
+class CosmologySubclassTest(TestCosmology):
+    """
+    Test subclasses of :class:`astropy.cosmology.Cosmology`.
+    This is broken away from ``TestCosmology``, because |Cosmology| is/will be
+    an ABC and subclasses must override some methods.
     """
 
+    @abc.abstractmethod
     def setup_class(self):
-        """
-        Setup for testing.
-        Cosmology should not be instantiated, so tests are done on a subclass.
-        """
-        # make sure SubCosmology is known
-        _COSMOLOGY_CLASSES["SubCosmology"] = SubCosmology
-
-        self.cls = SubCosmology
-        self._cls_args = dict(
-            H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV
-        )
-        self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
-
-    def teardown_class(self):
-        """Teardown for testing."""
-        super().teardown_class(self)
-        _COSMOLOGY_CLASSES.pop("SubCosmology", None)
+        """Setup for testing."""
 
     # ===============================================================
     # Method & Attribute Tests
 
+    # ---------------------------------------------------------------
+    # instance-level
+
+    @abc.abstractmethod
     def test_is_flat(self, cosmo_cls, cosmo):
-        """Test property ``is_flat``. It's an ABC."""
-        with pytest.raises(NotImplementedError, match="is_flat is not implemented"):
-            cosmo.is_flat
+        """Test property ``is_flat``."""
 
 
 # -----------------------------------------------------------------------------
@@ -448,7 +480,7 @@ class FlatCosmologyMixinTest:
         e.g. FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestCosmology
         vs   FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestFLRW -> TestCosmology
         """
-        CosmologyTest.test_is_equivalent(self, cosmo)
+        CosmologySubclassTest.test_is_equivalent(self, cosmo)
 
         # See FlatFLRWMixinTest for tests. It's a bit hard here since this class
         # is for an ABC.
@@ -488,10 +520,11 @@ def test__nonflatclass__multiple_nonflat_inheritance():
     Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.__nonflatclass__`
     when there's more than one non-flat class in the inheritance.
     """
-
     # Define a non-operable minimal subclass of Cosmology.
-    @dataclass_decorator
     class SubCosmology2(Cosmology):
+        def __init__(self, H0, Tcmb0=0 * u.K, m_nu=0 * u.eV, name=None, meta=None):
+            super().__init__(name=name, meta=meta)
+
         @property
         def is_flat(self):
             return False
@@ -503,3 +536,18 @@ def test__nonflatclass__multiple_nonflat_inheritance():
             @property
             def nonflat(self):
                 pass
+
+
+# -----------------------------------------------------------------------------
+
+
+def test_flrw_moved_deprecation():
+    """Test the deprecation warning about the move of FLRW classes."""
+    from astropy.cosmology import flrw
+
+    # it's deprecated to import `flrw/*` from `core.py`
+    with pytest.warns(AstropyDeprecationWarning):
+        from astropy.cosmology.core import FLRW
+
+    # but they are the same object
+    assert FLRW is flrw.FLRW

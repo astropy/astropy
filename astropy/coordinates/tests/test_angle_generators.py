@@ -1,9 +1,9 @@
-"""Unit tests for the :mod:`astropy.coordinates.angles.utils` module."""
+"""Unit tests for the astropy.coordinates.angle_utilities module"""
 
 import pytest
 
 import astropy.units as u
-from astropy.coordinates import (
+from astropy.coordinates.angle_utilities import (
     golden_spiral_grid,
     uniform_spherical_random_surface,
     uniform_spherical_random_volume,

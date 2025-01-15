@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""VOTable exceptions and warnings.
-
+"""
 .. _warnings:
 
 Warnings
 --------
+
 .. note::
     Most of the following warnings indicate violations of the VOTable
     specification.  They should be reported to the authors of the
@@ -41,19 +41,19 @@ from astropy.utils.exceptions import AstropyWarning
 
 __all__ = [
     "Conf",
-    "IOWarning",
-    "UnimplementedWarning",
-    "VOTableChangeWarning",
-    "VOTableSpecError",
-    "VOTableSpecWarning",
-    "VOWarning",
     "conf",
-    "parse_vowarning",
+    "warn_or_raise",
     "vo_raise",
     "vo_reraise",
     "vo_warn",
-    "warn_or_raise",
     "warn_unknown_attrs",
+    "parse_vowarning",
+    "VOWarning",
+    "VOTableChangeWarning",
+    "VOTableSpecWarning",
+    "UnimplementedWarning",
+    "IOWarning",
+    "VOTableSpecError",
 ]
 
 
@@ -84,7 +84,7 @@ def _format_message(message, name, config=None, pos=None):
 
 def _suppressed_warning(warning, config, stacklevel=2):
     warning_class = type(warning)
-    config.setdefault("_warning_counts", {}).setdefault(warning_class, 0)
+    config.setdefault("_warning_counts", dict()).setdefault(warning_class, 0)
     config["_warning_counts"][warning_class] += 1
     message_count = config["_warning_counts"][warning_class]
     if message_count <= conf.max_warnings:
@@ -164,7 +164,7 @@ def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):
 
 _warning_pat = re.compile(
     r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): "
-    r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$"
+    + r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$"
 )
 
 
@@ -255,12 +255,6 @@ class VOTableSpecWarning(VOWarning, SyntaxWarning):
     """
 
 
-class ModelMappingSpecWarning(VOWarning, SyntaxWarning):
-    """
-    The input model mapping XML mapping block violates the spec.
-    """
-
-
 class UnimplementedWarning(VOWarning, SyntaxWarning):
     """
     A feature of the VOTABLE_ spec is not implemented.
@@ -280,8 +274,7 @@ class VOTableSpecError(VOWarning, ValueError):
 
 
 class W01(VOTableSpecWarning):
-    """Array uses commas rather than whitespace.
-
+    """
     The VOTable spec states:
 
         If a cell contains an array or complex number, it should be
@@ -304,8 +297,7 @@ class W01(VOTableSpecWarning):
 
 
 class W02(VOTableSpecWarning):
-    r"""Nonstandard XML id.
-
+    r"""
     XML ids must match the following regular expression::
 
         ^[A-Za-z_][A-Za-z0-9_\.\-]*$
@@ -326,7 +318,7 @@ class W02(VOTableSpecWarning):
 
     **References**: `1.1
     <http://www.ivoa.net/documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
-    `XML Names <https://www.w3.org/TR/xml-names/>`__
+    `XML Names <http://www.w3.org/TR/REC-xml/#NT-Name>`__
     """
 
     message_template = "{} attribute '{}' is invalid.  Must be a standard XML id"
@@ -334,8 +326,7 @@ class W02(VOTableSpecWarning):
 
 
 class W03(VOTableChangeWarning):
-    """Implicitly generating an ID from a name.
-
+    """
     The VOTable 1.1 spec says the following about ``name`` vs. ``ID``
     on ``FIELD`` and ``VALUE`` elements:
 
@@ -418,7 +409,7 @@ class W06(VOTableSpecWarning):
     """
     This warning is emitted when a ``ucd`` attribute does not match
     the syntax of a `unified content descriptor
-    <https://vizier.unistra.fr/doc/UCD.htx>`__.
+    <http://vizier.u-strasbg.fr/doc/UCD.htx>`__.
 
     If the VOTable version is 1.2 or later, the UCD will also be
     checked to ensure it conforms to the controlled vocabulary defined
@@ -435,8 +426,7 @@ class W06(VOTableSpecWarning):
 
 
 class W07(VOTableSpecWarning):
-    """Invalid astroYear.
-
+    """
     As astro year field is a Besselian or Julian year matching the
     regular expression::
 
@@ -507,7 +497,7 @@ class W11(VOTableSpecWarning):
     """
     Earlier versions of the VOTable specification used a ``gref``
     attribute on the ``LINK`` element to specify a `GLU reference
-    <http://aladin.unistra.fr/glu/>`__.  New files should
+    <http://aladin.u-strasbg.fr/glu/>`__.  New files should
     specify a ``glu:`` protocol using the ``href`` attribute.
 
     Since ``astropy.io.votable`` does not currently support GLU references, it
@@ -545,8 +535,7 @@ class W12(VOTableChangeWarning):
 
 
 class W13(VOTableSpecWarning):
-    """Invalid VOTable datatype.
-
+    """
     Some VOTable files in the wild use non-standard datatype names.  These
     are mapped to standard ones using the following mapping::
 
@@ -643,7 +632,7 @@ class W19(VOTableSpecWarning):
 
     message_template = (
         "The fields defined in the VOTable do not match those in the "
-        "embedded FITS file"
+        + "embedded FITS file"
     )
 
 
@@ -660,12 +649,12 @@ class W20(VOTableSpecWarning):
 class W21(UnimplementedWarning):
     """
     Unknown issues may arise using ``astropy.io.votable`` with VOTable files
-    from a version not in 1.1 through 1.5.
+    from a version other than 1.1, 1.2, 1.3, or 1.4.
     """
 
     message_template = (
-        "astropy.io.votable is designed for VOTable versions 1.1 through 1.5,"
-        " but this file is {}"
+        "astropy.io.votable is designed for VOTable version 1.1, 1.2, 1.3,"
+        " and 1.4, but this file is {}"
     )
     default_args = ("x",)
 
@@ -889,9 +878,7 @@ class W36(VOTableSpecWarning):
 class W37(UnimplementedWarning):
     """
     The 3 datatypes defined in the VOTable specification and supported by
-    ``astropy.io.votable`` are ``TABLEDATA``, ``BINARY``, and ``FITS``.
-    In addition, ``astropy.io.votable`` also supports ``PARQUET`` serialization, which is
-    a candidate for addition to the VOTable specification.
+    ``astropy.io.votable`` are ``TABLEDATA``, ``BINARY`` and ``FITS``.
 
     **References:** `1.1
     <http://www.ivoa.net/documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:data>`__,
@@ -963,7 +950,8 @@ class W41(VOTableSpecWarning):
 
 
 class W42(VOTableSpecWarning):
-    """The root element should specify a namespace.
+    """
+    The root element should specify a namespace.
 
     The ``VOTABLE`` namespace is::
 
@@ -976,9 +964,9 @@ class W42(VOTableSpecWarning):
 
 
 class W43(VOTableSpecWarning):
-    """Referenced elements should be defined before referees.
-
-    From the VOTable 1.2 spec:
+    """
+    Referenced elements should be defined before referees.  From the
+    VOTable 1.2 spec:
 
        In VOTable1.2, it is further recommended to place the ID
        attribute prior to referencing it whenever possible.
@@ -1008,8 +996,7 @@ class W44(VOTableSpecWarning):
 
 
 class W45(VOWarning, ValueError):
-    """Invalid content-role attribute.
-
+    """
     The ``content-role`` attribute on the ``LINK`` element must be one of
     the following::
 
@@ -1076,7 +1063,7 @@ class W50(VOTableSpecWarning):
     Invalid unit string as defined in the `Units in the VO, Version 1.0
     <https://www.ivoa.net/documents/VOUnits>`_ (VOTable version >= 1.4)
     or `Standards for Astronomical Catalogues, Version 2.0
-    <https://cdsarc.cds.unistra.fr/doc/catstd-3.2.htx>`_ (version < 1.4).
+    <http://cdsarc.u-strasbg.fr/doc/catstd-3.2.htx>`_ (version < 1.4).
 
     Consider passing an explicit ``unit_format`` parameter if the units
     in this file conform to another specification.
@@ -1143,36 +1130,8 @@ class W55(VOTableSpecWarning):
     default_args = ("", "")
 
 
-class W56(VOTableSpecWarning):
-    """
-    The column fields as defined using ``FIELD`` elements do not match
-    those in the headers of the embedded PARQUET file.  If ``verify`` is not
-    ``'exception'``, the embedded PARQUET file will take precedence.
-    """
-
-    message_template = (
-        "The fields defined in the VOTable do not match those in the "
-        "embedded PARQUET file"
-    )
-
-
-class W57(VOTableSpecWarning):
-    """
-    The ``refposition`` attribute on the ``COOSYS`` element is only allowed on
-    VOTABLE versions 1.5 and greater.
-    favor of a reference to the Space-Time Coordinate (STC) data
-    model (see `utype
-    <http://www.ivoa.net/documents/VOTable/20091130/REC-VOTable-1.2.html#sec:utype>`__
-    and the IVOA note `referencing STC in VOTable
-    <http://ivoa.net/Documents/latest/VOTableSTC.html>`__.
-    """
-
-    message_template = "refposition only allowed on VOTABLE v1.5 and greater"
-
-
 class E01(VOWarning, ValueError):
-    """Invalid size specifier for a field.
-
+    """
     The size specifier for a ``char`` or ``unicode`` field must be
     only a number followed, optionally, by an asterisk.
     Multi-dimensional size specifiers are not supported for these
@@ -1195,8 +1154,7 @@ class E01(VOWarning, ValueError):
 
 
 class E02(VOWarning, ValueError):
-    """Incorrect number of elements in array.
-
+    """
     The number of array elements in the data does not match that specified
     in the FIELD specifier.
     """
@@ -1208,7 +1166,8 @@ class E02(VOWarning, ValueError):
 
 
 class E03(VOWarning, ValueError):
-    """Complex numbers should be two values separated by whitespace.
+    """
+    Complex numbers should be two values separated by whitespace.
 
     **References**: `1.1
     <http://www.ivoa.net/documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
@@ -1221,7 +1180,8 @@ class E03(VOWarning, ValueError):
 
 
 class E04(VOWarning, ValueError):
-    """A ``bit`` array should be a string of '0's and '1's.
+    """
+    A ``bit`` array should be a string of '0's and '1's.
 
     **References**: `1.1
     <http://www.ivoa.net/documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
@@ -1234,8 +1194,7 @@ class E04(VOWarning, ValueError):
 
 
 class E05(VOWarning, ValueError):
-    r"""Invalid boolean value.
-
+    r"""
     A ``boolean`` value should be one of the following strings (case
     insensitive) in the ``TABLEDATA`` format::
 
@@ -1256,8 +1215,7 @@ class E05(VOWarning, ValueError):
 
 
 class E06(VOWarning, ValueError):
-    """Unknown datatype on a field.
-
+    """
     The supported datatypes are::
 
         double, float, bit, boolean, unsignedByte, short, int, long,
@@ -1376,8 +1334,7 @@ class E12(VOWarning, ValueError):
 
 
 class E13(VOWarning, ValueError):
-    r"""Invalid arraysize attribute.
-
+    r"""
     From the VOTable 1.2 spec:
 
         A table cell can contain an array of a given primitive type,
@@ -1432,7 +1389,8 @@ class E14(VOWarning, ValueError):
 
 
 class E15(VOWarning, ValueError):
-    """All ``COOSYS`` elements must have an ``ID`` attribute.
+    """
+    All ``COOSYS`` elements must have an ``ID`` attribute.
 
     Note that the VOTable 1.1 specification says this attribute is
     optional, but its corresponding schema indicates it is required.
@@ -1444,9 +1402,9 @@ class E15(VOWarning, ValueError):
 
 
 class E16(VOTableSpecWarning):
-    """Incorrect ``system`` attribute on COOSYS element.
-
-    The ``system`` attribute must be one of the following::
+    """
+    The ``system`` attribute on the ``COOSYS`` element must be one of the
+    following::
 
       'eq_FK4', 'eq_FK5', 'ICRS', 'ecl_FK4', 'ecl_FK5', 'galactic',
       'supergalactic', 'xy', 'barycentric', 'geo_app'
@@ -1559,14 +1517,6 @@ class E25(VOTableSpecWarning):
     message_template = "No FIELDs are defined; DATA section will be ignored."
 
 
-class E26(VOTableSpecError):
-    """
-    The mapping block can only be set in a type=meta RESOURCE.
-    """
-
-    message_template = "Mapping block can not be set in a RESOURCE with type=result"
-
-
 def _get_warning_and_exception_classes(prefix):
     classes = []
     for key, val in globals().items():
@@ -1608,5 +1558,5 @@ def _build_doc_string():
 if __doc__ is not None:
     __doc__ = __doc__.format(**_build_doc_string())
 
-__all__ += [x[0] for x in _get_warning_and_exception_classes("W")]
-__all__ += [x[0] for x in _get_warning_and_exception_classes("E")]
+__all__.extend([x[0] for x in _get_warning_and_exception_classes("W")])
+__all__.extend([x[0] for x in _get_warning_and_exception_classes("E")])

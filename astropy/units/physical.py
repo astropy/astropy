@@ -1,26 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Defines the physical types that correspond to different units.
-
-The classes and functions defined here are also available in
-(and should be used through) the `astropy.units` namespace.
-"""
+"""Defines the physical types that correspond to different units."""
 
 import numbers
+import warnings
 
-from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from . import (
-    astrophys,
-    cgs,
-    core,
-    imperial,  # for bkwd compat #11975 and #11977  # noqa: F401
-    misc,
-    quantity,
-    si,
-)
+from . import imperial  # for bkwd compat #11975 and #11977  # noqa: F401
+from . import astrophys, cgs, core, misc, quantity, si
 
-__all__ = ["PhysicalType", "def_physical_type", "get_physical_type"]
+__all__ = ["def_physical_type", "get_physical_type", "PhysicalType"]
 
 _units_and_physical_types = [
     (core.dimensionless_unscaled, "dimensionless"),
@@ -75,7 +65,6 @@ _units_and_physical_types = [
     (si.C / si.m**3, "electrical charge density"),
     (si.F / si.m, "permittivity"),
     (si.Wb, "magnetic flux"),
-    (si.Wb**2, "magnetic helicity"),
     (si.T, "magnetic flux density"),
     (si.A / si.m, "magnetic field strength"),
     (si.m**2 * si.A, "magnetic moment"),
@@ -88,17 +77,10 @@ _units_and_physical_types = [
     (si.cd / si.m**2, "luminance"),
     (si.m**-3 * si.s**-1, "volumetric rate"),
     (astrophys.Jy, "spectral flux density"),
-    (astrophys.Jy / si.sr, "surface brightness"),
     (si.W * si.m**2 * si.Hz**-1, "surface tension"),
     (si.J * si.m**-3 * si.s**-1, {"spectral flux density wav", "power density"}),
-    (si.J * si.m**-3 * si.s**-1 * si.sr**-1, "surface brightness wav"),
     (astrophys.photon / si.Hz / si.cm**2 / si.s, "photon flux density"),
     (astrophys.photon / si.AA / si.cm**2 / si.s, "photon flux density wav"),
-    (astrophys.photon / si.Hz / si.cm**2 / si.s / si.sr, "photon surface brightness"),
-    (
-        astrophys.photon / si.AA / si.cm**2 / si.s / si.sr,
-        "photon surface brightness wav",
-    ),
     (astrophys.R, "photon flux"),
     (misc.bit, "data quantity"),
     (misc.bit / si.s, "bandwidth"),
@@ -111,7 +93,7 @@ _units_and_physical_types = [
     (si.m * si.s**-5, "crackle"),
     (si.m * si.s**-6, {"pop", "pounce"}),
     (si.K / si.m, "temperature gradient"),
-    (si.J / si.kg, {"specific energy", "dose of ionizing radiation"}),
+    (si.J / si.kg, "specific energy"),
     (si.mol * si.m**-3 * si.s**-1, "reaction rate"),
     (si.kg * si.m**2, "moment of inertia"),
     (si.mol / si.s, "catalytic activity"),
@@ -176,7 +158,7 @@ def _replace_temperatures_with_kelvin(unit):
     physical type.  Replacing the different temperature units with
     kelvin allows the physical type to be treated consistently.
     """
-    physical_type_id = unit._physical_type_id
+    physical_type_id = unit._get_physical_type_id()
 
     physical_type_id_components = []
     substitution_was_made = False
@@ -227,8 +209,6 @@ class PhysicalType:
     `get_physical_type` or by using the
     `~astropy.units.core.UnitBase.physical_type` attribute of units.
     This class is not intended to be instantiated directly in user code.
-
-    For a list of physical types, see `astropy.units.physical`.
 
     Parameters
     ----------
@@ -328,11 +308,32 @@ class PhysicalType:
 
     def __init__(self, unit, physical_types):
         self._unit = _replace_temperatures_with_kelvin(unit)
+        self._physical_type_id = self._unit._get_physical_type_id()
         self._physical_type = _standardize_physical_type_names(physical_types)
         self._physical_type_list = sorted(self._physical_type)
 
     def __iter__(self):
         yield from self._physical_type_list
+
+    def __getattr__(self, attr):
+        # TODO: remove this whole method when accessing str attributes from
+        # physical types is no longer supported
+
+        # short circuit attribute accessed in __str__ to prevent recursion
+        if attr == "_physical_type_list":
+            super().__getattribute__(attr)
+
+        self_str_attr = getattr(str(self), attr, None)
+        if hasattr(str(self), attr):
+            warning_message = (
+                f"support for accessing str attributes such as {attr!r} "
+                "from PhysicalType instances is deprecated since 4.3 "
+                "and will be removed in a subsequent release."
+            )
+            warnings.warn(warning_message, AstropyDeprecationWarning)
+            return self_str_attr
+        else:
+            super().__getattribute__(attr)  # to get standard error message
 
     def __eq__(self, other):
         """
@@ -340,7 +341,7 @@ class PhysicalType:
         consistent with the physical type of the `PhysicalType` instance.
         """
         if isinstance(other, PhysicalType):
-            return self._unit._physical_type_id == other._unit._physical_type_id
+            return self._physical_type_id == other._physical_type_id
         elif isinstance(other, str):
             other = _standardize_physical_type_names(other)
             return other.issubset(self._physical_type)
@@ -413,7 +414,7 @@ class PhysicalType:
         return (self._unit**power).physical_type
 
     def __hash__(self):
-        return hash(self._unit._physical_type_id)
+        return hash(self._physical_type_id)
 
     def __len__(self):
         return len(self._physical_type)
@@ -449,12 +450,8 @@ def def_physical_type(unit, name):
     ValueError
         If a physical type name is already in use for another unit, or
         if attempting to name a unit as ``"unknown"``.
-
-    Notes
-    -----
-    For a list of physical types, see `astropy.units.physical`.
     """
-    physical_type_id = unit._physical_type_id
+    physical_type_id = unit._get_physical_type_id()
     physical_type_names = _standardize_physical_type_names(name)
 
     if "unknown" in physical_type_names:
@@ -509,10 +506,6 @@ def get_physical_type(obj):
     `~astropy.units.PhysicalType`
         A representation of the physical type(s) of the unit.
 
-    Notes
-    -----
-    For a list of physical types, see `astropy.units.physical`.
-
     Examples
     --------
     The physical type may be retrieved from a unit or a
@@ -546,12 +539,12 @@ def get_physical_type(obj):
         unit = obj
     else:
         try:
-            unit = quantity.Quantity(obj, copy=COPY_IF_NEEDED).unit
+            unit = quantity.Quantity(obj, copy=False).unit
         except TypeError as exc:
             raise TypeError(f"{obj} does not correspond to a physical type.") from exc
 
     unit = _replace_temperatures_with_kelvin(unit)
-    physical_type_id = unit._physical_type_id
+    physical_type_id = unit._get_physical_type_id()
     unit_has_known_physical_type = physical_type_id in _physical_unit_mapping
 
     if unit_has_known_physical_type:

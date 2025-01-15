@@ -3,21 +3,17 @@
 
 import pickle
 import textwrap
-from itertools import chain, permutations
+from collections import OrderedDict
 
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.nddata import NDDataArray
 from astropy.nddata import _testing as nd_testing
 from astropy.nddata.nddata import NDData
 from astropy.nddata.nduncertainty import StdDevUncertainty
 from astropy.utils import NumpyRNGContext
-from astropy.utils.compat.optional_deps import HAS_DASK
-from astropy.utils.masked import Masked
-from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, HighLevelWCSWrapper, SlicedLowLevelWCS
 
@@ -37,10 +33,10 @@ class FakeNumpyArray:
     def shape(self):
         pass
 
-    def __getitem__(self, key):
+    def __getitem__(self):
         pass
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(self):
         pass
 
     @property
@@ -180,11 +176,11 @@ def test_nddata_init_data_maskedarray():
 @pytest.mark.parametrize("data", [np.array([1, 2, 3]), 5])
 def test_nddata_init_data_quantity(data):
     # Test an array and a scalar because a scalar Quantity does not always
-    # behave the same way as an array.
+    # behaves the same way as an array.
     quantity = data * u.adu
     ndd = NDData(quantity)
     assert ndd.unit == quantity.unit
-    assert_array_equal(ndd.data, np.array(quantity))
+    assert_array_equal(ndd.data, np.array(quantity.value))
     if ndd.data.size > 1:
         # check that if it is an array it is not copied
         quantity.value[1] = 100
@@ -195,17 +191,12 @@ def test_nddata_init_data_quantity(data):
         quantity.value[1] = 5
         assert ndd.data[1] != quantity.value[1]
 
-    # provide a quantity and override the unit
-    ndd_unit = NDData(data * u.erg, unit=u.J)
-    assert ndd_unit.unit == u.J
-    np.testing.assert_allclose((ndd_unit.data * ndd_unit.unit).to_value(u.erg), data)
-
 
 def test_nddata_init_data_masked_quantity():
     a = np.array([2, 3])
     q = a * u.m
     m = False
-    mq = Masked(q, mask=m)
+    mq = np.ma.array(q, mask=m)
     nd = NDData(mq)
     assert_array_equal(nd.data, a)
     # This test failed before the change in nddata init because the masked
@@ -356,7 +347,7 @@ def test_param_meta():
     nd = NDData([1, 2, 3], meta={})
     assert len(nd.meta) == 0
     nd = NDData([1, 2, 3])
-    assert isinstance(nd.meta, dict)
+    assert isinstance(nd.meta, OrderedDict)
     assert len(nd.meta) == 0
     # Test conflicting meta (other NDData)
     nd2 = NDData(nd, meta={"image": "sun"})
@@ -393,15 +384,11 @@ def test_param_unit():
     assert nd.unit == u.cm
     # (masked quantity)
     mq = np.ma.array(np.array([2, 3]) * u.m, mask=False)
-    nd2 = NDData(mq, unit=u.pc)
-    assert nd2.unit == u.pc
+    nd2 = NDData(mq, unit=u.s)
+    assert nd2.unit == u.s
     # (another NDData as data)
     nd3 = NDData(nd, unit="km")
     assert nd3.unit == u.km
-    # (MaskedQuantity given to NDData)
-    mq_astropy = Masked.from_unmasked(q, False)
-    nd4 = NDData(mq_astropy, unit="km")
-    assert nd4.unit == u.km
 
 
 def test_pickle_nddata_with_uncertainty():
@@ -439,6 +426,9 @@ def test_pickle_nddata_without_uncertainty():
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.
+from astropy.utils.tests.test_metadata import MetaBaseTest
+
+
 class TestMetaNDData(MetaBaseTest):
     test_class = NDData
     args = np.array([[1.0]])
@@ -453,7 +443,9 @@ def test_nddata_str():
     assert str(arr2d) == textwrap.dedent(
         """
         [[1 2]
-         [3 4]]"""[1:]
+         [3 4]]"""[
+            1:
+        ]
     )
 
     arr3d = NDData(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
@@ -463,7 +455,9 @@ def test_nddata_str():
           [3 4]]
 
          [[5 6]
-          [7 8]]]"""[1:]
+          [7 8]]]"""[
+            1:
+        ]
     )
 
     # let's add units!
@@ -472,13 +466,11 @@ def test_nddata_str():
 
     # what if it had these units?
     arr = NDData(np.array([1, 2, 3]), unit="erg cm^-2 s^-1 A^-1")
-    assert str(arr) == "[1 2 3] erg / (A s cm2)"
+    assert str(arr) == "[1 2 3] erg / (A cm2 s)"
 
 
 def test_nddata_repr():
     # The big test is eval(repr()) should be equal to the original!
-    # but this must be modified slightly since adopting the
-    # repr machinery from astropy.utils.masked
 
     arr1d = NDData(np.array([1, 2, 3]))
     s = repr(arr1d)
@@ -489,15 +481,28 @@ def test_nddata_repr():
 
     arr2d = NDData(np.array([[1, 2], [3, 4]]))
     s = repr(arr2d)
-    assert s == ("NDData([[1, 2],\n        [3, 4]])")
+    assert s == textwrap.dedent(
+        """
+        NDData([[1, 2],
+                [3, 4]])"""[
+            1:
+        ]
+    )
     got = eval(s)
     assert np.all(got.data == arr2d.data)
     assert got.unit == arr2d.unit
 
     arr3d = NDData(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
     s = repr(arr3d)
-    assert s == (
-        "NDData([[[1, 2],\n         [3, 4]],\n\n        [[5, 6],\n         [7, 8]]])"
+    assert s == textwrap.dedent(
+        """
+        NDData([[[1, 2],
+                 [3, 4]],
+
+                [[5, 6],
+                 [7, 8]]])"""[
+            1:
+        ]
     )
     got = eval(s)
     assert np.all(got.data == arr3d.data)
@@ -510,19 +515,6 @@ def test_nddata_repr():
     got = eval(s)
     assert np.all(got.data == arr.data)
     assert got.unit == arr.unit
-
-
-@pytest.mark.skipif(not HAS_DASK, reason="requires dask to be available")
-def test_nddata_repr_dask():
-    import dask.array as da
-
-    arr = NDData(da.arange(3), unit="km")
-    s = repr(arr)
-    # just check repr equality for dask arrays, not round-tripping:
-    assert s in (
-        'NDData(\n  data=dask.array<arange, shape=(3,), dtype=int64, chunksize=(3,), chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)',
-        'NDData(\n  data=dask.array<arange, shape=(3,), dtype=int32, chunksize=(3,), chunktype=numpy.ndarray>,\n  unit=Unit("km")\n)',
-    )
 
 
 # Not supported features
@@ -595,111 +587,3 @@ def test_overriden_wcs():
     # Check that a sub-class that overrides `.wcs` without providing a setter
     # works
     NDDataCustomWCS(np.ones((5, 5)))
-
-
-# set up parameters for test_collapse:
-np.random.seed(42)
-collapse_units = [None, u.Jy]
-collapse_propagate = [True, False]
-collapse_data_shapes = [
-    # 3D example:
-    (4, 3, 2),
-    # 5D example
-    (6, 5, 4, 3, 2),
-]
-collapse_ignore_masked = [True, False]
-collapse_masks = list(
-    chain.from_iterable(
-        [
-            # try the operations without a mask (all False):
-            np.zeros(collapse_data_shape).astype(bool)
-        ]
-        + [
-            # assemble a bunch of random masks:
-            np.random.randint(0, 2, size=collapse_data_shape).astype(bool)
-            for _ in range(10)
-        ]
-        for collapse_data_shape in collapse_data_shapes
-    )
-)
-
-# the following provides pytest.mark.parametrize with every
-# permutation of (1) the units, (2) propagating/not propagating
-# uncertainties, and (3) the data shapes of different ndim.
-permute = (
-    len(collapse_masks)
-    * len(collapse_propagate)
-    * len(collapse_units)
-    * len(collapse_ignore_masked)
-)
-collapse_units = permute // len(collapse_units) * collapse_units
-collapse_propagate = permute // len(collapse_propagate) * collapse_propagate
-collapse_masks = permute // len(collapse_masks) * collapse_masks
-collapse_ignore_masked = permute // len(collapse_ignore_masked) * collapse_ignore_masked
-
-
-@pytest.mark.parametrize(
-    "mask, unit, propagate_uncertainties, operation_ignores_mask",
-    zip(collapse_masks, collapse_units, collapse_propagate, collapse_ignore_masked),
-)
-def test_collapse(mask, unit, propagate_uncertainties, operation_ignores_mask):
-    # unique set of combinations of each of the N-1 axes for an N-D cube:
-    axes_permutations = {tuple(axes[:2]) for axes in permutations(range(mask.ndim))}
-
-    # each of the single axis slices:
-    axes_permutations.update(set(range(mask.ndim)))
-    axes_permutations.update({None})
-
-    cube = np.arange(np.prod(mask.shape)).reshape(mask.shape)
-    numpy_cube = np.ma.masked_array(cube, mask=mask)
-    ma_cube = Masked(cube, mask=mask)
-    ndarr = NDDataArray(cube, uncertainty=StdDevUncertainty(cube), unit=unit, mask=mask)
-
-    # By construction, the minimum value along each axis is always the zeroth index and
-    # the maximum is always the last along that axis. We verify that here, so we can
-    # test that the correct uncertainties are extracted during the
-    # `NDDataArray.min` and `NDDataArray.max` methods later:
-    for axis in range(cube.ndim):
-        assert np.all(np.equal(cube.argmin(axis=axis), 0))
-        assert np.all(np.equal(cube.argmax(axis=axis), cube.shape[axis] - 1))
-
-    # confirm that supported nddata methods agree with corresponding numpy methods
-    # for the masked data array:
-    sum_methods = ["sum", "mean"]
-    ext_methods = ["min", "max"]
-    all_methods = sum_methods + ext_methods
-
-    # for all supported methods, ensure the masking is propagated:
-    for method in all_methods:
-        for axes in axes_permutations:
-            astropy_method = getattr(ma_cube, method)(axis=axes)
-            numpy_method = getattr(numpy_cube, method)(axis=axes)
-            nddata_method = getattr(ndarr, method)(
-                axis=axes,
-                propagate_uncertainties=propagate_uncertainties,
-                operation_ignores_mask=operation_ignores_mask,
-            )
-            astropy_unmasked = astropy_method.base[~astropy_method.mask]
-            nddata_unmasked = nddata_method.data[~nddata_method.mask]
-
-            # check if the units are passed through correctly:
-            assert unit == nddata_method.unit
-
-            # check if the numpy and astropy.utils.masked results agree when
-            # the result is not fully masked:
-            if len(astropy_unmasked) > 0:
-                if not operation_ignores_mask:
-                    # compare with astropy
-                    assert np.all(np.equal(astropy_unmasked, nddata_unmasked))
-                    assert np.all(np.equal(astropy_method.mask, nddata_method.mask))
-                else:
-                    # compare with numpy
-                    assert np.ma.all(
-                        np.ma.equal(numpy_method, np.asanyarray(nddata_method))
-                    )
-
-            # For extremum methods, ensure the uncertainty returned corresponds to the
-            # min/max data value. We've created the uncertainties to have the same value
-            # as the data array, so we can just check for equality:
-            if method in ext_methods and propagate_uncertainties:
-                assert np.ma.all(np.ma.equal(astropy_method, nddata_method))

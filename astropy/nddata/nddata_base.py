@@ -27,6 +27,7 @@ class NDDataBase(metaclass=ABCMeta):
     @abstractmethod
     def data(self):
         """The stored dataset."""
+        pass
 
     @property
     @abstractmethod

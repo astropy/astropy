@@ -9,43 +9,31 @@ This module should generally not be used directly.  Everything in
 should be used for access.
 """
 
-from __future__ import annotations
-
 import math
-from typing import TYPE_CHECKING
 
 import numpy as np
 
-from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
+import astropy.units as u
 
 from . import _stats
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Literal, SupportsFloat, TypeVar
-
-    from numpy.typing import ArrayLike, NDArray
-
-    # type for variables generated with the mpmath library
-    FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
-
 __all__ = [
-    "binned_binom_proportion",
-    "binom_conf_interval",
-    "bootstrap",
-    "cdf_from_intervals",
-    "fold_intervals",
     "gaussian_fwhm_to_sigma",
     "gaussian_sigma_to_fwhm",
-    "histogram_intervals",
-    "interval_overlap_length",
-    "kuiper",
-    "kuiper_false_positive_probability",
-    "kuiper_two",
-    "mad_std",
-    "median_absolute_deviation",
+    "binom_conf_interval",
+    "binned_binom_proportion",
     "poisson_conf_interval",
+    "median_absolute_deviation",
+    "mad_std",
     "signal_to_noise_oir_ccd",
+    "bootstrap",
+    "kuiper",
+    "kuiper_two",
+    "kuiper_false_positive_probability",
+    "cdf_from_intervals",
+    "interval_overlap_length",
+    "histogram_intervals",
+    "fold_intervals",
 ]
 
 __doctest_skip__ = ["binned_binom_proportion"]
@@ -68,12 +56,7 @@ to convert it to 1-sigma standard deviation.
 """
 
 
-def binom_conf_interval(
-    k: int | NDArray,
-    n: int | NDArray,
-    confidence_level: float = 0.68269,
-    interval: Literal["wilson", "jeffreys", "flat", "wald"] = "wilson",
-) -> NDArray:
+def binom_conf_interval(k, n, confidence_level=0.68269, interval="wilson"):
     r"""Binomial proportion confidence interval given k successes,
     n trials.
 
@@ -235,7 +218,7 @@ def binom_conf_interval(
     array([[-0.26077835, -0.16433593],
            [ 0.66077835,  0.96433593]])
 
-    """
+    """  # noqa: E501
     if confidence_level < 0.0 or confidence_level > 1.0:
         raise ValueError("confidence_level must be between 0. and 1.")
     alpha = 1.0 - confidence_level
@@ -303,13 +286,8 @@ def binom_conf_interval(
 
 
 def binned_binom_proportion(
-    x: ArrayLike,
-    success: ArrayLike,
-    bins: int | ArrayLike = 10,
-    range: tuple[float, float] | None = None,
-    confidence_level: float = 0.68269,
-    interval: Literal["wilson", "jeffreys", "flat", "wald"] = "wilson",
-) -> tuple[NDArray, NDArray, NDArray, NDArray]:
+    x, success, bins=10, range=None, confidence_level=0.68269, interval="wilson"
+):
     """Binomial proportion and confidence interval in bins of a continuous
     variable ``x``.
 
@@ -490,19 +468,7 @@ def binned_binom_proportion(
     return bin_ctr, bin_halfwidth, p, perr
 
 
-def _check_poisson_conf_inputs(
-    sigma: float,
-    background: float,
-    confidence_level: float,
-    name: Literal[
-        "root-n",
-        "root-n-0",
-        "pearson",
-        "sherpagehrels",
-        "frequentist-confidence",
-        "kraft-burrows-nousek",
-    ],
-) -> None:
+def _check_poisson_conf_inputs(sigma, background, confidence_level, name):
     if sigma != 1:
         raise ValueError(f"Only sigma=1 supported for interval {name}")
     if background != 0:
@@ -512,20 +478,9 @@ def _check_poisson_conf_inputs(
 
 
 def poisson_conf_interval(
-    n: int | NDArray,
-    interval: Literal[
-        "root-n",
-        "root-n-0",
-        "pearson",
-        "sherpagehrels",
-        "frequentist-confidence",
-        "kraft-burrows-nousek",
-    ] = "root-n",
-    sigma: float = 1.0,
-    background: float = 0.0,
-    confidence_level: float | None = None,
-) -> NDArray:
-    r"""Poisson parameter confidence interval given observed counts.
+    n, interval="root-n", sigma=1, background=0, confidence_level=None
+):
+    r"""Poisson parameter confidence interval given observed counts
 
     Parameters
     ----------
@@ -553,6 +508,7 @@ def poisson_conf_interval(
 
     Notes
     -----
+
     The "right" confidence interval to use for Poisson data is a
     matter of debate. The CDF working group `recommends
     <https://web.archive.org/web/20210222093249/https://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt>`_
@@ -595,7 +551,7 @@ def poisson_conf_interval(
 
     **4. 'sherpagehrels'** This rule is used by default in the fitting
     package 'sherpa'. The `documentation
-    <https://cxc.cfa.harvard.edu/sherpa/statistics/#chigehrels>`_ claims
+    <https://cxc.harvard.edu/sherpa4.4/statistics/#chigehrels>`_ claims
     it is based on a numerical approximation published in `Gehrels
     (1986) <https://ui.adsabs.harvard.edu/abs/1986ApJ...303..336G>`_ but it
     does not actually appear there.  It is symmetrical, and while the
@@ -657,7 +613,7 @@ def poisson_conf_interval(
     insensitive to the choice of prior.
 
     This function has an optional dependency: Either `Scipy
-    <https://www.scipy.org/>`_ or `mpmath <https://mpmath.org/>`_  need
+    <https://www.scipy.org/>`_ or `mpmath <http://mpmath.org/>`_  need
     to be available (Scipy works only for N < 100).
     This code is very intense numerically, which makes it much slower than
     the other methods, in particular for large count numbers (above 1000
@@ -724,7 +680,8 @@ def poisson_conf_interval(
     ...     interval='kraft-burrows-nousek').T  # doctest: +FLOAT_CMP
     array([[ 3.47894005, 16.113329533]])
 
-    """
+    """  # noqa: E501
+
     if not np.isscalar(n):
         n = np.asanyarray(n)
 
@@ -764,7 +721,7 @@ def poisson_conf_interval(
         else:
             conf_interval[0, n == 0] = 0
     elif interval == "kraft-burrows-nousek":
-        # Deprecation warning when N is float, so we force int,
+        # Deprecation warning in Python 3.9 when N is float, so we force int,
         # see https://github.com/astropy/astropy/issues/10832
         if np.isscalar(n):
             if not isinstance(n, int):
@@ -791,12 +748,7 @@ def poisson_conf_interval(
     return conf_interval
 
 
-def median_absolute_deviation(
-    data: ArrayLike,
-    axis: int | tuple[int, ...] | None = None,
-    func: Callable | None = None,
-    ignore_nan: bool | None = False,
-) -> float | NDArray:
+def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     """
     Calculate the median absolute deviation (MAD).
 
@@ -812,7 +764,7 @@ def median_absolute_deviation(
     func : callable, optional
         The function used to compute the median. Defaults to `numpy.ma.median`
         for masked arrays, otherwise to `numpy.median`.
-    ignore_nan : bool, optional
+    ignore_nan : bool
         Ignore NaN values (treat them as if they are not in the array) when
         computing the median.  This will use `numpy.ma.median` if ``axis`` is
         specified, or `numpy.nanmedian` if ``axis==None`` and numpy's version
@@ -842,6 +794,7 @@ def median_absolute_deviation(
     --------
     mad_std
     """
+
     if func is None:
         # Check if the array has a mask and if so use np.ma.median
         # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
@@ -853,11 +806,8 @@ def median_absolute_deviation(
             if ignore_nan:
                 data = np.ma.masked_where(np.isnan(data), data, copy=True)
         elif ignore_nan:
-            # prevent circular import
-            from astropy.stats.nanfunctions import nanmedian
-
             is_masked = False
-            func = nanmedian
+            func = np.nanmedian
         else:
             is_masked = False
             func = np.median  # drops units if result is NaN
@@ -868,15 +818,30 @@ def median_absolute_deviation(
     # np.nanmedian has `keepdims`, which is a good option if we're not allowing
     # user-passed functions here
     data_median = func(data, axis=axis)
+    # this conditional can be removed after this PR is merged:
+    # https://github.com/astropy/astropy/issues/12165
+    if (
+        isinstance(data, u.Quantity)
+        and func is np.median
+        and data_median.ndim == 0
+        and np.isnan(data_median)
+    ):
+        data_median = data.__array_wrap__(data_median)
 
     # broadcast the median array before subtraction
     if axis is not None:
         data_median = np.expand_dims(data_median, axis=axis)
 
-    if HAS_BOTTLENECK:
-        result = func(np.abs(data - data_median), axis=axis)
-    else:
-        result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
+    result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
+    # this conditional can be removed after this PR is merged:
+    # https://github.com/astropy/astropy/issues/12165
+    if (
+        isinstance(data, u.Quantity)
+        and func is np.median
+        and result.ndim == 0
+        and np.isnan(result)
+    ):
+        result = data.__array_wrap__(result)
 
     if axis is None and np.ma.isMaskedArray(result):
         # return scalar version
@@ -889,12 +854,7 @@ def median_absolute_deviation(
     return result
 
 
-def mad_std(
-    data: ArrayLike,
-    axis: int | tuple[int, ...] | None = None,
-    func: Callable | None = None,
-    ignore_nan: bool | None = False,
-) -> float | NDArray:
+def mad_std(data, axis=None, func=None, ignore_nan=False):
     r"""
     Calculate a robust standard deviation using the `median absolute
     deviation (MAD)
@@ -921,7 +881,7 @@ def mad_std(
     func : callable, optional
         The function used to compute the median. Defaults to `numpy.ma.median`
         for masked arrays, otherwise to `numpy.median`.
-    ignore_nan : bool, optional
+    ignore_nan : bool
         Ignore NaN values (treat them as if they are not in the array) when
         computing the median.  This will use `numpy.ma.median` if ``axis`` is
         specified, or `numpy.nanmedian` if ``axis=None`` and numpy's version is
@@ -947,20 +907,13 @@ def mad_std(
     --------
     biweight_midvariance, biweight_midcovariance, median_absolute_deviation
     """
+
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
     MAD = median_absolute_deviation(data, axis=axis, func=func, ignore_nan=ignore_nan)
     return MAD * 1.482602218505602
 
 
-def signal_to_noise_oir_ccd(
-    t: float | NDArray,
-    source_eps: float,
-    sky_eps: float,
-    dark_eps: float,
-    rd: float,
-    npix: float,
-    gain: float = 1.0,
-) -> float | NDArray:
+def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix, gain=1.0):
     """Computes the signal to noise ratio for source being observed in the
     optical/IR using a CCD.
 
@@ -1003,12 +956,7 @@ def signal_to_noise_oir_ccd(
     return signal / noise
 
 
-def bootstrap(
-    data: NDArray,
-    bootnum: int = 100,
-    samples: int | None = None,
-    bootfunc: Callable | None = None,
-) -> NDArray:
+def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     """Performs bootstrap resampling on numpy arrays.
 
     Bootstrap resampling is used to understand confidence intervals of sample
@@ -1121,8 +1069,8 @@ def bootstrap(
     return boot
 
 
-def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, float]:
-    """Upper limit on a poisson count rate.
+def _scipy_kraft_burrows_nousek(N, B, CL):
+    """Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1148,15 +1096,16 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
     about N > 100 (the exact limit depends on details of how scipy was
     compiled). See `~astropy.stats.mpmath_poisson_upper_limit` for an
     implementation that is slower, but can deal with arbitrarily high numbers
-    since it is based on the `mpmath <https://mpmath.org/>`_ library.
+    since it is based on the `mpmath <http://mpmath.org/>`_ library.
     """
+
     from math import exp
 
     from scipy.integrate import quad
     from scipy.optimize import brentq
     from scipy.special import factorial
 
-    def eqn8(N: int, B: float) -> float:
+    def eqn8(N, B):
         n = np.arange(N + 1, dtype=np.float64)
         return 1.0 / (exp(-B) * np.sum(np.power(B, n) / factorial(n)))
 
@@ -1167,14 +1116,14 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
     eqn8_res = eqn8(N, B)
     factorial_N = float(math.factorial(N))
 
-    def eqn7(S: float, N: int, B: float) -> float:
+    def eqn7(S, N, B):
         SpB = S + B
         return eqn8_res * (exp(-SpB) * SpB**N / factorial_N)
 
-    def eqn9_left(S_min: float, S_max: float, N: int, B: float) -> tuple[float, float]:
+    def eqn9_left(S_min, S_max, N, B):
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
 
-    def find_s_min(S_max: float, N: int, B: float) -> float:
+    def find_s_min(S_max, N, B):
         """
         Kraft, Burrows and Nousek suggest to integrate from N-B in both
         directions at once, so that S_min and S_max move similarly (see
@@ -1189,7 +1138,7 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
         else:
             return brentq(lambda x: eqn7(x, N, B) - y_S_max, 0, N - B)
 
-    def func(s: float) -> float:
+    def func(s):
         s_min = find_s_min(s, N, B)
         out = eqn9_left(s_min, s, N, B)
         return out[0] - CL
@@ -1199,8 +1148,8 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
     return S_min, S_max
 
 
-def _mpmath_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, float]:
-    """Upper limit on a poisson count rate.
+def _mpmath_kraft_burrows_nousek(N, B, CL):
+    """Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1222,7 +1171,7 @@ def _mpmath_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, fl
 
     Notes
     -----
-    Requires the `mpmath <https://mpmath.org/>`_ library.  See
+    Requires the `mpmath <http://mpmath.org/>`_ library.  See
     `~astropy.stats.scipy_poisson_upper_limit` for an implementation
     that is based on scipy and evaluates faster, but runs only to about
     N = 100.
@@ -1236,26 +1185,24 @@ def _mpmath_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, fl
     CL = mpf(float(CL))
     tol = 1e-4
 
-    def eqn8(N: FloatLike, B: FloatLike) -> FloatLike:
+    def eqn8(N, B):
         sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
         return 1.0 / (exp(-B) * fsum(sumterms))
 
     eqn8_res = eqn8(N, B)
     factorial_N = factorial(N)
 
-    def eqn7(S: FloatLike, N: FloatLike, B: FloatLike) -> FloatLike:
+    def eqn7(S, N, B):
         SpB = S + B
         return eqn8_res * (exp(-SpB) * SpB**N / factorial_N)
 
-    def eqn9_left(
-        S_min: FloatLike, S_max: FloatLike, N: FloatLike, B: FloatLike
-    ) -> FloatLike:
-        def eqn7NB(S: FloatLike) -> FloatLike:
+    def eqn9_left(S_min, S_max, N, B):
+        def eqn7NB(S):
             return eqn7(S, N, B)
 
         return quad(eqn7NB, [S_min, S_max])
 
-    def find_s_min(S_max: FloatLike, N: FloatLike, B: FloatLike) -> FloatLike:
+    def find_s_min(S_max, N, B):
         """
         Kraft, Burrows and Nousek suggest to integrate from N-B in both
         directions at once, so that S_min and S_max move similarly (see
@@ -1274,12 +1221,12 @@ def _mpmath_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, fl
             return 0.0
         else:
 
-            def eqn7ysmax(x: FloatLike) -> FloatLike:
+            def eqn7ysmax(x):
                 return eqn7(x, N, B) - y_S_max
 
             return findroot(eqn7ysmax, [0.0, N - B], solver="ridder", tol=tol)
 
-    def func(s: FloatLike) -> FloatLike:
+    def func(s):
         s_min = find_s_min(s, N, B)
         out = eqn9_left(s_min, s, N, B)
         return out - CL
@@ -1296,8 +1243,8 @@ def _mpmath_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, fl
     return float(S_min), float(S_max)
 
 
-def _kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, float]:
-    """Upper limit on a poisson count rate.
+def _kraft_burrows_nousek(N, B, CL):
+    """Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1320,7 +1267,7 @@ def _kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, float]:
     Notes
     -----
     This functions has an optional dependency: Either :mod:`scipy` or `mpmath
-    <https://mpmath.org/>`_  need to be available. (Scipy only works for
+    <http://mpmath.org/>`_  need to be available. (Scipy only works for
     N < 100).
     """
     from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY
@@ -1337,7 +1284,7 @@ def _kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, float]:
     raise ImportError("Either scipy or mpmath are required.")
 
 
-def kuiper_false_positive_probability(D: float, N: float) -> float:
+def kuiper_false_positive_probability(D, N):
     """Compute the false positive probability for the Kuiper statistic.
 
     Uses the set of four formulas described in Paltani 2004; they report
@@ -1365,6 +1312,7 @@ def kuiper_false_positive_probability(D: float, N: float) -> float:
 
     References
     ----------
+
     .. [1] Paltani, S., "Searching for periods in X-ray observations using
            Kuiper's test. Application to the ROSAT PSPC archive",
            Astronomy and Astrophysics, v.240, p.789-790, 2004.
@@ -1373,11 +1321,12 @@ def kuiper_false_positive_probability(D: float, N: float) -> float:
            and significance points", Biometrika, v.52, p.309, 1965.
 
     """
-    if not HAS_SCIPY:
-        raise ModuleNotFoundError(
-            "scipy is required for kuiper_false_positive_probability"
-        )
-    from scipy.special import comb, factorial
+    try:
+        from scipy.special import comb, factorial
+    except ImportError:
+        # Retained for backwards compatibility with older versions of scipy
+        # (factorial appears to have moved here in 0.14)
+        from scipy.misc import comb, factorial
 
     if D < 0.0 or D > 2.0:
         raise ValueError("Must have 0<=D<=2 by definition of the Kuiper test")
@@ -1419,15 +1368,13 @@ def kuiper_false_positive_probability(D: float, N: float) -> float:
         # underflow warning if `under="warn"`.
         ms = np.arange(1, 18.82 / z)
         S1 = (2 * (4 * ms**2 * z**2 - 1) * np.exp(-2 * ms**2 * z**2)).sum()
-        S2 = (ms**2 * (4 * ms**2 * z**2 - 3) * np.exp(-2 * ms**2 * z**2)).sum()
+        S2 = (
+            ms**2 * (4 * ms**2 * z**2 - 3) * np.exp(-2 * ms**2 * z**2)
+        ).sum()
         return S1 - 8 * D / 3 * S2
 
 
-def kuiper(
-    data: ArrayLike,
-    cdf: Callable = lambda x: x,
-    args: tuple | list | None = (),
-) -> tuple[float, float]:
+def kuiper(data, cdf=lambda x: x, args=()):
     """Compute the Kuiper statistic.
 
     Use the Kuiper statistic version of the Kolmogorov-Smirnov test to
@@ -1483,6 +1430,7 @@ def kuiper(
 
     References
     ----------
+
     .. [1] Stephens, M. A., "Use of the Kolmogorov-Smirnov, Cramer-Von Mises
            and Related Statistics Without Extensive Tables", Journal of the
            Royal Statistical Society. Series B (Methodological), Vol. 32,
@@ -1490,6 +1438,7 @@ def kuiper(
 
 
     """
+
     data = np.sort(data)
     cdfv = cdf(data, *args)
     N = len(data)
@@ -1500,7 +1449,7 @@ def kuiper(
     return D, kuiper_false_positive_probability(D, N)
 
 
-def kuiper_two(data1: ArrayLike, data2: ArrayLike) -> tuple[float, float]:
+def kuiper_two(data1, data2):
     """Compute the Kuiper statistic to compare two samples.
 
     Parameters
@@ -1526,7 +1475,7 @@ def kuiper_two(data1: ArrayLike, data2: ArrayLike) -> tuple[float, float]:
     data2 = np.sort(data2)
     (n1,) = data1.shape
     (n2,) = data2.shape
-    common_type = np.result_type(data1.dtype, data2.dtype)
+    common_type = np.find_common_type([], [data1.dtype, data2.dtype])
     if not (
         np.issubdtype(common_type, np.number)
         and not np.issubdtype(common_type, np.complexfloating)
@@ -1540,9 +1489,7 @@ def kuiper_two(data1: ArrayLike, data2: ArrayLike) -> tuple[float, float]:
     return D, kuiper_false_positive_probability(D, Ne)
 
 
-def fold_intervals(
-    intervals: list[tuple[float, float, float]],
-) -> tuple[NDArray[float], NDArray[float]]:
+def fold_intervals(intervals):
     """Fold the weighted intervals to the interval (0,1).
 
     Convert a list of intervals (ai, bi, wi) to a list of non-overlapping
@@ -1594,7 +1541,7 @@ def fold_intervals(
     return np.array(breaks), totals
 
 
-def cdf_from_intervals(breaks: NDArray[float], totals: NDArray[float]) -> Callable:
+def cdf_from_intervals(breaks, totals):
     """Construct a callable piecewise-linear CDF from a pair of arrays.
 
     Take a pair of arrays in the format returned by fold_intervals and
@@ -1629,7 +1576,7 @@ def cdf_from_intervals(breaks: NDArray[float], totals: NDArray[float]) -> Callab
     return lambda x: np.interp(x, b, c, 0, 1)
 
 
-def interval_overlap_length(i1: tuple[float, float], i2: tuple[float, float]) -> float:
+def interval_overlap_length(i1, i2):
     """Compute the length of overlap of two intervals.
 
     Parameters
@@ -1661,9 +1608,7 @@ def interval_overlap_length(i1: tuple[float, float], i2: tuple[float, float]) ->
         return 0
 
 
-def histogram_intervals(
-    n: int, breaks: NDArray[float], totals: NDArray[float]
-) -> NDArray[float]:
+def histogram_intervals(n, breaks, totals):
     """Histogram of a piecewise-constant weight function.
 
     This function takes a piecewise-constant weight function and

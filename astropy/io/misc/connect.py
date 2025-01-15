@@ -6,4 +6,3 @@ from . import hdf5, parquet
 
 hdf5.register_hdf5()
 parquet.register_parquet()
-parquet.register_parquet_votable()

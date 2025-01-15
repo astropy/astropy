@@ -1,74 +1,39 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Cosmology with Astropy.
+""" astropy.cosmology contains classes and functions for cosmological
+distance measures and other cosmology-related calculations.
 
-:mod:`~astropy.cosmology` contains classes and functions for cosmological distance
-measures and other cosmology-related calculations.
+See the `Astropy documentation
+<https://docs.astropy.org/en/latest/cosmology/index.html>`_ for more
+detailed usage examples and references.
 
-See the :ref:`astropy-cosmology` for more detailed usage examples and references.
 """
 
-from . import realizations, units
-from .core import Cosmology, CosmologyError, FlatCosmologyMixin
-from .flrw import (
-    FLRW,
-    FlatFLRWMixin,
-    FlatLambdaCDM,
-    Flatw0waCDM,
-    Flatw0wzCDM,
-    FlatwCDM,
-    FlatwpwaCDM,
-    LambdaCDM,
-    w0waCDM,
-    w0wzCDM,
-    wCDM,
-    wpwaCDM,
-)
-from .funcs import cosmology_equal, z_at_value
-from .parameter import Parameter
+from . import core, flrw, funcs, parameter, units, utils
+
+from . import io  # needed before 'realizations'  # isort: split
+from . import realizations
+from .core import *
+from .flrw import *
+from .funcs import *
+from .parameter import *
 from .realizations import available, default_cosmology
+from .utils import *
 
-__all__ = [  #  noqa: RUF100, RUF022
-    # Public Submodules
-    "units",
-    "realizations",
-    # Core
-    "Cosmology",
-    "CosmologyError",
-    "FlatCosmologyMixin",
-    # FLRW
-    "FLRW",
-    "FlatFLRWMixin",
-    "LambdaCDM",
-    "FlatLambdaCDM",
-    "wCDM",
-    "FlatwCDM",
-    "w0waCDM",
-    "Flatw0waCDM",
-    "w0wzCDM",
-    "Flatw0wzCDM",
-    "wpwaCDM",
-    "FlatwpwaCDM",
-    # Funcs
-    "z_at_value",
-    "cosmology_equal",
-    # Parameter
-    "Parameter",
-    # Realizations
-    "available",
-    "default_cosmology",
-    "WMAP1",
-    "WMAP3",
-    "WMAP5",
-    "WMAP7",
-    "WMAP9",
-    "Planck13",
-    "Planck15",
-    "Planck18",
-]
+__all__ = (
+    core.__all__
+    + flrw.__all__  # cosmology classes
+    + realizations.__all__  # instances thereof
+    + ["units"]
+    # utils
+    + funcs.__all__
+    + parameter.__all__
+    + utils.__all__
+)
 
 
-def __getattr__(name: str) -> Cosmology:
-    """Get realizations using lazy import from ``PEP 562``.
+def __getattr__(name):
+    """Get realizations using lazy import from
+    `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
 
     Raises
     ------
@@ -81,6 +46,6 @@ def __getattr__(name: str) -> Cosmology:
     return getattr(realizations, name)
 
 
-def __dir__() -> list[str]:
+def __dir__():
     """Directory, including lazily-imported objects."""
     return __all__

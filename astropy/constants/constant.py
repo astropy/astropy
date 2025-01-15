@@ -6,8 +6,7 @@ import warnings
 
 import numpy as np
 
-from astropy.units.core import Unit
-from astropy.units.errors import UnitsError
+from astropy.units.core import Unit, UnitsError
 from astropy.units.quantity import Quantity
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
@@ -31,7 +30,7 @@ class ConstantMeta(type):
     among other reasons).
     """
 
-    def __new__(cls, name, bases, d):
+    def __new__(mcls, name, bases, d):
         def wrap(meth):
             @functools.wraps(meth)
             def wrapper(self, *args, **kwargs):
@@ -86,7 +85,7 @@ class ConstantMeta(type):
             ):
                 d[attr] = wrap(value)
 
-        return super().__new__(cls, name, bases, d)
+        return super().__new__(mcls, name, bases, d)
 
 
 class Constant(Quantity, metaclass=ConstantMeta):
@@ -196,26 +195,31 @@ class Constant(Quantity, metaclass=ConstantMeta):
         """A typical ASCII text abbreviation of the constant, also generally
         the same as the Python variable used for this constant.
         """
+
         return self._abbrev
 
     @property
     def name(self):
         """The full name of the constant."""
+
         return self._name
 
     @lazyproperty
     def _unit(self):
         """The unit(s) in which this constant is defined."""
+
         return Unit(self._unit_string)
 
     @property
     def uncertainty(self):
         """The known absolute uncertainty in this constant's value."""
+
         return self._uncertainty
 
     @property
     def reference(self):
         """The source used for the value of this constant."""
+
         return self._reference
 
     @property
@@ -224,6 +228,7 @@ class Constant(Quantity, metaclass=ConstantMeta):
         `None` so long as the constant's units can be directly converted
         between systems).
         """
+
         return self._system
 
     def _instance_or_super(self, key):
@@ -239,6 +244,7 @@ class Constant(Quantity, metaclass=ConstantMeta):
         """If the Constant is defined in the SI system return that instance of
         the constant, else convert to a Quantity in the appropriate SI units.
         """
+
         return self._instance_or_super("si")
 
     @property
@@ -246,6 +252,7 @@ class Constant(Quantity, metaclass=ConstantMeta):
         """If the Constant is defined in the CGS system return that instance of
         the constant, else convert to a Quantity in the appropriate CGS units.
         """
+
         return self._instance_or_super("cgs")
 
     def __array_finalize__(self, obj):
@@ -271,6 +278,7 @@ class EMConstant(Constant):
         """Overridden for EMConstant to raise a `TypeError`
         emphasizing that there are multiple EM extensions to CGS.
         """
+
         raise TypeError(
             "Cannot convert EM constants to cgs because there "
             "are different systems for E.M constants within the "

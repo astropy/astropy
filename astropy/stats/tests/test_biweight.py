@@ -20,25 +20,22 @@ def test_biweight_location():
     with NumpyRNGContext(12345):
         # test that it runs
         randvar = np.random.randn(10000)
-        val = biweight_location(randvar)
-        assert abs(val) < 1e-2
+        cbl = biweight_location(randvar)
+        assert abs(cbl - 0) < 1e-2
 
 
 def test_biweight_location_constant():
-    arr = np.ones((10, 5))
-    val = biweight_location(arr)
-    assert val == 1.0
-    val = biweight_location(arr, axis=(0, 1))
-    assert val == 1.0
+    cbl = biweight_location(np.ones((10, 5)))
+    assert cbl == 1.0
 
 
 def test_biweight_location_constant_axis_2d():
     shape = (10, 5)
     data = np.ones(shape)
-    val = biweight_location(data, axis=0)
-    assert_allclose(val, np.ones(shape[1]))
-    val = biweight_location(data, axis=1)
-    assert_allclose(val, np.ones(shape[0]))
+    cbl = biweight_location(data, axis=0)
+    assert_allclose(cbl, np.ones(shape[1]))
+    cbl = biweight_location(data, axis=1)
+    assert_allclose(cbl, np.ones(shape[0]))
 
     val1 = 100.0
     val2 = 2.0
@@ -47,21 +44,21 @@ def test_biweight_location_constant_axis_2d():
     data[2] = val1
     data[7] = val2
     data[8] = [val3, 0.8, val3, -0.8, val3]
-    val = biweight_location(data, axis=1)
-    assert_allclose(val[2], val1)
-    assert_allclose(val[7], val2)
-    assert_allclose(val[8], val3)
+    cbl = biweight_location(data, axis=1)
+    assert_allclose(cbl[2], val1)
+    assert_allclose(cbl[7], val2)
+    assert_allclose(cbl[8], val3)
 
 
 def test_biweight_location_constant_axis_3d():
     shape = (10, 5, 2)
     data = np.ones(shape)
-    val = biweight_location(data, axis=0)
-    assert_allclose(val, np.ones((shape[1], shape[2])))
-    val = biweight_location(data, axis=1)
-    assert_allclose(val, np.ones((shape[0], shape[2])))
-    val = biweight_location(data, axis=2)
-    assert_allclose(val, np.ones((shape[0], shape[1])))
+    cbl = biweight_location(data, axis=0)
+    assert_allclose(cbl, np.ones((shape[1], shape[2])))
+    cbl = biweight_location(data, axis=1)
+    assert_allclose(cbl, np.ones((shape[0], shape[2])))
+    cbl = biweight_location(data, axis=2)
+    assert_allclose(cbl, np.ones((shape[0], shape[1])))
 
 
 def test_biweight_location_small():
@@ -91,10 +88,12 @@ def test_biweight_location_axis():
         assert_allclose(bw, bwi)
 
 
-@pytest.mark.parametrize("nx, ny, nz", [(5, 4, 3), (5, 1, 3), (1, 4, 3), (1, 1, 5)])
-def test_biweight_location_axis_3d(nx, ny, nz):
+def test_biweight_location_axis_3d():
     """Test a 3D array with the axis keyword."""
     with NumpyRNGContext(12345):
+        nz = 3
+        ny = 4
+        nx = 5
         data = np.random.normal(5, 2, (nz, ny, nx))
         bw = biweight_location(data, axis=0)
         assert bw.shape == (ny, nx)
@@ -107,11 +106,10 @@ def test_biweight_location_axis_3d(nx, ny, nz):
         assert_allclose(bw[y], bwi)
 
 
-@pytest.mark.parametrize("shape", [(2, 3, 4), (12, 1, 2), (1, 12, 2), (1, 1, 24)])
-def test_biweight_location_axis_tuple(shape):
+def test_biweight_location_axis_tuple():
     """Test a 3D array with a tuple axis keyword."""
 
-    data = np.arange(24).reshape(shape)
+    data = np.arange(24).reshape(2, 3, 4)
     data[0, 0] = 100.0
 
     assert_equal(biweight_location(data, axis=0), biweight_location(data, axis=(0,)))
@@ -276,10 +274,12 @@ def test_biweight_midvariance_axis():
         assert_allclose(bw, bwi)
 
 
-@pytest.mark.parametrize("nx, ny, nz", [(5, 4, 3), (5, 1, 3), (1, 4, 3), (1, 1, 5)])
-def test_biweight_midvariance_axis_3d(nx, ny, nz):
+def test_biweight_midvariance_axis_3d():
     """Test a 3D array with the axis keyword."""
     with NumpyRNGContext(12345):
+        nz = 3
+        ny = 4
+        nx = 5
         data = np.random.normal(5, 2, (nz, ny, nx))
         bw = biweight_midvariance(data, axis=0)
         assert bw.shape == (ny, nx)
@@ -454,8 +454,7 @@ def test_biweight_midcovariance_2d():
     d = [[5, 1, 10], [500, 5, 2]]
     cov = biweight_midcovariance(d)
     assert_allclose(
-        cov,
-        [[14.54159077, -7.79026256], [-7.79026256, 6.92087252]],  # verified with R
+        cov, [[14.54159077, -7.79026256], [-7.79026256, 6.92087252]]  # verified with R
     )
 
     cov = biweight_midcovariance(d, modify_sample_size=True)

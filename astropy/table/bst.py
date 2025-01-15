@@ -107,7 +107,7 @@ class Node:
     __ge__ = lambda x, y: x.key >= y.key
     __gt__ = lambda x, y: x.key > y.key
     __ne__ = lambda x, y: x.key != y.key
-    __slots__ = ("data", "key", "left", "right")
+    __slots__ = ("key", "data", "left", "right")
 
     # each node has a key and data list
     def __init__(self, key, data):
@@ -291,7 +291,7 @@ class BST:
         i = 0
         for node in self.traverse():
             num_rows = len(node.data)
-            node.data = list(range(i, i + num_rows))
+            node.data = [x for x in range(i, i + num_rows)]
             i += num_rows
 
     def sorted_data(self):
@@ -483,5 +483,5 @@ class BST:
         row_map : dict
             Mapping of row numbers to new row numbers
         """
-        for _, data in self.items():  # noqa: PERF102
+        for key, data in self.items():
             data[:] = [row_map[x] for x in data if x in row_map]

@@ -1,0 +1,7 @@
+Add support for degrees Celsius for FITS. Parsing "Celsius" and "deg C" is now
+supported and astropy will output "Celsius" into FITS.
+
+Note that "deg C" is only provided for compatibility with existing FITS files,
+as it does not conform to the normal unit standard, where this should be read
+as "degree * Coulomb". Indeed, compound units like "deg C kg-1" will still be
+parsed as "Coulomb degree per kilogram".

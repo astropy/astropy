@@ -1,14 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# STDLIB
 import pickle
 
+# THIRD PARTY
 import pytest
 
+# LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import parameters, realizations
-from astropy.cosmology.realizations import default_cosmology
+from astropy.cosmology.realizations import Planck13, default_cosmology
 
 
 def test_realizations_in_toplevel_dir():
@@ -39,6 +42,20 @@ class Test_default_cosmology:
         """Test :meth:`astropy.cosmology.default_cosmology.get` current value."""
         cosmo = default_cosmology.get()
         assert cosmo is default_cosmology.validate(default_cosmology._value)
+
+    # -----------------------------------------------------
+    # get_cosmology_from_string (deprecated)
+
+    def test_get_cosmology_from_string(self, recwarn):
+        """Test method ``get_cosmology_from_string``."""
+        cosmo = default_cosmology.get_cosmology_from_string("no_default")
+        assert cosmo is None
+
+        cosmo = default_cosmology.get_cosmology_from_string("Planck13")
+        assert cosmo is Planck13
+
+        with pytest.raises(ValueError):
+            cosmo = default_cosmology.get_cosmology_from_string("fail!")
 
     # -----------------------------------------------------
     # Validate

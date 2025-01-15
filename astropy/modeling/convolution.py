@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Convolution Model."""
-
+"""Convolution Model"""
 # pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
 import numpy as np
 
@@ -60,8 +59,9 @@ class Convolution(CompoundModel):
 
     def clear_cache(self):
         """
-        Clears the cached convolution.
+        Clears the cached convolution
         """
+
         self._kwargs = None
         self._convolution = None
 

@@ -3,7 +3,6 @@
 Astronomical and physics constants in SI units.  See :mod:`astropy.constants`
 for a complete listing of constants defined in Astropy.
 """
-
 import math
 
 from .constant import Constant, EMConstant

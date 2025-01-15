@@ -4,13 +4,11 @@
 import numpy as np
 import numpy.ma as ma
 import pytest
-from numpy.testing import assert_array_equal
 
 import astropy.units as u
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.table.column import BaseColumn
 from astropy.time import Time
-from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.masked import Masked
 
 
@@ -196,32 +194,21 @@ class TestMaskedColumnInit(SetupData):
             MaskedColumn(name="b", length=4, mask=mask_list)
 
 
-DTYPES_TEST_INIT = ["?", "b", "i2", "f4", "c8", "S", "U", "O"]
-if not NUMPY_LT_2_0:
-    DTYPES_TEST_INIT.extend(
-        [
-            np.dtypes.StrDType,  # same as "U"
-            np.dtypes.BytesDType,  # same as "S"
-            np.dtypes.StringDType,
-        ]
-    )
-
-
 class TestTableInit(SetupData):
     """Initializing a table"""
 
-    @pytest.mark.parametrize("dtype", DTYPES_TEST_INIT)
+    @pytest.mark.parametrize("type_str", ("?", "b", "i2", "f4", "c8", "S", "U", "O"))
     @pytest.mark.parametrize("shape", ((8,), (4, 2), (2, 2, 2)))
-    def test_init_from_sequence_data_numeric_typed(self, dtype, shape):
+    def test_init_from_sequence_data_numeric_typed(self, type_str, shape):
         """Test init from list or list of lists with dtype specified, optionally
         including an np.ma.masked element.
         """
         # Make data of correct dtype and shape, then turn into a list,
-        # then use that to init Table with spec'd dtype.
+        # then use that to init Table with spec'd type_str.
         data = list(range(8))
-        np_data = np.array(data, dtype=dtype).reshape(shape)
+        np_data = np.array(data, dtype=type_str).reshape(shape)
         np_data_list = np_data.tolist()
-        t = Table([np_data_list], dtype=[dtype])
+        t = Table([np_data_list], dtype=[type_str])
         col = t["col0"]
         assert col.dtype == np_data.dtype
         assert np.all(col == np_data)
@@ -235,21 +222,21 @@ class TestTableInit(SetupData):
         else:
             np_data_list[-1][-1][-1] = np.ma.masked
         last_idx = tuple(-1 for _ in shape)
-        t = Table([np_data_list], dtype=[dtype])
+        t = Table([np_data_list], dtype=[type_str])
         col = t["col0"]
         assert col.dtype == np_data.dtype
         assert np.all(col == np_data)
         assert col.mask[last_idx]
         assert type(col) is MaskedColumn
 
-    @pytest.mark.parametrize("dtype", DTYPES_TEST_INIT)
+    @pytest.mark.parametrize("type_str", ("?", "b", "i2", "f4", "c8", "S", "U", "O"))
     @pytest.mark.parametrize("shape", ((8,), (4, 2), (2, 2, 2)))
-    def test_init_from_sequence_data_numeric_untyped(self, dtype, shape):
+    def test_init_from_sequence_data_numeric_untyped(self, type_str, shape):
         """Test init from list or list of lists with dtype NOT specified,
         optionally including an np.ma.masked element.
         """
         data = list(range(8))
-        np_data = np.array(data, dtype=dtype).reshape(shape)
+        np_data = np.array(data, dtype=type_str).reshape(shape)
         np_data_list = np_data.tolist()
         t = Table([np_data_list])
         # Grab the dtype that numpy assigns for the Python list inputs
@@ -608,16 +595,6 @@ def test_masked_column_with_unit_in_qtable():
     t["c"] = MaskedColumn([1, 2], unit=u.m, mask=[True, False])
     assert isinstance(t["c"], MaskedQuantity)
     assert np.all(t["c"].mask == [True, False])
-    # Regular Column is still converted to regular Quantity
-    t["d"] = Column([1, 2], unit=u.cm)
-    assert not isinstance(t["d"], MaskedQuantity)
-    assert isinstance(t["d"], u.Quantity)
-    # But not if the table is masked.
-    t2 = QTable(t, masked=True)
-    assert isinstance(t2["d"], MaskedQuantity)
-    t2["e"] = Column([1, 2], unit=u.cm)
-    assert isinstance(t2["e"], MaskedQuantity)
-    assert not np.any(t2["e"].mask)
 
 
 def test_masked_quantity_in_table():
@@ -630,11 +607,6 @@ def test_masked_quantity_in_table():
     t["c"] = MaskedQuantity([1, 2], unit=u.m, mask=[True, False])
     assert isinstance(t["c"], MaskedColumn)
     assert np.all(t["c"].mask == [True, False])
-
-    t2 = Table(t, masked=True)
-    t2["d"] = u.Quantity([1, 2], unit=u.cm)
-    assert isinstance(t2["d"], MaskedColumn)
-    assert not np.any(t2["d"].mask)
 
 
 def test_masked_column_data_attribute_is_plain_masked_array():
@@ -649,7 +621,6 @@ def test_mask_slicing_count_array_finalize():
 
     Regression test for gh-6721.
     """
-
     # Create a new BaseColumn class that counts how often
     # ``__array_finalize__`` is called.
     class MyBaseColumn(BaseColumn):
@@ -679,22 +650,3 @@ def test_mask_slicing_count_array_finalize():
     # repr should need none (used to be 2!!)
     repr(c0)
     assert MyBaseColumn.counter == 2
-
-
-def test_set_masked_bytes_column():
-    mask = [True, False, True]
-    mc = MaskedColumn([b"a", b"b", b"c"], mask=mask)
-    mc[:] = mc
-    assert (mc.mask == mask).all()
-
-
-def test_qtable_masked_true_basics():
-    # Explicit regression test for gh-16495.
-    tab = QTable([[1, 1] * u.mJy], names=["test"], masked=True)
-    assert isinstance(tab["test"], Masked)
-    assert isinstance(tab["test"], u.Quantity)
-    assert not np.any(tab["test"].mask)
-    tab["test"].mask[0] = True
-    assert_array_equal(tab["test"].mask, [True, False])
-    tab["test"].mask |= [True, True]
-    assert_array_equal(tab["test"].mask, [True, True])

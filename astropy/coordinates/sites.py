@@ -10,6 +10,7 @@ Request to the [astropy-data GitHub repository](https://github.com/astropy/astro
 updating the ``location.json`` file.
 """
 
+
 import json
 from collections.abc import Mapping
 from difflib import get_close_matches
@@ -78,7 +79,7 @@ class SiteRegistry(Mapping):
         """
         The names in this registry.  Note that these are *not* exactly the same
         as the keys: keys are always lower-case, while `names` is what you
-        should use for the actual readable names (which may be case-sensitive).
+        should use for the actual readable names (which may be case-sensitive)
 
         Returns
         -------
@@ -136,8 +137,9 @@ def get_builtin_sites():
 
 def get_downloaded_sites(jsonurl=None):
     """
-    Load observatory database from data.astropy.org and parse into a SiteRegistry.
+    Load observatory database from data.astropy.org and parse into a SiteRegistry
     """
+
     # we explicitly set the encoding because the default is to leave it set by
     # the users' locale, which may fail if it's not matched to the sites.json
     if jsonurl is None:

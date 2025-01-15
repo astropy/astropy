@@ -14,25 +14,33 @@ including:
 * Proper treatment of NaN values (ignoring them during convolution and
   replacing NaN pixels with interpolated values)
 
+* A single function for 1D, 2D, and 3D convolution
+
+* Improved options for the treatment of edges
+
 * Both direct and Fast Fourier Transform (FFT) versions
 
 * Built-in kernels that are commonly used in Astronomy
 
-The following thumbnails show the difference between SciPy and
-Astropy's convolve functions on an astronomical image that contains NaN
-values. Scipy's function returns NaN for all pixels that are within a
-kernel-sized region of any NaN value, which is often not the desired
-result.
+The following thumbnails show the difference between ``scipy`` and
+``astropy`` convolve functions on an astronomical image that contains NaN
+values. ``scipy``'s function essentially returns NaN for all pixels that are
+within a kernel of any NaN value, which is often not the desired result.
 
 .. plot::
-    :show-source-link:
+   :context: reset
+   :include-source:
+   :align: center
 
-    import matplotlib.pyplot as plt
     import numpy as np
-    from astropy.convolution import Gaussian2DKernel, convolve
+    import matplotlib.pyplot as plt
+
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
-    from scipy.ndimage import convolve as scipy_convolve
+    from astropy.convolution import Gaussian2DKernel
+    from scipy.signal import convolve as scipy_convolve
+    from astropy.convolution import convolve
+
 
     # Load the data from data.astropy.org
     filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
@@ -46,7 +54,7 @@ result.
     # This example is intended to demonstrate how astropy.convolve and
     # scipy.convolve handle missing data, so we start by setting the
     # brightest pixels to NaN to simulate a "saturated" data set
-    img[img > 20] = np.nan
+    img[img > 2e1] = np.nan
 
     # We also create a copy of the data and set those NaNs to zero.  We will
     # use this for the scipy convolution
@@ -59,71 +67,74 @@ result.
 
     # Convolution: scipy's direct convolution mode spreads out NaNs (see
     # panel 2 below)
-    scipy_conv = scipy_convolve(img, kernel)
+    scipy_conv = scipy_convolve(img, kernel, mode='same', method='direct')
 
     # scipy's direct convolution mode run on the 'zero'd' image will not
     # have NaNs, but will have some very low value zones where the NaNs were
     # (see panel 3 below)
-    scipy_conv_zerod = scipy_convolve(img_zerod, kernel)
+    scipy_conv_zerod = scipy_convolve(img_zerod, kernel, mode='same',
+                                      method='direct')
 
     # astropy's convolution replaces the NaN pixels with a kernel-weighted
     # interpolation from their neighbors
     astropy_conv = convolve(img, kernel)
 
+
     # Now we do a bunch of plots.  In the first two plots, the originally masked
     # values are marked with red X's
-    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(8, 8))
-    plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95,
-                        wspace=0.3, hspace=0.3)
-    ax = ax.flatten()
-    for axis in ax:
-        axis.axis('off')
-
-    im = ax[0].imshow(img, vmin=-2.0, vmax=20.0, origin='lower',
-                      interpolation='nearest', cmap='viridis')
+    plt.figure(1, figsize=(12, 12)).clf()
+    ax1 = plt.subplot(2, 2, 1)
+    im = ax1.imshow(img, vmin=-2., vmax=2.e1, origin='lower',
+                    interpolation='nearest', cmap='viridis')
     y, x = np.where(np.isnan(img))
-    ax[0].plot(x, y, 'rx', markersize=4)
-    ax[0].set_title("Input Data")
-    ax[0].set_xticklabels([])
-    ax[0].set_yticklabels([])
+    ax1.set_autoscale_on(False)
+    ax1.plot(x, y, 'rx', markersize=4)
+    ax1.set_title("Original")
+    ax1.set_xticklabels([])
+    ax1.set_yticklabels([])
 
-    im = ax[1].imshow(scipy_conv, vmin=-2.0, vmax=20.0, origin='lower',
-                      interpolation='nearest', cmap='viridis')
-    ax[1].plot(x, y, 'rx', markersize=4)
-    ax[1].set_title("Scipy convolved")
-    ax[1].set_xticklabels([])
-    ax[1].set_yticklabels([])
+    ax2 = plt.subplot(2, 2, 2)
+    im = ax2.imshow(scipy_conv, vmin=-2., vmax=2.e1, origin='lower',
+                    interpolation='nearest', cmap='viridis')
+    ax2.set_autoscale_on(False)
+    ax2.plot(x, y, 'rx', markersize=4)
+    ax2.set_title("Scipy")
+    ax2.set_xticklabels([])
+    ax2.set_yticklabels([])
 
-    im = ax[2].imshow(scipy_conv_zerod, vmin=-2.0, vmax=20.0, origin='lower',
-                      interpolation='nearest', cmap='viridis')
-    ax[2].set_title("Scipy convolved (NaN to zero)")
-    ax[2].set_xticklabels([])
-    ax[2].set_yticklabels([])
+    ax3 = plt.subplot(2, 2, 3)
+    im = ax3.imshow(scipy_conv_zerod, vmin=-2., vmax=2.e1, origin='lower',
+                    interpolation='nearest', cmap='viridis')
+    ax3.set_title("Scipy nan->zero")
+    ax3.set_xticklabels([])
+    ax3.set_yticklabels([])
 
-    im = ax[3].imshow(astropy_conv, vmin=-2.0, vmax=20.0, origin='lower',
-                      interpolation='nearest', cmap='viridis')
-    ax[3].set_title("Astropy convolved")
-    ax[3].set_xticklabels([])
-    ax[3].set_yticklabels([])
-
-    plt.tight_layout()
+    ax4 = plt.subplot(2, 2, 4)
+    im = ax4.imshow(astropy_conv, vmin=-2., vmax=2.e1, origin='lower',
+                    interpolation='nearest', cmap='viridis')
+    ax4.set_title("Default astropy")
+    ax4.set_xticklabels([])
+    ax4.set_yticklabels([])
 
     # we make a second plot of the amplitudes vs offset position to more
     # clearly illustrate the value differences
-    plt.figure(2, figsize=(8, 6)).clf()
-    plt.plot(img[:, 25], label='Input data', drawstyle='steps-mid', linewidth=2,
+    plt.figure(2).clf()
+    plt.plot(img[:, 25], label='input', drawstyle='steps-mid', linewidth=2,
              alpha=0.5)
-    plt.plot(scipy_conv[:, 25], label='SciPy convolved', drawstyle='steps-mid',
+    plt.plot(scipy_conv[:, 25], label='scipy', drawstyle='steps-mid',
              linewidth=2, alpha=0.5, marker='s')
-    plt.plot(scipy_conv_zerod[:, 25], label='SciPy convolved (NaN to zero)',
+    plt.plot(scipy_conv_zerod[:, 25], label='scipy nan->zero',
              drawstyle='steps-mid', linewidth=2, alpha=0.5, marker='s')
-    plt.plot(astropy_conv[:, 25], label='Astropy convolved', drawstyle='steps-mid',
+    plt.plot(astropy_conv[:, 25], label='astropy', drawstyle='steps-mid',
              linewidth=2, alpha=0.5)
-    plt.xlabel("Pixel")
     plt.ylabel("Amplitude")
+    plt.ylabel("Position Offset")
     plt.legend(loc='best')
     plt.show()
 
+
+The following sections describe how to make use of the convolution functions,
+and how to use built-in convolution kernels:
 
 Getting Started
 ===============
@@ -155,19 +166,21 @@ To convolve a 1D dataset with a user-specified kernel, you can do::
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])  # doctest: +FLOAT_CMP
     array([1.4, 3.6, 5. , 5.6, 5.6, 6.8, 6.2])
 
-The ``boundary`` keyword determines how the input array is extended
-beyond its boundaries. The default value is ``'fill'``, meaning values
-outside of the array boundary are set to the input ``fill_value``
-(default is 0.0). Setting ``boundary='extend'`` causes values near the
-edges to be extended using a constant extrapolation beyond the boundary.
-The values at the end are computed assuming that any value below the
-first point is ``1``, and any value above the last point is ``8``::
+Notice that the end points are set to zero — by default, points that are too
+close to the boundary to have a convolved value calculated are set to zero.
+However, the :func:`~astropy.convolution.convolve` function allows for a
+``boundary`` argument that can be used to specify alternate behaviors. For
+example, setting ``boundary='extend'`` causes values near the edges to be
+computed, assuming the original data is simply extended using a constant
+extrapolation beyond the boundary::
 
     >>> from astropy.convolution import convolve
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')  # doctest: +FLOAT_CMP
     array([1.6, 3.6, 5. , 5.6, 5.6, 6.8, 7.8])
 
-For a more detailed discussion of boundary treatment, see :doc:`using`.
+The values at the end are computed assuming that any value below the first
+point is ``1``, and any value above the last point is ``8``. For a more
+detailed discussion of boundary treatment, see :doc:`using`.
 
 ..
   EXAMPLE END
@@ -202,7 +215,7 @@ The kernel can then be used directly when calling
 :func:`~astropy.convolution.convolve`:
 
 .. plot::
-    :show-source-link:
+   :include-source:
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -224,8 +237,8 @@ The kernel can then be used directly when calling
     z = convolve(y, g)
 
     # Plot data before and after convolution
-    plt.plot(x, y, label='Data')
-    plt.plot(x, z, label='Convolved Data', linewidth=2)
+    plt.plot(x, y, 'k-', label='Before')
+    plt.plot(x, z, 'b-', label='After', alpha=0.5, linewidth=2)
     plt.legend(loc='best')
     plt.show()
 
@@ -278,7 +291,8 @@ flagged-out pixels:
 
 .. plot::
    :context:
-   :show-source-link:
+   :include-source:
+   :align: center
 
    import numpy as np
    import matplotlib.pyplot as plt
@@ -344,7 +358,8 @@ eye.
 
 .. plot::
    :context:
-   :show-source-link:
+   :include-source:
+   :align: center
 
    import numpy as np
    import matplotlib.pyplot as plt
@@ -422,7 +437,5 @@ Using `astropy.convolution`
 Reference/API
 =============
 
-.. toctree::
-   :maxdepth: 2
-
-   ref_api
+.. automodapi:: astropy.convolution
+    :no-inheritance-diagram:

@@ -84,7 +84,7 @@ def fmtcls2():
 
 @pytest.fixture(params=["test1", "test2"])
 def fmtcls(request):
-    return (request.param, EmptyData)
+    yield (request.param, EmptyData)
 
 
 @pytest.fixture
@@ -261,7 +261,7 @@ class TestUnifiedIORegistryBase:
 
     def test_compat_identify_format(self, registry, fmtcls1):
         fmt, cls = fmtcls1
-        args = (None, cls, None, None, (None,), {})
+        args = (None, cls, None, None, (None,), dict())
 
         # with registry specified
         registry.register_identifier(*fmtcls1, empty_identifier)
@@ -282,11 +282,11 @@ class TestUnifiedIORegistryBase:
 
     @pytest.mark.skip("TODO!")
     def test_compat_get_formats(self, registry, fmtcls1):
-        raise AssertionError()
+        assert False
 
     @pytest.mark.skip("TODO!")
     def test_compat_delay_doc_updates(self, registry, fmtcls1):
-        raise AssertionError()
+        assert False
 
 
 class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
@@ -330,7 +330,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
     @pytest.mark.skip("TODO!")
     def test_get_formats(self, registry):
         """Test ``registry.get_formats()``."""
-        raise AssertionError()
+        assert False
 
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
@@ -353,7 +353,6 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
                     assert docs[-1][iread : iread + 3] != "Yes"
         # now test it's updated
         docs = EmptyData.read.__doc__.split("\n")
-        ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
         ifmt = docs[ihd].index("Format") + 2
         iread = docs[ihd].index("Read") + 1
         assert docs[-2][ifmt : ifmt + 4] == "test"
@@ -361,7 +360,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
 
     def test_identify_read_format(self, registry):
         """Test ``registry.identify_format()``."""
-        args = ("read", EmptyData, None, None, (None,), {})
+        args = ("read", EmptyData, None, None, (None,), dict())
 
         # test there is no format to identify
         formats = registry.identify_format(*args)
@@ -723,7 +722,6 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
                     assert docs[-1][iwrite : iwrite + 3] != "Yes"
         # now test it's updated
         docs = EmptyData.write.__doc__.split("\n")
-        ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
         ifmt = docs[ihd].index("Format") + 1
         iwrite = docs[ihd].index("Write") + 2
         assert fmt in docs[-2][ifmt : ifmt + len(fmt) + 1]
@@ -732,7 +730,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
     @pytest.mark.skip("TODO!")
     def test_get_formats(self, registry):
         """Test ``registry.get_formats()``."""
-        raise AssertionError()
+        assert False
 
     def test_identify_write_format(self, registry, fmtcls1):
         """Test ``registry.identify_format()``."""
@@ -1005,7 +1003,7 @@ class TestUnifiedIORegistry(TestUnifiedInputRegistry, TestUnifiedOutputRegistry)
     @pytest.mark.skip("TODO!")
     def test_get_formats(self, registry):
         """Test ``registry.get_formats()``."""
-        raise AssertionError()
+        assert False
 
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
@@ -1097,7 +1095,7 @@ class TestSubclass:
     @pytest.fixture(autouse=True)
     def registry(self):
         """I/O registry. Not cleaned."""
-        return
+        yield
 
     def test_read_table_subclass(self):
         class MyTable(Table):

@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Tests for spline models and fitters"""
-
 import unittest.mock as mk
 
 import numpy as np

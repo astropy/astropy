@@ -30,6 +30,9 @@ optional velocities) with specified units and a coordinate frame. Sky positions
 are commonly passed in as `~astropy.units.Quantity` objects and the frame is
 specified with the string name.
 
+Example
+-------
+
 ..
   EXAMPLE START
   Using the SkyCoord Class
@@ -112,15 +115,15 @@ default, ICRS, the coordinate component names are ``ra`` and ``dec``::
     >>> c.ra  # doctest: +FLOAT_CMP
     <Longitude 10.68458 deg>
     >>> c.ra.hour  # doctest: +FLOAT_CMP
-    np.float64(0.7123053333333335)
+    0.7123053333333335
     >>> c.ra.hms  # doctest: +FLOAT_CMP
-    hms_tuple(h=np.float64(0.0), m=np.float64(42.0), s=np.float64(44.299200000000525))
+    hms_tuple(h=0.0, m=42.0, s=44.299200000000525)
     >>> c.dec  # doctest: +FLOAT_CMP
     <Latitude 41.26917 deg>
     >>> c.dec.degree  # doctest: +FLOAT_CMP
-    np.float64(41.26917)
+    41.26917
     >>> c.dec.radian  # doctest: +FLOAT_CMP
-    np.float64(0.7202828960652683)
+    0.7202828960652683
 
 Coordinates can be converted to strings using the
 :meth:`~astropy.coordinates.SkyCoord.to_string` method::
@@ -140,6 +143,9 @@ Transformation
 
 One convenient way to transform to a new coordinate frame is by accessing
 the appropriately named attribute.
+
+Example
+^^^^^^^
 
 ..
   EXAMPLE START
@@ -190,6 +196,9 @@ representation such as Cartesian or Cylindrical. This can be done by setting
 the ``representation_type`` for either |SkyCoord| objects or low-level frame
 coordinate objects.
 
+Example
+^^^^^^^
+
 ..
   EXAMPLE START
   Working with Nonspherical Coordinate Representations
@@ -221,6 +230,9 @@ Distance
 from the frame origin. The origin depends on the particular coordinate frame;
 this can be, for example, centered on the earth, centered on the solar system
 barycenter, etc.
+
+Examples
+^^^^^^^^
 
 ..
   EXAMPLE START
@@ -255,6 +267,9 @@ Convenience Methods
 |SkyCoord| defines a number of convenience methods that support, for example,
 computing on-sky (i.e., angular) and 3D separations between two coordinates.
 
+Examples
+^^^^^^^^
+
 ..
   EXAMPLE START
   SkyCoord Convenience Methods
@@ -280,7 +295,7 @@ Or cross-matching catalog coordinates (detailed in
 The `astropy.coordinates` sub-package also provides a quick way to get
 coordinates for named objects, assuming you have an active internet
 connection. The `~astropy.coordinates.SkyCoord.from_name` method of |SkyCoord|
-uses `Sesame <https://cds.unistra.fr/cgi-bin/Sesame>`_ to retrieve coordinates
+uses `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object.
 
 ..
@@ -310,7 +325,7 @@ use this option if you do not need sub-arcsecond accuracy for your coordinates::
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
 a quick way to get an |EarthLocation| - the
-:meth:`~astropy.coordinates.EarthLocation.of_site` classmethod:
+:func:`~astropy.coordinates.EarthLocation.of_site` classmethod:
 
 .. doctest-remote-data::
 
@@ -320,26 +335,13 @@ a quick way to get an |EarthLocation| - the
     <EarthLocation (-1463969.30185172, -5166673.34223433, 3434985.71204565) m>
 
 To see the list of site names available, use
-:meth:`~astropy.coordinates.EarthLocation.get_site_names`::
+:func:`~astropy.coordinates.EarthLocation.get_site_names`::
 
     >>> EarthLocation.get_site_names()  # doctest: +REMOTE_DATA
     ['ALMA', 'AO', 'ARCA', ...]
 
-Both :meth:`~astropy.coordinates.EarthLocation.of_site` and
-:meth:`~astropy.coordinates.EarthLocation.get_site_names`,
-`astropy.coordinates` attempt to access the site registry from the
-`astropy-data repository <https://github.com/astropy/astropy-data>`_ and will
-save the registry in the user's local cache (see :ref:`utils-data`).  If
-there is no local cache and Internet connection is not available, a built-in
-list (consisting of only the Greenwich Royal Observatory as an example case) is
-loaded. The cached version of the site registry is not updated automatically,
-but the latest version may be downloaded using the ``refresh_cache=True``
-option of these methods. If you would like a site to be added to the registry,
-issue a pull request to the `astropy-data repository
-<https://github.com/astropy/astropy-data>`_.
-
 For arbitrary Earth addresses (e.g., not observatory sites), use the
-:meth:`~astropy.coordinates.EarthLocation.of_address` classmethod to retrieve
+:func:`~astropy.coordinates.EarthLocation.of_address` classmethod to retrieve
 the latitude and longitude. This works with fully specified addresses, location
 names, city names, etc:
 
@@ -347,6 +349,8 @@ names, city names, etc:
 
     >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +FLOAT_CMP
     <EarthLocation (-26769.86528679, -4997007.71191864, 3950273.57633915) m>
+    >>> EarthLocation.of_address('Danbury, CT')  # doctest: +FLOAT_CMP
+    <EarthLocation ( 1364606.64511651, -4593292.9428273,  4195415.93695139) m>
 
 By default the `OpenStreetMap Nominatim service
 <https://wiki.openstreetmap.org/wiki/Nominatim>`_ is used, but by providing a
@@ -363,9 +367,9 @@ longitude and latitude, but only with the Google queries::
     geocoding API...
 
 .. note::
-    :meth:`~astropy.coordinates.SkyCoord.from_name`,
-    :meth:`~astropy.coordinates.EarthLocation.of_site`, and
-    :meth:`~astropy.coordinates.EarthLocation.of_address` are designed for
+    :func:`~astropy.coordinates.SkyCoord.from_name`,
+    :func:`~astropy.coordinates.EarthLocation.of_site`, and
+    :func:`~astropy.coordinates.EarthLocation.of_address` are designed for
     convenience, not accuracy. If you need accurate coordinates for an
     object you should find the appropriate reference and input the coordinates
     manually, or use more specialized functionality like that in the `astroquery
@@ -394,19 +398,30 @@ While ``astropy.coordinates`` does not natively support converting an Earth
 location to a timezone, the longitude and latitude can be retrieved from any
 `~astropy.coordinates.EarthLocation` object, which could then be passed to any
 third-party package that supports timezone solving, such as `timezonefinder
-<https://timezonefinder.readthedocs.io/>`_, in which case you might have to
-pass in their ``.degree`` attributes.
+<https://timezonefinder.readthedocs.io/>`_. For example, ``timezonefinder`` can
+be used to retrieve the timezone name for an address with:
+
+.. doctest-skip::
+
+    >>> loc = EarthLocation.of_address('Tucson, AZ')
+    >>> from timezonefinder import TimezoneFinder
+    >>> tz_name = TimezoneFinder().timezone_at(lng=loc.lon.degree,
+    ...                                        lat=loc.lat.degree)
+    >>> tz_name
+    'America/Phoenix'
 
 The resulting timezone name could then be used with any packages that support
-time zone definitions, such as the `zoneinfo <https://docs.python.org/3/library/zoneinfo.html>`_:
+time zone definitions, such as the (Python 3.9 default package) `zoneinfo
+<https://docs.python.org/3/library/zoneinfo.html>`_:
 
-.. doctest-remote-data::
+.. doctest-skip::
 
-    >>> import datetime
-    >>> from zoneinfo import ZoneInfo
-    >>> tz = ZoneInfo('America/Phoenix')
+    >>> from zoneinfo import ZoneInfo  # requires Python 3.9 or greater
+    >>> tz = ZoneInfo(tz_name)
     >>> dt = datetime.datetime(2021, 4, 12, 20, 0, 0, tzinfo=tz)
 
+(Please note that the above code is not tested regularly with the ``astropy`` test
+suite, so please raise an issue if this no longer works.)
 
 Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------
@@ -425,66 +440,12 @@ and transforming velocities. These are available both via the lower-level
 For more details on velocity support (and limitations), see the
 :doc:`velocities` page.
 
-.. _astropy-coordinates-masks:
-
-Masks
------
-
-Sometimes you may have incomplete information about objects, e.g., some have
-distances while others have not. `~astropy.coordinates` supports using masks
-for such purposes, using the |Masked| class::
-
-    >>> from astropy.utils.masked import Masked
-    >>> distance = Masked([0.1, np.nan]*u.kpc, mask=[False, True])
-    >>> sc = SkyCoord([1., 2.]*u.hourangle, [3., 4.]*u.deg, distance=distance)
-    >>> sc
-    <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)
-        [(15., 3., 0.1), (30., 4., ———)]>
-
-The masks propagates as you would expect::
-
-    >>> sc.separation(sc[0])  # doctest: +FLOAT_CMP
-    <MaskedAngle [ 0.        , 15.00502838] deg>
-    >>> sc.separation_3d(sc[0])  # doctest: +FLOAT_CMP
-    <MaskedDistance [ 0., ———] kpc>
-    >>> gcrs = sc.gcrs  # doctest: +SHOW_WARNINGS +IGNORE_OUTPUT
-    RuntimeWarning: invalid value encountered in ld...
-    RuntimeWarning: invalid value encountered in anp...
-    >>> gcrs  # doctest: +FLOAT_CMP
-    <SkyCoord (GCRS: obstime=J2000.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, kpc)
-        [(15.00054403, 2.99988395, 0.1), (        ———,        ———, ———)]>
-
-In the last example, you will notice that the angles of the second item have
-become masked too. This is because the distance is required in the conversion.
-Indeed, because we put in ``NaN``, we get not only the warnings during
-the conversion, but also ``NaN`` in the unmasked converted angles::
-
-    >>> gcrs.unmasked  # doctest: +FLOAT_CMP
-    <SkyCoord (GCRS: obstime=J2000.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, kpc)
-        [(15.00054403, 2.99988395, 0.1), (        nan,        nan, nan)]>
-
-In principle, by using a "good guess" for the distance, this can be avoided::
-
-    >>> distance2 = Masked([0.1, 1.]*u.kpc, mask=[False, True])
-    >>> sc2 = SkyCoord([1., 2.]*u.hourangle, [3., 4.]*u.deg, distance=distance2)
-    >>> gcrs2 = sc2.gcrs
-    >>> gcrs2  # doctest: +FLOAT_CMP
-    <SkyCoord (GCRS: obstime=J2000.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, kpc)
-        [(15.00054403, 2.99988395, 0.1), (        ———,        ———, ———)]>
-    >>> gcrs2.unmasked  # doctest: +FLOAT_CMP
-    <SkyCoord (GCRS: obstime=J2000.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, kpc)
-        [(15.00054403, 2.99988395, 0.1), (30.00201927, 3.99996188, 1. )]>
-
-.. warning::
-    Support for masks is new in astropy 7.0, and likely incomplete.
-    Please report any problems you find.
-
 .. _astropy-coordinates-overview:
 
 Overview of `astropy.coordinates` Concepts
 ==========================================
 
-.. note::
+.. note ::
     More detailed information and justification of the design is available in
     `APE (Astropy Proposal for Enhancement) 5
     <https://github.com/astropy/astropy-APEs/blob/main/APE5.rst>`_.
@@ -543,7 +504,6 @@ listed below.
    velocities
    apply_space_motion
    spectralcoord
-   stokescoord
    galactocentric
    remote_methods
    common_errors
@@ -587,15 +547,17 @@ coordinate systems implemented here include:
 * Meeus, J. "Astronomical Algorithms"
     A valuable text describing details of a wide range of coordinate-related
     problems and concepts.
-* `Revisiting Spacetrack Report #3 <https://celestrak.org/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
+* `Revisiting Spacetrack Report #3 <https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
     A discussion of the simplified general perturbation (SGP) for satellite orbits, with a description of
     the True Equator Mean Equinox (TEME) coordinate frame.
 
 
-Built-in Frames and Transformations
-===================================
+Built-in Frame Classes
+======================
 
-.. automodule:: astropy.coordinates.builtin_frames
+.. automodapi:: astropy.coordinates.builtin_frames
+    :skip: make_transform_graph_docs
+    :no-inheritance-diagram:
 
 
 .. _astropy-coordinates-api:
@@ -603,7 +565,4 @@ Built-in Frames and Transformations
 Reference/API
 =============
 
-.. toctree::
-   :maxdepth: 2
-
-   ref_api
+.. automodapi:: astropy.coordinates

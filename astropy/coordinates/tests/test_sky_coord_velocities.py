@@ -148,7 +148,6 @@ def test_useful_error_missing():
 
 # ----------------------Operations on SkyCoords w/ velocities-------------------
 
-
 # define some fixtures to get baseline coordinates to try operations with
 @pytest.fixture(
     scope="module", params=[(False, False), (True, False), (False, True), (True, True)]
@@ -157,7 +156,7 @@ def sc(request):
     incldist, inclrv = request.param
 
     args = [1 * u.deg, 2 * u.deg]
-    kwargs = {"pm_dec": 1 * u.mas / u.yr, "pm_ra_cosdec": 2 * u.mas / u.yr}
+    kwargs = dict(pm_dec=1 * u.mas / u.yr, pm_ra_cosdec=2 * u.mas / u.yr)
     if incldist:
         kwargs["distance"] = 213.4 * u.pc
     if inclrv:
@@ -178,14 +177,25 @@ def scmany():
     )
 
 
+@pytest.fixture(scope="module")
+def sc_for_sep():
+    return SkyCoord(
+        1 * u.deg, 2 * u.deg, pm_dec=1 * u.mas / u.yr, pm_ra_cosdec=2 * u.mas / u.yr
+    )
+
+
+def test_separation(sc, sc_for_sep):
+    sc.separation(sc_for_sep)
+
+
 def test_accessors(sc, scmany):
     sc.data.differentials["s"]
     sph = sc.spherical
     gal = sc.galactic
 
-    if sc.data.name.startswith("unit") and not sc.data.differentials[
+    if sc.data.get_name().startswith("unit") and not sc.data.differentials[
         "s"
-    ].name.startswith("unit"):
+    ].get_name().startswith("unit"):
         # this xfail can be eliminated when issue #7028 is resolved
         pytest.xfail(".velocity fails if there is an RV but not distance")
     sc.velocity
@@ -222,9 +232,35 @@ def test_matching(sc, scmany):
     idx, d2d, d3d = sc.match_to_catalog_sky(scmany)
 
 
+def test_position_angle(sc, sc_for_sep):
+    sc.position_angle(sc_for_sep)
+
+
 def test_constellations(sc):
     const = sc.get_constellation()
     assert const == "Pisces"
+
+
+def test_separation_3d_with_differentials():
+    c1 = SkyCoord(
+        ra=138 * u.deg,
+        dec=-17 * u.deg,
+        distance=100 * u.pc,
+        pm_ra_cosdec=5 * u.mas / u.yr,
+        pm_dec=-7 * u.mas / u.yr,
+        radial_velocity=160 * u.km / u.s,
+    )
+    c2 = SkyCoord(
+        ra=138 * u.deg,
+        dec=-17 * u.deg,
+        distance=105 * u.pc,
+        pm_ra_cosdec=15 * u.mas / u.yr,
+        pm_dec=-74 * u.mas / u.yr,
+        radial_velocity=-60 * u.km / u.s,
+    )
+
+    sep = c1.separation_3d(c2)
+    assert_quantity_allclose(sep, 5 * u.pc)
 
 
 @pytest.mark.parametrize("sph_type", ["spherical", "unitspherical"])
@@ -243,10 +279,10 @@ def test_cartesian_to_spherical(sph_type):
     assert c.ra == 0
     assert c.dec == 0
     assert c.pm_ra == 0
-    assert u.allclose(c.pm_dec, 1 * (u.mas / u.yr), rtol=1e-3)
-    assert u.allclose(c.radial_velocity, 10 * (u.km / u.s))
+    assert u.allclose(c.pm_dec, 1 * u.mas / u.yr, rtol=1e-3)
+    assert c.radial_velocity == 10 * u.km / u.s
     if sph_type == "spherical":
-        assert u.allclose(c.distance, 1 * u.kpc)
+        assert c.distance == 1 * u.kpc
     else:
         assert not hasattr(c, "distance")
 
@@ -254,17 +290,17 @@ def test_cartesian_to_spherical(sph_type):
 @pytest.mark.parametrize(
     "diff_info, diff_cls",
     [
-        ({"radial_velocity": [20, 30] * u.km / u.s}, RadialDifferential),
+        (dict(radial_velocity=[20, 30] * u.km / u.s), RadialDifferential),
         (
-            {
-                "pm_ra": [2, 3] * u.mas / u.yr,
-                "pm_dec": [-3, -4] * u.mas / u.yr,
-                "differential_type": "unitspherical",
-            },
+            dict(
+                pm_ra=[2, 3] * u.mas / u.yr,
+                pm_dec=[-3, -4] * u.mas / u.yr,
+                differential_type="unitspherical",
+            ),
             UnitSphericalDifferential,
         ),
         (
-            {"pm_ra_cosdec": [2, 3] * u.mas / u.yr, "pm_dec": [-3, -4] * u.mas / u.yr},
+            dict(pm_ra_cosdec=[2, 3] * u.mas / u.yr, pm_dec=[-3, -4] * u.mas / u.yr),
             UnitSphericalCosLatDifferential,
         ),
     ],
@@ -288,7 +324,7 @@ class TestDifferentialClassPropagation:
             ra=[10, 20] * u.deg,
             dec=[-10, 10] * u.deg,
             distance=1.0 * u.kpc,
-            **diff_info,
+            **diff_info
         )
         assert isinstance(sc.data, SphericalRepresentation)
         assert isinstance(sc.data.differentials["s"], diff_cls)

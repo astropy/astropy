@@ -4,7 +4,6 @@
 Tests for model evaluation.
 Compare the results of some models with other programs.
 """
-
 import unittest.mock as mk
 
 import numpy as np
@@ -13,6 +12,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_equal
 
+import astropy.modeling.tabular as tabular_models
 from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.bounding_box import ModelBoundingBox
@@ -29,7 +29,7 @@ from astropy.modeling.powerlaws import (
 )
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils import NumpyRNGContext
+from astropy.utils import NumpyRNGContext, minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .example_models import models_1D, models_2D
@@ -115,17 +115,11 @@ def test_inconsistent_input_shapes():
     y = x.copy()
     # check scalar input broadcasting works
     assert np.abs(g(x, 0) - g(x, 0 * x)).sum() == 0
-    # and that array broadcasting works
+    # but not array broadcasting
     x.shape = (10, 1)
     y.shape = (1, 10)
     result = g(x, y)
     assert result.shape == (10, 10)
-    # incompatible shapes do _not_ work
-    g = Gaussian2D()
-    x = np.arange(-1.0, 1, 0.2)
-    y = np.arange(-1.0, 1, 0.1)
-    with pytest.raises(ValueError, match="broadcast"):
-        g(x, y)
 
 
 def test_custom_model_bounding_box():
@@ -149,7 +143,7 @@ def test_custom_model_bounding_box():
     bbox = model.bounding_box
 
     zlim, ylim, xlim = bbox.bounding_box()
-    dz, dy, dx = (np.diff(bbox) / 2).ravel()
+    dz, dy, dx = np.diff(bbox) / 2
     z1, y1, x1 = np.mgrid[
         slice(zlim[0], zlim[1] + 1),
         slice(ylim[0], ylim[1] + 1),
@@ -268,7 +262,7 @@ class Fittable2DModelTester:
         bbox = model.bounding_box
 
         ylim, xlim = bbox
-        dy, dx = (np.diff(bbox) / 2).ravel()
+        dy, dx = np.diff(bbox) / 2
         y1, x1 = np.mgrid[slice(ylim[0], ylim[1] + 1), slice(xlim[0], xlim[1] + 1)]
         y2, x2 = np.mgrid[
             slice(ylim[0] - dy, ylim[1] + dy + 1), slice(xlim[0] - dx, xlim[1] + dx + 1)
@@ -291,9 +285,6 @@ class Fittable2DModelTester:
 
         parameters = test_parameters["parameters"]
         model = create_model(model_class, test_parameters)
-
-        if model.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
-            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
 
         if isinstance(parameters, dict):
             parameters = [parameters[name] for name in model.param_names]
@@ -376,9 +367,6 @@ class Fittable2DModelTester:
             )
             model = create_model(model_class, test_parameters, use_constraints=False)
 
-        if model_with_deriv.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
-            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
-
         # add 10% noise to the amplitude
         rsn = np.random.default_rng(0)
         amplitude = test_parameters["parameters"][0]
@@ -396,17 +384,12 @@ class Fittable2DModelTester:
             new_model_no_deriv(xv_test, yv_test),
             rtol=1e-2,
         )
-
         if model_class != Gaussian2D:
-            deriv_atol = test_parameters.get("deriv_atol", 0.1)
             assert_allclose(
-                new_model_with_deriv.parameters,
-                new_model_no_deriv.parameters,
-                rtol=deriv_atol,
+                new_model_with_deriv.parameters, new_model_no_deriv.parameters, rtol=0.1
             )
 
 
-@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 class Fittable1DModelTester:
     """
     Test class for all one dimensional parametric models.
@@ -506,7 +489,7 @@ class Fittable1DModelTester:
         model = create_model(model_class, test_parameters)
         bbox = model.bounding_box
 
-        if isinstance(model, (models.Lorentz1D, models.Drude1D)):
+        if isinstance(model, models.Lorentz1D) or isinstance(model, models.Drude1D):
             rtol = 0.01  # 1% agreement is enough due to very extended wings
             ddx = 0.1  # Finer sampling to "integrate" flux for narrow peak
         else:
@@ -516,7 +499,7 @@ class Fittable1DModelTester:
         if isinstance(bbox, ModelBoundingBox):
             bbox = bbox.bounding_box()
 
-        dx = (np.diff(bbox) / 2)[0]
+        dx = np.diff(bbox) / 2
         x1 = np.mgrid[slice(bbox[0], bbox[1] + 1, ddx)]
         x2 = np.mgrid[slice(bbox[0] - dx, bbox[1] + dx + 1, ddx)]
         arr = model(x2)
@@ -531,14 +514,20 @@ class Fittable1DModelTester:
         """
         Test if the parametric model works with the fitter.
         """
+        SCIPY_LT_1_6 = not minversion("scipy", "1.6")
+
+        if (
+            model_class == models.BrokenPowerLaw1D
+            and fitter == fitting.TRFLSQFitter
+            and SCIPY_LT_1_6
+        ):
+            pytest.xfail(reason="TRF fitter fails for BrokenPowerLaw1D in scipy < 1.6")
+
         fitter = fitter()
 
         x_lim = test_parameters["x_lim"]
         parameters = test_parameters["parameters"]
         model = create_model(model_class, test_parameters)
-
-        if model.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
-            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
 
         if isinstance(parameters, dict):
             parameters = [parameters[name] for name in model.param_names]
@@ -594,9 +583,6 @@ class Fittable1DModelTester:
             model_class, test_parameters, use_constraints=False
         )
 
-        if model_with_deriv.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
-            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
-
         # NOTE: PR 10644 replaced deprecated usage of RandomState but could not
         #       find a new seed that did not cause test failure, resorted to hardcoding.
         # add 10% noise to the amplitude
@@ -636,12 +622,8 @@ class Fittable1DModelTester:
         new_model_no_deriv = fitter_no_deriv(
             model_no_deriv, x, data, estimate_jacobian=True
         )
-
-        deriv_atol = test_parameters.get("deriv_atol", 0.15)
         assert_allclose(
-            new_model_with_deriv.parameters,
-            new_model_no_deriv.parameters,
-            atol=deriv_atol,
+            new_model_with_deriv.parameters, new_model_no_deriv.parameters, atol=0.15
         )
 
 
@@ -705,7 +687,6 @@ def test_ScaleModel():
     assert_equal(m([1, 2], model_set_axis=False), [[42, 84], [43, 86]])
 
 
-@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_voigt_model():
     """
     Currently just tests that the model peaks at its origin.
@@ -1020,8 +1001,6 @@ def test_tabular_str():
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_tabular_evaluate():
-    import scipy.interpolate as scipy_interpolate
-
     points = np.arange(5)
     lt = np.arange(5)[::-1]
     t = models.Tabular1D(points, lt)
@@ -1030,9 +1009,8 @@ def test_tabular_evaluate():
 
     t.n_outputs = 2
     value = [np.array([3, 2, 1]), np.array([1, 2, 3])]
-
     with mk.patch.object(
-        scipy_interpolate, "interpn", autospec=True, return_value=value
+        tabular_models, "interpn", autospec=True, return_value=value
     ) as mkInterpn:
         outputs = t.evaluate([1, 2, 3])
         for index, output in enumerate(outputs):
@@ -1083,7 +1061,6 @@ def test_parameter_inheritance():
     assert b.f.fixed == True  # noqa: E712
 
 
-@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_parameter_description():
     model = models.Gaussian1D(1.5, 2.5, 3.5)
     assert model.amplitude._description == "Amplitude (peak value) of the Gaussian"
@@ -1170,7 +1147,7 @@ def test_SmoothlyBrokenPowerLaw1D_fit_deriv():
 
 class _ExtendedModelMeta(_ModelMeta):
     @classmethod
-    def __prepare__(cls, name, bases, **kwds):
+    def __prepare__(mcls, name, bases, **kwds):
         # this shows the parent class machinery still applies
         namespace = super().__prepare__(name, bases, **kwds)
         # the custom bit

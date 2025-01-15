@@ -8,7 +8,6 @@ from astropy.utils.compat.optional_deps import HAS_PLT
 
 if HAS_PLT:
     import matplotlib.pyplot as plt
-    from matplotlib.units import ConversionError
 
 import numpy as np
 
@@ -31,33 +30,13 @@ def test_units():
         plt.plot([1, 2, 3] * u.m, [3, 4, 5] * u.kg, label="label")
         plt.plot([105, 210, 315] * u.cm, [3050, 3025, 3010] * u.g)
         plt.legend()
-        # Also test fill_between, which requires actual conversion to ndarray.
+        # Also test fill_between, which requires actual conversion to ndarray
+        # with numpy >=1.10 (#4654).
         plt.fill_between([1, 3] * u.m, [3, 5] * u.kg, [3050, 3010] * u.g)
         plt.savefig(buff, format="svg")
 
         assert plt.gca().xaxis.get_units() == u.m
         assert plt.gca().yaxis.get_units() == u.kg
-
-
-@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
-def test_units_decorator():
-    @quantity_support()
-    def run_test():
-        plt.figure()
-
-        buff = io.BytesIO()
-
-        plt.plot([1, 2, 3] * u.m, [3, 4, 5] * u.kg, label="label")
-        plt.plot([105, 210, 315] * u.cm, [3050, 3025, 3010] * u.g)
-        plt.legend()
-        # Also test fill_between, which requires actual conversion to ndarray.
-        plt.fill_between([1, 3] * u.m, [3, 5] * u.kg, [3050, 3010] * u.g)
-        plt.savefig(buff, format="svg")
-
-        assert plt.gca().xaxis.get_units() == u.m
-        assert plt.gca().yaxis.get_units() == u.kg
-
-    run_test()
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
@@ -79,11 +58,20 @@ def test_units_errbarr():
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
 def test_incompatible_units():
+    # NOTE: minversion check does not work properly for matplotlib dev.
+    try:
+        # https://github.com/matplotlib/matplotlib/pull/13005
+        from matplotlib.units import ConversionError
+    except ImportError:
+        err_type = u.UnitConversionError
+    else:
+        err_type = ConversionError
+
     plt.figure()
 
     with quantity_support():
         plt.plot([1, 2, 3] * u.m)
-        with pytest.raises(ConversionError):
+        with pytest.raises(err_type):
             plt.plot([105, 210, 315] * u.kg)
 
 
@@ -91,7 +79,9 @@ def test_incompatible_units():
 def test_quantity_subclass():
     """Check that subclasses are recognized.
 
-    Also see https://github.com/matplotlib/matplotlib/pull/13536
+    This sadly is not done by matplotlib.units itself, though
+    there is a PR to change it:
+    https://github.com/matplotlib/matplotlib/pull/13536
     """
     plt.figure()
 
@@ -142,18 +132,3 @@ def test_radian_formatter():
         fig.canvas.draw()
         labels = [tl.get_text() for tl in ax.yaxis.get_ticklabels()]
         assert labels == ["π/2", "π", "3π/2", "2π", "5π/2", "3π", "7π/2"]
-
-
-@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
-def test_small_range():
-    # see https://github.com/astropy/astropy/issues/13211
-    y = [10.0, 10.25, 10.5, 10.75, 11.0, 11.25, 11.5, 11.75] * u.degree
-
-    fig, ax = plt.subplots()
-    with quantity_support():
-        ax.plot(y)
-        fig.canvas.draw()
-    labels = [t.get_text() for t in ax.yaxis.get_ticklabels()]
-
-    # check uniqueness of labels
-    assert len(set(labels)) == len(labels)

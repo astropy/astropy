@@ -3,7 +3,6 @@
 Test separability of models.
 
 """
-
 import numpy as np
 
 # pylint: disable=invalid-name

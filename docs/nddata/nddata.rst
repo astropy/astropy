@@ -128,7 +128,7 @@ explicit parameter will be used and an info message will be issued::
     >>> ndd6 = NDData(quantity, unit='m')
     INFO: overwriting Quantity's current unit with specified unit. [astropy.nddata.nddata]
     >>> ndd6.data  # doctest: +FLOAT_CMP
-    array([0.01, 0.01, 0.01])
+    array([1., 1., 1.])
     >>> ndd6.unit
     Unit("m")
 
@@ -349,119 +349,16 @@ copies during initialization by setting the ``copy`` parameter to ``True``::
     >>> ndd = NDData(array)
     >>> ndd.data[2] = 10
     >>> array[2]  # Original array has changed
-    np.int64(10)
+    10
 
     >>> ndd2 = NDData(array, copy=True)
     >>> ndd2.data[2] = 3
     >>> array[2]  # Original array hasn't changed.
-    np.int64(10)
+    10
 
 .. note::
     In some cases setting ``copy=True`` will copy the ``data`` twice. Known
     cases are if the ``data`` is a `list` or `tuple`.
-
-..
-  EXAMPLE END
-
-
-Collapsing an NDData object along one or more axes
-==================================================
-
-..
-  EXAMPLE START
-  Collapsing an NDData object along one or more axes
-
-A common operation on an `~numpy.ndarray` is to take the sum, mean,
-maximum, or minimum along one or more axes, reducing the dimensions
-of the output. These four operations are implemented on
-`~astropy.nddata.NDData` with appropriate propagation of uncertainties,
-masks, and units.
-
-For example, let's work on the following ``data`` with a mask, unit, and
-(uniform) uncertainty::
-
-    >>> import numpy as np
-    >>> import astropy.units as u
-    >>> from astropy.nddata import NDDataArray, StdDevUncertainty
-    >>>
-    >>> data = [
-    ...     [1, 2, 3],
-    ...     [2, 3, 4]
-    ... ]
-    >>> mask = [
-    ...     [True, False, False],
-    ...     [False, False, False]
-    ... ]
-    >>> uncertainty = StdDevUncertainty(np.ones_like(data))
-    >>> nddata = NDDataArray(data=data, uncertainty=uncertainty, mask=mask, unit='m')
-
-The sum along axis ``1`` gives one result per row::
-
-    >>> sum_axis_1 = nddata.sum(axis=1)  # this is a new NDDataArray
-    >>> print(np.asanyarray(sum_axis_1))  # this converts data to a numpy masked array. doctest: +FLOAT_CMP
-    [-- 9.0]
-    >>> print(sum_axis_1.uncertainty)  # doctest: +FLOAT_CMP
-    StdDevUncertainty([1.41421356, 1.73205081])
-
-The result has one masked value derived from the logical OR of the original mask
-along ``axis=1``. The uncertainties are the square-root of the sum of the squares
-of the input uncertainties. Since the original uncertainties were all unity, the
-result is the square root of the number of unmasked data entries,
-:math:`[\sqrt{2},\,\sqrt{3}]`.
-
-We can similarly take the mean along ``axis=1``::
-
-    >>> mean_axis_1 = nddata.mean(axis=1)
-    >>> print(np.asanyarray(mean_axis_1))  # doctest: +FLOAT_CMP
-    [2.5 3.0]
-    >>> print(mean_axis_1.uncertainty)  # doctest: +FLOAT_CMP
-    StdDevUncertainty([0.70710678, 0.57735027])
-
-The result is the mean of the values where ``mask==False``, and in this example,
-the result would only have ``mask==True`` if an entire row was masked. Since the
-uncertainties were given as `~astropy.nddata.StdDevUncertainty`, the propagated
-uncertainties decrease proportional to the number of unmasked measurements in each
-row, following :math:`[2^{-1/2},\,3^{-1/2}]`.
-
-There's no single, correct way of defining the uncertainties associated
-with the ``min`` or ``max`` of a set of measurements, so
-`~astropy.nddata.NDData` resists the temptation to guess, and returns
-the minimum data value along the axis/axes, and the propagated mask, but
-no uncertainties::
-
-    >>> min_axis_1 = nddata.min(axis=1)
-    >>> print(np.asanyarray(min_axis_1))  # doctest: +FLOAT_CMP
-    [2.0 2.0]
-    >>> print(min_axis_1.uncertainty)
-    None
-
-For some use cases, it may be helpful to return the uncertainty
-at the same index as the minimum/maximum ``data`` value, so that
-the original ``data`` retains its uncertainty. You can get this
-behavior with::
-
-    >>> min_axis_1 = nddata.min(axis=1, propagate_uncertainties=True)
-
-    >>> print(np.asanyarray(min_axis_1))  # doctest: +FLOAT_CMP
-    [2.0 2.0]
-    >>> print(min_axis_1.uncertainty)  # doctest: +FLOAT_CMP
-    StdDevUncertainty([1, 1])
-
-Finally, in some cases it may be useful to do perform a collapse
-operation only on the unmasked values, and only return a masked
-result when all of the input values are masked. If we refer back to
-the first example in this section, we see that the underlying
-``data`` attribute has been summed over all values, including
-masked ones::
-
-    >>> sum_axis_1  # doctest: +FLOAT_CMP
-    NDDataArray([——, 9.], unit='m')
-
-where the first data element is masked. We can instead get the sum
-for only unmasked values with the ``operation_ignores_mask`` option::
-
-    >>> nddata.sum(axis=1, operation_ignores_mask=True)
-    NDDataArray([5, 9], unit='m')
 
 ..
   EXAMPLE END
@@ -510,11 +407,6 @@ Converting the ``data`` and ``unit`` to a Quantity::
     >>> quantity  # doctest: +FLOAT_CMP
     <Quantity [1., 2., 3., 4.] m>
 
-MaskedQuantity
---------------
-
-Converting the ``data``, ``unit``, and ``mask`` to a ``MaskedQuantity``::
-
-    >>> from astropy.utils.masked import Masked
-    >>> Masked(u.Quantity(ndd.data, ndd.unit), ndd.mask)  # doctest: +FLOAT_CMP
-    <MaskedQuantity [——, 2., 3., ——] m>
+.. note::
+    Ideally, you would construct masked quantities, but these are not properly
+    supported: many operations on them fail.

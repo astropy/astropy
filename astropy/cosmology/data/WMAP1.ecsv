@@ -19,6 +19,7 @@
 # - t0: !astropy.units.Quantity
 #     unit: !astropy.units.Unit {unit: Gyr}
 #     value: 13.4
+# - {flat: true}
 # - {reference: 'Spergel et al. 2003, ApJS, 148, 175, doi:  10.1086/377226. Table 7 (WMAP + CBI + ACBAR + 2dFGRS + Lya).\nPending WMAP
 #     team approval and subject to change.'}
 # - {cosmology: FlatLambdaCDM}

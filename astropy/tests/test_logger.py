@@ -9,7 +9,7 @@ import warnings
 import pytest
 
 from astropy import log
-from astropy.logger import _WITHIN_IPYTHON, LoggingError, conf
+from astropy.logger import LoggingError, conf
 from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 
 # Save original values of hooks. These are not the system values, but the
@@ -17,6 +17,11 @@ from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 # this file gets executed.
 _excepthook = sys.__excepthook__
 _showwarning = warnings.showwarning
+
+try:
+    ip = get_ipython()
+except NameError:
+    ip = None
 
 
 def setup_function(function):
@@ -185,7 +190,7 @@ def test_exception_logging_enable_twice():
 
 
 @pytest.mark.skipif(
-    _WITHIN_IPYTHON, reason="Cannot override exception handler in IPython"
+    ip is not None, reason="Cannot override exception handler in IPython"
 )
 def test_exception_logging_overridden():
     log.enable_exception_logging()
@@ -200,16 +205,20 @@ def test_exception_logging_overridden():
         log.disable_exception_logging()
 
 
-@pytest.mark.xfail("_WITHIN_IPYTHON")
+@pytest.mark.xfail("ip is not None")
 def test_exception_logging():
     # Without exception logging
-    with pytest.raises(Exception, match="This is an Exception"):
+    try:
         with log.log_to_list() as log_list:
             raise Exception("This is an Exception")
+    except Exception as exc:
+        sys.excepthook(*sys.exc_info())
+        assert exc.args[0] == "This is an Exception"
+    else:
+        assert False  # exception should have been raised
     assert len(log_list) == 0
 
-    # With exception logging. Note that this test can't use `pytest.raises` because it
-    # cleans the exception chain, so the exception is not logged.
+    # With exception logging
     try:
         log.enable_exception_logging()
         with log.log_to_list() as log_list:
@@ -218,14 +227,13 @@ def test_exception_logging():
         sys.excepthook(*sys.exc_info())
         assert exc.args[0] == "This is an Exception"
     else:
-        raise AssertionError()  # exception should have been raised
+        assert False  # exception should have been raised
     assert len(log_list) == 1
     assert log_list[0].levelname == "ERROR"
     assert log_list[0].message.startswith("Exception: This is an Exception")
     assert log_list[0].origin == "astropy.tests.test_logger"
 
-    # Without exception logging. Note that this test can't use `pytest.raises` because
-    # it cleans the exception chain, so any exception is not logged, regardless.
+    # Without exception logging
     log.disable_exception_logging()
     try:
         with log.log_to_list() as log_list:
@@ -234,11 +242,11 @@ def test_exception_logging():
         sys.excepthook(*sys.exc_info())
         assert exc.args[0] == "This is an Exception"
     else:
-        raise AssertionError()  # exception should have been raised
+        assert False  # exception should have been raised
     assert len(log_list) == 0
 
 
-@pytest.mark.xfail("_WITHIN_IPYTHON")
+@pytest.mark.xfail("ip is not None")
 def test_exception_logging_origin():
     # The point here is to get an exception raised from another location
     # and make sure the error's origin is reported correctly
@@ -256,7 +264,7 @@ def test_exception_logging_origin():
             "homogeneous list must contain only objects of type "
         )
     else:
-        raise AssertionError()
+        assert False
     assert len(log_list) == 1
     assert log_list[0].levelname == "ERROR"
     assert log_list[0].message.startswith(
@@ -282,7 +290,7 @@ def test_exception_logging_argless_exception():
     except Exception:
         sys.excepthook(*sys.exc_info())
     else:
-        raise AssertionError()  # exception should have been raised
+        assert False  # exception should have been raised
     assert len(log_list) == 1
     assert log_list[0].levelname == "ERROR"
     assert log_list[0].message == "Exception [astropy.tests.test_logger]"

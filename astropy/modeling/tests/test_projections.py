@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Test sky projections defined in WCS Paper II"""
-
 # pylint: disable=invalid-name, no-member
 import os
 import unittest.mock as mk
@@ -21,7 +20,7 @@ from astropy.utils.data import get_pkg_data_filename
 
 def test_new_wcslib_projections():
     # Test that we are aware of all WCSLIB projections.
-    # Detect if a new WCSLIB release introduced new projections.
+    # Dectect if a new WCSLIB release introduced new projections.
     assert not set(wcs.PRJ_CODES).symmetric_difference(
         projections.projcodes + projections._NOT_SUPPORTED_PROJ_CODES
     )

@@ -1,14 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-"""Verify item access API in:
+""" Verify item access API in:
 https://github.com/astropy/astropy/wiki/Table-item-access-definition
 """
 
 import numpy as np
 import pytest
-
-from astropy.table import Row
 
 
 @pytest.mark.usefixtures("table_data")
@@ -250,7 +248,8 @@ class TestTableItems(BaseTestItems):
         py 3.3 failure mode
         """
         t = table_data.Table(table_data.COLS)
-        assert type(t[np.int64(0)]) is Row
+        idxs = np.random.randint(len(t), size=2)
+        t[idxs[1]]
 
     def test_select_bad_column(self, table_data):
         """Select column name that does not exist"""

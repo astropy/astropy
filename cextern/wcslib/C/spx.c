@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spx.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: spx.c,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -61,10 +61,15 @@ int specx(
 {
   static const char *function = "specx";
 
-  if (spx == 0x0) return SPXERR_NULL_POINTER;
-  struct wcserr **err = &(spx->err);
+  register int k;
+  int haverest;
+  double beta, dwaveawav, gamma, n, s, t, u;
+  struct wcserr **err;
 
-  int haverest = 1;
+  if (spx == 0x0) return SPXERR_NULL_POINTER;
+  err = &(spx->err);
+
+  haverest = 1;
   if (restfrq == 0.0) {
     if (restwav == 0.0) {
       // No line rest frequency supplied.
@@ -132,7 +137,7 @@ int specx(
     spx->wavetype = 1;
 
   } else if (strcmp(type, "VOPT") == 0) {
-    double s = 1.0 + spec/C;
+    s = 1.0 + spec/C;
     if (s == 0.0) {
       return wcserr_set(WCSERR_SET(SPXERR_BAD_SPEC_VAR),
         "Invalid spectral variable");
@@ -141,7 +146,7 @@ int specx(
     spx->velotype = 1;
 
   } else if (strcmp(type, "ZOPT") == 0) {
-    double s = 1.0 + spec;
+    s = 1.0 + spec;
     if (s == 0.0) {
       return wcserr_set(WCSERR_SET(SPXERR_BAD_SPEC_VAR),
         "Invalid spectral variable");
@@ -154,8 +159,6 @@ int specx(
       return wcserr_set(WCSERR_SET(SPXERR_BAD_SPEC_VAR),
         "Invalid spectral variable");
     }
-
-    double n, s;
     s = 1.0/spec;
     s *= s;
     n  =   2.554e8 / (0.41e14 - s);
@@ -165,7 +168,7 @@ int specx(
     spx->wavetype = 1;
 
   } else if (strcmp(type, "VELO") == 0) {
-    double beta = spec/C;
+    beta = spec/C;
     if (fabs(beta) == 1.0) {
       return wcserr_set(WCSERR_SET(SPXERR_BAD_SPEC_VAR),
         "Invalid spectral variable");
@@ -189,9 +192,8 @@ int specx(
 
 
   // Convert frequency to the other spectral types.
-  double n, s, t, u;
   n = 1.0;
-  for (int k = 0; k < 4; k++) {
+  for (k = 0; k < 4; k++) {
     s = n*spx->freq/C;
     s *= s;
     t = 0.41e14 - s;
@@ -199,7 +201,7 @@ int specx(
     n = 1.000064328 + (2.554e8/t + 294.981e8/u);
   }
 
-  double dwaveawav = n - 2.0*s*(2.554e8/(t*t) + 294.981e8/(u*u));
+  dwaveawav = n - 2.0*s*(2.554e8/(t*t) + 294.981e8/(u*u));
 
   s = spx->freq/spx->restfrq;
 
@@ -215,7 +217,7 @@ int specx(
   spx->beta = spx->velo/C;
 
   // Compute the required derivatives.
-  double gamma = 1.0/sqrt(1.0 - spx->beta*spx->beta);
+  gamma = 1.0/sqrt(1.0 - spx->beta*spx->beta);
 
   spx->dfreqafrq = 1.0/(2.0*PI);
   spx->dafrqfreq = 1.0/spx->dfreqafrq;
@@ -344,14 +346,18 @@ int freqwave(
   int stat[])
 
 {
+  int status = 0;
+  register int ifreq, *statp;
+  register const double *freqp;
+  register double *wavep;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *freqp = freq;
-  double *wavep = wave;
-  int *statp = stat;
-  int status = 0;
-  for (int ifreq = 0; ifreq < nfreq; ifreq++) {
+  freqp = freq;
+  wavep = wave;
+  statp = stat;
+  for (ifreq = 0; ifreq < nfreq; ifreq++) {
     if (*freqp != 0.0) {
       *wavep = C/(*freqp);
       *(statp++) = 0;
@@ -379,14 +385,18 @@ int wavefreq(
   int stat[])
 
 {
+  int status = 0;
+  register int iwave, *statp;
+  register const double *wavep;
+  register double *freqp;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *wavep = wave;
-  double *freqp = freq;
-  int *statp = stat;
-  int status = 0;
-  for (int iwave = 0; iwave < nwave; iwave++) {
+  wavep = wave;
+  freqp = freq;
+  statp = stat;
+  for (iwave = 0; iwave < nwave; iwave++) {
     if (*wavep != 0.0) {
       *freqp = C/(*wavep);
       *(statp++) = 0;
@@ -417,6 +427,7 @@ int freqawav(
 
 {
   int status;
+
   if ((status = freqwave(dummy, nfreq, sfreq, sawav, freq, awav, stat))) {
     return status;
   }
@@ -437,6 +448,7 @@ int awavfreq(
 
 {
   int status;
+
   if ((status = awavwave(dummy, nawav, sawav, sfreq, awav, freq, stat))) {
     return status;
   }
@@ -458,13 +470,18 @@ int freqvelo(
   int stat[])
 
 {
-  double r = restfrq*restfrq;
+  double r, s;
+  register int ifreq, *statp;
+  register const double *freqp;
+  register double *velop;
 
-  const double *freqp = freq;
-  double *velop = velo;
-  int *statp = stat;
-  for (int ifreq = 0; ifreq < nfreq; ifreq++) {
-    double s = *freqp * *freqp;
+  r = restfrq*restfrq;
+
+  freqp = freq;
+  velop = velo;
+  statp = stat;
+  for (ifreq = 0; ifreq < nfreq; ifreq++) {
+    s = *freqp * *freqp;
     *velop = C*(r - s)/(r + s);
     *(statp++) = 0;
 
@@ -487,12 +504,17 @@ int velofreq(
   int stat[])
 
 {
-  const double *velop = velo;
-  double *freqp = freq;
-  int *statp = stat;
   int status = 0;
-  for (int ivelo = 0; ivelo < nvelo; ivelo++) {
-    double s = C + *velop;
+  double s;
+  register int ivelo, *statp;
+  register const double *velop;
+  register double *freqp;
+
+  velop = velo;
+  freqp = freq;
+  statp = stat;
+  for (ivelo = 0; ivelo < nvelo; ivelo++) {
+    s = C + *velop;
     if (s != 0.0) {
       *freqp = restfrq*sqrt((C - *velop)/s);
       *(statp++) = 0;
@@ -522,18 +544,23 @@ int waveawav(
   int stat[])
 
 {
+  int status = 0;
+  double n, s;
+  register int iwave, k, *statp;
+  register const double *wavep;
+  register double *awavp;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *wavep = wave;
-  double *awavp = awav;
-  int *statp = stat;
-  int status = 0;
-  for (int iwave = 0; iwave < nwave; iwave++) {
+  wavep = wave;
+  awavp = awav;
+  statp = stat;
+  for (iwave = 0; iwave < nwave; iwave++) {
     if (*wavep != 0.0) {
-      double n = 1.0;
-      for (int k = 0; k < 4; k++) {
-        double s  = n/(*wavep);
+      n = 1.0;
+      for (k = 0; k < 4; k++) {
+        s  = n/(*wavep);
         s *= s;
         n  =   2.554e8 / (0.41e14 - s);
         n += 294.981e8 / (1.46e14 - s);
@@ -566,16 +593,20 @@ int awavwave(
   int stat[])
 
 {
+  int status = 0;
+  double n, s;
+  register int iawav, *statp;
+  register const double *awavp;
+  register double *wavep;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *awavp = awav;
-  double *wavep = wave;
-  int *statp = stat;
-  int status = 0;
-  for (int iawav = 0; iawav < nawav; iawav++) {
+  awavp = awav;
+  wavep = wave;
+  statp = stat;
+  for (iawav = 0; iawav < nawav; iawav++) {
     if (*awavp != 0.0) {
-      double n, s;
       s = 1.0/(*awavp);
       s *= s;
       n  =   2.554e8 / (0.41e14 - s);
@@ -609,13 +640,18 @@ int wavevelo(
   int stat[])
 
 {
-  double r = restwav*restwav;
+  double r, s;
+  register int iwave, *statp;
+  register const double *wavep;
+  register double *velop;
 
-  const double *wavep = wave;
-  double *velop = velo;
-  int *statp = stat;
-  for (int iwave = 0; iwave < nwave; iwave++) {
-    double s = *wavep * *wavep;
+  r = restwav*restwav;
+
+  wavep = wave;
+  velop = velo;
+  statp = stat;
+  for (iwave = 0; iwave < nwave; iwave++) {
+    s = *wavep * *wavep;
     *velop = C*(s - r)/(s + r);
     *(statp++) = 0;
 
@@ -638,12 +674,17 @@ int velowave(
   int stat[])
 
 {
-  const double *velop = velo;
-  double *wavep = wave;
-  int *statp = stat;
   int status = 0;
-  for (int ivelo = 0; ivelo < nvelo; ivelo++) {
-    double s = C - *velop;
+  double s;
+  register int ivelo, *statp;
+  register const double *velop;
+  register double *wavep;
+
+  velop = velo;
+  wavep = wave;
+  statp = stat;
+  for (ivelo = 0; ivelo < nvelo; ivelo++) {
+    s = C - *velop;
     if (s != 0.0) {
       *wavep = restwav*sqrt((C + *velop)/s);
       *(statp++) = 0;
@@ -674,6 +715,7 @@ int awavvelo(
 
 {
   int status;
+
   if ((status = awavwave(dummy, nawav, sawav, svelo, awav, velo, stat))) {
     return status;
   }
@@ -694,6 +736,7 @@ int veloawav(
 
 {
   int status;
+
   if ((status = velowave(dummy, nvelo, svelo, sawav, velo, awav, stat))) {
     return status;
   }
@@ -715,13 +758,17 @@ int freqafrq(
   int stat[])
 
 {
+  register int ifreq, *statp;
+  register const double *freqp;
+  register double *afrqp;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *freqp = freq;
-  double *afrqp = afrq;
-  int *statp = stat;
-  for (int ifreq = 0; ifreq < nfreq; ifreq++) {
+  freqp = freq;
+  afrqp = afrq;
+  statp = stat;
+  for (ifreq = 0; ifreq < nfreq; ifreq++) {
     *afrqp = (*freqp)*(2.0*PI);
     *(statp++) = 0;
 
@@ -744,13 +791,17 @@ int afrqfreq(
   int stat[])
 
 {
+  register int iafrq, *statp;
+  register const double *afrqp;
+  register double *freqp;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *afrqp = afrq;
-  double *freqp = freq;
-  int *statp = stat;
-  for (int iafrq = 0; iafrq < nafrq; iafrq++) {
+  afrqp = afrq;
+  freqp = freq;
+  statp = stat;
+  for (iafrq = 0; iafrq < nafrq; iafrq++) {
     *freqp = (*afrqp)/(2.0*PI);
     *(statp++) = 0;
 
@@ -775,13 +826,17 @@ int freqener(
   int stat[])
 
 {
+  register int ifreq, *statp;
+  register const double *freqp;
+  register double *enerp;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *freqp = freq;
-  double *enerp = ener;
-  int *statp = stat;
-  for (int ifreq = 0; ifreq < nfreq; ifreq++) {
+  freqp = freq;
+  enerp = ener;
+  statp = stat;
+  for (ifreq = 0; ifreq < nfreq; ifreq++) {
     *enerp = (*freqp)*h;
     *(statp++) = 0;
 
@@ -804,13 +859,17 @@ int enerfreq(
   int stat[])
 
 {
+  register int iener, *statp;
+  register const double *enerp;
+  register double *freqp;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *enerp = ener;
-  double *freqp = freq;
-  int *statp = stat;
-  for (int iener = 0; iener < nener; iener++) {
+  enerp = ener;
+  freqp = freq;
+  statp = stat;
+  for (iener = 0; iener < nener; iener++) {
     *freqp = (*enerp)/h;
     *(statp++) = 0;
 
@@ -835,13 +894,17 @@ int freqwavn(
   int stat[])
 
 {
+  register int ifreq, *statp;
+  register const double *freqp;
+  register double *wavnp;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *freqp = freq;
-  double *wavnp = wavn;
-  int *statp = stat;
-  for (int ifreq = 0; ifreq < nfreq; ifreq++) {
+  freqp = freq;
+  wavnp = wavn;
+  statp = stat;
+  for (ifreq = 0; ifreq < nfreq; ifreq++) {
     *wavnp = (*freqp)/C;
     *(statp++) = 0;
 
@@ -864,13 +927,17 @@ int wavnfreq(
   int stat[])
 
 {
+  register int iwavn, *statp;
+  register const double *wavnp;
+  register double *freqp;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *wavnp = wavn;
-  double *freqp = freq;
-  int *statp = stat;
-  for (int iwavn = 0; iwavn < nwavn; iwavn++) {
+  wavnp = wavn;
+  freqp = freq;
+  statp = stat;
+  for (iwavn = 0; iwavn < nwavn; iwavn++) {
     *freqp = (*wavnp)*C;
     *(statp++) = 0;
 
@@ -895,15 +962,20 @@ int freqvrad(
   int stat[])
 
 {
+  double r;
+  register int ifreq, *statp;
+  register const double *freqp;
+  register double *vradp;
+
   if (restfrq == 0.0) {
     return SPXERR_BAD_SPEC_PARAMS;
   }
-  double r = C/restfrq;
+  r = C/restfrq;
 
-  const double *freqp = freq;
-  double *vradp = vrad;
-  int *statp = stat;
-  for (int ifreq = 0; ifreq < nfreq; ifreq++) {
+  freqp = freq;
+  vradp = vrad;
+  statp = stat;
+  for (ifreq = 0; ifreq < nfreq; ifreq++) {
     *vradp = r*(restfrq - *freqp);
     *(statp++) = 0;
 
@@ -926,12 +998,17 @@ int vradfreq(
   int stat[])
 
 {
-  double r = restfrq/C;
+  double r;
+  register int ivrad, *statp;
+  register const double *vradp;
+  register double *freqp;
 
-  const double *vradp = vrad;
-  double *freqp = freq;
-  int *statp = stat;
-  for (int ivrad = 0; ivrad < nvrad; ivrad++) {
+  r = restfrq/C;
+
+  vradp = vrad;
+  freqp = freq;
+  statp = stat;
+  for (ivrad = 0; ivrad < nvrad; ivrad++) {
     *freqp = r*(C - *vradp);
     *(statp++) = 0;
     vradp += svrad;
@@ -955,15 +1032,20 @@ int wavevopt(
   int stat[])
 
 {
+  double r;
+  register int iwave, *statp;
+  register const double *wavep;
+  register double *voptp;
+
   if (restwav == 0.0) {
     return SPXERR_BAD_SPEC_PARAMS;
   }
-  double r = C/restwav;
+  r = C/restwav;
 
-  const double *wavep = wave;
-  double *voptp = vopt;
-  int *statp = stat;
-  for (int iwave = 0; iwave < nwave; iwave++) {
+  wavep = wave;
+  voptp = vopt;
+  statp = stat;
+  for (iwave = 0; iwave < nwave; iwave++) {
     *voptp = r*(*wavep) - C;
     *(statp++) = 0;
     wavep += swave;
@@ -985,12 +1067,17 @@ int voptwave(
   int stat[])
 
 {
-  double r = restwav/C;
+  double r;
+  register int ivopt, *statp;
+  register const double *voptp;
+  register double *wavep;
 
-  const double *voptp = vopt;
-  double *wavep = wave;
-  int *statp = stat;
-  for (int ivopt = 0; ivopt < nvopt; ivopt++) {
+  r = restwav/C;
+
+  voptp = vopt;
+  wavep = wave;
+  statp = stat;
+  for (ivopt = 0; ivopt < nvopt; ivopt++) {
     *wavep = r*(C + *voptp);
     *(statp++) = 0;
     voptp += svopt;
@@ -1014,15 +1101,20 @@ int wavezopt(
   int stat[])
 
 {
+  double r;
+  register int iwave, *statp;
+  register const double *wavep;
+  register double *zoptp;
+
   if (restwav == 0.0) {
     return SPXERR_BAD_SPEC_PARAMS;
   }
-  double r = 1.0/restwav;
+  r = 1.0/restwav;
 
-  const double *wavep = wave;
-  double *zoptp = zopt;
-  int *statp = stat;
-  for (int iwave = 0; iwave < nwave; iwave++) {
+  wavep = wave;
+  zoptp = zopt;
+  statp = stat;
+  for (iwave = 0; iwave < nwave; iwave++) {
     *zoptp = r*(*wavep) - 1.0;
     *(statp++) = 0;
     wavep += swave;
@@ -1044,10 +1136,14 @@ int zoptwave(
   int stat[])
 
 {
-  const double *zoptp = zopt;
-  double *wavep = wave;
-  int *statp = stat;
-  for (int izopt = 0; izopt < nzopt; izopt++) {
+  register int izopt, *statp;
+  register const double *zoptp;
+  register double *wavep;
+
+  zoptp = zopt;
+  wavep = wave;
+  statp = stat;
+  for (izopt = 0; izopt < nzopt; izopt++) {
     *wavep = restwav*(1.0 + *zoptp);
     *(statp++) = 0;
     zoptp += szopt;
@@ -1071,13 +1167,17 @@ int velobeta(
   int stat[])
 
 {
+  register int ivelo, *statp;
+  register const double *velop;
+  register double *betap;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *velop = velo;
-  double *betap = beta;
-  int *statp = stat;
-  for (int ivelo = 0; ivelo < nvelo; ivelo++) {
+  velop = velo;
+  betap = beta;
+  statp = stat;
+  for (ivelo = 0; ivelo < nvelo; ivelo++) {
     *betap = (*velop)/C;
     *(statp++) = 0;
 
@@ -1100,13 +1200,17 @@ int betavelo(
   int stat[])
 
 {
+  register int ibeta, *statp;
+  register const double *betap;
+  register double *velop;
+
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
-  const double *betap = beta;
-  double *velop = velo;
-  int *statp = stat;
-  for (int ibeta = 0; ibeta < nbeta; ibeta++) {
+  betap = beta;
+  velop = velo;
+  statp = stat;
+  for (ibeta = 0; ibeta < nbeta; ibeta++) {
     *velop = (*betap)*C;
     *(statp++) = 0;
 

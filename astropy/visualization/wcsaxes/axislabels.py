@@ -39,9 +39,9 @@ class AxisLabels(Text):
 
     def get_visible_axes(self):
         if self._visible_axes == "all":
-            return list(self._frame.keys())
+            return self._frame.keys()
         else:
-            return [x for x in self._visible_axes if x in self._frame or x == "#"]
+            return [x for x in self._visible_axes if x in self._frame]
 
     def set_minpad(self, minpad):
         self._minpad = minpad
@@ -78,9 +78,6 @@ class AxisLabels(Text):
                 ticklabels_bbox_list += bbaxis
 
         for axis in self.get_visible_axes():
-            if axis == "#":
-                continue
-
             if self.get_visibility_rule() == "ticks":
                 if not ticks_locs[axis]:
                     continue

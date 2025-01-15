@@ -28,12 +28,10 @@ from astropy.modeling.functional_models import (
     Exponential1D,
     Gaussian1D,
     Gaussian2D,
-    GeneralSersic2D,
     KingProjectedAnalytic1D,
     Linear1D,
     Logarithmic1D,
     Lorentz1D,
-    Lorentz2D,
     Moffat1D,
     Moffat2D,
     Multiply,
@@ -163,18 +161,6 @@ FUNC_MODELS_1D = [
         "bounding_box": False,
     },
     {
-        "class": Voigt1D,
-        "parameters": {
-            "amplitude_L": 2 * u.Jy,
-            "x_0": 505 * u.nm,
-            "fwhm_L": 100 * u.AA,
-            "fwhm_G": 50 * u.AA,
-            "method": "humlicek2",
-        },
-        "evaluation": [(0.51 * u.micron, 1.0621795524 * u.Jy)],
-        "bounding_box": False,
-    },
-    {
         "class": Const1D,
         "parameters": {"amplitude": 3 * u.Jy},
         "evaluation": [(0.6 * u.micron, 3 * u.Jy)],
@@ -288,17 +274,6 @@ FUNC_MODELS_2D = [
         ],
         "bounding_box": [[-13.02230366, 15.02230366], [-12.02230366, 16.02230366]]
         * u.m,
-    },
-    {
-        "class": Lorentz2D,
-        "parameters": {
-            "amplitude": 2 * u.Jy,
-            "x_0": 505 * u.nm,
-            "y_0": 507 * u.nm,
-            "fwhm": 100 * u.AA,
-        },
-        "evaluation": [(0.51 * u.micron, 0.53 * u.micron, 0.08635579 * u.Jy)],
-        "bounding_box": [[255, 755], [257, 757]] * u.nm,
     },
     {
         "class": Const2D,
@@ -416,23 +391,6 @@ FUNC_MODELS_2D = [
             "theta": 0,
         },
         "evaluation": [(3 * u.arcsec, 2.5 * u.arcsec, 2.829990489 * u.MJy / u.sr)],
-        "bounding_box": False,
-    },
-    {
-        "class": GeneralSersic2D,
-        "parameters": {
-            "amplitude": 3 * u.MJy / u.sr,
-            "x_0": 1 * u.arcsec,
-            "y_0": 2 * u.arcsec,
-            "r_eff": 2 * u.arcsec,
-            "n": 4,
-            "c": 1,
-            "ellip": 0,
-            "theta": 0,
-        },
-        "evaluation": [
-            (3 * u.arcsec, 2.5 * u.arcsec, 2.9704014001846475 * u.MJy / u.sr)
-        ],
         "bounding_box": False,
     },
     {
@@ -580,14 +538,12 @@ MODELS = (
     + POLY_MODELS
 )
 
-SCIPY_MODELS = {Sersic1D, Sersic2D, GeneralSersic2D, AiryDisk2D}
+SCIPY_MODELS = {Sersic1D, Sersic2D, AiryDisk2D}
 
 # These models will fail fitting test, because built in fitting data
 #   will produce non-finite values
 NON_FINITE_LevMar_MODELS = [
     Sersic1D,
-    Sersic2D,
-    GeneralSersic2D,
     ArcSine1D,
     ArcCosine1D,
     PowerLaw1D,
@@ -603,7 +559,6 @@ NON_FINITE_TRF_MODELS = [
     ArcCosine1D,
     Sersic1D,
     Sersic2D,
-    GeneralSersic2D,
     PowerLaw1D,
     ExponentialCutoffPowerLaw1D,
     BrokenPowerLaw1D,
@@ -619,25 +574,21 @@ NON_FINITE_LM_MODELS = [
     Schechter1D,
     ExponentialCutoffPowerLaw1D,
     BrokenPowerLaw1D,
-    GeneralSersic2D,
 ]
 
 # These models will fail the DogBoxLSQFitter fitting test due to non-finite
 NON_FINITE_DogBox_MODELS = [
     Sersic1D,
     Sersic2D,
-    GeneralSersic2D,
     ArcSine1D,
     ArcCosine1D,
     SmoothlyBrokenPowerLaw1D,
     ExponentialCutoffPowerLaw1D,
     LogParabola1D,
-    Gaussian2D,
 ]
 
 
 @pytest.mark.parametrize("model", MODELS)
-@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_models_evaluate_without_units(model):
     if not HAS_SCIPY and model["class"] in SCIPY_MODELS:
         pytest.skip()
@@ -655,7 +606,6 @@ def test_models_evaluate_without_units(model):
 
 
 @pytest.mark.parametrize("model", MODELS)
-@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_models_evaluate_with_units(model):
     if not HAS_SCIPY and model["class"] in SCIPY_MODELS:
         pytest.skip()
@@ -665,7 +615,6 @@ def test_models_evaluate_with_units(model):
 
 
 @pytest.mark.parametrize("model", MODELS)
-@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_models_evaluate_with_units_x_array(model):
     if not HAS_SCIPY and model["class"] in SCIPY_MODELS:
         pytest.skip()
@@ -687,14 +636,13 @@ def test_models_evaluate_with_units_x_array(model):
 
 
 @pytest.mark.parametrize("model", MODELS)
-@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_models_evaluate_with_units_param_array(model):
     if not HAS_SCIPY and model["class"] in SCIPY_MODELS:
         pytest.skip()
 
     params = {}
     for key, value in model["parameters"].items():
-        if value is None or key in ("degree", "method"):
+        if value is None or key == "degree":
             params[key] = value
         else:
             params[key] = np.repeat(value, 2)
@@ -724,7 +672,6 @@ def test_models_evaluate_with_units_param_array(model):
 
 
 @pytest.mark.parametrize("model", MODELS)
-@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_models_bounding_box(model):
     # In some cases, having units in parameters caused bounding_box to break,
     # so this is to ensure that it works correctly.
@@ -754,7 +701,6 @@ def test_models_bounding_box(model):
 
 
 @pytest.mark.parametrize("model", MODELS)
-@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_compound_model_input_units_equivalencies_defaults(model):
     m = model["class"](**model["parameters"])
 
@@ -791,26 +737,20 @@ def test_compound_model_input_units_equivalencies_defaults(model):
 @pytest.mark.filterwarnings(r"ignore:.*:RuntimeWarning")
 @pytest.mark.filterwarnings(r"ignore:Model is linear in parameters.*")
 @pytest.mark.filterwarnings(r"ignore:The fit may be unsuccessful.*")
-@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 @pytest.mark.parametrize("model", MODELS)
 @pytest.mark.parametrize("fitter", fitters)
 def test_models_fitting(model, fitter):
     fitter = fitter()
 
-    bad_voigt = model["class"] == Voigt1D and ("method" not in model["parameters"])
     if (
         (
             isinstance(fitter, LevMarLSQFitter)
             and model["class"] in NON_FINITE_LevMar_MODELS
         )
         or (
-            isinstance(fitter, TRFLSQFitter)
-            and (model["class"] in NON_FINITE_TRF_MODELS or bad_voigt)
+            isinstance(fitter, TRFLSQFitter) and model["class"] in NON_FINITE_TRF_MODELS
         )
-        or (
-            isinstance(fitter, LMLSQFitter)
-            and (model["class"] in NON_FINITE_LM_MODELS or bad_voigt)
-        )
+        or (isinstance(fitter, LMLSQFitter) and model["class"] in NON_FINITE_LM_MODELS)
         or (
             isinstance(fitter, DogBoxLSQFitter)
             and model["class"] in NON_FINITE_DogBox_MODELS
@@ -819,18 +759,14 @@ def test_models_fitting(model, fitter):
         return
 
     m = model["class"](**model["parameters"])
-
-    if m.has_bounds and isinstance(fitter, LMLSQFitter):
-        pytest.skip("The LMLSQFitter fitter does not support models with bounds")
-
     if len(model["evaluation"][0]) == 2:
         x = np.linspace(1, 3, 100) * model["evaluation"][0][0].unit
-        y = np.exp(-(x.value**2)) * model["evaluation"][0][1].unit
+        y = np.exp(-x.value**2) * model["evaluation"][0][1].unit
         args = [x, y]
     else:
         x = np.linspace(1, 3, 100) * model["evaluation"][0][0].unit
         y = np.linspace(1, 3, 100) * model["evaluation"][0][1].unit
-        z = np.exp(-(x.value**2 + y.value**2)) * model["evaluation"][0][2].unit
+        z = np.exp(-x.value**2 - y.value**2) * model["evaluation"][0][2].unit
         args = [x, y, z]
 
     # Test that the model fits even if it has units on parameters
@@ -1126,7 +1062,9 @@ def test_models_evaluate_magunits(model):
 
 def test_Schechter1D_errors():
     # Non magnitude units are bad
-    model = Schechter1D(phi_star=1.0e-4 * (u.Mpc**-3), m_star=-20.0 * u.km, alpha=-1.9)
+    model = Schechter1D(
+        phi_star=1.0e-4 * (u.Mpc**-3), m_star=-20.0 * u.km, alpha=-1.9
+    )
     MESSAGE = r"The units of magnitude and m_star must be a magnitude"
     with pytest.raises(u.UnitsError, match=MESSAGE):
         model(-23 * u.km)
@@ -1148,22 +1086,3 @@ def test_Schechter1D_errors():
     )
     with pytest.raises(u.UnitsError, match=MESSAGE):
         model(-23 * u.mag)
-
-
-def test_compound_without_units_for_data_parameters():
-    # Regression test for a bug that caused models returned by
-    # CompoundModel.without_units_for_data to return a model that has top-level
-    # parameters decoupled from the parameters on the individual models.
-
-    g1 = Gaussian1D(amplitude=2 * u.Jy, stddev=4 * u.nm, mean=1000 * u.nm)
-    g2 = Gaussian1D(amplitude=1 * u.Jy, stddev=2 * u.nm, mean=500 * u.nm)
-
-    gg = g1 * g2
-
-    gg_nounit = gg.without_units_for_data(x=1 * u.nm, y=2 * u.Jy**2)[0]
-
-    gg_nounit.amplitude_0 = 5
-    assert gg_nounit.left.amplitude == 5
-
-    gg_nounit.amplitude_1 = 6
-    assert gg_nounit.right.amplitude == 6

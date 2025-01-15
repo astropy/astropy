@@ -13,21 +13,25 @@ import textwrap
 import warnings
 
 from astropy.utils import data
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.xml import iterparser
 
 # LOCAL
 from . import exceptions, tree
 
 __all__ = [
-    "from_table",
     "parse",
     "parse_single_table",
-    "reset_vo_warnings",
-    "validate",
+    "from_table",
     "writeto",
+    "validate",
+    "reset_vo_warnings",
 ]
 
+VERIFY_OPTIONS = ["ignore", "warn", "exception"]
 
+
+@deprecated_renamed_argument("pedantic", "verify", since="5.0")
 def parse(
     source,
     columns=None,
@@ -76,8 +80,6 @@ def parse(
            deprecated in future.
         .. versionchanged:: 5.0
             The ``pedantic`` argument is deprecated.
-        .. versionchanged:: 6.0
-            The ``pedantic`` argument is removed.
 
     chunk_size : int, optional
         The number of rows to read before converting to an array.
@@ -101,12 +103,12 @@ def parse(
         Therefore, *filename* is only required when source is a
         file-like object.
 
-    unit_format : str, astropy.units.format.Base subclass or None, optional
+    unit_format : str, astropy.units.format.Base instance or None, optional
         The unit format to use when parsing unit attributes.  If a
         string, must be the name of a unit formatter. The built-in
         formats include ``generic``, ``fits``, ``cds``, and
         ``vounit``.  A custom formatter may be provided by passing a
-        `~astropy.units.format.Base` subclass.  If `None` (default),
+        `~astropy.units.UnitBase` instance.  If `None` (default),
         the unit format to use will be the one specified by the
         VOTable specification (which is ``cds`` up to version 1.3 of
         VOTable, and ``vounit`` in more recent versions of the spec).
@@ -125,7 +127,7 @@ def parse(
     --------
     astropy.io.votable.exceptions : The exceptions this function may raise.
     """
-    from . import VERIFY_OPTIONS, conf
+    from . import conf
 
     invalid = invalid.lower()
     if invalid not in ("exception", "mask"):
@@ -134,7 +136,18 @@ def parse(
         )
 
     if verify is None:
-        verify = conf.verify
+        conf_verify_lowercase = conf.verify.lower()
+
+        # We need to allow verify to be booleans as strings since the
+        # configuration framework doesn't make it easy/possible to have mixed
+        # types.
+        if conf_verify_lowercase in ["false", "true"]:
+            verify = conf_verify_lowercase == "true"
+        else:
+            verify = conf_verify_lowercase
+
+    if isinstance(verify, bool):
+        verify = "exception" if verify else "warn"
     elif verify not in VERIFY_OPTIONS:
         raise ValueError(f"verify should be one of {'/'.join(VERIFY_OPTIONS)}")
 
@@ -167,14 +180,14 @@ def parse(
 def parse_single_table(source, **kwargs):
     """
     Parses a VOTABLE_ xml file (or file-like object), reading and
-    returning only the first `~astropy.io.votable.tree.TableElement`
+    returning only the first `~astropy.io.votable.tree.Table`
     instance.
 
     See `parse` for a description of the keyword arguments.
 
     Returns
     -------
-    votable : `~astropy.io.votable.tree.TableElement` object
+    votable : `~astropy.io.votable.tree.Table` object
     """
     if kwargs.get("table_number") is None:
         kwargs["table_number"] = 0
@@ -192,7 +205,7 @@ def writeto(table, file, tabledata_format=None):
     ----------
     table : `~astropy.io.votable.tree.VOTableFile` or `~astropy.table.Table` instance.
 
-    file : str or :term:`file-like (writeable)`
+    file : str or writable file-like
         Path or file object to write to
 
     tabledata_format : str, optional
@@ -248,6 +261,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
         Returns `True` if no warnings were found.  If ``output`` is
         `None`, the return value will be a string.
     """
+
     from astropy.utils.console import color_print, print_code_line
 
     return_as_str = False
@@ -363,7 +377,7 @@ def from_table(table, table_id=None):
 
     table_id : str, optional
         If not `None`, set the given id on the returned
-        `~astropy.io.votable.tree.TableElement` instance.
+        `~astropy.io.votable.tree.Table` instance.
 
     Returns
     -------

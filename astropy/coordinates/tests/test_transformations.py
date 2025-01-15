@@ -1,20 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.coordinates import (
-    AffineTransform,
-    DynamicMatrixTransform,
-    FunctionTransform,
-    FunctionTransformWithFiniteDifference,
-    StaticMatrixTransform,
-    TransformGraph,
-)
 from astropy.coordinates import representation as r
-from astropy.coordinates.attributes import Attribute
-from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
+from astropy.coordinates import transformations as t
+from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.builtin_frames import (
     FK4,
     FK5,
@@ -25,34 +18,10 @@ from astropy.coordinates.builtin_frames import (
     Galactic,
 )
 from astropy.coordinates.matrix_utilities import rotation_matrix
-from astropy.coordinates.transformations.composite import _combine_affine_params
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.exceptions import AstropyWarning
-
-CARTESIAN_POS = r.CartesianRepresentation([1, 2, 3] * u.kpc)
-CARTESIAN_VEL = r.CartesianDifferential([8, 9, 10] * u.km / u.s)
-CARTESIAN_POS_AND_VEL = CARTESIAN_POS.with_differentials(CARTESIAN_VEL)
-
-RADIAL_VEL = r.RadialDifferential(1 * u.km / u.s)
-SPHERICAL_COS_LAT_VEL = r.SphericalCosLatDifferential(
-    1 * u.mas / u.yr, 2 * u.mas / u.yr, 3 * u.km / u.s
-)
-SPHERICAL_POS = r.SphericalRepresentation(
-    lon=1 * u.deg, lat=2.0 * u.deg, distance=10 * u.pc
-)
-UNIT_SPHERICAL_POS = r.UnitSphericalRepresentation(lon=1 * u.deg, lat=2.0 * u.deg)
-
-ROT_30 = rotation_matrix(30 * u.deg)
-ROT_45 = rotation_matrix(45 * u.deg)
-ROT_75 = rotation_matrix(75 * u.deg)
-OFFSET_X = r.CartesianRepresentation([1, 0, 0])
-OFFSET_Z = r.CartesianRepresentation([0, 0, 1])
-OFFSET_123 = r.CartesianRepresentation([1, 2, 3])
-OFFSET_456 = r.CartesianRepresentation([4, 5, 6])
-OFFSET_579 = r.CartesianRepresentation([5, 7, 9])
-SQRT_2 = np.sqrt(2)
 
 
 # Coordinates just for these tests.
@@ -76,7 +45,7 @@ def test_transform_classes():
     def tfun(c, f):
         return f.__class__(ra=c.ra, dec=c.dec)
 
-    _ = FunctionTransform(tfun, TCoo1, TCoo2, register_graph=frame_transform_graph)
+    _ = t.FunctionTransform(tfun, TCoo1, TCoo2, register_graph=frame_transform_graph)
 
     c1 = TCoo1(ra=1 * u.radian, dec=0.5 * u.radian)
     c2 = c1.transform_to(TCoo2())
@@ -86,7 +55,7 @@ def test_transform_classes():
     def matfunc(coo, fr):
         return [[1, 0, 0], [0, coo.ra.degree, 0], [0, 0, 1]]
 
-    trans2 = DynamicMatrixTransform(matfunc, TCoo1, TCoo2)
+    trans2 = t.DynamicMatrixTransform(matfunc, TCoo1, TCoo2)
     trans2.register(frame_transform_graph)
 
     c3 = TCoo1(ra=1 * u.deg, dec=2 * u.deg)
@@ -106,7 +75,7 @@ def test_transform_decos():
     """
     c1 = TCoo1(ra=1 * u.deg, dec=2 * u.deg)
 
-    @frame_transform_graph.transform(FunctionTransform, TCoo1, TCoo2)
+    @frame_transform_graph.transform(t.FunctionTransform, TCoo1, TCoo2)
     def trans(coo1, f):
         return TCoo2(ra=coo1.ra, dec=coo1.dec * 2)
 
@@ -116,7 +85,7 @@ def test_transform_decos():
 
     c3 = TCoo1(r.CartesianRepresentation(x=1 * u.pc, y=1 * u.pc, z=2 * u.pc))
 
-    @frame_transform_graph.transform(StaticMatrixTransform, TCoo1, TCoo2)
+    @frame_transform_graph.transform(t.StaticMatrixTransform, TCoo1, TCoo2)
     def matrix():
         return [[2, 0, 0], [0, 1, 0], [0, 0, 1]]
 
@@ -132,7 +101,7 @@ def test_shortest_path():
         def __init__(self, pri):
             self.priority = pri
 
-    g = TransformGraph()
+    g = t.TransformGraph()
 
     # cheating by adding graph elements directly that are not classes - the
     # graphing algorithm still works fine with integers - it just isn't a valid
@@ -202,7 +171,8 @@ def test_sphere_cart():
     with NumpyRNGContext(13579):
         x, y, z = np.random.randn(3, 5)
 
-    x2, y2, z2 = spherical_to_cartesian(*cartesian_to_spherical(x, y, z))
+    r, lat, lon = cartesian_to_spherical(x, y, z)
+    x2, y2, z2 = spherical_to_cartesian(r, lat, lon)
 
     assert_allclose(x, x2)
     assert_allclose(y, y2)
@@ -292,45 +262,47 @@ class transfunc:
         transfunc.just_matrix,
     ],
 )
-@pytest.mark.parametrize(
-    "rep",
-    (
-        CARTESIAN_POS,
-        CARTESIAN_POS_AND_VEL,
-        CARTESIAN_POS_AND_VEL.represent_as(
-            r.CylindricalRepresentation, r.CylindricalDifferential
-        ),
-    ),
-)
+# fmt: off
+@pytest.mark.parametrize('rep', [
+    r.CartesianRepresentation(5, 6, 7, unit=u.pc),
+    r.CartesianRepresentation(5, 6, 7, unit=u.pc,
+                              differentials=r.CartesianDifferential(8, 9, 10,
+                                                                    unit=u.pc/u.Myr)),
+    r.CartesianRepresentation(5, 6, 7, unit=u.pc,
+                              differentials=r.CartesianDifferential(8, 9, 10,
+                                                                    unit=u.pc/u.Myr))
+     .represent_as(r.CylindricalRepresentation, r.CylindricalDifferential)
+])
+# fmt: on
 def test_affine_transform_succeed(transfunc, rep):
     c = TCoo1(rep)
 
     # compute expected output
     M, offset = transfunc(c, TCoo2)
 
-    expected_rep = rep.to_cartesian().with_differentials(
-        {
-            k: diff.represent_as(r.CartesianDifferential, rep)
-            for k, diff in rep.differentials.items()
-        }
-    )
+    _rep = rep.to_cartesian()
+    diffs = {
+        k: diff.represent_as(r.CartesianDifferential, rep)
+        for k, diff in rep.differentials.items()
+    }
+    expected_rep = _rep.with_differentials(diffs)
 
     if M is not None:
         expected_rep = expected_rep.transform(M)
 
     expected_pos = expected_rep.without_differentials()
     if offset is not None:
-        expected_pos += offset.without_differentials()
+        expected_pos = expected_pos + offset.without_differentials()
 
     expected_vel = None
     if c.data.differentials:
         expected_vel = expected_rep.differentials["s"]
 
         if offset and offset.differentials:
-            expected_vel += offset.differentials["s"]
+            expected_vel = expected_vel + offset.differentials["s"]
 
     # register and do the transformation and check against expected
-    trans = AffineTransform(transfunc, TCoo1, TCoo2)
+    trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     c2 = c.transform_to(TCoo2())
@@ -356,10 +328,12 @@ def transfunc_invalid_matrix(coo, fr):
 
 @pytest.mark.parametrize("transfunc", [transfunc_invalid_matrix])
 def test_affine_transform_fail(transfunc):
-    c = TCoo1(CARTESIAN_POS_AND_VEL)
+    diff = r.CartesianDifferential(8, 9, 10, unit=u.pc / u.Myr)
+    rep = r.CartesianRepresentation(5, 6, 7, unit=u.pc, differentials=diff)
+    c = TCoo1(rep)
 
     # register and do the transformation and check against expected
-    trans = AffineTransform(transfunc, TCoo1, TCoo2)
+    trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     with pytest.raises(ValueError):
@@ -369,20 +343,23 @@ def test_affine_transform_fail(transfunc):
 
 
 def test_too_many_differentials():
+    dif1 = r.CartesianDifferential(*np.arange(3, 6) * u.pc / u.Myr)
     dif2 = r.CartesianDifferential(*np.arange(3, 6) * u.pc / u.Myr**2)
-    rep = CARTESIAN_POS_AND_VEL.with_differentials(dif2)
+    rep = r.CartesianRepresentation(
+        np.arange(3) * u.pc, differentials={"s": dif1, "s2": dif2}
+    )
 
     with pytest.raises(ValueError):
         c = TCoo1(rep)
 
     # register and do the transformation and check against expected
-    trans = AffineTransform(transfunc.both, TCoo1, TCoo2)
+    trans = t.AffineTransform(transfunc.both, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     # Check that if frame somehow gets through to transformation, multiple
     # differentials are caught
     c = TCoo1(rep.without_differentials())
-    c._data = c._data.with_differentials({"s": CARTESIAN_VEL, "s2": dif2})
+    c._data = c._data.with_differentials({"s": dif1, "s2": dif2})
     with pytest.raises(ValueError):
         c.transform_to(TCoo2())
 
@@ -392,26 +369,29 @@ def test_too_many_differentials():
 # A matrix transform of a unit spherical with differentials should work
 
 
-@pytest.mark.parametrize(
-    "rep",
-    (
-        UNIT_SPHERICAL_POS.with_differentials(SPHERICAL_COS_LAT_VEL),
-        r.UnitSphericalRepresentation(
-            UNIT_SPHERICAL_POS, differentials={"s": RADIAL_VEL}
-        ),
-        SPHERICAL_POS.with_differentials(RADIAL_VEL),
-    ),
-)
+# fmt: off
+@pytest.mark.parametrize('rep', [
+    r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
+        differentials=r.SphericalDifferential(d_lon=15*u.mas/u.yr,
+                                              d_lat=11*u.mas/u.yr,
+                                              d_distance=-110*u.km/u.s)),
+    r.UnitSphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
+        differentials={'s': r.RadialDifferential(d_distance=-110*u.km/u.s)}),
+    r.SphericalRepresentation(lon=15*u.degree, lat=-11*u.degree,
+                              distance=150*u.pc,
+        differentials={'s': r.RadialDifferential(d_distance=-110*u.km/u.s)})
+])
+# fmt: on
 def test_unit_spherical_with_differentials(rep):
     c = TCoo1(rep)
 
     # register and do the transformation and check against expected
-    trans = AffineTransform(transfunc.just_matrix, TCoo1, TCoo2)
+    trans = t.AffineTransform(transfunc.just_matrix, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
     c2 = c.transform_to(TCoo2())
 
     assert "s" in rep.differentials
-    assert isinstance(c2.data.differentials["s"], type(rep.differentials["s"]))
+    assert isinstance(c2.data.differentials["s"], rep.differentials["s"].__class__)
 
     if isinstance(rep.differentials["s"], r.RadialDifferential):
         assert c2.data.differentials["s"] is rep.differentials["s"]
@@ -419,7 +399,7 @@ def test_unit_spherical_with_differentials(rep):
     trans.unregister(frame_transform_graph)
 
     # should fail if we have to do offsets
-    trans = AffineTransform(transfunc.both, TCoo1, TCoo2)
+    trans = t.AffineTransform(transfunc.both, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
     with pytest.raises(TypeError):
@@ -461,7 +441,7 @@ def test_function_transform_with_differentials():
     def tfun(c, f):
         return f.__class__(ra=c.ra, dec=c.dec)
 
-    _ = FunctionTransform(tfun, TCoo3, TCoo2, register_graph=frame_transform_graph)
+    _ = t.FunctionTransform(tfun, TCoo3, TCoo2, register_graph=frame_transform_graph)
 
     t3 = TCoo3(
         ra=1 * u.deg,
@@ -480,6 +460,8 @@ def test_frame_override_component_with_attribute():
     It was previously possible to define a frame with an attribute with the
     same name as a component. We don't want to allow this!
     """
+    from astropy.coordinates.attributes import Attribute
+    from astropy.coordinates.baseframe import BaseCoordinateFrame
 
     class BorkedFrame(BaseCoordinateFrame):
         ra = Attribute(default=150)
@@ -488,7 +470,7 @@ def test_frame_override_component_with_attribute():
     def trans_func(coo1, f):
         pass
 
-    trans = FunctionTransform(trans_func, BorkedFrame, ICRS)
+    trans = t.FunctionTransform(trans_func, BorkedFrame, ICRS)
     with pytest.raises(ValueError) as exc:
         trans.register(frame_transform_graph)
 
@@ -506,41 +488,45 @@ def test_static_matrix_combine_paths():
 
     This is somewhat of a regression test for #7706
     """
+    from astropy.coordinates.baseframe import BaseCoordinateFrame
+    from astropy.coordinates.matrix_utilities import rotation_matrix
 
     class AFrame(BaseCoordinateFrame):
         default_representation = r.SphericalRepresentation
         default_differential = r.SphericalCosLatDifferential
 
-    t1 = StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "z"), ICRS, AFrame)
+    t1 = t.StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "z"), ICRS, AFrame)
     t1.register(frame_transform_graph)
-    t2 = StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "z").T, AFrame, ICRS)
+    t2 = t.StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "z").T, AFrame, ICRS)
     t2.register(frame_transform_graph)
 
     class BFrame(BaseCoordinateFrame):
         default_representation = r.SphericalRepresentation
         default_differential = r.SphericalCosLatDifferential
 
-    t3 = StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "x"), ICRS, BFrame)
+    t3 = t.StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "x"), ICRS, BFrame)
     t3.register(frame_transform_graph)
-    t4 = StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "x").T, BFrame, ICRS)
+    t4 = t.StaticMatrixTransform(rotation_matrix(30.0 * u.deg, "x").T, BFrame, ICRS)
     t4.register(frame_transform_graph)
 
     c = Galactic(123 * u.deg, 45 * u.deg)
-    c_direct = c.transform_to(BFrame())
-    c_through_A = c.transform_to(AFrame()).transform_to(BFrame())
-    c_through_ICRS = c.transform_to(ICRS()).transform_to(BFrame())
+    c1 = c.transform_to(BFrame())  # direct
+    c2 = c.transform_to(AFrame()).transform_to(BFrame())  # thru A
+    c3 = c.transform_to(ICRS()).transform_to(BFrame())  # thru ICRS
 
-    assert quantity_allclose(c_direct.lon, c_through_A.lon)
-    assert quantity_allclose(c_direct.lat, c_through_A.lat)
+    assert quantity_allclose(c1.lon, c2.lon)
+    assert quantity_allclose(c1.lat, c2.lat)
 
-    assert quantity_allclose(c_direct.lon, c_through_ICRS.lon)
-    assert quantity_allclose(c_direct.lat, c_through_ICRS.lat)
+    assert quantity_allclose(c1.lon, c3.lon)
+    assert quantity_allclose(c1.lat, c3.lat)
 
     for t_ in [t1, t2, t3, t4]:
         t_.unregister(frame_transform_graph)
 
 
 def test_multiple_aliases():
+    from astropy.coordinates.baseframe import BaseCoordinateFrame
+
     # Define a frame with multiple aliases
     class MultipleAliasesFrame(BaseCoordinateFrame):
         name = ["alias_1", "alias_2"]
@@ -550,8 +536,8 @@ def test_multiple_aliases():
         return f.__class__(lon=c.lon, lat=c.lat)
 
     # Register a transform
-    graph = TransformGraph()
-    _ = FunctionTransform(
+    graph = t.TransformGraph()
+    _ = t.FunctionTransform(
         tfun, MultipleAliasesFrame, MultipleAliasesFrame, register_graph=graph
     )
 
@@ -569,10 +555,10 @@ def test_remove_transform_and_unregister():
         f.__class__(ra=c.ra, dec=c.dec)
 
     # Register transforms
-    graph = TransformGraph()
-    ftrans1 = FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
-    ftrans2 = FunctionTransform(tfun, TCoo2, TCoo2, register_graph=graph)
-    _ = FunctionTransform(tfun, TCoo1, TCoo2, register_graph=graph)
+    graph = t.TransformGraph()
+    ftrans1 = t.FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
+    ftrans2 = t.FunctionTransform(tfun, TCoo2, TCoo2, register_graph=graph)
+    _ = t.FunctionTransform(tfun, TCoo1, TCoo2, register_graph=graph)
 
     # Confirm that the frames are part of the graph
     assert TCoo1 in graph.frame_set
@@ -600,8 +586,8 @@ def test_remove_transform_errors():
     def tfun(c, f):
         return f.__class__(ra=c.ra, dec=c.dec)
 
-    graph = TransformGraph()
-    _ = FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
+    graph = t.TransformGraph()
+    _ = t.FunctionTransform(tfun, TCoo1, TCoo1, register_graph=graph)
 
     # Test bad calls to remove_transform
 
@@ -631,18 +617,18 @@ def test_impose_finite_difference_dt():
     class H3(HCRS):
         pass
 
-    graph = TransformGraph()
-    tfun = lambda c, f: type(f)(ra=c.ra, dec=c.dec)
+    graph = t.TransformGraph()
+    tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
 
     # Set up a number of transforms with different time steps
     old_dt = 1 * u.min
-    transform1 = FunctionTransformWithFiniteDifference(
+    transform1 = t.FunctionTransformWithFiniteDifference(
         tfun, H1, H1, register_graph=graph, finite_difference_dt=old_dt
     )
-    transform2 = FunctionTransformWithFiniteDifference(
+    transform2 = t.FunctionTransformWithFiniteDifference(
         tfun, H2, H2, register_graph=graph, finite_difference_dt=old_dt * 2
     )
-    transform3 = FunctionTransformWithFiniteDifference(
+    transform3 = t.FunctionTransformWithFiniteDifference(
         tfun, H2, H3, register_graph=graph, finite_difference_dt=old_dt * 3
     )
 
@@ -659,35 +645,41 @@ def test_impose_finite_difference_dt():
     assert transform3.finite_difference_dt == old_dt * 3
 
 
-@pytest.mark.parametrize(
-    "first,second,check",
-    (
-        ([ROT_30, None], [ROT_45, None], [ROT_75, None]),
-        ([ROT_30, None], [ROT_45, OFFSET_Z], [ROT_75, OFFSET_Z]),
-        ([ROT_30, OFFSET_123], [None, OFFSET_456], [ROT_30, OFFSET_579]),
-        ([None, OFFSET_123], [None, OFFSET_456], [None, OFFSET_579]),
-        ([ROT_30, OFFSET_X], [None, None], [ROT_30, OFFSET_X]),
-        ([None, None], [ROT_45, OFFSET_Z], [ROT_45, OFFSET_Z]),
-        ([None, None], [None, None], [None, None]),
-        (
-            [ROT_30, OFFSET_X],
-            [ROT_45, None],
-            [ROT_75, r.CartesianRepresentation([1 / SQRT_2, -1 / SQRT_2, 0])],
-        ),
-        (
-            [ROT_30, OFFSET_X],
-            [ROT_45, OFFSET_Z],
-            [ROT_75, r.CartesianRepresentation([1 / SQRT_2, -1 / SQRT_2, 1])],
-        ),
-        (
-            [None, OFFSET_123],
-            [ROT_45, OFFSET_456],
-            [ROT_45, r.CartesianRepresentation([3 / SQRT_2 + 4, 1 / SQRT_2 + 5, 9])],
-        ),
-    ),
-)
+# fmt: off
+@pytest.mark.parametrize("first, second, check",
+                         [((rotation_matrix(30*u.deg), None),
+                           (rotation_matrix(45*u.deg), None),
+                           (rotation_matrix(75*u.deg), None)),
+                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0])),
+                           (rotation_matrix(45*u.deg), None),
+                           (rotation_matrix(75*u.deg), r.CartesianRepresentation([1/np.sqrt(2), -1/np.sqrt(2), 0]))),
+                          ((rotation_matrix(30*u.deg), None),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1])),
+                           (rotation_matrix(75*u.deg), r.CartesianRepresentation([0, 0, 1]))),
+                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0])),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1])),
+                           (rotation_matrix(75*u.deg), r.CartesianRepresentation([1/np.sqrt(2), -1/np.sqrt(2), 1]))),
+                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 2 ,3])),
+                           (None, r.CartesianRepresentation([4, 5, 6])),
+                           (rotation_matrix(30*u.deg), r.CartesianRepresentation([5, 7, 9]))),
+                          ((None, r.CartesianRepresentation([1, 2, 3])),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([4, 5, 6])),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([3/np.sqrt(2)+4, 1/np.sqrt(2)+5, 9]))),
+                          ((None, r.CartesianRepresentation([1, 2, 3])),
+                           (None, r.CartesianRepresentation([4, 5, 6])),
+                           (None, r.CartesianRepresentation([5, 7, 9]))),
+                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0])),
+                           (None, None),
+                           (rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0]))),
+                          ((None, None),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1])),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1]))),
+                          ((None, None),
+                           (None, None),
+                           (None, None))])
+# fmt: on
 def test_combine_affine_params(first, second, check):
-    result = _combine_affine_params(first, second)
+    result = t._combine_affine_params(first, second)
     if check[0] is None:
         assert result[0] is None
     else:

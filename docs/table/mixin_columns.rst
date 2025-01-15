@@ -231,7 +231,7 @@ array with the following properties:
   single item, slicing, or index array access.
 - Has a ``shape`` attribute.
 - Has a ``__len__()`` method for length.
-- Has an ``info`` class descriptor which is an instance of a subclass of the
+- Has an ``info`` class descriptor which is a subclass of the
   :class:`astropy.utils.data_info.MixinInfo` class.
 
 The `Example: ArrayWrapper`_ section shows a minimal working example of a class
@@ -302,7 +302,7 @@ the ``astropy`` mixin test suite and is fully compliant as a mixin column.
 
   from astropy.utils.data_info import ParentDtypeInfo
 
-  class ArrayWrapper:
+  class ArrayWrapper(object):
       """
       Minimal mixin using a simple wrapper around a numpy array
       """
@@ -361,27 +361,17 @@ that is not numpy-like and stores the data in a private attribute::
     ...     def __init__(self):
     ...         self._data = np.array([0, 1, 3, 4], dtype=float)
 
-By default, the outcome of setting a column using this class is not helpful::
+By default, this cannot be used as a table column::
 
-    >>> t = Table([np.arange(4)], names=["index"])
+    >>> t = Table()
     >>> t['data'] = ExampleDataClass()
-    >>> t
-    <Table length=4>
-    index                         data
-    int64                        object
-    ----- -------------------------------------...-
-        0 <__main__.ExampleDataClass object at ...>
-        1 <__main__.ExampleDataClass object at ...>
-        2 <__main__.ExampleDataClass object at ...>
-        3 <__main__.ExampleDataClass object at ...>
-
-What happened is that the instance is seen as a scalar object, and a
-|Column| with ``dtype=object`` is created, which has the same entry for
-each row. The same would happen if, e.g., you set ``t['data'] = None``.
+    Traceback (most recent call last):
+    ...
+    TypeError: Empty table cannot have column set to scalar value
 
 However, you can create a function (or 'handler') which takes
 an instance of the data class you want to have automatically
-handled and turns it into a mixin column::
+handled and returns a mixin column::
 
     >>> from astropy.table.table_helpers import ArrayWrapper
     >>> def handle_example_data_class(obj):
@@ -395,13 +385,13 @@ of the class and the handler function::
     >>> t['data'] = ExampleDataClass()
     >>> t
     <Table length=4>
-    index   data
-    int64 float64
-    ----- -------
-        0     0.0
-        1     1.0
-        2     3.0
-        3     4.0
+      data
+    float64
+    -------
+        0.0
+        1.0
+        3.0
+        4.0
 
 Because we defined the data class as part of the example
 above, the fully qualified name starts with ``__main__``,

@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
-from contextlib import nullcontext
 
 import erfa
 import numpy as np
@@ -9,10 +8,10 @@ import pytest
 from numpy import testing as npt
 
 from astropy import units as u
-from astropy.coordinates import EarthLocation, SkyCoord, golden_spiral_grid
+from astropy.coordinates import EarthLocation, SkyCoord
+from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.coordinates.builtin_frames import ICRS, AltAz
 from astropy.coordinates.builtin_frames.utils import get_jd12
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.time import Time
 from astropy.utils import iers
 
@@ -197,17 +196,19 @@ def test_future_altaz():
     location = EarthLocation(lat=0 * u.deg, lon=0 * u.deg)
     t = Time("J2161")
 
-    # check that these message(s) appear among any other warnings
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(erfa.core.ErfaWarning)
-    with (
-        ctx,
-        pytest.warns(
-            AstropyWarning,
-            match="Tried to get polar motions for times after IERS data is valid.*",
-        ),
-        iers.conf.set_temp("auto_max_age", None),
-    ):
+    # check that these message(s) appear among any other warnings.  If tests are run with
+    # --remote-data then the IERS table will be an instance of IERS_Auto which is
+    # assured of being "fresh".  In this case getting times outside the range of the
+    # table does not raise an exception.  Only if using IERS_B (which happens without
+    # --remote-data, i.e. for all CI testing) do we expect another warning.
+    with pytest.warns(
+        AstropyWarning,
+        match=r"Tried to get polar motions for " "times after IERS data is valid.*",
+    ) as found_warnings:
         SkyCoord(1 * u.deg, 2 * u.deg).transform_to(AltAz(location=location, obstime=t))
+
+    if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):
+        assert any(
+            "(some) times are outside of range covered by IERS table." in str(w.message)
+            for w in found_warnings
+        )

@@ -2,6 +2,7 @@
 
 import copy
 import re
+from collections import OrderedDict
 
 from astropy.table import Table
 from astropy.utils.misc import _set_locale
@@ -103,15 +104,15 @@ class FastBasic(metaclass=core.MetaBaseReader):
             raise core.ParameterError(
                 "The C reader does not use the encoding parameter"
             )
-        elif "outputter_cls" in self.kwargs:
+        elif "Outputter" in self.kwargs:
             raise core.ParameterError(
-                "The C reader does not use the outputter_cls parameter"
+                "The C reader does not use the Outputter parameter"
             )
-        elif "inputter_cls" in self.kwargs:
+        elif "Inputter" in self.kwargs:
             raise core.ParameterError(
-                "The C reader does not use the inputter_cls parameter"
+                "The C reader does not use the Inputter parameter"
             )
-        elif "data_splitter_cls" in self.kwargs or "header_splitter_cls" in self.kwargs:
+        elif "data_Splitter" in self.kwargs or "header_Splitter" in self.kwargs:
             raise core.ParameterError("The C reader does not use a Splitter class")
 
         self.strict_names = self.kwargs.pop("strict_names", False)
@@ -159,7 +160,7 @@ class FastBasic(metaclass=core.MetaBaseReader):
 
     def make_table(self, data, comments):
         """Actually make the output table give the data and comments."""
-        meta = {}
+        meta = OrderedDict()
         if comments:
             meta["comments"] = comments
 
@@ -299,7 +300,7 @@ class FastCommentedHeader(FastBasic):
         slightly different from the base FastBasic method in the way comments
         are handled.
         """
-        meta = {}
+        meta = OrderedDict()
         if comments:
             idx = self.header_start
             if idx < 0:

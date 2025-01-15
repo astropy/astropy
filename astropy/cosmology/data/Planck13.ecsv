@@ -19,6 +19,7 @@
 # - t0: !astropy.units.Quantity
 #     unit: !astropy.units.Unit {unit: Gyr}
 #     value: 13.7965
+# - {flat: true}
 # - {reference: 'Planck Collaboration 2014, A&A, 571, A16 (Paper XVI), Table 5 (Planck + WP + highL + BAO)'}
 # - {cosmology: FlatLambdaCDM}
 # - __serialized_columns__:

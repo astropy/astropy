@@ -1,7 +1,6 @@
 name: Daily cron
 
 on:
-  workflow_dispatch:
   schedule:
     # run every day at 3am UTC
     - cron: '0 3 * * *'
@@ -34,44 +33,21 @@ permissions:
 
 jobs:
   tests:
-    runs-on: ${{ matrix.os }}
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Bundling with pyinstaller
-            os: ubuntu-latest
-            python: '3.11'
-            toxenv: pyinstaller
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+    with:
+      submodules: false
+      coverage: codecov
+      libraries: |
+        apt:
+          - language-pack-de
+          - tzdata
+      envs: |
+        - name: Bundling with pyinstaller
+          linux: pyinstaller
+          python-version: 3.8
 
-          - name: Python 3.12 with all optional dependencies and pre-releases
-            os: ubuntu-latest
-            python: '3.12'
-            toxenv: py312-test-alldeps-predeps
-            toxargs: -v
-            toxposargs: --remote-data=any
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
-      with:
-        persist-credentials: false
-        fetch-depth: 0
-
-    - name: Set up Python
-      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
-      with:
-        python-version: ${{ matrix.python }}
-
-    - name: Install language-pack-de and tzdata
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        sudo apt-get update
-        sudo apt-get install language-pack-de tzdata
-
-    - name: Install Python dependencies
-      run: python -m pip install --upgrade tox
-
-    - name: Run tests
-      run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
+        - name: Python 3.10 with all optional dependencies and pre-releases
+          linux: py310-test-alldeps-predeps
+          toxargs: -v
+          toxposargs: --remote-data=any

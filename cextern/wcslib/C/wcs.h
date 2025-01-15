@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: wcs.h,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.12 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -66,10 +66,11 @@
 *
 * wcsnpv(), wcsnps(), wcsini(), wcsinit(), wcssub(), wcsfree(), and wcstrim(),
 * are provided to manage the wcsprm struct, wcssize() computes its total size
-* including allocated memory, wcsenq() returns information about the state of
-* the struct, and wcsprt() prints its contents.  wcscopy(), which does a deep
-* copy of one wcsprm struct to another, is defined as a preprocessor macro
-* function that invokes wcssub().
+* including allocated memory, and wcsprt() prints its contents.  Refer to the
+* description of the wcsprm struct for an explanation of the anticipated usage
+* of these routines.  wcscopy(), which does a deep copy of one wcsprm struct
+* to another, is defined as a preprocessor macro function that invokes
+* wcssub().
 *
 * wcsperr() prints the error message(s) (if any) stored in a wcsprm struct,
 * and the linprm, celprm, prjprm, spcprm, and tabprm structs that it contains.
@@ -526,7 +527,7 @@
 *
 * auxsize() - Compute the size of a auxprm struct
 * -----------------------------------------------
-* auxsize() computes the full size of an auxprm struct, including allocated
+* auxsize() computes the full size of a auxprm struct, including allocated
 * memory.
 *
 * Given:
@@ -544,35 +545,6 @@
 * Function return value:
 *             int       Status return value:
 *                         0: Success.
-*
-*
-* wcsenq() - enquire about the state of a wcsprm struct
-* -----------------------------------------------------
-* wcsenq() may be used to obtain information about the state of a wcsprm
-* struct.  The function returns a true/false answer for the enquiry asked.
-*
-* Given:
-*   wcs       const struct wcsprm*
-*                       Coordinate transformation parameters.
-*
-*   enquiry   int       Enquiry according to the following parameters:
-*                         WCSENQ_MEM: memory in the struct is being managed by
-*                                     WCSLIB (see wcsini()).
-*                         WCSENQ_SET: the struct has been set up by wcsset().
-*                         WCSENQ_BYP: the struct is in bypass mode (see
-*                                     wcsset()).
-*                         WCSENQ_CHK: the struct is self-consistent in that
-*                                     no changes have been made to any of the
-*                                     "parameters to be given" since the last
-*                                     call to wcsset().
-*                       These may be combined by logical OR, e.g.
-*                       WCSENQ_MEM | WCSENQ_SET.  The enquiry result will be
-*                       the logical AND of the individual results.
-*
-* Function return value:
-*             int       Enquiry result:
-*                         0: False.
-*                         1: True.
 *
 *
 * wcsprt() - Print routine for the wcsprm struct
@@ -655,13 +627,6 @@
 * wcsp2s() and wcss2p() if the wcsprm::flag is anything other than a
 * predefined magic value.
 *
-* wcsset() normally operates regardless of the value of wcsprm::flag; i.e.
-* even if a struct was previously set up it will be reset unconditionally.
-* However, a wcsprm struct may be put into "bypass" mode by invoking wcsset()
-* initially with wcsprm::flag == 1 (rather than 0).  wcsset() will return
-* immediately if invoked on a struct in that state.  To take a struct out of
-* bypass mode, simply reset wcsprm::flag to zero.  See also wcsenq().
-*
 * Given and returned:
 *   wcs       struct wcsprm*
 *                       Coordinate transformation parameters.
@@ -714,9 +679,7 @@
 *                       imgcrd[][wcs.lat] are the projected x-, and
 *                       y-coordinates in pseudo "degrees".  For spectral
 *                       axes, imgcrd[][wcs.spec] is the intermediate spectral
-*                       coordinate, in SI units.  For time axes,
-*                       imgcrd[][wcs.time] is the intermediate time
-*                       coordinate.
+*                       coordinate, in SI units.
 *
 *   phi,theta double[ncoord]
 *                       Longitude and latitude in the native coordinate system
@@ -725,10 +688,9 @@
 *   world     double[ncoord][nelem]
 *                       Array of world coordinates.  For celestial axes,
 *                       world[][wcs.lng] and world[][wcs.lat] are the
-*                       celestial longitude and latitude [deg].  For spectral
-*                       axes, world[][wcs.spec] is the spectral coordinate, in
-*                       SI units.  For time axes, world[][wcs.time] is the
-*                       time coordinate.
+*                       celestial longitude and latitude [deg].  For
+*                       spectral axes, imgcrd[][wcs.spec] is the intermediate
+*                       spectral coordinate, in SI units.
 *
 *   stat      int[ncoord]
 *                       Status return value for each coordinate:
@@ -776,8 +738,7 @@
 *                       world[][wcs.lng] and world[][wcs.lat] are the
 *                       celestial longitude and latitude [deg]. For spectral
 *                       axes, world[][wcs.spec] is the spectral coordinate, in
-*                       SI units.  For time axes, world[][wcs.time] is the
-*                       time coordinate.
+*                       SI units.
 *
 * Returned:
 *   phi,theta double[ncoord]
@@ -792,9 +753,7 @@
 *                       projections with a CUBEFACE axis the face number is
 *                       also returned in imgcrd[][wcs.cubeface].  For
 *                       spectral axes, imgcrd[][wcs.spec] is the intermediate
-*                       spectral coordinate, in SI units.  For time axes,
-*                       imgcrd[][wcs.time] is the intermediate time
-*                       coordinate.
+*                       spectral coordinate, in SI units.
 *
 *   pixcrd    double[ncoord][nelem]
 *                       Array of pixel coordinates.
@@ -1170,8 +1129,8 @@
 * string members and null-fills the character array.
 *
 *   int flag
-*     (Given and returned) This flag must be set to zero (or 1, see wcsset())
-*     whenever any of the following wcsprm members are set or changed:
+*     (Given and returned) This flag must be set to zero whenever any of the
+*     following wcsprm struct members are set or changed:
 *
 *       - wcsprm::naxis (q.v., not normally set by the user),
 *       - wcsprm::crpix,
@@ -1825,9 +1784,7 @@
 *   int lat
 *     (Returned) ... index for the latitude coordinate, and ...
 *   int spec
-*     (Returned) ... index for the spectral coordinate, and ...
-*   int time
-*     (Returned) ... index for the time coordinate in the imgcrd[][] and
+*     (Returned) ... index for the spectral coordinate in the imgcrd[][] and
 *     world[][] arrays in the API of wcsp2s(), wcss2p() and wcsmix().
 *
 *     These may also serve as indices into the pixcrd[][] array provided that
@@ -1837,12 +1794,6 @@
 *     (Returned) Index into the pixcrd[][] array for the CUBEFACE axis.  This
 *     is used for quadcube projections where the cube faces are stored on a
 *     separate axis (see wcs.h).
-*
-*   int chksum
-*     (Returned) Checksum of keyvalues provided (see wcsprm::flag).  Used by
-*     wcsenq() to validate the self-consistency of the struct.  Note that
-*     the checksum incorporates addresses and is therefore highly specific to
-*     the instance of the wcsprm struct.
 *
 *   int *types
 *     (Returned) Address of the first element of an array of int containing a
@@ -2000,29 +1951,6 @@
 *     (Given, auxiliary) Heliographic latitude (Carrington or Stonyhurst) of
 *     the observer (deg).
 *
-*   double a_radius
-*     Length of the semi-major axis of a triaxial ellipsoid approximating the
-*     shape of a body (e.g. planet) in the solar system (m).
-*
-*   double b_radius
-*     Length of the intermediate axis, normal to the semi-major and semi-minor
-*     axes, of a triaxial ellipsoid approximating the shape of a body (m).
-*
-*   double c_radius
-*     Length of the semi-minor axis, normal to the semi-major axis, of a
-*     triaxial ellipsoid approximating the shape of a body (m).
-*
-*   double blon_obs
-*     Bodycentric longitude of the observer in the coordinate system fixed to
-*     the planet or other solar system body (deg, in range 0 to 360).
-*
-*   double blat_obs
-*     Bodycentric latitude of the observer in the coordinate system fixed to
-*     the planet or other solar system body (deg).
-*
-*   double bdis_obs
-*     Bodycentric distance of the observer (m).
-*
 *
 * Global variable: const char *wcs_errmsg[] - Status return messages
 * ------------------------------------------------------------------
@@ -2041,13 +1969,6 @@
 extern "C" {
 #define wtbarr wtbarr_s		// See prologue of wtbarr.h.
 #endif
-
-enum wcsenq_enum {
-  WCSENQ_MEM = 1,		// wcsprm struct memory is managed by WCSLIB.
-  WCSENQ_SET = 2,		// wcsprm struct has been set up.
-  WCSENQ_BYP = 4,		// wcsprm struct is in bypass mode.
-  WCSENQ_CHK = 8,		// wcsprm struct is self-consistent.
-};
 
 #define WCSSUB_LONGITUDE 0x1001
 #define WCSSUB_LATITUDE  0x1002
@@ -2117,14 +2038,6 @@ struct auxprm {
   double crln_obs;              // Carrington heliographic lng of observer.
   double hgln_obs;              // Stonyhurst heliographic lng of observer.
   double hglt_obs;              // Heliographic latitude of observer.
-
-  double a_radius;              // Semi-major axis of solar system body.
-  double b_radius;              // Semi-intermediate axis of solar system body.
-  double c_radius;              // Semi-minor axis of solar system body.
-  double blon_obs;              // Bodycentric longitude of observer.
-  double blat_obs;              // Bodycentric latitude of observer.
-  double bdis_obs;              // Bodycentric distance of observer.
-  double dummy[2];              // Reserved for future use.
 };
 
 // Size of the auxprm struct in int units, used by the Fortran wrappers.
@@ -2227,10 +2140,9 @@ struct wcsprm {
   // Information derived from the FITS header keyvalues by wcsset().
   //--------------------------------------------------------------------------
   char   lngtyp[8], lattyp[8];	// Celestial axis types, e.g. RA, DEC.
-  int    lng, lat, spec, time;	// Longitude, latitude, spectral, and time
-				// axis indices (0-relative).
+  int    lng, lat, spec;	// Longitude, latitude and spectral axis
+				// indices (0-relative).
   int    cubeface;		// True if there is a CUBEFACE axis.
-  int    chksum;		// Checksum of keyvalues provided.
   int    *types;		// Coordinate type codes for each axis.
 
   struct linprm lin;		//    Linear transformation parameters.
@@ -2289,8 +2201,6 @@ int wcstrim(struct wcsprm *wcs);
 int wcssize(const struct wcsprm *wcs, int sizes[2]);
 
 int auxsize(const struct auxprm *aux, int sizes[2]);
-
-int wcsenq(const struct wcsprm *wcs, int enquiry);
 
 int wcsprt(const struct wcsprm *wcs);
 
