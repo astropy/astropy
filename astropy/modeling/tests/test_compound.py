@@ -1295,7 +1295,6 @@ def test_compound_fit_deriv(model, input_ndim):
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_fit_compound_polynomial2d():
-
     # Regression test for a bug that caused compound models with Polynomial2D
     # to not be fittable due to a bug in CompoundModel.fit_deriv
 
