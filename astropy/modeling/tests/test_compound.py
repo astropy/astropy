@@ -1295,6 +1295,7 @@ def test_compound_fit_deriv(model, input_ndim):
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_fit_compound_polynomial2d():
+
     # Regression test for a bug that caused compound models with Polynomial2D
     # to not be fittable due to a bug in CompoundModel.fit_deriv
 
@@ -1309,4 +1310,5 @@ def test_fit_compound_polynomial2d():
     p_init = Polynomial2D(degree=2) + Gaussian2D(amplitude=50000, x_mean=60, y_mean=60)
     fit_p = DogBoxLSQFitter()
 
-    p = fit_p(p_init, x, y, z)
+    # We just make sure the fitting works, as it previously crashed
+    fit_p(p_init, x, y, z)
