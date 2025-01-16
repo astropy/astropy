@@ -52,7 +52,6 @@ def test_paths():
             paths.set_temp_cache,
             paths.get_cache_dir_path,
             id="astropy-cache",
-            marks=pytest.mark.xfail,
         ),
         pytest.param(
             "XDG_CONFIG_HOME",
@@ -65,7 +64,6 @@ def test_paths():
             paths.set_temp_config,
             paths.get_config_dir_path,
             id="astropy-config",
-            marks=pytest.mark.xfail,
         ),
     ],
 )
@@ -87,7 +85,6 @@ def test_env_variables(monkeypatch, tmp_path, environment_variable, cls, func):
             paths.set_temp_cache,
             paths.get_cache_dir_path,
             id="cache",
-            marks=pytest.mark.xfail,
         ),
         pytest.param(
             "ASTROPY_CONFIG_DIR",
@@ -95,7 +92,6 @@ def test_env_variables(monkeypatch, tmp_path, environment_variable, cls, func):
             paths.set_temp_config,
             paths.get_config_dir_path,
             id="config",
-            marks=pytest.mark.xfail,
         ),
     ],
 )
@@ -124,14 +120,12 @@ def test_env_variables_priority(
             paths.set_temp_cache,
             paths.get_cache_dir_path,
             id="astropy-cache",
-            marks=pytest.mark.xfail,
         ),
         pytest.param(
             "ASTROPY_CONFIG_DIR",
             paths.set_temp_config,
             paths.get_config_dir_path,
             id="astropy-config",
-            marks=pytest.mark.xfail,
         ),
         pytest.param(
             "XDG_CACHE_HOME",
