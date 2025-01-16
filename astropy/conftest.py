@@ -77,14 +77,14 @@ def pytest_configure(config):
     # is also set in the test runner, but we need to also set it here for
     # things to work properly in parallel mode
 
-    builtins._xdg_config_home_orig = os.environ.get("XDG_CONFIG_HOME")
-    builtins._xdg_cache_home_orig = os.environ.get("XDG_CACHE_HOME")
+    builtins._astropy_config_dir_orig = os.environ.get("ASTROPY_CONFIG_HOME")
+    builtins._astropy_cache_dir_orig = os.environ.get("ASTROPY_CACHE_HOME")
 
-    os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp("astropy_config")
-    os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp("astropy_cache")
+    os.environ["ASTROPY_CONFIG_DIR"] = tempfile.mkdtemp("astropy_config")
+    os.environ["ASTROPY_CACHE_DIR"] = tempfile.mkdtemp("astropy_cache")
 
-    Path(os.environ["XDG_CONFIG_HOME"]).joinpath("astropy").mkdir()
-    Path(os.environ["XDG_CACHE_HOME"]).joinpath("astropy").mkdir()
+    Path(os.environ["ASTROPY_CONFIG_DIR"]).joinpath("astropy").mkdir()
+    Path(os.environ["ASTROPY_CACHE_DIR"]).joinpath("astropy").mkdir()
 
     config.option.astropy_header = True
     PYTEST_HEADER_MODULES["PyERFA"] = "erfa"
@@ -129,15 +129,15 @@ def pytest_unconfigure(config):
             mpl.rcParams.update(matplotlibrc_cache)
             matplotlibrc_cache.clear()
 
-    if builtins._xdg_config_home_orig is None:
-        os.environ.pop("XDG_CONFIG_HOME")
+    if builtins._astropy_config_dir_orig is None:
+        os.environ.pop("ASTROPY_CONFIG_DIR")
     else:
-        os.environ["XDG_CONFIG_HOME"] = builtins._xdg_config_home_orig
+        os.environ["ASTROPY_CONFIG_DIR"] = builtins._astropy_config_dir_orig
 
-    if builtins._xdg_cache_home_orig is None:
-        os.environ.pop("XDG_CACHE_HOME")
+    if builtins._astropy_cache_dir_orig is None:
+        os.environ.pop("ASTROPY_CACHE_DIR")
     else:
-        os.environ["XDG_CACHE_HOME"] = builtins._xdg_cache_home_orig
+        os.environ["ASTROPY_CACHE_DIR"] = builtins._astropy_cache_dir_orig
 
 
 def pytest_terminal_summary(terminalreporter):
