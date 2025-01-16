@@ -38,18 +38,131 @@ def test_paths():
 
 
 @pytest.mark.parametrize(
-    "environment_variable,func",
+    "environment_variable, cls, func",
     [
         # Regression test for #17514 - XDG_CACHE_HOME had no effect
-        pytest.param("XDG_CACHE_HOME", paths.get_cache_dir_path, id="cache"),
-        pytest.param("XDG_CONFIG_HOME", paths.get_config_dir_path, id="config"),
+        pytest.param(
+            "XDG_CACHE_HOME",
+            paths.set_temp_cache,
+            paths.get_cache_dir_path,
+            id="xdg-cache",
+        ),
+        pytest.param(
+            "ASTROPY_CACHE_DIR",
+            paths.set_temp_cache,
+            paths.get_cache_dir_path,
+            id="astropy-cache",
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            "XDG_CONFIG_HOME",
+            paths.set_temp_config,
+            paths.get_config_dir_path,
+            id="xdg-config",
+        ),
+        pytest.param(
+            "ASTROPY_CONFIG_DIR",
+            paths.set_temp_config,
+            paths.get_config_dir_path,
+            id="astropy-config",
+            marks=pytest.mark.xfail,
+        ),
     ],
 )
-def test_xdg_variables(monkeypatch, tmp_path, environment_variable, func):
-    config_dir = tmp_path / "astropy"
-    config_dir.mkdir()
+def test_env_variables(monkeypatch, tmp_path, environment_variable, cls, func):
+    target_dir = tmp_path / "astropy"
+    target_dir.mkdir()
     monkeypatch.setenv(environment_variable, str(tmp_path))
-    assert func() == config_dir
+
+    monkeypatch.setattr(cls, "_temp_path", None)
+    assert func() == target_dir
+
+
+@pytest.mark.parametrize(
+    "astropy_env_var, xdg_env_var, cls, func",
+    [
+        pytest.param(
+            "ASTROPY_CACHE_DIR",
+            "XDG_CACHE_HOME",
+            paths.set_temp_cache,
+            paths.get_cache_dir_path,
+            id="cache",
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            "ASTROPY_CONFIG_DIR",
+            "XDG_CONFIG_HOME",
+            paths.set_temp_config,
+            paths.get_config_dir_path,
+            id="config",
+            marks=pytest.mark.xfail,
+        ),
+    ],
+)
+def test_env_variables_priority(
+    monkeypatch, tmp_path, astropy_env_var, xdg_env_var, cls, func
+):
+    # ASTROPY_* environment variables should have priority over XDG_*
+    astropy_target_dir = tmp_path / "astropy" / "astropy"
+    astropy_target_dir.mkdir(parents=True)
+    monkeypatch.setenv(astropy_env_var, str(tmp_path / "astropy"))
+
+    xdg_target_dir = tmp_path / "xdg" / "astropy"
+    xdg_target_dir.mkdir(parents=True)
+    monkeypatch.setenv(xdg_env_var, str(tmp_path / "xdg"))
+
+    monkeypatch.setattr(cls, "_temp_path", None)
+
+    assert func() == astropy_target_dir
+
+
+@pytest.mark.parametrize(
+    "environment_variable, cls, func",
+    [
+        pytest.param(
+            "ASTROPY_CACHE_DIR",
+            paths.set_temp_cache,
+            paths.get_cache_dir_path,
+            id="astropy-cache",
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            "ASTROPY_CONFIG_DIR",
+            paths.set_temp_config,
+            paths.get_config_dir_path,
+            id="astropy-config",
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            "XDG_CACHE_HOME",
+            paths.set_temp_cache,
+            paths.get_cache_dir_path,
+            id="xdg-cache",
+        ),
+        pytest.param(
+            "XDG_CONFIG_HOME",
+            paths.set_temp_config,
+            paths.get_config_dir_path,
+            id="xdg-config",
+        ),
+    ],
+)
+def test_context_over_environment(
+    monkeypatch, tmp_path, environment_variable, cls, func
+):
+    # context managers should shadow environment variables
+    env_target_dir = tmp_path / "astropy"
+    env_target_dir.mkdir()
+    monkeypatch.setenv(environment_variable, str(tmp_path))
+
+    assert func() == env_target_dir
+
+    ctx_target_dir = tmp_path / "context"
+    ctx_target_dir.mkdir()
+    with cls(ctx_target_dir):
+        assert func() == ctx_target_dir / "astropy"
+
+    assert func() == env_target_dir
 
 
 def test_set_temp_config(tmp_path, monkeypatch):
