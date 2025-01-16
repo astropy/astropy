@@ -1,0 +1,1 @@
+Fixed ``Table.write(..., format="fits", overwrite=True)`` when filename is provided as ``pathlib.Path``.
