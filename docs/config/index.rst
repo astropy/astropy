@@ -34,15 +34,9 @@ The exact location of this file can be obtained with
     >>> from astropy.config import get_config_dir
     >>> get_config_dir()  # doctest: +SKIP
 
-And you should see the location of your configuration directory. The standard
-scheme generally puts your configuration directory in
-``$HOME/.astropy/config``. It can be customized with the environment variable
-``XDG_CONFIG_HOME`` in which case the ``$XDG_CONFIG_HOME/astropy`` directory
-must exist. Note that ``XDG_CONFIG_HOME`` comes from a Linux-centric
-specification (see `here
-<https://wiki.archlinux.org/index.php/XDG_Base_Directory_support>`_ for more
-details), but ``astropy`` will use this on any OS as a more general means to
-know where user-specific configurations should be written.
+And you should see the location of your configuration directory. The default
+configuration directory is ``$HOME/.astropy/config``, but this can be
+customized with :ref:`environment_variables`.
 
 .. note::
     See :ref:`astropy_config_file` for the content of this configuration file.
@@ -60,12 +54,8 @@ changes immediately in your current ``astropy`` session::
 .. note::
     If for whatever reason your ``$HOME/.astropy`` directory is not accessible
     (i.e., you have ``astropy`` running somehow as root but you are not the root
-    user), the best solution is to set the ``XDG_CONFIG_HOME`` and
-    ``XDG_CACHE_HOME`` environment variables pointing to directories, and create
-    an ``astropy`` directory inside each of those. Both the configuration and
-    data download systems will then use those directories and never try to
-    access the ``$HOME/.astropy`` directory.
-
+    user), the best solution is to set :ref:`environment_variables` pointing to
+    directories you control.
 
 Using `astropy.config`
 ======================
