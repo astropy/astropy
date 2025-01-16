@@ -243,7 +243,7 @@ class TestRunnerBase:
         # don't know about the temporary config/cache.
         # Note, this is superfluous if the config_dir option to pytest is in use,
         # but it's also harmless
-        astropy_config_dir_orig = os.environ.get("ASTROPY_CONFIG_DI")
+        astropy_config_dir_orig = os.environ.get("ASTROPY_CONFIG_DIR")
         with tempfile.TemporaryDirectory("astropy_config") as astropy_config:
             Path(astropy_config, "astropy").mkdir()
             os.environ["ASTROPY_CONFIG_DIR"] = astropy_config

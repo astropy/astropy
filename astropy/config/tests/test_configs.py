@@ -38,14 +38,14 @@ def test_paths():
     assert "testpkg" in paths.get_cache_dir(rootname="testpkg")
 
 
-_ISOLATED_SETUP_LOCK = Lock()
+_IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK = Lock()
 
 
 @pytest.fixture
-def isolated_setup(monkeypatch):
+def ignore_config_paths_global_state(monkeypatch):
     # ignore global state of the test session
     # and preserve thread safety across all users of this fixture
-    with _ISOLATED_SETUP_LOCK:
+    with _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK:
         monkeypatch.delenv("ASTROPY_CACHE_DIR", raising=False)
         monkeypatch.delenv("ASTROPY_CONFIG_DIR", raising=False)
         monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
@@ -59,10 +59,12 @@ def isolated_setup(monkeypatch):
 
 @pytest.mark.parametrize(
     "env_var_template",
+    # make sure all XDG_* and ASTROPY_* env variables have the desired effect
+    # when used in isolation (no shadowing of the former by the latter).
+    # This serve as regression tests for gh-17514 (XDG_CACHE_HOME had no effect)
     [
-        # Regression test for #17514 - XDG_CACHE_HOME had no effect
         pytest.param("XDG_{}_HOME", id="xdg"),
-        pytest.param("ASTROPY_{}_DIR", id="astropy", marks=pytest.mark.xfail),
+        pytest.param("ASTROPY_{}_DIR", id="astropy"),
     ],
 )
 @pytest.mark.parametrize(
@@ -72,7 +74,7 @@ def isolated_setup(monkeypatch):
         pytest.param("CONFIG", paths.get_config_dir_path, id="config"),
     ],
 )
-@pytest.mark.usefixtures("isolated_setup")
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_env_variables(monkeypatch, tmp_path, env_var_template, dir_type, func):
     environment_variable = env_var_template.format(dir_type)
     target_dir = tmp_path / "astropy"
@@ -90,7 +92,6 @@ def test_env_variables(monkeypatch, tmp_path, env_var_template, dir_type, func):
             paths.set_temp_cache,
             paths.get_cache_dir_path,
             id="cache",
-            marks=pytest.mark.xfail,
         ),
         pytest.param(
             "ASTROPY_CONFIG_DIR",
@@ -98,11 +99,10 @@ def test_env_variables(monkeypatch, tmp_path, env_var_template, dir_type, func):
             paths.set_temp_config,
             paths.get_config_dir_path,
             id="config",
-            marks=pytest.mark.xfail,
         ),
     ],
 )
-@pytest.mark.usefixtures("isolated_setup")
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_env_variables_priority(
     monkeypatch, tmp_path, astropy_env_var, xdg_env_var, cls, func
 ):
@@ -122,31 +122,24 @@ def test_env_variables_priority(
     "env_var_template",
     [
         pytest.param("XDG_{}_HOME", id="xdg"),
-        pytest.param("ASTROPY_{}_DIR", id="astropy", marks=pytest.mark.xfail),
+        pytest.param("ASTROPY_{}_DIR", id="astropy"),
     ],
 )
-@pytest.mark.parametrize("dir_type", ["cache", "config"])
-@pytest.mark.usefixtures("isolated_setup")
+@pytest.mark.parametrize(
+    "dir_type, cls, func",
+    [
+        ("CACHE", paths.set_temp_cache, paths.get_cache_dir_path),
+        ("CONFIG", paths.set_temp_config, paths.get_config_dir_path),
+    ],
+)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_context_over_environment(
-    monkeypatch,
-    tmp_path,
-    env_var_template,
-    dir_type,
+    monkeypatch, tmp_path, env_var_template, dir_type, cls, func
 ):
-    match dir_type:
-        case "cache":
-            cls = paths.set_temp_cache
-            func = paths.get_cache_dir_path
-        case "config":
-            cls = paths.set_temp_config
-            func = paths.get_config_dir_path
-        case _:
-            raise ValueError
-
     # context managers should shadow environment variables
     env_target_dir = tmp_path / "astropy"
     env_target_dir.mkdir()
-    monkeypatch.setenv(env_var_template.format(dir_type.upper()), str(tmp_path))
+    monkeypatch.setenv(env_var_template.format(dir_type), str(tmp_path))
 
     assert func() == env_target_dir
 
@@ -158,7 +151,7 @@ def test_context_over_environment(
     assert func() == env_target_dir
 
 
-@pytest.mark.usefixtures("isolated_setup")
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_set_temp_config(tmp_path):
     # Check that we start in an understood state.
     assert configuration._cfgobjs == OLD_CONFIG
@@ -189,7 +182,7 @@ def test_set_temp_config(tmp_path):
     assert configuration._cfgobjs == OLD_CONFIG
 
 
-@pytest.mark.usefixtures("isolated_setup")
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_set_temp_cache(tmp_path):
     orig_cache_dir = paths.get_cache_dir(rootname="astropy")
     (temp_cache_dir := tmp_path / "cache").mkdir()
@@ -518,7 +511,7 @@ def test_help_invalid_config_item():
         conf.help("bad_name")
 
 
-@pytest.mark.usefixtures("isolated_setup")
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_config_noastropy_fallback(monkeypatch):
     """
     Tests to make sure configuration items fall back to their defaults when

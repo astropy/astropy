@@ -1,0 +1,4 @@
+Add support for setting astropy's cache and config directories via the
+``ASTROPY_CACHE_DIR`` and ``ASTROPY_CONFIG_DIR`` environment variables.
+If ``XDG_CACHE_HOME`` (respectively ``XDG_CONFIG_HOME``) is also defined,
+``ASTROPY_CACHE_DIR`` (respectively ``ASTROPY_CONFIG_DIR``) takes precedence.
