@@ -243,17 +243,17 @@ class TestRunnerBase:
         # don't know about the temporary config/cache.
         # Note, this is superfluous if the config_dir option to pytest is in use,
         # but it's also harmless
-        orig_xdg_config = os.environ.get("XDG_CONFIG_HOME")
+        astropy_config_dir_orig = os.environ.get("ASTROPY_CONFIG_DI")
         with tempfile.TemporaryDirectory("astropy_config") as astropy_config:
             Path(astropy_config, "astropy").mkdir()
-            os.environ["XDG_CONFIG_HOME"] = astropy_config
+            os.environ["ASTROPY_CONFIG_DIR"] = astropy_config
             try:
                 return pytest.main(args=args, plugins=plugins)
             finally:
-                if orig_xdg_config is None:
-                    os.environ.pop("XDG_CONFIG_HOME", None)
+                if astropy_config_dir_orig is None:
+                    os.environ.pop("ASTROPY_CONFIG_DIR", None)
                 else:
-                    os.environ["XDG_CONFIG_HOME"] = orig_xdg_config
+                    os.environ["ASTROPY_CONFIG_DIR"] = astropy_config_dir_orig
 
     @classmethod
     def make_test_runner_in(cls, path):
