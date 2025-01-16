@@ -420,7 +420,7 @@ class TestParameter(ParameterTestMixin):
     def test_Parameter_repr_roundtrip(self, param):
         """Test ``eval(repr(Parameter))`` can round trip to ``Parameter``."""
         P = Parameter(doc="A description of this parameter.", derived=True)
-        NP = eval(repr(P))  # Evaluate string representation back into a param.
+        NP = Parameter.from_repr(repr(P))  # Evaluate string representation back into a param.
 
         assert P == NP
 
