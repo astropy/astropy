@@ -1,0 +1,2 @@
+The scaling state from the source HDU to the new appended HDU is copied on the
+destination file, when the hdu is read with `do_not_scale_image_data=True`.
