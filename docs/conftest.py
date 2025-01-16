@@ -14,11 +14,11 @@ import pytest
 # Make sure we use temporary directories for the config and cache
 # so that the tests are insensitive to local configuration.
 
-os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp("astropy_config")
-os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp("astropy_cache")
+os.environ["ASTROPY_CONFIG_DIR"] = tempfile.mkdtemp("astropy_config")
+os.environ["ASTROPY_CACHE_DIR"] = tempfile.mkdtemp("astropy_cache")
 
-Path(os.environ["XDG_CONFIG_HOME"]).joinpath("astropy").mkdir()
-Path(os.environ["XDG_CACHE_HOME"]).joinpath("astropy").mkdir()
+Path(os.environ["ASTROPY_CONFIG_DIR"]).joinpath("astropy").mkdir()
+Path(os.environ["ASTROPY_CACHE_DIR"]).joinpath("astropy").mkdir()
 
 # Note that we don't need to change the environment variables back or remove
 # them after testing, because they are only changed for the duration of the
