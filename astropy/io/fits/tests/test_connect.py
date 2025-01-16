@@ -1,5 +1,7 @@
+import contextlib
 import gc
 import warnings
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -65,6 +67,14 @@ class TestSingleTable:
             list(zip([1, 2, 3, 4], ["a", "b", "c", "d"], [2.3, 4.5, 6.7, 8.9])),
             dtype=[("a", int), ("b", "U1"), ("c", float)],
         )
+
+    def test_overwrite_with_path(self, tmp_path):
+        filename = "temp.fits"
+        t1 = Table(self.data)
+        with contextlib.chdir(tmp_path):
+            t1.write(filename, format="fits")
+            t1.write(Path(filename), format="fits", overwrite=True)
+        t1.write(Path(tmp_path / filename), format="fits", overwrite=True)
 
     def test_simple(self, tmp_path):
         filename = tmp_path / "test_simple.fts"
