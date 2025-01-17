@@ -38,36 +38,25 @@ def test_paths():
 
 
 @pytest.mark.parametrize(
-    "environment_variable, cls, func",
+    "env_var_template",
     [
-        # Regression test for #17514 - XDG_CACHE_HOME had no effect
-        pytest.param(
-            "XDG_CACHE_HOME",
-            paths.set_temp_cache,
-            paths.get_cache_dir_path,
-            id="xdg-cache",
-        ),
-        pytest.param(
-            "ASTROPY_CACHE_DIR",
-            paths.set_temp_cache,
-            paths.get_cache_dir_path,
-            id="astropy-cache",
-        ),
-        pytest.param(
-            "XDG_CONFIG_HOME",
-            paths.set_temp_config,
-            paths.get_config_dir_path,
-            id="xdg-config",
-        ),
-        pytest.param(
-            "ASTROPY_CONFIG_DIR",
-            paths.set_temp_config,
-            paths.get_config_dir_path,
-            id="astropy-config",
-        ),
+        pytest.param("XDG_{}_HOME", id="xdg"),
+        pytest.param("ASTROPY_{}_DIR", id="astropy"),
     ],
 )
-def test_env_variables(monkeypatch, tmp_path, environment_variable, cls, func):
+@pytest.mark.parametrize("dir_type", ["cache", "config"])
+def test_env_variables(monkeypatch, tmp_path, env_var_template, dir_type):
+    match dir_type:
+        case "cache":
+            cls = paths.set_temp_cache
+            func = paths.get_cache_dir_path
+        case "config":
+            cls = paths.set_temp_config
+            func = paths.get_config_dir_path
+        case _:
+            raise ValueError
+
+    environment_variable = env_var_template.format(dir_type.upper())
     target_dir = tmp_path / "astropy"
     target_dir.mkdir()
     monkeypatch.setenv(environment_variable, str(tmp_path))
