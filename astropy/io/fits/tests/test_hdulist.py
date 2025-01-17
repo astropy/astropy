@@ -181,12 +181,14 @@ class TestHDUListFunctions(FitsTestCase):
     def test_append_scaled_image_with_do_not_scale_image_data(self):
         """Tests appending a scaled ImageHDU to a HDUList."""
 
-        with fits.open(self.data("scale.fits"), do_not_scale_image_data=True) as source:
-            with fits.open(self.temp("dest.fits"), mode="append") as dest:
-                dest.append(source[0])
-                dest.append(source[0])
-                assert dest[-1].header["BSCALE"] == source[0].header["BSCALE"]
-                assert dest[-1].header["BZERO"] == source[0].header["BZERO"]
+        with (
+            fits.open(self.data("scale.fits"), do_not_scale_image_data=True) as source,
+            fits.open(self.temp("dest.fits"), mode="append") as dest,
+        ):
+            dest.append(source[0])
+            dest.append(source[0])
+            assert dest[-1].header["BSCALE"] == source[0].header["BSCALE"]
+            assert dest[-1].header["BZERO"] == source[0].header["BZERO"]
 
     def test_insert_primary_to_empty_list(self):
         """Tests inserting a Simple PrimaryHDU to an empty HDUList."""
