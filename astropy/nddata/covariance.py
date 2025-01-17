@@ -42,29 +42,61 @@ __all__ = ["Covariance"]
 __doctest_requires__ = {"*": ["scipy"]}
 
 
+def _get_csr(arr):
+    """
+    Confirm the array is a `~scipy.sparse.csr_matrix` or try to convert it to
+    one.
+
+    Parameters
+    ----------
+    arr : array-like
+        An array that either is a `~scipy.sparse.csr_matrix` or it can be
+        converted to one.
+
+    Returns
+    -------
+    `~scipy.sparse.csr_matrix`
+        Converted or original matrix.
+    """
+    # Check the input type
+    if isspmatrix_csr(arr):
+        return arr
+    try:
+        return csr_matrix(arr)
+    except ValueError:
+        raise TypeError(
+            "Input matrix is not a scipy.sparse.csr_matrix and could "
+            "not be converted to one."
+        )
+
+
 class Covariance(NDUncertainty):
     r"""
     A general utility for storing, manipulating, and I/O of covariance matrices.
 
+    Covariance matrices of higher dimensional arrays are always assumed to be
+    stored following row-major indexing.  That is, the covariance value
+    :math:`C_{ij}` for an image of size :math:`(nx,ny)` is the covariance
+    between image pixels :math:`I_{x_i,y_i}` and :math:`I_{x_j,y_j}`, where
+    :math:`i = x_i + nx y_i` and, similarly, :math:`j = x_j + nx y_j`.
+
+    Covariance matrices are symmetric by definition, :math:`C_{ij} = C_{ji}`, so
+    it is not necessary to keep both the upper and lower triangles of the
+    matrix.  Instantiation of this object *always* uses `~scipy.sparse.triu`
+    when setting the covariance matrix data.
+
     Parameters
     ----------
-    array : array-like, `~scipy.sparse.csr_matrix`, optional
+    array : array-like, `~scipy.sparse.csr_matrix`
         Covariance matrix to store. Input **must** be covariance data, not
         correlation data.  If None, the covariance object is instantiated as
-        being empty; however, this is generally discouraged.
-
-    impose_triu : :obj:`bool`, optional
-        Flag to force the array to only contain non-zero elements in its upper
-        triangle. Covariance matrices are symmetric by definition, :math:`C_{ij}
-        = C_{ji}`, so it's not necessary to keep both values. This flag will
-        force a call to `~scipy.sparse.triu` when setting the covariance matrix.
-        If False, the input matrix is **assumed** to only have the upper
-        triangle of numbers.
+        being empty; however, this is generally discouraged.  If it is not a
+        `~scipy.sparse.csr_matrix` instance, it must be convertible to one.
 
     raw_shape : :obj:`tuple`, optional
         The covariance data is for a higher dimensional array with this shape.
         For example, if the covariance data is for a 2D image with shape
-        ``(nx,ny)`` -- the shape of the covariance array is be ``(nx*ny,
+        ``(nx,ny)`` -- the shape of the covariance array must be ``(nx*ny,
         nx*ny)`` -- set ``raw_shape=(nx,ny)``. This is primarily used for
         reading and writing.  If None, any higher dimensionality is ignored.
 
@@ -85,73 +117,49 @@ class Covariance(NDUncertainty):
 
     Attributes
     ----------
-    cov : `~scipy.sparse.csr_matrix`
-        The covariance matrix stored in sparse format.
-
-    shape : :obj:`tuple`
-        Shape of the full array.
-
     raw_shape : :obj:`tuple`
         The covariance data is for a higher dimensional array with this shape.
         For example, if the covariance data is for a 2D image, this would be
         ``(nx,ny)`` and the shape of the covariance array would be ``(nx*ny,
         nx*ny)``.
 
-    nnz : :obj:`int`
-        The number of non-zero covariance matrix elements.
-
-    var : `~numpy.ndarray`
-        Array with the variance provided by the diagonal of the covariance
-        matrix. This is only populated if necessary, either by being requested
-        (`variance`) or if needed to convert between covariance and
-        correlation matrices.
-
-    is_correlation : :obj:`bool`
-        Flag that the covariance matrix has been saved as a variance vector and
-        a correlation matrix.
     """
 
-    def __init__(self, array=None, impose_triu=False, raw_shape=None, unit=None):
-        # Check the input type
-        if array is not None and not isspmatrix_csr(array):
-            try:
-                _array = csr_matrix(array)
-            except ValueError:
-                raise TypeError(
-                    "Input covariance matrix is not a scipy.csr_matrix and could "
-                    "not be converted to one."
-                )
-        else:
-            _array = array
+    def __init__(self, array=None, raw_shape=None, unit=None):
+        if array is None:
+            raise ValueError("Covariance object cannot be instantiated with None.")
 
-        super().__init__(array=_array, copy=False, unit=unit)
+        # Convert the covariance matrix to a correlation matrix for storage
+        self._var, self._rho = Covariance.to_correlation(array)
+        # The correlation matrix is symmetric by definition (or it should be!),
+        # so only keep the upper triangle.
+        self._rho = triu(self._rho).tocsr()
 
-        self.cov = _array
-        self.shape = None
+        # Set the raw shape and check it; note self._rho must be defined so that
+        # call to self.shape below is valid.
         self.raw_shape = raw_shape
-        self.nnz = None
-        self.var = None
-        self.is_correlation = False
-        self._data_index_map = None
-
-        # Return empty object
-        if self.cov is None:
-            return
-
-        # Set the number of non-zero covariance values
-        self.nnz = self.cov.nnz
-
-        # Set the shape of the full matrix
-        self.shape = self.cov.shape
         if self.raw_shape is not None and np.prod(self.raw_shape) != self.shape[0]:
             raise ValueError(
                 "Product of raw shape must match the covariance axis length."
             )
 
-        # If requested, impose that the input matrix only have values in
-        # its upper triangle.
-        if impose_triu:
-            self._impose_upper_triangle()
+        # Workspace for index mapping from flattened to original data arrays
+        self._data_index_map = None
+
+        super().__init__(array=self._rho, copy=False, unit=unit)
+
+    @property
+    def shape(self):
+        return self._rho.shape
+
+    @property
+    def nnz(self):
+        n = self._rho.nnz
+        return n * 2 - self._rho.shape[0]
+
+    @property
+    def stored_nnz(self):
+        return self._rho.nnz
 
     @property
     def uncertainty_type(self):
@@ -177,15 +185,13 @@ class Covariance(NDUncertainty):
         """
         Return the full covariance matrix as an `~astropy.units.Quantity` object.
         """
-        return Quantity(self.toarray(), self.unit, copy=False, dtype=self.cov.dtype)
+        return Quantity(self.toarray(), self.unit, copy=False, dtype=self._rho.dtype)
 
     def _data_unit_to_uncertainty_unit(self, value):
         return value**2
 
     def __repr__(self):
         return f"<{self.__class__.__name__}; shape = {self.shape}>"
-
-    # TODO: Override the array and array.setter methods!
 
     @classmethod
     def from_samples(cls, samples, cov_tol=None, rho_tol=None, **kwargs):
@@ -203,12 +209,12 @@ class Covariance(NDUncertainty):
             N_{\rm samples}`.
 
         cov_tol : :obj:`float`, optional
-            Any covariance value less than this is assumed to be equivalent to
-            (and set to) 0.
+            The absolute value of any *covariance* matrix entry less than this
+            is assumed to be equivalent to (and set to) 0.
 
         rho_tol : :obj:`float`, optional
-            Any correlation coefficient less than this is assumed to be
-            equivalent to (and set to) 0.
+            The absolute value of any *correlation coefficient* less than this
+            is assumed to be equivalent to (and set to) 0.
 
         **kwargs : dict, optional
             Passed directly to main instantiation method.
@@ -234,13 +240,15 @@ class Covariance(NDUncertainty):
         )
 
     @classmethod
-    def from_array(cls, covar, cov_tol=None, rho_tol=None, raw_shape=None, **kwargs):
+    def from_array(cls, covar, cov_tol=None, rho_tol=None, **kwargs):
         r"""
-        Define a covariance object using a dense array.
+        Define a covariance object from an array.
 
-        Note that the only difference between this construction method and the
-        direct construction method is that it allows you to impose tolerances on
-        the covariance value and/or correlation coefficients.
+        .. note::
+
+            The only difference between this construction method and the direct
+            construction method is that it allows you to impose tolerances on
+            the covariance value and/or correlation coefficients.
 
         Parameters
         ----------
@@ -251,20 +259,12 @@ class Covariance(NDUncertainty):
             ``numpy.atleast_2d``.
 
         cov_tol : :obj:`float`, optional
-            Any covariance value less than this is assumed to be equivalent to
-            (and set to) 0.
+            The absolute value of any *covariance* matrix entry less than this
+            is assumed to be equivalent to (and set to) 0.
 
         rho_tol : :obj:`float`, optional
-            Any correlation coefficient less than this is assumed to be
-            equivalent to (and set to) 0.
-
-        raw_shape : :obj:`tuple`, optional
-            The covariance data is for a higher dimensional array with this
-            shape.  For example, if the covariance data is for a 2D image with
-            shape ``(nx,ny)`` -- the shape of the covariance array is be
-            ``(nx*ny, nx*ny)`` -- set ``raw_shape=(nx,ny)``. This is primarily
-            used for reading and writing.  If None, any higher dimensionality is
-            ignored.
+            The absolute value of any *correlation coefficient* less than this
+            is assumed to be equivalent to (and set to) 0.
 
         **kwargs : dict, optional
             Passed directly to main instantiation method.
@@ -279,36 +279,13 @@ class Covariance(NDUncertainty):
         ValueError
             Raised if ``covar`` could not be converted to a dense array.
         """
-        try:
-            _covar = covar.toarray()
-        except AttributeError:
-            _covar = np.atleast_2d(covar)
-        if not isinstance(_covar, np.ndarray) or _covar.ndim != 2:
-            raise ValueError(
-                "Could not convert input covariance data into a 2D dense array."
-            )
-
-        n = _covar.shape[0]
+        var, rho = Covariance.to_correlation(covar)
         if rho_tol is not None:
-            variance = np.diag(_covar)
-            rho = _covar / np.ma.sqrt(variance[:, None] * variance[None, :])
-            rho[np.ma.absolute(rho).filled(0.0) < rho_tol] = 0.0
-            _covar = rho.filled(0.0) * np.ma.sqrt(
-                variance[:, None] * variance[None, :]
-            ).filled(0.0)
+            rho[abs(rho) < rho_tol] = 0.0
+        _covar = Covariance.revert_correlation(var, rho)
         if cov_tol is not None:
-            _covar[_covar < cov_tol] = 0.0
-
-        indx = _covar > 0.0
-        i, j = np.meshgrid(np.arange(n), np.arange(n), indexing="ij")
-        return cls(
-            array=coo_matrix(
-                (_covar[indx].ravel(), (i[indx].ravel(), j[indx].ravel())), shape=(n, n)
-            ).tocsr(),
-            impose_triu=True,
-            raw_shape=raw_shape,
-            **kwargs,
-        )
+            _covar[abs(_covar) < cov_tol] = 0.0
+        return cls(_covar, **kwargs)
 
     @classmethod
     def from_tables(cls, var, correl):
@@ -328,7 +305,8 @@ class Covariance(NDUncertainty):
         .. warning::
 
             The storage of covariance matrices for higher dimensional data
-            assume a row-major flattening of the relevant data arrays.
+            assume a row-major flattening of the relevant data arrays.  See
+            `Covariance`.
 
         Parameters
         ----------
@@ -372,9 +350,6 @@ class Covariance(NDUncertainty):
             )
         _var = var.ravel()
 
-        # Number of non-zero elements
-        nnz = len(correl)
-
         # Read coordinate data
         # WARNING: If the data is written correctly, it should always be true that i<=j
         if raw_shape is None:
@@ -396,7 +371,7 @@ class Covariance(NDUncertainty):
         cij = correl["RHOIJ"].data * np.sqrt(_var[i] * _var[j])
         cov = coo_matrix((cij, (i, j)), shape=shape).tocsr()
 
-        return cls(array=cov, raw_shape=raw_shape, unit=unit)
+        return cls(cov, raw_shape=raw_shape, unit=unit)
 
     @classmethod
     def from_fits(cls, source, var_ext="VAR", covar_ext="CORREL"):
@@ -404,9 +379,9 @@ class Covariance(NDUncertainty):
         Read covariance data from a FITS file.
 
         This read operation matches the data saved to a FITS file using
-        `write`. The class can read covariance data written by other
+        :func:`write`. The class can read covariance data written by other
         programs *as long as they have a commensurate format*. See the
-        description of the `write` method.
+        description of the :func:`write` method.
 
         If the extension names and column names are correct, `Covariance`
         can read FITS files that were not produced explicitly by this method.
@@ -425,7 +400,7 @@ class Covariance(NDUncertainty):
         Parameters
         ----------
         source : :obj:`str`, `~pathlib.Path`, `~astropy.io.fits.HDUList`
-            Initialize the object using an `astropy.io.fits.HDUList` object or
+            Initialize the object using an `~astropy.io.fits.HDUList` object or
             path to a FITS file.
 
         var_ext : :obj:`int`, :obj:`str`, optional
@@ -541,7 +516,7 @@ class Covariance(NDUncertainty):
             else (Sigma if isinstance(Sigma, csr_matrix) else csr_matrix(Sigma))
         )
         # Construct the covariance matrix
-        return cls(array=triu(_T.dot(_Sigma.dot(_T.transpose()))).tocsr(), **kwargs)
+        return cls(triu(_T.dot(_Sigma.dot(_T.transpose()))).tocsr(), **kwargs)
 
     @classmethod
     def from_variance(cls, variance, **kwargs):
@@ -561,18 +536,9 @@ class Covariance(NDUncertainty):
         `Covariance`
             The diagonal covariance matrix.
         """
-        return cls(array=csr_matrix(np.diagflat(variance)), **kwargs)
+        return cls(csr_matrix(np.diagflat(variance)), **kwargs)
 
-    def _impose_upper_triangle(self):
-        """
-        Force ``cov`` to only contain non-zero elements in its upper triangle.
-        """
-        # TODO: Could also save space by not saving all the 1s along the
-        # diagonal...
-        self.cov = triu(self.cov).tocsr()
-        self.nnz = self.cov.nnz
-
-    def full(self):
+    def full(self, correlation=False):
         r"""
         Return a `~scipy.sparse.csr_matrix` object with both its upper and lower
         triangle filled, ensuring that they are symmetric.
@@ -580,14 +546,22 @@ class Covariance(NDUncertainty):
         This method is essentially equivalent to `toarray`
         except that it returns a sparse array.
 
+        Parameters
+        ----------
+        correlation : :obj:`bool`, optional
+            Return the correlation matrix.  If False, return the covariance
+            matrix.
+
         Returns
         -------
         `~scipy.sparse.csr_matrix`
             The sparse matrix with both the upper and lower triangles filled
             (with symmetric information).
         """
-        a = self.cov
-        return triu(a) + triu(a, 1).T
+        _rho = triu(self._rho) + triu(self._rho, 1).T
+        if correlation:
+            return _rho
+        return Covariance.revert_correlation(self._var, _rho)
 
     def apply_new_variance(self, var):
         """
@@ -613,34 +587,22 @@ class Covariance(NDUncertainty):
         ValueError
             Raised if the length of the variance vector is incorrect.
         """
-        if var.shape != self.shape[1:]:
+        if var.shape != self._var.shape:
             raise ValueError(
-                f"Provided variance has incorrect shape.  Expected {self.shape[1:]}, "
+                f"Provided variance has incorrect shape.  Expected {self._var.shape}, "
                 f"found {var.shape}."
             )
 
-        # Convert to a correlation matrix, if needed
-        is_correlation = self.is_correlation
-        if not is_correlation:
-            self.to_correlation()
-
-        # Pull out the non-zero values
-        i, j, c = find(self.cov)
+        # Pull out the non-zero correlation values
+        i, j, c = self.find(correlation=True)
         # Apply the new variance
-        new_cov = Covariance(
-            array=coo_matrix(
+        return Covariance(
+            coo_matrix(
                 (c * np.sqrt(var[i] * var[j]), (i, j)), shape=self.shape
             ).tocsr(),
             raw_shape=self.raw_shape,
             unit=self.unit,
         )
-
-        # Revert to covariance matrix, if needed
-        if not is_correlation:
-            self.revert_correlation()
-
-        # Return a new covariance matrix
-        return new_cov
 
     def copy(self):
         """
@@ -651,22 +613,14 @@ class Covariance(NDUncertainty):
         `Covariance`
             A copy of the current covariance matrix.
         """
-        # If the data is saved as a correlation matrix, first revert to
-        # a covariance matrix
-        is_correlation = self.is_correlation
-        if self.is_correlation:
-            self.revert_correlation()
-
         # Create the new Covariance instance with a copy of the data
-        cp = Covariance(array=self.cov.copy(), raw_shape=self.raw_shape, unit=self.unit)
+        return Covariance(
+            Covariance.revert_correlation(self._var, self.full(correlation=True)),
+            raw_shape=self.raw_shape,
+            unit=self.unit,
+        )
 
-        # If necessary, convert the data to a correlation matrix
-        if is_correlation:
-            self.to_correlation()
-            cp.to_correlation()
-        return cp
-
-    def toarray(self):
+    def toarray(self, correlation=False):
         """
         Convert the sparse covariance matrix to a dense array, filled
         with zeros where appropriate.
@@ -676,9 +630,9 @@ class Covariance(NDUncertainty):
         `~numpy.ndarray`
             Dense array with the full covariance matrix.
         """
-        return self.full().toarray()
+        return self.full(correlation=correlation).toarray()
 
-    def find(self):
+    def find(self, correlation=False):
         """
         Find the non-zero values in the **full** covariance matrix (not just the
         upper triangle).
@@ -696,7 +650,7 @@ class Covariance(NDUncertainty):
             ``j`` contain the index coordinates of the non-zero values, and
             ``c`` contains the values themselves.
         """
-        return find(self.full())
+        return find(self.full(correlation=correlation))
 
     def cov2raw_indices(self, i, j):
         """
@@ -944,18 +898,8 @@ class Covariance(NDUncertainty):
                 "covariance array (``raw_shape``) must be defined."
             )
 
-        # Only ever print correlation matrices
-        is_correlation = self.is_correlation
-        if not is_correlation:
-            # NOTE: This creates the variance array if it doesn't already exist.
-            self.to_correlation()
-
-        # Get the data
-        i, j, rhoij = find(self.cov)
-
-        # If object was originally a covariance matrix, revert it back
-        if not is_correlation:
-            self.revert_correlation()
+        # Get the data (only stores the upper triangle!)
+        i, j, rhoij = find(self._rho)
 
         # Return the data.  NOTE: The code forces the variance array to be
         # returned as a copy.
@@ -965,9 +909,9 @@ class Covariance(NDUncertainty):
                 np.unravel_index(i, self.raw_shape),
                 np.unravel_index(j, self.raw_shape),
                 rhoij,
-                self.var.reshape(self.raw_shape).copy(),
+                self._var.reshape(self.raw_shape).copy(),
             )
-        return i, j, rhoij, self.var.copy()
+        return i, j, rhoij, self._var.copy()
 
     def to_tables(self):
         r"""
@@ -1013,6 +957,7 @@ class Covariance(NDUncertainty):
             meta["BUNIT"] = self.unit.to_string()
         reshape = self.raw_shape is not None
         i, j, rhoij, var = self.coordinate_data(reshape=reshape)
+        triu_nnz = rhoij.size
         if reshape:
             meta["COVRWSHP"] = str(self.raw_shape)
             i = np.column_stack(i)
@@ -1023,12 +968,12 @@ class Covariance(NDUncertainty):
         correl = table.Table(
             [
                 table.Column(
-                    data=i, name="INDXI", dtype=int, length=self.nnz, shape=coo_shape
+                    data=i, name="INDXI", dtype=int, length=triu_nnz, shape=coo_shape
                 ),
                 table.Column(
-                    data=j, name="INDXJ", dtype=int, length=self.nnz, shape=coo_shape
+                    data=j, name="INDXJ", dtype=int, length=triu_nnz, shape=coo_shape
                 ),
-                table.Column(data=rhoij, name="RHOIJ", dtype=float, length=self.nnz),
+                table.Column(data=rhoij, name="RHOIJ", dtype=float, length=triu_nnz),
             ],
             meta=meta,
         )
@@ -1214,80 +1159,71 @@ class Covariance(NDUncertainty):
         sub_map = self.data_index_map[data_slice]
         indx = sub_map.ravel()
         return Covariance(
-            array=self.cov[np.ix_(indx, indx)],
+            self.full()[np.ix_(indx, indx)],
             raw_shape=None if len(sub_map.shape) == 1 else sub_map.shape,
         )
 
-    def variance(self, copy=True):
-        """
-        Return the variance vector of the covariance matrix.
-
-        Parameters
-        ----------
-        copy : :obj:`bool`, optional
-            If false, return a reference to ``var``; otherwise, return a
-            copy.
-
-        Returns
-        -------
-        `~numpy.ndarray`
-            The array of variances.
-        """
-        if self.var is not None:
-            return self.var.copy() if copy else self.var
-
-        self.var = np.diag(self.cov.toarray()).copy()
-        return self.var
-
-    def to_correlation(self):
+    @staticmethod
+    def to_correlation(cov):
         r"""
-        Convert the covariance matrix into a correlation matrix by dividing each
+        Convert a covariance matrix into a correlation matrix by dividing each
         element by the variances.
 
-        Specifically, construct ``var`` (:math:`V = \sigma^2`) and convert ``cov``
-        from a covariance matrix with elements :math:`C_{ij}` to a correlation
-        matrix with :math:`\rho_{ij}` such that
+        Specifically, extract ``var`` (:math:`V_i = C_{ii} \equiv \sigma^2_i`)
+        and convert ``cov`` from a covariance matrix with elements
+        :math:`C_{ij}` to a correlation matrix with :math:`\rho_{ij}` such that
 
         .. math::
 
-            C_{ij} \equiv \rho_{ij} \sigma_i \sigma_j,
+            C_{ij} \equiv \rho_{ij} \sigma_i \sigma_j.
 
-        where the variance is, e.g., :math:`\sigma^2_i = C_{ii}`.
+        To revert a variance vector and correlation matrix back to a covariance
+        matrix, use :func:`revert_correlation`.
 
-        If the matrix is a correlation matrix already (see ``is_correlation``), no
-        operations are performed.  Otherwise, the variance is computed, if
-        necessary, and used to normalize the covariance values.
+        Parameters
+        ----------
+        cov : array-like
+            Covariance matrix to convert.  Must be a `~scipy.sparse.csr_matrix`
+            instance or convertible to one.
 
-        A `Covariance` object can be reverted from a correlation matrix
-        using `revert_correlation`.
+        Returns
+        -------
+        var : `numpy.ndarray`
+            Variance vector
+        rho : `~scipy.sparse.csr_matrix`
+            Correlation matrix
         """
-        # Object is already a correlation matrix
-        if self.is_correlation:
-            return
-
-        # Ensure that the variance has been calculated
-        self.variance()
-
-        self.is_correlation = True
-        i, j, c = find(self.cov)
-        self.cov = coo_matrix(
-            (c / np.sqrt(self.var[i] * self.var[j]), (i, j)), shape=self.shape
+        # Make sure it's a sparse matrix
+        _cov = _get_csr(cov)
+        # Save the diagonal
+        var = _cov.diagonal()
+        # Find all the non-zero elements
+        i, j, c = find(_cov)
+        rho = coo_matrix(
+            (c / np.sqrt(var[i] * var[j]), (i, j)), shape=_cov.shape
         ).tocsr()
+        return var, rho
 
-    def revert_correlation(self):
+    @staticmethod
+    def revert_correlation(var, rho):
         r"""
-        Revert the object from a correlation matrix back to a full covariance
-        matrix.
+        Revert a variance vector and correlation matrix into a covariance matrix.
 
-        That is, this is the reverse operation of `to_correlation`.
-        Nothing is done if the ``is_correlation`` flag is False.  Importantly, the
-        variances must have already been calculated!
+        This is the reverse operation of `to_correlation`.
+
+        Parameters
+        ----------
+        var : `~numpy.ndarray`
+            Variance vector.  Length must match the diagonal of ``rho``.
+        rho : `~numpy.ndarray`, `~scipy.sparse.csr_matrix`
+            Correlation matrix.  Diagonal must have the same length as ``var``.
+
+        Returns
+        -------
+        `~scipy.sparse.csr_matrix`
+            Covariance matrix.
         """
-        if not self.is_correlation:
-            return
-
-        i, j, c = find(self.cov)
-        self.cov = coo_matrix(
-            (c * np.sqrt(self.var[i] * self.var[j]), (i, j)), shape=self.shape
+        i, j, c = find(_get_csr(rho))
+        return coo_matrix(
+            (c * np.sqrt(var[i] * var[j]), (i, j)), shape=rho.shape
         ).tocsr()
-        self.is_correlation = False

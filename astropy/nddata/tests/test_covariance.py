@@ -74,16 +74,16 @@ def test_scipy_funcs():
 
 # NOTE: At least for now, this does not require the @scipy_required decorator
 # because an empty initialization doesn't use any scipy files.
-def test_empty_init():
-    cov = covariance.Covariance()
-    assert cov.array is None, "Array should not be defined"
+# def test_empty_init():
+#     cov = covariance.Covariance()
+#     assert cov.array is None, "Array should not be defined"
 
 
 @scipy_required
 def test_bad_init_type():
     # It must be possible to convert the input array into a csr_matrix
     with pytest.raises(TypeError):
-        cov = covariance.Covariance(array="test")
+        cov = covariance.Covariance("test")
 
 
 @scipy_required
@@ -94,18 +94,18 @@ def test_shape_mismatch():
         bad_shape != raw_shape
     ), "Shapes should not match for the test to work properly"
     with pytest.raises(ValueError):
-        cov = covariance.Covariance(array=c, raw_shape=bad_shape)
+        cov = covariance.Covariance(c, raw_shape=bad_shape)
 
 
 def test_uncertainty_string():
-    cov = covariance.Covariance()
+    cov = covariance.Covariance(mock_cov())
     assert cov.uncertainty_type == "cov", "Uncertainty type changed"
 
 
 @scipy_required
 def test_quantity():
     raw_shape, c = mock_cov_2d()
-    cov = covariance.Covariance(array=c, raw_shape=raw_shape, unit="Jy^2")
+    cov = covariance.Covariance(c, raw_shape=raw_shape, unit="Jy^2")
     q = cov.quantity
 
     assert isinstance(q, units.Quantity), "Wrong type"
@@ -117,53 +117,39 @@ def test_quantity():
 def test_init():
     c = mock_cov()
 
-    # Should not if directly instantiated from a numpy.array
-    cov = covariance.Covariance(array=c)
+    # Should not fault if directly instantiated from a numpy.array
+    cov = covariance.Covariance(c)
 
     # Convert to a CSR sparse matrix
     c_csr = csr_matrix(c)
     # And instantiate
-    cov = covariance.Covariance(array=c_csr)
+    cov = covariance.Covariance(c_csr)
 
     # Directly access the covariance array, convert it to a dense matrix, and
     # check it against the original array.
-    assert np.array_equal(cov.cov.toarray(), c), "Ingested array does not match input"
+    assert np.array_equal(cov.toarray(), c), "Ingested array does not match input"
 
-    # Recreate, but force it to only keep the upper triangle
-    cov = covariance.Covariance(array=c_csr, impose_triu=True)
 
-    # The arrays should no longer be equal because the lower triangle is missing
-    # when directly accessing the cov attribute
-    assert not np.array_equal(cov.cov.toarray(), c), "Should remove lower triangle"
-
-    # They should be identical when using the Covariance.toarray() function
-    # instead.
-    assert np.array_equal(cov.toarray(), c), "Array should be filled"
+@scipy_required
+def test_stored_nnz():
+    c = mock_cov()
+    cov = covariance.Covariance(c)
+    assert cov.stored_nnz == np.sum(
+        np.triu(c) > 0
+    ), "Number of stored non-zero elements differ"
 
 
 @scipy_required
 def test_nnz():
     c_csr = csr_matrix(mock_cov())
-    cov = covariance.Covariance(array=c_csr)
-
+    cov = covariance.Covariance(c_csr)
     assert c_csr.nnz == cov.nnz, "Number of non-zero elements differ"
-
-    cov = covariance.Covariance(array=c_csr, impose_triu=True)
-    ndiag = c_csr.shape[0]
-    triu_nnz = (c_csr.nnz - ndiag) // 2 + ndiag
-
-    assert (
-        cov.nnz == triu_nnz
-    ), "Number of non-zero elements in the upper triangle differ"
-    assert (
-        c_csr.nnz == cov.full().nnz
-    ), "Number of non-zero elements in full array differ"
 
 
 @scipy_required
 def test_indices():
     # Test when raw_shape is not defined
-    cov = covariance.Covariance(array=mock_cov(), impose_triu=True)
+    cov = covariance.Covariance(mock_cov())
 
     # Test out of bounds indices
     i = np.array([10, 1, 2])
@@ -187,7 +173,7 @@ def test_indices():
 
     # Test multi-dimensional data
     raw_shape, c = mock_cov_2d()
-    cov = covariance.Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
+    cov = covariance.Covariance(c, raw_shape=raw_shape)
     i_cov = np.array([0, 1, 2])
     j_cov = np.array([3, 4, 3])
     i_data, j_data = cov.cov2raw_indices(i_cov, j_cov)
@@ -208,9 +194,9 @@ def test_indices():
 @scipy_required
 def test_coo():
     # 1D
-    cov = covariance.Covariance(array=csr_matrix(mock_cov()))
+    cov = covariance.Covariance(csr_matrix(mock_cov()))
     i, j, rhoij, var = cov.coordinate_data()
-    assert i.size == cov.nnz, "Coordinate data length is the incorrect size"
+    assert i.size == cov._rho.nnz, "Coordinate data length is the incorrect size"
     assert var.ndim == 1, "Incorrect dimensionality"
 
     # Cannot reshape when raw_shape is not defined
@@ -220,18 +206,18 @@ def test_coo():
     # 2D
     raw_shape, c = mock_cov_2d()
     c_csr = csr_matrix(c)
-    cov = covariance.Covariance(array=c_csr, impose_triu=True, raw_shape=raw_shape)
+    cov = covariance.Covariance(c_csr, raw_shape=raw_shape)
     # Try without reshaping
     ic, jc, rhoij, var = cov.coordinate_data(reshape=False)
     assert isinstance(
         ic, np.ndarray
     ), "Index object should be an array if not reshaping"
-    assert ic.size == cov.nnz, "Incorrect number of non-zero elements"
+    assert ic.size == cov._rho.nnz, "Incorrect number of non-zero elements"
     assert var.shape == (np.prod(raw_shape),), "Variance array has incorrect shape"
     # Try with reshaping
     i, j, rhoij, var = cov.coordinate_data(reshape=True)
     assert len(i) == len(raw_shape), "Dimensionality does not match"
-    assert i[0].size == cov.nnz, "Incorrect number of non-zero elements"
+    assert i[0].size == cov._rho.nnz, "Incorrect number of non-zero elements"
     assert var.shape == raw_shape, "Variance array has incorrect shape"
 
     # Make sure we recover the same covariance matrix indices
@@ -242,38 +228,31 @@ def test_coo():
     # 3D
     raw_shape, c = mock_cov_3d()
     c_csr = csr_matrix(c)
-    cov = covariance.Covariance(array=c_csr, impose_triu=True, raw_shape=raw_shape)
+    cov = covariance.Covariance(c_csr, raw_shape=raw_shape)
     i, j, rhoij, var = cov.coordinate_data(reshape=True)
     assert len(i) == len(raw_shape), "Dimensionality does not match"
-    assert i[0].size == cov.nnz, "Incorrect number of non-zero elements"
+    assert i[0].size == cov._rho.nnz, "Incorrect number of non-zero elements"
     assert var.shape == raw_shape, "Variance array has incorrect shape"
 
 
 @scipy_required
 def test_copy():
-    cov = covariance.Covariance(array=csr_matrix(mock_cov()))
+    cov = covariance.Covariance(csr_matrix(mock_cov()))
     _cov = cov.copy()
     assert cov is not _cov, "Objects have the same reference"
-    assert cov.cov is not _cov.cov, "Object arrays have the same reference"
-    assert np.array_equal(cov.toarray(), _cov.toarray()), "Arrays should be equal"
-
-    # Convert to correlation
-    cov.to_correlation()
-    _cov = cov.copy()
-    assert cov.cov is not _cov.cov, "Object arrays have the same reference"
-    assert _cov.is_correlation, "Should still be a correlation matrix"
-    cov.revert_correlation()
-    _cov.revert_correlation()
+    assert cov._rho is not _cov._rho, "Object arrays have the same reference"
     assert np.array_equal(cov.toarray(), _cov.toarray()), "Arrays should be equal"
 
 
 @scipy_required
 def test_tbls():
-    cov = covariance.Covariance(array=csr_matrix(mock_cov()))
+    cov = covariance.Covariance(csr_matrix(mock_cov()))
     var, correl = cov.to_tables()
     assert isinstance(var, np.ndarray), "variance should be output as an array"
     assert isinstance(correl, Table), "correlation data should be output as a table"
-    assert len(correl) == 44, "Incorrect number of table entries"
+    assert len(correl) == np.sum(
+        np.triu(mock_cov()) > 0
+    ), "Incorrect number of table entries"
     assert len(correl.colnames) == 3, "Incorrect number of columns"
     assert correl["INDXI"].ndim == 1, "Incorrect shape for index array"
 
@@ -283,11 +262,9 @@ def test_tbls():
     ), "Bad convert/revert from tables"
 
     raw_shape, c = mock_cov_3d()
-    cov = covariance.Covariance(
-        array=csr_matrix(c), impose_triu=True, raw_shape=raw_shape
-    )
+    cov = covariance.Covariance(csr_matrix(c), raw_shape=raw_shape)
     var, correl = cov.to_tables()
-    assert len(correl) == 51, "Incorrect number of table entries"
+    assert len(correl) == np.sum(np.triu(c) > 0), "Incorrect number of table entries"
     assert len(correl.colnames) == 3, "Incorrect number of columns"
     assert correl["INDXI"].ndim == 2, "Incorrect shape for index array"
     assert (
@@ -397,19 +374,19 @@ def test_var():
 
 @scipy_required
 def test_shape():
-    cov = covariance.Covariance(array=mock_cov(), impose_triu=True)
+    cov = covariance.Covariance(mock_cov())
     assert len(cov.data_shape) == 1, "Incorrect dimensionality"
     assert cov.data_shape == (mock_cov().shape[0],), "Bad data shape"
 
     # 2D
     raw_shape, c = mock_cov_2d()
-    cov = covariance.Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
+    cov = covariance.Covariance(c, raw_shape=raw_shape)
     assert len(cov.data_shape) == 2, "Incorrect dimensionality"
     assert cov.data_shape == raw_shape, "Bad data shape"
 
     # 3D
     raw_shape, c = mock_cov_3d()
-    cov = covariance.Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
+    cov = covariance.Covariance(c, raw_shape=raw_shape)
     assert len(cov.data_shape) == 3, "Incorrect dimensionality"
     assert cov.data_shape == raw_shape, "Bad data shape"
 
@@ -417,7 +394,7 @@ def test_shape():
 @scipy_required
 def test_sub_matrix():
     c = mock_cov()
-    cov = covariance.Covariance(array=c, impose_triu=True)
+    cov = covariance.Covariance(c)
 
     # 1D
     sub_cov = cov.sub_matrix(np.s_[:5])
@@ -428,7 +405,7 @@ def test_sub_matrix():
 
     # 2D
     raw_shape, c = mock_cov_2d()
-    cov = covariance.Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
+    cov = covariance.Covariance(c, raw_shape=raw_shape)
     # Reduce dimensionality
     sub_cov = cov.sub_matrix(np.s_[:, 0])
     assert sub_cov.raw_shape is None, "Submatrix should have reduced dimensionality"
@@ -439,7 +416,7 @@ def test_sub_matrix():
 
     # 3D
     raw_shape, c = mock_cov_3d()
-    cov = covariance.Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
+    cov = covariance.Covariance(c, raw_shape=raw_shape)
     # Reduce dimensionality to 1D
     sub_cov = cov.sub_matrix(np.s_[:, 0, 0])
     assert sub_cov.raw_shape is None, "Submatrix should have reduced dimensionality"
@@ -458,55 +435,30 @@ def test_correl():
     # Since the diagonal is 1, this is actually a correlation matrix
     c = mock_cov()
     # Set two covariance arrays with different variances but the same correlations
-    cov1 = covariance.Covariance(array=c * 4.0, impose_triu=True)
-    cov2 = covariance.Covariance(array=c * 2.0, impose_triu=True)
-    # Convert them both to correlation matrices
-    assert (
-        not cov1.is_correlation
-    ), "Should start as a covariance, not correlation, matrix"
-    assert cov1.var is None, "Variance is not yet defined"
-    cov1.to_correlation()
-    assert cov1.is_correlation, "Should have been flagged as a correlation matrix"
+    cov1 = covariance.Covariance(c * 4.0)
+    cov2 = covariance.Covariance(c * 2.0)
+    rho1 = cov1.full(correlation=True)
     # Should be the same as the input
-    assert np.allclose(cov1.toarray(), c), "Correlation matrix changed"
-    # If requested again, nothing should change
-    cov1.to_correlation()
-    assert cov1.is_correlation, "Should have been flagged as a correlation matrix"
+    assert np.allclose(rho1.toarray(), c), "Correlation matrix changed"
 
-    # Save the current cov matrix
-    _cov2matrix = cov2.toarray()
-    # Convert to correlation
-    cov2.to_correlation()
     # Should match cov1
+    rho2 = cov2.full(correlation=True)
     assert np.allclose(
-        cov1.toarray(), cov2.toarray()
+        rho1.toarray(), rho2.toarray()
     ), "Correlation matrices should be identical"
-    assert np.allclose(cov1.var / 2, cov2.var), "Variances incorrect"
-
-    # Revert the correlation
-    cov2.revert_correlation()
-    # Should match original matrix
-    assert np.allclose(_cov2matrix, cov2.toarray()), "Covariance matrices should match"
-    assert (
-        not cov2.is_correlation
-    ), "Instance should not be in correlation matrix format"
-    # If requested again, nothing should change
-    cov2.revert_correlation()
-    assert (
-        not cov2.is_correlation
-    ), "Instance should not be in correlation matrix format"
+    assert np.allclose(cov1._var / 2, cov2._var), "Variances incorrect"
 
 
 @scipy_required
 def test_newvar():
     c = mock_cov()
-    cov1 = covariance.Covariance(array=c, impose_triu=True)
+    cov1 = covariance.Covariance(c)
     var = np.full(c.shape[0], 4.0, dtype=float)
     cov2 = cov1.apply_new_variance(var)
-    assert np.allclose(var, cov2.variance()), "Variance does not match request"
-    cov2.to_correlation()
+    assert np.allclose(var, cov2._var), "Variance does not match request"
+    var2, rho2 = covariance.Covariance.to_correlation(cov2.toarray())
     assert np.allclose(
-        cov1.toarray(), cov2.toarray()
+        cov1.toarray(), rho2.toarray()
     ), "Correlation matrices do not match"
 
 
@@ -538,7 +490,7 @@ def test_io():
         ofile.unlink()
 
     # 1D
-    cov = covariance.Covariance(array=mock_cov(), unit="km^2")
+    cov = covariance.Covariance(mock_cov(), unit="km^2")
     # Rescale the variance
     cov = cov.apply_new_variance(np.full(cov.shape[0], 2.0))
     # Write
@@ -584,7 +536,7 @@ def test_io():
 
     # ND
     raw_shape, c = mock_cov_3d()
-    cov = covariance.Covariance(array=c, impose_triu=True, raw_shape=raw_shape)
+    cov = covariance.Covariance(c, raw_shape=raw_shape)
     cov.write(ofile)
     # Test contents of fits file
     with fits.open(ofile) as hdu:
