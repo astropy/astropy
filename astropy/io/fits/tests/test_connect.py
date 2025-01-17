@@ -1,8 +1,7 @@
-import contextlib
 import gc
 import warnings
+from contextlib import chdir
 from io import BytesIO
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -68,12 +67,19 @@ class TestSingleTable:
         )
 
     def test_overwrite_with_path(self, tmp_path):
-        filename = "temp.fits"
+        filename1 = tmp_path / "temp1.fits"
         t1 = Table(self.data)
-        with contextlib.chdir(tmp_path):
-            t1.write(filename, format="fits")
-            t1.write(Path(filename), format="fits", overwrite=True)
-        t1.write(Path(tmp_path / filename), format="fits", overwrite=True)
+        t1.write(filename1, format="fits")
+        ref_mod_time1 = filename1.stat().st_mtime
+        t1.write(filename1, format="fits", overwrite=True)
+        assert filename1.stat().st_mtime > ref_mod_time1
+
+        with chdir(tmp_path):
+            filename2 = filename1.with_stem("temp2").relative_to(tmp_path)
+            t1.write(filename2, format="fits")
+            ref_mod_time2 = filename2.stat().st_mtime
+            t1.write(filename2, format="fits", overwrite=True)
+        assert (tmp_path / filename2).stat().st_mtime > ref_mod_time2
 
     def test_write_to_fileobj(self):
         # regression test for https://github.com/astropy/astropy/issues/17703
