@@ -171,10 +171,9 @@ jobs:
 
   test_arm64:
 
-    # Native arm64 testing - we keep this in the weekly cron as we need to pay for it so we should
-    # minimize how many jobs we do.
+    # Native arm64 testing - we keep this in the weekly cron to avoid exceeding free quota.
 
-    runs-on: linux-arm64
+    runs-on: ubuntu-24.04-arm
     name: Python 3.12 (arm64)
     # keep condition in sync with test_more_architectures
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
