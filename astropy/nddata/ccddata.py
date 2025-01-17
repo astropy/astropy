@@ -588,145 +588,127 @@ def fits_ccddata_reader(
     Parameters
     ----------
     filename : str
-        Name of fits file.
+        Name of the FITS file.
 
     hdu : int, str, tuple of (str, int), optional
-        Index or other identifier of the Header Data Unit of the FITS
-        file from which CCDData should be initialized. If zero and
-        no data in the primary HDU, it will search for the first
-        extension HDU with data. The header will be added to the primary HDU.
-        Default is ``0``.
+        Index or other identifier of the Header Data Unit (HDU) from the FITS
+        file to initialize CCDData. If zero and no data in the primary HDU,
+        it searches for the first extension HDU with data. The header is
+        merged with the primary HDU's header. Default is `0`.
 
     unit : `~astropy.units.Unit`, optional
-        Units of the image data. If this argument is provided and there is a
-        unit for the image in the FITS header (the keyword ``BUNIT`` is used
-        as the unit, if present), this argument is used for the unit.
-        Default is ``None``.
+        Units of the image data. If provided, this unit overrides the unit
+        specified in the FITS header via the `BUNIT` keyword, but no logger
+        message will be emitted if the units match. Default is `None`.
 
     hdu_uncertainty : str or None, optional
-        FITS extension from which the uncertainty should be initialized. If the
-        extension does not exist the uncertainty of the CCDData is ``None``.
-        Default is ``'UNCERT'``.
+        FITS extension for uncertainty initialization. If not present,
+        the uncertainty of the CCDData is `None`. Default is `'UNCERT'`.
 
     hdu_mask : str or None, optional
-        FITS extension from which the mask should be initialized. If the
-        extension does not exist the mask of the CCDData is ``None``.
-        Default is ``'MASK'``.
+        FITS extension for the mask. If not present, the mask is `None`.
+        Default is `'MASK'`.
 
     hdu_flags : str or None, optional
-        Currently not implemented.
-        Default is ``None``.
+        Currently not implemented. Default is `None`.
 
     key_uncertainty_type : str, optional
-        The header key name where the class name of the uncertainty  is stored
-        in the hdu of the uncertainty (if any).
-        Default is ``UTYPE``.
-
-        .. versionadded:: 3.1
+        Header key name for the class name of the uncertainty in the
+        uncertainty HDU. Default is `'UTYPE'`.
 
     hdu_psf : str or None, optional
-        FITS extension from which the psf image should be initialized. If the
-        extension does not exist the psf of the CCDData is `None`.
+        FITS extension for the PSF image. If not present, the PSF is `None`.
 
-    kwd :
-        Any additional keyword parameters are passed through to the FITS reader
-        in :mod:`astropy.io.fits`; see Notes for additional discussion.
+    **kwd :
+        Additional keywords passed to the FITS reader in `astropy.io.fits`.
+
+    Returns
+    -------
+    ccd_data : `~astropy.nddata.CCDData`
+        CCDData object initialized from the FITS file.
 
     Notes
     -----
-    FITS files that contained scaled data (e.g. unsigned integer images) will
-    be scaled and the keywords used to manage scaled data in
-    :mod:`astropy.io.fits` are disabled.
+    - FITS files with scaled data (e.g., unsigned integer images) are scaled,
+      and scaling keywords in `astropy.io.fits` are disabled.
     """
+    # Check for unsupported keywords
     unsupport_open_keywords = {
         "do_not_scale_image_data": "Image data must be scaled.",
         "scale_back": "Scale information is not preserved.",
     }
     for key, msg in unsupport_open_keywords.items():
         if key in kwd:
-            prefix = f"unsupported keyword: {key}."
-            raise TypeError(f"{prefix} {msg}")
+            raise TypeError(f"unsupported keyword: {key}. {msg}")
+
     with fits.open(filename, **kwd) as hdus:
         hdr = hdus[hdu].header
 
-        if hdu_uncertainty is not None and hdu_uncertainty in hdus:
+        # Handle uncertainty
+        if hdu_uncertainty and hdu_uncertainty in hdus:
             unc_hdu = hdus[hdu_uncertainty]
             stored_unc_name = unc_hdu.header.get(key_uncertainty_type, "None")
-            # For compatibility reasons the default is standard deviation
-            # uncertainty because files could have been created before the
-            # uncertainty type was stored in the header.
             unc_type = _unc_name_to_cls.get(stored_unc_name, StdDevUncertainty)
             uncertainty = unc_type(unc_hdu.data)
         else:
             uncertainty = None
 
-        if hdu_mask is not None and hdu_mask in hdus:
-            # Mask is saved as uint but we want it to be boolean.
-            mask = hdus[hdu_mask].data.astype(np.bool_)
-        else:
-            mask = None
+        # Handle mask
+        mask = (
+            hdus[hdu_mask].data.astype(np.bool_)
+            if hdu_mask and hdu_mask in hdus
+            else None
+        )
 
-        if hdu_flags is not None and hdu_flags in hdus:
-            raise NotImplementedError("loading flags is currently not supported.")
+        # Flags (currently unsupported)
+        if hdu_flags and hdu_flags in hdus:
+            raise NotImplementedError("Loading flags is currently not supported.")
 
-        if hdu_psf is not None and hdu_psf in hdus:
-            psf = hdus[hdu_psf].data
-        else:
-            psf = None
+        # Handle PSF
+        psf = hdus[hdu_psf].data if hdu_psf and hdu_psf in hdus else None
 
-        # search for the first instance with data if
-        # the primary header is empty.
+        # Automatically find the first HDU with data if the primary HDU is empty
         if hdu == 0 and hdus[hdu].data is None:
-            for i in range(len(hdus)):
-                if (
-                    hdus.info(hdu)[i][3] == "ImageHDU"
-                    and hdus.fileinfo(i)["datSpan"] > 0
-                ):
+            for i, hdu_info in enumerate(hdus):
+                if isinstance(hdu_info, fits.ImageHDU) and hdu_info.data is not None:
                     hdu = i
-                    comb_hdr = hdus[hdu].header.copy()
-                    # Add header values from the primary header that aren't
-                    # present in the extension header.
-                    comb_hdr.extend(hdr, unique=True)
-                    hdr = comb_hdr
-                    log.info(f"first HDU with data is extension {hdu}.")
+                    hdr = hdu_info.header.copy()
+                    hdr.extend(hdus[0].header, unique=True)
+                    log.info(f"First HDU with data found at extension {hdu}.")
                     break
 
-        if "bunit" in hdr:
-            fits_unit_string = hdr["bunit"]
-            # patch to handle FITS files using ADU for the unit instead of the
-            # standard version of 'adu'
+        # Handle units from FITS header
+        fits_unit_string = hdr.get("BUNIT", None)
+        if fits_unit_string:
             if fits_unit_string.strip().lower() == "adu":
                 fits_unit_string = fits_unit_string.lower()
-        else:
-            fits_unit_string = None
-
-        if fits_unit_string:
-            if unit is None:
-                # Convert the BUNIT header keyword to a unit and if that's not
-                # possible raise a meaningful error message.
-                try:
-                    kifus = CCDData.known_invalid_fits_unit_strings
-                    if fits_unit_string in kifus:
-                        fits_unit_string = kifus[fits_unit_string]
-                    fits_unit_string = u.Unit(fits_unit_string)
-                except ValueError:
-                    raise ValueError(
-                        f"The Header value for the key BUNIT ({fits_unit_string}) "
-                        "cannot be interpreted as valid unit. To successfully read the "
-                        "file as CCDData you can pass in a valid `unit` "
-                        "argument explicitly or change the header of the FITS "
-                        "file before reading it."
-                    )
-            else:
-                log.info(
-                    f"using the unit {unit} passed to the FITS reader instead "
-                    f"of the unit {fits_unit_string} in the FITS file."
+            try:
+                # Handle known invalid FITS unit strings
+                fits_unit_string = CCDData.known_invalid_fits_unit_strings.get(
+                    fits_unit_string
+                ) or u.Unit(fits_unit_string)
+            except ValueError:
+                raise ValueError(
+                    f"The header value for 'BUNIT' ({fits_unit_string}) cannot be "
+                    "interpreted as a valid unit. Provide a valid `unit` or update "
+                    "the FITS file header."
                 )
 
+        # Compare user-specified unit with FITS file unit and log if different
+        if unit and fits_unit_string and unit != fits_unit_string:
+            log.info(
+                f"Using the unit {unit} specified by the user instead of "
+                f"{fits_unit_string} in the FITS file."
+            )
+
         use_unit = unit or fits_unit_string
+
+        # Generate WCS and update header
         hdr, wcs = _generate_wcs_and_update_header(hdr)
+
+        # Create CCDData object
         ccd_data = CCDData(
-            hdus[hdu].data,
+            data=hdus[hdu].data,
             meta=hdr,
             unit=use_unit,
             mask=mask,
