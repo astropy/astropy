@@ -189,6 +189,6 @@ jobs:
         with:
           python-version: '3.12'
       - name: Set up dependencies
-        run: pip install tox
+        run: python3 -m pip install tox
       - name: Run tests
-        run: sudo tox -e py312-test -- -n=2
+        run: python3 -m tox -e py312-test -- -n=2
