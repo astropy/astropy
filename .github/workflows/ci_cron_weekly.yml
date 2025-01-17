@@ -191,4 +191,4 @@ jobs:
       - name: Set up dependencies
         run: pip install tox
       - name: Run tests
-        run: tox -e py312-test -- -n=2
+        run: sudo tox -e py312-test -- -n=2
