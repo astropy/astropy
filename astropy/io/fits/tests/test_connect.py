@@ -1,7 +1,5 @@
-import contextlib
 import gc
 import warnings
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -67,12 +65,12 @@ class TestSingleTable:
         )
 
     def test_overwrite_with_path(self, tmp_path):
-        filename = "temp.fits"
+        filename = tmp_path / "temp.fits"
         t1 = Table(self.data)
-        with contextlib.chdir(tmp_path):
-            t1.write(filename, format="fits")
-            t1.write(Path(filename), format="fits", overwrite=True)
-        t1.write(Path(tmp_path / filename), format="fits", overwrite=True)
+        t1.write(filename, format="fits")
+        ref_mod_time = filename.stat().st_mtime
+        t1.write(filename, format="fits", overwrite=True)
+        assert filename.stat().st_mtime > ref_mod_time
 
     def test_simple(self, tmp_path):
         filename = tmp_path / "test_simple.fts"
