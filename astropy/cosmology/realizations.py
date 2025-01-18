@@ -4,8 +4,10 @@
 See :attr:`~astropy.cosmology.realizations.available` for a full list.
 """
 
-__all__ = [  # noqa: F822 (undefined name)
-    # Realizations (dynamic attribute, see __getattr__)
+__all__ = [  # noqa: F822, RUF022
+    "available",
+    "default_cosmology",
+    # ----
     "WMAP1",
     "WMAP3",
     "WMAP5",
@@ -14,8 +16,6 @@ __all__ = [  # noqa: F822 (undefined name)
     "Planck13",
     "Planck15",
     "Planck18",
-    "available",
-    "default_cosmology",
 ]
 
 import pathlib

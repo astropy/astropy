@@ -74,7 +74,7 @@ def redshift_distance(
     cosmology : `~astropy.cosmology.Cosmology`, str, or None, optional
         A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
         If None, will use the default cosmology
-        (controlled by :class:`~astropy.cosmology.default_cosmology`).
+        (controlled by |default_cosmology|).
     kind : {'comoving', 'lookback', 'luminosity'}, optional
         The distance type for the Equivalency.
         Note this does NOT include the angular diameter distance as this
@@ -153,7 +153,7 @@ def redshift_hubble(
     cosmology : `~astropy.cosmology.Cosmology`, str, or None, optional
         A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
         If None, will use the default cosmology
-        (controlled by :class:`~astropy.cosmology.default_cosmology`).
+        (controlled by |default_cosmology|).
     **atzkw
         keyword arguments for :func:`~astropy.cosmology.z_at_value`
 
@@ -221,7 +221,7 @@ def redshift_temperature(
     cosmology : `~astropy.cosmology.Cosmology`, str, or None, optional
         A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
         If None, will use the default cosmology
-        (controlled by :class:`~astropy.cosmology.default_cosmology`).
+        (controlled by |default_cosmology|).
     **atzkw
         keyword arguments for :func:`~astropy.cosmology.z_at_value`
 
@@ -277,7 +277,7 @@ def with_redshift(
     cosmology : `~astropy.cosmology.Cosmology`, str, or None, optional
         A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
         If `None`, will use the default cosmology
-        (controlled by :class:`~astropy.cosmology.default_cosmology`).
+        (controlled by |default_cosmology|).
 
     distance : {'comoving', 'lookback', 'luminosity'} or None (optional, keyword-only)
         The type of distance equivalency to create or `None`.
@@ -363,7 +363,7 @@ def with_H0(H0: Quantity | None = None) -> Equivalency:
     H0 : None or Quantity ['frequency']
         The value of the Hubble constant to assume. If a |Quantity|, will assume the
         quantity *is* ``H0``. If `None` (default), use the ``H0`` attribute from
-        :mod:`~astropy.cosmology.default_cosmology`.
+        |default_cosmology|.
 
     References
     ----------

@@ -297,5 +297,5 @@ Reference/API
 .. automodapi:: astropy.cosmology.realizations
    :no-main-docstr:
    :include-all-objects:
-   :inherited-members:
-   :no-index:
+   :noindex:
+   :skip: default_cosmology
