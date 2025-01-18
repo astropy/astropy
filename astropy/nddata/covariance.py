@@ -70,6 +70,30 @@ def _get_csr(arr):
         )
 
 
+def _impose_sparse_value_threshold(arr, threshold):
+    """
+    Remove values from a sparse matrix if their absolute value is below the
+    provided threshold.
+
+    Parameters
+    ----------
+    arr : `~scipy.sparse.csr_matrix`
+        Array to manipulate.
+    threshold : :obj:`float`
+        Threshold value
+
+    Returns
+    -------
+    `~scipy.sparse.csr_matrix`
+        Manipulated or original matrix.
+    """
+    i, j, aij = find(arr)
+    indx = np.logical_not(np.absolute(aij) < threshold)
+    if all(indx):
+        return arr
+    return coo_matrix((aij[indx], (i[indx], j[indx])), shape=arr.shape).tocsr()
+
+
 class Covariance(NDUncertainty):
     r"""
     A general utility for storing, manipulating, and I/O of covariance matrices.
@@ -162,9 +186,42 @@ class Covariance(NDUncertainty):
         return self._rho.nnz
 
     @property
+    def variance(self):
+        return self._var
+
+    @variance.setter
+    def variance(self, value):
+        raise NotImplementedError(
+            "Directly setting variance values is not allowed for " "Covariance objects."
+        )
+
+    @property
     def uncertainty_type(self):
         """``"cov"``: `Covariance` implements a covariance matrix."""
         return "cov"
+
+    #    @property
+    #    def array(self):
+    #        """`numpy.ndarray` : the uncertainty's value."""
+    #        return self.toarray()
+    #
+    #    @array.setter
+    #    def array(self, value):
+    #        raise NotImplementedError('Directly setting array values is not allowed for '
+    #                                  'Covariance objects.')
+
+    @property
+    def quantity(self):
+        """
+        Return the full covariance matrix as an `~astropy.units.Quantity` object.
+        """
+        return Quantity(self.toarray(), self.unit, copy=False, dtype=self._rho.dtype)
+
+    def _data_unit_to_uncertainty_unit(self, value):
+        return value**2
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}; shape = {self.shape}>"
 
     # Skip error propagation for now
     # TODO: Should these instead throw a NotImplementedError?
@@ -179,19 +236,6 @@ class Covariance(NDUncertainty):
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
         return None
-
-    @property
-    def quantity(self):
-        """
-        Return the full covariance matrix as an `~astropy.units.Quantity` object.
-        """
-        return Quantity(self.toarray(), self.unit, copy=False, dtype=self._rho.dtype)
-
-    def _data_unit_to_uncertainty_unit(self, value):
-        return value**2
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__}; shape = {self.shape}>"
 
     @classmethod
     def from_samples(cls, samples, cov_tol=None, rho_tol=None, **kwargs):
@@ -288,10 +332,10 @@ class Covariance(NDUncertainty):
         """
         var, rho = Covariance.to_correlation(covar)
         if rho_tol is not None:
-            rho[abs(rho) < rho_tol] = 0.0
+            rho = _impose_sparse_value_threshold(rho, rho_tol)
         _covar = Covariance.revert_correlation(var, rho)
         if cov_tol is not None:
-            _covar[abs(_covar) < cov_tol] = 0.0
+            _covar = _impose_sparse_value_threshold(_covar, cov_tol)
         return cls(_covar, **kwargs)
 
     @classmethod
@@ -703,7 +747,6 @@ class Covariance(NDUncertainty):
             ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
             ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
             ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
-            ...          impose_triu=True,
             ...          raw_shape=(3,2),
             ...      )
             >>> cov.toarray()
@@ -772,7 +815,6 @@ class Covariance(NDUncertainty):
             ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
             ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
             ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
-            ...          impose_triu=True,
             ...          raw_shape=(3,2),
             ...      )
             >>> i_data, j_data = cov.cov2raw_indices([0,1,2], [3,4,3])

@@ -90,6 +90,7 @@ def test_shape_mismatch():
         cov = covariance.Covariance(array=c, raw_shape=bad_shape)
 
 
+@scipy_required
 def test_uncertainty_string():
     cov = covariance.Covariance(array=mock_cov())
     assert cov.uncertainty_type == "cov", "Uncertainty type changed"
