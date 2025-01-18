@@ -1,3 +1,6 @@
+# astropy.cosmology
+py:obj astropy.cosmology.realizations.default_cosmology
+
 # astropy.io.votable
 py:class astropy.io.votable.tree.SimpleElement
 py:class astropy.io.votable.tree.SimpleElementWithContent

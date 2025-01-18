@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Astropy cosmology core module.
+"""Astropy cosmology flrw module.
 
 .. deprecated:: 7.1
 
@@ -9,8 +9,26 @@
 
 """
 
-__all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]  # noqa: F822
-
+__all__ = [  # noqa: RUF100, RUF022, F822
+    # base
+    "FLRW",
+    "FlatFLRWMixin",
+    # lambdacdm
+    "LambdaCDM",
+    "FlatLambdaCDM",
+    # w0cdm
+    "wCDM",
+    "FlatwCDM",
+    # w0wacdm
+    "w0waCDM",
+    "Flatw0waCDM",
+    # w0wzcdm
+    "w0wzCDM",
+    "Flatw0wzCDM",
+    # wpwazpcdm
+    "wpwaCDM",
+    "FlatwpwaCDM",
+]
 
 import sys
 import warnings
@@ -18,17 +36,17 @@ from typing import Any
 
 
 def __getattr__(name: str) -> Any:
-    if name not in __all__ + ["_COSMOLOGY_CLASSES", "dataclass_decorator"]:
+    if name not in __all__:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}.")
 
-    from ._src import core
+    from ._src import flrw
 
-    obj = getattr(core, name)
+    obj = getattr(flrw, name)
 
     setattr(sys.modules[__name__], name, obj)
 
     warnings.warn(
-        "The module `astropy.cosmology.core` is deprecated since v7.1 and will be "
+        "The module `astropy.cosmology.flrw` is deprecated since v7.1 and will be "
         "removed in a future version. Import from `astropy.cosmology` instead.",
         category=DeprecationWarning,
     )
