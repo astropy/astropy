@@ -452,9 +452,9 @@ Range of Validity and Reliability
 The code in this sub-package is tested against several widely used online
 cosmology calculators and has been used to perform many calculations in
 refereed papers. You can check the range of redshifts over which the code is
-regularly tested in the module ``astropy.cosmology.tests.test_cosmology``. If
-you find any bugs, please let us know by `opening an issue at the GitHub
-repository <https://github.com/astropy/astropy/issues>`_!
+regularly tested in the test suite. If you find any bugs, please let us know
+by `opening an issue at the GitHub repository
+<https://github.com/astropy/astropy/issues>`_!
 
 A more difficult question is the range of redshifts over which the code is
 expected to return valid results. This is necessarily model-dependent, but in

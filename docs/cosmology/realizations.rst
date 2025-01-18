@@ -292,7 +292,10 @@ References
 Reference/API
 =============
 
+.. py:currentmodule:: astropy.cosmology.realizations
+
 .. automodapi:: astropy.cosmology.realizations
    :no-main-docstr:
    :include-all-objects:
-   :inherited-members:
+   :noindex:
+   :skip: default_cosmology
