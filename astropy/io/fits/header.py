@@ -1642,9 +1642,7 @@ class Header:
         keyword, value, comment = card
 
         # Lookups for existing/known keywords are case-insensitive
-        keyword = keyword.strip().upper()
-        if keyword.startswith("HIERARCH "):
-            keyword = keyword[9:]
+        keyword = keyword.strip().upper().removeprefix("HIERARCH ")
 
         if keyword not in _commentary_keywords and keyword in self._keyword_indices:
             # Easy; just update the value/comment
