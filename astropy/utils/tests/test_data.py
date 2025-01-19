@@ -1050,9 +1050,13 @@ def test_data_noastropy_fallback(monkeypatch):
     conf.delete_temporary_downloads_at_exit = True
 
     # make sure the config and cache directories are not searched
+    monkeypatch.setenv("ASTROPY_CONFIG_DIR", "foo")
+    monkeypatch.delenv("ASTROPY_CONFIG_DIR")
+    monkeypatch.setenv("ASTROPY_CACHE_DIR", "foo")
+    monkeypatch.delenv("ASTROPY_CACHE_DIR")
     monkeypatch.setenv("XDG_CONFIG_HOME", "foo")
     monkeypatch.delenv("XDG_CONFIG_HOME")
-    monkeypatch.setenv("XDG_CACHE_HOME", "bar")
+    monkeypatch.setenv("XDG_CACHE_HOME", "foo")
     monkeypatch.delenv("XDG_CACHE_HOME")
 
     monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
