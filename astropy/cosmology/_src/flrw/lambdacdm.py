@@ -266,7 +266,7 @@ class LambdaCDM(FLRW):
             phi_z2 = phi_z(self.Om0, self.Ok0, kappa, y1, A, z2)
         # Get lower-right 0<b<2 solution in Om0, Ode0 plane.
         # For the upper-left 0<b<2 solution the Big Bang didn't happen.
-        elif (0 < b) and (b < 2) and self.Om0 > self.Ode0:
+        elif (0 < b < 2) and self.Om0 > self.Ode0:
 
             def phi_z(Om0, Ok0, y1, y2, z, /):
                 return np.arcsin(np.sqrt((y1 - y2) / ((z + 1.0) * Om0 / abs(Ok0) + y1)))
