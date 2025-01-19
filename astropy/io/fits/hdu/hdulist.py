@@ -759,9 +759,6 @@ class HDUList(list, _Verify):
                     hdu.header,
                     do_not_scale_image_data=hdu._do_not_scale_image_data,
                 )
-                if hdu._do_not_scale_image_data:
-                    hdu.header["BZERO"] = bzero
-                    hdu.header["BSCALE"] = bscale
         else:
             if not isinstance(hdu, (PrimaryHDU, _NonstandardHDU)):
                 # You passed in an Extension HDU but we need a Primary
@@ -774,15 +771,17 @@ class HDUList(list, _Verify):
                         hdu.header,
                         do_not_scale_image_data=hdu._do_not_scale_image_data,
                     )
-                    if hdu._do_not_scale_image_data:
-                        hdu.header["BZERO"] = bzero
-                        hdu.header["BSCALE"] = bscale
                 else:
                     # You didn't provide an ImageHDU so we create a
                     # simple Primary HDU and append that first before
                     # we append the new Extension HDU.
                     phdu = PrimaryHDU()
                     super().append(phdu)
+
+        # Add back BZERO and BSCALE if relevant
+        if hasattr(hdu, "_do_not_scale_image_data") and hdu._do_not_scale_image_data:
+            hdu.header["BZERO"] = bzero
+            hdu.header["BSCALE"] = bscale
 
         super().append(hdu)
         hdu._new = True
