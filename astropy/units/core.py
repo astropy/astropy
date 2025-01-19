@@ -12,7 +12,7 @@ import textwrap
 import warnings
 from functools import cached_property
 from threading import RLock
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, NamedTuple, overload
 
 import numpy as np
 
@@ -68,6 +68,56 @@ _WARNING_ACTIONS: Final[dict[str, str]] = {
     "warn": "default",
     "raise": "error",
 }
+
+
+class UnitPrefix(NamedTuple):
+    symbol: tuple[str]  # wrapped in a tuple for backwards compatibility
+    name: tuple[str, ...]  # Americans use "deka" instead of "deca"
+    factor: UnitScale
+
+
+SI_PREFIXES: Final = tuple(
+    UnitPrefix(symbol, name, factor)
+    for symbol, name, factor in (
+        (("Q",), ("quetta",), 1e30),
+        (("R",), ("ronna",), 1e27),
+        (("Y",), ("yotta",), 1e24),
+        (("Z",), ("zetta",), 1e21),
+        (("E",), ("exa",), 1e18),
+        (("P",), ("peta",), 1e15),
+        (("T",), ("tera",), 1e12),
+        (("G",), ("giga",), 1e9),
+        (("M",), ("mega",), 1e6),
+        (("k",), ("kilo",), 1e3),
+        (("h",), ("hecto",), 1e2),
+        (("da",), ("deka", "deca"), 1e1),
+        (("d",), ("deci",), 1e-1),
+        (("c",), ("centi",), 1e-2),
+        (("m",), ("milli",), 1e-3),
+        (("u",), ("micro",), 1e-6),
+        (("n",), ("nano",), 1e-9),
+        (("p",), ("pico",), 1e-12),
+        (("f",), ("femto",), 1e-15),
+        (("a",), ("atto",), 1e-18),
+        (("z",), ("zepto",), 1e-21),
+        (("y",), ("yocto",), 1e-24),
+        (("r",), ("ronto",), 1e-27),
+        (("q",), ("quecto",), 1e-30),
+    )
+)
+
+
+BINARY_PREFIXES: Final = tuple(
+    UnitPrefix(symbol, name, factor)
+    for symbol, name, factor in (
+        (("Ki",), ("kibi",), 2**10),
+        (("Mi",), ("mebi",), 2**20),
+        (("Gi",), ("gibi",), 2**30),
+        (("Ti",), ("tebi",), 2**40),
+        (("Pi",), ("pebi",), 2**50),
+        (("Ei",), ("exbi",), 2**60),
+    )
+)
 
 
 def _flatten_units_collection(items: object) -> set[UnitBase]:
@@ -2427,44 +2477,6 @@ class CompositeUnit(UnitBase):
         return len(unit.bases) == 0 and unit.scale == 1.0
 
 
-si_prefixes: Final[list[tuple[list[str], list[str], float]]] = [
-    (["Q"], ["quetta"], 1e30),
-    (["R"], ["ronna"], 1e27),
-    (["Y"], ["yotta"], 1e24),
-    (["Z"], ["zetta"], 1e21),
-    (["E"], ["exa"], 1e18),
-    (["P"], ["peta"], 1e15),
-    (["T"], ["tera"], 1e12),
-    (["G"], ["giga"], 1e9),
-    (["M"], ["mega"], 1e6),
-    (["k"], ["kilo"], 1e3),
-    (["h"], ["hecto"], 1e2),
-    (["da"], ["deka", "deca"], 1e1),
-    (["d"], ["deci"], 1e-1),
-    (["c"], ["centi"], 1e-2),
-    (["m"], ["milli"], 1e-3),
-    (["u"], ["micro"], 1e-6),
-    (["n"], ["nano"], 1e-9),
-    (["p"], ["pico"], 1e-12),
-    (["f"], ["femto"], 1e-15),
-    (["a"], ["atto"], 1e-18),
-    (["z"], ["zepto"], 1e-21),
-    (["y"], ["yocto"], 1e-24),
-    (["r"], ["ronto"], 1e-27),
-    (["q"], ["quecto"], 1e-30),
-]
-
-
-binary_prefixes: Final[list[tuple[list[str], list[str], int]]] = [
-    (["Ki"], ["kibi"], 2**10),
-    (["Mi"], ["mebi"], 2**20),
-    (["Gi"], ["gibi"], 2**30),
-    (["Ti"], ["tebi"], 2**40),
-    (["Pi"], ["pebi"], 2**50),
-    (["Ei"], ["exbi"], 2**60),
-]
-
-
 def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
     """
     Set up all of the standard metric prefixes for a unit.  This
@@ -2487,7 +2499,7 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
             (short_names, long_tables, factor)
     """
     if prefixes is True:
-        prefixes = si_prefixes
+        prefixes = SI_PREFIXES
     elif prefixes is False:
         prefixes = []
 

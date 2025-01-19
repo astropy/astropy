@@ -10,12 +10,12 @@ import warnings
 from typing import TYPE_CHECKING
 
 from astropy.units.core import (
+    SI_PREFIXES,
     CompositeUnit,
     NamedUnit,
     PrefixUnit,
     def_unit,
     dimensionless_unscaled,
-    si_prefixes,
 )
 from astropy.units.errors import (
     UnitParserWarning,
@@ -167,7 +167,7 @@ class VOUnit(Base, _GenericParserMixin):
         if unit in cls._custom_units:
             return cls._custom_units[unit]
 
-        for short, full, factor in si_prefixes:
+        for short, full, factor in SI_PREFIXES:
             for prefix in short:
                 if unit.startswith(prefix):
                     base_name = unit[len(prefix) :]
