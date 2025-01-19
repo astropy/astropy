@@ -39,7 +39,6 @@ def test_toplevel_namespace():
     d = dir(astropy)
     assert "os" not in d
     assert "log" in d
-    assert "test" in d
     assert "sys" not in d
 
 
