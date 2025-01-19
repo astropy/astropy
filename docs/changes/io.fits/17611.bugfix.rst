@@ -1,0 +1,1 @@
+Fix a bug in ``nddata.Cutout2D`` when creating partial cutouts of ``Section`` objects by adding a ``dtype`` property to the ``Section`` class.
