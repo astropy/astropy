@@ -2184,7 +2184,14 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         If any of the given unit names are not valid Python tokens.
     """
 
-    def __init__(self, st, represents=None, doc=None, format=None, namespace=None):
+    def __init__(
+        self,
+        st: str | list[str] | tuple[list[str], list[str]],
+        represents: UnitBase | None = None,
+        doc: str | None = None,
+        format: Mapping[str, str] | None = None,
+        namespace: MutableMapping[str, object] | None = None,
+    ) -> None:
         represents = Unit(represents)
         self._represents = represents
 
@@ -2465,7 +2472,12 @@ binary_prefixes: Final[list[tuple[list[str], list[str], int]]] = [
 ]
 
 
-def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
+def _add_prefixes(
+    u: NamedUnit,
+    excludes: Collection[str] = (),
+    namespace: MutableMapping[str, object] | None = None,
+    prefixes: bool | Iterable[tuple[Iterable[str], Iterable[str], Complex]] = False,
+) -> None:
     """
     Set up all of the standard metric prefixes for a unit.  This
     function should not be used directly, but instead use the
@@ -2526,13 +2538,33 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
             )
 
 
+@overload
+def def_unit(
+    s: str | list[str],
+    represents: UnitBase,
+    doc: str | None = None,
+    format: Mapping[str, str] | None = None,
+    prefixes: bool | Iterable[tuple[Iterable[str], Iterable[str], Complex]] = False,
+    exclude_prefixes: Collection[str] = (),
+    namespace: MutableMapping[str, object] | None = None,
+) -> Unit: ...
+@overload
+def def_unit(
+    s: str | list[str],
+    represents: None = None,
+    doc: str | None = None,
+    format: Mapping[str, str] | None = None,
+    prefixes: bool | Iterable[tuple[Iterable[str], Iterable[str], Complex]] = False,
+    exclude_prefixes: Collection[str] = (),
+    namespace: MutableMapping[str, object] | None = None,
+) -> IrreducibleUnit: ...
 def def_unit(
     s,
     represents=None,
     doc=None,
     format=None,
     prefixes=False,
-    exclude_prefixes=[],
+    exclude_prefixes=(),
     namespace=None,
 ):
     """Define a new unit.
