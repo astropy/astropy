@@ -3177,7 +3177,10 @@ class CompoundModel(Model):
         self._constraints_cache = {}
 
     def _get_left_inputs_from_args(self, args):
-        return args[: self.left.n_inputs]
+        op = self.op
+        if op == "fix_inputs":
+            return [self.right["x"]]
+        return args[: self.right.n_inputs]
 
     def _get_right_inputs_from_args(self, args):
         op = self.op
@@ -3195,6 +3198,9 @@ class CompoundModel(Model):
             # Args expected to look like (*left inputs, *right inputs, *left params, *right params)
             n_inputs = self.left.n_inputs + self.right.n_inputs
             return args[n_inputs : n_inputs + self.n_left_params]
+        elif op == "|":
+            n_inputs = self.right.n_inputs
+            return args[n_inputs : n_inputs + self.n_left_params]
         else:
             return args[self.left.n_inputs : self.left.n_inputs + self.n_left_params]
 
@@ -3205,6 +3211,9 @@ class CompoundModel(Model):
         if op == "&":
             # Args expected to look like (*left inputs, *right inputs, *left params, *right params)
             return args[self.left.n_inputs + self.right.n_inputs + self.n_left_params :]
+        elif op == "|":
+            n_inputs = self.right.n_inputs
+            return args[n_inputs + self.n_left_params :]
         else:
             return args[self.left.n_inputs + self.n_left_params :]
 
@@ -3215,6 +3224,9 @@ class CompoundModel(Model):
         if self.op == "&":
             new_args = list(args[: self.left.n_inputs + self.right.n_inputs])
             args_pos = self.left.n_inputs + self.right.n_inputs
+        elif self.op == "|":
+            args_pos = self.right.n_inputs
+            new_args = list(args[:args_pos])
         else:
             new_args = list(args[: self.left.n_inputs])
             args_pos = self.left.n_inputs
@@ -3294,7 +3306,12 @@ class CompoundModel(Model):
 
     @property
     def fit_deriv(self):
-        # If either side of the model is missing analytical derivative then we can't compute one
+        # If either side is missing an analytical derivative, we can't compute one.
+        if self.op == "fix_inputs":
+            # The "right" side is just a dict, so let's rely on the left side derivative:
+            # e.g., Linear1D.fit_deriv exists. If that's None, we just return None.
+            return self.left.fit_deriv
+
         if self.left.fit_deriv is None or self.right.fit_deriv is None:
             return None
 
@@ -3511,8 +3528,26 @@ class CompoundModel(Model):
         return self._param_names
 
     def _make_leaflist(self):
+        if self.op == "fix_inputs":
+            # The right side is a dict, not a Model. We skip it
+            # and only gather "leaf" models from the left side.
+            leaflist = []
+            tdict = {}
+            # If the left side is itself a CompoundModel, recurse into it;
+            # otherwise, it's just a single Model leaf.
+            if isinstance(self.left, CompoundModel):
+                self.left._make_leaflist()
+                leaflist = self.left._leaflist
+                tdict = self.left._tdict
+            else:
+                leaflist = [self.left]
+            self._leaflist = leaflist
+            self._tdict = tdict
+            return
+
         tdict = {}
         leaflist = []
+        # This function is normally used for +, -, *, /, |, & ...
         make_subtree_dict(self, "", tdict, leaflist)
         self._leaflist = leaflist
         self._tdict = tdict
@@ -4287,6 +4322,10 @@ def make_subtree_dict(tree, nodepath, tdict, leaflist):
        (relative to all indices for the whole tree)
     - right most index contained within that subtree
     """
+    # If this is a dictionary (i.e. from fix_inputs), skip it entirely
+    if isinstance(tree, dict):
+        return
+
     # if this is a leaf, just append it to the leaflist
     if not hasattr(tree, "isleaf"):
         leaflist.append(tree)
