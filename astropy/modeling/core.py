@@ -3312,11 +3312,33 @@ class CompoundModel(Model):
             right_params = self._get_right_params_from_args(args)
 
             left_deriv = self.left.fit_deriv(*left_inputs, *left_params)
-            if not self.left.col_fit_deriv:
-                left_deriv = (np.asanyarray(left_deriv).T).tolist()
             right_deriv = self.right.fit_deriv(*right_inputs, *right_params)
+
+            # Not all fit_deriv methods return consistent types, some return
+            # single arrays, some return lists of arrays, etc. We now convert
+            # this to a single array.
+            left_deriv = np.asanyarray(left_deriv)
+            right_deriv = np.asanyarray(right_deriv)
+
+            if not self.left.col_fit_deriv:
+                left_deriv = np.moveaxis(left_deriv, -1, 0)
+
             if not self.right.col_fit_deriv:
-                right_deriv = (np.asanyarray(right_deriv).T).tolist()
+                right_deriv = np.moveaxis(right_deriv, -1, 0)
+
+            # Some models preserve the shape of the input in the output of
+            # fit_deriv whereas some do not. For example for a 6-parameter model,
+            # passing input with shape (5, 3) might produce a deriv array with
+            # shape (6, 5, 3) or (6, 15). We therefore normalize this to always
+            # ravel all but the first dimension
+            left_deriv = left_deriv.reshape((left_deriv.shape[0], -1))
+            right_deriv = right_deriv.reshape((right_deriv.shape[0], -1))
+
+            # Convert the arrays back to lists over the first dimension so as to
+            # be able to concatenate them (we don't use .tolist() which would
+            # convert to a list of lists instead of a list of arrays)
+            left_deriv = list(left_deriv)
+            right_deriv = list(right_deriv)
 
             # We now have to use various differentiation rules to apply the
             # arithmetic operators to the derivatives.
@@ -3350,18 +3372,18 @@ class CompoundModel(Model):
                 if op == "-":
                     right_deriv = [-x for x in right_deriv]
 
-                return left_deriv + right_deriv
+                return np.array(left_deriv + right_deriv)
 
-            leftval = self.left.evaluate(*left_inputs, *left_params)
-            rightval = self.right.evaluate(*right_inputs, *right_params)
+            leftval = self.left.evaluate(*left_inputs, *left_params).ravel()
+            rightval = self.right.evaluate(*right_inputs, *right_params).ravel()
 
             if op == "*":
-                return (
+                return np.array(
                     [rightval * dparam for dparam in left_deriv] +
                     [leftval * dparam for dparam in right_deriv]
                 )  # fmt: skip
             if op == "/":
-                return (
+                return np.array(
                     [dparam / rightval for dparam in left_deriv] +
                     [-leftval * (dparam / rightval**2) for dparam in right_deriv]
                 )  # fmt: skip
