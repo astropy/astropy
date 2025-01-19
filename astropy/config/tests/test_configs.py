@@ -38,18 +38,118 @@ def test_paths():
 
 
 @pytest.mark.parametrize(
-    "environment_variable,func",
+    "env_var_template",
     [
-        # Regression test for #17514 - XDG_CACHE_HOME had no effect
-        pytest.param("XDG_CACHE_HOME", paths.get_cache_dir_path, id="cache"),
-        pytest.param("XDG_CONFIG_HOME", paths.get_config_dir_path, id="config"),
+        pytest.param("XDG_{}_HOME", id="xdg"),
+        pytest.param("ASTROPY_{}_DIR", id="astropy"),
     ],
 )
-def test_xdg_variables(monkeypatch, tmp_path, environment_variable, func):
-    config_dir = tmp_path / "astropy"
-    config_dir.mkdir()
+@pytest.mark.parametrize("dir_type", ["CACHE", "CONFIG"])
+def test_env_variables(monkeypatch, tmp_path, env_var_template, dir_type):
+    # ignore global state of the test session
+    monkeypatch.setenv(f"ASTROPY_{dir_type}_DIR", "foo")
+    monkeypatch.delenv(f"ASTROPY_{dir_type}_DIR")
+    monkeypatch.setenv(f"XDG_{dir_type}_HOME", "foo")
+    monkeypatch.delenv(f"XDG_{dir_type}_HOME")
+
+    match dir_type:
+        case "CACHE":
+            cls = paths.set_temp_cache
+            func = paths.get_cache_dir_path
+        case "CONFIG":
+            cls = paths.set_temp_config
+            func = paths.get_config_dir_path
+        case _:
+            raise ValueError
+
+    environment_variable = env_var_template.format(dir_type)
+    target_dir = tmp_path / "astropy"
+    target_dir.mkdir()
     monkeypatch.setenv(environment_variable, str(tmp_path))
-    assert func() == config_dir
+
+    monkeypatch.setattr(cls, "_temp_path", None)
+    assert func() == target_dir
+
+
+@pytest.mark.parametrize(
+    "astropy_env_var, xdg_env_var, cls, func",
+    [
+        pytest.param(
+            "ASTROPY_CACHE_DIR",
+            "XDG_CACHE_HOME",
+            paths.set_temp_cache,
+            paths.get_cache_dir_path,
+            id="cache",
+        ),
+        pytest.param(
+            "ASTROPY_CONFIG_DIR",
+            "XDG_CONFIG_HOME",
+            paths.set_temp_config,
+            paths.get_config_dir_path,
+            id="config",
+        ),
+    ],
+)
+def test_env_variables_priority(
+    monkeypatch, tmp_path, astropy_env_var, xdg_env_var, cls, func
+):
+    # ASTROPY_* environment variables should have priority over XDG_*
+    astropy_target_dir = tmp_path / "astropy" / "astropy"
+    astropy_target_dir.mkdir(parents=True)
+    monkeypatch.setenv(astropy_env_var, str(tmp_path / "astropy"))
+
+    xdg_target_dir = tmp_path / "xdg" / "astropy"
+    xdg_target_dir.mkdir(parents=True)
+    monkeypatch.setenv(xdg_env_var, str(tmp_path / "xdg"))
+
+    monkeypatch.setattr(cls, "_temp_path", None)
+
+    assert func() == astropy_target_dir
+
+
+@pytest.mark.parametrize(
+    "env_var_template",
+    [
+        pytest.param("XDG_{}_HOME", id="xdg"),
+        pytest.param("ASTROPY_{}_DIR", id="astropy"),
+    ],
+)
+@pytest.mark.parametrize("dir_type", ["CACHE", "CONFIG"])
+def test_context_over_environment(
+    monkeypatch,
+    tmp_path,
+    env_var_template,
+    dir_type,
+):
+    # ignore global state of the test session
+    monkeypatch.setenv(f"ASTROPY_{dir_type}_DIR", "foo")
+    monkeypatch.delenv(f"ASTROPY_{dir_type}_DIR")
+    monkeypatch.setenv(f"XDG_{dir_type}_HOME", "foo")
+    monkeypatch.delenv(f"XDG_{dir_type}_HOME")
+
+    match dir_type:
+        case "CACHE":
+            cls = paths.set_temp_cache
+            func = paths.get_cache_dir_path
+        case "CONFIG":
+            cls = paths.set_temp_config
+            func = paths.get_config_dir_path
+        case _:
+            raise ValueError
+
+    # context managers should shadow environment variables
+    env_target_dir = tmp_path / "astropy"
+    env_target_dir.mkdir()
+    monkeypatch.setenv(env_var_template.format(dir_type), str(tmp_path))
+
+    assert func() == env_target_dir
+
+    ctx_target_dir = tmp_path / "context"
+    ctx_target_dir.mkdir()
+    with cls(ctx_target_dir):
+        assert func() == ctx_target_dir / "astropy"
+
+    assert func() == env_target_dir
 
 
 def test_set_temp_config(tmp_path, monkeypatch):
@@ -421,6 +521,8 @@ def test_config_noastropy_fallback(monkeypatch):
     """
 
     # make sure the config directory is not searched
+    monkeypatch.setenv("ASTROPY_CONFIG_DIR", "foo")
+    monkeypatch.delenv("ASTROPY_CONFIG_DIR")
     monkeypatch.setenv("XDG_CONFIG_HOME", "foo")
     monkeypatch.delenv("XDG_CONFIG_HOME")
     monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
