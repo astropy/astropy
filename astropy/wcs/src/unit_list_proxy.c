@@ -91,14 +91,25 @@ PyUnitListProxy_New(
   if (units_dict == NULL) {
     return NULL;
   }
-
+#if PY_VERSION_HEX >= 0x030d00c1
+  int ret = PyDict_GetItemStringRef(units_dict, "Unit", &unit_class);
+  if(ret == -1) {
+    return NULL; // an exception is already raised ?
+  } else if(ret == 0) {
+    PyErr_SetString(PyExc_KeyError, "cannot find Unit in astropy.units");
+    return NULL;
+  }
+#else
   unit_class = PyDict_GetItemString(units_dict, "Unit");
+#endif
   if (unit_class == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "Could not import Unit class");
     return NULL;
   }
 
+#if PY_VERSION_HEX < 0x030d00c1
   Py_INCREF(unit_class);
+#endif
 
   self = (PyUnitListProxy*)PyUnitListProxyType.tp_alloc(
       &PyUnitListProxyType, 0);
