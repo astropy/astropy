@@ -145,7 +145,7 @@ def_unit(
     doc="milli arc second: angular measurement",
 )
 def_unit(
-    ["uas"],
+    ["uas", "\N{MICRO SIGN}as", "\N{GREEK SMALL LETTER MU}as"],
     0.000001 * arcsec,
     namespace=_ns,
     doc="micro arc second: angular measurement",

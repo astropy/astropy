@@ -446,9 +446,7 @@ class Generic(Base, _GenericParserMixin):
             s = cls._unit_symbols[s]
 
         elif not s.isascii():
-            if s[0] == "\N{MICRO SIGN}":
-                s = "u" + s[1:]
-            elif s[0] == "°":
+            if s[0].startswith("°"):
                 s = "deg" if len(s) == 1 else "deg_" + s[1:]
             if s[-1] in cls._prefixable_unit_symbols:
                 s = s[:-1] + cls._prefixable_unit_symbols[s[-1]]
@@ -489,17 +487,8 @@ class Generic(Base, _GenericParserMixin):
         "\N{LATIN SUBSCRIPT SMALL LETTER P}": "_p",
     }
 
-    _translations: ClassVar[dict[int, str]] = str.maketrans(
-        {
-            "\N{GREEK SMALL LETTER MU}": "\N{MICRO SIGN}",
-            "\N{MINUS SIGN}": "-",
-        }
-    )
-    """Character translations that should be applied before parsing a string.
-
-    Note that this does explicitly *not* generally translate MICRO SIGN to u,
-    since then a string like 'µ' would be interpreted as unit mass.
-    """
+    _translations: ClassVar[dict[int, str]] = str.maketrans({"\N{MINUS SIGN}": "-"})
+    """Character translations that should be applied before parsing a string."""
 
     _superscripts: Final[str] = (
         "\N{SUPERSCRIPT MINUS}"
