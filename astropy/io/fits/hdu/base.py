@@ -560,26 +560,8 @@ class _BaseHDU:
     # TODO: The BaseHDU class shouldn't even handle checksums since they're
     # only implemented on _ValidHDU...
     def _prewriteto(self, checksum=False, inplace=False):
-        self._update_pseudo_int_scale_keywords()
-
         # Handle checksum
         self._update_checksum(checksum)
-
-    def _update_pseudo_int_scale_keywords(self):
-        """
-        If the data is signed int 8, unsigned int 16, 32, or 64,
-        add BSCALE/BZERO cards to header.
-        """
-        if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
-            # CompImageHDUs need TFIELDS immediately after GCOUNT,
-            # so BSCALE has to go after TFIELDS if it exists.
-            if "TFIELDS" in self._header:
-                self._header.set("BSCALE", 1, after="TFIELDS")
-            elif "GCOUNT" in self._header:
-                self._header.set("BSCALE", 1, after="GCOUNT")
-            else:
-                self._header.set("BSCALE", 1)
-            self._header.set("BZERO", _pseudo_zero(self.data.dtype), after="BSCALE")
 
     def _update_checksum(
         self, checksum, checksum_keyword="CHECKSUM", datasum_keyword="DATASUM"

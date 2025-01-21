@@ -434,6 +434,22 @@ class _ImageBaseHDU(_ValidHDU):
         self._bitpix = self._header["BITPIX"]
         self._blank = self._header.pop("BLANK", None)
 
+    def _update_pseudo_int_scale_keywords(self):
+        """
+        If the data is signed int 8, unsigned int 16, 32, or 64,
+        add BSCALE/BZERO cards to header.
+        """
+        if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
+            # CompImageHDUs need TFIELDS immediately after GCOUNT,
+            # so BSCALE has to go after TFIELDS if it exists.
+            if "TFIELDS" in self._header:
+                self._header.set("BSCALE", 1, after="TFIELDS")
+            elif "GCOUNT" in self._header:
+                self._header.set("BSCALE", 1, after="GCOUNT")
+            else:
+                self._header.set("BSCALE", 1)
+            self._header.set("BZERO", _pseudo_zero(self.data.dtype), after="BSCALE")
+
     def scale(self, type=None, option="old", bscale=None, bzero=None):
         """
         Scale image data by using ``BSCALE``/``BZERO``.
@@ -624,6 +640,8 @@ class _ImageBaseHDU(_ValidHDU):
             # Go ahead and load the scaled image data and update the header
             # with the correct post-rescaling headers
             _ = self.data
+
+        self._update_pseudo_int_scale_keywords()
 
         return super()._prewriteto(checksum, inplace)
 
