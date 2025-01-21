@@ -252,12 +252,12 @@ class _ParsingFormatMixin:
         msg : str
             A message with alternatives, or the empty string.
         """
-        return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
+        return did_you_mean(unit, cls._get_units(), fix=cls._fix_deprecated)
 
     @classmethod
     def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
         try:
-            return cls._units[unit]
+            return cls._get_units()[unit]
         except KeyError:
             if detailed_exception:
                 raise ValueError(cls._invalid_unit_error_message(unit)) from None

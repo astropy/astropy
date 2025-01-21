@@ -6,13 +6,13 @@ Handles the "FITS" unit format.
 
 from __future__ import annotations
 
+from functools import cache
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 from astropy.units.core import CompositeUnit
 from astropy.units.errors import UnitScaleError
-from astropy.utils import classproperty
 
 from . import Base, utils
 from .generic import _GenericParserMixin
@@ -31,8 +31,9 @@ class FITS(Base, _GenericParserMixin):
     Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_.
     """
 
-    @classproperty(lazy=True)
-    def _units(cls) -> dict[str, UnitBase]:
+    @classmethod
+    @cache
+    def _get_units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
 
         # add some units up-front for which we don't want to use prefixes
