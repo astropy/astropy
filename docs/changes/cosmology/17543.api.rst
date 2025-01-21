@@ -1,0 +1,8 @@
+A new public module, ``astropy.cosmology.io``, has been added to provide support
+for reading, writing, and converting cosmology instances.
+
+The private modules ``astropy.cosmology.funcs``,
+``astropy.cosmology.parameter``, ``astropy.cosmology.connect``,
+``astropy.cosmology.core``, and ``astropy.cosmology.flrw`` have been deprecated.
+Their functionality remains accessible in the `astropy.cosmology` module or in
+the new ``astropy.cosmology.io`` module.

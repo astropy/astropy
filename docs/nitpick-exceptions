@@ -1,3 +1,6 @@
+# astropy.cosmology
+py:obj astropy.cosmology.realizations.default_cosmology
+
 # astropy.io.votable
 py:class astropy.io.votable.tree.SimpleElement
 py:class astropy.io.votable.tree.SimpleElementWithContent
@@ -74,6 +77,7 @@ py:class None.  Remove all items from D.
 py:class a set-like object providing a view on D's items
 py:class a set-like object providing a view on D's keys
 py:class None.  Update D from dict/iterable E and F.
+py:class None.  Update D from mapping/iterable E and F.
 py:class an object providing a view on D's values
 py:class a shallow copy of D
 
@@ -93,10 +97,10 @@ py:class np.ma.MaskedArray
 # locally defined type variable for ndarray dtype
 py:class DT
 # type aliases
-py:class Complex
-py:class Real
 py:class UnitPower
+py:class UnitPowerLike
 py:class UnitScale
+py:class UnitScaleLike
 
 # Classes from `astropy.extern` that are nonetheless exposed in documentation
 py:class Lexer

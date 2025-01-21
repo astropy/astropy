@@ -87,7 +87,7 @@ def find_latex_line(lines: list[str], latex: str) -> int | None:
         Line number. Returns None, if no match was found
 
     """
-    re_string = re.compile(latex.replace("\\", "\\\\"))
+    re_string = re.compile(r"\s*" + latex.replace("\\", "\\\\"))
     for i, line in enumerate(lines):
         if re_string.match(line):
             return i
@@ -228,6 +228,52 @@ class Latex(core.BaseReader):
     This class can also read simple LaTeX tables (one line per table
     row, no ``\multicolumn`` or similar constructs), specifically, it
     can read the tables that it writes.
+    When reading, it will look for the Latex commands to start and end tabular
+    data (``\begin{tabular}`` and ``\end{tabular}``). That means that
+    those lines have to be present in the input file; the benefit is that this
+    reader can be used on a LaTeX file with text, tables, and figures and it
+    will read the first valid table.
+
+    .. note:: **Units in LaTeX tables**
+
+        The LaTeX writer will output units in the table if they are present in the
+        column info::
+
+            >>> import io
+            >>> out = io.StringIO()
+            >>> import sys
+            >>> import astropy.units as u
+            >>> from astropy.table import Table
+            >>> t = Table({'v': [1, 2] * u.km/u.s, 'class': ['star', 'jet']})
+            >>> t.write(out, format='ascii.latex')
+            >>> print(out.getvalue())
+            \begin{table}
+            \begin{tabular}{cc}
+            v & class \\
+            $\mathrm{km\,s^{-1}}$ &  \\
+            1.0 & star \\
+            2.0 & jet \\
+            \end{tabular}
+            \end{table}
+
+        However, it will fail to read a table with units. There are so
+        many ways to write units in LaTeX (enclosed in parenthesis or square brackets,
+        as a separate row are as part of the column headers, using plain text, LaTeX
+        symbols etc. ) that it is not feasible to implement a
+        general reader for this. If you need to read a table with units, you can
+        skip reading the lines with units to just read the numerical values using the
+        ``data_start`` parameter to set the first line where numerical data values appear::
+
+            >>> Table.read(out.getvalue(), format='ascii.latex', data_start=4)
+            <Table length=2>
+               v    class
+            float64  str4
+            ------- -----
+                1.0  star
+                2.0   jet
+
+        Alternatively, you can write a custom reader using your knowledge of the exact
+        format of the units in that case, by extending this class.
 
     Reading a LaTeX table, the following keywords are accepted:
 

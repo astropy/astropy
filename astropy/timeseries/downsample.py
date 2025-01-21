@@ -13,6 +13,26 @@ from astropy.utils.exceptions import AstropyUserWarning
 __all__ = ["aggregate_downsample"]
 
 
+def nanmean_reduceat(data, indices):
+    mask = np.isnan(data)
+
+    if mask.any():  # If there are NaNs
+        # Create a writeable copy and mask NaNs
+        data = data.copy()
+        data[mask] = 0
+        count_data = np.add.reduceat(~mask, indices)
+        # Avoid division by zero warnings
+        count_data = count_data.astype(data.dtype)
+        count_data[count_data == 0] = np.nan
+    else:
+        # Derive counts from indices
+        count_data = np.diff(indices, append=len(data))
+        count_data[count_data <= 0] = 1
+
+    sum_data = np.add.reduceat(data, indices)
+    return sum_data / count_data
+
+
 def reduceat(array, indices, function):
     """
     Manual reduceat functionality for cases where Numpy functions don't have a reduceat.
@@ -20,6 +40,8 @@ def reduceat(array, indices, function):
     """
     if len(indices) == 0:
         return np.array([])
+    elif function is nanmean_reduceat:
+        return np.array(function(array, indices))
     elif hasattr(function, "reduceat"):
         return np.array(function.reduceat(array, indices))
     else:
@@ -93,7 +115,7 @@ def aggregate_downsample(
         parameter will be ignored.
     aggregate_func : callable, optional
         The function to use for combining points in the same bin. Defaults
-        to np.nanmean.
+        to an internal implementation of nanmean.
 
     Returns
     -------
@@ -175,7 +197,7 @@ def aggregate_downsample(
     )
 
     if aggregate_func is None:
-        aggregate_func = np.nanmean
+        aggregate_func = nanmean_reduceat
 
     # Start and end times of the binned timeseries
     bin_start = binned.time_bin_start
