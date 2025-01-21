@@ -555,49 +555,6 @@ class _BaseHDU:
         else:
             return None
 
-    # TODO: Rework checksum handling so that it's not necessary to add a
-    # checksum argument here
-    # TODO: The BaseHDU class shouldn't even handle checksums since they're
-    # only implemented on _ValidHDU...
-    def _prewriteto(self, checksum=False, inplace=False):
-        # Handle checksum
-        self._update_checksum(checksum)
-
-    def _update_checksum(
-        self, checksum, checksum_keyword="CHECKSUM", datasum_keyword="DATASUM"
-    ):
-        """Update the 'CHECKSUM' and 'DATASUM' keywords in the header (or
-        keywords with equivalent semantics given by the ``checksum_keyword``
-        and ``datasum_keyword`` arguments--see for example ``CompImageHDU``
-        for an example of why this might need to be overridden).
-        """
-        # If the data is loaded it isn't necessarily 'modified', but we have no
-        # way of knowing for sure
-        modified = self._header._modified or self._data_loaded
-
-        if checksum == "remove":
-            self._header.remove(checksum_keyword, ignore_missing=True)
-            self._header.remove(datasum_keyword, ignore_missing=True)
-        elif (
-            modified
-            or self._new
-            or (
-                checksum
-                and (
-                    "CHECKSUM" not in self._header
-                    or "DATASUM" not in self._header
-                    or not self._checksum_valid
-                    or not self._datasum_valid
-                )
-            )
-        ):
-            if checksum == "datasum":
-                self.add_datasum(datasum_keyword=datasum_keyword)
-            elif checksum:
-                self.add_checksum(
-                    checksum_keyword=checksum_keyword, datasum_keyword=datasum_keyword
-                )
-
     def _postwriteto(self):
         # If data is unsigned integer 16, 32 or 64, remove the
         # BSCALE/BZERO cards
@@ -1080,6 +1037,12 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         return errs
 
+    # TODO: Rework checksum handling so that it's not necessary to add a
+    # checksum argument here
+    def _prewriteto(self, checksum=False, inplace=False):
+        # Handle checksum
+        self._update_checksum(checksum)
+
     # TODO: Improve this API a little bit--for one, most of these arguments
     # could be optional
     def req_cards(self, keyword, pos, test, fix_value, option, errlist):
@@ -1374,6 +1337,41 @@ class _ValidHDU(_BaseHDU, _Verify):
                 warnings.warn(
                     f"Datasum verification failed for HDU {self.name, self.ver}.\n",
                     AstropyUserWarning,
+                )
+
+    def _update_checksum(
+        self, checksum, checksum_keyword="CHECKSUM", datasum_keyword="DATASUM"
+    ):
+        """Update the 'CHECKSUM' and 'DATASUM' keywords in the header (or
+        keywords with equivalent semantics given by the ``checksum_keyword``
+        and ``datasum_keyword`` arguments--see for example ``CompImageHDU``
+        for an example of why this might need to be overridden).
+        """
+        # If the data is loaded it isn't necessarily 'modified', but we have no
+        # way of knowing for sure
+        modified = self._header._modified or self._data_loaded
+
+        if checksum == "remove":
+            self._header.remove(checksum_keyword, ignore_missing=True)
+            self._header.remove(datasum_keyword, ignore_missing=True)
+        elif (
+            modified
+            or self._new
+            or (
+                checksum
+                and (
+                    "CHECKSUM" not in self._header
+                    or "DATASUM" not in self._header
+                    or not self._checksum_valid
+                    or not self._datasum_valid
+                )
+            )
+        ):
+            if checksum == "datasum":
+                self.add_datasum(datasum_keyword=datasum_keyword)
+            elif checksum:
+                self.add_checksum(
+                    checksum_keyword=checksum_keyword, datasum_keyword=datasum_keyword
                 )
 
     def _get_timestamp(self):
