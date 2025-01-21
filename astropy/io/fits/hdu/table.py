@@ -477,7 +477,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         # FITS file)
         return self.__class__(data=self.data.copy(), header=self._header.copy())
 
-    def _prewriteto(self, checksum=False, inplace=False):
+    def _prewriteto(self, inplace=False):
         if self._has_data:
             self.data._scale_back(update_heap_pointers=not self._manages_own_heap)
             # check TFIELDS and NAXIS2
@@ -508,7 +508,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     format_cls = format.__class__
                     format = format_cls(format.dtype, repeat=format.repeat, max=_max)
                     self._header["TFORM" + str(idx + 1)] = format.tform
-        return super()._prewriteto(checksum, inplace)
+        return super()._prewriteto(inplace)
 
     def _verify(self, option="warn"):
         """

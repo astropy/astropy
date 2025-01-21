@@ -261,10 +261,10 @@ class TestChecksumFunctions(BaseChecksumTests):
         hdu.writeto(self.temp("tmp.fits"), overwrite=True, checksum="datasum")
         with fits.open(self.temp("tmp.fits"), checksum=True) as hdul:
             if not (hasattr(hdul[0], "_datasum") and hdul[0]._datasum):
-                pytest.fail(msg="Missing DATASUM keyword")
+                pytest.fail("Missing DATASUM keyword")
 
             if not (hasattr(hdul[0], "_checksum") and not hdul[0]._checksum):
-                pytest.fail(msg="Non-empty CHECKSUM keyword")
+                pytest.fail("Non-empty CHECKSUM keyword")
 
     def test_open_update_mode_preserve_checksum(self):
         """
@@ -366,7 +366,7 @@ class TestChecksumFunctions(BaseChecksumTests):
 
     def _check_checksums(self, hdu):
         if not (hasattr(hdu, "_datasum") and hdu._datasum):
-            pytest.fail(msg="Missing DATASUM keyword")
+            pytest.fail("Missing DATASUM keyword")
 
         if not (hasattr(hdu, "_checksum") and hdu._checksum):
-            pytest.fail(msg="Missing CHECKSUM keyword")
+            pytest.fail("Missing CHECKSUM keyword")

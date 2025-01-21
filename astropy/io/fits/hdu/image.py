@@ -629,7 +629,7 @@ class _ImageBaseHDU(_ValidHDU):
         for msg in messages:
             warnings.warn(msg, VerifyWarning)
 
-    def _prewriteto(self, checksum=False, inplace=False):
+    def _prewriteto(self, inplace=False):
         if self._scale_back:
             self._scale_internal(
                 BITPIX2DTYPE[self._orig_bitpix], blank=self._orig_blank
@@ -643,7 +643,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         self._update_pseudo_int_scale_keywords()
 
-        return super()._prewriteto(checksum, inplace)
+        return super()._prewriteto(inplace)
 
     def _writedata_internal(self, fileobj):
         size = 0

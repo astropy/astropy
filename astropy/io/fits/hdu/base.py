@@ -20,7 +20,6 @@ from astropy.io.fits.util import (
     _get_array_mmap,
     _is_int,
     _is_pseudo_integer,
-    _pseudo_zero,
     decode_ascii,
     first,
     itersubclasses,
@@ -1037,11 +1036,9 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         return errs
 
-    # TODO: Rework checksum handling so that it's not necessary to add a
-    # checksum argument here
-    def _prewriteto(self, checksum=False, inplace=False):
+    def _prewriteto(self, inplace=False):
         # Handle checksum
-        self._update_checksum(checksum)
+        self._update_checksum()
 
     # TODO: Improve this API a little bit--for one, most of these arguments
     # could be optional
@@ -1339,9 +1336,7 @@ class _ValidHDU(_BaseHDU, _Verify):
                     AstropyUserWarning,
                 )
 
-    def _update_checksum(
-        self, checksum, checksum_keyword="CHECKSUM", datasum_keyword="DATASUM"
-    ):
+    def _update_checksum(self, checksum_keyword="CHECKSUM", datasum_keyword="DATASUM"):
         """Update the 'CHECKSUM' and 'DATASUM' keywords in the header (or
         keywords with equivalent semantics given by the ``checksum_keyword``
         and ``datasum_keyword`` arguments--see for example ``CompImageHDU``
@@ -1351,14 +1346,14 @@ class _ValidHDU(_BaseHDU, _Verify):
         # way of knowing for sure
         modified = self._header._modified or self._data_loaded
 
-        if checksum == "remove":
+        if self._output_checksum == "remove":
             self._header.remove(checksum_keyword, ignore_missing=True)
             self._header.remove(datasum_keyword, ignore_missing=True)
         elif (
             modified
             or self._new
             or (
-                checksum
+                self._output_checksum
                 and (
                     "CHECKSUM" not in self._header
                     or "DATASUM" not in self._header
@@ -1367,9 +1362,9 @@ class _ValidHDU(_BaseHDU, _Verify):
                 )
             )
         ):
-            if checksum == "datasum":
+            if self._output_checksum == "datasum":
                 self.add_datasum(datasum_keyword=datasum_keyword)
-            elif checksum:
+            elif self._output_checksum:
                 self.add_checksum(
                     checksum_keyword=checksum_keyword, datasum_keyword=datasum_keyword
                 )
