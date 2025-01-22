@@ -35,8 +35,12 @@ from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
 
+from docutils.nodes import Element
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
+from sphinx.builders import Builder
+from sphinx.domains.python import PythonDomain
+from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
 
 # from docs import global_substitutions
@@ -649,6 +653,31 @@ def setup(app):
             "additional warnings about undefined references due "
             "to this."
         )
+
+    # Workaround for Python 3.13 build. See
+    # https://github.com/sphinx-doc/sphinx/issues/13232#issuecomment-2605370447
+    class PatchedPythonDomain(PythonDomain):
+        def resolve_xref(
+            self,
+            env: BuildEnvironment,
+            fromdocname: str,
+            builder: Builder,
+            type: str,
+            target: str,
+            node: resolve_xref,  # noqa: F405
+            contnode: Element,
+        ) -> Element:
+            # fixup some wrongly resolved mappings
+            mapping = {
+                "pathlib._local.Path": "pathlib.Path",
+            }
+            if target in mapping:
+                target = node["reftarget"] = mapping[target]
+            return super().resolve_xref(
+                env, fromdocname, builder, type, target, node, contnode
+            )
+
+    app.add_domain(PatchedPythonDomain, override=True)
 
     # Generate the page from Jinja template
     app.connect("source-read", rstjinja)
