@@ -805,7 +805,7 @@ def hstack(
 
 def unique(input_table, keys=None, silent=False, keep="first"):
     """
-    Returns the unique rows of a table.
+    Return a new table with unique rows, sorted by ``keys``.
 
     Parameters
     ----------
