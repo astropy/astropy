@@ -49,8 +49,8 @@ covariance matrix as a dense array and you want to construct a
     >>> # Create from a variance vector
     >>> var = np.ones(3, dtype=float)
     >>> covar = Covariance.from_variance(var)
-    >>> np.array_equal(covar.toarray(), np.identity(3)) # doctest: +ELLIPSIS
-    ...True...
+    >>> np.array_equal(covar.toarray(), np.identity(3))
+    True
     >>> # Instantiate from a covariance array
     >>> c = (np.diag(np.full(10-2, 0.2, dtype=float), k=-2)
     ...         + np.diag(np.full(10-1, 0.5, dtype=float), k=-1)
@@ -58,8 +58,8 @@ covariance matrix as a dense array and you want to construct a
     ...         + np.diag(np.full(10-1, 0.5, dtype=float), k=1)
     ...         + np.diag(np.full(10-2, 0.2, dtype=float), k=2))
     >>> covar = Covariance(array=c)
-    >>> np.array_equal(covar.toarray(), c)  # doctest: +ELLIPSIS
-    ...True...
+    >>> np.array_equal(covar.toarray(), c)
+    True
     >>> covar.toarray()
     array([[1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
            [0.5, 1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. , 0. ],
@@ -93,8 +93,8 @@ You can construct a covariance matrix based on samples from a distribution::
     ...         + np.diag(np.full(10-2, 0.2, dtype=float), k=2))
     >>> s = np.random.multivariate_normal(m, c, size=100000)
     >>> covar = Covariance.from_samples(s.T, cov_tol=0.1)
-    >>> np.all(np.absolute(c - covar.toarray()) < 0.02) # doctest: +ELLIPSIS
-    ...True...
+    >>> np.all(np.absolute(c - covar.toarray()) < 0.02)
+    True
 
 Here, we have drawn samples from a known multivariate normal distribution with a
 given covariance between its 10 axes and checked the reconstruction of the
@@ -151,8 +151,8 @@ multiplication and tests it against the known result.
             [0.2, 1. , 0.2],
             [0. , 0.2, 1. ]])
     >>> covar = Covariance.from_matrix_multiplication(t, c)
-    >>> np.array_equal(covar.toarray(), _c) # doctest: +ELLIPSIS
-    ...True...
+    >>> np.array_equal(covar.toarray(), _c)
+    True
 
 .. _nddata-covariance-data-access:
 
@@ -222,8 +222,8 @@ To reload the covariance matrix, use the
       1  VAR           1 ImageHDU         9   (10,)   float64
       2  CORREL        1 BinTableHDU     18   27R x 3C   [K, K, D]
     >>> _covar = Covariance.from_fits(ofile)
-    >>> np.allclose(covar.toarray(), _covar.toarray())  # doctest: +ELLIPSIS
-    ...True...
+    >>> np.allclose(covar.toarray(), _covar.toarray())
+    True
 
 The details of how the covariance data are stored are described by the
 `~astropy.nddata.covariance.Covariance.write` method.
