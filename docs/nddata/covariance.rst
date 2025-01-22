@@ -73,7 +73,7 @@ covariance matrix as a dense array and you want to construct a
            [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0.2, 0.5, 1. ]])
 
 Note the use of the `~astropy.nddata.covariance.Covariance.toarray` above to
-access the array; see :ref:`nddata-covariance-access`.
+access the array; see :ref:`nddata-covariance-covariance-access`.
 
 Instantiating from random samples
 ---------------------------------
@@ -183,7 +183,7 @@ Variance Vector and Correlation Matrix
 
 The `~astropy.nddata.covariance.Covariance` object only stores the variance
 vector and the upper triangle of correlation matrix.  In addition to
-:ref:`nddata-covariance-access`, you can access the full correlation matrix
+:ref:`nddata-covariance-covariance-access`, you can access the full correlation matrix
 using `~astropy.nddata.covariance.Covariance.full` to produce a sparse matrix or
 `~astropy.nddata.covariance.Covariance.toarray` for a dense matrix; just set the
 ``correlation`` parameter to ``True``.   The variance vector is stored as an
