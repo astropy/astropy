@@ -93,6 +93,10 @@ jobs:
 
         - name: Python 3.11 Double test (Run tests twice)
           linux: py311-test-double
+          runs-on: ubuntu-24.04-arm
+          posargs: -n=4
+          setenv: |
+            ARCH_ON_CI: "arm64"
 
   allowed_failures:
     needs: [initial_checks]
@@ -125,22 +129,3 @@ jobs:
       test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
       targets: |
         - cp311-manylinux_x86_64
-
-  test_arm64:
-    needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d68193b68216da64eafaa618f53c59f5d271c56e  # v1.14.0
-    with:
-      setenv: |
-        ARCH_ON_CI: "arm64"
-        IS_CRON: "false"
-      submodules: false
-      coverage: ''
-      libraries: |
-        apt:
-          - language-pack-de
-          - tzdata
-      envs: |
-        - name: Python 3.12 (arm64)
-          linux: py312-test
-          posargs: -n=2
-          runs-on: ubuntu-24.04-arm
