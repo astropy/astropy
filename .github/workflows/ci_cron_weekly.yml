@@ -168,27 +168,3 @@ jobs:
             ASTROPY_USE_SYSTEM_ALL=1 pip3 install -v --no-build-isolation -e .[test]
             pip3 list
             python3 -m pytest -m "not hypothesis"
-
-  test_arm64:
-
-    # Native arm64 testing - we keep this in the weekly cron to avoid exceeding free quota.
-
-    runs-on: ubuntu-24.04-arm
-    name: Python 3.12 (arm64)
-    # keep condition in sync with test_more_architectures
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
-    env:
-      ARCH_ON_CI: "arm64"
-
-    steps:
-      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871  # v4.2.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3  # v5.2.0
-        with:
-          python-version: '3.12'
-      - name: Set up dependencies
-        run: python3 -m pip install tox
-      - name: Run tests
-        run: python3 -m tox -e py312-test -- -n=2
