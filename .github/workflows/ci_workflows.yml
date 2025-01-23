@@ -97,6 +97,7 @@ jobs:
           posargs: -n=4
           setenv: |
             ARCH_ON_CI: "arm64"
+            IS_CRON: "false"
 
   allowed_failures:
     needs: [initial_checks]
