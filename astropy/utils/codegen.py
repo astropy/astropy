@@ -115,10 +115,10 @@ def make_function_with_signature(
     # The lstrip is in case there were *no* positional arguments (a rare case)
     # in any context this will actually be used...
     template = textwrap.dedent(
-        """{0}\
-    def {name}({sig1}):
-        return __{name}__func({sig2})
-    """.format(blank_lines, name=name, sig1=def_signature, sig2=call_signature)
+        f"""{blank_lines}\
+    def {name}({def_signature}):
+        return __{name}__func({call_signature})
+    """
     )
 
     code = compile(template, filename, "single")
