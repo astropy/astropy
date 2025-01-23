@@ -91,6 +91,7 @@ jobs:
           posargs: --durations=50 --run-slow
           runs-on: macos-latest
 
+        # FIXME: Add aarch64 to name when bump Python version.
         - name: Python 3.11 Double test (Run tests twice)
           linux: py311-test-double
           runs-on: ubuntu-24.04-arm
