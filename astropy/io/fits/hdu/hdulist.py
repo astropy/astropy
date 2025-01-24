@@ -740,10 +740,8 @@ class HDUList(list, _Verify):
             raise ValueError("HDUList can only append an HDU.")
 
         # store BZERO and BSCALE if present
-        if "BZERO" in hdu.header:
-            bzero = hdu.header["BZERO"]
-        if "BSCALE" in hdu.header:
-            bscale = hdu.header["BSCALE"]
+        bzero = hdu.header.get("BZERO")
+        bscale = hdu.header.get("BSCALE")
 
         if len(self) > 0:
             if isinstance(hdu, GroupsHDU):
@@ -779,9 +777,11 @@ class HDUList(list, _Verify):
                     super().append(phdu)
 
         # Add back BZERO and BSCALE if relevant
-        if hasattr(hdu, "_do_not_scale_image_data") and hdu._do_not_scale_image_data:
-            hdu.header["BZERO"] = bzero
-            hdu.header["BSCALE"] = bscale
+        if getattr(hdu, "_do_not_scale_image_data", False):
+            if bzero is not None:
+                hdu.header["BZERO"] = bzero
+            if bscale is not None:
+                hdu.header["BSCALE"] = bscale
 
         super().append(hdu)
         hdu._new = True
