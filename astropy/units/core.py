@@ -12,7 +12,7 @@ import textwrap
 import warnings
 from functools import cached_property
 from threading import RLock
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, NamedTuple, overload
 
 import numpy as np
 
@@ -47,6 +47,7 @@ __all__ = [
     "PrefixUnit",
     "Unit",
     "UnitBase",
+    "UnitPrefix",
     "UnrecognizedUnit",
     "add_enabled_aliases",
     "add_enabled_equivalencies",
@@ -2427,42 +2428,80 @@ class CompositeUnit(UnitBase):
         return len(unit.bases) == 0 and unit.scale == 1.0
 
 
-si_prefixes: Final[list[tuple[list[str], list[str], float]]] = [
-    (["Q"], ["quetta"], 1e30),
-    (["R"], ["ronna"], 1e27),
-    (["Y"], ["yotta"], 1e24),
-    (["Z"], ["zetta"], 1e21),
-    (["E"], ["exa"], 1e18),
-    (["P"], ["peta"], 1e15),
-    (["T"], ["tera"], 1e12),
-    (["G"], ["giga"], 1e9),
-    (["M"], ["mega"], 1e6),
-    (["k"], ["kilo"], 1e3),
-    (["h"], ["hecto"], 1e2),
-    (["da"], ["deka", "deca"], 1e1),
-    (["d"], ["deci"], 1e-1),
-    (["c"], ["centi"], 1e-2),
-    (["m"], ["milli"], 1e-3),
-    (["u", "\N{MICRO SIGN}", "\N{GREEK SMALL LETTER MU}"], ["micro"], 1e-6),
-    (["n"], ["nano"], 1e-9),
-    (["p"], ["pico"], 1e-12),
-    (["f"], ["femto"], 1e-15),
-    (["a"], ["atto"], 1e-18),
-    (["z"], ["zepto"], 1e-21),
-    (["y"], ["yocto"], 1e-24),
-    (["r"], ["ronto"], 1e-27),
-    (["q"], ["quecto"], 1e-30),
-]
+class UnitPrefix(NamedTuple):
+    """Prefix for representing multiples or sub-multiples of units.
+
+    Parameters
+    ----------
+    symbols : tuple of str
+        The symbols of the prefix, to be combined with symbols of units.
+        If multiple are specified then they will be treated as aliases.
+    names : tuple of str
+        The names of the prefix, to be combined with names of units.
+        If multiple are specified then they will be treated as aliases.
+    factor : `~astropy.units.typing.UnitScale`
+        The multiplicative factor represented by the prefix.
+
+    Examples
+    --------
+    >>> UnitPrefix(("k",), ("kilo",), 1e3)  # Simple prefix
+    UnitPrefix(symbols=('k',), names=('kilo',), factor=1000.0)
+    >>> UnitPrefix(("da",), ("deca", "deka"), 1e1)  # Multiple names
+    UnitPrefix(symbols=('da',), names=('deca', 'deka'), factor=10.0)
+    >>> UnitPrefix(("u", "\N{MICRO SIGN}"), ("micro",), 1e-6)  # Multiple symbols
+    UnitPrefix(symbols=('u', 'µ'), names=('micro',), factor=1e-06)
+    """
+
+    symbols: tuple[str, ...]
+    "The symbols of the prefix, to be combined with symbols of units."
+    names: tuple[str, ...]
+    "The names of the prefix, to be combined with names of units."
+    factor: UnitScale
+    "The multiplicative factor represented by the prefix."
 
 
-binary_prefixes: Final[list[tuple[list[str], list[str], int]]] = [
-    (["Ki"], ["kibi"], 2**10),
-    (["Mi"], ["mebi"], 2**20),
-    (["Gi"], ["gibi"], 2**30),
-    (["Ti"], ["tebi"], 2**40),
-    (["Pi"], ["pebi"], 2**50),
-    (["Ei"], ["exbi"], 2**60),
-]
+si_prefixes: Final = tuple(
+    UnitPrefix(symbols, names, factor)
+    for symbols, names, factor in (
+        (("Q",), ("quetta",), 1e30),
+        (("R",), ("ronna",), 1e27),
+        (("Y",), ("yotta",), 1e24),
+        (("Z",), ("zetta",), 1e21),
+        (("E",), ("exa",), 1e18),
+        (("P",), ("peta",), 1e15),
+        (("T",), ("tera",), 1e12),
+        (("G",), ("giga",), 1e9),
+        (("M",), ("mega",), 1e6),
+        (("k",), ("kilo",), 1e3),
+        (("h",), ("hecto",), 1e2),
+        (("da",), ("deka", "deca"), 1e1),
+        (("d",), ("deci",), 1e-1),
+        (("c",), ("centi",), 1e-2),
+        (("m",), ("milli",), 1e-3),
+        (("u", "\N{MICRO SIGN}", "\N{GREEK SMALL LETTER MU}"), ("micro",), 1e-6),
+        (("n",), ("nano",), 1e-9),
+        (("p",), ("pico",), 1e-12),
+        (("f",), ("femto",), 1e-15),
+        (("a",), ("atto",), 1e-18),
+        (("z",), ("zepto",), 1e-21),
+        (("y",), ("yocto",), 1e-24),
+        (("r",), ("ronto",), 1e-27),
+        (("q",), ("quecto",), 1e-30),
+    )
+)
+
+
+binary_prefixes: Final = tuple(
+    UnitPrefix(symbols, names, factor)
+    for symbols, names, factor in (
+        (("Ki",), ("kibi",), 2**10),
+        (("Mi",), ("mebi",), 2**20),
+        (("Gi",), ("gibi",), 2**30),
+        (("Ti",), ("tebi",), 2**40),
+        (("Pi",), ("pebi",), 2**50),
+        (("Ei",), ("exbi",), 2**60),
+    )
+)
 
 
 def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
