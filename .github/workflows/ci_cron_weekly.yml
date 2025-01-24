@@ -126,7 +126,7 @@ jobs:
         id: build
         with:
           arch: ${{ matrix.arch }}
-          distro: ubuntu_rolling
+          distro: ubuntu_latest
 
           shell: /bin/bash
           env: |
