@@ -113,8 +113,11 @@ jobs:
       matrix:
         include:
           - arch: s390x
+            image: '--platform=linux/s390x ubuntu:rolling'
           - arch: ppc64le
+            image: '--platform=linux/ppc64le ubuntu:rolling'
           - arch: armv7
+            image: '--platform=linux/armv7 ubuntu:rolling'
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
@@ -125,8 +128,7 @@ jobs:
         name: Run tests
         id: build
         with:
-          arch: ${{ matrix.arch }}
-          distro: ubuntu_rolling
+          base_image: ${{ matrix.image }}
 
           shell: /bin/bash
           env: |
