@@ -1155,6 +1155,13 @@ def format_doc(docstring, *args, **kwargs):
                 "docstring that is not empty."
             )
 
+        # Dedent both the original and the new docstring to ensure consistent
+        # leading whitespace, because from Python 3.13 the bytecode compiler
+        # strips leading whitespace from docstrings. If the text in ``doc``
+        # has any leading whitespace, this can lead to reST/Sphinx errors.
+        if sys.version_info[:2] >= (3, 13):
+            doc = textwrap.dedent(doc).lstrip("\n")
+
         # If the original has a not-empty docstring append it to the format
         # kwargs.
         kwargs["__doc__"] = obj.__doc__ or ""
