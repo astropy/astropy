@@ -1,0 +1,3 @@
+Units with the "micro" prefix can now be imported using ``"μ"`` in the name.
+For example, the microgram can now be imported with
+``from astropy.units import μg``.
