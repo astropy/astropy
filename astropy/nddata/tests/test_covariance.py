@@ -9,9 +9,6 @@ from astropy.nddata import covariance
 from astropy.table import Table
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-if HAS_SCIPY:
-    from scipy.sparse import csr_matrix
-
 scipy_required = pytest.mark.skipif(not HAS_SCIPY, reason="scipy not installed")
 
 
@@ -73,6 +70,40 @@ def test_scipy_funcs():
 
 
 @scipy_required
+def test_get_csr():
+    c = mock_cov()
+    # Convert a numpy array
+    carr = covariance._get_csr(c)
+    assert np.array_equal(carr.toarray(), c), "np.array not converted properly"
+    # Convert a list
+    clist = covariance._get_csr(c.tolist())
+    assert np.array_equal(clist.toarray(), c), "List not converted properly"
+    # Return input array if already a csr_matrix
+    ccsr = covariance.csr_matrix(c)
+    _ccsr = covariance._get_csr(ccsr)
+    assert _ccsr is ccsr, "Should return reference to the input"
+    # Fail if cannot be converted
+    with pytest.raises(TypeError):
+        cov = covariance.Covariance(array="test")
+
+
+@scipy_required
+def test_impose_sparse_value_threshold():
+    c = covariance.csr_matrix(mock_cov())
+
+    _c = covariance._impose_sparse_value_threshold(c, 0.0)
+    assert c is _c, "All elements are above 0, so array should be returned exactly."
+
+    _c = covariance._impose_sparse_value_threshold(c, 0.21)
+    assert c is not _c, "Should remove elements"
+    assert _c.nnz + 16 == c.nnz, "Incorrect number of elements removed."
+
+    _c = covariance._impose_sparse_value_threshold(c, 0.51)
+    assert c is not _c, "Should remove elements"
+    assert _c.nnz == _c.shape[0], "Should remove all but the diagonal"
+
+
+@scipy_required
 def test_bad_init_type():
     # It must be possible to convert the input array into a csr_matrix
     with pytest.raises(TypeError):
@@ -115,7 +146,7 @@ def test_init():
     cov = covariance.Covariance(array=c)
 
     # Convert to a CSR sparse matrix
-    c_csr = csr_matrix(c)
+    c_csr = covariance.csr_matrix(c)
     # And instantiate
     cov = covariance.Covariance(array=c_csr)
 
@@ -135,7 +166,7 @@ def test_stored_nnz():
 
 @scipy_required
 def test_nnz():
-    c_csr = csr_matrix(mock_cov())
+    c_csr = covariance.csr_matrix(mock_cov())
     cov = covariance.Covariance(array=c_csr)
     assert c_csr.nnz == cov.nnz, "Number of non-zero elements differ"
 
@@ -188,7 +219,7 @@ def test_indices():
 @scipy_required
 def test_coo():
     # 1D
-    cov = covariance.Covariance(array=csr_matrix(mock_cov()))
+    cov = covariance.Covariance(array=covariance.csr_matrix(mock_cov()))
     i, j, rhoij, var = cov.coordinate_data()
     assert i.size == cov._rho.nnz, "Coordinate data length is the incorrect size"
     assert var.ndim == 1, "Incorrect dimensionality"
@@ -199,7 +230,7 @@ def test_coo():
 
     # 2D
     raw_shape, c = mock_cov_2d()
-    c_csr = csr_matrix(c)
+    c_csr = covariance.csr_matrix(c)
     cov = covariance.Covariance(array=c_csr, raw_shape=raw_shape)
     # Try without reshaping
     ic, jc, rhoij, var = cov.coordinate_data(reshape=False)
@@ -221,7 +252,7 @@ def test_coo():
 
     # 3D
     raw_shape, c = mock_cov_3d()
-    c_csr = csr_matrix(c)
+    c_csr = covariance.csr_matrix(c)
     cov = covariance.Covariance(array=c_csr, raw_shape=raw_shape)
     i, j, rhoij, var = cov.coordinate_data(reshape=True)
     assert len(i) == len(raw_shape), "Dimensionality does not match"
@@ -231,7 +262,7 @@ def test_coo():
 
 @scipy_required
 def test_copy():
-    cov = covariance.Covariance(array=csr_matrix(mock_cov()))
+    cov = covariance.Covariance(array=covariance.csr_matrix(mock_cov()))
     _cov = cov.copy()
     assert cov is not _cov, "Objects have the same reference"
     assert cov._rho is not _cov._rho, "Object arrays have the same reference"
@@ -240,7 +271,7 @@ def test_copy():
 
 @scipy_required
 def test_tbls():
-    cov = covariance.Covariance(array=csr_matrix(mock_cov()))
+    cov = covariance.Covariance(array=covariance.csr_matrix(mock_cov()))
     var, correl = cov.to_tables()
     assert isinstance(var, np.ndarray), "variance should be output as an array"
     assert isinstance(correl, Table), "correlation data should be output as a table"
@@ -256,7 +287,7 @@ def test_tbls():
     ), "Bad convert/revert from tables"
 
     raw_shape, c = mock_cov_3d()
-    cov = covariance.Covariance(array=csr_matrix(c), raw_shape=raw_shape)
+    cov = covariance.Covariance(array=covariance.csr_matrix(c), raw_shape=raw_shape)
     var, correl = cov.to_tables()
     assert len(correl) == np.sum(np.triu(c) > 0), "Incorrect number of table entries"
     assert len(correl.colnames) == 3, "Incorrect number of columns"

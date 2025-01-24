@@ -200,16 +200,6 @@ class Covariance(NDUncertainty):
         """``"cov"``: `Covariance` implements a covariance matrix."""
         return "cov"
 
-    #    @property
-    #    def array(self):
-    #        """`numpy.ndarray` : the uncertainty's value."""
-    #        return self.toarray()
-    #
-    #    @array.setter
-    #    def array(self, value):
-    #        raise NotImplementedError('Directly setting array values is not allowed for '
-    #                                  'Covariance objects.')
-
     @property
     def quantity(self):
         """
