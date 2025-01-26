@@ -1,0 +1,4 @@
+Fix setting logging level from the ``samp_hub`` command line.
+Previously, ``samp_hub --log-level OFF`` was documented as supported but actually caused an exception to be raised.
+The patch infers valid choices from the standard library's ``logging`` module.
+A ``CRITICAL`` level will closely emulate the intended ``OFF`` setting.
