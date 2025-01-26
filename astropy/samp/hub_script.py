@@ -5,6 +5,7 @@ import argparse
 import copy
 import sys
 import time
+import logging
 
 from astropy import __version__, log
 
@@ -106,16 +107,18 @@ def hub_script(timeout=0):
         "specify the output files where redirect the logging messages.",
     )
 
+    log_levels = logging.getLevelNamesMapping().keys()
     log_group.add_argument(
         "-L",
         "--log-level",
         dest="loglevel",
         metavar="LEVEL",
-        help="set the Hub instance log level (OFF, ERROR, WARNING, INFO, DEBUG).",
+        help=f"set the Hub instance log level ({', '.join(log_levels)}).",
         type=str,
-        choices=["OFF", "ERROR", "WARNING", "INFO", "DEBUG"],
+        choices=log_levels,
         default="INFO",
     )
+    del log_levels
 
     log_group.add_argument(
         "-O",
@@ -170,8 +173,7 @@ def hub_script(timeout=0):
     options = parser.parse_args()
 
     try:
-        if options.loglevel in ("OFF", "ERROR", "WARNING", "DEBUG", "INFO"):
-            log.setLevel(options.loglevel)
+        log.setLevel(options.loglevel)
 
         if options.logout != "":
             context = log.log_to_file(options.logout)
