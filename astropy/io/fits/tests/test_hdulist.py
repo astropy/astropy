@@ -178,14 +178,19 @@ class TestHDUListFunctions(FitsTestCase):
         with pytest.raises(ValueError):
             hdul.append(hdu)
 
-    def test_append_scaled_image_with_do_not_scale_image_data(self):
+    @pytest.mark.parametrize("do_not_scale", [True, False])
+    def test_append_scaled_image_with_do_not_scale_image_data(self, do_not_scale):
         """Tests appending a scaled ImageHDU to a HDUList."""
 
         with (
-            fits.open(self.data("scale.fits"), do_not_scale_image_data=True) as source,
+            fits.open(
+                self.data("scale.fits"), do_not_scale_image_data=do_not_scale
+            ) as source,
             fits.open(self.temp("dest.fits"), mode="append") as dest,
         ):
+            # create the file
             dest.append(source[0])
+            # append a second hdu
             dest.append(source[0])
             assert dest[-1].header["BSCALE"] == source[0].header["BSCALE"]
             assert dest[-1].header["BZERO"] == source[0].header["BZERO"]
