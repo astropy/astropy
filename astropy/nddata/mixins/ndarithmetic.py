@@ -236,15 +236,14 @@ class NDArithmeticMixin:
         """
         # Find the appropriate keywords for the appropriate method (not sure
         # if data and uncertainty are ever used ...)
-        kwds2 = {"mask": {}, "meta": {}, "wcs": {}, "data": {}, "uncertainty": {}}
-        for i, kwd in kwds.items():
-            splitted = i.split("_", 1)
-            try:
-                kwds2[splitted[0]][splitted[1]] = kwd
-            except KeyError:
-                raise KeyError(f"Unknown prefix {splitted[0]} for parameter {i}")
-
         kwargs = {}
+        kwds2 = {"mask": {}, "meta": {}, "wcs": {}, "data": {}, "uncertainty": {}}
+        for kwd in kwds:
+            splitted = kwd.split("_", 1)
+            if splitted[0] in kwds2:
+                kwds2[splitted[0]][splitted[1]] = kwds[kwd]
+            else:
+                kwargs[kwd] = kwds[kwd]
 
         # First check that the WCS allows the arithmetic operation
         if compare_wcs is None:
