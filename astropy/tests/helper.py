@@ -10,7 +10,6 @@ import pickle
 import pytest
 
 from astropy.units import allclose as quantity_allclose  # noqa: F401
-from astropy.utils.introspection import minversion
 
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # noqa: F401
@@ -23,7 +22,6 @@ __all__ = [
     "pickle_protocol",
 ]
 
-PYTEST_LT_8_0 = not minversion(pytest, "8.0")
 
 # https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
 CI = os.environ.get("CI", "false") == "true"

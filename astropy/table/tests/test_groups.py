@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from contextlib import nullcontext
 
 import numpy as np
 import pytest
@@ -11,7 +10,6 @@ from hypothesis.strategies import integers
 from astropy import coordinates, time
 from astropy import units as u
 from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -475,12 +473,10 @@ def test_table_aggregate(T1):
     t1m["q"].mask[4:6] = True
     tg = t1m.group_by("a")
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(AstropyUserWarning, match="Cannot aggregate column")
-
-    with pytest.warns(UserWarning, match="converting a masked element to nan"), ctx:
+    with (
+        pytest.warns(UserWarning, match="converting a masked element to nan"),
+        pytest.warns(AstropyUserWarning, match="Cannot aggregate column"),
+    ):
         tga = tg.groups.aggregate(np.sum)
 
     assert tga.pformat() == [
