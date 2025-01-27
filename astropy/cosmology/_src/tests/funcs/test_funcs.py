@@ -30,7 +30,6 @@ from astropy.cosmology import (
     z_at_value,
 )
 from astropy.cosmology._src.funcs.optimize import _z_at_scalar_value
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
@@ -209,11 +208,6 @@ def test_z_at_value_bracketed(method):
     """
     cosmo = Planck13
 
-    if PYTEST_LT_8_0:
-        ctx_fval = nullcontext()
-    else:
-        ctx_fval = pytest.warns(AstropyUserWarning, match="fval is not bracketed")
-
     if method == "Bounded":
         with pytest.warns(AstropyUserWarning, match="fval is not bracketed"):
             z = z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, method=method)
@@ -223,7 +217,10 @@ def test_z_at_value_bracketed(method):
         else:
             z = 0.6812777
             bracket = (1.6, 2.0)
-        with pytest.warns(UserWarning, match="Option 'bracket' is ignored"), ctx_fval:
+        with (
+            pytest.warns(UserWarning, match="Option 'bracket' is ignored"),
+            pytest.warns(AstropyUserWarning, match="fval is not bracketed"),
+        ):
             assert allclose(
                 z_at_value(
                     cosmo.angular_diameter_distance,
@@ -319,7 +316,7 @@ def test_z_at_value_bracketed(method):
             rtol=1e-6,
         )
 
-    if not PYTEST_LT_8_0 and method == "Bounded":
+    if method == "Bounded":
         ctx_bracket = pytest.warns(
             UserWarning, match="Option 'bracket' is ignored by method Bounded"
         )

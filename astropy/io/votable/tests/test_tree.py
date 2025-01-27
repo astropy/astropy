@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import filecmp
 import io
-from contextlib import nullcontext
 
 import numpy as np
 import pytest
@@ -10,7 +9,6 @@ from astropy.io.votable import tree
 from astropy.io.votable.exceptions import E26, W07, W08, W21, W41
 from astropy.io.votable.table import parse
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -263,14 +261,9 @@ def test_version():
     parse(io.BytesIO(begin + b"1.4" + middle + b"1.3" + end), verify="exception")
     parse(io.BytesIO(begin + b"1.5" + middle + b"1.3" + end), verify="exception")
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(W41)
-
     # Invalid versions
     for bversion in (b"1.0", b"2.0"):
-        with pytest.warns(W21), ctx:
+        with pytest.warns(W21), pytest.warns(W41):
             parse(
                 io.BytesIO(begin + bversion + middle + bversion + end),
                 verify="exception",

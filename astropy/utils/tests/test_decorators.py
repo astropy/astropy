@@ -4,11 +4,9 @@ import concurrent.futures
 import inspect
 import pickle
 import sys
-from contextlib import nullcontext
 
 import pytest
 
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.decorators import (
     classproperty,
     deprecated,
@@ -417,19 +415,14 @@ def test_deprecated_argument_relaxed():
     assert len(w) == 1
 
     # Using both. Both keyword
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(AstropyDeprecationWarning)
-
-    with ctx, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(clobber=2, overwrite=1) == 1
     assert len(w) == 2
     assert '"clobber" was deprecated' in str(w[0].message)
     assert '"clobber" and "overwrite" keywords were set' in str(w[1].message)
 
     # One positional, one keyword
-    with ctx, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(1, clobber=2) == 1
     assert len(w) == 2
     assert '"clobber" was deprecated' in str(w[0].message)
@@ -471,20 +464,15 @@ def test_deprecated_argument_multi_deprecation():
     assert len(w) == 3
 
     # Make sure relax is valid for all arguments
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(AstropyDeprecationWarning)
-
-    with ctx, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, b=3) == (1, 3, 3)
     assert len(w) == 4
 
-    with ctx, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, a=3) == (3, 2, 3)
     assert len(w) == 4
 
-    with ctx, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, c=5) == (1, 2, 5)
     assert len(w) == 4
 
@@ -496,21 +484,15 @@ def test_deprecated_argument_multi_deprecation_2():
     def test(a, b, c):
         return a, b, c
 
-    if PYTEST_LT_8_0:
-        ctx1 = nullcontext()
-        ctx2 = pytest.warns(AstropyUserWarning)
-    else:
-        ctx1 = ctx2 = pytest.warns(AstropyDeprecationWarning)
-
-    with ctx1, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, b=3) == (1, 3, 3)
     assert len(w) == 4
 
-    with ctx1, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, a=3) == (3, 2, 3)
     assert len(w) == 4
 
-    with pytest.raises(TypeError), ctx2:
+    with pytest.raises(TypeError), pytest.warns(AstropyDeprecationWarning):
         assert test(x=1, y=2, z=3, c=5) == (1, 2, 5)
 
 
