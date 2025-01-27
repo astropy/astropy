@@ -39,7 +39,6 @@ from astropy.coordinates.representation import (
     CartesianDifferential,
 )
 from astropy.coordinates.tests.helper import skycoord_equal
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
@@ -254,22 +253,11 @@ def test_no_data_nonscalar_frames():
     assert a1.temperature.shape == (3, 10)
     assert a1.shape == (3, 10)
 
-    match = r".*inconsistent shapes.*"
-    if PYTEST_LT_8_0:
-        # Exception.__notes__ are ignored in matching,
-        # so we'll match manually and post-mortem instead
-        direct_match = None
-    else:
-        direct_match = match
-
-    with pytest.raises(ValueError, match=direct_match) as exc:
+    with pytest.raises(ValueError, match=r".*inconsistent shapes.*"):
         AltAz(
             obstime=Time("2012-01-01") + np.arange(10.0) * u.day,
             temperature=np.ones((3,)) * u.deg_C,
         )
-
-    if direct_match is None:
-        assert re.match(match, "\n".join(exc.value.__notes__))
 
 
 def test_frame_repr():
@@ -746,19 +734,8 @@ def test_time_inputs():
     assert c.shape == (2,)
 
     # If the shapes are not broadcastable, then we should raise an exception.
-    match = r".*inconsistent shapes.*"
-    if PYTEST_LT_8_0:
-        # Exception.__notes__ are ignored in matching,
-        # so we'll match manually and post-mortem instead
-        direct_match = None
-    else:
-        direct_match = match
-
-    with pytest.raises(ValueError, match=direct_match) as exc:
+    with pytest.raises(ValueError, match=r".*inconsistent shapes.*"):
         FK4([1, 2, 3] * u.deg, [4, 5, 6] * u.deg, obstime=["J2000", "J2001"])
-
-    if direct_match is None:
-        assert re.match(match, "\n".join(exc.value.__notes__))
 
 
 def test_is_frame_attr_default():

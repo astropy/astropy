@@ -98,7 +98,7 @@ all = [
 test = [
     "coverage>=6.4.4",
     "pre-commit>=2.9.3", # lower bound is not tested beyond installation
-    "pytest>=7.3.0",
+    "pytest>=8.0.0",
     "pytest-doctestplus>=0.12",
     "pytest-astropy-header>=0.2.1",
     "pytest-astropy>=0.10.0",
@@ -122,7 +122,7 @@ docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
     "sphinx",
     "sphinx-astropy[confv2]>=1.9.1",
-    "pytest>=7.0",
+    "pytest>=8.0.0",
     "sphinx-changelog>=1.2.0",
     "sphinx_design",
     "Jinja2>=3.1.3",

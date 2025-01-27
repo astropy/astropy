@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
-from contextlib import nullcontext
 
 import erfa
 import numpy as np
@@ -12,7 +11,6 @@ from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord, golden_spiral_grid
 from astropy.coordinates.builtin_frames import ICRS, AltAz
 from astropy.coordinates.builtin_frames.utils import get_jd12
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.time import Time
 from astropy.utils import iers
 
@@ -198,12 +196,8 @@ def test_future_altaz():
     t = Time("J2161")
 
     # check that these message(s) appear among any other warnings
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(erfa.core.ErfaWarning)
     with (
-        ctx,
+        pytest.warns(erfa.core.ErfaWarning),
         pytest.warns(
             AstropyWarning,
             match="Tried to get polar motions for times after IERS data is valid.*",
