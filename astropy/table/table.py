@@ -1073,8 +1073,17 @@ class Table:
             Indexing engine class to use, either `~astropy.table.SortedArray`,
             `~astropy.table.BST`, or `~astropy.table.SCEngine`. If the supplied
             argument is None (by default), use `~astropy.table.SortedArray`.
-        unique : bool
-            Whether the values of the index must be unique. Default is False.
+        unique : bool (default: False)
+            If set to True, an exception will be raised if duplicate rows exist.
+
+        Raises
+        ------
+        ValueError
+            If any selected column does not support indexing, or has more than
+            one dimension.
+        ValueError
+            If unique=True and duplicate rows are found.
+
         """
         if isinstance(colnames, str):
             colnames = (colnames,)
