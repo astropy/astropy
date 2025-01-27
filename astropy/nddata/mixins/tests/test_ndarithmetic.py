@@ -1282,6 +1282,30 @@ def test_two_argument_useage_non_nddata_first_arg(meth):
     np.testing.assert_array_equal(ndd3.data, ndd4.data)
 
 
+def test_arithmetic_with_init_kwargs():
+    # Define a class the requires an kwarg for initialization to ensure that
+    # its value is getting passed through arithmetic.
+    class TestKwarg(NDDataArithmetic):
+        def __init__(self, data, test_kwarg=None, **kwargs):
+            if test_kwarg is None:
+                raise ValueError("test_kwarg can't be None!")
+            self.test_kwarg = test_kwarg
+            super().__init__(data=data, **kwargs)
+
+        def __add__(self, other):
+            # Classes like this will need to handle creating a class instance
+            # of the other operand before doing arithmetic with it.
+            if not isinstance(other, self.__class__):
+                other = self.__class__(other, test_kwarg=self.test_kwarg)
+            return self.add(other, test_kwarg=self.test_kwarg)
+
+    a = TestKwarg([1, 2, 3] * u.Jy, test_kwarg="Success")
+    b = [1, 2, 3] * u.Jy
+    c = a + b
+    assert_array_equal(c.data, [2, 4, 6])
+    assert c.test_kwarg == "Success"
+
+
 def test_arithmetics_unknown_uncertainties():
     # Not giving any uncertainty class means it is saved as UnknownUncertainty
     ndd1 = NDDataArithmetic(

@@ -238,12 +238,12 @@ class NDArithmeticMixin:
         # if data and uncertainty are ever used ...)
         kwargs = {}
         kwds2 = {"mask": {}, "meta": {}, "wcs": {}, "data": {}, "uncertainty": {}}
-        for kwd in kwds:
-            splitted = kwd.split("_", 1)
+        for key, kwd in kwds.items():
+            splitted = key.split("_", 1)
             if splitted[0] in kwds2:
-                kwds2[splitted[0]][splitted[1]] = kwds[kwd]
+                kwds2[splitted[0]][splitted[1]] = kwd
             else:
-                kwargs[kwd] = kwds[kwd]
+                kwargs[key] = kwd
 
         # First check that the WCS allows the arithmetic operation
         if compare_wcs is None:
