@@ -3968,6 +3968,10 @@ class Table:
         -------
         out : `~astropy.table.Table`
             New table with groups set
+
+        Notes
+        -----
+        The underlying sorting algorithm is guaranteed stable.
         """
         return groups.table_group_by(self, keys)
 
