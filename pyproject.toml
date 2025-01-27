@@ -160,7 +160,7 @@ wcslint = "astropy.wcs.wcslint:main"
 
 [build-system]
 requires = ["setuptools",
-            "setuptools_scm>=6.2",
+            "setuptools_scm>=8.0.0",
             "cython>=3.0.0, <4",
             "numpy>=2.0.0, <3",
             "extension-helpers>=1,<2"]
@@ -193,7 +193,7 @@ namespaces = true
 "astropy.utils.tests" = ["data/.hidden_file.txt"]
 
 [tool.setuptools_scm]
-write_to = "astropy/_version.py"
+version_file = "astropy/_version.py"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
