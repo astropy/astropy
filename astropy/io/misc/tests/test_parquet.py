@@ -17,8 +17,8 @@ from astropy.coordinates import (
 from astropy.io.misc.parquet import get_pyarrow, parquet_identify
 from astropy.table import Column, NdarrayMixin, QTable, Table
 from astropy.table.table_helpers import simple_table
+from astropy.tests.helper import _assert_mixin_columns_equal
 from astropy.time import Time, TimeDelta
-from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.exceptions import AstropyUserWarning
@@ -554,44 +554,6 @@ def test_fail_meta_serialize(tmp_path):
     assert "<class 'str'>" in str(err.value)
 
 
-def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
-    """Convenient routine to check objects and attributes match."""
-
-    if compare_class:
-        assert obj1.__class__ is obj2.__class__
-
-    info_attrs = [
-        "info.name",
-        "info.format",
-        "info.unit",
-        "info.description",
-        "info.meta",
-    ]
-    for attr in attrs + info_attrs:
-        a1 = obj1
-        a2 = obj2
-        for subattr in attr.split("."):
-            try:
-                a1 = getattr(a1, subattr)
-                a2 = getattr(a2, subattr)
-            except AttributeError:
-                a1 = a1[subattr]
-                a2 = a2[subattr]
-
-        # Mixin info.meta can None instead of empty OrderedDict(), #6720 would
-        # fix this.
-        if attr == "info.meta":
-            if a1 is None:
-                a1 = {}
-            if a2 is None:
-                a2 = {}
-
-        if isinstance(a1, np.ndarray) and a1.dtype.kind == "f":
-            assert quantity_allclose(a1, a2, rtol=1e-15)
-        else:
-            assert np.all(a1 == a2)
-
-
 # Testing Parquet table read/write with mixins. This is mostly
 # copied from HDF5/FITS mixin testing, and it might be good to unify it.
 # Analogous tests also exist for ECSV.
@@ -754,10 +716,10 @@ def test_parquet_mixins_qtable_to_table(tmp_path):
             # Class-specific attributes like `value` or `wrap_angle` are lost.
             attrs = ["unit"]
             compare_class = False
-            # Compare data values here (assert_objects_equal doesn't know how in this case)
+            # Compare data values here (_assert_mixin_columns_equal doesn't know how in this case)
             assert np.all(col.value == col2)
 
-        assert_objects_equal(col, col2, attrs, compare_class)
+        _assert_mixin_columns_equal(col, col2, attrs=attrs, compare_class=compare_class)
 
 
 @pytest.mark.parametrize("table_cls", (Table, QTable))
@@ -805,7 +767,9 @@ def test_parquet_mixins_per_column(table_cls, name_col, tmp_path):
     assert t.colnames == t2.colnames
 
     for colname in t.colnames:
-        assert_objects_equal(t[colname], t2[colname], compare_attrs[colname])
+        _assert_mixin_columns_equal(
+            t[colname], t2[colname], attrs=compare_attrs[colname]
+        )
 
     # Special case to make sure Column type doesn't leak into Time class data
     if name.startswith("tm"):
