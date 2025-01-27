@@ -9,7 +9,7 @@ from erfa import ufunc as erfa_ufunc
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 
 
 def vvd(val, valok, dval, func, test, status):
@@ -127,11 +127,13 @@ class TestPVUfuncs:
         # Test for a useful error message - see gh-16873.
         # Non-quantity input should be treated as dimensionless and thus cannot
         # be converted to radians.
-        match = "'NoneType' object has no attribute 'get_converter'"
-        if not PYTEST_LT_8_0:
-            # pytest < 8 does not know how to deal with Exception.add_note
-            match += ".*\n.*treated as dimensionless"
-        with pytest.raises(AttributeError, match=match):
+        with pytest.raises(
+            AttributeError,
+            match=(
+                "'NoneType' object has no attribute 'get_converter'"
+                ".*\n.*treated as dimensionless"
+            ),
+        ):
             erfa_ufunc.s2p(0.5, 0.5, 4 * u.km)
 
         # Except if we have the right equivalency in place.
@@ -546,10 +548,10 @@ class TestGeodetic:
     def test_unit_errors(self):
         """Test unit errors when dimensionless parameters are used"""
 
-        msg = "'NoneType' object has no attribute 'get_converter'"
-        if not PYTEST_LT_8_0:
-            # pytest < 8 does not know how to deal with Exception.add_note
-            msg += ".*\n.*treated as dimensionless"
+        msg = (
+            "'NoneType' object has no attribute 'get_converter'"
+            ".*\n.*treated as dimensionless"
+        )
         with pytest.raises(AttributeError, match=msg):
             erfa_ufunc.gc2gde(self.equatorial_radius_value, self.flattening, self.xyz)
         with pytest.raises(AttributeError, match=msg):

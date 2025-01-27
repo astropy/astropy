@@ -3,7 +3,6 @@
 # a mix-in)
 
 import warnings
-from contextlib import nullcontext
 from itertools import product
 
 import numpy as np
@@ -25,7 +24,7 @@ from astropy.coordinates import (
 from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
-from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import Quantity, UnitsWarning
 from astropy.utils import iers
@@ -806,19 +805,16 @@ def test_time_1d_unsupported_ctype(header_time_1d_no_obs):
     # Case where the MJDREF is split into two for high precision
     header_time_1d_no_obs["CTYPE1"] = "UT(WWV)"
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(
-            UserWarning, match="Missing or incomplete observer location information"
-        )
-
     wcs = WCS(header_time_1d_no_obs)
     with (
         pytest.warns(
-            UserWarning, match="Dropping unsupported sub-scale WWV from scale UT"
+            UserWarning,
+            match="Dropping unsupported sub-scale WWV from scale UT",
         ),
-        ctx,
+        pytest.warns(
+            UserWarning,
+            match="Missing or incomplete observer location information",
+        ),
     ):
         time = wcs.pixel_to_world(10)
 

@@ -42,7 +42,7 @@ from astropy.coordinates import (
 )
 from astropy.coordinates.sites import get_builtin_sites
 from astropy.table import Table
-from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils import iers
@@ -252,14 +252,11 @@ def test_regression_futuretimes_4302():
     else:
         ctx1 = nullcontext()
 
-    ctx2 = pytest.warns(ErfaWarning, match=".*dubious year.*")
-
-    if PYTEST_LT_8_0:
-        ctx3 = nullcontext()
-    else:
-        ctx3 = pytest.warns(AstropyWarning, match=".*times after IERS data is valid.*")
-
-    with ctx1, ctx2, ctx3:
+    with (
+        ctx1,
+        pytest.warns(ErfaWarning, match=".*dubious year.*"),
+        pytest.warns(AstropyWarning, match=".*times after IERS data is valid.*"),
+    ):
         future_time = Time("2511-5-1")
         c = CIRS(1 * u.deg, 2 * u.deg, obstime=future_time)
         with iers.conf.set_temp("auto_max_age", None):
