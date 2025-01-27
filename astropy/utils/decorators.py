@@ -3,6 +3,7 @@
 
 import functools
 import inspect
+import sys
 import textwrap
 import threading
 import types
