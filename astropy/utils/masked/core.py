@@ -18,6 +18,7 @@ which can also be overridden if needed.
 
 import abc
 import builtins
+import importlib
 
 import numpy as np
 
@@ -1428,3 +1429,33 @@ class MaskedRecarray(np.recarray, MaskedNDArray, data_cls=np.recarray):
         out0 = cls_name + "(" + rest
         extra_space = (len(cls_name) - len(prefix)) * " "
         return "\n".join([out0] + [extra_space + o for o in out[1:]])
+
+
+_base_class_qualnames = [
+    "astropy.units.quantity.Quantity",
+    "astropy.coordinates.angles.core.Angle",
+    "astropy.coordinates.angles.core.Latitude",
+    "astropy.coordinates.angles.core.Longitude",
+]
+
+
+def __getattr__(key):
+    """Make commonly used Masked subclasses importable for ASDF support.
+
+    Registered types associated with ASDF converters must be importable by
+    their fully qualified name. Masked classes are dynamically created and have
+    apparent names like ``astropy.utils.masked.core.MaskedQuantity`` although
+    they aren't actually attributes of this module. Customize module attribute
+    lookup so that certain commonly used Masked classes are importable.
+
+    See:
+    - https://asdf.readthedocs.io/en/latest/asdf/extending/converters.html#entry-point-performance-considerations
+    - https://github.com/astropy/asdf-astropy/pull/253
+    """
+    if key.startswith(Masked.__name__):
+        base_class_name = key[len(Masked.__name__) :]
+        for base_class_qualname in _base_class_qualnames:
+            module, _, name = base_class_qualname.rpartition(".")
+            if name == base_class_name:
+                return Masked(getattr(importlib.import_module(module), name))
+    raise AttributeError(f"module '{__name__}' has no attribute '{key}'")
