@@ -126,7 +126,7 @@ jobs:
         id: build
         with:
           arch: ${{ matrix.arch }}
-          distro: ubuntu22.04
+          distro: ubuntu_rolling
 
           shell: /bin/bash
           env: |
@@ -135,7 +135,9 @@ jobs:
 
           install: |
             apt-get update -q -y
+            apt-get install -q -y clang
             apt-get install -q -y gnupg2
+            CC=clang pyenv install 3.12.3
             # Add test-support repository for wcslib8
             echo "deb http://ppa.launchpadcontent.net/astropy/test-support/ubuntu lunar main" > /etc/apt/sources.list.d/test-support.list
             gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv CC75F07B3EF41EFC
