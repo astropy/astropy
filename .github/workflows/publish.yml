@@ -62,7 +62,7 @@ jobs:
         # FIXME: Also see https://github.com/astropy/astropy/issues/17663
         #- cp311-manylinux_aarch64
         #- cp312-manylinux_aarch64
-        - cp313-manylinux_aarch64
+        #- cp313-manylinux_aarch64
 
         - cp311-musllinux_x86_64
         - cp312-musllinux_x86_64
