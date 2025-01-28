@@ -27,7 +27,8 @@ try:
 except NameError:
     _WITHIN_IPYTHON = False
 else:
-    _WITHIN_IPYTHON = True
+    from IPython import get_ipython
+    _WITHIN_IPYTHON = get_ipython() is not None
 
 __all__ = [
     "CRITICAL",
