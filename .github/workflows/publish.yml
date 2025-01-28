@@ -59,8 +59,9 @@ jobs:
 
         # Note that following wheels are not currently tested:
 
-        - cp311-manylinux_aarch64
-        - cp312-manylinux_aarch64
+        # FIXME: Also see https://github.com/astropy/astropy/issues/17663
+        #- cp311-manylinux_aarch64
+        #- cp312-manylinux_aarch64
         - cp313-manylinux_aarch64
 
         - cp311-musllinux_x86_64
