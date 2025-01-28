@@ -318,8 +318,6 @@ class AstropyLogger(Logger):
             True if exception logging is on, False if not.
         """
         if _WITHIN_IPYTHON:
-            from IPython import get_ipython
-
             return _AstLogIPYExc in get_ipython().custom_exceptions
         else:
             return self._excepthook_orig is not None
@@ -338,7 +336,6 @@ class AstropyLogger(Logger):
 
         if _WITHIN_IPYTHON:
             # IPython has its own way of dealing with excepthook
-            from IPython import get_ipython
 
             # We need to locally define the function here, because IPython
             # actually makes this a member function of their own class
@@ -377,8 +374,6 @@ class AstropyLogger(Logger):
 
         if _WITHIN_IPYTHON:
             # IPython has its own way of dealing with exceptions
-            from IPython import get_ipython
-
             get_ipython().set_custom_exc(tuple(), None)
         else:
             # standard python interpreter
