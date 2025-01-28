@@ -9,7 +9,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 import astropy.units as u
 from astropy.modeling.core import CompoundModel, Model, ModelDefinitionError
-from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.fitting import DogBoxLSQFitter, LevMarLSQFitter
 from astropy.modeling.models import (
     Chebyshev1D,
     Chebyshev2D,
@@ -1258,19 +1258,58 @@ def numerical_partial_deriv(model, *inputs, param_idx, delta=1e-5):
             Polynomial1D(2) * Gaussian1D(),
             Polynomial1D(2) / Gaussian1D(),
             Polynomial1D(2) + Gaussian1D(),
+            Polynomial2D(2) + Gaussian2D(),
         ]
     ],
 )
-def test_compound_fit_deriv(model):
+@pytest.mark.parametrize("input_ndim", (1, 2))
+def test_compound_fit_deriv(model, input_ndim):
     """
     Given some compound models compare the numerical derivatives to analytical ones.
     """
+
     x = np.linspace(1, 5, num=10)
+    y = np.linspace(1, 5, num=10)
+
+    if input_ndim == 2:
+        x = x.reshape((5, 2))
+        y = y.reshape((5, 2))
+
+    inputs = (x,) if model.n_inputs == 1 else (x, y)
+
     numerical = [
-        numerical_partial_deriv(model, x, param_idx=i)
+        numerical_partial_deriv(model, *inputs, param_idx=i)
         for i in range(len(model.parameters))
     ]
-    analytical = model.fit_deriv(x, *model.parameters)
+    analytical = model.fit_deriv(*inputs, *model.parameters)
 
-    for n, a in zip(numerical, analytical):
-        assert np.allclose(n, a)
+    numerical = np.asarray(numerical)
+    analytical = np.asarray(analytical)
+
+    # Reshape output to ravel all but the first dimension since some models do this
+    numerical = numerical.reshape((numerical.shape[0], -1))
+    analytical = analytical.reshape((analytical.shape[0], -1))
+
+    assert_allclose(numerical, analytical)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_fit_compound_polynomial2d():
+    """
+    Regression test for a bug that caused compound models with Polynomial2D
+    to not be fittable due to a bug in CompoundModel.fit_deriv
+    """
+
+    # Generate fake data
+    rng = np.random.default_rng(0)
+    y, x = np.mgrid[:128, :128]
+    z = 2.0 * x**2 - 0.5 * x**2 + 1.5 * x * y - 1.0
+    z += rng.normal(0.0, 0.1, z.shape) * 50000.0
+    z += Gaussian2D(amplitude=50000, x_mean=60, y_mean=60, x_stddev=5, y_stddev=5)(x, y)
+
+    # Fit the data using astropy.modeling
+    p_init = Polynomial2D(degree=2) + Gaussian2D(amplitude=50000, x_mean=60, y_mean=60)
+    fit_p = DogBoxLSQFitter()
+
+    # We just make sure the fitting works, as it previously crashed
+    fit_p(p_init, x, y, z)
