@@ -1,0 +1,1 @@
+Fixed logger crashing within IPython session without active kernel.
