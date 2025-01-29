@@ -1548,6 +1548,10 @@ def download_file(
                 e.reason.strerror = f"{e.reason.strerror}. requested URL: {remote_url}"
                 e.reason.args = (e.reason.errno, e.reason.strerror)
             errors[source_url] = e
+
+        except TimeoutError as e:
+            errors[source_url] = e
+
     else:  # No success
         if not sources:
             raise KeyError(
