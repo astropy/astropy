@@ -3594,7 +3594,7 @@ def test_table_replace_column_with_scalar(empty_table):
         t.replace_column("a", 2)
 
 
-@pytest.mark.parametrize("rows", [[], None])
+@pytest.mark.parametrize("rows", [[], (), None])
 def test_table_create_no_rows(rows):
     t = Table(rows=rows, names=["foo", "bar"], dtype=[int, int])
     assert len(t) == 0

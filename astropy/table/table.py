@@ -732,10 +732,14 @@ class Table:
         # a list of dict. If data are not list of dict then this is None.
         names_from_list_of_dict = None
 
+        # Treat empty rows same as None case.
+        if isinstance(rows, (list, tuple)) and len(rows) < 1:
+            rows = None
+
         # Row-oriented input, e.g. list of lists or list of tuples, list of
         # dict, Row instance.  Set data to something that the subsequent code
         # will parse correctly.
-        if rows is not None and len(rows) > 0:
+        if rows is not None:
             if data is not None:
                 raise ValueError("Cannot supply both `data` and `rows` values")
             if isinstance(rows, types.GeneratorType):
