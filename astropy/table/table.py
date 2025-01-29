@@ -735,7 +735,7 @@ class Table:
         # Row-oriented input, e.g. list of lists or list of tuples, list of
         # dict, Row instance.  Set data to something that the subsequent code
         # will parse correctly.
-        if rows is not None:
+        if rows is not None and len(rows) > 0:
             if data is not None:
                 raise ValueError("Cannot supply both `data` and `rows` values")
             if isinstance(rows, types.GeneratorType):

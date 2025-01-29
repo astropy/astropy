@@ -1,0 +1,1 @@
+``rows=[]`` now behaves like ``rows=None`` when creating a Table with no data.
