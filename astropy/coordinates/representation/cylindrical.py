@@ -144,7 +144,7 @@ class CylindricalRepresentation(BaseRepresentation):
                 r = np.hypot(self.rho, self.z)
                 return other_class(
                     r=r,
-                    theta=np.arccos(self.z / r),
+                    theta=np.arctan2(self.rho, self.z),
                     phi=self.phi,
                     differentials=diffs,
                 )
