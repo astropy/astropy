@@ -1446,6 +1446,14 @@ class TestCylindricalRepresentation:
         assert_allclose(sph.theta, 0 * u.deg)
         assert cyl.phi == 23.5 * u.deg  # phi is preserved exactly
 
+    def test_to_physicsspherical_small_theta(self):
+        """Test that the transformation to physicsspherical is accurate for small theta."""
+        cyl = CylindricalRepresentation(rho=1 * u.m, phi=10 * u.deg, z=1e8 * u.m)
+        got = cyl.represent_as(PhysicsSphericalRepresentation)
+        assert_allclose(got.r, 1e8 * u.m)
+        assert_allclose(got.phi, 10 * u.deg)
+        assert_allclose(got.theta, 1e-8 * u.rad)
+
 
 class TestUnitSphericalCosLatDifferential:
     @pytest.mark.parametrize("matrix", list(matrices.values()))
