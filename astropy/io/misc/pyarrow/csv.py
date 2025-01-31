@@ -9,14 +9,13 @@ from typing import TYPE_CHECKING, BinaryIO
 
 import numpy as np
 
-import astropy.io.registry
-from astropy.table import Table
-
 if TYPE_CHECKING:
     import pyarrow as pa
     import pyarrow.csv
 
-__all__ = ["read_csv"]
+    from astropy.table import Table
+
+__all__ = ["convert_pa_table_to_astropy_table", "read_csv"]
 
 
 def read_csv(
@@ -33,7 +32,7 @@ def read_csv(
     comment: str | None = None,
     encoding: str = "utf-8",
     newlines_in_values: bool = False,
-) -> Table:
+) -> "Table":
     """Read a CSV file into an astropy Table using pyarrow.csv.read_csv().
 
     Parameters
@@ -51,18 +50,17 @@ def read_csv(
         Character used optionally for escaping special characters (`False` if escaping
         is not allowed).
     header_start : int, None, optional (default 0)
-        Line index for the header line with column names. If `None`, no header line is
-        assumed and the column names are taken from ``names`` or generated automatically
-        ("f0", "f1", ...).
+        Line index for the header line with column names. If `None` this implies that
+        there is no header line and the column names are taken from ``names`` or
+        generated automatically ("f0", "f1", ...).
     data_start : int, None, optional (default None)
         Line index for the start of data. If `None`, then data starts one line after the
-         header, or on the first line if there is no header.
+        header line, or on the first line if there is no header.
     names : list, None, optional (default None)
-        List of names for input data columns. This can be used to override the column
-        names inferred from the header line or to specify the column names if there is
-        no header line.
+        List of names for input data columns when there is no header line. If supplied,
+        then ``header_start`` must be `None`.
     include_names : list, None, optional (default None)
-        List of column names to include in output.
+        List of column names to include in output. If `None`, all columns are included.
     dtypes : dict, None, optional (default None)
         If provided, this is a dictionary of data types for output columns. Each key is
         a column name and the value is a data type object that is accepted as an
@@ -84,8 +82,7 @@ def read_csv(
     Table
         An astropy Table containing the data from the CSV file.
     """
-    import pyarrow as pa
-    import pyarrow.csv
+    pa, csv = get_pyarrow_csv()
 
     parse_options = pa.csv.ParseOptions(
         delimiter=delimiter,
@@ -101,7 +98,7 @@ def read_csv(
     if comment is not None:
         input_file = strip_comment_lines(input_file, comment, encoding)
 
-    table_pa = pyarrow.csv.read_csv(
+    table_pa = csv.read_csv(
         input_file,
         parse_options=parse_options,
         read_options=read_options,
@@ -110,6 +107,20 @@ def read_csv(
     table_apt = convert_pa_table_to_astropy_table(table_pa)
 
     return table_apt
+
+
+def get_pyarrow_csv():
+    """Helper function to import pyarrow and pyarrow.csv."""
+    from astropy.utils.compat.optional_deps import HAS_PYARROW
+
+    if not HAS_PYARROW:
+        raise ModuleNotFoundError(
+            "pyarrow is required to read and write pyarrow.csv files"
+        )
+    import pyarrow as pa
+    from pyarrow import csv
+
+    return pa, csv
 
 
 def convert_pa_string_array_to_numpy(str_arr: "pa.ChunkedArray") -> np.ndarray:
@@ -166,7 +177,7 @@ def convert_pa_array_to_numpy(arr):
     - If the input array contains null values, they are replaced with 0 before
       conversion, and a masked array is returned with the null positions masked.
     """
-    import pyarrow as pa
+    pa, _ = get_pyarrow_csv()
 
     if pa.types.is_string(arr.type):
         return convert_pa_string_array_to_numpy(arr)
@@ -186,7 +197,7 @@ def convert_pa_array_to_numpy(arr):
     return np_array
 
 
-def convert_pa_table_to_astropy_table(table_pa: "pa.Table") -> Table:
+def convert_pa_table_to_astropy_table(table_pa: "pa.Table") -> "Table":
     """
     Convert a PyArrow Table to an Astropy Table.
 
@@ -200,6 +211,8 @@ def convert_pa_table_to_astropy_table(table_pa: "pa.Table") -> Table:
     Table
         Converted astropy Table.
     """
+    from astropy.table import Table
+
     columns = {}
     for name, col in zip(table_pa.column_names, table_pa.itercolumns()):
         col_np = convert_pa_array_to_numpy(col)
@@ -217,7 +230,8 @@ def strip_comment_lines(
     Remove lines starting with a specified comment string from a file.
 
     If ``input_file`` is a file path, it will be opened in binary read mode. The
-    ``comment`` string is encoded to bytes using the default encoding for comparison with the file content.
+    ``comment`` string is encoded to bytes using the default encoding for comparison
+    with the file content.
 
     Parameters
     ----------
@@ -266,10 +280,11 @@ def get_convert_options(
         PyArrow CSV ConvertOptions object configured with the specified column names and
         data types.
     """
-    import pyarrow as pa
-    import pyarrow.csv
+    pa, csv = get_pyarrow_csv()
 
-    convert_options = pyarrow.csv.ConvertOptions()
+    convert_options = csv.ConvertOptions()
+    convert_options.strings_can_be_null = True
+
     if include_names is not None:
         convert_options.include_columns = include_names
     if dtypes is not None:
@@ -306,9 +321,12 @@ def get_read_options(
     pyarrow.csv.ReadOptions
         The configured read options for reading the CSV file.
     """
-    import pyarrow.csv
+    _, csv = get_pyarrow_csv()
 
-    read_options = pyarrow.csv.ReadOptions()
+    if header_start is not None and names is not None:
+        raise ValueError("cannot specify `names` unless `header_start=None`")
+
+    read_options = csv.ReadOptions()
 
     # No header: header_start = None, data_start = None or int
     #   Set column_names to an empty list and autogenerate_column_names to True.
@@ -324,9 +342,7 @@ def get_read_options(
             read_options.column_names = names
             read_options.autogenerate_column_names = False
     else:
-        # Header present
-        if header_start is None:
-            header_start = 0
+        # Header present, header_start is not None
         if data_start is None:
             data_start = header_start + 1
         read_options.skip_rows = header_start
@@ -338,4 +354,11 @@ def get_read_options(
     return read_options
 
 
-astropy.io.registry.register_reader("pyarrow.csv", Table, read_csv)
+def register_pyarrow_csv_table():
+    """
+    Register pyarrow.csv with Unified I/O as a Table reader.
+    """
+    from astropy.io import registry as io_registry
+    from astropy.table import Table
+
+    io_registry.register_reader("pyarrow.csv", Table, read_csv)
