@@ -733,8 +733,15 @@ class Table:
         names_from_list_of_dict = None
 
         # Treat empty rows same as None case.
-        if isinstance(rows, (list, tuple)) and len(rows) < 1:
-            rows = None
+        if isinstance(rows, (list, tuple, np.ndarray)):
+            try:
+                x = np.asarray(rows)
+            except Exception:
+                # Skip if check not feasible, don't fail # pragma: no cover
+                pass
+            else:
+                if x.size == 0:  # Empty array could still have valid shape
+                    rows = None
 
         # Row-oriented input, e.g. list of lists or list of tuples, list of
         # dict, Row instance.  Set data to something that the subsequent code
