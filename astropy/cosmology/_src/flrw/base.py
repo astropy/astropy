@@ -60,7 +60,7 @@ else:
 
 
 __doctest_requires__ = {"*": ["scipy"]}
-InputT = TypeVar("InputT", bound=u.Quantity | np.ndarray | np.generic | Number)
+_InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number)
 
 
 ##############################################################################
@@ -1226,13 +1226,14 @@ class FLRW(
     # Comoving distance
 
     @overload
-    def comoving_distance(self, z: InputT) -> Quantity: ...
+    def comoving_distance(self, z: _InputT) -> Quantity: ...
 
     @overload
-    def comoving_distance(self, z: InputT, z2: InputT) -> Quantity: ...
+    def comoving_distance(self, z: _InputT, z2: _InputT) -> Quantity: ...
 
+    @deprecated_keywords("z2", since="7.1")
     @deprecated_keywords("z", since="7.0")
-    def comoving_distance(self, z: InputT, z2: InputT | None = None) -> Quantity:
+    def comoving_distance(self, z: _InputT, z2: _InputT | None = None) -> Quantity:
         r"""Comoving line-of-sight distance :math:`d_c(z1, z2)` in Mpc.
 
         The comoving distance along the line-of-sight between two objects
