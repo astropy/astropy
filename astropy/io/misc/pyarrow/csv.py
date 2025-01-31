@@ -1,3 +1,8 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This module provides functionality to read CSV files into Astropy Tables using PyArrow.
+"""
+
 import io
 import os
 from typing import TYPE_CHECKING, BinaryIO
@@ -10,6 +15,8 @@ from astropy.table import Table
 if TYPE_CHECKING:
     import pyarrow as pa
     import pyarrow.csv
+
+__all__ = ["read_csv"]
 
 
 def read_csv(
@@ -28,7 +35,7 @@ def read_csv(
     newlines_in_values: bool = False,
     ignore_empty_lines: bool = True,
 ) -> Table:
-    """Read a CSV file into an astropy Table using pyarrow.read_csv.
+    """Read a CSV file into an astropy Table using pyarrow.csv.read_csv().
 
     Parameters
     ----------
@@ -69,12 +76,25 @@ def read_csv(
         strip comments.
     encoding: str, optional (default 'utf-8')
         Encoding of the input data.
+
+    Other Parameters
+    ----------------
     newlines_in_values: bool, optional (default False)
         Whether newline characters are allowed in CSV values. Setting this to True
         reduces the performance of multi-threaded CSV reading.
     ignore_empty_lines: bool, optional (default True)
         Whether empty lines are ignored in CSV input. If False, an empty line is
         interpreted as containing a single empty value (assuming a one-column CSV file).
+    use_threads: bool, optional (default True)
+        Whether to use multiple threads to accelerate reading
+    block_size: int, optional
+        How many bytes to process at a time from the input stream. This will determine
+        multi-threading granularity as well as the size of individual record batches or
+        table chunks. Minimum valid value for block size is 1
+    invalid_row_handler: callable(), optional (default None)
+        If not None, this object is called for each CSV row that fails parsing (because
+        of a mismatching number of columns). It should accept a single InvalidRow
+        argument and return either “skip” or “error” depending on the desired outcome.
     """
     import pyarrow as pa
     import pyarrow.csv
