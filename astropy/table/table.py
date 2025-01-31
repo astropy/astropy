@@ -732,20 +732,6 @@ class Table:
         # a list of dict. If data are not list of dict then this is None.
         names_from_list_of_dict = None
 
-        # Treat empty rows same as None case.
-        if isinstance(rows, (list, tuple, np.ndarray)):
-            try:
-                # Any warning means rows not empty, so abort.
-                with warnings.catch_warnings():
-                    warnings.simplefilter("error")
-                    x = np.asarray(rows)
-            except Exception:
-                # Skip if check not feasible, don't fail # pragma: no cover
-                pass
-            else:
-                if x.size == 0:  # Empty array could still have valid shape
-                    rows = None
-
         # Row-oriented input, e.g. list of lists or list of tuples, list of
         # dict, Row instance.  Set data to something that the subsequent code
         # will parse correctly.
@@ -796,6 +782,13 @@ class Table:
             )
 
         if isinstance(data, np.ndarray) and data.shape == (0,) and not data.dtype.names:
+            data = None
+
+        # Init with rows=[] or data=[] (or tuples) is allowed and taken to mean no data.
+        # This allows supplying names and dtype if desired. `data=[]` is ambiguous,
+        # because it could mean no columns, or it could mean no rows for list of dict.
+        # For compatibility with the latter, interpret data=[] as data=None.
+        if isinstance(data, (list, tuple)) and len(data) == 0:
             data = None
 
         if isinstance(data, self.Row):
