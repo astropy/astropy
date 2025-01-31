@@ -735,7 +735,10 @@ class Table:
         # Treat empty rows same as None case.
         if isinstance(rows, (list, tuple, np.ndarray)):
             try:
-                x = np.asarray(rows)
+                # Any warning means rows not empty, so abort.
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error")
+                    x = np.asarray(rows)
             except Exception:
                 # Skip if check not feasible, don't fail # pragma: no cover
                 pass
