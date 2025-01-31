@@ -1,1 +1,5 @@
-``rows=[]`` now behaves like ``rows=None`` when creating a Table with no data.
+Initializing a Table with ``rows=[]`` or ``data=[]`` is now equivalent to
+``Table(data=None, ...)`` and creates a table with no data values. This allows
+defining the table names and/or dtype when creating the table, for instance:
+``Table(rows=[], names=["a", "b"], dtype=[int, float])``. Previously this
+raised an exception.
