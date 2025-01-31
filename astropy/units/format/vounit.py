@@ -63,9 +63,7 @@ class VOUnit(FITS):
             "y", "z", "a", "f", "p", "n", "u", "m", "c", "d",
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"
         ]  # fmt: skip
-        # While zebi and yobi are part of the standard for binary prefixes,
-        # they are not implemented here due to computation limitations
-        binary_prefixes = ["Ki", "Mi", "Gi", "Ti", "Pi", "Ei"]
+        binary_prefixes = ["Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"]
         deprecated_units = {"angstrom", "Angstrom", "Ba", "barn", "erg", "G", "ta"}
 
         def do_defines(bases, prefixes, skips=[]):
