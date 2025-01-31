@@ -3595,9 +3595,11 @@ def test_table_replace_column_with_scalar(empty_table):
 
 
 @pytest.mark.parametrize(
-    "rows", [None, [], [[], []], (), ((), ()), np.array([]), np.array([[], []])]
+    "arr", [None, [], [[], []], (), ((), ()), np.array([]), np.array([[], []])]
 )
-def test_table_create_no_rows(rows):
-    t = Table(rows=rows, names=["foo", "bar"], dtype=[int, int])
+@pytest.mark.parametrize("arg_type", ["rows", "data"])
+def test_table_create_no_rows(arg_type, arr):
+    kwargs = {arg_type: arr}
+    t = Table(names=["foo", "bar"], dtype=[int, int], **kwargs)
     assert len(t) == 0
     assert t.colnames == ["foo", "bar"]
