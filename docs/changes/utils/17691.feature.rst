@@ -1,0 +1,4 @@
+``astropy.utils.data.download_file`` can now recover from a ``TimeoutError``
+when given a list of alternative source URLs. Previously, only ``URLError``
+exceptions were recoverable. An exception is still being raised after trying all
+URLs provided if none of them could be reached.
