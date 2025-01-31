@@ -55,8 +55,8 @@ Prefixes
 
 Most units can be used with prefixes, with both the standard `SI
 <https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ prefixes
-and the `IEEE 1514-2002
-<https://ieeexplore.ieee.org/document/5254933>`_ binary prefixes
+and the `IEEE 1541-2021
+<https://ieeexplore.ieee.org/document/9714443>`_ binary prefixes
 (for ``bit`` and ``byte``) supported:
 
 +------------------------------+
@@ -129,6 +129,10 @@ and the `IEEE 1514-2002
 |   Pi   |  pebi- | 2 ** 50 |
 +--------+--------+---------+
 |   Ei   |  exbi- | 2 ** 60 |
++--------+--------+---------+
+|   Zi   |  zebi- | 2 ** 70 |
++--------+--------+---------+
+|   Yi   |  yobi- | 2 ** 80 |
 +--------+--------+---------+
 
 

@@ -2506,6 +2506,8 @@ binary_prefixes: Final[list[tuple[list[str], list[str], int]]] = [
     (["Ti"], ["tebi"], 2**40),
     (["Pi"], ["pebi"], 2**50),
     (["Ei"], ["exbi"], 2**60),
+    (["Zi"], ["zebi"], 2**70),
+    (["Yi"], ["yobi"], 2**80),
 ]
 
 

@@ -1049,6 +1049,35 @@ def test_si_prefixes(name, symbol, multiplying_factor):
     assert u.isclose(value_ratio, multiplying_factor)
 
 
+@pytest.mark.parametrize(
+    "name,symbol,factor",
+    [
+        pytest.param(name, symbol, factor, id=name)
+        for name, symbol, factor in [
+            ("kibi", "Ki", 2**10),
+            ("mebi", "Mi", 2**20),
+            ("gibi", "Gi", 2**30),
+            ("tebi", "Ti", 2**40),
+            ("pebi", "Pi", 2**50),
+            ("exbi", "Ei", 2**60),
+            # We now switch to float factors because with numpy < 2.0
+            # np.isclose() doesn't like ints this large
+            ("zebi", "Zi", 2.0**70),
+            ("yobi", "Yi", 2.0**80),
+        ]
+    ],
+)
+def test_si_binary_prefixes(name, symbol, factor):
+    base = 1 * u.byte
+    quantity_from_name = base.to(f"{name}byte")
+    assert u.isclose(quantity_from_name, base)
+    assert np.isclose(base.value / quantity_from_name.value, factor, atol=0)
+
+    quantity_from_symbol = base.to(f"{symbol}B")
+    assert u.isclose(quantity_from_symbol, base)
+    assert np.isclose(base.value / quantity_from_symbol.value, factor, atol=0)
+
+
 def test_cm_uniqueness():
     # Ensure we have defined cm only once; see gh-15200.
     assert u.si.cm is u.cgs.cm is u.cm
