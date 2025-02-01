@@ -30,6 +30,7 @@ def read_csv(
     include_names: list | None = None,
     dtypes: dict | None = None,
     comment: str | None = None,
+    null_values: list | None = None,
     encoding: str = "utf-8",
     newlines_in_values: bool = False,
 ) -> "Table":
@@ -71,6 +72,12 @@ def read_csv(
         optional whitespace and then this character is ignored. Using this option will
         cause the parser to be slower and use more memory as it uses Python code to
         strip comments.
+
+    Other Parameters
+    ----------------
+    null_values : list, optional (default None)
+        List of strings to interpret as null values. By default, only empty strings are
+        considered as null values.
     encoding: str, optional (default 'utf-8')
         Encoding of the input data.
     newlines_in_values: bool, optional (default False)
@@ -93,7 +100,7 @@ def read_csv(
     )
 
     read_options = get_read_options(header_start, data_start, names, encoding)
-    convert_options = get_convert_options(include_names, dtypes)
+    convert_options = get_convert_options(include_names, dtypes, null_values)
 
     if comment is not None:
         input_file = strip_comment_lines(input_file, comment, encoding)
@@ -261,6 +268,7 @@ def strip_comment_lines(
 def get_convert_options(
     include_names: list | None,
     dtypes: dict | None,
+    null_values: list | None,
 ) -> "pyarrow.csv.ConvertOptions":
     """
     Generate PyArrow CSV convert options.
@@ -273,6 +281,9 @@ def get_convert_options(
     dtypes : dict or None
         Dictionary mapping column names to their respective data types. If None, default
         data types are used.
+    null_values : list or None, optional (default None)
+        List of strings to interpret as null values. By default, only empty strings are
+        considered as null values.
 
     Returns
     -------
@@ -287,6 +298,8 @@ def get_convert_options(
 
     if include_names is not None:
         convert_options.include_columns = include_names
+    if null_values is not None:
+        convert_options.null_values = null_values
     if dtypes is not None:
         convert_options.column_types = {
             colname: pa.from_numpy_dtype(dtype) for colname, dtype in dtypes.items()
