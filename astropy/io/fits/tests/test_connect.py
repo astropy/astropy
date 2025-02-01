@@ -67,7 +67,6 @@ class TestSingleTable:
             dtype=[("a", int), ("b", "U1"), ("c", float)],
         )
 
-    @pytest.mark.xfail
     def test_overwrite_with_path(self, tmp_path):
         filename = "temp.fits"
         t1 = Table(self.data)
