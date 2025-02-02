@@ -130,13 +130,13 @@ class Row:
         Examples
         --------
         >>> from astropy.table import Table
-        >>> t = Table({"a": [2, 3, 5], "b": [7, 11, 13]})
+        >>> t = Table({"a": [2., 3., 5.], "b": [7., 11., 13.]})
         >>> t[0].get("a")
-        np.int64(2)
-        >>> t[1].get("b", 0)
-        np.int64(11)
-        >>> t[2].get("c", 0)
-        0
+        np.float64(2.0)
+        >>> t[1].get("b", 0.)
+        np.float64(11.0)
+        >>> t[2].get("c", 0.)
+        0.0
         """
         return self[key] if key in self._table.columns else default
 
