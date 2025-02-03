@@ -111,6 +111,60 @@ def test_catch_format():
     with pytest.warns(TdatFormatWarning, match="'table_description' is too long"):
         t.write(out, format="ascii.tdat")
 
+def test_read_tdat():
+    # Ensure the Table is as it should be
+    assert test_table.meta['keywords'] == OrderedDict(
+        [('table_name', 'heasarc_simple'),
+        ('table_description', 'Test table'),
+        ('table_security', 'public'),
+        ('parameter_defaults', 'name ra dec'),
+        ('frequency_regime', 'Gamma-ray'),
+        ('observatory_name', 'GAMMA-RAY BURSTS'),
+        ('row_type', 'GRB'),
+        ('table_author', 'Example et al.'),
+        ('table_priority', '3.01'),
+        ('table_type', 'Observation'),
+        ('unique_key', 'record_number')])
+
+    # Column checks
+    descriptions = ["Unique Identifier for Entry",
+                    "Source ID Number",
+                    "String Name",
+                    "Right Ascension",
+                    "Declination",
+                    "Empty",]
+    dtypes = [int, int, "<U3", float, float, float]
+    units = [None, None, None, "deg", "deg", None]
+    meta = [
+        {'ucd': 'meta.id', 'index': 'key'},
+        {'ucd': 'meta.id', 'index': 'index'},
+        {'ucd': 'meta.id;meta.main', 'index': 'index'},
+        {'ucd': 'pos.eq.ra', 'index': 'index'},
+        {'ucd': 'pos.eq.dec', 'index': 'index'},
+        {'comment': 'Comment'}
+    ]
+    for i, col in enumerate(test_table.itercols()):
+        assert col.description == descriptions[i]
+        assert col.dtype == dtypes[i]
+        assert col.unit == units[i]
+        assert col.meta == meta[i]
+
+    # data check
+    ## Missing is masked
+    assert isinstance(test_table['ra'][3], np.ma.core.MaskedConstant)
+    ## Check data matches simple csv format
+    test_data = [
+        "record_number, id, name, ra, dec, empty",
+        "1, 10, aaa, 1.0, 1.0, ",
+        "2, 20,   b, 2.0,    , ",
+        "3, 30,   c,    , 3.0, ",
+        "4, 20,    ,    ,    , ",
+        "5,   ,    ,    ,    , ",
+        " , 60,   f, 6.0, 6.0, ",
+        "7, 70,   g, 7.0, 7.0, "]
+    table_data = Table.read(test_data, format="csv")
+    assert all((table_data == test_table).data)
+
 
 def test_write_simple():
     """
@@ -172,14 +226,18 @@ def test_full_table_content():
 def test_write_full():
     """
     Write a full-featured table with common types and explicitly check output
+
+    Differences between `lines` and `test_dat`:
+    - Empty comment lines are dropped (except when demarcating a section header
+    like "Table Parameters").
+    - The data type for string field "name" is downsized to char3 from char12
+    reflecting the actual maximum size in the column.
+    - Extraneous spaces in the data are stripped
+    These differences reflect flexibility in reading in from a tdat file, and
+    writing out in a standardized way.
     """
     t = test_table
-    """Differences between lines and test_dat:
-    Empty comment lines are dropped (except when denoting a section header like "Table Parameters").
-    The data type for string field "name" is downsized to char3 from char12 reflecting the maximum actual size in the column.
-    Extraneous spaces in the data are stripped
-    This reflects flexibility in reading in from a tdat file and writing out in a standard way.
-    """
+
     lines = [
         "<HEADER>",
         "# TABLE: heasarc_simple",
@@ -352,6 +410,15 @@ def test_mismatch_line_field():
     assert 'The columns "field" descriptors are not consistent' in str(err.value)
 
 
+def test_fmt_type_too_long():
+    """The combination of type and format has a maximum character length of 24"""
+    lines = copy.copy(SIMPLE_LINES)
+    lines[6] = "field[b] = float8:.0000000000000000000000000000001f"
+    with pytest.raises(TdatFormatError) as err:
+        Table.read("\n".join(lines), format="ascii.tdat")
+    assert "The type:fmt specifier" in str(err.value)
+
+
 def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     if compare_class:
         assert obj1.__class__ is obj2.__class__
@@ -427,8 +494,13 @@ def test_round_trip_masked_table_default(tmp_path):
 def test_deprecated_keyword():
     """Deprecated and obsolete keywords should raise warnings"""
     test_data = test_dat.copy()
-    test_data.insert(8, 'record_delimiter = "&"')
-    test_data.insert(8, 'field_delimiter = "|"')
+    data_lines = test_data[35:-1]
+    data_lines = "\123".join(data_lines) # now a single string with a delimiter
+    data_lines = data_lines.replace("|", "!")
+    del(test_data[35:-1])
+    test_data.insert(35, data_lines)
+    test_data.insert(8, 'record_delimiter = "\123"')
+    test_data.insert(8, 'field_delimiter = "!"')
     with pytest.warns(TdatFormatWarning, match="keyword is deprecated"):
         t = Table.read(test_data, format="ascii.tdat")
 
