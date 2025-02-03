@@ -111,37 +111,43 @@ def test_catch_format():
     with pytest.warns(TdatFormatWarning, match="'table_description' is too long"):
         t.write(out, format="ascii.tdat")
 
+
 def test_read_tdat():
     # Ensure the Table is as it should be
-    assert test_table.meta['keywords'] == OrderedDict(
-        [('table_name', 'heasarc_simple'),
-        ('table_description', 'Test table'),
-        ('table_security', 'public'),
-        ('parameter_defaults', 'name ra dec'),
-        ('frequency_regime', 'Gamma-ray'),
-        ('observatory_name', 'GAMMA-RAY BURSTS'),
-        ('row_type', 'GRB'),
-        ('table_author', 'Example et al.'),
-        ('table_priority', '3.01'),
-        ('table_type', 'Observation'),
-        ('unique_key', 'record_number')])
+    assert test_table.meta["keywords"] == OrderedDict(
+        [
+            ("table_name", "heasarc_simple"),
+            ("table_description", "Test table"),
+            ("table_security", "public"),
+            ("parameter_defaults", "name ra dec"),
+            ("frequency_regime", "Gamma-ray"),
+            ("observatory_name", "GAMMA-RAY BURSTS"),
+            ("row_type", "GRB"),
+            ("table_author", "Example et al."),
+            ("table_priority", "3.01"),
+            ("table_type", "Observation"),
+            ("unique_key", "record_number"),
+        ]
+    )
 
     # Column checks
-    descriptions = ["Unique Identifier for Entry",
-                    "Source ID Number",
-                    "String Name",
-                    "Right Ascension",
-                    "Declination",
-                    "Empty",]
+    descriptions = [
+        "Unique Identifier for Entry",
+        "Source ID Number",
+        "String Name",
+        "Right Ascension",
+        "Declination",
+        "Empty",
+    ]
     dtypes = [int, int, "<U3", float, float, float]
     units = [None, None, None, "deg", "deg", None]
     meta = [
-        {'ucd': 'meta.id', 'index': 'key'},
-        {'ucd': 'meta.id', 'index': 'index'},
-        {'ucd': 'meta.id;meta.main', 'index': 'index'},
-        {'ucd': 'pos.eq.ra', 'index': 'index'},
-        {'ucd': 'pos.eq.dec', 'index': 'index'},
-        {'comment': 'Comment'}
+        {"ucd": "meta.id", "index": "key"},
+        {"ucd": "meta.id", "index": "index"},
+        {"ucd": "meta.id;meta.main", "index": "index"},
+        {"ucd": "pos.eq.ra", "index": "index"},
+        {"ucd": "pos.eq.dec", "index": "index"},
+        {"comment": "Comment"},
     ]
     for i, col in enumerate(test_table.itercols()):
         assert col.description == descriptions[i]
@@ -151,7 +157,7 @@ def test_read_tdat():
 
     # data check
     ## Missing is masked
-    assert isinstance(test_table['ra'][3], np.ma.core.MaskedConstant)
+    assert isinstance(test_table["ra"][3], np.ma.core.MaskedConstant)
     ## Check data matches simple csv format
     test_data = [
         "record_number, id, name, ra, dec, empty",
@@ -161,7 +167,8 @@ def test_read_tdat():
         "4, 20,    ,    ,    , ",
         "5,   ,    ,    ,    , ",
         " , 60,   f, 6.0, 6.0, ",
-        "7, 70,   g, 7.0, 7.0, "]
+        "7, 70,   g, 7.0, 7.0, ",
+    ]
     table_data = Table.read(test_data, format="csv")
     assert all((table_data == test_table).data)
 
@@ -495,9 +502,9 @@ def test_deprecated_keyword():
     """Deprecated and obsolete keywords should raise warnings"""
     test_data = test_dat.copy()
     data_lines = test_data[35:-1]
-    data_lines = "\123".join(data_lines) # now a single string with a delimiter
+    data_lines = "\123".join(data_lines)  # now a single string with a delimiter
     data_lines = data_lines.replace("|", "!")
-    del(test_data[35:-1])
+    del test_data[35:-1]
     test_data.insert(35, data_lines)
     test_data.insert(8, 'record_delimiter = "\123"')
     test_data.insert(8, 'field_delimiter = "!"')
