@@ -1074,9 +1074,10 @@ class W49(VOTableSpecWarning):
 class W50(VOTableSpecWarning):
     """
     Invalid unit string as defined in the `Units in the VO, Version 1.0
-    <https://www.ivoa.net/documents/VOUnits>`_ (VOTable version >= 1.4)
-    or `Standards for Astronomical Catalogues, Version 2.0
-    <https://cdsarc.cds.unistra.fr/doc/catstd-3.2.htx>`_ (version < 1.4).
+    <https://www.ivoa.net/documents/VOUnits/20140523/index.html>`_
+    (VOTable version >= 1.4) or `Standards for Astronomical Catalogues,
+    Version 2.0 <https://cdsarc.cds.unistra.fr/doc/catstd-3.2.htx>`_
+    (version < 1.4).
 
     Consider passing an explicit ``unit_format`` parameter if the units
     in this file conform to another specification.
