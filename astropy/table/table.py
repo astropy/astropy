@@ -783,14 +783,14 @@ class Table:
 
         # Treat any empty numpy array as None, except for structured arrays since they
         # provide column names and dtypes.
-        if isinstance(data, np.ndarray) and data.size == 0 and not data.dtype.names:
-            data = None
-
+        #
         # Init with rows=[] or data=[] (or tuples) is allowed and taken to mean no data.
         # This allows supplying names and dtype if desired. `data=[]` is ambiguous,
         # because it could mean no columns, or it could mean no rows for list of dict.
         # For compatibility with the latter, interpret data=[] as data=None.
-        if isinstance(data, (list, tuple)) and len(data) == 0:
+        if (
+            isinstance(data, np.ndarray) and data.size == 0 and not data.dtype.names
+        ) or (isinstance(data, (list, tuple)) and len(data) == 0):
             data = None
 
         if isinstance(data, self.Row):
