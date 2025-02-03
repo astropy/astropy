@@ -198,7 +198,7 @@ for i in range(len(ring_distances)):
 ax.set_xlim(360, 0)
 
 ax.set_xlabel("$l$ [deg]")
-ax.set_ylabel(rf'$\mu_l \, \cos b$ [{(u.mas/u.yr).to_string("latex_inline")}]')
+ax.set_ylabel(rf"$\mu_l \, \cos b$ [{(u.mas / u.yr).to_string('latex_inline')}]")
 
 ax.legend()
 

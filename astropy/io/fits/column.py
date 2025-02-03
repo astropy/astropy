@@ -1794,10 +1794,10 @@ class ColDefs(NotifierMixin):
         if not isinstance(other, (list, tuple)):
             other = [other]
         _other = [_get_index(self.names, key) for key in other]
-        indx = list(range(len(self)))
+        index = list(range(len(self)))
         for x in _other:
-            indx.remove(x)
-        tmp = [self[i] for i in indx]
+            index.remove(x)
+        tmp = [self[i] for i in index]
         return ColDefs(tmp)
 
     def _update_column_attribute_changed(self, column, attr, old_value, new_value):
@@ -1862,10 +1862,10 @@ class ColDefs(NotifierMixin):
         # Ask the HDU object to load the data before we modify our columns
         self._notify("load_data")
 
-        indx = _get_index(self.names, col_name)
-        col = self.columns[indx]
+        index = _get_index(self.names, col_name)
+        col = self.columns[index]
 
-        del self._arrays[indx]
+        del self._arrays[index]
         # Obliterate caches of certain things
         del self.dtype
         del self._recformats
@@ -1873,7 +1873,7 @@ class ColDefs(NotifierMixin):
         del self.names
         del self.formats
 
-        del self.columns[indx]
+        del self.columns[index]
 
         col._remove_listener(self)
 
@@ -1881,7 +1881,7 @@ class ColDefs(NotifierMixin):
         # any other listeners) that the column has been removed
         # Just send a reference to self, and the index of the column that was
         # removed
-        self._notify("column_removed", self, indx)
+        self._notify("column_removed", self, index)
         return self
 
     def change_attrib(self, col_name, attrib, new_value):
@@ -2139,18 +2139,18 @@ def _get_index(names, key):
         field('Xyz'), etc. will get this field.
     """
     if _is_int(key):
-        indx = int(key)
+        index = int(key)
     elif isinstance(key, str):
         # try to find exact match first
         try:
-            indx = names.index(key.rstrip())
+            index = names.index(key.rstrip())
         except ValueError:
             # try to match case-insentively,
             _key = key.lower().rstrip()
             names = [n.lower().rstrip() for n in names]
             count = names.count(_key)  # occurrence of _key in names
             if count == 1:
-                indx = names.index(_key)
+                index = names.index(_key)
             elif count == 0:
                 raise KeyError(f"Key '{key}' does not exist.")
             else:  # multiple match
@@ -2158,7 +2158,7 @@ def _get_index(names, key):
     else:
         raise KeyError(f"Illegal key '{key!r}'.")
 
-    return indx
+    return index
 
 
 def _unwrapx(input, output, repeat):

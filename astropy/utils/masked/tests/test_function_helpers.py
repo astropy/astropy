@@ -1266,8 +1266,8 @@ class TestSortFunctions(MaskedArraySetup):
             mask=[True, False, False, False],
         )
         o = np.sort_complex(ma)
-        indx = np.lexsort((ma.unmasked.imag, ma.unmasked.real, ma.mask))
-        expected = ma[indx]
+        index = np.lexsort((ma.unmasked.imag, ma.unmasked.real, ma.mask))
+        expected = ma[index]
         assert_masked_equal(o, expected)
 
     @pytest.mark.skipif(not NUMPY_LT_1_24, reason="np.msort is deprecated")

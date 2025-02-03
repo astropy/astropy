@@ -1535,8 +1535,8 @@ class TableDataDiff(_BaseDiff):
             return
 
         # Finally, let's go through and report column data differences:
-        for indx, values in self.diff_values:
-            self._writeln(" Column {} data differs in row {}:".format(*indx))
+        for index, values in self.diff_values:
+            self._writeln(" Column {} data differs in row {}:".format(*index))
             report_diff_values(
                 values[0],
                 values[1],

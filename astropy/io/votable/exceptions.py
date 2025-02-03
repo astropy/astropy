@@ -642,8 +642,7 @@ class W19(VOTableSpecWarning):
     """
 
     message_template = (
-        "The fields defined in the VOTable do not match those in the "
-        "embedded FITS file"
+        "The fields defined in the VOTable do not match those in the embedded FITS file"
     )
 
 

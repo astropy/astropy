@@ -1031,7 +1031,7 @@ class TestTableFunctions(FitsTestCase):
         """Regression test for https://github.com/astropy/astropy/issues/5280
         and https://github.com/astropy/astropy/issues/5287
 
-        multidimentional tables can now be written with the correct TDIM.
+        multidimensional tables can now be written with the correct TDIM.
         Author: Stephen Bailey.
         """
 
@@ -3000,9 +3000,9 @@ def _refcounting(type_):
     refcount = len(objgraph.by_type(type_))
     yield refcount
     gc.collect()
-    assert (
-        len(objgraph.by_type(type_)) <= refcount
-    ), "More {0!r} objects still in memory than before."
+    assert len(objgraph.by_type(type_)) <= refcount, (
+        "More {0!r} objects still in memory than before."
+    )
 
 
 class TestVLATables(FitsTestCase):

@@ -42,14 +42,14 @@ class Group(FITS_record):
         if _is_int(parname):
             result = self.array[self.row][parname]
         else:
-            indx = self._unique[parname.upper()]
-            if len(indx) == 1:
-                result = self.array[self.row][indx[0]]
+            index = self._unique[parname.upper()]
+            if len(index) == 1:
+                result = self.array[self.row][index[0]]
 
             # if more than one group parameter have the same name
             else:
-                result = self.array[self.row][indx[0]].astype("f8")
-                for i in indx[1:]:
+                result = self.array[self.row][index[0]].astype("f8")
+                for i in index[1:]:
                     result += self.array[self.row][i]
 
         return result
@@ -66,20 +66,20 @@ class Group(FITS_record):
         if _is_int(parname):
             self.array[self.row][parname] = value
         else:
-            indx = self._unique[parname.upper()]
-            if len(indx) == 1:
-                self.array[self.row][indx[0]] = value
+            index = self._unique[parname.upper()]
+            if len(index) == 1:
+                self.array[self.row][index[0]] = value
 
             # if more than one group parameter have the same name, the
             # value must be a list (or tuple) containing arrays
             else:
-                if isinstance(value, (list, tuple)) and len(indx) == len(value):
-                    for i in range(len(indx)):
-                        self.array[self.row][indx[i]] = value[i]
+                if isinstance(value, (list, tuple)) and len(index) == len(value):
+                    for i in range(len(index)):
+                        self.array[self.row][index[i]] = value[i]
                 else:
                     raise ValueError(
                         "Parameter value must be a sequence with "
-                        f"{len(indx)} arrays/numbers."
+                        f"{len(index)} arrays/numbers."
                     )
 
 
@@ -254,14 +254,14 @@ class GroupData(FITS_rec):
         if _is_int(parname):
             result = self.field(parname)
         else:
-            indx = self._unique[parname.upper()]
-            if len(indx) == 1:
-                result = self.field(indx[0])
+            index = self._unique[parname.upper()]
+            if len(index) == 1:
+                result = self.field(index[0])
 
             # if more than one group parameter have the same name
             else:
-                result = self.field(indx[0]).astype("f8")
-                for i in indx[1:]:
+                result = self.field(index[0]).astype("f8")
+                for i in index[1:]:
                     result += self.field(i)
 
         return result
