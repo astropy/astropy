@@ -169,7 +169,23 @@ class TdatHeader(basic.BasicHeader):
                     )
                 except AssertionError:
                     raise TdatFormatError("Mismatched quotes for value of " + key)
-                keywords[key] = kmatch.group("value").strip("\"'`")
+                value = kmatch.group("value").strip("\"'`")
+                if key == "table_name":
+                    if len(value) > 20:
+                        warn(TdatFormatWarning(
+                            "The table_name has a maximum length of 20 characters, truncating."
+                        ))
+                        value = value[:20]
+                elif key == "table_description":
+                    if len(value) > 80:
+                        warn(TdatFormatWarning(
+                            "The table_description has a maximum length of 80 characters, truncating."
+                        ))
+                        value = value[:80]
+                    elif key == "table_security":
+                        if value.lower() not in ("public", "private"):
+                            warn("Value for table_security not recognized, should be public|private.")
+                keywords[key] = value
 
         self._line_fields = line_fields
 
@@ -252,7 +268,12 @@ class TdatHeader(basic.BasicHeader):
             # look for field[..]= ... column definitions
             cmatch = col_parser.match(line)
             if cmatch:
-                col = core.Column(name=cmatch.group("name"))
+                name = cmatch.group("name")
+                if len(name) > 24:
+                    raise TdatFormatWarning(
+                        "The field name must be shorter than 24 characters."
+                        )
+                col = core.Column(name=name)
                 col.meta = OrderedDict()
 
                 ctype = cmatch.group("ctype")
@@ -270,10 +291,18 @@ class TdatHeader(basic.BasicHeader):
                     )
                 col.unit = cmatch.group("unit")
                 col.format = cmatch.group("fmt")
+                if len(str(ctype)+str(col.format)) > 23:
+                    # max 24 characters with ":" separator
+                    raise TdatFormatError("The type:fmt specifier has a\
+                        maximum length of 24 characters. The offending line is:\
+                            \n{line}\n"+_STD_MSG)
                 col.description = f'{cmatch.group("desc")}'.strip()
                 for val in ["comment", "ucd", "index"]:
                     if cmatch.group(val) is not None:
-                        col.meta[val] = cmatch.group(val).strip()
+                        text = cmatch.group(val).strip()
+                        if (val == "comment") and (len(text) > 80):
+                            warn(TdatFormatWarning("Comments are limited to 80 characters or less, truncating."))
+                        col.meta[val] = text
                 cols[col.name] = col
         if len(keywords) > len(getattr(self, "_keywords", OrderedDict())):
             self._keywords = keywords
@@ -451,11 +480,16 @@ class TdatDataSplitter(core.BaseSplitter):
         """Split lines into multiple lines if a record_delimiter is specified."""
         data_lines = []
         for line in lines:
-            data_lines += re.split(rf"[{record_delimiter}]", line)
+            data_lines += re.split(rf"{record_delimiter}", line)
         return data_lines
 
     def __call__(self, lines, field_delimiter="|", record_delimiter=None, nlines=1):
         """ """
+        if " " in field_delimiter:
+            warn(TdatFormatWarning(
+                "Double check your data when using space delimiters.")
+                 )
+
         if record_delimiter is not None:
             lines = self.preprocess_data_lines(lines, record_delimiter)
         if hasattr(self, "process_line"):
@@ -531,6 +565,16 @@ class TdatData(core.BaseData):
         record_delimiter = getattr(
             self.header, "record_delimiter", self.splitter.record_delimiter
         )
+        # \8* and \9* are invalid escape sequences
+        allowed_range = list(range(1, 128))
+        del(allowed_range[79:99])
+        del(allowed_range[7:9])
+        allowed_record_delimiters = {bytes(rf"\{n}", "utf-8").decode("unicode_escape") for n in allowed_range}
+        allowed_record_delimiters.update({"\\t", "\\b", "\\r", "\\f", "\\v", "\\a", ""})
+        if record_delimiter is not None:
+            if record_delimiter not in allowed_record_delimiters:
+                raise TdatFormatError("Unsupported record delimiter.")
+
         nlines = len(self.header._line_fields)
         return self.splitter(self.data_lines, field_delimiter, record_delimiter, nlines)
 
