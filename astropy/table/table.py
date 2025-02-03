@@ -781,7 +781,9 @@ class Table:
                 f"__init__() got unexpected keyword argument {next(iter(kwargs.keys()))!r}"
             )
 
-        if isinstance(data, np.ndarray) and data.shape == (0,) and not data.dtype.names:
+        # Treat any empty numpy array as None, except for structured arrays since they
+        # provide column names and dtypes.
+        if isinstance(data, np.ndarray) and data.size == 0 and not data.dtype.names:
             data = None
 
         # Init with rows=[] or data=[] (or tuples) is allowed and taken to mean no data.

@@ -3600,15 +3600,6 @@ def test_table_replace_column_with_scalar(empty_table):
 @pytest.mark.parametrize("arg_type", ["rows", "data"])
 def test_table_create_no_rows(arg_type, arr):
     kwargs = {arg_type: arr}
-
-    if arg_type == "data" and isinstance(arr, np.ndarray) and arr.shape == (2, 0):
-        # np.array() is always interpreted as row-ordered, so
-        # np.array([[], []]) is a 2-row table of 0 columns and should throw error.
-        ctx = pytest.raises(ValueError, match=".* must match number of columns")
-    else:
-        ctx = nullcontext()
-
-    with ctx:
-        t = Table(names=["foo", "bar"], dtype=[int, int], **kwargs)
-        assert len(t) == 0
-        assert t.colnames == ["foo", "bar"]
+    t = Table(names=["foo", "bar"], dtype=[int, int], **kwargs)
+    assert len(t) == 0
+    assert t.colnames == ["foo", "bar"]
