@@ -2034,50 +2034,104 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         other: BaseCoordinateFrame | SkyCoord,
         *,
         origin_mismatch: Literal["ignore", "warn", "error"] = "warn",
+        axis_angle: u.Quantity | None = None,
+        ellipticity: float | None = None,
     ) -> Angle:
         """
-        Computes on-sky separation between this coordinate and another.
-
-        For more on how to use this (and related) functionality, see the
-        examples in :ref:`astropy-coordinates-separations-matching`.
+        Computes on-sky separation between this coordinate and another, with optional
+        modifications for projected separation along a given axis or elliptical separation.
 
         Parameters
         ----------
         other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
-            The coordinate to get the separation to.
+        The coordinate to get the separation to.
         origin_mismatch : {"warn", "ignore", "error"}, keyword-only
-            If the ``other`` coordinates are in a different frame then they
-            will have to be transformed, and if the transformation is not a
-            pure rotation then ``self.separation(other)`` can be
-            different from ``other.separation(self)``. With
-            ``origin_mismatch="warn"`` (default) the transformation is
-            always performed, but a warning is emitted if it is not a
-            pure rotation. If ``origin_mismatch="ignore"`` then the
-            required transformation is always performed without warnings.
-            If ``origin_mismatch="error"`` then only transformations
-            that are pure rotations are allowed.
+        If the ``other`` coordinates are in a different frame then they will
+        have to be transformed, and if the transformation is not a pure rotation
+        then ``self.separation(other)`` can be different from ``other.separation(self)``.
+        axis_angle : `~astropy.units.Quantity`, optional
+        The angle of the reference axis (e.g., the major axis of a galaxy) in degrees.
+        ellipticity : float, optional
+        The ellipticity of the system (0 for circular, closer to 1 for elongated).
 
         Returns
         -------
         sep : `~astropy.coordinates.Angle`
-            The on-sky separation between this and the ``other`` coordinate.
+        The computed separation between the two coordinates.
 
         Notes
         -----
-        The separation is calculated using the Vincenty formula, which
-        is stable at all locations, including poles and antipodes [1]_.
-
-        .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
-
+        The separation is calculated using the Vincenty formula by default. If the optional
+        parameters `axis_angle` or `ellipticity` are provided, the separation is modified
+        accordingly.
         """
+        import numpy as np
+
+        from astropy import units as u
+
         from .angles import Angle, angular_separation
 
-        return Angle(
-            angular_separation(
-                *self._prepare_unit_sphere_coords(other, origin_mismatch)
-            ),
-            unit=u.degree,
+        sep = angular_separation(
+            *self._prepare_unit_sphere_coords(other, origin_mismatch)
         )
+
+        if axis_angle is None and ellipticity is None:
+            return Angle(sep, unit=u.degree)
+
+        dx = (other.ra - self.ra).to(u.arcsec).value
+        dy = (other.dec - self.dec).to(u.arcsec).value
+
+        if axis_angle is not None:
+            theta = axis_angle.to(u.radian).value
+        dx_prime = dx * np.cos(theta) + dy * np.sin(theta)
+        projected_sep = np.abs(dx_prime) * u.arcsec
+        sep = projected_sep
+
+        if ellipticity is not None:
+            q = 1 - ellipticity
+            elliptical_sep = np.sqrt(dx**2 + (dy / q) ** 2) * u.arcsec
+            sep = elliptical_sep
+
+        return Angle(sep, unit=u.degree)
+
+    def to_table(self) -> QTable:
+        """
+        Convert this |BaseFrame| to a |QTable|.
+
+        Any attributes that have the same length as the |BaseFrame| will be
+        converted to columns of the |QTable|. All other attributes will be
+        recorded as metadata.
+
+        Returns
+        -------
+        `~astropy.table.QTable`
+            A |QTable| containing the data of this |BaseFrame|.
+
+        Examples
+        --------
+        >>> from astropy.coordinates import ICRS
+        >>> coord = ICRS(ra=[40, 70]*u.deg, dec=[0, -20]*u.deg)
+        >>> t =  coord.to_table()
+        >>> t
+        <QTable length=2>
+           ra     dec
+          deg     deg
+        float64 float64
+        ------- -------
+           40.0     0.0
+           70.0   -20.0
+        >>> t.meta
+        {'representation_type': 'spherical'}
+        """
+        columns = {}
+        metadata = {}
+
+        for key, value in self.info._represent_as_dict().items():
+            if getattr(value, "shape", ())[:1] == (len(self),):
+                columns[key] = value
+            else:
+                metadata[key] = value
+        return QTable(columns, meta=metadata)
 
     def separation_3d(self, other):
         """
@@ -2109,7 +2163,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 "This object does not have a distance; cannot compute 3d separation."
             )
 
-        # do this first just in case the conversion somehow creates a distance
         other = getattr(other, "frame", other).transform_to(self)
 
         if isinstance(other, r.UnitSphericalRepresentation):
@@ -2118,8 +2171,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 "cannot compute 3d separation."
             )
 
-        # drop the differentials to ensure they don't do anything odd in the
-        # subtraction
         dist = (
             self.data.without_differentials().represent_as(r.CartesianRepresentation)
             - other.data.without_differentials().represent_as(r.CartesianRepresentation)
@@ -2133,7 +2184,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         object.
         """
         # TODO: if representations are updated to use a full transform graph,
-        #       the representation aliases should not be hard-coded like this
+
         return self.represent_as("cartesian", in_frame_units=True)
 
     @property
@@ -2143,7 +2194,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         object.
         """
         # TODO: if representations are updated to use a full transform graph,
-        #       the representation aliases should not be hard-coded like this
+
         return self.represent_as("cylindrical", in_frame_units=True)
 
     @property
@@ -2153,7 +2204,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         object.
         """
         # TODO: if representations are updated to use a full transform graph,
-        #       the representation aliases should not be hard-coded like this
+
         return self.represent_as("spherical", in_frame_units=True)
 
     @property
@@ -2164,7 +2215,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         data in this object.
         """
         # TODO: if representations are updated to use a full transform graph,
-        #       the representation aliases should not be hard-coded like this
+
         return self.represent_as("spherical", "sphericalcoslat", in_frame_units=True)
 
     @property
@@ -2218,47 +2269,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         sph = self.represent_as("spherical", in_frame_units=True)
         return sph.differentials["s"].d_distance
 
-    def to_table(self) -> QTable:
-        """
-        Convert this |BaseFrame| to a |QTable|.
-
-        Any attributes that have the same length as the |BaseFrame| will be
-        converted to columns of the |QTable|. All other attributes will be
-        recorded as metadata.
-
-        Returns
-        -------
-        `~astropy.table.QTable`
-            A |QTable| containing the data of this |BaseFrame|.
-
-        Examples
-        --------
-        >>> from astropy.coordinates import ICRS
-        >>> coord = ICRS(ra=[40, 70]*u.deg, dec=[0, -20]*u.deg)
-        >>> t =  coord.to_table()
-        >>> t
-        <QTable length=2>
-           ra     dec
-          deg     deg
-        float64 float64
-        ------- -------
-           40.0     0.0
-           70.0   -20.0
-        >>> t.meta
-        {'representation_type': 'spherical'}
-        """
-        columns = {}
-        metadata = {}
-        # Record attributes that have the same length as self as columns in the
-        # table, and the other attributes as table metadata.  This matches
-        # table.serialize._represent_mixin_as_column().
-        for key, value in self.info._represent_as_dict().items():
-            if getattr(value, "shape", ())[:1] == (len(self),):
-                columns[key] = value
-            else:
-                metadata[key] = value
-        return QTable(columns, meta=metadata)
-
 
 class GenericFrame(BaseCoordinateFrame):
     """
@@ -2273,7 +2283,7 @@ class GenericFrame(BaseCoordinateFrame):
         frame.
     """
 
-    name = None  # it's not a "real" frame so it doesn't have a name
+    name = None
 
     def __init__(self, frame_attrs):
         self.frame_attributes = {}
