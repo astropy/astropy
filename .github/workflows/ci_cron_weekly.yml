@@ -28,6 +28,9 @@ concurrency:
 env:
   IS_CRON: 'true'
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
