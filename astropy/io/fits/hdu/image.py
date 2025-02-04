@@ -53,8 +53,6 @@ class _ImageBaseHDU(_ValidHDU):
         ignore_blank=False,
         **kwargs,
     ):
-        from .groups import GroupsHDU
-
         super().__init__(data=data, header=header)
 
         if data is DELAYED:
@@ -67,6 +65,8 @@ class _ImageBaseHDU(_ValidHDU):
             # TODO: Some of this card manipulation should go into the
             # PrimaryHDU and GroupsHDU subclasses
             # construct a list of cards of minimal header
+            from .groups import GroupsHDU
+
             if isinstance(self, ExtensionHDU):
                 c0 = ("XTENSION", "IMAGE", self.standard_keyword_comments["XTENSION"])
             else:
@@ -84,17 +84,12 @@ class _ImageBaseHDU(_ValidHDU):
                 cards.append(("PCOUNT", 0, self.standard_keyword_comments["PCOUNT"]))
                 cards.append(("GCOUNT", 1, self.standard_keyword_comments["GCOUNT"]))
 
+            new_header = Header(cards)
             if header is not None:
-                orig = header.copy()
-                header = Header(cards)
-                header.extend(orig, strip=True, update=True, end=True)
-            else:
-                header = Header(cards)
-
-            self._header = header
+                new_header.extend(header.copy(), strip=True, update=True, end=True)
+            self._header = new_header
 
         self._do_not_scale_image_data = do_not_scale_image_data
-
         self._uint = uint
         self._scale_back = scale_back
 
