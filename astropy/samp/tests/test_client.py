@@ -40,6 +40,7 @@ def samp_hub():
     my_hub.stop()
 
 
+@pytest.mark.filterwarnings("ignore:unclosed <socket:ResourceWarning")
 def test_SAMPIntegratedClient_notify_all(samp_hub):
     """Test that SAMP returns a warning if no receiver got the message."""
     client = SAMPIntegratedClient()
