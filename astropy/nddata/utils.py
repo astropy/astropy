@@ -34,7 +34,13 @@ class PartialOverlapError(ValueError):
     """Raised when arrays only partially overlap."""
 
 
-def overlap_slices(large_array_shape, small_array_shape, position, mode="partial", limit_rounding_method="ceil"):
+def overlap_slices(
+    large_array_shape,
+    small_array_shape,
+    position,
+    mode="partial",
+    limit_rounding_method="ceil",
+):
     """
     Get slices for the overlapping part of a small and a large array.
 
@@ -106,7 +112,7 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode="partial
         raise ValueError(
             '"position" must have the same number of dimensions as "small_array_shape".'
         )
-    
+
     if limit_rounding_method == "ceil" or limit_rounding_method is None:
         round_func = np.ceil
     elif limit_rounding_method == "floor":
@@ -171,7 +177,7 @@ def extract_array(
     mode="partial",
     fill_value=np.nan,
     return_position=False,
-    limit_rounding_method= "ceil"
+    limit_rounding_method="ceil",
 ):
     """
     Extract a smaller array of the given shape and position from a
@@ -247,7 +253,11 @@ def extract_array(
         raise ValueError("Valid modes are 'partial', 'trim', and 'strict'.")
 
     large_slices, small_slices = overlap_slices(
-        array_large.shape, shape, position, mode=mode, limit_rounding_method=limit_rounding_method
+        array_large.shape,
+        shape,
+        position,
+        mode=mode,
+        limit_rounding_method=limit_rounding_method,
     )
     extracted_array = array_large[large_slices]
     if return_position:
@@ -324,7 +334,10 @@ def add_array(array_large, array_small, position, limit_rounding_method="ceil"):
         for (large_shape, small_shape) in zip(array_large.shape, array_small.shape)
     ):
         large_slices, small_slices = overlap_slices(
-            array_large.shape, array_small.shape, position, limit_rounding_method=limit_rounding_method
+            array_large.shape,
+            array_small.shape,
+            position,
+            limit_rounding_method=limit_rounding_method,
         )
         array_large[large_slices] += array_small[small_slices]
         return array_large
@@ -554,7 +567,15 @@ class Cutout2D:
     """
 
     def __init__(
-        self, data, position, size, wcs=None, mode="trim", fill_value=np.nan, copy=False, limit_rounding_method = "ceil"
+        self,
+        data,
+        position,
+        size,
+        wcs=None,
+        mode="trim",
+        fill_value=np.nan,
+        copy=False,
+        limit_rounding_method="ceil",
     ):
         if wcs is None:
             wcs = getattr(data, "wcs", None)
@@ -623,7 +644,11 @@ class Cutout2D:
 
         self.input_position_cutout = input_position_cutout[::-1]  # (x, y)
         slices_original, slices_cutout = overlap_slices(
-            data.shape, shape, pos_yx, mode=mode, limit_rounding_method = limit_rounding_method
+            data.shape,
+            shape,
+            pos_yx,
+            mode=mode,
+            limit_rounding_method=limit_rounding_method,
         )
 
         self.slices_original = slices_original
