@@ -17,6 +17,9 @@ env:
   ARCH_ON_CI: "normal"
   IS_CRON: "false"
 
+permissions:
+  contents: read
+
 jobs:
   initial_checks:
     name: Mandatory checks before CI
