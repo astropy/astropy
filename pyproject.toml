@@ -246,6 +246,10 @@ doctest_subpackage_requires = [
     "astropy/units/structured.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
     "astropy/modeling/_fitting_parallel.py = dask",
     "docs/modeling/parallel-fitting.rst = dask",
+    "docs/coordinates/example_gallery_plot_galactocentric_frame.rst = matplotlib",
+    "docs/coordinates/example_gallery_plot_mars_coordinate_frame.rst = matplotlib",
+    "docs/coordinates/example_gallery_plot_obs_planning.rst = matplotlib",
+    "docs/coordinates/example_gallery_plot_sgr_coordinate_frame.rst = matplotlib",
 ]
 markers = [
     "mpl_image_compare",
