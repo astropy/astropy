@@ -390,43 +390,6 @@ suppress_warnings = [
     "config.cache",  # our rebuild is okay
 ]
 
-# -- Options for the Sphinx gallery -------------------------------------------
-
-try:
-    import warnings
-
-    import sphinx_gallery
-
-    extensions += ["sphinx_gallery.gen_gallery"]
-
-    sphinx_gallery_conf = {
-        "backreferences_dir": "generated/modules",  # path to store the module using example template
-        "filename_pattern": "^((?!skip_).)*$",  # execute all examples except those that start with "skip_"
-        "examples_dirs": f"..{os.sep}examples",  # path to the examples scripts
-        "gallery_dirs": "generated/examples",  # path to save gallery generated examples
-        "reference_url": {
-            "astropy": None,
-            "matplotlib": "https://matplotlib.org/stable/",
-            "numpy": "https://numpy.org/doc/stable/",
-        },
-        "abort_on_example_error": True,
-    }
-
-    # Filter out backend-related warnings as described in
-    # https://github.com/sphinx-gallery/sphinx-gallery/pull/564
-    warnings.filterwarnings(
-        "ignore",
-        category=UserWarning,
-        message=(
-            "Matplotlib is currently using agg, which is a"
-            " non-GUI backend, so cannot show the figure."
-        ),
-    )
-
-except ImportError:
-    sphinx_gallery = None
-
-
 # -- Options for linkcheck output -------------------------------------------
 linkcheck_retry = 5
 linkcheck_ignore = [
@@ -652,14 +615,6 @@ global_substitutions |= processed_links
 
 
 def setup(app):
-    if sphinx_gallery is None:
-        logger.warning(
-            "The sphinx_gallery extension is not installed, so the "
-            "gallery will not be built.  You will probably see "
-            "additional warnings about undefined references due "
-            "to this."
-        )
-
     # Generate the page from Jinja template
     app.connect("source-read", rstjinja)
     # Set this to higher priority than intersphinx; this way when building
