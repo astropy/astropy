@@ -1,6 +1,7 @@
 import contextlib
 import gc
 import warnings
+from io import BytesIO
 from pathlib import Path
 
 import numpy as np
@@ -75,6 +76,15 @@ class TestSingleTable:
             t1.write(filename, format="fits")
             t1.write(Path(filename), format="fits", overwrite=True)
         t1.write(Path(tmp_path / filename), format="fits", overwrite=True)
+
+    def test_write_to_fileobj(self):
+        # regression test for https://github.com/astropy/astropy/issues/17703
+        t = Table(self.data)
+        buff = BytesIO()
+        t.write(buff, format="fits")
+        buff.seek(0)
+        t2 = Table.read(buff)
+        assert equal_data(t2, t)
 
     def test_simple(self, tmp_path):
         filename = tmp_path / "test_simple.fts"
