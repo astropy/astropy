@@ -8,9 +8,10 @@ import pytest
 from numpy import testing as npt
 
 from astropy import units as u
-from astropy.coordinates import EarthLocation, SkyCoord, golden_spiral_grid
+from astropy.coordinates import Angle, EarthLocation, SkyCoord, golden_spiral_grid
 from astropy.coordinates.builtin_frames import ICRS, AltAz
 from astropy.coordinates.builtin_frames.utils import get_jd12
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.utils import iers
 
@@ -110,40 +111,25 @@ def test_iau_fullstack(
     # now make sure the full stack round-tripping works
     icrs2 = aacoo.transform_to(ICRS())
 
-    adras = np.abs(fullstack_icrs.ra - icrs2.ra)[msk]
-    addecs = np.abs(fullstack_icrs.dec - icrs2.dec)[msk]
-    assert np.all(
-        adras < tol
-    ), f"largest RA change is {np.max(adras.arcsec * 1000)} mas, > {tol}"
-    assert np.all(
-        addecs < tol
-    ), f"largest Dec change is {np.max(addecs.arcsec * 1000)} mas, > {tol}"
+    assert_quantity_allclose(
+        np.abs(fullstack_icrs.ra - icrs2.ra)[msk], 0 * u.μas, atol=tol, rtol=0
+    )
+    assert_quantity_allclose(
+        np.abs(fullstack_icrs.dec - icrs2.dec)[msk], 0 * u.μas, atol=tol, rtol=0
+    )
 
     # check that we're consistent with the ERFA alt/az result
-    iers_tab = iers.earth_orientation_table.get()
-    xp, yp = u.Quantity(iers_tab.pm_xy(fullstack_times)).to_value(u.radian)
-    lon = fullstack_locations.geodetic[0].to_value(u.radian)
-    lat = fullstack_locations.geodetic[1].to_value(u.radian)
-    height = fullstack_locations.geodetic[2].to_value(u.m)
-    jd1, jd2 = get_jd12(fullstack_times, "utc")
-    pressure = fullstack_obsconditions[0].to_value(u.hPa)
-    temperature = fullstack_obsconditions[1].to_value(u.deg_C)
-    # Relative humidity can be a quantity or a number.
-    relative_humidity = u.Quantity(fullstack_obsconditions[2], u.one).value
-    obswl = fullstack_obsconditions[3].to_value(u.micron)
-    astrom, eo = erfa.apco13(
-        jd1,
-        jd2,
+    astrom, _ = erfa.apco13(
+        *get_jd12(fullstack_times, "utc"),
         fullstack_times.delta_ut1_utc,
-        lon,
-        lat,
-        height,
-        xp,
-        yp,
-        pressure,
-        temperature,
-        relative_humidity,
-        obswl,
+        (geodetic := fullstack_locations.geodetic).lon.rad,
+        geodetic.lat.rad,
+        geodetic.height.to_value(u.m),
+        *Angle(iers.earth_orientation_table.get().pm_xy(fullstack_times)).rad,
+        altazframe.pressure.to_value(u.hPa),
+        altazframe.temperature.to_value(u.deg_C),
+        altazframe.relative_humidity.to_value(u.one),
+        altazframe.obswl.to_value(u.μm),
     )
     erfa_az, erfa_zen, _, _, _ = erfa.atioq(
         *erfa.atciq(fullstack_icrs.ra.rad, fullstack_icrs.dec.rad, 0, 0, 0, 0, astrom),
