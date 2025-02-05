@@ -746,7 +746,9 @@ class Table:
             names_from_list_of_dict = _get_names_from_list_of_dict(rows)
             if names_from_list_of_dict:
                 data = rows
-            elif isinstance(rows, self.Row):
+            elif isinstance(rows, self.Row) or (
+                isinstance(rows, np.ndarray) and rows.dtype.names
+            ):
                 data = rows
             else:
                 data = list(zip(*rows))
