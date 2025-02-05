@@ -255,9 +255,8 @@ markers = [
 
 [tool.cibuildwheel]
 # We disable testing for the following wheels:
-# - Linux AArch64 (no native hardware, tests take too long)
 # - MuslLinux (tests hang non-deterministically)
-test-skip = "*-manylinux_aarch64 *-musllinux_x86_64"
+test-skip = "*-musllinux_x86_64"
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
