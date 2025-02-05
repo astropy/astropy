@@ -8,10 +8,12 @@
   margin-top: 10px;
 }
 
-/* Smaller fonts */
-body {
-  font-family: 'Open Sans', sans-serif;
-  font-size: medium;
+/* Font size overrides */
+html {
+  // heading font sizes reverted to smaller old "current" values as stated in
+  // https://github.com/Quansight-Labs/czi-scientific-python-mgmt/issues/97#issuecomment-2310531483
+  --pst-font-size-h1: 2.5rem;
+  --pst-font-size-h2: 2rem;
 }
 
 /* Dark theme tweaking */
