@@ -62,22 +62,6 @@ def fullstack_obsconditions(request):
     return request.param
 
 
-def _erfa_check(ira, idec, astrom):
-    """
-    This function does the same thing the astropy layer is supposed to do, but
-    all in erfa
-    """
-    cra, cdec = erfa.atciq(ira, idec, 0, 0, 0, 0, astrom)
-    az, zen, ha, odec, ora = erfa.atioq(cra, cdec, astrom)
-    alt = np.pi / 2 - zen
-    cra2, cdec2 = erfa.atoiq("A", az, zen, astrom)
-    ira2, idec2 = erfa.aticq(cra2, cdec2, astrom)
-
-    dct = locals()
-    del dct["astrom"]
-    return dct
-
-
 def test_iau_fullstack(
     fullstack_icrs,
     fullstack_fiducial_altaz,
@@ -161,9 +145,12 @@ def test_iau_fullstack(
         relative_humidity,
         obswl,
     )
-    erfadct = _erfa_check(fullstack_icrs.ra.rad, fullstack_icrs.dec.rad, astrom)
-    npt.assert_allclose(erfadct["alt"], aacoo.alt.radian, atol=1e-7)
-    npt.assert_allclose(erfadct["az"], aacoo.az.radian, atol=1e-7)
+    erfa_az, erfa_zen, _, _, _ = erfa.atioq(
+        *erfa.atciq(fullstack_icrs.ra.rad, fullstack_icrs.dec.rad, 0, 0, 0, 0, astrom),
+        astrom,
+    )
+    npt.assert_allclose(aacoo.alt.rad, np.pi / 2 - erfa_zen, atol=1e-7)
+    npt.assert_allclose(aacoo.az.rad, erfa_az, atol=1e-7)
 
 
 def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
