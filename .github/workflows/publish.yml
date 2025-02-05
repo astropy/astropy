@@ -57,11 +57,14 @@ jobs:
         - cp312-manylinux_x86_64
         - cp313-manylinux_x86_64
 
-        # Note that following wheels are not currently tested:
+        - target: cp311-manylinux_aarch64
+          runs-on: ubuntu-24.04-arm
+        - target: cp312-manylinux_aarch64
+          runs-on: ubuntu-24.04-arm
+        - target: cp313-manylinux_aarch64
+          runs-on: ubuntu-24.04-arm
 
-        - cp311-manylinux_aarch64
-        - cp312-manylinux_aarch64
-        - cp313-manylinux_aarch64
+        # Note that following wheels are not currently tested:
 
         - cp311-musllinux_x86_64
         - cp312-musllinux_x86_64
