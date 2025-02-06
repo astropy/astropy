@@ -350,14 +350,28 @@ def test_stored_parquet_votable(format):
 
 
 def test_write_jybeam_unit(tmp_path):
-    t = Table()
-    t["flux"] = [5]
-    t["flux"].unit = u.Jy / u.beam
+    with pytest.warns(u.UnitsWarning, match="Crab"):
+        t = Table(
+            {
+                "flux": [5 * (u.Jy / u.beam)],
+                "foo": [0 * u.Unit("Crab", format="ogip")],
+                "bar": [1 * u.def_unit("my_unit")],
+            }
+        )
+
     filename = tmp_path / "test.xml"
-    t.write(filename, format="votable", overwrite=True)
+    with (
+        pytest.warns(u.UnitsWarning, match="Crab"),
+        pytest.warns(u.UnitsWarning, match="my_unit"),
+    ):
+        t.write(filename, format="votable", overwrite=True)
 
     t_rt = Table.read(filename, format="votable")
     assert t_rt["flux"].unit == t["flux"].unit
+
+    # These are not VOUnit so while string would match, not same unit instance.
+    assert t_rt["foo"].unit.to_string() == t["foo"].unit.to_string()
+    assert t_rt["bar"].unit.to_string() == t["bar"].unit.to_string()
 
 
 def test_write_overwrite(tmp_path):
