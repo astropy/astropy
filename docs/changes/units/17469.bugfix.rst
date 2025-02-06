@@ -1,4 +1,0 @@
-Ensure that ``Unit.to`` allows as ``value`` argument all array types that
-follow the array API standard and define ``__array_namespace__``. Furthermore,
-for backwards compatibility, generally pass through arguments that define a
-``.dtype``, independent of whether that is a numpy data type.
