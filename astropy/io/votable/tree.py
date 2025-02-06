@@ -9,6 +9,7 @@ import io
 import os
 import re
 import urllib.request
+import warnings
 
 # THIRD-PARTY
 import numpy as np
@@ -16,6 +17,7 @@ from numpy import ma
 
 # LOCAL
 from astropy import __version__ as astropy_version
+from astropy import units as u
 from astropy.io import fits
 from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
@@ -1676,7 +1678,13 @@ class Field(
         attrib = w.object_attrs(self, self._attr_list)
         if "unit" in attrib:
             format = _get_unit_format(self._config)
-            attrib["unit"] = self.unit.to_string(format)
+            try:
+                attrib["unit"] = self.unit.to_string(format)
+            except ValueError as e:
+                # Allow non-standard units with a warning, see
+                # https://github.com/astropy/astropy/issues/17497#issuecomment-2520472495
+                attrib["unit"] = self.unit.to_string()
+                warnings.warn(str(e), u.UnitsWarning)
         with w.tag(self._element_name, attrib=attrib):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
