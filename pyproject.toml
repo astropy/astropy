@@ -627,6 +627,7 @@ ignore-words-list = """
     dum,
     fo,
     hel,
+    indx,
     lightyear,
     lond,
     nax,
