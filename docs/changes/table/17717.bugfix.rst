@@ -1,0 +1,6 @@
+Initializing a Table with ``rows`` or ``data`` set to ``[]`` or a numpy array with
+zero size (e.g., ``np.array([[], []])``) is now equivalent to
+``Table(data=None, ...)`` and creates a table with no data values. This allows
+defining the table names and/or dtype when creating the table, for instance:
+``Table(rows=[], names=["a", "b"], dtype=[int, float])``. Previously this
+raised an exception.

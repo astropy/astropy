@@ -746,7 +746,9 @@ class Table:
             names_from_list_of_dict = _get_names_from_list_of_dict(rows)
             if names_from_list_of_dict:
                 data = rows
-            elif isinstance(rows, self.Row):
+            elif isinstance(rows, self.Row) or (
+                isinstance(rows, np.ndarray) and rows.dtype.names
+            ):
                 data = rows
             else:
                 data = list(zip(*rows))
@@ -781,7 +783,16 @@ class Table:
                 f"__init__() got unexpected keyword argument {next(iter(kwargs.keys()))!r}"
             )
 
-        if isinstance(data, np.ndarray) and data.shape == (0,) and not data.dtype.names:
+        # Treat any empty numpy array as None, except for structured arrays since they
+        # provide column names and dtypes.
+        #
+        # Init with rows=[] or data=[] (or tuples) is allowed and taken to mean no data.
+        # This allows supplying names and dtype if desired. `data=[]` is ambiguous,
+        # because it could mean no columns, or it could mean no rows for list of dict.
+        # For compatibility with the latter, interpret data=[] as data=None.
+        if (
+            isinstance(data, np.ndarray) and data.size == 0 and not data.dtype.names
+        ) or (isinstance(data, (list, tuple)) and len(data) == 0):
             data = None
 
         if isinstance(data, self.Row):
