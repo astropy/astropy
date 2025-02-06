@@ -1,1 +1,0 @@
-Update bundled js library datatables to version 2.1.8, which is current at the time of this PR.

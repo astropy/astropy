@@ -1,1 +1,0 @@
-Updated XML writer for ``VOTableFile`` element to include or drop ``coordinate_systems`` regardless of version.

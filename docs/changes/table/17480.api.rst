@@ -1,3 +1,0 @@
-The use of the keyword ``use_local_files`` for the js viewer in ``astropy.table.Table.show_in_browser``
-is now deprecated. Starting in Astropy 7.1 this keyword will be ignored and use of it will issue
-a warning. The default behavior will be to use the remote versions of jQuery and DataTables from a CDN.
