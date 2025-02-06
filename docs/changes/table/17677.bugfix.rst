@@ -1,2 +1,0 @@
-Fix incorrect description of the ``unique`` parameter in ``Table.add_index``'s
-docstring. Add missing Raises section.

@@ -1,4 +1,0 @@
-Fixed a numerical-precision bug with the calculation of the ``theta``
-component when converting from ``CylindricalRepresentation`` to
-``PhysicsSphericalRepresentation`` for vectors very close to the Z axis (within
-milliarcseconds).

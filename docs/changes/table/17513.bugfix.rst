@@ -1,1 +1,0 @@
-Fix a crash in ``Table.show_in_browser`` due to an internal type inconsistency.

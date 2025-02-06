@@ -1,3 +1,119 @@
+Version 7.0.1 (2025-02-06)
+==========================
+
+API Changes
+-----------
+
+astropy.table
+^^^^^^^^^^^^^
+
+- The use of the keyword ``use_local_files`` for the js viewer in
+  ``astropy.table.Table.show_in_browser`` is now deprecated. Starting in Astropy
+  7.1 this keyword will be ignored and use of it will issue a warning. The
+  default behavior will be to use the remote versions of jQuery and DataTables
+  from a CDN. [#17480]
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+- With ``astropy`` v7.0.0 the cache directory cannot be customized with the
+  ``XDG_CACHE_HOME`` environment variable.
+  Instead, ``XDG_CONFIG_HOME`` erroneously controls both configuration and cache
+  directories.
+  The correct pre-v7.0.0 behaviour has been restored, but it is possible that
+  ``astropy`` v7.0.0 has written cache files to surprising locations.
+  Concerned users can use the ``get_cache_dir_path()`` function to check where
+  the cache files are written.
+
+  The bug in question does not affect systems where the ``XDG_CACHE_HOME`` and
+  ``XDG_CONFIG_HOME`` environment variables are unset. [#17514]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed a numerical-precision bug with the calculation of the ``theta``
+  component when converting from ``CylindricalRepresentation`` to
+  ``PhysicsSphericalRepresentation`` for vectors very close to the Z axis (within
+  milliarcseconds). [#17693]
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Fixed parsing ASCII table with data that starts with a tilda. [#17565]
+
+- Find and read ASCII tables even if there is white space before
+  ``\begin{tabular}``, ``\tablehead``, and similar markers. [#17624]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix memory leak in ```BinTableHDU.copy()``` [#16143]
+
+- Fix overflow error with Numpy 2 and VLA columns using P format. [#17328]
+
+- Fix ``ImageHDU.scale`` with float. [#17458]
+
+- Fixed ``Table.write(..., format="fits", overwrite=True)`` when filename is
+  provided as ``pathlib.Path``. [#17552]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Updated XML writer for ``VOTableFile`` element to include or drop
+  ``coordinate_systems`` regardless of version. [#17356]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fix fitting of compound models when inputs has more than one dimension, and
+  specifically fix fitting of compound models with Polynomial2D components
+  [#17618]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Ensure that representations and differentials, like SkyCoord, can be used in
+  table join operations, by making use of the fact that they can now be masked. [#17381]
+
+- Fix a crash in ``Table.show_in_browser`` due to an internal type inconsistency. [#17513]
+
+- Fix incorrect description of the ``unique`` parameter in ``Table.add_index``'s
+  docstring. Add missing Raises section. [#17677]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Ensure that ``Unit.to`` allows as ``value`` argument all array types that
+  follow the array API standard and define ``__array_namespace__``. Furthermore,
+  for backwards compatibility, generally pass through arguments that define a
+  ``.dtype``, independent of whether that is a numpy data type. [#17469]
+
+- The zebi (Zi, 2^70) and yobi (Yi, 2^80) binary prefixes are now supported. [#17692]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fix ``CoordinateHelper.ticklabels``. The getter was incorrectly returning
+  the helper's ticks rather than the labels. [#17444]
+
+- The following private classes from ``astropy.visualization.lupton_rgb``, that
+  were dropped without deprecation in astropy 7.0.0, were re-introduced following
+  a report that they were used downstream. The following classes are now
+  considered public:
+
+  - ``Mapping``
+  - ``AsinhMapping``
+  - ``LinearMapping``
+  - ``AsinhZScaleMapping`` [#17531]
+
+Other Changes and Additions
+---------------------------
+
+- Update bundled js library datatables to version 2.1.8, which is current at the time of this PR. [#17480]
+
 Version 7.0.0 (2024-11-21)
 ==========================
 
