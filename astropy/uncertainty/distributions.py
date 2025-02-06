@@ -149,7 +149,7 @@ def uniform(
     **kwargs,
 ):
     """
-    Create a Uniform distriution from the lower and upper bounds.
+    Create a Uniform distribution from the lower and upper bounds.
 
     Note that this function requires keywords to be explicit, and requires
     either ``lower``/``upper`` or ``center``/``width``.
