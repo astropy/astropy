@@ -1067,7 +1067,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_wildcard_slice(self):
         """Test selecting a subsection of a header via wildcard matching."""
 
-        header = fits.Header([("ABC", 0), ("DEF", 1), ("ABD", 2)])
+        header = fits.Header(
+            [("ABC", 0), ("DEF", 1), ("ABD", 2)]  # codespell:ignore abd
+        )
         newheader = header["AB*"]
         assert len(newheader) == 2
         assert newheader[0] == 0
@@ -1087,7 +1089,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_wildcard_slice_assignment(self):
         """Test assigning to a header slice selected via wildcard matching."""
 
-        header = fits.Header([("ABC", 0), ("DEF", 1), ("ABD", 2)])
+        header = fits.Header(
+            [("ABC", 0), ("DEF", 1), ("ABD", 2)]  # codespell:ignore abd
+        )
 
         # Test assigning slice to the same value; this works similarly to numpy
         # arrays
@@ -1108,7 +1112,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_wildcard_slice_deletion(self):
         """Test deleting cards from a header that match a wildcard pattern."""
 
-        header = fits.Header([("ABC", 0), ("DEF", 1), ("ABD", 2)])
+        header = fits.Header(
+            [("ABC", 0), ("DEF", 1), ("ABD", 2)]  # codespell:ignore abd
+        )
         del header["AB*"]
         assert len(header) == 1
         assert header[0] == 1

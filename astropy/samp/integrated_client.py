@@ -429,7 +429,7 @@ class SAMPIntegratedClient:
         >>> from astropy.samp import SAMPIntegratedClient, SAMP_STATUS_ERROR
         >>> cli = SAMPIntegratedClient()
         >>> ...
-        >>> cli.ereply("abd", SAMP_STATUS_ERROR, result={},
+        >>> cli.ereply("message_id", SAMP_STATUS_ERROR, result={},
         ...            error={"samp.errortxt": "Test error message"})
         """
         return self.reply(msg_id, self._format_easy_response(status, result, error))
