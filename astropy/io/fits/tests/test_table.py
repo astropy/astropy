@@ -1031,7 +1031,7 @@ class TestTableFunctions(FitsTestCase):
         """Regression test for https://github.com/astropy/astropy/issues/5280
         and https://github.com/astropy/astropy/issues/5287
 
-        multidimentional tables can now be written with the correct TDIM.
+        multidimensional tables can now be written with the correct TDIM.
         Author: Stephen Bailey.
         """
 

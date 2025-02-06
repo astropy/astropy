@@ -390,7 +390,7 @@ def _encode_mixins(tbl):
         encode_tbl = Table(tbl.columns, meta=meta_copy, copy=False)
 
     # Get the YAML serialization of information describing the table columns.
-    # This is re-using ECSV code that combined existing table.meta with with
+    # This is reusing ECSV code that combined existing table.meta with with
     # the extra __serialized_columns__ key.  For FITS the table.meta is handled
     # by the native FITS connect code, so don't include that in the YAML
     # output.

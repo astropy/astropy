@@ -303,7 +303,7 @@ def test_transform_api():
         FK5(equinox=J2001).transform_to(ICRS())
 
     # To actually define a new transformation, the same scheme as in the
-    # 0.2/0.3 coordinates framework can be re-used - a graph of transform functions
+    # 0.2/0.3 coordinates framework can be reused - a graph of transform functions
     # connecting various coordinate classes together.  The main changes are:
     # 1) The transform functions now get the frame object they are transforming the
     #    current data into.
