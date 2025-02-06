@@ -64,10 +64,13 @@ ipython = [
 ]
 jupyter = [  # these are optional dependencies for utils.console and table
     "astropy[ipython]",
-    "ipywidgets",
-    "ipykernel",
-    "ipydatagrid",
-    "pandas",
+    "ipywidgets>=7.7.3",
+    "ipykernel>=6.16.0",
+    "ipydatagrid>=1.1.13",
+    # jupyter-core is a transitive dependency via ipykernel, we declare it as
+    # a direct dependency in order to set a lower bound for oldest-deps testing
+    "jupyter-core>=4.11.2",
+    "pandas>=1.5.0",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
