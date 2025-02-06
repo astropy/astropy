@@ -1,2 +1,0 @@
-Fix fitting of compound models when inputs has more than one dimension,
-and specifically fix fitting of compound models with Polynomial2D components

@@ -1,1 +1,0 @@
-Fix overflow error with Numpy 2 and VLA columns using P format.
