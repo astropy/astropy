@@ -600,22 +600,24 @@ class TestGeodetic:
         cls.ellipsoid = 1
         cls.length_unit = u.Unit("m")
         cls.equatorial_radius_value = 6378136.0
-        cls.equatorial_radius = cls.equatorial_radius_value << cls.length_unit
+        cls.equatorial_radius = (cls.equatorial_radius_value << cls.length_unit).to(
+            u.km
+        )
         cls.flattening = 0.0033528 * u.dimensionless_unscaled
         cls.lon_value = 0.9827937232473290680
         cls.lon_unit = u.Unit("rad")
-        cls.lon = cls.lon_value << cls.lon_unit
+        cls.lon = (cls.lon_value << cls.lon_unit).to(u.deg)
         cls.lat_value = 0.9716018377570411532
         cls.lat_unit = u.Unit("rad")
-        cls.lat = cls.lat_value << cls.lat_unit
+        cls.lat = (cls.lat_value << cls.lat_unit).to(u.deg)
         cls.height_value = 332.36862495764397
         cls.height = cls.height_value << cls.length_unit
         cls.x_value = 2e6
-        cls.x = cls.x_value << cls.length_unit
+        cls.x = (cls.x_value << cls.length_unit).to(u.cm)
         cls.y_value = 3e6
-        cls.y = cls.y_value << cls.length_unit
+        cls.y = (cls.y_value << cls.length_unit).to(u.km)
         cls.z_value = 5.244e6
-        cls.z = cls.z_value << cls.length_unit
+        cls.z = (cls.z_value << cls.length_unit).to(u.Mm)
         cls.xyz = np.stack([cls.x, cls.y, cls.z])
 
     def test_unit_errors(self):
@@ -657,11 +659,10 @@ class TestGeodetic:
     def test_gc2gde(self):
         """Test that we reproduce erfa/src/t_erfa_c.c t_gc2gd"""
 
-        status = 0
         e, p, h, status = erfa_ufunc.gc2gde(
             self.equatorial_radius, self.flattening, self.xyz
         )
-
+        assert status == 0
         vvd(e, self.lon_value, 1e-14, "eraGc2gde", "e", status)
         vvd(p, self.lat_value, 1e-14, "eraGc2gde", "p", status)
         vvd(h, self.height_value, 1e-8, "eraGc2gde", "h", status)
@@ -669,11 +670,10 @@ class TestGeodetic:
     def test_gd2gce(self):
         """Test that we reproduce erfa/src/t_erfa_c.c t_gc2gd"""
 
-        status = 0
         xyz, status = erfa_ufunc.gd2gce(
             self.equatorial_radius, self.flattening, self.lon, self.lat, self.height
         )
-
+        assert status == 0
         vvd(xyz[0], self.x_value, 1e-7, "eraGd2gce", "e", status)
         vvd(xyz[1], self.y_value, 1e-7, "eraGd2gce", "p", status)
         vvd(xyz[2], self.z_value, 1e-7, "eraGd2gce", "h", status)
