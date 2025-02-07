@@ -1,0 +1,3 @@
+Ensured that the units of ``yp``, ``refa`` and ``refb`` are properly
+taken into account when calling ``erfa.apio`` (previously, the
+conversion required for ``xp`` was applied to those inputs too).
