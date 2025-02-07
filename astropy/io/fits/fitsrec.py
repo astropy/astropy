@@ -92,9 +92,11 @@ class FITS_record:
             if indx < self.start or indx > self.end - 1:
                 raise KeyError(f"Key '{key}' does not exist.")
         elif isinstance(key, slice):
-            for indx in range(slice.start, slice.stop, slice.step):
-                indx = self._get_indx(indx)
-                self.array.field(indx)[self.row] = value
+            start, stop, step = key.indices(self.array._nfields)
+            for i, val in zip(range(start, stop, step), value, strict=True):
+                indx = self._get_index(i)
+                self.array.field(indx)[self.row] = val
+            return
         else:
             indx = self._get_index(key)
             if indx > self.array._nfields - 1:
