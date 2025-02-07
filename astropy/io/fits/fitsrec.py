@@ -71,38 +71,37 @@ class FITS_record:
 
     def __getitem__(self, key):
         if isinstance(key, str):
-            indx = _get_index(self.array.names, key)
+            index = _get_index(self.array.names, key)
 
-            if indx < self.start or indx > self.end - 1:
+            if index < self.start or index > self.end - 1:
                 raise KeyError(f"Key '{key}' does not exist.")
         elif isinstance(key, slice):
             return type(self)(self.array, self.row, key.start, key.stop, key.step, self)
         else:
-            indx = self._get_index(key)
+            index = self._get_index(key)
 
-            if indx > self.array._nfields - 1:
+            if index > self.array._nfields - 1:
                 raise IndexError("Index out of bounds")
 
-        return self.array.field(indx)[self.row]
+        return self.array.field(index)[self.row]
 
     def __setitem__(self, key, value):
         if isinstance(key, str):
-            indx = _get_index(self.array.names, key)
+            index = _get_index(self.array.names, key)
 
-            if indx < self.start or indx > self.end - 1:
+            if index < self.start or index > self.end - 1:
                 raise KeyError(f"Key '{key}' does not exist.")
         elif isinstance(key, slice):
             start, stop, step = key.indices(self.array._nfields)
             for i, val in zip(range(start, stop, step), value, strict=True):
-                indx = self._get_index(i)
-                self.array.field(indx)[self.row] = val
+                self.array.field(self._get_index(i))[self.row] = val
             return
         else:
-            indx = self._get_index(key)
-            if indx > self.array._nfields - 1:
+            index = self._get_index(key)
+            if index > self.array._nfields - 1:
                 raise IndexError("Index out of bounds")
 
-        self.array.field(indx)[self.row] = value
+        self.array.field(index)[self.row] = value
 
     def __len__(self):
         return len(range(self.start, self.end, self.step))
@@ -137,7 +136,7 @@ class FITS_record:
             base = base.base
         return bases
 
-    def _get_index(self, indx):
+    def _get_index(self, index):
         indices = np.ogrid[: self.array._nfields]
         for base in reversed(self._bases):
             if base.step < 1:
@@ -145,7 +144,7 @@ class FITS_record:
             else:
                 s = slice(base.start, base.end, base.step)
             indices = indices[s]
-        return indices[indx]
+        return indices[index]
 
 
 class FITS_rec(np.recarray):
@@ -872,10 +871,10 @@ class FITS_rec(np.recarray):
         try:
             dummy = np.array(dummy, dtype=recformat)
         except ValueError as exc:
-            indx = self.names.index(column.name)
             raise ValueError(
-                f"{exc}; the header may be missing the necessary TNULL{indx + 1} "
-                "keyword or the table contains invalid data"
+                f"{exc}; the header may be missing the necessary "
+                f"TNULL{self.names.index(column.name) + 1} keyword or the table "
+                "contains invalid data"
             )
 
         return dummy
@@ -893,7 +892,7 @@ class FITS_rec(np.recarray):
         scale_factors = self._get_scale_factors(column)
         _str, _bool, _number, _scale, _zero, bscale, bzero, dim = scale_factors
 
-        indx = self.names.index(column.name)
+        index = self.names.index(column.name)
 
         # ASCII table, convert strings to numbers
         # TODO:
@@ -932,9 +931,9 @@ class FITS_rec(np.recarray):
                     actual_nitems = field.shape[1]
                 if nitems > actual_nitems and not isinstance(recformat, _FormatP):
                     warnings.warn(
-                        f"TDIM{indx + 1} value {self._coldefs[indx].dims:d} does not "
+                        f"TDIM{index + 1} value {self._coldefs[index].dims:d} does not "
                         f"fit with the size of the array items ({actual_nitems:d}).  "
-                        f"TDIM{indx + 1:d} will be ignored."
+                        f"TDIM{index + 1:d} will be ignored."
                     )
                     dim = None
 
@@ -980,7 +979,7 @@ class FITS_rec(np.recarray):
                         test_overflow += bzero64
                     except OverflowError:
                         warnings.warn(
-                            f"Overflow detected while applying TZERO{indx + 1:d}. "
+                            f"Overflow detected while applying TZERO{index + 1:d}. "
                             "Returning unscaled data."
                         )
                     else:
@@ -1095,10 +1094,10 @@ class FITS_rec(np.recarray):
         # Running total for the new heap size
         heapsize = 0
 
-        for indx, name in enumerate(self.dtype.names):
-            column = self._coldefs[indx]
+        for index, name in enumerate(self.dtype.names):
+            column = self._coldefs[index]
             recformat = column.format.recformat
-            raw_field = _get_recarray_field(self, indx)
+            raw_field = _get_recarray_field(self, index)
 
             # add the location offset of the heap area for each
             # variable length column
@@ -1155,10 +1154,10 @@ class FITS_rec(np.recarray):
 
                 # ASCII table, convert numbers to strings
                 if isinstance(self._coldefs, _AsciiColDefs):
-                    self._scale_back_ascii(indx, dummy, raw_field)
+                    self._scale_back_ascii(index, dummy, raw_field)
                 # binary table string column
                 elif isinstance(raw_field, chararray.chararray):
-                    self._scale_back_strings(indx, dummy, raw_field)
+                    self._scale_back_strings(index, dummy, raw_field)
                 # all other binary table columns
                 else:
                     if len(raw_field) and isinstance(raw_field[0], np.integer):
