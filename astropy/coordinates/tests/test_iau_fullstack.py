@@ -41,16 +41,18 @@ FULLSTACK_ICRS = ICRS(golden_spiral_grid(size=1000))
     ],
 )
 @pytest.mark.parametrize(
-    "fullstack_obsconditions",
+    "fullstack_obsconditions,min_alt,tol",
     [
-        {"pressure": 0 * u.bar},
-        {"relative_humidity": 0 * u.one},
-        {"temperature": 10 * u.deg_C},
-        {"relative_humidity": 50 * u.percent},
-        {"obswl": 21 * u.cm},
+        ({"pressure": 0 * u.bar}, -90 * u.deg, 5 * u.µas),
+        ({"relative_humidity": 0 * u.one}, 10 * u.deg, 100 * u.mas),
+        ({"temperature": 10 * u.deg_C}, 5 * u.deg, 750 * u.mas),
+        ({"relative_humidity": 50 * u.percent}, 5 * u.deg, 750 * u.mas),
+        ({"obswl": 21 * u.cm}, 5 * u.deg, 750 * u.mas),
     ],
 )
-def test_iau_fullstack(fullstack_times, fullstack_locations, fullstack_obsconditions):
+def test_iau_fullstack(
+    fullstack_times, fullstack_locations, fullstack_obsconditions, min_alt, tol
+):
     """
     Test the full transform from ICRS <-> AltAz
     """
@@ -73,18 +75,11 @@ def test_iau_fullstack(fullstack_times, fullstack_locations, fullstack_obscondit
     )
 
     # if the refraction correction is included, we *only* do the comparisons
-    # where altitude >5 degrees.  The SOFA guides imply that below 5 is where
+    # where altitude is high enough.  The SOFA guides imply that below 5 deg is
     # where accuracy gets more problematic, and testing reveals that alt<~0
-    # gives garbage round-tripping, and <10 can give ~1 arcsec uncertainty
-    if obsconditions["pressure"].value == 0:
-        # but if there is no refraction correction, check everything
-        msk = slice(None)
-        tol = 5 * u.microarcsecond
-    else:
-        msk = aacoo.alt > 5 * u.deg
-        # most of them aren't this bad, but some of those at low alt are offset
-        # this much.  For alt > 10, this is always better than 100 masec
-        tol = 750 * u.milliarcsecond
+    # gives garbage round-tripping, and <10 can give ~1 arcsec uncertainty,
+    # but if there is no refraction correction, we still check everything
+    msk = aacoo.alt > min_alt
 
     # now make sure the full stack round-tripping works
     icrs2 = aacoo.transform_to(ICRS())
