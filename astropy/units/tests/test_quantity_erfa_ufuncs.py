@@ -21,16 +21,17 @@ def vvd(val, valok, dval, func, test, status):
 
 
 class TestPVUfuncs:
-    def setup_class(self):
-        self.pv_unit = u.Unit("AU,AU/day")
-        self.pv_value = np.array(
+    @classmethod
+    def setup_class(cls):
+        cls.pv_unit = u.Unit("AU,AU/day")
+        cls.pv_value = np.array(
             [
                 ([1.0, 0.0, 0.0], [0.0, 0.0125, 0.0]),
                 ([0.0, 1.0, 0.0], [-0.0125, 0.0, 0.0]),
             ],
             dtype=erfa_ufunc.dt_pv,
         )
-        self.pv = self.pv_value << self.pv_unit
+        cls.pv = cls.pv_value << cls.pv_unit
 
     def test_cpv(self):
         pv_copy = erfa_ufunc.cpv(self.pv)
@@ -321,7 +322,8 @@ class TestPVUfuncs:
 
 
 class TestEraStructUfuncs:
-    def setup_class(self):
+    @classmethod
+    def setup_class(cls):
         ldbody = np.array(
             [
                 (0.00028574, 3e-10, ([-7.81014427, -5.60956681, -1.98079819],
@@ -334,19 +336,19 @@ class TestEraStructUfuncs:
             dtype=erfa_ufunc.dt_eraLDBODY
         )  # fmt: skip
         ldbody_unit = u.StructuredUnit("Msun,radian,(AU,AU/day)", ldbody.dtype)
-        self.ldbody = ldbody << ldbody_unit
-        self.ob = [-0.974170437, -0.2115201, -0.0917583114] << u.AU
-        self.sc = np.array([-0.763276255, -0.608633767, -0.216735543])
+        cls.ldbody = ldbody << ldbody_unit
+        cls.ob = [-0.974170437, -0.2115201, -0.0917583114] << u.AU
+        cls.sc = np.array([-0.763276255, -0.608633767, -0.216735543])
 
         # From t_atciq in t_erfa_c.c
         astrom, eo = erfa_ufunc.apci13(2456165.5, 0.401182685)
-        self.astrom = astrom << ASTROM_UNIT
-        self.rc = 2.71 * u.rad
-        self.dc = 0.174 * u.rad
-        self.pr = 1e-5 * u.rad / u.year
-        self.pd = 5e-6 * u.rad / u.year
-        self.px = 0.1 * u.arcsec
-        self.rv = 55.0 * u.km / u.s
+        cls.astrom = astrom << ASTROM_UNIT
+        cls.rc = 2.71 * u.rad
+        cls.dc = 0.174 * u.rad
+        cls.pr = 1e-5 * u.rad / u.year
+        cls.pd = 5e-6 * u.rad / u.year
+        cls.px = 0.1 * u.arcsec
+        cls.rv = 55.0 * u.km / u.s
 
     def test_ldn_basic(self):
         sn = erfa_ufunc.ldn(self.ldbody, self.ob, self.sc)
@@ -593,27 +595,28 @@ class TestAp:
 
 
 class TestGeodetic:
-    def setup_class(self):
-        self.ellipsoid = 1
-        self.length_unit = u.Unit("m")
-        self.equatorial_radius_value = 6378136.0
-        self.equatorial_radius = self.equatorial_radius_value << self.length_unit
-        self.flattening = 0.0033528 * u.dimensionless_unscaled
-        self.lon_value = 0.9827937232473290680
-        self.lon_unit = u.Unit("rad")
-        self.lon = self.lon_value << self.lon_unit
-        self.lat_value = 0.9716018377570411532
-        self.lat_unit = u.Unit("rad")
-        self.lat = self.lat_value << self.lat_unit
-        self.height_value = 332.36862495764397
-        self.height = self.height_value << self.length_unit
-        self.x_value = 2e6
-        self.x = self.x_value << self.length_unit
-        self.y_value = 3e6
-        self.y = self.y_value << self.length_unit
-        self.z_value = 5.244e6
-        self.z = self.z_value << self.length_unit
-        self.xyz = np.stack([self.x, self.y, self.z])
+    @classmethod
+    def setup_class(cls):
+        cls.ellipsoid = 1
+        cls.length_unit = u.Unit("m")
+        cls.equatorial_radius_value = 6378136.0
+        cls.equatorial_radius = cls.equatorial_radius_value << cls.length_unit
+        cls.flattening = 0.0033528 * u.dimensionless_unscaled
+        cls.lon_value = 0.9827937232473290680
+        cls.lon_unit = u.Unit("rad")
+        cls.lon = cls.lon_value << cls.lon_unit
+        cls.lat_value = 0.9716018377570411532
+        cls.lat_unit = u.Unit("rad")
+        cls.lat = cls.lat_value << cls.lat_unit
+        cls.height_value = 332.36862495764397
+        cls.height = cls.height_value << cls.length_unit
+        cls.x_value = 2e6
+        cls.x = cls.x_value << cls.length_unit
+        cls.y_value = 3e6
+        cls.y = cls.y_value << cls.length_unit
+        cls.z_value = 5.244e6
+        cls.z = cls.z_value << cls.length_unit
+        cls.xyz = np.stack([cls.x, cls.y, cls.z])
 
     def test_unit_errors(self):
         """Test unit errors when dimensionless parameters are used"""
