@@ -6,7 +6,7 @@ This module provides functionality to read CSV files into Astropy Tables using P
 import io
 import os
 from contextlib import ExitStack
-from typing import TYPE_CHECKING, BinaryIO, Literal
+from typing import TYPE_CHECKING, BinaryIO, Literal, Union
 
 import numpy as np
 
@@ -133,13 +133,15 @@ def get_pyarrow_csv():
     return pa, csv
 
 
-def convert_pa_array_to_numpy(arr):
+def convert_pa_array_to_numpy(
+    arr: Union["pa.Array", "pa.ChunkedArray"],
+) -> "npt.NDArray":
     """
     Convert a PyArrow array to a NumPy array.
 
     Parameters
     ----------
-    arr : pyarrow.Array
+    arr : pyarrow.Array, pyarrow.ChunkedArray
         The PyArrow array to be converted.
 
     Returns
