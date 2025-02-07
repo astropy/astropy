@@ -10,6 +10,9 @@ from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.units.quantity_helper.erfa import astrom_unit
+
+ASTROM_UNIT = astrom_unit()
 
 
 def vvd(val, valok, dval, func, test, status):
@@ -337,10 +340,7 @@ class TestEraStructUfuncs:
 
         # From t_atciq in t_erfa_c.c
         astrom, eo = erfa_ufunc.apci13(2456165.5, 0.401182685)
-        self.astrom_unit = u.StructuredUnit(
-            "yr,AU,1,AU,1,1,1,rad,rad,rad,rad,1,1,1,rad,rad,rad", astrom.dtype
-        )
-        self.astrom = astrom << self.astrom_unit
+        self.astrom = astrom << ASTROM_UNIT
         self.rc = 2.71 * u.rad
         self.dc = 0.174 * u.rad
         self.pr = 1e-5 * u.rad / u.year
@@ -463,7 +463,7 @@ class TestEraStructUfuncs:
             0.59,
             0.55,
         )
-        astrom = astrom << self.astrom_unit
+        astrom = astrom << ASTROM_UNIT
 
         ri = 2.710121572969038991 * u.rad
         di = 0.1729371367218230438 * u.rad
@@ -489,38 +489,107 @@ class TestEraStructUfuncs:
             di2, 0.17293718391166087785 * u.rad, atol=1e-12 * u.rad
         )
 
-    def test_apio(self):
-        sp = -3.01974337e-11 * u.rad
-        theta = 3.14540971 * u.rad
-        elong = -0.527800806 * u.rad
-        phi = -1.2345856 * u.rad
-        hm = 2738.0 * u.m
-        xp = 2.47230737e-7 * u.rad
-        yp = 1.82640464e-6 * u.rad
-        refa = 0.000201418779 * u.rad
-        refb = -2.36140831e-7 * u.rad
-        astrom = erfa_ufunc.apio(
-            sp.to(u.deg), theta, elong, phi, hm.to(u.km),
-            xp.to(u.arcsec), yp, refa, refb.to(u.deg),
-        )  # fmt: skip
-        assert astrom.unit == self.astrom_unit
-        for name, value in [
-            ("along", -0.5278008060295995734),
-            ("xpl", 0.1133427418130752958e-5),
-            ("ypl", 0.1453347595780646207e-5),
-            ("sphi", -0.9440115679003211329),
-            ("cphi", 0.3299123514971474711),
-            ("diurab", 0.5135843661699913529e-6),
-            ("eral", 2.617608903970400427),
-            ("refa", 0.2014187790000000000e-3),
-            ("refb", -0.2361408310000000000e-6),
-        ]:
-            assert_quantity_allclose(
-                astrom[name],
-                value * self.astrom_unit[name],
-                rtol=1e-12,
-                atol=0 * self.astrom_unit[name],
+
+class TestAp:
+    @classmethod
+    def setup_class(cls):
+        # Values from apco13 and apio test cases in t_erfa_c.c
+        # with units changed so we can check conversion.
+        cls.utc1 = 2456384.5
+        cls.utc2 = 0.969254051
+        cls.dut1 = (0.1550675 * u.s).to(u.ms)
+        cls.sp = (-3.01974337e-11 * u.rad).to(u.deg)
+        cls.theta = (3.14540971 * u.rad).to(u.mdeg)
+        cls.elong = (-0.527800806 * u.rad).to(u.Marcsec)
+        cls.phi = (-1.2345856 * u.rad).to(u.arcmin)
+        cls.hm = (2738.0 * u.m).to(u.km)
+        cls.phpa = (731.0 * u.hPa).to(u.Pa)
+        cls.tc = (12.8 * u.deg_C).to(u.K, equivalencies=u.temperature())
+        cls.rh = (0.59 * u.one).to(u.percent)
+        cls.wl = (0.55 * u.micron).to(u.AA)
+        # For apio.
+        cls.xp = (2.47230737e-7 * u.rad).to(u.arcsec)
+        cls.yp = (1.82640464e-6 * u.rad).to(u.arcmin)
+        cls.refa = (0.000201418779 * u.rad).to(u.mas)
+        cls.refb = (-2.36140831e-7 * u.rad).to(u.uas)
+        cls.apco13_args = [
+            getattr(cls, name)
+            for name in "utc1 utc2 dut1 elong phi hm xp yp phpa tc rh wl".split()
+        ]
+        cls.apio_args = [
+            getattr(cls, name)
+            for name in "sp theta elong phi hm xp yp refa refb".split()
+        ]
+
+    def test_apco13(self):
+        astrom, eo, status = erfa_ufunc.apco13(*self.apco13_args)
+        assert status == 0
+        vvd(eo, -0.003020548354802412839, 1e-14, "eraApco13", "eo", status)
+        assert astrom.unit == ASTROM_UNIT
+        for name, expected in {
+            "pmt": 13.25248468622475727,
+            "eb": [-0.9741827107320875162,
+                   -0.2115130190489716682,
+                   -0.09179840189496755339],
+            "eh": [-0.9736425572586935247,
+                   -0.2092452121603336166,
+                   -0.09075578153885665295],
+            "em": 0.9998233240913898141,
+            "v": [0.2078704994520489246e-4,
+                  -0.8955360133238868938e-4,
+                  -0.3863338993055887398e-4],
+            "bm1": 0.9999999950277561004,
+            "bpn": np.array(
+                [[ 0.9999991390295147999,
+                   0.4978650075315529277e-7,
+                   0.001312227200850293372],
+                 [-0.1136336652812486604e-7,
+                   0.9999999995713154865,
+                  -0.2928086230975367296e-4],
+                 [-0.001312227201745553566,
+                   0.2928082218847679162e-4,
+                   0.9999991386008312212],
+                ]).T,
+            "along": -0.5278008060295995733,
+            "xpl": 0.1133427418130752958e-5,
+            "ypl": 0.1453347595780646207e-5,
+            "sphi": -0.9440115679003211329,
+            "cphi": 0.3299123514971474711,
+            "diurab": 0,
+            "eral": 2.617608909189664000,
+            "refa": 0.2014187785940396921e-3,
+            "refb": -0.2361408314943696227e-6,
+        }.items():  # fmt: skip
+            assert_quantity_allclose(astrom[name], expected * ASTROM_UNIT[name])
+
+    def test_apco13_no_time_units(self):
+        msg = "cannot pass in units for 2-part time in apco13"
+        with pytest.raises(TypeError, match=msg):
+            erfa_ufunc.apco13(self.utc1 * u.day, *self.apco13_args[1:])
+
+        with pytest.raises(TypeError, match=msg):
+            erfa_ufunc.apco13(self.utc1, self.utc2 * u.day, *self.apco13_args[2:])
+
+        with pytest.raises(TypeError, match=msg):
+            erfa_ufunc.apco13(
+                self.utc1 * u.day, self.utc2 * u.day, *self.apco13_args[2:]
             )
+
+    def test_apio(self):
+        astrom = erfa_ufunc.apio(*self.apio_args)
+        assert astrom.unit == ASTROM_UNIT
+        for name, expected in {
+            "along": -0.5278008060295995734,
+            "xpl": 0.1133427418130752958e-5,
+            "ypl": 0.1453347595780646207e-5,
+            "sphi": -0.9440115679003211329,
+            "cphi": 0.3299123514971474711,
+            "diurab": 0.5135843661699913529e-6,
+            "eral": 2.617608903970400427,
+            "refa": 0.2014187790000000000e-3,
+            "refb": -0.2361408310000000000e-6,
+        }.items():
+            assert_quantity_allclose(astrom[name], expected * ASTROM_UNIT[name])
 
 
 class TestGeodetic:
