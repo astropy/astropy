@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-
 import erfa
 import numpy as np
 import pytest
@@ -15,78 +13,58 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.utils import iers
 
-
-# These fixtures are used in test_iau_fullstack
-@pytest.fixture(scope="function")
-def fullstack_icrs():
-    rep = golden_spiral_grid(size=1000)
-    return ICRS(rep)
-
-
-@pytest.fixture(scope="function")
-def fullstack_fiducial_altaz(fullstack_icrs):
-    altazframe = AltAz(
-        location=EarthLocation(lat=0 * u.deg, lon=0 * u.deg, height=0 * u.m),
-        obstime=Time("J2000"),
-    )
-    with warnings.catch_warnings():  # Ignore remote_data warning
-        warnings.simplefilter("ignore")
-        result = fullstack_icrs.transform_to(altazframe)
-    return result
-
-
-@pytest.fixture(scope="function", params=["J2000.1", "J2010"])
-def fullstack_times(request):
-    return Time(request.param)
-
-
-@pytest.fixture(
-    scope="function",
-    params=[(0, 0, 0), (23, 0, 0), (-70, 0, 0), (0, 100, 0), (23, 0, 3000)],
+ALTAZFRAME = AltAz(
+    location=EarthLocation(lat=0 * u.deg, lon=0 * u.deg, height=0 * u.m),
+    obstime=Time("J2000"),
 )
-def fullstack_locations(request):
-    value = request.param[0]
-    return EarthLocation(lat=value * u.deg, lon=value * u.deg, height=value * u.m)
+DEFAULT_OBSCONDITIONS = {
+    "pressure": 1 * u.bar,
+    "temperature": 0 * u.deg_C,
+    "relative_humidity": 0,
+    "obswl": 1 * u.μm,
+}
+FULLSTACK_ICRS = ICRS(golden_spiral_grid(size=1000))
 
 
-@pytest.fixture(
-    scope="function",
-    params=[
-        (0 * u.bar, 0 * u.deg_C, 0, 1 * u.micron),
-        (1 * u.bar, 0 * u.deg_C, 0 * u.one, 1 * u.micron),
-        (1 * u.bar, 10 * u.deg_C, 0, 1 * u.micron),
-        (1 * u.bar, 0 * u.deg_C, 50 * u.percent, 1 * u.micron),
-        (1 * u.bar, 0 * u.deg_C, 0, 21 * u.cm),
+@pytest.mark.parametrize("fullstack_times", [Time("J2000.1"), Time("J2010")])
+@pytest.mark.parametrize(
+    "fullstack_locations",
+    [
+        EarthLocation(lat=lat * u.deg, lon=lon * u.deg, height=height * u.m)
+        for lat, lon, height in [
+            (0, 0, 0),
+            (23, 0, 0),
+            (-70, 0, 0),
+            (0, 100, 0),
+            (23, 0, 3000),
+        ]
     ],
 )
-def fullstack_obsconditions(request):
-    return request.param
-
-
-def test_iau_fullstack(
-    fullstack_icrs,
-    fullstack_fiducial_altaz,
-    fullstack_times,
-    fullstack_locations,
-    fullstack_obsconditions,
-):
+@pytest.mark.parametrize(
+    "fullstack_obsconditions",
+    [
+        {"pressure": 0 * u.bar},
+        {"relative_humidity": 0 * u.one},
+        {"temperature": 10 * u.deg_C},
+        {"relative_humidity": 50 * u.percent},
+        {"obswl": 21 * u.cm},
+    ],
+)
+def test_iau_fullstack(fullstack_times, fullstack_locations, fullstack_obsconditions):
     """
     Test the full transform from ICRS <-> AltAz
     """
+    obsconditions = DEFAULT_OBSCONDITIONS | fullstack_obsconditions
 
     # create the altaz frame
     altazframe = AltAz(
-        obstime=fullstack_times,
-        location=fullstack_locations,
-        pressure=fullstack_obsconditions[0],
-        temperature=fullstack_obsconditions[1],
-        relative_humidity=fullstack_obsconditions[2],
-        obswl=fullstack_obsconditions[3],
+        obstime=fullstack_times, location=fullstack_locations, **obsconditions
     )
 
-    aacoo = fullstack_icrs.transform_to(altazframe)
+    aacoo = FULLSTACK_ICRS.transform_to(altazframe)
 
     # compare aacoo to the fiducial AltAz - should always be different
+    fullstack_fiducial_altaz = FULLSTACK_ICRS.transform_to(ALTAZFRAME)
     assert np.all(
         np.abs(aacoo.alt - fullstack_fiducial_altaz.alt) > 50 * u.milliarcsecond
     )
@@ -98,7 +76,7 @@ def test_iau_fullstack(
     # where altitude >5 degrees.  The SOFA guides imply that below 5 is where
     # where accuracy gets more problematic, and testing reveals that alt<~0
     # gives garbage round-tripping, and <10 can give ~1 arcsec uncertainty
-    if fullstack_obsconditions[0].value == 0:
+    if obsconditions["pressure"].value == 0:
         # but if there is no refraction correction, check everything
         msk = slice(None)
         tol = 5 * u.microarcsecond
@@ -112,10 +90,10 @@ def test_iau_fullstack(
     icrs2 = aacoo.transform_to(ICRS())
 
     assert_quantity_allclose(
-        np.abs(fullstack_icrs.ra - icrs2.ra)[msk], 0 * u.μas, atol=tol, rtol=0
+        np.abs(FULLSTACK_ICRS.ra - icrs2.ra)[msk], 0 * u.μas, atol=tol, rtol=0
     )
     assert_quantity_allclose(
-        np.abs(fullstack_icrs.dec - icrs2.dec)[msk], 0 * u.μas, atol=tol, rtol=0
+        np.abs(FULLSTACK_ICRS.dec - icrs2.dec)[msk], 0 * u.μas, atol=tol, rtol=0
     )
 
     # check that we're consistent with the ERFA alt/az result
@@ -132,23 +110,23 @@ def test_iau_fullstack(
         altazframe.obswl.to_value(u.μm),
     )
     erfa_az, erfa_zen, _, _, _ = erfa.atioq(
-        *erfa.atciq(fullstack_icrs.ra.rad, fullstack_icrs.dec.rad, 0, 0, 0, 0, astrom),
+        *erfa.atciq(FULLSTACK_ICRS.ra.rad, FULLSTACK_ICRS.dec.rad, 0, 0, 0, 0, astrom),
         astrom,
     )
     npt.assert_allclose(aacoo.alt.rad, np.pi / 2 - erfa_zen, atol=1e-7)
     npt.assert_allclose(aacoo.az.rad, erfa_az, atol=1e-7)
 
 
-def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
+def test_fiducial_roudtrip():
     """
     Test the full transform from ICRS <-> AltAz
     """
-    aacoo = fullstack_icrs.transform_to(fullstack_fiducial_altaz)
+    aacoo = FULLSTACK_ICRS.transform_to(ALTAZFRAME)
 
     # make sure the round-tripping works
     icrs2 = aacoo.transform_to(ICRS())
-    npt.assert_allclose(fullstack_icrs.ra.deg, icrs2.ra.deg)
-    npt.assert_allclose(fullstack_icrs.dec.deg, icrs2.dec.deg)
+    npt.assert_allclose(FULLSTACK_ICRS.ra.deg, icrs2.ra.deg)
+    npt.assert_allclose(FULLSTACK_ICRS.dec.deg, icrs2.dec.deg)
 
 
 def test_future_altaz():
