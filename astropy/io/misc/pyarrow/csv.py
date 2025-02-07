@@ -5,11 +5,15 @@ This module provides functionality to read CSV files into Astropy Tables using P
 
 import io
 import os
-from typing import TYPE_CHECKING, BinaryIO
+from contextlib import ExitStack
+from typing import TYPE_CHECKING, BinaryIO, Literal
 
 import numpy as np
 
+from astropy.utils.compat.optional_deps import HAS_PYARROW
+
 if TYPE_CHECKING:
+    import numpy.typing as npt
     import pyarrow as pa
     import pyarrow.csv
 
@@ -19,35 +23,36 @@ __all__ = ["convert_pa_table_to_astropy_table", "read_csv"]
 
 
 def read_csv(
-    input_file: os.PathLike | str | BinaryIO,
+    input_file: os.PathLike[str] | str | BinaryIO,
+    *,
     delimiter: str = ",",
-    quotechar: str = '"',
-    double_quote: bool = True,
-    escape_char: str | bool = False,
+    quotechar: str | Literal[False] = '"',
+    doublequote: bool = True,
+    escapechar: str | bool = False,
     header_start: int | None = 0,
     data_start: int | None = None,
-    names: list | None = None,
-    include_names: list | None = None,
-    dtypes: dict | None = None,
+    names: list[str] | None = None,
+    include_names: list[str] | None = None,
+    dtypes: dict[str, "npt.DTypeLike"] | None = None,
     comment: str | None = None,
     null_values: list | None = None,
     encoding: str = "utf-8",
     newlines_in_values: bool = False,
 ) -> "Table":
-    """Read a CSV file into an astropy Table using pyarrow.csv.read_csv().
+    """Read a CSV file into an astropy Table using ``pyarrow.csv.read_csv()``.
 
     Parameters
     ----------
     input_file : str, PathLike, or binary file-like object
         File path or binary file-like object to read from.
-    delimiter: 1-character str, optional (default ",")
+    delimiter : 1-character str, optional (default ",")
         Character delimiting individual cells in the CSV data.
-    quote_char: 1-character str or False, optional (default '"')
+    quotechar : 1-character str or False, optional (default '"')
         Character used optionally for quoting CSV values (`False` if quoting is not
         allowed).
-    double_quote: bool, optional (default `True`)
+    doublequote : bool, optional (default `True`)
         Whether two quotes in a quoted CSV value denote a single quote in the data.
-    escape_char: 1-character str or `False`, optional (default `False`)
+    escapechar : 1-character str or `False`, optional (default `False`)
         Character used optionally for escaping special characters (`False` if escaping
         is not allowed).
     header_start : int, None, optional (default 0)
@@ -67,7 +72,7 @@ def read_csv(
         a column name and the value is a data type object that is accepted as an
         argument to `np.dtype`. Examples include ``int``, ``np.float32``,
         ``np.dtype('f4')`` or ``"float32"``. Default is to infer the data types.
-    comment: 1-character str or None, optional (default None)
+    comment : 1-character str or None, optional (default None)
         Character used to indicate the start of a comment. Any line starting with
         optional whitespace and then this character is ignored. Using this option will
         cause the parser to be slower and use more memory as it uses Python code to
@@ -89,13 +94,13 @@ def read_csv(
     Table
         An astropy Table containing the data from the CSV file.
     """
-    pa, csv = get_pyarrow_csv()
+    _, csv = get_pyarrow_csv()
 
-    parse_options = pa.csv.ParseOptions(
+    parse_options = csv.ParseOptions(
         delimiter=delimiter,
         quote_char=quotechar,
-        double_quote=double_quote,
-        escape_char=escape_char,
+        double_quote=doublequote,
+        escape_char=escapechar,
         newlines_in_values=newlines_in_values,
     )
 
@@ -118,8 +123,6 @@ def read_csv(
 
 def get_pyarrow_csv():
     """Helper function to import pyarrow and pyarrow.csv."""
-    from astropy.utils.compat.optional_deps import HAS_PYARROW
-
     if not HAS_PYARROW:
         raise ModuleNotFoundError(
             "pyarrow is required to read and write pyarrow.csv files"
@@ -128,38 +131,6 @@ def get_pyarrow_csv():
     from pyarrow import csv
 
     return pa, csv
-
-
-def convert_pa_string_array_to_numpy(str_arr: "pa.ChunkedArray") -> np.ndarray:
-    """
-    Convert a PyArrow ChunkedArray of strings to a NumPy array.
-
-    Parameters
-    ----------
-    str_arr : pa.ChunkedArray
-        A PyArrow ChunkedArray containing string data.
-
-    Returns
-    -------
-    np.ndarray
-        A NumPy array containing the string data from the input ChunkedArray.
-        If the input ChunkedArray contains null values, the returned array will
-        be a masked array with nulls masked out.
-    """
-    # Check if string_array has any nulls
-    has_null = str_arr.null_count > 0
-
-    # Replace nulls with an empty string
-    str_arr_filled = str_arr.fill_null("") if has_null else str_arr
-
-    # Convert to NumPy array with fixed-length Unicode dtype
-    np_array = str_arr_filled.to_numpy().astype(str)
-
-    if has_null:
-        mask = str_arr.is_null().to_numpy()
-        np_array = np.ma.array(np_array, mask=mask, copy=False)
-
-    return np_array
 
 
 def convert_pa_array_to_numpy(arr):
@@ -174,8 +145,8 @@ def convert_pa_array_to_numpy(arr):
     Returns
     -------
     np.ndarray or np.ma.MaskedArray
-        The converted NumPy array. If the input array contains null values,
-        a masked array is returned with nulls masked out.
+        The converted NumPy array. If the input array contains null values, a masked
+        array is returned with nulls masked out.
 
     Notes
     -----
@@ -183,25 +154,30 @@ def convert_pa_array_to_numpy(arr):
       `convert_pa_string_array_to_numpy`.
     - If the input array contains null values, they are replaced with 0 before
       conversion, and a masked array is returned with the null positions masked.
+    - If the input array does not contain null values, the result is an ndarray view of
+      the underlying data.
     """
-    pa, _ = get_pyarrow_csv()
+    is_string = arr.type == "string"
 
-    if pa.types.is_string(arr.type):
-        return convert_pa_string_array_to_numpy(arr)
+    if arr.null_count == 0:
+        # No nulls, just return an ndarray view of the pyarray
+        out = arr.to_numpy()
+        if is_string:
+            # `out` is an object array at this point, convert to fixed-length Unicode.
+            # TODO: this is taking a lot of memory, there should be a memory-efficient
+            # way to do this.
+            out = out.astype(str)
+    else:
+        # Return a Masked Array copy, with nulls filled with zero.
+        data = arr.fill_null("" if is_string else 0).to_numpy()
+        if is_string:
+            data = data.astype(str)
+        # pa Bool array may not be zero-copyable, so set zero_copy_only=False to avoid
+        # an exception.
+        mask = arr.is_null().to_numpy(zero_copy_only=False)
+        out = np.ma.array(data, mask=mask, copy=False)
 
-    # Check if array has any nulls
-    has_null = arr.null_count > 0
-
-    # Replace nulls with an empty string
-    arr_filled = arr.fill_null(0) if has_null else arr
-
-    # Convert to NumPy array with fixed-length Unicode dtype
-    np_array = arr_filled.to_numpy()
-
-    if has_null:
-        mask = arr.is_null().to_numpy()
-        np_array = np.ma.array(np_array, mask=mask, copy=False)
-    return np_array
+    return out
 
 
 def convert_pa_table_to_astropy_table(table_pa: "pa.Table") -> "Table":
@@ -220,10 +196,10 @@ def convert_pa_table_to_astropy_table(table_pa: "pa.Table") -> "Table":
     """
     from astropy.table import Table
 
-    columns = {}
-    for name, col in zip(table_pa.column_names, table_pa.itercolumns()):
-        col_np = convert_pa_array_to_numpy(col)
-        columns[name] = col_np
+    columns = {
+        name: convert_pa_array_to_numpy(col)
+        for name, col in zip(table_pa.column_names, table_pa.itercolumns())
+    }
     out = Table(columns, copy=False)
     return out
 
@@ -254,20 +230,21 @@ def strip_comment_lines(
     """
     comment_encode = comment.encode(encoding)
     output = io.BytesIO()
-    if isinstance(input_file, (str, os.PathLike)):
-        input_file = open(input_file, "rb")
+    with ExitStack() as stack:
+        if isinstance(input_file, (str, os.PathLike)):
+            input_file = stack.enter_context(open(input_file, "rb"))
 
-    for line in input_file:
-        if not line.lstrip().startswith(comment_encode):
-            output.write(line)
-    output.seek(0)
+        for line in input_file:
+            if not line.lstrip().startswith(comment_encode):
+                output.write(line)
+        output.seek(0)
 
     return output
 
 
 def get_convert_options(
     include_names: list | None,
-    dtypes: dict | None,
+    dtypes: dict[str, "npt.DTypeLike"] | None,
     null_values: list | None,
 ) -> "pyarrow.csv.ConvertOptions":
     """
