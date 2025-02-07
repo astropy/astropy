@@ -22,8 +22,8 @@ erfa_ufuncs = (
     "s2c", "s2p", "c2s", "p2s", "pm", "pdp", "pxp", "rxp", "cpv", "p2pv", "pv2p",
     "pv2s", "pvdpv", "pvm", "pvmpv", "pvppv", "pvstar", "pvtob", "pvu", "pvup",
     "pvxpv", "rxpv", "s2pv", "s2xpv", "starpv", "sxpv", "trxpv", "gd2gc", "gd2gce",
-    "gc2gd", "gc2gde", "ldn", "aper", "apio", "atciq", "atciqn", "atciqz", "aticq",
-    "atioq", "atoiq",
+    "gc2gd", "gc2gde", "ldn", "apco13", "aper", "apio",
+    "atciq", "atciqn", "atciqz", "aticq", "atioq", "atoiq",
 )  # fmt: skip
 
 
@@ -48,6 +48,11 @@ def check_structured_unit(unit, dtype):
             dtype, "function"
         )
         raise UnitTypeError(f"{msg} input needs unit matching dtype={dtype}.")
+
+
+def check_no_time_units(unit1, unit2, f):
+    if unit1 is not None or unit2 is not None:
+        raise TypeError(f"cannot pass in units for 2-part time in {f.__name__}.")
 
 
 def helper_s2c(f, unit1, unit2):
@@ -319,6 +324,52 @@ def helper_aper(f, unit_theta, unit_astrom):
     return [get_converter(unit_theta, unit_along), None], result_unit
 
 
+def helper_apco13(
+    f,
+    unit_utc1,
+    unit_utc2,
+    unit_dut1,
+    unit_elong,
+    unit_phi,
+    unit_hm,
+    unit_xp,
+    unit_yp,
+    unit_phpa,
+    unit_tc,
+    unit_rh,
+    unit_wl,
+):
+    from astropy.units import (
+        add_enabled_equivalencies,
+        deg_C,
+        hPa,
+        m,
+        micron,
+        one,
+        radian,
+        second,
+        temperature,
+    )
+
+    check_no_time_units(unit_utc1, unit_utc2, f)
+
+    with add_enabled_equivalencies(temperature()):
+        return [
+            None,
+            None,
+            get_converter(unit_dut1, second),
+            get_converter(unit_elong, radian),
+            get_converter(unit_phi, radian),
+            get_converter(unit_hm, m),
+            get_converter(unit_xp, radian),
+            get_converter(unit_yp, radian),
+            get_converter(unit_phpa, hPa),
+            get_converter(unit_tc, deg_C),
+            get_converter(_d(unit_rh), one),
+            get_converter(unit_wl, micron),
+        ], (astrom_unit(), radian, None)
+
+
 def helper_apio(
     f,
     unit_sp,
@@ -457,6 +508,7 @@ def get_erfa_helpers():
     ERFA_HELPERS[erfa_ufunc.gd2gce] = helper_gd2gce
     ERFA_HELPERS[erfa_ufunc.ldn] = helper_ldn
     ERFA_HELPERS[erfa_ufunc.aper] = helper_aper
+    ERFA_HELPERS[erfa_ufunc.apco13] = helper_apco13
     ERFA_HELPERS[erfa_ufunc.apio] = helper_apio
     ERFA_HELPERS[erfa_ufunc.atciq] = helper_atciq
     ERFA_HELPERS[erfa_ufunc.atciqn] = helper_atciqn
