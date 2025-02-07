@@ -394,7 +394,7 @@ class BinnedTimeSeries(BaseTimeSeries):
                 time_bin_end = None
 
             if time_bin_start.isscalar and time_bin_size.isscalar:
-                return BinnedTimeSeries(
+                return cls(
                     data=table,
                     time_bin_start=time_bin_start,
                     time_bin_end=time_bin_end,
@@ -402,7 +402,7 @@ class BinnedTimeSeries(BaseTimeSeries):
                     n_bins=len(table),
                 )
             else:
-                return BinnedTimeSeries(
+                return cls(
                     data=table,
                     time_bin_start=time_bin_start,
                     time_bin_end=time_bin_end,
