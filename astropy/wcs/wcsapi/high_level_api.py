@@ -54,8 +54,7 @@ def _toindex(value):
             arr = fill_value
     else:
         arr[np.isnan(arr)] = fill_value
-    indx = np.asarray(arr, dtype=int)
-    return indx
+    return np.asarray(arr, dtype=int)
 
 
 class BaseHighLevelWCS(metaclass=abc.ABCMeta):
