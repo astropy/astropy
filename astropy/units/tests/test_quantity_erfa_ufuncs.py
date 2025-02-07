@@ -498,8 +498,9 @@ class TestEraStructUfuncs:
         refa = 0.000201418779 * u.rad
         refb = -2.36140831e-7 * u.rad
         astrom = erfa_ufunc.apio(
-            sp.to(u.deg), theta, elong, phi, hm.to(u.km), xp, yp, refa, refb
-        )
+            sp.to(u.deg), theta, elong, phi, hm.to(u.km),
+            xp.to(u.arcsec), yp, refa, refb.to(u.deg),
+        )  # fmt: skip
         assert astrom.unit == self.astrom_unit
         for name, value in [
             ("along", -0.5278008060295995734),
