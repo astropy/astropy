@@ -552,9 +552,9 @@ class MaskedIterator:
     def __iter__(self):
         return self
 
-    def __getitem__(self, indx):
-        out = self._dataiter.__getitem__(indx)
-        mask = self._maskiter.__getitem__(indx)
+    def __getitem__(self, index):
+        out = self._dataiter.__getitem__(index)
+        mask = self._maskiter.__getitem__(index)
         # For single elements, ndarray.flat.__getitem__ returns scalars; these
         # need a new view as a Masked array.
         if not isinstance(out, np.ndarray):
