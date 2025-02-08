@@ -349,24 +349,38 @@ def test_stored_parquet_votable(format):
     assert stored_votable["sfr"].unit == u.solMass / u.year
 
 
-def test_write_jybeam_unit(tmp_path):
-    with pytest.warns(u.UnitsWarning, match="Crab"):
-        t = Table(
-            {
-                "flux": [5 * (u.Jy / u.beam)],
-                "foo": [0 * u.Unit("Crab", format="ogip")],
-                "bar": [1 * u.def_unit("my_unit")],
-            }
-        )
+def test_write_jybeam_unit(tmp_path, recwarn):
+    t = Table(
+        {
+            "flux": [5 * (u.Jy / u.beam)],
+            "foo": [0 * u.Unit("Crab", format="ogip")],
+            "bar": [1 * u.def_unit("my_unit")],
+        }
+    )
+
+    # Crab raises warning outside of VO standards, purely from units.
+    assert len(recwarn) == 1
+    assert issubclass(recwarn[0].category, u.UnitsWarning)
+    assert "Crab" in str(recwarn[0].message)
 
     filename = tmp_path / "test.xml"
-    with (
-        pytest.warns(u.UnitsWarning, match="Crab"),
-        pytest.warns(u.UnitsWarning, match="my_unit"),
-    ):
-        t.write(filename, format="votable", overwrite=True)
+    t.write(filename, format="votable", overwrite=True)
+
+    # Have to use recwarn instead of pytest.warns() because the second run in
+    # the double run job does not see these warnings; perhaps something to do
+    # with io.votable warning handling. The first run should produce 2 warnings.
+    n_warns = len(recwarn)
+    assert n_warns in (1, 3)
+    if n_warns == 3:
+        assert issubclass(recwarn[1].category, u.UnitsWarning)
+        assert "Crab" in str(recwarn[1].message)
+        assert issubclass(recwarn[2].category, u.UnitsWarning)
+        assert "my_unit" in str(recwarn[2].message)
 
     t_rt = Table.read(filename, format="votable")
+
+    # No new warnings are emitted on roundtrip read.
+    assert len(recwarn) == n_warns
     assert t_rt["flux"].unit == t["flux"].unit
 
     # These are not VOUnit so while string would match, not same unit instance.
