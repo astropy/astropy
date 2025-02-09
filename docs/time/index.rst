@@ -1645,6 +1645,11 @@ standard `~astropy.time.TimeISO` class from which it inherits::
   >>> t2.iso
   '2016-01-01 00:00:00.000'
 
+.. testcleanup::
+
+  >>> from astropy.time import TIME_FORMATS
+  >>> del TIME_FORMATS["yday_custom"]
+
 .. EXAMPLE END
 
 .. EXAMPLE START: Customizing the TimeFormat Class with Time Since an Epoch
@@ -1674,6 +1679,11 @@ from the `~astropy.time.TimeFromEpoch` class and define a few class attributes::
   np.float64(946684832.0)
   >>> t.unix_leap - t.unix
   np.float64(32.0)
+
+.. testcleanup::
+
+  >>> from astropy.time import TIME_FORMATS
+  >>> del TIME_FORMATS["unix_leap"]
 
 .. EXAMPLE END
 
