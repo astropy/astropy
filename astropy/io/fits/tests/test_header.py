@@ -719,7 +719,6 @@ class TestHeaderFunctions(FitsTestCase):
         assert c.value == "calFileVersion"
         assert c.comment == ""
 
-    @pytest.mark.xfail(reason="astropy cannot create long HIERARCH headers.")
     def test_hierarch_key_with_long_value(self):
         # regression test for gh-3746
         long_key = "A VERY LONG KEY HERE"
