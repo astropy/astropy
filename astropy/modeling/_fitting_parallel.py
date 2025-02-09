@@ -51,6 +51,41 @@ def _copy_with_new_parameters(model, parameters):
     return model_new
 
 
+class FitInfoArrayContainer:
+    """
+    This class is intended to contain the object array of all fit_info values
+    and provide a convenience method to access specific items from fit_info
+    as arrays.
+    """
+
+    def __init__(self, fit_info_array):
+        self.fit_info_array = fit_info_array
+
+    @property
+    def shape(self):
+        return self.fit_info_array.shape
+
+    @property
+    def ndim(self):
+        return self.fit_info_array.ndim
+
+    def __getitem__(self, item):
+        return self.fit_info_array[item]
+
+    def get_property_as_array(self, name):
+        array = None
+        for index in np.ndindex(self.fit_info_array.shape):
+            value = np.array(getattr(self.fit_info_array[index], name))
+            if array is None:
+                array = np.zeros(self.shape + value.shape, dtype=value.dtype)
+            if value.shape != array.shape[self.ndim :]:
+                raise ValueError(
+                    "Property {name} does not have consistent shape in all fit_info"
+                )
+            array[index] = value
+        return array
+
+
 def _fit_models_to_chunk(
     data,
     *arrays,
@@ -110,6 +145,11 @@ def _fit_models_to_chunk(
     # means there are extra unneeded dimensions. We slice these out here.
     index = tuple([slice(None)] * (1 + len(iterating_axes)) + [0] * len(fitting_axes))
     parameters = parameters[index]
+
+    # Transform array to object array and add one more index along the first
+    # dimension so that we can store the fit_info
+    parameters = parameters.astype(object)
+    parameters = np.pad(parameters, [(0, 1)] + [(0, 0)] * (parameters.ndim - 1))
 
     # The world argument is used to pass through 1D arrays of world coordinates
     # (otherwise world_arrays is used) so if the model has more than one
@@ -179,6 +219,8 @@ def _fit_models_to_chunk(
             # safe to modify in-place
             for ipar, name in enumerate(model_fit.param_names):
                 parameters[(ipar,) + index] = getattr(model_fit, name).value
+
+            parameters[(-1,) + index] = fitter.fit_info
 
         if diagnostics == "error+warn" and len(all_warnings) > 0:
             output = True
@@ -617,7 +659,7 @@ def parallel_fit_dask(
         *parameter_arrays,
         *(world if world_arrays else []),
         enforce_ndim=True,
-        dtype=float,
+        dtype=object,
         drop_axis=fitting_axes,
         model=simple_model,
         fitter=fitter,
@@ -639,12 +681,17 @@ def parallel_fit_dask(
     else:
         compute_kwargs = {"scheduler": scheduler}
 
-    parameter_arrays_fitted = result.compute(**compute_kwargs)
+    result_array = result.compute(**compute_kwargs)
+
+    parameter_arrays_fitted = result_array[:-1].astype(float)
+    fit_info_array = result_array[-1]
 
     # Set up new parameter arrays with fitted values
     parameters = {}
     for i, name in enumerate(model.param_names):
         parameters[name] = parameter_arrays_fitted[i].reshape(iterating_shape)
+
+    fitter.fit_info = FitInfoArrayContainer(fit_info_array)
 
     # Instantiate new fitted model
     model_fitted = _copy_with_new_parameters(model, parameters)
