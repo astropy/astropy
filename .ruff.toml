@@ -305,7 +305,6 @@ lint.unfixable = [
     "TRY300",  # Consider `else` block
 ]
 "docs/*" = []
-"examples/coordinates/*" = []
 
 ".pyinstaller/*.py" = ["PTH"]
 
