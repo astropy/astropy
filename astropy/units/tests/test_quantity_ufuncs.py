@@ -125,6 +125,13 @@ class TestUfuncHelpers:
         }
         assert all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs == set()
 
+    @pytest.mark.skipif(
+        HAS_SCIPY,
+        reason=(
+            "UFUNC_HELPERS.modules might be in a different state "
+            "(by design) if scipy.special already registered"
+        ),
+    )
     def test_scipy_registered(self):
         # Should be registered as existing even if scipy is not available.
         assert "scipy.special" in qh.UFUNC_HELPERS.modules
@@ -1564,7 +1571,9 @@ if HAS_SCIPY:
 
     def test_scipy_registration():
         """Check that scipy gets loaded upon first use."""
-        assert sps.erf not in qh.UFUNC_HELPERS
+        if sps.erf in qh.UFUNC_HELPERS:
+            # Generally, scipy will not be loaded here, but in a double run it might.
+            pytest.skip()
         sps.erf(1.0 * u.percent)
         assert sps.erf in qh.UFUNC_HELPERS
 
