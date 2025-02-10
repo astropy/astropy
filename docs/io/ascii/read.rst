@@ -793,9 +793,11 @@ the :ref:`io_registry` (note that our format has no mechanism to write out the u
 .. testcleanup::
 
     >>> from astropy.io import registry
+    >>> from astropy.io.ascii.core import FORMAT_CLASSES
     >>> for format_name in ['custom_no_header', 'custom_commented_header', 'fixed_width_commented_header']:
     ...     registry.unregister_reader(f"ascii.{format_name}", Table)
     ...     registry.unregister_writer(f"ascii.{format_name}", Table)
+    ...     del FORMAT_CLASSES[format_name]
 
 **Define a custom reader functionally**
 
