@@ -116,4 +116,8 @@ Now, the prefixed units can be parsed etc::
   >>> print(u.Unit("megafoo").to(u.Unit("kFo")))
   1000.0
 
+.. testcleanup::
+
+    >>> u.core._unit_registries.pop()  # doctest: +IGNORE_OUTPUT
+
 .. EXAMPLE END

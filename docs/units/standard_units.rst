@@ -262,6 +262,9 @@ To enable Imperial units, do::
       yd           | 0.9144 m        | yard                             ,
     ]
 
+.. testcleanup::
+
+    >>> u.core._unit_registries.pop()  # doctest: +IGNORE_OUTPUT
 
 This may also be used with the `Python "with" statement
 <https://docs.python.org/3/reference/compound_stmts.html#with>`_, to
