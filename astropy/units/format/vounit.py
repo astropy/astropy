@@ -30,7 +30,7 @@ class VOUnit(FITS):
     The IVOA standard for units used by the VO.
 
     This is an implementation of `Units in the VO 1.0
-    <http://www.ivoa.net/documents/VOUnits/>`_.
+    <https://www.ivoa.net/documents/VOUnits/20140523/index.html>`_.
     """
 
     _explicit_custom_unit_regex: ClassVar[Pattern[str]] = re.compile(
