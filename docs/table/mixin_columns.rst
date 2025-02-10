@@ -403,6 +403,11 @@ of the class and the handler function::
         2     3.0
         3     4.0
 
+.. testcleanup::
+
+    >>> from astropy.table.mixins.registry import _handlers
+    >>> del _handlers['__main__.ExampleDataClass']
+
 Because we defined the data class as part of the example
 above, the fully qualified name starts with ``__main__``,
 but for a class in a third-party package, this might look
