@@ -205,8 +205,8 @@ See Also
   units in FITS.
 
 - The `Units in the VO 1.0 Standard
-  <http://www.ivoa.net/documents/VOUnits/>`_ for representing units in
-  the VO.
+  <https://www.ivoa.net/documents/VOUnits/20140523/index.html>`_ for
+  representing units in the VO.
 
 - OGIP Units: A standard for storing units in `OGIP FITS files
   <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
