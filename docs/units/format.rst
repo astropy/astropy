@@ -161,7 +161,7 @@ formats:
     generate units defined in the FITS standard.
 
   - ``"vounit"``: The `Units in the VO 1.0
-    <http://www.ivoa.net/documents/VOUnits/>`__ standard for
+    <https://www.ivoa.net/documents/VOUnits/20140523/index.html>`__ standard for
     representing units in the VO. Again, based on the FITS syntax,
     but the collection of supported units is different.
 
