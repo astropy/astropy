@@ -13,7 +13,7 @@ import pytest
 
 from astropy import units as u
 from astropy.io.votable import conf, from_table, is_votable, tree, validate
-from astropy.io.votable.exceptions import E25, W39, VOWarning
+from astropy.io.votable.exceptions import E25, W39, W50, VOWarning
 from astropy.io.votable.table import parse, writeto
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
@@ -372,9 +372,9 @@ def test_write_jybeam_unit(tmp_path, recwarn):
     n_warns = len(recwarn)
     assert n_warns in (1, 3)
     if n_warns == 3:
-        assert issubclass(recwarn[1].category, u.UnitsWarning)
+        assert issubclass(recwarn[1].category, W50)
         assert "Crab" in str(recwarn[1].message)
-        assert issubclass(recwarn[2].category, u.UnitsWarning)
+        assert issubclass(recwarn[2].category, W50)
         assert "my_unit" in str(recwarn[2].message)
 
     t_rt = Table.read(filename, format="votable")
