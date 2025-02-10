@@ -1075,20 +1075,23 @@ def test_format_input_arrays_transposed():
 
 
 @pytest.mark.parametrize(
-    "model",
+    "cls, kwargs",
     [
-        models.Gaussian2D(),
-        models.Polynomial2D(1),
-        models.Rotation2D(),
-        models.Pix2Sky_TAN(),
-        models.Tabular2D(lookup_table=np.ones((4, 5))),
+        pytest.param(models.Gaussian2D, {}, id="Gaussian2D"),
+        pytest.param(models.Polynomial2D, {"degree": 1}, id="Polynomial2D"),
+        pytest.param(models.Rotation2D, {}, id="Rotation2D"),
+        pytest.param(models.Pix2Sky_TAN, {}, id="Pix2Sky_TAN"),
+        pytest.param(
+            models.Tabular2D, {"lookup_table": np.ones((4, 5))}, id="Tabular2D"
+        ),
     ],
 )
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-def test_call_keyword_args_1(model):
+def test_call_keyword_args_1(cls, kwargs):
     """
     Test calling a model with positional, keywrd and a mixture of both arguments.
     """
+    model = cls(**kwargs)
     positional = model(1, 2)
     assert_allclose(positional, model(x=1, y=2))
     assert_allclose(positional, model(1, y=2))
@@ -1111,18 +1114,19 @@ def test_call_keyword_args_1(model):
 
 
 @pytest.mark.parametrize(
-    "model",
+    "cls, kwargs",
     [
-        models.Gaussian1D(),
-        models.Polynomial1D(1),
-        models.Tabular1D(lookup_table=np.ones((5,))),
+        pytest.param(models.Gaussian1D, {}, id="Gaussian1D"),
+        pytest.param(models.Polynomial1D, {"degree": 1}, id="Polynomial1D"),
+        pytest.param(models.Tabular1D, {"lookup_table": np.ones((5,))}, id="Tabular1D"),
     ],
 )
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-def test_call_keyword_args_2(model):
+def test_call_keyword_args_2(cls, kwargs):
     """
     Test calling a model with positional, keywrd and a mixture of both arguments.
     """
+    model = cls(**kwargs)
     positional = model(1)
     assert_allclose(positional, model(x=1))
 
