@@ -13,7 +13,7 @@ import pytest
 
 from astropy import units as u
 from astropy.io.votable import conf, from_table, is_votable, tree, validate
-from astropy.io.votable.exceptions import E25, W39, VOWarning
+from astropy.io.votable.exceptions import E25, W39, W50, VOWarning
 from astropy.io.votable.table import parse, writeto
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
@@ -347,6 +347,45 @@ def test_stored_parquet_votable(format):
     assert len(stored_votable) == 10
     assert stored_votable.colnames == ["id", "z", "mass", "sfr"]
     assert stored_votable["sfr"].unit == u.solMass / u.year
+
+
+def test_write_jybeam_unit(tmp_path, recwarn):
+    t = Table(
+        {
+            "flux": [5 * (u.Jy / u.beam)],
+            "foo": [0 * u.Unit("Crab", format="ogip")],
+            "bar": [1 * u.def_unit("my_unit")],
+        }
+    )
+
+    # Crab raises warning outside of VO standards, purely from units.
+    assert len(recwarn) == 1
+    assert issubclass(recwarn[0].category, u.UnitsWarning)
+    assert "Crab" in str(recwarn[0].message)
+
+    filename = tmp_path / "test.xml"
+    t.write(filename, format="votable", overwrite=True)
+
+    # Have to use recwarn instead of pytest.warns() because the second run in
+    # the double run job does not see these warnings; perhaps something to do
+    # with io.votable warning handling. The first run should produce 2 warnings.
+    n_warns = len(recwarn)
+    assert n_warns in (1, 3)
+    if n_warns == 3:
+        assert issubclass(recwarn[1].category, W50)
+        assert "Crab" in str(recwarn[1].message)
+        assert issubclass(recwarn[2].category, W50)
+        assert "my_unit" in str(recwarn[2].message)
+
+    t_rt = Table.read(filename, format="votable")
+
+    # No new warnings are emitted on roundtrip read.
+    assert len(recwarn) == n_warns
+    assert t_rt["flux"].unit == t["flux"].unit
+
+    # These are not VOUnit so while string would match, not same unit instance.
+    assert t_rt["foo"].unit.to_string() == t["foo"].unit.to_string()
+    assert t_rt["bar"].unit.to_string() == t["bar"].unit.to_string()
 
 
 def test_write_overwrite(tmp_path):
