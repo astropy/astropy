@@ -1,7 +1,7 @@
 extend = "pyproject.toml"
 lint.ignore = [
     # NOTE: to find a good code to fix, run:
-    # ruff --select="ALL" --statistics astropy/<subpackage>
+    # ruff check --select="ALL" --statistics astropy/<subpackage>
 
     # flake8-annotations (ANN) : static typing
     "ANN001",  # Function argument without type annotation
