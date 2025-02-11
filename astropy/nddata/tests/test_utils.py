@@ -635,6 +635,9 @@ def test_cutout_section(tmp_path):
             100 * u.pix,
         )
 
+        # Partial cutout
+        c = Cutout2D(hdul[1].section, (75, 75), 100 * u.pix, mode="partial")
+
     chdu = fits.CompImageHDU(data=data)
     chdu.writeto(tmp_path / "compressed.fits")
 
@@ -644,3 +647,6 @@ def test_cutout_section(tmp_path):
             (75, 75),
             100 * u.pix,
         )
+
+        # Partial cutout
+        c = Cutout2D(hdul[1].section, (75, 75), 100 * u.pix, mode="partial")
