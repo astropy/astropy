@@ -1,0 +1,3 @@
+Astropy can now not only read but also write headers that have ``HIERARCH``
+keys with long values, by allowing the use of ``CONTINUE`` cards for those
+(as was already the case for regular FITS keys).
