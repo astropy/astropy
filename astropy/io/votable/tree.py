@@ -1675,7 +1675,14 @@ class Field(
     def to_xml(self, w, **kwargs):
         attrib = w.object_attrs(self, self._attr_list)
         if "unit" in attrib:
-            attrib["unit"] = self.unit.to_string("cds")
+            format = _get_unit_format(self._config)
+            try:
+                attrib["unit"] = self.unit.to_string(format)
+            except ValueError as e:
+                # Allow non-standard units with a warning, see
+                # https://github.com/astropy/astropy/issues/17497#issuecomment-2520472495
+                attrib["unit"] = self.unit.to_string()
+                warn_or_raise(W50, W50, (attrib["unit"],), self._config, self._pos)
         with w.tag(self._element_name, attrib=attrib):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)

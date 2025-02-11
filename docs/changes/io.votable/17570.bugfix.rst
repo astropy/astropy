@@ -1,0 +1,7 @@
+``astropy`` v7.0.0 erroneously refused to write a VOTable if it contained units that
+could not be represented in the CDS format.
+Now ``astropy`` correctly chooses the unit format based on the VOTable version.
+The bug in question did not cause any corruption in tables that were successfully
+written because the newer VOUnit format is backwards compatible with the CDS format.
+Furthermore, any unit that is in neither formats would still be written out
+but would issue a warning.
