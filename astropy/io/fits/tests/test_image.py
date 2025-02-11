@@ -403,6 +403,7 @@ class TestImageFunctions(FitsTestCase):
     def test_section(self):
         # section testing
         fs = fits.open(self.data("arange.fits"))
+        assert fs[0].section.dtype == "int32"
         assert np.array_equal(fs[0].section[3, 2, 5], 357)
         assert np.array_equal(
             fs[0].section[3, 2, :],
@@ -588,7 +589,11 @@ class TestImageFunctions(FitsTestCase):
         assert (d.section[:, :, :, 1] == dat[:, :, :, 1]).all()
         hdul.close()
 
-    def test_section_data_scaled(self):
+    @pytest.mark.parametrize(
+        "file, expected_dtype",
+        [("scale.fits", "float32"), ("fixed-1890.fits", "uint16")],
+    )
+    def test_section_data_scaled(self, file, expected_dtype):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/143
 
@@ -596,9 +601,10 @@ class TestImageFunctions(FitsTestCase):
         image data, to test that sections can work correctly with scaled data.
         """
 
-        hdul = fits.open(self.data("scale.fits"))
+        hdul = fits.open(self.data(file))
         d = hdul[0]
         dat = hdul[0].data
+        assert d.section.dtype == expected_dtype
         assert (d.section[:, :] == dat[:, :]).all()
         assert (d.section[0, :] == dat[0, :]).all()
         assert (d.section[1, :] == dat[1, :]).all()
@@ -615,8 +621,9 @@ class TestImageFunctions(FitsTestCase):
         hdul.close()
 
         # Test without having accessed the full data first
-        hdul = fits.open(self.data("scale.fits"))
+        hdul = fits.open(self.data(file))
         d = hdul[0]
+        assert d.section.dtype == expected_dtype
         assert (d.section[:, :] == dat[:, :]).all()
         assert (d.section[0, :] == dat[0, :]).all()
         assert (d.section[1, :] == dat[1, :]).all()
