@@ -98,6 +98,10 @@ can be enabled by calling :func:`~astropy.units.add_enabled_units`::
     kmph         | 0.277778 m / s  |         ,
   ]
 
+.. testcleanup::
+
+    >>> u.core._unit_registries.pop()  # doctest: +IGNORE_OUTPUT
+
 If new units are defined with prefixes enabled, the prefixed units must be
 explicitly enabled as well, e.g., by using the ``namespace`` argument::
 
