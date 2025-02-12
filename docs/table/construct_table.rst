@@ -202,7 +202,7 @@ column where each row element is itself a two-element array.
   KeyError: 'a_new'
 
 List of Rows
---------
+------------
 
 Row-oriented data can be used to create a table using the ``rows``
 keyword argument.
