@@ -95,10 +95,11 @@ jobs:
           runs-on: macos-latest
 
         # FIXME: Add aarch64 to name when bump Python version.
+        # FIXME: uncomment posargs when test pollution issues are addressed
         - name: Python 3.11 Double test (Run tests twice)
           linux: py311-test-double
           runs-on: ubuntu-24.04-arm
-          posargs: -n=4
+          # posargs: -n=4
           setenv: |
             ARCH_ON_CI: "arm64"
             IS_CRON: "false"
