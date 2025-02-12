@@ -1,0 +1,3 @@
+Fix UCD for air wavelengths, following the IVOA recommendation that ``'em.wl'``
+be reserved for vacuum wavelengths. ``'em.wl;obs.atmos'`` is now used to
+represent air wavelengths instead.
