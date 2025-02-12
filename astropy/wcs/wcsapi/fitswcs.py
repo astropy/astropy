@@ -132,7 +132,7 @@ CTYPE_TO_UCD1 = {
     "VRAD": "spect.dopplerVeloc.radio",  # Radio velocity
     "VOPT": "spect.dopplerVeloc.opt",  # Optical velocity
     "ZOPT": "src.redshift",  # Redshift
-    "AWAV": "em.wl",  # Air wavelength
+    "AWAV": "em.wl;obs.atmos",  # Air wavelength
     "VELO": "spect.dopplerVeloc",  # Apparent radial velocity
     "BETA": "custom:spect.doplerVeloc.beta",  # Beta factor (v/c)
     "STOKES": "phys.polarization.stokes",  # STOKES parameters
