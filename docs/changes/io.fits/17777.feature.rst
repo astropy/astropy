@@ -1,0 +1,2 @@
+Add option to ``Table.read`` to strip trailing whitespaces in string columns.
+This is activated by default and can be deactivated with ``strip_spaces=False``.
