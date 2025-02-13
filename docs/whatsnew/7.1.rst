@@ -22,6 +22,14 @@ By the numbers:
 * X pull requests have been merged since v7.1
 * X distinct people have contributed code
 
+Constructing, accessing, and storing covariance matrices for N-dimensional data
+===============================================================================
+
+We provide a new utility class that provides, as yet, basic functionality for
+covariance matrices associated `~astropy.nddata.NDData` objects via the new
+`~astropy.nddata.Covariance` class.  See the full :ref:`nddata-covariance`
+documentation.
+
 Full change log
 ===============
 
