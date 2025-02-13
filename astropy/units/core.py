@@ -685,7 +685,7 @@ class UnitBase:
         return 1.0
 
     @property
-    def bases(self) -> list[UnitBase]:
+    def bases(self) -> list[NamedUnit]:
         """The bases of the unit."""
         return [self]
 
@@ -2347,7 +2347,7 @@ class CompositeUnit(UnitBase):
         return self._scale
 
     @property
-    def bases(self) -> list[UnitBase]:
+    def bases(self) -> list[NamedUnit]:
         """The bases of the composite unit."""
         return self._bases
 
