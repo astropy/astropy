@@ -161,8 +161,9 @@ def read_table_fits(
         fit the table in memory, you may be better off leaving memory mapping
         off. However, if your table would not fit in memory, you should set this
         to `True`.
-        When set to `True` then ``mask_invalid`` is set to `False` since the
-        masking would cause loading the full data array.
+        When set to `True` then ``mask_invalid`` and ``strip_spaces`` are set
+        to `False` since the masking and whitespace removal would cause loading
+        the full data array.
     character_as_bytes : bool, optional
         If `True`, string columns are stored as Numpy byte arrays (dtype ``S``)
         and are converted on-the-fly to unicode strings when accessing
@@ -182,7 +183,9 @@ def read_table_fits(
         penalty of doing this masking step. The masking is always deactivated
         when using ``memmap=True`` (see above).
     strip_spaces : bool, optional
-        Strip trailing spaces in string columns, default is True.
+        Strip trailing spaces in string columns, default is True. This is
+        deactivated when using ``memmap=True`` (see above).
+
 
     """
     if isinstance(input, HDUList):
@@ -241,9 +244,10 @@ def read_table_fits(
 
     else:
         if memmap:
-            # using memmap is not compatible with masking invalid value by
-            # default so we deactivate the masking
+            # using memmap is not compatible with masking invalid value and
+            # removing trailing spaces by default so we deactivate that
             mask_invalid = False
+            strip_spaces = False
 
         hdulist = fits_open(input, character_as_bytes=character_as_bytes, memmap=memmap)
 
