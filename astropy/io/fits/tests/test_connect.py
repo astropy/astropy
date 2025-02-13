@@ -339,9 +339,7 @@ class TestSingleTable:
     @pytest.mark.parametrize("character_as_bytes", (False, True))
     def test_strip_spaces(self, tmp_path, character_as_bytes):
         filename = os.path.join(DATADIR, "table_with_spaces.fits")
-        t = Table.read(
-            filename, character_as_bytes=character_as_bytes, strip_spaces=True
-        )
+        t = Table.read(filename, character_as_bytes=character_as_bytes)
         assert t["b"].tolist() == ["aaaa", "bbb", "cc", "d"]
         t = Table.read(
             filename, character_as_bytes=character_as_bytes, strip_spaces=False
@@ -352,6 +350,15 @@ class TestSingleTable:
             "cc        ",
             "d         ",
         ]
+        t = Table.read(filename, character_as_bytes=character_as_bytes, memmap=True)
+        assert t["b"].tolist() == [
+            "aaaa      ",
+            "bbb       ",
+            "cc        ",
+            "d         ",
+        ]
+        del t
+        gc.collect()
 
     def test_oned_single_element(self, tmp_path):
         filename = tmp_path / "test_oned_single_element.fits"
