@@ -878,6 +878,7 @@ class BinTableHDU(_TableBaseHDU):
                 # returning None which means _get_heap_data doesn't work.
                 # Which happens when the data is loaded in memory rather than
                 # being unloaded on disk
+                tmp = []
                 for idx in range(data._nfields):
                     if isinstance(data.columns._recformats[idx], _FormatP):
                         for coldata in data.field(idx):
@@ -886,7 +887,9 @@ class BinTableHDU(_TableBaseHDU):
                             if not len(coldata):
                                 continue
 
-                            csum = self._compute_checksum(coldata, csum)
+                            tmp.append(coldata.view(type=np.ndarray, dtype=np.ubyte))
+
+                csum = self._compute_checksum(np.concatenate(tmp), csum)
             else:
                 csum = self._compute_checksum(data._get_heap_data(), csum)
 
