@@ -10,6 +10,7 @@ Test :mod:`astropy.io.registry`.
 """
 
 import os
+import sys
 from collections import Counter
 from copy import deepcopy
 from io import StringIO
@@ -29,6 +30,15 @@ from astropy.io.registry import (
 from astropy.io.registry.base import _UnifiedIORegistryBase
 from astropy.io.registry.compat import default_registry
 from astropy.table import Table
+
+SKIPIF_OPTIMIZED_PYTHON = pytest.mark.skipif(
+    sys.flags.optimize >= 2, reason="docstrings are not available at runtime"
+)
+ONLY_OPTIMIZED_PYTHON = pytest.mark.skipif(
+    sys.flags.optimize < 2,
+    reason="checking behavior specifically if docstrings are not present",
+)
+
 
 ###############################################################################
 # pytest setup and fixtures
@@ -155,11 +165,19 @@ class TestUnifiedIORegistryBase:
         # (kw)args don't matter
         assert registry.get_formats(data_class=24) is None
 
+    @SKIPIF_OPTIMIZED_PYTHON
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         # TODO! figure out what can be tested
         with registry.delay_doc_updates(EmptyData):
             registry.register_identifier(*fmtcls1, empty_identifier)
+
+    @ONLY_OPTIMIZED_PYTHON
+    def test_compat_delay_doc_updates_optimized_mode(self, registry, fmtcls1):
+        # check that the context manager doesn't raise an exception
+        # but otherwise it should be a pure no-op
+        with registry.delay_doc_updates(EmptyData):
+            pass
 
     def test_register_identifier(self, registry, fmtcls1, fmtcls2):
         """Test ``registry.register_identifier()``."""
@@ -332,6 +350,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         """Test ``registry.get_formats()``."""
         raise AssertionError()
 
+    @SKIPIF_OPTIMIZED_PYTHON
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         super().test_delay_doc_updates(registry, fmtcls1)
@@ -701,6 +720,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
 
     # ===========================================
 
+    @SKIPIF_OPTIMIZED_PYTHON
     def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         super().test_delay_doc_updates(registry, fmtcls1)
@@ -1006,10 +1026,6 @@ class TestUnifiedIORegistry(TestUnifiedInputRegistry, TestUnifiedOutputRegistry)
     def test_get_formats(self, registry):
         """Test ``registry.get_formats()``."""
         raise AssertionError()
-
-    def test_delay_doc_updates(self, registry, fmtcls1):
-        """Test ``registry.delay_doc_updates()``."""
-        super().test_delay_doc_updates(registry, fmtcls1)
 
     # -----------------------
 
