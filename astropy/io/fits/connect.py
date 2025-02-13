@@ -296,7 +296,7 @@ def read_table_fits(
 
         arr = data[col.name]
         if strip_spaces and coltype is np.bytes_:
-            arr = np.strings.rstrip(arr)
+            arr = arr.rstrip()
 
         if masked or np.any(mask):
             column = MaskedColumn(
