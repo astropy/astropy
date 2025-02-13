@@ -1017,12 +1017,33 @@ class FITS_rec(np.recarray):
 
         This is returned as a numpy byte array.
         """
-        if self._heapsize:
-            raw_data = self._get_raw_data().view(np.ubyte)
+        raw_data = self._get_raw_data()
+        if self._heapsize and raw_data is not None:
+            # Read the heap from disk
+            raw_data = raw_data.view(np.ubyte)
             heap_end = self._heapoffset + self._heapsize
             return raw_data[self._heapoffset : heap_end]
         else:
-            return np.array([], dtype=np.ubyte)
+            # Data is only in memory so create the heap data, one column
+            # at a time, in the order that the data pointers appear in the
+            # column (regardless if that data pointer has a different,
+            # previous heap offset listed)
+            data = []
+            for idx in range(self._nfields):
+                # data should already be byteswapped from the caller
+                # using _binary_table_byte_swap
+                if not isinstance(self.columns._recformats[idx], _FormatP):
+                    continue
+
+                for row in self.field(idx):
+                    if len(row) > 0:
+                        data.append(row.view(type=np.ndarray, dtype=np.ubyte))
+
+            if data:
+                return np.concatenate(data)
+            else:
+                return np.array([], dtype=np.ubyte)
+
 
     def _get_raw_data(self):
         """
