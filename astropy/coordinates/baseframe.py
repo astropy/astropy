@@ -2038,33 +2038,35 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         ellipticity: float | None = None,
     ) -> Angle:
         """
-        Computes on-sky separation between this coordinate and another, with optional
-        modifications for projected separation along a given axis or elliptical separation.
+Computes on-sky separation between this coordinate and another, with optional
+modifications for projected separation along a given axis or elliptical separation.
 
-        Parameters
-        ----------
-        other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
-        The coordinate to get the separation to.
-        origin_mismatch : {"warn", "ignore", "error"}, keyword-only
-        If the ``other`` coordinates are in a different frame then they will
-        have to be transformed, and if the transformation is not a pure rotation
-        then ``self.separation(other)`` can be different from ``other.separation(self)``.
-        axis_angle : `~astropy.units.Quantity`, optional
-        The angle of the reference axis (e.g., the major axis of a galaxy) in degrees.
-        ellipticity : float, optional
-        The ellipticity of the system (0 for circular, closer to 1 for elongated).
+Parameters
+----------
+other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
+    The coordinate to get the separation to.
+origin_mismatch : {"warn", "ignore", "error"}, keyword-only
+    If the ``other`` coordinates are in a different frame, they will need 
+    to be transformed. If the transformation is not a pure rotation, 
+    ``self.separation(other)`` may differ from ``other.separation(self)``.
+axis_angle : `~astropy.units.Quantity`, optional
+    The angle of the reference axis (e.g., the major axis of a galaxy) in degrees.
+ellipticity : float, optional
+    The ellipticity of the system (0 for circular, closer to 1 for elongated).
 
-        Returns
-        -------
-        sep : `~astropy.coordinates.Angle`
-        The computed separation between the two coordinates.
+Returns
+-------
+sep : `~astropy.coordinates.Angle`
+    The computed separation between the two coordinates.
 
-        Notes
-        -----
-        The separation is calculated using the Vincenty formula by default. If the optional
-        parameters `axis_angle` or `ellipticity` are provided, the separation is modified
-        accordingly.
-        """
+Notes
+-----
+The separation is calculated using the Vincenty formula, which
+is stable at all locations, including poles and antipodes [1]_.
+If the optional parameters `axis_angle` or `ellipticity` are provided, 
+the separation is modified accordingly.
+"""
+
         import numpy as np
 
         from astropy import units as u
