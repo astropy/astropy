@@ -68,6 +68,9 @@ def _iter_unit_summary(
         if not isinstance(val, core.UnitBase):
             continue
 
+        if not isinstance(val, core.NamedUnit):
+            raise TypeError(f"{key!r} must be defined with 'def_unit()'")
+
         # Skip aliases
         if key != val.name:
             continue
