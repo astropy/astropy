@@ -3988,6 +3988,11 @@ class Table:
         -------
         out : `~astropy.table.Table`
             New table with groups set
+
+        Notes
+        -----
+        The underlying sorting algorithm is guaranteed stable, meaning that the
+        original table order is preserved within each group.
         """
         return groups.table_group_by(self, keys)
 
