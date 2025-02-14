@@ -201,6 +201,8 @@ column where each row element is itself a two-element array.
     ...
   KeyError: 'a_new'
 
+.. _Row data:
+
 List of Rows
 ------------
 
