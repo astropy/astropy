@@ -719,6 +719,22 @@ class TestHeaderFunctions(FitsTestCase):
         assert c.value == "calFileVersion"
         assert c.comment == ""
 
+    def test_hierarch_key_with_long_value(self):
+        # regression test for gh-3746
+        long_key = "A VERY LONG KEY HERE"
+        long_value = (
+            "A VERY VERY VERY VERY LONG STRING THAT SOMETHING MAY BE MAD"
+            " ABOUT PERSISTING BECAUSE ASTROPY CAN'T HANDLE THE TRUTH"
+        )
+        with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
+            card = fits.Card(long_key, long_value)
+        card.verify()
+        assert str(card) == (
+            "HIERARCH A VERY LONG KEY HERE = 'A VERY VERY VERY VERY LONG STRING THAT &'      "
+            "CONTINUE  'SOMETHING MAY BE MAD ABOUT PERSISTING BECAUSE ASTROPY CAN''T &'      "
+            "CONTINUE  'HANDLE THE TRUTH'                                                    "
+        )
+
     def test_verify_mixed_case_hierarch(self):
         """Regression test for
         https://github.com/spacetelescope/PyFITS/issues/7
@@ -1067,7 +1083,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_wildcard_slice(self):
         """Test selecting a subsection of a header via wildcard matching."""
 
-        header = fits.Header([("ABC", 0), ("DEF", 1), ("ABD", 2)])
+        header = fits.Header(
+            [("ABC", 0), ("DEF", 1), ("ABD", 2)]  # codespell:ignore abd
+        )
         newheader = header["AB*"]
         assert len(newheader) == 2
         assert newheader[0] == 0
@@ -1087,7 +1105,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_wildcard_slice_assignment(self):
         """Test assigning to a header slice selected via wildcard matching."""
 
-        header = fits.Header([("ABC", 0), ("DEF", 1), ("ABD", 2)])
+        header = fits.Header(
+            [("ABC", 0), ("DEF", 1), ("ABD", 2)]  # codespell:ignore abd
+        )
 
         # Test assigning slice to the same value; this works similarly to numpy
         # arrays
@@ -1108,7 +1128,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_wildcard_slice_deletion(self):
         """Test deleting cards from a header that match a wildcard pattern."""
 
-        header = fits.Header([("ABC", 0), ("DEF", 1), ("ABD", 2)])
+        header = fits.Header(
+            [("ABC", 0), ("DEF", 1), ("ABD", 2)]  # codespell:ignore abd
+        )
         del header["AB*"]
         assert len(header) == 1
         assert header[0] == 1

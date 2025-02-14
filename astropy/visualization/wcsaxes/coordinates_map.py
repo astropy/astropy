@@ -38,7 +38,7 @@ class CoordinatesMap:
         :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`
     previous_frame_path : `~matplotlib.path.Path`, optional
         When changing the WCS of the axes, the frame instance will change but
-        we might want to keep re-using the same underlying matplotlib
+        we might want to keep reusing the same underlying matplotlib
         `~matplotlib.path.Path` - in that case, this can be passed to this
         keyword argument.
     """

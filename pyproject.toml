@@ -44,7 +44,7 @@ keywords = [
 dependencies = [
     "numpy>=1.23.2",
     "pyerfa>=2.0.1.1",
-    "astropy-iers-data>=0.2024.12.30.0.33.36",
+    "astropy-iers-data>=0.2025.1.31.12.41.4",
     "PyYAML>=6.0.0",
     "packaging>=22.0.0",
 ]
@@ -64,10 +64,13 @@ ipython = [
 ]
 jupyter = [  # these are optional dependencies for utils.console and table
     "astropy[ipython]",
-    "ipywidgets",
-    "ipykernel",
-    "ipydatagrid",
-    "pandas",
+    "ipywidgets>=7.7.3",
+    "ipykernel>=6.16.0",
+    "ipydatagrid>=1.1.13",
+    # jupyter-core is a transitive dependency via ipykernel, we declare it as
+    # a direct dependency in order to set a lower bound for oldest-deps testing
+    "jupyter-core>=4.11.2",
+    "pandas>=1.5.0",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
@@ -99,7 +102,7 @@ test = [
     "coverage>=6.4.4",
     "pre-commit>=2.9.3", # lower bound is not tested beyond installation
     "pytest>=8.0.0",
-    "pytest-doctestplus>=0.12",
+    "pytest-doctestplus>=1.0.0",
     "pytest-astropy-header>=0.2.1",
     "pytest-astropy>=0.10.0",
     "pytest-xdist>=2.5.0",
@@ -214,20 +217,15 @@ log_cli_level = "info"
 xfail_strict = true
 filterwarnings = [
     "error",
-    "ignore:unclosed <socket:ResourceWarning",
-    "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
 ]
-
-
 markers = [
     "mpl_image_compare",
 ]
 
 [tool.cibuildwheel]
 # We disable testing for the following wheels:
-# - Linux AArch64 (no native hardware, tests take too long)
 # - MuslLinux (tests hang non-deterministically)
-test-skip = "*-manylinux_aarch64 *-musllinux_x86_64"
+test-skip = "*-musllinux_x86_64"
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
@@ -382,11 +380,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 "docs/*.py" = [
     "INP001",  # implicit-namespace-package. The examples are not a package.
 ]
-"examples/*.py" = [
-    "E402",   # Imports are done as needed.
-    "INP001", # implicit-namespace-package. The examples are not a package.
-    "T203"    # pprint found
-]
 "__init__.py" = ["F403"]  # Wildcard imports
 
 [tool.ruff.lint.flake8-annotations]
@@ -413,6 +406,7 @@ ignore = [
     "PC180", # ignore using `prettier` in pre-commit
     "PC901", # ignore using custom update message (we have many of the default ones in our history already)
     "PP308", # ignore requiring `-ra` flag for pytest, astropy's test suite is too large for this to be useful
+    "PY005", # ignore requiring a root level "test*" directory
 ]
 
 [tool.towncrier]

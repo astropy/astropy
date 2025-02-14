@@ -979,6 +979,17 @@ class Section:
         # `ImageHDU.section` in place of `.data`.
         return self.hdu.shape
 
+    @property
+    def dtype(self):
+        # Implementing `.dtype` enables `astropy.nddata.Cutout2D` to accept
+        # `ImageHDU.section` in place of `.data`.
+        if not self.hdu._do_not_scale_image_data and (
+            self.hdu._orig_bscale != 1 or self.hdu._orig_bzero != 0
+        ):
+            return self.hdu._dtype_for_bitpix()
+        else:
+            return np.dtype(BITPIX2DTYPE[self.hdu._bitpix])
+
     def __getitem__(self, key):
         """Returns a slice of HDU data specified by `key`.
 
@@ -1012,18 +1023,18 @@ class Section:
         # Find all leading axes for which a single point is used.
         for idx in range(naxis):
             axis = self.hdu.shape[idx]
-            indx = _IndexInfo(key[idx], axis)
-            offset = offset * axis + indx.offset
+            index = _IndexInfo(key[idx], axis)
+            offset = offset * axis + index.offset
             if not _is_int(key[idx]):
-                dims.append(indx.npts)
+                dims.append(index.npts)
                 break
 
-        is_contiguous = indx.contiguous
+        is_contiguous = index.contiguous
         for jdx in range(idx + 1, naxis):
             axis = self.hdu.shape[jdx]
-            indx = _IndexInfo(key[jdx], axis)
-            dims.append(indx.npts)
-            if indx.npts == axis and indx.contiguous:
+            index = _IndexInfo(key[jdx], axis)
+            dims.append(index.npts)
+            if index.npts == axis and index.contiguous:
                 # The offset needs to multiply the length of all remaining axes
                 offset *= axis
             else:
@@ -1269,24 +1280,24 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
 
 
 class _IndexInfo:
-    def __init__(self, indx, naxis):
-        if _is_int(indx):
-            if indx < 0:  # support negative indexing
-                indx = indx + naxis
-            if 0 <= indx < naxis:
+    def __init__(self, index, naxis):
+        if _is_int(index):
+            if index < 0:  # support negative indexing
+                index = index + naxis
+            if 0 <= index < naxis:
                 self.npts = 1
-                self.offset = indx
+                self.offset = index
                 self.contiguous = True
             else:
-                raise IndexError(f"Index {indx} out of range.")
-        elif isinstance(indx, slice):
-            start, stop, step = indx.indices(naxis)
+                raise IndexError(f"Index {index} out of range.")
+        elif isinstance(index, slice):
+            start, stop, step = index.indices(naxis)
             self.npts = (stop - start) // step
             self.offset = start
             self.contiguous = step == 1
-        elif isiterable(indx):
-            self.npts = len(indx)
+        elif isiterable(index):
+            self.npts = len(index)
             self.offset = 0
             self.contiguous = False
         else:
-            raise IndexError(f"Illegal index {indx}")
+            raise IndexError(f"Illegal index {index}")

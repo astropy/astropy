@@ -894,7 +894,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
 
         It stores anything that should be computed from the coordinate data (*not* from
         the frame attributes). This can be used in functions to store anything that
-        might be expensive to compute but might be re-used by some other function.
+        might be expensive to compute but might be reused by some other function.
         E.g.::
 
             if 'user_data' in myframe.cache:

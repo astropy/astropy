@@ -1,0 +1,1 @@
+Fix setting a slice on table rows (``FITS_record``).

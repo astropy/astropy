@@ -685,7 +685,7 @@ class UnitBase:
         return 1.0
 
     @property
-    def bases(self) -> list[UnitBase]:
+    def bases(self) -> list[NamedUnit]:
         """The bases of the unit."""
         return [self]
 
@@ -2347,7 +2347,7 @@ class CompositeUnit(UnitBase):
         return self._scale
 
     @property
-    def bases(self) -> list[UnitBase]:
+    def bases(self) -> list[NamedUnit]:
         """The bases of the composite unit."""
         return self._bases
 
@@ -2506,26 +2506,17 @@ binary_prefixes: Final = tuple(
 )
 
 
-def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
+def _add_prefixes(
+    u: NamedUnit,
+    excludes: Collection[str] = (),
+    namespace: MutableMapping[str, object] | None = None,
+    prefixes: bool | Iterable[UnitPrefix] = False,
+) -> None:
     """
     Set up all of the standard metric prefixes for a unit.  This
     function should not be used directly, but instead use the
-    `prefixes` kwarg on `def_unit`.
-
-    Parameters
-    ----------
-    excludes : list of str, optional
-        Any prefixes to exclude from creation to avoid namespace
-        collisions.
-
-    namespace : dict, optional
-        When provided, inject the unit (and all of its aliases) into
-        the given namespace dictionary.
-
-    prefixes : list, optional
-        When provided, it is a list of prefix definitions of the form:
-
-            (short_names, long_tables, factor)
+    `prefixes` kwarg on `def_unit` See the documentation of that function
+    for the description of the parameters.
     """
     if prefixes is True:
         prefixes = si_prefixes
@@ -2567,15 +2558,35 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
             )
 
 
+@overload
 def def_unit(
-    s,
-    represents=None,
-    doc=None,
-    format=None,
-    prefixes=False,
-    exclude_prefixes=[],
-    namespace=None,
-):
+    s: str | list[str],
+    represents: UnitBase,
+    doc: str | None = None,
+    format: Mapping[str, str] | None = None,
+    prefixes: bool | Iterable[UnitPrefix] = False,
+    exclude_prefixes: Collection[str] = (),
+    namespace: MutableMapping[str, object] | None = None,
+) -> Unit: ...
+@overload
+def def_unit(
+    s: str | list[str],
+    represents: None = None,
+    doc: str | None = None,
+    format: Mapping[str, str] | None = None,
+    prefixes: bool | Iterable[UnitPrefix] = False,
+    exclude_prefixes: Collection[str] = (),
+    namespace: MutableMapping[str, object] | None = None,
+) -> IrreducibleUnit: ...
+def def_unit(
+    s: str | list[str],
+    represents: UnitBase | None = None,
+    doc: str | None = None,
+    format: Mapping[str, str] | None = None,
+    prefixes: bool | Iterable[UnitPrefix] = False,
+    exclude_prefixes: Collection[str] = (),
+    namespace: MutableMapping[str, object] | None = None,
+) -> NamedUnit:
     """Define a new unit.
 
     This function differs from creating units directly with `Unit` or
@@ -2589,7 +2600,7 @@ def def_unit(
         canonical (short) name, and the rest of the elements are
         aliases.
 
-    represents : UnitBase instance, optional
+    represents : UnitBase, optional
         The unit that this named unit represents.  If not provided,
         a new `IrreducibleUnit` is created.
 
@@ -2605,24 +2616,25 @@ def def_unit(
 
             {'latex': r'\\Omega'}
 
-    prefixes : bool or list, optional
+    prefixes : bool or iterable of UnitPrefix, optional
         When `True`, generate all of the SI prefixed versions of the
         unit as well.  For example, for a given unit ``m``, will
-        generate ``mm``, ``cm``, ``km``, etc.  When a list, it is a list of
-        prefix definitions of the form:
+        generate ``mm``, ``cm``, ``km``, etc.  If only a few prefixed
+        versions should be created then an iterable of `UnitPrefix`
+        instances can be specified instead. Default is `False`, which
+        means no prefixed versions will be generated.
 
-            (short_names, long_tables, factor)
+        This function always returns the base unit object, even if
+        multiple scaled versions of the unit were created.
 
-        Default is `False`.  This function always returns the base
-        unit object, even if multiple scaled versions of the unit were
-        created.
-
-    exclude_prefixes : list of str, optional
+    exclude_prefixes : `~collections.abc.Collection` of str, optional
         If any of the SI prefixes need to be excluded, they may be
-        listed here.  For example, ``Pa`` can be interpreted either as
-        "petaannum" or "Pascal".  Therefore, when defining the
-        prefixes for ``a``, ``exclude_prefixes`` should be set to
-        ``["P"]``.
+        listed here.  For example, when defining the prefixes for ``a``,
+        ``exclude_prefixes`` should be set to ``["P"]`` so that ``Pa``
+        would still refer to the pascal.
+
+        If a bare `str` is used then the prefixes that will be excluded are
+        the substrings of the `str`, not just its individual characters.
 
     namespace : dict, optional
         When provided, inject the unit (and all of its aliases and
@@ -2630,7 +2642,7 @@ def def_unit(
 
     Returns
     -------
-    unit : `~astropy.units.UnitBase`
+    unit : `~astropy.units.NamedUnit`
         The newly-defined unit, or a matching unit that was already
         defined.
     """

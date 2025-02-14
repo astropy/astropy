@@ -390,7 +390,7 @@ def _encode_mixins(tbl):
         encode_tbl = Table(tbl.columns, meta=meta_copy, copy=False)
 
     # Get the YAML serialization of information describing the table columns.
-    # This is re-using ECSV code that combined existing table.meta with with
+    # This is reusing ECSV code that combined existing table.meta with with
     # the extra __serialized_columns__ key.  For FITS the table.meta is handled
     # by the native FITS connect code, so don't include that in the YAML
     # output.
@@ -435,7 +435,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
     ----------
     input : Table
         The table to write out.
-    output : str or os.PathLike[str]
+    output : str or os.PathLike[str] or file-like
         The filename to write the table to.
     overwrite : bool
         Whether to overwrite any existing file without warning.
@@ -448,7 +448,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
     table_hdu = table_to_hdu(input, character_as_bytes=True)
 
     # Check if output file already exists
-    if os.path.exists(output):
+    if isinstance(output, (str, os.PathLike)) and os.path.exists(output):
         if overwrite:
             os.remove(output)
         elif not append:

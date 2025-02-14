@@ -340,9 +340,9 @@ def helper_apio(
         get_converter(unit_phi, radian),
         get_converter(unit_hm, m),
         get_converter(unit_xp, radian),
-        get_converter(unit_xp, radian),
-        get_converter(unit_xp, radian),
-        get_converter(unit_xp, radian),
+        get_converter(unit_yp, radian),
+        get_converter(unit_refa, radian),
+        get_converter(unit_refb, radian),
     ], astrom_unit()
 
 
