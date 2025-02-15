@@ -457,7 +457,7 @@ The order of guessing is shown by this Python code::
                  "ipac", "latex", "aastex"):
       read(format=format)
 
-  for format in ("commented_header", "fast_basic", "basic", "fast_noheader", ""noheader"):
+  for format in ("commented_header", "fast_basic", "basic", "fast_noheader", "noheader"):
       for delimiter in ("|", ",", " ", "\\s"):
           for quotechar in ('"', "'"):
               read(format=format, delimiter=delimiter, quotechar=quotechar)
