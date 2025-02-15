@@ -428,14 +428,13 @@ class Card(_Verify):
     @property
     def comment(self):
         """Get the comment attribute from the card image if not already set."""
-        if self._comment is not None:
-            return self._comment
-        elif self._image:
-            self._comment = self._parse_comment()
-            return self._comment
+        if self._comment is None:
+            self._comment = self._parse_comment() if self._image else ""
+
+        if conf.strip_header_whitespace and isinstance(self._comment, str):
+            return self._comment.rstrip()
         else:
-            self._comment = ""
-            return ""
+            return self._comment
 
     @comment.setter
     def comment(self, comment):
