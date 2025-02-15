@@ -735,6 +735,35 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  'HANDLE THE TRUTH'                                                    "
         )
 
+    @pytest.mark.xfail
+    def test_hierarch_key_with_long_value_no_spaces(self):
+        # regression test for gh-3746
+        long_key = "A VERY LONG KEY HERE"
+        long_value = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ" * 3
+        with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
+            card = fits.Card(long_key, long_value)
+        card.verify()
+        assert str(card) == (
+            "HIERARCH A VERY LONG KEY HERE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRS&'"
+            "CONTINUE  'TUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGH&'"
+            "CONTINUE  'IJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ'                        "
+        )
+
+    @pytest.mark.xfail
+    def test_hierarch_key_with_medium_value_and_comment(self):
+        long_key = "A VERY LONG KEY HERE"
+        medium_value = "ABCD EFGH IJKL MNOP QRST " * 2
+        assert len(medium_value) == 50  # Just right to trigger previous bug
+        comment = "random comment"
+        with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
+            card = fits.Card(long_key, medium_value, comment)
+        card.verify()
+        assert str(card) == (
+            "HIERARCH A VERY LONG KEY HERE = 'ABCD EFGH IJKL MNOP QRST ABCD EFGH IJKL MNOP &'"
+            + _pad("CONTINUE  'QRST &'")
+            + _pad("CONTINUE  '' / random comment")
+        )
+
     def test_verify_mixed_case_hierarch(self):
         """Regression test for
         https://github.com/spacetelescope/PyFITS/issues/7
