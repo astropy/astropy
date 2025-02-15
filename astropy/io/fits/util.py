@@ -728,12 +728,13 @@ def _words_group(s, width, first_width=None):
 
     # locations of the blanks
     blank_loc = np.nonzero(arr == b" ")[0]
-    offset = 0 if first_width is None else first_width - width
+    current_width = width if first_width is None else first_width
+    offset = 0
     xoffset = 0
 
     while True:
         try:
-            loc = np.nonzero(blank_loc >= width + offset)[0][0]
+            loc = np.nonzero(blank_loc >= current_width + offset)[0][0]
         except IndexError:
             loc = len(blank_loc)
 
@@ -744,13 +745,14 @@ def _words_group(s, width, first_width=None):
 
         # check for one word longer than strlen, break in the middle
         if offset <= xoffset:
-            offset = min(xoffset + width, slen)
+            offset = min(xoffset + current_width, slen)
 
         # collect the pieces in a list
         words.append(s[xoffset:offset])
         if offset >= slen:
             break
         xoffset = offset
+        current_width = width
 
     return words
 

@@ -735,7 +735,6 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  'HANDLE THE TRUTH'                                                    "
         )
 
-    @pytest.mark.xfail
     def test_hierarch_key_with_long_value_no_spaces(self):
         # regression test for gh-3746
         long_key = "A VERY LONG KEY HERE"
@@ -749,7 +748,6 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  'IJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ'                        "
         )
 
-    @pytest.mark.xfail
     def test_hierarch_key_with_medium_value_and_comment(self):
         long_key = "A VERY LONG KEY HERE"
         medium_value = "ABCD EFGH IJKL MNOP QRST " * 2
