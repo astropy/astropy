@@ -1029,7 +1029,9 @@ class Card(_Verify):
             # longstring case (CONTINUE card)
             # try not to use CONTINUE if the string value can fit in one line.
             # Instead, just truncate the comment
-            if isinstance(self.value, str) and len(value) > (self.length - 10):
+            if isinstance(self.value, str) and len(value) > (
+                self.length - len(keyword) - 2
+            ):
                 output = self._format_long_image()
             else:
                 warnings.warn(
@@ -1054,7 +1056,7 @@ class Card(_Verify):
         # We have to be careful that the first line may be able to hold less
         # of the value, if it is a HIERARCH keyword.
         headstr = self._format_keyword() + VALUE_INDICATOR
-        first_value_length = value_length + KEYWORD_LENGTH + 1 - len(headstr)
+        first_value_length = value_length + KEYWORD_LENGTH + 2 - len(headstr)
 
         # do the value string
         value = self._value.replace("'", "''")
