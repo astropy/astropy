@@ -71,7 +71,7 @@ representation of a table, or a list of table lines. The return value
 (``data`` in this case) is a :ref:`Table <astropy-table>` object.
 
 By default, |read| will try to :ref:`guess the table format <guess_formats>`
-by trying all of the `supported formats`_.
+by trying most of the `supported formats`_.
 
 .. Warning::
 
