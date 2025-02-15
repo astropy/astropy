@@ -1,7 +1,7 @@
 .. _table_io:
 
-Unified File Read/Write Interface
-*********************************
+High-level Unified File I/O
+***************************
 
 ``astropy`` provides a unified interface for reading and writing data in
 different formats. For many common cases this will streamline the process of
@@ -9,8 +9,8 @@ file I/O and reduce the need to learn the separate details of all of the I/O
 packages within ``astropy``. For details on the implementation see
 :ref:`io_registry`.
 
-Getting Started with Image I/O
-==============================
+Image Data
+==========
 
 Reading and writing image data in the unified I/O interface is supported
 though the `~astropy.nddata.CCDData` class using FITS file format:
@@ -36,8 +36,8 @@ can be obtained via the ``help()`` method as follows:
     >>> CCDData.read.help('fits')  # Get help on the CCDData FITS reader
     >>> CCDData.writer.help('fits')  # Get help on the CCDData FITS writer
 
-Getting Started with Table I/O
-==============================
+Table Data
+==========
 
 The :class:`~astropy.table.Table` class includes two methods,
 :meth:`~astropy.table.Table.read` and
