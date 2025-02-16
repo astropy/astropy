@@ -1,4 +1,5 @@
 .. _table_io:
+.. _io-unified:
 
 High-level Unified File I/O
 ***************************
@@ -39,16 +40,14 @@ can be obtained via the ``help()`` method as follows:
 Table Data
 ==========
 
-The :class:`~astropy.table.Table` class includes two methods,
-:meth:`~astropy.table.Table.read` and
-:meth:`~astropy.table.Table.write`, that make it possible to read from
-and write to files. A number of formats are automatically supported (see
-`Built-in table readers/writers`_) and new file formats and extensions can be
-registered with the :class:`~astropy.table.Table` class (see
-:ref:`io_registry`).
+The :class:`~astropy.table.Table` and :class:`~astropy.table.QTable` classes includes two
+methods, :meth:`~astropy.table.Table.read` and :meth:`~astropy.table.Table.write`, that
+make it possible to read from and write to files. A number of formats are supported (see
+`Built-in table readers/writers`_) and new file formats and extensions can be registered
+with the :class:`~astropy.table.Table` class (see :ref:`io_registry`).
 
-Examples
---------
+Getting Started
+---------------
 
 ..
   EXAMPLE START
@@ -128,7 +127,7 @@ provides the full list of choices for the ``format`` argument.
 
 To get help on the available arguments for each format, use the ``help()``
 method of the `~astropy.table.Table.read` or `~astropy.table.Table.write`
-methods. Each of these calls prints a long help document which is divided
+methods. Each of these calls prints a help document which is divided
 into two sections, the generic read/write documentation (common to any
 call) and the format-specific documentation. For ASCII tables, the
 format-specific documentation includes the generic `astropy.io.ascii` package
