@@ -180,7 +180,7 @@ def test_binned_data_with_zeros(rseed=0):
     """
     Ensure that binned data with zero entries is handled correctly.
     """
-    np.random.seed(rseed)
+    rng = np.random.default_rng(rseed)
     # Using the failed edge case from
     # https://github.com/astropy/astropy/issues/17786
     n = 100
