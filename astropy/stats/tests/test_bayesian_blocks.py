@@ -176,6 +176,7 @@ def test_zero_change_points(rseed=0):
     assert values.min() == bins[0]
     assert values.max() == bins[-1]
 
+
 def test_binned_data_with_zeros(rseed=0):
     """
     Ensure that binned data with zero entries is handled correctly.
@@ -186,7 +187,7 @@ def test_binned_data_with_zeros(rseed=0):
     n = 100
     t = np.arange(n)
     x = rng.poisson(1.0, n)
-    x[n//2] = 999
+    x[n // 2] = 999
     edges = bayesian_blocks(t, x)
-    expected = [t[0], t[n//2] - 0.5, t[n//2] + 0.5, t[-1]]
+    expected = [t[0], t[n // 2] - 0.5, t[n // 2] + 0.5, t[-1]]
     assert_allclose(edges, expected)
