@@ -473,7 +473,11 @@ class Events(FitnessFunc):
 
     def fitness(self, N_k: NDArray[float], T_k: NDArray[float]) -> NDArray[float]:
         # eq. 19 from Scargle 2013
-        return N_k * (np.log(N_k / T_k))
+        tmp = np.zeros(N_k.shape)
+        mask = N_k > 0
+        rate = np.divide(N_k, T_k, out=tmp, where=mask)
+        ln_rate = np.log(rate, out=tmp, where=mask)
+        return np.multiply(N_k, ln_rate, out=tmp, where=mask)
 
     def validate_input(
         self,
