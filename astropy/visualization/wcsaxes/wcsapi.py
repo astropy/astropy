@@ -1,4 +1,5 @@
 # Functions/classes for WCSAxes related to APE14 WCSes
+from __future__ import annotations
 
 from contextlib import contextmanager
 
@@ -101,17 +102,24 @@ def custom_ucd_coord_meta_mapping(mapping, *, overwrite=False):
     <BLANKLINE>
     >
     """
+    added_keys = []
+    overwritten = {}
     for k, v in mapping.items():
         k = k.removeprefix("custom:")
-        if not overwrite and k in CUSTOM_UCD_COORD_META_MAPPING:
-            raise ValueError(f"UCD metadata mapping {k} already exists.")
+        if k in CUSTOM_UCD_COORD_META_MAPPING:
+            if not overwrite:
+                raise ValueError(f"UCD metadata mapping {k} already exists.")
+            overwritten[k] = CUSTOM_UCD_COORD_META_MAPPING[k]
+        else:
+            added_keys.append(k)
         CUSTOM_UCD_COORD_META_MAPPING[k] = v
 
-    yield
-
-    for k in mapping.keys():
-        k = k.removeprefix("custom:")
-        del CUSTOM_UCD_COORD_META_MAPPING[k]
+    try:
+        yield
+    finally:
+        for k in added_keys:
+            del CUSTOM_UCD_COORD_META_MAPPING[k]
+        CUSTOM_UCD_COORD_META_MAPPING.update(overwritten)
 
 
 def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
