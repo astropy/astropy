@@ -1,7 +1,7 @@
 .. _table_io_ascii:
 
-ASCII Formats
--------------
+Text (CSV, fixed-width, HTML, and specialized)
+----------------------------------------------
 
 The :meth:`~astropy.table.Table.read` and
 :meth:`~astropy.table.Table.write` methods can be used to read and write formats
@@ -12,6 +12,13 @@ Use ``format='ascii'`` in order to interface to the generic
 functions from `astropy.io.ascii`. When reading a table, this means
 that all supported ASCII table formats will be tried in order to successfully
 parse the input.
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Text Table Formats
+
+    unified_table_pandas
+    unified_table_jsviewer
 
 Examples
 ^^^^^^^^

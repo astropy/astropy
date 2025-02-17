@@ -9,18 +9,13 @@ with the :class:`~astropy.table.Table` class (see :ref:`io_registry`).
 
 .. toctree::
     :maxdepth: 1
-    :caption: Unified Table Formats
+    :caption: Table Formats
 
     unified_table_text
     unified_table_fits
     unified_table_hdf5
-    unified_table_pandas
     unified_table_parquet
     unified_table_votable
-    unified_table_jsviewer
-
-Getting Started
----------------
 
 ..
   EXAMPLE START
@@ -90,32 +85,6 @@ represent the home directory of the current or specified user, respectively.
 ..
   EXAMPLE END
 
-Command-Line Utility
---------------------
-
-For convenience, the command-line tool ``showtable`` can be used to print the
-content of tables for the formats supported by the unified I/O interface.
-
-Example
-^^^^^^^
-
-..
-  EXAMPLE START
-  Viewing the Contents of a Table on the Command Line
-
-To view the contents of a table on the command line::
-
-    $ showtable astropy/io/fits/tests/data/table.fits
-
-     target V_mag
-    ------- -----
-    NGC1001  11.1
-    NGC1002  12.3
-    NGC1003  15.2
-
-To get full documentation on the usage and available options, do ``showtable
---help``.
-
 ..
   EXAMPLE END
 
@@ -170,10 +139,13 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
                     votable    Yes    auto  :mod:`~astropy.io.votable`: Table format used by Virtual Observatory (VO) initiative
 ===========================  =====  ======  ============================================================================================
 
+Details
+-------
+
 .. _table_serialization_methods:
 
 Table Serialization Methods
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``astropy`` supports fine-grained control of the way to write out (serialize)
 the columns in a Table. For instance, if you are writing an ISO format
@@ -206,7 +178,7 @@ YAML    ``jd2_jd2``            ---
 ====== ==================== ===============
 
 Examples
-^^^^^^^^
+""""""""
 
 ..
   EXAMPLE START
@@ -261,3 +233,30 @@ The ``serialize_method`` argument can be set in two different ways:
 
 ..
   EXAMPLE END
+
+
+Command-Line Utility
+^^^^^^^^^^^^^^^^^^^^
+
+For convenience, the command-line tool ``showtable`` can be used to print the
+content of tables for the formats supported by the unified I/O interface.
+
+Example
+^^^^^^^
+
+..
+  EXAMPLE START
+  Viewing the Contents of a Table on the Command Line
+
+To view the contents of a table on the command line::
+
+    $ showtable astropy/io/fits/tests/data/table.fits
+
+     target V_mag
+    ------- -----
+    NGC1001  11.1
+    NGC1002  12.3
+    NGC1003  15.2
+
+To get full documentation on the usage and available options, do ``showtable
+--help``.

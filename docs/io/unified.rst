@@ -7,11 +7,10 @@ High-level Unified File I/O
 ``astropy`` provides a unified interface for reading and writing data in
 different formats. For many common cases this will streamline the process of
 file I/O and reduce the need to learn the separate details of all of the I/O
-packages within ``astropy``. For details on the implementation see
-:ref:`io_registry`.
+packages within ``astropy``.
 
-
-Table of contents
+A key feature of the unified interface is easily registering new read and write
+functions in the :ref:`io_registry`.
 
 .. toctree::
     :maxdepth: 2
@@ -19,8 +18,15 @@ Table of contents
     unified_image
     unified_table
 
-Getting Help on Readers and Writers
------------------------------------
+The example below shows how to read a table in the specialized DAOphot format and write
+it back to FITS format. Notice that FITS is a format where the interface recognizes the
+format automatically from the file name, so the ``format`` argument is not needed.
+
+.. doctest-skip::
+
+    >>> from astropy.table import Table
+    >>> t = Table.read('photometry.dat', format='ascii.daophot')
+    >>> t.write('photometry.fits')
 
 Each file format is handled by a specific reader or writer, and each of those
 functions will have its own set of arguments.
