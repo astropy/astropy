@@ -25,7 +25,6 @@ def test_quantity_asanyarray():
     assert np.issubdtype(np_array.dtype, np.inexact)
 
 
-@pytest.mark.xfail(reason="Regression test to reveal a bug not fixed yet")
 def test_composite_unit_definition():
     # Regression test for #17781 - error message was not informative
     with pytest.raises(
