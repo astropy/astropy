@@ -127,7 +127,7 @@ def read_table_fits(
     character_as_bytes=True,
     unit_parse_strict="warn",
     mask_invalid=True,
-    strip_spaces=True,
+    strip_spaces=False,
 ):
     """
     Read a Table object from an FITS file.
@@ -183,9 +183,9 @@ def read_table_fits(
         penalty of doing this masking step. The masking is always deactivated
         when using ``memmap=True`` (see above).
     strip_spaces : bool, optional
-        Strip trailing spaces in string columns, default is True. This is
-        deactivated when using ``memmap=True`` (see above).
-
+        Strip trailing spaces in string columns, default is False and will be
+        changed to True in the next major release. This is deactivated when
+        using ``memmap=True`` (see above).
 
     """
     if isinstance(input, HDUList):
@@ -263,12 +263,18 @@ def read_table_fits(
         finally:
             hdulist.close()
 
-    # In the loop below we access the data using data[col.name] rather than
-    # col.array to make sure that the data is scaled correctly if needed.
     data = table.data
 
     columns = []
     for col in data.columns:
+        # use data[col.name] rather than col.array to make sure that the data
+        # is scaled correctly if needed.
+        arr = data[col.name]
+        coltype = col.dtype.subdtype[0].type if col.dtype.subdtype else col.dtype.type
+
+        if strip_spaces and coltype is np.bytes_:
+            arr = arr.rstrip()
+
         # Check if column is masked. Here, we make a guess based on the
         # presence of FITS mask values. For integer columns, this is simply
         # the null header, for float and complex, the presence of NaN, and for
@@ -280,23 +286,18 @@ def read_table_fits(
         # preserve null values.
         masked = mask = False
         fill_value = None
-        coltype = col.dtype.subdtype[0].type if col.dtype.subdtype else col.dtype.type
         if col.null is not None:
-            mask = data[col.name] == col.null
+            mask = arr == col.null
             # Return a MaskedColumn even if no elements are masked so
             # we roundtrip better.
             masked = True
             fill_value = col.null
         elif mask_invalid and issubclass(coltype, np.inexact):
-            mask = np.isnan(data[col.name])
+            mask = np.isnan(arr)
             fill_value = np.nan
         elif mask_invalid and issubclass(coltype, np.character):
-            mask = col.array == b""
+            mask = arr == b""
             fill_value = b""
-
-        arr = data[col.name]
-        if strip_spaces and coltype is np.bytes_:
-            arr = arr.rstrip()
 
         if masked or np.any(mask):
             column = MaskedColumn(
