@@ -1,6 +1,5 @@
 import contextlib
 import gc
-import os
 import warnings
 from io import BytesIO
 from pathlib import Path
@@ -55,8 +54,6 @@ unsupported_cols = {
 mixin_cols = {
     name: col for name, col in mixin_cols.items() if name not in unsupported_cols
 }
-
-DATADIR = os.path.join(os.path.dirname(__file__), "data")
 
 
 def equal_data(a, b):
@@ -338,25 +335,19 @@ class TestSingleTable:
 
     @pytest.mark.parametrize("character_as_bytes", (False, True))
     def test_strip_spaces(self, tmp_path, character_as_bytes):
-        filename = os.path.join(DATADIR, "table_with_spaces.fits")
-        t = Table.read(filename, character_as_bytes=character_as_bytes)
-        assert t["b"].tolist() == ["aaaa", "bbb", "cc", "d"]
+        filename = get_pkg_data_filename("data/tb.fits")
+        t = Table.read(
+            filename, character_as_bytes=character_as_bytes, strip_spaces=True
+        )
+        assert t["c2"].tolist() == ["abc", "xy"]
+
         t = Table.read(
             filename, character_as_bytes=character_as_bytes, strip_spaces=False
         )
-        assert t["b"].tolist() == [
-            "aaaa      ",
-            "bbb       ",
-            "cc        ",
-            "d         ",
-        ]
+        assert t["c2"].tolist() == ["abc", "xy "]
+
         t = Table.read(filename, character_as_bytes=character_as_bytes, memmap=True)
-        assert t["b"].tolist() == [
-            "aaaa      ",
-            "bbb       ",
-            "cc        ",
-            "d         ",
-        ]
+        assert t["c2"].tolist() == ["abc", "xy "]
         del t
         gc.collect()
 
@@ -730,7 +721,7 @@ def test_masking_regression_1795():
     assert not hasattr(t["c3"], "mask")
     assert not hasattr(t["c4"], "mask")
     assert np.all(t["c1"].data == np.array([1, 2]))
-    assert np.all(t["c2"].data == np.array([b"abc", b"xy"]))
+    assert np.all(t["c2"].data == np.array([b"abc", b"xy "]))
     assert_allclose(t["c3"].data, np.array([3.70000007153, 6.6999997139]))
     assert np.all(t["c4"].data == np.array([False, True]))
 
