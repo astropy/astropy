@@ -428,14 +428,13 @@ class Card(_Verify):
     @property
     def comment(self):
         """Get the comment attribute from the card image if not already set."""
-        if self._comment is not None:
-            return self._comment
-        elif self._image:
-            self._comment = self._parse_comment()
-            return self._comment
+        if self._comment is None:
+            self._comment = self._parse_comment() if self._image else ""
+
+        if conf.strip_header_whitespace and isinstance(self._comment, str):
+            return self._comment.rstrip()
         else:
-            self._comment = ""
-            return ""
+            return self._comment
 
     @comment.setter
     def comment(self, comment):
@@ -1029,7 +1028,9 @@ class Card(_Verify):
             # longstring case (CONTINUE card)
             # try not to use CONTINUE if the string value can fit in one line.
             # Instead, just truncate the comment
-            if isinstance(self.value, str) and len(value) > (self.length - 10):
+            if isinstance(self.value, str) and len(value) > (
+                self.length - len(keyword) - 2
+            ):
                 output = self._format_long_image()
             else:
                 warnings.warn(
@@ -1054,7 +1055,7 @@ class Card(_Verify):
         # We have to be careful that the first line may be able to hold less
         # of the value, if it is a HIERARCH keyword.
         headstr = self._format_keyword() + VALUE_INDICATOR
-        first_value_length = value_length + KEYWORD_LENGTH + 1 - len(headstr)
+        first_value_length = value_length + KEYWORD_LENGTH + 2 - len(headstr)
 
         # do the value string
         value = self._value.replace("'", "''")
