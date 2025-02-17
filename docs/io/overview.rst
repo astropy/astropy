@@ -11,6 +11,9 @@ Astropy provides two main interfaces for reading and writing data:
   reading and writing data in specific formats such as :ref:`FITS <astropy-io-fits>`
   or :ref:`VOTable <astropy-io-votable>`.
 
+In general we recommend starting with the high-level interface unless you have a
+specific need for the low-level interface.
+
 .. list-table:: Comparison of high-level and low-level interfaces
    :widths: 50 50
    :header-rows: 1
@@ -28,7 +31,4 @@ Astropy provides two main interfaces for reading and writing data:
    * - Automatically determine file format in common cases.
      - Specify format explicitly.
    * - Help documentation via class method, e.g., ``QTable.read.help("fits")``.
-     - Help documentation via varies, e.g., ``help(fits.open)``.
-
-In general we recommend using the high-level interface unless you have a specific
-need for the low-level interface.
+     - Help documentation varies, e.g., ``help(fits.open)`` or API docs.
