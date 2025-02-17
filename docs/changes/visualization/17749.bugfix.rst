@@ -1,0 +1,2 @@
+Ensure that the ``astropy.visualization.wcsaxes.custom_ucd_coord_meta_mapping``
+context manager performs a (correct) cleanup.

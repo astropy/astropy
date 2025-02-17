@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
+from copy import deepcopy
 from textwrap import dedent
 
 import matplotlib.pyplot as plt
@@ -12,6 +13,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.tests.figures import figure_test
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import Quantity
 from astropy.utils.data import get_pkg_data_filename
@@ -85,6 +87,30 @@ def cube_wcs():
     cube_header = get_pkg_data_filename("data/cube_header")
     header = fits.Header.fromtextfile(cube_header)
     return WCS(header=header)
+
+
+def assert_item_equal(i1: object, i2: object) -> None:
+    __tracebackhide__ = True
+    assert type(i1) is type(i2)
+    if type(i1) is Quantity and type(i2) is Quantity:
+        assert_quantity_allclose(i1, i2)
+    else:
+        assert i1 == i2
+
+
+def assert_dict_equal(d1: dict, d2: dict) -> None:
+    __tracebackhide__ = True
+    # note that key insertion order matters in this comparison
+    assert list(d2.keys()) == list(d1.keys())
+    for v1, v2 in zip(d1.values(), d2.values(), strict=True):
+        assert type(v1) is type(v2)
+        if isinstance(v1, dict):
+            assert_dict_equal(v1, v2)
+        elif isinstance(v1, list):
+            for i1, i2 in zip(v1, v2, strict=True):
+                assert_item_equal(i1, i2)
+        else:
+            assert_item_equal(v1, v2)
 
 
 def test_shorthand_inversion():
@@ -314,6 +340,12 @@ def test_custom_coord_type_from_ctype():
 
 
 def test_custom_coord_type_from_ctype_nested():
+    from astropy.visualization.wcsaxes.wcsapi import (
+        CUSTOM_UCD_COORD_META_MAPPING as global_state,  # noqa: N811
+    )
+
+    init_state = deepcopy(global_state)
+
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["eggs", "spam"]
     wcs.wcs.cunit = ["deg", "deg"]
@@ -357,8 +389,16 @@ def test_custom_coord_type_from_ctype_nested():
         assert ax.coords["spam"].coord_type == "scalar"
         assert ax.coords["spam"].coord_wrap == None
 
+    assert_dict_equal(global_state, init_state)
+
 
 def test_custom_coord_type_1d_2d_wcs_overwrite():
+    from astropy.visualization.wcsaxes.wcsapi import (
+        CUSTOM_UCD_COORD_META_MAPPING as global_state,  # noqa: N811
+    )
+
+    init_state = deepcopy(global_state)
+
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["HGLN-TAN", "HGLT-TAN"]
     wcs.wcs.crpix = [256.0] * 2
@@ -381,9 +421,12 @@ def test_custom_coord_type_1d_2d_wcs_overwrite():
         with custom_ucd_coord_meta_mapping(custom_meta):
             _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 
+    assert_dict_equal(global_state, init_state)
+
     with custom_ucd_coord_meta_mapping(custom_meta, overwrite=True):
         _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame)
 
+    assert_dict_equal(global_state, init_state)
     assert coord_meta["type"] == ["latitude", "latitude"]
     assert coord_meta["format_unit"] == [u.arcsec, u.deg]
     assert coord_meta["wrap"] == [None, None]
