@@ -6,7 +6,7 @@ import pytest
 from numpy import testing as npt
 
 from astropy import units as u
-from astropy.coordinates import Angle, EarthLocation, SkyCoord, golden_spiral_grid
+from astropy.coordinates import EarthLocation, SkyCoord, golden_spiral_grid
 from astropy.coordinates.builtin_frames import ICRS, AltAz
 from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.tests.helper import assert_quantity_allclose
@@ -58,21 +58,15 @@ def test_iau_fullstack(
     """
     obsconditions = DEFAULT_OBSCONDITIONS | fullstack_obsconditions
 
-    # create the altaz frame
-    altazframe = AltAz(
-        obstime=fullstack_times, location=fullstack_locations, **obsconditions
+    # Transform to the altaz frame
+    aacoo = FULLSTACK_ICRS.transform_to(
+        AltAz(obstime=fullstack_times, location=fullstack_locations, **obsconditions)
     )
-
-    aacoo = FULLSTACK_ICRS.transform_to(altazframe)
 
     # compare aacoo to the fiducial AltAz - should always be different
     fullstack_fiducial_altaz = FULLSTACK_ICRS.transform_to(ALTAZFRAME)
-    assert np.all(
-        np.abs(aacoo.alt - fullstack_fiducial_altaz.alt) > 50 * u.milliarcsecond
-    )
-    assert np.all(
-        np.abs(aacoo.az - fullstack_fiducial_altaz.az) > 50 * u.milliarcsecond
-    )
+    assert np.all(np.abs(aacoo.alt - fullstack_fiducial_altaz.alt) > 50 * u.mas)
+    assert np.all(np.abs(aacoo.az - fullstack_fiducial_altaz.az) > 50 * u.mas)
 
     # if the refraction correction is included, we *only* do the comparisons
     # where altitude is high enough.  The SOFA guides imply that below 5 deg is
@@ -94,22 +88,21 @@ def test_iau_fullstack(
     # check that we're consistent with the ERFA alt/az result
     astrom, _ = erfa.apco13(
         *get_jd12(fullstack_times, "utc"),
-        fullstack_times.delta_ut1_utc,
-        (geodetic := fullstack_locations.geodetic).lon.rad,
-        geodetic.lat.rad,
-        geodetic.height.to_value(u.m),
-        *Angle(iers.earth_orientation_table.get().pm_xy(fullstack_times)).rad,
-        altazframe.pressure.to_value(u.hPa),
-        altazframe.temperature.to_value(u.deg_C),
-        altazframe.relative_humidity.to_value(u.one),
-        altazframe.obswl.to_value(u.μm),
+        (iers_table := iers.earth_orientation_table.get()).ut1_utc(fullstack_times),
+        (geodetic := fullstack_locations.geodetic).lon,
+        geodetic.lat,
+        geodetic.height,
+        *iers_table.pm_xy(fullstack_times),
+        obsconditions["pressure"],
+        obsconditions["temperature"],
+        obsconditions["relative_humidity"],
+        obsconditions["obswl"],
     )
     erfa_az, erfa_zen, _, _, _ = erfa.atioq(
-        *erfa.atciq(FULLSTACK_ICRS.ra.rad, FULLSTACK_ICRS.dec.rad, 0, 0, 0, 0, astrom),
-        astrom,
+        *erfa.atciqz(FULLSTACK_ICRS.ra, FULLSTACK_ICRS.dec, astrom), astrom
     )
-    npt.assert_allclose(aacoo.alt.rad, np.pi / 2 - erfa_zen, atol=1e-7)
-    npt.assert_allclose(aacoo.az.rad, erfa_az, atol=1e-7)
+    assert_quantity_allclose(aacoo.alt, 90 * u.deg - erfa_zen, atol=1 * u.mas)
+    assert_quantity_allclose(aacoo.az, erfa_az, atol=1 * u.mas)
 
 
 def test_fiducial_roudtrip():
