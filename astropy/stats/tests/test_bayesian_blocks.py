@@ -177,17 +177,23 @@ def test_zero_change_points(rseed=0):
     assert values.max() == bins[-1]
 
 
-def test_binned_data_with_zeros(rseed=0):
+def test_binned_data_with_zeros():
     """
     Ensure that binned data with zero entries is handled correctly.
     """
-    rng = np.random.default_rng(rseed)
     # Using the failed edge case from
     # https://github.com/astropy/astropy/issues/17786
+    rng = np.random.default_rng(0)
     n = 100
     t = np.arange(n)
+
+    # Generate data from Poisson distribution of mean 1. The data, x,
+    # contains zeros with default seed 0. A single outlier is set to be 999
+    # at the midpoint to ensure that the outlier is detected by the algorithm.
     x = rng.poisson(1.0, n)
     x[n // 2] = 999
-    edges = bayesian_blocks(t, x)
+
+    # Check events fitness function with binned data
+    edges = bayesian_blocks(t, x, fitness="events")
     expected = [t[0], t[n // 2] - 0.5, t[n // 2] + 0.5, t[-1]]
     assert_allclose(edges, expected)
