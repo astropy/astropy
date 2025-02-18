@@ -214,7 +214,6 @@ lint.unfixable = [
     "RET505",  # superfluous-else-return
 ]
 "astropy/cosmology/*" = [
-    "C408",  # unnecessary-collection-call
     "PT019",   # pytest-fixture-param-without-value
 ]
 "astropy/io/*" = [
