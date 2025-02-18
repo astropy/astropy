@@ -472,8 +472,18 @@ class Events(FitnessFunc):
     """
 
     def fitness(self, N_k: NDArray[float], T_k: NDArray[float]) -> NDArray[float]:
-        # eq. 19 from Scargle 2013
-        return N_k * (np.log(N_k / T_k))
+        # Implement Eq. 19 from Scargle (2013), i.e., N_k * ln(N_k / T_k).
+        # Note that when N_k -> 0, the limit of N_k * ln(N_k / T_k) is 0.
+        # N_k is guaranteed to be non-negative integers by the `validate_input`
+        # method, so no need to check for negative values here.
+        # First, initialize an array of zeros to store the fitness values,
+        # then calculate the fitness values only where N_k > 0.
+        # For N_k == 0, the corresponding fitness values are zero already.
+        out = np.zeros(N_k.shape)
+        mask = N_k > 0
+        rate = np.divide(N_k, T_k, out=out, where=mask)
+        ln_rate = np.log(rate, out=out, where=mask)
+        return np.multiply(N_k, ln_rate, out=out, where=mask)
 
     def validate_input(
         self,
@@ -482,8 +492,10 @@ class Events(FitnessFunc):
         sigma: float | ArrayLike | None,
     ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
         t, x, sigma = super().validate_input(t, x, sigma)
-        if x is not None and np.any(x % 1 > 0):
-            raise ValueError("x must be integer counts for fitness='events'")
+        if (x is not None) and (np.any(x % 1 > 0) or np.any(x < 0)):
+            raise ValueError(
+                "x must be non-negative integer counts for fitness='events'"
+            )
         return t, x, sigma
 
 

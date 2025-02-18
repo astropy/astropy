@@ -82,9 +82,12 @@ def test_errors():
     rng = np.random.default_rng(0)
     t = rng.random(100)
 
-    # x must be integer or None for events
+    # x must be non-negative integer or None for events
     with pytest.raises(ValueError):
         bayesian_blocks(t, fitness="events", x=t)
+
+    with pytest.raises(ValueError):
+        bayesian_blocks(t, fitness="events", x=np.full(t.size, -1))
 
     # x must be binary for regular events
     with pytest.raises(ValueError):
@@ -175,3 +178,25 @@ def test_zero_change_points(rseed=0):
     bins = bayesian_blocks(values)
     assert values.min() == bins[0]
     assert values.max() == bins[-1]
+
+
+def test_binned_data_with_zeros():
+    """
+    Ensure that binned data with zero entries is handled correctly.
+    """
+    # Using the failed edge case from
+    # https://github.com/astropy/astropy/issues/17786
+    rng = np.random.default_rng(0)
+    n = 100
+    t = np.arange(n)
+
+    # Generate data from Poisson distribution of mean 1. The data, x,
+    # contains zeros with default seed 0. A single outlier is set to be 999
+    # at the midpoint to ensure that the outlier is detected by the algorithm.
+    x = rng.poisson(1.0, n)
+    x[n // 2] = 999
+
+    # Check events fitness function with binned data
+    edges = bayesian_blocks(t, x, fitness="events")
+    expected = [t[0], t[n // 2] - 0.5, t[n // 2] + 0.5, t[-1]]
+    assert_allclose(edges, expected)
