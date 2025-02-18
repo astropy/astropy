@@ -492,7 +492,7 @@ class Events(FitnessFunc):
         sigma: float | ArrayLike | None,
     ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
         t, x, sigma = super().validate_input(t, x, sigma)
-        if x is not None and np.any(x % 1 > 0) and np.any(x < 0):
+        if (x is not None) and (np.any(x % 1 > 0) or np.any(x < 0)):
             raise ValueError(
                 "x must be non-negative integer counts for fitness='events'"
             )
