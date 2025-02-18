@@ -49,7 +49,7 @@ __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 # Parameters
 
 # registry of cosmology classes with {key=name : value=class}
-_COSMOLOGY_CLASSES: dict[str, type[Cosmology]] = dict()
+_COSMOLOGY_CLASSES: dict[str, type[Cosmology]] = {}
 
 # typing
 # NOTE: private b/c RTD error
