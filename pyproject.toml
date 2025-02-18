@@ -199,7 +199,7 @@ namespaces = true
 version_file = "astropy/_version.py"
 
 [tool.pytest.ini_options]
-minversion = "7.0"
+minversion = "8.0"
 testpaths = [
     "astropy",
     "docs",
