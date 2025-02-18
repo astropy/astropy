@@ -209,6 +209,7 @@ norecursedirs = [
     "docs[\\/]generated",
     "astropy[\\/]extern",
     "astropy[\\/]_dev",
+    "astropy[\\/]units[\\/]tests[\\/]data",
 ]
 astropy_header = true
 doctest_plus = "enabled"
