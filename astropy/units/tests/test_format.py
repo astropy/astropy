@@ -404,7 +404,11 @@ class TestRoundtripVOUnit(RoundtripBase):
 
     @pytest.mark.parametrize(
         "unit",
-        [u for u in u_format.VOUnit._units.values() if not isinstance(u, PrefixUnit)],
+        [
+            u
+            for u in u_format.VOUnit._get_units().values()
+            if not isinstance(u, PrefixUnit)
+        ],
         ids=str,
     )
     def test_roundtrip(self, unit):
@@ -418,7 +422,11 @@ class TestRoundtripFITS(RoundtripBase):
 
     @pytest.mark.parametrize(
         "unit",
-        [u for u in u_format.FITS._units.values() if not isinstance(u, PrefixUnit)],
+        [
+            u
+            for u in u_format.FITS._get_units().values()
+            if not isinstance(u, PrefixUnit)
+        ],
         ids=str,
     )
     def test_roundtrip(self, unit):
@@ -430,7 +438,11 @@ class TestRoundtripCDS(RoundtripBase):
 
     @pytest.mark.parametrize(
         "unit",
-        [u for u in u_format.CDS._units.values() if not isinstance(u, PrefixUnit)],
+        [
+            u
+            for u in u_format.CDS._get_units().values()
+            if not isinstance(u, PrefixUnit)
+        ],
         ids=str,
     )
     def test_roundtrip(self, unit):
@@ -457,7 +469,7 @@ class TestRoundtripOGIP(RoundtripBase):
         "unit",
         [
             unit
-            for unit in u_format.OGIP._units.values()
+            for unit in u_format.OGIP._get_units().values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
         ids=str,
@@ -494,7 +506,7 @@ class TestRoundtripOGIP(RoundtripBase):
     [(u_format.FITS, 765), (u_format.VOUnit, 1303), (u_format.CDS, 3326)],
 )
 def test_units_available(unit_formatter_class, n_units):
-    assert len(unit_formatter_class._units) == n_units
+    assert len(unit_formatter_class._get_units()) == n_units
 
 
 def test_cds_non_ascii_unit():

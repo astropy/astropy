@@ -21,6 +21,7 @@ from __future__ import annotations
 import math
 import warnings
 from fractions import Fraction
+from functools import cache
 from typing import TYPE_CHECKING
 
 from astropy.units.core import CompositeUnit
@@ -66,8 +67,9 @@ class OGIP(Base, _ParsingFormatMixin):
 
     _deprecated_units: ClassVar[frozenset[str]] = frozenset(("Crab", "mCrab"))
 
-    @classproperty(lazy=True)
-    def _units(cls) -> dict[str, UnitBase]:
+    @classmethod
+    @cache
+    def _get_units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
 
         bases = [
