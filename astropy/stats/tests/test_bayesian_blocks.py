@@ -82,9 +82,12 @@ def test_errors():
     rng = np.random.default_rng(0)
     t = rng.random(100)
 
-    # x must be integer or None for events
+    # x must be non-negative integer or None for events
     with pytest.raises(ValueError):
         bayesian_blocks(t, fitness="events", x=t)
+
+    with pytest.raises(ValueError):
+        bayesian_blocks(t, fitness="events", x=np.full(t.size, -1))
 
     # x must be binary for regular events
     with pytest.raises(ValueError):
