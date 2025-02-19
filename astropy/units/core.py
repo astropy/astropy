@@ -1027,6 +1027,10 @@ class UnitBase:
         for funit, tunit, a, b in equivalencies:
             if tunit is None:
                 ratio = other.decompose() / unit.decompose()
+                if not isinstance(funit, NamedUnit):
+                    # If we are unnamed, we have to ensure our scale is not
+                    # removed by the decomposition, so name ourselves.
+                    funit = Unit("cancellable", funit)
                 try:
                     ratio_in_funit = ratio.decompose([funit])
                     return make_converter(ratio_in_funit.scale, a, 1.0)
@@ -2367,6 +2371,15 @@ class CompositeUnit(UnitBase):
                     except UnitsError:
                         pass
                     else:
+                        # Deal with unnamed scaled bases such as Unit("100 s").
+                        # See gh-17780.
+                        if not isinstance(base, NamedUnit):
+                            # Note: base must be a scaled irreducible unit
+                            # (i.e., only one base and power=1), since it is
+                            # a scaled version of unit, which is irreducible.
+                            scale *= base.scale**power
+                            base = base.bases[0]
+
                         unit = base
                         break
 

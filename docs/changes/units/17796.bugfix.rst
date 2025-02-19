@@ -1,0 +1,9 @@
+Ensure that ``CompositeUnit`` always have bases consisting of named units.
+A consequence of this is that decompositions into unnamed units such as
+``u.ks.decompose([u.Unit("100 s")])``, while now representable, will have
+different scale and bases (effectively, "1000 s" instead of "10 100 s",
+where the latter could not be represented as a standard unit).
+
+In practice, this should not affect anything, since the physical meaning of
+the unit has not changed.  If the scale is important, one should use named
+units (e.g., ``u.ks.decompose([u.Unit("mytime", "100 s")])``).

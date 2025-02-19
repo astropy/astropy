@@ -754,12 +754,23 @@ def test_comparison():
         u.m > u.kg  # noqa: B015
 
 
+def test_decompose_removes_scale_from_unnamed_unit():
+    decomposed = u.km.decompose(bases=[u.Unit("8 m")])
+    assert decomposed.scale == 1000.0
+    assert decomposed.bases[0] is u.m
+
+    decomposed = u.m.decompose(bases=[u.Unit("eightmeter", "8 m")])
+    assert decomposed.scale == 0.125
+
+
 def test_compose_into_arbitrary_units():
-    # Issue #1438
+    # Issue #1438, though note that after dealing with #17780, the unit
+    # no longer has a scale of 1e-4, as should be the case given that
+    # it calls _decompose(allowscaledunits=False, bases).
     from astropy.constants import G
 
     G_decomposed = G.decompose([u.kg, u.km, u.Unit("100 s")])
-    assert_allclose(G_decomposed.unit.scale, 1e-4)
+    assert_allclose(G_decomposed.unit.scale, 1.0)
     assert G_decomposed == G
 
 
