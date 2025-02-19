@@ -11,7 +11,6 @@ BLS_ROOT = Path(__file__).parent.resolve().relative_to(Path.cwd())
 def get_extensions():
     ext = Extension(
         "astropy.timeseries.periodograms.bls._impl",
-        define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         sources=[
             str(BLS_ROOT / "bls.c"),
             str(BLS_ROOT / "_impl.pyx"),
