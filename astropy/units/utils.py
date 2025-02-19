@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from .core import UnitBase
+    from .core import NamedUnit
     from .quantity import Quantity
     from .typing import UnitPower, UnitPowerLike, UnitScale, UnitScaleLike
 
@@ -52,7 +52,7 @@ def _get_first_sentence(s: str) -> str:
 
 def _iter_unit_summary(
     namespace: dict[str, object],
-) -> Generator[tuple[UnitBase, str, str, str, Literal["Yes", "No"]], None, None]:
+) -> Generator[tuple[NamedUnit, str, str, str, Literal["Yes", "No"]], None, None]:
     """
     Generates the ``(unit, doc, represents, aliases, prefixes)``
     tuple used to format the unit summary docs in `generate_unit_summary`.
@@ -67,6 +67,9 @@ def _iter_unit_summary(
         # Skip non-unit items
         if not isinstance(val, core.UnitBase):
             continue
+
+        if not isinstance(val, core.NamedUnit):
+            raise TypeError(f"{key!r} must be defined with 'def_unit()'")
 
         # Skip aliases
         if key != val.name:
