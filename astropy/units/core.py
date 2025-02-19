@@ -21,7 +21,13 @@ from astropy.utils.decorators import deprecated, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.misc import isiterable
 
-from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
+from .errors import (
+    UnitConversionError,
+    UnitParserWarning,
+    UnitsError,
+    UnitsWarning,
+    UnitTypeError,
+)
 from .utils import (
     is_effectively_unity,
     resolve_fractions,
@@ -1204,13 +1210,13 @@ class UnitBase:
         """
         return self.to(other, value=value, equivalencies=equivalencies)
 
-    def decompose(self, bases: Collection[UnitBase] = ()) -> UnitBase:
+    def decompose(self, bases: Collection[NamedUnit] = ()) -> UnitBase:
         """
         Return a unit object composed of only irreducible units.
 
         Parameters
         ----------
-        bases : sequence of UnitBase, optional
+        bases : sequence of NamedUnit, optional
             The bases to decompose into.  When not provided,
             decomposes down to any irreducible units.  When provided,
             the decomposed result will only contain the given units.
@@ -1894,9 +1900,11 @@ class IrreducibleUnit(NamedUnit):
         """
         return self
 
-    def decompose(self, bases: Collection[UnitBase] = ()) -> UnitBase:
+    def decompose(self, bases: Collection[NamedUnit] = ()) -> UnitBase:
         if len(bases) and self not in bases:
             for base in bases:
+                if not isinstance(base, NamedUnit):
+                    raise UnitTypeError("can only decompose into NamedUnit instances.")
                 try:
                     scale = self._to(base)
                 except UnitsError:
@@ -2196,7 +2204,7 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         """The unit that this named unit represents."""
         return self._represents
 
-    def decompose(self, bases: Collection[UnitBase] = ()) -> UnitBase:
+    def decompose(self, bases: Collection[NamedUnit] = ()) -> UnitBase:
         return self._represents.decompose(bases=bases)
 
     def is_unity(self) -> bool:
@@ -2266,7 +2274,7 @@ class CompositeUnit(UnitBase):
         bases: Sequence[UnitBase],
         powers: Sequence[UnitPowerLike],
         decompose: bool = False,
-        decompose_bases: Collection[UnitBase] = (),
+        decompose_bases: Collection[NamedUnit] = (),
         _error_check: Literal[True] = True,
     ) -> None: ...
     @overload
@@ -2276,7 +2284,7 @@ class CompositeUnit(UnitBase):
         bases: Sequence[UnitBase],
         powers: Sequence[UnitPower],
         decompose: bool = False,
-        decompose_bases: Collection[UnitBase] = (),
+        decompose_bases: Collection[NamedUnit] = (),
         _error_check: Literal[False] = False,
     ) -> None: ...
 
@@ -2297,10 +2305,11 @@ class CompositeUnit(UnitBase):
         # off.
         if _error_check:
             scale = sanitize_scale_type(scale)
-            for base in bases:
-                if not isinstance(base, UnitBase):
-                    raise TypeError("bases must be sequence of UnitBase instances")
+            if not all(isinstance(b, UnitBase) for b in bases):
+                raise TypeError("bases must be sequence of UnitBase instances")
             powers = [sanitize_power(p) for p in powers]
+            if decompose and not all(isinstance(b, NamedUnit) for b in decompose_bases):
+                raise UnitTypeError("can only decompose into NamedUnit instances.")
 
         if not decompose and len(bases) == 1 and powers[0] >= 0:
             # Short-cut; with one unit there's nothing to expand and gather,
@@ -2357,7 +2366,7 @@ class CompositeUnit(UnitBase):
         return self._powers
 
     def _expand_and_gather(
-        self, decompose: bool = False, bases: Collection[UnitBase] = ()
+        self, decompose: bool = False, bases: Collection[NamedUnit] = ()
     ):
         def add_unit(unit, power, scale):
             if bases and unit not in bases:
@@ -2402,7 +2411,7 @@ class CompositeUnit(UnitBase):
     def __copy__(self) -> CompositeUnit:
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
-    def decompose(self, bases: Collection[UnitBase] = ()) -> CompositeUnit:
+    def decompose(self, bases: Collection[NamedUnit] = ()) -> CompositeUnit:
         if len(bases) == 0 and self._decomposed_cache is not None:
             return self._decomposed_cache
 

@@ -754,12 +754,19 @@ def test_comparison():
         u.m > u.kg  # noqa: B015
 
 
+def test_decompose_requires_named_unit():
+    with pytest.raises(TypeError, match="NamedUnit"):
+        u.m.decompose(bases=[u.Unit("8 m")])
+
+    decomposed = u.m.decompose(bases=[u.Unit("eightmeter", "8 m")])
+    assert decomposed.scale == 0.125
+
+
 def test_compose_into_arbitrary_units():
-    # Issue #1438
+    # Issue #1438, but adjusted to require a NamedUnit after #17780.
     from astropy.constants import G
 
-    G_decomposed = G.decompose([u.kg, u.km, u.Unit("100 s")])
-    assert_allclose(G_decomposed.unit.scale, 1e-4)
+    G_decomposed = G.decompose([u.kg, u.km, u.Unit("hundredsecond", "100 s")])
     assert G_decomposed == G
 
 

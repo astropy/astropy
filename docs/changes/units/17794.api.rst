@@ -1,0 +1,4 @@
+If the various ``.decompose()`` functions are used with explicit ``bases``,
+these bases are now required to be named units.  This was always meant to be
+the case, but was not checked, and inclusion of unnamed composite units could
+lead to broken output ``CompositeUnit``.
