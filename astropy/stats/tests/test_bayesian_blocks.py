@@ -190,13 +190,17 @@ def test_binned_data_with_zeros():
     n = 100
     t = np.arange(n)
 
-    # Generate data from Poisson distribution of mean 1. The data, x,
-    # contains zeros with default seed 0. A single outlier is set to be 999
-    # at the midpoint to ensure that the outlier is detected by the algorithm.
+    # Generate data from Poisson distribution of mean 1.
+    # We set the first bin to have zero counts to test the edge case.
+    # A single outlier is set to be 999 at the midpoint to ensure that the
+    # outlier is detected by the algorithm.
     x = rng.poisson(1.0, n)
+    x[0] = 0
     x[n // 2] = 999
 
     # Check events fitness function with binned data
-    edges = bayesian_blocks(t, x, fitness="events")
+    edges1 = bayesian_blocks(t, x)
+    edges2 = bayesian_blocks(t, x, fitness="events")
     expected = [t[0], t[n // 2] - 0.5, t[n // 2] + 0.5, t[-1]]
-    assert_allclose(edges, expected)
+    assert_allclose(edges1, expected)
+    assert_allclose(edges2, expected)
