@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["QuantityLike", "UnitScale"]
+__all__ = ["QuantityLike", "UnitPower", "UnitPowerLike", "UnitScale", "UnitScaleLike"]
 
 
 from fractions import Fraction
@@ -69,7 +69,13 @@ For more examples see the :mod:`numpy.typing` definition of
 
 
 UnitPower: TypeAlias = int | float | Fraction
+"""Alias for types that can be powers of the components of a
+`~astropy.units.UnitBase` instance"""
 UnitPowerLike: TypeAlias = UnitPower | np.integer | np.floating
+"""Alias for types that can be used to create powers of the components of a
+`~astropy.units.UnitBase` instance"""
 UnitScale: TypeAlias = int | float | Fraction | complex
 "Alias for types that can be scale factors of a `~astropy.units.CompositeUnit`"
 UnitScaleLike: TypeAlias = UnitScale | np.number
+"""Alias for types that can be used to create scale factors of a
+`~astropy.units.CompositeUnit`"""
