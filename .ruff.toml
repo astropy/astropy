@@ -242,7 +242,6 @@ lint.unfixable = [
     "PTH",
 ]
 "astropy/logger.py" = [
-    "C408",
     "RET505",
 ]
 "astropy/modeling/*" = [
@@ -251,9 +250,7 @@ lint.unfixable = [
     "TRY300",  # Consider `else` block
     "F811",  # see https://github.com/astropy/astropy/pull/16633
 ]
-"astropy/nddata/*" = [
-    "C408",
-]
+"astropy/nddata/*" = []
 "astropy/samp/*" = [
     "PTH",      # all flake8-use-pathlib
 ]
@@ -265,7 +262,6 @@ lint.unfixable = [
     "TRY300",  # Consider `else` block
 ]
 "astropy/tests/*" = [
-    "C408",
     "PTH",      # all flake8-use-pathlib
     "RET505"
 ]
@@ -296,7 +292,6 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/wcs/*" = [
-    "C408",  # unnecessary-collection-call
     "F821",  # undefined-name
     "PTH",      # all flake8-use-pathlib
     "S608",  # Posslibe SQL injection

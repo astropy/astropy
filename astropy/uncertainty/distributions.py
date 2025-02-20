@@ -199,7 +199,7 @@ def uniform(
         )
 
     newshape = lower.shape + (n_samples,)
-    if lower.shape == tuple() and upper.shape == tuple():
+    if lower.shape == () and upper.shape == ():
         width = upper - lower  # scalar
     else:
         width = (upper - lower)[:, np.newaxis]
