@@ -477,7 +477,7 @@ class NDArithmeticMixin:
             # Both have uncertainties so just propagate.
 
             # only supply the axis kwarg if one has been specified for a collapsing operation
-            axis_kwarg = dict(axis=kwds["axis"]) if "axis" in kwds else dict()
+            axis_kwarg = dict(axis=kwds["axis"]) if "axis" in kwds else {}
             return self.uncertainty.propagate(
                 operation, operand, result, correlation, **axis_kwarg
             )

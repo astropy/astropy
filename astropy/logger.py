@@ -377,7 +377,7 @@ class AstropyLogger(Logger):
             # IPython has its own way of dealing with exceptions
             from IPython import get_ipython
 
-            get_ipython().set_custom_exc(tuple(), None)
+            get_ipython().set_custom_exc((), None)
         else:
             # standard python interpreter
             if sys.excepthook != self._excepthook:

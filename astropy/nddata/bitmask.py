@@ -86,7 +86,7 @@ class BitFlagNameMeta(type):
         attrl = list(map(str.lower, attr))
 
         if _ENABLE_BITFLAG_CACHING:
-            cache = dict()
+            cache = {}
 
         for b in bases:
             for k, v in b.__dict__.items():

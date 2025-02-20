@@ -174,7 +174,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
                 continue
 
             if "world_axis_object_classes" not in dropped_info:
-                dropped_info["world_axis_object_classes"] = dict()
+                dropped_info["world_axis_object_classes"] = {}
 
             wao_classes = self._wcs.world_axis_object_classes
             wao_components = self._wcs.world_axis_object_components
