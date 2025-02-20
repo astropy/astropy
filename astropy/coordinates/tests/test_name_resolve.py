@@ -21,6 +21,7 @@ from astropy.coordinates.name_resolve import (
     sesame_url,
 )
 from astropy.coordinates.sky_coordinate import SkyCoord
+from astropy.utils.data import get_cached_urls
 
 _cached_ngc3642 = {}
 _cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669
@@ -144,31 +145,18 @@ def test_names():
 
 @pytest.mark.remote_data
 def test_name_resolve_cache(tmp_path):
-    from astropy.utils.data import get_cached_urls
-
     target_name = "castor"
-
     (temp_cache_dir := tmp_path / "cache").mkdir()
-    with paths.set_temp_cache(temp_cache_dir, delete=True):
-        assert len(get_cached_urls()) == 0
-
-        icrs1 = get_icrs_coordinates(target_name, cache=True)
-
+    with paths.set_temp_cache(temp_cache_dir):
+        assert not get_cached_urls()  # sanity check
+        icrs = get_icrs_coordinates(target_name, cache=True)
         urls = get_cached_urls()
         assert len(urls) == 1
-        expected_urls = sesame_url.get()
-        assert any(
-            urls[0].startswith(x) for x in expected_urls
-        ), f"{urls[0]} not in {expected_urls}"
-
+        assert any(map(urls[0].startswith, sesame_url.get()))
         # Try reloading coordinates, now should just reload cached data:
         with no_internet():
-            icrs2 = get_icrs_coordinates(target_name, cache=True)
-
-        assert len(get_cached_urls()) == 1
-
-        assert u.allclose(icrs1.ra, icrs2.ra)
-        assert u.allclose(icrs1.dec, icrs2.dec)
+            assert get_icrs_coordinates(target_name, cache=True) == icrs
+        assert get_cached_urls() == urls
 
 
 def test_names_parse():
