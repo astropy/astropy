@@ -1,0 +1,2 @@
+Now ``bayesian_blocks(t, x, fitness="events")`` correctly handles the case
+when the input data ``x`` contains zeros.
