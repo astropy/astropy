@@ -201,9 +201,7 @@ lint.unfixable = [
 # is better to fix for subpackages individually. The general exclusion should be
 # copied to these subpackage sections and fixed there.
 "astropy/config/*" = []
-"astropy/constants/*" = [
-    "N817",    # camelcase-imported-as-acronym
-]
+"astropy/constants/*" = []
 "astropy/convolution/*" = [
     "PLR0911",  # too-many-return-statements
 ]
