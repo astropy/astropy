@@ -191,7 +191,7 @@ lint.unfixable = [
 ]
 
 [lint.extend-per-file-ignores]
-"__init__.py" = ["E402", "F401"]
+"__init__.py" = ["F401"]
 "test_*.py" = [
     "PTH", # all flake8-use-pathlib
     "RUF015",  # Prefer next({iterable}) over single element slice
