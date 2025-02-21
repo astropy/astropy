@@ -203,7 +203,6 @@ lint.unfixable = [
 "astropy/config/*" = []
 "astropy/constants/*" = [
     "N817",    # camelcase-imported-as-acronym
-    "RET505",  # superfluous-else-return
 ]
 "astropy/convolution/*" = [
     "PLR0911",  # too-many-return-statements
@@ -211,7 +210,6 @@ lint.unfixable = [
 "astropy/coordinates/*" = [
     "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
-    "RET505",  # superfluous-else-return
 ]
 "astropy/cosmology/*" = [
     "PT019",   # pytest-fixture-param-without-value
@@ -241,9 +239,7 @@ lint.unfixable = [
 "astropy/io/votable/*" = [
     "PTH",
 ]
-"astropy/logger.py" = [
-    "RET505",
-]
+"astropy/logger.py" = []
 "astropy/modeling/*" = [
     "PLR0911",  # too-many-return-statements
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
@@ -263,7 +259,6 @@ lint.unfixable = [
 ]
 "astropy/tests/*" = [
     "PTH",      # all flake8-use-pathlib
-    "RET505"
 ]
 "astropy/time/*" = [
     "FIX003",  # Line contains XXX.  replace XXX with TODO
@@ -277,9 +272,7 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
     "TRY300",  # Consider `else` block
 ]
-"astropy/uncertainty/*" = [
-    "C408",
-]
+"astropy/uncertainty/*" = []
 "astropy/utils/*" = [
     "N811",  # constant-imported-as-non-constant
     "PLR0911",  # too-many-return-statements
