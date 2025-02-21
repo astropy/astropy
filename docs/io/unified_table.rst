@@ -1,3 +1,5 @@
+.. _read_write_tables:
+
 Table Data
 ==========
 
@@ -5,7 +7,7 @@ The :class:`~astropy.table.Table` and :class:`~astropy.table.QTable` classes inc
 methods, :meth:`~astropy.table.Table.read` and :meth:`~astropy.table.Table.write`, that
 make it possible to read from and write to files. A number of formats are supported (see
 `Built-in table readers/writers`_) and new file formats and extensions can be registered
-with the :class:`~astropy.table.Table` class (see :ref:`io_registry`).
+with the :class:`~astropy.table.Table` class (see :ref:`I/O Registry <io_registry>`).
 
 .. toctree::
     :maxdepth: 1
@@ -108,7 +110,7 @@ detection.
 ===========================  =====  ======  ============================================================================================
            Format            Write  Suffix                                          Description
 ===========================  =====  ======  ============================================================================================
-                      ascii    Yes          ASCII table in any supported format (uses guessing)
+                      ascii    Yes          ASCII table in most supported formats (uses guessing)
                ascii.aastex    Yes          :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
                 ascii.basic    Yes          :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
                   ascii.cds     No          :class:`~astropy.io.ascii.Cds`: CDS format table
@@ -131,11 +133,12 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
                   ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
                        fits    Yes    auto  :mod:`~astropy.io.fits`: Flexible Image Transport System file
                        hdf5    Yes    auto  |HDF5|: Hierarchical Data Format binary file
-                    parquet    Yes    auto  Parquet_: Apache Parquet binary file
-                 pandas.csv    Yes          Wrapper around ``pandas.read_csv()`` and ``pandas.to_csv()``
-                 pandas.fwf     No          Wrapper around ``pandas.read_fwf()`` (fixed width format)
-                pandas.html    Yes          Wrapper around ``pandas.read_html()`` and ``pandas.to_html()``
-                pandas.json    Yes          Wrapper around ``pandas.read_json()`` and ``pandas.to_json()``
+                   jsviewer    Yes          JavaScript viewer format (write-only)
+                 pandas.csv    Yes          :func:`pandas.read_csv` and :meth:`pandas.DataFrame.to_csv`
+                 pandas.fwf     No          :func:`pandas.read_fwf` (fixed width format)
+                pandas.html    Yes          :func:`pandas.read_html` and :meth:`pandas.DataFrame.to_html`
+                pandas.json    Yes          :func:`pandas.read_json` and :meth:`pandas.DataFrame.to_json`
+                    parquet    Yes    auto  |Parquet|: Apache Parquet binary file
                     votable    Yes    auto  :mod:`~astropy.io.votable`: Table format used by Virtual Observatory (VO) initiative
 ===========================  =====  ======  ============================================================================================
 
@@ -163,10 +166,10 @@ versions. For instance, it was possible to write Time columns to ECSV as
 formatted strings in a version prior to the ability to write as JD1/JD2
 pairs, so the current default for ECSV is to write as formatted strings.
 
-The two classes which have configurable serialization methods are
-`~astropy.time.Time` and `~astropy.table.MaskedColumn`. See the sections
-on Time `Details`_ and `Masked columns`_, respectively, for additional
-information. The defaults for each format are listed below:
+The two classes which have configurable serialization methods are `~astropy.time.Time`
+and `~astropy.table.MaskedColumn`. See the sections on Time
+:ref:`unified_table_fits_details` and :ref:`unified_table_fits_masked_columns`,
+respectively, for additional information. The defaults for each format are listed below:
 
 ====== ==================== ===============
 Format    Time                MaskedColumn
@@ -234,6 +237,34 @@ The ``serialize_method`` argument can be set in two different ways:
 ..
   EXAMPLE END
 
+Reading and Writing Column Objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. EXAMPLE START: Reading and Writing Column Objects
+
+Individual table columns do not have their own functions for reading and writing
+but it is easy to select just a single column (here "obstime") from a table for writing::
+
+    >>> from astropy.time import Time
+    >>> tab = Table({'name': ['AB Aur', 'SU Aur'],
+    ...              'obstime': Time(['2013-05-23T14:23:12', '2011-11-11T11:11:11'])})
+    >>> tab[['obstime']].write('obstime.fits')
+
+Note the notation ``[['obstime']]`` in the last line - indexing a table with a list of strings
+gives us a new table with the columns given by the strings. Since the inner list has only
+one element, the resulting table has only one column.
+
+Then, we can read back that single-column table and extract the column from it::
+
+    >>> col = Table.read('obstime.fits').columns[0]
+    >>> type(col)
+    <class 'astropy.table.column.Column'>
+
+.. testcleanup::
+
+    >>> pathlib.Path.unlink('obstime.fits')
+
+.. EXAMPLE END
 
 Command-Line Utility
 ^^^^^^^^^^^^^^^^^^^^

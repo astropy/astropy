@@ -4,19 +4,33 @@
 High-level Unified File I/O
 ***************************
 
-``astropy`` provides a unified interface for reading and writing data in
-different formats. For many common cases this will streamline the process of
-file I/O and reduce the need to learn the separate details of all of the I/O
-packages within ``astropy``.
-
-A key feature of the unified interface is easily registering new read and write
-functions in the :ref:`io_registry`.
+``astropy`` uses the :ref:`I/O Registry <io_registry>` to provide a unified interface
+for reading and writing data in different formats. For many common cases this will
+streamline the process of file I/O and reduce the need to learn the separate details of
+all of the :ref:`io-low-level` packages within ``astropy``.
 
 .. toctree::
     :maxdepth: 2
 
     unified_image
     unified_table
+
+**Overview**
+
+The fundamental idea for the unified interface is that each data container class such as
+`~astropy.table.Table` or `~astropy.nddata.CCDData` has class methods ``read()``
+and ``write()`` that can be used to read and write data.
+
+The first positional argument to these methods specifies the input or output. In
+general the input can be a file name, a file-like object or a URL. For some formats,
+most notably the :ref:`table_io_ascii` formats, the input can also be a string or
+list of strings representing the data. The output can be a file name or a file-like
+object.
+
+The file format is specified using the ``format`` keyword argument. This is required
+unless the format can be uniquely determined from the file name or file content.
+
+**Example**
 
 The example below shows how to read a table in the specialized DAOphot format and write
 it back to FITS format. Notice that FITS is a format where the interface recognizes the
@@ -31,14 +45,10 @@ format automatically from the file name, so the ``format`` argument is not neede
 Each file format is handled by a specific reader or writer, and each of those
 functions will have its own set of arguments.
 
+**Getting Help**
+
 To get help on the available arguments for each format, use the ``help()`` method of the
 appropriate ``read()`` or ``write()`` class method, e.g., `astropy.table.Table.read`.
-Each of these calls prints a help document which is divided into two sections, the
-generic read/write documentation (common to any call) and the format-specific
-documentation. For ASCII tables, the format-specific documentation includes the generic
-`astropy.io.ascii` package interface and then a description of the particular ASCII
-sub-format.
-
 In the examples below we do not show the long output:
 
 .. doctest-skip::

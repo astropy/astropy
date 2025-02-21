@@ -1,33 +1,47 @@
-.. _table_io_ascii:
 
 Text (CSV, fixed-width, HTML, and specialized)
-----------------------------------------------
+==============================================
 
-The :meth:`~astropy.table.Table.read` and
-:meth:`~astropy.table.Table.write` methods can be used to read and write formats
-supported by `astropy.io.ascii`.
+The :meth:`~astropy.table.Table.read` and :meth:`~astropy.table.Table.write` methods can
+be used to read and write text-based table data in a wide variety of `supported
+formats`_. In addition to common formats like `CSV
+<https://en.wikipedia.org/wiki/Comma-separated_values>`__ and :ref:`fixed-width
+<fixed_width_gallery>`, the unified interface also supports `specialized formats`_ like
+`LaTeX <https://en.wikipedia.org/wiki/LaTeX>`_ tables and the AAS :class:`MRT
+<astropy.io.ascii.Mrt>` format.
+
+Most of the formats are provided by :ref:`table_io_ascii`, which is a flexible and
+powerful interface for reading and writing text tables. In addition, the interface
+provides wrappers around select I/O functions in the `pandas`_ library for additional
+flexibility and performance.
+
+.. _table_io_ascii:
+
+`astropy.io.ascii`
+------------------
+The :ref:`astropy.io.ascii <io-ascii>` sub-package provides read and write support for
+many different formats. The interface to this package is fully documented assuming
+direct use of the `~astropy.io.ascii` functions, for example:
+
+.. doctest-skip::
+
+    >>> from astropy.io import ascii
+    >>> t = ascii.read('photometry.dat', format='daophot')
+
+Instead, we **strongly recommend** using the unified interface for reading and writing
+tables. This is done by specifying the format name with the ``ascii.`` prefix, for
+example:
+
+.. doctest-skip::
+
+    >>> from astropy.table import Table
+    >>> t = Table.read('photometry.dat', format='ascii.daophot')
 
 Use ``format='ascii'`` in order to interface to the generic
 :func:`~astropy.io.ascii.read` and :func:`~astropy.io.ascii.write`
 functions from `astropy.io.ascii`. When reading a table, this means
-that all supported ASCII table formats will be tried in order to successfully
-parse the input.
-
-.. toctree::
-    :maxdepth: 1
-    :caption: Text Table Formats
-
-    unified_table_pandas
-    unified_table_jsviewer
-
-Examples
-^^^^^^^^
-
-..
-  EXAMPLE START
-  Reading and Writing ASCII Formats
-
-To read and write formats supported by `astropy.io.ascii`:
+that all guessable text table formats will be tried in order to successfully
+parse the input. For example:
 
 .. doctest-skip::
 
@@ -39,7 +53,7 @@ To read and write formats supported by `astropy.io.ascii`:
      b    3    4
 
 When writing a table with ``format='ascii'`` the output is a basic
-character-delimited file with a single header line containing the
+space-delimited file with a single header line containing the
 column names.
 
 All additional arguments are passed to the `astropy.io.ascii`
@@ -56,31 +70,115 @@ column use:
   a|1|2.00
   b|3|4.00
 
-
-.. note::
-
-   When specifying an ASCII table format using the unified interface, the
-   format name is prefixed with ``ascii`` in order to identify the format as
-   ASCII-based. Compare the table above to the `astropy.io.ascii` list of
-   :ref:`supported formats <supported_formats>` where the prefix is not
-   needed. Therefore the following are equivalent:
-
-.. doctest-skip::
-
-     >>> dat = ascii.read('file.dat', format='daophot')
-     >>> dat = Table.read('file.dat', format='ascii.daophot')
-
 .. attention:: **ECSV is recommended**
 
-   For writing and reading tables to ASCII in a way that fully reproduces the
-   table data, types, and metadata (i.e., the table will "round-trip"), we
-   highly recommend using the :ref:`ecsv_format`. This writes the actual data
-   in a space-delimited format (the ``basic`` format) that any ASCII table
-   reader can parse, but also includes metadata encoded in a comment block that
-   allows full reconstruction of the original columns. This includes support
-   for :ref:`ecsv_format_mixin_columns` (such as
+   For writing and reading tables to text in a way that fully reproduces the table data,
+   types, and metadata (i.e., the table will "round-trip"), we highly recommend using
+   the :ref:`ecsv_format` with ``format="ascii.ecsv"``. This writes the actual data in a
+   space- or comma-delimited format that most text table readers can parse, but also
+   includes metadata encoded in a comment block that allows full reconstruction of the
+   original columns. This includes support for :ref:`ecsv_format_mixin_columns` (such as
    `~astropy.coordinates.SkyCoord` or `~astropy.time.Time`) and
    :ref:`ecsv_format_masked_columns`.
 
 ..
   EXAMPLE END
+
+.. _table_io_pandas:
+
+Pandas
+------
+
+.. _pandas: https://pandas.pydata.org/pandas-docs/stable/index.html
+
+``astropy`` `~astropy.table.Table` supports the ability to read or write tables
+using some of the `I/O methods <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html>`_
+available within pandas_. This interface thus provides convenient wrappers to
+the following functions / methods:
+
+.. csv-table::
+    :header: "Format name", "Data Description", "Reader", "Writer"
+    :widths: 25, 25, 25, 25
+
+    ``pandas.csv``,`CSV <https://en.wikipedia.org/wiki/Comma-separated_values>`__,`read_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-csv-table>`_,`to_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-store-in-csv>`_
+    ``pandas.json``,`JSON <http://www.json.org/>`__,`read_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-reader>`_,`to_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-writer>`_
+    ``pandas.html``,`HTML <https://en.wikipedia.org/wiki/HTML>`__,`read_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-html>`_,`to_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-html>`_
+    ``pandas.fwf``,Fixed Width,`read_fwf() <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_fwf.html#pandas.read_fwf>`_,
+
+**Notes**:
+
+- There is no fixed-width writer in pandas_.
+- Reading HTML requires `BeautifulSoup4 <https://pypi.org/project/beautifulsoup4/>`_ and
+  `html5lib <https://pypi.org/project/html5lib/>`_ to be installed.
+
+When reading or writing a table, any keyword arguments apart from the
+``format`` and file name are passed through to pandas, for instance:
+
+.. doctest-skip::
+
+  >>> t.write('data.csv', format='pandas.csv', sep=' ', header=False)
+  >>> t2 = Table.read('data.csv', format='pandas.csv', sep=' ', names=['a', 'b', 'c'])
+
+
+Supported Formats
+-----------------
+
+Character-delimited Formats
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+These formats use a character delimiter to separate columns. This is most commonly a
+comma (CSV) or a whitespace character like space or tab.
+
+===========================  =====  ======  ============================================================================================
+           Format            Write  Suffix                                          Description
+===========================  =====  ======  ============================================================================================
+                      ascii    Yes          ASCII table in most supported formats (uses guessing)
+                ascii.basic    Yes          :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
+     ascii.commented_header    Yes          :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line
+                  ascii.csv    Yes    .csv  :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
+                 ascii.ecsv    Yes   .ecsv  :class:`~astropy.io.ascii.Ecsv`: Basic table with Enhanced CSV (supporting metadata)
+            ascii.no_header    Yes          :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
+                  ascii.rdb    Yes    .rdb  :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
+                  ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
+                 pandas.csv    Yes          :func:`pandas.read_csv` and :meth:`pandas.DataFrame.to_csv`
+===========================  =====  ======  ============================================================================================
+
+Fixed-width Formats
+^^^^^^^^^^^^^^^^^^^
+These formats use fixed-width columns, where each column has a fixed width in characters.
+This can be useful for tables that are intended to also be read by humans.
+
+===========================  =====  ======  ============================================================================================
+           Format            Write  Suffix                                          Description
+===========================  =====  ======  ============================================================================================
+          ascii.fixed_width    Yes          :class:`~astropy.io.ascii.FixedWidth`: Fixed width
+ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
+ ascii.fixed_width_two_line    Yes          :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line
+                 pandas.fwf     No          :func:`pandas.read_fwf` (fixed width format)
+===========================  =====  ======  ============================================================================================
+
+HTML and JSON Formats
+^^^^^^^^^^^^^^^^^^^^^
+===========================  =====  ======  ============================================================================================
+           Format            Write  Suffix                                          Description
+===========================  =====  ======  ============================================================================================
+                 ascii.html    Yes   .html  :class:`~astropy.io.ascii.HTML`: HTML table
+                   jsviewer    Yes          JavaScript viewer format (write-only)
+                pandas.html    Yes          :func:`pandas.read_html` and :meth:`pandas.DataFrame.to_html`
+                pandas.json    Yes          :func:`pandas.read_json` and :meth:`pandas.DataFrame.to_json`
+===========================  =====  ======  ============================================================================================
+
+Specialized Formats
+^^^^^^^^^^^^^^^^^^^^
+===========================  =====  ======  ============================================================================================
+           Format            Write  Suffix                                          Description
+===========================  =====  ======  ============================================================================================
+               ascii.aastex    Yes          :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
+                  ascii.cds     No          :class:`~astropy.io.ascii.Cds`: CDS format table
+              ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
+                 ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table
+                ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table
+                  ascii.mrt    Yes          :class:`~astropy.io.ascii.Mrt`: AAS Machine-Readable Table format
+                  ascii.qdp    Yes    .qdp  :class:`~astropy.io.ascii.QDP`: Quick and Dandy Plotter files
+                  ascii.rst    Yes    .rst  :class:`~astropy.io.ascii.RST`: reStructuredText simple format table
+           ascii.sextractor     No          :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
+===========================  =====  ======  ============================================================================================

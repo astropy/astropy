@@ -181,6 +181,8 @@ if both a width and precision are present they are both set in the TDISPn
 format. A Python ``f`` or ``F`` map to TDISP F format. The Python ``g`` or
 ``G`` map to TDISP G format. The Python ``e`` and ``E`` map to TDISP E format.
 
+.. _unified_table_fits_masked_columns:
+
 Masked Columns
 ^^^^^^^^^^^^^^
 
@@ -516,6 +518,8 @@ Hence, these keywords will be ignored while dealing with ISO 8601 time columns.
    Also, reading a column having ``TTYPEn = ‘TIME’`` as `~astropy.time.Time`
    will fail if ``TUNITn`` for the column is not a FITS-recognized time unit.
 
+.. _unified_table_fits_details:
+
 Details
 ~~~~~~~
 
@@ -568,7 +572,7 @@ no extra metadata in the header. This is the "lossy" version, but can help
 with portability. For the above example, the FITS column corresponding
 to ``t['a']`` will then store ``[100.0 200.0]`` instead of
 ``[[ 2400100.5, 0. ], [ 2400200.5, 0. ]]``. This is done by setting the
-`Table serialization methods`_ for Time columns when writing, as in the
+:ref:`table_serialization_methods` for Time columns when writing, as in the
 following example:
 
 .. doctest-skip::
