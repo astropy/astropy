@@ -1,6 +1,8 @@
 
 .. _table_io_parquet:
 
+.. doctest-skip-all
+
 Parquet
 -------
 

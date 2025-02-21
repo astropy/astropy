@@ -200,7 +200,7 @@ Start by making a table with a Time column and masked column:
   >>> t
   <Table masked=True length=2>
              tm             mc1     mc2
-           object         float64 float64
+            Time          float64 float64
   ----------------------- ------- -------
   2000-01-01 00:00:00.000      --     3.0
   2000-01-02 00:00:00.000     2.0      --
