@@ -1044,7 +1044,6 @@ class FITS_rec(np.recarray):
             else:
                 return np.array([], dtype=np.ubyte)
 
-
     def _get_raw_data(self):
         """
         Returns the base array of self that "raw data array" that is the
