@@ -4,9 +4,9 @@ This module contains convenience functions for retrieving solar system
 ephemerides from jplephem.
 """
 
-import os.path
 import re
 from inspect import cleandoc
+from pathlib import Path
 from urllib.parse import urlparse
 
 import erfa
@@ -181,7 +181,7 @@ def _get_kernel(value):
             f"/spk/planets/{value.lower():s}.bsp"
         )
 
-    elif os.path.isfile(value):
+    elif Path(value).is_file():
         return SPK.open(value)
 
     else:
