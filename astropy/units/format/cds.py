@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import re
+from functools import cache
 from typing import TYPE_CHECKING
 
 from astropy.units.core import CompositeUnit, Unit
@@ -60,8 +61,9 @@ class CDS(Base, _ParsingFormatMixin):
         "DIMENSIONLESS",
     )
 
-    @classproperty(lazy=True)
-    def _units(cls) -> dict[str, UnitBase]:
+    @classmethod
+    @cache
+    def _get_units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
         from astropy.units import cds
 
