@@ -262,6 +262,7 @@ Then, we can read back that single-column table and extract the column from it::
 
 .. testcleanup::
 
+    >>> import pathlib
     >>> pathlib.Path.unlink('obstime.fits')
 
 .. EXAMPLE END
