@@ -297,6 +297,23 @@ class FLRWTest(
         """Test :meth:`astropy.cosmology.FLRW.scale_factor`."""
         assert np.allclose(cosmo.scale_factor(z), 1 / (1 + np.array(z)))
 
+    # -------------------------------------------
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy required for this test.")
+    def test_comoving_distance_1arg_equal_to_2arg(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.comoving_distance`."""
+        # Special case of z1 = 0
+        z = np.linspace(0, 1, 10)
+        assert u.allclose(cosmo.comoving_distance(z), cosmo.comoving_distance(0, z))
+
+        # General case of z1, z2
+        z1 = z
+        z2 = z + 1
+        assert u.allclose(
+            cosmo.comoving_distance(z2) - cosmo.comoving_distance(z1),
+            cosmo.comoving_distance(z1, z2),
+        )
+
     @pytest.mark.skipif(
         not (HAS_PANDAS and HAS_SCIPY), reason="requires pandas and scipy"
     )
