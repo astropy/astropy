@@ -255,9 +255,7 @@ def _get_compression_setting(header, name, default):
 
 
 def _column_dtype(compressed_coldefs, column_name):
-    tform = compressed_coldefs[column_name].format
-    if tform.startswith("1"):
-        tform = tform[1:]
+    tform = compressed_coldefs[column_name].format.removeprefix("1")
     if tform[1] == "B":
         dtype = np.uint8
     elif tform[1] == "I":
