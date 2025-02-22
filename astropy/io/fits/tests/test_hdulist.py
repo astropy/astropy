@@ -178,22 +178,38 @@ class TestHDUListFunctions(FitsTestCase):
         with pytest.raises(ValueError):
             hdul.append(hdu)
 
-    @pytest.mark.parametrize("do_not_scale", [True, False])
-    def test_append_scaled_image_with_do_not_scale_image_data(self, do_not_scale):
+    @pytest.mark.parametrize(
+        ["image", "do_not_scale"],
+        [
+            ["scale.fits", True],
+            ["o4sp040b0_raw.fits", True],
+            ["fixed-1890.fits", True],
+            ["scale.fits", False],
+            ["o4sp040b0_raw.fits", False],
+            ["fixed-1890.fits", False],
+        ],
+    )
+    def test_append_scaled_image_with_do_not_scale_image_data(
+        self, image, do_not_scale
+    ):
         """Tests appending a scaled ImageHDU to a HDUList."""
 
         with (
-            fits.open(
-                self.data("scale.fits"), do_not_scale_image_data=do_not_scale
-            ) as source,
+            fits.open(self.data(image), do_not_scale_image_data=do_not_scale) as source,
             fits.open(self.temp("dest.fits"), mode="append") as dest,
         ):
             # create the file
             dest.append(source[0])
             # append a second hdu
             dest.append(source[0])
-            assert dest[-1].header["BSCALE"] == source[0].header["BSCALE"]
-            assert dest[-1].header["BZERO"] == source[0].header["BZERO"]
+            assert dest[-1].header.get("BZERO") == source[0].header.get("BZERO")
+            assert dest[-1].header.get("BSCALE") == source[0].header.get("BSCALE")
+            dest.writeto(self.temp("test-append.fits"))
+            with fits.open(
+                self.temp("test-append.fits"), do_not_scale_image_data=do_not_scale
+            ) as tmphdu:
+                assert tmphdu[-1].header.get("BZERO") == source[0].header.get("BZERO")
+                assert tmphdu[-1].header.get("BSCALE") == source[0].header.get("BSCALE")
 
     def test_insert_primary_to_empty_list(self):
         """Tests inserting a Simple PrimaryHDU to an empty HDUList."""
