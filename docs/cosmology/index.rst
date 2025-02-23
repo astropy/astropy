@@ -110,6 +110,7 @@ listed below.
 * :ref:`astropy-cosmology-realizations`
 * :ref:`Units and Equivalencies <astropy-cosmology-units-and-equivalencies>`
 * :ref:`cosmology_io`
+* :ref:`astropy-cosmology-traits`
 * :ref:`For Developers <astropy-cosmology-for-developers>`
 
 Most of the functionality is enabled by the |FLRW| object. This represents a
@@ -481,5 +482,6 @@ Reference/API
    realizations
    Units and Equivalencies <units>
    io/index
+   Traits <traits>
    For Developers <dev>
    ref_api
