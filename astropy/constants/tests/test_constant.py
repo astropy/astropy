@@ -136,13 +136,13 @@ def test_view():
     q1 = c.view(u.Quantity)
     assert q1 == c
     assert q1.value == c.value
-    assert type(q1) is u.u.Quantity
+    assert type(q1) is u.Quantity
     assert not hasattr(q1, "reference")
 
     q2 = u.Quantity(c)
     assert q2 == c
     assert q2.value == c.value
-    assert type(q2) is u.u.Quantity
+    assert type(q2) is u.Quantity
     assert not hasattr(q2, "reference")
 
     c3 = u.Quantity(c, subok=True)
