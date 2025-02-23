@@ -347,21 +347,13 @@ Mixin Columns
 
    mixin_columns.rst
 
-I/O with Tables
----------------
-
-.. toctree::
-   :maxdepth: 2
-
-   io.rst
-   pandas.rst
-
 Astropy Table and DataFrames
 ----------------------------
 
 .. toctree::
    :maxdepth: 2
 
+   pandas.rst
    table_and_dataframes.rst
 
 Implementation
