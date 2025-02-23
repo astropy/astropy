@@ -63,7 +63,7 @@ def test_e():
 
     assert e.si * E == u.Quantity(100, "eV/m")
     assert e.gauss * E == u.Quantity(e.gauss.value * E.value, "Fr V/m")
-    assert e.esu * E == u.u.Quantity(e.esu.value * E.value, "Fr V/m")
+    assert e.esu * E == u.Quantity(e.esu.value * E.value, "Fr V/m")
 
 
 def test_g0():
