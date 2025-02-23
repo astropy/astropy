@@ -1,7 +1,8 @@
 
-.. _table_io_parquet:
 
 .. doctest-skip-all
+
+.. _table_io_parquet:
 
 Parquet
 -------

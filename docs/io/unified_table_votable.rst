@@ -1,7 +1,8 @@
 
-.. _table_io_votable:
 
 .. doctest-skip-all
+
+.. _table_io_votable:
 
 VO Tables
 ---------

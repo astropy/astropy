@@ -97,7 +97,7 @@ Built-In Table Readers/Writers
 
 The :class:`~astropy.table.Table` class has built-in support for various input
 and output formats including :ref:`table_io_ascii`,
--:ref:`table_io_fits`, :ref:`table_io_hdf5`, :ref:`table_io_pandas`,
+:ref:`table_io_fits`, :ref:`table_io_hdf5`, :ref:`table_io_pandas`,
 :ref:`table_io_parquet`, and :ref:`table_io_votable`.
 
 A full list of the supported formats and corresponding classes is shown in the
