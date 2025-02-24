@@ -84,7 +84,7 @@ an amplitude.
     x = np.linspace(-4.0, 6.0, num=100)
     r = np.logspace(-1.0, 2.0, num=100)
 
-    fig, sax = plt.subplots(nrows=5, ncols=3, figsize=(9, 12))
+    fig, sax = plt.subplots(nrows=5, ncols=3, figsize=(9, 12), layout="tight")
     ax = sax.flatten()
 
     # setup the x,y coordinates
@@ -123,7 +123,7 @@ an amplitude.
             cname = f'{cname}, c={mod.c.value:.1f}'
         ax[k].set_title(cname)
 
-        ax[k].imshow(mod(X, Y), extent=[x0, x1, y0, y1], origin="lower", cmap=plt.cm.gray_r,
+        ax[k].imshow(mod(X, Y), extent=[x0, x1, y0, y1], origin="lower", cmap="gray_r",
                      norm=normfunc)
 
     for k in range(len(mods)):
@@ -134,5 +134,4 @@ an amplitude.
     for k in range(len(mods), len(ax)):
         ax[k].axis("off")
 
-    plt.tight_layout()
     plt.show()

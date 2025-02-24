@@ -55,9 +55,9 @@ Now we can check that the time series has been read in correctly:
 
    import matplotlib.pyplot as plt
 
-   plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
-   plt.xlabel('Julian Date')
-   plt.ylabel('SAP Flux (e-/s)')
+   fig, ax = plt.subplots()
+   ax.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
+   ax.set(xlabel='Julian Date', ylabel='SAP Flux (e-/s)')
 
 .. EXAMPLE END
 
