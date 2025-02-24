@@ -19,7 +19,7 @@ from numpy import finfo
 from .errors import UnitScaleError
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Sequence
+    from collections.abc import Generator, Mapping, Sequence
     from typing import Literal, SupportsFloat, TypeVar
 
     from numpy.typing import NDArray
@@ -51,7 +51,7 @@ def _get_first_sentence(s: str) -> str:
 
 
 def _iter_unit_summary(
-    namespace: dict[str, object],
+    namespace: Mapping[str, object],
 ) -> Generator[tuple[NamedUnit, str, str, str, Literal["Yes", "No"]], None, None]:
     """
     Generates the ``(unit, doc, represents, aliases, prefixes)``
@@ -101,7 +101,7 @@ def _iter_unit_summary(
         )
 
 
-def generate_unit_summary(namespace: dict[str, object]) -> str:
+def generate_unit_summary(namespace: Mapping[str, object]) -> str:
     """
     Generates a summary of units from a given namespace.  This is used
     to generate the docstring for the modules that define the actual
@@ -145,7 +145,7 @@ def generate_unit_summary(namespace: dict[str, object]) -> str:
     return docstring.getvalue()
 
 
-def generate_prefixonly_unit_summary(namespace: dict[str, object]) -> str:
+def generate_prefixonly_unit_summary(namespace: Mapping[str, object]) -> str:
     """
     Generates table entries for units in a namespace that are just prefixes
     without the base unit.  Note that this is intended to be used *after*
@@ -184,7 +184,7 @@ def generate_prefixonly_unit_summary(namespace: dict[str, object]) -> str:
     return docstring.getvalue()
 
 
-def is_effectively_unity(value: UnitScaleLike) -> bool:
+def is_effectively_unity(value: UnitScaleLike) -> bool | np.bool_:
     # value is *almost* always real, except, e.g., for u.mag**0.5, when
     # it will be complex.  Use try/except to ensure normal case is fast
     try:
@@ -325,14 +325,14 @@ def resolve_fractions(
 
 
 @overload
-def quantity_asanyarray(a: Sequence[int]) -> NDArray[int]: ...
+def quantity_asanyarray(a: Sequence[int]) -> NDArray[np.integer]: ...
 @overload
 def quantity_asanyarray(a: Sequence[int], dtype: DType) -> NDArray[DType]: ...
 @overload
 def quantity_asanyarray(a: Sequence[Quantity]) -> Quantity: ...
 def quantity_asanyarray(
     a: Sequence[int] | Sequence[Quantity], dtype: DType | None = None
-) -> NDArray[int] | NDArray[DType] | Quantity:
+) -> NDArray[np.integer] | NDArray[DType] | Quantity:
     from .quantity import Quantity
 
     if (
