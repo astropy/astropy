@@ -11,7 +11,7 @@ from __future__ import annotations
 import io
 import re
 from fractions import Fraction
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy import finfo
@@ -19,17 +19,11 @@ from numpy import finfo
 from .errors import UnitScaleError
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Mapping, Sequence
-    from typing import Literal, SupportsFloat, TypeVar
-
-    from numpy.typing import NDArray
+    from collections.abc import Generator, Mapping
+    from typing import Literal
 
     from .core import NamedUnit
-    from .quantity import Quantity
     from .typing import UnitPower, UnitPowerLike, UnitScale, UnitScaleLike
-
-    DType = TypeVar("DType", bound=np.generic)
-    FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
 
 
 _float_finfo = finfo(float)
@@ -322,26 +316,3 @@ def resolve_fractions(
     elif not a_is_fraction and b_is_fraction:
         a = maybe_simple_fraction(a)
     return a, b
-
-
-@overload
-def quantity_asanyarray(a: Sequence[int]) -> NDArray[np.integer]: ...
-@overload
-def quantity_asanyarray(a: Sequence[int], dtype: DType) -> NDArray[DType]: ...
-@overload
-def quantity_asanyarray(a: Sequence[Quantity]) -> Quantity: ...
-def quantity_asanyarray(
-    a: Sequence[int] | Sequence[Quantity], dtype: DType | None = None
-) -> NDArray[np.integer] | NDArray[DType] | Quantity:
-    from .quantity import Quantity
-
-    if (
-        not isinstance(a, np.ndarray)
-        and not np.isscalar(a)
-        and any(isinstance(x, Quantity) for x in a)
-    ):
-        return Quantity(a, dtype=dtype)
-    else:
-        # skip over some dtype deprecation.
-        dtype = np.float64 if dtype is np.inexact else dtype
-        return np.asanyarray(a, dtype=dtype)
