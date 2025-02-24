@@ -13,7 +13,7 @@ Reading
 ^^^^^^^
 
 If a FITS table file contains only a single table, then it can be read in
-with::
+as shown below. In this example we use a file that is installed with astropy::
 
     >>> from astropy.table import Table
     >>> from astropy.utils.data import get_pkg_data_filename
@@ -56,17 +56,24 @@ Writing
 
 To write a table ``t`` to a new file::
 
-    >>> t.write('new_table.fits')  # doctest: +SKIP
+    >>> t.write('new_table.fits')
 
 If the file already exists and you want to overwrite it, then set the
 ``overwrite`` keyword::
 
-    >>> t.write('existing_table.fits', overwrite=True)  # doctest: +SKIP
+    >>> t.write('existing_table.fits', overwrite=True)
 
 If you want to append a table to an existing file, set the ``append``
 keyword::
 
-    >>> t.write('existing_table.fits', append=True)  # doctest: +SKIP
+    >>> t.write('existing_table.fits', append=True)
+
+
+.. testcleanup::
+
+    >>> import pathlib
+    >>> pathlib.Path.unlink('new_table.fits')
+    >>> pathlib.Path.unlink('existing_table.fits')
 
 Alternatively, you can use the convenience function
 :func:`~astropy.io.fits.table_to_hdu` to create a single
@@ -86,30 +93,29 @@ The FITS keywords associated with an HDU table are represented in the ``meta``
 ordered dictionary attribute of a :ref:`Table <astropy-table>`. After reading
 a table you can view the available keywords in a readable format using:
 
-.. doctest-skip::
-
   >>> for key, value in t.meta.items():
   ...     print(f'{key} = {value}')
+  EXTNAME = EVENTS
+  HDUNAME = EVENTS
+  TLMIN2 = 0
+  ...
 
 This does not include the "internal" FITS keywords that are required to specify
 the FITS table properties (e.g., ``NAXIS``, ``TTYPE1``). ``HISTORY`` and
 ``COMMENT`` keywords are treated specially and are returned as a list of
-values.
-
-Conversely, the following shows examples of setting user keyword values for a
-table ``t``:
-
-.. doctest-skip::
 
   >>> t.meta['MY_KEYWD'] = 'my value'
   >>> t.meta['COMMENT'] = ['First comment', 'Second comment', 'etc']
   >>> t.write('my_table.fits', overwrite=True)
 
+.. testcleanup::
+   >>> pathlib.Path.unlink('my_table.fits')
+
 The keyword names (e.g., ``MY_KEYWD``) will be automatically capitalized prior
 to writing.
 
-At this time, the ``meta`` attribute of the :class:`~astropy.table.Table` class
-is an ordered dictionary and does not fully represent the structure of a
+The ``meta`` attribute of the :class:`~astropy.table.Table` class
+is a dictionary and does not fully represent the structure of a
 FITS header (for example, keyword comments are dropped).
 
 .. _fits_astropy_native:
@@ -217,7 +223,7 @@ column into two separate columns, one for the data and one for the mask.
 When it gets read back that process is reversed and the two columns are
 merged back into one masked column.
 
-.. doctest-skip::
+::
 
   >>> from astropy.table.table_helpers import simple_table
   >>> t = simple_table(masked=True)
@@ -232,11 +238,11 @@ merged back into one masked column.
       2     2.0   -- False
       3      --    e  True
 
-.. doctest-skip::
+::
 
   >>> t.write('data.fits', serialize_method='data_mask', overwrite=True)
   >>> Table.read('data.fits')
-  <Table masked=True length=3>
+  <Table length=3>
     a      b      c      d
   int64 float64 bytes1  bool
   ----- ------- ------ -----
@@ -273,13 +279,11 @@ Quantity
 
 A `~astropy.units.Quantity` mixin column in a `~astropy.table.QTable` is
 represented in a FITS table using the ``TUNITn`` FITS column keyword to
-incorporate the unit attribute of Quantity. For example:
-
-.. doctest-skip::
+incorporate the unit attribute of Quantity. For example::
 
     >>> from astropy.table import QTable
     >>> import astropy.units as u
-    >>> t = QTable([[1, 2] * u.angstrom)])
+    >>> t = QTable([[1, 2] * u.angstrom])
     >>> t.write('my_table.fits', overwrite=True)
     >>> qt = QTable.read('my_table.fits')
     >>> qt
@@ -290,6 +294,9 @@ incorporate the unit attribute of Quantity. For example:
     --------
          1.0
          2.0
+
+.. testcleanup::
+   >>> pathlib.Path.unlink('my_table.fits')
 
 Time
 ~~~~
@@ -316,7 +323,8 @@ closer native ``astropy`` representations are possible, and you can indicate
 these should be used by passing ``astropy_native=True`` (for backwards
 compatibility, this is not done by default). This will convert columns
 conforming to the FITS time standard to `~astropy.time.Time` instances,
-avoiding any loss of precision.
+avoiding any loss of precision and preserving information about the time
+system if set in the fits header.
 
 Example
 ~~~~~~~
@@ -543,8 +551,7 @@ Note that ``jd1`` is always a half-integer or integer, while ``abs(jd2) < 1``.
 "Round-tripping" of ``astropy``-written FITS binary tables containing time
 coordinate columns has been partially achieved by mapping selected metadata,
 ``scale`` and singular ``location`` of `~astropy.time.Time`, to corresponding
-keywords. Note that the arbitrary metadata allowed in `~astropy.table.Table`
-objects within the ``meta`` dict is not written and will be lost.
+keywords.
 
 Examples
 ~~~~~~~~

@@ -38,15 +38,18 @@ the file format, for instance ``'ascii.daophot'``:
 
 ..
   EXAMPLE START
-  Reading a Table Directly from the Internet
+  Reading a Table directly from the Internet
 
 It is possible to load tables directly from the Internet using URLs. For
 example, download tables from Vizier catalogues in CDS format
-(``'ascii.cds'``)::
+(``'ascii.cds'``):
 
+.. doctest-remote-data::
+
+    >>> from astropy.table import Table
     >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",
     ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe",
-    ...         format="ascii.cds")  # doctest: +SKIP
+    ...         format="ascii.cds")
 
 For certain file formats the format can be automatically detected, for
 example, from the filename extension::
@@ -68,7 +71,7 @@ As for the :meth:`~astropy.table.Table.read` method, the format may
 be automatically identified in some cases.
 
 The underlying file handler will also automatically detect various
-compressed data formats and transparently uncompress them as far as
+compressed data formats and uncompress them as far as
 supported by the Python installation (see
 :meth:`~astropy.utils.data.get_readable_fileobj`).
 
@@ -85,9 +88,7 @@ are expanded in the same way as is done by many command-line utilities, to
 represent the home directory of the current or specified user, respectively.
 
 ..
-  EXAMPLE END
 
-..
   EXAMPLE END
 
 .. _built_in_readers_writers:
@@ -206,13 +207,11 @@ Start by making a table with a Time column and masked column:
   2000-01-02 00:00:00.000     2.0      --
 
 Now specify that you want all `~astropy.time.Time` columns written as JD1/JD2
-and the ``mc1`` column written as a data/mask pair and write to ECSV:
-
-.. doctest-skip::
+and the ``mc1`` column written as a data/mask pair and write to ECSV::
 
   >>> serialize_method = {Time: 'jd1_jd2', 'mc1': 'data_mask'}
-  >>> t.write(sys.stdout, format='ascii.ecsv', serialize_method=serialize_method)
-  # %ECSV 0.9
+  >>> t.write(sys.stdout, format='ascii.ecsv', serialize_method=serialize_method)  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+  # %ECSV 1.0
    ...
   # schema: astropy-2.0
    tm.jd1    tm.jd2  mc1  mc1.mask  mc2

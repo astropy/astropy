@@ -87,7 +87,7 @@ definition. Since there are YAML parsers for most common languages, one can
 easily access and use the table metadata if reading the HDF5 in a non-astropy
 application.
 
-As of ``astropy`` 3.0, by specifying ``serialize_meta=True`` one can also store
+By specifying ``serialize_meta=True`` one can also store
 to HDF5 tables that contain :ref:`mixin_columns` such as `~astropy.time.Time` or
 `~astropy.coordinates.SkyCoord` columns.
 

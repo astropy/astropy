@@ -20,9 +20,16 @@ Note that the unit is stored in the ``BUNIT`` keyword in the header on saving,
 and is read from the header if it is present.
 
 Detailed help on the available keyword arguments for reading and writing
-can be obtained via the ``help()`` method as follows:
+can be obtained via the ``help()`` method as follows::
 
-.. doctest-skip::
-
-    >>> CCDData.read.help('fits')  # Get help on the CCDData FITS reader
-    >>> CCDData.writer.help('fits')  # Get help on the CCDData FITS writer
+    >>> from astropy.nddata import CCDData
+    >>> CCDData.read.help('fits')  # Get help on the CCDData FITS reader # doctest: +ELLIPSIS
+    =========================================
+    CCDData.read(format='fits') documentation
+    =========================================
+    ...
+    >>> CCDData.write.help('fits')  # Get help on the CCDData FITS writer  # doctest: +ELLIPSIS
+    ==========================================
+    CCDData.write(format='fits') documentation
+    ==========================================
+    ...
