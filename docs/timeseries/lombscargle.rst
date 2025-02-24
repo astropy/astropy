@@ -57,7 +57,8 @@ using the :class:`~astropy.timeseries.LombScargle` class:
 Plotting the result with Matplotlib gives:
 
 >>> import matplotlib.pyplot as plt  # doctest: +SKIP
->>> plt.plot(frequency, power)       # doctest: +SKIP
+>>> fig, ax = plt.subplots()  # doctest: +SKIP
+>>> ax.plot(frequency, power)  # doctest: +SKIP
 
 .. plot::
 
@@ -71,8 +72,8 @@ Plotting the result with Matplotlib gives:
     y = np.sin(2 * np.pi * t) + 0.1 * rand.standard_normal(100)
 
     frequency, power = LombScargle(t, y).autopower()
-    fig = plt.figure(figsize=(6, 4.5))
-    plt.plot(frequency, power)
+    fig, ax = plt.subplots(figsize=(6, 4.5))
+    ax.plot(frequency, power)
 
 The periodogram shows a clear spike at a frequency of 1 cycle per unit time,
 as we would expect from the data we constructed.
@@ -204,7 +205,8 @@ Imagine you chose to evaluate your periodogram at 100 points:
 
 >>> frequency = np.linspace(0.1, 1.9, 100)
 >>> power = LombScargle(t, y, dy).power(frequency)
->>> plt.plot(frequency, power)   # doctest: +SKIP
+>>> fig, ax = plt.subplots()  # doctest: +SKIP
+>>> ax.plot(frequency, power)  # doctest: +SKIP
 
 .. plot::
 
@@ -220,11 +222,9 @@ Imagine you chose to evaluate your periodogram at 100 points:
     frequency = np.linspace(0.1, 1.9, 100)
     power = LombScargle(t, y, dy).power(frequency)
 
-    plt.figure(figsize=(6, 4.5))
-    plt.plot(frequency, power)
-    plt.xlabel('frequency')
-    plt.ylabel('Lomb-Scargle Power')
-    plt.ylim(0, 1)
+    fig, ax = plt.subplots(figsize=(6, 4.5))
+    ax.plot(frequency, power)
+    ax.set(xlabel='frequency', ylabel='Lomb-Scargle Power', ylim=(0, 1))
 
 From this plot alone, you might conclude that no clear periodic signal exists in
 the data.  But this conclusion is in error: there is in fact a strong periodic
@@ -239,7 +239,8 @@ the :func:`~astropy.timeseries.LombScargle.autopower` method:
 ...                                                    maximum_frequency=1.9)
 >>> len(frequency)
 872
->>> plt.plot(frequency, power)   # doctest: +SKIP
+>>> fig, ax = plt.subplots()  # doctest: +SKIP
+>>> ax.plot(frequency, power)  # doctest: +SKIP
 
 .. plot::
 
@@ -255,11 +256,9 @@ the :func:`~astropy.timeseries.LombScargle.autopower` method:
     frequency, power = LombScargle(t, y, dy).autopower(minimum_frequency=0.1,
                                                        maximum_frequency=1.9)
 
-    plt.figure(figsize=(6, 4.5))
-    plt.plot(frequency, power)
-    plt.xlabel('frequency')
-    plt.ylabel('Lomb-Scargle Power')
-    plt.ylim(0, 1)
+    fig, ax = plt.subplots(figsize=(6, 4.5))
+    ax.plot(frequency, power)
+    ax.set(xlabel='frequency', ylabel='Lomb-Scargle Power', ylim=(0, 1))
 
 With a finer grid (here 884 points between 0.1 and 1.9),
 it is clear that there is a very strong periodic signal in the data.

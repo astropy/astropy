@@ -43,13 +43,12 @@ a realistic example.
     fitted_line = fit(line_init, x, y)
 
     # plot
-    plt.figure()
-    plt.plot(x, y, 'ko', label='Data')
-    plt.plot(x, line_orig(x), 'b-', label='Simulation Model')
-    plt.plot(x, fitted_line(x), 'k-', label='Fitted Model')
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.legend()
+    fig, ax = plt.subplots()
+    ax.plot(x, y, 'ko', label='Data')
+    ax.plot(x, line_orig(x), 'b-', label='Simulation Model')
+    ax.plot(x, fitted_line(x), 'k-', label='Fitted Model')
+    ax.set(xlabel='x', ylabel='y')
+    ax.legend()
 
 Fit using uncertainties
 -----------------------
@@ -87,13 +86,12 @@ Gaussian errors, the weights to pass to the fitting are 1/unc.
     fitted_line = fit(line_init, x, y, weights=1.0/yunc)
 
     # plot
-    plt.figure()
-    plt.errorbar(x, y, yerr=yunc, fmt='ko', label='Data')
-    plt.plot(x, line_orig(x), 'b-', label='Simulation Model')
-    plt.plot(x, fitted_line(x), 'k-', label='Fitted Model')
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.legend()
+    fig, ax = plt.subplots()
+    ax.errorbar(x, y, yerr=yunc, fmt='ko', label='Data')
+    ax.plot(x, line_orig(x), 'b-', label='Simulation Model')
+    ax.plot(x, fitted_line(x), 'k-', label='Fitted Model')
+    ax.set(xlabel='x', ylabel='y')
+    ax.legend()
 
 Iterative fitting using sigma clipping
 --------------------------------------
@@ -142,11 +140,10 @@ have the same uncertainties for the sigma clipping decision.
     filtered_data = np.ma.masked_array(y, mask=mask)
 
     # plot
-    plt.figure()
-    plt.errorbar(x, y, yerr=yunc, fmt="ko", fillstyle="none", label="Clipped Data")
-    plt.plot(x, filtered_data, "ko", label="Fitted Data")
-    plt.plot(x, line_orig(x), 'b-', label='Simulation Model')
-    plt.plot(x, fitted_line(x), 'k-', label='Fitted Model')
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.legend()
+    fig, ax = plt.subplots()
+    ax.errorbar(x, y, yerr=yunc, fmt="ko", fillstyle="none", label="Clipped Data")
+    ax.plot(x, filtered_data, "ko", label="Fitted Data")
+    ax.plot(x, line_orig(x), 'b-', label='Simulation Model')
+    ax.plot(x, fitted_line(x), 'k-', label='Fitted Model')
+    ax.set(xlabel='x', ylabel='y')
+    ax.legend()

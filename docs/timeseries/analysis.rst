@@ -167,10 +167,10 @@ We can take a look at the results:
    :context:
 
     import matplotlib.pyplot as plt
-    plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
-    plt.plot(kepler_binned.time_bin_start.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
-    plt.xlabel('Julian Date')
-    plt.ylabel('SAP Flux (e-/s)')
+    fig, ax = plt.subplots()
+    ax.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
+    ax.plot(kepler_binned.time_bin_start.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
+    ax.set(xlabel='Julian Date', ylabel='SAP Flux (e-/s)')
 
 .. EXAMPLE END
 
@@ -204,10 +204,10 @@ the case of uneven-size contiguous bins:
     kepler_binned = aggregate_downsample(kepler, time_bin_size=[1000, 125, 80, 25, 150, 210, 273] * u.min,
                                          aggregate_func=np.nanmedian)
 
-    plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
-    plt.plot(kepler_binned.time_bin_start.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
-    plt.xlabel('Julian Date')
-    plt.ylabel('SAP Flux (e-/s)')
+    fig, ax = plt.subplots()
+    ax.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
+    ax.plot(kepler_binned.time_bin_start.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
+    ax.set(xlabel='Julian Date', ylabel='SAP Flux (e-/s)')
 
 To learn more about the custom binning functionality in
 :func:`~astropy.timeseries.aggregate_downsample`, see
@@ -243,9 +243,9 @@ an epoch as a :class:`~astropy.time.Time`, which defines a zero time offset:
 
     kepler_folded = kepler.fold(period=2.2 * u.day, epoch_time='2009-05-02T20:53:40')
 
-    plt.plot(kepler_folded.time.jd, kepler_folded['sap_flux'], 'k.', markersize=1)
-    plt.xlabel('Time from midpoint epoch (days)')
-    plt.ylabel('SAP Flux (e-/s)')
+    fig, ax = plt.subplots()
+    ax.plot(kepler_folded.time.jd, kepler_folded['sap_flux'], 'k.', markersize=1)
+    ax.set(xlabel='Time from midpoint epoch (days)', ylabel='SAP Flux (e-/s)')
 
 Note that in this example we happened to know the period and midpoint from a
 previous periodogram analysis. See the example in :doc:`index` for how you
@@ -294,8 +294,8 @@ sigma-clipped median value.
 
     kepler_folded['sap_flux_norm'] = kepler_folded['sap_flux'] / median
 
-    plt.plot(kepler_folded.time.jd, kepler_folded['sap_flux_norm'], 'k.', markersize=1)
-    plt.xlabel('Time from midpoint epoch (days)')
-    plt.ylabel('Normalized flux')
+    fig, ax = plt.subplots()
+    ax.plot(kepler_folded.time.jd, kepler_folded['sap_flux_norm'], 'k.', markersize=1)
+    ax.set(xlabel='Time from midpoint epoch (days)', ylabel='Normalized flux')
 
 .. EXAMPLE END
