@@ -56,7 +56,7 @@ jobs:
           - name: Python 3.11 with dev version of key dependencies without scipy
             os: ubuntu-latest
             python: '3.11'
-            toxenv: py311-test-devdeps-noscipy
+            toxenv: py311-test-numpydev
 
           - name: Python 3.13 with dev version of infrastructure dependencies
             os: ubuntu-latest
