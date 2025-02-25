@@ -194,22 +194,22 @@ class TestHDUListFunctions(FitsTestCase):
     ):
         """Tests appending a scaled ImageHDU to a HDUList."""
 
-        with (
-            fits.open(self.data(image), do_not_scale_image_data=do_not_scale) as source,
-            fits.open(self.temp("dest.fits"), mode="append") as dest,
-        ):
+        with fits.open(
+            self.data(image), do_not_scale_image_data=do_not_scale
+        ) as source:
             # create the file
+            dest = fits.HDUList()
             dest.append(source[0])
             # append a second hdu
             dest.append(source[0])
             assert dest[-1].header.get("BZERO") == source[0].header.get("BZERO")
             assert dest[-1].header.get("BSCALE") == source[0].header.get("BSCALE")
             dest.writeto(self.temp("test-append.fits"))
-            with fits.open(
-                self.temp("test-append.fits"), do_not_scale_image_data=do_not_scale
-            ) as tmphdu:
-                assert tmphdu[-1].header.get("BZERO") == source[0].header.get("BZERO")
-                assert tmphdu[-1].header.get("BSCALE") == source[0].header.get("BSCALE")
+        with fits.open(
+            self.temp("test-append.fits"), do_not_scale_image_data=do_not_scale
+        ) as tmphdu:
+            assert tmphdu[-1].header.get("BZERO") == source[0].header.get("BZERO")
+            assert tmphdu[-1].header.get("BSCALE") == source[0].header.get("BSCALE")
 
     def test_insert_primary_to_empty_list(self):
         """Tests inserting a Simple PrimaryHDU to an empty HDUList."""
