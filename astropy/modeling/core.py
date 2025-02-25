@@ -28,7 +28,6 @@ import numpy as np
 from astropy.nddata.utils import add_array, extract_array
 from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
-from astropy.units.utils import quantity_asanyarray
 from astropy.utils import (
     find_current_module,
     isiterable,
@@ -47,6 +46,7 @@ from .utils import (
     combine_labels,
     get_inputs_and_params,
     make_binary_operator_eval,
+    quantity_asanyarray,
 )
 
 __all__ = [

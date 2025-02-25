@@ -4,15 +4,27 @@
 This module provides utility functions for the models package.
 """
 
+from __future__ import annotations
+
 import warnings
 
 # pylint: disable=invalid-name
 from collections import UserDict
 from inspect import signature
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
 from astropy import units as u
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from typing import TypeVar
+
+    from numpy.typing import NDArray
+
+    DType = TypeVar("DType", bound=np.generic)
+
 
 __all__ = ["ellipse_extent", "poly_map_domain"]
 
@@ -314,3 +326,24 @@ class _SpecialOperatorsDict(UserDict):
         self._set_value(key, operator)
 
         return key
+
+
+@overload
+def quantity_asanyarray(a: Sequence[int]) -> NDArray[np.integer]: ...
+@overload
+def quantity_asanyarray(a: Sequence[int], dtype: DType) -> NDArray[DType]: ...
+@overload
+def quantity_asanyarray(a: Sequence[u.Quantity]) -> u.Quantity: ...
+def quantity_asanyarray(
+    a: Sequence[int] | Sequence[u.Quantity], dtype: DType | None = None
+) -> NDArray[np.integer] | NDArray[DType] | u.Quantity:
+    if (
+        not isinstance(a, np.ndarray)
+        and not np.isscalar(a)
+        and any(isinstance(x, u.Quantity) for x in a)
+    ):
+        return u.Quantity(a, dtype=dtype)
+    else:
+        # skip over some dtype deprecation.
+        dtype = np.float64 if dtype is np.inexact else dtype
+        return np.asanyarray(a, dtype=dtype)
