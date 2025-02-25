@@ -156,8 +156,7 @@ class BaseFormatterLocator:
     def _locate_values(value_min, value_max, spacing):
         imin = np.ceil(value_min / spacing)
         imax = np.floor(value_max / spacing)
-        values = np.arange(imin, imax + 1, dtype=int)
-        return values
+        return np.arange(imin, imax + 1, dtype=int)
 
 
 class AngleFormatterLocator(BaseFormatterLocator):

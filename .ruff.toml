@@ -126,7 +126,6 @@ lint.ignore = [
     "RET501",  # unnecessary-return-none
     "RET502",  # implicit-return-value
     "RET503",  # implicit-return
-    "RET504",  # unnecessary-assign
     "RET507",  # superfluous-else-continue
 
     # flake8-raise (RSE)
@@ -207,9 +206,11 @@ lint.unfixable = [
 "astropy/coordinates/*" = [
     "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
+    "RET504",  # unnecessary-assign
 ]
 "astropy/cosmology/*" = [
     "PT019",   # pytest-fixture-param-without-value
+    "RET504",  # unnecessary-assign
 ]
 "astropy/io/*" = [
     "G001",  # logging-string-format
@@ -217,6 +218,7 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
     "PTH116",  # os-stat
     "PTH117",  # os-path-isabs
+    "RET504",  # unnecessary-assign
     "S314",  # defusedxml
     "SLOT000",  # Subclasses of `str` should define `__slots__`
     "TD005",  # Missing issue description after `TODO`
@@ -239,18 +241,24 @@ lint.unfixable = [
 "astropy/logger.py" = []
 "astropy/modeling/*" = [
     "PLR0911",  # too-many-return-statements
+    "RET504",  # unnecessary-assign
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
     "TRY300",  # Consider `else` block
     "F811",  # see https://github.com/astropy/astropy/pull/16633
 ]
-"astropy/nddata/*" = []
+"astropy/nddata/*" = [
+    "RET504",  # unnecessary-assign
+]
 "astropy/samp/*" = [
     "PTH",      # all flake8-use-pathlib
+    "RET504",  # unnecessary-assign
 ]
 "astropy/stats/*" = [
     "PLR0911",  # too-many-return-statements
+    "RET504",  # unnecessary-assign
 ]
 "astropy/table/*" = [
+    "RET504",  # unnecessary-assign
     "S605",  # Starting a process with a shell, possible injection detected
     "TRY300",  # Consider `else` block
 ]
@@ -260,13 +268,16 @@ lint.unfixable = [
 "astropy/time/*" = [
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
+    "RET504",  # unnecessary-assign
 ]
 "astropy/timeseries/*" = [
     "PLR0911",  # too-many-return-statements
+    "RET504",  # unnecessary-assign
 ]
 "astropy/units/*" = [
     "N812",  # lowercase-imported-as-non-lowercase
     "PLR0911",  # too-many-return-statements
+    "RET504",  # unnecessary-assign
     "TRY300",  # Consider `else` block
 ]
 "astropy/uncertainty/*" = []
@@ -274,6 +285,7 @@ lint.unfixable = [
     "N811",  # constant-imported-as-non-constant
     "PLR0911",  # too-many-return-statements
     "PTH",      # all flake8-use-pathlib
+    "RET504",  # unnecessary-assign
     "S321",  # Suspicious-ftp-lib-usage
     "TRY300",  # Consider `else` block
 ]
@@ -284,6 +296,7 @@ lint.unfixable = [
 "astropy/wcs/*" = [
     "F821",  # undefined-name
     "PTH",      # all flake8-use-pathlib
+    "RET504",  # unnecessary-assign
     "S608",  # Posslibe SQL injection
     "SIM202",  # NegateNotEqualOp
     "TRY300",  # Consider `else` block
