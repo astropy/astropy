@@ -56,7 +56,7 @@ class CompImageHeader(Header):
             "The CompImageHeader class is deprecated and will be " "removed in future",
             AstropyDeprecationWarning,
         )
-        return super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 def _is_reserved_table_keyword(keyword):

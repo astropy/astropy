@@ -61,7 +61,7 @@ class FixRemoteDataOption(type):
         else:
             sys.argv[idx] = "-R=any"
 
-        return super().__init__(name, bases, dct)
+        super().__init__(name, bases, dct)
 
 
 @deprecated("6.0")
