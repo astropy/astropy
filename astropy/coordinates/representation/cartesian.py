@@ -74,7 +74,8 @@ class CartesianRepresentation(BaseRepresentation):
                 if differentials is None:
                     differentials = x._differentials
 
-                return super().__init__(x, differentials=differentials, copy=copy)
+                super().__init__(x, differentials=differentials, copy=copy)
+                return
 
             else:
                 x, y, z = x

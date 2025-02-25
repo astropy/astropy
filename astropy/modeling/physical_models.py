@@ -118,7 +118,7 @@ class BlackBody(Fittable1DModel):
         else:
             self._output_units = self._native_units
 
-        return super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def evaluate(self, x, temperature, scale):
         """Evaluate the model.
