@@ -1038,18 +1038,9 @@ Reference/API
 .. automodule:: astropy.io.fits
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
-    api/files.rst
-    api/hdulists.rst
-    api/hdus.rst
-    api/headers.rst
-    api/cards.rst
-    api/tables.rst
-    api/images.rst
-    api/diff.rst
-    api/verification.rst
-    api/tiled_compression.rst
+    api/index.rst
 
 .. rubric:: Footnotes
 
