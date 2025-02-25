@@ -102,7 +102,6 @@ lint.ignore = [
     "PERF401",  # Use a list comprehension to create a transformed list
 
     # Pylint (PLC, PLE, PLR, PLW)
-    "PLE0101",  # return-in-init
     "PLR0124",  # Name compared with itself
     "PLR0402",  # ConsiderUsingFromImport
     "PLR0912",  # too-many-branches
