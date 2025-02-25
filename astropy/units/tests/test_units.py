@@ -1150,6 +1150,31 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu2) == hash(unit)
 
 
+bug_revealing_xfail = pytest.mark.xfail(
+    reason="regression test to demonstrate an existing bug"
+)
+
+
+@pytest.mark.parametrize(
+    "scale1, scale2",
+    [
+        pytest.param(10, 10.0, marks=bug_revealing_xfail),
+        (2, Fraction(2, 1)),
+        pytest.param(4, 4 + 0j, marks=bug_revealing_xfail),
+        pytest.param(0.5, Fraction(1, 2), marks=bug_revealing_xfail),
+        (2.4, 2.4 + 0j),
+        pytest.param(Fraction(1, 4), 0.25 + 0j, marks=bug_revealing_xfail),
+    ],
+    ids=type,
+)
+def test_hash_scale_type(scale1, scale2):
+    # Regression test for #17820 - hash could depend on scale type, not just its value
+    unit1 = u.CompositeUnit(scale1, [u.m], [-1])
+    unit2 = u.CompositeUnit(scale2, [u.m], [-1])
+    assert unit1 == unit2
+    assert hash(unit1) == hash(unit2)
+
+
 @pytest.mark.skipif(not HAS_ARRAY_API_STRICT, reason="tests array_api_strict")
 def test_array_api_strict_arrays():
     # Ensure strict array api arrays can be passed in/out of Unit.to()
