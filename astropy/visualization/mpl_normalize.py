@@ -9,7 +9,7 @@ import numpy as np
 from numpy import ma
 
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
-from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.decorators import deprecated_renamed_argument, future_keyword_only
 
 from .interval import (
     AsymmetricPercentileInterval,
@@ -435,6 +435,22 @@ class SimpleNorm:
         return axim
 
 
+@future_keyword_only(
+    [
+        "power",
+        "asinh_a",
+        "vmin",
+        "vmax",
+        "min_percent",
+        "max_percent",
+        "percent",
+        "clip",
+        "log_a",
+        "invalid",
+        "sinh_a",
+    ],
+    since=["7.1"] * 11,
+)
 @deprecated_renamed_argument(["min_cut", "max_cut"], ["vmin", "vmax"], ["6.1", "6.1"])
 def simple_norm(
     data,
