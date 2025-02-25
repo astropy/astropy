@@ -1,0 +1,1 @@
+Fix ``.fileinfo()`` for compressed HDUs.
