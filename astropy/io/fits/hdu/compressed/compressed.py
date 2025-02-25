@@ -690,6 +690,10 @@ class CompImageHDU(ImageHDU):
         else:
             return errs
 
+    def fileinfo(self):
+        if self._bintable is not None:
+            return self._bintable.fileinfo()
+
     @property
     def _data_offset(self):
         if self._bintable is not None:
