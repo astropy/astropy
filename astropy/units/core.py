@@ -1233,9 +1233,8 @@ class UnitBase:
             return all(base in namespace for base in unit.bases)
 
         unit = self.decompose()
-        key = hash(unit)
 
-        cached = cached_results.get(key)
+        cached = cached_results.get(unit)
         if cached is not None:
             if isinstance(cached, Exception):
                 raise cached
@@ -1244,7 +1243,7 @@ class UnitBase:
         # Prevent too many levels of recursion
         # And special case for dimensionless unit
         if depth >= max_depth:
-            cached_results[key] = [unit]
+            cached_results[unit] = [unit]
             return [unit]
 
         # Make a list including all of the equivalent units
@@ -1297,7 +1296,7 @@ class UnitBase:
         for final_result in final_results:
             if len(final_result):
                 results = final_results[0].union(final_results[1])
-                cached_results[key] = results
+                cached_results[unit] = results
                 return results
 
         partial_results.sort(key=operator.itemgetter(0))
@@ -1332,17 +1331,17 @@ class UnitBase:
                     subresults.add(factored)
 
             if len(subresults):
-                cached_results[key] = subresults
+                cached_results[unit] = subresults
                 return subresults
 
         if not is_final_result(self):
             result = UnitsError(
                 f"Cannot represent unit {self} in terms of the given units"
             )
-            cached_results[key] = result
+            cached_results[unit] = result
             raise result
 
-        cached_results[key] = [self]
+        cached_results[unit] = [self]
         return [self]
 
     def compose(
