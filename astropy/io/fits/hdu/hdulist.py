@@ -1590,7 +1590,7 @@ class HDUList(list, _Verify):
                 # for CompImageHDU, we need to handle things a little differently
                 # because the HDU matching the header/data on disk is hdu._bintable
                 if isinstance(hdu, CompImageHDU):
-                    hdu = hdu._tmp_bintable
+                    hdu = hdu._bintable
                     if hdu is None:
                         continue
 
