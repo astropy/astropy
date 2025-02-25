@@ -1065,6 +1065,7 @@ class HDUList(list, _Verify):
                     hdu._output_checksum = checksum
                     hdu._prewriteto()
                     hdu._writeto(hdulist._file)
+                    hdu._postwriteto()
         finally:
             hdulist.close(output_verify=output_verify, closed=closed)
 
