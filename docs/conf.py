@@ -605,6 +605,10 @@ links_to_become_substitutions: dict[str, str] = {
     "TOPCAT": "http://www.starlink.ac.uk/topcat",
     # OpenAstronomy
     "OpenAstronomy Packaging Guide": "https://packaging-guide.openastronomy.org/en/latest",
+    # Miscellaneous
+    "HDF5": "https://www.hdfgroup.org/HDF5",
+    "h5py": "http://www.h5py.org",
+    "Parquet": "https://parquet.apache.org",
 }
 
 processed_links = {
