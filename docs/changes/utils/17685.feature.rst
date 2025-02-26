@@ -1,0 +1,12 @@
+Make commonly used Masked subclasses importable for ASDF support.
+
+Registered types associated with ASDF converters must be importable by
+their fully qualified name. Masked classes are dynamically created and have
+apparent names like ``astropy.utils.masked.core.MaskedQuantity`` although
+they aren't actually attributes of this module. Customize module attribute
+lookup so that certain commonly used Masked classes are importable.
+
+See:
+
+- https://asdf.readthedocs.io/en/latest/asdf/extending/converters.html#entry-point-performance-considerations
+- https://github.com/astropy/asdf-astropy/pull/253
