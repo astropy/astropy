@@ -201,9 +201,7 @@ lint.unfixable = [
 # copied to these subpackage sections and fixed there.
 "astropy/config/*" = []
 "astropy/constants/*" = []
-"astropy/convolution/*" = [
-    "PLR0911",  # too-many-return-statements
-]
+"astropy/convolution/*" = []
 "astropy/coordinates/*" = [
     "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
