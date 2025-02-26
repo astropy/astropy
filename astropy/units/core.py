@@ -902,9 +902,7 @@ class UnitBase:
 
     @cached_property
     def _hash(self) -> int:
-        return hash(
-            (str(self.scale), *[x.name for x in self.bases], *map(str, self.powers))
-        )
+        return hash((self.scale, *[x.name for x in self.bases], *map(str, self.powers)))
 
     def __getstate__(self) -> dict[str, object]:
         # If we get pickled, we should *not* store the memoized members since
