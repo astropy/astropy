@@ -1295,7 +1295,8 @@ class SkyCoord(MaskableShapedLikeNDArray):
             this |SkyCoord|. This should be an object with array coordinates,
             not a scalar coordinate object.
         seplimit : `~astropy.units.Quantity` ['angle']
-            The on-sky separation to search within.
+            The on-sky separation to search within. It should be a single separation or
+            have the same shape as ``searcharoundcoords``.
 
         Returns
         -------
@@ -1355,7 +1356,8 @@ class SkyCoord(MaskableShapedLikeNDArray):
             this |SkyCoord|. This should be an object with array coordinates,
             not a scalar coordinate object.
         distlimit : `~astropy.units.Quantity` ['length']
-            The physical radius to search within.
+            The physical radius to search within. It should be a single distance or have
+            the same shape as ``searcharoundcoords``.
 
         Returns
         -------

@@ -1,0 +1,2 @@
+``search_around_sky`` and ``search_around_3D`` now accept separations/distlimits
+broadcastable to the same shape as ``coords1``.

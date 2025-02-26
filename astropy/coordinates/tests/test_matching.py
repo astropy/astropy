@@ -164,6 +164,22 @@ def test_matching_method():
             [0.01745307, 4.0, 4.0000019, 4.00015421] * u.kpc,
             id="1.01_deg",
         ),
+        pytest.param(
+            [1.01, 1.01] * u.deg,
+            [0, 0, 1, 1],
+            [2, 3, 1, 2],
+            [1, 0, 0.1, 0.9] * u.deg,
+            [0.01745307, 4.0, 4.0000019, 4.00015421] * u.kpc,
+            id="1.01_deg_as_multiple",
+        ),
+        pytest.param(
+            [1.01, 0.05] * u.deg,
+            [0, 0],
+            [2, 3],
+            [1, 0] * u.deg,
+            [0.01745307, 4.0] * u.kpc,
+            id="multiple",
+        ),
         pytest.param(0.05 * u.deg, [0], [3], [0] * u.deg, [4] * u.kpc, id="0.05_deg"),
     ],
 )
@@ -181,6 +197,23 @@ def test_search_around_sky(
     assert_allclose(d3d, expected_d3d)
 
 
+def test_search_around_sky_errors():
+    with pytest.raises(
+        ValueError,
+        match="When providing a non-scalar 'seplimit', it "
+        "must have the same length than 'coords1'.*",
+    ):
+        search_around_sky(
+            ICRS([4, 2.1] * u.deg, [0, 0] * u.deg, distance=[1, 5] * u.kpc),
+            ICRS(
+                [1, 2, 3, 4] * u.deg,
+                [0, 0, 0, 0] * u.deg,
+                distance=[1, 1, 1, 5] * u.kpc,
+            ),
+            seplimit=[0, 1, 2] * u.deg,
+        )
+
+
 @pytest.mark.parametrize(
     "search_limit,expected_idx1,expected_idx2,expected_d2d,expected_d3d",
     [
@@ -190,6 +223,22 @@ def test_search_around_sky(
             [0, 1, 2, 3],
             [3, 2, 1, 1.9] * u.deg,
             [0.0523539, 0.03490481, 0.01745307, 0.16579868] * u.kpc,
+            id="1_kpc",
+        ),
+        pytest.param(
+            [1, 1] * u.kpc,
+            [0, 0, 0, 1],
+            [0, 1, 2, 3],
+            [3, 2, 1, 1.9] * u.deg,
+            [0.0523539, 0.03490481, 0.01745307, 0.16579868] * u.kpc,
+            id="1_kpc",
+        ),
+        pytest.param(
+            [1, 0.05] * u.kpc,
+            [0, 0, 0],
+            [0, 1, 2],
+            [3, 2, 1] * u.deg,
+            [0.0523539, 0.03490481, 0.01745307] * u.kpc,
             id="1_kpc",
         ),
         pytest.param(
@@ -214,6 +263,23 @@ def test_search_around_3d(
     npt.assert_array_equal(idx2, expected_idx2)
     assert_allclose(d2d, expected_d2d)
     assert_allclose(d3d, expected_d3d)
+
+
+def test_search_around_3d_errors():
+    with pytest.raises(
+        ValueError,
+        match="When 'distlimit' is not a scalar, it should "
+        "have the same length than 'coords1'.",
+    ):
+        search_around_3d(
+            ICRS([4, 2.1] * u.deg, [0, 0] * u.deg, distance=[1, 5] * u.kpc),
+            ICRS(
+                [1, 2, 3, 4] * u.deg,
+                [0, 0, 0, 0] * u.deg,
+                distance=[1, 1, 1, 5] * u.kpc,
+            ),
+            distlimit=[0, 1, 2] * u.deg,
+        )
 
 
 @pytest.mark.parametrize(
