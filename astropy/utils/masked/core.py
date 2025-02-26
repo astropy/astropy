@@ -18,6 +18,7 @@ which can also be overridden if needed.
 
 import abc
 import builtins
+import importlib
 
 import numpy as np
 
@@ -1428,3 +1429,36 @@ class MaskedRecarray(np.recarray, MaskedNDArray, data_cls=np.recarray):
         out0 = cls_name + "(" + rest
         extra_space = (len(cls_name) - len(prefix)) * " "
         return "\n".join([out0] + [extra_space + o for o in out[1:]])
+
+
+def __getattr__(key):
+    """Make commonly used Masked subclasses importable for ASDF support.
+
+    Registered types associated with ASDF converters must be importable by
+    their fully qualified name. Masked classes are dynamically created and have
+    apparent names like ``astropy.utils.masked.core.MaskedQuantity`` although
+    they aren't actually attributes of this module. Customize module attribute
+    lookup so that certain commonly used Masked classes are importable.
+
+    See:
+    - https://asdf.readthedocs.io/en/latest/asdf/extending/converters.html#entry-point-performance-considerations
+    - https://github.com/astropy/asdf-astropy/pull/253
+    """
+    if key.startswith(Masked.__name__):
+        # TODO: avoid using a private attribute from table.
+        # Can we make this more beautiful?
+        from astropy.table.serialize import __construct_mixin_classes
+
+        base_class_name = key[len(Masked.__name__) :]
+        for base_class_qualname in __construct_mixin_classes:
+            module, _, name = base_class_qualname.rpartition(".")
+            if name == base_class_name:
+                base_class = getattr(importlib.import_module(module), name)
+                # Try creating the masked class
+                masked_class = Masked(base_class)
+                # But only return it if it is a standard one, not one
+                # where we just used the ndarray fallback.
+                if base_class in Masked._masked_classes:
+                    return masked_class
+
+    raise AttributeError(f"module '{__name__}' has no attribute '{key}'")
