@@ -1,0 +1,7 @@
+Previously the hashes of units could depend on the type of their scale factor,
+but now the hashes depend on the scale factor values, not the types.
+For example, previously a ``dict`` would consider two otherwise identical units
+with scale factors ``1`` (``int``) and ``1.0`` (``float``) as different keys,
+but now they are considered to be the same key.
+In practice this bug was rare because the number of units with a scale factor
+that is not a ``float`` is very small.

@@ -1150,20 +1150,15 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu2) == hash(unit)
 
 
-bug_revealing_xfail = pytest.mark.xfail(
-    reason="regression test to demonstrate an existing bug"
-)
-
-
 @pytest.mark.parametrize(
     "scale1, scale2",
     [
-        pytest.param(10, 10.0, marks=bug_revealing_xfail),
+        (10, 10.0),
         (2, Fraction(2, 1)),
-        pytest.param(4, 4 + 0j, marks=bug_revealing_xfail),
-        pytest.param(0.5, Fraction(1, 2), marks=bug_revealing_xfail),
+        (4, 4 + 0j),
+        (0.5, Fraction(1, 2)),
         (2.4, 2.4 + 0j),
-        pytest.param(Fraction(1, 4), 0.25 + 0j, marks=bug_revealing_xfail),
+        (Fraction(1, 4), 0.25 + 0j),
     ],
     ids=type,
 )
