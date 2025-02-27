@@ -6,6 +6,7 @@ from the installed astropy.  It makes use of the |pytest| testing framework.
 
 import os
 import pickle
+import sys
 
 import pytest
 
@@ -198,3 +199,8 @@ def assert_quantity_allclose(actual, desired, rtol=1.0e-7, atol=None, **kwargs):
     np.testing.assert_allclose(
         *_unquantify_allclose_arguments(actual, desired, rtol, atol), **kwargs
     )
+
+
+_skip_docstring_tests_with_optimized_python = pytest.mark.skipif(
+    sys.flags.optimize >= 2, reason="docstrings are not testable in optimized mode"
+)
