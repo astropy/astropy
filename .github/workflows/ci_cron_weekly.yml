@@ -124,7 +124,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: uraimo/run-on-arch-action@5397f9e30a9b62422f302092631c99ae1effcd9e # v2.8.1
+      - uses: uraimo/run-on-arch-action@4141da824ffb5eda88d221d9cf835f6a61ed98d9 # v3.0.0
         name: Run tests
         id: build
         with:
