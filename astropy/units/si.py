@@ -54,7 +54,7 @@ def_unit(
     format={"latex": r"\mu m", "unicode": "\N{MICRO SIGN}m"},
 )
 def_unit(
-    ["Angstrom", "AA", "angstrom"],
+    ["Angstrom", "AA", "angstrom", "Å"],
     0.1 * nm,
     namespace=_ns,
     doc="ångström: 10 ** -10 m",
@@ -84,7 +84,7 @@ def_unit(
 # VOLUMES
 
 def_unit(
-    (["l", "L"], ["liter"]),
+    (["l", "L", "ℓ"], ["liter"]),
     1000 * cm**3.0,
     namespace=_ns,
     prefixes=True,
@@ -363,7 +363,7 @@ def_unit(
     doc="Volt: electric potential or electromotive force",
 )
 def_unit(
-    (["Ohm", "ohm"], ["Ohm"]),
+    (["Ohm", "ohm", "Ω"], ["Ohm"]),
     V * A**-1,
     namespace=_ns,
     prefixes=True,
