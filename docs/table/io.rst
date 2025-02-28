@@ -33,8 +33,8 @@ It is possible to load tables directly from the Internet using URLs. For
 example, download tables from `VizieR catalogs <https://vizier.unistra.fr/>`_
 in CDS format (``'ascii.cds'``)::
 
-    >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",
-    ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe",
+    >>> t = Table.read("ftp://cdsarc.unistra.fr/pub/cats/VII/253/snrs.dat",
+    ...         readme="ftp://cdsarc.unistra.fr/pub/cats/VII/253/ReadMe",
     ...         format="ascii.cds")  # doctest: +SKIP
 
 .. EXAMPLE END
