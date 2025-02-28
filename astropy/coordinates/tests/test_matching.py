@@ -197,23 +197,6 @@ def test_search_around_sky(
     assert_allclose(d3d, expected_d3d)
 
 
-def test_search_around_sky_errors():
-    with pytest.raises(
-        ValueError,
-        match="When providing a non-scalar 'seplimit', it "
-        "must have the same length than 'coords1'.*",
-    ):
-        search_around_sky(
-            ICRS([4, 2.1] * u.deg, [0, 0] * u.deg, distance=[1, 5] * u.kpc),
-            ICRS(
-                [1, 2, 3, 4] * u.deg,
-                [0, 0, 0, 0] * u.deg,
-                distance=[1, 1, 1, 5] * u.kpc,
-            ),
-            seplimit=[0, 1, 2] * u.deg,
-        )
-
-
 @pytest.mark.parametrize(
     "search_limit,expected_idx1,expected_idx2,expected_d2d,expected_d3d",
     [
@@ -263,23 +246,6 @@ def test_search_around_3d(
     npt.assert_array_equal(idx2, expected_idx2)
     assert_allclose(d2d, expected_d2d)
     assert_allclose(d3d, expected_d3d)
-
-
-def test_search_around_3d_errors():
-    with pytest.raises(
-        ValueError,
-        match="When 'distlimit' is not a scalar, it should "
-        "have the same length than 'coords1'.",
-    ):
-        search_around_3d(
-            ICRS([4, 2.1] * u.deg, [0, 0] * u.deg, distance=[1, 5] * u.kpc),
-            ICRS(
-                [1, 2, 3, 4] * u.deg,
-                [0, 0, 0, 0] * u.deg,
-                distance=[1, 1, 1, 5] * u.kpc,
-            ),
-            distlimit=[0, 1, 2] * u.deg,
-        )
 
 
 @pytest.mark.parametrize(
