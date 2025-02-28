@@ -20,16 +20,12 @@ User Guide
    uncertainty/index
 
 .. toctree::
-   :caption: Files, I/O, and Communication
-   :maxdepth: 1
+   :caption: File I/O
+   :maxdepth: 2
 
+   io/overview
    io/unified
-   io/fits/index
-   io/ascii/index
-   io/votable/index
-   io/misc
-   io/typing
-   samp/index
+   io/low_level_io
 
 .. toctree::
    :caption: Computations and utilities
@@ -40,6 +36,7 @@ User Guide
    utils/iers
    visualization/index
    stats/index
+   samp/index
 
 .. toctree::
    :caption: Nuts and bolts
@@ -47,6 +44,7 @@ User Guide
 
    config/index
    io/registry
+   io/typing
    logging
    warnings
    utils/index
