@@ -419,7 +419,7 @@ def set_enabled_units(units: object) -> _UnitContext:
       Primary name | Unit definition | Aliases
     [
       AU           | 1.49598e+11 m   | au, astronomical_unit            ,
-      Angstrom     | 1e-10 m         | AA, angstrom                     ,
+      Angstrom     | 1e-10 m         | AA, angstrom, Å                  ,
       cm           | 0.01 m          | centimeter                       ,
       earthRad     | 6.3781e+06 m    | R_earth, Rearth                  ,
       jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter ,
@@ -467,7 +467,7 @@ def add_enabled_units(units: object) -> _UnitContext:
       Primary name | Unit definition | Aliases
     [
       AU           | 1.49598e+11 m   | au, astronomical_unit            ,
-      Angstrom     | 1e-10 m         | AA, angstrom                     ,
+      Angstrom     | 1e-10 m         | AA, angstrom, Å                  ,
       cm           | 0.01 m          | centimeter                       ,
       earthRad     | 6.3781e+06 m    | R_earth, Rearth                  ,
       ft           | 0.3048 m        | foot                             ,

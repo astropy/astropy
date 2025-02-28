@@ -448,9 +448,7 @@ class Generic(Base, _GenericParserMixin):
         elif not s.isascii():
             if s[0].startswith("°"):
                 s = "deg" if len(s) == 1 else "deg_" + s[1:]
-            if s[-1] in cls._prefixable_unit_symbols:
-                s = s[:-1] + cls._prefixable_unit_symbols[s[-1]]
-            elif len(s) > 1 and s[-1] in cls._unit_suffix_symbols:
+            if len(s) > 1 and s[-1] in cls._unit_suffix_symbols:
                 s = s[:-1] + cls._unit_suffix_symbols[s[-1]]
             elif s.endswith("R\N{INFINITY}"):
                 s = s[:-2] + "Ry"
@@ -469,12 +467,6 @@ class Generic(Base, _GenericParserMixin):
         "\N{DOUBLE PRIME}": "arcsec",
         "\N{MODIFIER LETTER SMALL H}": "hourangle",
         "e\N{SUPERSCRIPT MINUS}": "electron",
-    }
-
-    _prefixable_unit_symbols: ClassVar[dict[str, str]] = {
-        "\N{GREEK CAPITAL LETTER OMEGA}": "Ohm",
-        "\N{LATIN CAPITAL LETTER A WITH RING ABOVE}": "Angstrom",
-        "\N{SCRIPT SMALL L}": "l",
     }
 
     _unit_suffix_symbols: ClassVar[dict[str, str]] = {
