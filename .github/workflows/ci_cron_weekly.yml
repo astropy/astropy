@@ -104,7 +104,7 @@ jobs:
     # we include them just in the weekly cron. These also serve as a test
     # of using system libraries and using pytest directly.
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Python 3.12
     # keep condition in sync with test_arm64
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
