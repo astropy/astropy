@@ -202,29 +202,28 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
     if ndim == 1 and y_range is not None:
         raise ValueError("y_range should not be input for a 1D model")
 
-    result = None
-    if mode == "center":
-        if ndim == 1:
+    match (mode, ndim):
+        case ("center", 1):
             result = discretize_center_1D(model, x_range)
-        elif ndim == 2:
+        case ("center", 2):
             result = discretize_center_2D(model, x_range, y_range)
-    elif mode == "linear_interp":
-        if ndim == 1:
+        case ("linear_interp", 1):
             result = discretize_linear_1D(model, x_range)
-        elif ndim == 2:
+        case ("linear_interp", 2):
             result = discretize_bilinear_2D(model, x_range, y_range)
-    elif mode == "oversample":
-        if ndim == 1:
+        case ("oversample", 1):
             result = discretize_oversample_1D(model, x_range, factor)
-        elif ndim == 2:
+        case ("oversample", 2):
             result = discretize_oversample_2D(model, x_range, y_range, factor)
-    elif mode == "integrate":
-        if ndim == 1:
+        case ("integrate", 1):
             result = discretize_integrate_1D(model, x_range)
-        elif ndim == 2:
+        case ("integrate", 2):
             result = discretize_integrate_2D(model, x_range, y_range)
-    else:
-        raise ValueError("Invalid mode for discretize_model.")
+        case _:
+            raise ValueError(
+                "Invalid (mode, ndim) combination for discretize_model. "
+                f"Got {mode=}, {ndim=}"
+            )
 
     return result
 
