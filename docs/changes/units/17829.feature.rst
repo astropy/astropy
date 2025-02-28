@@ -1,0 +1,2 @@
+It is now possible to import angström, litre and ohm from ``astropy.units``
+using the ``Å``, ``ℓ`` and ``Ω`` symbols.

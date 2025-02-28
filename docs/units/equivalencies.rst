@@ -668,7 +668,7 @@ all kinds of things that ``Hz`` can be converted to::
   Primary name | Unit definition        | Aliases
   [
     AU           | 1.49598e+11 m          | au, astronomical_unit            ,
-    Angstrom     | 1e-10 m                | AA, angstrom                     ,
+    Angstrom     | 1e-10 m                | AA, angstrom, Å                  ,
     Bq           | 1 / s                  | becquerel                        ,
     Ci           | 3.7e+10 / s            | curie                            ,
     Hz           | 1 / s                  | Hertz, hertz                     ,
