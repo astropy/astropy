@@ -7,6 +7,7 @@ import sys
 
 import pytest
 
+from astropy.tests.helper import _skip_docstring_tests_with_optimized_python
 from astropy.utils.decorators import (
     classproperty,
     deprecated,
@@ -669,6 +670,7 @@ def test_lazyproperty_threadsafe(fast_thread_switching):
             assert values == [a.foo] * workers
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_stringInput_simple():
     # Simple tests with string input
     docstring = "test"
@@ -678,17 +680,17 @@ def test_format_doc_stringInput_simple():
     def testfunc_1():
         pass
 
-    expected_doc = docstring if sys.flags.optimize < 2 else None
-    assert inspect.getdoc(testfunc_1) == expected_doc
+    assert inspect.getdoc(testfunc_1) == "test"
 
     # Test that it replaces an existing docstring
     @format_doc(docstring)
     def testfunc_2():
         """not test"""
 
-    assert inspect.getdoc(testfunc_2) == expected_doc
+    assert inspect.getdoc(testfunc_2) == "test"
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_stringInput_format():
     # Tests with string input and formatting
 
@@ -699,8 +701,7 @@ def test_format_doc_stringInput_format():
     def testfunc2():
         pass
 
-    expected_doc = "yes / no = life" if sys.flags.optimize < 2 else None
-    assert inspect.getdoc(testfunc2) == expected_doc
+    assert inspect.getdoc(testfunc2) == "yes / no = life"
 
     # Test that we can include the original docstring
 
@@ -710,8 +711,7 @@ def test_format_doc_stringInput_format():
     def testfunc3():
         """= 2 / 2 * life"""
 
-    expected_doc = "yes / no = 2 / 2 * life" if sys.flags.optimize < 2 else None
-    assert inspect.getdoc(testfunc3) == expected_doc
+    assert inspect.getdoc(testfunc3) == "yes / no = 2 / 2 * life"
 
 
 def test_format_doc_objectInput_simple():
@@ -735,6 +735,7 @@ def test_format_doc_objectInput_simple():
     assert inspect.getdoc(testfunc_2) == inspect.getdoc(docstring0)
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_objectInput_format():
     # Tests with object input and formatting
 
@@ -746,9 +747,7 @@ def test_format_doc_objectInput_format():
     def testfunc2():
         pass
 
-    expected_doc = "test + test = 2 * test" if sys.flags.optimize < 2 else None
-
-    assert inspect.getdoc(testfunc2) == expected_doc
+    assert inspect.getdoc(testfunc2) == "test + test = 2 * test"
 
     # Test that we can include the original docstring
 
@@ -759,11 +758,10 @@ def test_format_doc_objectInput_format():
     def testfunc3():
         """= 4 / 2 * test"""
 
-    expected_doc = "test + test = 4 / 2 * test" if sys.flags.optimize < 2 else None
-
-    assert inspect.getdoc(testfunc3) == expected_doc
+    assert inspect.getdoc(testfunc3) == "test + test = 4 / 2 * test"
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_selfInput_simple():
     # Simple tests with self input
 
@@ -772,10 +770,10 @@ def test_format_doc_selfInput_simple():
     def testfunc_1():
         """not test"""
 
-    expected_doc = "not test" if sys.flags.optimize < 2 else None
-    assert inspect.getdoc(testfunc_1) == expected_doc
+    assert inspect.getdoc(testfunc_1) == "not test"
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_selfInput_format():
     # Tests with string input which is '__doc__' (special case) and formatting
 
@@ -784,8 +782,7 @@ def test_format_doc_selfInput_format():
     def testfunc1():
         """dum {0} dum {opt}"""
 
-    expected_doc = "dum di dum da dum" if sys.flags.optimize < 2 else None
-    assert inspect.getdoc(testfunc1) == expected_doc
+    assert inspect.getdoc(testfunc1) == "dum di dum da dum"
 
     # Test that we cannot recursively insert the original documentation
 
@@ -793,10 +790,10 @@ def test_format_doc_selfInput_format():
     def testfunc2():
         """dum {0} dum {__doc__}"""
 
-    expected_doc = "dum di dum " if sys.flags.optimize < 2 else None
-    assert inspect.getdoc(testfunc2) == expected_doc
+    assert inspect.getdoc(testfunc2) == "dum di dum "
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_onMethod():
     # Check if the decorator works on methods too, to spice it up we try double
     # decorator
@@ -808,10 +805,10 @@ def test_format_doc_onMethod():
         def test_method(self):
             """is {0}"""
 
-    expected_doc = "what we do is strange." if sys.flags.optimize < 2 else None
-    assert inspect.getdoc(TestClass.test_method) == expected_doc
+    assert inspect.getdoc(TestClass.test_method) == "what we do is strange."
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_onClass():
     # Check if the decorator works on classes too
     docstring = "what we do {__doc__} {0}{opt}"
@@ -820,14 +817,10 @@ def test_format_doc_onClass():
     class TestClass:
         """is"""
 
-    expected_doc = "what we do is strange." if sys.flags.optimize < 2 else None
-    assert inspect.getdoc(TestClass) == expected_doc
+    assert inspect.getdoc(TestClass) == "what we do is strange."
 
 
-@pytest.mark.skipif(
-    sys.flags.optimize >= 2,
-    reason="NA for Python optimized mode",
-)
+@_skip_docstring_tests_with_optimized_python
 @pytest.mark.parametrize(
     "docstring, expected_exception",
     [
@@ -849,10 +842,7 @@ def test_format_doc_exceptions(docstring, expected_exception):
             pass
 
 
-@pytest.mark.skipif(
-    sys.flags.optimize >= 2,
-    reason="NA for Python optimized mode",
-)
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_indexerrors():
     def _FUNC_WITH_TEMPLATE_DOCSTRING():
         """test {0} test {opt}"""
