@@ -1,0 +1,3 @@
+``search_around_sky`` now accepts a list of separations with the same number of
+separation than coordinates in ``coords1`` and similarly ``search_around_3d`` now
+accepts non scalar distances.
