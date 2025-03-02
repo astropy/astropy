@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import re
 import warnings
+from functools import cache
 from typing import TYPE_CHECKING
 
 from astropy.units.core import (
@@ -93,8 +94,9 @@ class VOUnit(Base, _GenericParserMixin):
 
         return names, frozenset(deprecated_names)
 
-    @classproperty(lazy=True)
-    def _units(cls) -> dict[str, UnitBase]:
+    @classmethod
+    @cache
+    def _get_units(cls) -> dict[str, UnitBase]:
         return cls._all_units[0]
 
     @classproperty(lazy=True)
@@ -218,7 +220,7 @@ class VOUnit(Base, _GenericParserMixin):
     @classmethod
     def _fix_deprecated(cls, x: str) -> list[str]:
         return (
-            [f"{x} (deprecated)", cls.to_string(cls._units[x]._represents)]
+            [f"{x} (deprecated)", cls.to_string(cls._get_units()[x]._represents)]
             if x in cls._deprecated_units
             else [x]
         )
@@ -229,7 +231,7 @@ class VOUnit(Base, _GenericParserMixin):
             warnings.warn(
                 UnitsWarning(
                     f"The unit '{unit}' has been deprecated in the VOUnit standard."
-                    f" Suggested: {cls.to_string(cls._units[unit]._represents)}."
+                    f" Suggested: {cls.to_string(cls._get_units()[unit]._represents)}."
                 )
             )
         return super()._validate_unit(unit, detailed_exception)
