@@ -2,9 +2,10 @@
 
 from unittest.mock import patch
 
-import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
 import pytest
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 
 from astropy import units as u
 from astropy.io import fits
@@ -17,12 +18,8 @@ from astropy.wcs import WCS
 MSX_HEADER = fits.Header.fromtextfile(get_pkg_data_filename("data/msx_header"))
 
 
-def teardown_function(function):
-    plt.close("all")
-
-
 def test_getaxislabel(ignore_matplotlibrc):
-    fig = plt.figure()
+    fig = Figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
 
     ax.coords[0].set_axislabel("X")
@@ -33,7 +30,8 @@ def test_getaxislabel(ignore_matplotlibrc):
 
 @pytest.fixture
 def ax():
-    fig = plt.figure()
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
 
@@ -84,12 +82,13 @@ def test_label_visibility_rules_always(ignore_matplotlibrc, ax):
 
 
 def test_format_unit():
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
     fig.add_axes(ax)
 
     # Force a draw which is required for format_coord to work
-    ax.figure.canvas.draw()
+    canvas.draw()
 
     ori_fu = ax.coords[1].get_format_unit()
     assert ori_fu == "deg"
@@ -100,12 +99,13 @@ def test_format_unit():
 
 
 def test_set_separator():
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
     fig.add_axes(ax)
 
     # Force a draw which is required for format_coord to work
-    ax.figure.canvas.draw()
+    canvas.draw()
 
     ax.coords[1].set_format_unit("deg")
     assert ax.coords[1].format_coord(4) == "4\xb000'00\""
@@ -121,7 +121,7 @@ def test_set_separator():
     "draw_grid, expected_visibility", [(True, True), (False, False), (None, True)]
 )
 def test_grid_variations(ignore_matplotlibrc, draw_grid, expected_visibility):
-    fig = plt.figure()
+    fig = Figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
     transform = transforms.Affine2D().scale(2.0)
@@ -131,7 +131,8 @@ def test_grid_variations(ignore_matplotlibrc, draw_grid, expected_visibility):
 
 
 def test_get_position():
-    fig = plt.figure()
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
 
@@ -167,8 +168,11 @@ def test_get_position():
 
 
 def test_deprecated_getters():
-    fig, _ = plt.subplots()
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+
     helper = CoordinateHelper(parent_axes=ax)
 
     with pytest.warns(AstropyDeprecationWarning):
