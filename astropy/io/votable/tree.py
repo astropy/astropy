@@ -18,7 +18,7 @@ from numpy import ma
 from astropy import __version__ as astropy_version
 from astropy.io import fits
 from astropy.utils import deprecated
-from astropy.utils.collections import HomogeneousList
+from astropy.utils.collections import HomogeneousList, _OwnedHomogeneousList
 from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 
@@ -2452,8 +2452,26 @@ class TableElement(
         self.description = None
         self.format = "tabledata"
 
-        self._fields = HomogeneousList(Field)
-        self._all_fields = HomogeneousList(Field)
+        self._fields = _OwnedHomogeneousList(
+            Field,
+            owner_class=self.__class__,
+            public_attr_name="fields",
+            replacements={
+                "append": "add_field",
+                "extend": "add_field",
+                "__iadd__": "add_field",
+            },
+        )
+        self._all_fields = _OwnedHomogeneousList(
+            Field,
+            owner_class=self.__class__,
+            public_attr_name="all_fields",
+            replacements={
+                "append": "add_field",
+                "extend": "add_field",
+                "__iadd__": "add_field",
+            },
+        )
         self._params = HomogeneousList(Param)
         self._groups = HomogeneousList(Group)
         self._links = HomogeneousList(Link)
@@ -2580,7 +2598,7 @@ class TableElement(
         # To remedy this issue, we sync back the public property upon access.
         for field in self._fields:
             if field not in self._all_fields:
-                self._all_fields.append(field)
+                self._all_fields.append(field, _owned=True)
 
         return self._all_fields
 
@@ -2698,13 +2716,12 @@ class TableElement(
         return int(np.ceil(size * RESIZE_AMOUNT))
 
     def add_field(self, field: Field) -> None:
-        self.fields.append(field)
-        self.all_fields.append(field)
+        self.fields.append(field, _owned=True)
 
     def _register_field(self, iterator, tag, data, config, pos) -> None:
         field = Field(self._votable, config=config, pos=pos, **data)
         field.parse(iterator, config)
-        self._all_fields.append(field)
+        self._all_fields.append(field, _owned=True)
 
     def _add_param(self, iterator, tag, data, config, pos):
         param = Param(self._votable, config=config, pos=pos, **data)
