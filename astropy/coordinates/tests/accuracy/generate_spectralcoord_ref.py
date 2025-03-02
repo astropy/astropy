@@ -3,6 +3,7 @@
 # velocity frame corrections. This requires that Starlink is installed and that
 # the rv command is in your PATH. More information about Starlink can be found
 # at http://starlink.eao.hawaii.edu/starlink
+from pathlib import Path
 
 if __name__ == "__main__":
     from random import choice
@@ -39,29 +40,28 @@ if __name__ == "__main__":
 
     for row in tab:
         # Produce input file for rv command
-        with open("rv.input", "w") as f:
-            f.write(
-                f"{row['obslon'].to_string('deg', sep=' ')}"
-                f" {row['obslat'].to_string('deg', sep=' ')}\n"
-            )
-            f.write(
-                f"{row['obstime'].datetime.year} {row['obstime'].datetime.month}"
-                f" {row['obstime'].datetime.day} 1\n"
-            )
-            f.write(row["target"].to_string("hmsdms", sep=" ") + " J2000\n")
-            f.write("END\n")
+        rv_input = Path("rv.input")
+        rv_input.write_text(
+            f"{row['obslon'].to_string('deg', sep=' ')} "
+            f"{row['obslat'].to_string('deg', sep=' ')}\n"
+            f"{row['obstime'].datetime.year} {row['obstime'].datetime.month} "
+            f"{row['obstime'].datetime.day} 1\n"
+            f"{row['target'].to_string('hmsdms', sep=' ')} "
+            "J2000\nEND\n"
+        )
 
         # Run Starlink rv command
-        check_output(["rv", "rv.input"])
+        check_output(["rv", rv_input.name])
 
         # Parse values from output file
-        lis_lines = []
-        started = False
-        for lis_line in open("rv.lis"):
-            if started and lis_line.strip() != "":
-                lis_lines.append(lis_line.strip())
-            elif "LOCAL GROUP" in lis_line:
-                started = True
+        rv_list = Path("rv.lis")
+        lis_lines = [
+            # read non-empty lines and trim leading and trailing whitespace
+            sline
+            for line in rv_list.read_text()
+            if (sline := line.strip())
+        ]
+        started = "LOCAL_GROUP" in "".join(lis_lines)
 
         # Some sources are not observable at the specified time and therefore don't
         # have entries in the rv output file
