@@ -47,8 +47,8 @@ example, download tables from Vizier catalogues in CDS format
 .. doctest-remote-data::
 
     >>> from astropy.table import Table
-    >>> t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",
-    ...         readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe",
+    >>> t = Table.read("ftp://cdsarc.unistra.fr/pub/cats/VII/253/snrs.dat",
+    ...         readme="ftp://cdsarc.unistra.fr/pub/cats/VII/253/ReadMe",
     ...         format="ascii.cds")
 
 For certain file formats the format can be automatically detected, for
