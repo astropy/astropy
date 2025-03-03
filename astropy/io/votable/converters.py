@@ -323,8 +323,7 @@ class Char(Converter):
             self.binoutput = self._binoutput_var
             self.arraysize = "*"
         else:
-            if field.arraysize.endswith("*"):
-                field.arraysize = field.arraysize[:-1]
+            field.arraysize = field.arraysize.removesuffix("*")
             try:
                 self.arraysize = int(field.arraysize)
             except ValueError:
@@ -432,7 +431,7 @@ class UnicodeChar(Converter):
             self.format = f"U{self.arraysize:d}"
             self.binparse = self._binparse_fixed
             self.binoutput = self._binoutput_fixed
-            self._struct_format = f">{self.arraysize*2:d}s"
+            self._struct_format = f">{self.arraysize * 2:d}s"
 
     def parse(self, value, config=None, pos=None):
         if self.arraysize != "*" and len(value) > self.arraysize:
@@ -1053,10 +1052,8 @@ class Complex(FloatingPoint, Array):
         real = self._output_format.format(float(value.real))
         imag = self._output_format.format(float(value.imag))
         if self._output_format[2] == "s":
-            if real.endswith(".0"):
-                real = real[:-2]
-            if imag.endswith(".0"):
-                imag = imag[:-2]
+            real = real.removesuffix(".0")
+            imag = imag.removesuffix(".0")
         return real + " " + imag
 
 

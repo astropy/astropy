@@ -866,7 +866,7 @@ class TestJoin:
         t12 = table.join(t1, t2, join_type="outer", join_funcs={"col": join_func})
         exp = [
             "col_id   col_1       col_2   ",
-            f'{t12["col_id"].dtype.name}  float64[2]  float64[2]',  # int32 or int64
+            f"{t12['col_id'].dtype.name}  float64[2]  float64[2]",  # int32 or int64
             "------ ---------- -----------",
             "     1 1.0 .. 0.0 1.05 .. 0.0",
             "     2 2.0 .. 0.0  2.1 .. 0.0",

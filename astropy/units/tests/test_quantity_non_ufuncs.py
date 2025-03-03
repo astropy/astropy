@@ -2972,19 +2972,19 @@ class CheckSignatureCompatibilityBase:
                     # it is not passed down to dispatched functions
                     pass
                 elif kt is KEYWORD_ONLY:
-                    assert (
-                        have_kwargs_helper
-                    ), f"argument {nt!r} is not re-exposed as keyword"
+                    assert have_kwargs_helper, (
+                        f"argument {nt!r} is not re-exposed as keyword"
+                    )
                 elif kt is POSITIONAL_OR_KEYWORD:
-                    assert (
-                        have_args_helper and have_kwargs_helper
-                    ), f"argument {nt!r} is not re-exposed as positional-or-keyword"
+                    assert have_args_helper and have_kwargs_helper, (
+                        f"argument {nt!r} is not re-exposed as positional-or-keyword"
+                    )
             elif kt is VAR_POSITIONAL:
                 assert have_args_helper, "helper is missing a catch-all *args argument"
             elif kt is VAR_KEYWORD:
-                assert (
-                    have_kwargs_helper
-                ), "helper is missing a catch-all **kwargs argument"
+                assert have_kwargs_helper, (
+                    "helper is missing a catch-all **kwargs argument"
+                )
 
     def test_known_arguments(self, target, helper):
         # validate that all exposed arguments map to something in the target

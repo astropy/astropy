@@ -450,9 +450,9 @@ class TestDefPhysType:
 
         try:
             physical.def_physical_type(self.weird_unit, weird_name)
-            assert (
-                self.weird_unit.physical_type == weird_name
-            ), f"unable to set physical type for {self.weird_unit}"
+            assert self.weird_unit.physical_type == weird_name, (
+                f"unable to set physical type for {self.weird_unit}"
+            )
         finally:  # cleanup added name
             physical._attrname_physical_mapping.pop(weird_name.replace(" ", "_"), None)
             physical._name_physical_mapping.pop(weird_name, None)

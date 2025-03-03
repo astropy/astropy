@@ -1388,7 +1388,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             size = a.shape[0]
             trdir = "sky to detector" if name[-1] == "P" else "detector to sky"
             comment = (
-                f'SIP polynomial order, axis {ord(name[0]) - ord("A"):d}, {trdir:s}'
+                f"SIP polynomial order, axis {ord(name[0]) - ord('A'):d}, {trdir:s}"
             )
             keywords[f"{name}_ORDER"] = size - 1, comment
 
@@ -1573,7 +1573,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {docstrings.TWO_OR_MORE_ARGS('naxis', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("naxis", 8)}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
@@ -1583,7 +1583,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
 
-        {docstrings.RETURNS('sky coordinates, in degrees', 8)}
+        {docstrings.RETURNS("sky coordinates, in degrees", 8)}
 
         Notes
         -----
@@ -1640,7 +1640,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {docstrings.TWO_OR_MORE_ARGS('naxis', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("naxis", 8)}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
@@ -1650,7 +1650,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
 
-        {docstrings.RETURNS('world coordinates, in degrees', 8)}
+        {docstrings.RETURNS("world coordinates, in degrees", 8)}
 
         Raises
         ------
@@ -2133,7 +2133,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {docstrings.TWO_OR_MORE_ARGS('naxis', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("naxis", 8)}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
@@ -2268,7 +2268,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
 
-        {docstrings.RETURNS('pixel coordinates', 8)}
+        {docstrings.RETURNS("pixel coordinates", 8)}
 
         Notes
         -----
@@ -2459,7 +2459,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {docstrings.TWO_OR_MORE_ARGS('naxis', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("naxis", 8)}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
@@ -2469,7 +2469,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
 
-        {docstrings.RETURNS('pixel coordinates', 8)}
+        {docstrings.RETURNS("pixel coordinates", 8)}
 
         Notes
         -----
@@ -2521,12 +2521,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {docstrings.TWO_OR_MORE_ARGS('2', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("2", 8)}
 
         Returns
         -------
 
-        {docstrings.RETURNS('focal coordinates', 8)}
+        {docstrings.RETURNS("focal coordinates", 8)}
 
         Raises
         ------
@@ -2550,12 +2550,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {docstrings.TWO_OR_MORE_ARGS('2', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("2", 8)}
 
         Returns
         -------
 
-        {docstrings.RETURNS('focal coordinates', 8)}
+        {docstrings.RETURNS("focal coordinates", 8)}
 
         Raises
         ------
@@ -2579,12 +2579,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {docstrings.TWO_OR_MORE_ARGS('2', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("2", 8)}
 
         Returns
         -------
 
-        {docstrings.RETURNS('pixel coordinates', 8)}
+        {docstrings.RETURNS("pixel coordinates", 8)}
 
         Raises
         ------
@@ -2620,12 +2620,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {docstrings.TWO_OR_MORE_ARGS('2', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("2", 8)}
 
         Returns
         -------
 
-        {docstrings.RETURNS('focal coordinates', 8)}
+        {docstrings.RETURNS("focal coordinates", 8)}
 
         Raises
         ------
@@ -2657,12 +2657,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {docstrings.TWO_OR_MORE_ARGS('2', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("2", 8)}
 
         Returns
         -------
 
-        {docstrings.RETURNS('pixel coordinates', 8)}
+        {docstrings.RETURNS("pixel coordinates", 8)}
 
         Raises
         ------

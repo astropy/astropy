@@ -542,8 +542,7 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
     if out_unit is UNIT_FROM_LIKE_ARG:
         if hasattr(start, "unit") or hasattr(step, "unit"):
             raise TypeError(
-                "stop without a unit cannot be combined with "
-                "start or step with a unit."
+                "stop without a unit cannot be combined with start or step with a unit."
             )
         kwargs.update(qty_kwargs)
     else:

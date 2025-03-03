@@ -264,9 +264,9 @@ def _convert_sequence_data_to_array(data, dtype=None):
         if ii == 0:
             any_statement = f"any({any_statement} for d0 in data)"
         elif ii == np_data.ndim - 1:
-            any_statement = f"any(d{ii} is ma_masked for d{ii} in d{ii-1})"
+            any_statement = f"any(d{ii} is ma_masked for d{ii} in d{ii - 1})"
         else:
-            any_statement = f"any({any_statement} for d{ii} in d{ii-1})"
+            any_statement = f"any({any_statement} for d{ii} in d{ii - 1})"
     context = {"ma_masked": np.ma.masked, "data": data}
     has_masked = eval(any_statement, context)
 
