@@ -14,11 +14,12 @@ def lombscargle_fast(
     fit_mean=True,
     normalization="standard",
     use_fft=True,
+    prefer_lra=True,
     trig_sum_kwds=None,
 ):
     """Fast Lomb-Scargle Periodogram.
 
-    This implements the Press & Rybicki method [1]_ for fast O[N log(N)]
+    This implements the Press & Rybicki [1]_ or Low Rank Approximation [4]_ method for fast O[N log(N)]
     Lomb-Scargle periodograms.
 
     Parameters
@@ -39,9 +40,12 @@ def lombscargle_fast(
     use_fft : bool (default=True)
         If True, then use the Press & Rybicki O[NlogN] algorithm to compute
         the result. Otherwise, use a slower O[N^2] algorithm
+    prefer_lra : bool
+        if True and SciPy is available, use the more accurate Low Rank Approximation by Ruiz-Antolin and Townsend.
+        If False or SciPy is not available use Press & Rybicki's Lagrangian extirpolation instead.
     trig_sum_kwds : dict or None, optional
         extra keyword arguments to pass to the ``trig_sum`` utility.
-        Options are ``oversampling`` and ``Mfft``. See documentation
+        Options are ``oversampling``, ``Mfft`` and ``eps``. See documentation
         of ``trig_sum`` for details.
 
     Returns
@@ -63,6 +67,8 @@ def lombscargle_fast(
         of unevenly sampled data". ApJ 1:338, p277, 1989
     .. [2] M. Zechmeister and M. Kurster, A&A 496, 577-584 (2009)
     .. [3] W. Press et al, Numerical Recipes in C (2002)
+    .. [4] Ruiz-Antolin, D. and Townsend, A. *A nonuniform fast Fourier transform based on low rank approximation*
+        SIAM 40.1 (2018)
     """
     if dy is None:
         dy = 1
@@ -90,7 +96,7 @@ def lombscargle_fast(
 
     # set up arguments to trig_sum
     kwargs = dict.copy(trig_sum_kwds or {})
-    kwargs.update(f0=f0, df=df, use_fft=use_fft, N=Nf)
+    kwargs.update(f0=f0, df=df, use_fft=use_fft, N=Nf, prefer_lra=prefer_lra)
 
     # ----------------------------------------------------------------------
     # 1. compute functions of the time-shift tau at each frequency

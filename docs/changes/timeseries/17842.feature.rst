@@ -1,0 +1,3 @@
+The ``prefer_lra`` option is now available for ``trig_sum``.
+The function increases the accuracy of trig_sum utility.
+To disable use it, pass ``trig_sum(..., my_new_feature=False)``.

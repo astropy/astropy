@@ -64,6 +64,9 @@ def trig_sum_data():
 @pytest.mark.parametrize("adjust_t", [True, False])
 @pytest.mark.parametrize("freq_factor", [1, 2])
 @pytest.mark.parametrize("df", [0.1])
+@pytest.mark.filterwarnings(
+    "ignore:SciPy is not installed:astropy.utils.exceptions.AstropyUserWarning"
+)
 def test_trig_sum(f0, adjust_t, freq_factor, df, trig_sum_data):
     t, h = trig_sum_data
 
