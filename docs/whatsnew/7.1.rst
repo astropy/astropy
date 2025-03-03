@@ -12,6 +12,8 @@ the 7.0 release.
 
 In particular, this release includes:
 
+* :ref:`whatsnew_7_1_dataorigin`
+
 .. * :ref:`whatsnew-7.1-xxx`
 
 In addition to these major changes, Astropy v7.1 includes a large number of
@@ -21,6 +23,19 @@ By the numbers:
 * X issues have been closed since v7.1
 * X pull requests have been merged since v7.1
 * X distinct people have contributed code
+
+.. _whatsnew_7_1_dataorigin:
+
+New ``dataorigin`` module
+=========================
+
+This new module exploits provenance information from VOTable header. The information is described in
+DataOrigin IVOA note: https://www.ivoa.net/documents/DataOrigin/.
+
+DataOrigin includes both the query information (such as publisher, contact, versions, etc.)
+and the Dataset origin (such as Creator, bibliographic links, URL, etc.)
+
+This API retrieves Metadata from INFO in VOTAble.
 
 Full change log
 ===============

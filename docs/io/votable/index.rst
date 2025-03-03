@@ -625,6 +625,9 @@ See Also
    that
 .. include:: performance.inc.rst
 
+.. include:: dataorigin.rst
+
+
 Reference/API
 =============
 
