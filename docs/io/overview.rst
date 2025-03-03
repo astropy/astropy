@@ -7,7 +7,7 @@ Astropy provides two main interfaces for reading and writing data:
   and easy to use. This allows working with different types of data such as
   :ref:`tables <astropy-table>`, :ref:`images <astropy_nddata>`, and even
   :ref:`cosmologies <cosmology_io>`.
-- :ref:`Low-level I/O <io-low-level>` sub-packages that are directly responsible for
+- Low-level I/O sub-packages that are directly responsible for
   reading and writing data in specific formats such as :ref:`FITS <astropy-io-fits>`
   or :ref:`VOTable <astropy-io-votable>`.
 
