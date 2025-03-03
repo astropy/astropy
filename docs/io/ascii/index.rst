@@ -6,14 +6,16 @@
 ASCII Tables (`astropy.io.ascii`)
 *********************************
 
-Introduction
-============
-
 `astropy.io.ascii` provides methods for reading and writing a wide range of
 ASCII data table formats via built-in :ref:`extension_reader_classes`. The
 emphasis is on flexibility and convenience of use, although readers can
 optionally use a less flexible C-based engine for reading and writing for
-improved performance. This subpackage was originally developed as ``asciitable``.
+improved performance.
+
+.. note::
+
+    It is strongly encouraged to use the :mod:`astropy.io.ascii` functionality
+    via the :ref:`table_io` interface. In particular, see the sections :ref:`Unified I/O Table Data <read_write_tables>` and :ref:`Unified I/O Text Tables <unified_table_text>`.
 
 The following shows a few of the ASCII formats that are available, while the
 section on `Supported formats`_ contains the full list.
@@ -35,12 +37,6 @@ formats (often with metadata) and specialized data types such as
 <astropy-time>`, and :ref:`Quantity <quantity>`. For reading or writing large
 data tables in a generic format such as CSV, using the :ref:`Table - Pandas
 interface <pandas>` is an option to consider.
-
-.. note::
-
-    It is strongly encouraged to use the functionality from
-    :mod:`astropy.io.ascii` through a higher level interface in the
-    :ref:`Data Tables <astropy-table>` package. See :ref:`table_io` for more details.
 
 Getting Started
 ===============
