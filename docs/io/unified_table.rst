@@ -110,7 +110,7 @@ detection.
 ===========================  =====  ======  ============================================================================================
            Format            Write  Suffix                                          Description
 ===========================  =====  ======  ============================================================================================
-                      ascii    Yes          ASCII table in most supported formats (uses guessing)
+                      ascii    Yes          Text table in most supported formats (uses guessing)
                ascii.aastex    Yes          :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
                 ascii.basic    Yes          :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
                   ascii.cds     No          :class:`~astropy.io.ascii.Cds`: CDS format table
@@ -152,14 +152,14 @@ Table Serialization Methods
 
 ``astropy`` supports fine-grained control of the way to write out (serialize)
 the columns in a Table. For instance, if you are writing an ISO format
-Time column to an ECSV ASCII table file, you may want to write this as a pair
+Time column to an ECSV text table file, you may want to write this as a pair
 of JD1/JD2 floating point values for full resolution (perfect "round-trip"),
 or as a formatted ISO date string so that the values are easily readable by
 your other applications.
 
 The default method for serialization depends on the format (FITS, ECSV, HDF5).
 For instance HDF5 is a binary format and so it would make sense to store a Time
-object as JD1/JD2, while ECSV is a flat ASCII format and commonly you
+object as JD1/JD2, while ECSV is a flat text format and commonly you
 would want to see the date in the same format as the Time object. The defaults
 also reflect an attempt to minimize compatibility issues between ``astropy``
 versions. For instance, it was possible to write Time columns to ECSV as

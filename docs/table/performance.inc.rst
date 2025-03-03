@@ -75,4 +75,4 @@ into memory::
     >>> col = table['my_column']  # Will load all table into memory
 
 :meth:`~astropy.table.Table.read` does not support ``memmap=True``
-for the HDF5 and ASCII file formats.
+for the HDF5 and text file formats.
