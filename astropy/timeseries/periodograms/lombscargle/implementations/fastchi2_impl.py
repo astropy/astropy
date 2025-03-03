@@ -17,6 +17,7 @@ def lombscargle_fastchi2(
     center_data=True,
     nterms=1,
     use_fft=True,
+    prefer_lra=True,
     trig_sum_kwds=None,
 ):
     """Lomb-Scargle Periodogram.
@@ -43,6 +44,9 @@ def lombscargle_fastchi2(
     center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data. This is especially important if ``fit_mean = False``
+    prefer_lra : bool
+        if True and SciPy is available, use the more accurate Low Rank Approximation by Ruiz-Antolin and Townsend.
+        If False or SciPy is not available use Press & Rybicki's Lagrangian extirpolation instead.
     nterms : int, optional
         Number of Fourier terms in the fit
 
@@ -58,6 +62,8 @@ def lombscargle_fastchi2(
     .. [2] W. Press et al, Numerical Recipes in C (2002)
     .. [3] Scargle, J.D. ApJ 263:835-853 (1982)
     .. [4] Palmer, J. ApJ 695:496-502 (2009)
+    .. [5] Ruiz-Antolin, D. and Townsend, A. *A nonuniform fast Fourier transform based on low rank approximation*
+        SIAM 40.1 (2018)
     """
     if nterms == 0 and not fit_mean:
         raise ValueError("Cannot have nterms = 0 without fitting bias")
@@ -89,7 +95,7 @@ def lombscargle_fastchi2(
     chi2_ref = np.dot(yw, yw)
 
     kwargs = dict.copy(trig_sum_kwds or {})
-    kwargs.update(f0=f0, df=df, use_fft=use_fft, N=Nf)
+    kwargs.update(f0=f0, df=df, use_fft=use_fft, N=Nf, prefer_lra=prefer_lra)
 
     # Here we build-up the matrices XTX and XTy using pre-computed
     # sums. The relevant identities are
