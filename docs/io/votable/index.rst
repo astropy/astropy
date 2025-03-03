@@ -4,9 +4,9 @@
 
 .. _astropy-io-votable:
 
-*******************************************
-VOTable XML Handling (`astropy.io.votable`)
-*******************************************
+***************************************
+VOTable Handling (`astropy.io.votable`)
+***************************************
 
 Introduction
 ============

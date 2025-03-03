@@ -7,7 +7,7 @@ High-level Unified File I/O
 ``astropy`` uses the :ref:`I/O Registry <io_registry>` to provide a unified interface
 for reading and writing data in different formats. For many common cases this will
 streamline the process of file I/O and reduce the need to learn the separate details of
-all of the :ref:`io-low-level` packages within ``astropy``.
+all of the low-level I/O packages within ``astropy``.
 
 .. toctree::
     :maxdepth: 2
