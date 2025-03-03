@@ -1,3 +1,4 @@
+.. _unified_table_text:
 
 Text (CSV, fixed-width, HTML, and specialized)
 ==============================================

@@ -11,8 +11,13 @@ Introduction
 
 The :mod:`astropy.io.fits` package provides access to FITS files. FITS
 (Flexible Image Transport System) is a portable file standard widely used in
-the astronomy community to store images and tables. This subpackage was
-originally developed as PyFITS.
+the astronomy community to store images and tables.
+
+.. note::
+
+    If you want to read or write a single table in FITS format, the
+    recommended method is via the :ref:`table_io` interface. In particular
+    see the :ref:`Unified I/O FITS <table_io_fits>` section.
 
 .. _tutorial:
 
@@ -25,11 +30,6 @@ much detail. If you are a first time user or have never used ``astropy`` or
 PyFITS, this is where you should start. See also the :ref:`FAQ <io-fits-faq>`
 for answers to common questions and issues.
 
-.. note::
-
-    If you want to read or write a single table in FITS format, the
-    recommended method is via the high-level :ref:`table_io`. In particular
-    see the :ref:`Unified I/O FITS <table_io_fits>` section.
 
 Reading and Updating Existing FITS Files
 ----------------------------------------
