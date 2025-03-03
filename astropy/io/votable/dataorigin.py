@@ -413,7 +413,7 @@ def extract_data_origin(vot_element: astropy.io.votable.tree.Element) -> DataOri
     return data_origin
 
 
-def add_data_origin_info(vot_element: astropy.io.votable.tree.Element, info_name: str, info_value: str):
+def add_data_origin_info(vot_element: astropy.io.votable.tree.Element, info_name: str, info_value: str, content: str = None):
     """
         Add an INFO in VOTable
 
@@ -427,6 +427,9 @@ def add_data_origin_info(vot_element: astropy.io.votable.tree.Element, info_name
 
         info_value: str
                     value
+
+        content: str, optional
+                 Content in <INFO>
 
         Raises
         ------
@@ -448,7 +451,10 @@ def add_data_origin_info(vot_element: astropy.io.votable.tree.Element, info_name
 
         for info in vot_element.get_infos_by_name(info_name):
             raise Exception(f"QueryOrigin {info_name} already exists")
-        vot_element.infos.extend([astropy.io.votable.tree.Info(name=info_name, value=info_value)])
+        new_info = astropy.io.votable.tree.Info(name=info_name, value=info_value)
+        if content:
+            new_info.content = content
+        vot_element.infos.extend([new_info])
         return
 
     raise Exception("Unknown DataOrigin info name")
