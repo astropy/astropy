@@ -147,9 +147,9 @@ def test_tess_astropy():
             ),
         ),
     }
-    assert (
-        unique_warnings == expected
-    ), f"Got some unexpected warnings\n{unique_warnings - expected}"
+    assert unique_warnings == expected, (
+        f"Got some unexpected warnings\n{unique_warnings - expected}"
+    )
     assert timeseries["time"].format == "isot"
     assert timeseries["time"].scale == "tdb"
     assert timeseries["sap_flux"].unit.to_string() == "electron / s"

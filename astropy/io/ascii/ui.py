@@ -256,7 +256,7 @@ def _get_format_class(format):
     if format in core.FORMAT_CLASSES:
         return core.FORMAT_CLASSES[format]
     raise ValueError(
-        f"ASCII format {format!r} not in allowed list " f"{sorted(core.FORMAT_CLASSES)}"
+        f"ASCII format {format!r} not in allowed list {sorted(core.FORMAT_CLASSES)}"
     )
 
 

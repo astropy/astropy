@@ -490,7 +490,7 @@ class Spline1D(_Spline):
             else:
                 if len(knots) < 2 * (self._degree + 1):
                     raise ValueError(
-                        f"Must have at least {2*(self._degree + 1)} knots."
+                        f"Must have at least {2 * (self._degree + 1)} knots."
                     )
                 self._t = np.array(knots)
         else:

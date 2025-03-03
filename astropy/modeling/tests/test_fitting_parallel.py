@@ -6,26 +6,26 @@ import re
 import pytest
 
 pytest.importorskip("dask")
-import numpy as np  # noqa: E402
-from dask import array as da  # noqa: E402
-from numpy.testing import assert_allclose  # noqa: E402
+import numpy as np
+from dask import array as da
+from numpy.testing import assert_allclose
 
-from astropy import units as u  # noqa: E402
-from astropy.modeling.fitting import (  # noqa: E402
+from astropy import units as u
+from astropy.modeling.fitting import (
     LevMarLSQFitter,
     TRFLSQFitter,
     parallel_fit_dask,
 )
-from astropy.modeling.models import (  # noqa: E402
+from astropy.modeling.models import (
     Const1D,
     Gaussian1D,
     Linear1D,
     Planar2D,
 )
-from astropy.nddata import NDData, StdDevUncertainty  # noqa: E402
-from astropy.tests.helper import assert_quantity_allclose  # noqa: E402
-from astropy.utils.compat.optional_deps import HAS_PLT  # noqa: E402
-from astropy.wcs import WCS  # noqa: E402
+from astropy.nddata import NDData, StdDevUncertainty
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.compat.optional_deps import HAS_PLT
+from astropy.wcs import WCS
 
 
 def gaussian(x, amplitude, mean, stddev):
@@ -529,7 +529,7 @@ class TestDiagnostics:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "diagnostics should be None, " "'error', 'error+warn', or 'all'"
+                "diagnostics should be None, 'error', 'error+warn', or 'all'"
             ),
         ):
             parallel_fit_dask(

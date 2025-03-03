@@ -919,7 +919,7 @@ class IERS_Auto(IERS_A):
                 # predictive values.
                 warn(
                     AstropyWarning(
-                        f'failed to download {" and ".join(all_urls)}: {err}.\nA'
+                        f"failed to download {' and '.join(all_urls)}: {err}.\nA"
                         " coordinate or time-related calculation might be compromised"
                         " or fail because the dates are not covered by the available"
                         ' IERS file.  See the "IERS data access" section of the'
