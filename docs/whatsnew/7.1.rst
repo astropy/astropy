@@ -18,6 +18,8 @@ In particular, this release includes:
 * :ref:`whatsnew-7.1-pyarrow-csv`
 * :ref:`whatsnew-7.1-cosmology`
 * :ref:`whatsnew-7.1-votable-coosys-to-astropy-frame`
+* :ref:`whatsnew_7_1_dataorigin`
+
 
 In addition to these major changes, Astropy v7.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -126,6 +128,20 @@ corresponding astropy built-in frame, when possible::
     >>> coosys = CooSys(system="ICRS", epoch="J2020")
     >>> coosys.to_astropy_frame()
     <ICRS Frame>
+
+
+.. _whatsnew_7_1_dataorigin:
+
+New ``dataorigin`` module
+=========================
+
+This new module exploits provenance information from VOTable header. The information is described in
+DataOrigin IVOA note: https://www.ivoa.net/documents/DataOrigin/.
+
+DataOrigin includes both the query information (such as publisher, contact, versions, etc.)
+and the Dataset origin (such as Creator, bibliographic links, URL, etc.)
+
+This API retrieves Metadata from INFO in VOTAble.
 
 
 Full change log
