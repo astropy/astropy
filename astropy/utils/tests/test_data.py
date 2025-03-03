@@ -512,14 +512,14 @@ def test_clear_download_multiple_references_doesnt_corrupt_storage(
     clear_download_cache(f_url)
     assert not is_url_in_cache(f_url)
     assert is_url_in_cache(g_url)
-    assert os.path.exists(
-        g_filename
-    ), "Contents should not be deleted while a reference exists"
+    assert os.path.exists(g_filename), (
+        "Contents should not be deleted while a reference exists"
+    )
 
     clear_download_cache(g_url)
-    assert not os.path.exists(
-        g_filename
-    ), "No reference exists any more, file should be deleted"
+    assert not os.path.exists(g_filename), (
+        "No reference exists any more, file should be deleted"
+    )
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
@@ -615,15 +615,15 @@ def test_update_url(tmp_path, temp_cache):
     with pytest.raises(urllib.error.URLError):
         # Direct download should fail
         download_file(f_url, cache=False)
-    assert (
-        get_file_contents(download_file(f_url, cache=True)) == "new"
-    ), "Cached version should still exist"
+    assert get_file_contents(download_file(f_url, cache=True)) == "new", (
+        "Cached version should still exist"
+    )
     with pytest.raises(urllib.error.URLError):
         # cannot download new version to check for updates
         download_file(f_url, cache="update")
-    assert (
-        get_file_contents(download_file(f_url, cache=True)) == "new"
-    ), "Failed update should not remove the current version"
+    assert get_file_contents(download_file(f_url, cache=True)) == "new", (
+        "Failed update should not remove the current version"
+    )
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
@@ -1136,9 +1136,9 @@ def test_data_noastropy_fallback(monkeypatch):
             if partial_msg in cur_w:
                 del partial_warn_msgs[i]
                 break
-    assert (
-        len(partial_warn_msgs) == 0
-    ), f"Got some unexpected warnings: {partial_warn_msgs}"
+    assert len(partial_warn_msgs) == 0, (
+        f"Got some unexpected warnings: {partial_warn_msgs}"
+    )
 
     assert n_warns in (2, 4), f"Expected 2 or 4 warnings, got {n_warns}"
 
@@ -2368,7 +2368,7 @@ def test_download_ftp_file_properly_handles_socket_error():
         if cur_msg in errmsg:
             found_msg = True
             break
-    assert found_msg, f'Got {errmsg}, expected one of these: {",".join(possible_msgs)}'
+    assert found_msg, f"Got {errmsg}, expected one of these: {','.join(possible_msgs)}"
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
