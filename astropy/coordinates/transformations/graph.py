@@ -320,7 +320,7 @@ class TransformGraph:
                 # everything left is unreachable from fromsys, just copy them to
                 # the results and jump out of the loop
                 result[n] = (None, d)
-                for d, orderi, n, path in q:
+                for d, _, n, _ in q:
                     result[n] = (None, d)
                 break
             result[n] = (path, d)
