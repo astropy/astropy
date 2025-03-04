@@ -166,5 +166,4 @@ See Also
 Acknowledgments and Licenses
 ============================
 
-`wcslib`_ is licenced under the `GNU Lesser General Public License
-<http://www.gnu.org/licenses/lgpl.html>`_.
+`wcslib`_ is licenced under the GNU Lesser General Public License.
