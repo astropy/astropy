@@ -437,7 +437,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
                 # functional string is aligned with the fraction line
                 # (second one), and all other lines are indented
                 # accordingly.
-                f = f"{{0:^{len(self_str)+1}s}}{{1:s}}"
+                f = f"{{0:^{len(self_str) + 1}s}}{{1:s}}"
                 lines = [
                     f.format("", pu_lines[0]),
                     f.format(f"{self_str}(", f"{pu_lines[1]})"),
