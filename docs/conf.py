@@ -245,9 +245,6 @@ modindex_common_prefix = ["astropy."]
 
 html_theme_options.update(
     {
-        "analytics": [
-            {"google_analytics_id": "G-R0510VK4B6"},
-        ],
         "analytics": {
             "google_analytics_id": "G-R0510VK4B6",
         },
