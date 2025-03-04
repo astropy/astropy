@@ -8,7 +8,7 @@ from astropy.utils.compat.optional_deps import HAS_BS4
 from astropy.utils.data import get_pkg_data_filename
 
 files = [
-    "data/cds.dat",
+    "data/mrt.dat",
     "data/ipac.dat",
     "data/daophot.dat",
     "data/latex1.tex",
@@ -36,8 +36,12 @@ def test_read_ipac():
     Table.read(get_pkg_data_filename("data/ipac.dat"), format="ipac")
 
 
+def test_read_mrt():
+    Table.read(get_pkg_data_filename("data/mrt.dat"), format="mrt")
+
+
 def test_read_cds():
-    Table.read(get_pkg_data_filename("data/cds.dat"), format="cds")
+    Table.read(get_pkg_data_filename("data/cdsFunctional.dat"), format="cds")
 
 
 def test_read_dapphot():
