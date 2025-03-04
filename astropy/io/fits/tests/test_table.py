@@ -3018,9 +3018,9 @@ def _refcounting(type_):
     refcount = len(objgraph.by_type(type_))
     yield refcount
     gc.collect()
-    assert (
-        len(objgraph.by_type(type_)) <= refcount
-    ), "More {0!r} objects still in memory than before."
+    assert len(objgraph.by_type(type_)) <= refcount, (
+        "More {0!r} objects still in memory than before."
+    )
 
 
 class TestVLATables(FitsTestCase):

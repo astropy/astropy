@@ -829,9 +829,9 @@ class TestDiff(FitsTestCase):
         report_as_string = diffobj.report()
         diffobj.report(fileobj=outpath, overwrite=True)
         with open(outpath) as fout:
-            assert (
-                fout.read() == report_as_string
-            ), "overwritten output file is not identical to report string"
+            assert fout.read() == report_as_string, (
+                "overwritten output file is not identical to report string"
+            )
 
     def test_rawdatadiff_nodiff(self):
         a = np.arange(100, dtype="uint8").reshape(10, 10)

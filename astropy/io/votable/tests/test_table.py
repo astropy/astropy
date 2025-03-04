@@ -103,9 +103,9 @@ def test_table(tmp_path):
 
     for field, (name, d) in zip(t.fields, field_types):
         assert field.ID == name
-        assert (
-            field.datatype == d["datatype"]
-        ), f'{name} expected {d["datatype"]} but get {field.datatype}'
+        assert field.datatype == d["datatype"], (
+            f"{name} expected {d['datatype']} but get {field.datatype}"
+        )
         if "arraysize" in d:
             assert field.arraysize == d["arraysize"]
 

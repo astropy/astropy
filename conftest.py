@@ -32,9 +32,9 @@ def pytest_configure(config):
 def pytest_report_header(config):
     # This gets added after the pytest-astropy-header output.
     return (
-        f'CI: {os.environ.get("CI", "undefined")}\n'
-        f'ARCH_ON_CI: {os.environ.get("ARCH_ON_CI", "undefined")}\n'
-        f'IS_CRON: {os.environ.get("IS_CRON", "undefined")}\n'
+        f"CI: {os.environ.get('CI', 'undefined')}\n"
+        f"ARCH_ON_CI: {os.environ.get('ARCH_ON_CI', 'undefined')}\n"
+        f"IS_CRON: {os.environ.get('IS_CRON', 'undefined')}\n"
     )
 
 
