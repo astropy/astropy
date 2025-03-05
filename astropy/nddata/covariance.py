@@ -88,10 +88,10 @@ def _impose_sparse_value_threshold(arr, threshold):
         Manipulated or original matrix.
     """
     i, j, aij = find(arr)
-    indx = np.logical_not(np.absolute(aij) < threshold)
-    if all(indx):
+    index = np.logical_not(np.absolute(aij) < threshold)
+    if all(index):
         return arr
-    return coo_matrix((aij[indx], (i[indx], j[indx])), shape=arr.shape).tocsr()
+    return coo_matrix((aij[index], (i[index], j[index])), shape=arr.shape).tocsr()
 
 
 class Covariance(NDUncertainty):
@@ -192,7 +192,7 @@ class Covariance(NDUncertainty):
     @variance.setter
     def variance(self, value):
         raise NotImplementedError(
-            "Directly setting variance values is not allowed for " "Covariance objects."
+            "Directly setting variance values is not allowed for Covariance objects."
         )
 
     @property
@@ -547,8 +547,7 @@ class Covariance(NDUncertainty):
         nx = T.shape[1]
         if Sigma.shape != (nx, nx) and Sigma.shape != (nx,):
             raise ValueError(
-                "Shape of input variance matrix must be either "
-                f"({nx},{nx}) or ({nx},)."
+                f"Shape of input variance matrix must be either ({nx},{nx}) or ({nx},)."
             )
         # If it isn't already, convert T to a csr_matrix
         _T = T if isinstance(T, csr_matrix) else csr_matrix(T)
@@ -1198,9 +1197,9 @@ class Covariance(NDUncertainty):
 
         """
         sub_map = self.data_index_map[data_slice]
-        indx = sub_map.ravel()
+        index = sub_map.ravel()
         return Covariance(
-            self.full()[np.ix_(indx, indx)],
+            self.full()[np.ix_(index, index)],
             raw_shape=None if len(sub_map.shape) == 1 else sub_map.shape,
         )
 
