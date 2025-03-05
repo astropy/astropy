@@ -14,8 +14,8 @@ def lombscargle_fast(
     fit_mean=True,
     normalization="standard",
     use_fft=True,
-    prefer_lra=True,
     trig_sum_kwds=None,
+    algorithm='fasper',
 ):
     """Fast Lomb-Scargle Periodogram.
 
@@ -40,13 +40,17 @@ def lombscargle_fast(
     use_fft : bool (default=True)
         If True, then use the Press & Rybicki O[NlogN] algorithm to compute
         the result. Otherwise, use a slower O[N^2] algorithm
-    prefer_lra : bool
-        if True and SciPy is available, use the more accurate Low Rank Approximation by Ruiz-Antolin and Townsend.
-        If False or SciPy is not available use Press & Rybicki's Lagrangian extirpolation instead.
     trig_sum_kwds : dict or None, optional
         extra keyword arguments to pass to the ``trig_sum`` utility.
         Options are ``oversampling``, ``Mfft`` and ``eps``. See documentation
         of ``trig_sum`` for details.
+    algorithm : str, optional
+        Referenced only if use_fft is true.
+        Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
+        Currently there are two available options:
+
+        - 'fasper': use Press & Rybicki's Lagrangian extirpolation instead. This is the default option.
+        - 'lra': Use the more accurate (but slower) Low Rank Approximation by Ruiz-Antolin and Townsend.
 
     Returns
     -------
@@ -96,7 +100,7 @@ def lombscargle_fast(
 
     # set up arguments to trig_sum
     kwargs = dict.copy(trig_sum_kwds or {})
-    kwargs.update(f0=f0, df=df, use_fft=use_fft, N=Nf, prefer_lra=prefer_lra)
+    kwargs.update(f0=f0, df=df, use_fft=use_fft, N=Nf, algorithm=algorithm)
 
     # ----------------------------------------------------------------------
     # 1. compute functions of the time-shift tau at each frequency
