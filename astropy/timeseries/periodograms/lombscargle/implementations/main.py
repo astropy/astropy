@@ -216,10 +216,7 @@ def lombscargle(
         f0, df, Nf = _get_frequency_grid(
             kwds.pop("frequency"), assume_regular_frequency
         )
-        if HAS_SCIPY:
-            kwds.update(f0=f0, df=df, Nf=Nf)
-        else:
-            kwds.update(f0=f0, df=df, Nf=Nf, prefer_lra=False)
+            kwds.update(f0=f0, df=df, Nf=Nf, algorithm='lra')
     # only chi2 methods support nterms
     if not method.endswith("chi2"):
         if kwds.pop("nterms") != 1:
