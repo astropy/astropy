@@ -38,7 +38,6 @@ else:
 
 __all__ = ["Covariance"]
 
-
 # Disabling doctests when scipy isn't present.
 __doctest_requires__ = {"*": ["scipy"]}
 
