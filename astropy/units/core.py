@@ -9,6 +9,7 @@ from __future__ import annotations
 import inspect
 import operator
 import textwrap
+import unicodedata
 import warnings
 from fractions import Fraction
 from functools import cached_property
@@ -1876,10 +1877,10 @@ class NamedUnit(UnitBase):
 
         # Loop through all of the names first, to ensure all of them
         # are new, then add them all as a single "transaction" below.
-        for name in self._names:
+        for name in (unicodedata.normalize("NFKC", name) for name in self._names):
             if name in namespace and self != namespace[name]:
                 raise ValueError(
-                    f"Object with name {name!r} already exists in "
+                    f"Object with NFKC normalized name {name!r} already exists in "
                     f"given namespace ({namespace[name]!r})."
                 )
 
