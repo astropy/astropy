@@ -1417,10 +1417,20 @@ def test_non_finite_error(fitter, weights):
     m_init = models.Gaussian1D()
     fit = fitter()
 
-    # Raise warning, notice fit fails due to nans
+    # Raise exception, notice fit fails due to nans
     with pytest.raises(
         NonFiniteValueError, match=r"Objective function has encountered.*"
     ):
+        fit(m_init, x, y, weights=weights)
+
+    # No exception if the check is deactivated
+    fit = fitter(check_non_finite=False)
+    if fitter == LevMarLSQFitter:
+        exc, msg = RuntimeWarning, "invalid value encountered in multiply"
+    else:
+        exc, msg = ValueError, "Residuals are not finite in the initial point."
+
+    with pytest.raises(exc, match=msg):
         fit(m_init, x, y, weights=weights)
 
 
