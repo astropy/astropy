@@ -6,7 +6,6 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.lombscargle import LombScargle
-from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 ALL_METHODS = LombScargle.available_methods
 ALL_METHODS_NO_AUTO = [method for method in ALL_METHODS if method != "auto"]
@@ -100,12 +99,9 @@ def test_all_methods(
     )
     P_expected = ls.power(frequency)
 
-    # don't use the fft approximation here if the SciPy is not available; we'll test this elsewhere
+    # don't use the lagrangian approximation here; we'll test this elsewhere
     if method in FAST_METHODS:
-        if not HAS_SCIPY:
-            kwds["method_kwds"] = dict(use_fft=False)
-        else:
-            kwds["method_kwds"] = dict(prefer_lra=True)
+        kwds["method_kwds"] = dict(algorithm=lra)
     P_method = ls.power(frequency, method=method, **kwds)
 
     if with_units:
@@ -193,10 +189,7 @@ def test_nterms_methods(
         # don't use fast fft approximations here if the SciPy is not available
         kwds = {}
         if "fast" in method:
-            if not HAS_SCIPY:
-                kwds["method_kwds"] = dict(use_fft=False)
-            else:
-                kwds["method_kwds"] = dict(prefer_lra=True)
+            kwds["method_kwds"] = dict(algorithm='fasper')
 
         P_method = ls.power(frequency, method=method, **kwds)
 
@@ -233,7 +226,7 @@ def test_fast_approximations(method, center_data, fit_mean, errors, nterms, data
 
     # use only standard normalization because we compare via absolute tolerance
     kwds = dict(method=method)
-    kwds.setdefault("method_kwds", {}).update(prefer_lra=False)
+    kwds.setdefault("method_kwds", {}).update(algorithm='fasper')
 
     if method == "fast" and nterms != 1:
         with pytest.raises(ValueError, match=r"nterms"):
