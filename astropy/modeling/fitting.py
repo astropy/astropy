@@ -91,7 +91,7 @@ class Covariance:
         # Print rows for params up to `max_lines`, round floats to 'round_val'
         longest_name = max(len(x) for x in self.param_names)
         ret_str = "parameter variances / covariances \n"
-        fstring = f'{"": <{longest_name}}| {{0}}\n'
+        fstring = f"{'': <{longest_name}}| {{0}}\n"
         for i, row in enumerate(self.cov_matrix):
             if i <= max_lines - 1:
                 param = self.param_names[i]

@@ -1256,9 +1256,9 @@ class TestNumericalSubFormat:
         with localcontext() as ctx:
             ctx.prec = 40
             t2_s_40 = t.to_value(fmt, "str")
-        assert (
-            t_s_2 == t2_s_40
-        ), "String representation should not depend on Decimal context"
+        assert t_s_2 == t2_s_40, (
+            "String representation should not depend on Decimal context"
+        )
 
     def test_decimal_context_caching(self):
         t = Time(val=58000, val2=1e-14, format="mjd", scale="tai")

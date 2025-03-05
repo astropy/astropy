@@ -733,7 +733,7 @@ def generate_config(pkgname="astropy", filename=None, verbose=False):
                     else:
                         fp.write(
                             f"# {item.name} ="
-                            f' {",".join(map(str, item.defaultvalue))}\n\n'
+                            f" {','.join(map(str, item.defaultvalue))}\n\n"
                         )
                 else:
                     fp.write(f"# {item.name} = {item.defaultvalue}\n\n")
