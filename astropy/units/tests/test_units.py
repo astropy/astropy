@@ -712,16 +712,18 @@ def test_pickle_unrecognized_unit():
     "name",
     [
         pytest.param("h", id="simple_conflict"),
-        pytest.param(
-            "ʰ",
-            id="NFKC_normalization",
-            marks=pytest.mark.xfail(reason="new regression test that reveals a bug"),
-        ),
+        pytest.param("ʰ", id="NFKC_normalization"),
     ],
 )
 def test_duplicate_define(name):
     namespace = {"h": u.h}
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match=(
+            "^Object with NFKC normalized name 'h' already exists in given namespace "
+            r'\(Unit\("h"\)\)\.$'
+        ),
+    ):
         u.def_unit(name, u.hourangle, namespace=namespace)
 
 
