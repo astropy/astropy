@@ -363,7 +363,7 @@ class HDUList(list, _Verify):
                 # We need more than we have, try loading up to and including
                 # max_idx. Note we do not try to be clever about skipping HDUs
                 # even though key.step might conceivably allow it.
-                for i in range(number_loaded, max_idx):
+                for _ in range(number_loaded, max_idx):
                     # Read until max_idx or to the end of the file, whichever
                     # comes first.
                     if not self._read_next_hdu():
@@ -1489,7 +1489,7 @@ class HDUList(list, _Verify):
                 # Close all open mmaps to the data.  This is only necessary on
                 # Windows, which will not allow a file to be renamed or deleted
                 # until all handles to that file have been closed.
-                for idx, mmap, arr in mmaps:
+                for _, mmap, _ in mmaps:
                     if mmap is not None:
                         mmap.close()
 

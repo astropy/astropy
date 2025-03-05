@@ -651,7 +651,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         rev_sorted_idx_0 = sorted(
             table_keywords, key=operator.itemgetter(0), reverse=True
         )
-        for idx, keyword, _, num in rev_sorted_idx_0:
+        for idx, _, _, num in rev_sorted_idx_0:
             if index is None or index == num:
                 del self._header[idx]
 

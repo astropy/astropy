@@ -167,7 +167,7 @@ class WCSAxes(Axes):
         world = coords._transform.transform(np.array([pixel]))[0]
 
         coord_strings = []
-        for idx, coord in enumerate(coords):
+        for _, coord in enumerate(coords):
             if coord.coord_index is not None:
                 coord_strings.append(
                     coord.format_coord(world[coord.coord_index], format="ascii")

@@ -78,7 +78,7 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
                 else:
                     tile_shape.insert(0, 17)
 
-            for i in range(2, naxis):
+            for _ in range(2, naxis):
                 # set all higher tile dimensions = 1
                 tile_shape.insert(0, 1)
 

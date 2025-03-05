@@ -321,7 +321,7 @@ def read_table_fits(
 
         hdr = fits_to_time(hdr, t)
 
-    for key, value, comment in hdr.cards:
+    for key, value, _ in hdr.cards:
         if key in ["COMMENT", "HISTORY"]:
             # Convert to io.ascii format
             if key == "COMMENT":

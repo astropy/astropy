@@ -153,7 +153,7 @@ def data_info_factory(names, funcs):
 
     def func(dat):
         outs = []
-        for name, func in zip(names, funcs):
+        for _, func in zip(names, funcs):
             try:
                 if isinstance(func, str):
                     out = getattr(dat, func)()

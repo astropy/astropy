@@ -1013,7 +1013,8 @@ class FittingWithOutlierRemoval:
         n = 0  # (allow recording no. of iterations when 0)
 
         # Perform the iterative fitting:
-        for n in range(1, self.niter + 1):
+        for i in range(1, self.niter + 1):
+            n=i
             # (Re-)evaluate the last model:
             model_vals = fitted_model(*coords, model_set_axis=False)
 
@@ -2196,7 +2197,7 @@ def fitter_to_model_params_array(
         # Update model parameters before calling ``tied`` constraints.
         model.parameters = parameters
 
-        for idx, name in enumerate(model.param_names):
+        for _, name in enumerate(model.param_names):
             if model.tied[name]:
                 value = model.tied[name](model)
                 slice_ = param_metrics[name]["slice"]

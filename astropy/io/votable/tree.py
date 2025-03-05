@@ -1121,7 +1121,7 @@ class Values(Element, _IDProperty):
 
     def parse(self, iterator, config):
         if self.ref is not None:
-            for start, tag, data, pos in iterator:
+            for start, tag, _, pos in iterator:
                 if start:
                     warn_or_raise(W44, W44, tag, config, pos)
                 else:
@@ -2876,7 +2876,7 @@ class TableElement(
 
                 break
 
-        for start, tag, data, pos in iterator:
+        for start, tag, _, _ in iterator:
             if not start and tag == "DATA":
                 break
 
