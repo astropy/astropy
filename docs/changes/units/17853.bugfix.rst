@@ -1,0 +1,4 @@
+The machinery that injects units into a namespace (used e.g. by ``def_unit()``)
+now applies NFKC normalization to unit names when checking for name collisions.
+This prevents name collisions if the namespace belongs to a module and the unit
+is accessed as an attribute of that module.
