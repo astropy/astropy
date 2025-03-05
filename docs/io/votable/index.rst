@@ -601,6 +601,11 @@ You can add an `astropy.io.votable.tree.TableElement` to the resource:
       <GLOBALS>  </GLOBALS>
    </VODML>
 
+Data Origin
+===========
+.. _astropy-io-votable-dataorigin:
+
+.. include:: dataorigin.rst
 
 See Also
 ========
@@ -624,9 +629,6 @@ See Also
    doc page - see the top of performance.inc.rst for the instructions on how to do
    that
 .. include:: performance.inc.rst
-
-.. include:: dataorigin.rst
-
 
 Reference/API
 =============

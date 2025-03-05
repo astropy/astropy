@@ -31,3 +31,6 @@ Reference/API
 
 .. automodapi:: astropy.io.votable.xmlutil
    :no-inheritance-diagram:
+
+.. automodapi:: astropy.io.votable.dataorigin
+   :no-inheritance-diagram:
