@@ -17,8 +17,8 @@ def lombscargle_fastchi2(
     center_data=True,
     nterms=1,
     use_fft=True,
-    prefer_lra=True,
     trig_sum_kwds=None,
+    algorithm='lra',
 ):
     """Lomb-Scargle Periodogram.
 
@@ -44,11 +44,15 @@ def lombscargle_fastchi2(
     center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data. This is especially important if ``fit_mean = False``
-    prefer_lra : bool
-        if True and SciPy is available, use the more accurate Low Rank Approximation by Ruiz-Antolin and Townsend.
-        If False or SciPy is not available use Press & Rybicki's Lagrangian extirpolation instead.
     nterms : int, optional
         Number of Fourier terms in the fit
+    algorithm : str, optional
+        Referenced only if use_fft is true.
+        Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
+        Currently there are two available options:
+
+        - 'fasper': use Press & Rybicki's Lagrangian extirpolation instead. This is the default option.
+        - 'lra': Use the more accurate (but slower) Low Rank Approximation by Ruiz-Antolin and Townsend.
 
     Returns
     -------
@@ -95,7 +99,7 @@ def lombscargle_fastchi2(
     chi2_ref = np.dot(yw, yw)
 
     kwargs = dict.copy(trig_sum_kwds or {})
-    kwargs.update(f0=f0, df=df, use_fft=use_fft, N=Nf, prefer_lra=prefer_lra)
+    kwargs.update(f0=f0, df=df, use_fft=use_fft, N=Nf, algorithm=algorithm)
 
     # Here we build-up the matrices XTX and XTy using pre-computed
     # sums. The relevant identities are
