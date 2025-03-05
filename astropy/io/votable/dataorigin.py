@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-Extract Data Origin in VOTable
+"""Extract Data Origin in VOTable
 
 References
 ----------
@@ -9,17 +8,19 @@ DataOrigin is described in the IVOA note: https://www.ivoa.net/documents/DataOri
 
 Notes
 -----
-This API retrieve Metadata from INFO in VOTAble.
+This API retrieve Metadata from INFO in VOTable.
 The info can be found at different level in a VOTable :
+
 - global level
 - resource level
 - table level
 
 Contents
 --------
-- Query information: Each element is consider to be unique in the VOTable.
-concern: the request, publisher, date of execution, contact...
-The information is completed with DALI standardID
+
+- Query information: Each element is considered to be unique in the VOTable.
+  Information concerns publisher, date of execution, contact, request, etc.
+  The information is completed with DALI standardID
 - Dataset origin : basic provenance information
 
 Examples
