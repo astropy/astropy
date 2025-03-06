@@ -285,6 +285,7 @@ lint.unfixable = [
     "PTH",      # all flake8-use-pathlib
     "S321",  # Suspicious-ftp-lib-usage
     "TRY300",  # Consider `else` block
+    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/visualization/*" = [
     "B015",
