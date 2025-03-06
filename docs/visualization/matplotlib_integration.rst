@@ -27,8 +27,8 @@ the quantity:
     from astropy.visualization import quantity_support
     quantity_support()
     from matplotlib import pyplot as plt
-    plt.figure(figsize=(5,3))
-    plt.plot([1, 2, 3] * u.m)
+    fig, ax = plt.subplots(figsize=(5, 3))
+    ax.plot([1, 2, 3] * u.m)
 
 Quantities are automatically converted to the first unit set on a
 particular axis, so in the following, the y-axis remains in ``m`` even
@@ -38,17 +38,17 @@ though the second line is given in ``cm``:
    :include-source:
    :context:
 
-    plt.plot([1, 2, 3] * u.cm)
+    ax.plot([1, 2, 3] * u.cm)
 
 Plotting a quantity with an incompatible unit will raise an exception.
-For example, calling ``plt.plot([1, 2, 3] * u.kg)`` (mass unit) to overplot
+For example, calling ``ax.plot([1, 2, 3] * u.kg)`` (mass unit) to overplot
 on the plot above that is displaying length units.
 
 To make sure unit support is turned off afterward, you can use
 `~astropy.visualization.quantity_support` with a ``with`` statement::
 
     with quantity_support():
-        plt.plot([1, 2, 3] * u.m)
+        ax.plot([1, 2, 3] * u.m)
 
 .. _plotting-times:
 
@@ -86,8 +86,8 @@ using the |Time| class:
 
     time_support()
 
-    plt.figure(figsize=(5,3))
-    plt.plot(Time([58000, 59000, 62000], format='mjd'), [1.2, 3.3, 2.3])
+    fig, ax = plt.subplots(figsize=(5, 3))
+    ax.plot(Time([58000, 59000, 62000], format='mjd'), [1.2, 3.3, 2.3])
 
 By default, the format and scale used for the plots is taken from the first time
 that Matplotlib encounters for a particular Axes instance. The format and scale
@@ -106,12 +106,12 @@ can also be explicitly controlled by passing arguments to ``time_support``:
    :context:
 
     time_support(format='mjd', scale='tai')
-    plt.figure(figsize=(5,3))
-    plt.plot(Time([50000, 52000, 54000], format='mjd'), [1.2, 3.3, 2.3])
+    fig, ax = plt.subplots(figsize=(5, 3))
+    ax.plot(Time([50000, 52000, 54000], format='mjd'), [1.2, 3.3, 2.3])
 
 To make sure support for plotting times is turned off afterward, you can use
 `~astropy.visualization.time_support` as a context manager::
 
     with time_support(format='mjd', scale='tai'):
-        plt.figure(figsize=(5,3))
-        plt.plot(Time([50000, 52000, 54000], format='mjd'))
+        fig, ax = plt.subplots(figsize=(5, 3))
+        ax.plot(Time([50000, 52000, 54000], format='mjd'))
