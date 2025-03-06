@@ -341,9 +341,7 @@ class TestSingleTable:
         )
         assert t["c2"].tolist() == ["abc", "xy"]
 
-        t = Table.read(
-            filename, character_as_bytes=character_as_bytes, strip_spaces=False
-        )
+        t = Table.read(filename, character_as_bytes=character_as_bytes)
         assert t["c2"].tolist() == ["abc", "xy "]
 
         t = Table.read(filename, character_as_bytes=character_as_bytes, memmap=True)
