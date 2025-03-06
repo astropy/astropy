@@ -24,10 +24,10 @@ By the numbers:
 
 .. _whatsnew-7.1-table-spaces:
 
-Trailing spaces in ``Table`` string columns can now be stripped
-===============================================================
+Trailing whitespace in ``Table`` string columns can now be stripped
+===================================================================
 
-Strings in FITS binary tables are sometimes padded with trailing whitespaces.
+Strings in FITS binary tables are sometimes padded with trailing whitespace.
 It is now possible to remove those when reading a table with
 ``(Q)Table.read("filename.fits", strip_spaces=True)``. The default behavior is
 not changed yet to preserve compatibility with codes that might rely on this,

@@ -183,7 +183,7 @@ def read_table_fits(
         penalty of doing this masking step. The masking is always deactivated
         when using ``memmap=True`` (see above).
     strip_spaces : bool, optional
-        Strip trailing spaces in string columns, default is False and will be
+        Strip trailing whitespace in string columns, default is False and will be
         changed to True in the next major release. This is deactivated when
         using ``memmap=True`` (see above).
 
@@ -245,7 +245,7 @@ def read_table_fits(
     else:
         if memmap:
             # using memmap is not compatible with masking invalid value and
-            # removing trailing spaces by default so we deactivate that
+            # removing trailing whitespace by default so we deactivate that
             mask_invalid = False
             strip_spaces = False
 
