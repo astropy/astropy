@@ -239,7 +239,6 @@ lint.unfixable = [
 ]
 "astropy/logger.py" = []
 "astropy/modeling/*" = [
-    "B007",  # UnusedLoopControlVariable
     "PLR0911",  # too-many-return-statements
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
     "TRY300",  # Consider `else` block
