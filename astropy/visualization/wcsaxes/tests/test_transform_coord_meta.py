@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.figure import Figure
 
 from astropy import units as u
 from astropy.tests.figures import figure_test
@@ -63,7 +63,7 @@ class TestTransformCoordMeta(BaseImageTests):
         wcs.wcs.cdelt = [6.25, 6.25]
         wcs.wcs.crval = [0.0, 0.0]
 
-        fig = plt.figure(figsize=(4, 4))
+        fig = Figure(figsize=(4, 4))
 
         ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=wcs)
         fig.add_axes(ax)
@@ -101,7 +101,7 @@ class TestTransformCoordMeta(BaseImageTests):
 
     @figure_test
     def test_coords_overlay_auto_coord_meta(self):
-        fig = plt.figure(figsize=(4, 4))
+        fig = Figure(figsize=(4, 4))
 
         ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=WCS(self.msx_header))
         fig.add_axes(ax)
@@ -129,7 +129,7 @@ class TestTransformCoordMeta(BaseImageTests):
         coord_meta["wrap"] = (360.0 * u.deg, None)
         coord_meta["unit"] = (u.deg, u.deg)
         coord_meta["name"] = "lon", "lat"
-        fig = plt.figure(figsize=(4, 4))
+        fig = Figure(figsize=(4, 4))
 
         ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], transform=s, coord_meta=coord_meta)
         fig.add_axes(ax)
