@@ -1122,13 +1122,13 @@ class _NonLinearLSQFitter(Fitter):
     calc_uncertainties : bool
         If the covariance matrix should be computed and set in the fit_info.
         Default: False
-    check_non_finite : bool
-        If set, the objective function checks for the presence of non-finite
-        values and raise a `NonFiniteValueError` if it finds one.
-        Default: True
     use_min_max_bounds : bool
         If set, the parameter bounds for a model will be enforced for each given
         parameter while fitting via a simple min/max condition.
+        Default: True
+    check_non_finite : bool
+        If set, the objective function checks for the presence of non-finite
+        values and raise a `NonFiniteValueError` if it finds one.
         Default: True
     """
 
