@@ -1177,7 +1177,7 @@ class _NonLinearLSQFitter(Fitter):
                 "this will cause the fit to fail!\n"
                 "This can be caused by non-finite values in the input data, "
                 "which can be removed with fit(..., filter_non_finite=True), "
-                "or just by bad data leading to the fit iterations producing "
+                "or by bad data during the fit iterations producing "
                 "numerical errors."
             )
 
