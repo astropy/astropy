@@ -1,0 +1,40 @@
+# Downstream integration testing, especially for bugfix releases.
+name: Downstream
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # We also want this workflow triggered if the 'Extra CI' label is added
+    # or present when PR is updated
+    types:
+      - synchronize
+      - labeled
+  push:
+    # We want this workflow to always run on release branches as well as
+    # all tags since we want to be really sure we don't introduce
+    # regressions on the release branches, and it's also important to run
+    # this on pre-release and release tags.
+    branches:
+    - 'v*'
+    tags:
+    - '*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@8c0fde6f7e926df6ed7057255d29afa9c1ad5320  # v1.16.0
+    with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "true"
+      submodules: false
+      coverage: ''
+      envs: |
+        - linux: downstream
