@@ -12,7 +12,7 @@ the 7.0 release.
 
 In particular, this release includes:
 
-.. * :ref:`whatsnew-7.1-xxx`
+* :ref:`whatsnew-7.1-table-spaces`
 
 In addition to these major changes, Astropy v7.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -21,6 +21,17 @@ By the numbers:
 * X issues have been closed since v7.1
 * X pull requests have been merged since v7.1
 * X distinct people have contributed code
+
+.. _whatsnew-7.1-table-spaces:
+
+Trailing whitespace in ``Table`` string columns can now be stripped
+===================================================================
+
+Strings in FITS binary tables are sometimes padded with trailing whitespace.
+It is now possible to remove those when reading a table with
+``(Q)Table.read("filename.fits", strip_spaces=True)``. The default behavior is
+not changed yet to preserve compatibility with codes that might rely on this,
+it will change in the next major version (v8.0).
 
 Full change log
 ===============
