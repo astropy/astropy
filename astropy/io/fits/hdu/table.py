@@ -895,24 +895,7 @@ class BinTableHDU(_TableBaseHDU):
             # Now add in the heap data to the checksum (we can skip any gap
             # between the table and the heap since it's all zeros and doesn't
             # contribute to the checksum
-            if data._get_raw_data() is None:
-                # This block is still needed because
-                # test_variable_length_table_data leads to ._get_raw_data
-                # returning None which means _get_heap_data doesn't work.
-                # Which happens when the data is loaded in memory rather than
-                # being unloaded on disk
-                for idx in range(data._nfields):
-                    if isinstance(data.columns._recformats[idx], _FormatP):
-                        for coldata in data.field(idx):
-                            # coldata should already be byteswapped from the call
-                            # to _binary_table_byte_swap
-                            if not len(coldata):
-                                continue
-
-                            csum = self._compute_checksum(coldata, csum)
-            else:
-                csum = self._compute_checksum(data._get_heap_data(), csum)
-
+            csum = self._compute_checksum(data._get_heap_data(), csum)
             return csum
 
     def _calculate_datasum(self):
@@ -954,25 +937,10 @@ class BinTableHDU(_TableBaseHDU):
 
             nbytes = data._gap
 
-            if not self._manages_own_heap:
-                # Write the heap data one column at a time, in the order
-                # that the data pointers appear in the column (regardless
-                # if that data pointer has a different, previous heap
-                # offset listed)
-                for idx in range(data._nfields):
-                    if not isinstance(data.columns._recformats[idx], _FormatP):
-                        continue
-
-                    field = self.data.field(idx)
-                    for row in field:
-                        if len(row) > 0:
-                            nbytes += row.nbytes
-                            fileobj.writearray(row)
-            else:
-                heap_data = data._get_heap_data()
-                if len(heap_data) > 0:
-                    nbytes += len(heap_data)
-                    fileobj.writearray(heap_data)
+            heap_data = data._get_heap_data()
+            if len(heap_data) > 0:
+                nbytes += len(heap_data)
+                fileobj.writearray(heap_data)
 
             data._heapsize = nbytes - data._gap
             size += nbytes
