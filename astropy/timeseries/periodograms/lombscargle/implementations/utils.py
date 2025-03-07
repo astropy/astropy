@@ -19,16 +19,16 @@ def next_fast_len(N):
     """
     Nfft = bitceil(N)
 
-    if((Nfft // 16) * 9 > N):
+    if (Nfft // 16) * 9 > N:
         Nfft //= 16
         Nfft *= 9
-    elif((Nfft // 128) * 81 > N):
+    elif (Nfft // 128) * 81 > N:
         Nfft //= 128
         Nfft *= 81
-    elif((Nfft // 4) * 3 > N):
+    elif (Nfft // 4) * 3 > N:
         Nfft //= 4
         Nfft *= 3
-    elif((Nfft // 32) * 27 > N):
+    elif (Nfft // 32) * 27 > N:
         Nfft //= 32
         Nfft *= 27
 
@@ -124,13 +124,13 @@ def jn(n, x, num_terms=10):
     result = np.zeros(np.broadcast(n, x).shape, dtype=np.float64)
 
     half_x2 = half_x * half_x
-    term_numer = half_x ** n
+    term_numer = half_x**n
     term_denom = fact[n]
 
     for k in range(num_terms):
         term_denom = fact[k] * fact[(n + k)]
         result += term_numer / term_denom
-        term_numer *= - half_x2
+        term_numer *= -half_x2
 
     return result
 
@@ -165,10 +165,23 @@ def get_lra_params(x, N, eps):
     if gamma <= eps:
         K = 1
     else:
-        lut = {5: 7.193e-01, 6: 7.812e-02, 7: 6.401e-03,
-            8: 4.148e-04, 9: 2.199e-05, 10: 9.786e-07,
-            11: 3.725e-08, 12: 1.233e-09, 13: 3.590e-11,
-            14: 9.305e-13, 15: 2.165e-14, 16: 4.559e-16}
+        lut = {
+            2: 2.6e-1,
+            3: 5.4e-2,
+            4: 8.6e-3,
+            5: 1.1e-3,
+            6: 1.3e-4,
+            7: 1.2e-5,
+            8: 1.2e-6,
+            9: 9.0e-8,
+            10: 6.8e-9,
+            11: 4.3e-10,
+            12: 2.9e-11,
+            13: 1.6e-12,
+            14: 8.4e-14,
+            15: 2.2e-14,
+            16: 4.6e-16,
+        }
 
         # Find the smallest K in the LUT where eps is less than or equal to the LUT value
         K = 16  # Default to K=16 if eps is too small
@@ -353,7 +366,7 @@ def trig_sum(
     oversampling=5,
     use_fft=True,
     Mfft=4,
-    algorithm='fasper',
+    algorithm="fasper",
     eps=5e-13,
 ):
     """Compute (approximate) trigonometric sums for a number of frequencies.
@@ -392,11 +405,11 @@ def trig_sum(
         The number of adjacent points to use in the FFT approximation.
         Not referenced if use_fft is False  or prefer_lra is True and SciPy is available.
     algorithm : str, optional
-        Referenced only if use_fft is true.
+        This option is ignored if if use_fft is False.
         Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
         Currently there are two available options:
 
-        - 'fasper': use Press & Rybicki's Lagrangian extirpolation instead. This is the default option.
+        - 'fasper': use Press & Rybicki's piecewise Lagrange polynomial extirpolation. This is the default option.
         - 'lra': Use the more accurate (but slower) Low Rank Approximation by Ruiz-Antolin and Townsend.
 
     eps : float
@@ -419,7 +432,7 @@ def trig_sum(
 
     if use_fft:
         t0 = t.min()
-        if algorithm == 'lra':
+        if algorithm == "lra":
             if f0 != 0:
                 h = h * np.exp(2j * np.pi * f0 * (t - t0))
 
