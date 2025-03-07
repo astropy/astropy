@@ -185,6 +185,43 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert "DATASUM" in hdul[1].header
             assert hdul[1].header["DATASUM"] == "1507485"
 
+    def test_variable_length_table_data2(self):
+        """regression test for #12119"""
+
+        time_data = [
+            np.array([2021, 1, 5, 10, 5, 30], dtype=np.uint16),
+            np.array([2021, 2, 19, 11, 19, 56], dtype=np.uint16),
+            np.array([2021, 4, 21, 16, 10, 24], dtype=np.uint16),
+            np.array([2021, 7, 22, 14, 42, 20], dtype=np.uint16),
+        ]
+        time_col = fits.Column(name="time", format="6I", array=time_data)
+
+        version_data = ["5.45.70", "5.45.71", "5.45.102", "5.50.109"]
+        version_col = fits.Column(name="Version", format="PA(8)", array=version_data)
+        columns = [time_col, version_col]
+
+        testfile = self.temp("tmp.fits")
+        tbl = fits.BinTableHDU.from_columns(columns, name="DemoBinTable")
+        hdul = fits.HDUList([fits.PrimaryHDU(), tbl])
+
+        # here checksum is computed from in-memory data, which was producing
+        # a wrong checksum and warnings when reading back the file
+        hdul.writeto(testfile, checksum=True)
+
+        testfile2 = self.temp("tmp2.fits")
+        with fits.open(testfile, checksum=True) as hdul:
+            checksum = hdul[1]._checksum
+            datasum = hdul[1]._datasum
+            # so write again the file but here data was not loaded so checksum
+            # is computed directly from the file bytes, which was producing
+            # a correct checksum. Below we compare both to make sure they are
+            # consistent.
+            hdul.writeto(testfile2, checksum=True)
+
+        with fits.open(testfile2, checksum=True) as hdul:
+            assert checksum == hdul[1]._checksum
+            assert datasum == hdul[1]._datasum
+
     def test_ascii_table_data(self):
         a1 = np.array(["abc", "def"])
         r1 = np.array([11.0, 12.0])
