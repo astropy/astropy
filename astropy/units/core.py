@@ -27,8 +27,7 @@ from .utils import (
     is_effectively_unity,
     resolve_fractions,
     sanitize_power,
-    sanitize_scale_type,
-    sanitize_scale_value,
+    sanitize_scale,
 )
 
 if TYPE_CHECKING:
@@ -2074,7 +2073,7 @@ class _UnitMetaClass(type):
             if is_effectively_unity(s.value):
                 return s.unit
             return CompositeUnit(
-                sanitize_scale_type(s.value) * s.unit.scale,
+                sanitize_scale(s.value) * s.unit.scale,
                 bases=s.unit.bases,
                 powers=s.unit.powers,
                 _error_check=False,
@@ -2294,7 +2293,7 @@ class CompositeUnit(UnitBase):
         # kwarg `_error_check` is False, the error checking is turned
         # off.
         if _error_check:
-            scale = sanitize_scale_type(scale)
+            scale = sanitize_scale(scale)
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError("bases must be sequence of UnitBase instances")
@@ -2321,7 +2320,7 @@ class CompositeUnit(UnitBase):
                     for p in unit.powers
                 ]
 
-            self._scale = sanitize_scale_value(scale)
+            self._scale = sanitize_scale(scale)
         else:
             # Regular case: use inputs as preliminary scale, bases, and powers,
             # then "expand and gather" identical bases, sanitize the scale, &c.
@@ -2395,7 +2394,7 @@ class CompositeUnit(UnitBase):
 
         self._bases = [x[0] for x in new_parts]
         self._powers = [sanitize_power(x[1]) for x in new_parts]
-        self._scale = sanitize_scale_value(scale)
+        self._scale = sanitize_scale(scale)
 
     def __copy__(self) -> CompositeUnit:
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])

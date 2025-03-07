@@ -11,7 +11,7 @@ from __future__ import annotations
 import io
 import re
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, SupportsFloat
 
 import numpy as np
 from numpy import finfo
@@ -190,37 +190,22 @@ def is_effectively_unity(value: UnitScaleLike) -> bool | np.bool_:
         )
 
 
-def sanitize_scale_type(scale: UnitScaleLike) -> UnitScale:
-    if not scale:
-        raise UnitScaleError("cannot create a unit with a scale of 0.")
-
-    # Maximum speed for regular case where scale is a float.
-    if scale.__class__ is float:
-        return scale
-
-    # We cannot have numpy scalars, since they don't autoconvert to
-    # complex if necessary.  They are also slower.
-    return scale.item() if isinstance(scale, np.number) else scale
-
-
-def sanitize_scale_value(scale: UnitScale) -> UnitScale:
+def sanitize_scale(scale: UnitScaleLike) -> UnitScale:
     if is_effectively_unity(scale):
         return 1.0
-
-    # All classes that scale can be (int, float, complex, Fraction)
-    # have an "imag" attribute.
-    if scale.imag:
-        if abs(scale.real) > abs(scale.imag):
-            if is_effectively_unity(scale.imag / scale.real + 1):
-                return scale.real
-
-        elif is_effectively_unity(scale.real / scale.imag + 1):
-            return complex(0.0, scale.imag)
-
+    if not scale:
+        raise UnitScaleError("cannot create a unit with a scale of 0.")
+    if type(scale) is float:  # float is very common, so handle it fast
         return scale
+    if isinstance(scale, SupportsFloat):
+        return float(scale)
 
-    else:
-        return scale.real
+    if abs(scale.real) > abs(scale.imag):
+        if is_effectively_unity(scale.imag / scale.real + 1):
+            return float(scale.real)
+    elif is_effectively_unity(scale.real / scale.imag + 1):
+        return complex(0.0, scale.imag)
+    return complex(scale)
 
 
 def maybe_simple_fraction(p: UnitPowerLike, max_denominator: int = 100) -> UnitPower:
