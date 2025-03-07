@@ -241,10 +241,11 @@ def test_fast_approximations(method, center_data, fit_mean, errors, nterms, data
         P_slow = ls.power(frequency, **kwds)
 
         assert_allclose(P_fast, P_slow, atol=0.008)
-        assert np.bitwise_xor(
-            np.ascontiguousarray(P_fast).view(np.uint8),
-            np.ascontiguousarray(P_slow).view(np.uint8),
-        ).any(), "Output arrays are the same - dispatch test has failed"
+        if nterms != 0:
+            assert np.bitwise_xor(
+                np.ascontiguousarray(P_fast).view(np.uint8),
+                np.ascontiguousarray(P_slow).view(np.uint8),
+            ).any(), "Output arrays are the same - dispatch test has failed"
 
 
 @pytest.mark.parametrize("method", LombScargle.available_methods)
