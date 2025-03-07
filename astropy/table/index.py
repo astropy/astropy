@@ -31,12 +31,18 @@ Notes
     array.view(Column) -> no indices
 """
 
+from __future__ import annotations
+
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from .bst import MaxValue, MinValue
 from .sorted_array import SortedArray
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 class QueryError(ValueError):
@@ -826,21 +832,27 @@ class TableLoc:
         self.table = table
         self.indices = table.indices
 
-    def _get_rows(self, item):
+    def _get_rows(
+        self,
+        item: int | Iterable[int] | slice | tuple[str, slice],
+    ) -> list[np.int64]:
         """
         Retrieve Table rows indexes by value slice.
         """
         if len(self.indices) == 0:
             raise ValueError("Can only use TableLoc for a table with indices")
 
-        if isinstance(item, tuple):
+        if (
+            isinstance(item, tuple)
+            and len(item) == 2
+            and isinstance(item[0], str)
+            and isinstance(item[1], slice)
+        ):
             key, item = item
         else:
             key = self.table.primary_key
 
         index = self.indices[key]
-        if len(index.columns) > 1:
-            raise ValueError("Cannot use .loc on multi-column indices")
 
         if isinstance(item, slice):
             # None signifies no upper/lower bound
@@ -853,7 +865,7 @@ class TableLoc:
             # item should be a list or ndarray of values
             rows = []
             for key in item:
-                p = index.find((key,))
+                p = index.find(key if isinstance(key, tuple) else (key,))
                 if len(p) == 0:
                     raise KeyError(f"No matches found for key {key}")
                 else:
