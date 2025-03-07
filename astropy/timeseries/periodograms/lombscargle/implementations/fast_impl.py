@@ -15,7 +15,8 @@ def lombscargle_fast(
     normalization="standard",
     use_fft=True,
     trig_sum_kwds=None,
-    algorithm='fasper',
+    *,
+    algorithm="fasper",
 ):
     """Fast Lomb-Scargle Periodogram.
 
@@ -45,11 +46,11 @@ def lombscargle_fast(
         Options are ``oversampling``, ``Mfft`` and ``eps``. See documentation
         of ``trig_sum`` for details.
     algorithm : str, optional
-        Referenced only if use_fft is true.
+        This option is ignored if if use_fft is False.
         Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
-        Currently there are two available options:
+        Supported options are:
 
-        - 'fasper': use Press & Rybicki's Lagrangian extirpolation instead. This is the default option.
+        - 'fasper': use Press & Rybicki's piecewise Lagrange polynomial extirpolation. This is the default option.
         - 'lra': Use the more accurate (but slower) Low Rank Approximation by Ruiz-Antolin and Townsend.
 
     Returns

@@ -1,3 +1,2 @@
-The ``prefer_lra`` option is now available for ``trig_sum``.
-The function increases the accuracy of trig_sum utility.
-To disable use it, pass ``trig_sum(..., my_new_feature=False)``.
+Add support for Low Rank Approximation (LRA) to ``trig_sum``.
+This is enabled by passing the new argument ``algorithm='lra'``.

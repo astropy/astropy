@@ -64,43 +64,46 @@ def trig_sum_data():
 @pytest.mark.parametrize("adjust_t", [True, False])
 @pytest.mark.parametrize("freq_factor", [1, 2])
 @pytest.mark.parametrize("df", [0.1])
-
 def test_trig_sum(f0, adjust_t, freq_factor, df, trig_sum_data):
     t, h = trig_sum_data
 
     tfit = t - t.min() if adjust_t else t
-    S1, C1 = trig_sum(
-        tfit,
-        h,
-        df,
-        N=1000,
-        use_fft=True,
-        f0=f0,
-        freq_factor=freq_factor,
-        oversampling=10,
-    )
-    S2, C2 = trig_sum(
-        tfit,
-        h,
-        df,
-        N=1000,
-        use_fft=False,
-        f0=f0,
-        freq_factor=freq_factor,
-        oversampling=10,
-    )
-        S3, C3 = trig_sum(
-        tfit,
-        h,
-        df,
-        N=1000,
-        use_fft=False,
-        f0=f0,
-        freq_factor=freq_factor,
-        oversampling=10,
-        algorithm='lra'
-    )
-    assert_allclose(S1, S2, atol=1e-2)
-    assert_allclose(C1, C2, atol=1e-2)
-    assert_allclose(C1, C3, atol=1e-7)
-    assert_allclose(C1, C3, atol=1e-7)
+
+    kwargs_ref = {"use_fft": False, "f0": f0, "freq_factor": freq_factor}
+    S0, C0 = trig_sum(tfit, h, df, N=1000, **kwargs_ref)
+
+    results = [(S0, C0)]
+
+    fast_methods = [
+        (
+            {
+                "oversampling": 10,
+                "algorithm": "fasper",
+                "f0": f0,
+                "freq_factor": freq_factor,
+            },
+            1e-2,
+        ),
+        (
+            {"algorithm": "lra", "f0": f0, "freq_factor": freq_factor},
+            1e-7,
+        ),
+    ]
+
+    for alt_kwargs, tol in fast_methods:
+        S, C = trig_sum(tfit, h, df, N=1000, **alt_kwargs)
+
+        assert_allclose(S0, S, atol=tol)
+        assert_allclose(C0, C, atol=tol)
+
+        for prev_S, prev_C in results:
+            assert np.bitwise_xor(
+                np.ascontiguousarray(prev_S).view(np.uint8),
+                np.ascontiguousarray(S).view(np.uint8),
+            ).any(), "Output arrays are the same - dispatch test has failed"
+            assert np.bitwise_xor(
+                np.ascontiguousarray(prev_C).view(np.uint8),
+                np.ascontiguousarray(C).view(np.uint8),
+            ).any(), "Output arrays are the same - dispatch test has failed"
+
+        results.append((S, C))
