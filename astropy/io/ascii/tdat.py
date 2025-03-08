@@ -305,7 +305,7 @@ class TdatHeader(basic.BasicHeader):
                             \n{line}\n"
                         + _STD_MSG
                     )
-                col.description = f'{cmatch.group("desc")}'.strip()
+                col.description = f"{cmatch.group('desc')}".strip()
                 for val in ["comment", "ucd", "index"]:
                     if cmatch.group(val) is not None:
                         text = cmatch.group(val).strip()
@@ -370,7 +370,7 @@ class TdatHeader(basic.BasicHeader):
                     "'table_name' is too long, truncating to 20 characters",
                     TdatFormatWarning,
                 )
-            lines.append(f'table_name = {keywords.pop("table_name")[:20]}')
+            lines.append(f"table_name = {keywords.pop('table_name')[:20]}")
         else:
             warn(
                 "'table_name' must be specified\n"  # noqa: ISC003
@@ -578,7 +578,7 @@ class TdatData(core.BaseData):
         record_delimiter = getattr(
             self.header, "record_delimiter", self.splitter.record_delimiter
         )
-        allowed_delimiters = map(chr, range(1, 128))
+        allowed_delimiters = list(map(chr, range(1, 128)))
         if record_delimiter is not None:
             if record_delimiter not in allowed_delimiters:
                 raise TdatFormatError(
