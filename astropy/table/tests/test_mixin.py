@@ -114,18 +114,19 @@ def test_io_ascii_write():
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
-    import warnings
 
     from astropy.io.ascii.connect import _get_connectors_table
-    from astropy.io.ascii.tdat import TdatFormatWarning
-
-    warnings.filterwarnings("ignore", category=TdatFormatWarning)
 
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
         if fmt["Write"] and ".fast" not in fmt["Format"]:
             out = StringIO()
-            t.write(out, format=fmt["Format"])
+            if fmt["Format"] == "ascii.tdat":
+                t.meta["table_name"] = "origin_test"
+                t.write(out, format=fmt["Format"])
+                t.meta.pop("table_name")
+            else:
+                t.write(out, format=fmt["Format"])
 
 
 def test_votable_quantity_write(tmp_path):
