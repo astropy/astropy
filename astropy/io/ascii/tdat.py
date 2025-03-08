@@ -578,18 +578,16 @@ class TdatData(core.BaseData):
         record_delimiter = getattr(
             self.header, "record_delimiter", self.splitter.record_delimiter
         )
-        # \8* and \9* are invalid escape sequences
-        allowed_range = list(range(1, 128))
-        del allowed_range[79:99]
-        del allowed_range[7:9]
-        allowed_record_delimiters = {
-            bytes(rf"\{n}", "utf-8").decode("unicode_escape") for n in allowed_range
-        }
-        allowed_record_delimiters.update({"\\t", "\\b", "\\r", "\\f", "\\v", "\\a", ""})
+        allowed_delimiters = map(chr, range(1, 128))
         if record_delimiter is not None:
-            if record_delimiter not in allowed_record_delimiters:
-                raise TdatFormatError("Unsupported record delimiter.")
-
+            if record_delimiter not in allowed_delimiters:
+                raise TdatFormatError(
+                    f"Unsupported record delimiter: {record_delimiter}."
+                )
+            if record_delimiter == "|":
+                raise TdatFormatError("'|' character reserved for field delimiter.")
+        if field_delimiter not in allowed_delimiters:
+            raise TdatFormatError(f"Unsupported field delimiter: {field_delimiter}.")
         nlines = len(self.header._line_fields)
         return self.splitter(self.data_lines, field_delimiter, record_delimiter, nlines)
 
