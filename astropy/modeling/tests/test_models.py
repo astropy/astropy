@@ -923,7 +923,7 @@ def test_tabular1d_inverse():
     points = np.arange(5)
     values = np.array([1.5, 3.4, 3.4, 32, 25])
     t = models.Tabular1D(points, values)
-    with pytest.raises(NotImplementedError, match=r""):
+    with pytest.raises(NotImplementedError, match=r"^$"):
         t.inverse((3.4, 7.0))
 
     # Check that Tabular2D.inverse raises an error
@@ -931,7 +931,10 @@ def test_tabular1d_inverse():
     points = np.arange(0, 5)
     points = (points, points)
     t3 = models.Tabular2D(points=points, lookup_table=table)
-    with pytest.raises(NotImplementedError, match=r""):
+    with pytest.raises(
+        NotImplementedError,
+        match=r"An analytical inverse transform has not been implemented for this model\.",
+    ):
         t3.inverse((3, 3))
 
     # Check that it uses the same kwargs as the original model
