@@ -164,7 +164,7 @@ class Base:
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
         # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".
-        s = "" if unit.scale == 1 else cls.format_exponential_notation(unit.scale)
+        s = "" if unit.scale == 1.0 else cls.format_exponential_notation(unit.scale)
 
         # dimensionless does not have any bases, but can have a scale;
         # e.g., u.percent.decompose() gives "0.01".
