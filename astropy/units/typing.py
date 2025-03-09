@@ -74,8 +74,8 @@ UnitPower: TypeAlias = int | float | Fraction
 UnitPowerLike: TypeAlias = UnitPower | np.integer | np.floating
 """Alias for types that can be used to create powers of the components of a
 `~astropy.units.UnitBase` instance"""
-UnitScale: TypeAlias = int | float | Fraction | complex
+UnitScale: TypeAlias = float | complex
 "Alias for types that can be scale factors of a `~astropy.units.CompositeUnit`"
-UnitScaleLike: TypeAlias = UnitScale | np.number
+UnitScaleLike: TypeAlias = UnitScale | int | Fraction | np.number
 """Alias for types that can be used to create scale factors of a
 `~astropy.units.CompositeUnit`"""
