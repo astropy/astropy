@@ -99,9 +99,9 @@ def test_all_methods(
     )
     P_expected = ls.power(frequency)
 
-    # don't use the fft approximation here; we'll test this elsewhere
+    # don't use the lagrangian approximation here; we'll test this elsewhere
     if method in FAST_METHODS:
-        kwds["method_kwds"] = dict(use_fft=False)
+        kwds["method_kwds"] = dict(algorithm="lra")
     P_method = ls.power(frequency, method=method, **kwds)
 
     if with_units:
@@ -186,10 +186,11 @@ def test_nterms_methods(
     else:
         P_expected = ls.power(frequency)
 
-        # don't use fast fft approximations here
+        # don't use the Lagrange polynomial approximation here
         kwds = {}
         if "fast" in method:
-            kwds["method_kwds"] = dict(use_fft=False)
+            kwds["method_kwds"] = dict(algorithm="lra")
+
         P_method = ls.power(frequency, method=method, **kwds)
 
         assert_allclose(P_expected, P_method, rtol=1e-7, atol=1e-25)
@@ -224,7 +225,7 @@ def test_fast_approximations(method, center_data, fit_mean, errors, nterms, data
     )
 
     # use only standard normalization because we compare via absolute tolerance
-    kwds = dict(method=method)
+    kwds = dict(method=method, method_kwds={})
 
     if method == "fast" and nterms != 1:
         with pytest.raises(ValueError, match=r"nterms"):
@@ -240,6 +241,11 @@ def test_fast_approximations(method, center_data, fit_mean, errors, nterms, data
         P_slow = ls.power(frequency, **kwds)
 
         assert_allclose(P_fast, P_slow, atol=0.008)
+        if nterms != 0:
+            assert np.bitwise_xor(
+                np.ascontiguousarray(P_fast).view(np.uint8),
+                np.ascontiguousarray(P_slow).view(np.uint8),
+            ).any(), "Output arrays are the same - dispatch test has failed"
 
 
 @pytest.mark.parametrize("method", LombScargle.available_methods)
