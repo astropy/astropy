@@ -16,7 +16,7 @@ readers.
 .. attention::
 
     The ECSV format is the recommended way to store Table data in a
-    human-readable ASCII file. This includes use cases from informal
+    human-readable text file. This includes use cases from informal
     use in science research to production pipelines and data systems.
 
     In addition to Python, ECSV is supported in |TOPCAT|

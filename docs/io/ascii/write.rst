@@ -5,7 +5,7 @@
 Writing Tables
 ==============
 
-:mod:`astropy.io.ascii` is able to write ASCII tables out to a file or file-like
+:mod:`astropy.io.ascii` is able to write text tables out to a file or file-like
 object using the same class structure and basic user interface as for reading
 tables.
 
@@ -19,16 +19,16 @@ this example:
   >>> ascii.write.help("html")  # Common help plus "html" format-specific args
 
 The |write| function provides a way to write a data table as a
-formatted ASCII table.
+formatted text table.
 
 Examples
 --------
 
 ..
   EXAMPLE START
-  Writing ASCII Tables Using astropy.io.ascii
+  Writing Text Tables Using astropy.io.ascii
 
-To write a formatted ASCII table using the |write| function::
+To write a formatted text table using the |write| function::
 
   >>> import numpy as np
   >>> from astropy.io import ascii
@@ -52,7 +52,7 @@ example::
 
   >>> data.write('values.dat', format='ascii', overwrite=True)  # doctest: +SKIP
 
-For a more reproducible ASCII version of your table, we recommend using the
+For a more reproducible text version of your table, we recommend using the
 :ref:`ecsv_format`. This stores all the table meta-data (in particular the
 column types and units) to a comment section at the beginning while still
 maintaining compatibility with most plain CSV readers. It also allows storing
@@ -137,7 +137,7 @@ details.
   homogeneous).
 
 **format**: output format (default='basic')
-  This specifies the format of the ASCII table to be written, such as a basic
+  This specifies the format of the text table to be written, such as a basic
   character delimited table, fixed-format table, or a CDS-compatible table,
   etc. The value of this parameter must be one of the :ref:`supported_formats`.
 
