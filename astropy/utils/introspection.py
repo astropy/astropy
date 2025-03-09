@@ -228,7 +228,7 @@ def find_current_module(
 
     """
     frm = inspect.currentframe()
-    for i in range(depth):
+    for _ in range(depth):
         frm = frm.f_back
         if frm is None:
             return None

@@ -1050,7 +1050,7 @@ class Section:
         return data
 
     def _getdata(self, keys):
-        for idx, (key, axis) in enumerate(zip(keys, self.hdu.shape)):
+        for _idx, (key, axis) in enumerate(zip(keys, self.hdu.shape)):
             if isinstance(key, slice):
                 ks = range(*key.indices(axis))
                 break
@@ -1061,9 +1061,9 @@ class Section:
                 break
             # This should always break at some point if _getdata is called.
 
-        data = [self[keys[:idx] + (k,) + keys[idx + 1 :]] for k in ks]
+        data = [self[keys[:_idx] + (k,) + keys[_idx + 1 :]] for k in ks]
 
-        if any(isinstance(key, slice) or isiterable(key) for key in keys[idx + 1 :]):
+        if any(isinstance(key, slice) or isiterable(key) for key in keys[_idx + 1 :]):
             # data contains multidimensional arrays; combine them.
             return np.array(data)
         else:

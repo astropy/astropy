@@ -73,12 +73,12 @@ class FixedWidthHeader(basic.BasicHeader):
     set_of_position_line_characters = set(r"""`~!#$%^&*-_+=\|":'""")
 
     def get_line(self, lines, index):
-        for i, line in enumerate(self.process_lines(lines)):
+        for i, _line in enumerate(self.process_lines(lines)):
             if i == index:
                 break
         else:  # No header line matching
             raise InconsistentTableError("No header line found in table")
-        return line
+        return _line
 
     def get_cols(self, lines):
         """
