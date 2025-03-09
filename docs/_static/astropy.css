@@ -8,6 +8,14 @@
   margin-top: 10px;
 }
 
+/* Font size overrides */
+html {
+  // heading font sizes reverted to smaller old "current" values as stated in
+  // https://github.com/Quansight-Labs/czi-scientific-python-mgmt/issues/97#issuecomment-2310531483
+  --pst-font-size-h1: 2.5rem;
+  --pst-font-size-h2: 2rem;
+}
+
 /* Dark theme tweaking */
 html[data-theme=dark] .sd-card img[src*='.svg'] {
     filter: invert(0.82) brightness(0.8) contrast(1.2);
