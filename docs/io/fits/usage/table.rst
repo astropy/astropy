@@ -49,6 +49,7 @@ The underlying data structure used for FITS tables is a class called
 :class:`FITS_rec` can be instantiated directly from a
 numpy recarray::
 
+    >>> from astropy.io import fits
     >>> data = fits.FITS_rec(bright)
 
 You may also instantiate a new :class:`FITS_rec` from a list of `astropy.io.fits.Column`
