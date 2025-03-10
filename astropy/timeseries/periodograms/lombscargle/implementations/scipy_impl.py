@@ -2,8 +2,12 @@ import numpy as np
 
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+from .utils import SCIPY_LT_1_15
 
-def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=True):
+
+def lombscargle_scipy(
+        t, y, frequency, normalization="standard", fit_mean=False, center_data=True
+):
     """Lomb-Scargle Periodogram.
 
     This is a wrapper of ``scipy.signal.lombscargle`` for computation of the
@@ -20,6 +24,11 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
     normalization : str, optional
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
+    fit_mean : bool, optional
+        if True, include a constant offset as part of the model at each
+        frequency. This can lead to more accurate results, especially in the
+        case of incomplete phase coverage. Requires Scipy 1.15 and corresponds
+        to the ``floating_mean`` argument in `scipy.signal.lombscargle`.
     center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data.
@@ -56,8 +65,16 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
     if center_data:
         y = y - y.mean()
 
-    # Note: scipy input accepts angular frequencies
-    p = signal.lombscargle(t, y, 2 * np.pi * frequency)
+    if SCIPY_LT_1_15:
+        if fit_mean:
+            raise NotImplementedError("`fit_mean=True` requires Scipy 1.15+")
+        else:
+            kwargs = {}
+    else:
+        kwargs = {"floating_mean": fit_mean}
+
+    # Note: scipy `freqs` input is in angular frequencies
+    p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
 
     if normalization == "psd":
         pass
