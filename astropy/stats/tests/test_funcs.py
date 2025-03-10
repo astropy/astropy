@@ -831,7 +831,7 @@ def test_fpp_kuiper_two(N, M):
         R = 100
         fpp = 0.05
         fps = 0
-        for i in range(R):
+        for _ in range(R):
             D, f = funcs.kuiper_two(np.random.random(N), np.random.random(M))
             if f < fpp:
                 fps += 1

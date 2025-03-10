@@ -500,7 +500,7 @@ def fits_to_time(hdr, table):
     hcopy = hdr.copy(strip=True)
 
     # Scan the header for global and column-specific time keywords
-    for key, value, comment in hdr.cards:
+    for key, value, _ in hdr.cards:
         if key in TIME_KEYWORDS:
             global_info[key] = value
             hcopy.remove(key)
