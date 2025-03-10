@@ -39,24 +39,3 @@ if __doc__ is not None:
 
     __doc__ += _generate_unit_summary(globals())
     __doc__ += _generate_prefixonly_unit_summary(globals())
-
-
-def _enable():
-    """
-    Enable the VOUnit-required extra units so they appear in results of
-    `~astropy.units.UnitBase.find_equivalent_units` and
-    `~astropy.units.UnitBase.compose`, and are recognized in the ``Unit('...')``
-    idiom.
-    """
-    # Local import to avoid cyclical import
-    # Local import to avoid polluting namespace
-    import inspect
-
-    from .core import add_enabled_units
-
-    return add_enabled_units(inspect.getmodule(_enable))
-
-
-# Because these are VOUnit mandated units, they start enabled (which is why the
-# function is hidden).
-_enable()
