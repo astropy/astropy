@@ -203,7 +203,6 @@ lint.unfixable = [
 "astropy/constants/*" = []
 "astropy/convolution/*" = []
 "astropy/coordinates/*" = [
-    "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
 ]
 "astropy/cosmology/*" = [
