@@ -204,7 +204,6 @@ lint.unfixable = [
 "astropy/coordinates/*" = [
     "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/cosmology/*" = [
     "PT019",   # pytest-fixture-param-without-value
@@ -220,7 +219,6 @@ lint.unfixable = [
     "TD005",  # Missing issue description after `TODO`
     "TRY400",  # error-instead-of-exception
     "TRY300",  # Consider `else` block
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/io/ascii/*" = [
     "B007",  # UnusedLoopControlVariable
@@ -228,7 +226,6 @@ lint.unfixable = [
 "astropy/io/fits/*" = [
     "B007",  # UnusedLoopControlVariable
     "PTH",
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/io/misc/*" = [
     "B007",  # UnusedLoopControlVariable
@@ -246,34 +243,28 @@ lint.unfixable = [
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
     "TRY300",  # Consider `else` block
     "F811",  # see https://github.com/astropy/astropy/pull/16633
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/nddata/*" = []
 "astropy/samp/*" = [
     "PTH",      # all flake8-use-pathlib
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/stats/*" = [
     "B007",  # UnusedLoopControlVariable
     "PLR0911",  # too-many-return-statements
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/table/*" = [
     "B007",  # UnusedLoopControlVariable
     "S605",  # Starting a process with a shell, possible injection detected
     "TRY300",  # Consider `else` block
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/tests/*" = [
     "B007",  # UnusedLoopControlVariable
     "PTH",      # all flake8-use-pathlib
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/time/*" = [
     "B007",  # UnusedLoopControlVariable
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/timeseries/*" = [
     "PLR0911",  # too-many-return-statements
@@ -283,7 +274,6 @@ lint.unfixable = [
     "N812",  # lowercase-imported-as-non-lowercase
     "PLR0911",  # too-many-return-statements
     "TRY300",  # Consider `else` block
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/uncertainty/*" = []
 "astropy/utils/*" = [
@@ -293,7 +283,6 @@ lint.unfixable = [
     "PTH",      # all flake8-use-pathlib
     "S321",  # Suspicious-ftp-lib-usage
     "TRY300",  # Consider `else` block
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/visualization/*" = [
     "B007",  # UnusedLoopControlVariable
@@ -301,7 +290,6 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/wcs/*" = [
-    "B007",  # UnusedLoopControlVariable
     "F821",  # undefined-name
     "PTH",      # all flake8-use-pathlib
     "S608",  # Posslibe SQL injection
