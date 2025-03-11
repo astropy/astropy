@@ -2942,11 +2942,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         if display_warning:
             full_header = self.to_header(relax=True, key=key)
-            missing_keys = []
-            for kw in full_header.keys():
-                if kw not in header:
-                    missing_keys.append(kw)
-
+            missing_keys = [k for k in full_header if k not in header]
             if missing_keys:
                 warnings.warn(
                     "Some non-standard WCS keywords were excluded:"
