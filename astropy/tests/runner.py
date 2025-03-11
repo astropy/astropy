@@ -12,10 +12,10 @@ from functools import wraps
 from importlib.util import find_spec
 from pathlib import Path
 
-from astropy.utils import find_current_module
+from astropy.utils import deprecated, find_current_module
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
-__all__ = ["TestRunner", "TestRunnerBase", "keyword"]
+__all__ = ["TestRunner", "TestRunnerBase"]
 
 
 class keyword:
@@ -48,13 +48,14 @@ class keyword:
         return keyword
 
 
+@deprecated("7.1", alternative="pytest", pending=True)
 class TestRunnerBase:
     """
     The base class for the TestRunner.
 
     A test runner can be constructed by creating a subclass of this class and
     defining 'keyword' methods. These are methods that have the
-    :class:`~astropy.tests.runner.keyword` decorator, these methods are used to
+    ``astropy.tests.runner.keyword`` decorator, these methods are used to
     construct allowed keyword arguments to the
     `~astropy.tests.runner.TestRunnerBase.run_tests` method as a way to allow
     customization of individual keyword arguments (and associated logic)
@@ -289,6 +290,7 @@ class TestRunnerBase:
         return test
 
 
+@deprecated("7.1", alternative="pytest", pending=True)
 class TestRunner(TestRunnerBase):
     """
     A test runner for astropy tests.
