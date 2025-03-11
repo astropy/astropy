@@ -61,10 +61,10 @@ def test_find_mod_objs():
     # find_mod_objs properly imports astropy on its own
     import astropy
 
-    # just check for astropy.test ... other things might be added, so we
+    # just check for astropy.conf ... other things might be added, so we
     # shouldn't check that it's the only thing
-    assert "test" in lnms
-    assert astropy.test in objs
+    assert "conf" in lnms
+    assert astropy.conf in objs
 
     with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
         lnms, fqns, objs = find_mod_objs(__name__, onlylocals=False)
