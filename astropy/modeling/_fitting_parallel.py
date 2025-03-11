@@ -171,7 +171,7 @@ def _fit_models_to_chunk(
             if diagnostics is not None and diagnostics.startswith("error"):
                 output = True
             error = traceback.format_exc()
-            for ipar, _ in enumerate(model_i.param_names):
+            for ipar in range(len(model_i.param_names)):
                 parameters[(ipar,) + index] = np.nan
         else:
             # Put fitted parameters back into parameters arrays. These arrays are
