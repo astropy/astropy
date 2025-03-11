@@ -289,9 +289,9 @@ lint.unfixable = [
     "B007",  # UnusedLoopControlVariable
 ]
 "astropy/visualization/*" = [
+    "B007",  # UnusedLoopControlVariable
     "B015",
     "PLR0911",  # too-many-return-statements
-    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/wcs/*" = [
     "F821",  # undefined-name
