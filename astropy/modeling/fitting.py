@@ -1175,10 +1175,10 @@ class _NonLinearLSQFitter(Fitter):
             raise NonFiniteValueError(
                 "Objective function has encountered a non-finite value, "
                 "this will cause the fit to fail!\n"
-                "This can be caused by non-finite values in the input data, "
-                "which can be removed with fit(..., filter_non_finite=True), "
-                "or by bad data during the fit iterations producing "
-                "numerical errors."
+                "This can be caused by non-finite values in the input data "
+                "or weights, which can be removed with fit(..., "
+                "filter_non_finite=True), or by diverging model parameters "
+                "that yield non-finite model values."
             )
 
         return value
