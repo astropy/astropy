@@ -79,3 +79,4 @@ UnitScale: TypeAlias = float | complex
 UnitScaleLike: TypeAlias = UnitScale | int | Fraction | np.number
 """Alias for types that can be used to create scale factors of a
 `~astropy.units.CompositeUnit`"""
+PhysicalTypeID: TypeAlias = tuple[tuple[str, UnitPower], ...]

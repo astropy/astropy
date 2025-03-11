@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from collections.abc import Collection
     from typing import Self
 
-    from astropy.units.typing import UnitPower
+    from astropy.units.typing import PhysicalTypeID
 
 __all__ = ["FunctionQuantity", "FunctionUnitBase"]
 
@@ -195,7 +195,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         return self._copy(self.physical_unit.cgs)
 
     @cached_property
-    def _physical_type_id(self) -> tuple[tuple[str, UnitPower], ...]:
+    def _physical_type_id(self) -> PhysicalTypeID:
         """Get physical type corresponding to physical unit."""
         return self.physical_unit._physical_type_id
 

@@ -38,7 +38,13 @@ if TYPE_CHECKING:
     from .format import Base
     from .physical import PhysicalType
     from .quantity import Quantity
-    from .typing import UnitPower, UnitPowerLike, UnitScale, UnitScaleLike
+    from .typing import (
+        PhysicalTypeID,
+        UnitPower,
+        UnitPowerLike,
+        UnitScale,
+        UnitScaleLike,
+    )
 
 __all__ = [
     "CompositeUnit",
@@ -669,7 +675,7 @@ class UnitBase:
         return f'Unit("{self}")'
 
     @cached_property
-    def _physical_type_id(self) -> tuple[tuple[str, UnitPower], ...]:
+    def _physical_type_id(self) -> PhysicalTypeID:
         """
         Returns an identifier that uniquely identifies the physical
         type of this unit.  It is comprised of the bases and powers of
@@ -2204,9 +2210,7 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         return hash((self.name, self._represents))
 
     @classmethod
-    def _from_physical_type_id(
-        cls, physical_type_id: tuple[tuple[str, UnitPower], ...]
-    ) -> UnitBase:
+    def _from_physical_type_id(cls, physical_type_id: PhysicalTypeID) -> UnitBase:
         if len(physical_type_id) == 1 and physical_type_id[0][1] == 1:
             return cls(physical_type_id[0][0])
         # get string bases and powers from the ID tuple
