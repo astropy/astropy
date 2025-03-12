@@ -154,35 +154,35 @@ def test_slices_nonfinite_position(position):
         (
             (3, 5),
             (4, 5),
-            "ceil",
+            np.ceil,
             (slice(3, 6), slice(3, 8)),
             (slice(0, 3), slice(0, 5)),
         ),
         (
             (3, 5),
             (4, 5),
-            "floor",
+            np.floor,
             (slice(2, 5), slice(2, 7)),
             (slice(0, 3), slice(0, 5)),
         ),
         (
             (3, 5),
             (4.2, 5.6),
-            "round",
+            np.round,
             (slice(3, 6), slice(3, 8)),
             (slice(0, 3), slice(0, 5)),
         ),
         (
             (3, 3),
             (6, 6),
-            "round",
+            np.round,
             (slice(4, 7), slice(4, 7)),
             (slice(0, 3), slice(0, 3)),
         ),
         (
             (3, 3),
             (5, 5),
-            "round",
+            np.round,
             (slice(4, 7), slice(4, 7)),
             (slice(0, 3), slice(0, 3)),
         ),
@@ -212,7 +212,8 @@ def test_slices_limit_rounding_method(
 @pytest.mark.parametrize(
     "limit_rounding_method, error_msg",
     [
-        ("invalid", "^Limit rounding method can be only"),
+        (None, "^Limit rounding method must be a callable"),
+        ("invalid", "^Limit rounding method must be a callable"),
         (lambda x: (1, 2), "^Limit rounding method must accept a single number"),
         (lambda x: "invalid", "^Limit rounding method must accept a single number"),
         (lambda x, y: 1, "^Limit rounding method must accept a single number"),
@@ -634,9 +635,9 @@ class TestCutout2D:
     @pytest.mark.parametrize(
         "position, limit_rounding_method, expected_slices_original",
         [
-            ((2, 2), "ceil", (slice(1, 4), slice(1, 4))),
-            ((2, 2), "floor", (slice(0, 3), slice(0, 3))),
-            ((1.9, 2.9), "round", (slice(1, 4), slice(0, 3))),
+            ((2, 2), np.ceil, (slice(1, 4), slice(1, 4))),
+            ((2, 2), np.floor, (slice(0, 3), slice(0, 3))),
+            ((1.9, 2.9), np.round, (slice(1, 4), slice(0, 3))),
             ((2, 2), np.trunc, (slice(0, 3), slice(0, 3))),
         ],
     )

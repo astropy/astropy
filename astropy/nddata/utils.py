@@ -40,7 +40,7 @@ def overlap_slices(
     position,
     mode="partial",
     *,
-    limit_rounding_method="ceil",
+    limit_rounding_method=np.ceil,
 ):
     """
     Get slices for the overlapping part of a small and a large array.
@@ -76,12 +76,10 @@ def overlap_slices(
         otherwise an `~astropy.nddata.utils.PartialOverlapError` is
         raised.  In all modes, non-overlapping arrays will raise a
         `~astropy.nddata.utils.NoOverlapError`.
-    limit_rounding_method : 'ceil' (default), 'floor', 'round', or callable
+    limit_rounding_method : callable
         The rounding method when calculating the minimum and maximum pixel indices.
-        - ``'ceil'`` uses `~numpy.ceil`.
-        - ``'floor'`` uses `~numpy.floor`.
-        - ``'round'`` uses `~numpy.round`.
-        - A callable function can also be provided.
+        This must be a callable function. Examples: `~numpy.ceil`, `~numpy.floor`,
+        `~numpy.round`. Default is `~numpy.ceil`.
 
     Returns
     -------
@@ -117,27 +115,14 @@ def overlap_slices(
             '"position" must have the same number of dimensions as "small_array_shape".'
         )
 
-    # get the rounding function based on limit_rounding_method
-    if callable(limit_rounding_method):
-        round_func = limit_rounding_method
-    else:
-        match limit_rounding_method:
-            case "ceil":
-                round_func = np.ceil
-            case "floor":
-                round_func = np.floor
-            case "round":
-                round_func = np.round
-            case _:
-                raise ValueError(
-                    'Limit rounding method can be only "ceil", "floor", or "round", or a callable function.'
-                )
+    if not callable(limit_rounding_method):
+        raise ValueError("Limit rounding method must be a callable function.")
 
     # define the min/max pixel indices
     # round according to the limit_rounding_method
     try:
         indices_min = [
-            int(round_func(pos - (small_shape / 2.0)))
+            int(limit_rounding_method(pos - (small_shape / 2.0)))
             for (pos, small_shape) in zip(position, small_array_shape)
         ]
     except (TypeError, ValueError):
@@ -195,7 +180,7 @@ def extract_array(
     fill_value=np.nan,
     return_position=False,
     *,
-    limit_rounding_method="ceil",
+    limit_rounding_method=np.ceil,
 ):
     """
     Extract a smaller array of the given shape and position from a
@@ -236,12 +221,10 @@ def extract_array(
     return_position : bool, optional
         If `True`, return the coordinates of ``position`` in the
         coordinate system of the returned array.
-    limit_rounding_method : 'ceil' (default), 'floor', 'round', or callable
+    limit_rounding_method : callable
         The rounding method when calculating the minimum and maximum pixel indices.
-        - ``'ceil'`` uses `~numpy.ceil`.
-        - ``'floor'`` uses `~numpy.floor`.
-        - ``'round'`` uses `~numpy.round`.
-        - A callable function can also be provided.
+        This must be a callable function. Examples: `~numpy.ceil`, `~numpy.floor`,
+        `~numpy.round`. Default is `~numpy.ceil`.
 
     Returns
     -------
@@ -311,7 +294,7 @@ def extract_array(
         return extracted_array
 
 
-def add_array(array_large, array_small, position, *, limit_rounding_method="ceil"):
+def add_array(array_large, array_small, position, *, limit_rounding_method=np.ceil):
     """
     Add a smaller array at a given position in a larger array.
 
@@ -325,12 +308,10 @@ def add_array(array_large, array_small, position, *, limit_rounding_method="ceil
     position : tuple
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
-    limit_rounding_method : 'ceil' (default), 'floor', 'round', or callable
+    limit_rounding_method : callable
         The rounding method when calculating the minimum and maximum pixel indices.
-        - ``'ceil'`` uses `~numpy.ceil`.
-        - ``'floor'`` uses `~numpy.floor`.
-        - ``'round'`` uses `~numpy.round`.
-        - A callable function can also be provided.
+        This must be a callable function. Examples: `~numpy.ceil`, `~numpy.floor`,
+        `~numpy.round`. Default is `~numpy.ceil`.
 
     Returns
     -------
@@ -504,12 +485,10 @@ class Cutout2D:
         into the original ``data`` array.  If `True`, then the
         cutout data will hold a copy of the original ``data`` array.
 
-    limit_rounding_method : 'ceil' (default), 'floor', 'round', or callable
+    limit_rounding_method : callable
         The rounding method when calculating the minimum and maximum pixel indices.
-        - ``'ceil'`` uses `~numpy.ceil`.
-        - ``'floor'`` uses `~numpy.floor`.
-        - ``'round'`` uses `~numpy.round`.
-        - A callable function can also be provided.
+        This must be a callable function. Examples: `~numpy.ceil`, `~numpy.floor`,
+        `~numpy.round`. Default is `~numpy.ceil`.
 
     Attributes
     ----------
@@ -613,7 +592,7 @@ class Cutout2D:
         fill_value=np.nan,
         copy=False,
         *,
-        limit_rounding_method="ceil",
+        limit_rounding_method=np.ceil,
     ):
         if wcs is None:
             wcs = getattr(data, "wcs", None)
