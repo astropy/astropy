@@ -21,6 +21,7 @@ except ImportError:
 import pytest
 
 from astropy import __version__
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
 # This is needed to silence a warning from matplotlib caused by
 # PyInstaller's matplotlib runtime hook.  This can be removed once the
@@ -31,9 +32,6 @@ if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
     # The above checks whether we are running in a PyInstaller bundle.
     warnings.filterwarnings("ignore", "(?s).*MATPLOTLIBDATA.*", category=UserWarning)
 
-# Note: while the filterwarnings is required, this import has to come after the
-# filterwarnings above, because this attempts to import matplotlib:
-from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
 if HAS_MATPLOTLIB:
     import matplotlib as mpl
