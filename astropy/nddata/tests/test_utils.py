@@ -151,27 +151,37 @@ def test_slices_nonfinite_position(position):
 def test_slices_limit_rounding_method():
     """Call overlap_slices with different limit rounding methods."""
     # Using ceil (default)
-    slc_lg, slc_sm = overlap_slices((10, 10), (3, 5), (4, 5), limit_rounding_method="ceil")
+    slc_lg, slc_sm = overlap_slices(
+        (10, 10), (3, 5), (4, 5), limit_rounding_method="ceil"
+    )
     assert slc_lg == (slice(3, 6), slice(3, 8))
     assert slc_sm == (slice(0, 3), slice(0, 5))
 
     # Using floor
-    slc_lg, slc_sm = overlap_slices((10, 10), (3, 5), (4, 5), limit_rounding_method="floor")
+    slc_lg, slc_sm = overlap_slices(
+        (10, 10), (3, 5), (4, 5), limit_rounding_method="floor"
+    )
     assert slc_lg == (slice(2, 5), slice(2, 7))
     assert slc_sm == (slice(0, 3), slice(0, 5))
 
     # Using round
-    slc_lg, slc_sm = overlap_slices((10, 10), (3, 5), (4.2, 5.6), limit_rounding_method="round")
+    slc_lg, slc_sm = overlap_slices(
+        (10, 10), (3, 5), (4.2, 5.6), limit_rounding_method="round"
+    )
     assert slc_lg == (slice(3, 6), slice(3, 8))
     assert slc_sm == (slice(0, 3), slice(0, 5))
 
     # Case where limits round to numbers that create a larger array than requested
-    slc_lg, slc_sm = overlap_slices((10, 10), (3, 3), (6, 6), limit_rounding_method="round")
+    slc_lg, slc_sm = overlap_slices(
+        (10, 10), (3, 3), (6, 6), limit_rounding_method="round"
+    )
     assert slc_lg == (slice(5, 8), slice(5, 8))
     assert slc_sm == (slice(0, 3), slice(0, 3))
 
     # Case where limits round to numbers that create a smaller array than requested
-    slc_lg, slc_sm = overlap_slices((10, 10), (3, 3), (5, 5), limit_rounding_method="round")
+    slc_lg, slc_sm = overlap_slices(
+        (10, 10), (3, 3), (5, 5), limit_rounding_method="round"
+    )
     assert slc_lg == (slice(4, 7), slice(4, 7))
     assert slc_sm == (slice(0, 3), slice(0, 3))
 
