@@ -186,6 +186,13 @@ def test_slices_nonfinite_position(position):
             (slice(4, 7), slice(4, 7)),
             (slice(0, 3), slice(0, 3)),
         ),
+        (
+            (3, 3),
+            (5, 5),
+            np.trunc,
+            (slice(3, 6), slice(3, 6)),
+            (slice(0, 3), slice(0, 3)),
+        ),
     ],
 )
 def test_slices_limit_rounding_method(
@@ -202,10 +209,20 @@ def test_slices_limit_rounding_method(
     assert slc_sm == expected_sm
 
 
-def test_slices_wrong_limit_rounding_method():
-    """Call overlap_slices with non-existing limit rounding method."""
-    with pytest.raises(ValueError, match="^Limit rounding method can be only"):
-        overlap_slices((5,), (3,), (0,), limit_rounding_method="invalid")
+@pytest.mark.parametrize(
+    "limit_rounding_method, error_msg",
+    [
+        ("invalid", "^Limit rounding method can be only"),
+        (lambda x: (1, 2), "^Limit rounding method must accept a single number"),
+        (lambda x: "invalid", "^Limit rounding method must accept a single number"),
+        (lambda x, y: 1, "^Limit rounding method must accept a single number"),
+        (lambda: 1, "^Limit rounding method must accept a single number"),
+    ],
+)
+def test_slices_wrong_limit_rounding_method(limit_rounding_method, error_msg):
+    """Call overlap_slices with an invalid rounding method."""
+    with pytest.raises(ValueError, match=error_msg):
+        overlap_slices((5,), (3,), (0,), limit_rounding_method=limit_rounding_method)
 
 
 def test_extract_array_even_shape_rounding():
@@ -620,6 +637,7 @@ class TestCutout2D:
             ((2, 2), "ceil", (slice(1, 4), slice(1, 4))),
             ((2, 2), "floor", (slice(0, 3), slice(0, 3))),
             ((1.9, 2.9), "round", (slice(1, 4), slice(0, 3))),
+            ((2, 2), np.trunc, (slice(0, 3), slice(0, 3))),
         ],
     )
     def test_limit_rounding_method(

@@ -76,11 +76,12 @@ def overlap_slices(
         otherwise an `~astropy.nddata.utils.PartialOverlapError` is
         raised.  In all modes, non-overlapping arrays will raise a
         `~astropy.nddata.utils.NoOverlapError`.
-    limit_rounding_method : 'ceil' (default), 'floor' or 'round'
+    limit_rounding_method : 'ceil' (default), 'floor', 'round', or callable
         The rounding method when calculating the minimum and maximum pixel indices.
         - ``'ceil'`` uses `~numpy.ceil`.
         - ``'floor'`` uses `~numpy.floor`.
         - ``'round'`` uses `~numpy.round`.
+        - A callable function can also be provided.
 
     Returns
     -------
@@ -117,26 +118,34 @@ def overlap_slices(
         )
 
     # get the rounding function based on limit_rounding_method
-    match limit_rounding_method:
-        case "ceil":
-            round_func = np.ceil
-        case "floor":
-            round_func = np.floor
-        case "round":
-            round_func = np.round
-        case _:
-            raise ValueError(
-                'Limit rounding method can be only "ceil", "floor", or "round".'
-            )
+    if callable(limit_rounding_method):
+        round_func = limit_rounding_method
+    else:
+        match limit_rounding_method:
+            case "ceil":
+                round_func = np.ceil
+            case "floor":
+                round_func = np.floor
+            case "round":
+                round_func = np.round
+            case _:
+                raise ValueError(
+                    'Limit rounding method can be only "ceil", "floor", or "round", or a callable function.'
+                )
 
     # define the min/max pixel indices
     # round according to the limit_rounding_method
-    indices_min = [
-        int(round_func(pos - (small_shape / 2.0)))
-        for (pos, small_shape) in zip(position, small_array_shape)
-    ]
+    try:
+        indices_min = [
+            int(round_func(pos - (small_shape / 2.0)))
+            for (pos, small_shape) in zip(position, small_array_shape)
+        ]
+    except (TypeError, ValueError):
+        raise ValueError(
+            "Limit rounding method must accept a single number as input and return a single number."
+        )
     indices_max = [
-        idx_min + small_shape
+        int(idx_min + small_shape)
         for (idx_min, small_shape) in zip(indices_min, small_array_shape)
     ]
 
@@ -227,11 +236,12 @@ def extract_array(
     return_position : bool, optional
         If `True`, return the coordinates of ``position`` in the
         coordinate system of the returned array.
-    limit_rounding_method : 'ceil' (default), 'floor' or 'round'
+    limit_rounding_method : 'ceil' (default), 'floor', 'round', or callable
         The rounding method when calculating the minimum and maximum pixel indices.
         - ``'ceil'`` uses `~numpy.ceil`.
         - ``'floor'`` uses `~numpy.floor`.
         - ``'round'`` uses `~numpy.round`.
+        - A callable function can also be provided.
 
     Returns
     -------
@@ -315,11 +325,12 @@ def add_array(array_large, array_small, position, *, limit_rounding_method="ceil
     position : tuple
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
-    limit_rounding_method : 'ceil' (default), 'floor' or 'round'
+    limit_rounding_method : 'ceil' (default), 'floor', 'round', or callable
         The rounding method when calculating the minimum and maximum pixel indices.
         - ``'ceil'`` uses `~numpy.ceil`.
         - ``'floor'`` uses `~numpy.floor`.
         - ``'round'`` uses `~numpy.round`.
+        - A callable function can also be provided.
 
     Returns
     -------
@@ -493,11 +504,12 @@ class Cutout2D:
         into the original ``data`` array.  If `True`, then the
         cutout data will hold a copy of the original ``data`` array.
 
-    limit_rounding_method : 'ceil' (default), 'floor' or 'round'
+    limit_rounding_method : 'ceil' (default), 'floor', 'round', or callable
         The rounding method when calculating the minimum and maximum pixel indices.
         - ``'ceil'`` uses `~numpy.ceil`.
         - ``'floor'`` uses `~numpy.floor`.
         - ``'round'`` uses `~numpy.round`.
+        - A callable function can also be provided.
 
     Attributes
     ----------
