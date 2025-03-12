@@ -34,8 +34,13 @@ class PartialOverlapError(ValueError):
     """Raised when arrays only partially overlap."""
 
 
-def overlap_slices(large_array_shape, small_array_shape, position, mode="partial",
-                   limit_rounding_method="ceil"):
+def overlap_slices(
+    large_array_shape,
+    small_array_shape,
+    position,
+    mode="partial",
+    limit_rounding_method="ceil",
+):
     """
     Get slices for the overlapping part of a small and a large array.
 
@@ -91,7 +96,9 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode="partial
     if mode not in ["partial", "trim", "strict"]:
         raise ValueError('Mode can be only "partial", "trim", or "strict".')
     if limit_rounding_method not in ["ceil", "floor", "round"]:
-        raise ValueError('Limit rounding method can be only "ceil", "floor", or "round".')
+        raise ValueError(
+            'Limit rounding method can be only "ceil", "floor", or "round".'
+        )
     if np.isscalar(small_array_shape):
         small_array_shape = (small_array_shape,)
     if np.isscalar(large_array_shape):
@@ -136,7 +143,9 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode="partial
         # only applies with `np.round` because it uses "round to even"
         # does not apply when the small array dimension is zero
         if small_array_shape[axis] != indices_max[axis] - index:
-            indices_min[axis] = int(np.ceil(position[axis] - (small_array_shape[axis] / 2.0)))
+            indices_min[axis] = int(
+                np.ceil(position[axis] - (small_array_shape[axis] / 2.0))
+            )
             indices_max[axis] = indices_min[axis] + small_array_shape[axis]
 
     for e_max in indices_max:
@@ -184,7 +193,7 @@ def extract_array(
     mode="partial",
     fill_value=np.nan,
     return_position=False,
-    limit_rounding_method="ceil"
+    limit_rounding_method="ceil",
 ):
     """
     Extract a smaller array of the given shape and position from a
@@ -266,7 +275,11 @@ def extract_array(
         raise ValueError("Valid modes are 'partial', 'trim', and 'strict'.")
 
     large_slices, small_slices = overlap_slices(
-        array_large.shape, shape, position, mode=mode, limit_rounding_method=limit_rounding_method
+        array_large.shape,
+        shape,
+        position,
+        mode=mode,
+        limit_rounding_method=limit_rounding_method,
     )
     extracted_array = array_large[large_slices]
     if return_position:
@@ -349,7 +362,10 @@ def add_array(array_large, array_small, position, limit_rounding_method="ceil"):
         for (large_shape, small_shape) in zip(array_large.shape, array_small.shape)
     ):
         large_slices, small_slices = overlap_slices(
-            array_large.shape, array_small.shape, position, limit_rounding_method=limit_rounding_method
+            array_large.shape,
+            array_small.shape,
+            position,
+            limit_rounding_method=limit_rounding_method,
         )
         array_large[large_slices] += array_small[small_slices]
         return array_large
@@ -586,8 +602,15 @@ class Cutout2D:
     """
 
     def __init__(
-        self, data, position, size, wcs=None, mode="trim", fill_value=np.nan, copy=False,
-        limit_rounding_method="ceil"
+        self,
+        data,
+        position,
+        size,
+        wcs=None,
+        mode="trim",
+        fill_value=np.nan,
+        copy=False,
+        limit_rounding_method="ceil",
     ):
         if wcs is None:
             wcs = getattr(data, "wcs", None)
@@ -649,7 +672,7 @@ class Cutout2D:
             mode=mode,
             fill_value=fill_value,
             return_position=True,
-            limit_rounding_method=limit_rounding_method
+            limit_rounding_method=limit_rounding_method,
         )
         if copy:
             cutout_data = np.copy(cutout_data)
@@ -657,7 +680,11 @@ class Cutout2D:
 
         self.input_position_cutout = input_position_cutout[::-1]  # (x, y)
         slices_original, slices_cutout = overlap_slices(
-            data.shape, shape, pos_yx, mode=mode, limit_rounding_method=limit_rounding_method
+            data.shape,
+            shape,
+            pos_yx,
+            mode=mode,
+            limit_rounding_method=limit_rounding_method,
         )
 
         self.slices_original = slices_original
