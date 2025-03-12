@@ -209,7 +209,6 @@ lint.unfixable = [
     "PT019",   # pytest-fixture-param-without-value
 ]
 "astropy/io/*" = [
-    "B007",  # UnusedLoopControlVariable
     "G001",  # logging-string-format
     "G004",  # logging-f-string
     "PLR0911",  # too-many-return-statements
