@@ -330,6 +330,98 @@ class MaskedUfuncTests(MaskedArraySetup):
         # Compare the masks:
         assert_array_equal(result.mask, expected_result.mask)
 
+    def test_reduceat_unmasked_no_out():
+        data = np.arange(6)
+        # mask=False => no masked elements
+        ma = Masked(data, mask=False)
+
+        # Indices to chunk [0..3), [3..end)
+        indices = [0, 3]
+        # This should cause "if combined_mask is False" -> direct NumPy reduceat
+        result = np.add.reduceat(ma, indices)
+
+        # We expect the same numeric result as normal NumPy here
+        expected = np.add.reduceat(data, indices)
+        assert_array_equal(result.unmasked, expected)
+        # Because the array was fully unmasked, the result mask should be all False:
+        assert not np.any(result.mask)
+
+    def test_reduceat_unmasked_with_out_where_true():
+        data = np.arange(6)
+        ma = Masked(data, mask=False)
+
+        # Prepare an 'out' array with a non-None mask, so out_mask is not None
+        out_data = np.zeros_like(data)
+        out_mask = np.ones_like(data, dtype=bool)
+        out_ma = Masked(out_data, mask=out_mask)
+
+        indices = [0, 3]
+        # Provide where=True everywhere (or omit 'where' since default is True):
+        result = np.add.reduceat(ma, indices, out=out_ma, where=True)
+
+        # Check that it ran reduceat correctly
+        expected_vals = np.add.reduceat(data, indices)
+        assert_array_equal(result.unmasked, expected_vals)
+        # out_mask[...] should have been set to False
+        assert not np.any(result.mask)
+
+    def test_reduceat_unmasked_with_out_where_partial():
+        data = np.arange(6)
+        ma = Masked(data, mask=False)
+
+        # 'out' array
+        out_data = np.zeros_like(data)
+        out_mask = np.ones_like(data, dtype=bool)
+        out_ma = Masked(out_data, mask=out_mask)
+
+        # A partial where array of True/False, but arranged so the final
+        # combined_mask is still "False" overall.
+        where_arr = np.array([True, True, False, False, True, True], dtype=bool)
+        indices = [0, 3]  # so it sums [0..3) and [3..6)
+
+        result = np.add.reduceat(ma, indices, out=out_ma, where=where_arr)
+
+        # The numeric result is still the same as a normal reduceat ignoring
+        # the elements where 'where' is False:
+        data_copy = data.copy()
+        data_copy[~where_arr] = 0  # effectively skipping those
+        expected_vals = np.add.reduceat(data_copy, indices)
+        assert_array_equal(result.unmasked, expected_vals)
+        # We only really care that the code path is taken; checking the mask:
+        assert result.mask.shape == expected_vals.shape
+
+    def test_reduceat_partially_masked_no_out():
+        data = np.arange(6)
+        mask = np.array(
+            [False, True, False, False, True, False]
+        )  # some scattered masks
+        ma = Masked(data, mask=mask)
+
+        indices = [0, 3]
+        # This will force the path that checks for masked elements and zero-fills them
+        result = np.add.reduceat(ma, indices)
+
+        # Basic check that numeric sum ignores masked points
+        data_copy = data.copy()
+        data_copy[mask] = 0  # zero out masked positions
+        expected_vals = np.add.reduceat(data_copy, indices)
+        assert_array_equal(result.unmasked, expected_vals)
+        assert not np.any(result.mask)
+
+    def test_reduceat_empty_slice():
+        data = np.arange(6)
+        ma = Masked(data, mask=False)
+        # Indices that produce an empty chunk, e.g. chunk #1 from [2..2):
+        # That means the slice along axis is zero-length for that chunk.
+        indices = [0, 2, 2, 6]
+        result = np.add.reduceat(ma, indices)
+
+        # Not focusing on numeric correctness beyond coverage
+        expected_vals = np.add.reduceat(data, indices)
+        assert_array_equal(result.unmasked, expected_vals)
+        # Mask is all False because there's no actual masked data:
+        assert not np.any(result.mask)
+
     def test_add_reduce_no_masked_input(self):
         a_reduce = np.add.reduce(self.a, axis=0)
         out = Masked(np.zeros_like(a_reduce), np.ones(a_reduce.shape, bool))
