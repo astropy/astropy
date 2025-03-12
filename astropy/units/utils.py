@@ -159,7 +159,7 @@ def generate_prefixonly_unit_summary(namespace: dict[str, object]) -> str:
     docstring : str
         A docstring containing a summary table of the units.
     """
-    from . import PrefixUnit
+    from .core import PrefixUnit
 
     faux_namespace = {}
     for unit in namespace.values():

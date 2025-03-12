@@ -1,0 +1,4 @@
+The string representations of the prefixed versions of ``solLum``, ``solMass``
+and ``solRad`` units can now be parsed by default.
+Previously they could only be parsed if the ``required_by_vounit`` module had
+been imported, possibly indirectly by using the ``"vounit"`` format.
