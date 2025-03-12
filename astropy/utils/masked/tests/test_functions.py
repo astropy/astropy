@@ -261,6 +261,75 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert ma_reduce2 is out
         assert_masked_equal(ma_reduce2, ma_reduce)
 
+    @pytest.mark.parametrize("axis", (0, 1))
+    def test_add_reduceat(self, axis):
+        # Make a small 3x4 array with a partial mask.
+        data = np.arange(12).reshape(3, 4)  # rows: [0..1..2], cols: [0..1..2..3]
+        mask = np.zeros_like(data, dtype=bool)
+        # Mask some scattered points
+        mask[0,1] = True  # cell (0,1)
+        mask[1,2] = True  # cell (1,2)
+        mask[2,3] = True  # cell (2,3)
+
+        ma = Masked(data, mask=mask)
+
+        # We'll define two chunk boundaries: [0, 2].
+        # Meaning: chunk 0 = [0..2), chunk 1 = [2..end)
+        indices = [0, 2]
+
+        # The actual reduceat call: partial sums along the chosen axis.
+        result = np.add.reduceat(ma, indices, axis=axis)
+
+        # Build the expected array shape: same # of rows and columns,
+        # but the chosen axis size becomes len(indices).
+        shape_out = list(data.shape)
+        shape_out[axis] = len(indices)
+        expected_vals = np.zeros(shape_out, dtype=data.dtype)
+        expected_mask = np.zeros(shape_out, dtype=bool)
+
+        nrows, ncols = data.shape
+
+        if axis == 0:
+            # Chunk the row dimension. For each chunk i, sum rows [start..end) for each column.
+            for i in range(len(indices)):
+                row_start = indices[i]
+                row_end = indices[i+1] if i < len(indices)-1 else nrows
+                for c in range(ncols):
+                    # Extract the slice for these rows, single column
+                    col_slice_mask = mask[row_start:row_end, c]
+                    col_slice_data = data[row_start:row_end, c]
+                    if np.all(col_slice_mask):
+                        # All masked => mask the result
+                        expected_vals[i, c] = 0
+                        expected_mask[i, c] = True
+                    else:
+                        # Sum just the unmasked elements
+                        expected_vals[i, c] = col_slice_data[~col_slice_mask].sum()
+                        expected_mask[i, c] = False
+
+        else:  # axis == 1
+            # Chunk the column dimension. For each chunk i, sum cols [start..end) for each row.
+            for i in range(len(indices)):
+                col_start = indices[i]
+                col_end = indices[i+1] if i < len(indices)-1 else ncols
+                for r in range(nrows):
+                    row_slice_mask = mask[r, col_start:col_end]
+                    row_slice_data = data[r, col_start:col_end]
+                    if np.all(row_slice_mask):
+                        expected_vals[r, i] = 0
+                        expected_mask[r, i] = True
+                    else:
+                        expected_vals[r, i] = row_slice_data[~row_slice_mask].sum()
+                        expected_mask[r, i] = False
+
+        # Create the final masked output
+        expected_result = Masked(expected_vals, expected_mask)
+
+        # Compare the numeric data:
+        assert_array_equal(result.unmasked, expected_result.unmasked)
+        # Compare the masks:
+        assert_array_equal(result.mask, expected_result.mask)
+
     def test_add_reduce_no_masked_input(self):
         a_reduce = np.add.reduce(self.a, axis=0)
         out = Masked(np.zeros_like(a_reduce), np.ones(a_reduce.shape, bool))
