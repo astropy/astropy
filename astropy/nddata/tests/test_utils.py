@@ -174,7 +174,7 @@ def test_slices_limit_rounding_method():
     slc_lg, slc_sm = overlap_slices((10, 10), (3, 3), (5, 5), limit_rounding_method="round")
     assert slc_lg == (slice(4, 7), slice(4, 7))
     assert slc_sm == (slice(0, 3), slice(0, 3))
-    
+
 
 def test_slices_wrong_limit_rounding_method():
     """Call overlap_slices with non-existing limit rounding method."""
