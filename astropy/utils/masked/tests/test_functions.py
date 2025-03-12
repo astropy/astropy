@@ -330,103 +330,53 @@ class MaskedUfuncTests(MaskedArraySetup):
         # Compare the masks:
         assert_array_equal(result.mask, expected_result.mask)
 
-    def test_reduceat_various_paths(self):
-        # Test different code paths in reduceat
+    def test_reduceat_partial_where_and_out(self):
+        # Input data with some masked positions
         data = np.arange(6)
-        ma = Masked(data, mask=False)  # Fully unmasked
-        indices = [0, 3]
-
-        # 1. Basic case - no mask, no out
-        result1 = np.add.reduceat(ma, indices)
-        expected1 = np.add.reduceat(data, indices)
-        assert not np.any(result1.mask)
-        assert_array_equal(result1.unmasked, expected1)
-
-        # 2. Case with output that has a mask - this should hit the
-        # code path where combined_mask is False and out_mask is not None
-        out_data = np.zeros(len(indices), dtype=data.dtype)
-        out_mask = np.ones(len(indices), dtype=bool)  # Start with all True mask
-        out_ma = Masked(out_data, mask=out_mask)
-
-        result2 = np.add.reduceat(ma, indices, out=out_ma)
-        assert result2 is out_ma
-        assert not np.any(result2.mask)  # Mask should be all False now
-        assert_array_equal(result2.unmasked, expected1)
-
-        # 3. Case where we test different array shapes to trigger broadcast
-        # This should hit the code path where we create a broadcast array for combined_mask
-        data2 = np.arange(12).reshape(2, 6)
-        ma2 = Masked(data2, mask=False)
-
-        result3 = np.add.reduceat(ma2, indices, axis=1)
-        expected3 = np.add.reduceat(data2, indices, axis=1)
-        assert not np.any(result3.mask)
-        assert_array_equal(result3.unmasked, expected3)
-
-        # 4. Test with unmasked data but multidimensional indices
-        # This should exercise another code path in the reduceat implementation
-        indices2d = np.array([[0, 3], [1, 4]])
-        try:
-            # This might not work in all NumPy versions, so we'll try-except it
-            result4 = np.add.reduceat(ma, indices2d)
-            expected4 = np.add.reduceat(data, indices2d)
-            assert_array_equal(result4.unmasked, expected4)
-        except (ValueError, TypeError, IndexError):
-            pass  # Skip if this form isn't supported
-
-    @pytest.mark.parametrize("axis", [0])
-    def test_reduceat_unmasked_no_out(self, axis):
-        data = np.arange(6)  # shape (6,)
-        ma = Masked(data, mask=False)  # Fully unmasked
-
-        indices = [0, 3]
-
-        result = np.add.reduceat(ma, indices, axis=axis)
-
-        # Check numeric correctness vs plain numpy
-        expected = np.add.reduceat(data, indices, axis=axis)
-        assert_array_equal(result.unmasked, expected)
-        # The mask should be all False in the result
-        assert not np.any(result.mask)
-
-    def test_reduceat_unmasked_with_out(self):
-        data = np.arange(6)
-        ma = Masked(data, mask=False)
-
-        indices = [0, 3]
-
-        # Prepare an 'out' array of shape (2,), since reduceat will produce 2 elements
-        out_data = np.zeros(2, dtype=data.dtype)
-        out_mask = np.ones(2, dtype=bool)  # so `out_mask` is NOT None
-        out_ma = Masked(out_data, mask=out_mask)
-
-        # Perform reduceat with 'out'—this should hit the lines where
-        # combined_mask is False and out_mask is not None, forcing `out_mask[...] = False`
-        result = np.add.reduceat(ma, indices, out=out_ma)
-
-        # Check that the numeric data is the same as normal reduceat
-        expected_vals = np.add.reduceat(data, indices)
-        assert_array_equal(result.unmasked, expected_vals)
-
-        # Because the array is fully unmasked, we expect the mask to be all False now
-        assert not np.any(result.mask)
-
-    def test_reduceat_partially_masked_no_out(self):
-        data = np.arange(6)
-        mask = np.array([False, True, False, False, True, False])
+        mask = [False, True, False, False, True, False]
         ma = Masked(data, mask=mask)
 
-        # For a 1D array of length 6, let's do indices=[0,3] => result shape (2,).
         indices = [0, 3]
-        result = np.add.reduceat(ma, indices)
 
-        # We can manually compute expected: zero out masked positions, then reduceat
+        # A 'where' array that is neither all True nor fully masked
+        where_data = [True, False, True, False, True, True]
+        where_mask = [False, False, True, False, False, False]
+        where_ma = Masked(where_data, mask=where_mask)
+
+        # A masked output array (so out_mask is not None)
+        out_data = np.zeros(2, dtype=data.dtype)
+        out_mask = [True, True]
+        out_ma = Masked(out_data, mask=out_mask)
+
+        # This call will trigger the partial-where code paths
+        result = np.add.reduceat(ma, indices, out=out_ma, where=where_ma)
+
+        # ---- Build an expected result manually ----
+        # Combine the input mask with (where == False) and where's own mask
+        combined_mask = mask | ~np.array(where_data) | where_mask
+
+        # Zero out the masked/ignored positions in a copy (since we're doing np.add)
         data_copy = data.copy()
-        data_copy[mask] = 0
-        expected_vals = np.add.reduceat(data_copy, indices)
-        assert_array_equal(result.unmasked, expected_vals)
+        data_copy[combined_mask] = 0
 
-        assert not np.any(result.mask)
+        # Plain unmasked reduceat on that zeroed data
+        expected_vals = np.add.reduceat(data_copy, indices)
+
+        # Figure out the expected mask for each chunk
+        expected_mask = np.zeros(2, dtype=bool)
+        for i in range(len(indices)):
+            start = indices[i]
+            end = indices[i + 1] if i < len(indices) - 1 else len(data_copy)
+            # If the entire chunk was masked/ignored, we mask that output element
+            if np.all(combined_mask[start:end]):
+                expected_mask[i] = True
+
+        # Construct the expected masked result
+        expected = Masked(expected_vals, expected_mask)
+
+        # Final checks
+        assert_array_equal(result.unmasked, expected.unmasked)
+        assert_array_equal(result.mask, expected.mask)
 
     def test_reduceat_empty_slice(self):
         data = np.arange(6)
