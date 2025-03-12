@@ -20,6 +20,7 @@ from . import (
     photometric,
     physical,
     quantity,
+    required_by_vounit,
     si,
     structured,
 )
@@ -63,4 +64,6 @@ globals()["__all__"].sort()
 
 # Enable the set of default units.  This notably does *not* include
 # Imperial units.
-set_enabled_units([si, cgs, astrophys, function.units, misc, photometric])
+set_enabled_units(
+    [si, cgs, astrophys, function.units, misc, photometric, required_by_vounit]
+)
