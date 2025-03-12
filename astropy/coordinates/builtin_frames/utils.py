@@ -215,7 +215,7 @@ def aticq(srepr, astrom):
 
     # Aberration, giving GCRS natural direction
     d = np.zeros_like(ppr)
-    for j in range(2):
+    for _ in range(2):
         before = norm(ppr - d)
         after = erfa.ab(before, astrom["v"], astrom["em"], astrom["bm1"])
         d = after - before
@@ -223,7 +223,7 @@ def aticq(srepr, astrom):
 
     # Light deflection by the Sun, giving BCRS coordinate direction
     d = np.zeros_like(pnat)
-    for j in range(5):
+    for _ in range(5):
         before = norm(pnat - d)
         if ignore_distance:
             # No distance to object, assume a long way away
