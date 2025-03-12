@@ -148,47 +148,63 @@ def test_slices_nonfinite_position(position):
         overlap_slices((7, 7), (3, 3), position)
 
 
-def test_slices_limit_rounding_method():
+@pytest.mark.parametrize(
+    "small_array_shape, position, limit_rounding_method, expected_lg, expected_sm",
+    [
+        (
+            (3, 5),
+            (4, 5),
+            "ceil",
+            (slice(3, 6), slice(3, 8)),
+            (slice(0, 3), slice(0, 5)),
+        ),
+        (
+            (3, 5),
+            (4, 5),
+            "floor",
+            (slice(2, 5), slice(2, 7)),
+            (slice(0, 3), slice(0, 5)),
+        ),
+        (
+            (3, 5),
+            (4.2, 5.6),
+            "round",
+            (slice(3, 6), slice(3, 8)),
+            (slice(0, 3), slice(0, 5)),
+        ),
+        (
+            (3, 3),
+            (6, 6),
+            "round",
+            (slice(4, 7), slice(4, 7)),
+            (slice(0, 3), slice(0, 3)),
+        ),
+        (
+            (3, 3),
+            (5, 5),
+            "round",
+            (slice(4, 7), slice(4, 7)),
+            (slice(0, 3), slice(0, 3)),
+        ),
+    ],
+)
+def test_slices_limit_rounding_method(
+    small_array_shape, position, limit_rounding_method, expected_lg, expected_sm
+):
     """Call overlap_slices with different limit rounding methods."""
-    # Using ceil (default)
     slc_lg, slc_sm = overlap_slices(
-        (10, 10), (3, 5), (4, 5), limit_rounding_method="ceil"
+        (10, 10),
+        small_array_shape,
+        position,
+        limit_rounding_method=limit_rounding_method,
     )
-    assert slc_lg == (slice(3, 6), slice(3, 8))
-    assert slc_sm == (slice(0, 3), slice(0, 5))
-
-    # Using floor
-    slc_lg, slc_sm = overlap_slices(
-        (10, 10), (3, 5), (4, 5), limit_rounding_method="floor"
-    )
-    assert slc_lg == (slice(2, 5), slice(2, 7))
-    assert slc_sm == (slice(0, 3), slice(0, 5))
-
-    # Using round
-    slc_lg, slc_sm = overlap_slices(
-        (10, 10), (3, 5), (4.2, 5.6), limit_rounding_method="round"
-    )
-    assert slc_lg == (slice(3, 6), slice(3, 8))
-    assert slc_sm == (slice(0, 3), slice(0, 5))
-
-    # Case where limits round to numbers that create a larger array than requested
-    slc_lg, slc_sm = overlap_slices(
-        (10, 10), (3, 3), (6, 6), limit_rounding_method="round"
-    )
-    assert slc_lg == (slice(5, 8), slice(5, 8))
-    assert slc_sm == (slice(0, 3), slice(0, 3))
-
-    # Case where limits round to numbers that create a smaller array than requested
-    slc_lg, slc_sm = overlap_slices(
-        (10, 10), (3, 3), (5, 5), limit_rounding_method="round"
-    )
-    assert slc_lg == (slice(4, 7), slice(4, 7))
-    assert slc_sm == (slice(0, 3), slice(0, 3))
+    assert slc_lg == expected_lg
+    assert slc_sm == expected_sm
 
 
 def test_slices_wrong_limit_rounding_method():
     """Call overlap_slices with non-existing limit rounding method."""
-    with pytest.raises(ValueError, match="^Limit rounding method can be only.*"):
+    with pytest.raises(ValueError, match="^Limit rounding method can be only"):
         overlap_slices((5,), (3,), (0,), limit_rounding_method="invalid")
 
 
@@ -598,23 +614,22 @@ class TestCutout2D:
         c2.data[xy] = value
         assert data[yx] != value
 
-    def test_limit_rounding_method(self):
-        # Round with np.ceil
-        c = Cutout2D(self.data, (2, 2), (3, 3), limit_rounding_method="ceil")
+    @pytest.mark.parametrize(
+        "position, limit_rounding_method, expected_slices_original",
+        [
+            ((2, 2), "ceil", (slice(1, 4), slice(1, 4))),
+            ((2, 2), "floor", (slice(0, 3), slice(0, 3))),
+            ((1.9, 2.9), "round", (slice(1, 4), slice(0, 3))),
+        ],
+    )
+    def test_limit_rounding_method(
+        self, position, limit_rounding_method, expected_slices_original
+    ):
+        c = Cutout2D(
+            self.data, position, (3, 3), limit_rounding_method=limit_rounding_method
+        )
         assert c.data.shape == (3, 3)
-        assert c.slices_original == (slice(1, 4), slice(1, 4))
-        assert c.slices_cutout == (slice(0, 3), slice(0, 3))
-
-        # Round with np.floor
-        c = Cutout2D(self.data, (2, 2), (3, 3), limit_rounding_method="floor")
-        assert c.data.shape == (3, 3)
-        assert c.slices_original == (slice(0, 3), slice(0, 3))
-        assert c.slices_cutout == (slice(0, 3), slice(0, 3))
-
-        # Round with np.round
-        c = Cutout2D(self.data, (1.9, 2.9), (3, 3), limit_rounding_method="round")
-        assert c.data.shape == (3, 3)
-        assert c.slices_original == (slice(1, 4), slice(0, 3))
+        assert c.slices_original == expected_slices_original
         assert c.slices_cutout == (slice(0, 3), slice(0, 3))
 
     def test_to_from_large(self):

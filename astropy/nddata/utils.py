@@ -39,6 +39,7 @@ def overlap_slices(
     small_array_shape,
     position,
     mode="partial",
+    *,
     limit_rounding_method="ceil",
 ):
     """
@@ -75,12 +76,11 @@ def overlap_slices(
         otherwise an `~astropy.nddata.utils.PartialOverlapError` is
         raised.  In all modes, non-overlapping arrays will raise a
         `~astropy.nddata.utils.NoOverlapError`.
-    limit_rounding_method : {'ceil', 'floor', 'round'}, optional
+    limit_rounding_method : 'ceil' (default), 'floor' or 'round'
         The rounding method when calculating the minimum and maximum pixel indices.
-        When set to ``'ceil'``, limits will be calculated with `~numpy.ceil`.
-        When set to ``'floor'``, limits will be calculated with `~numpy.floor`.
-        When set to ``'round'``, limits will be calculated with `~numpy.round`.
-        Default value is ``'ceil'``.
+        - ``'ceil'`` uses `~numpy.ceil`.
+        - ``'floor'`` uses `~numpy.floor`.
+        - ``'round'`` uses `~numpy.round`.
 
     Returns
     -------
@@ -95,10 +95,6 @@ def overlap_slices(
     """
     if mode not in ["partial", "trim", "strict"]:
         raise ValueError('Mode can be only "partial", "trim", or "strict".')
-    if limit_rounding_method not in ["ceil", "floor", "round"]:
-        raise ValueError(
-            'Limit rounding method can be only "ceil", "floor", or "round".'
-        )
     if np.isscalar(small_array_shape):
         small_array_shape = (small_array_shape,)
     if np.isscalar(large_array_shape):
@@ -120,12 +116,18 @@ def overlap_slices(
             '"position" must have the same number of dimensions as "small_array_shape".'
         )
 
-    rounding_funcs = {
-        "ceil": np.ceil,
-        "floor": np.floor,
-        "round": np.round,
-    }
-    round_func = rounding_funcs[limit_rounding_method]
+    # get the rounding function based on limit_rounding_method
+    match limit_rounding_method:
+        case "ceil":
+            round_func = np.ceil
+        case "floor":
+            round_func = np.floor
+        case "round":
+            round_func = np.round
+        case _:
+            raise ValueError(
+                'Limit rounding method can be only "ceil", "floor", or "round".'
+            )
 
     # define the min/max pixel indices
     # round according to the limit_rounding_method
@@ -134,19 +136,9 @@ def overlap_slices(
         for (pos, small_shape) in zip(position, small_array_shape)
     ]
     indices_max = [
-        int(round_func(pos + (small_shape / 2.0)))
-        for (pos, small_shape) in zip(position, small_array_shape)
+        idx_min + small_shape
+        for (idx_min, small_shape) in zip(indices_min, small_array_shape)
     ]
-
-    for axis, index in enumerate(indices_min):
-        # handle the case where the difference between the limits does not match the small array shape
-        # only applies with `np.round` because it uses "round to even"
-        # does not apply when the small array dimension is zero
-        if small_array_shape[axis] != indices_max[axis] - index:
-            indices_min[axis] = int(
-                np.ceil(position[axis] - (small_array_shape[axis] / 2.0))
-            )
-            indices_max[axis] = indices_min[axis] + small_array_shape[axis]
 
     for e_max in indices_max:
         if e_max < 0 or (e_max == 0 and small_array_shape != (0, 0)):
@@ -193,6 +185,7 @@ def extract_array(
     mode="partial",
     fill_value=np.nan,
     return_position=False,
+    *,
     limit_rounding_method="ceil",
 ):
     """
@@ -234,12 +227,11 @@ def extract_array(
     return_position : bool, optional
         If `True`, return the coordinates of ``position`` in the
         coordinate system of the returned array.
-    limit_rounding_method : {'ceil', 'floor', 'round'}, optional
+    limit_rounding_method : 'ceil' (default), 'floor' or 'round'
         The rounding method when calculating the minimum and maximum pixel indices.
-        When set to ``'ceil'``, limits will be calculated with `~numpy.ceil`.
-        When set to ``'floor'``, limits will be calculated with `~numpy.floor`.
-        When set to ``'round'``, limits will be calculated with `~numpy.round`.
-        Default value is ``'ceil'``.
+        - ``'ceil'`` uses `~numpy.ceil`.
+        - ``'floor'`` uses `~numpy.floor`.
+        - ``'round'`` uses `~numpy.round`.
 
     Returns
     -------
@@ -309,7 +301,7 @@ def extract_array(
         return extracted_array
 
 
-def add_array(array_large, array_small, position, limit_rounding_method="ceil"):
+def add_array(array_large, array_small, position, *, limit_rounding_method="ceil"):
     """
     Add a smaller array at a given position in a larger array.
 
@@ -323,12 +315,11 @@ def add_array(array_large, array_small, position, limit_rounding_method="ceil"):
     position : tuple
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
-    limit_rounding_method : {'ceil', 'floor', 'round'}, optional
+    limit_rounding_method : 'ceil' (default), 'floor' or 'round'
         The rounding method when calculating the minimum and maximum pixel indices.
-        When set to ``'ceil'``, limits will be calculated with `~numpy.ceil`.
-        When set to ``'floor'``, limits will be calculated with `~numpy.floor`.
-        When set to ``'round'``, limits will be calculated with `~numpy.round`.
-        Default value is ``'ceil'``.
+        - ``'ceil'`` uses `~numpy.ceil`.
+        - ``'floor'`` uses `~numpy.floor`.
+        - ``'round'`` uses `~numpy.round`.
 
     Returns
     -------
@@ -502,12 +493,11 @@ class Cutout2D:
         into the original ``data`` array.  If `True`, then the
         cutout data will hold a copy of the original ``data`` array.
 
-    limit_rounding_method : {'ceil', 'floor', 'round'}, optional
+    limit_rounding_method : 'ceil' (default), 'floor' or 'round'
         The rounding method when calculating the minimum and maximum pixel indices.
-        When set to ``'ceil'``, limits will be calculated with `~numpy.ceil`.
-        When set to ``'floor'``, limits will be calculated with `~numpy.floor`.
-        When set to ``'round'``, limits will be calculated with `~numpy.round`.
-        Default value is ``'ceil'``.
+        - ``'ceil'`` uses `~numpy.ceil`.
+        - ``'floor'`` uses `~numpy.floor`.
+        - ``'round'`` uses `~numpy.round`.
 
     Attributes
     ----------
@@ -610,6 +600,7 @@ class Cutout2D:
         mode="trim",
         fill_value=np.nan,
         copy=False,
+        *,
         limit_rounding_method="ceil",
     ):
         if wcs is None:
