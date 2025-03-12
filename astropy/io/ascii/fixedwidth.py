@@ -75,10 +75,8 @@ class FixedWidthHeader(basic.BasicHeader):
     def get_line(self, lines, index):
         for i, line in enumerate(self.process_lines(lines)):
             if i == index:
-                break
-        else:  # No header line matching
-            raise InconsistentTableError("No header line found in table")
-        return line
+                return line
+        raise InconsistentTableError("No header line found in table")
 
     def get_cols(self, lines):
         """

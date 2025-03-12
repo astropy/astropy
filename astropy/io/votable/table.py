@@ -391,12 +391,12 @@ def is_votable(source):
         source = os.path.expanduser(source)
     try:
         with iterparser.get_xml_iterator(source) as iterator:
-            for start, tag, d, pos in iterator:
+            for _, tag, _, _ in iterator:
                 if tag != "xml":
                     return False
                 break
 
-            for start, tag, d, pos in iterator:
+            for _, tag, _, _ in iterator:
                 if tag != "VOTABLE":
                     return False
                 break

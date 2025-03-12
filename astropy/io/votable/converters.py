@@ -519,7 +519,7 @@ class VarArray(Array):
         result = []
         result_mask = []
         binparse = self._base.binparse
-        for i in range(length):
+        for _ in range(length):
             val, mask = binparse(read)
             result.append(val)
             result_mask.append(mask)

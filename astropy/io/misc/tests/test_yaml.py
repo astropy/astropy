@@ -148,7 +148,7 @@ def compare_coord(c, cy):
     assert list(c.representation_component_names) == list(
         cy.representation_component_names
     )
-    for name in c.representation_component_names:
+    for _ in c.representation_component_names:
         assert np.all(getattr(c, attr) == getattr(cy, attr))
 
 

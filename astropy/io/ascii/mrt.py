@@ -265,7 +265,7 @@ class MrtHeader(cds.CdsHeader):
         )
 
         # Iterate over the columns to write Byte-By-Byte rows.
-        for i, col in enumerate(self.cols):
+        for col in self.cols:
             # Check if column is MaskedColumn
             col.has_null = isinstance(col, MaskedColumn)
 

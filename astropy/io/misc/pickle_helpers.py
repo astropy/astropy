@@ -52,7 +52,7 @@ def fnunpickle(fileorname, number=0):
     try:
         if number > 0:  # get that number
             res = []
-            for i in range(number):
+            for _ in range(number):
                 res.append(pickle.load(f))
         elif number < 0:  # get all objects
             res = []
