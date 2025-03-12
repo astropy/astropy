@@ -976,7 +976,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                         axis=axis,
                         keepdims=keepdims,
                         out=out_mask,
-                    )  
+                    )
                     if where_unmasked is not True:
                         # Mask also whole rows in which no elements were selected;
                         # those will have been left as unmasked above.
@@ -1000,7 +1000,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             combined_mask = combine_masks((masks[0], where_mask), copy=False)
             indices = unmasked[1]
             axis = kwargs.get("axis", 0)
-            
+
             if combined_mask is False and out_mask is not None:
                 # No elements are masked -> no special handling needed
                 if where_unmasked is True:
@@ -1015,15 +1015,15 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 mask = False
             else:
                 # This means we do have masked elements or partial where
-                
+
                 # Zero-fill or neutral-fill the data array for masked entries
                 data_copy = unmasked[0].copy()
                 data_copy[combined_mask] = 0.0  # or some neutral value for that ufunc
-                
+
                 # Call reduceat on the modified data
                 kwargs["out"] = None  # We'll handle out manually
                 result = getattr(ufunc, method)(data_copy, indices, **kwargs)
-                
+
                 # Build the output mask
                 shape_out = list(data_copy.shape)
                 shape_out[axis] = len(indices)
@@ -1031,42 +1031,44 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     result_mask = np.zeros(shape_out, dtype=bool)
                 else:
                     result_mask = out_mask
-                
+
                 # For each chunk, check if positions are fully masked
                 for i in range(len(indices)):
                     start_idx = indices[i]
-                    end_idx = indices[i+1] if i < len(indices)-1 else data_copy.shape[axis]
-                    
+                    end_idx = (
+                        indices[i + 1]
+                        if i < len(indices) - 1
+                        else data_copy.shape[axis]
+                    )
+
                     # Create a slice for the full chunk
                     chunk_slice = [slice(None)] * combined_mask.ndim
                     chunk_slice[axis] = slice(start_idx, end_idx)
-                    
+
                     # Get the mask for this chunk
                     chunk_mask = combined_mask[tuple(chunk_slice)]
-                    
+
                     # If the chunk has no elements along the axis dimension,
                     # there's nothing to check
                     if chunk_mask.shape[axis] == 0:
                         continue
-                    
+
                     # Transpose the chunk to make the axis dimension first
                     chunk_mask_T = np.moveaxis(chunk_mask, axis, 0)
-                    
+
                     # Check if all elements along the axis dimension are masked
                     # for each position in other dimensions
                     is_fully_masked = np.all(chunk_mask_T, axis=0)
-                    
+
                     # Set the output mask for this chunk
                     out_slice = [slice(None)] * result_mask.ndim
                     out_slice[axis] = i
                     result_mask[tuple(out_slice)] = is_fully_masked
-                
+
                 mask = result_mask
 
         elif method == "at":  # pragma: no cover
-            raise NotImplementedError(
-                "masked instances cannot yet deal with 'at'."
-            )
+            raise NotImplementedError("masked instances cannot yet deal with 'at'.")
 
         if result is None:  # pragma: no cover
             # This happens for the "at" method.

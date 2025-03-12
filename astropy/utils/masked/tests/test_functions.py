@@ -267,9 +267,9 @@ class MaskedUfuncTests(MaskedArraySetup):
         data = np.arange(12).reshape(3, 4)  # rows: [0..1..2], cols: [0..1..2..3]
         mask = np.zeros_like(data, dtype=bool)
         # Mask some scattered points
-        mask[0,1] = True  # cell (0,1)
-        mask[1,2] = True  # cell (1,2)
-        mask[2,3] = True  # cell (2,3)
+        mask[0, 1] = True  # cell (0,1)
+        mask[1, 2] = True  # cell (1,2)
+        mask[2, 3] = True  # cell (2,3)
 
         ma = Masked(data, mask=mask)
 
@@ -293,7 +293,7 @@ class MaskedUfuncTests(MaskedArraySetup):
             # Chunk the row dimension. For each chunk i, sum rows [start..end) for each column.
             for i in range(len(indices)):
                 row_start = indices[i]
-                row_end = indices[i+1] if i < len(indices)-1 else nrows
+                row_end = indices[i + 1] if i < len(indices) - 1 else nrows
                 for c in range(ncols):
                     # Extract the slice for these rows, single column
                     col_slice_mask = mask[row_start:row_end, c]
@@ -311,7 +311,7 @@ class MaskedUfuncTests(MaskedArraySetup):
             # Chunk the column dimension. For each chunk i, sum cols [start..end) for each row.
             for i in range(len(indices)):
                 col_start = indices[i]
-                col_end = indices[i+1] if i < len(indices)-1 else ncols
+                col_end = indices[i + 1] if i < len(indices) - 1 else ncols
                 for r in range(nrows):
                     row_slice_mask = mask[r, col_start:col_end]
                     row_slice_data = data[r, col_start:col_end]
