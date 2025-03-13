@@ -356,10 +356,6 @@ class PhysicalType:
         else:
             return NotImplemented
 
-    def __ne__(self, other: object) -> bool:
-        equality = self.__eq__(other)
-        return not equality if isinstance(equality, bool) else NotImplemented
-
     def __repr__(self) -> str:
         if len(self._physical_type) == 1:
             names = "'" + self._physical_type[0] + "'"
