@@ -89,6 +89,19 @@ SIMPLE_LINES = [
 ]
 
 
+def test_write_simple():
+    """
+    Write a simple table with common types.  This shows the compact version
+    of serialization with one line per column.
+    Table -> TDAT
+    """
+    t = simple_table()
+    t.meta["table_name"] = "origin_astropy"
+    out = StringIO()
+    t.write(out, format="ascii.tdat")
+    assert out.getvalue().splitlines() == SIMPLE_LINES
+
+
 def test_catch_format():
     """
     Ensure that a table without a table_name specified issues a warning.
@@ -109,7 +122,9 @@ def test_catch_format():
 
 
 def test_read_tdat():
-    # Ensure the Table is as it should be
+    """Ensure the Table is as it should be
+    TDAT -> Table
+    """
     assert test_table.meta["keywords"] == OrderedDict(
         [
             ("table_name", "origin_heasarc"),
@@ -169,21 +184,10 @@ def test_read_tdat():
     assert all((table_data == test_table).data)
 
 
-def test_write_simple():
-    """
-    Write a simple table with common types.  This shows the compact version
-    of serialization with one line per column.
-    """
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=TdatFormatWarning)
-        t = simple_table()
-        out = StringIO()
-        t.write(out, format="ascii.tdat")
-        assert out.getvalue().splitlines() == SIMPLE_LINES
-
-
 def test_full_table_content():
-    """Check the table content matches expectation."""
+    """Check the table content matches expectation.
+    TDAT -> Table
+    """
     assert test_table.meta == {
         "comments": ["TABLE: heasarc_simple", "TOTAL ROWS: 7"],
         "keywords": OrderedDict(
@@ -229,6 +233,7 @@ def test_full_table_content():
 def test_write_full():
     """
     Write a full-featured table with common types and explicitly check output
+    TDAT -> Table -> TDAT (formatted)
 
     Differences between `lines` and `test_dat`:
     - Empty comment lines are dropped (except when demarcating a section header
@@ -294,6 +299,8 @@ def test_write_read_roundtrip():
     """
     Write a full-featured table with all types and see that it round-trips on
     readback.
+    TDAT -> Table -> TDAT (formatted) -> Table
+    Tables should have the same content.
     """
     t = test_table
     out = StringIO()
