@@ -1,1 +1,1 @@
-Enable downsampling of masked timeseries with reduceat
+Enable downsampling of masked timeseries by adding reduceat functionality to MaskedIterator
