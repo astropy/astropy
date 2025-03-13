@@ -26,7 +26,7 @@ test_dat = [
     "# TABLE: heasarc_simple",
     "# TOTAL ROWS: 7",
     "#",
-    "table_name = heasarc_simple",
+    "table_name = origin_heasarc",
     'table_description = "Test table"',
     "table_security = public",
     "#",
@@ -69,7 +69,7 @@ test_table = Table.read(test_dat, format="ascii.tdat")
 # Corresponds to simple_table()
 SIMPLE_LINES = [
     "<HEADER>",
-    "table_name = astropy_table",
+    "table_name = origin_astropy",
     "#",
     "# Table Parameters",
     "#",
@@ -98,11 +98,7 @@ def test_catch_format():
     with pytest.warns(TdatFormatWarning, match="'table_name' must be specified"):
         t.write(out, format="ascii.tdat")
 
-    t.meta["table_name"] = "anastropytablewithanamethatistoolongfortheformat"
-    with pytest.warns(TdatFormatWarning, match="'table_name' is too long"):
-        t.write(out, format="ascii.tdat")
-
-    t.meta["table_name"] = "astropy_table"
+    t.meta["table_name"] = "origin_astropy"
     t.meta["table_description"] = """
     This is a description that exceeds the character limit allowed by the tdat
     format and it should be truncated before being written. A warning should
@@ -116,7 +112,7 @@ def test_read_tdat():
     # Ensure the Table is as it should be
     assert test_table.meta["keywords"] == OrderedDict(
         [
-            ("table_name", "heasarc_simple"),
+            ("table_name", "origin_heasarc"),
             ("table_description", "Test table"),
             ("table_security", "public"),
             ("parameter_defaults", "name ra dec"),
@@ -192,7 +188,7 @@ def test_full_table_content():
         "comments": ["TABLE: heasarc_simple", "TOTAL ROWS: 7"],
         "keywords": OrderedDict(
             [
-                ("table_name", "heasarc_simple"),
+                ("table_name", "origin_heasarc"),
                 ("table_description", "Test table"),
                 ("table_security", "public"),
                 ("parameter_defaults", "name ra dec"),
@@ -249,7 +245,7 @@ def test_write_full():
         "<HEADER>",
         "# TABLE: heasarc_simple",
         "# TOTAL ROWS: 7",
-        "table_name = heasarc_simple",
+        "table_name = origin_heasarc",
         "table_description = Test table",
         "table_security = public",
         "#",
@@ -328,30 +324,65 @@ def test_write_read_roundtrip_empty_table(tmp_path):
 def test_keyword_quotes():
     lines = copy.copy(SIMPLE_LINES)
     # double quotes
-    lines[1] = 'table_name = "astropy_table"'
+    lines[1] = 'table_name = "origin_astropy"'
     t = Table.read(lines, format="ascii.tdat")
-    assert t.meta["keywords"]["table_name"] == "astropy_table"
+    assert t.meta["keywords"]["table_name"] == "origin_astropy"
     # single quotes
-    lines[1] = "table_name = 'astropy_table'"
+    lines[1] = "table_name = 'origin_astropy'"
     t = Table.read(lines, format="ascii.tdat")
-    assert t.meta["keywords"]["table_name"] == "astropy_table"
+    assert t.meta["keywords"]["table_name"] == "origin_astropy"
     # back quotes
-    lines[1] = "table_name = `astropy_table`"
+    lines[1] = "table_name = `origin_astropy`"
     t = Table.read(lines, format="ascii.tdat")
-    assert t.meta["keywords"]["table_name"] == "astropy_table"
+    assert t.meta["keywords"]["table_name"] == "origin_astropy"
     # combination and multiple, nested properly
-    lines[1] = "table_name = \"'`astropy_table`'\""
+    lines[1] = "table_name = \"'`origin_astropy`'\""
     t = Table.read(lines, format="ascii.tdat")
-    assert t.meta["keywords"]["table_name"] == "astropy_table"
+    assert t.meta["keywords"]["table_name"] == "origin_astropy"
 
     # mismatched
-    lines[1] = "table_name = \"astropy_table'"
+    lines[1] = "table_name = \"origin_astropy'"
     with pytest.raises(TdatFormatError, match="Mismatched"):
         t = Table.read(lines, format="ascii.tdat")
     # combination, nested improperly
-    lines[1] = "table_name = \"'astropy_table\"'"
+    lines[1] = "table_name = \"'origin_astropy\"'"
     with pytest.raises(TdatFormatError, match="Mismatched"):
         t = Table.read(lines, format="ascii.tdat")
+
+
+def test_tablenames():
+    """_summary_"""
+    lines = copy.copy(SIMPLE_LINES)
+    t = Table.read(lines, format="ascii.tdat")
+    out = StringIO()
+    # Test cases
+    good_strings = [
+        "zzgen",
+        "zztext",
+        "zzpar",
+        "zzrel",
+        "origin_123",
+        "origin_abc",
+        "origin_",
+    ]
+    for t_string in good_strings:
+        t.meta["table_name"] = t_string
+        t.write(out, format="ascii.tdat")
+
+    bad_strings = [
+        "zz",
+        "origin",
+        "zzgeneric",
+        "astropy",
+    ]
+    for t_string in bad_strings:
+        with pytest.warns(TdatFormatWarning, match="table_name does not comply") as w:
+            t.meta["table_name"] = t_string
+            t.write(out, format="ascii.tdat")
+
+    with pytest.warns(TdatFormatWarning, match="'table_name' is too long") as w:
+        t.meta["table_name"] = "origin_12345678901234567890"
+        t.write(out, format="ascii.tdat")
 
 
 def test_bad_delimiter():
@@ -359,13 +390,11 @@ def test_bad_delimiter():
     Passing a delimiter other than | (pipe) gives an exception
     """
     out = StringIO()
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=TdatFormatWarning)
-        with pytest.raises(ValueError) as err:
-            test_table.write(out, format="ascii.tdat", delimiter=",")
-            assert "only pipe and space delimiter is allowed in tdat format" in str(
-                err.value
-            )
+
+    with pytest.warns(
+        TdatFormatWarning, match="Delimiters other than the pipe character"
+    ) as w:
+        test_table.write(out, format="ascii.tdat", delimiter=",")
 
 
 def test_bad_header_start():

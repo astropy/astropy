@@ -61,9 +61,84 @@ class TdatFormatWarning(AstropyWarning):
     """Tdat Format Warning"""
 
 
+class TdatDataSplitter(core.BaseSplitter):
+    """Splitter for tdat data.
+
+    Handles the (deprecated) cases of multiple data delimiters, record
+    delimiters, and multi-line records.
+    Multiple data delimiters - Multiple delimiters can be specified in the
+        header, e.g. field_delimiter = "|!" would treat both | and !
+        as individual delimiters. Default: "|"
+    Record Delimiters - The record_delimiter can be specified in the header. By
+        default there is no record delimiter and new records should be set on
+        new lines. The following list standard escaped character sequences and their
+        equivalent meanings can be used:
+        * \t (tab)
+        * \b (backspace)
+        * \r (carriage return)
+        * \f (form feed)
+        * \v (vertical tab)
+        * \a (audible alert/bell),
+        * \\### (where ### is a number between 1 and 127 and represents the
+        ASCII character with that numerical code).
+        Note: Specifying a record delimiter value of "" is interpreted as a
+            single blank line between records.
+    Multi-line records - A single record may take more than one line, indicated in the header
+
+    """
+
+    delimiter = "|"
+    record_delimiter = None
+
+    def preprocess_data_lines(self, lines, record_delimiter):
+        """Split lines into multiple lines if a record_delimiter is specified."""
+        data_lines = []
+        for line in lines:
+            data_lines += re.split(rf"{record_delimiter}", line)
+        return data_lines
+
+    def __call__(self, lines, field_delimiter="|", record_delimiter=None, nlines=1):
+        """ """
+        if " " in field_delimiter:
+            warn(
+                TdatFormatWarning("Double check your data when using space delimiters.")
+            )
+
+        if record_delimiter is not None:
+            lines = self.preprocess_data_lines(lines, record_delimiter)
+        if hasattr(self, "process_line"):
+            lines = (self.process_line(x) for x in lines)
+
+        iline = 0
+        _lines = []
+        for line in lines:
+            _lines.append(line)
+            iline += 1
+            if iline == nlines:
+                vals = [
+                    val
+                    for _line in _lines
+                    for val in re.split(rf"[{field_delimiter}]", _line)[:-1]
+                ]
+                iline = 0
+                _lines = []
+                if hasattr(self, "process_val"):
+                    yield [self.process_val(x) for x in vals]
+                else:
+                    yield vals
+            else:
+                continue
+
+    def join(self, vals):
+        delimiter = getattr(self, "delimiter", "|")
+        # TDAT specification requires a delimiter at the end of each record
+        return delimiter.join(str(x) for x in vals) + delimiter
+
+
 class TdatHeader(basic.BasicHeader):
     """TDAT table header"""
 
+    splitter_class = TdatDataSplitter
     cols = None
     comment = r"\s*(#|//)"
     # comments: # or //
@@ -162,15 +237,19 @@ class TdatHeader(basic.BasicHeader):
                 _quotes = r"^(?P<quote>[\"\'\`]*)(?P<value>.*?)(?P<endquote>[\"\'\`]*$)"
                 quote_parse = re.compile(_quotes)
                 quotes_match = quote_parse.match(kmatch.group("value"))
-                try:
-                    assert (
-                        quotes_match.group("quote")
-                        == quotes_match.group("endquote")[::-1]
-                    )
-                except AssertionError:
+                if quotes_match.group("quote") != quotes_match.group("endquote")[::-1]:
                     raise TdatFormatError("Mismatched quotes for value of " + key)
+
                 value = kmatch.group("value").strip("\"'`")
                 if key == "table_name":
+                    pattern = r"^(zzgen|zztext|zzpar|zzrel|origin_.*)$"
+                    if not bool(re.match(pattern, value)):
+                        warn(
+                            TdatFormatWarning(
+                                "The table_name does not comply with the standard.\n"
+                                + _STD_MSG
+                            )
+                        )
                     if len(value) > 20:
                         warn(
                             TdatFormatWarning(
@@ -348,8 +427,15 @@ class TdatHeader(basic.BasicHeader):
 
     def write(self, lines):
         """Write the Table out to a TDAT formatted file."""
-        if self.splitter.delimiter not in [" ", "|"]:
-            raise ValueError("only pipe and space delimiter is allowed in tdat format")
+        # the reader can handle alternate delimiters, but the writer should
+        # comply with the current convention
+        if self.splitter.delimiter.strip() != "|":
+            warn(
+                TdatFormatWarning(
+                    "Delimiters other than the pipe character, '|', are deprecated. Using '|'."
+                )
+            )
+        self.splitter.delimiter = "|"
 
         # Write the keywords and column descriptors
         keywords = deepcopy(self.table_meta.get("keywords", {}))
@@ -365,6 +451,13 @@ class TdatHeader(basic.BasicHeader):
         indices = [col.info.name for col in self.cols if col.info.indices != []]
 
         if "table_name" in keywords:
+            pattern = r"^(zzgen|zztext|zzpar|zzrel|origin_.*)$"
+            if not bool(re.match(pattern, keywords["table_name"])):
+                warn(
+                    TdatFormatWarning(
+                        "The table_name does not comply with the standard.\n" + _STD_MSG
+                    )
+                )
             if len(keywords["table_name"]) > 20:
                 warn(
                     "'table_name' is too long, truncating to 20 characters",
@@ -376,10 +469,10 @@ class TdatHeader(basic.BasicHeader):
                 "'table_name' must be specified\n"  # noqa: ISC003
                 + f"{_STD_MSG}\n"
                 + "This should be specified in the Table.meta.\n"
-                + "default value of 'astropy_table' being assigned.",
+                + "default value of 'origin_astropy' being assigned.",
                 TdatFormatWarning,
             )
-            lines.append("table_name = astropy_table")
+            lines.append("table_name = origin_astropy")
 
         # loop through optional table keywords
         table_keywords = [
@@ -388,6 +481,11 @@ class TdatHeader(basic.BasicHeader):
             "table_security",
         ]
         table_keywords = [kw for kw in table_keywords if kw in keywords.keys()]
+        for kw in ["record_delimiter", "field_delimiter"]:
+            val = keywords.pop(kw, None)
+            if val is not None:
+                warn(TdatFormatWarning(f"Skipping deprecated keyword: {kw}."))
+
         for key in table_keywords:
             if key == "table_description":
                 if len(keywords[key]) > 80:
@@ -458,80 +556,6 @@ class TdatHeader(basic.BasicHeader):
         lines.append("#")
         lines.append(f"line[1] = {' '.join([col.info.name for col in self.cols])}")
         lines.append("#")
-
-
-class TdatDataSplitter(core.BaseSplitter):
-    """Splitter for tdat data.
-
-    Handles the (deprecated) cases of multiple data delimiters, record
-    delimiters, and multi-line records.
-    Multiple data delimiters - Multiple delimiters can be specified in the
-        header, e.g. field_delimiter = "|!" would treat both | and !
-        as individual delimiters. Default: "|"
-    Record Delimiters - The record_delimiter can be specified in the header. By
-        default there is no record delimiter and new records should be set on
-        new lines. The following list standard escaped character sequences and their
-        equivalent meanings can be used:
-        * \t (tab)
-        * \b (backspace)
-        * \r (carriage return)
-        * \f (form feed)
-        * \v (vertical tab)
-        * \a (audible alert/bell),
-        * \\### (where ### is a number between 1 and 127 and represents the
-        ASCII character with that numerical code).
-        Note: Specifying a record delimiter value of "" is interpreted as a
-            single blank line between records.
-    Multi-line records - A single record may take more than one line, indicated in the header
-
-    """
-
-    delimiter = "|"
-    record_delimiter = None
-
-    def preprocess_data_lines(self, lines, record_delimiter):
-        """Split lines into multiple lines if a record_delimiter is specified."""
-        data_lines = []
-        for line in lines:
-            data_lines += re.split(rf"{record_delimiter}", line)
-        return data_lines
-
-    def __call__(self, lines, field_delimiter="|", record_delimiter=None, nlines=1):
-        """ """
-        if " " in field_delimiter:
-            warn(
-                TdatFormatWarning("Double check your data when using space delimiters.")
-            )
-
-        if record_delimiter is not None:
-            lines = self.preprocess_data_lines(lines, record_delimiter)
-        if hasattr(self, "process_line"):
-            lines = (self.process_line(x) for x in lines)
-
-        iline = 0
-        _lines = []
-        for line in lines:
-            _lines.append(line)
-            iline += 1
-            if iline == nlines:
-                vals = [
-                    val
-                    for _line in _lines
-                    for val in re.split(rf"[{field_delimiter}]", _line)[:-1]
-                ]
-                iline = 0
-                _lines = []
-                if hasattr(self, "process_val"):
-                    yield [self.process_val(x) for x in vals]
-                else:
-                    yield vals
-            else:
-                continue
-
-    def join(self, vals):
-        delimiter = getattr(self, "delimiter", "|")
-        # TDAT specification requires a delimiter at the end of each record
-        return delimiter.join(str(x) for x in vals) + delimiter
 
 
 class TdatData(core.BaseData):
@@ -708,11 +732,11 @@ class Tdat(core.BaseReader):
     >>> from io import StringIO
     >>> t = Table(names=('reference_id', 'RA', 'Name'),
     ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
-    >>> t.meta['table_name'] = "astropy_table"
+    >>> t.meta['table_name'] = "origin_astropy"
     >>> out = StringIO()
     >>> t.write(out, format="ascii.tdat")
     >>> out.getvalue().splitlines()
-    ['<HEADER>', 'table_name = astropy_table', '#', '# Table Parameters', '#', 'field[reference_id] = int4', 'field[RA] = float8', 'field[Name] = char1', '#', '# Data Format Specification', '#', 'line[1] = reference_id RA Name', '#', '<DATA>', '1|1.0|c|', '2|2.0|d|', '3|3.0|e|', '<END>']
+    ['<HEADER>', 'table_name = origin_astropy', '#', '# Table Parameters', '#', 'field[reference_id] = int4', 'field[RA] = float8', 'field[Name] = char1', '#', '# Data Format Specification', '#', 'line[1] = reference_id RA Name', '#', '<DATA>', '1|1.0|c|', '2|2.0|d|', '3|3.0|e|', '<END>']
 
     Including relevant metadata for the table and columns separately
     is possible with a mixture of attribute assignment and additions to the
