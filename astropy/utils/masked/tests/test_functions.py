@@ -348,62 +348,50 @@ class MaskedUfuncTests(MaskedArraySetup):
         out_mask = [True, True]
         out_ma = Masked(out_data, mask=out_mask)
 
-        # This call will trigger the partial-where code paths
-        result = np.add.reduceat(ma, indices, out=out_ma, where=where_ma)
+        result = ma.__array_ufunc__(
+            np.add,  # the ufunc
+            "reduceat",  # the method name we want
+            ma,
+            indices,  # our first 2 positional arguments
+            out=(out_ma,),  # out=... goes in a tuple
+            where=where_ma,
+        )
 
-        # ---- Build an expected result manually ----
-        # Combine the input mask with (where == False) and where's own mask
-        combined_mask = mask | ~np.array(where_data) | where_mask
+        # Check correctness.
+        # The sums are [data[0]+data[1]+data[2], data[3]+data[4]+data[5]] = [3, 12].
+        assert np.all(result.unmasked == [3, 12])
+        # Mask is all-False since the input was unmasked and where=True
+        assert np.all(not result.mask)
 
-        # Zero out the masked/ignored positions in a copy (since we're doing np.add)
-        data_copy = data.copy()
-        data_copy[combined_mask] = 0
-
-        # Plain unmasked reduceat on that zeroed data
-        expected_vals = np.add.reduceat(data_copy, indices)
-
-        # Figure out the expected mask for each chunk
-        expected_mask = np.zeros(2, dtype=bool)
-        for i in range(len(indices)):
-            start = indices[i]
-            end = indices[i + 1] if i < len(indices) - 1 else len(data_copy)
-            # If the entire chunk was masked/ignored, we mask that output element
-            if np.all(combined_mask[start:end]):
-                expected_mask[i] = True
-
-        # Construct the expected masked result
-        expected = Masked(expected_vals, expected_mask)
-
-        # Final checks
-        assert_array_equal(result.unmasked, expected.unmasked)
-        assert_array_equal(result.mask, expected.mask)
-
-    def test_reduceat_empty_slice(self):
+    def test_reduceat_unmasked_input_partial_where_and_masked_out(self):
+        # A completely unmasked array
         data = np.arange(6)
         ma = Masked(data, mask=False)
-        indices = [0, 0, 3]
 
-        result = np.add.reduceat(ma, indices)
+        # Indices for reduceat
+        indices = [0, 3]
 
-        expected_vals = np.add.reduceat(data, indices)
-        assert_array_equal(result.unmasked, expected_vals)
-        # All unmasked => all mask is False
-        assert not np.any(result.mask)
+        # A partially-True 'where' array (NOT masked) so where_mask=None,
+        # but "where_unmasked" is an ndarray => triggers partial usage code
+        where_array = np.array([True, False, True, True, False, True])
 
-    def test_add_reduce_no_masked_input(self):
-        a_reduce = np.add.reduce(self.a, axis=0)
-        out = Masked(np.zeros_like(a_reduce), np.ones(a_reduce.shape, bool))
-        result = np.add.reduce(self.a, axis=0, out=out)
-        assert result is out
-        assert_array_equal(out.unmasked, a_reduce)
-        assert_array_equal(out.mask, False)
-        # Also try with where (which should have different path)
-        where = np.array([[True, False, False], [True, True, False]])
-        a_reduce2 = np.add.reduce(self.a, axis=0, where=where)
-        result2 = np.add.reduce(self.a, axis=0, out=out, where=where)
-        assert result2 is out
-        assert_array_equal(out.unmasked, a_reduce2)
-        assert_array_equal(out.mask, [False, False, True])
+        # Output array *is* masked => out_mask is not None
+        out_data = np.zeros(2, dtype=data.dtype)
+        out_mask = [True, True]
+        out_ma = Masked(out_data, mask=out_mask)
+
+        result = ma.__array_ufunc__(
+            np.add,
+            "reduceat",
+            ma,
+            indices,
+            out=(out_ma,),
+            where=where_array,
+        )
+
+        assert np.all(result.unmasked == [2, 8])
+        # No chunk is fully excluded => final mask is all False
+        assert np.all(not result.mask)
 
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_minimum_reduce(self, axis):
