@@ -338,11 +338,10 @@ class PhysicalType:
 
     def __init__(self, unit: core.UnitBase, physical_types: str | set[str]) -> None:
         self._unit = _replace_temperatures_with_kelvin(unit)
-        self._physical_type = _standardize_physical_type_names(physical_types)
-        self._physical_type_list = sorted(self._physical_type)
+        self._physical_type = sorted(_standardize_physical_type_names(physical_types))
 
     def __iter__(self) -> Iterator[str]:
-        yield from self._physical_type_list
+        yield from self._physical_type
 
     def __eq__(self, other: object) -> bool:
         """
@@ -362,17 +361,17 @@ class PhysicalType:
         return not equality if isinstance(equality, bool) else NotImplemented
 
     def _name_string_as_ordered_set(self) -> str:
-        return "{" + str(self._physical_type_list)[1:-1] + "}"
+        return "{" + str(self._physical_type)[1:-1] + "}"
 
     def __repr__(self) -> str:
         if len(self._physical_type) == 1:
-            names = "'" + self._physical_type_list[0] + "'"
+            names = "'" + self._physical_type[0] + "'"
         else:
             names = self._name_string_as_ordered_set()
         return f"PhysicalType({names})"
 
     def __str__(self) -> str:
-        return "/".join(self._physical_type_list)
+        return "/".join(self._physical_type)
 
     @staticmethod
     def _dimensionally_compatible_unit(
