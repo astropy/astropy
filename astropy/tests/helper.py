@@ -29,45 +29,6 @@ CI = os.environ.get("CI", "false") == "true"
 IS_CRON = os.environ.get("IS_CRON", "false") == "true"
 
 
-def _save_coverage(cov, result, rootdir, testing_path):
-    """
-    This method is called after the tests have been run in coverage mode
-    to cleanup and then save the coverage data and report.
-    """
-    from astropy.utils.console import color_print
-
-    if result != 0:
-        return
-
-    # The coverage report includes the full path to the temporary
-    # directory, so we replace all the paths with the true source
-    # path. Note that this will not work properly for packages that still
-    # rely on 2to3.
-    try:
-        # Coverage 4.0: _harvest_data has been renamed to get_data, the
-        # lines dict is private
-        cov.get_data()
-    except AttributeError:
-        # Coverage < 4.0
-        cov._harvest_data()
-        lines = cov.data.lines
-    else:
-        lines = cov.data._lines
-
-    for key in list(lines.keys()):
-        new_path = os.path.relpath(
-            os.path.realpath(key), os.path.realpath(testing_path)
-        )
-        new_path = os.path.abspath(os.path.join(rootdir, new_path))
-        lines[new_path] = lines.pop(key)
-
-    color_print("Saving coverage data in .coverage...", "green")
-    cov.save()
-
-    color_print("Saving HTML coverage report in htmlcov...", "green")
-    cov.html_report(directory=os.path.join(rootdir, "htmlcov"))
-
-
 def assert_follows_unicode_guidelines(x, roundtrip=None):
     """
     Test that an object follows our Unicode policy.  See
