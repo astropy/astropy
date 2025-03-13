@@ -360,14 +360,11 @@ class PhysicalType:
         equality = self.__eq__(other)
         return not equality if isinstance(equality, bool) else NotImplemented
 
-    def _name_string_as_ordered_set(self) -> str:
-        return "{" + str(self._physical_type)[1:-1] + "}"
-
     def __repr__(self) -> str:
         if len(self._physical_type) == 1:
             names = "'" + self._physical_type[0] + "'"
         else:
-            names = self._name_string_as_ordered_set()
+            names = "{" + str(self._physical_type)[1:-1] + "}"
         return f"PhysicalType({names})"
 
     def __str__(self) -> str:
