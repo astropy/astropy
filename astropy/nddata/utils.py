@@ -125,10 +125,10 @@ def overlap_slices(
             int(limit_rounding_method(pos - (small_shape / 2.0)))
             for (pos, small_shape) in zip(position, small_array_shape)
         ]
-    except (TypeError, ValueError):
+    except (TypeError, ValueError) as exc:
         raise ValueError(
             "Limit rounding method must accept a single number as input and return a single number."
-        )
+        ) from exc
     indices_max = [
         int(idx_min + small_shape)
         for (idx_min, small_shape) in zip(indices_min, small_array_shape)
