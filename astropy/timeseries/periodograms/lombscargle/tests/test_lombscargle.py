@@ -76,7 +76,7 @@ def test_all_methods(
     if method == "scipy":
         if fit_mean and SCIPY_LT_1_15:
             pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
-        elif errors == "full" or errors == "partial" and normalization == "psd":
+        elif errors == "full" or (errors == "partial" and normalization == "psd"):
             pytest.skip("scipy method only supports uniform uncertainties dy")
 
     t, y, dy = data
