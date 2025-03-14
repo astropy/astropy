@@ -242,14 +242,6 @@ class TdatHeader(basic.BasicHeader):
 
                 value = kmatch.group("value").strip("\"'`")
                 if key == "table_name":
-                    pattern = r"^(zzgen|zztext|zzpar|zzrel|origin_.*)$"
-                    if not bool(re.match(pattern, value)):
-                        warn(
-                            TdatFormatWarning(
-                                "The table_name does not comply with the standard.\n"
-                                + _STD_MSG
-                            )
-                        )
                     if len(value) > 20:
                         warn(
                             TdatFormatWarning(
@@ -451,13 +443,6 @@ class TdatHeader(basic.BasicHeader):
         indices = [col.info.name for col in self.cols if col.info.indices != []]
 
         if "table_name" in keywords:
-            pattern = r"^(zzgen|zztext|zzpar|zzrel|origin_.*)$"
-            if not bool(re.match(pattern, keywords["table_name"])):
-                warn(
-                    TdatFormatWarning(
-                        "The table_name does not comply with the standard.\n" + _STD_MSG
-                    )
-                )
             if len(keywords["table_name"]) > 20:
                 warn(
                     "'table_name' is too long, truncating to 20 characters",
@@ -469,10 +454,10 @@ class TdatHeader(basic.BasicHeader):
                 "'table_name' must be specified\n"  # noqa: ISC003
                 + f"{_STD_MSG}\n"
                 + "This should be specified in the Table.meta.\n"
-                + "default value of 'origin_astropy' being assigned.",
+                + "default value of 'astropy_table' being assigned.",
                 TdatFormatWarning,
             )
-            lines.append("table_name = origin_astropy")
+            lines.append("table_name = astropy_table")
 
         # loop through optional table keywords
         table_keywords = [
@@ -493,7 +478,8 @@ class TdatHeader(basic.BasicHeader):
                         "'table_description' is too long, truncating to 80 characters",
                         TdatFormatWarning,
                     )
-                new_desc = keywords.pop(key)[:80]
+                new_desc = keywords.pop(key)
+                new_desc = new_desc[:80]
                 lines.append(f"{key} = {new_desc}")
             elif key in keywords:
                 lines.append(f"{key} = {keywords.pop(key)}")
@@ -732,11 +718,11 @@ class Tdat(core.BaseReader):
     >>> from io import StringIO
     >>> t = Table(names=('reference_id', 'RA', 'Name'),
     ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
-    >>> t.meta['table_name'] = "origin_astropy"
+    >>> t.meta['table_name'] = "astropy_table"
     >>> out = StringIO()
     >>> t.write(out, format="ascii.tdat")
     >>> out.getvalue().splitlines()
-    ['<HEADER>', 'table_name = origin_astropy', '#', '# Table Parameters', '#', 'field[reference_id] = int4', 'field[RA] = float8', 'field[Name] = char1', '#', '# Data Format Specification', '#', 'line[1] = reference_id RA Name', '#', '<DATA>', '1|1.0|c|', '2|2.0|d|', '3|3.0|e|', '<END>']
+    ['<HEADER>', 'table_name = astropy_table', '#', '# Table Parameters', '#', 'field[reference_id] = int4', 'field[RA] = float8', 'field[Name] = char1', '#', '# Data Format Specification', '#', 'line[1] = reference_id RA Name', '#', '<DATA>', '1|1.0|c|', '2|2.0|d|', '3|3.0|e|', '<END>']
 
     Including relevant metadata for the table and columns separately
     is possible with a mixture of attribute assignment and additions to the
