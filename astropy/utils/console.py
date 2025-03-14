@@ -362,7 +362,7 @@ def human_file_size(size):
     if size == 0:
         num_scale = 0
     else:
-        num_scale = int(math.floor(math.log(size) / math.log(1000)))
+        num_scale = math.floor(math.log(size) / math.log(1000))
     if num_scale > 7:
         suffix = "?"
     else:

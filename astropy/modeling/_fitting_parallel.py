@@ -191,7 +191,7 @@ def _fit_models_to_chunk(
             index_abs = np.array(index) + np.array(
                 [block_info[0]["array-location"][idx][0] for idx in iterating_axes]
             )
-            maxlen = int(ceil(log10(max(iterating_shape))))
+            maxlen = ceil(log10(max(iterating_shape)))
             fmt = "{0:0" + str(maxlen) + "d}"
             index_folder = Path(diagnostics_path).joinpath(
                 "_".join(fmt.format(idx) for idx in index_abs)

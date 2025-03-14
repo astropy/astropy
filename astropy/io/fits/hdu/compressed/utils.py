@@ -99,7 +99,7 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
 
 
 def _n_tiles(data_shape, tile_shape):
-    return [int(ceil(d / t)) for d, t in zip(data_shape, tile_shape)]
+    return [ceil(d / t) for d, t in zip(data_shape, tile_shape)]
 
 
 def _iter_array_tiles(
