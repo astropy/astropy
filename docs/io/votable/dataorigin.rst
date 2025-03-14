@@ -7,7 +7,7 @@ DataOrigin IVOA note: https://www.ivoa.net/documents/DataOrigin/.
 DataOrigin includes both the query information (such as publisher, contact, versions, etc.) 
 and the Dataset origin (such as Creator, bibliographic links, URL, etc.)
 
-This API retrieves Metadata from INFO in VOTAble.
+This API retrieves Metadata from INFO in VOTable.
 
 
 Getting Started
@@ -52,7 +52,10 @@ Contents and metadata
    ``DataSetOrigin`` is a basic provenance of the datasets queried. Each attribute is a list.
    It includes metadata like authors, ivoid, landing pages, ....
 
-Example: Get the (Data Center) publisher and the Creator of the dataset
+Examples
+--------
+
+Get the (Data Center) publisher and the Creator of the dataset
 
 .. code-block:: python
 
@@ -82,7 +85,7 @@ DataOrigin container includes VO Elements:
 
 * Extract tree node `astropy.io.votable.tree.Element`
 
-Example: extract from header the citation (in APA style)
+The following example extracts from header the citation (in APA style).
 
 .. code-block:: python
 
@@ -93,7 +96,7 @@ Example: extract from header the citation (in APA style)
     >> print(f"APA: {','.join(origin.creator)} ({origin.publication_date[0]}). {title} [Dataset]. {data_origin.query.publisher}. {origin.citation[0]}")  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
     APA: Hong K. (2024-11-06). Period variations of 32 contact binaries (Hong+, 2024) [Dataset]. CDS. doi:10.26093/cds/vizier.51670018
 
-* Add Data Origin INFO into VOTable
+* Add Data Origin INFO into VOTable:
 
 .. code-block:: python
 
