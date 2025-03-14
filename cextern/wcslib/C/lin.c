@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: lin.c,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -87,7 +87,7 @@ int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
     if (lin->flag == -1) {
       lin->dispre = 0x0;
       lin->disseq = 0x0;
-      lin->tmpcrd = 0x0;
+      lin->dummy  = 0x0;
     }
 
     lin->m_flag   = 0;
@@ -183,7 +183,6 @@ int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
   if (abs(lin->flag) == LINSET) {
     if (lin->piximg) free(lin->piximg);
     if (lin->imgpix) free(lin->imgpix);
-    if (lin->tmpcrd) free(lin->tmpcrd);
   }
 
   lin->piximg  = 0x0;
@@ -192,7 +191,6 @@ int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
   lin->unity   = 0;
   lin->affine  = 0;
   lin->simple  = 0;
-  lin->tmpcrd  = 0x0;
 
 
   lin->naxis = naxis;
@@ -404,7 +402,6 @@ int linfree(struct linprm *lin)
     // Allocated unconditionally by linset().
     if (lin->piximg) free(lin->piximg);
     if (lin->imgpix) free(lin->imgpix);
-    if (lin->tmpcrd) free(lin->tmpcrd);
   }
 
 
@@ -419,8 +416,6 @@ int linfree(struct linprm *lin)
   lin->piximg   = 0x0;
   lin->imgpix   = 0x0;
   lin->i_naxis  = 0;
-
-  lin->tmpcrd   = 0x0;
 
   wcserr_clear(&(lin->err));
 
@@ -479,9 +474,6 @@ int linsize(const struct linprm *lin, int sizes[2])
 
   // linprm::imgpix[].
   sizes[1] += naxis*naxis * sizeof(double);
-
-  // linprm::tmpcrd[].
-  sizes[1] += naxis * sizeof(double);
 
   return 0;
 }
@@ -598,9 +590,6 @@ int linprt(const struct linprm *lin)
   if (lin->err) {
     wcserr_prt(lin->err, "             ");
   }
-
-  // Work arrays.
-  WCSPRINTF_PTR("     tmpcrd: ", lin->tmpcrd, "\n");
 
   // Memory management.
   wcsprintf("     m_flag: %d\n", lin->m_flag);
@@ -772,15 +761,6 @@ int linset(struct linprm *lin)
 
   lin->simple = lin->unity && lin->affine;
 
-
-  // Create work arrays.
-  if (lin->tmpcrd) free(lin->tmpcrd);
-  if ((lin->tmpcrd = calloc(naxis, sizeof(double))) == 0x0) {
-    linfree(lin);
-    return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
-  }
-
-
   lin->flag = (lin->flag == 1) ? -LINSET : LINSET;
 
   return 0;
@@ -853,7 +833,10 @@ int linp2x(
   } else {
     // Distortions are present.
     int ndbl = naxis * sizeof(double);
-    double *tmp  = lin->tmpcrd;
+    double *tmp = calloc(naxis, sizeof(double));
+    if (tmp == 0x0) {
+      return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
+    }
 
     for (int k = 0; k < ncoord; k++) {
       if (lin->dispre) {
@@ -887,6 +870,7 @@ int linp2x(
       if (lin->disseq) {
         int status = disp2x(lin->disseq, img, tmp);
         if (status) {
+	  free(tmp);
           return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
         }
 
@@ -905,6 +889,8 @@ int linp2x(
       pix += nelem;
       img += nelem;
     }
+
+    free(tmp);
   }
 
   return 0;
@@ -922,13 +908,14 @@ int linx2p(
 {
   static const char *function = "linx2p";
 
+  int status = 0;
+
   // Initialize.
   if (lin == 0x0) return LINERR_NULL_POINTER;
   struct wcserr **err = &(lin->err);
 
   if (abs(lin->flag) != LINSET) {
-    int status = linset(lin);
-    if (status) {
+    if ((status = linset(lin))) {
       return status;
     }
   }
@@ -976,7 +963,10 @@ int linx2p(
   } else {
     // Distortions are present.
     int ndbl = naxis * sizeof(double);
-    double *tmp  = lin->tmpcrd;
+    double *tmp = calloc(naxis, sizeof(double));
+    if (tmp == 0x0) {
+      return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
+    }
 
     for (int k = 0; k < ncoord; k++) {
       if (lin->disseq) {
@@ -985,9 +975,9 @@ int linx2p(
           tmp[i] = img[i] / lin->cdelt[i];
         }
 
-        int status = disx2p(lin->disseq, tmp, pix);
-        if (status) {
-          return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
+        if ((status = disx2p(lin->disseq, tmp, pix))) {
+          wcserr_set(LIN_ERRMSG(lin_diserr[status]));
+          goto cleanup;
         }
 
         memcpy(tmp, pix, ndbl);
@@ -1021,18 +1011,21 @@ int linx2p(
       if (lin->dispre) {
         memcpy(tmp, pix, ndbl);
 
-        int status = disx2p(lin->dispre, tmp, pix);
-        if (status) {
-          return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
+        if ((status = disx2p(lin->dispre, tmp, pix))) {
+          wcserr_set(LIN_ERRMSG(lin_diserr[status]));
+          goto cleanup;
         }
       }
 
       img += nelem;
       pix += nelem;
     }
+
+    cleanup:
+    free(tmp);
   }
 
-  return 0;
+  return status;
 }
 
 //----------------------------------------------------------------------------
@@ -1072,29 +1065,38 @@ int linwarp(
   // Quick return if no distortions.
   if (lin->affine) return 0;
 
+  int status = 0;
+
   // It's easier if there are no sequent distortions!
   if (lin->disseq == 0x0) {
-    int status = diswarp(lin->dispre, pixblc, pixtrc, pixsamp, nsamp,
-                         maxdis, maxtot, avgdis, avgtot, rmsdis, rmstot);
+    status = diswarp(lin->dispre, pixblc, pixtrc, pixsamp, nsamp, maxdis,
+                     maxtot, avgdis, avgtot, rmsdis, rmstot);
     return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
   }
 
   // Make a reference copy of lin without distortions.
+  double *pixinc = 0x0;
+  double *pix0   = 0x0;
   struct linprm affine;
   affine.flag = -1;
 
-  int status = lincpy(1, lin, &affine) ||
-               lindist(1, &affine, 0x0, 0) ||
-               lindist(2, &affine, 0x0, 0) ||
-               linset(&affine);
+  status = lincpy(1, lin, &affine) ||
+           lindist(1, &affine, 0x0, 0) ||
+           lindist(2, &affine, 0x0, 0) ||
+           linset(&affine);
   if (status) {
-    return wcserr_set(LIN_ERRMSG(status));
+    wcserr_set(LIN_ERRMSG(status));
+    goto cleanup;
   }
 
   // Work out increments on each axis.
   int ncoord = 0;
+  if ((pixinc = calloc(naxis, sizeof(double))) == 0x0) { 
+    wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
+    goto cleanup;
+  }
+
   for (int j = 0; j < naxis; j++) {
-    double *pixinc = lin->tmpcrd;
     double pixspan = pixtrc[j] - (pixblc ? pixblc[j] : 1.0);
 
     if (pixsamp == 0x0) {
@@ -1116,22 +1118,18 @@ int linwarp(
   }
 
   // Allocate memory in bulk for processing the image row by row.
-  double *pix0 = calloc((3*ncoord+4)*naxis, sizeof(double));
-  if (pix0 == 0x0) {
-    return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
+  if ((pix0 = calloc((3*ncoord+3)*naxis, sizeof(double))) == 0x0) {
+    status = wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
+    goto cleanup;
   }
 
   // Carve up the allocated memory.
   double *img    = pix0 + naxis*ncoord;
   double *pix1   = img  + naxis*ncoord;
-  double *pixinc = pix1 + naxis*ncoord;
-  double *pixend = pixinc + naxis;
+  double *pixend = pix1 + naxis*ncoord;
   double *sumdis = pixend + naxis;
   double *ssqdis = sumdis + naxis;
 
-
-  // Copy tmpcrd since linp2x() will overwrite it.
-  memcpy(pixinc, lin->tmpcrd, naxis*sizeof(double));
 
   // Set up the array of pixel coordinates.
   for (int j = 0; j < naxis; j++) {
@@ -1160,7 +1158,6 @@ int linwarp(
   // Loop over N dimensions.
   int carry = 0;
   while (carry == 0) {
-    int status;
     if ((status = linp2x(lin, ncoord, naxis, pix0, img))) {
       // (Preserve the error message set by linp2x().)
       goto cleanup;
@@ -1231,7 +1228,8 @@ int linwarp(
 
 cleanup:
   linfree(&affine);
-  free(pix0);
+  if (pixinc) free(pixinc);
+  if (pix0) free(pix0);
 
   return status;
 }
