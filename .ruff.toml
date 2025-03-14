@@ -202,6 +202,7 @@ lint.unfixable = [
 "astropy/constants/*" = []
 "astropy/convolution/*" = []
 "astropy/coordinates/*" = [
+    "B007",  # UnusedLoopControlVariable
     "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
 ]
