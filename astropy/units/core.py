@@ -1334,7 +1334,7 @@ class UnitBase:
                 if is_final_result(factored):
                     subresults.add(factored)
 
-            if len(subresults):
+            if subresults:
                 cached_results[unit] = subresults
                 return subresults
 
@@ -2550,7 +2550,7 @@ def _add_prefixes(
             for alias in u.long_names:
                 names.append(prefix + alias)
 
-        if len(names):
+        if names:
             PrefixUnit(
                 names,
                 CompositeUnit(factor, [u], [1], _error_check=False),
