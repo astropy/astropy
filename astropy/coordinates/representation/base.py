@@ -963,9 +963,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         from .cartesian import CartesianDifferential, CartesianRepresentation
 
         # route transformation through Cartesian
-        difs_cls = {k: CartesianDifferential for k in self.differentials.keys()}
         crep = self.represent_as(
-            CartesianRepresentation, differential_class=difs_cls
+            CartesianRepresentation,
+            differential_class=dict.fromkeys(self.differentials, CartesianDifferential),
         ).transform(matrix)
 
         # move back to original representation
