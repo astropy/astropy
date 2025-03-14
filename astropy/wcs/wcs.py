@@ -2947,7 +2947,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 if kw not in header:
                     missing_keys.append(kw)
 
-            if len(missing_keys):
+            if missing_keys:
                 warnings.warn(
                     "Some non-standard WCS keywords were excluded:"
                     f" {', '.join(missing_keys)} Use the ``relax`` kwarg to control"
@@ -3762,7 +3762,7 @@ def validate(source):
             result = []
             for hdu in self:
                 content = repr(hdu)
-                if len(content):
+                if content:
                     result.append(content)
             return "\n\n".join(result)
 
