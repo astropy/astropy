@@ -79,7 +79,6 @@ _kB_evK = const.k_B.to(u.eV / u.K)
 
 # typing
 _FLRWT = TypeVar("_FLRWT", bound="FLRW")
-_FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
 
 ##############################################################################
 
@@ -1702,7 +1701,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         self.__dict__["Ode0"] = 1.0 - (self.Om0 + self.Ogamma0 + self.Onu0 + self.Ok0)
 
     @lazyproperty
-    def nonflat(self: _FlatFLRWMixinT) -> _FLRWT:
+    def nonflat(self: Self) -> _FLRWT:
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
         ba = inspect.signature(self.__nonflatclass__).bind_partial(
