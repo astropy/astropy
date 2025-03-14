@@ -950,13 +950,35 @@ def test_full_subtypes():
     f_double columns.
     """
     t = Table.read(os.path.join(TEST_DIR, "data", "subtypes.ecsv"))
-    colnames = (
-        "i_index,"
-        "s_byte,s_short,s_int,s_long,s_float,s_double,s_string,s_boolean,"
-        "f_byte,f_short,f_int,f_long,f_float,f_double,f_string,f_boolean,"
-        "v_byte,v_short,v_int,v_long,v_float,v_double,v_string,v_boolean,"
-        "m_int,m_double"
-    ).split(",")
+    colnames = [
+        "i_index",
+        "s_byte",
+        "s_short",
+        "s_int",
+        "s_long",
+        "s_float",
+        "s_double",
+        "s_string",
+        "s_boolean",
+        "f_byte",
+        "f_short",
+        "f_int",
+        "f_long",
+        "f_float",
+        "f_double",
+        "f_string",
+        "f_boolean",
+        "v_byte",
+        "v_short",
+        "v_int",
+        "v_long",
+        "v_float",
+        "v_double",
+        "v_string",
+        "v_boolean",
+        "m_int",
+        "m_double",
+    ]
     assert t.colnames == colnames
 
     type_map = {
