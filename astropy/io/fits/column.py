@@ -1807,8 +1807,9 @@ class ColDefs(NotifierMixin):
         the numerical index of the column that changed.
         """
         idx = 0
-        for idx, col in enumerate(self.columns):
+        for i, col in enumerate(self.columns):
             if col is column:
+                idx=i
                 break
 
         if attr == "name":

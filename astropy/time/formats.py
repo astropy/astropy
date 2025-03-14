@@ -547,15 +547,15 @@ class TimeNumeric(TimeFormat):
             val1.dtype if orig_val2_is_none else np.result_type(val1.dtype, val2.dtype)
         )
         subfmts = self._select_subfmts(self.in_subfmt)
-        for subfmt, dtype, convert, _ in subfmts:
+        for _, dtype, _convert, _ in subfmts:
             if np.issubdtype(val_dtype, dtype):
                 break
         else:
             raise ValueError("input type not among selected sub-formats.")
 
-        if convert is not None:
+        if _convert is not None:
             try:
-                val1, val2 = convert(val1, val2)
+                val1, val2 = _convert(val1, val2)
             except Exception:
                 raise TypeError(
                     f"for {self.name} class, input should be (long) doubles, string, "

@@ -1630,7 +1630,7 @@ def cache_total_size(pkgname="astropy"):
     """Return the total size in bytes of all files in the cache."""
     size = 0
     dldir = _get_download_cache_loc(pkgname=pkgname)
-    for root, dirs, files in os.walk(dldir):
+    for root, _, files in os.walk(dldir):
         size += sum(os.path.getsize(os.path.join(root, name)) for name in files)
     return size
 
