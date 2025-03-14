@@ -185,8 +185,7 @@ class _ModelMeta(abc.ABCMeta):
 
         # Delete custom __init__ and __call__ if they exist:
         for key in ("__init__", "__call__"):
-            if key in members:
-                del members[key]
+            members.pop(key, None)
 
         return (type(cls), (cls.__name__, cls.__bases__, members))
 
@@ -827,14 +826,14 @@ class Model(metaclass=_ModelMeta):
         mapping input name to a boolean value.
         """
         if isinstance(self._input_units_strict, bool):
-            self._input_units_strict = {
-                key: self._input_units_strict for key in self.inputs
-            }
+            self._input_units_strict = dict.fromkeys(
+                self.inputs, self._input_units_strict
+            )
 
         if isinstance(self._input_units_allow_dimensionless, bool):
-            self._input_units_allow_dimensionless = {
-                key: self._input_units_allow_dimensionless for key in self.inputs
-            }
+            self._input_units_allow_dimensionless = dict.fromkeys(
+                self.inputs, self._input_units_allow_dimensionless
+            )
 
     @property
     def input_units_strict(self):
@@ -847,7 +846,7 @@ class Model(metaclass=_ModelMeta):
         """
         val = self._input_units_strict
         if isinstance(val, bool):
-            return {key: val for key in self.inputs}
+            return dict.fromkeys(self.inputs, val)
         return dict(zip(self.inputs, val.values()))
 
     @property
@@ -861,7 +860,7 @@ class Model(metaclass=_ModelMeta):
         """
         val = self._input_units_allow_dimensionless
         if isinstance(val, bool):
-            return {key: val for key in self.inputs}
+            return dict.fromkeys(self.inputs, val)
         return dict(zip(self.inputs, val.values()))
 
     @property
