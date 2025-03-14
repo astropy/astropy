@@ -6,6 +6,9 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.lombscargle import LombScargle
+from astropy.timeseries.periodograms.lombscargle._testing import (
+    assert_not_strictly_equal,
+)
 
 ALL_METHODS = LombScargle.available_methods
 ALL_METHODS_NO_AUTO = [method for method in ALL_METHODS if method != "auto"]
@@ -242,10 +245,7 @@ def test_fast_approximations(method, center_data, fit_mean, errors, nterms, data
 
         assert_allclose(P_fast, P_slow, atol=0.008)
         if nterms != 0:
-            assert np.bitwise_xor(
-                np.ascontiguousarray(P_fast).view(np.uint8),
-                np.ascontiguousarray(P_slow).view(np.uint8),
-            ).any(), "Output arrays are the same - dispatch test has failed"
+            assert_not_strictly_equal(P_fast, P_slow)
 
 
 @pytest.mark.parametrize("method", LombScargle.available_methods)

@@ -14,8 +14,8 @@ def bitceil(N):
 
 def next_fast_len(N):
     """
-    Find the next number greater, than N, which can be expressed
-    as 2^n * 3^m for integer values of n and m and m <= 4.
+    Find the next number, greater than N, which can be expressed
+    as 2^n * 3^m for nonnegative integer values of n and m, with m <= 4.
     """
     Nfft = bitceil(N)
 
@@ -121,14 +121,14 @@ def jn(n, x, num_terms=10):
     for i in range(1, n_max + 1):
         fact[i] = fact[i - 1] * i
 
-    result = np.zeros(np.broadcast(n, x).shape, dtype=np.float64)
+    result = np.zeros(np.broadcast_shapes(n, x), dtype=np.float64)
 
     half_x2 = half_x * half_x
     term_numer = half_x**n
     term_denom = fact[n]
 
     for k in range(num_terms):
-        term_denom = fact[k] * fact[(n + k)]
+        term_denom = fact[k] * fact[n + k]
         result += term_numer / term_denom
         term_numer *= -half_x2
 
@@ -184,11 +184,12 @@ def get_lra_params(x, N, eps):
         }
 
         # Find the smallest K in the LUT where eps is less than or equal to the LUT value
-        K = 16  # Default to K=16 if eps is too small
-        for i in sorted(lut.keys()):
-            if eps >= lut[i]:
+        for i, threshold in lut.items():
+            if eps >= threshold:
                 K = i
                 break
+        else:
+            K = 16
 
     return s, gamma, K
 
@@ -293,13 +294,12 @@ def construct_UV(x, gamma, K, N):
     else:
         Tcheb_U = chebyshev_polynomials(K - 1, er / gamma)
     B = bessel_coefficients(K, gamma)
-    U = np.exp(-1j * np.pi * er)[:, None] * (Tcheb_U @ B)
+    U = np.exp(-1j * np.pi * er)[:, None] * np.dot(Tcheb_U, B)
 
     # For V: compute Chebyshev polynomials on the frequency variable.
     omega = np.arange(N)
     X = 2.0 * omega / N - 1
-    Tcheb_V = chebyshev_polynomials(K - 1, X)
-    V = Tcheb_V.astype(np.complex128)
+    V = chebyshev_polynomials(K - 1, X).astype(np.complex128)
 
     return U, V
 
@@ -349,7 +349,7 @@ def nufft1_lra(x, y, N, eps):
         temp[:, k] = real_part + 1j * imag_part
 
     # Compute the inverse FFT (with normalization by Nfft) and combine with V.
-    temp_ifft = np.fft.ifft(temp, axis=0) * Nfft
+    temp_ifft = np.fft.ifft(temp, axis=0, norm="forward")
     s = np.sum(np.conjugate(V) * temp_ifft, axis=1)
 
     # Return the result truncated to the desired frequency grid length.
@@ -404,7 +404,7 @@ def trig_sum(
     Mfft : int
         The number of adjacent points to use in the FFT approximation.
         Not referenced if use_fft is False  or prefer_lra is True and SciPy is available.
-    algorithm : str, optional
+    algorithm : 'fasper' (default), or 'lra'
         This option is ignored if if use_fft is False.
         Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
         Currently there are two available options:
