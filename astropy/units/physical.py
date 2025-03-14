@@ -485,19 +485,16 @@ def def_physical_type(unit: core.UnitBase, name: str | set[str]) -> None:
     unit_already_in_use = physical_type_id in _physical_unit_mapping
     if unit_already_in_use:
         physical_type = _physical_unit_mapping[physical_type_id]
-        physical_type_names |= set(physical_type)
-        physical_type.__init__(unit, physical_type_names)
+        physical_type._physical_type = sorted(physical_type_names | set(physical_type))
     else:
         physical_type = PhysicalType(unit, physical_type_names)
         _physical_unit_mapping[physical_type_id] = physical_type
 
     for ptype in physical_type:
         _unit_physical_mapping[ptype] = physical_type_id
-
-    for ptype_name in physical_type_names:
-        _name_physical_mapping[ptype_name] = physical_type
+        _name_physical_mapping[ptype] = physical_type
         # attribute-accessible name
-        attr_name = ptype_name.replace(" ", "_").replace("(", "").replace(")", "")
+        attr_name = ptype.replace(" ", "_").replace("(", "").replace(")", "")
         _attrname_physical_mapping[attr_name] = physical_type
 
 
@@ -580,6 +577,7 @@ def get_physical_type(
 # define the physical types
 for unit, physical_type in _units_and_physical_types:
     def_physical_type(unit, physical_type)
+del unit, physical_type
 
 
 # For getting the physical types.
@@ -630,14 +628,11 @@ if __doc__ is not None:
     ]
 
     for name in sorted(_name_physical_mapping.keys()):
-        physical_type = _name_physical_mapping[name]
+        ptype = _name_physical_mapping[name]
         doclines += [
             f"    * - _`{name}`",
-            f"      - :math:`{physical_type._unit.to_string('latex')[1:-1]}`",
-            f"      - {', '.join([n for n in physical_type if n != name])}",
+            f"      - :math:`{ptype._unit.to_string('latex')[1:-1]}`",
+            f"      - {', '.join([n for n in ptype if n != name])}",
         ]
 
     __doc__ += "\n\n" + "\n".join(doclines)
-
-
-del unit, physical_type
