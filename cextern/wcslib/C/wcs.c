@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: wcs.c,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -1766,11 +1766,11 @@ int wcsfree(struct wcsprm *wcs)
 
   wcs->types = 0x0;
 
-  wcserr_clear(&(wcs->err));
-
   linfree(&(wcs->lin));
   celfree(&(wcs->cel));
   spcfree(&(wcs->spc));
+
+  wcserr_clear(&(wcs->err));
 
   wcs->flag = 0;
 
@@ -2373,16 +2373,16 @@ int wcsprt(const struct wcsprm *wcs)
   }
   wcsprintf("\n");
 
+  // Contained structs.
+  wcsprintf("        lin: (see below)\n");
+  wcsprintf("        cel: (see below)\n");
+  wcsprintf("        spc: (see below)\n");
+
   // Error handling.
   WCSPRINTF_PTR("        err: ", wcs->err, "\n");
   if (wcs->err) {
     wcserr_prt(wcs->err, "             ");
   }
-
-  // Contained structs.
-  wcsprintf("        lin: (see below)\n");
-  wcsprintf("        cel: (see below)\n");
-  wcsprintf("        spc: (see below)\n");
 
   // Memory management.
   wcsprintf("     m_flag: %d\n", wcs->m_flag);
@@ -3379,19 +3379,19 @@ static int wcs_chksum(const struct wcsprm *wcs)
   chksum = wcs_fletcher32(chksum, &wcs->npv,     szi);
 
   if (wcs->pv) {
-    size_t nszpv = wcs->npvmax * sizeof(struct pvcard);
-    chksum = wcs_fletcher32(chksum, &wcs->pv, nszpv);
+    size_t nszpv = wcs->npv * sizeof(struct pvcard);
+    chksum = wcs_fletcher32(chksum, wcs->pv, nszpv);
   }
 
   chksum = wcs_fletcher32(chksum, &wcs->nps, szi);
 
   if (wcs->ps) {
-    size_t nszps = wcs->npsmax * sizeof(struct pscard);
-    chksum = wcs_fletcher32(chksum, &wcs->ps, nszps);
+    size_t nszps = wcs->nps * sizeof(struct pscard);
+    chksum = wcs_fletcher32(chksum, wcs->ps, nszps);
   }
 
   if (wcs->cd) {
-    chksum = wcs_fletcher32(chksum, wcs->pc, nnszd);
+    chksum = wcs_fletcher32(chksum, wcs->cd, nnszd);
   }
 
   if (wcs->crota) {
@@ -3420,7 +3420,7 @@ static int wcs_chksum(const struct wcsprm *wcs)
 //                      Data array, treated as an array of uint16_t.
 //
 //   len       size_t   Length of the data array in bytes.  Must be even and
-//                      less than 259200 (no checks are made).
+//                      between 0 and 259200 inclusive (no checks are made).
 //
 // Function return value:
 //             int      Fletcher-32 checksum.
@@ -3439,8 +3439,8 @@ static int wcs_fletcher32(int chksum, const void *data, size_t len)
     len -= 2;
   }
 
-  c0 &= 65535;
-  c1 &= 65535;
+  c0 %= 65535;
+  c1 %= 65535;
 
   return (int)(c1 << 16 | c0);
 }

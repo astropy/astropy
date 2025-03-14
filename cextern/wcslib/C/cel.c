@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: cel.c,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -226,7 +226,6 @@ int celset(struct celprm *cel)
 {
   static const char *function = "celset";
 
-  int status;
   const double tol = 1.0e-10;
 
   if (cel == 0x0) return CELERR_NULL_POINTER;
@@ -245,6 +244,7 @@ int celset(struct celprm *cel)
   }
 
   celprj->flag = 0;
+  int status;
   if ((status = prjset(celprj))) {
     return wcserr_set(CEL_ERRMSG(cel_prjerr[status]));
   }
@@ -335,7 +335,7 @@ int celset(struct celprm *cel)
         }
 
         // Avert a spurious compiler warning.
-	u = v = 0.0;
+        u = v = 0.0;
 
       } else {
         double slz = slat0/z;
