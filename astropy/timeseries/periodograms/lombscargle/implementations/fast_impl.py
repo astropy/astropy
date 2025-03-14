@@ -45,8 +45,8 @@ def lombscargle_fast(
         extra keyword arguments to pass to the ``trig_sum`` utility.
         Options are ``oversampling``, ``Mfft`` and ``eps``. See documentation
         of ``trig_sum`` for details.
-    algorithm : str, optional
-        This option is ignored if if use_fft is False.
+    algorithm : 'fasper' (default), or 'lra'
+        This option is ignored if use_fft is False.
         Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
         Supported options are:
 
@@ -72,8 +72,7 @@ def lombscargle_fast(
         of unevenly sampled data". ApJ 1:338, p277, 1989
     .. [2] M. Zechmeister and M. Kurster, A&A 496, 577-584 (2009)
     .. [3] W. Press et al, Numerical Recipes in C (2002)
-    .. [4] Ruiz-Antolin, D. and Townsend, A. *A nonuniform fast Fourier transform based on low rank approximation*
-        SIAM 40.1 (2018)
+    .. [4] Ruiz-Antolin, D. and Townsend, A. "A nonuniform fast Fourier transform based on low rank approximation". SIAM 40.1 (2018)
     """
     if dy is None:
         dy = 1
