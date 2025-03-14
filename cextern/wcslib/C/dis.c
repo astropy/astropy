@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: dis.c,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -666,7 +666,7 @@ int disprt(const struct disprm *dis)
     wcserr_prt(dis->err, "             ");
   }
 
-  // Work arrays.
+  // Pointers to distortion functions.
   char hext[32];
   WCSPRINTF_PTR("     disp2x: ", dis->disp2x, "\n");
   for (int j = 0; j < naxis; j++) {
@@ -697,7 +697,7 @@ int disprt(const struct disprm *dis)
     }
   }
 
-  // Pointers to distortion functions.
+  // Pointers to inverse distortion functions.
   WCSPRINTF_PTR("     disx2p: ", dis->disx2p, "\n");
   for (int j = 0; j < naxis; j++) {
     wcsprintf("  disx2p[%d]: %s\n", j,
@@ -775,16 +775,14 @@ int disset(struct disprm *dis)
   if (dis->flag == -DISSET) return 0;
   struct wcserr **err = &(dis->err);
 
-  int naxis = dis->naxis;
-
-
   // Do basic checks.
   if (dis->ndp < 0) {
     return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
       "disprm::ndp is negative (%d)", dis->ndp);
   }
 
-  int ndis = 0;
+  int naxis = dis->naxis;
+  int ndis  = 0;
   for (int j = 0; j < naxis; j++) {
     if (strlen(dis->dtype[j])) {
       ndis++;

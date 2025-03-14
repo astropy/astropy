@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: spc.h,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -817,20 +817,20 @@
 *   void *padding2
 *     (An unused variable inserted for alignment purposes only.)
 *   int (*spxX2P)(SPX_ARGS)
-*     (Returned) The first and ...
+*     (For internal use only) The first and ...
 *   int (*spxP2S)(SPX_ARGS)
-*     (Returned) ... the second of the pointers to the transformation
-*     functions in the two-step algorithm chain X -> P -> S in the
-*     pixel-to-spectral direction where the non-linear transformation is from
-*     X to P.  The argument list, SPX_ARGS, is defined in spx.h.
+*     (For internal use only) ... the second of the pointers to the
+*     transformation functions in the two-step algorithm chain X -> P -> S in
+*     the pixel-to-spectral direction where the non-linear transformation is
+*     from X to P.  The argument list, SPX_ARGS, is defined in spx.h.
 *
 *   int (*spxS2P)(SPX_ARGS)
-*     (Returned) The first and ...
+*     (For internal use only) The first and ...
 *   int (*spxP2X)(SPX_ARGS)
-*     (Returned) ... the second of the pointers to the transformation
-*     functions in the two-step algorithm chain S -> P -> X in the
-*     spectral-to-pixel direction where the non-linear transformation is from
-*     P to X.  The argument list, SPX_ARGS, is defined in spx.h.
+*     (For internal use only) ... the second of the pointers to the
+*     transformation functions in the two-step algorithm chain S -> P -> X in
+*     the spectral-to-pixel direction where the non-linear transformation is
+*     from P to X.  The argument list, SPX_ARGS, is defined in spx.h.
 *
 *
 * Global variable: const char *spc_errmsg[] - Status return messages
@@ -900,13 +900,15 @@ struct spcprm {
   int    isGrism;		// Grism coordinates?  1: vacuum, 2: air.
   int    padding1;		// (Dummy inserted for alignment purposes.)
 
-  // Error handling
+  // Error messaging, if enabled.
   //--------------------------------------------------------------------------
   struct wcserr *err;
 
-  // Private
   //--------------------------------------------------------------------------
-  void   *padding2;		// (Dummy inserted for alignment purposes.)
+  // Private - the remainder are for internal use.
+  //--------------------------------------------------------------------------
+  void *padding2;		// (Dummy inserted for alignment purposes.)
+
   int (*spxX2P)(SPX_ARGS);	// Pointers to the transformation functions
   int (*spxP2S)(SPX_ARGS);	// in the two-step algorithm chain in the
 				// pixel-to-spectral direction.

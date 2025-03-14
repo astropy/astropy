@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.3 and its test suite.
+# GNU makefile for building WCSLIB 8.4 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+# $Id: GNUmakefile,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := C
@@ -81,8 +81,8 @@ TEST_P := tspc tprj2 tcel1 tcel2 ttab2 ttab3 twcsmix
 # Test programs that require PGSBOX (and therefore PGPLOT).
 TEST_B := tpih2
 
-# Test program for POSIX threads (code development only).
-TEST_T := tpthreads
+# Test programs for POSIX threads.
+TEST_T := tpih_pthread twcs_pthread
 
 # Test programs that are compiled but not automatically exercised.
 TEST_X := tsphdpa twcshdr
@@ -443,8 +443,8 @@ tpih2_cfitsio : test/tpih2.c $(PGSBOXLIB) $(WCSLIB)
 	     $(CFITSIOLIB) $(WCSLIB) $(FLIBS) $(LIBS)
 	-@ $(RM) $@.o
 
-# TEST_T programs (using POSIX threads).
-tpthreads : test/tpthreads.c $(WCSLIB)
+# POSIX threads test programs.
+$(TEST_T) : %_pthread : test/%_pthread.c $(WCSLIB)
 	-@ echo ''
 	   $(CC) $(CPPFLAGS) $(CFLAGS) -pthread -c -o $@.o $<
 	   $(LD) -o $@ $@.o $(LDFLAGS) -pthread $(WCSLIB) -lpthread $(LIBS)
