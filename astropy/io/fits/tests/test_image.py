@@ -1007,7 +1007,7 @@ class TestImageFunctions(FitsTestCase):
             assert hdul[0].header["BZERO"] == orig_bzero
             assert hdul[0].header["BSCALE"] == orig_bscale
 
-            zero_point = int(math.floor(-orig_bzero / orig_bscale))
+            zero_point = math.floor(-orig_bzero / orig_bscale)
             assert (hdul[0].data[0] == zero_point).all()
 
         with fits.open(self.temp("scale.fits")) as hdul:
