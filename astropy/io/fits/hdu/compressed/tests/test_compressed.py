@@ -372,7 +372,7 @@ class TestCompressedImage(FitsTestCase):
             assert hdul[1].header["BZERO"] == orig_bzero
             assert hdul[1].header["BSCALE"] == orig_bscale
 
-            zero_point = int(math.floor(-orig_bzero / orig_bscale))
+            zero_point = math.floor(-orig_bzero / orig_bscale)
             assert (hdul[1].data[0] == zero_point).all()
 
         with fits.open(self.temp("scale.fits")) as hdul:
