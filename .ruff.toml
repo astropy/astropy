@@ -202,6 +202,7 @@ lint.unfixable = [
 "astropy/constants/*" = []
 "astropy/convolution/*" = []
 "astropy/coordinates/*" = [
+    "B007",  # UnusedLoopControlVariable
     "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
 ]
@@ -269,6 +270,7 @@ lint.unfixable = [
     "PIE794",  # duplicate-class-field-definition
 ]
 "astropy/timeseries/*" = [
+    "B007",  # UnusedLoopControlVariable
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/units/*" = [
