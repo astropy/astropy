@@ -121,7 +121,7 @@ def jn(n, x, num_terms=10):
     for i in range(1, n_max + 1):
         fact[i] = fact[i - 1] * i
 
-    result = np.zeros(np.broadcast_shapes(n, x), dtype=np.float64)
+    result = np.zeros(np.broadcast_shapes(n.shape, x.shape), dtype=np.float64)
 
     half_x2 = half_x * half_x
     term_numer = half_x**n
