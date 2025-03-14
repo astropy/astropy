@@ -54,7 +54,7 @@ def test_table_info_attributes(table_types):
     t["f"].info.description = "skycoord"
 
     tinfo = t.info(out=None)
-    assert np.all(tinfo["name"] == "a b c d e f".split())
+    assert np.all(tinfo["name"] == ["a", "b", "c", "d", "e", "f"])
     assert np.all(
         tinfo["dtype"]
         == ["int32", "float32", dtype_info_name("S1"), "float64", "object", "object"]
