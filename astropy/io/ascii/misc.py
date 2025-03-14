@@ -80,7 +80,7 @@ def sortmore(*args, **kw):
                  [2, 4, 0, 5, 7, 1, 3, 8, 9, 6])
     """
     first = list(args[0])
-    if not len(first):
+    if not first:
         return args
 
     globalkey = kw.get("globalkey")
