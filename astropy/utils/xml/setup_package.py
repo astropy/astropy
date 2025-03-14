@@ -16,8 +16,8 @@ def get_extensions(build_type="release"):
     cfg = defaultdict(list)
     cfg["sources"] = [join(XML_DIR, "iterparse.c")]
 
-    if int(os.environ.get("ASTROPY_USE_SYSTEM_EXPAT", 0)) or int(
-        os.environ.get("ASTROPY_USE_SYSTEM_ALL", 0)
+    if int(os.environ.get("ASTROPY_USE_SYSTEM_EXPAT", "0")) or int(
+        os.environ.get("ASTROPY_USE_SYSTEM_ALL", "0")
     ):
         for k, v in pkg_config(["expat"], ["expat"]).items():
             cfg[k].extend(v)
