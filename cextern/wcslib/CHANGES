@@ -1,3 +1,18 @@
+WCSLIB version 8.4 (2024/10/29)
+------------------------------------
+
+* C library
+
+  - Fixed some problems in wcs_chksum() and changed wcs_fletcher32() to
+    conform to the standard computation.
+
+  - New test program, twcs_pthread.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.12.0 (was 1.10.0).
+
+
 WCSLIB version 8.3 (2024/05/14)
 -------------------------------
 
@@ -16,7 +31,7 @@ WCSLIB version 8.3 (2024/05/14)
 
   - A new function, wcsenq(), queries the state of the wcsprm struct,
     specifically whether WCSLIB is managing its memory, whether the
-    struct has been set, and whether or not it is in bypass mode, and
+    struct has been set, whether or not it is in bypass mode, and
     whether it is self-consistent.  There are corresponding functions
     for the other structs: celenq(), disenq(), linenq(), prjenq(),
     spcenq(), and tabenq().  Please refer to the WCSLIB manual.
@@ -3585,4 +3600,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 8.3 2024/05/13 16:33:01 mcalabre Exp $
+$Id: CHANGES,v 8.4 2024/10/28 13:56:17 mcalabre Exp $

@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.c,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: prj.c,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -309,7 +309,7 @@ int prjprt(const struct prjprm *prj)
     wcserr_prt(prj->err, "             ");
   }
 
-  // Work arrays.
+  // Intermediate values set by prjset().
   wcsprintf("        w[]:");
   for (int i = 0; i < 5; i++) {
     wcsprintf("  %#- 11.5g", prj->w[i]);
@@ -322,7 +322,7 @@ int prjprt(const struct prjprm *prj)
   wcsprintf("          m: %d\n", prj->m);
   wcsprintf("          n: %d\n", prj->n);
 
-  // Pointers to projection functions.
+  // Pointers to projection and deprojection functions.
   char hext[32];
   wcsprintf("     prjx2s: %s\n",
     wcsutil_fptr2str((void (*)(void))prj->prjx2s, hext));

@@ -1,11 +1,11 @@
 /*============================================================================
 * wcsconfig_utils.h is generated from wcsconfig_utils.h.in by 'configure'.
-* It contains C preprocessor macro definitions for compiling the WCSLIB 8.3
+* It contains C preprocessor macro definitions for compiling the WCSLIB 8.4
 * utilities.
 *
 * Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 * http://www.atnf.csiro.au/people/Mark.Calabretta
-* $Id: wcsconfig_utils.h.in,v 8.3 2024/05/13 16:33:01 mcalabre Exp $
+* $Id: wcsconfig_utils.h.in,v 8.4 2024/10/28 13:56:17 mcalabre Exp $
 *===========================================================================*/
 
 #include <wcsconfig.h>
@@ -17,15 +17,11 @@
 #undef HAVE_FSEEKO
 
 // Define _LARGEFILE_SOURCE to get prototypes from stdio.h for the LFS
-// functions fseeko() and ftello() which use an off_t argument in place of a
-// long.
+// functions fseeko() and ftello(), which use an off_t argument in place of
+// a long int.  Note that gcc by itself does not need _LARGEFILE_SOURCE set,
+// but 'gcc -std=c99' does.  This may create confusion if '-std=c99' is added
+// as a compiler option after configuring.
 #undef _LARGEFILE_SOURCE
-
-// There seems to be a bug in autoconf that causes _LARGEFILE_SOURCE not to be
-// set in Linux.  This dreadful kludge gets around it for now.
-#if (defined HAVE_FSEEKO && !defined _LARGEFILE_SOURCE)
-#define _LARGEFILE_SOURCE
-#endif
 
 // Number of bits in a file offset (off_t) on systems where it can be set.
 #undef _FILE_OFFSET_BITS

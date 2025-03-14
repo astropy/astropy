@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: wcs.h,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -517,7 +517,7 @@
 *
 *                       It is not an error for the struct not to have been set
 *                       up via wcsset(), which normally results in additional
-*                       memory allocation. 
+*                       memory allocation.
 *
 * Function return value:
 *             int       Status return value:
@@ -2237,16 +2237,14 @@ struct wcsprm {
   struct celprm cel;		// Celestial transformation parameters.
   struct spcprm spc;		//  Spectral transformation parameters.
 
-  //--------------------------------------------------------------------------
-  //             THE REMAINDER OF THE WCSPRM STRUCT IS PRIVATE.
-  //--------------------------------------------------------------------------
-
-  // Error handling, if enabled.
+  // Error messaging, if enabled.
   //--------------------------------------------------------------------------
   struct wcserr *err;
 
-  // Memory management.
   //--------------------------------------------------------------------------
+  // Private - the remainder are for internal use.
+  //--------------------------------------------------------------------------
+				// Memory management.
   int    m_flag, m_naxis;
   double *m_crpix, *m_pc, *m_cdelt, *m_crval;
   char  (*m_cunit)[72], (*m_ctype)[72];
