@@ -2,6 +2,9 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_equal
 
+from astropy.timeseries.periodograms.lombscargle._testing import (
+    assert_not_strictly_equal,
+)
 from astropy.timeseries.periodograms.lombscargle.implementations.utils import (
     bitceil,
     extirpolate,
@@ -97,13 +100,7 @@ def test_trig_sum(f0, adjust_t, freq_factor, df, trig_sum_data):
         assert_allclose(C0, C, atol=tol)
 
         for prev_S, prev_C in results:
-            assert np.bitwise_xor(
-                np.ascontiguousarray(prev_S).view(np.uint8),
-                np.ascontiguousarray(S).view(np.uint8),
-            ).any(), "Output arrays are the same - dispatch test has failed"
-            assert np.bitwise_xor(
-                np.ascontiguousarray(prev_C).view(np.uint8),
-                np.ascontiguousarray(C).view(np.uint8),
-            ).any(), "Output arrays are the same - dispatch test has failed"
+            assert_not_strictly_equal(prev_S, S)
+            assert_not_strictly_equal(prev_C, C)
 
         results.append((S, C))

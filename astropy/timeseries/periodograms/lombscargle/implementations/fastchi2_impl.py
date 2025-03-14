@@ -47,8 +47,8 @@ def lombscargle_fastchi2(
         of the input data. This is especially important if ``fit_mean = False``
     nterms : int, optional
         Number of Fourier terms in the fit
-    algorithm : str, optional
-        This option is ignored if if use_fft is False.
+    algorithm : 'lra' (default), or 'fasper'
+        This option is ignored if use_fft is False.
         Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
         Supported options are:
 
@@ -67,8 +67,7 @@ def lombscargle_fastchi2(
     .. [2] W. Press et al, Numerical Recipes in C (2002)
     .. [3] Scargle, J.D. ApJ 263:835-853 (1982)
     .. [4] Palmer, J. ApJ 695:496-502 (2009)
-    .. [5] Ruiz-Antolin, D. and Townsend, A. *A nonuniform fast Fourier transform based on low rank approximation*
-        SIAM 40.1 (2018)
+    .. [5] Ruiz-Antolin, D. and Townsend, A. "A nonuniform fast Fourier transform based on low rank approximation". SIAM 40.1 (2018)
     """
     if nterms == 0 and not fit_mean:
         raise ValueError("Cannot have nterms = 0 without fitting bias")
