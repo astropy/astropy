@@ -15,7 +15,3 @@ def test_module_not_found():
 def test_pastebin_keyword():
     with pytest.raises(ValueError):
         run_tests(pastebin="not_an_option")
-
-
-def test_unicode_literal_conversion():
-    assert isinstance("ångström", str)
