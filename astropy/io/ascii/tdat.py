@@ -90,6 +90,13 @@ class TdatDataSplitter(core.BaseSplitter):
     delimiter = "|"
     record_delimiter = None
 
+    @property
+    def literals_dict(self):
+        """Return a dictionary of placeholders to be used in place of
+        backslashed delimiter characters.
+        """
+        return {c: f"literal{n}" for n, c in enumerate(self.delimiter)}
+
     def preprocess_data_lines(self, lines, record_delimiter):
         """Split lines into multiple lines if a record_delimiter is specified."""
         data_lines = []
@@ -97,8 +104,26 @@ class TdatDataSplitter(core.BaseSplitter):
             data_lines += re.split(rf"{record_delimiter}", line)
         return data_lines
 
+    def process_line(self, line: str) -> str:
+        """Remove whitespace at the beginning or end of line.  This is especially useful for
+        whitespace-delimited files to prevent spurious columns at the beginning or end.
+
+        READ: override default to handle backslashed delimiter characters.
+        """
+        for c in self.delimiter:
+            line = line.replace(f"\\{c}", self.literals_dict[c])
+        line = re.sub(rf"[{self.delimiter}]", "|", line)
+        return line.strip()
+
     def __call__(self, lines, field_delimiter="|", record_delimiter=None, nlines=1):
         """ """
+        self.delimiter = field_delimiter
+
+        def replace_placeholders(line):
+            for c in field_delimiter:
+                line = line.replace(self.literals_dict[c], c)
+            return line
+
         if " " in field_delimiter:
             warn(
                 TdatFormatWarning("Double check your data when using space delimiters.")
@@ -116,10 +141,11 @@ class TdatDataSplitter(core.BaseSplitter):
             iline += 1
             if iline == nlines:
                 vals = [
-                    val
+                    replace_placeholders(val)
                     for _line in _lines
-                    for val in re.split(rf"[{field_delimiter}]", _line)[:-1]
+                    for val in re.split(r"\|", _line)[:-1]
                 ]
+                # Reset
                 iline = 0
                 _lines = []
                 if hasattr(self, "process_val"):
@@ -579,12 +605,35 @@ class TdatData(core.BaseData):
 
         self.data_lines = self.process_lines(lines[start_line:end_line])
 
+    def str_vals(self):
+        """WRITE: convert all values in table to a list of lists of strings.
+
+        This sets the fill values and possibly column formats from the input
+        formats={} keyword, then ends up calling table.pprint._pformat_col_iter()
+        by a circuitous path. That function does the real work of formatting.
+        Finally replace anything matching the fill_values.
+
+        Returns
+        -------
+        values : list of list of str
+        """
+        self._set_fill_values(self.cols)
+        self._set_col_formats()
+        for col in self.cols:
+            col.str_vals = []
+            for val in col.info.iter_str_vals():
+                col.str_vals.append(val.replace("|", "\\|"))
+
+        self._replace_vals(self.cols)
+        return [col.str_vals for col in self.cols]
+
     def get_str_vals(self):
         """
         READ: Override the default get_str_vals to handle TDAT delimiters.
         """
         # if we have  delimiter from the header, use it.
         field_delimiter = getattr(self.header, "delimiter", self.splitter.delimiter)
+        self.splitter.delimiter = field_delimiter
         record_delimiter = getattr(
             self.header, "record_delimiter", self.splitter.record_delimiter
         )
@@ -596,8 +645,9 @@ class TdatData(core.BaseData):
                 )
             if record_delimiter == "|":
                 raise TdatFormatError("'|' character reserved for field delimiter.")
-        if field_delimiter not in allowed_delimiters:
-            raise TdatFormatError(f"Unsupported field delimiter: {field_delimiter}.")
+        for c in field_delimiter:
+            if c not in allowed_delimiters:
+                raise TdatFormatError(f"Unsupported field delimiter: {c}.")
         nlines = len(self.header._line_fields)
         return self.splitter(self.data_lines, field_delimiter, record_delimiter, nlines)
 

@@ -130,7 +130,7 @@ def test_catch_format():
     # table_description too long (>80 characters)
     with pytest.warns(TdatFormatWarning, match="'table_description' is too long"):
         t.meta["table_description"] = (
-            """
+            """\
         This is a description that exceeds the character limit allowed by the tdat
         format and it should be truncated before being written. A warning should
         pop up to inform the user of this behavior.
@@ -143,7 +143,8 @@ def test_catch_format():
         # check if the description is truncated
         nt = Table.read(out.getvalue(), format="ascii.tdat")
         assert (
-            nt.meta["keywords"]["table_description"] == t.meta["table_description"][:80]
+            nt.meta["keywords"]["table_description"]
+            == t.meta["table_description"][:80].strip()
         )
 
 
@@ -587,3 +588,20 @@ def test_tdat_format_error():
 
     assert str(exc_info.value).startswith(another_msg)
     assert _STD_MSG in str(exc_info.value)
+
+
+def test_delimiter_in_data():
+    """Test escaped delimiters in data"""
+    lines = copy.deepcopy(test_dat)
+    lines[38] = "4|20|\\|||||"
+    t = Table.read(lines, format="ascii.tdat")
+    assert t["name"][3] == "|"
+
+    lines.insert(8, 'field_delimiter = "|$"')
+    lines[39] = "4$20|\\|\\$||$|"
+    with pytest.warns(TdatFormatWarning, match="keyword is deprecated"):
+        t = Table.read(lines, format="ascii.tdat")
+        assert t["name"][3] == "|$"
+        out = StringIO()
+        t.write(out, format="ascii.tdat")
+        assert out.getvalue().split("\n")[36] == "4|20|\\|$||||"
