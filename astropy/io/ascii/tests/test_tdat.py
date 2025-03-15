@@ -604,4 +604,6 @@ def test_delimiter_in_data():
         assert t["name"][3] == "|$"
         out = StringIO()
         t.write(out, format="ascii.tdat")
-        assert out.getvalue().split("\n")[36] == "4|20|\\|$||||"
+        # Windows uses carriage return (\r) and line feed (\n).
+        outval = out.getvalue().split("\n")[36].replace("\r", "")
+        assert outval == "4|20|\\|$||||"
