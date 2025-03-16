@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """An extensible ASCII table reader and writer."""
-# flake8: noqa
 
 from . import connect
 from .basic import (
