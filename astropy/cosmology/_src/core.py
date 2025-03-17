@@ -482,7 +482,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
     _parameters: ClassVar[MappingProxyType[str, Parameter]]
     _parameters_derived: ClassVar[MappingProxyType[str, Parameter]]
 
-    def __init_subclass__(cls: type[_FlatCosmoT]) -> None:  # noqa: PYI019, RUF100
+    def __init_subclass__(cls: type[_FlatCosmoT]) -> None:  # noqa: PYI019
         super().__init_subclass__()
 
         # Determine the non-flat class.
