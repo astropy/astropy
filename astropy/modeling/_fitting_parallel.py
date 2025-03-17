@@ -127,7 +127,7 @@ def _fit_models_to_chunk(
     for index in np.ndindex(iterating_shape_chunk):
         # If all data values are NaN, just set parameters to NaN and move on
         if np.all(np.isnan(data[index])):
-            for ipar, name in enumerate(model.param_names):
+            for ipar in range(len(model.param_names)):
                 parameters[(ipar,) + index] = np.nan
             continue
 
@@ -171,7 +171,7 @@ def _fit_models_to_chunk(
             if diagnostics is not None and diagnostics.startswith("error"):
                 output = True
             error = traceback.format_exc()
-            for ipar, name in enumerate(model_i.param_names):
+            for ipar in range(len(model_i.param_names)):
                 parameters[(ipar,) + index] = np.nan
         else:
             # Put fitted parameters back into parameters arrays. These arrays are
