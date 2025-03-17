@@ -247,7 +247,6 @@ lint.unfixable = [
 ]
 "astropy/nddata/*" = []
 "astropy/samp/*" = [
-    "B007",  # UnusedLoopControlVariable
     "PTH",      # all flake8-use-pathlib
 ]
 "astropy/stats/*" = [

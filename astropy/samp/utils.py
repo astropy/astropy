@@ -74,7 +74,7 @@ class ServerProxyPool:
 
     def __init__(self, size, proxy_class, *args, **keywords):
         self._proxies = queue.Queue(size)
-        for i in range(size):
+        for _ in range(size):
             self._proxies.put(proxy_class(*args, **keywords))
 
     def __getattr__(self, name):
