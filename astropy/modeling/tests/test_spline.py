@@ -127,7 +127,7 @@ class TestSpline:
 
         spl = Spline()
         new_kwargs = spl._intercept_optional_inputs(**self.extra_kwargs)
-        for arg, value in self.optional_inputs.items():
+        for arg in self.optional_inputs.keys():
             attribute = spl._optional_arg(arg)
             assert getattr(spl, attribute) is None
         assert new_kwargs == self.extra_kwargs
