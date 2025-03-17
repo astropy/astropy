@@ -20,8 +20,8 @@ def test_common_dtype():
     arr = np.empty(1, dtype=dtype)
     fail = set()
     succeed = set()
-    for name1, type1 in dtype:
-        for name2, type2 in dtype:
+    for name1, _ in dtype:
+        for name2, _ in dtype:
             try:
                 np_utils.common_dtype([arr[name1], arr[name2]])
                 succeed.add(f"{name1} {name2}")

@@ -58,7 +58,7 @@ def test_is_path_hidden_deprecation():
 # This is the only test that uses astropy/utils/tests/data/.hidden_file.txt
 def test_skip_hidden():
     path = data.get_pkg_data_path("data")
-    for root, dirs, files in os.walk(path):
+    for _, _, files in os.walk(path):
         assert ".hidden_file.txt" in files
         assert "local.dat" in files
         # break after the first level since the data dir contains some other
@@ -67,7 +67,7 @@ def test_skip_hidden():
     with pytest.warns(
         AstropyDeprecationWarning, match="^The .*_hidden function is deprecated"
     ):
-        for root, dirs, files in misc.walk_skip_hidden(path):
+        for _, _, files in misc.walk_skip_hidden(path):
             assert ".hidden_file.txt" not in files
             assert "local.dat" in files
             break
