@@ -209,7 +209,7 @@ class HTMLHeader(core.BaseHeader):
                 col.colspan = int(name[1])
                 self.cols.append(col)
                 new_names.append(name[0])
-                for _ in range(1, int(name[1])):
+                for _ in range(int(name[1])-1):
                     # Add dummy columns
                     self.cols.append(core.Column(""))
                     new_names.append("")
