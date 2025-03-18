@@ -110,8 +110,8 @@ class MrtHeader(cds.CdsHeader):
         Sets the ``col.min`` and ``col.max`` column attributes,
         taking into account columns with Null values.
         """
-        col.max = max(col)
-        col.min = min(col)
+        col.max = np.nanmax(col)
+        col.min = np.nanmin(col)
         if col.max is np.ma.core.MaskedConstant:
             col.max = None
         if col.min is np.ma.core.MaskedConstant:
@@ -356,7 +356,10 @@ class MrtHeader(cds.CdsHeader):
                         else:
                             lim_vals = f"[{col.min}/{col.max}]"
                 elif col.fortran_format[0] in ("E", "F"):
-                    lim_vals = f"[{floor(col.min * 100) / 100.0}/{ceil(col.max * 100) / 100.0}]"
+                    if not np.isnan(col.min) and not np.isnan(col.max): 
+                        lim_vals = f"[{floor(col.min * 100) / 100.0}/{ceil(col.max * 100) / 100.0}]"
+                    else:
+                        lim_vals = ''
 
             if lim_vals != "" or nullflag != "":
                 description = f"{lim_vals}{nullflag} {description}"
