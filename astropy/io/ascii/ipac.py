@@ -262,6 +262,11 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                     raise IpacFormatE(
                         f"{name} - Maximum length for column name is 16 characters"
                     )
+            else:
+                if len(name) > 40:
+                    raise IpacFormatE(
+                        f"{name} - Maximum length for column name is 40 characters."
+                    )
 
         dtypelist = []
         unitlist = []
