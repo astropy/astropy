@@ -1,5 +1,26 @@
                    Log of Changes Made to CFITSIO
                    
+Version 4.6.0 - Mar 2025
+
+  - Improved the empty-primary data test performed in fits_open_file.
+  
+  - Correction to eval_defs.h typedefs to allow for compilation on old
+    gcc compilers.
+    
+  - The fitsverify utility tool now distinguishes between alternate
+    coordinate systems when testing positions of WCSAXES keywords.
+    
+  - Updates made for greater C23 compatibility as required for gcc-15.
+  
+  - Possible memory vulnerabilities patched.  Our thanks
+    to Doyensec for reporting this.
+       
+  - Fix to a possible heap buffer overflow in a utility tool.  Our 
+    thanks to TeamH4C for reporting this.
+ 
+  - Negative size parameter vulnerability patched in utility
+    tool.  Our thanks to TeamH4C for reporting this.
+                   
 Version 4.5.0 - Aug 2024
 
   - Conversion of CFITSIO configure/build files to better conform with
