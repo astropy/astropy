@@ -116,7 +116,7 @@ test_all = [
     "objgraph>=1.6.0",
     "skyfield>=1.20",
     "sgp4>=2.3",
-    "array-api-strict",
+    "array-api-strict>=1.0",
 ]
 typing = [
     "pandas-stubs>=2.0",
