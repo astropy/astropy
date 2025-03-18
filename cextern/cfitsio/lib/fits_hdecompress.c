@@ -1308,7 +1308,7 @@ unsigned char *scratch;
 	 */
 	nqx2=(nqx+1)/2;
 	nqy2=(nqy+1)/2;
-	scratch = (unsigned char *) malloc(nqx2*nqy2);
+	scratch = (unsigned char *) malloc((size_t)nqx2*nqy2);
 	if (scratch == (unsigned char *) NULL) {
 		ffpmsg("qtree_decode: insufficient memory");
 		return(DATA_DECOMPRESSION_ERR);
@@ -1398,7 +1398,7 @@ unsigned char *scratch;
 	 */
 	nqx2=(nqx+1)/2;
 	nqy2=(nqy+1)/2;
-	scratch = (unsigned char *) malloc(nqx2*nqy2);
+	scratch = (unsigned char *) malloc((size_t)nqx2*nqy2);
 	if (scratch == (unsigned char *) NULL) {
 		ffpmsg("qtree_decode64: insufficient memory");
 		return(DATA_DECOMPRESSION_ERR);
