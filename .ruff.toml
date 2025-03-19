@@ -285,7 +285,6 @@ lint.unfixable = [
     "TRY300",  # Consider `else` block
 ]
 "astropy/visualization/*" = [
-    "B007",  # UnusedLoopControlVariable
     "B015",
     "PLR0911",  # too-many-return-statements
 ]
