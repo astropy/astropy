@@ -253,7 +253,6 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/table/*" = [
-    "B007",  # UnusedLoopControlVariable
     "S605",  # Starting a process with a shell, possible injection detected
     "TRY300",  # Consider `else` block
 ]
