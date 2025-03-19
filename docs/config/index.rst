@@ -35,17 +35,8 @@ The exact location of this file can be obtained with
     >>> get_config_dir()  # doctest: +SKIP
 
 And you should see the location of your configuration directory. The standard
-scheme generally puts your configuration directory in
-``$HOME/.astropy/config``. It can be customized with the environment variables
-``XDG_CONFIG_HOME`` (or ``ASTROPY_CONFIG_DIR``), in which case the
-``$XDG_CONFIG_HOME/astropy`` (respectively ``$ASTROPY_CONFIG_DIR/astropy``)
-directory must exist. Note that ``XDG_CONFIG_HOME`` comes from a Linux-centric
-specification (see `here
-<https://wiki.archlinux.org/index.php/XDG_Base_Directory_support>`_ for more
-details), but ``astropy`` will use this on any OS as a more general means to
-know where user-specific configurations should be written.
-If both ``XDG_CONFIG_HOME`` and ``ASTROPY_CONFIG_DIR`` are defined, the latter
-takes precedence.
+scheme generally puts your configuration directory in ``$HOME/.astropy/config``.
+See :ref:`environment_variables` for how to tweak this location.
 
 .. note::
     See :ref:`astropy_config_file` for the content of this configuration file.
@@ -61,21 +52,10 @@ changes immediately in your current ``astropy`` session::
     >>> reload_config()
 
 .. note::
-    ``astropy`` also respects ``XDG_CACHE_HOME`` and ``ASTROPY_CACHE_DIR`` for
-    defining cache location. If both are defined, the latter takes precedence.
-
-.. note::
     If for whatever reason your ``$HOME/.astropy`` directory is not accessible
     (i.e., you have ``astropy`` running somehow as root but you are not the root
-    user), the best solution is to set the ``ASTROPY_CONFIG_DIR`` and
-    ``ASTROPY_CACHE_DIR`` environment variables pointing to directories, and
-    create an ``astropy`` directory inside each of those. Both the configuration
-    and data download systems will then use those directories and never try to
-    access the ``$HOME/.astropy`` directory.
-
-.. note::
-    ``ASTROPY_CONFIG_DIR`` and ``ASTROPY_CACHE_DIR`` require ``astropy`` 7.1
-    or newer. They are ignored in older versions.
+    user), the best solution is to set environment variables pointing to
+    directories you control. See :ref:`environment_variables`.
 
 Using `astropy.config`
 ======================
