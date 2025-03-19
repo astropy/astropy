@@ -48,7 +48,7 @@ class TestAliases:
             u.Unit(bad)
 
     def test_set_enabled_aliases(self):
-        for i, (aliases, bad, unit) in enumerate(trials):
+        for aliases, bad, unit in trials:
             u.set_enabled_aliases(aliases)
 
             assert u.get_current_unit_registry().aliases == aliases

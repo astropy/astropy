@@ -54,7 +54,7 @@ def _initialize_module():
     prefixes = []
     # The CDS format also supports power-of-2 prefixes as defined here:
     # http://physics.nist.gov/cuu/Units/binary.html
-    for short, long, factor in core.si_prefixes + core.binary_prefixes:
+    for short, _, factor in core.si_prefixes + core.binary_prefixes:
         short = [s for s in short if s.isascii()]
         prefixes.append((short, short, factor))  # CDS only uses the short prefixes
 
