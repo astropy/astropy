@@ -201,8 +201,7 @@ def write_table_jsviewer(
     filename : str, Path
         The name of the output HTML file.
     table_id : str, optional
-        The HTML id attribute for the table. Defaults to ``'table{id}'`` where ``id``
-        is the ID of the Table object.
+        The HTML id attribute for the table. Defaults to ``f"table({id(table)}"``.
     max_lines : int, optional
         The maximum number of lines to include in the output table. Default is 5000.
     table_class : str, optional
