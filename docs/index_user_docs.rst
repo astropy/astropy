@@ -50,4 +50,5 @@ User Guide
    logging
    warnings
    utils/index
+   environment_variables
    glossary
