@@ -3,8 +3,8 @@
 Image Data
 ==========
 
-Reading and writing image data in the unified I/O interface is supported
-though the `~astropy.nddata.CCDData` class using FITS file format:
+Reading and writing CCD image data in the unified I/O interface is supported
+though the :ref:`CCDData class <ccddata>` using FITS file format:
 
 .. doctest-skip::
 

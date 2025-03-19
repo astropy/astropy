@@ -3,7 +3,7 @@
 Table Data
 ==========
 
-The :class:`~astropy.table.Table` and :class:`~astropy.table.QTable` classes includes two
+The :class:`~astropy.table.QTable` and :class:`~astropy.table.Table` classes includes two
 methods, :meth:`~astropy.table.Table.read` and :meth:`~astropy.table.Table.write`, that
 make it possible to read from and write to files. A number of formats are supported (see
 `Built-in table readers/writers`_) and new file formats and extensions can be registered
