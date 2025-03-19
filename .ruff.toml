@@ -260,7 +260,6 @@ lint.unfixable = [
     "PTH",      # all flake8-use-pathlib
 ]
 "astropy/time/*" = [
-    "B007",  # UnusedLoopControlVariable
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
 ]

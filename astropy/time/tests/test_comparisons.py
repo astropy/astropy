@@ -23,7 +23,7 @@ class TestTimeComparisons:
         operators should raise a TypeError.
         """
         t1 = Time("J2000", scale="utc")
-        for op, op_str in (
+        for op, _op_str in (
             (operator.ge, ">="),
             (operator.gt, ">"),
             (operator.le, "<="),
