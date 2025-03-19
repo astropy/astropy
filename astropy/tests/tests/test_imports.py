@@ -27,7 +27,7 @@ def test_imports():
         except Warning:
             pass
 
-    for imper, nm, ispkg in pkgutil.walk_packages(
+    for imper, nm, _ in pkgutil.walk_packages(
         ["astropy"], "astropy.", onerror=onerror
     ):
         imper.find_spec(nm)

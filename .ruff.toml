@@ -258,7 +258,6 @@ lint.unfixable = [
     "TRY300",  # Consider `else` block
 ]
 "astropy/tests/*" = [
-    "B007",  # UnusedLoopControlVariable
     "PTH",      # all flake8-use-pathlib
 ]
 "astropy/time/*" = [
