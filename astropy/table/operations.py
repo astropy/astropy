@@ -1275,7 +1275,7 @@ def _join(
 
     out = _get_out_class([left, right])()
 
-    for out_name, dtype, shape in out_descrs:
+    for out_name, _dtype, _shape in out_descrs:
         if out_name == cartesian_index_name:
             continue
 
