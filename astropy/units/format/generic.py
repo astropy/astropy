@@ -46,11 +46,9 @@ class _GenericParserMixin(_ParsingFormatMixin):
 
     _tokens: ClassVar[tuple[str, ...]] = (
         "COMMA",
-        "DOUBLE_STAR",
-        "STAR",
-        "PERIOD",
-        "SOLIDUS",
-        "CARET",
+        "POWER",
+        "PRODUCT",
+        "DIVISION",
         "OPEN_PAREN",
         "CLOSE_PAREN",
         "FUNCNAME",
@@ -65,11 +63,9 @@ class _GenericParserMixin(_ParsingFormatMixin):
         tokens = cls._tokens
 
         t_COMMA = r"\,"
-        t_STAR = r"\*"
-        t_PERIOD = r"\."
-        t_SOLIDUS = r"/"
-        t_DOUBLE_STAR = r"\*\*"
-        t_CARET = r"\^"
+        t_PRODUCT = "[*.]"
+        t_DIVISION = "/"
+        t_POWER = r"\^|(\*\*)"
         t_OPEN_PAREN = r"\("
         t_CLOSE_PAREN = r"\)"
 
@@ -195,13 +191,13 @@ class _GenericParserMixin(_ParsingFormatMixin):
             """
             unit : product_of_units
                  | factor product_of_units
-                 | factor product product_of_units
+                 | factor PRODUCT product_of_units
                  | division_product_of_units
                  | factor division_product_of_units
-                 | factor product division_product_of_units
+                 | factor PRODUCT division_product_of_units
                  | inverse_unit
                  | factor inverse_unit
-                 | factor product inverse_unit
+                 | factor PRODUCT inverse_unit
                  | factor
             """
             if len(p) == 2:
@@ -213,7 +209,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
 
         def p_division_product_of_units(p):
             """
-            division_product_of_units : division_product_of_units division product_of_units
+            division_product_of_units : division_product_of_units DIVISION product_of_units
                                       | product_of_units
             """
             if len(p) == 4:
@@ -223,7 +219,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
 
         def p_inverse_unit(p):
             """
-            inverse_unit : division unit_expression
+            inverse_unit : DIVISION unit_expression
             """
             p[0] = p[2] ** -1
 
@@ -239,7 +235,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
             """
             factor_float : signed_float
                          | signed_float UINT signed_int
-                         | signed_float UINT power numeric_power
+                         | signed_float UINT POWER numeric_power
             """
             if cls.name == "fits":
                 raise ValueError("Numeric factor not supported by FITS")
@@ -254,9 +250,9 @@ class _GenericParserMixin(_ParsingFormatMixin):
             """
             factor_int : UINT
                        | UINT signed_int
-                       | UINT power numeric_power
+                       | UINT POWER numeric_power
                        | UINT UINT signed_int
-                       | UINT UINT power numeric_power
+                       | UINT UINT POWER numeric_power
             """
             if cls.name == "fits":
                 raise ValueError("Numeric factor not supported by FITS")
@@ -274,10 +270,10 @@ class _GenericParserMixin(_ParsingFormatMixin):
 
         def p_factor_fits(p):
             """
-            factor_fits : UINT power OPEN_PAREN signed_int CLOSE_PAREN
-                        | UINT power OPEN_PAREN UINT CLOSE_PAREN
-                        | UINT power signed_int
-                        | UINT power UINT
+            factor_fits : UINT POWER OPEN_PAREN signed_int CLOSE_PAREN
+                        | UINT POWER OPEN_PAREN UINT CLOSE_PAREN
+                        | UINT POWER signed_int
+                        | UINT POWER UINT
                         | UINT SIGN UINT
                         | UINT OPEN_PAREN signed_int CLOSE_PAREN
             """
@@ -298,7 +294,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
 
         def p_product_of_units(p):
             """
-            product_of_units : unit_expression product product_of_units
+            product_of_units : unit_expression PRODUCT product_of_units
                              | unit_expression product_of_units
                              | unit_expression
             """
@@ -322,7 +318,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
 
         def p_unit_with_power(p):
             """
-            unit_with_power : UNIT power numeric_power
+            unit_with_power : UNIT POWER numeric_power
                             | UNIT numeric_power
                             | UNIT
             """
@@ -356,7 +352,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
 
         def p_frac(p):
             """
-            frac : sign UINT division sign UINT
+            frac : sign UINT DIVISION sign UINT
             """
             p[0] = Fraction(p[1] * p[2], p[4] * p[5])
 
@@ -369,24 +365,6 @@ class _GenericParserMixin(_ParsingFormatMixin):
                 p[0] = p[1]
             else:
                 p[0] = 1
-
-        def p_product(p):
-            """
-            product : STAR
-                    | PERIOD
-            """
-
-        def p_division(p):
-            """
-            division : SOLIDUS
-            """
-
-        def p_power(p):
-            """
-            power : DOUBLE_STAR
-                  | CARET
-            """
-            p[0] = p[1]
 
         def p_signed_int(p):
             """
@@ -401,15 +379,9 @@ class _GenericParserMixin(_ParsingFormatMixin):
             """
             p[0] = p[1] * p[2]
 
-        def p_function_name(p):
-            """
-            function_name : FUNCNAME
-            """
-            p[0] = p[1]
-
         def p_function(p):
             """
-            function : function_name OPEN_PAREN main CLOSE_PAREN
+            function : FUNCNAME OPEN_PAREN main CLOSE_PAREN
             """
             if p[1] == "sqrt":
                 p[0] = p[3] ** 0.5
