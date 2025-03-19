@@ -270,7 +270,6 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/units/*" = [
-    "B007",  # UnusedLoopControlVariable
     "N812",  # lowercase-imported-as-non-lowercase
     "PLR0911",  # too-many-return-statements
     "TRY300",  # Consider `else` block
