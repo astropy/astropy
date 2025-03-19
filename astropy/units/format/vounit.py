@@ -165,7 +165,7 @@ class VOUnit(Base, _GenericParserMixin):
         if unit in cls._custom_units:
             return cls._custom_units[unit]
 
-        for short, full, factor in si_prefixes:
+        for short, _, factor in si_prefixes:
             for prefix in short:
                 if unit.startswith(prefix):
                     base_name = unit[len(prefix) :]
