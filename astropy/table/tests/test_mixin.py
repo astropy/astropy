@@ -378,7 +378,7 @@ def test_join(table_types):
     t2 = table_types.Table(t1)
     t2["a"] = ["b", "c", "a", "d"]
 
-    for name, col in MIXIN_COLS.items():
+    for name, _ in MIXIN_COLS.items():
         t1[name].info.description = name
         t2[name].info.description = name + "2"
 
