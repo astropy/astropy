@@ -1,0 +1,17 @@
+{
+    "typeCheckingMode": "basic",
+    "include": [
+        "astropy/units"
+    ],
+    "exclude": [
+        "astropy/units/tests"
+    ],
+    "executionEnvironments": [
+        {
+            "root": "astropy/units",
+            "reportMissingImports": false,
+            "reportAttributeAccessIssue": false,
+            "reportUndefinedVariable": false
+        }
+    ]
+}
