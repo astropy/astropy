@@ -198,6 +198,11 @@ namespaces = true
 [tool.setuptools_scm]
 version_file = "astropy/_version.py"
 
+[dependency-groups]
+typecheck = [
+    "basedpyright==1.28.1",
+]
+
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = [
