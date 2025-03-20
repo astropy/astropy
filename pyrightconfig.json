@@ -1,14 +1,14 @@
 {
     "typeCheckingMode": "basic",
     "include": [
-        "astropy/units"
+        "astropy/units/format"
     ],
     "exclude": [
-        "astropy/units/tests"
+        "astropy/units/format/vounit.py"
     ],
     "executionEnvironments": [
         {
-            "root": "astropy/units",
+            "root": "astropy/",
             "reportMissingImports": false,
             "reportAttributeAccessIssue": false,
             "reportUndefinedVariable": false
