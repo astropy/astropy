@@ -121,7 +121,7 @@ def jn(n, x, num_terms=10):
     for i in range(1, n_max + 1):
         fact[i] = fact[i - 1] * i
 
-    result = np.zeros(np.broadcast_shapes(n, x), dtype=np.float64)
+    result = np.zeros(np.broadcast_shapes(n.shape, x.shape), dtype=np.float64)
 
     half_x2 = half_x * half_x
     term_numer = half_x**n
@@ -160,8 +160,6 @@ def get_lra_params(x, N, eps):
     s = np.mod(np.rint(N * x), N).astype(int)
     er = (N * x - np.rint(N * x) + 0.5) % 1 - 0.5
     gamma = np.max(np.abs(er))
-    if gamma <= eps:
-        K = 1
     if gamma <= eps:
         K = 1
     else:
@@ -448,7 +446,8 @@ def trig_sum(
             S = fftgrid.imag
 
         else:
-            # required size of fft is the power of 2 above the oversampling rate
+            # Not required anymore due to new NumPy FFT functionalities
+            # But stays here to keep the backwards compatibility
             Nfft = bitceil(int(N * oversampling))
 
             if f0 > 0:
@@ -457,13 +456,18 @@ def trig_sum(
             tnorm = ((t - t0) * Nfft * df) % Nfft
             grid = extirpolate(tnorm, h, Nfft, Mfft)
 
-            fftgrid = np.fft.ifft(grid)[:N]
+            if f0 == 0:
+                # mathematically equivalent to the branch below but noticeably faster
+                fftgrid = np.conjugate(np.fft.rfft(grid)[:N])
+            else:
+                fftgrid = np.fft.ifft(grid, norm="forward")[:N]
+
             if t0 != 0:
                 f = f0 + df * np.arange(N)
                 fftgrid *= np.exp(2j * np.pi * t0 * f)
 
-            C = Nfft * fftgrid.real
-            S = Nfft * fftgrid.imag
+            C = fftgrid.real
+            S = fftgrid.imag
 
     else:
         f = f0 + df * np.arange(N)
