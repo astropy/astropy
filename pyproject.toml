@@ -125,6 +125,7 @@ docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
     "sphinx",
     "sphinx-astropy[confv2]>=1.9.1",
+    "sphinx-automodapi @ git+https://github.com/WilliamJamieson/sphinx-automodapi@autoproperty",
     "pytest>=8.0.0",
     "sphinx-changelog>=1.2.0",
     "sphinx_design",
