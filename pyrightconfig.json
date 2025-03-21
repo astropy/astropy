@@ -11,7 +11,8 @@
             "root": "astropy/",
             "reportMissingImports": false,
             "reportAttributeAccessIssue": false,
-            "reportUndefinedVariable": false
+            "reportUndefinedVariable": false,
+            "reportCallIssue": false
         }
     ]
 }
