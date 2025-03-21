@@ -24,6 +24,10 @@ when enforcing the fast engine by either setting ``fast_reader='force'``
 or explicitly setting any of the :ref:`fast_conversion_opts`, |read|
 will not fall back on an ordinary reader if fast reading fails.
 
+.. Note:: The fast engine only supports ASCII-encoded data, so reading or writing
+    unicode text is not possible with the fast engine. For unicode support with large
+    files, consider using the :ref:`Pandas Table I/O interface <table_io_pandas>`.
+
 Examples
 --------
 
