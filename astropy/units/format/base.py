@@ -288,7 +288,7 @@ class _ParsingFormatMixin:
                 return cls._validate_unit(unit._get_format_name(cls.name))
             except ValueError:
                 if isinstance(unit, Unit):
-                    return cls._decompose_to_known_units(unit._represents)
+                    return cls._decompose_to_known_units(unit.represents)
                 raise
         raise TypeError(
             f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"

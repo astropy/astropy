@@ -2195,7 +2195,7 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         NamedUnit.__init__(self, st, namespace=namespace, doc=doc, format=format)
 
     @property
-    def represents(self) -> UnitBase:
+    def represents(self) -> NamedUnit | CompositeUnit:
         """The unit that this named unit represents."""
         return self._represents
 
