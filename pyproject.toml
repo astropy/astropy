@@ -200,7 +200,7 @@ version_file = "astropy/_version.py"
 
 [dependency-groups]
 typecheck = [
-    "basedpyright==1.28.1",
+    "basedpyright>=1.28.3",
 ]
 
 [tool.pytest.ini_options]
