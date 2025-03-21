@@ -57,13 +57,13 @@ from .fixedwidth import (
     FixedWidthTwoLine,
 )
 from .html import HTML
-from .tdat import Tdat
 from .ipac import Ipac
 from .latex import AASTex, Latex, latexdicts
 from .mrt import Mrt
 from .qdp import QDP
 from .rst import RST
 from .sextractor import SExtractor
+from .tdat import Tdat
 from .ui import get_read_trace, get_reader, get_writer, read, set_guess, write
 
 
