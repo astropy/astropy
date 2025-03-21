@@ -9,7 +9,6 @@ not meant to be used directly, but instead are available as readers/writers in
 """
 
 import re
-from collections import OrderedDict
 from copy import deepcopy
 from warnings import warn
 
@@ -228,8 +227,8 @@ class TdatHeader(basic.BasicHeader):
         return line
 
     def _process_keywords(self, lines):
-        line_fields = OrderedDict()
-        keywords = getattr(self, "_keywords", OrderedDict())
+        line_fields = {}
+        keywords = getattr(self, "_keywords", {})
         keys_parser = re.compile(self._keys)
         extra_keys_parser = re.compile(self._extra_keys)
         deprecated_keys_parser = re.compile(self._deprecated_keys)
@@ -292,7 +291,7 @@ class TdatHeader(basic.BasicHeader):
 
         self._line_fields = line_fields
 
-        if len(keywords) > len(getattr(self, "_keywords", OrderedDict())):
+        if len(keywords) > len(getattr(self, "_keywords", {})):
             self._keywords = keywords
 
     def update_meta(self, lines, meta):
@@ -366,7 +365,7 @@ class TdatHeader(basic.BasicHeader):
         )
 
         cols = {}
-        keywords = getattr(self, "_keywords", OrderedDict())
+        keywords = getattr(self, "_keywords", {})
         for line in self.process_lines(lines):
             # look for field[..]= ... column definitions
             cmatch = col_parser.match(line)
@@ -377,7 +376,7 @@ class TdatHeader(basic.BasicHeader):
                         "The field name must be shorter than 24 characters."
                     )
                 col = core.Column(name=name)
-                col.meta = OrderedDict()
+                col.meta = {}
 
                 ctype = cmatch.group("ctype")
                 if ctype in self._dtype_dict_in:
@@ -414,7 +413,7 @@ class TdatHeader(basic.BasicHeader):
                             )
                         col.meta[val] = text
                 cols[col.name] = col
-        if len(keywords) > len(getattr(self, "_keywords", OrderedDict())):
+        if len(keywords) > len(getattr(self, "_keywords", {})):
             self._keywords = keywords
 
         self.names = [
@@ -754,7 +753,7 @@ class Tdat(core.BaseReader):
     included in the header preceding all other lines and commented
     out with #
 
-    keywords : OrderedDict, (optional, recommended)
+    keywords : dict, (optional, recommended)
     Header keywords which will appear in the file as "name=value" lines.
     Of particular importance are table_name, table_description,
     and table_document_url.
