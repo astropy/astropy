@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from astropy.extern.ply.lex import Lexer
-    from astropy.units import UnitBase
+    from astropy.units import NamedUnit, UnitBase
     from astropy.units.typing import UnitScale
     from astropy.utils.parsing import ThreadSafeParser
 
@@ -344,16 +344,21 @@ class OGIP(Base, _ParsingFormatMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = "inline"
+        cls,
+        unit: CompositeUnit | NamedUnit,
+        fraction: bool | Literal["inline", "multiline"] = "inline",
     ) -> str:
         # Remove units that aren't known to the format
-        unit = cls._decompose_to_known_units(unit)
+        base_unit = cls._decompose_to_known_units(unit)
 
         if isinstance(unit, CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
-            if not isinstance(unit.scale, float) or math.log10(unit.scale) % 1.0 != 0.0:
+            if (
+                not isinstance(base_unit.scale, float)
+                or math.log10(base_unit.scale) % 1.0 != 0.0
+            ):
                 warnings.warn(
-                    f"'{unit.scale}' scale should be a power of 10 in OGIP format",
+                    f"'{base_unit.scale}' scale should be a power of 10 in OGIP format",
                     UnitsWarning,
                 )
 

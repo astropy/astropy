@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from typing import ClassVar, Literal
 
     from astropy.extern.ply.lex import Lexer
-    from astropy.units import UnitBase
+    from astropy.units import NamedUnit, UnitBase
     from astropy.utils.parsing import ThreadSafeParser
 
 
@@ -275,15 +275,17 @@ class CDS(Base, _ParsingFormatMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: CompositeUnit | NamedUnit,
+        fraction: bool | Literal["inline", "multiline"] = False,
     ) -> str:
         # Remove units that aren't known to the format
-        unit = cls._decompose_to_known_units(unit)
+        base_unit = cls._decompose_to_known_units(unit)
 
-        if not unit.bases:
-            if unit.scale == 1:
+        if not base_unit.bases:
+            if base_unit.scale == 1:
                 return "---"
-            elif is_effectively_unity(unit.scale * 100.0):
+            elif is_effectively_unity(base_unit.scale * 100.0):
                 return "%"
 
-        return super().to_string(unit, fraction=fraction)
+        return super().to_string(base_unit, fraction=fraction)

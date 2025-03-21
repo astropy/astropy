@@ -20,7 +20,7 @@ from .generic import _GenericParserMixin
 if TYPE_CHECKING:
     from typing import Literal
 
-    from astropy.units import UnitBase
+    from astropy.units import NamedUnit, UnitBase
 
 
 class FITS(Base, _GenericParserMixin):
@@ -65,31 +65,33 @@ class FITS(Base, _GenericParserMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: CompositeUnit | NamedUnit,
+        fraction: bool | Literal["inline", "multiline"] = False,
     ) -> str:
         # Remove units that aren't known to the format
-        unit = cls._decompose_to_known_units(unit)
+        base_unit = cls._decompose_to_known_units(unit)
 
         parts = []
 
-        base = np.log10(unit.scale)
+        base = np.log10(base_unit.scale)
 
         if base % 1.0 != 0.0:
             raise UnitScaleError(
                 "The FITS unit format is not able to represent scales "
                 "that are not powers of 10.  Multiply your data by "
-                f"{unit.scale:e}."
+                f"{base_unit.scale:e}."
             )
-        elif unit.scale != 1.0:
+        elif base_unit.scale != 1.0:
             # We could override format_exponential_notation to set the
             # scale factor but that would give the wrong impression that
             # all values in FITS are set that way.  So, instead do it
             # here, and use a unity-scale unit for the rest.
             parts.append(f"10**{int(base)}")
-            unit = CompositeUnit(1, unit.bases, unit.powers)
+            base_unit = CompositeUnit(1, base_unit.bases, base_unit.powers)
 
-        if unit.bases:
-            parts.append(super().to_string(unit, fraction=fraction))
+        if base_unit.bases:
+            parts.append(super().to_string(base_unit, fraction=fraction))
 
         return cls._scale_unit_separator.join(parts)
 
