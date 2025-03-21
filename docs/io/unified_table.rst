@@ -81,12 +81,6 @@ fine control of the way to write out certain columns, for instance
 writing an ISO format Time column as a pair of JD1/JD2 floating
 point values (for full resolution) or as a formatted ISO date string.
 
-Both the :meth:`~astropy.table.Table.read` and
-:meth:`~astropy.table.Table.write` methods can accept file paths of the form
-``~/data/file.csv`` or ``~username/data/file.csv``. These tilde-prefixed paths
-are expanded in the same way as is done by many command-line utilities, to
-represent the home directory of the current or specified user, respectively.
-
 ..
   EXAMPLE END
 
@@ -263,6 +257,14 @@ Then, we can read back that single-column table and extract the column from it::
 
 .. EXAMPLE END
 
+Note on Filenames
+^^^^^^^^^^^^^^^^^
+Both the :meth:`~astropy.table.Table.read` and
+:meth:`~astropy.table.Table.write` methods can accept file paths of the form
+``~/data/file.csv`` or ``~username/data/file.csv``. These tilde-prefixed paths
+are expanded in the same way as is done by many command-line utilities, to
+represent the home directory of the current or specified user, respectively.
+
 Command-Line Utility
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -270,7 +272,7 @@ For convenience, the command-line tool ``showtable`` can be used to print the
 content of tables for the formats supported by the unified I/O interface.
 
 Example
-^^^^^^^
+"""""""
 
 ..
   EXAMPLE START

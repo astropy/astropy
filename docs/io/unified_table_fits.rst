@@ -21,6 +21,9 @@ as shown below. In this example we use a file that is installed with astropy::
     ...                                        package='astropy.io.fits.tests')
     >>> t = Table.read(chandra_events)
 
+A benefit of using the unified interface to read the table is that it will reconstruct
+any :ref:`mixin_columns` that were written to that HDU.
+
 If more than one table is present in the file, you can select the HDU
 by index or by name::
 
@@ -29,9 +32,7 @@ by index or by name::
 In this case if the ``hdu`` argument is omitted, then the first table found
 will be read in and a warning will be emitted.
 
-You can also read a table from the HDUs of an in-memory FITS file. This will
-round-trip any :ref:`mixin_columns` that were written to that HDU, using the
-header information to reconstruct them::
+You can also read a table from the HDUs of an in-memory FITS file. ::
 
     >>> from astropy.io import fits
     >>> with fits.open(chandra_events) as hdul:
@@ -113,10 +114,6 @@ the FITS table properties (e.g., ``NAXIS``, ``TTYPE1``). ``HISTORY`` and
 
 The keyword names (e.g., ``MY_KEYWD``) will be automatically capitalized prior
 to writing.
-
-The ``meta`` attribute of the :class:`~astropy.table.Table` class
-is a dictionary and does not fully represent the structure of a
-FITS header (for example, keyword comments are dropped).
 
 .. _fits_astropy_native:
 
