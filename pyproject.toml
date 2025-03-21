@@ -399,7 +399,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 [tool.ruff.lint.extend-per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
 ".github/workflows/*.py" = ["INP001"]
-"astropy/io/ascii/__init__.py" = ["I001"]  # unsorted-imports
 "astropy/modeling/models/__init__.py" = ["F405"]
 "astropy/utils/decorators.py" = [
     "D214", "D215",  # keep Examples section indented.
