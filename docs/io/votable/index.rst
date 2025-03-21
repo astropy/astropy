@@ -4,16 +4,21 @@
 
 .. _astropy-io-votable:
 
-*******************************************
-VOTable XML Handling (`astropy.io.votable`)
-*******************************************
+***************************************
+VOTable Handling (`astropy.io.votable`)
+***************************************
 
 Introduction
 ============
 
 The `astropy.io.votable` sub-package converts VOTable XML files to and
-from ``numpy`` record arrays. This subpackage was originally developed
-as ``vo.table``.
+from ``numpy`` record arrays.
+
+.. note::
+
+    If you want to read or write a single table in VOTable format, the
+    recommended method is via the :ref:`table_io` interface. In particular,
+    see the :ref:`Unified I/O VO Tables <table_io_votable>` section.
 
 Getting Started
 ===============
@@ -21,12 +26,6 @@ Getting Started
 This section provides a quick introduction of using :mod:`astropy.io.votable`. The
 goal is to demonstrate the package's basic features without getting into too
 much detail.
-
-.. note::
-
-    If you want to read or write a single table in VOTable format, the
-    recommended method is via the high-level :ref:`table_io`. In particular
-    see the :ref:`Unified I/O VOTables <table_io_votable>` section.
 
 Reading a VOTable File
 ----------------------

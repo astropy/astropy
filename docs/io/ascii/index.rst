@@ -3,19 +3,21 @@
 .. _io-ascii:
 
 *********************************
-ASCII Tables (`astropy.io.ascii`)
+Text Tables (`astropy.io.ascii`)
 *********************************
 
-Introduction
-============
-
 `astropy.io.ascii` provides methods for reading and writing a wide range of
-ASCII data table formats via built-in :ref:`extension_reader_classes`. The
+text data table formats via built-in :ref:`extension_reader_classes`. The
 emphasis is on flexibility and convenience of use, although readers can
 optionally use a less flexible C-based engine for reading and writing for
-improved performance. This subpackage was originally developed as ``asciitable``.
+improved performance.
 
-The following shows a few of the ASCII formats that are available, while the
+.. note::
+
+    It is strongly encouraged to use the :mod:`astropy.io.ascii` functionality
+    via the :ref:`table_io` interface. In particular, see the sections :ref:`Unified I/O Table Data <read_write_tables>` and :ref:`Unified I/O Text Tables <unified_table_text>`.
+
+The following shows a few of the text formats that are available, while the
 section on `Supported formats`_ contains the full list.
 
 * :class:`~astropy.io.ascii.Basic`: basic table with customizable delimiters and header configurations
@@ -36,19 +38,13 @@ formats (often with metadata) and specialized data types such as
 data tables in a generic format such as CSV, using the :ref:`Table - Pandas
 interface <pandas>` is an option to consider.
 
-.. note::
-
-    It is strongly encouraged to use the functionality from
-    :mod:`astropy.io.ascii` through a higher level interface in the
-    :ref:`Data Tables <astropy-table>` package. See :ref:`table_io` for more details.
-
 Getting Started
 ===============
 
 Reading Tables
 --------------
 
-The majority of commonly encountered ASCII tables can be read with the
+The majority of commonly encountered text tables can be read with the
 |read| function. Assume you have a file named ``sources.dat`` with the
 following contents::
 
@@ -71,7 +67,7 @@ representation of a table, or a list of table lines. The return value
 (``data`` in this case) is a :ref:`Table <astropy-table>` object.
 
 By default, |read| will try to :ref:`guess the table format <guess_formats>`
-by trying all of the `supported formats`_.
+by trying most of the `supported formats`_.
 
 .. Warning::
 
@@ -106,16 +102,16 @@ the table with the code below. This also illustrates using the preferred
 Writing Tables
 --------------
 
-The |write| function provides a way to write a data table as a formatted ASCII
+The |write| function provides a way to write a data table as a formatted text
 table.  Most of the input table :ref:`supported_formats` for reading are also
 available for writing. This provides a great deal of flexibility in the format
 for writing.
 
 ..
   EXAMPLE START
-  Writing Data Tables as Formatted ASCII Tables
+  Writing Data Tables as Formatted Text Tables
 
-The following shows how to write a formatted ASCII table using the |write|
+The following shows how to write a formatted text table using the |write|
 function::
 
   >>> import numpy as np
@@ -142,7 +138,7 @@ example::
 
 .. attention:: **ECSV is recommended**
 
-   For a reproducible ASCII version of your table, we recommend using the
+   For a reproducible text version of your table, we recommend using the
    :ref:`ecsv_format`. This stores all the table meta-data (in particular the
    column types and units) to a comment section at the beginning while
    maintaining compatibility with most plain CSV readers. It also allows storing
@@ -177,7 +173,7 @@ Supported Formats
 =================
 
 A full list of the supported ``format`` values and corresponding format types
-for ASCII tables is given below. The ``Write`` column indicates which formats
+for text tables is given below. The ``Write`` column indicates which formats
 support write functionality, and the ``Fast`` column indicates which formats
 are compatible with the fast Cython/C engine for reading and writing.
 
