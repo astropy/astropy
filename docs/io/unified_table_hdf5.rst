@@ -25,11 +25,12 @@ Examples
 To read a table called ``data`` from an HDF5 file named ``observations.hdf5``,
 you can do::
 
-    >>> t = Table.read('observations.hdf5', path='data')
+    >>> from astropy.table import QTable
+    >>> t = QTable.read('observations.hdf5', path='data')
 
 To read a table nested in a group in the HDF5 file, you can do::
 
-    >>> t = Table.read('observations.hdf5', path='group/data')
+    >>> t = QTable.read('observations.hdf5', path='group/data')
 
 To write a table to a new file, the path should also be specified::
 
@@ -51,8 +52,6 @@ used to ensure that the data is compressed on disk::
 
 ..
   EXAMPLE END
-
-.. doctest-skip-all
 
 Metadata and Mixin Columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
