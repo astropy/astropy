@@ -351,7 +351,7 @@ class OGIP(Base, _ParsingFormatMixin):
 
         if isinstance(unit, CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
-            if math.log10(unit.scale) % 1.0 != 0.0:
+            if not isinstance(unit.scale, float) or math.log10(unit.scale) % 1.0 != 0.0:
                 warnings.warn(
                     f"'{unit.scale}' scale should be a power of 10 in OGIP format",
                     UnitsWarning,
