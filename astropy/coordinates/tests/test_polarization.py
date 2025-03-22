@@ -36,7 +36,7 @@ def test_vector_list_init():
 
 def test_undefined():
     sk = StokesCoord(np.arange(-10, 7))
-    assert_equal(sk.symbol, "? ? YX XY YY XX LR RL LL RR ? I Q U V ? ?".split())
+    assert_equal(sk.symbol, "? ? YX XY YY XX LR RL LL RR ? I Q U V ? ?".split())  # noqa: SIM905
 
 
 def test_undefined_init():
