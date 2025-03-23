@@ -317,6 +317,17 @@ class DataInfo(metaclass=DataInfoMeta):
             self._attrs = {}
 
     @property
+    def name(self) -> str | None:
+        return self._attrs.get("name")
+
+    @name.setter
+    def name(self, name: str | None):
+        # make sure that the type of self.name is *exactly* NoneType or str;
+        # subtypes of str might cause issues due to differences in reprs
+        # see https://github.com/astropy/astropy/issues/17418
+        self._attrs["name"] = None if name is None else str(name)
+
+    @property
     def _parent(self):
         try:
             parent = self._parent_ref()
@@ -748,7 +759,7 @@ class BaseColumnInfo(DataInfo):
 
         # "Merged" output name is the supplied name
         if name is not None:
-            out["name"] = name
+            out["name"] = str(name)
 
         return out
 
@@ -768,19 +779,19 @@ class BaseColumnInfo(DataInfo):
 
 class MixinInfo(BaseColumnInfo):
     @property
-    def name(self):
+    def name(self) -> str | None:
         return self._attrs.get("name")
 
     @name.setter
-    def name(self, name):
+    def name(self, name: str | None):
         # For mixin columns that live within a table, rename the column in the
         # table when setting the name attribute.  This mirrors the same
         # functionality in the BaseColumn class.
+        new_name = None if name is None else str(name)
         if self.parent_table is not None:
-            new_name = None if name is None else str(name)
             self.parent_table.columns._rename_column(self.name, new_name)
 
-        self._attrs["name"] = name
+        self._attrs["name"] = new_name
 
     @property
     def groups(self):

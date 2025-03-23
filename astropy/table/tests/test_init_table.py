@@ -663,3 +663,17 @@ def test_init_QTable_and_set_units():
     assert np.all(t["col0"].value == [1000, 2000])
     assert t["col1"].unit == u.s
     assert np.all(t["col1"].value == [1, 2])
+
+
+@pytest.mark.parametrize("table_cls", [Table, QTable])
+def test_table_from_columns_with_mixed_str_type_name(table_cls):
+    # see https://github.com/astropy/astropy/issues/17418
+    t = table_cls()
+    t["col0"] = [0]
+    t[np.str_("col1")] = [1]
+    t["col2"] = [2]
+    t[np.str_("col3")] = [3] * u.m
+    t.add_column([4], name="col4")
+    t.add_column([5], name=np.str_("col5"))
+    t.add_column([6] * u.m, name=np.str_("col6"))
+    assert [type(n) for n in t.colnames] == [str] * len(t.colnames)

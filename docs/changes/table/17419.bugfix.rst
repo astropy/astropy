@@ -1,0 +1,3 @@
+Fix an issue where setting a table column with a ``np.str_`` name would result
+in inconsistent representations of ``t.columns`` under NumPy 2, causing
+serialization issues.
