@@ -4,6 +4,7 @@
 import copy
 
 import numpy as np
+import pytest
 
 from astropy import units as u
 
@@ -98,6 +99,21 @@ class TestQuantityInfo:
         q = self.q.copy()
         q *= u.s
         assert_info_equal(q, self.q, ignore={"unit"})
+
+    def test_inplace_info_name_change(self):
+        # see https://github.com/astropy/astropy/issues/17449
+        q = self.q.copy()
+
+        q.info.name = "test"
+        assert q.info.name == "test"
+
+        q.info.name = None
+        assert q.info.name is None
+
+        with pytest.raises(
+            TypeError, match="Expected a str value, got 2.3 with type float"
+        ):
+            q.info.name = 2.3
 
 
 class TestStructuredQuantity:

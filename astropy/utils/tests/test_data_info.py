@@ -98,3 +98,11 @@ def test_info_no_copy_skycoord():
     assert val.info.indices == []
     val = t[:]["col"]
     assert val.info.indices == []
+
+
+def test_setting_info_name_to_with_invalid_type():
+    # see https://github.com/astropy/astropy/issues/17449
+    qt = QTable()
+    qt["a"] = [1, 2] * u.m
+    with pytest.raises(TypeError, match="Expected a str value, got 1 with type int"):
+        qt["a"].info.name = 1
