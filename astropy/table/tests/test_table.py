@@ -572,6 +572,15 @@ class TestAddName(SetupData):
         t.add_column(col)
         assert t.colnames == ["col0"]
 
+    def test_setting_column_name_to_with_invalid_type(self, table_types):
+        t = table_types.Table()
+        t["a"] = [1, 2]
+        with pytest.raises(
+            TypeError, match=r"Expected a str value, got None with type NoneType"
+        ):
+            t["a"].name = None
+        assert t["a"].name == "a"
+
 
 @pytest.mark.usefixtures("table_types")
 class TestInitFromTable(SetupData):
