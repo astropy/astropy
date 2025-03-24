@@ -46,6 +46,34 @@ class BaseInterval(BaseTransform):
         """
         raise NotImplementedError("Needs to be implemented in a subclass.")
 
+    @staticmethod
+    def _process_values(values):
+        """
+        Process the input values.
+
+        This function filters out masked and/or invalid values (inf,
+        nan) and returns a flattened 1D array.
+
+        Parameters
+        ----------
+        values : array-like
+            The input values.
+
+        Returns
+        -------
+        result : 1D ndarray
+            The processed values.
+        """
+        if isinstance(values, np.ma.MaskedArray):
+            # Get non-masked values as a 1D array
+            values = values.compressed()
+        else:
+            # Make sure values is a Numpy array
+            values = np.asarray(values)
+
+        # Filter out invalid values (inf, nan)
+        return values[np.isfinite(values)]
+
     def __call__(self, values, clip=True, out=None):
         """
         Transform values using this interval.
@@ -123,12 +151,7 @@ class ManualInterval(BaseInterval):
         if self.vmin is not None and self.vmax is not None:
             return self.vmin, self.vmax
 
-        # Make sure values is a Numpy array
-        values = np.asarray(values).ravel()
-
-        # Filter out invalid values (inf, nan)
-        values = values[np.isfinite(values)]
-
+        values = self._process_values(values)
         vmin = np.min(values) if self.vmin is None else self.vmin
         vmax = np.max(values) if self.vmax is None else self.vmax
 
@@ -141,11 +164,7 @@ class MinMaxInterval(BaseInterval):
     """
 
     def get_limits(self, values):
-        # Make sure values is a Numpy array
-        values = np.asarray(values).ravel()
-
-        # Filter out invalid values (inf, nan)
-        values = values[np.isfinite(values)]
+        values = self._process_values(values)
 
         return np.min(values), np.max(values)
 
@@ -179,16 +198,12 @@ class AsymmetricPercentileInterval(BaseInterval):
         self.n_samples = n_samples
 
     def get_limits(self, values):
-        # Make sure values is a Numpy array
-        values = np.asarray(values).ravel()
+        values = self._process_values(values)
 
         # If needed, limit the number of samples. We sample with replacement
         # since this is much faster.
         if self.n_samples is not None and values.size > self.n_samples:
             values = np.random.choice(values, self.n_samples)
-
-        # Filter out invalid values (inf, nan)
-        values = values[np.isfinite(values)]
 
         # Determine values at percentiles
         vmin, vmax = np.percentile(
@@ -274,9 +289,9 @@ class ZScaleInterval(BaseInterval):
         self.max_iterations = max_iterations
 
     def get_limits(self, values):
+        values = self._process_values(values)
+
         # Sample the image
-        values = np.asarray(values)
-        values = values[np.isfinite(values)]
         stride = int(max(1.0, values.size / self.n_samples))
         samples = values[::stride][: self.n_samples]
         samples.sort()
