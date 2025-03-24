@@ -6,29 +6,45 @@ import pytest
 from astropy import units as u
 from astropy.units import deprecated
 
+emu = deprecated.emu
+GearthRad = deprecated.GearthRad
+MjupiterMass = deprecated.MjupiterMass
+mjupiterRad = deprecated.MjupiterRad
+nearthMass = deprecated.nearthMass
+
+
+def test_enable():
+    with deprecated.enable():
+        # `unit in u.Bi.compose()` would use `==` for comparison, but we really
+        # do want to check identity, not just equality.
+        assert any(unit is emu for unit in u.Bi.compose())
+
 
 def test_emu():
+    assert emu == u.Bi
+
+
+@pytest.mark.parametrize(
+    "unit",
+    [emu, GearthRad, MjupiterMass, mjupiterRad, nearthMass],
+    ids=lambda x: x.name,
+)
+def test_deprecated_unit_not_in_main_namespace(unit):
     with pytest.raises(AttributeError):
-        u.emu
+        getattr(u, unit.name)
 
-    assert u.Bi.to(deprecated.emu, 1) == 1
 
-    with deprecated.enable():
-        assert u.Bi.compose()[0] == deprecated.emu
-
-    assert u.Bi.compose()[0] == u.Bi
-
-    # test that the earth/jupiter mass/rad are also in the deprecated bunch
-    for body in ("earth", "jupiter"):
-        for phystype in ("Mass", "Rad"):
-            # only test a couple prefixes to same time
-            for prefix in ("n", "y"):
-                namewoprefix = body + phystype
-                unitname = prefix + namewoprefix
-
-                with pytest.raises(AttributeError):
-                    getattr(u, unitname)
-
-                assert getattr(deprecated, unitname).represents.bases[0] == getattr(
-                    u, namewoprefix
-                )
+@pytest.mark.parametrize(
+    "prefixed_unit,base_unit",
+    [
+        pytest.param(prefixed_unit, base_unit, id=prefixed_unit.name)
+        for prefixed_unit, base_unit in [
+            (GearthRad, u.earthRad),
+            (MjupiterMass, u.jupiterMass),
+            (mjupiterRad, u.jupiterRad),
+            (nearthMass, u.earthMass),
+        ]
+    ],
+)
+def test_deprecated_unit_definition(prefixed_unit, base_unit):
+    assert prefixed_unit.represents.bases[0] is base_unit
