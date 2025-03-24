@@ -253,12 +253,10 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/table/*" = [
-    "B007",  # UnusedLoopControlVariable
     "S605",  # Starting a process with a shell, possible injection detected
     "TRY300",  # Consider `else` block
 ]
 "astropy/tests/*" = [
-    "B007",  # UnusedLoopControlVariable
     "PTH",      # all flake8-use-pathlib
 ]
 "astropy/time/*" = [
@@ -270,7 +268,6 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/units/*" = [
-    "B007",  # UnusedLoopControlVariable
     "N812",  # lowercase-imported-as-non-lowercase
     "PLR0911",  # too-many-return-statements
     "TRY300",  # Consider `else` block
@@ -285,7 +282,6 @@ lint.unfixable = [
     "TRY300",  # Consider `else` block
 ]
 "astropy/visualization/*" = [
-    "B007",  # UnusedLoopControlVariable
     "B015",
     "PLR0911",  # too-many-return-statements
 ]
