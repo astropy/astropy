@@ -23,12 +23,7 @@ class TestTimeComparisons:
         operators should raise a TypeError.
         """
         t1 = Time("J2000", scale="utc")
-        for op in (
-            (operator.ge),
-            (operator.gt),
-            (operator.le),
-            (operator.lt),
-        ):
+        for op in (operator.ge, operator.gt, operator.le, operator.lt):
             with pytest.raises(TypeError):
                 op(t1, None)
         # Keep == and != as they are specifically meant to test Time.__eq__
