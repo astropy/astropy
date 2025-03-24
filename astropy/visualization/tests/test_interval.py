@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose
 
 from astropy.utils import NumpyRNGContext
 from astropy.visualization.interval import (
@@ -19,60 +20,60 @@ class TestInterval:
     def test_manual(self):
         interval = ManualInterval(-10.0, +15.0)
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -10.0)
-        np.testing.assert_allclose(vmax, +15.0)
+        assert_allclose(vmin, -10.0)
+        assert_allclose(vmax, +15.0)
 
     def test_manual_defaults(self):
         interval = ManualInterval(vmin=-10.0)
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -10.0)
-        np.testing.assert_allclose(vmax, np.max(self.data))
+        assert_allclose(vmin, -10.0)
+        assert_allclose(vmax, np.max(self.data))
 
         interval = ManualInterval(vmax=15.0)
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, np.min(self.data))
-        np.testing.assert_allclose(vmax, 15.0)
+        assert_allclose(vmin, np.min(self.data))
+        assert_allclose(vmax, 15.0)
 
     def test_manual_zero_limit(self):
         # Regression test for a bug that caused ManualInterval to compute the
         # limit (min or max) if it was set to zero.
         interval = ManualInterval(vmin=0, vmax=0)
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, 0)
-        np.testing.assert_allclose(vmax, 0)
+        assert_allclose(vmin, 0)
+        assert_allclose(vmax, 0)
 
     def test_manual_defaults_with_nan(self):
         interval = ManualInterval()
         data = np.copy(self.data)
         data[0] = np.nan
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -20)
-        np.testing.assert_allclose(vmax, +60)
+        assert_allclose(vmin, -20)
+        assert_allclose(vmax, +60)
 
     def test_minmax(self):
         interval = MinMaxInterval()
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -20.0)
-        np.testing.assert_allclose(vmax, +60.0)
+        assert_allclose(vmin, -20.0)
+        assert_allclose(vmax, +60.0)
 
     def test_percentile(self):
         interval = PercentileInterval(62.2)
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -4.88)
-        np.testing.assert_allclose(vmax, 44.88)
+        assert_allclose(vmin, -4.88)
+        assert_allclose(vmax, 44.88)
 
     def test_asymmetric_percentile(self):
         interval = AsymmetricPercentileInterval(10.5, 70.5)
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -11.6)
-        np.testing.assert_allclose(vmax, 36.4)
+        assert_allclose(vmin, -11.6)
+        assert_allclose(vmax, 36.4)
 
     def test_asymmetric_percentile_nsamples(self):
         with NumpyRNGContext(12345):
             interval = AsymmetricPercentileInterval(10.5, 70.5, n_samples=20)
             vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -14.367676767676768)
-        np.testing.assert_allclose(vmax, 40.266666666666666)
+        assert_allclose(vmin, -14.367676767676768)
+        assert_allclose(vmax, 40.266666666666666)
 
 
 class TestIntervalList(TestInterval):
@@ -96,20 +97,20 @@ def test_zscale():
     data = np.random.randn(100, 100) * 5 + 10
     interval = ZScaleInterval()
     vmin, vmax = interval.get_limits(data)
-    np.testing.assert_allclose(vmin, -9.6, atol=0.1)
-    np.testing.assert_allclose(vmax, 25.4, atol=0.1)
+    assert_allclose(vmin, -9.6, atol=0.1)
+    assert_allclose(vmax, 25.4, atol=0.1)
 
     data = list(range(1000)) + [np.nan]
     interval = ZScaleInterval()
     vmin, vmax = interval.get_limits(data)
-    np.testing.assert_allclose(vmin, 0, atol=0.1)
-    np.testing.assert_allclose(vmax, 999, atol=0.1)
+    assert_allclose(vmin, 0, atol=0.1)
+    assert_allclose(vmax, 999, atol=0.1)
 
     data = list(range(100))
     interval = ZScaleInterval()
     vmin, vmax = interval.get_limits(data)
-    np.testing.assert_allclose(vmin, 0, atol=0.1)
-    np.testing.assert_allclose(vmax, 99, atol=0.1)
+    assert_allclose(vmin, 0, atol=0.1)
+    assert_allclose(vmax, 99, atol=0.1)
 
 
 def test_zscale_npoints():
@@ -130,7 +131,7 @@ def test_integers():
     # Need to make sure integers get cast to float
     interval = MinMaxInterval()
     values = interval([1, 3, 4, 5, 6])
-    np.testing.assert_allclose(values, [0.0, 0.4, 0.6, 0.8, 1.0])
+    assert_allclose(values, [0.0, 0.4, 0.6, 0.8, 1.0])
 
     # Don't accept integer array in output
     out = np.zeros(5, dtype=int)
@@ -142,7 +143,7 @@ def test_integers():
     # But integer input and floating point output is fine
     out = np.zeros(5, dtype=float)
     interval([1, 3, 4, 5, 6], out=out)
-    np.testing.assert_allclose(out, [0.0, 0.4, 0.6, 0.8, 1.0])
+    assert_allclose(out, [0.0, 0.4, 0.6, 0.8, 1.0])
 
 
 def test_constant_data():
@@ -152,5 +153,5 @@ def test_constant_data():
     interval = MinMaxInterval()
     limits = interval.get_limits(data)
     values = interval(data)
-    np.testing.assert_allclose(limits, (1.0, 1.0))
-    np.testing.assert_allclose(values, np.zeros(shape))
+    assert_allclose(limits, (1.0, 1.0))
+    assert_allclose(values, np.zeros(shape))
