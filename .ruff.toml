@@ -286,7 +286,6 @@ lint.unfixable = [
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/wcs/*" = [
-    "B007",  # UnusedLoopControlVariable
     "F821",  # undefined-name
     "PTH",      # all flake8-use-pathlib
     "S608",  # Posslibe SQL injection
