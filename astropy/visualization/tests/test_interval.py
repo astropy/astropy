@@ -85,6 +85,12 @@ class TestInterval2D(TestInterval):
     data = np.linspace(-20.0, 60.0, 100).reshape(100, 1)
 
 
+class TestIntervalMaskedArray(TestInterval):
+    # Make sure intervals work with MaskedArray
+    data = np.concatenate((np.linspace(-20.0, 60.0, 100), np.full(100, 1e6)))
+    data = np.ma.MaskedArray(data, data > 1000)
+
+
 def test_zscale():
     np.random.seed(42)
     data = np.random.randn(100, 100) * 5 + 10
