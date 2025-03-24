@@ -203,7 +203,7 @@ class QuantityInfo(QuantityInfoBase):
             Length of the output column object
         metadata_conflicts : str ('warn'|'error'|'silent')
             How to handle metadata conflicts
-        name : str
+        name : str or None
             Output column name
 
         Returns
