@@ -253,6 +253,7 @@ def test_set_temp_cache_resets_on_exception(tmp_path):
     assert t == paths.get_cache_dir()
 
 
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_config_file():
     from astropy.config.configuration import get_config, reload_config
 
