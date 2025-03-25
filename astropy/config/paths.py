@@ -12,6 +12,7 @@ from functools import wraps
 from inspect import cleandoc
 from pathlib import Path
 from typing import TYPE_CHECKING
+from warnings import warn
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -173,17 +174,22 @@ class _SetTempPath:
             return path.resolve()
 
         for env_dir in (cls._astropy_env_dir, cls._xdg_env_dir):
-            if (
-                (dir_ := os.getenv(env_dir)) is not None
-                and (xch := Path(dir_)).exists()
-                and not (xchpth := xch / rootname).is_symlink()
-            ):
-                if xchpth.exists():
-                    return xchpth.resolve()
+            if (dir_ := os.getenv(env_dir)) is not None:
+                if (xch := Path(dir_)).exists() and not (
+                    xchpth := xch / rootname
+                ).is_symlink():
+                    if xchpth.exists():
+                        return xchpth.resolve()
 
-                # symlink will be set to this if the directory is created
-                linkto = xchpth
-                break
+                    # symlink will be set to this if the directory is created
+                    linkto = xchpth
+                    break
+                warn(
+                    f"{env_dir} is set to {dir_!r}, but not such directory was found. "
+                    "So, this environment variable is ignored.",
+                    category=UserWarning,
+                    stacklevel=3,
+                )
         else:
             linkto = None
 
