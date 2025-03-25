@@ -117,6 +117,46 @@ def test_env_variables_priority(
 
 
 @pytest.mark.parametrize(
+    "astropy_env_var, func",
+    [
+        pytest.param(
+            "ASTROPY_CACHE_DIR",
+            paths.get_cache_dir_path,
+            id="astropy-cache",
+        ),
+        pytest.param(
+            "ASTROPY_CONFIG_DIR",
+            paths.get_config_dir_path,
+            id="astropy-config",
+        ),
+        pytest.param(
+            "XDG_CACHE_HOME",
+            paths.get_cache_dir_path,
+            id="xdg-cache",
+        ),
+        pytest.param(
+            "XDG_CONFIG_HOME",
+            paths.get_config_dir_path,
+            id="xdg-config",
+        ),
+    ],
+)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_env_variables_warn(monkeypatch, tmp_path, astropy_env_var, func):
+    default_path = func()
+    target_dir = tmp_path / "nonexistent"
+    monkeypatch.setenv(astropy_env_var, str(target_dir))
+
+    with pytest.warns(
+        UserWarning,
+        match=rf"^{astropy_env_var} is set to '",
+    ):
+        new_path = func()
+
+    assert new_path == default_path
+
+
+@pytest.mark.parametrize(
     "env_var_template",
     [
         pytest.param("XDG_{}_HOME", id="xdg"),
