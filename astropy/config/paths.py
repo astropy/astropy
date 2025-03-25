@@ -12,6 +12,7 @@ from inspect import cleandoc
 from pathlib import Path
 from types import TracebackType
 from typing import Literal, ParamSpec
+from warnings import warn
 
 __all__ = [
     "get_cache_dir",
@@ -118,7 +119,7 @@ class _SetTempPath:
     # This base class serves as a deduplication layer for its only two intended
     # children (set_temp_cache and set_temp_config)
     _directory_type: Literal["cache", "config"]
-    _directory_env_var: Literal["XDG_CACHE_HOME", "XDG_CONFIG_HOME"]
+    _xdg_env_dir: Literal["XDG_CACHE_HOME", "XDG_CONFIG_HOME"]
 
     def __init__(
         self, path: os.PathLike[str] | str | None = None, delete: bool = False
@@ -167,18 +168,22 @@ class _SetTempPath:
                 path.mkdir(exist_ok=True)
             return path.resolve()
 
-        if (
-            (dir_ := os.getenv(cls._directory_env_var)) is not None
-            and (xch := Path(dir_)).exists()
-            and not (xchpth := xch / rootname).is_symlink()
-        ):
-            if xchpth.exists():
-                return xchpth.resolve()
+        linkto: Path | None = None
+        env_dir = cls._xdg_env_dir
+        if (dir_ := os.getenv(env_dir)) is not None:
+            if (xch := Path(dir_)).is_dir():
+                if not (xchpth := xch / rootname).is_symlink():
+                    xchpth.mkdir(exist_ok=True)
+                    return xchpth.resolve()
 
-            # symlink will be set to this if the directory is created
-            linkto = xchpth
-        else:
-            linkto = None
+                # symlink will be set to this if the directory is created
+                linkto = xchpth
+            warn(
+                f"{env_dir} is set to {dir_!r}, but no such directory was found. "
+                "So, this environment variable is ignored.",
+                category=UserWarning,
+                stacklevel=3,
+            )
 
         return cls._find_or_create_root_dir(linkto, rootname)
 
@@ -239,7 +244,7 @@ class set_temp_config(_SetTempPath):
     """
 
     _directory_type = "config"
-    _directory_env_var = "XDG_CONFIG_HOME"
+    _xdg_env_dir = "XDG_CONFIG_HOME"
 
     def __enter__(self) -> str:
         # Special case for the config case, where we need to reset all the
@@ -295,4 +300,4 @@ class set_temp_cache(_SetTempPath):
     """
 
     _directory_type = "cache"
-    _directory_env_var = "XDG_CACHE_HOME"
+    _xdg_env_dir = "XDG_CACHE_HOME"

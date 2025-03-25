@@ -71,7 +71,6 @@ def test_xdg_variables(monkeypatch, tmp_path, environment_variable, func):
     assert func() == config_dir
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "astropy_env_var, func",
     [
