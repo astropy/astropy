@@ -9,6 +9,8 @@ import abc
 
 import numpy as np
 
+import astropy.units as u
+
 from .transform import BaseTransform
 
 __all__ = [
@@ -108,6 +110,14 @@ class BaseInterval(BaseTransform):
         result : ndarray
             The transformed values.
         """
+        # Drop units if present
+        if isinstance(values, u.Quantity):
+            values = values.value
+        if isinstance(values, np.ma.MaskedArray) and isinstance(
+            values.data, u.Quantity
+        ):
+            values = np.ma.MaskedArray(values.data.value, values.mask)
+
         vmin, vmax = self.get_limits(values)
 
         if out is None:
