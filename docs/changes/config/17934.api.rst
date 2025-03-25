@@ -1,0 +1,3 @@
+``get_config_dir()`` and ``get_cache_dir()`` now warn about non-existent
+directories specified via ``XDG_CACHE_HOME`` and ``XDG_CONFIG_HOME`` environment
+variables respectively.
