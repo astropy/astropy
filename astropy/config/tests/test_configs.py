@@ -84,19 +84,17 @@ def test_env_variables(monkeypatch, tmp_path, env_var_template, dir_type, func):
 
 
 @pytest.mark.parametrize(
-    "astropy_env_var, xdg_env_var, cls, func",
+    "astropy_env_var, xdg_env_var, func",
     [
         pytest.param(
             "ASTROPY_CACHE_DIR",
             "XDG_CACHE_HOME",
-            paths.set_temp_cache,
             paths.get_cache_dir_path,
             id="cache",
         ),
         pytest.param(
             "ASTROPY_CONFIG_DIR",
             "XDG_CONFIG_HOME",
-            paths.set_temp_config,
             paths.get_config_dir_path,
             id="config",
         ),
@@ -104,7 +102,7 @@ def test_env_variables(monkeypatch, tmp_path, env_var_template, dir_type, func):
 )
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_env_variables_priority(
-    monkeypatch, tmp_path, astropy_env_var, xdg_env_var, cls, func
+    monkeypatch, tmp_path, astropy_env_var, xdg_env_var, func
 ):
     # ASTROPY_* environment variables should have priority over XDG_*
     astropy_target_dir = tmp_path / "astropy" / "astropy"
