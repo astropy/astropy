@@ -67,9 +67,10 @@ class BaseInterval(BaseTransform):
         if isinstance(values, np.ma.MaskedArray):
             # Get non-masked values as a 1D array
             values = values.compressed()
-        else:
-            # Make sure values is a Numpy array
-            values = np.asarray(values)
+
+        # Make sure values is a NumPy array; this also makes sure that
+        # units are dropped for Quantity and masked_Quantity arrays
+        values = np.asarray(values)
 
         # Filter out invalid values (inf, nan)
         return values[np.isfinite(values)]
