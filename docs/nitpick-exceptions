@@ -36,12 +36,14 @@ py:class json.encoder.JSONEncoder
 # astropy.table
 py:class astropy.table.column.BaseColumn
 py:class astropy.table.groups.BaseGroups
+
 # astropy.visualization
 py:obj Bbox
 py:obj Transform
 py:obj Figure
 py:obj AbstractPathEffect
 py:obj N
+py:obj masked
 
 # astropy.wcs
 py:class astropy.wcs.wcsapi.fitswcs.FITSWCSAPIMixin
