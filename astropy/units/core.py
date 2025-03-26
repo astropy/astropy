@@ -745,7 +745,13 @@ class UnitBase:
         """
         from .format import get_format
 
-        return get_format(format).to_string(self, **kwargs)
+        try:
+            return get_format(format).to_string(self, **kwargs)
+        except (TypeError, ValueError) as err:
+            from .format import known_formats
+
+            err.add_note(known_formats())
+            raise err
 
     def __format__(self, format_spec: str) -> str:
         try:
@@ -2019,7 +2025,13 @@ class _UnitMetaClass(type):
 
             from .format import Generic, get_format
 
-            f = get_format(format)
+            try:
+                f = get_format(format)
+            except (TypeError, ValueError) as err:
+                from .format import known_parsers
+
+                err.add_note(known_parsers())
+                raise err
             if isinstance(s, bytes):
                 s = s.decode("ascii")
 
