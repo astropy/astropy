@@ -1,0 +1,2 @@
+Fix a bug in creating a ``Table`` from a list of row dicts that ignored
+units of multi-dimensional quantity.
