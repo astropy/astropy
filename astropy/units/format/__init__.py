@@ -83,17 +83,13 @@ def get_format(format: str | type[Base] | None = None) -> type[Base]:
     """
     if format is None:
         return Generic
-
+    if isinstance(format, str):
+        try:
+            return Base.registry[format.lower()]
+        except KeyError:
+            raise ValueError(
+                f"Unknown format {format!r}.  {_known_formats()}"
+            ) from None
     if isinstance(format, type) and issubclass(format, Base):
         return format
-    elif not (isinstance(format, str) or format is None):
-        raise TypeError(
-            f"Expected a formatter name, not {format!r}.  {_known_formats()}."
-        )
-
-    format_lower = format.lower()
-
-    if format_lower in Base.registry:
-        return Base.registry[format_lower]
-
-    raise ValueError(f"Unknown format {format!r}.  {_known_formats()}")
+    raise TypeError(f"Expected a formatter name, not {format!r}.  {_known_formats()}.")
