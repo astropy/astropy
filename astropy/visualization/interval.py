@@ -50,6 +50,19 @@ class BaseInterval(BaseTransform):
         """
         Transform values using this interval.
 
+        The ``vmin`` and ``vmax`` values are determined by the
+        `get_limits` method.
+
+        The following transformation is then applied to the values:
+
+        .. math::
+
+            {\\rm result} = \\frac{{\\rm values} - v_{\\rm min}}
+                                   {v_{\\rm max} - v_{\\rm min}}
+
+        If ``clip`` is `True` (default), the result is then clipped to
+        the [0:1] range.
+
         Parameters
         ----------
         values : array-like
