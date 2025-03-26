@@ -3621,3 +3621,16 @@ def test_table_create_no_rows_recarray(arg_type):
     t = Table(**kwargs)
     assert len(t) == 0
     assert t.colnames == ["foo", "bar"]
+
+
+def test_table_from_records_nd_quantity():
+    """Regression test for #17930"""
+
+    data = [
+        {"q0d": 5 * u.m, "q1d": [1, 2, 3] * u.s, "q2d": [[0, 1, 2], [3, 4, 5]] * u.TeV},
+    ]
+
+    t = Table(data)
+    assert t["q0d"].unit == u.m
+    assert t["q1d"].unit == u.s
+    assert t["q2d"].unit == u.TeV
