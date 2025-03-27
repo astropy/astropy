@@ -980,15 +980,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
         if isinstance(other, BaseCoordinateFrame):
             return self.frame.is_equivalent_frame(other)
         elif isinstance(other, SkyCoord):
-            if other.frame.name != self.frame.name:
-                return False
-
-            for fattrnm in frame_transform_graph.frame_attributes:
-                if not BaseCoordinateFrame._frameattr_equiv(
-                    getattr(self, fattrnm), getattr(other, fattrnm)
-                ):
-                    return False
-            return True
+            return self.frame.is_equivalent_frame(other.frame)
         else:
             # not a BaseCoordinateFrame nor a SkyCoord object
             raise TypeError(
