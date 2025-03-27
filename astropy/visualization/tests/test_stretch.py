@@ -159,3 +159,11 @@ def test_histeqstretch_invalid():
     result = np.array([0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0])
     assert_equal(HistEqStretch(data)(data), result)
     assert_equal(InvertedHistEqStretch(data)(data), result)
+
+
+def test_linearstretch_clip():
+    data = np.linspace(0, 1, 100)
+    stretch = LinearStretch(slope=2)
+    result = stretch(data, clip=True)
+    assert np.min(result) >= 0
+    assert np.max(result) <= 1

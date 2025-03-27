@@ -121,6 +121,10 @@ class LinearStretch(BaseStretch):
             np.multiply(values, self.slope, out=values)
         if self.intercept != 0:
             np.add(values, self.intercept, out=values)
+
+        if clip:
+            np.clip(values, 0, 1, out=values)
+
         return values
 
     @property
