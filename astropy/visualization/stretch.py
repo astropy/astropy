@@ -441,13 +441,12 @@ class LogStretch(BaseStretch):
 
 class InvertedLogStretch(BaseStretch):
     r"""
-    Inverse transformation for `~astropy.image.scaling.LogStretch`.
+    Inverse transformation for `~astropy.visualization.LogStretch`.
 
     The stretch is given by:
 
     .. math::
-        y = \frac{e^{y \log{a + 1}} - 1}{a} \\
-        y = \frac{e^{y} (a + 1) - 1}{a}
+        y = \frac{e^{x \log{a + 1}} - 1}{a} = \frac{(a + 1)^x - 1}{a}
 
     Parameters
     ----------
