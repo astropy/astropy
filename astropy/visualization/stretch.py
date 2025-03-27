@@ -308,12 +308,12 @@ class PowerDistStretch(BaseStretch):
 class InvertedPowerDistStretch(BaseStretch):
     r"""
     Inverse transformation for
-    `~astropy.image.scaling.PowerDistStretch`.
+    `~astropy.visualization.PowerDistStretch`.
 
     The stretch is given by:
 
     .. math::
-        y = \frac{\log(y (a-1) + 1)}{\log a}
+        y = \frac{\log(x (a - 1) + 1)}{\log a}
 
     Parameters
     ----------
