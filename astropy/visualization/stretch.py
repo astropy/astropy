@@ -589,7 +589,7 @@ class HistEqStretch(BaseStretch):
 
 class InvertedHistEqStretch(BaseStretch):
     """
-    Inverse transformation for `~astropy.image.scaling.HistEqStretch`.
+    Inverse transformation for `~astropy.visualization.HistEqStretch`.
 
     Parameters
     ----------
