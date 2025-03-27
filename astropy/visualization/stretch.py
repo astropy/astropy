@@ -312,12 +312,12 @@ class PowerDistStretch(BaseStretch):
 class InvertedPowerDistStretch(BaseStretch):
     r"""
     Inverse transformation for
-    `~astropy.image.scaling.PowerDistStretch`.
+    `~astropy.visualization.PowerDistStretch`.
 
     The stretch is given by:
 
     .. math::
-        y = \frac{\log(y (a-1) + 1)}{\log a}
+        y = \frac{\log(x (a - 1) + 1)}{\log a}
 
     Parameters
     ----------
@@ -445,13 +445,12 @@ class LogStretch(BaseStretch):
 
 class InvertedLogStretch(BaseStretch):
     r"""
-    Inverse transformation for `~astropy.image.scaling.LogStretch`.
+    Inverse transformation for `~astropy.visualization.LogStretch`.
 
     The stretch is given by:
 
     .. math::
-        y = \frac{e^{y \log{a + 1}} - 1}{a} \\
-        y = \frac{e^{y} (a + 1) - 1}{a}
+        y = \frac{e^{x \log{a + 1}} - 1}{a} = \frac{(a + 1)^x - 1}{a}
 
     Parameters
     ----------
@@ -594,7 +593,7 @@ class HistEqStretch(BaseStretch):
 
 class InvertedHistEqStretch(BaseStretch):
     """
-    Inverse transformation for `~astropy.image.scaling.HistEqStretch`.
+    Inverse transformation for `~astropy.visualization.HistEqStretch`.
 
     Parameters
     ----------
@@ -669,18 +668,24 @@ class ContrastBiasStretch(BaseStretch):
 
 
 class InvertedContrastBiasStretch(BaseStretch):
-    """
-    Inverse transformation for ContrastBiasStretch.
+    r"""
+    Inverse transformation for
+    `~astropy.visualization.ContrastBiasStretch`.
+
+    The stretch is given by:
+
+    .. math::
+        y = \frac{x - 0.5}{{\rm contrast}} + {\rm bias}
 
     Parameters
     ----------
     contrast : float
         The contrast parameter (see
-        `~astropy.visualization.ConstrastBiasStretch).
+        `~astropy.visualization.ContrastBiasStretch`).
 
     bias : float
         The bias parameter (see
-        `~astropy.visualization.ConstrastBiasStretch).
+        `~astropy.visualization.ContrastBiasStretch`).
     """
 
     def __init__(self, contrast, bias):
