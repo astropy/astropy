@@ -1,0 +1,1 @@
+Use ``BaseCoordinameFrame.is_equivalent_frame()`` inside ``SkyCoord.is_equivalent_frame()`` instead of custom code with a bug. The bug prevented the concatenation of two SkyCoord objects with the same frame but coming from a transformation of two coordinates with different attributes.
