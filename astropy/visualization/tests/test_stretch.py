@@ -118,9 +118,9 @@ def test_clip_invalid():
     np.testing.assert_allclose(values, [np.nan, 0.0, 0.70710678, 1.0, 1.2247448])
 
 
-@pytest.mark.parametrize("a", [-2.0, -1, 1.0])
+@pytest.mark.parametrize("a", [-2.0, -1, 0.0, 1.0])
 def test_invalid_powerdist_a(a):
-    match = "a must be >= 0, but cannot be set to 1"
+    match = "a must be > 0, but cannot be set to 1"
     with pytest.raises(ValueError, match=match):
         PowerDistStretch(a=a)
     with pytest.raises(ValueError, match=match):
