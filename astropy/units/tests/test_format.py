@@ -1047,22 +1047,48 @@ def test_parse_error_message_for_output_only_format(format_):
         u.Unit("m", format=format_)
 
 
-class TestUnknownFormat:
-    # Check full message to ensure we correctly classify in-out and
-    # output only formats.
-    UNKNOWN_MSG = (
-        r"Unknown format {!r}.  Valid formatter names are: "
-        r"\['cds', 'generic', 'fits', 'ogip', 'vounit'\] for input and output, "
-        r"and \['console', 'latex', 'latex_inline', 'unicode'\] for output only."
-    )
+@pytest.mark.parametrize(
+    "parser,error_type,err_msg_start",
+    [
+        pytest.param("foo", ValueError, "Unknown format 'foo'", id="ValueError"),
+        pytest.param(
+            {}, TypeError, "Expected a formatter name, not {}", id="TypeError"
+        ),
+    ],
+)
+def test_unknown_parser(parser, error_type, err_msg_start):
+    with pytest.raises(
+        error_type,
+        match=(
+            f"^{err_msg_start}\\.\nValid parser names are: "
+            "'cds', 'generic', 'fits', 'ogip', 'vounit'$"
+        ),
+    ):
+        u.Unit("m", format=parser)
 
-    def test_unknown_parser(self):
-        with pytest.raises(ValueError, match=self.UNKNOWN_MSG.format("foo")):
-            u.Unit("m", format="foo")
 
-    def test_unknown_output_format(self):
-        with pytest.raises(ValueError, match=self.UNKNOWN_MSG.format("abc")):
-            u.m.to_string("abc")
+@pytest.mark.parametrize(
+    "formatter,error_type,err_msg_start",
+    [
+        pytest.param("abc", ValueError, "Unknown format 'abc'", id="ValueError"),
+        pytest.param(
+            float,
+            TypeError,
+            "Expected a formatter name, not <class 'float'>",
+            id="TypeError",
+        ),
+    ],
+)
+def test_unknown_output_format(formatter, error_type, err_msg_start):
+    with pytest.raises(
+        error_type,
+        match=(
+            f"^{err_msg_start}\\.\nValid formatter names are: "
+            "'cds', 'console', 'generic', 'fits', 'latex', 'latex_inline', 'ogip', "
+            "'unicode', 'vounit'$"
+        ),
+    ):
+        u.m.to_string(formatter)
 
 
 def test_celsius_fits():
