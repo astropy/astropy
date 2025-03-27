@@ -41,7 +41,7 @@ jobs:
       # the build isolation and explicitly install the latest developer version of numpy as well as
       # the latest stable versions of all other build-time dependencies.
       env: |
-        CIBW_BEFORE_BUILD: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip install -U --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple setuptools setuptools_scm cython numpy>=0.0.dev0 extension-helpers') || '' }}'
+        CIBW_BEFORE_BUILD: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip install -U --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple setuptools>=77.0.0 setuptools_scm cython numpy>=0.0.dev0 extension-helpers') || '' }}'
         CIBW_BUILD_FRONTEND: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip; args: --no-build-isolation') || 'build' }}'
 
       test_extras: test
