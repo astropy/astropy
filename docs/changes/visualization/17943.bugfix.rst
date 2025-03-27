@@ -1,0 +1,2 @@
+Fixed an issue where LinearStretch values were not being clipped to
+[0:1] when ``clip=True``.
