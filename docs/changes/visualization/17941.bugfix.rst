@@ -1,0 +1,5 @@
+Fixed the limits of ``a`` parameter in the ``PowerDistStretch``
+and ``InvertedPowerDistStretch`` classes so that a value of
+0 in no longer allowed. That value gives infinity values in
+``InvertedPowerDistStretch`` and it makes the ``PowerDistStretch``
+results independent of the input data.
