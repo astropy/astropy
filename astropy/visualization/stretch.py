@@ -664,18 +664,24 @@ class ContrastBiasStretch(BaseStretch):
 
 
 class InvertedContrastBiasStretch(BaseStretch):
-    """
-    Inverse transformation for ContrastBiasStretch.
+    r"""
+    Inverse transformation for
+    `~astropy.visualization.ContrastBiasStretch`.
+
+    The stretch is given by:
+
+    .. math::
+        y = \frac{x - 0.5}{{\rm contrast}} + {\rm bias}
 
     Parameters
     ----------
     contrast : float
         The contrast parameter (see
-        `~astropy.visualization.ConstrastBiasStretch).
+        `~astropy.visualization.ContrastBiasStretch`).
 
     bias : float
         The bias parameter (see
-        `~astropy.visualization.ConstrastBiasStretch).
+        `~astropy.visualization.ContrastBiasStretch`).
     """
 
     def __init__(self, contrast, bias):
