@@ -600,6 +600,11 @@ You can add an `astropy.io.votable.tree.TableElement` to the resource:
       <GLOBALS>  </GLOBALS>
    </VODML>
 
+Data Origin
+===========
+.. _astropy-io-votable-dataorigin:
+
+.. include:: dataorigin.rst
 
 See Also
 ========
