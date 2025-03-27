@@ -185,18 +185,19 @@ class TdatHeader(basic.BasicHeader):
     _deprecated_keys = r"\s*(record_delimiter|field_delimiter)\s*=\s\"(.+)\""
     _required_keywords = ("table_name",)
     _dtype_dict_in = {
-        "float": float,
-        "float8": float,
-        "float4": np.float32,
-        "real": np.float32,
-        "int": int,
-        "int4": int,
-        "int2": np.int16,
-        "integer2": np.int16,
-        "smallint": np.int16,
         "int1": np.int8,
         "integer1": np.int8,
         "tinyint": np.int8,
+        "int2": np.int16,
+        "integer2": np.int16,
+        "smallint": np.int16,
+        "int4": int,
+        "integer4": int,
+        "integer": int,
+        "float4": np.float32,
+        "real": np.float32,
+        "float": float,
+        "float8": float,
     }
 
     _dtype_dict_out = {
@@ -349,10 +350,10 @@ class TdatHeader(basic.BasicHeader):
             r"""
             \s*field
             \[(?P<name>\w+)\]\s*=\s*
-            (?P<ctype>[^\W\s_]+)
+            (?P<ctype>[^\W\s_]+(\(\d*\))?)
             (?:\:(?P<fmt>[^\s_]+))?
-            (?:_(?P<unit>[^\s_]+))?
-            \s*
+            (?:_(?P<unit>[^\s]+))?
+            [\sA-Za-z0-9]*
             (?:\[(?P<ucd>[\w\.\;]+)\])?
             \s*
             (?:\((?P<index>\w+)\))?
@@ -523,10 +524,10 @@ class TdatHeader(basic.BasicHeader):
             elif "<U" in str(col.info.dtype):
                 ctype = f"char{str(col.info.dtype).rsplit('<U', maxsplit=1)[-1]}"
             else:
-                # raise TdatFormatError(
-                #     f'Unrecognized data type `{col.info.dtype}` for column "{col.info.name}".'
-                # )
-                ctype = f"{col.info.dtype}"
+                raise TdatFormatError(
+                    f'Unrecognized data type `{col.info.dtype}` for column "{col.info.name}".'
+                )
+                # ctype = f"{col.info.dtype}"
             field_line = f"field[{col.info.name}] = {ctype}"
 
             col_info_meta = col.info.meta or {}
@@ -542,7 +543,7 @@ class TdatHeader(basic.BasicHeader):
                 field_line += " (key)"
             elif col.info.name in indices:
                 field_line += " (index)"
-            if col.info.description is not None:
+            if col.info.description is not None and col.info.description != "None":
                 field_line += f" // {col.info.description}"
             elif "comment" in col_info_meta:
                 field_line += " //"
