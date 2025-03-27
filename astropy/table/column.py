@@ -222,10 +222,8 @@ def _convert_sequence_data_to_array(data, dtype=None):
         has_unit = has_len_gt0 and any(hasattr(v, "unit") for v in data)
 
         try:
-            if has_unit:
-                np_data = Quantity(data, dtype)
-            else:
-                np_data = np.array(data, dtype=dtype)
+            cls = Quantity if has_unit else np.array
+            np_data = cls(data, dtype=dtype)
         except np.ma.MaskError:
             # Catches case of dtype=int with masked values, instead let it
             # convert to float
