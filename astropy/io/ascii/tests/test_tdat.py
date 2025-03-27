@@ -14,11 +14,11 @@ from io import StringIO
 import numpy as np
 import pytest
 
+from astropy import units as u
 from astropy.io import ascii
 from astropy.io.ascii.tdat import TdatFormatError, TdatFormatWarning
-from astropy.table import Table
+from astropy.table import QTable, Table
 from astropy.table.table_helpers import simple_table
-from astropy.units import allclose as quantity_allclose
 
 test_dat = [
     "<HEADER>",
@@ -447,6 +447,65 @@ def test_unrecognized_dtype():
     assert "Unrecognized data type" in str(err.value)
 
 
+def test_supported_dtypes():
+    """Ensure all supported dtypes import and export as expected"""
+    dtype_dict = {
+        "int1": "int1",
+        "integer1": "int1",
+        "tinyint": "int1",
+        "int2": "int2",
+        "integer2": "int2",
+        "smallint": "int2",
+        "int4": "int4",
+        "integer4": "int4",
+        "integer": "int4",
+        "float4": "float4",
+        "real": "float4",
+        "float": "float8",
+        "float8": "float8",
+    }
+    lines = copy.copy(SIMPLE_LINES)
+
+    # integer dtypes
+    int_dtypes = [
+        "int1",
+        "integer1",
+        "tinyint",
+        "int2",
+        "integer2",
+        "smallint",
+        "int4",
+        "integer4",
+        "integer",
+    ]
+    for dtype in int_dtypes:
+        lines[5] = f"field[a]  = {dtype}"
+        t = Table.read("\n".join(lines), format="ascii.tdat")
+        assert all(t["a"].data == np.array([1, 2, 3]))
+        out = StringIO()
+        t.write(out, format="ascii.tdat")
+        assert dtype_dict[dtype] in out.getvalue().splitlines()[5]
+
+    # float dtypes
+    float_dtypes = ["float4", "real", "float", "float8"]
+    for dtype in float_dtypes:
+        lines[6] = f"field[b]  = {dtype}"
+        t = Table.read("\n".join(lines), format="ascii.tdat")
+        assert all(t["b"].data == np.array([1.0, 2.0, 3.0]))
+        out = StringIO()
+        t.write(out, format="ascii.tdat")
+        assert dtype_dict[dtype] in out.getvalue().splitlines()[6]
+
+    # string dtypes
+    for line in ["field[c] = char(3)", "field[c] = char(3) (index)"]:
+        lines[7] = line
+        t = Table.read("\n".join(lines), format="ascii.tdat")
+        assert all(t["c"].data == np.array(["c", "d", "e"]))
+        out = StringIO()
+        t.write(out, format="ascii.tdat")
+        assert "char1" in out.getvalue().splitlines()[7]  # downsizes to min length
+
+
 def test_mismatch_line_field():
     """Not all dtypes are supported by tdat files"""
     lines = copy.copy(SIMPLE_LINES)
@@ -490,14 +549,14 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
                 a2 = a2[subattr]
 
         if isinstance(a1, np.ndarray) and a1.dtype.kind == "f":
-            assert quantity_allclose(a1, a2, rtol=1e-10)
+            assert u.quantity_allclose(a1, a2, rtol=1e-10)
         else:
             assert np.all(a1 == a2)
 
     # For no attrs that means we just compare directly.
     if not attrs:
         if isinstance(obj1, np.ndarray) and obj1.dtype.kind == "f":
-            assert quantity_allclose(obj1, obj2, rtol=1e-15)
+            assert u.quantity_allclose(obj1, obj2, rtol=1e-15)
         else:
             assert np.all(obj1 == obj2)
 
@@ -607,3 +666,10 @@ def test_delimiter_in_data():
         # Windows uses carriage return (\r) and line feed (\n).
         outval = out.getvalue().split("\n")[36].replace("\r", "")
         assert outval == "4|20|\\|$||||"
+
+
+def test_write_qtable():
+    qt = QTable([np.arange(4) * u.m, ["a", "b", "c", "ddd"]], names=["a", "b"])
+    qt.meta["table_name"] = "astropy_qtable"
+    out = StringIO()
+    qt.write(out, format="ascii.tdat")
