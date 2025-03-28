@@ -876,6 +876,33 @@ class ContrastBiasStretch(BaseStretch):
 
     bias : float
         The bias parameter (see the above formula).
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import ContrastBiasStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        contrasts = [1.0, 2.0, 0.7, 1.0, 1.0, 2.0]
+        biases = [0.5, 0.5, 0.5, 0.3, 0.7, 0.3]
+        for contrast, bias in zip(contrasts, biases):
+            stretch = ContrastBiasStretch(contrast, bias)
+            ax.plot(x, stretch(x, clip=True), label=f'{contrast=}, {bias=}')
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='lower right', fontsize=8)
     """
 
     def __init__(self, contrast, bias):
