@@ -3601,3 +3601,16 @@ def test_table_replace_column_with_scalar(empty_table):
     # Direct replacement should never work.
     with pytest.raises(ValueError, match="cannot replace.*with a scalar"):
         t.replace_column("a", 2)
+
+
+def test_table_from_records_nd_quantity():
+    """Regression test for #17930"""
+
+    data = [
+        {"q0d": 5 * u.m, "q1d": [1, 2, 3] * u.s, "q2d": [[0, 1, 2], [3, 4, 5]] * u.TeV},
+    ]
+
+    t = Table(data)
+    assert t["q0d"].unit == u.m
+    assert t["q1d"].unit == u.s
+    assert t["q2d"].unit == u.TeV
