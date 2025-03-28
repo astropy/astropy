@@ -1,0 +1,2 @@
+Fix a bug in creating a ``Table`` from a list of rows that dropped the units
+of non-scalar Quantity, e.g., ``Table(rows=[([1] * u.m,), ([2] * u.m,)])``.
