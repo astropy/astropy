@@ -666,8 +666,40 @@ class AsinhStretch(BaseStretch):
         The ``a`` parameter used in the above formula. The value of this
         parameter is where the asinh curve transitions from linear to
         logarithmic behavior, expressed as a fraction of the normalized
-        image. The stretch becomes more linear as the ``a`` value is
-        increased. ``a`` must be greater than 0. Default is 0.1.
+        image. The stretch becomes more linear for larger ``a`` values
+        and more logarithmic for smaller ``a`` values. ``a`` must be
+        greater than 0. Default is 0.1.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import AsinhStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        a_vals = (0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 0.9, 3.0)
+        for a in a_vals:
+            if a == 0.1:
+                lw = 3
+            else:
+                lw = 1
+            stretch = AsinhStretch(a)
+            label = f'{a=}'
+            ax.plot(x, stretch(x, clip=True), label=label, lw=lw)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='lower right', fontsize=8)
     """
 
     def __init__(self, a=0.1):
