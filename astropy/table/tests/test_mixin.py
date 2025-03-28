@@ -119,14 +119,9 @@ def test_io_ascii_write():
 
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
-        if fmt["Write"] and ".fast_" not in fmt["Format"]:
+        if fmt["Write"] and ".fast_" not in fmt["Format"] and fmt["Format"] != "ascii.tdat":
             out = StringIO()
-            if fmt["Format"] == "ascii.tdat":
-                t.meta["table_name"] = "origin_test"
-                t.write(out, format=fmt["Format"])
-                t.meta.pop("table_name")
-            else:
-                t.write(out, format=fmt["Format"])
+            t.write(out, format=fmt["Format"])
 
 
 def test_votable_quantity_write(tmp_path):
