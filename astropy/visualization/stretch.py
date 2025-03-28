@@ -734,8 +734,40 @@ class SinhStretch(BaseStretch):
     ----------
     a : float, optional
         The ``a`` parameter used in the above formula. The stretch
-        becomes more linear as the ``a`` value is increased. ``a`` must
-        be greater than 0. Default is 1/3.
+        becomes more linear for larger ``a`` values and more exponential
+        for smaller ``a`` values. ``a`` must be greater than 0. Default
+        is 1/3.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import SinhStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        a_vals = (0.1, 0.2, 0.3333, 0.5, 0.9, 3)
+        for a in a_vals:
+            if a == 0.3333:
+                lw = 3
+            else:
+                lw = 1
+            stretch = SinhStretch(a)
+            label = f'{a=}'
+            ax.plot(x, stretch(x, clip=True), label=label, lw=lw)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='upper left', fontsize=8)
     """
 
     def __init__(self, a=1.0 / 3.0):
