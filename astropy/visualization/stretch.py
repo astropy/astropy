@@ -260,8 +260,35 @@ class PowerStretch(BaseStretch):
     Parameters
     ----------
     a : float
-        The power index (see the above formula).  ``a`` must be greater
+        The power index (see the above formula). ``a`` must be greater
         than 0.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import PowerStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        a_vals = (0.3, 0.5, 0.7, 1, 1.5, 2, 3)
+        for a in a_vals:
+            stretch = PowerStretch(a)
+            label = f'{a=}'
+            ax.plot(x, stretch(x, clip=True), label=label)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='lower right', fontsize=8)
     """
 
     @property
