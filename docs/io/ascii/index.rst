@@ -200,6 +200,7 @@ are compatible with the fast Cython/C engine for reading and writing.
 ``rst``                     Yes      :class:`~astropy.io.ascii.RST`: reStructuredText simple format table
 ``sextractor``                       :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
 ``tab``                     Yes  Yes :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
+``tdat``                    Yes      |TDAT|: Transportable Database Aggregate Table format
 ========================= ===== ==== ============================================================================================
 
 Getting Help
