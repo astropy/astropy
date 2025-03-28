@@ -791,11 +791,6 @@ astropy source code or documentation, or in packages using the Astropy test
 running framework. For example doctests and detailed documentation on how to
 write them, see the full :mod:`doctest` documentation.
 
-For more information on the ``pytest-doctestplus`` plugin used by Astropy, see
-:ref:`doctestplus-plugin`.
-
-.. _skipping-doctests:
-
 Skipping doctests
 =================
 
@@ -922,8 +917,6 @@ without the test checking that it is exactly right.  For example::
     >>> print('Hello world')  # doctest: +IGNORE_OUTPUT
     We don't really care what the output is as long as there were no errors...
 
-.. _handling-float-output:
-
 Handling float output
 =====================
 
@@ -1024,27 +1017,3 @@ test functions with ``@pytest.mark.remote_data(source='astropy')``. Tests
 marked with ``internet_off`` will also be skipped in this case.
 
 Also see :ref:`data-files`.
-
-.. _doctestplus-plugin:
-
-pytest-doctestplus
-==================
-
-The |pytest-doctestplus| plugin provides advanced doctest features, including:
-
-* handling doctests that use remote data in conjunction with the
-  ``pytest-remotedata`` plugin above (see :ref:`data-files`)
-* approximate floating point comparison for doctests that produce floating
-  point results (see :ref:`handling-float-output`)
-* skipping particular classes, methods, and functions when running doctests
-  (see :ref:`skipping-doctests`)
-* optional inclusion of ``*.rst`` files for doctests
-
-This plugin provides two command line options: ``--doctest-plus`` for enabling
-the advanced features mentioned above, and ``--doctest-rst`` for including
-``*.rst`` files in doctest collection.
-
-The Astropy test runner enables both of these options by default. When running
-the test suite directly from ``pytest`` (instead of through the Astropy test
-runner), it is necessary to explicitly provide these options when they are
-needed.
