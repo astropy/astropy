@@ -35,6 +35,7 @@ comma (CSV) or a whitespace character like space or tab.
             ascii.no_header    Yes          :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
                   ascii.rdb    Yes    .rdb  :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
                   ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
+                 ascii.tdat    Yes   .tdat  |TDAT|: Transportable Database Aggregate Table format
                  pandas.csv    Yes          :func:`pandas.read_csv` and :meth:`pandas.DataFrame.to_csv`
 ===========================  =====  ======  ============================================================================================
 
