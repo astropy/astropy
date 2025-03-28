@@ -108,6 +108,34 @@ class LinearStretch(BaseStretch):
         The ``slope`` parameter used in the above formula.  Default is 1.
     intercept : float, optional
         The ``intercept`` parameter used in the above formula.  Default is 0.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import LinearStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        slopes = [1, 0.5, 1.3, 1.4, 2.0]
+        intercepts = [0, 0.0, -0.4, 0., 0.2]
+        for slope, intercept in zip(slopes, intercepts):
+            stretch = LinearStretch(slope, intercept)
+            label = f'{slope=}, {intercept=}'
+            ax.plot(x, stretch(x, clip=True), label=label)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='lower right', fontsize=8)
     """
 
     def __init__(self, slope=1, intercept=0):
