@@ -364,8 +364,42 @@ class PowerDistStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula. ``a`` must be
-        greater than 0, but cannot be set to 1. Default is 1000.
+        The ``a`` parameter used in the above formula. The stretch
+        becomes more linear as ``a`` approaches 1, more exponential for
+        ``a`` values greater than 1, and more logarithmic for ``a``
+        values less than 1. ``a`` must be greater than 0, but cannot be
+        set to 1. Default is 1000.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import PowerDistStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        a_vals = (0.001, 0.05, 0.3, 0.8, 1.2, 3, 10, 30, 100, 1000)
+        for a in a_vals:
+            if a == 1000:
+                lw = 3
+            else:
+                lw = 1
+            stretch = PowerDistStretch(a)
+            label = f'{a=}'
+            ax.plot(x, stretch(x, clip=True), label=label, lw=lw)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='upper left', fontsize=8)
     """
 
     def __init__(self, a=1000.0):
@@ -400,8 +434,11 @@ class InvertedPowerDistStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula. ``a`` must be
-        greater than 0, but cannot be set to 1. Default is 1000.
+        The ``a`` parameter used in the above formula. The stretch
+        becomes more linear as ``a`` approaches 1, more logarithmic for
+        ``a`` values greater than 1, and more exponential for ``a``
+        values less than 1. ``a`` must be greater than 0, but cannot be
+        set to 1. Default is 1000.
     """
 
     def __init__(self, a=1000.0):
