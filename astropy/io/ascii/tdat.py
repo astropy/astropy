@@ -350,16 +350,15 @@ class TdatHeader(basic.BasicHeader):
             r"""
             \s*field
             \[(?P<name>\w+)\]\s*=\s*
-            (?P<ctype>[^\W\s_]+(\(\d*\))?)
-            (?:\:(?P<fmt>[^\s_]+))?
-            (?:_(?P<unit>[^\s]+))?
-            [\sA-Za-z0-9]*
+            (?P<ctype>[^\W\s_]+(\(\d+\))?)
+            (?:\:(?P<fmt>[^_\s\[\(/#]+))?
+            (?:_(?P<unit>[^\[\(#]+))?\s*
             (?:\[(?P<ucd>[\w\.\;]+)\])?
             \s*
             (?:\((?P<index>\w+)\))?
             \s*
-            (?:[//|#]+\s*(?P<desc>[^/#]*))?
-            (?:[//|#]+\s*(?P<comment>[^/#]*))?
+            (?:(//|\#)\s*(?P<desc>[^/#]*))?
+            (?:(//|\#)\s*(?P<comment>.*))?
             \s*
             """,
             re.VERBOSE,
@@ -534,7 +533,11 @@ class TdatHeader(basic.BasicHeader):
             if col.info.format is not None:
                 field_line += f":{col.info.format}"
             if col.info.unit is not None:
-                field_line += f"_{col.info.unit}"
+                if " " in f"{col.info.unit}":
+                    unit_str = f"{col.info.unit:cds}"
+                else:
+                    unit_str = f"{col.info.unit}"
+                field_line += f"_{unit_str}"
             if "ucd" in col_info_meta:
                 field_line += f" [{col_info_meta['ucd']}]"
             if "index" in col_info_meta:
