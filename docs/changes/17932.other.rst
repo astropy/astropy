@@ -1,0 +1,1 @@
+Document environment variables affecting astropy at runtime in a dedicated page.
