@@ -119,7 +119,11 @@ def test_io_ascii_write():
 
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
-        if fmt["Write"] and ".fast_" not in fmt["Format"] and fmt["Format"] != "ascii.tdat":
+        if (
+            fmt["Write"]
+            and ".fast_" not in fmt["Format"]
+            and fmt["Format"] != "ascii.tdat"
+        ):
             out = StringIO()
             t.write(out, format=fmt["Format"])
 
