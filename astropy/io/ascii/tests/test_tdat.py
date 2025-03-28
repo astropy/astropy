@@ -519,9 +519,35 @@ def test_fmt_type_too_long():
     """The combination of type and format has a maximum character length of 24"""
     lines = copy.copy(SIMPLE_LINES)
     lines[6] = "field[b] = float8:.0000000000000000000000000000001f"
-    with pytest.raises(TdatFormatError) as err:
+    with pytest.raises(TdatFormatError, match="The type:fmt specifier") as err:
         Table.read("\n".join(lines), format="ascii.tdat")
-    assert "The type:fmt specifier" in str(err.value)
+
+
+def test_units():
+    """Test that units act as expected (astropy converts some units)"""
+    lines = copy.copy(SIMPLE_LINES)
+    lines[6] = "field[b] = float8:.4f_m/s"
+    t = Table.read(lines, format="ascii.tdat")
+    # Astropy automatically interprets units
+    assert t.columns["b"].unit == u.m / u.s
+
+    out = StringIO()
+    t.write(out, format="ascii.tdat")
+    # When writing, astropy units will be written out using the cds format
+    # so that there are no spaces
+    assert "m.s-1" in out.getvalue().splitlines()[6]
+    t2 = Table.read(out.getvalue(), format="ascii.tdat")
+    assert t2.columns["b"].unit == t.columns["b"].unit
+
+    lines[6] = "field[b] = float8:.4f_fake1/fake2"
+    t = Table.read(lines, format="ascii.tdat")
+    # Astropy automatically interprets units
+    assert isinstance(t.columns["b"].unit, u.UnrecognizedUnit)
+    assert str(t.columns["b"].unit) == "fake1/fake2"
+    out = StringIO()
+    t.write(out, format="ascii.tdat")
+    # unrecognized units are not reformatted
+    assert "fake1/fake2" in out.getvalue().splitlines()[6]
 
 
 def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
