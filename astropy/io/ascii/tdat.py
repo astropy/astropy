@@ -762,37 +762,72 @@ class Tdat(core.BaseReader):
     If there is no Table.meta, this writer will attempt to automatically
     generate the appropriate header information based on the table and
     column properties and the recommendations for the TDAT format by HEASARC.
-    Column `units` are written using the CDS format.
+    Column ``units`` are written using the CDS format.
 
     Example::
 
-    >>> from astropy.table import Table
-    >>> import sys
-    >>> t = Table(names=('reference_id', 'RA', 'Name'),
-    ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
-    >>> t.meta['table_name'] = "astropy_table"
-    >>> t.write(sys.stdout, format="ascii.tdat")
-    ['<HEADER>', 'table_name = astropy_table', '#', '# Table Parameters', '#', 'field[reference_id] = int4', 'field[RA] = float8', 'field[Name] = char1', '#', '# Data Format Specification', '#', 'line[1] = reference_id RA Name', '#', '<DATA>', '1|1.0|c|', '2|2.0|d|', '3|3.0|e|', '<END>']
+      >>> from astropy.table import Table
+      >>> import sys
+      >>> t = Table(names=('reference_id', 'RA', 'Name'),
+      ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
+      >>> t.meta['table_name'] = "astropy_table"
+      >>> t.write(sys.stdout, format="ascii.tdat")
+      <HEADER>
+      table_name = astropy_table
+      #
+      # Table Parameters
+      #
+      field[reference_id] = int4
+      field[RA] = float8
+      field[Name] = char1
+      #
+      # Data Format Specification
+      #
+      line[1] = reference_id RA Name
+      #
+      <DATA>
+      1|1.0|c|
+      2|2.0|d|
+      3|3.0|e|
+      <END>
 
     Including relevant metadata for the table and columns separately
     is possible with a mixture of attribute assignment and additions to the
     metadata::
 
-    >>> from astropy.table import Table
-    >>> from io import StringIO
-    >>> t = Table(names=('reference_id', 'RA', 'Name'),
-    ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
-    >>> t.meta["table_name"] = "example_table"
-    >>> t.meta["table_description"] = "An example table for the tdat writer."
-    >>> t.add_index('reference_id')
-    >>> t.columns['reference_id'].meta['comment'] = "For internal reference only"
-    >>> t.add_index('RA')
-    >>> t.columns['RA'].unit = "degree"
-    >>> t.columns['RA'].format = ".4f"
-    >>> t.columns['RA'].meta['ucd'] = "pos.eq.ra"
-    >>> t.columns['Name'].description = "The name of the source (if available)"
-    >>> t.write(sys.stdout, format="ascii.tdat")
-    ['<HEADER>', 'table_name = example_table', 'table_description = An example table for the tdat writer.', '#', '# Table Parameters', '#', 'field[reference_id] = int4 (key) // // For internal reference only', 'field[RA] = float8:.4f_deg [pos.eq.ra] (index)', 'field[Name] = char1 // The name of the source (if available)', '#', '# Data Format Specification', '#', 'line[1] = reference_id RA Name', '#', '<DATA>', '1|1.0000|c|', '2|2.0000|d|', '3|3.0000|e|', '<END>']
+      >>> from astropy.table import Table
+      >>> from io import StringIO
+      >>> t = Table(names=('reference_id', 'RA', 'Name'),
+      ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
+      >>> t.meta["table_name"] = "example_table"
+      >>> t.meta["table_description"] = "An example table for the tdat writer."
+      >>> t.add_index('reference_id')
+      >>> t.columns['reference_id'].meta['comment'] = "For internal reference only"
+      >>> t.add_index('RA')
+      >>> t.columns['RA'].unit = "degree"
+      >>> t.columns['RA'].format = ".4f"
+      >>> t.columns['RA'].meta['ucd'] = "pos.eq.ra"
+      >>> t.columns['Name'].description = "The name of the source (if available)"
+      >>> t.write(sys.stdout, format="ascii.tdat")
+      <HEADER>
+      table_name = example_table
+      table_description = An example table for the tdat writer.
+      #
+      # Table Parameters
+      #
+      field[reference_id] = int4 (key) // // For internal reference only
+      field[RA] = float8:.4f_deg [pos.eq.ra] (index)
+      field[Name] = char1 // The name of the source (if available)
+      #
+      # Data Format Specification
+      #
+      line[1] = reference_id RA Name
+      #
+      <DATA>
+      1|1.0000|c|
+      2|2.0000|d|
+      3|3.0000|e|
+      <END>
     """
 
     _format_name = "tdat"
@@ -805,7 +840,20 @@ class Tdat(core.BaseReader):
     outputter_class = TdatOutputter
 
     def inconsistent_handler(self, str_vals, ncols):
-        """Remove the last field separator if it exists"""
+        """Remove the last field separator if it exists
+
+        Parameters
+        ----------
+        str_vals : list
+            A list of value strings from the current row of the table.
+        ncols : int
+            The expected number of entries from the table header.
+
+        Returns
+        -------
+        str_vals : list
+            List of strings to be parsed into data entries in the output table.
+        """
         if len(str_vals) == ncols + 1 and str_vals[-1] == "":
             str_vals = str_vals[:-1]
         return str_vals
