@@ -125,7 +125,7 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
                   ascii.rst    Yes    .rst  :class:`~astropy.io.ascii.RST`: reStructuredText simple format table
            ascii.sextractor     No          :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
                   ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
-                 ascii.tdat    Yes   .tdat  |TDAT|: Transportable Database Aggregate Table format
+                 ascii.tdat    Yes   .tdat  :class:`~astropy.io.ascii.Tdat`: Transportable Database Aggregate Table format
                        fits    Yes    auto  :mod:`~astropy.io.fits`: Flexible Image Transport System file
                        hdf5    Yes    auto  |HDF5|: Hierarchical Data Format binary file
                    jsviewer    Yes          JavaScript viewer format (write-only)
