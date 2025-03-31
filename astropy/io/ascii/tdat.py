@@ -533,11 +533,7 @@ class TdatHeader(basic.BasicHeader):
             if col.info.format is not None:
                 field_line += f":{col.info.format}"
             if col.info.unit is not None:
-                if " " in f"{col.info.unit}":
-                    unit_str = f"{col.info.unit:cds}"
-                else:
-                    unit_str = f"{col.info.unit}"
-                field_line += f"_{unit_str}"
+                field_line += f"_{col.info.unit:cds}"
             if "ucd" in col_info_meta:
                 field_line += f" [{col_info_meta['ucd']}]"
             if "index" in col_info_meta:
@@ -707,7 +703,7 @@ class TdatOutputter(core.TableOutputter):
 
 class Tdat(core.BaseReader):
     """TDAT format
-    See: https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html"
+    See: https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html
 
     Example::
       <HEADER>
@@ -765,6 +761,7 @@ class Tdat(core.BaseReader):
     If there is no Table.meta, this writer will attempt to automatically
     generate the appropriate header information based on the table and
     column properties and the recommendations for the TDAT format by HEASARC.
+    Column `units` are written using the CDS format.
 
     Example::
     >>> from astropy.table import Table
