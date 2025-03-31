@@ -612,7 +612,6 @@ links_to_become_substitutions: dict[str, str] = {
     "HDF5": "https://www.hdfgroup.org/HDF5",
     "h5py": "http://www.h5py.org",
     "Parquet": "https://parquet.apache.org",
-    "TDAT": "https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html",
 }
 
 processed_links = {
