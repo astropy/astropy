@@ -25,7 +25,6 @@ from . import (
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-    from types import NotImplementedType
     from typing import Final
 
     from .typing import PhysicalTypeID, QuantityLike, UnitPowerLike
@@ -367,17 +366,9 @@ class PhysicalType:
         return "/".join(self._physical_type)
 
     @staticmethod
-    def _dimensionally_compatible_unit(
-        obj: object,
-    ) -> core.UnitBase | NotImplementedType:
+    def _dimensionally_compatible_unit(obj: object) -> core.UnitBase | None:
         """
         Return a unit that corresponds to the provided argument.
-
-        If a unit is passed in, return that unit.  If a physical type
-        (or a `str` with the name of a physical type) is passed in,
-        return a unit that corresponds to that physical type.  If the
-        number equal to ``1`` is passed in, return a dimensionless unit.
-        Otherwise, return `NotImplemented`.
         """
         if isinstance(obj, core.UnitBase):
             return _replace_temperatures_with_kelvin(obj)
@@ -387,23 +378,14 @@ class PhysicalType:
             return core.dimensionless_unscaled
         elif isinstance(obj, str):
             return _physical_type_from_str(obj)._unit
-        else:
-            return NotImplemented
-
-    def _dimensional_analysis(
-        self, other: object, operation: str
-    ) -> PhysicalType | NotImplementedType:
-        other_unit = self._dimensionally_compatible_unit(other)
-        if other_unit is NotImplemented:
-            return NotImplemented
-        other_unit = _replace_temperatures_with_kelvin(other_unit)
-        new_unit = getattr(self._unit, operation)(other_unit)
-        return new_unit.physical_type
+        return None
 
     def __mul__(
         self, other: PhysicalType | core.UnitBase | numbers.Real | str
     ) -> PhysicalType:
-        return self._dimensional_analysis(other, "__mul__")
+        if other_unit := self._dimensionally_compatible_unit(other):
+            return (self._unit * other_unit).physical_type
+        return NotImplemented
 
     def __rmul__(self, other: PhysicalType | core.UnitBase | str) -> PhysicalType:
         return self.__mul__(other)
@@ -411,15 +393,16 @@ class PhysicalType:
     def __truediv__(
         self, other: PhysicalType | core.UnitBase | numbers.Real | str
     ) -> PhysicalType:
-        return self._dimensional_analysis(other, "__truediv__")
+        if other_unit := self._dimensionally_compatible_unit(other):
+            return (self._unit / other_unit).physical_type
+        return NotImplemented
 
     def __rtruediv__(
         self, other: PhysicalType | core.UnitBase | numbers.Real | str
     ) -> PhysicalType:
-        other = self._dimensionally_compatible_unit(other)
-        if other is NotImplemented:
-            return NotImplemented
-        return other.physical_type._dimensional_analysis(self, "__truediv__")
+        if other_unit := self._dimensionally_compatible_unit(other):
+            return (other_unit / self._unit).physical_type
+        return NotImplemented
 
     def __pow__(self, power: UnitPowerLike) -> PhysicalType:
         return (self._unit**power).physical_type
