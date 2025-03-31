@@ -17,7 +17,7 @@ from functools import reduce
 import numpy as np
 
 # NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_UNCOMPRESSPY
 from astropy.utils.data import (
     _is_url,
     _requires_fsspec,
@@ -43,6 +43,9 @@ from .util import (
 
 if HAS_BZ2:
     import bz2
+
+if HAS_UNCOMPRESSPY:
+    import uncompresspy
 
 
 # Maps astropy.io.fits-specific file mode names to the appropriate file
@@ -98,11 +101,19 @@ MEMMAP_MODES = {
 GZIP_MAGIC = b"\x1f\x8b\x08"
 PKZIP_MAGIC = b"\x50\x4b\x03\x04"
 BZIP2_MAGIC = b"\x42\x5a"
+LZW_MAGIC = b"\x1f\x9d"
 
 
 def _is_bz2file(fileobj):
     if HAS_BZ2:
         return isinstance(fileobj, bz2.BZ2File)
+    else:
+        return False
+
+
+def _is_lzwfile(fileobj):
+    if HAS_UNCOMPRESSPY:
+        return isinstance(fileobj, uncompresspy.LZWFile)
     else:
         return False
 
@@ -228,6 +239,8 @@ class _File:
             self.compression = "zip"
         elif _is_bz2file(fileobj):
             self.compression = "bzip2"
+        elif _is_lzwfile(fileobj):
+            self.compression = "lzw"
 
         if (
             self.compression is not None
@@ -557,6 +570,19 @@ class _File:
             bzip2_mode = "w" if is_ostream else "r"
             self._file = bz2.BZ2File(obj_or_name, mode=bzip2_mode)
             self.compression = "bzip2"
+        elif (is_ostream and ext == ".Z") or magic.startswith(LZW_MAGIC):
+            # Handle LZW files
+            if mode in ["update", "append"]:
+                raise OSError(
+                    "update and append modes are not supported with LZW files"
+                )
+            if not HAS_UNCOMPRESSPY:
+                raise ModuleNotFoundError(
+                    "The optional package uncompresspy is necessary for reading"
+                    " LZW compressed files (.Z extension)."
+                )
+            self._file = uncompresspy.open(obj_or_name, keep_buffer=True)
+            self.compression = "lzw"
         return self.compression is not None
 
     def _open_fileobj(self, fileobj, mode, overwrite):
