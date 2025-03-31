@@ -703,9 +703,11 @@ class TdatOutputter(core.TableOutputter):
 
 class Tdat(core.BaseReader):
     """TDAT format
+
     See: https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html
 
     Example::
+
       <HEADER>
       # # and // are comments
       table_name = example_table
@@ -744,19 +746,18 @@ class Tdat(core.BaseReader):
       table_description Example table
       table_author Example et al.
 
-
     When writing to the TDAT format, the header will be auto-populated by
     information in the Table, prioritizing information given in the Table.meta:
 
-    comments : list or string, (optional)
-    Table information which provide context. This information is
-    included in the header preceding all other lines and commented
-    out with #
+    **comments** : list or string, (optional)
+      Table information which provide context. This information is
+      included in the header preceding all other lines and commented
+      out with #
 
-    keywords : dict, (optional, recommended)
-    Header keywords which will appear in the file as "name=value" lines.
-    Of particular importance are table_name, table_description,
-    and table_document_url.
+    **keywords** : dict, (optional, recommended)
+      Header keywords which will appear in the file as "name=value" lines.
+      Of particular importance are table_name, table_description,
+      and table_document_url.
 
     If there is no Table.meta, this writer will attempt to automatically
     generate the appropriate header information based on the table and
@@ -764,19 +765,19 @@ class Tdat(core.BaseReader):
     Column `units` are written using the CDS format.
 
     Example::
+
     >>> from astropy.table import Table
-    >>> from io import StringIO
+    >>> import sys
     >>> t = Table(names=('reference_id', 'RA', 'Name'),
     ...           data=[[1, 2, 3], [1.0, 2.0, 3.0], ['c', 'd', 'e']])
     >>> t.meta['table_name'] = "astropy_table"
-    >>> out = StringIO()
-    >>> t.write(out, format="ascii.tdat")
-    >>> out.getvalue().splitlines()
+    >>> t.write(sys.stdout, format="ascii.tdat")
     ['<HEADER>', 'table_name = astropy_table', '#', '# Table Parameters', '#', 'field[reference_id] = int4', 'field[RA] = float8', 'field[Name] = char1', '#', '# Data Format Specification', '#', 'line[1] = reference_id RA Name', '#', '<DATA>', '1|1.0|c|', '2|2.0|d|', '3|3.0|e|', '<END>']
 
     Including relevant metadata for the table and columns separately
     is possible with a mixture of attribute assignment and additions to the
     metadata::
+
     >>> from astropy.table import Table
     >>> from io import StringIO
     >>> t = Table(names=('reference_id', 'RA', 'Name'),
@@ -790,9 +791,7 @@ class Tdat(core.BaseReader):
     >>> t.columns['RA'].format = ".4f"
     >>> t.columns['RA'].meta['ucd'] = "pos.eq.ra"
     >>> t.columns['Name'].description = "The name of the source (if available)"
-    >>> out = StringIO()
-    >>> t.write(out, format="ascii.tdat")
-    >>> out.getvalue().splitlines()
+    >>> t.write(sys.stdout, format="ascii.tdat")
     ['<HEADER>', 'table_name = example_table', 'table_description = An example table for the tdat writer.', '#', '# Table Parameters', '#', 'field[reference_id] = int4 (key) // // For internal reference only', 'field[RA] = float8:.4f_deg [pos.eq.ra] (index)', 'field[Name] = char1 // The name of the source (if available)', '#', '# Data Format Specification', '#', 'line[1] = reference_id RA Name', '#', '<DATA>', '1|1.0000|c|', '2|2.0000|d|', '3|3.0000|e|', '<END>']
     """
 
