@@ -458,7 +458,7 @@ def get_readable_fileobj(
         import uncompresspy
 
         try:
-            fileobj = uncompresspy.open(fileobj, mode="rb")
+            fileobj = uncompresspy.LZWFile(fileobj)
         except ValueError:
             # fileobj is unchanged
             pass
