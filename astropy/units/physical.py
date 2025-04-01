@@ -427,9 +427,6 @@ class PhysicalType:
     def __hash__(self) -> int:
         return hash(self._unit._physical_type_id)
 
-    def __len__(self) -> int:
-        return len(self._physical_type)
-
     # We need to prevent operations like where a Unit instance left
     # multiplies a PhysicalType instance from returning a `Quantity`
     # instance with a PhysicalType as the value.  We can do this by
