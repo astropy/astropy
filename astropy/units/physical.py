@@ -13,15 +13,7 @@ from typing import TYPE_CHECKING
 
 from astropy.utils.compat import COPY_IF_NEEDED
 
-from . import (
-    astrophys,
-    cgs,
-    core,
-    imperial,  # for bkwd compat #11975 and #11977  # noqa: F401
-    misc,
-    quantity,
-    si,
-)
+from . import astrophys, cgs, core, misc, quantity, si
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
