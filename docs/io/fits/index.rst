@@ -205,7 +205,7 @@ talking about a FITS file that has been compressed with one of these utilities
 
 There are some limitations when working with compressed files. For example,
 with Zip files that contain multiple compressed files, only the first file will
-be accessible. Also bzip2 and lzma does not support the append or update access
+be accessible. Also bzip2 and lzma do not support the append or update access
 modes.
 
 When writing a file (e.g., with the :func:`writeto` function), compression will
