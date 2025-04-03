@@ -23,6 +23,7 @@ from astropy.io.tests import safeio
 from astropy.utils import data
 from astropy.utils.compat.optional_deps import (
     HAS_BZ2,  # NOTE: Python can be built without bz2
+    HAS_LZMA,  # NOTE: Python can be built without lzma
 )
 from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
@@ -32,6 +33,9 @@ from .conftest import FitsTestCase
 
 if HAS_BZ2:
     import bz2
+
+if HAS_LZMA:
+    import lzma
 
 
 class TestCore(FitsTestCase):
@@ -833,6 +837,59 @@ class TestFileFunctions(FitsTestCase):
         with fits.open(self.temp("testname.fits.bz2")) as hdul:
             assert hdul[0].header == h.header
 
+    @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
+    def test_open_lzma(self):
+        lzma_file = self._make_lzma_file()
+
+        with fits.open(lzma_file) as fits_handle:
+            assert fits_handle._file.compression == "lzma"
+            assert len(fits_handle) == 5
+
+        with fits.open(lzma_file, decompress_in_memory=True) as fits_handle:
+            assert fits_handle._file.compression == "lzma"
+            assert len(fits_handle) == 5
+
+        with fits.open(lzma.LZMAFile(lzma_file)) as fits_handle:
+            assert fits_handle._file.compression == "lzma"
+            assert len(fits_handle) == 5
+
+    @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
+    def test_open_lzma_from_handle(self):
+        with open(self._make_lzma_file(), "rb") as handle:
+            with fits.open(handle) as fits_handle:
+                assert fits_handle._file.compression == "lzma"
+                assert len(fits_handle) == 5
+
+    @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
+    def test_detect_lzma(self):
+        """Test detection of a lzma file when the extension is not .xz."""
+        with fits.open(self._make_lzma_file("test0.xx")) as fits_handle:
+            assert fits_handle._file.compression == "lzma"
+            assert len(fits_handle) == 5
+
+    @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
+    def test_writeto_lzma_fileobj(self):
+        """Test writing to a lzma.LZMAFile file like object"""
+        fileobj = lzma.LZMAFile(self.temp("test.fits.xz"), "w")
+        h = fits.PrimaryHDU()
+        try:
+            h.writeto(fileobj)
+        finally:
+            fileobj.close()
+
+        with fits.open(self.temp("test.fits.xz")) as hdul:
+            assert hdul[0].header == h.header
+
+    @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
+    def test_writeto_lzma_filename(self):
+        """Test writing to a lzma file by name"""
+        filename = self.temp("testname.fits.xz")
+        h = fits.PrimaryHDU()
+        h.writeto(filename)
+
+        with fits.open(self.temp("testname.fits.xz")) as hdul:
+            assert hdul[0].header == h.header
+
     def test_open_zipped(self):
         zip_file = self._make_zip_file()
 
@@ -1342,6 +1399,15 @@ class TestFileFunctions(FitsTestCase):
             bz.close()
 
         return bzfile
+
+    def _make_lzma_file(self, filename="test0.fits.xz"):
+        lzmafile = self.temp(filename)
+        with open(self.data("test0.fits"), "rb") as f:
+            lz = lzma.LZMAFile(lzmafile, "w")
+            lz.write(f.read())
+            lz.close()
+
+        return lzmafile
 
     def test_simulateonly(self):
         """Write to None simulates writing."""
