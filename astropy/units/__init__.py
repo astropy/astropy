@@ -16,6 +16,7 @@ from . import (
     core,
     decorators,
     errors,
+    imperial,
     misc,
     photometric,
     physical,
