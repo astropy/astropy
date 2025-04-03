@@ -628,3 +628,6 @@ def setup(app):
     # docs astropy: targets will go to the local docs instead of the
     # intersphinx mapping
     app.connect("missing-reference", resolve_astropy_reference, priority=400)
+
+
+warnings.filterwarnings("ignore", module="astropy.units.deprecated")
