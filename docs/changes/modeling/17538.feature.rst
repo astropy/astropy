@@ -1,0 +1,1 @@
+Added a ``fit_info=`` keyword argument to ``parallel_fit_dask`` to allow users to preserve fit information from each individual fit.
