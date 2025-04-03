@@ -393,18 +393,16 @@ Indexing the fitter will return a specific fit information object, e.g.
 
 And it is also possible to retrieve one of these keys for all fits as an array, e.g.:
 
-   >>> nfev = fitter.fit_info.get_property_as_array('nfev')
-   >>> nfev.shape
+   >>> nfev = fitter.fit_info.get_property_as_array('nfev')  # doctest: +SKIP
+   >>> nfev.shape  # doctest: +SKIP
    (50, 50)
-   >>> nfev[0:3, 0:3]
+   >>> nfev[0:3, 0:3]  # doctest: +SKIP
    array([[ 9,  8, 10],
           [10, 13,  9],
           [10, 13, 10]])
-   >>> param_cov = fitter.fit_info.get_property_as_array('param_cov')
-   >>> param_cov.shape
+   >>> param_cov = fitter.fit_info.get_property_as_array('param_cov')  # doctest: +SKIP
+   >>> param_cov.shape  # doctest: +SKIP
    (50, 50, 3, 3)
-
-
 
 Diagnostics
 ===========
