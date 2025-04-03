@@ -238,7 +238,8 @@ class _File:
             self.compression = "zip"
         elif _is_bz2file(fileobj):
             self.compression = "bzip2"
-
+        elif _is_lzmafile(fileobj):
+            self.compression = "lzma"
         if (
             self.compression is not None
             and decompress_in_memory
@@ -677,7 +678,10 @@ class _File:
         # Make certain we're back at the beginning of the file
         # BZ2File does not support seek when the file is open for writing, but
         # when opening a file for write, bz2.BZ2File always truncates anyway.
-        if not (_is_bz2file(self._file) and mode == "ostream"):
+        if not (
+            (_is_bz2file(self._file) or (_is_lzmafile(self._file)))
+            and mode == "ostream"
+        ):
             self._file.seek(0)
 
     @classproperty(lazy=True)
