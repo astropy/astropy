@@ -358,10 +358,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # flake8-fixme (FIX)
     "FIX002",  # Line contains TODO | notes for improvements are OK iff the code works
 
-    # ISC001 shouldn't be used with ruff format
-    # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
-    "ISC001",
-
     # pep8-naming (N)
     "N803",  # invalid-argument-name. Physics variables are often poor code variables
     "N806",  # non-lowercase-variable-in-function. Physics variables are often poor code variables
