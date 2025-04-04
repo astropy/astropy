@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-from astropy.utils.compat.optional_deps import HAS_PYARROW
+from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_PYARROW
 
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
@@ -64,6 +64,7 @@ def read_table_parquet(
     Read a Table object from a Parquet file.
 
     This requires `pyarrow <https://arrow.apache.org/docs/python/>`_
+    and `pandas <https://pandas.pydata.org/>`_
     to be installed.
 
     The ``filters`` parameter consists of predicates that are expressed
@@ -117,6 +118,9 @@ def read_table_parquet(
         if schema_only is True.
     """
     pa, parquet = get_pyarrow()
+
+    if not HAS_PANDAS:
+        raise ModuleNotFoundError("pandas is required to read parquet files")
 
     if not isinstance(input, (str, os.PathLike)):
         # The 'read' attribute is the key component of a generic
