@@ -448,7 +448,8 @@ def parallel_fit_dask(
 
         If not `False`, the ``.fit_info`` attribute on the fitter will be set
         to a `FitInfoArrayContainer` object which can be used to query the
-        fit information for individual fits.
+        fit information for individual fits. Otherwise, ``.fit_info`` will be
+        left unchanged.
     """
     try:
         import dask
@@ -467,6 +468,8 @@ def parallel_fit_dask(
                 Path(diagnostics_path).mkdir(parents=True, exist_ok=True)
     else:
         raise ValueError("diagnostics should be None, 'error', 'error+warn', or 'all'")
+
+    original_fit_info = deepcopy(fitter.fit_info)
 
     if not isinstance(fitting_axes, tuple):
         fitting_axes = (fitting_axes,)
@@ -759,7 +762,7 @@ def parallel_fit_dask(
     if fit_info:
         fitter.fit_info = FitInfoArrayContainer(fit_info_array)
     else:
-        fitter.fit_info = None
+        fitter.fit_info = original_fit_info
 
     # Instantiate new fitted model
     model_fitted = _copy_with_new_parameters(model, parameters)
