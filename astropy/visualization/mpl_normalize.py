@@ -431,8 +431,7 @@ class SimpleNorm:
                 "matplotlib.pyplot.imshow directly to use your norm."
             )
 
-        axim = ax.imshow(data, norm=self(data), **kwargs)
-        return axim
+        return ax.imshow(data, norm=self(data), **kwargs)
 
 
 @deprecated_renamed_argument(["min_cut", "max_cut"], ["vmin", "vmax"], ["6.1", "6.1"])
