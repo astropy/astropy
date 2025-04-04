@@ -11,7 +11,7 @@ Parquet
 .. _pyarrow: https://arrow.apache.org/docs/python/
 
 Reading and writing Parquet_ files is supported with ``format='parquet'``
-if the pyarrow_ package is installed. For writing, the file extensions ``.parquet`` or
+if the pyarrow_ and `pandas <https://pandas.pydata.org/>`__ packages are installed. For writing, the file extensions ``.parquet`` or
 ``.parq`` will automatically imply the ``'parquet'`` format. For reading,
 Parquet files are automatically identified regardless of the extension
 if the first four bytes of the file are ``b'PAR1'``.
