@@ -642,11 +642,11 @@ class BaseHeader:
         else:
             for i, line in enumerate(self.process_lines(lines)):
                 if i == start_line:
+                    self.names = next(self.splitter([line]))
                     break
             else:  # No header line matching
                 raise ValueError("No header line found in table")
 
-            self.names = next(self.splitter([line]))
 
         self._set_cols_from_names()
 
@@ -665,10 +665,8 @@ class BaseHeader:
 
     def write(self, lines: list[str]) -> None:
         if self.start_line is not None:
-            for i, spacer_line in zip(
-                range(self.start_line), itertools.cycle(self.write_spacer_lines)
-            ):
-                lines.append(spacer_line)
+            for spacer_line in itertools.islice(itertools.cycle(self.write_spacer_lines), self.start_line):
+                lines.append(spacer_line.copy())
             lines.append(self.splitter.join([x.info.name for x in self.cols]))
 
     @property
@@ -905,7 +903,7 @@ class BaseData:
                 else:
                     affect_cols = replacement[2:]
 
-                for i, key in (
+                for i, _ in (
                     (i, x)
                     for i, x in enumerate(self.header.colnames)
                     if x in affect_cols
@@ -1104,14 +1102,11 @@ class BaseOutputter:
 
     def _convert_vals(self, cols):
         for col in cols:
-            for key, converters in self.converters.items():
+            converters = [convert_numpy(col.dtype)] if col.dtype is not None else self.default_converters
+            for key, conv in self.converters.items():
                 if fnmatch.fnmatch(col.name, key):
+                    converters=conv
                     break
-            else:
-                if col.dtype is not None:
-                    converters = [convert_numpy(col.dtype)]
-                else:
-                    converters = self.default_converters
 
             col.converters = self._validate_and_copy(col, converters)
 
