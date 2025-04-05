@@ -147,6 +147,12 @@ def test_catch_format():
             == t.meta["table_description"][:80].strip()
         )
 
+    # table_security unrecognized value
+    with pytest.warns(TdatFormatWarning, match="table_security not recognized"):
+        t.meta["table_description"] = "Test Table"
+        t.meta["table_security"] = "fortknox"
+        t.write(out, format="ascii.tdat")
+
 
 def test_read_tdat():
     """Ensure the Table is as it should be
@@ -403,8 +409,15 @@ def test_bad_delimiter():
 
     with pytest.warns(
         TdatFormatWarning, match="Delimiters other than the pipe character"
-    ) as w:
+    ):
         test_table.write(out, format="ascii.tdat", delimiter=",")
+
+    test_table.meta["keywords"]["field_delimiter"] = ","
+    with pytest.warns(
+        TdatFormatWarning, match="Delimiters other than the pipe character"
+    ):
+        with pytest.warns(TdatFormatWarning, match="Skipping deprecated"):
+            test_table.write(out, format="ascii.tdat", delimiter=",")
 
 
 def test_bad_header_start():
@@ -418,23 +431,25 @@ def test_bad_header_start():
         assert "<HEADER> not found in file." in str(err.value)
 
 
-def test_bad_data_heading():
-    """
-    No <DATA> heading
-    """
+def test_missing_data_heading():
+    """No data heading delimiter"""
     lines = copy.copy(SIMPLE_LINES)
+    # Mislabelled
     lines[13] = "<DAYA>"
-    with pytest.raises(ascii.tdat.TdatFormatError) as err:
+    with pytest.raises(TdatFormatError, match="<DATA> not found in file"):
         Table.read("\n".join(lines), format="ascii.tdat")
-    assert "<DATA> not found in file." in str(err.value)
+    # Not present at all
+    del lines[13]
+    with pytest.raises(TdatFormatError, match="<DATA> not found in file"):
+        Table.read("\n".join(lines), format="ascii.tdat")
 
 
 def test_bad_end_heading():
     """
-    No <END> heading
+    No <END> heading - should not raise an error
     """
     lines = copy.copy(SIMPLE_LINES)
-    lines[-1] = "<That's all folks>"
+    del lines[-1]
     Table.read("\n".join(lines), format="ascii.tdat")
 
 
@@ -442,9 +457,8 @@ def test_unrecognized_dtype():
     """Not all dtypes are supported by tdat files"""
     lines = copy.copy(SIMPLE_LINES)
     lines[5] = "field[a] = complex"
-    with pytest.raises(TdatFormatError) as err:
+    with pytest.raises(TdatFormatError, match="unsupported data type"):
         Table.read("\n".join(lines), format="ascii.tdat")
-    assert "Unrecognized data type" in str(err.value)
 
 
 def test_supported_dtypes():
@@ -510,16 +524,30 @@ def test_mismatch_line_field():
     """Not all dtypes are supported by tdat files"""
     lines = copy.copy(SIMPLE_LINES)
     lines[11] = "line[1] = a b c d"
-    with pytest.raises(TdatFormatError) as err:
+    with pytest.raises(TdatFormatError, match='columns "field" descriptors'):
         Table.read("\n".join(lines), format="ascii.tdat")
-    assert 'The columns "field" descriptors are not consistent' in str(err.value)
+
+
+def test_fieldname_too_long():
+    """Test if field name being too long throws the expected error"""
+    lines = copy.copy(SIMPLE_LINES)
+    lines[5] = f"field[{'a' * 30}] = int4"
+    lines[11] = f"line[1] = {'a' * 30} b c"
+    with pytest.warns(TdatFormatWarning, match="field name must be shorter"):
+        t = Table.read(lines, format="ascii.tdat")
+
+    with pytest.warns(TdatFormatWarning, match="truncating."):
+        out = StringIO()
+        t.write(out, format="ascii.tdat")
+
+    assert out.getvalue().splitlines()[5] == f"field[{'a' * 23}] = int4"
 
 
 def test_fmt_type_too_long():
     """The combination of type and format has a maximum character length of 24"""
     lines = copy.copy(SIMPLE_LINES)
     lines[6] = "field[b] = float8:.0000000000000000000000000000001f"
-    with pytest.raises(TdatFormatError, match="The type:fmt specifier") as err:
+    with pytest.raises(TdatFormatError, match="The type:fmt specifier"):
         Table.read("\n".join(lines), format="ascii.tdat")
 
 
@@ -640,6 +668,17 @@ def test_deprecated_keyword():
         t = Table.read(test_data, format="ascii.tdat")
         assert all(t == test_table)
 
+    test_data = SIMPLE_LINES.copy()
+    for i in range(14, 17):
+        test_data[i] = test_data[i].replace("|", " ")
+    test_data.insert(2, 'field_delimiter = " "')
+
+    with pytest.warns(TdatFormatWarning, match="keyword is deprecated"):
+        with pytest.warns(TdatFormatWarning, match="Double check your data"):
+            t = Table.read(test_data, format="ascii.tdat")
+            t2 = Table.read(SIMPLE_LINES, format="ascii.tdat")
+            assert all(t == t2)
+
     test_data = test_dat.copy()
     test_data.insert(8, "relate[ra] = dec")
     with pytest.warns(TdatFormatWarning, match="keyword is obsolete"):
@@ -694,8 +733,62 @@ def test_delimiter_in_data():
         assert outval == "4|20|\\|$||||"
 
 
+def test_unsupported_delimiter():
+    """Test escaped delimiters in data"""
+    lines = SIMPLE_LINES.copy()
+    lines.insert(2, 'record_delimiter = "|"')
+    with pytest.warns(TdatFormatWarning, match="keyword is deprecated"):
+        with pytest.raises(TdatFormatError, match="'|' character reserved"):
+            t = Table.read(lines, format="ascii.tdat")
+
+        with pytest.raises(TdatFormatError, match="Unsupported record delimiter"):
+            lines[2] = f'record_delimiter = "{chr(129)}"'
+            t = Table.read(lines, format="ascii.tdat")
+
+        with pytest.raises(TdatFormatError, match="Unsupported field delimiter"):
+            lines[2] = f'field_delimiter = "{chr(129)}"'
+            t = Table.read(lines, format="ascii.tdat")
+
+
 def test_write_qtable():
     qt = QTable([np.arange(4) * u.m, ["a", "b", "c", "ddd"]], names=["a", "b"])
     qt.meta["table_name"] = "astropy_qtable"
     out = StringIO()
     qt.write(out, format="ascii.tdat")
+
+
+def test_multiline_data():
+    SIMPLE_LINES_MULTI = [
+        "<HEADER>",
+        "table_name = astropy_table",
+        "#",
+        "# Table Parameters",
+        "#",
+        "field[a] = int4",
+        "field[b] = float8",
+        "field[c] = char1",
+        "#",
+        "# Data Format Specification",
+        "#",
+        "line[1] = a b",
+        "line[2] = c#",
+        "<DATA>",
+        "1|1.0|",
+        "c|",
+        "2|2.0|",
+        "d|",
+        "3|3.0|",
+        "e|",
+        "<END>",
+    ]
+    t1 = Table.read(SIMPLE_LINES, format="ascii.tdat")
+    t2 = Table.read(SIMPLE_LINES_MULTI, format="ascii.tdat")
+    assert all(t1 == t2)
+
+
+def test_comment_too_long():
+    lines = SIMPLE_LINES.copy()
+    lines[5] += "# # " + "a" * 100
+    with pytest.warns(TdatFormatWarning, match="Comments are limited"):
+        t = Table.read(lines, format="ascii.tdat")
+        assert len(t["a"].meta["comment"]) == 80
