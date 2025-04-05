@@ -13,7 +13,7 @@ astropy.table
   default behavior will be to use the remote versions of jQuery and DataTables
   from a CDN. [#17480]
 
-- Added the `unit_support` function to enable both quantity and time support in Matplotlib. [#8860]
+
 
 Bug Fixes
 ---------
@@ -94,7 +94,10 @@ astropy.units
   ``.dtype``, independent of whether that is a numpy data type. [#17469]
 
 - The zebi (Zi, 2^70) and yobi (Yi, 2^80) binary prefixes are now supported. [#17692]
+**Added**
+- Added `unit_support()` to enable quantity and time support together.
 
+  This is useful for plotting with time and quantity axes. [#17694]
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
