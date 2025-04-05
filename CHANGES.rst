@@ -95,10 +95,7 @@ astropy.units
 
 - The zebi (Zi, 2^70) and yobi (Yi, 2^80) binary prefixes are now supported. [#17692]
 **Added**
-- Added `unit_support()` to enable quantity and time support together.
-
-  This is useful for plotting with time and quantity axes. [#17694]
-astropy.visualization
+- Added `unit_support()` to enable both quantity and time support together. [#8860]
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Fix ``CoordinateHelper.ticklabels``. The getter was incorrectly returning
@@ -250,7 +247,7 @@ astropy.units
 - Added support for calling numpy array constructors (``np.require``,
   ``np.identity``, ``np.eye``, ``np.tri``, ``np.genfromtxt`` and ``np.loadtxt``)
   with ``like=Quantity(...))`` . [#17130]
-
+Added `unit_support()` to enable both quantity and time support together. [#8860]
 astropy.utils
 ^^^^^^^^^^^^^
 
