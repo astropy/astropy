@@ -149,9 +149,9 @@ class TdatDataSplitter(core.BaseSplitter):
                 _lines = []
                 if hasattr(self, "process_val"):
                     yield [self.process_val(x) for x in vals]
-                else:
+                else:  # pragma: no cover
                     yield vals
-            else:
+            else:  # pragma: no cover
                 continue
 
     def join(self, vals):
@@ -270,24 +270,23 @@ class TdatHeader(basic.BasicHeader):
                 if key == "table_name":
                     if len(value) > 20:
                         warn(
-                            TdatFormatWarning(
-                                "The table_name has a maximum length of 20 characters, truncating."
-                            )
+                            "The table_name has a maximum length of 20 characters, truncating.",
+                            TdatFormatWarning,
                         )
                         value = value[:20]
                 elif key == "table_description":
                     if len(value) > 80:
                         warn(
-                            TdatFormatWarning(
-                                "The table_description has a maximum length of 80 characters, truncating."
-                            )
+                            "The table_description has a maximum length of 80 characters, truncating.",
+                            TdatFormatWarning,
                         )
                         value = value[:80]
-                    elif key == "table_security":
-                        if value.lower() not in ("public", "private"):
-                            warn(
-                                "Value for table_security not recognized, should be public|private."
-                            )
+                elif key == "table_security":
+                    if value.lower() not in ("public", "private"):
+                        warn(
+                            "Value for table_security not recognized, should be public|private.",
+                            TdatFormatWarning,
+                        )
                 keywords[key] = value
 
         self._line_fields = line_fields
@@ -372,8 +371,9 @@ class TdatHeader(basic.BasicHeader):
             if cmatch:
                 name = cmatch.group("name")
                 if len(name) > 24:
-                    raise TdatFormatWarning(
-                        "The field name must be shorter than 24 characters."
+                    warn(
+                        "The field name must be shorter than 24 characters.",
+                        TdatFormatWarning,
                     )
                 col = core.Column(name=name)
                 col.meta = {}
@@ -381,15 +381,11 @@ class TdatHeader(basic.BasicHeader):
                 ctype = cmatch.group("ctype")
                 if ctype in self._dtype_dict_in:
                     col.dtype = self._dtype_dict_in[ctype]
-                elif "int" in ctype:
-                    col.dtype = int
-                elif "float" in ctype:
-                    col.dtype = float
                 elif "char" in ctype:
                     col.dtype = str
                 else:
                     raise TdatFormatError(
-                        f"Unrecognized data type {ctype} for {col.name}."
+                        f"Unrecognized or unsupported data type {ctype} for {col.name}."
                     )
                 col.unit = cmatch.group("unit")
                 col.format = cmatch.group("fmt")
@@ -411,10 +407,8 @@ class TdatHeader(basic.BasicHeader):
                                     "Comments are limited to 80 characters or less, truncating."
                                 )
                             )
-                        col.meta[val] = text
+                        col.meta[val] = text[:80]
                 cols[col.name] = col
-        if len(keywords) > len(getattr(self, "_keywords", {})):
-            self._keywords = keywords
 
         self.names = [
             val for line_field in self._line_fields.values() for val in line_field
@@ -506,6 +500,13 @@ class TdatHeader(basic.BasicHeader):
                 new_desc = keywords.pop(key)
                 new_desc = new_desc[:80]
                 lines.append(f"{key} = {new_desc}")
+            elif key == "table_security":
+                if keywords.get(key).lower() not in ("public", "private"):
+                    warn(
+                        "Value for table_security not recognized, should be public|private.",
+                        TdatFormatWarning,
+                    )
+                lines.append(f"{key} = {keywords.pop(key)}")
             elif key in keywords:
                 lines.append(f"{key} = {keywords.pop(key)}")
 
@@ -527,7 +528,14 @@ class TdatHeader(basic.BasicHeader):
                     f'Unrecognized data type `{col.info.dtype}` for column "{col.info.name}".'
                 )
                 # ctype = f"{col.info.dtype}"
-            field_line = f"field[{col.info.name}] = {ctype}"
+            col_name = col.info.name
+            if len(col_name) >= 24:
+                warn(
+                    "The field name must be shorter than 24 characters, truncating.",
+                    TdatFormatWarning,
+                )
+                col_name = col_name[:23]
+            field_line = f"field[{col_name}] = {ctype}"
 
             col_info_meta = col.info.meta or {}
             if col.info.format is not None:
@@ -838,22 +846,3 @@ class Tdat(core.BaseReader):
     header_class = TdatHeader
     data_class = TdatData
     outputter_class = TdatOutputter
-
-    def inconsistent_handler(self, str_vals, ncols):
-        """Remove the last field separator if it exists
-
-        Parameters
-        ----------
-        str_vals : list
-            A list of value strings from the current row of the table.
-        ncols : int
-            The expected number of entries from the table header.
-
-        Returns
-        -------
-        str_vals : list
-            List of strings to be parsed into data entries in the output table.
-        """
-        if len(str_vals) == ncols + 1 and str_vals[-1] == "":
-            str_vals = str_vals[:-1]
-        return str_vals
