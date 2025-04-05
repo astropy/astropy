@@ -4,7 +4,7 @@ from contextlib import ContextDecorator
 
 import numpy as np
 
-__all__ = ["quantity_support"]
+__all__ = ["quantity_support", "unit_support"]  # ✅ أضفنا unit_support هنا
 __doctest_skip__ = ["quantity_support"]
 
 
@@ -21,9 +21,9 @@ def quantity_support(format="latex_inline"):
       >>> with visualization.quantity_support():
       ...     plt.figure()
       ...     plt.plot([1, 2, 3] * u.m)
-      [...]
+      ...
       ...     plt.plot([101, 125, 150] * u.cm)
-      [...]
+      ...
       ...     plt.draw()
 
     Parameters
@@ -31,7 +31,6 @@ def quantity_support(format="latex_inline"):
     format : `astropy.units.format.Base` subclass or str
         The name of a format or a formatter class.  If not
         provided, defaults to ``latex_inline``.
-
     """
     from matplotlib import ticker, units
 
@@ -100,3 +99,31 @@ def quantity_support(format="latex_inline"):
                 units.registry[u.Quantity] = self._original_converter[u.Quantity]
 
     return MplQuantityConverter()
+
+
+# Add the unit_support function to the module's __all__ list
+__all__.append("unit_support")
+def unit_support(format="latex_inline"):
+    """
+    Enable both quantity and time support for matplotlib.
+
+    This is a convenience function that enables both astropy's
+    `quantity_support` and `time_support`.
+
+    Parameters
+    ----------
+    format : str
+        Format for unit labels (default: 'latex_inline').
+
+    Returns
+    -------
+    context : contextlib.ExitStack
+        A context manager that enables both supports.
+    """
+    from contextlib import ExitStack
+    from astropy.visualization import quantity_support, time_support
+
+    stack = ExitStack()
+    stack.enter_context(quantity_support(format=format))
+    stack.enter_context(time_support())
+    return stack
