@@ -102,7 +102,7 @@ def quantity_support(format="latex_inline"):
 
 
 # Add the unit_support function to the module's __all__ list
-__all__.append("unit_support")
+
 def unit_support(format="latex_inline"):
     """
     Enable both quantity and time support for matplotlib.
