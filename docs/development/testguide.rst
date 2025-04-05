@@ -326,15 +326,15 @@ large, we will need to design a mechanism for removing test data immediately.
 Tests that use the file cache
 -----------------------------
 
-By default, the Astropy test runner sets up a clean file cache in a temporary
+By default, Astropy's test configuration sets up a clean file cache in a temporary
 directory that is used only for that test run and then destroyed.  This is to
 ensure consistency between test runs, as well as to not clutter users' caches
-(i.e. the cache directory returned by `~astropy.config.get_cache_dir`) with
+(i.e., the cache directory returned by `~astropy.config.get_cache_dir`) with
 test files.
 
 However, some test authors (especially for affiliated packages) may find it
 desirable to cache files downloaded during a test run in a more permanent
-location (e.g. for large data sets).  To this end the
+location (e.g., for large data sets).  To this end the
 `~astropy.config.set_temp_cache` helper may be used.  It can be used either as
 a context manager within a test to temporarily set the cache to a custom
 location, or as a *decorator* that takes effect for an entire test function
@@ -352,7 +352,7 @@ Some tests involve writing files. These files should not be saved permanently.
 The :ref:`pytest 'tmp_path' fixture <pytest:tmp_path>` allows for the
 convenient creation of temporary directories, which ensures test files will be
 cleaned up. Temporary directories can also be helpful in the case where the
-tests are run in an environment where the runner would otherwise not have write
+tests are run in an environment where ``pytest`` would otherwise not have write
 access.
 
 
@@ -648,7 +648,7 @@ Testing configuration parameters
 ================================
 
 In order to ensure reproducibility of tests, all configuration items
-are reset to their default values when the test runner starts up.
+are reset to their default values when ``pytest`` starts up.
 
 Sometimes you'll want to test the behavior of code when a certain
 configuration item is set to a particular value.  In that case, you
@@ -1013,8 +1013,7 @@ that can be used to mark individual test functions or entire test classes:
   internet access. This is useful for testing local data caches or fallbacks
   for when no network access is available.
 
-The plugin also adds the ``--remote-data`` option to the ``pytest`` command
-(which is also made available through the Astropy test runner).
+The plugin also adds the ``--remote-data`` option to the ``pytest`` command.
 
 If the ``--remote-data`` option is not provided when running the test suite, or
 if ``--remote-data=none`` is provided, all tests that are marked with
@@ -1053,7 +1052,6 @@ This plugin provides two command line options: ``--doctest-plus`` for enabling
 the advanced features mentioned above, and ``--doctest-rst`` for including
 ``*.rst`` files in doctest collection.
 
-The Astropy test runner enables both of these options by default. When running
-the test suite directly from ``pytest`` (instead of through the Astropy test
-runner), it is necessary to explicitly provide these options when they are
-needed.
+The Astropy test configuration enables both of these options by default. When running
+the test suite directly from ``pytest`` without access to the configuration file,
+it is necessary to explicitly provide these options when they are needed.
