@@ -183,7 +183,7 @@ def test_read_tdat():
         "Declination",
         "Empty",
     ]
-    dtypes = [int, int, "<U3", float, float, float]
+    dtypes = [np.int32, np.int32, "<U3", float, float, float]
     units = [None, None, None, "deg", "deg", None]
     meta = [
         {"ucd": "meta.id", "index": "key"},
@@ -240,7 +240,7 @@ def test_full_table_content():
         ),
     }
     assert len(test_table) == 7
-    dtypes = [int, int, "<U3", float, float, float]
+    dtypes = [np.int32, np.int32, "<U3", float, float, float]
     descriptions = [
         "Unique Identifier for Entry",
         "Source ID Number",
@@ -792,3 +792,12 @@ def test_comment_too_long():
     with pytest.warns(TdatFormatWarning, match="Comments are limited"):
         t = Table.read(lines, format="ascii.tdat")
         assert len(t["a"].meta["comment"]) == 80
+
+
+def test_int_too_large():
+    t = simple_table()
+    t.meta["table_name"] = "astropy_table"
+    out = StringIO()
+    t["a"][0] = 3147483647
+    with pytest.raises(TdatFormatError, match="cannot be converted"):
+        t.write(out, format="ascii.tdat")

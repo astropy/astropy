@@ -191,9 +191,9 @@ class TdatHeader(basic.BasicHeader):
         "int2": np.int16,
         "integer2": np.int16,
         "smallint": np.int16,
-        "int4": int,
-        "integer4": int,
-        "integer": int,
+        "int4": np.int32,
+        "integer4": np.int32,
+        "integer": np.int32,
         "float4": np.float32,
         "real": np.float32,
         "float": float,
@@ -627,6 +627,11 @@ class TdatData(core.BaseData):
         self._set_fill_values(self.cols)
         self._set_col_formats()
         for col in self.cols:
+            if np.issubdtype(col.dtype, np.integer):
+                if np.any(col.data > 2147483647):
+                    raise TdatFormatError(
+                        "Values cannot be converted to a TDAT compatible integer."
+                    )
             col.str_vals = []
             for val in col.info.iter_str_vals():
                 col.str_vals.append(val.replace("|", "\\|"))
