@@ -845,40 +845,41 @@ def test_select_columns_binary(format_):
     assert table.colnames == ["string_test", "string_test_2", "unicode_test"]
 
 
-def table_from_scratch():
+def test_direct_fields_mutation():
     from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
 
-    # Create a new VOTable file...
     votable = VOTableFile()
-
-    # ...with one resource...
     resource = Resource()
     votable.resources.append(resource)
-
-    # ... with one table
     table = TableElement(votable)
     resource.tables.append(table)
+    with pytest.deprecated_call(
+        match="Direct mutations of TableElement.fields via append"
+    ):
+        table.fields.append(
+            Field(
+                votable,
+                ID="filename",
+                datatype="char",
+                name="test_append",
+                arraysize="1",
+            )
+        )
 
-    # Define some fields
-    table.fields.extend(
-        [
-            Field(votable, ID="filename", datatype="char"),
-            Field(votable, ID="matrix", datatype="double", arraysize="2x2"),
-        ]
-    )
-
-    # Now, use those field definitions to create the numpy record arrays, with
-    # the given number of rows
-    table.create_arrays(2)
-
-    # Now table.array can be filled with data
-    table.array[0] = ("test1.xml", [[1, 0], [0, 1]])
-    table.array[1] = ("test2.xml", [[0.5, 0.3], [0.2, 0.1]])
-
-    # Now write the whole thing to a file.
-    # Note, we have to use the top-level votable file object
-    out = io.StringIO()
-    votable.to_xml(out)
+    with pytest.deprecated_call(
+        match="Direct mutations of TableElement.fields via extend"
+    ):
+        table.fields.extend(
+            [
+                Field(
+                    votable,
+                    ID="filename",
+                    datatype="char",
+                    name="test_extend",
+                    arraysize="1",
+                )
+            ]
+        )
 
 
 # https://github.com/astropy/astropy/issues/13341
@@ -909,15 +910,15 @@ def test_build_from_scratch(tmp_path):
     resource.tables.append(table)
 
     # Define some fields
-    table.fields.extend(
-        [
-            tree.Field(
-                votable, ID="filename", name="filename", datatype="char", arraysize="1"
-            ),
-            tree.Field(
-                votable, ID="matrix", name="matrix", datatype="double", arraysize="2x2"
-            ),
-        ]
+    table.add_field(
+        tree.Field(
+            votable, ID="filename", name="filename", datatype="char", arraysize="1"
+        )
+    )
+    table.add_field(
+        tree.Field(
+            votable, ID="matrix", name="matrix", datatype="double", arraysize="2x2"
+        )
     )
 
     # Now, use those field definitions to create the numpy record arrays, with
@@ -1031,12 +1032,8 @@ def _run_test_from_scratch_example():
     resource.tables.append(table)
 
     # Define some fields
-    table.fields.extend(
-        [
-            Field(votable, name="filename", datatype="char", arraysize="*"),
-            Field(votable, name="matrix", datatype="double", arraysize="2x2"),
-        ]
-    )
+    table.add_field(Field(votable, name="filename", datatype="char", arraysize="*"))
+    table.add_field(Field(votable, name="matrix", datatype="double", arraysize="2x2"))
 
     # Now, use those field definitions to create the numpy record arrays, with
     # the given number of rows
