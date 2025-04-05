@@ -103,6 +103,7 @@ def quantity_support(format="latex_inline"):
 
 # Add the unit_support function to the module's __all__ list
 
+
 def unit_support(format="latex_inline"):
     """
     Enable both quantity and time support for matplotlib.
@@ -121,6 +122,7 @@ def unit_support(format="latex_inline"):
         A context manager that enables both supports.
     """
     from contextlib import ExitStack
+
     from astropy.visualization import quantity_support, time_support
 
     stack = ExitStack()

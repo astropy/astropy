@@ -13,6 +13,8 @@ astropy.table
   default behavior will be to use the remote versions of jQuery and DataTables
   from a CDN. [#17480]
 
+- Added the `unit_support` function to enable both quantity and time support in Matplotlib. [#8860]
+
 Bug Fixes
 ---------
 
@@ -18352,6 +18354,8 @@ astropy.wcs
   ``:tocdepth:`` directive. [#595]
 
 - Minor VOTable fixes [#596]
+
+
 
 - Fixed how ``setup.py`` uses ``distribute_setup.py`` to prevent possible
   ``VersionConflict`` errors when an older version of distribute is already
