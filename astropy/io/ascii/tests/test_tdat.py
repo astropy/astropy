@@ -801,3 +801,6 @@ def test_int_too_large():
     t["a"][0] = 3147483647
     with pytest.raises(TdatFormatError, match="cannot be converted"):
         t.write(out, format="ascii.tdat")
+    t["a"][0] = -3147483647
+    with pytest.raises(TdatFormatError, match="cannot be converted"):
+        t.write(out, format="ascii.tdat")
