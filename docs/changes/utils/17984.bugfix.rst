@@ -1,0 +1,1 @@
+Properly detect invalid LZMA files in ``utils.data``.
