@@ -22,7 +22,7 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
 __all__: list[str] = []  #  Units are added at the end
 
 from . import si
-from .core import UnitBase, def_unit
+from .core import CompositeUnit, UnitBase, def_unit
 
 _ns = globals()
 
@@ -147,6 +147,7 @@ def_unit(
 )
 def_unit(
     ["deg_R", "Rankine"],
+    CompositeUnit(5 / 9, [si.K], [1]),
     namespace=_ns,
     doc="Rankine scale: absolute scale of thermodynamic temperature",
 )
