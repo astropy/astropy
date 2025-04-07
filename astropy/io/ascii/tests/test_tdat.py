@@ -103,6 +103,11 @@ def test_write_simple():
     # Explicit check that output matches expected
     assert out.getvalue().splitlines() == SIMPLE_LINES
 
+    t.columns["a"][2] = -3
+    t.columns["b"][2] = -3.0
+    t.write(out, format="ascii.tdat")
+    assert out.getvalue().splitlines()[-2] == "-3|-3.0|e|"
+
 
 def test_catch_format():
     """
@@ -798,9 +803,15 @@ def test_int_too_large():
     t = simple_table()
     t.meta["table_name"] = "astropy_table"
     out = StringIO()
-    t["a"][0] = 3147483647
+    # within limits
+    t["a"][0] = 2**31 - 1
+    t.write(out, format="ascii.tdat")
+    t["a"][0] = -(2**31)
+    t.write(out, format="ascii.tdat")
+    # too large
+    t["a"][0] = 2**31
     with pytest.raises(TdatFormatError, match="cannot be converted"):
         t.write(out, format="ascii.tdat")
-    t["a"][0] = -3147483647
+    t["a"][0] = -(2**31) - 1
     with pytest.raises(TdatFormatError, match="cannot be converted"):
         t.write(out, format="ascii.tdat")

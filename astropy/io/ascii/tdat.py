@@ -628,7 +628,7 @@ class TdatData(core.BaseData):
         self._set_col_formats()
         for col in self.cols:
             if np.issubdtype(col.dtype, np.integer):
-                if np.any(abs(col.data) > 2147483647):
+                if np.any(col.data > 2**31 - 1) or np.any(col.data < -(2**31)):
                     raise TdatFormatError(
                         "Values cannot be converted to a TDAT compatible integer."
                     )
