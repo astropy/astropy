@@ -1010,7 +1010,7 @@ class TestFileFunctions(FitsTestCase):
         with fits.open(self.temp("test.fits.gz")) as hdul:
             assert np.all(hdul[0].data == data)
 
-    @pytest.mark.parametrize("ext", ["gz", "bz2", "zip"])
+    @pytest.mark.parametrize("ext", ["gz", "bz2", "zip", "xz"])
     def test_compressed_ext_but_not_compressed(self, ext):
         testfile = self.temp(f"test0.fits.{ext}")
         shutil.copy(self.data("test0.fits"), testfile)
