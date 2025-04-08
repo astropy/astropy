@@ -12,6 +12,7 @@ from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.modeling.fitting import (
+    FitInfoArrayContainer,
     LevMarLSQFitter,
     TRFLSQFitter,
     parallel_fit_dask,
@@ -1153,6 +1154,28 @@ class TestFitInfo:
         assert_allclose(param_cov_array[0], 0)
         assert_allclose(param_cov_array[1], param_cov_array[2])
         assert np.all(np.abs(param_cov_array[1]) > 0)
+
+        # Test slicing that returns an array
+
+        assert fitter.fit_info.shape == (3,)
+        fit_info_subset = fitter.fit_info[:2]
+        assert isinstance(fit_info_subset, FitInfoArrayContainer)
+        assert fit_info_subset.shape == (2,)
+        assert_allclose(fit_info_subset.get_property_as_array("nfev"), [0, 9])
+
+        # Test slicing that returns a one element array
+
+        fit_info_subset_single = fitter.fit_info[1:2]
+        assert isinstance(fit_info_subset_single, FitInfoArrayContainer)
+        assert fit_info_subset_single.shape == (1,)
+        assert_allclose(fit_info_subset_single.get_property_as_array("nfev"), [9])
+
+        # Test slicing that returns a scalar
+
+        fit_info_indiv = fitter.fit_info[1]
+        assert not isinstance(fit_info_indiv, FitInfoArrayContainer)
+        assert fit_info_indiv.nfev == 9
+        assert fit_info_indiv.message != ""
 
     def test_subset(self, tmp_path):
         fitter = TRFLSQFitter()

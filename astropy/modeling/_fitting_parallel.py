@@ -70,7 +70,11 @@ class FitInfoArrayContainer:
         return self._fit_info_array.ndim
 
     def __getitem__(self, item):
-        return self._fit_info_array[item]
+        result = self._fit_info_array[item]
+        if hasattr(result, "ndim"):
+            return FitInfoArrayContainer(result)
+        else:
+            return result
 
     def get_property_as_array(self, name):
         """
@@ -177,8 +181,9 @@ def _fit_models_to_chunk(
 
     # Transform array to object array and add one more index along the first
     # dimension so that we can store the fit_info
-    parameters = parameters.astype(object)
-    parameters = np.pad(parameters, [(0, 1)] + [(0, 0)] * (parameters.ndim - 1))
+    if fit_info:
+        parameters = parameters.astype(object)
+        parameters = np.pad(parameters, [(0, 1)] + [(0, 0)] * (parameters.ndim - 1))
 
     # The world argument is used to pass through 1D arrays of world coordinates
     # (otherwise world_arrays is used) so if the model has more than one
@@ -253,9 +258,7 @@ def _fit_models_to_chunk(
 
             if fit_info is True:
                 parameters[(-1,) + index] = fitter.fit_info
-            elif not fit_info:
-                parameters[(-1,) + index] = None
-            else:
+            elif fit_info:
                 fit_info_dict = {}
                 for key in fit_info:
                     if hasattr(fitter.fit_info, key):
@@ -724,7 +727,7 @@ def parallel_fit_dask(
         *parameter_arrays,
         *(world if world_arrays else []),
         enforce_ndim=True,
-        dtype=object,
+        dtype=object if fit_info else float,
         drop_axis=fitting_axes,
         model=simple_model,
         fitter=fitter,
@@ -749,8 +752,11 @@ def parallel_fit_dask(
 
     result_array = result.compute(**compute_kwargs)
 
-    parameter_arrays_fitted = result_array[:-1].astype(float)
-    fit_info_array = result_array[-1]
+    if fit_info:
+        parameter_arrays_fitted = result_array[:-1].astype(float)
+        fit_info_array = result_array[-1]
+    else:
+        parameter_arrays_fitted = result_array
 
     # Set up new parameter arrays with fitted values
     parameters = {}
