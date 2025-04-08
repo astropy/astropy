@@ -1,1 +1,4 @@
 The default value for ``Tcmb0`` is now 2.72548 Kelvin instead of 0.
+
+``FLRW`` subclasses now warn if the ``m_nu`` parameter is ignored because either
+``Neff`` or ``Tcmb0`` overrides it.

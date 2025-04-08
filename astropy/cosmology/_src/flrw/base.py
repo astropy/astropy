@@ -289,6 +289,12 @@ class FLRW(
     meta : mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g., a reference.
 
+    Warnings
+    --------
+    AstropyUserWarning:
+        If `m_nu` is not None and either (or both) `Tcmb0` is zero or Neff is 0, a
+        warning will be raised.
+
     Notes
     -----
     Class instances are immutable -- you cannot change the parameters' values.
@@ -406,7 +412,7 @@ class FLRW(
         return value
 
     @m_nu.validator
-    def m_nu(self, param, value):
+    def m_nu(self, param, value) -> u.Quantity | None:
         """Validate neutrino masses to right value, units, and shape.
 
         There are no neutrinos if floor(Neff) or Tcmb0 are 0. The number of
@@ -414,7 +420,15 @@ class FLRW(
         negative.
         """
         # Check if there are any neutrinos
-        if (nneutrinos := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
+        if value is None:
+            return None
+        elif (nneutrinos := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
+            if value is not None:
+                warnings.warn(
+                    "m_nu is ignored when Neff is 0 or Tcmb0 is 0.",
+                    AstropyUserWarning,
+                    stacklevel=2,
+                )
             return None  # None, regardless of input
 
         # Validate / set units
