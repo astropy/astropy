@@ -34,7 +34,7 @@ from astropy.units import Quantity
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from ._fitting_parallel import parallel_fit_dask
+from ._fitting_parallel import FitInfoArrayContainer, parallel_fit_dask
 from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
 from .spline import (
     SplineExactKnotsFitter,
@@ -47,6 +47,7 @@ from .utils import _combine_equivalency_dict, poly_map_domain
 
 __all__ = [
     "DogBoxLSQFitter",
+    "FitInfoArrayContainer",
     "Fitter",
     "FittingWithOutlierRemoval",
     "JointFitter",
