@@ -343,7 +343,7 @@ the fitter instance is set to `None`
 
 However, since access to this information can be useful in some cases, it is
 possible to opt-in to keeping it. Either all of the fit information can be
-preserved:
+preserved, by setting ``fit_info=True``:
 
     >>> model_fit = parallel_fit_dask(model=model,
     ...                               ...

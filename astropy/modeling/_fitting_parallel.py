@@ -435,14 +435,12 @@ def parallel_fit_dask(
     fit_info : bool or str or iterable, optional
         Option to control whether fit information set on the ``.fit_info``
         attribute of the fitters for individual fits should be concatenated
-        and set on the ``.fit_info`` on the main fitter object. The options
+        and set on the ``.fit_info`` on the input fitter object. The options
         are as follows:
 
         * `False`: don't set ``.fit_info`` on the fitter
         * `True`: set ``.fit_info`` on the fitter with all available information
            from individual fits
-        * ``'scalars'``: only save attributes in the original fit information
-          which are scalars, not Numpy arrays
         * An iterable of strings: only save the specific attributes mentioned
           in the iterable
 
