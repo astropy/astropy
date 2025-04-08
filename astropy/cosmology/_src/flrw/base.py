@@ -309,7 +309,7 @@ class FLRW(
     )
     Ode0: Parameter = ParameterOde0.clone()
     Tcmb0: Parameter = Parameter(
-        default=0.0 * u.K,
+        default=2.72548 * u.K,
         doc="Temperature of the CMB at z=0.",
         unit="Kelvin",
         fvalidate="scalar",
