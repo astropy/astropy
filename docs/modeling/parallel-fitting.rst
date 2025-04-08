@@ -368,7 +368,7 @@ The shape of ``.fit_info`` should be the same as the parameter arrays:
     >>> fitter.fit_info.ndim  # doctest: +SKIP
     2
 
-Indexing the fitter will return a specific fit information object, e.g.
+Indexing the fit info will return a specific fit information object, e.g.
 
     >>> fitter.fit_info[10, 20]  # doctest: +SKIP
          message: The maximum number of function evaluations is exceeded.
@@ -391,7 +391,11 @@ Indexing the fitter will return a specific fit information object, e.g.
                      [ 2.262e+09  8.584e+09  1.106e+09]
                      [ 2.913e+08  1.106e+09  1.427e+08]]
 
-And it is also possible to retrieve one of these keys for all fits as an array, e.g.:
+Indexing the fit info in a way that returns a range of fits, e.g.
+``fitter.fit_info[10:20, 20:30]``, will return a
+:class:`~astropy.modeling.fitting.FitInfoArrayContainer` object.
+
+It is also possible to retrieve one of these keys for all fits as an array, e.g.:
 
    >>> nfev = fitter.fit_info.get_property_as_array('nfev')  # doctest: +SKIP
    >>> nfev.shape  # doctest: +SKIP
