@@ -878,6 +878,10 @@ def test_roundtrip_masked(fmt_name_class):
 
     out = StringIO()
     fast = fmt_name in ascii.core.FAST_CLASSES
+
+    if fmt_name == "tdat":
+        # TDAT tables require a table_name
+        t.meta["table_name"] = "astropy_table"
     try:
         ascii.write(t, out, format=fmt_name, fast_writer=fast)
     except ImportError:  # Some failed dependency, skip test

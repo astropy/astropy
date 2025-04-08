@@ -29,3 +29,4 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.RST`: `reStructuredText simple format table <https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#simple-tables>`_.
 * :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <https://sextractor.readthedocs.io/en/latest/>`_.
 * :class:`~astropy.io.ascii.Tab`: tab-separated values.
+* :class:`~astropy.io.ascii.Tdat`: Transportable Database Aggregate Table format

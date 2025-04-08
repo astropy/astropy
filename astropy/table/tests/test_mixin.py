@@ -114,11 +114,16 @@ def test_io_ascii_write():
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
+
     from astropy.io.ascii.connect import _get_connectors_table
 
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
-        if fmt["Write"] and ".fast_" not in fmt["Format"]:
+        if (
+            fmt["Write"]
+            and ".fast_" not in fmt["Format"]
+            and fmt["Format"] != "ascii.tdat"
+        ):
             out = StringIO()
             t.write(out, format=fmt["Format"])
 
