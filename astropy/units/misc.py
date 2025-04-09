@@ -12,11 +12,8 @@ import numpy as np
 from astropy.constants import si as _si
 
 from . import si
-from .core import UnitBase, binary_prefixes, def_unit, set_enabled_units, si_prefixes
-
-# To ensure si units of the constants can be interpreted.
-set_enabled_units([si])
-
+from .core import UnitBase, binary_prefixes, def_unit, si_prefixes
+from .utils import generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -64,8 +61,6 @@ def_unit(
 )
 # The torr is almost the same as mmHg but not quite.
 # See https://en.wikipedia.org/wiki/Torr
-# Define the unit here despite it not being an astrophysical unit.
-# It may be moved if more similar units are created later.
 def_unit(
     ["Torr", "torr"],
     _si.atm.value / 760.0 * si.Pa,
@@ -94,7 +89,6 @@ def_unit(
     doc="Electron mass",
     format={"latex": r"M_{e}", "unicode": "Mₑ"},
 )
-# Unified atomic mass unit
 def_unit(
     ["u", "Da", "Dalton"],
     _si.u,
@@ -141,7 +135,6 @@ def_unit(
     (["byte", "B"], ["byte"]),
     8 * bit,
     namespace=_ns,
-    format={"vounit": "byte"},
     prefixes=si_prefixes + binary_prefixes,
     exclude_prefixes=["d"],
 )
@@ -167,6 +160,4 @@ __all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())
