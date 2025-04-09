@@ -996,75 +996,54 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 return NotImplemented
 
         elif method == "reduceat":
-            # Combine input mask with where_mask
-            combined_mask = combine_masks((masks[0], where_mask), copy=False)
+            mask = masks[0]  # Reduceat doesn't take where parameter
             indices = unmasked[1]
             axis = kwargs.get("axis", 0)
-
-            if combined_mask is False and out_mask is not None:
-                # No elements are masked -> no special handling needed
-                if where_unmasked is True:
-                    out_mask[...] = False
-                else:
-                    # Some partial 'where' usage...
-                    combined_mask = np.broadcast_to(False, unmasked[0].shape)
-
-            if combined_mask is False:
-                # Everything is unmasked, so let NumPy do reduceat directly
+            
+            if mask is False:
+                # No masking needed
                 result = getattr(ufunc, method)(*unmasked, **kwargs)
-                mask = False
+                mask = False if out_mask is None else out_mask
             else:
-                # This means we do have masked elements or partial where
-
-                # Zero-fill or neutral-fill the data array for masked entries
+                # We have masked elements
                 data_copy = unmasked[0].copy()
-                data_copy[combined_mask] = 0.0  # or some neutral value for that ufunc
-
-                # Call reduceat on the modified data
-                kwargs["out"] = None  # We'll handle out manually
+                data_copy[mask] = 0.0  # Neutral value
+                
+                # Call reduceat on modified data
                 result = getattr(ufunc, method)(data_copy, indices, **kwargs)
-
-                # Build the output mask
+                
+                # Create output mask with proper shape
                 shape_out = list(data_copy.shape)
                 shape_out[axis] = len(indices)
-                if out_mask is None:
-                    result_mask = np.zeros(shape_out, dtype=bool)
-                else:
-                    result_mask = out_mask
-
-                # For each chunk, check if positions are fully masked
+                result_mask = np.zeros(shape_out, dtype=bool) if out_mask is None else out_mask
+                
+                # Create a view where the axis dimension is first
+                mask_view = np.moveaxis(mask, axis, 0)
+                
+                # Create a mask array where each element represents a chunk
+                # This will be True where all elements in a chunk are masked
+                chunk_masks = []
+                
                 for i in range(len(indices)):
                     start_idx = indices[i]
-                    end_idx = (
-                        indices[i + 1]
-                        if i < len(indices) - 1
-                        else data_copy.shape[axis]
-                    )
-
-                    # Create a slice for the full chunk
-                    chunk_slice = [slice(None)] * combined_mask.ndim
-                    chunk_slice[axis] = slice(start_idx, end_idx)
-
-                    # Get the mask for this chunk
-                    chunk_mask = combined_mask[tuple(chunk_slice)]
-
-                    # If the chunk has no elements along the axis dimension,
-                    # there's nothing to check
-                    if chunk_mask.shape[axis] == 0:
-                        continue
-
-                    # Transpose the chunk to make the axis dimension first
-                    chunk_mask_T = np.moveaxis(chunk_mask, axis, 0)
-
-                    # Check if all elements along the axis dimension are masked
-                    # for each position in other dimensions
-                    is_fully_masked = np.all(chunk_mask_T, axis=0)
-
-                    # Set the output mask for this chunk
-                    out_slice = [slice(None)] * result_mask.ndim
-                    out_slice[axis] = i
-                    result_mask[tuple(out_slice)] = is_fully_masked
-
+                    end_idx = indices[i+1] if i < len(indices)-1 else mask_view.shape[0]
+                    
+                    if end_idx <= start_idx:
+                        # Empty chunk - can't be fully masked
+                        chunk_mask = np.zeros(mask_view.shape[1:], dtype=bool)
+                    else:
+                        # For each chunk, use logical_and.reduce to check if all elements are masked
+                        chunk_mask = np.logical_and.reduce(mask_view[start_idx:end_idx], axis=0)
+                    
+                    # Store the mask for this chunk
+                    chunk_masks.append(chunk_mask)
+                
+                # Now set the result mask
+                for i, chunk_mask in enumerate(chunk_masks):
+                    result_mask_slice = [slice(None)] * result_mask.ndim
+                    result_mask_slice[axis] = i
+                    result_mask[tuple(result_mask_slice)] = chunk_mask
+                
                 mask = result_mask
 
         elif method == "at":  # pragma: no cover
