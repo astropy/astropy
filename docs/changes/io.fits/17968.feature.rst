@@ -1,0 +1,3 @@
+``io.fits`` now supports on-the-fly decompression of LZMA-compressed files
+(typically ".xz" extension) if the lzma module is provided by the Python
+installation.

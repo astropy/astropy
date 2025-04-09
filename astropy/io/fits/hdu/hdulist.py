@@ -27,7 +27,7 @@ from astropy.utils import indent
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 # NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .base import ExtensionHDU, _BaseHDU, _NonstandardHDU, _ValidHDU
@@ -38,6 +38,9 @@ from .table import BinTableHDU
 
 if HAS_BZ2:
     import bz2
+
+if HAS_LZMA:
+    import lzma
 
 __all__ = ["HDUList", "fitsopen"]
 
@@ -1002,10 +1005,10 @@ class HDUList(list, _Verify):
 
         Notes
         -----
-        gzip, zip and bzip2 compression algorithms are natively supported.
+        gzip, zip, bzip2 and lzma compression algorithms are natively supported.
         Compression mode is determined from the filename extension
-        ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
-        compressed file object, e.g. `gzip.GzipFile`.
+        ('.gz', '.zip', '.bz2' or '.xz' respectively).  It is also possible to
+        pass a compressed file object, e.g. `gzip.GzipFile`.
         """
         if len(self) == 0:
             warnings.warn("There is nothing to write.", AstropyUserWarning)
@@ -1468,6 +1471,12 @@ class HDUList(list, _Verify):
                         "This Python installation does not provide the bz2 module."
                     )
                 new_file = bz2.BZ2File(name, mode="w")
+            elif self._file.compression == "lzma":
+                if not HAS_LZMA:
+                    raise ModuleNotFoundError(
+                        "This Python installation does not provide the lzma module."
+                    )
+                new_file = lzma.LZMAFile(name, mode="w")
             else:
                 new_file = name
 
