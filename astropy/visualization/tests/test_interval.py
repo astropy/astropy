@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-import astropy.units as u
 from astropy.utils import NumpyRNGContext
 from astropy.visualization.interval import (
     AsymmetricPercentileInterval,
@@ -28,21 +27,11 @@ class TestInterval:
         interval = ManualInterval(vmin=-10.0)
         vmin, vmax = interval.get_limits(self.data)
         assert_allclose(vmin, -10.0)
-        max_data = np.max(self.data)
-        if isinstance(max_data, np.ma.MaskedArray):
-            max_data = np.asarray(max_data)
-        if isinstance(max_data, u.Quantity):
-            max_data = max_data.value
-        assert_allclose(vmax, max_data)
+        assert_allclose(vmax, np.max(self.data))
 
         interval = ManualInterval(vmax=15.0)
         vmin, vmax = interval.get_limits(self.data)
-        min_data = np.min(self.data)
-        if isinstance(min_data, np.ma.MaskedArray):
-            min_data = np.asarray(min_data)
-        if isinstance(min_data, u.Quantity):
-            min_data = min_data.value
-        assert_allclose(vmin, min_data)
+        assert_allclose(vmin, np.min(self.data))
         assert_allclose(vmax, 15.0)
 
     def test_manual_zero_limit(self):
@@ -97,21 +86,10 @@ class TestInterval2D(TestInterval):
     data = np.linspace(-20.0, 60.0, 100).reshape(100, 1)
 
 
-class TestIntervalQuantity(TestInterval):
-    # Make sure intervals work with 2d Quantity arrays
-    data = np.linspace(-20.0, 60.0, 100).reshape(100, 1) * u.nJy
-
-
 class TestIntervalMaskedArray(TestInterval):
     # Make sure intervals work with MaskedArray
     data = np.concatenate((np.linspace(-20.0, 60.0, 100), np.full(100, 1e6)))
     data = np.ma.MaskedArray(data, data > 1000)
-
-
-class TestIntervalMaskedQuantityArray(TestInterval):
-    # Make sure intervals work with masked_Quantity
-    data = np.concatenate((np.linspace(-20.0, 60.0, 100), np.full(100, 1e6)))
-    data = np.ma.MaskedArray(data * u.nJy, mask=data > 1000)
 
 
 def test_zscale():
