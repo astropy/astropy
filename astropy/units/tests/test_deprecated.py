@@ -1,60 +1,70 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
-"""Regression tests for deprecated units or those that are "soft" deprecated
-because they are required for VOUnit support but are not in common use."""
+import warnings
 
 import pytest
 
 from astropy import units as u
-from astropy.units import deprecated, required_by_vounit
+from astropy.units import deprecated
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
+with warnings.catch_warnings(action="ignore", category=AstropyDeprecationWarning):
+    emu = deprecated.emu
+    GearthRad = deprecated.GearthRad
+    MjupiterMass = deprecated.MjupiterMass
+    mjupiterRad = deprecated.MjupiterRad
+    nearthMass = deprecated.nearthMass
+
+
+def test_enable():
+    with pytest.warns(AstropyDeprecationWarning, match="enable function is deprecated"):
+        with deprecated.enable():
+            # `unit in u.Bi.compose()` would use `==` for comparison, but we really
+            # do want to check identity, not just equality.
+            assert any(unit is emu for unit in u.Bi.compose())
 
 
 def test_emu():
+    assert emu == u.Bi
+
+
+@pytest.mark.parametrize(
+    "unit",
+    [emu, GearthRad, MjupiterMass, mjupiterRad, nearthMass],
+    ids=lambda x: x.name,
+)
+def test_deprecated_unit_not_in_main_namespace(unit):
     with pytest.raises(AttributeError):
-        u.emu
-
-    assert u.Bi.to(deprecated.emu, 1) == 1
-
-    with deprecated.enable():
-        assert u.Bi.compose()[0] == deprecated.emu
-
-    assert u.Bi.compose()[0] == u.Bi
-
-    # test that the earth/jupiter mass/rad are also in the deprecated bunch
-    for body in ("earth", "jupiter"):
-        for phystype in ("Mass", "Rad"):
-            # only test a couple prefixes to same time
-            for prefix in ("n", "y"):
-                namewoprefix = body + phystype
-                unitname = prefix + namewoprefix
-
-                with pytest.raises(AttributeError):
-                    getattr(u, unitname)
-
-                assert getattr(deprecated, unitname).represents.bases[0] == getattr(
-                    u, namewoprefix
-                )
+        getattr(u, unit.name)
 
 
-def test_required_by_vounit():
-    # The tests below could be replicated with all the various prefixes, but it
-    # seems unnecessary because they all come as a set.  So we only use nano for
-    # the purposes of this test.
+@pytest.mark.parametrize(
+    "prefixed_unit,base_unit",
+    [
+        pytest.param(prefixed_unit, base_unit, id=prefixed_unit.name)
+        for prefixed_unit, base_unit in [
+            (GearthRad, u.earthRad),
+            (MjupiterMass, u.jupiterMass),
+            (mjupiterRad, u.jupiterRad),
+            (nearthMass, u.earthMass),
+        ]
+    ],
+)
+def test_deprecated_unit_definition(prefixed_unit, base_unit):
+    assert prefixed_unit.represents.bases[0] is base_unit
 
-    with pytest.raises(AttributeError):
-        # nano-solar mass/rad/lum shouldn't be in the base unit namespace
-        u.nsolMass
-        u.nsolRad
-        u.nsolLum
 
-    # but they should be enabled by default via required_by_vounit, to allow
-    # the Unit constructor to accept them
-    assert u.Unit("nsolMass") == required_by_vounit.nsolMass
-    assert u.Unit("nsolRad") == required_by_vounit.nsolRad
-    assert u.Unit("nsolLum") == required_by_vounit.nsolLum
+def test_deprecated_units_are_deprecated():
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"^'gigaM_jupiter' is deprecated since version 7\.1$",
+    ):
+        deprecated.gigaM_jupiter
 
-    # but because they are prefixes, they shouldn't be in find_equivalent_units
-    assert required_by_vounit.nsolMass not in u.solMass.find_equivalent_units()
-    assert required_by_vounit.nsolRad not in u.solRad.find_equivalent_units()
-    assert required_by_vounit.nsolLum not in u.solLum.find_equivalent_units()
+
+def test_invalid_name_raises_attribute_error():
+    with pytest.raises(
+        AttributeError,
+        match=r"^module 'astropy\.units\.deprecated' has no attribute 'fifaRearth'$",
+    ):
+        deprecated.fifaRearth

@@ -38,7 +38,13 @@ if TYPE_CHECKING:
     from .format import Base
     from .physical import PhysicalType
     from .quantity import Quantity
-    from .typing import UnitPower, UnitPowerLike, UnitScale, UnitScaleLike
+    from .typing import (
+        PhysicalTypeID,
+        UnitPower,
+        UnitPowerLike,
+        UnitScale,
+        UnitScaleLike,
+    )
 
 __all__ = [
     "CompositeUnit",
@@ -669,7 +675,7 @@ class UnitBase:
         return f'Unit("{self}")'
 
     @cached_property
-    def _physical_type_id(self) -> tuple[tuple[str, UnitPower], ...]:
+    def _physical_type_id(self) -> PhysicalTypeID:
         """
         Returns an identifier that uniquely identifies the physical
         type of this unit.  It is comprised of the bases and powers of
@@ -739,7 +745,13 @@ class UnitBase:
         """
         from .format import get_format
 
-        return get_format(format).to_string(self, **kwargs)
+        try:
+            return get_format(format).to_string(self, **kwargs)
+        except (TypeError, ValueError) as err:
+            from .format import known_formats
+
+            err.add_note(known_formats())
+            raise err
 
     def __format__(self, format_spec: str) -> str:
         try:
@@ -994,7 +1006,7 @@ class UnitBase:
         elif len(equivalencies):
             unit = self.decompose()
             other = other.decompose()
-            for a, b, forward, backward in equivalencies:
+            for a, b, _, _ in equivalencies:
                 if b is None:
                     # after canceling, is what's left convertible
                     # to dimensionless (according to the equivalency)?
@@ -1113,7 +1125,7 @@ class UnitBase:
             # We assume the equivalencies have the unit itself as first item.
             # TODO: maybe better for other to have a `_back_converter` method?
             if hasattr(other, "equivalencies"):
-                for funit, tunit, a, b in other.equivalencies:
+                for funit, tunit, _, b in other.equivalencies:
                     if other is funit:
                         try:
                             converter = self.get_converter(tunit, equivalencies)
@@ -1301,7 +1313,7 @@ class UnitBase:
 
         # ...we have to recurse and try to further compose
         results = []
-        for len_bases, composed, tunit in partial_results:
+        for _, composed, tunit in partial_results:
             try:
                 composed_list = composed._compose(
                     equivalencies=equivalencies,
@@ -1328,7 +1340,7 @@ class UnitBase:
                 if is_final_result(factored):
                     subresults.add(factored)
 
-            if len(subresults):
+            if subresults:
                 cached_results[unit] = subresults
                 return subresults
 
@@ -1400,7 +1412,7 @@ class UnitBase:
         def has_bases_in_common_with_equiv(unit: UnitBase, other: UnitBase) -> bool:
             if has_bases_in_common(unit, other):
                 return True
-            for funit, tunit, a, b in equivalencies:
+            for funit, tunit, _, _ in equivalencies:
                 if tunit is not None:
                     if unit._is_equivalent(funit):
                         if has_bases_in_common(tunit.decompose(), other):
@@ -1571,7 +1583,7 @@ class UnitBase:
         """
         unit_registry = get_current_unit_registry()
         units = set(unit_registry.get_units_with_physical_type(self))
-        for funit, tunit, a, b in equivalencies:
+        for funit, tunit, _, _ in equivalencies:
             if tunit is not None:
                 if self.is_equivalent(funit) and tunit not in units:
                     units.update(unit_registry.get_units_with_physical_type(tunit))
@@ -2013,7 +2025,13 @@ class _UnitMetaClass(type):
 
             from .format import Generic, get_format
 
-            f = get_format(format)
+            try:
+                f = get_format(format)
+            except (TypeError, ValueError) as err:
+                from .format import known_parsers
+
+                err.add_note(known_parsers())
+                raise err
             if isinstance(s, bytes):
                 s = s.decode("ascii")
 
@@ -2204,9 +2222,7 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         return hash((self.name, self._represents))
 
     @classmethod
-    def _from_physical_type_id(
-        cls, physical_type_id: tuple[tuple[str, UnitPower], ...]
-    ) -> UnitBase:
+    def _from_physical_type_id(cls, physical_type_id: PhysicalTypeID) -> UnitBase:
         if len(physical_type_id) == 1 and physical_type_id[0][1] == 1:
             return cls(physical_type_id[0][0])
         # get string bases and powers from the ID tuple
@@ -2546,7 +2562,7 @@ def _add_prefixes(
             for alias in u.long_names:
                 names.append(prefix + alias)
 
-        if len(names):
+        if names:
             PrefixUnit(
                 names,
                 CompositeUnit(factor, [u], [1], _error_check=False),

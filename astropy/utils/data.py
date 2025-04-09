@@ -384,7 +384,7 @@ def get_readable_fileobj(
             fileobj = io.BytesIO(fileobj.read())
 
     # Now read enough bytes to look at signature
-    signature = fileobj.read(4)
+    signature = fileobj.read(6)
     fileobj.seek(0)
 
     if signature[:3] == b"\x1f\x8b\x08":  # gzip
@@ -426,7 +426,7 @@ def get_readable_fileobj(
             fileobj_new.seek(0)
             close_fds.append(fileobj_new)
             fileobj = fileobj_new
-    elif signature[:3] == b"\xfd7z":  # xz
+    elif signature[:6] == b"\xfd7zXZ\x00":  # xz
         if not HAS_LZMA:
             for fd in close_fds:
                 fd.close()
@@ -438,7 +438,7 @@ def get_readable_fileobj(
         try:
             fileobj_new = lzma.LZMAFile(fileobj, mode="rb")
             fileobj_new.read(1)  # need to check that the file is really xz
-        except (OSError, EOFError):  # invalid xz file
+        except lzma.LZMAError:  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
             # should we propagate this to the caller to signal bad content?
@@ -1630,7 +1630,7 @@ def cache_total_size(pkgname="astropy"):
     """Return the total size in bytes of all files in the cache."""
     size = 0
     dldir = _get_download_cache_loc(pkgname=pkgname)
-    for root, dirs, files in os.walk(dldir):
+    for root, _, files in os.walk(dldir):
         size += sum(os.path.getsize(os.path.join(root, name)) for name in files)
     return size
 

@@ -67,7 +67,7 @@ jobs:
     #    uses a compiled language
 
     - name: Set up Python
-      uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38  # v5.4.0
+      uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55  # v5.5.0
       if: matrix.language == 'cpp'
       with:
         python-version: '3.11'
@@ -75,7 +75,7 @@ jobs:
     - name: Manual build
       if: matrix.language == 'cpp'
       run: |
-       pip install -U pip setuptools_scm wheel
+       pip install -U pip setuptools_scm setuptools packaging wheel
        pip install extension-helpers cython numpy pyerfa
        python setup.py build_ext --inplace
 

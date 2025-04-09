@@ -8,11 +8,11 @@ readme = "README.rst"
 authors = [
     { name = "The Astropy Developers", email = "astropy.team@gmail.com" }
 ]
-license = { text = "BSD-3-Clause" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE.rst", "licenses/*.rst"]
 requires-python = ">=3.11"
 classifiers = [
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: C",
     "Programming Language :: Cython",
@@ -44,7 +44,7 @@ keywords = [
 dependencies = [
     "numpy>=1.23.2",
     "pyerfa>=2.0.1.1",
-    "astropy-iers-data>=0.2025.2.24.0.34.4",
+    "astropy-iers-data>=0.2025.3.31.0.36.18",
     "PyYAML>=6.0.0",
     "packaging>=22.0.0",
 ]
@@ -116,7 +116,7 @@ test_all = [
     "objgraph>=1.6.0",
     "skyfield>=1.20",
     "sgp4>=2.3",
-    "array-api-strict",
+    "array-api-strict>=1.0",
 ]
 typing = [
     "pandas-stubs>=2.0",
@@ -162,7 +162,7 @@ volint = "astropy.io.votable.volint:main"
 wcslint = "astropy.wcs.wcslint:main"
 
 [build-system]
-requires = ["setuptools",
+requires = ["setuptools>=77.0.0",
             "setuptools_scm>=8.0.0",
             "cython>=3.0.0, <4",
             "numpy>=2.0.0, <3",
@@ -171,7 +171,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 include-package-data = true
-license-files = ["LICENSE.rst", "licenses/*.rst"]
 
 [tool.setuptools.packages.find]
 include = ["astropy*"]
@@ -358,10 +357,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 
     # flake8-fixme (FIX)
     "FIX002",  # Line contains TODO | notes for improvements are OK iff the code works
-
-    # ISC001 shouldn't be used with ruff format
-    # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
-    "ISC001",
 
     # pep8-naming (N)
     "N803",  # invalid-argument-name. Physics variables are often poor code variables

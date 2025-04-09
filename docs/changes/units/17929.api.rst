@@ -1,0 +1,3 @@
+Accessing the contents of the ``units.deprecated`` module now emits deprecation
+warnings.
+The module may be removed in a future version.

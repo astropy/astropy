@@ -81,7 +81,7 @@ jobs:
         persist-credentials: false
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38  # v5.4.0
+      uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55  # v5.5.0
       with:
         python-version: ${{ matrix.python }}
     - name: Install language-pack-de and tzdata
@@ -166,7 +166,7 @@ jobs:
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
             # cython and pyerfa versions in ubuntu repos are too old currently
-            pip install -U cython
+            pip install -U cython setuptools packaging
             pip install -U --no-build-isolation pyerfa
             ASTROPY_USE_SYSTEM_ALL=1 pip3 install -v --no-build-isolation -e .[test]
             pip3 list

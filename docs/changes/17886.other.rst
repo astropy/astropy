@@ -1,0 +1,3 @@
+Updated bundled WCSLIB version to 8.4, fixing issues in ``wcs_chksum``
+and ``wcs_fletcher32``. For a full list of changes - see
+``astropy/cextern/wcslib/CHANGES``.

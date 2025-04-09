@@ -39,12 +39,14 @@ py:class json.encoder.JSONEncoder
 # astropy.table
 py:class astropy.table.column.BaseColumn
 py:class astropy.table.groups.BaseGroups
+
 # astropy.visualization
 py:obj Bbox
 py:obj Transform
 py:obj Figure
 py:obj AbstractPathEffect
 py:obj N
+py:obj masked
 
 # astropy.wcs
 py:class astropy.wcs.wcsapi.fitswcs.FITSWCSAPIMixin
@@ -97,6 +99,7 @@ py:class np.ma.MaskedArray
 # locally defined type variable for ndarray dtype
 py:class DT
 # type aliases
+py:class QuantityLike
 py:class UnitPower
 py:class UnitPowerLike
 py:class UnitScale

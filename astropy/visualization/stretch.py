@@ -121,6 +121,10 @@ class LinearStretch(BaseStretch):
             np.multiply(values, self.slope, out=values)
         if self.intercept != 0:
             np.add(values, self.intercept, out=values)
+
+        if clip:
+            np.clip(values, 0, 1, out=values)
+
         return values
 
     @property
@@ -281,14 +285,13 @@ class PowerDistStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  ``a`` must be
-        greater than or equal to 0, but cannot be set to 1.  Default is
-        1000.
+        The ``a`` parameter used in the above formula. ``a`` must be
+        greater than 0, but cannot be set to 1. Default is 1000.
     """
 
     def __init__(self, a=1000.0):
-        if a < 0 or a == 1:  # singularity
-            raise ValueError("a must be >= 0, but cannot be set to 1")
+        if a <= 0 or a == 1:  # singularity
+            raise ValueError("a must be > 0, but cannot be set to 1")
         super().__init__()
         self.a = a
 
@@ -308,24 +311,23 @@ class PowerDistStretch(BaseStretch):
 class InvertedPowerDistStretch(BaseStretch):
     r"""
     Inverse transformation for
-    `~astropy.image.scaling.PowerDistStretch`.
+    `~astropy.visualization.PowerDistStretch`.
 
     The stretch is given by:
 
     .. math::
-        y = \frac{\log(y (a-1) + 1)}{\log a}
+        y = \frac{\log(x (a - 1) + 1)}{\log a}
 
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  ``a`` must be
-        greater than or equal to 0, but cannot be set to 1.  Default is
-        1000.
+        The ``a`` parameter used in the above formula. ``a`` must be
+        greater than 0, but cannot be set to 1. Default is 1000.
     """
 
     def __init__(self, a=1000.0):
-        if a < 0 or a == 1:  # singularity
-            raise ValueError("a must be >= 0, but cannot be set to 1")
+        if a <= 0 or a == 1:  # singularity
+            raise ValueError("a must be > 0, but cannot be set to 1")
         super().__init__()
         self.a = a
 
@@ -441,13 +443,12 @@ class LogStretch(BaseStretch):
 
 class InvertedLogStretch(BaseStretch):
     r"""
-    Inverse transformation for `~astropy.image.scaling.LogStretch`.
+    Inverse transformation for `~astropy.visualization.LogStretch`.
 
     The stretch is given by:
 
     .. math::
-        y = \frac{e^{y \log{a + 1}} - 1}{a} \\
-        y = \frac{e^{y} (a + 1) - 1}{a}
+        y = \frac{e^{x \log{a + 1}} - 1}{a} = \frac{(a + 1)^x - 1}{a}
 
     Parameters
     ----------
@@ -590,7 +591,7 @@ class HistEqStretch(BaseStretch):
 
 class InvertedHistEqStretch(BaseStretch):
     """
-    Inverse transformation for `~astropy.image.scaling.HistEqStretch`.
+    Inverse transformation for `~astropy.visualization.HistEqStretch`.
 
     Parameters
     ----------
@@ -665,18 +666,24 @@ class ContrastBiasStretch(BaseStretch):
 
 
 class InvertedContrastBiasStretch(BaseStretch):
-    """
-    Inverse transformation for ContrastBiasStretch.
+    r"""
+    Inverse transformation for
+    `~astropy.visualization.ContrastBiasStretch`.
+
+    The stretch is given by:
+
+    .. math::
+        y = \frac{x - 0.5}{{\rm contrast}} + {\rm bias}
 
     Parameters
     ----------
     contrast : float
         The contrast parameter (see
-        `~astropy.visualization.ConstrastBiasStretch).
+        `~astropy.visualization.ContrastBiasStretch`).
 
     bias : float
         The bias parameter (see
-        `~astropy.visualization.ConstrastBiasStretch).
+        `~astropy.visualization.ContrastBiasStretch`).
     """
 
     def __init__(self, contrast, bias):

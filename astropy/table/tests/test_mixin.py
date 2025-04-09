@@ -114,11 +114,16 @@ def test_io_ascii_write():
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
+
     from astropy.io.ascii.connect import _get_connectors_table
 
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
-        if fmt["Write"] and ".fast_" not in fmt["Format"]:
+        if (
+            fmt["Write"]
+            and ".fast_" not in fmt["Format"]
+            and fmt["Format"] != "ascii.tdat"
+        ):
             out = StringIO()
             t.write(out, format=fmt["Format"])
 
@@ -378,7 +383,7 @@ def test_join(table_types):
     t2 = table_types.Table(t1)
     t2["a"] = ["b", "c", "a", "d"]
 
-    for name, col in MIXIN_COLS.items():
+    for name in MIXIN_COLS:
         t1[name].info.description = name
         t2[name].info.description = name + "2"
 

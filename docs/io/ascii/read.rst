@@ -5,7 +5,7 @@
 Reading Tables
 **************
 
-The majority of commonly encountered ASCII tables can be read with the |read|
+The majority of commonly encountered text tables can be read with the |read|
 function::
 
   >>> from astropy.io import ascii
@@ -34,7 +34,7 @@ by trying all of the supported formats.
 
 ..
   EXAMPLE START
-  Reading ASCII Tables Using astropy.io.ascii
+  Reading Text Tables Using astropy.io.ascii
 
 For unusually formatted tables where guessing does not work, give additional
 hints about the format::
@@ -116,7 +116,7 @@ Parameters for ``read()``
   item will ensure that it is not interpreted as a file name.
 
 **format** : file format (default='basic')
-  This specifies the top-level format of the ASCII table; for example,
+  This specifies the top-level format of the text table; for example,
   if it is a basic character delimited table, fixed format table, or
   a CDS-compatible table, etc. The value of this parameter must
   be one of the :ref:`supported_formats`.
@@ -237,7 +237,7 @@ Example
 
 ..
   EXAMPLE START
-  Specifying Header and Data Location for ASCII Tables
+  Specifying Header and Data Location for Text Tables
 
 To use the parameters ``header_start``, ``data_start``, and ``data_end``
 to read a table with non-table data included, take the file below. The column
@@ -276,7 +276,7 @@ work in this case.
 Bad or Missing Values
 =====================
 
-ASCII data tables can contain bad or missing values. A common case is when a
+text data tables can contain bad or missing values. A common case is when a
 table contains blank entries with no available data.
 
 Examples
@@ -284,7 +284,7 @@ Examples
 
 ..
   EXAMPLE START
-  ASCII Tables with Bad or Missing Values
+  Text Tables with Bad or Missing Values
 
 Take this example of a table with blank entries::
 
@@ -320,7 +320,7 @@ the table. This looks like the following::
   Tues -999.0  N/A
    Wed    1.1 snow
 
-ASCII tables may have other indicators of bad or missing data as well. For
+Text tables may have other indicators of bad or missing data as well. For
 example, a table may contain string values that are not a valid representation
 of a number (e.g., ``"..."``), or a table may have special values like ``-999``
 that are chosen to indicate missing data. The |read| function has a flexible
@@ -388,7 +388,7 @@ to select which columns will be used in the ``fill_values`` masking process desc
 
 ..
   EXAMPLE START
-  Using the ``fill_include_names`` and ``fill_exclude_names`` parameters for ASCII tables
+  Using the ``fill_include_names`` and ``fill_exclude_names`` parameters for Text tables
 
 The use of these parameters is not common but in some cases can considerably simplify
 the code required to read a table. The following gives a simple example to illustrate how
@@ -457,7 +457,7 @@ The order of guessing is shown by this Python code::
                  "ipac", "latex", "aastex"):
       read(format=format)
 
-  for format in ("commented_header", "fast_basic", "basic", "fast_noheader", ""noheader"):
+  for format in ("commented_header", "fast_basic", "basic", "fast_noheader", "noheader"):
       for delimiter in ("|", ",", " ", "\\s"):
           for quotechar in ('"', "'"):
               read(format=format, delimiter=delimiter, quotechar=quotechar)
@@ -515,7 +515,7 @@ Example
 
 ..
   EXAMPLE START
-  Comments and Metadata in ASCII Tables
+  Comments and Metadata in Text Tables
 
 Comment lines detected during reading are inserted into the output table as
 such::
@@ -946,7 +946,7 @@ Obtain the Data Table in a Different Format
 -------------------------------------------
 Sometimes it is easy to obtain the data in a more structured format that
 more clearly defines columns and metadata, e.g. a FITS or VO/XML table, or
-an ASCII table that uses a different column separator (e.g. comma instead of
+a text table that uses a different column separator (e.g. comma instead of
 white space) or fixed-width columns.
 In that case, the fastest solution can be to simply download or export the
 data again in a different format.

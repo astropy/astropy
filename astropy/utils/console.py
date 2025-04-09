@@ -362,7 +362,7 @@ def human_file_size(size):
     if size == 0:
         num_scale = 0
     else:
-        num_scale = int(math.floor(math.log(size) / math.log(1000)))
+        num_scale = math.floor(math.log(size) / math.log(1000))
     if num_scale > 7:
         suffix = "?"
     else:
@@ -851,7 +851,7 @@ class Spinner:
             flush()
             yield
 
-            for i in range(self._step):
+            for _ in range(self._step):
                 yield
 
             index = (index + 1) % len(chars)

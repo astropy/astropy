@@ -13,7 +13,7 @@ from functools import cached_property
 from inspect import signature
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
@@ -49,6 +49,7 @@ if TYPE_CHECKING:
 
     from astropy.units import Quantity
 
+
 # isort: split
 if HAS_SCIPY:
     from scipy.integrate import quad
@@ -59,6 +60,7 @@ else:
 
 
 __doctest_requires__ = {"*": ["scipy"]}
+_InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number)
 
 
 ##############################################################################
@@ -1220,27 +1222,40 @@ class FLRW(
         """
         return quad(self._lookback_time_integrand_scalar, z, inf)[0]
 
+    # ---------------------------------------------------------------
+    # Comoving distance
+
+    @overload
+    def comoving_distance(self, z: _InputT) -> Quantity: ...
+
+    @overload
+    def comoving_distance(self, z: _InputT, z2: _InputT) -> Quantity: ...
+
+    @deprecated_keywords("z2", since="7.1")
     @deprecated_keywords("z", since="7.0")
-    def comoving_distance(self, z):
-        """Comoving line-of-sight distance in Mpc at a given redshift.
+    def comoving_distance(self, z: _InputT, z2: _InputT | None = None) -> Quantity:
+        r"""Comoving line-of-sight distance :math:`d_c(z1, z2)` in Mpc.
 
         The comoving distance along the line-of-sight between two objects
         remains constant with time for objects in the Hubble flow.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
+        z, z2 : Quantity ['redshift'], positional-only
+            Input redshifts. If one argument ``z`` is given, the distance
+            :math:`d_c(0, z)` is returned. If two arguments ``z1, z2`` are
+            given, the distance :math:`d_c(z_1, z_2)` is returned.
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
         Returns
         -------
-        d : Quantity ['length']
-            Comoving distance in Mpc to each input redshift.
+        Quantity ['length']
+            Comoving distance in Mpc between each input redshift.
         """
-        return self._comoving_distance_z1z2(0, z)
+        z1, z2 = (0.0, z) if z2 is None else (z, z2)
+        return self._comoving_distance_z1z2(z1, z2)
 
     def _comoving_distance_z1z2(self, z1, z2, /):
         """Comoving line-of-sight distance in Mpc between redshifts ``z1`` and ``z2``.
@@ -1262,6 +1277,27 @@ class FLRW(
             Comoving distance in Mpc between each input redshift.
         """
         return self._integral_comoving_distance_z1z2(z1, z2)
+
+    def _integral_comoving_distance_z1z2(self, z1, z2, /):
+        """Comoving line-of-sight distance (Mpc) between objects at redshifts z1 and z2.
+
+        The comoving distance along the line-of-sight between two objects remains
+        constant with time for objects in the Hubble flow.
+
+        Parameters
+        ----------
+        z1, z2 : Quantity-like ['redshift'] or array-like
+            Input redshifts.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
+
+        Returns
+        -------
+        |Quantity| ['length']
+            Comoving distance in Mpc between each input redshift.
+        """
+        return self.hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)  # fmt: skip
 
     @vectorize_redshift_method(nin=2)
     def _integral_comoving_distance_z1z2_scalar(self, z1, z2, /):
@@ -1286,26 +1322,7 @@ class FLRW(
         """
         return quad(self._inv_efunc_scalar, z1, z2, args=self._inv_efunc_scalar_args)[0]
 
-    def _integral_comoving_distance_z1z2(self, z1, z2, /):
-        """Comoving line-of-sight distance in Mpc between objects at redshifts ``z1`` and ``z2``.
-
-        The comoving distance along the line-of-sight between two objects remains
-        constant with time for objects in the Hubble flow.
-
-        Parameters
-        ----------
-        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        d : Quantity ['length']
-            Comoving distance in Mpc between each input redshift.
-        """
-        return self.hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)  # fmt: skip
+    # ---------------------------------------------------------------
 
     @deprecated_keywords("z", since="7.0")
     def comoving_transverse_distance(self, z):
@@ -1702,7 +1719,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         self.__dict__["Ode0"] = 1.0 - (self.Om0 + self.Ogamma0 + self.Onu0 + self.Ok0)
 
     @lazyproperty
-    def nonflat(self: _FlatFLRWMixinT) -> _FLRWT:
+    def nonflat(self: _FlatFLRWMixinT) -> _FLRWT:  # noqa: PYI019
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
         ba = inspect.signature(self.__nonflatclass__).bind_partial(

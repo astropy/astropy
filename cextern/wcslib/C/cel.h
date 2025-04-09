@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: cel.h,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -474,13 +474,14 @@ struct celprm {
   int    latpreq;		// LATPOLEa requirement.
   int    isolat;		// True if |latitude| is preserved.
 
-  // Error handling
+  // Error messaging, if enabled.
   //--------------------------------------------------------------------------
-  struct wcserr *err;
+  struct wcserr *err;		// Error handling, if enabled.
 
-  // Private
   //--------------------------------------------------------------------------
-  void   *padding;		// (Dummy inserted for alignment purposes.)
+  // Private - the remainder are for internal use.
+  //--------------------------------------------------------------------------
+  void *padding;		// (Dummy inserted for alignment purposes.)
 };
 
 // Size of the celprm struct in int units, used by the Fortran wrappers.

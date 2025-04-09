@@ -7,6 +7,8 @@ available in (and should be used through) the `astropy.units` namespace.
 
 """
 
+import functools
+
 # THIRD-PARTY
 import numpy as np
 
@@ -81,6 +83,7 @@ class Equivalency(list):
         )
 
 
+@functools.cache
 def dimensionless_angles():
     """Allow angles to be equivalent to dimensionless (with 1 rad = 1 m/m = 1).
 
@@ -91,6 +94,7 @@ def dimensionless_angles():
     return Equivalency([(si.radian, None)], "dimensionless_angles")
 
 
+@functools.cache
 def logarithmic():
     """Allow logarithmic units to be converted to dimensionless fractions."""
     return Equivalency(
@@ -99,6 +103,7 @@ def logarithmic():
     )
 
 
+@functools.cache
 def parallax():
     """
     Returns a list of equivalence pairs that handle the conversion
@@ -124,6 +129,7 @@ def parallax():
     )
 
 
+@functools.cache
 def spectral():
     """
     Returns a list of equivalence pairs that handle spectral
@@ -552,6 +558,7 @@ def doppler_relativistic(rest):
     )
 
 
+@functools.cache
 def doppler_redshift():
     """
     Returns the equivalence between Doppler redshift (unitless) and radial velocity.
@@ -579,6 +586,7 @@ def doppler_redshift():
     )
 
 
+@functools.cache
 def molar_mass_amu():
     """
     Returns the equivalence between amu and molar mass.
@@ -586,6 +594,7 @@ def molar_mass_amu():
     return Equivalency([(si.g / si.mol, misc.u)], "molar_mass_amu")
 
 
+@functools.cache
 def mass_energy():
     """
     Returns a list of equivalence pairs that handle the conversion
@@ -789,6 +798,7 @@ def thermodynamic_temperature(frequency, T_cmb=None):
     )
 
 
+@functools.cache
 def temperature():
     """Convert between Kelvin, Celsius, Rankine and Fahrenheit here because
     Unit and CompositeUnit cannot do addition or subtraction properly.
@@ -812,6 +822,7 @@ def temperature():
     )
 
 
+@functools.cache
 def temperature_energy():
     """Convert between Kelvin and keV(eV) to an equivalent amount."""
     e = _si.e.value

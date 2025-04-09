@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """An extensible ASCII table reader and writer."""
-# flake8: noqa
+
+from astropy import config as _config
 
 from . import connect
 from .basic import (
@@ -62,10 +63,8 @@ from .mrt import Mrt
 from .qdp import QDP
 from .rst import RST
 from .sextractor import SExtractor
+from .tdat import Tdat
 from .ui import get_read_trace, get_reader, get_writer, read, set_guess, write
-
-
-from astropy import config as _config
 
 
 class Conf(_config.ConfigNamespace):

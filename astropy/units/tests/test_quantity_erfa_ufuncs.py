@@ -516,11 +516,34 @@ class TestAp:
         cls.refb = (-2.36140831e-7 * u.rad).to(u.uas)
         cls.apco13_args = [
             getattr(cls, name)
-            for name in "utc1 utc2 dut1 elong phi hm xp yp phpa tc rh wl".split()
+            for name in [
+                "utc1",
+                "utc2",
+                "dut1",
+                "elong",
+                "phi",
+                "hm",
+                "xp",
+                "yp",
+                "phpa",
+                "tc",
+                "rh",
+                "wl",
+            ]
         ]
         cls.apio_args = [
             getattr(cls, name)
-            for name in "sp theta elong phi hm xp yp refa refb".split()
+            for name in [
+                "sp",
+                "theta",
+                "elong",
+                "phi",
+                "hm",
+                "xp",
+                "yp",
+                "refa",
+                "refb",
+            ]
         ]
 
     def test_apco13(self):

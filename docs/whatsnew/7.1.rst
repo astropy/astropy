@@ -13,6 +13,7 @@ the 7.0 release.
 In particular, this release includes:
 
 * :ref:`whatsnew-7.1-table-spaces`
+* :ref:`whatsnew-7.1-tdat-reader`
 
 In addition to these major changes, Astropy v7.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -32,6 +33,17 @@ It is now possible to remove those when reading a table with
 ``(Q)Table.read("filename.fits", strip_spaces=True)``. The default behavior is
 not changed yet to preserve compatibility with codes that might rely on this,
 it will change in the next major version (v8.0).
+
+.. _whatsnew-7.1-tdat-reader:
+
+Reading and writing TDAT files with ``astropy.io.ascii``
+========================================================
+
+The TDAT format, specified by https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/tdat.html,
+is now supported by the Unified File Read/Write Interface.
+
+Note that this format is compatible with ``Table`` objects with integer, float,
+and/or string data types, but not ``QTable`` objects or other data types.
 
 Full change log
 ===============

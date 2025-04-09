@@ -1,6 +1,6 @@
-****************************************
-Astropy I/O Typing (`astropy.io.typing`)
-****************************************
+********************************
+I/O Typing (`astropy.io.typing`)
+********************************
 
 
 ``astropy.io`` provides type annotations through the :mod:`astropy.io.typing` module.

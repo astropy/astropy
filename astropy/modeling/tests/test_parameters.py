@@ -1235,7 +1235,7 @@ def test_non_broadcasting_parameters():
             return
 
     # a broadcasts with both b and c, but b does not broadcast with c
-    MESSAGE = r"Mismatch is between arg \d with shape .* and arg \d with" " shape .*"
+    MESSAGE = r"Mismatch is between arg \d with shape .* and arg \d with shape .*"
     for args in itertools.permutations((a, b, c)):
         with pytest.raises(InputParameterError, match=MESSAGE):
             TestModel(*args)

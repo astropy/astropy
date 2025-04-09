@@ -63,8 +63,8 @@ class Mapping(FittableModel):
         self.outputs = tuple("x" + str(idx) for idx in range(self._n_outputs))
 
         self._mapping = mapping
-        self._input_units_strict = {key: False for key in self._inputs}
-        self._input_units_allow_dimensionless = {key: False for key in self._inputs}
+        self._input_units_strict = dict.fromkeys(self._inputs, False)
+        self._input_units_allow_dimensionless = dict.fromkeys(self._inputs, False)
 
     @property
     def n_inputs(self):

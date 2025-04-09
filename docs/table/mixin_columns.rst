@@ -200,7 +200,7 @@ work.
 Masking of mixin columns is enabled by the |Masked| class. See
 :ref:`utils-masked` for details.
 
-**ASCII table writing**
+**Text table writing**
 
 Tables with mixin columns can be written out to file using the
 `astropy.io.ascii` module, but the fast C-based writers are not available.

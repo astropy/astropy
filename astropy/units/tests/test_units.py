@@ -14,6 +14,7 @@ from numpy.testing import assert_allclose
 from astropy import constants as c
 from astropy import units as u
 from astropy.units import utils
+from astropy.units.required_by_vounit import GsolLum, ksolMass, nsolRad
 from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT, HAS_DASK
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -1254,3 +1255,29 @@ def test_dimensionless_scale_factor_types(scale):
     # Regression test for #17355 - Unit did not accept all scale factor
     # types that CompositeUnit accepted
     assert u.Unit(scale) == u.CompositeUnit(scale, [], [])
+
+
+# No need to test everything defined in required_by_vounit, the following few are
+# representative enough.
+required_by_vounit_parametrization = pytest.mark.parametrize(
+    "unit", [GsolLum, ksolMass, nsolRad], ids=lambda x: x.name
+)
+
+
+@required_by_vounit_parametrization
+def test_required_by_vounit_not_in_main_namespace(unit):
+    with pytest.raises(
+        AttributeError,
+        match=rf"^module 'astropy\.units' has no attribute '{unit.name}'$",
+    ):
+        getattr(u, unit.name)
+
+
+@required_by_vounit_parametrization
+def test_required_by_vounit_parsing(unit):
+    assert u.Unit(unit.name) is unit
+
+
+@required_by_vounit_parametrization
+def test_required_by_vounit_not_in_find_equivalent_units(unit):
+    assert unit not in unit.represents.bases[0].find_equivalent_units()

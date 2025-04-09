@@ -623,7 +623,7 @@ def test_classproperty_lazy_threadsafe(fast_thread_switching):
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         # This is testing for race conditions, so try many times in the
         # hope that we'll get the timing right.
-        for p in range(10000):
+        for _ in range(10000):
 
             class A:
                 @classproperty(lazy=True)
@@ -661,7 +661,7 @@ def test_lazyproperty_threadsafe(fast_thread_switching):
 
     workers = 8
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        for p in range(10000):
+        for _ in range(10000):
             a = A()
             futures = [executor.submit(lambda: a.foo) for i in range(workers)]
             values = [future.result() for future in futures]

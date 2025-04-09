@@ -1177,3 +1177,17 @@ def test_zero_length_strings(Column, copy):
     col = Column(data["a"], name="a", copy=copy)
     assert col.dtype.itemsize == 0
     assert col.dtype == data.dtype["a"]
+
+
+def test_setting_column_name_to_with_invalid_type(Column):
+    # see https://github.com/astropy/astropy/issues/17449
+    col = Column([1, 2], name="a")
+    assert col.info.name == "a"
+
+    col.name = None
+    assert col.info.name is None
+
+    with pytest.raises(
+        TypeError, match="Expected a str value, got 2.3 with type float"
+    ):
+        col.name = 2.3

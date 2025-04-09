@@ -122,12 +122,12 @@ def test_spinner_non_unicode_console():
 def test_progress_bar():
     # This stuff is hard to test, at least smoke test it
     with console.ProgressBar(50) as bar:
-        for i in range(50):
+        for _ in range(50):
             bar.update()
 
 
 def test_progress_bar2():
-    for x in console.ProgressBar(range(50)):
+    for _ in console.ProgressBar(range(50)):
         pass
 
 

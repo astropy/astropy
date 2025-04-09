@@ -302,12 +302,19 @@ class TableColumns(OrderedDict):
         names = (f"'{x}'" for x in self.keys())
         return f"<{self.__class__.__name__} names=({','.join(names)})>"
 
-    def _rename_column(self, name, new_name):
+    def _rename_column(self, name: str, new_name: str):
         if name == new_name:
             return
 
         if new_name in self:
             raise KeyError(f"Column {new_name} already exists")
+
+        if isinstance(new_name, str):
+            new_name = str(new_name)
+        else:
+            raise TypeError(
+                f"Expected a str value, got {new_name} with type {type(new_name).__name__}"
+            )
 
         # Rename column names in pprint include/exclude attributes as needed
         parent_table = self[name].info.parent_table
@@ -3914,7 +3921,7 @@ class Table:
                 # other = {'a': 2, 'b': 2} and then equality does a
                 # column-by-column broadcasting.
                 names = self.colnames
-                other = {name: other for name in names}
+                other = dict.fromkeys(names, other)
 
         # Require column names match but do not require same column order
         if set(self.colnames) != set(names):

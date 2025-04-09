@@ -18,7 +18,6 @@ lint.ignore = [
 
     # flake8-bugbear (B)
     "B006",  # MutableArgumentDefault
-    "B007",  # UnusedLoopControlVariable
     "B023",  # FunctionUsesLoopVariable
     "B028",  # No-explicit-stacklevel
     "B904",  # RaiseWithoutFromInsideExcept
@@ -179,9 +178,6 @@ lint.ignore = [
     "TRY201",  # verbose-raise
     "TRY301",  # raise-within-try
 
-    # pyupgrade (UP)
-    "UP038",  # isinstance using union separators. The code is slower as of Python 3.11-3.12
-
     # flake8-quotes (Q)
     "Q000",  # use double quotes
 ]
@@ -222,16 +218,20 @@ lint.unfixable = [
     "TRY300",  # Consider `else` block
 ]
 "astropy/io/ascii/*" = [
+    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/io/fits/*" = [
+    "B007",  # UnusedLoopControlVariable
     "PTH",
 ]
 "astropy/io/misc/*" = [
+    "B007",  # UnusedLoopControlVariable
 ]
 "astropy/io/registry/*" = [
     "PTH",
 ]
 "astropy/io/votable/*" = [
+    "B007",  # UnusedLoopControlVariable
     "PTH",
 ]
 "astropy/logger.py" = []
@@ -246,6 +246,7 @@ lint.unfixable = [
     "PTH",      # all flake8-use-pathlib
 ]
 "astropy/stats/*" = [
+    "B007",  # UnusedLoopControlVariable
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/table/*" = [
@@ -256,6 +257,7 @@ lint.unfixable = [
     "PTH",      # all flake8-use-pathlib
 ]
 "astropy/time/*" = [
+    "B007",  # UnusedLoopControlVariable
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
 ]
@@ -269,6 +271,7 @@ lint.unfixable = [
 ]
 "astropy/uncertainty/*" = []
 "astropy/utils/*" = [
+    "B007",  # UnusedLoopControlVariable
     "N811",  # constant-imported-as-non-constant
     "PLR0911",  # too-many-return-statements
     "PTH",      # all flake8-use-pathlib
