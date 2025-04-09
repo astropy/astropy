@@ -976,7 +976,9 @@ def test_local_data_obj(filename):
             assert f.read().rstrip() == b"CONTENT"
 
 
-@pytest.fixture(params=["invalid.dat.bz2", "invalid.dat.xz", "invalid.dat.gz", "invalid.dat.Z"])
+@pytest.fixture(
+    params=["invalid.dat.bz2", "invalid.dat.xz", "invalid.dat.gz", "invalid.dat.Z"]
+)
 def bad_compressed(request, tmp_path):
     # These contents have valid headers for their respective file formats, but
     # are otherwise malformed and invalid.
