@@ -98,6 +98,10 @@ class TestFLRW(FLRWTest):
         with pytest.raises(NotImplementedError):
             super().test_distance_broadcast(cosmo, method)
 
+    @pytest.mark.skip(reason="w(z) is abstract")
+    def test_comoving_distance_1arg_equal_to_2arg(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.luminosity_distance`."""
+
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy required for this test.")
     @pytest.mark.parametrize(
         ("args", "kwargs", "expected"),

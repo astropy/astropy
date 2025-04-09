@@ -1,0 +1,3 @@
+Comoving distances now accept an optional 2nd argument, where the two-argument form is
+the comoving distance between two redshifts. The one-argument form is the comoving
+distance from redshift 0 to the input redshift.
