@@ -1,2 +1,1 @@
-Fixed interval classes for ``MaskedArray``, ``Quantity``, and
-``masked_Quantity`` inputs.
+Fixed interval classes for masked input (``MaskedArray`` and ``MaskedNDArray``).
