@@ -9,6 +9,8 @@ import abc
 
 import numpy as np
 
+from astropy.utils.masked import get_data_and_mask
+
 from .transform import BaseTransform
 
 __all__ = [
@@ -64,15 +66,12 @@ class BaseInterval(BaseTransform):
         result : 1D ndarray
             The processed values.
         """
-        if isinstance(values, np.ma.MaskedArray):
-            # Get non-masked values as a 1D array
-            values = values.compressed()
-        else:
-            # Make sure values is a Numpy array
-            values = np.asarray(values)
+        data, mask = get_data_and_mask(np.asanyarray(values))
+        ok = np.isfinite(data)
+        if mask is not None:
+            ok &= ~mask
 
-        # Filter out invalid values (inf, nan)
-        return values[np.isfinite(values)]
+        return data[ok]
 
     def __call__(self, values, clip=True, out=None):
         """

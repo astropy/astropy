@@ -5,6 +5,7 @@ import pytest
 from numpy.testing import assert_allclose
 
 from astropy.utils import NumpyRNGContext
+from astropy.utils.masked import Masked
 from astropy.visualization.interval import (
     AsymmetricPercentileInterval,
     ManualInterval,
@@ -90,6 +91,12 @@ class TestIntervalMaskedArray(TestInterval):
     # Make sure intervals work with MaskedArray
     data = np.concatenate((np.linspace(-20.0, 60.0, 100), np.full(100, 1e6)))
     data = np.ma.MaskedArray(data, data > 1000)
+
+
+class TestIntervalMaskedNDArray(TestInterval):
+    # Make sure intervals work with MaskedArray
+    data = np.concatenate((np.linspace(-20.0, 60.0, 100), np.full(100, 1e6)))
+    data = Masked(data, data > 1000)
 
 
 def test_zscale():
