@@ -478,8 +478,16 @@ class FITS_rec(np.recarray):
         return data
 
     def __repr__(self):
+        # recarray.__repr__ hard-codes the name of the class, so we overwrite.
+        # The following is mostly a straight copy except for the name change
+        # and for treating using str to typeset integer -- the latter to fix
+        # the case where the integer columns are scaled (see gh-17583). Also,
+        # removed a branch for "if the user is playing strange game with dtypes".
+        #
+        # FIXME: recarray removes the "numpy.record" mention in the dtype repr,
+        # we could do the same in a future version
+
         repr_dtype = self.dtype
-        # FIXME: remove numpy.record in the dtype repr, as recarray?
         # if repr_dtype.type is np.record:
         #     repr_dtype = np.dtype((np.void, repr_dtype))
         prefix = "FITS_rec("
