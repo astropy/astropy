@@ -954,7 +954,7 @@ class TestFileFunctions(FitsTestCase):
         is not supported."""
         filename = self.temp("testname.fits.Z")
         h = fits.PrimaryHDU()
-        with pytest.raises(OSError):
+        with pytest.raises(OSError, match="mode not supported with LZW files"):
             h.writeto(filename)
 
     def test_open_zipped(self):

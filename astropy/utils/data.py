@@ -213,7 +213,7 @@ def get_readable_fileobj(
     """Yield a readable, seekable file-like object from a file or URL.
 
     This supports passing filenames, URLs, and readable file-like objects,
-    any of which can be compressed in gzip, bzip2, lzma (xz) or lzw if the
+    any of which can be compressed in gzip, bzip2, lzma (xz) or lzw (Z) if the
     appropriate compression libraries are provided by the Python installation.
 
     Notes

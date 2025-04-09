@@ -206,7 +206,7 @@ compressed with one of these utilities (e.g., a .fits.gz file).
 There are some limitations when working with compressed files. For example,
 with Zip files that contain multiple compressed files, only the first file will
 be accessible. Also bzip2 and lzma do not support the append or update access
-modes. LZW-compressed files do not support any writing modes (including append
+mode and LZW-compressed files do not support any writing modes (including append
 or update).
 
 When writing a file (e.g., with the :func:`writeto` function), compression will

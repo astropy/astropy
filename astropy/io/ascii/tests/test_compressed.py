@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy.io.ascii import read
 
@@ -41,6 +42,6 @@ def test_xz(filename):
 @pytest.mark.parametrize("filename", ["data/short.rdb.Z", "data/ipac.dat.Z"])
 def test_lzw(filename):
     t_comp = read(get_pkg_data_filename(filename))
-    t_uncomp = read(get_pkg_data_filename(filename.replace(".Z", "")))
+    t_uncomp = read(get_pkg_data_filename(filename.removesuffix(".Z")))
     assert t_comp.dtype.names == t_uncomp.dtype.names
-    assert np.all(t_comp.as_array() == t_uncomp.as_array())
+    assert_array_equal(t_comp.as_array(), t_uncomp.as_array())
