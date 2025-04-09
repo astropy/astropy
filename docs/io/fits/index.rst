@@ -199,13 +199,14 @@ Working with compressed files
 
 
 The :func:`open` function will seamlessly open FITS files that have been
-compressed with gzip, bzip2 or pkzip. Note that in this context we are talking
-about a FITS file that has been compressed with one of these utilities (e.g., a
-.fits.gz file).
+compressed with gzip, bzip2, pkzip or lzma. Note that in this context we are
+talking about a FITS file that has been compressed with one of these utilities
+(e.g., a .fits.gz file).
 
 There are some limitations when working with compressed files. For example,
 with Zip files that contain multiple compressed files, only the first file will
-be accessible. Also bzip2 does not support the append or update access modes.
+be accessible. Also bzip2 and lzma do not support the append or update access
+modes.
 
 When writing a file (e.g., with the :func:`writeto` function), compression will
 be determined based on the filename extension given, or the compression used in
