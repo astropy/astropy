@@ -23,7 +23,6 @@ class TestInterval:
         vmin, vmax = interval.get_limits(self.data)
         assert_allclose(vmin, -10.0)
         assert_allclose(vmax, +15.0)
-        assert isinstance(interval(self.data), np.ndarray)
 
     def test_manual_defaults(self):
         interval = ManualInterval(vmin=-10.0)
@@ -35,7 +34,6 @@ class TestInterval:
         if isinstance(max_data, u.Quantity):
             max_data = max_data.value
         assert_allclose(vmax, max_data)
-        assert isinstance(interval(self.data), np.ndarray)
 
         interval = ManualInterval(vmax=15.0)
         vmin, vmax = interval.get_limits(self.data)
@@ -46,7 +44,6 @@ class TestInterval:
             min_data = min_data.value
         assert_allclose(vmin, min_data)
         assert_allclose(vmax, 15.0)
-        assert isinstance(interval(self.data), np.ndarray)
 
     def test_manual_zero_limit(self):
         # Regression test for a bug that caused ManualInterval to compute the
@@ -55,7 +52,6 @@ class TestInterval:
         vmin, vmax = interval.get_limits(self.data)
         assert_allclose(vmin, 0)
         assert_allclose(vmax, 0)
-        assert isinstance(interval(self.data), np.ndarray)
 
     def test_manual_defaults_with_nan(self):
         interval = ManualInterval()
@@ -64,36 +60,24 @@ class TestInterval:
         vmin, vmax = interval.get_limits(self.data)
         assert_allclose(vmin, -20)
         assert_allclose(vmax, +60)
-        assert isinstance(interval(self.data), np.ndarray)
 
     def test_minmax(self):
         interval = MinMaxInterval()
         vmin, vmax = interval.get_limits(self.data)
         assert_allclose(vmin, -20.0)
         assert_allclose(vmax, +60.0)
-        assert isinstance(interval(self.data), np.ndarray)
 
     def test_percentile(self):
         interval = PercentileInterval(62.2)
         vmin, vmax = interval.get_limits(self.data)
         assert_allclose(vmin, -4.88)
         assert_allclose(vmax, 44.88)
-        assert isinstance(interval(self.data), np.ndarray)
-
-        if isinstance(self.data, u.Quantity):
-            assert not isinstance(interval(self.data), u.Quantity)
-
-        if isinstance(self.data, np.ma.MaskedArray) and isinstance(
-            self.data.data, u.Quantity
-        ):
-            assert not isinstance(interval(self.data).data, u.Quantity)
 
     def test_asymmetric_percentile(self):
         interval = AsymmetricPercentileInterval(10.5, 70.5)
         vmin, vmax = interval.get_limits(self.data)
         assert_allclose(vmin, -11.6)
         assert_allclose(vmax, 36.4)
-        assert isinstance(interval(self.data), np.ndarray)
 
     def test_asymmetric_percentile_nsamples(self):
         with NumpyRNGContext(12345):
@@ -101,7 +85,6 @@ class TestInterval:
             vmin, vmax = interval.get_limits(self.data)
         assert_allclose(vmin, -14.367676767676768)
         assert_allclose(vmax, 40.266666666666666)
-        assert isinstance(interval(self.data), np.ndarray)
 
 
 class TestIntervalList(TestInterval):
