@@ -32,6 +32,7 @@ from astropy.utils.compat.optional_deps import (
     HAS_CERTIFI,
     HAS_FSSPEC,
     HAS_LZMA,
+    HAS_UNCOMPRESSPY,
 )
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import find_current_module
@@ -212,7 +213,7 @@ def get_readable_fileobj(
     """Yield a readable, seekable file-like object from a file or URL.
 
     This supports passing filenames, URLs, and readable file-like objects,
-    any of which can be compressed in gzip, bzip2 or lzma (xz) if the
+    any of which can be compressed in gzip, bzip2, lzma (xz) or lzw if the
     appropriate compression libraries are provided by the Python installation.
 
     Notes
@@ -446,10 +447,30 @@ def get_readable_fileobj(
         else:
             fileobj_new.seek(0)
             fileobj = fileobj_new
+    elif signature[:2] == b"\x1f\x9d":  # LZW
+        if not HAS_UNCOMPRESSPY:
+            for fd in close_fds:
+                fd.close()
+            raise ModuleNotFoundError(
+                "The optional package uncompresspy is necessary for reading LZW"
+                " compressed files (.Z extension)."
+            )
+        import uncompresspy
 
-    # By this point, we have a file, io.FileIO, gzip.GzipFile, bz2.BZ2File
-    # or lzma.LZMAFile instance opened in binary mode (that is, read
-    # returns bytes).  Now we need to, if requested, wrap it in a
+        try:
+            fileobj_new = uncompresspy.LZWFile(fileobj)
+            fileobj_new.read(1)
+        except ValueError:
+            fileobj.seek(0)
+            fileobj_new.close()
+        else:
+            fileobj_new.seek(0)
+            close_fds.append(fileobj)
+            fileobj = fileobj_new
+
+    # By this point, we have a file, io.FileIO, gzip.GzipFile, bz2.BZ2File,
+    # lzma.LZMAFile or uncompresspy.LZWFile instance opened in binary mode (that
+    # is, read returns bytes). Now we need to, if requested, wrap it in a
     # io.TextIOWrapper so read will return unicode based on the
     # encoding parameter.
 
