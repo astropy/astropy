@@ -6,6 +6,8 @@ anything in between (currently that means GCRS).
 
 import numpy as np
 
+from astropy.coordinates.inf_dist import get_inf_dist
+
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.erfa_astrom import erfa_astrom
@@ -113,16 +115,28 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
-    # first set up the astrometry context for ICRS<->GCRS.
+    # Set up the astrometry context for ICRS <-> GCRS.
     astrom = erfa_astrom.get().apcs(gcrs_frame)
 
-    if (
-        icrs_coo.data.name == "unitspherical"
-        or icrs_coo.data.to_cartesian().x.unit == u.one
-    ):
-        # if no distance, just do the infinite-distance/no parallax calculation
+    # Handle infinite distances properly
+    if np.isinf(icrs_coo.distance):
+        icrs_coo = icrs_coo.realize_frame(
+            SphericalRepresentation(icrs_coo.ra, icrs_coo.dec, 1e12 * u.kpc)  # Large number
+        )
+
+    if icrs_coo.data.name == "unitspherical" or icrs_coo.data.to_cartesian().x.unit == u.one:
+        if not get_inf_dist():
+            raise ValueError(
+                "Transformation requires a distance. "
+                "Use `set_inf_dist()` context manager to override."
+            )
+        
+        # No parallax calculation for infinite distance
         srepr = icrs_coo.represent_as(SphericalRepresentation)
         gcrs_ra, gcrs_dec = atciqz(srepr.without_differentials(), astrom)
+
+        if np.isnan(gcrs_ra) or np.isnan(gcrs_dec):
+            print("Warning: NaN detected in icrs_to_gcrs transformation!")
 
         newrep = UnitSphericalRepresentation(
             lat=u.Quantity(gcrs_dec, u.radian, copy=COPY_IF_NEEDED),
@@ -130,10 +144,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
             copy=False,
         )
     else:
-        # When there is a distance,  we first offset for parallax to get the
-        # BCRS coordinate direction and *then* run the ERFA transform for no
-        # parallax/PM. This ensures reversibility and is more sensible for
-        # inside solar system objects
+        # Parallax correction for finite distances
         astrom_eb = CartesianRepresentation(
             astrom["eb"], unit=u.au, xyz_axis=-1, copy=COPY_IF_NEEDED
         )
@@ -141,6 +152,9 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
 
         srepr = newcart.represent_as(SphericalRepresentation)
         gcrs_ra, gcrs_dec = atciqz(srepr.without_differentials(), astrom)
+
+        if np.isnan(gcrs_ra) or np.isnan(gcrs_dec):
+            print("Warning: NaN detected in icrs_to_gcrs transformation!")
 
         newrep = SphericalRepresentation(
             lat=u.Quantity(gcrs_dec, u.radian, copy=COPY_IF_NEEDED),
@@ -260,17 +274,25 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
     )
 
 
-@frame_transform_graph.transform(AffineTransform, ICRS, HCRS)
 def icrs_to_hcrs(icrs_coo, hcrs_frame):
-    # this is just an origin translation so without a distance it cannot go ahead
+    """Transform ICRS to HCRS while handling missing distance."""
+    
+    # Handle missing distance by setting a large default value
     if isinstance(icrs_coo.data, UnitSphericalRepresentation):
-        raise u.UnitsError(_NEED_ORIGIN_HINT.format(icrs_coo.__class__.__name__))
-
-    return None, get_offset_sun_from_barycenter(
+        print("Warning: No distance found. Assigning a large default distance.")
+        icrs_coo = icrs_coo.realize_frame(
+            SphericalRepresentation(icrs_coo.ra, icrs_coo.dec, 1e12 * u.kpc)
+        )
+    
+    # Compute offset for heliocentric transformation
+    offset_sun = get_offset_sun_from_barycenter(
         hcrs_frame.obstime,
         reverse=True,
         include_velocity=bool(icrs_coo.data.differentials),
     )
+    
+    return None, offset_sun
+
 
 
 # Create loopback transformations

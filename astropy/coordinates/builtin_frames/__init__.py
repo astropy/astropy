@@ -51,6 +51,9 @@ from .icrs import ICRS
 from .itrs import ITRS
 from .skyoffset import SkyOffsetFrame
 from .supergalactic import Supergalactic
+from astropy.coordinates.inf_dist import set_inf_dist, get_inf_dist
+
+
 
 # isort: split
 # need to import transformations so that they get registered in the graph
