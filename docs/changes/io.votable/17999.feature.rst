@@ -1,0 +1,2 @@
+``CooSys`` VOTable elements now have a method ``to_astropy_frame_and_time`` that returns
+the corresponding astropy built-in frame and time, when possible.
