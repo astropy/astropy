@@ -6,6 +6,7 @@ import base64
 import codecs
 import gzip
 import io
+import json
 import os
 import re
 import urllib.request
@@ -19,6 +20,7 @@ from astropy import __version__ as astropy_version
 from astropy.io import fits
 from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 
@@ -1843,6 +1845,7 @@ class CooSys(SimpleElement):
 
     _attr_list = ["ID", "equinox", "epoch", "system", "refposition"]
     _element_name = "COOSYS"
+    _reference_frames = None
 
     def __init__(
         self,
@@ -1902,36 +1905,40 @@ class CooSys(SimpleElement):
     def system(self):
         """Specifies the type of coordinate system.
 
-        Valid choices are:
-
-          'eq_FK4', 'eq_FK5', 'ICRS', 'ecl_FK4', 'ecl_FK5', 'galactic',
-          'supergalactic', 'xy', 'barycentric', or 'geo_app'
+        Valid choices are given by `~astropy.io.votable.tree.CooSys.reference_frames`
         """
         return self._system
 
     @system.setter
     def system(self, system):
-        if system not in (
-            "eq_FK4",
-            "eq_FK5",
-            "ICRS",
-            "ecl_FK4",
-            "ecl_FK5",
-            "galactic",
-            "supergalactic",
-            "xy",
-            "barycentric",
-            "geo_app",
-        ):
-            if not self._config.get("version_1_5_or_later"):
-                # Starting in v1.5, system values come from the IVOA refframe vocabulary
-                # (http://www.ivoa.net/rdf/refframe).  For now we are not checking those values.
-                warn_or_raise(E16, E16, system, self._config, self._pos)
+        if system not in self.reference_frames:
+            warn_or_raise(E16, E16, system, self._config, self._pos)
         self._system = system
 
     @system.deleter
     def system(self):
         self._system = None
+
+    @property
+    def reference_frames(self):
+        """The list of reference frames recognized in the IVOA vocabulary.
+
+        This is described at http://www.ivoa.net/rdf/refframe
+
+        Returns
+        -------
+        set[str]
+            The labels of the IVOA reference frames.
+        """
+        # since VOTable version 1.5, the 'system' in COOSYS follow the RDF vocabulary
+        # for reference frames. If this is updated upstream, the json version can be
+        # downloaded at the bottom of the page and replaced here.
+        if self._reference_frames is None:
+            with open(
+                get_pkg_data_filename("data/ivoa-vocalubary_refframe-v20220222.json")
+            ) as f:
+                self._reference_frames = set(json.load(f)["terms"].keys())
+        return self._reference_frames
 
     @property
     def equinox(self):
@@ -1967,6 +1974,56 @@ class CooSys(SimpleElement):
     @epoch.deleter
     def epoch(self):
         self._epoch = None
+
+    def to_astropy_frame(self):
+        """Convert the coosys element into an astropy built-in frame.
+
+        This only reads the system and equinox attributes.
+
+        Returns
+        -------
+        `~astropy.coordinates.BaseCoordinateFrame`
+            An astropy built-in frame corresponding to the frame described by
+            the COOSYS element.
+
+        Examples
+        --------
+        >>> from astropy.io.votable.tree import CooSys
+        >>> coosys = CooSys(system="ICRS", epoch="J2020")
+        >>> # note that coosys elements also contain the epoch
+        >>> coosys.to_astropy_frame()
+        <ICRS Frame>
+
+        Notes
+        -----
+        If the correspondence is not straightforward, this method raises an error. In
+        that case, you can refer to the `IVOA reference frames definition
+        <http://www.ivoa.net/rdf/refframe>`_ and the list of `astropy's frames
+        <https://docs.astropy.org/en/stable/coordinates/frames.html>`_ and deal with the
+        conversion manually.
+        """
+        # the import has to be here due to circular dependencies issues
+        from astropy.coordinates import FK4, FK5, ICRS, AltAz, Galactic, Supergalactic
+
+        match_frames = {
+            "ICRS": ICRS(),
+            "FK4": FK4(equinox=self.equinox),
+            "FK5": FK5(equinox=self.equinox),
+            "eq_FK4": FK4(equinox=self.equinox),
+            "eq_FK5": FK5(equinox=self.equinox),
+            "GALACTIC": Galactic(),
+            "galactic": Galactic(),
+            "SUPER_GALACTIC": Supergalactic(),
+            "supergalactic": Supergalactic(),
+            "AZ_EL": AltAz(),
+        }
+
+        if self.system not in set(match_frames.keys()):
+            raise ValueError(
+                f"There is no direct correspondence between '{self.system}' and an "
+                "astropy frame. This method cannot return a frame."
+            )
+        return match_frames[self.system]
 
 
 class TimeSys(SimpleElement):
