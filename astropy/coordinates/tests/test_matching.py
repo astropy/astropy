@@ -164,6 +164,22 @@ def test_matching_method():
             [0.01745307, 4.0, 4.0000019, 4.00015421] * u.kpc,
             id="1.01_deg",
         ),
+        pytest.param(
+            [1.01, 1.01] * u.deg,
+            [0, 0, 1, 1],
+            [2, 3, 1, 2],
+            [1, 0, 0.1, 0.9] * u.deg,
+            [0.01745307, 4.0, 4.0000019, 4.00015421] * u.kpc,
+            id="1.01_deg_as_multiple",
+        ),
+        pytest.param(
+            [1.01, 0.05] * u.deg,
+            [0, 0],
+            [2, 3],
+            [1, 0] * u.deg,
+            [0.01745307, 4.0] * u.kpc,
+            id="multiple",
+        ),
         pytest.param(0.05 * u.deg, [0], [3], [0] * u.deg, [4] * u.kpc, id="0.05_deg"),
     ],
 )
@@ -190,6 +206,22 @@ def test_search_around_sky(
             [0, 1, 2, 3],
             [3, 2, 1, 1.9] * u.deg,
             [0.0523539, 0.03490481, 0.01745307, 0.16579868] * u.kpc,
+            id="1_kpc",
+        ),
+        pytest.param(
+            [1, 1] * u.kpc,
+            [0, 0, 0, 1],
+            [0, 1, 2, 3],
+            [3, 2, 1, 1.9] * u.deg,
+            [0.0523539, 0.03490481, 0.01745307, 0.16579868] * u.kpc,
+            id="1_kpc",
+        ),
+        pytest.param(
+            [1, 0.05] * u.kpc,
+            [0, 0, 0],
+            [0, 1, 2],
+            [3, 2, 1] * u.deg,
+            [0.0523539, 0.03490481, 0.01745307] * u.kpc,
             id="1_kpc",
         ),
         pytest.param(
@@ -338,6 +370,21 @@ def test_search_around_scalar():
     with pytest.raises(ValueError) as excinfo:
         cat.search_around_3d(target, Angle("2d"))
     assert "search_around_3d" in str(excinfo.value)
+
+
+def test_search_around_multidimensional():
+    # search around methods only accept 1-dimensional coordinates, see #17824
+    coo = SkyCoord([[[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]], unit="deg")
+    with pytest.raises(
+        ValueError,
+        match=("search_around_3d only supports 1-dimensional coordinate arrays.*"),
+    ):
+        coo.search_around_3d(coo, Angle("1d"))
+    with pytest.raises(
+        ValueError,
+        match=("search_around_sky only supports 1-dimensional coordinate arrays.*"),
+    ):
+        coo.search_around_sky(coo, Angle("1d"))
 
 
 def test_match_catalog_empty():
