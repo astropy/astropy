@@ -31,7 +31,7 @@ import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
 from astropy.tests.helper import CI, IS_CRON
-from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA, HAS_UNCOMPRESSPY
 from astropy.utils.data import (
     CacheDamaged,
     CacheMissingWarning,
@@ -953,11 +953,16 @@ def test_get_invalid(package):
 # Package data functions
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.parametrize(
-    "filename", ["local.dat", "local.dat.gz", "local.dat.bz2", "local.dat.xz"]
+    "filename",
+    ["local.dat", "local.dat.gz", "local.dat.bz2", "local.dat.xz", "local.dat.Z"],
 )
 def test_local_data_obj(filename):
-    if (not HAS_BZ2 and "bz2" in filename) or (not HAS_LZMA and "xz" in filename):
-        with pytest.raises(ValueError, match=r" format files are not supported"):
+    if (
+        (not HAS_BZ2 and "bz2" in filename)
+        or (not HAS_LZMA and "xz" in filename)
+        or (not HAS_UNCOMPRESSPY and "Z" in filename)
+    ):
+        with pytest.raises(ModuleNotFoundError):
             with get_pkg_data_fileobj(
                 os.path.join("data", filename), encoding="binary"
             ) as f:
@@ -971,13 +976,16 @@ def test_local_data_obj(filename):
             assert f.read().rstrip() == b"CONTENT"
 
 
-@pytest.fixture(params=["invalid.dat.bz2", "invalid.dat.xz", "invalid.dat.gz"])
+@pytest.fixture(
+    params=["invalid.dat.bz2", "invalid.dat.xz", "invalid.dat.gz", "invalid.dat.Z"]
+)
 def bad_compressed(request, tmp_path):
     # These contents have valid headers for their respective file formats, but
     # are otherwise malformed and invalid.
     bz_content = b"BZhinvalid"
     gz_content = b"\x1f\x8b\x08invalid"
     xz_content = b"\xfd7zXZ\x00invalid"
+    lzw_content = b"\x1f\x9d\x90invalid"
 
     datafile = tmp_path / request.param
     filename = str(datafile)
@@ -988,6 +996,8 @@ def bad_compressed(request, tmp_path):
         contents = gz_content
     elif filename.endswith(".xz"):
         contents = xz_content
+    elif filename.endswith(".Z"):
+        contents = lzw_content
     else:
         contents = "invalid"
 
@@ -1000,6 +1010,7 @@ def bad_compressed(request, tmp_path):
 def test_local_data_obj_invalid(bad_compressed):
     is_bz2 = bad_compressed.endswith(".bz2")
     is_xz = bad_compressed.endswith(".xz")
+    is_lzw = bad_compressed.endswith(".Z")
 
     # Note, since these invalid files are created on the fly in order to avoid
     # problems with detection by antivirus software
@@ -1008,10 +1019,12 @@ def test_local_data_obj_invalid(bad_compressed):
     # they're not local anymore: they just live in a temporary directory
     # created by pytest. However, we can still use get_readable_fileobj for the
     # test.
-    if (not HAS_BZ2 and is_bz2) or (not HAS_LZMA and is_xz):
-        with pytest.raises(
-            ModuleNotFoundError, match=r"does not provide the [lb]z[2m]a? module\."
-        ):
+    if (
+        (not HAS_BZ2 and is_bz2)
+        or (not HAS_LZMA and is_xz)
+        or (not HAS_UNCOMPRESSPY and is_lzw)
+    ):
+        with pytest.raises(ModuleNotFoundError):
             with get_readable_fileobj(bad_compressed, encoding="binary") as f:
                 f.read()
     else:
@@ -1200,6 +1213,10 @@ def test_data_noastropy_fallback(monkeypatch):
         pytest.param(
             "unicode.txt.xz",
             marks=pytest.mark.xfail(not HAS_LZMA, reason="no lzma support"),
+        ),
+        pytest.param(
+            "unicode.txt.Z",
+            marks=pytest.mark.xfail(not HAS_UNCOMPRESSPY, reason="no lzw support"),
         ),
     ],
 )

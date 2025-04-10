@@ -37,6 +37,7 @@ _optional_deps = [
     "scipy",
     "skyfield",
     "sortedcontainers",
+    "uncompresspy",
     "lzma",  # stdlib
     "pyarrow",
     "pytest_mpl",
