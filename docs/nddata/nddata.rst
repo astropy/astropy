@@ -267,11 +267,10 @@ It is also possible to convert between uncertainty types::
 Covariance
 ----------
 
-A `~astropy.nddata.Covariance` uncertainty type is also implemented, in addition
-to the uncertainty types listed above.  However, its functionality is generally
-limited to construction and storage of sparse covariance matrices.  Additional
-functionality will be implemented as requested.  See :ref:`nddata-covariance`
-for more description and example usage.
+A `~astropy.nddata.Covariance` uncertainty type is also implemented; however,
+its functionality is generally limited to construction and storage of sparse
+covariance matrices.  Additional functionality will be implemented as requested.
+See :ref:`nddata-covariance` for more description and example usage.
 
 WCS
 ===

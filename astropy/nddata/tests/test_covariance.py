@@ -135,7 +135,7 @@ def test_quantity():
 
     assert isinstance(q, units.Quantity), "Wrong type"
     assert q.unit == cov.unit, "Unit mismatch"
-    assert np.array_equal(q.value, cov.toarray()), "Array mismatch"
+    assert np.array_equal(q.value, cov.to_dense()), "Array mismatch"
 
 
 @scipy_required
@@ -152,7 +152,7 @@ def test_init():
 
     # Directly access the covariance array, convert it to a dense matrix, and
     # check it against the original array.
-    assert np.array_equal(cov.toarray(), c), "Ingested array does not match input"
+    assert np.array_equal(cov.to_dense(), c), "Ingested array does not match input"
 
 
 @scipy_required
@@ -266,13 +266,13 @@ def test_copy():
     _cov = cov.copy()
     assert cov is not _cov, "Objects have the same reference"
     assert cov._rho is not _cov._rho, "Object arrays have the same reference"
-    assert np.array_equal(cov.toarray(), _cov.toarray()), "Arrays should be equal"
+    assert np.array_equal(cov.to_dense(), _cov.to_dense()), "Arrays should be equal"
 
 
 @scipy_required
 def test_tbls():
     cov = covariance.Covariance(array=covariance.csr_matrix(mock_cov()))
-    var, correl = cov.to_tables()
+    var, correl = cov.to_table()
     assert isinstance(var, np.ndarray), "variance should be output as an array"
     assert isinstance(correl, Table), "correlation data should be output as a table"
     assert len(correl) == np.sum(np.triu(mock_cov()) > 0), (
@@ -281,14 +281,14 @@ def test_tbls():
     assert len(correl.colnames) == 3, "Incorrect number of columns"
     assert correl["INDXI"].ndim == 1, "Incorrect shape for index array"
 
-    _cov = covariance.Covariance.from_tables(var, correl)
-    assert np.array_equal(cov.toarray(), _cov.toarray()), (
+    _cov = covariance.Covariance.from_table(var, correl)
+    assert np.array_equal(cov.to_dense(), _cov.to_dense()), (
         "Bad convert/revert from tables"
     )
 
     raw_shape, c = mock_cov_3d()
     cov = covariance.Covariance(array=covariance.csr_matrix(c), raw_shape=raw_shape)
-    var, correl = cov.to_tables()
+    var, correl = cov.to_table()
     assert len(correl) == np.sum(np.triu(c) > 0), "Incorrect number of table entries"
     assert len(correl.colnames) == 3, "Incorrect number of columns"
     assert correl["INDXI"].ndim == 2, "Incorrect shape for index array"
@@ -296,8 +296,8 @@ def test_tbls():
         "Dimensionality mismatch between var and indices"
     )
 
-    _cov = covariance.Covariance.from_tables(var, correl)
-    assert np.array_equal(cov.toarray(), _cov.toarray()), (
+    _cov = covariance.Covariance.from_table(var, correl)
+    assert np.array_equal(cov.to_dense(), _cov.to_dense()), (
         "Bad convert/revert from tables"
     )
 
@@ -317,7 +317,7 @@ def test_samples():
     covar = covariance.Covariance.from_samples(s.T, cov_tol=0.1)
 
     # Check the values are very nearly the same as the input
-    assert np.all(np.absolute(c - covar.toarray()) < 0.02), (
+    assert np.all(np.absolute(c - covar.to_dense()) < 0.02), (
         "Covariances are too different"
     )
 
@@ -351,7 +351,7 @@ def test_mult():
     y = np.dot(t, x)
 
     covar = covariance.Covariance.from_matrix_multiplication(t, c)
-    assert np.array_equal(covar.toarray(), np.identity(3)), (
+    assert np.array_equal(covar.to_dense(), np.identity(3)), (
         "Result should be uncorrelated."
     )
 
@@ -367,7 +367,9 @@ def test_mult():
     )
     y = np.dot(t, x)
     covar = covariance.Covariance.from_matrix_multiplication(t, c)
-    assert np.array_equal(covar.toarray(), _c), "Result should have off-diagonals = 0.2"
+    assert np.array_equal(covar.to_dense(), _c), (
+        "Result should have off-diagonals = 0.2"
+    )
 
     # Correlated by 0.5 and 0.2
     t = np.zeros((3, 10), dtype=float)
@@ -383,7 +385,7 @@ def test_mult():
     )
     y = np.dot(t, x)
     covar = covariance.Covariance.from_matrix_multiplication(t, c)
-    assert np.array_equal(covar.toarray(), _c), (
+    assert np.array_equal(covar.to_dense(), _c), (
         "Result should have off-diagonals = 0.5,0.2"
     )
 
@@ -392,7 +394,7 @@ def test_mult():
 def test_var():
     var = np.ones(3, dtype=float)
     covar = covariance.Covariance.from_variance(var)
-    assert np.array_equal(covar.toarray(), np.identity(3)), (
+    assert np.array_equal(covar.to_dense(), np.identity(3)), (
         "Result should be an identity matrix"
     )
 
@@ -426,7 +428,7 @@ def test_sub_matrix():
     assert isinstance(sub_cov, covariance.Covariance), (
         "Submatrix should be a Covariance instance"
     )
-    assert np.array_equal(sub_cov.toarray(), c[:5, :5]), "Bad submatrix"
+    assert np.array_equal(sub_cov.to_dense(), c[:5, :5]), "Bad submatrix"
 
     # 2D
     raw_shape, c = mock_cov_2d()
@@ -462,12 +464,12 @@ def test_correl():
     # Set two covariance arrays with different variances but the same correlations
     cov1 = covariance.Covariance(array=c * 4.0)
     cov2 = covariance.Covariance(array=c * 2.0)
-    rho1 = cov1.full(correlation=True)
+    rho1 = cov1.to_sparse(correlation=True)
     # Should be the same as the input
     assert np.allclose(rho1.toarray(), c), "Correlation matrix changed"
 
     # Should match cov1
-    rho2 = cov2.full(correlation=True)
+    rho2 = cov2.to_sparse(correlation=True)
     assert np.allclose(rho1.toarray(), rho2.toarray()), (
         "Correlation matrices should be identical"
     )
@@ -481,8 +483,8 @@ def test_newvar():
     var = np.full(c.shape[0], 4.0, dtype=float)
     cov2 = cov1.apply_new_variance(var)
     assert np.allclose(var, cov2._var), "Variance does not match request"
-    var2, rho2 = covariance.Covariance.to_correlation(cov2.toarray())
-    assert np.allclose(cov1.toarray(), rho2.toarray()), (
+    var2, rho2 = covariance.Covariance.to_correlation(cov2.to_dense())
+    assert np.allclose(cov1.to_dense(), rho2.toarray()), (
         "Correlation matrices do not match"
     )
 
@@ -493,15 +495,15 @@ def test_array():
     c = mock_cov()
     covar = covariance.Covariance.from_array(c)
     # Should be the same as the identity matrix.
-    assert np.array_equal(covar.toarray(), c), "Arrays should be identical"
+    assert np.array_equal(covar.to_dense(), c), "Arrays should be identical"
 
     # Test rho tolerance (cov tolerance is test elsewhere)
     rho_tol = 0.3
     covar = covariance.Covariance.from_array(c, rho_tol=rho_tol)
-    assert not np.array_equal(covar.toarray(), c), (
+    assert not np.array_equal(covar.to_dense(), c), (
         "Tolerance should have removed values"
     )
-    _c = covar.toarray()
+    _c = covar.to_dense()
     assert not np.any((_c > 0) & (_c < rho_tol)), (
         "Array includes elements below tolerance"
     )
@@ -539,22 +541,12 @@ def test_io():
         assert len(hdu["CORREL"].data["INDXI"].shape) == 1, "Column should only be 1D"
         assert hdu["CORREL"].header["BUNIT"].strip() == "km2", "Unit wrong"
 
-    with pytest.raises(ValueError):
-        # Must define extension with correlation matrix
-        _cov = covariance.Covariance.from_fits(ofile, covar_ext=None)
-
     # Read
-    _cov = covariance.Covariance.from_fits(ofile)
+    _cov = covariance.Covariance.read(ofile)
     # Arrays should be the same
-    assert np.allclose(cov.toarray(), _cov.toarray()), "Bad 1D I/O"
+    assert np.allclose(cov.to_dense(), _cov.to_dense()), "Bad 1D I/O"
     # Units should be the same
     assert cov.unit == _cov.unit, "Units changed"
-
-    # Read but ignore the variance extension
-    _cov = covariance.Covariance.from_fits(ofile, var_ext=None)
-    # This sets the variance to unity, so this should be the same as the
-    # original covariance returned by mock_cov()
-    assert np.array_equal(_cov.toarray(), mock_cov()), "Bad read"
 
     # Clean-up
     ofile.unlink()
@@ -572,8 +564,8 @@ def test_io():
         assert len(hdu["CORREL"].data["INDXI"].shape) == 2, "Column should be ND"
         assert hdu["CORREL"].data["INDXI"].shape[1] == 3, "Data is 3D"
     # Read
-    _cov = covariance.Covariance.from_fits(ofile)
+    _cov = covariance.Covariance.read(ofile)
     # Arrays should be the same
-    assert np.allclose(cov.toarray(), _cov.toarray()), "Bad ND I/O"
+    assert np.allclose(cov.to_dense(), _cov.to_dense()), "Bad ND I/O"
     # Clean-up
     ofile.unlink()

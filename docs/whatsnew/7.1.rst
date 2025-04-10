@@ -51,8 +51,8 @@ and/or string data types, but not ``QTable`` objects or other data types.
 Constructing, accessing, and storing covariance matrices for N-dimensional data
 ===============================================================================
 
-We provide a new utility class that provides, as yet, basic functionality for
-covariance matrices associated `~astropy.nddata.NDData` objects via the new
+We provide a new utility class that provides basic functionality for covariance
+matrices associated `~astropy.nddata.NDData` objects via the new
 `~astropy.nddata.Covariance` class.  See the full :ref:`nddata-covariance`
 documentation.
 
