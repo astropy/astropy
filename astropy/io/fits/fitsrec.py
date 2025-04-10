@@ -481,9 +481,30 @@ class FITS_rec(np.recarray):
         return data
 
     def __repr__(self):
-        # Force use of the normal ndarray repr (rather than the new
-        # one added for recarray in Numpy 1.10) for backwards compat
-        return np.ndarray.__repr__(self)
+        # recarray.__repr__ hard-codes the name of the class, so we overwrite.
+        # The following is mostly a straight copy except for the name change
+        # and for treating using str to typeset integer -- the latter to fix
+        # the case where the integer columns are scaled (see gh-17583). Also,
+        # removed a branch for "if the user is playing strange game with dtypes".
+        #
+        # FIXME: recarray removes the "numpy.record" mention in the dtype repr,
+        # we could do the same in a future version
+
+        repr_dtype = self.dtype
+        # if repr_dtype.type is np.record:
+        #     repr_dtype = np.dtype((np.void, repr_dtype))
+        prefix = "FITS_rec("
+        fmt = "FITS_rec(%s,%sdtype=%s)"
+        # get data/shape string. logic taken from numeric.array_repr
+        if self.size > 0 or self.shape == (0,):
+            lst = np.array2string(
+                self, separator=", ", prefix=prefix, suffix=",", formatter=dict(int=str)
+            )
+        else:
+            # show zero-length shape unless it is (0,)
+            lst = "[], shape=%s" % (repr(self.shape),)  # noqa: UP031
+        lf = "\n" + " " * len(prefix)
+        return fmt % (lst, lf, repr_dtype)
 
     def __getattribute__(self, attr):
         # First, see if ndarray has this attr, and return it if so. Note that
