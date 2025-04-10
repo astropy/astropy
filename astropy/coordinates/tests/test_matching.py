@@ -372,6 +372,21 @@ def test_search_around_scalar():
     assert "search_around_3d" in str(excinfo.value)
 
 
+def test_search_around_multidimensional():
+    # search around methods only accept 1-dimensional coordinates, see #17824
+    coo = SkyCoord([[[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]], unit="deg")
+    with pytest.raises(
+        ValueError,
+        match=("search_around_3d only supports 1-dimensional coordinate arrays.*"),
+    ):
+        coo.search_around_3d(coo, Angle("1d"))
+    with pytest.raises(
+        ValueError,
+        match=("search_around_sky only supports 1-dimensional coordinate arrays.*"),
+    ):
+        coo.search_around_sky(coo, Angle("1d"))
+
+
 def test_match_catalog_empty():
     sc1 = SkyCoord(1, 2, unit="deg")
     cat0 = SkyCoord([], [], unit="deg")

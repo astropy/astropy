@@ -208,12 +208,12 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree="kdtree_3d"):
     ----------
     coords1 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The first set of coordinates, which will be searched for matches from
-        ``coords2`` within ``seplimit``.  Cannot be a scalar coordinate.
+        ``coords2`` within ``seplimit``.  Must be a one-dimensional coordinate array.
     coords2 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The second set of coordinates, which will be searched for matches from
-        ``coords1`` within ``seplimit``.  Cannot be a scalar coordinate.
+        ``coords1`` within ``seplimit``.  Must be a one-dimensional coordinate array.
     distlimit : `~astropy.units.Quantity` ['length']
-        The physical radius to search within. It should be a single radius or have the
+        The physical radius to search within. It should be broadcastable to the
         same shape as ``coords1``.
     storekdtree : bool or str, optional
         If a string, will store the KD-Tree used in the search with the name
@@ -251,13 +251,11 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree="kdtree_3d"):
     considered an implementation detail, though, so it could change in a future
     release.
     """
-    if coords1.isscalar or coords2.isscalar:
-        raise ValueError(
-            "One of the inputs to search_around_3d is a scalar. search_around_3d is"
-            " intended for use with array coordinates, not scalars.  Instead, use"
-            " ``coord1.separation_3d(coord2) < distlimit`` to find the coordinates near"
-            " a scalar coordinate."
-        )
+    if coords1.ndim != 1 or coords2.ndim != 1:
+        msg = "search_around_3d only supports 1-dimensional coordinate arrays."
+        if coords1.isscalar or coords2.isscalar:
+            msg += " With a scalar array, use ``coord1.separation(coord2) < seplimit``."
+        raise ValueError(msg)
 
     kdt2 = _get_cartesian_kdtree(coords2, storekdtree)
     cunit = coords2.cartesian.x.unit
@@ -303,13 +301,13 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree="kdtree_sky"):
     ----------
     coords1 : coordinate-like
         The first set of coordinates, which will be searched for matches from
-        ``coords2`` within ``seplimit``. Cannot be a scalar coordinate.
+        ``coords2`` within ``seplimit``. Must be a one-dimensional coordinate array.
     coords2 : coordinate-like
         The second set of coordinates, which will be searched for matches from
-        ``coords1`` within ``seplimit``. Cannot be a scalar coordinate.
+        ``coords1`` within ``seplimit``. Must be a one-dimensional coordinate array.
     seplimit : `~astropy.units.Quantity` ['angle']
-        The on-sky separation to search within. It should be a single separation or
-        have the same shape as ``coords1``.
+        The on-sky separation to search within. It should be broadcastable to the same
+        shape as ``coords1``.
     storekdtree : bool or str, optional
         If a string, will store the KD-Tree used in the search with the name
         ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
@@ -343,13 +341,11 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree="kdtree_sky"):
     considered an implementation detail, though, so it could change in a future
     release.
     """
-    if coords1.isscalar or coords2.isscalar:
-        raise ValueError(
-            "One of the inputs to search_around_sky is a scalar. search_around_sky is"
-            " intended for use with array coordinates, not scalars.  Instead, use"
-            " ``coord1.separation(coord2) < seplimit`` to find the coordinates near a"
-            " scalar coordinate."
-        )
+    if coords1.ndim != 1 or coords2.ndim != 1:
+        msg = "search_around_sky only supports 1-dimensional coordinate arrays."
+        if coords1.isscalar or coords2.isscalar:
+            msg += " With a scalar array, use ``coord1.separation(coord2) < seplimit``."
+        raise ValueError(msg)
 
     # we convert coord1 to match coord2's frame.  We do it this way
     # so that if the conversion does happen, the KD tree of coord2 at least gets
