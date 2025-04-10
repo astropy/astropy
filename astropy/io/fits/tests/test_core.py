@@ -1476,15 +1476,13 @@ class TestFileFunctions(FitsTestCase):
 
         return lzmafile
 
-    def _make_lzw_file(self, filename=None):
-        lzw_file = self.data("lzw.fits.Z")
-        if filename is not None:
-            temp_file = self.temp(filename)
-            with open(lzw_file, "rb") as f1:
-                with open(temp_file, "wb") as f2:
-                    f2.write(f1.read())
-            return temp_file
-        return lzw_file
+    def _make_lzw_file(self, new_filename=None):
+        lzwfile = "lzw.fits.Z"
+        self.copy_file(lzwfile)
+        if new_filename is not None:
+            shutil.move(self.temp(lzwfile), self.temp(new_filename))
+            return self.temp(new_filename)
+        return self.temp(lzwfile)
 
     def test_simulateonly(self):
         """Write to None simulates writing."""
