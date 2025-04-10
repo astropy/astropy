@@ -1292,10 +1292,10 @@ class SkyCoord(MaskableShapedLikeNDArray):
         ----------
         searcharoundcoords : coordinate-like
             The coordinates to search around to try to find matching points in
-            this |SkyCoord|. This should be an object with array coordinates,
-            not a scalar coordinate object.
+            this |SkyCoord|. This must be a one-dimensional coordinate array.
         seplimit : `~astropy.units.Quantity` ['angle']
-            The on-sky separation to search within.
+            The on-sky separation to search within. It should be broadcastable to the
+            same shape as ``searcharoundcoords``.
 
         Returns
         -------
@@ -1352,10 +1352,10 @@ class SkyCoord(MaskableShapedLikeNDArray):
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
             The coordinates to search around to try to find matching points in
-            this |SkyCoord|. This should be an object with array coordinates,
-            not a scalar coordinate object.
+            this |SkyCoord|. This must be a one-dimensional coordinate array.
         distlimit : `~astropy.units.Quantity` ['length']
-            The physical radius to search within.
+            The physical radius to search within. It should be broadcastable to the same
+            shape as ``searcharoundcoords``.
 
         Returns
         -------
