@@ -999,7 +999,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             mask = masks[0]  # Reduceat doesn't take where parameter
             indices = unmasked[1]
             axis = kwargs.get("axis", 0)
-            
+
             if mask is False:
                 # No masking needed
                 result = getattr(ufunc, method)(*unmasked, **kwargs)
@@ -1008,42 +1008,42 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 # We have masked elements
                 data_copy = unmasked[0].copy()
                 data_copy[mask] = 0.0  # Neutral value
-                
+
                 # Call reduceat on modified data
                 result = getattr(ufunc, method)(data_copy, indices, **kwargs)
-                
+
                 # Create output mask with proper shape
                 shape_out = list(data_copy.shape)
                 shape_out[axis] = len(indices)
                 result_mask = np.zeros(shape_out, dtype=bool) if out_mask is None else out_mask
-                
+
                 # Create a view where the axis dimension is first
                 mask_view = np.moveaxis(mask, axis, 0)
-                
+
                 # Create a mask array where each element represents a chunk
                 # This will be True where all elements in a chunk are masked
                 chunk_masks = []
-                
+
                 for i in range(len(indices)):
                     start_idx = indices[i]
-                    end_idx = indices[i+1] if i < len(indices)-1 else mask_view.shape[0]
-                    
+                    end_idx = indices[i + 1] if i < len(indices) - 1 else mask_view.shape[0]
+
                     if end_idx <= start_idx:
                         # Empty chunk - can't be fully masked
                         chunk_mask = np.zeros(mask_view.shape[1:], dtype=bool)
                     else:
                         # For each chunk, use logical_and.reduce to check if all elements are masked
                         chunk_mask = np.logical_and.reduce(mask_view[start_idx:end_idx], axis=0)
-                    
+
                     # Store the mask for this chunk
                     chunk_masks.append(chunk_mask)
-                
+
                 # Now set the result mask
                 for i, chunk_mask in enumerate(chunk_masks):
                     result_mask_slice = [slice(None)] * result_mask.ndim
                     result_mask_slice[axis] = i
                     result_mask[tuple(result_mask_slice)] = chunk_mask
-                
+
                 mask = result_mask
 
         elif method == "at":  # pragma: no cover
