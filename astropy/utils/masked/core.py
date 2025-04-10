@@ -1022,7 +1022,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 if out_mask is not None:
                     out_mask[...] = False
                 return result
-        
+            
             # Zero-fill masked entries in data before reduction
             data_copy = unmasked[0].copy()
             if mask is not False:
