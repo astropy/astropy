@@ -1052,16 +1052,14 @@ class Section:
     def _getdata(self, keys):
         for idx, (key, axis) in enumerate(zip(keys, self.hdu.shape)):
             if isinstance(key, slice):
-                ks = range(*key.indices(axis))
+                data = [self[keys[:idx] + (k,) + keys[idx + 1 :]] for k in range(*key.indices(axis))]
                 break
 
             if isiterable(key):
                 # Handle both integer and boolean arrays.
-                ks = np.arange(axis, dtype=int)[key]
+                data = [self[keys[:idx] + (k,) + keys[idx + 1 :]] for k in np.arange(axis, dtype=int)[key]]
                 break
             # This should always break at some point if _getdata is called.
-
-        data = [self[keys[:idx] + (k,) + keys[idx + 1 :]] for k in ks]
 
         if any(isinstance(key, slice) or isiterable(key) for key in keys[idx + 1 :]):
             # data contains multidimensional arrays; combine them.
