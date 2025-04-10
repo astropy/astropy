@@ -994,55 +994,86 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 return NotImplemented
 
         elif method == "reduceat":
-            mask = masks[0]  # Reduceat doesn't take where parameter
+            # Extract input mask - reduceat doesn't directly take where parameter
+            mask = masks[0]  # Just use the first mask directly
             indices = unmasked[1]
             axis = kwargs.get("axis", 0)
-
-            if mask is False:
-                # No masking needed
-                result = getattr(ufunc, method)(*unmasked, **kwargs)
-                mask = False if out_mask is None else out_mask
+            
+            # Extract where parameter but don't pass it to reduceat
+            where_unmasked = kwargs.pop("where", True)
+            where_mask = None
+            
+            if where_unmasked is not True:
+                # Handle masked or partial where
+                where_unmasked, where_mask = get_data_and_mask(where_unmasked)
+            
+            # Get out parameter
+            if out_mask is not None:
+                result_mask = out_mask
             else:
-                # We have masked elements
-                data_copy = unmasked[0].copy()
-                data_copy[mask] = 0.0  # Neutral value
-
-                # Call reduceat on modified data
-                result = getattr(ufunc, method)(data_copy, indices, **kwargs)
-
                 # Create output mask with proper shape
-                shape_out = list(data_copy.shape)
+                shape_out = list(unmasked[0].shape)
                 shape_out[axis] = len(indices)
-                result_mask = np.zeros(shape_out, dtype=bool) if out_mask is None else out_mask
-
-                # Create a view where the axis dimension is first
-                mask_view = np.moveaxis(mask, axis, 0)
-
-                # Create a mask array where each element represents a chunk
-                # This will be True where all elements in a chunk are masked
-                chunk_masks = []
-
-                for i in range(len(indices)):
-                    start_idx = indices[i]
-                    end_idx = indices[i + 1] if i < len(indices) - 1 else mask_view.shape[0]
-
-                    if end_idx <= start_idx:
-                        # Empty chunk - can't be fully masked
-                        chunk_mask = np.zeros(mask_view.shape[1:], dtype=bool)
-                    else:
-                        # For each chunk, use logical_and.reduce to check if all elements are masked
-                        chunk_mask = np.logical_and.reduce(mask_view[start_idx:end_idx], axis=0)
-
-                    # Store the mask for this chunk
-                    chunk_masks.append(chunk_mask)
-
-                # Now set the result mask
-                for i, chunk_mask in enumerate(chunk_masks):
-                    result_mask_slice = [slice(None)] * result_mask.ndim
-                    result_mask_slice[axis] = i
-                    result_mask[tuple(result_mask_slice)] = chunk_mask
-
-                mask = result_mask
+                result_mask = np.zeros(shape_out, dtype=bool)
+            
+            # Handle unmasked data with no processing needed
+            if mask is False and where_mask is None and where_unmasked is True:
+                result = getattr(ufunc, method)(*unmasked, **kwargs)
+                if out_mask is not None:
+                    out_mask[...] = False
+                return result
+        
+            # Zero-fill masked entries in data before reduction
+            data_copy = unmasked[0].copy()
+            if mask is not False:
+                data_copy[mask] = 0.0  # Or neutral element for ufunc
+            
+            # Apply where to data before reduction if needed
+            if where_unmasked is not True:
+                where_zeros = np.zeros_like(data_copy)
+                np.copyto(data_copy, where_zeros, where=~where_unmasked)
+            
+            # Call reduceat without where parameter
+            result = getattr(ufunc, method)(data_copy, indices, **kwargs)
+            
+            # Process each chunk to determine which output elements should be masked
+            mask_view = np.moveaxis(mask if mask is not False else np.zeros(data_copy.shape, dtype=bool), axis, 0)
+            
+            # Apply where to mask if needed
+            if where_unmasked is not True:
+                where_view = np.moveaxis(~where_unmasked, axis, 0)
+                # Combine mask with where
+                if mask is not False:
+                    mask_view = mask_view | where_view
+                else:
+                    mask_view = where_view
+            
+            if where_mask is not None:
+                where_mask_view = np.moveaxis(where_mask, axis, 0)
+                mask_view = mask_view | where_mask_view
+            
+            # Process each chunk
+            for i in range(len(indices)):
+                start_idx = indices[i]
+                end_idx = indices[i+1] if i < len(indices)-1 else mask_view.shape[0]
+                
+                # Skip empty chunks
+                if end_idx <= start_idx:
+                    continue
+                
+                # Check if all elements in chunk are masked
+                chunk_mask = mask_view[start_idx:end_idx]
+                
+                if chunk_mask.shape[0] > 0:  # Only if chunk has elements
+                    # Use logical_and to check if all elements are masked
+                    is_fully_masked = np.logical_and.reduce(chunk_mask, axis=0)
+                    
+                    # Set the result mask for this output position
+                    out_slice = [slice(None)] * result_mask.ndim
+                    out_slice[axis] = i
+                    result_mask[tuple(out_slice)] = is_fully_masked
+            
+            mask = result_mask
 
         elif method == "at":  # pragma: no cover
             raise NotImplementedError("masked instances cannot yet deal with 'at'.")
