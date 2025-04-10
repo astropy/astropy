@@ -17,7 +17,7 @@ from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 class ScaleFactor:
     """The object has attributes and methods for computing the cosmological scale factor.
 
-    The scale factor is defined as :math:`a = 1 / (1 + z)`.
+    The scale factor is defined as :math:`a = a_0 / (1 + z)`.
 
     """
 
@@ -31,13 +31,13 @@ class ScaleFactor:
         convenient number at the redshift of interest for that paper. Explicitly
         using :math:`a_0` in both calculation and code avoids ambiguity.
         """
-        return self.scale_factor(0)
+        return 1 << u.one
 
     @deprecated_keywords("z", since="7.0")
     def scale_factor(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Scale factor at redshift ``z``.
 
-        The scale factor is defined as :math:`a = 1 / (1 + z)`.
+        The scale factor is defined as :math:`a = a_0 / (1 + z)`.
 
         Parameters
         ----------
@@ -53,4 +53,4 @@ class ScaleFactor:
             Scale factor at each input redshift.
             Returns `float` if the input is scalar.
         """
-        return (1.0 / (aszarr(z) + 1.0)) << u.one
+        return self.scale_factor0 / (aszarr(z) + 1)
