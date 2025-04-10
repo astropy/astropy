@@ -1,0 +1,1 @@
+Fix possible int overflow in the tile compression C code.
