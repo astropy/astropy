@@ -7,7 +7,10 @@ available in (and should be used through) the `astropy.units` namespace.
 
 """
 
+from __future__ import annotations
+
 import functools
+from typing import TYPE_CHECKING
 
 # THIRD-PARTY
 import numpy as np
@@ -21,6 +24,15 @@ from . import astrophys, cgs, dimensionless_unscaled, misc, si
 from .core import Unit
 from .errors import UnitsError
 from .function import units as function_units
+from .typing import EquivalencyPair
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from typing import Any
+
+    from astropy.units import Quantity
+
+    from .typing import UnitLike
 
 __all__ = [
     "Equivalency",
@@ -46,7 +58,7 @@ __all__ = [
 ]
 
 
-class Equivalency(list):
+class Equivalency(list[EquivalencyPair]):
     """
     A container for a units equivalency.
 
@@ -58,12 +70,17 @@ class Equivalency(list):
         Any positional or keyword arguments used to make the equivalency.
     """
 
-    def __init__(self, equiv_list, name="", kwargs=None):
+    def __init__(
+        self,
+        equiv_list: list[EquivalencyPair],
+        name: str = "",
+        kwargs: Mapping[str, object] | None = None,
+    ) -> None:
         super().__init__(equiv_list)
         self.name = [name]
         self.kwargs = [kwargs] if kwargs is not None else [{}]
 
-    def __add__(self, other):
+    def __add__(self, other: list[Any]) -> list[Any]:
         if isinstance(other, Equivalency):
             # The super() returns a list, which is really a bit weird,
             # but that means we have to pass it back through the initializer.
@@ -75,7 +92,7 @@ class Equivalency(list):
         else:
             return super().__add__(other)  # Let list take care.
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, self.__class__)
             and self.name == other.name
@@ -84,7 +101,7 @@ class Equivalency(list):
 
 
 @functools.cache
-def dimensionless_angles():
+def dimensionless_angles() -> Equivalency:
     """Allow angles to be equivalent to dimensionless (with 1 rad = 1 m/m = 1).
 
     It is special compared to other equivalency pairs in that it
@@ -95,7 +112,7 @@ def dimensionless_angles():
 
 
 @functools.cache
-def logarithmic():
+def logarithmic() -> Equivalency:
     """Allow logarithmic units to be converted to dimensionless fractions."""
     return Equivalency(
         [(dimensionless_unscaled, function_units.dex, np.log10, lambda x: 10.0**x)],
@@ -104,7 +121,7 @@ def logarithmic():
 
 
 @functools.cache
-def parallax():
+def parallax() -> Equivalency:
     """
     Returns a list of equivalence pairs that handle the conversion
     between parallax angle and distance.
@@ -130,7 +147,7 @@ def parallax():
 
 
 @functools.cache
-def spectral():
+def spectral() -> Equivalency:
     """
     Returns a list of equivalence pairs that handle spectral
     wavelength, wave number, frequency, and energy equivalencies.
@@ -171,7 +188,7 @@ def spectral():
 @deprecated_renamed_argument(
     "factor", None, since="7.0", alternative='"wav" as a "Quantity"'
 )
-def spectral_density(wav, factor=None):
+def spectral_density(wav: Quantity, factor: None = None) -> Equivalency:
     """
     Returns a list of equivalence pairs that handle spectral density
     with regard to wavelength and frequency.
@@ -342,7 +359,7 @@ def spectral_density(wav, factor=None):
     )
 
 
-def doppler_radio(rest):
+def doppler_radio(rest: Quantity) -> Equivalency:
     r"""
     Return the equivalency pairs for the radio convention for velocity.
 
@@ -411,7 +428,7 @@ def doppler_radio(rest):
     )
 
 
-def doppler_optical(rest):
+def doppler_optical(rest: Quantity) -> Equivalency:
     r"""
     Return the equivalency pairs for the optical convention for velocity.
 
@@ -481,7 +498,7 @@ def doppler_optical(rest):
     )
 
 
-def doppler_relativistic(rest):
+def doppler_relativistic(rest: Quantity) -> Equivalency:
     r"""
     Return the equivalency pairs for the relativistic convention for velocity.
 
@@ -559,7 +576,7 @@ def doppler_relativistic(rest):
 
 
 @functools.cache
-def doppler_redshift():
+def doppler_redshift() -> Equivalency:
     """
     Returns the equivalence between Doppler redshift (unitless) and radial velocity.
 
@@ -587,7 +604,7 @@ def doppler_redshift():
 
 
 @functools.cache
-def molar_mass_amu():
+def molar_mass_amu() -> Equivalency:
     """
     Returns the equivalence between amu and molar mass.
     """
@@ -595,7 +612,7 @@ def molar_mass_amu():
 
 
 @functools.cache
-def mass_energy():
+def mass_energy() -> Equivalency:
     """
     Returns a list of equivalence pairs that handle the conversion
     between mass and energy.
@@ -612,7 +629,9 @@ def mass_energy():
     )
 
 
-def brightness_temperature(frequency, beam_area=None):
+def brightness_temperature(
+    frequency: Quantity, beam_area: Quantity | None = None
+) -> Equivalency:
     r"""
     Defines the conversion between Jy/sr and "brightness temperature",
     :math:`T_B`, in Kelvins.  The brightness temperature is a unit very
@@ -705,7 +724,7 @@ def brightness_temperature(frequency, beam_area=None):
         )
 
 
-def beam_angular_area(beam_area):
+def beam_angular_area(beam_area: UnitLike) -> Equivalency:
     """
     Convert between the ``beam`` unit, which is commonly used to express the area
     of a radio telescope resolution element, and an area on the sky.
@@ -729,7 +748,9 @@ def beam_angular_area(beam_area):
     )
 
 
-def thermodynamic_temperature(frequency, T_cmb=None):
+def thermodynamic_temperature(
+    frequency: Quantity, T_cmb: Quantity | None = None
+) -> Equivalency:
     r"""Defines the conversion between Jy/sr and "thermodynamic temperature",
     :math:`T_{CMB}`, in Kelvins.  The thermodynamic temperature is a unit very
     commonly used in cosmology. See eqn 8 in [1].
@@ -799,7 +820,7 @@ def thermodynamic_temperature(frequency, T_cmb=None):
 
 
 @functools.cache
-def temperature():
+def temperature() -> Equivalency:
     """Convert between Kelvin, Celsius, Rankine and Fahrenheit here because
     Unit and CompositeUnit cannot do addition or subtraction properly.
     """
@@ -823,7 +844,7 @@ def temperature():
 
 
 @functools.cache
-def temperature_energy():
+def temperature_energy() -> Equivalency:
     """Convert between Kelvin and keV(eV) to an equivalent amount."""
     e = _si.e.value
     k_B = _si.k_B.value
@@ -833,7 +854,7 @@ def temperature_energy():
     )
 
 
-def assert_is_spectral_unit(value):
+def assert_is_spectral_unit(value: Quantity) -> None:
     try:
         value.to(si.Hz, spectral())
     except (AttributeError, UnitsError) as ex:
@@ -843,7 +864,7 @@ def assert_is_spectral_unit(value):
         )
 
 
-def pixel_scale(pixscale):
+def pixel_scale(pixscale: Quantity) -> Equivalency:
     """
     Convert between pixel distances (in units of ``pix``) and other units,
     given a particular ``pixscale``.
@@ -871,7 +892,7 @@ def pixel_scale(pixscale):
     )
 
 
-def plate_scale(platescale):
+def plate_scale(platescale: Quantity) -> Equivalency:
     """
     Convert between lengths (to be interpreted as lengths in the focal plane)
     and angular units with a specified ``platescale``.
@@ -895,7 +916,7 @@ def plate_scale(platescale):
     )
 
 
-def magnetic_flux_field(mu_r=1):
+def magnetic_flux_field(mu_r: float = 1) -> Equivalency:
     r"""
     Convert magnetic field between magnetic field strength :math:`(\mathbf{H})` and
     magnetic flux density :math:`(\mathbf{B})` using the relationship:

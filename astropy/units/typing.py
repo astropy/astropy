@@ -2,19 +2,39 @@
 
 from __future__ import annotations
 
-__all__ = ["QuantityLike", "UnitPower", "UnitPowerLike", "UnitScale", "UnitScaleLike"]
+__all__ = [
+    "EquivalencyPair",
+    "QuantityLike",
+    "UnitPower",
+    "UnitPowerLike",
+    "UnitScale",
+    "UnitScaleLike",
+]
 
 
+from collections.abc import Callable
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import numpy.typing as npt
 
-from astropy.units import Quantity
+from astropy.units import Quantity, UnitBase
 
 if TYPE_CHECKING:
     from typing import TypeAlias
+
+EquivalencyPair: TypeAlias = (
+    tuple[UnitBase, UnitBase | None]
+    | tuple[UnitBase, UnitBase, Callable[[npt.NDArray[Any]], npt.NDArray[Any]]]
+    | tuple[
+        UnitBase,
+        UnitBase,
+        Callable[[npt.NDArray[Any]], npt.NDArray[Any]],
+        Callable[[npt.NDArray[Any]], npt.NDArray[Any]],
+    ]
+)
+"""Alias for the element of an `~astropy.units.Equivalency`"""
 
 # Note: Quantity is technically covered by npt.ArrayLike, but we want to
 # explicitly include it here so that it is clear that we are also including
@@ -67,6 +87,7 @@ For more examples see the :mod:`numpy.typing` definition of
 :obj:`numpy.typing.ArrayLike`.
 """
 
+UnitLike: TypeAlias = UnitBase | str  # Incomplete!
 
 UnitPower: TypeAlias = int | float | Fraction
 """Alias for types that can be powers of the components of a
