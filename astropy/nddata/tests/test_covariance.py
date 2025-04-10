@@ -8,6 +8,7 @@ from astropy.io import fits
 from astropy.nddata import covariance
 from astropy.table import Table
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyUserWarning
 
 scipy_required = pytest.mark.skipif(not HAS_SCIPY, reason="scipy not installed")
 
@@ -103,11 +104,46 @@ def test_impose_sparse_value_threshold():
     assert _c.nnz == _c.shape[0], "Should remove all but the diagonal"
 
 
+def test_parse_shape():
+    shape = "(2,1)"
+    assert covariance._parse_shape(shape) == (2, 1), f"Bad parse for {shape}"
+    shape = "(2,1,5)"
+    assert covariance._parse_shape(shape) == (2, 1, 5), f"Bad parse for {shape}"
+    shape = "(2,1,5,)"
+    assert covariance._parse_shape(shape) == (2, 1, 5), f"Bad parse for {shape}"
+    shape = "(2,  1,  5,)"
+    assert covariance._parse_shape(shape) == (2, 1, 5), f"Bad parse for {shape}"
+
+
 @scipy_required
 def test_bad_init_type():
     # It must be possible to convert the input array into a csr_matrix
     with pytest.raises(TypeError):
         cov = covariance.Covariance(array="test")
+    # Cannot be None
+    with pytest.raises(ValueError):
+        cov = covariance.Covariance()
+
+    # Must be 2D.  If 1D, the array is successfully converted to a csr_matrix,
+    # but fails the 2D check.  So the error is ValueError.
+    arr1d = np.ones(27, dtype=float)
+    with pytest.raises(ValueError):
+        cov = covariance.Covariance(array=arr1d)
+
+    # Must be 2D.  If 3D (or higher), the array fails to be converted to a
+    # csr_matrix, so the error is TypeError.
+    arr3d = np.ones(27, dtype=float).reshape(3, 3, 3)
+    with pytest.raises(TypeError):
+        cov = covariance.Covariance(array=arr3d)
+
+    # Must be square
+    with pytest.raises(ValueError):
+        cov = covariance.Covariance(array=arr3d.reshape(9, 3))
+
+    # Should be symmetric, but just throw a warning for now
+    c = np.array([[1, 0], [1, 1]]).astype(float)
+    with pytest.warns(AstropyUserWarning):
+        cov = covariance.Covariance(array=c)
 
 
 @scipy_required
@@ -286,6 +322,16 @@ def test_tbls():
         "Bad convert/revert from tables"
     )
 
+    # Test failure when meta is None
+    with pytest.raises(ValueError):
+        _correl = correl.copy()
+        _correl.meta = {}
+        _cov = covariance.Covariance.from_table(var, _correl)
+
+    # Test failure when var shape is wrong
+    with pytest.raises(ValueError):
+        _cov = covariance.Covariance.from_table(var[1:], correl)
+
     raw_shape, c = mock_cov_3d()
     cov = covariance.Covariance(array=covariance.csr_matrix(c), raw_shape=raw_shape)
     var, correl = cov.to_table()
@@ -301,6 +347,11 @@ def test_tbls():
         "Bad convert/revert from tables"
     )
 
+    # Introduce a shape mismatch
+    correl.meta["COVRWSHP"] = "(3,6)"
+    with pytest.raises(ValueError):
+        _cov = covariance.Covariance.from_table(var, correl)
+
 
 @scipy_required
 def test_samples():
@@ -309,6 +360,16 @@ def test_samples():
 
     m = np.zeros(10, dtype=float)
     c = mock_cov()
+
+    # Shape must be 2D
+    s = rng.multivariate_normal(m, c)
+    with pytest.raises(ValueError):
+        covar = covariance.Covariance.from_samples(s, cov_tol=0.1)
+
+    # Shape must be at least two samples
+    s = np.expand_dims(s, 1).T
+    with pytest.raises(ValueError):
+        covar = covariance.Covariance.from_samples(s.T, cov_tol=0.1)
 
     # Draw samples
     s = rng.multivariate_normal(m, c, size=100000)
@@ -342,11 +403,22 @@ def test_mult():
     c = mock_cov()
     x = np.ones(10, dtype=float)
 
+    # Transfer matrix must be 2D
+    t = np.ones(3, dtype=float)
+    with pytest.raises(ValueError):
+        covar = covariance.Covariance.from_matrix_multiplication(t, c)
+
     # Uncorrelated
     t = np.zeros((3, 10), dtype=float)
     t[0, 0] = 1.0
     t[1, 3] = 1.0
     t[2, 6] = 1.0
+
+    # Sigma has the wrong shape
+    with pytest.raises(ValueError):
+        covar = covariance.Covariance.from_matrix_multiplication(t, c[1:, 1:])
+    with pytest.raises(ValueError):
+        covar = covariance.Covariance.from_matrix_multiplication(t, np.diag(c)[1:])
 
     y = np.dot(t, x)
 
@@ -423,6 +495,9 @@ def test_sub_matrix():
     c = mock_cov()
     cov = covariance.Covariance(array=c)
 
+    # Check the index map
+    assert np.array_equal(cov.data_index_map, np.arange(10)), "Bad index map"
+
     # 1D
     sub_cov = cov.sub_matrix(np.s_[:5])
     assert isinstance(sub_cov, covariance.Covariance), (
@@ -433,6 +508,13 @@ def test_sub_matrix():
     # 2D
     raw_shape, c = mock_cov_2d()
     cov = covariance.Covariance(array=c, raw_shape=raw_shape)
+
+    # Check the index map
+    assert cov.data_index_map.shape == raw_shape, "Bad index map shape"
+    assert np.array_equal(cov.data_index_map, np.arange(6).reshape(raw_shape)), (
+        "Bad index map"
+    )
+
     # Reduce dimensionality
     sub_cov = cov.sub_matrix(np.s_[:, 0])
     assert sub_cov.raw_shape is None, "Submatrix should have reduced dimensionality"
@@ -473,7 +555,19 @@ def test_correl():
     assert np.allclose(rho1.toarray(), rho2.toarray()), (
         "Correlation matrices should be identical"
     )
-    assert np.allclose(cov1._var / 2, cov2._var), "Variances incorrect"
+    assert np.allclose(cov1.variance / 2, cov2.variance), "Variances incorrect"
+
+
+@scipy_required
+def test_to_from_correl():
+    c = mock_cov()
+    cov1 = covariance.Covariance(array=c * 4.0)
+
+    var, rho1 = covariance.Covariance.to_correlation(cov1.to_sparse())
+    assert np.array_equal(rho1.toarray(), c), "Bad correlation matrix recovery"
+
+    _cov1 = covariance.Covariance.revert_correlation(var, rho1)
+    assert np.array_equal(cov1.to_dense(), _cov1.toarray())
 
 
 @scipy_required
@@ -481,8 +575,10 @@ def test_newvar():
     c = mock_cov()
     cov1 = covariance.Covariance(array=c)
     var = np.full(c.shape[0], 4.0, dtype=float)
+    with pytest.raises(NotImplementedError):
+        cov1.variance = var
     cov2 = cov1.apply_new_variance(var)
-    assert np.allclose(var, cov2._var), "Variance does not match request"
+    assert np.allclose(var, cov2.variance), "Variance does not match request"
     var2, rho2 = covariance.Covariance.to_correlation(cov2.to_dense())
     assert np.allclose(cov1.to_dense(), rho2.toarray()), (
         "Correlation matrices do not match"

@@ -12,6 +12,7 @@ from astropy import table
 from astropy.io import fits
 from astropy.units import Quantity
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .nddata import NDUncertainty
 
@@ -155,8 +156,7 @@ class Covariance(NDUncertainty):
 
     ValueError
         Raised if ``raw_shape`` is provided and the input covariance matrix
-        ``array`` does not have the expected shape, or if ``array`` is None, not
-        2-dimensional, or not square.
+        ``array`` does not have the expected shape or if ``array`` is None.
 
     Attributes
     ----------
@@ -356,7 +356,7 @@ class Covariance(NDUncertainty):
         _covar = Covariance.revert_correlation(var, rho)
         if cov_tol is not None:
             _covar = _impose_sparse_value_threshold(_covar, cov_tol)
-        return cls(_covar, **kwargs)
+        return cls(array=_covar, **kwargs)
 
     @classmethod
     def from_table(cls, var, correl):
@@ -389,10 +389,10 @@ class Covariance(NDUncertainty):
             does not have the correct size, or if the data is multidimensional
             and the table columns do not have the right shape.
         """
-        if correl.meta is None:
-            raise ValueError("Provided correlation matrix table must have metadata.")
-
         # Read shapes
+        if "COVSHAPE" not in correl.meta:
+            raise ValueError("Table meta dictionary *must* contain COVSHAPE")
+
         shape = _parse_shape(correl.meta["COVSHAPE"])
         raw_shape = (
             _parse_shape(correl.meta["COVRWSHP"]) if "COVRWSHP" in correl.meta else None
@@ -428,7 +428,10 @@ class Covariance(NDUncertainty):
         # Set covariance data
         cij = correl["RHOIJ"].data * np.sqrt(_var[i] * _var[j])
         cov = coo_matrix((cij, (i, j)), shape=shape).tocsr()
-
+        # Fill in the lower triangle (primarily to avoid the warning from the
+        # to_correlation method!)
+        cov = triu(cov) + triu(cov, 1).T
+        # Instantiate
         return cls(array=cov, raw_shape=raw_shape, unit=unit)
 
     @classmethod
@@ -541,7 +544,7 @@ class Covariance(NDUncertainty):
             else (Sigma if isinstance(Sigma, csr_matrix) else csr_matrix(Sigma))
         )
         # Construct the covariance matrix
-        return cls(triu(_T.dot(_Sigma.dot(_T.transpose()))).tocsr(), **kwargs)
+        return cls(_T.dot(_Sigma.dot(_T.transpose())).tocsr(), **kwargs)
 
     @classmethod
     def from_variance(cls, variance, **kwargs):
@@ -1212,19 +1215,29 @@ class Covariance(NDUncertainty):
             Variance vector
         rho : `~scipy.sparse.csr_matrix`
             Correlation matrix
+
+        Raises
+        ------
+        ValueError
+            Raised if the input array is not 2D and square.
         """
         # Make sure it's a sparse matrix or can be converted to one.
         _cov = _get_csr(cov)
 
+        # Check that it's 2D
         if _cov.ndim != 2:
             raise ValueError("Covariance arrays must be 2-dimensional.")
+        # Check that it's square
         if _cov.shape[0] != _cov.shape[1]:
             raise ValueError("Covariance matrices must be square.")
-        if not np.allclose(_cov.data, _cov.T.data):
+        # Check that it's symmetric
+        flip_diff = _cov - _cov.T
+        if not np.allclose(flip_diff.data, np.zeros_like(flip_diff.data)):
             warnings.warn(
                 "Asymmetry detected in covariance matrix.  Covariance matrix will be "
                 "modified to be symmetric using the upper triangle of the provided "
-                "matrix."
+                "matrix.",
+                AstropyUserWarning,
             )
 
         # Save the diagonal
