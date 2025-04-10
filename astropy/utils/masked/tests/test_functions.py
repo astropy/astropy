@@ -393,6 +393,21 @@ class MaskedUfuncTests(MaskedArraySetup):
         # No chunk is fully excluded => final mask is all False
         assert np.all(not result.mask)
 
+    def test_add_reduce_no_masked_input(self):
+        a_reduce = np.add.reduce(self.a, axis=0)
+        out = Masked(np.zeros_like(a_reduce), np.ones(a_reduce.shape, bool))
+        result = np.add.reduce(self.a, axis=0, out=out)
+        assert result is out
+        assert_array_equal(out.unmasked, a_reduce)
+        assert_array_equal(out.mask, False)
+        # Also try with where (which should have different path)
+        where = np.array([[True, False, False], [True, True, False]])
+        a_reduce2 = np.add.reduce(self.a, axis=0, where=where)
+        result2 = np.add.reduce(self.a, axis=0, out=out, where=where)
+        assert result2 is out
+        assert_array_equal(out.unmasked, a_reduce2)
+        assert_array_equal(out.mask, [False, False, True])
+
     @pytest.mark.parametrize("axis", (0, 1, None))
     def test_minimum_reduce(self, axis):
         ma_reduce = np.minimum.reduce(self.ma, axis=axis)
