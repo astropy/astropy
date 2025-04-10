@@ -3934,3 +3934,20 @@ def test_invalid_table_array():
         ),
     ):
         fits.BinTableHDU(data, name="DATA")
+
+
+def test_repr_scaling(tmp_path):
+    cols = [
+        fits.Column(name="a", array=np.array([1, 2]), format="I"),
+        fits.Column(name="b", array=np.array([1, 2]), format="I"),
+    ]
+    hdu = fits.BinTableHDU.from_columns(cols)
+    hdu.header["TSCAL2"] = 0.1
+    hdu.header["TZERO2"] = 10
+    hdu.writeto(tmp_path / "test.fits")
+
+    data = fits.getdata(tmp_path / "test.fits")
+    assert repr(data) == (
+        "FITS_rec([(1, 10.1), (2, 10.2)],\n"
+        "         dtype=(numpy.record, [('a', '>i2'), ('b', '>i2')]))"
+    )
