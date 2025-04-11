@@ -1,0 +1,2 @@
+Add support for Low Rank Approximation (LRA) to ``trig_sum``.
+This is enabled by passing the new argument ``algorithm='lra'``.
