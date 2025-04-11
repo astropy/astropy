@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
-__all__ = ["QuantityLike", "UnitPower", "UnitPowerLike", "UnitScale", "UnitScaleLike"]
+__all__ = [
+    "QuantityLike",
+    "UnitLike",
+    "UnitPower",
+    "UnitPowerLike",
+    "UnitScale",
+    "UnitScaleLike",
+]
 
 
 from fractions import Fraction
@@ -11,11 +18,16 @@ from typing import TYPE_CHECKING
 import numpy as np
 import numpy.typing as npt
 
-from astropy.units import Quantity
+from astropy.units import Quantity, UnitBase
 
 if TYPE_CHECKING:
     from typing import TypeAlias
 
+UnitLike: TypeAlias = UnitBase | str | Quantity
+"""Type alias for input that can be converted to a Unit.
+
+Note that this includes only scalar quantities.
+"""
 # Note: Quantity is technically covered by npt.ArrayLike, but we want to
 # explicitly include it here so that it is clear that we are also including
 # Quantity objects in the definition of QuantityLike.
