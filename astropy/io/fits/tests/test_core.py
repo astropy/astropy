@@ -804,6 +804,12 @@ class TestFileFunctions(FitsTestCase):
             assert fits_handle._file.compression == "bzip2"
             assert len(fits_handle) == 5
 
+        with pytest.raises(
+            OSError, match="update and append modes are not supported with bzip2 files"
+        ):
+            with fits.open(bzip_file, mode="update") as fits_handle:
+                pass
+
     @pytest.mark.skipif(not HAS_BZ2, reason="Python built without bz2 module")
     def test_open_bzipped_from_handle(self):
         with open(self._make_bzip2_file(), "rb") as handle:
@@ -856,6 +862,12 @@ class TestFileFunctions(FitsTestCase):
         with fits.open(lzma.LZMAFile(lzma_file)) as fits_handle:
             assert fits_handle._file.compression == "lzma"
             assert len(fits_handle) == 5
+
+        with pytest.raises(
+            OSError, match="update and append modes are not supported with lzma files"
+        ):
+            with fits.open(lzma_file, mode="update") as fits_handle:
+                pass
 
     @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
     def test_open_lzma_from_handle(self):
