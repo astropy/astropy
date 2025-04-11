@@ -19,7 +19,6 @@ from astropy.io.fits.util import (
     _free_space_check,
     _get_array_mmap,
     _is_int,
-    _is_pseudo_integer,
     decode_ascii,
     first,
     itersubclasses,
@@ -555,11 +554,7 @@ class _BaseHDU:
             return None
 
     def _postwriteto(self):
-        # If data is unsigned integer 16, 32 or 64, remove the
-        # BSCALE/BZERO cards
-        if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
-            for keyword in ("BSCALE", "BZERO"):
-                self._header.remove(keyword, ignore_missing=True)
+        pass
 
     def _writeheader(self, fileobj):
         offset = 0
