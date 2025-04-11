@@ -620,12 +620,7 @@ class _BaseHDU:
                 )
 
     def _postwriteto(self):
-        # If data is unsigned integer 16, 32 or 64, remove the
-        # BSCALE/BZERO cards
-        if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
-            for keyword in ("BSCALE", "BZERO"):
-                with suppress(KeyError):
-                    del self._header[keyword]
+        pass
 
     def _writeheader(self, fileobj):
         offset = 0
