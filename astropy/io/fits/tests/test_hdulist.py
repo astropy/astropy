@@ -179,16 +179,9 @@ class TestHDUListFunctions(FitsTestCase):
             hdul.append(hdu)
 
     @pytest.mark.parametrize(
-        ["image", "do_not_scale"],
-        [
-            ["scale.fits", True],
-            ["o4sp040b0_raw.fits", True],
-            ["fixed-1890.fits", True],
-            ["scale.fits", False],
-            ["o4sp040b0_raw.fits", False],
-            ["fixed-1890.fits", False],
-        ],
+        "image", ["scale.fits", "o4sp040b0_raw.fits", "fixed-1890.fits"]
     )
+    @pytest.mark.parametrize("do_not_scale", [True, False])
     def test_append_scaled_image_with_do_not_scale_image_data(
         self, image, do_not_scale
     ):
