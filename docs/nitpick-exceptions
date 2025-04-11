@@ -99,7 +99,9 @@ py:class np.ma.MaskedArray
 # locally defined type variable for ndarray dtype
 py:class DT
 # type aliases
+py:class EquivalencyPair
 py:class QuantityLike
+py:class UnitLike
 py:class UnitPower
 py:class UnitPowerLike
 py:class UnitScale
