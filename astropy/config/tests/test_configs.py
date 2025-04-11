@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 from inspect import cleandoc
+from threading import Lock
 
 import pytest
 
@@ -13,6 +14,22 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 OLD_CONFIG = {}
+
+_IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK = Lock()
+
+
+@pytest.fixture
+def ignore_config_paths_global_state(monkeypatch):
+    # ignore global state of the test session
+    # and preserve thread safety across all users of this fixture
+    with _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK:
+        monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
+        monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+
+        monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
+        monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
+
+        yield
 
 
 def setup_module():
@@ -25,6 +42,7 @@ def teardown_module():
     configuration._cfgobjs.update(OLD_CONFIG)
 
 
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_paths():
     assert "astropy" in paths.get_config_dir()
     assert "astropy" in paths.get_cache_dir()
@@ -45,6 +63,7 @@ def test_paths():
         pytest.param("XDG_CONFIG_HOME", paths.get_config_dir_path, id="config"),
     ],
 )
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_xdg_variables(monkeypatch, tmp_path, environment_variable, func):
     config_dir = tmp_path / "astropy"
     config_dir.mkdir()
@@ -52,11 +71,40 @@ def test_xdg_variables(monkeypatch, tmp_path, environment_variable, func):
     assert func() == config_dir
 
 
-def test_set_temp_config(tmp_path, monkeypatch):
+@pytest.mark.parametrize(
+    "astropy_env_var, func",
+    [
+        pytest.param(
+            "XDG_CACHE_HOME",
+            paths.get_cache_dir_path,
+            id="xdg-cache",
+        ),
+        pytest.param(
+            "XDG_CONFIG_HOME",
+            paths.get_config_dir_path,
+            id="xdg-config",
+        ),
+    ],
+)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_env_variables_warn(monkeypatch, tmp_path, astropy_env_var, func):
+    default_path = func()
+    target_dir = tmp_path / "nonexistent"
+    monkeypatch.setenv(astropy_env_var, str(target_dir))
+
+    with pytest.warns(
+        UserWarning,
+        match=rf"^{astropy_env_var} is set to '",
+    ):
+        new_path = func()
+
+    assert new_path == default_path
+
+
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_set_temp_config(tmp_path):
     # Check that we start in an understood state.
     assert configuration._cfgobjs == OLD_CONFIG
-    # Temporarily remove any temporary overrides of the configuration dir.
-    monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
 
     orig_config_dir = paths.get_config_dir(rootname="astropy")
     (temp_config_dir := tmp_path / "config").mkdir()
@@ -84,9 +132,8 @@ def test_set_temp_config(tmp_path, monkeypatch):
     assert configuration._cfgobjs == OLD_CONFIG
 
 
-def test_set_temp_cache(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
-
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_set_temp_cache(tmp_path):
     orig_cache_dir = paths.get_cache_dir(rootname="astropy")
     (temp_cache_dir := tmp_path / "cache").mkdir()
     temp_astropy_cache = temp_cache_dir / "astropy"
@@ -118,6 +165,7 @@ def test_set_temp_cache_resets_on_exception(tmp_path):
     assert t == paths.get_cache_dir()
 
 
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_config_file():
     from astropy.config.configuration import get_config, reload_config
 
@@ -414,16 +462,12 @@ def test_help_invalid_config_item():
         conf.help("bad_name")
 
 
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_config_noastropy_fallback(monkeypatch):
     """
     Tests to make sure configuration items fall back to their defaults when
     there's a problem accessing the astropy directory
     """
-
-    # make sure the config directory is not searched
-    monkeypatch.setenv("XDG_CONFIG_HOME", "foo")
-    monkeypatch.delenv("XDG_CONFIG_HOME")
-    monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
 
     # make sure the _find_or_create_root_dir function fails as though the
     # astropy dir could not be accessed
