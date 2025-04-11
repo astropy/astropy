@@ -1,0 +1,1 @@
+Fixed an issue when using ``plot_coord`` after slicing the ``WCS`` object coordinates.
