@@ -449,10 +449,7 @@ class TableFormatter:
             i_centers.append(n_header)
             n_header += 1
             if dtype is not None:
-                # For zero-length strings, np.dtype((dtype, ())) does not work;
-                # see https://github.com/numpy/numpy/issues/27301
-                # As a work-around, just omit the shape if there is none.
-                col_dtype = dtype_info_name((dtype, multidims) if multidims else dtype)
+                col_dtype = dtype_info_name((dtype, multidims))
             else:
                 col_dtype = col.__class__.__qualname__ or "object"
             yield col_dtype
