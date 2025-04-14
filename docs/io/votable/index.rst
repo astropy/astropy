@@ -69,7 +69,7 @@ The VOTable elements
 ====================
 
 VOTables are built from nested elements. Let's for example build a
-votable containing an ``INFO`` elements::
+votable containing an ``INFO`` element::
 
   >>> from astropy.io.votable.tree import VOTableFile, Info
   >>> vot = VOTableFile()
@@ -95,6 +95,7 @@ Here are some detailed explanations on some of these elements:
    :maxdepth: 1
 
    table_element
+   coosys_element
    mivot_blocks
 
 Using `astropy.io.votable`
