@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     from .quantity import Quantity
     from .typing import (
         PhysicalTypeID,
+        UnitLike,
         UnitPower,
         UnitPowerLike,
         UnitScale,
@@ -2173,7 +2174,7 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
         canonical (short) name, and the rest of the elements are
         aliases.
 
-    represents : UnitBase instance
+    represents : unit-like, optional
         The unit that this named unit represents.
 
     doc : str, optional
@@ -2198,6 +2199,11 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
 
     ValueError
         If any of the given unit names are not valid Python tokens.
+
+    ValueError
+        If ``represents`` cannot be parsed as a unit, e.g., because it is
+        a malformed string or a |Quantity| that is not a scalar.
+
     """
 
     def __init__(self, st, represents=None, doc=None, format=None, namespace=None):
@@ -2574,7 +2580,7 @@ def _add_prefixes(
 @overload
 def def_unit(
     s: str | list[str],
-    represents: UnitBase,
+    represents: UnitLike,
     doc: str | None = None,
     format: Mapping[str, str] | None = None,
     prefixes: bool | Iterable[UnitPrefix] = False,
@@ -2593,7 +2599,7 @@ def def_unit(
 ) -> IrreducibleUnit: ...
 def def_unit(
     s: str | list[str],
-    represents: UnitBase | None = None,
+    represents: UnitLike | None = None,
     doc: str | None = None,
     format: Mapping[str, str] | None = None,
     prefixes: bool | Iterable[UnitPrefix] = False,
@@ -2613,7 +2619,7 @@ def def_unit(
         canonical (short) name, and the rest of the elements are
         aliases.
 
-    represents : UnitBase, optional
+    represents : unit-like, optional
         The unit that this named unit represents.  If not provided,
         a new `IrreducibleUnit` is created.
 
@@ -2658,6 +2664,13 @@ def def_unit(
     unit : `~astropy.units.NamedUnit`
         The newly-defined unit, or a matching unit that was already
         defined.
+
+    Raises
+    ------
+    ValueError
+        If ``represents`` cannot be parsed as a unit, e.g., because it is
+        a malformed string or a |Quantity| that is not a scalar.
+
     """
     if represents is not None:
         result = Unit(s, represents, namespace=namespace, doc=doc, format=format)

@@ -78,8 +78,8 @@ Astropy Glossary
       `~numpy.datetime64`.
 
    unit-like
-      :class:`~astropy.units.UnitBase` subclass instance or a string or other valid
-      initializer for :class:`~astropy.units.Unit`.
+      :class:`~astropy.units.UnitBase` subclass instance or a valid initializer for
+      :class:`~astropy.units.Unit`, e.g., `str` or scalar `~astropy.units.Quantity`.
 
 
 Optional Packages' Glossary

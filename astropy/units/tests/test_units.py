@@ -148,6 +148,16 @@ def test_represents():
     assert blabla.decompose().bases == [u.s]
 
 
+@pytest.mark.parametrize("func", [u.Unit, u.def_unit])
+@pytest.mark.parametrize(
+    "represents, match_",
+    [("not_a_unit", "did not parse"), ([5, 6] * u.hr, "more than one element")],
+)
+def test_represents_errors(func, represents, match_):
+    with pytest.raises(ValueError, match=match_):
+        func("new_unit", represents)
+
+
 def test_units_conversion():
     assert_allclose(u.kpc.to(u.Mpc), 0.001)
     assert_allclose(u.Mpc.to(u.kpc), 1000)

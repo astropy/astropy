@@ -100,6 +100,7 @@ py:class np.ma.MaskedArray
 py:class DT
 # type aliases
 py:class QuantityLike
+py:class UnitLike
 py:class UnitPower
 py:class UnitPowerLike
 py:class UnitScale
