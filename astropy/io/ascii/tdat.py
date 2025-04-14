@@ -515,19 +515,18 @@ class TdatHeader(basic.BasicHeader):
         lines.append("# Table Parameters")
         lines.append("#")
         for col in self.cols:
-            if str(col.info.dtype) in self._dtype_dict_out:
-                ctype = self._dtype_dict_out[str(col.info.dtype)]
-            elif "int" in str(col.info.dtype):
+            if str(col_type := col.info.dtype) in self._dtype_dict_out:
+                ctype = self._dtype_dict_out[str(col_type)]
+            elif col_type.kind == "i":
                 ctype = "int4"
-            elif "float" in str(col.info.dtype):
+            elif col_type.kind == "f":
                 ctype = "float8"
-            elif "<U" in str(col.info.dtype):
-                ctype = f"char{str(col.info.dtype).rsplit('<U', maxsplit=1)[-1]}"
+            elif col_type.kind == "U":
+                ctype = f"char{col_type.itemsize // 4}"
             else:
                 raise TdatFormatError(
-                    f'Unrecognized data type `{col.info.dtype}` for column "{col.info.name}".'
+                    f'Unrecognized data type `{col_type}` for column "{col.info.name}".'
                 )
-                # ctype = f"{col.info.dtype}"
             col_name = col.info.name
             if len(col_name) >= 24:
                 warn(
