@@ -634,6 +634,7 @@ def test_array():
     )
 
 
+@scipy_required
 def test_io():
     # Set the file name
     ofile = Path("test_covar_io.fits")
