@@ -188,7 +188,7 @@ def test_read_tdat():
         "Declination",
         "Empty",
     ]
-    dtypes = [np.int32, np.int32, "<U3", float, float, float]
+    dtypes = [np.int32, np.int32, np.dtype("U3"), float, float, float]
     units = [None, None, None, "deg", "deg", None]
     meta = [
         {"ucd": "meta.id", "index": "key"},
@@ -245,7 +245,7 @@ def test_full_table_content():
         ),
     }
     assert len(test_table) == 7
-    dtypes = [np.int32, np.int32, "<U3", float, float, float]
+    dtypes = [np.int32, np.int32, np.dtype("U3"), float, float, float]
     descriptions = [
         "Unique Identifier for Entry",
         "Source ID Number",
