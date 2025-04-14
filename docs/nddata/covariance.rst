@@ -358,7 +358,7 @@ N-dimensional example, let ``c`` be the covariance matrix for a :math:`5 \times
 
     >>> data_array_shape
     (5, 2)
-    >>> covar = Covariance(array=c, raw_shape=data_array_shape)
+    >>> covar = Covariance(array=c, data_shape=data_array_shape)
     >>> covar.to_dense()
     array([[1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
            [0.5, 1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. , 0. ],
@@ -478,7 +478,7 @@ that the indices correspond to the data array.  For example,
 
     >>> data_array_shape
     (5, 2)
-    >>> covar = Covariance(array=c, raw_shape=data_array_shape)
+    >>> covar = Covariance(array=c, data_shape=data_array_shape)
     >>> tbl = covar.to_table()
     >>> tbl.meta
     {'COVSHAPE': '(10, 10)', 'COVRWSHP': '(5, 2)'}
@@ -581,7 +581,7 @@ and ``(2,3)``:
 
 .. doctest-requires:: scipy
 
-    >>> covar = Covariance(array=c, raw_shape=data_array_shape)
+    >>> covar = Covariance(array=c, data_shape=data_array_shape)
     >>> i_data, j_data = covar.cov2raw_indices([0,1,2], [3,4,3])
     >>> i_data
     (array([0, 0, 1]), array([0, 1, 0]))

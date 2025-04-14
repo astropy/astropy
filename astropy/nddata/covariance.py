@@ -134,6 +134,8 @@ class Covariance(NDUncertainty):
     between image pixels :math:`I_{x_i,y_i}` and :math:`I_{x_j,y_j}`, where
     :math:`i = x_i + N_x y_i` and, similarly, :math:`j = x_j + N_x y_j`.
 
+    See :ref:`nddata-covariance` for additional documentation and examples.
+
     Parameters
     ----------
     array : array-like, `~scipy.sparse.csr_matrix`
@@ -143,10 +145,10 @@ class Covariance(NDUncertainty):
         value of None, but the array *must* be provided for this `Covariance`
         object.
 
-    raw_shape : :obj:`tuple`, optional
+    data_shape : :obj:`tuple`, optional
         The covariance data is for a higher dimensional array with this shape.
         For example, if the covariance data is for a 2D image with shape
-        ``(nx,ny)``, set ``raw_shape=(nx,ny)``; the shape of the covariance
+        ``(nx,ny)``, set ``data_shape=(nx,ny)``; the shape of the covariance
         array must then be ``(nx*ny, nx*ny)``.  If None, any higher
         dimensionality is ignored.
 
@@ -165,19 +167,11 @@ class Covariance(NDUncertainty):
         cannot be converted to one.
 
     ValueError
-        Raised if ``raw_shape`` is provided and the input covariance matrix
+        Raised if ``data_shape`` is provided and the input covariance matrix
         ``array`` does not have the expected shape or if ``array`` is None.
-
-    Attributes
-    ----------
-    raw_shape : :obj:`tuple`
-        The covariance data is for a higher dimensional array with this shape.
-        For example, if the covariance data is for a 2D image, this would be
-        ``(nx,ny)`` and the shape of the covariance array would be ``(nx*ny,
-        nx*ny)``.
     """
 
-    def __init__(self, array=None, raw_shape=None, assume_symmetric=False, unit=None):
+    def __init__(self, array=None, data_shape=None, assume_symmetric=False, unit=None):
         if array is None:
             raise ValueError("Covariance object cannot be instantiated with None.")
 
@@ -190,10 +184,10 @@ class Covariance(NDUncertainty):
 
         # Set the raw shape and check it; note self._cov must be defined so that
         # call to self.shape below is valid.
-        self.raw_shape = raw_shape
-        if self.raw_shape is not None and np.prod(self.raw_shape) != self.shape[0]:
+        self._data_shape = data_shape
+        if self._data_shape is not None and np.prod(self._data_shape) != self.shape[0]:
             raise ValueError(
-                "Product of ``raw_shape`` must match the covariance axis length."
+                "Product of ``data_shape`` must match the covariance axis length."
             )
 
         # Workspace for index mapping from flattened to original data arrays
@@ -446,7 +440,7 @@ class Covariance(NDUncertainty):
             raise ValueError("Table meta dictionary *must* contain COVSHAPE")
 
         shape = _parse_shape(triu_covar.meta["COVSHAPE"])
-        raw_shape = (
+        data_shape = (
             _parse_shape(triu_covar.meta["COVRWSHP"])
             if "COVRWSHP" in triu_covar.meta
             else None
@@ -457,17 +451,17 @@ class Covariance(NDUncertainty):
 
         # Read coordinate data
         # WARNING: If the data is written correctly, it should always be true that i<=j
-        if raw_shape is None:
+        if data_shape is None:
             i = triu_covar["INDXI"].data
             j = triu_covar["INDXJ"].data
         else:
             ndim = triu_covar["INDXI"].shape[1]
-            if len(raw_shape) != ndim:
+            if len(data_shape) != ndim:
                 raise ValueError(
                     "Mismatch between COVRWSHP keyword and tabulated data."
                 )
-            i = np.ravel_multi_index(triu_covar["INDXI"].data.T, raw_shape)
-            j = np.ravel_multi_index(triu_covar["INDXJ"].data.T, raw_shape)
+            i = np.ravel_multi_index(triu_covar["INDXI"].data.T, data_shape)
+            j = np.ravel_multi_index(triu_covar["INDXJ"].data.T, data_shape)
 
         # Units
         unit = triu_covar.meta.get("BUNIT", None)
@@ -492,7 +486,7 @@ class Covariance(NDUncertainty):
 
         # Instantiate.  Set assume_symmetric to true to avoid the warning from
         # the _ingest_matrix method
-        return cls(array=cov, raw_shape=raw_shape, unit=unit, assume_symmetric=True)
+        return cls(array=cov, data_shape=data_shape, unit=unit, assume_symmetric=True)
 
     @classmethod
     def from_matrix_multiplication(cls, T, Sigma, **kwargs):
@@ -645,7 +639,9 @@ class Covariance(NDUncertainty):
             (cij * np.sqrt(_var[i] / self._var[i] * _var[j] / self._var[j]), (i, j)),
             shape=self.shape,
         ).tocsr()
-        return Covariance(array=_cov, raw_shape=self.raw_shape, assume_symmetric=True)
+        return Covariance(
+            array=_cov, data_shape=self._data_shape, assume_symmetric=True
+        )
 
     def copy(self):
         """
@@ -659,7 +655,7 @@ class Covariance(NDUncertainty):
         # Create the new Covariance instance with a copy of the data
         return Covariance(
             array=self._cov.copy(),
-            raw_shape=self.raw_shape,
+            data_shape=self._data_shape,
             assume_symmetric=True,
             unit=self.unit,
         )
@@ -729,7 +725,7 @@ class Covariance(NDUncertainty):
         Returns
         -------
         raw_i, raw_j : tuple, `numpy.ndarray`
-            If `raw_shape` is not defined, the input arrays are simply returned
+            If `data_shape` is not defined, the input arrays are simply returned
             (and not copied).  Otherwise, the code uses `~numpy.unravel_index`
             to calculate the relevant data-array indices; each element in the
             two-tuple is itself a tuple of :math:`N_{\rm dim}` arrays, one array
@@ -756,7 +752,7 @@ class Covariance(NDUncertainty):
         ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
         ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
         ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
-        ...          raw_shape=(3,2),
+        ...          data_shape=(3,2),
         ...      )
         >>> cov.to_dense()
         array([[1. , 0.5, 0.2, 0. , 0. , 0. ],
@@ -769,7 +765,7 @@ class Covariance(NDUncertainty):
         ((array([0, 0, 1]...), array([0, 1, 0])...), (array([1, 2, 1]...), array([1, 0, 1]...)))
 
         """
-        if self.raw_shape is None:
+        if self._data_shape is None:
             if np.any(
                 (i < 0) | (i > self.shape[0] - 1) | (j < 0) | (j > self.shape[1] - 1)
             ):
@@ -779,8 +775,8 @@ class Covariance(NDUncertainty):
                 )
             return i, j
         return np.unravel_index(
-            np.atleast_1d(i).ravel(), self.raw_shape
-        ), np.unravel_index(np.atleast_1d(j).ravel(), self.raw_shape)
+            np.atleast_1d(i).ravel(), self._data_shape
+        ), np.unravel_index(np.atleast_1d(j).ravel(), self._data_shape)
 
     def raw2cov_indices(self, i, j):
         r"""
@@ -793,7 +789,7 @@ class Covariance(NDUncertainty):
         i : array-like, `tuple`
             A tuple of :math:`N_{\rm dim}` array-like objects providing the
             indices of elements in the N-dimensional data array.  This can be an
-            array-like object if ``raw_shape`` is undefined, in which case the
+            array-like object if ``data_shape`` is undefined, in which case the
             values must be in the range :math:`0...n-1`, where `n` is the length
             of the data array.
 
@@ -805,7 +801,7 @@ class Covariance(NDUncertainty):
         -------
         cov_i, cov_j : `numpy.ndarray`
             Arrays providing the indices in the covariance matrix associated
-            with the provided data array coordinates.  If ``raw_shape`` is not
+            with the provided data array coordinates.  If ``data_shape`` is not
             defined, the input arrays are simply returned (and not copied).
             Otherwise, the code uses `~numpy.ravel_multi_index` to calculate the
             relevant covariance indices.
@@ -830,14 +826,14 @@ class Covariance(NDUncertainty):
         ...             + np.diag(np.full(6, 1.0, dtype=float), k=0)
         ...             + np.diag(np.full(6 - 1, 0.5, dtype=float), k=1)
         ...             + np.diag(np.full(6 - 2, 0.2, dtype=float), k=2),
-        ...          raw_shape=(3,2),
+        ...          data_shape=(3,2),
         ...      )
         >>> i_data, j_data = cov.cov2raw_indices([0,1,2], [3,4,3])
         >>> cov.raw2cov_indices(i_data, j_data)  # doctest: +ELLIPSIS
         (array([0, 1, 2]...), array([3, 4, 3]...))
 
         """
-        if self.raw_shape is None:
+        if self._data_shape is None:
             if np.any(
                 (i < 0) | (i > self.shape[0] - 1) | (j < 0) | (j > self.shape[1] - 1)
             ):
@@ -846,18 +842,18 @@ class Covariance(NDUncertainty):
                     f"{self.shape}."
                 )
             return i, j
-        if len(i) != len(self.raw_shape):
+        if len(i) != len(self.data_shape):
             raise ValueError(
                 "Length of input coordinate list (i) is incorrect; expected "
-                f"{len(self.raw_shape)}, found {len(i)}"
+                f"{len(self.data_shape)}, found {len(i)}"
             )
-        if len(j) != len(self.raw_shape):
+        if len(j) != len(self.data_shape):
             raise ValueError(
                 "Length of input coordinate list (j) is incorrect; expected "
-                f"{len(self.raw_shape)}, found {len(i)}"
+                f"{len(self.data_shape)}, found {len(i)}"
             )
-        return np.ravel_multi_index(i, self.raw_shape), np.ravel_multi_index(
-            j, self.raw_shape
+        return np.ravel_multi_index(i, self.data_shape), np.ravel_multi_index(
+            j, self.data_shape
         )
 
     def coordinate_data(self, reshape=False):
@@ -876,7 +872,7 @@ class Covariance(NDUncertainty):
         Parameters
         ----------
         reshape : :obj:`bool`, optional
-            If ``reshape`` is True and `raw_shape` is defined, the :math:`i,j`
+            If ``reshape`` is True and `data_shape` is defined, the :math:`i,j`
             indices are converted to the expected coordinates in the raw data
             array using `~numpy.unravel_index`.  These can be reverted to the
             coordinates in the covariance matrix using
@@ -896,7 +892,7 @@ class Covariance(NDUncertainty):
         Raises
         ------
         ValueError
-            Raised if `reshape` is True but `raw_shape` is undefined.
+            Raised if `reshape` is True but `data_shape` is undefined.
 
         Examples
         --------
@@ -945,16 +941,16 @@ class Covariance(NDUncertainty):
         >>> c[np.ravel_multi_index(i_data, (3,2)), np.ravel_multi_index(j_data, (3,2))]
         array([0.2])
 
-        When a `Covariance` object has a defined `raw_shape`, which is (3,2) in
+        When a `Covariance` object has a defined `data_shape`, which is (3,2) in
         this example, the indices returned as the first two objects in this
         function are equivalent to the ``i_data`` and ``j_data`` objects in this
         example.
 
         """
-        if reshape and self.raw_shape is None:
+        if reshape and self._data_shape is None:
             raise ValueError(
                 "If reshaping, the raw shape of the data before flattening to the "
-                "covariance array (``raw_shape``) must be defined."
+                "covariance array (``data_shape``) must be defined."
             )
 
         # Get the data (only stores the upper triangle!)
@@ -965,8 +961,8 @@ class Covariance(NDUncertainty):
         if reshape:
             # Reshape the indices and the variance array.
             return (
-                np.unravel_index(i, self.raw_shape),
-                np.unravel_index(j, self.raw_shape),
+                np.unravel_index(i, self._data_shape),
+                np.unravel_index(j, self._data_shape),
                 cij,
             )
         return i, j, cij
@@ -996,10 +992,10 @@ class Covariance(NDUncertainty):
             - ``'BUNIT'``: (If `unit` is defined) The string representation of
               the covariance units.
 
-            - ``'COVRWSHP'``: (If `raw_shape` is defined) The raw shape of the
+            - ``'COVRWSHP'``: (If ``data_shape`` is defined) The raw shape of the
               associated data array.
 
-        If ``raw_shape`` is set, the covariance matrix indices are reformatted
+        If ``data_shape`` is set, the covariance matrix indices are reformatted
         to match the coordinates in the N-dimensional array.
 
         .. warning::
@@ -1020,11 +1016,11 @@ class Covariance(NDUncertainty):
         meta["COVSHAPE"] = str(self.shape)
         if self.unit is not None:
             meta["BUNIT"] = self.unit.to_string()
-        reshape = self.raw_shape is not None
+        reshape = self._data_shape is not None
         i, j, cij = self.coordinate_data(reshape=reshape)
         triu_nnz = cij.size
         if reshape:
-            meta["COVRWSHP"] = str(self.raw_shape)
+            meta["COVRWSHP"] = str(self._data_shape)
             i = np.column_stack(i)
             j = np.column_stack(j)
             coo_shape = (i.shape[1],)
@@ -1048,7 +1044,7 @@ class Covariance(NDUncertainty):
         """
         The expected shape of the data array associated with this covariance array.
         """
-        return (self.shape[0],) if self.raw_shape is None else self.raw_shape
+        return (self.shape[0],) if self._data_shape is None else self._data_shape
 
     @property
     def data_index_map(self):
@@ -1058,8 +1054,8 @@ class Covariance(NDUncertainty):
         """
         if self._data_index_map is None:
             self._data_index_map = np.arange(self.shape[0])
-            if self.raw_shape is not None:
-                self._data_index_map = self._data_index_map.reshape(self.raw_shape)
+            if self._data_shape is not None:
+                self._data_index_map = self._data_index_map.reshape(self._data_shape)
         return self._data_index_map
 
     def sub_matrix(self, data_slice):
@@ -1121,7 +1117,7 @@ class Covariance(NDUncertainty):
         index = sub_map.ravel()
         return Covariance(
             self.to_sparse()[np.ix_(index, index)],
-            raw_shape=None if len(sub_map.shape) == 1 else sub_map.shape,
+            data_shape=None if len(sub_map.shape) == 1 else sub_map.shape,
         )
 
     @staticmethod

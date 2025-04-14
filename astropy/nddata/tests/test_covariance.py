@@ -169,13 +169,13 @@ def test_bad_init_type():
 
 @scipy_required
 def test_shape_mismatch():
-    raw_shape, c = mock_cov_2d()
+    data_shape, c = mock_cov_2d()
     bad_shape = (2, 2)
-    assert bad_shape != raw_shape, (
+    assert bad_shape != data_shape, (
         "Shapes should not match for the test to work properly"
     )
     with pytest.raises(ValueError):
-        cov = covariance.Covariance(array=c, raw_shape=bad_shape)
+        cov = covariance.Covariance(array=c, data_shape=bad_shape)
 
 
 @scipy_required
@@ -186,8 +186,8 @@ def test_uncertainty_string():
 
 @scipy_required
 def test_quantity():
-    raw_shape, c = mock_cov_2d()
-    cov = covariance.Covariance(array=c, raw_shape=raw_shape, unit="Jy^2")
+    data_shape, c = mock_cov_2d()
+    cov = covariance.Covariance(array=c, data_shape=data_shape, unit="Jy^2")
     q = cov.quantity
 
     assert isinstance(q, units.Quantity), "Wrong type"
@@ -230,7 +230,7 @@ def test_nnz():
 
 @scipy_required
 def test_indices():
-    # Test when raw_shape is not defined
+    # Test when data_shape is not defined
     cov = covariance.Covariance(array=mock_cov())
 
     # Test out of bounds indices
@@ -254,8 +254,8 @@ def test_indices():
     )
 
     # Test multi-dimensional data
-    raw_shape, c = mock_cov_2d()
-    cov = covariance.Covariance(array=c, raw_shape=raw_shape)
+    data_shape, c = mock_cov_2d()
+    cov = covariance.Covariance(array=c, data_shape=data_shape)
     i_cov = np.array([0, 1, 2])
     j_cov = np.array([3, 4, 3])
     i_data, j_data = cov.cov2raw_indices(i_cov, j_cov)
@@ -280,14 +280,14 @@ def test_coo():
     i, j, cij = cov.coordinate_data()
     assert i.size == cov.stored_nnz, "Coordinate data length is the incorrect size"
 
-    # Cannot reshape when raw_shape is not defined
+    # Cannot reshape when data_shape is not defined
     with pytest.raises(ValueError):
         cov.coordinate_data(reshape=True)
 
     # 2D
-    raw_shape, c = mock_cov_2d()
+    data_shape, c = mock_cov_2d()
     c_csr = covariance.csr_matrix(c)
-    cov = covariance.Covariance(array=c_csr, raw_shape=raw_shape)
+    cov = covariance.Covariance(array=c_csr, data_shape=data_shape)
     # Try without reshaping
     ic, jc, cij = cov.coordinate_data(reshape=False)
     assert isinstance(ic, np.ndarray), (
@@ -296,20 +296,20 @@ def test_coo():
     assert ic.size == cov.stored_nnz, "Incorrect number of non-zero elements"
     # Try with reshaping
     i, j, cij = cov.coordinate_data(reshape=True)
-    assert len(i) == len(raw_shape), "Dimensionality does not match"
+    assert len(i) == len(data_shape), "Dimensionality does not match"
     assert i[0].size == cov.stored_nnz, "Incorrect number of non-zero elements"
 
     # Make sure we recover the same covariance matrix indices
-    assert np.array_equal(ic, np.ravel_multi_index(i, cov.raw_shape)), (
+    assert np.array_equal(ic, np.ravel_multi_index(i, cov.data_shape)), (
         "Bad covariance index mapping"
     )
 
     # 3D
-    raw_shape, c = mock_cov_3d()
+    data_shape, c = mock_cov_3d()
     c_csr = covariance.csr_matrix(c)
-    cov = covariance.Covariance(array=c_csr, raw_shape=raw_shape)
+    cov = covariance.Covariance(array=c_csr, data_shape=data_shape)
     i, j, cij = cov.coordinate_data(reshape=True)
-    assert len(i) == len(raw_shape), "Dimensionality does not match"
+    assert len(i) == len(data_shape), "Dimensionality does not match"
     assert i[0].size == cov.stored_nnz, "Incorrect number of non-zero elements"
 
 
@@ -344,8 +344,8 @@ def test_tbls():
         _covar.meta = {}
         _cov = covariance.Covariance.from_table(_covar)
 
-    raw_shape, c = mock_cov_3d()
-    cov = covariance.Covariance(array=covariance.csr_matrix(c), raw_shape=raw_shape)
+    data_shape, c = mock_cov_3d()
+    cov = covariance.Covariance(array=covariance.csr_matrix(c), data_shape=data_shape)
     covar = cov.to_table()
     assert len(covar) == np.sum(np.triu(c) > 0), "Incorrect number of table entries"
     assert len(covar.colnames) == 3, "Incorrect number of columns"
@@ -487,16 +487,16 @@ def test_shape():
     assert cov.data_shape == (mock_cov().shape[0],), "Bad data shape"
 
     # 2D
-    raw_shape, c = mock_cov_2d()
-    cov = covariance.Covariance(array=c, raw_shape=raw_shape)
+    data_shape, c = mock_cov_2d()
+    cov = covariance.Covariance(array=c, data_shape=data_shape)
     assert len(cov.data_shape) == 2, "Incorrect dimensionality"
-    assert cov.data_shape == raw_shape, "Bad data shape"
+    assert cov.data_shape == data_shape, "Bad data shape"
 
     # 3D
-    raw_shape, c = mock_cov_3d()
-    cov = covariance.Covariance(array=c, raw_shape=raw_shape)
+    data_shape, c = mock_cov_3d()
+    cov = covariance.Covariance(array=c, data_shape=data_shape)
     assert len(cov.data_shape) == 3, "Incorrect dimensionality"
-    assert cov.data_shape == raw_shape, "Bad data shape"
+    assert cov.data_shape == data_shape, "Bad data shape"
 
 
 @scipy_required
@@ -515,37 +515,37 @@ def test_sub_matrix():
     assert np.array_equal(sub_cov.to_dense(), c[:5, :5]), "Bad submatrix"
 
     # 2D
-    raw_shape, c = mock_cov_2d()
-    cov = covariance.Covariance(array=c, raw_shape=raw_shape)
+    data_shape, c = mock_cov_2d()
+    cov = covariance.Covariance(array=c, data_shape=data_shape)
 
     # Check the index map
-    assert cov.data_index_map.shape == raw_shape, "Bad index map shape"
-    assert np.array_equal(cov.data_index_map, np.arange(6).reshape(raw_shape)), (
+    assert cov.data_index_map.shape == data_shape, "Bad index map shape"
+    assert np.array_equal(cov.data_index_map, np.arange(6).reshape(data_shape)), (
         "Bad index map"
     )
 
     # Reduce dimensionality
     sub_cov = cov.sub_matrix(np.s_[:, 0])
-    assert sub_cov.raw_shape is None, "Submatrix should have reduced dimensionality"
+    assert len(sub_cov.data_shape) == 1, "Submatrix should have reduced dimensionality"
     assert sub_cov.shape == (3, 3), "Incorrect covariance submatrix shape"
     # Still 2D
     sub_cov = cov.sub_matrix(np.s_[1:, :])
-    assert sub_cov.raw_shape == (2, 2), "Submatrix does not have the correct shape"
+    assert sub_cov.data_shape == (2, 2), "Submatrix does not have the correct shape"
 
     # 3D
-    raw_shape, c = mock_cov_3d()
-    cov = covariance.Covariance(array=c, raw_shape=raw_shape)
+    data_shape, c = mock_cov_3d()
+    cov = covariance.Covariance(array=c, data_shape=data_shape)
     # Reduce dimensionality to 1D
     sub_cov = cov.sub_matrix(np.s_[:, 0, 0])
-    assert sub_cov.raw_shape is None, "Submatrix should have reduced dimensionality"
+    assert len(sub_cov.data_shape) == 1, "Submatrix should have reduced dimensionality"
     assert sub_cov.shape == (3, 3), "Incorrect covariance submatrix shape"
     # Reduce dimensionality to 2D
     sub_cov = cov.sub_matrix(np.s_[1:, :, 0])
-    assert sub_cov.raw_shape == (2, 2), "Submatrix does not have the correct shape"
+    assert sub_cov.data_shape == (2, 2), "Submatrix does not have the correct shape"
     # Still 3D
     sub_cov = cov.sub_matrix(np.s_[1:, :, :-1])
-    assert sub_cov.raw_shape == (2, 2, 2), "Submatrix does not have the correct shape"
-    assert sub_cov.shape[0] == np.prod(sub_cov.raw_shape), "Shape mismatch"
+    assert sub_cov.data_shape == (2, 2, 2), "Submatrix does not have the correct shape"
+    assert sub_cov.shape[0] == np.prod(sub_cov.data_shape), "Shape mismatch"
 
 
 @scipy_required
