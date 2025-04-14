@@ -37,12 +37,11 @@ Introductory Examples
 ---------------------
 
 As a general introduction to covariance matrices, let :math:`{\mathbf x}`
-contain 10 measurements.  Let us set the correlation coefficient between
-adjacent measurements to 0.5 (:math:`\rho_{ij} = 0.5\ {\rm for}\ |j-i| = 1`), to
-0.2 for next but one measurements (:math:`\rho_{ij} = 0.2\ {\rm for}\ |j-i| =
-2`), and to 0 otherwise.  If we adopt a uniform unity variance for all elements
-of :math:`{\mathbf x}`, we can directly construct this (banded) covariance
-matrix in python as follows:
+contain 10 measurements.  Let the correlation coefficient between adjacent
+measurements be 0.5 (:math:`\rho_{ij} = 0.5\ {\rm for}\ |j-i| = 1`), 0.2 for
+next but one measurements (:math:`\rho_{ij} = 0.2\ {\rm for}\ |j-i| = 2`), and 0
+otherwise.  If we adopt unity variance for all elements of :math:`{\mathbf x}`,
+we can directly construct the (banded) covariance matrix in python as follows:
 
 >>> import numpy as np
 >>>
@@ -156,17 +155,16 @@ In N-dimensions
 Covariance matrices can be constructed for arrays of higher dimensionality by
 flattening the data arrays.  For a row-major array flattening order, one can
 adopt the convention that :math:`\Sigma_{ij}` for an image of size
-:math:`(nx,ny)` is the covariance between image pixels :math:`I_{x_i,y_i}` and
-:math:`I_{x_j,y_j}`, where :math:`i = x_i + nx y_i` and :math:`j = x_j + nx
+:math:`(N_x,N_y)` is the covariance between image pixels :math:`I_{x_i,y_i}` and
+:math:`I_{x_j,y_j}`, where :math:`i = x_i + N_x\ y_i` and :math:`j = x_j + N_x\
 y_j`.
 
-As an example, let the covariance matrix ``c``, used throughout this section,
-be the covariance matrix for a :math:`5 \times 2` array, instead of a
-10-element vector.  The complication is determining the mapping from the data
-array to the relevant covariance element; we can do this using `numpy` functions
-as follows.  To determine the covariance between elements ``data[1,0]`` and
-``data[2,0]``, for example, we convert the indices from the ``data`` to find a
-covariance of 0.2:
+As an example, let the covariance matrix ``c``, used throughout this section, be
+the covariance matrix for a :math:`5 \times 2` array, instead of a 10-element
+vector.  The complication is determining the mapping from the data array to the
+relevant covariance element; we can do this using `numpy` functions as follows.
+To determine the covariance between elements ``data[1,0]`` and ``data[2,0]``, we
+convert the indices from the ``data`` to find a covariance of 0.2:
 
 >>> data_array_shape = (5,2)
 >>> i_data = (np.array([1]), np.array([0]))
@@ -191,8 +189,8 @@ Construction
 
 Many methods are provided to construct a `~astropy.nddata.covariance.Covariance`
 object.  In *all* of the following examples, the object ``c`` is the banded
-covariance array created at the beginning of the
-:ref:`nddata-covariance-covariance-access` section.
+covariance array created at the beginning of the :ref:`nddata-covariance-intro`
+section.
 
 Instantiating from pre-existing arrays
 --------------------------------------
@@ -247,7 +245,7 @@ fully populated) covariance matrix:
 .. important::
     
     The last statement uses `~astropy.nddata.covariance.Covariance.to_dense` to
-    access the array; see :ref:`nddata-covariance-covariance-access`.
+    access the array; see :ref:`nddata-covariance-data-access`.
 
 Above, the base instantiation method is used; however, the
 `~astropy.nddata.covariance.Covariance.from_array` method is also provided.  The
@@ -349,7 +347,7 @@ multiplication using
 In N-dimensions
 ---------------
 
-All of the instantiation methods above allow you to define the "raw shape" of
+All of the instantiation methods above allow you to define the "data shape" of
 the data array for the associated covariance matrix.  Following the previous
 N-dimensional example, let ``c`` be the covariance matrix for a :math:`5 \times
 2` array, instead of a 10-element vector.
@@ -381,19 +379,22 @@ Accessing the data
 
 The `~astropy.nddata.covariance.Covariance` object is primarily a storage
 utility. Internally, the object only stores the upper triangle of the covariance
-matrix.  **This means that you cannot directly access a covariance value within
-the object itself**; you must use the functions described below.
+matrix.  **This means that you should not directly access a covariance value
+within the object itself**; you must use the functions described below.
 
 .. _nddata-covariance-covariance-access:
 
 Covariance Matrix
 -----------------
 
-There are two ways to access the full covariance matrix: Use 
-`~astropy.nddata.covariance.Covariance.to_sparse` to produce a sparse matrix and
-`~astropy.nddata.covariance.Covariance.to_dense` for a dense matrix.  The output
-of these two methods can be used as you would use any `scipy.sparse.csr_matrix`
-or `numpy.ndarray` object, respectively.
+There are two ways to access the full covariance matrix:
+
+- Use `~astropy.nddata.covariance.Covariance.to_sparse` to produce a sparse matrix or
+
+- use `~astropy.nddata.covariance.Covariance.to_dense` for a dense matrix.
+
+The output of these two methods can be used as you would use any
+`scipy.sparse.csr_matrix` or `numpy.ndarray` object, respectively.
 
 .. _nddata-covariance-correl-access:
 
@@ -460,7 +461,7 @@ format."  Specifically, the data is provided in three columns:
 
 - ``'INDXJ'``: The column index in the covariance matrix (:math:`j`).
 
-- ``'COVARIJ'``: The covariance value (:math:`\Sigma_{ij}).
+- ``'COVARIJ'``: The covariance value (:math:`\Sigma_{ij}`).
 
 The table also contains the following metadata:
 
@@ -468,7 +469,7 @@ The table also contains the following metadata:
 
 - ``'BUNIT'``: (If defined) The string representation of the covariance units.
 
-- ``'COVRWSHP'``: (If the dimensionality is greater than 1) The raw shape of the
+- ``'COVDSHP'``: (If the dimensionality is greater than 1) The shape of the
   associated data array.
 
 For higher dimensional arrays, the coordinate data are automatically reshaped so
@@ -481,7 +482,7 @@ that the indices correspond to the data array.  For example,
     >>> covar = Covariance(array=c, data_shape=data_array_shape)
     >>> tbl = covar.to_table()
     >>> tbl.meta
-    {'COVSHAPE': '(10, 10)', 'COVRWSHP': '(5, 2)'}
+    {'COVSHAPE': '(10, 10)', 'COVDSHP': '(5, 2)'}
     >>> tbl[:3]
     <Table length=3>
      INDXI    INDXJ   COVARIJ
@@ -582,7 +583,7 @@ and ``(2,3)``:
 .. doctest-requires:: scipy
 
     >>> covar = Covariance(array=c, data_shape=data_array_shape)
-    >>> i_data, j_data = covar.cov2raw_indices([0,1,2], [3,4,3])
+    >>> i_data, j_data = covar.covariance_to_data_indices([0,1,2], [3,4,3])
     >>> i_data
     (array([0, 0, 1]), array([0, 1, 0]))
     >>> j_data
@@ -597,7 +598,7 @@ data-array indices.  Keeping the indices we defined above:
 
 .. doctest-requires:: scipy
 
-    >>> i_cov, j_cov = covar.raw2cov_indices(i_data, j_data)
+    >>> i_cov, j_cov = covar.data_to_covariance_indices(i_data, j_data)
     >>> i_cov, j_cov
     (array([0, 1, 2]), array([3, 4, 3]))
 

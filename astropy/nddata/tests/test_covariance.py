@@ -237,18 +237,18 @@ def test_indices():
     i = np.array([10, 1, 2])
     j = np.array([13, 4, 3])
     with pytest.raises(ValueError):
-        cov.cov2raw_indices(i, j)
+        cov.covariance_to_data_indices(i, j)
     with pytest.raises(ValueError):
-        cov.raw2cov_indices(i, j)
+        cov.data_to_covariance_indices(i, j)
 
     # Test in bounds
     i_cov = np.array([0, 1, 2])
     j_cov = np.array([3, 4, 3])
-    i_data, j_data = cov.cov2raw_indices(i_cov, j_cov)
+    i_data, j_data = cov.covariance_to_data_indices(i_cov, j_cov)
     assert np.array_equal(i_cov, i_data) and np.array_equal(j_cov, j_data), (
         "Should return output"
     )
-    _i_cov, _j_cov = cov.raw2cov_indices(i_data, j_data)
+    _i_cov, _j_cov = cov.data_to_covariance_indices(i_data, j_data)
     assert np.array_equal(_i_cov, i_data) and np.array_equal(_j_cov, j_data), (
         "Should return output"
     )
@@ -258,19 +258,19 @@ def test_indices():
     cov = covariance.Covariance(array=c, data_shape=data_shape)
     i_cov = np.array([0, 1, 2])
     j_cov = np.array([3, 4, 3])
-    i_data, j_data = cov.cov2raw_indices(i_cov, j_cov)
+    i_data, j_data = cov.covariance_to_data_indices(i_cov, j_cov)
     assert len(i_data) == 2, "Should return indices for each of 2 dimensions."
     assert (i_data[0][0], i_data[1][0]) == (0, 0), "Coordinate conversion error"
 
-    _i_cov, _j_cov = cov.raw2cov_indices(i_data, j_data)
+    _i_cov, _j_cov = cov.data_to_covariance_indices(i_data, j_data)
     assert np.array_equal(i_cov, _i_cov), "Inverse operation error"
     assert np.array_equal(j_cov, _j_cov), "Inverse operation error"
 
     # Test shape mismatch
     with pytest.raises(ValueError):
-        cov.raw2cov_indices(i_data + (np.array([0, 0, 0]),), j_data)
+        cov.data_to_covariance_indices(i_data + (np.array([0, 0, 0]),), j_data)
     with pytest.raises(ValueError):
-        cov.raw2cov_indices(i_data, j_data + (np.array([0, 0, 0]),))
+        cov.data_to_covariance_indices(i_data, j_data + (np.array([0, 0, 0]),))
 
 
 @scipy_required
@@ -357,7 +357,7 @@ def test_tbls():
     )
 
     # Introduce a shape mismatch
-    covar.meta["COVRWSHP"] = "(3,6)"
+    covar.meta["COVDSHP"] = "(3,6)"
     with pytest.raises(ValueError):
         _cov = covariance.Covariance.from_table(covar)
 
