@@ -3,6 +3,7 @@
 
 __all__ = [
     "ScaleFactor",
+    "TemperatureCMB",
 ]
 
-from ._src.traits import ScaleFactor
+from ._src.traits import ScaleFactor, TemperatureCMB

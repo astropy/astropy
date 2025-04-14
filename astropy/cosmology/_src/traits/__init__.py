@@ -6,12 +6,12 @@ The public API is provided by `astropy.cosmology.parts`.
 
 __all__ = [
     "ScaleFactor",
+    "TemperatureCMB",
     "_BaryonComponent",
     "_CriticalDensity",
-    "_TemperatureCMB",
 ]
 
 from .baryons import _BaryonComponent
 from .rhocrit import _CriticalDensity
 from .scale_factor import ScaleFactor
-from .tcmb import _TemperatureCMB
+from .tcmb import TemperatureCMB
