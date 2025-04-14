@@ -11,7 +11,7 @@ The ``traits`` module hosts various parts of cosmologies, such as the
 construct custom cosmologies by combining different components.
 
 As a simple example, the :class:`~astropy.cosmology.traits.TemperatureCMB` trait
-provides the :attr:`~astropy.cosmology.traits.TemperatureCMB.Tcmb0` property and
+provides the ``Tcmb0`` property and
 :meth:`~astropy.cosmology.traits.TemperatureCMB.Tcmb` method for computing the
 cosmological CMB temperature at specified redshifts. By using this trait, you can add
 temperature-related  functionality to your custom cosmology class without having to
