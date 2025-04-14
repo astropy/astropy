@@ -341,8 +341,7 @@ location, or as a *decorator* that takes effect for an entire test function
 (not including setup or teardown, which would have to be decorated separately).
 
 Furthermore, it is possible to change the location of the cache directory
-for the duration of the test run by setting the ``XDG_CACHE_HOME``
-environment variable.
+for the duration of the test run via :ref:`environment_variables`.
 
 
 Tests that create files

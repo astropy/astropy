@@ -22,9 +22,9 @@ cache) the data will only be downloaded if it is not already present in the
 cache. The tools can be instructed to obtain a new copy of data
 that is in the cache but has been updated online.
 
-The ``astropy`` cache is stored in a centralized place (on Linux machines by
-default it is ``$HOME/.astropy/cache``; see :ref:`astropy_config` for
-more details).  You can check its location on your machine::
+The ``astropy`` cache is stored in a centralized place (see
+:ref:`environment_variables` for more details).  You can check its location
+on your machine::
 
    >>> import astropy.config.paths
    >>> astropy.config.paths.get_cache_dir()  # doctest: +SKIP
