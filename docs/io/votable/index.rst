@@ -95,6 +95,7 @@ Here are some detailed explanations on some of these elements:
    :maxdepth: 1
 
    table_element
+   coosys_element
    mivot_blocks
 
 Using `astropy.io.votable`
