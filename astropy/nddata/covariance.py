@@ -854,8 +854,7 @@ class Covariance(NDUncertainty):
         # Get the data (only stores the upper triangle!)
         i, j, cij = find(self._cov)
 
-        # Return the data.  NOTE: The code forces the variance array to be
-        # returned as a copy.
+        # Return the data.
         if reshape:
             # Reshape the indices and the variance array.
             return (
