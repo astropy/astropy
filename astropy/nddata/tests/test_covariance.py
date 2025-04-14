@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 
 from astropy import units
-from astropy.io import fits
 from astropy.nddata import covariance
 from astropy.table import Table
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -116,34 +115,56 @@ def test_parse_shape():
 
 
 @scipy_required
-def test_bad_init_type():
+def test_ingest():
     # It must be possible to convert the input array into a csr_matrix
     with pytest.raises(TypeError):
-        cov = covariance.Covariance(array="test")
-    # Cannot be None
-    with pytest.raises(ValueError):
-        cov = covariance.Covariance()
+        cov = covariance.Covariance._ingest_matrix("test")
 
     # Must be 2D.  If 1D, the array is successfully converted to a csr_matrix,
     # but fails the 2D check.  So the error is ValueError.
     arr1d = np.ones(27, dtype=float)
     with pytest.raises(ValueError):
-        cov = covariance.Covariance(array=arr1d)
+        cov = covariance.Covariance._ingest_matrix(arr1d)
 
     # Must be 2D.  If 3D (or higher), the array fails to be converted to a
     # csr_matrix, so the error is TypeError.
     arr3d = np.ones(27, dtype=float).reshape(3, 3, 3)
     with pytest.raises(TypeError):
-        cov = covariance.Covariance(array=arr3d)
+        cov = covariance.Covariance._ingest_matrix(arr3d)
 
     # Must be square
     with pytest.raises(ValueError):
-        cov = covariance.Covariance(array=arr3d.reshape(9, 3))
+        cov = covariance.Covariance._ingest_matrix(arr3d.reshape(9, 3))
+
+    # Should be symmetric, but just throw a warning for now
+    c = np.array([[1, 0], [1, 1]]).astype(float)
+    with pytest.warns(AstropyUserWarning):
+        cov = covariance.Covariance._ingest_matrix(c)
+
+    # Can skip the symmetry check, the warning won't be thrown
+    cov = covariance.Covariance._ingest_matrix(c, assume_symmetric=True)
+    assert np.array_equal(cov.toarray(), c), (
+        "_ingest_matrix should not correct symmetry issue if the check is skipped"
+    )
+
+
+@scipy_required
+def test_bad_init_type():
+    # Cannot be None
+    with pytest.raises(ValueError):
+        cov = covariance.Covariance()
 
     # Should be symmetric, but just throw a warning for now
     c = np.array([[1, 0], [1, 1]]).astype(float)
     with pytest.warns(AstropyUserWarning):
         cov = covariance.Covariance(array=c)
+
+    # If the symmetry check is skipped, the warning won't be thrown but the
+    # symmetry will be imposed anyway.
+    cov = covariance.Covariance(array=c, assume_symmetric=True)
+    assert np.array_equal(cov.to_dense(), np.identity(2)), (
+        "Instantiation should correct symmetry"
+    )
 
 
 @scipy_required
@@ -256,9 +277,8 @@ def test_indices():
 def test_coo():
     # 1D
     cov = covariance.Covariance(array=covariance.csr_matrix(mock_cov()))
-    i, j, rhoij, var = cov.coordinate_data()
-    assert i.size == cov._rho.nnz, "Coordinate data length is the incorrect size"
-    assert var.ndim == 1, "Incorrect dimensionality"
+    i, j, cij = cov.coordinate_data()
+    assert i.size == cov.stored_nnz, "Coordinate data length is the incorrect size"
 
     # Cannot reshape when raw_shape is not defined
     with pytest.raises(ValueError):
@@ -269,17 +289,15 @@ def test_coo():
     c_csr = covariance.csr_matrix(c)
     cov = covariance.Covariance(array=c_csr, raw_shape=raw_shape)
     # Try without reshaping
-    ic, jc, rhoij, var = cov.coordinate_data(reshape=False)
+    ic, jc, cij = cov.coordinate_data(reshape=False)
     assert isinstance(ic, np.ndarray), (
         "Index object should be an array if not reshaping"
     )
-    assert ic.size == cov._rho.nnz, "Incorrect number of non-zero elements"
-    assert var.shape == (np.prod(raw_shape),), "Variance array has incorrect shape"
+    assert ic.size == cov.stored_nnz, "Incorrect number of non-zero elements"
     # Try with reshaping
-    i, j, rhoij, var = cov.coordinate_data(reshape=True)
+    i, j, cij = cov.coordinate_data(reshape=True)
     assert len(i) == len(raw_shape), "Dimensionality does not match"
-    assert i[0].size == cov._rho.nnz, "Incorrect number of non-zero elements"
-    assert var.shape == raw_shape, "Variance array has incorrect shape"
+    assert i[0].size == cov.stored_nnz, "Incorrect number of non-zero elements"
 
     # Make sure we recover the same covariance matrix indices
     assert np.array_equal(ic, np.ravel_multi_index(i, cov.raw_shape)), (
@@ -290,10 +308,9 @@ def test_coo():
     raw_shape, c = mock_cov_3d()
     c_csr = covariance.csr_matrix(c)
     cov = covariance.Covariance(array=c_csr, raw_shape=raw_shape)
-    i, j, rhoij, var = cov.coordinate_data(reshape=True)
+    i, j, cij = cov.coordinate_data(reshape=True)
     assert len(i) == len(raw_shape), "Dimensionality does not match"
-    assert i[0].size == cov._rho.nnz, "Incorrect number of non-zero elements"
-    assert var.shape == raw_shape, "Variance array has incorrect shape"
+    assert i[0].size == cov.stored_nnz, "Incorrect number of non-zero elements"
 
 
 @scipy_required
@@ -301,56 +318,48 @@ def test_copy():
     cov = covariance.Covariance(array=covariance.csr_matrix(mock_cov()))
     _cov = cov.copy()
     assert cov is not _cov, "Objects have the same reference"
-    assert cov._rho is not _cov._rho, "Object arrays have the same reference"
+    assert cov._cov is not _cov._cov, "Object arrays have the same reference"
     assert np.array_equal(cov.to_dense(), _cov.to_dense()), "Arrays should be equal"
 
 
 @scipy_required
 def test_tbls():
     cov = covariance.Covariance(array=covariance.csr_matrix(mock_cov()))
-    var, correl = cov.to_table()
-    assert isinstance(var, np.ndarray), "variance should be output as an array"
-    assert isinstance(correl, Table), "correlation data should be output as a table"
-    assert len(correl) == np.sum(np.triu(mock_cov()) > 0), (
+    covar = cov.to_table()
+    assert isinstance(covar, Table), "correlation data should be output as a table"
+    assert len(covar) == np.sum(np.triu(mock_cov()) > 0), (
         "Incorrect number of table entries"
     )
-    assert len(correl.colnames) == 3, "Incorrect number of columns"
-    assert correl["INDXI"].ndim == 1, "Incorrect shape for index array"
+    assert len(covar.colnames) == 3, "Incorrect number of columns"
+    assert covar["INDXI"].ndim == 1, "Incorrect shape for index array"
 
-    _cov = covariance.Covariance.from_table(var, correl)
+    _cov = covariance.Covariance.from_table(covar)
     assert np.array_equal(cov.to_dense(), _cov.to_dense()), (
         "Bad convert/revert from tables"
     )
 
     # Test failure when meta is None
     with pytest.raises(ValueError):
-        _correl = correl.copy()
-        _correl.meta = {}
-        _cov = covariance.Covariance.from_table(var, _correl)
-
-    # Test failure when var shape is wrong
-    with pytest.raises(ValueError):
-        _cov = covariance.Covariance.from_table(var[1:], correl)
+        _covar = covar.copy()
+        _covar.meta = {}
+        _cov = covariance.Covariance.from_table(_covar)
 
     raw_shape, c = mock_cov_3d()
     cov = covariance.Covariance(array=covariance.csr_matrix(c), raw_shape=raw_shape)
-    var, correl = cov.to_table()
-    assert len(correl) == np.sum(np.triu(c) > 0), "Incorrect number of table entries"
-    assert len(correl.colnames) == 3, "Incorrect number of columns"
-    assert correl["INDXI"].ndim == 2, "Incorrect shape for index array"
-    assert correl["INDXI"].shape[1] == var.ndim, (
-        "Dimensionality mismatch between var and indices"
-    )
+    covar = cov.to_table()
+    assert len(covar) == np.sum(np.triu(c) > 0), "Incorrect number of table entries"
+    assert len(covar.colnames) == 3, "Incorrect number of columns"
+    assert covar["INDXI"].ndim == 2, "Incorrect shape for index array"
 
-    _cov = covariance.Covariance.from_table(var, correl)
+    _cov = covariance.Covariance.from_table(covar)
     assert np.array_equal(cov.to_dense(), _cov.to_dense()), (
         "Bad convert/revert from tables"
     )
 
     # Introduce a shape mismatch
-    correl.meta["COVRWSHP"] = "(3,6)"
+    covar.meta["COVRWSHP"] = "(3,6)"
     with pytest.raises(ValueError):
-        _cov = covariance.Covariance.from_table(var, correl)
+        _cov = covariance.Covariance.from_table(covar)
 
 
 @scipy_required
@@ -593,6 +602,26 @@ def test_array():
     # Should be the same as the identity matrix.
     assert np.array_equal(covar.to_dense(), c), "Arrays should be identical"
 
+    # Copy
+    _c = c.copy()
+    # Introduce an asymmetry in the upper triangle
+    _c[0, 9] = 1.0
+    with pytest.warns(AstropyUserWarning):
+        cov = covariance.Covariance.from_array(_c)
+
+    # Instantiate again but assume symmetry
+    cov = covariance.Covariance.from_array(_c, assume_symmetric=True)
+    assert not np.array_equal(cov.to_dense(), c), (
+        "Asymmetries in the upper triangle should be kept"
+    )
+    _c = c.copy()
+    # Introduce an asymmetry in the lower triangle
+    _c[9, 0] = 1.0
+    cov = covariance.Covariance.from_array(_c, assume_symmetric=True)
+    assert np.array_equal(cov.to_dense(), c), (
+        "Asymmetries in the lower triangle should be ignored"
+    )
+
     # Test rho tolerance (cov tolerance is test elsewhere)
     rho_tol = 0.3
     covar = covariance.Covariance.from_array(c, rho_tol=rho_tol)
@@ -605,63 +634,24 @@ def test_array():
     )
 
 
-@scipy_required
 def test_io():
-    # Clean up in case of a failure
+    # Set the file name
     ofile = Path("test_covar_io.fits")
+    # Erase it if it already exists
     if ofile.is_file():
         ofile.unlink()
 
-    # 1D
-    cov = covariance.Covariance(array=mock_cov(), unit="km^2")
-    # Rescale the variance
-    cov = cov.apply_new_variance(np.full(cov.shape[0], 2.0))
-    # Write
-    cov.write(ofile)
-
-    # Test file exists
-    with pytest.raises(FileExistsError):
-        cov.write(ofile)
-
-    # Test contents of fits file
-    with fits.open(ofile) as hdu:
-        assert len(hdu) == 3, "Incorrect number of extensions written"
-        assert hdu[1].name == "VAR", "Default name changed"
-        assert hdu[2].name == "CORREL", "Default name changed"
-        assert len(hdu["CORREL"].data.columns) == 3, "Incorrect number of table columns"
-        assert hdu["CORREL"].data.columns.names == [
-            "INDXI",
-            "INDXJ",
-            "RHOIJ",
-        ], "Column names changed"
-        assert len(hdu["CORREL"].data["INDXI"].shape) == 1, "Column should only be 1D"
-        assert hdu["CORREL"].header["BUNIT"].strip() == "km2", "Unit wrong"
-
-    # Read
-    _cov = covariance.Covariance.read(ofile)
-    # Arrays should be the same
-    assert np.allclose(cov.to_dense(), _cov.to_dense()), "Bad 1D I/O"
-    # Units should be the same
-    assert cov.unit == _cov.unit, "Units changed"
-
-    # Clean-up
-    ofile.unlink()
-
-    # ND
-    raw_shape, c = mock_cov_3d()
-    cov = covariance.Covariance(array=c, raw_shape=raw_shape)
-    cov.write(ofile)
-    # Test contents of fits file
-    with fits.open(ofile) as hdu:
-        assert len(hdu) == 3, "Incorrect number of extensions written"
-        assert hdu[1].name == "VAR", "Default name changed"
-        assert hdu[2].name == "CORREL", "Default name changed"
-        assert len(hdu["CORREL"].data.columns) == 3, "Incorrect number of table columns"
-        assert len(hdu["CORREL"].data["INDXI"].shape) == 2, "Column should be ND"
-        assert hdu["CORREL"].data["INDXI"].shape[1] == 3, "Data is 3D"
-    # Read
-    _cov = covariance.Covariance.read(ofile)
-    # Arrays should be the same
-    assert np.allclose(cov.to_dense(), _cov.to_dense()), "Bad ND I/O"
-    # Clean-up
+    # Create the covariance object
+    covar = covariance.Covariance(array=mock_cov())
+    # Write it to a table
+    tbl = covar.to_table()
+    # Write the table to a fits file
+    tbl.write(ofile, format="fits")
+    # Read it back in as a Table
+    _tbl = Table.read(ofile, format="fits")
+    # Use the table to instantiate a Covariance object
+    _covar = covariance.Covariance.from_table(_tbl)
+    # Check that the IO was successful
+    assert np.array_equal(covar.to_dense(), _covar.to_dense()), "Array changed"
+    # Delete the file
     ofile.unlink()
