@@ -23,6 +23,4 @@ Reference/API
 
 .. automodapi:: astropy.units.format
 
-.. automodapi:: astropy.units.deprecated
-
 .. automodapi:: astropy.units.required_by_vounit
