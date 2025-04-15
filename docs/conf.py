@@ -292,7 +292,27 @@ def _custom_edit_url(
         # this is a dynamically generated API page
         astropy_path = file_name.removeprefix("api/astropy.").removesuffix(".rst")
         item = operator.attrgetter(astropy_path)(astropy)  # noqa: F405
-        if module := getattr(item, "__module__", None):
+
+        if "cosmology.realizations.available" in file_name:
+            doc_path = "astropy/cosmology/"
+            file_name = "realizations.py"
+
+        # See https://github.com/astropy/astropy/issues/18012
+        elif astropy_path in (
+            "units.dimensionless_angles",
+            "units.doppler_redshift",
+            "units.logarithmic",
+            "units.mass_energy",
+            "units.molar_mass_amu",
+            "units.parallax",
+            "units.spectral",
+            "units.temperature",
+            "units.temperature_energy",
+        ):
+            doc_path = "astropy/units/"
+            file_name = "equivalencies.py"
+
+        elif module := getattr(item, "__module__", None):
             mod_dir, _, mod_file = module.rpartition(".")
             new_file_name = mod_file + ".py"
             try:
@@ -314,15 +334,12 @@ def _custom_edit_url(
                 new_file_name += f"#L{line_no + 1}"
             doc_path = mod_dir.replace(".", "/") + "/"
             file_name = new_file_name
+
         else:
-            if "cosmology.realizations.available" in file_name:
-                doc_path = "astropy/cosmology/"
-                file_name = "realizations.py"
-            else:
-                warnings.warn(f"could not find module for {doc_path=}, {file_name=}")
-                # Fall back for items that do not even have a module. Hope for the best.
-                doc_path = "astropy"
-                file_name = astropy_path.replace(".", "/")
+            warnings.warn(f"could not find module for {doc_path=}, {file_name=}")
+            # Fall back for items that do not even have a module. Hope for the best.
+            doc_path = "astropy"
+            file_name = astropy_path.replace(".", "/")
 
     return default_edit_page_url_template.format(
         github_user=github_user,
