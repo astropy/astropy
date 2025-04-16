@@ -290,7 +290,7 @@ enable just these tests, you can run the
 tests with ``pytest --remote-data=astropy``.
 
 For more information on the ``pytest-remotedata`` plugin, see
-:ref:`remotedata-plugin`.
+|pytest-remotedata|.
 
 Examples
 --------
@@ -977,49 +977,3 @@ from `astropy-benchmarks <https://github.com/astropy/astropy-benchmarks/>`_.
 It is important to note that these benchmarks can be flaky as they run on
 virtual machines (and thus shared hardware) but they should give a general
 idea of the performance impact of a pull request.
-
-.. _pytest-plugins:
-
-Pytest Plugins
-**************
-
-The following ``pytest`` plugins are maintained and used by Astropy. They are
-included as dependencies to the ``pytest-astropy`` package, which is now
-required for testing Astropy. More information on all of the  plugins provided
-by the ``pytest-astropy`` package (including dependencies not maintained by
-Astropy) can be found `here <https://github.com/astropy/pytest-astropy>`__.
-
-.. _remotedata-plugin:
-
-pytest-remotedata
-=================
-
-The |pytest-remotedata| plugin allows developers to control whether to run
-tests that access data from the internet. The plugin provides two decorators
-that can be used to mark individual test functions or entire test classes:
-
-* ``@pytest.mark.remote_data`` for tests that require data from the internet
-* ``@pytest.mark.internet_off`` for tests that should run only when there is no
-  internet access. This is useful for testing local data caches or fallbacks
-  for when no network access is available.
-
-The plugin also adds the ``--remote-data`` option to the ``pytest`` command
-(which is also made available through the Astropy test runner).
-
-If the ``--remote-data`` option is not provided when running the test suite, or
-if ``--remote-data=none`` is provided, all tests that are marked with
-``remote_data`` will be skipped. All tests that are marked with
-``internet_off`` will be executed. Any test that attempts to access the
-internet but is not marked with ``remote_data`` will result in a failure.
-
-Providing either the ``--remote-data`` option, or ``--remote-data=any``, will
-cause all tests marked with ``remote_data`` to be executed. Any tests that are
-marked with ``internet_off`` will be skipped.
-
-Running the tests with ``--remote-data=astropy`` will cause only tests that
-receive remote data from Astropy data sources to be run. Tests with any other
-data sources will be skipped. This is indicated in the test code by marking
-test functions with ``@pytest.mark.remote_data(source='astropy')``. Tests
-marked with ``internet_off`` will also be skipped in this case.
-
-Also see :ref:`data-files`.
