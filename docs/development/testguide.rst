@@ -586,15 +586,6 @@ tables to HDF5 format), and in ``test_all`` for dependencies only used in tests
 (e.g., ``skyfield``, which is used to cross-check the accuracy of coordinate
 transforms).
 
-Using pytest helper functions
-=============================
-
-If your tests need to use `pytest helper functions
-<https://docs.pytest.org/en/latest/reference/reference.html#functions>`_, such as
-``pytest.raises``, import ``pytest`` into your test module like so::
-
-    import pytest
-
 Testing warnings
 ================
 
