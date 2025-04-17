@@ -103,6 +103,13 @@ array([[36. , 15. ,  4.8,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
        [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  1.6,  6. , 16. , 10. ],
        [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  3. , 10. , 25. ]])
 
+.. note::
+
+    The `~astropy.nddata.covariance.Covariance` class provides a convenience
+    function for creating a new `~astropy.nddata.covariance.Covariance` instance
+    with the same correlation matrix but a new variance vector; see
+    :ref:`here<covariance-apply-new-variance>`.
+
 Reordering and Subsets
 ----------------------
 
@@ -149,6 +156,12 @@ array([[1. , 0.5, 0.2],
        [0.5, 1. , 0.5],
        [0.2, 0.5, 1. ]])
 
+.. note::
+
+    The `~astropy.nddata.covariance.Covariance` class provides a convenience
+    function for matching the covariance data to a slice of its parent data array;
+    see :ref:`here<covariance-match-to-data-slice>`.
+
 In N-dimensions
 ---------------
 
@@ -182,6 +195,13 @@ indices in the covariance matrix) uses `~numpy.unravel_index` (cf. ``i_data``):
 >>> np.unravel_index(i_cov, data_array_shape)
 (array([1]), array([0]))
 
+.. note::
+
+    The `~astropy.nddata.covariance.Covariance` class provides convenience
+    functions for switching between the data array and covariance matrix
+    indexing when working with higher dimensionality data arrays;
+    see :ref:`here<covariance-nd-indexing>`.
+
 .. _nddata-covariance-construction:
 
 Construction
@@ -209,17 +229,11 @@ variance vector:
     >>> # Create from the Covariance object
     >>> covar = Covariance.from_variance(var)
     >>> # Test its contents
-    >>> bool(np.array_equal(covar.to_dense(), np.identity(3)))
+    >>> print(np.array_equal(covar.to_dense(), np.identity(3)))
     True
 
 In this case, the variance is unity for all elements of the data array such that
 the covariance matrix is diagonal and identical to the identity matrix.
-
-.. note::
-    
-    Wrapping the result of `~numpy.array_equal` with the ``bool`` operator above
-    is done just to be sure that the returned value is ``True``, regardless of
-    the version of numpy installed.
 
 To create a `~astropy.nddata.covariance.Covariance` object from a "dense" (i.e.,
 fully populated) covariance matrix:
@@ -228,7 +242,7 @@ fully populated) covariance matrix:
 
     >>> # Instantiate from a covariance array
     >>> covar = Covariance(array=c)
-    >>> bool(np.array_equal(covar.to_dense(), c))
+    >>> print(np.array_equal(covar.to_dense(), c))
     True
     >>> covar.to_dense()
     array([[1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
@@ -280,7 +294,7 @@ You can construct a covariance matrix based on samples from a distribution using
     >>>
     >>> # Test that the known input covariance matrix is close to the
     >>> # measured covariance from the random samples
-    >>> bool(np.all(np.absolute(c - covar.to_dense()) < 0.02))
+    >>> print(np.all(np.absolute(c - covar.to_dense()) < 0.02))
     True
 
 Here, we have drawn samples from a known multivariate normal distribution with a
@@ -341,7 +355,7 @@ multiplication using
     array([[1. , 0.2, 0. ],
            [0.2, 1. , 0.2],
            [0. , 0.2, 1. ]])
-    >>> bool(np.array_equal(covar.to_dense(), _c))
+    >>> print(np.array_equal(covar.to_dense(), _c))
     True
 
 In N-dimensions
@@ -422,7 +436,7 @@ accessed in coordinate format:
 
     >>> covar = Covariance(array=c)
     >>> i, j, cij = covar.coordinate_data()
-    >>> bool(np.array_equal(covar.to_dense()[i,j], cij))
+    >>> print(np.array_equal(covar.to_dense()[i,j], cij))
     True
 
 The arrays returned by `~astropy.nddata.covariance.Covariance.coordinate_data`
@@ -543,23 +557,65 @@ For example, to write the covariance matrix to table and reload it:
     >>> from astropy.table import Table
     >>> _tbl = Table.read(ofile, format='fits')
     >>> _covar = Covariance.from_table(_tbl)
-    >>> bool(np.array_equal(covar.to_dense(), _covar.to_dense()))
+    >>> print(np.array_equal(covar.to_dense(), _covar.to_dense()))
     True
 
 Utility Functions
 =================
 
-Creating a sub-matrix
----------------------
+.. _covariance-apply-new-variance:
 
-To extract a submatrix from the `~astropy.nddata.covariance.Covariance` object,
-use the  `~astropy.nddata.covariance.Covariance.sub_matrix` method.  For
-example, to create a matrix with every other entry:
+Renormalizing the variance
+--------------------------
+
+To create a new covariance matrix that maintains the same correlations as an
+existing matrix but a different variance, you can apply a new variance
+normalization (following the examples in the :ref:`introductory section
+<nddata-covariance-intro>`).  The `~astropy.nddata.covariance.Covariance` object
+provides a convenience function for this.
+
+.. doctest-requires:: scipy
+
+    >>> covar_var1 = Covariance(array=c)
+    >>> covar_var1.to_dense()
+    array([[1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0.5, 1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0.2, 0.5, 1. , 0.5, 0.2, 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0.2, 0.5, 1. , 0.5, 0.2, 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0.2, 0.5, 1. , 0.5, 0.2, 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0.2, 0.5, 1. , 0.5, 0.2, 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0.2, 0.5, 1. , 0.5, 0.2, 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0.2, 0.5, 1. , 0.5, 0.2],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0.2, 0.5, 1. , 0.5],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0.2, 0.5, 1. ]])
+    >>> var4 = np.full(c.shape[0], 4.0, dtype=float)
+    >>> covar_var4 = covar_var1.apply_new_variance(var4)
+    >>> covar_var4.to_dense()
+    array([[4. , 2. , 0.8, 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [2. , 4. , 2. , 0.8, 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0.8, 2. , 4. , 2. , 0.8, 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0.8, 2. , 4. , 2. , 0.8, 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0.8, 2. , 4. , 2. , 0.8, 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0.8, 2. , 4. , 2. , 0.8, 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0.8, 2. , 4. , 2. , 0.8, 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0.8, 2. , 4. , 2. , 0.8],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0.8, 2. , 4. , 2. ],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0.8, 2. , 4. ]])
+
+.. _covariance-match-to-data-slice:
+
+Matching the covariance data to a slice of its parent data array
+----------------------------------------------------------------
+
+To adjust a `~astropy.nddata.covariance.Covariance` object so that it is
+appropriate for a slice of its parent data array, use
+`~astropy.nddata.covariance.Covariance.match_to_data_slice`.  For example, to
+create a matrix with every other entry:
 
 .. doctest-requires:: scipy
 
     >>> covar = Covariance(array=c)
-    >>> sub_covar = covar.sub_matrix(np.s_[::2])
+    >>> sub_covar = covar.match_to_data_slice(np.s_[::2])
     >>> sub_covar
     <Covariance; shape = (5, 5)>
     >>> sub_covar.to_dense()
@@ -569,11 +625,35 @@ example, to create a matrix with every other entry:
            [0. , 0. , 0.2, 1. , 0.2],
            [0. , 0. , 0. , 0.2, 1. ]])
 
+or to adjust for a reordering of the parent data array:
+
+.. doctest-requires:: scipy
+
+    >>> covar = Covariance(array=c)
+    >>> rng = np.random.default_rng(99)
+    >>> reorder = np.arange(covar.shape[0])
+    >>> rng.shuffle(reorder)
+    >>> reorder
+    array([4, 6, 0, 3, 8, 1, 2, 5, 7, 9])
+    >>> reorder_covar = covar.match_to_data_slice(reorder)
+    >>> reorder_covar.to_dense()
+    array([[1. , 0.2, 0. , 0.5, 0. , 0. , 0.2, 0.5, 0. , 0. ],
+           [0.2, 1. , 0. , 0. , 0.2, 0. , 0. , 0.5, 0.5, 0. ],
+           [0. , 0. , 1. , 0. , 0. , 0.5, 0.2, 0. , 0. , 0. ],
+           [0.5, 0. , 0. , 1. , 0. , 0.2, 0.5, 0.2, 0. , 0. ],
+           [0. , 0.2, 0. , 0. , 1. , 0. , 0. , 0. , 0.5, 0.5],
+           [0. , 0. , 0.5, 0.2, 0. , 1. , 0.5, 0. , 0. , 0. ],
+           [0.2, 0. , 0.2, 0.5, 0. , 0.5, 1. , 0. , 0. , 0. ],
+           [0.5, 0.5, 0. , 0.2, 0. , 0. , 0. , 1. , 0.2, 0. ],
+           [0. , 0.5, 0. , 0. , 0.5, 0. , 0. , 0.2, 1. , 0.2],
+           [0. , 0. , 0. , 0. , 0.5, 0. , 0. , 0. , 0.2, 1. ]])
+
+.. _covariance-nd-indexing:
 
 Data-to-covariance Indexing Transformations
 -------------------------------------------
 
-For higher dimensional arrays, two method are provided to ease conversion
+For higher dimensional arrays, two methods are provided to ease conversion
 between data array and covariance matrix indexing.  Following examples above,
 define the ten elements in the covariance matrix as coming from a :math:`5
 \times 2` array, then find the indices in the data array for the covariance

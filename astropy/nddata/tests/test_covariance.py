@@ -500,19 +500,31 @@ def test_shape():
 
 
 @scipy_required
-def test_sub_matrix():
+def test_match_to_data_slice():
     c = mock_cov()
     cov = covariance.Covariance(array=c)
 
     # Check the index map
     assert np.array_equal(cov.data_index_map, np.arange(10)), "Bad index map"
 
-    # 1D
-    sub_cov = cov.sub_matrix(np.s_[:5])
+    # 1D slice
+    sub_cov = cov.match_to_data_slice(np.s_[:5])
     assert isinstance(sub_cov, covariance.Covariance), (
         "Submatrix should be a Covariance instance"
     )
     assert np.array_equal(sub_cov.to_dense(), c[:5, :5]), "Bad submatrix"
+
+    # 1D reorder
+    rng = np.random.default_rng(99)
+    reorder = np.arange(cov.shape[0])
+    rng.shuffle(reorder)
+    sub_cov = cov.match_to_data_slice(reorder)
+    assert isinstance(sub_cov, covariance.Covariance), (
+        "Submatrix should be a Covariance instance"
+    )
+    assert np.array_equal(sub_cov.to_dense(), c[np.ix_(reorder, reorder)]), (
+        "Bad matrix reorder"
+    )
 
     # 2D
     data_shape, c = mock_cov_2d()
@@ -525,25 +537,25 @@ def test_sub_matrix():
     )
 
     # Reduce dimensionality
-    sub_cov = cov.sub_matrix(np.s_[:, 0])
+    sub_cov = cov.match_to_data_slice(np.s_[:, 0])
     assert len(sub_cov.data_shape) == 1, "Submatrix should have reduced dimensionality"
     assert sub_cov.shape == (3, 3), "Incorrect covariance submatrix shape"
     # Still 2D
-    sub_cov = cov.sub_matrix(np.s_[1:, :])
+    sub_cov = cov.match_to_data_slice(np.s_[1:, :])
     assert sub_cov.data_shape == (2, 2), "Submatrix does not have the correct shape"
 
     # 3D
     data_shape, c = mock_cov_3d()
     cov = covariance.Covariance(array=c, data_shape=data_shape)
     # Reduce dimensionality to 1D
-    sub_cov = cov.sub_matrix(np.s_[:, 0, 0])
+    sub_cov = cov.match_to_data_slice(np.s_[:, 0, 0])
     assert len(sub_cov.data_shape) == 1, "Submatrix should have reduced dimensionality"
     assert sub_cov.shape == (3, 3), "Incorrect covariance submatrix shape"
     # Reduce dimensionality to 2D
-    sub_cov = cov.sub_matrix(np.s_[1:, :, 0])
+    sub_cov = cov.match_to_data_slice(np.s_[1:, :, 0])
     assert sub_cov.data_shape == (2, 2), "Submatrix does not have the correct shape"
     # Still 3D
-    sub_cov = cov.sub_matrix(np.s_[1:, :, :-1])
+    sub_cov = cov.match_to_data_slice(np.s_[1:, :, :-1])
     assert sub_cov.data_shape == (2, 2, 2), "Submatrix does not have the correct shape"
     assert sub_cov.shape[0] == np.prod(sub_cov.data_shape), "Shape mismatch"
 

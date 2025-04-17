@@ -487,7 +487,7 @@ class Covariance(NDUncertainty):
         return cls(array=cov, data_shape=data_shape, unit=unit, assume_symmetric=True)
 
     @classmethod
-    def from_matrix_multiplication(cls, T, Sigma, **kwargs):
+    def from_matrix_multiplication(cls, T, covar, **kwargs):
         r"""
         Construct the covariance matrix that results from a matrix
         multiplication.
@@ -511,7 +511,7 @@ class Covariance(NDUncertainty):
             {\mathbf \Sigma}_y = {\mathbf T}\ {\mathbf \Sigma}_x\
             {\mathbf T}^\top.
 
-        If ``Sigma`` is provided as a vector of length :math:`N_x`, it is
+        If ``covar`` is provided as a vector of length :math:`N_x`, it is
         assumed that the elements of :math:`{\mathbf X}` are independent and the
         provided vector gives the *variance* in each element; i.e., the provided
         data represent the diagonal of :math:`{\mathbf \Sigma}`.
@@ -521,7 +521,7 @@ class Covariance(NDUncertainty):
         T : `~scipy.sparse.csr_matrix`, `~numpy.ndarray`
             Transfer matrix.  See above.
 
-        Sigma : `~scipy.sparse.csr_matrix`, `~numpy.ndarray`
+        covar : `~scipy.sparse.csr_matrix`, `~numpy.ndarray`
             Covariance matrix.  See above.
 
         **kwargs : dict, optional
@@ -541,20 +541,20 @@ class Covariance(NDUncertainty):
         if T.ndim != 2:
             raise ValueError("Input transfer matrix must be two-dimensional.")
         nx = T.shape[1]
-        if Sigma.shape != (nx, nx) and Sigma.shape != (nx,):
+        if covar.shape != (nx, nx) and covar.shape != (nx,):
             raise ValueError(
                 f"Shape of input variance matrix must be either ({nx}, {nx}) or ({nx},)."
             )
         # If it isn't already, convert T to a csr_matrix
         _T = T if isinstance(T, csr_matrix) else csr_matrix(T)
         # Set the covariance matrix in X
-        _Sigma = (
-            coo_matrix((Sigma, (np.arange(nx), np.arange(nx))), shape=(nx, nx)).tocsr()
-            if Sigma.ndim == 1
-            else (Sigma if isinstance(Sigma, csr_matrix) else csr_matrix(Sigma))
+        _covar = (
+            coo_matrix((covar, (np.arange(nx), np.arange(nx))), shape=(nx, nx)).tocsr()
+            if covar.ndim == 1
+            else (covar if isinstance(covar, csr_matrix) else csr_matrix(covar))
         )
         # Construct the covariance matrix
-        return cls(_T.dot(_Sigma.dot(_T.transpose())).tocsr(), **kwargs)
+        return cls(_T.dot(_covar.dot(_T.transpose())).tocsr(), **kwargs)
 
     @classmethod
     def from_variance(cls, variance, **kwargs):
@@ -954,29 +954,29 @@ class Covariance(NDUncertainty):
                 self._data_index_map = self._data_index_map.reshape(self._data_shape)
         return self._data_index_map
 
-    def sub_matrix(self, data_slice):
+    def match_to_data_slice(self, data_slice):
         """
-        Return a new `Covariance` instance with the submatrix associated with
-        the provided subsection of the data array.
+        Return a new `Covariance` instance that is matched to a slice of its
+        parent data array.
 
         Parameters
         ----------
         data_slice : slice, array-like
             Anything that can be used to slice a `numpy.ndarray`.  To generate a
             slice using syntax that mimics accessing numpy array elements, use
-            `numpy.s_`; see examples.
+            `numpy.s_`; see examples
+            :ref:`here<covariance-match-to-data-slice>`.
 
         Returns
         -------
         `Covariance`
-            A new covariance object that is relevant to the selected submatrix
-            of the data array.
+            A new covariance object for the sliced data array.
         """
-        sub_map = self.data_index_map[data_slice]
-        index = sub_map.ravel()
+        remap = self.data_index_map[data_slice]
+        index = remap.ravel()
         return Covariance(
             self.to_sparse()[np.ix_(index, index)],
-            data_shape=None if len(sub_map.shape) == 1 else sub_map.shape,
+            data_shape=None if len(remap.shape) == 1 else remap.shape,
         )
 
     @staticmethod
