@@ -405,7 +405,7 @@ There are two ways to access the full covariance matrix:
 
 - Use `~astropy.nddata.covariance.Covariance.to_sparse` to produce a sparse matrix or
 
-- use `~astropy.nddata.covariance.Covariance.to_dense` for a dense matrix.
+- Use `~astropy.nddata.covariance.Covariance.to_dense` for a dense matrix.
 
 The output of these two methods can be used as you would use any
 `scipy.sparse.csr_matrix` or `numpy.ndarray` object, respectively.

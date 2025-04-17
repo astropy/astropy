@@ -145,7 +145,6 @@ class NDUncertainty(metaclass=ABCMeta):
 
         if copy:
             array = deepcopy(array)
-            # TODO: Why is this not above the lines above that set 'self._unit'?
             unit = deepcopy(unit)
 
         self.array = array
