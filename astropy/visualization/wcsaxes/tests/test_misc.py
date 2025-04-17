@@ -714,3 +714,17 @@ def test_get_axislabel_default():
     ax.coords[1].set_axislabel("")
     assert ax.coords[0].get_axislabel() == "Right Ascension"
     assert ax.coords[1].get_axislabel() == ""
+
+
+def test_plot_coord_slicing(ignore_matplotlibrc):
+    # Regression test to ensure plot_coord does not raise a NotImplementedError
+    # after slicing coordinates (issue #10254).
+
+    cube_header = get_pkg_data_filename("data/cube_header")
+    cube_header = fits.Header.fromtextfile(cube_header)
+
+    fig = Figure(figsize=(6, 6))
+    ax = fig.add_subplot(projection=WCS(cube_header), slices=("x", "y", 0))
+
+    c = SkyCoord(52 * u.deg, 30.5 * u.deg)
+    ax.plot_coord(c, "o")
