@@ -295,6 +295,12 @@ def _custom_edit_url(
         if module := getattr(item, "__module__", None):
             mod_dir, _, mod_file = module.rpartition(".")
             new_file_name = mod_file + ".py"
+            # Remove wrappings, such as functools.cache in astropy.units.equivalencies.
+            # This also avoids "could not find source" warnings.  But don't remove
+            # a correct one for sharedmethod.
+            if module != "astropy.utils.decorators":
+                while wrapped := getattr(item, "__wrapped__", None):
+                    item = wrapped
             try:
                 line_no = inspect.findsource(item)[1]
             except Exception:
