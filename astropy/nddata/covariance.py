@@ -328,7 +328,7 @@ class Covariance(NDUncertainty):
             N_{\rm samples}`.
 
         cov_tol : :obj:`float`, optional
-            The absolute value of any *covariance* matrix entry less than this
+            The absolute value of any *covariance matrix* entry less than this
             is assumed to be equivalent to (and set to) 0.
 
         rho_tol : :obj:`float`, optional
@@ -431,7 +431,7 @@ class Covariance(NDUncertainty):
         Raises
         ------
         ValueError
-            Raised if ``triu_covar.meta`` is None, if the provide variance array
+            Raised if ``triu_covar.meta`` is ``None``, if the provided variance array
             does not have the correct size, or if the data is multidimensional
             and the table columns do not have the right shape.
         """
@@ -543,7 +543,7 @@ class Covariance(NDUncertainty):
         nx = T.shape[1]
         if Sigma.shape != (nx, nx) and Sigma.shape != (nx,):
             raise ValueError(
-                f"Shape of input variance matrix must be either ({nx},{nx}) or ({nx},)."
+                f"Shape of input variance matrix must be either ({nx}, {nx}) or ({nx},)."
             )
         # If it isn't already, convert T to a csr_matrix
         _T = T if isinstance(T, csr_matrix) else csr_matrix(T)
@@ -667,7 +667,7 @@ class Covariance(NDUncertainty):
         ----------
         correlation : bool, optional
             Flag to return the correlation matrix, instead of the covariance
-            matrix.  Note that setting this to True does *not* also return the
+            matrix.  Note that setting this to ``True`` does *not* also return the
             variance vector.
 
         Returns
@@ -688,7 +688,7 @@ class Covariance(NDUncertainty):
         ----------
         correlation : bool, optional
             Flag to return the correlation data, instead of the covariance data.
-            Note that setting this to True does *not* also return the variance
+            Note that setting this to ``True`` does *not* also return the variance
             vector.
 
         Returns
@@ -824,7 +824,7 @@ class Covariance(NDUncertainty):
         Parameters
         ----------
         reshape : :obj:`bool`, optional
-            If ``reshape`` is True and `data_shape` is defined, the :math:`i,j`
+            If ``reshape`` is ``True`` and `data_shape` is defined, the :math:`i,j`
             indices are converted to the expected data-array indices; see
             :func:`covariance_to_data_indices`.  These can be reverted to the
             coordinates in the covariance matrix using
