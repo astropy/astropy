@@ -1,0 +1,3 @@
+Adds a utility class, ``astropy.nddata.Covariance``, used to construct, access,
+and store covariance matrices.  The class depends on use of the ``scipy.sparse``
+module.

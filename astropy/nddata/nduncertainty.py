@@ -406,7 +406,7 @@ class NDUncertainty(metaclass=ABCMeta):
             # assume this is a collapsing operation:
             result = self._propagate_collapse(operation, axis)
 
-        return self.__class__(result, copy=False)
+        return self.__class__(array=result, copy=False)
 
     def _convert_uncertainty(self, other_uncert):
         """Checks if the uncertainties are compatible for propagation.
