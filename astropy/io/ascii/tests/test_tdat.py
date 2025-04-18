@@ -417,12 +417,13 @@ def test_bad_delimiter():
     ):
         test_table.write(out, format="ascii.tdat", delimiter=",")
 
-    test_table.meta["keywords"]["field_delimiter"] = ","
+    check_table = test_table.copy()
+    check_table.meta["keywords"]["field_delimiter"] = ","
     with pytest.warns(
         TdatFormatWarning, match="Delimiters other than the pipe character"
     ):
         with pytest.warns(TdatFormatWarning, match="Skipping deprecated"):
-            test_table.write(out, format="ascii.tdat", delimiter=",")
+            check_table.write(out, format="ascii.tdat", delimiter=",")
 
 
 def test_bad_header_start():
