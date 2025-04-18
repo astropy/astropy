@@ -7,7 +7,10 @@ available in (and should be used through) the `astropy.units` namespace.
 
 """
 
+from __future__ import annotations
+
 import functools
+from typing import TYPE_CHECKING
 
 # THIRD-PARTY
 import numpy as np
@@ -21,6 +24,9 @@ from . import astrophys, cgs, dimensionless_unscaled, misc, si
 from .core import Unit
 from .errors import UnitsError
 from .function import units as function_units
+
+if TYPE_CHECKING:
+    from typing import Final
 
 __all__ = [
     "Equivalency",
@@ -44,6 +50,9 @@ __all__ = [
     "temperature_energy",
     "thermodynamic_temperature",
 ]
+
+km_per_s: Final = si.km / si.s
+ckms: Final = _si.c.to_value(km_per_s)
 
 
 class Equivalency(list):
@@ -371,40 +380,21 @@ def doppler_radio(rest):
     <Quantity -31.209092088877583 km / s>
     """
     assert_is_spectral_unit(rest)
-
-    ckms = _si.c.to_value("km/s")
-
-    def to_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
-        return (restfreq - x) / (restfreq) * ckms
-
-    def from_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
-        voverc = x / ckms
-        return restfreq * (1 - voverc)
-
-    def to_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
-        return (x - restwav) / (x) * ckms
-
-    def from_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
-        return restwav * ckms / (ckms - x)
-
-    def to_vel_en(x):
-        resten = rest.to_value(misc.eV, equivalencies=spectral())
-        return (resten - x) / (resten) * ckms
-
-    def from_vel_en(x):
-        resten = rest.to_value(misc.eV, equivalencies=spectral())
-        voverc = x / ckms
-        return resten * (1 - voverc)
-
+    rest_in = functools.partial(rest.to_value, equivalencies=spectral())
+    to_funcs = {
+        misc.eV: lambda x: (1 - x / rest_in(misc.eV)) * ckms,
+        si.Hz: lambda x: (1 - x / rest_in(si.Hz)) * ckms,
+        si.AA: lambda x: (1 - rest_in(si.AA) / x) * ckms,
+    }
+    from_funcs = {
+        misc.eV: lambda x: rest_in(misc.eV) * (1 - x / ckms),
+        si.Hz: lambda x: rest_in(si.Hz) * (1 - x / ckms),
+        si.AA: lambda x: rest_in(si.AA) / (1 - x / ckms),
+    }
     return Equivalency(
         [
-            (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
-            (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (misc.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (unit, km_per_s, to_func, from_funcs[unit])
+            for unit, to_func in to_funcs.items()
         ],
         "doppler_radio",
         {"rest": rest},
@@ -440,41 +430,21 @@ def doppler_optical(rest):
     <Quantity -31.20584348799674 km / s>
     """
     assert_is_spectral_unit(rest)
-
-    ckms = _si.c.to_value("km/s")
-
-    def to_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
-        return ckms * (restfreq - x) / x
-
-    def from_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
-        voverc = x / ckms
-        return restfreq / (1 + voverc)
-
-    def to_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
-        return ckms * (x / restwav - 1)
-
-    def from_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
-        voverc = x / ckms
-        return restwav * (1 + voverc)
-
-    def to_vel_en(x):
-        resten = rest.to_value(misc.eV, equivalencies=spectral())
-        return ckms * (resten - x) / x
-
-    def from_vel_en(x):
-        resten = rest.to_value(misc.eV, equivalencies=spectral())
-        voverc = x / ckms
-        return resten / (1 + voverc)
-
+    rest_in = functools.partial(rest.to_value, equivalencies=spectral())
+    to_funcs = {
+        misc.eV: lambda x: (rest_in(misc.eV) / x - 1) * ckms,
+        si.Hz: lambda x: (rest_in(si.Hz) / x - 1) * ckms,
+        si.AA: lambda x: (x / rest_in(si.AA) - 1) * ckms,
+    }
+    from_funcs = {
+        misc.eV: lambda x: rest_in(misc.eV) / (1 + x / ckms),
+        si.Hz: lambda x: rest_in(si.Hz) / (1 + x / ckms),
+        si.AA: lambda x: rest_in(si.AA) * (1 + x / ckms),
+    }
     return Equivalency(
         [
-            (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
-            (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (misc.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (unit, km_per_s, to_func, from_funcs[unit])
+            for unit, to_func in to_funcs.items()
         ],
         "doppler_optical",
         {"rest": rest},
@@ -517,41 +487,37 @@ def doppler_relativistic(rest):
     <Quantity 2.6116243681798923 mm>
     """
     assert_is_spectral_unit(rest)
-
-    ckms = _si.c.to_value("km/s")
+    rest_in = functools.partial(rest.to_value, equivalencies=spectral())
 
     def to_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
-        return (restfreq**2 - x**2) / (restfreq**2 + x**2) * ckms
+        restfreq2 = rest_in(si.Hz) ** 2
+        return (restfreq2 - x**2) / (restfreq2 + x**2) * ckms
 
     def from_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
         voverc = x / ckms
-        return restfreq * ((1 - voverc) / (1 + (voverc))) ** 0.5
+        return rest_in(si.Hz) * ((1 - voverc) / (1 + voverc)) ** 0.5
 
     def to_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
-        return (x**2 - restwav**2) / (restwav**2 + x**2) * ckms
+        restwav2 = rest_in(si.AA) ** 2
+        return (x**2 - restwav2) / (restwav2 + x**2) * ckms
 
     def from_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
         voverc = x / ckms
-        return restwav * ((1 + voverc) / (1 - voverc)) ** 0.5
+        return rest_in(si.AA) * ((1 + voverc) / (1 - voverc)) ** 0.5
 
     def to_vel_en(x):
-        resten = rest.to_value(misc.eV, spectral())
-        return (resten**2 - x**2) / (resten**2 + x**2) * ckms
+        resten2 = rest_in(misc.eV) ** 2
+        return (resten2 - x**2) / (resten2 + x**2) * ckms
 
     def from_vel_en(x):
-        resten = rest.to_value(misc.eV, spectral())
         voverc = x / ckms
-        return resten * ((1 - voverc) / (1 + (voverc))) ** 0.5
+        return rest_in(misc.eV) * ((1 - voverc) / (1 + voverc)) ** 0.5
 
     return Equivalency(
         [
-            (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
-            (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (misc.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (si.Hz, km_per_s, to_vel_freq, from_vel_freq),
+            (si.AA, km_per_s, to_vel_wav, from_vel_wav),
+            (misc.eV, km_per_s, to_vel_en, from_vel_en),
         ],
         "doppler_relativistic",
         {"rest": rest},
