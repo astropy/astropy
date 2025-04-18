@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-7.1-table-spaces`
 * :ref:`whatsnew-7.1-tdat-reader`
+* :ref:`whatsnew-7.1-covariance`
 
 In addition to these major changes, Astropy v7.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -44,6 +45,16 @@ is now supported by the Unified File Read/Write Interface.
 
 Note that this format is compatible with ``Table`` objects with integer, float,
 and/or string data types, but not ``QTable`` objects or other data types.
+
+.. _whatsnew-7.1-covariance:
+
+Constructing, accessing, and storing covariance matrices for N-dimensional data
+===============================================================================
+
+We provide a new utility class that provides basic functionality for covariance
+matrices associated `~astropy.nddata.NDData` objects via the new
+`~astropy.nddata.Covariance` class.  See the full :ref:`nddata-covariance`
+documentation.
 
 Full change log
 ===============
