@@ -11,7 +11,7 @@ overview of running or writing the tests.
 Details
 =======
 The dependencies used by the Astropy test runner are provided by a separate
-package called |pytest-astropy| (see :ref:`pytest-plugins`). This package provides the ``pytest``
+package called |pytest-astropy|. This package provides the ``pytest``
 dependency itself, in addition to several ``pytest`` plugins that are used by
 Astropy, and will also be of general use to other packages.
 
