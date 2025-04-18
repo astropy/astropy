@@ -279,3 +279,19 @@ def test_fitting_custom_names(model, fitter):
         assert_quantity_allclose(
             getattr(new_model, param_name).quantity, getattr(model, param_name).quantity
         )
+
+
+@pytest.mark.filterwarnings(r"ignore:Model is linear in parameters*")
+@pytest.mark.parametrize("fitter", fitters)
+def test_fitting_model_pipe_with_units(fitter):
+    e = np.linspace(0, 25, 100) * u.keV
+    phys = models.Linear1D(slope=-4 * u.ph / u.keV, intercept=100 * u.ph)
+    phys.output_units = {"y": u.ph}
+    response = models.Linear1D(slope=1 * u.ct / u.ph, intercept=0 * u.ct)
+    response.output_units = {"y": u.ct}
+    comb = phys | response
+    fake_data = comb(e)
+    fit = fitter()
+    res = fit(comb, e, fake_data)
+    for name in comb.param_names:
+        assert getattr(comb, name) == getattr(res, name)
