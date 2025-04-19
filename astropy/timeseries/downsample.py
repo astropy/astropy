@@ -287,14 +287,19 @@ def aggregate_downsample(
             )
             continue
 
+        # TODO: This was written before MaskedQuantity were possible.
+        # Should we return that by default, instead of using np.nan?
         if isinstance(values, u.Quantity):
             data = np.full_like(values, np.nan, shape=(n_bins,))
             data[unique_indices] = reduceat(values, groups, aggregate_func)
         else:
             data = np.ma.zeros(n_bins, dtype=values.dtype)
-            data.mask = 1
             data[unique_indices] = reduceat(values, groups, aggregate_func)
-            data.mask[unique_indices] = 0
+
+        if hasattr(data, "mask"):
+            omitted = np.ones(data.shape, bool)
+            omitted[unique_indices] = False
+            data.mask |= omitted
 
         binned[colname] = data
 
