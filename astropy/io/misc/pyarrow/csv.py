@@ -35,7 +35,7 @@ def read_csv(
     include_names: list[str] | None = None,
     dtypes: dict[str, "npt.DTypeLike"] | None = None,
     comment: str | None = None,
-    null_values: list | None = None,
+    null_values: list[str] | None = None,
     encoding: str = "utf-8",
     newlines_in_values: bool = False,
 ) -> "Table":
@@ -245,9 +245,9 @@ def strip_comment_lines(
 
 
 def get_convert_options(
-    include_names: list | None,
+    include_names: list[str] | None,
     dtypes: dict[str, "npt.DTypeLike"] | None,
-    null_values: list | None,
+    null_values: list[str] | None,
 ) -> "pyarrow.csv.ConvertOptions":
     """
     Generate PyArrow CSV convert options.
@@ -289,7 +289,7 @@ def get_convert_options(
 def get_read_options(
     header_start: int | None,
     data_start: int | None,
-    names: list | None,
+    names: list[str] | None,
     encoding: str | None,
 ) -> "pyarrow.csv.ReadOptions":
     """
