@@ -4,7 +4,7 @@ import sys
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal, assert_equal
+from numpy.testing import assert_equal
 
 from astropy import units as u
 from astropy.table import MaskedColumn
@@ -16,7 +16,7 @@ from astropy.timeseries.downsample import (
 )
 from astropy.timeseries.sampled import TimeSeries
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.masked import Masked
+from astropy.utils.masked import Masked, get_data_and_mask
 
 INPUT_TIME = Time(
     [
@@ -27,6 +27,14 @@ INPUT_TIME = Time(
         "2016-03-22T12:30:35",
     ]
 )
+
+
+def assert_masked_equal(a, b):
+    assert type(a) is type(b)
+    a_data, a_mask = get_data_and_mask(a)
+    b_data, b_mask = get_data_and_mask(b)
+    assert_equal(a_data, b_data)
+    assert_equal(a_mask, b_mask)
 
 
 def test_reduceat():
@@ -84,18 +92,13 @@ def test_nanmean_reduceat_masked_quantity():
     indices = [0, 4, 2, 4, 2, 5, 2]
     with_nan = data.filled(np.nan)
     expected_unmasked = nanmean_reduceat(with_nan, indices)
-    assert_array_equal(expected_unmasked, [0.5, 4.0, np.nan, 4.0, 4.0, 5.0, 4.5] << u.m)
+    assert_equal(expected_unmasked, [0.5, 4.0, np.nan, 4.0, 4.0, 5.0, 4.5] << u.m)
     expected = Masked(expected_unmasked, mask=np.isnan(expected_unmasked))
     res1 = nanmean_reduceat(data, indices)
-    assert_array_equal(res1, expected)
-    # Check underlying data too, just to be sure
-    assert_array_equal(res1.unmasked, expected_unmasked)
-    assert_array_equal(res1.mask, expected.mask)
+    assert_masked_equal(res1, expected)
     # Check default path without reduceat as well.
     res2 = reduceat(data, indices, np.nanmean)
-    assert_array_equal(res2, expected)
-    assert_array_equal(res2.unmasked, expected_unmasked)
-    assert_array_equal(res2.mask, expected.mask)
+    assert_masked_equal(res2, expected)
 
 
 def test_timeseries_invalid():
@@ -356,13 +359,26 @@ def test_downsample_with_masked_array(masked_cls):
         ts, time_bin_start=INPUT_TIME[:-1:2], time_bin_end=INPUT_TIME[1::2]
     )
     expected = masked_cls([0.5, 3.0], mask=False)
-    assert_array_equal(down["m"], expected)
+    assert_masked_equal(down["m"], expected)
+
+    # Mask another one so we get masked output.
     m.mask[3] = True
+    ts2 = TimeSeries(time=INPUT_TIME, data=[m], names=["m"])
     down2 = aggregate_downsample(
-        ts, time_bin_start=INPUT_TIME[:-1:2], time_bin_end=INPUT_TIME[1::2]
+        ts2, time_bin_start=INPUT_TIME[:-1:2], time_bin_end=INPUT_TIME[1::2]
     )
-    expected2 = masked_cls([0.5, 3.0], mask=[False, True])
-    assert_array_equal(down["m"], expected)
+    expected2 = masked_cls([0.5, np.nan], mask=[False, True])
+    assert_masked_equal(down2["m"], expected2)
+
+    # a masked element and a np.nan are treated the same way
+    m.mask[3] = False
+    m[3] = np.nan
+    ts3 = TimeSeries(time=INPUT_TIME, data=[m], names=["m"])
+    down3 = aggregate_downsample(
+        ts3, time_bin_start=INPUT_TIME[:-1:2], time_bin_end=INPUT_TIME[1::2]
+    )
+    expected3 = masked_cls([0.5, np.nan], mask=[False, True])
+    assert_masked_equal(down3["m"], expected3)
 
 
 @pytest.mark.parametrize(
