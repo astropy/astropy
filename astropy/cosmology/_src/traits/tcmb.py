@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """CMB Temperature.
 
-This is private API. See `~astropy.cosmology.parts` for public API.
+This is private API. See `~astropy.cosmology.traits` for public API.
 
 """
 
@@ -15,14 +15,14 @@ from astropy.units import Quantity
 
 
 class TemperatureCMB:
-    """The object has attributes and methods for computing the cosmological background temperature."""
+    """The trait for computing the cosmological background temperature."""
 
     Tcmb0: Quantity
     """Temperature of the CMB at z=0."""
 
     @deprecated_keywords("z", since="7.0")
     def Tcmb(self, z: Quantity | ArrayLike) -> Quantity:
-        """Return the CMB temperature at redshift ``z``.
+        """Compute the CMB temperature at redshift ``z``.
 
         Parameters
         ----------
@@ -35,7 +35,7 @@ class TemperatureCMB:
         Returns
         -------
         Tcmb : Quantity ['temperature']
-            The temperature of the CMB in K.
+            The temperature of the CMB.
 
         Examples
         --------

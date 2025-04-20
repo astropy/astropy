@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Critical density.
 
-This is private API. See `~astropy.cosmology.parts` for public API.
+This is private API. See `~astropy.cosmology.traits` for public API.
 
 """
 

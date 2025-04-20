@@ -61,10 +61,9 @@ documentation.
 Cosmology
 =========
 
-
-The `astropy.cosmology.traits` module hosts various parts of cosmologies, such as the
+The :mod:`astropy.cosmology.traits` module hosts various parts of cosmologies, such as the
 :class:`~astropy.cosmology.traits.ScaleFactor` or
-:class:`~astropy.cosmology.traits.TemperatureCMB`. These traits can be used to more
+:class:`~astropy.cosmology.traits.TemperatureCMB`. These :term:`traits <trait type>` can be used to more
 easily construct custom cosmologies by combining different components.
 
 As a simple example, the :class:`~astropy.cosmology.traits.TemperatureCMB` trait
@@ -80,7 +79,7 @@ Here is an example of how to use the :class:`~astropy.cosmology.traits.ScaleFact
 >>> import astropy.units as u
 >>> from astropy.cosmology.traits import ScaleFactor, TemperatureCMB
 >>> from astropy.cosmology import Cosmology
-
+>>>
 >>> class CustomCosmology(Cosmology, ScaleFactor, TemperatureCMB):
 ...     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725):
 ...         self.H0 = H0
@@ -93,20 +92,13 @@ Here is an example of how to use the :class:`~astropy.cosmology.traits.ScaleFact
 ...     # Additional custom methods and properties can be added here
 
 >>> cosmo = CustomCosmology(H0=70, Om0=0.3, Ode0=0.7)
->>> print(cosmo.scale_factor(0))
-1.0
->>> print(cosmo.Tcmb(1))
-5.45 K
+>>> cosmo.scale_factor(0)
+<Quantity 1.>
+>>> cosmo.Tcmb(1)
+<Quantity 5.45 K>
 
 By combining different traits, you can create fully-featured cosmology classes with
 minimal effort.
-
-
-Full change log
-===============
-
-To see a detailed list of all changes in version v7.1, including changes in
-API, please see the :ref:`changelog`.
 
 
 Full change log
