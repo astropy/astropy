@@ -1,0 +1,1 @@
+Fixed interval classes for masked input (``MaskedArray`` and ``MaskedNDArray``).
