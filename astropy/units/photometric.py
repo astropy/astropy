@@ -15,10 +15,11 @@ through) the `astropy.units` namespace.
 
 import numpy as np
 
-from astropy.constants import si as _si
+from astropy.constants import L_bol0
 
 from . import astrophys, cgs, si
 from .core import Unit, UnitBase, def_unit
+from .utils import generate_unit_summary
 
 __all__ = ["zero_point_flux"]  #  Units are added at the end
 
@@ -26,7 +27,7 @@ _ns = globals()
 
 def_unit(
     ["Bol", "L_bol"],
-    _si.L_bol0,
+    L_bol0,
     namespace=_ns,
     prefixes=False,
     doc=(
@@ -36,7 +37,7 @@ def_unit(
 )
 def_unit(
     ["bol", "f_bol"],
-    _si.L_bol0 / (4 * np.pi * (10.0 * astrophys.pc) ** 2),
+    L_bol0 / (4 * np.pi * (10.0 * astrophys.pc) ** 2),
     namespace=_ns,
     prefixes=False,
     doc=(
@@ -93,6 +94,4 @@ __all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())

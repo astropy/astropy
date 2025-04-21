@@ -9,6 +9,7 @@ This package defines the SI units.  They are also available in
 import numpy as np
 
 from .core import CompositeUnit, UnitBase, def_unit
+from .utils import generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -483,6 +484,4 @@ __all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())
