@@ -13,6 +13,7 @@ from astropy.constants import si as _si
 
 from . import si
 from .core import UnitBase, def_unit, set_enabled_units
+from .utils import generate_unit_summary
 
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
@@ -222,6 +223,4 @@ __all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())
