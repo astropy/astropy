@@ -159,16 +159,18 @@ def convert_pa_array_to_numpy(
     - If the input array does not contain null values, the result is an ndarray view of
       the underlying data.
     """
+    import pyarrow.compute as pc
+
     is_string = arr.type == "string"
 
     if arr.null_count == 0:
         # No nulls, just return an ndarray view of the pyarray
-        out = arr.to_numpy()
         if is_string:
-            # `out` is an object array at this point, convert to fixed-length Unicode.
-            # TODO: this is taking a lot of memory, there should be a memory-efficient
-            # way to do this.
-            out = out.astype(str)
+            max_length = pc.max(pc.utf8_length(arr))
+            out = np.empty(len(arr), dtype=f"U{max_length}")
+            out[:] = arr.to_numpy()
+        else:
+            out = arr.to_numpy()
     else:
         # Return a Masked Array copy, with nulls filled with zero.
         data = arr.fill_null("" if is_string else 0).to_numpy()
