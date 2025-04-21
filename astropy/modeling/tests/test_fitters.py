@@ -1478,7 +1478,7 @@ def test_filter_non_finite(fitobj, ndim, all_nonfinite):
         params[-1, [1, 6, 7]] = np.nan
         ctx2 = nullcontext()
 
-    for i in range(2 + ndim):
+    for _i in range(2 + ndim):
         params = np.roll(params, 1, axis=0)
         with ctx1, ctx2:
             perform_fit(fitter, m_init, params, ndim)
