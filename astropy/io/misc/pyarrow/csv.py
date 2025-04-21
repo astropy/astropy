@@ -108,7 +108,13 @@ def read_csv(
     convert_options = get_convert_options(include_names, dtypes, null_values)
 
     if comment is not None:
-        input_file = strip_comment_lines(input_file, comment, encoding)
+        input_file_stripped, header_start_new = strip_comment_lines(
+            input_file, comment, encoding, header_start, data_start
+        )
+        if header_start_new is not None:
+            header_start = header_start_new
+        if input_file_stripped is not None:
+            input_file = input_file_stripped
 
     table_pa = csv.read_csv(
         input_file,
@@ -212,12 +218,26 @@ def strip_comment_lines(
     input_file: os.PathLike | str | BinaryIO,
     comment: str,
     encoding: str,
-) -> io.BytesIO:
+    header_start: int | None,
+    data_start: int | None,
+) -> tuple[io.BytesIO | None, int | None]:
     """
-    Remove lines starting with a specified comment string from a file.
+    Helper function to handle specified comment string reading a file.
+
+    This function has two modes of operation:
+
+    1. If ``header_start`` and ``data_start`` are both `None`, this means the user has
+       not specified explicit header or data start lines. In this case it will read the
+       file line by line, looking for lines that start with the specified comment
+       string. If all comment lines are at the beginning of the file (a common case),
+       then the lines can be efficiently skipped within the pyarrow CSV reader. In this
+       case the return value is (`None`, line index after last comment line).
+    2. Otherwise, the function reads the entire file into memory in a BytesIO object,
+       removing all lines that start with the specified comment string along the way.
+       In this case the return value is (BytesIO object, `None`).
 
     If ``input_file`` is a file path, it will be opened in binary read mode. The
-    ``comment`` string is encoded to bytes using the default encoding for comparison
+    ``comment`` string is encoded to bytes using the provided encoding for comparison
     with the file content.
 
     Parameters
@@ -226,24 +246,48 @@ def strip_comment_lines(
         The input file path or file-like object to read from.
     comment : str
         The comment string that identifies lines to be removed.
+    encoding : str
+        The encoding to use for the input file.
+    header_start : int or None
+        The line index where the header starts. See ``read_csv`` for details.
+    data_start : int or None
+        The line index where the data starts. See ``read_csv`` for details.
 
     Returns
     -------
-    io.BytesIO
-        A BytesIO object containing the filtered content with comment lines removed.
+    output_file : io.BytesIO | None
+        A BytesIO object containing the filtered content with comment lines removed, or
+        `None` if all comment lines are at the beginning of the file.
+    header_start : int | None
+        The line index after the last comment line, or `None` if not all comment lines
+        are at the beginning of the file.
     """
     comment_encode = comment.encode(encoding)
-    output = io.BytesIO()
     with ExitStack() as stack:
         if isinstance(input_file, (str, os.PathLike)):
             input_file = stack.enter_context(open(input_file, "rb"))
 
-        for line in input_file:
+        if header_start is None and data_start is None:
+            idx_last_comment = -1
+            for idx, line in enumerate(input_file):
+                if line.lstrip().startswith(comment_encode):
+                    if idx - idx_last_comment == 1:
+                        idx_last_comment = idx
+                    else:
+                        break
+            else:
+                return None, idx_last_comment + 1
+
+        # If we get here, we need to read the whole file and remove comment lines and
+        # write to an output BytesIO file.
+        output = io.BytesIO()
+        for idx, line in enumerate(input_file):
             if not line.lstrip().startswith(comment_encode):
                 output.write(line)
+
         output.seek(0)
 
-    return output
+    return output, None
 
 
 def get_convert_options(
