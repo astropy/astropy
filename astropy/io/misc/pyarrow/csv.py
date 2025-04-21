@@ -94,7 +94,8 @@ def read_csv(
     Table
         An astropy Table containing the data from the CSV file.
     """
-    _, csv = get_pyarrow_csv()
+    check_has_pyarrow()
+    from pyarrow import csv
 
     parse_options = csv.ParseOptions(
         delimiter=delimiter,
@@ -127,16 +128,47 @@ def read_csv(
     return table_apt
 
 
-def get_pyarrow_csv():
-    """Helper function to import pyarrow and pyarrow.csv."""
+def check_has_pyarrow():
+    """Check for pyarrow and raise an informative exception if not available.
+
+    Raises
+    ------
+    ModuleNotFoundError
+        If pyarrow is not installed.
+    """
     if not HAS_PYARROW:
         raise ModuleNotFoundError(
-            "pyarrow is required to read and write pyarrow.csv files"
+            "pyarrow is required for astropy.io.misc.pyarrow.csv functions"
         )
-    import pyarrow as pa
-    from pyarrow import csv
 
-    return pa, csv
+
+def convert_pa_string_array_to_numpy(
+    arr: "pa.Array",
+) -> "npt.NDArray":
+    """
+    Convert a PyArrow string array to a NumPy array.
+
+    Parameters
+    ----------
+    arr : pyarrow.Array
+        The PyArrow string array to be converted.
+
+    Returns
+    -------
+    np.ndarray
+        The converted NumPy array.
+    """
+    check_has_pyarrow()
+    import pyarrow as pa
+    import pyarrow.compute as pc
+
+    # This implementation is faster than these alternatives:
+    # >>> arr.to_numpy().astype(str)
+    # >>> np.array(arr.to_pylist(), dtype='str')
+    max_length = pa.compute.max(pc.utf8_length(arr))
+    out = np.empty(len(arr), dtype=f"U{max_length}")
+    out[:] = arr.to_numpy()
+    return out
 
 
 def convert_pa_array_to_numpy(
@@ -165,23 +197,16 @@ def convert_pa_array_to_numpy(
     - If the input array does not contain null values, the result is an ndarray view of
       the underlying data.
     """
-    import pyarrow.compute as pc
-
     is_string = arr.type == "string"
 
     if arr.null_count == 0:
         # No nulls, just return an ndarray view of the pyarray
-        if is_string:
-            max_length = pc.max(pc.utf8_length(arr))
-            out = np.empty(len(arr), dtype=f"U{max_length}")
-            out[:] = arr.to_numpy()
-        else:
-            out = arr.to_numpy()
+        out = convert_pa_string_array_to_numpy(arr) if is_string else arr.to_numpy()
     else:
-        # Return a Masked Array copy, with nulls filled with zero.
-        data = arr.fill_null("" if is_string else 0).to_numpy()
-        if is_string:
-            data = data.astype(str)
+        # Fill nulls in `arr` with zero. We do not know of a zero-copy fill for
+        # pyarrow arrays with nulls, so we need to copy the data.
+        arr = arr.fill_null("" if is_string else 0)
+        data = convert_pa_string_array_to_numpy(arr) if is_string else arr.to_numpy()
         # pa Bool array may not be zero-copyable, so set zero_copy_only=False to avoid
         # an exception.
         mask = arr.is_null().to_numpy(zero_copy_only=False)
@@ -222,7 +247,7 @@ def strip_comment_lines(
     data_start: int | None,
 ) -> tuple[io.BytesIO | None, int | None]:
     """
-    Helper function to handle specified comment string reading a file.
+    Handle specified comment string when reading ``input_file``.
 
     This function has two modes of operation:
 
@@ -231,10 +256,12 @@ def strip_comment_lines(
        file line by line, looking for lines that start with the specified comment
        string. If all comment lines are at the beginning of the file (a common case),
        then the lines can be efficiently skipped within the pyarrow CSV reader. In this
-       case the return value is (`None`, line index after last comment line).
+       case the return value is (`None`, header_start after comments).
     2. Otherwise, the function reads the entire file into memory in a BytesIO object,
        removing all lines that start with the specified comment string along the way.
        In this case the return value is (BytesIO object, `None`).
+
+    Checking for the comment string ignores leading whitespace.
 
     If ``input_file`` is a file path, it will be opened in binary read mode. The
     ``comment`` string is encoded to bytes using the provided encoding for comparison
@@ -263,6 +290,7 @@ def strip_comment_lines(
         are at the beginning of the file.
     """
     comment_encode = comment.encode(encoding)
+
     with ExitStack() as stack:
         if isinstance(input_file, (str, os.PathLike)):
             input_file = stack.enter_context(open(input_file, "rb"))
@@ -274,17 +302,21 @@ def strip_comment_lines(
                     if idx - idx_last_comment == 1:
                         idx_last_comment = idx
                     else:
+                        # Gap between comment lines, need to reset input file handle and
+                        # break out to the logic below.
+                        input_file.seek(0)
                         break
             else:
                 return None, idx_last_comment + 1
 
         # If we get here, we need to read the whole file and remove comment lines and
-        # write to an output BytesIO file.
+        # write into an output BytesIO file.
         output = io.BytesIO()
         for idx, line in enumerate(input_file):
             if not line.lstrip().startswith(comment_encode):
                 output.write(line)
 
+        # Set up for the consumer to read it.
         output.seek(0)
 
     return output, None
@@ -316,7 +348,9 @@ def get_convert_options(
         PyArrow CSV ConvertOptions object configured with the specified column names and
         data types.
     """
-    pa, csv = get_pyarrow_csv()
+    check_has_pyarrow()
+    import pyarrow as pa
+    from pyarrow import csv
 
     convert_options = csv.ConvertOptions()
     convert_options.strings_can_be_null = True
@@ -359,7 +393,8 @@ def get_read_options(
     pyarrow.csv.ReadOptions
         The configured read options for reading the CSV file.
     """
-    _, csv = get_pyarrow_csv()
+    check_has_pyarrow()
+    from pyarrow import csv
 
     if header_start is not None and names is not None:
         raise ValueError("cannot specify `names` unless `header_start=None`")
