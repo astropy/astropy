@@ -1320,20 +1320,25 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
 
     def _filter_non_finite(self, x, y, z=None, weights=None):
         """
-        Filter out non-finite values in x, y, z.
+        Filter out non-finite values in x, y, z, and weights.
 
         Returns
         -------
-        x, y, z : ndarrays
-            x, y, and z with non-finite values filtered out.
+        x, y, z, weights : `~numpy.ndarray`
+            x, y, z, and weights with non-finite values filtered out.
         """
         MESSAGE = "Non-Finite input data has been removed by the fitter."
 
-        mask = np.ones_like(x, dtype=bool) if weights is None else np.isfinite(weights)
-        mask &= np.isfinite(y) if z is None else np.isfinite(z)
+        mask = np.isfinite(x) & np.isfinite(y)
+        if z is not None:
+            mask &= np.isfinite(z)
+        if weights is not None:
+            mask &= np.isfinite(weights)
 
         if not np.all(mask):
             warnings.warn(MESSAGE, AstropyUserWarning)
+        if not np.any(mask):
+            raise ValueError("All input data or weights are non-finite.")
 
         return (
             x[mask],
