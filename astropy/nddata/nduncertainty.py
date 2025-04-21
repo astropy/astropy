@@ -143,11 +143,7 @@ class NDUncertainty(metaclass=ABCMeta):
         else:
             self._unit = Unit(unit)
 
-        if copy:
-            array = deepcopy(array)
-            unit = deepcopy(unit)
-
-        self.array = array
+        self.array = deepcopy(array) if copy else array
         self.parent_nddata = None  # no associated NDData - until it is set!
 
     @property
