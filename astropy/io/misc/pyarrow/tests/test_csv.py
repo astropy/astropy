@@ -480,3 +480,49 @@ def test_read_newlines_in_values():
         "    4    5 6\\n7",
     ]
     assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_dates_times():
+    tbl_text = textwrap.dedent("""
+    date,time_of_day,timestamp_s,timestamp_ns
+    2023-12-25,12:34:56,2023-12-25T12:34:56,2023-12-25T12:34:56.123456
+    2024-01-01,23:59:59,2024-01-01T23:59:59,2024-01-01T23:59:59.987654
+    """)
+    out = table_read_csv(tbl_text)
+    exp = [
+        "     date     time_of_day     timestamp_s              timestamp_ns        ",
+        "datetime64[D]    object      datetime64[s]            datetime64[ns]       ",
+        "------------- ----------- ------------------- -----------------------------",
+        "   2023-12-25    12:34:56 2023-12-25T12:34:56 2023-12-25T12:34:56.123456000",
+        "   2024-01-01    23:59:59 2024-01-01T23:59:59 2024-01-01T23:59:59.987654000",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_dates_times_masked():
+    tbl_text = textwrap.dedent("""
+    date,time_of_day,timestamp_s,timestamp_ns
+    ,,,
+    2024-01-01,23:59:59,2024-01-01T23:59:59,2024-01-01T23:59:59.987654
+    """)
+    out = table_read_csv(tbl_text)
+    exp = [
+        "     date     time_of_day     timestamp_s              timestamp_ns        ",
+        "datetime64[D]    object      datetime64[s]            datetime64[ns]       ",
+        "------------- ----------- ------------------- -----------------------------",
+        "           --          --                  --                            --",
+        "   2024-01-01    23:59:59 2024-01-01T23:59:59 2024-01-01T23:59:59.987654000",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+    # Confirm the values under the mask
+    for col in out.itercols():
+        col.mask = False
+    exp = [
+        "     date     time_of_day     timestamp_s              timestamp_ns        ",
+        "datetime64[D]    object      datetime64[s]            datetime64[ns]       ",
+        "------------- ----------- ------------------- -----------------------------",
+        "   2000-01-01    00:00:00 2000-01-01T00:00:00 2000-01-01T00:00:00.000000000",
+        "   2024-01-01    23:59:59 2024-01-01T23:59:59 2024-01-01T23:59:59.987654000",
+    ]
+    assert out.pformat(show_dtype=True) == exp

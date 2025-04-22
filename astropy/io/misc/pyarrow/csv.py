@@ -3,6 +3,7 @@
 This module provides functionality to read CSV files into Astropy Tables using PyArrow.
 """
 
+import datetime
 import io
 import os
 from contextlib import ExitStack
@@ -220,11 +221,14 @@ def convert_pa_array_to_numpy(
         fill_value = ""
     elif pa.types.is_boolean(arr.type):
         fill_value = False
+    elif pa.types.is_date(arr.type):
+        fill_value = pa.scalar(datetime.date(2000, 1, 1), type=arr.type)
+    elif pa.types.is_time(arr.type):
+        fill_value = pa.scalar(datetime.time(0, 0, 0), type=arr.type)
+    elif pa.types.is_timestamp(arr.type):
+        fill_value = pa.scalar(datetime.datetime(2000, 1, 1), type=arr.type)
     else:
-        raise TypeError(
-            f"unsupported PyArrow array type: {arr.type}. "
-            "Only int, float, bool, and string types are supported."
-        )
+        raise TypeError(f"unsupported PyArrow array type: {arr.type}")
 
     if arr.null_count == 0:
         # No nulls, just return an ndarray view of the pyarray
