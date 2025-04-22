@@ -461,18 +461,15 @@ class IERS(QTable):
         indices = np.clip(indices, 0, len(self) - 1)
 
         mjds = self["MJD"][indices].value
-        vals = self["UT1_UTC"][indices]
+        vals = self["UT1_UTC"][indices].value
 
-        d_vals = vals[1:] - vals[:-1]
-        d_vals_round = d_vals.round()
+        d_vals = np.diff(vals, axis=0)
+        leap_diff = np.cumsum(np.round(d_vals), axis=0)
+        vals[1:] += leap_diff
 
-        d_vals = d_vals.value
-        d_vals_round = d_vals_round.value
-        vals = vals.value
-        
-        vals[1:] += d_vals_round - d_vals
+        val = self._lagrange_interp(mjds, vals, mjd)
+        val -= leap_diff[0]
 
-        val = self._lagrange_interp(mjds, vals, mjd + utc)
         return val * u.second
 
     def _interpolate(self, jd1, jd2, columns, source=None):
