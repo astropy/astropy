@@ -103,6 +103,8 @@ jobs:
     # The following architectures are emulated and are therefore slow, so
     # we include them just in the weekly cron. These also serve as a test
     # of using system libraries and using pytest directly.
+    # No doctest run here due to architecture differences in some outputs
+    # (e.g., big-endian or 32-bit OS) with numpy 2.
 
     runs-on: ubuntu-24.04
     name: Python 3.12
@@ -170,4 +172,4 @@ jobs:
             pip install -U --no-build-isolation pyerfa
             ASTROPY_USE_SYSTEM_ALL=1 pip3 install -v --no-build-isolation -e .[test]
             pip3 list
-            python3 -m pytest -m "not hypothesis"
+            python3 -m pytest --pyargs astropy -m "not hypothesis"
