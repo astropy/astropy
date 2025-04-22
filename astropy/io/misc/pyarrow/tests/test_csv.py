@@ -1,6 +1,7 @@
 import contextlib
 import io
 import tempfile
+import textwrap
 from pathlib import Path
 
 import numpy as np
@@ -9,33 +10,24 @@ import pytest
 from astropy.table import Table
 from astropy.utils.compat.optional_deps import HAS_PYARROW
 
-if not HAS_PYARROW:
+if HAS_PYARROW:
+    import pyarrow as pa
+else:
     pytest.skip("pyarrow is not available")
 
 
-# pytest fixture that returns a sipmle test table like exp
-@pytest.fixture
-def tbl_simple():
-    return Table(
-        rows=[
-            [1, 2.0, "foo"],
-            [4, 5.5, "bår"],
-            [7, 8.0, "bazœo"],
-        ],
-        names=["a", "b", "ç"],
-    )
-
-
-@pytest.fixture
-def tbl_simple_masked():
-    return Table(
-        rows=[
-            [1, 2.0, np.ma.masked],
-            [4, np.ma.masked, "bår"],
-            [np.ma.masked, 8.0, "bazœo"],
-        ],
-        names=["a", "b", "ç"],
-    )
+def check_tables_equal(t1, t2):
+    assert t1.colnames == t2.colnames
+    assert len(t1) == len(t2)
+    for col1, col2 in zip(t1.itercols(), t2.itercols()):
+        assert col1.name == col2.name
+        assert col1.dtype == col2.dtype
+        assert np.array_equal(col1, col2)
+        has_mask1 = hasattr(col1, "mask")
+        has_mask2 = hasattr(col2, "mask")
+        assert has_mask1 == has_mask2
+        if has_mask1:
+            assert np.array_equal(col1.mask, col2.mask)
 
 
 def convert_table_to_text(tbl, delimiter=",", **kwargs):
@@ -47,6 +39,35 @@ def convert_table_to_text(tbl, delimiter=",", **kwargs):
     text_io = io.StringIO()
     tbl.write(text_io, format="ascii.csv", delimiter=delimiter, **kwargs)
     return text_io.getvalue()
+
+
+@pytest.fixture(scope="module")
+def tbl():
+    """Masked table with bool, int, float, and non-ASCII string types."""
+    return Table(
+        rows=[
+            [np.ma.masked, 1, np.ma.masked, np.ma.masked],
+            [False, np.ma.masked, 2.5, 'bår q"ux'],
+            [True, 2, 3.5, "bazœo"],
+        ],
+        names=["a", "b", "ç 2", "d"],
+    )
+
+
+@pytest.fixture(scope="module")
+def tbl_text(tbl):
+    """Default CSV text representation for simple table above.
+
+    This is equivalent to::
+
+    '''
+    a,b,ç 2,d
+    ,,,
+    False,1,2.5,"bår q""ux"
+    True,2,3.5,bazœo
+    '''
+    """
+    return convert_table_to_text(tbl)
 
 
 @contextlib.contextmanager
@@ -96,16 +117,366 @@ def table_read_csv(
 
 @pytest.mark.parametrize("input_type", ["str", "path", "bytesio"])
 @pytest.mark.parametrize("encoding", [None, "utf-8", "utf-16"])
-def test_read_tbl_simple_input_type_encoding(input_type, tbl_simple, encoding):
-    """Test reading a simple CSV file with different input types."""
-    text = convert_table_to_text(tbl_simple)
-    out = table_read_csv(text, input_type, encoding)
-    assert np.all(out == tbl_simple)
+def test_read_tbl_simple_input_type_encoding(input_type, encoding, tbl, tbl_text):
+    """Test reading a simple CSV file with different input types.
+
+    This tests:
+    - input_file : str, PathLike, or binary file-like object
+    - encoding : None, "utf-8", or "utf-16"
+    """
+    out = table_read_csv(tbl_text, input_type, encoding)
+    check_tables_equal(tbl, out)
 
 
-@pytest.mark.parametrize("encoding", [None, "utf-16"])
-def test_read_tbl_masked_input_type_encoding(tbl_simple_masked, encoding):
-    """Test reading a simple CSV file with different input types."""
-    text = convert_table_to_text(tbl_simple_masked)
-    out = table_read_csv(text, "bytesio", encoding)
-    assert np.all(out == tbl_simple_masked)
+@pytest.mark.parametrize("delimiter", ["|", "\t", " "])
+def test_read_delimiter(tbl, delimiter):
+    """Test reading a simple CSV file with different delimiters.
+
+    This tests:
+    - delimiter : "|", "\t", and " "
+    """
+    tbl_text = convert_table_to_text(tbl, delimiter=delimiter)
+    out = table_read_csv(tbl_text, delimiter=delimiter)
+    check_tables_equal(tbl, out)
+
+
+def test_read_dtypes(tbl_text):
+    """Test reading a simple CSV file with different input types.
+
+    This tests:
+    - dtypes: dict of types, with 3 of 4 columns specified
+    """
+    dtypes = {
+        "a": "str",
+        "ç 2": "float32",
+        "b": np.uint8,
+    }
+    out = table_read_csv(tbl_text, dtypes=dtypes)
+    assert out["a"].dtype == "U5"
+    assert out["ç 2"].dtype == "float32"
+    assert out["b"].dtype == np.uint8
+
+
+def test_read_dtypes_invalid_conversion(tbl_text):
+    """Test reading with an dtype that is inconsistent with the file data.
+
+    This tests:
+    - dtypes: dict of types, with invalid type for conversion provided
+    """
+    dtypes = {"a": "int"}  # True/False are not convertible to int
+    with pytest.raises(pa.lib.ArrowInvalid, match="In CSV column #0"):
+        table_read_csv(tbl_text, dtypes=dtypes)
+
+
+def test_read_dtypes_invalid_dtype(tbl_text):
+    """Test reading with an invalid dtype.
+
+    This tests:
+    - dtypes: dict of types, with invalid type for conversion provided
+    """
+    dtypes = {"a": "asdf"}
+    with pytest.raises(TypeError, match="data type 'asdf' not understood"):
+        table_read_csv(tbl_text, dtypes=dtypes)
+
+
+def test_read_quotechar():
+    """Test reading a simple CSV file with a single quote quotechar.
+
+    This tests:
+    - quotechar : single quote and False
+    """
+    tbl_text = textwrap.dedent("""
+    a,b,c
+    0,'''',2.5
+    ","2",'3.5'
+    """)
+
+    out = table_read_csv(tbl_text, quotechar="'")
+    exp = [
+        " a    b      c   ",
+        "str1 str3 float64",
+        "---- ---- -------",
+        "   0    '     2.5",  # '''' turns into a single quote
+        '   "  "2"     3.5',  # '3.5' is still float
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+    out = table_read_csv(tbl_text, quotechar=False)
+    # No quoting conversions with quotechar=False
+    exp = [
+        " a    b     c  ",
+        "str1 str4  str5",
+        "---- ---- -----",
+        "   0 ''''   2.5",
+        '   "  "2" \'3.5\'',
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_doublequote():
+    """Test reading a simple CSV file with doublequote.
+
+    This tests:
+    - doublequote : False (default True is tested above)
+    """
+    tbl_text = textwrap.dedent('''
+    a,b,c
+    0,"""",2.5
+    ''')
+    out = table_read_csv(tbl_text, doublequote=False)
+    exp = [
+        "  a    b      c   ",
+        "int64 str2 float64",
+        "----- ---- -------",
+        '    0   ""     2.5',
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+@pytest.mark.parametrize("ec", ["\\", "/"])
+def test_read_escapechar(ec):
+    r"""Test reading a simple CSV file with escapechar.
+
+    This tests:
+    - escapechar : "\" and "/"
+    - Blank lines are ignored (default behavior, tested elsewhere as well)
+    """
+    tbl_text = textwrap.dedent(f"""
+    a,b,c
+    0,{ec},,{ec}"{ec}'
+    """)
+    out = table_read_csv(tbl_text, escapechar=ec)
+    exp = [
+        "  a    b    c  ",
+        "int64 str1 str2",
+        "----- ---- ----",
+        "    0    ,   \"'",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_header_start_1():
+    """Test reading a simple CSV file with header_start.
+
+    This tests:
+    - header_start : 1
+    """
+    tbl_text = "a,b,c\n0,1,2\n3,4,5"
+    out = table_read_csv(tbl_text, header_start=1)
+    exp = [
+        "  0     1     2  ",
+        "int64 int64 int64",
+        "----- ----- -----",
+        "    3     4     5",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_header_start_none():
+    """Test reading a simple CSV file with header_start.
+
+    This tests:
+    - header_start : None
+    """
+    tbl_text = "a,b,c\n0,1,2\n3,4,5"
+    out = table_read_csv(tbl_text, header_start=None)
+    exp = [
+        " f0   f1   f2 ",
+        "str1 str1 str1",
+        "---- ---- ----",
+        "   a    b    c",
+        "   0    1    2",
+        "   3    4    5",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_header_start_none_data_start_1():
+    """Test reading a simple CSV file with data_start.
+
+    This tests:
+    - header_start : None
+    - data_start : 1
+    - names : provided list
+    """
+    tbl_text = "a,b,c\n0,1,2\n3,4,5\n6,7,8"
+    names = ["x", "y", "z"]
+    out = table_read_csv(tbl_text, header_start=None, data_start=1, names=names)
+    exp = [
+        "  x     y     z  ",
+        "int64 int64 int64",
+        "----- ----- -----",
+        "    0     1     2",
+        "    3     4     5",
+        "    6     7     8",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_data_start_2():
+    """Test reading a simple CSV file with data_start.
+
+    This tests:
+    - data_start : 2
+    """
+    tbl_text = "a,b,c\n0,1,2\n3,4,5\n6,7,8"
+    out = table_read_csv(tbl_text, data_start=2)
+    exp = [
+        "  a     b     c  ",
+        "int64 int64 int64",
+        "----- ----- -----",
+        "    3     4     5",
+        "    6     7     8",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_names_exception(tbl_text):
+    """Test that providing names without header_start=None raises an exception.
+
+    This tests:
+    - names : provided list
+    """
+    with pytest.raises(
+        ValueError, match="cannot specify `names` unless `header_start=None`"
+    ):
+        table_read_csv(tbl_text, names=["x", "y"])
+
+
+def test_read_include_names():
+    tbl_text = "a,b,c\n0,1,2\n3,4,5"
+    out = table_read_csv(tbl_text, include_names=["a", "b"])
+    exp = [
+        "  a     b  ",
+        "int64 int64",
+        "----- -----",
+        "    0     1",
+        "    3     4",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_include_names_invalid(tbl_text):
+    with pytest.raises(
+        pa.lib.ArrowKeyError,
+        match="Column 'x' in include_columns does not exist in CSV file",
+    ):
+        table_read_csv(tbl_text, include_names=["x", "y"])
+
+
+def test_read_comments_on_top():
+    """Test reading a simple CSV file with comments.
+
+    This tests:
+    - comment : "#"
+    - All comment lines are at the top of file
+    """
+    tbl_text = textwrap.dedent("""\
+    # Comment 1
+     # Comment 2 (leading whitespace)
+    # Comment 3
+    a,b,c
+    0,1,2
+    3,4,5
+    """)
+    out = table_read_csv(tbl_text, comment="#")
+    exp = [
+        "  a     b     c  ",
+        "int64 int64 int64",
+        "----- ----- -----",
+        "    0     1     2",
+        "    3     4     5",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_comments_within_data():
+    """Test reading a simple CSV file with comments within data.
+
+    This tests:
+    - comment : "#"
+    - Some comment lines are in the data and have leading whitespace
+    """
+    tbl_text = textwrap.dedent("""\
+    # Comment 1
+       # Comment 2 (leading whitespace)
+    a,b,c
+    0,1,2
+    # Comment 3
+    3,4,5
+    """)
+    out = table_read_csv(tbl_text, comment="#")
+    exp = [
+        "  a     b     c  ",
+        "int64 int64 int64",
+        "----- ----- -----",
+        "    0     1     2",
+        "    3     4     5",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_null_values():
+    """Test reading a simple CSV file with null values.
+
+    This tests:
+    - null_values : ["", "NLL"], ["NLL"], []
+    """
+    tbl_text = textwrap.dedent("""\
+    a,b,c
+    NLL,2,3
+    4,,6
+    """)
+    out = table_read_csv(tbl_text, null_values=["", "NLL"])
+    exp = Table(
+        rows=[
+            [np.ma.masked, 2, 3],
+            [4, np.ma.masked, 6],
+        ],
+        names=["a", "b", "c"],
+    )
+    check_tables_equal(exp, out)
+
+    out = table_read_csv(tbl_text, null_values=["NLL"])
+    exp = Table(
+        rows=[
+            [np.ma.masked, "2", 3],
+            [4, "", 6],
+        ],
+        names=["a", "b", "c"],
+    )
+    check_tables_equal(exp, out)
+
+    out = table_read_csv(tbl_text, null_values=[])
+    exp = Table(
+        rows=[
+            ["NLL", "2", 3],
+            ["4", "", 6],
+        ],
+        names=["a", "b", "c"],
+    )
+    check_tables_equal(exp, out)
+
+
+def test_read_newlines_in_values():
+    """Test reading a simple CSV file with newlines in values.
+
+    This tests:
+    - newlines_in_values : True (default is False)
+    """
+    tbl_text = textwrap.dedent("""\
+    a,b,c
+    0,"1
+    2",3
+    4,5,"6
+    7"
+    """)
+    out = table_read_csv(tbl_text, newlines_in_values=True)
+    exp = [
+        "  a    b    c  ",
+        "int64 str3 str3",
+        "----- ---- ----",
+        "    0 1\\n2    3",
+        "    4    5 6\\n7",
+    ]
+    assert out.pformat(show_dtype=True) == exp
