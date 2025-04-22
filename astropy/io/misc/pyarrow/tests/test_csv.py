@@ -17,6 +17,12 @@ else:
 
 
 def check_tables_equal(t1, t2):
+    """Check that two tables are equal.
+
+    This function checks that the two tables have the same column names,
+    lengths, and that the data in each column is equal. It also checks
+    that the masks (if any) are equal.
+    """
     assert t1.colnames == t2.colnames
     assert len(t1) == len(t2)
     for col1, col2 in zip(t1.itercols(), t2.itercols()):
@@ -72,6 +78,33 @@ def tbl_text(tbl):
 
 @contextlib.contextmanager
 def get_input_file(text: str, input_type: str, encoding: str | None = None):
+    """
+    Generate an input file or stream based on the specified type and encoding.
+
+    Parameters
+    ----------
+    text : str
+        The text content to be written to the input file or stream.
+    input_type : str
+        The type of input to generate. Supported values are:
+        - "str": A temporary file path as a string.
+        - "path": A temporary file path as a `Path` object.
+        - "bytesio": A `BytesIO` stream.
+    encoding : str | None, optional
+        The encoding to use when writing the text. If None, no encoding is applied.
+
+    Yields
+    ------
+    str | Path | io.BytesIO
+        The generated input file or stream based on the specified `input_type`.
+
+    Notes
+    -----
+    - For "str" and "path" input types, a temporary file is created and its
+      content is written with the specified encoding (if provided).
+    - For "bytesio", the text is encoded into bytes and returned as a `BytesIO` stream.
+    - The temporary file is automatically cleaned up after use.
+    """
     encode_kwargs = {"encoding": encoding} if encoding else {}
     if input_type in ("str", "path"):
         with tempfile.NamedTemporaryFile(mode="w", **encode_kwargs) as f:
@@ -483,6 +516,7 @@ def test_read_newlines_in_values():
 
 
 def test_read_dates_times():
+    """Test reading CSV file with times, dates, and timestamps."""
     tbl_text = textwrap.dedent("""
     date,time_of_day,timestamp_s,timestamp_ns
     2023-12-25,12:34:56,2023-12-25T12:34:56,2023-12-25T12:34:56.123456
@@ -500,6 +534,7 @@ def test_read_dates_times():
 
 
 def test_read_dates_times_masked():
+    """Test reading CSV file with missing times, dates, and timestamps."""
     tbl_text = textwrap.dedent("""
     date,time_of_day,timestamp_s,timestamp_ns
     ,,,
@@ -524,5 +559,47 @@ def test_read_dates_times_masked():
         "------------- ----------- ------------------- -----------------------------",
         "   2000-01-01    00:00:00 2000-01-01T00:00:00 2000-01-01T00:00:00.000000000",
         "   2024-01-01    23:59:59 2024-01-01T23:59:59 2024-01-01T23:59:59.987654000",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_dates_times_custom():
+    """Test reading CSV file with custom timestamp formats."""
+    tbl_text = textwrap.dedent("""
+    date,timestamp_s,timestamp_custom
+    2023-12-25,2023-12-25T12:34:56,01/31/2024 14:23:55
+    2024-01-01,2024-01-01T23:59:59,12/25/2023 09:00:00
+    """)
+    out = table_read_csv(
+        tbl_text, timestamp_parsers=[pa.csv.ISO8601, "%m/%d/%Y %H:%M:%S"]
+    )
+    exp = [
+        "     date         timestamp_s       timestamp_custom ",
+        "datetime64[D]    datetime64[s]       datetime64[s]   ",
+        "------------- ------------------- -------------------",
+        "   2023-12-25 2023-12-25T12:34:56 2024-01-31T14:23:55",
+        "   2024-01-01 2024-01-01T23:59:59 2023-12-25T09:00:00",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
+def test_read_whitespace_handling():
+    """Test reading CSV file with leading and trailing whitespace.
+
+    All whitespace in header and string columns are significant.
+    Whitespace in a numeric column is ignored.
+    """
+    tbl_text = """
+   a  , b , c
+    0, 1.0 , x y
+    3, 4.0 , w z """
+    out = table_read_csv(tbl_text)
+    assert out.colnames == ["   a  ", " b ", " c"]
+    exp = [
+        "   a      b       c ",
+        "int64  float64  str5",
+        "------ ------- -----",
+        "     0     1.0   x y",
+        "     3     4.0  w z ",
     ]
     assert out.pformat(show_dtype=True) == exp
