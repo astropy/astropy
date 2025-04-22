@@ -39,6 +39,7 @@ def read_csv(
     null_values: list[str] | None = None,
     encoding: str = "utf-8",
     newlines_in_values: bool = False,
+    timestamp_parsers: list[str] | None = None,
 ) -> "Table":
     """Read a CSV file into an astropy Table using ``pyarrow.csv.read_csv()``.
 
@@ -101,6 +102,10 @@ def read_csv(
     newlines_in_values: bool, optional (default False)
         Whether newline characters are allowed in CSV values. Setting this to True
         reduces the performance of multi-threaded CSV reading.
+    timestamp_parsers: list, optional
+        A sequence of strptime()-compatible format strings, tried in order when
+        attempting to infer or convert timestamp values. The default is the special
+        value ``pyarrow.csv.ISO8601`` uses the optimized internal ISO8601 parser.
 
     Returns
     -------
@@ -119,7 +124,9 @@ def read_csv(
     )
 
     read_options = get_read_options(header_start, data_start, names, encoding)
-    convert_options = get_convert_options(include_names, dtypes, null_values)
+    convert_options = get_convert_options(
+        include_names, dtypes, null_values, timestamp_parsers
+    )
 
     if comment is not None:
         input_file_stripped, header_start_new = strip_comment_lines(
@@ -357,6 +364,7 @@ def get_convert_options(
     include_names: list[str] | None,
     dtypes: dict[str, "npt.DTypeLike"] | None,
     null_values: list[str] | None,
+    timestamp_parsers: list[str] | None,
 ) -> "pyarrow.csv.ConvertOptions":
     """
     Generate PyArrow CSV convert options.
@@ -372,6 +380,10 @@ def get_convert_options(
     null_values : list or None, optional (default None)
         List of strings to interpret as null values. By default, only empty strings are
         considered as null values.
+    timestamp_parsers : list or None
+        A sequence of strptime()-compatible format strings, tried in order when
+        attempting to infer or convert timestamp values. The default is the special
+        value ``pyarrow.csv.ISO8601`` uses the optimized internal ISO8601 parser.
 
     Returns
     -------
@@ -394,6 +406,8 @@ def get_convert_options(
         convert_options.column_types = {
             colname: pa.from_numpy_dtype(dtype) for colname, dtype in dtypes.items()
         }
+    if timestamp_parsers is not None:
+        convert_options.timestamp_parsers = timestamp_parsers
     return convert_options
 
 
