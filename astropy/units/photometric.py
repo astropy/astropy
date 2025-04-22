@@ -15,7 +15,7 @@ through) the `astropy.units` namespace.
 
 import numpy as np
 
-from astropy.constants import L_bol0
+from astropy.constants.si import L_bol0
 
 from . import astrophys, cgs, si
 from .core import Unit, UnitBase, def_unit

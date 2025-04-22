@@ -14,13 +14,7 @@ import astropy
 
 @pytest.mark.parametrize(
     "subpkg",
-    [
-        pytest.param(
-            subpkg.name, marks=pytest.mark.xfail() if subpkg.name == "constants" else []
-        )
-        for subpkg in pkgutil.walk_packages(astropy.__path__)
-        if subpkg.ispkg
-    ],
+    [subpkg.name for subpkg in pkgutil.walk_packages(astropy.__path__) if subpkg.ispkg],
 )
 def test_imports(subpkg):
     """
