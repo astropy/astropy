@@ -456,7 +456,7 @@ class IERS(QTable):
 
         return val
 
-    def _ut1_utc_interp(self, i0, i1, mjd, utc):
+    def _ut1_utc_interp(self, i0, i1, mjd):
         indices = np.array([i0 - 1, i0, i1, i1 + 1])
         indices = np.clip(indices, 0, len(self) - 1)
 
@@ -497,7 +497,7 @@ class IERS(QTable):
             if column == "UT1_UTC":
                 # Interpolate using cubic Lagrange polynomial and adjust
                 # for leap second
-                val = self._ut1_utc_interp(i0, i1, mjd, utc)
+                val = self._ut1_utc_interp(i0, i1, mjd)
             else:
                 # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
                 # may want to follow IERS gazette #13 for more precise
