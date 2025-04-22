@@ -41,6 +41,18 @@ def read_csv(
 ) -> "Table":
     """Read a CSV file into an astropy Table using ``pyarrow.csv.read_csv()``.
 
+    This function allows highly performant reading of text CSV files into an astropy
+    ``Table`` using the PyArrow library. The following data types are supported:
+
+    - ``int64``
+    - ``float64``
+    - ``bool`` (``True`` or ``False`` strings in the CSV file)
+    - ``str``
+
+    By default, empty values (zero-length string "") in the CSV file are read as masked
+    values in the Table. This can be changed by using the ``null_values`` parameter to
+    specify a list of strings to interpret as null (masked) values.
+
     Parameters
     ----------
     input_file : str, PathLike, or binary file-like object
@@ -82,7 +94,7 @@ def read_csv(
     ----------------
     null_values : list, optional (default None)
         List of strings to interpret as null values. By default, only empty strings are
-        considered as null values.
+        considered as null values. Set to ``[]`` to disable null value handling.
     encoding: str, optional (default 'utf-8')
         Encoding of the input data.
     newlines_in_values: bool, optional (default False)
@@ -190,14 +202,29 @@ def convert_pa_array_to_numpy(
 
     Notes
     -----
-    - If the input array is of string type, it delegates the conversion to
-      `convert_pa_string_array_to_numpy`.
-    - If the input array contains null values, they are replaced with 0 before
-      conversion, and a masked array is returned with the null positions masked.
-    - If the input array does not contain null values, the result is an ndarray view of
-      the underlying data.
+    - If the input array does not contain null values, the result is an ndarray.
+    - If the input array contains null values, they are replaced with a fill value
+      (equivalent to ``np.zeros((), dtype)``)  before conversion, and a masked array is
+      returned with the null positions masked.
+    - The current implementation supports only int, float, bool, and string types.
     """
-    is_string = arr.type == "string"
+    check_has_pyarrow()
+    import pyarrow as pa
+
+    # Validate input type and set the fill value
+    is_string = pa.types.is_string(arr.type)
+    if pa.types.is_integer(arr.type) or pa.types.is_floating(arr.type):
+        fill_value = 0
+    elif is_string:
+        is_string = True
+        fill_value = ""
+    elif pa.types.is_boolean(arr.type):
+        fill_value = False
+    else:
+        raise TypeError(
+            f"unsupported PyArrow array type: {arr.type}. "
+            "Only int, float, bool, and string types are supported."
+        )
 
     if arr.null_count == 0:
         # No nulls, just return an ndarray view of the pyarray
@@ -205,11 +232,11 @@ def convert_pa_array_to_numpy(
     else:
         # Fill nulls in `arr` with zero. We do not know of a zero-copy fill for
         # pyarrow arrays with nulls, so we need to copy the data.
-        arr = arr.fill_null("" if is_string else 0)
+        mask = arr.is_null().to_numpy(zero_copy_only=False)
+        arr = arr.fill_null(fill_value)
         data = convert_pa_string_array_to_numpy(arr) if is_string else arr.to_numpy()
         # pa Bool array may not be zero-copyable, so set zero_copy_only=False to avoid
         # an exception.
-        mask = arr.is_null().to_numpy(zero_copy_only=False)
         out = np.ma.array(data, mask=mask, copy=False)
 
     return out
