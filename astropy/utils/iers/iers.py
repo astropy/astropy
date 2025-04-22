@@ -442,6 +442,39 @@ class IERS(QTable):
                 warn(msg, IERSDegradedAccuracyWarning)
             # No IERS data covering the time(s) and user is OK with no warning.
 
+    def _lagrange_interp(self, x_vals, y_vals, xint):
+        val = np.zeros((y_vals.shape[1:]), dtype=y_vals.dtype)
+
+        for i in range(len(x_vals)):
+            term = y_vals[i]
+            for j in range(len(x_vals)):
+                if i != j:
+                    diff = x_vals[i] - x_vals[j]
+                    diff = np.where(diff == 0, 1e-10, diff)
+                    term *= (xint - x_vals[j]) / diff
+            val += term
+
+        return val
+
+    def _ut1_utc_interp(self, i0, i1, mjd, utc):
+        indices = np.array([i0 - 1, i0, i1, i1 + 1])
+        indices = np.clip(indices, 0, len(self) - 1)
+
+        mjds = self["MJD"][indices].value
+        vals = self["UT1_UTC"][indices]
+
+        d_vals = vals[1:] - vals[:-1]
+        d_vals_round = d_vals.round()
+
+        d_vals = d_vals.value
+        d_vals_round = d_vals_round.value
+        vals = vals.value
+        
+        vals[1:] += d_vals_round - d_vals
+
+        val = self._lagrange_interp(mjds, vals, mjd + utc)
+        return val * u.second
+
     def _interpolate(self, jd1, jd2, columns, source=None):
         mjd, utc = self.mjd_utc(jd1, jd2)
         # enforce array
@@ -464,17 +497,18 @@ class IERS(QTable):
         mjd_0, mjd_1 = self["MJD"][i0].value, self["MJD"][i1].value
         results = []
         for column in columns:
-            val_0, val_1 = self[column][i0], self[column][i1]
-            d_val = val_1 - val_0
             if column == "UT1_UTC":
-                # Check & correct for possible leap second (correcting diff.,
-                # not 1st point, since jump can only happen right at 2nd point)
-                d_val -= d_val.round()
-            # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
-            # may want to follow IERS gazette #13 for more precise
-            # interpolation and correction for tidal effects;
-            # https://maia.usno.navy.mil/iers-gaz13)
-            val = val_0 + (mjd - mjd_0 + utc) / (mjd_1 - mjd_0) * d_val
+                # Interpolate using cubic Lagrange polynomial and adjust
+                # for leap second
+                val = self._ut1_utc_interp(i0, i1, mjd, utc)
+            else:
+                # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
+                # may want to follow IERS gazette #13 for more precise
+                # interpolation and correction for tidal effects;
+                # https://maia.usno.navy.mil/iers-gaz13)
+                val_0, val_1 = self[column][i0], self[column][i1]
+                d_val = val_1 - val_0
+                val = val_0 + (mjd - mjd_0 + utc) / (mjd_1 - mjd_0) * d_val
 
             # Do not extrapolate outside range, instead just propagate last values.
             val[i == 0] = self[column][0]
