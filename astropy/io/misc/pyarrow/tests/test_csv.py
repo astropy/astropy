@@ -15,7 +15,7 @@ from astropy.utils.compat.optional_deps import HAS_PYARROW
 if HAS_PYARROW:
     import pyarrow as pa
 else:
-    pytest.skip("pyarrow is not available")
+    pytest.skip("pyarrow is not available", allow_module_level=True)
 
 
 def check_tables_equal(t1, t2):
