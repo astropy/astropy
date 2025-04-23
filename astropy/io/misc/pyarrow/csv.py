@@ -511,6 +511,8 @@ def get_read_options(
     if encoding is not None:
         read_options.encoding = encoding
 
+    read_options.use_threads = False
+
     return read_options
 
 
