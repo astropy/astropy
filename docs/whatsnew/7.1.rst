@@ -15,6 +15,7 @@ In particular, this release includes:
 * :ref:`whatsnew-7.1-table-spaces`
 * :ref:`whatsnew-7.1-tdat-reader`
 * :ref:`whatsnew-7.1-covariance`
+* :ref:`whatsnew-7.1-pyarrow-csv`
 * :ref:`whatsnew-7.1-cosmology`
 * :ref:`whatsnew-7.1-votable-coosys-to-astropy-frame`
 
@@ -57,6 +58,17 @@ We provide a new utility class that provides basic functionality for covariance
 matrices associated `~astropy.nddata.NDData` objects via the new
 `~astropy.nddata.Covariance` class.  See the full :ref:`nddata-covariance`
 documentation.
+
+.. _whatsnew-7.1-pyarrow-csv:
+
+Fast CSV reader using PyArrow
+==============================
+
+We have added a new fast CSV reader that uses the `PyArrow CSV reader
+<https://arrow.apache.org/docs/python/csv.html>`_ to read CSV files up to 15 times
+faster than ``astropy.io.ascii`` fast reader or the ``pandas.csv`` reader. This
+is an excellent option for reading large CSV files when speed and memory performance are
+important. For details see :ref:`table_io_pyarrow_csv`.
 
 .. _whatsnew-7.1-cosmology:
 
