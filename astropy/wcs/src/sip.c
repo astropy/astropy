@@ -115,7 +115,7 @@ sip_init(
     }
 
     sip->bp_order = bp_order;
-    bp_size = (bp_order + 1) * (bp_order + 1) * sizeof(double);
+    bp_size = (unsigned long)(bp_order + 1) * (bp_order + 1) * sizeof(double);
     sip->bp = malloc(bp_size);
     if (sip->bp == NULL) {
       sip_free(sip);
