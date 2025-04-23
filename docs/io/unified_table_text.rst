@@ -37,6 +37,7 @@ comma (CSV) or a whitespace character like space or tab.
                   ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
                  ascii.tdat    Yes   .tdat  :class:`~astropy.io.ascii.Tdat`: Transportable Database Aggregate Table format
                  pandas.csv    Yes          :func:`pandas.read_csv` and :meth:`pandas.DataFrame.to_csv`
+                pyarrow.csv     No          :func:`~astropy.io.misc.pyarrow.csv.read_csv`: Performant CSV reader
 ===========================  =====  ======  ============================================================================================
 
 Fixed-width Formats
@@ -178,3 +179,22 @@ When reading or writing a table, any keyword arguments apart from the
 
   >>> t.write('data.csv', format='pandas.csv', sep=' ', header=False)
   >>> t2 = Table.read('data.csv', format='pandas.csv', sep=' ', names=['a', 'b', 'c'])
+
+.. _table_io_pyarrow_csv:
+
+PyArrow
+--------
+
+.. _pyarrow: https://arrow.apache.org/docs/python/
+
+The `pyarrow`_ library provides a highly-performant CSV reader that can be used with
+``Table.read()`` by setting ``format="pyarrow.csv"``. This can be significantly faster
+(up to a factor of 15) and more memory-efficient than the ``astropy.io.ascii`` fast reader
+or the default ``pandas.csv`` reader.
+
+This reader uses the :func:`~astropy.io.misc.pyarrow.csv.read_csv` function. The
+interface is designed to be similar to the :ref:`io.ascii read interface
+<io_ascii_read_parameters>` where possible, but there are notable differences. Under the
+hood the code uses the `PyArrow CSV reader
+<https://arrow.apache.org/docs/python/csv.html>`_ and handles setting the various options
+to `pyarrow.csv.read_csv()` appropriately.

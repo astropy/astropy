@@ -8,3 +8,5 @@ Reference/API
 .. automodapi:: astropy.io.misc.yaml
 
 .. automodapi:: astropy.io.misc.parquet
+
+.. automodapi:: astropy.io.misc.pyarrow.csv

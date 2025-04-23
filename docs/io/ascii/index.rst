@@ -34,9 +34,14 @@ section on `Supported formats`_ contains the full list.
 The strength of `astropy.io.ascii` is the support for astronomy-specific
 formats (often with metadata) and specialized data types such as
 :ref:`SkyCoord <astropy-coordinates-high-level>`, :ref:`Time
-<astropy-time>`, and :ref:`Quantity <quantity>`. For reading or writing large
-data tables in a generic format such as CSV, using the :ref:`Table - Pandas
-interface <pandas>` is an option to consider.
+<astropy-time>`, and :ref:`Quantity <quantity>`.
+
+.. note::
+
+   For reading large CSV files, the Table :ref:`PyArrow <table_io_pyarrow_csv>` interface
+   is an option to consider since it can be up to 15 times faster than other readers. For
+   writing (and reading) large data tables to CSV, using the :ref:`Table - Pandas
+   interface <pandas>` is also an option to consider.
 
 Getting Started
 ===============

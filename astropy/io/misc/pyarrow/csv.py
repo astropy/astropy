@@ -10,6 +10,7 @@ from contextlib import ExitStack
 from typing import TYPE_CHECKING, BinaryIO, Literal, Union
 
 import numpy as np
+import numpy.typing
 
 from astropy.utils.compat.optional_deps import HAS_PYARROW
 
@@ -34,22 +35,17 @@ def read_csv(
     data_start: int | None = None,
     names: list[str] | None = None,
     include_names: list[str] | None = None,
-    dtypes: dict[str, "npt.DTypeLike"] | None = None,
+    dtypes: dict[str, numpy.typing.DTypeLike] | None = None,
     comment: str | None = None,
     null_values: list[str] | None = None,
     encoding: str = "utf-8",
     newlines_in_values: bool = False,
     timestamp_parsers: list[str] | None = None,
 ) -> "Table":
-    """Read a CSV file into an astropy Table using ``pyarrow.csv.read_csv()``.
+    """Read a CSV file into an astropy Table using PyArrow.
 
     This function allows highly performant reading of text CSV files into an astropy
-    ``Table`` using the PyArrow library. The following data types are supported:
-
-    - ``int64``
-    - ``float64``
-    - ``bool`` (``True`` or ``False`` strings in the CSV file)
-    - ``str``
+    ``Table`` using `PyArrow <https://arrow.apache.org/docs/python/csv.html>`.
 
     By default, empty values (zero-length string "") in the CSV file are read as masked
     values in the Table. This can be changed by using the ``null_values`` parameter to
@@ -57,7 +53,7 @@ def read_csv(
 
     Parameters
     ----------
-    input_file : str, PathLike, or binary file-like object
+    input_file : str, path-like, or file-like
         File path or binary file-like object to read from.
     delimiter : 1-character str, optional (default ",")
         Character delimiting individual cells in the CSV data.
@@ -84,7 +80,7 @@ def read_csv(
     dtypes : dict, None, optional (default None)
         If provided, this is a dictionary of data types for output columns. Each key is
         a column name and the value is a data type object that is accepted as an
-        argument to `np.dtype`. Examples include ``int``, ``np.float32``,
+        argument to `numpy.dtype`. Examples include ``int``, ``np.float32``,
         ``np.dtype('f4')`` or ``"float32"``. Default is to infer the data types.
     comment : 1-character str or None, optional (default None)
         Character used to indicate the start of a comment. Any line starting with
@@ -109,7 +105,7 @@ def read_csv(
 
     Returns
     -------
-    Table
+    astropy.table.Table
         An astropy Table containing the data from the CSV file.
     """
     check_has_pyarrow()
@@ -306,18 +302,18 @@ def convert_pa_array_to_numpy(
     return out
 
 
-def convert_pa_table_to_astropy_table(table_pa: "pa.Table") -> "Table":
+def convert_pa_table_to_astropy_table(table_pa) -> "Table":
     """
     Convert a PyArrow Table to an Astropy Table.
 
     Parameters
     ----------
-    table_pa : pa.Table
+    table_pa : ``pyarrow.Table``
         The PyArrow Table to be converted.
 
     Returns
     -------
-    Table
+    astropy.table.Table
         Converted astropy Table.
     """
     from astropy.table import Table
