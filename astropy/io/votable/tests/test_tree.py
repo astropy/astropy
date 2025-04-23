@@ -35,9 +35,7 @@ def test_make_Fields():
     table = tree.TableElement(votable)
     resource.tables.append(table)
 
-    table.fields.extend(
-        [tree.Field(votable, name="Test", datatype="float", unit="mag")]
-    )
+    table.add_field(tree.Field(votable, name="Test", datatype="float", unit="mag"))
 
 
 def test_unit_format():
