@@ -45,11 +45,27 @@ def read_csv(
     """Read a CSV file into an astropy Table using PyArrow.
 
     This function allows highly performant reading of text CSV files into an astropy
-    ``Table`` using `PyArrow <https://arrow.apache.org/docs/python/csv.html>`_.
+    ``Table`` using `PyArrow <https://arrow.apache.org/docs/python/csv.html>`_. The
+    best performance is achieved for files with only numeric data types, but even for
+    files with mixed data types, the performance is still better than the the standard
+    ``astropy.io.ascii`` fast CSV reader.
 
     By default, empty values (zero-length string "") in the CSV file are read as masked
     values in the Table. This can be changed by using the ``null_values`` parameter to
     specify a list of strings to interpret as null (masked) values.
+
+    Entirely empty lines in the CSV file are ignored.
+
+    Support for ignoring comment lines in the CSV file is provided by the ``comment``
+    parameter. If this is set to a string, any line starting with optional whitespace
+    and then this string is ignored. This is done by reading the entire file and
+    scanning for comment lines. If the comment lines are all at the beginning of the
+    file and both ``header_start`` and ``data_start`` are not specified, then the file
+    is read efficiently by setting ``header_start`` to the first line after the
+    comments. Otherwise the entire file is read into memory and the comment lines are
+    removed before passing to the PyArrow CSV reader. Any values of ``header_start`` and
+    ``data_start`` apply to the lines counts *after* the comment lines have been
+    removed.
 
     Parameters
     ----------
@@ -77,16 +93,17 @@ def read_csv(
         then ``header_start`` must be `None`.
     include_names : list, None, optional (default None)
         List of column names to include in output. If `None`, all columns are included.
-    dtypes : dict, None, optional (default None)
+    dtypes : dict[str, Any], None, optional (default None)
         If provided, this is a dictionary of data types for output columns. Each key is
-        a column name and the value is a data type object that is accepted as an
-        argument to `numpy.dtype`. Examples include ``int``, ``np.float32``,
+        a column name and the value is either a PyArrow data type or a data type
+        specifier that is accepted as an argument to `numpy.dtype`. Examples include
+        ``pyarrow.Int32()``, ``pyarrow.time32("s")``, ``int``, ``np.float32``,
         ``np.dtype('f4')`` or ``"float32"``. Default is to infer the data types.
     comment : 1-character str or None, optional (default None)
         Character used to indicate the start of a comment. Any line starting with
         optional whitespace and then this character is ignored. Using this option will
-        cause the parser to be slower and use more memory as it uses Python code to
-        strip comments.
+        cause the parser to be slower and potentially use more memory as it uses Python
+        code to strip comments.
 
     Other Parameters
     ----------------

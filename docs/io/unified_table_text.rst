@@ -16,6 +16,12 @@ powerful interface for reading and writing text tables. In addition, the interfa
 provides wrappers around select I/O functions in the `pandas`_ library for additional
 flexibility and performance.
 
+.. note::
+
+   For reading large CSV or character-delimited files, the Table
+   :ref:`table_io_pyarrow_csv` reader is a good option to consider since it can be up to
+   15 times faster than other readers.
+
 Supported Formats
 -----------------
 
@@ -188,13 +194,14 @@ PyArrow CSV
 .. _pyarrow: https://arrow.apache.org/docs/python/
 
 The `pyarrow`_ library provides a highly-performant CSV reader that can be used with
-``Table.read()`` by setting ``format="pyarrow.csv"``. This can be significantly faster
-(up to a factor of 15) and more memory-efficient than the ``astropy.io.ascii`` fast
-reader or the default ``pandas.csv`` reader.
+``Table.read(input_file, format="pyarrow.csv", ...)``. This can up to 15 times faster
+and more memory-efficient than the :ref:`astropy.io.ascii <io-ascii>` fast reader or the
+default ``pandas.csv`` reader. The best performance is achieved for files with only
+numeric data types, but even for files with mixed data types, the performance is still
+better than the standard :ref:`astropy.io.ascii <io-ascii>` fast CSV reader.
 
-This reader uses the :func:`~astropy.io.misc.pyarrow.csv.read_csv` function. The
-interface is designed to be similar to the :ref:`io.ascii read interface
-<io_ascii_read_parameters>` where possible, but there are notable differences. Under the
-hood the code uses the `PyArrow CSV reader
-<https://arrow.apache.org/docs/python/csv.html>`_ and handles setting the various options
-to ``pyarrow.csv.read_csv()`` appropriately.
+This reader uses the :func:`~astropy.io.misc.pyarrow.csv.read_csv` function, which in
+turn uses the `PyArrow CSV reader <https://arrow.apache.org/docs/python/csv.html>`_ and
+sets the various options to ``pyarrow.csv.read_csv()`` appropriately. The interface is
+designed to be similar to the :ref:`io.ascii read interface <io_ascii_read_parameters>`
+where possible, but there are notable differences.
