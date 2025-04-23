@@ -45,7 +45,7 @@ def read_csv(
     """Read a CSV file into an astropy Table using PyArrow.
 
     This function allows highly performant reading of text CSV files into an astropy
-    ``Table`` using `PyArrow <https://arrow.apache.org/docs/python/csv.html>`.
+    ``Table`` using `PyArrow <https://arrow.apache.org/docs/python/csv.html>`_.
 
     By default, empty values (zero-length string "") in the CSV file are read as masked
     values in the Table. This can be changed by using the ``null_values`` parameter to

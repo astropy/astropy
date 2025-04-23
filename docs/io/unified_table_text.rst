@@ -197,4 +197,4 @@ interface is designed to be similar to the :ref:`io.ascii read interface
 <io_ascii_read_parameters>` where possible, but there are notable differences. Under the
 hood the code uses the `PyArrow CSV reader
 <https://arrow.apache.org/docs/python/csv.html>`_ and handles setting the various options
-to `pyarrow.csv.read_csv()` appropriately.
+to ``pyarrow.csv.read_csv()`` appropriately.
