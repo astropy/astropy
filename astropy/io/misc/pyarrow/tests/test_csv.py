@@ -57,7 +57,7 @@ def tbl():
             [False, np.ma.masked, 2.5, 'bår q"ux'],
             [True, 2, 3.5, "bazœo"],
         ],
-        names=["a", "b", "ç 2", "d"],
+        names=["a", "b", "c 2", "d"],
     )
 
 
