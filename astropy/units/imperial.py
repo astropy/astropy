@@ -148,6 +148,7 @@ def_unit(
 )
 def_unit(
     ["deg_R", "Rankine"],
+    5 / 9 * si.K,
     namespace=_ns,
     doc="Rankine scale: absolute scale of thermodynamic temperature",
 )

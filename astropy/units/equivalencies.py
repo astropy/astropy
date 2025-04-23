@@ -766,11 +766,10 @@ def thermodynamic_temperature(frequency, T_cmb=None):
 
 @functools.cache
 def temperature():
-    """Convert between Kelvin, Celsius, Rankine and Fahrenheit here because
+    """Convert degrees Celsius and degrees Fahrenheit here because
     Unit and CompositeUnit cannot do addition or subtraction properly.
     """
     from .imperial import deg_F as F
-    from .imperial import deg_R as R
 
     K = si.K
     C = si.deg_C
@@ -780,9 +779,6 @@ def temperature():
             (K, C, lambda x: x - 273.15, lambda x: x + 273.15),
             (C, F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
             (K, F, lambda x: x * 1.8 - 459.67, lambda x: (x + 459.67) / 1.8),
-            (R, F, lambda x: x - 459.67, lambda x: x + 459.67),
-            (R, C, lambda x: (x - 491.67) * (5 / 9), lambda x: x * 1.8 + 491.67),
-            (R, K, lambda x: x * (5 / 9), lambda x: x * 1.8),
         ],
         "temperature",
     )
