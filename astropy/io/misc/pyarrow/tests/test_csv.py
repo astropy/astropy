@@ -2,7 +2,6 @@ import contextlib
 import datetime
 import decimal
 import io
-import tempfile
 import textwrap
 from pathlib import Path
 
@@ -79,7 +78,12 @@ def tbl_text(tbl):
 
 
 @contextlib.contextmanager
-def get_input_file(text: str, input_type: str, encoding: str | None = None):
+def get_input_file(
+    text: str,
+    input_type: str,
+    encoding: str | None = None,
+    tmp_path: Path | None = None,
+):
     """
     Generate an input file or stream based on the specified type and encoding.
 
@@ -88,12 +92,13 @@ def get_input_file(text: str, input_type: str, encoding: str | None = None):
     text : str
         The text content to be written to the input file or stream.
     input_type : str
-        The type of input to generate. Supported values are:
-        - "str": A temporary file path as a string.
-        - "path": A temporary file path as a `Path` object.
-        - "bytesio": A `BytesIO` stream.
+        The type of input to generate. Supported values are: - "str": A temporary file
+        path as a string. - "path": A temporary file path as a `Path` object. -
+        "bytesio": A `BytesIO` stream.
     encoding : str | None, optional
         The encoding to use when writing the text. If None, no encoding is applied.
+    tmp_path : Path | None, optional
+        The temporary path to use for the input file for "str" or "path" input type.
 
     Yields
     ------
@@ -102,17 +107,16 @@ def get_input_file(text: str, input_type: str, encoding: str | None = None):
 
     Notes
     -----
-    - For "str" and "path" input types, a temporary file is created and its
-      content is written with the specified encoding (if provided).
+    - For "str" and "path" input types, a temporary file in ``tmp_path`` is created and
+      its content is written with the specified encoding (if provided).
     - For "bytesio", the text is encoded into bytes and returned as a `BytesIO` stream.
     - The temporary file is automatically cleaned up after use.
     """
     encode_kwargs = {"encoding": encoding} if encoding else {}
     if input_type in ("str", "path"):
-        with tempfile.NamedTemporaryFile(mode="w", **encode_kwargs) as f:
-            f.write(text)
-            f.flush()
-            yield f.name if input_type == "str" else Path(f.name)
+        path = tmp_path / "test.csv"
+        path.write_text(text, encoding=encoding)
+        yield str(path) if input_type == "str" else path
     elif input_type == "bytesio":
         yield io.BytesIO(text.encode(**encode_kwargs))
     else:
@@ -120,7 +124,11 @@ def get_input_file(text: str, input_type: str, encoding: str | None = None):
 
 
 def table_read_csv(
-    text: str, input_type: str = "bytesio", encoding: str | None = None, **kwargs
+    text: str,
+    input_type: str = "bytesio",
+    encoding: str | None = None,
+    tmp_path: Path | None = None,
+    **kwargs,
 ):
     """Read ``text`` using ``Table.read`` with format="pyarrow.csv".
 
@@ -139,27 +147,33 @@ def table_read_csv(
         The text to read.
     input_type : str
         The type of input for Table.read(). One of "str", "path", or "bytesio".
+    encoding : str | None
+        The encoding to use when reading the text. If None, no encoding is applied.
+    tmp_path : Path | None
+        The temporary path to use for the input file for input_type="str" or "path".
     **kwargs : dict
         Additional keyword arguments to pass to Table.read().
     """
     if encoding is not None:
         kwargs["encoding"] = encoding
 
-    with get_input_file(text, input_type, encoding) as input_file:
+    with get_input_file(text, input_type, encoding, tmp_path) as input_file:
         out = Table.read(input_file, format="pyarrow.csv", **kwargs)
     return out
 
 
 @pytest.mark.parametrize("input_type", ["str", "path", "bytesio"])
 @pytest.mark.parametrize("encoding", [None, "utf-8", "utf-16"])
-def test_read_tbl_simple_input_type_encoding(input_type, encoding, tbl, tbl_text):
+def test_read_tbl_simple_input_type_encoding(
+    input_type, encoding, tbl, tbl_text, tmp_path
+):
     """Test reading a simple CSV file with different input types.
 
     This tests:
     - input_file : str, PathLike, or binary file-like object
     - encoding : None, "utf-8", or "utf-16"
     """
-    out = table_read_csv(tbl_text, input_type, encoding)
+    out = table_read_csv(tbl_text, input_type, encoding, tmp_path=tmp_path)
     check_tables_equal(tbl, out)
 
 
