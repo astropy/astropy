@@ -112,13 +112,13 @@ def get_input_file(
     - For "bytesio", the text is encoded into bytes and returned as a `BytesIO` stream.
     - The temporary file is automatically cleaned up after use.
     """
-    encode_kwargs = {"encoding": encoding} if encoding else {}
+    encoding = encoding or "utf-8"
     if input_type in ("str", "path"):
         path = tmp_path / "test.csv"
         path.write_text(text, encoding=encoding)
         yield str(path) if input_type == "str" else path
     elif input_type == "bytesio":
-        yield io.BytesIO(text.encode(**encode_kwargs))
+        yield io.BytesIO(text.encode(encoding))
     else:
         raise ValueError(f"Unknown input_type: {input_type}")
 
