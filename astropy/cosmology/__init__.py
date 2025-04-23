@@ -7,7 +7,7 @@ measures and other cosmology-related calculations.
 See the :ref:`astropy-cosmology` for more detailed usage examples and references.
 """
 
-from . import io, realizations, units
+from . import io, realizations, traits, units
 from ._src.core import Cosmology, CosmologyError, FlatCosmologyMixin
 from ._src.flrw import (
     FLRW,
@@ -31,6 +31,7 @@ __all__ = [  #  noqa: RUF100, RUF022
     # Public Submodules
     "realizations",
     "units",
+    "traits",
     "io",
     # Core
     "Cosmology",
