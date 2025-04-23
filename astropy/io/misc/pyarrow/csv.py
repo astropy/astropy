@@ -191,6 +191,76 @@ def convert_pa_string_array_to_numpy(
     return out
 
 
+def pyarrow_zero(data_type: "pa.DataType"):
+    """
+    Return a "zero" value for the given PyArrow data type.
+
+    This function provides a default value corresponding to the specified
+    PyArrow data type. The returned value is intended to represent a
+    neutral or "zero" equivalent for the type.
+
+    Parameters
+    ----------
+    data_type : pa.DataType
+        The PyArrow data type for which to determine the zero value.
+
+    Returns
+    -------
+    Any
+        A zero-equivalent value for the specified data type. The type of the
+        returned value depends on the input data type:
+        - Integer or floating types: 0
+        - Boolean type: False
+        - String or large string types: ""
+        - Binary or large binary types: b""
+        - Date type: datetime.date(1970, 1, 1)
+        - Time type: datetime.time(0, 0, 0)
+        - Timestamp type: datetime.datetime(1970, 1, 1)
+        - Null type: None
+        - Decimal type: decimal.Decimal(0)
+
+    Raises
+    ------
+    NotImplementedError
+        If no zero value is defined for the given data type.
+
+    Examples
+    --------
+    >>> import pyarrow as pa
+    >>> pyarrow_zero(pa.int32())
+    0
+    >>> pyarrow_zero(pa.string())
+    ''
+    >>> pyarrow_zero(pa.timestamp('s'))
+    datetime.datetime(1970, 1, 1, 0, 0)
+    """
+    check_has_pyarrow()
+    import pyarrow as pa
+
+    if pa.types.is_integer(data_type) or pa.types.is_floating(data_type):
+        return 0
+    elif pa.types.is_boolean(data_type):
+        return False
+    elif pa.types.is_string(data_type) or pa.types.is_large_string(data_type):
+        return ""
+    elif pa.types.is_binary(data_type) or pa.types.is_large_binary(data_type):
+        return b""
+    elif pa.types.is_date(data_type):
+        return datetime.date(1970, 1, 1)
+    elif pa.types.is_time(data_type):
+        return datetime.time(0, 0, 0)
+    elif pa.types.is_timestamp(data_type):
+        return datetime.datetime(1970, 1, 1)
+    elif pa.types.is_null(data_type):
+        return None
+    elif pa.types.is_decimal(data_type):
+        import decimal
+
+        return decimal.Decimal(0)
+    else:
+        raise NotImplementedError(f"No zero value defined for type: {data_type}")
+
+
 def convert_pa_array_to_numpy(
     arr: Union["pa.Array", "pa.ChunkedArray"],
 ) -> "npt.NDArray":
@@ -221,21 +291,6 @@ def convert_pa_array_to_numpy(
 
     # Validate input type and set the fill value
     is_string = pa.types.is_string(arr.type)
-    if pa.types.is_integer(arr.type) or pa.types.is_floating(arr.type):
-        fill_value = 0
-    elif is_string:
-        is_string = True
-        fill_value = ""
-    elif pa.types.is_boolean(arr.type):
-        fill_value = False
-    elif pa.types.is_date(arr.type):
-        fill_value = pa.scalar(datetime.date(2000, 1, 1), type=arr.type)
-    elif pa.types.is_time(arr.type):
-        fill_value = pa.scalar(datetime.time(0, 0, 0), type=arr.type)
-    elif pa.types.is_timestamp(arr.type):
-        fill_value = pa.scalar(datetime.datetime(2000, 1, 1), type=arr.type)
-    else:
-        raise TypeError(f"unsupported PyArrow array type: {arr.type}")
 
     if arr.null_count == 0:
         # No nulls, just return an ndarray view of the pyarray
@@ -244,7 +299,7 @@ def convert_pa_array_to_numpy(
         # Fill nulls in `arr` with zero. We do not know of a zero-copy fill for
         # pyarrow arrays with nulls, so we need to copy the data.
         mask = arr.is_null().to_numpy(zero_copy_only=False)
-        arr = arr.fill_null(fill_value)
+        arr = arr.fill_null(pyarrow_zero(arr.type))
         data = convert_pa_string_array_to_numpy(arr) if is_string else arr.to_numpy()
         # pa Bool array may not be zero-copyable, so set zero_copy_only=False to avoid
         # an exception.
@@ -404,7 +459,10 @@ def get_convert_options(
         convert_options.null_values = null_values
     if dtypes is not None:
         convert_options.column_types = {
-            colname: pa.from_numpy_dtype(dtype) for colname, dtype in dtypes.items()
+            colname: (
+                dtype if isinstance(dtype, pa.DataType) else pa.from_numpy_dtype(dtype)
+            )
+            for colname, dtype in dtypes.items()
         }
     if timestamp_parsers is not None:
         convert_options.timestamp_parsers = timestamp_parsers

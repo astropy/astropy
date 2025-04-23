@@ -1,4 +1,6 @@
 import contextlib
+import datetime
+import decimal
 import io
 import tempfile
 import textwrap
@@ -177,17 +179,46 @@ def test_read_dtypes(tbl_text):
     """Test reading a simple CSV file with different input types.
 
     This tests:
-    - dtypes: dict of types, with 3 of 4 columns specified
+    - dtypes: dict of types, with a sampling of types including numpy and pyarrow
     """
+    tbl_text = textwrap.dedent(
+        """
+        a,b,c,d,e,f,time
+        0,1,2,3,0,5,12:34:56.123456
+        ,,,,,,
+        """
+    )
+
     dtypes = {
         "a": "str",
-        "ç 2": "float32",
-        "b": np.uint8,
+        "b": pa.decimal128(precision=5, scale=2),
+        "c": np.uint8,
+        "d": pa.float32(),
+        "e": "bool",
+        "f": pa.utf8(),
+        "time": pa.time64("us"),
     }
     out = table_read_csv(tbl_text, dtypes=dtypes)
-    assert out["a"].dtype == "U5"
-    assert out["ç 2"].dtype == "float32"
-    assert out["b"].dtype == np.uint8
+    assert out["a"].dtype == "U1"
+    assert out["b"].dtype == "object"
+    assert isinstance(out["b"][0], decimal.Decimal)
+    assert out["c"].dtype == "uint8"
+    assert out["d"].dtype == "float32"
+    assert out["e"].dtype == "bool"
+    assert out["f"].dtype == "U1"
+    assert out["time"].dtype == "object"
+    assert isinstance(out["time"][0], datetime.time)
+
+    # Unmask the table and check the zero values
+    for col in out.itercols():
+        col.mask[:] = False
+    assert out["a"][1] == ""
+    assert out["b"][1] == decimal.Decimal(0)
+    assert out["c"][1] == 0
+    assert out["d"][1] == 0.0
+    assert out["e"][1] == False  # noqa: E712
+    assert out["f"][1] == ""
+    assert out["time"][1] == datetime.time(0, 0, 0)
 
 
 def test_read_dtypes_invalid_conversion(tbl_text):
