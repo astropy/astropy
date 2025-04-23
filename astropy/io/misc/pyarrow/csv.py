@@ -296,13 +296,11 @@ def convert_pa_array_to_numpy(
         # No nulls, just return an ndarray view of the pyarray
         out = convert_pa_string_array_to_numpy(arr) if is_string else arr.to_numpy()
     else:
+        mask = arr.is_null().to_numpy()
         # Fill nulls in `arr` with zero. We do not know of a zero-copy fill for
         # pyarrow arrays with nulls, so we need to copy the data.
-        mask = arr.is_null().to_numpy(zero_copy_only=False)
         arr = arr.fill_null(pyarrow_zero(arr.type))
         data = convert_pa_string_array_to_numpy(arr) if is_string else arr.to_numpy()
-        # pa Bool array may not be zero-copyable, so set zero_copy_only=False to avoid
-        # an exception.
         out = np.ma.array(data, mask=mask, copy=False)
 
     return out
