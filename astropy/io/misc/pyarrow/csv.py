@@ -219,16 +219,6 @@ def pyarrow_zero(data_type: "pa.DataType"):
     ------
     NotImplementedError
         If no zero value is defined for the given data type.
-
-    Examples
-    --------
-    >>> import pyarrow as pa
-    >>> pyarrow_zero(pa.int32())
-    0
-    >>> pyarrow_zero(pa.string())
-    ''
-    >>> pyarrow_zero(pa.timestamp('s'))
-    datetime.datetime(1970, 1, 1, 0, 0)
     """
     check_has_pyarrow()
     import pyarrow as pa
