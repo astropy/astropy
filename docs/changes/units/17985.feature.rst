@@ -1,0 +1,2 @@
+Unit conversions between kelvins and degrees Rankine no longer require the
+``temperature`` equivalency.
