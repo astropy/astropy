@@ -327,6 +327,87 @@ take enough time to avoid being dominated by communication overhead.
 
 The default value for ``chunk_n_max`` is 500.
 
+Fit information
+===============
+
+When carrying out regular (non-parallel) fitting with astropy, fitters will typically
+have a ``.fit_info`` attribute which contains information about the fit, such as
+the number of function evaluations, parameter covariance matrix, and so on. The
+information available depends on the specific fitter used.
+
+These fit information objects can in some cases take up more memory than the
+data that was being fit in the first place, so when carrying out many fits
+in parallel with :func:`~astropy.modeling.fitting.parallel_fit_dask`, this
+information is not preserved by default and the ``.fit_info`` parameter on
+the fitter instance is set to `None`
+
+However, since access to this information can be useful in some cases, it is
+possible to opt-in to keeping it. Either all of the fit information can be
+preserved, by setting ``fit_info=True``:
+
+    >>> model_fit = parallel_fit_dask(model=model,
+    ...                               ...
+    ...                               fitter=fitter,
+    ...                               fit_info=True)  # doctest: +SKIP
+
+or just specific keys (which can help reduce memory usage):
+
+    >>> model_fit = parallel_fit_dask(model=model,
+    ...                               ...
+    ...                               fitter=fitter,
+    ...                               fit_info=('nfev', 'message', 'status'))  # doctest: +SKIP
+
+
+In these cases, the fitter's ``.fit_info`` will be set to a
+:class:`~astropy.modeling.fitting.FitInfoArrayContainer` object, which internally
+has a numpy object array containing all the different fit information objects.
+The shape of ``.fit_info`` should be the same as the parameter arrays:
+
+    >>> fitter.fit_info.shape  # doctest: +SKIP
+    (50, 50)
+    >>> fitter.fit_info.ndim  # doctest: +SKIP
+    2
+
+Indexing the fit info will return a specific fit information object, e.g.
+
+    >>> fitter.fit_info[10, 20]  # doctest: +SKIP
+         message: The maximum number of function evaluations is exceeded.
+         success: False
+            status: 0
+               fun: [-2.169e-01 -2.398e-01 ... -5.502e-02  2.498e-01]
+               x: [ 5.352e+02  2.034e+04  3.932e+03]
+            cost: 0.575174901185717
+               jac: [[ 3.514e-05 -2.166e-05  9.810e-05]
+                     [ 3.793e-05 -2.329e-05  1.051e-04]
+                     ...
+                     [ 1.200e-03 -5.990e-04  2.197e-03]
+                     [ 1.277e-03 -6.343e-04  2.316e-03]]
+            grad: [-5.634e-06  2.866e-06 -1.092e-05]
+      optimality: 1.0921480583423703e-05
+      active_mask: [0 0 0]
+            nfev: 100
+            njev: 93
+         param_cov: [[ 5.965e+08  2.262e+09  2.913e+08]
+                     [ 2.262e+09  8.584e+09  1.106e+09]
+                     [ 2.913e+08  1.106e+09  1.427e+08]]
+
+Indexing the fit info in a way that returns a range of fits, e.g.
+``fitter.fit_info[10:20, 20:30]``, will return a
+:class:`~astropy.modeling.fitting.FitInfoArrayContainer` object.
+
+It is also possible to retrieve one of these keys for all fits as an array, e.g.:
+
+   >>> nfev = fitter.fit_info.get_property_as_array('nfev')  # doctest: +SKIP
+   >>> nfev.shape  # doctest: +SKIP
+   (50, 50)
+   >>> nfev[0:3, 0:3]  # doctest: +SKIP
+   array([[ 9,  8, 10],
+          [10, 13,  9],
+          [10, 13, 10]])
+   >>> param_cov = fitter.fit_info.get_property_as_array('param_cov')  # doctest: +SKIP
+   >>> param_cov.shape  # doctest: +SKIP
+   (50, 50, 3, 3)
+
 Diagnostics
 ===========
 
