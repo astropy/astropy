@@ -1,0 +1,4 @@
+A new public module, ``astropy.cosmology.traits``, has been added to provide building
+blocks for custom cosmologies. The currently available traits are:
+- ``astropy.cosmology.traits.ScaleFactor``
+- ``astropy.cosmology.traits.TemperatureCMB``
