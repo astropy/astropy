@@ -27,7 +27,6 @@ from astropy.utils import indent
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 # NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .base import ExtensionHDU, _BaseHDU, _NonstandardHDU, _ValidHDU
@@ -35,12 +34,6 @@ from .compressed.compressed import CompImageHDU
 from .groups import GroupsHDU
 from .image import ImageHDU, PrimaryHDU
 from .table import BinTableHDU
-
-if HAS_BZ2:
-    import bz2
-
-if HAS_LZMA:
-    import lzma
 
 __all__ = ["HDUList", "fitsopen"]
 
@@ -1484,18 +1477,6 @@ class HDUList(list, _Verify):
             # original file, and rename the tmp file to the original file.
             if self._file.compression == "gzip":
                 new_file = gzip.GzipFile(name, mode="ab+")
-            elif self._file.compression == "bzip2":
-                if not HAS_BZ2:
-                    raise ModuleNotFoundError(
-                        "This Python installation does not provide the bz2 module."
-                    )
-                new_file = bz2.BZ2File(name, mode="w")
-            elif self._file.compression == "lzma":
-                if not HAS_LZMA:
-                    raise ModuleNotFoundError(
-                        "This Python installation does not provide the lzma module."
-                    )
-                new_file = lzma.LZMAFile(name, mode="w")
             else:
                 new_file = name
 

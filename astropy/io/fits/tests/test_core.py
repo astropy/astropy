@@ -804,6 +804,14 @@ class TestFileFunctions(FitsTestCase):
             assert fits_handle._file.compression == "bzip2"
             assert len(fits_handle) == 5
 
+        for mode in ("append", "update"):
+            with pytest.raises(
+                OSError,
+                match="update and append modes are not supported with bzip2 files",
+            ):
+                with fits.open(bzip_file, mode=mode) as fits_handle:
+                    pass
+
     @pytest.mark.skipif(not HAS_BZ2, reason="Python built without bz2 module")
     def test_open_bzipped_from_handle(self):
         with open(self._make_bzip2_file(), "rb") as handle:
@@ -856,6 +864,14 @@ class TestFileFunctions(FitsTestCase):
         with fits.open(lzma.LZMAFile(lzma_file)) as fits_handle:
             assert fits_handle._file.compression == "lzma"
             assert len(fits_handle) == 5
+
+        for mode in ("append", "update"):
+            with pytest.raises(
+                OSError,
+                match="update and append modes are not supported with lzma files",
+            ):
+                with fits.open(lzma_file, mode=mode) as fits_handle:
+                    pass
 
     @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
     def test_open_lzma_from_handle(self):
@@ -919,6 +935,13 @@ class TestFileFunctions(FitsTestCase):
             assert len(fits_handle) == 1
             assert fits_handle[0].header["ARCFILE"] == arcfile
             assert fits_handle[0].data[-1, -1] == last_datapoint
+
+        for mode in ("append", "update"):
+            with pytest.raises(
+                OSError, match=f"{mode} mode not supported with LZW files"
+            ):
+                with fits.open(lzw_file, mode=mode) as fits_handle:
+                    pass
 
     @pytest.mark.skipif(
         not HAS_UNCOMPRESSPY, reason="Optional package uncompresspy not installed"
