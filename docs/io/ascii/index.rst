@@ -14,8 +14,12 @@ improved performance.
 
 .. note::
 
-    It is strongly encouraged to use the :mod:`astropy.io.ascii` functionality
-    via the :ref:`table_io` interface. In particular, see the sections :ref:`Unified I/O Table Data <read_write_tables>` and :ref:`Unified I/O Text Tables <unified_table_text>`.
+    It is strongly encouraged to use the :ref:`Unified I/O Text Tables
+    <unified_table_text>` interface rather than using :mod:`astropy.io.ascii` directly.
+    For reading large CSV files, the astropy :ref:`PyArrow CSV <table_io_pyarrow_csv>`
+    reader is the fastest option. Additional information is available in the
+    :ref:`Unified I/O <table_io>` and :ref:`Unified I/O Table Data <read_write_tables>`
+    pages.
 
 The following shows a few of the text formats that are available, while the
 section on `Supported formats`_ contains the full list.

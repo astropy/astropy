@@ -56,6 +56,15 @@ def read_csv(
 
     Entirely empty lines in the CSV file are ignored.
 
+    Columns consisting of only string values ``True`` and ``False`` are parsed as
+    boolean data.
+
+    Columns with ISO 8601 date/time strings are parsed as shown below:
+    - ``12:13:14.123456``: ``object[datetime.time]``
+    - ``2025-01-01``: ``np.datetime64[D]``
+    - ``2025-01-01T01:02:03``: ``np.datetime64[s]``
+    - ``2025-01-01T01:02:03.123456``: ``np.datetime64[ns]``
+
     Support for ignoring comment lines in the CSV file is provided by the ``comment``
     parameter. If this is set to a string, any line starting with optional whitespace
     and then this string is ignored. This is done by reading the entire file and
