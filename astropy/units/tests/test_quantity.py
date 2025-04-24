@@ -1432,6 +1432,8 @@ class TestQuantityDisplay:
     @pytest.mark.parametrize(
         "q, expected",
         [
+            pytest.param(0 * u.imperial.deg_R, r"$0\mathrm{{}^{\circ}R}$", id="deg_R"),
+            pytest.param(5 * u.imperial.deg_F, r"$5\mathrm{{}^{\circ}F}$", id="deg_F"),
             pytest.param(10 * u.deg_C, r"$10\mathrm{{}^{\circ}C}$", id="deg_C"),
             pytest.param(20 * u.deg, r"$20\mathrm{{}^{\circ}}$", id="deg"),
             pytest.param(30 * u.arcmin, r"$30\mathrm{{}^{\prime}}$", id="arcmin"),

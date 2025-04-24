@@ -1,0 +1,3 @@
+The degrees Rankine is now represented as "$\mathrm{{}^{\circ}R}$" in the
+``"latex"`` and ``"latex_inline"`` formats and as "°R" in the ``"unicode"``
+format.
