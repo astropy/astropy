@@ -136,11 +136,6 @@ def read_csv(
         newlines_in_values=newlines_in_values,
     )
 
-    read_options = get_read_options(header_start, data_start, names, encoding)
-    convert_options = get_convert_options(
-        include_names, dtypes, null_values, timestamp_parsers
-    )
-
     if comment is not None:
         input_file_stripped, header_start_new = strip_comment_lines(
             input_file, comment, encoding, header_start, data_start
@@ -149,6 +144,11 @@ def read_csv(
             header_start = header_start_new
         if input_file_stripped is not None:
             input_file = input_file_stripped
+
+    read_options = get_read_options(header_start, data_start, names, encoding)
+    convert_options = get_convert_options(
+        include_names, dtypes, null_values, timestamp_parsers
+    )
 
     table_pa = csv.read_csv(
         input_file,
@@ -345,15 +345,14 @@ def strip_comment_lines(
 
     This function has two modes of operation:
 
-    1. If ``header_start`` and ``data_start`` are both `None`, this means the user has
-       not specified explicit header or data start lines. In this case it will read the
-       file line by line, looking for lines that start with the specified comment
-       string. If all comment lines are at the beginning of the file (a common case),
-       then the lines can be efficiently skipped within the pyarrow CSV reader. In this
-       case the return value is (`None`, header_start after comments).
+    1. If ``header_start`` is `None` or 0, then read the file line by line, looking for
+       lines that start with the specified comment string. If all comment lines are at
+       the beginning of the file (a common case), then the lines can be efficiently
+       skipped within the pyarrow CSV reader. In this case the return value is (`None`,
+       header_start after comments).
     2. Otherwise, the function reads the entire file into memory in a BytesIO object,
-       removing all lines that start with the specified comment string along the way.
-       In this case the return value is (BytesIO object, `None`).
+       removing all lines that start with the specified comment string along the way. In
+       this case the return value is (BytesIO object, `None`).
 
     Checking for the comment string ignores leading whitespace.
 
@@ -389,7 +388,7 @@ def strip_comment_lines(
         if isinstance(input_file, (str, os.PathLike)):
             input_file = stack.enter_context(open(input_file, "rb"))
 
-        if header_start is None and data_start is None:
+        if header_start in (None, 0) and data_start is None:
             idx_last_comment = -1
             for idx, line in enumerate(input_file):
                 if line.lstrip().startswith(comment_encode):
@@ -401,6 +400,7 @@ def strip_comment_lines(
                         input_file.seek(0)
                         break
             else:
+                input_file.seek(0)
                 return None, idx_last_comment + 1
 
         # If we get here, we need to read the whole file and remove comment lines and

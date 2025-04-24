@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from astropy.io.misc.pyarrow.csv import strip_comment_lines
 from astropy.table import Table
 from astropy.utils.compat.optional_deps import HAS_PYARROW
 
@@ -29,12 +30,12 @@ def check_tables_equal(t1, t2):
     for col1, col2 in zip(t1.itercols(), t2.itercols()):
         assert col1.name == col2.name
         assert col1.dtype == col2.dtype
-        assert np.array_equal(col1, col2)
+        np.assert_array_equal(col1, col2)
         has_mask1 = hasattr(col1, "mask")
         has_mask2 = hasattr(col2, "mask")
         assert has_mask1 == has_mask2
         if has_mask1:
-            assert np.array_equal(col1.mask, col2.mask)
+            np.assert_array_equal(col1.mask, col2.mask)
 
 
 def convert_table_to_text(tbl, delimiter=",", **kwargs):
@@ -442,7 +443,59 @@ def test_read_include_names_invalid(tbl_text):
         table_read_csv(tbl_text, include_names=["x", "y"])
 
 
-def test_read_comments_on_top():
+@pytest.mark.parametrize("on_top", [True, False])
+def test_strip_comment_lines(on_top):
+    """Low level test of stripping comment lines."""
+    tbl_text = textwrap.dedent("""\
+    # Comment 1
+     # Comment 2 (leading whitespace)
+    # Comment 3
+    a,b,c
+    0,1,2
+    3,4,5
+    """)
+    if not on_top:
+        tbl_text += "# Comment 4\n# Comment 5\n"
+
+    exp = textwrap.dedent("""\
+    a,b,c
+    0,1,2
+    3,4,5
+    """).encode("utf-8")
+
+    input_file = io.BytesIO(tbl_text.encode("utf-8"))
+
+    # For the default header_start and data_start values, the behavior depends on
+    # whether there comment lines are only at the top of the file or not.
+    output_file, header_start = strip_comment_lines(
+        input_file, comment="#", header_start=0, data_start=None, encoding="utf-8"
+    )
+    if on_top:
+        assert output_file is None
+        assert header_start == 3
+    else:
+        assert output_file.getvalue() == exp
+        assert header_start is None
+
+    # In both of the following cases, strip_comment_lines should return a new BytesIO
+    # buffer with the comment lines stripped, and the header_start should be None.
+    input_file.seek(0)
+    output_file, header_start = strip_comment_lines(
+        input_file, comment="#", header_start=1, data_start=2, encoding="utf-8"
+    )
+    assert output_file.getvalue() == exp
+    assert header_start is None
+
+    input_file.seek(0)
+    output_file, header_start = strip_comment_lines(
+        input_file, comment="#", header_start=None, data_start=1, encoding="utf-8"
+    )
+    assert output_file.getvalue() == exp
+    assert header_start is None
+
+
+@pytest.mark.parametrize("on_top", [True, False])
+def test_read_comments(on_top):
     """Test reading a simple CSV file with comments.
 
     This tests:
@@ -457,6 +510,9 @@ def test_read_comments_on_top():
     0,1,2
     3,4,5
     """)
+    if not on_top:
+        tbl_text += "\n# Comment 4\n# Comment 5\n"
+
     out = table_read_csv(tbl_text, comment="#")
     exp = [
         "  a     b     c  ",
@@ -467,28 +523,21 @@ def test_read_comments_on_top():
     ]
     assert out.pformat(show_dtype=True) == exp
 
-
-def test_read_comments_within_data():
-    """Test reading a simple CSV file with comments within data.
-
-    This tests:
-    - comment : "#"
-    - Some comment lines are in the data and have leading whitespace
-    """
-    tbl_text = textwrap.dedent("""\
-    # Comment 1
-       # Comment 2 (leading whitespace)
-    a,b,c
-    0,1,2
-    # Comment 3
-    3,4,5
-    """)
-    out = table_read_csv(tbl_text, comment="#")
+    out = table_read_csv(tbl_text, header_start=None, data_start=1, comment="#")
     exp = [
-        "  a     b     c  ",
+        "  f0    f1    f2 ",
         "int64 int64 int64",
         "----- ----- -----",
         "    0     1     2",
+        "    3     4     5",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+    out = table_read_csv(tbl_text, header_start=1, data_start=2, comment="#")
+    exp = [
+        "  0     1     2  ",
+        "int64 int64 int64",
+        "----- ----- -----",
         "    3     4     5",
     ]
     assert out.pformat(show_dtype=True) == exp
