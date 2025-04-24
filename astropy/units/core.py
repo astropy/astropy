@@ -793,7 +793,7 @@ class UnitBase:
             return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
         except Exception:
             arr = np.asanyarray(p)
-            p = arr.flat[0]
+            p = arr.item(0)
             if (arr != p).any():
                 raise ValueError(
                     "Quantities and Units may only be raised to a scalar power"
