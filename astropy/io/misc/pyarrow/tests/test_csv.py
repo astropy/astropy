@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy.io.misc.pyarrow.csv import strip_comment_lines
 from astropy.table import Table
@@ -30,12 +31,12 @@ def check_tables_equal(t1, t2):
     for col1, col2 in zip(t1.itercols(), t2.itercols()):
         assert col1.name == col2.name
         assert col1.dtype == col2.dtype
-        np.assert_array_equal(col1, col2)
+        assert_array_equal(col1, col2)
         has_mask1 = hasattr(col1, "mask")
         has_mask2 = hasattr(col2, "mask")
         assert has_mask1 == has_mask2
         if has_mask1:
-            np.assert_array_equal(col1.mask, col2.mask)
+            assert_array_equal(col1.mask, col2.mask)
 
 
 def convert_table_to_text(tbl, delimiter=",", **kwargs):
