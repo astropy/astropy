@@ -269,7 +269,9 @@ represent the home directory of the current or specified user, respectively.
 Command-Line Utility
 ^^^^^^^^^^^^^^^^^^^^
 
-For convenience, the command-line tool ``showtable`` can be used to print the
+.. note:: In v8.0, the ``showtable`` command is now ``showtable-astropy`` to avoid a name clash on Debian.
+
+For convenience, the command-line tool ``showtable-astropy`` can be used to print the
 content of tables for the formats supported by the unified I/O interface.
 
 Example
@@ -281,7 +283,7 @@ Example
 
 To view the contents of a table on the command line::
 
-    $ showtable astropy/io/fits/tests/data/table.fits
+    $ showtable-astropy astropy/io/fits/tests/data/table.fits
 
      target V_mag
     ------- -----
@@ -289,5 +291,4 @@ To view the contents of a table on the command line::
     NGC1002  12.3
     NGC1003  15.2
 
-To get full documentation on the usage and available options, do ``showtable
---help``.
+To get full documentation on the usage and available options, do ``showtable-astropy --help``.
