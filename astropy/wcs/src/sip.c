@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 
 #include <wcserr.h>
 
@@ -42,11 +43,11 @@ sip_init(
     const unsigned int bp_order, const double* bp,
     const double* crpix /* [2] */) {
 
-  unsigned int       a_size       = 0;
-  unsigned int       b_size       = 0;
-  unsigned int       ap_size      = 0;
-  unsigned int       bp_size      = 0;
-  unsigned int       scratch_size = 0;
+  size_t             a_size       = 0u;
+  size_t             b_size       = 0u;
+  size_t             ap_size      = 0u;
+  size_t             bp_size      = 0u;
+  size_t             scratch_size = 0u;
   int                status       = 0;
   struct wcserr**    err          = NULL;
   static const char *function     = "sip_init";
@@ -71,7 +72,7 @@ sip_init(
 
   if (a != NULL) {
     sip->a_order = a_order;
-    a_size = (a_order + 1) * (a_order + 1) * sizeof(double);
+    a_size = (size_t)(a_order + 1u) * (a_order + 1u) * sizeof(double);
     sip->a = malloc(a_size);
     if (sip->a == NULL) {
       sip_free(sip);
@@ -85,7 +86,7 @@ sip_init(
     }
 
     sip->b_order = b_order;
-    b_size = (b_order + 1) * (b_order + 1) * sizeof(double);
+    b_size = (size_t)(b_order + 1u) * (b_order + 1u) * sizeof(double);
     sip->b = malloc(b_size);
     if (sip->b == NULL) {
       sip_free(sip);
@@ -101,7 +102,7 @@ sip_init(
 
   if (ap != NULL) {
     sip->ap_order = ap_order;
-    ap_size = (ap_order + 1) * (ap_order + 1) * sizeof(double);
+    ap_size = (size_t)(ap_order + 1u) * (ap_order + 1u) * sizeof(double);
     sip->ap = malloc(ap_size);
     if (sip->ap == NULL) {
       sip_free(sip);
@@ -115,7 +116,7 @@ sip_init(
     }
 
     sip->bp_order = bp_order;
-    bp_size = (bp_order + 1) * (bp_order + 1) * sizeof(double);
+    bp_size = (size_t)(bp_order + 1u) * (bp_order + 1u) * sizeof(double);
     sip->bp = malloc(bp_size);
     if (sip->bp == NULL) {
       sip_free(sip);
