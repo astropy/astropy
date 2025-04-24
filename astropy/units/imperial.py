@@ -151,6 +151,7 @@ def_unit(
     5 / 9 * si.K,
     namespace=_ns,
     doc="Rankine scale: absolute scale of thermodynamic temperature",
+    format={"latex": r"{}^{\circ}R", "unicode": "°R"},
 )
 
 ###########################################################################
