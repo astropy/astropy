@@ -607,6 +607,48 @@ def test_index_slice_exception():
         SlicedIndex(None, None)
 
 
+@pytest.fixture(scope="module")
+def simple_table():
+    """Simple table with an index on column 'a'."""
+    t = Table()
+    t["a"] = [3, 1, 2, 3]
+    t["b"] = ["x", "y", "z", "w"]
+    t.add_index("a")
+    return t
+
+
+@pytest.mark.parametrize("key", [None, "a"])
+@pytest.mark.parametrize(
+    "item,length,cls",
+    [
+        (slice(0, 0), 0, Table),
+        ([], 0, Table),
+        ([1], 1, Table),
+        ([1, 3], 3, Table),
+        (np.array([]), 0, Table),
+        (np.array([1]), 1, Table),
+        (3, 2, Table),  # scalar index with multiple rows
+        (1, None, Row),  # scalar index with single row
+    ],
+)
+def test_index_zero_slice_or_sequence_or_scalar(simple_table, key, item, length, cls):
+    """Test that indexing with various types gives the expected result.
+
+    Tests fix for #18037.
+    """
+    if key is not None:
+        item = (key, item)
+
+    tloc = simple_table.loc[item]
+    assert isinstance(tloc, cls)
+    assert tloc.colnames == simple_table.colnames
+
+    rows = simple_table.loc_indices[item]
+    if cls is Table:
+        assert len(tloc) == length
+        assert len(rows) == length
+
+
 @pytest.mark.parametrize(
     "masked",
     [pytest.param(False, id="raw-array"), pytest.param(True, id="masked array")],
