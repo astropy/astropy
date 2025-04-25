@@ -1,5 +1,3 @@
-.. doctest-remote-data-all::
-
 Introduction
 ------------
 
@@ -19,6 +17,7 @@ To extract DataOrigin from VOTable
 
 Example: VizieR catalogue J/AJ/167/18
 
+.. doctest-remote-data-all::
 
     >>> from astropy.io.votable import parse
     >>> from astropy.io.votable.dataorigin import extract_data_origin
