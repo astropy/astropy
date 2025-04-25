@@ -1,0 +1,14 @@
+Fix issues in the handling of a call like ``tbl.loc[item]`` or ``tbl.loc_indices[item]``
+and make the behavior consistent with pandas. Here ``tbl`` is a ``Table`` or ``QTable``
+with an index defined.
+
+If ``item`` is an empty list or zero-length ``np.ndarray`` or an empty slice, then
+previously ``tbl.loc[item]`` would raise a ``KeyError`` exception. Now it returns the
+zero-length table ``tbl[[]]``.
+
+If ``item`` is a one-element list like ``["foo"]``, then previously
+``tbl.loc[item]`` would return either a ``Row`` or a ``Table`` with multiple row,
+depending on whether the index was unique. Now it always returns a ``Table``, consistent
+with behavior for ``tbl.loc[[]]`` and ``tbl.loc[["foo", "bar"]]``.
+
+See https://github.com/astropy/astropy/pull/18051 for more details.
