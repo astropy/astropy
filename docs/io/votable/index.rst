@@ -254,6 +254,14 @@ record array must be resized repeatedly during load.
 .. _nrows: http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html#ToC10
 
 
+Data Origin
+===========
+
+.. _astropy-io-votable-dataorigin:
+
+.. include:: dataorigin.rst
+
+
 See Also
 ========
 

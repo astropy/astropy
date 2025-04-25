@@ -18,6 +18,8 @@ In particular, this release includes:
 * :ref:`whatsnew-7.1-pyarrow-csv`
 * :ref:`whatsnew-7.1-cosmology`
 * :ref:`whatsnew-7.1-votable-coosys-to-astropy-frame`
+* :ref:`whatsnew_7_1_dataorigin`
+
 
 In addition to these major changes, Astropy v7.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -126,6 +128,67 @@ corresponding astropy built-in frame, when possible::
     >>> coosys = CooSys(system="ICRS", epoch="J2020")
     >>> coosys.to_astropy_frame()
     <ICRS Frame>
+
+
+.. _whatsnew_7_1_dataorigin:
+
+New ``astropy.io.votable.dataorigin`` module
+============================================
+
+This new module extracts provenance information from VOTable header. The information is described in
+DataOrigin IVOA note: https://www.ivoa.net/documents/DataOrigin/.
+
+DataOrigin includes both the query information (such as publisher, contact, versions, etc.)
+and the Dataset origin (such as Creator, bibliographic links, URL, etc.).
+
+This API retrieves Metadata from INFO in VOTAble.
+
+Example of output including DataOrigin:
+
+- VizieR catalogue (CDS): ex: Planck cold clumps survey in the Orion complex (Liu+, 2012)
+
+
+.. code-block:: python
+
+    >>> from astropy.io.votable import parse
+    >>> from astropy.io.votable.dataorigin  import extract_data_origin
+
+    >>> vot = parse("https://vizier.cds.unistra.fr/viz-bin/conesearch/J/ApJS/202/4/clumps?RA=69.36&DEC=16.98&SR=0.5")  # doctest: +REMOTE_DATA
+    >>> print(extract_data_origin(vot))  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    publisher: CDS
+    server_software: 7.4.5
+    service_protocol: ivo://ivoa.net/std/ConeSearch/v1.03
+    request: https://vizier.cds.unistra.fr/viz-bin/conesearch/J/ApJS/202/4/clumps?RA=69.36&DEC=16.98&SR=0.5
+    request_date: 2025-03-05T08:48:57
+    contact: cds-question@unistra.fr
+
+    ivoid: ivo://cds.vizier/j/apjs/202/4
+    citation: doi:10.26093/cds/vizier.22020004
+    reference_url: https://cdsarc.cds.unistra.fr/viz-bin/cat/J/ApJS/202/4
+    rights_uri: https://cds.unistra.fr/vizier-org/licences_vizier.html
+    creator: Liu T.
+    editor: Astrophysical Journal Supplement (AAS)
+    cites: bibcode:2012ApJS..202....4L
+    original_date: 2012
+    publication_date: 2017-06-29
+
+- GAVO: ex: CALIFA Cubes
+
+.. code-block:: python
+
+    >>> vot = parse("https://dc.g-vo.org/califa/q3/cubesearch/form?__nevow_form__=genForm&target_name=2MASXJ09065870&MAXREC=100&_FORMAT=VOTable&submit=Go")  # doctest: +REMOTE_DATA
+    >>> print(extract_data_origin(vot))  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    publisher: The GAVO DC team
+    server_software: DaCHS/2.10 twistedWeb/22.4.0
+    request_date: 2025-03-05T08:40:35Z
+    contact: gavo@ari.uni-heidelberg.de
+
+    ivoid: ivo://org.gavo.dc/califa/q3/s,ivo://org.gavo.dc/califa/q3/tables
+    citation: http://dc.g-vo.org/tableinfo/califadr3.cubes#ti-citing
+    reference_url: http://dc.g-vo.org/tableinfo/califadr3.cubes
+    resource_version: 3
+    rights:  CALIFA asks you to acknowledge:  "This study uses data provided by the Calar Alto Legacy Integral Field Area (CALIFA) survey (http://califa.caha.es/)."  "Based on observations collected at the Centro Astronómico Hispano Alemán (CAHA) at Calar Alto, operated jointly by the Max-Planck-Institut fűr Astronomie and the Instituto de Astrofísica de Andalucía (CSIC)."  and to cite both of :bibcode:`2014A&A...569A...1W` and :bibcode:`2012A&A...538A...8S`
+    creator: Sánchez, F.,The CALIFA collaboration
 
 
 Full change log
