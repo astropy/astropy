@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Defines the physical types that correspond to different units.
+"""Implementation of the physical types machinery.
 
 The classes and functions defined here are also available in
 (and should be used through) the `astropy.units` namespace.
@@ -11,137 +11,16 @@ from __future__ import annotations
 import numbers
 from typing import TYPE_CHECKING
 
+from astropy.units import core, quantity
 from astropy.utils.compat import COPY_IF_NEEDED
-
-from . import astrophys, cgs, core, misc, quantity, si
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from typing import Final
 
-    from .typing import PhysicalTypeID, QuantityLike, UnitPowerLike
+    from astropy.units.typing import PhysicalTypeID, QuantityLike, UnitPowerLike
 
 __all__: Final = ["PhysicalType", "def_physical_type", "get_physical_type"]
-
-_units_and_physical_types: Final[list[tuple[core.UnitBase, str | set[str]]]] = [
-    (core.dimensionless_unscaled, "dimensionless"),
-    (si.m, "length"),
-    (si.m**2, "area"),
-    (si.m**3, "volume"),
-    (si.s, "time"),
-    (si.rad, "angle"),
-    (si.sr, "solid angle"),
-    (si.m / si.s, {"speed", "velocity"}),
-    (si.m / si.s**2, "acceleration"),
-    (si.Hz, "frequency"),
-    (si.g, "mass"),
-    (si.mol, "amount of substance"),
-    (si.K, "temperature"),
-    (si.W * si.m**-1 * si.K**-1, "thermal conductivity"),
-    (si.J * si.K**-1, {"heat capacity", "entropy"}),
-    (si.J * si.K**-1 * si.kg**-1, {"specific heat capacity", "specific entropy"}),
-    (si.N, "force"),
-    (si.J, {"energy", "work", "torque"}),
-    (si.J * si.m**-2 * si.s**-1, {"energy flux", "irradiance"}),
-    (si.Pa, {"pressure", "energy density", "stress"}),
-    (si.W, {"power", "radiant flux"}),
-    (si.kg * si.m**-3, "mass density"),
-    (si.m**3 / si.kg, "specific volume"),
-    (si.mol / si.m**3, "molar concentration"),
-    (si.m**3 / si.mol, "molar volume"),
-    (si.kg * si.m / si.s, {"momentum", "impulse"}),
-    (si.kg * si.m**2 / si.s, {"angular momentum", "action"}),
-    (si.rad / si.s, {"angular speed", "angular velocity", "angular frequency"}),
-    (si.rad / si.s**2, "angular acceleration"),
-    (si.rad / si.m, "plate scale"),
-    (si.g / (si.m * si.s), "dynamic viscosity"),
-    (si.m**2 / si.s, {"diffusivity", "kinematic viscosity"}),
-    (si.m**-1, "wavenumber"),
-    (si.m**-2, "column density"),
-    (si.A, "electrical current"),
-    (si.C, "electrical charge"),
-    (si.V, "electrical potential"),
-    (si.Ohm, {"electrical resistance", "electrical impedance", "electrical reactance"}),
-    (si.Ohm * si.m, "electrical resistivity"),
-    (si.S, "electrical conductance"),
-    (si.S / si.m, "electrical conductivity"),
-    (si.F, "electrical capacitance"),
-    (si.C * si.m, "electrical dipole moment"),
-    (si.A / si.m**2, "electrical current density"),
-    (si.V / si.m, "electrical field strength"),
-    (
-        si.C / si.m**2,
-        {"electrical flux density", "surface charge density", "polarization density"},
-    ),
-    (si.C / si.m**3, "electrical charge density"),
-    (si.F / si.m, "permittivity"),
-    (si.Wb, "magnetic flux"),
-    (si.Wb**2, "magnetic helicity"),
-    (si.T, "magnetic flux density"),
-    (si.A / si.m, "magnetic field strength"),
-    (si.m**2 * si.A, "magnetic moment"),
-    (si.H / si.m, {"electromagnetic field strength", "permeability"}),
-    (si.H, "inductance"),
-    (si.cd, "luminous intensity"),
-    (si.lm, "luminous flux"),
-    (si.lx, {"luminous emittance", "illuminance"}),
-    (si.W / si.sr, "radiant intensity"),
-    (si.cd / si.m**2, "luminance"),
-    (si.m**-3 * si.s**-1, "volumetric rate"),
-    (astrophys.Jy, "spectral flux density"),
-    (astrophys.Jy / si.sr, "surface brightness"),
-    (si.W * si.m**2 * si.Hz**-1, "surface tension"),
-    (si.J * si.m**-3 * si.s**-1, {"spectral flux density wav", "power density"}),
-    (si.J * si.m**-3 * si.s**-1 * si.sr**-1, "surface brightness wav"),
-    (astrophys.photon / si.Hz / si.cm**2 / si.s, "photon flux density"),
-    (astrophys.photon / si.AA / si.cm**2 / si.s, "photon flux density wav"),
-    (astrophys.photon / si.Hz / si.cm**2 / si.s / si.sr, "photon surface brightness"),
-    (
-        astrophys.photon / si.AA / si.cm**2 / si.s / si.sr,
-        "photon surface brightness wav",
-    ),
-    (astrophys.R, "photon flux"),
-    (misc.bit, "data quantity"),
-    (misc.bit / si.s, "bandwidth"),
-    (cgs.Franklin, "electrical charge (ESU)"),
-    (cgs.statampere, "electrical current (ESU)"),
-    (cgs.Biot, "electrical current (EMU)"),
-    (cgs.abcoulomb, "electrical charge (EMU)"),
-    (si.m * si.s**-3, {"jerk", "jolt"}),
-    (si.m * si.s**-4, {"snap", "jounce"}),
-    (si.m * si.s**-5, "crackle"),
-    (si.m * si.s**-6, {"pop", "pounce"}),
-    (si.K / si.m, "temperature gradient"),
-    (si.J / si.kg, {"specific energy", "dose of ionizing radiation"}),
-    (si.mol * si.m**-3 * si.s**-1, "reaction rate"),
-    (si.kg * si.m**2, "moment of inertia"),
-    (si.mol / si.s, "catalytic activity"),
-    (si.J * si.K**-1 * si.mol**-1, "molar heat capacity"),
-    (si.mol / si.kg, "molality"),
-    (si.m * si.s, "absement"),
-    (si.m * si.s**2, "absity"),
-    (si.m**3 / si.s, "volumetric flow rate"),
-    (si.s**-2, "frequency drift"),
-    (si.Pa**-1, "compressibility"),
-    (astrophys.electron * si.m**-3, "electron density"),
-    (astrophys.electron * si.m**-2 * si.s**-1, "electron flux"),
-    (si.kg / si.m**2, "surface mass density"),
-    (si.W / si.m**2 / si.sr, "radiance"),
-    (si.J / si.mol, "chemical potential"),
-    (si.kg / si.m, "linear density"),
-    (si.H**-1, "magnetic reluctance"),
-    (si.W / si.K, "thermal conductance"),
-    (si.K / si.W, "thermal resistance"),
-    (si.K * si.m / si.W, "thermal resistivity"),
-    (si.N / si.s, "yank"),
-    (si.S * si.m**2 / si.mol, "molar conductivity"),
-    (si.m**2 / si.V / si.s, "electrical mobility"),
-    (si.lumen / si.W, "luminous efficacy"),
-    (si.m**2 / si.kg, {"opacity", "mass attenuation coefficient"}),
-    (si.kg * si.m**-2 * si.s**-1, {"mass flux", "momentum density"}),
-    (si.m**-3, "number density"),
-    (si.m**-2 * si.s**-1, "particle flux"),
-]
 
 _physical_unit_mapping: Final[dict[PhysicalTypeID, PhysicalType]] = {}
 _unit_physical_mapping: Final[dict[str, PhysicalTypeID]] = {}
@@ -543,70 +422,3 @@ def get_physical_type(
         return _physical_unit_mapping[physical_type_id]
     else:
         return PhysicalType(unit, "unknown")
-
-
-# ------------------------------------------------------------------------------
-# Script section creating the physical types and the documentation
-
-# define the physical types
-for unit, physical_type in _units_and_physical_types:
-    def_physical_type(unit, physical_type)
-del unit, physical_type
-
-
-# For getting the physical types.
-def __getattr__(name):
-    """Checks for physical types using lazy import.
-
-    This also allows user-defined physical types to be accessible from the
-    :mod:`astropy.units.physical` module.
-    See `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_
-
-    Parameters
-    ----------
-    name : str
-        The name of the attribute in this module. If it is already defined,
-        then this function is not called.
-
-    Returns
-    -------
-    ptype : `~astropy.units.physical.PhysicalType`
-
-    Raises
-    ------
-    AttributeError
-        If the ``name`` does not correspond to a physical type
-    """
-    if name in _attrname_physical_mapping:
-        return _attrname_physical_mapping[name]
-
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def __dir__() -> list[str]:
-    """Return contents directory (__all__ + all physical type names)."""
-    return list(set(__all__) | set(_attrname_physical_mapping.keys()))
-
-
-# This generates a docstring addition for this module that describes all of the
-# standard physical types defined here.
-if __doc__ is not None:
-    doclines = [
-        ".. list-table:: Defined Physical Types",
-        "    :header-rows: 1",
-        "    :widths: 30 10 50",
-        "",
-        "    * - Physical type",
-        "      - Unit",
-        "      - Other physical type(s) with same unit",
-    ]
-
-    for name in sorted(_name_physical_mapping.keys()):
-        ptype = _name_physical_mapping[name]
-        doclines += [
-            f"    * - _`{name}`",
-            f"      - :math:`{ptype._unit.to_string('latex')[1:-1]}`",
-            f"      - {', '.join([n for n in ptype if n != name])}",
-        ]
-
-    __doc__ += "\n\n" + "\n".join(doclines)
