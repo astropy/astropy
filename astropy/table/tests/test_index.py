@@ -624,6 +624,7 @@ def simple_table():
         (slice(0, 0), 0, Table),
         ([], 0, Table),
         ([1], 1, Table),
+        ([1, 3], 3, Table),
         (np.array([]), 0, Table),
         (np.array([1]), 1, Table),
         (3, 2, Table),  # scalar index with multiple rows
