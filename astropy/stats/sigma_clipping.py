@@ -21,7 +21,6 @@ from astropy.stats.nanfunctions import (
     nanvar,
 )
 from astropy.units import Quantity
-from astropy.utils import isiterable
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -300,7 +299,7 @@ class SigmaClip:
         if axis is None:
             axis = -1 if data.ndim == 1 else tuple(range(data.ndim))
 
-        if not isiterable(axis):
+        if not np.iterable(axis):
             axis = normalize_axis_index(axis, data.ndim)
             data_reshaped = data
             transposed_shape = None
@@ -481,7 +480,7 @@ class SigmaClip:
 
         if axis is not None:
             # convert negative axis/axes
-            if not isiterable(axis):
+            if not np.iterable(axis):
                 axis = (axis,)
             axis = tuple(filtered_data.ndim + n if n < 0 else n for n in axis)
 

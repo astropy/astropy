@@ -52,6 +52,7 @@ _NOT_OVERWRITING_MSG_MATCH = (
 )
 
 
+@deprecated(since="7.1", alternative="numpy.iterable()")
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
     try:

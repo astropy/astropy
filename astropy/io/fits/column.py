@@ -16,7 +16,7 @@ from textwrap import indent
 import numpy as np
 from numpy import char as chararray
 
-from astropy.utils import isiterable, lazyproperty
+from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .card import CARD_LENGTH, Card
@@ -1493,7 +1493,7 @@ class ColDefs(NotifierMixin):
         elif isinstance(input, np.ndarray) and input.dtype.fields is not None:
             # Construct columns from the fields of a record array
             self._init_from_array(input)
-        elif isiterable(input):
+        elif np.iterable(input):
             # if the input is a list of Columns
             self._init_from_sequence(input)
         elif isinstance(input, _TableBaseHDU):
