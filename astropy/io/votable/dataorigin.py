@@ -143,7 +143,7 @@ class DatasetOrigin:
     Notes
     -----
     DatasetOrigin is dedicated to a specific Element in a VOTable.
-    These ``<INFO>`` Elements describe a Resource, a Table or are Global.
+    These ``<INFO>`` Elements describe a Resource, a TableElement or are Global.
 
     Attributes
     ----------
@@ -352,13 +352,13 @@ def __extract_dali_info(infos: list, data_origin: DataOrigin):
 
 
 def __extract_info_from_table(
-    table: astropy.io.votable.tree.Table, data_origin: DataOrigin
+    table: astropy.io.votable.tree.TableElement, data_origin: DataOrigin
 ):
-    """(internal) extract and populate dataOrigin from astropy.io.votable.tree.Table
+    """(internal) extract and populate dataOrigin from astropy.io.votable.tree.TableElement
 
     Parameters
     ----------
-    table : astropy.io.votable.tree.Table
+    table : astropy.io.votable.tree.TableElement
         Table to explore
 
     data_origin : DataOrigin
@@ -438,8 +438,6 @@ def extract_data_origin(vot_element: astropy.io.votable.tree.Element) -> DataOri
         __extract_info_from_votable(vot_element, data_origin)
     elif isinstance(vot_element, astropy.io.votable.tree.Resource):
         __extract_info_from_resource(vot_element, data_origin)
-    elif isinstance(vot_element, astropy.io.votable.tree.Table):
-        __extract_info_from_table(vot_element, data_origin)
     elif isinstance(vot_element, astropy.io.votable.tree.TableElement):
         __extract_info_from_table(vot_element, data_origin)
     else:
@@ -491,7 +489,7 @@ def add_data_origin_info(
             (
                 astropy.io.votable.tree.VOTableFile,
                 astropy.io.votable.tree.Resource,
-                astropy.io.votable.tree.Table,
+                astropy.io.votable.tree.TableElement,
             ),
         ):
             raise TypeError("Unsupported vot_element type.")
