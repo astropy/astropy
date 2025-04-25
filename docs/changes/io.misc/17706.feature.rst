@@ -1,0 +1,4 @@
+Add a fast ``Table`` CSV reader that uses the PyArrow ``read_csv()`` function. This can
+be significantly faster and more memory-efficient than the ``astropy.io.ascii`` fast
+reader. This new reader can be used with ``Table.read()`` by setting
+``format="pyarrow.csv"``.
