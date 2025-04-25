@@ -1,10 +1,12 @@
+.. doctest-remote-data-all::
 
 Introduction
 ------------
+
 Extract basic provenance information from VOTable header. The information is described in
 DataOrigin IVOA note: https://www.ivoa.net/documents/DataOrigin/.
 
-DataOrigin includes both the query information (such as publisher, contact, versions, etc.) 
+DataOrigin includes both the query information (such as publisher, contact, versions, etc.)
 and the Dataset origin (such as Creator, bibliographic links, URL, etc.)
 
 This API retrieves Metadata from INFO in VOTable.
@@ -17,14 +19,12 @@ To extract DataOrigin from VOTable
 
 Example: VizieR catalogue J/AJ/167/18
 
-.. code-block:: python
 
     >>> from astropy.io.votable import parse
     >>> from astropy.io.votable.dataorigin import extract_data_origin
-
-    >>> votable = parse("https://vizier.cds.unistra.fr/viz-bin/conesearch/J/AJ/167/18/table4?RA=265.51&DEC=-22.71&SR=0.1")  # doctest: +REMOTE_DATA
-    >>> data_origin = extract_data_origin(votable)  # doctest: +REMOTE_DATA
-    >>> print(data_origin)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> votable = parse("https://vizier.cds.unistra.fr/viz-bin/conesearch/J/AJ/167/18/table4?RA=265.51&DEC=-22.71&SR=0.1")
+    >>> data_origin = extract_data_origin(votable)
+    >>> print(data_origin)  # doctest: +IGNORE_OUTPUT
     publisher: CDS
     server_software: 7.4.5
     service_protocol: ivo://ivoa.net/std/ConeSearch/v1.03
@@ -57,25 +57,23 @@ Examples
 
 Get the (Data Center) publisher and the Creator of the dataset
 
-.. code-block:: python
-
-    >>> print(data_origin.query.publisher)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> print(data_origin.query.publisher)
     CDS
-    >>> print(data_origin.origin[0].creator)  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> print(data_origin.origin[0].creator)
     ['Hong K.']
 
 Other capabilities
 ------------------
+
 DataOrigin container includes VO Elements:
 
 * Extract list of `astropy.io.votable.tree.Info`
 
-.. code-block:: python
 
     >>> # get DataOrigin with the description of each INFO
-    >>> for dataset_origin in data_origin.origin:  # doctest: +REMOTE_DATA
-    ...    for info in dataset_origin.infos:   # doctest: +REMOTE_DATA
-    ...        print(f"{info.name}: {info.value} ({info.content})")   # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> for dataset_origin in data_origin.origin:
+    ...    for info in dataset_origin.infos:
+    ...        print(f"{info.name}: {info.value} ({info.content})")
     ivoid: ivo://cds.vizier/j/aj/167/18 (IVOID of underlying data collection)
     creator: Hong K. (First author or institution)
     cites: bibcode:2024AJ....167...18H (Article or Data origin sources)
@@ -85,22 +83,19 @@ DataOrigin container includes VO Elements:
 
 * Extract tree node `astropy.io.votable.tree.Element`
 
-The following example extracts from header the citation (in APA style).
+The following example extracts the citation from the header (in APA style).
 
-.. code-block:: python
-
-    # get the Title retrieved in Element
-    >> origin = data_origin.origin[0]  # doctest: +REMOTE_DATA
-    >> vo_elt = origin.get_votable_element()  # doctest: +REMOTE_DATA
-    >> title = vo_elt.description if vo_elt else ""  # doctest: +REMOTE_DATA
-    >> print(f"APA: {','.join(origin.creator)} ({origin.publication_date[0]}). {title} [Dataset]. {data_origin.query.publisher}. {origin.citation[0]}")  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> # get the Title retrieved in Element
+    >>> origin = data_origin.origin[0]
+    >>> vo_elt = origin.get_votable_element()
+    >>> title = vo_elt.description if vo_elt else ""
+    >>> print(f"APA: {','.join(origin.creator)} ({origin.publication_date[0]}). {title} [Dataset]. {data_origin.query.publisher}. {origin.citation[0]}")
     APA: Hong K. (2024-11-06). Period variations of 32 contact binaries (Hong+, 2024) [Dataset]. CDS. doi:10.26093/cds/vizier.51670018
 
 * Add Data Origin INFO into VOTable:
 
-.. code-block:: python
+.. doctest-skip::
 
-    votable = parse("votable.xml")
-    dataorigin.add_data_origin_info(votable, "query", "Data center name")
-    dataorigin.add_data_origin_info(votable.resources[0], "creator", "Author name")
-
+    >>> votable = parse("votable.xml")
+    >>> dataorigin.add_data_origin_info(votable, "query", "Data center name")
+    >>> dataorigin.add_data_origin_info(votable.resources[0], "creator", "Author name")
