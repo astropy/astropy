@@ -430,8 +430,8 @@ def extract_data_origin(vot_element: astropy.io.votable.tree.Element) -> DataOri
 
     Raises
     ------
-    Exception
-        input type not managed
+    TypeError
+        input ``vot_element`` type is not supported
     """
     data_origin = DataOrigin()
     if isinstance(vot_element, astropy.io.votable.tree.VOTableFile):
@@ -443,7 +443,7 @@ def extract_data_origin(vot_element: astropy.io.votable.tree.Element) -> DataOri
     elif isinstance(vot_element, astropy.io.votable.tree.TableElement):
         __extract_info_from_table(vot_element, data_origin)
     else:
-        raise Exception("type not managed")
+        raise TypeError("input vot_element type is not supported.")
 
     return data_origin
 
@@ -478,8 +478,12 @@ def add_data_origin_info(
 
     Raises
     ------
-    Exception
+    TypeError
         input type not managed or information name not recognized
+    ValueError
+        ``info_name`` already exists in ``vot_element``
+    ValueError
+        ``info_name`` is an unknown DataOrigin name.
     """
     if info_name in DATAORIGIN_INFO:
         if not isinstance(
@@ -490,7 +494,7 @@ def add_data_origin_info(
                 astropy.io.votable.tree.Table,
             ),
         ):
-            raise Exception("Bad type of vot_element")
+            raise TypeError("Unsupported vot_element type.")
 
         vot_element.infos.extend(
             [astropy.io.votable.tree.Info(name=info_name, value=info_value)]
@@ -499,16 +503,16 @@ def add_data_origin_info(
 
     elif info_name in DATAORIGIN_QUERY_INFO:
         if not isinstance(vot_element, astropy.io.votable.tree.VOTableFile):
-            raise Exception(
-                "Bad type of vot_element: this information needs VOTableFile"
+            raise TypeError(
+                "Bad type of vot_element: this information needs VOTableFile."
             )
 
         for info in vot_element.get_infos_by_name(info_name):
-            raise Exception(f"QueryOrigin {info_name} already exists")
+            raise ValueError(f"QueryOrigin {info_name} already exists")
         new_info = astropy.io.votable.tree.Info(name=info_name, value=info_value)
         if content:
             new_info.content = content
         vot_element.infos.extend([new_info])
         return
 
-    raise Exception("Unknown DataOrigin info name")
+    raise ValueError("Unknown DataOrigin info name.")
