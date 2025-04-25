@@ -1648,7 +1648,7 @@ class TestStreamingFunctions(FitsTestCase):
 
     def test_blank_ignore(self):
         with fits.open(self.data("blank.fits"), ignore_blank=True) as f:
-            assert f[0].data.flat[0] == 2
+            assert f[0].data.item(0) == 2
 
     def test_error_if_memmap_impossible(self):
         pth = self.data("blank.fits")

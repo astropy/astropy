@@ -1040,7 +1040,7 @@ class TimeAstropyTime(TimeUnique):
         Use __new__ instead of __init__ to output a class instance that
         is the same as the class of the first Time object in the list.
         """
-        val1_0 = val1.flat[0]
+        val1_0 = val1.item(0)
         if not (
             isinstance(val1_0, Time)
             and all(type(val) is type(val1_0) for val in val1.flat)
