@@ -20,7 +20,6 @@ import numpy as np
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import deprecated, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.misc import isiterable
 
 from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
 from .utils import (
@@ -95,7 +94,7 @@ def _flatten_units_collection(items: object) -> set[UnitBase]:
                 units = item.values()
             elif inspect.ismodule(item):
                 units = vars(item).values()
-            elif isiterable(item):
+            elif np.iterable(item):
                 units = item
             else:
                 continue

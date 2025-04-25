@@ -3,7 +3,6 @@ from collections import defaultdict
 
 import numpy as np
 
-from astropy.utils import isiterable
 from astropy.utils.decorators import lazyproperty
 
 from .base import BaseWCSWrapper
@@ -26,7 +25,7 @@ def sanitize_slices(slices, ndim):
             f"than the dimensionality ({ndim}) of the wcs."
         )
 
-    if any(isiterable(s) for s in slices):
+    if any(np.iterable(s) for s in slices):
         raise IndexError(
             "This slice is invalid, only integer or range slices are supported."
         )

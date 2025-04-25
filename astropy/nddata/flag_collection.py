@@ -3,8 +3,6 @@
 
 import numpy as np
 
-from astropy.utils.misc import isiterable
-
 __all__ = ["FlagCollection"]
 
 
@@ -24,7 +22,7 @@ class FlagCollection(dict):
     def __init__(self, *args, **kwargs):
         if "shape" in kwargs:
             self.shape = kwargs.pop("shape")
-            if not isiterable(self.shape):
+            if not np.iterable(self.shape):
                 raise ValueError("FlagCollection shape should be an iterable object")
         else:
             raise Exception(

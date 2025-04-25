@@ -31,7 +31,6 @@ from astropy.coordinates.representation import (
     UnitSphericalRepresentation,
 )
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose_quantity
-from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 
@@ -308,7 +307,7 @@ class TestSphericalRepresentation:
         assert_allclose_quantity(s_slc.distance, [1, 1, 1] * u.kpc)
 
         assert len(s) == 10
-        assert isiterable(s)
+        assert np.iterable(s)
 
     def test_getitem_len_iterable_scalar(self):
         s = SphericalRepresentation(lon=1 * u.deg, lat=-2 * u.deg, distance=3 * u.kpc)
@@ -317,7 +316,7 @@ class TestSphericalRepresentation:
             s_slc = s[0]
         with pytest.raises(TypeError):
             len(s)
-        assert not isiterable(s)
+        assert not np.iterable(s)
 
     def test_setitem(self):
         s = SphericalRepresentation(
