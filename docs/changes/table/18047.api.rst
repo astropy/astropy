@@ -1,1 +1,1 @@
-Renamed ``showtable`` CLI to ``showtable-astropy`` to avoid a name clash on Debian.
+``showtable`` CLI is now deprecated to avoid a name clash on Debian; use ``showtable-astropy`` instead.

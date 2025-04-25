@@ -269,7 +269,11 @@ represent the home directory of the current or specified user, respectively.
 Command-Line Utility
 ^^^^^^^^^^^^^^^^^^^^
 
-.. note:: In v8.0, the ``showtable`` command is now ``showtable-astropy`` to avoid a name clash on Debian.
+.. note::
+
+    In v7.1, the ``showtable`` command is now deprecated to avoid a name clash on Debian;
+    use ``showtable-astropy`` instead. The deprecated command will be removed in a future
+    release.
 
 For convenience, the command-line tool ``showtable-astropy`` can be used to print the
 content of tables for the formats supported by the unified I/O interface.

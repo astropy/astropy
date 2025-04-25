@@ -48,6 +48,7 @@ import warnings
 
 from astropy import log
 from astropy.table import Table
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -188,3 +189,8 @@ def main(args=None):
         if idx > 0:
             print()
         showtable(filename, args)
+
+
+@deprecated("v7.1", name="showtable", alternative="showtable-astropy")
+def main_deprecated(args=None):
+    main(args)
