@@ -1,0 +1,2 @@
+The ``isiterable()`` utility is deprecated.
+``numpy.iterable()`` can be used as a drop-in replacement.

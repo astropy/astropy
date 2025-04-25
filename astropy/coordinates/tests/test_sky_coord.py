@@ -43,7 +43,6 @@ from astropy.io import fits
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
-from astropy.utils import isiterable
 from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.wcs import WCS
@@ -820,9 +819,9 @@ def test_ops():
 
     with pytest.raises(TypeError):
         iter(sc)
-    assert not isiterable(sc)
-    assert isiterable(sc_arr)
-    assert isiterable(sc_empty)
+    assert not np.iterable(sc)
+    assert np.iterable(sc_arr)
+    assert np.iterable(sc_empty)
     it = iter(sc_arr)
     assert next(it).dec == sc_arr[0].dec
     assert next(it).dec == sc_arr[1].dec

@@ -14,7 +14,6 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
-from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
@@ -1677,11 +1676,11 @@ def test_quantity_iterability():
     """
 
     q1 = [15.0, 17.0] * u.m
-    assert isiterable(q1)
+    assert np.iterable(q1)
 
     q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
-    assert not isiterable(q2)
+    assert not np.iterable(q2)
     pytest.raises(TypeError, iter, q2)
 
 
