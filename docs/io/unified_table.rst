@@ -134,6 +134,7 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
                 pandas.html    Yes          :func:`pandas.read_html` and :meth:`pandas.DataFrame.to_html`
                 pandas.json    Yes          :func:`pandas.read_json` and :meth:`pandas.DataFrame.to_json`
                     parquet    Yes    auto  |Parquet|: Apache Parquet binary file
+                pyarrow.csv     No          :func:`~astropy.io.misc.pyarrow.csv.read_csv`: Performant CSV reader
                     votable    Yes    auto  :mod:`~astropy.io.votable`: Table format used by Virtual Observatory (VO) initiative
 ===========================  =====  ======  ============================================================================================
 
