@@ -444,35 +444,19 @@ class IERS(QTable):
 
     def _lagrange_interp(self, x_vals, y_vals, xint):
         val = np.zeros((y_vals.shape[1:]), dtype=y_vals.dtype)
+        n = len(x_vals)
 
-        for i in range(len(x_vals)):
+        for i in range(n):
             term = y_vals[i]
-            for j in range(len(x_vals)):
+            for j in range(n):
                 if i != j:
-                    diff = x_vals[i] - x_vals[j]
-                    diff = np.where(diff == 0, 1e-10, diff)
-                    term *= (xint - x_vals[j]) / diff
+                    term *= (xint - x_vals[j]) / (x_vals[i] - x_vals[j])
             val += term
 
         return val
 
-    def _ut1_utc_interp(self, i0, i1, mjd):
-        indices = np.array([i0 - 1, i0, i1, i1 + 1])
-        indices = np.clip(indices, 0, len(self) - 1)
-
-        mjds = self["MJD"][indices].value
-        vals = self["UT1_UTC"][indices].value
-
-        d_vals = np.diff(vals, axis=0)
-        leap_diff = np.cumsum(np.round(d_vals), axis=0)
-        vals[1:] += leap_diff
-
-        val = self._lagrange_interp(mjds, vals, mjd)
-        val -= leap_diff[0]
-
-        return val * u.second
-
-    def _interpolate(self, jd1, jd2, columns, source=None):
+    def _interpolate(self, jd1, jd2, columns, source=None,
+                     interpolation="linear", lagrange_order=4):
         mjd, utc = self.mjd_utc(jd1, jd2)
         # enforce array
         is_scalar = not hasattr(mjd, "__array__") or mjd.ndim == 0
@@ -489,22 +473,47 @@ class IERS(QTable):
 
         # Get index to MJD at or just below given mjd, clipping to ensure we
         # stay in range of table (status will be set below for those outside)
-        i1 = np.clip(i, 1, len(self) - 1)
-        i0 = i1 - 1
-        mjd_0, mjd_1 = self["MJD"][i0].value, self["MJD"][i1].value
+        if interpolation == 'linear':
+            num_points = 2
+        elif interpolation == 'lagrange':
+            num_points = lagrange_order
+        else:
+            raise ValueError(f"Unknown interpolation method: {interpolation}")
+        i1 = np.clip(i, num_points - 1, len(self) - 1)
+        i0 = i1 - num_points + 1
         results = []
         for column in columns:
-            if column == "UT1_UTC":
-                # Interpolate using cubic Lagrange polynomial and adjust
-                # for leap second
-                val = self._ut1_utc_interp(i0, i1, mjd)
-            else:
+            if interpolation == "lagrange":
+                indices = np.arange(num_points)[:, *([None] * len(i0.shape))] + i0[None]
+                mjds = self["MJD"][indices].value
+                vals = self[column][indices].value
+
+                if column == "UT1_UTC":
+                    leap_seconds = np.round(np.diff(vals, axis=0, prepend=0))
+                    leap_seconds = np.cumsum(leap_seconds, axis=0)
+                    vals -= leap_seconds
+
+                # Lagrange interpolation
+                val = self._lagrange_interp(mjds, vals, mjd)
+
+                if column == "UT1_UTC":
+                    leap_seconds = np.choose(i - (i0 + i1) // 2, leap_seconds, mode='wrap')
+                    val += leap_seconds
+    
+                val = val * self[column].unit
+
+            elif interpolation == "linear":
+                mjd_0, mjd_1 = self["MJD"][i0].value, self["MJD"][i1].value
+                val_0, val_1 = self[column][i0], self[column][i1]
+                d_val = val_1 - val_0
+
+                if column == "UT1_UTC":
+                    d_val -= np.round(d_val)
+                
                 # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
                 # may want to follow IERS gazette #13 for more precise
                 # interpolation and correction for tidal effects;
                 # https://maia.usno.navy.mil/iers-gaz13)
-                val_0, val_1 = self[column][i0], self[column][i1]
-                d_val = val_1 - val_0
                 val = val_0 + (mjd - mjd_0 + utc) / (mjd_1 - mjd_0) * d_val
 
             # Do not extrapolate outside range, instead just propagate last values.
