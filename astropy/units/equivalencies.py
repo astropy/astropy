@@ -18,7 +18,6 @@ import numpy as np
 # LOCAL
 from astropy.constants import si as _si
 from astropy.utils import deprecated_renamed_argument
-from astropy.utils.misc import isiterable
 
 from . import astrophys, cgs, dimensionless_unscaled, misc, si
 from .core import Unit
@@ -123,7 +122,7 @@ def parallax():
         x = np.asanyarray(x)
         d = 1 / x
 
-        if isiterable(d):
+        if np.iterable(d):
             d[d < 0] = np.nan
             return d
 

@@ -42,7 +42,6 @@ from numpy.lib import recfunctions as rfn
 
 from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
-from astropy.utils import isiterable
 from astropy.utils.compat import (
     COPY_IF_NEEDED,
     NUMPY_LT_1_24,
@@ -204,7 +203,7 @@ class FunctionAssigner:
         if f is not None:
             if helps is None:
                 helps = getattr(module, f.__name__)
-            if not isiterable(helps):
+            if not np.iterable(helps):
                 helps = (helps,)
             for h in helps:
                 self.assignments[h] = f

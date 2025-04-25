@@ -29,7 +29,7 @@ from astropy.time import (
     TimezoneInfo,
     conf,
 )
-from astropy.utils import iers, isiterable
+from astropy.utils import iers
 from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYTZ
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -1740,20 +1740,20 @@ def test_remove_astropy_time():
 def test_isiterable():
     """
     Ensure that scalar `Time` instances are not reported as iterable by the
-    `isiterable` utility.
+    `np.iterable()` utility.
 
     Regression test for https://github.com/astropy/astropy/issues/4048
     """
 
     t1 = Time.now()
-    assert not isiterable(t1)
+    assert not np.iterable(t1)
 
     t2 = Time(
         ["1999-01-01 00:00:00.123456789", "2010-01-01 00:00:00"],
         format="iso",
         scale="utc",
     )
-    assert isiterable(t2)
+    assert np.iterable(t2)
 
 
 def test_to_datetime():

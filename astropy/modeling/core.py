@@ -28,12 +28,7 @@ import numpy as np
 from astropy.nddata.utils import add_array, extract_array
 from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
-from astropy.utils import (
-    find_current_module,
-    isiterable,
-    metadata,
-    sharedmethod,
-)
+from astropy.utils import find_current_module, metadata, sharedmethod
 from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.compat import COPY_IF_NEEDED
 
@@ -2224,7 +2219,7 @@ class Model(metaclass=_ModelMeta):
         inputs_are_quantity = any(isinstance(i, Quantity) for i in inputs)
         if self.return_units and inputs_are_quantity:
             # We allow a non-iterable unit only if there is one output
-            if self.n_outputs == 1 and not isiterable(self.return_units):
+            if self.n_outputs == 1 and not np.iterable(self.return_units):
                 return_units = {self.outputs[0]: self.return_units}
             else:
                 return_units = self.return_units

@@ -14,7 +14,6 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import SpecificTypeQuantity
-from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 
 from . import formats
@@ -189,7 +188,7 @@ class Angle(SpecificTypeQuantity):
             ):
                 angle = np.asarray(angle)
 
-            elif isiterable(angle):
+            elif np.iterable(angle):
                 angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
 
         return super().__new__(cls, angle, unit, dtype=dtype, copy=copy, **kwargs)

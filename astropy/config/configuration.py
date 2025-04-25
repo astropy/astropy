@@ -24,8 +24,10 @@ from textwrap import TextWrapper
 from typing import TYPE_CHECKING
 from warnings import warn
 
+import numpy as np
+
 from astropy.extern.configobj import configobj, validate
-from astropy.utils import find_current_module, isiterable, silence
+from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .paths import get_config_dir_path
@@ -297,7 +299,7 @@ class ConfigItem:
 
         # now determine cfgtype if it is not given
         if cfgtype is None:
-            if isiterable(defaultvalue) and not isinstance(defaultvalue, str):
+            if np.iterable(defaultvalue) and not isinstance(defaultvalue, str):
                 # it is an options list
                 dvstr = [str(v) for v in defaultvalue]
                 cfgtype = "option(" + ", ".join(dvstr) + ")"
