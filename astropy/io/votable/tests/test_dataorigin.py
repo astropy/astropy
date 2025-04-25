@@ -41,16 +41,17 @@ def test_dataorigin():
     vot = __add_origin()
     do = dataorigin.extract_data_origin(vot)
 
-    dores = dataorigin.extract_data_origin(vot.resources[0])
-    dot = dataorigin.extract_data_origin(vot.resources[0].tables[0])
-    for dseto in do:
-        pass
-
     assert do.query.publisher == __TEST_PUBLISHER_NAME
     assert len(do.origin) == 1 and len(do.origin[0].creator) == 2
     assert do.origin[0].creator[0] == __TEST_CREATOR1_NAME
     assert len(str(do)) > 1
-    assert (do.origin[0].get_votable_element()) != None
+    assert (do.origin[0].get_votable_element()) is not None
+
+    dores = dataorigin.extract_data_origin(vot.resources[0])
+    dot = dataorigin.extract_data_origin(vot.resources[0].tables[0])
+
+    assert dores.origin[0].creator == do.origin[0].creator
+    assert len(dot.origin) == 0
 
     err = False
     try:
