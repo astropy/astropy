@@ -8,7 +8,9 @@ import textwrap
 import threading
 import types
 import warnings
+from functools import wraps
 from inspect import signature
+from types import FunctionType
 
 from .exceptions import (
     AstropyDeprecationWarning,
@@ -620,6 +622,102 @@ def deprecated_renamed_argument(
         return wrapper
 
     return decorator
+
+
+def future_keyword_only(names: list[str], *, since=list[str]) -> FunctionType:
+    """Decorator to mark one or more function parameter(s) as future keyword-only.
+
+    Parameters
+    ----------
+    names: list[str]
+        names of parameters to be marked as future keyword-only
+    since: list[str]
+        versions in which each parameter was marked
+
+    Examples
+    --------
+    >>> @future_keyword_only(['spam', 'eggs'], since=['7.1', '7.1'])
+    ... def bacon(spam, eggs):
+    ...     ...
+    """
+
+    def decorate(raw_function):
+        # validate the conditions in which the decorator is used
+        # this adds a small overhead on startup time but not on function call
+
+        future_kwo_names = names
+        if len(future_kwo_names) != len(since):
+            raise ValueError(
+                "Expected names and since values with "
+                "identical length. "
+                f"Got {len(names)=} and {len(since)=}"
+            )
+        params = signature(raw_function).parameters
+        params_names: list[str] = list(params)
+        future_kwo_to_since = dict(zip(future_kwo_names, since))
+
+        # check that all names exist in the current signature
+        if any(n not in params for n in future_kwo_names):
+            unknown = sorted(set(future_kwo_names) - set(params_names))
+            raise ValueError(
+                "The following arguments cannot be marked as future keyword-only "
+                "because they were not found in the decorated function's signature: "
+                f"{', '.join(unknown)}"
+            )
+
+        # check that every future kwo is currently allowed as positional-or-keyword
+        # (otherwise something's wrong with the decorator call itself)
+        pos_or_kw_names = {
+            n for (n, p) in params.items() if p.kind is p.POSITIONAL_OR_KEYWORD
+        }
+        if not pos_or_kw_names.issuperset(future_kwo_names):
+            diff = sorted(set(future_kwo_names) - pos_or_kw_names)
+            raise ValueError(
+                "The following arguments cannot be marked as future keyword-only "
+                "because they are not currently positional-or-keyword: "
+                f"{', '.join(diff)}"
+            )
+
+        # check that there are no other positionally allowed arguments beyond
+        # any future kwo (otherwise these arguments could still break)
+        future_kwo_positions = [params_names.index(n) for n in future_kwo_names]
+        idx_min = min(future_kwo_positions)
+        idx_max = max(future_kwo_positions) + 1
+        while idx_max < len(params):
+            p = params[params_names[idx_max]]
+            if p.kind in (p.KEYWORD_ONLY, p.VAR_KEYWORD):
+                break
+            idx_max += 1
+        if any(n not in future_kwo_names for n in list(params)[idx_min:idx_max]):
+            broken = params_names[max(future_kwo_positions) + 1 : idx_max]
+            raise ValueError(
+                "The following positionally-allowed arguments were not marked as "
+                "future keyword-only and would be broken under future keyword-only "
+                f"requirements: {', '.join(broken)}"
+            )
+
+        @wraps(raw_function)
+        def decorated_function(*args, **kwargs):
+            if len(args) > idx_min:
+                flagged_positions = range(idx_min, len(args))
+                flagged_names = [params_names[pos] for pos in flagged_positions]
+                depr_versions = [future_kwo_to_since[n] for n in flagged_names]
+                if len(set(depr_versions)) == 1:
+                    since_details = depr_versions[0]
+                else:
+                    since_details = ", ".join(depr_versions) + ", respectively"
+                msg = (
+                    "The following arguments were received positionally, which "
+                    f"will be disallowed in a future release: {', '.join(flagged_names)}\n"
+                    "Pass them as keywords to suppress this warning. "
+                    f"(deprecated since {since_details})"
+                )
+                warnings.warn(msg, AstropyDeprecationWarning, stacklevel=2)
+            return raw_function(*args, **kwargs)
+
+        return decorated_function
+
+    return decorate
 
 
 # TODO: This can still be made to work for setters by implementing an

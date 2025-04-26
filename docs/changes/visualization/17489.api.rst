@@ -1,0 +1,3 @@
+All arguments from ``simple_norm`` are marked as future keyword-only, with the
+exception of the first two (``data`` and ``stretch``).
+A warning is now displayed if any other arguments are passed positionally.
