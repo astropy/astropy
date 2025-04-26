@@ -586,6 +586,27 @@ def test_read_null_values():
     check_tables_equal(exp, out)
 
 
+def test_read_null_values_default():
+    """Test that the default null value is [""].
+
+    PyArrow by default includes other null values like "NaN" or "nan".
+    """
+    tbl_text = textwrap.dedent("""\
+    a,b,c
+    ,nan,NaN
+    4,,#N/A
+    """)
+    out = table_read_csv(tbl_text)
+    exp = [
+        "  a      b     c  ",
+        "int64 float64 str4",
+        "----- ------- ----",
+        "   --     nan  NaN",
+        "    4      -- #N/A",
+    ]
+    assert out.pformat(show_dtype=True) == exp
+
+
 def test_read_newlines_in_values():
     """Test reading a simple CSV file with newlines in values.
 
