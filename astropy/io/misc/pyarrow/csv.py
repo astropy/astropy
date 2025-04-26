@@ -118,7 +118,8 @@ def read_csv(
     ----------------
     null_values : list, optional (default None)
         List of strings to interpret as null values. By default, only empty strings are
-        considered as null values. Set to ``[]`` to disable null value handling.
+        considered as null values (equivalent to ``null_values=[""]``). Set to ``[]`` to
+        disable null value handling.
     encoding: str, optional (default 'utf-8')
         Encoding of the input data.
     newlines_in_values: bool, optional (default False)
@@ -462,11 +463,10 @@ def get_convert_options(
 
     convert_options = csv.ConvertOptions()
     convert_options.strings_can_be_null = True
+    convert_options.null_values = [""] if null_values is None else null_values
 
     if include_names is not None:
         convert_options.include_columns = include_names
-    if null_values is not None:
-        convert_options.null_values = null_values
     if dtypes is not None:
         convert_options.column_types = {
             colname: (
