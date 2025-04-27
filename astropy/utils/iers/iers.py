@@ -316,7 +316,14 @@ class IERS(QTable):
         utc = jd1 - (MJD_ZERO + mjd) + jd2
         return mjd, utc
 
-    def ut1_utc(self, jd1, jd2=0.0, return_status=False):
+    def ut1_utc(
+        self,
+        jd1,
+        jd2=0.0,
+        interpolation="linear",
+        interpolation_order=None,
+        return_status=False,
+    ):
         """Interpolate UT1-UTC corrections in IERS Table for given dates.
 
         Parameters
@@ -344,10 +351,22 @@ class IERS(QTable):
             ``iers.TIME_BEYOND_IERS_RANGE``
         """
         return self._interpolate(
-            jd1, jd2, ["UT1_UTC"], self.ut1_utc_source if return_status else None
+            jd1,
+            jd2,
+            ["UT1_UTC"],
+            self.ut1_utc_source if return_status else None,
+            interpolation=interpolation,
+            interpolation_order=interpolation_order,
         )
 
-    def dcip_xy(self, jd1, jd2=0.0, return_status=False):
+    def dcip_xy(
+        self,
+        jd1,
+        jd2=0.0,
+        interpolation="linear",
+        interpolation_order=None,
+        return_status=False,
+    ):
         """Interpolate CIP corrections in IERS Table for given dates.
 
         Parameters
@@ -380,9 +399,18 @@ class IERS(QTable):
             jd2,
             ["dX_2000A", "dY_2000A"],
             self.dcip_source if return_status else None,
+            interpolation=interpolation,
+            interpolation_order=interpolation_order,
         )
 
-    def pm_xy(self, jd1, jd2=0.0, return_status=False):
+    def pm_xy(
+        self,
+        jd1,
+        jd2=0.0,
+        interpolation="linear",
+        interpolation_order=None,
+        return_status=False,
+    ):
         """Interpolate polar motions from IERS Table for given dates.
 
         Parameters
@@ -412,7 +440,12 @@ class IERS(QTable):
             ``iers.TIME_BEYOND_IERS_RANGE``
         """
         return self._interpolate(
-            jd1, jd2, ["PM_x", "PM_y"], self.pm_source if return_status else None
+            jd1,
+            jd2,
+            ["PM_x", "PM_y"],
+            self.pm_source if return_status else None,
+            interpolation=interpolation,
+            interpolation_order=interpolation_order,
         )
 
     def _check_interpolate_indices(self, indices_orig, indices_clipped, max_input_mjd):
