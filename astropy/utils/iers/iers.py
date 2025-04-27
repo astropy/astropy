@@ -537,9 +537,7 @@ class IERS(QTable):
                 val = self._lagrange_interp(mjds, vals, mjd)
 
                 if column == "UT1_UTC":
-                    leap_seconds = np.choose(
-                        i - (i0 + i1) // 2, leap_seconds, mode="wrap"
-                    )
+                    leap_seconds = np.choose(i - i0 - 1, leap_seconds, mode="wrap")
                     val += leap_seconds
 
                 val = val * self[column].unit
