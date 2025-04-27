@@ -455,8 +455,15 @@ class IERS(QTable):
 
         return val
 
-    def _interpolate(self, jd1, jd2, columns, source=None,
-                     interpolation="linear", lagrange_order=4):
+    def _interpolate(
+        self,
+        jd1,
+        jd2,
+        columns,
+        source=None,
+        interpolation="linear",
+        interpolation_order=None,
+    ):
         mjd, utc = self.mjd_utc(jd1, jd2)
         # enforce array
         is_scalar = not hasattr(mjd, "__array__") or mjd.ndim == 0
@@ -473,10 +480,10 @@ class IERS(QTable):
 
         # Get index to MJD at or just below given mjd, clipping to ensure we
         # stay in range of table (status will be set below for those outside)
-        if interpolation == 'linear':
+        if interpolation == "linear":
             num_points = 2
-        elif interpolation == 'lagrange':
-            num_points = lagrange_order
+        elif interpolation == "lagrange":
+            num_points = interpolation_order or 4
         else:
             raise ValueError(f"Unknown interpolation method: {interpolation}")
         i1 = np.clip(i, num_points - 1, len(self) - 1)
@@ -497,9 +504,11 @@ class IERS(QTable):
                 val = self._lagrange_interp(mjds, vals, mjd)
 
                 if column == "UT1_UTC":
-                    leap_seconds = np.choose(i - (i0 + i1) // 2, leap_seconds, mode='wrap')
+                    leap_seconds = np.choose(
+                        i - (i0 + i1) // 2, leap_seconds, mode="wrap"
+                    )
                     val += leap_seconds
-    
+
                 val = val * self[column].unit
 
             elif interpolation == "linear":
@@ -509,7 +518,7 @@ class IERS(QTable):
 
                 if column == "UT1_UTC":
                     d_val -= np.round(d_val)
-                
+
                 # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
                 # may want to follow IERS gazette #13 for more precise
                 # interpolation and correction for tidal effects;
