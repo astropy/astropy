@@ -107,6 +107,7 @@ The procedure for the feature freeze is as follows:
       $ git add docs/whatsnew/<next_version>.rst
       $ git add docs/whatsnew/index.rst
       $ git add docs/index.rst
+      $ git add docs/index_getting_started.rst
       $ git commit -m "Added <next_version> what's new page and redirect <current_version> what's new page"
 
 #. Tag this commit using the next major version followed by ``.dev``. For example,
