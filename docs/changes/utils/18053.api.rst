@@ -1,2 +1,2 @@
-The ``isiterable()`` utility is deprecated.
-``numpy.iterable()`` can be used as a drop-in replacement.
+The ``isiterable()`` utility is no longer used in astropy and will be deprecated
+in future. ``numpy.iterable()`` can be used as a drop-in replacement.
