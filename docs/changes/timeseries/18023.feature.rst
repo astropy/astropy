@@ -1,0 +1,3 @@
+Downsampling now works correctly also on ``MaskedColumn`` and
+``MaskedQuantity`` with possibly masked elements.  Furthermore, the type of
+(Masked) column will now be properly preserved in downsampling.
