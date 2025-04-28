@@ -84,7 +84,7 @@ The procedure for the feature freeze is as follows:
    the content but leaving the basic structure.  You may also need to
    replace the "by the numbers" numbers with "xxx" as a reminder to update them
    before the next release. Then add the new version to the top of
-   ``docs/whatsnew/index.rst``, update the reference in ``docs/index.rst`` to
+   ``docs/whatsnew/index.rst``, update the reference in ``docs/index.rst`` and ``docs/index_getting_started.rst`` to
    point to the that version.
 
 #. Update the "What's new?" section of the current version you are doing the release for,
@@ -107,6 +107,7 @@ The procedure for the feature freeze is as follows:
       $ git add docs/whatsnew/<next_version>.rst
       $ git add docs/whatsnew/index.rst
       $ git add docs/index.rst
+      $ git add docs/index_getting_started.rst
       $ git commit -m "Added <next_version> what's new page and redirect <current_version> what's new page"
 
 #. Tag this commit using the next major version followed by ``.dev``. For example,
