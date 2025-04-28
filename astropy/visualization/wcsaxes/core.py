@@ -180,9 +180,7 @@ class WCSAxes(Axes):
         else:
             system = f"world, overlay {self._display_coords_index}"
 
-        coord_string = f"{coord_string} ({system})"
-
-        return coord_string
+        return f"{coord_string} ({system})"
 
     def _set_cursor_prefs(self, event, **kwargs):
         if event.key == "w":
@@ -795,11 +793,7 @@ class WCSAxes(Axes):
         bb = [b for b in self._bboxes if b and (b.width != 0 or b.height != 0)]
         bb.append(super().get_tightbbox(renderer, *args, **kwargs))
 
-        if bb:
-            _bbox = Bbox.union(bb)
-            return _bbox
-        else:
-            return self.get_window_extent(renderer)
+        return Bbox.union(bb)
 
     def grid(self, b=None, axis="both", *, which="major", **kwargs):
         """

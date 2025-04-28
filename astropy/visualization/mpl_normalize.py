@@ -431,8 +431,7 @@ class SimpleNorm:
                 "matplotlib.pyplot.imshow directly to use your norm."
             )
 
-        axim = ax.imshow(data, norm=self(data), **kwargs)
-        return axim
+        return ax.imshow(data, norm=self(data), **kwargs)
 
 
 @future_keyword_only(
