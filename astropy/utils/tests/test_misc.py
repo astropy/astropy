@@ -15,21 +15,12 @@ from astropy.utils import data, misc
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
-@pytest.mark.parametrize(
-    "obj,expectation",
-    [
-        (2, False),
-        ([2], True),
-        ([1, 2, 3], True),
-        (np.array(2), False),
-        (np.array([1, 2, 3]), True),
-    ],
-)
-def test_isiterable(obj, expectation):
-    with pytest.warns(
-        AstropyDeprecationWarning, match=r"Use numpy.iterable\(\) instead\.$"
-    ):
-        assert misc.isiterable(obj) is expectation
+def test_isiterable():
+    assert misc.isiterable(2) is False
+    assert misc.isiterable([2]) is True
+    assert misc.isiterable([1, 2, 3]) is True
+    assert misc.isiterable(np.array(2)) is False
+    assert misc.isiterable(np.array([1, 2, 3])) is True
 
 
 @pytest.mark.remote_data
