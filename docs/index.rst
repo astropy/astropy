@@ -9,7 +9,7 @@
 astropy: A Community Python Library for Astronomy
 #################################################
 
-**Version**: |release| - :ref:`whatsnew-7.1`
+**Version**: |release| - :ref:`whatsnew-7.2`
 
 **Useful links**:
 :ref:`Installation <installing-astropy>` |

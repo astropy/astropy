@@ -1,0 +1,31 @@
+.. _whatsnew-7.2:
+
+**************************
+What's New in Astropy 7.2?
+**************************
+
+Overview
+========
+
+Astropy 7.2 is a release that adds significant new functionality since
+the 7.1 release.
+
+In particular, this release includes:
+
+* ...
+* ...
+* ...
+
+In addition to these major changes, Astropy v7.2 includes a large number of
+smaller improvements and bug fixes, which are described in the :ref:`changelog`.
+By the numbers:
+
+* X issues have been closed since v7.1
+* X pull requests have been merged since v7.1
+* X distinct people have contributed code
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v7.2, including changes in
+API, please see the :ref:`changelog`.
