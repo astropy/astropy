@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
+from itertools import pairwise
 
 import numpy as np
 
@@ -9,28 +10,42 @@ from astropy.time import Time, TimeDelta
 from astropy.timeseries.binned import BinnedTimeSeries
 from astropy.timeseries.sampled import TimeSeries
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.masked import get_data_and_mask
 
 __all__ = ["aggregate_downsample"]
 
 
 def nanmean_reduceat(data, indices):
-    mask = np.isnan(data)
+    """Calculate nanmean on pieces of data given by the reduceat-like indices.
 
-    if mask.any():  # If there are NaNs
-        # Create a writeable copy and mask NaNs
-        data = data.copy()
-        data[mask] = 0
-        count_data = np.add.reduceat(~mask, indices)
-        # Avoid division by zero warnings
-        count_data = count_data.astype(data.dtype)
-        count_data[count_data == 0] = np.nan
+    Will skip both masked elements and those equal to nan.
+
+    The output for any fully-masked pieces is set to nan (and will be masked
+    if the input was masked).
+    """
+    unmasked, data_mask = get_data_and_mask(data)
+    mask = np.isnan(unmasked)
+    if data_mask is not None:
+        mask |= data_mask
+
+    if mask.any():  # If there are NaNs or masked elements
+        # Create a writeable copy and set masked/NaN elements to zero.
+        unmasked = unmasked.copy()
+        unmasked[mask] = 0
+        counts = np.add.reduceat(~mask, indices)
+        out_mask = counts <= 0
     else:
         # Derive counts from indices
-        count_data = np.diff(indices, append=len(data))
-        count_data[count_data <= 0] = 1
+        counts = np.diff(indices, append=len(data))
+        out_mask = None
 
-    sum_data = np.add.reduceat(data, indices)
-    return sum_data / count_data
+    result = np.add.reduceat(unmasked, indices) / np.maximum(counts, 1)
+    if out_mask is not None:
+        result[out_mask] = np.nan
+    if data_mask is not None:  # Had masked input.
+        result = data.__class__(result, mask=out_mask, copy=False)
+
+    return result
 
 
 def reduceat(array, indices, function):
@@ -39,20 +54,17 @@ def reduceat(array, indices, function):
     It will check if the input function has a reduceat and call that if it does.
     """
     if len(indices) == 0:
-        return np.array([])
+        return np.zeros_like(array, shape=(0,))
     elif function is nanmean_reduceat:
-        return np.array(function(array, indices))
+        return function(array, indices)
     elif hasattr(function, "reduceat"):
-        return np.array(function.reduceat(array, indices))
+        return function.reduceat(array, indices)
     else:
-        result = []
-        for i in range(len(indices) - 1):
-            if indices[i + 1] <= indices[i] + 1:
-                result.append(function(array[indices[i]]))
-            else:
-                result.append(function(array[indices[i] : indices[i + 1]]))
-        result.append(function(array[indices[-1] :]))
-        return np.array(result)
+        result = [
+            function(array[start:stop] if start < stop else array[start])
+            for start, stop in pairwise(list(indices) + [len(array)])
+        ]
+        return np.block(result)
 
 
 def _to_relative_longdouble(time: Time, rel_base: Time) -> np.longdouble:
@@ -275,16 +287,19 @@ def aggregate_downsample(
             )
             continue
 
+        # TODO: This was written before MaskedQuantity were possible.
+        # Should we return that by default, instead of using np.nan?
         if isinstance(values, u.Quantity):
-            data = u.Quantity(np.repeat(np.nan, n_bins), unit=values.unit)
-            data[unique_indices] = u.Quantity(
-                reduceat(values.value, groups, aggregate_func), values.unit, copy=False
-            )
+            data = np.full_like(values, np.nan, shape=(n_bins,))
+            data[unique_indices] = reduceat(values, groups, aggregate_func)
         else:
             data = np.ma.zeros(n_bins, dtype=values.dtype)
-            data.mask = 1
             data[unique_indices] = reduceat(values, groups, aggregate_func)
-            data.mask[unique_indices] = 0
+
+        if hasattr(data, "mask"):
+            omitted = np.ones(data.shape, bool)
+            omitted[unique_indices] = False
+            data.mask |= omitted
 
         binned[colname] = data
 
