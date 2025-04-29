@@ -19,6 +19,7 @@ In particular, this release includes:
 * :ref:`whatsnew-7.1-cosmology`
 * :ref:`whatsnew-7.1-votable-coosys-to-astropy-frame`
 * :ref:`whatsnew_7_1_dataorigin`
+* :ref:`whatsnew_7_1_parallel-fitinfo`
 
 
 In addition to these major changes, Astropy v7.1 includes a large number of
@@ -190,6 +191,60 @@ Example of output including DataOrigin:
     rights:  CALIFA asks you to acknowledge:  "This study uses data provided by the Calar Alto Legacy Integral Field Area (CALIFA) survey (http://califa.caha.es/)."  "Based on observations collected at the Centro Astronómico Hispano Alemán (CAHA) at Calar Alto, operated jointly by the Max-Planck-Institut fűr Astronomie and the Instituto de Astrofísica de Andalucía (CSIC)."  and to cite both of :bibcode:`2014A&A...569A...1W` and :bibcode:`2012A&A...538A...8S`
     creator: Sánchez, F.,The CALIFA collaboration
 
+
+.. _whatsnew_7_1_parallel-fitinfo:
+
+Access to fit information when using ``parallel_fit_dask``
+==========================================================
+
+When carrying out parallel modeling of N-dimensional datasets with
+:func:`~astropy.modeling.fitting.parallel_fit_dask` , it is now possible to use
+the ``fit_info`` keyword argument to optionally make it possible to access fit
+information for all the fits. For example, when doing:
+
+.. code-block:: python
+
+    >>> model_fit = parallel_fit_dask(model=model,
+    ...                               ...
+    ...                               fitter=fitter,
+    ...                               fit_info=True)  # doctest: +SKIP
+
+it is then possible to access the ``.fit_info`` object on the fitter
+which in this case behaves like an array:
+
+.. code-block:: python
+
+    >>> fitter.fit_info.shape  # doctest: +SKIP
+    (50, 50)
+    >>> fitter.fit_info.ndim  # doctest: +SKIP
+    2
+
+Indexing the fit info will return a specific fit information object, e.g.:
+
+.. code-block:: python
+
+    >>> fitter.fit_info[10, 20]  # doctest: +SKIP
+         message: The maximum number of function evaluations is exceeded.
+         success: False
+            status: 0
+               fun: [-2.169e-01 -2.398e-01 ... -5.502e-02  2.498e-01]
+               x: [ 5.352e+02  2.034e+04  3.932e+03]
+            cost: 0.575174901185717
+               jac: [[ 3.514e-05 -2.166e-05  9.810e-05]
+                     [ 3.793e-05 -2.329e-05  1.051e-04]
+                     ...
+                     [ 1.200e-03 -5.990e-04  2.197e-03]
+                     [ 1.277e-03 -6.343e-04  2.316e-03]]
+            grad: [-5.634e-06  2.866e-06 -1.092e-05]
+      optimality: 1.0921480583423703e-05
+      active_mask: [0 0 0]
+            nfev: 100
+            njev: 93
+         param_cov: [[ 5.965e+08  2.262e+09  2.913e+08]
+                     [ 2.262e+09  8.584e+09  1.106e+09]
+                     [ 2.913e+08  1.106e+09  1.427e+08]]
+
+This is described in detail in :ref:`parallel-fitinfo`.
 
 Full change log
 ===============

@@ -327,6 +327,8 @@ take enough time to avoid being dominated by communication overhead.
 
 The default value for ``chunk_n_max`` is 500.
 
+.. _parallel-fitinfo:
+
 Fit information
 ===============
 
