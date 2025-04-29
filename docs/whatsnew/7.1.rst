@@ -192,15 +192,17 @@ Example of output including DataOrigin:
     creator: Sánchez, F.,The CALIFA collaboration
 
 
-.. _whatsnew_7_1_parallel-fitinfo
+.. _whatsnew_7_1_parallel-fitinfo:
 
 Access to fit information when using ``parallel_fit_dask``
 ==========================================================
 
 When carrying out parallel modeling of N-dimensional datasets with
-``parallel_fit_dask``, it is now possible to use the ``fit_info``
-keyword argument to optionally make it possible to access fit
+:func:`~astropy.modeling.fitting.parallel_fit_dask` , it is now possible to use
+the ``fit_info`` keyword argument to optionally make it possible to access fit
 information for all the fits. For example, when doing:
+
+.. code-block:: python
 
     >>> model_fit = parallel_fit_dask(model=model,
     ...                               ...
@@ -210,12 +212,16 @@ information for all the fits. For example, when doing:
 it is then possible to access the ``.fit_info`` object on the fitter
 which in this case behaves like an array:
 
+.. code-block:: python
+
     >>> fitter.fit_info.shape  # doctest: +SKIP
     (50, 50)
     >>> fitter.fit_info.ndim  # doctest: +SKIP
     2
 
-Indexing the fit info will return a specific fit information object, e.g.
+Indexing the fit info will return a specific fit information object, e.g.:
+
+.. code-block:: python
 
     >>> fitter.fit_info[10, 20]  # doctest: +SKIP
          message: The maximum number of function evaluations is exceeded.
