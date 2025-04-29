@@ -114,10 +114,14 @@ the previous run, or require remote data::
     pytest --last-failed
     pytest --remote-data=any
 
-If you are having issues with running `pytest` after editing files, try running the same command with the `--pyargs` flag and writing file paths as Python modules. For example, 
+If you are having issues with running `pytest` after editing files, 
+try running the same command with the `--pyargs` flag and writing file 
+paths as Python modules. For example, 
 - `pytest astropy/units/tests/test_quantity.py::TestQuantityCreation::test_float_dtype_promotion` 
+- `pytest astropy/io -k compressed`
 would turn into 
 - `pytest --pyargs astropy.units.tests.test_quantity::TestQuantityCreation::test_float_dtype_promotion`
+- `pytest --pyargs astropy.io -k compressed`
 
 For more details, see the `pytest invocation guide
 <https://docs.pytest.org/en/stable/how-to/usage.html>`_ and the
