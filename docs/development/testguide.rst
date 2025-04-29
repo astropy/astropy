@@ -106,11 +106,11 @@ You can also specify a single directory, a file (``.py`` python or ``.rst``
 doc file), or a specific test to check, rerun only tests that failed in
 the previous run, or require remote data::
 
-    pytest --pyargs astropy.modeling
-    pytest --pyargs astropy.wcs.tests.test_wcs
-    pytest --pyargs astropy.units -k float_dtype_promotion
-    pytest --pyargs astropy.units.tests.test_quantity.py::TestQuantityCreation::test_float_dtype_promotion
-    pytest --pyargs astropy.wcs/index.rst
+    pytest astropy/modeling
+    pytest astropy/wcs/tests/test_wcs.py
+    pytest astropy/units -k float_dtype_promotion
+    pytest astropy/units/tests/test_quantity.py::TestQuantityCreation::test_float_dtype_promotion
+    pytest astropy/wcs/index.rst
     pytest --last-failed
     pytest --remote-data=any
 
