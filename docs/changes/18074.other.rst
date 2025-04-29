@@ -1,0 +1,3 @@
+Changed `docs/development/testguide.rst` to offer advice when `pytest` returns
+the error "found no collectors", specific to testing changes to 
+astropy installations. More details in https://github.com/astropy/astropy/issues/18062.
