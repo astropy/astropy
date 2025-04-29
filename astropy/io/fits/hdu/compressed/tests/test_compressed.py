@@ -1441,7 +1441,9 @@ def test_reserved_keywords_stripped(tmp_path):
     hdu = fits.CompImageHDU(data)
     hdu.writeto(tmp_path / "compressed.fits")
 
-    with fits.open(tmp_path / "compressed.fits", disable_image_compression=True) as hduc:
+    with fits.open(
+        tmp_path / "compressed.fits", disable_image_compression=True
+    ) as hduc:
         hduc[1].header["THEAP"] = hduc[1].header["NAXIS1"] * hduc[1].header["NAXIS2"]
         hduc[1].header["ZBLANK"] = 1231212
         hduc[1].header["ZSCALE"] = 2
