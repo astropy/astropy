@@ -425,6 +425,7 @@ class UnicodeChar(Converter):
             self.binoutput = self._binoutput_var
             self.arraysize = "*"
         else:
+            field.arraysize = field.arraysize.removesuffix("*")
             try:
                 self.arraysize = int(field.arraysize)
             except ValueError:
