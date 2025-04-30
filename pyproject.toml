@@ -199,6 +199,7 @@ testpaths = [
     "docs",
 ]
 norecursedirs = [
+    ".*",
     "docs[\\/]_build",
     "docs[\\/]generated",
     "astropy[\\/]extern",
