@@ -102,11 +102,14 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
                     "to 1."
                 )
         else:
-            tile_shape = [min(image_header["NAXIS2"], 256), min(image_header["NAXIS1"], 256)]
+            tile_shape = [
+                min(image_header["NAXIS2"], 256),
+                min(image_header["NAXIS1"], 256),
+            ]
             # compress the whole image as a single tile
             if "NAXIS3" in image_header:
                 tile_shape = [image_header["NAXIS3"]] + tile_shape
-            for i in range(-4, -naxis-1, -1):
+            for i in range(-4, -naxis - 1, -1):
                 # set all higher tile dimensions = 1
                 tile_shape = [1] + tile_shape
 

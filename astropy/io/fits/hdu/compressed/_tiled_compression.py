@@ -11,7 +11,7 @@ import numpy as np
 
 from astropy.io.fits.hdu.base import BITPIX2DTYPE
 
-from ._codecs import PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1, JPEGXL
+from ._codecs import JPEGXL, PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1
 from ._quantization import DITHER_METHODS, QuantizationFailedException, Quantize
 from .utils import _data_shape, _iter_array_tiles, _tile_shape
 

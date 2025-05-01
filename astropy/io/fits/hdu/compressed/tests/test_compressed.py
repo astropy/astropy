@@ -83,10 +83,15 @@ class TestCompressedImage(FitsTestCase):
             assert fd[1].header["NAXIS2"] == chdu.header["NAXIS2"]
             assert fd[1].header["BITPIX"] == chdu.header["BITPIX"]
 
-    @pytest.mark.parametrize("byte_order,dtype", [
-        (bo, dt) for bo in ["<", ">"] for dt in ["uint8", "int16", "uint16", "int32", "uint32"]
-    ])
-    def test_comp_image_dtypes_jpegxl(self,byte_order, dtype):
+    @pytest.mark.parametrize(
+        "byte_order,dtype",
+        [
+            (bo, dt)
+            for bo in ["<", ">"]
+            for dt in ["uint8", "int16", "uint16", "int32", "uint32"]
+        ],
+    )
+    def test_comp_image_dtypes_jpegxl(self, byte_order, dtype):
         """
         Test that JPEGXL compression works with different byte orders and dtypes.
         Make sure to sample random values from the entire dynamic range possible,
@@ -105,7 +110,7 @@ class TestCompressedImage(FitsTestCase):
         ofd.writeto(self.temp("test_new.fits"), overwrite=True)
         ofd.close()
         with fits.open(self.temp("test_new.fits")) as fd:
-            assert (fd[1].data == data).all() # Verify lossless
+            assert (fd[1].data == data).all()  # Verify lossless
             assert fd[1].header["NAXIS"] == chdu.header["NAXIS"]
             assert fd[1].header["NAXIS1"] == chdu.header["NAXIS1"]
             assert fd[1].header["NAXIS2"] == chdu.header["NAXIS2"]

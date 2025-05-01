@@ -1,6 +1,7 @@
 """
 This module contains the FITS compression algorithms in numcodecs style Codecs.
 """
+
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 
@@ -8,6 +9,7 @@ import numpy as np
 
 try:
     import imagecodecs
+
     HAS_IMAGECODECS = True
 except ImportError:
     HAS_IMAGECODECS = False
@@ -35,13 +37,13 @@ except ImportError:
 
 
 __all__ = [
+    "JPEGXL",
+    "PLIO1",
     "Gzip1",
     "Gzip2",
-    "Rice1",
-    "PLIO1",
     "HCompress1",
     "NoCompress",
-    "JPEGXL",
+    "Rice1",
 ]
 
 
@@ -463,12 +465,12 @@ class JPEGXL(Codec):
     """
     The JPEG-XL compression and decompression algorithm.
 
-    JPEG XL is a modern image compression format designed for high-quality 
-    and efficient compression of photographic and other complex images. It 
+    JPEG XL is a modern image compression format designed for high-quality
+    and efficient compression of photographic and other complex images. It
     offers both lossy and lossless compression modes with excellent performance
     characteristics.
 
-    This implementation uses the imagecodecs library to provide JPEG XL 
+    This implementation uses the imagecodecs library to provide JPEG XL
     compression and decompression capabilities.
 
     JPEG XL will likely always produce better compression performance than RICE
@@ -480,7 +482,7 @@ class JPEGXL(Codec):
     the data is smaller.
 
     JPEG XL already uses tiling under the hood for memory efficiency,
-    but if you need to take advantage of FITS tiling for any reason, 
+    but if you need to take advantage of FITS tiling for any reason,
     you can provide a tile_shape.
 
     Data types that are supported to be passed into JPEGXL encode / decode:
@@ -508,7 +510,9 @@ class JPEGXL(Codec):
     def __init__(self, bytepix: int):
         self.bytepix = bytepix
         if not HAS_IMAGECODECS:
-            raise ImportError("The imagecodecs package is required for JPEG-XL compression")
+            raise ImportError(
+                "The imagecodecs package is required for JPEG-XL compression"
+            )
 
     def decode(self, buf):
         """
@@ -530,16 +534,16 @@ class JPEGXL(Codec):
             decoded = imagecodecs.jpegxl_decode(buf_bytes)
             return decoded
         elif self.bytepix == 2:
-            # Note that astropy changes uint data to signed int 
+            # Note that astropy changes uint data to signed int
             # Internally, and then converts back after decompression
             # So we need to return signed int data
             decoded = imagecodecs.jpegxl_decode(buf_bytes).astype(np.int16)
             return decoded
         elif self.bytepix == 4:
             # Int32 multi-part tile from float
-            length = int.from_bytes(buf_bytes[:2], 'big')
-            upper_enc = buf_bytes[2:2+length]
-            lower_enc = buf_bytes[2+length:]
+            length = int.from_bytes(buf_bytes[:2], "big")
+            upper_enc = buf_bytes[2 : 2 + length]
+            lower_enc = buf_bytes[2 + length :]
             upper = imagecodecs.jpegxl_decode(upper_enc).astype(np.uint16)
             lower = imagecodecs.jpegxl_decode(lower_enc).astype(np.uint16)
             uint32 = (upper.astype(np.uint32) << 16) | lower.astype(np.uint32)
@@ -567,7 +571,7 @@ class JPEGXL(Codec):
             return encoded_data
         elif self.bytepix == 2 and np.issubdtype(buf.dtype, np.int16):
             # Check if data is int16
-            # Note that astropy changes uint16 data to int16 
+            # Note that astropy changes uint16 data to int16
             # It passes int16 data to this codec
             # and then converts back after decompression
             encoded_data = imagecodecs.jpegxl_encode(buf.astype(np.uint16))
@@ -582,7 +586,7 @@ class JPEGXL(Codec):
             encoded_lower = imagecodecs.jpegxl_encode(lower_bits)
 
             # Store length of first part and concatenate
-            length_bytes = len(encoded_upper).to_bytes(2, byteorder='big')
+            length_bytes = len(encoded_upper).to_bytes(2, byteorder="big")
             return length_bytes + encoded_upper + encoded_lower
         else:
             raise RuntimeError("Unsupported data type for JPEG XL compression.")
