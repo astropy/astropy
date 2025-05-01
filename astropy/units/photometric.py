@@ -54,7 +54,7 @@ def_unit(
 )
 def_unit(
     ["ST", "STflux"],
-    10.0 ** (21.1 / -2.5) * 1e-7 * si.J * cgs.cm**-2 / si.s / si.AA,
+    10.0 ** (21.1 / -2.5) * 1e-7 * 10 * si.J * cgs.cm**-2 / si.s / si.nm,
     namespace=_ns,
     prefixes=False,
     doc="ST magnitude zero flux density (magnitude ``STmag``).",
