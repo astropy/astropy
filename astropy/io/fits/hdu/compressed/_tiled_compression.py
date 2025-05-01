@@ -11,7 +11,7 @@ import numpy as np
 
 from astropy.io.fits.hdu.base import BITPIX2DTYPE
 
-from ._codecs import PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1
+from ._codecs import PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1, JPEGXL
 from ._quantization import DITHER_METHODS, QuantizationFailedException, Quantize
 from .utils import _data_shape, _iter_array_tiles, _tile_shape
 
@@ -22,6 +22,7 @@ ALGORITHMS = {
     "RICE_ONE": Rice1,
     "PLIO_1": PLIO1,
     "HCOMPRESS_1": HCompress1,
+    "JPEGXL": JPEGXL,
     "NOCOMPRESS": NoCompress,
 }
 
@@ -81,6 +82,8 @@ def _header_to_settings(header):
         settings["bytepix"] = 8
         settings["scale"] = int(_get_compression_setting(header, "SCALE", 0))
         settings["smooth"] = _get_compression_setting(header, "SMOOTH", 0)
+    elif compression_type == "JPEGXL":
+        settings["bytepix"] = _get_compression_setting(header, "BYTEPIX", 2)
 
     return settings
 

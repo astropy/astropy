@@ -499,6 +499,24 @@ def _image_header_to_empty_bintable(
         )
         after_keyword = "ZVAL2"
         idx = 3
+    elif compression_type == "JPEGXL":
+        bintable.header.set(
+            "ZNAME1", "BYTEPIX", "bytes per pixel (1, 2, 4, or 8)", after=after_keyword
+        )
+        if bintable.header["ZBITPIX"] == 8:
+            bytepix = 1
+        elif bintable.header["ZBITPIX"] == 16:
+            bytepix = 2
+        elif bintable.header["ZBITPIX"] == 32:
+            bytepix = 4
+        else:
+            bytepix = DEFAULT_BYTE_PIX
+
+        bintable.header.set(
+            "ZVAL1", bytepix, "bytes per pixel (1, 2, 4, or 8)", after="ZNAME1"
+        )
+        after_keyword = "ZVAL1"
+        idx = 2
 
     if image_header["BITPIX"] < 0:  # floating point image
         bintable.header.set(

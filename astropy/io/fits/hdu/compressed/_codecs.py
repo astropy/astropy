@@ -1,11 +1,16 @@
 """
 This module contains the FITS compression algorithms in numcodecs style Codecs.
 """
-
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 
 import numpy as np
+
+try:
+    import imagecodecs
+    HAS_IMAGECODECS = True
+except ImportError:
+    HAS_IMAGECODECS = False
 
 from astropy.io.fits.hdu.compressed._compression import (
     compress_hcompress_1_c,
@@ -30,12 +35,13 @@ except ImportError:
 
 
 __all__ = [
-    "PLIO1",
     "Gzip1",
     "Gzip2",
+    "Rice1",
+    "PLIO1",
     "HCompress1",
     "NoCompress",
-    "Rice1",
+    "JPEGXL",
 ]
 
 
@@ -451,3 +457,132 @@ class HCompress1(Codec):
         return compress_hcompress_1_c(
             dbytes, self.nx, self.ny, self.scale, self.bytepix
         )
+
+
+class JPEGXL(Codec):
+    """
+    The JPEG-XL compression and decompression algorithm.
+
+    JPEG XL is a modern image compression format designed for high-quality 
+    and efficient compression of photographic and other complex images. It 
+    offers both lossy and lossless compression modes with excellent performance
+    characteristics.
+
+    This implementation uses the imagecodecs library to provide JPEG XL 
+    compression and decompression capabilities.
+
+    JPEG XL will likely always produce better compression performance than RICE
+    or HCOMPRESS. https://openreview.net/forum?id=kQCHCkNk7s&nesting=2&sort=date-desc
+
+    JPEG XL can process 2D or 3D arrays.
+
+    Default tile shape is 256 x 256, or as close to it as possible if
+    the data is smaller.
+
+    JPEG XL already uses tiling under the hood for memory efficiency,
+    but if you need to take advantage of FITS tiling for any reason, 
+    you can provide a tile_shape.
+
+    Data types that are supported to be passed into JPEGXL encode / decode:
+    int32
+    uint32
+    int16
+    uint16
+    uint8
+
+    Data types that are NOT supported:
+    int8
+
+    In the case of float32, this is supported, but Astropy will always quantize such
+    data in order to improve compression performance. A future iteration may allow
+    float32 data to be compressed losslessly.
+
+    Parameters
+    ----------
+    effort : int
+        The effort level to provide to JPEGXL for compression/decompression.
+    """
+
+    codec_id = "FITS_JPEGXL"
+
+    def __init__(self, bytepix: int):
+        self.bytepix = bytepix
+        if not HAS_IMAGECODECS:
+            raise ImportError("The imagecodecs package is required for JPEG-XL compression")
+
+    def decode(self, buf):
+        """
+        Decompress buffer using the JPEG XL algorithm.
+
+        Parameters
+        ----------
+        buf : bytes or array_like
+            The buffer to decompress.
+
+        Returns
+        -------
+        buf : np.ndarray
+            The decompressed buffer.
+        """
+        # Ensure input is bytes
+        buf_bytes = buf if isinstance(buf, (bytes, bytearray)) else buf.tobytes()
+        if self.bytepix == 1:
+            decoded = imagecodecs.jpegxl_decode(buf_bytes)
+            return decoded
+        elif self.bytepix == 2:
+            # Note that astropy changes uint data to signed int 
+            # Internally, and then converts back after decompression
+            # So we need to return signed int data
+            decoded = imagecodecs.jpegxl_decode(buf_bytes).astype(np.int16)
+            return decoded
+        elif self.bytepix == 4:
+            # Int32 multi-part tile from float
+            length = int.from_bytes(buf_bytes[:2], 'big')
+            upper_enc = buf_bytes[2:2+length]
+            lower_enc = buf_bytes[2+length:]
+            upper = imagecodecs.jpegxl_decode(upper_enc).astype(np.uint16)
+            lower = imagecodecs.jpegxl_decode(lower_enc).astype(np.uint16)
+            uint32 = (upper.astype(np.uint32) << 16) | lower.astype(np.uint32)
+            return uint32.astype(np.int32)
+        else:
+            raise RuntimeError("Unsupported data type for JPEG XL compression.")
+
+    def encode(self, buf):
+        """
+        Compress the data in the buffer using the JPEG XL algorithm.
+
+        Parameters
+        ----------
+        buf : bytes or array_like
+            The buffer to compress.
+            Expects a 2D or 3D array of type uint16 or int32.
+
+        Returns
+        -------
+        bytes
+            The compressed bytes.
+        """
+        if self.bytepix == 1:
+            encoded_data = imagecodecs.jpegxl_encode(buf)
+            return encoded_data
+        elif self.bytepix == 2 and np.issubdtype(buf.dtype, np.int16):
+            # Check if data is int16
+            # Note that astropy changes uint16 data to int16 
+            # It passes int16 data to this codec
+            # and then converts back after decompression
+            encoded_data = imagecodecs.jpegxl_encode(buf.astype(np.uint16))
+            return encoded_data
+        elif np.issubdtype(buf.dtype, np.int32):
+            # Split into upper and lower 16 bits
+            upper_bits = (buf >> 16).astype(np.uint16)
+            lower_bits = (buf & 0xFFFF).astype(np.uint16)
+
+            # Encode both parts separately
+            encoded_upper = imagecodecs.jpegxl_encode(upper_bits)
+            encoded_lower = imagecodecs.jpegxl_encode(lower_bits)
+
+            # Store length of first part and concatenate
+            length_bytes = len(encoded_upper).to_bytes(2, byteorder='big')
+            return length_bytes + encoded_upper + encoded_lower
+        else:
+            raise RuntimeError("Unsupported data type for JPEG XL compression.")

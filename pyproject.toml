@@ -48,6 +48,7 @@ dependencies = [
     "astropy-iers-data>=0.2025.10.27.0.39.10",
     "PyYAML>=6.0.0",
     "packaging>=22.0.0",
+    "imagecodecs>=2025.3.30",
 ]
 
 [project.optional-dependencies]

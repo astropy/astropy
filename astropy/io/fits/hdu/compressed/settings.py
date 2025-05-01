@@ -19,6 +19,7 @@ COMPRESSION_TYPES = (
     "GZIP_2",
     "PLIO_1",
     "HCOMPRESS_1",
+    "JPEGXL",
 )
 
 # Default compression parameter values
