@@ -47,14 +47,14 @@ def_unit(
 )
 def_unit(
     ["AB", "ABflux"],
-    10.0 ** (48.6 / -2.5) * cgs.erg * cgs.cm**-2 / si.s / si.Hz,
+    10.0 ** (48.6 / -2.5) * 1e-7 * si.J * cgs.cm**-2 / si.s / si.Hz,
     namespace=_ns,
     prefixes=False,
     doc="AB magnitude zero flux density (magnitude ``ABmag``).",
 )
 def_unit(
     ["ST", "STflux"],
-    10.0 ** (21.1 / -2.5) * cgs.erg * cgs.cm**-2 / si.s / si.AA,
+    10.0 ** (21.1 / -2.5) * 1e-7 * si.J * cgs.cm**-2 / si.s / si.AA,
     namespace=_ns,
     prefixes=False,
     doc="ST magnitude zero flux density (magnitude ``STmag``).",
