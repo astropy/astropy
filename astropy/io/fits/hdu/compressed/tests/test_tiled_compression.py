@@ -46,6 +46,14 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
     # pixel - it was compressed using fpack which automatically added a ZBLANK
     # header keyword
 
+    # First, check that the ZBLANK keyword is indeed present in the original
+    # compressed FITS file
+    with fits.open(
+        canonical_data_base_path / "compressed_with_nan.fits",
+        disable_image_compression=True,
+    ) as hduc:
+        assert hduc[1].header["ZBLANK"] == -2147483647
+
     reference = np.arange(144).reshape((12, 12)).astype(float)
     reference[1, 1] = np.nan
 
@@ -61,8 +69,14 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
 
     hdu.writeto(tmp_path / "test_zblank.fits")
 
+    with fits.open(
+        tmp_path / "test_zblank.fits", disable_image_compression=True
+    ) as hduc:
+        # The ZBLANK value is different from before as we don't preserve it,
+        # instead we always write out with the default ZBLANK
+        assert hduc[1].header["ZBLANK"] == -2147483648
+
     with fits.open(tmp_path / "test_zblank.fits") as hdul:
-        assert "ZBLANK" in hdul[1].header
         assert_equal(np.round(hdul[1].data), reference)
 
 

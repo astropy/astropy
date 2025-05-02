@@ -507,13 +507,16 @@ class TestCompressedImage(FitsTestCase):
         with fits.open(self.data("comp.fits")) as hdul:
             hdr = hdul[1].header
             hdr["TFIELDS"] = 8
+            hdr["THEAP"] = 1000
             hdr["TTYPE1"] = "Foo"
             hdr["ZCMPTYPE"] = "ASDF"
             hdr["ZVAL1"] = "Foo"
             with pytest.warns() as record:
                 hdul.writeto(tmp_path / "test.fits")
-            assert len(record) == 4
-            for i, keyword in enumerate(("TFIELDS", "TTYPE1", "ZCMPTYPE", "ZVAL1")):
+            assert len(record) == 5
+            for i, keyword in enumerate(
+                ("TFIELDS", "THEAP", "TTYPE1", "ZCMPTYPE", "ZVAL1")
+            ):
                 assert f"Keyword {keyword!r} is reserved" in record[i].message.args[0]
 
     def test_compression_header_append(self, tmp_path):
@@ -1425,3 +1428,30 @@ def test_compression_options_with_mutated_data(
 
     zflags = {k: hdr[k] for k in expected_zflags}
     assert zflags == expected_zflags
+
+
+def test_reserved_keywords_stripped(tmp_path):
+    # Regression test for a bug that caused THEAP, ZBLANK, ZSCALE and ZZERO to
+    # not be correctly stripped from the compressed header when decompressing
+    #
+    # See also https://github.com/astropy/astropy/issues/18067
+
+    data = np.arange(6).reshape((2, 3))
+
+    hdu = fits.CompImageHDU(data)
+    hdu.writeto(tmp_path / "compressed.fits")
+
+    with fits.open(
+        tmp_path / "compressed.fits", disable_image_compression=True
+    ) as hduc:
+        hduc[1].header["THEAP"] = hduc[1].header["NAXIS1"] * hduc[1].header["NAXIS2"]
+        hduc[1].header["ZBLANK"] = 1231212
+        hduc[1].header["ZSCALE"] = 2
+        hduc[1].header["ZZERO"] = 10
+        hduc[1].writeto(tmp_path / "compressed_with_extra.fits")
+
+    with fits.open(tmp_path / "compressed_with_extra.fits") as hdud:
+        assert "THEAP" not in hdud[1].header
+        assert "ZBLANK" not in hdud[1].header
+        assert "ZSCALE" not in hdud[1].header
+        assert "ZZERO" not in hdud[1].header
