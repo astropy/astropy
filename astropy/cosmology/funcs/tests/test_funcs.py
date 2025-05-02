@@ -24,6 +24,7 @@ from astropy.cosmology.realizations import (
 )
 from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.units import allclose
+from astropy.utils.compat import NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -166,6 +167,9 @@ class Test_ZatValue:
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+@pytest.mark.xfail(
+    not NUMPY_LT_2_3, reason="TODO fix: https://github.com/astropy/astropy/issues/18045"
+)
 def test_z_at_value_numpyvectorize():
     """Test that numpy vectorize fails on Quantities.
 
