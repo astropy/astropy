@@ -116,7 +116,7 @@ def test_fitting_with_initial_values(fitter):
     x, y = _fake_gaussian_data()
 
     # Fit the data using a Gaussian with units
-    g_init = models.Gaussian1D(amplitude=1.0 * u.mJy, mean=3 * u.cm, stddev=2 * u.mm)
+    g_init = models.Gaussian1D(amplitude=1.0 * u.mJy, mean=4 * u.cm, stddev=3 * u.mm)
     g = fitter(g_init, x, y)
 
     # TODO: update actual numerical results once implemented, but these should
