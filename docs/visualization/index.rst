@@ -48,3 +48,10 @@ Reference/API
    :maxdepth: 2
 
    ref_api
+
+.. function:: unit_support(format="latex_inline")
+
+   Enable both quantity and time support for matplotlib.
+
+   :param format: Format for unit labels (default: 'latex_inline').
+   :returns: Context manager enabling both supports.
