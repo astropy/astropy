@@ -14,7 +14,6 @@ from astropy.io.ascii.ecsv import (
     DELIMITERS,
     ECSV_DATATYPES,
     InvalidEcsvDatatypeWarning,
-    _check_dtype_is_str,
 )
 from astropy.table import Table, meta, serialize
 
@@ -52,7 +51,7 @@ def get_header_lines(
 
 
 @dataclass
-class EcsvColumn:
+class ColumnAttrs:
     name: str
     datatype: str
     dtype: str | None = None
@@ -106,7 +105,7 @@ def read_header(
         )
 
     # Create list of columns from `header`.
-    cols = [EcsvColumn(**col) for col in header["datatype"]]
+    cols = [ColumnAttrs(**col) for col in header["datatype"]]
 
     for col in cols:
         # Warn if col datatype is not a valid ECSV datatype, but allow reading for
@@ -146,7 +145,7 @@ def read_header(
 def read_data(
     input_file: str | os.PathLike | io.BytesIO,
     data_start: int,
-    cols: list[EcsvColumn],
+    cols: list[ColumnAttrs],
     delimiter: str = ",",
     encoding: str = "utf-8",
 ) -> tuple[list[tuple], dict]:
@@ -162,128 +161,147 @@ def read_data(
         encoding=encoding,
         dtypes=dtypes,
         header_start=data_start,
-        # TODO remove this line when the upstream bug is fixed
-        null_values=[""],
     )
     return data
 
 
-def convert_column(col: EcsvColumn, data_in: "npt.NDArray") -> "npt.NDArray":
+def _get_str_vals(col, data):
+    if col.dtype != "str":
+        raise ValueError(f'datatype of column {data.name!r} must be "string"')
+    # For masked we need a list because for multidim the data under the mask is set
+    # to a compatible value.
+    if hasattr(data, "mask"):
+        str_vals = data.view(np.ndarray).tolist()
+        mask = data.mask
+    else:
+        str_vals = data
+        mask = None
+    return str_vals, mask
+
+
+def convert_column(col_attrs: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArray":
     """
     Convert the column data from str to the appropriate numpy dtype.
     """
     try:
-        # 1-d or N-d object columns are serialized as JSON.
-        if col.subtype == "object":
-            data_out = process_1d_Nd_object_data(col, data_in)
+        if col_attrs.subtype == "object" or col_attrs.shape:
+            # Handle three distinct column types where each row element is serialized
+            # to JSON. First convert the input data array or masked array to a list of
+            # str and get the mask where available.
+            str_vals, mask = _get_str_vals(col_attrs, data_in)
 
-        # Variable length arrays with shape (n, m, ..., *) for fixed
-        # n, m, .. and variable in last axis. Masked values here are
-        # not currently supported.
-        elif col.shape and col.shape[-1] is None:
-            data_out = process_variable_length_array_data(col, data_in)
+            if col_attrs.subtype == "object":
+                # Any Python objects serializable to JSON
+                process_func = process_1d_Nd_object_data
+            elif col_attrs.shape[-1] is None:
+                # Variable length arrays with shape (n, m, ..., *) for fixed
+                # n, m, .. and variable in last axis.
+                process_func = process_variable_length_array_data
+            else:
+                # Multidim columns with consistent shape (n, m, ...).
+                process_func = process_fixed_shape_multidim_data
 
-        # Multidim columns with consistent shape (n, m, ...). These
-        # might be masked.
-        elif col.shape:
-            data_out = process_fixed_shape_multidim_data(col, data_in)
+            data_out = process_func(col_attrs, str_vals, mask)
 
         # Regular scalar value column
         else:
-            if col.subtype:
+            if col_attrs.subtype:
                 warnings.warn(
-                    f"unexpected subtype {col.subtype!r} set for column "
-                    f"{col.name!r}, using dtype={col.dtype!r} instead.",
+                    f"unexpected subtype {col_attrs.subtype!r} set for column "
+                    f"{col_attrs.name!r}, using dtype={col_attrs.dtype!r} instead.",
                     category=InvalidEcsvDatatypeWarning,
                 )
             data_out = data_in
 
-        if data_out.shape[1:] != tuple(col.shape):
+        if data_out.shape[1:] != tuple(col_attrs.shape):
             raise ValueError("shape mismatch between value and column specifier")
 
     except json.JSONDecodeError:
         raise ValueError(
-            f"column {col.name!r} failed to convert: column value is not valid JSON"
+            f"column {col_attrs.name!r} failed to convert: column value is not valid JSON"
         )
     except Exception as exc:
-        raise ValueError(f"column {col.name!r} failed to convert: {exc}")
+        raise ValueError(f"column {col_attrs.name!r} failed to convert: {exc}")
 
-    return data_out
+        return data_out
 
 
-def process_1d_Nd_object_data(col, data_in):
-    _check_dtype_is_str(col)
-    col_vals = [json.loads(val) for val in data_in]
-    data_out = np.empty([len(col_vals)] + col.shape, dtype=object)
+def process_1d_Nd_object_data(col_attrs, str_vals, mask):
+    if mask is not None:
+        for idx in np.nonzero(mask)[0]:
+            str_vals[idx] = "0"  # could be "null" but io.ascii uses "0"
+    col_vals = [json.loads(val) for val in str_vals]
+    np_empty = np.empty if mask is None else np.ma.empty
+    data_out = np_empty((len(col_vals),) + col_attrs.shape, dtype=object)
     data_out[...] = col_vals
+    if mask is not None:
+        data_out.mask = mask
     return data_out
 
 
-def process_fixed_shape_multidim_data(col, data_in):
-    _check_dtype_is_str(col)
-
+def process_fixed_shape_multidim_data(col_attrs, str_vals, mask):
     # Change empty (blank) values in original ECSV to something
     # like "[[null, null],[null,null]]" so subsequent JSON
-    # decoding works. Delete `col.mask` so that later code in
-    # core TableOutputter.__call__() that deals with col.mask
-    # does not run (since handling is done here already).
-    if hasattr(data_in, "mask"):
-        str_vals = data_in.tolist()
-        all_none_arr = np.full(shape=col.shape, fill_value=None, dtype=object)
-        all_none_json = json.dumps(all_none_arr.tolist())
-        for idx in np.nonzero(data_in.mask)[0]:
-            str_vals[idx] = all_none_json
-        data_in = np.array(str_vals, dtype=object)
+    # decoding works.
+    if mask is not None:
+        all_none_arr = np.full(shape=col_attrs.shape, fill_value=None, dtype=object)
+        fill_value = json.dumps(all_none_arr.tolist())
+        for idx in np.nonzero(mask)[0]:
+            str_vals[idx] = fill_value
 
-    col_vals = [json.loads(val) for val in data_in]
-    # Make a numpy object array of col_vals to look for None
-    # (masked values)
+    col_vals = [json.loads(val) for val in str_vals]
+
+    # Make a numpy object array of col_vals to look for None (masked values)
     arr_vals = np.array(col_vals, dtype=object)
-    mask = arr_vals == None
-    if not np.any(mask):
-        # No None's, just convert to required dtype
-        data_out = data_in.astype(col.subtype)
-    else:
+    arr_vals_mask = arr_vals == None
+    if np.any(arr_vals_mask):
         # Replace all the None with an appropriate fill value
-        kind = np.dtype(col.subtype).kind
-        arr_vals[mask] = {"U": "", "S": b""}.get(kind, 0)
+        kind = np.dtype(col_attrs.subtype).kind
+        arr_vals[arr_vals_mask] = {"U": "", "S": b""}.get(kind, 0)
         # Finally make a MaskedArray with the filled data + mask
-        data_out = np.ma.array(arr_vals.astype(col.subtype), mask=mask)
+        data_out = np.ma.array(arr_vals.astype(col_attrs.subtype), mask=arr_vals_mask)
+    else:
+        data_out = arr_vals.astype(col_attrs.subtype)
 
     return data_out
 
 
-def process_variable_length_array_data(col, data_in):
-    _check_dtype_is_str(col)
+def process_variable_length_array_data(col_attrs, str_vals, mask):
+    """Variable length arrays with shape (n, m, ..., *)
 
+    Shape is fixed for n, m, .. and variable in last axis. The output is a 1-d object
+    array with each row element being an ``np.ndarray`` or ``np.ma.masked_array`` of the
+    appropriate shape.
+    """
     # Empty (blank) values in original ECSV are masked. Instead set the values
     # to "[]" indicating an empty list. This operation also unmasks the values.
-    if hasattr(data_in, "mask"):
-        for idx in np.nonzero(data_in.mask)[0]:
-            data_in[idx] = "[]"
+    if mask is not None:
+        fill_value = "[]"
+        for idx in np.nonzero(mask)[0]:
+            str_vals[idx] = fill_value
 
     # Remake as a 1-d object column of numpy ndarrays or
     # MaskedArray using the datatype specified in the ECSV file.
     col_vals = []
-    for str_val in data_in:
+    for str_val in str_vals:
         obj_val = json.loads(str_val)  # list or nested lists
         try:
-            arr_val = np.array(obj_val, dtype=col.subtype)
+            arr_val = np.array(obj_val, dtype=col_attrs.subtype)
         except TypeError:
             # obj_val has entries that are inconsistent with
             # dtype. For a valid ECSV file the only possibility
             # is None values (indicating missing values).
-            data = np.array(obj_val, dtype=object)
+            vals = np.array(obj_val, dtype=object)
             # Replace all the None with an appropriate fill value
-            mask = data == None
-            kind = np.dtype(col.subtype).kind
-            data[mask] = {"U": "", "S": b""}.get(kind, 0)
-            arr_val = np.ma.array(data.astype(col.subtype), mask=mask)
+            mask_vals = vals == None
+            kind = np.dtype(col_attrs.subtype).kind
+            vals[mask_vals] = {"U": "", "S": b""}.get(kind, 0)
+            arr_val = np.ma.array(vals.astype(col_attrs.subtype), mask=mask_vals)
 
         col_vals.append(arr_val)
 
-    col.shape = ()
-    col.dtype = np.dtype(object)
+    col_attrs.shape = ()
+    col_attrs.dtype = np.dtype(object)
     # np.array(col_vals_arr, dtype=object) fails ?? so this workaround:
     data_out = np.empty(len(col_vals), dtype=object)
     data_out[:] = col_vals
@@ -318,4 +336,4 @@ def read_ecsv(
 
     table = serialize._construct_mixins_from_columns(table)
 
-    return table, data_raw
+    return table
