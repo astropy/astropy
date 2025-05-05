@@ -289,7 +289,7 @@ def test_csv_ecsv_colnames_mismatch():
     header_index = lines.index("a b c")
     lines[header_index] = "a b d"
     with pytest.raises(ValueError) as err:
-        ascii.read(lines, format="ecsv")
+        Table.read(lines, format=FORMAT)
     assert "column names from ECSV header ['a', 'b', 'c']" in str(err.value)
 
 
@@ -607,7 +607,7 @@ True
 ""
 False
 """
-    dat = ascii.read(txt, format="ecsv")
+    dat = Table.read(txt, format=FORMAT)
     col = dat["col0"]
     assert isinstance(col, MaskedColumn)
     assert np.all(col.mask == [False, False, False, True, False])
@@ -659,7 +659,7 @@ a
         InvalidEcsvDatatypeWarning,
         match=rf"unexpected subtype '{subtype}' set for column 'a'",
     ):
-        t = ascii.read(txt, format="ecsv")
+        t = Table.read(txt, format=FORMAT)
 
     assert t["a"].dtype.kind == "U"
     assert t["a"][0] == "[1,2]"
