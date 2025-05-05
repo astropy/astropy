@@ -5,6 +5,7 @@ import re
 import warnings
 from contextlib import ExitStack
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
@@ -22,7 +23,18 @@ def get_header_lines(
 
     with ExitStack() as stack:
         if isinstance(input_file, (str, os.PathLike)):
-            tmp_input_file = stack.enter_context(open(input_file, "rb"))
+            ext = Path(input_file).suffix
+            if ext == ".gz":
+                import gzip
+
+                opener = gzip.open
+            elif ext == ".bz2":
+                import bz2
+
+                opener = bz2.open
+            else:
+                opener = open
+            tmp_input_file = stack.enter_context(opener(input_file, "rb"))
         else:
             tmp_input_file = input_file
 
@@ -143,6 +155,7 @@ def read_data(
     cols: list[ColumnAttrs],
     delimiter: str = ",",
     encoding: str = "utf-8",
+    null_values: list[str] | None = None,
 ) -> Table:
     """
     READ: Read the data from the table ``lines``.
@@ -156,6 +169,7 @@ def read_data(
         encoding=encoding,
         dtypes=dtypes,
         header_start=data_start,
+        null_values=null_values,
     )
     return data
 
@@ -310,6 +324,7 @@ def process_variable_length_array_data(col_attrs, str_vals, mask):
 def read_ecsv(
     input_file: str | os.PathLike | io.BytesIO,
     encoding: str = "utf-8",
+    null_values: list[str] | None = None,
 ) -> Table:
     """
     READ: Read the ECSV file and return a Table object.
@@ -322,6 +337,7 @@ def read_ecsv(
     elif isinstance(input_file, str) and "\n" in input_file:
         input_file = io.BytesIO(input_file.encode(encoding))
     elif isinstance(input_file, (list, tuple)):
+        # TODO: better way to check for an iterable of str?
         input_file = io.BytesIO("\n".join(input_file).encode(encoding))
 
     data_start, cols_attrs, table_meta, delimiter = read_header(
@@ -333,6 +349,7 @@ def read_ecsv(
         cols_attrs,
         delimiter=delimiter,
         encoding=encoding,
+        null_values=null_values,
     )
 
     ecsv_header_names = [col_attrs.name for col_attrs in cols_attrs]
