@@ -25,6 +25,7 @@ Reference/API
 .. automodapi:: astropy.units.cds
 
 .. automodapi:: astropy.units.physical
+   :noindex:
 
 .. automodapi:: astropy.units.format
 
