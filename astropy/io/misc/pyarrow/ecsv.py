@@ -9,12 +9,6 @@ from dataclasses import dataclass, field
 import numpy as np
 import numpy.typing as npt
 
-from astropy.io.ascii.core import InconsistentTableError
-from astropy.io.ascii.ecsv import (
-    DELIMITERS,
-    ECSV_DATATYPES,
-    InvalidEcsvDatatypeWarning,
-)
 from astropy.table import Table, meta, serialize
 
 
@@ -54,22 +48,25 @@ def get_header_lines(
 class ColumnAttrs:
     name: str
     datatype: str
+    subtype: str | None = None
     dtype: str | None = None
     shape: tuple[int, ...] = field(default_factory=tuple)
     unit: str | None = None
     description: str | None = None
     format: str | None = None
     meta: dict | None = None
-    subtype: str | None = None
 
 
 def read_header(
     input_file: str | os.PathLike | io.BytesIO,
     encoding: str = "utf-8",
-) -> tuple[int, list[dict], dict]:
+) -> tuple[int, list[ColumnAttrs], dict]:
     """
     READ: Initialize the header Column objects from the table ``lines``.
     """
+    from astropy.io.ascii.core import InconsistentTableError
+    from astropy.io.ascii.ecsv import DELIMITERS, ECSV_DATATYPES
+
     # Extract non-blank comment (header) lines with comment character stripped
     data_start, header_lines = get_header_lines(input_file, encoding=encoding)
 
@@ -114,11 +111,9 @@ def read_header(
         if col.datatype not in ECSV_DATATYPES:
             msg = (
                 f"unexpected datatype {col.datatype!r} of column {col.name!r} "
-                f"is not in allowed ECSV datatypes {ECSV_DATATYPES}. "
-                "Using anyway as a numpy dtype but beware since unexpected "
-                "results are possible."
+                f"is not in allowed ECSV datatypes {ECSV_DATATYPES}."
             )
-            warnings.warn(msg, category=InvalidEcsvDatatypeWarning)
+            raise InconsistentTableError(msg)
 
         # Subtype is written like "int64[2,null]" and we want to split this
         # out to "int64" and [2, None].
@@ -148,7 +143,7 @@ def read_data(
     cols: list[ColumnAttrs],
     delimiter: str = ",",
     encoding: str = "utf-8",
-) -> tuple[list[tuple], dict]:
+) -> Table:
     """
     READ: Read the data from the table ``lines``.
     """
@@ -183,6 +178,8 @@ def convert_column(col_attrs: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArr
     """
     Convert the column data from str to the appropriate numpy dtype.
     """
+    from astropy.io.ascii.ecsv import InvalidEcsvDatatypeWarning
+
     try:
         if col_attrs.subtype == "object" or col_attrs.shape:
             # Handle three distinct column types where each row element is serialized
@@ -223,7 +220,7 @@ def convert_column(col_attrs: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArr
     except Exception as exc:
         raise ValueError(f"column {col_attrs.name!r} failed to convert: {exc}")
 
-        return data_out
+    return data_out
 
 
 def process_1d_Nd_object_data(col_attrs, str_vals, mask):
@@ -232,7 +229,7 @@ def process_1d_Nd_object_data(col_attrs, str_vals, mask):
             str_vals[idx] = "0"  # could be "null" but io.ascii uses "0"
     col_vals = [json.loads(val) for val in str_vals]
     np_empty = np.empty if mask is None else np.ma.empty
-    data_out = np_empty((len(col_vals),) + col_attrs.shape, dtype=object)
+    data_out = np_empty((len(col_vals),) + tuple(col_attrs.shape), dtype=object)
     data_out[...] = col_vals
     if mask is not None:
         data_out.mask = mask
@@ -302,33 +299,63 @@ def process_variable_length_array_data(col_attrs, str_vals, mask):
 
     col_attrs.shape = ()
     col_attrs.dtype = np.dtype(object)
-    # np.array(col_vals_arr, dtype=object) fails ?? so this workaround:
-    data_out = np.empty(len(col_vals), dtype=object)
+    np_empty = np.empty if mask is None else np.ma.empty
+    data_out = np_empty(len(col_vals), dtype=object)
     data_out[:] = col_vals
+    if mask is not None:
+        data_out.mask = mask
     return data_out
 
 
 def read_ecsv(
     input_file: str | os.PathLike | io.BytesIO,
     encoding: str = "utf-8",
-) -> tuple[Table, dict]:
+) -> Table:
     """
     READ: Read the ECSV file and return a Table object.
     """
-    data_start, cols, table_meta, delimiter = read_header(input_file, encoding=encoding)
+    from astropy.io.ascii.core import InconsistentTableError
+
+    # For testing
+    if isinstance(input_file, io.StringIO):
+        input_file = io.BytesIO(input_file.getvalue().encode(encoding))
+    elif isinstance(input_file, str) and "\n" in input_file:
+        input_file = io.BytesIO(input_file.encode(encoding))
+    elif isinstance(input_file, (list, tuple)):
+        input_file = io.BytesIO("\n".join(input_file).encode(encoding))
+
+    data_start, cols_attrs, table_meta, delimiter = read_header(
+        input_file, encoding=encoding
+    )
     data_raw = read_data(
         input_file,
         data_start,
-        cols,
+        cols_attrs,
         delimiter=delimiter,
         encoding=encoding,
     )
 
+    ecsv_header_names = [col_attrs.name for col_attrs in cols_attrs]
+    if ecsv_header_names != data_raw.colnames:
+        raise InconsistentTableError(
+            f"column names from ECSV header {ecsv_header_names} do not "
+            f"match names from header line of CSV data {data_raw.colnames}"
+        )
+
     # Convert the column data to the appropriate numpy dtype
-    data = {col.name: convert_column(col, data_raw[col.name]) for col in cols}
+    data = {
+        col_attrs.name: convert_column(col_attrs, data_raw[col_attrs.name])
+        for col_attrs in cols_attrs
+    }
 
     # Create the Table object
     table = Table(data)
+
+    for col_attrs in cols_attrs:
+        col = table[col_attrs.name]
+        for attr in ["unit", "description", "format", "meta"]:
+            if (val := getattr(col_attrs, attr)) is not None:
+                setattr(col.info, attr, val)
 
     # Add metadata to the table
     if table_meta:
@@ -337,3 +364,18 @@ def read_ecsv(
     table = serialize._construct_mixins_from_columns(table)
 
     return table
+
+
+def write_ecsv(tbl, output, **kwargs):
+    tbl.write(output, format="ascii.ecsv", **kwargs)
+
+
+def register_pyarrow_ecsv_table():
+    """
+    Register pyarrow.csv with Unified I/O as a Table reader.
+    """
+    from astropy.io import registry as io_registry
+    from astropy.table import Table
+
+    io_registry.register_reader("pyarrow.ecsv", Table, read_ecsv)
+    io_registry.register_writer("pyarrow.ecsv", Table, write_ecsv)
