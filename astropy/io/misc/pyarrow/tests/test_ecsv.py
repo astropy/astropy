@@ -28,7 +28,7 @@ from astropy.units import QuantityInfo
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.masked import Masked
 
-FORMAT = "ascii.ecsv"
+FORMAT = "pyarrow.ecsv"
 
 DTYPES = [
     "bool",
@@ -48,6 +48,9 @@ DTYPES = [
 ]
 if not hasattr(np, "float128") or os.name == "nt" or sys.maxsize <= 2**32:
     DTYPES.remove("float128")
+
+# PyArrow does not support float16 ("half-float")
+DTYPES.remove("float16")
 
 T_DTYPES = Table()
 
@@ -160,10 +163,6 @@ def test_write_read_roundtrip():
 
         t2s = [
             Table.read(out.getvalue(), format=FORMAT),
-            Table.read(out.getvalue(), format="ascii"),
-            ascii.read(out.getvalue()),
-            ascii.read(out.getvalue(), format="ecsv", guess=False),
-            ascii.read(out.getvalue(), format="ecsv"),
         ]
         for t2 in t2s:
             assert t.meta == t2.meta
@@ -198,7 +197,7 @@ def test_bad_header_start():
     lines = copy.copy(SIMPLE_LINES)
     lines[0] = "# %ECV 0.9"
     with pytest.raises(ascii.InconsistentTableError):
-        Table.read("\n".join(lines), format=FORMAT, guess=False)
+        Table.read("\n".join(lines), format=FORMAT)
 
 
 def test_bad_delimiter_input():
@@ -208,7 +207,7 @@ def test_bad_delimiter_input():
     lines = copy.copy(SIMPLE_LINES)
     lines.insert(2, "# delimiter: |")
     with pytest.raises(ValueError) as err:
-        Table.read("\n".join(lines), format=FORMAT, guess=False)
+        Table.read("\n".join(lines), format=FORMAT)
     assert "only space and comma are allowed" in str(err.value)
 
 
@@ -288,7 +287,7 @@ def test_csv_ecsv_colnames_mismatch():
     header_index = lines.index("a b c")
     lines[header_index] = "a b d"
     with pytest.raises(ValueError) as err:
-        ascii.read(lines, format="ecsv")
+        Table.read(lines, format=FORMAT)
     assert "column names from ECSV header ['a', 'b', 'c']" in str(err.value)
 
 
@@ -364,7 +363,7 @@ def test_ecsv_mixins_ascii_read_class():
     )
     out = StringIO()
     t.write(out, format=FORMAT)
-    t2 = ascii.read(out.getvalue(), format="ecsv")
+    t2 = Table.read(out.getvalue(), format=FORMAT)
     assert type(t2) is Table
 
     # Add a single quantity column
@@ -372,7 +371,7 @@ def test_ecsv_mixins_ascii_read_class():
 
     out = StringIO()
     t.write(out, format=FORMAT)
-    t2 = ascii.read(out.getvalue(), format="ecsv")
+    t2 = QTable.read(out.getvalue(), format=FORMAT)
     assert type(t2) is QTable
 
 
@@ -608,7 +607,7 @@ True
 ""
 False
 """
-    dat = ascii.read(txt, format="ecsv")
+    dat = Table.read(txt, format=FORMAT)
     col = dat["col0"]
     assert isinstance(col, MaskedColumn)
     assert np.all(col.mask == [False, False, False, True, False])
@@ -660,7 +659,7 @@ a
         InvalidEcsvDatatypeWarning,
         match=rf"unexpected subtype '{subtype}' set for column 'a'",
     ):
-        t = ascii.read(txt, format="ecsv")
+        t = Table.read(txt, format=FORMAT)
 
     assert t["a"].dtype.kind == "U"
     assert t["a"][0] == "[1,2]"
@@ -724,14 +723,11 @@ def test_read_bad_datatype():
 a
 fail
 [3,4]"""
-    with pytest.warns(
-        InvalidEcsvDatatypeWarning,
+    with pytest.raises(
+        ascii.InconsistentTableError,
         match="unexpected datatype 'object' of column 'a' is not in allowed",
     ):
         t = Table.read(txt, format=FORMAT)
-    assert t["a"][0] == "fail"
-    assert type(t["a"][1]) is str
-    assert type(t["a"].dtype) == np.dtype("O")
 
 
 def test_read_complex():
@@ -746,12 +742,11 @@ a
 1+1j
 2+2j"""
 
-    with pytest.warns(
-        InvalidEcsvDatatypeWarning,
+    with pytest.raises(
+        ascii.InconsistentTableError,
         match="unexpected datatype 'complex' of column 'a' is not in allowed",
     ):
         t = Table.read(txt, format=FORMAT)
-    assert t["a"].dtype.type is np.complex128
 
 
 def test_read_str():
@@ -766,13 +761,11 @@ a
 sometext
 S"""  # also testing single character text
 
-    with pytest.warns(
-        InvalidEcsvDatatypeWarning,
+    with pytest.raises(
+        ascii.InconsistentTableError,
         match="unexpected datatype 'str' of column 'a' is not in allowed",
     ):
         t = Table.read(txt, format=FORMAT)
-    assert isinstance(t["a"][1], str)
-    assert isinstance(t["a"][0], np.str_)
 
 
 def test_read_bad_datatype_for_object_subtype():
@@ -786,7 +779,7 @@ def test_read_bad_datatype_for_object_subtype():
 a
 fail
 [3,4]"""
-    match = "column 'a' failed to convert: datatype of column 'a' must be \"string\""
+    match = "In CSV column #0: CSV conversion error to int64: invalid value 'fail'"
     with pytest.raises(ValueError, match=match):
         Table.read(txt, format=FORMAT)
 
@@ -1024,18 +1017,18 @@ def test_masked_empty_subtypes():
     """Test blank field in subtypes. Similar to previous test but with explicit
     checks of values"""
     txt = """
-    # %ECSV 1.0
-    # ---
-    # datatype:
-    # - {name: o, datatype: string, subtype: json}
-    # - {name: f, datatype: string, subtype: 'int64[2]'}
-    # - {name: v, datatype: string, subtype: 'int64[null]'}
-    # schema: astropy-2.0
-    o f v
-    null [0,1] [1]
-    "" "" ""
-    [1,2] [2,3] [2,3]
-    """
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: o, datatype: string, subtype: json}
+# - {name: f, datatype: string, subtype: 'int64[2]'}
+# - {name: v, datatype: string, subtype: 'int64[null]'}
+# schema: astropy-2.0
+o f v
+null [0,1] [1]
+"" "" ""
+[1,2] [2,3] [2,3]
+"""
     t = Table.read(txt, format=FORMAT)
     assert np.all(t["o"] == np.array([None, -1, [1, 2]], dtype=object))
     assert np.all(t["o"].mask == [False, True, False])
@@ -1084,23 +1077,6 @@ def test_masked_vals_in_array_subtypes():
             if isinstance(val1, np.ma.MaskedArray):
                 assert np.all(val1.mask == val2.mask)
             assert np.all(val1 == val2)
-
-
-def test_guess_ecsv_with_one_column():
-    """Except for ECSV, guessing always requires at least 2 columns"""
-    txt = """
-    # %ECSV 1.0
-    # ---
-    # datatype:
-    # - {name: col, datatype: string, description: hello}
-    # schema: astropy-2.0
-    col
-    1
-    2
-    """
-    t = ascii.read(txt)
-    assert t["col"].dtype.kind == "U"  # would be int with basic format
-    assert t["col"].description == "hello"
 
 
 @pytest.mark.parametrize("masked", [MaskedColumn, Masked, np.ma.MaskedArray])
