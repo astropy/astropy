@@ -52,6 +52,16 @@ __all__ = [
 
 km_per_s: Final = si.km / si.s
 ckms: Final = _si.c.to_value(km_per_s)
+cAAs: Final = _si.c.to_value(si.AA / si.s)
+h_cgs: Final = _si.h.cgs.value
+
+# flux density units
+la_f_la: Final = cgs.erg / (si.cm**2 * si.s)
+f_nu: Final = la_f_la / si.Hz
+f_la: Final = la_f_la / si.AA
+la_phot_f_la: Final = astrophys.photon / (si.cm**2 * si.s)
+phot_f_nu: Final = la_phot_f_la / si.Hz
+phot_f_la: Final = la_phot_f_la / si.AA
 
 
 class Equivalency(list):
@@ -205,145 +215,34 @@ def spectral_density(wav, factor=None):
         if factor is None:
             raise ValueError("If `wav` is specified as a unit, `factor` should be set")
         wav = factor * wav  # Convert to Quantity
-    c_Aps = _si.c.to_value(si.AA / si.s)  # Angstrom/s
-    h_cgs = _si.h.cgs.value  # erg * s
-    hc = c_Aps * h_cgs
 
-    # flux density
-    f_la = cgs.erg / si.angstrom / si.cm**2 / si.s
-    f_nu = cgs.erg / si.Hz / si.cm**2 / si.s
-    nu_f_nu = cgs.erg / si.cm**2 / si.s
-    la_f_la = nu_f_nu
-    phot_f_la = astrophys.photon / (si.cm**2 * si.s * si.AA)
-    phot_f_nu = astrophys.photon / (si.cm**2 * si.s * si.Hz)
-    la_phot_f_la = astrophys.photon / (si.cm**2 * si.s)
+    wav_in_AA = wav.to_value(si.AA, equivalencies=spectral())
 
-    # luminosity density
-    L_nu = cgs.erg / si.s / si.Hz
-    L_la = cgs.erg / si.s / si.angstrom
-    nu_L_nu = cgs.erg / si.s
-    la_L_la = nu_L_nu
-    phot_L_la = astrophys.photon / (si.s * si.AA)
-    phot_L_nu = astrophys.photon / (si.s * si.Hz)
+    def func_factory(factor):
+        return lambda x: x * factor, lambda x: x / factor
 
-    # surface brightness (flux equiv)
-    S_la = cgs.erg / si.angstrom / si.cm**2 / si.s / si.sr
-    S_nu = cgs.erg / si.Hz / si.cm**2 / si.s / si.sr
-    nu_S_nu = cgs.erg / si.cm**2 / si.s / si.sr
-    la_S_la = nu_S_nu
-    phot_S_la = astrophys.photon / (si.cm**2 * si.s * si.AA * si.sr)
-    phot_S_nu = astrophys.photon / (si.cm**2 * si.s * si.Hz * si.sr)
+    phot_f_from_f, phot_f_to_f = func_factory(wav_in_AA / (cAAs * h_cgs))
+    flux = [
+        (f_la, f_nu, *func_factory(wav_in_AA**2 / cAAs)),
+        (f_nu, la_f_la, *func_factory(cAAs / wav_in_AA)),
+        (f_la, la_f_la, *func_factory(wav_in_AA)),
+        (phot_f_la, f_la, phot_f_to_f, phot_f_from_f),
+        (phot_f_la, f_nu, *func_factory(wav_in_AA * h_cgs)),
+        (phot_f_la, phot_f_nu, *func_factory(wav_in_AA**2 / cAAs)),
+        (phot_f_nu, f_nu, phot_f_to_f, phot_f_from_f),
+        (phot_f_nu, f_la, *func_factory(cAAs**2 * h_cgs / wav_in_AA**3)),
+    ]
 
-    # surface brightness (luminosity equiv)
-    SL_nu = cgs.erg / si.s / si.Hz / si.sr
-    SL_la = cgs.erg / si.s / si.angstrom / si.sr
-    nu_SL_nu = cgs.erg / si.s / si.sr
-    la_SL_la = nu_SL_nu
-    phot_SL_la = astrophys.photon / (si.s * si.AA * si.sr)
-    phot_SL_nu = astrophys.photon / (si.s * si.Hz * si.sr)
-
-    def f_la_to_f_nu(x):
-        return x * (wav.to_value(si.AA, spectral()) ** 2 / c_Aps)
-
-    def f_la_from_f_nu(x):
-        return x / (wav.to_value(si.AA, spectral()) ** 2 / c_Aps)
-
-    def f_nu_to_nu_f_nu(x):
-        return x * wav.to_value(si.Hz, spectral())
-
-    def f_nu_from_nu_f_nu(x):
-        return x / wav.to_value(si.Hz, spectral())
-
-    def f_la_to_la_f_la(x):
-        return x * wav.to_value(si.AA, spectral())
-
-    def f_la_from_la_f_la(x):
-        return x / wav.to_value(si.AA, spectral())
-
-    def phot_f_la_to_f_la(x):
-        return hc * x / wav.to_value(si.AA, spectral())
-
-    def phot_f_la_from_f_la(x):
-        return x * wav.to_value(si.AA, spectral()) / hc
-
-    def phot_f_la_to_f_nu(x):
-        return h_cgs * x * wav.to_value(si.AA, spectral())
-
-    def phot_f_la_from_f_nu(x):
-        return x / (wav.to_value(si.AA, spectral()) * h_cgs)
-
-    def phot_f_la_to_phot_f_nu(x):
-        return x * wav.to_value(si.AA, spectral()) ** 2 / c_Aps
-
-    def phot_f_la_from_phot_f_nu(x):
-        return c_Aps * x / wav.to_value(si.AA, spectral()) ** 2
-
-    phot_f_nu_to_f_nu = phot_f_la_to_f_la
-    phot_f_nu_from_f_nu = phot_f_la_from_f_la
-
-    def phot_f_nu_to_f_la(x):
-        return x * hc * c_Aps / wav.to_value(si.AA, spectral()) ** 3
-
-    def phot_f_nu_from_f_la(x):
-        return x * wav.to_value(si.AA, spectral()) ** 3 / (hc * c_Aps)
-
-    # for luminosity density
-    L_nu_to_nu_L_nu = f_nu_to_nu_f_nu
-    L_nu_from_nu_L_nu = f_nu_from_nu_f_nu
-    L_la_to_la_L_la = f_la_to_la_f_la
-    L_la_from_la_L_la = f_la_from_la_f_la
-
-    phot_L_la_to_L_la = phot_f_la_to_f_la
-    phot_L_la_from_L_la = phot_f_la_from_f_la
-    phot_L_la_to_L_nu = phot_f_la_to_f_nu
-    phot_L_la_from_L_nu = phot_f_la_from_f_nu
-    phot_L_la_to_phot_L_nu = phot_f_la_to_phot_f_nu
-    phot_L_la_from_phot_L_nu = phot_f_la_from_phot_f_nu
-    phot_L_nu_to_L_nu = phot_f_nu_to_f_nu
-    phot_L_nu_from_L_nu = phot_f_nu_from_f_nu
-    phot_L_nu_to_L_la = phot_f_nu_to_f_la
-    phot_L_nu_from_L_la = phot_f_nu_from_f_la
+    def equiv_factory(unit):
+        return [(u1 * unit, u2 * unit, f1, f2) for u1, u2, f1, f2 in flux]
 
     return Equivalency(
         [
-            # flux
-            (f_la, f_nu, f_la_to_f_nu, f_la_from_f_nu),
-            (f_nu, nu_f_nu, f_nu_to_nu_f_nu, f_nu_from_nu_f_nu),
-            (f_la, la_f_la, f_la_to_la_f_la, f_la_from_la_f_la),
-            (phot_f_la, f_la, phot_f_la_to_f_la, phot_f_la_from_f_la),
-            (phot_f_la, f_nu, phot_f_la_to_f_nu, phot_f_la_from_f_nu),
-            (phot_f_la, phot_f_nu, phot_f_la_to_phot_f_nu, phot_f_la_from_phot_f_nu),
-            (phot_f_nu, f_nu, phot_f_nu_to_f_nu, phot_f_nu_from_f_nu),
-            (phot_f_nu, f_la, phot_f_nu_to_f_la, phot_f_nu_from_f_la),
-            # integrated flux
-            (la_phot_f_la, la_f_la, phot_f_la_to_f_la, phot_f_la_from_f_la),
-            # luminosity
-            (L_la, L_nu, f_la_to_f_nu, f_la_from_f_nu),
-            (L_nu, nu_L_nu, L_nu_to_nu_L_nu, L_nu_from_nu_L_nu),
-            (L_la, la_L_la, L_la_to_la_L_la, L_la_from_la_L_la),
-            (phot_L_la, L_la, phot_L_la_to_L_la, phot_L_la_from_L_la),
-            (phot_L_la, L_nu, phot_L_la_to_L_nu, phot_L_la_from_L_nu),
-            (phot_L_la, phot_L_nu, phot_L_la_to_phot_L_nu, phot_L_la_from_phot_L_nu),
-            (phot_L_nu, L_nu, phot_L_nu_to_L_nu, phot_L_nu_from_L_nu),
-            (phot_L_nu, L_la, phot_L_nu_to_L_la, phot_L_nu_from_L_la),
-            # surface brightness (flux equiv)
-            (S_la, S_nu, f_la_to_f_nu, f_la_from_f_nu),
-            (S_nu, nu_S_nu, f_nu_to_nu_f_nu, f_nu_from_nu_f_nu),
-            (S_la, la_S_la, f_la_to_la_f_la, f_la_from_la_f_la),
-            (phot_S_la, S_la, phot_f_la_to_f_la, phot_f_la_from_f_la),
-            (phot_S_la, S_nu, phot_f_la_to_f_nu, phot_f_la_from_f_nu),
-            (phot_S_la, phot_S_nu, phot_f_la_to_phot_f_nu, phot_f_la_from_phot_f_nu),
-            (phot_S_nu, S_nu, phot_f_nu_to_f_nu, phot_f_nu_from_f_nu),
-            (phot_S_nu, S_la, phot_f_nu_to_f_la, phot_f_nu_from_f_la),
-            # surface brightness (luminosity equiv)
-            (SL_la, SL_nu, f_la_to_f_nu, f_la_from_f_nu),
-            (SL_nu, nu_SL_nu, L_nu_to_nu_L_nu, L_nu_from_nu_L_nu),
-            (SL_la, la_SL_la, L_la_to_la_L_la, L_la_from_la_L_la),
-            (phot_SL_la, SL_la, phot_L_la_to_L_la, phot_L_la_from_L_la),
-            (phot_SL_la, SL_nu, phot_L_la_to_L_nu, phot_L_la_from_L_nu),
-            (phot_SL_la, phot_SL_nu, phot_L_la_to_phot_L_nu, phot_L_la_from_phot_L_nu),
-            (phot_SL_nu, SL_nu, phot_L_nu_to_L_nu, phot_L_nu_from_L_nu),
-            (phot_SL_nu, SL_la, phot_L_nu_to_L_la, phot_L_nu_from_L_la),
+            *flux,
+            (la_phot_f_la, la_f_la, phot_f_to_f, phot_f_from_f),  # integrated flux
+            *equiv_factory(si.cm**2),  # luminosity
+            *equiv_factory(si.sr**-1),  # surface brightness (flux equiv)
+            *equiv_factory(si.cm**2 / si.sr),  # surface brightness (luminosity equiv)
         ],
         "spectral_density",
         {"wav": wav, "factor": factor},
