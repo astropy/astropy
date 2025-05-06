@@ -26,9 +26,11 @@ In addition to these major changes, Astropy v7.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* X issues have been closed since v7.1
-* X pull requests have been merged since v7.1
-* X distinct people have contributed code
+* 906 commits have been added since 7.0
+* 141 issues have been closed since 7.0
+* 319 pull requests have been merged since 7.0
+* 44 people have contributed since 7.0
+* 19 of which are new contributors
 
 .. _whatsnew-7.1-table-spaces:
 
@@ -75,8 +77,8 @@ important. For details see :ref:`table_io_pyarrow_csv`.
 
 .. _whatsnew-7.1-cosmology:
 
-Cosmology
-=========
+Cosmology traits
+================
 
 The :mod:`astropy.cosmology.traits` module hosts various parts of cosmologies, such as the
 :class:`~astropy.cosmology.traits.ScaleFactor` or
@@ -251,3 +253,57 @@ Full change log
 
 To see a detailed list of all changes in version v7.1, including changes in
 API, please see the :ref:`changelog`.
+
+Contributors to the 7.1 release
+===============================
+
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+  - aarsh1a  *
+  - Adam Turner  *
+  - Albert Y. Shih
+  - Andy Casey  *
+  - Brigitta Sipőcz
+  - Chiara Marmo
+  - Chris Simpson
+  - Clément Robert
+  - Damien LaRocque  *
+  - Daniel Giles  *
+  - Derek Homeier
+  - Eero Vaher
+  - Gilles Landais  *
+  - Hans Moritz Günther
+  - Igor Lemos  *
+  - Jeff Jennings
+  - johnny1up  *
+  - Jon Carifio  *
+  - Kang Wang  *
+  - Kyle Westfall  *
+  - Larry Bradley
+  - Lee Kelvin  *
+  - Leo Singer
+  - Manon Marchand
+  - Marten van Kerkwijk
+  - Matthieu Bec  *
+  - myanm  *
+  - Maximilian Linhoff
+  - Nathaniel Starkman
+  - Ole Streicher
+  - P\. L. Lim
+  - Prajwel Joseph
+  - Ravi Kumar  *
+  - Sam Bianco  *
+  - Simon Conseil
+  - Stuart Mumford
+  - Tanvi Pooranmal Meena
+  - Thomas Robitaille
+  - thuiop  *
+  - Tiago Gomes
+  - Tom Aldcroft
+  - Varun Nikam  *
+  - xuewc  *
+
+Where a * indicates that this release contains their first contribution to astropy.
