@@ -43,8 +43,8 @@ body:
       description: Please run the following script and paste the output
       value: |
         ```python
-        from astropy.utils import system_info
-        system_info()
+        import astropy
+        astropy.system_info()
         ```
         ```
         # Paste the result here
