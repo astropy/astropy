@@ -1718,8 +1718,12 @@ class Field(
             column.format = self.converter.output_format
         elif isinstance(self.converter, converters.Char):
             column.info.meta["_votable_string_dtype"] = "char"
+            if self.arraysize is not None and self.arraysize.endswith("*"):
+                column.info.meta["_votable_arraysize"] = self.arraysize
         elif isinstance(self.converter, converters.UnicodeChar):
             column.info.meta["_votable_string_dtype"] = "unicodeChar"
+            if self.arraysize is not None and self.arraysize.endswith("*"):
+                column.info.meta["_votable_arraysize"] = self.arraysize
 
     @classmethod
     def from_table_column(cls, votable, column):
