@@ -23,6 +23,7 @@ from . import astrophys, cgs, dimensionless_unscaled, misc, si
 from .core import Unit
 from .errors import UnitsError
 from .function import units as function_units
+from .photometric import maggy
 
 if TYPE_CHECKING:
     from typing import Final
@@ -48,6 +49,7 @@ __all__ = [
     "temperature",
     "temperature_energy",
     "thermodynamic_temperature",
+    "zero_point_flux",
 ]
 
 km_per_s: Final = si.km / si.s
@@ -898,3 +900,16 @@ def magnetic_flux_field(mu_r=1):
         [(si.T, si.A / si.m, lambda x: x / (mu_r * mu0), lambda x: x * mu_r * mu0)],
         "magnetic_flux_field",
     )
+
+
+def zero_point_flux(flux0):
+    """
+    An equivalency for converting linear flux units ("maggys") defined relative
+    to a standard source into a standardized system.
+
+    Parameters
+    ----------
+    flux0 : `~astropy.units.Quantity`
+        The flux of a magnitude-0 object in the "maggy" system.
+    """
+    return Equivalency([(maggy, Unit(flux0))], "zero_point_flux")
