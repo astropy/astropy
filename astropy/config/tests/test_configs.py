@@ -206,6 +206,29 @@ def test_generate_config2(tmp_path):
     check_config(conf)
 
 
+def test_generate_config_subclasses(tmp_path):
+    """Test that generate_config works with subclasses of ConfigNamespace."""
+    from astropy.config.configuration import ConfigItem, ConfigNamespace
+
+    class MyPackageNamespace(ConfigNamespace):
+        pass
+
+    class RecursiveTestConf(MyPackageNamespace):
+        ti = ConfigItem(5, "this is a Description")
+
+    with set_temp_config(tmp_path):
+        from astropy.config.configuration import generate_config
+
+        generate_config("astropy")
+
+    assert os.path.exists(tmp_path / "astropy" / "astropy.cfg")
+
+    with open(tmp_path / "astropy" / "astropy.cfg") as fp:
+        conf = fp.read()
+
+    assert "# ti = 5" in conf
+
+
 def test_create_config_file(tmp_path, caplog):
     with set_temp_config(tmp_path):
         create_config_file("astropy")
