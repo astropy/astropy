@@ -78,7 +78,7 @@ end up with the final pixel coordinates.
 
 The `~astropy.visualization.wcsaxes.WCSAxes` class includes a :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform`
 method that can be used to get the appropriate transformation object to convert
-from various world coordinate systems to the final pixel coordinate system
+from various world coordinate systems to the final display coordinate system
 required by Matplotlib. The :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` method can
 take a number of different inputs, which are described in this and subsequent
 sections. The two simplest inputs to this method are ``'world'`` and
