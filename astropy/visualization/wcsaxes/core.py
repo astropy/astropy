@@ -705,7 +705,7 @@ class WCSAxes(Axes):
         """
         Return a transform from the specified frame to display coordinates.
 
-        This does not include the transData transformation
+        This includes the transData transformation
 
         Parameters
         ----------
