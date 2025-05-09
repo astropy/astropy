@@ -2,7 +2,6 @@ import io
 import json
 import os
 import re
-import warnings
 from contextlib import ExitStack
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -61,7 +60,8 @@ class ColumnAttrs:
     name: str
     datatype: str
     subtype: str | None = None
-    dtype: str | None = None
+    parsetype: str | None = None  # type passed to CSV parser
+    dtype: str | None = None  # final output numpy dtype as a str
     shape: tuple[int, ...] = field(default_factory=tuple)
     unit: str | None = None
     description: str | None = None
@@ -117,6 +117,10 @@ def read_header(
     cols = [ColumnAttrs(**col) for col in header["datatype"]]
 
     for col in cols:
+        # Default to parsing and casting output as `datatype`
+        col.parsetype = col.datatype
+        col.dtype = col.datatype
+
         # Warn if col datatype is not a valid ECSV datatype, but allow reading for
         # back-compatibility with existing older files that have numpy datatypes
         # like datetime64 or object or python str, which are not in the ECSV standard.
@@ -130,21 +134,21 @@ def read_header(
         # Subtype is written like "int64[2,null]" and we want to split this
         # out to "int64" and [2, None].
         subtype = col.subtype
-        if subtype and "[" in subtype:
-            idx = subtype.index("[")
-            col.subtype = subtype[:idx]
-            col.shape = json.loads(subtype[idx:])
+        if subtype:
+            if "[" in subtype:
+                idx = subtype.index("[")
+                col.dtype = subtype[:idx]
+                col.shape = tuple(json.loads(subtype[idx:]))
+            else:
+                col.dtype = subtype
 
-        col.dtype = col.datatype
+        if col.dtype == "json":
+            col.dtype = "object"
 
         # Convert ECSV "string" to numpy "str"
-        for attr in ("datatype", "dtype", "subtype"):
+        for attr in ("parsetype", "dtype"):
             if getattr(col, attr) == "string":
                 setattr(col, attr, "str")
-
-        # ECSV subtype of 'json' maps to numpy 'object' dtype
-        if col.subtype == "json":
-            col.subtype = "object"
 
     return data_start, cols, table_meta, delimiter
 
@@ -161,7 +165,7 @@ def read_data(
     READ: Read the data from the table ``lines``.
     """
     # Read the data lines
-    dtypes = {col.name: col.datatype for col in cols}
+    dtypes = {col.name: col.parsetype for col in cols}
     data = Table.read(
         input_file,
         format="pyarrow.csv",
@@ -175,7 +179,7 @@ def read_data(
 
 
 def _get_str_vals(col, data):
-    if col.dtype != "str":
+    if col.parsetype != "str":
         raise ValueError(f'datatype of column {data.name!r} must be "string"')
     # For masked we need a list because for multidim the data under the mask is set
     # to a compatible value.
@@ -192,16 +196,14 @@ def convert_column(col_attrs: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArr
     """
     Convert the column data from str to the appropriate numpy dtype.
     """
-    from astropy.io.ascii.ecsv import InvalidEcsvDatatypeWarning
-
     try:
-        if col_attrs.subtype == "object" or col_attrs.shape:
+        if col_attrs.dtype == "object" or col_attrs.shape:
             # Handle three distinct column types where each row element is serialized
             # to JSON. First convert the input data array or masked array to a list of
             # str and get the mask where available.
             str_vals, mask = _get_str_vals(col_attrs, data_in)
 
-            if col_attrs.subtype == "object":
+            if col_attrs.dtype == "object":
                 # Any Python objects serializable to JSON
                 process_func = process_1d_Nd_object_data
             elif col_attrs.shape[-1] is None:
@@ -216,13 +218,9 @@ def convert_column(col_attrs: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArr
 
         # Regular scalar value column
         else:
-            if col_attrs.subtype:
-                warnings.warn(
-                    f"unexpected subtype {col_attrs.subtype!r} set for column "
-                    f"{col_attrs.name!r}, using dtype={col_attrs.dtype!r} instead.",
-                    category=InvalidEcsvDatatypeWarning,
-                )
             data_out = data_in
+            if data_out.dtype != np.dtype(col_attrs.dtype):
+                data_out = data_out.astype(col_attrs.dtype)
 
         if data_out.shape[1:] != tuple(col_attrs.shape):
             raise ValueError("shape mismatch between value and column specifier")
@@ -267,12 +265,12 @@ def process_fixed_shape_multidim_data(col_attrs, str_vals, mask):
     arr_vals_mask = arr_vals == None
     if np.any(arr_vals_mask):
         # Replace all the None with an appropriate fill value
-        kind = np.dtype(col_attrs.subtype).kind
+        kind = np.dtype(col_attrs.dtype).kind
         arr_vals[arr_vals_mask] = {"U": "", "S": b""}.get(kind, 0)
         # Finally make a MaskedArray with the filled data + mask
-        data_out = np.ma.array(arr_vals.astype(col_attrs.subtype), mask=arr_vals_mask)
+        data_out = np.ma.array(arr_vals.astype(col_attrs.dtype), mask=arr_vals_mask)
     else:
-        data_out = arr_vals.astype(col_attrs.subtype)
+        data_out = arr_vals.astype(col_attrs.dtype)
 
     return data_out
 
@@ -297,7 +295,7 @@ def process_variable_length_array_data(col_attrs, str_vals, mask):
     for str_val in str_vals:
         obj_val = json.loads(str_val)  # list or nested lists
         try:
-            arr_val = np.array(obj_val, dtype=col_attrs.subtype)
+            arr_val = np.array(obj_val, dtype=col_attrs.dtype)
         except TypeError:
             # obj_val has entries that are inconsistent with
             # dtype. For a valid ECSV file the only possibility
@@ -305,9 +303,9 @@ def process_variable_length_array_data(col_attrs, str_vals, mask):
             vals = np.array(obj_val, dtype=object)
             # Replace all the None with an appropriate fill value
             mask_vals = vals == None
-            kind = np.dtype(col_attrs.subtype).kind
+            kind = np.dtype(col_attrs.dtype).kind
             vals[mask_vals] = {"U": "", "S": b""}.get(kind, 0)
-            arr_val = np.ma.array(vals.astype(col_attrs.subtype), mask=mask_vals)
+            arr_val = np.ma.array(vals.astype(col_attrs.dtype), mask=mask_vals)
 
         col_vals.append(arr_val)
 
