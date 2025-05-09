@@ -29,7 +29,11 @@ from astropy.units import QuantityInfo
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.masked import Masked
 
-FORMAT = "ascii.ecsv"
+
+@pytest.fixture(scope="module", params=["ascii.ecsv", "pyarrow.ecsv"])
+def format_ecsv(request):
+    return request.param
+
 
 DTYPES = [
     "bool",
@@ -93,7 +97,7 @@ def test_write_simple():
     t = simple_table()
 
     out = StringIO()
-    t.write(out, format=FORMAT)
+    t.write(out, format="ascii.ecsv")
     assert out.getvalue().splitlines() == SIMPLE_LINES
 
 
@@ -145,11 +149,11 @@ def test_write_full():
     ]
 
     out = StringIO()
-    t.write(out, format=FORMAT)
+    t.write(out, format="ascii.ecsv")
     assert out.getvalue().splitlines() == lines
 
 
-def test_write_read_roundtrip():
+def test_write_read_roundtrip(format_ecsv):
     """
     Write a full-featured table with all types and see that it round-trips on
     readback.  Use both space and comma delimiters.
@@ -157,15 +161,20 @@ def test_write_read_roundtrip():
     t = T_DTYPES
     for delimiter in DELIMITERS:
         out = StringIO()
-        t.write(out, format=FORMAT, delimiter=delimiter)
+        t.write(out, format="ascii.ecsv", delimiter=delimiter)
 
         t2s = [
-            Table.read(out.getvalue(), format=FORMAT),
-            Table.read(out.getvalue(), format="ascii"),
-            ascii.read(out.getvalue()),
-            ascii.read(out.getvalue(), format="ecsv", guess=False),
-            ascii.read(out.getvalue(), format="ecsv"),
+            Table.read(out.getvalue(), format=format_ecsv),
         ]
+        if format_ecsv == "ascii.ecsv":
+            t2s.extend(
+                [
+                    Table.read(out.getvalue(), format="ascii"),
+                    ascii.read(out.getvalue()),
+                    ascii.read(out.getvalue(), format="ecsv", guess=False),
+                    ascii.read(out.getvalue(), format="ecsv"),
+                ]
+            )
         for t2 in t2s:
             assert t.meta == t2.meta
             for name in t.colnames:
@@ -188,32 +197,34 @@ def test_bad_delimiter():
     """
     out = StringIO()
     with pytest.raises(ValueError) as err:
-        T_DTYPES.write(out, format=FORMAT, delimiter="|")
+        T_DTYPES.write(out, format="ascii.ecsv", delimiter="|")
     assert "only space and comma are allowed" in str(err.value)
 
 
-def test_bad_header_start():
+def test_bad_header_start(format_ecsv):
     """
     Bad header without initial # %ECSV x.x
     """
     lines = copy.copy(SIMPLE_LINES)
     lines[0] = "# %ECV 0.9"
+    kwargs = {"guess": False} if format_ecsv == "ascii.ecsv" else {}
     with pytest.raises(ascii.InconsistentTableError):
-        Table.read("\n".join(lines), format=FORMAT, guess=False)
+        Table.read("\n".join(lines), format=format_ecsv, **kwargs)
 
 
-def test_bad_delimiter_input():
+def test_bad_delimiter_input(format_ecsv):
     """
     Illegal delimiter in input
     """
     lines = copy.copy(SIMPLE_LINES)
     lines.insert(2, "# delimiter: |")
+    kwargs = {"guess": False} if format_ecsv == "ascii.ecsv" else {}
     with pytest.raises(ValueError) as err:
-        Table.read("\n".join(lines), format=FORMAT, guess=False)
+        Table.read("\n".join(lines), format=format_ecsv, **kwargs)
     assert "only space and comma are allowed" in str(err.value)
 
 
-def test_multidim_input():
+def test_multidim_input(format_ecsv):
     """
     Multi-dimensional column in input
     """
@@ -224,8 +235,8 @@ def test_multidim_input():
     t["b"] = [1, 2]
 
     out = StringIO()
-    t.write(out, format=FORMAT)
-    t2 = Table.read(out.getvalue(), format=FORMAT)
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), format=format_ecsv)
 
     assert np.all(t2["a"] == t["a"])
     assert t2["a"].shape == t["a"].shape
@@ -236,7 +247,7 @@ def test_multidim_input():
     assert np.all(t2["b"] == t["b"])
 
 
-def test_structured_input():
+def test_structured_input(format_ecsv):
     """
     Structured column in input.
     """
@@ -257,8 +268,8 @@ def test_structured_input():
     )
 
     out = StringIO()
-    t.write(out, format=FORMAT)
-    t2 = Table.read(out.getvalue(), format=FORMAT)
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), format=format_ecsv)
 
     for col in t.colnames:
         assert np.all(t2[col] == t[col])
@@ -270,17 +281,17 @@ def test_structured_input():
         assert t2[col].info.meta == t[col].info.meta
 
 
-def test_round_trip_empty_table():
+def test_round_trip_empty_table(format_ecsv):
     """Test fix in #5010 for issue #5009 (ECSV fails for empty type with bool type)"""
     t = Table(dtype=[bool, "i", "f"], names=["a", "b", "c"])
     out = StringIO()
-    t.write(out, format=FORMAT)
-    t2 = Table.read(out.getvalue(), format=FORMAT)
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), format=format_ecsv)
     assert t.dtype == t2.dtype
     assert len(t2) == 0
 
 
-def test_csv_ecsv_colnames_mismatch():
+def test_csv_ecsv_colnames_mismatch(format_ecsv):
     """
     Test that mismatch in column names from normal CSV header vs.
     ECSV YAML header raises the expected exception.
@@ -289,7 +300,7 @@ def test_csv_ecsv_colnames_mismatch():
     header_index = lines.index("a b c")
     lines[header_index] = "a b d"
     with pytest.raises(ValueError) as err:
-        Table.read(lines, format=FORMAT)
+        Table.read(lines, format=format_ecsv)
     assert "column names from ECSV header ['a', 'b', 'c']" in str(err.value)
 
 
@@ -302,7 +313,7 @@ def test_regression_5604():
     t["bar"] = [7] * u.km
 
     out = StringIO()
-    t.write(out, format=FORMAT)
+    t.write(out, format="ascii.ecsv")
 
     assert "!astropy.units.Unit" in out.getvalue()
     assert "!astropy.units.Quantity" in out.getvalue()
@@ -364,7 +375,7 @@ def test_ecsv_mixins_ascii_read_class():
         }
     )
     out = StringIO()
-    t.write(out, format=FORMAT)
+    t.write(out, format="ascii.ecsv")
     t2 = ascii.read(out.getvalue(), format="ecsv")
     assert type(t2) is Table
 
@@ -372,12 +383,12 @@ def test_ecsv_mixins_ascii_read_class():
     t["lon"] = mixin_cols["lon"]
 
     out = StringIO()
-    t.write(out, format=FORMAT)
+    t.write(out, format="ascii.ecsv")
     t2 = ascii.read(out.getvalue(), format="ecsv")
     assert type(t2) is QTable
 
 
-def test_ecsv_mixins_qtable_to_table():
+def test_ecsv_mixins_qtable_to_table(format_ecsv):
     """Test writing as QTable and reading as Table.  Ensure correct classes
     come out.
     """
@@ -385,8 +396,8 @@ def test_ecsv_mixins_qtable_to_table():
 
     t = QTable([mixin_cols[name] for name in names], names=names)
     out = StringIO()
-    t.write(out, format=FORMAT)
-    t2 = Table.read(out.getvalue(), format=FORMAT)
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), format=format_ecsv)
 
     assert t.colnames == t2.colnames
 
@@ -408,7 +419,7 @@ def test_ecsv_mixins_qtable_to_table():
 
 
 @pytest.mark.parametrize("table_cls", (Table, QTable))
-def test_ecsv_mixins_as_one(table_cls):
+def test_ecsv_mixins_as_one(table_cls, format_ecsv):
     """Test write/read all cols at once and validate intermediate column names"""
     names = sorted(mixin_cols)
     all_serialized_names = []
@@ -427,8 +438,8 @@ def test_ecsv_mixins_as_one(table_cls):
     t = table_cls([mixin_cols[name] for name in names], names=names)
 
     out = StringIO()
-    t.write(out, format=FORMAT)
-    t2 = table_cls.read(out.getvalue(), format=FORMAT)
+    t.write(out, format="ascii.ecsv")
+    t2 = table_cls.read(out.getvalue(), format=format_ecsv)
 
     assert t.colnames == t2.colnames
 
@@ -455,7 +466,7 @@ def make_multidim(col, ndim):
 @pytest.mark.parametrize("name_col", list(mixin_cols.items()))
 @pytest.mark.parametrize("table_cls", (Table, QTable))
 @pytest.mark.parametrize("ndim", (1, 2, 3))
-def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
+def test_ecsv_mixins_per_column(table_cls, name_col, ndim, format_ecsv):
     """Test write/read one col at a time and do detailed validation.
     This tests every input column type as 1-d, 2-d and 3-d.
     """
@@ -468,8 +479,8 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
     t[name].info.meta = {"b": 2, "a": 1}
 
     out = StringIO()
-    t.write(out, format=FORMAT)
-    t2 = table_cls.read(out.getvalue(), format=FORMAT)
+    t.write(out, format="ascii.ecsv")
+    t2 = table_cls.read(out.getvalue(), format=format_ecsv)
 
     assert t.colnames == t2.colnames
 
@@ -525,7 +536,7 @@ def test_round_trip_masked_table_default(tmp_path):
         assert not np.all(t2[name] == t[name])  # Expected diff
 
 
-def test_round_trip_masked_table_serialize_mask(tmp_path):
+def test_round_trip_masked_table_serialize_mask(tmp_path, format_ecsv):
     """
     Same as prev but set the serialize_method to 'data_mask' so mask is written out
     """
@@ -540,7 +551,7 @@ def test_round_trip_masked_table_serialize_mask(tmp_path):
 
     t.write(filename, serialize_method="data_mask")
 
-    t2 = Table.read(filename)
+    t2 = Table.read(filename, format=format_ecsv)
     assert t2.masked is False
     assert t2.colnames == t.colnames
     for name in t2.colnames:
@@ -554,7 +565,7 @@ def test_round_trip_masked_table_serialize_mask(tmp_path):
 
 
 @pytest.mark.parametrize("table_cls", (Table, QTable))
-def test_ecsv_round_trip_user_defined_unit(table_cls, tmp_path):
+def test_ecsv_round_trip_user_defined_unit(table_cls, tmp_path, format_ecsv):
     """Ensure that we can read-back enabled user-defined units."""
 
     # Test adapted from #8897, where it was noted that this works
@@ -571,7 +582,7 @@ def test_ecsv_round_trip_user_defined_unit(table_cls, tmp_path):
         ctx = nullcontext()
     # Note: The read might also generate ResourceWarning, in addition to UnitsWarning
     with ctx:
-        t2 = table_cls.read(filename)
+        t2 = table_cls.read(filename, format=format_ecsv)
     assert isinstance(t2["l"].unit, u.UnrecognizedUnit)
     assert str(t2["l"].unit) == "bandpass_sol_lum"
     if table_cls is QTable:
@@ -588,12 +599,12 @@ def test_ecsv_round_trip_user_defined_unit(table_cls, tmp_path):
         # Just to be sure, also try writing with unit enabled.
         filename2 = tmp_path / "test2.ecsv"
         t3.write(filename2)
-        t4 = table_cls.read(filename)
+        t4 = table_cls.read(filename, format=format_ecsv)
         assert t4["l"].unit is unit
         assert np.all(t4["l"] == t["l"])
 
 
-def test_read_masked_bool():
+def test_read_masked_bool(format_ecsv):
     txt = """\
 # %ECSV 1.0
 # ---
@@ -607,7 +618,7 @@ True
 ""
 False
 """
-    dat = Table.read(txt, format=FORMAT)
+    dat = Table.read(txt, format=format_ecsv)
     col = dat["col0"]
     assert isinstance(col, MaskedColumn)
     assert np.all(col.mask == [False, False, False, True, False])
@@ -617,7 +628,9 @@ False
 @pytest.mark.parametrize("serialize_method", ["null_value", "data_mask"])
 @pytest.mark.parametrize("dtype", [np.int64, np.float64, bool, str])
 @pytest.mark.parametrize("delimiter", [",", " "])
-def test_roundtrip_multidim_masked_array(serialize_method, dtype, delimiter):
+def test_roundtrip_multidim_masked_array(
+    serialize_method, dtype, delimiter, format_ecsv
+):
     # TODO also test empty string with null value
     t = Table()
     col = MaskedColumn(np.arange(12).reshape(2, 3, 2), dtype=dtype)
@@ -629,8 +642,10 @@ def test_roundtrip_multidim_masked_array(serialize_method, dtype, delimiter):
     t["a"] = col
     t["b"] = ["x", "y"]  # Add another column for kicks
     out = StringIO()
-    t.write(out, format=FORMAT, serialize_method=serialize_method)
-    t2 = Table.read(out.getvalue(), format=FORMAT)
+    t.write(
+        out, format="ascii.ecsv", serialize_method=serialize_method, delimiter=delimiter
+    )
+    t2 = Table.read(out.getvalue(), format=format_ecsv)
 
     assert t2.masked is False
     assert t2.colnames == t.colnames
@@ -659,13 +674,13 @@ a
         InvalidEcsvDatatypeWarning,
         match=rf"unexpected subtype '{subtype}' set for column 'a'",
     ):
-        t = Table.read(txt, format=FORMAT)
+        t = Table.read(txt, format="ascii.ecsv")
 
     assert t["a"].dtype.kind == "U"
     assert t["a"][0] == "[1,2]"
 
 
-def test_multidim_bad_shape():
+def test_multidim_bad_shape(format_ecsv):
     """Test a malformed ECSV file"""
     txt = """\
 # %ECSV 1.0
@@ -681,7 +696,7 @@ a
     with pytest.raises(
         ValueError, match="column 'a' failed to convert: shape mismatch"
     ):
-        Table.read(txt, format=FORMAT)
+        Table.read(txt, format=format_ecsv)
 
 
 def test_write_not_json_serializable():
@@ -693,10 +708,10 @@ def test_write_not_json_serializable():
     )
     out = StringIO()
     with pytest.raises(TypeError, match=match):
-        t.write(out, format=FORMAT)
+        t.write(out, format="ascii.ecsv")
 
 
-def test_read_not_json_serializable():
+def test_read_not_json_serializable(format_ecsv):
     """Test a malformed ECSV file"""
     txt = """\
 # %ECSV 1.0
@@ -709,10 +724,10 @@ fail
 [3,4]"""
     match = "column 'a' failed to convert: column value is not valid JSON"
     with pytest.raises(ValueError, match=match):
-        Table.read(txt, format=FORMAT)
+        Table.read(txt, format=format_ecsv)
 
 
-def test_read_bad_datatype():
+def test_read_bad_datatype(format_ecsv):
     """Test a malformed ECSV file"""
     txt = """\
 # %ECSV 1.0
@@ -727,13 +742,13 @@ fail
         InvalidEcsvDatatypeWarning,
         match="unexpected datatype 'object' of column 'a' is not in allowed",
     ):
-        t = Table.read(txt, format=FORMAT)
+        t = Table.read(txt, format=format_ecsv)
     assert t["a"][0] == "fail"
     assert type(t["a"][1]) is str
     assert type(t["a"].dtype) == np.dtype("O")
 
 
-def test_read_complex():
+def test_read_complex(format_ecsv):
     """Test an ECSV v1.0 file with a complex column"""
     txt = """\
 # %ECSV 1.0
@@ -749,11 +764,11 @@ a
         InvalidEcsvDatatypeWarning,
         match="unexpected datatype 'complex' of column 'a' is not in allowed",
     ):
-        t = Table.read(txt, format=FORMAT)
+        t = Table.read(txt, format=format_ecsv)
     assert t["a"].dtype.type is np.complex128
 
 
-def test_read_str():
+def test_read_str(format_ecsv):
     """Test an ECSV file with a 'str' instead of 'string' datatype"""
     txt = """\
 # %ECSV 1.0
@@ -769,12 +784,12 @@ S"""  # also testing single character text
         InvalidEcsvDatatypeWarning,
         match="unexpected datatype 'str' of column 'a' is not in allowed",
     ):
-        t = Table.read(txt, format=FORMAT)
+        t = Table.read(txt, format=format_ecsv)
     assert isinstance(t["a"][1], str)
     assert isinstance(t["a"][0], np.str_)
 
 
-def test_read_bad_datatype_for_object_subtype():
+def test_read_bad_datatype_for_object_subtype(format_ecsv):
     """Test a malformed ECSV file"""
     txt = """\
 # %ECSV 1.0
@@ -787,18 +802,18 @@ fail
 [3,4]"""
     match = "column 'a' failed to convert: datatype of column 'a' must be \"string\""
     with pytest.raises(ValueError, match=match):
-        Table.read(txt, format=FORMAT)
+        Table.read(txt, format=format_ecsv)
 
 
-def test_full_repr_roundtrip():
+def test_full_repr_roundtrip(format_ecsv):
     """Test round-trip of float values to full precision even with format
     specified"""
     t = Table()
     t["a"] = np.array([np.pi, 1 / 7], dtype=np.float64)
     t["a"].info.format = ".2f"
     out = StringIO()
-    t.write(out, format=FORMAT)
-    t2 = Table.read(out.getvalue(), format=FORMAT)
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), format=format_ecsv)
     assert np.all(t["a"] == t2["a"])
     assert t2["a"].info.format == ".2f"
 
@@ -822,7 +837,7 @@ def _make_expected_values(cols):
         t = Table()
         t[name] = col
         out = StringIO()
-        t.write(out, format=FORMAT)
+        t.write(out, format="ascii.ecsv")
         hdr = _get_ecsv_header_dict(out.getvalue())
         fmt_hdr = pformat(hdr["datatype"])
         print(f"exps[{name!r}] =", fmt_hdr[:1])
@@ -919,15 +934,15 @@ exps["1-d object"] = [
 
 
 @pytest.mark.parametrize("name,col,exp", list(zip(cols, cols.values(), exps.values())))
-def test_specialized_columns(name, col, exp):
+def test_specialized_columns(name, col, exp, format_ecsv):
     """Test variable length lists, multidim columns, object columns."""
     t = Table()
     t[name] = col
     out = StringIO()
-    t.write(out, format=FORMAT)
+    t.write(out, format="ascii.ecsv")
     hdr = _get_ecsv_header_dict(out.getvalue())
     assert hdr["datatype"] == exp
-    t2 = Table.read(out.getvalue(), format=FORMAT)
+    t2 = Table.read(out.getvalue(), format=format_ecsv)
     assert t2.colnames == t.colnames
     for colname in t2.colnames:
         assert t2[colname].dtype == t[colname].dtype
@@ -937,7 +952,7 @@ def test_specialized_columns(name, col, exp):
             assert np.all(val1 == val2)
 
 
-def test_full_subtypes():
+def test_full_subtypes(format_ecsv):
     """Read ECSV file created by M. Taylor that includes scalar, fixed array,
     variable array for all datatypes. This file has missing values for all
     columns as both per-value null and blank entries for the entire column
@@ -946,7 +961,7 @@ def test_full_subtypes():
     Note: original file was modified to include blank values in f_float and
     f_double columns.
     """
-    t = Table.read(os.path.join(TEST_DIR, "data", "subtypes.ecsv"))
+    t = Table.read(os.path.join(TEST_DIR, "data", "subtypes.ecsv"), format=format_ecsv)
     colnames = [
         "i_index",
         "s_byte",
@@ -1016,7 +1031,7 @@ def test_full_subtypes():
             assert info.dtype.name.startswith(type_map[type_name])
 
 
-def test_masked_empty_subtypes():
+def test_masked_empty_subtypes(format_ecsv):
     """Test blank field in subtypes. Similar to previous test but with explicit
     checks of values"""
     txt = """
@@ -1032,7 +1047,7 @@ def test_masked_empty_subtypes():
     "" "" ""
     [1,2] [2,3] [2,3]
     """
-    t = Table.read(txt, format=FORMAT)
+    t = Table.read(txt, format=format_ecsv)
     assert np.all(t["o"] == np.array([None, -1, [1, 2]], dtype=object))
     assert np.all(t["o"].mask == [False, True, False])
 
@@ -1045,7 +1060,7 @@ def test_masked_empty_subtypes():
     assert np.all(t["v"].mask == [False, True, False])
 
 
-def test_masked_vals_in_array_subtypes():
+def test_masked_vals_in_array_subtypes(format_ecsv):
     """Test null values in fixed and variable array subtypes."""
     t = Table()
     t["f"] = np.ma.array([[1, 2], [3, 4]], mask=[[0, 1], [1, 0]], dtype=np.int64)
@@ -1054,7 +1069,7 @@ def test_masked_vals_in_array_subtypes():
     t["v"][1] = np.ma.array([3, 4, 5], mask=[1, 0, 0], dtype=np.int64)
 
     out = StringIO()
-    t.write(out, format=FORMAT)
+    t.write(out, format="ascii.ecsv")
     txt = """
     # %ECSV 1.0
     # ---
@@ -1069,7 +1084,7 @@ def test_masked_vals_in_array_subtypes():
     hdr = _get_ecsv_header_dict(out.getvalue())
     hdr_exp = _get_ecsv_header_dict(txt)
     assert hdr == hdr_exp
-    t2 = Table.read(out.getvalue(), format=FORMAT)
+    t2 = Table.read(out.getvalue(), format=format_ecsv)
     assert t2.colnames == t.colnames
     for name in t2.colnames:
         assert t2[name].dtype == t[name].dtype
@@ -1100,19 +1115,19 @@ def test_guess_ecsv_with_one_column():
 
 
 @pytest.mark.parametrize("masked", [MaskedColumn, Masked, np.ma.MaskedArray])
-def test_write_structured_masked_column(masked):
+def test_write_structured_masked_column(masked, format_ecsv):
     a = np.array([(1, 2), (3, 4)], dtype="i,i")
     mc = masked(a, mask=[(True, False), (False, False)])
     t = Table([mc], names=["mc"])
     out = StringIO()
-    t.write(out, format=FORMAT)
-    t2 = Table.read(out.getvalue(), format=FORMAT)
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), format=format_ecsv)
     assert type(t2["mc"]) is type(t["mc"])
     assert (t2["mc"] == mc).all()
     assert (t2["mc"].mask == mc.mask).all()
 
 
-def test_write_masked_time_ymdhms_mixin():
+def test_write_masked_time_ymdhms_mixin(format_ecsv):
     # Regression test for gh-16370
     # Make a masked time,
     t = Time({"year": 2000, "month": 1, "day": [1, 2]})
@@ -1120,9 +1135,9 @@ def test_write_masked_time_ymdhms_mixin():
     # Create a table and write to a file
     qt = QTable([t], names=["t"])
     out = StringIO()
-    qt.write(out, format=FORMAT)
+    qt.write(out, format="ascii.ecsv")
     # Read back and compare.
-    qt2 = QTable.read(out.getvalue(), format=FORMAT)
+    qt2 = QTable.read(out.getvalue(), format=format_ecsv)
     # Note that value under time does not roundtrip
     assert (qt2["t"] == t).all()
     assert (qt2["t"].mask == t.mask).all()
