@@ -198,6 +198,12 @@ def get_parsetype_dtype_shape(
             )
             dtype = parsetype
 
+    if parsetype == "float16":
+        # PyArrow does not support float16, so we need to parse it as float32 and then
+        # cast it to float16 at the end.
+        parsetype = "float32"
+        dtype = "float16"
+
     return parsetype, dtype, shape
 
 
