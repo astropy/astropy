@@ -2,6 +2,7 @@ import io
 import json
 import os
 import re
+import warnings
 from contextlib import ExitStack
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -10,6 +11,15 @@ import numpy as np
 import numpy.typing as npt
 
 from astropy.table import Table, meta, serialize
+
+
+def is_numpy_dtype(dtype: str) -> bool:
+    try:
+        np.dtype(dtype)
+    except Exception:
+        return False
+    else:
+        return True
 
 
 def get_header_lines(
@@ -77,7 +87,11 @@ def read_header(
     READ: Initialize the header Column objects from the table ``lines``.
     """
     from astropy.io.ascii.core import InconsistentTableError
-    from astropy.io.ascii.ecsv import DELIMITERS, ECSV_DATATYPES
+    from astropy.io.ascii.ecsv import (
+        DELIMITERS,
+        ECSV_DATATYPES,
+        InvalidEcsvDatatypeWarning,
+    )
 
     # Extract non-blank comment (header) lines with comment character stripped
     data_start, header_lines = get_header_lines(input_file, encoding=encoding)
@@ -117,14 +131,30 @@ def read_header(
     cols = [ColumnAttrs(**col) for col in header["datatype"]]
 
     for col in cols:
+        col.parsetype = "str" if col.datatype == "string" else col.datatype
+
         if col.datatype not in ECSV_DATATYPES:
             msg = (
                 f"unexpected datatype {col.datatype!r} of column {col.name!r} "
                 f"is not in allowed ECSV datatypes {ECSV_DATATYPES}."
             )
-            raise InconsistentTableError(msg)
+            # Try being liberal on input -- original col.parsetype (coming straight from
+            # ECSV datatype) looks like a numpy dtype. So parse the column as string and
+            # then cast as `parsetype`. This allows for back-compatibility with early
+            # versions of io.ascii.ecsv that wrote and read e.g. datatype=datetime64.
+            if is_numpy_dtype(col.parsetype):
+                col.dtype = col.parsetype
+                col.parsetype = "str"
+                warnings.warn(msg, InvalidEcsvDatatypeWarning)
+            else:
+                # No joy, this is an exception
+                raise InconsistentTableError(msg)
 
-        col.parsetype = "str" if col.datatype == "string" else col.datatype
+        if col.subtype and col.parsetype != "str":
+            raise ValueError(
+                f"column {col.name!r} failed to convert: "
+                f'datatype of column {col.name!r} must be "string"'
+            )
 
     return data_start, cols, table_meta, delimiter
 
@@ -155,8 +185,6 @@ def read_data(
 
 
 def _get_str_vals(col, data):
-    if col.parsetype != "str":
-        raise ValueError(f'datatype of column {data.name!r} must be "string"')
     # For masked we need a list because for multidim the data under the mask is set
     # to a compatible value.
     if hasattr(data, "mask"):
@@ -174,8 +202,10 @@ def convert_column(col: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArray":
     """
     from astropy.io.ascii.ecsv import InvalidEcsvDatatypeWarning
 
-    # Default to parsing and casting output as `datatype`
-    col.dtype = col.parsetype
+    # Default to parsing and casting output as `datatype`. But col.dtype might have been
+    # set previously in `read_header` for certain special cases.
+    if col.dtype is None:
+        col.dtype = col.parsetype
 
     subtype = col.subtype
     if subtype:
@@ -195,11 +225,7 @@ def convert_column(col: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArray":
         # the astropy implementation, but not by the ECSV standard. The standard states
         # that an unknown subtype can be ignored, so that is what we do here (but with
         # a warning).
-        try:
-            np.dtype(col.dtype)
-        except TypeError:
-            import warnings
-
+        if not is_numpy_dtype(col.dtype):
             warnings.warn(
                 f"unexpected subtype {col.subtype!r} set for column "
                 f"{col.name!r}, using dtype={col.parsetype!r} instead.",

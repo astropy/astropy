@@ -736,16 +736,27 @@ def test_read_bad_datatype(format_ecsv):
 # - {name: a, datatype: object}
 # schema: astropy-2.0
 a
-fail
+{"x":1}
 [3,4]"""
     with pytest.warns(
         InvalidEcsvDatatypeWarning,
         match="unexpected datatype 'object' of column 'a' is not in allowed",
     ):
         t = Table.read(txt, format=format_ecsv)
-    assert t["a"][0] == "fail"
-    assert type(t["a"][1]) is str
-    assert type(t["a"].dtype) == np.dtype("O")
+    col = t["a"]
+    if format_ecsv == "ascii.ecsv":
+        # This is the legacy "passing" behavior for io.ascii.ecsv, but it is just wrong.
+        # Not clear why this was included as expected behavior.
+        assert col[0] == '{"x":1}'
+        assert col[1] == "[3,4]"
+        assert all(type(col[ii]) is str for ii in range(len(col)))
+        assert col.dtype.kind == "O"
+    else:
+        assert col[0] == {"x": 1}
+        assert type(col[0]) is dict
+        assert col[1] == [3, 4]
+        assert type(col[1]) is list
+        assert col.dtype.kind == "O"
 
 
 def test_read_complex(format_ecsv):
@@ -1035,18 +1046,18 @@ def test_masked_empty_subtypes(format_ecsv):
     """Test blank field in subtypes. Similar to previous test but with explicit
     checks of values"""
     txt = """
-    # %ECSV 1.0
-    # ---
-    # datatype:
-    # - {name: o, datatype: string, subtype: json}
-    # - {name: f, datatype: string, subtype: 'int64[2]'}
-    # - {name: v, datatype: string, subtype: 'int64[null]'}
-    # schema: astropy-2.0
-    o f v
-    null [0,1] [1]
-    "" "" ""
-    [1,2] [2,3] [2,3]
-    """
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: o, datatype: string, subtype: json}
+# - {name: f, datatype: string, subtype: 'int64[2]'}
+# - {name: v, datatype: string, subtype: 'int64[null]'}
+# schema: astropy-2.0
+o f v
+null [0,1] [1]
+"" "" ""
+[1,2] [2,3] [2,3]
+"""
     t = Table.read(txt, format=format_ecsv)
     assert np.all(t["o"] == np.array([None, -1, [1, 2]], dtype=object))
     assert np.all(t["o"].mask == [False, True, False])
