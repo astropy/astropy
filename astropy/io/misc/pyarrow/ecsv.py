@@ -131,7 +131,7 @@ def get_parsetype_dtype_shape(
 ) -> tuple[str, str, tuple[int, ...]]:
     """Get the parsetype, dtype, and shape of the column from datatype and subtype.
 
-    This property implements most of the complexity of the ECSV data type
+    This function implements most of the complexity of the ECSV data type
     handling. It converts the ECSV ``datatype`` and ``subtype`` to the following:
     - ``parsetype``: the type used to parse the CSV file data
     - ``dtype``: the numpy dtype in the final column data
@@ -172,10 +172,6 @@ def get_parsetype_dtype_shape(
             f"column {name!r} failed to convert: "
             f'datatype of column {name!r} must be "string"'
         )
-
-    # If `dtype` is not yet defined then default to casting output as `parsetype`.
-    if dtype is None:
-        dtype = parsetype
 
     if subtype:
         # Subtype can be written like "int64[2,null]" and we want to split this
@@ -320,7 +316,8 @@ def convert_column(col: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArray":
         # Regular scalar value column
         else:
             data_out = data_in
-            if data_out.dtype != np.dtype(col.dtype):
+            # If we need to cast the data to a different dtype, do it now.
+            if col.dtype and data_out.dtype != np.dtype(col.dtype):
                 data_out = data_out.astype(col.dtype)
 
         if data_out.shape[1:] != tuple(col.shape):
