@@ -1,10 +1,11 @@
+import functools
 import io
 import json
 import os
 import re
 import warnings
 from contextlib import ExitStack
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -14,6 +15,7 @@ from astropy.table import Table, meta, serialize
 
 
 def is_numpy_dtype(dtype: str) -> bool:
+    """Check if the given dtype is a valid numpy dtype."""
     try:
         np.dtype(dtype)
     except Exception:
@@ -26,11 +28,37 @@ def get_header_lines(
     input_file: str | os.PathLike | io.BytesIO,
     encoding="utf-8",
 ) -> tuple[int, list[str]]:
-    comment = "# ".encode(encoding)
-    comment_comment = "##".encode(encoding)
+    """
+    Extract header lines from a file or file-like object.
+
+    This function reads a file or file-like object and extracts lines that
+    start with a specific header prefix ("# ") while skipping blank lines
+    and lines starting with a comment prefix ("##"). The function stops
+    reading at the first non-blank, non-comment line that does not match
+    the header prefix.
+
+    Parameters
+    ----------
+    input_file : str | os.PathLike | io.BytesIO
+        The input file path or file-like object to read. If a file path is
+        provided, the function automatically handles compressed files with
+        extensions `.gz` or `.bz2`.
+    encoding : str, optional
+        The encoding used to decode the file content. Default is "utf-8".
+
+    Returns
+    -------
+    idx : int
+        Index of the last line read.
+    lines : list[str]
+      List of decoded header lines without the header prefix.
+    """
+    header_prefix = "# ".encode(encoding)
+    comment_prefix = "##".encode(encoding)
     lines = []
 
     with ExitStack() as stack:
+        # Get a file-like object as tmp_input_file
         if isinstance(input_file, (str, os.PathLike)):
             ext = Path(input_file).suffix
             if ext == ".gz":
@@ -49,16 +77,16 @@ def get_header_lines(
 
         for idx, line in enumerate(tmp_input_file):
             # Allow blank lines and skip them
-            if not (line_strip := line.strip()) or line_strip.startswith(
-                comment_comment
-            ):
+            line_strip = line.strip()
+            if not line_strip or line_strip.startswith(comment_prefix):
                 continue
-            if line_strip.startswith(comment):
+            if line_strip.startswith(header_prefix):
                 lines.append(line_strip[2:].decode(encoding))
             else:
                 # Stop iterating on first failed comment match for a non-blank line
                 break
 
+    # Need to rewind the input file if it is a file-like object
     if isinstance(input_file, io.BytesIO):
         input_file.seek(0)
 
@@ -70,13 +98,103 @@ class ColumnAttrs:
     name: str
     datatype: str
     subtype: str | None = None
-    parsetype: str | None = None  # type passed to CSV parser
-    dtype: str | None = None  # final output numpy dtype as a str
-    shape: tuple[int, ...] = field(default_factory=tuple)
     unit: str | None = None
     description: str | None = None
     format: str | None = None
     meta: dict | None = None
+
+    @functools.cached_property
+    def parsetype(self) -> str:
+        """Type used to parse the CSV file data"""
+        return self.get_parsetype_dtype_shape[0]
+
+    @functools.cached_property
+    def dtype(self) -> str:
+        """Numpy dtype in the final column data"""
+        return self.get_parsetype_dtype_shape[1]
+
+    @functools.cached_property
+    def shape(self) -> tuple[int, ...]:
+        """Shape of the column data"""
+        return self.get_parsetype_dtype_shape[2]
+
+    @functools.cached_property
+    def get_parsetype_dtype_shape(self) -> tuple[str, str, tuple[int, ...]]:
+        """Get the parsetype, dtype, and shape of the column from ECSV header.
+
+        This property implements most of the complexity of the ECSV data type
+        handling. It converts the ECSV ``datatype`` and ``subtype`` to:
+        - ``parsetype``: the type used to parse the CSV file data
+        - ``dtype``: the numpy dtype in the final column data
+        - ``shape``: the shape of the column data
+
+        The ECSV standard allows for a wide variety of data types and subtypes, and
+        we also need to handle some legacy cases and be liberal in what we accept.
+        """
+        from astropy.io.ascii.core import InconsistentTableError
+        from astropy.io.ascii.ecsv import ECSV_DATATYPES, InvalidEcsvDatatypeWarning
+
+        parsetype = "str" if self.datatype == "string" else self.datatype
+        dtype = None
+        shape = ()
+
+        if self.datatype not in ECSV_DATATYPES:
+            msg = (
+                f"unexpected datatype {self.datatype!r} of column {self.name!r} "
+                f"is not in allowed ECSV datatypes {ECSV_DATATYPES}."
+            )
+            # Try being liberal on input if the `parsetype` (derived from ECSV
+            # `datatype`) looks like a numpy dtype. In this case, parse the column as
+            # string and then cast as `parsetype`. This allows for back-compatibility
+            # with early versions of io.ascii.ecsv that wrote and read e.g.
+            # datatype=datetime64.
+            if is_numpy_dtype(parsetype):
+                dtype = parsetype
+                parsetype = "str"
+                warnings.warn(msg, InvalidEcsvDatatypeWarning)
+            else:
+                # No joy, this is an exception
+                raise InconsistentTableError(msg)
+
+        if self.subtype and parsetype != "str":
+            # Note: the "column .. failed to convert" bit is odd here but it is to match
+            # the io.ascii.ecsv behavior.
+            raise ValueError(
+                f"column {self.name!r} failed to convert: "
+                f'datatype of column {self.name!r} must be "string"'
+            )
+
+        # If `dtype` is not yet defined then default to casting output as `parsetype`.
+        if dtype is None:
+            dtype = parsetype
+
+        subtype = self.subtype
+        if subtype:
+            # Subtype can be written like "int64[2,null]" and we want to split this
+            # out to "int64" and [2, None].
+            if "[" in subtype:
+                idx = subtype.index("[")
+                dtype = subtype[:idx]
+                shape = tuple(json.loads(subtype[idx:]))
+            else:
+                dtype = subtype
+
+            # Map ECSV types to numpy dtypes
+            dtype = {"json": "object", "string": "str"}.get(dtype, dtype)
+
+            # Check if the subtype corresponds to a valid numpy dtype. This is required by
+            # the astropy implementation, but not by the ECSV standard. The standard states
+            # that an unknown subtype can be ignored, so that is what we do here (but with
+            # a warning).
+            if not is_numpy_dtype(dtype):
+                warnings.warn(
+                    f"unexpected subtype {self.subtype!r} set for column "
+                    f"{self.name!r}, using dtype={parsetype!r} instead.",
+                    category=InvalidEcsvDatatypeWarning,
+                )
+                dtype = parsetype
+
+        return parsetype, dtype, shape
 
 
 def read_header(
@@ -87,11 +205,7 @@ def read_header(
     READ: Initialize the header Column objects from the table ``lines``.
     """
     from astropy.io.ascii.core import InconsistentTableError
-    from astropy.io.ascii.ecsv import (
-        DELIMITERS,
-        ECSV_DATATYPES,
-        InvalidEcsvDatatypeWarning,
-    )
+    from astropy.io.ascii.ecsv import DELIMITERS
 
     # Extract non-blank comment (header) lines with comment character stripped
     data_start, header_lines = get_header_lines(input_file, encoding=encoding)
@@ -129,32 +243,6 @@ def read_header(
 
     # Create list of columns from `header`.
     cols = [ColumnAttrs(**col) for col in header["datatype"]]
-
-    for col in cols:
-        col.parsetype = "str" if col.datatype == "string" else col.datatype
-
-        if col.datatype not in ECSV_DATATYPES:
-            msg = (
-                f"unexpected datatype {col.datatype!r} of column {col.name!r} "
-                f"is not in allowed ECSV datatypes {ECSV_DATATYPES}."
-            )
-            # Try being liberal on input -- original col.parsetype (coming straight from
-            # ECSV datatype) looks like a numpy dtype. So parse the column as string and
-            # then cast as `parsetype`. This allows for back-compatibility with early
-            # versions of io.ascii.ecsv that wrote and read e.g. datatype=datetime64.
-            if is_numpy_dtype(col.parsetype):
-                col.dtype = col.parsetype
-                col.parsetype = "str"
-                warnings.warn(msg, InvalidEcsvDatatypeWarning)
-            else:
-                # No joy, this is an exception
-                raise InconsistentTableError(msg)
-
-        if col.subtype and col.parsetype != "str":
-            raise ValueError(
-                f"column {col.name!r} failed to convert: "
-                f'datatype of column {col.name!r} must be "string"'
-            )
 
     return data_start, cols, table_meta, delimiter
 
@@ -198,41 +286,8 @@ def _get_str_vals(col, data):
 
 def convert_column(col: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArray":
     """
-    Convert the column data from str to the appropriate numpy dtype.
+    Convert the column data from original parsetype to the output numpy dtype.
     """
-    from astropy.io.ascii.ecsv import InvalidEcsvDatatypeWarning
-
-    # Default to parsing and casting output as `datatype`. But col.dtype might have been
-    # set previously in `read_header` for certain special cases.
-    if col.dtype is None:
-        col.dtype = col.parsetype
-
-    subtype = col.subtype
-    if subtype:
-        # Subtype can be written like "int64[2,null]" and we want to split this
-        # out to "int64" and [2, None].
-        if "[" in subtype:
-            idx = subtype.index("[")
-            col.dtype = subtype[:idx]
-            col.shape = tuple(json.loads(subtype[idx:]))
-        else:
-            col.dtype = subtype
-
-        # Map ECSV types to numpy dtypes
-        col.dtype = {"json": "object", "string": "str"}.get(col.dtype, col.dtype)
-
-        # Check if the subtype corresponds to a valid numpy dtype. This is required by
-        # the astropy implementation, but not by the ECSV standard. The standard states
-        # that an unknown subtype can be ignored, so that is what we do here (but with
-        # a warning).
-        if not is_numpy_dtype(col.dtype):
-            warnings.warn(
-                f"unexpected subtype {col.subtype!r} set for column "
-                f"{col.name!r}, using dtype={col.parsetype!r} instead.",
-                category=InvalidEcsvDatatypeWarning,
-            )
-            col.dtype = col.parsetype
-
     try:
         if col.dtype == "object" or col.shape:
             # Handle three distinct column types where each row element is serialized
