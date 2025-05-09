@@ -117,13 +117,6 @@ def read_header(
     cols = [ColumnAttrs(**col) for col in header["datatype"]]
 
     for col in cols:
-        # Default to parsing and casting output as `datatype`
-        col.parsetype = col.datatype
-        col.dtype = col.datatype
-
-        # Warn if col datatype is not a valid ECSV datatype, but allow reading for
-        # back-compatibility with existing older files that have numpy datatypes
-        # like datetime64 or object or python str, which are not in the ECSV standard.
         if col.datatype not in ECSV_DATATYPES:
             msg = (
                 f"unexpected datatype {col.datatype!r} of column {col.name!r} "
@@ -131,24 +124,7 @@ def read_header(
             )
             raise InconsistentTableError(msg)
 
-        # Subtype is written like "int64[2,null]" and we want to split this
-        # out to "int64" and [2, None].
-        subtype = col.subtype
-        if subtype:
-            if "[" in subtype:
-                idx = subtype.index("[")
-                col.dtype = subtype[:idx]
-                col.shape = tuple(json.loads(subtype[idx:]))
-            else:
-                col.dtype = subtype
-
-        if col.dtype == "json":
-            col.dtype = "object"
-
-        # Convert ECSV "string" to numpy "str"
-        for attr in ("parsetype", "dtype"):
-            if getattr(col, attr) == "string":
-                setattr(col, attr, "str")
+        col.parsetype = "str" if col.datatype == "string" else col.datatype
 
     return data_start, cols, table_meta, delimiter
 
@@ -192,21 +168,56 @@ def _get_str_vals(col, data):
     return str_vals, mask
 
 
-def convert_column(col_attrs: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArray":
+def convert_column(col: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArray":
     """
     Convert the column data from str to the appropriate numpy dtype.
     """
+    from astropy.io.ascii.ecsv import InvalidEcsvDatatypeWarning
+
+    # Default to parsing and casting output as `datatype`
+    col.dtype = col.parsetype
+
+    subtype = col.subtype
+    if subtype:
+        # Subtype can be written like "int64[2,null]" and we want to split this
+        # out to "int64" and [2, None].
+        if "[" in subtype:
+            idx = subtype.index("[")
+            col.dtype = subtype[:idx]
+            col.shape = tuple(json.loads(subtype[idx:]))
+        else:
+            col.dtype = subtype
+
+        # Map ECSV types to numpy dtypes
+        col.dtype = {"json": "object", "string": "str"}.get(col.dtype, col.dtype)
+
+        # Check if the subtype corresponds to a valid numpy dtype. This is required by
+        # the astropy implementation, but not by the ECSV standard. The standard states
+        # that an unknown subtype can be ignored, so that is what we do here (but with
+        # a warning).
+        try:
+            np.dtype(col.dtype)
+        except TypeError:
+            import warnings
+
+            warnings.warn(
+                f"unexpected subtype {col.subtype!r} set for column "
+                f"{col.name!r}, using dtype={col.parsetype!r} instead.",
+                category=InvalidEcsvDatatypeWarning,
+            )
+            col.dtype = col.parsetype
+
     try:
-        if col_attrs.dtype == "object" or col_attrs.shape:
+        if col.dtype == "object" or col.shape:
             # Handle three distinct column types where each row element is serialized
             # to JSON. First convert the input data array or masked array to a list of
             # str and get the mask where available.
-            str_vals, mask = _get_str_vals(col_attrs, data_in)
+            str_vals, mask = _get_str_vals(col, data_in)
 
-            if col_attrs.dtype == "object":
+            if col.dtype == "object":
                 # Any Python objects serializable to JSON
                 process_func = process_1d_Nd_object_data
-            elif col_attrs.shape[-1] is None:
+            elif col.shape[-1] is None:
                 # Variable length arrays with shape (n, m, ..., *) for fixed
                 # n, m, .. and variable in last axis.
                 process_func = process_variable_length_array_data
@@ -214,23 +225,23 @@ def convert_column(col_attrs: ColumnAttrs, data_in: "npt.NDArray") -> "npt.NDArr
                 # Multidim columns with consistent shape (n, m, ...).
                 process_func = process_fixed_shape_multidim_data
 
-            data_out = process_func(col_attrs, str_vals, mask)
+            data_out = process_func(col, str_vals, mask)
 
         # Regular scalar value column
         else:
             data_out = data_in
-            if data_out.dtype != np.dtype(col_attrs.dtype):
-                data_out = data_out.astype(col_attrs.dtype)
+            if data_out.dtype != np.dtype(col.dtype):
+                data_out = data_out.astype(col.dtype)
 
-        if data_out.shape[1:] != tuple(col_attrs.shape):
+        if data_out.shape[1:] != tuple(col.shape):
             raise ValueError("shape mismatch between value and column specifier")
 
     except json.JSONDecodeError:
         raise ValueError(
-            f"column {col_attrs.name!r} failed to convert: column value is not valid JSON"
+            f"column {col.name!r} failed to convert: column value is not valid JSON"
         )
     except Exception as exc:
-        raise ValueError(f"column {col_attrs.name!r} failed to convert: {exc}")
+        raise ValueError(f"column {col.name!r} failed to convert: {exc}")
 
     return data_out
 

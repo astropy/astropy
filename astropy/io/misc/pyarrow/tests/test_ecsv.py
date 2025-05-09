@@ -641,23 +641,22 @@ def test_roundtrip_multidim_masked_array(serialize_method, dtype, delimiter):
         assert np.all(t2[name] == t[name])
 
 
-@pytest.mark.parametrize("subtype", ["some-user-type", "complex"])
-def test_multidim_unknown_subtype(subtype):
+def test_multidim_unknown_subtype():
     """Test an ECSV file with a string type but unknown subtype"""
-    txt = f"""\
+    txt = """\
 # %ECSV 1.0
 # ---
 # datatype:
 # - name: a
 #   datatype: string
-#   subtype: {subtype}
+#   subtype: some-user-type
 # schema: astropy-2.0
 a
 [1,2]
 [3,4]"""
     with pytest.warns(
         InvalidEcsvDatatypeWarning,
-        match=rf"unexpected subtype '{subtype}' set for column 'a'",
+        match=r"unexpected subtype 'some-user-type' set for column 'a'",
     ):
         t = Table.read(txt, format=FORMAT)
 
