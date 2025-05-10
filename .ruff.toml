@@ -230,7 +230,6 @@ lint.unfixable = [
     "B007",  # UnusedLoopControlVariable
 ]
 "astropy/io/registry/*" = [
-    "PTH",
 ]
 "astropy/io/votable/*" = [
     "B007",  # UnusedLoopControlVariable
