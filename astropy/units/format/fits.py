@@ -6,13 +6,13 @@ Handles the "FITS" unit format.
 
 from __future__ import annotations
 
+from functools import cache
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 from astropy.units.core import CompositeUnit
 from astropy.units.errors import UnitScaleError
-from astropy.utils import classproperty
 
 from . import Base, utils
 from .generic import _GenericParserMixin
@@ -23,15 +23,9 @@ if TYPE_CHECKING:
     from astropy.units import UnitBase
 
 
-class FITS(Base, _GenericParserMixin):
-    """
-    The FITS standard unit format.
-
-    This supports the format defined in the Units section of the `FITS
-    Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_.
-    """
-
-    @classproperty(lazy=True)
+class _FITSMeta(type):
+    @property
+    @cache  # noqa: B019
     def _units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
 
@@ -62,6 +56,15 @@ class FITS(Base, _GenericParserMixin):
         names.update((unit, getattr(u, unit)) for unit in simple_units)
 
         return names
+
+
+class FITS(Base, _GenericParserMixin, metaclass=_FITSMeta):
+    """
+    The FITS standard unit format.
+
+    This supports the format defined in the Units section of the `FITS
+    Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_.
+    """
 
     @classmethod
     def to_string(
