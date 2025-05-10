@@ -17,6 +17,7 @@ import io
 import operator
 import os
 import pkgutil
+import sys
 import warnings
 from contextlib import contextmanager, nullcontext
 from functools import reduce
@@ -133,6 +134,15 @@ class ConfigNamespace:
             provided then info about all the configuration items will be
             printed.
 
+        Raises
+        ------
+        KeyError
+           If name is not a valid configuration item.
+
+        RuntimeError
+            If called within a python runtime running with optimization level >= 2
+            (-OO CLI flag).
+
         Examples
         --------
         >>> from astropy import conf
@@ -144,6 +154,11 @@ class ConfigNamespace:
           module=astropy
           value=False
         """
+        if sys.flags.optimize >= 2:
+            raise RuntimeError(
+                "The help method is not available under Python's optimized mode."
+            )
+
         if name is None:
             print(self)
         else:
