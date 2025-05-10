@@ -416,7 +416,7 @@ class Cosmology(metaclass=ABCMeta):
         if other.__class__ is not self.__class__:
             return NotImplemented  # allows other.__eq__
 
-        eq = (
+        return (
             # non-Parameter checks: name
             self.name == other.name
             # check all parameters in 'other' match those in 'self' and 'other'
@@ -430,8 +430,6 @@ class Cosmology(metaclass=ABCMeta):
                 for k in self._parameters_all
             )
         )
-
-        return eq
 
     # ---------------------------------------------------------------
 
@@ -645,7 +643,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
 
         # Check if have equivalent parameters and all parameters in `other`
         # match those in `self`` and `other`` has no extra parameters.
-        params_eq = (
+        return (
             # no extra parameters
             self._parameters_all == other._parameters_all
             # equal
@@ -655,5 +653,3 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
             # flatness check
             and other.is_flat
         )
-
-        return params_eq
