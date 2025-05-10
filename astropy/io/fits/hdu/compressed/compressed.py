@@ -86,7 +86,7 @@ class CompImageHDU(ImageHDU):
         compression_type : str, optional
             Compression algorithm: one of
             ``'RICE_1'``, ``'RICE_ONE'``, ``'PLIO_1'``, ``'GZIP_1'``,
-            ``'GZIP_2'``, ``'HCOMPRESS_1'``, ``'NOCOMPRESS'``
+            ``'GZIP_2'``, ``'HCOMPRESS_1'``, ``'JPEGXL'``, ``'NOCOMPRESS'``
 
         tile_shape : tuple, optional
             Compression tile shape, which should be specified using the default
@@ -145,7 +145,7 @@ class CompImageHDU(ImageHDU):
         The astropy.io.fits package supports 3 general-purpose compression
         algorithms plus one other special-purpose compression technique that is
         designed for data masks with positive integer pixel values.  The 3
-        general purpose algorithms are GZIP, Rice, and HCOMPRESS, and the
+        general purpose algorithms are GZIP, Rice, HCOMPRESS, and JPEGXL, and the
         special-purpose technique is the IRAF pixel list compression technique
         (PLIO).  The ``compression_type`` parameter defines the compression
         algorithm to be used.
@@ -154,7 +154,8 @@ class CompImageHDU(ImageHDU):
         compression tiles.  With the GZIP, Rice, and PLIO algorithms, the
         default is to take each row of the image as a tile.  The HCOMPRESS
         algorithm is inherently 2-dimensional in nature, so the default in this
-        case is to take 16 rows of the image per tile.  In most cases, it makes
+        case is to take 16 rows of the image per tile. JPEGXL tries to use 256
+        by 256 pixel tiles when possible. In most cases, it makes
         little difference what tiling pattern is used, so the default tiles are
         usually adequate.  In the case of very small images, it could be more
         efficient to compress the whole image as a single tile.  Note that the
