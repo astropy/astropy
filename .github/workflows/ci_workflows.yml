@@ -103,6 +103,15 @@ jobs:
             ARCH_ON_CI: "arm64"
             IS_CRON: "false"
 
+  typechecking:
+    needs: [initial_checks]
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@8c0fde6f7e926df6ed7057255d29afa9c1ad5320  # v1.16.0
+    with:
+      submodules: false
+      envs: |
+        - name: Type checking
+          linux: typecheck
+
   allowed_failures:
     needs: [initial_checks]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@8c0fde6f7e926df6ed7057255d29afa9c1ad5320  # v1.16.0
