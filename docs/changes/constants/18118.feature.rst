@@ -1,0 +1,1 @@
+Added CODATA 2022 support in `astropy.constants`.
