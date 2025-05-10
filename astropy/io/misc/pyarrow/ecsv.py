@@ -7,6 +7,7 @@ import warnings
 from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
@@ -29,7 +30,7 @@ def is_numpy_dtype(dtype: str) -> bool:
 def get_header_lines(
     input_file: str | os.PathLike | io.BytesIO,
     encoding="utf-8",
-) -> tuple[int, list[str]]:
+) -> tuple[int, list[str], int]:
     """
     Extract header lines from a file or file-like object.
 
@@ -58,6 +59,8 @@ def get_header_lines(
     header_prefix = "# ".encode(encoding)
     comment_prefix = "##".encode(encoding)
     lines = []
+    n_empty = 0
+    n_comment = 0
 
     with ExitStack() as stack:
         # Get a file-like object as tmp_input_file
@@ -78,12 +81,13 @@ def get_header_lines(
             tmp_input_file = input_file
 
         for idx, line in enumerate(tmp_input_file):
-            # Allow blank lines and skip them
             line_strip = line.strip()
-            if not line_strip or line_strip.startswith(comment_prefix):
-                continue
             if line_strip.startswith(header_prefix):
                 lines.append(line_strip[2:].decode(encoding))
+            elif not line_strip:
+                n_empty += 1
+            elif line_strip.startswith(comment_prefix):
+                n_comment += 1
             else:
                 # Stop iterating on first failed comment match for a non-blank line
                 break
@@ -92,7 +96,7 @@ def get_header_lines(
     if isinstance(input_file, io.BytesIO):
         input_file.seek(0)
 
-    return idx, lines
+    return lines, idx, n_empty, n_comment
 
 
 @dataclass
@@ -210,6 +214,7 @@ def get_parsetype_dtype_shape(
 def read_header(
     input_file: str | os.PathLike | io.BytesIO,
     encoding: str = "utf-8",
+    engine: Literal["pyarrow.csv", "ascii.csv"] = "pyarrow.csv",
 ) -> tuple[int, list[ColumnAttrs], dict]:
     """
     READ: Initialize the header Column objects from the table ``lines``.
@@ -218,7 +223,9 @@ def read_header(
     from astropy.io.ascii.ecsv import DELIMITERS
 
     # Extract non-blank comment (header) lines with comment character stripped
-    data_start, header_lines = get_header_lines(input_file, encoding=encoding)
+    header_lines, n_header, n_empty, n_comment = get_header_lines(
+        input_file, encoding=encoding
+    )
 
     # Validate that this is a ECSV file
     ecsv_header_re = r"""%ECSV [ ]
@@ -254,30 +261,41 @@ def read_header(
     # Create list of columns from `header`.
     cols = [ColumnAttrs(**col) for col in header["datatype"]]
 
-    return data_start, cols, table_meta, delimiter
+    # Start line in the file where the CSV table starts (i.e. line with column names)
+    if engine == "ascii.csv":
+        csv_table_start = n_header - n_empty
+    else:
+        csv_table_start = n_header
+
+    return csv_table_start, cols, table_meta, delimiter
 
 
-def read_data(
+def read_csv_table(
     input_file: str | os.PathLike | io.BytesIO,
-    data_start: int,
+    header_start: int,
     cols: list[ColumnAttrs],
     delimiter: str = ",",
     encoding: str = "utf-8",
-    null_values: list[str] | None = None,
+    engine: Literal["pyarrow.csv", "ascii.csv"] = "pyarrow.csv",
+    **null_fill_kwargs,
 ) -> Table:
     """
     READ: Read the data from the table ``lines``.
     """
-    # Read the data lines
-    dtypes = {col.name: col.parsetype for col in cols}
+    kwargs = null_fill_kwargs.copy()
+
+    if engine == "ascii.csv":
+        kwargs["converters"] = {col.name: np.dtype(col.parsetype).type for col in cols}
+    else:
+        kwargs["dtypes"] = {col.name: col.parsetype for col in cols}
+
     data = Table.read(
         input_file,
-        format="pyarrow.csv",
+        format=engine,
         delimiter=delimiter,
         encoding=encoding,
-        dtypes=dtypes,
-        header_start=data_start,
-        null_values=null_values,
+        header_start=header_start,
+        **kwargs,
     )
     return data
 
@@ -423,15 +441,71 @@ def process_variable_length_array_data(col_attrs, str_vals, mask):
     return data_out
 
 
+def get_fill_values(
+    cols: list[ColumnAttrs], table_meta: dict | None
+) -> list[tuple] | None:
+    if table_meta is None:
+        return None
+
+    # Get the serialized columns spec.  It might not exist and there might
+    # not even be any table meta, so punt in those cases.
+    try:
+        serialized_columns = table_meta["__serialized_columns__"]
+    except KeyError:
+        return None
+
+    # Got some serialized columns, so check for string type and serialized
+    # as a MaskedColumn.  Without 'data_mask', MaskedColumn objects are
+    # stored to ECSV as normal columns.
+    fill_values = []
+    for col in cols:
+        if (
+            col.parsetype == "str"
+            and col.name in serialized_columns
+            and serialized_columns[col.name]["__class__"]
+            == "astropy.table.column.MaskedColumn"
+        ):
+            fill_value = ""
+        else:
+            fill_value = 0
+
+        fill_values.append(("", fill_value, col.name))
+
+    print("fill_values", fill_values)
+    return fill_values
+
+
+def get_null_fill_kwargs(
+    cols_attrs: list[ColumnAttrs],
+    table_meta: dict | None,
+    null_values: list[str] | None,
+    engine: str,
+) -> dict:
+    # TODO: respect `null_values` in ascii.csv`
+    if engine == "ascii.csv":
+        if (fill_values := get_fill_values(cols_attrs, table_meta)) is not None:
+            kwargs = {"fill_values": fill_values}
+        else:
+            kwargs = {}
+    else:
+        kwargs = {"null_values": null_values}
+
+    return kwargs
+
+
 def read_ecsv(
     input_file: str | os.PathLike | io.BytesIO,
     encoding: str = "utf-8",
+    engine: Literal["pyarrow.csv", "ascii.csv"] = "pyarrow.csv",
     null_values: list[str] | None = None,
 ) -> Table:
     """
     READ: Read the ECSV file and return a Table object.
     """
     from astropy.io.ascii.core import InconsistentTableError
+
+    if engine not in ["pyarrow.csv", "ascii.csv"]:
+        raise ValueError(f"engine must be 'pyarrow.csv' or 'ascii.csv', not {engine!r}")
 
     # For testing
     if isinstance(input_file, io.StringIO):
@@ -442,16 +516,25 @@ def read_ecsv(
         # TODO: better way to check for an iterable of str?
         input_file = io.BytesIO("\n".join(input_file).encode(encoding))
 
-    data_start, cols_attrs, table_meta, delimiter = read_header(
-        input_file, encoding=encoding
+    csv_table_start, cols_attrs, table_meta, delimiter = read_header(
+        input_file, encoding=encoding, engine=engine
     )
-    data_raw = read_data(
+
+    null_fill_kwargs = get_null_fill_kwargs(
+        cols_attrs=cols_attrs,
+        table_meta=table_meta,
+        null_values=null_values,
+        engine=engine,
+    )
+
+    data_raw = read_csv_table(
         input_file,
-        data_start,
+        csv_table_start,
         cols_attrs,
         delimiter=delimiter,
         encoding=encoding,
-        null_values=null_values,
+        engine=engine,
+        **null_fill_kwargs,
     )
 
     ecsv_header_names = [col_attrs.name for col_attrs in cols_attrs]
