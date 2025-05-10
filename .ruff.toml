@@ -200,7 +200,6 @@ lint.unfixable = [
 "astropy/coordinates/*" = [
     "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
-    "RET504",  # unnecessary-assign
 ]
 "astropy/cosmology/*" = [
     "PT019",   # pytest-fixture-param-without-value
