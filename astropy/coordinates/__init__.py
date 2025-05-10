@@ -24,3 +24,4 @@ from .solar_system import *
 from .spectral_coordinate import *
 from .spectral_quantity import *
 from .transformations import *
+from .inf_dist import set_inf_dist, get_inf_dist
