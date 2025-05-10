@@ -204,7 +204,6 @@ lint.unfixable = [
 ]
 "astropy/cosmology/*" = [
     "PT019",   # pytest-fixture-param-without-value
-    "RET504",  # unnecessary-assign
 ]
 "astropy/io/*" = [
     "G001",  # logging-string-format
