@@ -203,9 +203,7 @@ def _encode_mixins(tbl):
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.
     with serialize_context_as("hdf5"):
-        encode_tbl = serialize.represent_mixins_as_columns(tbl)
-
-    return encode_tbl
+        return serialize.represent_mixins_as_columns(tbl)
 
 
 def write_table_hdf5(

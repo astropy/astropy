@@ -22,7 +22,7 @@ _STD_MSG = "See details in https://heasarc.gsfc.nasa.gov/docs/software/dbdocs/td
 
 
 def make_example_data():
-    example_lines = [
+    return [
         "<HEADER>",
         "# # and // are comments",
         "table_name = example_table",
@@ -46,7 +46,6 @@ def make_example_data():
         "2|TargetTwo|2.0|",
         "<END>",
     ]
-    return example_lines
 
 
 class TdatFormatError(Exception):
@@ -224,8 +223,7 @@ class TdatHeader(basic.BasicHeader):
         return False
 
     def _process_comment(self, line: str) -> str:
-        line = re.sub("^" + self.comment, "", line).strip()
-        return line
+        return re.sub("^" + self.comment, "", line).strip()
 
     def _process_keywords(self, lines):
         line_fields = {}
