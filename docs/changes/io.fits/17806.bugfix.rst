@@ -1,2 +1,0 @@
-Fix checksum computation for tables with VLA columns, when table is loaded in
-memory.
