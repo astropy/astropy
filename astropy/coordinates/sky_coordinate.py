@@ -232,14 +232,6 @@ class SkyCoord(MaskableShapedLikeNDArray):
                 frame_cls(**frame_kwargs), args, kwargs
             )
 
-            # In the above two parsing functions, these kwargs were identified
-            # as valid frame attributes for *some* frame, but not the frame that
-            # this SkyCoord will have. We keep these attributes as special
-            # skycoord frame attributes:
-            for attr in skycoord_kwargs:
-                # Setting it will also validate it.
-                setattr(self, attr, skycoord_kwargs[attr])
-
             if info is not None:
                 self.info = info
 
@@ -249,6 +241,14 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
             if not self._sky_coord_frame.has_data:
                 raise ValueError("Cannot create a SkyCoord without data")
+
+            # In the above two parsing functions, these kwargs were identified
+            # as valid frame attributes for *some* frame, but not the frame that
+            # this SkyCoord will have. We keep these attributes as special
+            # skycoord frame attributes:
+            for attr in skycoord_kwargs:
+                # Setting it will also validate it.
+                setattr(self, attr, skycoord_kwargs[attr])
 
     @property
     def frame(self):

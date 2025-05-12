@@ -297,7 +297,7 @@ def _parse_coordinate_data(frame, args, kwargs):
             )
         valid_components[attr] = coord_value
 
-    # Now validate the custom SkyCoord attributes
+    # Now validate the extra SkyCoord attributes
     for attr, value in _skycoord_kwargs.items():
         if attr in valid_skycoord_kwargs and np.any(
             valid_skycoord_kwargs[attr] != value
@@ -307,7 +307,8 @@ def _parse_coordinate_data(frame, args, kwargs):
                     attr, value, valid_skycoord_kwargs[attr], "SkyCoord"
                 )
             )
-        valid_skycoord_kwargs[attr] = value
+        if attr not in frame.frame_attributes:
+            valid_skycoord_kwargs[attr] = value
 
     return valid_skycoord_kwargs, valid_components, info
 
