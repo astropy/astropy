@@ -1,2 +1,0 @@
-Fixed a bug that caused THEAP, ZBLANK, ZSCALE, and ZZERO to not be correctly
-removed during decompression of tile-compressed FITS files.
