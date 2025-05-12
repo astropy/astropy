@@ -12,10 +12,12 @@ configuration files for Astropy and affiliated packages.
 import contextlib
 import importlib
 import io
+import operator
 import os
 import pkgutil
 import warnings
 from contextlib import contextmanager, nullcontext
+from functools import reduce
 from pathlib import Path
 from textwrap import TextWrapper
 from warnings import warn
@@ -632,6 +634,17 @@ def get_config(packageormod=None, reload=False, rootname=None):
         return cobj
 
 
+def _recursive_subclasses(class_):
+    """
+    Return all subclasses of all subclasses.
+    """
+    subclasses = class_.__subclasses__()
+    if not subclasses:
+        return []
+    next = reduce(operator.concat, [_recursive_subclasses(cls) for cls in subclasses])
+    return [*next, *subclasses]
+
+
 def generate_config(pkgname="astropy", filename=None, verbose=False):
     """Generates a configuration file, from the list of `ConfigItem`
     objects for each subpackage.
@@ -683,8 +696,7 @@ def generate_config(pkgname="astropy", filename=None, verbose=False):
             # assume it's a file object, or io.StringIO
             fp = filename
 
-        # Parse the subclasses, ordered by their module name
-        subclasses = ConfigNamespace.__subclasses__()
+        subclasses = _recursive_subclasses(ConfigNamespace)
         processed = set()
 
         for conf in sorted(subclasses, key=lambda x: x.__module__):
