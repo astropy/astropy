@@ -1,1 +1,0 @@
-``unicodeChar`` fields can now be of bounded variable size (``arraysize="10*``).
