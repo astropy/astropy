@@ -1,1 +1,0 @@
-Fix a bug where config file generation did not parse nested subclasses of ``astropy.config.ConfigNamespace``.
