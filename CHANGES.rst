@@ -1,3 +1,125 @@
+Version 7.0.2 (2025-05-12)
+==========================
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+- Fix a bug where config file generation did not parse nested subclasses of ``astropy.config.ConfigNamespace``. [#18107]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix a bug in ``nddata.Cutout2D`` when creating partial cutouts of ``Section`` objects by adding a ``dtype`` property to the ``Section`` class. [#17611]
+
+- Fixed a bug so that now the scaling state from the source HDU to the new appended HDU is copied on the
+  destination file, when the HDU is read with ``do_not_scale_image_data=True``. [#17642]
+
+- Fix setting a slice on table rows (``FITS_record``). [#17737]
+
+- Fix checksum computation for tables with VLA columns, when table is loaded in
+  memory. [#17806]
+
+- Fix ``.fileinfo()`` for compressed HDUs. [#17815]
+
+- Fix FITS_rec repr when a column has scaling factors, leading to a crash with
+  numpy>=2.0. [#17933]
+
+- Fixed a bug that caused THEAP, ZBLANK, ZSCALE, and ZZERO to not be correctly
+  removed during decompression of tile-compressed FITS files. [#18072]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- ``astropy`` v7.0.0 erroneously refused to write a VOTable if it contained units that
+  could not be represented in the CDS format.
+  Now ``astropy`` correctly chooses the unit format based on the VOTable version.
+  The bug in question did not cause any corruption in tables that were successfully
+  written because the newer VOUnit format is backwards compatible with the CDS format.
+  Furthermore, any unit that is in neither formats would still be written out
+  but would issue a warning. [#17570]
+
+- ``unicodeChar`` fields can now be of bounded variable size (``arraysize="10*``). [#18075]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed an issue where the ``filter_non_finite`` option was not working
+  for 2D models. An error is raised when the ``filter_non_finite`` option
+  is set to ``True`` and all values are non-finite. [#17869]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Now ``bayesian_blocks(t, x, fitness="events")`` correctly handles the case
+  when the input data ``x`` contains zeros. [#17800]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Prevent corrupting a column by mutating its name to an invalid type.
+  A ``TypeError`` is now raised when a name is set to anything other than a
+  string. [#17450]
+
+- Fix a bug in creating a ``Table`` from a list of rows that dropped the units
+  of non-scalar Quantity, e.g., ``Table(rows=[([1] * u.m,), ([2] * u.m,)])``. [#17936]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Ensured that the units of ``yp``, ``refa`` and ``refb`` are properly
+  taken into account when calling ``erfa.apio`` (previously, the
+  conversion required for ``xp`` was applied to those inputs too). [#17742]
+
+- The machinery that injects units into a namespace (used e.g. by ``def_unit()``)
+  now applies NFKC normalization to unit names when checking for name collisions.
+  This prevents name collisions if the namespace belongs to a module and the unit
+  is accessed as an attribute of that module. [#17853]
+
+- The string representations of the prefixed versions of ``solLum``, ``solMass``
+  and ``solRad`` units can now be parsed by default.
+  Previously they could only be parsed if the ``required_by_vounit`` module had
+  been imported, possibly indirectly by using the ``"vounit"`` format. [#17868]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Prevent corrupting a mixin column's ``info`` attribute by mutating its name to
+  an invalid type. A ``TypeError`` is now raised when a name is set to anything
+  other than a string. [#17450]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Ensure that the ``astropy.visualization.wcsaxes.custom_ucd_coord_meta_mapping``
+  context manager performs a (correct) cleanup. [#17749]
+
+- Fixed interval classes for masked input (``MaskedArray`` and ``MaskedNDArray``). [#17927]
+
+- Fixed the limits of ``a`` parameter in the ``PowerDistStretch``
+  and ``InvertedPowerDistStretch`` classes so that a value of
+  0 in no longer allowed. That value gives infinity values in
+  ``InvertedPowerDistStretch`` and it makes the ``PowerDistStretch``
+  results independent of the input data. [#17941]
+
+- Fixed an issue where LinearStretch values were not being clipped to
+  [0:1] when ``clip=True``. [#17943]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fix UCD for air wavelengths, following the IVOA recommendation that ``'em.wl'``
+  be reserved for vacuum wavelengths. ``'em.wl;obs.atmos'`` is now used to
+  represent air wavelengths instead. [#17769]
+
+
+Other Changes and Additions
+---------------------------
+
+- Updated the bundled CFITSIO library to 4.6.0. [#17904]
+
 Version 7.0.1 (2025-02-06)
 ==========================
 
