@@ -1,2 +1,0 @@
-Fix FITS_rec repr when a column has scaling factors, leading to a crash with
-numpy>=2.0.
