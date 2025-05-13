@@ -503,7 +503,9 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
     """
 
     def pickle_roundtrip(c):
-        return pickle.loads(pickle.dumps(c))
+        # protocol=5 matches the default for Python 3.14 and later
+        # and is needed to preserve byteorder (available since Python 3.8)
+        return pickle.loads(pickle.dumps(c, protocol=5))
 
     def init_from_class(c):
         return c.__class__(c)
@@ -518,18 +520,7 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
         for func in (copy.copy, copy.deepcopy, pickle_roundtrip, init_from_class):
             m2 = func(m)
             for attr in attrs:
-                # non-native byteorder not preserved by last 2 func, _except_ for structured dtype
-                if (
-                    attr != "dtype"
-                    or getattr(m.info.dtype, "isnative", True)
-                    or m.info.dtype.name.startswith("void")
-                    or func in (copy.copy, copy.deepcopy)
-                ):
-                    original = getattr(m.info, attr)
-                else:
-                    # func does not preserve byteorder, check against (native) type.
-                    original = m.info.dtype.newbyteorder("=")
-                assert getattr(m2.info, attr) == original
+                assert getattr(m2.info, attr) == getattr(m.info, attr)
 
 
 def check_share_memory(col1, col2, copy):

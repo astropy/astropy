@@ -132,7 +132,12 @@ class ArrayWrapper:
     info = ArrayWrapperInfo()
 
     def __init__(self, data, copy=True):
-        self.data = np.array(data, copy=copy)
+        if isinstance(data, ArrayWrapper):
+            # this is done to preserve byteorder through copies
+            arr = data.data
+        else:
+            arr = data
+        self.data = np.array(arr, copy=copy)
         if "info" in getattr(data, "__dict__", ()):
             self.info = data.info
 
