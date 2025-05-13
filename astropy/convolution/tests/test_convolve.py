@@ -25,9 +25,12 @@ NANHANDLING_OPTIONS = ["interpolate", "fill"]
 NORMALIZE_OPTIONS = [True, False]
 PRESERVE_NAN_OPTIONS = [True, False]
 
-BOUNDARIES_AND_CONVOLUTIONS = list(
-    zip(itertools.cycle((convolve,)), BOUNDARY_OPTIONS)
-) + [(convolve_fft, "wrap"), (convolve_fft, "fill")]
+BOUNDARIES_AND_CONVOLUTIONS = [
+    (convolve, boundary) for boundary in BOUNDARY_OPTIONS
+] + [
+    (convolve_fft, "wrap"),
+    (convolve_fft, "fill"),
+]
 
 
 class TestConvolve1D:
