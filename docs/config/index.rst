@@ -16,6 +16,14 @@ into the source code to make those changes.
       when importing ``astropy``. Its existence was required, which is
       no longer the case.
 
+.. testsetup::
+
+    >>> # Same as testcleanup below; for double test.
+    >>> from astropy import config
+    >>> config.reload_config()
+    >>> from astropy.utils.iers import conf
+    >>> conf.auto_download = False
+
 Getting Started
 ===============
 
