@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import itertools
+
 from contextlib import nullcontext
 
 import numpy as np
@@ -19,7 +19,6 @@ from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 VALID_DTYPES = (">f4", "<f4", ">f8", "<f8")
-VALID_DTYPE_MATRIX = list(itertools.product(VALID_DTYPES, VALID_DTYPES))
 
 BOUNDARY_OPTIONS = [None, "fill", "wrap", "extend"]
 NANHANDLING_OPTIONS = ["interpolate", "fill"]
@@ -55,17 +54,12 @@ class TestConvolve1D:
         assert_array_almost_equal_nulp(
             z, np.array([0.0, 3.6, 5.0, 5.6, 5.6, 6.8, 0.0]), 10
         )
+    @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
+    @pytest.mark.parametrize("nan_treatment", NANHANDLING_OPTIONS)
+    @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
+    @pytest.mark.parametrize("preserve_nan", PRESERVE_NAN_OPTIONS)
+    @pytest.mark.parametrize("dtype", VALID_DTYPES)
 
-    @pytest.mark.parametrize(
-        ("boundary", "nan_treatment", "normalize_kernel", "preserve_nan", "dtype"),
-        itertools.product(
-            BOUNDARY_OPTIONS,
-            NANHANDLING_OPTIONS,
-            NORMALIZE_OPTIONS,
-            PRESERVE_NAN_OPTIONS,
-            VALID_DTYPES,
-        ),
-    )
     def test_quantity(
         self, boundary, nan_treatment, normalize_kernel, preserve_nan, dtype
     ):
@@ -86,16 +80,12 @@ class TestConvolve1D:
 
         assert x.unit == z.unit
 
-    @pytest.mark.parametrize(
-        ("boundary", "nan_treatment", "normalize_kernel", "preserve_nan", "dtype"),
-        itertools.product(
-            BOUNDARY_OPTIONS,
-            NANHANDLING_OPTIONS,
-            NORMALIZE_OPTIONS,
-            PRESERVE_NAN_OPTIONS,
-            VALID_DTYPES,
-        ),
-    )
+    @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
+    @pytest.mark.parametrize("nan_treatment", NANHANDLING_OPTIONS)
+    @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
+    @pytest.mark.parametrize("preserve_nan", PRESERVE_NAN_OPTIONS)
+    @pytest.mark.parametrize("dtype", VALID_DTYPES)
+
     def test_input_unmodified(
         self, boundary, nan_treatment, normalize_kernel, preserve_nan, dtype
     ):
@@ -124,16 +114,12 @@ class TestConvolve1D:
         assert np.all(np.array(array, dtype=dtype) == x)
         assert np.all(np.array(kernel, dtype=dtype) == y)
 
-    @pytest.mark.parametrize(
-        ("boundary", "nan_treatment", "normalize_kernel", "preserve_nan", "dtype"),
-        itertools.product(
-            BOUNDARY_OPTIONS,
-            NANHANDLING_OPTIONS,
-            NORMALIZE_OPTIONS,
-            PRESERVE_NAN_OPTIONS,
-            VALID_DTYPES,
-        ),
-    )
+    @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
+    @pytest.mark.parametrize("nan_treatment", NANHANDLING_OPTIONS)
+    @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
+    @pytest.mark.parametrize("preserve_nan", PRESERVE_NAN_OPTIONS)
+    @pytest.mark.parametrize("dtype", VALID_DTYPES)
+
     def test_input_unmodified_with_nan(
         self, boundary, nan_treatment, normalize_kernel, preserve_nan, dtype
     ):
@@ -175,7 +161,8 @@ class TestConvolve1D:
         assert np.all(np.isnan(x[array_is_nan]))
         assert np.all(np.isnan(y[kernel_is_nan]))
 
-    @pytest.mark.parametrize(("dtype_array", "dtype_kernel"), VALID_DTYPE_MATRIX)
+    @pytest.mark.parametrize("dtype_array", VALID_DTYPES)
+    @pytest.mark.parametrize("dtype_kernel", VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):
         """
         Test that 32- and 64-bit floats are correctly handled
@@ -249,15 +236,11 @@ class TestConvolve1D:
         else:
             assert np.all(z == np.array([2.0, 4.0, 6.0], dtype=">f8"))
 
-    @pytest.mark.parametrize(
-        ("boundary", "nan_treatment", "normalize_kernel", "preserve_nan"),
-        itertools.product(
-            BOUNDARY_OPTIONS,
-            NANHANDLING_OPTIONS,
-            NORMALIZE_OPTIONS,
-            PRESERVE_NAN_OPTIONS,
-        ),
-    )
+    @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
+    @pytest.mark.parametrize("nan_treatment", NANHANDLING_OPTIONS)
+    @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
+    @pytest.mark.parametrize("preserve_nan", PRESERVE_NAN_OPTIONS)
+
     def test_unity_3_withnan(
         self, boundary, nan_treatment, normalize_kernel, preserve_nan
     ):
@@ -303,15 +286,11 @@ class TestConvolve1D:
         else:
             assert np.all(z == x)
 
-    @pytest.mark.parametrize(
-        ("boundary", "nan_treatment", "normalize_kernel", "preserve_nan"),
-        itertools.product(
-            BOUNDARY_OPTIONS,
-            NANHANDLING_OPTIONS,
-            NORMALIZE_OPTIONS,
-            PRESERVE_NAN_OPTIONS,
-        ),
-    )
+    @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
+    @pytest.mark.parametrize("nan_treatment", NANHANDLING_OPTIONS)
+    @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
+    @pytest.mark.parametrize("preserve_nan", PRESERVE_NAN_OPTIONS)
+
     def test_uniform_3_withnan(
         self, boundary, nan_treatment, normalize_kernel, preserve_nan
     ):
@@ -363,10 +342,8 @@ class TestConvolve1D:
 
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype=">f8"), 10)
 
-    @pytest.mark.parametrize(
-        ("boundary", "normalize_kernel"),
-        itertools.product(BOUNDARY_OPTIONS, NORMALIZE_OPTIONS),
-    )
+    @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
+    @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
     def test_zero_sum_kernel(self, boundary, normalize_kernel):
         """
         Test that convolve works correctly with zero sum kernels.
@@ -391,10 +368,8 @@ class TestConvolve1D:
 
         assert_array_almost_equal_nulp(z, np.array(rslt, dtype=">f8"), 10)
 
-    @pytest.mark.parametrize(
-        ("boundary", "normalize_kernel"),
-        itertools.product(BOUNDARY_OPTIONS, NORMALIZE_OPTIONS),
-    )
+    @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
+    @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
     def test_int_masked_kernel(self, boundary, normalize_kernel):
         """
         Test that convolve works correctly with integer masked kernels.
@@ -474,7 +449,8 @@ class TestConvolve2D:
         z = convolve(x, x, boundary="fill", fill_value=1, normalize_kernel=False)
         assert_array_almost_equal_nulp(z, np.array(x, float) * 9, 10)
 
-    @pytest.mark.parametrize(("dtype_array", "dtype_kernel"), VALID_DTYPE_MATRIX)
+    @pytest.mark.parametrize("dtype_array", VALID_DTYPES)
+    @pytest.mark.parametrize("dtype_kernel", VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):
         """
         Test that 32- and 64-bit floats are correctly handled
@@ -786,7 +762,8 @@ class TestConvolve3D:
         z = convolve(x, x, boundary="fill", fill_value=1, normalize_kernel=False)
         assert_array_almost_equal_nulp(z / 27, x, 10)
 
-    @pytest.mark.parametrize(("dtype_array", "dtype_kernel"), VALID_DTYPE_MATRIX)
+    @pytest.mark.parametrize("dtype_array", VALID_DTYPES)
+    @pytest.mark.parametrize("dtype_kernel", VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):
         """
         Test that 32- and 64-bit floats are correctly handled
@@ -937,11 +914,8 @@ class TestConvolve3D:
                 ),
                 10,
             )
-
-    @pytest.mark.parametrize(
-        ("boundary", "nan_treatment"),
-        itertools.product(BOUNDARY_OPTIONS, NANHANDLING_OPTIONS),
-    )
+    @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
+    @pytest.mark.parametrize("nan_treatment", NANHANDLING_OPTIONS)
     def test_unity_3x3x3_withnan(self, boundary, nan_treatment):
         """
         Test that a 3x3x3 unit kernel returns the same array (except when
@@ -1240,11 +1214,8 @@ def test_non_square_kernel_asymmetric(boundary):
     result = convolve(image, kernel, normalize_kernel=False, boundary=boundary)
     assert_allclose(result[5:8, 4:9], kernel)
 
-
-@pytest.mark.parametrize(
-    ("boundary", "normalize_kernel"),
-    itertools.product(BOUNDARY_OPTIONS, NORMALIZE_OPTIONS),
-)
+@pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
+@pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
 def test_uninterpolated_nan_regions(boundary, normalize_kernel):
     # Issue #8086
     # Test NaN interpolation of contiguous NaN regions with kernels of size
