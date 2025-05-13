@@ -19,7 +19,8 @@ object is using the :mod:`pickle` module. This is good for e.g. passing a
    >>> import pickle
    >>> from astropy.cosmology import Planck18
    >>> with open("planck18.pkl", mode="wb") as file:
-   ...     pickle.dump(Planck18, file)
+   ...     # use protocol 5 to ensure byteorder is preserved (not switched to native)
+   ...     pickle.dump(Planck18, file, protocol=5)
    >>> # and to read back
    >>> with open("planck18.pkl", mode="rb") as file:
    ...     cosmo = pickle.load(file)
