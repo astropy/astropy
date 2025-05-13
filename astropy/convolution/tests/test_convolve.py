@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-#Refactor convolution tests to use stacked @pytest.mark.parametrize instead of itertools.product
+
 
 from contextlib import nullcontext
 
