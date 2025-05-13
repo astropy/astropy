@@ -126,10 +126,17 @@ def assert_follows_unicode_guidelines(x, roundtrip=None):
             assert eval(repr_x, roundtrip) == x
 
 
-@pytest.fixture(params=[0, 1, -1])
+@pytest.fixture(params=[0, 1, 4, -1])
 def pickle_protocol(request):
     """
-    Fixture to run all the tests for protocols 0 and 1, and -1 (most advanced).
+    Fixture to run all the tests for protocols 0, 1, 4 and -1 (most advanced).
+
+    * 0 is the original "human-readable" protocol
+    * 1 is the oldest binary format
+    * 4 introduced in Python 3.4, has been the default in 3.8-3.13
+    * -1 is the most advanced, which is 5 since Python 3.8, default from 3.14,
+      and the first binary format to preserve byteorder.
+
     (Originally from astropy.table.tests.test_pickle).
     """
     return request.param
