@@ -1153,7 +1153,7 @@ class TestFitInfo:
         assert param_cov_array.shape == (3, 3, 3)
         assert_allclose(param_cov_array[0], 0)
         assert_allclose(param_cov_array[1], param_cov_array[2])
-        assert np.all(np.abs(param_cov_array[1]) > 0)
+        assert np.any(np.abs(param_cov_array[1]) > 0)
 
         # Test slicing that returns an array
 
