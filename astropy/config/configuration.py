@@ -295,8 +295,6 @@ class ConfigItem:
     def __init__(
         self, defaultvalue="", description=None, cfgtype=None, module=None, aliases=None
     ):
-        from astropy.utils import isiterable
-
         if module is None:
             module = find_current_module(2)
             if module is None:
