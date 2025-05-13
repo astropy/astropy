@@ -1,0 +1,2 @@
+Fixed a bug in ``table.table_helpers.ArrayWrapper`` where byteorder of the
+underlying data was not necessarily preserved through roundtrips.
