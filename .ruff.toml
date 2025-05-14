@@ -38,7 +38,6 @@ lint.ignore = [
     "D104",  # undocumented-public-package
     "D205",  # blank-line-after-summary
     # Quotes Issues
-    "D300",  # triple-single-quotes
     "D301",  # escape-sequence-in-docstring
     # Docstring Content Issues
     "D403",  # first-line-capitalized
@@ -176,9 +175,6 @@ lint.ignore = [
     "TRY004",  # prefer-type-error
     "TRY201",  # verbose-raise
     "TRY301",  # raise-within-try
-
-    # flake8-quotes (Q)
-    "Q000",  # use double quotes
 ]
 lint.unfixable = [
     "E711"  # NoneComparison. Hard to fix b/c numpy has it's own None.
