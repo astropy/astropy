@@ -341,8 +341,8 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "B008",  # FunctionCallArgumentDefault
 
     # flake8-commas (COM)
-    "COM812",  # TrailingCommaMissing
-    "COM819",  # TrailingCommaProhibited
+    "COM812",  # TrailingCommaMissing, conflicts with Ruff formatter
+    "COM819",  # TrailingCommaProhibited, conflicts with Ruff formatter
 
     # pydocstyle (D)
     # Missing Docstrings
@@ -350,6 +350,8 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "D105",  # Missing docstring in magic method. Don't check b/c class docstring.
     # Whitespace Issues
     "D200",  # FitsOnOneLine
+    # Quotes Issues
+    "D300",  # triple-single-quotes, conflicts with Ruff formatter
     # Docstring Content Issues
     "D410",  # BlankLineAfterSection. Using D412 instead.
     "D400",  # EndsInPeriod.  NOTE: might want to revisit this.
@@ -374,6 +376,9 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 
     # flake8-use-pathlib (PTH)
     "PTH123", # builtin-open (not worth creating a Path object, builtin open is fine)
+
+    # flake8-quotes (Q)
+    "Q000",  # use double quotes, conflicts with Ruff formatter
 
     # flake8-simplify (SIM)
     "SIM103", # needless-bool (cannot be safely applied in all contexts (np.True_ is not True))
