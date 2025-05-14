@@ -14,6 +14,10 @@ def main(args=None):
             "Check the WCS keywords in a FITS file for compliance against the standards"
         )
     )
+    # TODO: pass color and suggest_on_error as kwargs when PYTHON_LT_14 is dropped
+    parser.color = True
+    parser.suggest_on_error = True
+
     parser.add_argument("filename", nargs=1, help="Path to FITS file to check")
     args = parser.parse_args(args)
 

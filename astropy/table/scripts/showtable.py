@@ -111,6 +111,9 @@ def main(args=None):
         """
         )
     )
+    # TODO: pass color and suggest_on_error as kwargs when PYTHON_LT_14 is dropped
+    parser.color = True
+    parser.suggest_on_error = True
 
     addarg = parser.add_argument
     addarg("filename", nargs="+", help="path to one or more files")
