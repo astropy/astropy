@@ -234,11 +234,25 @@ def helper_frexp(f, unit):
 
 
 def helper_multiplication(f, unit1, unit2):
-    return [None, None], _d(unit1) * _d(unit2)
+    match unit1, unit2:
+        case None, None:
+            return [None, None], dimensionless_unscaled
+        case (unit, None) | (None, unit):
+            return [None, None], unit
+        case _:
+            return [None, None], unit1 * unit2
 
 
 def helper_division(f, unit1, unit2):
-    return [None, None], _d(unit1) / _d(unit2)
+    if unit1 is unit2:
+        unit = dimensionless_unscaled
+    elif unit1 is None:
+        unit = unit2**-1
+    elif unit2 is None:
+        unit = unit1
+    else:
+        unit = unit1 / unit2
+    return [None, None], unit
 
 
 def helper_power(f, unit1, unit2):
