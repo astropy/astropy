@@ -83,6 +83,7 @@ To see a list of the available read/write file formats:
      ascii.ecsv  Yes   Yes           Yes
      ascii.html  Yes   Yes           Yes
     ascii.latex   No   Yes           Yes
+     ascii.mrt   Yes   Yes           Yes
 
 
 .. _cosmology_io_builtin-ecsv:
