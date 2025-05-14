@@ -1,0 +1,2 @@
+Enable color and suggestion-on-typos in all ``argparse`` CLIs for Python 3.14
+(``fitscheck``, ``fitsdiff``, ``fitsheader`` and ``fitsinfo``).
