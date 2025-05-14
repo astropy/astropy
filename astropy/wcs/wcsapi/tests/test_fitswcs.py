@@ -3,7 +3,6 @@
 # a mix-in)
 
 import warnings
-from itertools import product
 
 import numpy as np
 import pytest
@@ -1086,10 +1085,8 @@ def test_spectralcoord_frame(header_spectral_frames):
             assert_quantity_allclose(sc.quantity, sc_check.quantity)
 
 
-@pytest.mark.parametrize(
-    ("ctype3", "observer"),
-    product(["ZOPT", "BETA", "VELO", "VRAD", "VOPT"], [False, True]),
-)
+@pytest.mark.parametrize("ctype3", ["ZOPT", "BETA", "VELO", "VRAD", "VOPT"])
+@pytest.mark.parametrize("observer", [False, True])
 def test_different_ctypes(header_spectral_frames, ctype3, observer):
     header = header_spectral_frames.copy()
     header["CTYPE3"] = ctype3
@@ -1172,10 +1169,8 @@ def header_spectral_1d():
     return Header.fromstring(HEADER_SPECTRAL_1D, sep="\n")
 
 
-@pytest.mark.parametrize(
-    ("ctype1", "observer"),
-    product(["ZOPT", "BETA", "VELO", "VRAD", "VOPT"], [False, True]),
-)
+@pytest.mark.parametrize("ctype1", ["ZOPT", "BETA", "VELO", "VRAD", "VOPT"])
+@pytest.mark.parametrize("observer", [False, True])
 def test_spectral_1d(header_spectral_1d, ctype1, observer):
     # This is a regression test for issues that happened with 1-d WCS
     # where the target is not defined but observer is.
