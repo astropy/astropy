@@ -645,6 +645,4 @@ def compress_image_data(
 
     table_bytes = table.tobytes()
 
-    heap = table.tobytes() + compressed_bytes
-
-    return heap
+    return table.tobytes() + compressed_bytes
