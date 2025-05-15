@@ -312,7 +312,7 @@ class TestConvolve1D:
     @pytest.mark.parametrize("outval", outputs)
     
     def test_unity_1_withnan(
-        self, boundary, nan_treatment, normalize_kernel, preserve_nan, inval, outval
+    self, boundary, nan_treatment, normalize_kernel, preserve_nan, dealias, inval, outval
     ):
         """
         Test that a unit kernel with three elements returns the same array
