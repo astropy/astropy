@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/v1.3">
+<!-- VOTable description at http://www.ivoa.net/Documents/latest/VOT.html -->
+<INFO name="service_protocol" value="ASU">  IVOID of the protocol through which the data was retrieved</INFO>
+<INFO name="request_date" value="2025-05-08T00:06:04">  Query execution date</INFO>
+<INFO name="request" value="https://vizier.u-strasbg.fr/viz-bin/votable/-b64?-source=V/127A/mash1&amp;-out.max=20&amp;-out.meta=hu2D">  Full request URL</INFO>
+<INFO name="contact" value="cds-question@unistra.fr">  Email or URL to contact publisher</INFO>
+<INFO name="server_software" value="7.4.6">  Software version</INFO>
+<INFO name="publisher" value="CDS">  Data centre that produced the VOTable</INFO>
+
+<!--
+Execution Reports
+ -->
+
+<RESOURCE ID="yCat_5127" name="V/127A" type="results">
+  <DESCRIPTION>MASH Catalogues of Planetary Nebulae (Parker+ 2006-2008)</DESCRIPTION>  <INFO name="ivoid" value="ivo://cds.vizier/v/127a">    IVOID of underlying data collection  </INFO>
+  <INFO name="creator" value="Parker Q.A.">    First author or institution  </INFO>
+  <INFO name="cites" value="bibcode:2006MNRAS.373...79P">    Article or Data origin sources  </INFO>
+  <INFO name="original_date" value="2006">    Year of the article publication  </INFO>
+  <INFO name="reference_url" value="https://cdsarc.cds.unistra.fr/viz-bin/cat/V/127A">    Dataset landing page  </INFO>
+  <INFO name="publication_date" value="2018-10-17">    Date of first publication in the data centre  </INFO>
+  <INFO name="rights_uri" value="https://cds.unistra.fr/vizier-org/licences_vizier.html">    Licence URI  </INFO>
+
+  <COOSYS ID="J2000" system="eq_FK5" equinox="J2000"/>
+  <TABLE ID="V_127A_mash1" name="V/127A/mash1">
+    <DESCRIPTION>The MASH Catalog of Planetary Nebulae (paper I)</DESCRIPTION>
+    <!-- Definitions of GROUPs and FIELDs -->
+    <FIELD name="n_PNG" ucd="meta.note" datatype="char" arraysize="1"><!-- ucd="NOTE" -->
+      <DESCRIPTION>[TLP] True, Likely or Possible PN nature</DESCRIPTION>
+    </FIELD>
+    <FIELD name="PNG" ucd="meta.id;meta.main" datatype="char" arraysize="12"><!-- ucd="DATA_LINK" -->
+      <DESCRIPTION>Name of PN, based on Galactic position (1)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="Name" ucd="meta.id" datatype="char" arraysize="13"><!-- ucd="?" -->
+      <DESCRIPTION>Usual name of the PN (2)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="RAJ2000" ucd="pos.eq.ra;meta.main" ref="J2000" datatype="double" width="10" precision="4" unit=""><!-- ucd="POS_EQ_RA_MAIN" -->
+      <DESCRIPTION>Right Ascension J2000</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DEJ2000" ucd="pos.eq.dec;meta.main" ref="J2000" datatype="double" width="9" precision="4" unit=""><!-- ucd="POS_EQ_DEC_MAIN" -->
+      <DESCRIPTION>Declination J2000</DESCRIPTION>
+    </FIELD>
+    <FIELD name="MajDiam" ucd="phys.angSize" datatype="float" width="6" precision="1" unit="arcsec"><!-- ucd="?" -->
+      <DESCRIPTION>? Major diameter of the PN from H{alpha} image</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="MinDiam" ucd="phys.angSize" datatype="float" width="6" precision="1" unit="arcsec"><!-- ucd="?" -->
+      <DESCRIPTION>? Minor diameter of the PN from H{alpha} image</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="CS" ucd="meta.note" datatype="char" arraysize="7*"><!-- ucd="?" -->
+      <DESCRIPTION>Type of central star (4)</DESCRIPTION>
+    </FIELD>
+    <FIELD name="Morph" ucd="src.morph" datatype="char" arraysize="7*"><!-- ucd="?" -->
+      <DESCRIPTION>Morphology of the nebula</DESCRIPTION>
+    </FIELD>
+    <FIELD name="ObsDate" ucd="time.epoch" datatype="int" width="10" unit="'Y:M:D'"><!-- ucd="?" -->
+      <DESCRIPTION>? Date of first spectroscopic observation</DESCRIPTION>
+      <VALUES null="-2147483648" />
+    </FIELD>
+    <FIELD name="img" ucd="meta.note" datatype="char" arraysize="5"><!-- ucd="DATA_LINK" -->
+      <DESCRIPTION>View images and spectra</DESCRIPTION>
+    </FIELD>
+    <FIELD name="AssocData" ucd="meta.bib.page" datatype="char" arraysize="4"><!-- ucd="DATA_LINK" -->
+      <DESCRIPTION>Associated Data web page</DESCRIPTION>
+    </FIELD>
+<DATA><BINARY><STREAM encoding="base64">
+VEcyMDkuMS0wOC4yIFBIUjA2MTUtMDAyNSBAV3Vwo9cKPb/biavN8BIzQsgAAELIAAAAAAAA
+AAAAAVIAJW+BMTAwMSBmaXRzUEcyMjcuMy0xMi4wIFBIUjA2MzMtMTgwOCBAWJaj1wo9cMAy
+I8TV5vgIQYgAAEFwAAAAAAAAAAAAAkVhACVswDEwMDIgZml0c1RHMjEyLjItMDQuNyBQSFIw
+NjMzLTAxMzUgQFiSeuFHrhS/+WL8li/JYkJgAABCSAAAAAAAAAAAAAJFYQAlbjsxMDAzIGZp
+dHNQRzIxNC4yLTAyLjQgUEhSMDY0NS0wMjE3IEBZUO7u7u7uwAJh2VDIP7dCXgAAQjgAAAAA
+AAAAAAACRXMAJWy8MTAwNCBmaXRzTEcyMjMuNi0wNi44IFBIUjA2NDYtMTIzNSBAWWbF+Sxf
+ksApMqGQf25cQiAAAEIUAAAAAAAAAAAAAUUAJXEcMTAwNSBmaXRzTEcyMTkuMS0wMy45IFBI
+UjA2NDgtMDcxOSBAWYuuFHrhR8AdUsX5LF+SQgwAAEIEAAAAAAAAAAAAAkVhACVofjEwMDYg
+Zml0c1RHMjEyLjYtMDAuMCBQSFIwNjUwKzAwMTMgQFmqzMzMzMw/zSfSfSfSfEKIAABB0AAA
+AAAAAAAAAAFCACVuODEwMDcgZml0c1RHMjE1LjUtMDEuNCBQSFIwNjUxLTAyNTcgQFmx64Ue
+uFHAB52VDIP7ckEIAABBCAAAAAAAAAAAAAFSACVm9zEwMDggZml0c1BHMjIxLjgtMDQuMiBQ
+SFIwNjUyLTA5NTEgQFnFLF+SxfjAI7hR64UeuEJwAABCOAAAAAAAAAAAAAJFYQAlbL0xMDA5
+IGZpdHNQRzIyNC4zLTA1LjUgUEhSMDY1Mi0xMjQwIEBZxWnQNp0CwClaKzxNXm9DOwAAQzQA
+AAAAAAAAAAABSQAlbL4xMDEwIGZpdHNURzIyMi44LTA0LjIgUEhSMDY1NC0xMDQ1IEBZ45LF
++SxfwCWFZ4mrze9B2AAAQYAAAAAAAAAAAAABRQAlbLsxMDExIGZpdHNURzIyNC4zLTAzLjQg
+UEhSMDcwMC0xMTQzIEBaQYvyWL8lwCd2L8li/JVCRAAAQjwAAAAAAAAAAAACRWEAJWy8MTAx
+MiBmaXRzTEcyMjEuMC0wMS40IFBIUjA3MDEtMDc0OSBAWlJ64UeuFMAfSj1wo9cJQoYAAEKE
+AAAAAAAAAAAAAkVhACVsuzEwMTMgZml0c1RHMjE3LjIrMDAuOSBQSFIwNzAyLTAzMjQgQFpp
+HrhR64TAC0cccccccUJQAABCMgAAAAAAAAAAAAJFYQAlZvcxMDE0IGZpdHNURzIxNC42KzAy
+LjkgUEhSMDcwNC0wMDExIEBajxfksX5Kv8f///////9BYAAAQWAAAAAAAAAAAAABUgAlbjgx
+MDE1IGZpdHNURzIyNy4yLTAzLjQgUEhSMDcwNS0xNDE5IEBamkRERERDwCyi2C2C2CxBcAAA
+QXAAAAAAAAAAAAABRQAlbLwxMDE2IGZpdHNURzIyMi45LTAxLjEgUEhSMDcwNS0wOTI0IEBa
+nbToG06BwCLOXUw7KhhCqgAAQqAAAAAAAAAAAAABQgAlbLsxMDE3IGZpdHNQRzIzNy45LTA3
+LjIgRlAwNzExLTI1MzEgIEBa+IiIiIiIwDmF+SxfksVEJQAARBYAAAAAAAAAAAACRWEAJW45
+MTAxOCBmaXRzVEcyMjYuNC0wMS4zIFBIUjA3MTEtMTIzOCBAWvuL8li/JcApRLF+SxfkQmIA
+AEJcAAAAAAAAAAAAAlJhACVsvDEwMTkgZml0c0xHMjI1LjIrMDAuMSBQSFIwNzE0LTEwNTEg
+QFsnrhR64UfAJbl1MOyoY0DgAABAoAAAAAAAAAAAAAFFACVvgTEwMjAgZml0 cw==
+</STREAM></BINARY></DATA>
+</TABLE>
+<INFO name="matches" value="20">matching records</INFO>
+
+<INFO name="Warning" value="truncated result (maxtup=20)"/><INFO name="QUERY_STATUS" value="OVERFLOW"> value="truncated result (maxtup=20)"</INFO>
+
+</RESOURCE>
+</VOTABLE>

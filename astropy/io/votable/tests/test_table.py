@@ -13,7 +13,8 @@ import pytest
 
 from astropy import units as u
 from astropy.io.votable import conf, from_table, is_votable, tree, validate
-from astropy.io.votable.exceptions import E25, W39, W50, VOWarning
+from astropy.io.votable.converters import get_converter
+from astropy.io.votable.exceptions import E25, W39, W46, W50, VOWarning
 from astropy.io.votable.table import parse, writeto
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
@@ -74,7 +75,7 @@ def test_table(tmp_path):
         ("string_test_2", {"datatype": "char", "arraysize": "10"}),
         ("unicode_test", {"datatype": "unicodeChar", "arraysize": "*"}),
         ("fixed_unicode_test", {"datatype": "unicodeChar", "arraysize": "10"}),
-        ("string_array_test", {"datatype": "char", "arraysize": "4"}),
+        ("string_array_test", {"datatype": "char", "arraysize": "4*"}),
         ("unsignedByte", {"datatype": "unsignedByte"}),
         ("short", {"datatype": "short"}),
         ("int", {"datatype": "int"}),
@@ -516,6 +517,326 @@ def test_validate_output_valid():
     assert isinstance(validate_out, bool)
     # Check that validation output is correct (votable is valid)
     assert validate_out is True
+
+
+def test_binary2_single_bounded_char_array():
+    """
+    Test that variable length char arrays with a max length
+    (arraysize="128*") are read correctly in BINARY2 format.
+    """
+    votable = parse(get_pkg_data_filename("data/binary2_variable_length_char.xml"))
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+
+    assert len(astropy_table) == 1
+    assert (
+        astropy_table[0]["access_format"]
+        == "application/x-votable+xml;content=datalink"
+    )
+
+    output = io.BytesIO()
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+    output.seek(0)
+
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+
+    assert len(astropy_table2) == 1
+    assert (
+        astropy_table2[0]["access_format"]
+        == "application/x-votable+xml;content=datalink"
+    )
+
+
+def test_binary2_bounded_variable_length_char():
+    """
+    Test that max length variable length char arrays (arraysize="128*")
+    are correctly serialized and deserialized correctly
+    """
+    votable = tree.VOTableFile()
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="bounded_char",
+            datatype="char",
+            arraysize="128*",
+            ID="bounded_char",
+        )
+    )
+
+    table.create_arrays(2)
+    table.array[0]["bounded_char"] = "Short string"
+    table.array[1]["bounded_char"] = "Longer string that still fits the 128 characters"
+
+    for format_name in ["tabledata", "binary", "binary2"]:
+        bio = io.BytesIO()
+
+        if format_name == "binary2":
+            votable.version = "1.3"
+            table._config = table._config or {}
+            table._config["version_1_3_or_later"] = True
+
+        table.format = format_name
+        votable.to_xml(bio)
+        bio.seek(0)
+
+        votable2 = parse(bio)
+        table2 = votable2.get_first_table()
+
+        assert table2.fields[0].arraysize == "128*", (
+            f"Failed to preserve arraysize with format {format_name}"
+        )
+        assert table2.array[0]["bounded_char"] == "Short string", (
+            f"Data mismatch with format {format_name}"
+        )
+        assert (
+            table2.array[1]["bounded_char"]
+            == "Longer string that still fits the 128 characters"
+        ), f"Data mismatch with format {format_name}"
+
+
+def test_binary2_bounded_variable_length_char_edge_cases():
+    """
+    Test edge cases for bounded variable-length char arrays in BINARY2 format
+    """
+    votable = tree.VOTableFile()
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table._config = table._config or {}
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="bounded_char",
+            datatype="char",
+            arraysize="10*",
+            ID="bounded_char",
+        )
+    )
+
+    table.create_arrays(3)
+    table.array[0]["bounded_char"] = ""
+    table.array[1]["bounded_char"] = "1234567890"
+    table.array[2]["bounded_char"] = "12345"
+
+    bio = io.BytesIO()
+
+    votable.version = "1.3"
+    table._config["version_1_3_or_later"] = True
+    table.format = "binary2"
+
+    votable.to_xml(bio)
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+
+    assert table2.fields[0].arraysize == "10*", "Failed to preserve arraysize"
+    assert table2.array[0]["bounded_char"] == "", "Empty string not preserved"
+    assert table2.array[1]["bounded_char"] == "1234567890", (
+        "Maximum length string not preserved"
+    )
+    assert table2.array[2]["bounded_char"] == "12345", (
+        "Partial length string not preserved"
+    )
+
+
+def test_binary2_char_fields_vizier_data():
+    """
+    Test parsing a VOTable from a Vizier query which includes bounded
+    variable-length char arrays (e.g., arraysize="7*").
+
+    Related astropy issue:
+    https://github.com/astropy/astropy/issues/8737
+    """
+    sample_file = get_pkg_data_filename("data/vizier_b2_votable.xml")
+
+    votable = parse(sample_file)
+    table = votable.get_first_table()
+
+    assert table.fields[7].ID == "CS"
+    assert table.fields[7].arraysize == "7*"
+    assert table.fields[8].ID == "Morph"
+    assert table.fields[8].arraysize == "7*"
+
+    assert table.array[0]["CS"] == ""
+
+    bio = io.BytesIO()
+    table.format = "binary2"
+    votable.version = "1.3"
+    table._config["version_1_3_or_later"] = True
+    votable.to_xml(bio)
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+
+    assert table2.fields[7].arraysize == "7*"
+    assert table2.fields[8].arraysize == "7*"
+
+    assert table2.array[0]["CS"] == ""
+    assert table2.array[4]["CS"] == ""
+
+
+def test_char_bounds_validation():
+    """
+    Test that char converter correctly validates the bounds.
+    """
+    votable = tree.VOTableFile()
+    field = tree.Field(
+        votable, name="bounded_char", datatype="char", arraysize="2*", ID="bounded_char"
+    )
+
+    converter = get_converter(field)
+
+    long_string = "abcdefgh"
+    with pytest.warns(W46) as record:
+        value, mask = converter.parse(long_string, {}, None)
+
+    assert any("char" in str(w.message) and "2" in str(w.message) for w in record)
+
+    if hasattr(converter, "_binoutput_var"):
+        with pytest.warns(W46) as record:
+            result = converter._binoutput_var(long_string, False)
+
+        assert any("char" in str(w.message) and "2" in str(w.message) for w in record)
+
+
+def test_binary2_bounded_char_warnings():
+    """
+    Test that appropriate warnings are issued when strings exceed
+    the maximum length in bounded variable-length char arrays.
+    """
+    votable = tree.VOTableFile()
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="bounded_char",
+            datatype="char",
+            arraysize="5*",
+            ID="bounded_char",
+        )
+    )
+
+    table.create_arrays(1)
+    table.array[0]["bounded_char"] = "abcdefghijklmnopqrstu"
+
+    bio = io.BytesIO()
+    votable.version = "1.3"
+    table._config = table._config or {}
+    table._config["version_1_3_or_later"] = True
+    table.format = "binary2"
+    votable.to_xml(bio)
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    with pytest.warns(W46) as record:
+        field = votable2.get_first_table().fields[0]
+        value, mask = field.converter.parse("Too long value", {}, None)
+
+    assert any("arraysize" in str(w.message) or "5" in str(w.message) for w in record)
+
+
+def test_binary2_bounded_unichar_valid():
+    """
+    Test that variable length unicodeChars with a maximum length are correctly
+    serialized and deserialized in BINARY2 format.
+    """
+    votable = tree.VOTableFile()
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="bounded_unichar",
+            datatype="unicodeChar",
+            arraysize="10*",
+            ID="bounded_unichar",
+        )
+    )
+
+    table.create_arrays(3)
+    table.array[0]["bounded_unichar"] = ""
+    table.array[1]["bounded_unichar"] = "áéíóú"
+    table.array[2]["bounded_unichar"] = "áéíóúÁÉÍÓ"
+
+    for format_name in ["tabledata", "binary", "binary2"]:
+        bio = io.BytesIO()
+
+        if format_name == "binary2":
+            votable.version = "1.3"
+            table._config = table._config or {}
+            table._config["version_1_3_or_later"] = True
+
+        table.format = format_name
+        votable.to_xml(bio)
+        bio.seek(0)
+
+        votable2 = parse(bio)
+        table2 = votable2.get_first_table()
+
+        assert table2.fields[0].arraysize == "10*", (
+            f"Arraysize not preserved in {format_name} format"
+        )
+
+        assert table2.array[0]["bounded_unichar"] == "", (
+            f"Empty string not preserved in {format_name} format"
+        )
+        assert table2.array[1]["bounded_unichar"] == "áéíóú", (
+            f"Unicode string not preserved in {format_name} format"
+        )
+        assert table2.array[2]["bounded_unichar"] == "áéíóúÁÉÍÓ", (
+            f"Full-length string not preserved in {format_name} format"
+        )
+
+
+def test_unichar_bounds_validation():
+    """
+    Test that unicodeChar converter correctly validates bounds and issues warnings.
+    """
+    votable = tree.VOTableFile()
+    field = tree.Field(
+        votable,
+        name="bounded_unichar",
+        datatype="unicodeChar",
+        arraysize="5*",
+        ID="bounded_unichar",
+    )
+
+    converter = get_converter(field)
+
+    long_string = "áéíóúÁÉÍÓÚabcdefgh"
+    with pytest.warns(W46) as record:
+        value, mask = converter.parse(long_string, {}, None)
+
+    assert any(
+        "unicodeChar" in str(w.message) and "5" in str(w.message) for w in record
+    )
+
+    if hasattr(converter, "_binoutput_var"):
+        with pytest.warns(W46) as record:
+            result = converter._binoutput_var(long_string, False)
+
+        assert any(
+            "unicodeChar" in str(w.message) and "5" in str(w.message) for w in record
+        )
 
 
 def test_validate_tilde_path(home_is_data):
