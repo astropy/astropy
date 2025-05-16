@@ -980,11 +980,11 @@ def test_pprint():
     pprint_class = u.UnitBase.EquivalentUnitsList
     equiv_units_to_Hz = u.Hz.find_equivalent_units()
     assert pprint_class.__repr__(equiv_units_to_Hz).splitlines() == [
-        "  Primary name | Unit definition | Aliases     ",
+        "  Primary name | Unit definition | Aliases  ",
         "[",
-        "  Bq           | 1 / s           | becquerel    ,",
-        "  Ci           | 3.7e+10 / s     | curie        ,",
-        "  Hz           | 1 / s           | Hertz, hertz ,",
+        "  Bq           | 1 / s           | becquerel ,",
+        "  Ci           | 3.7e+10 / s     | curie     ,",
+        "  Hz           | 1 / s           | hertz     ,",
         "]",
     ]
     assert (
@@ -993,7 +993,7 @@ def test_pprint():
         "<th>Aliases</th></tr>"
         "<tr><td>Bq</td><td>1 / s</td><td>becquerel</td></tr>"
         "<tr><td>Ci</td><td>3.7e+10 / s</td><td>curie</td></tr>"
-        "<tr><td>Hz</td><td>1 / s</td><td>Hertz, hertz</td></tr></table>"
+        "<tr><td>Hz</td><td>1 / s</td><td>hertz</td></tr></table>"
     )
 
 

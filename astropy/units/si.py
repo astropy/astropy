@@ -225,13 +225,7 @@ def_unit(
 ###########################################################################
 # FREQUENCY
 
-def_unit(
-    ["Hz", "Hertz", "hertz"],
-    1 / s,
-    namespace=_ns,
-    prefixes=True,
-    doc="Frequency",
-)
+def_unit(["Hz", "hertz"], 1 / s, namespace=_ns, prefixes=True, doc="Frequency")
 
 
 ###########################################################################
@@ -279,7 +273,7 @@ def_unit(
 # TEMPERATURE
 
 def_unit(
-    ["K", "Kelvin"],
+    ["K", "kelvin"],
     namespace=_ns,
     prefixes=True,
     doc="Kelvin: temperature with a null point at absolute zero.",
@@ -296,48 +290,28 @@ def_unit(
 # FORCE
 
 def_unit(
-    ["N", "Newton", "newton"],
-    kg * m * s**-2,
-    namespace=_ns,
-    prefixes=True,
-    doc="Newton: force",
+    ["N", "newton"], kg * m * s**-2, namespace=_ns, prefixes=True, doc="Newton: force"
 )
 
 
 ##########################################################################
 # ENERGY
 
-def_unit(
-    ["J", "Joule", "joule"],
-    N * m,
-    namespace=_ns,
-    prefixes=True,
-    doc="Joule: energy",
-)
+def_unit(["J", "joule"], N * m, namespace=_ns, prefixes=True, doc="Joule: energy")
 
 
 ##########################################################################
 # PRESSURE
 
 def_unit(
-    ["Pa", "Pascal", "pascal"],
-    J * m**-3,
-    namespace=_ns,
-    prefixes=True,
-    doc="Pascal: pressure",
+    ["Pa", "pascal"], J * m**-3, namespace=_ns, prefixes=True, doc="Pascal: pressure"
 )
 
 
 ###########################################################################
 # POWER
 
-def_unit(
-    ["W", "Watt", "watt"],
-    J / s,
-    namespace=_ns,
-    prefixes=True,
-    doc="Watt: power",
-)
+def_unit(["W", "watt"], J / s, namespace=_ns, prefixes=True, doc="Watt: power")
 
 
 ###########################################################################
@@ -357,7 +331,7 @@ def_unit(
     doc="coulomb: electric charge",
 )
 def_unit(
-    ["V", "Volt", "volt"],
+    ["V", "volt"],
     J * C**-1,
     namespace=_ns,
     prefixes=True,
@@ -372,14 +346,14 @@ def_unit(
     format={"latex": r"\Omega", "ogip": "ohm", "unicode": "Ω"},
 )
 def_unit(
-    ["S", "Siemens", "siemens"],
+    ["S", "siemens"],
     A * V**-1,
     namespace=_ns,
     prefixes=True,
     doc="Siemens: electrical conductance",
 )
 def_unit(
-    ["F", "Farad", "farad"],
+    ["F", "farad"],
     C * V**-1,
     namespace=_ns,
     prefixes=True,
@@ -391,25 +365,17 @@ def_unit(
 # MAGNETIC
 
 def_unit(
-    ["Wb", "Weber", "weber"],
-    V * s,
-    namespace=_ns,
-    prefixes=True,
-    doc="Weber: magnetic flux",
+    ["Wb", "weber"], V * s, namespace=_ns, prefixes=True, doc="Weber: magnetic flux"
 )
 def_unit(
-    ["T", "Tesla", "tesla"],
+    ["T", "tesla"],
     Wb * m**-2,
     namespace=_ns,
     prefixes=True,
     doc="Tesla: magnetic flux density",
 )
 def_unit(
-    ["H", "Henry", "henry"],
-    Wb * A**-1,
-    namespace=_ns,
-    prefixes=True,
-    doc="Henry: inductance",
+    ["H", "henry"], Wb * A**-1, namespace=_ns, prefixes=True, doc="Henry: inductance"
 )
 
 

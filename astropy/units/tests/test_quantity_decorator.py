@@ -92,7 +92,7 @@ def test_wrong_unit(x_input, y_input):
             f"convertible to '{str(y_target)}'."
         ),
     ):
-        x, y = myfunc_args(1 * x_unit, 100 * u.Joule)  # has to be an unspecified unit
+        x, y = myfunc_args(1 * x_unit, 100 * u.joule)  # has to be an unspecified unit
 
 
 def test_wrong_unit_annotated(x_input, y_input):
@@ -104,7 +104,7 @@ def test_wrong_unit_annotated(x_input, y_input):
         return x, y
 
     with pytest.raises(u.UnitsError, match="Argument 'y' to function 'myfunc_args'"):
-        x, y = myfunc_args(1 * x_unit, 100 * u.Joule)  # has to be an unspecified unit
+        x, y = myfunc_args(1 * x_unit, 100 * u.joule)  # has to be an unspecified unit
 
 
 def test_not_quantity(x_input, y_input):
@@ -194,7 +194,7 @@ def test_kwarg_wrong_unit(x_input, y_input):
             f"convertible to '{str(y_target)}'."
         ),
     ):
-        x, y = myfunc_args(1 * x_unit, y=100 * u.Joule)
+        x, y = myfunc_args(1 * x_unit, y=100 * u.joule)
 
 
 def test_kwarg_not_quantity(x_input, y_input):
