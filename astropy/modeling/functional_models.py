@@ -3070,7 +3070,11 @@ class AiryDisk2D(Fittable2DModel):
     limiting angular resolution and is approximately 1.22 * lambda / D,
     where lambda is the wavelength of the light and D is the diameter of
     the aperture.
-
+    
+    The total Power integrated radially to infinity over the plane is given by:
+    
+        .. math:: P = \\frac{A 4 R^2}{\\pi R_z^2}
+    
     See [1]_ for more details about the Airy disk.
 
     References
