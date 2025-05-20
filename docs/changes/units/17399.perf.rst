@@ -1,1 +1,0 @@
-Converting strings to units with ``Unit()`` is now up to 225% faster.
