@@ -1,2 +1,0 @@
-Add functionality to read and write to a Table from the TDAT format as part of
-the Unified File Read/Write Interface.
