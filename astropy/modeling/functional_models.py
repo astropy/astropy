@@ -3070,10 +3070,16 @@ class AiryDisk2D(Fittable2DModel):
     limiting angular resolution and is approximately 1.22 * lambda / D,
     where lambda is the wavelength of the light and D is the diameter of
     the aperture.
+
+    For reference, the total power integrated radially to infinity over the 
+    plane is given by:
     
-    The total Power integrated radially to infinity over the plane is given by:
+        .. math:: P = \\int_0^{2 \\pi} \\int_0^\\infty f(r) r dr d\\theta
+                = \\frac{A 4 R^2}{\\pi R_z^2}
     
-        .. math:: P = \\frac{A 4 R^2}{\\pi R_z^2}
+    One may therefore calculate the amplitude for a given power as:
+
+        .. math:: A = \\frac{\\pi P R_z^2}{4 R^2}
     
     See [1]_ for more details about the Airy disk.
 
@@ -3121,7 +3127,7 @@ class AiryDisk2D(Fittable2DModel):
 
         z *= amplitude
         return z
-
+    
     @property
     def input_units(self):
         if self.x_0.input_unit is None:
