@@ -3077,7 +3077,8 @@ class AiryDisk2D(Fittable2DModel):
         .. math:: P = \\int_0^{2 \\pi} \\int_0^\\infty f(r) r dr d\\theta
                 = \\frac{A 4 R^2}{\\pi R_z^2}
     
-    One may therefore calculate the amplitude for a given power as:
+    One may therefore calculate the amplitude for a given power and 
+    radius  as:
 
         .. math:: A = \\frac{\\pi P R_z^2}{4 R^2}
     
