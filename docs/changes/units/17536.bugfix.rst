@@ -1,3 +1,0 @@
-For the Angstrom unit in the CDS module, ``u.cds.Angstrom``, the string
-representation is now "Angstrom" (instead of "AA"), consistent with what was
-always the case for ``u.Angstrom``, and conformant with the CDS standard.
