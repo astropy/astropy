@@ -65,10 +65,10 @@ astropy.nddata
   and store covariance matrices.  The class depends on use of the ``scipy.sparse``
   module. [#16690]
 
-- Add the ``limit_rounding_method`` parameter to `~astropy.nddata.Cutout2D`, 
-  `~astropy.nddata.overlap_slices`, `~astropy.nddata.extract_array`, and 
-  `~astropy.nddata.add_array` to allow users to specify the rounding method 
-  used when calculating the pixel limits of the cutout. The default method 
+- Add the ``limit_rounding_method`` parameter to `~astropy.nddata.Cutout2D`,
+  `~astropy.nddata.overlap_slices`, `~astropy.nddata.extract_array`, and
+  `~astropy.nddata.add_array` to allow users to specify the rounding method
+  used when calculating the pixel limits of the cutout. The default method
   is to use `~numpy.ceil`. [#17876]
 
 astropy.table
