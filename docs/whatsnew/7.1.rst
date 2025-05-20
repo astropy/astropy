@@ -26,9 +26,9 @@ In addition to these major changes, Astropy v7.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* 906 commits have been added since 7.0
-* 141 issues have been closed since 7.0
-* 319 pull requests have been merged since 7.0
+* 919 commits have been added since 7.0
+* 148 issues have been closed since 7.0
+* 333 pull requests have been merged since 7.0
 * 44 people have contributed since 7.0
 * 19 of which are new contributors
 
