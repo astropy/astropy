@@ -3129,7 +3129,7 @@ class AiryDisk2D(Fittable2DModel):
 
         z *= amplitude
         return z
-    
+
     @property
     def input_units(self):
         if self.x_0.input_unit is None:
