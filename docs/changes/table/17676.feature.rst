@@ -1,3 +1,0 @@
-Document that ``Table.group_by``'s underlying sorting algorithm is guaranteed
-to be stable. This reflects behavior that was already present but undocumented,
-at least since astropy 6.0 .

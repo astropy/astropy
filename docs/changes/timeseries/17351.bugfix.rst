@@ -1,2 +1,0 @@
-Made ``TimeSeries.from_pandas`` and ``BinnedTimeSeries.read`` more robust to
-subclassing.
