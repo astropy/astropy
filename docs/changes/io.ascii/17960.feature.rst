@@ -1,2 +1,0 @@
-``io.ascii`` now supports on-the-fly decompression of LZW-compressed files
-(typically ".Z" extension) via the optional package uncompresspy.
