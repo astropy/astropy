@@ -3078,7 +3078,7 @@ class AiryDisk2D(Fittable2DModel):
                 = \\frac{A 4 R^2}{\\pi R_z^2}
 
     One may therefore calculate the amplitude for a given power and
-    radius  as:
+    radius as:
 
         .. math:: A = \\frac{\\pi P R_z^2}{4 R^2}
 
