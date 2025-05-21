@@ -406,7 +406,6 @@ class Char(Converter):
 
         if self.arraysize != "*" and len(value) > self.arraysize:
             vo_warn(W46, ("char", self.arraysize), None, None)
-            value = value[: self.arraysize]
 
         return self._write_length(len(value)) + value
 

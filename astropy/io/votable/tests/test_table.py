@@ -6,6 +6,7 @@ Test the conversion to/from astropy.table.
 import io
 import os
 import pathlib
+import struct
 import warnings
 
 import numpy as np
@@ -13,9 +14,10 @@ import pytest
 
 from astropy import units as u
 from astropy.io.votable import conf, from_table, is_votable, tree, validate
-from astropy.io.votable.converters import get_converter
-from astropy.io.votable.exceptions import E25, W39, W46, W50, VOWarning
+from astropy.io.votable.converters import Char, UnicodeChar, get_converter
+from astropy.io.votable.exceptions import E01, E25, W39, W46, W50, VOWarning
 from astropy.io.votable.table import parse, writeto
+from astropy.io.votable.tree import Field, VOTableFile
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
 from astropy.utils.compat.optional_deps import HAS_PYARROW
@@ -837,6 +839,115 @@ def test_unichar_bounds_validation():
         assert any(
             "unicodeChar" in str(w.message) and "5" in str(w.message) for w in record
         )
+
+
+def test_char_invalid_arraysize_raises_e01():
+    """
+    Test that an invalid arraysize for a char field raises E01.
+    """
+
+    class DummyField:
+        name = "dummy"
+        ID = "dummy_id"
+        arraysize = "invalid*"
+
+    field = DummyField()
+    config = {}
+
+    with pytest.raises(E01) as excinfo:
+        Char(field, config)
+
+    err_msg = str(excinfo.value)
+    assert "invalid" in err_msg
+    assert "char" in err_msg
+    assert "dummy_id" in err_msg
+
+
+def test_unicodechar_invalid_arraysize_raises_e01():
+    """
+    Test that an invalid arraysize for a unicodechar field raises E01.
+    """
+
+    class DummyField:
+        name = "dummy"
+        ID = "dummy_id"
+        arraysize = "invalid*"
+
+    field = DummyField()
+    config = {}
+
+    with pytest.raises(E01) as excinfo:
+        UnicodeChar(field, config)
+
+    err_msg = str(excinfo.value)
+    assert "invalid" in err_msg
+    assert "unicode" in err_msg
+    assert "dummy_id" in err_msg
+
+
+def test_char_exceeding_arraysize():
+    """
+    Test that appropriate warnings are issued when strings exceed
+    the maximum length.
+    """
+    votable = VOTableFile()
+
+    field = Field(
+        votable, name="field_name", datatype="char", arraysize="5", ID="field_id"
+    )
+    converter = Char(field)
+    test_value = "Value that is too long for the field"
+
+    with pytest.warns(W46) as record:
+        result, mask = converter.parse(test_value)
+
+    assert any("char" in str(w.message) and "5" in str(w.message) for w in record)
+
+    def mock_read(size):
+        if size == 4:
+            return struct.pack(">I", 10)
+        else:
+            return b"0123456789"
+
+    with pytest.warns(W46) as record:
+        result, mask = converter._binparse_var(mock_read)
+
+    assert any("char" in str(w.message) and "5" in str(w.message) for w in record)
+    assert result == "0123456789"
+    assert mask is False
+
+
+def test_unicodechar_binparse_var_exceeds_arraysize():
+    """
+    Test that a warning is issued when reading a unicodeChar array in
+    binary2 serialization that exceeds the specified max length.
+    """
+    votable = tree.VOTableFile()
+    field = tree.Field(
+        votable,
+        name="field_name",
+        datatype="unicodeChar",
+        arraysize="5*",
+        ID="field_id",
+    )
+
+    converter = get_converter(field)
+
+    def mock_read(size):
+        if size == 4:
+            return struct.pack(">I", 10)
+        else:
+            return "0123456789".encode("utf_16_be")
+
+    with pytest.warns(W46) as record:
+        result, mask = converter.binparse(mock_read)
+
+    assert any(
+        "unicodeChar" in str(w.message) and "5" in str(w.message) for w in record
+    )
+
+    assert result == "0123456789"
+    assert mask is False
 
 
 def test_validate_tilde_path(home_is_data):
