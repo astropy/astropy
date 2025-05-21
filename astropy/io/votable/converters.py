@@ -325,7 +325,6 @@ class Char(Converter):
         else:
             # Check if this is a bounded variable-length field
             is_variable = field.arraysize.endswith("*")
-
             numeric_part = field.arraysize.removesuffix("*")
             try:
                 self.arraysize = int(numeric_part)
@@ -444,9 +443,8 @@ class UnicodeChar(Converter):
             self.binoutput = self._binoutput_var
             self.arraysize = "*"
         else:
+            # Check if this is a bounded variable-length field
             is_variable = field.arraysize.endswith("*")
-
-            # Get numeric part without modifying field.arraysize
             numeric_part = field.arraysize.removesuffix("*")
             try:
                 self.arraysize = int(numeric_part)
@@ -494,12 +492,11 @@ class UnicodeChar(Converter):
         if mask or value is None or value == "":
             return _zero_int
 
-        encoded = value.encode("utf_16_be")
-
         if self.arraysize != "*" and len(value) > self.arraysize:
             vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
             value = value[: self.arraysize]
-            encoded = value.encode("utf_16_be")
+
+        encoded = value.encode("utf_16_be")
 
         return self._write_length(len(encoded) // 2) + encoded
 
