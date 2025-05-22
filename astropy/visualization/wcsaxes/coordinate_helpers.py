@@ -22,7 +22,6 @@ from .frame import EllipticalFrame, RectangularFrame1D
 from .grid_paths import get_gridline_path, get_lon_lat_path
 from .ticklabels import TickLabels
 from .ticks import Ticks
-from .utils import MATPLOTLIB_LT_3_8
 
 __all__ = ["CoordinateHelper"]
 
@@ -859,13 +858,8 @@ class CoordinateHelper:
                     p.draw(renderer)
 
             elif self._grid is not None:
-                if MATPLOTLIB_LT_3_8:
-                    for line in self._grid.collections:
-                        line.set(**self._grid_lines_kwargs)
-                        line.draw(renderer)
-                else:
-                    self._grid.set(**self._grid_lines_kwargs)
-                    self._grid.draw(renderer)
+                self._grid.set(**self._grid_lines_kwargs)
+                self._grid.draw(renderer)
 
         renderer.close_group("grid lines")
 
@@ -1372,11 +1366,7 @@ class CoordinateHelper:
 
     def _clear_grid_contour(self):
         if hasattr(self, "_grid") and self._grid:
-            if MATPLOTLIB_LT_3_8:
-                for line in self._grid.collections:
-                    line.remove()
-            else:
-                self._grid.remove()
+            self._grid.remove()
 
     def _update_grid_contour(self):
         if self.coord_index is None:
