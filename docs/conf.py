@@ -609,9 +609,9 @@ links_to_become_substitutions: dict[str, str] = {
     # s3fs
     "s3fs": "https://s3fs.readthedocs.io",
     # TOPCAT
-    "STIL": "http://www.starlink.ac.uk/stil",
-    "STILTS": "http://www.starlink.ac.uk/stilts",
-    "TOPCAT": "http://www.starlink.ac.uk/topcat",
+    "STIL": "https://www.star.bristol.ac.uk/mbt/stil",
+    "STILTS": "https://www.star.bristol.ac.uk/mbt/stilts",
+    "TOPCAT": "https://www.star.bristol.ac.uk/mbt/topcat",
     # OpenAstronomy
     "OpenAstronomy Packaging Guide": "https://packaging-guide.openastronomy.org/en/latest",
     # Miscellaneous
