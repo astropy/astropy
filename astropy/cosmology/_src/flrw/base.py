@@ -167,7 +167,7 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
     Tcmb0: Parameter = Parameter(
         default=0.0 * u.K,
         doc="Temperature of the CMB at z=0.",
-        unit="Kelvin",
+        unit="K",
         fvalidate="scalar",
     )
     Neff: Parameter = Parameter(
