@@ -41,7 +41,7 @@
    <FIELD ID="string_test_2" arraysize="10" datatype="char" name="fixed string test"/>
    <FIELD ID="unicode_test" arraysize="*" datatype="unicodeChar" name="unicode_test"/>
    <FIELD ID="fixed_unicode_test" arraysize="10" datatype="unicodeChar" name="unicode test"/>
-   <FIELD ID="string_array_test" arraysize="4" datatype="char" name="string array test"/>
+   <FIELD ID="string_array_test" arraysize="4*" datatype="char" name="string array test"/>
    <FIELD ID="unsignedByte" datatype="unsignedByte" name="unsignedByte"/>
    <FIELD ID="short" datatype="short" name="short">
     <VALUES null="-32768"/>
