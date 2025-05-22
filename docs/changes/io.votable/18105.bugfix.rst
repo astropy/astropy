@@ -1,0 +1,1 @@
+Fix handling of bounded variable-length char arrays in BINARY2 format which were previously treated as fixed length.
