@@ -1,0 +1,2 @@
+Added CODATA 2022 support in `astropy.constants`, but did not make them default
+because the redefinition of SI units that will follow has not been implemented yet.
