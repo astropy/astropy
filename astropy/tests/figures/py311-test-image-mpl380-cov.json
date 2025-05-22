@@ -9,7 +9,7 @@
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_axisbelow[True]": "5364e39cab14f28b08073b31cce3dae8501c0431b1a49985810b764902747c8e",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_axisbelow[False]": "ee1e46856a19ba472ae9ea4588c614fbbd1b3a4a0787ef40e33f991a8f79d6c0",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_axisbelow[line]": "516c3882bbaa31a0d241eec2c70aca45b27b44929662371718b10025735db772",
-  "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_contour_overlay": "44fd1a202f8baa894a289bac150b3b0eda9b069a06fc8f49ce14d77e743481e0",
+  "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_contour_overlay": "8679305e8a8b5b3f5b896343f4e16dfc65e9289c31505e3b35ef773d7837c8ea",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_contourf_overlay": "fa928ab57291e8a128009320323ffb8955cd75d28b2a589074defb7b0889b3eb",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_overlay_features_image": "30d5562cb7a2484db0b898bc886253829de884fbf92bc0e6575f091438ec5f32",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_curvilinear_grid_patches_image": "ad0a985a324a73b5bea839a231f7537075306c874c279c6a6ea2cfe16529d815",
