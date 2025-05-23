@@ -1271,10 +1271,6 @@ class TestSortFunctions(MaskedArraySetup):
         assert_masked_equal(o, expected)
 
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.msort was removed in numpy 2.0")
-    @pytest.mark.xfail(
-        condition=not NUMPY_LT_1_24,
-        reason="astropy erroneously hides an upstream deprecation message",
-    )
     def test_msort(self):
         with (
             contextlib.nullcontext()
