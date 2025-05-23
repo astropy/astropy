@@ -1,0 +1,3 @@
+If ``numpy.msort()`` is called with a ``Masked`` array then ``astropy`` no
+longer erroneously hides the deprecation warning (with ``numpy`` versions
+1.24-1.26).

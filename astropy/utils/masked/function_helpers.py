@@ -571,6 +571,11 @@ if NUMPY_LT_2_0:
 
     @dispatched_function
     def msort(a):
+        if not NUMPY_LT_1_24:
+            warnings.warn(
+                "msort is deprecated, use np.sort(a, axis=0) instead",
+                DeprecationWarning,
+            )
         result = a.copy()
         result.sort(axis=0)
         return result, None, None
