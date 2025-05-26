@@ -23,13 +23,7 @@ from astropy.units.quantity_helper.function_helpers import (
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
-from astropy.utils.compat import (
-    NUMPY_LT_1_24,
-    NUMPY_LT_1_25,
-    NUMPY_LT_2_0,
-    NUMPY_LT_2_1,
-    NUMPY_LT_2_2,
-)
+from astropy.utils.compat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
 
 if TYPE_CHECKING:
     from types import FunctionType, ModuleType
@@ -2036,9 +2030,10 @@ class TestSortFunctions(InvariantUnitTestSetup):
     def test_sort_axis(self):
         self.check(np.sort, axis=0)
 
-    @pytest.mark.skipif(not NUMPY_LT_1_24, reason="np.msort is deprecated")
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.msort was removed in numpy 2.0")
     def test_msort(self):
-        self.check(np.msort)
+        with pytest.warns(DeprecationWarning):
+            self.check(np.msort)
 
     @needs_array_function
     def test_sort_complex(self):
