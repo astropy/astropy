@@ -11,6 +11,7 @@ TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 
 """
 
+import contextlib
 import itertools
 
 import numpy as np
@@ -1269,9 +1270,14 @@ class TestSortFunctions(MaskedArraySetup):
         expected = ma[np.lexsort((ma.unmasked.imag, ma.unmasked.real, ma.mask))]
         assert_masked_equal(o, expected)
 
-    @pytest.mark.skipif(not NUMPY_LT_1_24, reason="np.msort is deprecated")
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.msort was removed in numpy 2.0")
     def test_msort(self):
-        o = np.msort(self.ma)
+        with (
+            contextlib.nullcontext()
+            if NUMPY_LT_1_24
+            else pytest.warns(DeprecationWarning, match="msort is deprecated")
+        ):
+            o = np.msort(self.ma)
         expected = np.sort(self.ma, axis=0)
         assert_masked_equal(o, expected)
 
