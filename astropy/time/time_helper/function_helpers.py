@@ -72,18 +72,34 @@ def zeros_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None)
     )
 
 
-@custom_function
-def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
+def _combine_helper(func, arrays, axis, out, dtype):
+    # Apply on arrays of bool with the same shape, to get the final shape,
+    # and to avoid having test that shapes match, etc.
     empties = [np.empty(shape=np.shape(array), dtype=bool) for array in arrays]
-    shape = np.concatenate(empties, axis=axis).shape
+    shape = func(empties, axis=axis).shape
     axis = normalize_axis_index(axis, len(shape))
     if out is None:
         out = np.zeros_like(arrays[0], shape=shape, dtype=dtype)
+    return axis, out
+
+
+@custom_function
+def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
+    axis, out = _combine_helper(np.concatenate, arrays, axis, out, dtype)
 
     offset = 0
     for array in arrays:
         n_el = array.shape[axis]
         out[(slice(None),) * axis + (slice(offset, offset + n_el),)] = array
         offset += n_el
+
+    return out
+
+
+@custom_function
+def stack(arrays, axis=0, out=None, *, dtype=None, casting="same_kind"):
+    axis, out = _combine_helper(np.stack, arrays, axis, out, dtype)
+    for i, array in enumerate(arrays):
+        out[(slice(None),) * axis + (i,)] = array
 
     return out
