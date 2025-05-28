@@ -1606,8 +1606,31 @@ class TimeBase(MaskableShapedLikeNDArray):
         return self.max(axis, keepdims=keepdims) - self.min(axis, keepdims=keepdims)
 
     def __array_function__(self, function, types, args, kwargs):
-        if function is np.ptp:
+        """
+        Wrap numpy functions.
+
+        Parameters
+        ----------
+        function : callable
+            Numpy function to wrap
+        types : iterable of classes
+            Classes that provide an ``__array_function__`` override. Can
+            in principle be used to interact with other classes. Below,
+            mostly passed on to `~numpy.ndarray`, which can only interact
+            with subclasses.
+        args : tuple
+            Positional arguments provided in the function call.
+        kwargs : dict
+            Keyword arguments provided in the function call.
+        """
+        # TODO: move ptp implementation to function_helpers.
+        if function in CUSTOM_FUNCTIONS:
+            f = CUSTOM_FUNCTIONS[function]
+            return f(*args, **kwargs)
+        elif function is np.ptp:
             return self._ptp_impl(*args[1:], **kwargs)
+        elif function in UNSUPPORTED_FUNCTIONS:
+            return NotImplemented
         else:
             return super().__array_function__(function, types, args, kwargs)
 
@@ -2776,32 +2799,6 @@ class Time(TimeBase):
 
         result._location = location
         return result
-
-    def __array_function__(self, function, types, args, kwargs):
-        """
-        Wrap numpy functions.
-
-        Parameters
-        ----------
-        function : callable
-            Numpy function to wrap
-        types : iterable of classes
-            Classes that provide an ``__array_function__`` override. Can
-            in principle be used to interact with other classes. Below,
-            mostly passed on to `~numpy.ndarray`, which can only interact
-            with subclasses.
-        args : tuple
-            Positional arguments provided in the function call.
-        kwargs : dict
-            Keyword arguments provided in the function call.
-        """
-        if function in CUSTOM_FUNCTIONS:
-            f = CUSTOM_FUNCTIONS[function]
-            return f(*args, **kwargs)
-        elif function in UNSUPPORTED_FUNCTIONS:
-            return NotImplemented
-        else:
-            return super().__array_function__(function, types, args, kwargs)
 
     def to_datetime(self, timezone=None, leap_second_strict="raise"):
         # TODO: this could likely go through to_value, as long as that
