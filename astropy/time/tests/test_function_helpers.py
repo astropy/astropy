@@ -10,6 +10,8 @@ import pytest
 
 from astropy.time import Time, TimeDelta
 
+from .test_methods import assert_time_all_equal
+
 
 @pytest.mark.parametrize(
     "a",
@@ -28,6 +30,36 @@ def test_zeros_like(a, shape):
     assert res.scale == a.scale
     assert res.format == a.format
     assert res.precision == a.precision
+
+
+class TestConcatenate:
+    @classmethod
+    def setup_class(cls):
+        cls.a = Time(50000.0, np.arange(6.0).reshape(2, 3), format="mjd")
+        cls.b = Time(["2010-11-12", "2011-10-09"]).reshape(2, 1)
+
+    def check(self, func, *args, **kwargs):
+        # Check assumes no different locations, etc.
+        t_list = kwargs.pop("t_list", [self.a, self.a])
+        out = func(t_list, *args, **kwargs)
+        exp_jd1 = func([t.jd1 for t in t_list], *args, **kwargs)
+        exp_jd2 = func([t.jd2 for t in t_list], *args, **kwargs)
+        exp = Time(exp_jd1, exp_jd2, format="jd")
+        assert_time_all_equal(out, exp)
+
+    def test_concatenate(self):
+        self.check(np.concatenate)
+        self.check(np.concatenate, axis=1)
+        self.check(np.concatenate, t_list=[self.a, self.b], axis=1)
+
+    def test_hstack(self):
+        self.check(np.hstack)
+
+    def test_vstack(self):
+        self.check(np.vstack)
+
+    def test_dstack(self):
+        self.check(np.dstack)
 
 
 def test_linspace():

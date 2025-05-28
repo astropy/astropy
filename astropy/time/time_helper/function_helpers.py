@@ -6,6 +6,12 @@ Helpers for overriding numpy functions in
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
+from astropy.utils.compat import NUMPY_LT_2_0
+
+if NUMPY_LT_2_0:
+    from numpy.core.multiarray import normalize_axis_index
+else:
+    from numpy.lib.array_utils import normalize_axis_index
 
 # TODO: Fill this in with functions that don't make sense for times
 UNSUPPORTED_FUNCTIONS = {}
@@ -64,3 +70,20 @@ def zeros_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None)
         out_subfmt=a.out_subfmt,
         copy=False,
     )
+
+
+@custom_function
+def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
+    empties = [np.empty(shape=np.shape(array), dtype=bool) for array in arrays]
+    shape = np.concatenate(empties, axis=axis).shape
+    axis = normalize_axis_index(axis, len(shape))
+    if out is None:
+        out = np.zeros_like(arrays[0], shape=shape, dtype=dtype)
+
+    offset = 0
+    for array in arrays:
+        n_el = array.shape[axis]
+        out[(slice(None),) * axis + (slice(offset, offset + n_el),)] = array
+        offset += n_el
+
+    return out
