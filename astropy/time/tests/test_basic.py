@@ -2747,6 +2747,25 @@ def test_location_init_fail():
         Time([tm, tm2])
 
 
+@pytest.mark.parametrize(
+    "a",
+    [
+        Time("J2010"),
+        Time(50000.0, [1.0, 2.0], format="mjd"),
+        Time("2002-03-04T15:16:17.18", precision=5),
+    ],
+)
+@pytest.mark.parametrize("shape", [None, (2, 2)])
+def test_zeros_like(a, shape):
+    """Test np.zeros_like __array_function__ implementation."""
+    res = np.zeros_like(a, shape=shape)
+    assert np.all(res.jd == 2451544.5)
+    assert res.shape == (shape or a.shape)
+    assert res.scale == a.scale
+    assert res.format == a.format
+    assert res.precision == a.precision
+
+
 def test_linspace():
     """Test `np.linspace` `__array_func__` implementation for scalar and arrays."""
     t1 = Time(["2021-01-01 00:00:00", "2021-01-02 00:00:00"])
