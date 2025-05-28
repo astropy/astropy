@@ -1,0 +1,4 @@
+Support using ``np.concatenate``, ``np.stack``, ``np.hstack``, ``np.vstack``,
+and ``np.dstack`` on ``Time`` and ``TimeDelta`` instances, as well as creating
+time arrays similar to an existing one with ``np.zeros_like`` (where zero time
+is taken to be J2000.0).
