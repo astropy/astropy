@@ -12,10 +12,10 @@ UNSUPPORTED_FUNCTIONS = {}
 # Functions that return the final result of the numpy function
 CUSTOM_FUNCTIONS = {}
 
-custom_functions = FunctionAssigner(CUSTOM_FUNCTIONS)
+custom_function = FunctionAssigner(CUSTOM_FUNCTIONS)
 
 
-@custom_functions(helps={np.linspace})
+@custom_function
 def linspace(tstart, tstop, *args, **kwargs):
     from astropy.time import Time
 
@@ -36,7 +36,7 @@ def linspace(tstart, tstop, *args, **kwargs):
         return tstart + (tstop - tstart) * offsets
 
 
-@custom_functions
+@custom_function
 def zeros_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None):
     """Create a new Time object set to J2000 with the properties of a.
 
