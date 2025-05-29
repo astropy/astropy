@@ -493,7 +493,6 @@ class UnicodeChar(Converter):
 
         if self.arraysize != "*" and len(value) > self.arraysize:
             vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
-            value = value[: self.arraysize]
 
         encoded = value.encode("utf_16_be")
 
