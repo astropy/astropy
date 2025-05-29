@@ -13,7 +13,7 @@ from astropy.constants import si as _si
 
 from . import si
 from .core import UnitBase, def_unit, set_enabled_units
-from .utils import generate_unit_summary
+from .docgen import generate_unit_summary
 
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
