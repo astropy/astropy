@@ -3,10 +3,15 @@ Helpers for overriding numpy functions in
 `~astropy.time.Time.__array_function__`.
 """
 
+from typing import TYPE_CHECKING, TypeVar, Union
+
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
 from astropy.utils.compat import NUMPY_LT_2_0
+
+if TYPE_CHECKING:
+    from astropy.time import Time, TimeDelta
 
 if NUMPY_LT_2_0:
     from numpy.core.multiarray import normalize_axis_index
@@ -42,40 +47,75 @@ def linspace(tstart, tstop, *args, **kwargs):
         return tstart + (tstop - tstart) * offsets
 
 
-@custom_function
-def zeros_like(a, dtype=None, order="K", subok=True, shape=None, **kwargs):
-    """Create a new Time object set to J2000 with the properties of a.
+TimeLike = TypeVar("TimeLike", bound=Union["Time", "TimeDelta"])
 
-    The other parameters allow to override what is used to create
-    ``jd1`` and ``jd2`` (but one cannot override ``dtype``).
+
+@custom_function
+def zeros_like(
+    a: TimeLike,
+    dtype=None,
+    order="K",
+    subok=True,
+    shape=None,
+    **kwargs,
+) -> TimeLike:
+    """Create a new "zero" Time or TimeDelta object with the properties of a.
+
+    The other parameters allow to override what is used to create ``jd1`` and ``jd2``
+    (but one cannot override ``dtype``).
+
+    Parameters
+    ----------
+    a : Time or TimeDelta
+        The object to mimic.
+    dtype : None
+        This parameter is not used, as the dtype is determined by the class of `a`.
+    order : {'C', 'F', 'A', 'K'}, optional
+        Memory layout order for the output array. Default is 'K', which means the output
+        will have the same order as ``a``.
+    subok : bool, optional
+        If True, the output will be a subclass of `a`'s class. If False, it will always
+        return a base class instance (e.g., ``Time`` or ``TimeDelta``).
+    shape : tuple, optional
+        The shape of the output array. If None, it will match the shape of `a`.
+    kwargs : dict, optional
+        Additional keyword arguments passed to the array creation functions
+        ``np.zeros_like`` and ``np.full_like``.
+
+    Returns
+    -------
+    Time or TimeDelta
+        A new instance of the same class as ``a``, with ``jd1`` and ``jd2`` initialized
+        to J2000.0 for ``Time`` or zero for ``TimeDelta`` and the specified shape and
+        order.
     """
     from astropy.time import Time
 
     if dtype is not None:
-        raise ValueError("Cannot set dtype for Time creation.")
+        raise ValueError(f"Cannot set dtype for {a.__class__.__name__} creation.")
     if shape is None:
         shape = a.shape
 
-    tkw = {k: getattr(a, k) for k in ("precision", "in_subfmt", "out_subfmt")}
-    jd2 = np.zeros_like(a.jd2, shape=shape, order=order, subok=subok, **kwargs)
-    if isinstance(a, Time):
-        jd2000 = 2451544.5  # Arbitrary JD value J2000.0 that will work with ERFA
-        jd1 = np.full_like(
-            a.jd1, jd2000, shape=shape, order=order, subok=subok, **kwargs
-        )
-        tkw["location"] = a.location
-    else:
-        jd1 = np.zeros_like(a.jd2, shape=shape, order=order, subok=subok, **kwargs)
+    # Get class, where the only other choice is TimeDelta due to the way custom_function
+    is_time = isinstance(a, Time)
 
-    # If the format is already "jd", we can just create the right instance.
-    if a.format == "jd":
-        return a.__class__(jd1, jd2, format="jd", scale=a.scale, copy=False, **tkw)
-    # If not, we first create a JD format instance, and then convert the
+    # Create jd1 and jd2 arrays, with the same shape as `a`, but filled with the
+    # appropriate value for the class. For Time, this is the arbitrary time J2000.0 that
+    # will work with ERFA.
+    fill = 2451544.5 if is_time else 0.0
+    jd1 = np.full_like(a.jd1, fill, shape=shape, order=order, subok=subok, **kwargs)
+    jd2 = np.zeros_like(a.jd2, shape=shape, order=order, subok=subok, **kwargs)
+
+    # We first create a JD format instance, and then convert the
     # format and add back other attributes. This will break if location was
     # an array that cannot be broadcast to the new shape, but that seems
     # reasonable; it is unclear what the user wants in that case.
-    tmp = a.__class__(jd1, jd2, format="jd", scale=a.scale, copy=False)
-    return a.__class__(tmp, format=a.format, copy=False, **tkw)
+    tkw = {"location": a.location} if is_time else {}
+    out = a.__class__(jd1, jd2, format="jd", scale=a.scale, copy=False, **tkw)
+    for attr in ("format", "precision", "in_subfmt", "out_subfmt"):
+        setattr(out, attr, getattr(a, attr))
+
+    return out
 
 
 def _combine_helper(func, arrays, axis, out, dtype):
