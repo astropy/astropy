@@ -579,5 +579,5 @@ def register_pyarrow_ecsv_table():
     from astropy.io import registry as io_registry
     from astropy.table import Table
 
-    io_registry.register_reader("pyarrow.ecsv", Table, read_ecsv)
-    io_registry.register_writer("pyarrow.ecsv", Table, write_ecsv)
+    io_registry.register_reader("ecsv", Table, read_ecsv)
+    io_registry.register_writer("ecsv", Table, write_ecsv)
