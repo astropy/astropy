@@ -1,7 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Test utilities for `astropy.units`.
-"""
 
 # ruff: noqa: FLY002
 
@@ -19,7 +16,7 @@ def test_composite_unit_definition(tmp_path):
     module_path.write_text(
         textwrap.dedent("""
         from astropy import units as u
-        from astropy.units.utils import generate_unit_summary
+        from astropy.units.docgen import generate_unit_summary
 
         km_per_h = u.km / u.h
 

@@ -12,7 +12,7 @@ import numpy as np
 
 from . import si
 from .core import UnitBase, def_unit
-from .utils import generate_unit_summary
+from .docgen import generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 
