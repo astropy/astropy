@@ -145,6 +145,12 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
     meta : mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g., a reference.
 
+    Warnings
+    --------
+    AstropyUserWarning:
+        If `m_nu` is not None and either (or both) `Tcmb0` is zero or Neff is 0, a
+        warning will be raised.
+
     Notes
     -----
     Class instances are immutable -- you cannot change the parameters' values.
@@ -165,7 +171,7 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
     )
     Ode0: Parameter = ParameterOde0.clone()
     Tcmb0: Parameter = Parameter(
-        default=0.0 * u.K,
+        default=2.72548 * u.K,
         doc="Temperature of the CMB at z=0.",
         unit="Kelvin",
         fvalidate="scalar",
@@ -262,7 +268,7 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
         return value
 
     @m_nu.validator
-    def m_nu(self, param, value):
+    def m_nu(self, param, value) -> u.Quantity | None:
         """Validate neutrino masses to right value, units, and shape.
 
         There are no neutrinos if floor(Neff) or Tcmb0 are 0. The number of
@@ -270,7 +276,15 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
         negative.
         """
         # Check if there are any neutrinos
-        if (nneutrinos := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
+        if value is None:
+            return None
+        elif (nneutrinos := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
+            if value is not None:
+                warnings.warn(
+                    "m_nu is ignored when Neff is 0 or Tcmb0 is 0.",
+                    AstropyUserWarning,
+                    stacklevel=2,
+                )
             return None  # None, regardless of input
 
         # Validate / set units
