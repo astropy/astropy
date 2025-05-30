@@ -6,6 +6,7 @@ import warnings
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 import astropy.units as u
 from astropy.time import Time
@@ -24,6 +25,7 @@ def assert_time_all_equal(t1, t2):
     __tracebackhide__ = True
     assert t1.shape == t2.shape
     assert np.all(t1 == t2)
+    assert_array_equal(t1.mask, t2.mask)
 
 
 class ShapeSetup:
@@ -467,6 +469,55 @@ class TestShapeFunctions(ShapeSetup):
         t0d = np.delete(self.t0, [2, 3], axis=0)
         assert_time_all_equal(t0d[:2], self.t0[:2])
         assert_time_all_equal(t0d[2:], self.t0[4:])
+
+
+@pytest.mark.parametrize("use_mask", ("masked", "not_masked"))
+class TestConcatenateFunctions(ShapeSetup):
+    def check(self, func, *args, **kwargs):
+        # Check assumes no different locations, etc.
+        if not args:
+            args = ([self.t0, self.t0],)
+        out = func(*args, **kwargs)
+        exp_jd1 = func([a.jd1 for a in args[0]], *args[1:], **kwargs)
+        exp_jd2 = func([a.jd2 for a in args[0]], *args[1:], **kwargs)
+        exp = args[0][0].__class__(exp_jd1, exp_jd2, format="jd")
+        assert_time_all_equal(out, exp)
+
+    def test_concatenate(self, use_mask):
+        self.create_data(use_mask)
+
+        self.check(np.concatenate)
+        self.check(np.concatenate, [self.t1, self.t1], axis=1)
+        td1 = self.t0 - self.t0[-1, -1]
+        td2 = self.t0 - self.t0[0, 0]
+        self.check(np.concatenate, [td1, td2], axis=1)
+
+    def test_hstack(self, use_mask):
+        self.create_data(use_mask)
+        self.check(np.hstack)
+
+    def test_vstack(self, use_mask):
+        self.create_data(use_mask)
+        self.check(np.vstack)
+
+    def test_dstack(self, use_mask):
+        self.create_data(use_mask)
+        self.check(np.dstack)
+
+    def test_stack(self, use_mask):
+        self.create_data(use_mask)
+        self.check(np.stack)
+        self.check(np.stack, axis=1)
+        self.check(np.stack, [self.t1, self.t1], axis=2)
+        exp = np.stack([self.t1, self.t1])
+        out = exp._apply(np.zeros_like)
+        assert not np.all(exp == out)
+        chk = np.stack([self.t1, self.t1], out=out)
+        assert chk is out
+        assert_time_all_equal(out, exp)
+        td1 = self.t0 - self.t0[-1, -1]
+        td2 = self.t0 - self.t0[0, 0]
+        self.check(np.stack, [td1, td2], axis=2)
 
 
 @pytest.mark.parametrize("use_mask", ("masked", "not_masked"))
