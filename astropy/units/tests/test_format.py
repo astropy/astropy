@@ -775,7 +775,7 @@ def test_vounit_unknown():
 
 
 def test_vounit_details():
-    assert u.Unit("Pa", format="vounit") is u.Pascal
+    assert u.Unit("Pa", format="vounit") is u.pascal
     assert u.Unit("ka", format="vounit") == u.Unit("1000 yr")
     assert u.Unit("pix", format="vounit") == u.Unit("pixel", format="vounit")
 
