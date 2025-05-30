@@ -23,7 +23,7 @@ __all__: list[str] = []  #  Units are added at the end
 
 from . import si
 from .core import UnitBase, add_enabled_units, def_unit
-from .utils import generate_unit_summary
+from .docgen import generate_unit_summary
 
 _ns = globals()
 
