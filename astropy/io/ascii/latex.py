@@ -8,17 +8,12 @@ latex.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-from __future__ import annotations
-
 import re
-from typing import TYPE_CHECKING
+from collections.abc import Generator
+from re import Pattern
+from typing import ClassVar, Final
 
 from . import core
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
-    from re import Pattern
-    from typing import ClassVar, Final
 
 latexdicts = {
     "AA": {

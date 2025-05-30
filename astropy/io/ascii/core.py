@@ -23,7 +23,7 @@ import warnings
 from contextlib import suppress
 from io import StringIO
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import ClassVar, Final, Self, SupportsFloat, TypeGuard
 
 import numpy as np
 
@@ -33,9 +33,6 @@ from astropy.utils.exceptions import AstropyWarning
 
 from . import connect
 from .docs import READ_DOCSTRING, WRITE_DOCSTRING
-
-if TYPE_CHECKING:
-    from typing import ClassVar, Final, Self, SupportsFloat, TypeGuard
 
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES: dict[str, MetaBaseReader] = {}

@@ -6,6 +6,7 @@ Tukey's biweight function.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -14,8 +15,6 @@ from astropy.stats.funcs import median_absolute_deviation
 from astropy.stats.nanfunctions import nanmedian, nansum
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from numpy.typing import ArrayLike, NDArray
 
 # TODO: typing: use a custom-defined 'ArrayLike-but-not-a-scalar' type for `float | ArrayLike` or `ArrayLike | float` hints

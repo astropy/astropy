@@ -15,7 +15,8 @@ __all__ = [
 ]
 
 
-from typing import TYPE_CHECKING
+import sys
+from typing import TYPE_CHECKING, Any, Literal, TypeAlias
 
 import astropy.units as u
 from astropy.units import Equivalency
@@ -26,20 +27,13 @@ from .funcs.optimize import z_at_value
 from .units import littleh, redshift
 
 if TYPE_CHECKING:
-    import sys
-    from typing import Any, Literal
-
     from astropy.cosmology import Cosmology
     from astropy.cosmology._src.funcs.optimize import _ZAtValueKWArgs
     from astropy.units import Quantity
 
     if sys.version_info < (3, 12):
-        from typing import Any
-
         _UnpackZAtValueKWArgs = Any
     else:
-        from typing import TypeAlias
-
         from typing_extensions import Unpack
 
         _UnpackZAtValueKWArgs: TypeAlias = Unpack[_ZAtValueKWArgs]

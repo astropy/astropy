@@ -18,12 +18,13 @@ import operator
 import os
 import pkgutil
 import warnings
+from collections.abc import Generator
 from contextlib import contextmanager, nullcontext
 from functools import reduce
 from inspect import getdoc
 from pathlib import Path
 from textwrap import TextWrapper
-from typing import TYPE_CHECKING
+from typing import Final
 from warnings import warn
 
 import numpy as np
@@ -33,10 +34,6 @@ from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .paths import get_config_dir_path
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
-    from typing import Final
 
 __all__ = (
     "ConfigItem",
