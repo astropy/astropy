@@ -6,7 +6,7 @@ Handles the "FITS" unit format.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
@@ -18,8 +18,6 @@ from . import Base, utils
 from .generic import _GenericParserMixin
 
 if TYPE_CHECKING:
-    from typing import Literal
-
     from astropy.units import UnitBase
 
 

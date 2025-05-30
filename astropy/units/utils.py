@@ -10,8 +10,9 @@ from __future__ import annotations
 
 import io
 import re
+from collections.abc import Generator, Mapping
 from fractions import Fraction
-from typing import TYPE_CHECKING, SupportsFloat
+from typing import TYPE_CHECKING, Literal, SupportsFloat
 
 import numpy as np
 from numpy import finfo
@@ -19,9 +20,6 @@ from numpy import finfo
 from .errors import UnitScaleError
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Mapping
-    from typing import Literal
-
     from .core import NamedUnit
     from .typing import UnitPower, UnitPowerLike, UnitScale, UnitScaleLike
 

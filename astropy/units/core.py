@@ -11,9 +11,11 @@ import operator
 import textwrap
 import unicodedata
 import warnings
+from collections.abc import Collection, Iterable, Mapping, MutableMapping, Sequence
 from functools import cached_property
 from threading import RLock
-from typing import TYPE_CHECKING, NamedTuple, overload
+from types import TracebackType
+from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple, Self, overload
 
 import numpy as np
 
@@ -30,10 +32,6 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Iterable, Mapping, MutableMapping, Sequence
-    from types import TracebackType
-    from typing import Any, Final, Literal, Self
-
     from .format import Base
     from .physical import PhysicalType
     from .quantity import Quantity

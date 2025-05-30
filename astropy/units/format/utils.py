@@ -4,13 +4,8 @@
 Utilities shared by the different formats.
 """
 
-from __future__ import annotations
-
+from collections.abc import Generator, Iterable, Sequence
 from keyword import iskeyword
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from collections.abc import Generator, Iterable, Sequence
 
 
 def get_non_keyword_units(

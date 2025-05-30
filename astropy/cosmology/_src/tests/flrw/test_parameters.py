@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import copy
+from inspect import BoundArguments
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -17,8 +18,6 @@ from astropy.cosmology._src.tests.test_core import ParameterTestMixin
 from astropy.tests.helper import assert_quantity_allclose
 
 if TYPE_CHECKING:
-    from inspect import BoundArguments
-
     from astropy.cosmology import Cosmology
 
 
