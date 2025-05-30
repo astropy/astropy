@@ -2221,7 +2221,6 @@ class Time(TimeBase):
             GCRS,
             HCRS,
             ICRS,
-            CartesianRepresentation,
             UnitSphericalRepresentation,
             solar_system_ephemeris,
         )
@@ -2241,27 +2240,17 @@ class Time(TimeBase):
         with solar_system_ephemeris.set(ephemeris):
             if kind.lower() == "heliocentric":
                 # convert to heliocentric coordinates, aligned with ICRS
-                cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
+                loc_ref = itrs.transform_to(HCRS(obstime=self))
             else:
                 # first we need to convert to GCRS coordinates with the correct
-                # obstime, since ICRS coordinates have no frame time
-                gcrs_coo = itrs.transform_to(GCRS(obstime=self))
-                # convert to barycentric (BCRS) coordinates, aligned with ICRS
-                cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz
+                # obstime, since ICRS coordinates have no frame time, and then
+                # convert to barycentric (BCRS) coordinates, aligned with ICRS.
+                loc_ref = itrs.transform_to(GCRS(obstime=self)).transform_to(ICRS())
 
         # get unit ICRS vector to star
-        spos = (
-            skycoord.icrs.represent_as(UnitSphericalRepresentation)
-            .represent_as(CartesianRepresentation)
-            .xyz
-        )
-
-        # Move X,Y,Z to last dimension, to enable possible broadcasting below.
-        cpos = np.rollaxis(cpos, 0, cpos.ndim)
-        spos = np.rollaxis(spos, 0, spos.ndim)
-
+        spos = skycoord.icrs.represent_as(UnitSphericalRepresentation).to_cartesian()
         # calculate light travel time correction
-        tcor_val = (spos * cpos).sum(axis=-1) / const.c
+        tcor_val = loc_ref.cartesian.dot(spos) / const.c
         return TimeDelta(tcor_val, scale="tdb")
 
     def earth_rotation_angle(self, longitude=None):
