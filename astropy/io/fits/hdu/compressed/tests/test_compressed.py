@@ -7,7 +7,6 @@ import pickle
 import re
 import time
 from io import BytesIO
-from itertools import product
 
 import numpy as np
 import pytest
@@ -26,6 +25,10 @@ from astropy.io.fits.tests.test_table import comparerecords
 from astropy.io.fits.verify import VerifyWarning
 from astropy.utils.data import download_file
 from astropy.utils.misc import NumpyRNGContext
+
+DATA_TYPE_COMPRESSION_COMBO_LIST = [
+    (dtype, comp_type) for dtype in ("f", "i4") for comp_type in COMPRESSION_TYPES
+]
 
 
 class TestCompressedImage(FitsTestCase):
@@ -865,7 +868,7 @@ class TestCompressedImage(FitsTestCase):
         np.testing.assert_array_equal(data, new)
 
     @pytest.mark.parametrize(
-        ("dtype", "compression_type"), product(("f", "i4"), COMPRESSION_TYPES)
+        ("dtype", "compression_type"), DATA_TYPE_COMPRESSION_COMBO_LIST
     )
     def test_write_non_contiguous_data(self, dtype, compression_type):
         """
