@@ -7,7 +7,6 @@ import pickle
 import re
 import time
 from io import BytesIO
-from itertools import product
 
 import numpy as np
 import pytest
@@ -864,8 +863,12 @@ class TestCompressedImage(FitsTestCase):
         new = fits.getdata(testfile)
         np.testing.assert_array_equal(data, new)
 
+    DATA_TYPE_COMPRESSION_COMBOS = [
+        (dtype, comp_type) for dtype in ("f", "i4") for comp_type in COMPRESSION_TYPES
+    ]
+
     @pytest.mark.parametrize(
-        ("dtype", "compression_type"), product(("f", "i4"), COMPRESSION_TYPES)
+        ("dtype", "compression_type"), DATA_TYPE_COMPRESSION_COMBOS
     )
     def test_write_non_contiguous_data(self, dtype, compression_type):
         """
