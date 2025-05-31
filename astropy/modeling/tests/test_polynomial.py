@@ -6,7 +6,6 @@
 import os
 import unittest.mock as mk
 import warnings
-from itertools import product
 
 import numpy as np
 import pytest
@@ -102,6 +101,17 @@ fitters = [
     fitting.DogBoxLSQFitter,
 ]
 
+MODEL_CLASS_CONSTRAINTS_LIST = [
+    (model_class, constraints)
+    for model_class in sorted(linear1d, key=str)
+    for constraints in (False, True)
+]
+MODEL_CLASS2D_CONSTRAINTS_LIST = [
+    (model_class, constraints)
+    for model_class in sorted(linear2d, key=str)
+    for constraints in (False, True)
+]
+
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 class TestFitting:
@@ -122,8 +132,7 @@ class TestFitting:
     # could probably factor out
 
     @pytest.mark.parametrize(
-        ("model_class", "constraints"),
-        list(product(sorted(linear1d, key=str), (False, True))),
+        ("model_class", "constraints"), MODEL_CLASS_CONSTRAINTS_LIST
     )
     def test_linear_fitter_1D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
@@ -159,8 +168,7 @@ class TestFitting:
             assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
 
     @pytest.mark.parametrize(
-        ("model_class", "constraints"),
-        list(product(sorted(linear1d, key=str), (False, True))),
+        ("model_class", "constraints"), MODEL_CLASS_CONSTRAINTS_LIST
     )
     @pytest.mark.parametrize("fitter", fitters)
     def test_non_linear_fitter_1D(self, model_class, constraints, fitter):
@@ -191,8 +199,7 @@ class TestFitting:
             assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
 
     @pytest.mark.parametrize(
-        ("model_class", "constraints"),
-        list(product(sorted(linear2d, key=str), (False, True))),
+        ("model_class", "constraints"), MODEL_CLASS2D_CONSTRAINTS_LIST
     )
     def test_linear_fitter_2D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
@@ -226,8 +233,7 @@ class TestFitting:
             assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
 
     @pytest.mark.parametrize(
-        ("model_class", "constraints"),
-        list(product(sorted(linear2d, key=str), (False, True))),
+        ("model_class", "constraints"), MODEL_CLASS2D_CONSTRAINTS_LIST
     )
     @pytest.mark.parametrize("fitter", fitters)
     def test_non_linear_fitter_2D(self, model_class, constraints, fitter):
