@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import functools
-import itertools
 import operator
 from datetime import timedelta
 from decimal import Decimal
@@ -30,6 +29,16 @@ allclose_sec = functools.partial(
     np.allclose, rtol=2.0**-52, atol=2.0**-52 * 24 * 3600
 )  # 20 ps atol
 orig_auto_download = iers.conf.auto_download
+
+TIME_SCALE_COMBO_LIST = [
+    (scale1, scale2)
+    for scale1 in STANDARD_TIME_SCALES
+    for scale2 in STANDARD_TIME_SCALES
+]
+
+TIME_SCALE_OPERATOR_COMBO_LIST = [
+    (scale, op) for scale in TIME_SCALES for op in (operator.add, operator.sub)
+]
 
 
 def setup_module(module):
@@ -372,10 +381,7 @@ class TestTimeDeltaScales:
         with pytest.raises(ScaleValueError):
             TimeDelta([0.0, 1.0, 10.0], format="sec", scale="utc")
 
-    @pytest.mark.parametrize(
-        ("scale1", "scale2"),
-        list(itertools.product(STANDARD_TIME_SCALES, STANDARD_TIME_SCALES)),
-    )
+    @pytest.mark.parametrize(("scale1", "scale2"), TIME_SCALE_COMBO_LIST)
     def test_standard_scales_for_time_minus_time(self, scale1, scale2):
         """T(X) - T2(Y)  -- does T(X) - T2(Y).X and return dT(X)
         and T(X) +/- dT(Y)  -- does (in essence) (T(X).Y +/- dT(Y)).X
@@ -520,10 +526,7 @@ class TestTimeDeltaScales:
             with pytest.raises(TypeError):
                 dt_local - self.dt[scale]
 
-    @pytest.mark.parametrize(
-        ("scale", "op"),
-        list(itertools.product(TIME_SCALES, (operator.add, operator.sub))),
-    )
+    @pytest.mark.parametrize(("scale", "op"), TIME_SCALE_OPERATOR_COMBO_LIST)
     def test_scales_for_delta_scale_is_none(self, scale, op):
         """T(X) +/- dT(None) or T(X) +/- Quantity(time-like)
 
