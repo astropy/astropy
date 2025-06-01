@@ -293,6 +293,9 @@ def aggregate_downsample(
         # Should we return that by default, instead of using np.nan?
         if isinstance(values, u.Quantity):
             data = np.full_like(values, np.nan, shape=(n_bins,))
+            # Pass ndarray (`values.value`) instead of Quantity (`values`)
+            # reduceat() to avoid significant performance hit for cases
+            # aggregate_func does not have optimized reduceat, e.g., np.nanmean.
             data[unique_indices] = u.Quantity(
                 reduceat(values.value, groups, aggregate_func), values.unit, copy=False
             )
