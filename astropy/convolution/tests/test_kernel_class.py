@@ -44,13 +44,7 @@ KERNEL_TYPES = [
     Ring2DKernel,
 ]
 
-KERNEL_WIDTH_COMBO_LIST = [
-    (kernel_type, width) for kernel_type in KERNEL_TYPES for width in WIDTHS_ODD
-]
 
-KERNEL_MODE_COMBO_LIST = [
-    (kernel_type, mode) for kernel_type in KERNEL_TYPES for mode in MODES
-]
 NUMS = [1, 1.0, np.float32(1.0), np.float64(1.0)]
 
 
@@ -130,7 +124,8 @@ class TestKernels:
         assert_almost_equal(astropy_1D, scipy_1D, decimal=5)
         assert_almost_equal(astropy_2D, scipy_2D, decimal=5)
 
-    @pytest.mark.parametrize(("kernel_type", "width"), KERNEL_WIDTH_COMBO_LIST)
+    @pytest.mark.parametrize("kernel_type", KERNEL_TYPES)
+    @pytest.mark.parametrize("width", WIDTHS_ODD)
     def test_delta_data(self, kernel_type, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -159,7 +154,8 @@ class TestKernels:
             )
             assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(("kernel_type", "width"), KERNEL_WIDTH_COMBO_LIST)
+    @pytest.mark.parametrize("kernel_type", KERNEL_TYPES)
+    @pytest.mark.parametrize("width", WIDTHS_ODD)
     def test_random_data(self, kernel_type, width):
         """
         Test smoothing of an image made of random noise
@@ -514,7 +510,8 @@ class TestKernels:
         # Check separability
         assert box.separable
 
-    @pytest.mark.parametrize(("kernel_type", "mode"), KERNEL_MODE_COMBO_LIST)
+    @pytest.mark.parametrize("kernel_type", KERNEL_TYPES)
+    @pytest.mark.parametrize("mode", MODES)
     def test_discretize_modes(self, kernel_type, mode):
         """
         Check if the different modes result in kernels that work with convolve.
