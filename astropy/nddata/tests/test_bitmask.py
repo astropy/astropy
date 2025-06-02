@@ -123,6 +123,10 @@ def test_interpret_valid_str_bit_flags(flag, expected):
         ("~(HOT , CR)", ~3),
         ("~(HOT | CR)", ~3),
         ("~(CR + HOT)", ~3),
+        (" CR ", 1),
+        (" CR , HOT ", 3),
+        ("~ CR + HOT ", ~3),
+        ("~ ( CR | HOT ) ", ~3),
     ],
 )
 def test_interpret_valid_mnemonic_bit_flags(flag, expected):
