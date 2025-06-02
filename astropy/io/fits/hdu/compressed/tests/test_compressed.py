@@ -26,10 +26,6 @@ from astropy.io.fits.verify import VerifyWarning
 from astropy.utils.data import download_file
 from astropy.utils.misc import NumpyRNGContext
 
-DATA_TYPE_COMPRESSION_COMBO_LIST = [
-    (dtype, comp_type) for dtype in ("f", "i4") for comp_type in COMPRESSION_TYPES
-]
-
 
 class TestCompressedImage(FitsTestCase):
     def test_empty(self):
@@ -867,9 +863,8 @@ class TestCompressedImage(FitsTestCase):
         new = fits.getdata(testfile)
         np.testing.assert_array_equal(data, new)
 
-    @pytest.mark.parametrize(
-        ("dtype", "compression_type"), DATA_TYPE_COMPRESSION_COMBO_LIST
-    )
+    @pytest.mark.parametrize("dtype", ["f", "i4"])
+    @pytest.mark.parametrize("compression_type", COMPRESSION_TYPES)
     def test_write_non_contiguous_data(self, dtype, compression_type):
         """
         Regression test for https://github.com/astropy/astropy/issues/2150
