@@ -21,15 +21,9 @@ modes = ["center", "linear_interp", "oversample"]
 test_models_1D = [Gaussian1D, Box1D, RickerWavelet1D]
 test_models_2D = [Gaussian2D, Box2D, RickerWavelet2D]
 
-models1D_modes_combo_list = [
-    (model, mode) for model in test_models_1D for mode in modes
-]
-models2D_modes_combo_list = [
-    (model, mode) for model in test_models_2D for mode in modes
-]
 
-
-@pytest.mark.parametrize(("model_class", "mode"), models1D_modes_combo_list)
+@pytest.mark.parametrize("model_class", test_models_1D)
+@pytest.mark.parametrize("mode", modes)
 def test_pixel_sum_1D(model_class, mode):
     """
     Test if the sum of all pixels corresponds nearly to the integral.
@@ -56,7 +50,8 @@ def test_gaussian_eval_1D(mode):
     assert_allclose(values, disc_values, atol=0.001)
 
 
-@pytest.mark.parametrize(("model_class", "mode"), models2D_modes_combo_list)
+@pytest.mark.parametrize("model_class", test_models_2D)
+@pytest.mark.parametrize("mode", modes)
 def test_pixel_sum_2D(model_class, mode):
     """
     Test if the sum of all pixels corresponds nearly to the integral.
@@ -76,7 +71,8 @@ def test_pixel_sum_2D(model_class, mode):
     assert_allclose(values.sum(), models_2D[model_class]["integral"], atol=0.0001)
 
 
-@pytest.mark.parametrize(("model_class", "mode"), models2D_modes_combo_list)
+@pytest.mark.parametrize("model_class", test_models_2D)
+@pytest.mark.parametrize("mode", modes)
 def test_pixel_sum_compound_2D(model_class, mode):
     """
     Test if the sum of all pixels of a compound model corresponds nearly to the integral.
