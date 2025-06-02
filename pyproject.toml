@@ -196,9 +196,6 @@ namespaces = true
 # Delete with deprecated astropy.utils.misc.walk_skip_hidden()
 "astropy.utils.tests" = ["data/.hidden_file.txt"]
 
-[tool.setuptools_scm]
-version_file = "astropy/_version.py"
-
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = [

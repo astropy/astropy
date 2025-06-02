@@ -19,7 +19,6 @@ astropy/modeling/src/projections.c
 MANIFEST
 astropy/cython_version.py
 astropy/wcs/include/wcsconfig.h
-astropy/_version.py
 
 # Sphinx
 _build

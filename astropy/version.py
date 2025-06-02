@@ -1,11 +1,14 @@
 # NOTE: First try _dev.scm_version if it exists and setuptools_scm is installed
 # This file is not included in astropy wheels/tarballs, so otherwise it will
-# fall back on the generated _version module.
+# fall back on static metadata.
 try:
     try:
         from ._dev.scm_version import version
     except ImportError:
-        from ._version import version
+        from importlib.metadata import version as md_version
+
+        version = md_version("astropy")
+        del md_version
 except Exception:
     import warnings
 
