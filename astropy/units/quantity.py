@@ -20,7 +20,7 @@ import numpy as np
 from astropy import config as _config
 from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .core import Unit, UnitBase, dimensionless_unscaled, get_current_unit_registry
 from .errors import UnitConversionError, UnitsError, UnitTypeError
@@ -1256,7 +1256,15 @@ class Quantity(np.ndarray):
 
     # other overrides of special functions
     def __hash__(self):
-        return hash(self.value) ^ hash(self.unit)
+        hash_value = hash(self.value) ^ hash(self.unit)
+        # Emit the warning only if hashing does not raise an error anyways.
+        warnings.warn(
+            AstropyDeprecationWarning(  # since=7.2
+                f"Hashing {type(self).__name__} instances is deprecated and may be "
+                "removed in a future version."
+            )
+        )
+        return hash_value
 
     def __iter__(self):
         if self.isscalar:

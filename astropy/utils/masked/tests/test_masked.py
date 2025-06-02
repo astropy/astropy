@@ -16,6 +16,7 @@ from astropy.coordinates import Longitude
 from astropy.units import Quantity
 from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_2, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_PLT
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.masked import Masked, MaskedNDArray
 
 
@@ -1380,11 +1381,76 @@ class TestMaskedArrayMethods(MaskedArraySetup):
 
 
 class TestMaskedQuantityMethods(TestMaskedArrayMethods, QuantitySetup):
-    pass
+    def test_sum_hash(self):
+        ma_sum = self.ma.sum()
+        assert ma_sum.mask
+        # Masked scalars cannot be hashed.
+        with pytest.raises(TypeError, match="^unhashable type: 'numpy.ndarray'$"):
+            hash(ma_sum)
+        # But an unmasked scalar can, for now.
+        with pytest.warns(
+            AstropyDeprecationWarning,
+            match="^Hashing MaskedQuantity instances is deprecated",
+        ):
+            masked_hash = hash(Masked(self.a).sum())
+        with pytest.warns(
+            AstropyDeprecationWarning, match="^Hashing Quantity instances is deprecated"
+        ):
+            plain_hash = hash(self.a.sum())
+        assert masked_hash == plain_hash
+
+    def test_mean_hash(self):
+        ma_mean = self.ma.mean()
+        with pytest.warns(
+            AstropyDeprecationWarning,
+            match="^Hashing MaskedQuantity instances is deprecated",
+        ):
+            ma_mean_hash = hash(ma_mean)
+
+        a_mean = ma_mean.unmasked[()]
+        with pytest.warns(
+            AstropyDeprecationWarning, match="^Hashing Quantity instances is deprecated"
+        ):
+            a_mean_hash = hash(a_mean)
+
+        assert ma_mean_hash == a_mean_hash
 
 
 class TestMaskedLongitudeMethods(TestMaskedArrayMethods, LongitudeSetup):
-    pass
+    def test_sum_hash(self):
+        ma_sum = self.ma.sum()
+        assert ma_sum.mask
+        # Masked scalars cannot be hashed.
+        with pytest.raises(TypeError, match="^unhashable type: 'numpy.ndarray'$"):
+            hash(ma_sum)
+        # But an unmasked scalar can, for now.
+        with pytest.warns(
+            AstropyDeprecationWarning,
+            match="^Hashing MaskedAngle instances is deprecated",
+        ):
+            masked_hash = hash(Masked(self.a).sum())
+        with pytest.warns(
+            AstropyDeprecationWarning, match="^Hashing Angle instances is deprecated"
+        ):
+            plain_hash = hash(self.a.sum())
+        assert masked_hash == plain_hash
+
+    def test_mean_hash(self):
+        ma_mean = self.ma.mean()
+        with pytest.warns(
+            AstropyDeprecationWarning,
+            match="^Hashing MaskedLongitude instances is deprecated",
+        ):
+            ma_mean_hash = hash(ma_mean)
+
+        a_mean = ma_mean.unmasked[()]
+        with pytest.warns(
+            AstropyDeprecationWarning,
+            match="^Hashing Longitude instances is deprecated",
+        ):
+            a_mean_hash = hash(a_mean)
+
+        assert ma_mean_hash == a_mean_hash
 
 
 class TestMaskedArrayProductMethods(MaskedArraySetup):
