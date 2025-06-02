@@ -426,6 +426,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
                 )
             bit_flags = [bit_flags]
 
+        bit_flags = [f.strip() for f in bit_flags]
         if flag_name_map is not None:
             try:
                 int(bit_flags[0])
