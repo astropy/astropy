@@ -1,0 +1,15 @@
+Added CODATA 2022 support in ``astropy.constants``.
+
+This update affects the following constants while the rest are unchanged from CODATA 2018:
+
+- ``m_p`` (Proton mass)
+- ``m_n`` (Neutron mass)
+- ``m_e`` (Electron mass)
+- ``u`` (Atomic mass)
+- ``eps0`` (Vacuum electric permittivity)
+- ``Ryd`` (Rydberg constant)
+- ``a0`` (Bohr radius)
+- ``muB`` (Bohr magneton)
+- ``alpha`` (Fine-structure constant)
+- ``mu0`` (Vacuum magnetic permeability)
+- ``sigma_T`` (Thomson scattering cross-section)
