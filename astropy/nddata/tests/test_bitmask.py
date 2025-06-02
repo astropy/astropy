@@ -431,7 +431,19 @@ def test_map_add_flags():
 def test_interpret_bit_flags_strips_whitespace():
     flag_map = {"DO_NOT_USE": 1, "WARM": 4096}
     expected = 4097
-    assert bitmask.interpret_bit_flags("DO_NOT_USE + WARM", flag_name_map=flag_map) == expected
-    assert bitmask.interpret_bit_flags("DO_NOT_USE | WARM", flag_name_map=flag_map) == expected
-    assert bitmask.interpret_bit_flags("DO_NOT_USE , WARM", flag_name_map=flag_map) == expected
-    assert bitmask.interpret_bit_flags(" DO_NOT_USE + WARM ", flag_name_map=flag_map) == expected
+    assert (
+        bitmask.interpret_bit_flags("DO_NOT_USE + WARM", flag_name_map=flag_map)
+        == expected
+    )
+    assert (
+        bitmask.interpret_bit_flags("DO_NOT_USE | WARM", flag_name_map=flag_map)
+        == expected
+    )
+    assert (
+        bitmask.interpret_bit_flags("DO_NOT_USE , WARM", flag_name_map=flag_map)
+        == expected
+    )
+    assert (
+        bitmask.interpret_bit_flags(" DO_NOT_USE + WARM ", flag_name_map=flag_map)
+        == expected
+    )
