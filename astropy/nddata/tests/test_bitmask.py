@@ -426,3 +426,9 @@ def test_map_add_flags():
     map2 = map1 + ("HOT", 2)
     assert map2.CR == 1
     assert map2.HOT == 2
+
+
+def test_interpret_bit_flags_strips_whitespace():
+    flag_map = {"DO_NOT_USE": 1, "WARM": 4096}
+    result = bitmask.interpret_bit_flags("DO_NOT_USE + WARM", flag_name_map=flag_map)
+    assert result == 4097
