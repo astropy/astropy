@@ -101,17 +101,6 @@ fitters = [
     fitting.DogBoxLSQFitter,
 ]
 
-MODEL_CLASS_CONSTRAINTS_LIST = [
-    (model_class, constraints)
-    for model_class in sorted(linear1d, key=str)
-    for constraints in (False, True)
-]
-MODEL_CLASS2D_CONSTRAINTS_LIST = [
-    (model_class, constraints)
-    for model_class in sorted(linear2d, key=str)
-    for constraints in (False, True)
-]
-
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 class TestFitting:
@@ -131,9 +120,8 @@ class TestFitting:
     # TODO: Most of these test cases have some pretty repetitive setup that we
     # could probably factor out
 
-    @pytest.mark.parametrize(
-        ("model_class", "constraints"), MODEL_CLASS_CONSTRAINTS_LIST
-    )
+    @pytest.mark.parametrize("model_class", sorted(linear1d, key=str))
+    @pytest.mark.parametrize("constraints", [False, True])
     def test_linear_fitter_1D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
 
@@ -167,9 +155,8 @@ class TestFitting:
         else:
             assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
 
-    @pytest.mark.parametrize(
-        ("model_class", "constraints"), MODEL_CLASS_CONSTRAINTS_LIST
-    )
+    @pytest.mark.parametrize("model_class", sorted(linear1d, key=str))
+    @pytest.mark.parametrize("constraints", [False, True])
     @pytest.mark.parametrize("fitter", fitters)
     def test_non_linear_fitter_1D(self, model_class, constraints, fitter):
         """Test fitting with non-linear LevMarLSQFitter"""
@@ -198,9 +185,8 @@ class TestFitting:
         else:
             assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
 
-    @pytest.mark.parametrize(
-        ("model_class", "constraints"), MODEL_CLASS2D_CONSTRAINTS_LIST
-    )
+    @pytest.mark.parametrize("model_class", sorted(linear2d, key=str))
+    @pytest.mark.parametrize("constraints", [False, True])
     def test_linear_fitter_2D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
 
@@ -232,9 +218,8 @@ class TestFitting:
         else:
             assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
 
-    @pytest.mark.parametrize(
-        ("model_class", "constraints"), MODEL_CLASS2D_CONSTRAINTS_LIST
-    )
+    @pytest.mark.parametrize("model_class", sorted(linear2d, key=str))
+    @pytest.mark.parametrize("constraints", [False, True])
     @pytest.mark.parametrize("fitter", fitters)
     def test_non_linear_fitter_2D(self, model_class, constraints, fitter):
         """Test fitting with non-linear LevMarLSQFitter"""
