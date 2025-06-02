@@ -440,4 +440,3 @@ def test_map_add_flags():
     map2 = map1 + ("HOT", 2)
     assert map2.CR == 1
     assert map2.HOT == 2
-
