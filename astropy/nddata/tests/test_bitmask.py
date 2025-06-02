@@ -113,6 +113,16 @@ def test_interpret_valid_str_bit_flags(flag, expected):
         ("~(HOT,CR)", ~3),
         ("~(HOT|CR)", ~3),
         ("~(CR+HOT)", ~3),
+        ("CR | HOT", 3),
+        ("CR , HOT", 3),
+        ("CR + HOT", 3),
+        ("(CR , HOT)", 3),
+        ("(HOT + CR)", 3),
+        ("~HOT , CR", ~3),
+        ("~CR + HOT", ~3),
+        ("~(HOT , CR)", ~3),
+        ("~(HOT | CR)", ~3),
+        ("~(CR + HOT)", ~3),
     ],
 )
 def test_interpret_valid_mnemonic_bit_flags(flag, expected):
@@ -427,23 +437,3 @@ def test_map_add_flags():
     assert map2.CR == 1
     assert map2.HOT == 2
 
-
-def test_interpret_bit_flags_strips_whitespace():
-    flag_map = {"DO_NOT_USE": 1, "WARM": 4096}
-    expected = 4097
-    assert (
-        bitmask.interpret_bit_flags("DO_NOT_USE + WARM", flag_name_map=flag_map)
-        == expected
-    )
-    assert (
-        bitmask.interpret_bit_flags("DO_NOT_USE | WARM", flag_name_map=flag_map)
-        == expected
-    )
-    assert (
-        bitmask.interpret_bit_flags("DO_NOT_USE , WARM", flag_name_map=flag_map)
-        == expected
-    )
-    assert (
-        bitmask.interpret_bit_flags(" DO_NOT_USE + WARM ", flag_name_map=flag_map)
-        == expected
-    )
