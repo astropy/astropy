@@ -13,5 +13,7 @@ def get_extensions():
         "astropy.timeseries.periodograms.lombscargle.implementations.cython_impl",
         sources=[str(ROOT / "implementations" / "cython_impl.pyx")],
         include_dirs=[get_numpy_include()],
+        py_limited_api=True,
+        define_macros=[("Py_LIMITED_API", "0x030B0000")],
     )
     return [ext]

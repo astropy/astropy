@@ -25,5 +25,8 @@ def get_extensions():
         extra_compile_args=extra_compile_args,
         include_dirs=[get_numpy_include()],
         sources=sources,
+        py_limited_api=True,
+        define_macros=[("Py_LIMITED_API", "0x030B0000")],
     )
+
     return [_convolve_ext]

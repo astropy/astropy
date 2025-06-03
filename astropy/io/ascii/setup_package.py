@@ -17,5 +17,7 @@ def get_extensions():
         name="astropy.io.ascii.cparser",
         include_dirs=[get_numpy_include()],
         sources=sources,
+        py_limited_api=True,
+        define_macros=[("Py_LIMITED_API", "0x030B0000")],
     )
     return [ascii_ext]

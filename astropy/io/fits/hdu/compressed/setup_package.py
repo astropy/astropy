@@ -21,5 +21,7 @@ def get_extensions():
                 os.path.join("cextern", "cfitsio", "lib", "quantize.c"),
             ],
             include_dirs=[SRC_DIR],
+            py_limited_api=True,
+            define_macros=[("Py_LIMITED_API", "0x030B0000")],
         )
     ]

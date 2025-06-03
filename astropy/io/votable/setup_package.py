@@ -13,5 +13,7 @@ def get_extensions(build_type="release"):
             "astropy.io.votable.tablewriter",
             [join(VO_DIR, "tablewriter.c")],
             include_dirs=[VO_DIR],
+            py_limited_api=True,
+            define_macros=[("Py_LIMITED_API", "0x030B0000")],
         )
     ]

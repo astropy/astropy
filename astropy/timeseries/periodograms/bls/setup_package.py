@@ -16,5 +16,7 @@ def get_extensions():
             str(BLS_ROOT / "_impl.pyx"),
         ],
         include_dirs=[get_numpy_include()],
+        py_limited_api=True,
+        define_macros=[("Py_LIMITED_API", "0x030B0000")],
     )
     return [ext]

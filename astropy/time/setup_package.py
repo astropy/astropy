@@ -20,6 +20,8 @@ def get_extensions():
         sources=SRC_FILES,
         include_dirs=[get_numpy_include()],
         language="c",
+        py_limited_api=True,
+        define_macros=[("Py_LIMITED_API", "0x030B0000")],
     )
 
     return [_time_ext]
