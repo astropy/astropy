@@ -50,7 +50,7 @@ class AxisLabels(Text):
         allowed = ["always", "labels", "ticks"]
         if value not in allowed:
             raise ValueError(
-                f"Axis label visibility rule must be one of{' / '.join(allowed)}"
+                f"Axis label visibility rule must be one of {' / '.join(allowed)}"
             )
 
         self._visibility_rule = value
