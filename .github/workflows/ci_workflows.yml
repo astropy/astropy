@@ -126,7 +126,7 @@ jobs:
     # This ensures that a couple of wheel targets work fine in pull requests and pushes
     permissions:
       contents: none
-    uses: neutrinoceros/github-actions-workflows/.github/workflows/publish.yml@2a8b8de8e198f683948a2742a55060d14c16e08e # https://github.com/OpenAstronomy/github-actions-workflows/pull/278
+    uses: neutrinoceros/github-actions-workflows/.github/workflows/publish.yml@37a0455d6f668439d84a2ec52fc6518b763e0742 # https://github.com/OpenAstronomy/github-actions-workflows/pull/278
     with:
       upload_to_pypi: false
       upload_to_anaconda: false
