@@ -99,7 +99,6 @@ class Test2DConvolutions:
 
     @pytest.mark.parametrize("shape", SHAPES_ODD)
     @pytest.mark.parametrize("width", WIDTHS)
-
     def test_uniform_smallkernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -124,7 +123,6 @@ class Test2DConvolutions:
 
     @pytest.mark.parametrize("shape", SHAPES_ODD)
     @pytest.mark.parametrize("width", [1, 3, 5])
-
     def test_smallkernel_Box2DKernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel
