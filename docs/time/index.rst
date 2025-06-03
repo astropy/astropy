@@ -84,7 +84,7 @@ The full power of output representation is available via the
 `subformat`_. For instance, using ``numpy.longdouble`` as the output type
 for higher precision::
 
-  >>> t.to_value('mjd', 'long')  # doctest: +SKIP
+  >>> t.to_value('mjd', 'long')  
   array([51179.00000143, 55197.        ], dtype=float128)
 
 The default representation can be changed by setting the ``format`` attribute::
@@ -294,7 +294,7 @@ can have higher precision than the standard 64-bit float::
   >>> tm = Time('51544.000000000000001', format='mjd')  # String input
   >>> tm.mjd  # float64 output loses last digit but Decimal gets it
   np.float64(51544.0)
-  >>> tm.to_value('mjd', subfmt='decimal')  # doctest: +SKIP
+  >>> tm.to_value('mjd', subfmt='decimal')  
   Decimal('51544.00000000000000099920072216264')
   >>> tm.to_value('mjd', subfmt='str')
   '51544.000000000000001'
@@ -664,7 +664,7 @@ You can explicitly specify ``in_subfmt`` in order to strictly require a
 certain subformat::
 
   >>> t = Time('2000:002:03:04', in_subfmt='date_hm')
-  >>> t = Time('2000:002', in_subfmt='date_hm')  # doctest: +SKIP
+  >>> t = Time('2000:002', in_subfmt='date_hm')  
   Traceback (most recent call last):
     ...
   ValueError: Input values did not match any of the formats where the
