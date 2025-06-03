@@ -220,7 +220,7 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
     if (!supports_empty_values) goto exit;
     for (i = 0; i < ncols; ++i) {
         supports_empty_values[i] = PyObject_IsTrue(
-                PyList_GET_ITEM(py_supports_empty_values, i));
+                PyList_GetItem(py_supports_empty_values, i));
     }
 
     if ((buf = PyMem_Malloc((size_t)buf_size * sizeof(CHAR))) == NULL) goto exit;
@@ -234,7 +234,7 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
         if (_write_cstring(&buf, &buf_size, &x, " <TR>\n", 6)) goto exit;
 
         for (j = 0; j < ncols; ++j) {
-            if ((converter = PyList_GET_ITEM(converters, j)) == NULL) goto exit;
+            if ((converter = PyList_GetItem(converters, j)) == NULL) goto exit;
             if ((array_val = PySequence_GetItem(array_row, j)) == NULL) goto exit;
             if ((mask_val = PySequence_GetItem(mask_row, j)) == NULL) goto exit;
 
