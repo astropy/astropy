@@ -13,7 +13,7 @@ from astropy.constants import si as _si
 
 from . import si
 from .core import UnitBase, binary_prefixes, def_unit, si_prefixes
-from .utils import generate_unit_summary
+from .docgen import generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 

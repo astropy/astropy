@@ -9,7 +9,7 @@ This package defines the SI units.  They are also available in
 import numpy as np
 
 from .core import CompositeUnit, UnitBase, def_unit
-from .utils import generate_unit_summary
+from .docgen import generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 
