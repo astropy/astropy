@@ -24,7 +24,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from . import astrophys, cgs
 from .core import UnitBase, _add_prefixes, add_enabled_units, def_unit
-from .utils import generate_prefixonly_unit_summary, generate_unit_summary
+from .docgen import generate_prefixonly_unit_summary, generate_unit_summary
 
 local_units = {}
 
