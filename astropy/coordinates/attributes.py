@@ -520,18 +520,32 @@ class DifferentialAttribute(Attribute):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
+    unit: unit-like
+        If given, an error is raised for input with a unit that is not equivalent
+        to this one. (Note: input is not converted to this unit.)  If not given,
+        taken from ``default``.
     doc : str
         Description of the frame attribute for help and documentation
     """
 
     def __init__(
-        self, default=None, allowed_classes=None, secondary_attribute="", **kwargs
+        self,
+        default=None,
+        allowed_classes=None,
+        secondary_attribute="",
+        *,
+        unit=None,
+        **kwargs,
     ):
         if allowed_classes is not None:
             self.allowed_classes = tuple(allowed_classes)
         else:
             self.allowed_classes = BaseDifferential
-
+        self.unit = None if unit is None else u.Unit(unit)
+        # Tests consistency of default with allowed classes and possible unit.
+        default, _ = self.convert_input(default)
+        if unit is None and default is not None:
+            self.unit = default.norm().unit
         super().__init__(default, secondary_attribute, **kwargs)
 
     def convert_input(self, value):
@@ -554,11 +568,15 @@ class DifferentialAttribute(Attribute):
         ------
         ValueError
             If the input is not valid for this attribute.
+        UnitTypeError
+            If the input has a unit that is not equivalent to that required.
         """
         if value is None:
             return None, False
 
         if not isinstance(value, self.allowed_classes):
+            if self.allowed_classes is BaseDifferential:
+                raise TypeError(f"{self.name} requires a Differential.")
             if len(self.allowed_classes) == 1:
                 value = self.allowed_classes[0](value)
             else:
@@ -567,5 +585,9 @@ class DifferentialAttribute(Attribute):
                     f" Differential type {value.__class__}. Allowed classes are:"
                     f" {self.allowed_classes}"
                 )
+        if self.unit is not None and not self.unit.is_equivalent(value.norm().unit):
+            raise u.UnitTypeError(
+                f"{self.name} requires input with units equivalent to '{self.unit}'."
+            )
 
         return value, True

@@ -1,0 +1,2 @@
+``DifferentialAttribute`` now can take a ``unit`` attribute (or infer it from
+the ``default``), and will check whether input has units equivalent to that.
