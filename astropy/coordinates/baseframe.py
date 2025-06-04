@@ -18,6 +18,7 @@ import copy
 import operator
 import warnings
 from collections import defaultdict
+from enum import StrEnum, auto
 from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
@@ -121,6 +122,12 @@ def _get_repr_classes(base, **differentials):
             )
         repr_classes[name] = differential_type
     return repr_classes
+
+
+class _OriginMismatch(StrEnum):
+    IGNORE = auto()
+    WARN = auto()
+    ERROR = auto()
 
 
 class RepresentationMapping(NamedTuple):
@@ -1966,11 +1973,31 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     def _prepare_unit_sphere_coords(
         self,
         other: BaseCoordinateFrame | SkyCoord,
-        origin_mismatch: Literal["ignore", "warn", "error"],
+        origin_mismatch: _OriginMismatch | Literal["ignore", "warn", "error"],
     ) -> tuple[Longitude, Latitude, Longitude, Latitude]:
+        """
+        Parameters
+        ----------
+        other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
+        origin_mismatch : {'ignore', 'warn', 'error'} or `_OriginMismatch`
+            Behaviour when frame origins differ.
+
+        Notes
+        -----
+        Strings are still accepted for backward compatibility; they are converted
+        internally to the private :class:`_OriginMismatch` enum.
+        """
+        try:
+            _origin_mismatch = _OriginMismatch(origin_mismatch)
+        except ValueError:
+            raise ValueError(
+                f"{origin_mismatch=} is invalid. Allowed values are 'ignore', 'warn' or 'error'."
+            ) from None
+
         other_frame = getattr(other, "frame", other)
+
         if not (
-            origin_mismatch == "ignore"
+            _origin_mismatch is _OriginMismatch.IGNORE
             or self.is_equivalent_frame(other_frame)
             or all(
                 isinstance(comp, (StaticMatrixTransform, DynamicMatrixTransform))
@@ -1979,15 +2006,11 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 ).transforms
             )
         ):
-            if origin_mismatch == "warn":
+            if _origin_mismatch is _OriginMismatch.WARN:
                 warnings.warn(NonRotationTransformationWarning(self, other_frame))
-            elif origin_mismatch == "error":
+            elif _origin_mismatch is _OriginMismatch.ERROR:
                 raise NonRotationTransformationError(self, other_frame)
-            else:
-                raise ValueError(
-                    f"{origin_mismatch=} is invalid. Allowed values are 'ignore', "
-                    "'warn' or 'error'."
-                )
+
         self_sph = self.represent_as(r.UnitSphericalRepresentation)
         other_sph = other_frame.transform_to(self).represent_as(
             r.UnitSphericalRepresentation
