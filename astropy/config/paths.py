@@ -3,22 +3,15 @@
 data/cache files used by Astropy should be placed.
 """
 
-from __future__ import annotations
-
 import os
 import shutil
 import sys
+from collections.abc import Callable
 from functools import wraps
 from inspect import cleandoc
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from types import TracebackType
-    from typing import Literal, ParamSpec
-
-    P = ParamSpec("P")
+from types import TracebackType
+from typing import Literal, ParamSpec
 
 __all__ = [
     "get_cache_dir",
@@ -28,6 +21,9 @@ __all__ = [
     "set_temp_cache",
     "set_temp_config",
 ]
+
+
+P = ParamSpec("P")
 
 
 def get_config_dir_path(rootname: str = "astropy") -> Path:

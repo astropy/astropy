@@ -9,13 +9,12 @@ import contextlib
 import functools
 import re
 import threading
+from collections.abc import Generator
 from pathlib import Path
+from types import ModuleType
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
-    from types import ModuleType
-
     from astropy.extern.ply.lex import Lexer
     from astropy.extern.ply.yacc import LRParser
 

@@ -4,7 +4,7 @@ import copy
 import operator
 import re
 import warnings
-from typing import TYPE_CHECKING
+from collections.abc import Callable
 
 import erfa
 import numpy as np
@@ -35,9 +35,6 @@ from .sky_coordinate_parsers import (
     _get_frame_without_data,
     _parse_coordinate_data,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 

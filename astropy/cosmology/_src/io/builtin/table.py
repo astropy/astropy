@@ -152,7 +152,8 @@ not match the class' parameter names.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
 
@@ -165,9 +166,6 @@ from .row import from_row
 from .utils import convert_parameter_to_column
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-    from typing import TypeVar
-
     from astropy.cosmology._src.typing import _CosmoT
 
     _TableT = TypeVar("_TableT", Table)
