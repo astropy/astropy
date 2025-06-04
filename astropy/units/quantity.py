@@ -1264,13 +1264,7 @@ class Quantity(np.ndarray):
                 f"'{self.__class__.__name__}' object with a scalar value is not"
                 " iterable"
             )
-
-        # Otherwise return a generator
-        def quantity_iter():
-            for val in self.value:
-                yield self._new_view(val)
-
-        return quantity_iter()
+        return map(self._new_view, self.value)
 
     def __getitem__(self, key):
         if isinstance(key, str) and isinstance(self.unit, StructuredUnit):
