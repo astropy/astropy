@@ -12,8 +12,9 @@ import numbers
 import operator
 import re
 import warnings
+from collections.abc import Collection
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 import numpy as np
 
@@ -37,9 +38,6 @@ from .structured import StructuredUnit, _structured_unit_like_dtype
 from .utils import is_effectively_unity
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
-    from typing import Self
-
     from .typing import QuantityLike
 
 __all__ = [

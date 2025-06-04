@@ -8,12 +8,13 @@ __all__ = ["FLRW", "FlatFLRWMixin"]
 import inspect
 import warnings
 from abc import abstractmethod
+from collections.abc import Mapping
 from dataclasses import field
 from functools import cached_property
 from inspect import signature
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
-from typing import TYPE_CHECKING, TypeVar, overload
+from typing import TYPE_CHECKING, Self, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
@@ -48,9 +49,6 @@ from astropy.cosmology._src.utils import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-    from typing import Self
-
     import astropy.units
 
 

@@ -6,13 +6,11 @@ Handles the "Console" unit format.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 from . import base
 
 if TYPE_CHECKING:
-    from typing import ClassVar, Literal
-
     from astropy.units import UnitBase
 
 
