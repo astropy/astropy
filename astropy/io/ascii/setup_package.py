@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license
 
-from pathlib import Path
 import sysconfig
+from pathlib import Path
 
 from numpy import get_include as get_numpy_include
 from setuptools import Extension
@@ -14,7 +14,7 @@ def get_extensions():
     kwargs = {}
     if USE_PY_LIMITED_API:
         kwargs["py_limited_api"] = True
-        kwargs['define_macros'] = [("Py_LIMITED_API", "0x030B0000")]
+        kwargs["define_macros"] = [("Py_LIMITED_API", "0x030B0000")]
 
     sources = [
         str(ROOT / "cparser.pyx"),
@@ -24,6 +24,6 @@ def get_extensions():
         name="astropy.io.ascii.cparser",
         include_dirs=[get_numpy_include()],
         sources=sources,
-        **kwargs
+        **kwargs,
     )
     return [ascii_ext]

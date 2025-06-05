@@ -14,7 +14,7 @@ def get_extensions():
     kwargs = {}
     if USE_PY_LIMITED_API:
         kwargs["py_limited_api"] = True
-        kwargs['define_macros'] = [("Py_LIMITED_API", "0x030B0000")]
+        kwargs["define_macros"] = [("Py_LIMITED_API", "0x030B0000")]
 
     return [
         Extension(
@@ -29,6 +29,6 @@ def get_extensions():
                 os.path.join("cextern", "cfitsio", "lib", "quantize.c"),
             ],
             include_dirs=[SRC_DIR],
-            **kwargs
+            **kwargs,
         )
     ]

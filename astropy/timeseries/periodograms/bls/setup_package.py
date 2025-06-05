@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from pathlib import Path
 import sysconfig
+from pathlib import Path
 
 from numpy import get_include as get_numpy_include
 from setuptools import Extension
@@ -15,7 +15,7 @@ def get_extensions():
     kwargs = {}
     if USE_PY_LIMITED_API:
         kwargs["py_limited_api"] = True
-        kwargs['define_macros'] = [("Py_LIMITED_API", "0x030B0000")]
+        kwargs["define_macros"] = [("Py_LIMITED_API", "0x030B0000")]
 
     ext = Extension(
         "astropy.timeseries.periodograms.bls._impl",
@@ -24,6 +24,6 @@ def get_extensions():
             str(BLS_ROOT / "_impl.pyx"),
         ],
         include_dirs=[get_numpy_include()],
-        **kwargs
+        **kwargs,
     )
     return [ext]

@@ -2,11 +2,11 @@
 
 # Copied from astropy/convolution/setup_package.py
 
+import sysconfig
 from pathlib import Path
 
 from numpy import get_include as get_numpy_include
 from setuptools import Extension
-import sysconfig
 
 C_TIME_PKGDIR = Path(__file__).parent.resolve().relative_to(Path.cwd())
 
@@ -22,13 +22,13 @@ def get_extensions():
     kwargs = {}
     if USE_PY_LIMITED_API:
         kwargs["py_limited_api"] = True
-        kwargs['define_macros'] = [("Py_LIMITED_API", "0x030B0000")]
+        kwargs["define_macros"] = [("Py_LIMITED_API", "0x030B0000")]
 
     _time_ext = Extension(
         name="astropy.time._parse_times",
         sources=SRC_FILES,
         include_dirs=[get_numpy_include()],
         language="c",
-        **kwargs
+        **kwargs,
     )
     return [_time_ext]
