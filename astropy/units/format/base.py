@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 from astropy.units.core import CompositeUnit, NamedUnit, Unit, get_current_unit_registry
 from astropy.units.errors import UnitsWarning
@@ -11,9 +12,6 @@ from astropy.units.utils import maybe_simple_fraction
 from astropy.utils.misc import did_you_mean
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-    from typing import ClassVar, Literal
-
     import numpy as np
 
     from astropy.extern.ply.lex import LexToken

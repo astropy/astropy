@@ -4,8 +4,6 @@ A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
 
-from __future__ import annotations
-
 import contextlib
 import difflib
 import inspect
@@ -18,18 +16,15 @@ import threading
 import traceback
 import unicodedata
 from collections import defaultdict
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from itertools import chain
-from typing import TYPE_CHECKING
+from types import TracebackType
+from typing import Final
 
 import numpy as np
 
 from astropy.utils import deprecated
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Generator, Iterable
-    from types import TracebackType
-    from typing import Final
 
 __all__ = [
     "JsonCustomEncoder",

@@ -1,20 +1,15 @@
 """Default Cosmology."""
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 __all__ = ["default_cosmology"]
 
 
-from typing import TYPE_CHECKING
+from typing import ClassVar
 
 from astropy.utils.state import ScienceState
 
 # isort: split
 from astropy.cosmology._src.core import Cosmology
-
-if TYPE_CHECKING:
-    from typing import ClassVar
 
 
 class default_cosmology(ScienceState):

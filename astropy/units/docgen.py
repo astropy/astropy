@@ -6,17 +6,12 @@ None of the functions in the module are meant for use outside of the
 package.
 """
 
-from __future__ import annotations
-
 import io
 import re
-from typing import TYPE_CHECKING
+from collections.abc import Generator, Mapping
+from typing import Literal
 
 from .core import NamedUnit, PrefixUnit, Unit, UnitBase
-
-if TYPE_CHECKING:
-    from collections.abc import Generator, Mapping
-    from typing import Literal
 
 
 def _get_first_sentence(s: str) -> str:

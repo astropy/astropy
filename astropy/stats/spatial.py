@@ -6,19 +6,17 @@ This module implements functions and classes for spatial statistics.
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, TypeAlias
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from typing import Literal, TypeAlias
-
     from numpy.typing import NDArray
 
-    # TODO: consider replacing with `StrEnum`
-    _ModeOps: TypeAlias = Literal["none", "translation", "ohser", "var-width", "ripley"]
-
 __all__ = ["RipleysKEstimator"]
+
+# TODO: consider replacing with `StrEnum`
+_ModeOps: TypeAlias = Literal["none", "translation", "ohser", "var-width", "ripley"]
 
 
 class RipleysKEstimator:

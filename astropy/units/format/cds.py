@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 from astropy.units.core import CompositeUnit, Unit
 from astropy.units.utils import is_effectively_unity
@@ -24,8 +24,6 @@ from astropy.utils import classproperty, parsing
 from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
-    from typing import ClassVar, Literal
-
     from astropy.extern.ply.lex import Lexer
     from astropy.units import UnitBase
     from astropy.utils.parsing import ThreadSafeParser

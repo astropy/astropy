@@ -4,8 +4,9 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+from collections.abc import Collection
 from functools import cached_property
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 import numpy as np
 
@@ -26,9 +27,6 @@ else:
     from numpy._core import umath as np_umath
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
-    from typing import Self
-
     from astropy.units.typing import PhysicalTypeID
 
 __all__ = ["FunctionQuantity", "FunctionUnitBase"]
