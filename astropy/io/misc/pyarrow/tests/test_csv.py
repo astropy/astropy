@@ -160,8 +160,7 @@ def table_read_csv(
         kwargs["encoding"] = encoding
 
     with get_input_file(text, input_type, encoding, tmp_path) as input_file:
-        out = Table.read(input_file, format="pyarrow.csv", **kwargs)
-    return out
+        return Table.read(input_file, format="pyarrow.csv", **kwargs)
 
 
 @pytest.mark.parametrize("input_type", ["str", "path", "bytesio"])
