@@ -376,7 +376,7 @@ class EcsvOutputter(core.TableOutputter):
                     "column value is not valid JSON"
                 )
             except Exception as exc:
-                raise ValueError(f"column {col.name!r} failed to convert: {exc}")
+                raise ValueError(f"column {col.name!r} failed to convert.") from exc
 
 
 class EcsvData(basic.BasicData):

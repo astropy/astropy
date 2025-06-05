@@ -1098,8 +1098,8 @@ class BaseOutputter:
         except (ValueError, TypeError) as err:
             raise ValueError(
                 "Error: invalid format for converters, see "
-                f"documentation\n{converters}: {err}"
-            )
+                f"documentation\n{converters}"
+            ) from err
         return converters_out
 
     def _convert_vals(self, cols):

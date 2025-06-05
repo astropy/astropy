@@ -366,7 +366,7 @@ class ConfigItem:
             raise TypeError(
                 f"Provided value for configuration item {self.name} not valid:"
                 f" {e.args[0]}"
-            )
+            ) from e
 
         # store value on the ConfigObj instance...
         sec = get_config(self.module, rootname=self.rootname)

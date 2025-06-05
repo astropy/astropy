@@ -1310,7 +1310,7 @@ def is_mixed_list(value, *args):
     try:
         return [fun_dict[arg](val) for arg, val in zip(args, value)]
     except KeyError as e:
-        raise VdtParamError('mixed_list', e)
+        raise VdtParamError('mixed_list') from e
 
 
 def is_option(value, *options):

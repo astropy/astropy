@@ -114,9 +114,8 @@ def _copy_input_if_needed(
             output = np.asanyarray(input, dtype=dtype, order=order)
     except (TypeError, ValueError) as e:
         raise TypeError(
-            "input should be a Numpy array or something convertible into a float array",
-            e,
-        )
+            "input should be a Numpy array or something convertible into a float array"
+        ) from e
     return output
 
 
