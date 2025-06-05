@@ -68,6 +68,11 @@ jobs:
             python: '3.13'
             toxenv: py313-test-alldeps
 
+          - name: Python 3.13t (free-threading) with recommended dependencies
+            os: ubuntu-latest
+            python: '3.13t'
+            toxenv: py313t-test-recdeps
+
           - name: Documentation link check
             os: ubuntu-latest
             python: '3.x'
