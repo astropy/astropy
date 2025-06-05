@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
+import sysconfig
 from pathlib import Path
 
 from numpy import get_include as get_numpy_include
@@ -12,8 +13,15 @@ extra_compile_args = ["-UNDEBUG"]
 if not sys.platform.startswith("win"):
     extra_compile_args.append("-fPIC")
 
+USE_PY_LIMITED_API = not sysconfig.get_config_var("Py_GIL_DISABLED")
+
 
 def get_extensions():
+    kwargs = {}
+    if USE_PY_LIMITED_API:
+        kwargs["py_limited_api"] = True
+        kwargs["define_macros"] = [("Py_LIMITED_API", "0x030B0000")]
+
     # Add '-Rpass-missed=.*' to ``extra_compile_args`` when compiling with clang
     # to report missed optimizations
     sources = [
@@ -25,5 +33,6 @@ def get_extensions():
         extra_compile_args=extra_compile_args,
         include_dirs=[get_numpy_include()],
         sources=sources,
+        **kwargs,
     )
     return [_convolve_ext]

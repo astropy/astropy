@@ -10,6 +10,8 @@ authors = [
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE.rst", "licenses/*.rst"]
+# NOTE: when requires-python is updated, be sure to also update Py_LIMITED_API
+# in the setup_package.py files.
 requires-python = ">=3.11"
 classifiers = [
     "Intended Audience :: Science/Research",

@@ -8,7 +8,7 @@
 #include <quantize.h>
 #include <unquantize.h>
 #include <ricecomp.h>
-
+#include <stdlib.h>
 
 /* Define docstrings */
 static char module_docstring[] = "Core compression/decompression functions wrapped from cfitsio.";
