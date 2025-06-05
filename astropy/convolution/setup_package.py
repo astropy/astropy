@@ -28,5 +28,4 @@ def get_extensions():
         py_limited_api=True,
         define_macros=[("Py_LIMITED_API", "0x030B0000")],
     )
-
     return [_convolve_ext]
