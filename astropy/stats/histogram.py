@@ -8,15 +8,13 @@ Ported from the astroML project: https://www.astroml.org/
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
 from .bayesian_blocks import bayesian_blocks
 
 if TYPE_CHECKING:
-    from typing import Literal
-
     from numpy.typing import ArrayLike, NDArray
 
 __all__ = [

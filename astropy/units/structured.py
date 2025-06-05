@@ -3,22 +3,17 @@
 This module defines structured units and quantities.
 """
 
-from __future__ import annotations
-
 # Standard library
 import operator
+from collections.abc import Collection
 from functools import cached_property
-from typing import TYPE_CHECKING
+from typing import Self
 
 import numpy as np
 
 from astropy.utils.compat.numpycompat import NUMPY_LT_1_24
 
 from .core import UNITY, Unit, UnitBase
-
-if TYPE_CHECKING:
-    from collections.abc import Collection
-    from typing import Self
 
 __all__ = ["StructuredUnit"]
 

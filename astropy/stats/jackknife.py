@@ -2,20 +2,18 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import TypeVar
-
     from numpy.typing import NDArray
-
-    DT = TypeVar("DT", bound=np.generic)
 
 __all__ = ["jackknife_resampling", "jackknife_stats"]
 __doctest_requires__ = {"jackknife_stats": ["scipy"]}
+
+DT = TypeVar("DT", bound=np.generic)
 
 
 def jackknife_resampling(data: NDArray[DT]) -> NDArray[DT]:

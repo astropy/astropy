@@ -87,8 +87,7 @@ py:class a shallow copy of D
 # See https://github.com/sphinx-doc/sphinx/issues/9813
 # and https://github.com/sphinx-doc/sphinx/issues/11225
 # types
-py:class EllipsisType
-py:class ModuleType
+py:class types.EllipsisType
 # numpy
 py:class np.number
 # numpy.typing

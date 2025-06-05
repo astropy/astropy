@@ -21,7 +21,7 @@ from __future__ import annotations
 import math
 import warnings
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 from astropy.units.core import CompositeUnit
 from astropy.units.errors import UnitParserWarning, UnitsWarning
@@ -31,8 +31,6 @@ from . import utils
 from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
-    from typing import ClassVar, Literal
-
     import numpy as np
 
     from astropy.extern.ply.lex import Lexer

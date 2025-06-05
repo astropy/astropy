@@ -5,9 +5,10 @@ from __future__ import annotations
 
 import inspect
 from abc import ABCMeta, abstractmethod
+from collections.abc import Mapping
 from dataclasses import KW_ONLY, dataclass, replace
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Self, TypeVar
 
 import numpy as np
 
@@ -29,9 +30,6 @@ from astropy.cosmology.io import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-    from typing import Self
-
     from astropy.cosmology._src.funcs.comparison import _FormatType
     from astropy.cosmology._src.typing import _CosmoT
 

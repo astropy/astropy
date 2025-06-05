@@ -18,7 +18,7 @@ import copy
 import operator
 import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple
 
 import numpy as np
 
@@ -41,8 +41,6 @@ from .transformations import (
 )
 
 if TYPE_CHECKING:
-    from typing import Literal
-
     from astropy.coordinates import Latitude, Longitude, SkyCoord
     from astropy.units import Unit
 

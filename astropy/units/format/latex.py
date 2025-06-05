@@ -7,13 +7,11 @@ Handles the "LaTeX" unit format.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 from . import console
 
 if TYPE_CHECKING:
-    from typing import ClassVar, Literal
-
     from astropy.units import NamedUnit, UnitBase
     from astropy.units.typing import UnitPower
 

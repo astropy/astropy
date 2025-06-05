@@ -10,7 +10,8 @@ __all__ = [
     "CosmologyWrite",
 ]
 
-from typing import TYPE_CHECKING, TypeVar, overload
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, overload
 
 from astropy.io import registry as io_registry
 from astropy.units import add_enabled_units
@@ -19,9 +20,6 @@ from astropy.units import add_enabled_units
 import astropy.cosmology._src.units as cu
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-    from typing import Any, Literal
-
     from astropy.cosmology import Cosmology
     from astropy.cosmology._src.io.builtin.model import _CosmologyModel
     from astropy.cosmology._src.typing import _CosmoT
