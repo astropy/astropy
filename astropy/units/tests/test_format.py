@@ -3,13 +3,12 @@
 Regression tests for the units.format package
 """
 
-from __future__ import annotations
-
 import re
 import warnings
+from collections.abc import Iterable
 from contextlib import nullcontext
 from fractions import Fraction
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
 import numpy as np
 import pytest
@@ -29,9 +28,6 @@ from astropy.units import (
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
 from astropy.utils.exceptions import AstropyDeprecationWarning
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 
 class FormatStringPair(NamedTuple):

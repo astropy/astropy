@@ -19,6 +19,7 @@ require YAML serialization.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import astropy.units as u
@@ -33,8 +34,6 @@ from .mapping import from_mapping
 from .utils import FULLQUALNAME_SUBSTITUTIONS as QNS
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from yaml import MappingNode
 
     from astropy.cosmology._src.typing import _CosmoT

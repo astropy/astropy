@@ -5,16 +5,14 @@ from __future__ import annotations
 __all__ = ["MISSING", "Parameter"]
 
 import copy
+from collections.abc import Sequence
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import astropy.units as u
 
 from .converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
 
 class Sentinel(Enum):

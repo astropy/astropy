@@ -6,12 +6,11 @@ the top-level namespace -- :mod:`astropy.cosmology`. This module will be
 moved.
 """
 
-from __future__ import annotations
-
 import functools
 import inspect
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import Any, TypeAlias
 
 import numpy as np
 from numpy import False_, True_, ndarray
@@ -20,10 +19,6 @@ from astropy import table
 
 # isort: split
 from astropy.cosmology._src.core import Cosmology
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Any, TypeAlias
 
 __all__: list[str] = []  # Nothing is scoped here
 
