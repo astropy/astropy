@@ -1,7 +1,5 @@
 """Typing module for supporting type annotations related to :mod:`~astropy.units`."""
 
-from __future__ import annotations
-
 __all__ = [
     "QuantityLike",
     "UnitLike",
@@ -13,16 +11,12 @@ __all__ = [
 
 
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import TypeAlias
 
 import numpy as np
 import numpy.typing as npt
 
 from astropy.units import Quantity, UnitBase
-
-if TYPE_CHECKING:
-    from typing import TypeAlias
-
 
 UnitLike: TypeAlias = UnitBase | str | Quantity
 """Type alias for input that can be converted to a Unit.

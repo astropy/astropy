@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import copy
 from collections import defaultdict
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 from astropy.table import QTable, Row
@@ -45,8 +46,6 @@ from astropy.cosmology._src.io.connect import convert_registry
 from .mapping import from_mapping
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
     from astropy.cosmology._src.typing import _CosmoT
     from astropy.table import Table
 

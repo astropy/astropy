@@ -2,15 +2,11 @@
 
 """Configure the tests for :mod:`astropy.cosmology`."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, TypeVar
+from collections.abc import Iterable, Mapping, Sequence
+from typing import TypeVar
 
 from astropy.cosmology._src.tests.helper import clean_registry  # noqa: F401
 from astropy.tests.helper import pickle_protocol  # noqa: F401
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
 
 K = TypeVar("K")
 V = TypeVar("V")

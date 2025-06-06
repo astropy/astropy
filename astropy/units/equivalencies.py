@@ -7,10 +7,8 @@ available in (and should be used through) the `astropy.units` namespace.
 
 """
 
-from __future__ import annotations
-
 import functools
-from typing import TYPE_CHECKING
+from typing import Final
 
 # THIRD-PARTY
 import numpy as np
@@ -23,9 +21,6 @@ from . import astrophys, cgs, dimensionless_unscaled, misc, si
 from .core import Unit
 from .errors import UnitsError
 from .function import units as function_units
-
-if TYPE_CHECKING:
-    from typing import Final
 
 __all__ = [
     "Equivalency",

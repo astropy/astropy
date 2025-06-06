@@ -5,15 +5,10 @@ These are type annotations for I/O-related functions and classes. Some of the ty
 objects can also be used as runtime-checkable :class:`~typing.Protocol` objects.
 """
 
-from __future__ import annotations
-
 __all__ = ["PathLike", "ReadableFileLike", "WriteableFileLike"]
 
 import os
-from typing import TYPE_CHECKING, Protocol, TypeVar, runtime_checkable
-
-if TYPE_CHECKING:
-    from typing import TypeAlias
+from typing import Protocol, TypeAlias, TypeVar, runtime_checkable
 
 _T_co = TypeVar("_T_co", covariant=True)
 _T_contra = TypeVar("_T_contra", contravariant=True)

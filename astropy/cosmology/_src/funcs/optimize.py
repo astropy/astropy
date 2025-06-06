@@ -4,7 +4,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypeAlias, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -17,9 +18,6 @@ from astropy.cosmology import units as cu
 from astropy.cosmology._src.core import CosmologyError
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import TypeAlias
-
     from scipy.optimize import OptimizeResult
 
 __all__ = ["z_at_value"]
