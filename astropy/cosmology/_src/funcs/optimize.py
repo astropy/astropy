@@ -1,24 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Convenience functions for `astropy.cosmology`."""
 
-from __future__ import annotations
-
 import warnings
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypeAlias, TypedDict
+from typing import Any, NotRequired, Protocol, TypeAlias, TypedDict
 
 import numpy as np
 import numpy.typing as npt
 
 from astropy.units import Quantity
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 # isort: split
 from astropy.cosmology import units as cu
 from astropy.cosmology._src.core import CosmologyError
 
-if TYPE_CHECKING:
+if HAS_SCIPY:
     from scipy.optimize import OptimizeResult
+else:
+    OptimizeResult: TypeAlias = Any
 
 __all__ = ["z_at_value"]
 
