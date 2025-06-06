@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 import inspect
 import itertools
 from io import StringIO
-from typing import TYPE_CHECKING
+from types import FunctionType, ModuleType
 
 import numpy as np
 import numpy.lib.recfunctions as rfn
@@ -24,10 +22,6 @@ from astropy.units.quantity_helper.function_helpers import (
     UNSUPPORTED_FUNCTIONS,
 )
 from astropy.utils.compat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
-
-if TYPE_CHECKING:
-    from types import FunctionType, ModuleType
-
 
 VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
 VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
