@@ -216,6 +216,9 @@ numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
 # Turn off table of contents entries for functions and classes
 toc_object_entries = False
 
+# Disable type hints in the API documentation.
+autodoc_typehints = "none"
+
 # -- Project information ------------------------------------------------------
 
 project = "Astropy"
