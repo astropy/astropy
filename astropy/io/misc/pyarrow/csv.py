@@ -7,18 +7,24 @@ import datetime
 import io
 import os
 from contextlib import ExitStack
-from typing import TYPE_CHECKING, BinaryIO, Literal, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Literal, TypeAlias
 
 import numpy as np
-import numpy.typing
+from numpy.typing import DTypeLike, NDArray
 
 from astropy.utils.compat.optional_deps import HAS_PYARROW
 
-if TYPE_CHECKING:
-    import numpy.typing as npt
-    import pyarrow as pa
-    import pyarrow.csv
+if HAS_PYARROW:
+    from pyarrow import Array, ChunkedArray, DataType
+    from pyarrow.csv import ConvertOptions, ReadOptions
+else:
+    Array: TypeAlias = Any
+    ChunkedArray: TypeAlias = Any
+    ConvertOptions: TypeAlias = Any
+    DataType: TypeAlias = Any
+    ReadOptions: TypeAlias = Any
 
+if TYPE_CHECKING:
     from astropy.table import Table
 
 __all__ = ["convert_pa_table_to_astropy_table", "read_csv"]
@@ -35,7 +41,7 @@ def read_csv(
     data_start: int | None = None,
     names: list[str] | None = None,
     include_names: list[str] | None = None,
-    dtypes: dict[str, numpy.typing.DTypeLike] | None = None,
+    dtypes: dict[str, DTypeLike] | None = None,
     comment: str | None = None,
     null_values: list[str] | None = None,
     encoding: str = "utf-8",
@@ -185,9 +191,7 @@ def check_has_pyarrow():
         )
 
 
-def convert_pa_string_array_to_numpy(
-    arr: "pa.Array",
-) -> "npt.NDArray":
+def convert_pa_string_array_to_numpy(arr: Array) -> NDArray:
     """
     Convert a PyArrow string array to a NumPy array.
 
@@ -214,7 +218,7 @@ def convert_pa_string_array_to_numpy(
     return out
 
 
-def pyarrow_zero(data_type: "pa.DataType"):
+def pyarrow_zero(data_type: DataType):
     """
     Return a "zero" value for the given PyArrow data type.
 
@@ -274,9 +278,7 @@ def pyarrow_zero(data_type: "pa.DataType"):
         raise NotImplementedError(f"No zero value defined for type: {data_type}")
 
 
-def convert_pa_array_to_numpy(
-    arr: Union["pa.Array", "pa.ChunkedArray"],
-) -> "npt.NDArray":
+def convert_pa_array_to_numpy(arr: Array | ChunkedArray) -> NDArray:
     """
     Convert a PyArrow array to a NumPy array.
 
@@ -428,10 +430,10 @@ def strip_comment_lines(
 
 def get_convert_options(
     include_names: list[str] | None,
-    dtypes: dict[str, "npt.DTypeLike"] | None,
+    dtypes: dict[str, DTypeLike] | None,
     null_values: list[str] | None,
     timestamp_parsers: list[str] | None,
-) -> "pyarrow.csv.ConvertOptions":
+) -> ConvertOptions:
     """
     Generate PyArrow CSV convert options.
 
@@ -484,7 +486,7 @@ def get_read_options(
     data_start: int | None,
     names: list[str] | None,
     encoding: str | None,
-) -> "pyarrow.csv.ReadOptions":
+) -> ReadOptions:
     """
     Generate PyArrow CSV read options.
 

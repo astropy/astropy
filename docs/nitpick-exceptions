@@ -90,13 +90,9 @@ py:class a shallow copy of D
 py:class types.EllipsisType
 # numpy
 py:class np.number
-# numpy.typing
-py:class NDArray
-py:class ArrayLike
-# np.ma
-py:class np.ma.MaskedArray
 # locally defined type variable for ndarray dtype
-py:class DT
+py:class astropy.stats.jackknife.DT
+py:class astropy.utils.shapes.DT
 # type aliases
 py:class QuantityLike
 py:class UnitLike

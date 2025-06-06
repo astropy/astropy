@@ -6,14 +6,14 @@ import warnings
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, ClassVar, Literal
 
+import numpy as np
+
 from astropy.units.core import CompositeUnit, NamedUnit, Unit, get_current_unit_registry
 from astropy.units.errors import UnitsWarning
 from astropy.units.utils import maybe_simple_fraction
 from astropy.utils.misc import did_you_mean
 
 if TYPE_CHECKING:
-    import numpy as np
-
     from astropy.extern.ply.lex import LexToken
     from astropy.units import UnitBase
     from astropy.units.typing import UnitPower, UnitScale

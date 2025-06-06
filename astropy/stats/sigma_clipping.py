@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 import warnings
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
 from astropy.stats.biweight import biweight_location, biweight_scale
@@ -29,9 +28,6 @@ if NUMPY_LT_2_0:
     from numpy.core.multiarray import normalize_axis_index
 else:
     from numpy.lib.array_utils import normalize_axis_index
-
-if TYPE_CHECKING:
-    from numpy.typing import ArrayLike, NDArray
 
 __all__ = ["SigmaClip", "SigmaClippedStats", "sigma_clip", "sigma_clipped_stats"]
 
