@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
+from pandas import Series
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
@@ -270,6 +271,19 @@ def test_errors_on_unit_mismatch(method, data):
     with pytest.raises(ValueError, match=MESSAGE.format("dy")):
         LombScargle(t, y, dy, fit_mean=False).power(frequency / t.unit)
 
+    # Tests for issue #18212
+    # We convert t into a time object and wrap it in an array-like, to conceal its contents classes.
+    t_times = Series(Time(60000 *u.day + t, format="mjd"))
+
+    with pytest.raises(ValueError, match=MESSAGE.format("frequency")):
+        LombScargle(t_times, y, fit_mean=False).power(frequency, method=method)
+
+    # this should fail because dy and y units do not match
+    with pytest.raises(ValueError, match=MESSAGE.format("dy")):
+        LombScargle(t_times, y, dy, fit_mean=False).power(frequency / t.unit)
+
+    # We check, that doing the correct thing does not raise an exception anymore.
+    LombScargle(t_times, y, fit_mean=False).power(frequency / t.unit)
 
 # we don't test all normalizations here because they are tested above
 # only test method='auto' because unit handling does not depend on method
