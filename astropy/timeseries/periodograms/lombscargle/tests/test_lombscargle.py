@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
-from pandas import Series
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
@@ -273,7 +272,7 @@ def test_errors_on_unit_mismatch(method, data):
 
     # Tests for issue #18212
     # We convert t into a time object and wrap it in an array-like, to conceal its contents classes.
-    t_times = Series(Time(60000 *u.day + t, format="mjd"))
+    t_times = np.array(Time(60000 *u.day + t, format="mjd"))
 
     with pytest.raises(ValueError, match=MESSAGE.format("frequency")):
         LombScargle(t_times, y, fit_mean=False).power(frequency, method=method)
