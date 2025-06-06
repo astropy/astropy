@@ -272,7 +272,7 @@ def test_errors_on_unit_mismatch(method, data):
 
     # Tests for issue #18212
     # We convert t into a time object and wrap it in an array-like, to conceal its contents classes.
-    t_times = np.array(Time(60000 *u.day + t, format="mjd"))
+    t_times = np.array(Time(60000 * u.day + t, format="mjd"))
 
     with pytest.raises(ValueError, match=MESSAGE.format("frequency")):
         LombScargle(t_times, y, fit_mean=False).power(frequency, method=method)
@@ -283,6 +283,7 @@ def test_errors_on_unit_mismatch(method, data):
 
     # We check, that doing the correct thing does not raise an exception anymore.
     LombScargle(t_times, y, fit_mean=False).power(frequency / t.unit)
+
 
 # we don't test all normalizations here because they are tested above
 # only test method='auto' because unit handling does not depend on method
