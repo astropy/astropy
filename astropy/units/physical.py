@@ -9,16 +9,14 @@ The classes and functions defined here are also available in
 from __future__ import annotations
 
 import numbers
-from typing import TYPE_CHECKING
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, Final
 
 from astropy.utils.compat import COPY_IF_NEEDED
 
 from . import astrophys, cgs, core, misc, quantity, si
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-    from typing import Final
-
     from .typing import PhysicalTypeID, QuantityLike, UnitPowerLike
 
 __all__: Final = ["PhysicalType", "def_physical_type", "get_physical_type"]
