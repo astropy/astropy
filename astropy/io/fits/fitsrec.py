@@ -1382,6 +1382,8 @@ def _ascii_encode(inarray, out=None):
     out_dtype = np.dtype((f"S{inarray.dtype.itemsize // 4}", inarray.dtype.shape))
     if out is not None:
         out = out.view(out_dtype)
+    if inarray.size == 0:
+        return out
 
     op_dtypes = [inarray.dtype, out_dtype]
     op_flags = [["readonly"], ["writeonly", "allocate"]]
