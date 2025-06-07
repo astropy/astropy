@@ -751,8 +751,7 @@ static PyMethodDef module_methods[] = {
   {NULL}  /* Sentinel */
 };
 
-// should this be static ?
-PyType_Slot WCSBaseClass_slots[] = {
+static PyType_Slot WCSBaseClass_slots[] = {
   {Py_tp_dealloc, (destructor)Wcs_dealloc},
   {Py_tp_doc, doc_Wcs},
   {Py_tp_traverse, (traverseproc)Wcs_traverse},
@@ -764,8 +763,7 @@ PyType_Slot WCSBaseClass_slots[] = {
   {0, NULL},
 };
 
-// should this be static ?
-PyType_Spec WCSBaseClass_spec = {
+static PyType_Spec WCSBaseClass_spec = {
   "astropy.wcs.WCSBase",    /*tp_name*/
   sizeof(Wcs),              /*tp_basicsize*/
   0,                        /*tp_itemsize*/
@@ -773,7 +771,7 @@ PyType_Spec WCSBaseClass_spec = {
   WCSBaseClass_slots,       /*tp_slots*/
 };
 
-static PyObject WcsType = PyType_FromSpec(&WCSBaseClass_spec);
+static PyObject* WcsType = PyType_FromSpec(&WCSBaseClass_spec);
 
 /***************************************************************************
  * Module-level
