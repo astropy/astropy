@@ -29,8 +29,6 @@
  * Wcs type
  ***************************************************************************/
 
-static PyTypeObject WcsType;
-
 static int _setup_wcs_type(PyObject* m);
 
 
@@ -91,7 +89,9 @@ Wcs_dealloc(
   PyObject_GC_UnTrack(self);
   Wcs_clear(self);
   pipeline_free(&self->x);
-  Py_TYPE(self)->tp_free((PyObject*)self);
+  PyTypeObject *tp = Py_TYPE((PyObject *)self);
+  freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+  free_func((PyObject*)self);
 }
 
 /*@null@*/ static PyObject *
@@ -101,7 +101,8 @@ Wcs_new(
     /*@unused@*/ PyObject* kwds) {
 
   Wcs* self;
-  self = (Wcs*)type->tp_alloc(type, 0);
+  allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+  self = (Wcs*)alloc_func(type, 0);
   if (self != NULL) {
     pipeline_clear(&self->x);
     self->py_det2im[0]            = NULL;
@@ -256,12 +257,12 @@ Wcs_all_pix2world(
   /* unoffset_array(world, origin); */
 
  exit:
-  Py_XDECREF(pixcrd);
+  Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0 || status == 8) {
     return (PyObject*)world;
   } else {
-    Py_XDECREF(world);
+    Py_XDECREF((PyObject*)world);
     if (status == -1) {
       PyErr_SetString(
         PyExc_ValueError,
@@ -331,12 +332,12 @@ Wcs_p4_pix2foc(
 
  exit:
 
-  Py_XDECREF(pixcrd);
+  Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0) {
     return (PyObject*)foccrd;
   } else {
-    Py_XDECREF(foccrd);
+    Py_XDECREF((PyObject*)foccrd);
     if (status == -1) {
       /* Exception already set */
       return NULL;
@@ -399,12 +400,12 @@ Wcs_det2im(
 
  exit:
 
-  Py_XDECREF(detcrd);
+  Py_XDECREF((PyObject*)detcrd);
 
   if (status == 0) {
     return (PyObject*)imcrd;
   } else {
-    Py_XDECREF(imcrd);
+    Py_XDECREF((PyObject*)imcrd);
     if (status == -1) {
       /* Exception already set */
       return NULL;
@@ -462,12 +463,12 @@ Wcs_pix2foc(
 
  _exit:
 
-  Py_XDECREF(pixcrd);
+  Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0) {
     return (PyObject*)foccrd;
   } else {
-    Py_XDECREF(foccrd);
+    Py_XDECREF((PyObject*)foccrd);
     if (status == -1) {
       /* Exception already set */
       return NULL;
@@ -750,47 +751,27 @@ static PyMethodDef module_methods[] = {
   {NULL}  /* Sentinel */
 };
 
-static PyTypeObject WcsType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-  "astropy.wcs.WCSBase",                 /*tp_name*/
-  sizeof(Wcs),                /*tp_basicsize*/
-  0,                            /*tp_itemsize*/
-  (destructor)Wcs_dealloc,    /*tp_dealloc*/
-  0,                            /*tp_print*/
-  0,                            /*tp_getattr*/
-  0,                            /*tp_setattr*/
-  0,                            /*tp_compare*/
-  0,                            /*tp_repr*/
-  0,                            /*tp_as_number*/
-  0,                            /*tp_as_sequence*/
-  0,                            /*tp_as_mapping*/
-  0,                            /*tp_hash */
-  0,                            /*tp_call*/
-  0,                            /*tp_str*/
-  0,                            /*tp_getattro*/
-  0,                            /*tp_setattro*/
-  0,                            /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-  doc_Wcs,                      /* tp_doc */
-  (traverseproc)Wcs_traverse, /* tp_traverse */
-  (inquiry)Wcs_clear,         /* tp_clear */
-  0,                            /* tp_richcompare */
-  0,                            /* tp_weaklistoffset */
-  0,                            /* tp_iter */
-  0,                            /* tp_iternext */
-  Wcs_methods,                /* tp_methods */
-  0,                            /* tp_members */
-  Wcs_getset,                 /* tp_getset */
-  0,                            /* tp_base */
-  0,                            /* tp_dict */
-  0,                            /* tp_descr_get */
-  0,                            /* tp_descr_set */
-  0,                            /* tp_dictoffset */
-  (initproc)Wcs_init,         /* tp_init */
-  0,                            /* tp_alloc */
-  Wcs_new,                    /* tp_new */
+static PyType_Slot WCSBaseClass_slots[] = {
+  {Py_tp_dealloc, (destructor)Wcs_dealloc},
+  {Py_tp_doc, doc_Wcs},
+  {Py_tp_traverse, (traverseproc)Wcs_traverse},
+  {Py_tp_clear, (inquiry)Wcs_clear},
+  {Py_tp_methods, Wcs_methods},
+  {Py_tp_getset, Wcs_getset},
+  {Py_tp_init, (initproc)Wcs_init},
+  {Py_tp_new, Wcs_new},
+  {0, NULL},
 };
 
+static PyType_Spec WCSBaseClass_spec = {
+  "astropy.wcs.WCSBase",    /*tp_name*/
+  sizeof(Wcs),              /*tp_basicsize*/
+  0,                        /*tp_itemsize*/
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
+  WCSBaseClass_slots,       /*tp_slots*/
+};
+
+static PyObject* WcsType = PyType_FromSpec(&WCSBaseClass_spec);
 
 /***************************************************************************
  * Module-level
@@ -799,7 +780,7 @@ static PyTypeObject WcsType = {
 int _setup_wcs_type(
     PyObject* m) {
 
-  if (PyType_Ready(&WcsType) < 0)
+  if (PyType_Ready((PyTypeObject *)&WcsType) < 0)
     return -1;
 
   Py_INCREF(&WcsType);
