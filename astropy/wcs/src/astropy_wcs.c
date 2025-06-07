@@ -257,12 +257,12 @@ Wcs_all_pix2world(
   /* unoffset_array(world, origin); */
 
  exit:
-  Py_XDECREF(pixcrd);
+  Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0 || status == 8) {
     return (PyObject*)world;
   } else {
-    Py_XDECREF(world);
+    Py_XDECREF((PyObject*)world);
     if (status == -1) {
       PyErr_SetString(
         PyExc_ValueError,
@@ -332,12 +332,12 @@ Wcs_p4_pix2foc(
 
  exit:
 
-  Py_XDECREF(pixcrd);
+  Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0) {
     return (PyObject*)foccrd;
   } else {
-    Py_XDECREF(foccrd);
+    Py_XDECREF((PyObject*)foccrd);
     if (status == -1) {
       /* Exception already set */
       return NULL;
@@ -400,12 +400,12 @@ Wcs_det2im(
 
  exit:
 
-  Py_XDECREF(detcrd);
+  Py_XDECREF((PyObject*)detcrd);
 
   if (status == 0) {
     return (PyObject*)imcrd;
   } else {
-    Py_XDECREF(imcrd);
+    Py_XDECREF((PyObject*)imcrd);
     if (status == -1) {
       /* Exception already set */
       return NULL;
@@ -463,12 +463,12 @@ Wcs_pix2foc(
 
  _exit:
 
-  Py_XDECREF(pixcrd);
+  Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0) {
     return (PyObject*)foccrd;
   } else {
-    Py_XDECREF(foccrd);
+    Py_XDECREF((PyObject*)foccrd);
     if (status == -1) {
       /* Exception already set */
       return NULL;
