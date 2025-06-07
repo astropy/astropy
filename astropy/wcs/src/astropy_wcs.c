@@ -782,7 +782,7 @@ static PyObject WcsType = PyType_FromSpec(&WCSBaseClass_spec);
 int _setup_wcs_type(
     PyObject* m) {
 
-  if (PyType_Ready(&WcsType) < 0)
+  if (PyType_Ready((PyTypeObject *)&WcsType) < 0)
     return -1;
 
   Py_INCREF(&WcsType);
