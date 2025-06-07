@@ -9,7 +9,7 @@
 #include "pyutil.h"
 #include "distortion.h"
 
-extern PyTypeObject PyDistLookupType;
+extern PyObject* PyDistLookupType;
 
 typedef struct {
   PyObject_HEAD
