@@ -12,7 +12,7 @@ from typing import Literal
 import numpy as np
 import numpy.typing as npt
 
-from astropy.table import Table, meta, serialize
+from astropy.table import SerializedColumn, Table, meta, serialize
 
 __all__ = ["read_ecsv", "register_pyarrow_ecsv_table", "write_ecsv"]
 
@@ -286,6 +286,10 @@ def read_csv_table(
 
     if engine == "ascii.csv":
         kwargs["converters"] = {col.name: np.dtype(col.parsetype).type for col in cols}
+        # Fast reader does not support converters (defining types in advance) nor any
+        # encoding. Converters are required, e.g. for a string column that looks like
+        # floats. Would be nice to fix this, but in mean time use Python CSV reader.
+        kwargs["fast_reader"] = False
     else:
         kwargs["dtypes"] = {col.name: col.parsetype for col in cols}
 
@@ -442,55 +446,56 @@ def process_variable_length_array_data(col_attrs, str_vals, mask):
 
 
 def get_fill_values(
-    cols: list[ColumnAttrs], table_meta: dict | None
-) -> list[tuple] | None:
-    if table_meta is None:
-        return None
-
-    # Get the serialized columns spec.  It might not exist and there might
-    # not even be any table meta, so punt in those cases.
-    try:
-        serialized_columns = table_meta["__serialized_columns__"]
-    except KeyError:
-        return None
-
-    # Got some serialized columns, so check for string type and serialized
-    # as a MaskedColumn.  Without 'data_mask', MaskedColumn objects are
-    # stored to ECSV as normal columns.
-    fill_values = []
-    for col in cols:
-        if (
-            col.parsetype == "str"
-            and col.name in serialized_columns
-            and serialized_columns[col.name]["__class__"]
-            == "astropy.table.column.MaskedColumn"
-        ):
-            fill_value = ""
-        else:
-            fill_value = 0
-
-        fill_values.append(("", fill_value, col.name))
-
-    print("fill_values", fill_values)
-    return fill_values
-
-
-def get_null_fill_kwargs(
-    cols_attrs: list[ColumnAttrs],
+    cols: list[ColumnAttrs],
     table_meta: dict | None,
     null_values: list[str] | None,
-    engine: str,
-) -> dict:
-    # TODO: respect `null_values` in ascii.csv`
-    if engine == "ascii.csv":
-        if (fill_values := get_fill_values(cols_attrs, table_meta)) is not None:
-            kwargs = {"fill_values": fill_values}
-        else:
-            kwargs = {}
-    else:
-        kwargs = {"null_values": null_values}
+) -> list[tuple] | None:
+    """Get fill values for individual columns for the ascii.csv engine.
 
-    return kwargs
+    For ECSV handle the corner case of data that has been serialized using
+    the serialize_method='data_mask' option, which writes the full data and
+    mask directly, AND where that table includes a string column with zero-length
+    string entries ("") which are valid data.
+
+    Normally the super() method will set col.fill_value=('', '0') to replace
+    blanks with a '0'.  But for that corner case subset, instead do not do
+    any filling.
+    """
+    if table_meta is None:
+        table_meta = {}
+
+    if null_values is None:
+        null_values = [""]
+
+    # Get the serialized columns spec or an empty dict if not present.
+    serialized_columns: dict[str, SerializedColumn] = table_meta.get(
+        "__serialized_columns__", {}
+    )
+
+    # A serialized MaskedColumn column (via `serialize_method="data_mask"`) does not
+    # have a fill value, so assemble a set of columns names to skip include the data and
+    # the mask columns. For example:
+    # - __serialized_columns__:
+    #     a:
+    #       __class__: astropy.table.column.MaskedColumn
+    #       data: !astropy.table.SerializedColumn {name: a}
+    #       mask: !astropy.table.SerializedColumn {name: a.mask}
+    masked_col_names = set()
+    for name, sc in serialized_columns.items():
+        if sc["__class__"] == "astropy.table.column.MaskedColumn":
+            masked_col_names.add(name)
+            masked_col_names.add(name + ".mask")
+
+    fill_values = []
+    for col in cols:
+        if col.name in masked_col_names:
+            continue
+
+        fill_value = "" if col.parsetype == "str" else "0"
+        for null_value in null_values:
+            fill_values.append((null_value, fill_value, col.name))
+
+    return fill_values
 
 
 def read_ecsv(
@@ -520,12 +525,10 @@ def read_ecsv(
         input_file, encoding=encoding, engine=engine
     )
 
-    null_fill_kwargs = get_null_fill_kwargs(
-        cols_attrs=cols_attrs,
-        table_meta=table_meta,
-        null_values=null_values,
-        engine=engine,
-    )
+    if engine == "ascii.csv":
+        kwargs = {"fill_values": get_fill_values(cols_attrs, table_meta, null_values)}
+    else:
+        kwargs = {"null_values": null_values}
 
     data_raw = read_csv_table(
         input_file,
@@ -534,7 +537,7 @@ def read_ecsv(
         delimiter=delimiter,
         encoding=encoding,
         engine=engine,
-        **null_fill_kwargs,
+        **kwargs,
     )
 
     ecsv_header_names = [col_attrs.name for col_attrs in cols_attrs]
