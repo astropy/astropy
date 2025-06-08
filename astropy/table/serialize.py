@@ -113,6 +113,9 @@ class SerializedColumn(dict):
             (value.shape for value in self.values() if hasattr(value, "shape")), ()
         )
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({super().__repr__()})"
+
 
 def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=()):
     """Carry out processing needed to serialize ``col`` in an output table
