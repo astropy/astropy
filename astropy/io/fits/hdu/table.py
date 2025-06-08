@@ -37,7 +37,6 @@ from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
-from astropy.utils.decorators import deprecated
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
 
@@ -216,8 +215,8 @@ class _TableLikeHDU(_ValidHDU):
         # pass datLoc, for P format
         data._heapoffset = self._theap
         data._heapsize = self._header["PCOUNT"]
-        tbsize = self._header["NAXIS1"] * self._header["NAXIS2"]
-        data._gap = self._theap - tbsize
+        data._tbsize = self._header["NAXIS1"] * self._header["NAXIS2"]
+        data._gap = self._theap - data._tbsize
 
         # pass the attributes
         for idx, col in enumerate(columns):
@@ -349,29 +348,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     self.data = data
                 else:
                     self.data = self._data_type.from_columns(data)
-
-                # TODO: Too much of the code in this class uses header keywords
-                # in making calculations related to the data size.  This is
-                # unreliable, however, in cases when users mess with the header
-                # unintentionally--code that does this should be cleaned up.
-                self._header["NAXIS1"] = self.data._raw_itemsize
-                self._header["NAXIS2"] = self.data.shape[0]
-                self._header["TFIELDS"] = len(self.data._coldefs)
-
-                self.columns = self.data._coldefs
-                self.columns._add_listener(self.data)
-                self.update_header()
-
-                with suppress(TypeError, AttributeError):
-                    # Make the ndarrays in the Column objects of the ColDefs
-                    # object of the HDU reference the same ndarray as the HDU's
-                    # FITS_rec object.
-                    for idx, col in enumerate(self.columns):
-                        col.array = self.data.field(idx)
-
-                    # Delete the _arrays attribute so that it is recreated to
-                    # point to the new data placed in the column objects above
-                    del self.columns._arrays
             elif data is None:
                 pass
             else:
@@ -482,10 +458,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         size = self._header["NAXIS1"] * self._header["NAXIS2"]
         return self._header.get("THEAP", size)
 
-    @deprecated("v6.0", alternative="update_header")
-    def update(self):
-        self.update_header()
-
     def update_header(self):
         """
         Update header keywords to reflect recent changes of columns.
@@ -505,7 +477,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         # FITS file)
         return self.__class__(data=self.data.copy(), header=self._header.copy())
 
-    def _prewriteto(self, checksum=False, inplace=False):
+    def _prewriteto(self, inplace=False):
         if self._has_data:
             self.data._scale_back(update_heap_pointers=not self._manages_own_heap)
             # check TFIELDS and NAXIS2
@@ -515,6 +487,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             # calculate PCOUNT, for variable length tables
             tbsize = self._header["NAXIS1"] * self._header["NAXIS2"]
             heapstart = self._header.get("THEAP", tbsize)
+            self.data._tbsize = tbsize
             self.data._gap = heapstart - tbsize
             pcount = self.data._heapsize + self.data._gap
             if pcount > 0:
@@ -527,12 +500,15 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             for idx in range(self.data._nfields):
                 format = self.data._coldefs._recformats[idx]
                 if isinstance(format, _FormatP):
-                    _max = self.data.field(idx).max
+                    if self.data._load_variable_length_data:
+                        _max = self.data.field(idx).max
+                    else:
+                        _max = self.data.field(idx)[:, 0].max()
                     # May be either _FormatP or _FormatQ
                     format_cls = format.__class__
                     format = format_cls(format.dtype, repeat=format.repeat, max=_max)
                     self._header["TFORM" + str(idx + 1)] = format.tform
-        return super()._prewriteto(checksum, inplace)
+        return super()._prewriteto(inplace)
 
     def _verify(self, option="warn"):
         """
@@ -896,24 +872,7 @@ class BinTableHDU(_TableBaseHDU):
             # Now add in the heap data to the checksum (we can skip any gap
             # between the table and the heap since it's all zeros and doesn't
             # contribute to the checksum
-            if data._get_raw_data() is None:
-                # This block is still needed because
-                # test_variable_length_table_data leads to ._get_raw_data
-                # returning None which means _get_heap_data doesn't work.
-                # Which happens when the data is loaded in memory rather than
-                # being unloaded on disk
-                for idx in range(data._nfields):
-                    if isinstance(data.columns._recformats[idx], _FormatP):
-                        for coldata in data.field(idx):
-                            # coldata should already be byteswapped from the call
-                            # to _binary_table_byte_swap
-                            if not len(coldata):
-                                continue
-
-                            csum = self._compute_checksum(coldata, csum)
-            else:
-                csum = self._compute_checksum(data._get_heap_data(), csum)
-
+            csum = self._compute_checksum(data._get_heap_data(), csum)
             return csum
 
     def _calculate_datasum(self):
@@ -955,25 +914,10 @@ class BinTableHDU(_TableBaseHDU):
 
             nbytes = data._gap
 
-            if not self._manages_own_heap:
-                # Write the heap data one column at a time, in the order
-                # that the data pointers appear in the column (regardless
-                # if that data pointer has a different, previous heap
-                # offset listed)
-                for idx in range(data._nfields):
-                    if not isinstance(data.columns._recformats[idx], _FormatP):
-                        continue
-
-                    field = self.data.field(idx)
-                    for row in field:
-                        if len(row) > 0:
-                            nbytes += row.nbytes
-                            fileobj.writearray(row)
-            else:
-                heap_data = data._get_heap_data()
-                if len(heap_data) > 0:
-                    nbytes += len(heap_data)
-                    fileobj.writearray(heap_data)
+            heap_data = data._get_heap_data()
+            if len(heap_data) > 0:
+                nbytes += len(heap_data)
+                fileobj.writearray(heap_data)
 
             data._heapsize = nbytes - data._gap
             size += nbytes

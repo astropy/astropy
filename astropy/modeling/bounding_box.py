@@ -9,21 +9,18 @@ from __future__ import annotations
 import abc
 import copy
 import warnings
-from typing import TYPE_CHECKING, NamedTuple
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, NamedTuple, Self
 
 import numpy as np
 
 from astropy.units import Quantity
-from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Any, Self
-
     from astropy.units import UnitBase
 
-__all__ = ["ModelBoundingBox", "CompoundBoundingBox"]
+__all__ = ["CompoundBoundingBox", "ModelBoundingBox"]
 
 
 class _BaseInterval(NamedTuple):
@@ -85,7 +82,7 @@ class _Interval(_BaseInterval):
                 and all(isinstance(b, np.ndarray) for b in interval)
             )
 
-        if not isiterable(interval) or not valid_shape:
+        if not np.iterable(interval) or not valid_shape:
             raise ValueError(MESSAGE)
 
     @classmethod
@@ -1022,7 +1019,7 @@ class _SelectorArgument(_BaseSelectorArgument):
             All the processed model evaluation inputs.
         """
         _selector = inputs[self.index]
-        if isiterable(_selector):
+        if np.iterable(_selector):
             if len(_selector) == 1:
                 return _selector[0]
             else:
@@ -1427,7 +1424,7 @@ class CompoundBoundingBox(_BoundingDomain):
 
     @staticmethod
     def _get_selector_key(key):
-        if isiterable(key):
+        if np.iterable(key):
             return tuple(key)
         else:
             return (key,)

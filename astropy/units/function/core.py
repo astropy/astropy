@@ -4,8 +4,9 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+from collections.abc import Collection
 from functools import cached_property
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 import numpy as np
 
@@ -26,9 +27,9 @@ else:
     from numpy._core import umath as np_umath
 
 if TYPE_CHECKING:
-    from astropy.units.typing import UnitPower
+    from astropy.units.typing import PhysicalTypeID
 
-__all__ = ["FunctionUnitBase", "FunctionQuantity"]
+__all__ = ["FunctionQuantity", "FunctionUnitBase"]
 
 SUPPORTED_UFUNCS = {
     getattr(np_umath, ufunc)
@@ -174,7 +175,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         return [(self, self.physical_unit, self.to_physical, self.from_physical)]
 
     # ↓↓↓ properties/methods required to behave like a unit
-    def decompose(self, bases=set()):
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """Copy the current unit with the physical unit decomposed.
 
         For details, see `~astropy.units.UnitBase.decompose`.
@@ -192,7 +193,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         return self._copy(self.physical_unit.cgs)
 
     @cached_property
-    def _physical_type_id(self) -> tuple[tuple[str, UnitPower], ...]:
+    def _physical_type_id(self) -> PhysicalTypeID:
         """Get physical type corresponding to physical unit."""
         return self.physical_unit._physical_type_id
 
@@ -434,7 +435,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
                 # functional string is aligned with the fraction line
                 # (second one), and all other lines are indented
                 # accordingly.
-                f = f"{{0:^{len(self_str)+1}s}}{{1:s}}"
+                f = f"{{0:^{len(self_str) + 1}s}}{{1:s}}"
                 lines = [
                     f.format("", pu_lines[0]),
                     f.format(f"{self_str}(", f"{pu_lines[1]})"),
@@ -627,7 +628,7 @@ class FunctionQuantity(Quantity):
         """Return a copy with the physical unit in CGS units."""
         return self.__class__(self.physical.cgs)
 
-    def decompose(self, bases=[]):
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """Generate a new instance with the physical unit decomposed.
 
         For details, see `~astropy.units.Quantity.decompose`.

@@ -262,14 +262,38 @@ class TestEmptyData:
         assert len(t["a"]) == 0
 
     def test_scalar(self, table_types):
-        """Test related to #3811 where setting empty tables to scalar values
-        should raise an error instead of having an error raised when accessing
-        the table."""
+        """Test related to #3811 and #17078: we used to have setting
+        empty tables succeed, but raise on access. Then, we ensured they
+        raised on setting. But now we let setting and accessing succeed:
+        the table stays empty."""
         t = table_types.Table()
-        with pytest.raises(
-            TypeError, match="Empty table cannot have column set to scalar value"
-        ):
-            t.add_column(0)
+        t.add_column(0, name="a")
+        assert len(t) == 0
+        assert isinstance(t["a"], Column)
+        assert len(t["a"]) == 0
+        assert t["a"].dtype == int
+        t["b"] = SkyCoord(1.0, 2.0, unit="hourangle,deg")
+        assert isinstance(t["b"], SkyCoord)
+        assert len(t["b"]) == 0
+        assert t["b"].data.lon.unit == u.hourangle
+        # For this case, broadcasting still works.
+        t["c"] = [1.0]
+        # But not here.
+        with pytest.raises(ValueError, match="data column length"):
+            t["d"] = [1.0, 2.0]
+
+    def test_scalar_double_assignment(self, table_types):
+        # Following example given by @taldcroft in
+        # https://github.com/astropy/astropy/pull/17102#issuecomment-2386767337
+        t = table_types.Table()
+        t["a"] = 1.5
+        assert len(t) == 0
+        assert isinstance(t["a"], Column)
+        assert t["a"].shape == (0,)
+        t["a"] = 1.5
+        assert len(t) == 0
+        assert isinstance(t["a"], Column)
+        assert t["a"].shape == (0,)
 
     def test_add_via_setitem_and_slice(self, table_types):
         """Test related to #3023 where a MaskedColumn is created with name=None
@@ -547,6 +571,15 @@ class TestAddName(SetupData):
         col = table_types.Column([1, 2, 3])
         t.add_column(col)
         assert t.colnames == ["col0"]
+
+    def test_setting_column_name_to_with_invalid_type(self, table_types):
+        t = table_types.Table()
+        t["a"] = [1, 2]
+        with pytest.raises(
+            TypeError, match=r"Expected a str value, got None with type NoneType"
+        ):
+            t["a"].name = None
+        assert t["a"].name == "a"
 
 
 @pytest.mark.usefixtures("table_types")
@@ -1760,6 +1793,17 @@ def test_rows_equal():
     )
 
 
+def test_table_from_rows():
+    # see https://github.com/astropy/astropy/issues/5923
+    t1 = Table()
+    t1["a"] = [1, 2, 3]
+    t1["b"] = [2.0, 3.0, 4.0]
+
+    rows = [row for row in t1]  # noqa: C416
+    t2 = Table(rows=rows)
+    assert_array_equal(t2.colnames, t1.colnames)
+
+
 def test_equality_masked():
     t = table.Table.read(
         [
@@ -2618,10 +2662,11 @@ def test_empty_table_setdefault(value):
 
 def test_empty_table_setdefault_scalar():
     t = Table()
-    with pytest.raises(
-        TypeError, match="^Empty table cannot have column set to scalar value$"
-    ):
-        t.setdefault("a", 9)
+    t.setdefault("a", 9)
+    assert len(t) == 0
+    assert t.colnames == ["a"]
+    assert type(t["a"]) is Column
+    assert t["a"].dtype == int
 
 
 def test_table_meta_copy():
@@ -3533,3 +3578,59 @@ def test_table_columns_update_deprecation():
         ),
     ):
         Table().columns.update({"a": [0]})
+
+
+def test_qtable_with_explicit_units():
+    # Regression test for gh-17047; the problem was that the dimensionless
+    # unit ended up being compared to np.ma.masked.  See also
+    # astropy/units/tests/test_units.py::test_comparison_dimensionless_with_np_ma_masked
+    tt = QTable(data=[[1.0, 2.0, 3.0]], names=["weight"], units={"weight": u.one})
+    assert tt["weight"].unit == u.dimensionless_unscaled
+
+
+@pytest.mark.parametrize("empty_table", [True, False])
+def test_table_replace_column_with_scalar(empty_table):
+    # Regression test for bug mentioned in
+    # https://github.com/astropy/astropy/pull/17102#issuecomment-2386963846
+    t = QTable() if empty_table else QTable([[5, 6, 7]], names=["0"])
+    t["a"] = np.arange(3.0)
+    t["a"] = 5.0
+    assert len(t) == 3
+    assert t["a"].shape == (3,)
+    assert np.all(t["a"] == 5.0)
+    # Direct replacement should never work.
+    with pytest.raises(ValueError, match="cannot replace.*with a scalar"):
+        t.replace_column("a", 2)
+
+
+@pytest.mark.parametrize(
+    "arr", [None, [], [[], []], (), ((), ()), np.array([]), np.array([[], []])]
+)
+@pytest.mark.parametrize("arg_type", ["rows", "data"])
+def test_table_create_no_rows_various_inputs(arg_type, arr):
+    kwargs = {arg_type: arr}
+    t = Table(names=["foo", "bar"], dtype=[int, int], **kwargs)
+    assert len(t) == 0
+    assert t.colnames == ["foo", "bar"]
+
+
+@pytest.mark.parametrize("arg_type", ["rows", "data"])
+def test_table_create_no_rows_recarray(arg_type):
+    arr = np.array([], dtype=[("foo", int), ("bar", int)])
+    kwargs = {arg_type: arr}
+    t = Table(**kwargs)
+    assert len(t) == 0
+    assert t.colnames == ["foo", "bar"]
+
+
+def test_table_from_records_nd_quantity():
+    """Regression test for #17930"""
+
+    data = [
+        {"q0d": 5 * u.m, "q1d": [1, 2, 3] * u.s, "q2d": [[0, 1, 2], [3, 4, 5]] * u.TeV},
+    ]
+
+    t = Table(data)
+    assert t["q0d"].unit == u.m
+    assert t["q1d"].unit == u.s
+    assert t["q2d"].unit == u.TeV

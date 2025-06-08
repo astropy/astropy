@@ -75,7 +75,7 @@ __all__ += [n for n, v in _ns.items() if isinstance(v, (UnitBase, MagUnit))]
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from astropy.units.utils import generate_unit_summary as _generate_unit_summary
+    from astropy.units.docgen import generate_unit_summary as _generate_unit_summary
 
     def _description(unit):
         pu = unit.physical_unit.represents

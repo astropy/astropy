@@ -711,12 +711,13 @@ def _str_to_num(val):
     return num
 
 
-def _words_group(s, width):
+def _words_group(s, width, first_width=None):
     """
-    Split a long string into parts where each part is no longer than ``strlen``
+    Split a long string into parts where each part is no longer than ``width``
     and no word is cut into two pieces.  But if there are any single words
-    which are longer than ``strlen``, then they will be split in the middle of
-    the word.
+    which are longer than ``width``, then they will be split in the middle of
+    the word.  If the width of the first part should be smaller, e.g., because
+    of a long HIERARCH header key, one can pass in ``first_width``.
     """
     words = []
     slen = len(s)
@@ -727,12 +728,13 @@ def _words_group(s, width):
 
     # locations of the blanks
     blank_loc = np.nonzero(arr == b" ")[0]
+    current_width = width if first_width is None else first_width
     offset = 0
     xoffset = 0
 
     while True:
         try:
-            loc = np.nonzero(blank_loc >= width + offset)[0][0]
+            loc = np.nonzero(blank_loc >= current_width + offset)[0][0]
         except IndexError:
             loc = len(blank_loc)
 
@@ -743,13 +745,14 @@ def _words_group(s, width):
 
         # check for one word longer than strlen, break in the middle
         if offset <= xoffset:
-            offset = min(xoffset + width, slen)
+            offset = min(xoffset + current_width, slen)
 
         # collect the pieces in a list
         words.append(s[xoffset:offset])
         if offset >= slen:
             break
         xoffset = offset
+        current_width = width
 
     return words
 

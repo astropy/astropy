@@ -13,6 +13,7 @@ import itertools
 import os
 import re
 from contextlib import suppress
+from pathlib import Path
 
 from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 
@@ -310,8 +311,8 @@ class Cds(core.BaseReader):
     to directly load tables from the Internet.  For example, Vizier tables from the
     CDS::
 
-      >>> table = ascii.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",
-      ...             readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe")
+      >>> table = ascii.read("ftp://cdsarc.unistra.fr/pub/cats/VII/253/snrs.dat",
+      ...             readme="ftp://cdsarc.unistra.fr/pub/cats/VII/253/ReadMe")
 
     If the header (ReadMe) and data are stored in a single file and there
     is content between the header and the data (for instance Notes), then the
@@ -379,7 +380,7 @@ class Cds(core.BaseReader):
             with suppress(TypeError):
                 # For strings only
                 if os.linesep not in table + "":
-                    self.data.table_name = os.path.basename(table)
+                    self.data.table_name = Path(table).name
 
             self.data.header = self.header
             self.header.data = self.data

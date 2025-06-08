@@ -156,11 +156,9 @@ def is_O3(matrix, atol=None):
         else:
             atol = 1e-15
 
-    is_o3 = np.all(
+    return np.all(
         np.isclose(matrix @ matrix.swapaxes(-2, -1), I, atol=atol), axis=(-2, -1)
     )
-
-    return is_o3
 
 
 def is_rotation(matrix, allow_improper=False, atol=None):

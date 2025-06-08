@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import platform
 import warnings
-from itertools import pairwise
 
 import numpy as np
 
@@ -10,7 +8,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from .index import get_index_by_names
 
-__all__ = ["TableGroups", "ColumnGroups"]
+__all__ = ["ColumnGroups", "TableGroups"]
 
 
 def table_group_by(table, keys):
@@ -84,21 +82,11 @@ def _table_group_by(table, keys):
         table_keys_sort = table_keys
 
     # Get the argsort index `idx_sort`, accounting for particulars
-    try:
-        # take advantage of index internal sort if possible
-        if table_index is not None:
-            idx_sort = table_index.sorted_data()
-        else:
-            idx_sort = table_keys_sort.argsort(kind="stable")
-        stable_sort = True
-    except TypeError:
-        # TODO: is this still needed?
-
-        # Some versions (likely 1.6 and earlier) of numpy don't support
-        # 'mergesort' for all data types.  MacOSX (Darwin) doesn't have a stable
-        # sort by default, nor does Windows, while Linux does (or appears to).
-        idx_sort = table_keys_sort.argsort()
-        stable_sort = platform.system() not in ("Darwin", "Windows")
+    # take advantage of index internal sort if possible
+    if table_index is not None:
+        idx_sort = table_index.sorted_data()
+    else:
+        idx_sort = table_keys_sort.argsort(kind="stable")
 
     # Finally do the actual sort of table_keys values
     table_keys = table_keys[idx_sort]
@@ -106,12 +94,6 @@ def _table_group_by(table, keys):
     # Get all keys
     diffs = np.concatenate(([True], table_keys[1:] != table_keys[:-1], [True]))
     indices = np.flatnonzero(diffs)
-
-    # If the sort is not stable (preserves original table order) then sort idx_sort in
-    # place within each group.
-    if not stable_sort:
-        for i0, i1 in pairwise(indices):
-            idx_sort[i0:i1].sort()
 
     # Make a new table and set the _groups to the appropriate TableGroups object.
     # Take the subset of the original keys at the indices values (group boundaries).
@@ -254,7 +236,7 @@ class ColumnGroups(BaseGroups):
     @property
     def indices(self):
         # If the parent column is in a table then use group indices from table
-        if self.parent_table:
+        if self.parent_table is not None:
             return self.parent_table.groups.indices
         else:
             if self._indices is None:
@@ -265,7 +247,7 @@ class ColumnGroups(BaseGroups):
     @property
     def keys(self):
         # If the parent column is in a table then use group indices from table
-        if self.parent_table:
+        if self.parent_table is not None:
             return self.parent_table.groups.keys
         else:
             return self._keys

@@ -149,7 +149,7 @@ def uniform(
     **kwargs,
 ):
     """
-    Create a Uniform distriution from the lower and upper bounds.
+    Create a Uniform distribution from the lower and upper bounds.
 
     Note that this function requires keywords to be explicit, and requires
     either ``lower``/``upper`` or ``center``/``width``.
@@ -199,7 +199,7 @@ def uniform(
         )
 
     newshape = lower.shape + (n_samples,)
-    if lower.shape == tuple() and upper.shape == tuple():
+    if lower.shape == () and upper.shape == ():
         width = upper - lower  # scalar
     else:
         width = (upper - lower)[:, np.newaxis]

@@ -1,14 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+from pathlib import Path
 
 __all__ = [
     "setup_function",
     "teardown_function",
 ]
 
-CWD = os.getcwd()
-TEST_DIR = os.path.dirname(__file__)
+CWD = Path.cwd()
+TEST_DIR = Path(__file__).parent
 
 
 def setup_function(function):

@@ -142,11 +142,19 @@ class _AngleParser:
             f"(?:{x})" for x in cls._get_simple_unit_names()
         )
 
+        def t_MINUTE(t):
+            r"m(in(ute(s)?)?)?|′|\'|ᵐ"
+            t.value = u.arcmin
+            return t
+
+        def t_SECOND(t):
+            r"s(ec(ond(s)?)?)?|″|\"|ˢ"  # codespell:ignore ond
+            t.value = u.arcsec
+            return t
+
         t_COLON = ":"
         t_DEGREE = r"d(eg(ree(s)?)?)?|°"
         t_HOUR = r"hour(s)?|h(r)?|ʰ"
-        t_MINUTE = r"m(in(ute(s)?)?)?|′|\'|ᵐ"
-        t_SECOND = r"s(ec(ond(s)?)?)?|″|\"|ˢ"  # codespell:ignore ond
 
         # A string containing ignored characters (spaces)
         t_ignore = " "
@@ -161,8 +169,6 @@ class _AngleParser:
             """
             angle : sign hms eastwest
                   | sign dms dir
-                  | sign arcsecond dir
-                  | sign arcminute dir
                   | sign simple dir
             """
             sign = p[1] * p[3]
@@ -177,20 +183,14 @@ class _AngleParser:
             sign : SIGN
                  |
             """
-            if len(p) == 2:
-                p[0] = p[1]
-            else:
-                p[0] = 1.0
+            p[0] = p[1] if len(p) == 2 else 1.0
 
         def p_eastwest(p):
             """
             eastwest : EASTWEST
                      |
             """
-            if len(p) == 2:
-                p[0] = p[1]
-            else:
-                p[0] = 1.0
+            p[0] = p[1] if len(p) == 2 else 1.0
 
         def p_dir(p):
             """
@@ -198,10 +198,7 @@ class _AngleParser:
                 | NORTHSOUTH
                 |
             """
-            if len(p) == 2:
-                p[0] = p[1]
-            else:
-                p[0] = 1.0
+            p[0] = p[1] if len(p) == 2 else 1.0
 
         def p_ufloat(p):
             """
@@ -210,33 +207,21 @@ class _AngleParser:
             """
             p[0] = p[1]
 
-        def p_colon(p):
-            """
-            colon : UINT COLON ufloat
-                  | UINT COLON UINT COLON ufloat
-            """
-            if len(p) == 4:
-                p[0] = (p[1], p[3])
-            elif len(p) == 6:
-                p[0] = (p[1], p[3], p[5])
-
-        def p_spaced(p):
-            """
-            spaced : UINT ufloat
-                   | UINT UINT ufloat
-            """
-            if len(p) == 3:
-                p[0] = (p[1], p[2])
-            elif len(p) == 4:
-                p[0] = (p[1], p[2], p[3])
-
         def p_generic(p):
             """
-            generic : colon
-                    | spaced
-                    | ufloat
+            generic : ufloat
+                    | UINT ufloat
+                    | UINT COLON ufloat
+                    | UINT UINT ufloat
+                    | UINT COLON UINT COLON ufloat
             """
-            p[0] = p[1]
+            match p[1:]:
+                case [p1]:
+                    p[0] = p1
+                case [p1, p2] | [p1, ":", p2]:
+                    p[0] = (p1, p2)
+                case [p1, p2, p3] | [p1, _, p2, _, p3]:
+                    p[0] = (p1, p2, p3)
 
         def p_hms(p):
             """
@@ -275,24 +260,11 @@ class _AngleParser:
         def p_simple(p):
             """
             simple : generic
+                   | generic MINUTE
+                   | generic SECOND
                    | generic SIMPLE_UNIT
             """
-            if len(p) == 2:
-                p[0] = (p[1], None)
-            else:
-                p[0] = (p[1], p[2])
-
-        def p_arcsecond(p):
-            """
-            arcsecond : generic SECOND
-            """
-            p[0] = (p[1], u.arcsecond)
-
-        def p_arcminute(p):
-            """
-            arcminute : generic MINUTE
-            """
-            p[0] = (p[1], u.arcminute)
+            p[0] = (p[1], None if len(p) == 2 else p[2])
 
         def p_error(p):
             raise ValueError

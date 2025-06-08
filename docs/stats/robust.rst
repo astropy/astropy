@@ -116,6 +116,22 @@ calculation:
      >>> sigma_clipped_stats(y, sigma=3, maxiters=10)  # doctest: +FLOAT_CMP
      (np.float64(-0.0228473012826993), np.float64(-0.02356858871405204), np.float64(0.2079616996908159))
 
+
+:class:`~astropy.stats.SigmaClippedStats` is a
+convenience class that extends the functionality of
+:func:`~astropy.stats.sigma_clipped_stats`:
+
+.. doctest-requires:: scipy
+
+     >>> from astropy.stats import SigmaClippedStats
+     >>> stats = SigmaClippedStats(y, sigma=3, maxiters=10)
+     >>> stats.mean(), stats.median(), stats.std()  # doctest: +FLOAT_CMP
+     (np.float64(-0.0228473012826993), np.float64(-0.02356858871405204), np.float64(0.2079616996908159))
+     >>> stats.mode(), stats.var(), stats.mad_std()  # doctest: +FLOAT_CMP
+     (np.float64(-0.025011163576757534), np.float64(0.043248068538293126), np.float64(0.21277510956855722))
+     >>> stats.biweight_location(), stats.biweight_scale()  # doctest: +FLOAT_CMP
+     (np.float64(-0.0183718864859565), np.float64(0.21730062377965248))
+
 :func:`~astropy.stats.sigma_clip` and
 :class:`~astropy.stats.SigmaClip` can be combined with other robust
 statistics to provide improved outlier rejection as well.
@@ -139,13 +155,12 @@ statistics to provide improved outlier rejection as well.
     filtered_data = sigma_clip(y, sigma=3, maxiters=1, stdfunc=mad_std)
 
     # plot the original and rejected data
-    plt.figure(figsize=(8,5))
-    plt.plot(x, y, '+', color='#1f77b4', label="original data")
-    plt.plot(x[filtered_data.mask], y[filtered_data.mask], 'x',
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(x, y, '+', color='#1f77b4', label="original data")
+    ax.plot(x[filtered_data.mask], y[filtered_data.mask], 'x',
              color='#d62728', label="rejected data")
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.legend(loc=2, numpoints=1)
+    ax.set(xlabel='x', ylabel='y')
+    ax.legend(loc=2, numpoints=1)
 
 .. automodapi:: astropy.stats.sigma_clipping
 

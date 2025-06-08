@@ -33,6 +33,7 @@ from astropy.modeling.functional_models import (
     Linear1D,
     Logarithmic1D,
     Lorentz1D,
+    Lorentz2D,
     Moffat1D,
     Moffat2D,
     Multiply,
@@ -287,6 +288,17 @@ FUNC_MODELS_2D = [
         ],
         "bounding_box": [[-13.02230366, 15.02230366], [-12.02230366, 16.02230366]]
         * u.m,
+    },
+    {
+        "class": Lorentz2D,
+        "parameters": {
+            "amplitude": 2 * u.Jy,
+            "x_0": 505 * u.nm,
+            "y_0": 507 * u.nm,
+            "fwhm": 100 * u.AA,
+        },
+        "evaluation": [(0.51 * u.micron, 0.53 * u.micron, 0.08635579 * u.Jy)],
+        "bounding_box": [[255, 755], [257, 757]] * u.nm,
     },
     {
         "class": Const2D,
@@ -807,6 +819,10 @@ def test_models_fitting(model, fitter):
         return
 
     m = model["class"](**model["parameters"])
+
+    if m.has_bounds and isinstance(fitter, LMLSQFitter):
+        pytest.skip("The LMLSQFitter fitter does not support models with bounds")
+
     if len(model["evaluation"][0]) == 2:
         x = np.linspace(1, 3, 100) * model["evaluation"][0][0].unit
         y = np.exp(-(x.value**2)) * model["evaluation"][0][1].unit

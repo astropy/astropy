@@ -114,11 +114,16 @@ def test_io_ascii_write():
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
+
     from astropy.io.ascii.connect import _get_connectors_table
 
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
-        if fmt["Write"] and ".fast_" not in fmt["Format"]:
+        if (
+            fmt["Write"]
+            and ".fast_" not in fmt["Format"]
+            and fmt["Format"] != "ascii.tdat"
+        ):
             out = StringIO()
             t.write(out, format=fmt["Format"])
 
@@ -378,7 +383,7 @@ def test_join(table_types):
     t2 = table_types.Table(t1)
     t2["a"] = ["b", "c", "a", "d"]
 
-    for name, col in MIXIN_COLS.items():
+    for name in MIXIN_COLS:
         t1[name].info.description = name
         t2[name].info.description = name + "2"
 
@@ -498,7 +503,9 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
     """
 
     def pickle_roundtrip(c):
-        return pickle.loads(pickle.dumps(c))
+        # protocol=5 matches the default for Python 3.14 and later
+        # and is needed to preserve byteorder (available since Python 3.8)
+        return pickle.loads(pickle.dumps(c, protocol=5))
 
     def init_from_class(c):
         return c.__class__(c)
@@ -513,18 +520,7 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
         for func in (copy.copy, copy.deepcopy, pickle_roundtrip, init_from_class):
             m2 = func(m)
             for attr in attrs:
-                # non-native byteorder not preserved by last 2 func, _except_ for structured dtype
-                if (
-                    attr != "dtype"
-                    or getattr(m.info.dtype, "isnative", True)
-                    or m.info.dtype.name.startswith("void")
-                    or func in (copy.copy, copy.deepcopy)
-                ):
-                    original = getattr(m.info, attr)
-                else:
-                    # func does not preserve byteorder, check against (native) type.
-                    original = m.info.dtype.newbyteorder("=")
-                assert getattr(m2.info, attr) == original
+                assert getattr(m2.info, attr) == getattr(m.info, attr)
 
 
 def check_share_memory(col1, col2, copy):
@@ -632,30 +628,34 @@ def test_vstack():
         vstack([t1, t2])
 
 
-def test_insert_row(mixin_cols):
+@pytest.mark.parametrize("empty_table", [False, True])
+def test_insert_row(mixin_cols, empty_table):
     """
     Test inserting a row, which works for Column, Quantity, Time and SkyCoord.
     """
-    t = QTable(mixin_cols)
-    t0 = t.copy()
+    t0 = QTable(mixin_cols)
+    if empty_table:
+        t = t0[:0].copy()
+        insert_index = 0
+        result_indices = [-1]
+    else:
+        t = t0.copy()
+        insert_index = 1
+        result_indices = [0, -1, 1, 2, 3]
     t["m"].info.description = "d"
-    idxs = [0, -1, 1, 2, 3]
     if isinstance(
         t["m"], (u.Quantity, Column, time.Time, time.TimeDelta, coordinates.SkyCoord)
     ):
-        t.insert_row(1, t[-1])
+        t.insert_row(insert_index, t0[-1])
 
         for name in t.colnames:
-            col = t[name]
-            if isinstance(col, coordinates.SkyCoord):
-                assert skycoord_equal(col, t0[name][idxs])
-            else:
-                assert np.all(col == t0[name][idxs])
+            assert np.all(t[name] == t0[name][result_indices])
 
+        assert np.all(t == t0[result_indices])
         assert t["m"].info.description == "d"
     else:
         with pytest.raises(ValueError) as exc:
-            t.insert_row(1, t[-1])
+            t.insert_row(insert_index, t0[-1])
         assert "Unable to insert row" in str(exc.value)
 
 
@@ -965,9 +965,8 @@ def test_ndarray_mixin(as_ndarray_mixin):
     assert t[1]["d"][0] == d[1][0]
     assert t[1]["d"][1] == d[1][1]
 
-    assert (
-        t.pformat(show_dtype=True)
-        == [
+    assert t.pformat(show_dtype=True) == (
+        [
             "  a [f0, f1]     b [x, y]      c [rx, ry]      d    ",
             "(int32, str1) (int32, str2) (float64, str3) int64[2]",
             "------------- ------------- --------------- --------",

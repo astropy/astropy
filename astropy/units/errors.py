@@ -3,10 +3,11 @@
 """Custom errors and exceptions for astropy.units."""
 
 __all__ = [
-    "UnitsError",
     "UnitConversionError",
+    "UnitParserWarning",
     "UnitScaleError",
     "UnitTypeError",
+    "UnitsError",
     "UnitsWarning",
 ]
 
@@ -46,3 +47,7 @@ class UnitsWarning(AstropyWarning):
     """
     The base class for unit-specific warnings.
     """
+
+
+class UnitParserWarning(UnitsWarning):
+    """Unit parser warnings"""

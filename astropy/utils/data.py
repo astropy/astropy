@@ -13,9 +13,6 @@ import io
 import os
 import re
 import shutil
-
-# import ssl moved inside functions using ssl to avoid import failure
-# when running in pyodide/Emscripten
 import sys
 import urllib.error
 import urllib.parse
@@ -23,6 +20,7 @@ import urllib.request
 import zipfile
 from importlib import import_module
 from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir
+from types import MappingProxyType
 from warnings import warn
 
 import astropy_iers_data
@@ -34,39 +32,40 @@ from astropy.utils.compat.optional_deps import (
     HAS_CERTIFI,
     HAS_FSSPEC,
     HAS_LZMA,
+    HAS_UNCOMPRESSPY,
 )
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import find_current_module
 
 # Order here determines order in the autosummary
 __all__ = [
+    "CacheDamaged",
+    "CacheMissingWarning",
     "Conf",
+    "cache_contents",
+    "cache_total_size",
+    "check_download_cache",
+    "check_free_space_in_dir",
+    "clear_download_cache",
+    "compute_hash",
     "conf",
     "download_file",
     "download_files_in_parallel",
-    "get_readable_fileobj",
-    "get_pkg_data_fileobj",
-    "get_pkg_data_filename",
-    "get_pkg_data_contents",
-    "get_pkg_data_fileobjs",
-    "get_pkg_data_filenames",
-    "get_pkg_data_path",
-    "is_url",
-    "is_url_in_cache",
-    "get_cached_urls",
-    "cache_total_size",
-    "cache_contents",
     "export_download_cache",
+    "get_cached_urls",
+    "get_file_contents",
+    "get_free_space_in_dir",
+    "get_pkg_data_contents",
+    "get_pkg_data_filename",
+    "get_pkg_data_filenames",
+    "get_pkg_data_fileobj",
+    "get_pkg_data_fileobjs",
+    "get_pkg_data_path",
+    "get_readable_fileobj",
     "import_download_cache",
     "import_file_to_cache",
-    "check_download_cache",
-    "clear_download_cache",
-    "compute_hash",
-    "get_free_space_in_dir",
-    "check_free_space_in_dir",
-    "get_file_contents",
-    "CacheMissingWarning",
-    "CacheDamaged",
+    "is_url",
+    "is_url_in_cache",
 ]
 
 _dataurls_to_alias = {}
@@ -214,7 +213,7 @@ def get_readable_fileobj(
     """Yield a readable, seekable file-like object from a file or URL.
 
     This supports passing filenames, URLs, and readable file-like objects,
-    any of which can be compressed in gzip, bzip2 or lzma (xz) if the
+    any of which can be compressed in gzip, bzip2, lzma (xz) or lzw (Z) if the
     appropriate compression libraries are provided by the Python installation.
 
     Notes
@@ -386,7 +385,7 @@ def get_readable_fileobj(
             fileobj = io.BytesIO(fileobj.read())
 
     # Now read enough bytes to look at signature
-    signature = fileobj.read(4)
+    signature = fileobj.read(6)
     fileobj.seek(0)
 
     if signature[:3] == b"\x1f\x8b\x08":  # gzip
@@ -428,7 +427,7 @@ def get_readable_fileobj(
             fileobj_new.seek(0)
             close_fds.append(fileobj_new)
             fileobj = fileobj_new
-    elif signature[:3] == b"\xfd7z":  # xz
+    elif signature[:6] == b"\xfd7zXZ\x00":  # xz
         if not HAS_LZMA:
             for fd in close_fds:
                 fd.close()
@@ -440,7 +439,7 @@ def get_readable_fileobj(
         try:
             fileobj_new = lzma.LZMAFile(fileobj, mode="rb")
             fileobj_new.read(1)  # need to check that the file is really xz
-        except (OSError, EOFError):  # invalid xz file
+        except lzma.LZMAError:  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
             # should we propagate this to the caller to signal bad content?
@@ -448,10 +447,30 @@ def get_readable_fileobj(
         else:
             fileobj_new.seek(0)
             fileobj = fileobj_new
+    elif signature[:2] == b"\x1f\x9d":  # LZW
+        if not HAS_UNCOMPRESSPY:
+            for fd in close_fds:
+                fd.close()
+            raise ModuleNotFoundError(
+                "The optional package uncompresspy is necessary for reading LZW"
+                " compressed files (.Z extension)."
+            )
+        import uncompresspy
 
-    # By this point, we have a file, io.FileIO, gzip.GzipFile, bz2.BZ2File
-    # or lzma.LZMAFile instance opened in binary mode (that is, read
-    # returns bytes).  Now we need to, if requested, wrap it in a
+        try:
+            fileobj_new = uncompresspy.LZWFile(fileobj)
+            fileobj_new.read(1)
+        except ValueError:
+            fileobj.seek(0)
+            fileobj_new.close()
+        else:
+            fileobj_new.seek(0)
+            close_fds.append(fileobj)
+            fileobj = fileobj_new
+
+    # By this point, we have a file, io.FileIO, gzip.GzipFile, bz2.BZ2File,
+    # lzma.LZMAFile or uncompresspy.LZWFile instance opened in binary mode (that
+    # is, read returns bytes). Now we need to, if requested, wrap it in a
     # io.TextIOWrapper so read will return unicode based on the
     # encoding parameter.
 
@@ -977,7 +996,7 @@ def compute_hash(localfn):
         ``localfn`` file.
     """
     with open(localfn, "rb") as f:
-        h = hashlib.md5()
+        h = hashlib.md5(usedforsecurity=False)
         block = f.read(conf.compute_hash_block_size)
         while block:
             h.update(block)
@@ -1550,6 +1569,10 @@ def download_file(
                 e.reason.strerror = f"{e.reason.strerror}. requested URL: {remote_url}"
                 e.reason.args = (e.reason.errno, e.reason.strerror)
             errors[source_url] = e
+
+        except TimeoutError as e:
+            errors[source_url] = e
+
     else:  # No success
         if not sources:
             raise KeyError(
@@ -1628,7 +1651,7 @@ def cache_total_size(pkgname="astropy"):
     """Return the total size in bytes of all files in the cache."""
     size = 0
     dldir = _get_download_cache_loc(pkgname=pkgname)
-    for root, dirs, files in os.walk(dldir):
+    for root, _, files in os.walk(dldir):
         size += sum(os.path.getsize(os.path.join(root, name)) for name in files)
     return size
 
@@ -1854,9 +1877,9 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
                 filepath = os.path.join(dldir, d)
             if os.path.exists(filepath):
                 _rmtree(filepath)
-            elif len(hashorurl) == 2 * hashlib.md5().digest_size and re.match(
-                r"[0-9a-f]+", hashorurl
-            ):
+            elif len(hashorurl) == 2 * hashlib.md5(
+                usedforsecurity=False
+            ).digest_size and re.match(r"[0-9a-f]+", hashorurl):
                 # It's the hash of some file contents, we have to find the right file
                 filename = _find_hash_fn(hashorurl)
                 if filename is not None:
@@ -1883,17 +1906,15 @@ def _get_download_cache_loc(pkgname="astropy"):
         The path to the data cache directory.
     """
     try:
-        datadir = os.path.join(
-            astropy.config.paths.get_cache_dir(pkgname), "download", "url"
-        )
+        datadir = astropy.config.paths.get_cache_dir_path(pkgname) / "download" / "url"
 
-        if not os.path.exists(datadir):
+        if not datadir.exists():
             try:
-                os.makedirs(datadir)
+                datadir.mkdir(parents=True)
             except OSError:
-                if not os.path.exists(datadir):
+                if not datadir.exists():
                     raise
-        elif not os.path.isdir(datadir):
+        elif not datadir.is_dir():
             raise OSError(f"Data cache directory {datadir} is not a directory")
 
         return datadir
@@ -1914,15 +1935,10 @@ def _url_to_dirname(url):
     if urlobj[0].lower() in ["http", "https"] and urlobj[1] and urlobj[2] == "":
         urlobj[2] = "/"
     url_c = urllib.parse.urlunsplit(urlobj)
-    return hashlib.md5(url_c.encode("utf-8")).hexdigest()
+    return hashlib.md5(url_c.encode("utf-8"), usedforsecurity=False).hexdigest()
 
 
-class ReadOnlyDict(dict):
-    def __setitem__(self, key, value):
-        raise TypeError("This object is read-only.")
-
-
-_NOTHING = ReadOnlyDict({})
+_NOTHING = MappingProxyType({})
 
 
 class CacheDamaged(ValueError):
@@ -2187,7 +2203,7 @@ def cache_contents(pkgname="astropy"):
                     os.path.join(dldir, entry.name, "url"), encoding="utf-8"
                 )
                 r[url] = os.path.abspath(os.path.join(dldir, entry.name, "contents"))
-    return ReadOnlyDict(r)
+    return MappingProxyType(r)
 
 
 def export_download_cache(

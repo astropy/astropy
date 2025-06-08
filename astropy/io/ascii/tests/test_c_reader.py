@@ -1186,7 +1186,7 @@ def test_data_out_of_range(fast_reader, guess):
     if fast_reader:  # Assert precision warnings for cols 2-5
         assert len(w) == 4
         for i in range(len(w)):
-            assert f"OverflowError converting to FloatType in column col{i+2}" in str(
+            assert f"OverflowError converting to FloatType in column col{i + 2}" in str(
                 w[i].message
             )
     read_values = np.array([col[0] for col in t.itercols()])
@@ -1218,7 +1218,7 @@ def test_data_out_of_range(fast_reader, guess):
         else:
             assert len(w) == 3
         for i in range(len(w)):
-            assert f"OverflowError converting to FloatType in column col{i+4}" in str(
+            assert f"OverflowError converting to FloatType in column col{i + 4}" in str(
                 w[i].message
             )
     read_values = np.array([col[0] for col in t.itercols()])
@@ -1344,7 +1344,7 @@ def test_int_out_of_range(guess):
     """
     imin = np.iinfo(np.int64).min + 1
     imax = np.iinfo(np.int64).max - 1
-    huge = f"{imax+2:d}"
+    huge = f"{imax + 2:d}"
 
     text = f"P M S\n {imax:d} {imin:d} {huge:s}"
     expected = Table([[imax], [imin], [huge]], names=("P", "M", "S"))

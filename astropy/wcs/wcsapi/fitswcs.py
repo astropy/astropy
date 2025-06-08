@@ -20,7 +20,7 @@ from .high_level_api import HighLevelWCSMixin
 from .low_level_api import BaseLowLevelWCS
 from .wrappers import SlicedLowLevelWCS
 
-__all__ = ["custom_ctype_to_ucd_mapping", "SlicedFITSWCS", "FITSWCSAPIMixin"]
+__all__ = ["FITSWCSAPIMixin", "SlicedFITSWCS", "custom_ctype_to_ucd_mapping"]
 
 C_SI = c.si.value
 
@@ -132,7 +132,7 @@ CTYPE_TO_UCD1 = {
     "VRAD": "spect.dopplerVeloc.radio",  # Radio velocity
     "VOPT": "spect.dopplerVeloc.opt",  # Optical velocity
     "ZOPT": "src.redshift",  # Redshift
-    "AWAV": "em.wl",  # Air wavelength
+    "AWAV": "em.wl;obs.atmos",  # Air wavelength
     "VELO": "spect.dopplerVeloc",  # Apparent radial velocity
     "BETA": "custom:spect.doplerVeloc.beta",  # Beta factor (v/c)
     "STOKES": "phys.polarization.stokes",  # STOKES parameters
@@ -332,7 +332,27 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
         return matrix
 
+    def _out_of_bounds_to_nan(self, pixel_arrays):
+        if self.pixel_bounds is not None:
+            pixel_arrays = list(pixel_arrays)
+            for idim in range(self.pixel_n_dim):
+                if self.pixel_bounds[idim] is None:
+                    continue
+                out_of_bounds = (pixel_arrays[idim] < self.pixel_bounds[idim][0]) | (
+                    pixel_arrays[idim] > self.pixel_bounds[idim][1]
+                )
+                if np.any(out_of_bounds):
+                    pix = pixel_arrays[idim]
+                    if np.isscalar(pix):
+                        pix = np.nan
+                    else:
+                        pix = pix.astype(float, copy=True)
+                        pix[out_of_bounds] = np.nan
+                    pixel_arrays[idim] = pix
+        return pixel_arrays
+
     def pixel_to_world_values(self, *pixel_arrays):
+        pixel_arrays = self._out_of_bounds_to_nan(pixel_arrays)
         world = self.all_pix2world(*pixel_arrays, 0)
         return world[0] if self.world_n_dim == 1 else tuple(world)
 
@@ -349,6 +369,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             pixel = self._array_converter(
                 lambda *args: e.best_solution, "input", *world_arrays, 0
             )
+
+        pixel = self._out_of_bounds_to_nan(pixel)
 
         return pixel[0] if self.pixel_n_dim == 1 else tuple(pixel)
 

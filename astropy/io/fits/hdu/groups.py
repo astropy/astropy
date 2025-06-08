@@ -40,18 +40,14 @@ class Group(FITS_record):
         Get the group parameter value.
         """
         if _is_int(parname):
-            result = self.array[self.row][parname]
-        else:
-            indx = self._unique[parname.upper()]
-            if len(indx) == 1:
-                result = self.array[self.row][indx[0]]
-
-            # if more than one group parameter have the same name
-            else:
-                result = self.array[self.row][indx[0]].astype("f8")
-                for i in indx[1:]:
-                    result += self.array[self.row][i]
-
+            return self.array[self.row][parname]
+        first_index, *others = self._unique[parname.upper()]
+        if not others:
+            return self.array[self.row][first_index]
+        # if more than one group parameter have the same name
+        result = self.array[self.row][first_index].astype("f8")
+        for i in others:
+            result += self.array[self.row][i]
         return result
 
     def setpar(self, parname, value):
@@ -66,21 +62,20 @@ class Group(FITS_record):
         if _is_int(parname):
             self.array[self.row][parname] = value
         else:
-            indx = self._unique[parname.upper()]
-            if len(indx) == 1:
-                self.array[self.row][indx[0]] = value
+            index = self._unique[parname.upper()]
+            if len(index) == 1:
+                self.array[self.row][index[0]] = value
 
             # if more than one group parameter have the same name, the
             # value must be a list (or tuple) containing arrays
+            elif isinstance(value, (list, tuple)) and len(index) == len(value):
+                for value_elem, index_elem in zip(value, index):
+                    self.array[self.row][index_elem] = value_elem
             else:
-                if isinstance(value, (list, tuple)) and len(indx) == len(value):
-                    for i in range(len(indx)):
-                        self.array[self.row][indx[i]] = value[i]
-                else:
-                    raise ValueError(
-                        "Parameter value must be a sequence with "
-                        f"{len(indx)} arrays/numbers."
-                    )
+                raise ValueError(
+                    "Parameter value must be a sequence with "
+                    f"{len(index)} arrays/numbers."
+                )
 
 
 class GroupData(FITS_rec):
@@ -252,18 +247,14 @@ class GroupData(FITS_rec):
         Get the group parameter values.
         """
         if _is_int(parname):
-            result = self.field(parname)
-        else:
-            indx = self._unique[parname.upper()]
-            if len(indx) == 1:
-                result = self.field(indx[0])
-
-            # if more than one group parameter have the same name
-            else:
-                result = self.field(indx[0]).astype("f8")
-                for i in indx[1:]:
-                    result += self.field(i)
-
+            return self.field(parname)
+        first_index, *others = self._unique[parname.upper()]
+        if not others:
+            return self.field(first_index)
+        # if more than one group parameter have the same name
+        result = self.field(first_index).astype("f8")
+        for i in others:
+            result += self.field(i)
         return result
 
 
@@ -432,10 +423,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         # delete extra NAXISi's
         for idx in range(len(self._axes) + 1, old_naxis + 1):
-            try:
-                del self._header["NAXIS" + str(idx)]
-            except KeyError:
-                pass
+            self._header.remove(f"NAXIS{idx}", ignore_missing=True)
 
         if self._has_data and isinstance(self.data, GroupData):
             self._header.set("GROUPS", True, after="NAXIS" + str(len(self._axes)))

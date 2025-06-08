@@ -3,8 +3,6 @@
 # a mix-in)
 
 import warnings
-from contextlib import nullcontext
-from itertools import product
 
 import numpy as np
 import pytest
@@ -25,7 +23,7 @@ from astropy.coordinates import (
 from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
-from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import Quantity, UnitsWarning
 from astropy.utils import iers
@@ -806,19 +804,16 @@ def test_time_1d_unsupported_ctype(header_time_1d_no_obs):
     # Case where the MJDREF is split into two for high precision
     header_time_1d_no_obs["CTYPE1"] = "UT(WWV)"
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(
-            UserWarning, match="Missing or incomplete observer location information"
-        )
-
     wcs = WCS(header_time_1d_no_obs)
     with (
         pytest.warns(
-            UserWarning, match="Dropping unsupported sub-scale WWV from scale UT"
+            UserWarning,
+            match="Dropping unsupported sub-scale WWV from scale UT",
         ),
-        ctx,
+        pytest.warns(
+            UserWarning,
+            match="Missing or incomplete observer location information",
+        ),
     ):
         time = wcs.pixel_to_world(10)
 
@@ -1090,10 +1085,8 @@ def test_spectralcoord_frame(header_spectral_frames):
             assert_quantity_allclose(sc.quantity, sc_check.quantity)
 
 
-@pytest.mark.parametrize(
-    ("ctype3", "observer"),
-    product(["ZOPT", "BETA", "VELO", "VRAD", "VOPT"], [False, True]),
-)
+@pytest.mark.parametrize("ctype3", ["ZOPT", "BETA", "VELO", "VRAD", "VOPT"])
+@pytest.mark.parametrize("observer", [False, True])
 def test_different_ctypes(header_spectral_frames, ctype3, observer):
     header = header_spectral_frames.copy()
     header["CTYPE3"] = ctype3
@@ -1176,10 +1169,8 @@ def header_spectral_1d():
     return Header.fromstring(HEADER_SPECTRAL_1D, sep="\n")
 
 
-@pytest.mark.parametrize(
-    ("ctype1", "observer"),
-    product(["ZOPT", "BETA", "VELO", "VRAD", "VOPT"], [False, True]),
-)
+@pytest.mark.parametrize("ctype1", ["ZOPT", "BETA", "VELO", "VRAD", "VOPT"])
+@pytest.mark.parametrize("observer", [False, True])
 def test_spectral_1d(header_spectral_1d, ctype1, observer):
     # This is a regression test for issues that happened with 1-d WCS
     # where the target is not defined but observer is.
@@ -1416,3 +1407,112 @@ def test_pixel_to_world_stokes(wcs_polarized):
     assert isinstance(world[2], StokesCoord)
     assert_array_equal(world[2], [1, 2, 3, 4])
     assert_array_equal(world[2].symbol, ["I", "Q", "U", "V"])
+
+
+@pytest.mark.parametrize("direction", ("world_to_pixel", "pixel_to_world"))
+def test_out_of_bounds(direction):
+    # Make sure that we correctly deal with any out-of-bound values in the
+    # low-level API.
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.crpix = (1, 1)
+    wcs.wcs.set()
+
+    func = (
+        wcs.world_to_pixel_values
+        if direction == "world_to_pixel"
+        else wcs.pixel_to_world_values
+    )
+
+    xp = np.arange(5) + 1
+    yp = np.arange(5) + 1
+
+    # Before setting bounds
+
+    # Python Scalars
+    xw, yw = func(1, 1)
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, 1)
+
+    # Numpy Scalars
+    xw, yw = func(xp[0], yp[0])
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, 1)
+
+    # Arrays
+    xw, yw = func(xp, yp)
+    assert_array_equal(xw, [1, 2, 3, 4, 5])
+    assert_array_equal(yw, [1, 2, 3, 4, 5])
+
+    # Mixed
+    xw, yw = func(xp[0], yp)
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, [1, 2, 3, 4, 5])
+
+    # Setting bounds on one dimension
+
+    wcs.pixel_bounds = [(-0.5, 3.5), None]
+
+    # Python Scalars
+
+    xw, yw = func(1, 1)
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, 1)
+
+    xw, yw = func(5, 5)
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, 5)
+
+    # Numpy Scalars
+
+    xw, yw = func(xp[0], yp[0])
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, 1)
+
+    xw, yw = func(xp[-1], yp[-1])
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, 5)
+
+    # Arrays
+    xw, yw = func(xp, yp)
+    assert_array_equal(xw, [1, 2, 3, np.nan, np.nan])
+    assert_array_equal(yw, [1, 2, 3, 4, 5])
+
+    # Mixed
+    xw, yw = func(xp[-1], yp)
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, [1, 2, 3, 4, 5])
+
+    # Setting bounds on both dimensions
+
+    wcs.pixel_bounds = [(-0.5, 3.5), (2.5, 5.5)]
+
+    # Python Scalars
+
+    xw, yw = func(1, 1)
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, np.nan)
+
+    xw, yw = func(5, 5)
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, 5)
+
+    # Numpy Scalars
+
+    xw, yw = func(xp[0], yp[0])
+    assert_array_equal(xw, 1)
+    assert_array_equal(yw, np.nan)
+
+    xw, yw = func(xp[-1], yp[-1])
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, 5)
+
+    # Arrays
+    xw, yw = func(xp, yp)
+    assert_array_equal(xw, [1, 2, 3, np.nan, np.nan])
+    assert_array_equal(yw, [np.nan, np.nan, 3, 4, 5])
+
+    # Mixed
+    xw, yw = func(xp[-1], yp)
+    assert_array_equal(xw, np.nan)
+    assert_array_equal(yw, [np.nan, np.nan, 3, 4, 5])

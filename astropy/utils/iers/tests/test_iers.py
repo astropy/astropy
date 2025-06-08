@@ -121,7 +121,7 @@ def test_IERS_B_old_style_excerpt(path_transform):
 
 class TestIERS_AExcerpt:
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         iers.IERS_A.close()
 
     def test_simple(self):
@@ -201,7 +201,7 @@ class TestIERS_AExcerpt:
 
 class TestIERS_A:
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         iers.IERS_A.close()
 
     def test_simple(self):
@@ -341,12 +341,22 @@ class TestIERS_Auto:
                 dat.ut1_utc(Time(60000, format="mjd").jd)
             assert len(warns) == 1
 
-            # Warning only if we are getting return status
+            # Confirm that disabling the download means no warning because there is no
+            # refresh to even fail, but there will still be the interpolation error
+            with (
+                iers.conf.set_temp("auto_download", False),
+                pytest.raises(
+                    ValueError,
+                    match="interpolating from IERS_Auto using predictive values that are more",
+                ),
+            ):
+                dat.ut1_utc(Time(60000, format="mjd").jd)
+
+            # Warning only (i.e., no exception) if we are getting return status
             with pytest.warns(
                 iers.IERSStaleWarning, match="IERS_Auto predictive values are older"
-            ) as warns:
+            ):
                 dat.ut1_utc(Time(60000, format="mjd").jd, return_status=True)
-            assert len(warns) == 1
 
             # Now set auto_max_age = None which says that we don't care how old the
             # available IERS-A file is.  There should be no warnings or exceptions.
@@ -367,6 +377,22 @@ class TestIERS_Auto:
             # Now the time range should be different.
             assert dat["MJD"][0] == 57359.0 * u.d
             assert dat["MJD"][-1] == (57539.0 + 60) * u.d
+
+
+@pytest.mark.parametrize("query", ["ut1_utc", "pm_xy"])
+@pytest.mark.parametrize("jd", [np.array([]), Time([], format="mjd")])
+@pytest.mark.parametrize("return_status", [False, True])
+def test_empty_mjd(query, jd, return_status):
+    # Regression test for gh-17008
+    iers_table = iers.IERS_Auto.open()
+    result = getattr(iers_table, query)(jd, return_status=return_status)
+    n_exp = (1 if query == "ut1_utc" else 2) + (1 if return_status else 0)
+    if n_exp == 1:
+        assert isinstance(result, np.ndarray)
+        assert result.size == 0
+    else:
+        assert len(result) == n_exp
+        assert all(r.size == 0 for r in result)
 
 
 def test_IERS_B_parameters_loading_into_IERS_Auto():

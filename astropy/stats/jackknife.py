@@ -2,20 +2,18 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import TypeVar
-
     from numpy.typing import NDArray
-
-    DT = TypeVar("DT", bound=np.generic)
 
 __all__ = ["jackknife_resampling", "jackknife_stats"]
 __doctest_requires__ = {"jackknife_stats": ["scipy"]}
+
+DT = TypeVar("DT", bound=np.generic)
 
 
 def jackknife_resampling(data: NDArray[DT]) -> NDArray[DT]:
@@ -66,7 +64,7 @@ def jackknife_resampling(data: NDArray[DT]) -> NDArray[DT]:
 def jackknife_stats(
     data: NDArray,
     statistic: Callable,
-    confidence_level: float | None = 0.95,
+    confidence_level: float = 0.95,
 ) -> tuple[float | NDArray, float | NDArray, float | NDArray, NDArray]:
     """Performs jackknife estimation on the basis of jackknife resamples.
 

@@ -25,7 +25,7 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .core import Model
 
-__all__ = ["tabular_model", "Tabular1D", "Tabular2D"]
+__all__ = ["Tabular1D", "Tabular2D", "tabular_model"]
 
 __doctest_requires__ = {"tabular_model": ["scipy"]}
 
@@ -172,7 +172,7 @@ class _Tabular(Model):
         pts = self.points[0]
         if not isinstance(pts, u.Quantity):
             return None
-        return {x: pts.unit for x in self.inputs}
+        return dict.fromkeys(self.inputs, pts.unit)
 
     @property
     def return_units(self):

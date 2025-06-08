@@ -48,24 +48,22 @@ References
 from __future__ import annotations
 
 import warnings
+from collections.abc import KeysView
 from inspect import signature
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
 from astropy.utils.exceptions import AstropyUserWarning
 
 if TYPE_CHECKING:
-    from collections.abc import KeysView
-    from typing import Literal
-
     from numpy.typing import ArrayLike, NDArray
 
 # TODO: typing: use a custom-defined 'ArrayLike-but-not-a-scalar' type for `float | ArrayLike` or `ArrayLike | float` hints
 
 # TODO: implement other fitness functions from appendix C of Scargle 2013
 
-__all__ = ["FitnessFunc", "Events", "RegularEvents", "PointMeasures", "bayesian_blocks"]
+__all__ = ["Events", "FitnessFunc", "PointMeasures", "RegularEvents", "bayesian_blocks"]
 
 
 def bayesian_blocks(
@@ -472,8 +470,18 @@ class Events(FitnessFunc):
     """
 
     def fitness(self, N_k: NDArray[float], T_k: NDArray[float]) -> NDArray[float]:
-        # eq. 19 from Scargle 2013
-        return N_k * (np.log(N_k / T_k))
+        # Implement Eq. 19 from Scargle (2013), i.e., N_k * ln(N_k / T_k).
+        # Note that when N_k -> 0, the limit of N_k * ln(N_k / T_k) is 0.
+        # N_k is guaranteed to be non-negative integers by the `validate_input`
+        # method, so no need to check for negative values here.
+        # First, initialize an array of zeros to store the fitness values,
+        # then calculate the fitness values only where N_k > 0.
+        # For N_k == 0, the corresponding fitness values are zero already.
+        out = np.zeros(N_k.shape)
+        mask = N_k > 0
+        rate = np.divide(N_k, T_k, out=out, where=mask)
+        ln_rate = np.log(rate, out=out, where=mask)
+        return np.multiply(N_k, ln_rate, out=out, where=mask)
 
     def validate_input(
         self,
@@ -482,8 +490,10 @@ class Events(FitnessFunc):
         sigma: float | ArrayLike | None,
     ) -> tuple[NDArray[float], NDArray[float], NDArray[float]]:
         t, x, sigma = super().validate_input(t, x, sigma)
-        if x is not None and np.any(x % 1 > 0):
-            raise ValueError("x must be integer counts for fitness='events'")
+        if (x is not None) and (np.any(x % 1 > 0) or np.any(x < 0)):
+            raise ValueError(
+                "x must be non-negative integer counts for fitness='events'"
+            )
         return t, x, sigma
 
 
@@ -516,7 +526,7 @@ class RegularEvents(FitnessFunc):
     def __init__(
         self,
         dt: float,
-        p0: float | None = 0.05,
+        p0: float = 0.05,
         gamma: float | None = None,
         ncp_prior: float | None = None,
     ) -> None:
@@ -575,7 +585,7 @@ class PointMeasures(FitnessFunc):
 
     def __init__(
         self,
-        p0: float | None = 0.05,
+        p0: float = 0.05,
         gamma: float | None = None,
         ncp_prior: float | None = None,
     ) -> None:

@@ -6,6 +6,7 @@ Tukey's biweight function.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -14,18 +15,16 @@ from astropy.stats.funcs import median_absolute_deviation
 from astropy.stats.nanfunctions import nanmedian, nansum
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from numpy.typing import ArrayLike, NDArray
 
 # TODO: typing: use a custom-defined 'ArrayLike-but-not-a-scalar' type for `float | ArrayLike` or `ArrayLike | float` hints
 
 __all__ = [
     "biweight_location",
-    "biweight_scale",
-    "biweight_midvariance",
-    "biweight_midcovariance",
     "biweight_midcorrelation",
+    "biweight_midcovariance",
+    "biweight_midvariance",
+    "biweight_scale",
 ]
 
 
@@ -49,7 +48,7 @@ def _stat_functions(
 
 def biweight_location(
     data: ArrayLike,
-    c: float | None = 6.0,
+    c: float = 6.0,
     M: float | ArrayLike | None = None,
     axis: int | tuple[int, ...] | None = None,
     *,
@@ -187,7 +186,7 @@ def biweight_location(
 
 def biweight_scale(
     data: ArrayLike,
-    c: float | None = 9.0,
+    c: float = 9.0,
     M: float | ArrayLike | None = None,
     axis: int | tuple[int, ...] | None = None,
     modify_sample_size: bool | None = False,
@@ -313,7 +312,7 @@ def biweight_scale(
 
 def biweight_midvariance(
     data: ArrayLike,
-    c: float | None = 9.0,
+    c: float = 9.0,
     M: float | ArrayLike | None = None,
     axis: int | tuple[int, ...] | None = None,
     modify_sample_size: bool | None = False,
@@ -497,7 +496,7 @@ def biweight_midvariance(
 
 def biweight_midcovariance(
     data: ArrayLike,
-    c: float | None = 9.0,
+    c: float = 9.0,
     M: float | ArrayLike | None = None,
     modify_sample_size: bool | None = False,
 ) -> NDArray[float]:
@@ -714,7 +713,7 @@ def biweight_midcovariance(
 def biweight_midcorrelation(
     x: ArrayLike,
     y: ArrayLike,
-    c: float | None = 9.0,
+    c: float = 9.0,
     M: float | ArrayLike | None = None,
     modify_sample_size: bool | None = False,
 ) -> float:

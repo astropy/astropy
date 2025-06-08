@@ -15,7 +15,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
 
-__all__ = ["BlackBody", "Drude1D", "Plummer1D", "NFW"]
+__all__ = ["NFW", "BlackBody", "Drude1D", "Plummer1D"]
 
 
 class BlackBody(Fittable1DModel):
@@ -97,7 +97,7 @@ class BlackBody(Fittable1DModel):
     }
 
     def __init__(self, *args, **kwargs):
-        scale = kwargs.get("scale", None)
+        scale = kwargs.get("scale")
 
         # Support scale with non-dimensionless unit by stripping the unit and
         # storing as self._output_units.
@@ -118,7 +118,7 @@ class BlackBody(Fittable1DModel):
         else:
             self._output_units = self._native_units
 
-        return super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def evaluate(self, x, temperature, scale):
         """Evaluate the model.

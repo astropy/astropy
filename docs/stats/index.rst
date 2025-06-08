@@ -145,7 +145,8 @@ listed below.
    robust.rst
    circ.rst
    ripley.rst
-   ../visualization/histogram.rst
+
+Also see :ref:`astropy-visualization-hist`.
 
 
 Constants

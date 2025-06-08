@@ -11,21 +11,21 @@ from .core import Kernel, Kernel1D, Kernel2D
 from .utils import KernelSizeError, has_even_axis
 
 __all__ = [
-    "Gaussian1DKernel",
-    "Gaussian2DKernel",
-    "CustomKernel",
+    "AiryDisk2DKernel",
     "Box1DKernel",
     "Box2DKernel",
-    "Tophat2DKernel",
-    "Trapezoid1DKernel",
-    "RickerWavelet1DKernel",
-    "RickerWavelet2DKernel",
-    "AiryDisk2DKernel",
-    "Moffat2DKernel",
+    "CustomKernel",
+    "Gaussian1DKernel",
+    "Gaussian2DKernel",
     "Model1DKernel",
     "Model2DKernel",
-    "TrapezoidDisk2DKernel",
+    "Moffat2DKernel",
+    "RickerWavelet1DKernel",
+    "RickerWavelet2DKernel",
     "Ring2DKernel",
+    "Tophat2DKernel",
+    "Trapezoid1DKernel",
+    "TrapezoidDisk2DKernel",
 ]
 
 

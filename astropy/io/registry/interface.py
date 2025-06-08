@@ -7,7 +7,7 @@ import re
 
 from .base import IORegistryError
 
-__all__ = ["UnifiedReadWriteMethod", "UnifiedReadWrite"]
+__all__ = ["UnifiedReadWrite", "UnifiedReadWriteMethod"]
 
 
 # -----------------------------------------------------------------------------

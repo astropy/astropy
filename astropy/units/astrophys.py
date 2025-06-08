@@ -13,6 +13,7 @@ from astropy.constants import si as _si
 
 from . import si
 from .core import UnitBase, def_unit, set_enabled_units
+from .docgen import generate_unit_summary
 
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
@@ -114,18 +115,6 @@ def_unit(
 ##########################################################################
 # ENERGY
 
-# Here, explicitly convert the planck constant to 'eV s' since the constant
-# can override that to give a more precise value that takes into account
-# covariances between e and h.  Eventually, this may also be replaced with
-# just `_si.Ryd.to(eV)`.
-def_unit(
-    ["Ry", "rydberg"],
-    (_si.Ryd * _si.c * _si.h.to(si.eV * si.s)).to(si.eV),
-    namespace=_ns,
-    prefixes=True,
-    doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg constant",
-    format={"latex": r"R_{\infty}", "unicode": "R∞"},
-)
 def_unit(
     ["foe", "Bethe", "bethe"],
     1e51 * si.g * si.cm**2 / si.s**2,
@@ -234,6 +223,4 @@ __all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())

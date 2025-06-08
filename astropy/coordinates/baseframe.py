@@ -9,24 +9,26 @@ from __future__ import annotations
 __all__ = [
     "BaseCoordinateFrame",
     "CoordinateFrameInfo",
-    "frame_transform_graph",
     "GenericFrame",
     "RepresentationMapping",
+    "frame_transform_graph",
 ]
 
 import copy
 import operator
 import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple
 
 import numpy as np
 
 from astropy import units as u
+from astropy.table import QTable
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo
-from astropy.utils.decorators import deprecated, format_doc, lazyproperty
+from astropy.utils.decorators import format_doc, lazyproperty
 from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
 from . import representation as r
 from .angles import Angle, position_angle
@@ -39,8 +41,6 @@ from .transformations import (
 )
 
 if TYPE_CHECKING:
-    from typing import Literal
-
     from astropy.coordinates import Latitude, Longitude, SkyCoord
     from astropy.units import Unit
 
@@ -104,7 +104,7 @@ def _get_repr_classes(base, **differentials):
     for name, differential_type in differentials.items():
         if differential_type == "base":
             # We don't want to fail for this case.
-            differential_type = r.DIFFERENTIAL_CLASSES.get(base.get_name(), None)
+            differential_type = r.DIFFERENTIAL_CLASSES.get(base.name, None)
 
         elif differential_type in r.DIFFERENTIAL_CLASSES:
             differential_type = r.DIFFERENTIAL_CLASSES[differential_type]
@@ -146,6 +146,7 @@ class CoordinateFrameInfo(MixinInfo):
 
     attrs_from_parent = {"unit"}  # Unit is read-only
     _supports_indexing = False
+    mask_val = np.ma.masked
 
     @staticmethod
     def default_format(val):
@@ -184,31 +185,46 @@ class CoordinateFrameInfo(MixinInfo):
     def _represent_as_dict(self):
         coord = self._parent
         attrs = []
+        representation_type = coord.representation_type
+        differential_type = None
         if coord.has_data:
             attrs.extend(coord.representation_component_names)
             # Don't output distance unless it's actually distance.
-            if isinstance(coord.data, r.UnitSphericalRepresentation):
+            if issubclass(
+                representation_type, r.SphericalRepresentation
+            ) and isinstance(coord.data, r.UnitSphericalRepresentation):
                 attrs = attrs[:-1]
 
             diff = coord.data.differentials.get("s")
             if diff is not None:
+                differential_type = coord.differential_type
                 diff_attrs = list(coord.get_representation_component_names("s"))
-                # Don't output proper motions if they haven't been specified.
-                if isinstance(diff, r.RadialDifferential):
-                    diff_attrs = diff_attrs[2:]
-                    # Don't output radial velocity unless it's actually velocity.
-                elif isinstance(
-                    diff,
-                    (r.UnitSphericalDifferential, r.UnitSphericalCosLatDifferential),
+                if issubclass(
+                    differential_type,
+                    (r.SphericalDifferential, r.SphericalCosLatDifferential),
                 ):
-                    diff_attrs = diff_attrs[:-1]
+                    # Don't output proper motions or radial velocities unless
+                    # they've been specifically passed in.
+                    if isinstance(diff, r.RadialDifferential):
+                        diff_attrs = diff_attrs[2:]
+                    elif isinstance(
+                        diff,
+                        (
+                            r.UnitSphericalDifferential,
+                            r.UnitSphericalCosLatDifferential,
+                        ),
+                    ):
+                        diff_attrs = diff_attrs[:-1]
                 attrs.extend(diff_attrs)
 
         attrs.extend(frame_transform_graph.frame_attributes.keys())
 
         out = super()._represent_as_dict(attrs)
 
-        out["representation_type"] = coord.representation_type.get_name()
+        out["representation_type"] = representation_type.name
+        if differential_type is not None:
+            out["differential_type"] = differential_type.name
+
         # Note that coord.info.unit is a fake composite unit (e.g. 'deg,deg,None'
         # or None,None,m) and is not stored. The individual attributes have
         # units.
@@ -252,19 +268,17 @@ class CoordinateFrameInfo(MixinInfo):
         attrs = self.merge_cols_attributes(
             coords, metadata_conflicts, name, ("meta", "description")
         )
+
+        # Make a new coordinate with the desired length.
         coord0 = coords[0]
+        out = coord0._apply(np.zeros_like, shape=(length,) + coord0.shape[1:])
 
-        # Make a new coord object with the desired length and attributes
-        # by using the _apply / __getitem__ machinery to effectively return
-        # coord0[[0, 0, ..., 0, 0]]. This will have the all the right frame
-        # attributes with the right shape.
-        indexes = np.zeros(length, dtype=np.int64)
-        out = coord0[indexes]
-
-        # Use __setitem__ machinery to check for consistency of all coords
+        # Use __setitem__ machinery to check for consistency of all coords.
+        # We use :0 to ensure we do not break on empty coordinates (with the
+        # side benefit that we do not actually set anything).
         for coord in coords[1:]:
             try:
-                out[0] = coord[0]
+                out[:0] = coord[:0]
             except Exception as err:
                 raise ValueError("Input coords are inconsistent.") from err
 
@@ -380,7 +394,7 @@ _components = """
 
 
 @format_doc(base_doc, components=_components, footer="")
-class BaseCoordinateFrame(ShapedLikeNDArray):
+class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     """
     The base class for coordinate frames.
 
@@ -844,6 +858,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             ],
         )
         repr_info.setdefault(
+            r.RadialDifferential,
+            [RepresentationMapping("d_distance", "radial_velocity", lin_v_unit)],
+        )
+        repr_info.setdefault(
             r.CartesianDifferential,
             [RepresentationMapping(f"d_{c}", f"v_{c}", lin_v_unit) for c in "xyz"],
         )
@@ -874,7 +892,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         It stores anything that should be computed from the coordinate data (*not* from
         the frame attributes). This can be used in functions to store anything that
-        might be expensive to compute but might be re-used by some other function.
+        might be expensive to compute but might be reused by some other function.
         E.g.::
 
             if 'user_data' in myframe.cache:
@@ -921,25 +939,68 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def size(self):
         return self.data.size
 
+    @property
+    def masked(self):
+        """Whether the underlying data is masked.
+
+        Raises
+        ------
+        ValueError
+            If the frame has no associated data.
+        """
+        return self.data.masked
+
+    def get_mask(self, *attrs):
+        """Get the mask associated with these coordinates.
+
+        Parameters
+        ----------
+        *attrs : str
+            Attributes from which to get the masks to combine. Items can be
+            dotted, like ``"data.lon", "data.lat"``. By default, get the
+            combined mask of all components (including from differentials),
+            ignoring possible masks of attributes.
+
+        Returns
+        -------
+        mask : ~numpy.ndarray of bool
+            The combined, read-only mask. If the instance is not masked, it
+            is an array of `False` with the correct shape.
+
+        Raises
+        ------
+        ValueError
+            If the coordinate frame has no associated data.
+
+        """
+        if attrs:
+            values = operator.attrgetter(*attrs)(self)
+            if not isinstance(values, tuple):
+                values = (values,)
+            masks = [getattr(v, "mask", None) for v in values]
+        elif self.data.masked:
+            masks = [diff.mask for diff in self.data.differentials.values()]
+            masks.append(self.data.mask)
+        else:
+            # Short-cut if the data is not masked.
+            masks = []
+
+        # Broadcast makes it readonly too.
+        return np.broadcast_to(combine_masks(masks), self.shape)
+
+    mask = property(
+        get_mask,
+        doc="""The mask associated with these coordinates.
+
+    Combines the masks of all components of the underlying representation,
+    including possible differentials.
+    """,
+    )
+
     @classmethod
     def get_frame_attr_defaults(cls):
         """Return a dict with the defaults for each frame attribute."""
         return {name: getattr(cls, name).default for name in cls.frame_attributes}
-
-    @deprecated(
-        "5.2",
-        alternative="get_frame_attr_defaults",
-        message=(
-            "The {func}() {obj_type} is deprecated and may be removed in a future"
-            " version. Use {alternative}() to obtain a dict of frame attribute names"
-            " and default values."
-            " The fastest way to obtain the names is frame_attributes.keys()"
-        ),
-    )
-    @classmethod
-    def get_frame_attr_names(cls):
-        """Return a dict with the defaults for each frame attribute."""
-        return cls.get_frame_attr_defaults()
 
     def get_representation_cls(self, which="base"):
         """The class used for part of this frame's data.
@@ -1740,6 +1801,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return new
 
     def __setitem__(self, item, value):
+        if value is np.ma.masked or value is np.ma.nomask:
+            self.data.__setitem__(item, value)
+            self.cache.clear()
+            return
+
         if self.__class__ is not value.__class__:
             raise TypeError(
                 f"can only set from object of same class: {self.__class__.__name__} vs."
@@ -1834,8 +1900,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 self.data  # noqa: B018
 
             rep = self.represent_as(self.representation_type, in_frame_units=True)
-            val = getattr(rep, repr_names[attr])
-            return val
+            return getattr(rep, repr_names[attr])
 
         diff_names = self.get_representation_component_names("s")
         if attr in diff_names:
@@ -1848,8 +1913,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             rep = self.represent_as(
                 in_frame_units=True, **self.get_representation_cls(None)
             )
-            val = getattr(rep.differentials["s"], diff_names[attr])
-            return val
+            return getattr(rep.differentials["s"], diff_names[attr])
 
         return self.__getattribute__(attr)  # Raise AttributeError.
 
@@ -2149,6 +2213,47 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         sph = self.represent_as("spherical", in_frame_units=True)
         return sph.differentials["s"].d_distance
+
+    def to_table(self) -> QTable:
+        """
+        Convert this |BaseFrame| to a |QTable|.
+
+        Any attributes that have the same length as the |BaseFrame| will be
+        converted to columns of the |QTable|. All other attributes will be
+        recorded as metadata.
+
+        Returns
+        -------
+        `~astropy.table.QTable`
+            A |QTable| containing the data of this |BaseFrame|.
+
+        Examples
+        --------
+        >>> from astropy.coordinates import ICRS
+        >>> coord = ICRS(ra=[40, 70]*u.deg, dec=[0, -20]*u.deg)
+        >>> t =  coord.to_table()
+        >>> t
+        <QTable length=2>
+           ra     dec
+          deg     deg
+        float64 float64
+        ------- -------
+           40.0     0.0
+           70.0   -20.0
+        >>> t.meta
+        {'representation_type': 'spherical'}
+        """
+        columns = {}
+        metadata = {}
+        # Record attributes that have the same length as self as columns in the
+        # table, and the other attributes as table metadata.  This matches
+        # table.serialize._represent_mixin_as_column().
+        for key, value in self.info._represent_as_dict().items():
+            if getattr(value, "shape", ())[:1] == (len(self),):
+                columns[key] = value
+            else:
+                metadata[key] = value
+        return QTable(columns, meta=metadata)
 
 
 class GenericFrame(BaseCoordinateFrame):

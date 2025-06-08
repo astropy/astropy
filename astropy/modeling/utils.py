@@ -4,18 +4,25 @@
 This module provides utility functions for the models package.
 """
 
+from __future__ import annotations
+
 import warnings
 
 # pylint: disable=invalid-name
 from collections import UserDict
+from collections.abc import Sequence
 from inspect import signature
+from typing import TYPE_CHECKING, TypeVar, overload
 
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.decorators import deprecated
 
-__all__ = ["poly_map_domain", "comb", "ellipse_extent"]
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
+
+__all__ = ["ellipse_extent", "poly_map_domain"]
 
 
 def make_binary_operator_eval(oper, f, g):
@@ -71,27 +78,6 @@ def _validate_domain_window(value):
             raise ValueError("domain and window should be tuples of size 2.")
         return tuple(value)
     return value
-
-
-@deprecated("5.3", alternative="math.comb")
-def comb(N, k):
-    """
-    The number of combinations of N things taken k at a time.
-
-    Parameters
-    ----------
-    N : int, array
-        Number of things.
-    k : int, array
-        Number of elements taken.
-
-    """
-    if (k > N) or (N < 0) or (k < 0):
-        return 0
-    val = 1
-    for j in range(min(k, N - k)):
-        val = (val * (N - j)) / (j + 1)
-    return val
 
 
 def array_repr_oneline(array):
@@ -336,3 +322,27 @@ class _SpecialOperatorsDict(UserDict):
         self._set_value(key, operator)
 
         return key
+
+
+DType = TypeVar("DType", bound=np.generic)
+
+
+@overload
+def quantity_asanyarray(a: Sequence[int]) -> NDArray[np.integer]: ...
+@overload
+def quantity_asanyarray(a: Sequence[int], dtype: DType) -> NDArray[DType]: ...
+@overload
+def quantity_asanyarray(a: Sequence[u.Quantity]) -> u.Quantity: ...
+def quantity_asanyarray(
+    a: Sequence[int] | Sequence[u.Quantity], dtype: DType | None = None
+) -> NDArray[np.integer] | NDArray[DType] | u.Quantity:
+    if (
+        not isinstance(a, np.ndarray)
+        and not np.isscalar(a)
+        and any(isinstance(x, u.Quantity) for x in a)
+    ):
+        return u.Quantity(a, dtype=dtype)
+    else:
+        # skip over some dtype deprecation.
+        dtype = np.float64 if dtype is np.inexact else dtype
+        return np.asanyarray(a, dtype=dtype)

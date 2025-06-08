@@ -10,13 +10,6 @@
 #include <ricecomp.h>
 
 
-// Compatibility code because we pick up fitsio2.h from cextern. Can
-// remove once we remove cextern
-#ifdef _REENTRANT
-pthread_mutex_t Fitsio_Lock;
-int Fitsio_Pthread_Status = 0;
-#endif
-
 /* Define docstrings */
 static char module_docstring[] = "Core compression/decompression functions wrapped from cfitsio.";
 static char compress_plio_1_c_docstring[] = "Compress data using PLIO_1";
@@ -327,7 +320,7 @@ static PyObject *compress_hcompress_1_c(PyObject *self, PyObject *args) {
     return (PyObject *)NULL;
   }
 
-  if (count != nx * ny * bytepix) {
+  if (count != (Py_ssize_t) nx * ny * bytepix) {
     PyErr_SetString(PyExc_ValueError,
                     "The tile dimensions and dtype do not match the number of bytes provided.");
     return (PyObject *)NULL;
@@ -402,7 +395,7 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args) {
 
   compressed_values = (unsigned char *)str;
 
-  dbytes = malloc(nx * ny * bytepix);
+  dbytes = malloc((size_t) nx * ny * bytepix);
 
   if (bytepix == 4) {
     decompressed_values_int = (int *)dbytes;
@@ -428,7 +421,7 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args) {
   }
 
   // fits_hdecompress[64] always returns 4 byte integers
-  result = Py_BuildValue("y#", dbytes, nx * ny * 4);
+  result = Py_BuildValue("y#", dbytes, (Py_ssize_t) nx * ny * 4);
   free(dbytes);
   return result;
 }

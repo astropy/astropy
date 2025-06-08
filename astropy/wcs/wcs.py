@@ -58,31 +58,31 @@ from . import _wcs, docstrings
 from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
 
 __all__ = [
-    "FITSFixedWarning",
     "WCS",
-    "find_all_wcs",
-    "DistortionLookupTable",
-    "Sip",
-    "Tabprm",
-    "Wcsprm",
     "Auxprm",
     "Celprm",
-    "Prjprm",
-    "Wtbarr",
-    "WCSBase",
-    "validate",
-    "WcsError",
-    "SingularMatrixError",
+    "DistortionLookupTable",
+    "FITSFixedWarning",
     "InconsistentAxisTypesError",
-    "InvalidTransformError",
     "InvalidCoordinateError",
     "InvalidPrjParametersError",
-    "NoSolutionError",
     "InvalidSubimageSpecificationError",
-    "NoConvergence",
-    "NonseparableSubimageCoordinateSystemError",
-    "NoWcsKeywordsFoundError",
     "InvalidTabularParametersError",
+    "InvalidTransformError",
+    "NoConvergence",
+    "NoSolutionError",
+    "NoWcsKeywordsFoundError",
+    "NonseparableSubimageCoordinateSystemError",
+    "Prjprm",
+    "SingularMatrixError",
+    "Sip",
+    "Tabprm",
+    "WCSBase",
+    "WcsError",
+    "Wcsprm",
+    "Wtbarr",
+    "find_all_wcs",
+    "validate",
 ]
 
 
@@ -1388,7 +1388,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             size = a.shape[0]
             trdir = "sky to detector" if name[-1] == "P" else "detector to sky"
             comment = (
-                f'SIP polynomial order, axis {ord(name[0]) - ord("A"):d}, {trdir:s}'
+                f"SIP polynomial order, axis {ord(name[0]) - ord('A'):d}, {trdir:s}"
             )
             keywords[f"{name}_ORDER"] = size - 1, comment
 
@@ -1573,7 +1573,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {docstrings.TWO_OR_MORE_ARGS('naxis', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("naxis", 8)}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
@@ -1583,7 +1583,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
 
-        {docstrings.RETURNS('sky coordinates, in degrees', 8)}
+        {docstrings.RETURNS("sky coordinates, in degrees", 8)}
 
         Notes
         -----
@@ -1640,7 +1640,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {docstrings.TWO_OR_MORE_ARGS('naxis', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("naxis", 8)}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
@@ -1650,7 +1650,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
 
-        {docstrings.RETURNS('world coordinates, in degrees', 8)}
+        {docstrings.RETURNS("world coordinates, in degrees", 8)}
 
         Raises
         ------
@@ -2133,7 +2133,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {docstrings.TWO_OR_MORE_ARGS('naxis', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("naxis", 8)}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
@@ -2268,7 +2268,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
 
-        {docstrings.RETURNS('pixel coordinates', 8)}
+        {docstrings.RETURNS("pixel coordinates", 8)}
 
         Notes
         -----
@@ -2459,7 +2459,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        {docstrings.TWO_OR_MORE_ARGS('naxis', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("naxis", 8)}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
@@ -2469,7 +2469,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
 
-        {docstrings.RETURNS('pixel coordinates', 8)}
+        {docstrings.RETURNS("pixel coordinates", 8)}
 
         Notes
         -----
@@ -2521,12 +2521,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {docstrings.TWO_OR_MORE_ARGS('2', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("2", 8)}
 
         Returns
         -------
 
-        {docstrings.RETURNS('focal coordinates', 8)}
+        {docstrings.RETURNS("focal coordinates", 8)}
 
         Raises
         ------
@@ -2550,12 +2550,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {docstrings.TWO_OR_MORE_ARGS('2', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("2", 8)}
 
         Returns
         -------
 
-        {docstrings.RETURNS('focal coordinates', 8)}
+        {docstrings.RETURNS("focal coordinates", 8)}
 
         Raises
         ------
@@ -2579,12 +2579,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {docstrings.TWO_OR_MORE_ARGS('2', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("2", 8)}
 
         Returns
         -------
 
-        {docstrings.RETURNS('pixel coordinates', 8)}
+        {docstrings.RETURNS("pixel coordinates", 8)}
 
         Raises
         ------
@@ -2620,12 +2620,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {docstrings.TWO_OR_MORE_ARGS('2', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("2", 8)}
 
         Returns
         -------
 
-        {docstrings.RETURNS('focal coordinates', 8)}
+        {docstrings.RETURNS("focal coordinates", 8)}
 
         Raises
         ------
@@ -2657,12 +2657,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
 
-        {docstrings.TWO_OR_MORE_ARGS('2', 8)}
+        {docstrings.TWO_OR_MORE_ARGS("2", 8)}
 
         Returns
         -------
 
-        {docstrings.RETURNS('pixel coordinates', 8)}
+        {docstrings.RETURNS("pixel coordinates", 8)}
 
         Raises
         ------
@@ -2942,12 +2942,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         if display_warning:
             full_header = self.to_header(relax=True, key=key)
-            missing_keys = []
-            for kw, val in full_header.items():
-                if kw not in header:
-                    missing_keys.append(kw)
-
-            if len(missing_keys):
+            missing_keys = [k for k in full_header if k not in header]
+            if missing_keys:
                 warnings.warn(
                     "Some non-standard WCS keywords were excluded:"
                     f" {', '.join(missing_keys)} Use the ``relax`` kwarg to control"
@@ -3316,7 +3312,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             A tuple containing the same number of slices as the WCS system.
             The ``step`` method, the third argument to a slice, is not
             presently supported.
-        numpy_order : bool
+        numpy_order : bool, default: True
             Use numpy order, i.e. slice the WCS so that an identical slice
             applied to a numpy array will slice the array and WCS in the same
             way. If set to `False`, the WCS will be sliced in FITS order,
@@ -3332,6 +3328,12 @@ reduce these to 2 dimensions using the naxis kwarg.
             raise ValueError("Must have # of slices <= # of WCS axes")
         elif not hasattr(view, "__len__"):  # view MUST be an iterable
             view = [view]
+
+        if len(view) < self.wcs.naxis:
+            view = list(view) + [slice(None) for i in range(self.wcs.naxis - len(view))]
+
+        if not numpy_order:
+            view = view[::-1]
 
         if not all(isinstance(x, slice) for x in view):
             # We need to drop some dimensions, but this may not always be
@@ -3357,10 +3359,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             if iview.step is not None and iview.step < 0:
                 raise NotImplementedError("Reversing an axis is not implemented.")
 
-            if numpy_order:
-                wcs_index = self.wcs.naxis - 1 - i
-            else:
-                wcs_index = i
+            wcs_index = self.wcs.naxis - 1 - i
 
             if wcs_index < 2:
                 itables = [x_tables, y_tables][wcs_index]
@@ -3528,8 +3527,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             self.sip is not None
             or self.cpdis1 is not None
             or self.cpdis2 is not None
-            or self.det2im1 is not None
-            and self.det2im2 is not None
+            or (self.det2im1 is not None and self.det2im2 is not None)
         )
 
     @property
@@ -3760,7 +3758,7 @@ def validate(source):
             result = []
             for hdu in self:
                 content = repr(hdu)
-                if len(content):
+                if content:
                     result.append(content)
             return "\n\n".join(result)
 

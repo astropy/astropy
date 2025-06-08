@@ -1497,6 +1497,13 @@ def test_probably_html(home_is_data):
         ],
         (" <! doctype htm > ", " hello world"),
         [[1, 2, 3]],
+        # regression tests for https://github.com/astropy/astropy/issues/17562
+        "~itsatrap",  # looks like a Path, but isn't
+        (
+            "~0FR1K19A00A  C2011 01 29.24643 01 18 02.537-02 41 30.21         22.2 wL~3JL8F51\n"
+            "~0FR1K19A00A  C2011 01 29...47 46 56.60         20.93GV~7ukZG96\n"
+            "~0FR1K19A00A 1C2024 03 03.20377105 56 18.827+47 46 54.95         20.97GV~7ukZG96"
+        ),
     ):
         assert _probably_html(tabl0) is False
 
@@ -2061,7 +2068,7 @@ def test_read_converters_simplified():
 
     converters = {"a": float, "*": [np.int64, float, bool, str]}
     t2 = Table.read(out.getvalue(), format="ascii.basic", converters=converters)
-    assert t2.pformat_all(show_dtype=True) == [
+    assert t2.pformat(show_dtype=True) == [
         "   a       b      c     d     e  ",
         "float64 float64  bool  str5 int64",
         "------- ------- ----- ----- -----",
@@ -2137,3 +2144,61 @@ def test_table_write_help_ascii_html():
     assert "Parameters" in doc
     assert "ASCII writer 'ascii.html' details" in doc
     assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
+
+
+@pytest.mark.parametrize(
+    "table_type", ["filename", "fileobj", "linelist", "string", "path"]
+)
+def test_table_guess_limit_lines(table_type):
+    """
+    Make sure that the guess_limit_lines configuration item has an effect.
+    """
+
+    filename = "data/ipac.dat"
+    if table_type == "filename":
+        table_input = filename
+    elif table_type == "path":
+        table_input = pathlib.Path(filename)
+    elif table_type == "fileobj":
+        table_input = open(filename, "rb")
+    else:
+        with open(filename) as f:
+            table_input = f.read()
+        if table_type == "linelist":
+            table_input = table_input.splitlines()
+
+    # First, check that we can read ipac.tbl with guessing
+    ascii.read(table_input)
+
+    # If we set guess_limit_lines to a very small value such as the header
+    # gets truncated, the reading should fail
+    with ascii.conf.set_temp("guess_limit_lines", 3):
+        with pytest.raises(ascii.InconsistentTableError, match="Unable to guess"):
+            ascii.read(table_input)
+
+    # Setting this to 10 should work
+    with ascii.conf.set_temp("guess_limit_lines", 10):
+        ascii.read(table_input)
+
+    if table_type == "fileobj":
+        table_input.close()
+
+
+def test_table_guess_limit_lines_cut_data():
+    # Now pick an example where the limit cuts through the data
+    with ascii.conf.set_temp("guess_limit_lines", 7):
+        table = ascii.read("data/sextractor2.dat")
+
+    assert table.colnames == [
+        "NUMBER",
+        "XWIN_IMAGE",
+        "YWIN_IMAGE",
+        "MAG_AUTO",
+        "MAGERR_AUTO",
+        "FLAGS",
+        "X2_IMAGE",
+        "X_MAMA",
+        "MU_MAX",
+    ]
+
+    assert len(table) == 5

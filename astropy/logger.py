@@ -30,20 +30,20 @@ else:
     _WITHIN_IPYTHON = True
 
 __all__ = [
-    "Conf",
-    "conf",
-    "log",
-    "AstropyLogger",
-    "LoggingError",
+    "CRITICAL",
+    "DEBUG",
+    "ERROR",
+    "FATAL",
+    "INFO",
     # import the logging levels from logging so that one can do:
     # log.setLevel(log.DEBUG), for example
     "NOTSET",
-    "DEBUG",
-    "INFO",
     "WARNING",
-    "ERROR",
-    "CRITICAL",
-    "FATAL",
+    "AstropyLogger",
+    "Conf",
+    "LoggingError",
+    "conf",
+    "log",
 ]
 
 
@@ -377,7 +377,7 @@ class AstropyLogger(Logger):
             # IPython has its own way of dealing with exceptions
             from IPython import get_ipython
 
-            get_ipython().set_custom_exc(tuple(), None)
+            get_ipython().set_custom_exc((), None)
         else:
             # standard python interpreter
             if sys.excepthook != self._excepthook:
@@ -525,7 +525,7 @@ class AstropyLogger(Logger):
             try:
                 if log_file_path == "" or testing_mode:
                     log_file_path = (
-                        Path(_config.get_config_dir("astropy")) / "astropy.log"
+                        _config.get_config_dir_path("astropy") / "astropy.log"
                     )
                 else:
                     log_file_path = Path(log_file_path).expanduser()
@@ -582,7 +582,12 @@ class StreamHandler(logging.StreamHandler):
                 color_print(record.levelname, "brown", end="", file=stream)
             else:
                 color_print(record.levelname, "red", end="", file=stream)
-        record.message = f"{record.msg} [{record.origin:s}]"
+        # Make lazy interpretation intentional to leave the option to use
+        # special characters without escaping in log messages.
+        if record.args:
+            record.message = f"{record.msg % record.args} [{record.origin:s}]"
+        else:
+            record.message = f"{record.msg} [{record.origin:s}]"
         print(": " + record.message, file=stream)
 
 

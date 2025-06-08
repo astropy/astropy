@@ -243,9 +243,11 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
 
     seps = u.Quantity(seps)
 
-    fig = plt.figure()
-
-    ax1, ax2 = fig.subplots(2, 1, gridspec_kw={'height_ratios': [2, 1]}, sharex=True)
+    fig, (ax1, ax2) = plt.subplots(
+      nrows=2,
+      sharex=True,
+      gridspec_kw=dict(height_ratios=[2, 1]),
+    )
 
     ax1.plot(
         resolutions.to_value(u.s),

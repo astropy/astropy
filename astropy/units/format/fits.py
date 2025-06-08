@@ -6,22 +6,22 @@ Handles the "FITS" unit format.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
+from astropy.units.core import CompositeUnit
 from astropy.units.errors import UnitScaleError
 from astropy.utils import classproperty
 
-from . import core, generic, utils
+from . import Base, utils
+from .generic import _GenericParserMixin
 
 if TYPE_CHECKING:
-    from typing import Literal
-
     from astropy.units import UnitBase
 
 
-class FITS(generic.Generic):
+class FITS(Base, _GenericParserMixin):
     """
     The FITS standard unit format.
 
@@ -62,13 +62,8 @@ class FITS(generic.Generic):
         return names
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        cls._validate_unit(unit, detailed_exception=detailed_exception)
-        return cls._units[unit]
-
-    @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline"] = False
+        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
     ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)
@@ -89,7 +84,7 @@ class FITS(generic.Generic):
             # all values in FITS are set that way.  So, instead do it
             # here, and use a unity-scale unit for the rest.
             parts.append(f"10**{int(base)}")
-            unit = core.CompositeUnit(1, unit.bases, unit.powers)
+            unit = CompositeUnit(1, unit.bases, unit.powers)
 
         if unit.bases:
             parts.append(super().to_string(unit, fraction=fraction))
@@ -98,7 +93,7 @@ class FITS(generic.Generic):
 
     @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
-        result = super().parse(s, debug)
+        result = cls._do_parse(s, debug)
         if hasattr(result, "function_unit"):
             raise ValueError("Function units are not yet supported for FITS units.")
         return result

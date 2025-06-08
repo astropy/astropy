@@ -8,7 +8,7 @@ attribute shows the type of constraints supported by a specific fitter::
     >>> from astropy.modeling import fitting
     >>> fitting.LinearLSQFitter.supported_constraints
     ['fixed']
-    >>> fitting.LevMarLSQFitter.supported_constraints
+    >>> fitting.TRFLSQFitter.supported_constraints
     ['fixed', 'tied', 'bounds']
     >>> fitting.SLSQPLSQFitter.supported_constraints
     ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']
@@ -64,11 +64,15 @@ Bounded Constraints
 
 Bounded fitting is supported through the ``bounds`` arguments to models or by
 setting `~astropy.modeling.Parameter.min` and `~astropy.modeling.Parameter.max`
-attributes on a parameter.  Bounds for the
-`~astropy.modeling.fitting.LevMarLSQFitter` are always exactly satisfied--if
-the value of the parameter is outside the fitting interval, it will be reset to
-the value at the bounds. The `~astropy.modeling.fitting.SLSQPLSQFitter` optimization
-algorithm handles bounds internally.
+attributes on a parameter. The following fitters support bounds internally:
+
+* `~astropy.modeling.fitting.TRFLSQFitter`
+* `~astropy.modeling.fitting.DogBoxLSQFitter`
+* `~astropy.modeling.fitting.SLSQPLSQFitter`
+
+The `~astropy.modeling.fitting.LevMarLSQFitter` algorithm uses an unsophisticated
+method of handling bounds and is no longer recommended (see
+:ref:`modeling-getting-started-nonlinear-notes` for more details).
 
 .. _tied:
 
@@ -141,19 +145,17 @@ linking the flux of the [OIII] λ4959 line to the [OIII] λ5007 line.
     hbeta_narrow.mean.tied = tie_hbeta_wave2
 
     # Simultaneously fit all the emission lines and continuum.
-    fitter = fitting.LevMarLSQFitter()
+    fitter = fitting.TRFLSQFitter()
     fitted_model = fitter(model, wave, flux)
     fitted_lines = fitted_model(wave)
 
     # Plot the data and the fitted model
-    fig = plt.figure(figsize=(9, 6))
-    plt.plot(wave, flux, label="Data")
-    plt.plot(wave, fitted_lines, color="C1", label="Fitted Model")
-    plt.legend(loc="upper left")
-    plt.xlabel("Wavelength (Angstrom)")
-    plt.ylabel("Flux")
-    plt.text(4860, 45, r"$H\beta$ (broad + narrow)", rotation=90)
-    plt.text(4958, 68, r"[OIII] $\lambda 4959$", rotation=90)
-    plt.text(4995, 140, r"[OIII] $\lambda 5007$", rotation=90)
-    plt.xlim(4700, 5100)
+    fig, ax = plt.subplots(figsize=(9, 6))
+    ax.plot(wave, flux, label="Data")
+    ax.plot(wave, fitted_lines, color="C1", label="Fitted Model")
+    ax.legend(loc="upper left")
+    ax.text(4860, 45, r"$H\beta$ (broad + narrow)", rotation=90)
+    ax.text(4958, 68, r"[OIII] $\lambda 4959$", rotation=90)
+    ax.text(4995, 140, r"[OIII] $\lambda 5007$", rotation=90)
+    ax.set(xlim=(4700, 5100), xlabel="Wavelength (Angstrom)", ylabel="Flux")
     plt.show()

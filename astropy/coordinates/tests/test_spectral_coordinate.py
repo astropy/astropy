@@ -27,11 +27,7 @@ from astropy.coordinates.spectral_coordinate import (
     _apply_relativistic_doppler_shift,
 )
 from astropy.table import Table
-from astropy.tests.helper import (
-    PYTEST_LT_8_0,
-    assert_quantity_allclose,
-    quantity_allclose,
-)
+from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
@@ -660,14 +656,12 @@ def test_los_shift_radial_velocity():
     sc6 = sc4.with_radial_velocity_shift(-3 * u.km / u.s)
     assert_quantity_allclose(sc6.radial_velocity, -2 * u.km / u.s)
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(
+    with (
+        pytest.warns(AstropyUserWarning, match="No velocity defined on frame"),
+        pytest.warns(
             NoDistanceWarning, match="Distance on coordinate object is dimensionless"
-        )
-
-    with pytest.warns(AstropyUserWarning, match="No velocity defined on frame"), ctx:
+        ),
+    ):
         sc7 = SpectralCoord(
             500 * u.nm,
             radial_velocity=1 * u.km / u.s,
@@ -1039,15 +1033,11 @@ def test_spectral_coord_from_sky_coord_without_distance():
     with pytest.warns(AstropyUserWarning, match="No velocity defined on frame"):
         coord = SpectralCoord([1, 2, 3] * u.micron, observer=obs)
     # coord.target = SkyCoord.from_name('m31')  # <- original issue, but below is the same but requires no remote data access
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(NoVelocityWarning, match="No velocity defined on frame")
     with (
         pytest.warns(
             AstropyUserWarning, match="Distance on coordinate object is dimensionless"
         ),
-        ctx,
+        pytest.warns(NoVelocityWarning, match="No velocity defined on frame"),
     ):
         coord.target = SkyCoord(ra=10.68470833 * u.deg, dec=41.26875 * u.deg)
 
@@ -1077,15 +1067,6 @@ def test_spectralcoord_accuracy(specsys):
 
     rest = 550 * u.nm
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(
-            NoVelocityWarning,
-            match=(
-                r"^No velocity defined on frame, assuming \(0\., 0\., 0\.\) km / s\.$"
-            ),
-        )
     with iers.conf.set_temp("auto_download", False):
         for row in reference_table:
             observer = EarthLocation.from_geodetic(
@@ -1093,7 +1074,12 @@ def test_spectralcoord_accuracy(specsys):
             ).get_itrs(obstime=row["obstime"])
 
             with (
-                ctx,
+                pytest.warns(
+                    NoVelocityWarning,
+                    match=(
+                        r"^No velocity defined on frame, assuming \(0\., 0\., 0\.\) km / s\.$"
+                    ),
+                ),
                 pytest.warns(
                     NoDistanceWarning,
                     match=(

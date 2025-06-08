@@ -6,22 +6,27 @@ import re
 import pytest
 
 pytest.importorskip("dask")
-import numpy as np  # noqa: E402
-from dask import array as da  # noqa: E402
-from numpy.testing import assert_allclose  # noqa: E402
+import numpy as np
+from dask import array as da
+from numpy.testing import assert_allclose
 
-from astropy import units as u  # noqa: E402
-from astropy.modeling.fitting import LevMarLSQFitter, TRFLSQFitter  # noqa: E402
-from astropy.modeling.fitting_parallel import parallel_fit_dask  # noqa: E402
-from astropy.modeling.models import (  # noqa: E402
+from astropy import units as u
+from astropy.modeling.fitting import (
+    FitInfoArrayContainer,
+    LevMarLSQFitter,
+    TRFLSQFitter,
+    parallel_fit_dask,
+)
+from astropy.modeling.models import (
     Const1D,
     Gaussian1D,
     Linear1D,
     Planar2D,
 )
-from astropy.tests.helper import assert_quantity_allclose  # noqa: E402
-from astropy.utils.compat.optional_deps import HAS_PLT  # noqa: E402
-from astropy.wcs import WCS  # noqa: E402
+from astropy.nddata import NDData, StdDevUncertainty
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.compat.optional_deps import HAS_PLT
+from astropy.wcs import WCS
 
 
 def gaussian(x, amplitude, mean, stddev):
@@ -525,7 +530,7 @@ class TestDiagnostics:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "diagnostics should be None, " "'error', 'error+warn', or 'all'"
+                "diagnostics should be None, 'error', 'error+warn', or 'all'"
             ),
         ):
             parallel_fit_dask(
@@ -634,10 +639,10 @@ def test_compound_model():
         scheduler="synchronous",
     )
 
-    assert_allclose(model_fit.amplitude_0.value, [2, 1.63349282])
-    assert_allclose(model_fit.mean_0.value, [1.1, 1.145231])
-    assert_allclose(model_fit.stddev_0.value, [0.1, 0.73632987])
-    assert_allclose(model_fit.amplitude_1.value, [2, 2])
+    assert_allclose(model_fit.amplitude_0.value, [2, 1.633], atol=0.001)
+    assert_allclose(model_fit.mean_0.value, [1.1, 1.145], atol=0.001)
+    assert_allclose(model_fit.stddev_0.value, [0.1, 0.736], atol=0.001)
+    assert_allclose(model_fit.amplitude_1.value, [2, 2], atol=0.001)
 
 
 def test_model_dimension_mismatch():
@@ -985,3 +990,205 @@ def test_skip_empty_data(tmp_path):
     assert_allclose(model_fit.amplitude.value, [2, np.nan])
     assert_allclose(model_fit.mean.value, [5, np.nan])
     assert_allclose(model_fit.stddev.value, [1.0, np.nan])
+
+
+def test_world_wcs_axis_correlation():
+    # Regression test for a bug that caused the world coordinates to not be
+    # properly extracted from a WCS object if the axis correlation matrix
+    # resulted in a difference in order between pixel and world coordinates.
+
+    model = Gaussian1D()
+    fitter = TRFLSQFitter()
+    data = gaussian(
+        np.arange(1, 6)[:, None],
+        np.array([5, 5]),
+        np.array([3, 2]),
+        np.array([1, 1]),
+    ).T
+
+    common_kwargs = dict(data=data, model=model, fitter=fitter, scheduler="synchronous")
+
+    # First case: a simple WCS - as the fitting axis is 1 in Numpy order, this
+    # means we should use the world coordinates for the first WCS dimension. In
+    # this case, the Gaussian means should be 3 and 2.
+
+    wcs1 = WCS(naxis=2)
+    wcs1.wcs.cdelt = 1, 2
+
+    model_fit = parallel_fit_dask(fitting_axes=1, world=wcs1, **common_kwargs)
+    assert_allclose(model_fit.mean, [3, 2])
+
+    # Second case: as above, but WCS axes swapped. In this case, the means
+    # should be 6 and 4.
+
+    wcs1 = WCS(naxis=2)
+    wcs1.wcs.cdelt = 2, 1
+
+    model_fit = parallel_fit_dask(fitting_axes=1, world=wcs1, **common_kwargs)
+    assert_allclose(model_fit.mean, [6, 4])
+
+    # Third case: as in first case, but this time we set the PC matrix such
+    # that the world axes are in a different order to their corresponding pixel
+    # axis. In this case, the means should be 6 and 4 because fitting_axes=1
+    # should correspond to the second WCS dimension.
+
+    wcs3 = WCS(naxis=2)
+    wcs3.wcs.cdelt = 1, 2
+    wcs3.wcs.pc = [[0, 1], [1, 0]]
+
+    model_fit = parallel_fit_dask(fitting_axes=1, world=wcs1, **common_kwargs)
+    assert_allclose(model_fit.mean, [6, 4])
+
+
+def test_support_nddata():
+    data = gaussian(np.arange(20), 2, 10, 1).reshape((20, 1)) * u.Jy
+
+    # Introduce outliers
+    data[10, 0] = 1000.0 * u.Jy
+    # Mask the outliers (invalid is True)
+    mask = data > 100.0 * u.Jy
+
+    model = Gaussian1D(amplitude=1.5 * u.Jy, mean=7 * u.um, stddev=0.002 * u.mm)
+    fitter = LevMarLSQFitter()
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "OFFSET", "WAVE"
+    wcs.wcs.crval = 10, 0.1
+    wcs.wcs.crpix = 1, 1
+    wcs.wcs.cdelt = 10, 0.1
+    wcs.wcs.cunit = "deg", "um"
+
+    nd_data = NDData(
+        data=data,
+        wcs=wcs,
+        mask=mask,
+    )
+
+    model_fit = parallel_fit_dask(
+        data=nd_data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        scheduler="synchronous",
+    )
+
+    assert_allclose(model_fit.amplitude.quantity, 2 * u.Jy)
+    assert_allclose(model_fit.mean.quantity, 1.1 * u.um)
+    assert_allclose(model_fit.stddev.quantity, 0.1 * u.um)
+
+
+def test_support_nddata_uncert():
+    data = np.repeat(np.array([1, 2, 4]), 2).reshape((2, -1), order="F").T
+    uncert = (
+        np.repeat(np.array([1 / 7**0.5, 1 / 2**0.5, 1]), 2)
+        .reshape((2, -1), order="F")
+        .T
+    )
+
+    model = Const1D(0)
+    fitter = LevMarLSQFitter()
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "OFFSET", "WAVE"
+    wcs.wcs.crval = 10, 1
+    wcs.wcs.crpix = 1, 1
+    wcs.wcs.cdelt = 10, 1
+    wcs.wcs.cunit = "deg", "m"
+
+    nd_data = NDData(
+        data=data,
+        wcs=wcs,
+        uncertainty=StdDevUncertainty(uncert),
+    )
+
+    model_fit = parallel_fit_dask(
+        data=nd_data,
+        model=model,
+        fitter=fitter,
+        fitting_axes=0,
+        scheduler="synchronous",
+    )
+
+    assert_allclose(model_fit.amplitude, 1.5)
+
+
+class TestFitInfo:
+    def setup_method(self, method):
+        self.data = gaussian(np.arange(20), 2, 10, 1)
+        self.data = np.broadcast_to(self.data.reshape((20, 1)), (20, 3)).copy()
+        self.data_original = self.data.copy()
+        self.data[0, 0] = np.nan
+        self.model = Gaussian1D(amplitude=1.5, mean=12, stddev=1.5)
+
+    def test_default(self, tmp_path):
+        fitter = TRFLSQFitter()
+
+        parallel_fit_dask(
+            data=self.data,
+            model=self.model,
+            fitter=fitter,
+            fitting_axes=0,
+            scheduler="synchronous",
+        )
+
+        assert fitter.fit_info is None
+
+    def test_all(self, tmp_path):
+        fitter = TRFLSQFitter()
+
+        parallel_fit_dask(
+            data=self.data,
+            model=self.model,
+            fitter=fitter,
+            fitting_axes=0,
+            scheduler="synchronous",
+            fit_info=True,
+        )
+
+        assert "message" in fitter.fit_info.properties
+
+        assert_allclose(fitter.fit_info.get_property_as_array("nfev"), [0, 9, 9])
+
+        param_cov_array = fitter.fit_info.get_property_as_array("param_cov")
+        assert param_cov_array.shape == (3, 3, 3)
+        assert_allclose(param_cov_array[0], 0)
+        assert_allclose(param_cov_array[1], param_cov_array[2])
+        assert np.any(np.abs(param_cov_array[1]) > 0)
+
+        # Test slicing that returns an array
+
+        assert fitter.fit_info.shape == (3,)
+        fit_info_subset = fitter.fit_info[:2]
+        assert isinstance(fit_info_subset, FitInfoArrayContainer)
+        assert fit_info_subset.shape == (2,)
+        assert_allclose(fit_info_subset.get_property_as_array("nfev"), [0, 9])
+
+        # Test slicing that returns a one element array
+
+        fit_info_subset_single = fitter.fit_info[1:2]
+        assert isinstance(fit_info_subset_single, FitInfoArrayContainer)
+        assert fit_info_subset_single.shape == (1,)
+        assert_allclose(fit_info_subset_single.get_property_as_array("nfev"), [9])
+
+        # Test slicing that returns a scalar
+
+        fit_info_indiv = fitter.fit_info[1]
+        assert not isinstance(fit_info_indiv, FitInfoArrayContainer)
+        assert fit_info_indiv.nfev == 9
+        assert fit_info_indiv.message != ""
+
+    def test_subset(self, tmp_path):
+        fitter = TRFLSQFitter()
+
+        parallel_fit_dask(
+            data=self.data,
+            model=self.model,
+            fitter=fitter,
+            fitting_axes=0,
+            scheduler="synchronous",
+            fit_info=("message", "nfev", "success"),
+        )
+
+        assert fitter.fit_info.properties == ("message", "nfev", "success")
+
+        assert_allclose(fitter.fit_info.get_property_as_array("nfev"), [0, 9, 9])

@@ -81,7 +81,7 @@ classes::
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=2.725)
   >>> print(cosmo)  # doctest: +FLOAT_CMP
   FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=None)
+                Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.0)
 
 Note the presence of additional cosmological parameters (e.g., ``Neff``, the
 number of effective neutrino species) with default values; these can also be
@@ -110,6 +110,7 @@ listed below.
 * :ref:`astropy-cosmology-realizations`
 * :ref:`Units and Equivalencies <astropy-cosmology-units-and-equivalencies>`
 * :ref:`cosmology_io`
+* :ref:`astropy-cosmology-traits`
 * :ref:`For Developers <astropy-cosmology-for-developers>`
 
 Most of the functionality is enabled by the |FLRW| object. This represents a
@@ -133,7 +134,7 @@ parameter and Omega matter (both at z=0)::
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> print(cosmo)
   FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=0.0 K,
-                Neff=3.04, m_nu=None, Ob0=None)
+                Neff=3.04, m_nu=None, Ob0=0.0)
 
 This can also be done more explicitly using units, which is recommended::
 
@@ -207,19 +208,18 @@ instantiation by passing the keyword argument ``Ob0``::
   FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=0.0 K,
                 Neff=3.04, m_nu=None, Ob0=0.05)
 
-In this case the dark matter-only density at redshift 0 is available as class
-attribute ``Odm0`` and the redshift evolution of dark and baryonic matter
-densities can be computed using the methods ``Odm`` and ``Ob``, respectively.
-If ``Ob0`` is not specified at class instantiation, it defaults to ``None`` and
-any method relying on it being specified will raise a ``ValueError``:
+In this case the dark matter-only density at redshift 0 is available as class attribute
+``Odm0`` and the redshift evolution of dark and baryonic matter densities can be
+computed using the methods ``Odm`` and ``Ob``, respectively. If ``Ob0`` is not
+specified, it will be set to 0 and thus ignored in further calculations.
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo.Odm(1)
-  Traceback (most recent call last):
-  ...
-  ValueError: Baryonic density not set for this cosmology, unclear
-  meaning of dark matter density
+  np.float64(0.7741935483870968)
+
+  >>> cosmo.Ob(1)
+  np.float64(0.0)
 
 Cosmological instances have an optional ``name`` attribute which can be used to
 describe the cosmology::
@@ -228,7 +228,7 @@ describe the cosmology::
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
   >>> print(cosmo)
   FlatwCDM(name="SNLS3+WMAP7", H0=71.58 km / (Mpc s), Om0=0.262, Tcmb0=0.0 K, Neff=3.04,
-           m_nu=None, Ob0=None, w0=-1.016)
+           m_nu=None, Ob0=0.0, w0=-1.016)
 
 ..
   EXAMPLE END
@@ -453,9 +453,9 @@ Range of Validity and Reliability
 The code in this sub-package is tested against several widely used online
 cosmology calculators and has been used to perform many calculations in
 refereed papers. You can check the range of redshifts over which the code is
-regularly tested in the module ``astropy.cosmology.tests.test_cosmology``. If
-you find any bugs, please let us know by `opening an issue at the GitHub
-repository <https://github.com/astropy/astropy/issues>`_!
+regularly tested in the test suite. If you find any bugs, please let us know
+by `opening an issue at the GitHub repository
+<https://github.com/astropy/astropy/issues>`_!
 
 A more difficult question is the range of redshifts over which the code is
 expected to return valid results. This is necessarily model-dependent, but in
@@ -482,5 +482,6 @@ Reference/API
    realizations
    Units and Equivalencies <units>
    io/index
+   Traits <traits>
    For Developers <dev>
    ref_api

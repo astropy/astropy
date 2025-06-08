@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from astropy import units as u
+from astropy.tests.helper import _skip_docstring_tests_with_optimized_python
 from astropy.time import Time
 from astropy.time.core import SIDEREAL_TIME_MODELS
 from astropy.utils import iers
@@ -17,6 +18,7 @@ within_1_second = functools.partial(np.allclose, rtol=1.0, atol=1.0 / 3600.0)
 within_2_seconds = functools.partial(np.allclose, rtol=1.0, atol=2.0 / 3600.0)
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_doc_string_contains_models():
     """The doc string is formatted; this ensures this remains working."""
     for kind in ("mean", "apparent"):

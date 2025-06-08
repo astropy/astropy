@@ -1013,9 +1013,10 @@ To get the representation of a |Time| object::
   >>> import matplotlib.pyplot as plt  # doctest: +SKIP
   >>> jyear = np.linspace(2000, 2001, 20)  # doctest: +SKIP
   >>> t = Time(jyear, format='jyear')  # doctest: +SKIP
-  >>> plt.plot_date(t.plot_date, jyear)  # doctest: +SKIP
-  >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant  # doctest: +SKIP
-  >>> plt.draw()  # doctest: +SKIP
+  >>> fig, ax = plt.subplots()  # doctest: +SKIP
+  >>> ax.scatter(t.datetime, jyear)  # doctest: +SKIP
+  >>> fig.autofmt_xdate()  # orient date labels at a slant  # doctest: +SKIP
+  >>> fig.show()  # doctest: +SKIP
 
 .. EXAMPLE END
 
@@ -1644,6 +1645,11 @@ standard `~astropy.time.TimeISO` class from which it inherits::
   >>> t2.iso
   '2016-01-01 00:00:00.000'
 
+.. testcleanup::
+
+  >>> from astropy.time import TIME_FORMATS
+  >>> del TIME_FORMATS["yday_custom"]
+
 .. EXAMPLE END
 
 .. EXAMPLE START: Customizing the TimeFormat Class with Time Since an Epoch
@@ -1673,6 +1679,11 @@ from the `~astropy.time.TimeFromEpoch` class and define a few class attributes::
   np.float64(946684832.0)
   >>> t.unix_leap - t.unix
   np.float64(32.0)
+
+.. testcleanup::
+
+  >>> from astropy.time import TIME_FORMATS
+  >>> del TIME_FORMATS["unix_leap"]
 
 .. EXAMPLE END
 

@@ -237,10 +237,10 @@ class NDArithmeticMixin:
         # Find the appropriate keywords for the appropriate method (not sure
         # if data and uncertainty are ever used ...)
         kwds2 = {"mask": {}, "meta": {}, "wcs": {}, "data": {}, "uncertainty": {}}
-        for i in kwds:
+        for i, kwd in kwds.items():
             splitted = i.split("_", 1)
             try:
-                kwds2[splitted[0]][splitted[1]] = kwds[i]
+                kwds2[splitted[0]][splitted[1]] = kwd
             except KeyError:
                 raise KeyError(f"Unknown prefix {splitted[0]} for parameter {i}")
 
@@ -477,7 +477,7 @@ class NDArithmeticMixin:
             # Both have uncertainties so just propagate.
 
             # only supply the axis kwarg if one has been specified for a collapsing operation
-            axis_kwarg = dict(axis=kwds["axis"]) if "axis" in kwds else dict()
+            axis_kwarg = dict(axis=kwds["axis"]) if "axis" in kwds else {}
             return self.uncertainty.propagate(
                 operation, operand, result, correlation, **axis_kwarg
             )

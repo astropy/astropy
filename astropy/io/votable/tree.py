@@ -6,6 +6,7 @@ import base64
 import codecs
 import gzip
 import io
+import json
 import os
 import re
 import urllib.request
@@ -19,6 +20,7 @@ from astropy import __version__ as astropy_version
 from astropy.io import fits
 from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 
@@ -79,6 +81,7 @@ from .exceptions import (
     W53,
     W54,
     W56,
+    W57,
     vo_raise,
     vo_reraise,
     vo_warn,
@@ -95,21 +98,21 @@ except ImportError:
 
 
 __all__ = [
-    "Link",
-    "Info",
-    "Values",
-    "Field",
-    "Param",
     "CooSys",
-    "TimeSys",
-    "FieldRef",
-    "ParamRef",
-    "Group",
-    "TableElement",
-    "Resource",
-    "VOTableFile",
     "Element",
+    "Field",
+    "FieldRef",
+    "Group",
+    "Info",
+    "Link",
     "MivotBlock",
+    "Param",
+    "ParamRef",
+    "Resource",
+    "TableElement",
+    "TimeSys",
+    "VOTableFile",
+    "Values",
 ]
 
 
@@ -1052,10 +1055,7 @@ class Values(Element, _IDProperty):
 
     @min.setter
     def min(self, min):
-        if hasattr(self._field, "converter") and min is not None:
-            self._min = self._field.converter.parse(min, config=self._config)[0]
-        else:
-            self._min = min
+        self._min = self._parse_minmax(min)
 
     @min.deleter
     def min(self):
@@ -1088,10 +1088,7 @@ class Values(Element, _IDProperty):
 
     @max.setter
     def max(self, max):
-        if hasattr(self._field, "converter") and max is not None:
-            self._max = self._field.converter.parse(max, config=self._config)[0]
-        else:
-            self._max = max
+        self._max = self._parse_minmax(max)
 
     @max.deleter
     def max(self):
@@ -1164,6 +1161,35 @@ class Values(Element, _IDProperty):
                     break
 
         return self
+
+    def _parse_minmax(self, val):
+        retval = val
+        if hasattr(self._field, "converter") and val is not None:
+            parsed_val = None
+            if self._field.arraysize is None:
+                # Use the default parser.
+                parsed_val = self._field.converter.parse(val, config=self._config)[0]
+            else:
+                # Set config to ignore verification (prevent warnings and exceptions) on parse.
+                ignore_warning_config = self._config.copy()
+                ignore_warning_config["verify"] = "ignore"
+
+                # max should be a scalar except for certain xtypes so try scalar parsing first.
+                try:
+                    parsed_val = self._field.converter.parse_scalar(
+                        val, config=ignore_warning_config
+                    )[0]
+                except ValueError as ex:
+                    pass  # Ignore ValueError returned for array vals by some parsers (like int)
+                finally:
+                    if parsed_val is None:
+                        # Try the array parsing to support certain xtypes and historical array values.
+                        parsed_val = self._field.converter.parse(
+                            val, config=ignore_warning_config
+                        )[0]
+
+            retval = parsed_val
+        return retval
 
     def is_defaults(self):
         """
@@ -1651,7 +1677,14 @@ class Field(
     def to_xml(self, w, **kwargs):
         attrib = w.object_attrs(self, self._attr_list)
         if "unit" in attrib:
-            attrib["unit"] = self.unit.to_string("cds")
+            format = _get_unit_format(self._config)
+            try:
+                attrib["unit"] = self.unit.to_string(format)
+            except ValueError as e:
+                # Allow non-standard units with a warning, see
+                # https://github.com/astropy/astropy/issues/17497#issuecomment-2520472495
+                attrib["unit"] = self.unit.to_string()
+                warn_or_raise(W50, W50, (attrib["unit"],), self._config, self._pos)
         with w.tag(self._element_name, attrib=attrib):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
@@ -1685,8 +1718,12 @@ class Field(
             column.format = self.converter.output_format
         elif isinstance(self.converter, converters.Char):
             column.info.meta["_votable_string_dtype"] = "char"
+            if self.arraysize is not None and self.arraysize.endswith("*"):
+                column.info.meta["_votable_arraysize"] = self.arraysize
         elif isinstance(self.converter, converters.UnicodeChar):
             column.info.meta["_votable_string_dtype"] = "unicodeChar"
+            if self.arraysize is not None and self.arraysize.endswith("*"):
+                column.info.meta["_votable_arraysize"] = self.arraysize
 
     @classmethod
     def from_table_column(cls, votable, column):
@@ -1810,8 +1847,9 @@ class CooSys(SimpleElement):
     name, documented below.
     """
 
-    _attr_list = ["ID", "equinox", "epoch", "system"]
+    _attr_list = ["ID", "equinox", "epoch", "system", "refposition"]
     _element_name = "COOSYS"
+    _reference_frames = None
 
     def __init__(
         self,
@@ -1822,6 +1860,7 @@ class CooSys(SimpleElement):
         id=None,
         config=None,
         pos=None,
+        refposition=None,
         **extra,
     ):
         if config is None:
@@ -1841,6 +1880,11 @@ class CooSys(SimpleElement):
         self.equinox = equinox
         self.epoch = epoch
         self.system = system
+        self.refposition = refposition
+
+        # refposition introduced in v1.5.
+        if self.refposition is not None and not config.get("version_1_5_or_later"):
+            warn_or_raise(W57, W57, (), config, pos)
 
         warn_unknown_attrs("COOSYS", extra.keys(), config, pos)
 
@@ -1865,33 +1909,40 @@ class CooSys(SimpleElement):
     def system(self):
         """Specifies the type of coordinate system.
 
-        Valid choices are:
-
-          'eq_FK4', 'eq_FK5', 'ICRS', 'ecl_FK4', 'ecl_FK5', 'galactic',
-          'supergalactic', 'xy', 'barycentric', or 'geo_app'
+        Valid choices are given by `~astropy.io.votable.tree.CooSys.reference_frames`
         """
         return self._system
 
     @system.setter
     def system(self, system):
-        if system not in (
-            "eq_FK4",
-            "eq_FK5",
-            "ICRS",
-            "ecl_FK4",
-            "ecl_FK5",
-            "galactic",
-            "supergalactic",
-            "xy",
-            "barycentric",
-            "geo_app",
-        ):
+        if system not in self.reference_frames:
             warn_or_raise(E16, E16, system, self._config, self._pos)
         self._system = system
 
     @system.deleter
     def system(self):
         self._system = None
+
+    @property
+    def reference_frames(self):
+        """The list of reference frames recognized in the IVOA vocabulary.
+
+        This is described at http://www.ivoa.net/rdf/refframe
+
+        Returns
+        -------
+        set[str]
+            The labels of the IVOA reference frames.
+        """
+        # since VOTable version 1.5, the 'system' in COOSYS follow the RDF vocabulary
+        # for reference frames. If this is updated upstream, the json version can be
+        # downloaded at the bottom of the page and replaced here.
+        if self._reference_frames is None:
+            with open(
+                get_pkg_data_filename("data/ivoa-vocalubary_refframe-v20220222.json")
+            ) as f:
+                self._reference_frames = set(json.load(f)["terms"].keys())
+        return self._reference_frames
 
     @property
     def equinox(self):
@@ -1927,6 +1978,56 @@ class CooSys(SimpleElement):
     @epoch.deleter
     def epoch(self):
         self._epoch = None
+
+    def to_astropy_frame(self):
+        """Convert the coosys element into an astropy built-in frame.
+
+        This only reads the system and equinox attributes.
+
+        Returns
+        -------
+        `~astropy.coordinates.BaseCoordinateFrame`
+            An astropy built-in frame corresponding to the frame described by
+            the COOSYS element.
+
+        Examples
+        --------
+        >>> from astropy.io.votable.tree import CooSys
+        >>> coosys = CooSys(system="ICRS", epoch="J2020")
+        >>> # note that coosys elements also contain the epoch
+        >>> coosys.to_astropy_frame()
+        <ICRS Frame>
+
+        Notes
+        -----
+        If the correspondence is not straightforward, this method raises an error. In
+        that case, you can refer to the `IVOA reference frames definition
+        <http://www.ivoa.net/rdf/refframe>`_ and the list of `astropy's frames
+        <https://docs.astropy.org/en/stable/coordinates/frames.html>`_ and deal with the
+        conversion manually.
+        """
+        # the import has to be here due to circular dependencies issues
+        from astropy.coordinates import FK4, FK5, ICRS, AltAz, Galactic, Supergalactic
+
+        match_frames = {
+            "ICRS": ICRS(),
+            "FK4": FK4(equinox=self.equinox),
+            "FK5": FK5(equinox=self.equinox),
+            "eq_FK4": FK4(equinox=self.equinox),
+            "eq_FK5": FK5(equinox=self.equinox),
+            "GALACTIC": Galactic(),
+            "galactic": Galactic(),
+            "SUPER_GALACTIC": Supergalactic(),
+            "supergalactic": Supergalactic(),
+            "AZ_EL": AltAz(),
+        }
+
+        if self.system not in set(match_frames.keys()):
+            raise ValueError(
+                f"There is no direct correspondence between '{self.system}' and an "
+                "astropy frame. This method cannot return a frame."
+            )
+        return match_frames[self.system]
 
 
 class TimeSys(SimpleElement):
@@ -3936,13 +4037,17 @@ class Resource(
                 w.element("DESCRIPTION", self.description, wrap=True)
             if self.mivot_block is not None and self.type == "meta":
                 self.mivot_block.to_xml(w)
-            for element_set in (
+            element_sets = [
                 self.coordinate_systems,
                 self.time_systems,
                 self.params,
                 self.infos,
                 self.links,
-            ):
+            ]
+            if kwargs["version_1_2_or_later"]:
+                element_sets.append(self.groups)
+
+            for element_set in element_sets:
                 for element in element_set:
                     element.to_xml(w, **kwargs)
 
@@ -4152,6 +4257,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         config["version_1_2_or_later"] = util.version_compare(self.version, "1.2") >= 0
         config["version_1_3_or_later"] = util.version_compare(self.version, "1.3") >= 0
         config["version_1_4_or_later"] = util.version_compare(self.version, "1.4") >= 0
+        config["version_1_5_or_later"] = util.version_compare(self.version, "1.5") >= 0
         return config
 
     # Map VOTable version numbers to namespace URIs and schema information.
@@ -4193,6 +4299,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             "schema_location_value": (
                 "http://www.ivoa.net/xml/VOTable/v1.3"
                 " http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"
+            ),
+        },
+        "1.5": {
+            "namespace_uri": "http://www.ivoa.net/xml/VOTable/v1.3",
+            "schema_location_attr": "xsi:schemaLocation",
+            "schema_location_value": (
+                "http://www.ivoa.net/xml/VOTable/v1.3"
+                " http://www.ivoa.net/xml/VOTable/VOTable-1.5.xsd"
             ),
         },
     }
@@ -4333,7 +4447,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                     self.resources,
                 ]
                 if kwargs["version_1_2_or_later"]:
-                    element_sets[0] = self.groups
+                    element_sets.append(self.groups)
+
                 for element_set in element_sets:
                     for element in element_set:
                         element.to_xml(w, **kwargs)

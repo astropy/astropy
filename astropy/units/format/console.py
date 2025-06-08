@@ -6,16 +6,11 @@ Handles the "Console" unit format.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from astropy.utils import classproperty
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 from . import base
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import ClassVar, Literal
-
     from astropy.units import UnitBase
 
 
@@ -39,12 +34,6 @@ class Console(base.Base):
 
     _line: ClassVar[str] = "-"
     _space: ClassVar[str] = " "
-
-    @classproperty(lazy=True)
-    def _fraction_formatters(cls) -> dict[bool | str, Callable[[str, str, str], str]]:
-        return super()._fraction_formatters | {
-            "multiline": cls._format_multiline_fraction
-        }
 
     @classmethod
     def _format_superscript(cls, number: str) -> str:

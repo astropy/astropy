@@ -14,7 +14,6 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import SpecificTypeQuantity
-from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 
 from . import formats
@@ -180,10 +179,17 @@ class Angle(SpecificTypeQuantity):
                     # Possible conversion to `unit` will be done below.
                     angle = u.Quantity(angle, angle_unit, copy=COPY_IF_NEEDED)
 
-            elif isiterable(angle) and not (
-                isinstance(angle, np.ndarray) and angle.dtype.kind not in "SUVO"
+            elif isinstance(angle, np.ndarray):
+                if angle.dtype.kind in "SUVO":
+                    angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
+
+            elif hasattr(angle, "__array__") and (
+                not hasattr(angle, "dtype") or angle.dtype.kind not in "SUVO"
             ):
-                angle = [Angle(x, unit, copy=COPY_IF_NEEDED) for x in angle]
+                angle = np.asarray(angle)
+
+            elif np.iterable(angle):
+                angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
 
         return super().__new__(cls, angle, unit, dtype=dtype, copy=copy, **kwargs)
 
@@ -582,7 +588,9 @@ class Latitude(Angle):
 
     def __new__(cls, angle, unit=None, **kwargs):
         # Forbid creating a Lat from a Long.
-        if isinstance(angle, Longitude):
+        if isinstance(angle, Longitude) or (
+            isinstance(angle, str) and angle.endswith(("E", "W"))
+        ):
             raise TypeError("A Latitude angle cannot be created from a Longitude angle")
         self = super().__new__(cls, angle, unit=unit, **kwargs)
         self._validate_angles()
@@ -707,7 +715,9 @@ class Longitude(Angle):
 
     def __new__(cls, angle, unit=None, wrap_angle=None, **kwargs):
         # Forbid creating a Long from a Lat.
-        if isinstance(angle, Latitude):
+        if isinstance(angle, Latitude) or (
+            isinstance(angle, str) and angle.endswith(("N", "S"))
+        ):
             raise TypeError(
                 "A Longitude angle cannot be created from a Latitude angle."
             )

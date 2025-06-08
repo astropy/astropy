@@ -80,19 +80,19 @@ from .util import (
 )
 
 __all__ = [
-    "getheader",
-    "getdata",
-    "getval",
-    "setval",
-    "delval",
-    "writeto",
     "append",
-    "update",
+    "delval",
+    "getdata",
+    "getheader",
+    "getval",
     "info",
+    "printdiff",
+    "setval",
+    "table_to_hdu",
     "tabledump",
     "tableload",
-    "table_to_hdu",
-    "printdiff",
+    "update",
+    "writeto",
 ]
 
 
@@ -453,10 +453,10 @@ def writeto(
 
     Notes
     -----
-    gzip, zip and bzip2 compression algorithms are natively supported.
+    gzip, zip, bzip2 and lzma compression algorithms are natively supported.
     Compression mode is determined from the filename extension
-    ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
-    compressed file object, e.g. `gzip.GzipFile`.
+    ('.gz', '.zip', '.bz2' or '.xz' respectively).  It is also possible to pass
+    a compressed file object, e.g. `gzip.GzipFile`.
     """
     hdu = _makehdu(data, header)
     if hdu.is_image and not isinstance(hdu, PrimaryHDU):

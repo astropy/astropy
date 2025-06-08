@@ -9,7 +9,10 @@ from erfa import ufunc as erfa_ufunc
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.units.quantity_helper.erfa import astrom_unit
+
+ASTROM_UNIT = astrom_unit()
 
 
 def vvd(val, valok, dval, func, test, status):
@@ -18,16 +21,17 @@ def vvd(val, valok, dval, func, test, status):
 
 
 class TestPVUfuncs:
-    def setup_class(self):
-        self.pv_unit = u.Unit("AU,AU/day")
-        self.pv_value = np.array(
+    @classmethod
+    def setup_class(cls):
+        cls.pv_unit = u.Unit("AU,AU/day")
+        cls.pv_value = np.array(
             [
                 ([1.0, 0.0, 0.0], [0.0, 0.0125, 0.0]),
                 ([0.0, 1.0, 0.0], [-0.0125, 0.0, 0.0]),
             ],
             dtype=erfa_ufunc.dt_pv,
         )
-        self.pv = self.pv_value << self.pv_unit
+        cls.pv = cls.pv_value << cls.pv_unit
 
     def test_cpv(self):
         pv_copy = erfa_ufunc.cpv(self.pv)
@@ -127,11 +131,13 @@ class TestPVUfuncs:
         # Test for a useful error message - see gh-16873.
         # Non-quantity input should be treated as dimensionless and thus cannot
         # be converted to radians.
-        match = "'NoneType' object has no attribute 'get_converter'"
-        if not PYTEST_LT_8_0:
-            # pytest < 8 does not know how to deal with Exception.add_note
-            match += ".*\n.*treated as dimensionless"
-        with pytest.raises(AttributeError, match=match):
+        with pytest.raises(
+            AttributeError,
+            match=(
+                "'NoneType' object has no attribute 'get_converter'"
+                ".*\n.*treated as dimensionless"
+            ),
+        ):
             erfa_ufunc.s2p(0.5, 0.5, 4 * u.km)
 
         # Except if we have the right equivalency in place.
@@ -316,7 +322,8 @@ class TestPVUfuncs:
 
 
 class TestEraStructUfuncs:
-    def setup_class(self):
+    @classmethod
+    def setup_class(cls):
         ldbody = np.array(
             [
                 (0.00028574, 3e-10, ([-7.81014427, -5.60956681, -1.98079819],
@@ -329,22 +336,19 @@ class TestEraStructUfuncs:
             dtype=erfa_ufunc.dt_eraLDBODY
         )  # fmt: skip
         ldbody_unit = u.StructuredUnit("Msun,radian,(AU,AU/day)", ldbody.dtype)
-        self.ldbody = ldbody << ldbody_unit
-        self.ob = [-0.974170437, -0.2115201, -0.0917583114] << u.AU
-        self.sc = np.array([-0.763276255, -0.608633767, -0.216735543])
+        cls.ldbody = ldbody << ldbody_unit
+        cls.ob = [-0.974170437, -0.2115201, -0.0917583114] << u.AU
+        cls.sc = np.array([-0.763276255, -0.608633767, -0.216735543])
 
         # From t_atciq in t_erfa_c.c
         astrom, eo = erfa_ufunc.apci13(2456165.5, 0.401182685)
-        self.astrom_unit = u.StructuredUnit(
-            "yr,AU,1,AU,1,1,1,rad,rad,rad,rad,1,1,1,rad,rad,rad", astrom.dtype
-        )
-        self.astrom = astrom << self.astrom_unit
-        self.rc = 2.71 * u.rad
-        self.dc = 0.174 * u.rad
-        self.pr = 1e-5 * u.rad / u.year
-        self.pd = 5e-6 * u.rad / u.year
-        self.px = 0.1 * u.arcsec
-        self.rv = 55.0 * u.km / u.s
+        cls.astrom = astrom << ASTROM_UNIT
+        cls.rc = 2.71 * u.rad
+        cls.dc = 0.174 * u.rad
+        cls.pr = 1e-5 * u.rad / u.year
+        cls.pd = 5e-6 * u.rad / u.year
+        cls.px = 0.1 * u.arcsec
+        cls.rv = 55.0 * u.km / u.s
 
     def test_ldn_basic(self):
         sn = erfa_ufunc.ldn(self.ldbody, self.ob, self.sc)
@@ -461,7 +465,7 @@ class TestEraStructUfuncs:
             0.59,
             0.55,
         )
-        astrom = astrom << self.astrom_unit
+        astrom = astrom << ASTROM_UNIT
 
         ri = 2.710121572969038991 * u.rad
         di = 0.1729371367218230438 * u.rad
@@ -487,69 +491,165 @@ class TestEraStructUfuncs:
             di2, 0.17293718391166087785 * u.rad, atol=1e-12 * u.rad
         )
 
-    def test_apio(self):
-        sp = -3.01974337e-11 * u.rad
-        theta = 3.14540971 * u.rad
-        elong = -0.527800806 * u.rad
-        phi = -1.2345856 * u.rad
-        hm = 2738.0 * u.m
-        xp = 2.47230737e-7 * u.rad
-        yp = 1.82640464e-6 * u.rad
-        refa = 0.000201418779 * u.rad
-        refb = -2.36140831e-7 * u.rad
-        astrom = erfa_ufunc.apio(
-            sp.to(u.deg), theta, elong, phi, hm.to(u.km), xp, yp, refa, refb
-        )
-        assert astrom.unit == self.astrom_unit
-        for name, value in [
-            ("along", -0.5278008060295995734),
-            ("xpl", 0.1133427418130752958e-5),
-            ("ypl", 0.1453347595780646207e-5),
-            ("sphi", -0.9440115679003211329),
-            ("cphi", 0.3299123514971474711),
-            ("diurab", 0.5135843661699913529e-6),
-            ("eral", 2.617608903970400427),
-            ("refa", 0.2014187790000000000e-3),
-            ("refb", -0.2361408310000000000e-6),
-        ]:
-            assert_quantity_allclose(
-                astrom[name],
-                value * self.astrom_unit[name],
-                rtol=1e-12,
-                atol=0 * self.astrom_unit[name],
+
+class TestAp:
+    @classmethod
+    def setup_class(cls):
+        # Values from apco13 and apio test cases in t_erfa_c.c
+        # with units changed so we can check conversion.
+        cls.utc1 = 2456384.5
+        cls.utc2 = 0.969254051
+        cls.dut1 = (0.1550675 * u.s).to(u.ms)
+        cls.sp = (-3.01974337e-11 * u.rad).to(u.deg)
+        cls.theta = (3.14540971 * u.rad).to(u.mdeg)
+        cls.elong = (-0.527800806 * u.rad).to(u.Marcsec)
+        cls.phi = (-1.2345856 * u.rad).to(u.arcmin)
+        cls.hm = (2738.0 * u.m).to(u.km)
+        cls.phpa = (731.0 * u.hPa).to(u.Pa)
+        cls.tc = (12.8 * u.deg_C).to(u.K, equivalencies=u.temperature())
+        cls.rh = (0.59 * u.one).to(u.percent)
+        cls.wl = (0.55 * u.micron).to(u.AA)
+        # For apio.
+        cls.xp = (2.47230737e-7 * u.rad).to(u.arcsec)
+        cls.yp = (1.82640464e-6 * u.rad).to(u.arcmin)
+        cls.refa = (0.000201418779 * u.rad).to(u.mas)
+        cls.refb = (-2.36140831e-7 * u.rad).to(u.uas)
+        cls.apco13_args = [
+            getattr(cls, name)
+            for name in [
+                "utc1",
+                "utc2",
+                "dut1",
+                "elong",
+                "phi",
+                "hm",
+                "xp",
+                "yp",
+                "phpa",
+                "tc",
+                "rh",
+                "wl",
+            ]
+        ]
+        cls.apio_args = [
+            getattr(cls, name)
+            for name in [
+                "sp",
+                "theta",
+                "elong",
+                "phi",
+                "hm",
+                "xp",
+                "yp",
+                "refa",
+                "refb",
+            ]
+        ]
+
+    def test_apco13(self):
+        astrom, eo, status = erfa_ufunc.apco13(*self.apco13_args)
+        assert status == 0
+        vvd(eo, -0.003020548354802412839, 1e-14, "eraApco13", "eo", status)
+        assert astrom.unit == ASTROM_UNIT
+        for name, expected in {
+            "pmt": 13.25248468622475727,
+            "eb": [-0.9741827107320875162,
+                   -0.2115130190489716682,
+                   -0.09179840189496755339],
+            "eh": [-0.9736425572586935247,
+                   -0.2092452121603336166,
+                   -0.09075578153885665295],
+            "em": 0.9998233240913898141,
+            "v": [0.2078704994520489246e-4,
+                  -0.8955360133238868938e-4,
+                  -0.3863338993055887398e-4],
+            "bm1": 0.9999999950277561004,
+            "bpn": np.array(
+                [[ 0.9999991390295147999,
+                   0.4978650075315529277e-7,
+                   0.001312227200850293372],
+                 [-0.1136336652812486604e-7,
+                   0.9999999995713154865,
+                  -0.2928086230975367296e-4],
+                 [-0.001312227201745553566,
+                   0.2928082218847679162e-4,
+                   0.9999991386008312212],
+                ]).T,
+            "along": -0.5278008060295995733,
+            "xpl": 0.1133427418130752958e-5,
+            "ypl": 0.1453347595780646207e-5,
+            "sphi": -0.9440115679003211329,
+            "cphi": 0.3299123514971474711,
+            "diurab": 0,
+            "eral": 2.617608909189664000,
+            "refa": 0.2014187785940396921e-3,
+            "refb": -0.2361408314943696227e-6,
+        }.items():  # fmt: skip
+            assert_quantity_allclose(astrom[name], expected * ASTROM_UNIT[name])
+
+    def test_apco13_no_time_units(self):
+        msg = "cannot pass in units for 2-part time in apco13"
+        with pytest.raises(TypeError, match=msg):
+            erfa_ufunc.apco13(self.utc1 * u.day, *self.apco13_args[1:])
+
+        with pytest.raises(TypeError, match=msg):
+            erfa_ufunc.apco13(self.utc1, self.utc2 * u.day, *self.apco13_args[2:])
+
+        with pytest.raises(TypeError, match=msg):
+            erfa_ufunc.apco13(
+                self.utc1 * u.day, self.utc2 * u.day, *self.apco13_args[2:]
             )
+
+    def test_apio(self):
+        astrom = erfa_ufunc.apio(*self.apio_args)
+        assert astrom.unit == ASTROM_UNIT
+        for name, expected in {
+            "along": -0.5278008060295995734,
+            "xpl": 0.1133427418130752958e-5,
+            "ypl": 0.1453347595780646207e-5,
+            "sphi": -0.9440115679003211329,
+            "cphi": 0.3299123514971474711,
+            "diurab": 0.5135843661699913529e-6,
+            "eral": 2.617608903970400427,
+            "refa": 0.2014187790000000000e-3,
+            "refb": -0.2361408310000000000e-6,
+        }.items():
+            assert_quantity_allclose(astrom[name], expected * ASTROM_UNIT[name])
 
 
 class TestGeodetic:
-    def setup_class(self):
-        self.ellipsoid = 1
-        self.length_unit = u.Unit("m")
-        self.equatorial_radius_value = 6378136.0
-        self.equatorial_radius = self.equatorial_radius_value << self.length_unit
-        self.flattening = 0.0033528 * u.dimensionless_unscaled
-        self.lon_value = 0.9827937232473290680
-        self.lon_unit = u.Unit("rad")
-        self.lon = self.lon_value << self.lon_unit
-        self.lat_value = 0.9716018377570411532
-        self.lat_unit = u.Unit("rad")
-        self.lat = self.lat_value << self.lat_unit
-        self.height_value = 332.36862495764397
-        self.height = self.height_value << self.length_unit
-        self.x_value = 2e6
-        self.x = self.x_value << self.length_unit
-        self.y_value = 3e6
-        self.y = self.y_value << self.length_unit
-        self.z_value = 5.244e6
-        self.z = self.z_value << self.length_unit
-        self.xyz = np.stack([self.x, self.y, self.z])
+    @classmethod
+    def setup_class(cls):
+        cls.ellipsoid = 1
+        cls.length_unit = u.Unit("m")
+        cls.equatorial_radius_value = 6378136.0
+        cls.equatorial_radius = (cls.equatorial_radius_value << cls.length_unit).to(
+            u.km
+        )
+        cls.flattening = 0.0033528 * u.dimensionless_unscaled
+        cls.lon_value = 0.9827937232473290680
+        cls.lon_unit = u.Unit("rad")
+        cls.lon = (cls.lon_value << cls.lon_unit).to(u.deg)
+        cls.lat_value = 0.9716018377570411532
+        cls.lat_unit = u.Unit("rad")
+        cls.lat = (cls.lat_value << cls.lat_unit).to(u.deg)
+        cls.height_value = 332.36862495764397
+        cls.height = cls.height_value << cls.length_unit
+        cls.x_value = 2e6
+        cls.x = (cls.x_value << cls.length_unit).to(u.cm)
+        cls.y_value = 3e6
+        cls.y = (cls.y_value << cls.length_unit).to(u.km)
+        cls.z_value = 5.244e6
+        cls.z = (cls.z_value << cls.length_unit).to(u.Mm)
+        cls.xyz = np.stack([cls.x, cls.y, cls.z])
 
     def test_unit_errors(self):
         """Test unit errors when dimensionless parameters are used"""
 
-        msg = "'NoneType' object has no attribute 'get_converter'"
-        if not PYTEST_LT_8_0:
-            # pytest < 8 does not know how to deal with Exception.add_note
-            msg += ".*\n.*treated as dimensionless"
+        msg = (
+            "'NoneType' object has no attribute 'get_converter'"
+            ".*\n.*treated as dimensionless"
+        )
         with pytest.raises(AttributeError, match=msg):
             erfa_ufunc.gc2gde(self.equatorial_radius_value, self.flattening, self.xyz)
         with pytest.raises(AttributeError, match=msg):
@@ -582,11 +682,10 @@ class TestGeodetic:
     def test_gc2gde(self):
         """Test that we reproduce erfa/src/t_erfa_c.c t_gc2gd"""
 
-        status = 0
         e, p, h, status = erfa_ufunc.gc2gde(
             self.equatorial_radius, self.flattening, self.xyz
         )
-
+        assert status == 0
         vvd(e, self.lon_value, 1e-14, "eraGc2gde", "e", status)
         vvd(p, self.lat_value, 1e-14, "eraGc2gde", "p", status)
         vvd(h, self.height_value, 1e-8, "eraGc2gde", "h", status)
@@ -594,11 +693,10 @@ class TestGeodetic:
     def test_gd2gce(self):
         """Test that we reproduce erfa/src/t_erfa_c.c t_gc2gd"""
 
-        status = 0
         xyz, status = erfa_ufunc.gd2gce(
             self.equatorial_radius, self.flattening, self.lon, self.lat, self.height
         )
-
+        assert status == 0
         vvd(xyz[0], self.x_value, 1e-7, "eraGd2gce", "e", status)
         vvd(xyz[1], self.y_value, 1e-7, "eraGd2gce", "p", status)
         vvd(xyz[2], self.z_value, 1e-7, "eraGd2gce", "h", status)

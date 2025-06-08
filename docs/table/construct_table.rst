@@ -201,8 +201,10 @@ column where each row element is itself a two-element array.
     ...
   KeyError: 'a_new'
 
-Row Data
---------
+.. _Row data:
+
+List of Rows
+------------
 
 Row-oriented data can be used to create a table using the ``rows``
 keyword argument.
@@ -258,26 +260,17 @@ You can specify the column order with the ``names`` argument::
    10   5
    20  15
 
-If ``names`` are not provided then column ordering will be determined by the
-first :class:`dict` if it contains values for all the columns, or by sorting
-the column names alphabetically if it doesn't::
+If ``names`` are not provided then column ordering will be determined by
+order in which they appear as the :class:`list` of :class:`dict` is iterated over.
 
-  >>> data = [{'b': 10, 'c': 7, 'a': 5},
+  >>> data = [{'b': 10, 'c': 7, },
   ...         {'a': 15, 'c': 35, 'b': 20}]
   >>> t = Table(rows=data)
   >>> print(t)
    b   c   a
   --- --- ---
-   10   7   5
+   10   7  --
    20  35  15
-  >>> data = [{'b': 10, 'c': 7, },
-  ...         {'a': 15, 'c': 35, 'b': 20}]
-  >>> t = Table(rows=data)
-  >>> print(t)
-   a   b   c
-  --- --- ---
-   --  10   7
-   15  20  35
 
 **Single row**
 
@@ -583,9 +576,9 @@ Comment Lines
 
 .. EXAMPLE START: Adding Comment Lines in an ASCII File
 
-Comment lines in an ASCII file can be added via the ``'comments'`` key in the
+Comment lines in a text file can be added via the ``'comments'`` key in the
 table's metadata. The following will insert two comment lines in the output
-ASCII file unless ``comment=False`` is explicitly set in ``write()``::
+text file unless ``comment=False`` is explicitly set in ``write()``::
 
   >>> import sys
   >>> from astropy.table import Table
@@ -729,10 +722,10 @@ meta
 ----
 
 The ``meta`` argument is an object that contains metadata associated with the
-table. It is recommended that this object be a :class:`dict` or
-:class:`~collections.OrderedDict`, but the only firm requirement is that it can
+table. It is recommended that this object be a :class:`dict`, but the
+only firm requirement is that it *must be a dict-like mapping* and can
 be copied with the standard library :func:`copy.deepcopy` routine. By
-default, ``meta`` is an empty :class:`~collections.OrderedDict`.
+default, ``meta`` is an empty :class:`dict`.
 
 copy
 ----
@@ -898,7 +891,7 @@ Format Specifier
 ^^^^^^^^^^^^^^^^
 
 The format specifier controls the output of column values when a table or column
-is printed or written to an ASCII table. In the simplest case, it is a string
+is printed or written to a text table. In the simplest case, it is a string
 that can be passed to Python's built-in :func:`format` function. For more
 complicated formatting, one can also give "old style" or "new style"
 format strings, or even a function:

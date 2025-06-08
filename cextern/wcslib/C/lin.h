@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: lin.h,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -666,7 +666,7 @@
 *     (Returned) If enabled, when an error status is returned, this struct
 *     contains detailed information about the error, see wcserr_enable().
 *
-*   double *tmpcrd
+*   double *dummy
 *     (For internal use only.)
 *   int m_flag
 *     (For internal use only.)
@@ -738,14 +738,16 @@ struct linprm {
   int    affine;		// True if there are no distortions.
   int    simple;		// True if unity and no distortions.
 
-  // Error handling, if enabled.
+  // Error messaging, if enabled.
   //--------------------------------------------------------------------------
   struct wcserr *err;
 
+  //--------------------------------------------------------------------------
   // Private - the remainder are for internal use.
   //--------------------------------------------------------------------------
-  double *tmpcrd;
+  double *dummy;
 
+				// The remainder are for memory management.
   int    m_flag, m_naxis;
   double *m_crpix, *m_pc, *m_cdelt;
   struct disprm *m_dispre, *m_disseq;

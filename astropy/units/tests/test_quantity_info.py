@@ -4,6 +4,7 @@
 import copy
 
 import numpy as np
+import pytest
 
 from astropy import units as u
 
@@ -25,10 +26,10 @@ def assert_no_info(a):
 
 class TestQuantityInfo:
     @classmethod
-    def setup_class(self):
-        self.q = u.Quantity(np.arange(1.0, 5.0), "m/s")
-        self.q.info.name = "v"
-        self.q.info.description = "air speed of a african swallow"
+    def setup_class(cls):
+        cls.q = u.Quantity(np.arange(1.0, 5.0), "m/s")
+        cls.q.info.name = "v"
+        cls.q.info.description = "air speed of a african swallow"
 
     def test_copy(self):
         q_copy1 = self.q.copy()
@@ -99,14 +100,29 @@ class TestQuantityInfo:
         q *= u.s
         assert_info_equal(q, self.q, ignore={"unit"})
 
+    def test_inplace_info_name_change(self):
+        # see https://github.com/astropy/astropy/issues/17449
+        q = self.q.copy()
+
+        q.info.name = "test"
+        assert q.info.name == "test"
+
+        q.info.name = None
+        assert q.info.name is None
+
+        with pytest.raises(
+            TypeError, match="Expected a str value, got 2.3 with type float"
+        ):
+            q.info.name = 2.3
+
 
 class TestStructuredQuantity:
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         value = np.array([(1.0, 2.0), (3.0, 4.0)], dtype=[("p", "f8"), ("v", "f8")])
-        self.q = u.Quantity(value, "m, m/s")
-        self.q.info.name = "pv"
-        self.q.info.description = "Location and speed"
+        cls.q = u.Quantity(value, "m, m/s")
+        cls.q.info.name = "pv"
+        cls.q.info.description = "Location and speed"
 
     def test_keying(self):
         q_p = self.q["p"]
@@ -129,17 +145,17 @@ class TestQuantitySubclass:
     """
 
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         class MyQuantity(u.Quantity):
             def __array_finalize__(self, obj):
                 super().__array_finalize__(obj)
                 if hasattr(obj, "swallow"):
                     self.swallow = obj.swallow
 
-        self.my_q = MyQuantity([10.0, 20.0], u.m / u.s)
-        self.my_q.swallow = "African"
-        self.my_q_w_info = self.my_q.copy()
-        self.my_q_w_info.info.name = "swallow"
+        cls.my_q = MyQuantity([10.0, 20.0], u.m / u.s)
+        cls.my_q.swallow = "African"
+        cls.my_q_w_info = cls.my_q.copy()
+        cls.my_q_w_info.info.name = "swallow"
 
     def test_setup(self):
         assert_no_info(self.my_q)

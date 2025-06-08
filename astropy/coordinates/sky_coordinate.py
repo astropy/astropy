@@ -1,20 +1,21 @@
 from __future__ import annotations
 
 import copy
+import operator
 import re
 import warnings
-from typing import TYPE_CHECKING
+from collections.abc import Callable
 
 import erfa
 import numpy as np
 
 from astropy import units as u
 from astropy.constants import c as speed_of_light
-from astropy.table import QTable
 from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
 from .angles import Angle
 from .baseframe import (
@@ -35,9 +36,6 @@ from .sky_coordinate_parsers import (
     _parse_coordinate_data,
 )
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
 
@@ -51,7 +49,7 @@ class SkyCoordInfo(CoordinateFrameInfo):
         return out
 
 
-class SkyCoord(ShapedLikeNDArray):
+class SkyCoord(MaskableShapedLikeNDArray):
     """High-level object providing a flexible interface for celestial coordinate
     representation, manipulation, and transformation between systems.
 
@@ -265,6 +263,36 @@ class SkyCoord(ShapedLikeNDArray):
     def shape(self):
         return self.frame.shape
 
+    # The following 3 have identical implementation as in BaseCoordinateFrame,
+    # but we cannot just rely on __getattr__ to get them from the frame,
+    # because (1) get_mask has to be able to access our own attributes, and
+    # (2) masked and mask are abstract properties in MaskableSharedLikeNDArray
+    # which thus need to be explicitly defined.
+    # TODO: factor out common methods and attributes in a mixin class.
+    @property
+    def masked(self):
+        return self.data.masked
+
+    def get_mask(self, *attrs):
+        if not attrs:
+            # Just use the frame
+            return self._sky_coord_frame.get_mask()
+
+        values = operator.attrgetter(*attrs)(self)
+        if not isinstance(values, tuple):
+            values = (values,)
+        masks = [getattr(v, "mask", None) for v in values]
+        # Broadcast makes it readonly too.
+        return np.broadcast_to(combine_masks(masks), self.shape)
+
+    @property
+    def mask(self):
+        return self._sky_coord_frame.mask
+
+    masked.__doc__ = BaseCoordinateFrame.masked.__doc__
+    get_mask.__doc__ = BaseCoordinateFrame.get_mask.__doc__
+    mask.__doc__ = BaseCoordinateFrame.mask.__doc__
+
     def __eq__(self, value):
         """Equality operator for SkyCoord.
 
@@ -370,6 +398,11 @@ class SkyCoord(ShapedLikeNDArray):
 
           self.frame.data[item] = value.frame.data
         """
+        if value is np.ma.masked or value is np.ma.nomask:
+            self.data.__setitem__(item, value)
+            self.cache.clear()
+            return
+
         if self.__class__ is not value.__class__:
             raise TypeError(
                 "can only set from object of same class: "
@@ -902,18 +935,18 @@ class SkyCoord(ShapedLikeNDArray):
         >>> t.meta
         {'representation_type': 'spherical', 'frame': 'icrs'}
         """
-        self_as_dict = self.info._represent_as_dict()
-        tabledata = {}
-        metadata = {}
-        # Record attributes that have the same length as self as columns in the
-        # table, and the other attributes as table metadata.  This matches
-        # table.serialize._represent_mixin_as_column().
-        for key, value in self_as_dict.items():
+        table = self.frame.to_table()
+        # Record extra attributes not on the frame that have the same length as self as
+        # columns in the table, and the other attributes as table metadata.
+        # This matches table.serialize._represent_mixin_as_column().
+        table.meta["frame"] = self.frame.name
+        for key in self._extra_frameattr_names:
+            value = getattr(self, key)
             if getattr(value, "shape", ())[:1] == (len(self),):
-                tabledata[key] = value
+                table[key] = value
             else:
-                metadata[key] = value
-        return QTable(tabledata, meta=metadata)
+                table.meta[key] = value
+        return table
 
     def is_equivalent_frame(self, other):
         """
@@ -1166,10 +1199,9 @@ class SkyCoord(ShapedLikeNDArray):
                 "coordinate frame with data"
             )
 
-        res = match_coordinates_sky(
+        return match_coordinates_sky(
             self, catalogcoord, nthneighbor=nthneighbor, storekdtree="_kdtree_sky"
         )
-        return res
 
     def match_to_catalog_3d(self, catalogcoord, nthneighbor=1):
         """
@@ -1233,11 +1265,9 @@ class SkyCoord(ShapedLikeNDArray):
                 "coordinate frame with data"
             )
 
-        res = match_coordinates_3d(
+        return match_coordinates_3d(
             self, catalogcoord, nthneighbor=nthneighbor, storekdtree="_kdtree_3d"
         )
-
-        return res
 
     def search_around_sky(self, searcharoundcoords, seplimit):
         """
@@ -1256,10 +1286,10 @@ class SkyCoord(ShapedLikeNDArray):
         ----------
         searcharoundcoords : coordinate-like
             The coordinates to search around to try to find matching points in
-            this |SkyCoord|. This should be an object with array coordinates,
-            not a scalar coordinate object.
+            this |SkyCoord|. This must be a one-dimensional coordinate array.
         seplimit : `~astropy.units.Quantity` ['angle']
-            The on-sky separation to search within.
+            The on-sky separation to search within. It should be broadcastable to the
+            same shape as ``searcharoundcoords``.
 
         Returns
         -------
@@ -1316,10 +1346,10 @@ class SkyCoord(ShapedLikeNDArray):
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
             The coordinates to search around to try to find matching points in
-            this |SkyCoord|. This should be an object with array coordinates,
-            not a scalar coordinate object.
+            this |SkyCoord|. This must be a one-dimensional coordinate array.
         distlimit : `~astropy.units.Quantity` ['length']
-            The physical radius to search within.
+            The physical radius to search within. It should be broadcastable to the same
+            shape as ``searcharoundcoords``.
 
         Returns
         -------

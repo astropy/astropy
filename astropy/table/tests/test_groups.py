@@ -1,14 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from contextlib import nullcontext
 
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis.extra.numpy import arrays
+from hypothesis.strategies import integers
 
 from astropy import coordinates, time
 from astropy import units as u
 from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -472,12 +473,10 @@ def test_table_aggregate(T1):
     t1m["q"].mask[4:6] = True
     tg = t1m.group_by("a")
 
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(AstropyUserWarning, match="Cannot aggregate column")
-
-    with pytest.warns(UserWarning, match="converting a masked element to nan"), ctx:
+    with (
+        pytest.warns(UserWarning, match="converting a masked element to nan"),
+        pytest.warns(AstropyUserWarning, match="Cannot aggregate column"),
+    ):
         tga = tg.groups.aggregate(np.sum)
 
     assert tga.pformat() == [
@@ -571,6 +570,19 @@ def test_table_aggregate_reduceat(T1):
     with pytest.warns(AstropyUserWarning, match="Cannot aggregate column"):
         tga = tg.groups.aggregate(np_add)
     assert tga.pformat() == [" a ", "---", "  0", "  1", "  2"]
+
+
+def test_table_aggregate_reduceat_empty():
+    for masked in (False, True):
+        tg = Table(
+            {
+                "action": np.asarray([], dtype=str),
+                "duration": np.asarray([], dtype=float),
+            },
+            masked=masked,
+        )
+        tga = tg.group_by("action").groups.aggregate(np.sum)
+        assert tga.pformat() == ["action duration", "------ --------"]
 
 
 def test_column_aggregate(T1):
@@ -729,7 +741,8 @@ def test_group_mixins_unsupported(col):
 
 
 @pytest.mark.parametrize("add_index", [False, True])
-def test_group_stable_sort(add_index):
+@given(arrays("int64", shape=1000, elements=integers(min_value=0, max_value=5)))
+def test_group_stable_sort(add_index, a):
     """Test that group_by preserves the order of the table.
 
     This table has 5 groups with an average of 200 rows per group, so it is not
@@ -738,7 +751,6 @@ def test_group_stable_sort(add_index):
     This tests explicitly the case where grouping is done via the index sort.
     See: https://github.com/astropy/astropy/issues/14882
     """
-    a = np.random.randint(0, 5, 1000)
     b = np.arange(len(a))
     t = Table([a, b], names=["a", "b"])
     if add_index:

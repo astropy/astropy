@@ -97,7 +97,8 @@ Plotting the result with Matplotlib gives:
 
    frequency,power = LombScargleMultiband(t,y,bands,dy).autopower()
 
-   plt.plot(frequency,power)
+   fig, ax = plt.subplots()
+   ax.plot(frequency,power)
 
 The periodogram shows a clear spike at a frequency of 1 cycle per unit time,
 as we would expect from the data we constructed. The resulting power is a
@@ -286,7 +287,8 @@ Example
     frequency = np.linspace(0, 2, 1000)
     power = LombScargleMultiband(t,y,bands,dy).power(frequency)
 
-    plt.plot(frequency,power)
+    fig, ax = plt.subplots()
+    ax.plot(frequency,power)
 
 .. EXAMPLE END
 

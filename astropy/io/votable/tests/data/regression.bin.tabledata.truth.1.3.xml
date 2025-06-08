@@ -12,6 +12,7 @@
   itself modeled on the FITS Table format [2]; VOTable was designed to
   be closer to the FITS Binary Table format.
  </DESCRIPTION>
+ <COOSYS ID="J2000" equinox="J2000" system="eq_FK5"/>
  <PARAM ID="wrong_arraysize" arraysize="0" datatype="float" name="wrong_arraysize" value=""/>
  <PARAM ID="INPUT" arraysize="*" datatype="float" name="INPUT" ucd="phys.size;instr.tel" unit="km.h-1" value="0 0">
   <DESCRIPTION>
@@ -40,7 +41,7 @@
    <FIELD ID="string_test_2" arraysize="10" datatype="char" name="fixed string test"/>
    <FIELD ID="unicode_test" arraysize="*" datatype="unicodeChar" name="unicode_test"/>
    <FIELD ID="fixed_unicode_test" arraysize="10" datatype="unicodeChar" name="unicode test"/>
-   <FIELD ID="string_array_test" arraysize="4" datatype="char" name="string array test"/>
+   <FIELD ID="string_array_test" arraysize="4*" datatype="char" name="string array test"/>
    <FIELD ID="unsignedByte" datatype="unsignedByte" name="unsignedByte"/>
    <FIELD ID="short" datatype="short" name="short">
     <VALUES null="-32768"/>

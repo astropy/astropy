@@ -292,6 +292,9 @@ class Fittable2DModelTester:
         parameters = test_parameters["parameters"]
         model = create_model(model_class, test_parameters)
 
+        if model.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
+            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
+
         if isinstance(parameters, dict):
             parameters = [parameters[name] for name in model.param_names]
 
@@ -373,6 +376,9 @@ class Fittable2DModelTester:
             )
             model = create_model(model_class, test_parameters, use_constraints=False)
 
+        if model_with_deriv.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
+            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
+
         # add 10% noise to the amplitude
         rsn = np.random.default_rng(0)
         amplitude = test_parameters["parameters"][0]
@@ -390,9 +396,13 @@ class Fittable2DModelTester:
             new_model_no_deriv(xv_test, yv_test),
             rtol=1e-2,
         )
+
         if model_class != Gaussian2D:
+            deriv_atol = test_parameters.get("deriv_atol", 0.1)
             assert_allclose(
-                new_model_with_deriv.parameters, new_model_no_deriv.parameters, rtol=0.1
+                new_model_with_deriv.parameters,
+                new_model_no_deriv.parameters,
+                rtol=deriv_atol,
             )
 
 
@@ -527,6 +537,9 @@ class Fittable1DModelTester:
         parameters = test_parameters["parameters"]
         model = create_model(model_class, test_parameters)
 
+        if model.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
+            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
+
         if isinstance(parameters, dict):
             parameters = [parameters[name] for name in model.param_names]
 
@@ -581,6 +594,9 @@ class Fittable1DModelTester:
             model_class, test_parameters, use_constraints=False
         )
 
+        if model_with_deriv.has_bounds and isinstance(fitter, fitting.LMLSQFitter):
+            pytest.skip("The LMLSQFitter fitter does not support models with bounds")
+
         # NOTE: PR 10644 replaced deprecated usage of RandomState but could not
         #       find a new seed that did not cause test failure, resorted to hardcoding.
         # add 10% noise to the amplitude
@@ -621,13 +637,11 @@ class Fittable1DModelTester:
             model_no_deriv, x, data, estimate_jacobian=True
         )
 
-        if isinstance(model_with_deriv, models.Lorentz1D):
-            atol = 1e-6
-        else:
-            atol = 0.15
-
+        deriv_atol = test_parameters.get("deriv_atol", 0.15)
         assert_allclose(
-            new_model_with_deriv.parameters, new_model_no_deriv.parameters, atol=atol
+            new_model_with_deriv.parameters,
+            new_model_no_deriv.parameters,
+            atol=deriv_atol,
         )
 
 
@@ -909,7 +923,7 @@ def test_tabular1d_inverse():
     points = np.arange(5)
     values = np.array([1.5, 3.4, 3.4, 32, 25])
     t = models.Tabular1D(points, values)
-    with pytest.raises(NotImplementedError, match=r""):
+    with pytest.raises(NotImplementedError, match=r"^$"):
         t.inverse((3.4, 7.0))
 
     # Check that Tabular2D.inverse raises an error
@@ -917,7 +931,10 @@ def test_tabular1d_inverse():
     points = np.arange(0, 5)
     points = (points, points)
     t3 = models.Tabular2D(points=points, lookup_table=table)
-    with pytest.raises(NotImplementedError, match=r""):
+    with pytest.raises(
+        NotImplementedError,
+        match=r"An analytical inverse transform has not been implemented for this model\.",
+    ):
         t3.inverse((3, 3))
 
     # Check that it uses the same kwargs as the original model
@@ -1156,7 +1173,7 @@ def test_SmoothlyBrokenPowerLaw1D_fit_deriv():
 
 class _ExtendedModelMeta(_ModelMeta):
     @classmethod
-    def __prepare__(mcls, name, bases, **kwds):
+    def __prepare__(cls, name, bases, **kwds):
         # this shows the parent class machinery still applies
         namespace = super().__prepare__(name, bases, **kwds)
         # the custom bit

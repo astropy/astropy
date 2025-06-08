@@ -463,15 +463,22 @@ point of 3631.1 Jy::
 Temperature Equivalency
 -----------------------
 
-The :func:`~astropy.units.temperature` equivalency allows conversion
-between the Celsius, Fahrenheit, Rankine and Kelvin.
+Conversions between kelvins and degrees Rankine do not require using any
+equivalencies because the Kelvin scale and the Rankine scale have the same zero
+point::
 
-Example
-^^^^^^^
+   >>> temp_K = 100 * u.K
+   >>> temp_R = temp_K.to(u.imperial.deg_R)
+   >>> temp_R
+   <Quantity 180. deg_R>
+   >>> temp_R.to(u.K)
+   <Quantity 100. K>
 
 .. EXAMPLE START: Using the Temperature Equivalency
 
-To convert between temperature scales::
+The Celsius and Fahrenheit scales have different zero points, which
+neccessitates the use of the :func:`~astropy.units.temperature` equivalency for
+unit conversions involving degrees Celsius or degrees Fahrenheit::
 
     >>> temp_C = 0 * u.Celsius
     >>> temp_Kelvin = temp_C.to(u.K, equivalencies=u.temperature())
@@ -668,7 +675,7 @@ all kinds of things that ``Hz`` can be converted to::
   Primary name | Unit definition        | Aliases
   [
     AU           | 1.49598e+11 m          | au, astronomical_unit            ,
-    Angstrom     | 1e-10 m                | AA, angstrom                     ,
+    Angstrom     | 1e-10 m                | AA, angstrom, Å                  ,
     Bq           | 1 / s                  | becquerel                        ,
     Ci           | 3.7e+10 / s            | curie                            ,
     Hz           | 1 / s                  | Hertz, hertz                     ,

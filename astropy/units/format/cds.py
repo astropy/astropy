@@ -15,25 +15,21 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Literal
 
+from astropy.units.core import CompositeUnit, Unit
 from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
-from astropy.utils.misc import did_you_mean
 
-from .generic import Generic
+from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
-    from typing import ClassVar, Literal
-
-    import numpy as np
-
     from astropy.extern.ply.lex import Lexer
-    from astropy.units import NamedUnit, UnitBase
+    from astropy.units import UnitBase
     from astropy.utils.parsing import ThreadSafeParser
 
 
-class CDS(Generic):
+class CDS(Base, _ParsingFormatMixin):
     """
     Support the `Centre de Données astronomiques de Strasbourg
     <https://cds.unistra.fr/>`_ `Standards for Astronomical
@@ -106,8 +102,10 @@ class CDS(Generic):
             r"[x×]"
             return t
 
+        # Most units are just combinations of letters with no numbers, but there
+        # are a few special ones (\h is Planch constant) and three that end in 0.
         def t_UNIT(t):
-            r"\%|°|\\h|((?!\d)\w)+"
+            r"%|°|\\h|(a|eps|mu)0|((?!\d)\w)+"
             t.value = cls._get_unit(t)
             return t
 
@@ -148,7 +146,6 @@ class CDS(Generic):
                  | factor
             """
             from astropy.units import dex
-            from astropy.units.core import CompositeUnit, Unit
 
             if len(p) == 3:
                 p[0] = CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
@@ -258,29 +255,13 @@ class CDS(Generic):
         return parsing.yacc(tabmodule="cds_parsetab", package="astropy/units")
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        if unit not in cls._units:
-            if detailed_exception:
-                raise ValueError(
-                    f"Unit '{unit}' not supported by the CDS SAC standard. "
-                    f"{did_you_mean(unit, cls._units)}"
-                )
-            else:
-                raise ValueError()
-
-        return cls._units[unit]
-
-    @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
         if " " in s:
             raise ValueError("CDS unit must not contain whitespace")
         if not isinstance(s, str):
             s = s.decode("ascii")
-        return cls._do_parse(s, debug)
 
-    @classmethod
-    def _get_unit_name(cls, unit: NamedUnit) -> str:
-        return unit._get_format_name(cls.name)
+        return cls._do_parse(s, debug)
 
     @classmethod
     def _format_mantissa(cls, m: str) -> str:
@@ -291,14 +272,8 @@ class CDS(Generic):
         return number if number.startswith("-") else "+" + number
 
     @classmethod
-    def format_exponential_notation(
-        cls, val: float | np.number, format_spec: str = ".8g"
-    ) -> str:
-        return super(Generic, cls).format_exponential_notation(val, format_spec)
-
-    @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline"] = False
+        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
     ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)

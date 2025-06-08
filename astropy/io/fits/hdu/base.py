@@ -19,22 +19,19 @@ from astropy.io.fits.util import (
     _free_space_check,
     _get_array_mmap,
     _is_int,
-    _is_pseudo_integer,
-    _pseudo_zero,
     decode_ascii,
     first,
     itersubclasses,
 )
 from astropy.io.fits.verify import _ErrList, _Verify
 from astropy.utils import lazyproperty
-from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = [
     "DELAYED",
+    "ExtensionHDU",
     # classes
     "InvalidHDUException",
-    "ExtensionHDU",
     "NonstandardExtHDU",
 ]
 
@@ -110,11 +107,7 @@ def _hdu_class_from_header(cls, header):
                     or c in cls._hdu_registry
                 ):
                     continue
-                # skip _NonstandardExtHDU and _ExtensionHDU since those are deprecated
-                if c.match_header(header) and c not in (
-                    _NonstandardExtHDU,
-                    _ExtensionHDU,
-                ):
+                if c.match_header(header):
                     klass = c
                     break
             except NotImplementedError:
@@ -401,10 +394,10 @@ class _BaseHDU:
 
         Notes
         -----
-        gzip, zip and bzip2 compression algorithms are natively supported.
+        gzip, zip, bzip2 and lzma compression algorithms are natively supported.
         Compression mode is determined from the filename extension
-        ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
-        compressed file object, e.g. `gzip.GzipFile`.
+        ('.gz', '.zip', '.bz2' or '.xz' respectively).  It is also possible to
+        pass a compressed file object, e.g. `gzip.GzipFile`.
         """
         from .hdulist import HDUList
 
@@ -560,77 +553,8 @@ class _BaseHDU:
         else:
             return None
 
-    # TODO: Rework checksum handling so that it's not necessary to add a
-    # checksum argument here
-    # TODO: The BaseHDU class shouldn't even handle checksums since they're
-    # only implemented on _ValidHDU...
-    def _prewriteto(self, checksum=False, inplace=False):
-        self._update_pseudo_int_scale_keywords()
-
-        # Handle checksum
-        self._update_checksum(checksum)
-
-    def _update_pseudo_int_scale_keywords(self):
-        """
-        If the data is signed int 8, unsigned int 16, 32, or 64,
-        add BSCALE/BZERO cards to header.
-        """
-        if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
-            # CompImageHDUs need TFIELDS immediately after GCOUNT,
-            # so BSCALE has to go after TFIELDS if it exists.
-            if "TFIELDS" in self._header:
-                self._header.set("BSCALE", 1, after="TFIELDS")
-            elif "GCOUNT" in self._header:
-                self._header.set("BSCALE", 1, after="GCOUNT")
-            else:
-                self._header.set("BSCALE", 1)
-            self._header.set("BZERO", _pseudo_zero(self.data.dtype), after="BSCALE")
-
-    def _update_checksum(
-        self, checksum, checksum_keyword="CHECKSUM", datasum_keyword="DATASUM"
-    ):
-        """Update the 'CHECKSUM' and 'DATASUM' keywords in the header (or
-        keywords with equivalent semantics given by the ``checksum_keyword``
-        and ``datasum_keyword`` arguments--see for example ``CompImageHDU``
-        for an example of why this might need to be overridden).
-        """
-        # If the data is loaded it isn't necessarily 'modified', but we have no
-        # way of knowing for sure
-        modified = self._header._modified or self._data_loaded
-
-        if checksum == "remove":
-            if checksum_keyword in self._header:
-                del self._header[checksum_keyword]
-
-            if datasum_keyword in self._header:
-                del self._header[datasum_keyword]
-        elif (
-            modified
-            or self._new
-            or (
-                checksum
-                and (
-                    "CHECKSUM" not in self._header
-                    or "DATASUM" not in self._header
-                    or not self._checksum_valid
-                    or not self._datasum_valid
-                )
-            )
-        ):
-            if checksum == "datasum":
-                self.add_datasum(datasum_keyword=datasum_keyword)
-            elif checksum:
-                self.add_checksum(
-                    checksum_keyword=checksum_keyword, datasum_keyword=datasum_keyword
-                )
-
     def _postwriteto(self):
-        # If data is unsigned integer 16, 32 or 64, remove the
-        # BSCALE/BZERO cards
-        if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
-            for keyword in ("BSCALE", "BZERO"):
-                with suppress(KeyError):
-                    del self._header[keyword]
+        pass
 
     def _writeheader(self, fileobj):
         offset = 0
@@ -1107,6 +1031,10 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         return errs
 
+    def _prewriteto(self, inplace=False):
+        # Handle checksum
+        self._update_checksum()
+
     # TODO: Improve this API a little bit--for one, most of these arguments
     # could be optional
     def req_cards(self, keyword, pos, test, fix_value, option, errlist):
@@ -1403,6 +1331,39 @@ class _ValidHDU(_BaseHDU, _Verify):
                     AstropyUserWarning,
                 )
 
+    def _update_checksum(self, checksum_keyword="CHECKSUM", datasum_keyword="DATASUM"):
+        """Update the 'CHECKSUM' and 'DATASUM' keywords in the header (or
+        keywords with equivalent semantics given by the ``checksum_keyword``
+        and ``datasum_keyword`` arguments--see for example ``CompImageHDU``
+        for an example of why this might need to be overridden).
+        """
+        # If the data is loaded it isn't necessarily 'modified', but we have no
+        # way of knowing for sure
+        modified = self._header._modified or self._data_loaded
+
+        if self._output_checksum == "remove":
+            self._header.remove(checksum_keyword, ignore_missing=True)
+            self._header.remove(datasum_keyword, ignore_missing=True)
+        elif (
+            modified
+            or self._new
+            or (
+                self._output_checksum
+                and (
+                    "CHECKSUM" not in self._header
+                    or "DATASUM" not in self._header
+                    or not self._checksum_valid
+                    or not self._datasum_valid
+                )
+            )
+        ):
+            if self._output_checksum == "datasum":
+                self.add_datasum(datasum_keyword=datasum_keyword)
+            elif self._output_checksum:
+                self.add_checksum(
+                    checksum_keyword=checksum_keyword, datasum_keyword=datasum_keyword
+                )
+
     def _get_timestamp(self):
         """
         Return the current timestamp in ISO 8601 format, with microseconds
@@ -1469,55 +1430,24 @@ class _ValidHDU(_BaseHDU, _Verify):
         -------
         ones complement checksum
         """
-        blocklen = 2880
-        sum32 = np.uint32(sum32)
-        for i in range(0, len(data), blocklen):
-            length = min(blocklen, len(data) - i)  # ????
-            sum32 = self._compute_hdu_checksum(data[i : i + length], sum32)
-        return sum32
-
-    def _compute_hdu_checksum(self, data, sum32=0):
-        """
-        Translated from FITS Checksum Proposal by Seaman, Pence, and Rots.
-        Use uint32 literals as a hedge against type promotion to int64.
-
-        This code should only be called with blocks of 2880 bytes
-        Longer blocks result in non-standard checksums with carry overflow
-        Historically,  this code *was* called with larger blocks and for that
-        reason still needs to be for backward compatibility.
-        """
-        u8 = np.uint32(8)
-        u16 = np.uint32(16)
-        uFFFF = np.uint32(0xFFFF)
-
-        if data.nbytes % 2:
-            last = data[-1]
-            data = data[:-1]
-        else:
-            last = np.uint32(0)
-
-        data = data.view(">u2")
-
-        hi = sum32 >> u16
-        lo = sum32 & uFFFF
-        hi += np.add.reduce(data[0::2], dtype=np.uint64)
-        lo += np.add.reduce(data[1::2], dtype=np.uint64)
-
-        if (data.nbytes // 2) % 2:
-            lo += last << u8
-        else:
-            hi += last << u8
-
-        hicarry = hi >> u16
-        locarry = lo >> u16
-
-        while hicarry or locarry:
-            hi = (hi & uFFFF) + locarry
-            lo = (lo & uFFFF) + hicarry
-            hicarry = hi >> u16
-            locarry = lo >> u16
-
-        return (hi << u16) + lo
+        # Possibly split data in blocks to avoid overflow in the uint64 sum
+        # (logically, the maximum is (2**64-1) / (2**32-1) = 2**32+1 uint32
+        # data, so ~2**34 bytes, but 4GB is a lot and better safe than sorry).
+        blocklen = 1 << 32
+        # The cast to uint32 is not needed by the tests, and seems odd, since
+        # higher bits should be dealt with. But in numpy>=2.0, out-of-bound
+        # raises OverflowError, so keeping the cast makes the code more secure.
+        s = int(np.uint32(sum32))
+        for piece in np.split(data, range(blocklen, len(data), blocklen)):
+            if extra := piece.nbytes % 4:
+                # Pad with zeros to complete the last big-endian uint32.
+                last = bytes(piece[-extra:]) + b"\00" * (4 - extra)
+                s += int.from_bytes(last, byteorder="big")
+                piece = piece[:-extra]
+            s += int(piece.view(">u4").sum(dtype="u8"))
+            while hi := (s >> 32):
+                s = (s & 0xFFFFFFFF) + hi
+        return np.uint32(s)
 
     # _MASK and _EXCLUDE used for encoding the checksum value into a character
     # string.
@@ -1625,11 +1555,6 @@ class ExtensionHDU(_ValidHDU):
         return errs
 
 
-@deprecated("v6.0")
-class _ExtensionHDU(ExtensionHDU):
-    pass
-
-
 class NonstandardExtHDU(ExtensionHDU):
     """
     A Non-standard Extension HDU class.
@@ -1672,8 +1597,3 @@ class NonstandardExtHDU(ExtensionHDU):
         Return the file data.
         """
         return self._get_raw_data(self.size, "ubyte", self._data_offset)
-
-
-@deprecated("v6.0")
-class _NonstandardExtHDU(NonstandardExtHDU):
-    pass

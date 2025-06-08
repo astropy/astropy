@@ -50,8 +50,8 @@ def test_init_with_header():
 def test_init_with_dict():
     dict1 = {"a": 11, "b": 12, "c": 13, "d": 14, "e": 15}
     h1 = fits.Header(dict1)
-    for i in dict1:
-        assert dict1[i] == h1[i]
+    for i, expected in dict1.items():
+        assert h1[i] == expected
 
 
 def test_init_with_ordereddict():
@@ -530,15 +530,20 @@ class TestHeaderFunctions(FitsTestCase):
         assert header["COMMENT"] == header["HISTORY"]
         assert header["COMMENT"] == header[""]
 
+    def check_roundtrip(self, card):
+        hdu = fits.PrimaryHDU()
+        hdu.header.append(card)
+        hdu.writeto(self.temp("test_new.fits"))
+        hdul = fits.open(self.temp("test_new.fits"))
+        new_card = hdul[0].header.cards[card.keyword]
+        hdul.close()
+        assert new_card.keyword == card.keyword
+        assert new_card.value == card.value
+        assert new_card.comment == card.comment
+
     def test_long_string_from_file(self):
         c = fits.Card("abc", "long string value " * 10, "long comment " * 10)
-        hdu = fits.PrimaryHDU()
-        hdu.header.append(c)
-        hdu.writeto(self.temp("test_new.fits"))
-
-        hdul = fits.open(self.temp("test_new.fits"))
-        c = hdul[0].header.cards["abc"]
-        hdul.close()
+        c.verify()
         assert (
             str(c)
             == "ABC     = 'long string value long string value long string value long string &' "
@@ -548,6 +553,7 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  '&' / comment long comment long comment long comment long comment     "
             "CONTINUE  '' / long comment                                                     "
         )
+        self.check_roundtrip(c)
 
     def test_word_in_long_string_too_long(self):
         # if a word in a long string is too long, it will be cut in the middle
@@ -718,6 +724,52 @@ class TestHeaderFunctions(FitsTestCase):
         assert c.keyword == "key.META_4"
         assert c.value == "calFileVersion"
         assert c.comment == ""
+
+    def test_hierarch_key_with_long_value(self):
+        # regression test for gh-3746
+        long_key = "A VERY LONG KEY HERE"
+        long_value = (
+            "A VERY VERY VERY VERY LONG STRING THAT SOMETHING MAY BE MAD"
+            " ABOUT PERSISTING BECAUSE ASTROPY CAN'T HANDLE THE TRUTH"
+        )
+        with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
+            card = fits.Card(long_key, long_value)
+        card.verify()
+        assert str(card) == (
+            "HIERARCH A VERY LONG KEY HERE = 'A VERY VERY VERY VERY LONG STRING THAT &'      "
+            "CONTINUE  'SOMETHING MAY BE MAD ABOUT PERSISTING BECAUSE ASTROPY CAN''T &'      "
+            "CONTINUE  'HANDLE THE TRUTH'                                                    "
+        )
+        self.check_roundtrip(card)
+
+    def test_hierarch_key_with_long_value_no_spaces(self):
+        # regression test for gh-3746
+        long_key = "A VERY LONG KEY HERE"
+        long_value = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ" * 3
+        with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
+            card = fits.Card(long_key, long_value)
+        card.verify()
+        assert str(card) == (
+            "HIERARCH A VERY LONG KEY HERE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRS&'"
+            "CONTINUE  'TUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGH&'"
+            "CONTINUE  'IJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ'                        "
+        )
+        self.check_roundtrip(card)
+
+    def test_hierarch_key_with_medium_value_and_comment(self):
+        long_key = "A VERY LONG KEY HERE"
+        medium_value = "ABCD EFGH IJKL MNOP QRST " * 2
+        assert len(medium_value) == 50  # Just right to trigger previous bug
+        comment = "random comment"
+        with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
+            card = fits.Card(long_key, medium_value, comment)
+        card.verify()
+        assert str(card) == (
+            "HIERARCH A VERY LONG KEY HERE = 'ABCD EFGH IJKL MNOP QRST ABCD EFGH IJKL MNOP &'"
+            + _pad("CONTINUE  'QRST &'")
+            + _pad("CONTINUE  '' / random comment")
+        )
+        self.check_roundtrip(card)
 
     def test_verify_mixed_case_hierarch(self):
         """Regression test for
@@ -1067,7 +1119,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_wildcard_slice(self):
         """Test selecting a subsection of a header via wildcard matching."""
 
-        header = fits.Header([("ABC", 0), ("DEF", 1), ("ABD", 2)])
+        header = fits.Header(
+            [("ABC", 0), ("DEF", 1), ("ABD", 2)]  # codespell:ignore abd
+        )
         newheader = header["AB*"]
         assert len(newheader) == 2
         assert newheader[0] == 0
@@ -1087,7 +1141,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_wildcard_slice_assignment(self):
         """Test assigning to a header slice selected via wildcard matching."""
 
-        header = fits.Header([("ABC", 0), ("DEF", 1), ("ABD", 2)])
+        header = fits.Header(
+            [("ABC", 0), ("DEF", 1), ("ABD", 2)]  # codespell:ignore abd
+        )
 
         # Test assigning slice to the same value; this works similarly to numpy
         # arrays
@@ -1108,7 +1164,9 @@ class TestHeaderFunctions(FitsTestCase):
     def test_wildcard_slice_deletion(self):
         """Test deleting cards from a header that match a wildcard pattern."""
 
-        header = fits.Header([("ABC", 0), ("DEF", 1), ("ABD", 2)])
+        header = fits.Header(
+            [("ABC", 0), ("DEF", 1), ("ABD", 2)]  # codespell:ignore abd
+        )
         del header["AB*"]
         assert len(header) == 1
         assert header[0] == 1

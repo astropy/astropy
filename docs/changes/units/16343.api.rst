@@ -1,4 +1,0 @@
-The ``factor`` parameter of the ``spectral_density`` equivalency, the use of
-which has been discouraged in the documentation since version 0.3, is now
-deprecated.
-Use the ``wav`` parameter as a ``Quantity``, not as a bare unit.

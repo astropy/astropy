@@ -2,20 +2,21 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import warnings
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, ClassVar, Literal
 
-from astropy.utils import classproperty
-
-from . import utils
+from astropy.units.core import CompositeUnit, NamedUnit, Unit, get_current_unit_registry
+from astropy.units.errors import UnitsWarning
+from astropy.units.utils import maybe_simple_fraction
+from astropy.utils.misc import did_you_mean
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
-    from typing import ClassVar, Literal
-
     import numpy as np
 
-    from astropy.units import NamedUnit, UnitBase
-    from astropy.units.typing import Real
+    from astropy.extern.ply.lex import LexToken
+    from astropy.units import UnitBase
+    from astropy.units.typing import UnitPower, UnitScale
 
 
 class Base:
@@ -44,16 +45,9 @@ class Base:
         Base.registry[cls.name] = cls
         super().__init_subclass__(**kwargs)
 
-    @classproperty(lazy=True)
-    def _fraction_formatters(cls) -> dict[bool | str, Callable[[str, str, str], str]]:
-        return {
-            True: cls._format_inline_fraction,
-            "inline": cls._format_inline_fraction,
-        }
-
     @classmethod
     def format_exponential_notation(
-        cls, val: float | np.number, format_spec: str = ".8g"
+        cls, val: UnitScale | np.number, format_spec: str = ".8g"
     ) -> str:
         """
         Formats a value in exponential notation.
@@ -92,19 +86,26 @@ class Base:
         return f"({number})" if "/" in number or "." in number else number
 
     @classmethod
-    def _format_unit_power(cls, unit: NamedUnit, power: Real = 1) -> str:
+    def _format_unit_power(cls, unit: NamedUnit, power: UnitPower = 1) -> str:
         """Format the unit for this format class raised to the given power.
 
         This is overridden in Latex where the name of the unit can depend on the power
         (e.g., for degrees).
         """
         name = unit._get_format_name(cls.name)
-        if power != 1:
-            name += cls._format_superscript(utils.format_power(power))
-        return name
+        return name if power == 1 else name + cls._format_power(power)
 
     @classmethod
-    def _format_unit_list(cls, units: Iterable[tuple[NamedUnit, Real]]) -> str:
+    def _format_power(cls, power: UnitPower) -> str:
+        # If the denominator of `power` is a power of 2 then `power` is stored
+        # as a `float` (see `units.utils.sanitize_power()`), but we still want
+        # to display it as a fraction.
+        return cls._format_superscript(
+            str(maybe_simple_fraction(power) if isinstance(power, float) else power)
+        )
+
+    @classmethod
+    def _format_unit_list(cls, units: Iterable[tuple[NamedUnit, UnitPower]]) -> str:
         return cls._space.join(
             cls._format_unit_power(base_, power) for base_, power in units
         )
@@ -120,8 +121,20 @@ class Base:
         return f"{scale}{numerator} / {denominator}"
 
     @classmethod
+    def _format_multiline_fraction(
+        cls, scale: str, numerator: str, denominator: str
+    ) -> str:
+        # By default, we just warn that we do not have a multiline format.
+        warnings.warn(
+            f"{cls.name!r} format does not support multiline "
+            "fractions; using inline instead.",
+            UnitsWarning,
+        )
+        return cls._format_inline_fraction(scale, numerator, denominator)
+
+    @classmethod
     def to_string(
-        cls, unit: UnitBase, *, fraction: bool | Literal["inline"] = True
+        cls, unit: UnitBase, *, fraction: bool | Literal["inline", "multiline"] = True
     ) -> str:
         """Convert a unit to its string representation.
 
@@ -137,9 +150,9 @@ class Base:
             - `False` : display unit bases with negative powers as they are
               (e.g., ``km s-1``);
             - 'inline' or `True` : use a single-line fraction (e.g., ``km / s``);
-            - 'multiline' : use a multiline fraction (available for the
-              ``latex``, ``console`` and ``unicode`` formats only; e.g.,
-              ``$\\mathrm{\\frac{km}{s}}$``).
+            - 'multiline' : use a multiline fraction if possible (available for
+              the ``latex``, ``console`` and ``unicode`` formats; e.g.,
+              ``$\\mathrm{\\frac{km}{s}}$``). If not possible, use 'inline'.
 
         Raises
         ------
@@ -149,7 +162,7 @@ class Base:
         # First the scale.  Normally unity, in which case we omit
         # it, but non-unity scale can happen, e.g., in decompositions
         # like u.Ry.decompose(), which gives "2.17987e-18 kg m2 / s2".
-        s = "" if unit.scale == 1 else cls.format_exponential_notation(unit.scale)
+        s = "" if unit.scale == 1.0 else cls.format_exponential_notation(unit.scale)
 
         # dimensionless does not have any bases, but can have a scale;
         # e.g., u.percent.decompose() gives "0.01".
@@ -162,6 +175,16 @@ class Base:
         if not fraction or unit.powers[-1] > 0:
             return s + cls._format_unit_list(zip(unit.bases, unit.powers, strict=True))
 
+        if fraction is True or fraction == "inline":
+            formatter = cls._format_inline_fraction
+        elif fraction == "multiline":
+            formatter = cls._format_multiline_fraction
+        else:
+            raise ValueError(
+                "fraction can only be False, 'inline', or 'multiline', "
+                f"not {fraction!r}."
+            )
+
         positive = []
         negative = []
         for base, power in zip(unit.bases, unit.powers, strict=True):
@@ -169,24 +192,9 @@ class Base:
                 positive.append((base, power))
             else:
                 negative.append((base, -power))
-        try:
-            return cls._fraction_formatters[fraction](
-                s,
-                cls._format_unit_list(positive) or "1",
-                cls._format_unit_list(negative),
-            )
-        except KeyError:
-            # We accept Booleans, but don't advertise them in the error message
-            *all_but_last, last = (
-                repr(key) for key in cls._fraction_formatters if isinstance(key, str)
-            )
-            supported_formats = (
-                f"{', '.join(all_but_last)} or {last}" if all_but_last else last
-            )
-            raise ValueError(
-                f"{cls.name!r} format only supports {supported_formats} "
-                f"fractions, not {fraction=!r}."
-            ) from None
+        return formatter(
+            s, cls._format_unit_list(positive) or "1", cls._format_unit_list(negative)
+        )
 
     @classmethod
     def parse(cls, s: str) -> UnitBase:
@@ -194,3 +202,92 @@ class Base:
         Convert a string to a unit object.
         """
         raise NotImplementedError(f"Can not parse with {cls.__name__} format")
+
+
+class _ParsingFormatMixin:
+    """Provides private methods used in the formats that parse units."""
+
+    _deprecated_units: ClassVar[frozenset[str]] = frozenset()
+
+    @classmethod
+    def _do_parse(cls, s: str, debug: bool = False) -> UnitBase:
+        try:
+            return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
+        except ValueError as e:
+            if str(e):
+                raise
+            else:
+                raise ValueError(f"Syntax error parsing unit '{s}'")
+
+    @classmethod
+    def _get_unit(cls, t: LexToken) -> UnitBase:
+        try:
+            return cls._validate_unit(t.value)
+        except ValueError as e:
+            registry = get_current_unit_registry()
+            if t.value in registry.aliases:
+                return registry.aliases[t.value]
+
+            raise ValueError(f"At col {t.lexpos}, {str(e)}")
+
+    @classmethod
+    def _fix_deprecated(cls, x: str) -> list[str]:
+        return [x + " (deprecated)" if x in cls._deprecated_units else x]
+
+    @classmethod
+    def _did_you_mean_units(cls, unit: str) -> str:
+        """
+        A wrapper around `astropy.utils.misc.did_you_mean` that deals with
+        the display of deprecated units.
+
+        Parameters
+        ----------
+        unit : str
+            The invalid unit string
+
+        Returns
+        -------
+        msg : str
+            A message with alternatives, or the empty string.
+        """
+        return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
+
+    @classmethod
+    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+        try:
+            return cls._units[unit]
+        except KeyError:
+            if detailed_exception:
+                raise ValueError(cls._invalid_unit_error_message(unit)) from None
+            raise ValueError() from None
+
+    @classmethod
+    def _invalid_unit_error_message(cls, unit: str) -> str:
+        return (
+            f"Unit '{unit}' not supported by the {cls.__name__} standard. "
+            + cls._did_you_mean_units(unit)
+        )
+
+    @classmethod
+    def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:
+        """
+        Partially decomposes a unit so it is only composed of units that
+        are "known" to a given format.
+        """
+        if isinstance(unit, CompositeUnit):
+            return CompositeUnit(
+                unit.scale,
+                [cls._decompose_to_known_units(base) for base in unit.bases],
+                unit.powers,
+                _error_check=False,
+            )
+        if isinstance(unit, NamedUnit):
+            try:
+                return cls._validate_unit(unit._get_format_name(cls.name))
+            except ValueError:
+                if isinstance(unit, Unit):
+                    return cls._decompose_to_known_units(unit._represents)
+                raise
+        raise TypeError(
+            f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
+        )

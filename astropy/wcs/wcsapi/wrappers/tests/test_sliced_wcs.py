@@ -51,7 +51,7 @@ CUNIT3  = deg
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", VerifyWarning)
     WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep="\n"))
-WCS_SPECTRAL_CUBE.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
+WCS_SPECTRAL_CUBE.pixel_bounds = [(-1, 50), (-2, 60), (-5, 70)]
 
 
 def test_invalid_slices():
@@ -90,9 +90,9 @@ This transformation has 3 pixel and 3 world dimensions
 Array shape (Numpy order): (30, 20, 10)
 
 Pixel Dim  Axis Name  Data size  Bounds
-        0  None              10  (-1, 11)
-        1  None              20  (-2, 18)
-        2  None              30  (5, 15)
+        0  None              10  (-1, 50)
+        1  None              20  (-2, 60)
+        2  None              30  (-5, 70)
 
 World Dim  Axis Name  Physical Type     Units
         0  Latitude   pos.galactic.lat  deg
@@ -158,7 +158,7 @@ def test_ellipsis():
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29.0, 39.0, 44.0))
     assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
 
-    assert_equal(wcs.pixel_bounds, [(-1, 11), (-2, 18), (5, 15)])
+    assert_equal(wcs.pixel_bounds, [(-1, 50), (-2, 60), (-5, 70)])
 
     assert str(wcs) == EXPECTED_ELLIPSIS_REPR.strip()
     assert EXPECTED_ELLIPSIS_REPR.strip() in repr(wcs)
@@ -189,8 +189,8 @@ This transformation has 2 pixel and 2 world dimensions
 Array shape (Numpy order): (30, 10)
 
 Pixel Dim  Axis Name  Data size  Bounds
-        0  None              10  (-1, 11)
-        1  None              30  (5, 15)
+        0  None              10  (-1, 50)
+        1  None              30  (-5, 70)
 
 World Dim  Axis Name  Physical Type     Units
         0  Latitude   pos.galactic.lat  deg
@@ -235,7 +235,7 @@ def test_spectral_slice():
     assert_allclose(wcs.world_to_pixel_values(10, 25), (29.0, 44.0))
     assert_equal(wcs.world_to_array_index_values(10, 25), (44, 29))
 
-    assert_equal(wcs.pixel_bounds, [(-1, 11), (5, 15)])
+    assert_equal(wcs.pixel_bounds, [(-1, 50), (-5, 70)])
 
     assert str(wcs) == EXPECTED_SPECTRAL_SLICE_REPR.strip()
     assert EXPECTED_SPECTRAL_SLICE_REPR.strip() in repr(wcs)
@@ -249,9 +249,9 @@ This transformation has 3 pixel and 3 world dimensions
 Array shape (Numpy order): (30, 6, 10)
 
 Pixel Dim  Axis Name  Data size  Bounds
-        0  None              10  (-1, 11)
-        1  None               6  (-6, 14)
-        2  None              30  (5, 15)
+        0  None              10  (-1, 50)
+        1  None               6  (-6, 56)
+        2  None              30  (-5, 70)
 
 World Dim  Axis Name  Physical Type     Units
         0  Latitude   pos.galactic.lat  deg
@@ -317,7 +317,7 @@ def test_spectral_range():
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29.0, 35.0, 44.0))
     assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 35, 29))
 
-    assert_equal(wcs.pixel_bounds, [(-1, 11), (-6, 14), (5, 15)])
+    assert_equal(wcs.pixel_bounds, [(-1, 50), (-6, 56), (-5, 70)])
 
     assert str(wcs) == EXPECTED_SPECTRAL_RANGE_REPR.strip()
     assert EXPECTED_SPECTRAL_RANGE_REPR.strip() in repr(wcs)
@@ -331,8 +331,8 @@ This transformation has 2 pixel and 3 world dimensions
 Array shape (Numpy order): (30, 20)
 
 Pixel Dim  Axis Name  Data size  Bounds
-        0  None              20  (-2, 18)
-        1  None              30  (5, 15)
+        0  None              20  (-2, 60)
+        1  None              30  (-5, 70)
 
 World Dim  Axis Name  Physical Type     Units
         0  Latitude   pos.galactic.lat  deg
@@ -397,7 +397,7 @@ def test_celestial_slice():
     assert_allclose(wcs.world_to_pixel_values(12.4, 20, 25), (39.0, 44.0))
     assert_equal(wcs.world_to_array_index_values(12.4, 20, 25), (44, 39))
 
-    assert_equal(wcs.pixel_bounds, [(-2, 18), (5, 15)])
+    assert_equal(wcs.pixel_bounds, [(-2, 60), (-5, 70)])
 
     assert str(wcs) == EXPECTED_CELESTIAL_SLICE_REPR.strip()
     assert EXPECTED_CELESTIAL_SLICE_REPR.strip() in repr(wcs)
@@ -411,9 +411,9 @@ This transformation has 3 pixel and 3 world dimensions
 Array shape (Numpy order): (30, 20, 5)
 
 Pixel Dim  Axis Name  Data size  Bounds
-        0  None               5  (-6, 6)
-        1  None              20  (-2, 18)
-        2  None              30  (5, 15)
+        0  None               5  (-6, 45)
+        1  None              20  (-2, 60)
+        2  None              30  (-5, 70)
 
 World Dim  Axis Name  Physical Type     Units
         0  Latitude   pos.galactic.lat  deg
@@ -479,7 +479,7 @@ def test_celestial_range():
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (24.0, 39.0, 44.0))
     assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 24))
 
-    assert_equal(wcs.pixel_bounds, [(-6, 6), (-2, 18), (5, 15)])
+    assert_equal(wcs.pixel_bounds, [(-6, 45), (-2, 60), (-5, 70)])
 
     assert str(wcs) == EXPECTED_CELESTIAL_RANGE_REPR.strip()
     assert EXPECTED_CELESTIAL_RANGE_REPR.strip() in repr(wcs)
@@ -492,7 +492,7 @@ with warnings.catch_warnings():
     WCS_SPECTRAL_CUBE_ROT = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep="\n"))
 WCS_SPECTRAL_CUBE_ROT.wcs.pc = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
 WCS_SPECTRAL_CUBE_ROT.wcs.crval[0] = 0
-WCS_SPECTRAL_CUBE_ROT.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
+WCS_SPECTRAL_CUBE_ROT.pixel_bounds = [(-1, 50), (-2, 60), (-5, 70)]
 
 EXPECTED_CELESTIAL_RANGE_ROT_REPR = """
 SlicedLowLevelWCS Transformation
@@ -502,9 +502,9 @@ This transformation has 3 pixel and 3 world dimensions
 Array shape (Numpy order): (30, 20, 5)
 
 Pixel Dim  Axis Name  Data size  Bounds
-        0  None               5  (-6, 6)
-        1  None              20  (-2, 18)
-        2  None              30  (5, 15)
+        0  None               5  (-6, 45)
+        1  None              20  (-2, 60)
+        2  None              30  (-5, 70)
 
 World Dim  Axis Name  Physical Type     Units
         0  Latitude   pos.galactic.lat  deg
@@ -570,7 +570,7 @@ def test_celestial_range_rot():
     assert_allclose(wcs.world_to_pixel_values(1, 15, 24), (14.0, 29.0, 34.0))
     assert_equal(wcs.world_to_array_index_values(1, 15, 24), (34, 29, 14))
 
-    assert_equal(wcs.pixel_bounds, [(-6, 6), (-2, 18), (5, 15)])
+    assert_equal(wcs.pixel_bounds, [(-6, 45), (-2, 60), (-5, 70)])
 
     assert str(wcs) == EXPECTED_CELESTIAL_RANGE_ROT_REPR.strip()
     assert EXPECTED_CELESTIAL_RANGE_ROT_REPR.strip() in repr(wcs)
@@ -700,7 +700,7 @@ HEADER_SPECTRAL_CUBE_NONE_TYPES = {
 }
 
 WCS_SPECTRAL_CUBE_NONE_TYPES = WCS(header=HEADER_SPECTRAL_CUBE_NONE_TYPES)
-WCS_SPECTRAL_CUBE_NONE_TYPES.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
+WCS_SPECTRAL_CUBE_NONE_TYPES.pixel_bounds = [(-1, 50), (-2, 60), (-5, 70)]
 
 WCS_SPECTRAL_CUBE_NONE_TYPES_NP = WCS(header=HEADER_SPECTRAL_CUBE_NONE_TYPES)
 WCS_SPECTRAL_CUBE_NONE_TYPES_NP.pixel_bounds = [
@@ -716,9 +716,9 @@ This transformation has 3 pixel and 3 world dimensions
 Array shape (Numpy order): (30, 20, 10)
 
 Pixel Dim  Axis Name  Data size  Bounds
-        0  None              10  (-1, 11)
-        1  None              20  (-2, 18)
-        2  None              30  (5, 15)
+        0  None              10  (-1, 50)
+        1  None              20  (-2, 60)
+        2  None              30  (-5, 70)
 
 World Dim  Axis Name  Physical Type     Units
         0  None       pos.galactic.lat  deg
@@ -771,7 +771,7 @@ def test_ellipsis_none_types():
     assert_allclose(wcs.world_to_pixel_values(10, 20, 25), (29.0, 39.0, 44.0))
     assert_equal(wcs.world_to_array_index_values(10, 20, 25), (44, 39, 29))
 
-    assert_equal(wcs.pixel_bounds, [(-1, 11), (-2, 18), (5, 15)])
+    assert_equal(wcs.pixel_bounds, [(-1, 50), (-2, 60), (-5, 70)])
 
     assert str(wcs) == EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip()
     assert EXPECTED_ELLIPSIS_REPR_NONE_TYPES.strip() in repr(wcs)
@@ -887,6 +887,8 @@ def validate_info_dict(result, expected):
 
 def test_dropped_dimensions():
     wcs = WCS_SPECTRAL_CUBE
+
+    print(wcs.pixel_bounds)
 
     sub = SlicedLowLevelWCS(wcs, np.s_[:, :, :])
 

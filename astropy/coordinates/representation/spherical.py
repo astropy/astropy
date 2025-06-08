@@ -540,6 +540,16 @@ class SphericalRepresentation(BaseRepresentation):
                     lon=self.lon, lat=self.lat, differentials=diffs, copy=False
                 )
 
+            elif issubclass(other_class, RadialRepresentation):
+                diffs = self._re_represent_differentials(
+                    other_class, differential_class
+                )
+                return other_class(
+                    distance=self.distance,
+                    differentials=diffs,
+                    copy=False,
+                )
+
         return super().represent_as(other_class, differential_class)
 
     def to_cartesian(self):
@@ -751,6 +761,16 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                     differentials=diffs,
                     copy=False,
                 )
+            elif issubclass(other_class, RadialRepresentation):
+                diffs = self._re_represent_differentials(
+                    other_class, differential_class
+                )
+                return other_class(
+                    distance=self.r,
+                    differentials=diffs,
+                    copy=False,
+                )
+
             from .cylindrical import CylindricalRepresentation
 
             if issubclass(other_class, CylindricalRepresentation):
@@ -917,8 +937,7 @@ class BaseSphericalDifferential(BaseDifferential):
         if (
             isinstance(other, BaseSphericalDifferential)
             and not isinstance(self, type(other))
-            or isinstance(other, RadialDifferential)
-        ):
+        ) or isinstance(other, RadialDifferential):
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
             result_args = {
@@ -1177,8 +1196,7 @@ class BaseSphericalCosLatDifferential(BaseDifferential):
         if (
             isinstance(other, BaseSphericalCosLatDifferential)
             and not isinstance(self, type(other))
-            or isinstance(other, RadialDifferential)
-        ):
+        ) or isinstance(other, RadialDifferential):
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
             result_args = {

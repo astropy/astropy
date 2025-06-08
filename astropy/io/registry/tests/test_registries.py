@@ -84,7 +84,7 @@ def fmtcls2():
 
 @pytest.fixture(params=["test1", "test2"])
 def fmtcls(request):
-    yield (request.param, EmptyData)
+    return (request.param, EmptyData)
 
 
 @pytest.fixture
@@ -353,6 +353,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
                     assert docs[-1][iread : iread + 3] != "Yes"
         # now test it's updated
         docs = EmptyData.read.__doc__.split("\n")
+        ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
         ifmt = docs[ihd].index("Format") + 2
         iread = docs[ihd].index("Read") + 1
         assert docs[-2][ifmt : ifmt + 4] == "test"
@@ -722,6 +723,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
                     assert docs[-1][iwrite : iwrite + 3] != "Yes"
         # now test it's updated
         docs = EmptyData.write.__doc__.split("\n")
+        ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
         ifmt = docs[ihd].index("Format") + 1
         iwrite = docs[ihd].index("Write") + 2
         assert fmt in docs[-2][ifmt : ifmt + len(fmt) + 1]
@@ -1095,7 +1097,7 @@ class TestSubclass:
     @pytest.fixture(autouse=True)
     def registry(self):
         """I/O registry. Not cleaned."""
-        yield
+        return
 
     def test_read_table_subclass(self):
         class MyTable(Table):

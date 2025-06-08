@@ -20,42 +20,33 @@ import re
 import unicodedata
 import warnings
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from re import Match, Pattern
+from typing import TYPE_CHECKING, ClassVar, Final
 
+from astropy.units.core import CompositeUnit, Unit, get_current_unit_registry
 from astropy.units.errors import UnitsWarning
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
-from . import core
-from .base import Base
+from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
-    from re import Match, Pattern
-    from typing import ClassVar, Final
-
     import numpy as np
 
-    from astropy.extern.ply.lex import Lexer, LexToken
-    from astropy.units import CompositeUnit, NamedUnit, UnitBase
+    from astropy.extern.ply.lex import Lexer
+    from astropy.units import UnitBase
+    from astropy.units.typing import UnitScale
     from astropy.utils.parsing import ThreadSafeParser
 
 
-class Generic(Base):
-    """
-    A "generic" format.
-
-    The syntax of the format is based directly on the FITS standard,
-    but instead of only supporting the units that FITS knows about, it
-    supports any unit available in the `astropy.units` namespace.
-    """
+class _GenericParserMixin(_ParsingFormatMixin):
+    """Provide the parser used by Generic, FITS and VOUnit."""
 
     _tokens: ClassVar[tuple[str, ...]] = (
         "COMMA",
-        "DOUBLE_STAR",
-        "STAR",
-        "PERIOD",
-        "SOLIDUS",
-        "CARET",
+        "POWER",
+        "PRODUCT",
+        "DIVISION",
         "OPEN_PAREN",
         "CLOSE_PAREN",
         "FUNCNAME",
@@ -65,18 +56,14 @@ class Generic(Base):
         "UFLOAT",
     )
 
-    _deprecated_units: ClassVar[frozenset[str]] = frozenset()
-
     @classproperty(lazy=True)
     def _lexer(cls) -> Lexer:
         tokens = cls._tokens
 
         t_COMMA = r"\,"
-        t_STAR = r"\*"
-        t_PERIOD = r"\."
-        t_SOLIDUS = r"/"
-        t_DOUBLE_STAR = r"\*\*"
-        t_CARET = r"\^"
+        t_PRODUCT = "[*.]"
+        t_DIVISION = "/"
+        t_POWER = r"\^|(\*\*)"
         t_OPEN_PAREN = r"\("
         t_CLOSE_PAREN = r"\)"
 
@@ -110,8 +97,11 @@ class Generic(Base):
             r"((sqrt)|(ln)|(exp)|(log)|(mag)|(dB)|(dex))(?=\ *\()"
             return t
 
+        # A possible unit is something that consists of characters not used
+        # for anything else: no spaces, no digits, signs, periods, stars,
+        # carets, parentheses or commas.
         def t_UNIT(t):
-            "%|([YZEPTGMkhdcmu\N{MICRO SIGN}npfazy]?'((?!\\d)\\w)+')|((?!\\d)\\w)+"
+            r"[^\s\d+\-\./\*\^\(\)\,]+"
             t.value = cls._get_unit(t)
             return t
 
@@ -199,17 +189,15 @@ class Generic(Base):
             """
             unit : product_of_units
                  | factor product_of_units
-                 | factor product product_of_units
+                 | factor PRODUCT product_of_units
                  | division_product_of_units
                  | factor division_product_of_units
-                 | factor product division_product_of_units
+                 | factor PRODUCT division_product_of_units
                  | inverse_unit
                  | factor inverse_unit
-                 | factor product inverse_unit
+                 | factor PRODUCT inverse_unit
                  | factor
             """
-            from astropy.units.core import CompositeUnit, Unit
-
             if len(p) == 2:
                 p[0] = Unit(p[1])
             elif len(p) == 3:
@@ -219,11 +207,9 @@ class Generic(Base):
 
         def p_division_product_of_units(p):
             """
-            division_product_of_units : division_product_of_units division product_of_units
+            division_product_of_units : division_product_of_units DIVISION product_of_units
                                       | product_of_units
             """
-            from astropy.units.core import Unit
-
             if len(p) == 4:
                 p[0] = Unit(p[1] / p[3])
             else:
@@ -231,7 +217,7 @@ class Generic(Base):
 
         def p_inverse_unit(p):
             """
-            inverse_unit : division unit_expression
+            inverse_unit : DIVISION unit_expression
             """
             p[0] = p[2] ** -1
 
@@ -247,7 +233,7 @@ class Generic(Base):
             """
             factor_float : signed_float
                          | signed_float UINT signed_int
-                         | signed_float UINT power numeric_power
+                         | signed_float UINT POWER numeric_power
             """
             if cls.name == "fits":
                 raise ValueError("Numeric factor not supported by FITS")
@@ -262,9 +248,9 @@ class Generic(Base):
             """
             factor_int : UINT
                        | UINT signed_int
-                       | UINT power numeric_power
+                       | UINT POWER numeric_power
                        | UINT UINT signed_int
-                       | UINT UINT power numeric_power
+                       | UINT UINT POWER numeric_power
             """
             if cls.name == "fits":
                 raise ValueError("Numeric factor not supported by FITS")
@@ -282,10 +268,10 @@ class Generic(Base):
 
         def p_factor_fits(p):
             """
-            factor_fits : UINT power OPEN_PAREN signed_int CLOSE_PAREN
-                        | UINT power OPEN_PAREN UINT CLOSE_PAREN
-                        | UINT power signed_int
-                        | UINT power UINT
+            factor_fits : UINT POWER OPEN_PAREN signed_int CLOSE_PAREN
+                        | UINT POWER OPEN_PAREN UINT CLOSE_PAREN
+                        | UINT POWER signed_int
+                        | UINT POWER UINT
                         | UINT SIGN UINT
                         | UINT OPEN_PAREN signed_int CLOSE_PAREN
             """
@@ -306,7 +292,7 @@ class Generic(Base):
 
         def p_product_of_units(p):
             """
-            product_of_units : unit_expression product product_of_units
+            product_of_units : unit_expression PRODUCT product_of_units
                              | unit_expression product_of_units
                              | unit_expression
             """
@@ -330,7 +316,7 @@ class Generic(Base):
 
         def p_unit_with_power(p):
             """
-            unit_with_power : UNIT power numeric_power
+            unit_with_power : UNIT POWER numeric_power
                             | UNIT numeric_power
                             | UNIT
             """
@@ -364,7 +350,7 @@ class Generic(Base):
 
         def p_frac(p):
             """
-            frac : sign UINT division sign UINT
+            frac : sign UINT DIVISION sign UINT
             """
             p[0] = Fraction(p[1] * p[2], p[4] * p[5])
 
@@ -377,24 +363,6 @@ class Generic(Base):
                 p[0] = p[1]
             else:
                 p[0] = 1
-
-        def p_product(p):
-            """
-            product : STAR
-                    | PERIOD
-            """
-
-        def p_division(p):
-            """
-            division : SOLIDUS
-            """
-
-        def p_power(p):
-            """
-            power : DOUBLE_STAR
-                  | CARET
-            """
-            p[0] = p[1]
 
         def p_signed_int(p):
             """
@@ -409,21 +377,15 @@ class Generic(Base):
             """
             p[0] = p[1] * p[2]
 
-        def p_function_name(p):
-            """
-            function_name : FUNCNAME
-            """
-            p[0] = p[1]
-
         def p_function(p):
             """
-            function : function_name OPEN_PAREN main CLOSE_PAREN
+            function : FUNCNAME OPEN_PAREN main CLOSE_PAREN
             """
             if p[1] == "sqrt":
                 p[0] = p[3] ** 0.5
                 return
             elif p[1] in ("mag", "dB", "dex"):
-                function_unit = cls._parse_unit(p[1])
+                function_unit = cls._validate_unit(p[1])
                 # In Generic, this is callable, but that does not have to
                 # be the case in subclasses (e.g., in VOUnit it is not).
                 if callable(function_unit):
@@ -437,29 +399,26 @@ class Generic(Base):
 
         return parsing.yacc(tabmodule="generic_parsetab", package="astropy/units")
 
-    @classmethod
-    def _get_unit(cls, t: LexToken) -> UnitBase:
-        try:
-            return cls._parse_unit(t.value)
-        except ValueError as e:
-            registry = core.get_current_unit_registry()
-            if t.value in registry.aliases:
-                return registry.aliases[t.value]
 
-            raise ValueError(f"At col {t.lexpos}, {str(e)}")
+class Generic(Base, _GenericParserMixin):
+    """
+    A "generic" format.
+
+    The syntax of the format is based directly on the FITS standard,
+    but instead of only supporting the units that FITS knows about, it
+    supports any unit available in the `astropy.units` namespace.
+    """
 
     @classmethod
-    def _parse_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
-        registry = core.get_current_unit_registry().registry
+    def _validate_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
+        registry = get_current_unit_registry().registry
         if s in cls._unit_symbols:
             s = cls._unit_symbols[s]
 
         elif not s.isascii():
-            if s[0] == "\N{MICRO SIGN}":
-                s = "u" + s[1:]
-            if s[-1] in cls._prefixable_unit_symbols:
-                s = s[:-1] + cls._prefixable_unit_symbols[s[-1]]
-            elif len(s) > 1 and s[-1] in cls._unit_suffix_symbols:
+            if s[0].startswith("°"):
+                s = "deg" if len(s) == 1 else "deg_" + s[1:]
+            if len(s) > 1 and s[-1] in cls._unit_suffix_symbols:
                 s = s[:-1] + cls._unit_suffix_symbols[s[-1]]
             elif s.endswith("R\N{INFINITY}"):
                 s = s[:-2] + "Ry"
@@ -480,12 +439,6 @@ class Generic(Base):
         "e\N{SUPERSCRIPT MINUS}": "electron",
     }
 
-    _prefixable_unit_symbols: ClassVar[dict[str, str]] = {
-        "\N{GREEK CAPITAL LETTER OMEGA}": "Ohm",
-        "\N{LATIN CAPITAL LETTER A WITH RING ABOVE}": "Angstrom",
-        "\N{SCRIPT SMALL L}": "l",
-    }
-
     _unit_suffix_symbols: ClassVar[dict[str, str]] = {
         "\N{CIRCLED DOT OPERATOR}": "sun",
         "\N{SUN}": "sun",
@@ -496,17 +449,8 @@ class Generic(Base):
         "\N{LATIN SUBSCRIPT SMALL LETTER P}": "_p",
     }
 
-    _translations: ClassVar[dict[int, str]] = str.maketrans(
-        {
-            "\N{GREEK SMALL LETTER MU}": "\N{MICRO SIGN}",
-            "\N{MINUS SIGN}": "-",
-        }
-    )
-    """Character translations that should be applied before parsing a string.
-
-    Note that this does explicitly *not* generally translate MICRO SIGN to u,
-    since then a string like 'µ' would be interpreted as unit mass.
-    """
+    _translations: ClassVar[dict[int, str]] = str.maketrans({"\N{MINUS SIGN}": "-"})
+    """Character translations that should be applied before parsing a string."""
 
     _superscripts: Final[str] = (
         "\N{SUPERSCRIPT MINUS}"
@@ -529,17 +473,10 @@ class Generic(Base):
     _regex_superscript: ClassVar[Pattern[str]] = re.compile(
         f"[{_superscripts}]?[{_superscripts[2:]}]+"
     )
-    _regex_deg: ClassVar[Pattern[str]] = re.compile("°([CF])?")
 
     @classmethod
     def _convert_superscript(cls, m: Match[str]) -> str:
         return f"({m.group().translate(cls._superscript_translations)})"
-
-    @classmethod
-    def _convert_deg(cls, m: Match[str]) -> str:
-        if len(m.string) == 1:
-            return "deg"
-        return m.string.replace("°", "deg_")
 
     @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
@@ -559,10 +496,9 @@ class Generic(Base):
             # Translate superscripts to parenthesized numbers; this ensures
             # that mixes of superscripts and regular numbers fail.
             s = cls._regex_superscript.sub(cls._convert_superscript, s)
-            # Translate possible degrees.
-            s = cls._regex_deg.sub(cls._convert_deg, s)
 
-        result = cls._do_parse(s, debug=debug)
+        result = cls._do_parse(s, debug)
+
         # Check for excess solidi, but exclude fractional exponents (accepted)
         n_slashes = s.count("/")
         if n_slashes > 1 and (n_slashes - len(re.findall(r"\(\d+/\d+\)", s))) > 1:
@@ -574,94 +510,7 @@ class Generic(Base):
         return result
 
     @classmethod
-    def _do_parse(cls, s: str, debug: bool = False) -> UnitBase:
-        try:
-            # This is a short circuit for the case where the string
-            # is just a single unit name
-            return cls._parse_unit(s, detailed_exception=False)
-        except ValueError as e:
-            try:
-                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
-            except ValueError as e:
-                if str(e):
-                    raise
-                else:
-                    raise ValueError(f"Syntax error parsing unit '{s}'")
-
-    @classmethod
-    def _get_unit_name(cls, unit: NamedUnit) -> str:
-        name = unit._get_format_name(cls.name)
-        cls._validate_unit(name)
-        return name
-
-    @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> None:
-        if unit not in cls._units:
-            if detailed_exception:
-                raise ValueError(
-                    f"Unit '{unit}' not supported by the {cls.__name__} standard. "
-                    + cls._did_you_mean_units(unit)
-                )
-            raise ValueError()
-        if unit in cls._deprecated_units:
-            message = (
-                f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
-            )
-            if (decomposed := cls._try_decomposed(cls._units[unit])) is not None:
-                message += f" Suggested: {decomposed}."
-            warnings.warn(message, UnitsWarning)
-
-    @classmethod
-    def _did_you_mean_units(cls, unit: str) -> str:
-        """
-        A wrapper around `astropy.utils.misc.did_you_mean` that deals with
-        the display of deprecated units.
-
-        Parameters
-        ----------
-        unit : str
-            The invalid unit string
-
-        Returns
-        -------
-        msg : str
-            A message with alternatives, or the empty string.
-        """
-        return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
-
-    @classmethod
-    def _fix_deprecated(cls, x: str) -> list[str]:
-        return [x + " (deprecated)" if x in cls._deprecated_units else x]
-
-    @classmethod
-    def _try_decomposed(cls, unit: UnitBase) -> str | None:
-        return None
-
-    @classmethod
-    def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:
-        """
-        Partially decomposes a unit so it is only composed of units that
-        are "known" to a given format.
-        """
-        if isinstance(unit, core.CompositeUnit):
-            new_unit = core.Unit(unit.scale)
-            for base, power in zip(unit.bases, unit.powers):
-                new_unit = new_unit * cls._decompose_to_known_units(base) ** power
-            return new_unit
-        if isinstance(unit, core.NamedUnit):
-            try:
-                cls._get_unit_name(unit)
-            except ValueError:
-                if isinstance(unit, core.Unit):
-                    return cls._decompose_to_known_units(unit._represents)
-                raise
-            return unit
-        raise TypeError(
-            f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
-        )
-
-    @classmethod
     def format_exponential_notation(
-        cls, val: float | np.number, format_spec: str = "g"
+        cls, val: UnitScale | np.number, format_spec: str = "g"
     ) -> str:
         return format(val, format_spec)

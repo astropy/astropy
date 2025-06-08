@@ -55,8 +55,8 @@ Prefixes
 
 Most units can be used with prefixes, with both the standard `SI
 <https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ prefixes
-and the `IEEE 1514-2002
-<https://ieeexplore.ieee.org/document/5254933>`_ binary prefixes
+and the `IEEE 1541-2021
+<https://ieeexplore.ieee.org/document/9714443>`_ binary prefixes
 (for ``bit`` and ``byte``) supported:
 
 +------------------------------+
@@ -129,6 +129,10 @@ and the `IEEE 1514-2002
 |   Pi   |  pebi- | 2 ** 50 |
 +--------+--------+---------+
 |   Ei   |  exbi- | 2 ** 60 |
++--------+--------+---------+
+|   Zi   |  zebi- | 2 ** 70 |
++--------+--------+---------+
+|   Yi   |  yobi- | 2 ** 80 |
 +--------+--------+---------+
 
 
@@ -239,7 +243,7 @@ To enable Imperial units, do::
       Primary name | Unit definition | Aliases
     [
       AU           | 1.49598e+11 m   | au, astronomical_unit            ,
-      Angstrom     | 1e-10 m         | AA, angstrom                     ,
+      Angstrom     | 1e-10 m         | AA, angstrom, Å                  ,
       cm           | 0.01 m          | centimeter                       ,
       earthRad     | 6.3781e+06 m    | R_earth, Rearth                  ,
       ft           | 0.3048 m        | foot                             ,
@@ -258,6 +262,9 @@ To enable Imperial units, do::
       yd           | 0.9144 m        | yard                             ,
     ]
 
+.. testcleanup::
+
+    >>> u.core._unit_registries.pop()  # doctest: +IGNORE_OUTPUT
 
 This may also be used with the `Python "with" statement
 <https://docs.python.org/3/reference/compound_stmts.html#with>`_, to

@@ -16,10 +16,12 @@ from . import (
     core,
     decorators,
     errors,
+    imperial,
     misc,
     photometric,
     physical,
     quantity,
+    required_by_vounit,
     si,
     structured,
 )
@@ -54,7 +56,6 @@ __all__ += astrophys.__all__
 __all__ += physical.__all__
 __all__ += misc.__all__
 __all__ += photometric.__all__
-__all__ += structured.__all__
 __all__ += equivalencies.__all__
 __all__ += function.__all__
 # We sort `__all__` for the docs. We use `globals` to avoid confusing any static
@@ -63,4 +64,6 @@ globals()["__all__"].sort()
 
 # Enable the set of default units.  This notably does *not* include
 # Imperial units.
-set_enabled_units([si, cgs, astrophys, function.units, misc, photometric])
+set_enabled_units(
+    [si, cgs, astrophys, function.units, misc, photometric, required_by_vounit]
+)

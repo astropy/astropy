@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.3 - an implementation of the FITS WCS standard.
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 8.3 2024/05/13 16:33:00 mcalabre Exp $
+  $Id: prj.h,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -654,20 +654,20 @@
 *     (An unused variable inserted for alignment purposes only.)
 *
 *   double w[10]
-*     (Returned) Intermediate floating-point values derived from the
-*     projection parameters, cached here to save recomputation.
+*     (For internal use only.) Intermediate floating-point values derived from
+*     the projection parameters by prjset(), cached here to save recomputation.
 *
 *     Usage of the w[] array as it applies to each projection is described in
 *     the prologue to each trio of projection routines in prj.c.
 *
-*   int n
-*     (Returned) Intermediate integer value (used only for the ZPN and HPX
-*     projections).
+*   int m, n
+*     (For internal use only.) Intermediate integer values set by prjset()
+*     (used only for the ZPN and HPX projections).
 *
 *   int (*prjx2s)(PRJX2S_ARGS)
-*     (Returned) Pointer to the spherical projection ...
+*     (For internal use only.) Pointer to the spherical projection ...
 *   int (*prjs2x)(PRJ_ARGS)
-*     (Returned) ... and deprojection routines.
+*     (For internal use only.) ... and deprojection routines.
 *
 *
 * Global variable: const char *prj_errmsg[] - Status return messages
@@ -752,15 +752,17 @@ struct prjprm {
   int    divergent;		// Does the projection diverge in latitude?
   double x0, y0;		// Fiducial offsets.
 
-  // Error handling
+  // Error messaging, if enabled.
   //--------------------------------------------------------------------------
   struct wcserr *err;
 
-  // Private
   //--------------------------------------------------------------------------
-  void   *padding;		// (Dummy inserted for alignment purposes.)
-  double w[10];			// Intermediate values.
-  int    m, n;			// Intermediate values.
+  // Private - the remainder are for internal use.
+  //--------------------------------------------------------------------------
+  void *padding;		// (Dummy inserted for alignment purposes.)
+
+  double w[10];			// Intermediate values set by prjset().
+  int    m, n;			// Intermediate values set by prjset().
 
   int (*prjx2s)(PRJX2S_ARGS);	// Pointers to the spherical projection and
   int (*prjs2x)(PRJS2X_ARGS);	// deprojection functions.

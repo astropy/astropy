@@ -3,12 +3,11 @@ from collections import defaultdict
 
 import numpy as np
 
-from astropy.utils import isiterable
 from astropy.utils.decorators import lazyproperty
 
 from .base import BaseWCSWrapper
 
-__all__ = ["sanitize_slices", "SlicedLowLevelWCS"]
+__all__ = ["SlicedLowLevelWCS", "sanitize_slices"]
 
 
 def sanitize_slices(slices, ndim):
@@ -26,7 +25,7 @@ def sanitize_slices(slices, ndim):
             f"than the dimensionality ({ndim}) of the wcs."
         )
 
-    if any(isiterable(s) for s in slices):
+    if any(np.iterable(s) for s in slices):
         raise IndexError(
             "This slice is invalid, only integer or range slices are supported."
         )
@@ -174,7 +173,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
                 continue
 
             if "world_axis_object_classes" not in dropped_info:
-                dropped_info["world_axis_object_classes"] = dict()
+                dropped_info["world_axis_object_classes"] = {}
 
             wao_classes = self._wcs.world_axis_object_classes
             wao_components = self._wcs.world_axis_object_components

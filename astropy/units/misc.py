@@ -12,11 +12,8 @@ import numpy as np
 from astropy.constants import si as _si
 
 from . import si
-from .core import UnitBase, binary_prefixes, def_unit, set_enabled_units, si_prefixes
-
-# To ensure si units of the constants can be interpreted.
-set_enabled_units([si])
-
+from .core import UnitBase, binary_prefixes, def_unit, si_prefixes
+from .docgen import generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -64,8 +61,6 @@ def_unit(
 )
 # The torr is almost the same as mmHg but not quite.
 # See https://en.wikipedia.org/wiki/Torr
-# Define the unit here despite it not being an astrophysical unit.
-# It may be moved if more similar units are created later.
 def_unit(
     ["Torr", "torr"],
     _si.atm.value / 760.0 * si.Pa,
@@ -94,7 +89,6 @@ def_unit(
     doc="Electron mass",
     format={"latex": r"M_{e}", "unicode": "Mₑ"},
 )
-# Unified atomic mass unit
 def_unit(
     ["u", "Da", "Dalton"],
     _si.u,
@@ -102,6 +96,30 @@ def_unit(
     prefixes=True,
     exclude_prefixes=["a", "da"],
     doc="Unified atomic mass unit",
+)
+
+##########################################################################
+# ENERGY
+
+def_unit(
+    ["eV", "electronvolt"],
+    _si.e.value * si.J,
+    namespace=_ns,
+    prefixes=True,
+    doc="Electron Volt",
+)
+
+# Here, explicitly convert the planck constant to 'eV s' since the constant
+# can override that to give a more precise value that takes into account
+# covariances between e and h.  Eventually, this may also be replaced with
+# just `_si.Ryd.to(eV)`.
+def_unit(
+    ["Ry", "rydberg"],
+    (_si.Ryd * _si.c * _si.h.to(eV * si.s)).to(eV),
+    namespace=_ns,
+    prefixes=True,
+    doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg constant",
+    format={"latex": r"R_{\infty}", "unicode": "R∞"},
 )
 
 
@@ -117,7 +135,6 @@ def_unit(
     (["byte", "B"], ["byte"]),
     8 * bit,
     namespace=_ns,
-    format={"vounit": "byte"},
     prefixes=si_prefixes + binary_prefixes,
     exclude_prefixes=["d"],
 )
@@ -143,6 +160,4 @@ __all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())

@@ -8,9 +8,8 @@ This package defines the SI units.  They are also available in
 
 import numpy as np
 
-from astropy.constants import si as _si
-
-from .core import Unit, UnitBase, def_unit
+from .core import CompositeUnit, UnitBase, def_unit
+from .docgen import generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -22,7 +21,7 @@ _ns = globals()
 
 def_unit(
     ["percent", "pct"],
-    Unit(0.01),
+    CompositeUnit(0.01, [], []),
     namespace=_ns,
     prefixes=False,
     doc="percent: one hundredth of unity, factor 0.01",
@@ -56,12 +55,17 @@ def_unit(
     format={"latex": r"\mu m", "unicode": "\N{MICRO SIGN}m"},
 )
 def_unit(
-    ["Angstrom", "AA", "angstrom"],
+    ["Angstrom", "AA", "angstrom", "Å"],
     0.1 * nm,
     namespace=_ns,
     doc="ångström: 10 ** -10 m",
     prefixes=[(["m", "milli"], ["milli", "m"], 1.0e-3)],
-    format={"latex": r"\mathring{A}", "unicode": "Å", "vounit": "Angstrom"},
+    format={
+        "latex": r"\mathring{A}",
+        "ogip": "angstrom",
+        "unicode": "Å",
+        "vounit": "Angstrom",
+    },
 )
 
 
@@ -81,7 +85,7 @@ def_unit(
 # VOLUMES
 
 def_unit(
-    (["l", "L"], ["liter"]),
+    (["l", "L", "ℓ"], ["liter"]),
     1000 * cm**3.0,
     namespace=_ns,
     prefixes=True,
@@ -142,7 +146,7 @@ def_unit(
     doc="milli arc second: angular measurement",
 )
 def_unit(
-    ["uas"],
+    ["uas", "\N{MICRO SIGN}as", "\N{GREEK SMALL LETTER MU}as"],
     0.000001 * arcsec,
     namespace=_ns,
     doc="micro arc second: angular measurement",
@@ -310,13 +314,6 @@ def_unit(
     prefixes=True,
     doc="Joule: energy",
 )
-def_unit(
-    ["eV", "electronvolt"],
-    _si.e.value * J,
-    namespace=_ns,
-    prefixes=True,
-    doc="Electron Volt",
-)
 
 
 ##########################################################################
@@ -367,12 +364,12 @@ def_unit(
     doc="Volt: electric potential or electromotive force",
 )
 def_unit(
-    (["Ohm", "ohm"], ["Ohm"]),
+    (["Ohm", "ohm", "Ω"], ["Ohm"]),
     V * A**-1,
     namespace=_ns,
     prefixes=True,
     doc="Ohm: electrical resistance",
-    format={"latex": r"\Omega", "unicode": "Ω"},
+    format={"latex": r"\Omega", "ogip": "ohm", "unicode": "Ω"},
 )
 def_unit(
     ["S", "Siemens", "siemens"],
@@ -487,6 +484,4 @@ __all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())

@@ -25,7 +25,7 @@ For the example in the following page we start from the example introduced in
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    ax = plt.subplot(projection=wcs)
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
 
@@ -78,7 +78,7 @@ end up with the final pixel coordinates.
 
 The `~astropy.visualization.wcsaxes.WCSAxes` class includes a :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform`
 method that can be used to get the appropriate transformation object to convert
-from various world coordinate systems to the final pixel coordinate system
+from various world coordinate systems to the final display coordinate system
 required by Matplotlib. The :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` method can
 take a number of different inputs, which are described in this and subsequent
 sections. The two simplest inputs to this method are ``'world'`` and
@@ -124,7 +124,7 @@ For example, you can add markers with positions defined in the FK5 system using:
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    ax = plt.subplot(projection=wcs)
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
     ax.set_autoscale_on(False)
@@ -159,7 +159,7 @@ in FK5 equatorial coordinates:
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    ax = plt.subplot(projection=wcs)
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
     ax.set_autoscale_on(False)
@@ -244,7 +244,7 @@ Here's a comparison of the two types of patches for plotting a quadrangle in `~a
     from matplotlib.patches import Rectangle
 
     # Set the Galactic axes such that the plot includes the ICRS south pole
-    ax = plt.subplot(projection=wcs)
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.set_xlim(0, 10000)
     ax.set_ylim(-10000, 0)
 
@@ -264,7 +264,7 @@ Here's a comparison of the two types of patches for plotting a quadrangle in `~a
                   transform=ax.get_transform('icrs'))
     ax.add_patch(r)
 
-    plt.legend(loc='upper right')
+    ax.legend(loc='upper right')
 
 Contours
 ********
@@ -288,7 +288,7 @@ image to plot the contours for:
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    ax = plt.subplot(projection=wcs)
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
     ax.set_autoscale_on(False)
@@ -324,7 +324,7 @@ and a |Quantity| as the radius:
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    ax = plt.subplot(projection=wcs)
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
     ax.set_autoscale_on(False)
@@ -373,7 +373,7 @@ image can be done with the
     hdu = fits.open(filename)[0]
     wcs = WCS(hdu.header)
 
-    ax = plt.subplot(projection=wcs)
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
     ax.set_autoscale_on(False)

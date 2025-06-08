@@ -119,37 +119,45 @@ pandas if they decide to override the dunder methods.
 
 See: https://github.com/astropy/astropy/issues/11247
 
-Numpy array creation functions cannot be used to initialize Quantity
---------------------------------------------------------------------
+Using Numpy array creation functions to initialize Quantity
+-----------------------------------------------------------
 Trying the following example will ignore the unit:
 
     >>> np.full(10, 1 * u.m)
     array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
 
-A workaround for this at the moment would be to do::
+However, the following works as one would expect
+
+    >>> np.full(10, 1.0, like=u.Quantity([], u.m))
+    <Quantity [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.] m>
+
+and is equivalent to::
 
     >>> np.full(10, 1) << u.m
     <Quantity [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.] m>
 
-As well as with `~numpy.full` one cannot do `~numpy.zeros`, `~numpy.ones`, and `~numpy.empty`.
+`~numpy.zeros`, `~numpy.ones`, and `~numpy.empty` behave similarly.
 
-The `~numpy.arange` function does not work either::
+`~numpy.arange` also supports the ``like`` keyword argument
 
-    >>> np.arange(0 * u.m, 10 * u.m, 1 * u.m)
-    Traceback (most recent call last):
-    ...
-    TypeError: only dimensionless scalar quantities can be converted to Python scalars
+    >>> np.arange(0 * u.cm, 1 * u.cm, 1 * u.mm, like=u.Quantity([], u.cm))
+    <Quantity [0. , 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] cm>
 
-Workarounds include moving the units outside of the call to
-`~numpy.arange`::
+Also note that the unit of the output array is dictated by that of the ``stop``
+argument, and that, like for quantities generally, the data has a floating-point
+dtype. If ``stop`` is a pure number, the unit of the output will default to that
+of the ``like`` argument.
 
-    >>> np.arange(0, 10, 1) * u.m
-    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
+As with ``~numpy.full`` and similar functions, one may alternatively move the
+units outside of the call to `~numpy.arange`::
 
-Also, `~numpy.linspace` does work:
+    >>> np.arange(0, 10, 1) << u.mm
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] mm>
 
-    >>> np.linspace(0 * u.m, 9 * u.m, 10)
-    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
+Or use `~numpy.linspace`:
+
+    >>> np.linspace(0 * u.cm, 9 * u.mm, 10)
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] mm>
 
 
 Quantities Lose Their Units When Broadcasted
@@ -196,6 +204,26 @@ What the second comparison is really doing is this::
    np.True_
 
 See: https://github.com/astropy/astropy/issues/15103
+
+def_unit should not be used for logarithmic unit
+------------------------------------------------
+
+When defining custom unit involving logarithmic unit, ``def_unit`` usage
+should be avoided because it might result in surprising behavior::
+
+    >>> dBW = u.def_unit('dBW', u.dB(u.W))
+    >>> 1 * dBW
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand type(s) for *: 'int' and 'Unit'
+
+Instead, it could be defined directly as such::
+
+    >>> dBW = u.dB(u.W)
+    >>> 1 * dBW
+    <Decibel 1. dB(W)>
+
+See: https://github.com/astropy/astropy/issues/5945
 
 mmap Support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------

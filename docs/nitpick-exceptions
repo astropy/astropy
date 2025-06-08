@@ -1,3 +1,6 @@
+# astropy.cosmology
+py:obj astropy.cosmology.realizations.default_cosmology
+
 # astropy.io.votable
 py:class astropy.io.votable.tree.SimpleElement
 py:class astropy.io.votable.tree.SimpleElementWithContent
@@ -36,12 +39,14 @@ py:class json.encoder.JSONEncoder
 # astropy.table
 py:class astropy.table.column.BaseColumn
 py:class astropy.table.groups.BaseGroups
+
 # astropy.visualization
 py:obj Bbox
 py:obj Transform
 py:obj Figure
 py:obj AbstractPathEffect
 py:obj N
+py:obj masked
 
 # astropy.wcs
 py:class astropy.wcs.wcsapi.fitswcs.FITSWCSAPIMixin
@@ -74,6 +79,7 @@ py:class None.  Remove all items from D.
 py:class a set-like object providing a view on D's items
 py:class a set-like object providing a view on D's keys
 py:class None.  Update D from dict/iterable E and F.
+py:class None.  Update D from mapping/iterable E and F.
 py:class an object providing a view on D's values
 py:class a shallow copy of D
 
@@ -81,8 +87,7 @@ py:class a shallow copy of D
 # See https://github.com/sphinx-doc/sphinx/issues/9813
 # and https://github.com/sphinx-doc/sphinx/issues/11225
 # types
-py:class EllipsisType
-py:class ModuleType
+py:class types.EllipsisType
 # numpy
 py:class np.number
 # numpy.typing
@@ -92,6 +97,13 @@ py:class ArrayLike
 py:class np.ma.MaskedArray
 # locally defined type variable for ndarray dtype
 py:class DT
+# type aliases
+py:class QuantityLike
+py:class UnitLike
+py:class UnitPower
+py:class UnitPowerLike
+py:class UnitScale
+py:class UnitScaleLike
 
 # Classes from `astropy.extern` that are nonetheless exposed in documentation
 py:class Lexer

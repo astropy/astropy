@@ -36,27 +36,26 @@ you have a string that uses CDS units:
 
 __all__ = ["enable"]  #  Units are added at the end
 
-from .core import UnitBase
+import numpy as np
+
+from astropy.constants import si as _si
+
+from .core import UnitBase, binary_prefixes, def_unit, set_enabled_units, si_prefixes
+from .docgen import generate_unit_summary
 
 _ns = globals()
 
 
 def _initialize_module():
-    """Initialize CDS units module."""
-    # Local imports to avoid polluting top-level namespace
-    import numpy as np
-
+    # Having `u` in the global namespace would conflict with the atomic mass unit.
     from astropy import units as u
-    from astropy.constants import si as _si
 
-    from . import core
-
+    prefixes = []
     # The CDS format also supports power-of-2 prefixes as defined here:
     # http://physics.nist.gov/cuu/Units/binary.html
-    prefixes = core.si_prefixes + core.binary_prefixes
-
-    # CDS only uses the short prefixes
-    prefixes = [(short, short, factor) for (short, long, factor) in prefixes]
+    for short, _, factor in si_prefixes + binary_prefixes:
+        short = [s for s in short if s.isascii()]
+        prefixes.append((short, short, factor))  # CDS only uses the short prefixes
 
     # The following units are defined in alphabetical order, directly from
     # here: https://vizier.unistra.fr/viz-bin/Unit
@@ -68,7 +67,7 @@ def _initialize_module():
         (["al"], u.lyr, "Light year", ["c", "d"]),
         (["lyr"], u.lyr, "Light year"),
         (["alpha"], _si.alpha, "Fine structure constant"),
-        ((["AA", "Å"], ["Angstrom", "Angstroem"]), u.AA, "Angstrom"),
+        (["Angstrom", "Å", "Angstroem", "AA"], u.AA, "Angstrom"),
         (["arcmin", "arcm"], u.arcminute, "minute of arc"),
         (["arcsec", "arcs"], u.arcsecond, "second of arc"),
         (["atm"], _si.atm, "atmosphere"),
@@ -119,7 +118,7 @@ def _initialize_module():
         (["mmHg"], 133.322387415 * u.Pa, "millimeter of mercury"),
         (["mol"], u.mol, "mole"),
         (["mp"], _si.m_p, "proton mass"),
-        (["Msun", "solMass"], u.solMass, "solar mass"),
+        (["solMass", "Msun"], u.solMass, "solar mass"),
         ((["mu0", "µ0"], []), _si.mu0, "magnetic constant"),
         (["muB"], _si.muB, "Bohr magneton"),
         (["N"], u.N, "Newton"),
@@ -155,7 +154,7 @@ def _initialize_module():
             excludes = []
         else:
             names, unit, doc, excludes = entry
-        core.def_unit(
+        def_unit(
             names,
             unit,
             prefixes=prefixes,
@@ -164,19 +163,19 @@ def _initialize_module():
             exclude_prefixes=excludes,
         )
 
-    core.def_unit(["µas"], u.microarcsecond, doc="microsecond of arc", namespace=_ns)
-    core.def_unit(["mas"], u.milliarcsecond, doc="millisecond of arc", namespace=_ns)
-    core.def_unit(
+    def_unit(["µas"], u.microarcsecond, doc="microsecond of arc", namespace=_ns)
+    def_unit(["mas"], u.milliarcsecond, doc="millisecond of arc", namespace=_ns)
+    def_unit(
         ["---", "-"],
         u.dimensionless_unscaled,
         doc="dimensionless and unscaled",
         namespace=_ns,
     )
-    core.def_unit(["%"], u.percent, doc="percent", namespace=_ns)
+    def_unit(["%"], u.percent, doc="percent", namespace=_ns)
     # The Vizier "standard" defines this in units of "kg s-3", but
     # that may not make a whole lot of sense, so here we just define
     # it as its own new disconnected unit.
-    core.def_unit(["Crab"], prefixes=prefixes, namespace=_ns, doc="Crab (X-ray) flux")
+    def_unit(["Crab"], prefixes=prefixes, namespace=_ns, doc="Crab (X-ray) flux")
 
 
 _initialize_module()
@@ -190,9 +189,7 @@ __all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())
 
 
 def enable():
@@ -206,9 +203,4 @@ def enable():
     This may be used with the ``with`` statement to enable CDS
     units only temporarily.
     """
-    # Local imports to avoid cyclical import and polluting namespace
-    import inspect
-
-    from .core import set_enabled_units
-
-    return set_enabled_units(inspect.getmodule(enable))
+    return set_enabled_units(globals())

@@ -8,6 +8,8 @@ core.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
+from __future__ import annotations
+
 import copy
 import csv
 import fnmatch
@@ -20,6 +22,8 @@ import re
 import warnings
 from contextlib import suppress
 from io import StringIO
+from pathlib import Path
+from typing import ClassVar, Final, Self, SupportsFloat, TypeGuard
 
 import numpy as np
 
@@ -31,13 +35,13 @@ from . import connect
 from .docs import READ_DOCSTRING, WRITE_DOCSTRING
 
 # Global dictionary mapping format arg to the corresponding Reader class
-FORMAT_CLASSES = {}
+FORMAT_CLASSES: dict[str, MetaBaseReader] = {}
 
 # Similar dictionary for fast readers
-FAST_CLASSES = {}
+FAST_CLASSES: dict[str, MetaBaseReader] = {}
 
 
-def _check_multidim_table(table, max_ndim):
+def _check_multidim_table(table: Table, max_ndim: int | None) -> None:
     """Check that ``table`` has only columns with ndim <= ``max_ndim``.
 
     Currently ECSV is the only built-in format that supports output of arbitrary
@@ -80,7 +84,7 @@ class CsvWriter:
     # empty fields and is then replaced post-write with doubled-quotechar.
     # Created with:
     # ''.join(random.choice(string.printable[:90]) for _ in range(16))
-    replace_sentinel = "2b=48Av%0-V3p>bX"
+    replace_sentinel: Final[str] = "2b=48Av%0-V3p>bX"
 
     def __init__(self, csvfile=None, **kwargs):
         self.csvfile = csvfile
@@ -173,7 +177,7 @@ class MaskedConstant(np.ma.core.MaskedConstant):
         # Any large number will do.
         return 1234567890
 
-    def __copy__(self):
+    def __copy__(self) -> Self:
         """This is a singleton so just return self."""
         return self
 
@@ -181,7 +185,7 @@ class MaskedConstant(np.ma.core.MaskedConstant):
         return self
 
 
-masked = MaskedConstant()
+masked: Final[MaskedConstant] = MaskedConstant()
 
 
 class InconsistentTableError(ValueError):
@@ -307,7 +311,7 @@ class BaseInputter:
 
         The input table can be one of:
 
-        * File name
+        * File name (str or pathlike)
         * String (newline separated) with all header and data lines (must have at least 2 lines)
         * File-like object with read() method
         * List of strings
@@ -327,8 +331,10 @@ class BaseInputter:
             List of lines
         """
         try:
-            if hasattr(table, "read") or (
-                "\n" not in table + "" and "\r" not in table + ""
+            if (
+                hasattr(table, "read")
+                or isinstance(table, os.PathLike)
+                or ("\n" not in table + "" and "\r" not in table + "")
             ):
                 with get_readable_fileobj(table, encoding=self.encoding) as fileobj:
                     table = fileobj.read()
@@ -358,7 +364,7 @@ class BaseInputter:
 
         return self.process_lines(lines)
 
-    def process_lines(self, lines):
+    def process_lines(self, lines: list[str]) -> list[str]:
         """Process lines for subsequent use.  In the default case do nothing.
         This routine is not generally intended for removing comment lines or
         stripping whitespace.  These are done (if needed) in the header and
@@ -392,16 +398,16 @@ class BaseSplitter:
 
     """
 
-    delimiter = None
+    delimiter: str | None = None
     """ one-character string used to separate fields """
 
-    def process_line(self, line):
+    def process_line(self, line: str) -> str:
         """Remove whitespace at the beginning or end of line.  This is especially useful for
         whitespace-delimited files to prevent spurious columns at the beginning or end.
         """
         return line.strip()
 
-    def process_val(self, val):
+    def process_val(self, val: str) -> str:
         """Remove whitespace at the beginning or end of value."""
         return val.strip()
 
@@ -415,7 +421,7 @@ class BaseSplitter:
             else:
                 yield vals
 
-    def join(self, vals):
+    def join(self, vals: list[str]) -> str:
         if self.delimiter is None:
             delimiter = " "
         else:
@@ -461,7 +467,7 @@ class DefaultSplitter(BaseSplitter):
             line = _replace_tab_with_space(line, self.escapechar, self.quotechar)
         return line.strip() + "\n"
 
-    def process_val(self, val):
+    def process_val(self, val: str) -> str:
         """Remove whitespace at the beginning or end of value."""
         return val.strip(" \t")
 
@@ -518,7 +524,7 @@ class DefaultSplitter(BaseSplitter):
         return out
 
 
-def _replace_tab_with_space(line, escapechar, quotechar):
+def _replace_tab_with_space(line: str, escapechar: str, quotechar: str) -> str:
     """Replace tabs with spaces in given string, preserving quoted substrings.
 
     Parameters
@@ -575,7 +581,7 @@ class BaseHeader:
     """ None, int, or a function of ``lines`` that returns None or int """
     comment = None
     """ regular expression for comment lines """
-    splitter_class = DefaultSplitter
+    splitter_class: ClassVar[type[BaseSplitter]] = DefaultSplitter
     """ Splitter class for splitting data lines into columns """
     names = None
     """ list of names corresponding to each data column """
@@ -654,7 +660,7 @@ class BaseHeader:
             for comment in meta.get("comments", []):
                 lines.append(self.write_comment + comment)
 
-    def write(self, lines):
+    def write(self, lines: list[str]) -> None:
         if self.start_line is not None:
             for i, spacer_line in zip(
                 range(self.start_line), itertools.cycle(self.write_spacer_lines)
@@ -663,13 +669,13 @@ class BaseHeader:
             lines.append(self.splitter.join([x.info.name for x in self.cols]))
 
     @property
-    def colnames(self):
+    def colnames(self) -> tuple[str, ...]:
         """Return the column names of the table."""
         return tuple(
             col.name if isinstance(col, Column) else col.info.name for col in self.cols
         )
 
-    def remove_columns(self, names):
+    def remove_columns(self, names: list[str]) -> None:
         """
         Remove several columns from the table.
 
@@ -685,7 +691,7 @@ class BaseHeader:
 
         self.cols = [col for col in self.cols if col.name not in names]
 
-    def rename_column(self, name, new_name):
+    def rename_column(self, name: str, new_name: str) -> None:
         """
         Rename a column.
 
@@ -722,7 +728,9 @@ class BaseHeader:
                 f'Unknown data type ""{col.raw_type}"" for column "{col.name}"'
             )
 
-    def check_column_names(self, names, strict_names, guessing):
+    def check_column_names(
+        self, names: list[str], strict_names: bool, guessing: bool
+    ) -> None:
         """
         Check column names.
 
@@ -783,7 +791,7 @@ class BaseData:
     """ None, int, or a function of ``lines`` that returns None or int """
     comment = None
     """ Regular expression for comment lines """
-    splitter_class = DefaultSplitter
+    splitter_class: ClassVar[type[BaseSplitter]] = DefaultSplitter
     """ Splitter class for splitting data lines into columns """
     write_spacer_lines = ["ASCII_TABLE_WRITE_SPACER_LINE"]
     fill_include_names = None
@@ -800,7 +808,7 @@ class BaseData:
         self.formats = copy.copy(self.formats)
         self.splitter = self.splitter_class()
 
-    def process_lines(self, lines):
+    def process_lines(self, lines: list[str]) -> list[str]:
         """
         READ: Strip out comment lines and blank lines from list of ``lines``.
 
@@ -822,7 +830,7 @@ class BaseData:
         else:
             return list(nonblank_lines)
 
-    def get_data_lines(self, lines):
+    def get_data_lines(self, lines: list[str]) -> None:
         """
         READ: Set ``data_lines`` attribute to lines slice comprising table data values.
         """
@@ -1062,12 +1070,12 @@ class BaseOutputter:
         """
         # Allow specifying a single converter instead of a list of converters.
         # The input `converters` must be a ``type`` value that can init np.dtype.
-        try:
-            # Don't allow list-like things that dtype accepts
-            assert type(converters) is type
-            converters = [np.dtype(converters)]
-        except (AssertionError, TypeError):
-            pass
+        if type(converters) is type:
+            try:
+                # Don't allow list-like things that dtype accepts
+                converters = [np.dtype(converters)]
+            except TypeError:
+                pass
 
         converters_out = []
         try:
@@ -1148,7 +1156,7 @@ class BaseOutputter:
                     last_err = err
 
 
-def _deduplicate_names(names):
+def _deduplicate_names(names: list[str]) -> list[str]:
     """Ensure there are no duplicates in ``names``.
 
     This is done by iteratively adding ``_<N>`` to the name for increasing N
@@ -1255,7 +1263,7 @@ class MetaBaseReader(type):
                 connect.io_registry.register_writer(io_format, Table, func)
 
 
-def _is_number(x):
+def _is_number(x) -> TypeGuard[SupportsFloat]:
     with suppress(ValueError):
         x = float(x)
         return True
@@ -1339,7 +1347,7 @@ class BaseReader(metaclass=MetaBaseReader):
 
     # Max column dimension that writer supports for this format. Exceptions
     # include ECSV (no limit) and HTML (max_ndim=2).
-    max_ndim = 1
+    max_ndim: ClassVar[int | None] = 1
 
     def __init__(self):
         self.header = self.header_class()
@@ -1357,7 +1365,7 @@ class BaseReader(metaclass=MetaBaseReader):
         # depending on the table meta format.
         self.meta = {"table": {}, "cols": {}}
 
-    def _check_multidim_table(self, table):
+    def _check_multidim_table(self, table: Table) -> None:
         """Check that the dimensions of columns in ``table`` are acceptable.
 
         The reader class attribute ``max_ndim`` defines the maximum dimension of
@@ -1406,7 +1414,7 @@ class BaseReader(metaclass=MetaBaseReader):
         with suppress(TypeError):
             # Strings only
             if os.linesep not in table + "":
-                self.data.table_name = os.path.basename(table)
+                self.data.table_name = Path(table).name
 
         # If one of the newline chars is set as field delimiter, only
         # accept the other one as line splitter
@@ -1471,7 +1479,7 @@ class BaseReader(metaclass=MetaBaseReader):
 
         return table
 
-    def inconsistent_handler(self, str_vals, ncols):
+    def inconsistent_handler(self, str_vals: list[str], ncols: int) -> list[str]:
         """
         Adjust or skip data entries if a row is inconsistent with the header.
 
@@ -1500,7 +1508,7 @@ class BaseReader(metaclass=MetaBaseReader):
         return str_vals
 
     @property
-    def comment_lines(self):
+    def comment_lines(self) -> list[str]:
         """Return lines in the table that match header.comment regexp."""
         if not hasattr(self, "lines"):
             raise ValueError(
@@ -1537,7 +1545,7 @@ class BaseReader(metaclass=MetaBaseReader):
         self.header.write_comments(lines, meta)
         self.header.write(lines)
 
-    def write(self, table):
+    def write(self, table: Table) -> list[str]:
         """
         Write ``table`` as list of strings.
 
@@ -1580,7 +1588,7 @@ class BaseReader(metaclass=MetaBaseReader):
         self.header.table_meta = table.meta
 
         # Write header and data to lines list
-        lines = []
+        lines: list[str] = []
         self.write_header(lines, table.meta)
         self.data.write(lines)
 
@@ -1625,7 +1633,7 @@ class ContinuationLinesInputter(BaseInputter):
 
 
 class WhitespaceSplitter(DefaultSplitter):
-    def process_line(self, line):
+    def process_line(self, line: str) -> str:
         """Replace tab with space within ``line`` while respecting quoted substrings."""
         newline = []
         in_quote = False

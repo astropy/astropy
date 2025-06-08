@@ -13,7 +13,12 @@ import numpy as np
 
 from astropy.units.core import dimensionless_unscaled, unit_scale_converter
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0, NUMPY_LT_2_1
+from astropy.utils.compat.numpycompat import (
+    NUMPY_LT_2_0,
+    NUMPY_LT_2_1,
+    NUMPY_LT_2_2,
+    NUMPY_LT_2_3,
+)
 
 if NUMPY_LT_2_0:
     from numpy.core import umath as np_umath
@@ -229,11 +234,25 @@ def helper_frexp(f, unit):
 
 
 def helper_multiplication(f, unit1, unit2):
-    return [None, None], _d(unit1) * _d(unit2)
+    match unit1, unit2:
+        case None, None:
+            return [None, None], dimensionless_unscaled
+        case (unit, None) | (None, unit):
+            return [None, None], unit
+        case _:
+            return [None, None], unit1 * unit2
 
 
 def helper_division(f, unit1, unit2):
-    return [None, None], _d(unit1) / _d(unit2)
+    if unit1 is unit2:
+        unit = dimensionless_unscaled
+    elif unit1 is None:
+        unit = unit2**-1
+    elif unit2 is None:
+        unit = unit1
+    else:
+        unit = unit1 / unit2
+    return [None, None], unit
 
 
 def helper_power(f, unit1, unit2):
@@ -414,6 +433,10 @@ if not NUMPY_LT_2_1:
         np._core.umath._rpartition_index,
         np._core.umath._partition,
     }
+if not NUMPY_LT_2_3:
+    UNSUPPORTED_UFUNCS |= {
+        np._core.umath._slice,
+    }
 
 # SINGLE ARGUMENT UFUNCS
 
@@ -544,8 +567,11 @@ for ufunc in twoarg_invtrig_ufuncs:
 # ufuncs handled as special cases
 UFUNC_HELPERS[np.multiply] = helper_multiplication
 UFUNC_HELPERS[np.matmul] = helper_multiplication
-if isinstance(getattr(np, "vecdot", None), np.ufunc):
+if not NUMPY_LT_2_0:
     UFUNC_HELPERS[np.vecdot] = helper_multiplication
+if not NUMPY_LT_2_2:
+    UFUNC_HELPERS[np.vecmat] = helper_multiplication
+    UFUNC_HELPERS[np.matvec] = helper_multiplication
 UFUNC_HELPERS[np.divide] = helper_division
 UFUNC_HELPERS[np.true_divide] = helper_division
 UFUNC_HELPERS[np.power] = helper_power

@@ -26,6 +26,12 @@ fitters = [
     fitting.DogBoxLSQFitter,
 ]
 
+fitters_bounds = [
+    fitting.LevMarLSQFitter,
+    fitting.TRFLSQFitter,
+    fitting.DogBoxLSQFitter,
+]
+
 
 def _fake_gaussian_data():
     # Generate fake data
@@ -85,7 +91,7 @@ def models_with_custom_names():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_fitting_simple(fitter):
     fitter = fitter()
 
@@ -103,7 +109,7 @@ def test_fitting_simple(fitter):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_fitting_with_initial_values(fitter):
     fitter = fitter()
 
@@ -121,7 +127,7 @@ def test_fitting_with_initial_values(fitter):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_fitting_missing_data_units(fitter):
     """
     Raise an error if the model has units but the data doesn't
@@ -152,7 +158,7 @@ def test_fitting_missing_data_units(fitter):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_fitting_missing_model_units(fitter):
     """
     Proceed if the data has units but the model doesn't
@@ -177,7 +183,7 @@ def test_fitting_missing_model_units(fitter):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_fitting_incompatible_units(fitter):
     """
     Raise an error if the data and model have incompatible units
@@ -194,7 +200,7 @@ def test_fitting_incompatible_units(fitter):
 @pytest.mark.filterwarnings(r"ignore:The fit may be unsuccessful.*")
 @pytest.mark.filterwarnings(r"ignore:divide by zero encountered.*")
 @pytest.mark.parametrize("model", compound_models_no_units)
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_compound_without_units(model, fitter):
     fitter = fitter()
 
@@ -218,7 +224,7 @@ def test_compound_without_units(model, fitter):
 # FIXME: See https://github.com/astropy/astropy/issues/10675
 # @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.skip(reason="Flaky and ill-conditioned")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_compound_fitting_with_units(fitter):
     fitter = fitter()
 

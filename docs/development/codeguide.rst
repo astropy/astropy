@@ -17,13 +17,6 @@ Interface and Dependencies
   <https://github.com/astropy/astropy/blob/main/pyproject.toml>`_ file of the
   core package.
 
-* Usage of ``six`` and ``2to3`` is no longer acceptable.
-
-* `f-strings <https://docs.python.org/3/reference/lexical_analysis.html#f-strings>`_
-  should be used when possible, and if not, Python 3
-  formatting should be used (i.e. ``"{0:s}".format("spam")``)
-  instead of the ``%`` operator (``"%s" % "spam"``).
-
 * The core package should be importable with no
   dependencies other than components already in the Astropy core, the
   `Python Standard Library <https://docs.python.org/3/library/index.html>`_,
@@ -131,25 +124,14 @@ Coding Style/Conventions
 ========================
 
 * The code should follow the standard `PEP8 Style Guide for Python Code
-  <https://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
-  using only 4 spaces for indentation, and never tabs.
+  <https://www.python.org/dev/peps/pep-0008/>`_.
 
   * ``astropy`` itself enforces this style guide using the
     `ruff format <https://docs.astral.sh/ruff/formatter/>`_ code formatter, which closely follows the
     `The Black Code Style <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_.
 
-  * We recognize that sometimes ruff_ will autoformat things in undesirable
-    ways, e.g., matrices.  In the cases that ruff_ produces undesirable code
-    formatting:
-
-      * one can wrap code the code in ``# fmt: off`` and ``# fmt: on`` to disable
-        ruff_ formatting over multiple lines.
-
-      * or one can add a single ``# fmt: skip`` comment to the end of a line to
-        disable ruff_ formatting for that line.
-
-    This should be done sparingly, and only
-    when ruff_ produces undesirable formatting.
+  * In the rare cases that ruff_ formatting is undesirable, it is possible to
+    `disable formatting locally <https://docs.astral.sh/ruff/formatter/#format-suppression>`_.
 
       .. note::
         When a list or array should be formatted as one item per line then this is best
@@ -175,17 +157,6 @@ Coding Style/Conventions
     need to be used in affiliated packages. In particular, the set of ruff_ checks is
     not required for affiliated packages.
 
-  * Alternately, you can manually check and fix your changes by running the
-    following `tox <https://tox.readthedocs.io/>`__ command::
-
-      tox -e codestyle
-
-* Following PEP8's recommendation, absolute imports are to be used in general.
-  The exception to this is relative imports of the form
-  ``from . import modname``, best when referring to files within the same
-  sub-module.  This makes it clearer what code is from the current submodule
-  as opposed to from another.
-
   .. note:: There are multiple options for testing PEP8 compliance of code,
             see :doc:`testguide` for more information.
 
@@ -193,14 +164,6 @@ Coding Style/Conventions
   pointing to the license for the ``astropy`` source code.  This line should say::
 
       # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-* Star-imports, e.g.,
-
-    from packagename import *
-
-  should never be used, except as a tool to flatten the namespace of a module.
-  An example of the allowed usage is given in the :ref:`import-star-example`
-  example.
 
 * Classes should either use direct variable access, or Python’s property
   mechanism for setting object instance variables. ``get_value``/``set_value``
@@ -499,50 +462,6 @@ the hierarchy.
 
 .. note:: For more information on the benefits of `super`, see
           https://rhettinger.wordpress.com/2011/05/26/super-considered-super/
-
-.. _import-star-example:
-
-Acceptable use of ``from module import *``
-------------------------------------------
-
-``from module import *`` is discouraged in a module that contains
-implementation code, as it impedes clarity and often imports unused variables.
-It can, however, be used for a package that is laid out in the following
-manner::
-
-    packagename
-    packagename/__init__.py
-    packagename/submodule1.py
-    packagename/submodule2.py
-
-In this case, ``packagename/__init__.py`` may be::
-
-    """
-    A docstring describing the package goes here
-    """
-    from submodule1 import *
-    from submodule2 import *
-
-This allows functions or classes in the submodules to be used directly as
-``packagename.foo`` rather than ``packagename.submodule1.foo``. If this is
-used, it is strongly recommended that the submodules make use of the ``__all__``
-variable to specify which modules should be imported. Thus, ``submodule2.py``
-might read::
-
-    from numpy import array, linspace
-
-    __all__ = ['foo', 'AClass']
-
-    def foo(bar):
-        # the function would be defined here
-        pass
-
-    class AClass:
-        # the class is defined here
-        pass
-
-This ensures that ``from submodule import *`` only imports ``foo`` and
-``AClass``, but not `numpy.array` or `numpy.linspace`.
 
 .. _Numpy: https://numpy.org/
 .. _Scipy: https://www.scipy.org/

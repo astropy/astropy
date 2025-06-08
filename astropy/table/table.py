@@ -15,16 +15,12 @@ from numpy import ma
 from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
-from astropy.utils import (
-    ShapedLikeNDArray,
-    deprecated,
-    isiterable,
-)
+from astropy.utils import ShapedLikeNDArray, deprecated
 from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaAttribute, MetaData
 
@@ -92,6 +88,8 @@ __doctest_skip__ = [
     "Table.convert_bytestring_to_unicode",
     "Table.convert_unicode_to_bytestring",
 ]
+
+__doctest_requires__ = {("Table.from_pandas", "Table.to_pandas"): ["pandas"]}
 
 _pprint_docs = """
     {__doc__}
@@ -209,9 +207,9 @@ def _get_names_from_list_of_dict(rows):
     if rows is None:
         return None
 
-    names = set()
+    names = {}
     for row in rows:
-        if not isinstance(row, Mapping):
+        if not isinstance(row, (Mapping, Row)):
             return None
         names.update(row)
     return list(names)
@@ -300,12 +298,19 @@ class TableColumns(OrderedDict):
         names = (f"'{x}'" for x in self.keys())
         return f"<{self.__class__.__name__} names=({','.join(names)})>"
 
-    def _rename_column(self, name, new_name):
+    def _rename_column(self, name: str, new_name: str):
         if name == new_name:
             return
 
         if new_name in self:
             raise KeyError(f"Column {new_name} already exists")
+
+        if isinstance(new_name, str):
+            new_name = str(new_name)
+        else:
+            raise TypeError(
+                f"Expected a str value, got {new_name} with type {type(new_name).__name__}"
+            )
 
         # Rename column names in pprint include/exclude attributes as needed
         parent_table = self[name].info.parent_table
@@ -406,7 +411,7 @@ class TableAttribute(MetaAttribute):
       >>> t.identifier
       10
       >>> t.meta
-      OrderedDict([('__attributes__', {'identifier': 10})])
+      {'__attributes__': {'identifier': 10}}
     """
 
 
@@ -744,7 +749,9 @@ class Table:
             names_from_list_of_dict = _get_names_from_list_of_dict(rows)
             if names_from_list_of_dict:
                 data = rows
-            elif isinstance(rows, self.Row):
+            elif isinstance(rows, self.Row) or (
+                isinstance(rows, np.ndarray) and rows.dtype.names
+            ):
                 data = rows
             else:
                 data = list(zip(*rows))
@@ -779,7 +786,16 @@ class Table:
                 f"__init__() got unexpected keyword argument {next(iter(kwargs.keys()))!r}"
             )
 
-        if isinstance(data, np.ndarray) and data.shape == (0,) and not data.dtype.names:
+        # Treat any empty numpy array as None, except for structured arrays since they
+        # provide column names and dtypes.
+        #
+        # Init with rows=[] or data=[] (or tuples) is allowed and taken to mean no data.
+        # This allows supplying names and dtype if desired. `data=[]` is ambiguous,
+        # because it could mean no columns, or it could mean no rows for list of dict.
+        # For compatibility with the latter, interpret data=[] as data=None.
+        if (
+            isinstance(data, np.ndarray) and data.size == 0 and not data.dtype.names
+        ) or (isinstance(data, (list, tuple)) and len(data) == 0):
             data = None
 
         if isinstance(data, self.Row):
@@ -938,7 +954,7 @@ class Table:
                 if value.strip() == "":
                     value = None
 
-            if value not in (np.ma.masked, None):
+            if value is not None and value is not np.ma.masked:
                 col = self[name]
                 if attr == "unit" and isinstance(col, Quantity):
                     # Update the Quantity unit in-place
@@ -1073,8 +1089,17 @@ class Table:
             Indexing engine class to use, either `~astropy.table.SortedArray`,
             `~astropy.table.BST`, or `~astropy.table.SCEngine`. If the supplied
             argument is None (by default), use `~astropy.table.SortedArray`.
-        unique : bool
-            Whether the values of the index must be unique. Default is False.
+        unique : bool (default: False)
+            If set to True, an exception will be raised if duplicate rows exist.
+
+        Raises
+        ------
+        ValueError
+            If any selected column does not support indexing, or has more than
+            one dimension.
+        ValueError
+            If unique=True and duplicate rows are found.
+
         """
         if isinstance(colnames, str):
             colnames = (colnames,)
@@ -1174,7 +1199,7 @@ class Table:
         the same length as data.
         """
         for inp_list, inp_str in ((dtype, "dtype"), (names, "names")):
-            if not isiterable(inp_list):
+            if not np.iterable(inp_list):
                 raise ValueError(f"{inp_str} must be a list or None")
 
         if len(names) != n_cols or len(dtype) != n_cols:
@@ -1189,17 +1214,7 @@ class Table:
         MISSING = object()
 
         # Gather column names that exist in the input `data`.
-        names_from_data = set()
-        for row in data:
-            names_from_data.update(row)
-
-        if set(data[0].keys()) == names_from_data:
-            names_from_data = list(data[0].keys())
-        else:
-            names_from_data = sorted(names_from_data)
-
-        # Note: if set(data[0].keys()) != names_from_data, this will give an
-        # exception later, so NO need to catch here.
+        names_from_data = _get_names_from_list_of_dict(data)
 
         # Convert list of dict into dict of list (cols), keep track of missing
         # indexes and put in MISSING placeholders in the `cols` lists.
@@ -1659,7 +1674,7 @@ class Table:
         return self._base_repr_(html=False, max_width=None)
 
     def __str__(self):
-        return "\n".join(self.pformat())
+        return "\n".join(self.pformat(max_lines=None, max_width=None))
 
     def __bytes__(self):
         return str(self).encode("utf-8")
@@ -1778,89 +1793,63 @@ class Table:
         else:
             return self
 
-    @deprecated(
-        "6.1",
-        message="""show_in_notebook() is deprecated as of 6.1 and to create
-         interactive tables it is recommended to use dedicated tools like:
-         - https://github.com/bloomberg/ipydatagrid
-         - https://docs.bokeh.org/en/latest/docs/user_guide/interaction/widgets.html#datatable
-         - https://dash.plotly.com/datatable""",
-    )
-    def show_in_notebook(
-        self,
-        tableid=None,
-        css=None,
-        display_length=50,
-        table_class="astropy-default",
-        show_row_index="idx",
-    ):
-        """Render the table in HTML and show it in the IPython notebook.
+    def show_in_notebook(self, *, backend="ipydatagrid", **kwargs):
+        """Render the table in HTML and show it in the Jupyter notebook.
+
+        .. note:: The method API was modified in v7.0 to include a ``backend``
+           argument and require only keyword arguments.
 
         Parameters
         ----------
-        tableid : str or None
-            An html ID tag for the table.  Default is ``table{id}-XXX``, where
-            id is the unique integer id of the table object, id(self), and XXX
-            is a random number to avoid conflicts when printing the same table
-            multiple times.
-        table_class : str or None
-            A string with a list of HTML classes used to style the table.
-            The special default string ('astropy-default') means that the string
-            will be retrieved from the configuration item
-            ``astropy.table.default_notebook_table_class``. Note that these
-            table classes may make use of bootstrap, as this is loaded with the
-            notebook.  See `this page <https://getbootstrap.com/css/#tables>`_
-            for the list of classes.
-        css : str
-            A valid CSS string declaring the formatting for the table. Defaults
-            to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
-        display_length : int, optional
-            Number or rows to show. Defaults to 50.
-        show_row_index : str or False
-            If this does not evaluate to False, a column with the given name
-            will be added to the version of the table that gets displayed.
-            This new column shows the index of the row in the table itself,
-            even when the displayed table is re-sorted by another column. Note
-            that if a column with this name already exists, this option will be
-            ignored. Defaults to "idx".
+        backend : {"ipydatagrid", "classic"}
+            Backend to use for rendering (default="ipydatagrid"). The "classic" backend
+            is deprecated since v6.1.
 
-        Notes
-        -----
-        Currently, unlike `show_in_browser` (with ``jsviewer=True``), this
-        method needs to access online javascript code repositories.  This is due
-        to modern browsers' limitations on accessing local files.  Hence, if you
-        call this method while offline (and don't have a cached version of
-        jquery and jquery.dataTables), you will not get the jsviewer features.
+        **kwargs : dict, optional
+            Keyword arguments as accepted by desired backend. See `astropy.table.notebook_backends`
+            for the available backends and their respective keyword arguments.
+
+        Raises
+        ------
+        NotImplementedError
+            Requested backend is not supported.
+
+        See Also
+        --------
+        astropy.table.notebook_backends
+
         """
-        from IPython.display import HTML
+        if backend == "ipydatagrid":
+            try:
+                import pandas  # noqa: F401
 
-        from .jsviewer import JSViewer
+                from astropy.table.notebook_backends import ipydatagrid
+            except ImportError:
+                raise ImportError(
+                    "The default option for show_in_notebook now requires pandas "
+                    "and ipydatagrid to also be installed, or please consider using the astropy[jupyter] extras"
+                ) from None
 
-        if tableid is None:
-            tableid = f"table{id(self)}-{np.random.randint(1, 1e6)}"
+            func = ipydatagrid
 
-        jsv = JSViewer(display_length=display_length)
-        if show_row_index:
-            display_table = self._make_index_row_display_table(show_row_index)
+        elif backend == "classic":
+            from astropy.table.notebook_backends import classic
+
+            # NOTE: The leading whitespace in warning lines is for backward compatibility.
+            warnings.warn(
+                "'classic' backend for show_in_notebook() is deprecated as of 6.1. "
+                "Instead, use the supported backend 'ipydatagrid'.",
+                AstropyDeprecationWarning,
+            )
+            func = classic
+
         else:
-            display_table = self
-        if table_class == "astropy-default":
-            table_class = conf.default_notebook_table_class
-        html = display_table._base_repr_(
-            html=True,
-            max_width=-1,
-            tableid=tableid,
-            max_lines=-1,
-            show_dtype=False,
-            tableclass=table_class,
-        )
+            raise NotImplementedError(
+                f'"{backend}" backend is not supported for rendering Astropy table '
+                "in Jupyter notebook."
+            )
 
-        columns = display_table.columns.values()
-        sortable_columns = [
-            i for i, col in enumerate(columns) if col.info.dtype.kind in "iufc"
-        ]
-        html += jsv.ipynb(tableid, css=css, sort_columns=sortable_columns)
-        return HTML(html)
+        return func(self, **kwargs)
 
     @deprecated(
         "6.1",
@@ -1874,7 +1863,7 @@ class Table:
         max_lines=5000,
         jsviewer=False,
         browser="default",
-        jskwargs={"use_local_files": True},
+        jskwargs={"use_local_files": False},
         tableid=None,
         table_class="display compact",
         css=None,
@@ -1892,7 +1881,11 @@ class Table:
         jsviewer : bool
             If `True`, prepends some javascript headers so that the table is
             rendered as a `DataTables <https://datatables.net>`_ data table.
-            This allows in-browser searching & sorting.
+            This allows in-browser searching & sorting, but requires a
+            connection to the internet to load the necessary javascript
+            libraries from a CDN. Working offline may work in limited
+            circumstances, if the browser has cached the necessary libraries
+            from a previous use of this method.
         browser : str
             Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
             ``'safari'`` (for mac, you may need to use ``'open -a
@@ -1900,8 +1893,8 @@ class Table:
             ``'default'``, will use the system default browser.
         jskwargs : dict
             Passed to the `astropy.table.JSViewer` init. Defaults to
-            ``{'use_local_files': True}`` which means that the JavaScript
-            libraries will be served from local copies.
+            ``{'use_local_files': False}`` which means that the JavaScript
+            libraries will be loaded from a CDN.
         tableid : str or None
             An html ID tag for the table.  Default is ``table{id}``, where id
             is the unique integer id of the table object, id(self).
@@ -1958,13 +1951,13 @@ class Table:
         except webbrowser.Error:
             log.error(f"Browser '{browser}' not found.")
         else:
-            br.open(urljoin("file:", pathname2url(path)))
+            br.open(urljoin("file:", pathname2url(str(path))))
 
     @format_doc(_pformat_docs, id="{id}")
     def pformat(
         self,
-        max_lines=None,
-        max_width=None,
+        max_lines=-1,
+        max_width=-1,
         show_name=True,
         show_unit=None,
         show_dtype=False,
@@ -1976,12 +1969,12 @@ class Table:
         """Return a list of lines for the formatted string representation of
         the table.
 
-        If no value of ``max_lines`` is supplied then the height of the
+        If ``max_lines=None`` is supplied then the height of the
         screen terminal is used to set ``max_lines``.  If the terminal
-        height cannot be determined then the default is taken from the
-        configuration item ``astropy.conf.max_lines``.  If a negative
-        value of ``max_lines`` is supplied then there is no line limit
-        applied.
+        height cannot be determined then the default will be
+        determined using the ``astropy.conf.max_lines`` configuration
+        item. If a negative value of ``max_lines`` is supplied then
+        there is no line limit applied (default).
 
         The same applies for ``max_width`` except the configuration item  is
         ``astropy.conf.max_width``.
@@ -2005,6 +1998,7 @@ class Table:
 
         return lines
 
+    @deprecated(since="7.0", alternative="Table.pformat")
     @format_doc(_pformat_docs, id="{id}")
     def pformat_all(
         self,
@@ -2021,12 +2015,12 @@ class Table:
         """Return a list of lines for the formatted string representation of
         the entire table.
 
-        If no value of ``max_lines`` is supplied then the height of the
+        If ``max_lines=None`` is supplied then the height of the
         screen terminal is used to set ``max_lines``.  If the terminal
-        height cannot be determined then the default is taken from the
-        configuration item ``astropy.conf.max_lines``.  If a negative
-        value of ``max_lines`` is supplied then there is no line limit
-        applied.
+        height cannot be determined then the default will be
+        determined using the ``astropy.conf.max_lines`` configuration
+        item. If a negative value of ``max_lines`` is supplied then
+        there is no line limit applied (default).
 
         The same applies for ``max_width`` except the configuration item  is
         ``astropy.conf.max_width``.
@@ -2117,10 +2111,8 @@ class Table:
         ):
             # If item is an empty array/list/tuple then return the table with no rows
             return self._new_from_slice([])
-        elif (
-            isinstance(item, (slice, np.ndarray, list))
-            or isinstance(item, tuple)
-            and all(isinstance(x, np.ndarray) for x in item)
+        elif isinstance(item, (slice, np.ndarray, list)) or (
+            isinstance(item, tuple) and all(isinstance(x, np.ndarray) for x in item)
         ):
             # here for the many ways to give a slice; a tuple of ndarray
             # is produced by np.where, as in t[np.where(t['a'] > 2)]
@@ -2156,10 +2148,8 @@ class Table:
             elif isinstance(item, (int, np.integer)):
                 self._set_row(idx=item, colnames=self.colnames, vals=value)
 
-            elif (
-                isinstance(item, (slice, np.ndarray, list))
-                or isinstance(item, tuple)
-                and all(isinstance(x, np.ndarray) for x in item)
+            elif isinstance(item, (slice, np.ndarray, list)) or (
+                isinstance(item, tuple) and all(isinstance(x, np.ndarray) for x in item)
             ):
                 if isinstance(value, Table):
                     vals = (col for col in value.columns.values())
@@ -2431,13 +2421,14 @@ class Table:
             col, name=name, copy=copy, default_name=default_name
         )
 
-        # Assigning a scalar column to an empty table should result in an
-        # exception (see #3811).
-        if col.shape == () and len(self) == 0:
-            raise TypeError("Empty table cannot have column set to scalar value")
-        # Make col data shape correct for scalars.  The second test is to allow
-        # broadcasting an N-d element to a column, e.g. t['new'] = [[1, 2]].
-        elif (col.shape == () or col.shape[0] == 1) and len(self) > 0:
+        # For scalars and for arrays with length 1, allow broadcasting to the
+        # length of the table. This includes zero-length tables, i.e., we
+        # broadcast the column to zero length (since astropy 7.0; this
+        # follows numpy behaviour; see gh-17078 for discussion).
+        # If the table is not yet initialized, we use the column for its length,
+        # which for a scalar will be length zero (which is most easily achieved
+        # by pass-through here).
+        if col.shape == () or (col.shape[0] == 1 and self.columns):
             new_shape = (len(self),) + getattr(col, "shape", ())[1:]
             if isinstance(col, np.ndarray):
                 col = np.broadcast_to(col, shape=new_shape, subok=True)
@@ -2694,6 +2685,9 @@ class Table:
             raise ValueError("cannot replace a table index column")
 
         col = self._convert_data_to_col(col, name=name, copy=copy)
+        if col.shape == ():
+            raise ValueError("cannot replace a column with a scalar.")
+
         self._set_col_parent_table_and_mask(col)
 
         # Ensure that new column is the right length, unless it is the only column
@@ -3151,7 +3145,8 @@ class Table:
 
     def _set_row(self, idx, colnames, vals):
         try:
-            assert len(vals) == len(colnames)
+            if not len(vals) == len(colnames):
+                raise Exception
         except Exception:
             raise ValueError(
                 "right hand side must be a sequence of values with "
@@ -3298,8 +3293,10 @@ class Table:
             vals = vals_list
             mask = mask_list
 
-        if isiterable(vals):
-            if mask is not None and (not isiterable(mask) or isinstance(mask, Mapping)):
+        if np.iterable(vals):
+            if mask is not None and (
+                not np.iterable(mask) or isinstance(mask, Mapping)
+            ):
                 raise TypeError("Mismatch between type of vals and mask")
 
             if len(self.columns) != len(vals):
@@ -3922,7 +3919,7 @@ class Table:
                 # other = {'a': 2, 'b': 2} and then equality does a
                 # column-by-column broadcasting.
                 names = self.colnames
-                other = {name: other for name in names}
+                other = dict.fromkeys(names, other)
 
         # Require column names match but do not require same column order
         if set(self.colnames) != set(names):
@@ -3996,6 +3993,11 @@ class Table:
         -------
         out : `~astropy.table.Table`
             New table with groups set
+
+        Notes
+        -----
+        The underlying sorting algorithm is guaranteed stable, meaning that the
+        original table order is preserved within each group.
         """
         return groups.table_group_by(self, keys)
 
@@ -4126,15 +4128,13 @@ class Table:
 
         badcols = [name for name, col in self.columns.items() if len(col.shape) > 1]
         if badcols:
-            # fmt: off
             raise ValueError(
-                f'Cannot convert a table with multidimensional columns to a '
-                f'pandas DataFrame. Offending columns are: {badcols}\n'
-                f'One can filter out such columns using:\n'
-                f'names = [name for name in tbl.colnames if len(tbl[name].shape) <= 1]\n'
-                f'tbl[names].to_pandas(...)'
+                f"Cannot convert a table with multidimensional columns to a "
+                f"pandas DataFrame. Offending columns are: {badcols}\n"
+                f"One can filter out such columns using:\n"
+                f"names = [name for name in tbl.colnames if len(tbl[name].shape) <= 1]\n"
+                f"tbl[names].to_pandas(...)"
             )
-            # fmt: on
 
         out = OrderedDict()
 

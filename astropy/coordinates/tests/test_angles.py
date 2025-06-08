@@ -216,6 +216,28 @@ def test_angle_methods():
     assert a_min == 0.0 * u.degree
 
 
+def test_angle_nan_functions():
+    # Most numpy functions tested as part of the Quantity tests.
+    # But check that we drop to Quantity when appropriate; see
+    # https://github.com/astropy/astropy/pull/17221#discussion_r1813060768
+    a = Angle([0.0, 2.0, np.nan], "deg")
+    a_mean = np.nanmean(a)
+    assert type(a_mean) is Angle
+    assert a_mean == 1.0 * u.degree
+    a_std = np.nanstd(a)
+    assert type(a_std) is Angle
+    assert a_std == 1.0 * u.degree
+    a_var = np.nanvar(a)
+    assert type(a_var) is u.Quantity
+    assert a_var == 1.0 * u.degree**2
+    a_max = np.nanmax(a)
+    assert type(a_max) is Angle
+    assert a_max == 2.0 * u.degree
+    a_min = np.nanmin(a)
+    assert type(a_min) is Angle
+    assert a_min == 0.0 * u.degree
+
+
 def test_angle_convert():
     """
     Test unit conversion of Angle objects
@@ -698,7 +720,7 @@ def test_latitude():
 
     lim_exc = r"Latitude angle\(s\) must be within -90 deg <= angle <= 90 deg, got"
     with pytest.raises(ValueError, match=rf"{lim_exc} \[91. 89.\] deg"):
-        Latitude(["91d", "89d"])
+        Latitude([91, 89] * u.deg)
     with pytest.raises(ValueError, match=f"{lim_exc} -91.0 deg"):
         Latitude("-91d")
 
@@ -775,6 +797,18 @@ def test_lon_as_lat():
     lat = Latitude([20], "deg")
     lat[0] = Angle(lon)
     assert lat.value[0] == 10.0
+
+
+@pytest.mark.parametrize("lon", ["12.3dW", "12h13m12sE", ["1d", "1dW"]])
+def test_lon_as_lat_str(lon):
+    with pytest.raises(TypeError, match="Latitude.*cannot be created from a Longitude"):
+        Latitude(lon)
+
+
+@pytest.mark.parametrize("lat", ["12.3dN", "12d13m12sS", ["1d", "1dS"]])
+def test_lat_as_lon_str(lat):
+    with pytest.raises(TypeError, match="Longitude.*cannot be created from a Latitude"):
+        Longitude(lat)
 
 
 def test_longitude():

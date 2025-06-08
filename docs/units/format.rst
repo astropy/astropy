@@ -161,7 +161,7 @@ formats:
     generate units defined in the FITS standard.
 
   - ``"vounit"``: The `Units in the VO 1.0
-    <http://www.ivoa.net/documents/VOUnits/>`__ standard for
+    <https://www.ivoa.net/documents/VOUnits/20140523/index.html>`__ standard for
     representing units in the VO. Again, based on the FITS syntax,
     but the collection of supported units is different.
 
@@ -245,12 +245,10 @@ following formats:
 Dealing with Unrecognized Units
 ===============================
 
-Since many files found in the wild have unit strings that do not
-correspond to any given standard, `astropy.units` also has a
-consistent way to store and pass around unit strings that did not
-parse.  In addition, it provides tools for transforming non-standard,
-legacy or misspelt unit strings into their standardized form,
-preventing the further propagation of these unit strings.
+Since many files found in the wild have unit strings that do not correspond to
+any given standard, :mod:`astropy.units` contains functionality for both
+validating the strings, and for reading in datasets that contain invalid unit
+strings.
 
 By default, passing an unrecognized unit string raises an exception::
 
@@ -265,25 +263,30 @@ By default, passing an unrecognized unit string raises an exception::
   code, enable it with 'u.add_enabled_units'. For details, see
   https://docs.astropy.org/en/latest/units/combining_and_defining.html
 
-However, the `~astropy.units.Unit` constructor has the keyword
+However, the :class:`~astropy.units.Unit` constructor obeys the keyword
 argument ``parse_strict`` that can take one of three values to control
 this behavior:
 
   - ``'raise'``: (default) raise a :class:`ValueError`.
 
-  - ``'warn'``: emit a :class:`~astropy.units.UnitsWarning`, and return an
-    `~astropy.units.UnrecognizedUnit` instance.
+  - ``'warn'``: emit a :class:`~astropy.units.UnitParserWarning`, and return a
+    unit.
 
-  - ``'silent'``: return an `~astropy.units.UnrecognizedUnit`
-    instance.
+  - ``'silent'``: return a unit without raising errors or emitting warnings.
 
-By either adding additional unit aliases for the misspelt units with
+The type of unit returned when ``parse_strict`` is ``'warn'`` or ``'silent'``
+depends on how serious the standard violation is.
+In case of a minor standard violation, :class:`~astropy.units.Unit` can
+sometimes nonetheless parse the unit.
+The warning message (if ``parse_strict='warn'``) will then contain information
+about how the invalid string was interpreted.
+In case of more serious standard violations an
+:class:`~astropy.units.UnrecognizedUnit` instance is returned instead.
+In such cases, particularly in case of misspelt units, it might be helpful to
+register additional unit aliases with
 :func:`~astropy.units.set_enabled_aliases` (e.g., 'Angstroms' for 'Angstrom';
-as demonstrated below), or defining new units via
+as demonstrated below), or to define new units via
 :func:`~astropy.units.def_unit` and :func:`~astropy.units.add_enabled_units`,
-we can use ``parse_strict='raise'`` to rapidly find issues with the units used,
-while also being able to read in older datasets where the unit usage may have
-been less standard.
 
 
 Examples

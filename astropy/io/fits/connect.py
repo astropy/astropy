@@ -127,6 +127,7 @@ def read_table_fits(
     character_as_bytes=True,
     unit_parse_strict="warn",
     mask_invalid=True,
+    strip_spaces=False,
 ):
     """
     Read a Table object from an FITS file.
@@ -160,8 +161,9 @@ def read_table_fits(
         fit the table in memory, you may be better off leaving memory mapping
         off. However, if your table would not fit in memory, you should set this
         to `True`.
-        When set to `True` then ``mask_invalid`` is set to `False` since the
-        masking would cause loading the full data array.
+        When set to `True` then ``mask_invalid`` and ``strip_spaces`` are set
+        to `False` since the masking and whitespace removal would cause loading
+        the full data array.
     character_as_bytes : bool, optional
         If `True`, string columns are stored as Numpy byte arrays (dtype ``S``)
         and are converted on-the-fly to unicode strings when accessing
@@ -180,6 +182,10 @@ def read_table_fits(
         string columns. Set this parameter to `False` to avoid the performance
         penalty of doing this masking step. The masking is always deactivated
         when using ``memmap=True`` (see above).
+    strip_spaces : bool, optional
+        Strip trailing whitespace in string columns, default is False and will be
+        changed to True in the next major release. This is deactivated when
+        using ``memmap=True`` (see above).
 
     """
     if isinstance(input, HDUList):
@@ -238,9 +244,10 @@ def read_table_fits(
 
     else:
         if memmap:
-            # using memmap is not compatible with masking invalid value by
-            # default so we deactivate the masking
+            # using memmap is not compatible with masking invalid value and
+            # removing trailing whitespace by default so we deactivate that
             mask_invalid = False
+            strip_spaces = False
 
         hdulist = fits_open(input, character_as_bytes=character_as_bytes, memmap=memmap)
 
@@ -251,16 +258,23 @@ def read_table_fits(
                 astropy_native=astropy_native,
                 unit_parse_strict=unit_parse_strict,
                 mask_invalid=mask_invalid,
+                strip_spaces=strip_spaces,
             )
         finally:
             hdulist.close()
 
-    # In the loop below we access the data using data[col.name] rather than
-    # col.array to make sure that the data is scaled correctly if needed.
     data = table.data
 
     columns = []
     for col in data.columns:
+        # use data[col.name] rather than col.array to make sure that the data
+        # is scaled correctly if needed.
+        arr = data[col.name]
+        coltype = col.dtype.subdtype[0].type if col.dtype.subdtype else col.dtype.type
+
+        if strip_spaces and coltype is np.bytes_:
+            arr = arr.rstrip()
+
         # Check if column is masked. Here, we make a guess based on the
         # presence of FITS mask values. For integer columns, this is simply
         # the null header, for float and complex, the presence of NaN, and for
@@ -272,30 +286,25 @@ def read_table_fits(
         # preserve null values.
         masked = mask = False
         fill_value = None
-        coltype = col.dtype.subdtype[0].type if col.dtype.subdtype else col.dtype.type
         if col.null is not None:
-            mask = data[col.name] == col.null
+            mask = arr == col.null
             # Return a MaskedColumn even if no elements are masked so
             # we roundtrip better.
             masked = True
             fill_value = col.null
         elif mask_invalid and issubclass(coltype, np.inexact):
-            mask = np.isnan(data[col.name])
+            mask = np.isnan(arr)
             fill_value = np.nan
         elif mask_invalid and issubclass(coltype, np.character):
-            mask = col.array == b""
+            mask = arr == b""
             fill_value = b""
 
         if masked or np.any(mask):
             column = MaskedColumn(
-                data=data[col.name],
-                name=col.name,
-                mask=mask,
-                copy=False,
-                fill_value=fill_value,
+                data=arr, name=col.name, mask=mask, copy=False, fill_value=fill_value
             )
         else:
-            column = Column(data=data[col.name], name=col.name, copy=False)
+            column = Column(data=arr, name=col.name, copy=False)
 
         # Copy over units
         if col.unit is not None:
@@ -390,7 +399,7 @@ def _encode_mixins(tbl):
         encode_tbl = Table(tbl.columns, meta=meta_copy, copy=False)
 
     # Get the YAML serialization of information describing the table columns.
-    # This is re-using ECSV code that combined existing table.meta with with
+    # This is reusing ECSV code that combined existing table.meta with with
     # the extra __serialized_columns__ key.  For FITS the table.meta is handled
     # by the native FITS connect code, so don't include that in the YAML
     # output.
@@ -435,7 +444,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
     ----------
     input : Table
         The table to write out.
-    output : str
+    output : str or os.PathLike[str] or file-like
         The filename to write the table to.
     overwrite : bool
         Whether to overwrite any existing file without warning.
@@ -448,7 +457,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
     table_hdu = table_to_hdu(input, character_as_bytes=True)
 
     # Check if output file already exists
-    if isinstance(output, str) and os.path.exists(output):
+    if isinstance(output, (str, os.PathLike)) and os.path.exists(output):
         if overwrite:
             os.remove(output)
         elif not append:

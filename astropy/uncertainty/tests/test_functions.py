@@ -17,27 +17,27 @@ from astropy.uncertainty import Distribution
 
 class ArraySetup:
     @classmethod
-    def setup_class(self):
-        self.a = (
+    def setup_class(cls):
+        cls.a = (
             np.array([[[0.0]], [[10.0]]])
             + np.array([[0.0], [1.0], [2.0]])
             + np.arange(4.0) / 10.0
         )
-        self.b = -(np.arange(3.0, 6.0)[:, np.newaxis] + np.arange(4.0) / 10.0)
-        self.da = Distribution(self.a)
-        self.db = Distribution(self.b)
-        self.c = np.array([[200.0], [300.0]])
+        cls.b = -(np.arange(3.0, 6.0)[:, np.newaxis] + np.arange(4.0) / 10.0)
+        cls.da = Distribution(cls.a)
+        cls.db = Distribution(cls.b)
+        cls.c = np.array([[200.0], [300.0]])
 
 
 class QuantitySetup(ArraySetup):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.a <<= u.m
-        self.b <<= u.km
-        self.da <<= u.m
-        self.db <<= u.km
-        self.c <<= u.Mm
+        cls.a <<= u.m
+        cls.b <<= u.km
+        cls.da <<= u.m
+        cls.db <<= u.km
+        cls.c <<= u.Mm
 
 
 class TestConcatenation(ArraySetup):

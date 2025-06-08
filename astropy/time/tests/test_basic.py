@@ -29,7 +29,7 @@ from astropy.time import (
     TimezoneInfo,
     conf,
 )
-from astropy.utils import iers, isiterable
+from astropy.utils import iers
 from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYTZ
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -1256,9 +1256,9 @@ class TestNumericalSubFormat:
         with localcontext() as ctx:
             ctx.prec = 40
             t2_s_40 = t.to_value(fmt, "str")
-        assert (
-            t_s_2 == t2_s_40
-        ), "String representation should not depend on Decimal context"
+        assert t_s_2 == t2_s_40, (
+            "String representation should not depend on Decimal context"
+        )
 
     def test_decimal_context_caching(self):
         t = Time(val=58000, val2=1e-14, format="mjd", scale="tai")
@@ -1740,20 +1740,20 @@ def test_remove_astropy_time():
 def test_isiterable():
     """
     Ensure that scalar `Time` instances are not reported as iterable by the
-    `isiterable` utility.
+    `np.iterable()` utility.
 
     Regression test for https://github.com/astropy/astropy/issues/4048
     """
 
     t1 = Time.now()
-    assert not isiterable(t1)
+    assert not np.iterable(t1)
 
     t2 = Time(
         ["1999-01-01 00:00:00.123456789", "2010-01-01 00:00:00"],
         format="iso",
         scale="utc",
     )
-    assert isiterable(t2)
+    assert np.iterable(t2)
 
 
 def test_to_datetime():
@@ -2523,12 +2523,12 @@ def test_ymdhms_init_from_dict_scalar(kwargs):
     tm = Time(time_dict, **kwargs)
 
     assert tm == Time("2016-12-31T23:59:60.123456789")
-    for attr in time_dict:
+    for attr, expected in time_dict.items():
         for value in (tm.value[attr], getattr(tm.value, attr)):
             if attr == "second":
-                assert allclose_sec(time_dict[attr], value)
+                assert allclose_sec(value, expected)
             else:
-                assert time_dict[attr] == value
+                assert value == expected
 
     # Now test initializing from a YMDHMS format time using the object
     tm_rt = Time(tm)

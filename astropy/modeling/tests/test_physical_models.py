@@ -22,6 +22,7 @@ __doctest_skip__ = ["*"]
 
 
 fitters = [LevMarLSQFitter, TRFLSQFitter, LMLSQFitter, DogBoxLSQFitter]
+fitters_bounds = [LevMarLSQFitter, TRFLSQFitter, DogBoxLSQFitter]
 
 
 # BlackBody tests
@@ -79,7 +80,7 @@ def test_blackbody_return_units():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_blackbody_fit(fitter):
     fitter = fitter()
 
@@ -492,7 +493,7 @@ def test_NFW_evaluate(mass):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_NFW_fit(fitter):
     """Test linear fitting of NFW model."""
     fitter = fitter()

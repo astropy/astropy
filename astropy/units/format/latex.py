@@ -7,15 +7,13 @@ Handles the "LaTeX" unit format.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Literal
 
-from . import console, utils
+from . import console
 
 if TYPE_CHECKING:
-    from typing import ClassVar, Literal
-
     from astropy.units import NamedUnit, UnitBase
-    from astropy.units.typing import Real
+    from astropy.units.typing import UnitPower
 
 
 class Latex(console.Console):
@@ -39,7 +37,7 @@ class Latex(console.Console):
         return f"^{{{number}}}"
 
     @classmethod
-    def _format_unit_power(cls, unit: NamedUnit, power: Real = 1) -> str:
+    def _format_unit_power(cls, unit: NamedUnit, power: UnitPower = 1) -> str:
         name = unit._get_format_name("latex")
         if name == unit.name:
             # This doesn't escape arbitrary LaTeX strings, but it should
@@ -53,7 +51,7 @@ class Latex(console.Console):
             # `u.deg**2` returns `deg^{2}` instead of `{}^{\circ}^{2}`.
             if re.match(r".*\^{[^}]*}$", name):  # ends w/ superscript?
                 name = unit.short_names[0]
-            name += cls._format_superscript(utils.format_power(power))
+            name += cls._format_power(power)
         return name
 
     @classmethod

@@ -22,8 +22,8 @@ erfa_ufuncs = (
     "s2c", "s2p", "c2s", "p2s", "pm", "pdp", "pxp", "rxp", "cpv", "p2pv", "pv2p",
     "pv2s", "pvdpv", "pvm", "pvmpv", "pvppv", "pvstar", "pvtob", "pvu", "pvup",
     "pvxpv", "rxpv", "s2pv", "s2xpv", "starpv", "sxpv", "trxpv", "gd2gc", "gd2gce",
-    "gc2gd", "gc2gde", "ldn", "aper", "apio", "atciq", "atciqn", "atciqz", "aticq",
-    "atioq", "atoiq",
+    "gc2gd", "gc2gde", "ldn", "apco13", "aper", "apio",
+    "atciq", "atciqn", "atciqz", "aticq", "atioq", "atoiq",
 )  # fmt: skip
 
 
@@ -48,6 +48,11 @@ def check_structured_unit(unit, dtype):
             dtype, "function"
         )
         raise UnitTypeError(f"{msg} input needs unit matching dtype={dtype}.")
+
+
+def check_no_time_units(unit1, unit2, f):
+    if unit1 is not None or unit2 is not None:
+        raise TypeError(f"cannot pass in units for 2-part time in {f.__name__}.")
 
 
 def helper_s2c(f, unit1, unit2):
@@ -319,6 +324,52 @@ def helper_aper(f, unit_theta, unit_astrom):
     return [get_converter(unit_theta, unit_along), None], result_unit
 
 
+def helper_apco13(
+    f,
+    unit_utc1,
+    unit_utc2,
+    unit_dut1,
+    unit_elong,
+    unit_phi,
+    unit_hm,
+    unit_xp,
+    unit_yp,
+    unit_phpa,
+    unit_tc,
+    unit_rh,
+    unit_wl,
+):
+    from astropy.units import (
+        add_enabled_equivalencies,
+        deg_C,
+        hPa,
+        m,
+        micron,
+        one,
+        radian,
+        second,
+        temperature,
+    )
+
+    check_no_time_units(unit_utc1, unit_utc2, f)
+
+    with add_enabled_equivalencies(temperature()):
+        return [
+            None,
+            None,
+            get_converter(unit_dut1, second),
+            get_converter(unit_elong, radian),
+            get_converter(unit_phi, radian),
+            get_converter(unit_hm, m),
+            get_converter(unit_xp, radian),
+            get_converter(unit_yp, radian),
+            get_converter(unit_phpa, hPa),
+            get_converter(unit_tc, deg_C),
+            get_converter(_d(unit_rh), one),
+            get_converter(unit_wl, micron),
+        ], (astrom_unit(), radian, None)
+
+
 def helper_apio(
     f,
     unit_sp,
@@ -340,9 +391,9 @@ def helper_apio(
         get_converter(unit_phi, radian),
         get_converter(unit_hm, m),
         get_converter(unit_xp, radian),
-        get_converter(unit_xp, radian),
-        get_converter(unit_xp, radian),
-        get_converter(unit_xp, radian),
+        get_converter(unit_yp, radian),
+        get_converter(unit_refa, radian),
+        get_converter(unit_refb, radian),
     ], astrom_unit()
 
 
@@ -423,49 +474,50 @@ def helper_atoiq(f, unit_type, unit_ri, unit_di, unit_astrom):
 
 
 def get_erfa_helpers():
-    ERFA_HELPERS = {}
-    ERFA_HELPERS[erfa_ufunc.s2c] = helper_s2c
-    ERFA_HELPERS[erfa_ufunc.s2p] = helper_s2p
-    ERFA_HELPERS[erfa_ufunc.c2s] = helper_c2s
-    ERFA_HELPERS[erfa_ufunc.p2s] = helper_p2s
-    ERFA_HELPERS[erfa_ufunc.pm] = helper_invariant
-    ERFA_HELPERS[erfa_ufunc.cpv] = helper_invariant
-    ERFA_HELPERS[erfa_ufunc.p2pv] = helper_p2pv
-    ERFA_HELPERS[erfa_ufunc.pv2p] = helper_pv2p
-    ERFA_HELPERS[erfa_ufunc.pv2s] = helper_pv2s
-    ERFA_HELPERS[erfa_ufunc.pvdpv] = helper_pv_multiplication
-    ERFA_HELPERS[erfa_ufunc.pvxpv] = helper_pv_multiplication
-    ERFA_HELPERS[erfa_ufunc.pvm] = helper_pvm
-    ERFA_HELPERS[erfa_ufunc.pvmpv] = helper_twoarg_invariant
-    ERFA_HELPERS[erfa_ufunc.pvppv] = helper_twoarg_invariant
-    ERFA_HELPERS[erfa_ufunc.pvstar] = helper_pvstar
-    ERFA_HELPERS[erfa_ufunc.pvtob] = helper_pvtob
-    ERFA_HELPERS[erfa_ufunc.pvu] = helper_pvu
-    ERFA_HELPERS[erfa_ufunc.pvup] = helper_pvup
-    ERFA_HELPERS[erfa_ufunc.pdp] = helper_multiplication
-    ERFA_HELPERS[erfa_ufunc.pxp] = helper_multiplication
-    ERFA_HELPERS[erfa_ufunc.rxp] = helper_multiplication
-    ERFA_HELPERS[erfa_ufunc.rxpv] = helper_multiplication
-    ERFA_HELPERS[erfa_ufunc.s2pv] = helper_s2pv
-    ERFA_HELPERS[erfa_ufunc.s2xpv] = helper_s2xpv
-    ERFA_HELPERS[erfa_ufunc.starpv] = helper_starpv
-    ERFA_HELPERS[erfa_ufunc.sxpv] = helper_multiplication
-    ERFA_HELPERS[erfa_ufunc.trxpv] = helper_multiplication
-    ERFA_HELPERS[erfa_ufunc.gc2gd] = helper_gc2gd
-    ERFA_HELPERS[erfa_ufunc.gc2gde] = helper_gc2gde
-    ERFA_HELPERS[erfa_ufunc.gd2gc] = helper_gd2gc
-    ERFA_HELPERS[erfa_ufunc.gd2gce] = helper_gd2gce
-    ERFA_HELPERS[erfa_ufunc.ldn] = helper_ldn
-    ERFA_HELPERS[erfa_ufunc.aper] = helper_aper
-    ERFA_HELPERS[erfa_ufunc.apio] = helper_apio
-    ERFA_HELPERS[erfa_ufunc.atciq] = helper_atciq
-    ERFA_HELPERS[erfa_ufunc.atciqn] = helper_atciqn
-    ERFA_HELPERS[erfa_ufunc.atciqz] = helper_atciqz_aticq
-    ERFA_HELPERS[erfa_ufunc.aticq] = helper_atciqz_aticq
-    ERFA_HELPERS[erfa_ufunc.aticqn] = helper_aticqn
-    ERFA_HELPERS[erfa_ufunc.atioq] = helper_atioq
-    ERFA_HELPERS[erfa_ufunc.atoiq] = helper_atoiq
-    return ERFA_HELPERS
+    return {
+        erfa_ufunc.apco13: helper_apco13,
+        erfa_ufunc.aper: helper_aper,
+        erfa_ufunc.apio: helper_apio,
+        erfa_ufunc.atciq: helper_atciq,
+        erfa_ufunc.atciqn: helper_atciqn,
+        erfa_ufunc.atciqz: helper_atciqz_aticq,
+        erfa_ufunc.aticq: helper_atciqz_aticq,
+        erfa_ufunc.aticqn: helper_aticqn,
+        erfa_ufunc.atioq: helper_atioq,
+        erfa_ufunc.atoiq: helper_atoiq,
+        erfa_ufunc.c2s: helper_c2s,
+        erfa_ufunc.cpv: helper_invariant,
+        erfa_ufunc.gc2gd: helper_gc2gd,
+        erfa_ufunc.gc2gde: helper_gc2gde,
+        erfa_ufunc.gd2gc: helper_gd2gc,
+        erfa_ufunc.gd2gce: helper_gd2gce,
+        erfa_ufunc.ldn: helper_ldn,
+        erfa_ufunc.p2pv: helper_p2pv,
+        erfa_ufunc.p2s: helper_p2s,
+        erfa_ufunc.pdp: helper_multiplication,
+        erfa_ufunc.pm: helper_invariant,
+        erfa_ufunc.pv2p: helper_pv2p,
+        erfa_ufunc.pv2s: helper_pv2s,
+        erfa_ufunc.pvdpv: helper_pv_multiplication,
+        erfa_ufunc.pvm: helper_pvm,
+        erfa_ufunc.pvmpv: helper_twoarg_invariant,
+        erfa_ufunc.pvppv: helper_twoarg_invariant,
+        erfa_ufunc.pvstar: helper_pvstar,
+        erfa_ufunc.pvtob: helper_pvtob,
+        erfa_ufunc.pvu: helper_pvu,
+        erfa_ufunc.pvup: helper_pvup,
+        erfa_ufunc.pvxpv: helper_pv_multiplication,
+        erfa_ufunc.pxp: helper_multiplication,
+        erfa_ufunc.rxp: helper_multiplication,
+        erfa_ufunc.rxpv: helper_multiplication,
+        erfa_ufunc.s2c: helper_s2c,
+        erfa_ufunc.s2p: helper_s2p,
+        erfa_ufunc.s2pv: helper_s2pv,
+        erfa_ufunc.s2xpv: helper_s2xpv,
+        erfa_ufunc.starpv: helper_starpv,
+        erfa_ufunc.sxpv: helper_multiplication,
+        erfa_ufunc.trxpv: helper_multiplication,
+    }
 
 
 UFUNC_HELPERS.register_module("erfa.ufunc", erfa_ufuncs, get_erfa_helpers)

@@ -289,7 +289,7 @@ class TransformGraph:
         nodes = {}
         for node, node_graph in self._graph.items():
             nodes[node] = None
-            nodes |= {node: None for node in node_graph}
+            nodes |= dict.fromkeys(node_graph)
 
         if fromsys not in nodes or tosys not in nodes:
             # fromsys or tosys are isolated or not registered, so there's
@@ -320,7 +320,7 @@ class TransformGraph:
                 # everything left is unreachable from fromsys, just copy them to
                 # the results and jump out of the loop
                 result[n] = (None, d)
-                for d, orderi, n, path in q:
+                for d, _, n, _ in q:
                     result[n] = (None, d)
                 break
             result[n] = (path, d)
@@ -475,8 +475,8 @@ class TransformGraph:
         nodes = {}
         for node, node_graph in self._graph.items():
             nodes[node] = None
-            nodes |= {node: None for node in node_graph}
-        nodes |= {node: None for node in addnodes}
+            nodes |= dict.fromkeys(node_graph)
+        nodes |= dict.fromkeys(addnodes)
         nodenames = []
         invclsaliases = {
             f: [k for k, v in self._cached_names.items() if v == f]

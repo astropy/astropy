@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Classes for handling metadata."""
 
-__all__ = ["MetaData", "MetaAttribute"]
+__all__ = ["MetaAttribute", "MetaData"]
 
 import inspect
 from collections import OrderedDict

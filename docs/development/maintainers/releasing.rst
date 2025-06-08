@@ -84,7 +84,7 @@ The procedure for the feature freeze is as follows:
    the content but leaving the basic structure.  You may also need to
    replace the "by the numbers" numbers with "xxx" as a reminder to update them
    before the next release. Then add the new version to the top of
-   ``docs/whatsnew/index.rst``, update the reference in ``docs/index.rst`` to
+   ``docs/whatsnew/index.rst``, update the reference in ``docs/index.rst`` and ``docs/index_getting_started.rst`` to
    point to the that version.
 
 #. Update the "What's new?" section of the current version you are doing the release for,
@@ -107,6 +107,7 @@ The procedure for the feature freeze is as follows:
       $ git add docs/whatsnew/<next_version>.rst
       $ git add docs/whatsnew/index.rst
       $ git add docs/index.rst
+      $ git add docs/index_getting_started.rst
       $ git commit -m "Added <next_version> what's new page and redirect <current_version> what's new page"
 
 #. Tag this commit using the next major version followed by ``.dev``. For example,
@@ -129,6 +130,10 @@ The procedure for the feature freeze is as follows:
 #. Update the "Actual date" column of
    https://github.com/astropy/astropy/wiki/Release-Calendar with the current
    date for this version's feature freeze.
+
+#. Go to `RTD's Settings <https://readthedocs.org/projects/astropy/versions/>`_
+   and check "Activate" and "Hidden" for the new release branch, which should be
+   activated automatically.
 
 #. Inform the Astropy developer community that the branching has occurred.
 
@@ -246,21 +251,6 @@ the release branch.
 
 Ensure continuous integration and intensive tests pass
 ------------------------------------------------------
-
-Update ``.github/workflows/ci_workflows.yml`` so that pushes on the release
-branch trigger a build with Github Actions, e.g.::
-
-  on:
-    push:
-      branches:
-      - v6.1.x
-    pull_request:
-      branches:
-      - v6.1.x
-
-You also need to activate builds on the release branch for ReadTheDocs. Go to
-`RTD's Settings <https://readthedocs.org/projects/astropy/versions/>`_ and check
-"Activate" and "Hidden" for the new release branch.
 
 Make sure that the continuous integration services (e.g., GitHub Actions or CircleCI) are passing
 for the `astropy core repository`_ branch you are going to release.
@@ -429,12 +419,9 @@ clean-up tasks to finalize the process.
 Post-Release procedures
 -----------------------
 
-#. Update Readthedocs so that it builds docs for the version you just released.
-   You'll find this in the "Admin" tab, in the "Edit Versions" section --
-   click on "Activate" for the tag of the release you have just done.
-   Also verify that the ``stable`` Readthedocs version builds correctly for
-   the new version (it should trigger automatically once you've done the
-   previous step).
+#. Make sure that ReadTheDocs is building the documentation for the version you
+   just released.  Also verify that the ``stable`` ReadTheDocs version builds
+   correctly for the new version (both should trigger automatically).
 
 #. When releasing a patch release, also set the previous RTD version in the
    release history to "Hidden".  For example when releasing v6.0.2, set

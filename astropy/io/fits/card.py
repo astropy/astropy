@@ -43,7 +43,7 @@ class Card(_Verify):
     """The length of a Card image; should always be 80 for valid FITS files."""
 
     # String for a FITS standard compliant (FSC) keyword.
-    _keywd_FSC_RE = re.compile(r"^[A-Z0-9_-]{0,%d}$" % KEYWORD_LENGTH)
+    _keywd_FSC_RE = re.compile(r"^[A-Z0-9_-]{0,%d}$" % KEYWORD_LENGTH)  # noqa: UP031, RUF100
     # This will match any printable ASCII character excluding '='
     _keywd_hierarch_RE = re.compile(
         r"^(?:HIERARCH +)?(?:^[ -<>-~]+ ?)+$", re.IGNORECASE
@@ -428,14 +428,13 @@ class Card(_Verify):
     @property
     def comment(self):
         """Get the comment attribute from the card image if not already set."""
-        if self._comment is not None:
-            return self._comment
-        elif self._image:
-            self._comment = self._parse_comment()
-            return self._comment
+        if self._comment is None:
+            self._comment = self._parse_comment() if self._image else ""
+
+        if conf.strip_header_whitespace and isinstance(self._comment, str):
+            return self._comment.rstrip()
         else:
-            self._comment = ""
-            return ""
+            return self._comment
 
     @comment.setter
     def comment(self, comment):
@@ -1016,15 +1015,12 @@ class Card(_Verify):
         # removing the space between the keyword and the equals sign; I'm
         # guessing this is part of the HIEARCH card specification
         keywordvalue_length = len(keyword) + len(delimiter) + len(value)
-        if keywordvalue_length > self.length and keyword.startswith("HIERARCH"):
-            if keywordvalue_length == self.length + 1 and keyword[-1] == " ":
-                output = "".join([keyword[:-1], delimiter, value, comment])
-            else:
-                # I guess the HIERARCH card spec is incompatible with CONTINUE
-                # cards
-                raise ValueError(
-                    f"The header keyword {self.keyword!r} with its value is too long"
-                )
+        if (
+            keywordvalue_length == self.length + 1
+            and keyword.startswith("HIERARCH")
+            and keyword[-1] == " "
+        ):
+            output = "".join([keyword[:-1], delimiter, value, comment])
 
         if len(output) <= self.length:
             output = f"{output:80}"
@@ -1032,7 +1028,9 @@ class Card(_Verify):
             # longstring case (CONTINUE card)
             # try not to use CONTINUE if the string value can fit in one line.
             # Instead, just truncate the comment
-            if isinstance(self.value, str) and len(value) > (self.length - 10):
+            if isinstance(self.value, str) and len(value) > (
+                self.length - len(keyword) - 2
+            ):
                 output = self._format_long_image()
             else:
                 warnings.warn(
@@ -1054,15 +1052,17 @@ class Card(_Verify):
 
         value_length = 67
         comment_length = 64
-        output = []
+        # We have to be careful that the first line may be able to hold less
+        # of the value, if it is a HIERARCH keyword.
+        headstr = self._format_keyword() + VALUE_INDICATOR
+        first_value_length = value_length + KEYWORD_LENGTH + 2 - len(headstr)
 
         # do the value string
         value = self._value.replace("'", "''")
-        words = _words_group(value, value_length)
+        words = _words_group(value, value_length, first_value_length)
+        output = []
         for idx, word in enumerate(words):
-            if idx == 0:
-                headstr = "{:{len}}= ".format(self.keyword, len=KEYWORD_LENGTH)
-            else:
+            if idx > 0:
                 headstr = "CONTINUE  "
 
             # If this is the final CONTINUE remove the '&'

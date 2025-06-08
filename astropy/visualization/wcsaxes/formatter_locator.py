@@ -156,8 +156,7 @@ class BaseFormatterLocator:
     def _locate_values(value_min, value_max, spacing):
         imin = np.ceil(value_min / spacing)
         imax = np.floor(value_max / spacing)
-        values = np.arange(imin, imax + 1, dtype=int)
-        return values
+        return np.arange(imin, imax + 1, dtype=int)
 
 
 class AngleFormatterLocator(BaseFormatterLocator):
@@ -197,6 +196,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
         self._decimal = decimal
         self._sep = None
         self.show_decimal_unit = show_decimal_unit
+        self._alwayssign = False
 
         super().__init__(
             values=values,
@@ -261,6 +261,10 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
         if value is None:
             return
+
+        self._alwayssign = value.startswith("+")
+        if self._alwayssign:
+            value = value[1:]
 
         if DMS_RE.match(value) is not None:
             self._decimal = False
@@ -498,6 +502,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 fields=fields,
                 sep=sep,
                 format=fmt,
+                alwayssign=self._alwayssign,
             ).tolist()
 
             return _fix_minus(string)

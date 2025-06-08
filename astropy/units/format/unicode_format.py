@@ -6,15 +6,13 @@ Handles the "Unicode" unit format.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
-from . import console, utils
+from . import console
 
 if TYPE_CHECKING:
-    from typing import ClassVar
-
     from astropy.units import NamedUnit
-    from astropy.units.typing import Real
+    from astropy.units.typing import UnitPower
 
 
 class Unicode(console.Console):
@@ -43,13 +41,13 @@ class Unicode(console.Console):
         return m.replace("-", "−")
 
     @classmethod
-    def _format_unit_power(cls, unit: NamedUnit, power: Real = 1) -> str:
+    def _format_unit_power(cls, unit: NamedUnit, power: UnitPower = 1) -> str:
         name = unit._get_format_name(cls.name)
         # Check for superscript units
         if power != 1:
             if name in ("°", "e⁻", "″", "′", "ʰ"):
                 name = unit.short_names[0]
-            name += cls._format_superscript(utils.format_power(power))
+            name += cls._format_power(power)
         return name
 
     @classmethod

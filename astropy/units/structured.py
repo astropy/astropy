@@ -5,11 +5,11 @@ This module defines structured units and quantities.
 
 # Standard library
 import operator
+from collections.abc import Collection
 from functools import cached_property
+from typing import Self
 
 import numpy as np
-
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_24
 
 from .core import UNITY, Unit, UnitBase
 
@@ -239,11 +239,7 @@ class StructuredUnit:
             If given, should be a subclass of `~numpy.void`. By default,
             will return a new `~astropy.units.StructuredUnit` instance.
         """
-        applied = tuple(func(part) for part in self.values())
-        if NUMPY_LT_1_24:
-            results = np.array(applied, self._units.dtype)[()]
-        else:
-            results = np.void(applied, self._units.dtype)
+        results = np.void(tuple(map(func, self.values())), self._units.dtype)
         if cls is not None:
             return results.view((cls, results.dtype))
 
@@ -311,7 +307,7 @@ class StructuredUnit:
             operator.attrgetter("physical_type"), cls=Structure
         )
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """The `StructuredUnit` composed of only irreducible units.
 
         Parameters

@@ -12,7 +12,8 @@ should be used for access.
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Literal, SupportsFloat, TypeVar
 
 import numpy as np
 
@@ -21,31 +22,25 @@ from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
 from . import _stats
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Literal, SupportsFloat, TypeVar
-
     from numpy.typing import ArrayLike, NDArray
 
-    # type for variables generated with the mpmath library
-    FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
-
 __all__ = [
+    "binned_binom_proportion",
+    "binom_conf_interval",
+    "bootstrap",
+    "cdf_from_intervals",
+    "fold_intervals",
     "gaussian_fwhm_to_sigma",
     "gaussian_sigma_to_fwhm",
-    "binom_conf_interval",
-    "binned_binom_proportion",
-    "poisson_conf_interval",
-    "median_absolute_deviation",
-    "mad_std",
-    "signal_to_noise_oir_ccd",
-    "bootstrap",
-    "kuiper",
-    "kuiper_two",
-    "kuiper_false_positive_probability",
-    "cdf_from_intervals",
-    "interval_overlap_length",
     "histogram_intervals",
-    "fold_intervals",
+    "interval_overlap_length",
+    "kuiper",
+    "kuiper_false_positive_probability",
+    "kuiper_two",
+    "mad_std",
+    "median_absolute_deviation",
+    "poisson_conf_interval",
+    "signal_to_noise_oir_ccd",
 ]
 
 __doctest_skip__ = ["binned_binom_proportion"]
@@ -54,6 +49,8 @@ __doctest_requires__ = {
     "poisson_conf_interval": ["scipy"],
 }
 
+# type for variables generated with the mpmath library
+FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
 
 gaussian_sigma_to_fwhm = 2.0 * math.sqrt(2.0 * math.log(2.0))
 """
@@ -71,7 +68,7 @@ to convert it to 1-sigma standard deviation.
 def binom_conf_interval(
     k: int | NDArray,
     n: int | NDArray,
-    confidence_level: float | None = 0.68269,
+    confidence_level: float = 0.68269,
     interval: Literal["wilson", "jeffreys", "flat", "wald"] = "wilson",
 ) -> NDArray:
     r"""Binomial proportion confidence interval given k successes,
@@ -307,7 +304,7 @@ def binned_binom_proportion(
     success: ArrayLike,
     bins: int | ArrayLike = 10,
     range: tuple[float, float] | None = None,
-    confidence_level: float | None = 0.68269,
+    confidence_level: float = 0.68269,
     interval: Literal["wilson", "jeffreys", "flat", "wald"] = "wilson",
 ) -> tuple[NDArray, NDArray, NDArray, NDArray]:
     """Binomial proportion and confidence interval in bins of a continuous
@@ -521,8 +518,8 @@ def poisson_conf_interval(
         "frequentist-confidence",
         "kraft-burrows-nousek",
     ] = "root-n",
-    sigma: float | None = 1.0,
-    background: float | None = 0.0,
+    sigma: float = 1.0,
+    background: float = 0.0,
     confidence_level: float | None = None,
 ) -> NDArray:
     r"""Poisson parameter confidence interval given observed counts.
@@ -959,7 +956,7 @@ def signal_to_noise_oir_ccd(
     dark_eps: float,
     rd: float,
     npix: float,
-    gain: float | None = 1.0,
+    gain: float = 1.0,
 ) -> float | NDArray:
     """Computes the signal to noise ratio for source being observed in the
     optical/IR using a CCD.
@@ -1005,7 +1002,7 @@ def signal_to_noise_oir_ccd(
 
 def bootstrap(
     data: NDArray,
-    bootnum: int | None = 100,
+    bootnum: int = 100,
     samples: int | None = None,
     bootfunc: Callable | None = None,
 ) -> NDArray:

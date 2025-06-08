@@ -826,17 +826,12 @@ class TableLoc:
         self.table = table
         self.indices = table.indices
 
-    def _get_rows(self, item):
+    def _get_row_idxs_as_list(self, key, item):
         """
         Retrieve Table rows indexes by value slice.
         """
         if len(self.indices) == 0:
             raise ValueError("Can only use TableLoc for a table with indices")
-
-        if isinstance(item, tuple):
-            key, item = item
-        else:
-            key = self.table.primary_key
 
         index = self.indices[key]
         if len(index.columns) > 1:
@@ -852,12 +847,39 @@ class TableLoc:
                 item = [item]
             # item should be a list or ndarray of values
             rows = []
-            for key in item:
-                p = index.find((key,))
+            for index_key in item:
+                p = index.find((index_key,))
                 if len(p) == 0:
-                    raise KeyError(f"No matches found for key {key}")
+                    raise KeyError(f"No matches found for key {index_key}")
                 else:
                     rows.extend(p)
+        return rows
+
+    def _get_row_idxs_as_list_or_int(self, item):
+        """Internal function to retrieve row indices for ``item`` as a list or int.
+
+        See ``__getitem__`` for details on the input item.
+        """
+        # This handles ``tbl.loc[<item>]`` and ``tbl.loc[<key>, <item>]`` (and the same
+        # for ``tbl.loc_indices``).
+        if isinstance(item, tuple):
+            key, item = item
+        else:
+            key = self.table.primary_key
+
+        item_is_sequence = isinstance(item, (list, np.ndarray))
+
+        # Short-circuit for case like tbl.loc[[]], returns tbl[[]]
+        if item_is_sequence and len(item) == 0:
+            return []
+
+        rows = self._get_row_idxs_as_list(key, item)
+        # If ``item`` is a sequence of keys or a slice then always returns a list of
+        # rows, where zero rows is OK. Otherwise check output and possibly return a
+        # scalar.
+        if not (item_is_sequence or isinstance(item, slice)) and len(rows) == 1:
+            rows = rows[0]
+
         return rows
 
     def __getitem__(self, item):
@@ -872,13 +894,13 @@ class TableLoc:
             If a tuple is provided, the first element must be
             an index to use instead of the primary key, and the
             second element must be as above.
-        """
-        rows = self._get_rows(item)
 
-        if len(rows) == 0:  # no matches found
-            raise KeyError(f"No matches found for key {item}")
-        elif len(rows) == 1:  # single row
-            return self.table[rows[0]]
+        Returns
+        -------
+        Table | Row
+            A table slice or Row corresponding to the input item.
+        """
+        rows = self._get_row_idxs_as_list_or_int(item)
         return self.table[rows]
 
     def __setitem__(self, key, value):
@@ -897,17 +919,15 @@ class TableLoc:
         value : New values of the row elements.
                 Can be a list of tuples/lists to update the row.
         """
-        rows = self._get_rows(key)
-        if len(rows) == 0:  # no matches found
-            raise KeyError(f"No matches found for key {key}")
-        elif len(rows) == 1:  # single row
-            self.table[rows[0]] = value
-        else:  # multiple rows
+        rows = self._get_row_idxs_as_list_or_int(key)
+        if hasattr(rows, "__len__"):
             if len(rows) == len(value):
                 for row, val in zip(rows, value):
                     self.table[row] = val
             else:
                 raise ValueError(f"Right side should contain {len(rows)} values")
+        else:
+            self.table[rows] = value
 
 
 class TableLocIndices(TableLoc):
@@ -924,11 +944,7 @@ class TableLocIndices(TableLoc):
                an index to use instead of the primary key, and the
                second element must be as above.
         """
-        rows = self._get_rows(item)
-        if len(rows) == 0:  # no matches found
-            raise KeyError(f"No matches found for key {item}")
-        elif len(rows) == 1:  # single row
-            return rows[0]
+        rows = self._get_row_idxs_as_list_or_int(item)
         return rows
 
 

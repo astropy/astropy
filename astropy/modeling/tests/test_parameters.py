@@ -944,7 +944,7 @@ class TestParameterInitialization:
         assert t.e.shape == (2,)
 
     def test_single_model_1d_array_different_length_parameters(self):
-        MESSAGE = "Mismatch is between arg 0 with shape .* and arg 1 with" " shape .*"
+        MESSAGE = "Mismatch is between arg 0 with shape .* and arg 1 with shape .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             # Not broadcastable
             TParModel([1, 2], [3, 4, 5])
@@ -1003,7 +1003,7 @@ class TestParameterInitialization:
         assert t2.e.shape == (2, 3)
 
         # Not broadcastable
-        MESSAGE = "Mismatch is between arg 0 with shape .* and arg 1 with" " shape .*"
+        MESSAGE = "Mismatch is between arg 0 with shape .* and arg 1 with shape .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff, e.T)
 
@@ -1106,7 +1106,7 @@ class TestParameterInitialization:
         assert t2.e.shape == (2, 3)
 
     def test_two_model_mixed_dimension_array_parameters(self):
-        MESSAGE = "Mismatch is between arg 0 with shape .* and arg 1 with" " shape .*"
+        MESSAGE = "Mismatch is between arg 0 with shape .* and arg 1 with shape .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             # Can't broadcast different array shapes
             TParModel(
@@ -1235,7 +1235,7 @@ def test_non_broadcasting_parameters():
             return
 
     # a broadcasts with both b and c, but b does not broadcast with c
-    MESSAGE = r"Mismatch is between arg \d with shape .* and arg \d with" " shape .*"
+    MESSAGE = r"Mismatch is between arg \d with shape .* and arg \d with shape .*"
     for args in itertools.permutations((a, b, c)):
         with pytest.raises(InputParameterError, match=MESSAGE):
             TestModel(*args)

@@ -269,3 +269,7 @@ UT1Flag, PM_x, PM_y, PolPMFlag::
   57877.0 -0.6573705        P 0.010328 0.451777         P
   57878.0 -0.6587712        P 0.011924 0.453209         P
   57879.0  -0.660187        P 0.013544 0.454617         P
+
+.. testcleanup::
+
+   >>> iers.earth_orientation_table.set(None)  # doctest: +IGNORE_OUTPUT

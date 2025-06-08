@@ -13,11 +13,11 @@ from astropy.utils.xml import validate
 from .exceptions import W02, W03, W04, W05, vo_warn, warn_or_raise
 
 __all__ = [
-    "check_id",
-    "fix_id",
-    "check_token",
-    "check_mime_content_type",
     "check_anyuri",
+    "check_id",
+    "check_mime_content_type",
+    "check_token",
+    "fix_id",
     "validate_schema",
 ]
 
@@ -112,13 +112,14 @@ def validate_schema(filename, version="1.1"):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-    if version not in ("1.0", "1.1", "1.2", "1.3"):
-        log.info(f"{filename} has version {version}, using schema 1.1")
-        version = "1.1"
+    supported_schemas = ["1.1", "1.2", "1.3", "1.4", "1.5"]
 
-    if version in ("1.1", "1.2", "1.3"):
-        schema_path = data.get_pkg_data_filename(f"data/VOTable.v{version}.xsd")
-    else:
+    if version == "1.0":
         schema_path = data.get_pkg_data_filename("data/VOTable.dtd")
+    else:
+        if version not in supported_schemas:
+            log.info(f"{filename} has version {version}, using schema 1.1")
+            version = "1.1"
+        schema_path = data.get_pkg_data_filename(f"data/VOTable.v{version}.xsd")
 
     return validate.validate_schema(filename, schema_path)

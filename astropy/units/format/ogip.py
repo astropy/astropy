@@ -21,22 +21,25 @@ from __future__ import annotations
 import math
 import warnings
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Literal
 
-from astropy.units.errors import UnitsWarning
+from astropy.units.core import CompositeUnit
+from astropy.units.errors import UnitParserWarning, UnitsWarning
 from astropy.utils import classproperty, parsing
 
-from . import core, generic, utils
+from . import utils
+from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
-    from typing import ClassVar, Literal
+    import numpy as np
 
     from astropy.extern.ply.lex import Lexer
     from astropy.units import UnitBase
+    from astropy.units.typing import UnitScale
     from astropy.utils.parsing import ThreadSafeParser
 
 
-class OGIP(generic.Generic):
+class OGIP(Base, _ParsingFormatMixin):
     """
     Support the units in `Office of Guest Investigator Programs (OGIP)
     FITS files
@@ -48,21 +51,18 @@ class OGIP(generic.Generic):
         "OPEN_PAREN",
         "CLOSE_PAREN",
         "WHITESPACE",
-        "STARSTAR",
+        "POWER",
         "STAR",
         "SIGN",
         "UFLOAT",
         "LIT10",
         "UINT",
         "UNKNOWN",
+        "FUNCNAME",
         "UNIT",
     )
 
     _deprecated_units: ClassVar[frozenset[str]] = frozenset(("Crab", "mCrab"))
-    _functions: ClassVar[frozenset[str]] = frozenset((
-        "log", "ln", "exp", "sqrt", "sin", "cos", "tan",
-        "asin", "acos", "atan", "sinh", "cosh", "tanh",
-    ))  # fmt: skip
 
     @classproperty(lazy=True)
     def _units(cls) -> dict[str, UnitBase]:
@@ -84,7 +84,7 @@ class OGIP(generic.Generic):
         }
         simple_units = [
             "angstrom", "arcmin", "arcsec", "AU", "barn", "bin",
-            "byte", "chan", "count", "day", "deg", "erg", "G",
+            "byte", "chan", "count", "d", "deg", "erg", "G",
             "h", "lyr", "mag", "min", "photon", "pixel",
             "voxel", "yr",
         ]  # fmt: skip
@@ -95,19 +95,17 @@ class OGIP(generic.Generic):
         names["Crab"] = u.def_unit(["Crab"], prefixes=False, doc="Crab (X-ray flux)")
         names["mCrab"] = u.Unit(10**-3 * names["Crab"])
 
-        names.update((name, name) for name in cls._functions)
-
         return names
 
     @classproperty(lazy=True)
     def _lexer(cls) -> Lexer:
         tokens = cls._tokens
 
-        t_DIVISION = r"/"
+        t_DIVISION = "[ \t]*/[ \t]*"
         t_OPEN_PAREN = r"\("
         t_CLOSE_PAREN = r"\)"
         t_WHITESPACE = "[ \t]+"
-        t_STARSTAR = r"\*\*"
+        t_POWER = r"\*\*"
         t_STAR = r"\*"
 
         # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
@@ -124,11 +122,7 @@ class OGIP(generic.Generic):
 
         def t_SIGN(t):
             r"[+-](?=\d)"
-            t.value = float(t.value + "1")
-            return t
-
-        def t_X(t):  # multiplication for factor in front of unit
-            r"[x×]"
+            t.value = 1 if t.value == "+" else -1
             return t
 
         def t_LIT10(t):
@@ -138,6 +132,10 @@ class OGIP(generic.Generic):
         def t_UNKNOWN(t):
             r"[Uu][Nn][Kk][Nn][Oo][Ww][Nn]"
             return None
+
+        def t_FUNCNAME(t):
+            r"((sqrt)|(ln)|(exp)|(log)|(sin)|(cos)|(tan)|(asin)|(acos)|(atan)|(sinh)|(cosh)|(tanh))(?=\ *\()"
+            return t
 
         def t_UNIT(t):
             r"[a-zA-Z][a-zA-Z_]*"
@@ -172,85 +170,97 @@ class OGIP(generic.Generic):
                  | scale_factor complete_expression
                  | scale_factor WHITESPACE complete_expression
             """
-            if len(p) == 4:
-                p[0] = core.CompositeUnit(p[1] * p[3].scale, p[3].bases, p[3].powers)
-            elif len(p) == 3:
-                p[0] = core.CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
-            else:
-                p[0] = p[1]
+            match p[1:]:
+                case (factor, unit) | (factor, _, unit):
+                    p[0] = CompositeUnit(factor * unit.scale, unit.bases, unit.powers)
+                case _:
+                    p[0] = p[1]
 
         def p_complete_expression(p):
             """
-            complete_expression : product_of_units
+            complete_expression : unit_expression
+                                | product_of_units
+                                | division_of_units
             """
+            # product_of_units is not in unit_expression for performance
+            # division_of_units is separate to enforce the correct order of operations
             p[0] = p[1]
 
         def p_product_of_units(p):
             """
-            product_of_units : unit_expression
-                             | division unit_expression
-                             | product_of_units product unit_expression
-                             | product_of_units division unit_expression
+            product_of_units : complete_expression product unit_expression
             """
-            if len(p) == 4:
-                if p[2] == "DIVISION":
-                    p[0] = p[1] / p[3]
-                else:
-                    p[0] = p[1] * p[3]
-            elif len(p) == 3:
-                p[0] = p[2] ** -1
-            else:
-                p[0] = p[1]
+            p[0] = p[1] * p[3]
+
+        def p_division_of_units(p):
+            """
+            division_of_units : DIVISION unit_expression
+                              | complete_expression DIVISION unit_expression
+            """
+            match p[1:]:
+                case _, unit:
+                    p[0] = unit**-1
+                case num, _, denom:
+                    p[0] = num / denom
 
         def p_unit_expression(p):
             """
-            unit_expression : unit
+            unit_expression : UNIT
+                            | function
+                            | UNIT POWER numeric_power
                             | UNIT OPEN_PAREN complete_expression CLOSE_PAREN
                             | OPEN_PAREN complete_expression CLOSE_PAREN
-                            | UNIT OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
-                            | OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
+                            | UNIT OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power
+                            | OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power
             """
-            bad_function_message = (
-                "The function '{}' is valid in OGIP, but not understood "
-                "by astropy.units."
-            )
             bad_multiplication_message = (
                 "if '{0}{1}' was meant to be a multiplication, "
                 "it should have been written as '{0} {1}'."
             )
 
-            if len(p) == 7:
-                if p[1] == "sqrt":
-                    p[0] = p[3] ** (0.5 * p[6])
-                elif p[1] in cls._functions:
-                    raise ValueError(bad_function_message.format(p[1]))
-                else:
-                    raise ValueError(
-                        bad_multiplication_message.format(p[1], f"({p[3]})**{p[6]}")
+            match p[1:]:
+                case factor, _, unit, _, _, power:
+                    warnings.warn(
+                        bad_multiplication_message.format(factor, f"({unit})**{power}"),
+                        UnitParserWarning,
                     )
-            elif len(p) == 6:
-                p[0] = p[2] ** p[5]
-            elif len(p) == 5:
-                if p[1] == "sqrt":
-                    p[0] = p[3] ** 0.5
-                elif p[1] in cls._functions:
-                    raise ValueError(bad_function_message.format(p[1]))
-                else:
-                    raise ValueError(
-                        bad_multiplication_message.format(p[1], f"({p[3]})")
+                    p[0] = factor * unit**power
+                case (_, unit, _, _, power) | (unit, "**", power):
+                    p[0] = unit**power
+                case left, _, right, _:
+                    warnings.warn(
+                        bad_multiplication_message.format(left, f"({right})"),
+                        UnitParserWarning,
                     )
-            elif len(p) == 4:
-                p[0] = p[2]
-            else:
-                p[0] = p[1]
+                    p[0] = left * right
+                case _, unit, _:
+                    p[0] = unit
+                case _:
+                    p[0] = p[1]
+
+        def p_function(p):
+            """
+            function : FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN
+                     | FUNCNAME OPEN_PAREN complete_expression CLOSE_PAREN POWER numeric_power
+            """
+            match p[1:]:
+                case "sqrt", _, unit, _:
+                    p[0] = unit**0.5
+                case "sqrt", _, unit, _, _, numeric_power:
+                    p[0] = unit ** (0.5 * numeric_power)
+                case func, *_:
+                    raise ValueError(
+                        f"The function '{func}' is valid in OGIP, but not understood "
+                        "by astropy.units."
+                    )
 
         def p_scale_factor(p):
             """
-            scale_factor : LIT10 power numeric_power
+            scale_factor : LIT10 POWER numeric_power
                          | LIT10
                          | signed_float
-                         | signed_float power numeric_power
-                         | signed_int power numeric_power
+                         | signed_float POWER numeric_power
+                         | signed_int POWER numeric_power
             """
             if len(p) == 4:
                 p[0] = 10 ** p[3]
@@ -263,15 +273,6 @@ class OGIP(generic.Generic):
                     UnitsWarning,
                 )
 
-        def p_division(p):
-            """
-            division : DIVISION
-                     | WHITESPACE DIVISION
-                     | WHITESPACE DIVISION WHITESPACE
-                     | DIVISION WHITESPACE
-            """
-            p[0] = "DIVISION"
-
         def p_product(p):
             """
             product : WHITESPACE
@@ -280,23 +281,6 @@ class OGIP(generic.Generic):
                     | WHITESPACE STAR WHITESPACE
                     | STAR WHITESPACE
             """
-            p[0] = "PRODUCT"
-
-        def p_power(p):
-            """
-            power : STARSTAR
-            """
-            p[0] = "POWER"
-
-        def p_unit(p):
-            """
-            unit : UNIT
-                 | UNIT power numeric_power
-            """
-            if len(p) == 4:
-                p[0] = p[1] ** p[3]
-            else:
-                p[0] = p[1]
 
         def p_numeric_power(p):
             """
@@ -304,7 +288,7 @@ class OGIP(generic.Generic):
                           | signed_float
                           | OPEN_PAREN signed_int CLOSE_PAREN
                           | OPEN_PAREN signed_float CLOSE_PAREN
-                          | OPEN_PAREN signed_float division UINT CLOSE_PAREN
+                          | OPEN_PAREN signed_float DIVISION UINT CLOSE_PAREN
             """
             if len(p) == 6:
                 p[0] = Fraction(int(p[2]), int(p[4]))
@@ -312,6 +296,13 @@ class OGIP(generic.Generic):
                 p[0] = p[2]
             else:
                 p[0] = p[1]
+                if p[1] < 0:
+                    warnings.warn(
+                        UnitParserWarning(
+                            "negative exponents must be enclosed in parenthesis. "
+                            f"Expected '**({p[1]})' instead of '**{p[1]}'."
+                        )
+                    )
 
         def p_sign(p):
             """
@@ -342,11 +333,6 @@ class OGIP(generic.Generic):
         return parsing.yacc(tabmodule="ogip_parsetab", package="astropy/units")
 
     @classmethod
-    def _parse_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        cls._validate_unit(unit, detailed_exception=detailed_exception)
-        return cls._units[unit]
-
-    @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:
         return cls._do_parse(s.strip(), debug)
 
@@ -356,12 +342,12 @@ class OGIP(generic.Generic):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline"] = "inline"
+        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = "inline"
     ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)
 
-        if isinstance(unit, core.CompositeUnit):
+        if isinstance(unit, CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
             if math.log10(unit.scale) % 1.0 != 0.0:
                 warnings.warn(
@@ -370,3 +356,18 @@ class OGIP(generic.Generic):
                 )
 
         return super().to_string(unit, fraction=fraction)
+
+    @classmethod
+    def format_exponential_notation(
+        cls, val: UnitScale | np.number, format_spec: str = "g"
+    ) -> str:
+        return format(val, format_spec)
+
+    @classmethod
+    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+        if unit in cls._deprecated_units:
+            warnings.warn(
+                f"The unit '{unit}' has been deprecated in the OGIP standard.",
+                UnitsWarning,
+            )
+        return super()._validate_unit(unit, detailed_exception)

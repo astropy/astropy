@@ -15,12 +15,11 @@ import operator
 import numpy as np
 
 from astropy.units import MagUnit, Quantity, dimensionless_unscaled
-from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED
 
 from .utils import array_repr_oneline, get_inputs_and_params
 
-__all__ = ["Parameter", "InputParameterError", "ParameterError"]
+__all__ = ["InputParameterError", "Parameter", "ParameterError"]
 
 
 class ParameterError(Exception):
@@ -37,7 +36,7 @@ class ParameterDefinitionError(ParameterError):
 
 def _tofloat(value):
     """Convert a parameter to float or float array."""
-    if isiterable(value):
+    if np.iterable(value):
         try:
             value = np.asanyarray(value, dtype=float)
         except (TypeError, ValueError):

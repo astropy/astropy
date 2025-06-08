@@ -8,7 +8,8 @@ import os
 import re
 import warnings
 
-from astropy.utils import isiterable
+import numpy as np
+
 from astropy.utils.exceptions import AstropyUserWarning
 
 from ._utils import parse_header
@@ -47,7 +48,6 @@ __doctest_skip__ = [
     "Header.comments",
     "Header.fromtextfile",
     "Header.totextfile",
-    "Header.set",
     "Header.update",
 ]
 
@@ -905,21 +905,6 @@ class Header:
             ``header[keyword] = value`` and
             ``header[keyword] = (value, comment)`` respectively.
 
-            New keywords can also be inserted relative to existing keywords
-            using, for example::
-
-                >>> header.insert('NAXIS1', ('NAXIS', 2, 'Number of axes'))
-
-            to insert before an existing keyword, or::
-
-                >>> header.insert('NAXIS', ('NAXIS1', 4096), after=True)
-
-            to insert after an existing keyword.
-
-            The only advantage of using :meth:`Header.set` is that it
-            easily replaces the old usage of :meth:`Header.update` both
-            conceptually and in terms of function signature.
-
         Parameters
         ----------
         keyword : str
@@ -1362,6 +1347,18 @@ class Header:
         Inserts a new keyword+value card into the Header at a given location,
         similar to `list.insert`.
 
+        New keywords can also be inserted relative to existing keywords
+        using, for example::
+
+            >>> header = Header({"NAXIS1": 10})
+            >>> header.insert('NAXIS1', ('NAXIS', 2, 'Number of axes'))
+
+        to insert before an existing keyword, or::
+
+            >>> header.insert('NAXIS1', ('NAXIS2', 4096), after=True)
+
+        to insert after an existing keyword.
+
         Parameters
         ----------
         key : int, str, or tuple
@@ -1646,9 +1643,7 @@ class Header:
         keyword, value, comment = card
 
         # Lookups for existing/known keywords are case-insensitive
-        keyword = keyword.strip().upper()
-        if keyword.startswith("HIERARCH "):
-            keyword = keyword[9:]
+        keyword = keyword.strip().upper().removeprefix("HIERARCH ")
 
         if keyword not in _commentary_keywords and keyword in self._keyword_indices:
             # Easy; just update the value/comment
@@ -1868,7 +1863,7 @@ class Header:
             else:
                 indices = self._wildcardmatch(key)
 
-            if isinstance(value, str) or not isiterable(value):
+            if isinstance(value, str) or not np.iterable(value):
                 value = itertools.repeat(value, len(indices))
 
             for idx, val in zip(indices, value):
@@ -2086,7 +2081,7 @@ class _CardAccessor:
     def __eq__(self, other):
         # If the `other` item is a scalar we will still treat it as equal if
         # this _CardAccessor only contains one item
-        if not isiterable(other) or isinstance(other, str):
+        if not np.iterable(other) or isinstance(other, str):
             if len(self) == 1:
                 other = [other]
             else:
@@ -2114,7 +2109,7 @@ class _CardAccessor:
                 indices = range(*item.indices(len(self)))
             else:
                 indices = self._header._wildcardmatch(item)
-            if isinstance(value, str) or not isiterable(value):
+            if isinstance(value, str) or not np.iterable(value):
                 value = itertools.repeat(value, len(indices))
             for idx, val in zip(indices, value):
                 self[idx] = val

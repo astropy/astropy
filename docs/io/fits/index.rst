@@ -11,8 +11,15 @@ Introduction
 
 The :mod:`astropy.io.fits` package provides access to FITS files. FITS
 (Flexible Image Transport System) is a portable file standard widely used in
-the astronomy community to store images and tables. This subpackage was
-originally developed as PyFITS.
+the astronomy community to store images and tables.
+
+.. note::
+
+    If you want to read or write a single table in FITS format, the
+    recommended method is via the :ref:`table_io` interface. In particular
+    see the :ref:`Unified I/O FITS <table_io_fits>` section. Likewise, for CCD image
+    data with a physical unit (e.g., ``electron``), see the :ref:`Unified Image Data<io_unified_image>` section.
+
 
 .. _tutorial:
 
@@ -25,11 +32,6 @@ much detail. If you are a first time user or have never used ``astropy`` or
 PyFITS, this is where you should start. See also the :ref:`FAQ <io-fits-faq>`
 for answers to common questions and issues.
 
-.. note::
-
-    If you want to read or write a single table in FITS format, the
-    recommended method is via the high-level :ref:`table_io`. In particular
-    see the :ref:`Unified I/O FITS <table_io_fits>` section.
 
 Reading and Updating Existing FITS Files
 ----------------------------------------
@@ -197,13 +199,15 @@ Working with compressed files
 
 
 The :func:`open` function will seamlessly open FITS files that have been
-compressed with gzip, bzip2 or pkzip. Note that in this context we are talking
-about a FITS file that has been compressed with one of these utilities (e.g., a
-.fits.gz file).
+compressed with gzip, bzip2, pkzip, lzma or Unix's compress (LZW compression).
+Note that in this context we are talking about a FITS file that has been
+compressed with one of these utilities (e.g., a .fits.gz file).
 
 There are some limitations when working with compressed files. For example,
 with Zip files that contain multiple compressed files, only the first file will
-be accessible. Also bzip2 does not support the append or update access modes.
+be accessible. Also bzip2 and lzma do not support the append or update access
+mode and LZW-compressed files do not support any writing modes (including append
+or update).
 
 When writing a file (e.g., with the :func:`writeto` function), compression will
 be determined based on the filename extension given, or the compression used in
@@ -402,6 +406,13 @@ In these cases any hand-written values users might assign to those keywords will
 Working with Image Data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
+.. note::
+    This section describes reading and writing image data in the FITS format using the
+    `~astropy.io.fits` package directly. For CCD image data with a unit, you should
+    consider using the :ref:`Unified Image Data<io_unified_image>` interface with the
+    :ref:`CCDData class <ccddata>`. This provides the the capability to load data,
+    uncertainty and mask from a multi-extension FITS (MEF) file.
+
 If an HDU's data is an image, the data attribute of the HDU object will return
 a ``numpy`` `~numpy.ndarray` object. Refer to the ``numpy`` documentation for
 details on manipulating these numerical arrays::
@@ -485,22 +496,15 @@ to a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
     See more information in :doc:`/io/fits/usage/image`.
 
-.. note::
-    `~astropy.nddata.CCDData` provides a higher level interface to :ref:`read
-    and write FITS files <nddata_reading_writing>` with imaging data, with the
-    possibility to load data, uncertainty and mask from a multi-extension FITS
-    (MEF) file.
-
-
 Working with Table Data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. note::
     This section describes reading and writing table data in the FITS format
-    using the `~astropy.io.fits` package directly. For some cases, however, the
-    high-level :ref:`table_io` (using ``Table.read`` or ``QTable.read``) will
-    often suffice and is somewhat more convenient to use. See the :ref:`Unified
-    I/O FITS <table_io_fits>` section for details.
+    using the `~astropy.io.fits` package directly. If you want to read or write a single
+    entire table in FITS format, the you should consider using the :ref:`table_io`
+    interface (e.g., ``QTable.read``). See the :ref:`Unified I/O FITS <table_io_fits>`
+    section for details.
 
 Like images, the data portion of a FITS table extension is in the ``.data``
 attribute::
@@ -1038,18 +1042,9 @@ Reference/API
 .. automodule:: astropy.io.fits
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
-    api/files.rst
-    api/hdulists.rst
-    api/hdus.rst
-    api/headers.rst
-    api/cards.rst
-    api/tables.rst
-    api/images.rst
-    api/diff.rst
-    api/verification.rst
-    api/tiled_compression.rst
+    api/index.rst
 
 .. rubric:: Footnotes
 

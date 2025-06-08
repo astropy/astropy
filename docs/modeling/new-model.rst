@@ -27,30 +27,31 @@ of two Gaussians:
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling.models import custom_model
-    from astropy.modeling.fitting import LevMarLSQFitter
+    from astropy.modeling.fitting import TRFLSQFitter
 
     # Define model
     @custom_model
-    def sum_of_gaussians(x, amplitude1=1., mean1=-1., sigma1=1.,
-                            amplitude2=1., mean2=1., sigma2=1.):
+    def sum_of_gaussians(x, amplitude1=1.0, mean1=-1.0, sigma1=1.0,
+                            amplitude2=1.0, mean2=1.5, sigma2=1.0):
         return (amplitude1 * np.exp(-0.5 * ((x - mean1) / sigma1)**2) +
                 amplitude2 * np.exp(-0.5 * ((x - mean2) / sigma2)**2))
 
-    # Generate fake data
+    # Generate fake data with some noise
     rng = np.random.default_rng(0)
     x = np.linspace(-5., 5., 200)
     m_ref = sum_of_gaussians(amplitude1=2., mean1=-0.5, sigma1=0.4,
                              amplitude2=0.5, mean2=2., sigma2=1.0)
-    y = m_ref(x) + rng.normal(0., 0.1, x.shape)
+    y = m_ref(x) + rng.normal(0., 0.05, x.shape)
 
     # Fit model to data
     m_init = sum_of_gaussians()
-    fit = LevMarLSQFitter()
+    fit = TRFLSQFitter()
     m = fit(m_init, x, y)
 
     # Plot the data and the best fit
-    plt.plot(x, y, 'o', color='k')
-    plt.plot(x, m(x))
+    fig, ax = plt.subplots()
+    ax.plot(x, y, 'o', color='k')
+    ax.plot(x, m(x))
 
 
 This decorator also supports setting a model's

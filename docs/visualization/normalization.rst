@@ -39,8 +39,15 @@ The Quick Way
 -------------
 
 ``astropy`` provides a convenience
-:func:`~astropy.visualization.mpl_normalize.simple_norm` function that can be
-useful for quick interactive analysis:
+:func:`~astropy.visualization.mpl_normalize.simple_norm` function and
+a :class:`~astropy.visualization.mpl_normalize.SimpleNorm` class that
+can be useful for quick interactive analysis. These convenience tools
+create a :class:`~astropy.visualization.mpl_normalize.ImageNormalize`
+normalization object that can be used with Matplotlib's
+:meth:`~matplotlib.axes.Axes.imshow` method
+
+Here's an example using the
+:func:`~astropy.visualization.mpl_normalize.simple_norm` function:
 
 .. plot::
     :include-source:
@@ -57,17 +64,33 @@ useful for quick interactive analysis:
     norm = simple_norm(image, 'sqrt')
 
     # Display the image
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    fig, ax = plt.subplots()
     im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
 
-This convenience function combines a :class:`Stretch
-<astropy.visualization.stretch.BaseStretch>` object with an :class:`Interval
-<astropy.visualization.interval.BaseInterval>` object.
-We recommend using
-:class:`~astropy.visualization.mpl_normalize.ImageNormalize` directly
-in scripted programs instead of this convenience function.
+Here's an example using the
+:class:`~astropy.visualization.mpl_normalize.SimpleNorm` class with its
+:meth:`~astropy.visualization.mpl_normalize.SimpleNorm.imshow`
+method:
+
+.. plot::
+    :include-source:
+    :align: center
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.visualization import SimpleNorm
+
+    # Generate a test image
+    image = np.arange(65536).reshape((256, 256))
+
+    # Create an ImageNormalize object
+    snorm = SimpleNorm('sqrt', percent=98)
+
+    # Display the image
+    fig, ax = plt.subplots()
+    axim = snorm.imshow(image, ax=ax, origin='lower')
+    fig.colorbar(axim)
 
 
 The detailed way
@@ -206,8 +229,7 @@ the data and the interval and stretch objects:
     # norm = ImageNormalize(image, MinMaxInterval(), SqrtStretch())
 
     # Display the image
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    fig, ax = plt.subplots()
     im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
 
@@ -241,8 +263,7 @@ use case:
     image = np.arange(65536).reshape((256, 256))
 
     # Display the exact same thing as the above plot
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    fig, ax = plt.subplots()
     im, norm = imshow_norm(image, ax, origin='lower',
                            interval=MinMaxInterval(), stretch=SqrtStretch())
     fig.colorbar(im)
@@ -277,8 +298,7 @@ also be the vmin and vmax limits, which you can determine from the
     norm = ImageNormalize(vmin=vmin, vmax=vmax, stretch=SqrtStretch())
 
     # Display the image
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    fig, ax = plt.subplots()
     im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
 
@@ -307,8 +327,7 @@ composite stretch can stretch residual images with negative values:
     # Image of random Gaussian noise
     rng = np.random.default_rng()
     image = rng.normal(size=(64, 64))
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
+    fig, ax = plt.subplots()
     # ImageNormalize normalizes values to [0,1] before applying the stretch
     norm = ImageNormalize(stretch=stretch, vmin=-5, vmax=5)
     im = ax.imshow(image, origin='lower', norm=norm, cmap='gray')

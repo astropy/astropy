@@ -9,12 +9,10 @@ celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
 
-from __future__ import annotations
-
 import os
 import re
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import Self
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -46,37 +44,34 @@ from astropy.utils.data import (
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.state import ScienceState
 
-if TYPE_CHECKING:
-    from typing import Self
-
 __all__ = [
-    "Conf",
-    "conf",
-    "earth_orientation_table",
-    "IERS",
-    "IERS_B",
-    "IERS_A",
-    "IERS_Auto",
-    "FROM_IERS_B",
     "FROM_IERS_A",
     "FROM_IERS_A_PREDICTION",
-    "TIME_BEFORE_IERS_RANGE",
-    "TIME_BEYOND_IERS_RANGE",
+    "FROM_IERS_B",
+    "IERS",
+    "IERS_A",
     "IERS_A_FILE",
+    "IERS_A_README",
     "IERS_A_URL",
     "IERS_A_URL_MIRROR",
-    "IERS_A_README",
+    "IERS_B",
     "IERS_B_FILE",
-    "IERS_B_URL",
     "IERS_B_README",
-    "IERSRangeError",
-    "IERSStaleWarning",
-    "IERSWarning",
-    "IERSDegradedAccuracyWarning",
-    "LeapSeconds",
+    "IERS_B_URL",
     "IERS_LEAP_SECOND_FILE",
     "IERS_LEAP_SECOND_URL",
     "IETF_LEAP_SECOND_URL",
+    "TIME_BEFORE_IERS_RANGE",
+    "TIME_BEYOND_IERS_RANGE",
+    "Conf",
+    "IERSDegradedAccuracyWarning",
+    "IERSRangeError",
+    "IERSStaleWarning",
+    "IERSWarning",
+    "IERS_Auto",
+    "LeapSeconds",
+    "conf",
+    "earth_orientation_table",
 ]
 
 # Status/source values returned by IERS.ut1_utc
@@ -449,9 +444,6 @@ class IERS(QTable):
         if is_scalar:
             mjd = np.array([mjd])
             utc = np.array([utc])
-        elif mjd.size == 0:
-            # Short-cut empty input.
-            return np.array([])
 
         self._refresh_table_as_needed(mjd)
 
@@ -499,7 +491,8 @@ class IERS(QTable):
             results.append(status)
             return results
         else:
-            self._check_interpolate_indices(i1, i, np.max(mjd))
+            # Pass in initial to np.max to allow things to work for empty mjd.
+            self._check_interpolate_indices(i1, i, np.max(mjd, initial=50000))
             return results[0] if len(results) == 1 else results
 
     def _refresh_table_as_needed(self, mjd):
@@ -885,7 +878,13 @@ class IERS_Auto(IERS_A):
           In other words the IERS-A table was created by IERS long enough
           ago that it can be considered stale for predictions.
         """
-        max_input_mjd = np.max(mjd)
+        # If downloading is disabled, bail out silently.
+        # _check_interpolate_indices() will error later if appropriate.
+        if not conf.auto_download:
+            return
+
+        # Pass in initial to np.max to allow things to work for empty mjd.
+        max_input_mjd = np.max(mjd, initial=50000)
         now_mjd = self.time_now.mjd
 
         # IERS-A table contains predictive data out for a year after
@@ -915,7 +914,7 @@ class IERS_Auto(IERS_A):
                 # predictive values.
                 warn(
                     AstropyWarning(
-                        f'failed to download {" and ".join(all_urls)}: {err}.\nA'
+                        f"failed to download {' and '.join(all_urls)}: {err}.\nA"
                         " coordinate or time-related calculation might be compromised"
                         " or fail because the dates are not covered by the available"
                         ' IERS file.  See the "IERS data access" section of the'

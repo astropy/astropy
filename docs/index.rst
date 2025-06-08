@@ -9,7 +9,7 @@
 astropy: A Community Python Library for Astronomy
 #################################################
 
-**Version**: |release|
+**Version**: |release| - :ref:`whatsnew-7.2`
 
 **Useful links**:
 :ref:`Installation <installing-astropy>` |
@@ -117,6 +117,16 @@ processing, and data analysis.
             :click-parent:
 
             To the project details
+
+.. image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_light.png?raw=true
+    :class: only-light
+    :target: https://docs.astropy.org/en/latest/impact_health.html
+    :alt: Astropy User Statistics
+
+.. image:: https://github.com/astropy/repo_stats/blob/cache/cache/astropy_user_stats_dark.png?raw=true
+    :class: only-dark
+    :target: https://docs.astropy.org/en/latest/impact_health.html
+    :alt: Astropy User Statistics
 
 .. _feedback@astropy.org: mailto:feedback@astropy.org
 .. _affiliated packages: https://www.astropy.org/affiliated/

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" version="1.5">
+  <COOSYS ID="coosys0" system="ICRS" equinox="J2000" epoch="J2014.5"  refposition="BARYCENTER"/>
+  <RESOURCE>
+  <!-- "equinox", "epoch", "system", "refposition" -->
+    <COOSYS ID="coosys1" system="ICRS" equinox="J2000" epoch="J2015.5"  refposition="BARYCENTER"/>
+    <COOSYS ID="coosys2" system="FK4" equinox="B1950" epoch="B1950.0"  refposition="UNKNOWN"/>
+    <TABLE name="sources">
+      <FIELD name="RA" ID="ra" ucd="pos.eq.ra;meta.main" datatype="double" unit="deg" ref="coosys0"/>
+      <FIELD name="Dec" ID="dec" ucd="pos.eq.dec;meta.main" datatype="double" unit="deg" ref="coosys1"/>
+      <FIELD name="OtherDec" ID="other_dec" ucd="pos.eq.dec" datatype="double" unit="deg" ref="coosys2"/>
+      <FIELD name="Name" ID="name" ucd="meta.id;meta.main" datatype="char" arraysize="8*"/>
+      <DATA>
+        <TABLEDATA>
+          <TR>
+            <TD>010.68</TD>
+            <TD>+41.27</TD>
+            <TD>+12.34</TD>
+            <TD>N 224</TD>
+          </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+  </RESOURCE>
+</VOTABLE>

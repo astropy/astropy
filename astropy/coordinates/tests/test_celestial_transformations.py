@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from itertools import combinations
+
 import numpy as np
 import pytest
 
@@ -31,51 +33,35 @@ from astropy.time import Time
 from astropy.units import allclose
 
 # used below in the next parametrized test
-m31_sys = [ICRS, FK5, FK4, Galactic]
-m31_coo = [
-    (10.6847929, 41.2690650),
-    (10.6847929, 41.2690650),
-    (10.0004738, 40.9952444),
-    (121.1744050, -21.5729360),
-]
-m31_dist = Distance(770, u.kpc)
-convert_precision = 1 * u.arcsec
-roundtrip_precision = 1e-4 * u.degree
-dist_precision = 1e-9 * u.kpc
-
-m31_params = []
-for i in range(len(m31_sys)):
-    for j in range(len(m31_sys)):
-        if i < j:
-            m31_params.append((m31_sys[i], m31_sys[j], m31_coo[i], m31_coo[j]))
+M31_DIST = Distance(770, u.kpc)
+M31_COORDS = (
+    ICRS(10.6847929 * u.deg, 41.2690650 * u.deg, M31_DIST),
+    FK5(10.6847929 * u.deg, 41.2690650 * u.deg, M31_DIST),
+    FK4(10.0004738 * u.deg, 40.9952444 * u.deg, M31_DIST),
+    Galactic(121.1744050 * u.deg, -21.5729360 * u.deg, M31_DIST),
+)
 
 
-@pytest.mark.parametrize(("fromsys", "tosys", "fromcoo", "tocoo"), m31_params)
-def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
+@pytest.mark.parametrize(
+    "fromsys,tosys", tuple(combinations(M31_COORDS, 2)), ids=lambda x: type(x).__name__
+)
+def test_m31_coord_transforms(fromsys, tosys):
     """
     This tests a variety of coordinate conversions for the Chandra point-source
     catalog location of M31 from NED.
     """
-    coo1 = fromsys(ra=fromcoo[0] * u.deg, dec=fromcoo[1] * u.deg, distance=m31_dist)
-    coo2 = coo1.transform_to(tosys())
-    if tosys is FK4:
-        coo2_prec = coo2.transform_to(FK4(equinox=Time("B1950")))
-        # convert_precision <1 arcsec
-        assert (coo2_prec.spherical.lon - tocoo[0] * u.deg) < convert_precision
-        assert (coo2_prec.spherical.lat - tocoo[1] * u.deg) < convert_precision
-    else:
-        assert (coo2.spherical.lon - tocoo[0] * u.deg) < convert_precision  # <1 arcsec
-        assert (coo2.spherical.lat - tocoo[1] * u.deg) < convert_precision
-    assert coo1.distance.unit == u.kpc
-    assert coo2.distance.unit == u.kpc
-    assert m31_dist.unit == u.kpc
-    assert (coo2.distance - m31_dist) < dist_precision
+    converted = fromsys.transform_to(tosys)
+    expected = tosys.spherical
+    assert_allclose(converted.spherical.lon, expected.lon, atol=0.1 * u.arcsec, rtol=0)
+    assert_allclose(converted.spherical.lat, expected.lat, atol=0.25 * u.arcsec, rtol=0)
+    assert_allclose(converted.distance, 770 * u.kpc)
 
     # check round-tripping
-    coo1_2 = coo2.transform_to(fromsys())
-    assert (coo1_2.spherical.lon - fromcoo[0] * u.deg) < roundtrip_precision
-    assert (coo1_2.spherical.lat - fromcoo[1] * u.deg) < roundtrip_precision
-    assert (coo1_2.distance - m31_dist) < dist_precision
+    roundtripped = converted.transform_to(fromsys).spherical
+    expected = fromsys.spherical
+    assert_allclose(roundtripped.lon, expected.lon, atol=0.1 * u.arcsec, rtol=0)
+    assert_allclose(roundtripped.lat, expected.lat, atol=0.25 * u.arcsec, rtol=0)
+    assert_allclose(roundtripped.distance, 770 * u.kpc)
 
 
 def test_precession():
