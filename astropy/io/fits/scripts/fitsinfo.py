@@ -57,6 +57,10 @@ def main(args=None):
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    # TODO: pass color and suggest_on_error as kwargs when PYTHON_LT_14 is dropped
+    parser.color = True
+    parser.suggest_on_error = True
+
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
     )
