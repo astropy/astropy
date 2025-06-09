@@ -169,4 +169,4 @@ jobs:
       - run: python -m build
         name: Run build
         env:
-          - EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'
+          EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'
