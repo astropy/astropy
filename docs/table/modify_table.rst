@@ -249,8 +249,8 @@ To rename a column::
 
 To rename multiple columns at once::
 
-  >>> t.rename_columns(['a_new', 'b_new'], ['a, 'b'])
-  >>> t.rename_columns(['a, 'b'], ['a_new', 'b_new'])
+  >>> t.rename_columns(['a_new', 'b_new'], ['a', 'b'])
+  >>> t.rename_columns(['a', 'b'], ['a_new', 'b_new'])
 
 .. EXAMPLE END
 
