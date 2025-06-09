@@ -83,6 +83,3 @@ py:class None.  Update D from mapping/iterable E and F.
 py:class an object providing a view on D's values
 py:class a shallow copy of D
 
-# Classes from `astropy.extern` that are nonetheless exposed in documentation
-py:class Lexer
-py:class LRParser
