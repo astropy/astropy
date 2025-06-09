@@ -8,6 +8,8 @@
 #include <quantize.h>
 #include <unquantize.h>
 #include <ricecomp.h>
+
+/* The following is needed in order to avoid compilation warnings related to calloc() */
 #include <stdlib.h>
 
 /* Define docstrings */
