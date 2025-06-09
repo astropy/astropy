@@ -145,7 +145,7 @@ jobs:
     # API in one of the main build+test tox jobs.
 
     runs-on: ubuntu-latest
-    name: Python 3.11 (build only) with limited API
+    name: Python 3.11 (build only, partial) with limited API
     needs: [initial_checks]
     env:
       EXTENSION_HELPERS_PY_LIMITED_API: cp311
@@ -170,3 +170,5 @@ jobs:
         name: Install build package
       - run: python -m build
         name: Run build
+        env: 
+          - EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'
