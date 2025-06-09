@@ -147,8 +147,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Python 3.11 (build only, partial) with limited API
     needs: [initial_checks]
-    env:
-      EXTENSION_HELPERS_PY_LIMITED_API: cp311
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
@@ -170,5 +168,5 @@ jobs:
         name: Install build package
       - run: python -m build
         name: Run build
-        env: 
+        env:
           - EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'
