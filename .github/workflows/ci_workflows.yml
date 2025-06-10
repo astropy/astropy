@@ -158,14 +158,14 @@ jobs:
         name: Install Python
         with:
           python-version: "3.11"
-      - name: Remove incompatible extensions
-        run: |
-          rm -f \
+      - run: |
+          rm \
             astropy/cosmology/_src/setup_package.py \
             astropy/table/_column_mixins.pyx \
             astropy/table/setup_package.py \
             astropy/utils/xml/setup_package.py \
             astropy/wcs/setup_package.py
+        name: Remove incompatible extensions
       - run: |
           python -m pip install build
           python -m build

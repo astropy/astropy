@@ -106,7 +106,7 @@ static void _sigma_clip_fast(
     double *mad_buffer = NULL;
 
     // data_buffer is used to store the current values being sigma clipped
-    data_buffer = (double *)PyArray_malloc(n_i * sizeof(double));
+    data_buffer = malloc(n_i * sizeof(double));
     if (data_buffer == NULL) {
         PyErr_NoMemory();
         return;
@@ -135,7 +135,7 @@ static void _sigma_clip_fast(
             // that is used in the calculation. We just need to allocate this once
             // and can use it in any future loop iteration that needs it.
             if (((npy_bool *)use_mad_std) && mad_buffer == NULL) {
-                mad_buffer = (double *)PyArray_malloc(n_i * sizeof(double));
+                mad_buffer = malloc(n_i * sizeof(double));
                 if (mad_buffer == NULL) {
                     PyErr_NoMemory();
                     return;
@@ -143,19 +143,19 @@ static void _sigma_clip_fast(
             }
 
             compute_sigma_clipped_bounds(
-                data_buffer, count,
+                (double *)data_buffer, count,
                 (int)(*(npy_bool *)use_median), (int)(*(npy_bool *)use_mad_std),
                 *(int *)max_iter,
                 *(double *)sigma_low, *(double *)sigma_high,
-                (double *)bound_low, (double *)bound_high, mad_buffer);
+                (double *)bound_low, (double *)bound_high, (double *)mad_buffer);
         }
         else {
             *(double *)bound_low = NPY_NAN;
             *(double *)bound_high = NPY_NAN;
         }
     }
-    PyArray_free((void *)data_buffer);
+    free(data_buffer);
     if (mad_buffer != NULL) {
-        PyArray_free((void *)mad_buffer);
+        free(mad_buffer);
     }
 }
