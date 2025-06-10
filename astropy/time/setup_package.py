@@ -2,14 +2,16 @@
 
 # Copied from astropy/convolution/setup_package.py
 
-from pathlib import Path
+import os
 
 from numpy import get_include as get_numpy_include
 from setuptools import Extension
 
-C_TIME_PKGDIR = Path(__file__).parent.resolve().relative_to(Path.cwd())
+C_TIME_PKGDIR = os.path.relpath(os.path.dirname(__file__))
 
-SRC_FILES = [str(C_TIME_PKGDIR / "src" / "parse_times.c")]
+SRC_FILES = [
+    os.path.join(C_TIME_PKGDIR, filename) for filename in ["src/parse_times.c"]
+]
 
 
 def get_extensions():
