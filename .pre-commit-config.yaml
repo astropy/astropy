@@ -94,3 +94,10 @@ repos:
         exclude: >-
           ^docs/changes/(\d+\.other.rst|README.rst|template.rst)
         files: ^docs/changes/\d+.\w+.rst
+
+  # Linting hook for stylistic issues in rst doc files.
+  - repo: https://github.com/sphinx-contrib/sphinx-lint
+    rev: v1.0.0
+    hooks:
+      - id: sphinx-lint
+        exclude: "licenses/"
