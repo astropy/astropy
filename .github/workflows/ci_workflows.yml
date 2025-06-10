@@ -137,15 +137,17 @@ jobs:
 
 
   test_limited_api_build:
-
     # Test to make sure that we can build astropy with the limited API
     # Currently, several extensions do not compile, so we remove them for
     # now to make sure the remaining ones build fine. Once all the exceptions
     # are removed, we can remove this job and instead opt in to the limited
     # API in one of the main build+test tox jobs.
-
-    runs-on: ubuntu-latest
-    name: Python 3.11 (build only, partial) with limited API
+    strategy:
+        fail-fast: false
+        matrix:
+          os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    name: Python 3.11 (build only, partial) with limited API (${{ matrix.os }})
     needs: [initial_checks]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
@@ -156,14 +158,14 @@ jobs:
         name: Install Python
         with:
           python-version: "3.11"
-      - run: |
-          rm \
+      - name: Remove incompatible extensions
+        run: |
+          rm -f \
             astropy/cosmology/_src/setup_package.py \
             astropy/table/_column_mixins.pyx \
             astropy/table/setup_package.py \
             astropy/utils/xml/setup_package.py \
             astropy/wcs/setup_package.py
-        name: Remove incompatible extensions
       - run: |
           python -m pip install build
           python -m build
