@@ -18,6 +18,62 @@ from astropy.table import SerializedColumn, Table, meta, serialize
 __all__ = ["read_ecsv", "register_pyarrow_ecsv_table", "write_ecsv"]
 
 
+class ECSVEngine:
+    """Base class for ECSV reader engines."""
+
+    engines = {}
+
+    def __init_subclass__(cls, **kwargs):
+        """Register the subclass as an ECSV engine."""
+        super().__init_subclass__(**kwargs)
+        cls.engines[cls.name] = cls
+
+
+class ECSVEnginePyArrow(ECSVEngine):
+    """ECSV reader engine using PyArrow."""
+
+    name = "pyarrow.csv"
+
+    @staticmethod
+    def convert_parsetype(parsetype: str) -> str:
+        """Convert the parsetype to a converter type."""
+        # PyArrow does not support float16, so we need to convert it to float32.
+        return "float32" if parsetype == "float16" else parsetype
+
+
+class ECSVEngineIoAscii(ECSVEngine):
+    """ECSV reader engine using io.ascii."""
+
+    name = "ascii.csv"
+
+    @staticmethod
+    def convert_parsetype(parsetype: str) -> str:
+        """Convert the parsetype to a numpy dtype."""
+        # Output compatible with io.ascii `converters` option.
+        return np.dtype(parsetype).type
+
+
+class ECSVEnginePandas(ECSVEngine):
+    """ECSV reader engine using pandas."""
+
+    name = "pandas.csv"
+
+    @staticmethod
+    def convert_parsetype(parsetype: str) -> np.dtype:
+        """Convert the parsetype to a pandas dtype."""
+        import pandas as pd
+
+        dtype = np.dtype(parsetype)
+        if dtype.kind in ("i", "u"):
+            # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
+            converter = dtype.name.replace("i", "I").replace("u", "U")
+        elif dtype.kind == "b":
+            converter = "boolean"
+        else:
+            converter = parsetype
+        return pd.api.types.pandas_dtype(converter)
+
+
 def is_numpy_dtype(dtype: str) -> bool:
     """Check if the given dtype is a valid numpy dtype."""
     try:
@@ -272,37 +328,6 @@ def read_header(
     return csv_table_start, cols, table_meta, delimiter
 
 
-def convert_parsetype(parsetype: str, engine: str) -> str:
-    """
-    Convert the parsetype to a numpy dtype string for the given engine.
-
-    This is used to convert the ECSV parsetype to a numpy dtype string that can be
-    used by the engine to read the data.
-    """
-    if engine == "pyarrow.csv":
-        # PyArrow does not support float16, so we need to convert it to float32.
-        converter = "float32" if parsetype == "float16" else parsetype
-    elif engine == "ascii.csv":
-        # Output compatible with io.ascii `converters` option.
-        converter = np.dtype(parsetype).type
-    elif engine == "pandas.csv":
-        import pandas as pd
-
-        dtype = np.dtype(parsetype)
-        if dtype.kind in ("i", "u"):
-            # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
-            converter = dtype.name.replace("i", "I").replace("u", "U")
-        elif dtype.kind == "b":
-            converter = pd.BooleanDtype()
-        else:
-            converter = parsetype
-
-    else:
-        raise ValueError(f"Unknown engine: {engine}")
-
-    return converter
-
-
 def read_data(
     input_file: str | os.PathLike | io.BytesIO,
     csv_table_start: int,
@@ -314,8 +339,10 @@ def read_data(
     engine: Literal["pyarrow.csv", "ascii.csv", "pandas.csv"] = "pyarrow.csv",
 ) -> Table:
     """Read the data from the table ``lines``."""
+    engine_cls = ECSVEngine.engines[engine]
+    converters = {col.name: engine_cls.convert_parsetype(col.parsetype) for col in cols}
+
     kw = {}
-    converters = {col.name: convert_parsetype(col.parsetype, engine) for col in cols}
     if engine == "ascii.csv":
         kw["fill_values"] = get_null_values_per_column(cols, table_meta, null_values)
         kw["header_start"] = csv_table_start
