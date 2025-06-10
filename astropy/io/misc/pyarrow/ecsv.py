@@ -8,7 +8,7 @@ import warnings
 from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 import numpy.typing as npt
@@ -16,6 +16,48 @@ import numpy.typing as npt
 from astropy.table import SerializedColumn, Table, meta, serialize
 
 __all__ = ["read_ecsv", "register_pyarrow_ecsv_table", "write_ecsv"]
+
+
+@dataclass
+class ColumnAttrs:
+    name: str
+    datatype: str
+    subtype: str | None = None
+    unit: str | None = None
+    description: str | None = None
+    format: str | None = None
+    meta: dict | None = None
+
+    @functools.cached_property
+    def parsetype(self) -> str:
+        """Type used to parse the CSV file data"""
+        return self.parsetype_dtype_shape[0]
+
+    @functools.cached_property
+    def dtype(self) -> str:
+        """Numpy dtype in the final column data"""
+        return self.parsetype_dtype_shape[1]
+
+    @functools.cached_property
+    def shape(self) -> tuple[int, ...]:
+        """Shape of the column data"""
+        return self.parsetype_dtype_shape[2]
+
+    @functools.cached_property
+    def parsetype_dtype_shape(self) -> tuple[str, str, tuple[int, ...]]:
+        """Get the parsetype, dtype, and shape of the column from ECSV header."""
+        return get_parsetype_dtype_shape(self.datatype, self.subtype, self.name)
+
+
+@dataclass
+class ECSVHeader:
+    """ECSV header information."""
+
+    n_header: int
+    n_empty: int
+    cols_attrs: list[ColumnAttrs]
+    table_meta: dict
+    delimiter: str
 
 
 class ECSVEngine:
@@ -40,6 +82,18 @@ class ECSVEnginePyArrow(ECSVEngine):
         # PyArrow does not support float16, so we need to convert it to float32.
         return "float32" if parsetype == "float16" else parsetype
 
+    @staticmethod
+    def get_data_kwargs(
+        header: ECSVHeader,
+        null_values: list[str],
+        converters: dict[str, Any],
+    ) -> dict[str, Any]:
+        kw = {}
+        kw["null_values"] = null_values
+        kw["header_start"] = header.n_header
+        kw["dtypes"] = converters
+        return kw
+
 
 class ECSVEngineIoAscii(ECSVEngine):
     """ECSV reader engine using io.ascii."""
@@ -51,6 +105,25 @@ class ECSVEngineIoAscii(ECSVEngine):
         """Convert the parsetype to a numpy dtype."""
         # Output compatible with io.ascii `converters` option.
         return np.dtype(parsetype).type
+
+    @staticmethod
+    def get_data_kwargs(
+        header: ECSVHeader,
+        null_values: list[str],
+        converters: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Get the keyword arguments for reading the data."""
+        kw = {}
+        kw["fill_values"] = get_null_values_per_column(
+            header.cols_attrs, header.table_meta, null_values
+        )
+        kw["header_start"] = header.n_header - header.n_empty
+        kw["converters"] = converters
+        # Fast reader does not support converters (defining types in advance) nor any
+        # encoding. Converters are required, e.g. for a string column that looks like
+        # floats. Would be nice to fix this, but in mean time use Python CSV reader.
+        kw["fast_reader"] = False
+        return kw
 
 
 class ECSVEnginePandas(ECSVEngine):
@@ -72,6 +145,26 @@ class ECSVEnginePandas(ECSVEngine):
         else:
             converter = parsetype
         return pd.api.types.pandas_dtype(converter)
+
+    @staticmethod
+    def get_data_kwargs(
+        header: ECSVHeader,
+        null_values: list[str],
+        converters: dict[str, Any],
+    ) -> dict[str, Any]:
+        kw = {}
+        fill_values = get_null_values_per_column(
+            header.cols_attrs, header.table_meta, null_values
+        )
+        null_values = collections.defaultdict(list)
+        for null_value, _, col_name in fill_values:
+            null_values[col_name].append(null_value)
+
+        kw["na_values"] = null_values
+        kw["keep_default_na"] = False
+        kw["skiprows"] = header.n_header
+        kw["dtype"] = converters
+        return kw
 
 
 def is_numpy_dtype(dtype: str) -> bool:
@@ -154,37 +247,6 @@ def get_header_lines(
         input_file.seek(0)
 
     return lines, idx, n_empty, n_comment
-
-
-@dataclass
-class ColumnAttrs:
-    name: str
-    datatype: str
-    subtype: str | None = None
-    unit: str | None = None
-    description: str | None = None
-    format: str | None = None
-    meta: dict | None = None
-
-    @functools.cached_property
-    def parsetype(self) -> str:
-        """Type used to parse the CSV file data"""
-        return self.parsetype_dtype_shape[0]
-
-    @functools.cached_property
-    def dtype(self) -> str:
-        """Numpy dtype in the final column data"""
-        return self.parsetype_dtype_shape[1]
-
-    @functools.cached_property
-    def shape(self) -> tuple[int, ...]:
-        """Shape of the column data"""
-        return self.parsetype_dtype_shape[2]
-
-    @functools.cached_property
-    def parsetype_dtype_shape(self) -> tuple[str, str, tuple[int, ...]]:
-        """Get the parsetype, dtype, and shape of the column from ECSV header."""
-        return get_parsetype_dtype_shape(self.datatype, self.subtype, self.name)
 
 
 def get_parsetype_dtype_shape(
@@ -272,8 +334,7 @@ def get_parsetype_dtype_shape(
 def read_header(
     input_file: str | os.PathLike | io.BytesIO,
     encoding: str = "utf-8",
-    engine: Literal["pyarrow.csv", "ascii.csv"] = "pyarrow.csv",
-) -> tuple[int, list[ColumnAttrs], dict]:
+) -> ECSVHeader:
     """
     READ: Initialize the header Column objects from the table ``lines``.
     """
@@ -317,65 +378,37 @@ def read_header(
         )
 
     # Create list of columns from `header`.
-    cols = [ColumnAttrs(**col) for col in header["datatype"]]
+    cols_attrs = [ColumnAttrs(**col) for col in header["datatype"]]
 
-    # Start line in the file where the CSV table starts (i.e. line with column names)
-    if engine == "ascii.csv":
-        csv_table_start = n_header - n_empty
-    else:
-        csv_table_start = n_header
-
-    return csv_table_start, cols, table_meta, delimiter
+    return ECSVHeader(n_header, n_empty, cols_attrs, table_meta, delimiter)
 
 
 def read_data(
     input_file: str | os.PathLike | io.BytesIO,
-    csv_table_start: int,
-    cols: list[ColumnAttrs],
-    table_meta: dict,
+    header: ECSVHeader,
     null_values: list[str],
-    delimiter: str = ",",
     encoding: str = "utf-8",
     engine: Literal["pyarrow.csv", "ascii.csv", "pandas.csv"] = "pyarrow.csv",
 ) -> Table:
     """Read the data from the table ``lines``."""
     engine_cls = ECSVEngine.engines[engine]
-    converters = {col.name: engine_cls.convert_parsetype(col.parsetype) for col in cols}
 
-    kw = {}
-    if engine == "ascii.csv":
-        kw["fill_values"] = get_null_values_per_column(cols, table_meta, null_values)
-        kw["header_start"] = csv_table_start
-        kw["converters"] = converters
-        # Fast reader does not support converters (defining types in advance) nor any
-        # encoding. Converters are required, e.g. for a string column that looks like
-        # floats. Would be nice to fix this, but in mean time use Python CSV reader.
-        kw["fast_reader"] = False
-    elif engine == "pyarrow.csv":
-        kw["null_values"] = null_values
-        kw["header_start"] = csv_table_start
-        kw["dtypes"] = converters
-    elif engine == "pandas.csv":
-        fill_values = get_null_values_per_column(cols, table_meta, null_values)
-        null_values = collections.defaultdict(list)
-        for null_value, _, col_name in fill_values:
-            null_values[col_name].append(null_value)
+    # Mapping of column name to the engine-specific converter (i.e. output datatype).
+    # This might be numpy dtypes or pandas types.
+    converters = {
+        col_attrs.name: engine_cls.convert_parsetype(col_attrs.parsetype)
+        for col_attrs in header.cols_attrs
+    }
 
-        kw["na_values"] = null_values
-        kw["keep_default_na"] = False
-        kw["skiprows"] = csv_table_start
-        kw["dtype"] = converters
-    else:
-        raise ValueError(
-            f"engine must be 'pyarrow.csv', 'ascii.csv' or 'pandas.csv', not {engine!r}"
-        )
+    # Get the engine-specific kwargs for reading the CSV data.
+    kwargs = engine_cls.get_data_kwargs(header, null_values, converters)
 
     data = Table.read(
         input_file,
         format=engine,
-        delimiter=delimiter,
+        delimiter=header.delimiter,
         encoding=encoding,
-        **kw,
+        **kwargs,
     )
     return data
 
@@ -604,25 +637,20 @@ def read_ecsv(
         # TODO: better way to check for an iterable of str?
         input_file = io.BytesIO("\n".join(input_file).encode(encoding))
 
-    csv_table_start, cols_attrs, table_meta, delimiter = read_header(
-        input_file, encoding=encoding, engine=engine
-    )
+    header = read_header(input_file, encoding=encoding)
 
     # Read the data from the CSV file starting at the line after the header. This
     # includes handling that is particular to the engine.
     data_raw = read_data(
         input_file,
-        csv_table_start,
-        cols_attrs,
-        table_meta,
+        header,
         null_values=null_values,
-        delimiter=delimiter,
         encoding=encoding,
         engine=engine,
     )
 
     # Ensure ECSV header names match the data column names.
-    ecsv_header_names = [col_attrs.name for col_attrs in cols_attrs]
+    ecsv_header_names = [col_attrs.name for col_attrs in header.cols_attrs]
     if ecsv_header_names != data_raw.colnames:
         raise InconsistentTableError(
             f"column names from ECSV header {ecsv_header_names} do not "
@@ -633,22 +661,22 @@ def read_ecsv(
     # with JSON-encoded data but also handles cases like pyarrow not supporting float16.
     data = {
         col_attrs.name: convert_column(col_attrs, data_raw[col_attrs.name])
-        for col_attrs in cols_attrs
+        for col_attrs in header.cols_attrs
     }
 
     # Create the Table object
     table = Table(data)
 
     # Transfer metadata from the ECSV header to the Table columns.
-    for col_attrs in cols_attrs:
+    for col_attrs in header.cols_attrs:
         col = table[col_attrs.name]
         for attr in ["unit", "description", "format", "meta"]:
             if (val := getattr(col_attrs, attr)) is not None:
                 setattr(col.info, attr, val)
 
     # Add metadata to the table
-    if table_meta:
-        table.meta.update(table_meta)
+    if header.table_meta:
+        table.meta.update(header.table_meta)
 
     # Construct any mixin columns from the raw columns.
     table = serialize._construct_mixins_from_columns(table)
