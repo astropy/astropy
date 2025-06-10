@@ -260,9 +260,7 @@ class EcsvOutputter(core.TableOutputter):
         # appropriate mixin columns and remove the original data columns.
         # If no __mixin_columns__ exists then this function just passes back
         # the input table.
-        out = serialize._construct_mixins_from_columns(out)
-
-        return out
+        return serialize._construct_mixins_from_columns(out)
 
     def _convert_vals(self, cols):
         """READ: Convert str_vals in `cols` to final arrays with correct dtypes.
@@ -451,8 +449,7 @@ class EcsvData(basic.BasicData):
                 for idx in col.mask.nonzero()[0]:
                     col.str_vals[idx] = ""
 
-        out = [col.str_vals for col in self.cols]
-        return out
+        return [col.str_vals for col in self.cols]
 
 
 class Ecsv(basic.Basic):
@@ -516,5 +513,4 @@ class Ecsv(basic.Basic):
             Output table for writing
         """
         with serialize_context_as("ecsv"):
-            out = serialize.represent_mixins_as_columns(table)
-        return out
+            return serialize.represent_mixins_as_columns(table)

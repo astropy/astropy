@@ -439,7 +439,7 @@ class CompImageHDU(ImageHDU):
         # bintable._header in-place, but this could be refactored in future to
         # return the compressed header.
 
-        bintable = _image_header_to_empty_bintable(
+        return _image_header_to_empty_bintable(
             self.header,
             name=self.name,
             huge_hdu=huge_hdu,
@@ -453,8 +453,6 @@ class CompImageHDU(ImageHDU):
             axes=self._axes,
             generate_dither_seed=self._generate_dither_seed,
         )
-
-        return bintable
 
     @property
     def _data_loaded(self):
@@ -493,9 +491,7 @@ class CompImageHDU(ImageHDU):
 
         # Since .section has general code to load any arbitrary part of the
         # data, we can just use this
-        data = self.section[...]
-
-        return data
+        return self.section[...]
 
     @data.setter
     def data(self, data):

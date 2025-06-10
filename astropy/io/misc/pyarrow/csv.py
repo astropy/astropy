@@ -166,9 +166,7 @@ def read_csv(
         read_options=read_options,
         convert_options=convert_options,
     )
-    table_apt = convert_pa_table_to_astropy_table(table_pa)
-
-    return table_apt
+    return convert_pa_table_to_astropy_table(table_pa)
 
 
 def check_has_pyarrow():
@@ -339,8 +337,7 @@ def convert_pa_table_to_astropy_table(table_pa) -> "Table":
         name: convert_pa_array_to_numpy(col)
         for name, col in zip(table_pa.column_names, table_pa.itercolumns())
     }
-    out = Table(columns, copy=False)
-    return out
+    return Table(columns, copy=False)
 
 
 def strip_comment_lines(
