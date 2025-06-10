@@ -53,8 +53,9 @@ def _create_matrix(angles, axes_order):
 def spherical2cartesian(alpha, delta):
     alpha = np.deg2rad(alpha)
     delta = np.deg2rad(delta)
-    x = np.cos(alpha) * np.cos(delta)
-    y = np.cos(delta) * np.sin(alpha)
+    cosd = np.cos(delta)
+    x = np.cos(alpha) * cosd
+    y = cosd * np.sin(alpha)
     z = np.sin(delta)
     return np.array([x, y, z])
 
