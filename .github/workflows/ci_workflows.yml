@@ -164,7 +164,9 @@ jobs:
             astropy/utils/xml/setup_package.py \
             astropy/wcs/setup_package.py
         name: Remove incompatible extensions
-      - run: pipx run build
+      - run: |
+          python -m pip install build
+          python -m build
         name: Run build
         env:
           EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'
