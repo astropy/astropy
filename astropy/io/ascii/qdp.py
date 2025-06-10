@@ -657,7 +657,9 @@ class QDP(basic.Basic):
         Returns
         -------
         list[str]
-            List of QDP-formatted string representations of the table. Each string represents a line in the QDP format, including headers, commands, and data rows.
+            List of QDP-formatted string representations of the table.
+            Each string represents a line in the QDP format, including headers,
+            commands, and data rows.
         """
         self._check_multidim_table(table)
         return _write_table_qdp(table, err_specs=self.err_specs)
