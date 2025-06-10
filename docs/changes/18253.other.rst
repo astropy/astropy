@@ -1,0 +1,2 @@
+Fixed errors with building the package from source on Windows via
+``python -m build`` and similar commands.
