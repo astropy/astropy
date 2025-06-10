@@ -82,29 +82,3 @@ py:class None.  Update D from dict/iterable E and F.
 py:class None.  Update D from mapping/iterable E and F.
 py:class an object providing a view on D's values
 py:class a shallow copy of D
-
-# Types used in annotations included here because of a Sphinx bug.
-# See https://github.com/sphinx-doc/sphinx/issues/9813
-# and https://github.com/sphinx-doc/sphinx/issues/11225
-# types
-py:class types.EllipsisType
-# numpy
-py:class np.number
-# numpy.typing
-py:class NDArray
-py:class ArrayLike
-# np.ma
-py:class np.ma.MaskedArray
-# locally defined type variable for ndarray dtype
-py:class DT
-# type aliases
-py:class QuantityLike
-py:class UnitLike
-py:class UnitPower
-py:class UnitPowerLike
-py:class UnitScale
-py:class UnitScaleLike
-
-# Classes from `astropy.extern` that are nonetheless exposed in documentation
-py:class Lexer
-py:class LRParser
