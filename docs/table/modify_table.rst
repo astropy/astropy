@@ -247,6 +247,10 @@ To rename a column::
   >>> t.rename_column('a', 'a_new')
   >>> t['b'].name = 'b_new'
 
+To rename multiple columns at once::
+
+  >>> t.rename_columns(['a_new', 'b_new'], ['a', 'b'])
+
 .. EXAMPLE END
 
 **Add a row of data**
@@ -277,8 +281,8 @@ To remove a row::
 
 To sort columns::
 
-  >>> t.sort('b_new')
-  >>> t.sort(['a_new', 'b_new'])
+  >>> t.sort('b')
+  >>> t.sort(['a', 'b'])
 
 .. EXAMPLE END
 
