@@ -6,10 +6,9 @@ None of the functions in the module are meant for use outside of the
 package.
 """
 
-import io
 import re
-from collections.abc import Generator, Mapping
-from typing import Literal
+from collections.abc import Iterable, Mapping
+from io import StringIO
 
 from .core import NamedUnit, PrefixUnit, Unit, UnitBase
 
@@ -25,53 +24,26 @@ def _get_first_sentence(s: str) -> str:
     return s.replace("\n", " ")
 
 
-def _iter_unit_summary(
-    namespace: Mapping[str, object],
-) -> Generator[tuple[NamedUnit, str, str, str, Literal["Yes", "No"]], None, None]:
-    """
-    Generates the ``(unit, doc, represents, aliases, prefixes)``
-    tuple used to format the unit summary docs in `generate_unit_summary`.
-    """
-    # Get all of the units, and keep track of which ones have SI
-    # prefixes
-    units = []
-    has_prefixes = set()
-    for key, val in namespace.items():
-        # Skip non-unit items
-        if not isinstance(val, UnitBase):
-            continue
-
-        if not isinstance(val, NamedUnit):
-            raise TypeError(f"{key!r} must be defined with 'def_unit()'")
-
-        # Skip aliases
-        if key != val.name:
-            continue
-
-        if isinstance(val, PrefixUnit):
-            # This will return the root unit that is scaled by the prefix
-            # attached to it
-            has_prefixes.add(val._represents.bases[0].name)
-        else:
-            units.append(val)
-
-    # Sort alphabetically, case insensitive
-    units.sort(key=lambda x: x.name.lower())
-
-    for unit in units:
-        doc = _get_first_sentence(unit.__doc__).strip()
+def _summarize_units(
+    units: Iterable[NamedUnit],
+    have_prefixes: set[str],
+    docstring: StringIO,
+    template: str,
+) -> str:
+    for unit in sorted(units, key=lambda x: x.name.lower()):
         represents = ""
         if isinstance(unit, Unit):
             represents = f":math:`{unit._represents.to_string('latex')[1:-1]}`"
-        aliases = ", ".join(f"``{x}``" for x in unit.aliases)
-
-        yield (
-            unit,
-            doc,
-            represents,
-            aliases,
-            "Yes" if unit.name in has_prefixes else "No",
+        docstring.write(
+            template.format(
+                unit,
+                _get_first_sentence(unit.__doc__).strip(),
+                represents,
+                ", ".join(f"``{x}``" for x in unit.aliases),
+                "Yes" if unit.name in have_prefixes else "No",
+            )
         )
+    return docstring.getvalue()
 
 
 def generate_unit_summary(namespace: Mapping[str, object]) -> str:
@@ -90,8 +62,21 @@ def generate_unit_summary(namespace: Mapping[str, object]) -> str:
     docstring : str
         A docstring containing a summary table of the units.
     """
-    docstring = io.StringIO()
-
+    units = []
+    have_prefixes = set()
+    for key, val in namespace.items():
+        if not isinstance(val, UnitBase):
+            continue
+        if not isinstance(val, NamedUnit):
+            raise TypeError(f"{key!r} must be defined with 'def_unit()'")
+        if key == val.name:  # Skip aliases
+            if isinstance(val, PrefixUnit):
+                # This will return the root unit that is scaled by the prefix
+                # attached to it
+                have_prefixes.add(val._represents.bases[0].name)
+            else:
+                units.append(val)
+    docstring = StringIO()
     docstring.write(
         """
 .. list-table:: Available Units
@@ -112,10 +97,7 @@ def generate_unit_summary(namespace: Mapping[str, object]) -> str:
      - {}
      - {}
 """
-    for unit_summary in _iter_unit_summary(namespace):
-        docstring.write(template.format(*unit_summary))
-
-    return docstring.getvalue()
+    return _summarize_units(units, have_prefixes, docstring, template)
 
 
 def generate_prefixonly_unit_summary(namespace: Mapping[str, object]) -> str:
@@ -135,13 +117,11 @@ def generate_prefixonly_unit_summary(namespace: Mapping[str, object]) -> str:
     docstring : str
         A docstring containing a summary table of the units.
     """
-    faux_namespace = {}
-    for unit in namespace.values():
-        if isinstance(unit, PrefixUnit):
-            base_unit = unit.represents.bases[0]
-            faux_namespace[base_unit.name] = base_unit
-
-    docstring = io.StringIO()
+    non_prefixed_units = {
+        unit.represents.bases[0]
+        for unit in namespace.values()
+        if isinstance(unit, PrefixUnit)
+    }
     template = """
    * - Prefixes for ``{}``
      - {} prefixes
@@ -149,7 +129,4 @@ def generate_prefixonly_unit_summary(namespace: Mapping[str, object]) -> str:
      - {}
      - Only
 """
-    for unit_summary in _iter_unit_summary(faux_namespace):
-        docstring.write(template.format(*unit_summary))
-
-    return docstring.getvalue()
+    return _summarize_units(non_prefixed_units, set(), StringIO(), template)
