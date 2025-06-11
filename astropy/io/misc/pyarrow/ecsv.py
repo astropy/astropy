@@ -1,3 +1,57 @@
+"""
+ECSV PyArrow Engine Module
+--------------------------
+
+This module provides functionality for reading and writing Enhanced Character Separated
+Values (ECSV) files using various backends, including PyArrow, pandas, and Astropy's
+ASCII engine. ECSV is a human-readable, YAML-encoded table format used in the Astropy
+ecosystem for storing tables with metadata, units, and complex data types.
+
+Key Features
+------------
+- Defines data structures for representing ECSV column and header metadata.
+- Implements multiple ECSV reader engines, supporting PyArrow, pandas, and Astropy's
+  ASCII CSV readers.
+- Handles conversion between ECSV datatypes and numpy/pandas/pyarrow types, including
+  support for JSON-encoded columns, multidimensional arrays, and masked data.
+- Provides robust parsing of ECSV headers and data, including support for compressed
+  files and in-memory file-like objects.
+- Ensures compatibility with legacy ECSV files and provides liberal error handling for
+  unknown datatypes.
+- Integrates with Astropy's Unified I/O registry for seamless reading and writing of
+  ECSV files.
+
+Main Classes and Functions
+--------------------------
+- ``ColumnECSV``: Represents the attributes of a column as described in the ECSV header.
+- ``ECSVHeader``: Encapsulates the parsed ECSV header, including column definitions and
+  table metadata.
+- ``ECSVEngine`` and subclasses: Abstract base class and concrete implementations for
+  different CSV parsing engines.
+- ``read_ecsv``: Reads an ECSV file and returns an Astropy `Table` object, handling all
+  necessary conversions and metadata.
+- ``write_ecsv``: Writes an Astropy `Table` to an ECSV file.
+- ``register_pyarrow_ecsv_table``: Registers the PyArrow ECSV reader/writer with
+  Astropy's I/O registry.
+
+Usage
+-----
+This module is intended for internal use within Astropy and for advanced users who need
+fine-grained control over ECSV parsing and engine selection. For most users, reading and
+writing ECSV files can be accomplished via the high-level ``Table.read`` and
+``Table.write`` interfaces, e.g.:
+```
+Table.read(filename, format="ecsv", engine="pyarrow.csv")
+```
+
+Dependencies
+------------
+- numpy
+- astropy.table
+- pyarrow (optional, for PyArrow engine)
+- pandas (optional, for pandas engine)
+"""
+
 import collections
 import functools
 import io
@@ -95,8 +149,11 @@ class ECSVHeader:
         Total number of header lines in the ECSV file (including empty).
     n_empty : int
         Number of empty lines in the header section.
+    n_comment : int
+        Number of comment lines in the header section.
     cols : list[ColumnECSV]
-        List of ``ColumnECSV`` objects describing the attributes of each column in header.
+        List of ``ColumnECSV`` objects describing the attributes of each column in
+        header.
     table_meta : dict
         Metadata associated with the table, typically parsed from the ECSV header.
     delimiter : str
@@ -105,14 +162,31 @@ class ECSVHeader:
 
     n_header: int
     n_empty: int
+    n_comment: int
     cols: list[ColumnECSV]
     table_meta: dict
     delimiter: str
 
 
 class ECSVEngine:
-    """Base class for ECSV reader engines."""
+    """Base class for ECSV reader engines.
 
+    An engine is responsible for reading the raw CSV data that follows the ECSV header.
+    This assumes that the engine has a defined Table Unified I/O interface.
+
+    Properties
+    ----------
+    name : str
+        Name of the engine, used for ``engine`` parameter in a call like:
+        ``Table.read(filename, format="ecsv", engine="pyarrow")``.
+    format : str
+        Format string for the engine CSV reader, e.g. "pyarrow.csv", "ascii.csv", etc.
+    engines : dict[str, ECSVEngine]
+        Dictionary mapping engine names to their respective engine classes.
+    """
+
+    name = None
+    format = None
     engines = {}
 
     def __init_subclass__(cls, **kwargs):
@@ -167,7 +241,8 @@ class ECSVEngine:
 class ECSVEnginePyArrow(ECSVEngine):
     """ECSV reader engine using PyArrow."""
 
-    name = "pyarrow.csv"
+    name = "pyarrow"
+    format = "pyarrow.csv"
 
     @staticmethod
     def convert_np_type(np_type: str) -> str:
@@ -196,7 +271,8 @@ class ECSVEnginePyArrow(ECSVEngine):
 class ECSVEngineIoAscii(ECSVEngine):
     """ECSV reader engine using astropy.io.ascii Python CSV reader."""
 
-    name = "ascii.csv"
+    name = "io.ascii"
+    format = "ascii.csv"
 
     @staticmethod
     def convert_np_type(np_type: str) -> str:
@@ -227,7 +303,8 @@ class ECSVEngineIoAscii(ECSVEngine):
 class ECSVEnginePandas(ECSVEngine):
     """ECSV reader engine using pandas."""
 
-    name = "pandas.csv"
+    name = "pandas"
+    format = "pandas.csv"
 
     @staticmethod
     def convert_np_type(np_type: str) -> np.dtype:
@@ -270,10 +347,10 @@ class ECSVEnginePandas(ECSVEngine):
         return kw
 
 
-def is_numpy_dtype(dtype: str) -> bool:
+def is_numpy_dtype(np_type: str) -> bool:
     """Check if the given dtype is a valid numpy dtype."""
     try:
-        np.dtype(dtype)
+        np.dtype(np_type)
     except Exception:
         return False
     else:
@@ -283,7 +360,7 @@ def is_numpy_dtype(dtype: str) -> bool:
 def get_header_lines(
     input_file: str | os.PathLike | io.BytesIO,
     encoding="utf-8",
-) -> tuple[int, list[str], int]:
+) -> tuple[list[str], int, int, int]:
     """
     Extract header lines from a file or file-like object.
 
@@ -304,10 +381,14 @@ def get_header_lines(
 
     Returns
     -------
-    idx : int
-        Index of the last line read.
     lines : list[str]
       List of decoded header lines without the header prefix.
+    idx : int
+        Index of the last line read.
+    n_empty : int
+        Number of empty lines read.
+    n_comment : int
+        Number of comment lines read.
     """
     header_prefix = "# ".encode(encoding)
     comment_prefix = "##".encode(encoding)
@@ -357,14 +438,28 @@ def get_csv_np_type_dtype_shape(
 ) -> tuple[str, str, tuple[int, ...]]:
     """Get the csv_np_type, dtype, and shape of the column from datatype and subtype.
 
-    This function implements most of the complexity of the ECSV data type
-    handling. It converts the ECSV ``datatype`` and ``subtype`` to the following:
-    - ``csv_np_type``: numpy type of CSV column data, e.g. "int64", "float32", "str".
-    - ``dtype``: the numpy dtype in the final column data as a string.
-    - ``shape``: the shape of the final column data (tuple[int, ...]).
+    This function implements most of the complexity of the ECSV data type handling. The
+    ECSV standard allows for a wide variety of data types and subtypes, and we also need
+    to handle some legacy cases and be liberal in what we accept.
 
-    The ECSV standard allows for a wide variety of data types and subtypes, and
-    we also need to handle some legacy cases and be liberal in what we accept.
+    Parameters
+    ----------
+    datatype : str
+        The data type of the column as specified in the ECSV header.
+    subtype : str or None
+        The subtype of the column, if applicable. This can include additional
+        information like array shape or JSON serialization.
+    name : str
+        The name of the column, used for error messages.
+
+    Returns
+    -------
+    csv_np_type: str
+        Numpy type string for the CSV column data, e.g. "int64", "float32", "str".
+    dtype: str
+        Numpy dtype in the final column data.
+    shape: tuple[int, ...]
+        Shape of the final column data as a tuple of integers.
     """
     from astropy.io.ascii.core import InconsistentTableError
     from astropy.io.ascii.ecsv import ECSV_DATATYPES, InvalidEcsvDatatypeWarning
@@ -432,7 +527,36 @@ def read_header(
     encoding: str = "utf-8",
 ) -> ECSVHeader:
     """
-    READ: Initialize the header Column objects from the table ``lines``.
+    Read and parse the header of an ECSV (Enhanced Character Separated Values) input.
+
+    This function extracts and validates the ECSV header from the given input file,
+    parses the YAML metadata, and constructs the corresponding ECSVHeader object
+    containing column definitions and table metadata.
+
+    Parameters
+    ----------
+    input_file : str, os.PathLike, or io.BytesIO
+        The path to the ECSV file or a file-like object containing the ECSV data.
+    encoding : str, optional
+        The encoding to use when reading the file. Default is 'utf-8'.
+
+    Returns
+    -------
+    ECSVHeader
+        An object containing header information, including the number of header lines,
+        number of empty lines, column attributes, table metadata, and delimiter.
+
+    Raises
+    ------
+    InconsistentTableError
+        If the ECSV header is missing, malformed, or the YAML metadata cannot be parsed.
+    ValueError
+        If the delimiter specified in the header is not supported.
+
+    Notes
+    -----
+    The function expects the first non-blank comment line to be the ECSV version header,
+    and only space and comma are allowed as delimiters in the ECSV format.
     """
     from astropy.io.ascii.core import InconsistentTableError
     from astropy.io.ascii.ecsv import DELIMITERS
@@ -476,7 +600,7 @@ def read_header(
     # Create list of columns from `header`.
     cols_attrs = [ColumnECSV(**col) for col in header["datatype"]]
 
-    return ECSVHeader(n_header, n_empty, cols_attrs, table_meta, delimiter)
+    return ECSVHeader(n_header, n_empty, n_comment, cols_attrs, table_meta, delimiter)
 
 
 def read_data(
@@ -484,9 +608,38 @@ def read_data(
     header: ECSVHeader,
     null_values: list[str],
     encoding: str = "utf-8",
-    engine: Literal["pyarrow.csv", "ascii.csv", "pandas.csv"] = "pyarrow.csv",
+    engine: Literal["pyarrow", "io.ascii", "pandas"] = "io.ascii",
 ) -> Table:
-    """Read the data from the table ``lines``."""
+    """
+    Read the data from an ECSV table using the specified engine.
+
+    This function uses an engine-specific class to handle reading and converting
+    the data according to the ECSV specification and the selected backend.
+
+    Parameters
+    ----------
+    input_file : str, os.PathLike, or io.BytesIO
+        The path to the input file or a file-like object containing the ECSV data.
+    header : ECSVHeader
+        The parsed ECSV header containing column definitions and metadata.
+    null_values : list of str
+        List of string values to interpret as null/missing values in the data.
+    encoding : str, optional
+        The encoding to use when reading the file. Default is "utf-8".
+    engine : Literal["pyarrow", "io.ascii", "pandas"], optional
+        The backend engine to use for reading the data. Default is "io.ascii".
+
+    Returns
+    -------
+    Table
+        An Astropy Table containing the data read from the ECSV file.
+
+    Raises
+    ------
+    InconsistentTableError
+        If the column names from the ECSV header do not match the column names
+        in the data.
+    """
     engine_cls = ECSVEngine.engines[engine]
 
     # Mapping of column name to the engine-specific converter (i.e. output datatype).
@@ -500,11 +653,22 @@ def read_data(
 
     data = Table.read(
         input_file,
-        format=engine,
+        format=engine_cls.format,
         delimiter=header.delimiter,
         encoding=encoding,
         **kwargs,
     )
+
+    # Ensure ECSV header names match the data column names.
+    ecsv_header_names = [col.name for col in header.cols]
+    if ecsv_header_names != data.colnames:
+        from astropy.io.ascii.core import InconsistentTableError
+
+        raise InconsistentTableError(
+            f"column names from ECSV header {ecsv_header_names} do not "
+            f"match names from header line of CSV data {data.colnames}"
+        )
+
     return data
 
 
@@ -565,7 +729,28 @@ def convert_column(col: ColumnECSV, data_in: "npt.NDArray") -> "npt.NDArray":
     return data_out
 
 
-def process_1d_Nd_object_data(col, str_vals, mask):
+def process_1d_Nd_object_data(col, str_vals, mask) -> npt.NDArray:
+    """
+    Convert JSON reprs scalar or N-d object data to numpy object array
+
+    This handles masked values.
+
+    Parameters
+    ----------
+    col : numpy.ndarray or numpy.ma.MaskedArray
+        The original column of data, used to determine the output shape.
+    str_vals : array-like of str
+        Array of string representations of the data, typically JSON-encoded.
+    mask : numpy.ndarray or None
+        Boolean mask array indicating invalid or missing values. If None, no masking is
+        applied.
+
+    Returns
+    -------
+    data_out : numpy.ndarray or numpy.ma.MaskedArray
+        An array of objects reconstructed from `str_vals`, with the same shape as `col`.
+        If `mask` is provided, a masked array is returned with the mask applied.
+    """
     if mask is not None:
         for idx in np.nonzero(mask)[0]:
             str_vals[idx] = "0"  # could be "null" but io.ascii uses "0"
@@ -707,18 +892,54 @@ def get_null_values_per_column(
 
 def read_ecsv(
     input_file: str | os.PathLike | io.BytesIO,
+    *,
     encoding: str = "utf-8",
-    engine: Literal["pyarrow.csv", "ascii.csv"] = "pyarrow.csv",
+    engine: Literal["pyarrow", "io.ascii", "pandas"] = "io.ascii",
     null_values: list[str] | None = None,
 ) -> Table:
     """
-    READ: Read the ECSV file and return a Table object.
-    """
-    from astropy.io.ascii.core import InconsistentTableError
+    Read an ECSV (Enhanced Character Separated Values) file and return an Astropy Table.
 
+    Parameters
+    ----------
+    input_file : str, os.PathLike, io.BytesIO, or io.StringIO, or list/tuple of str
+        The ECSV input to read. This can be a file path, a file-like object, a string
+        containing the file contents, or an iterable of strings representing lines of
+        the file.
+    encoding : str, optional
+        The encoding to use when reading the file. Default is "utf-8".
+    engine : {"pyarrow", "io.ascii", "pandas"}, optional
+        The engine to use for reading the CSV data. Default is "io.ascii".
+    null_values : list of str or None, optional
+        List of string values to interpret as null/missing values. Default is [""].
+        The ECSV standard requires the null values are represented as empty strings
+        in the CSV data, but this allows reading non-compliant ECSV files. A notable
+        example are the Gaia source download files which are ECSV but use "null".
+
+    Returns
+    -------
+    table : astropy.table.Table
+        The table read from the ECSV file.
+
+    Raises
+    ------
+    astropy.io.ascii.core.InconsistentTableError
+        If the column names in the ECSV header do not match the column names in the CSV
+        data.
+
+    Notes
+    -----
+    - The function handles various input types, including file paths, file-like objects,
+      and in-memory strings or lists of strings.
+    - Metadata and column attributes (such as unit, description, format, and meta) are
+      transferred from the ECSV header to the resulting Table object.
+    - Handles JSON-encoded data and ensures appropriate numpy dtypes for columns.
+    """
     if null_values is None:
         null_values = [""]
 
+    # Allow input types that are historically supported by io.ascii. These will not be
+    # memory or speed efficient but will still work.
     if isinstance(input_file, io.StringIO):
         input_file = io.BytesIO(input_file.getvalue().encode(encoding))
     elif isinstance(input_file, str) and "\n" in input_file:
@@ -727,9 +948,10 @@ def read_ecsv(
         # TODO: better way to check for an iterable of str?
         input_file = io.BytesIO("\n".join(input_file).encode(encoding))
 
+    # Read the ECSV header from the input.
     header = read_header(input_file, encoding=encoding)
 
-    # Read the data from the CSV file starting at the line after the header. This
+    # Read the CSV data from the input starting at the line after the header. This
     # includes handling that is particular to the engine.
     data_raw = read_data(
         input_file,
@@ -738,14 +960,6 @@ def read_ecsv(
         encoding=encoding,
         engine=engine,
     )
-
-    # Ensure ECSV header names match the data column names.
-    ecsv_header_names = [col.name for col in header.cols]
-    if ecsv_header_names != data_raw.colnames:
-        raise InconsistentTableError(
-            f"column names from ECSV header {ecsv_header_names} do not "
-            f"match names from header line of CSV data {data_raw.colnames}"
-        )
 
     # Convert the column data to the appropriate numpy dtype. This is mostly concerned
     # with JSON-encoded data but also handles cases like pyarrow not supporting float16.
@@ -772,12 +986,13 @@ def read_ecsv(
 
 
 def write_ecsv(tbl, output, **kwargs):
+    """Thin wrapper around the ``io.ascii`` ECSV writer to write ECSV files."""
     tbl.write(output, format="ascii.ecsv", **kwargs)
 
 
 def register_pyarrow_ecsv_table():
     """
-    Register pyarrow.csv with Unified I/O as a Table reader.
+    Register ECSV reader and writer with Unified I/O as a Table reader.
     """
     from astropy.io import registry as io_registry
     from astropy.table import Table
