@@ -364,7 +364,7 @@ def get_parsetype_dtype_shape(
     This function implements most of the complexity of the ECSV data type
     handling. It converts the ECSV ``datatype`` and ``subtype`` to the following:
     - ``parsetype``: the type used to parse the CSV file data. This is a string
-      representation of the numpy dtype, e.g. "int64", "float32", "str", "object".
+      representation of the numpy dtype, e.g. "int64", "float32", "str".
     - ``dtype``: the numpy dtype in the final column data as a string.
     - ``shape``: the shape of the column data (tuple[int]).
 
