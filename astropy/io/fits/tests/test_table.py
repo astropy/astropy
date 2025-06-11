@@ -19,7 +19,6 @@ except ImportError:
     HAVE_OBJGRAPH = False
 
 from astropy.io import fits
-from astropy.io.fits import BinTableHDU, Column, HDUList
 from astropy.io.fits.column import NUMPY2FITS, ColumnAttribute, Delayed
 from astropy.io.fits.util import decode_ascii
 from astropy.io.fits.verify import VerifyError
@@ -3957,27 +3956,27 @@ def test_repr_scaling(tmp_path):
 def test_one_row_string_column(tmp_path):
     # Issue #18174 control. One-row table should still read/write normally after zero row fix
     data = np.zeros((1, 3), dtype="|S8")
-    col = Column(name="FOO", format="24A", dim="(8,3)", array=data)
-    hdul = HDUList([fits.PrimaryHDU(), BinTableHDU.from_columns([col])])
+    col = fits.Column(name="FOO", format="24A", dim="(8,3)", array=data)
+    hdul = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU.from_columns([col])])
 
     outfile = tmp_path / "test.fits"
-    hdul.writeto(outfile, overwrite=True)
+    hdul.writeto(outfile)
 
-    with fits.open(str(outfile)) as hdul:
-        tabel_data = hdul[1].data
-    assert tabel_data.shape[0] == 1
+    with fits.open(outfile) as hdul:
+        table_data = hdul[1].data
+    assert table_data.shape[0] == 1
 
 
 def test_zero_row_string_column(tmp_path):
     # issue #18174 writing a zero row BinTableHDU with multidimensional string column
     data = np.zeros((0, 3), dtype="|S8")
-    col = Column(name="FOO", format="24A", dim="(8,3)", array=data)
-    hdul = HDUList([fits.PrimaryHDU(), BinTableHDU.from_columns([col])])
+    col = fits.Column(name="FOO", format="24A", dim="(8,3)", array=data)
+    hdul = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU.from_columns([col])])
 
     outfile = tmp_path / "test.fits"
-    hdul.writeto(str(outfile), overwrite=True)
+    hdul.writeto(outfile)
 
     # re-open and check for zero rows
-    with fits.open(str(outfile)) as hdul:
+    with fits.open(outfile) as hdul:
         table_data = hdul[1].data
     assert table_data.shape[0] == 0
