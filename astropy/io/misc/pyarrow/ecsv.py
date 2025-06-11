@@ -159,6 +159,11 @@ class ECSVEnginePandas(ECSVEngine):
         null_values = collections.defaultdict(list)
         for null_value, _, col_name in fill_values:
             null_values[col_name].append(null_value)
+            # Pandas parser does not natively parse nan or NaN for floats, so we need
+            # to declare this as a null value.
+            if converters[col_name].kind == "f":
+                for nan in ("nan", "NaN"):
+                    null_values[col_name].append(nan)
 
         kw["na_values"] = null_values
         kw["keep_default_na"] = False
@@ -559,7 +564,7 @@ def get_null_values_per_column(
     table_meta: dict | None,
     null_values: list[str],
 ) -> list[tuple[str, str, str]]:
-    """Get fill values for individual columns for the ascii.csv engine.
+    """Get null and fill values for individual columns.
 
     For ECSV handle the corner case of data that has been serialized using
     the serialize_method='data_mask' option, which writes the full data and
@@ -606,11 +611,6 @@ def get_null_values_per_column(
         fill_value = "" if col.parsetype == "str" else "0"
         for null_value in null_values:
             fill_values.append((null_value, fill_value, col.name))
-
-        # FIXME: only applies for pandas.csv engine
-        # if col.parsetype.startswith("float"):
-        #     for nan in ("nan", "NaN"):
-        #         fill_values.append((nan, fill_value, col.name))
 
     return fill_values
 
