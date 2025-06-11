@@ -492,8 +492,7 @@ def read_data(
     # Mapping of column name to the engine-specific converter (i.e. output datatype).
     # This might be numpy dtypes or pandas types.
     converters = {
-        col_attrs.name: engine_cls.convert_np_type(col_attrs.csv_np_type)
-        for col_attrs in header.cols
+        col.name: engine_cls.convert_np_type(col.csv_np_type) for col in header.cols
     }
 
     # Get the engine-specific kwargs for reading the CSV data.
@@ -566,25 +565,25 @@ def convert_column(col: ColumnECSV, data_in: "npt.NDArray") -> "npt.NDArray":
     return data_out
 
 
-def process_1d_Nd_object_data(col_attrs, str_vals, mask):
+def process_1d_Nd_object_data(col, str_vals, mask):
     if mask is not None:
         for idx in np.nonzero(mask)[0]:
             str_vals[idx] = "0"  # could be "null" but io.ascii uses "0"
     col_vals = [json.loads(val) for val in str_vals]
     np_empty = np.empty if mask is None else np.ma.empty
-    data_out = np_empty((len(col_vals),) + tuple(col_attrs.shape), dtype=object)
+    data_out = np_empty((len(col_vals),) + tuple(col.shape), dtype=object)
     data_out[...] = col_vals
     if mask is not None:
         data_out.mask = mask
     return data_out
 
 
-def process_fixed_shape_multidim_data(col_attrs, str_vals, mask):
+def process_fixed_shape_multidim_data(col, str_vals, mask):
     # Change empty (blank) values in original ECSV to something
     # like "[[null, null],[null,null]]" so subsequent JSON
     # decoding works.
     if mask is not None:
-        all_none_arr = np.full(shape=col_attrs.shape, fill_value=None, dtype=object)
+        all_none_arr = np.full(shape=col.shape, fill_value=None, dtype=object)
         fill_value = json.dumps(all_none_arr.tolist())
         for idx in np.nonzero(mask)[0]:
             str_vals[idx] = fill_value
@@ -596,17 +595,17 @@ def process_fixed_shape_multidim_data(col_attrs, str_vals, mask):
     arr_vals_mask = arr_vals == None
     if np.any(arr_vals_mask):
         # Replace all the None with an appropriate fill value
-        kind = np.dtype(col_attrs.dtype).kind
+        kind = np.dtype(col.dtype).kind
         arr_vals[arr_vals_mask] = {"U": "", "S": b""}.get(kind, 0)
         # Finally make a MaskedArray with the filled data + mask
-        data_out = np.ma.array(arr_vals.astype(col_attrs.dtype), mask=arr_vals_mask)
+        data_out = np.ma.array(arr_vals.astype(col.dtype), mask=arr_vals_mask)
     else:
-        data_out = arr_vals.astype(col_attrs.dtype)
+        data_out = arr_vals.astype(col.dtype)
 
     return data_out
 
 
-def process_variable_length_array_data(col_attrs, str_vals, mask):
+def process_variable_length_array_data(col, str_vals, mask):
     """Variable length arrays with shape (n, m, ..., *)
 
     Shape is fixed for n, m, .. and variable in last axis. The output is a 1-d object
@@ -626,7 +625,7 @@ def process_variable_length_array_data(col_attrs, str_vals, mask):
     for str_val in str_vals:
         obj_val = json.loads(str_val)  # list or nested lists
         try:
-            arr_val = np.array(obj_val, dtype=col_attrs.dtype)
+            arr_val = np.array(obj_val, dtype=col.dtype)
         except TypeError:
             # obj_val has entries that are inconsistent with
             # dtype. For a valid ECSV file the only possibility
@@ -634,14 +633,14 @@ def process_variable_length_array_data(col_attrs, str_vals, mask):
             vals = np.array(obj_val, dtype=object)
             # Replace all the None with an appropriate fill value
             mask_vals = vals == None
-            kind = np.dtype(col_attrs.dtype).kind
+            kind = np.dtype(col.dtype).kind
             vals[mask_vals] = {"U": "", "S": b""}.get(kind, 0)
-            arr_val = np.ma.array(vals.astype(col_attrs.dtype), mask=mask_vals)
+            arr_val = np.ma.array(vals.astype(col.dtype), mask=mask_vals)
 
         col_vals.append(arr_val)
 
-    col_attrs.shape = ()
-    col_attrs.dtype = np.dtype(object)
+    col.shape = ()
+    col.dtype = np.dtype(object)
     np_empty = np.empty if mask is None else np.ma.empty
     data_out = np_empty(len(col_vals), dtype=object)
     data_out[:] = col_vals
@@ -741,7 +740,7 @@ def read_ecsv(
     )
 
     # Ensure ECSV header names match the data column names.
-    ecsv_header_names = [col_attrs.name for col_attrs in header.cols]
+    ecsv_header_names = [col.name for col in header.cols]
     if ecsv_header_names != data_raw.colnames:
         raise InconsistentTableError(
             f"column names from ECSV header {ecsv_header_names} do not "
@@ -750,19 +749,16 @@ def read_ecsv(
 
     # Convert the column data to the appropriate numpy dtype. This is mostly concerned
     # with JSON-encoded data but also handles cases like pyarrow not supporting float16.
-    data = {
-        col_attrs.name: convert_column(col_attrs, data_raw[col_attrs.name])
-        for col_attrs in header.cols
-    }
+    data = {col.name: convert_column(col, data_raw[col.name]) for col in header.cols}
 
     # Create the Table object
     table = Table(data)
 
     # Transfer metadata from the ECSV header to the Table columns.
-    for col_attrs in header.cols:
-        col = table[col_attrs.name]
+    for header_col in header.cols:
+        col = table[header_col.name]
         for attr in ["unit", "description", "format", "meta"]:
-            if (val := getattr(col_attrs, attr)) is not None:
+            if (val := getattr(header_col, attr)) is not None:
                 setattr(col.info, attr, val)
 
     # Add metadata to the table
