@@ -192,7 +192,6 @@ class SqrtStretch(BaseStretch):
         ax.set_xlabel('Input Value')
         ax.set_ylabel('Output Value')
         ax.set_title(stretch.__class__.__name__)
-        ax.legend(loc='lower right', fontsize=8)
     """
 
     @property
@@ -491,7 +490,6 @@ class SquaredStretch(PowerStretch):
         ax.set_xlabel('Input Value')
         ax.set_ylabel('Output Value')
         ax.set_title(stretch.__class__.__name__)
-        ax.legend(loc='lower right', fontsize=8)
     """
 
     def __init__(self):

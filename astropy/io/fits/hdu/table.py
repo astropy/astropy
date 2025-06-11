@@ -774,8 +774,7 @@ class TableHDU(_TableBaseHDU):
 
             d = np.append(bytes_array, padding)
 
-            cs = self._compute_checksum(d)
-            return cs
+            return self._compute_checksum(d)
         else:
             # This is the case where the data has not been read from the file
             # yet.  We can handle that in a generic manner so we do it in the
@@ -872,8 +871,7 @@ class BinTableHDU(_TableBaseHDU):
             # Now add in the heap data to the checksum (we can skip any gap
             # between the table and the heap since it's all zeros and doesn't
             # contribute to the checksum
-            csum = self._compute_checksum(data._get_heap_data(), csum)
-            return csum
+            return self._compute_checksum(data._get_heap_data(), csum)
 
     def _calculate_datasum(self):
         """

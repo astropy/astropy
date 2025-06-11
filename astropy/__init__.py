@@ -156,6 +156,7 @@ class physical_constants(base_constants_version):
     _value = "codata2018"
 
     _versions = dict(
+        codata2022="codata2022",
         codata2018="codata2018",
         codata2014="codata2014",
         codata2010="codata2010",
