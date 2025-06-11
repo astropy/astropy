@@ -9,20 +9,16 @@ This module should generally not be used directly.  Everything in
 should be used for access.
 """
 
-from __future__ import annotations
-
 import math
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Literal, SupportsFloat, TypeVar
+from typing import Literal, SupportsFloat, TypeVar
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
 
 from . import _stats
-
-if TYPE_CHECKING:
-    from numpy.typing import ArrayLike, NDArray
 
 __all__ = [
     "binned_binom_proportion",

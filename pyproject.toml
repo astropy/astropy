@@ -389,6 +389,7 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "SLF001", # private member access
 
     # flake8-type-checking (TC)
+    "TC002",  # typing-only-third-party-import
     "TC003",  # typing-only-standard-library-import
 
     # flake8-todos (TD)

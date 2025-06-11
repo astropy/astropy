@@ -2,15 +2,13 @@
 
 """Testing :mod:`astropy.cosmology.core`."""
 
-from __future__ import annotations
-
 import abc
 import inspect
 import pickle
-from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
+from numpy.typing import NDArray
 
 import astropy.cosmology.units as cu
 import astropy.units as u
@@ -26,9 +24,6 @@ from .parameter.test_descriptors import (
     ParametersAttributeTestMixin,
 )
 from .parameter.test_parameter import ParameterTestMixin
-
-if TYPE_CHECKING:
-    from numpy.typing import NDArray
 
 ##############################################################################
 # SETUP / TEARDOWN
