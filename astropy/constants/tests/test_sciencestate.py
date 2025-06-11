@@ -26,7 +26,7 @@ def test_previously_imported():
         astronomical_constants.set("iau2015")
 
 
-@pytest.mark.parametrize("version", set(physical_constants._versions.values()))
+@pytest.mark.parametrize("version", sorted(set(physical_constants._versions.values())))
 def test_physical_constants_versions(version):
     """Spot check that setting the different physical constants actually works.
 
