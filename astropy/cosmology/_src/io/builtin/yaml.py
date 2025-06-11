@@ -22,6 +22,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from yaml import MappingNode
+
 import astropy.units as u
 from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
 
@@ -34,8 +36,6 @@ from .mapping import from_mapping
 from .utils import FULLQUALNAME_SUBSTITUTIONS as QNS
 
 if TYPE_CHECKING:
-    from yaml import MappingNode
-
     from astropy.cosmology._src.typing import _CosmoT
 
 __all__: list[str] = []  # nothing is publicly scoped

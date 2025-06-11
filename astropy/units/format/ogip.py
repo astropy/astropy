@@ -23,6 +23,8 @@ import warnings
 from fractions import Fraction
 from typing import TYPE_CHECKING, ClassVar, Literal
 
+import numpy as np
+
 from astropy.units.core import CompositeUnit
 from astropy.units.errors import UnitParserWarning, UnitsWarning
 from astropy.utils import classproperty, parsing
@@ -31,8 +33,6 @@ from . import utils
 from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
-    import numpy as np
-
     from astropy.extern.ply.lex import Lexer
     from astropy.units import UnitBase
     from astropy.units.typing import UnitScale
