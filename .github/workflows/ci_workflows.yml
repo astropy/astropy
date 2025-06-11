@@ -160,7 +160,6 @@ jobs:
           python-version: "3.11"
       - run: |
           rm \
-            astropy/cosmology/_src/setup_package.py \
             astropy/table/_column_mixins.pyx \
             astropy/table/setup_package.py \
             astropy/utils/xml/setup_package.py \
