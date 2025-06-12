@@ -100,4 +100,4 @@ repos:
     rev: v1.0.0
     hooks:
       - id: sphinx-lint
-        exclude: "(licenses/|docs/_build/)"
+        exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"
