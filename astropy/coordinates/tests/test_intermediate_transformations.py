@@ -2,7 +2,6 @@
 """Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz."""
 
 import warnings
-from importlib import metadata
 
 import erfa
 import numpy as np
@@ -1035,19 +1034,8 @@ def test_itrs_straight_overhead():
     assert_allclose(hd.dec, 52 * u.deg, atol=1 * u.uas, rtol=0)
 
 
-def jplephem_ge(minversion):
-    """Check if jplephem is installed and has version >= minversion."""
-    # This is a separate routine since somehow with pyinstaller the stanza
-    # not HAS_JPLEPHEM or metadata.version('jplephem') < '2.15'
-    # leads to a module not found error.
-    try:
-        return HAS_JPLEPHEM and metadata.version("jplephem") >= minversion
-    except Exception:
-        return False
-
-
 @pytest.mark.remote_data
-@pytest.mark.skipif(not jplephem_ge("2.15"), reason="requires jplephem >= 2.15")
+@pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
 def test_aa_hd_high_precision():
     """These tests are provided by @mkbrewer - see issue #10356.
 

@@ -89,7 +89,7 @@ all = [
     "pandas>=2.0",
     "sortedcontainers>=1.5.7", # (older versions may work)
     "pytz>=2016.10", # (older versions may work)
-    "jplephem>=2.6", # (older versions may work)
+    "jplephem>=2.15",
     "mpmath>=1.2.1",
     "asdf>=2.8.3", # via asdf-astropy==0.3.*
     "asdf-astropy>=0.3",
