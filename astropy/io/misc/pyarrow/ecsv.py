@@ -59,13 +59,13 @@ import json
 import os
 import re
 import warnings
+from collections.abc import Iterable
 from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
 import numpy as np
-import numpy.typing as npt
 
 from astropy.table import SerializedColumn, Table, meta, serialize
 
@@ -672,8 +672,19 @@ def read_data(
     return data
 
 
-def get_str_vals(data):
-    """Convert the data to a list of str and get the mask if available."""
+def get_str_vals(
+    data: np.ndarray | np.ma.MaskedArray,
+) -> tuple[list[Any] | np.ndarray, np.ndarray | None]:
+    """Get the string values and the mask if available.
+
+    This assumes an input array of strings, possibly multidimensional and/or masked.
+
+    For a masked array it converts the data to the equivalent Python representation
+    (list of strings, or list of list of strings etc) and returns the mask as a separate
+    array.
+
+    For regular numpy arrays it simply returns the original data as a numpy array.
+    """
     # For masked we need a list because for multidim the data under the mask is set
     # to a compatible value.
     if hasattr(data, "mask"):
@@ -685,9 +696,40 @@ def get_str_vals(data):
     return str_vals, mask
 
 
-def convert_column(col: ColumnECSV, data_in: "npt.NDArray") -> "npt.NDArray":
+def convert_column(
+    col: ColumnECSV,
+    data_in: np.ndarray | np.ma.MaskedArray,
+) -> np.ndarray | np.ma.MaskedArray:
     """
-    Convert the column data from original csv_np_type to the output numpy dtype.
+    Convert column data from original CSV numpy type to specified output numpy dtype.
+
+    This function handles both regular scalar columns and more complex columns such as:
+
+    - Object dtype columns containing arbitrary Python objects serializable to JSON.
+    - Variable-length array columns, where the last axis may vary in length.
+    - Fixed-shape multidimensional columns.
+
+    Depending on the column's dtype and shape, the function selects the appropriate
+    processing routine to convert the data, including deserialization from JSON where
+    necessary. For regular scalar columns, it casts the data to the target dtype if
+    needed.
+
+    Parameters
+    ----------
+    col : ColumnECSV
+        The column specification, including dtype, shape, and name.
+    data_in : np.ndarray | np.ma.MaskedArray
+        The input data array to be converted.
+
+    Returns
+    -------
+    np.ndarray | np.ma.MaskedArray
+        The converted data array with the appropriate dtype and shape.
+
+    Raises
+    ------
+    ValueError
+        If the data cannot be converted due to shape mismatch or invalid JSON content.
     """
     try:
         if col.dtype == "object" or col.shape:
@@ -729,16 +771,30 @@ def convert_column(col: ColumnECSV, data_in: "npt.NDArray") -> "npt.NDArray":
     return data_out
 
 
-def process_1d_Nd_object_data(col, str_vals, mask) -> npt.NDArray:
+def process_1d_Nd_object_data(
+    col: ColumnECSV,
+    str_vals: list[Any] | np.ndarray,
+    mask: np.ndarray | None,
+) -> np.ndarray | np.ma.MaskedArray:
     """
-    Convert JSON reprs scalar or N-d object data to numpy object array
+    Handle object columns where each row element is a JSON-encoded object.
 
-    This handles masked values.
+    Example::
+
+        # %ECSV 1.0
+        # ---
+        # datatype:
+        # - {name: objects, datatype: string, subtype: json}
+        # schema: astropy-2.0
+        objects
+        "{""a"":1}"
+        "{""b"":[2.5,null]}"
+        true
 
     Parameters
     ----------
-    col : numpy.ndarray or numpy.ma.MaskedArray
-        The original column of data, used to determine the output shape.
+    col : ColumnECSV
+        The column specification, including dtype, shape, and name.
     str_vals : array-like of str
         Array of string representations of the data, typically JSON-encoded.
     mask : numpy.ndarray or None
@@ -763,7 +819,41 @@ def process_1d_Nd_object_data(col, str_vals, mask) -> npt.NDArray:
     return data_out
 
 
-def process_fixed_shape_multidim_data(col, str_vals, mask):
+def process_fixed_shape_multidim_data(
+    col: ColumnECSV,
+    str_vals: list[Any] | np.ndarray,
+    mask: np.ndarray | None,
+) -> np.ndarray | np.ma.MaskedArray:
+    """
+    Handle fixed-shape multidimensional columns as JSON-encoded strings.
+
+    Example::
+
+        # %ECSV 1.0
+        # ---
+        # datatype:
+        # - {name: array3x2, datatype: string, subtype: 'float64[3,2]'}
+        # schema: astropy-2.0
+        array3x2
+        [[0.0,1.0],[2.0,3.0],[4.0,5.0]]
+        [[6.0,7.0],[8.0,null],[10.0,11.0]]
+
+    Parameters
+    ----------
+    col : ColumnECSV
+        The column specification, including dtype, shape, and name.
+    str_vals : array-like of str
+        Array of string representations of the data, typically JSON-encoded.
+    mask : numpy.ndarray or None
+        Boolean mask array indicating invalid or missing values. If None, no masking is
+        applied.
+
+    Returns
+    -------
+    data_out : numpy.ndarray or numpy.ma.MaskedArray
+        An array of objects reconstructed from `str_vals`, with the same shape as `col`.
+        If `mask` is provided, a masked array is returned with the mask applied.
+    """
     # Change empty (blank) values in original ECSV to something
     # like "[[null, null],[null,null]]" so subsequent JSON
     # decoding works.
@@ -790,12 +880,45 @@ def process_fixed_shape_multidim_data(col, str_vals, mask):
     return data_out
 
 
-def process_variable_length_array_data(col, str_vals, mask):
-    """Variable length arrays with shape (n, m, ..., *)
+def process_variable_length_array_data(
+    col: ColumnECSV,
+    str_vals: list[Any] | np.ndarray,
+    mask: np.ndarray | None,
+) -> np.ndarray | np.ma.MaskedArray:
+    """
+    Handle variable length arrays with shape (n, m, ..., *) as JSON-encoded strings.
 
     Shape is fixed for n, m, .. and variable in last axis. The output is a 1-d object
     array with each row element being an ``np.ndarray`` or ``np.ma.masked_array`` of the
     appropriate shape.
+
+    Example::
+
+        # %ECSV 1.0
+        # ---
+        # datatype:
+        # - {name: array_var, datatype: string, subtype: 'int64[null]'}
+        # schema: astropy-2.0
+        array_var
+        [1,2]
+        [3,4,5,null,7]
+        [8,9,10]
+
+    Parameters
+    ----------
+    col : ColumnECSV
+        The column specification, including dtype, shape, and name.
+    str_vals : array-like of str
+        Array of string representations of the data, typically JSON-encoded.
+    mask : numpy.ndarray or None
+        Boolean mask array indicating invalid or missing values. If None, no masking is
+        applied.
+
+    Returns
+    -------
+    data_out : numpy.ndarray or numpy.ma.MaskedArray
+        An array of objects reconstructed from `str_vals`, with the same shape as `col`.
+        If `mask` is provided, a masked array is returned with the mask applied.
     """
     # Empty (blank) values in original ECSV are masked. Instead set the values
     # to "[]" indicating an empty list. This operation also unmasks the values.
@@ -841,20 +964,29 @@ def get_null_values_per_column(
 ) -> list[tuple[str, str, str]]:
     """Get null and fill values for individual columns.
 
-    For ECSV handle the corner case of data that has been serialized using
-    the serialize_method='data_mask' option, which writes the full data and
-    mask directly, AND where that table includes a string column with zero-length
-    string entries ("") which are valid data.
-
-    Normally the super() method will set col.fill_value=('', '0') to replace
-    blanks with a '0'.  But for that corner case subset, instead do not do
+    For ECSV handle the corner case of data that has been serialized using the
+    serialize_method='data_mask' option, which writes the full data and mask directly,
+    AND where that table includes a string column with zero-length string entries ("")
+    which are valid data. Normally the super() method will set col.fill_value=('', '0')
+    to replace blanks with a '0'.  But for that corner case subset, instead do not do
     any filling.
+
+    Parameters
+    ----------
+    cols : list[ColumnECSV]
+        List of ColumnECSV objects representing the columns in the ECSV file.
+    table_meta : dict or None
+        Metadata dictionary from the ECSV header, which may include serialized columns
+        and other metadata.
+    null_values : list[str]
+        List of string values to interpret as null/missing values in the data. Default
+        is [""].
 
     Returns
     -------
     fill_values : list[tuple[str, str, str]]
-        A list of tuples with (null_value, fill_value, column_name) for each
-        column in `cols`. If no fill values are needed, returns an empty list.
+        A list of tuples with (null_value, fill_value, column_name) for each column in
+        `cols`. If no fill values are needed, returns an empty list.
     """
     if table_meta is None:
         table_meta = {}
@@ -891,7 +1023,7 @@ def get_null_values_per_column(
 
 
 def read_ecsv(
-    input_file: str | os.PathLike | io.BytesIO,
+    input_file: str | os.PathLike | io.BytesIO | io.StringIO | Iterable[str],
     *,
     encoding: str = "utf-8",
     engine: Literal["pyarrow", "io.ascii", "pandas"] = "io.ascii",
@@ -902,10 +1034,11 @@ def read_ecsv(
 
     Parameters
     ----------
-    input_file : str, os.PathLike, io.BytesIO, or io.StringIO, or list/tuple of str
+    input_file : str, os.PathLike, io.BytesIO, io.StringIO, Iterable[str]
         The ECSV input to read. This can be a file path, a file-like object, a string
         containing the file contents, or an iterable of strings representing lines of
-        the file.
+        the file. Note that providing ``io.StringIO`` or an iterable of strings will
+        be less memory efficient, as it will be converted to a bytes stream.
     encoding : str, optional
         The encoding to use when reading the file. Default is "utf-8".
     engine : {"pyarrow", "io.ascii", "pandas"}, optional
@@ -986,7 +1119,19 @@ def read_ecsv(
 
 
 def write_ecsv(tbl, output, **kwargs):
-    """Thin wrapper around the ``io.ascii`` ECSV writer to write ECSV files."""
+    """Thin wrapper around the ``io.ascii`` ECSV writer to write ECSV files.
+
+    Parameters
+    ----------
+    tbl : astropy.table.Table
+        The table to write to ECSV format.
+    output : str or os.PathLike or file-like object
+        The output file path or file-like object to write the ECSV data to.
+    **kwargs : dict, optional
+        Additional keyword arguments passed to the ECSV writer. These can include
+        options like `delimiter`, `encoding`, and others supported by the
+        `astropy.io.ascii.ecsv` writer.
+    """
     tbl.write(output, format="ascii.ecsv", **kwargs)
 
 
