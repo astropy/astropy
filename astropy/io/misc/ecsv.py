@@ -69,7 +69,7 @@ import numpy as np
 
 from astropy.table import SerializedColumn, Table, meta, serialize
 
-__all__ = ["read_ecsv", "register_pyarrow_ecsv_table", "write_ecsv"]
+__all__ = ["read_ecsv", "register_ecsv_table", "write_ecsv"]
 
 
 @dataclass
@@ -1135,7 +1135,7 @@ def write_ecsv(tbl, output, **kwargs):
     tbl.write(output, format="ascii.ecsv", **kwargs)
 
 
-def register_pyarrow_ecsv_table():
+def register_ecsv_table():
     """
     Register ECSV reader and writer with Unified I/O as a Table reader.
     """
