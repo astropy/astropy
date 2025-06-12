@@ -48,8 +48,8 @@ underlying CardList.
 
 The problem was that there were certain things a user could *only* do by
 directly accessing the CardList, such as look up the comments on a card or
-access cards that have duplicate keywords, such as HISTORY. Another long-
-standing misfeature was that slicing a Header object actually returned a
+access cards that have duplicate keywords, such as HISTORY. Another
+long-standing misfeature was that slicing a Header object actually returned a
 CardList object, rather than a new Header. For all but the simplest use cases,
 working with CardList objects was largely unavoidable.
 
