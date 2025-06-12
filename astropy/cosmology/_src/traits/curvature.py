@@ -7,6 +7,7 @@ This is private API. See `~astropy.cosmology.traits` for public API.
 
 __all__ = ["CurvatureComponent"]
 
+import abc
 from typing import Any
 
 import numpy as np
@@ -19,8 +20,11 @@ from astropy.units import Quantity
 class CurvatureComponent:
     """The object has attributes and methods related to the global curvature."""
 
-    Ok0: float | np.floating[Any]
-    """Omega curvature; the effective curvature density/critical density at z=0."""
+    @property
+    @abc.abstractmethod
+    def Ok0(self) -> float | np.floating[Any]:
+        """Omega curvature; the effective curvature density/critical density at z=0."""
+        raise NotImplementedError
 
     @deprecated_keywords("z", since="7.0")
     def Ok(
