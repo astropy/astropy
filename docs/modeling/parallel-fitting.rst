@@ -34,7 +34,7 @@ Getting started
 To demonstrate the use of this function, we will work through a simple
 example of fitting a 1D model to a small spectral cube (if you are
 interested in accessing the file, you can find it at
-:download:`l1448_13co.fits <http://www.astropy.org/astropy-data/l1448/l1448_13co.fits>`,
+:download:`l1448_13co.fits <http://www.astropy.org/astropy-data/l1448/l1448_13co.fits>`_,
 but the code below will automatically download it).
 
 .. The following block is to make sure 'data' and 'wcs' are defined if we are not running with --remote-data
