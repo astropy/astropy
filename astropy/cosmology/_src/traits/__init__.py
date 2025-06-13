@@ -5,6 +5,7 @@ The public API is provided by `astropy.cosmology.traits`.
 """
 
 __all__ = [
+    "CurvatureComponent",
     "ScaleFactor",
     "TemperatureCMB",
     "_BaryonComponent",
@@ -12,6 +13,7 @@ __all__ = [
 ]
 
 from .baryons import _BaryonComponent
+from .curvature import CurvatureComponent
 from .rhocrit import _CriticalDensity
 from .scale_factor import ScaleFactor
 from .tcmb import TemperatureCMB
