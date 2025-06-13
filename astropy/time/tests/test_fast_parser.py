@@ -142,3 +142,14 @@ def test_fast_subclass():
                 Time("2000:0601", format="yday_subclass")
     finally:
         del TimeYearDayTimeSubClass._registry["yday_subclass"]
+
+
+def test_fast_large_arrays():
+    """Test that we do not segfault on large arrays with wrong formats.
+
+    See gh-18254, where this turned out to happen with numpy 2.3.0.
+    """
+    t = Time(["J2000.0"] * 501)
+    assert t.size == 501
+    with pytest.raises(ValueError, match="Input values did not match any"):
+        Time(["parrot"] * 1000)
