@@ -366,9 +366,11 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
     }
     return;
 
-  error:
+  error:;
+    PyGILState_STATE state = PyGILState_Ensure();
     PyErr_Format(PyExc_ValueError,
                  "fast C time string parser failed: %s", msgs[status-1]);
+    PyGILState_Release(state);
     return;
 }
 
