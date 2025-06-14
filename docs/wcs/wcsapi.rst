@@ -21,8 +21,8 @@ in Python. This API is described in the Astropy Proposal for Enhancements (APE) 
 `A shared Python interface for World Coordinate Systems
 <https://doi.org/10.5281/zenodo.1188874>`_.
 
-The core astropy package provides base classes that define the low- and high-
-level APIs described in APE 14 in the :mod:`astropy.wcs.wcsapi` module, and
+The core astropy package provides base classes that define the low- and
+high-level APIs described in APE 14 in the :mod:`astropy.wcs.wcsapi` module, and
 these are listed in the :ref:`wcs-reference-api` section below.
 
 Overview

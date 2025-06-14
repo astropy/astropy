@@ -257,7 +257,7 @@ fully populated) covariance matrix:
            [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0.2, 0.5, 1. ]])
 
 .. important::
-    
+
     The last statement uses `~astropy.nddata.covariance.Covariance.to_dense` to
     access the array; see :ref:`nddata-covariance-data-access`.
 
@@ -346,7 +346,7 @@ multiplication using
     >>>
     >>> # Construct the covariance matrix
     >>> covar = Covariance.from_matrix_multiplication(t, c)
-    >>> 
+    >>>
     >>> # Test the result
     >>> _c = (np.diag(np.full(3-1, 0.2, dtype=float), k=-1)
     ...         + np.diag(np.full(3, 1.0, dtype=float), k=0)
@@ -422,7 +422,7 @@ is immutable.
 Access to the full correlation matrix is provided using
 `~astropy.nddata.covariance.Covariance.to_sparse` to produce a sparse matrix or
 `~astropy.nddata.covariance.Covariance.to_dense` for a dense matrix by setting
-the keyword argument ``correlation = True``.   
+the keyword argument ``correlation = True``.
 
 .. _nddata-covariance-coord-access:
 

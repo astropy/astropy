@@ -154,8 +154,8 @@ As well as two optional initialization variables:
   ``cosmo`` : the cosmology for density calculation (default default_cosmology)
 
 .. note::
-	Initialization of NFW profile object required before evaluation (in order to set mass
-	overdensity and cosmology).
+    Initialization of NFW profile object required before evaluation (in order to set mass
+    overdensity and cosmology).
 
 
 Sample plots of an NFW profile with the following parameters are displayed below:
@@ -188,7 +188,7 @@ as attributes ``rho_s`` and ``r_s``, and the overdensity radius can be accessed 
 
     # Create NFW Object
     n = NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
-	    massfactor=massfactor)
+            massfactor=massfactor)
 
     # Radial distribution for plotting
     radii = range(1,2001,10) * u.kpc
@@ -211,7 +211,7 @@ as attributes ``rho_s`` and ``r_s``, and the overdensity radius can be accessed 
     # Create scaled density / scaled radius subplot
     # NFW Object
     n = NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
-	    massfactor=massfactor)
+        massfactor=massfactor)
 
     # Radial distribution for plotting
     radii = np.logspace(np.log10(1e-5), np.log10(2), num=1000) * u.Mpc
