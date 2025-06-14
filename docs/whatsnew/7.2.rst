@@ -12,7 +12,7 @@ the 7.1 release.
 
 In particular, this release includes:
 
-* ...
+* :ref:`whatsnew-7.2-manylinux-upgrade`
 * ...
 * ...
 
@@ -23,6 +23,15 @@ By the numbers:
 * X issues have been closed since v7.1
 * X pull requests have been merged since v7.1
 * X distinct people have contributed code
+
+
+.. _whatsnew-7.2-manylinux-upgrade:
+
+``manylinux`` upgrade
+=====================
+
+Pre-built binaries (wheels) for Linux are now built using the ``manylinux_2_28``
+image (previously, ``manylinux2014`` was used).
 
 Full change log
 ===============
