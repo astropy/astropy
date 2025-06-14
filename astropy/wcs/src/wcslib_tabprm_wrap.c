@@ -70,6 +70,7 @@ static int
 PyTabprm_traverse(
     PyTabprm* self, visitproc visit, void *arg) {
   Py_VISIT(self->owner);
+  Py_VISIT(Py_TYPE((PyObject*)self));
   return 0;
 }
 
@@ -87,13 +88,18 @@ PyTabprm_dealloc(
     PyTabprm* self) {
 
   PyTabprm_clear(self);
-  Py_TYPE(self)->tp_free((PyObject*)self);
+  PyTypeObject *tp = Py_TYPE((PyObject*)self);
+  freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+  free_func((PyObject*)self);
+  Py_DECREF(tp);
 }
 
 PyTabprm*
 PyTabprm_cnew(PyObject* wcsprm, struct tabprm* x) {
   PyTabprm* self;
-  self = (PyTabprm*)(&PyTabprmType)->tp_alloc(&PyTabprmType, 0);
+  PyTypeObject* type = (PyTypeObject*)PyTabprmType;
+  allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+  self = (PyTabprm*)alloc_func(type, 0);
   if (self == NULL) return NULL;
   self->x = x;
   Py_INCREF(wcsprm);
@@ -400,58 +406,35 @@ static PyMethodDef PyTabprm_methods[] = {
   {NULL}
 };
 
-PyTypeObject PyTabprmType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-  "astropy.wcs.Tabprm",         /*tp_name*/
-  sizeof(PyTabprm),             /*tp_basicsize*/
-  0,                            /*tp_itemsize*/
-  (destructor)PyTabprm_dealloc, /*tp_dealloc*/
-  0,                            /*tp_print*/
-  0,                            /*tp_getattr*/
-  0,                            /*tp_setattr*/
-  0,                            /*tp_compare*/
-  0,                            /*tp_repr*/
-  0,                            /*tp_as_number*/
-  0,                            /*tp_as_sequence*/
-  0,                            /*tp_as_mapping*/
-  0,                            /*tp_hash */
-  0,                            /*tp_call*/
-  (reprfunc)PyTabprm___str__,   /*tp_str*/
-  0,                            /*tp_getattro*/
-  0,                            /*tp_setattro*/
-  0,                            /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-  doc_Tabprm,                   /* tp_doc */
-  (traverseproc)PyTabprm_traverse, /* tp_traverse */
-  (inquiry)PyTabprm_clear,         /* tp_clear */
-  0,                            /* tp_richcompare */
-  0,                            /* tp_weaklistoffset */
-  0,                            /* tp_iter */
-  0,                            /* tp_iternext */
-  PyTabprm_methods,             /* tp_methods */
-  0,                            /* tp_members */
-  PyTabprm_getset,              /* tp_getset */
-  0,                            /* tp_base */
-  0,                            /* tp_dict */
-  0,                            /* tp_descr_get */
-  0,                            /* tp_descr_set */
-  0,                            /* tp_dictoffset */
-  0,                            /* tp_init */
-  0,                            /* tp_alloc */
-  0,                            /* tp_new */
+static PyType_Spec PyTabprmType_spec = {
+  .name = "astropy.wcs.Tabprm",
+  .basicsize = sizeof(PyTabprm),
+  .itemsize = 0,
+  .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
+  .slots = (PyType_Slot[]) {
+    {Py_tp_dealloc, (destructor)PyTabprm_dealloc},
+    {Py_tp_str, (reprfunc)PyTabprm___str__},
+    {Py_tp_doc, doc_Tabprm},
+    {Py_tp_traverse, (traverseproc)PyTabprm_traverse},
+    {Py_tp_clear, (inquiry)PyTabprm_clear},
+    {Py_tp_getset, PyTabprm_getset},
+    {Py_tp_methods, PyTabprm_methods},
+    {0, NULL},
+  },
 };
+
+PyObject* PyTabprmType = NULL;
 
 int
 _setup_tabprm_type(
     PyObject* m) {
 
-  if (PyType_Ready(&PyTabprmType) < 0) {
+  PyTabprmType = PyType_FromSpec(&PyTabprmType_spec);
+  if (PyTabprmType == NULL) {
     return -1;
   }
 
-  Py_INCREF(&PyTabprmType);
-
-  PyModule_AddObject(m, "Tabprm", (PyObject *)&PyTabprmType);
+  PyModule_AddObject(m, "Tabprm", PyTabprmType);
 
   tab_errexc[0] = NULL;                         /* Success */
   tab_errexc[1] = &PyExc_MemoryError;           /* Null wcsprm pointer passed */

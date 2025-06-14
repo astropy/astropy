@@ -4,7 +4,7 @@
 #include "pyutil.h"
 #include "wcs.h"
 
-extern PyTypeObject PyCelprmType;
+extern PyObject* PyCelprmType;
 
 typedef struct {
     PyObject_HEAD
