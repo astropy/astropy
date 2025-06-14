@@ -10,13 +10,12 @@ from contextlib import ExitStack
 from typing import TYPE_CHECKING, BinaryIO, Literal, Union
 
 import numpy as np
-import numpy.typing
+from numpy.typing import DTypeLike, NDArray
 
 from astropy.utils.compat.optional_deps import HAS_PYARROW
 
 if TYPE_CHECKING:
-    import numpy.typing as npt
-    import pyarrow as pa
+    import pyarrow
     import pyarrow.csv
 
     from astropy.table import Table
@@ -35,7 +34,7 @@ def read_csv(
     data_start: int | None = None,
     names: list[str] | None = None,
     include_names: list[str] | None = None,
-    dtypes: dict[str, numpy.typing.DTypeLike] | None = None,
+    dtypes: dict[str, DTypeLike] | None = None,
     comment: str | None = None,
     null_values: list[str] | None = None,
     encoding: str = "utf-8",
@@ -183,9 +182,7 @@ def check_has_pyarrow():
         )
 
 
-def convert_pa_string_array_to_numpy(
-    arr: "pa.Array",
-) -> "npt.NDArray":
+def convert_pa_string_array_to_numpy(arr: "pyarrow.Array") -> NDArray:
     """
     Convert a PyArrow string array to a NumPy array.
 
@@ -212,7 +209,7 @@ def convert_pa_string_array_to_numpy(
     return out
 
 
-def pyarrow_zero(data_type: "pa.DataType"):
+def pyarrow_zero(data_type: "pyarrow.DataType"):
     """
     Return a "zero" value for the given PyArrow data type.
 
@@ -273,8 +270,8 @@ def pyarrow_zero(data_type: "pa.DataType"):
 
 
 def convert_pa_array_to_numpy(
-    arr: Union["pa.Array", "pa.ChunkedArray"],
-) -> "npt.NDArray":
+    arr: Union["pyarrow.Array", "pyarrow.ChunkedArray"],
+) -> NDArray:
     """
     Convert a PyArrow array to a NumPy array.
 
@@ -425,7 +422,7 @@ def strip_comment_lines(
 
 def get_convert_options(
     include_names: list[str] | None,
-    dtypes: dict[str, "npt.DTypeLike"] | None,
+    dtypes: dict[str, DTypeLike] | None,
     null_values: list[str] | None,
     timestamp_parsers: list[str] | None,
 ) -> "pyarrow.csv.ConvertOptions":
