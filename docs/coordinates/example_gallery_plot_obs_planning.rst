@@ -42,6 +42,7 @@ Astropy can answer that.
 
     >>> # m33 = SkyCoord.from_name("M33")
     >>> m33 = SkyCoord(23.46206906, 30.66017511, unit="deg")
+
     Use `astropy.coordinates.EarthLocation` to provide the location of Bear
     Mountain and set the time to 11pm Eastern Daylight Time (EDT) on 2012 July 12:
 
