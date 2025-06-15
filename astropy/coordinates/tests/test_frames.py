@@ -29,6 +29,7 @@ from astropy.coordinates.builtin_frames import (
     HCRS,
     ICRS,
     ITRS,
+    LSR,
     AltAz,
     Galactic,
     Galactocentric,
@@ -149,34 +150,80 @@ def test_frame_multiple_inheritance_attribute_descriptor():
     assert Frame5.frame_attributes["attr2"] is Frame4.frame_attributes["attr2"]
 
 
-def test_differentialattribute():
-    # Test logic of passing input through to allowed class
-    vel = [1, 2, 3] * u.km / u.s
-    dif = r.CartesianDifferential(vel)
+class TestDifferentialAttribute:
+    @classmethod
+    def setup_class(cls):
+        # Test logic of passing input through to allowed class
+        cls.vel = [1, 2, 3] * u.km / u.s
+        cls.dif = r.CartesianDifferential(cls.vel)
 
-    class TestFrame(BaseCoordinateFrame):
-        attrtest = DifferentialAttribute(
-            default=dif, allowed_classes=[r.CartesianDifferential]
-        )
+        class TestFrame(BaseCoordinateFrame):
+            attrtest = DifferentialAttribute(
+                default=cls.dif,
+                allowed_classes=[r.CartesianDifferential],
+            )
 
-    frame1 = TestFrame()
-    frame2 = TestFrame(attrtest=dif)
-    frame3 = TestFrame(attrtest=vel)
+        cls.TestFrame = TestFrame
 
-    assert np.all(frame1.attrtest.d_xyz == frame2.attrtest.d_xyz)
-    assert np.all(frame1.attrtest.d_xyz == frame3.attrtest.d_xyz)
+    def test_setting(self):
+        frame1 = self.TestFrame()
+        frame2 = self.TestFrame(attrtest=self.dif)
+        frame3 = self.TestFrame(attrtest=self.vel)
 
-    # This shouldn't work if there is more than one allowed class:
-    class TestFrame2(BaseCoordinateFrame):
-        attrtest = DifferentialAttribute(
-            default=dif,
-            allowed_classes=[r.CartesianDifferential, r.CylindricalDifferential],
-        )
+        assert np.all(frame1.attrtest.d_xyz == frame2.attrtest.d_xyz)
+        assert np.all(frame1.attrtest.d_xyz == frame3.attrtest.d_xyz)
 
-    frame1 = TestFrame2()
-    frame2 = TestFrame2(attrtest=dif)
-    with pytest.raises(TypeError):
-        TestFrame2(attrtest=vel)
+    def test_set_with_wrong_unit(self):
+        with pytest.raises(u.UnitTypeError, match="units equivalent to 'km / s'"):
+            self.TestFrame(attrtest=r.CartesianDifferential([1, 2, 3] * u.m))
+
+        class TestFrame2(BaseCoordinateFrame):
+            # No default, but explicit unit.
+            attrtest = DifferentialAttribute(unit=u.km / u.s)
+
+        with pytest.raises(u.UnitTypeError, match="units equivalent to 'km / s'"):
+            TestFrame2(attrtest=r.CartesianDifferential([1, 2, 3] * u.m))
+
+    def test_diffrep_with_multiple_classes(self):
+        class TestFrame2(BaseCoordinateFrame):
+            attrtest = DifferentialAttribute(
+                default=self.dif,
+                allowed_classes=[r.CartesianDifferential, r.CylindricalDifferential],
+            )
+
+        frame1 = TestFrame2()
+        frame2 = TestFrame2(attrtest=self.dif)
+        with pytest.raises(TypeError, match="unsupported Differential type"):
+            TestFrame2(attrtest=self.vel)
+
+    def test_initialize_with_wrong_class(self):
+        with pytest.raises(TypeError, match="unsupported Differential type"):
+
+            class TestFrame(BaseCoordinateFrame):
+                attrtest = DifferentialAttribute(
+                    default=self.dif,
+                    allowed_classes=[
+                        r.CylindricalDifferential,
+                        r.SphericalDifferential,
+                    ],
+                )
+
+    def test_initialize_with_wrong_unit(self):
+        with pytest.raises(u.UnitTypeError, match="units equivalent to 'm'"):
+
+            class TestFrame(BaseCoordinateFrame):
+                attrtest = DifferentialAttribute(default=self.dif, unit=u.m)
+
+
+def test_galactocentric_wrong_units_for_v_sun():
+    # Regression test for gh-17969.
+    with pytest.raises(u.UnitTypeError, match="units equivalent to 'km / s'"):
+        Galactocentric(galcen_distance=8.34 * u.kpc, galcen_v_sun=[12.9, 10.0, 7.78])
+
+
+def test_lsr_wrong_unit_for_v_bary():
+    with pytest.raises(u.UnitTypeError, match="units equivalent to 'km / s'"):
+        LSR(v_bary=[12.9, 10.0, 7.78])
 
 
 def test_create_data_frames():
