@@ -3980,3 +3980,87 @@ def test_zero_row_string_column(tmp_path):
     with fits.open(outfile) as hdul:
         table_data = hdul[1].data
     assert table_data.shape[0] == 0
+
+
+def test_coldefs_drops_uint32_array(tmp_path):
+    # Regression test for issue #17054
+    uarray = np.arange(5, dtype=np.uint32)
+    ucol = fits.Column(name="UCOL", format="J", bzero=2**31, array=uarray)
+
+    hdu1 = fits.BinTableHDU.from_columns([ucol])
+    file1 = tmp_path / "first.fits"
+    hdu1.writeto(file1)
+
+    with fits.open(file1) as hdul:
+        hdu = hdul[1]
+        cols = fits.ColDefs(hdu.columns)
+        hdu2 = fits.BinTableHDU.from_columns(cols)
+
+        raw = hdu2.data["UCOL"]
+
+        assert np.array_equal(raw, uarray)
+        assert raw.dtype != np.uint32
+
+
+def test_coldefs_preserves_uint32_when_array_fixed(tmp_path):
+    # Validate Uint32 data written using bzero=2**31 is consistent
+    uarray = np.arange(5, dtype=np.uint32)
+    iarray = np.arange(5, dtype=np.int32) - 2
+
+    ucol = fits.Column(name="UCOL", format="J", bzero=2**31, array=uarray)
+    icol = fits.Column(name="ICOL", format="J", array=iarray)
+
+    file1 = tmp_path / "first.fits"
+    file2 = tmp_path / "second.fits"
+
+    hdu1 = fits.BinTableHDU.from_columns([ucol])
+    hdu1.writeto(file1)
+
+    with fits.open(file1) as hdul:
+        hdu = hdul[1]
+        data = hdu.data
+
+        # Fix array interpretation manually using bzero
+        cols = fits.ColDefs(hdu.columns)
+        for col in cols:
+            if col.name == "UCOL" and col.bzero == 2**31:
+                raw = np.array(data["UCOL"])
+                col.array = (raw + 2**31).astype(np.uint32)
+
+        cols.add_col(icol)
+        hdu2 = fits.BinTableHDU.from_columns(cols)
+        hdu2.writeto(file2)
+
+    with fits.open(file2) as hdul:
+        hdu3 = hdul[1]
+        assert np.array_equal(hdu3.data["UCOL"], uarray)
+        assert np.array_equal(hdu3.data["ICOL"], iarray)
+
+
+def test_bzero_preserved_in_coldefs_metadata(tmp_path):
+    # Make sure that bzero os preserved going between ColDefs and from_columns()
+    uarray = np.arange(5, dtype=np.uint32)
+    ucol = fits.Column(name="UCOL", format="J", bzero=2**31, array=uarray)
+
+    hdu = fits.BinTableHDU.from_columns([ucol])
+    cols = fits.ColDefs(hdu.columns)
+
+    col = cols["UCOL"]
+    assert col.bzero == 2**31
+
+
+def test_add_col_sets_bzero_only_for_unsigned():
+    # Confirm that ColDefs.add_col() only sets bzero for Uint arrays and not signed arrays
+    ucol = fits.Column(
+        name="U", format="J", bzero=2**31, array=np.arange(3, dtype=np.uint32)
+    )
+    icol = fits.Column(
+        name="I", format="J", array=np.array([-2, -1, 0], dtype=np.int32)
+    )
+
+    cols = fits.ColDefs([])
+    cols.add_col(ucol)
+    cols.add_col(icol)
+
+    assert cols["U"].bzero == 2**31, "Unsigned column should get bzero"
+    assert cols["I"].bzero is None, "Signed column should not get bzero"
