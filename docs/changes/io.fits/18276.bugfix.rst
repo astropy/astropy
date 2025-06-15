@@ -1,0 +1,1 @@
+Fixed loss of bzero when adding uint32 columns to ColDefs read from disk
