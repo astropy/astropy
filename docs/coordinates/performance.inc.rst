@@ -209,18 +209,17 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
     )
 
     # A celestial object in ICRS
-    crab = SkyCoord.from_name("Crab Nebula")
+    # crab = SkyCoord.from_name("Crab Nebula")
+    crab = SkyCoord(83.6287, 22.0147, unit="deg")
 
     # target horizontal coordinate frame
     altaz = AltAz(obstime=t, location=location)
-
 
     # the reference transform using no interpolation
     t0 = perf_counter()
     no_interp = crab.transform_to(altaz)
     reference = perf_counter() - t0
     print(f'No Interpolation took {reference:.4f} s')
-
 
     # now the interpolating approach for different time resolutions
     resolutions = 10.0**np.arange(-1, 5) * u.s
