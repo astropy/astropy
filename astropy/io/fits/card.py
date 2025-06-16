@@ -1025,14 +1025,19 @@ class Card(_Verify):
         if len(output) <= self.length:
             output = f"{output:80}"
         else:
-            # longstring case (CONTINUE card)
-            # try not to use CONTINUE if the string value can fit in one line.
-            # Instead, just truncate the comment
             if isinstance(self.value, str) and len(value) > (
                 self.length - len(keyword) - 2
             ):
+                # longstring case (CONTINUE card)
                 output = self._format_long_image()
-            else:
+            elif (
+                keyword.strip().startswith("HIERARCH")
+                and self.comment
+                and len(keyword) + len(delimiter) + len(value) <= self.length
+            ):
+                # HIERARCH keyword where key+value fits but comment doesn't
+                output = self._format_long_image()
+            else:  # should be unreachable but keeping for regression safety
                 warnings.warn(
                     "Card is too long, comment will be truncated.", VerifyWarning
                 )

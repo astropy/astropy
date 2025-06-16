@@ -771,6 +771,101 @@ class TestHeaderFunctions(FitsTestCase):
         )
         self.check_roundtrip(card)
 
+    @pytest.mark.parametrize(
+        "comment,expected_card_str",
+        [
+            (
+                "random long comment that previously got truncated because it was too long",
+                _pad("HIERARCH A VERY LONG KEY HERE = 'ABCD EFGH IJKL MNOP QRST&'")
+                + _pad(
+                    "CONTINUE  '&' / random long comment that previously got truncated because it"
+                )
+                + _pad("CONTINUE  '' / was too long"),
+            ),
+            (
+                "random long comment that previously got truncated because it was too long"
+                " and now its even longer so it goes over two continue cards",
+                _pad("HIERARCH A VERY LONG KEY HERE = 'ABCD EFGH IJKL MNOP QRST&'")
+                + _pad(
+                    "CONTINUE  '&' / random long comment that previously got truncated because it"
+                )
+                + _pad(
+                    "CONTINUE  '&' / was too long and now its even longer so it goes over two"
+                )
+                + _pad("CONTINUE  '' / continue cards"),
+            ),
+        ],
+    )
+    def test_hierarch_long_comments_use_continue_manual(
+        self, comment: str, expected_card_str: str
+    ):
+        long_key = "A VERY LONG KEY HERE"
+        medium_value = "ABCD EFGH IJKL MNOP QRST"
+        with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
+            card = fits.Card(long_key, medium_value, comment)
+
+        card.verify()
+
+        assert str(card) == expected_card_str
+
+        self.check_roundtrip(card)
+
+    @pytest.mark.parametrize("key", [" ".join(["KEY"] * i) for i in range(3, 10, 1)])
+    @pytest.mark.parametrize(
+        "value", [" ".join(["LONG VALUE"] * i) for i in range(1, 5, 1)]
+    )
+    @pytest.mark.parametrize(
+        "comment", [" ".join(["LONG COMMENT"] * i) for i in range(1, 10, 1)]
+    )
+    def test_hierarch_long_comments_use_continue_automated(
+        self, key: str, value: str, comment: str
+    ):
+        # explicitly check that we make a HIERARCH card and warn about it
+        with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
+            card = fits.Card(key, value, comment)
+
+        card.verify()
+
+        assert card.image.startswith(
+            "HIERARCH "
+        )  # not strictly necessary because of pytest.warns match, but check
+        assert card.keyword == key.upper()
+        assert card.value == value
+        assert card.comment == comment
+
+        self.check_roundtrip(card)
+
+    @pytest.mark.parametrize(
+        "comment",
+        [
+            "A" * 64,
+            pytest.param(
+                "A" * 65,
+                marks=pytest.mark.xfail(
+                    reason="This is a long comment that should not be split",
+                    strict=True,
+                ),
+            ),
+        ],
+    )
+    def test_hierarch_long_comments_use_continue_valid_split(self, comment: str):
+        key = "NORMAL LONG KEY"
+        value = "NORMAL LONG VALUE"
+        # explicitly check that we make a HIERARCH card and warn about it
+        with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
+            card = fits.Card(key, value, comment)
+
+        card.verify()
+
+        assert card.image.startswith(
+            "HIERARCH "
+        )  # not strictly necessary because of pytest.warns match, but check
+        assert card.keyword == key.upper()
+        assert card.value == value
+        assert card.comment == comment
+
+        self.check_roundtrip(card)
+
     def test_verify_mixed_case_hierarch(self):
         """Regression test for
         https://github.com/spacetelescope/PyFITS/issues/7
