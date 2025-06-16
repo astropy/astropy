@@ -29,9 +29,7 @@ from astropy.cosmology import (
     wpwaCDM,
     z_at_value,
 )
-from astropy.cosmology._src.funcs.optimize import _z_at_scalar_value
 from astropy.units import allclose
-from astropy.utils.compat import NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -171,23 +169,6 @@ class Test_ZatValue:
         assert isinstance(z, u.Quantity)
         assert z.dtype == np.float64
         assert z.shape == ()
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-@pytest.mark.xfail(
-    not NUMPY_LT_2_3, reason="TODO fix: https://github.com/astropy/astropy/issues/18045"
-)
-def test_z_at_value_numpyvectorize():
-    """Test that numpy vectorize fails on Quantities.
-
-    If this test starts failing then numpy vectorize can be used instead of
-    the home-brewed vectorization. Please submit a PR making the change.
-    """
-    z_at_value = np.vectorize(
-        _z_at_scalar_value, excluded=["func", "method", "verbose"]
-    )
-    with pytest.raises(u.UnitConversionError, match="dimensionless quantities"):
-        z_at_value(Planck15.age, 10 * u.Gyr)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
