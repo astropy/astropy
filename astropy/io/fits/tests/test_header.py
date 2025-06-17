@@ -846,6 +846,17 @@ class TestHeaderFunctions(FitsTestCase):
                     strict=True,
                 ),
             ),
+            "A" * 64 + " NEXT LINE",
+            *[
+                pytest.param(
+                    "A" * i + " NEXT LINE",
+                    marks=pytest.mark.xfail(
+                        reason="This is a long comment with space at the CONTINUE 'break' that should not be split",
+                        strict=True,
+                    ),
+                )
+                for i in range(65, 66, 1)
+            ],
         ],
     )
     def test_hierarch_long_comments_use_continue_valid_split(self, comment: str):
