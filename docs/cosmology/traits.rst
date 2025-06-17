@@ -7,7 +7,7 @@ Cosmology Traits
 .. currentmodule:: astropy.cosmology.traits
 
 The :mod:`~astropy.cosmology.traits` module hosts various parts of cosmologies, such as
-the :class:`~astropy.cosmology.traits.ScaleFactor`, :class:`~astropy.cosmology.traits._HubbleParameter`, or
+the :class:`~astropy.cosmology.traits.ScaleFactor` or
 :class:`~astropy.cosmology.traits.TemperatureCMB`. These :term:`traits <trait type>` can
 be used to more easily construct custom cosmologies by combining different components.
 
@@ -18,14 +18,14 @@ cosmological CMB temperature at specified redshifts. By using this trait, you ca
 temperature-related  functionality to your custom cosmology class without having to
 implement it from scratch.
 
-Here is an example of how to use the :class:`~astropy.cosmology.traits.ScaleFactor`, :class:`~astropy.cosmology.traits._HubbleParameter`, and
+Here is an example of how to use the :class:`~astropy.cosmology.traits.ScaleFactor` and
 :class:`~astropy.cosmology.traits.TemperatureCMB` traits in a custom cosmology class:
 
 >>> import astropy.units as u
->>> from astropy.cosmology.traits import ScaleFactor, _HubbleParameter, TemperatureCMB
+>>> from astropy.cosmology.traits import ScaleFactor, TemperatureCMB
 >>> from astropy.cosmology import Cosmology
 >>>
->>> class CustomCosmology(Cosmology, ScaleFactor, _HubbleParameter, TemperatureCMB):
+>>> class CustomCosmology(Cosmology, ScaleFactor, TemperatureCMB):
 ...     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725):
 ...         self.H0 = H0
 ...         self.Om0 = Om0
