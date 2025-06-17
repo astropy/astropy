@@ -71,8 +71,7 @@ _InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number
 
 # Some conversion constants -- useful to compute them once here and reuse in
 # the initialization rather than have every object do them.
-# _H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
-# _sec_to_Gyr = u.s.to(u.Gyr)
+
 # angle conversions
 _radian_in_arcsec = (1 * u.rad).to(u.arcsec)
 _radian_in_arcmin = (1 * u.rad).to(u.arcmin)

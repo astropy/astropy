@@ -25,7 +25,7 @@ class _HubbleParameter:
     """The object has attributes and methods for the Hubble parameter."""
 
     H0: Quantity
-    """Hubble constant at redshift 0."""
+    """Hubble Parameter at redshift 0."""
 
     efunc: Callable[[Any], NDArray[Any]]
 
