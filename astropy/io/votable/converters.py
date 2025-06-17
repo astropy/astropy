@@ -884,7 +884,7 @@ class Integer(Numeric):
                 else:
                     value = self.null
             elif value.startswith("0x"):
-                value = int(value[2:], 16)
+                value = int(value, 0)
             else:
                 value = int(value, 10)
         else:
