@@ -71,8 +71,8 @@ _InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number
 
 # Some conversion constants -- useful to compute them once here and reuse in
 # the initialization rather than have every object do them.
-_H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
-_sec_to_Gyr = u.s.to(u.Gyr)
+# _H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
+# _sec_to_Gyr = u.s.to(u.Gyr)
 # angle conversions
 _radian_in_arcsec = (1 * u.rad).to(u.arcsec)
 _radian_in_arcmin = (1 * u.rad).to(u.arcmin)
@@ -333,21 +333,6 @@ class FLRW(
         if self.Tnu0.value == 0:
             return False
         return self._massivenu
-
-    @cached_property
-    def h(self) -> float:
-        """Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]."""
-        return self.H0.value / 100.0
-
-    @cached_property
-    def hubble_time(self) -> u.Quantity:
-        """Hubble time."""
-        return (_sec_to_Gyr / (self.H0.value * _H0units_to_invs)) << u.Gyr
-
-    @cached_property
-    def hubble_distance(self) -> u.Quantity:
-        """Hubble distance."""
-        return (const.c / self.H0).to(u.Mpc)
 
     @cached_property
     def critical_density0(self) -> u.Quantity:

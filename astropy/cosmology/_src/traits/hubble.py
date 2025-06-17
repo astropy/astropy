@@ -7,12 +7,18 @@ This is private API. See `~astropy.cosmology.traits` for public API.
 __all__ = ["_HubbleParameter"]
 
 from collections.abc import Callable
+from functools import cached_property
 from typing import Any
 
 from numpy.typing import ArrayLike, NDArray
 
+import astropy.units as u
+from astropy import constants as const
 from astropy.cosmology._src.utils import deprecated_keywords
 from astropy.units import Quantity
+
+_sec_to_Gyr = u.Gyr.to(u.s)
+_H0units_to_invs = (u.km / u.s / u.Mpc).to(1 / u.s)
 
 
 class _HubbleParameter:
@@ -24,7 +30,7 @@ class _HubbleParameter:
     efunc: Callable[[Any], NDArray[Any]]
 
     @deprecated_keywords("z", since="7.0")
-    def hubble_parameter(self, z: Quantity | ArrayLike) -> Quantity:
+    def H(self, z: Quantity | ArrayLike) -> Quantity:
         """Hubble parameter at redshift ``z``.
 
         Parameters
@@ -38,3 +44,18 @@ class _HubbleParameter:
             Hubble parameter at each input redshift.
         """
         return self.H0 * self.efunc(z)
+
+    @cached_property
+    def h(self) -> float:
+        """Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]."""
+        return self.H0.value / 100.0
+
+    @cached_property
+    def hubble_time(self) -> u.Quantity:
+        """Hubble time."""
+        return (1 / self.H0).to(u.Gyr)
+
+    @cached_property
+    def hubble_distance(self) -> u.Quantity:
+        """Hubble distance."""
+        return (const.c / self.H0).to(u.Mpc)
