@@ -111,7 +111,7 @@ SKIP_TESTS = [
     "test_create_config_file",
     "test_download_parallel_fills_cache",
     "test_defined_constants_do_not_change",
-    "test_physical_constants_versions"
+    "test_physical_constants_versions",
 ]
 
 # Run the tests!
