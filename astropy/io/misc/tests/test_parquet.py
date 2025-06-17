@@ -1,5 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from io import FileIO
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -129,9 +132,7 @@ def test_read_fileobj(tmp_path):
     t1.add_column(Column(name="a", data=[1, 2, 3]))
     t1.write(test_file)
 
-    import io
-
-    with io.FileIO(test_file, mode="r") as input_file:
+    with FileIO(test_file, mode="r") as input_file:
         t2 = Table.read(input_file)
         assert np.all(t2["a"] == [1, 2, 3])
 
@@ -145,9 +146,7 @@ def test_read_pathlikeobj(tmp_path):
     t1.add_column(Column(name="a", data=[1, 2, 3]))
     t1.write(test_file)
 
-    import pathlib
-
-    p = pathlib.Path(test_file)
+    p = Path(test_file)
     t2 = Table.read(p)
     assert np.all(t2["a"] == [1, 2, 3])
 

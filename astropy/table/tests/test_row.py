@@ -4,6 +4,7 @@ import sys
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy import table
 from astropy import units as u
@@ -382,8 +383,6 @@ def test_row_get():
 
 def test_table_row_slicing():
     # see https://github.com/astropy/astropy/issues/14007
-    from numpy.testing import assert_array_equal
-
     t = table.Table({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
     first_row = t[0]
     assert_array_equal(first_row[1:], [4, 7])
