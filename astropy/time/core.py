@@ -1197,7 +1197,7 @@ class TimeBase(MaskableShapedLikeNDArray):
             if hasattr(self, attr):
                 delattr(self, attr)
 
-        if value is np.ma.masked or value is np.nan:
+        if value is np.ma.masked or value is np.nan:  # noqa: PLW0177, RUF100
             if not isinstance(self._time.jd2, Masked):
                 self._time.jd1 = Masked(self._time.jd1, copy=False)
                 self._time.jd2 = Masked(
