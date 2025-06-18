@@ -1148,7 +1148,13 @@ def test_non_convergence_warning():
 
     # at last check that world_to_pixel_values raises a warning but returns
     # the same 'low accuray' result
-    with pytest.warns(UserWarning):
+    with pytest.warns(
+        UserWarning,
+        match=(
+            r"^'WCS.all_world2pix' failed to converge to the requested accuracy\.\n"
+            r"After 20 iterations, the solution is diverging at least for one input point\.$"
+        ),
+    ):
         assert_allclose(wcs.world_to_pixel_values(test_pos_x, test_pos_y), expected)
 
 
