@@ -41,6 +41,7 @@ from astropy.cosmology._src.traits import (
     TemperatureCMB,
     _BaryonComponent,
     _CriticalDensity,
+    _MatterDensity,
 )
 from astropy.cosmology._src.utils import (
     aszarr,
@@ -95,7 +96,14 @@ ParameterOde0 = Parameter(
 
 
 @dataclass_decorator
-class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComponent):
+class FLRW(
+    Cosmology,
+    ScaleFactor,
+    TemperatureCMB,
+    _CriticalDensity,
+    _BaryonComponent,
+    _MatterDensity,
+):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
     This is an abstract base class -- you cannot instantiate examples of this
