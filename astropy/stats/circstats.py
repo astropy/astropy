@@ -10,16 +10,10 @@ are based on reference [1]_, which is also the basis for the R package
 'CircStats' [2]_.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import numpy as np
+from numpy.typing import NDArray
 
 from astropy.units import Quantity
-
-if TYPE_CHECKING:
-    from numpy.typing import NDArray
 
 __all__ = [
     "circcorrcoef",
