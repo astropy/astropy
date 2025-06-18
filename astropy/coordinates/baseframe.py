@@ -15,6 +15,7 @@ __all__ = [
 ]
 
 import copy
+import functools
 import operator
 import warnings
 from collections import defaultdict
@@ -26,7 +27,7 @@ from astropy import units as u
 from astropy.table import QTable
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo
-from astropy.utils.decorators import format_doc, lazyproperty
+from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
@@ -886,7 +887,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         setattr(cls, private_attr, value)
         setattr(cls, attr_name, property(getter, doc=doc))
 
-    @lazyproperty
+    @functools.cached_property
     def cache(self):
         """Cache for this frame, a dict.
 
@@ -1117,7 +1118,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             cls._frame_class_cache["last_reprdiff_hash"] = r.get_reprdiff_cls_hash()
         return cls._frame_class_cache["representation_info"]
 
-    @lazyproperty
+    @functools.cached_property
     def representation_info(self):
         """
         A dictionary with the information of what attribute names for this frame
