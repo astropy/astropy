@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Convenience functions for `astropy.cosmology`."""
 
-from __future__ import annotations
-
 import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypeAlias, TypedDict
@@ -18,7 +16,7 @@ from astropy.cosmology import units as cu
 from astropy.cosmology._src.core import CosmologyError
 
 if TYPE_CHECKING:
-    from scipy.optimize import OptimizeResult
+    import scipy.optimize
 
 __all__ = ["z_at_value"]
 
@@ -34,7 +32,7 @@ class _CustomSolverCallable(Protocol):
 
     def __call__(
         self, fun: Callable[..., Any], args: tuple[Any, ...], **kwargs: Any
-    ) -> OptimizeResult: ...
+    ) -> "scipy.optimize.OptimizeResult": ...
 
 
 _BracketSingle: TypeAlias = tuple[float, float] | tuple[float, float, float]
