@@ -4,23 +4,18 @@
 This module provides utility functions for the models package.
 """
 
-from __future__ import annotations
-
 import warnings
 
 # pylint: disable=invalid-name
 from collections import UserDict
 from collections.abc import Sequence
 from inspect import signature
-from typing import TYPE_CHECKING, TypeVar, overload
+from typing import TypeVar, overload
 
 import numpy as np
+from numpy.typing import NDArray
 
 from astropy import units as u
-
-if TYPE_CHECKING:
-    from numpy.typing import NDArray
-
 
 __all__ = ["ellipse_extent", "poly_map_domain"]
 
