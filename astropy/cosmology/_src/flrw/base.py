@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# ruff: noqa: RUF009
 
 from __future__ import annotations
 
