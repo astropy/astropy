@@ -199,10 +199,10 @@ def test_set_major_formatter():
     ax.coords[1].set_major_formatter("d.ddd")
     assert ax.coords[1].format_coord(4) == "4.000\xb0"
 
-    ax.coords[1].set_major_formatter("d.dd", show_unit=False)
+    ax.coords[1].set_major_formatter("d.dd", show_decimal_unit=False)
     assert ax.coords[1].format_coord(4) == "4.00"
 
     # Show unit has no effect on sexagesimal coordinates
 
-    ax.coords[1].set_major_formatter("dd:mm:ss.s", show_unit=False)
+    ax.coords[1].set_major_formatter("dd:mm:ss.s", show_decimal_unit=False)
     assert ax.coords[1].format_coord(4) == "4\xb000'00.0\""
