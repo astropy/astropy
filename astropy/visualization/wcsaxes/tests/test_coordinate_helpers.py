@@ -216,7 +216,7 @@ def test_set_position_invalid():
     with pytest.warns(AstropyUserWarning, match="Ignoring invalid axis 'x'"):
         ax.coords[0].set_ticks_position("xl")
     with pytest.warns(AstropyUserWarning, match="Ignoring invalid axis 'o'"):
-        ax.coords[1].set_ticklabel_position("ot")
+        ax.coords[1].set_ticklabel_position("to")
     with pytest.warns(AstropyUserWarning, match="Ignoring invalid axis 'q'"):
         ax.coords[1].set_axislabel_position("qb")
 
