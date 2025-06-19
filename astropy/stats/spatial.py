@@ -3,15 +3,11 @@
 This module implements functions and classes for spatial statistics.
 """
 
-from __future__ import annotations
-
 import math
-from typing import TYPE_CHECKING, Literal, TypeAlias
+from typing import Literal, TypeAlias
 
 import numpy as np
-
-if TYPE_CHECKING:
-    from numpy.typing import NDArray
+from numpy.typing import NDArray
 
 __all__ = ["RipleysKEstimator"]
 

@@ -259,10 +259,10 @@ def merge(
 
     out = deepcopy(left)
 
-    for key, val in right.items():
+    for key in right.keys():
         # If no conflict then insert val into out dict and continue
         if key not in out:
-            out[key] = deepcopy(val)
+            out[key] = deepcopy(right[key])
             continue
 
         # There is a conflict that must be resolved
