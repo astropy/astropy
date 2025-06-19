@@ -27,6 +27,8 @@ from ._src.funcs import cosmology_equal, z_at_value
 from ._src.parameter import Parameter
 from .realizations import available, default_cosmology
 
+from .latex import read_latex, write_latex, read_latex_from_string
+
 __all__ = [  #  noqa: RUF100, RUF022
     # Public Submodules
     "realizations",
@@ -66,6 +68,9 @@ __all__ = [  #  noqa: RUF100, RUF022
     "Planck13",
     "Planck15",
     "Planck18",
+    "read_latex",
+    "write_latex",
+    "read_latex_from_string",
 ]
 
 
