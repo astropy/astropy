@@ -7,8 +7,8 @@ from numpy.testing import assert_allclose
 from astropy.stats import RegularEvents, bayesian_blocks
 
 
-def test_single_change_point(rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_single_change_point():
+    rng = np.random.default_rng(0)
     x = np.concatenate([rng.random(100), 1 + rng.random(200)])
 
     bins = bayesian_blocks(x)
@@ -17,8 +17,8 @@ def test_single_change_point(rseed=0):
     assert_allclose(bins[1], 0.927289, rtol=0.02)
 
 
-def test_duplicate_events(rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_duplicate_events():
+    rng = np.random.default_rng(0)
     t = rng.random(100)
     t[80:] = t[:20]
 
@@ -32,8 +32,8 @@ def test_duplicate_events(rseed=0):
     assert_allclose(bins1, bins2)
 
 
-def test_measures_fitness_homoscedastic(rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_measures_fitness_homoscedastic():
+    rng = np.random.default_rng(0)
     t = np.linspace(0, 1, 11)
     x = np.exp(-0.5 * (t - 0.5) ** 2 / 0.01**2)
     sigma = 0.05
@@ -167,11 +167,10 @@ def test_fitness_function_results():
     assert_allclose(edges, expected)
 
 
-def test_zero_change_points(rseed=0):
+def test_zero_change_points():
     """
     Ensure that edges contains both endpoints when there are no change points
     """
-    np.random.seed(rseed)
     # Using the failed edge case from
     # https://github.com/astropy/astropy/issues/8558
     values = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2])
