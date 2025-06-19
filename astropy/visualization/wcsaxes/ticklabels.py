@@ -142,9 +142,19 @@ class TickLabels(Text):
                 # like 13d14m15s we want to make sure that we keep the last
                 # part (15s) even if the two labels are identical.
 
-                if t1.endswith("$"):
+                if t1.startswith("$") and t1.endswith("$"):
+                    # In this case the whole label is inside a LaTex expression
+                    # and we can go up to and ignoring the final dollar sign
+                    last = len(t1) - 1
+                elif t1.endswith("$"):
+                    # In this case, the numbers (e.g. at the front of the label)
+                    # are not inside the LaTeX expression, but some of the units
+                    # are in LaTeX, so we ignore the whole last unit inside
+                    # the LaTeX expression.
                     last = t1.rfind("$", 0, -1)
                 else:
+                    # Finally, there is likely no LaTeX in the label, so we can
+                    # just ignore the last character.
                     last = len(t1) - 1
 
                 for j in range(last):
