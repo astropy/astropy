@@ -136,15 +136,18 @@ class TickLabels(Text):
             t1 = self.text[axis][0]
             for i in range(1, len(self.world[axis])):
                 t2 = self.text[axis][i]
-                if len(t1) != len(t2):
-                    t1 = self.text[axis][i]
-                    continue
                 start = 0
                 # In the following loop, we need to ignore the last character,
                 # hence the len(t1) - 1. This is because if we have two strings
                 # like 13d14m15s we want to make sure that we keep the last
                 # part (15s) even if the two labels are identical.
-                for j in range(len(t1) - 1):
+
+                if t1.endswith("$"):
+                    last = t1.rfind("$", 0, -1)
+                else:
+                    last = len(t1) - 1
+
+                for j in range(last):
                     if t1[j] != t2[j]:
                         break
                     if t1[j] not in skippable_chars:

@@ -720,6 +720,7 @@ def test_plot_coord_slicing(ignore_matplotlibrc):
 
 SIMPLIFY_CASES = [
     (["13d14m15s", "13d14m15s"], ["13d14m15s", "15s"]),
+    (["13d14m5s", "13d14m15s"], ["13d14m5s", "15s"]),
     (
         [
             r"0$\mathregular{^h}$",
@@ -753,7 +754,6 @@ SIMPLIFY_CASES = [
 
 @pytest.mark.parametrize(("before", "after"), SIMPLIFY_CASES)
 def test_simplify_cases(before, after):
-
     # Regression test for a bug that caused the simplification to not work
     # correctly in the presence of dollar signs in LaTeX strings.
 
@@ -761,12 +761,13 @@ def test_simplify_cases(before, after):
     expected_labels = []
 
     for i, label in enumerate(before):
+        print(label)
         ticklabels.add(
             axis="axis",
             world=0,
             angle=0,
             text=label,
-            axis_displacement=0,
+            axis_displacement=i,
             data=(i, i),
         )
 
