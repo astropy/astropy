@@ -799,6 +799,11 @@ class TestHeaderFunctions(FitsTestCase):
     def test_hierarch_long_comments_use_continue_manual(
         self, comment: str, expected_card_str: str
     ):
+        """
+        Test that HIERARCH cards with long comments use CONTINUE cards
+        to split the comment across multiple lines, and that this works
+        correctly with long keys and values.
+        """
         long_key = "A VERY LONG KEY HERE"
         medium_value = "ABCD EFGH IJKL MNOP QRST"
         with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
@@ -820,6 +825,12 @@ class TestHeaderFunctions(FitsTestCase):
     def test_hierarch_long_comments_use_continue_automated(
         self, key: str, value: str, comment: str
     ):
+        """
+        Test that HIERARCH cards with long keys, values, and comments
+        use CONTINUE cards to split the comment across multiple lines,
+        and that this works for a number of combinations of key, value
+        and comment lengths.
+        """
         # explicitly check that we make a HIERARCH card and warn about it
         with pytest.warns(fits.verify.VerifyWarning, match="greater than 8"):
             card = fits.Card(key, value, comment)
@@ -860,6 +871,11 @@ class TestHeaderFunctions(FitsTestCase):
         ],
     )
     def test_hierarch_long_comments_use_continue_valid_split(self, comment: str):
+        """
+        Test that HIERARCH cards with long comments which are split into
+        CONTINUE cards, and for which the comment includes long substrings
+        without spaces, preserve the original comment without inserting extra spaces.
+        """
         key = "NORMAL LONG KEY"
         value = "NORMAL LONG VALUE"
         # explicitly check that we make a HIERARCH card and warn about it
