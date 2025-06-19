@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 from astropy import units as u
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.visualization.wcsaxes.coordinate_helpers import CoordinateHelper
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
@@ -205,3 +205,21 @@ def test_set_major_formatter():
 
     ax.coords[1].set_major_formatter("dd:mm:ss.s", show_decimal_unit=False)
     assert ax.coords[1].format_coord(4) == "4\xb000'00.0\""
+
+
+def test_set_position_invalid():
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+
+    with pytest.warns(AstropyUserWarning, match="Ignoring invalid axis 'x'"):
+        ax.coords[0].set_ticks_position("xl")
+    with pytest.warns(AstropyUserWarning, match="Ignoring invalid axis 'o'"):
+        ax.coords[1].set_ticklabel_position("ot")
+    with pytest.warns(AstropyUserWarning, match="Ignoring invalid axis 'q'"):
+        ax.coords[1].set_axislabel_position("qb")
+
+    assert ax.coords[0].get_ticks_position() == ["l"]
+    assert ax.coords[1].get_ticklabel_position() == ["t"]
+    assert ax.coords[1].get_axislabel_position() == ["b"]
