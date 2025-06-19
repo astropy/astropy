@@ -14,8 +14,9 @@ from astropy.stats import (
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
-def test_scott_bin_width(N=10000, rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_scott_bin_width():
+    rng = np.random.default_rng(0)
+    N = 1000
     X = rng.standard_normal(N)
 
     delta = scott_bin_width(X)
@@ -28,8 +29,9 @@ def test_scott_bin_width(N=10000, rseed=0):
         scott_bin_width(rng.random((2, 10)))
 
 
-def test_freedman_bin_width(N=10000, rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_freedman_bin_width():
+    rng = np.random.default_rng(0)
+    N = 10_000
     X = rng.standard_normal(N)
 
     v25, v75 = np.percentile(X, [25, 75])
@@ -57,9 +59,9 @@ def test_freedman_bin_width(N=10000, rseed=0):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-def test_knuth_bin_width(N=10000, rseed=0):
-    rng = np.random.default_rng(rseed)
-    X = rng.standard_normal(N)
+def test_knuth_bin_width():
+    rng = np.random.default_rng(0)
+    X = rng.standard_normal(10_000)
 
     dx, bins = knuth_bin_width(X, return_bins=True)
     assert_allclose(len(bins), 58)
@@ -72,9 +74,9 @@ def test_knuth_bin_width(N=10000, rseed=0):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-def test_knuth_histogram(N=1000, rseed=0):
-    rng = np.random.default_rng(rseed)
-    x = rng.standard_normal(N)
+def test_knuth_histogram():
+    rng = np.random.default_rng(0)
+    x = rng.standard_normal(1000)
     counts, bins = histogram(x, "knuth")
     assert counts.sum() == len(x)
     assert len(counts) == len(bins) - 1
@@ -87,9 +89,9 @@ if HAS_SCIPY:
 
 
 @pytest.mark.parametrize("bin_type", _bin_types_to_test + [np.linspace(-5, 5, 31)])
-def test_histogram(bin_type, N=1000, rseed=0):
-    rng = np.random.default_rng(rseed)
-    x = rng.standard_normal(N)
+def test_histogram(bin_type):
+    rng = np.random.default_rng(0)
+    x = rng.standard_normal(1000)
     counts, bins = histogram(x, bin_type)
     assert counts.sum() == len(x)
     assert len(counts) == len(bins) - 1
@@ -98,10 +100,10 @@ def test_histogram(bin_type, N=1000, rseed=0):
 # Don't include a list of bins as a bin_type here because the effect
 # of range is different in that case
 @pytest.mark.parametrize("bin_type", _bin_types_to_test)
-def test_histogram_range(bin_type, N=1000, rseed=0):
+def test_histogram_range(bin_type):
     # Regression test for #8010
-    rng = np.random.default_rng(rseed)
-    x = rng.standard_normal(N)
+    rng = np.random.default_rng(0)
+    x = rng.standard_normal(1000)
     range = (0.1, 0.8)
 
     bins = calculate_bin_edges(x, bin_type, range=range)
@@ -109,11 +111,11 @@ def test_histogram_range(bin_type, N=1000, rseed=0):
     assert bins.min() == range[0]
 
 
-def test_histogram_range_with_bins_list(N=1000, rseed=0):
+def test_histogram_range_with_bins_list():
     # The expected result when the input bins is a list is
     # the same list on output.
-    rng = np.random.default_rng(rseed)
-    x = rng.standard_normal(N)
+    rng = np.random.default_rng(0)
+    x = rng.standard_normal(1000)
     range = (0.1, 0.8)
 
     input_bins = np.linspace(-5, 5, 31)
@@ -169,9 +171,8 @@ def test_histogram_output():
     assert_allclose(bins, [-2.32503077, -1.37136996, 2.00239258])
 
 
-def test_histogram_badargs(N=1000, rseed=0):
-    rng = np.random.default_rng(rseed)
-    x = rng.standard_normal(N)
+def test_histogram_badargs():
+    x = np.array([1.0, 2.0, 3.0])
 
     # weights is not supported
     for bins in ["scott", "freedman", "blocks"]:
