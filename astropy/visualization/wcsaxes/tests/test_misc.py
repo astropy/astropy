@@ -775,7 +775,6 @@ def test_simplify_cases(before, after):
     expected_labels = []
 
     for i, label in enumerate(before):
-        print(label)
         ticklabels.add(
             axis="axis",
             world=0,
