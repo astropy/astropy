@@ -426,7 +426,7 @@ class CoordinateHelper:
                 "coord_type should be one of 'scalar', 'longitude', or 'latitude'"
             )
 
-    def set_major_formatter(self, formatter):
+    def set_major_formatter(self, formatter, show_unit=True):
         """
         Set the format string to use for the major tick labels.
 
@@ -442,7 +442,11 @@ class CoordinateHelper:
             argument, which gives (also as a `~astropy.units.Quantity`) the
             spacing between ticks, and returns an iterable of strings
             containing the labels.
+        show_unit : str
+            Whether to show the unit or not when using decimal formatting (e.g.,
+            ``d.dd`` or ``x.xxx``).
         """
+
         if callable(formatter):
             self._custom_formatter = formatter
         elif isinstance(formatter, str):
@@ -450,6 +454,8 @@ class CoordinateHelper:
             self._custom_formatter = None
         else:
             raise TypeError("formatter should be a string")
+
+        self._formatter_locator.show_decimal_unit = show_unit
 
     def format_coord(self, value, format="auto"):
         """
