@@ -187,7 +187,6 @@ def test_deprecated_getters():
 
 
 def test_set_major_formatter():
-
     fig = Figure()
     canvas = FigureCanvasAgg(fig)
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))

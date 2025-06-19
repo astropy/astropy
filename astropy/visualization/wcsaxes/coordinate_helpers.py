@@ -446,7 +446,6 @@ class CoordinateHelper:
             Whether to show the unit or not when using decimal formatting (e.g.,
             ``d.dd`` or ``x.xxx``).
         """
-
         if callable(formatter):
             self._custom_formatter = formatter
         elif isinstance(formatter, str):
