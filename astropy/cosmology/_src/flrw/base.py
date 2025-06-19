@@ -511,8 +511,8 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
         Returns
         -------
         Ode : ndarray or float
-            The density of non-relativistic matter relative to the critical
-            density at each redshift.
+            The density of dark energy relative to the critical density at each
+            redshift.
             Returns `float` if the input is scalar.
         """
         z = aszarr(z)
