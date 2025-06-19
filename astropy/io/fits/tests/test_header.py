@@ -191,8 +191,14 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_keyword_too_long(self):
         """Test that long Card keywords are allowed, but with a warning"""
-
-        pytest.warns(UserWarning, fits.Card, "abcdefghi", "long")
+        with pytest.warns(
+            UserWarning,
+            match=(
+                r"^Keyword name 'abcdefghi' is greater than 8 characters or contains "
+                r"characters not allowed by the FITS standard; a HIERARCH card will be created\.$"
+            ),
+        ):
+            fits.Card("abcdefghi", "long")
 
     def test_illegal_characters_in_key(self):
         """
