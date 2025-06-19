@@ -16,8 +16,8 @@ from astropy.visualization import hist
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
-def test_hist_basic(rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_hist_basic():
+    rng = np.random.default_rng(0)
     x = rng.standard_normal(100)
 
     fig = Figure()
@@ -31,8 +31,8 @@ def test_hist_basic(rseed=0):
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
-def test_hist_specify_ax(rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_hist_specify_ax():
+    rng = np.random.default_rng(0)
     x = rng.standard_normal(100)
 
     fig = Figure()
@@ -46,8 +46,8 @@ def test_hist_specify_ax(rseed=0):
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
-def test_hist_autobin(rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_hist_autobin():
+    rng = np.random.default_rng(0)
     x = rng.standard_normal(100)
 
     # 'knuth' bintype depends on scipy that is optional dependency
