@@ -1,0 +1,2 @@
+Added ``show_decimal_unit`` to ``set_major_formatter`` to control whether
+or not units are shown in decimal mode.
