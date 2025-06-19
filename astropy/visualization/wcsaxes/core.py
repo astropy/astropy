@@ -749,7 +749,6 @@ class WCSAxes(Axes):
             )
             transform_world2pixel = transform.inverted()
 
-
             if (
                 self._transform_pixel2world.frame_out == transform_world2pixel.frame_in
                 and self._transform_pixel2world.units_out
@@ -784,7 +783,7 @@ class WCSAxes(Axes):
                     self._transform_pixel2world.frame_out,
                     self._transform_pixel2world.units_out,
                     frame,
-                    ['deg', 'deg'],
+                    ["deg", "deg"],
                 )
 
                 if coordinate_transform.same_frames:

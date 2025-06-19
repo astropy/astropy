@@ -119,7 +119,6 @@ class CoordinateTransform(CurvedTransform):
         """
         Transform one set of coordinates to another.
         """
-
         if self.same_frames and self.same_units:
             return input_coords
 
