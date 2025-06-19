@@ -495,14 +495,6 @@ class TestCompressedImage(FitsTestCase):
         Ensure that setting reserved keywords related to the table data
         structure on CompImageHDU image headers fails.
         """
-
-        def test_set_keyword(hdr, keyword, value):
-            with pytest.warns(UserWarning) as w:
-                hdr[keyword] = value
-            assert len(w) == 1
-            assert str(w[0].message).startswith(f"Keyword {keyword!r} is reserved")
-            assert keyword not in hdr
-
         with fits.open(self.data("comp.fits")) as hdul:
             hdr = hdul[1].header
             hdr["TFIELDS"] = 8
