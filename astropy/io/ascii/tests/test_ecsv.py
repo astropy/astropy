@@ -10,7 +10,7 @@ import os
 import sys
 from contextlib import nullcontext
 from io import StringIO
-from itertools import cycle
+from pprint import pformat
 
 import numpy as np
 import pytest
@@ -446,7 +446,7 @@ def make_multidim(col, ndim):
     the multidim tests.
     """
     if ndim > 1:
-        idxs = [idx for idx, _ in zip(cycle([0, 1]), range(3**ndim))]
+        idxs = [i % 2 for i in range(3**ndim)]
         col = col[idxs].reshape([3] * ndim)
     return col
 
@@ -814,6 +814,19 @@ def _get_ecsv_header_dict(text):
     lines = [line[2:] for line in lines if line.startswith("#")]
     lines = lines[2:]  # Get rid of the header
     return yaml.safe_load("\n".join(lines))
+
+
+def _make_expected_values(cols):
+    for name, col in cols.items():
+        t = Table()
+        t[name] = col
+        out = StringIO()
+        t.write(out, format="ascii.ecsv")
+        hdr = _get_ecsv_header_dict(out.getvalue())
+        fmt_hdr = pformat(hdr["datatype"])
+        print(f"exps[{name!r}] =", fmt_hdr[:1])
+        print(fmt_hdr[1:])
+        print()
 
 
 # Expected values of `datatype` for each column
