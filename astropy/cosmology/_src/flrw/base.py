@@ -889,25 +889,6 @@ class FLRW(
         return (z + 1.0) ** 2 * self.inv_efunc(z)
 
     @deprecated_keywords("z", since="7.0")
-    def H(self, z):
-        """Hubble parameter (km/s/Mpc) at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        H : Quantity ['frequency']
-            Hubble parameter at each input redshift.
-        """
-        return self.H0 * self.efunc(z)
-
-    @deprecated_keywords("z", since="7.0")
     def lookback_time(self, z):
         """Lookback time in Gyr to redshift ``z``.
 
