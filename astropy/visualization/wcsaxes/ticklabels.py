@@ -8,7 +8,7 @@ from matplotlib.artist import allow_rasterization
 from matplotlib.text import Text
 
 from astropy.utils.decorators import deprecated_renamed_argument
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .frame import RectangularFrame
 
@@ -169,15 +169,7 @@ class TickLabels(Text):
         return self._pad
 
     def set_visible_axes(self, visible_axes):
-        if visible_axes != "all":
-            for axis in visible_axes:
-                if axis not in self._frame and axis != "#":
-                    warnings.warn(
-                        f"Ignoring invalid axis '{axis}' "
-                        "(should be one of: " + "/".join(self._frame.keys()) + ")",
-                        AstropyUserWarning,
-                    )
-        self._visible_axes = visible_axes
+        self._visible_axes = self._frame._validate_positions(visible_axes)
         self._stale = True
 
     def get_visible_axes(self):

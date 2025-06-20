@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
 
 import matplotlib.transforms as mtransforms
 import numpy as np
 from matplotlib import rcParams
 from matplotlib.text import Text
-
-from astropy.utils.exceptions import AstropyUserWarning
 
 from .frame import RectangularFrame
 
@@ -38,15 +35,7 @@ class AxisLabels(Text):
             return self._minpad
 
     def set_visible_axes(self, visible_axes):
-        if visible_axes != "all":
-            for axis in visible_axes:
-                if axis not in self._frame and axis != "#":
-                    warnings.warn(
-                        f"Ignoring invalid axis '{axis}' "
-                        "(should be one of: " + "/".join(self._frame.keys()) + ")",
-                        AstropyUserWarning,
-                    )
-        self._visible_axes = visible_axes
+        self._visible_axes = self._frame._validate_positions(visible_axes)
 
     def get_visible_axes(self):
         if self._visible_axes == "all":
