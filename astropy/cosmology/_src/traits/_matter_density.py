@@ -1,10 +1,10 @@
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
-__all__ = ["_MatterDensity"]
+__all__ = ["_MatterComponent"]
 
 
-class _MatterDensity:
+class _MatterComponent:
     Om0: Quantity
     """Omega matter; matter density/critical density at z=0."""
 

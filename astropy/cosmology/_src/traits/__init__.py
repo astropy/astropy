@@ -9,10 +9,10 @@ __all__ = [
     "TemperatureCMB",
     "_BaryonComponent",
     "_CriticalDensity",
-    "_MatterDensity",
+    "_MatterComponent",
 ]
 
-from ._matter_density import _MatterDensity
+from ._matter_density import _MatterComponent
 from .baryons import _BaryonComponent
 from .rhocrit import _CriticalDensity
 from .scale_factor import ScaleFactor

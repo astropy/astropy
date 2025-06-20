@@ -40,7 +40,7 @@ from astropy.cosmology._src.traits import (
     TemperatureCMB,
     _BaryonComponent,
     _CriticalDensity,
-    _MatterDensity,
+    _MatterComponent,
 )
 from astropy.cosmology._src.utils import (
     aszarr,
@@ -101,7 +101,7 @@ class FLRW(
     TemperatureCMB,
     _CriticalDensity,
     _BaryonComponent,
-    _MatterDensity,
+    _MatterComponent,
 ):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
