@@ -1,14 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
 from collections import defaultdict
 
 import numpy as np
 from matplotlib import rcParams
 from matplotlib.lines import Line2D, Path
 from matplotlib.transforms import Affine2D
-
-from astropy.utils.exceptions import AstropyUserWarning
 
 
 class Ticks(Line2D):
@@ -108,15 +105,7 @@ class Ticks(Line2D):
             return 0.0
 
     def set_visible_axes(self, visible_axes):
-        if visible_axes != "all":
-            for axis in visible_axes:
-                if axis not in self._frame and axis != "#":
-                    warnings.warn(
-                        f"Ignoring invalid axis '{axis}' "
-                        "(should be one of: " + "/".join(self._frame.keys()) + ")",
-                        AstropyUserWarning,
-                    )
-        self._visible_axes = visible_axes
+        self._visible_axes = self._frame._validate_positions(visible_axes)
 
     def get_visible_axes(self):
         if self._visible_axes == "all":

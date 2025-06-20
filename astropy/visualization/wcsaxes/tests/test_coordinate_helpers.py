@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 from astropy import units as u
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.wcsaxes.coordinate_helpers import CoordinateHelper
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
@@ -213,13 +213,43 @@ def test_set_position_invalid():
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
 
-    with pytest.warns(AstropyUserWarning, match="Ignoring invalid axis 'x'"):
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['x'\], should be one of b/r/t/l",
+    ):
         ax.coords[0].set_ticks_position("xl")
-    with pytest.warns(AstropyUserWarning, match="Ignoring invalid axis 'o'"):
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['o'\], should be one of b/r/t/l",
+    ):
         ax.coords[1].set_ticklabel_position("to")
-    with pytest.warns(AstropyUserWarning, match="Ignoring invalid axis 'q'"):
-        ax.coords[1].set_axislabel_position("qb")
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['q', 'p'\], should be one of b/r/t/l",
+    ):
+        ax.coords[1].set_axislabel_position("qbp")
 
     assert ax.coords[0].get_ticks_position() == ["l"]
     assert ax.coords[1].get_ticklabel_position() == ["t"]
     assert ax.coords[1].get_axislabel_position() == ["b"]
+
+
+def test_set_position_invalid_gridline():
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+
+    ax.coords[0].add_tickable_gridline("my-grid-line", -30 * u.one)
+
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['my-parrot-line'\]",
+    ):
+        ax.coords[1].set_ticks_position(["my-grid-line", "my-parrot-line"])
+
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"It looks like 'my-grid-line' matches the name of a single axis",
+    ):
+        ax.coords[1].set_ticks_position("my-grid-line")
