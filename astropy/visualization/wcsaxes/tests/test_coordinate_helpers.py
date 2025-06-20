@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import matplotlib.transforms as transforms
 import pytest
@@ -125,7 +125,7 @@ def test_grid_variations(ignore_matplotlibrc, draw_grid, expected_visibility):
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
     transform = transforms.Affine2D().scale(2.0)
-    coord_helper = CoordinateHelper(parent_axes=ax, transform=transform)
+    coord_helper = CoordinateHelper(parent_axes=ax, transform=transform, frame=MagicMock(),)
     coord_helper.grid(draw_grid=draw_grid)
     assert coord_helper._grid_lines_kwargs["visible"] == expected_visibility
 
@@ -173,7 +173,7 @@ def test_deprecated_getters():
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
 
-    helper = CoordinateHelper(parent_axes=ax)
+    helper = CoordinateHelper(parent_axes=ax, frame=MagicMock(),)
 
     with pytest.warns(AstropyDeprecationWarning):
         ticks = helper.ticks
