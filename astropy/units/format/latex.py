@@ -4,16 +4,13 @@
 Handles the "LaTeX" unit format.
 """
 
-from __future__ import annotations
-
 import re
-from typing import TYPE_CHECKING, ClassVar, Literal
+from typing import ClassVar, Literal
+
+from astropy.units.core import NamedUnit, UnitBase
+from astropy.units.typing import UnitPower
 
 from . import console
-
-if TYPE_CHECKING:
-    from astropy.units import NamedUnit, UnitBase
-    from astropy.units.typing import UnitPower
 
 
 class Latex(console.Console):

@@ -6,20 +6,213 @@ The classes and functions defined here are also available in
 (and should be used through) the `astropy.units` namespace.
 """
 
-from __future__ import annotations
-
 import numbers
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Final
+from typing import Final, Union
 
 from astropy.utils.compat import COPY_IF_NEEDED
 
 from . import astrophys, cgs, core, misc, quantity, si
-
-if TYPE_CHECKING:
-    from .typing import PhysicalTypeID, QuantityLike, UnitPowerLike
+from .typing import PhysicalTypeID, QuantityLike, UnitPowerLike
 
 __all__: Final = ["PhysicalType", "def_physical_type", "get_physical_type"]
+
+
+class PhysicalType:
+    """
+    Represents the physical type(s) that are dimensionally compatible
+    with a set of units.
+
+    Instances of this class should be accessed through either
+    `get_physical_type` or by using the
+    `~astropy.units.core.UnitBase.physical_type` attribute of units.
+    This class is not intended to be instantiated directly in user code.
+
+    For a list of physical types, see `astropy.units.physical`.
+
+    Parameters
+    ----------
+    unit : `~astropy.units.Unit`
+        The unit to be represented by the physical type.
+
+    physical_types : `str` or `set` of `str`
+        A `str` representing the name of the physical type of the unit,
+        or a `set` containing strings that represent one or more names
+        of physical types.
+
+    Notes
+    -----
+    A physical type will be considered equal to an equivalent
+    `PhysicalType` instance (recommended) or a string that contains a
+    name of the physical type.  The latter method is not recommended
+    in packages, as the names of some physical types may change in the
+    future.
+
+    To maintain backwards compatibility, two physical type names may be
+    included in one string if they are separated with a slash (e.g.,
+    ``"momentum/impulse"``).  String representations of physical types
+    may include underscores instead of spaces.
+
+    Examples
+    --------
+    `PhysicalType` instances may be accessed via the
+    `~astropy.units.core.UnitBase.physical_type` attribute of units.
+
+    >>> import astropy.units as u
+    >>> u.meter.physical_type
+    PhysicalType('length')
+
+    `PhysicalType` instances may also be accessed by calling
+    `get_physical_type`. This function will accept a unit, a string
+    containing the name of a physical type, or the number one.
+
+    >>> u.get_physical_type(u.m ** -3)
+    PhysicalType('number density')
+    >>> u.get_physical_type("volume")
+    PhysicalType('volume')
+    >>> u.get_physical_type(1)
+    PhysicalType('dimensionless')
+
+    Some units are dimensionally compatible with multiple physical types.
+    A pascal is intended to represent pressure and stress, but the unit
+    decomposition is equivalent to that of energy density.
+
+    >>> pressure = u.get_physical_type("pressure")
+    >>> pressure
+    PhysicalType({'energy density', 'pressure', 'stress'})
+    >>> 'energy density' in pressure
+    True
+
+    Physical types can be tested for equality against other physical
+    type objects or against strings that may contain the name of a
+    physical type.
+
+    >>> area = (u.m ** 2).physical_type
+    >>> area == u.barn.physical_type
+    True
+    >>> area == "area"
+    True
+
+    Multiplication, division, and exponentiation are enabled so that
+    physical types may be used for dimensional analysis.
+
+    >>> length = u.pc.physical_type
+    >>> area = (u.cm ** 2).physical_type
+    >>> length * area
+    PhysicalType('volume')
+    >>> area / length
+    PhysicalType('length')
+    >>> length ** 3
+    PhysicalType('volume')
+
+    may also be performed using a string that contains the name of a
+    physical type.
+
+    >>> "length" * area
+    PhysicalType('volume')
+    >>> "area" / length
+    PhysicalType('length')
+
+    Unknown physical types are labelled as ``"unknown"``.
+
+    >>> (u.s ** 13).physical_type
+    PhysicalType('unknown')
+
+    Dimensional analysis may be performed for unknown physical types too.
+
+    >>> length_to_19th_power = (u.m ** 19).physical_type
+    >>> length_to_20th_power = (u.m ** 20).physical_type
+    >>> length_to_20th_power / length_to_19th_power
+    PhysicalType('length')
+    """
+
+    def __init__(self, unit: core.UnitBase, physical_types: str | set[str]) -> None:
+        self._unit = _replace_temperatures_with_kelvin(unit)
+        self._physical_type = sorted(_standardize_physical_type_names(physical_types))
+
+    def __iter__(self) -> Iterator[str]:
+        yield from self._physical_type
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Return `True` if ``other`` represents a physical type that is
+        consistent with the physical type of the `PhysicalType` instance.
+        """
+        if isinstance(other, PhysicalType):
+            return self._unit._physical_type_id == other._unit._physical_type_id
+        elif isinstance(other, str):
+            other = _standardize_physical_type_names(other)
+            return other.issubset(self._physical_type)
+        else:
+            return NotImplemented
+
+    def __repr__(self) -> str:
+        if len(self._physical_type) == 1:
+            names = "'" + self._physical_type[0] + "'"
+        else:
+            names = "{" + str(self._physical_type)[1:-1] + "}"
+        return f"PhysicalType({names})"
+
+    def __str__(self) -> str:
+        return "/".join(self._physical_type)
+
+    @staticmethod
+    def _dimensionally_compatible_unit(obj: object) -> core.UnitBase | None:
+        """
+        Return a unit that corresponds to the provided argument.
+        """
+        if isinstance(obj, core.UnitBase):
+            return _replace_temperatures_with_kelvin(obj)
+        elif isinstance(obj, PhysicalType):
+            return obj._unit
+        elif isinstance(obj, numbers.Real) and obj == 1:
+            return core.dimensionless_unscaled
+        elif isinstance(obj, str):
+            return _physical_type_from_str(obj)._unit
+        return None
+
+    def __mul__(
+        self, other: Union["PhysicalType", core.UnitBase, numbers.Real, str]
+    ) -> "PhysicalType":
+        if other_unit := self._dimensionally_compatible_unit(other):
+            return (self._unit * other_unit).physical_type
+        return NotImplemented
+
+    def __rmul__(
+        self, other: Union["PhysicalType", core.UnitBase, str]
+    ) -> "PhysicalType":
+        return self.__mul__(other)
+
+    def __truediv__(
+        self, other: Union["PhysicalType", core.UnitBase, numbers.Real, str]
+    ) -> "PhysicalType":
+        if other_unit := self._dimensionally_compatible_unit(other):
+            return (self._unit / other_unit).physical_type
+        return NotImplemented
+
+    def __rtruediv__(
+        self, other: Union["PhysicalType", core.UnitBase, numbers.Real, str]
+    ) -> "PhysicalType":
+        if other_unit := self._dimensionally_compatible_unit(other):
+            return (other_unit / self._unit).physical_type
+        return NotImplemented
+
+    def __pow__(self, power: UnitPowerLike) -> "PhysicalType":
+        return (self._unit**power).physical_type
+
+    def __hash__(self) -> int:
+        return hash(self._unit._physical_type_id)
+
+    def __len__(self) -> int:
+        return len(self._physical_type)
+
+    # We need to prevent operations like where a Unit instance left
+    # multiplies a PhysicalType instance from returning a `Quantity`
+    # instance with a PhysicalType as the value.  We can do this by
+    # preventing np.array from casting a PhysicalType instance as
+    # an object array.
+    __array__: Final = None
+
 
 _units_and_physical_types: Final[list[tuple[core.UnitBase, str | set[str]]]] = [
     (core.dimensionless_unscaled, "dimensionless"),
@@ -214,200 +407,6 @@ def _standardize_physical_type_names(physical_type_input: str | set[str]) -> set
         standardized_physical_types |= processed_set
 
     return standardized_physical_types
-
-
-class PhysicalType:
-    """
-    Represents the physical type(s) that are dimensionally compatible
-    with a set of units.
-
-    Instances of this class should be accessed through either
-    `get_physical_type` or by using the
-    `~astropy.units.core.UnitBase.physical_type` attribute of units.
-    This class is not intended to be instantiated directly in user code.
-
-    For a list of physical types, see `astropy.units.physical`.
-
-    Parameters
-    ----------
-    unit : `~astropy.units.Unit`
-        The unit to be represented by the physical type.
-
-    physical_types : `str` or `set` of `str`
-        A `str` representing the name of the physical type of the unit,
-        or a `set` containing strings that represent one or more names
-        of physical types.
-
-    Notes
-    -----
-    A physical type will be considered equal to an equivalent
-    `PhysicalType` instance (recommended) or a string that contains a
-    name of the physical type.  The latter method is not recommended
-    in packages, as the names of some physical types may change in the
-    future.
-
-    To maintain backwards compatibility, two physical type names may be
-    included in one string if they are separated with a slash (e.g.,
-    ``"momentum/impulse"``).  String representations of physical types
-    may include underscores instead of spaces.
-
-    Examples
-    --------
-    `PhysicalType` instances may be accessed via the
-    `~astropy.units.core.UnitBase.physical_type` attribute of units.
-
-    >>> import astropy.units as u
-    >>> u.meter.physical_type
-    PhysicalType('length')
-
-    `PhysicalType` instances may also be accessed by calling
-    `get_physical_type`. This function will accept a unit, a string
-    containing the name of a physical type, or the number one.
-
-    >>> u.get_physical_type(u.m ** -3)
-    PhysicalType('number density')
-    >>> u.get_physical_type("volume")
-    PhysicalType('volume')
-    >>> u.get_physical_type(1)
-    PhysicalType('dimensionless')
-
-    Some units are dimensionally compatible with multiple physical types.
-    A pascal is intended to represent pressure and stress, but the unit
-    decomposition is equivalent to that of energy density.
-
-    >>> pressure = u.get_physical_type("pressure")
-    >>> pressure
-    PhysicalType({'energy density', 'pressure', 'stress'})
-    >>> 'energy density' in pressure
-    True
-
-    Physical types can be tested for equality against other physical
-    type objects or against strings that may contain the name of a
-    physical type.
-
-    >>> area = (u.m ** 2).physical_type
-    >>> area == u.barn.physical_type
-    True
-    >>> area == "area"
-    True
-
-    Multiplication, division, and exponentiation are enabled so that
-    physical types may be used for dimensional analysis.
-
-    >>> length = u.pc.physical_type
-    >>> area = (u.cm ** 2).physical_type
-    >>> length * area
-    PhysicalType('volume')
-    >>> area / length
-    PhysicalType('length')
-    >>> length ** 3
-    PhysicalType('volume')
-
-    may also be performed using a string that contains the name of a
-    physical type.
-
-    >>> "length" * area
-    PhysicalType('volume')
-    >>> "area" / length
-    PhysicalType('length')
-
-    Unknown physical types are labelled as ``"unknown"``.
-
-    >>> (u.s ** 13).physical_type
-    PhysicalType('unknown')
-
-    Dimensional analysis may be performed for unknown physical types too.
-
-    >>> length_to_19th_power = (u.m ** 19).physical_type
-    >>> length_to_20th_power = (u.m ** 20).physical_type
-    >>> length_to_20th_power / length_to_19th_power
-    PhysicalType('length')
-    """
-
-    def __init__(self, unit: core.UnitBase, physical_types: str | set[str]) -> None:
-        self._unit = _replace_temperatures_with_kelvin(unit)
-        self._physical_type = sorted(_standardize_physical_type_names(physical_types))
-
-    def __iter__(self) -> Iterator[str]:
-        yield from self._physical_type
-
-    def __eq__(self, other: object) -> bool:
-        """
-        Return `True` if ``other`` represents a physical type that is
-        consistent with the physical type of the `PhysicalType` instance.
-        """
-        if isinstance(other, PhysicalType):
-            return self._unit._physical_type_id == other._unit._physical_type_id
-        elif isinstance(other, str):
-            other = _standardize_physical_type_names(other)
-            return other.issubset(self._physical_type)
-        else:
-            return NotImplemented
-
-    def __repr__(self) -> str:
-        if len(self._physical_type) == 1:
-            names = "'" + self._physical_type[0] + "'"
-        else:
-            names = "{" + str(self._physical_type)[1:-1] + "}"
-        return f"PhysicalType({names})"
-
-    def __str__(self) -> str:
-        return "/".join(self._physical_type)
-
-    @staticmethod
-    def _dimensionally_compatible_unit(obj: object) -> core.UnitBase | None:
-        """
-        Return a unit that corresponds to the provided argument.
-        """
-        if isinstance(obj, core.UnitBase):
-            return _replace_temperatures_with_kelvin(obj)
-        elif isinstance(obj, PhysicalType):
-            return obj._unit
-        elif isinstance(obj, numbers.Real) and obj == 1:
-            return core.dimensionless_unscaled
-        elif isinstance(obj, str):
-            return _physical_type_from_str(obj)._unit
-        return None
-
-    def __mul__(
-        self, other: PhysicalType | core.UnitBase | numbers.Real | str
-    ) -> PhysicalType:
-        if other_unit := self._dimensionally_compatible_unit(other):
-            return (self._unit * other_unit).physical_type
-        return NotImplemented
-
-    def __rmul__(self, other: PhysicalType | core.UnitBase | str) -> PhysicalType:
-        return self.__mul__(other)
-
-    def __truediv__(
-        self, other: PhysicalType | core.UnitBase | numbers.Real | str
-    ) -> PhysicalType:
-        if other_unit := self._dimensionally_compatible_unit(other):
-            return (self._unit / other_unit).physical_type
-        return NotImplemented
-
-    def __rtruediv__(
-        self, other: PhysicalType | core.UnitBase | numbers.Real | str
-    ) -> PhysicalType:
-        if other_unit := self._dimensionally_compatible_unit(other):
-            return (other_unit / self._unit).physical_type
-        return NotImplemented
-
-    def __pow__(self, power: UnitPowerLike) -> PhysicalType:
-        return (self._unit**power).physical_type
-
-    def __hash__(self) -> int:
-        return hash(self._unit._physical_type_id)
-
-    def __len__(self) -> int:
-        return len(self._physical_type)
-
-    # We need to prevent operations like where a Unit instance left
-    # multiplies a PhysicalType instance from returning a `Quantity`
-    # instance with a PhysicalType as the value.  We can do this by
-    # preventing np.array from casting a PhysicalType instance as
-    # an object array.
-    __array__: Final = None
 
 
 def def_physical_type(unit: core.UnitBase, name: str | set[str]) -> None:
