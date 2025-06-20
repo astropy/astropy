@@ -184,3 +184,24 @@ def test_deprecated_getters():
     with pytest.warns(AstropyDeprecationWarning):
         axislabels = helper.axislabels
     assert axislabels.get_visibility_rule() == "labels"
+
+
+def test_set_major_formatter():
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    # Force a draw which is required for format_coord to work
+    canvas.draw()
+
+    ax.coords[1].set_major_formatter("d.ddd")
+    assert ax.coords[1].format_coord(4) == "4.000\xb0"
+
+    ax.coords[1].set_major_formatter("d.dd", show_decimal_unit=False)
+    assert ax.coords[1].format_coord(4) == "4.00"
+
+    # Show unit has no effect on sexagesimal coordinates
+
+    ax.coords[1].set_major_formatter("dd:mm:ss.s", show_decimal_unit=False)
+    assert ax.coords[1].format_coord(4) == "4\xb000'00.0\""
