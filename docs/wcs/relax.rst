@@ -107,8 +107,8 @@ The flag bits are:
 - ``WCSHDR_PV0i_0ma``: Accept ``PV0i_0ja`` (wcspih()).
 - ``WCSHDR_PS0i_0ma``: Accept ``PS0i_0ja`` (wcspih()).
 
-        Allow the numerical index to have a leading zero in doubly-
-        parameterized keywords, for example, ``PC01_01``.  WCS Paper I
+        Allow the numerical index to have a leading zero in
+        doubly-parameterized keywords, for example, ``PC01_01``.  WCS Paper I
         (Sects 2.1.2 & 2.1.4) explicitly disallows leading zeroes.
         The FITS 3.0 standard document (Sect. 4.1.2.1) states that the
         index in singly-parameterized keywords (e.g. ``CTYPEia``) "shall
@@ -149,8 +149,8 @@ The flag bits are:
   where the primary and standard alternate forms together with the
   image-header equivalent are shown rightwards of the colon.
 
-  The long form of these keywords could be described as quasi-
-  standard.  ``TPCn_ka``, ``iPVn_ma``, and ``TPVn_ma`` appeared by
+  The long form of these keywords could be described as
+  quasi-standard.  ``TPCn_ka``, ``iPVn_ma``, and ``TPVn_ma`` appeared by
   mistake in the examples in WCS Paper II and subsequently these and
   also ``TCDn_ka``, ``iPSn_ma`` and ``TPSn_ma`` were legitimized by
   the errata to the WCS papers.

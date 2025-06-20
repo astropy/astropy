@@ -402,8 +402,8 @@ Example
 
 .. EXAMPLE START: Filtering Table Groups
 
-The following will select all table groups with only positive values in the non-
-key columns::
+The following will select all table groups with only positive values in the
+non-key columns::
 
   >>> def all_positive(table, key_colnames):
   ...     colnames = [name for name in table.colnames if name not in key_colnames]
