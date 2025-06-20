@@ -115,7 +115,8 @@ def test_blackbody_overflow():
     ):
         with np.errstate(all="ignore"):
             bb_lam = bb(wave) * u.sr
-    flux = bb_lam.to(photlam, u.spectral_density(wave * u.AA)) / u.sr
+    with np.errstate(all="ignore"):
+        flux = bb_lam.to(photlam, u.spectral_density(wave * u.AA)) / u.sr
 
     # First element is NaN, last element is very small, others normal
     assert np.isnan(flux[0])
