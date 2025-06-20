@@ -48,7 +48,7 @@ class _HubbleParameter:
     @cached_property
     def h(self) -> float:
         """Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]."""
-        return self.H0.value / 100.0
+        return self.H0.to_value("km/(s Mpc)") / 100.0
 
     @cached_property
     def hubble_time(self) -> u.Quantity:
