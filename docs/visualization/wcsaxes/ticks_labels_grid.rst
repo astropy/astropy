@@ -167,6 +167,17 @@ angular coordinate axes, while the ``x...`` format or valid Python formats
 <https://docs.python.org/3/library/stdtypes.html#string-formatting>`_) should
 be used for non-angular coordinate axes.
 
+For decimal formats, such as ``d.dd`` or ``x.xxx``, the units are shown by
+default, and can be disabled by using ``show_decimal_unit``, e.g.:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.set_major_formatter('d.dd', show_decimal_unit=False)
+    lat.set_major_formatter('d.ddd')
+
 For any of the angular coordinate formats, one can prefix the format string
 with ``+`` to specify that the sign be included even for positive values, e.g.:
 
