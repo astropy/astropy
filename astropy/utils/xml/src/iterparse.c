@@ -928,7 +928,9 @@ IterParser_dealloc(IterParser* self)
         self->parser = NULL;
     }
 
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    PyTypeObject *tp = Py_TYPE((PyObject*)self);
+    freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+    free_func((PyObject*)self);
 }
 
 /*

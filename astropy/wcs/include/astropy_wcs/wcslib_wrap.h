@@ -7,7 +7,7 @@
 
 #include "pyutil.h"
 
-extern PyTypeObject PyWcsprmType;
+extern PyObject* PyWcsprmType;
 
 typedef struct {
   PyObject_HEAD
