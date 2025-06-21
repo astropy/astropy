@@ -29,9 +29,7 @@ Here is an example of how to use the
 >>>
 >>> class CustomCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB):
 ...     def __init__(self, Om0, Ode0, H0=70, Tcmb0=2.725):
-...         if not isinstance(H0, u.Quantity):
-...             H0 = H0 * u.km / u.s / u.Mpc
-...         self.H0 = H0
+...         self.H0 = H0 << (u.km / u.s / u.Mpc)
 ...         self.Om0 = Om0
 ...         self.Ode0 = Ode0
 ...         self.Tcmb0 = u.Quantity(Tcmb0, "K")
@@ -46,10 +44,9 @@ Here is an example of how to use the
 >>> cosmo.scale_factor(0)
 <Quantity 1.>
 >>> cosmo.Tcmb(1)
+<Quantity 5.45>
 >>> cosmo.hubble_time
 <Quantity 13.968460309725558 Gyr>
-By combining different traits, you can create fully-featured cosmology classes with
-minimal effort.
 
 Reference/API
 *************
