@@ -5,6 +5,7 @@ The public API is provided by `astropy.cosmology.traits`.
 """
 
 __all__ = [
+    "HubbleParameter",
     "ScaleFactor",
     "TemperatureCMB",
     "_BaryonComponent",
@@ -14,6 +15,7 @@ __all__ = [
 
 from ._matter_density import _MatterComponent
 from .baryons import _BaryonComponent
+from .hubble import HubbleParameter
 from .rhocrit import _CriticalDensity
 from .scale_factor import ScaleFactor
 from .tcmb import TemperatureCMB
