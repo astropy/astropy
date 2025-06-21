@@ -17,11 +17,6 @@ temperature or the CMB, respectively.
 By combining these traits, you can easily construct custom cosmology classes with
 precisely the features you need, without having to reimplement common functionality.
 
-For example, the :class:`~astropy.cosmology.traits.HubbleParameter` trait supplies the
-``H0`` property and methods for working with the Hubble parameter. Similarly,
-:class:`~astropy.cosmology.traits.TemperatureCMB` provides the ``Tcmb0`` property and
-:meth:`~astropy.cosmology.traits.TemperatureCMB.Tcmb` method for computing the CMB
-temperature at specified redshifts.
 
 Here is an example of how to use the
 :class:`~astropy.cosmology.traits.HubbleParameter`,
@@ -33,7 +28,9 @@ Here is an example of how to use the
 >>> from astropy.cosmology import Cosmology
 >>>
 >>> class CustomCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB):
-...     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725):
+...     def __init__(self, Om0, Ode0, H0=70, Tcmb0=2.725):
+...         if not isinstance(H0, u.Quantity):
+...             H0 = H0 * u.km / u.s / u.Mpc
 ...         self.H0 = H0
 ...         self.Om0 = Om0
 ...         self.Ode0 = Ode0
@@ -49,8 +46,8 @@ Here is an example of how to use the
 >>> cosmo.scale_factor(0)
 <Quantity 1.>
 >>> cosmo.Tcmb(1)
-<Quantity 5.45 K>
-
+>>> cosmo.hubble_time
+<Quantity 13.968460309725558 Gyr>
 By combining different traits, you can create fully-featured cosmology classes with
 minimal effort.
 
