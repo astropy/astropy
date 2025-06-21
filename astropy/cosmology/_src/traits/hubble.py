@@ -4,12 +4,13 @@
 This is private API. See `~astropy.cosmology.traits` for public API.
 """
 
-__all__ = ["_HubbleParameter"]
+__all__ = ["HubbleParameter"]
 
 from collections.abc import Callable
 from functools import cached_property
 from typing import Any
 
+import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 import astropy.units as u
@@ -17,11 +18,8 @@ from astropy import constants as const
 from astropy.cosmology._src.utils import deprecated_keywords
 from astropy.units import Quantity
 
-_sec_to_Gyr = u.Gyr.to(u.s)
-_H0units_to_invs = (u.km / u.s / u.Mpc).to(1 / u.s)
 
-
-class _HubbleParameter:
+class HubbleParameter:
     """The object has attributes and methods for the Hubble parameter."""
 
     H0: Quantity
@@ -46,7 +44,7 @@ class _HubbleParameter:
         return self.H0 * self.efunc(z)
 
     @cached_property
-    def h(self) -> float:
+    def h(self) -> np.floating[Any]:
         """Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]."""
         return self.H0.to_value("km/(s Mpc)") / 100.0
 

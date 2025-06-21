@@ -356,10 +356,12 @@ class WCSWorld2PixelTransform(CurvedTransform):
         # Convert to a list of arrays
         world = list(world.T)
 
-        if len(world) != self.wcs.world_n_dim:
-            raise ValueError(
-                f"Expected {self.wcs.world_n_dim} world coordinates, got {len(world)} "
-            )
+        if len(world) != 2:
+            raise ValueError(f"Expected 2 world coordinates, got {len(world)}")
+
+        if self.wcs.world_n_dim == 1:
+            world_non_wcs = world[1]
+            world = world[0:1]
 
         if len(world[0]) == 0:
             pixel = np.zeros((0, 2))
@@ -368,6 +370,9 @@ class WCSWorld2PixelTransform(CurvedTransform):
 
         if self.invert_xy:
             pixel = pixel[::-1]
+
+        if self.wcs.world_n_dim == 1:
+            pixel = [pixel, world_non_wcs]
 
         return np.array(pixel).T
 

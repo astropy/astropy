@@ -1170,6 +1170,16 @@ def test_1d_plot_1d_wcs_format_unit(wave_wcs_1d):
     return fig
 
 
+@figure_test
+def test_1d_plot_1d_wcs_get_transform(wave_wcs_1d):
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
+    ax.plot([100, 200, 300], [2, 3, 2], transform=ax.get_transform("world"))
+
+    return fig
+
+
 @pytest.fixture
 def spatial_wcs_2d():
     wcs = WCS(naxis=2)
