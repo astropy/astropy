@@ -16,7 +16,7 @@ from typing import Literal, SupportsFloat, TypeVar
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
+from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_MPMATH, HAS_SCIPY
 
 from . import _stats
 
@@ -1143,15 +1143,13 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
     implementation that is slower, but can deal with arbitrarily high numbers
     since it is based on the `mpmath <https://mpmath.org/>`_ library.
     """
-    from math import exp
-
     from scipy.integrate import quad
     from scipy.optimize import brentq
     from scipy.special import factorial
 
     def eqn8(N: int, B: float) -> float:
         n = np.arange(N + 1, dtype=np.float64)
-        return 1.0 / (exp(-B) * np.sum(np.power(B, n) / factorial(n)))
+        return 1.0 / (math.exp(-B) * np.sum(np.power(B, n) / factorial(n)))
 
     # The parameters of eqn8 do not vary between calls so we can calculate the
     # result once and reuse it. The same is True for the factorial of N.
@@ -1162,7 +1160,7 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
 
     def eqn7(S: float, N: int, B: float) -> float:
         SpB = S + B
-        return eqn8_res * (exp(-SpB) * SpB**N / factorial_N)
+        return eqn8_res * (math.exp(-SpB) * SpB**N / factorial_N)
 
     def eqn9_left(S_min: float, S_max: float, N: int, B: float) -> tuple[float, float]:
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
@@ -1316,8 +1314,6 @@ def _kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, float]:
     <https://mpmath.org/>`_  need to be available. (Scipy only works for
     N < 100).
     """
-    from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY
-
     if HAS_SCIPY and N <= 100:
         try:
             return _scipy_kraft_burrows_nousek(N, B, CL)

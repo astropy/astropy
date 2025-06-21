@@ -8,6 +8,7 @@ import pickle
 import sys
 from collections import OrderedDict
 from contextlib import nullcontext
+from inspect import currentframe, getframeinfo
 from io import StringIO
 
 import numpy as np
@@ -2318,8 +2319,6 @@ class TestPandas:
     def test_units(self):
         import pandas as pd
 
-        import astropy.units as u
-
         df = pd.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
         t = table.Table.from_pandas(df, units={"x": u.m, "t": u.s})
 
@@ -2885,8 +2884,6 @@ def test_replace_update_column_via_setitem_warnings_always():
     Test warnings related to table replace change in #5556:
     Test 'always' setting that raises warning for any replace.
     """
-    from inspect import currentframe, getframeinfo
-
     t = table.Table([[1, 2, 3], [4, 5, 6]], names=["a", "b"])
 
     with table.conf.set_temp("replace_warnings", ["always"]):

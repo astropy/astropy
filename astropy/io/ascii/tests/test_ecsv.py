@@ -10,6 +10,7 @@ import os
 import sys
 from contextlib import nullcontext
 from io import StringIO
+from pprint import pformat
 
 import numpy as np
 import pytest
@@ -445,9 +446,7 @@ def make_multidim(col, ndim):
     the multidim tests.
     """
     if ndim > 1:
-        import itertools
-
-        idxs = [idx for idx, _ in zip(itertools.cycle([0, 1]), range(3**ndim))]
+        idxs = [i % 2 for i in range(3**ndim)]
         col = col[idxs].reshape([3] * ndim)
     return col
 
@@ -818,8 +817,6 @@ def _get_ecsv_header_dict(text):
 
 
 def _make_expected_values(cols):
-    from pprint import pformat
-
     for name, col in cols.items():
         t = Table()
         t[name] = col

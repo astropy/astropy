@@ -129,8 +129,6 @@ def test_write_readme_with_default_options():
 
 def test_write_empty_table():
     out = StringIO()
-    import pytest
-
     with pytest.raises(NotImplementedError):
         Table().write(out, format="ascii.mrt")
 

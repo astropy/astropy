@@ -13,6 +13,7 @@ from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
+from astropy.io.ascii.connect import _get_connectors_table
 from astropy.table import (
     Column,
     NdarrayMixin,
@@ -114,9 +115,6 @@ def test_io_ascii_write():
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
-
-    from astropy.io.ascii.connect import _get_connectors_table
-
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
         if (

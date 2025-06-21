@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from astropy.table.scripts import showtable
+from astropy.units import UnitsWarning
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 ASCII_ROOT = os.path.join(ROOT, "..", "..", "io", "ascii", "tests")
@@ -61,8 +62,6 @@ def test_fits(capsys):
 
 
 def test_fits_hdu(capsys):
-    from astropy.units import UnitsWarning
-
     with pytest.warns(UnitsWarning):
         showtable.main(
             [

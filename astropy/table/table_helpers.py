@@ -6,10 +6,13 @@ tables for testing.
 """
 
 import string
+import warnings
 from itertools import cycle
 
 import numpy as np
 
+from astropy.io.votable.table import parse
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.data_info import ParentDtypeInfo
 
 from .table import Column, Table
@@ -85,11 +88,6 @@ def complex_table():
     Return a masked table from the io.votable test set that has a wide variety
     of stressing types.
     """
-    import warnings
-
-    from astropy.io.votable.table import parse
-    from astropy.utils.data import get_pkg_data_filename
-
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         votable = parse(

@@ -27,6 +27,8 @@ from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import FitsTestCase
+from .test_connect import TestMultipleHDU
+from .test_core import TestCore
 
 
 def comparefloats(a, b):
@@ -2839,10 +2841,6 @@ class TestTableFunctions(FitsTestCase):
         now with reference counting around each test to ensure that the
         leaks are fixed.
         """
-
-        from .test_connect import TestMultipleHDU
-        from .test_core import TestCore
-
         t1 = TestCore()
         t1.setup_method()
         try:
