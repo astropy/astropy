@@ -93,3 +93,43 @@ jobs:
     secrets:
       pypi_token: ${{ secrets.pypi_token }}
       anaconda_token: ${{ secrets.anaconda_token }}
+
+  # temporary additional job for nightlies-only, cp314 wheels
+  build_and_publish_prerel_python_nightlies:
+    permissions:
+      contents: none
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@d83bb11581e517f1e786ae76f146781fdd21cd2f  # v2.0.0
+    if: (github.repository == 'astropy/astropy' && ( github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')))
+    with:
+      upload_to_pypi: false
+      upload_to_anaconda: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+      anaconda_user: astropy
+      anaconda_package: astropy
+      anaconda_keep_n_latest: 10
+      env: |
+        CIBW_ENABLE: 'cpython-prerelease'
+        CIBW_BEFORE_BUILD: 'pip install -U --only-binary ":all:" --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple setuptools>=77.0.0 setuptools_scm cython numpy>=0.0.dev0 extension-helpers'
+        CIBW_BEFORE_TEST:  'pip install -U --only-binary ":all:" --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy>=0.0.dev0'
+        CIBW_BUILD_FRONTEND: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip; args: --no-build-isolation') || 'build' }}'
+
+      test_extras: test
+      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
+      sdist: false
+      targets: |
+        # Linux wheels
+        - cp314-manylinux_x86_64
+        - target: cp314-manylinux_aarch64
+          runs-on: ubuntu-24.04-arm
+
+        # Note that following wheels are not currently tested:
+        - cp314-musllinux_x86_64
+
+        # MacOS X wheels
+        - cp314*macosx_x86_64
+        - cp314*macosx_arm64
+
+        # Windows wheels
+        - cp314*win32
+        - cp314*win_amd64
+    secrets:
+      anaconda_token: ${{ secrets.anaconda_token }}
