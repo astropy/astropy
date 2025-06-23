@@ -167,6 +167,31 @@ convert_rejections_to_warnings() {
   return status;
 }
 
+PyObject* get_scaled_double_1d_array(
+    /*@unused@*/ const char* propname,
+    double* value,
+    double *scale,
+    const npy_intp dim,
+    /*@shared@*/ PyObject* owner) {
+
+  PyArrayObject* array;
+
+  array = (PyArrayObject*)PyArray_SimpleNew(1, &dim, NPY_DOUBLE);
+  if (array == NULL) {
+    return NULL;
+  }
+
+  double *array_data = (double *)PyArray_DATA(array);
+
+  for (npy_intp i = 0; i < dim; ++i) {
+    array_data[i] = value[i] / scale[i];
+  }
+
+  return (PyObject*)array;
+
+}
+
+
 
 /***************************************************************************
  * wtbarr-related global variables and functions                           *
@@ -364,15 +389,20 @@ PyWcsprm_init(
   int            nwcs          = 0;
   struct wcsprm* wcs           = NULL;
   int            i, j;
+  int            preserve_units = 0;
   const char*    keywords[]    = {"header", "key", "relax", "naxis", "keysel",
-                                  "colsel", "warnings", "hdulist", NULL};
+                                  "colsel", "warnings", "hdulist", "preserve_units", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|OsOiiOiO:WCSBase.__init__",
+          args, kwds, "|OsOiiOiOp:WCSBase.__init__",
           (char **)keywords, &header_obj, &key, &relax_obj, &naxis, &keysel,
-          &colsel, &warnings, &hdulist)) {
+          &colsel, &warnings, &hdulist, &preserve_units)) {
     return -1;
   }
+
+  // The user can optionally choose to preserve the original units rather
+  // than use the units WCSLIB converts to (e.g. arcsec -> deg)
+  self->preserve_units = preserve_units;
 
   if (header_obj == NULL || header_obj == Py_None) {
     if (keysel > 0) {
@@ -984,6 +1014,8 @@ PyWcsprm_fix(
   int            i               = 0;
   int            msg_index       = 0;
   const char*    message;
+  double         scale, offset, power;
+  int            status;
 
   struct message_map_entry {
     const char* name;
@@ -1034,9 +1066,57 @@ PyWcsprm_fix(
 
   memset(err, 0, sizeof(struct wcserr) * NWCSFIX);
 
+  // If the user has requested to preserve units, we keep track of what CUNIT
+  // was before and after fixing so that we can store the scaling factor if
+  // needed.
+  if (self->preserve_units == 1) {
+
+    if (self->original_cunit == NULL) {
+      self->original_cunit = malloc(self->x.naxis * sizeof(*self->original_cunit));
+      if (self->original_cunit == NULL) {
+          PyErr_NoMemory();
+          return NULL;
+      }
+      for (int i = 0; i < self->x.naxis; ++i) {
+          strncpy(self->original_cunit[i], self->x.cunit[i], 72);
+      }
+    }
+
+    if (self->unit_scaling == NULL) {
+      self->unit_scaling = malloc(self->x.naxis * sizeof(double));
+      if (self->unit_scaling == NULL) {
+          PyErr_NoMemory();
+          return NULL;
+      }
+      for (int i = 0; i < self->x.naxis; ++i) {
+          self->unit_scaling[i] = 1.0;
+      }
+    }
+  }
+
   wcsprm_python2c(&self->x);
   wcsfixi(ctrl, naxis, &self->x, stat, err);
   wcsprm_c2python(&self->x);
+
+  // Check which units have changed, and store scaling if changed.
+  if (self->preserve_units == 1) {
+    for (int i = 0; i < self->x.naxis; ++i) {
+      if (!strcmp(self->original_cunit[i], self->x.cunit[i]) == 0) {
+        status = wcsunits(self->original_cunit[i], self->x.cunit[i], &scale, &offset, &power);
+        if (status == 0) {
+          // We don't support offset and power currently because it should not be needed,
+          // and would introduce additional complexity. However, if needed this can be
+          // supported in future.
+          if (offset != 0 || power != 1)
+                PyErr_Format(
+                  PyExc_ValueError,
+                 "Preserving original units with non-trivial offset and power is not supported "
+                );
+          self->unit_scaling[i] = scale;
+        }
+      }
+    }
+  }
 
   /* We're done with this already, so deref now so we don't have to remember
      later */
@@ -1077,6 +1157,7 @@ PyWcsprm_get_cdelt_func(
     /*@unused@*/ PyObject* kwds) {
 
   Py_ssize_t naxis = 0;
+  PyObject *result;
 
   if (is_null(self->x.cdelt)) {
     return NULL;
@@ -1088,7 +1169,13 @@ PyWcsprm_get_cdelt_func(
 
   naxis = self->x.naxis;
 
-  return get_double_array_readonly("cdelt", self->x.cdelt, 1, &naxis, (PyObject*)self);
+  if (self->preserve_units == 1) {
+    result = get_scaled_double_1d_array("cdelt", self->x.cdelt, self->unit_scaling, naxis, (PyObject*)self);
+  } else {
+    result = get_double_array_readonly("cdelt", self->x.cdelt, 1, &naxis, (PyObject*)self);
+  }
+
+  return result;
 }
 
 /*@null@*/ static PyObject*
@@ -1375,7 +1462,10 @@ PyWcsprm_p2s(
     return NULL;
   }
 
-  if (PyArray_DIM(pixcrd, 1) < naxis) {
+  ncoord = PyArray_DIM(pixcrd, 0);
+  nelem = PyArray_DIM(pixcrd, 1);
+
+  if (nelem < naxis) {
     PyErr_Format(
       PyExc_RuntimeError,
       "Input array must be 2-dimensional, where the second dimension >= %d",
@@ -1417,8 +1507,6 @@ PyWcsprm_p2s(
 
   /* Make the call */
   Py_BEGIN_ALLOW_THREADS
-  ncoord = PyArray_DIM(pixcrd, 0);
-  nelem = PyArray_DIM(pixcrd, 1);
   preoffset_array(pixcrd, origin);
   wcsprm_python2c(&self->x);
   status = wcsp2s(
@@ -1448,6 +1536,16 @@ PyWcsprm_p2s(
   Py_END_ALLOW_THREADS
 
   if (status == 0 || status == 8) {
+    // Since the conversion succeeded, if user has requested to preserve units,
+    // we convert the world coordinates to the original units
+    if (self->preserve_units == 1) {
+      double *world_data = (double *)PyArray_DATA(world);
+      for (npy_intp i = 0; i < nelem; ++i) {
+        for (npy_intp j = 0; j < ncoord; ++j) {
+            world_data[j * nelem + i] /= self->unit_scaling[i];
+        }
+      }
+    }
     result = PyDict_New();
     if (result == NULL ||
         PyDict_SetItemString(result, "imgcrd", (PyObject*)imgcrd) ||
@@ -1517,12 +1615,25 @@ PyWcsprm_s2p(
     return NULL;
   }
 
-  if (PyArray_DIM(world, 1) < naxis) {
+  ncoord = (int)PyArray_DIM(world, 0);
+  nelem = (int)PyArray_DIM(world, 1);
+
+  if (nelem < naxis) {
     PyErr_Format(
       PyExc_RuntimeError,
       "Input array must be 2-dimensional, where the second dimension >= %d",
       naxis);
     goto exit;
+  }
+
+  // Convert world units to native WCSLIB units if needed
+  if (self->preserve_units == 1) {
+    double *world_data = (double *)PyArray_DATA(world);
+    for (npy_intp i = 0; i < nelem; ++i) {
+      for (npy_intp j = 0; j < ncoord; ++j) {
+          world_data[j * nelem + i] *= self->unit_scaling[i];
+      }
+    }
   }
 
   /* Now we allocate a bunch of numpy arrays to store the
@@ -1560,8 +1671,6 @@ PyWcsprm_s2p(
 
   /* Make the call */
   Py_BEGIN_ALLOW_THREADS
-  ncoord = (int)PyArray_DIM(world, 0);
-  nelem = (int)PyArray_DIM(world, 1);
   /* preoffset_array(world, origin); */
   wcsprm_python2c(&self->x);
   status = wcss2p(
@@ -2023,6 +2132,8 @@ PyWcsprm_to_header(
   int       status       = -1;
   PyObject* result       = NULL;
   const char* keywords[] = {"relax", NULL};
+  PyWcsprm*     copy = NULL;
+  int       original_flag = 0;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "|O:to_header",
@@ -2044,13 +2155,67 @@ PyWcsprm_to_header(
     }
   }
 
-  wcsprm_python2c(&self->x);
-  status = wcshdo(relax, &self->x, &nkeyrec, &header);
-  wcsprm_c2python(&self->x);
+  // If the user has requested to preserve the original units, then we
+  // could try and edit the header returned by wcshdo - however, this
+  // might be tricky and not robust to future WCSLIB changes. Instead,
+  // we make a copy of the Wcsprm object, change the units on that and
+  // prevent WCSLIB fixing the units, then convert to a header.
+  if (self->preserve_units == 1) {
+    copy = PyWcsprm_cnew();
+    if (copy == NULL) {
+      return NULL;
+    }
 
-  if (status != 0) {
-    wcs_to_python_exc(&(self->x));
-    goto exit;
+    wcsini(0, self->x.naxis, &copy->x);
+
+    wcsprm_python2c(&self->x);
+    status = wcscopy(1, &self->x, &copy->x);
+    wcsprm_c2python(&self->x);
+
+    if (status != 0) {
+        // Handle error (e.g., allocation failure)
+        PyErr_SetString(PyExc_RuntimeError, "wcscopy failed");
+        return NULL;
+    }
+
+    // We make sure wcsset is happy
+    wcsset(&copy->x);
+
+    // We preserve the value of the flag which indicates that wcsset
+    // has been called and there have been no further modifications
+    original_flag = copy->x.flag;
+
+    // We now override the unit, cdelt and crval values
+    for (int i = 0; i < copy->x.naxis; ++i) {
+      strncpy(copy->x.cunit[i], self->original_cunit[i], 72);
+      copy->x.cdelt[i] /= self->unit_scaling[i];
+      copy->x.crval[i] /= self->unit_scaling[i];
+    }
+
+    // We restore the flag to trick WCSLIB into thinking it no longer
+    // needs to change the units.
+    copy->x.flag = original_flag;
+
+    wcsprm_python2c(&copy->x);
+    status = wcshdo(relax, &copy->x, &nkeyrec, &header);
+
+    if (status != 0) {
+      wcs_to_python_exc(&(copy->x));
+      wcsfree(&copy->x);
+      goto exit;
+    }
+
+    wcsfree(&copy->x);
+
+  } else {
+
+    status = wcshdo(relax, &self->x, &nkeyrec, &header);
+
+    if (status != 0) {
+      wcs_to_python_exc(&(self->x));
+      goto exit;
+    }
+
   }
 
   /* Just return the raw header string.  astropy.io.fits on the Python side will
@@ -2249,6 +2414,7 @@ PyWcsprm_get_cdelt(
     /*@unused@*/ void* closure) {
 
   Py_ssize_t naxis = 0;
+  PyObject* result;
 
   if (is_null(self->x.cdelt)) {
     return NULL;
@@ -2260,7 +2426,15 @@ PyWcsprm_get_cdelt(
     PyErr_WarnEx(NULL, "cdelt will be ignored since cd is present", 1);
   }
 
-  return get_double_array("cdelt", self->x.cdelt, 1, &naxis, (PyObject*)self);
+  if (self->preserve_units == 1) {
+    result = get_scaled_double_1d_array("cdelt", self->x.cdelt, self->unit_scaling, naxis, (PyObject*)self);
+  } else {
+    result = get_double_array_readonly("cdelt", self->x.cdelt, 1, &naxis, (PyObject*)self);
+  }
+
+  return result;
+
+
 }
 
 /*@null@*/ static int
@@ -2506,6 +2680,7 @@ PyWcsprm_get_crval(
     /*@unused@*/ void* closure) {
 
   Py_ssize_t naxis = 0;
+  PyObject* result;
 
   if (is_null(self->x.crval)) {
     return NULL;
@@ -2513,7 +2688,14 @@ PyWcsprm_get_crval(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  return get_double_array("crval", self->x.crval, 1, &naxis, (PyObject*)self);
+  if (self->preserve_units == 1) {
+    result = get_scaled_double_1d_array("cdelt", self->x.crval, self->unit_scaling, naxis, (PyObject*)self);
+  } else {
+    result = get_double_array("crval", self->x.crval, 1, &naxis, (PyObject*)self);
+  }
+
+  return result;
+
 }
 
 static int
@@ -2623,8 +2805,13 @@ PyWcsprm_get_cunit(
     return NULL;
   }
 
-  return get_unit_list(
-    "cunit", self->x.cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self);
+  if (self->preserve_units == 1) {
+    return get_unit_list(
+      "cunit", self->original_cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self);
+  } else {
+    return get_unit_list(
+      "cunit", self->x.cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self);
+  }
 }
 
 static int

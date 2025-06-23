@@ -1934,3 +1934,104 @@ def test_DistortionLookupTable():
             img_world_wcs.pixel_to_world_values(12 + dx * 3, 22 + dy * 3),
             [12 + dx * 3, 22 + dy * 3],
         )
+
+
+HEADER_WITH_NON_SI_UNITS = """
+WCSAXES = 5
+CTYPE1  = 'RA---TAN'
+CTYPE2  = 'FREQ'
+CTYPE3  = 'DEC--TAN'
+CTYPE4  = 'WAVE'
+CTYPE5  = 'OFFSET'
+CUNIT1  = 'arcsec'
+CUNIT2  = 'GHz'
+CUNIT3  = 'arcsec'
+CUNIT4  = 'nm'
+CUNIT5  = 'arcmin'
+CRVAL1  = 4
+CRVAL2  = 5
+CRVAL3  = 6
+CRVAL4  = 7
+CRVAL5  = 8
+CRPIX1  = 1
+CRPIX2  = 2
+CRPIX3  = 3
+CRPIX4  = 4
+CRPIX5  = 5
+CDELT1  = 4
+CDELT2  = 3
+CDELT3  = 2
+CDELT4  = 1
+CDELT5  = 6
+""".strip()
+
+
+class TestPreserveUnits:
+    def setup_method(self, method):
+        header = fits.Header.fromstring(HEADER_WITH_NON_SI_UNITS, sep="\n")
+        self.wcs_default = wcs.WCS(header)
+        self.wcs_preserve = wcs.WCS(header, preserve_units=True)
+        self.ones = np.ones((3, 5))
+        self.scale = np.array([1 / 3600, 1e9, 1 / 3600, 1e-9, 1])
+
+    def test_cunit(self):
+        assert list(self.wcs_default.wcs.cunit) == ["deg", "Hz", "deg", "m", "arcmin"]
+        assert list(self.wcs_preserve.wcs.cunit) == [
+            "arcsec",
+            "GHz",
+            "arcsec",
+            "nm",
+            "arcmin",
+        ]
+
+    def test_cdelt(self):
+        assert_allclose(self.wcs_default.wcs.cdelt, [4 / 3600, 3e9, 2 / 3600, 1e-9, 6])
+        assert_allclose(self.wcs_preserve.wcs.cdelt, [4, 3, 2, 1, 6])
+
+    def test_get_cdelt(self):
+        assert_allclose(
+            self.wcs_default.wcs.get_cdelt(), [4 / 3600, 3e9, 2 / 3600, 1e-9, 6]
+        )
+        assert_allclose(self.wcs_preserve.wcs.get_cdelt(), [4, 3, 2, 1, 6])
+
+    def test_crval(self):
+        assert_allclose(self.wcs_default.wcs.crval, [4 / 3600, 5e9, 6 / 3600, 7e-9, 8])
+        assert_allclose(self.wcs_preserve.wcs.crval, [4, 5, 6, 7, 8])
+
+    def test_p2s(self):
+        result_default = self.wcs_default.wcs.p2s(self.ones, 0)
+        result_preserve = self.wcs_preserve.wcs.p2s(self.ones, 0)
+        for key in result_default:
+            if key == "world":
+                assert_allclose(result_default[key], result_preserve[key] * self.scale)
+            else:
+                assert_allclose(result_default[key], result_preserve[key])
+
+    def test_s2p(self):
+        result_default = self.wcs_default.wcs.s2p(self.ones * self.scale, 0)
+        result_preserve = self.wcs_preserve.wcs.s2p(self.ones, 0)
+        for key in result_default:
+            assert_allclose(result_default[key], result_preserve[key])
+
+    def test_wcs_pix2world(self):
+        result_default = self.wcs_default.wcs_pix2world(self.ones, 0)
+        result_preserve = self.wcs_preserve.wcs_pix2world(self.ones, 0)
+        assert_allclose(result_default, result_preserve * self.scale)
+
+    def test_wcs_world2pix(self):
+        result_default = self.wcs_default.wcs_world2pix(self.ones * self.scale, 0)
+        result_preserve = self.wcs_preserve.wcs_world2pix(self.ones, 0)
+        assert_allclose(result_default, result_preserve)
+
+    def test_all_pix2world(self):
+        result_default = self.wcs_default.all_pix2world(self.ones, 0)
+        result_preserve = self.wcs_preserve.all_pix2world(self.ones, 0)
+        assert_allclose(result_default, result_preserve * self.scale)
+
+    def test_all_world2pix(self):
+        result_default = self.wcs_default.all_world2pix(self.ones * self.scale, 0)
+        result_preserve = self.wcs_preserve.all_world2pix(self.ones, 0)
+        assert_allclose(result_default, result_preserve)
+
+
+# TODO: add test for CD matrix
