@@ -674,9 +674,9 @@ class TimeBase(MaskableShapedLikeNDArray):
         that could be used for initialization.  These can be listed with::
 
           >>> list(Time.FORMATS)
-          ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
-           'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
-           'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
+          ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'galexsec', 'gps',
+           'plot_date', 'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday',
+           'datetime64', 'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
         """
         return self._format
 
@@ -1882,9 +1882,8 @@ class Time(TimeBase):
     The allowed values for ``format`` can be listed with::
 
       >>> list(Time.FORMATS)
-      ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
-       'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
-       'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
+      ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'galexsec', 'gps', 'plot_date', 'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64', 'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
+
 
     See also: http://docs.astropy.org/en/stable/time/
 

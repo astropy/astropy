@@ -199,6 +199,7 @@ Format            Class                                         Example Argument
 byear        :class:`~astropy.time.TimeBesselianEpoch`          1950.0
 byear_str    :class:`~astropy.time.TimeBesselianEpochString`    'B1950.0'
 cxcsec       :class:`~astropy.time.TimeCxcSec`                  63072064.184
+galexsec     :class:`~astropy.time.TimeGalexSec`                758738047.995
 datetime     :class:`~astropy.time.TimeDatetime`                datetime(2000, 1, 2, 12, 0, 0)
 decimalyear  :class:`~astropy.time.TimeDecimalYear`             2000.45
 fits         :class:`~astropy.time.TimeFITS`                    '2000-01-01T00:00:00.000'
