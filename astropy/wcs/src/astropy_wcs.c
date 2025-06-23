@@ -210,6 +210,8 @@ Wcs_all_pix2world(
     PyObject* kwds) {
 
   int            naxis      = 2;
+  npy_intp       ncoord     = 0;
+  npy_intp       nelem      = 0;
   PyObject*      pixcrd_obj = NULL;
   int            origin     = 1;
   PyArrayObject* pixcrd     = NULL;
@@ -231,7 +233,10 @@ Wcs_all_pix2world(
     return NULL;
   }
 
-  if (PyArray_DIM(pixcrd, 1) < naxis) {
+  ncoord = PyArray_DIM(pixcrd, 0);
+  nelem = PyArray_DIM(pixcrd, 1);
+
+  if (nelem < naxis) {
     PyErr_Format(
       PyExc_RuntimeError,
       "Input array must be 2-dimensional, where the second dimension >= %d",
@@ -249,8 +254,8 @@ Wcs_all_pix2world(
   preoffset_array(pixcrd, origin);
   wcsprm_python2c(self->x.wcs);
   status = pipeline_all_pixel2world(&self->x,
-                                    (unsigned int)PyArray_DIM(pixcrd, 0),
-                                    (unsigned int)PyArray_DIM(pixcrd, 1),
+                                    (unsigned int)ncoord,
+                                    (unsigned int)nelem,
                                     (double*)PyArray_DATA(pixcrd),
                                     (double*)PyArray_DATA(world));
   wcsprm_c2python(self->x.wcs);
@@ -262,6 +267,17 @@ Wcs_all_pix2world(
   Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0 || status == 8) {
+    // Since the conversion succeeded, if user has requested to preserve units,
+    // we convert the world coordinates to the original units
+    if (((PyWcsprm*)(self->py_wcsprm))->preserve_units == 1) {
+      double *world_data = (double *)PyArray_DATA(world);
+      double *unit_scaling = ((PyWcsprm*)(self->py_wcsprm))->unit_scaling;
+      for (npy_intp i = 0; i < nelem; ++i) {
+        for (npy_intp j = 0; j < ncoord; ++j) {
+            world_data[j * nelem + i] /= unit_scaling[i];
+        }
+      }
+    }
     return (PyObject*)world;
   } else {
     Py_XDECREF((PyObject*)world);
