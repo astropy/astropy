@@ -53,6 +53,7 @@ dependencies = [
 # Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
     "scipy>=1.9.2",
+    "scipy<1.16 ; platform_system=='Windows'", # temp, https://github.com/astropy/astropy/issues/18333
     "matplotlib>=3.8.0",
 ]
 # Optional IPython-related behavior is in many places in Astropy. IPython is a complex
