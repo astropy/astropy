@@ -41,6 +41,7 @@ __all__ = [
     "TimeFormat",
     "TimeFromEpoch",
     "TimeGPS",
+    "TimeGalexSec",
     "TimeISO",
     "TimeISOT",
     "TimeJD",
@@ -925,6 +926,17 @@ class TimeCxcSec(TimeFromEpoch):
     epoch_val2 = None
     epoch_scale = "tt"
     epoch_format = "iso"
+
+
+class TimeGalexSec(TimeUnix):
+    """
+    GALEX time is defined as Unixtime plus 315964800 seconds.
+    Due to uncertainty in the spacecraft clock, the time is only accurate to
+    about 1-10 seconds.
+    """
+
+    name = "galexsec"
+    epoch_val = "1980-01-05 23:59:49.000"
 
 
 class TimeGPS(TimeFromEpoch):
