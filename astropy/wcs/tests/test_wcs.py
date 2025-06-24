@@ -1984,19 +1984,31 @@ class TestPreserveUnits:
             "arcmin",
         ]
 
-    def test_cdelt(self):
+    def test_get_cdelt(self):
         assert_allclose(self.wcs_default.wcs.cdelt, [4 / 3600, 3e9, 2 / 3600, 1e-9, 6])
         assert_allclose(self.wcs_preserve.wcs.cdelt, [4, 3, 2, 1, 6])
 
-    def test_get_cdelt(self):
+    def test_set_cdelt(self):
+        self.wcs_default.wcs.cdelt = [1 / 3600, 2e9, 3/3600, 4e-9, 5]
+        self.wcs_preserve.wcs.cdelt = [1, 2, 3, 4, 5]
+        assert_allclose(self.wcs_default.wcs.cdelt, [1 / 3600, 2e9, 3/3600, 4e-9, 5])
+        assert_allclose(self.wcs_preserve.wcs.cdelt, [1, 2, 3, 4, 5])
+
+    def test_get_cdelt_meth(self):
         assert_allclose(
             self.wcs_default.wcs.get_cdelt(), [4 / 3600, 3e9, 2 / 3600, 1e-9, 6]
         )
         assert_allclose(self.wcs_preserve.wcs.get_cdelt(), [4, 3, 2, 1, 6])
 
-    def test_crval(self):
+    def test_get_crval(self):
         assert_allclose(self.wcs_default.wcs.crval, [4 / 3600, 5e9, 6 / 3600, 7e-9, 8])
         assert_allclose(self.wcs_preserve.wcs.crval, [4, 5, 6, 7, 8])
+
+    def test_set_crval(self):
+        self.wcs_default.wcs.crval = [1 / 3600, 2e9, 3/3600, 4e-9, 5]
+        self.wcs_preserve.wcs.crval = [1, 2, 3, 4, 5]
+        assert_allclose(self.wcs_default.wcs.crval, [1 / 3600, 2e9, 3/3600, 4e-9, 5])
+        assert_allclose(self.wcs_preserve.wcs.crval, [1, 2, 3, 4, 5])
 
     def test_p2s(self):
         result_default = self.wcs_default.wcs.p2s(self.ones, 0)
@@ -2033,5 +2045,6 @@ class TestPreserveUnits:
         result_preserve = self.wcs_preserve.all_world2pix(self.ones, 0)
         assert_allclose(result_default, result_preserve)
 
-
-# TODO: add test for CD matrix
+    def test_cd(self):
+        # We need to use a different header here because the
+        pass

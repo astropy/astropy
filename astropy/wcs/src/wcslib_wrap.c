@@ -2446,6 +2446,7 @@ PyWcsprm_set_cdelt(
     /*@unused@*/ void* closure) {
 
   npy_intp dims;
+  int status;
 
   if (is_null(self->x.cdelt)) {
     return -1;
@@ -2459,7 +2460,15 @@ PyWcsprm_set_cdelt(
 
   note_change(self);
 
-  return set_double_array("cdelt", value, 1, &dims, self->x.cdelt);
+  status = set_double_array("cdelt", value, 1, &dims, self->x.cdelt);
+
+  if (status == 0 && self->preserve_units == 1) {
+    for (npy_intp i = 0; i < dims; ++i) {
+      self->x.cdelt[i] *= self->unit_scaling[i];
+    }
+  }
+
+  return status;
 }
 
 static PyObject*
@@ -2707,6 +2716,7 @@ PyWcsprm_set_crval(
     /*@unused@*/ void* closure) {
 
   npy_intp naxis;
+  int status;
 
   if (is_null(self->x.crval)) {
     return -1;
@@ -2716,7 +2726,16 @@ PyWcsprm_set_crval(
 
   note_change(self);
 
-  return set_double_array("crval", value, 1, &naxis, self->x.crval);
+  status = set_double_array("crval", value, 1, &naxis, self->x.crval);
+
+  if (status == 0 && self->preserve_units == 1) {
+    for (npy_intp i = 0; i < naxis; ++i) {
+      self->x.crval[i] *= self->unit_scaling[i];
+    }
+  }
+
+  return status;
+
 }
 
 /*@null@*/ static PyObject*
