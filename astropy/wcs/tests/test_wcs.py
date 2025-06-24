@@ -1974,7 +1974,7 @@ class TestPreserveUnits:
         self.ones = np.ones((3, 5))
         self.scale = np.array([1 / 3600, 1e9, 1 / 3600, 1e-9, 1])
 
-    def test_cunit(self):
+    def test_get_cunit(self):
         assert list(self.wcs_default.wcs.cunit) == ["deg", "Hz", "deg", "m", "arcmin"]
         assert list(self.wcs_preserve.wcs.cunit) == [
             "arcsec",
@@ -1983,6 +1983,10 @@ class TestPreserveUnits:
             "nm",
             "arcmin",
         ]
+
+    def test_set_cunit(self):
+        with pytest.raises(AttributeError, match="Original units have already been set, cannot change them"):
+            self.wcs_preserve.wcs.cunit = "arcmin", "MHz", "deg", "m", "arcmin"
 
     def test_get_cdelt(self):
         assert_allclose(self.wcs_default.wcs.cdelt, [4 / 3600, 3e9, 2 / 3600, 1e-9, 6])
