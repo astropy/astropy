@@ -1968,9 +1968,9 @@ CDELT5  = 6
 
 class TestPreserveUnits:
     def setup_method(self, method):
-        header = fits.Header.fromstring(HEADER_WITH_NON_SI_UNITS, sep="\n")
-        self.wcs_default = wcs.WCS(header)
-        self.wcs_preserve = wcs.WCS(header, preserve_units=True)
+        self.header = fits.Header.fromstring(HEADER_WITH_NON_SI_UNITS, sep="\n")
+        self.wcs_default = wcs.WCS(self.header)
+        self.wcs_preserve = wcs.WCS(self.header, preserve_units=True)
         self.ones = np.ones((3, 5))
         self.scale = np.array([1 / 3600, 1e9, 1 / 3600, 1e-9, 1])
 
@@ -1985,18 +1985,39 @@ class TestPreserveUnits:
         ]
 
     def test_set_cunit(self):
-        with pytest.raises(AttributeError, match="Original units have already been set, cannot change them"):
+        with pytest.raises(
+            AttributeError,
+            match="Original units have already been set, cannot change them",
+        ):
             self.wcs_preserve.wcs.cunit = "arcmin", "MHz", "deg", "m", "arcmin"
 
     def test_get_cdelt(self):
         assert_allclose(self.wcs_default.wcs.cdelt, [4 / 3600, 3e9, 2 / 3600, 1e-9, 6])
         assert_allclose(self.wcs_preserve.wcs.cdelt, [4, 3, 2, 1, 6])
 
+    def test_get_cdelt_indiv(self):
+        assert_allclose(self.wcs_default.wcs.cdelt[0], [4 / 3600])
+        assert_allclose(self.wcs_preserve.wcs.cdelt[0], [4])
+
     def test_set_cdelt(self):
-        self.wcs_default.wcs.cdelt = [1 / 3600, 2e9, 3/3600, 4e-9, 5]
+        self.wcs_default.wcs.cdelt = [1 / 3600, 2e9, 3 / 3600, 4e-9, 5]
         self.wcs_preserve.wcs.cdelt = [1, 2, 3, 4, 5]
-        assert_allclose(self.wcs_default.wcs.cdelt, [1 / 3600, 2e9, 3/3600, 4e-9, 5])
+        assert_allclose(self.wcs_default.wcs.cdelt, [1 / 3600, 2e9, 3 / 3600, 4e-9, 5])
         assert_allclose(self.wcs_preserve.wcs.cdelt, [1, 2, 3, 4, 5])
+
+    def test_set_cdelt_indiv(self):
+        # Changing individual items is complicated in preserve_units mode because
+        # there is no easy way to know that a value in memory has been changed
+        # in the array. If we really want to support it then before each
+        # transformation we could check if the WCS hash has changed, but it is
+        # easier and less confusing to simply require cdelt to be overwritten
+        # as a whole rather than individual values set.
+
+        self.wcs_default.wcs.cdelt[0] = 1 / 3600
+        assert_allclose(self.wcs_default.wcs.cdelt, [1 / 3600, 3e9, 2 / 3600, 1e-9, 6])
+
+        with pytest.raises(ValueError, match="assignment destination is read-only"):
+            self.wcs_preserve.wcs.cdelt[0] = 1
 
     def test_get_cdelt_meth(self):
         assert_allclose(
@@ -2008,11 +2029,24 @@ class TestPreserveUnits:
         assert_allclose(self.wcs_default.wcs.crval, [4 / 3600, 5e9, 6 / 3600, 7e-9, 8])
         assert_allclose(self.wcs_preserve.wcs.crval, [4, 5, 6, 7, 8])
 
+    def test_get_crval_indiv(self):
+        assert_allclose(self.wcs_default.wcs.crval[0], [4 / 3600])
+        assert_allclose(self.wcs_preserve.wcs.crval[0], [4])
+
     def test_set_crval(self):
-        self.wcs_default.wcs.crval = [1 / 3600, 2e9, 3/3600, 4e-9, 5]
+        self.wcs_default.wcs.crval = [1 / 3600, 2e9, 3 / 3600, 4e-9, 5]
         self.wcs_preserve.wcs.crval = [1, 2, 3, 4, 5]
-        assert_allclose(self.wcs_default.wcs.crval, [1 / 3600, 2e9, 3/3600, 4e-9, 5])
+        assert_allclose(self.wcs_default.wcs.crval, [1 / 3600, 2e9, 3 / 3600, 4e-9, 5])
         assert_allclose(self.wcs_preserve.wcs.crval, [1, 2, 3, 4, 5])
+
+    def test_set_crval_indiv(self):
+        # See comment in test_set_cdelt_indiv about why this raises an error
+
+        self.wcs_default.wcs.crval[0] = 1 / 3600
+        assert_allclose(self.wcs_default.wcs.crval, [1 / 3600, 5e9, 6 / 3600, 7e-9, 8])
+
+        with pytest.raises(ValueError, match="assignment destination is read-only"):
+            self.wcs_preserve.wcs.crval[0] = 1
 
     def test_p2s(self):
         result_default = self.wcs_default.wcs.p2s(self.ones, 0)
@@ -2049,6 +2083,40 @@ class TestPreserveUnits:
         result_preserve = self.wcs_preserve.all_world2pix(self.ones, 0)
         assert_allclose(result_default, result_preserve)
 
-    def test_cd(self):
-        # We need to use a different header here because the
-        pass
+    def test_get_cd(self):
+        header = self.header.copy()
+
+        for i in range(5):
+            header.pop(f"CDELT{i + 1}")
+
+        CD = np.arange(25).reshape((5, 5))
+
+        for i in range(5):
+            for j in range(5):
+                header[f"CD{i + 1}_{j + 1}"] = CD[i, j]
+
+        wcs_default = wcs.WCS(header)
+        wcs_preserve = wcs.WCS(header, preserve_units=True)
+
+        assert_allclose(wcs_default.wcs.cd, CD * self.scale[:, np.newaxis])
+        assert_allclose(wcs_preserve.wcs.cd, CD)
+
+        assert_allclose(wcs_default.wcs.cd[0, 1], CD[0, 1] * self.scale[0])
+        assert_allclose(wcs_preserve.wcs.cd[0, 1], CD[0, 1])
+
+    def test_set_cd(self):
+        CD = np.arange(25).reshape((5, 5))
+
+        self.wcs_default.wcs.cd = CD * self.scale[:, np.newaxis]
+        self.wcs_preserve.wcs.cd = CD
+
+        assert_allclose(self.wcs_default.wcs.cd, CD * self.scale[:, np.newaxis])
+        assert_allclose(self.wcs_preserve.wcs.cd, CD)
+
+        # See comment in test_set_cdelt_indiv about why this raises an error
+
+        self.wcs_default.wcs.cd[0, 1] = 1 / 3600
+        assert_allclose(self.wcs_default.wcs.cd[0, 1], 1 / 3600)
+
+        with pytest.raises(ValueError, match="assignment destination is read-only"):
+            self.wcs_preserve.wcs.cd[0, 1] = 1
