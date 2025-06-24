@@ -708,7 +708,11 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdul[0].header == orig_header[:-1]
             assert (hdul[0].data == data).all()
 
-        if sys.platform.startswith("win") and not NUMPY_LT_2_0:
+        if (
+            sys.platform.startswith("win")
+            and sys.version_info < (3, 14)
+            and not NUMPY_LT_2_0
+        ):
             ctx = pytest.warns(
                 UserWarning,
                 match="Memory map object was closed but appears to still be referenced",
