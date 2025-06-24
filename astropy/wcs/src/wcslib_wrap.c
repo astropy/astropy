@@ -2431,7 +2431,7 @@ PyWcsprm_get_cdelt(
   if (self->preserve_units == 1) {
     result = get_scaled_double_1d_array("cdelt", self->x.cdelt, self->unit_scaling, naxis, (PyObject*)self);
   } else {
-    result = get_double_array_readonly("cdelt", self->x.cdelt, 1, &naxis, (PyObject*)self);
+    result = get_double_array("cdelt", self->x.cdelt, 1, &naxis, (PyObject*)self);
   }
 
   return result;
