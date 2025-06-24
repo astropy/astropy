@@ -2159,3 +2159,25 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 """.strip()
 
         assert header.tostring(sep='\n') == fits.Header.fromstring(expected_header, sep='\n').tostring(sep='\n')
+
+    @pytest.mark.parametrize('explicit_set', (False, True))
+    def test_programmatic(self, explicit_set):
+
+        # Make sure that things work fine if we make the WCS programmatically
+        # and not from a header
+
+        wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
+        wcs_prog.wcs.ctype = 'RA---TAN', 'DEC--TAN'
+        wcs_prog.wcs.cunit = 'arcsec', 'arcsec'
+        wcs_prog.wcs.crval = 10, 20
+        wcs_prog.wcs.cdelt = 1, 2
+        wcs_prog.wcs.crpix = 1, 1
+
+        if explicit_set:
+            wcs_prog.wcs.set()
+
+        # FIXME: the following fails if explicit_set is False because wcsset
+        # gets called implicitly during the coordinate conversion but we don't
+        # catch this and store the before/after units.
+
+        assert_allclose(wcs_prog.all_pix2world(1, 1, 1), [10, 20])

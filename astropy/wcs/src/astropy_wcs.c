@@ -269,7 +269,7 @@ Wcs_all_pix2world(
   if (status == 0 || status == 8) {
     // Since the conversion succeeded, if user has requested to preserve units,
     // we convert the world coordinates to the original units
-    if (((PyWcsprm*)(self->py_wcsprm))->preserve_units == 1) {
+    if (((PyWcsprm*)(self->py_wcsprm))->original_cunit != NULL) {
       double *world_data = (double *)PyArray_DATA(world);
       double *unit_scaling = ((PyWcsprm*)(self->py_wcsprm))->unit_scaling;
       for (npy_intp i = 0; i < nelem; ++i) {
