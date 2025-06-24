@@ -690,7 +690,7 @@ In pseudo-code, this means that a class will look like::
             "comp3": ComponentClass3,
         }
 
-    # __init__ is optional
+        # __init__ is optional
         def __init__(self, comp1, comp2, comp3, copy=True):
             super().__init__(comp1, comp2, comp3, copy=copy)
             ...
