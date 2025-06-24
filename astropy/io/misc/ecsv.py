@@ -1115,7 +1115,7 @@ def read_ecsv(
     # Construct any mixin columns from the raw columns.
     table = serialize._construct_mixins_from_columns(table)
 
-    return table
+    return table  # noqa: RET504
 
 
 def write_ecsv(tbl, output, **kwargs):
