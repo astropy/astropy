@@ -100,4 +100,5 @@ repos:
     rev: v1.0.0
     hooks:
       - id: sphinx-lint
+        args: ["--disable", "missing-underscore-after-hyperlink"]
         exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"
