@@ -164,25 +164,39 @@ convert_rejections_to_warnings() {
   return status;
 }
 
-PyObject* get_scaled_double_1d_array(
+PyObject* get_scaled_double_array_readonly(
     /*@unused@*/ const char* propname,
     double* value,
     double *scale,
-    const npy_intp dim,
+    const npy_intp naxis,
+    const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
   PyArrayObject* array;
 
-  array = (PyArrayObject*)PyArray_SimpleNew(1, &dim, NPY_DOUBLE);
+  array = (PyArrayObject*)PyArray_SimpleNew(naxis, dims, NPY_DOUBLE);
   if (array == NULL) {
     return NULL;
   }
 
   double *array_data = (double *)PyArray_DATA(array);
 
-  for (npy_intp i = 0; i < dim; ++i) {
-    array_data[i] = value[i] / scale[i];
+  if (naxis == 1) {
+    for (npy_intp i = 0; i < dims[0]; ++i) {
+      array_data[i] = value[i] / scale[i];
+    }
+  } else if (naxis == 2) {
+    for (npy_intp i = 0; i < dims[0]; ++i) {
+    for (npy_intp j = 0; j < dims[1]; ++j) {
+      array_data[i * dims[1] + j] = value[i * dims[1] + j] / scale[i];
+    }
+    }
+  } else {
+    return NULL;
   }
+
+    // Make the array read-only
+  PyArray_CLEARFLAGS(array, NPY_ARRAY_WRITEABLE);
 
   return (PyObject*)array;
 
@@ -1161,7 +1175,7 @@ PyWcsprm_get_cdelt_func(
   naxis = self->x.naxis;
 
   if (self->preserve_units == 1) {
-    result = get_scaled_double_1d_array("cdelt", self->x.cdelt, self->unit_scaling, naxis, (PyObject*)self);
+    result = get_scaled_double_array_readonly("cdelt", self->x.cdelt, self->unit_scaling, 1, &naxis, (PyObject*)self);
   } else {
     result = get_double_array_readonly("cdelt", self->x.cdelt, 1, &naxis, (PyObject*)self);
   }
@@ -2351,6 +2365,7 @@ PyWcsprm_get_cd(
     /*@unused@*/ void* closure) {
 
   npy_intp dims[2];
+  PyObject* result;
 
   if (is_null(self->x.cd)) {
     return NULL;
@@ -2364,7 +2379,13 @@ PyWcsprm_get_cd(
   dims[0] = self->x.naxis;
   dims[1] = self->x.naxis;
 
-  return get_double_array("cd", self->x.cd, 2, dims, (PyObject*)self);
+  if (self->preserve_units == 1) {
+    result = get_scaled_double_array_readonly("cd", self->x.cd, self->unit_scaling, 2, dims, (PyObject*)self);
+  } else {
+    result = get_double_array("cd", self->x.cd, 2, dims, (PyObject*)self);
+  }
+
+  return result;
 }
 
 static int
@@ -2393,6 +2414,14 @@ PyWcsprm_set_cd(
     return -1;
   }
 
+  if (self->preserve_units == 1) {
+    for (npy_intp i = 0; i < dims[0]; ++i) {
+      for (npy_intp j = 0; j < dims[1]; ++j) {
+        self->x.cd[i * dims[1] + j] *= self->unit_scaling[i];
+      }
+    }
+  }
+
   self->x.altlin |= has_cd;
 
   note_change(self);
@@ -2419,7 +2448,7 @@ PyWcsprm_get_cdelt(
   }
 
   if (self->preserve_units == 1) {
-    result = get_scaled_double_1d_array("cdelt", self->x.cdelt, self->unit_scaling, naxis, (PyObject*)self);
+    result = get_scaled_double_array_readonly("cdelt", self->x.cdelt, self->unit_scaling, 1, &naxis, (PyObject*)self);
   } else {
     result = get_double_array("cdelt", self->x.cdelt, 1, &naxis, (PyObject*)self);
   }
@@ -2690,7 +2719,7 @@ PyWcsprm_get_crval(
   naxis = (Py_ssize_t)self->x.naxis;
 
   if (self->preserve_units == 1) {
-    result = get_scaled_double_1d_array("cdelt", self->x.crval, self->unit_scaling, naxis, (PyObject*)self);
+    result = get_scaled_double_array_readonly("cdelt", self->x.crval, self->unit_scaling, 1, &naxis, (PyObject*)self);
   } else {
     result = get_double_array("crval", self->x.crval, 1, &naxis, (PyObject*)self);
   }
