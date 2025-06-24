@@ -1492,3 +1492,30 @@ def test_custom_formatter(spatial_wcs_2d_small_angle):
     ax.coords[1].set_major_formatter(fruit_format)
     canvas.draw()
     return fig
+
+
+@figure_test
+def test_wcs_preserve_units():
+
+    # Test to make sure WCS with preserve_units=True works fine
+
+    header = fits.Header()
+    header['CTYPE1'] = 'RA---TAN'
+    header['CTYPE2'] = 'DEC--TAN'
+    header['CUNIT1'] = 'arcsec'
+    header['CUNIT2'] = 'arcsec'
+    header['CRVAL1'] = 20
+    header['CRVAL2'] = 20
+    header['CRPIX1'] = 1
+    header['CRPIX2'] = 1
+    header['CDELT1'] = -1
+    header['CDELT2'] = 1
+
+    wcs = WCS(header, preserve_units=True)
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    ax.set_xlim(-0.5, 30)
+    ax.set_ylim(-0.5, 20)
+    return fig
