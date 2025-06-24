@@ -2120,3 +2120,42 @@ class TestPreserveUnits:
 
         with pytest.raises(ValueError, match="assignment destination is read-only"):
             self.wcs_preserve.wcs.cd[0, 1] = 1
+
+    def test_header(self):
+
+        header = self.wcs_preserve.to_header()
+
+        expected_header = """
+WCSAXES =                    5 / Number of coordinate axes
+CRPIX1  =                  1.0 / Pixel coordinate of reference point
+CRPIX2  =                  2.0 / Pixel coordinate of reference point
+CRPIX3  =                  3.0 / Pixel coordinate of reference point
+CRPIX4  =                  4.0 / Pixel coordinate of reference point
+CRPIX5  =                  5.0 / Pixel coordinate of reference point
+CDELT1  =                  4.0 / [arcsec] Coordinate increment at reference poin
+CDELT2  =                  3.0 / [GHz] Coordinate increment at reference point
+CDELT3  =                  2.0 / [arcsec] Coordinate increment at reference poin
+CDELT4  =                  1.0 / [nm] Coordinate increment at reference point
+CDELT5  =                  6.0 / [arcmin] Coordinate increment at reference poin
+CUNIT1  = 'arcsec'             / Units of coordinate increment and value
+CUNIT2  = 'GHz'                / Units of coordinate increment and value
+CUNIT3  = 'arcsec'             / Units of coordinate increment and value
+CUNIT4  = 'nm'                 / Units of coordinate increment and value
+CUNIT5  = 'arcmin'             / Units of coordinate increment and value
+CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection
+CTYPE2  = 'FREQ'               / Frequency (linear)
+CTYPE3  = 'DEC--TAN'           / Declination, gnomonic projection
+CTYPE4  = 'WAVE'               / Coordinate type code
+CTYPE5  = 'OFFSET'             / Coordinate type code
+CRVAL1  =                  4.0 / [arcsec] Coordinate value at reference point
+CRVAL2  =                  5.0 / [GHz] Coordinate value at reference point
+CRVAL3  =                  6.0 / [arcsec] Coordinate value at reference point
+CRVAL4  =                  7.0 / [nm] Coordinate value at reference point
+CRVAL5  =                  8.0 / [arcmin] Coordinate value at reference point
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+LATPOLE =   0.0016666666666667 / [deg] Native latitude of celestial pole
+MJDREF  =                  0.0 / [d] MJD of fiducial time
+RADESYS = 'ICRS'               / Equatorial coordinate system
+""".strip()
+
+        assert header.tostring(sep='\n') == fits.Header.fromstring(expected_header, sep='\n').tostring(sep='\n')
