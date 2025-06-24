@@ -2209,7 +2209,9 @@ PyWcsprm_to_header(
 
   } else {
 
+    wcsprm_python2c(&self->x);
     status = wcshdo(relax, &self->x, &nkeyrec, &header);
+    wcsprm_c2python(&self->x);
 
     if (status != 0) {
       wcs_to_python_exc(&(self->x));
