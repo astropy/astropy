@@ -181,7 +181,13 @@ lint.unfixable = [
 ]
 
 [lint.extend-per-file-ignores]
-"__init__.py" = ["F401"]
+"__init__.py" = [
+    "F401",
+    "PLC0415",  # import-outside-top-level
+]
+"conftest.py" = [
+    "PLC0415",  # import-outside-top-level
+]
 "test_*.py" = [
     "PTH", # all flake8-use-pathlib
     "RUF015",  # Prefer next({iterable}) over single element slice
@@ -195,15 +201,27 @@ lint.unfixable = [
     # reason: subtle differences between pathlib.Path.relative_to and os.path.relpath
     "PTH",
 ]
-"astropy/config/*" = []
-"astropy/constants/*" = []
-"astropy/convolution/*" = []
+"astropy/config/*" = [
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
+]
+"astropy/constants/*" = [
+    "PLC0415",  # import-outside-top-level
+]
+"astropy/convolution/*" = [
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
+]
 "astropy/coordinates/*" = [
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
     "PTH",     # all flake8-use-pathlib
     "DTZ007",  # call-datetime-strptime-without-zone
 ]
 "astropy/cosmology/*" = [
+    "PLC0415",  # import-outside-top-level
     "PT019",   # pytest-fixture-param-without-value
+    "PT031",  # pytest-warns-with-multiple-statements
 ]
 "astropy/io/*" = [
     "G001",  # logging-string-format
@@ -219,68 +237,99 @@ lint.unfixable = [
 ]
 "astropy/io/ascii/*" = [
     "B007",  # UnusedLoopControlVariable
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
 ]
 "astropy/io/fits/*" = [
     "B007",  # UnusedLoopControlVariable
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
     "PTH",
 ]
 "astropy/io/misc/*" = [
     "B007",  # UnusedLoopControlVariable
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
 ]
 "astropy/io/registry/*" = [
+    "PLC0415",  # import-outside-top-level
     "PTH",
 ]
 "astropy/io/votable/*" = [
     "B007",  # UnusedLoopControlVariable
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
     "PTH",
 ]
-"astropy/logger.py" = []
+"astropy/logger.py" = [
+    "PLC0415",  # import-outside-top-level
+]
 "astropy/modeling/*" = [
+    "PLC0415",  # import-outside-top-level
     "PLR0911",  # too-many-return-statements
     "RET504",  # unnecessary-assign
     "SLOT001",  # Subclasses of `tuple` should define `__slots__`
     "TRY300",  # Consider `else` block
     "F811",  # see https://github.com/astropy/astropy/pull/16633
 ]
-"astropy/nddata/*" = []
+"astropy/nddata/*" = [
+    "PLC0415",  # import-outside-top-level
+]
 "astropy/samp/*" = [
+    "PLC0415",  # import-outside-top-level
     "PTH",      # all flake8-use-pathlib
     "RET504",  # unnecessary-assign
 ]
 "astropy/stats/*" = [
     "B007",  # UnusedLoopControlVariable
+    "PLC0415",  # import-outside-top-level
     "PLR0911",  # too-many-return-statements
+    "PT031",  # pytest-warns-with-multiple-statements
     "RET504",  # unnecessary-assign
 ]
 "astropy/table/*" = [
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
     "RET504",  # unnecessary-assign
     "S605",  # Starting a process with a shell, possible injection detected
     "TRY300",  # Consider `else` block
 ]
 "astropy/tests/*" = [
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
     "PTH",      # all flake8-use-pathlib
 ]
 "astropy/time/*" = [
     "B007",  # UnusedLoopControlVariable
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
     "RET504",  # unnecessary-assign
 ]
 "astropy/timeseries/*" = [
+    "PLC0415",  # import-outside-top-level
     "PLR0911",  # too-many-return-statements
+    "PT031",  # pytest-warns-with-multiple-statements
     "RET504",  # unnecessary-assign
 ]
 "astropy/units/*" = [
     "N812",  # lowercase-imported-as-non-lowercase
+    "PLC0415",  # import-outside-top-level
     "PLR0911",  # too-many-return-statements
+    "PT031",  # pytest-warns-with-multiple-statements
     "RET504",  # unnecessary-assign
     "TRY300",  # Consider `else` block
 ]
-"astropy/uncertainty/*" = []
+"astropy/uncertainty/*" = [
+    "PLC0415",  # import-outside-top-level
+]
 "astropy/utils/*" = [
     "B007",  # UnusedLoopControlVariable
     "N811",  # constant-imported-as-non-constant
+    "PLC0415",  # import-outside-top-level
     "PLR0911",  # too-many-return-statements
+    "PT031",  # pytest-warns-with-multiple-statements
     "PTH",      # all flake8-use-pathlib
     "RET504",  # unnecessary-assign
     "S321",  # Suspicious-ftp-lib-usage
@@ -288,10 +337,13 @@ lint.unfixable = [
 ]
 "astropy/visualization/*" = [
     "B015",
+    "PLC0415",  # import-outside-top-level
     "PLR0911",  # too-many-return-statements
 ]
 "astropy/wcs/*" = [
     "F821",  # undefined-name
+    "PLC0415",  # import-outside-top-level
+    "PT031",  # pytest-warns-with-multiple-statements
     "PTH",      # all flake8-use-pathlib
     "RET504",  # unnecessary-assign
     "S608",  # Posslibe SQL injection

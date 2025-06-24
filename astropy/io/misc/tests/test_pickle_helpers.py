@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import pickle
+
 import pytest
 
 from astropy.io.misc import fnpickle, fnunpickle
@@ -62,8 +64,6 @@ def test_fnpickling_protocol(tmp_path):
     Tests the `fnpickle` and `fnupickle` functions' ability to pickle
     and unpickle pickle files from all protocols.
     """
-    import pickle
-
     obj1 = "astring"
     obj2 = ToBePickled(obj1)
 
