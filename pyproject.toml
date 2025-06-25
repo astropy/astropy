@@ -100,7 +100,7 @@ all = [
     "uncompresspy>=0.4.0"
 ]
 # The base set of test-time dependencies.
-test = [  # keep in sync with [dependency-groups.test]
+test = [
     "coverage>=6.4.4",
     "pre-commit>=2.9.3", # lower bound is not tested beyond installation
     "pytest>=8.0.0",
@@ -185,16 +185,8 @@ dev-all = [
 docs = [
     "astropy[docs]",
 ]
-# this is duplicated to avoid self-references in oldestdeps (astropy itself can't have a lower bound)
-test = [  # keep in sync with [project.optional-dependencies.test]
-    "coverage>=6.4.4",
-    "pre-commit>=2.9.3", # lower bound is not tested beyond installation
-    "pytest>=8.0.0",
-    "pytest-doctestplus>=1.4.0",
-    "pytest-astropy-header>=0.2.1",
-    "pytest-astropy>=0.10.0",
-    "pytest-xdist>=2.5.0",
-    "threadpoolctl>=3.0.0",
+test = [
+    "astropy[test]",
 ]
 test-all = [
     "astropy[test-all]",
@@ -207,6 +199,11 @@ typing = [
 # uv sync's default behavior includes the 'dev' group.
 # Disable this so we get lightweight envs by default.
 default-groups = []
+
+[tool.uv.sources]
+# this is required to allow `uv sync --resolution=lowest-direct` to work with
+# self-referential dependency groups
+astropy = { workspace = true }
 
 [tool.setuptools]
 include-package-data = true
