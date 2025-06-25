@@ -65,7 +65,7 @@ import re
 import warnings
 from collections.abc import Iterable
 from contextlib import ExitStack
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, NamedTuple
 
@@ -195,12 +195,15 @@ class ECSVHeader:
     delimiter: str
 
 
-@dataclass(frozen=True, slots=True)
 class ECSVEngine(metaclass=abc.ABCMeta):
     """Base class for ECSV reader engines.
 
     An engine is responsible for reading the raw CSV data that follows the ECSV header.
     This assumes that the engine has a defined Table Unified I/O interface.
+
+    - ``name`` and ``format`` must be defined as class attributes in subclasses.
+    - ``engines`` is a base class-level dictionary that maps engine names to their
+      respective engine classes. Subclasses should not modify this directly.
 
     Properties
     ----------
@@ -213,22 +216,24 @@ class ECSVEngine(metaclass=abc.ABCMeta):
         Dictionary mapping engine names to their respective engine classes.
     """
 
-    name: str
-    format: str
-    engines: dict[str, "ECSVEngine"] = field(default_factory=dict)
+    name: str | None = None
+    format: str | None = None
+    engines: dict[str, "ECSVEngine"] = {}
 
-    def __new__(cls, *args, **kwargs):
-        """Singleton subclasses"""
-        if cls not in cls.engines:
-            self = super().__new__(*args, **kwargs)
-            self.__init__(*args, **kwargs)
-            self.__post_init__()
-            ECSVEngines[cls.__name__] = self
+    def __init_subclass__(cls, **kwargs):
+        """Register the subclass as an ECSV engine."""
+        super().__init_subclass__(**kwargs)
 
-        return ECSVEngines[cls.__name__]
+        # Ensure that the subclass has the required string class attributes.
+        for attr in ("name", "format"):
+            val = getattr(cls, attr, None)
+            if not isinstance(val, str):
+                raise TypeError(
+                    f"Subclasses of ECSVEngine must define a class attribute '{attr}' "
+                    f"as a string, got {type(val)}."
+                )
 
-    def __post_init__(self):  # noqa: B027
-        pass
+        cls.engines[cls.name] = cls
 
     @abc.abstractmethod
     def convert_np_type(self, np_type: str) -> Any:
@@ -248,7 +253,6 @@ class ECSVEngine(metaclass=abc.ABCMeta):
         Any
             Corresponding engine-specific type.
         """
-        raise NotImplementedError
 
     def get_converters(self, header):
         """
@@ -291,7 +295,6 @@ class ECSVEngine(metaclass=abc.ABCMeta):
         dict[str, Any]
             Dict of keyword arguments to be passed to engine CSV reader.
         """
-        raise NotImplementedError
 
 
 class ECSVEnginePyArrow(ECSVEngine):
@@ -667,7 +670,7 @@ def read_data(
     header: ECSVHeader,
     null_values: list[str],
     encoding: str = "utf-8",
-    engine: Literal["pyarrow", "io.ascii", "pandas"] = "io.ascii",
+    engine_name: Literal["pyarrow", "io.ascii", "pandas"] = "io.ascii",
 ) -> Table:
     """
     Read the data from an ECSV table using the specified engine.
@@ -685,7 +688,7 @@ def read_data(
         List of string values to interpret as null/missing values in the data.
     encoding : str, optional
         The encoding to use when reading the file. Default is "utf-8".
-    engine : Literal["pyarrow", "io.ascii", "pandas"], optional
+    engine_name: Literal["pyarrow", "io.ascii", "pandas"], optional
         The backend engine to use for reading the data. Default is "io.ascii".
 
     Returns
@@ -699,14 +702,14 @@ def read_data(
         If the column names from the ECSV header do not match the column names
         in the data.
     """
-    engine_cls = ECSVEngines[engine]
+    engine = ECSVEngine.engines[engine_name]()
 
     # Get the engine-specific kwargs for reading the CSV data.
-    kwargs = engine_cls.get_data_kwargs(header, null_values)
+    kwargs = engine.get_data_kwargs(header, null_values)
 
     data = Table.read(
         input_file,
-        format=engine_cls.format,
+        format=engine.format,
         delimiter=header.delimiter,
         encoding=encoding,
         **kwargs,
@@ -1144,7 +1147,7 @@ def read_ecsv(
         header,
         null_values=null_values,
         encoding=encoding,
-        engine=engine,
+        engine_name=engine,
     )
 
     # Convert the column data to the appropriate numpy dtype. This is mostly concerned

@@ -20,6 +20,7 @@ from astropy import units as u
 from astropy.io import ascii
 from astropy.io.ascii.ecsv import DELIMITERS, InvalidEcsvDatatypeWarning
 from astropy.io.ascii.tests.common import TEST_DIR
+from astropy.io.misc.ecsv import ECSVEngine
 from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized_names
 from astropy.table import Column, QTable, Table
 from astropy.table.column import MaskedColumn
@@ -1162,3 +1163,12 @@ def test_write_masked_time_ymdhms_mixin(format_engine):
     # Note that value under time does not roundtrip
     assert (qt2["t"] == t).all()
     assert (qt2["t"].mask == t.mask).all()
+
+
+def test_register_bad_engine():
+    msg = "Subclasses of ECSVEngine must define a class attribute 'name' as a string, got <class 'int'>."
+    with pytest.raises(TypeError, match=msg):
+
+        class BadEngine(ECSVEngine):
+            name = 1
+            format = "ascii.ecsv"
