@@ -1,5 +1,5 @@
 """
-ECSV PyArrow Engine Module
+ECSV Engine Module
 --------------------------
 
 This module provides functionality for reading and writing Enhanced Character Separated
@@ -63,13 +63,34 @@ from collections.abc import Iterable
 from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, NamedTuple
 
 import numpy as np
 
 from astropy.table import SerializedColumn, Table, meta, serialize
 
 __all__ = ["read_ecsv", "register_ecsv_table", "write_ecsv"]
+
+
+class DerivedColumnProperties(NamedTuple):
+    """Named tuple for derived properties of a ECSV column specification.
+
+    Attributes
+    ----------
+    csv_np_type : str
+        Numpy type string for the CSV column data, e.g. "int64", "float32", "str".
+        This is derived from the ECSV `datatype` and `subtype`.
+    dtype : str
+        Numpy dtype in the final column data. This may differ from `csv_np_type` in
+        some cases, e.g. for JSON-encoded columns.
+    shape : tuple[int, ...]
+        Shape of the final column data as a tuple of integers. This is derived from the
+        ECSV `subtype` if applicable, or an empty tuple for scalar columns.
+    """
+
+    csv_np_type: str
+    dtype: str
+    shape: tuple[int, ...]
 
 
 @dataclass
@@ -103,7 +124,7 @@ class ColumnECSV:
         provided to the CSV reader. For instance, for pandas the ``int32`` type gets
         converted to ``Int32`` to read columns as a nullable int32.
     dtype : str
-        Numpy dtype in the final column data. This may be entirely difference from
+        Numpy dtype in the final column data. This may be entirely different from
         ``csv_np_type`` in some cases, in particular JSON-encoded fields.
     shape : tuple of int
         Shape of the final column data.
@@ -120,20 +141,20 @@ class ColumnECSV:
     @functools.cached_property
     def csv_np_type(self) -> str:
         """Numpy type string describing the column CSV data."""
-        return self._csv_np_type_dtype_shape[0]
+        return self._derived_properties.csv_np_type
 
     @functools.cached_property
     def dtype(self) -> str:
         """Numpy dtype in the final column data"""
-        return self._csv_np_type_dtype_shape[1]
+        return self._derived_properties.dtype
 
     @functools.cached_property
     def shape(self) -> tuple[int, ...]:
         """Shape of the column data"""
-        return self._csv_np_type_dtype_shape[2]
+        return self._derived_properties.shape
 
     @functools.cached_property
-    def _csv_np_type_dtype_shape(self) -> tuple[str, str, tuple[int, ...]]:
+    def _derived_properties(self) -> DerivedColumnProperties:
         """Get the csv_np_type, dtype, and shape of the column from ECSV header."""
         return get_csv_np_type_dtype_shape(self.datatype, self.subtype, self.name)
 
@@ -435,7 +456,7 @@ def get_header_lines(
 
 def get_csv_np_type_dtype_shape(
     datatype: str, subtype: str | None, name: str
-) -> tuple[str, str, tuple[int, ...]]:
+) -> DerivedColumnProperties:
     """Get the csv_np_type, dtype, and shape of the column from datatype and subtype.
 
     This function implements most of the complexity of the ECSV data type handling. The
@@ -454,12 +475,20 @@ def get_csv_np_type_dtype_shape(
 
     Returns
     -------
-    csv_np_type: str
-        Numpy type string for the CSV column data, e.g. "int64", "float32", "str".
-    dtype: str
-        Numpy dtype in the final column data.
-    shape: tuple[int, ...]
-        Shape of the final column data as a tuple of integers.
+    CSVNpTypeDtypeShape
+        A named tuple containing:
+        - `csv_np_type`: Numpy type string for the CSV column data.
+        - `dtype`: Numpy dtype in the final column data.
+        - `shape`: Shape of the final column data as a tuple of integers.
+
+    Raises
+    ------
+    ValueError
+        If the `datatype` or `subtype` is not recognized or cannot be converted to a
+        valid numpy dtype.
+    InconsistentTableError
+        If the `datatype` is not in the allowed ECSV datatypes and cannot be parsed as a
+        numpy dtype.
     """
     from astropy.io.ascii.core import InconsistentTableError
     from astropy.io.ascii.ecsv import ECSV_DATATYPES, InvalidEcsvDatatypeWarning
@@ -519,7 +548,7 @@ def get_csv_np_type_dtype_shape(
             )
             dtype = csv_np_type
 
-    return csv_np_type, dtype, shape
+    return DerivedColumnProperties(csv_np_type, dtype, shape)
 
 
 def read_header(
