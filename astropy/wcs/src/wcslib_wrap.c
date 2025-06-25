@@ -342,7 +342,7 @@ int _update_wtbarr_from_hdulist(PyObject *hdulist, struct wtbarr *wtb) {
  * PyWcsprm methods
  */
 
-static int
+int
 PyWcsprm_cset(PyWcsprm* self, const int convert);
 
 static INLINE void
@@ -1542,6 +1542,12 @@ PyWcsprm_p2s(
     goto exit;
   }
 
+  // Here we force a call to wcsset. Normally, WCSLIB will call wcsset automatically when
+  // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
+  // catch cases where the units might change if e.g. they are not in SI to start with.
+  /* Force a call to wcsset here*/
+  if (self->preserve_units && PyWcsprm_cset(self, 1)) return NULL;
+
   /* Make the call */
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(pixcrd, origin);
@@ -1663,7 +1669,15 @@ PyWcsprm_s2p(
     goto exit;
   }
 
-  // Convert world units to native WCSLIB units if needed
+  // Here we force a call to wcsset. Normally, WCSLIB will call wcsset automatically when
+  // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
+  // catch cases where the units might change if e.g. they are not in SI to start with.
+  /* Force a call to wcsset here*/
+  if (self->preserve_units && PyWcsprm_cset(self, 1)) return NULL;
+
+  // Convert world units to native WCSLIB units if needed. Here we use a check that
+  // original_cunit is allocated, because the above line does not guarantee that
+  // original_cunit will be allocated (for instance if the units are not set)
   if (self->original_cunit != NULL) {
     double *world_data = (double *)PyArray_DATA(world);
     for (npy_intp i = 0; i < nelem; ++i) {
@@ -1770,7 +1784,7 @@ PyWcsprm_s2p(
   }
 }
 
-static int
+int
 PyWcsprm_cset(
     PyWcsprm* self,
     const int convert) {
