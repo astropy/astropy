@@ -43,8 +43,7 @@ def write_lockfile(lockfilename, lockfiledict):
     now_iso = datetime.datetime.now().isoformat()
     lockfile.write(f"# SAMP lockfile written on {now_iso}\n")
     lockfile.write("# Standard Profile required keys\n")
-    for key, value in lockfiledict.items():
-        lockfile.write(f"{key}={value}\n")
+    lockfile.writelines(f"{key}={value}\n" for key, value in lockfiledict.items())
     lockfile.close()
 
 
