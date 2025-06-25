@@ -1,10 +1,13 @@
 """
 ECSV Engine Module
 --------------------------
-
 This module provides functionality for reading and writing Enhanced Character Separated
-Values (ECSV) files using various backends, including PyArrow, pandas, and Astropy's
-ASCII engine. ECSV is a human-readable, YAML-encoded table format used in the Astropy
+Values (ECSV) files using various backends, including:
+- `PyArrow <https://arrow.apache.org/docs/python/>`_
+- `pandas <https://pandas.pydata.org/>`_
+- `Astropy's ASCII engine <https://docs.astropy.org/en/stable/io/ascii/>`_
+
+ECSV is a human-readable, YAML-encoded table format used in the Astropy
 ecosystem for storing tables with metadata, units, and complex data types.
 
 Key Features
