@@ -249,6 +249,12 @@ Wcs_all_pix2world(
     goto exit;
   }
 
+  // Here we force a call to wcsset. Normally, WCSLIB will call wcsset automatically when
+  // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
+  // catch cases where the units might change if e.g. they are not in SI to start with.
+  /* Force a call to wcsset here*/
+  if (((PyWcsprm*)(self->py_wcsprm))->preserve_units && PyWcsprm_cset(((PyWcsprm*)(self->py_wcsprm)), 1)) return NULL;
+
   /* Make the call */
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(pixcrd, origin);
