@@ -931,8 +931,9 @@ class TimeCxcSec(TimeFromEpoch):
 class TimeGalexSec(TimeUnix):
     """
     GALEX time is defined as Unixtime plus 315964800 seconds.
-    Due to uncertainty in the spacecraft clock, the time is only accurate to
-    about 1-10 seconds.
+    Due to uncertainty in the spacecraft clock, the absolute time is only accurate to
+    about 1-10 seconds while the relative time within an observation is better than 0.005 s or so.
+    See question 101.2 in http://www.galex.caltech.edu/researcher/faq.html
     """
 
     name = "galexsec"
