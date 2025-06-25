@@ -2122,7 +2122,6 @@ class TestPreserveUnits:
             self.wcs_preserve.wcs.cd[0, 1] = 1
 
     def test_header(self):
-
         header = self.wcs_preserve.to_header()
 
         expected_header = """
@@ -2158,18 +2157,29 @@ MJDREF  =                  0.0 / [d] MJD of fiducial time
 RADESYS = 'ICRS'               / Equatorial coordinate system
 """.strip()
 
-        assert header.tostring(sep='\n') == fits.Header.fromstring(expected_header, sep='\n').tostring(sep='\n')
+        assert header.tostring(sep="\n") == fits.Header.fromstring(
+            expected_header, sep="\n"
+        ).tostring(sep="\n")
 
-    @pytest.mark.parametrize('explicit_set', (False, True))
-    @pytest.mark.parametrize('function', ('p2s', 's2p', 'wcs_pix2world', 'wcs_world2pix', 'all_pix2world', 'all_world2pix'))
+    @pytest.mark.parametrize("explicit_set", (False, True))
+    @pytest.mark.parametrize(
+        "function",
+        (
+            "p2s",
+            "s2p",
+            "wcs_pix2world",
+            "wcs_world2pix",
+            "all_pix2world",
+            "all_world2pix",
+        ),
+    )
     def test_programmatic(self, explicit_set, function):
-
         # Make sure that things work fine if we make the WCS programmatically
         # and not from a header
 
         wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
-        wcs_prog.wcs.ctype = 'RA---TAN', 'DEC--TAN'
-        wcs_prog.wcs.cunit = 'arcsec', 'arcsec'
+        wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_prog.wcs.cunit = "arcsec", "arcsec"
         wcs_prog.wcs.crval = 10, 20
         wcs_prog.wcs.cdelt = 1, 2
         wcs_prog.wcs.crpix = 1, 1
@@ -2181,15 +2191,52 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         # gets called implicitly during the coordinate conversion but we don't
         # catch this and store the before/after units.
 
-        if function == 'p2s':
-            assert_allclose(wcs_prog.wcs.p2s(np.array([[1, 1]]), 1)['world'], [[10, 20]])
-        elif function == 's2p':
-            assert_allclose(wcs_prog.wcs.s2p(np.array([[10, 20]]), 1)['pixcrd'], [[1, 1]])
-        elif function == 'wcs_pix2world':
+        if function == "p2s":
+            assert_allclose(
+                wcs_prog.wcs.p2s(np.array([[1, 1]]), 1)["world"], [[10, 20]]
+            )
+        elif function == "s2p":
+            assert_allclose(
+                wcs_prog.wcs.s2p(np.array([[10, 20]]), 1)["pixcrd"], [[1, 1]]
+            )
+        elif function == "wcs_pix2world":
             assert_allclose(wcs_prog.wcs_pix2world(1, 1, 1), [10, 20])
-        elif function == 'wcs_world2pix':
+        elif function == "wcs_world2pix":
             assert_allclose(wcs_prog.wcs_world2pix(10, 20, 1), [1, 1])
-        elif function == 'all_pix2world':
+        elif function == "all_pix2world":
             assert_allclose(wcs_prog.all_pix2world(1, 1, 1), [10, 20])
-        elif function == 'all_world2pix':
+        elif function == "all_world2pix":
             assert_allclose(wcs_prog.all_world2pix(10, 20, 1), [1, 1])
+
+    def test_multiple_set(self):
+        # Make sure that things work fine if we make the WCS programmatically
+        # and not from a header
+
+        wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
+        wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_prog.wcs.cunit = "arcsec", "arcsec"
+        wcs_prog.wcs.crval = 10, 20
+        wcs_prog.wcs.cdelt = 1, 2
+        wcs_prog.wcs.crpix = 1, 1
+
+        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_prog.wcs.set()
+
+        with pytest.raises(
+            AttributeError,
+            match="Original units have already been set, cannot change them",
+        ):
+            wcs_prog.wcs.cunit = "arcmin", "arcmin"
+
+        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_prog.wcs.set()
+
+        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
