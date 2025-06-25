@@ -199,10 +199,11 @@ Format            Class                                         Example Argument
 byear        :class:`~astropy.time.TimeBesselianEpoch`          1950.0
 byear_str    :class:`~astropy.time.TimeBesselianEpochString`    'B1950.0'
 cxcsec       :class:`~astropy.time.TimeCxcSec`                  63072064.184
-galexsec     :class:`~astropy.time.TimeGalexSec`                758738047.995
 datetime     :class:`~astropy.time.TimeDatetime`                datetime(2000, 1, 2, 12, 0, 0)
+datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2000-01-01T01:01:01')
 decimalyear  :class:`~astropy.time.TimeDecimalYear`             2000.45
 fits         :class:`~astropy.time.TimeFITS`                    '2000-01-01T00:00:00.000'
+galexsec     :class:`~astropy.time.TimeGalexSec`                758738047.995
 gps          :class:`~astropy.time.TimeGPS`                     630720013.0
 iso          :class:`~astropy.time.TimeISO`                     '2000-01-01 00:00:00.000'
 isot         :class:`~astropy.time.TimeISOT`                    '2000-01-01T00:00:00.000'
@@ -215,7 +216,6 @@ unix         :class:`~astropy.time.TimeUnix`                    946684800.0
 unix_tai     :class:`~astropy.time.TimeUnixTai`                 946684800.0
 yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
 ymdhms       :class:`~astropy.time.TimeYMDHMS`                  {'year': 2010, 'month': 3, 'day': 1}
-datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2000-01-01T01:01:01')
 ===========  =================================================  =====================================
 
 .. note:: The :class:`~astropy.time.TimeFITS` format implements most

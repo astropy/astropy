@@ -1047,7 +1047,8 @@ class TestSubFormat:
         # which differs about 10 s from the value below, which is taken from
         # the header of the observations and gPhoton processing.
         t3 = Time("2004-01-21 16:33:57")
-        assert allclose_sec(t3.galexsec, 758738048.0)
+        assert allclose_sec(t3.galexsec, 758738037.0)
+        assert allclose_sec(t3.galexsec, t3.unix - 315964800)
 
         # Round trip through epoch time
         for scale in ("utc", "tt"):
