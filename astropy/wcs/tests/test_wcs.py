@@ -2269,7 +2269,6 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         assert repr(self.wcs_preserve) == expected
 
     def test_print_contents(self, capfd):
-
         self.wcs_preserve.wcs.print_contents()
         captured = capfd.readouterr()
 
