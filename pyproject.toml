@@ -679,6 +679,7 @@ skip = """
     docs/credits.rst,
     *_lextab.py,
     *_parsetab.py,
+    astropy/wcs/tests/test_wcs.py
 """
 # The following list of words for codespell to ignore may contain some
 # misspellings that should be revisited and fixed in the future.
