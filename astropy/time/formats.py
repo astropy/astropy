@@ -930,13 +930,21 @@ class TimeCxcSec(TimeFromEpoch):
 
 class TimeGalexSec(TimeUnix):
     """
-    GALEX time is defined as Unixtime plus 315964800 seconds.
-    Due to uncertainty in the spacecraft clock, the time is only accurate to
-    about 1-10 seconds.
+    GALEX time: seconds since 1980-01-06 00:00:00 UTC not including leap seconds.
+
+    This is equivalent to the unix time minus 315964800.0, as shown below::
+
+      >>> t = Time("2025-01-01")
+      >>> t.unix - t.galexsec
+      np.float64(315964800.0)
+
+    In GALEX data, due to uncertainty in the spacecraft clock, the absolute time is only accurate to
+    about 1-10 seconds while the relative time within an observation is better than 0.005 s or so.
+    See question 101.2 in http://www.galex.caltech.edu/researcher/faq.html
     """
 
     name = "galexsec"
-    epoch_val = "1980-01-05 23:59:49.000"
+    epoch_val = "1980-01-06 00:00:00"
 
 
 class TimeGPS(TimeFromEpoch):
