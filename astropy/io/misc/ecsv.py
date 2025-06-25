@@ -159,7 +159,7 @@ class ColumnECSV:
         return get_csv_np_type_dtype_shape(self.datatype, self.subtype, self.name)
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class ECSVHeader:
     """
     Class representing the information in an ECSV header.
