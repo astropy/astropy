@@ -1910,6 +1910,7 @@ if (self->original_cunit != NULL) {
   }
 
   printf("%s", wcsprintf_buf());
+  fflush(stdout);
 
   Py_INCREF(Py_None);
   return Py_None;
