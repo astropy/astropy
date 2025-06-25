@@ -181,7 +181,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
                         # degrees. If the unit was e.g. arcsec, it seems
                         # reasonable to stick to the WCS unit.
                         if ucd == "ra" and axis_unit is u.deg:
-                            dim_meta['format_unit'] = u.hourangle
+                            dim_meta["format_unit"] = u.hourangle
                         break
 
         coord_meta["type"].append(dim_meta["coord_type"])
