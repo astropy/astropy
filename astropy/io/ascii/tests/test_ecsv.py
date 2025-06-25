@@ -28,18 +28,20 @@ from astropy.table.table_helpers import simple_table
 from astropy.time import Time
 from astropy.units import QuantityInfo
 from astropy.units import allclose as quantity_allclose
+from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_PYARROW
 from astropy.utils.masked import Masked
 
+ENGINE_PARAMS = [
+    {"format": "ascii.ecsv"},
+    {"format": "ecsv", "engine": "io.ascii"},
+]
+if HAS_PANDAS:
+    ENGINE_PARAMS.append({"format": "ecsv", "engine": "pandas"})
+if HAS_PYARROW:
+    ENGINE_PARAMS.append({"format": "ecsv", "engine": "pyarrow"})
 
-@pytest.fixture(
-    scope="module",
-    params=[
-        {"format": "ascii.ecsv"},
-        {"format": "ecsv", "engine": "pandas"},
-        {"format": "ecsv", "engine": "pyarrow"},
-        {"format": "ecsv", "engine": "io.ascii"},
-    ],
-)
+
+@pytest.fixture(scope="module", params=ENGINE_PARAMS)
 def format_engine(request):
     return request.param
 
