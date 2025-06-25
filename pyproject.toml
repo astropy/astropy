@@ -173,6 +173,33 @@ requires = ["setuptools>=77.0.0",
             "extension-helpers>=1.4,<2"]
 build-backend = "setuptools.build_meta"
 
+[dependency-groups]
+# re-define historical optional dependencies (a.k.a. 'extras') as
+# user-invisible, PEP 735 dependency groups
+dev = [
+    "astropy[dev]",
+]
+dev-all = [
+    "astropy[dev-all]",
+]
+docs = [
+    "astropy[docs]",
+]
+test = [
+    "astropy[test]",
+]
+test-all = [
+    "astropy[test-all]",
+]
+typing = [
+    "astropy[typing]",
+]
+
+[tool.uv]
+# uv sync's default behavior includes the 'dev' group.
+# Disable this so we get lightweight envs by default.
+default-groups = []
+
 [tool.setuptools]
 include-package-data = true
 
