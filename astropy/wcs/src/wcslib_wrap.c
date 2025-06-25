@@ -716,6 +716,39 @@ PyWcsprm_copy(
   }
 }
 
+static PyWcsprm* PyWcsprm_copy_with_patched_units(PyWcsprm* source) {
+
+    // This function returns a copy of a PyWcsprm with units patched
+    // to match the original units (before WCSLIB changed them). The
+    // returned object should not be used to do any kind of transformations
+    // and is only for use in e.g. converting to a header, or printing
+    // contents.
+
+    int original_flag;
+    PyWcsprm* copy = (PyWcsprm*)PyWcsprm_copy(source);
+
+    // We make sure wcsset is happy
+    wcsset(&copy->x);
+
+    // We preserve the value of the flag which indicates that wcsset
+    // has been called and there have been no further modifications
+    original_flag = copy->x.flag;
+
+    // We now override the unit, cdelt and crval values
+    for (int i = 0; i < copy->x.naxis; ++i) {
+      strncpy(copy->x.cunit[i], source->original_cunit[i], 72);
+      copy->x.cdelt[i] /= source->unit_scaling[i];
+      copy->x.crval[i] /= source->unit_scaling[i];
+    }
+
+    // We restore the flag to trick WCSLIB into thinking it no longer
+    // needs to change the units.
+    copy->x.flag = original_flag;
+
+    return copy;
+
+}
+
 PyObject*
 PyWcsprm_find_all_wcs(
     PyObject* __,
@@ -1057,7 +1090,7 @@ int check_unit_changes(PyWcsprm* self) {
   // Check which units have changed, and store scaling if changed.
   if (self->original_cunit != NULL) {
     for (int i = 0; i < self->x.naxis; ++i) {
-      if (!strcmp(self->original_cunit[i], self->x.cunit[i]) == 0) {
+      if (strcmp(self->original_cunit[i], self->x.cunit[i]) != 0) {
         status = wcsunits(self->original_cunit[i], self->x.cunit[i], &scale, &offset, &power);
         if (status == 0) {
           // We don't support offset and power currently because it should not be needed,
@@ -1875,8 +1908,15 @@ PyWcsprm_print_contents(
     wcsprm_c2python(&self->x);
     return NULL;
   }
-  wcsprt(&self->x);
-  wcsprm_c2python(&self->x);
+
+if (self->original_cunit != NULL) {
+    PyWcsprm* copy = PyWcsprm_copy_with_patched_units(self);
+    wcsprt(&copy->x);
+    PyWcsprm_dealloc(copy);
+  } else {
+    wcsprt(&self->x);
+    wcsprm_c2python(&self->x);
+  }
 
   printf("%s", wcsprintf_buf());
   fflush(stdout);
@@ -1955,8 +1995,15 @@ PyWcsprm___str__(
     wcsprm_c2python(&self->x);
     return NULL;
   }
-  wcsprt(&self->x);
-  wcsprm_c2python(&self->x);
+
+  if (self->original_cunit != NULL) {
+    PyWcsprm* copy = PyWcsprm_copy_with_patched_units(self);
+    wcsprt(&copy->x);
+    PyWcsprm_dealloc(copy);
+  } else {
+    wcsprt(&self->x);
+    wcsprm_c2python(&self->x);
+  }
 
   return PyUnicode_FromString(wcsprintf_buf());
 }
@@ -2216,40 +2263,8 @@ PyWcsprm_to_header(
   // we make a copy of the Wcsprm object, change the units on that and
   // prevent WCSLIB fixing the units, then convert to a header.
   if (self->original_cunit != NULL) {
-    copy = PyWcsprm_cnew();
-    if (copy == NULL) {
-      return NULL;
-    }
 
-    wcsini(0, self->x.naxis, &copy->x);
-
-    wcsprm_python2c(&self->x);
-    status = wcscopy(1, &self->x, &copy->x);
-    wcsprm_c2python(&self->x);
-
-    if (status != 0) {
-        // Handle error (e.g., allocation failure)
-        PyErr_SetString(PyExc_RuntimeError, "wcscopy failed");
-        return NULL;
-    }
-
-    // We make sure wcsset is happy
-    wcsset(&copy->x);
-
-    // We preserve the value of the flag which indicates that wcsset
-    // has been called and there have been no further modifications
-    original_flag = copy->x.flag;
-
-    // We now override the unit, cdelt and crval values
-    for (int i = 0; i < copy->x.naxis; ++i) {
-      strncpy(copy->x.cunit[i], self->original_cunit[i], 72);
-      copy->x.cdelt[i] /= self->unit_scaling[i];
-      copy->x.crval[i] /= self->unit_scaling[i];
-    }
-
-    // We restore the flag to trick WCSLIB into thinking it no longer
-    // needs to change the units.
-    copy->x.flag = original_flag;
+    PyWcsprm* copy = PyWcsprm_copy_with_patched_units(self);
 
     wcsprm_python2c(&copy->x);
     status = wcshdo(relax, &copy->x, &nkeyrec, &header);

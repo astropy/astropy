@@ -2,6 +2,7 @@
 
 import io
 import os
+import re
 from contextlib import nullcontext
 from datetime import datetime
 
@@ -51,6 +52,13 @@ def ctx_for_v71_dateref_warnings():
     else:
         ctx = nullcontext()
     return ctx
+
+
+def strip_memory_addresses(text: str) -> str:
+    """
+    Replace hex memory addresses (e.g., 0x600000acf000) in the text with a placeholder.
+    """
+    return re.sub(r"0x[0-9a-fA-F]+", "0xADDR", text)
 
 
 class TestMaps:
@@ -2240,3 +2248,44 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
         assert_allclose(wcs_prog.wcs.crval, [10, 20])
         assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+    def test_str_and_repr(self):
+        expected = (
+            "WCS Keywords\n"
+            "\n"
+            "Number of WCS axes: 5\n"
+            "CTYPE : 'RA---TAN' 'FREQ' 'DEC--TAN' 'WAVE' 'OFFSET' \n"
+            "CRVAL : 4.0 5.0 6.0 7.0 8.0 \n"
+            "CRPIX : 1.0 2.0 3.0 4.0 5.0 \n"
+            "PC1_1 PC1_2 PC1_3 PC1_4 PC1_5  : 1.0 0.0 0.0 0.0 0.0 \n"
+            "PC2_1 PC2_2 PC2_3 PC2_4 PC2_5  : 0.0 1.0 0.0 0.0 0.0 \n"
+            "PC3_1 PC3_2 PC3_3 PC3_4 PC3_5  : 0.0 0.0 1.0 0.0 0.0 \n"
+            "PC4_1 PC4_2 PC4_3 PC4_4 PC4_5  : 0.0 0.0 0.0 1.0 0.0 \n"
+            "PC5_1 PC5_2 PC5_3 PC5_4 PC5_5  : 0.0 0.0 0.0 0.0 1.0 \n"
+            "CDELT : 4.0 3.0 2.0 1.0 6.0 \n"
+            "NAXIS : 0  0"
+        )
+        assert str(self.wcs_preserve) == expected
+        assert repr(self.wcs_preserve) == expected
+
+    def test_print_contents(self, capfd):
+
+        self.wcs_preserve.wcs.print_contents()
+        captured = capfd.readouterr()
+
+        expected = """
+      cdelt: 0xADDR
+               4.0000       3.0000       2.0000       1.0000       6.0000
+      crval: 0xADDR
+               4.0000       5.0000       6.0000       7.0000       8.0000
+      cunit: 0xADDR
+             "arcsec"
+             "GHz"
+             "arcsec"
+             "nm"
+             "arcmin"
+             """.strip()
+
+        assert expected in "\n".join(
+            [x.rstrip() for x in strip_memory_addresses(captured.out).splitlines()]
+        )
