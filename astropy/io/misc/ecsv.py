@@ -55,6 +55,7 @@ Dependencies
 - pandas (optional, for pandas engine)
 """
 
+import abc
 import collections
 import functools
 import io
@@ -64,7 +65,7 @@ import re
 import warnings
 from collections.abc import Iterable
 from contextlib import ExitStack
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal, NamedTuple
 
@@ -73,6 +74,8 @@ import numpy as np
 from astropy.table import SerializedColumn, Table, meta, serialize
 
 __all__ = ["read_ecsv", "register_ecsv_table", "write_ecsv"]
+
+ECSVEngines: dict[str, "ECSVEngine"] = {}
 
 
 class DerivedColumnProperties(NamedTuple):
@@ -192,7 +195,8 @@ class ECSVHeader:
     delimiter: str
 
 
-class ECSVEngine:
+@dataclass(frozen=True, slots=True)
+class ECSVEngine(metaclass=abc.ABCMeta):
     """Base class for ECSV reader engines.
 
     An engine is responsible for reading the raw CSV data that follows the ECSV header.
@@ -209,40 +213,25 @@ class ECSVEngine:
         Dictionary mapping engine names to their respective engine classes.
     """
 
-    name = None
-    format = None
-    engines = {}
+    name: str
+    format: str
+    engines: dict[str, "ECSVEngine"] = field(default_factory=dict)
 
-    def __init_subclass__(cls, **kwargs):
-        """Register the subclass as an ECSV engine."""
-        super().__init_subclass__(**kwargs)
-        cls.engines[cls.name] = cls
+    def __new__(cls, *args, **kwargs):
+        """Singleton subclasses"""
+        if cls not in cls.engines:
+            self = super().__new__(*args, **kwargs)
+            self.__init__(*args, **kwargs)
+            self.__post_init__()
+            ECSVEngines[cls.__name__] = self
 
-    @staticmethod
-    def get_data_kwargs():
-        """
-        Generate a dictionary of keyword arguments for data parsing.
+        return ECSVEngines[cls.__name__]
 
-        This accounts for the API variations in each engine CSV reader.
+    def __post_init__(self):  # noqa: B027
+        pass
 
-        Parameters
-        ----------
-        header : ECSVHeader
-            ECSVHeader object within header information.
-        null_values : list of str
-            List of strings with values to be interpreted as null or missing data.
-        converters : dict[str, Any]
-            Dict mapping column name to engine-specific data type.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dict of keyword arguments to be passed to engine CSV reader.
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def convert_np_type(np_type: str) -> Any:
+    @abc.abstractmethod
+    def convert_np_type(self, np_type: str) -> Any:
         """
         Convert a numpy type string to engine-specific type for parsing.
 
@@ -261,6 +250,49 @@ class ECSVEngine:
         """
         raise NotImplementedError
 
+    def get_converters(self, header):
+        """
+        Get a dictionary of converters for the columns in the ECSV header.
+
+        This is used to convert column names to engine-specific types.
+
+        Parameters
+        ----------
+        header : ECSVHeader
+            The ECSV header containing column definitions.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary mapping column names to engine-specific converters.
+        """
+        return {col.name: self.convert_np_type(col.csv_np_type) for col in header.cols}
+
+    @abc.abstractmethod
+    def get_data_kwargs(
+        self,
+        header: ECSVHeader,
+        null_values: list[str],
+    ) -> dict[str, Any]:
+        """
+        Generate a dictionary of keyword arguments for data parsing.
+
+        This accounts for the API variations in each engine CSV reader.
+
+        Parameters
+        ----------
+        header : ECSVHeader
+            ECSVHeader object within header information.
+        null_values : list of str
+            List of strings with values to be interpreted as null or missing data.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dict of keyword arguments to be passed to engine CSV reader.
+        """
+        raise NotImplementedError
+
 
 class ECSVEnginePyArrow(ECSVEngine):
     """ECSV reader engine using PyArrow."""
@@ -268,17 +300,15 @@ class ECSVEnginePyArrow(ECSVEngine):
     name = "pyarrow"
     format = "pyarrow.csv"
 
-    @staticmethod
-    def convert_np_type(np_type: str) -> str:
+    def convert_np_type(self, np_type: str) -> str:
         # PyArrow does not support float16, so we need to convert it to float32.
         # The final output is still cast as float16.
         return "float32" if np_type == "float16" else np_type
 
-    @staticmethod
     def get_data_kwargs(
+        self,
         header: ECSVHeader,
         null_values: list[str],
-        converters: dict[str, Any],
     ) -> dict[str, Any]:
         """
         Generate a dictionary of keyword arguments for data parsing.
@@ -288,7 +318,7 @@ class ECSVEnginePyArrow(ECSVEngine):
         kw = {}
         kw["null_values"] = null_values
         kw["header_start"] = header.n_header
-        kw["dtypes"] = converters
+        kw["dtypes"] = self.get_converters(header)
         return kw
 
 
@@ -298,17 +328,15 @@ class ECSVEngineIoAscii(ECSVEngine):
     name = "io.ascii"
     format = "ascii.csv"
 
-    @staticmethod
-    def convert_np_type(np_type: str) -> str:
+    def convert_np_type(self, np_type: str) -> str:
         """Convert the np_type string to a numpy dtype type."""
         # Output compatible with io.ascii `converters` option.
         return np.dtype(np_type).type
 
-    @staticmethod
     def get_data_kwargs(
+        self,
         header: ECSVHeader,
         null_values: list[str],
-        converters: dict[str, Any],
     ) -> dict[str, Any]:
         """Get the keyword arguments for reading the data."""
         kw = {}
@@ -316,7 +344,7 @@ class ECSVEngineIoAscii(ECSVEngine):
             header.cols, header.table_meta, null_values
         )
         kw["header_start"] = header.n_header - header.n_empty
-        kw["converters"] = converters
+        kw["converters"] = self.get_converters(header)
         # Fast reader does not support converters (defining types in advance) nor any
         # encoding. Converters are required, e.g. for a string column that looks like
         # floats. Would be nice to fix this, but in mean time use Python CSV reader.
@@ -330,8 +358,7 @@ class ECSVEnginePandas(ECSVEngine):
     name = "pandas"
     format = "pandas.csv"
 
-    @staticmethod
-    def convert_np_type(np_type: str) -> np.dtype:
+    def convert_np_type(self, np_type: str) -> np.dtype:
         """Convert the np_type to a pandas dtype will support for nullable types."""
         import pandas as pd
 
@@ -345,17 +372,17 @@ class ECSVEnginePandas(ECSVEngine):
             converter = np_type
         return pd.api.types.pandas_dtype(converter)
 
-    @staticmethod
     def get_data_kwargs(
+        self,
         header: ECSVHeader,
         null_values: list[str],
-        converters: dict[str, Any],
     ) -> dict[str, Any]:
         kw = {}
         fill_values = get_null_values_per_column(
             header.cols, header.table_meta, null_values
         )
         null_values = collections.defaultdict(list)
+        converters = self.get_converters(header)
         for null_value, _, col_name in fill_values:
             null_values[col_name].append(null_value)
             # Pandas parser does not natively parse nan or NaN for floats, so we need
@@ -672,16 +699,10 @@ def read_data(
         If the column names from the ECSV header do not match the column names
         in the data.
     """
-    engine_cls = ECSVEngine.engines[engine]
-
-    # Mapping of column name to the engine-specific converter (i.e. output datatype).
-    # This might be numpy dtypes or pandas types.
-    converters = {
-        col.name: engine_cls.convert_np_type(col.csv_np_type) for col in header.cols
-    }
+    engine_cls = ECSVEngines[engine]
 
     # Get the engine-specific kwargs for reading the CSV data.
-    kwargs = engine_cls.get_data_kwargs(header, null_values, converters)
+    kwargs = engine_cls.get_data_kwargs(header, null_values)
 
     data = Table.read(
         input_file,
