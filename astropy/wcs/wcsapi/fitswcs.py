@@ -668,9 +668,14 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
                 if restfrq > 0 or restwav > 0:
                     if restwav == 0:
-                        restwav = u.Quantity(restfrq, u.Hz).to(u.m, u.spectral())
+                        restfrq = u.Quantity(restfrq, u.Hz)
+                        restwav = restfrq.to(u.m, u.spectral())
                     elif restfrq == 0:
-                        restfrq = u.Quantity(restwav, u.m).to(u.Hz, u.spectral())
+                        restwav = u.Quantity(restwav, u.m)
+                        restfrq = restwav.to(u.Hz, u.spectral())
+                    else:
+                        restfrq = u.Quantity(restfrq, u.Hz)
+                        restwav = u.Quantity(restwav, u.m)
 
                     if ctype == "VELO":
                         kwargs["doppler_convention"] = "relativistic"
