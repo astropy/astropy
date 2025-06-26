@@ -38,7 +38,9 @@ else:
     _UnpackZAtValueKWArgs: TypeAlias = Unpack[_ZAtValueKWArgs]
 
 
-__doctest_requires__ = {("with_redshift", "redshift_distance"): ["scipy"]}
+__doctest_requires__ = {
+    ("with_redshift", "redshift_distance", "redshift_recessional_velocity"): ["scipy"]
+}
 
 
 KMS: Final = u.Unit("km / s")
