@@ -44,7 +44,7 @@ Here is an example of how to use the
 >>> cosmo.scale_factor(0)
 <Quantity 1.>
 >>> cosmo.Tcmb(1)
-<Quantity 5.45 K>
+<Quantity 5.45 >
 >>> cosmo.hubble_time
 <Quantity 13.968460309725558 Gyr>
 
