@@ -1516,3 +1516,41 @@ def test_out_of_bounds(direction):
     xw, yw = func(xp[-1], yp)
     assert_array_equal(xw, np.nan)
     assert_array_equal(yw, [np.nan, np.nan, 3, 4, 5])
+
+
+def test_restfrq_restwav():
+    # Regression test for a bug that caused an incorrect rest
+    # frequency/wavelength to be used. This happened for example when using
+    # VOPT but with only restfrq defined.
+
+    wcs = WCS(
+        header={
+            "CRVAL1": 100,
+            "CTYPE1": "VOPT",
+            "CDELT1": 1.0,
+            "CUNIT1": "m/s",
+            "CRPIX1": 1,
+            "RESTFRQ": 1e9,
+        }
+    )
+
+    scoord1 = wcs.pixel_to_world(5)
+
+    assert scoord1.doppler_convention == "optical"
+    assert_quantity_allclose(scoord1.doppler_rest, (1 * u.GHz).to(u.m, u.spectral()))
+
+    wcs = WCS(
+        header={
+            "CRVAL1": 100,
+            "CTYPE1": "VRAD",
+            "CDELT1": 1.0,
+            "CUNIT1": "m/s",
+            "CRPIX1": 1,
+            "RESTWAV": 1e-6,
+        }
+    )
+
+    scoord2 = wcs.pixel_to_world(5)
+
+    assert scoord2.doppler_convention == "radio"
+    assert_quantity_allclose(scoord2.doppler_rest, (1 * u.um).to(u.Hz, u.spectral()))
