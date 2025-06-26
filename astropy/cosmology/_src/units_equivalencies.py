@@ -8,6 +8,7 @@ __all__ = [
     "dimensionless_redshift",
     "redshift_distance",
     "redshift_hubble",
+    "redshift_recessional_velocity",
     "redshift_temperature",
     # other equivalencies
     "with_H0",
@@ -16,10 +17,12 @@ __all__ = [
 
 
 import sys
-from typing import TYPE_CHECKING, Any, Literal, TypeAlias
+from typing import TYPE_CHECKING, Any, Final, Literal, TypeAlias
 
+from numpy.typing import NDArray
+
+import astropy.constants as const
 import astropy.units as u
-from astropy.units import Equivalency
 
 # isort: split
 from .default import default_cosmology
@@ -29,7 +32,6 @@ from .units import littleh, redshift
 if TYPE_CHECKING:
     from astropy.cosmology import Cosmology
     from astropy.cosmology._src.funcs.optimize import _ZAtValueKWArgs
-    from astropy.units import Quantity
 
     if sys.version_info < (3, 12):
         _UnpackZAtValueKWArgs = Any
@@ -42,7 +44,12 @@ if TYPE_CHECKING:
 __doctest_requires__ = {("with_redshift", "redshift_distance"): ["scipy"]}
 
 
-def dimensionless_redshift() -> Equivalency:
+KMS: Final = u.Unit("km / s")
+c_kms: Final = const.c.to(KMS)  # speed of light in km/s
+KMSMPC: Final = KMS / u.Mpc
+
+
+def dimensionless_redshift() -> u.Equivalency:
     """Allow redshift to be 1-to-1 equivalent to dimensionless.
 
     It is special compared to other equivalency pairs in that it allows
@@ -50,14 +57,14 @@ def dimensionless_redshift() -> Equivalency:
     independent of whether it is part of a more complicated unit. It is
     similar to u.dimensionless_angles() in this respect.
     """
-    return Equivalency([(redshift, None)], "dimensionless_redshift")
+    return u.Equivalency([(redshift, None)], "dimensionless_redshift")
 
 
 def redshift_distance(
     cosmology: Cosmology | str | None = None,
     kind: Literal["comoving", "lookback", "luminosity"] = "comoving",
     **atzkw: _UnpackZAtValueKWArgs,
-) -> Equivalency:
+) -> u.Equivalency:
     """Convert quantities between redshift and distance.
 
     Care should be taken to not misinterpret a relativistic, gravitational, etc
@@ -127,7 +134,7 @@ def redshift_distance(
         """Distance to redshift."""
         return z_at_value(method, d << u.Mpc, **atzkw)
 
-    return Equivalency(
+    return u.Equivalency(
         [(redshift, u.Mpc, z_to_distance, distance_to_z)],
         "redshift_distance",
         {"cosmology": cosmology, "distance": kind},
@@ -136,7 +143,7 @@ def redshift_distance(
 
 def redshift_hubble(
     cosmology: Cosmology | str | None = None, **atzkw: _UnpackZAtValueKWArgs
-) -> Equivalency:
+) -> u.Equivalency:
     """Convert quantities between redshift and Hubble parameter and little-h.
 
     Care should be taken to not misinterpret a relativistic, gravitational, etc
@@ -182,19 +189,19 @@ def redshift_hubble(
 
     def hubble_to_z(H):
         """Hubble parameter to redshift."""
-        return z_at_value(cosmology.H, H << (u.km / u.s / u.Mpc), **atzkw)
+        return z_at_value(cosmology.H, H << KMSMPC, **atzkw)
 
     def z_to_littleh(z):
         """Redshift to :math:`h`-unit Quantity."""
-        return z_to_hubble(z).to_value(u.km / u.s / u.Mpc) / 100 * littleh
+        return z_to_hubble(z).to_value(KMSMPC) / 100 * littleh
 
     def littleh_to_z(h):
         """:math:`h`-unit Quantity to redshift."""
         return hubble_to_z(h * 100)
 
-    return Equivalency(
+    return u.Equivalency(
         [
-            (redshift, u.km / u.s / u.Mpc, z_to_hubble, hubble_to_z),
+            (redshift, KMSMPC, z_to_hubble, hubble_to_z),
             (redshift, littleh, z_to_littleh, littleh_to_z),
         ],
         "redshift_hubble",
@@ -202,9 +209,100 @@ def redshift_hubble(
     )
 
 
+_allowed_velocity_kinds: Final = ("proper", "doppler")
+
+
+def z_to_doppler_v(z: u.Quantity) -> u.Quantity:
+    return c_kms * z.to_value(redshift)
+
+
+def doppler_v_to_z(v: NDArray[Any]) -> u.Quantity:
+    return (v / c_kms.value) << redshift
+
+
+def redshift_recessional_velocity(
+    cosmology: Cosmology | str | None = None,
+    kind: Literal["proper", "doppler"] = "proper",
+    **atzkw: _UnpackZAtValueKWArgs,
+) -> u.Equivalency:
+    """Convert quantities between redshift and recessional velocity.
+
+    Care should be taken to not misinterpret a relativistic, gravitational, etc
+    redshift as a cosmological one.
+
+    Parameters
+    ----------
+    cosmology : `~astropy.cosmology.Cosmology`, str, or None, optional
+        A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
+        If None, will use the default cosmology
+        (controlled by :class:`~astropy.cosmology.default_cosmology`).
+
+    kind : {'proper', 'doppler'} or None, optional
+        The velocity type for the Equivalency. See Notes for details.
+
+    **atzkw
+        Keyword arguments for :func:`~astropy.cosmology.z_at_value`
+
+    Returns
+    -------
+    `~astropy.units.equivalencies.Equivalency`
+        Equivalency between redshift and temperature.
+
+    References
+    ----------
+    .. [1] Madsen, M. S. (1995). The Dynamic Cosmos. CRC Press. p. 35.
+           ISBN 978-0-412-62300-4.
+
+    Notes
+    -----
+    Doppler: :math:`v = c z`
+    "the recessional velocity whose linear Doppler effect z would give
+    the same value, z = Z, as the measured spectral redshift" [1]_.
+    Note this velocity is greater than the speed of light for z > 1.
+
+    proper: :math:`v = H(z) d_c(z)`
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> import astropy.cosmology.units as cu
+    >>> from astropy.cosmology import WMAP9
+
+    >>> z = 1100 * cu.redshift
+    >>> z.to(u.Unit("3e10 km/s"), cu.redshift_recessional_velocity(WMAP9))
+    <Quantity 0.73084119 3e+10 km / s>
+
+    """
+    # get cosmology: None -> default and process str / class
+    cosmology = cosmology if cosmology is not None else default_cosmology.get()
+    with default_cosmology.set(cosmology):  # if already cosmo, passes through
+        cosmology = default_cosmology.get()
+
+    if kind not in _allowed_velocity_kinds:
+        raise ValueError(f"`kind` is not one of {_allowed_velocity_kinds}")
+
+    elif kind == "proper":
+
+        def z_to_v(z):
+            return (cosmology.H(z) * cosmology.comoving_distance(z)) << KMS
+
+        def v_to_z(v):
+            return z_at_value(z_to_v, v << KMS, **atzkw)
+
+    elif kind == "doppler":
+        z_to_v = z_to_doppler_v
+        v_to_z = doppler_v_to_z
+
+    return u.Equivalency(
+        [(redshift, KMS, z_to_v, v_to_z)],
+        "redshift_recessional_velocity",
+        {"cosmology": cosmology, "velocity": kind},
+    )
+
+
 def redshift_temperature(
     cosmology: Cosmology | str | None = None, **atzkw: _UnpackZAtValueKWArgs
-) -> Equivalency:
+) -> u.Equivalency:
     """Convert quantities between redshift and CMB temperature.
 
     Care should be taken to not misinterpret a relativistic, gravitational, etc
@@ -245,7 +343,7 @@ def redshift_temperature(
     def Tcmb_to_z(T):
         return z_at_value(cosmology.Tcmb, T << u.K, **atzkw)
 
-    return Equivalency(
+    return u.Equivalency(
         [(redshift, u.K, z_to_Tcmb, Tcmb_to_z)],
         "redshift_temperature",
         {"cosmology": cosmology},
@@ -258,8 +356,9 @@ def with_redshift(
     distance: Literal["comoving", "lookback", "luminosity"] = "comoving",
     hubble: bool = True,
     Tcmb: bool = True,
+    velocity: Literal["proper", "doppler"] | None = "proper",
     atzkw: _ZAtValueKWArgs | None = None,
-) -> Equivalency:
+) -> u.Equivalency:
     """Convert quantities between measures of cosmological distance.
 
     Note: by default all equivalencies are on and must be explicitly turned off.
@@ -282,6 +381,9 @@ def with_redshift(
     Tcmb : bool (optional, keyword-only)
         Whether to create a CMB temperature <-> redshift equivalency, using
         ``Cosmology.Tcmb``. Default is `True`.
+    velocity : {'proper', 'doppler'} or None (optional, keyword-only)
+        The type of velocity equivalency to create or `None`.
+        Default is `None`, which means no velocity equivalency is created.
 
     atzkw : dict or None (optional, keyword-only)
         keyword arguments for :func:`~astropy.cosmology.z_at_value`
@@ -317,6 +419,12 @@ def with_redshift(
 
     >>> z.to(u.K, equivalency)
     <Quantity 3000.225 K>
+
+    Redshift to recessional velocity:
+
+    >>> z.to(u.Unit("3e10 km/s"), equivalency)  # doctest: +FLOAT_CMP
+    <Quantity 0.73084119 3e+10 km / s>
+
     """
     # get cosmology: None -> default and process str / class
     cosmology = cosmology if cosmology is not None else default_cosmology.get()
@@ -324,7 +432,7 @@ def with_redshift(
         cosmology = default_cosmology.get()
 
     atzkw = atzkw if atzkw is not None else {}
-    equivs: list[Equivalency] = []  # will append as built
+    equivs: list[u.Equivalency] = []  # will append as built
 
     # Hubble <-> Redshift
     if hubble:
@@ -338,18 +446,28 @@ def with_redshift(
     if distance is not None:
         equivs.extend(redshift_distance(cosmology, kind=distance, **atzkw))
 
+    # Recessional velocity <-> Redshift
+    if velocity is not None:
+        equivs.extend(redshift_recessional_velocity(cosmology, kind=velocity, **atzkw))
+
     # -----------
-    return Equivalency(
+    return u.Equivalency(
         equivs,
         "with_redshift",
-        {"cosmology": cosmology, "distance": distance, "hubble": hubble, "Tcmb": Tcmb},
+        {
+            "cosmology": cosmology,
+            "distance": distance,
+            "hubble": hubble,
+            "Tcmb": Tcmb,
+            "velocity": velocity,
+        },
     )
 
 
 # ===================================================================
 
 
-def with_H0(H0: Quantity | None = None) -> Equivalency:
+def with_H0(H0: u.Quantity | None = None) -> u.Equivalency:
     """Convert between quantities with little-h and the equivalent physical units.
 
     Parameters
@@ -369,4 +487,4 @@ def with_H0(H0: Quantity | None = None) -> Equivalency:
 
     h100_val_unit = u.Unit(100 / (H0.to_value((u.km / u.s) / u.Mpc)) * littleh)
 
-    return Equivalency([(h100_val_unit, None)], "with_H0", kwargs={"H0": H0})
+    return u.Equivalency([(h100_val_unit, None)], "with_H0", kwargs={"H0": H0})
