@@ -658,16 +658,29 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             else:
                 kwargs["unit"] = self.wcs.cunit[ispec]
 
-                if self.wcs.restfrq > 0:
+                # Make sure that if restfrq is defined and restwav is not or
+                # vice-versa, we define the other one. Typically if e.g.
+                # RESTFRQ is defined in the original FITS header, wcs.restwav
+                # is 0.
+
+                restfrq = self.wcs.restfrq
+                restwav = self.wcs.restwav
+
+                if restfrq > 0 or restwav > 0:
+                    if restwav == 0:
+                        restwav = u.Quantity(restfrq, u.Hz).to(u.m, u.spectral())
+                    elif restfrq == 0:
+                        restfrq = u.Quantity(restwav, u.m).to(u.Hz, u.spectral())
+
                     if ctype == "VELO":
                         kwargs["doppler_convention"] = "relativistic"
-                        kwargs["doppler_rest"] = self.wcs.restfrq * u.Hz
+                        kwargs["doppler_rest"] = restfrq
                     elif ctype == "VRAD":
                         kwargs["doppler_convention"] = "radio"
-                        kwargs["doppler_rest"] = self.wcs.restfrq * u.Hz
+                        kwargs["doppler_rest"] = restfrq
                     elif ctype == "VOPT":
                         kwargs["doppler_convention"] = "optical"
-                        kwargs["doppler_rest"] = self.wcs.restwav * u.m
+                        kwargs["doppler_rest"] = restwav
 
                 def spectralcoord_from_value(value):
                     if isinstance(value, SpectralCoord):
