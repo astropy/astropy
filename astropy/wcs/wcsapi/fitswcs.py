@@ -14,6 +14,7 @@ from astropy.coordinates.spectral_coordinate import (
     attach_zero_velocities,
     update_differentials_to_match,
 )
+from astropy.units import allclose as quantity_allclose
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .high_level_api import HighLevelWCSMixin
@@ -676,6 +677,11 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     else:
                         restfrq = u.Quantity(restfrq, u.Hz)
                         restwav = u.Quantity(restwav, u.m)
+                        restfrq_derived = restwav.to(u.Hz, u.spectral())
+                        if not quantity_allclose(restfrq, restfrq_derived, rtol=1e-4):
+                            raise ValueError(
+                                f"restfrq={restfrq} and restwav={restwav}={restfrq_derived} are not consistent to 10^-4 or better precision"
+                            )
 
                     if ctype == "VELO":
                         kwargs["doppler_convention"] = "relativistic"

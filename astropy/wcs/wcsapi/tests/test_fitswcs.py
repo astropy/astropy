@@ -1554,3 +1554,21 @@ def test_restfrq_restwav():
 
     assert scoord2.doppler_convention == "radio"
     assert_quantity_allclose(scoord2.doppler_rest, (1 * u.um).to(u.Hz, u.spectral()))
+
+    wcs = WCS(
+        header={
+            "CRVAL1": 100,
+            "CTYPE1": "VRAD",
+            "CDELT1": 1.0,
+            "CUNIT1": "m/s",
+            "CRPIX1": 1,
+            "RESTWAV": 1,
+            "RESTFRQ": 295000000.0,
+        }
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="restfrq=295000000.0 Hz and restwav=1.0 m=299792458.0 Hz are not consistent to 10^-4 or better precision",
+    ):
+        scoord3 = wcs.pixel_to_world(5)
