@@ -4,6 +4,7 @@ import io
 import os
 from contextlib import nullcontext
 from datetime import datetime
+from multiprocessing.pool import ThreadPool
 
 import numpy as np
 import pytest
@@ -1915,3 +1916,28 @@ def test_DistortionLookupTable():
             img_world_wcs.pixel_to_world_values(12 + dx * 3, 22 + dy * 3),
             [12 + dx * 3, 22 + dy * 3],
         )
+
+
+def test_thread_safe_conversions():
+
+    w = wcs.WCS(naxis=2)
+    w.wcs.crpix = [-234.75, 8.3393]
+    w.wcs.cdelt = np.array([-0.066667, 0.066667])
+    w.wcs.crval = [0, -90]
+    w.wcs.ctype = ["RA---AIR", "DEC--AIR"]
+    w.wcs.set()
+
+    N = 1_000_000
+
+    pixel = np.random.randint(-1000, 1000, N * 2).reshape((N, 2)).astype(float)
+
+    def round_trip_transform(pixel):
+        world = w.wcs.p2s(pixel.copy(), 1)['world']
+        w.wcs.lng  # this access causes issues, without it all works
+        pixel = w.wcs.s2p(world, 1)['pixcrd']
+        return pixel
+
+    with ThreadPool(8) as pool:
+        results = pool.map(round_trip_transform, (pixel,) * 8)
+        for pixel2 in results:
+            assert_allclose(pixel, pixel2)
