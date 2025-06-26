@@ -50,31 +50,31 @@ class CurvatureComponent:
 
         Examples
         --------
-        .. doctest-requires:: numpy>=2
+        >>> import numpy as np
+        >>> from astropy.cosmology import Planck18, units as cu
 
-            >>> import numpy as np
-            >>> from astropy.cosmology import Planck18, units as cu
+        >>> Planck18.Ok(2)
+        array(0.)
 
-            >>> Planck18.Ok(2)
-            array(0.)
+        >>> Planck18.Ok([1, 2])
+        array([0., 0.])
 
-            >>> Planck18.Ok([1, 2])
-            array([0., 0.])
+        >>> Planck18.Ok(np.array([2]))
+        array([0.])
 
-            >>> Planck18.Ok(np.array([2]))
-            array([0.])
+        >>> Planck18.Ok(2 * cu.redshift)
+        array(0.)
 
-            >>> Planck18.Ok(2 * cu.redshift)
-            array(0.)
+        >>> cosmo = Planck18.clone(Ode0=0.71, to_nonflat=True)
 
-            >>> cosmo = Planck18.clone(Ode0=0.71, to_nonflat=True)
-            >>> cosmo.Ok0
-            np.float64(-0.021153694455455927)
+        >>> cosmo.Ok0  # doctest: +SKIP
+        np.float64(-0.021153694455455927)
 
-            >>> cosmo.Ok(100)
-            np.float64(-0.0006557825253017665)
+        >>> cosmo.Ok(100)  # doctest: +SKIP
+        np.float64(-0.0006557825253017665)
 
         """
+        # TODO: unignore the doctest: +SKIP when numpy >= 2.0
         z = aszarr(z)
         if self.Ok0 == 0:  # Common enough to be worth checking explicitly
             return np.zeros(getattr(z, "shape", ()))
