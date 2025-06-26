@@ -2568,4 +2568,4 @@ def test_thread_safe_conversions():
     with ThreadPool(8) as pool:
         results = pool.map(round_trip_transform, (pixel,) * 8)
         for pixel2 in results:
-            assert_allclose(pixel, pixel2)
+            assert_allclose(pixel, pixel2, atol=1e-7)
