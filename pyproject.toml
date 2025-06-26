@@ -53,6 +53,7 @@ dependencies = [
 # Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
     "scipy>=1.9.2",
+    "scipy<1.16 ; platform_system=='Windows'", # temp, https://github.com/astropy/astropy/issues/18333
     "matplotlib>=3.8.0",
 ]
 # Optional IPython-related behavior is in many places in Astropy. IPython is a complex
@@ -373,7 +374,7 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # pandas-vet (PD)
     "PD",
 
-    # pylint (PLR and PLW)
+    # pylint (PLC, PLR and PLW)
     "PLR1730", # if-stmt-min-max (not always clearer, and sometimes slower)
     "PLW0642", # self-or-cls-assignment (occasionally desirable, very rarely a mistake)
 

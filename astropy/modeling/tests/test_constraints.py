@@ -14,6 +14,7 @@ from numpy.testing import assert_allclose
 from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
+from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -577,8 +578,6 @@ def test_gaussian2d_positive_stddev(fitter):
 @pytest.mark.parametrize("fitter", fitters)
 def test_2d_model(fitter):
     """Issue #6403"""
-    from astropy.utils import NumpyRNGContext
-
     fitter = fitter()
 
     # 2D model with LevMarLSQFitter
