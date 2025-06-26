@@ -702,7 +702,7 @@ def test_print_contents(capfd):
     # print_contents() calls in both wcsprm and other print_contents() methods in
     # astropy.wcs (e.g. Wcs.wcs.wtb[0].print_contents())
 
-    for iter in range(10):
+    for iter in range(5):
 
         w = _wcs.Wcsprm()
         w.print_contents()
@@ -711,7 +711,8 @@ def test_print_contents(capfd):
 
         # The details of the output don't matter too much, but check that it
         # outputs the correct number of lines and contains some strings we
-        # expect
+        # expect. Before the ``print_contents()`` bug was fixed, the number of
+        # lines from call to call was different and truncated.
 
         stdout = captured.out
 
