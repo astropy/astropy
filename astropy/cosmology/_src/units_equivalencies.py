@@ -279,10 +279,7 @@ def redshift_recessional_velocity(
     with default_cosmology.set(cosmology):  # if already cosmo, passes through
         cosmo = default_cosmology.get()
 
-    if kind not in _allowed_velocity_kinds:
-        raise ValueError(f"`kind` is not one of {_allowed_velocity_kinds}")
-
-    elif kind == "proper":
+    if kind == "proper":
 
         def z_to_v(z):
             return (cosmo.H(z) * cosmo.comoving_distance(z)) << KMS
@@ -293,6 +290,9 @@ def redshift_recessional_velocity(
     elif kind == "doppler":
         z_to_v = z_to_doppler_v
         v_to_z = doppler_v_to_z
+
+    else:
+        raise ValueError(f"`kind` is not one of {_allowed_velocity_kinds}")
 
     return u.Equivalency(
         [(redshift, KMS, z_to_v, v_to_z)],
