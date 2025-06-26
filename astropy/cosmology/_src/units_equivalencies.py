@@ -274,9 +274,10 @@ def redshift_recessional_velocity(
 
     """
     # get cosmology: None -> default and process str / class
+    cosmo: Cosmology
     cosmology = cosmology if cosmology is not None else default_cosmology.get()
     with default_cosmology.set(cosmology):  # if already cosmo, passes through
-        cosmology = default_cosmology.get()
+        cosmo = default_cosmology.get()
 
     if kind not in _allowed_velocity_kinds:
         raise ValueError(f"`kind` is not one of {_allowed_velocity_kinds}")
@@ -284,7 +285,7 @@ def redshift_recessional_velocity(
     elif kind == "proper":
 
         def z_to_v(z):
-            return (cosmology.H(z) * cosmology.comoving_distance(z)) << KMS
+            return (cosmo.H(z) * cosmo.comoving_distance(z)) << KMS
 
         def v_to_z(v):
             return z_at_value(z_to_v, v << KMS, **atzkw)
@@ -296,7 +297,7 @@ def redshift_recessional_velocity(
     return u.Equivalency(
         [(redshift, KMS, z_to_v, v_to_z)],
         "redshift_recessional_velocity",
-        {"cosmology": cosmology, "velocity": kind},
+        {"cosmology": cosmo, "velocity": kind},
     )
 
 
@@ -353,7 +354,7 @@ def redshift_temperature(
 def with_redshift(
     cosmology: Cosmology | str | None = None,
     *,
-    distance: Literal["comoving", "lookback", "luminosity"] = "comoving",
+    distance: Literal["comoving", "lookback", "luminosity"] | None = "comoving",
     hubble: bool = True,
     Tcmb: bool = True,
     velocity: Literal["proper", "doppler"] | None = "proper",
