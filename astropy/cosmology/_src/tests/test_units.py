@@ -185,7 +185,9 @@ class Test_with_redshift:
 
     def test_no_equivalency(self, cosmo):
         """Test the equivalency  ``with_redshift`` without any enabled."""
-        equivalency = cu.with_redshift(distance=None, hubble=False, Tcmb=False)
+        equivalency = cu.with_redshift(
+            distance=None, hubble=False, Tcmb=False, velocity=None
+        )
         assert len(equivalency) == 0
 
     # -------------------------------------------
