@@ -46,7 +46,7 @@ Here is an example of how to use the
 >>> cosmo.Tcmb(1)
 <Quantity 5.45 K>
 >>> cosmo.hubble_time
-<Quantity 13.968460309725558 Gyr>
+<Quantity 13.96846031 Gyr>
 
 Reference/API
 *************
