@@ -2547,6 +2547,13 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
 
 def test_thread_safe_conversions():
+    # This is a regression test for a bug which caused wcsset to be called
+    # unnecessarily multiple times, including every time some attribute were
+    # accessed on the WCS. This meant that if one was doing a series of
+    # coordinate transforms in a multi-threaded environment, wcsset could
+    # get called in the process and modify the WCS object, which was not
+    # thread-safe. Now wcsset is not actually called after the initial time.
+    # This was discussed in more detail in https://github.com/astropy/astropy/issues/16245
 
     w = wcs.WCS(naxis=2)
     w.wcs.crpix = [-234.75, 8.3393]
@@ -2560,9 +2567,9 @@ def test_thread_safe_conversions():
     pixel = np.random.randint(-1000, 1000, N * 2).reshape((N, 2)).astype(float)
 
     def round_trip_transform(pixel):
-        world = w.wcs.p2s(pixel.copy(), 1)['world']
+        world = w.wcs.p2s(pixel.copy(), 1)["world"]
         w.wcs.lng  # this access causes issues, without it all works
-        pixel = w.wcs.s2p(world, 1)['pixcrd']
+        pixel = w.wcs.s2p(world, 1)["pixcrd"]
         return pixel
 
     with ThreadPool(8) as pool:
