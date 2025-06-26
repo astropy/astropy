@@ -694,7 +694,6 @@ def test_str():
 
 
 def test_print_contents(capfd):
-
     # This is both a check that print_contents() runs and outputs something,
     # and also a regression test for a bug in print_contents() which caused the
     # stdout buffer to not be fully flushed, which could lead to the output of
@@ -702,8 +701,7 @@ def test_print_contents(capfd):
     # print_contents() calls in both wcsprm and other print_contents() methods in
     # astropy.wcs (e.g. Wcs.wcs.wtb[0].print_contents())
 
-    for iter in range(5):
-
+    for _ in range(5):
         w = _wcs.Wcsprm()
         w.print_contents()
 
@@ -718,7 +716,7 @@ def test_print_contents(capfd):
 
         assert len(stdout.splitlines()) == 210
 
-        assert 'crval:' in stdout and 'restfrq' in stdout
+        assert "crval:" in stdout and "restfrq" in stdout
 
 
 def test_radesys():
