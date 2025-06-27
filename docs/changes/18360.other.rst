@@ -1,0 +1,1 @@
+Added ``typing-extensions`` as a dependency.
