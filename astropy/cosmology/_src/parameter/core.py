@@ -1,14 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 __all__ = ["MISSING", "Parameter"]
 
 import copy
 from collections.abc import Sequence
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
-from typing import Any
+from typing import Any, Union
 
 import astropy.units as u
 
@@ -33,13 +31,13 @@ class _UnitField:
     # TODO: rm this class when py3.13+ allows for `field(converter=...)`
 
     def __get__(
-        self, obj: Parameter | None, objcls: type[Parameter] | None
+        self, obj: Union["Parameter", None], objcls: type["Parameter"] | None
     ) -> u.Unit | None:
         if obj is None:  # calling `Parameter.unit` from the class
             return None
         return getattr(obj, "_unit", None)
 
-    def __set__(self, obj: Parameter, value: Any) -> None:
+    def __set__(self, obj: "Parameter", value: Any) -> None:
         object.__setattr__(obj, "_unit", u.Unit(value) if value is not None else None)
 
 
@@ -48,13 +46,13 @@ class _FValidateField:
     default: FValidateCallable | str = "default"
 
     def __get__(
-        self, obj: Parameter | None, objcls: type[Parameter] | None
+        self, obj: Union["Parameter", None], objcls: type["Parameter"] | None
     ) -> FValidateCallable | str:
         if obj is None:  # calling `Parameter.fvalidate` from the class
             return self.default
         return obj._fvalidate  # calling `Parameter.fvalidate` from an instance
 
-    def __set__(self, obj: Parameter, value: Any) -> None:
+    def __set__(self, obj: "Parameter", value: Any) -> None:
         # Always store input fvalidate.
         object.__setattr__(obj, "_fvalidate_in", value)
 
