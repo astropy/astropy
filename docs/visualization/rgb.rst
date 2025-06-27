@@ -22,8 +22,8 @@ for floats (or 0-255 for integers); values outside that range will be clipped.
 RGB images using the Lupton et al (2004) scheme
 ===============================================
 
-`Lupton et al. (2004)`_ describe an "optimal" algorithm for producing red-green-
-blue composite images from three separate high-dynamic range arrays. This method
+`Lupton et al. (2004)`_ describe an "optimal" algorithm for producing
+red-green-blue composite images from three separate high-dynamic range arrays. This method
 is implemented in :func:`~astropy.visualization.make_lupton_rgb` as a convenience
 wrapper function and an associated set of classes to provide alternate scalings.
 The SDSS SkyServer color images were made using a variation on this technique.
