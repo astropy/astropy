@@ -2,6 +2,7 @@
 # the mix-in class on its own (since it's not functional without being used as
 # a mix-in)
 
+import re
 import warnings
 
 import numpy as np
@@ -28,7 +29,7 @@ from astropy.time import Time
 from astropy.units import Quantity, UnitsWarning
 from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.wcs._wcs import __version__ as wcsver
 from astropy.wcs.wcs import WCS, FITSFixedWarning, NoConvergence, Sip
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES, custom_ctype_to_ucd_mapping
@@ -1098,7 +1099,7 @@ def test_different_ctypes(header_spectral_frames, ctype3, observer):
     else:
         header["CUNIT3"] = ""
 
-    header["RESTWAV"] = 1.420405752e09
+    header["RESTWAV"] = 0.21106114
     header["MJD-OBS"] = 55197
 
     if observer:
@@ -1185,7 +1186,7 @@ def test_spectral_1d(header_spectral_1d, ctype1, observer):
     else:
         header["CUNIT1"] = ""
 
-    header["RESTWAV"] = 1.420405752e09
+    header["RESTWAV"] = 0.21106114
     header["MJD-OBS"] = 55197
 
     if observer:
@@ -1567,8 +1568,12 @@ def test_restfrq_restwav():
         }
     )
 
-    with pytest.raises(
-        ValueError,
-        match="restfrq=295000000.0 Hz and restwav=1.0 m=299792458.0 Hz are not consistent to 10^-4 or better precision",
+    # Once we switch from a deprecation warning to an exception, convert the
+    # following to pytest.raises
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=re.escape(
+            "restfrq=295000000.0 Hz and restwav=1.0 m=299792458.0 Hz are not consistent to rtol=1e-4"
+        ),
     ):
         scoord3 = wcs.pixel_to_world(5)
