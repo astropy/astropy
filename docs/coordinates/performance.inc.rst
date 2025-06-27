@@ -204,7 +204,7 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
     n_coords = 10_000
     time_delta = 1 * u.hour
     # n_coords times randomly distributed over time_delta
-    t = Time('2020-01-01T20:00:00') + rng.uniform(0, 1, n_coords) * time_delta
+    t = Time('2020-01-01T20:00:00') + rng.random(n_coords) * time_delta
 
     location = EarthLocation(
         lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m
@@ -263,7 +263,7 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
             'o', label=f'{p}%', color='C1', alpha=p / 100,
         )
 
-    ax1.set_title(f'Transformation of SkyCoord with {n_coords} obstimes over {time_delta}')
+    ax1.set_title(f'Transformation of SkyCoord with {n_coords:,} obstimes over {time_delta}')
 
     ax1.legend()
     ax1.set_xscale('log')
