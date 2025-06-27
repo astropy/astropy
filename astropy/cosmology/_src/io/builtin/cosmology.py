@@ -13,15 +13,9 @@ are present mainly for completeness and testing.
     True
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from astropy.cosmology._src.core import _COSMOLOGY_CLASSES, Cosmology
+from astropy.cosmology._src.typing import _CosmoT
 from astropy.cosmology.io import convert_registry
-
-if TYPE_CHECKING:
-    from astropy.cosmology._src.typing import _CosmoT
 
 __all__: list[str] = []  # nothing is publicly scoped
 
