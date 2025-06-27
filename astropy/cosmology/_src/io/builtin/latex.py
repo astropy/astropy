@@ -54,25 +54,18 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     >>> temp_dir.cleanup()
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import Any, TypeVar
 
 import astropy.units as u
-from astropy.table import QTable
-
-# isort: split
 from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import readwrite_registry
 from astropy.cosmology._src.parameter import Parameter
+from astropy.io.typing import PathLike, WriteableFileLike
+from astropy.table import QTable, Table
 
 from .table import to_table
 
-if TYPE_CHECKING:
-    from astropy.io.typing import PathLike, WriteableFileLike
-    from astropy.table import Table
-
-    _TableT = TypeVar("_TableT", Table)
+_TableT = TypeVar("_TableT", bound=Table)
 
 _FORMAT_TABLE = {
     "H0": "$H_0$",

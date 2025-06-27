@@ -1,15 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 __all__: list[str] = ["ParametersAttribute"]
 
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn, Union
 
 if TYPE_CHECKING:
-    from astropy.cosmology import Cosmology
+    import astropy.cosmology
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,7 +52,9 @@ class ParametersAttribute:
         object.__setattr__(self, "_name", name)
 
     def __get__(
-        self, instance: Cosmology | None, owner: type[Cosmology] | None
+        self,
+        instance: Union["astropy.cosmology.Cosmology", None],
+        owner: type["astropy.cosmology.Cosmology"] | None,
     ) -> MappingProxyType[str, Any]:
         # Called from the class
         if instance is None:
