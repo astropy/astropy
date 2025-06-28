@@ -264,6 +264,32 @@ def _get_unit_format(config):
     return format
 
 
+def _attach_default_config(votable, config) -> dict:
+    """Create default config if none given.
+
+    Parameters
+    ----------
+    votable
+        Object that might potentially have a config attached to it.
+    config : `dict` or `None`
+        Config to be used or defined.
+
+    Returns
+    -------
+    config : `dict`
+        If config was `None` this will be a new `dict`. If the ``votable``
+        supported version checks then version information will be stored in
+        the returned `dict`. If it was defined this will be the given
+        parameter unchanged.
+    """
+    if config is None:
+        if hasattr(votable, "_get_version_checks"):
+            config = votable._get_version_checks()
+        else:
+            config = {}
+    return config
+
+
 ######################################################################
 # ATTRIBUTE CHECKERS
 def check_astroyear(year, field, config=None, pos=None):
@@ -1325,12 +1351,7 @@ class Field(
         pos=None,
         **extra,
     ):
-        if config is None:
-            if hasattr(votable, "_get_version_checks"):
-                config = votable._get_version_checks()
-            else:
-                config = {}
-        self._config = config
+        self._config = _attach_default_config(votable, config)
         self._pos = pos
 
         SimpleElement.__init__(self)
@@ -2492,18 +2513,18 @@ class TableElement(
         pos=None,
         **extra,
     ):
-        if config is None:
-            config = {}
-        self._config = config
+        self._config = _attach_default_config(votable, config)
         self._pos = pos
         self._empty = False
 
         Element.__init__(self)
         self._votable = votable
 
-        self.ID = resolve_id(ID, id, config, pos) or xmlutil.fix_id(name, config, pos)
+        self.ID = resolve_id(ID, id, self._config, pos) or xmlutil.fix_id(
+            name, self._config, pos
+        )
         self.name = name
-        xmlutil.check_id(ref, "ref", config, pos)
+        xmlutil.check_id(ref, "ref", self._config, pos)
         self._ref = ref
         self.ucd = ucd
         self.utype = utype
@@ -2524,7 +2545,7 @@ class TableElement(
 
         self.array = ma.array([])
 
-        warn_unknown_attrs("TABLE", extra.keys(), config, pos)
+        warn_unknown_attrs("TABLE", extra.keys(), self._config, pos)
 
     def __repr__(self):
         s = repr(self.to_table())
@@ -4125,8 +4146,15 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     """
 
     def __init__(self, ID=None, id=None, config=None, pos=None, version="1.4"):
+        version = str(version)
+        if version not in self._version_namespace_map:
+            allowed_from_map = "', '".join(self._version_namespace_map)
+            raise ValueError(f"'version' should be in ('{allowed_from_map}').")
+
+        self._version = version
+
         if config is None:
-            config = {}
+            config = self._get_version_checks()
         self._config = config
         self._pos = pos
 
@@ -4140,13 +4168,6 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._infos = HomogeneousList(Info)
         self._resources = HomogeneousList(Resource)
         self._groups = HomogeneousList(Group)
-
-        version = str(version)
-        if version not in self._version_namespace_map:
-            allowed_from_map = "', '".join(self._version_namespace_map)
-            raise ValueError(f"'version' should be in ('{allowed_from_map}').")
-
-        self._version = version
 
     def __repr__(self):
         n_tables = len(list(self.iter_tables()))
