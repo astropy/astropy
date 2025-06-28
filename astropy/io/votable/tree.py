@@ -2628,12 +2628,13 @@ class TableElement(
         if format == "binary2":
             if not self._config.get("version_1_3_or_later"):
                 vo_raise(
+                    W37,
                     "binary2 only supported in votable 1.3 or later",
                     self._config,
                     self._pos,
                 )
         elif format not in ("tabledata", "binary"):
-            vo_raise(f"Invalid format '{format}'", self._config, self._pos)
+            vo_raise(W37, f"Invalid format '{format}'", self._config, self._pos)
         self._format = format
 
     @property
