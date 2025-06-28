@@ -11,7 +11,7 @@ from astropy.modeling.core import SPECIAL_OPERATORS, CompoundModel
 from astropy.nddata import support_nddata
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.console import human_file_size
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from ._convolve import _convolveNd_c
 from .core import MAX_NORMALIZATION, Kernel, Kernel1D, Kernel2D
@@ -773,8 +773,11 @@ def convolve_fft(
         normalized_kernel = kernel / kernel_scale
         kernel_scale = 1  # if we want to normalize it, leave it normed!
     elif normalize_kernel:
-        # try this.  If a function is not passed, the code will just crash... I
-        # think type checking would be better but PEPs say otherwise...
+        if nan_treatment == "interpolate":
+            warnings.warn(
+                "Kernel normalization with a function is deprecated if nan interpolation is set, as it produces inconsistencies between convolve_fft and convolve and no use cases are known.  If you are using this, please open an issue at https://github.com/astropy/astropy/issues.",
+                AstropyDeprecationWarning,
+            )
         kernel_scale = normalize_kernel(kernel)
         normalized_kernel = kernel / kernel_scale
     else:
