@@ -2082,7 +2082,7 @@ class TimeSys(SimpleElement):
 
         # TIMESYS is supported starting in version 1.4
         if not config.get("version_1_4_or_later"):
-            warn_or_raise(W54, W54, config["version"], config, pos)
+            warn_or_raise(W54, W54, config.get("version", "unknown"), config, pos)
 
         SimpleElement.__init__(self)
 
