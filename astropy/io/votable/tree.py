@@ -4358,6 +4358,12 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                         if config["version"] not in self._version_namespace_map:
                             vo_warn(W21, config["version"], config, pos)
 
+                        # Update the configuration of the VOTableFile itself.
+                        # This can not be done via the .version property setter
+                        # because that refuses to allow votable 1.0.
+                        self._config["version"] = config["version"]
+                        self._config.update(self._get_version_checks())
+
                     if "xmlns" in data:
                         ns_info = self._version_namespace_map.get(config["version"], {})
                         correct_ns = ns_info.get("namespace_uri")
