@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import matplotlib.transforms as transforms
 import pytest
@@ -125,7 +125,11 @@ def test_grid_variations(ignore_matplotlibrc, draw_grid, expected_visibility):
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
     transform = transforms.Affine2D().scale(2.0)
-    coord_helper = CoordinateHelper(parent_axes=ax, transform=transform)
+    coord_helper = CoordinateHelper(
+        parent_axes=ax,
+        transform=transform,
+        frame=MagicMock(),
+    )
     coord_helper.grid(draw_grid=draw_grid)
     assert coord_helper._grid_lines_kwargs["visible"] == expected_visibility
 
@@ -173,7 +177,10 @@ def test_deprecated_getters():
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
 
-    helper = CoordinateHelper(parent_axes=ax)
+    helper = CoordinateHelper(
+        parent_axes=ax,
+        frame=MagicMock(),
+    )
 
     with pytest.warns(AstropyDeprecationWarning):
         ticks = helper.ticks
@@ -205,3 +212,53 @@ def test_set_major_formatter():
 
     ax.coords[1].set_major_formatter("dd:mm:ss.s", show_decimal_unit=False)
     assert ax.coords[1].format_coord(4) == "4\xb000'00.0\""
+
+
+def test_set_position_invalid():
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['x'\], should be one of b/r/t/l",
+    ):
+        ax.coords[0].set_ticks_position("xl")
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['o'\], should be one of b/r/t/l",
+    ):
+        ax.coords[1].set_ticklabel_position("to")
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['q', 'p'\], should be one of b/r/t/l",
+    ):
+        ax.coords[1].set_axislabel_position("qbp")
+
+    assert ax.coords[0].get_ticks_position() == ["l"]
+    assert ax.coords[1].get_ticklabel_position() == ["t"]
+    assert ax.coords[1].get_axislabel_position() == ["b"]
+
+
+def test_set_position_invalid_gridline():
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+
+    ax.coords[0].add_tickable_gridline("my-grid-line", -30 * u.one)
+
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['my-parrot-line'\]",
+    ):
+        ax.coords[1].set_ticks_position(["my-grid-line", "my-parrot-line"])
+
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"It looks like 'my-grid-line' matches the name of a single axis. If "
+        r"you are trying to specify a multi-character axis name, use a list "
+        r"or a tuple, e.g. \('my-grid-line',\).",
+    ):
+        ax.coords[1].set_ticks_position("my-grid-line")
