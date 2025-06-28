@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from astropy.io.votable import tree
-from astropy.io.votable.exceptions import E26, W07, W08, W21, W27, W37, W41, W54, W57
+from astropy.io.votable.exceptions import E26, W07, W08, W15, W21, W27, W37, W41, W47, W54, W57
 from astropy.io.votable.table import parse
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
 from astropy.utils.data import get_pkg_data_filename
@@ -665,3 +665,14 @@ def test_version_checks_from_api():
 
     votable = VOTableFile(version="1.5", config=config)
     _ = tree.CooSys("REF", system="ICRS", refposition="Something", config=votable.config)
+
+    # Param construction will warn less if v1.0 and no name.
+    # Must use internal API to force 1.0 version.
+    votable._version = "1.0"
+    votable._config.update(votable._get_version_checks())
+    with pytest.warns(W47):
+        tree.Param(votable, ID="REF")
+
+    votable.version = "1.3"
+    with pytest.warns((W47, W15)):
+        tree.Param(votable, ID="REF", datatype="int")
