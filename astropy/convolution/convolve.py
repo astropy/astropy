@@ -321,7 +321,7 @@ def convolve(
     # computation. Since nan_treatment = 'interpolate', is the default
     # check whether it is even needed, if not, don't interpolate.
     # NB: np.isnan(array_internal.sum()) is faster than np.isnan(array_internal).any()
-    nan_interpolate = (nan_treatment == "interpolate") and np.isnan(
+    nan_interpolate = (nan_treatment == "interpolate") and ~np.isfinite(
         array_internal.sum()
     )
 
@@ -352,7 +352,7 @@ def convolve(
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
     if preserve_nan or nan_treatment == "fill":
-        initially_nan = np.isnan(array_internal)
+        initially_nan = ~np.isfinite(array_internal)
         if nan_treatment == "fill":
             array_internal[initially_nan] = fill_value
 
@@ -424,7 +424,7 @@ def convolve(
     elif nan_interpolate:
         result *= kernel_sum
 
-    if nan_interpolate and not preserve_nan and np.isnan(result.sum()):
+    if nan_interpolate and not preserve_nan and ~np.isfinite(result.sum()):
         warnings.warn(
             "nan_treatment='interpolate', however, NaN values detected "
             "post convolution. A contiguous region of NaN values, larger "
@@ -752,12 +752,12 @@ def convolve_fft(
         )
 
     # NaN and inf catching
-    nanmaskarray = np.isnan(array) | np.isinf(array)
+    nanmaskarray = ~np.isfinite(array)
     if nan_treatment == "fill":
         array[nanmaskarray] = fill_value
     else:
         array[nanmaskarray] = 0
-    nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
+    nanmaskkernel = ~np.isfinite(kernel)
     kernel[nanmaskkernel] = 0
 
     if normalize_kernel is True:
@@ -928,7 +928,7 @@ def convolve_fft(
     else:
         bigimwt = 1
 
-    if np.isnan(fftmult).any():
+    if (~np.isfinite(fftmult)).any():
         # this check should be unnecessary; call it an insanity check
         raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
 
@@ -987,7 +987,7 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
         A copy of the original array with NaN pixels replaced with their
         interpolated counterparts
     """
-    if not np.any(np.isnan(array)):
+    if not np.any(~np.isfinite(array)):
         return array.copy()
 
     newarray = array.copy()
@@ -1001,7 +1001,7 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
         **kwargs,
     )
 
-    isnan = np.isnan(array)
+    isnan = ~np.isfinite(array)
     newarray[isnan] = convolved[isnan]
 
     return newarray
