@@ -37,6 +37,8 @@ processing, and data analysis.
 
    index_getting_started
    index_user_docs
+   index_astropy_learn
+   index_coordinated_packages
    index_dev
    index_project_details
 
@@ -79,6 +81,42 @@ processing, and data analysis.
             :click-parent:
 
             To the user guide
+
+    .. grid-item-card::
+        :img-top: _static/index-images/api.svg
+        :text-align: center
+
+        Learn Astropy
+        ^^^^^^^^^^^^^
+
+        Describe Learn Astropy.
+
+        +++
+
+        .. button-ref:: index_astropy_learn
+            :expand:
+            :color: primary
+            :click-parent:
+
+            To the astropy learn details
+
+    .. grid-item-card::
+        :img-top: _static/index-images/contributor.svg
+        :text-align: center
+
+        Coordinated packages
+        ^^^^^^^^^^^^^^^^^^^^
+
+        There are many nice coordinated packages.
+
+        +++
+
+        .. button-ref:: index_coordinated_packages
+            :expand:
+            :color: primary
+            :click-parent:
+
+            To a page with coordinated packages.
 
     .. grid-item-card::
         :img-top: _static/index-images/contributor.svg
