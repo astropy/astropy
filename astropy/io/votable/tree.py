@@ -688,7 +688,7 @@ class Link(SimpleElement, _IDProperty):
     @content_role.setter
     def content_role(self, content_role):
         if (
-            content_role == "type" and not self._config["version_1_3_or_later"]
+            content_role == "type" and not self._config.get("version_1_3_or_later")
         ) or content_role not in (None, "query", "hints", "doc", "location"):
             vo_warn(W45, (content_role,), self._config, self._pos)
         self._content_role = content_role
@@ -1335,7 +1335,7 @@ class Field(
 
         SimpleElement.__init__(self)
 
-        if config.get("version_1_2_or_later"):
+        if self._config.get("version_1_2_or_later"):
             self._attr_list = self._attr_list_12
         else:
             self._attr_list = self._attr_list_11
@@ -1350,7 +1350,7 @@ class Field(
         # to store character data, or we can't read it in.  A warning
         # will be raised when this happens.
         if (
-            config.get("verify", "ignore") != "exception"
+            self._config.get("verify", "ignore") != "exception"
             and name == "cprojection"
             and ID == "cprojection"
             and ucd == "VOX:WCS_CoordProjection"
@@ -1367,7 +1367,9 @@ class Field(
         self.ID = resolve_id(ID, id, config, pos) or xmlutil.fix_id(name, config, pos)
         self.name = name
         if name is None:
-            if self._element_name == "PARAM" and not config.get("version_1_1_or_later"):
+            if self._element_name == "PARAM" and not self._config.get(
+                "version_1_1_or_later"
+            ):
                 pass
             else:
                 warn_or_raise(W15, W15, self._element_name, config, pos)
@@ -1389,7 +1391,7 @@ class Field(
             "unsignedShort": "int",
         }
 
-        datatype_mapping.update(config.get("datatype_mapping", {}))
+        datatype_mapping.update(self._config.get("datatype_mapping", {}))
 
         if datatype in datatype_mapping:
             warn_or_raise(W13, W13, (datatype, datatype_mapping[datatype]), config, pos)
@@ -2058,7 +2060,7 @@ class TimeSys(SimpleElement):
         self._pos = pos
 
         # TIMESYS is supported starting in version 1.4
-        if not config["version_1_4_or_later"]:
+        if not config.get("version_1_4_or_later"):
             warn_or_raise(W54, W54, config["version"], config, pos)
 
         SimpleElement.__init__(self)
@@ -2603,7 +2605,7 @@ class TableElement(
                 NotImplementedError,
             )
         if format == "binary2":
-            if not self._config["version_1_3_or_later"]:
+            if not self._config.get("version_1_3_or_later"):
                 vo_raise(
                     "binary2 only supported in votable 1.3 or later",
                     self._config,
@@ -2908,7 +2910,7 @@ class TableElement(
                         1, iterator, colnumbers, config, pos
                     )
                 elif tag == "BINARY2":
-                    if not config["version_1_3_or_later"]:
+                    if not config.get("version_1_3_or_later"):
                         warn_or_raise(W52, W52, config["version"], config, pos)
                     self.array = self._parse_binary(
                         2, iterator, colnumbers, config, pos
