@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from astropy.io.votable import tree
-from astropy.io.votable.exceptions import E26, W07, W08, W21, W37, W41
+from astropy.io.votable.exceptions import E26, W07, W08, W21, W27, W37, W41, W54, W57
 from astropy.io.votable.table import parse
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
 from astropy.utils.data import get_pkg_data_filename
@@ -643,3 +643,25 @@ def test_version_checks_from_api():
 
     with pytest.raises(NotImplementedError):
         votable.set_all_tables_format("fits")
+
+    # Check TimeSys can be created (requires version config check).
+    # Force exception to make it easier to test.
+    config = {"verify": "exception"}
+    votable = VOTableFile(version="1.4", config=config)
+    _ = tree.TimeSys("REF", timescale="UTC", config=votable.config)
+
+    votable = VOTableFile(version="1.1", config=config)
+    with pytest.raises(W54):
+        tree.TimeSys("REF", timescale="UTC", config=votable.config)
+
+    # CooSys was deprecated only in v1.2 and refposition only allowed in 1.5.
+    votable = VOTableFile(version="1.2", config=config)
+    with pytest.raises(W27):
+        tree.CooSys("REF", system="ICRS", config=votable.config)
+
+    votable = VOTableFile(version="1.4", config=config)
+    with pytest.raises(W57):
+        tree.CooSys("REF", system="ICRS", refposition="Something", config=votable.config)
+
+    votable = VOTableFile(version="1.5", config=config)
+    _ = tree.CooSys("REF", system="ICRS", refposition="Something", config=votable.config)
