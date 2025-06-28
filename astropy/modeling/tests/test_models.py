@@ -43,17 +43,19 @@ fitters = [
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
-def test_custom_model(fitter, amplitude=4, frequency=1):
-    fitter = fitter()
+@pytest.mark.parametrize("fitter_factory", fitters)
+def test_custom_model(fitter_factory):
+    fitter = fitter_factory()
+    amplitude = 4
+    frequency = 1
 
-    def sine_model(x, amplitude=4, frequency=1):
+    def sine_model(x, amplitude=amplitude, frequency=frequency):
         """
         Model function
         """
         return amplitude * np.sin(2 * np.pi * frequency * x)
 
-    def sine_deriv(x, amplitude=4, frequency=1):
+    def sine_deriv(x, amplitude=amplitude, frequency=frequency):
         """
         Jacobian of model function, e.g. derivative of the function with
         respect to the *parameters*
