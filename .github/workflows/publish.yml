@@ -40,10 +40,11 @@ jobs:
       # For nightly wheels as well as when building with the 'Build all wheels' label, we disable
       # the build isolation and explicitly install the latest developer version of numpy as well as
       # the latest stable versions of all other build-time dependencies.
+      # EXPERIMENTAL: use numpy-dev for every wheel
       env: |
-        CIBW_BEFORE_BUILD: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip install -U --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple setuptools>=77.0.0 setuptools_scm cython numpy>=0.0.dev0 extension-helpers') || '' }}'
-        CIBW_BUILD_FRONTEND: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip; args: --no-build-isolation') || 'build' }}'
-
+        CIBW_BEFORE_BUILD: 'pip install -U --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple setuptools>=77.0.0 setuptools_scm cython numpy>=0.0.dev0 extension-helpers'
+        CIBW_BUILD_FRONTEND: 'pip; args: --no-build-isolation --pre'
+        CIBW_BEFORE_TEST:  'pip install -U --only-binary ":all:" --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy>=0.0.dev0'
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it
       # currently fails, see https://github.com/astropy/astropy/issues/10409
