@@ -4154,9 +4154,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         self._version = version
 
-        if config is None:
-            config = self._get_version_checks()
-        self._config = config
+        self._config = config.copy() if config is not None else {}
+        # Ensure that the version flags match the version of this VOTableFile
+        # even if external config applied.
+        self._config["version"] = self._version
+        self._config.update(self._get_version_checks())
         self._pos = pos
 
         Element.__init__(self)
@@ -4175,6 +4177,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         return f"<VOTABLE>... {n_tables} tables ...</VOTABLE>"
 
     @property
+    def config(self):
+        """
+        Configuration used to construct this object. Will always include the
+        version check values.
+        """
+        return self._config
+
+    @property
     def version(self):
         """
         The version of the VOTable specification that the file uses.
@@ -4191,6 +4201,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 f" '{allowed_from_map}'"
             )
         self._version = version
+        # Force config update.
+        self._config.update(self._get_version_checks())
+        self._config["version"] = version
 
     @property
     def coordinate_systems(self):
