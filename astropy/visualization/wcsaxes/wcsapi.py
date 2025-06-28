@@ -341,6 +341,9 @@ class WCSWorld2PixelTransform(CurvedTransform):
 
         self.frame_in = wcsapi_to_celestial_frame(wcs)
 
+    def __hash__(self):
+        return hash((type(self), self.wcs, self.invert_xy))
+
     def __eq__(self, other):
         return (
             isinstance(other, type(self))
@@ -402,6 +405,9 @@ class WCSPixel2WorldTransform(CurvedTransform):
         self.invert_xy = invert_xy
 
         self.frame_out = wcsapi_to_celestial_frame(wcs)
+
+    def __hash__(self):
+        return hash((type(self), self.wcs, self.invert_xy))
 
     def __eq__(self, other):
         return (
