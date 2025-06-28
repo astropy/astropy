@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from astropy.io.votable import tree
-from astropy.io.votable.exceptions import E26, W07, W08, W21, W41
+from astropy.io.votable.exceptions import E26, W07, W08, W21, W37, W41
 from astropy.io.votable.table import parse
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
 from astropy.utils.data import get_pkg_data_filename
@@ -616,3 +616,30 @@ def test_mivot_order(tmp_path):
         file.writelines(lines)
 
     assert filecmp.cmp(vpath, vpath_out)
+
+
+def test_version_checks_from_api():
+    """Test that a VOTable can be constructed from APIs without triggering
+    version check failure.
+    """
+    votable = VOTableFile()  # v1.4 by default
+    resource = Resource()
+    votable.resources.append(resource)
+    table0 = tree.TableElement(votable)  # Will now get the version check config.
+    resource.tables.append(table0)
+    # Not allowed in older VOTable formats.
+    votable.set_all_tables_format("binary2")
+
+    with pytest.raises(W37):
+        votable.set_all_tables_format("unknown")
+
+    votable = VOTableFile(version="1.1")
+    resource = Resource()
+    votable.resources.append(resource)
+    table0 = tree.TableElement(votable)
+    resource.tables.append(table0)
+    with pytest.raises(W37):
+        votable.set_all_tables_format("binary2")
+
+    with pytest.raises(NotImplementedError):
+        votable.set_all_tables_format("fits")
