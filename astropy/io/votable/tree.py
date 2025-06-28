@@ -181,10 +181,10 @@ def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
             if element is before:
                 if getattr(element, attr, None) == ref:
                     vo_raise(
+                        KeyError,
                         f"{element_name} references itself",
                         element._config,
                         element._pos,
-                        KeyError,
                     )
                 break
             if getattr(element, attr, None) == ref:
@@ -224,10 +224,10 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
             if element is before:
                 if ref in (element.ID, element.name):
                     vo_raise(
+                        KeyError,
                         f"{element_name} references itself",
                         element._config,
                         element._pos,
-                        KeyError,
                     )
                 break
             if ref in (element.ID, element.name):
@@ -2250,7 +2250,7 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
         for field in self._table._votable.iter_fields_and_params():
             if isinstance(field, Field) and field.ID == self.ref:
                 return field
-        vo_raise(f"No field named '{self.ref}'", self._config, self._pos, KeyError)
+        vo_raise(KeyError, f"No field named '{self.ref}'", self._config, self._pos)
 
 
 class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
@@ -2315,7 +2315,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
         for param in self._table._votable.iter_fields_and_params():
             if isinstance(param, Param) and param.ID == self.ref:
                 return param
-        vo_raise(f"No params named '{self.ref}'", self._config, self._pos, KeyError)
+        vo_raise(KeyError, f"No params named '{self.ref}'", self._config, self._pos)
 
 
 class Group(
@@ -2620,10 +2620,10 @@ class TableElement(
         format = format.lower()
         if format == "fits":
             vo_raise(
+                NotImplementedError,
                 "fits format can not be written out, only read.",
                 self._config,
                 self._pos,
-                NotImplementedError,
             )
         if format == "binary2":
             if not self._config.get("version_1_3_or_later"):
@@ -3134,10 +3134,10 @@ class TableElement(
             vo_prot = ("http", "https", "ftp", "file")
             if not href.startswith(vo_prot):
                 vo_raise(
+                    NotImplementedError,
                     f"The vo package only supports remote data through {vo_prot}",
                     self._config,
                     self._pos,
-                    NotImplementedError,
                 )
             fd = urllib.request.urlopen(href)
             if encoding is not None:
@@ -3147,10 +3147,10 @@ class TableElement(
                     fd = codecs.EncodedFile(fd, "base64")
                 else:
                     vo_raise(
+                        NotImplementedError,
                         f"Unknown encoding type '{encoding}'",
                         self._config,
                         self._pos,
-                        NotImplementedError,
                     )
             read = fd.read
 
@@ -3248,10 +3248,10 @@ class TableElement(
 
         if not href.startswith(("http", "ftp", "file")):
             vo_raise(
+                NotImplementedError,
                 "The vo package only supports remote data through http, ftp or file",
                 self._config,
                 self._pos,
-                NotImplementedError,
             )
 
         fd = urllib.request.urlopen(href)
@@ -3262,10 +3262,10 @@ class TableElement(
                 fd = codecs.EncodedFile(fd, "base64")
             else:
                 vo_raise(
+                    NotImplementedError,
                     f"Unknown encoding type '{encoding}'",
                     self._config,
                     self._pos,
-                    NotImplementedError,
                 )
         hdulist = fits.open(fd)
 
@@ -3302,10 +3302,10 @@ class TableElement(
 
         if not href.startswith(("http", "ftp", "file")):
             vo_raise(
+                NotImplementedError,
                 "The vo package only supports remote data through http, ftp or file",
                 self._config,
                 self._pos,
-                NotImplementedError,
             )
 
         try:
@@ -3330,10 +3330,10 @@ class TableElement(
                     fd = codecs.EncodedFile(fd, "base64")
                 else:
                     vo_raise(
+                        NotImplementedError,
                         f"Unknown encoding type '{encoding}'",
                         self._config,
                         self._pos,
-                        NotImplementedError,
                     )
 
             array = Table.read(fd, format="parquet")
