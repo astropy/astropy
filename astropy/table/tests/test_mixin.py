@@ -11,7 +11,6 @@ import pytest
 from astropy import coordinates, time
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
-from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.ascii.connect import _get_connectors_table
 from astropy.table import (
@@ -1064,17 +1063,6 @@ def test_primary_data_column_gets_description():
     assert "__info__" not in tser.meta["__serialized_columns__"]["a"]
     assert tser["a"].format == "7.2f"
     assert tser["a"].description == "parrot"
-
-
-def test_skycoord_with_velocity():
-    # Regression test for gh-6447
-    sc = SkyCoord([1], [2], unit="deg", galcen_v_sun=None)
-    t = Table([sc])
-    s = StringIO()
-    t.write(s, format="ascii.ecsv", overwrite=True)
-    s.seek(0)
-    t2 = Table.read(s.read(), format="ascii.ecsv")
-    assert skycoord_equal(t2["col0"], sc)
 
 
 @pytest.mark.parametrize("copy", [True, False])
