@@ -164,12 +164,34 @@ def test_write_full():
     assert out.getvalue().splitlines() == lines
 
 
+def test_read_float128_pyarrow_fail():
+    text = """
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: col0, datatype: float128}
+# schema: astropy-2.0
+col0
+1.5
+"""
+    with pytest.raises(
+        TypeError,
+        match="pyarrow engine does not support float128, choose a different engine",
+    ):
+        Table.read(text, format="ecsv", engine="pyarrow")
+
+
 def test_write_read_roundtrip(format_engine):
     """
     Write a full-featured table with all types and see that it round-trips on
     readback.  Use both space and comma delimiters.
     """
-    t = T_DTYPES
+    t = T_DTYPES.copy()
+
+    # pyarrow does not support float128 and there is no workaround
+    if format_engine.get("engine") == "pyarrow" and "float128" in t.colnames:
+        del t["float128"]
+
     for delimiter in DELIMITERS:
         out = StringIO()
         t.write(out, format="ascii.ecsv", delimiter=delimiter)

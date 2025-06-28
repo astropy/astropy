@@ -304,6 +304,12 @@ class ECSVEnginePyArrow(ECSVEngine):
     format = "pyarrow.csv"
 
     def convert_np_type(self, np_type: str) -> str:
+        # PyArrow does not support float128 and there is no workaround (unlike float16).
+        if np_type == "float128":
+            raise TypeError(
+                "pyarrow engine does not support float128, choose a different engine"
+            )
+
         # PyArrow does not support float16, so we need to convert it to float32.
         # The final output is still cast as float16.
         return "float32" if np_type == "float16" else np_type
