@@ -150,80 +150,63 @@ def test_frame_multiple_inheritance_attribute_descriptor():
     assert Frame5.frame_attributes["attr2"] is Frame4.frame_attributes["attr2"]
 
 
-class TestDifferentialAttribute:
-    @classmethod
-    def setup_class(cls):
-        # Test logic of passing input through to allowed class
-        cls.vel = [1, 2, 3] * u.km / u.s
-        cls.dif = r.CartesianDifferential(cls.vel)
+def test_differentialattribute():
+    # Test logic of passing input through to allowed class
+    vel = [1, 2, 3] * u.km / u.s
+    dif = r.CartesianDifferential(vel)
 
-        class TestFrame(BaseCoordinateFrame):
-            attrtest = DifferentialAttribute(
-                default=cls.dif,
-                allowed_classes=[r.CartesianDifferential],
-            )
+    class TestFrame(BaseCoordinateFrame):
+        attrtest = DifferentialAttribute(
+            default=dif, allowed_classes=[r.CartesianDifferential]
+        )
 
-        cls.TestFrame = TestFrame
+    frame1 = TestFrame()
+    frame2 = TestFrame(attrtest=dif)
+    frame3 = TestFrame(attrtest=vel)
 
-    def test_setting(self):
-        frame1 = self.TestFrame()
-        frame2 = self.TestFrame(attrtest=self.dif)
-        frame3 = self.TestFrame(attrtest=self.vel)
+    assert np.all(frame1.attrtest.d_xyz == frame2.attrtest.d_xyz)
+    assert np.all(frame1.attrtest.d_xyz == frame3.attrtest.d_xyz)
 
-        assert np.all(frame1.attrtest.d_xyz == frame2.attrtest.d_xyz)
-        assert np.all(frame1.attrtest.d_xyz == frame3.attrtest.d_xyz)
+    # This shouldn't work if there is more than one allowed class:
+    class TestFrame2(BaseCoordinateFrame):
+        attrtest = DifferentialAttribute(
+            default=dif,
+            allowed_classes=[r.CartesianDifferential, r.CylindricalDifferential],
+        )
 
-    def test_set_with_wrong_unit(self):
-        with pytest.raises(u.UnitTypeError, match="units equivalent to 'km / s'"):
-            self.TestFrame(attrtest=r.CartesianDifferential([1, 2, 3] * u.m))
-
-        class TestFrame2(BaseCoordinateFrame):
-            # No default, but explicit unit.
-            attrtest = DifferentialAttribute(unit=u.km / u.s)
-
-        with pytest.raises(u.UnitTypeError, match="units equivalent to 'km / s'"):
-            TestFrame2(attrtest=r.CartesianDifferential([1, 2, 3] * u.m))
-
-    def test_diffrep_with_multiple_classes(self):
-        class TestFrame2(BaseCoordinateFrame):
-            attrtest = DifferentialAttribute(
-                default=self.dif,
-                allowed_classes=[r.CartesianDifferential, r.CylindricalDifferential],
-            )
-
-        frame1 = TestFrame2()
-        frame2 = TestFrame2(attrtest=self.dif)
-        with pytest.raises(TypeError, match="unsupported Differential type"):
-            TestFrame2(attrtest=self.vel)
-
-    def test_initialize_with_wrong_class(self):
-        with pytest.raises(TypeError, match="unsupported Differential type"):
-
-            class TestFrame(BaseCoordinateFrame):
-                attrtest = DifferentialAttribute(
-                    default=self.dif,
-                    allowed_classes=[
-                        r.CylindricalDifferential,
-                        r.SphericalDifferential,
-                    ],
-                )
-
-    def test_initialize_with_wrong_unit(self):
-        with pytest.raises(u.UnitTypeError, match="units equivalent to 'm'"):
-
-            class TestFrame(BaseCoordinateFrame):
-                attrtest = DifferentialAttribute(default=self.dif, unit=u.m)
+    frame1 = TestFrame2()
+    frame2 = TestFrame2(attrtest=dif)
+    with pytest.raises(TypeError):
+        TestFrame2(attrtest=vel)
 
 
-def test_galactocentric_wrong_units_for_v_sun():
-    # Regression test for gh-17969.
-    with pytest.raises(u.UnitTypeError, match="units equivalent to 'km / s'"):
-        Galactocentric(galcen_distance=8.34 * u.kpc, galcen_v_sun=[12.9, 10.0, 7.78])
+@pytest.mark.parametrize(
+    "frame, vel_name, extra_kwargs",
+    [
+        (Galactocentric, "galcen_v_sun", {"galcen_distance": 8.34 * u.kpc}),
+        (LSR, "v_bary", {}),
+    ],
+)
+class TestCartesianVelocity:
+    def test_wrong_units_for_v_sun(self, frame, vel_name, extra_kwargs):
+        # Regression test for gh-17969.  No unit and wrong unit give different errors.
+        kwargs = {vel_name: [12.0, 11.0, 10.0]} | extra_kwargs
+        with pytest.raises(TypeError, match="set.*not have a unit"):
+            frame(**kwargs)
 
+        kwargs[vel_name] *= u.km
+        with pytest.raises(
+            u.UnitConversionError, match="'km'.*and 'km / s'.*convertible"
+        ):
+            frame(**kwargs)
 
-def test_lsr_wrong_unit_for_v_bary():
-    with pytest.raises(u.UnitTypeError, match="units equivalent to 'km / s'"):
-        LSR(v_bary=[12.9, 10.0, 7.78])
+    def test_using_differential_representation(self, frame, vel_name, extra_kwargs):
+        # For backward compatibility, allow DifferentialRepresentation.
+        kwargs = {vel_name: [12.0, 11.0, 10.0] * u.km / u.s} | extra_kwargs
+        exp = frame(**kwargs)
+        kwargs[vel_name] = r.CartesianDifferential(kwargs[vel_name])
+        got = frame(**kwargs)
+        assert got == exp
 
 
 def test_create_data_frames():
