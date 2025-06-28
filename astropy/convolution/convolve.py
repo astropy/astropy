@@ -735,6 +735,8 @@ def convolve_fft(
         kernel, dtype=complex, order="C", nan_treatment=None, mask=None, fill_value=0
     )
 
+    nan_interpolate = (nan_treatment == "interpolate") and ~np.isfinite(array.sum())
+
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
         raise ValueError("Image and kernel must have same number of dimensions")
@@ -773,7 +775,7 @@ def convolve_fft(
         normalized_kernel = kernel / kernel_scale
         kernel_scale = 1  # if we want to normalize it, leave it normed!
     elif normalize_kernel:
-        if nan_treatment == "interpolate":
+        if nan_interpolate:
             warnings.warn(
                 "Kernel normalization with a function is deprecated if nan interpolation is set, as it produces inconsistencies between convolve_fft and convolve and no use cases are known.  If you are using this, please open an issue at https://github.com/astropy/astropy/issues.",
                 AstropyDeprecationWarning,
@@ -783,7 +785,7 @@ def convolve_fft(
     else:
         kernel_scale = kernel.sum()
         if np.abs(kernel_scale) < normalization_zero_tol:
-            if nan_treatment == "interpolate":
+            if nan_interpolate:
                 raise ValueError(
                     "Cannot interpolate NaNs with an unnormalizable kernel"
                 )
@@ -912,14 +914,13 @@ def convolve_fft(
     kernfft = fftn(np.fft.ifftshift(bigkernel))
     fftmult = arrayfft * kernfft
 
-    interpolate_nan = nan_treatment == "interpolate"
-    if interpolate_nan:
+    if nan_interpolate:
         if not np.isfinite(fill_value):
             bigimwt = np.zeros(newshape, dtype=complex_dtype)
         else:
             bigimwt = np.ones(newshape, dtype=complex_dtype)
 
-        bigimwt[arrayslices] = 1.0 - nanmaskarray * interpolate_nan
+        bigimwt[arrayslices] = 1.0 - nanmaskarray
         wtfft = fftn(bigimwt)
 
         # You can only get to this point if kernel_is_normalized
@@ -943,7 +944,7 @@ def convolve_fft(
     if return_fft:
         return fftmult
 
-    if interpolate_nan:
+    if nan_interpolate:
         with np.errstate(divide="ignore", invalid="ignore"):
             # divide by zeros are expected here; if the weight is zero, we want
             # the output to be nan or inf
