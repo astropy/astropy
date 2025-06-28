@@ -4147,18 +4147,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     """
 
     def __init__(self, ID=None, id=None, config=None, pos=None, version="1.4"):
-        version = str(version)
-        if version not in self._version_namespace_map:
-            allowed_from_map = "', '".join(self._version_namespace_map)
-            raise ValueError(f"'version' should be in ('{allowed_from_map}').")
-
-        self._version = version
-
         self._config = config.copy() if config is not None else {}
-        # Ensure that the version flags match the version of this VOTableFile
-        # even if external config applied.
-        self._config["version"] = self._version
-        self._config.update(self._get_version_checks())
+
+        # Version setter forces the associated version config settings to
+        # be calculated.
+        self.version = version
         self._pos = pos
 
         Element.__init__(self)
@@ -4197,8 +4190,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         if version not in self._version_namespace_map:
             allowed_from_map = "', '".join(self._version_namespace_map)
             raise ValueError(
-                "astropy.io.votable only supports VOTable versions"
-                f" '{allowed_from_map}'"
+                "astropy.io.votable version should be in"
+                f" ('{allowed_from_map}')."
             )
         self._version = version
         # Force config update.

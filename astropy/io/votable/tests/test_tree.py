@@ -242,7 +242,7 @@ def test_version():
     for version in ("1.0", "1.6", "2.0"):
         with pytest.raises(
             ValueError,
-            match=r"supports VOTable versions '1.1', '1.2', '1.3', '1.4', '1.5'$",
+            match=r"version should be in \('1.1', '1.2', '1.3', '1.4', '1.5'\).",
         ):
             vot.version = version
 
