@@ -67,7 +67,7 @@ def solar_system_body_representation_type(
     return type(
         f"{object_name}{baserepresentation.__name__[4:]}",
         (baserepresentation,),
-        dict(_equatorial_radius=equatorial_radius, _flattening=flattening),
+        dict(_equatorial_radius=equatorial_radius * u.m, _flattening=flattening),
     )
 
 
@@ -174,10 +174,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
                 baserepresentation = BaseGeodeticRepresentation
                 representation_type_name = "GeodeticRepresentation"
 
-            if a_radius == b_radius:
-                equatorial_radius = a_radius * u.m
-                flattening = (a_radius - c_radius) / a_radius
-            else:
+            if a_radius != b_radius:
                 raise NotImplementedError(
                     "triaxial systems are not supported at this time."
                 )
@@ -186,8 +183,8 @@ def _wcs_to_celestial_frame_builtin(wcs):
             representation_type = solar_system_body_representation_type(
                 SOLAR_SYSTEM_OBJ_DICT.get(xcoord[:2]),
                 baserepresentation,
-                equatorial_radius,
-                flattening,
+                equatorial_radius=a_radius,
+                flattening=(a_radius - c_radius) / a_radius,
             )
 
             # create a new frame class
