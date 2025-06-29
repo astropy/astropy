@@ -349,17 +349,7 @@ class TimeInfoBase(MixinInfo):
                 raise ValueError("input columns have inconsistent locations")
 
         # Make a new Time object with the desired shape and attributes
-        shape = (length,) + attrs.pop("shape")
-        jd2000 = 2451544.5  # Arbitrary JD value J2000.0 that will work with ERFA
-        jd1 = np.full(shape, jd2000, dtype="f8")
-        jd2 = np.zeros(shape, dtype="f8")
-        tm_attrs = {
-            attr: getattr(col0, attr) for attr in ("scale", "location", "precision")
-        }
-        out = self._parent_cls(jd1, jd2, format="jd", **tm_attrs)
-        out.format = col0.format
-        out.out_subfmt = col0.out_subfmt
-        out.in_subfmt = col0.in_subfmt
+        out = np.zeros_like(col0, shape=(length,) + attrs.pop("shape"))
 
         # Set remaining info attributes
         for attr, value in attrs.items():
@@ -1616,8 +1606,31 @@ class TimeBase(MaskableShapedLikeNDArray):
         return self.max(axis, keepdims=keepdims) - self.min(axis, keepdims=keepdims)
 
     def __array_function__(self, function, types, args, kwargs):
-        if function is np.ptp:
+        """
+        Wrap numpy functions.
+
+        Parameters
+        ----------
+        function : callable
+            Numpy function to wrap
+        types : iterable of classes
+            Classes that provide an ``__array_function__`` override. Can
+            in principle be used to interact with other classes. Below,
+            mostly passed on to `~numpy.ndarray`, which can only interact
+            with subclasses.
+        args : tuple
+            Positional arguments provided in the function call.
+        kwargs : dict
+            Keyword arguments provided in the function call.
+        """
+        # TODO: move ptp implementation to function_helpers.
+        if function in CUSTOM_FUNCTIONS:
+            f = CUSTOM_FUNCTIONS[function]
+            return f(*args, **kwargs)
+        elif function is np.ptp:
             return self._ptp_impl(*args[1:], **kwargs)
+        elif function in UNSUPPORTED_FUNCTIONS:
+            return NotImplemented
         else:
             return super().__array_function__(function, types, args, kwargs)
 
@@ -2775,32 +2788,6 @@ class Time(TimeBase):
 
         result._location = location
         return result
-
-    def __array_function__(self, function, types, args, kwargs):
-        """
-        Wrap numpy functions.
-
-        Parameters
-        ----------
-        function : callable
-            Numpy function to wrap
-        types : iterable of classes
-            Classes that provide an ``__array_function__`` override. Can
-            in principle be used to interact with other classes. Below,
-            mostly passed on to `~numpy.ndarray`, which can only interact
-            with subclasses.
-        args : tuple
-            Positional arguments provided in the function call.
-        kwargs : dict
-            Keyword arguments provided in the function call.
-        """
-        if function in CUSTOM_FUNCTIONS:
-            f = CUSTOM_FUNCTIONS[function]
-            return f(*args, **kwargs)
-        elif function in UNSUPPORTED_FUNCTIONS:
-            return NotImplemented
-        else:
-            return super().__array_function__(function, types, args, kwargs)
 
     def to_datetime(self, timezone=None, leap_second_strict="raise"):
         # TODO: this could likely go through to_value, as long as that

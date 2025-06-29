@@ -1,0 +1,2 @@
+Support ``np.linspace`` also on ``TimeDelta`` instances (avoiding the creation
+of an ``object`` array).
