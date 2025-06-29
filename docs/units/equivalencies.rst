@@ -663,9 +663,9 @@ the standard set::
   >>> u.Hz.find_equivalent_units()
     Primary name | Unit definition | Aliases
   [
-    Bq           | 1 / s           | becquerel    ,
-    Ci           | 3.7e+10 / s    | curie        ,
-    Hz           | 1 / s           | Hertz, hertz ,
+    Bq           | 1 / s           | becquerel ,
+    Ci           | 3.7e+10 / s     | curie     ,
+    Hz           | 1 / s           | hertz     ,
   ]
 
 However, when passing the spectral equivalency, you can see there are
@@ -678,8 +678,8 @@ all kinds of things that ``Hz`` can be converted to::
     Angstrom     | 1e-10 m                | AA, angstrom, Å                  ,
     Bq           | 1 / s                  | becquerel                        ,
     Ci           | 3.7e+10 / s            | curie                            ,
-    Hz           | 1 / s                  | Hertz, hertz                     ,
-    J            | m2 kg / s2             | Joule, joule                     ,
+    Hz           | 1 / s                  | hertz                            ,
+    J            | m2 kg / s2             | joule                            ,
     Ry           | 2.17987e-18 m2 kg / s2 | rydberg                          ,
     cm           | 0.01 m                 | centimeter                       ,
     eV           | 1.60218e-19 m2 kg / s2 | electronvolt                     ,
