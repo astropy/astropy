@@ -96,6 +96,50 @@ def test_two_model_instance_arithmetic_1d(expr, result):
 
     assert isinstance(out, float)
 
+#####
+def test_tied_parameter_breaks_in_compound_model():
+    import numpy as np
+    import pytest
+    from astropy.modeling import Fittable1DModel, Parameter, models, fitting
+
+    class TwoGaussians(Fittable1DModel):
+        amp1 = Parameter(default=1.0)
+        amp2 = Parameter(default=0.5)
+        mean1 = Parameter(default=0.0)
+        mean2 = Parameter(default=2.0)
+        stddev1 = Parameter(default=1.0)
+        stddev2 = Parameter(default=1.0)
+
+        def evaluate(self, x, amp1, amp2, mean1, mean2, stddev1, stddev2):
+            g1 = amp1 * np.exp(-0.5 * ((x - mean1) / stddev1)**2)
+            g2 = amp2 * np.exp(-0.5 * ((x - mean2) / stddev2)**2)
+            return g1 + g2
+
+    x = np.linspace(-5, 5, 100)
+    true_model = TwoGaussians(amp1=2.0, amp2=1.0, mean1=0, mean2=2, stddev1=0.5, stddev2=0.5)
+    y = true_model(x) + 0.1 * np.random.normal(size=len(x))
+
+    # Standalone model with tied parameter works
+    model = TwoGaussians()
+    model.amp2.tied = lambda m: 0.5 * m.amp1
+    fitter = fitting.LevMarLSQFitter()
+    fit1 = fitter(model, x, y)
+    assert np.isclose(fit1.amp2.value, 0.5 * fit1.amp1.value, atol=1e-3)
+
+    # Compound model: 
+    compound = model + models.Const1D(amplitude=0.0)
+    try:
+        fitter(compound, x, y)
+        assert False, "Expected failure due to tied parameter name mangling"
+    except AttributeError:
+        pass
+
+    # Fix tie after compound model creation:
+    compound.amp2_0.tied = lambda m: 0.5 * m.amp1_0
+    fit2 = fitter(compound, x, y)
+    assert np.isclose(fit2.amp2_0.value, 0.5 * fit2.amp1_0.value, atol=1e-3)
+
+#####
 
 def test_simple_two_model_compose_1d():
     """
