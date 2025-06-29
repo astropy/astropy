@@ -1,0 +1,3 @@
+Added a unit equivalency ``redshift_recessional_velocity`` for converting redshift
+to/from recessional velocity in cosmological calculations. For recessional velocities,
+both proper and linear Doppler conversion kinds are supported.
