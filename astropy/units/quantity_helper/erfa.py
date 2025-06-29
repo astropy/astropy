@@ -2,6 +2,7 @@
 """Quantity helpers for the ERFA ufuncs."""
 # Tests for these are in coordinates, not in units.
 
+import numpy as np
 from erfa import dt_eraASTROM, dt_eraLDBODY, dt_pv
 from erfa import ufunc as erfa_ufunc
 
@@ -10,13 +11,7 @@ from astropy.units.errors import UnitsError, UnitTypeError
 from astropy.units.structured import StructuredUnit
 
 from . import UFUNC_HELPERS
-from .helpers import (
-    _d,
-    get_converter,
-    helper_invariant,
-    helper_multiplication,
-    helper_twoarg_invariant,
-)
+from .helpers import _d, get_converter, helper_multiplication, helper_twoarg_invariant
 
 erfa_ufuncs = (
     "s2c", "s2p", "c2s", "p2s", "pm", "pdp", "pxp", "rxp", "cpv", "p2pv", "pv2p",
@@ -486,7 +481,7 @@ def get_erfa_helpers():
         erfa_ufunc.atioq: helper_atioq,
         erfa_ufunc.atoiq: helper_atoiq,
         erfa_ufunc.c2s: helper_c2s,
-        erfa_ufunc.cpv: helper_invariant,
+        erfa_ufunc.cpv: UFUNC_HELPERS[np.absolute],
         erfa_ufunc.gc2gd: helper_gc2gd,
         erfa_ufunc.gc2gde: helper_gc2gde,
         erfa_ufunc.gd2gc: helper_gd2gc,
@@ -495,7 +490,7 @@ def get_erfa_helpers():
         erfa_ufunc.p2pv: helper_p2pv,
         erfa_ufunc.p2s: helper_p2s,
         erfa_ufunc.pdp: helper_multiplication,
-        erfa_ufunc.pm: helper_invariant,
+        erfa_ufunc.pm: UFUNC_HELPERS[np.absolute],
         erfa_ufunc.pv2p: helper_pv2p,
         erfa_ufunc.pv2s: helper_pv2s,
         erfa_ufunc.pvdpv: helper_pv_multiplication,
