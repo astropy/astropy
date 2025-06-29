@@ -213,7 +213,7 @@ _allowed_velocity_kinds: Final = ("proper", "doppler")
 
 
 def z_to_doppler_v(z: u.Quantity) -> u.Quantity:
-    return c_kms * z.to_value(redshift)
+    return c_kms * z
 
 
 def doppler_v_to_z(v: NDArray[Any]) -> u.Quantity:
@@ -292,7 +292,7 @@ def redshift_recessional_velocity(
         v_to_z = doppler_v_to_z
 
     else:
-        raise ValueError(f"`kind` is not one of {_allowed_velocity_kinds}")
+        raise ValueError(f"`kind` must be one of {_allowed_velocity_kinds}")
 
     return u.Equivalency(
         [(redshift, KMS, z_to_v, v_to_z)],

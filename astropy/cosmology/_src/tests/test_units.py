@@ -2,9 +2,10 @@
 
 import pytest
 
+import astropy.constants as const
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import Planck13, default_cosmology
+from astropy.cosmology import WMAP9, Planck13, default_cosmology
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -165,6 +166,37 @@ def test_redshift_distance_wrong_kind():
     """Test :func:`astropy.cosmology.units.redshift_distance` wrong kind."""
     with pytest.raises(ValueError, match="`kind`"):
         cu.redshift_distance(kind=None)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
+def test_redshift_recessional_velocity():
+    """Test `astropy.cosmology.units.redshift_recessional_velocity`."""
+    z = 15 * cu.redshift
+
+    # Test kind=proper
+    equivalency = cu.redshift_recessional_velocity(cosmology=Planck13, kind="proper")
+    v = Planck13.H(z) * Planck13.comoving_distance(z)
+    assert_quantity_allclose(z.to(u.km / u.s, equivalency), v)
+
+    # Test kind="doppler"
+    equivalency = cu.redshift_recessional_velocity(cosmology=Planck13, kind="doppler")
+    v = const.c * z.to_value(cu.redshift)  # v = cz
+    assert_quantity_allclose(z.to(u.km / u.s, equivalency), v)
+
+    # Test with wrong kind
+    with pytest.raises(ValueError, match="`kind` must be one of"):
+        cu.redshift_recessional_velocity(cosmology=Planck13, kind="wrong_kind")
+
+    # Test with default cosmology
+    with default_cosmology.set(WMAP9):
+        equivalency = cu.redshift_recessional_velocity(kind="proper")
+        v = WMAP9.H(z) * WMAP9.comoving_distance(z)
+        assert_quantity_allclose(z.to(u.km / u.s, equivalency), v)
+
+    # Test with string cosmology
+    equivalency = cu.redshift_recessional_velocity(cosmology="Planck13", kind="proper")
+    v = Planck13.H(z) * Planck13.comoving_distance(z)
+    assert_quantity_allclose(z.to(u.km / u.s, equivalency), v)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
