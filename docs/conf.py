@@ -412,6 +412,7 @@ linkcheck_ignore = [
     "http://data.astropy.org",
     "https://doi.org/",  # CI blocked by service provider
     "https://ui.adsabs.harvard.edu",  # CI blocked by service provider
+    "https://hst-docs.stsci.edu",  # CI blocked by service provider
     "https://www.tandfonline.com/",  # 403 Client Error: Forbidden
     "https://stackoverflow.com/",  # 403 Client Error: Forbidden
     "https://ieeexplore.ieee.org/",  # 418 Client Error: I'm a teapot
