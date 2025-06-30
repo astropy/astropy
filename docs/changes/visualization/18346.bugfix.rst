@@ -1,0 +1,1 @@
+Fixed a bug that caused the default format unit to be incorrect for RA/Dec WCSes with non-degree units
