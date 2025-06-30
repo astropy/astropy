@@ -215,6 +215,12 @@ astropy.visualization
 Bug Fixes
 ---------
 
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Fix edge treatment in ``convolve(..., boundary='fill', fill=nan)`` to be consistent with
+``convolve_fft`` [#18348]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
