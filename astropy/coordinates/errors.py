@@ -2,8 +2,6 @@
 
 """This module defines custom errors and exceptions used in astropy.coordinates."""
 
-from __future__ import annotations
-
 __all__ = [
     "ConvertError",
     "NonRotationTransformationError",
@@ -40,7 +38,7 @@ class NonRotationTransformationError(ValueError):
     """
 
     def __init__(
-        self, frame_to: BaseCoordinateFrame, frame_from: BaseCoordinateFrame
+        self, frame_to: "BaseCoordinateFrame", frame_from: "BaseCoordinateFrame"
     ) -> None:
         self.frame_to = frame_to
         self.frame_from = frame_from
@@ -80,7 +78,7 @@ class NonRotationTransformationWarning(AstropyUserWarning):
     """
 
     def __init__(
-        self, frame_to: BaseCoordinateFrame, frame_from: BaseCoordinateFrame
+        self, frame_to: "BaseCoordinateFrame", frame_from: "BaseCoordinateFrame"
     ) -> None:
         self.frame_to = frame_to
         self.frame_from = frame_from
