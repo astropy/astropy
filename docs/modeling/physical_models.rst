@@ -211,7 +211,7 @@ as attributes ``rho_s`` and ``r_s``, and the overdensity radius can be accessed 
     # Create scaled density / scaled radius subplot
     # NFW Object
     n = NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
-        massfactor=massfactor)
+            massfactor=massfactor)
 
     # Radial distribution for plotting
     radii = np.logspace(np.log10(1e-5), np.log10(2), num=1000) * u.Mpc
