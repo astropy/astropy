@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 import copy
 from collections.abc import MappingView
 from types import MappingProxyType
