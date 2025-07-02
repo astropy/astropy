@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 __all__ = [
     "validate_non_negative",
     "validate_to_float",
