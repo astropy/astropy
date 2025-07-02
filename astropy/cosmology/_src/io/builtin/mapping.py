@@ -126,22 +126,18 @@ Lastly, the keys in the mapping may be renamed with the ``rename`` keyword.
      'cosmo_name': 'Planck18', ...
 """
 
-from __future__ import annotations
-
 __all__: list[str] = []  # nothing is publicly scoped
 
 import copy
 import inspect
 from collections.abc import Mapping, MutableMapping
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import Any, TypeVar
 
 from astropy.cosmology._src.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology._src.io.connect import convert_registry
+from astropy.cosmology._src.typing import _CosmoT
 
-if TYPE_CHECKING:
-    from astropy.cosmology._src.typing import _CosmoT
-
-    _MapT = TypeVar("_MapT", MutableMapping[str, Any])
+_MapT = TypeVar("_MapT", bound=MutableMapping[str, Any])
 
 
 def _rename_map(
