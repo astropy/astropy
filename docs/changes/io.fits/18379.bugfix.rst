@@ -1,0 +1,1 @@
+Allow passing fsspec parameters to the FITS Table reader.
