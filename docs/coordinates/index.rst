@@ -502,8 +502,8 @@ representations, frames, and a high-level class. Representations
 classes are a particular way of storing a three-dimensional data point
 (or points), such as Cartesian coordinates or spherical polar
 coordinates. Frames are particular reference frames like FK5 or ICRS,
-which may store their data in different representations, but have well-
-defined transformations between each other. These transformations are
+which may store their data in different representations, but have
+well-defined transformations between each other. These transformations are
 all stored in the ``astropy.coordinates.frame_transform_graph``, and new
 transformations can be created by users. Finally, the high-level class
 (|SkyCoord|) uses the frame classes, but provides a more accessible

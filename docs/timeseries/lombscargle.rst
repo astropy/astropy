@@ -925,7 +925,7 @@ Literature References
        astroML: Machine learning for astrophysics*. Proceedings of the
        Conference on Intelligent Data Understanding (2012)
 .. [5]  Vanderplas, J., Connolly, A. Ivezic, Z. & Gray, A. *Statistics,
-	Data Mining and Machine Learning in Astronomy*. Princeton Press (2014)}
+        Data Mining and Machine Learning in Astronomy*. Princeton Press (2014)}
 .. [6] VanderPlas, J. *Gatspy: General Tools for Astronomical Time Series
        in Python* (2015) https://zenodo.org/record/14833
 .. [7] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
@@ -938,5 +938,5 @@ Literature References
        periodogram. A new formalism for the floating-mean and Keplerian
        periodograms*, A&A 496, 577-584 (2009)
 .. [11] VanderPlas, J. *Understanding the Lomb-Scargle Periodogram*
-	ApJS 236.1:16 (2018)
-	https://ui.adsabs.harvard.edu/abs/2018ApJS..236...16V
+        ApJS 236.1:16 (2018)
+        https://ui.adsabs.harvard.edu/abs/2018ApJS..236...16V
