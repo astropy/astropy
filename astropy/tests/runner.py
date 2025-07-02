@@ -48,7 +48,7 @@ class keyword:
         return keyword
 
 
-@deprecated("7.1", alternative="pytest", pending=True)
+@deprecated("7.2", alternative="pytest", pending=True)
 class TestRunnerBase:
     """
     The base class for the TestRunner.
@@ -290,7 +290,7 @@ class TestRunnerBase:
         return test
 
 
-@deprecated("7.1", alternative="pytest", pending=True)
+@deprecated("7.2", alternative="pytest", pending=True)
 class TestRunner(TestRunnerBase):
     """
     A test runner for astropy tests.
