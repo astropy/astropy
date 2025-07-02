@@ -114,9 +114,10 @@ def auto_assign_coord_positions(ax):
 
     # Finalize assignments
     for coord, spine in zip(auto_coords, best_option):
+        position = [spine, "#"] if spine != " " else "#"
         if "#" in coord.get_ticks_position():
-            coord.set_ticks_position([spine, "#"])
+            coord.set_ticks_position(position)
         if "#" in coord.get_ticklabel_position():
-            coord.set_ticklabel_position([spine, "#"])
+            coord.set_ticklabel_position(position)
         if "#" in coord.get_axislabel_position():
-            coord.set_axislabel_position([spine, "#"])
+            coord.set_axislabel_position(position)
