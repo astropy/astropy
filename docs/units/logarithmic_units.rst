@@ -283,8 +283,8 @@ supported as logarithmic units. For instance::
 **References**
 
 .. [M15] Mamajek et al., 2015, `arXiv:1510.06262
-	  <https://ui.adsabs.harvard.edu/abs/2015arXiv151006262M>`_
+          <https://ui.adsabs.harvard.edu/abs/2015arXiv151006262M>`_
 .. [H95] E.g., Holtzman et al., 1995, `PASP 107, 1065
           <https://ui.adsabs.harvard.edu/abs/1995PASP..107.1065H>`_
 .. [OG83] Oke, J.B., & Gunn, J. E., 1983, `ApJ 266, 713
-	  <https://ui.adsabs.harvard.edu/abs/1983ApJ...266..713O>`_
+          <https://ui.adsabs.harvard.edu/abs/1983ApJ...266..713O>`_

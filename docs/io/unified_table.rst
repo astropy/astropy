@@ -98,8 +98,8 @@ A full list of the supported formats and corresponding classes is shown in the
 table below. The ``Write`` column indicates those formats that support write
 functionality, and the ``Suffix`` column indicates the filename suffix
 indicating a particular format. If the value of ``Suffix`` is ``auto``, the
-format is auto-detected from the file itself. Not all formats support auto-
-detection.
+format is auto-detected from the file itself. Not all formats support
+auto-detection.
 
 ===========================  =====  ======  ============================================================================================
            Format            Write  Suffix                                          Description
