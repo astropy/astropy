@@ -686,11 +686,37 @@ def test_piximg_matrix2():
         w.piximg_matrix = None
 
 
-def test_print_contents():
+def test_str():
     # In general, this is human-consumable, so we don't care if the
     # content changes, just check the type
     w = _wcs.Wcsprm()
     assert isinstance(str(w), str)
+
+
+def test_print_contents(capfd):
+    # This is both a check that print_contents() runs and outputs something,
+    # and also a regression test for a bug in print_contents() which caused the
+    # stdout buffer to not be fully flushed, which could lead to the output of
+    # print_contents() being truncated and pollution of subsequent
+    # print_contents() calls in both wcsprm and other print_contents() methods in
+    # astropy.wcs (e.g. Wcs.wcs.wtb[0].print_contents())
+
+    for _ in range(5):
+        w = _wcs.Wcsprm()
+        w.print_contents()
+
+        captured = capfd.readouterr()
+
+        # The details of the output don't matter too much, but check that it
+        # outputs the correct number of lines and contains some strings we
+        # expect. Before the ``print_contents()`` bug was fixed, the number of
+        # lines from call to call was different and truncated.
+
+        stdout = captured.out
+
+        assert len(stdout.splitlines()) == 210
+
+        assert "crval:" in stdout and "restfrq" in stdout
 
 
 def test_radesys():

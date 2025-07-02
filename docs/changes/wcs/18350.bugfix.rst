@@ -1,0 +1,3 @@
+Fix a bug that caused the output of ``WCS.wcs.print_contents()`` to be truncated
+and to then cause the output of subsequent ``print_contents()`` calls (on
+``WCS.wcs`` or other wcs objects such as ``WCS.wcs.wtb``) to be corrupted.
