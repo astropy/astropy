@@ -12,6 +12,7 @@ __all__ = [
     "redshift",
     "redshift_distance",
     "redshift_hubble",
+    "redshift_recessional_velocity",
     "redshift_temperature",
     # other equivalencies
     "with_H0",
@@ -26,6 +27,7 @@ from ._src.units_equivalencies import (
     dimensionless_redshift,
     redshift_distance,
     redshift_hubble,
+    redshift_recessional_velocity,
     redshift_temperature,
     with_H0,
     with_redshift,
