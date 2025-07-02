@@ -126,6 +126,7 @@ def read_table_fits(
     unit_parse_strict="warn",
     mask_invalid=True,
     strip_spaces=False,
+    fsspec_kwargs=None,
 ):
     """
     Read a Table object from an FITS file.
@@ -184,6 +185,13 @@ def read_table_fits(
         Strip trailing whitespace in string columns, default is False and will be
         changed to True in the next major release. This is deactivated when
         using ``memmap=True`` (see above).
+    fsspec_kwargs : dict, optional
+        Keyword arguments passed on to `fsspec.open`. This can be used to
+        configure cloud storage credentials and caching behavior.
+        For example, pass ``fsspec_kwargs={"anon": True}`` to enable
+        anonymous access to Amazon S3 open data buckets.
+        See ``fsspec``'s documentation for available parameters.
+
 
     """
     if isinstance(input, HDUList):
@@ -247,7 +255,12 @@ def read_table_fits(
             mask_invalid = False
             strip_spaces = False
 
-        hdulist = fits_open(input, character_as_bytes=character_as_bytes, memmap=memmap)
+        hdulist = fits_open(
+            input,
+            character_as_bytes=character_as_bytes,
+            memmap=memmap,
+            fsspec_kwargs=fsspec_kwargs,
+        )
 
         try:
             return read_table_fits(
@@ -257,6 +270,7 @@ def read_table_fits(
                 unit_parse_strict=unit_parse_strict,
                 mask_invalid=mask_invalid,
                 strip_spaces=strip_spaces,
+                fsspec_kwargs=fsspec_kwargs,
             )
         finally:
             hdulist.close()
