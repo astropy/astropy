@@ -26,6 +26,7 @@ import sys
 
 import numpy as np
 cimport numpy as np
+from cpython.ref cimport PyTypeObject
 
 np.import_array()
 
@@ -41,12 +42,8 @@ ctypedef object (*binaryfunc)(object, object)
 
 
 cdef extern from "Python.h":
-    ctypedef struct PyMappingMethods:
-        binaryfunc mp_subscript
-
-    ctypedef struct PyTypeObject:
-        PyMappingMethods* tp_as_mapping
-
+    void *PyType_GetSlot(PyTypeObject *type, int slot)
+    int Py_mp_subscript
 
 ctypedef object (*item_getter)(object, object)
 
@@ -71,7 +68,7 @@ cdef inline object base_getitem(object self, object item, item_getter getitem):
 
 
 cdef inline object column_getitem(object self, object item):
-    return (<PyTypeObject *>np.ndarray).tp_as_mapping.mp_subscript(self, item)
+    return (<binaryfunc>PyType_GetSlot(<PyTypeObject *>np.ndarray, Py_mp_subscript))(self, item)
 
 
 cdef class _ColumnGetitemShim:
