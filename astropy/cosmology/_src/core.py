@@ -1,13 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
 
 import inspect
 from abc import ABCMeta, abstractmethod
 from collections.abc import Mapping
 from dataclasses import KW_ONLY, dataclass, replace
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, ClassVar, Self, TypeVar
+from typing import Any, ClassVar, Self, TypeVar, Union
 
 import numpy as np
 
@@ -21,16 +20,13 @@ from astropy.cosmology._src.parameter import (
     ParametersAttribute,
     all_parameters,
 )
+from astropy.cosmology._src.typing import _CosmoT
 from astropy.cosmology.io import (
     CosmologyFromFormat,
     CosmologyRead,
     CosmologyToFormat,
     CosmologyWrite,
 )
-
-if TYPE_CHECKING:
-    from astropy.cosmology._src.funcs.comparison import _FormatType
-    from astropy.cosmology._src.typing import _CosmoT
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
@@ -45,16 +41,13 @@ __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 ##############################################################################
 # Parameters
 
-# registry of cosmology classes with {key=name : value=class}
-_COSMOLOGY_CLASSES: dict[str, type[Cosmology]] = {}
-
 # typing
 # NOTE: private b/c RTD error
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
 
 
 # dataclass transformation
-def _with_signature(cls: type[Cosmology]) -> type[Cosmology]:
+def _with_signature(cls: type["Cosmology"]) -> type["Cosmology"]:
     """Decorator to precompute the class' signature.
 
     This provides around a 20x speedup for future calls of ``inspect.signature(cls)``.
@@ -98,14 +91,14 @@ class CosmologyError(Exception):
 class _NameField:
     default: str | None = None
 
-    def __get__(self, instance: Cosmology | None, owner: type) -> str:
+    def __get__(self, instance: Union["Cosmology", None], owner: type) -> str:
         # Called from the class. `dataclass` uses this to create ``__init__``.
         if instance is None:
             return self.default
         # Called from the instance
         return instance._name
 
-    def __set__(self, instance: Cosmology, value: str | None) -> None:
+    def __set__(self, instance: "Cosmology", value: str | None) -> None:
         object.__setattr__(instance, "_name", (None if value is None else str(value)))
 
 
@@ -289,7 +282,9 @@ class Cosmology(metaclass=ABCMeta):
     # ---------------------------------------------------------------
     # comparison methods
 
-    def is_equivalent(self, other: Any, /, *, format: _FormatType = False) -> bool:
+    def is_equivalent(
+        self, other: Any, /, *, format: bool | None | str = False
+    ) -> bool:
         r"""Check equivalence between Cosmologies.
 
         Two cosmologies may be equivalent even if not the same class.
@@ -461,6 +456,9 @@ class Cosmology(metaclass=ABCMeta):
 # and thus do not have a mechanism for setting "compare", "repr", etc.
 Cosmology.__dataclass_fields__["meta"].compare = False
 Cosmology.__dataclass_fields__["meta"].repr = False
+
+# registry of cosmology classes with {key=name : value=class}
+_COSMOLOGY_CLASSES: dict[str, type[Cosmology]] = {}
 
 
 @dataclass_decorator
