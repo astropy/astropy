@@ -2,6 +2,7 @@
 
 import io
 import os
+import re
 from contextlib import nullcontext
 from datetime import datetime
 
@@ -51,6 +52,13 @@ def ctx_for_v71_dateref_warnings():
     else:
         ctx = nullcontext()
     return ctx
+
+
+def strip_memory_addresses(text: str) -> str:
+    """
+    Replace hex memory addresses (e.g., 0x600000acf000) in the text with a placeholder.
+    """
+    return re.sub(r"0x[0-9a-fA-F]+", "0xADDR", text)
 
 
 class TestMaps:
@@ -1914,4 +1922,350 @@ def test_DistortionLookupTable():
         assert_allclose(
             img_world_wcs.pixel_to_world_values(12 + dx * 3, 22 + dy * 3),
             [12 + dx * 3, 22 + dy * 3],
+        )
+
+
+HEADER_WITH_NON_SI_UNITS = """
+WCSAXES = 5
+CTYPE1  = 'RA---TAN'
+CTYPE2  = 'FREQ'
+CTYPE3  = 'DEC--TAN'
+CTYPE4  = 'WAVE'
+CTYPE5  = 'OFFSET'
+CUNIT1  = 'arcsec'
+CUNIT2  = 'GHz'
+CUNIT3  = 'arcsec'
+CUNIT4  = 'nm'
+CUNIT5  = 'arcmin'
+CRVAL1  = 4
+CRVAL2  = 5
+CRVAL3  = 6
+CRVAL4  = 7
+CRVAL5  = 8
+CRPIX1  = 1
+CRPIX2  = 2
+CRPIX3  = 3
+CRPIX4  = 4
+CRPIX5  = 5
+CDELT1  = 4
+CDELT2  = 3
+CDELT3  = 2
+CDELT4  = 1
+CDELT5  = 6
+""".strip()
+
+
+class TestPreserveUnits:
+    def setup_method(self, method):
+        self.header = fits.Header.fromstring(HEADER_WITH_NON_SI_UNITS, sep="\n")
+        self.wcs_default = wcs.WCS(self.header)
+        self.wcs_preserve = wcs.WCS(self.header, preserve_units=True)
+        self.ones = np.ones((3, 5))
+        self.scale = np.array([1 / 3600, 1e9, 1 / 3600, 1e-9, 1])
+
+    def test_get_cunit(self):
+        assert list(self.wcs_default.wcs.cunit) == ["deg", "Hz", "deg", "m", "arcmin"]
+        assert list(self.wcs_preserve.wcs.cunit) == [
+            "arcsec",
+            "GHz",
+            "arcsec",
+            "nm",
+            "arcmin",
+        ]
+
+    def test_set_cunit(self):
+        with pytest.raises(
+            AttributeError,
+            match="Original units have already been set, cannot change them",
+        ):
+            self.wcs_preserve.wcs.cunit = "arcmin", "MHz", "deg", "m", "arcmin"
+
+    def test_get_cdelt(self):
+        assert_allclose(self.wcs_default.wcs.cdelt, [4 / 3600, 3e9, 2 / 3600, 1e-9, 6])
+        assert_allclose(self.wcs_preserve.wcs.cdelt, [4, 3, 2, 1, 6])
+
+    def test_get_cdelt_indiv(self):
+        assert_allclose(self.wcs_default.wcs.cdelt[0], [4 / 3600])
+        assert_allclose(self.wcs_preserve.wcs.cdelt[0], [4])
+
+    def test_set_cdelt(self):
+        self.wcs_default.wcs.cdelt = [1 / 3600, 2e9, 3 / 3600, 4e-9, 5]
+        self.wcs_preserve.wcs.cdelt = [1, 2, 3, 4, 5]
+        assert_allclose(self.wcs_default.wcs.cdelt, [1 / 3600, 2e9, 3 / 3600, 4e-9, 5])
+        assert_allclose(self.wcs_preserve.wcs.cdelt, [1, 2, 3, 4, 5])
+
+    def test_set_cdelt_indiv(self):
+        # Changing individual items is complicated in preserve_units mode because
+        # there is no easy way to know that a value in memory has been changed
+        # in the array. If we really want to support it then before each
+        # transformation we could check if the WCS hash has changed, but it is
+        # easier and less confusing to simply require cdelt to be overwritten
+        # as a whole rather than individual values set.
+
+        self.wcs_default.wcs.cdelt[0] = 1 / 3600
+        assert_allclose(self.wcs_default.wcs.cdelt, [1 / 3600, 3e9, 2 / 3600, 1e-9, 6])
+
+        with pytest.raises(ValueError, match="assignment destination is read-only"):
+            self.wcs_preserve.wcs.cdelt[0] = 1
+
+    def test_get_cdelt_meth(self):
+        assert_allclose(
+            self.wcs_default.wcs.get_cdelt(), [4 / 3600, 3e9, 2 / 3600, 1e-9, 6]
+        )
+        assert_allclose(self.wcs_preserve.wcs.get_cdelt(), [4, 3, 2, 1, 6])
+
+    def test_get_crval(self):
+        assert_allclose(self.wcs_default.wcs.crval, [4 / 3600, 5e9, 6 / 3600, 7e-9, 8])
+        assert_allclose(self.wcs_preserve.wcs.crval, [4, 5, 6, 7, 8])
+
+    def test_get_crval_indiv(self):
+        assert_allclose(self.wcs_default.wcs.crval[0], [4 / 3600])
+        assert_allclose(self.wcs_preserve.wcs.crval[0], [4])
+
+    def test_set_crval(self):
+        self.wcs_default.wcs.crval = [1 / 3600, 2e9, 3 / 3600, 4e-9, 5]
+        self.wcs_preserve.wcs.crval = [1, 2, 3, 4, 5]
+        assert_allclose(self.wcs_default.wcs.crval, [1 / 3600, 2e9, 3 / 3600, 4e-9, 5])
+        assert_allclose(self.wcs_preserve.wcs.crval, [1, 2, 3, 4, 5])
+
+    def test_set_crval_indiv(self):
+        # See comment in test_set_cdelt_indiv about why this raises an error
+
+        self.wcs_default.wcs.crval[0] = 1 / 3600
+        assert_allclose(self.wcs_default.wcs.crval, [1 / 3600, 5e9, 6 / 3600, 7e-9, 8])
+
+        with pytest.raises(ValueError, match="assignment destination is read-only"):
+            self.wcs_preserve.wcs.crval[0] = 1
+
+    def test_p2s(self):
+        result_default = self.wcs_default.wcs.p2s(self.ones, 0)
+        result_preserve = self.wcs_preserve.wcs.p2s(self.ones, 0)
+        for key in result_default:
+            if key == "world":
+                assert_allclose(result_default[key], result_preserve[key] * self.scale)
+            else:
+                assert_allclose(result_default[key], result_preserve[key])
+
+    def test_s2p(self):
+        result_default = self.wcs_default.wcs.s2p(self.ones * self.scale, 0)
+        result_preserve = self.wcs_preserve.wcs.s2p(self.ones, 0)
+        for key in result_default:
+            assert_allclose(result_default[key], result_preserve[key])
+
+    def test_wcs_pix2world(self):
+        result_default = self.wcs_default.wcs_pix2world(self.ones, 0)
+        result_preserve = self.wcs_preserve.wcs_pix2world(self.ones, 0)
+        assert_allclose(result_default, result_preserve * self.scale)
+
+    def test_wcs_world2pix(self):
+        result_default = self.wcs_default.wcs_world2pix(self.ones * self.scale, 0)
+        result_preserve = self.wcs_preserve.wcs_world2pix(self.ones, 0)
+        assert_allclose(result_default, result_preserve)
+
+    def test_all_pix2world(self):
+        result_default = self.wcs_default.all_pix2world(self.ones, 0)
+        result_preserve = self.wcs_preserve.all_pix2world(self.ones, 0)
+        assert_allclose(result_default, result_preserve * self.scale)
+
+    def test_all_world2pix(self):
+        result_default = self.wcs_default.all_world2pix(self.ones * self.scale, 0)
+        result_preserve = self.wcs_preserve.all_world2pix(self.ones, 0)
+        assert_allclose(result_default, result_preserve)
+
+    def test_get_cd(self):
+        header = self.header.copy()
+
+        for i in range(5):
+            header.pop(f"CDELT{i + 1}")
+
+        CD = np.arange(25).reshape((5, 5))
+
+        for i in range(5):
+            for j in range(5):
+                header[f"CD{i + 1}_{j + 1}"] = CD[i, j]
+
+        wcs_default = wcs.WCS(header)
+        wcs_preserve = wcs.WCS(header, preserve_units=True)
+
+        assert_allclose(wcs_default.wcs.cd, CD * self.scale[:, np.newaxis])
+        assert_allclose(wcs_preserve.wcs.cd, CD)
+
+        assert_allclose(wcs_default.wcs.cd[0, 1], CD[0, 1] * self.scale[0])
+        assert_allclose(wcs_preserve.wcs.cd[0, 1], CD[0, 1])
+
+    def test_set_cd(self):
+        CD = np.arange(25).reshape((5, 5))
+
+        self.wcs_default.wcs.cd = CD * self.scale[:, np.newaxis]
+        self.wcs_preserve.wcs.cd = CD
+
+        assert_allclose(self.wcs_default.wcs.cd, CD * self.scale[:, np.newaxis])
+        assert_allclose(self.wcs_preserve.wcs.cd, CD)
+
+        # See comment in test_set_cdelt_indiv about why this raises an error
+
+        self.wcs_default.wcs.cd[0, 1] = 1 / 3600
+        assert_allclose(self.wcs_default.wcs.cd[0, 1], 1 / 3600)
+
+        with pytest.raises(ValueError, match="assignment destination is read-only"):
+            self.wcs_preserve.wcs.cd[0, 1] = 1
+
+    def test_header(self):
+        header = self.wcs_preserve.to_header()
+
+        expected_header = """
+WCSAXES =                    5 / Number of coordinate axes
+CRPIX1  =                  1.0 / Pixel coordinate of reference point
+CRPIX2  =                  2.0 / Pixel coordinate of reference point
+CRPIX3  =                  3.0 / Pixel coordinate of reference point
+CRPIX4  =                  4.0 / Pixel coordinate of reference point
+CRPIX5  =                  5.0 / Pixel coordinate of reference point
+CDELT1  =                  4.0 / [arcsec] Coordinate increment at reference poin
+CDELT2  =                  3.0 / [GHz] Coordinate increment at reference point
+CDELT3  =                  2.0 / [arcsec] Coordinate increment at reference poin
+CDELT4  =                  1.0 / [nm] Coordinate increment at reference point
+CDELT5  =                  6.0 / [arcmin] Coordinate increment at reference poin
+CUNIT1  = 'arcsec'             / Units of coordinate increment and value
+CUNIT2  = 'GHz'                / Units of coordinate increment and value
+CUNIT3  = 'arcsec'             / Units of coordinate increment and value
+CUNIT4  = 'nm'                 / Units of coordinate increment and value
+CUNIT5  = 'arcmin'             / Units of coordinate increment and value
+CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection
+CTYPE2  = 'FREQ'               / Frequency (linear)
+CTYPE3  = 'DEC--TAN'           / Declination, gnomonic projection
+CTYPE4  = 'WAVE'               / Coordinate type code
+CTYPE5  = 'OFFSET'             / Coordinate type code
+CRVAL1  =                  4.0 / [arcsec] Coordinate value at reference point
+CRVAL2  =                  5.0 / [GHz] Coordinate value at reference point
+CRVAL3  =                  6.0 / [arcsec] Coordinate value at reference point
+CRVAL4  =                  7.0 / [nm] Coordinate value at reference point
+CRVAL5  =                  8.0 / [arcmin] Coordinate value at reference point
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+LATPOLE =   0.0016666666666667 / [deg] Native latitude of celestial pole
+MJDREF  =                  0.0 / [d] MJD of fiducial time
+RADESYS = 'ICRS'               / Equatorial coordinate system
+""".strip()
+
+        assert header.tostring(sep="\n") == fits.Header.fromstring(
+            expected_header, sep="\n"
+        ).tostring(sep="\n")
+
+    @pytest.mark.parametrize("explicit_set", (False, True))
+    @pytest.mark.parametrize(
+        "function",
+        (
+            "p2s",
+            "s2p",
+            "wcs_pix2world",
+            "wcs_world2pix",
+            "all_pix2world",
+            "all_world2pix",
+        ),
+    )
+    def test_programmatic(self, explicit_set, function):
+        # Make sure that things work fine if we make the WCS programmatically
+        # and not from a header
+
+        wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
+        wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_prog.wcs.cunit = "arcsec", "arcsec"
+        wcs_prog.wcs.crval = 10, 20
+        wcs_prog.wcs.cdelt = 1, 2
+        wcs_prog.wcs.crpix = 1, 1
+
+        if explicit_set:
+            wcs_prog.wcs.set()
+
+        # FIXME: the following fails if explicit_set is False because wcsset
+        # gets called implicitly during the coordinate conversion but we don't
+        # catch this and store the before/after units.
+
+        if function == "p2s":
+            assert_allclose(
+                wcs_prog.wcs.p2s(np.array([[1, 1]]), 1)["world"], [[10, 20]]
+            )
+        elif function == "s2p":
+            assert_allclose(
+                wcs_prog.wcs.s2p(np.array([[10, 20]]), 1)["pixcrd"], [[1, 1]]
+            )
+        elif function == "wcs_pix2world":
+            assert_allclose(wcs_prog.wcs_pix2world(1, 1, 1), [10, 20])
+        elif function == "wcs_world2pix":
+            assert_allclose(wcs_prog.wcs_world2pix(10, 20, 1), [1, 1])
+        elif function == "all_pix2world":
+            assert_allclose(wcs_prog.all_pix2world(1, 1, 1), [10, 20])
+        elif function == "all_world2pix":
+            assert_allclose(wcs_prog.all_world2pix(10, 20, 1), [1, 1])
+
+    def test_multiple_set(self):
+        # Make sure that things work fine if we make the WCS programmatically
+        # and not from a header
+
+        wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
+        wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_prog.wcs.cunit = "arcsec", "arcsec"
+        wcs_prog.wcs.crval = 10, 20
+        wcs_prog.wcs.cdelt = 1, 2
+        wcs_prog.wcs.crpix = 1, 1
+
+        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_prog.wcs.set()
+
+        with pytest.raises(
+            AttributeError,
+            match="Original units have already been set, cannot change them",
+        ):
+            wcs_prog.wcs.cunit = "arcmin", "arcmin"
+
+        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_prog.wcs.set()
+
+        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+    def test_str_and_repr(self):
+        expected = (
+            "WCS Keywords\n"
+            "\n"
+            "Number of WCS axes: 5\n"
+            "CTYPE : 'RA---TAN' 'FREQ' 'DEC--TAN' 'WAVE' 'OFFSET' \n"
+            "CRVAL : 4.0 5.0 6.0 7.0 8.0 \n"
+            "CRPIX : 1.0 2.0 3.0 4.0 5.0 \n"
+            "PC1_1 PC1_2 PC1_3 PC1_4 PC1_5  : 1.0 0.0 0.0 0.0 0.0 \n"
+            "PC2_1 PC2_2 PC2_3 PC2_4 PC2_5  : 0.0 1.0 0.0 0.0 0.0 \n"
+            "PC3_1 PC3_2 PC3_3 PC3_4 PC3_5  : 0.0 0.0 1.0 0.0 0.0 \n"
+            "PC4_1 PC4_2 PC4_3 PC4_4 PC4_5  : 0.0 0.0 0.0 1.0 0.0 \n"
+            "PC5_1 PC5_2 PC5_3 PC5_4 PC5_5  : 0.0 0.0 0.0 0.0 1.0 \n"
+            "CDELT : 4.0 3.0 2.0 1.0 6.0 \n"
+            "NAXIS : 0  0"
+        )
+        assert str(self.wcs_preserve) == expected
+        assert repr(self.wcs_preserve) == expected
+
+    def test_print_contents(self, capfd):
+        self.wcs_preserve.wcs.print_contents()
+        captured = capfd.readouterr()
+
+        expected = """
+      cdelt: 0xADDR
+               4.0000       3.0000       2.0000       1.0000       6.0000
+      crval: 0xADDR
+               4.0000       5.0000       6.0000       7.0000       8.0000
+      cunit: 0xADDR
+             "arcsec"
+             "GHz"
+             "arcsec"
+             "nm"
+             "arcmin"
+             """.strip()
+
+        assert expected in "\n".join(
+            [x.rstrip() for x in strip_memory_addresses(captured.out).splitlines()]
         )
