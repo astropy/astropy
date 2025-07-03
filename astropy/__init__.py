@@ -185,10 +185,10 @@ class astronomical_constants(base_constants_version):
 
 
 # Create the test() function
+from .tests.runner import TestRunner
+
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
-    from .tests.runner import TestRunner
-
     test = TestRunner.make_test_runner_in(__path__[0])
 
 
