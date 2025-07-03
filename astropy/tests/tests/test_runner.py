@@ -10,62 +10,51 @@ from astropy.tests.runner import TestRunnerBase as _TestRunnerBase
 from astropy.tests.runner import keyword
 
 
-@pytest.mark.filterwarnings(
-    "ignore:The TestRunner.* class:astropy.utils.exceptions.AstropyPendingDeprecationWarning"
-)
 def test_disable_kwarg():
     class no_remote_data(_TestRunner):
         @keyword()
         def remote_data(self, remote_data, kwargs):
             return NotImplemented
 
-    r = no_remote_data(".")
-    with pytest.raises(TypeError):
+    with pytest.deprecated_call(match="The TestRunner"):
+        r = no_remote_data(".")
+    with pytest.raises(TypeError), pytest.deprecated_call(match="The test runner"):
         r.run_tests(remote_data="bob")
 
 
-@pytest.mark.filterwarnings(
-    "ignore:The TestRunner.* class:astropy.utils.exceptions.AstropyPendingDeprecationWarning"
-)
 def test_wrong_kwarg():
-    r = _TestRunner(".")
-    with pytest.raises(TypeError):
+    with pytest.deprecated_call(match="The TestRunner"):
+        r = _TestRunner(".")
+    with pytest.raises(TypeError), pytest.deprecated_call(match="The test runner"):
         r.run_tests(spam="eggs")
 
 
-@pytest.mark.filterwarnings(
-    "ignore:The TestRunnerBase class:astropy.utils.exceptions.AstropyPendingDeprecationWarning"
-)
 def test_invalid_kwarg():
     class bad_return(_TestRunnerBase):
         @keyword()
         def remote_data(self, remote_data, kwargs):
             return "bob"
 
-    r = bad_return(".")
-    with pytest.raises(TypeError):
+    with pytest.deprecated_call(match="The TestRunner"):
+        r = bad_return(".")
+    with pytest.raises(TypeError), pytest.deprecated_call(match="The test runner"):
         r.run_tests(remote_data="bob")
 
 
-@pytest.mark.filterwarnings(
-    "ignore:The TestRunnerBase class:astropy.utils.exceptions.AstropyPendingDeprecationWarning"
-)
 def test_new_kwarg():
     class Spam(_TestRunnerBase):
         @keyword()
         def spam(self, spam, kwargs):
             return [spam]
 
-    r = Spam(".")
+    with pytest.deprecated_call(match="The TestRunner"):
+        r = Spam(".")
 
     args = r._generate_args(spam="spam")
 
     assert ["spam"] == args
 
 
-@pytest.mark.filterwarnings(
-    "ignore:The TestRunnerBase class:astropy.utils.exceptions.AstropyPendingDeprecationWarning"
-)
 def test_priority():
     class Spam(_TestRunnerBase):
         @keyword()
@@ -76,16 +65,14 @@ def test_priority():
         def eggs(self, eggs, kwargs):
             return [eggs]
 
-    r = Spam(".")
+    with pytest.deprecated_call(match="The TestRunner"):
+        r = Spam(".")
 
     args = r._generate_args(spam="spam", eggs="eggs")
 
     assert ["eggs", "spam"] == args
 
 
-@pytest.mark.filterwarnings(
-    "ignore:The TestRunnerBase class:astropy.utils.exceptions.AstropyPendingDeprecationWarning"
-)
 @_skip_docstring_tests_with_optimized_python
 def test_docs():
     class Spam(_TestRunnerBase):
@@ -103,6 +90,8 @@ def test_docs():
             """
             return [eggs]
 
-    r = Spam(".")
+    with pytest.deprecated_call(match="The TestRunner"):
+        r = Spam(".")
+    assert "deprecated" in r.run_tests.__doc__
     assert "eggs" in r.run_tests.__doc__
     assert "Spam Spam Spam" in r.run_tests.__doc__

@@ -13,7 +13,11 @@ from importlib.util import find_spec
 from pathlib import Path
 
 from astropy.utils import deprecated, find_current_module
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.exceptions import (
+    AstropyDeprecationWarning,
+    AstropyPendingDeprecationWarning,
+    AstropyWarning,
+)
 
 __all__ = ["TestRunner", "TestRunnerBase"]
 
@@ -162,6 +166,9 @@ class TestRunnerBase:
 
         This method builds arguments for and then calls ``pytest.main``.
 
+        .. deprecated:: 7.2
+            Use pytest instead.
+
         Parameters
         ----------
 {keywords}
@@ -200,6 +207,13 @@ class TestRunnerBase:
                     raise RuntimeError(cls._missing_dependancy_error.format(module))
 
     def run_tests(self, **kwargs):
+        # This method is weirdly hooked into various things with docstring
+        # overrides, so we keep it simple and not use @deprecated here.
+        warnings.warn(
+            "The test runner will be deprecated in a future version.\n        Use pytest instead.",
+            AstropyPendingDeprecationWarning,
+        )
+
         # The following option will include eggs inside a .eggs folder in
         # sys.path when running the tests. This is possible so that when
         # running pytest, test dependencies installed via e.g.
