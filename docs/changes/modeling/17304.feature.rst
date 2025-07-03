@@ -1,0 +1,3 @@
+Add support for unit change propagation through the ``|`` (model composition) operator,
+using either `~astropy.modeling.compose_models_with_units` or by setting the
+``unit_change_composition`` attribute on the model after composition.
