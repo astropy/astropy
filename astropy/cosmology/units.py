@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Cosmological units and equivalencies."""
 
-from __future__ import annotations
-
 from astropy.units.utils import generate_unit_summary as _generate_unit_summary
 
 __all__ = [

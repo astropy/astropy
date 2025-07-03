@@ -85,27 +85,22 @@ enable this, set ``latex_names=True``.
     >>> temp_dir.cleanup()
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import Any, TypeVar
 
 import astropy.units as u
-from astropy.table import QTable
+from astropy.table import QTable, Table
 
 # isort: split
 import astropy.cosmology.units as cu
 from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import readwrite_registry
 from astropy.cosmology._src.parameter import Parameter
+from astropy.cosmology._src.typing import _CosmoT
+from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
 
 from .table import from_table, to_table
 
-if TYPE_CHECKING:
-    from astropy.cosmology._src.typing import _CosmoT
-    from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
-    from astropy.table import Table
-
-    _TableT = TypeVar("_TableT", "Table")
+_TableT = TypeVar("_TableT", bound=Table)
 
 # Format look-up for conversion, {original_name: new_name}
 # TODO! move this information into the Parameters themselves

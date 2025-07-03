@@ -27,8 +27,6 @@ The |Planck18| cosmology can be recovered with |Cosmology.from_format|.
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """
 
-from __future__ import annotations
-
 import abc
 import copy
 import inspect
