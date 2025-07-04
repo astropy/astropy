@@ -5,6 +5,9 @@
 
 #define NO_IMPORT_ARRAY
 
+#include <stdlib.h> // malloc, free
+#include <string.h> // memcpy
+
 /* util.h must be imported first */
 #include "astropy_wcs/pyutil.h"
 
@@ -871,7 +874,7 @@ set_pvcards(
   if (!fastseq)
     goto done;
 
-  size = PySequence_Fast_GET_SIZE(value);
+  size = PySequence_Size(value);
   newmem = malloc(sizeof(struct pvcard) * size);
 
   /* Raise exception if size is nonzero but newmem
@@ -881,11 +884,13 @@ set_pvcards(
     return -1;
   }
 
+  PyObject* item = NULL;
   for (i = 0; i < size; ++i)
   {
-    if (!PyArg_ParseTuple(PySequence_Fast_GET_ITEM(value, i), "iid",
+    if (!PyArg_ParseTuple((item = PySequence_GetItem(value, i)), "iid",
         &newmem[i].i, &newmem[i].m, &newmem[i].value))
     {
+      Py_DECREF(item);
       goto done;
     }
   }
