@@ -546,7 +546,10 @@ class TableFormatter:
                 except ValueError:
                     raise ValueError(
                         f'Unable to parse format string "{col_format}" for '
-                        f'entry "{col[idx]}" in column "{col.info.name}"'
+                        f'entry "{col[idx]}" in column "{col.info.name}" '
+                        f'with datatype "{col.info.dtype}".\n'
+                        "See https://docs.astropy.org/en/stable/table/construct_table.html#format-specifier "
+                        "for possible format specifications."
                     )
 
         outs["show_length"] = show_length
