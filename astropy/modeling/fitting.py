@@ -1126,6 +1126,10 @@ class _NonLinearLSQFitter(Fitter):
         If set, the parameter bounds for a model will be enforced for each given
         parameter while fitting via a simple min/max condition.
         Default: True
+    check_non_finite : bool
+        If set, the objective function checks for the presence of non-finite
+        values and raise a `NonFiniteValueError` if it finds one.
+        Default: True
     """
 
     supported_constraints = ["fixed", "tied", "bounds"]
@@ -1133,9 +1137,12 @@ class _NonLinearLSQFitter(Fitter):
     The constraint types supported by this fitter type.
     """
 
-    def __init__(self, calc_uncertainties=False, use_min_max_bounds=True):
+    def __init__(
+        self, calc_uncertainties=False, use_min_max_bounds=True, check_non_finite=True
+    ):
         self.fit_info = None
         self._calc_uncertainties = calc_uncertainties
+        self._check_non_finite = check_non_finite
         self._use_min_max_bounds = use_min_max_bounds
 
     def objective_function(self, fps, *args, fit_param_indices=None):
@@ -1173,7 +1180,7 @@ class _NonLinearLSQFitter(Fitter):
         else:
             value = np.ravel(weights * (model.evaluate(*inputs, *fps) - meas))
 
-        if not np.all(np.isfinite(value)):
+        if self._check_non_finite and not np.all(np.isfinite(value)):
             raise NonFiniteValueError(
                 "Objective function has encountered a non-finite value, "
                 "this will cause the fit to fail!\n"
@@ -1477,8 +1484,10 @@ class LevMarLSQFitter(_NonLinearLSQFitter):
 
     """
 
-    def __init__(self, calc_uncertainties=False):
-        super().__init__(calc_uncertainties)
+    def __init__(self, calc_uncertainties=False, check_non_finite=True):
+        super().__init__(
+            calc_uncertainties=calc_uncertainties, check_non_finite=check_non_finite
+        )
         self.fit_info = {
             "nfev": None,
             "fvec": None,
@@ -1562,8 +1571,18 @@ class _NLLSQFitter(_NonLinearLSQFitter):
         the most recent fit information
     """
 
-    def __init__(self, method, calc_uncertainties=False, use_min_max_bounds=False):
-        super().__init__(calc_uncertainties, use_min_max_bounds)
+    def __init__(
+        self,
+        method,
+        calc_uncertainties=False,
+        use_min_max_bounds=False,
+        check_non_finite=True,
+    ):
+        super().__init__(
+            calc_uncertainties=calc_uncertainties,
+            use_min_max_bounds=use_min_max_bounds,
+            check_non_finite=check_non_finite,
+        )
         self._method = method
 
     def _run_fitter(
@@ -1650,8 +1669,18 @@ class TRFLSQFitter(_NLLSQFitter):
     """
 
     @deprecated_renamed_argument("use_min_max_bounds", None, "7.0")
-    def __init__(self, calc_uncertainties=False, use_min_max_bounds=False):
-        super().__init__("trf", calc_uncertainties, use_min_max_bounds)
+    def __init__(
+        self,
+        calc_uncertainties=False,
+        use_min_max_bounds=False,
+        check_non_finite=True,
+    ):
+        super().__init__(
+            "trf",
+            calc_uncertainties=calc_uncertainties,
+            use_min_max_bounds=use_min_max_bounds,
+            check_non_finite=check_non_finite,
+        )
 
 
 class DogBoxLSQFitter(_NLLSQFitter):
@@ -1672,8 +1701,18 @@ class DogBoxLSQFitter(_NLLSQFitter):
     """
 
     @deprecated_renamed_argument("use_min_max_bounds", None, "7.0")
-    def __init__(self, calc_uncertainties=False, use_min_max_bounds=False):
-        super().__init__("dogbox", calc_uncertainties, use_min_max_bounds)
+    def __init__(
+        self,
+        calc_uncertainties=False,
+        use_min_max_bounds=False,
+        check_non_finite=True,
+    ):
+        super().__init__(
+            "dogbox",
+            calc_uncertainties=calc_uncertainties,
+            use_min_max_bounds=use_min_max_bounds,
+            check_non_finite=check_non_finite,
+        )
 
 
 class LMLSQFitter(_NLLSQFitter):
@@ -1693,8 +1732,13 @@ class LMLSQFitter(_NLLSQFitter):
         the most recent fit information
     """
 
-    def __init__(self, calc_uncertainties=False):
-        super().__init__("lm", calc_uncertainties, True)
+    def __init__(self, calc_uncertainties=False, check_non_finite=True):
+        super().__init__(
+            "lm",
+            calc_uncertainties=calc_uncertainties,
+            use_min_max_bounds=True,
+            check_non_finite=check_non_finite,
+        )
 
     @fitter_unit_support
     def __call__(
