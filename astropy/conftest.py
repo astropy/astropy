@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This file contains pytest configuration settings that are astropy-specific
-(i.e.  those that would not necessarily be shared by affiliated packages
-making use of astropy's test runner).
+This file contains pytest configuration settings that are astropy-specific.
 """
 
 import builtins
