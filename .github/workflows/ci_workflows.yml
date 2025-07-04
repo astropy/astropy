@@ -164,7 +164,6 @@ jobs:
       - run: |
           rm \
             astropy/cosmology/_src/setup_package.py \
-            astropy/utils/xml/setup_package.py \
             astropy/wcs/setup_package.py
         name: Remove incompatible extensions
         shell: bash # for windows compatibility
