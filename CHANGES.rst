@@ -459,6 +459,8 @@ astropy.table
   default behavior will be to use the remote versions of jQuery and DataTables
   from a CDN. [#17480]
 
+
+
 Bug Fixes
 ---------
 
@@ -538,8 +540,8 @@ astropy.units
   ``.dtype``, independent of whether that is a numpy data type. [#17469]
 
 - The zebi (Zi, 2^70) and yobi (Yi, 2^80) binary prefixes are now supported. [#17692]
-
-astropy.visualization
+**Added**
+- Added `unit_support()` to enable both quantity and time support together. [#8860]
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Fix ``CoordinateHelper.ticklabels``. The getter was incorrectly returning
@@ -691,7 +693,7 @@ astropy.units
 - Added support for calling numpy array constructors (``np.require``,
   ``np.identity``, ``np.eye``, ``np.tri``, ``np.genfromtxt`` and ``np.loadtxt``)
   with ``like=Quantity(...))`` . [#17130]
-
+Added `unit_support()` to enable both quantity and time support together. [#8860]
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -18798,6 +18800,8 @@ astropy.wcs
   ``:tocdepth:`` directive. [#595]
 
 - Minor VOTable fixes [#596]
+
+
 
 - Fixed how ``setup.py`` uses ``distribute_setup.py`` to prevent possible
   ``VersionConflict`` errors when an older version of distribute is already
