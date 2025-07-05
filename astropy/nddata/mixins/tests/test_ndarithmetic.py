@@ -1,5 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import itertools
+from copy import deepcopy
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
@@ -1409,7 +1412,7 @@ def test_arithmetics_dtypes_with_scalar(data1, data2):
     ref4 = data1.data / data2
 
     # Enforce the same behaviour as NumPy, rather than fixed behaviour:
-    for ndd, ref in zip([out1, out2, out3, out4], (ref1, ref2, ref3, ref4)):
+    for ndd, ref in zip((out1, out2, out3, out4), (ref1, ref2, ref3, ref4)):
         assert ndd.data.shape == ref.shape
         assert ndd.data.dtype == ref.dtype
         assert_array_equal(ndd.data, ref)
@@ -1448,7 +1451,7 @@ def test_add_quantity_matching_dtype(data1, data2):
     out1 = data1.add(data2)
     assert_array_equal(out1.data, data1.data + data2.value)
 
-    # # Subtraction
+    # Subtraction
     out2 = data1.subtract(data2)
     assert_array_equal(out2.data, data1.data - data2.value)
 
@@ -1457,25 +1460,72 @@ def test_add_quantity_matching_dtype(data1, data2):
         assert ndd.data.dtype == data1.data.dtype
 
 
-# Covers non-default dtypes + uncert + mask with various scalar types
 @pytest.mark.parametrize(
     "data1",
     [
-        NDDataRef(
-            np.array([1, 2, 3, 4], dtype=np.uint16),
-            uncertainty=VarianceUncertainty(
-                np.array([1, 2, 3, 4], dtype=np.uint16)
-            ),
-            mask=np.array([0, 1, 0, 0], dtype=np.uint8)
-        ),
-        NDDataRef(
-            np.array([1, 2, 3, 4], dtype=np.float32),
-            uncertainty=StdDevUncertainty(
-                np.array([1., 1.41, 1.73, 2.], dtype=np.float32)
-            ),
-            mask=np.array([0, 0, 1, 0], dtype=np.uint16)
-        ),
+        NDDataRef(np.array([1, 2, 3, 4], dtype=np.uint16), unit=u.adu),
+        NDDataRef(np.array([1., 2., 3., 4.], dtype=np.float32), unit=u.adu),
+        NDDataRef(np.array([1., 2., 3., 4.]), unit=u.adu),
     ],
+)
+@pytest.mark.parametrize(
+    "data2",
+    [
+        2,
+        2.0,
+        np.array(2, dtype=np.uint16),
+        np.array(2.0, dtype=np.float32),
+        np.array(2.0),
+    ],
+)
+def test_scale_dtypes_with_units(data1, data2):
+
+    # Multiplication
+    out1 = data1.multiply(data2)
+    ref1 = data1.data * data2
+
+    # Division
+    out2 = data1.divide(data2)
+    ref2 = data1.data / data2
+
+    for ndd, ref in zip((out1, out2), (ref1, ref2)):
+        assert ndd.data.shape == ref.shape
+        assert ndd.data.dtype == ref.dtype
+        assert_array_almost_equal(ndd.data, ref)
+
+
+# Provide input for the following test sets without lots of cutting & pasting:
+def generate_simple_ndds_with_uncert_mask(nout=1):
+    for values in itertools.product(
+        (
+            NDDataRef(
+                np.array([1, 2, 3, 4], dtype=np.uint16),
+                uncertainty=VarianceUncertainty(
+                    np.array([1, 2, 3, 4], dtype=np.uint16)
+                ),
+                mask=np.array([0, 1, 0, 0], dtype=np.uint8)
+            ),
+            NDDataRef(
+                np.array([1., 2., 3., 4.], dtype=np.float32),
+                uncertainty=StdDevUncertainty(
+                    np.array([1., 1.41, 1.73, 2.], dtype=np.float32)
+                ),
+                mask=np.array([0, 0, 1, 0], dtype=np.uint16)
+            ),
+            NDDataRef(
+                np.array([1., 2., 3., 4.]),
+                uncertainty=VarianceUncertainty(np.array([1., 2., 3., 4.])),
+                mask=np.array([0, 1, 0, 0], dtype=np.uint16)
+            ),
+        ),
+        repeat=nout
+    ):
+        yield tuple(deepcopy(val) for val in values)  # pass independent objs
+
+
+# Covers non-default dtypes + uncert + mask with various scalar types
+@pytest.mark.parametrize(
+    ("data1",), generate_simple_ndds_with_uncert_mask(nout=1)
 )
 @pytest.mark.parametrize(
     "data2",
@@ -1526,12 +1576,90 @@ def test_dtypes_uncert_mask_with_scalars(data1, data2):
 
     # Enforce the same behaviour as NumPy, rather than fixed behaviour:
     for ndd, (ref_dat, ref_unc, ref_msk) in zip(
-            [out1, out2, out3, out4],
-            [ref1, ref2, ref3, ref4]
+            (out1, out2, out3, out4),
+            (ref1, ref2, ref3, ref4)
     ):
         assert ndd.data.shape == ref_dat.shape
         assert ndd.data.dtype == ref_dat.dtype
         assert ndd.uncertainty.array.dtype == ref_unc.dtype
+        assert ndd.mask.dtype == ref_msk.dtype
+        assert np.ma.allclose(ndd.data, ref_dat)
+        assert np.ma.allclose(ndd.uncertainty.array, ref_unc)
+        assert_array_equal(ndd.mask, ref_msk)
+
+
+# Covers arithmetic with different dtype pairs + uncert + mask
+@pytest.mark.parametrize(
+    ("data1", "data2"), generate_simple_ndds_with_uncert_mask(nout=2)
+)
+def test_arithmetics_dtypes_uncert_mask(data1, data2):
+
+    dat_add = data1.data + data2.data
+    dat_sub = data1.data - data2.data
+    dat_mul = data1.data * data2.data
+    dat_div = data1.data / data2.data
+
+    # Deal with uncertainty, converting the data2 uncertainty class to match
+    # data1, otherwise arithmetic fails. With both operands being arrays, we
+    # cannot use NumPy as a reference for the "correct" output dtype for
+    # uncertainty, since it doesn't natively propagate errors and the result
+    # type depends on the exact calculation used, but we can check that the
+    # values are close those expected, given the input dtypes. Establishing
+    # the intended casting behaviour for uncertainty is left for other tests.
+    if (isinstance(data1.uncertainty, VarianceUncertainty)):
+        if (isinstance(data2.uncertainty, StdDevUncertainty)):
+            data2.uncertainty = VarianceUncertainty(
+                np.multiply(
+                    data2.uncertainty.array,
+                    data2.uncertainty.array
+                )
+            )
+        unc_add = data1.uncertainty.array + data2.uncertainty.array
+        unc_mul = (data1.uncertainty.array / data1.data**2 +
+                   data2.uncertainty.array / data2.data**2)
+        unc_div = dat_div**2 * unc_mul
+        unc_mul = dat_mul**2 * unc_mul
+    else:
+        if (isinstance(data2.uncertainty, VarianceUncertainty)):
+            data2.uncertainty = StdDevUncertainty(
+                np.sqrt(data2.uncertainty.array)
+            )
+        unc_add = np.sqrt(
+            data1.uncertainty.array**2 + data2.uncertainty.array**2
+        )
+        unc_mul = np.sqrt(
+            (data1.uncertainty.array / data1.data)**2 +
+            (data2.uncertainty.array / data2.data)**2
+        )
+        unc_div = dat_div * unc_mul
+        unc_mul = dat_mul * unc_mul
+    unc_sub = unc_add
+    msk = np.logical_or(data1.mask, data2.mask)  # default op for arith mixin
+
+    # Addition
+    out1 = data1.add(data2)
+    ref1 = (dat_add, unc_add, msk)
+
+    # Subtraction
+    out2 = data1.subtract(data2)
+    ref2 = (dat_sub, unc_sub, msk)
+
+    # Multiplication
+    out3 = data1.multiply(data2)
+    ref3 = (dat_mul, unc_mul, msk)
+
+    # Division
+    out4 = data1.divide(data2)
+    ref4 = (dat_div, unc_div, msk)
+
+    # Enforce the same behaviour as NumPy, rather than fixed behaviour:
+    for ndd, (ref_dat, ref_unc, ref_msk) in zip(
+        (out1, out2, out3, out4),
+        (ref1, ref2, ref3, ref4)
+    ):
+        assert ndd.data.shape == ref_dat.shape
+        assert ndd.data.dtype == ref_dat.dtype
+        # see above comment regarding uncertainty dtype
         assert ndd.mask.dtype == ref_msk.dtype
         assert np.ma.allclose(ndd.data, ref_dat)
         assert np.ma.allclose(ndd.uncertainty.array, ref_unc)
