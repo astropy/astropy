@@ -1838,6 +1838,19 @@ def test_extra_attributes():
     assert sc3.obstime is None
 
 
+def test_extra_attributes_validated():
+    # Use broadcasting of the obstime to check for frame-attribute validation
+    obstime = Time(["2025-05-12T00:00"])
+
+    # obstime is a frame attribute
+    fk4 = SkyCoord([5, 10], [20, 30], unit=u.deg, frame="fk4", obstime=obstime)
+    assert fk4.obstime.shape == (2,)
+
+    # obstime is not a frame attribute (i.e., obstime is an "extra" attribute)
+    icrs = SkyCoord([5, 10], [20, 30], unit=u.deg, frame="icrs", obstime=obstime)
+    assert icrs.obstime.shape == (2,)
+
+
 def test_apply_space_motion():
     # use this 12 year period because it's a multiple of 4 to avoid the quirks
     # of leap years while having 2 leap seconds in it
