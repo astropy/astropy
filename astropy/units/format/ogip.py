@@ -16,27 +16,22 @@ FITS files
 <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
 """
 
-from __future__ import annotations
-
 import math
 import warnings
 from fractions import Fraction
-from typing import TYPE_CHECKING, ClassVar, Literal
+from typing import ClassVar, Literal
 
 import numpy as np
 
-from astropy.units.core import CompositeUnit
+from astropy.extern.ply.lex import Lexer
+from astropy.units.core import CompositeUnit, UnitBase
 from astropy.units.errors import UnitParserWarning, UnitsWarning
+from astropy.units.typing import UnitScale
 from astropy.utils import classproperty, parsing
+from astropy.utils.parsing import ThreadSafeParser
 
 from . import utils
 from .base import Base, _ParsingFormatMixin
-
-if TYPE_CHECKING:
-    from astropy.extern.ply.lex import Lexer
-    from astropy.units import UnitBase
-    from astropy.units.typing import UnitScale
-    from astropy.utils.parsing import ThreadSafeParser
 
 
 class OGIP(Base, _ParsingFormatMixin):

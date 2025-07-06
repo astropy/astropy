@@ -1,12 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Function Units and Quantities."""
 
-from __future__ import annotations
-
 from abc import ABCMeta, abstractmethod
 from collections.abc import Collection
 from functools import cached_property
-from typing import TYPE_CHECKING, Self
+from typing import Self
 
 import numpy as np
 
@@ -19,15 +17,13 @@ from astropy.units import (
     UnitTypeError,
     dimensionless_unscaled,
 )
+from astropy.units.typing import PhysicalTypeID
 from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
     from numpy.core import umath as np_umath
 else:
     from numpy._core import umath as np_umath
-
-if TYPE_CHECKING:
-    from astropy.units.typing import PhysicalTypeID
 
 __all__ = ["FunctionQuantity", "FunctionUnitBase"]
 
