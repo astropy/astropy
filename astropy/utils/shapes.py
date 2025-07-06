@@ -315,7 +315,8 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
                 function in {np.atleast_1d, np.atleast_2d, np.atleast_3d}
                 and len(args) > 1
             ):
-                return tuple(function(arg, **kwargs) for arg in args)
+                seq_cls = list if NUMPY_LT_2_0 else tuple
+                return seq_cls(function(arg, **kwargs) for arg in args)
 
             if self is not args[0]:
                 return NotImplemented
