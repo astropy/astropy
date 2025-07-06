@@ -159,6 +159,39 @@ class NDArrayShapeMethods:
         return self._apply("take", indices, axis=axis, mode=mode)
 
 
+def _combine_helper(func, arrays, axis, out, dtype):
+    # Apply on arrays of bool with the same shape, to get the final shape,
+    # and to avoid having test that shapes match, etc.
+    empties = [np.empty(shape=np.shape(array), dtype=bool) for array in arrays]
+    shape = func(empties, axis=axis).shape
+    axis = normalize_axis_index(axis, len(shape))
+    if out is None:
+        # Mimic np.empty_like by getting the first element, broadcasting that
+        # to the right shape, and then copying.
+        out = arrays[0]._apply(np.empty_like, shape=shape)
+    return axis, out
+
+
+def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
+    axis, out = _combine_helper(np.concatenate, arrays, axis, out, dtype)
+
+    offset = 0
+    for array in arrays:
+        n_el = array.shape[axis]
+        out[(slice(None),) * axis + (slice(offset, offset + n_el),)] = array
+        offset += n_el
+
+    return out
+
+
+def stack(arrays, axis=0, out=None, *, dtype=None, casting="same_kind"):
+    axis, out = _combine_helper(np.stack, arrays, axis, out, dtype)
+    for i, array in enumerate(arrays):
+        out[(slice(None),) * axis + (i,)] = array
+
+    return out
+
+
 class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
     """Mixin class to provide shape-changing methods.
 
@@ -277,9 +310,14 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
         np.roll,
         np.delete,
     }
-
+    # TODO: use astropy.units.quantity_helpers.function_helpers.FunctionAssigner?
+    # Maybe better after moving that to astropy.utils, since Masked uses it too.
+    _CUSTOM_FUNCTIONS = {
+        np.concatenate: concatenate,
+        np.stack: stack,
+    }
     # Functions that themselves defer to a method. Those are all
-    # defined in np.core.fromnumeric, but exclude alen as well as
+    # defined in np._core.fromnumeric, but exclude alen as well as
     # sort and partition, which make copies before calling the method.
     _METHOD_FUNCTIONS = {
         getattr(np, name): {
@@ -315,12 +353,16 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
                 function in {np.atleast_1d, np.atleast_2d, np.atleast_3d}
                 and len(args) > 1
             ):
-                return tuple(function(arg, **kwargs) for arg in args)
+                seq_cls = list if NUMPY_LT_2_0 else tuple
+                return seq_cls(function(arg, **kwargs) for arg in args)
 
             if self is not args[0]:
                 return NotImplemented
 
             return self._apply(function, *args[1:], **kwargs)
+
+        elif function in self._CUSTOM_FUNCTIONS:
+            return self._CUSTOM_FUNCTIONS[function](*args, **kwargs)
 
         # For functions that defer to methods, use the corresponding
         # method/attribute if we have it.  Otherwise, fall through.
