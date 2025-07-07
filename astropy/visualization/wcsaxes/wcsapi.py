@@ -29,7 +29,7 @@ IDENTITY.wcs.cdelt = [1.0, 1.0]
 UCD_COORD_META_MAPPING = {
     "lon": {"coord_type": "longitude"},
     "lat": {"coord_type": "latitude"},
-    "ra": {"coord_type": "longitude", "format_unit": u.hourangle},
+    "ra": {"coord_type": "longitude"},
     "dec": {"coord_type": "latitude"},
     "alt": {"coord_type": "longitude"},
     "az": {"coord_type": "latitude"},
@@ -177,6 +177,11 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
                 for ucd, meta in UCD_COORD_META_MAPPING.items():
                     if ucd == axis_type_split[-1]:
                         dim_meta.update(meta)
+                        # We only do the following if the original unit was
+                        # degrees. If the unit was e.g. arcsec, it seems
+                        # reasonable to stick to the WCS unit.
+                        if ucd == "ra" and axis_unit is u.deg:
+                            dim_meta["format_unit"] = u.hourangle
                         break
 
         coord_meta["type"].append(dim_meta["coord_type"])
