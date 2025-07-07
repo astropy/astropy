@@ -716,3 +716,73 @@ def test_plot_coord_slicing(ignore_matplotlibrc):
 
     c = SkyCoord(52 * u.deg, 30.5 * u.deg)
     ax.plot_coord(c, "o")
+
+
+SIMPLIFY_CASES = [
+    (["13d14m15s", "13d14m15s"], ["13d14m15s", "15s"]),
+    (["13d14m5s", "13d14m15s"], ["13d14m5s", "15s"]),
+    (
+        ["−29°25'55\"", "−29°25'54\"", "−29°25'53\"", "−29°25'52\"", "−29°25'51\""],
+        ["−29°25'55\"", '54"', '53"', '52"', '51"'],
+    ),
+    (
+        [
+            r"0$\mathregular{^h}$",
+            r"10$\mathregular{^h}$",
+            r"10$\mathregular{^h}$",
+            r"5$\mathregular{^h}$",
+        ],
+        [
+            r"0$\mathregular{^h}$",
+            r"10$\mathregular{^h}$",
+            r"10$\mathregular{^h}$",
+            r"5$\mathregular{^h}$",
+        ],
+    ),
+    (
+        [
+            r"0$\mathregular{^h}$10$\mathregular{^m}$5$\mathregular{^m}$",
+            r"0$\mathregular{^h}$10$\mathregular{^m}$10$\mathregular{^m}$",
+            r"0$\mathregular{^h}$10$\mathregular{^m}$15$\mathregular{^m}$",
+            r"0$\mathregular{^h}$10$\mathregular{^m}$15$\mathregular{^m}$",
+        ],
+        [
+            r"0$\mathregular{^h}$10$\mathregular{^m}$5$\mathregular{^m}$",
+            r"10$\mathregular{^m}$",
+            r"15$\mathregular{^m}$",
+            r"15$\mathregular{^m}$",
+        ],
+    ),
+    (
+        [
+            "$17^{\\mathrm{h}}47^{\\mathrm{m}}53.8^{\\mathrm{s}}$",
+            "$17^{\\mathrm{h}}47^{\\mathrm{m}}53.6^{\\mathrm{s}}$",
+        ],
+        [
+            "$17^{\\mathrm{h}}47^{\\mathrm{m}}53.8^{\\mathrm{s}}$",
+            "$53.6^{\\mathrm{s}}$",
+        ],
+    ),
+]
+
+
+@pytest.mark.parametrize(("before", "after"), SIMPLIFY_CASES)
+def test_simplify_cases(before, after):
+    # Regression test for a bug that caused the simplification to not work
+    # correctly in the presence of dollar signs in LaTeX strings.
+
+    ticklabels = TickLabels(None)
+    expected_labels = []
+
+    for i, label in enumerate(before):
+        ticklabels.add(
+            axis="axis",
+            world=0,
+            angle=0,
+            text=label,
+            axis_displacement=i,
+            data=(i, i),
+        )
+
+    ticklabels.simplify_labels()
+    assert ticklabels.text["axis"] == after
