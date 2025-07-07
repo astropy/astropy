@@ -268,7 +268,10 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
                 world_arrays_new.append(sliced_out_world_coords[iworld])
 
         world_arrays_new = np.broadcast_arrays(*world_arrays_new)
-        pixel_arrays = list(self._wcs.world_to_pixel_values(*world_arrays_new))
+        pixel_arrays = self._wcs.world_to_pixel_values(*world_arrays_new)
+        pixel_arrays = (
+            list(pixel_arrays) if self._wcs.pixel_n_dim > 1 else [pixel_arrays]
+        )
 
         for ipixel in range(self._wcs.pixel_n_dim):
             if (
@@ -281,7 +284,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
         if isinstance(pixel_arrays, np.ndarray) and not pixel_arrays.shape:
             return pixel_arrays
         pixel = tuple(pixel_arrays[ip] for ip in self._pixel_keep)
-        if self.pixel_n_dim == 1 and self._wcs.pixel_n_dim > 1:
+        if self.pixel_n_dim == 1:
             pixel = pixel[0]
         return pixel
 
