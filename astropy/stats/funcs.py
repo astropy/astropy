@@ -1674,12 +1674,11 @@ def histogram_intervals(
 
     """
     h = np.zeros(n)
-    start = breaks[0]
-    for i in range(len(totals)):
-        end = breaks[i + 1]
-        for j in range(n):
-            ol = interval_overlap_length((float(j) / n, float(j + 1) / n), (start, end))
-            h[j] += ol / (1.0 / n) * totals[i]
+    start = n * breaks[0]
+    for i, total in enumerate(totals):
+        end = n * breaks[i + 1]
+        for j in range(math.floor(start), math.ceil(end)):
+            h[j] += total * interval_overlap_length((j, j + 1), (start, end))
         start = end
 
     return h
