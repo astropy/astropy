@@ -25,6 +25,7 @@ from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_scalebar
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.visualization.wcsaxes.patches import Quadrangle, SphericalCircle
 from astropy.wcs import WCS
+from astropy.wcs.wcsapi import BaseLowLevelWCS
 
 
 class BaseImageTests:
@@ -1491,4 +1492,62 @@ def test_custom_formatter(spatial_wcs_2d_small_angle):
     ax.coords[0].set_major_formatter(double_format)
     ax.coords[1].set_major_formatter(fruit_format)
     canvas.draw()
+    return fig
+
+
+class EquatorialArcsecWCS(BaseLowLevelWCS):
+    @property
+    def pixel_n_dim(self):
+        return 2
+
+    @property
+    def world_n_dim(self):
+        return 2
+
+    @property
+    def world_axis_physical_types(self):
+        return [
+            "pos.eq.ra",
+            "pos.eq.dec",
+        ]
+
+    @property
+    def world_axis_units(self):
+        return ["arcsec", "arcsec"]
+
+    @property
+    def world_axis_names(self):
+        return ["RA", "DEC"]
+
+    def pixel_to_world_values(self, *pixel_arrays):
+        return pixel_arrays
+
+    def world_to_pixel_values(self, *world_arrays):
+        return world_arrays
+
+    @property
+    def world_axis_object_components(self):
+        return [
+            ("celestial", 0, "spherical.lon.degree"),
+            ("celestial", 1, "spherical.lat.degree"),
+        ]
+
+    @property
+    def world_axis_object_classes(self):
+        return {
+            "celestial": (SkyCoord, (), {"unit": "deg"}),
+        }
+
+
+@figure_test
+def test_equatorial_arcsec():
+    wcs = EquatorialArcsecWCS()
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(projection=wcs)
+
+    ax.set_xlim(-0.5, 20 - 0.5)
+    ax.set_ylim(-0.5, 30 - 0.5)
+
     return fig
