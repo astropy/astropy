@@ -163,7 +163,6 @@ jobs:
           python-version: "3.11"
       - run: |
           rm \
-            astropy/cosmology/_src/setup_package.py \
             astropy/wcs/setup_package.py
         name: Remove incompatible extensions
         shell: bash # for windows compatibility
