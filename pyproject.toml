@@ -328,7 +328,64 @@ archs = ["auto", "aarch64"]
         ]
 
 [tool.ruff]
-lint.select = ["ALL"]
+lint.extend-select = [
+    "A",     # flake8-builtins
+    "AIR",   # Airflow
+    "ANN",   # flake8-annotations
+    "ARG",   # flake8-unused-arguments
+    "ASYNC", # flake8-async
+    "B",     # flake8-bugbear
+    "BLE",   # flake8-blind-except
+    "C4",    # flake8-comprehensions
+    "C90",   # mccabe
+    "COM",   # flake8-commas
+    # "CPY",   # flake8-copyright  # TODO: enable when out of preview
+    "D",     # pydocstyle
+    "DJ",    # flake8-django
+    # "DOC",   # pydocstyle  # TODO: enable when out of preview
+    "DTZ",   # flake8-datetimez
+    "E",     # pycodestyle
+    "EM",    # flake8-errmsg
+    "ERA",   # Eradicate
+    "EXE",   # flake8-executable
+    "F",     # Pyflakes
+    "FA",    # flake8-future-annotations
+    "FBT",   # flake8-boolean-trap
+    "FIX",   # flake8-fixme
+    "FLY",   # flynt
+    "FURB",  # refurb
+    "G",     # flake8-logging-format
+    "I",     # isort
+    "ICN",   # flake8-import-conventions
+    "INP",   # flake8-no-pep420
+    "INT",   # flake8-gettext
+    "ISC",   # flake8-implicit-str-concat
+    "LOG",   # flake8-logging
+    "N",     # pep8-naming
+    "NPY",   # NumPy-specific rules
+    "PERF",  # Perflint
+    "PGH",   # pygrep-hooks
+    "PIE",   # flake8-pie
+    "PL",    # Pylint
+    "PT",    # flake8-pytest-style
+    "PTH",   # flake8-use-pathlib
+    "PYI",   # flake8-pyi
+    "Q",     # flake8-quotes
+    "RET",   # flake8-return
+    "RSE",   # flake8-raise
+    "RUF",   # Ruff-specific rules
+    "S",     # flake8-bandit
+    "SIM",   # flake8-simplify
+    "SLOT",  # flake8-slots
+    "T10",   # flake8-debugger
+    "T20",   # flake8-print
+    "TD",    # flake8-todos
+    "TID",   # flake8-tidy-imports
+    "TRY",   # tryceratops
+    "UP",    # pyupgrade
+    "W",     # pycodestyle
+    "YTT",   # flake8-2020
+]
 exclude=[
     "astropy/extern/*",
     "*_parsetab.py",
@@ -383,19 +440,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # flake8-quotes (Q)
     "Q000",  # use double quotes, conflicts with Ruff formatter
 
-    # flake8-simplify (SIM)
-    "SIM103", # needless-bool (cannot be safely applied in all contexts (np.True_ is not True))
-
-    # flake8-self (SLF)
-    "SLF001", # private member access
-
-    # flake8-type-checking (TC)
-    "TC002",  # typing-only-third-party-import
-    "TC003",  # typing-only-standard-library-import
-
-    # flake8-todos (TD)
-    "TD002",  # Missing author in TODO
-
     # flake8-return (RET)
     # RET can sometimes help find places where refactoring is very helpful,
     # but enforcing it everywhere might create undesirable churn
@@ -404,6 +448,18 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 
     # Ruff-specific rules (RUF)
     "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
+
+    # flake8-simplify (SIM)
+    "SIM103", # needless-bool (cannot be safely applied in all contexts (np.True_ is not True))
+
+    # flake8-self (SLF)
+    "SLF001", # private member access
+
+    # flake8-todos (TD)
+    "TD002",  # Missing author in TODO
+
+    # PyUpgrade (UP)
+    "UP038",  # non-pep604-isinstance  # NOTE: this rule is deprecated
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]

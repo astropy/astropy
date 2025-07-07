@@ -6,7 +6,6 @@ Index engine for Tables.
 """
 
 from collections import OrderedDict
-from itertools import starmap
 
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 
@@ -78,7 +77,7 @@ class SCEngine:
             raise ImportError("sortedcontainers is needed for using SCEngine")
 
         node_keys = map(tuple, data)
-        self._nodes = SortedList(starmap(Node, zip(node_keys, row_index)))
+        self._nodes = SortedList(map(Node, node_keys, row_index))
         self._unique = unique
 
     def add(self, key, value):
