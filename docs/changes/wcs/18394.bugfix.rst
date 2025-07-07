@@ -1,0 +1,2 @@
+Fixed a bug where world->pixel conversions did not work correctly on a 1D WCS
+sliced via ``SlicedLowLevelWCS``.
