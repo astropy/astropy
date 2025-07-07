@@ -27,8 +27,6 @@ The |Planck18| cosmology can be recovered with |Cosmology.from_format|.
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """
 
-from __future__ import annotations
-
 import abc
 import copy
 import inspect
@@ -97,14 +95,13 @@ class _CosmologyModel(FittableModel, Generic[_CosmoT]):
     @property
     def cosmology(self) -> _CosmoT:
         """Return |Cosmology| using `~astropy.modeling.Parameter` values."""
-        cosmo = self._cosmology_class(
+        return self._cosmology_class(
             name=self.name,
             **{
                 k: (v.value if not (v := getattr(self, k)).unit else v.quantity)
                 for k in self.param_names
             },
         )
-        return cosmo
 
     @classproperty
     def method_name(self) -> str:
@@ -161,9 +158,7 @@ class _CosmologyModel(FittableModel, Generic[_CosmoT]):
         # make instance of cosmology
         cosmo = self._cosmology_class(**ba.arguments)
         # evaluate method
-        result = getattr(cosmo, self._method_name)(*args[: self.n_inputs])
-
-        return result
+        return getattr(cosmo, self._method_name)(*args[: self.n_inputs])
 
 
 ##############################################################################
@@ -275,11 +270,9 @@ def to_model(cosmology: _CosmoT, *_: object, method: str) -> _CosmologyModel[_Co
         )
 
     # instantiate class using default values
-    model = CosmoModel(
+    return CosmoModel(
         **cosmology.parameters, name=cosmology.name, meta=copy.deepcopy(cosmology.meta)
     )
-
-    return model
 
 
 def model_identify(

@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 import copy
 from collections.abc import MappingView
 from types import MappingProxyType
@@ -264,9 +262,7 @@ class galactocentric_frame_defaults(ScienceState):
         # Copy to ensure registry is immutable to modifications of "_value".
         # Raises KeyError if `name` is invalid string input to registry
         # to retrieve solar parameters for Galactocentric frame.
-        state = copy.deepcopy(cls._registry[name])  # ensure mutable
-
-        return state
+        return copy.deepcopy(cls._registry[name])  # ensure mutable
 
     @classmethod
     def validate(cls, value):

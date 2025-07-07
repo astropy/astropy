@@ -27,6 +27,8 @@ from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import FitsTestCase
+from .test_connect import TestMultipleHDU
+from .test_core import TestCore
 
 
 def comparefloats(a, b):
@@ -2839,10 +2841,6 @@ class TestTableFunctions(FitsTestCase):
         now with reference counting around each test to ensure that the
         leaks are fixed.
         """
-
-        from .test_connect import TestMultipleHDU
-        from .test_core import TestCore
-
         t1 = TestCore()
         t1.setup_method()
         try:
@@ -3951,3 +3949,32 @@ def test_repr_scaling(tmp_path):
         "FITS_rec([(1, 10.1), (2, 10.2)],\n"
         "         dtype=(numpy.record, [('a', '>i2'), ('b', '>i2')]))"
     )
+
+
+def test_one_row_string_column(tmp_path):
+    # Issue #18174 control. One-row table should still read/write normally after zero row fix
+    data = np.zeros((1, 3), dtype="|S8")
+    col = fits.Column(name="FOO", format="24A", dim="(8,3)", array=data)
+    hdul = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU.from_columns([col])])
+
+    outfile = tmp_path / "test.fits"
+    hdul.writeto(outfile)
+
+    with fits.open(outfile) as hdul:
+        table_data = hdul[1].data
+    assert table_data.shape[0] == 1
+
+
+def test_zero_row_string_column(tmp_path):
+    # issue #18174 writing a zero row BinTableHDU with multidimensional string column
+    data = np.zeros((0, 3), dtype="|S8")
+    col = fits.Column(name="FOO", format="24A", dim="(8,3)", array=data)
+    hdul = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU.from_columns([col])])
+
+    outfile = tmp_path / "test.fits"
+    hdul.writeto(outfile)
+
+    # re-open and check for zero rows
+    with fits.open(outfile) as hdul:
+        table_data = hdul[1].data
+    assert table_data.shape[0] == 0

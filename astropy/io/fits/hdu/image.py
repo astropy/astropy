@@ -14,7 +14,7 @@ from astropy.io.fits.util import (
     _pseudo_zero,
 )
 from astropy.io.fits.verify import VerifyWarning
-from astropy.utils import isiterable, lazyproperty
+from astropy.utils import lazyproperty
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU, _ValidHDU
 
@@ -1055,7 +1055,7 @@ class Section:
                 ks = range(*key.indices(axis))
                 break
 
-            if isiterable(key):
+            if np.iterable(key):
                 # Handle both integer and boolean arrays.
                 ks = np.arange(axis, dtype=int)[key]
                 break
@@ -1063,7 +1063,7 @@ class Section:
 
         data = [self[keys[:idx] + (k,) + keys[idx + 1 :]] for k in ks]
 
-        if any(isinstance(key, slice) or isiterable(key) for key in keys[idx + 1 :]):
+        if any(isinstance(key, slice) or np.iterable(key) for key in keys[idx + 1 :]):
             # data contains multidimensional arrays; combine them.
             return np.array(data)
         else:
@@ -1288,7 +1288,7 @@ class _IndexInfo:
             self.npts = (stop - start) // step
             self.offset = start
             self.contiguous = step == 1
-        elif isiterable(index):
+        elif np.iterable(index):
             self.npts = len(index)
             self.offset = 0
             self.contiguous = False

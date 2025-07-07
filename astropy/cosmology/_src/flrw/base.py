@@ -1,19 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# ruff: noqa: RUF009
-
-from __future__ import annotations
 
 __all__ = ["FLRW", "FlatFLRWMixin"]
 
 import inspect
 import warnings
 from abc import abstractmethod
+from collections.abc import Mapping
 from dataclasses import field
 from functools import cached_property
 from inspect import signature
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
-from typing import TYPE_CHECKING, Any, TypeVar, overload
+from typing import Self, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
@@ -35,20 +33,19 @@ from astropy.cosmology._src.parameter import (
     validate_non_negative,
     validate_with_unit,
 )
+from astropy.cosmology._src.traits import (
+    HubbleParameter,
+    ScaleFactor,
+    TemperatureCMB,
+    _BaryonComponent,
+    _CriticalDensity,
+    _MatterComponent,
+)
 from astropy.cosmology._src.utils import (
     aszarr,
     deprecated_keywords,
     vectorize_redshift_method,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
-    from typing import Self
-
-    from numpy.typing import ArrayLike, NDArray
-
-    from astropy.units import Quantity
-
 
 # isort: split
 if HAS_SCIPY:
@@ -68,8 +65,7 @@ _InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number
 
 # Some conversion constants -- useful to compute them once here and reuse in
 # the initialization rather than have every object do them.
-_H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
-_sec_to_Gyr = u.s.to(u.Gyr)
+
 # angle conversions
 _radian_in_arcsec = (1 * u.rad).to(u.arcsec)
 _radian_in_arcmin = (1 * u.rad).to(u.arcmin)
@@ -86,154 +82,6 @@ _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
 ##############################################################################
 
 
-class _ScaleFactor:
-    """The object has attributes and methods for computing the cosmological scale factor.
-
-    The scale factor is defined as :math:`a = 1 / (1 + z)`.
-
-    Attributes
-    ----------
-    scale_factor0 : `~astropy.units.Quantity`
-        Scale factor at redshift 0.
-
-    Methods
-    -------
-    scale_factor
-        Compute the scale factor at a given redshift.
-    """
-
-    @property
-    def scale_factor0(self) -> Quantity:
-        r"""Scale factor at redshift 0.
-
-        The scale factor is defined as :math:`a = \frac{a_0}{1 + z}`. The common
-        convention is to set :math:`a_0 = 1`. However, in some cases, e.g. in
-        some old CMB papers, :math:`a_0` is used to normalize `a` to be a
-        convenient number at the redshift of interest for that paper. Explicitly
-        using :math:`a_0` in both calculation and code avoids ambiguity.
-        """
-        return self.scale_factor(0) << u.one
-
-    @deprecated_keywords("z", since="7.0")
-    def scale_factor(self, z: Quantity | ArrayLike) -> Quantity | NDArray[Any] | float:
-        """Scale factor at redshift ``z``.
-
-        The scale factor is defined as :math:`a = 1 / (1 + z)`.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'] | array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        |Quantity| | ndarray | float
-            Scale factor at each input redshift.
-            Returns `float` if the input is scalar.
-        """
-        return 1.0 / (aszarr(z) + 1.0)
-
-
-class _TemperatureCMB:
-    """The object has attributes and methods for computing the cosmological background temperature.
-
-    Attributes
-    ----------
-    Tcmb0 : |Quantity|
-        Temperature of the CMB at redshift 0.
-
-    Methods
-    -------
-    Tcmb
-        Compute the CMB temperature at a given redshift.
-    """
-
-    Tcmb0: Quantity
-    """Temperature of the CMB as |Quantity| at z=0."""
-
-    @deprecated_keywords("z", since="7.0")
-    def Tcmb(self, z: Quantity | ArrayLike) -> Quantity:
-        """Return the CMB temperature at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Tcmb : Quantity ['temperature']
-            The temperature of the CMB in K.
-        """
-        return self.Tcmb0 * (aszarr(z) + 1.0)
-
-
-class _CriticalDensity:
-    """The object has attributes and methods for the critical density."""
-
-    critical_density0: Quantity
-    """Critical density at redshift 0."""
-
-    efunc: Callable[[Any], NDArray[Any]]
-
-    @deprecated_keywords("z", since="7.0")
-    def critical_density(self, z: Quantity | ArrayLike) -> Quantity:
-        """Critical density in grams per cubic cm at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        rho : Quantity ['mass density']
-            Critical density at each input redshift.
-        """
-        return self.critical_density0 * self.efunc(z) ** 2
-
-
-class _BaryonComponent:
-    """The cosmology has attributes and methods for the baryon density."""
-
-    Ob0: float
-    """Omega baryons: density of baryonic matter in units of the critical density at z=0."""
-
-    inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
-
-    @deprecated_keywords("z", since="7.0")
-    def Ob(self, z: Quantity | ArrayLike) -> NDArray[Any] | float:
-        """Return the density parameter for baryonic matter at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Ob : ndarray or float
-            The density of baryonic matter relative to the critical density at
-            each redshift.
-            Returns `float` if the input is scalar.
-
-        """
-        z = aszarr(z)
-        return self.Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
-
-
 ParameterOde0 = Parameter(
     doc="Omega dark energy; dark energy density/critical density at z=0.",
     fvalidate="float",
@@ -242,7 +90,13 @@ ParameterOde0 = Parameter(
 
 @dataclass_decorator
 class FLRW(
-    Cosmology, _ScaleFactor, _TemperatureCMB, _CriticalDensity, _BaryonComponent
+    Cosmology,
+    HubbleParameter,
+    ScaleFactor,
+    TemperatureCMB,
+    _CriticalDensity,
+    _BaryonComponent,
+    _MatterComponent,
 ):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
@@ -475,21 +329,6 @@ class FLRW(
         return self._massivenu
 
     @cached_property
-    def h(self) -> float:
-        """Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]."""
-        return self.H0.value / 100.0
-
-    @cached_property
-    def hubble_time(self) -> u.Quantity:
-        """Hubble time."""
-        return (_sec_to_Gyr / (self.H0.value * _H0units_to_invs)) << u.Gyr
-
-    @cached_property
-    def hubble_distance(self) -> u.Quantity:
-        """Hubble distance."""
-        return (const.c / self.H0).to(u.Mpc)
-
-    @cached_property
     def critical_density0(self) -> u.Quantity:
         r"""Critical mass density at z=0.
 
@@ -567,33 +406,6 @@ class FLRW(
             Returns float if input scalar.
         """
         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
-
-    @deprecated_keywords("z", since="7.0")
-    def Om(self, z):
-        """Return the density parameter for non-relativistic matter at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Om : ndarray or float
-            The density of non-relativistic matter relative to the critical
-            density at each redshift.
-            Returns `float` if the input is scalar.
-
-        Notes
-        -----
-        This does not include neutrinos, even if non-relativistic at the
-        redshift of interest; see `Onu`.
-        """
-        z = aszarr(z)
-        return self.Om0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Odm(self, z):
@@ -1045,25 +857,6 @@ class FLRW(
         return (z + 1.0) ** 2 * self.inv_efunc(z)
 
     @deprecated_keywords("z", since="7.0")
-    def H(self, z):
-        """Hubble parameter (km/s/Mpc) at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        H : Quantity ['frequency']
-            Hubble parameter at each input redshift.
-        """
-        return self.H0 * self.efunc(z)
-
-    @deprecated_keywords("z", since="7.0")
     def lookback_time(self, z):
         """Lookback time in Gyr to redshift ``z``.
 
@@ -1226,14 +1019,14 @@ class FLRW(
     # Comoving distance
 
     @overload
-    def comoving_distance(self, z: _InputT) -> Quantity: ...
+    def comoving_distance(self, z: _InputT) -> u.Quantity: ...
 
     @overload
-    def comoving_distance(self, z: _InputT, z2: _InputT) -> Quantity: ...
+    def comoving_distance(self, z: _InputT, z2: _InputT) -> u.Quantity: ...
 
     @deprecated_keywords("z2", since="7.1")
     @deprecated_keywords("z", since="7.0")
-    def comoving_distance(self, z: _InputT, z2: _InputT | None = None) -> Quantity:
+    def comoving_distance(self, z: _InputT, z2: _InputT | None = None) -> u.Quantity:
         r"""Comoving line-of-sight distance :math:`d_c(z1, z2)` in Mpc.
 
         The comoving distance along the line-of-sight between two objects

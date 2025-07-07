@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 __all__: list[str] = []  # nothing is publicly scoped
 
 from dataclasses import Field

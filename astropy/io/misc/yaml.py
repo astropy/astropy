@@ -78,8 +78,7 @@ def _unit_constructor(loader, node):
 
 
 def _serialized_column_representer(dumper, obj):
-    out = dumper.represent_mapping("!astropy.table.SerializedColumn", obj)
-    return out
+    return dumper.represent_mapping("!astropy.table.SerializedColumn", obj)
 
 
 def _serialized_column_constructor(loader, node):
@@ -94,8 +93,7 @@ def _time_representer(dumper, obj):
 
 def _time_constructor(loader, node):
     map = loader.construct_mapping(node)
-    out = Time.info._construct_from_dict(map)
-    return out
+    return Time.info._construct_from_dict(map)
 
 
 def _timedelta_representer(dumper, obj):
@@ -105,8 +103,7 @@ def _timedelta_representer(dumper, obj):
 
 def _timedelta_constructor(loader, node):
     map = loader.construct_mapping(node)
-    out = TimeDelta.info._construct_from_dict(map)
-    return out
+    return TimeDelta.info._construct_from_dict(map)
 
 
 def _ndarray_representer(dumper, obj):
@@ -181,14 +178,12 @@ def _quantity_constructor(cls):
 
 def _skycoord_representer(dumper, obj):
     map = obj.info._represent_as_dict()
-    out = dumper.represent_mapping("!astropy.coordinates.sky_coordinate.SkyCoord", map)
-    return out
+    return dumper.represent_mapping("!astropy.coordinates.sky_coordinate.SkyCoord", map)
 
 
 def _skycoord_constructor(loader, node):
     map = loader.construct_mapping(node)
-    out = coords.SkyCoord.info._construct_from_dict(map)
-    return out
+    return coords.SkyCoord.info._construct_from_dict(map)
 
 
 # Straight from yaml's Representer

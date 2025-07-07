@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 import copy
 import operator
 import re
 import warnings
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from typing import Union
 
 import erfa
 import numpy as np
@@ -35,9 +34,6 @@ from .sky_coordinate_parsers import (
     _get_frame_without_data,
     _parse_coordinate_data,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
@@ -176,9 +172,9 @@ class SkyCoord(MaskableShapedLikeNDArray):
     info = SkyCoordInfo()
 
     # Methods implemented by the underlying frame
-    position_angle: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
-    separation: Callable[[BaseCoordinateFrame | SkyCoord], Angle]
-    separation_3d: Callable[[BaseCoordinateFrame | SkyCoord], Distance]
+    position_angle: Callable[[Union[BaseCoordinateFrame, "SkyCoord"]], Angle]
+    separation: Callable[[Union[BaseCoordinateFrame, "SkyCoord"]], Angle]
+    separation_3d: Callable[[Union[BaseCoordinateFrame, "SkyCoord"]], Distance]
 
     def __init__(self, *args, copy=True, **kwargs):
         # these are frame attributes set on this SkyCoord but *not* a part of
@@ -1202,10 +1198,9 @@ class SkyCoord(MaskableShapedLikeNDArray):
                 "coordinate frame with data"
             )
 
-        res = match_coordinates_sky(
+        return match_coordinates_sky(
             self, catalogcoord, nthneighbor=nthneighbor, storekdtree="_kdtree_sky"
         )
-        return res
 
     def match_to_catalog_3d(self, catalogcoord, nthneighbor=1):
         """
@@ -1269,11 +1264,9 @@ class SkyCoord(MaskableShapedLikeNDArray):
                 "coordinate frame with data"
             )
 
-        res = match_coordinates_3d(
+        return match_coordinates_3d(
             self, catalogcoord, nthneighbor=nthneighbor, storekdtree="_kdtree_3d"
         )
-
-        return res
 
     def search_around_sky(self, searcharoundcoords, seplimit):
         """

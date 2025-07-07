@@ -15,11 +15,7 @@ from numpy import ma
 from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
-from astropy.utils import (
-    ShapedLikeNDArray,
-    deprecated,
-    isiterable,
-)
+from astropy.utils import ShapedLikeNDArray, deprecated
 from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_25
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
@@ -1203,7 +1199,7 @@ class Table:
         the same length as data.
         """
         for inp_list, inp_str in ((dtype, "dtype"), (names, "names")):
-            if not isiterable(inp_list):
+            if not np.iterable(inp_list):
                 raise ValueError(f"{inp_str} must be a list or None")
 
         if len(names) != n_cols or len(dtype) != n_cols:
@@ -3297,8 +3293,10 @@ class Table:
             vals = vals_list
             mask = mask_list
 
-        if isiterable(vals):
-            if mask is not None and (not isiterable(mask) or isinstance(mask, Mapping)):
+        if np.iterable(vals):
+            if mask is not None and (
+                not np.iterable(mask) or isinstance(mask, Mapping)
+            ):
                 raise TypeError("Mismatch between type of vals and mask")
 
             if len(self.columns) != len(vals):

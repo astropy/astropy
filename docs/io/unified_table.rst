@@ -98,8 +98,8 @@ A full list of the supported formats and corresponding classes is shown in the
 table below. The ``Write`` column indicates those formats that support write
 functionality, and the ``Suffix`` column indicates the filename suffix
 indicating a particular format. If the value of ``Suffix`` is ``auto``, the
-format is auto-detected from the file itself. Not all formats support auto-
-detection.
+format is auto-detected from the file itself. Not all formats support
+auto-detection.
 
 ===========================  =====  ======  ============================================================================================
            Format            Write  Suffix                                          Description
@@ -134,7 +134,10 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
                 pandas.html    Yes          :func:`pandas.read_html` and :meth:`pandas.DataFrame.to_html`
                 pandas.json    Yes          :func:`pandas.read_json` and :meth:`pandas.DataFrame.to_json`
                     parquet    Yes    auto  |Parquet|: Apache Parquet binary file
+            parquet.votable    Yes          Parquet file(s) with VOTable metadata
+                pyarrow.csv     No          :func:`~astropy.io.misc.pyarrow.csv.read_csv`: Performant CSV reader
                     votable    Yes    auto  :mod:`~astropy.io.votable`: Table format used by Virtual Observatory (VO) initiative
+            votable.parquet    Yes          Parquet serialization of VOTables. Specify this format for writing, reading is automatic.
 ===========================  =====  ======  ============================================================================================
 
 Details
@@ -269,7 +272,13 @@ represent the home directory of the current or specified user, respectively.
 Command-Line Utility
 ^^^^^^^^^^^^^^^^^^^^
 
-For convenience, the command-line tool ``showtable`` can be used to print the
+.. note::
+
+    In v7.1, the ``showtable`` command is now deprecated to avoid a name clash on Debian;
+    use ``showtable-astropy`` instead. The deprecated command will be removed in a future
+    release.
+
+For convenience, the command-line tool ``showtable-astropy`` can be used to print the
 content of tables for the formats supported by the unified I/O interface.
 
 Example
@@ -281,7 +290,7 @@ Example
 
 To view the contents of a table on the command line::
 
-    $ showtable astropy/io/fits/tests/data/table.fits
+    $ showtable-astropy astropy/io/fits/tests/data/table.fits
 
      target V_mag
     ------- -----
@@ -289,5 +298,4 @@ To view the contents of a table on the command line::
     NGC1002  12.3
     NGC1003  15.2
 
-To get full documentation on the usage and available options, do ``showtable
---help``.
+To get full documentation on the usage and available options, do ``showtable-astropy --help``.

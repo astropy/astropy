@@ -612,6 +612,7 @@ NON_FINITE_TRF_MODELS = [
 # These models will fail the LMLSQFitter fitting test due to non-finite
 NON_FINITE_LM_MODELS = [
     Sersic1D,
+    Sersic2D,
     ArcSine1D,
     ArcCosine1D,
     PowerLaw1D,

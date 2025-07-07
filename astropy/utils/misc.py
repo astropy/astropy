@@ -4,8 +4,6 @@ A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
 
-from __future__ import annotations
-
 import contextlib
 import difflib
 import inspect
@@ -18,14 +16,15 @@ import threading
 import traceback
 import unicodedata
 from collections import defaultdict
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from itertools import chain
-from typing import TYPE_CHECKING
+from types import TracebackType
+from typing import Final
+
+import numpy as np
 
 from astropy.utils import deprecated
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
 
 __all__ = [
     "JsonCustomEncoder",
@@ -40,18 +39,19 @@ __all__ = [
     "walk_skip_hidden",
 ]
 
-NOT_OVERWRITING_MSG = (
+NOT_OVERWRITING_MSG: Final = (
     "File {} already exists. If you mean to replace it "
     'then use the argument "overwrite=True".'
 )
 # A useful regex for tests.
-_NOT_OVERWRITING_MSG_MATCH = (
+_NOT_OVERWRITING_MSG_MATCH: Final = (
     r"File .* already exists\. If you mean to "
     r"replace it then use the argument "
     r'"overwrite=True"\.'
 )
 
 
+@deprecated(since="7.2", alternative="numpy.iterable()")
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
     try:
@@ -74,12 +74,12 @@ def indent(s, shift=1, width=4):
 class _DummyFile:
     """A noop writeable object."""
 
-    def write(self, s):
+    def write(self, s: str) -> None:
         pass
 
 
 @contextlib.contextmanager
-def silence():
+def silence() -> Generator[None, None, None]:
     """A context manager that silences sys.stdout and sys.stderr."""
     old_stdout = sys.stdout
     old_stderr = sys.stderr
@@ -158,22 +158,28 @@ class NumpyRNGContext:
 
     """
 
-    def __init__(self, seed):
+    def __init__(self, seed: int) -> None:
         self.seed = seed
 
-    def __enter__(self):
-        from numpy import random
+    def __enter__(self) -> None:
+        self.startstate = np.random.get_state()
+        np.random.seed(self.seed)
 
-        self.startstate = random.get_state()
-        random.seed(self.seed)
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        np.random.set_state(self.startstate)
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        from numpy import random
 
-        random.set_state(self.startstate)
-
-
-def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
+def find_api_page(
+    obj: object,
+    version: str | None = None,
+    openinbrowser: bool = True,
+    timeout: float | None = None,
+) -> str:
     """
     Determines the URL of the API page for the specified object, and
     optionally open that page in a web browser.
@@ -394,9 +400,7 @@ class JsonCustomEncoder(json.JSONEncoder):
 
     """
 
-    def default(self, obj):
-        import numpy as np
-
+    def default(self, obj: object) -> object:
         from astropy import units as u
 
         if isinstance(obj, u.Quantity):
@@ -497,11 +501,11 @@ def did_you_mean(
     return f"Did you mean {suggestion}?"
 
 
-LOCALE_LOCK = threading.Lock()
+LOCALE_LOCK: Final = threading.Lock()
 
 
 @contextmanager
-def _set_locale(name):
+def _set_locale(name: str) -> Generator[None, None, None]:
     """
     Context manager to temporarily set the locale to ``name``.
 
@@ -534,7 +538,7 @@ def _set_locale(name):
                 locale.setlocale(locale.LC_ALL, saved)
 
 
-def dtype_bytes_or_chars(dtype):
+def dtype_bytes_or_chars(dtype: np.dtype) -> int | None:
     """
     Parse the number out of a dtype.str value like '<U5' or '<f8'.
 

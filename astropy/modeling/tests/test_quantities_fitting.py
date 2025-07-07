@@ -8,7 +8,7 @@ import pytest
 
 from astropy import units as u
 from astropy.modeling import fitting, models
-from astropy.modeling.core import Fittable1DModel
+from astropy.modeling.core import Fittable1DModel, compose_models_with_units
 from astropy.modeling.parameters import Parameter
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import UnitsError
@@ -279,3 +279,29 @@ def test_fitting_custom_names(model, fitter):
         assert_quantity_allclose(
             getattr(new_model, param_name).quantity, getattr(model, param_name).quantity
         )
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.filterwarnings(r"ignore:Model is linear in parameters*")
+@pytest.mark.parametrize("fitter", fitters)
+def test_fitting_model_pipe_with_units(fitter):
+    e = np.linspace(0, 25, 100) * u.keV
+    phys = models.Linear1D(slope=-4 * u.ph / u.keV, intercept=100 * u.ph)
+    phys.output_units = {"y": u.ph}
+    response = models.Linear1D(slope=1 * u.ct / u.ph, intercept=0 * u.ct)
+    response.output_units = {"y": u.ct}
+    comb = phys | response
+    comb.unit_change_composition = True
+    fake_data = comb(e)
+    fit = fitter()
+    res = fit(comb, e, fake_data)
+    for name in comb.param_names:
+        assert getattr(comb, name) == getattr(res, name)
+
+    comb = compose_models_with_units(phys, response)
+    assert comb.unit_change_composition
+    fake_data = comb(e)
+    fit = fitter()
+    res = fit(comb, e, fake_data)
+    for name in comb.param_names:
+        assert getattr(comb, name) == getattr(res, name)

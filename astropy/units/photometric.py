@@ -10,18 +10,16 @@ Both the units and magnitudes are available in (and should be used
 through) the `astropy.units` namespace.
 
 """
-# avoid ruff complaints about undefined names defined by def_unit
-# ruff: noqa: F821
 
 import numpy as np
 
-from astropy.constants import L_bol0
+from astropy.constants.si import L_bol0
 
 from . import astrophys, cgs, si
-from .core import Unit, UnitBase, def_unit
-from .utils import generate_unit_summary
+from .core import UnitBase, def_unit
+from .docgen import generate_unit_summary
 
-__all__ = ["zero_point_flux"]  #  Units are added at the end
+__all__ = []  #  Units are added at the end
 
 _ns = globals()
 
@@ -69,20 +67,6 @@ def_unit(
         "zero_point_flux equivalency should be used."
     ),
 )
-
-
-def zero_point_flux(flux0):
-    """
-    An equivalency for converting linear flux units ("maggys") defined relative
-    to a standard source into a standardized system.
-
-    Parameters
-    ----------
-    flux0 : `~astropy.units.Quantity`
-        The flux of a magnitude-0 object in the "maggy" system.
-    """
-    flux_unit0 = Unit(flux0)
-    return [(maggy, flux_unit0)]
 
 
 ###########################################################################

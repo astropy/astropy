@@ -9,16 +9,14 @@ The classes and functions defined here are also available in
 from __future__ import annotations
 
 import numbers
-from typing import TYPE_CHECKING
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, Final
 
 from astropy.utils.compat import COPY_IF_NEEDED
 
 from . import astrophys, cgs, core, misc, quantity, si
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-    from typing import Final
-
     from .typing import PhysicalTypeID, QuantityLike, UnitPowerLike
 
 __all__: Final = ["PhysicalType", "def_physical_type", "get_physical_type"]
@@ -167,15 +165,14 @@ def _physical_type_from_str(name: str) -> PhysicalType:
 
 
 def _replace_temperatures_with_kelvin(unit: core.UnitBase) -> core.UnitBase:
-    """
-    If a unit contains a temperature unit besides kelvin, then replace
-    that unit with kelvin.
+    """Replace °F, and °C in the bases of `unit` with K.
 
-    Temperatures cannot be converted directly between K, °F, °C, and
-    °Ra, in particular since there would be different conversions for
-    T and ΔT.  However, each of these temperatures each represents the
-    physical type.  Replacing the different temperature units with
-    kelvin allows the physical type to be treated consistently.
+    The Kelvin, Celsius and Fahrenheit scales have different zero points,
+    which is a problem for the unit conversion machinery (without the
+    `temperature` equivalency). Replacing °F, and °C with kelvin allows the
+    physical type to be treated consistently. The Rankine scale has the
+    same zero point as the Kelvin scale, so degrees Rankine do not have to
+    be special-cased.
     """
     physical_type_id = unit._physical_type_id
 
@@ -183,7 +180,7 @@ def _replace_temperatures_with_kelvin(unit: core.UnitBase) -> core.UnitBase:
     substitution_was_made = False
 
     for base, power in physical_type_id:
-        if base in ["deg_F", "deg_C", "deg_R"]:
+        if base in ["deg_F", "deg_C"]:
             base = "K"
             substitution_was_made = True
         physical_type_id_components.append((base, power))

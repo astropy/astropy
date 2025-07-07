@@ -7,6 +7,7 @@ managing them.
 """
 
 import sys
+import warnings
 from pathlib import Path
 
 from astropy.utils.system_info import system_info
@@ -156,6 +157,7 @@ class physical_constants(base_constants_version):
     _value = "codata2018"
 
     _versions = dict(
+        codata2022="codata2022",
         codata2018="codata2018",
         codata2014="codata2014",
         codata2010="codata2010",
@@ -185,7 +187,9 @@ class astronomical_constants(base_constants_version):
 # Create the test() function
 from .tests.runner import TestRunner
 
-test = TestRunner.make_test_runner_in(__path__[0])
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
+    test = TestRunner.make_test_runner_in(__path__[0])
 
 
 # if we are *not* in setup mode, import the logger and possibly populate the

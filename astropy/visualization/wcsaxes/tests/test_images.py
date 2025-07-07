@@ -19,7 +19,6 @@ from astropy.coordinates import (
 )
 from astropy.io import fits
 from astropy.tests.figures import figure_test
-from astropy.utils import isiterable
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_scalebar
@@ -1171,6 +1170,16 @@ def test_1d_plot_1d_wcs_format_unit(wave_wcs_1d):
     return fig
 
 
+@figure_test
+def test_1d_plot_1d_wcs_get_transform(wave_wcs_1d):
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
+    ax.plot([100, 200, 300], [2, 3, 2], transform=ax.get_transform("world"))
+
+    return fig
+
+
 @pytest.fixture
 def spatial_wcs_2d():
     wcs = WCS(naxis=2)
@@ -1464,14 +1473,14 @@ def test_nosimplify():
 @figure_test
 def test_custom_formatter(spatial_wcs_2d_small_angle):
     def double_format(value, **kwargs):
-        if isiterable(value):
+        if np.iterable(value):
             return [f"{(v * 2):.4f}" for v in value]
         else:
             return f"{(value * 2):.2f}"
 
     def fruit_format(value, **kwargs):
         fruits = ["apple", "pear", "banana", "orange", "kiwi", "grape"]
-        if isiterable(value):
+        if np.iterable(value):
             return (fruits * 10)[: len(value)]
         else:
             return "apple"

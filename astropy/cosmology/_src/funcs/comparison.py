@@ -6,12 +6,11 @@ the top-level namespace -- :mod:`astropy.cosmology`. This module will be
 moved.
 """
 
-from __future__ import annotations
-
 import functools
 import inspect
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import Any, TypeAlias
 
 import numpy as np
 from numpy import False_, True_, ndarray
@@ -20,10 +19,6 @@ from astropy import table
 
 # isort: split
 from astropy.cosmology._src.core import Cosmology
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Any, TypeAlias
 
 __all__: list[str] = []  # Nothing is scoped here
 
@@ -197,9 +192,8 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
         # Parse cosmologies to format. Only do specified number.
         cosmos = _parse_formats(*cosmos, format=format)
         # Evaluate pyfunc, erroring if didn't match specified number.
-        result = wrapper.__wrapped__(*cosmos, **kwargs)
         # Return, casting to correct type casting is possible.
-        return result
+        return wrapper.__wrapped__(*cosmos, **kwargs)
 
     return wrapper
 
@@ -366,8 +360,6 @@ def _cosmology_not_equal(
     astropy.cosmology.cosmology_equal
         Element-wise equality check, with argument conversion to Cosmology.
     """
-    neq = not cosmology_equal(cosmo1, cosmo2, allow_equivalent=allow_equivalent)
     # TODO! it might eventually be worth the speed boost to implement some of
     #       the internals of cosmology_equal here, but for now it's a hassle.
-
-    return neq
+    return not cosmology_equal(cosmo1, cosmo2, allow_equivalent=allow_equivalent)

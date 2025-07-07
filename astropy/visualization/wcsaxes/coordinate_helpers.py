@@ -22,7 +22,6 @@ from .frame import EllipticalFrame, RectangularFrame1D
 from .grid_paths import get_gridline_path, get_lon_lat_path
 from .ticklabels import TickLabels
 from .ticks import Ticks
-from .utils import MATPLOTLIB_LT_3_8
 
 __all__ = ["CoordinateHelper"]
 
@@ -427,7 +426,7 @@ class CoordinateHelper:
                 "coord_type should be one of 'scalar', 'longitude', or 'latitude'"
             )
 
-    def set_major_formatter(self, formatter):
+    def set_major_formatter(self, formatter, show_decimal_unit=True):
         """
         Set the format string to use for the major tick labels.
 
@@ -443,6 +442,9 @@ class CoordinateHelper:
             argument, which gives (also as a `~astropy.units.Quantity`) the
             spacing between ticks, and returns an iterable of strings
             containing the labels.
+        show_decimal_unit : str
+            Whether to show the unit or not when using decimal formatting (e.g.,
+            ``d.dd`` or ``x.xxx``).
         """
         if callable(formatter):
             self._custom_formatter = formatter
@@ -451,6 +453,8 @@ class CoordinateHelper:
             self._custom_formatter = None
         else:
             raise TypeError("formatter should be a string")
+
+        self._formatter_locator.show_decimal_unit = show_decimal_unit
 
     def format_coord(self, value, format="auto"):
         """
@@ -859,13 +863,8 @@ class CoordinateHelper:
                     p.draw(renderer)
 
             elif self._grid is not None:
-                if MATPLOTLIB_LT_3_8:
-                    for line in self._grid.collections:
-                        line.set(**self._grid_lines_kwargs)
-                        line.draw(renderer)
-                else:
-                    self._grid.set(**self._grid_lines_kwargs)
-                    self._grid.draw(renderer)
+                self._grid.set(**self._grid_lines_kwargs)
+                self._grid.draw(renderer)
 
         renderer.close_group("grid lines")
 
@@ -1372,11 +1371,7 @@ class CoordinateHelper:
 
     def _clear_grid_contour(self):
         if hasattr(self, "_grid") and self._grid:
-            if MATPLOTLIB_LT_3_8:
-                for line in self._grid.collections:
-                    line.remove()
-            else:
-                self._grid.remove()
+            self._grid.remove()
 
     def _update_grid_contour(self):
         if self.coord_index is None:

@@ -20,7 +20,10 @@ import re
 import unicodedata
 import warnings
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from re import Match, Pattern
+from typing import TYPE_CHECKING, ClassVar, Final
+
+import numpy as np
 
 from astropy.units.core import CompositeUnit, Unit, get_current_unit_registry
 from astropy.units.errors import UnitsWarning
@@ -30,11 +33,6 @@ from astropy.utils.misc import did_you_mean
 from .base import Base, _ParsingFormatMixin
 
 if TYPE_CHECKING:
-    from re import Match, Pattern
-    from typing import ClassVar, Final
-
-    import numpy as np
-
     from astropy.extern.ply.lex import Lexer
     from astropy.units import UnitBase
     from astropy.units.typing import UnitScale

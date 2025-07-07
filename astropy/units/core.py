@@ -11,16 +11,17 @@ import operator
 import textwrap
 import unicodedata
 import warnings
+from collections.abc import Collection, Iterable, Mapping, MutableMapping, Sequence
 from functools import cached_property
 from threading import RLock
-from typing import TYPE_CHECKING, NamedTuple, overload
+from types import TracebackType
+from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple, Self, overload
 
 import numpy as np
 
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import deprecated, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.misc import isiterable
 
 from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
 from .utils import (
@@ -31,10 +32,6 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Iterable, Mapping, MutableMapping, Sequence
-    from types import TracebackType
-    from typing import Any, Final, Literal, Self
-
     from .format import Base
     from .physical import PhysicalType
     from .quantity import Quantity
@@ -95,7 +92,7 @@ def _flatten_units_collection(items: object) -> set[UnitBase]:
                 units = item.values()
             elif inspect.ismodule(item):
                 units = vars(item).values()
-            elif isiterable(item):
+            elif np.iterable(item):
                 units = item
             else:
                 continue
@@ -793,7 +790,7 @@ class UnitBase:
             return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
         except Exception:
             arr = np.asanyarray(p)
-            p = arr.flat[0]
+            p = arr.item(0)
             if (arr != p).any():
                 raise ValueError(
                     "Quantities and Units may only be raised to a scalar power"

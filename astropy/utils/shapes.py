@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """The ShapedLikeNDArray mixin class and shape-related functions."""
 
-from __future__ import annotations
-
 import abc
 import numbers
+from collections.abc import Sequence
 from itertools import zip_longest
 from math import prod
-from typing import TYPE_CHECKING
+from types import EllipsisType
+from typing import Self, TypeVar
 
 import numpy as np
+from numpy.typing import NDArray
 
 from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.decorators import deprecated
@@ -30,14 +31,8 @@ __all__ = [
     "unbroadcast",
 ]
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-    from types import EllipsisType
-    from typing import Self, TypeVar
 
-    from numpy.typing import NDArray
-
-    DT = TypeVar("DT", bound=np.generic)
+DT = TypeVar("DT", bound=np.generic)
 
 
 class NDArrayShapeMethods:

@@ -4,8 +4,6 @@ Framework and base classes for coordinate frames/"low-level" coordinate
 classes.
 """
 
-from __future__ import annotations
-
 __all__ = [
     "BaseCoordinateFrame",
     "CoordinateFrameInfo",
@@ -15,23 +13,25 @@ __all__ = [
 ]
 
 import copy
+import functools
 import operator
 import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple, Union
 
 import numpy as np
 
 from astropy import units as u
 from astropy.table import QTable
+from astropy.units import Unit
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo
-from astropy.utils.decorators import format_doc, lazyproperty
+from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
 from . import representation as r
-from .angles import Angle, position_angle
+from .angles import Angle, Latitude, Longitude, position_angle
 from .attributes import Attribute
 from .errors import NonRotationTransformationError, NonRotationTransformationWarning
 from .transformations import (
@@ -41,10 +41,7 @@ from .transformations import (
 )
 
 if TYPE_CHECKING:
-    from typing import Literal
-
-    from astropy.coordinates import Latitude, Longitude, SkyCoord
-    from astropy.units import Unit
+    from astropy.coordinates import SkyCoord
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
@@ -888,7 +885,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         setattr(cls, private_attr, value)
         setattr(cls, attr_name, property(getter, doc=doc))
 
-    @lazyproperty
+    @functools.cached_property
     def cache(self):
         """Cache for this frame, a dict.
 
@@ -1119,7 +1116,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             cls._frame_class_cache["last_reprdiff_hash"] = r.get_reprdiff_cls_hash()
         return cls._frame_class_cache["representation_info"]
 
-    @lazyproperty
+    @functools.cached_property
     def representation_info(self):
         """
         A dictionary with the information of what attribute names for this frame
@@ -1902,8 +1899,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 self.data  # noqa: B018
 
             rep = self.represent_as(self.representation_type, in_frame_units=True)
-            val = getattr(rep, repr_names[attr])
-            return val
+            return getattr(rep, repr_names[attr])
 
         diff_names = self.get_representation_component_names("s")
         if attr in diff_names:
@@ -1916,8 +1912,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             rep = self.represent_as(
                 in_frame_units=True, **self.get_representation_cls(None)
             )
-            val = getattr(rep.differentials["s"], diff_names[attr])
-            return val
+            return getattr(rep.differentials["s"], diff_names[attr])
 
         return self.__getattribute__(attr)  # Raise AttributeError.
 
@@ -1967,7 +1962,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
 
     def _prepare_unit_sphere_coords(
         self,
-        other: BaseCoordinateFrame | SkyCoord,
+        other: Union["BaseCoordinateFrame", "SkyCoord"],
         origin_mismatch: Literal["ignore", "warn", "error"],
     ) -> tuple[Longitude, Latitude, Longitude, Latitude]:
         other_frame = getattr(other, "frame", other)
@@ -1996,7 +1991,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         )
         return self_sph.lon, self_sph.lat, other_sph.lon, other_sph.lat
 
-    def position_angle(self, other: BaseCoordinateFrame | SkyCoord) -> Angle:
+    def position_angle(self, other: Union["BaseCoordinateFrame", "SkyCoord"]) -> Angle:
         """Compute the on-sky position angle to another coordinate.
 
         Parameters
@@ -2031,7 +2026,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
 
     def separation(
         self,
-        other: BaseCoordinateFrame | SkyCoord,
+        other: Union["BaseCoordinateFrame", "SkyCoord"],
         *,
         origin_mismatch: Literal["ignore", "warn", "error"] = "warn",
     ) -> Angle:

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import warnings
-from contextlib import nullcontext
 
 import matplotlib as mpl
 import numpy as np
@@ -32,8 +31,6 @@ FREETYPE_261 = ft_version == Version("2.6.1")
 # We cannot use matplotlib.checkdep_usetex() anymore, see
 # https://github.com/matplotlib/matplotlib/issues/23244
 TEX_UNAVAILABLE = True
-
-MATPLOTLIB_LT_3_7 = Version(mpl.__version__) < Version("3.7")
 
 
 def test_grid_regression(ignore_matplotlibrc):
@@ -341,16 +338,7 @@ def test_contour_empty():
     fig = Figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
-
-    if MATPLOTLIB_LT_3_7:
-        ctx = pytest.warns(
-            UserWarning, match="No contour levels were found within the data range"
-        )
-    else:
-        ctx = nullcontext()
-
-    with ctx:
-        ax.contour(np.zeros((4, 4)), transform=ax.get_transform("world"))
+    ax.contour(np.zeros((4, 4)), transform=ax.get_transform("world"))
 
 
 def test_iterate_coords(ignore_matplotlibrc):
@@ -714,3 +702,17 @@ def test_get_axislabel_default():
     ax.coords[1].set_axislabel("")
     assert ax.coords[0].get_axislabel() == "Right Ascension"
     assert ax.coords[1].get_axislabel() == ""
+
+
+def test_plot_coord_slicing(ignore_matplotlibrc):
+    # Regression test to ensure plot_coord does not raise a NotImplementedError
+    # after slicing coordinates (issue #10254).
+
+    cube_header = get_pkg_data_filename("data/cube_header")
+    cube_header = fits.Header.fromtextfile(cube_header)
+
+    fig = Figure(figsize=(6, 6))
+    ax = fig.add_subplot(projection=WCS(cube_header), slices=("x", "y", 0))
+
+    c = SkyCoord(52 * u.deg, 30.5 * u.deg)
+    ax.plot_coord(c, "o")

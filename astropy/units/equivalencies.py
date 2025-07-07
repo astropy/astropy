@@ -7,10 +7,8 @@ available in (and should be used through) the `astropy.units` namespace.
 
 """
 
-from __future__ import annotations
-
 import functools
-from typing import TYPE_CHECKING
+from typing import Final
 
 # THIRD-PARTY
 import numpy as np
@@ -18,15 +16,12 @@ import numpy as np
 # LOCAL
 from astropy.constants import si as _si
 from astropy.utils import deprecated_renamed_argument
-from astropy.utils.misc import isiterable
 
 from . import astrophys, cgs, dimensionless_unscaled, misc, si
 from .core import Unit
 from .errors import UnitsError
 from .function import units as function_units
-
-if TYPE_CHECKING:
-    from typing import Final
+from .photometric import maggy
 
 __all__ = [
     "Equivalency",
@@ -49,6 +44,7 @@ __all__ = [
     "temperature",
     "temperature_energy",
     "thermodynamic_temperature",
+    "zero_point_flux",
 ]
 
 km_per_s: Final = si.km / si.s
@@ -123,7 +119,7 @@ def parallax():
         x = np.asanyarray(x)
         d = 1 / x
 
-        if isiterable(d):
+        if np.iterable(d):
             d[d < 0] = np.nan
             return d
 
@@ -766,11 +762,10 @@ def thermodynamic_temperature(frequency, T_cmb=None):
 
 @functools.cache
 def temperature():
-    """Convert between Kelvin, Celsius, Rankine and Fahrenheit here because
+    """Convert degrees Celsius and degrees Fahrenheit here because
     Unit and CompositeUnit cannot do addition or subtraction properly.
     """
     from .imperial import deg_F as F
-    from .imperial import deg_R as R
 
     K = si.K
     C = si.deg_C
@@ -780,9 +775,6 @@ def temperature():
             (K, C, lambda x: x - 273.15, lambda x: x + 273.15),
             (C, F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
             (K, F, lambda x: x * 1.8 - 459.67, lambda x: (x + 459.67) / 1.8),
-            (R, F, lambda x: x - 459.67, lambda x: x + 459.67),
-            (R, C, lambda x: (x - 491.67) * (5 / 9), lambda x: x * 1.8 + 491.67),
-            (R, K, lambda x: x * (5 / 9), lambda x: x * 1.8),
         ],
         "temperature",
     )
@@ -903,3 +895,16 @@ def magnetic_flux_field(mu_r=1):
         [(si.T, si.A / si.m, lambda x: x / (mu_r * mu0), lambda x: x * mu_r * mu0)],
         "magnetic_flux_field",
     )
+
+
+def zero_point_flux(flux0):
+    """
+    An equivalency for converting linear flux units ("maggys") defined relative
+    to a standard source into a standardized system.
+
+    Parameters
+    ----------
+    flux0 : `~astropy.units.Quantity`
+        The flux of a magnitude-0 object in the "maggy" system.
+    """
+    return Equivalency([(maggy, Unit(flux0))], "zero_point_flux")

@@ -6,10 +6,13 @@ tables for testing.
 """
 
 import string
+import warnings
 from itertools import cycle
 
 import numpy as np
 
+from astropy.io.votable.table import parse
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.data_info import ParentDtypeInfo
 
 from .table import Column, Table
@@ -85,11 +88,6 @@ def complex_table():
     Return a masked table from the io.votable test set that has a wide variety
     of stressing types.
     """
-    import warnings
-
-    from astropy.io.votable.table import parse
-    from astropy.utils.data import get_pkg_data_filename
-
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         votable = parse(
@@ -132,7 +130,12 @@ class ArrayWrapper:
     info = ArrayWrapperInfo()
 
     def __init__(self, data, copy=True):
-        self.data = np.array(data, copy=copy)
+        if isinstance(data, ArrayWrapper):
+            # this is done to preserve byteorder through copies
+            arr = data.data
+        else:
+            arr = data
+        self.data = np.array(arr, copy=copy)
         if "info" in getattr(data, "__dict__", ()):
             self.info = data.info
 

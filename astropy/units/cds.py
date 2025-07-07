@@ -41,7 +41,7 @@ import numpy as np
 from astropy.constants import si as _si
 
 from .core import UnitBase, binary_prefixes, def_unit, set_enabled_units, si_prefixes
-from .utils import generate_unit_summary
+from .docgen import generate_unit_summary
 
 _ns = globals()
 

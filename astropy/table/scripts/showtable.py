@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-``showtable`` is a command-line script based on ``astropy.io`` and
+``showtable-astropy`` is a command-line script based on ``astropy.io`` and
 ``astropy.table`` for printing ASCII, FITS, HDF5 or VOTable files(s) to the
 standard output.
 
-Example usage of ``showtable``:
+Example usage of ``showtable-astropy``:
 
 1. FITS::
 
-    $ showtable astropy/io/fits/tests/data/table.fits
+    $ showtable-astropy astropy/io/fits/tests/data/table.fits
 
      target V_mag
     ------- -----
@@ -18,7 +18,7 @@ Example usage of ``showtable``:
 
 2. ASCII::
 
-    $ showtable astropy/io/ascii/tests/t/simple_csv.csv
+    $ showtable-astropy astropy/io/ascii/tests/t/simple_csv.csv
 
      a   b   c
     --- --- ---
@@ -27,7 +27,7 @@ Example usage of ``showtable``:
 
 3. XML::
 
-    $ showtable astropy/io/votable/tests/data/names.xml --max-width 70
+    $ showtable-astropy astropy/io/votable/tests/data/names.xml --max-width 70
 
                col1             col2     col3  ... col15 col16 col17
                ---              deg      deg   ...  mag   mag   ---
@@ -38,7 +38,7 @@ Example usage of ``showtable``:
 
 4. Print all the FITS tables in the current directory::
 
-    $ showtable *.fits
+    $ showtable-astropy *.fits
 
 """
 
@@ -48,6 +48,7 @@ import warnings
 
 from astropy import log
 from astropy.table import Table
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -94,7 +95,7 @@ def showtable(filename, args):
 
 
 def main(args=None):
-    """The main function called by the `showtable` script."""
+    """The main function called by the ``showtable-astropy`` script."""
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
             """
@@ -110,6 +111,9 @@ def main(args=None):
         """
         )
     )
+    # TODO: pass color and suggest_on_error as kwargs when PYTHON_LT_14 is dropped
+    parser.color = True
+    parser.suggest_on_error = True
 
     addarg = parser.add_argument
     addarg("filename", nargs="+", help="path to one or more files")
@@ -188,3 +192,8 @@ def main(args=None):
         if idx > 0:
             print()
         showtable(filename, args)
+
+
+@deprecated("v7.1", name="showtable", alternative="showtable-astropy")
+def main_deprecated(args=None):
+    main(args)

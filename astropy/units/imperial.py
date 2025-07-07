@@ -23,7 +23,7 @@ __all__: list[str] = []  #  Units are added at the end
 
 from . import si
 from .core import UnitBase, add_enabled_units, def_unit
-from .utils import generate_unit_summary
+from .docgen import generate_unit_summary
 
 _ns = globals()
 
@@ -148,8 +148,10 @@ def_unit(
 )
 def_unit(
     ["deg_R", "Rankine"],
+    5 / 9 * si.K,
     namespace=_ns,
     doc="Rankine scale: absolute scale of thermodynamic temperature",
+    format={"latex": r"{}^{\circ}R", "unicode": "°R"},
 )
 
 ###########################################################################

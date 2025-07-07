@@ -48,18 +48,14 @@ References
 from __future__ import annotations
 
 import warnings
+from collections.abc import KeysView
 from inspect import signature
-from typing import TYPE_CHECKING
+from typing import Literal
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from astropy.utils.exceptions import AstropyUserWarning
-
-if TYPE_CHECKING:
-    from collections.abc import KeysView
-    from typing import Literal
-
-    from numpy.typing import ArrayLike, NDArray
 
 # TODO: typing: use a custom-defined 'ArrayLike-but-not-a-scalar' type for `float | ArrayLike` or `ArrayLike | float` hints
 

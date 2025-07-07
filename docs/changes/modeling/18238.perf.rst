@@ -1,0 +1,1 @@
+Improved performance of ``modeling.rotations.spherical2cartesian()`` by 11-18% depending on the size of the input data arrays.
