@@ -1325,7 +1325,7 @@ class UnitBase:
             for subcomposed in composed_list:
                 results.append((len(subcomposed.bases), subcomposed, tunit))
 
-        if len(results):
+        if results:
             results.sort(key=operator.itemgetter(0))
 
             min_length = results[0][0]
