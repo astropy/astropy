@@ -1017,7 +1017,7 @@ class Card(_Verify):
         keywordvalue_length = len(keyword) + len(delimiter) + len(value)
         if (
             keywordvalue_length == self.length + 1
-            and keyword.startswith("HIERARCH")
+            and self._hierarch
             and keyword[-1] == " "
         ):
             output = "".join([keyword[:-1], delimiter, value, comment])
@@ -1025,19 +1025,10 @@ class Card(_Verify):
         if len(output) <= self.length:
             output = f"{output:80}"
         else:
-            if isinstance(self.value, str) and len(value) > (
-                self.length - len(keyword) - 2
-            ):
+            if len(value) > (self.length - len(keyword) - 2) or self._hierarch:
                 # longstring case (CONTINUE card)
                 output = self._format_long_image()
-            elif (
-                keyword.strip().startswith("HIERARCH")
-                and self.comment
-                and len(keyword) + len(delimiter) + len(value) <= self.length
-            ):
-                # HIERARCH keyword where key+value fits but comment doesn't
-                output = self._format_long_image()
-            else:  # should be unreachable but keeping for regression safety
+            else:
                 warnings.warn(
                     "Card is too long, comment will be truncated.", VerifyWarning
                 )
