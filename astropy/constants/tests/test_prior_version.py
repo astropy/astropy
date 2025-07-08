@@ -145,7 +145,12 @@ def test_masses():
     """Ensure mass values are set up correctly.
     https://github.com/astropy/astropy/issues/8920
     """
-    from astropy.constants import astropyconst13, astropyconst20, astropyconst40, astropyconst80
+    from astropy.constants import (
+        astropyconst13,
+        astropyconst20,
+        astropyconst40,
+        astropyconst80,
+    )
 
     ref_text = "Allen's Astrophysical Quantities 4th Ed."
     assert (
