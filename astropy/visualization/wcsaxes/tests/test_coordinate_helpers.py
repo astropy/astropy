@@ -219,7 +219,7 @@ def test_set_visible():
     assert not coord._ticks.get_visible()
     assert not coord._ticklabels.get_visible()
     assert not coord._axislabels.get_visible()
-    
+
     coord.set_visible(True)
     assert coord._ticks.get_visible()
     assert coord._ticklabels.get_visible()

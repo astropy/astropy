@@ -828,7 +828,7 @@ class CoordinateHelper:
             will only be drawn if tick labels were drawn on that axis.
         """
         self._axislabels.set_visibility_rule(rule)
-    
+
     def set_visible(self, visible):
         """
         Set the visibility and/or position of ticks, tick labels, and axis label.
