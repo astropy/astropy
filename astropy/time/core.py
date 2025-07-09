@@ -6,8 +6,6 @@ UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
 
-from __future__ import annotations
-
 import copy
 import enum
 import operator
@@ -17,7 +15,7 @@ from collections import defaultdict
 from datetime import UTC, date, datetime
 from itertools import pairwise
 from time import strftime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 from warnings import warn
 from weakref import WeakValueDictionary
 
@@ -57,7 +55,8 @@ from .time_helper.function_helpers import CUSTOM_FUNCTIONS, UNSUPPORTED_FUNCTION
 from .utils import day_frac
 
 if TYPE_CHECKING:
-    from astropy.coordinates import EarthLocation
+    import astropy.coordinates
+
 __all__ = [
     "STANDARD_TIME_SCALES",
     "TIME_DELTA_SCALES",
@@ -758,7 +757,7 @@ class TimeBase(MaskableShapedLikeNDArray):
             raise TypeError(f"unhashable type: '{self.__class__.__name__}' {reason}")
 
     @property
-    def location(self) -> EarthLocation | None:
+    def location(self) -> Union["astropy.coordinates.EarthLocation", None]:
         return self._location
 
     @location.setter
