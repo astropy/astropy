@@ -205,3 +205,41 @@ def test_set_major_formatter():
 
     ax.coords[1].set_major_formatter("dd:mm:ss.s", show_decimal_unit=False)
     assert ax.coords[1].format_coord(4) == "4\xb000'00.0\""
+
+
+def test_set_visible():
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    coord = ax.coords[0]
+
+    coord.set_visible(False)
+    assert not coord._ticks.get_visible()
+    assert not coord._ticklabels.get_visible()
+    assert not coord._axislabels.get_visible()
+    
+    coord.set_visible(True)
+    assert coord._ticks.get_visible()
+    assert coord._ticklabels.get_visible()
+    assert coord._axislabels.get_visible()
+
+    coord.set_visible("t")
+    assert coord.get_ticks_position() == ["t"]
+    assert coord.get_ticklabel_position() == ["t"]
+    assert coord.get_axislabel_position() == ["t"]
+    assert coord._ticks.get_visible()
+    assert coord._ticklabels.get_visible()
+    assert coord._axislabels.get_visible()
+
+    coord.set_visible(" bl ")
+    assert coord.get_ticks_position() == ["b", "l"]
+    assert coord.get_ticklabel_position() == ["b", "l"]
+    assert coord.get_axislabel_position() == ["b", "l"]
+    assert coord._ticks.get_visible()
+    assert coord._ticklabels.get_visible()
+    assert coord._axislabels.get_visible()
+
+    with pytest.raises(TypeError):
+        coord.set_visible(123.45)
