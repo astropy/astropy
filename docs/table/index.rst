@@ -19,10 +19,10 @@ access, and modification operations, key features include:
 * Maintain a table index for fast retrieval of table items or ranges.
 * Support a general :ref:`mixin protocol <mixin_protocol>` for flexible data containers in tables.
 * :ref:`Read and write <read_write_tables>` to files via the :ref:`Unified File Read/Write Interface <table_io>`.
-* Convert to and from `pandas.DataFrame`.
+* Convert to and from `pandas.DataFrame` or `polars.DataFrame`.
 
 The :ref:`astropy-table-and-dataframes` page provides the rationale for maintaining
-and using the dedicated `astropy.table` package instead of relying on `pandas`.
+and using the dedicated `astropy.table` package instead of relying on `pandas` or `polars`.
 
 Getting Started
 ===============
@@ -71,8 +71,8 @@ Comments:
 
 There are many other ways of :ref:`construct_table`, including from a list of
 rows (either tuples or dicts), from a ``numpy`` structured or 2D array, by
-adding columns or rows incrementally, or even converting from a |SkyCoord| or a
-:class:`pandas.DataFrame`.
+adding columns or rows incrementally, or even converting from a |SkyCoord|, a
+:class:`pandas.DataFrame`, or a :class:`polars.DataFrame`
 
 There are a few ways of :ref:`access_table`. You can get detailed information
 about the table values and column definitions as follows::
@@ -354,6 +354,7 @@ Astropy Table and DataFrames
    :maxdepth: 2
 
    pandas.rst
+   polars.rst
    table_and_dataframes.rst
 
 Implementation

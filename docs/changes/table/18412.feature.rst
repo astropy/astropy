@@ -1,0 +1,1 @@
+The ``from_polars`` and ``to_polars`` are now available for the ``astropy.Table`` class.

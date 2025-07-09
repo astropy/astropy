@@ -19,7 +19,7 @@ addition, the base `~astropy.table.Column` class holds a ``unit`` attribute as
 metadata to allow tracking of the units of the data for applications not using
 |Quantity|.
 
-*Pandas does not provide support for units.*
+*Pandas/polars do not provide support for units.*
 
 Multi-dimensional and Structured Columns
 ----------------------------------------
@@ -30,6 +30,7 @@ spectrum for each source. Structured columns are less common, but are useful for
 vectorized data like an `~astropy.coordinates.EarthLocation` in a table.
 
 *Pandas is not able to natively store multi-dimensional or structured columns.*
+*There is limited support for multi-dimensional columns in `polars`.*
 
 Lossless representation of FITS and VOTable data via metadata
 -------------------------------------------------------------
@@ -43,6 +44,7 @@ information like the UCD is maintained.
 
 *Pandas provides limited support for metadata, but as of late-2024 it is highlighted as
 "experimental" in the documentation.*
+*Polars has limited tono support for metadata.*
 
 Time and Coordinates
 --------------------
@@ -68,6 +70,7 @@ limitations*:
   not supported.
 
 *Pandas does not support sky coordinate columns.*
+*Limitations are similar for `polars` as well.*
 
 Responsiveness to Community Needs
 ---------------------------------
@@ -76,16 +79,15 @@ The `astropy.table` package is developed by the Astropy community, which is focu
 the needs of astronomers and astrophysicists. This means that the development of the
 package can be responsive to the needs of this community and we can develop features
 without being constrained by the potential impact to the far broader user base of
-Pandas.
+Pandas or Polars
 
 Interoperability
 ----------------
 
 We recognize that Pandas is a popular library and that there are many users who are
 familiar with it. For this reason, we have made it easy to convert between
-`astropy.table` and `~pandas.DataFrame`, as documented in :ref:`pandas`. This allows
-users to take advantage of the features of both packages as needed,
+`astropy.table` and `~pandas.DataFrame`, as documented in :ref:`pandas`, or `astropy.table` and `~polars.DataFrame`, as documented in :ref:`polars`. This allows users to take advantage of the features of both packages as needed,
 within the limitations stated above.
 
 We are also committed to supporting interoperability with a more generalized concept of
-the DataFrame, with packages like `polars <https://pola.rs/>`_ gaining popularity.
+the DataFrame, with translation layers like `narwhals <https://narwhals-dev.github.io/narwhals/>`_ gaining popularity.
