@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import warnings
+from unittest.mock import MagicMock
 
 import matplotlib as mpl
 import numpy as np
@@ -520,7 +521,7 @@ def test_simplify_labels_minus_sign(
     if usetex and TEX_UNAVAILABLE:
         pytest.skip("TeX is unavailable")
 
-    ticklabels = TickLabels(None)
+    ticklabels = TickLabels(frame=MagicMock())
     expected_labels = []
     for i in range(1, 6):
         label = label_str.format(i)
