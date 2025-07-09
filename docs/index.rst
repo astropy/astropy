@@ -71,7 +71,7 @@ processing, and data analysis.
         Astropy and other packages in the astronomy Python ecosystem.
 
     .. grid-item-card:: Astropy Packages
-        :img-top: _static/index-images/coordinated.svg
+        :img-top: _static/index-images/packages.svg
         :link: https://www.astropy.org/affiliated/
         :link-type: url
         :text-align: center
