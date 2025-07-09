@@ -89,7 +89,10 @@ __doctest_skip__ = [
     "Table.convert_unicode_to_bytestring",
 ]
 
-__doctest_requires__ = {("Table.from_pandas", "Table.to_pandas"): ["pandas"]}
+__doctest_requires__ = {
+    ("Table.from_pandas", "Table.to_pandas"): ["pandas"],
+    ("Table.from_polars", "Table.to_polars"): ["polars"],
+}
 
 _pprint_docs = """
     {__doc__}
@@ -4306,19 +4309,19 @@ class Table:
         """
         Return a :class:`polars.DataFrame` instance.
 
-        The index of the created DataFrame is controlled by the ``index``
-        argument. For Polars, which doesn't use indexes in the same way as pandas,
-        the ``index`` parameter controls whether a column is set as a primary key
-        (for Polars) or used for sorting.
+        In addition to vanilla columns or masked columns, this supports Table
+        mixin columns like Quantity, Time, or SkyCoord.  In many cases these
+        objects have no analog in pandas and will be converted to a "encoded"
+        representation using only Column or MaskedColumn.  The exception is
+        Time or TimeDelta columns, which will be converted to the corresponding
+        representation in pandas using ``np.datetime64`` or ``np.timedelta64``.
+        See the example below.
 
         Parameters
         ----------
-        index : None, bool, str
-            If None or True, use the table primary key if available and a single column.
-            If False, no special handling. If a column name, use that as primary key.
         use_nullable_int : bool, default=True
             Convert integer MaskedColumn to Polars nullable integer type (Int64, etc).
-            If False, convert to float with nulls.
+            If False, convert to float with NaNs.
 
         Returns
         -------
@@ -4330,16 +4333,34 @@ class Table:
         ImportError
             If polars is not installed
         ValueError
-            If the Table has multi-dimensional columns
+            If the Table has multi-dimensional columns or mixed object columns.
 
         Examples
         --------
-        >>> from astropy.table import QTable
-        >>> import astropy.units as u
-        >>> from astropy.time import Time
-        >>> t = QTable([[1, 2] * u.m, Time([1998, 2002], format='jyear')],
-        ...            names=['quantity', 'time'])
-        >>> df = t.to_polars(index='time')
+          >>> import polars as pl
+          >>> from astropy.table import QTable
+          >>> import astropy.units as u
+          >>> from astropy.time import Time, TimeDelta
+          >>> from astropy.coordinates import SkyCoord
+
+          >>> q = [1, 2] * u.m
+          >>> tm = Time([1998, 2002], format='jyear')
+          >>> sc = SkyCoord([5, 6], [7, 8], unit='deg')
+          >>> dt = TimeDelta([3, 200] * u.s)
+
+          >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
+
+          >>> df = t.to_polars()
+          >>> print(df)
+        shape: (2, 5)
+        ┌─────┬─────────────────────┬───────┬────────┬──────────────┐
+        │ q   ┆ tm                  ┆ sc.ra ┆ sc.dec ┆ dt           │
+        │ --- ┆ ---                 ┆ ---   ┆ ---    ┆ ---          │
+        │ f64 ┆ datetime[ns]        ┆ f64   ┆ f64    ┆ duration[ns] │
+        ╞═════╪═════════════════════╪═══════╪════════╪══════════════╡
+        │ 1.0 ┆ 1998-01-01 00:00:00 ┆ 5.0   ┆ 7.0    ┆ 3s           │
+        │ 2.0 ┆ 2002-01-01 00:00:00 ┆ 6.0   ┆ 8.0    ┆ 3m 20s       │
+        └─────┴─────────────────────┴───────┴────────┴──────────────┘
         """
         import polars as pl
 
@@ -4495,8 +4516,7 @@ class Table:
 
             # Handle other types
             if mask.any():
-                out[name] = MaskedColumn(
-                    data=data, name=name, mask=mask, unit=unit)
+                out[name] = MaskedColumn(data=data, name=name, mask=mask, unit=unit)
             else:
                 out[name] = Column(data=data, name=name, unit=unit, copy=False)
 

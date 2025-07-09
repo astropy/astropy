@@ -5,14 +5,13 @@
 Interfacing with the Polars Package
 ***********************************
 
-The `polars <https://pola.rs/>`__ package is a package for high
-performance data analysis of table-like structures that is complementary to the
+The `polars <https://pola.rs/>`__ package is a high-performance, multi-threaded
+DataFrame library for table-like data, which complements the
 :class:`~astropy.table.Table` class in ``astropy``.
 
-In order to exchange data between the :class:`~astropy.table.Table` class and
-the :class:`polars.DataFrame` class (the main data structure in ``polars``),
-the |Table| class includes two methods, :meth:`~astropy.table.Table.to_polars`
-and :meth:`~astropy.table.Table.from_polars`.
+To enable interoperability, the |Table| class includes two methods:
+:meth:`~astropy.table.Table.to_polars` and :meth:`~astropy.table.Table.from_polars`,
+which convert between the |Table| and :class:`polars.DataFrame` classes.
 
 Basic Example
 -------------
@@ -26,21 +25,27 @@ To demonstrate, we can create a minimal table::
     >>> t['a'] = [1, 2, 3, 4]
     >>> t['b'] = ['a', 'b', 'c', 'd']
 
-Which we can then convert to a :class:`~pandas.DataFrame`::
+Which we can then convert to a :class:`~polars.DataFrame`::
 
-    >>> df = t.to_pandas()
+    >>> df = t.to_polars()
     >>> df
-       a  b
-    0  1  a
-    1  2  b
-    2  3  c
-    3  4  d
+    shape: (4, 2)
+    ┌─────┬─────┐
+    │ a   ┆ b   │
+    │ --- ┆ --- │
+    │ i64 ┆ str │
+    ├─────┼─────┤
+    │ 1   ┆ a   │
+    │ 2   ┆ b   │
+    │ 3   ┆ c   │
+    │ 4   ┆ d   │
+    └─────┴─────┘
     >>> type(df)
-    <class 'pandas.core.frame.DataFrame'>
+    <class 'polars.dataframe.frame.DataFrame'>
 
-It is also possible to create a table from a :class:`~pandas.DataFrame`::
+It is also possible to create a table from a :class:`~polars.DataFrame`::
 
-    >>> t2 = Table.from_pandas(df)
+    >>> t2 = Table.from_polars(df)
     >>> t2
     <Table length=4>
       a      b
@@ -55,30 +60,28 @@ It is also possible to create a table from a :class:`~pandas.DataFrame`::
 
 Details
 -------
-The conversions to and from ``pandas`` are subject to the following caveats:
 
-* The :class:`~pandas.DataFrame` structure does not support multidimensional
-  columns, so |Table| objects with multidimensional columns cannot be converted
-  to :class:`~pandas.DataFrame`.
+Conversions to and from ``polars`` are subject to a few limitations:
 
-* Masked tables can be converted, but pandas uses a sentinel such as `numpy.nan` to
-  represent missing values. Astropy uses a separate mask array to represent masked
-  values, where the value "under the mask" is preserved. When converting any astropy
-  masked column to a pandas DataFrame, the original values are lost.
+* The :class:`~polars.DataFrame` structure does not support multidimensional
+  columns. |Table| objects with such columns cannot be converted to
+  :class:`~polars.DataFrame`.
+
+* Masked tables are partially supported. ``polars`` represents missing values
+  using a sentinel (`None`) similar to ``pandas``, but the original value
+  under the mask is lost.
 
 * Tables with :ref:`mixin_columns` such as `~astropy.time.Time`,
-  `~astropy.coordinates.SkyCoord`, and |Quantity| can be converted, but
-  *with loss of information or fidelity*. For instance, `~astropy.time.Time` columns
-  will be converted to a `pandas TimeSeries
-  <https://pandas.pydata.org/docs/user_guide/timeseries.html>`_, but this object has
-  only 64-bit precision and does not support leap seconds or time scales.
+  `~astropy.coordinates.SkyCoord`, and |Quantity| can be converted, but with
+  *loss of information or fidelity*. These objects are broken down into one or
+  more primitive columns (e.g., float or string), and units or metadata are not
+  preserved.
 
-These issues are highlighted below in a more complex example with a table that includes
-masked and mixin columns.
+The following example demonstrates a more complex table with masked and mixin columns:
 
 .. EXAMPLE START: Interfacing Tables with the Polars Package (Complex Example)
 
-First we create a table with a masked columns and a mixin column::
+First, we create a table with masked and mixin columns::
 
     >>> import numpy as np
     >>> from astropy.table import MaskedColumn, QTable
@@ -103,74 +106,53 @@ First we create a table with a masked columns and a mixin column::
        --     2.0    b 2021-01-02 00:00:00.000  2.0,5.0     2.0
         3      --    c 2021-01-03 00:00:00.000  3.0,6.0     3.0
 
-Now we convert this table to a :class:`~pandas.DataFrame`::
+Now we convert this table to a :class:`~polars.DataFrame`::
 
-    >>> df = t.to_pandas()
+    >>> df = t.to_polars()
     >>> df
-          a    b    c         tm  sc.ra  sc.dec    q
-    0     1  1.0  NaN 2021-01-01    1.0     4.0  1.0
-    1  <NA>  2.0    b 2021-01-02    2.0     5.0  2.0
-    2     3  NaN    c 2021-01-03    3.0     6.0  3.0
+    shape: (3, 7)
+    ┌──────┬──────┬──────┬─────────────────────┬───────┬────────┬─────┐
+    │ a    ┆ b    ┆ c    ┆ tm                  ┆ sc.ra ┆ sc.dec ┆ q   │
+    │ ---  ┆ ---  ┆ ---  ┆ ---                 ┆ ---   ┆ ---    ┆ --- │
+    │ i64  ┆ f64  ┆ str  ┆ str                 ┆ f64   ┆ f64    ┆ f64 │
+    ├──────┼──────┼──────┼─────────────────────┼───────┼────────┼─────┤
+    │ 1    ┆ 1.0  ┆ null ┆ 2021-01-01T00:00:00Z ┆ 1.0   ┆ 4.0    ┆ 1.0 │
+    │ null ┆ 2.0  ┆ b    ┆ 2021-01-02T00:00:00Z ┆ 2.0   ┆ 5.0    ┆ 2.0 │
+    │ 3    ┆ null ┆ c    ┆ 2021-01-03T00:00:00Z ┆ 3.0   ┆ 6.0    ┆ 3.0 │
+    └──────┴──────┴──────┴─────────────────────┴───────┴────────┴─────┘
 
-    >>> df.info()
-    <class 'pandas.core.frame.DataFrame'>
-    RangeIndex: 3 entries, 0 to 2
-    Data columns (total 7 columns):
-     #   Column  Non-Null Count  Dtype
-    ---  ------  --------------  -----
-     0   a       2 non-null      Int64
-     1   b       2 non-null      float64
-     2   c       2 non-null      object
-     3   tm      3 non-null      datetime64[ns]
-     4   sc.ra   3 non-null      float64
-     5   sc.dec  3 non-null      float64
-     6   q       3 non-null      float64
-    dtypes: Int64(1), datetime64[ns](1), float64(4), object(1)
-    memory usage: 303.0+ bytes
+    >>> df.schema
+    {'a': pl.Int64, 'b': pl.Float64, 'c': pl.Utf8, 'tm': pl.Utf8,
+     'sc.ra': pl.Float64, 'sc.dec': pl.Float64, 'q': pl.Float64}
 
-Notice a few things:
+Key observations:
 
-- The masked values in the original table are replaced with sentinel values
-  in pandas. The integer column ``a`` is converted to a nullable integer column, and
-  the string column ``c`` is converted to an ``object`` column.
-- The `~astropy.time.Time` object is converted to a pandas TimeSeries using
-  ``datetime64[ns]``.
-- The `~astropy.coordinates.SkyCoord` object is converted to two float columns
-  ``sc.ra`` and ``sc.dec``, and the unit is lost.
-- The `~astropy.units.Quantity` object is converted to a float column and the unit is
-  lost.
+- Masked values are represented as `null` in ``polars``.
+- The `~astropy.time.Time` column is converted to an ISO string column.
+- The `~astropy.coordinates.SkyCoord` column is split into separate `ra` and `dec` float columns, losing angular units and SkyCoord semantics.
+- The `~astropy.units.Quantity` column becomes a plain float column without unit tracking.
 
 Now convert back to a table::
 
-    >>> t_df = QTable.from_pandas(df)
+    >>> t_df = QTable.from_polars(df)
     >>> t_df
     <QTable length=3>
       a      b     c              tm            sc.ra   sc.dec    q
-    int64 float64 str1           Time          float64 float64 float64
-    ----- ------- ---- ----------------------- ------- ------- -------
-        1     1.0   -- 2021-01-01T00:00:00.000     1.0     4.0     1.0
-       --     2.0    b 2021-01-02T00:00:00.000     2.0     5.0     2.0
-        3      --    c 2021-01-03T00:00:00.000     3.0     6.0     3.0
+    int64 float64 str1           str           float64 float64 float64
+    ----- ------- ---- --------------------- -------- -------- -------
+        1     1.0       2021-01-01T00:00:00Z     1.0      4.0     1.0
+              2.0    b  2021-01-02T00:00:00Z     2.0      5.0     2.0
+        3            c  2021-01-03T00:00:00Z     3.0      6.0     3.0
 
-The `~astropy.time.Time` column is restored (subject to the limitations discussed
-previously), but the `~astropy.coordinates.SkyCoord` and `~astropy.units.Quantity`
-columns are not restored as they were in the original table.
+The `~astropy.time.Time` column is not automatically parsed and is returned as a string.
+Other mixin columns are not restored and require manual reconstruction if needed.
 
-Finally see that the masked values in the original table are replaced with zero or "" in
-the round-trip conversion::
+Finally, observe that masked values are not preserved through this round-trip::
 
-    # Original data values
     >>> for nm in 'a', 'b', 'c':
-    ...     print(t[nm].data.data)
-    [1 2 3]
-    [1. 2. 3.]
-    ['a' 'b' 'c']
-
-    # Data values after round-trip conversion
-    >>> for nm in 'a', 'b', 'c':
-    ...     print(t_df[nm].data.data)
-    [1 0 3]
-    [ 1.  2. nan]
+    ...     print(t_df[nm].data)
+    [1 -- 3]
+    [1.0 2.0 nan]
     ['' 'b' 'c']
 
 .. EXAMPLE END
