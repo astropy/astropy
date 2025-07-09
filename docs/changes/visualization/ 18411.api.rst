@@ -1,0 +1,1 @@
+Added a new method ``set_visible()`` to control the visibility and/or position of ticks, tick labels, and the axis label in a single call.
