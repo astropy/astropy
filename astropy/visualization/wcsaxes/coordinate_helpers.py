@@ -828,6 +828,39 @@ class CoordinateHelper:
             will only be drawn if tick labels were drawn on that axis.
         """
         self._axislabels.set_visibility_rule(rule)
+    
+    def set_visible(self, visible):
+        """
+        Set the visibility and/or position of ticks, tick labels, and axis label.
+
+        Parameters
+        ----------
+        visible : bool or str
+            If 'True', show all elements at their current positions.
+            If 'False', hide all elements at their current positions.
+            If a string, interpret as a position (e.g. 't', 'lb', '#')
+            and show all elements at that position.
+        """
+        if visible is True:
+            self.set_ticks_visible(True)
+            self.set_ticklabel_visible(True)
+            self._axislabels.set_visible(True)
+        elif visible is False:
+            self.set_ticks_visible(False)
+            self.set_ticklabel_visible(False)
+            self._axislabels.set_visible(False)
+        elif isinstance(visible, str):
+            visible = visible.strip()
+
+            self.set_ticks_visible(True)
+            self.set_ticklabel_visible(True)
+            self._axislabels.set_visible(True)
+
+            self.set_ticks_position(visible)
+            self.set_ticklabel_position(visible)
+            self.set_axislabel_position(visible)
+        else:
+            raise TypeError("visible must be bool or a position string")
 
     def get_axislabel_visibility_rule(self, rule):
         """
