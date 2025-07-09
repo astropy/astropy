@@ -127,9 +127,9 @@ Now we convert this table to a ``polars.DataFrame``::
 
 Key observations:
 
-- Masked values are represented as `null` in ``polars``.
+- Masked values are represented as ``null`` in ``polars``.
 - The `~astropy.time.Time` column is converted to an ISO string column.
-- The `~astropy.coordinates.SkyCoord` column is split into separate `ra` and `dec` float columns, losing angular units and SkyCoord semantics.
+- The `~astropy.coordinates.SkyCoord` column is split into separate ``ra`` and ``dec`` float columns, losing angular units and SkyCoord semantics.
 - The `~astropy.units.Quantity` column becomes a plain float column without unit tracking.
 
 Now convert back to a table::

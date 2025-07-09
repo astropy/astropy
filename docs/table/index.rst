@@ -22,7 +22,7 @@ access, and modification operations, key features include:
 * Convert to and from `pandas.DataFrame` or ``polars.DataFrame``.
 
 The :ref:`astropy-table-and-dataframes` page provides the rationale for maintaining
-and using the dedicated `astropy.table` package instead of relying on `pandas` or `polars`.
+and using the dedicated `astropy.table` package instead of relying on `pandas` or ``polars``.
 
 Getting Started
 ===============
