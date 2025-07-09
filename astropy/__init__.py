@@ -61,16 +61,8 @@ def __dir__():
     return sorted(set(globals()).union(__all__))
 
 
-from .version import version as __version__
-
-# The location of the online documentation for astropy
-# This location will normally point to the current released version of astropy
-online_docs_root = "https://docs.astropy.org/en/{}/".format(
-    "latest" if "dev" in __version__ else f"v{__version__}"
-)
-
-
 from . import config as _config
+from .version import version as __version__
 
 
 class Conf(_config.ConfigNamespace):
@@ -230,28 +222,9 @@ log = _init_log()
 
 _initialize_astropy()
 
-from .utils.misc import find_api_page
-
-
-def online_help(query):
-    """
-    Search the online Astropy documentation for the given query.
-    Opens the results in the default web browser.  Requires an active
-    Internet connection.
-
-    Parameters
-    ----------
-    query : str
-        The search query.
-    """
-    import webbrowser
-    from urllib.parse import urlencode
-
-    url = online_docs_root + f"search.html?{urlencode({'q': query})}"
-    webbrowser.open(url)
-
-
 from types import ModuleType as __module_type__
+
+from .utils.misc import find_api_page, online_docs_root, online_help
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

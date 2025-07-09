@@ -21,10 +21,12 @@ from contextlib import contextmanager
 from itertools import chain
 from types import TracebackType
 from typing import Final
+from urllib.parse import urlencode
 
 import numpy as np
 
 from astropy.utils import deprecated
+from astropy.version import version as __version__
 
 __all__ = [
     "JsonCustomEncoder",
@@ -35,6 +37,7 @@ __all__ = [
     "indent",
     "is_path_hidden",
     "isiterable",
+    "online_help",
     "silence",
     "walk_skip_hidden",
 ]
@@ -303,6 +306,29 @@ def find_api_page(
         webbrowser.open(resurl)
 
     return resurl
+
+
+# The location of the online documentation for astropy
+# This location will normally point to the current released version of astropy
+online_docs_root: Final = "https://docs.astropy.org/en/{}/".format(
+    "latest" if "dev" in __version__ else f"v{__version__}"
+)
+
+
+def online_help(query: str) -> None:
+    """
+    Search the online Astropy documentation for the given query.
+    Opens the results in the default web browser.  Requires an active
+    Internet connection.
+
+    Parameters
+    ----------
+    query : str
+        The search query.
+    """
+    import webbrowser
+
+    webbrowser.open(online_docs_root + f"search.html?{urlencode({'q': query})}")
 
 
 # _has_hidden_attribute() can be deleted together with deprecated is_path_hidden() and
