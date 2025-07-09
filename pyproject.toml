@@ -137,18 +137,6 @@ docs = [
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
 ]
-# These group together all the dependencies needed for developing in Astropy.
-dev = [
-    "astropy[recommended]",  # installs the most common optional dependencies
-    "astropy[test]",
-    "astropy[docs]",
-    "astropy[typing]",
-]
-dev_all = [
-    "tox>=4.22.0", # keep in sync with tox.minversion in tox.ini
-    "astropy[dev]",
-    "astropy[test_all]",
-]
 
 [project.urls]
 homepage = "https://www.astropy.org/"
@@ -190,6 +178,21 @@ dataframe = [
     "polars>=1.0.0",
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0"
+]
+# re-define historical optional dependencies (a.k.a. 'extras') as
+# user-invisible, PEP 735 dependency groups
+# These group together all the dependencies needed for developing in Astropy.
+dev = [
+    "astropy[recommended]",  # installs the most common optional dependencies
+    "astropy[test]",
+    "astropy[docs]",
+    "astropy[typing]",
+]
+dev_all = [
+    {include-group = "dev"},
+    {include-group = "dataframe"},
+    "astropy[test_all]",
+    "tox",  # keep in sync with tox.minversion in tox.ini
 ]
 
 [tool.setuptools]
@@ -520,7 +523,6 @@ ignore = [
     "PC140", # ignore using `mypy` in pre-commit
     "PC180", # ignore using `prettier` in pre-commit
     "PC901", # ignore using custom update message (we have many of the default ones in our history already)
-    "PP006", # ignore defining dev dependency group
     "PP308", # ignore requiring `-ra` flag for pytest, astropy's test suite is too large for this to be useful
     "PY005", # ignore requiring a root level "test*" directory
 ]
@@ -846,3 +848,7 @@ constraint-dependencies = [
     "toolz>=0.12.0", # can be removed once dask<=2025.11.0 is dropped
     "cloudpickle>=2.1.0", # can be removed once dask<2024.8.1 is dropped
 ]
+
+# uv sync's default behavior includes the 'dev' group.
+# Disable this so we get lightweight envs by default.
+default-groups = []

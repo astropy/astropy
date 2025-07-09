@@ -86,7 +86,6 @@ one of the following commands::
     python -m pip install astropy                # Minimum required dependencies
     python -m pip install "astropy[recommended]" # Recommended dependencies
     python -m pip install "astropy[all]"         # All optional dependencies
-    python -m pip install "astropy[dev_all]"     # All optional and test dependencies
 
 In most cases, this will install a pre-compiled version of ``astropy`` (called a
 *wheel*). However, if you are installing astropy on an uncommon platform, astropy will be
