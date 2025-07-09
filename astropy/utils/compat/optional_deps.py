@@ -31,6 +31,7 @@ _optional_deps = [
     "matplotlib",
     "mpmath",
     "pandas",
+    "polars",
     "PIL",
     "pytz",
     "s3fs",

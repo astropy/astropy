@@ -4001,6 +4001,38 @@ class Table:
         """
         return groups.table_group_by(self, keys)
 
+    def _encode_mixins(tbl):
+        """Encode mixin columns to basic columns for Pandas/Polars compatibility."""
+        from astropy.time import TimeBase, TimeDelta
+
+        from . import serialize
+
+        time_cols = [col for col in tbl.itercols() if isinstance(col, TimeBase)]
+        if time_cols:
+            new_cols = []
+            for col in tbl.itercols():
+                new_col = col_copy(col, copy_indices=False) if col.info.indices else col
+                new_cols.append(new_col)
+            tbl = tbl.__class__(new_cols, copy=False)
+
+            for col in tbl.itercols():
+                col.info.indices.clear()
+
+            for col in time_cols:
+                if isinstance(col, TimeDelta):
+                    new_col = (col.sec * 1e9).astype("timedelta64[ns]")
+                    nat = np.timedelta64("NaT")
+                else:
+                    new_col = col.datetime64.copy()
+                    nat = np.datetime64("NaT")
+                if col.masked:
+                    new_col[col.mask] = nat
+                tbl[col.info.name] = new_col
+
+        # Convert the table to one with no mixins, only Column objects.
+        encode_tbl = serialize.represent_mixins_as_columns(tbl)
+        return encode_tbl
+
     def to_pandas(self, index=None, use_nullable_int=True):
         """
         Return a :class:`pandas.DataFrame` instance.
@@ -4083,48 +4115,7 @@ class Table:
                         "index must be None, False, True or a table column name"
                     )
 
-        def _encode_mixins(tbl):
-            """Encode a Table ``tbl`` that may have mixin columns to a Table with only
-            astropy Columns + appropriate meta-data to allow subsequent decoding.
-            """
-            from astropy.time import TimeBase, TimeDelta
-
-            from . import serialize
-
-            # Convert any Time or TimeDelta columns and pay attention to masking
-            time_cols = [col for col in tbl.itercols() if isinstance(col, TimeBase)]
-            if time_cols:
-                # Make a light copy of table and clear any indices
-                new_cols = []
-                for col in tbl.itercols():
-                    new_col = (
-                        col_copy(col, copy_indices=False) if col.info.indices else col
-                    )
-                    new_cols.append(new_col)
-                tbl = tbl.__class__(new_cols, copy=False)
-
-                # Certain subclasses (e.g. TimeSeries) may generate new indices on
-                # table creation, so make sure there are no indices on the table.
-                for col in tbl.itercols():
-                    col.info.indices.clear()
-
-                for col in time_cols:
-                    if isinstance(col, TimeDelta):
-                        # Convert to nanoseconds (matches astropy datetime64 support)
-                        new_col = (col.sec * 1e9).astype("timedelta64[ns]")
-                        nat = np.timedelta64("NaT")
-                    else:
-                        new_col = col.datetime64.copy()
-                        nat = np.datetime64("NaT")
-                    if col.masked:
-                        new_col[col.mask] = nat
-                    tbl[col.info.name] = new_col
-
-            # Convert the table to one with no mixins, only Column objects.
-            encode_tbl = serialize.represent_mixins_as_columns(tbl)
-            return encode_tbl
-
-        tbl = _encode_mixins(self)
+        tbl = self._encode_mixins()
 
         badcols = [name for name, col in self.columns.items() if len(col.shape) > 1]
         if badcols:
@@ -4308,6 +4299,206 @@ class Table:
                     out[name] = MaskedColumn(data=data, name=name, mask=mask, unit=unit)
                 else:
                     out[name] = Column(data=data, name=name, unit=unit)
+
+        return cls(out)
+
+    def to_polars(self, use_nullable_int=True):
+        """
+        Return a :class:`polars.DataFrame` instance.
+
+        The index of the created DataFrame is controlled by the ``index``
+        argument. For Polars, which doesn't use indexes in the same way as pandas,
+        the ``index`` parameter controls whether a column is set as a primary key
+        (for Polars) or used for sorting.
+
+        Parameters
+        ----------
+        index : None, bool, str
+            If None or True, use the table primary key if available and a single column.
+            If False, no special handling. If a column name, use that as primary key.
+        use_nullable_int : bool, default=True
+            Convert integer MaskedColumn to Polars nullable integer type (Int64, etc).
+            If False, convert to float with nulls.
+
+        Returns
+        -------
+        dataframe : :class:`polars.DataFrame`
+            A Polars DataFrame instance
+
+        Raises
+        ------
+        ImportError
+            If polars is not installed
+        ValueError
+            If the Table has multi-dimensional columns
+
+        Examples
+        --------
+        >>> from astropy.table import QTable
+        >>> import astropy.units as u
+        >>> from astropy.time import Time
+        >>> t = QTable([[1, 2] * u.m, Time([1998, 2002], format='jyear')],
+        ...            names=['quantity', 'time'])
+        >>> df = t.to_polars(index='time')
+        """
+        import polars as pl
+
+        tbl = self._encode_mixins()
+
+        badcols = [name for name, col in self.columns.items() if len(col.shape) > 1]
+        if badcols:
+            raise ValueError(
+                f"Cannot convert a table with multidimensional columns to a "
+                f"Polars DataFrame. Offending columns are: {badcols}\n"
+                f"Filter out such columns using:\n"
+                f"names = [name for name in tbl.colnames if len(tbl[name].shape) <= 1]\n"
+                f"tbl[names].to_polars(...)"
+            )
+
+        badcols = [name for name, col in tbl.columns.items() if col.dtype.kind == "O"]
+        if badcols:
+            raise ValueError(
+                f"Cannot convert a table with object dtype columns to a "
+                f"Polars DataFrame. Offending columns are: {badcols}\n"
+                f"Filter out such columns using:\n"
+                f"names = [name for name in tbl.colnames if tbl[name].dtype.kind != 'O']\n"
+                f"tbl[names].to_polars(...)"
+            )
+
+        data_dict = {}
+        for name, column in tbl.columns.items():
+            # Handle byte order
+            if not getattr(column.dtype, "isnative", True):
+                data = column.data.byteswap().view(column.dtype.newbyteorder("="))
+            else:
+                data = column.data
+
+            # Handle masked columns
+            if isinstance(column, MaskedColumn) and np.any(column.mask):
+                if (column.dtype.kind in ["i", "u"]) and (not use_nullable_int):
+                    # Convert to Polars nullable integer type
+                    data = pl.Series(column).cast(pl.Int64, strict=False)
+                else:
+                    data = pl.Series(column).set(pl.Series(column.mask), None)
+
+            data_dict[name] = data
+
+        # Create DataFrame - Polars doesn't use indexes like pandas
+        df = pl.DataFrame(data_dict)
+
+        return df
+
+    @classmethod
+    def from_polars(cls, dataframe, units=None):
+        """
+        Create a `~astropy.table.Table` from a :class:`polars.DataFrame` instance.
+
+        Parameters
+        ----------
+        dataframe : :class:`polars.DataFrame`
+            A Polars DataFrame instance
+        units: dict
+            A dict mapping column names to a `~astropy.units.Unit`.
+            The columns will have the specified unit in the Table.
+
+        Returns
+        -------
+        table : `~astropy.table.Table`
+            A `~astropy.table.Table` (or subclass) instance
+
+        Raises
+        ------
+        ImportError
+            If polars is not installed
+
+        Examples
+        --------
+        >>> import polars as pl
+        >>> from astropy.table import QTable
+        >>> df = pl.DataFrame({
+        ...     'time': [1998, 2002],
+        ...     'values': [1.0, 2.0]
+        ... })
+        >>> tbl = QTable.from_polars(df, units={'values': 'm'})
+        """
+        out = OrderedDict()
+
+        if units is None:
+            units = {}
+        elif not isinstance(units, Mapping):
+            raise TypeError('Expected a Mapping "column-name" -> "unit"')
+
+        not_found = set(units.keys()) - set(dataframe.columns)
+        if not_found:
+            warnings.warn(f"`units` contains additional columns: {not_found}")
+
+        for name in dataframe.columns:
+            data = dataframe[name]
+            unit = units.get(name)
+            mask = dataframe[name].is_null()
+            dtype = str(data.dtype)
+
+            if dtype == "Int128":
+                raise ValueError(
+                    "Astropy Tables does not support Int128, please use a smaller integer type."
+                )
+
+            # Special-case support for Polars nullable int
+            if dtype.startswith(("Int", "UInt")) and mask.any():
+                np_dtype = dtype.lower()
+                data_np = np.zeros(shape=data.shape, dtype=np_dtype)
+                data_np[~mask] = data.filter(~mask)
+                out[name] = MaskedColumn(
+                    data=data_np, name=name, mask=mask.to_numpy(), unit=unit, copy=False
+                )
+                continue
+
+            # Handle string-like columns
+            if dtype.startswith(("Utf8", "String")):
+                # Convert to numpy string array
+                data = data.to_numpy()
+                if data.dtype.kind == "O":
+                    # If the data is object dtype, convert to string
+                    data = np.array([str(x) if x is not None else "" for x in data])
+                if mask.any():
+                    out[name] = MaskedColumn(
+                        data=data,
+                        name=name,
+                        mask=mask.to_numpy(),
+                        unit=unit,
+                        copy=False,
+                    )
+                else:
+                    out[name] = Column(data=data, name=name, unit=unit, copy=False)
+                continue
+
+            # Handle datetime columns
+            if dtype.startswith("Datetime"):
+                from astropy.time import Time
+
+                out[name] = Time(data)
+                out[name].format = "isot"
+                continue
+
+            # Handle timedelta columns
+            elif dtype.startswith("Duration"):
+                from astropy.time import TimeDelta
+
+                # Convert nanoseconds to seconds
+                data_sec = (
+                    data.to_numpy().astype("timedelta64[ns]").astype(np.float64) / 1e9
+                )
+                out[name] = TimeDelta(data_sec, format="sec")
+                if mask.any():
+                    out[name][mask] = np.ma.masked
+                continue
+
+            # Handle other types
+            if mask.any():
+                out[name] = MaskedColumn(
+                    data=data, name=name, mask=mask, unit=unit)
+            else:
+                out[name] = Column(data=data, name=name, unit=unit, copy=False)
 
         return cls(out)
 
