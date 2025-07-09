@@ -145,18 +145,6 @@ docs = [
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
     "dask[dataframe]>=2024.8.0", # keep in sync with dependency-groups.dataframe
 ]
-# These group together all the dependencies needed for developing in Astropy.
-dev = [
-    "astropy[recommended]",  # installs the most common optional dependencies
-    "astropy[test]",
-    "astropy[docs]",
-    "astropy[typing]",
-]
-dev_all = [
-    "tox>=4.33.0", # keep in sync with tox.minversion in tox.ini
-    "astropy[dev]",
-    "astropy[test_all]",
-]
 
 [project.urls]
 homepage = "https://www.astropy.org/"
@@ -198,6 +186,21 @@ dataframe = [
     "polars>=1.0.0",
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0", # keep in sync with other declarations
+]
+# re-define historical optional dependencies (a.k.a. 'extras') as
+# user-invisible, PEP 735 dependency groups
+# These group together all the dependencies needed for developing in Astropy.
+dev = [
+    "astropy[recommended]",  # installs the most common optional dependencies
+    "astropy[test]",
+    "astropy[docs]",
+    "astropy[typing]",
+]
+dev_all = [
+    {include-group = "dev"},
+    {include-group = "dataframe"},
+    "astropy[test_all]",
+    "tox>=4.33.0", # keep in sync with tox.minversion in tox.ini
 ]
 
 [tool.setuptools]
@@ -528,7 +531,6 @@ ignore = [
     "PC140", # ignore using `mypy` in pre-commit
     "PC180", # ignore using `prettier` in pre-commit
     "PC901", # ignore using custom update message (we have many of the default ones in our history already)
-    "PP006", # ignore defining dev dependency group
     "PP308", # ignore requiring `-ra` flag for pytest, astropy's test suite is too large for this to be useful
     "PY005", # ignore requiring a root level "test*" directory
 ]
@@ -859,3 +861,7 @@ constraint-dependencies = [
     # see https://github.com/astropy/astropy/issues/18292
     "array-api-strict<2.4 ; python_version<'3.12'",
 ]
+
+# uv sync's default behavior includes the 'dev' group.
+# Disable this so we get lightweight envs by default.
+default-groups = []
