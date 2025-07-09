@@ -4307,7 +4307,7 @@ class Table:
 
     def to_polars(self, use_nullable_int=True):
         """
-        Return a :class:`polars.DataFrame` instance.
+        Return a ``polars.DataFrame`` instance.
 
         In addition to vanilla columns or masked columns, this supports Table
         mixin columns like Quantity, Time, or SkyCoord.  In many cases these
@@ -4325,7 +4325,7 @@ class Table:
 
         Returns
         -------
-        dataframe : :class:`polars.DataFrame`
+        dataframe : ``polars.DataFrame``
             A Polars DataFrame instance
 
         Raises
@@ -4337,6 +4337,8 @@ class Table:
 
         Examples
         --------
+        Here we convert a table with a few mixins to a ``polars.DataFrame`` instance.
+
           >>> import polars as pl
           >>> from astropy.table import QTable
           >>> import astropy.units as u
@@ -4352,15 +4354,16 @@ class Table:
 
           >>> df = t.to_polars()
           >>> print(df)
-        shape: (2, 5)
-        ┌─────┬─────────────────────┬───────┬────────┬──────────────┐
-        │ q   ┆ tm                  ┆ sc.ra ┆ sc.dec ┆ dt           │
-        │ --- ┆ ---                 ┆ ---   ┆ ---    ┆ ---          │
-        │ f64 ┆ datetime[ns]        ┆ f64   ┆ f64    ┆ duration[ns] │
-        ╞═════╪═════════════════════╪═══════╪════════╪══════════════╡
-        │ 1.0 ┆ 1998-01-01 00:00:00 ┆ 5.0   ┆ 7.0    ┆ 3s           │
-        │ 2.0 ┆ 2002-01-01 00:00:00 ┆ 6.0   ┆ 8.0    ┆ 3m 20s       │
-        └─────┴─────────────────────┴───────┴────────┴──────────────┘
+          shape: (2, 5)
+          ┌─────┬─────────────────────┬───────┬────────┬──────────────┐
+          │ q   ┆ tm                  ┆ sc.ra ┆ sc.dec ┆ dt           │
+          │ --- ┆ ---                 ┆ ---   ┆ ---    ┆ ---          │
+          │ f64 ┆ datetime[ns]        ┆ f64   ┆ f64    ┆ duration[ns] │
+          ╞═════╪═════════════════════╪═══════╪════════╪══════════════╡
+          │ 1.0 ┆ 1998-01-01 00:00:00 ┆ 5.0   ┆ 7.0    ┆ 3s           │
+          │ 2.0 ┆ 2002-01-01 00:00:00 ┆ 6.0   ┆ 8.0    ┆ 3m 20s       │
+          └─────┴─────────────────────┴───────┴────────┴──────────────┘
+
         """
         import polars as pl
 
@@ -4412,11 +4415,11 @@ class Table:
     @classmethod
     def from_polars(cls, dataframe, units=None):
         """
-        Create a `~astropy.table.Table` from a :class:`polars.DataFrame` instance.
+        Create a `~astropy.table.Table` from a ``polars.DataFrame`` instance.
 
         Parameters
         ----------
-        dataframe : :class:`polars.DataFrame`
+        dataframe : ``polars.DataFrame``
             A Polars DataFrame instance
         units: dict
             A dict mapping column names to a `~astropy.units.Unit`.
@@ -4434,13 +4437,22 @@ class Table:
 
         Examples
         --------
-        >>> import polars as pl
-        >>> from astropy.table import QTable
-        >>> df = pl.DataFrame({
-        ...     'time': [1998, 2002],
-        ...     'values': [1.0, 2.0]
-        ... })
-        >>> tbl = QTable.from_polars(df, units={'values': 'm'})
+        Here we convert a ``polars.DataFrame`` instance to a `~astropy.table.QTable`.
+
+          >>> import polars as pl
+          >>> from astropy.table import QTable
+          >>> df = pl.DataFrame({
+          ...     'time': [1998, 2002],
+          ...     'values': [1.0, 2.0]
+          ... })
+          >>> QTable.from_polars(df, units={'values': 'm'})
+          <QTable length=2>
+          time  values
+                  m
+          int64 float64
+          ----- -------
+          1998     1.0
+          2002     2.0
         """
         out = OrderedDict()
 

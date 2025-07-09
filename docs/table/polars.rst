@@ -11,7 +11,7 @@ DataFrame library for table-like data, which complements the
 
 To enable interoperability, the |Table| class includes two methods:
 :meth:`~astropy.table.Table.to_polars` and :meth:`~astropy.table.Table.from_polars`,
-which convert between the |Table| and :class:`polars.DataFrame` classes.
+which convert between the |Table| and ``polars.DataFrame`` classes.
 
 Basic Example
 -------------
@@ -25,7 +25,7 @@ To demonstrate, we can create a minimal table::
     >>> t['a'] = [1, 2, 3, 4]
     >>> t['b'] = ['a', 'b', 'c', 'd']
 
-Which we can then convert to a :class:`~polars.DataFrame`::
+Which we can then convert to a ``polars.DataFrame``::
 
     >>> df = t.to_polars()
     >>> df
@@ -43,7 +43,7 @@ Which we can then convert to a :class:`~polars.DataFrame`::
     >>> type(df)
     <class 'polars.dataframe.frame.DataFrame'>
 
-It is also possible to create a table from a :class:`~polars.DataFrame`::
+It is also possible to create a table from a ``polars.DataFrame``::
 
     >>> t2 = Table.from_polars(df)
     >>> t2
@@ -63,9 +63,9 @@ Details
 
 Conversions to and from ``polars`` are subject to a few limitations:
 
-* The :class:`~polars.DataFrame` structure does not support multidimensional
+* The ``polars.DataFrame`` structure does not support multidimensional
   columns. |Table| objects with such columns cannot be converted to
-  :class:`~polars.DataFrame`.
+  ``polars.DataFrame``.
 
 * Masked tables are partially supported. ``polars`` represents missing values
   using a sentinel (`None`) similar to ``pandas``, but the original value
@@ -106,7 +106,7 @@ First, we create a table with masked and mixin columns::
        --     2.0    b 2021-01-02 00:00:00.000  2.0,5.0     2.0
         3      --    c 2021-01-03 00:00:00.000  3.0,6.0     3.0
 
-Now we convert this table to a :class:`~polars.DataFrame`::
+Now we convert this table to a ``polars.DataFrame``::
 
     >>> df = t.to_polars()
     >>> df
