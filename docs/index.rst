@@ -76,8 +76,8 @@ processing, and data analysis.
         :link-type: url
         :text-align: center
 
-        The Astropy Project ecosystem includes numerous `coordinated
-        <https://www.astropy.org/affiliated/#coordinated-packages>`_ and `affiliated
+        The Astropy Project ecosystem includes numerous `Coordinated
+        <https://www.astropy.org/affiliated/#coordinated-packages>`_ and `Affiliated
         <https://www.astropy.org/affiliated/#affiliated-packages>`_ packages.
         Coordinated packages are maintained by the Project.
 
