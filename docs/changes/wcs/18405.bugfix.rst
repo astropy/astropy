@@ -1,0 +1,2 @@
+Fixed the reporting of the shape of a 1D WCS so there does not appear to be a
+second dimension of size zero.
