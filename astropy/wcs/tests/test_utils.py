@@ -293,7 +293,6 @@ def test_slice_wcs():
 
 
 def test_slice_nd():
-
     # Regression test for a bug that caused slicing to not work correctly for
     # WCS with more than 2 dimensions.
 
@@ -302,14 +301,11 @@ def test_slice_nd():
 
 
 def test_slice_ellipsis():
-
     # Regression test for a bug that caused slicing with an ellipsis to not
     # return a WCS object but a SlicedFITSWCS instead
 
     sub = WCS(naxis=3)[...]
     assert isinstance(sub, WCS)
-
-
 
 
 def test_slice_drop_dimensions_order():
