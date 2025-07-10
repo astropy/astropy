@@ -1,0 +1,1 @@
+Added ``from_polars`` and ``to_polars`` methods to ``astropy.Table``.
