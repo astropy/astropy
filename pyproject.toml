@@ -266,6 +266,7 @@ markers = [
 # We disable testing for the following wheels:
 # - MuslLinux (tests hang non-deterministically)
 test-skip = "*-musllinux_x86_64"
+environment-pass = ["EXTENSION_HELPERS_PY_LIMITED_API"]
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
