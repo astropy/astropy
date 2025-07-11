@@ -4280,6 +4280,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
     def _get_version_checks(self):
         config = {}
+        config["version"] = self.version
         config["version_1_1_or_later"] = util.version_compare(self.version, "1.1") >= 0
         config["version_1_2_or_later"] = util.version_compare(self.version, "1.2") >= 0
         config["version_1_3_or_later"] = util.version_compare(self.version, "1.3") >= 0
