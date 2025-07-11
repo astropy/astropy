@@ -4190,8 +4190,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         if version not in self._version_namespace_map:
             allowed_from_map = "', '".join(self._version_namespace_map)
             raise ValueError(
-                "astropy.io.votable version should be in"
-                f" ('{allowed_from_map}')."
+                f"astropy.io.votable version should be in ('{allowed_from_map}')."
             )
         self._version = version
         # Force config update.
