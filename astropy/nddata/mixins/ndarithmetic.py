@@ -654,6 +654,58 @@ class NDArithmeticMixin:
         )
 
     @sharedmethod
+    def _convert_operand_class_with_suitable_dtype(self, cls, operand, ref=None):
+        """
+        Convert an operand to the specified class, first converting Python
+        scalars to a NumPy dtype that preserves their expected casting behaviour
+        under arithmetic with a reference operand or dtype (see NEP 50).
+
+        Parameters
+        ----------
+        cls : class
+            Class to create an instance of, with ``operand`` as the argument.
+
+        operand : object convertible to ``cls`` (`~astropy.nddata.NDData`-like)
+
+        ref : ``NDData``-like, `~numpy.ndarray`-like or `~numpy.dtype`, optional
+            Reference operand/dtype with which arithmetic is to be performed.
+
+        Returns
+        -------
+        result : instance of ``cls``
+        """
+        # Python scalars receive special "weak typing" treatment in NumPy 2
+        # (NEP 50) and need to be cast explicitly to the appropriate dtype
+        # before conversion to NDData, otherwise the instance just defaults to
+        # 64 bits, leading to unwanted upcasting in subsequent arithmetic,
+        # compared with NumPy. This weak typing does not apply to *lists* of
+        # Python scalars etc., which NumPy converts to arrays in the default
+        # way when doing arithmetic. The "__getitem__" check below excludes
+        # "scalars" that are NumPy types, strings or buffers.
+        if (ref is not None and np.isscalar(operand) and
+            not hasattr(operand, '__getitem__')):
+
+                # The arg for result_type() has to be convertible to an ndarray
+                # (including sub-classes like Quantity) or dtype, but cannot be
+                # a Python sequence (because it takes a list of args). Also, we
+                # can't do isinstance(ref, NDData) here, because it produces a
+                # circular import, but the following is at least as general:
+                if hasattr(ref, 'data') and (
+                        hasattr(ref.data, '__array__') or
+                        hasattr(ref.data, '__array_interface__')
+                ):
+                    ref = ref.data
+                try:
+                    dtype = np.result_type(ref, operand)
+                except TypeError:  # in case arg is a list/tuple
+                    dtype = np.result_type(np.array(ref), operand)
+
+                # Convert scalar operand to a dtype appropriate for the ref:
+                operand = np.array(operand, dtype=dtype)
+
+        return cls(operand)
+
+    @sharedmethod
     def _prepare_then_do_arithmetic(
         self_or_cls, operation, operand=None, operand2=None, **kwargs
     ):
@@ -704,7 +756,9 @@ class NDArithmeticMixin:
                 # Convert the first operand to the class of this method.
                 # This is important so that always the correct _arithmetics is
                 # called later that method.
-                operand = cls(operand)
+                operand = self_or_cls._convert_operand_class_with_suitable_dtype(
+                    cls, operand, ref=operand2
+                )
 
         else:
             # It was used as classmethod so self_or_cls represents the cls
@@ -718,7 +772,9 @@ class NDArithmeticMixin:
                 )
 
             # Convert to this class. See above comment why.
-            operand = cls(operand)
+            operand = self_or_cls._convert_operand_class_with_suitable_dtype(
+                cls, operand, ref=operand2
+            )
 
         # At this point operand, operand2, kwargs and cls are determined.
         if operand2 is not None and not issubclass(
@@ -728,7 +784,9 @@ class NDArithmeticMixin:
             # arithmetic operations with numbers, lists, numpy arrays, numpy masked
             # arrays, astropy quantities, masked quantities and of other subclasses
             # of NDData.
-            operand2 = cls(operand2)
+            operand2 = self_or_cls._convert_operand_class_with_suitable_dtype(
+                cls, operand2, ref=operand.data
+            )
 
             # Now call the _arithmetics method to do the arithmetic.
             result, init_kwds = operand._arithmetic(operation, operand2, **kwargs)
