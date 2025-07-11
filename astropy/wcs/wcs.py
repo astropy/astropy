@@ -3325,9 +3325,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         wcs_new : `~astropy.wcs.WCS`
             A new resampled WCS axis
         """
-        if view is Ellipsis:
-            return self.deepcopy()
-
         if hasattr(view, "__len__") and len(view) > self.wcs.naxis:
             raise ValueError("Must have # of slices <= # of WCS axes")
         elif not hasattr(view, "__len__"):  # view MUST be an iterable
