@@ -18,6 +18,7 @@ from astropy.coordinates.funcs import (
     get_sun,
 )
 from astropy.time import Time
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 CARTESIAN_POS = r.CartesianRepresentation([1, 2, 3] * u.kpc)
 CARTESIAN_VEL = r.CartesianDifferential([8, 9, 10] * u.km / u.s)
@@ -119,6 +120,11 @@ def test_constellation_edge_cases():
 
     # TODO: When that's fixed, add other tests with coords that are in different constellations
     # depending on equinox
+
+
+def test_constellation_list_deprecation():
+    with pytest.warns(AstropyDeprecationWarning):
+        get_constellation(SkyCoord(0 * u.deg, 0 * u.deg), constellation_list="iau")
 
 
 def test_concatenate():

@@ -1,0 +1,4 @@
+The ``constellation_list`` parameter of the ``SkyCoord.get_constellation()``
+method and the ``get_constellation()`` function is deprecated.
+Any value different from ``"iau"`` has always caused a ``ValueError`` so in
+practice it has not been possible to use the parameter anyways.
