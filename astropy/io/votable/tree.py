@@ -4060,10 +4060,10 @@ class Resource(
             if self.mivot_block is not None and self.type == "meta":
                 self.mivot_block.to_xml(w)
             element_sets = [
+                self.infos,
                 self.coordinate_systems,
                 self.time_systems,
                 self.params,
-                self.infos,
                 self.links,
             ]
             if kwargs["version_1_2_or_later"]:
