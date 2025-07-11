@@ -7,8 +7,9 @@ from copy import deepcopy
 import numpy as np
 
 from astropy.nddata.nduncertainty import NDUncertainty
-from astropy.units import dimensionless_unscaled
+from astropy.units import dimensionless_unscaled, Quantity
 from astropy.utils import format_doc, sharedmethod
+from astropy.utils.compat.numpycompat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.masked import Masked
 
@@ -380,17 +381,68 @@ class NDArithmeticMixin:
                 result = operation(self.data, operand.data)
             else:
                 result = operation(
-                    self.data << dimensionless_unscaled, operand.data << operand.unit
+                    # Convert between units if necessary. This previously used
+                    # the << operator, but that can produce unwanted type
+                    # upcasting, so we need to specify dtype=None explicitly.
+                    Quantity(
+                        self.data,
+                        unit=dimensionless_unscaled,
+                        dtype=None,  # use "normal numpy.dtype introspection"
+                        copy=COPY_IF_NEEDED
+                    ),
+                    Quantity(
+                        operand.data,
+                        unit=operand.unit,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED
+                    )
                 )
         elif hasattr(operand, "unit"):
             if operand.unit is not None:
-                result = operation(self.data << self.unit, operand.data << operand.unit)
+                result = operation(
+                    Quantity(
+                        self.data,
+                        unit=self.unit,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED
+                    ),
+                    Quantity(
+                        operand.data,
+                        unit=operand.unit,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED
+                    )
+                )
             else:
                 result = operation(
-                    self.data << self.unit, operand.data << dimensionless_unscaled
+                    Quantity(
+                        self.data,
+                        unit=self.unit,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED
+                    ),
+                    Quantity(
+                        operand.data,
+                        unit=dimensionless_unscaled,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED
+                    )
                 )
         elif operand is not None:
-            result = operation(self.data << self.unit, operand.data << operand.unit)
+            result = operation(
+                Quantity(
+                    self.data,
+                    unit=self.unit,
+                    dtype=None,
+                    copy=COPY_IF_NEEDED
+                ),
+                Quantity(
+                    operand.data,
+                    unit=operand.unit,
+                    dtype=None,
+                    copy=COPY_IF_NEEDED
+                )
+            )
         else:
             result = operation(self.data, axis=kwds["axis"])
 
