@@ -433,7 +433,7 @@ create_parser(PyObject *NPY_UNUSED(dummy), PyObject *args, PyObject *kwds)
 
   fail:
     Py_XDECREF(pars_array);
-    Py_XDECREF(gufunc);
+    Py_XDECREF((PyObject*)gufunc);
     return NULL;
 }
 
@@ -513,8 +513,8 @@ PyMODINIT_FUNC PyInit__parse_times(void) {
     m = NULL;
 
   decref:
-    Py_XDECREF(dt_pars);
-    Py_XDECREF(dt_u1);
-    Py_XDECREF(dt_ymdhms);
+    Py_XDECREF((PyObject*)dt_pars);
+    Py_XDECREF((PyObject*)dt_u1);
+    Py_XDECREF((PyObject*)dt_ymdhms);
     return m;
 }
