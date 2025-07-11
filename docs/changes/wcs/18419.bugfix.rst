@@ -1,0 +1,5 @@
+Fixed a bug in ``wcs.py`` that caused the WCS object to not properly initialize
+the `_naxis` attribute when the header was empty or did not contain any WCS
+information. This could lead to crashes when attempting to take a slice of a 3D
+WCS object or it could lead unexpected behavior when accessing pixel shape
+or other properties that depend on the number of axes.
