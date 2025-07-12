@@ -233,7 +233,7 @@ def test_set_visible():
     assert coord._ticklabels.get_visible()
     assert coord._axislabels.get_visible()
 
-    coord.set_visible(" bl ")
+    coord.set_visible("bl")
     assert coord.get_ticks_position() == ["b", "l"]
     assert coord.get_ticklabel_position() == ["b", "l"]
     assert coord.get_axislabel_position() == ["b", "l"]

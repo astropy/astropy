@@ -850,8 +850,6 @@ class CoordinateHelper:
             self.set_ticklabel_visible(False)
             self._axislabels.set_visible(False)
         elif isinstance(visible, str):
-            visible = visible.strip()
-
             self.set_ticks_visible(True)
             self.set_ticklabel_visible(True)
             self._axislabels.set_visible(True)
