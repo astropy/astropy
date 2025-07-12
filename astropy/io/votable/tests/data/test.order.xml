@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd">
  <RESOURCE type="results">
-  <COOSYS ID="_XYZ" system="ICRS"/>
   <INFO ID="test_name" name="test_name" value="test_value"/>
+  <COOSYS ID="_XYZ" system="ICRS"/>
   <RESOURCE type="meta">
    <VODML xmlns="http://www.ivoa.net/xml/mivot">
    </VODML>
