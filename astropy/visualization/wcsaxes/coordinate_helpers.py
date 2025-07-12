@@ -850,13 +850,13 @@ class CoordinateHelper:
             self.set_ticklabel_visible(False)
             self._axislabels.set_visible(False)
         elif isinstance(visible, str):
-            self.set_ticks_visible(True)
-            self.set_ticklabel_visible(True)
-            self._axislabels.set_visible(True)
-
             self.set_ticks_position(visible)
             self.set_ticklabel_position(visible)
             self.set_axislabel_position(visible)
+            
+            self.set_ticks_visible(True)
+            self.set_ticklabel_visible(True)
+            self._axislabels.set_visible(True)
         else:
             raise TypeError("visible must be bool or a position string")
 
