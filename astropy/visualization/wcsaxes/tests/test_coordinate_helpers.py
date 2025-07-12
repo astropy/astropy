@@ -38,6 +38,12 @@ def ax():
     return ax
 
 
+def assert_coord_visible(coord, ticks=True, ticklabels=True, axislabel=True):
+    assert coord.get_ticks_visible() is ticks
+    assert coord.get_ticklabel_visible() is ticklabels
+    assert coord.get_axislabel_visible() is axislabel
+
+
 def assert_label_draw(ax, x_label, y_label):
     ax.coords[0].set_axislabel("Label 1")
     ax.coords[1].set_axislabel("Label 2")
@@ -205,3 +211,91 @@ def test_set_major_formatter():
 
     ax.coords[1].set_major_formatter("dd:mm:ss.s", show_decimal_unit=False)
     assert ax.coords[1].format_coord(4) == "4\xb000'00.0\""
+
+
+def test_get_ticks_visible():
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+    coord = ax.coords[0]
+
+    assert_coord_visible(coord)
+
+    coord.set_ticks_visible(False)
+    assert_coord_visible(coord, ticks=False, ticklabels=True, axislabel=True)
+
+    coord.set_ticks_visible(True)
+    assert_coord_visible(coord)
+
+
+def test_get_ticklabel_visible():
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+    coord = ax.coords[0]
+
+    assert_coord_visible(coord)
+
+    coord.set_ticklabel_visible(False)
+    assert_coord_visible(coord, ticks=True, ticklabels=False, axislabel=True)
+
+    coord.set_ticklabel_visible(True)
+    assert_coord_visible(coord)
+
+
+def test_get_axislabel_visible():
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+    coord = ax.coords[0]
+
+    assert_coord_visible(coord)
+
+    coord._axislabels.set_visible(False)
+    assert_coord_visible(coord, ticks=True, ticklabels=True, axislabel=False)
+
+    coord._axislabels.set_visible(True)
+    assert_coord_visible(coord)
+
+
+def test_set_visible():
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+    coord = ax.coords[0]
+
+    assert_coord_visible(coord)
+
+    coord.set_visible(False)
+    assert_coord_visible(coord, ticks=False, ticklabels=False, axislabel=False)
+
+    coord.set_visible(True)
+    assert_coord_visible(coord)
+
+    coord.set_visible("t")
+    assert coord.get_ticks_position() == ["t"]
+    assert coord.get_ticklabel_position() == ["t"]
+    assert coord.get_axislabel_position() == ["t"]
+    assert_coord_visible(coord)
+
+    coord.set_visible("bl")
+    assert coord.get_ticks_position() == ["b", "l"]
+    assert coord.get_ticklabel_position() == ["b", "l"]
+    assert coord.get_axislabel_position() == ["b", "l"]
+    assert_coord_visible(coord)
+
+
+@pytest.mark.parametrize("invalid_input", [123, 123.45, None, [], {}])
+def test_set_visible_invalid_type(invalid_input):
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+    coord = ax.coords[0]
+
+    with pytest.raises(TypeError):
+        coord.set_visible(invalid_input)
