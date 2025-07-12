@@ -32,7 +32,7 @@ PyAuxprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 static int
 PyAuxprm_traverse(PyAuxprm* self, visitproc visit, void *arg) {
   Py_VISIT(self->owner);
-  Py_VISIT((PyObject*)Py_TYPE(self));
+  Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
   return 0;
 }
 

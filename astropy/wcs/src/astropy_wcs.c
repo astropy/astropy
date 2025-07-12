@@ -64,7 +64,7 @@ Wcs_traverse(
   Py_VISIT(self->py_distortion_lookup[0]);
   Py_VISIT(self->py_distortion_lookup[1]);
   Py_VISIT(self->py_wcsprm);
-  Py_VISIT((PyObject*)Py_TYPE(self));
+  Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
 
   return 0;
 }
