@@ -1715,6 +1715,7 @@ PyWcsprm_print_contents(
   wcsprm_c2python(&self->x);
 
   printf("%s", wcsprintf_buf());
+  fflush(stdout);
 
   Py_INCREF(Py_None);
   return Py_None;
