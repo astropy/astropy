@@ -37,6 +37,10 @@ def ax():
 
     return ax
 
+def assert_coord_visible(coord, expected=True):
+    assert coord.get_ticks_visible() is expected
+    assert coord.get_ticklabel_visible() is expected
+    assert coord.get_axislabel_visible() is expected
 
 def assert_label_draw(ax, x_label, y_label):
     ax.coords[0].set_axislabel("Label 1")
@@ -215,31 +219,25 @@ def test_set_visible():
 
     coord = ax.coords[0]
 
+    assert_coord_visible(coord)
+    
     coord.set_visible(False)
-    assert not coord._ticks.get_visible()
-    assert not coord._ticklabels.get_visible()
-    assert not coord._axislabels.get_visible()
+    assert_coord_visible(coord, False)
 
     coord.set_visible(True)
-    assert coord._ticks.get_visible()
-    assert coord._ticklabels.get_visible()
-    assert coord._axislabels.get_visible()
+    assert_coord_visible(coord)
 
     coord.set_visible("t")
     assert coord.get_ticks_position() == ["t"]
     assert coord.get_ticklabel_position() == ["t"]
     assert coord.get_axislabel_position() == ["t"]
-    assert coord._ticks.get_visible()
-    assert coord._ticklabels.get_visible()
-    assert coord._axislabels.get_visible()
+    assert_coord_visible(coord)
 
     coord.set_visible("bl")
     assert coord.get_ticks_position() == ["b", "l"]
     assert coord.get_ticklabel_position() == ["b", "l"]
     assert coord.get_axislabel_position() == ["b", "l"]
-    assert coord._ticks.get_visible()
-    assert coord._ticklabels.get_visible()
-    assert coord._axislabels.get_visible()
+    assert_coord_visible(coord)
 
     with pytest.raises(TypeError):
         coord.set_visible(123.45)

@@ -641,6 +641,12 @@ class CoordinateHelper:
             along this coordinate.
         """
         self._ticks.set_visible(visible)
+    
+    def get_ticks_visible(self):
+        """
+        Get whether the ticks are currently visible.
+        """
+        return self._ticks.get_visible()
 
     def set_ticklabel(
         self,
@@ -680,6 +686,12 @@ class CoordinateHelper:
             self._ticklabels.set_exclude_overlapping(exclude_overlapping)
         self._ticklabels.set_simplify(simplify)
         self._ticklabels.set(**kwargs)
+    
+    def get_ticklabel_visible(self):
+        """
+        Get whether the tick labels are currently visible.
+        """
+        return self._ticklabels.get_visible()
 
     def set_ticklabel_position(self, position):
         """
@@ -761,6 +773,12 @@ class CoordinateHelper:
             return self._get_default_axislabel()
         else:
             return self._axislabels.get_text()
+    
+    def get_axislabel_visible(self):
+        """
+        Get whether the axis label is currently visible.
+        """
+        return self._axislabels.get_visible()
 
     def set_auto_axislabel(self, auto_label):
         """
