@@ -39,6 +39,18 @@ from .exceptions import (
     vo_warn,
     warn_or_raise,
 )
+from .fast_converters import (
+    fast_binparse_bit,
+    fast_binparse_bool,
+    fast_binparse_double,
+    fast_binparse_float,
+    fast_binparse_int,
+    fast_binparse_long,
+    fast_binparse_short,
+    fast_binparse_ubyte,
+    fast_bitarray_to_bool,
+    fast_bool_to_bitarray,
+)
 
 __all__ = ["Converter", "get_converter", "table_column_to_votable_datatype"]
 
@@ -104,9 +116,7 @@ def bitarray_to_bool(data, length):
     -------
     array : numpy bool array
     """
-    return np.unpackbits(
-        np.frombuffer(data, dtype=np.uint8), count=length if length >= 0 else None
-    ).astype(bool, copy=False)
+    return fast_bitarray_to_bool(data, length)
 
 
 def bool_to_bitarray(value):
@@ -125,8 +135,7 @@ def bool_to_bitarray(value):
         significant bit in the result.  The length will be `floor((N +
         7) / 8)` where `N` is the length of `value`.
     """
-    bytes = np.packbits(np.ma.filled(value, fill_value=False).flat).tobytes()
-    return struct.pack(f"{len(bytes)}B", *bytes)
+    return fast_bool_to_bitarray(value)
 
 
 class Converter:
@@ -469,6 +478,7 @@ class UnicodeChar(Converter):
 
         if self.arraysize != "*" and len(value) > self.arraysize:
             vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
+            value = value[: self.arraysize]
 
         encoded = value.encode("utf_16_be")
 
@@ -818,6 +828,12 @@ class Double(FloatingPoint):
 
     format = "f8"
 
+    def binparse(self, read):
+        data = read(8)
+        if len(data) != 8:
+            raise EOFError("Unexpected end of file")
+        return fast_binparse_double(data)
+
 
 class Float(FloatingPoint):
     """
@@ -825,6 +841,12 @@ class Float(FloatingPoint):
     """
 
     format = "f4"
+
+    def binparse(self, read):
+        data = read(4)
+        if len(data) != 4:
+            raise EOFError("Unexpected end of file")
+        return fast_binparse_float(data)
 
 
 class Integer(Numeric):
@@ -913,6 +935,12 @@ class UnsignedByte(Integer):
     val_range = (0, 255)
     bit_size = "8-bit unsigned"
 
+    def binparse(self, read):
+        data = read(1)
+        if len(data) != 1:
+            raise EOFError("Unexpected end of file")
+        return fast_binparse_ubyte(data)
+
 
 class Short(Integer):
     """
@@ -922,6 +950,12 @@ class Short(Integer):
     format = "i2"
     val_range = (-32768, 32767)
     bit_size = "16-bit"
+
+    def binparse(self, read):
+        data = read(2)
+        if len(data) != 2:
+            raise EOFError("Unexpected end of file")
+        return fast_binparse_short(data)
 
 
 class Int(Integer):
@@ -933,6 +967,12 @@ class Int(Integer):
     val_range = (-2147483648, 2147483647)
     bit_size = "32-bit"
 
+    def binparse(self, read):
+        data = read(4)
+        if len(data) != 4:
+            raise EOFError("Unexpected end of file")
+        return fast_binparse_int(data)
+
 
 class Long(Integer):
     """
@@ -942,6 +982,12 @@ class Long(Integer):
     format = "i8"
     val_range = (-9223372036854775808, 9223372036854775807)
     bit_size = "64-bit"
+
+    def binparse(self, read):
+        data = read(8)
+        if len(data) != 8:
+            raise EOFError("Unexpected end of file")
+        return fast_binparse_long(data)
 
 
 class ComplexArrayVarArray(VarArray):
@@ -1168,7 +1214,9 @@ class Bit(Converter):
 
     def binparse(self, read):
         data = read(1)
-        return (ord(data) & 0x8) != 0, False
+        if len(data) != 1:
+            raise EOFError("Unexpected end of file")
+        return fast_binparse_bit(data)
 
     def binoutput(self, value, mask):
         if mask:
@@ -1250,8 +1298,10 @@ class Boolean(Converter):
         return "F"
 
     def binparse(self, read):
-        value = ord(read(1))
-        return self.binparse_value(value)
+        data = read(1)
+        if len(data) != 1:
+            raise EOFError("Unexpected end of file")
+        return fast_binparse_bool(data)
 
     _binparse_mapping = {
         ord("T"): (True, False),
