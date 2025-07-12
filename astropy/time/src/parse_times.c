@@ -401,7 +401,7 @@ create_parser(PyObject *NPY_UNUSED(dummy), PyObject *args, PyObject *kwds)
     if (name == NULL) {
         name = "fast_parser";
     }
-    Py_INCREF(dt_pars);
+    Py_INCREF((PyObject*)dt_pars);
     pars_array = (PyArrayObject *)PyArray_FromAny(pars, dt_pars, 1, 1,
                      (NPY_ARRAY_CARRAY | NPY_ARRAY_ENSURECOPY), NULL);
     if (pars_array == NULL) {
@@ -432,7 +432,7 @@ create_parser(PyObject *NPY_UNUSED(dummy), PyObject *args, PyObject *kwds)
     return (PyObject *)gufunc;
 
   fail:
-    Py_XDECREF(pars_array);
+    Py_XDECREF((PyObject*)pars_array);
     Py_XDECREF((PyObject*)gufunc);
     return NULL;
 }
