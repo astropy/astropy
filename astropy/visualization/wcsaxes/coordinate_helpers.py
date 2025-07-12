@@ -641,7 +641,7 @@ class CoordinateHelper:
             along this coordinate.
         """
         self._ticks.set_visible(visible)
-    
+
     def get_ticks_visible(self):
         """
         Get whether the ticks are currently visible.
@@ -686,7 +686,7 @@ class CoordinateHelper:
             self._ticklabels.set_exclude_overlapping(exclude_overlapping)
         self._ticklabels.set_simplify(simplify)
         self._ticklabels.set(**kwargs)
-    
+
     def get_ticklabel_visible(self):
         """
         Get whether the tick labels are currently visible.
@@ -773,7 +773,7 @@ class CoordinateHelper:
             return self._get_default_axislabel()
         else:
             return self._axislabels.get_text()
-    
+
     def get_axislabel_visible(self):
         """
         Get whether the axis label is currently visible.
@@ -871,7 +871,7 @@ class CoordinateHelper:
             self.set_ticks_position(visible)
             self.set_ticklabel_position(visible)
             self.set_axislabel_position(visible)
-            
+
             self.set_ticks_visible(True)
             self.set_ticklabel_visible(True)
             self._axislabels.set_visible(True)
