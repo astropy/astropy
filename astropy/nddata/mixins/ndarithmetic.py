@@ -234,6 +234,16 @@ class NDArithmeticMixin:
             :meth:`NDArithmeticMixin.add`.
 
         """
+        numpy_extra_kwds = ["out", "dtype"]
+
+        for np_kwd in numpy_extra_kwds:
+            np_key_val = kwds.pop(np_kwd, 1)
+            print(np_kwd, ":", np_key_val)
+            if not np_key_val:
+                raise ValueError(
+                    f"{np_kwd} key is not none, {np_kwd} parameter not supported for {operation}. {np_kwd} gives {np_key_val}"
+                )
+
         # Find the appropriate keywords for the appropriate method (not sure
         # if data and uncertainty are ever used ...)
         kwds2 = {"mask": {}, "meta": {}, "wcs": {}, "data": {}, "uncertainty": {}}

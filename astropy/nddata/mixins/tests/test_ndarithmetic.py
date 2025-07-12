@@ -74,21 +74,22 @@ def test_arithmetics_data(data1, data2):
         assert nd.wcs is None
 
 
+# Test numpy functions that use astropy functions first
 def test_arithmetics_ccddata():
     ccd1 = CCDData([1, 2, 3], unit="adu")
     ccd2 = CCDData([1.1, 2.2, 3.3], unit="adu")
 
-    assert np.min(ccd1) is ccd1.min().value()
-    assert np.min(ccd2) is ccd2.min().value()
+    assert np.min(ccd1).data == ccd1.min().data
+    assert np.min(ccd2).data == ccd2.min().data
 
-    assert np.max(ccd1) is ccd1.max().value()
-    assert np.max(ccd2) is ccd2.max().value()
+    assert np.max(ccd1).data == ccd1.max().data
+    assert np.max(ccd2).data == ccd2.max().data
 
-    assert np.sum(ccd1) is ccd1.sum().value()
-    assert np.sum(ccd2) is ccd2.sum().value()
+    assert np.sum(ccd1).data == ccd1.sum().data
+    assert np.sum(ccd2).data == ccd2.sum().data
 
-    assert np.mean(ccd1) is ccd1.mean().value()
-    assert np.mean(ccd2) is ccd2.mean().value()
+    assert np.mean(ccd1).data == ccd1.mean().data
+    assert np.mean(ccd2).data == ccd2.mean().data
 
 
 # Invalid arithmetic operations for data covering:
