@@ -213,6 +213,51 @@ def test_set_major_formatter():
     assert ax.coords[1].format_coord(4) == "4\xb000'00.0\""
 
 
+def test_get_ticks_visible():
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    coord = ax.coords[0]
+
+    coord.set_ticks_visible(False)
+    assert not coord.get_ticks_visible()
+
+    coord.set_ticks_visible(True)
+    assert coord.get_ticks_visible()
+
+
+def test_get_ticklabel_visible():
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    coord = ax.coords[0]
+
+    coord.set_ticklabel_visible(False)
+    assert not coord.get_ticklabel_visible()
+
+    coord.set_ticklabel_visible(True)
+    assert coord.get_ticklabel_visible()
+
+
+def test_get_axislabel_visible():
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    coord = ax.coords[0]
+
+    coord._axislabels.set_visible(False)
+    assert not coord.get_axislabel_visible()
+
+    coord._axislabels.set_visible(True)
+    assert coord.get_axislabel_visible()
+
+
 def test_set_visible():
     fig = Figure()
     canvas = FigureCanvasAgg(fig)
