@@ -45,6 +45,7 @@ from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.wcs import WCS
 
 RA = 1.0 * u.deg
@@ -1673,6 +1674,11 @@ def test_constellations_with_nameresolve():
     )
     assert SkyCoord.from_name("Orion Nebula").get_constellation() == "Orion"
     assert SkyCoord.from_name("Triangulum Galaxy").get_constellation() == "Triangulum"
+
+
+def test_constellation_list_deprecation():
+    with pytest.warns(AstropyDeprecationWarning):
+        SkyCoord(0 * u.deg, 0 * u.deg).get_constellation(constellation_list="iau")
 
 
 def test_getitem_representation():
