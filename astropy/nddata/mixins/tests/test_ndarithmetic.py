@@ -5,7 +5,7 @@ import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from astropy import units as u
-from astropy.nddata import NDDataRef
+from astropy.nddata import CCDData, NDDataRef
 from astropy.nddata import _testing as nd_testing
 from astropy.nddata.nduncertainty import (
     IncompatibleUncertaintiesException,
@@ -72,6 +72,23 @@ def test_arithmetics_data(data1, data2):
         assert nd.mask is None
         assert len(nd.meta) == 0
         assert nd.wcs is None
+
+
+def test_arithmetics_ccddata():
+    ccd1 = CCDData([1, 2, 3], unit="adu")
+    ccd2 = CCDData([1.1, 2.2, 3.3], unit="adu")
+
+    assert np.min(ccd1) is ccd1.min().value()
+    assert np.min(ccd2) is ccd2.min().value()
+
+    assert np.max(ccd1) is ccd1.max().value()
+    assert np.max(ccd2) is ccd2.max().value()
+
+    assert np.sum(ccd1) is ccd1.sum().value()
+    assert np.sum(ccd2) is ccd2.sum().value()
+
+    assert np.mean(ccd1) is ccd1.mean().value()
+    assert np.mean(ccd2) is ccd2.mean().value()
 
 
 # Invalid arithmetic operations for data covering:
