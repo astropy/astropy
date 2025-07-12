@@ -138,10 +138,6 @@ jobs:
 
   test_limited_api_build:
     # Test to make sure that we can build astropy with the limited API
-    # Currently, several extensions do not compile, so we remove them for
-    # now to make sure the remaining ones build fine. Once all the exceptions
-    # are removed, we can remove this job and instead opt in to the limited
-    # API in one of the main build+test tox jobs.
     strategy:
         fail-fast: false
         matrix:
@@ -161,11 +157,6 @@ jobs:
         name: Install Python
         with:
           python-version: "3.11"
-      - run: |
-          rm \
-            astropy/wcs/setup_package.py
-        name: Remove incompatible extensions
-        shell: bash # for windows compatibility
       - run: |
           python -m pip install build
           python -m build
