@@ -1,0 +1,1 @@
+Fixed key error with numpy functions ``np.min``, ``np.max``, ``np.mean``, and ``np.sum``.
