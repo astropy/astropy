@@ -63,7 +63,7 @@ PyUnitListProxy_traverse(
 
   Py_VISIT(self->pyobject);
   Py_VISIT(self->unit_class);
-  Py_VISIT((PyObject*)Py_TYPE(self));
+  Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
   return 0;
 }
 

@@ -138,6 +138,8 @@ jobs:
 
   test_limited_api_build:
     # Test to make sure that we can build astropy with the limited API
+    # This job is also important to check `build` as our build frontend
+    # see https://github.com/astropy/astropy/pull/18253
     strategy:
         fail-fast: false
         matrix:
