@@ -408,3 +408,54 @@ class TestShapeFunctions(ShapeSetup):
         function = getattr(np, attribute)
         result = function(self.s0)
         assert result == getattr(self.s0, attribute)
+
+
+class TestConcatenateFunctions(ShapeSetup):
+    def check(self, func, *args, **kwargs):
+        # Check assumes no different locations, etc.
+        if not args:
+            args = ([self.s0, self.s0],)
+        out = func(*args, **kwargs)
+        exp_comps = [
+            func([getattr(a, comp) for a in args[0]], *args[1:], **kwargs)
+            for comp in args[0][0].components
+        ]
+        exp_diffs = {
+            key: differential.__class__(
+                *[
+                    func(
+                        [getattr(a.differentials[key], comp) for a in args[0]],
+                        *args[1:],
+                        **kwargs,
+                    )
+                    for comp in differential.components
+                ]
+            )
+            for key, differential in args[0][0].differentials.items()
+        }
+        exp = args[0][0].__class__(*exp_comps, differentials=exp_diffs)
+        assert np.all(representation_equal(out, exp))
+
+    def test_concatenate(self):
+        self.check(np.concatenate)
+        self.check(np.concatenate, [self.c0, self.c0], axis=1)
+
+    def test_hstack(self):
+        self.check(np.hstack)
+
+    def test_vstack(self):
+        self.check(np.vstack)
+
+    def test_dstack(self):
+        self.check(np.dstack)
+
+    def test_stack(self):
+        self.check(np.stack)
+        self.check(np.stack, axis=1)
+        self.check(np.stack, [self.c0, self.c0], axis=2)
+        exp = np.stack([self.s0, self.s0])
+        out = exp._apply(np.zeros_like)
+        assert not np.all(exp == out)
+        chk = np.stack([self.s0, self.s0], out=out)
+        assert chk is out
+        assert np.all(representation_equal(out, exp))
