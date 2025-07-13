@@ -469,6 +469,7 @@ class Galactocentric(BaseCoordinateFrame):
 
     galcen_v_sun = DifferentialAttribute(
         allowed_classes=[r.CartesianDifferential],
+        unit=u.km / u.s,
         doc="The velocity of the Sun in the Galactocentric frame",
     )
 
