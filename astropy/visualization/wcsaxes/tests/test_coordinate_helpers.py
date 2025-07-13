@@ -38,12 +38,6 @@ def ax():
     return ax
 
 
-def assert_coord_visible(coord, ticks=True, ticklabels=True, axislabel=True):
-    assert coord.get_ticks_visible() is ticks
-    assert coord.get_ticklabel_visible() is ticklabels
-    assert coord.get_axislabel_visible() is axislabel
-
-
 def assert_label_draw(ax, x_label, y_label):
     ax.coords[0].set_axislabel("Label 1")
     ax.coords[1].set_axislabel("Label 2")
@@ -220,13 +214,19 @@ def test_get_ticks_visible():
     fig.add_axes(ax)
     coord = ax.coords[0]
 
-    assert_coord_visible(coord)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
     coord.set_ticks_visible(False)
-    assert_coord_visible(coord, ticks=False, ticklabels=True, axislabel=True)
+    assert coord.get_ticks_visible() is False
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
     coord.set_ticks_visible(True)
-    assert_coord_visible(coord)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
 
 def test_get_ticklabel_visible():
@@ -236,13 +236,19 @@ def test_get_ticklabel_visible():
     fig.add_axes(ax)
     coord = ax.coords[0]
 
-    assert_coord_visible(coord)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
     coord.set_ticklabel_visible(False)
-    assert_coord_visible(coord, ticks=True, ticklabels=False, axislabel=True)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is False
+    assert coord.get_axislabel_visible() is True
 
     coord.set_ticklabel_visible(True)
-    assert_coord_visible(coord)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
 
 def test_get_axislabel_visible():
@@ -252,13 +258,19 @@ def test_get_axislabel_visible():
     fig.add_axes(ax)
     coord = ax.coords[0]
 
-    assert_coord_visible(coord)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
     coord._axislabels.set_visible(False)
-    assert_coord_visible(coord, ticks=True, ticklabels=True, axislabel=False)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is False
 
     coord._axislabels.set_visible(True)
-    assert_coord_visible(coord)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
 
 def test_set_visible():
@@ -268,25 +280,35 @@ def test_set_visible():
     fig.add_axes(ax)
     coord = ax.coords[0]
 
-    assert_coord_visible(coord)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
     coord.set_visible(False)
-    assert_coord_visible(coord, ticks=False, ticklabels=False, axislabel=False)
+    assert coord.get_ticks_visible() is False
+    assert coord.get_ticklabel_visible() is False
+    assert coord.get_axislabel_visible() is False
 
     coord.set_visible(True)
-    assert_coord_visible(coord)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
     coord.set_visible("t")
     assert coord.get_ticks_position() == ["t"]
     assert coord.get_ticklabel_position() == ["t"]
     assert coord.get_axislabel_position() == ["t"]
-    assert_coord_visible(coord)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
     coord.set_visible("bl")
     assert coord.get_ticks_position() == ["b", "l"]
     assert coord.get_ticklabel_position() == ["b", "l"]
     assert coord.get_axislabel_position() == ["b", "l"]
-    assert_coord_visible(coord)
+    assert coord.get_ticks_visible() is True
+    assert coord.get_ticklabel_visible() is True
+    assert coord.get_axislabel_visible() is True
 
 
 @pytest.mark.parametrize("invalid_input", [123, 123.45, None, [], {}])
