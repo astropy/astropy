@@ -1417,6 +1417,25 @@ def test_naxis():
     assert w.pixel_bounds is None
 
 
+def test_naxis_1d():
+    w = wcs.WCS(
+        {
+            "naxis1": 100,
+            "crval1": 1,
+            "cdelt1": 0.1,
+            "crpix1": 1,
+        }
+    )
+    assert w.pixel_shape == (100,)
+    assert w.array_shape == (100,)
+
+    w.pixel_shape = (99,)
+    assert w._naxis == [99]
+
+    w.pixel_shape = None
+    assert w.pixel_bounds is None
+
+
 def test_sip_with_altkey():
     """
     Test that when creating a WCS object using a key, CTYPE with
