@@ -1,1 +1,2 @@
-``matrix_utilites.is_rotation()`` is deprecated.
+``matrix_utilites.angle_axis()`` and ``matrix_utilites.is_rotation()`` are
+deprecated.
