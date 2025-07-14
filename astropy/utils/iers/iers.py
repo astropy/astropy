@@ -483,6 +483,153 @@ class IERS(QTable):
 
         return val
 
+    def _get_ray_luni_solar_tides(self, rjd):
+        half_pi = np.pi / 2
+        T = (rjd - 51544.5) / 36525.0
+
+        L = (
+            -0.00024470 * T**4
+            + 0.051635 * T**3
+            + 31.8792 * T**2
+            + 1717915923.2178 * T
+            + 485868.249036
+        )
+        L = np.mod(L, 1296000)
+        
+        cap_f = (
+            0.00000417 * T**4
+            - 0.001037 * T**3
+            - 12.7512 * T**2
+            + 1739527262.8478 * T
+            + 335779.526232
+        )
+        cap_f = np.mod(cap_f, 1296000)
+
+        cap_d = (
+            -0.00003169 * T**4
+            + 0.006593 * T**3
+            - 6.3706 * T**2
+            + 1602961601.2090 * T
+            + 1072260.70369
+        )
+        cap_d = np.mod(cap_d, 1296000)
+
+        omega = -0.00005939 * T**4 + 0.007702 * T**3 + 7.4722 * T**2 - 6962890.2665 * T + 450160.398036
+        omega = np.mod(omega, 1296000)
+
+        theta = (
+            67310.54841
+            + (876600 * 3600 + 8640184.812866) * T
+            + 0.093104 * T**2
+            - 6.2e-6 * T**3
+        ) * 15.0 + 648000.0
+
+        arg7 = np.mod((-L - 2.0 * cap_f - 2.0 * omega + theta) * np.pi / 648000.0, 2 * np.pi) - half_pi
+        arg1 = np.mod((-2.0 * cap_f - 2.0 * omega + theta) * np.pi / 648000.0, 2 * np.pi) - half_pi
+        arg2 = np.mod((-2.0 * cap_f + 2.0 * cap_d - 2.0 * omega + theta) * np.pi / 648000.0, 2 * np.pi) - half_pi
+        arg3 = np.mod(theta * np.pi / 648000.0, 2 * np.pi) + half_pi
+        arg4 = np.mod((-L - 2.0 * cap_f - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0, 2 * np.pi)
+        arg5 = np.mod((-2.0 * cap_f - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0, 2 * np.pi)
+        arg6 = np.mod((-2.0 * cap_f + 2.0 * cap_d - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0, 2 * np.pi)
+        arg8 = np.mod((2.0 * theta) * np.pi / 648000.0, 2 * np.pi)
+
+        arg = np.stack([arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8], axis=0)
+
+        corx_sin = np.array([
+            -0.133,  # ARG1
+            -0.050,  # ARG2
+            -0.152,  # ARG3
+            -0.057,  # ARG4
+            -0.330,  # ARG5
+            -0.145,  # ARG6
+            -0.026,  # ARG7
+            -0.036   # ARG8
+        ])
+
+        corx_cos = np.array([
+            0.049,   # ARG1
+            0.025,   # ARG2
+            0.078,   # ARG3
+            -0.013,  # ARG4
+            -0.028,  # ARG5
+            0.064,   # ARG6
+            0.006,   # ARG7
+            0.017    # ARG8
+        ])
+
+        cory_sin = np.array([
+            -0.049,
+            -0.025,
+            -0.078,
+            0.011,
+            0.037,
+            0.059,
+            -0.006,
+            0.018
+        ])
+
+        cory_cos = np.array([
+            -0.133,
+            -0.050,
+            -0.152,
+            0.033,
+            0.196,
+            0.087,
+            -0.026,
+            0.022
+        ])
+
+        cort_sin = np.array([
+            0.1210,
+            0.0286,
+            0.0864,
+            -0.0380,
+            -0.1617,
+            -0.0759,
+            0.0245,
+            -0.0196
+        ])
+
+        cort_cos = np.array([
+            0.1605,
+            0.0516,
+            0.1771,
+            -0.0154,
+            -0.0720,
+            -0.0004,
+            0.0503,
+            -0.0038
+        ])
+
+        sin_vals = np.sin(arg)
+        cos_vals = np.cos(arg)
+
+        ndims = len(arg.shape)
+        for i in range(ndims - 1):
+            corx_sin = corx_sin[:, np.newaxis]
+            corx_cos = corx_cos[:, np.newaxis]
+            cory_sin = cory_sin[:, np.newaxis]
+            cory_cos = cory_cos[:, np.newaxis]
+            cort_sin = cort_sin[:, np.newaxis]
+            cort_cos = cort_cos[:, np.newaxis]
+
+        dx_sin = np.sum(corx_sin * sin_vals, axis=0)
+        dx_cos = np.sum(corx_cos * cos_vals, axis=0)
+        dy_sin = np.sum(cory_sin * sin_vals, axis=0)
+        dy_cos = np.sum(cory_cos * cos_vals, axis=0)
+        dt_sin = np.sum(cort_sin * sin_vals, axis=0)
+        dt_cos = np.sum(cort_cos * cos_vals, axis=0)
+
+        dx = dx_sin + dx_cos
+        dy = dy_sin + dy_cos
+        dt = dt_sin + dt_cos
+
+        dx *= 1.0e-3
+        dy *= 1.0e-3
+        dt *= 0.1e-3
+
+        return dx, dy, dt
+
     def _interpolate(
         self,
         jd1,
@@ -524,14 +671,24 @@ class IERS(QTable):
                 vals = self[column][indices].value
 
                 if column == "UT1_UTC":
+                    # transform to ut1-tai by subtracting the leap seconds
                     leap_seconds = np.round(np.diff(vals, axis=0, prepend=0))
                     leap_seconds = np.cumsum(leap_seconds, axis=0)
                     vals -= leap_seconds
+
+                    # transform to ut1r-tai by subtracting the ray-luni-solar tides
+                    _, _, dt = self._get_ray_luni_solar_tides(mjds)
+                    vals += dt
 
                 # Lagrange interpolation
                 val = self._lagrange_interp(mjds, vals, mjd)
 
                 if column == "UT1_UTC":
+                    # transform back to ut1-tai by adding the ray-luni-solar tides
+                    dt = np.choose(i - i0 - 1, dt, mode="wrap")
+                    val -= dt
+
+                    # transform back to ut1-utc by adding the leap seconds
                     leap_seconds = np.choose(i - i0 - 1, leap_seconds, mode="wrap")
                     val += leap_seconds
 
