@@ -3412,21 +3412,20 @@ reduce these to 2 dimensions using the naxis kwarg.
                     for table in distortion_tables:
                         table.crval[wcs_index] -= iview.start
 
-            if self._naxis != [0, 0]:
-                try:
-                    # range requires integers but the other attributes can also
-                    # handle arbitrary values, so this needs to be in a try/except.
-                    nitems = len(builtins.range(self._naxis[wcs_index])[iview])
-                except TypeError as exc:
-                    if "indices must be integers" not in str(exc):
-                        raise
-                    warnings.warn(
-                        f"NAXIS{wcs_index} attribute is not updated because at "
-                        f"least one index ('{iview}') is no integer.",
-                        AstropyUserWarning,
-                    )
-                else:
-                    wcs_new._naxis[wcs_index] = nitems
+            try:
+                # range requires integers but the other attributes can also
+                # handle arbitrary values, so this needs to be in a try/except.
+                nitems = len(builtins.range(self._naxis[wcs_index])[iview])
+            except TypeError as exc:
+                if "indices must be integers" not in str(exc):
+                    raise
+                warnings.warn(
+                    f"NAXIS{wcs_index} attribute is not updated because at "
+                    f"least one index ('{iview}') is no integer.",
+                    AstropyUserWarning,
+                )
+            else:
+                wcs_new._naxis[wcs_index] = nitems
 
         if wcs_new.sip is not None:
             wcs_new.sip = Sip(
