@@ -495,7 +495,7 @@ class IERS(QTable):
             + 485868.249036
         )
         L = np.mod(L, 1296000)
-        
+
         cap_f = (
             0.00000417 * T**4
             - 0.001037 * T**3
@@ -514,7 +514,13 @@ class IERS(QTable):
         )
         cap_d = np.mod(cap_d, 1296000)
 
-        omega = -0.00005939 * T**4 + 0.007702 * T**3 + 7.4722 * T**2 - 6962890.2665 * T + 450160.398036
+        omega = (
+            -0.00005939 * T**4
+            + 0.007702 * T**3
+            + 7.4722 * T**2
+            - 6962890.2665 * T
+            + 450160.398036
+        )
         omega = np.mod(omega, 1296000)
 
         theta = (
@@ -524,82 +530,79 @@ class IERS(QTable):
             - 6.2e-6 * T**3
         ) * 15.0 + 648000.0
 
-        arg7 = np.mod((-L - 2.0 * cap_f - 2.0 * omega + theta) * np.pi / 648000.0, 2 * np.pi) - half_pi
-        arg1 = np.mod((-2.0 * cap_f - 2.0 * omega + theta) * np.pi / 648000.0, 2 * np.pi) - half_pi
-        arg2 = np.mod((-2.0 * cap_f + 2.0 * cap_d - 2.0 * omega + theta) * np.pi / 648000.0, 2 * np.pi) - half_pi
+        arg7 = (
+            np.mod(
+                (-L - 2.0 * cap_f - 2.0 * omega + theta) * np.pi / 648000.0, 2 * np.pi
+            )
+            - half_pi
+        )
+        arg1 = (
+            np.mod((-2.0 * cap_f - 2.0 * omega + theta) * np.pi / 648000.0, 2 * np.pi)
+            - half_pi
+        )
+        arg2 = (
+            np.mod(
+                (-2.0 * cap_f + 2.0 * cap_d - 2.0 * omega + theta) * np.pi / 648000.0,
+                2 * np.pi,
+            )
+            - half_pi
+        )
         arg3 = np.mod(theta * np.pi / 648000.0, 2 * np.pi) + half_pi
-        arg4 = np.mod((-L - 2.0 * cap_f - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0, 2 * np.pi)
-        arg5 = np.mod((-2.0 * cap_f - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0, 2 * np.pi)
-        arg6 = np.mod((-2.0 * cap_f + 2.0 * cap_d - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0, 2 * np.pi)
+        arg4 = np.mod(
+            (-L - 2.0 * cap_f - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0, 2 * np.pi
+        )
+        arg5 = np.mod(
+            (-2.0 * cap_f - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0, 2 * np.pi
+        )
+        arg6 = np.mod(
+            (-2.0 * cap_f + 2.0 * cap_d - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0,
+            2 * np.pi,
+        )
         arg8 = np.mod((2.0 * theta) * np.pi / 648000.0, 2 * np.pi)
 
         arg = np.stack([arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8], axis=0)
 
-        corx_sin = np.array([
-            -0.133,  # ARG1
-            -0.050,  # ARG2
-            -0.152,  # ARG3
-            -0.057,  # ARG4
-            -0.330,  # ARG5
-            -0.145,  # ARG6
-            -0.026,  # ARG7
-            -0.036   # ARG8
-        ])
+        corx_sin = np.array(
+            [
+                -0.133,  # ARG1
+                -0.050,  # ARG2
+                -0.152,  # ARG3
+                -0.057,  # ARG4
+                -0.330,  # ARG5
+                -0.145,  # ARG6
+                -0.026,  # ARG7
+                -0.036,  # ARG8
+            ]
+        )
 
-        corx_cos = np.array([
-            0.049,   # ARG1
-            0.025,   # ARG2
-            0.078,   # ARG3
-            -0.013,  # ARG4
-            -0.028,  # ARG5
-            0.064,   # ARG6
-            0.006,   # ARG7
-            0.017    # ARG8
-        ])
+        corx_cos = np.array(
+            [
+                0.049,  # ARG1
+                0.025,  # ARG2
+                0.078,  # ARG3
+                -0.013,  # ARG4
+                -0.028,  # ARG5
+                0.064,  # ARG6
+                0.006,  # ARG7
+                0.017,  # ARG8
+            ]
+        )
 
-        cory_sin = np.array([
-            -0.049,
-            -0.025,
-            -0.078,
-            0.011,
-            0.037,
-            0.059,
-            -0.006,
-            0.018
-        ])
+        cory_sin = np.array(
+            [-0.049, -0.025, -0.078, 0.011, 0.037, 0.059, -0.006, 0.018]
+        )
 
-        cory_cos = np.array([
-            -0.133,
-            -0.050,
-            -0.152,
-            0.033,
-            0.196,
-            0.087,
-            -0.026,
-            0.022
-        ])
+        cory_cos = np.array(
+            [-0.133, -0.050, -0.152, 0.033, 0.196, 0.087, -0.026, 0.022]
+        )
 
-        cort_sin = np.array([
-            0.1210,
-            0.0286,
-            0.0864,
-            -0.0380,
-            -0.1617,
-            -0.0759,
-            0.0245,
-            -0.0196
-        ])
+        cort_sin = np.array(
+            [0.1210, 0.0286, 0.0864, -0.0380, -0.1617, -0.0759, 0.0245, -0.0196]
+        )
 
-        cort_cos = np.array([
-            0.1605,
-            0.0516,
-            0.1771,
-            -0.0154,
-            -0.0720,
-            -0.0004,
-            0.0503,
-            -0.0038
-        ])
+        cort_cos = np.array(
+            [0.1605, 0.0516, 0.1771, -0.0154, -0.0720, -0.0004, 0.0503, -0.0038]
+        )
 
         sin_vals = np.sin(arg)
         cos_vals = np.cos(arg)
