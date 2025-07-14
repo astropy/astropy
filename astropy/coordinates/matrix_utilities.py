@@ -94,6 +94,7 @@ def rotation_matrix(angle, axis="z", unit=None):
     return R
 
 
+@deprecated(since="7.2")
 def angle_axis(matrix):
     """
     Angle of rotation and rotation axis for a given rotation matrix.
