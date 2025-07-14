@@ -29,8 +29,6 @@
  * Wcs type
  ***************************************************************************/
 
-static PyTypeObject WcsType;
-
 static int _setup_wcs_type(PyObject* m);
 
 
@@ -66,6 +64,7 @@ Wcs_traverse(
   Py_VISIT(self->py_distortion_lookup[0]);
   Py_VISIT(self->py_distortion_lookup[1]);
   Py_VISIT(self->py_wcsprm);
+  Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
 
   return 0;
 }
@@ -91,7 +90,10 @@ Wcs_dealloc(
   PyObject_GC_UnTrack(self);
   Wcs_clear(self);
   pipeline_free(&self->x);
-  Py_TYPE(self)->tp_free((PyObject*)self);
+  PyTypeObject *tp = Py_TYPE((PyObject*)self);
+  freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+  free_func((PyObject*)self);
+  Py_DECREF(tp);
 }
 
 /*@null@*/ static PyObject *
@@ -101,7 +103,8 @@ Wcs_new(
     /*@unused@*/ PyObject* kwds) {
 
   Wcs* self;
-  self = (Wcs*)type->tp_alloc(type, 0);
+  allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+  self = (Wcs*)alloc_func(type, 0);
   if (self != NULL) {
     pipeline_clear(&self->x);
     self->py_det2im[0]            = NULL;
@@ -140,7 +143,7 @@ Wcs_init(
   /* Check and set Distortion lookup tables */
   for (i = 0; i < 2; ++i) {
     if (py_det2im[i] != NULL && py_det2im[i] != Py_None) {
-      if (!PyObject_TypeCheck(py_det2im[i], &PyDistLookupType)) {
+      if (!PyObject_TypeCheck(py_det2im[i], (PyTypeObject*)PyDistLookupType)) {
         PyErr_SetString(PyExc_TypeError,
                         "Arg 4 must be a pair of DistortionLookupTable or None objects");
         return -1;
@@ -155,7 +158,7 @@ Wcs_init(
 
   /* Check and set SIP */
   if (py_sip != NULL && py_sip != Py_None) {
-    if (!PyObject_TypeCheck(py_sip, &PySipType)) {
+    if (!PyObject_TypeCheck(py_sip, (PyTypeObject*)PySipType)) {
       PyErr_SetString(PyExc_TypeError,
                       "Arg 1 must be Sip object");
       return -1;
@@ -170,7 +173,7 @@ Wcs_init(
   /* Check and set Distortion lookup tables */
   for (i = 0; i < 2; ++i) {
     if (py_distortion_lookup[i] != NULL && py_distortion_lookup[i] != Py_None) {
-      if (!PyObject_TypeCheck(py_distortion_lookup[i], &PyDistLookupType)) {
+      if (!PyObject_TypeCheck(py_distortion_lookup[i], (PyTypeObject*)PyDistLookupType)) {
         PyErr_SetString(PyExc_TypeError,
                         "Arg 2 must be a pair of DistortionLookupTable or None objects");
         return -1;
@@ -185,7 +188,7 @@ Wcs_init(
 
   /* Set and lookup Wcsprm object */
   if (py_wcsprm != NULL && py_wcsprm != Py_None) {
-    if (!PyObject_TypeCheck(py_wcsprm, &PyWcsprmType)) {
+    if (!PyObject_TypeCheck(py_wcsprm, (PyTypeObject*)PyWcsprmType)) {
       PyErr_SetString(PyExc_TypeError,
                       "Arg 3 must be Wcsprm object");
       return -1;
@@ -256,12 +259,12 @@ Wcs_all_pix2world(
   /* unoffset_array(world, origin); */
 
  exit:
-  Py_XDECREF(pixcrd);
+  Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0 || status == 8) {
     return (PyObject*)world;
   } else {
-    Py_XDECREF(world);
+    Py_XDECREF((PyObject*)world);
     if (status == -1) {
       PyErr_SetString(
         PyExc_ValueError,
@@ -331,12 +334,12 @@ Wcs_p4_pix2foc(
 
  exit:
 
-  Py_XDECREF(pixcrd);
+  Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0) {
     return (PyObject*)foccrd;
   } else {
-    Py_XDECREF(foccrd);
+    Py_XDECREF((PyObject*)foccrd);
     if (status == -1) {
       /* Exception already set */
       return NULL;
@@ -399,12 +402,12 @@ Wcs_det2im(
 
  exit:
 
-  Py_XDECREF(detcrd);
+  Py_XDECREF((PyObject*)detcrd);
 
   if (status == 0) {
     return (PyObject*)imcrd;
   } else {
-    Py_XDECREF(imcrd);
+    Py_XDECREF((PyObject*)imcrd);
     if (status == -1) {
       /* Exception already set */
       return NULL;
@@ -462,12 +465,12 @@ Wcs_pix2foc(
 
  _exit:
 
-  Py_XDECREF(pixcrd);
+  Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0) {
     return (PyObject*)foccrd;
   } else {
-    Py_XDECREF(foccrd);
+    Py_XDECREF((PyObject*)foccrd);
     if (status == -1) {
       /* Exception already set */
       return NULL;
@@ -502,7 +505,7 @@ Wcs_set_wcs(
   self->x.wcs = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, &PyWcsprmType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)PyWcsprmType)) {
       PyErr_SetString(PyExc_TypeError,
                       "wcs must be Wcsprm object");
       return -1;
@@ -540,7 +543,7 @@ Wcs_set_cpdis1(
   self->x.cpdis[0] = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, &PyDistLookupType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)PyDistLookupType)) {
       PyErr_SetString(PyExc_TypeError,
                       "cpdis1 must be DistortionLookupTable object");
       return -1;
@@ -578,7 +581,7 @@ Wcs_set_cpdis2(
   self->x.cpdis[1] = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, &PyDistLookupType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)PyDistLookupType)) {
       PyErr_SetString(PyExc_TypeError,
                       "cpdis2 must be DistortionLookupTable object");
       return -1;
@@ -616,7 +619,7 @@ Wcs_set_det2im1(
   self->x.det2im[0] = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, &PyDistLookupType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)PyDistLookupType)) {
       PyErr_SetString(PyExc_TypeError,
                       "det2im1 must be DistortionLookupTable object");
       return -1;
@@ -654,7 +657,7 @@ Wcs_set_det2im2(
   self->x.det2im[1] = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, &PyDistLookupType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)PyDistLookupType)) {
       PyErr_SetString(PyExc_TypeError,
                       "det2im2 must be DistortionLookupTable object");
       return -1;
@@ -692,7 +695,7 @@ Wcs_set_sip(
   self->x.sip = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, &PySipType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)PySipType)) {
       PyErr_SetString(PyExc_TypeError,
                       "sip must be Sip object");
       return -1;
@@ -750,47 +753,25 @@ static PyMethodDef module_methods[] = {
   {NULL}  /* Sentinel */
 };
 
-static PyTypeObject WcsType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-  "astropy.wcs.WCSBase",                 /*tp_name*/
-  sizeof(Wcs),                /*tp_basicsize*/
-  0,                            /*tp_itemsize*/
-  (destructor)Wcs_dealloc,    /*tp_dealloc*/
-  0,                            /*tp_print*/
-  0,                            /*tp_getattr*/
-  0,                            /*tp_setattr*/
-  0,                            /*tp_compare*/
-  0,                            /*tp_repr*/
-  0,                            /*tp_as_number*/
-  0,                            /*tp_as_sequence*/
-  0,                            /*tp_as_mapping*/
-  0,                            /*tp_hash */
-  0,                            /*tp_call*/
-  0,                            /*tp_str*/
-  0,                            /*tp_getattro*/
-  0,                            /*tp_setattro*/
-  0,                            /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-  doc_Wcs,                      /* tp_doc */
-  (traverseproc)Wcs_traverse, /* tp_traverse */
-  (inquiry)Wcs_clear,         /* tp_clear */
-  0,                            /* tp_richcompare */
-  0,                            /* tp_weaklistoffset */
-  0,                            /* tp_iter */
-  0,                            /* tp_iternext */
-  Wcs_methods,                /* tp_methods */
-  0,                            /* tp_members */
-  Wcs_getset,                 /* tp_getset */
-  0,                            /* tp_base */
-  0,                            /* tp_dict */
-  0,                            /* tp_descr_get */
-  0,                            /* tp_descr_set */
-  0,                            /* tp_dictoffset */
-  (initproc)Wcs_init,         /* tp_init */
-  0,                            /* tp_alloc */
-  Wcs_new,                    /* tp_new */
+static PyType_Spec WcsType_spec = {
+  .name = "astropy.wcs.WCSBase",
+  .basicsize = sizeof(Wcs),
+  .itemsize = 0,
+  .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE,
+  .slots = (PyType_Slot[]){
+    {Py_tp_dealloc, (destructor)Wcs_dealloc},
+    {Py_tp_doc, doc_Wcs},
+    {Py_tp_traverse, (traverseproc)Wcs_traverse},
+    {Py_tp_clear, (inquiry)Wcs_clear},
+    {Py_tp_methods, Wcs_methods},
+    {Py_tp_getset, Wcs_getset},
+    {Py_tp_init, (initproc)Wcs_init},
+    {Py_tp_new, Wcs_new},
+    {0, NULL},
+  },
 };
 
+static PyObject* WcsType = NULL;
 
 /***************************************************************************
  * Module-level
@@ -799,11 +780,11 @@ static PyTypeObject WcsType = {
 int _setup_wcs_type(
     PyObject* m) {
 
-  if (PyType_Ready(&WcsType) < 0)
+  WcsType = PyType_FromSpec(&WcsType_spec);
+  if (WcsType == NULL)
     return -1;
 
-  Py_INCREF(&WcsType);
-  return PyModule_AddObject(m, "_Wcs", (PyObject *)&WcsType);
+  return PyModule_AddObject(m, "_Wcs", WcsType);
 }
 
 struct module_state {

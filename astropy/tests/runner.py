@@ -560,7 +560,7 @@ class TestRunner(TestRunnerBase):
             elif not kwargs["test_path"]:
                 paths = [docs_path]
 
-            if len(paths) and not kwargs["test_path"]:
+            if paths and not kwargs["test_path"]:
                 paths.append("--doctest-rst")
 
         return paths

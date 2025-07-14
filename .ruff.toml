@@ -80,6 +80,8 @@ lint.ignore = [
     "FIX001",  # Line contains FIXME.  this should be fixed or at least FIXME replaced with TODO
     "FIX004",  # Line contains HACK. replace HACK with NOTE.
 
+    "FURB166",  # int-on-sliced-str
+
     # pep8-naming (N)
     # NOTE: some of these can/should be fixed, but this changes the API.
     "N801",  # invalid-class-name
@@ -109,6 +111,7 @@ lint.ignore = [
     "PLR2004",  # MagicValueComparison
     "PLR5501",  # collapsible-else-if
     "PLW0603",  # global-statement
+    "PLW1641",  # Object does not implement `__hash__` method
     "PLW2901",  # redefined-loop-name
 
     # flake8-pytest-style (PT)
@@ -119,6 +122,8 @@ lint.ignore = [
     "PT012",   # pytest-raises-with-multiple-statements
     "PT017",   # pytest-assert-in-exceptinstead
     "PT018",   # pytest-composite-assertion
+    "PT028",   # pytest-parameter-with-default-argument
+    "PT030",   # pytest.warns({warning}) is too broad
 
     # flake8-return (RET)
     "RET501",  # unnecessary-return-none
