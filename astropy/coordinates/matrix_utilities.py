@@ -7,6 +7,7 @@ Utililies used for constructing and inspecting rotation matrices.
 import numpy as np
 
 from astropy import units as u
+from astropy.utils.decorators import deprecated
 
 from .angles import Angle
 
@@ -161,6 +162,7 @@ def is_O3(matrix, atol=None):
     )
 
 
+@deprecated(since="7.2")
 def is_rotation(matrix, allow_improper=False, atol=None):
     """Check whether a matrix is a rotation, proper or improper.
 
