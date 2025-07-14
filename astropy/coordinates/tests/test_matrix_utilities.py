@@ -51,13 +51,15 @@ def test_rotation_matrix():
 
 def test_angle_axis():
     m1 = rotation_matrix(35 * u.deg, "x")
-    an1, ax1 = angle_axis(m1)
+    with pytest.warns(AstropyDeprecationWarning):
+        an1, ax1 = angle_axis(m1)
 
     assert an1 - 35 * u.deg < 1e-10 * u.deg
     assert_allclose(ax1, [1, 0, 0])
 
     m2 = rotation_matrix(-89 * u.deg, [1, 1, 0])
-    an2, ax2 = angle_axis(m2)
+    with pytest.warns(AstropyDeprecationWarning):
+        an2, ax2 = angle_axis(m2)
 
     assert an2 - 89 * u.deg < 1e-10 * u.deg
     assert_allclose(ax2, [-(2**-0.5), -(2**-0.5), 0])
