@@ -7,7 +7,7 @@ from copy import deepcopy
 import numpy as np
 
 from astropy.nddata.nduncertainty import NDUncertainty
-from astropy.units import dimensionless_unscaled, Quantity
+from astropy.units import Quantity, dimensionless_unscaled
 from astropy.utils import format_doc, sharedmethod
 from astropy.utils.compat.numpycompat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
@@ -388,60 +388,40 @@ class NDArithmeticMixin:
                         self.data,
                         unit=dimensionless_unscaled,
                         dtype=None,  # use "normal numpy.dtype introspection"
-                        copy=COPY_IF_NEEDED
+                        copy=COPY_IF_NEEDED,
                     ),
                     Quantity(
-                        operand.data,
-                        unit=operand.unit,
-                        dtype=None,
-                        copy=COPY_IF_NEEDED
-                    )
+                        operand.data, unit=operand.unit, dtype=None, copy=COPY_IF_NEEDED
+                    ),
                 )
         elif hasattr(operand, "unit"):
             if operand.unit is not None:
                 result = operation(
                     Quantity(
-                        self.data,
-                        unit=self.unit,
-                        dtype=None,
-                        copy=COPY_IF_NEEDED
+                        self.data, unit=self.unit, dtype=None, copy=COPY_IF_NEEDED
                     ),
                     Quantity(
-                        operand.data,
-                        unit=operand.unit,
-                        dtype=None,
-                        copy=COPY_IF_NEEDED
-                    )
+                        operand.data, unit=operand.unit, dtype=None, copy=COPY_IF_NEEDED
+                    ),
                 )
             else:
                 result = operation(
                     Quantity(
-                        self.data,
-                        unit=self.unit,
-                        dtype=None,
-                        copy=COPY_IF_NEEDED
+                        self.data, unit=self.unit, dtype=None, copy=COPY_IF_NEEDED
                     ),
                     Quantity(
                         operand.data,
                         unit=dimensionless_unscaled,
                         dtype=None,
-                        copy=COPY_IF_NEEDED
-                    )
+                        copy=COPY_IF_NEEDED,
+                    ),
                 )
         elif operand is not None:
             result = operation(
+                Quantity(self.data, unit=self.unit, dtype=None, copy=COPY_IF_NEEDED),
                 Quantity(
-                    self.data,
-                    unit=self.unit,
-                    dtype=None,
-                    copy=COPY_IF_NEEDED
+                    operand.data, unit=operand.unit, dtype=None, copy=COPY_IF_NEEDED
                 ),
-                Quantity(
-                    operand.data,
-                    unit=operand.unit,
-                    dtype=None,
-                    copy=COPY_IF_NEEDED
-                )
             )
         else:
             result = operation(self.data, axis=kwds["axis"])
@@ -734,26 +714,28 @@ class NDArithmeticMixin:
         # Python scalars etc., which NumPy converts to arrays in the default
         # way when doing arithmetic. The "__getitem__" check below excludes
         # "scalars" that are NumPy types, strings or buffers.
-        if (ref is not None and np.isscalar(operand) and
-            not hasattr(operand, '__getitem__')):
+        if (
+            ref is not None
+            and np.isscalar(operand)
+            and not hasattr(operand, "__getitem__")
+        ):
+            # The arg for result_type() has to be convertible to an ndarray
+            # (including sub-classes like Quantity) or dtype, but cannot be
+            # a Python sequence (because it takes a list of args). Also, we
+            # can't do isinstance(ref, NDData) here, because it produces a
+            # circular import, but the following is at least as general:
+            if hasattr(ref, "data") and (
+                hasattr(ref.data, "__array__")
+                or hasattr(ref.data, "__array_interface__")
+            ):
+                ref = ref.data
+            try:
+                dtype = np.result_type(ref, operand)
+            except TypeError:  # in case arg is a list/tuple
+                dtype = np.result_type(np.array(ref), operand)
 
-                # The arg for result_type() has to be convertible to an ndarray
-                # (including sub-classes like Quantity) or dtype, but cannot be
-                # a Python sequence (because it takes a list of args). Also, we
-                # can't do isinstance(ref, NDData) here, because it produces a
-                # circular import, but the following is at least as general:
-                if hasattr(ref, 'data') and (
-                        hasattr(ref.data, '__array__') or
-                        hasattr(ref.data, '__array_interface__')
-                ):
-                    ref = ref.data
-                try:
-                    dtype = np.result_type(ref, operand)
-                except TypeError:  # in case arg is a list/tuple
-                    dtype = np.result_type(np.array(ref), operand)
-
-                # Convert scalar operand to a dtype appropriate for the ref:
-                operand = np.array(operand, dtype=dtype)
+            # Convert scalar operand to a dtype appropriate for the ref:
+            operand = np.array(operand, dtype=dtype)
 
         return cls(operand)
 
