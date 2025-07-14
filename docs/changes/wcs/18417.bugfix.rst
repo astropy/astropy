@@ -1,3 +1,2 @@
-Fixed a bug that caused slicing of WCS objects with more than two dimensions and no
-data shape set to fail, and fixed a bug which caused slicing of WCS objects with
-an Ellipsis ([...]) to not return a WCS object.
+Fixed a bug that caused slicing of WCS objects with an ellipsis to not return a WCS
+object but instead a SlicedLowLevelWCS object.
