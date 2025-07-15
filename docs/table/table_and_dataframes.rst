@@ -85,6 +85,6 @@ Interoperability
 
 We recognize that Pandas is a popular library and that there are many users who are
 familiar with it. For this reason, we have made it easy to convert between
-`astropy.table` and DataFrame-like objects, such as `~pandas.DataFrame` and ``polars.DataFrame`` through the `narwhals <https://narwhals-dev.github.io/narwhals/>`_ translation layer as documented in :ref:`df_narwhals`. 
+`astropy.table` and DataFrame-like objects, such as `~pandas.DataFrame` and ``polars.DataFrame`` through the `narwhals <https://narwhals-dev.github.io/narwhals/>`_ translation layer as documented in :ref:`df_narwhals`.
 This allows users to take advantage of all supported features of both packages as needed,
 within the limitations stated above.
