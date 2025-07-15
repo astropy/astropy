@@ -5,7 +5,7 @@ Astropy Table and DataFrames
 
 `Pandas <https://pandas.pydata.org/>`_ is a popular data manipulation library for Python
 that provides a `~pandas.DataFrame` object which is similar to `astropy.table`. A common
-question is why Astropy does not use `~pandas.DataFrame` as the base table object, or a DataFrame-like object from another libary such as ``polars``.
+question is why Astropy does not use `~pandas.DataFrame` as the base table object, or a DataFrame-like object from another library such as ``polars``.
 The answer stems from a number of domain-specific requirements related to astronomical data and analysis.
 
 Units and Quantities
