@@ -3116,7 +3116,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Return a short description. Simply porting the behavior from
         the `printwcs()` method.
         """
-        description = ["WCS Keywords\n", f"Number of WCS axes: {self.naxis!r}"]
+        description = ["WCS Keywords", "", f"Number of WCS axes: {self.naxis!r}"]
         sfmt = " : " + "".join([f"{{{i}}} " for i in range(self.naxis)])
 
         keywords = ["CTYPE", "CUNIT", "CRVAL", "CRPIX"]
