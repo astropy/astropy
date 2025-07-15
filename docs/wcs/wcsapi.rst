@@ -249,7 +249,7 @@ for angles, and SI units for other physical types::
     ... CRVAL1  = 10
     ... CRVAL2  = 20
     ... CRVAL3  = 50
-    """.strip()
+    ... """.strip()
     >>> wcs = WCS(fits.Header.fromstring(header, sep='\n'))
     >>> wcs  # doctest: +FLOAT_CMP
     WCS Keywords
