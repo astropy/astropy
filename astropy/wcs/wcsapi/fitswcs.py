@@ -541,22 +541,12 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 try:
                     observer.transform_to(ICRS())
                 except Exception:
-                    warnings.warn(
-                        "observer cannot be converted to ICRS, so will "
-                        "not be set on SpectralCoord",
-                        AstropyUserWarning,
-                    )
                     observer = None
 
             if target is not None:
                 try:
                     target.transform_to(ICRS())
                 except Exception:
-                    warnings.warn(
-                        "target cannot be converted to ICRS, so will "
-                        "not be set on SpectralCoord",
-                        AstropyUserWarning,
-                    )
                     target = None
 
             # NOTE: below we include Quantity in classes['spectral'] instead
