@@ -2077,9 +2077,15 @@ class TestPreserveUnits:
         result_default = self.wcs_default.wcs_pix2world(self.coords, 0)
         result_preserve = self.wcs_preserve.wcs_pix2world(self.coords, 0)
         assert_allclose(result_default, result_preserve * self.scale)
+        # Make sure we aren't modifying the input array in-place
+        result_preserve = self.wcs_preserve.wcs_pix2world(self.coords, 0)
+        assert_allclose(result_default, result_preserve * self.scale)
 
     def test_wcs_world2pix(self):
         result_default = self.wcs_default.wcs_world2pix(self.coords * self.scale, 0)
+        result_preserve = self.wcs_preserve.wcs_world2pix(self.coords, 0)
+        assert_allclose(result_default, result_preserve)
+        # Make sure we aren't modifying the input array in-place
         result_preserve = self.wcs_preserve.wcs_world2pix(self.coords, 0)
         assert_allclose(result_default, result_preserve)
 
@@ -2087,9 +2093,15 @@ class TestPreserveUnits:
         result_default = self.wcs_default.all_pix2world(self.coords, 0)
         result_preserve = self.wcs_preserve.all_pix2world(self.coords, 0)
         assert_allclose(result_default, result_preserve * self.scale)
+        # Make sure we aren't modifying the input array in-place
+        result_preserve = self.wcs_preserve.all_pix2world(self.coords, 0)
+        assert_allclose(result_default, result_preserve * self.scale)
 
     def test_all_world2pix(self):
         result_default = self.wcs_default.all_world2pix(self.coords * self.scale, 0)
+        result_preserve = self.wcs_preserve.all_world2pix(self.coords, 0)
+        assert_allclose(result_default, result_preserve)
+        # Make sure we aren't modifying the input array in-place
         result_preserve = self.wcs_preserve.all_world2pix(self.coords, 0)
         assert_allclose(result_default, result_preserve)
 
@@ -2291,3 +2303,55 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         assert expected in "\n".join(
             [x.rstrip() for x in strip_memory_addresses(captured.out).splitlines()]
         )
+
+    def test_tab(self):
+
+        # WCSLIB does not convert the units for coordinates that use lookup tables
+        # with -TAB, but we should make sure that things still work properly
+        # with preserve_units=True
+
+        flux = np.random.rand(100)
+
+        wav = np.linspace(4000, 5000, 100)
+
+        primary_hdu = fits.PrimaryHDU(flux)
+
+        col = fits.Column(name='WAVE', format='D', array=wav)
+        tab_hdu = fits.BinTableHDU.from_columns([col])
+        tab_hdu.name = 'WCS-TAB'
+
+        header = primary_hdu.header
+        header['WCSAXES'] = 1
+        header['CTYPE1'] = 'WAVE-TAB'
+        header['CRPIX1'] = 1
+        header['CDELT1'] = 1
+        header['CRVAL1'] = 0
+        header['CUNIT1'] = 'mm'
+        header['PS1_0'] = 'WCS-TAB'
+        header['PS1_1'] = 'WAVE'
+        header['PV1_1'] = 1
+
+        hdul = fits.HDUList([primary_hdu, tab_hdu])
+
+        wcs_default = wcs.WCS(hdul[0].header, hdul)
+        wcs_preserve = wcs.WCS(hdul[0].header, hdul, preserve_units=True)
+
+        rsn = default_rng(1234567890)
+        pixel = rsn.uniform(0, 100, 100)
+        world = rsn.uniform(4000, 5000, 100)
+
+        assert_allclose(
+            wcs_default.all_pix2world(pixel, 0),
+            wcs_preserve.all_pix2world(pixel, 0),
+        )
+
+        print(wcs_default.all_pix2world(pixel, 0))
+
+        assert_allclose(
+            wcs_default.all_world2pix(world, 0),
+            wcs_preserve.all_world2pix(world, 0),
+        )
+
+        print(wcs_default.all_world2pix(world, 0))
+
+        assert False
