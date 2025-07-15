@@ -210,8 +210,8 @@ Wcs_all_pix2world(
     PyObject* kwds) {
 
   int            naxis      = 2;
-  npy_intp       ncoord     = 0;
-  npy_intp       nelem      = 0;
+  npy_intp       ncoord;
+  npy_intp       nelem;
   PyObject*      pixcrd_obj = NULL;
   int            origin     = 1;
   PyArrayObject* pixcrd     = NULL;
@@ -253,7 +253,9 @@ Wcs_all_pix2world(
   // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
   // catch cases where the units might change if e.g. they are not in SI to start with.
   /* Force a call to wcsset here*/
-  if (((PyWcsprm*)(self->py_wcsprm))->preserve_units && PyWcsprm_cset(((PyWcsprm*)(self->py_wcsprm)), 1)) return NULL;
+  if (((PyWcsprm*)(self->py_wcsprm))->preserve_units && PyWcsprm_cset(((PyWcsprm*)(self->py_wcsprm)), 1)) {
+    return NULL;
+  }
 
   /* Make the call */
   Py_BEGIN_ALLOW_THREADS

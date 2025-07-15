@@ -175,6 +175,15 @@ PyObject* get_scaled_double_array_readonly(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
+  /*
+  This function is equivalent to get_double_array_readonly except that values
+  can be scaled before constructing the final array. The input parameters are as
+  in get_double_array_readonly except for the addition of scale which should be
+  an array of scalefactors with length dims[0] - the number of coordinate axes.
+  For now this supports only 1D or 2D arrays, as we do not need support for
+  higher dimensions.
+  */
+
   PyArrayObject* array;
 
   array = (PyArrayObject*)PyArray_SimpleNew(naxis, dims, NPY_DOUBLE);
@@ -190,15 +199,15 @@ PyObject* get_scaled_double_array_readonly(
     }
   } else if (naxis == 2) {
     for (npy_intp i = 0; i < dims[0]; ++i) {
-    for (npy_intp j = 0; j < dims[1]; ++j) {
-      array_data[i * dims[1] + j] = value[i * dims[1] + j] / scale[i];
-    }
+      for (npy_intp j = 0; j < dims[1]; ++j) {
+        array_data[i * dims[1] + j] = value[i * dims[1] + j] / scale[i];
+      }
     }
   } else {
     return NULL;
   }
 
-    // Make the array read-only
+  // Make the array read-only
   PyArray_CLEARFLAGS(array, NPY_ARRAY_WRITEABLE);
 
   return (PyObject*)array;
@@ -206,10 +215,13 @@ PyObject* get_scaled_double_array_readonly(
 }
 
 int cunit_empty(const char cunit[][72], int naxis) {
+  /* This function returns 0 if all the cunit values are empty, and 1 otherwise */
   for (int i = 0; i < naxis; ++i) {
-      if (strcmp(cunit[i], "") != 0) return 0;
+      if (strcmp(cunit[i], "") != 0) {
+        return 0;
+      }
   }
-    return 1; // All strings are empty
+  return 1;
 }
 
 /***************************************************************************
@@ -1579,7 +1591,9 @@ PyWcsprm_p2s(
   // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
   // catch cases where the units might change if e.g. they are not in SI to start with.
   /* Force a call to wcsset here*/
-  if (self->preserve_units && PyWcsprm_cset(self, 1)) return NULL;
+  if (self->preserve_units && PyWcsprm_cset(self, 1)) {
+    return NULL;
+  }
 
   /* Make the call */
   Py_BEGIN_ALLOW_THREADS
@@ -1706,7 +1720,9 @@ PyWcsprm_s2p(
   // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
   // catch cases where the units might change if e.g. they are not in SI to start with.
   /* Force a call to wcsset here*/
-  if (self->preserve_units && PyWcsprm_cset(self, 1)) return NULL;
+  if (self->preserve_units && PyWcsprm_cset(self, 1)) {
+    return NULL;
+  }
 
   // Convert world units to native WCSLIB units if needed. Here we use a check that
   // original_cunit is allocated, because the above line does not guarantee that

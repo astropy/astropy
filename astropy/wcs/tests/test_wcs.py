@@ -14,6 +14,7 @@ from numpy.testing import (
     assert_array_almost_equal_nulp,
     assert_array_equal,
 )
+from numpy.random import default_rng
 from packaging.version import Version
 
 from astropy import units as u
@@ -1979,7 +1980,8 @@ class TestPreserveUnits:
         self.header = fits.Header.fromstring(HEADER_WITH_NON_SI_UNITS, sep="\n")
         self.wcs_default = wcs.WCS(self.header)
         self.wcs_preserve = wcs.WCS(self.header, preserve_units=True)
-        self.ones = np.ones((3, 5))
+        rsn = default_rng(1234567890)
+        self.coords = rsn.uniform(-10, 10, (100, 5))
         self.scale = np.array([1 / 3600, 1e9, 1 / 3600, 1e-9, 1])
 
     def test_get_cunit(self):
@@ -2057,8 +2059,8 @@ class TestPreserveUnits:
             self.wcs_preserve.wcs.crval[0] = 1
 
     def test_p2s(self):
-        result_default = self.wcs_default.wcs.p2s(self.ones, 0)
-        result_preserve = self.wcs_preserve.wcs.p2s(self.ones, 0)
+        result_default = self.wcs_default.wcs.p2s(self.coords, 0)
+        result_preserve = self.wcs_preserve.wcs.p2s(self.coords, 0)
         for key in result_default:
             if key == "world":
                 assert_allclose(result_default[key], result_preserve[key] * self.scale)
@@ -2066,29 +2068,29 @@ class TestPreserveUnits:
                 assert_allclose(result_default[key], result_preserve[key])
 
     def test_s2p(self):
-        result_default = self.wcs_default.wcs.s2p(self.ones * self.scale, 0)
-        result_preserve = self.wcs_preserve.wcs.s2p(self.ones, 0)
+        result_default = self.wcs_default.wcs.s2p(self.coords * self.scale, 0)
+        result_preserve = self.wcs_preserve.wcs.s2p(self.coords, 0)
         for key in result_default:
             assert_allclose(result_default[key], result_preserve[key])
 
     def test_wcs_pix2world(self):
-        result_default = self.wcs_default.wcs_pix2world(self.ones, 0)
-        result_preserve = self.wcs_preserve.wcs_pix2world(self.ones, 0)
+        result_default = self.wcs_default.wcs_pix2world(self.coords, 0)
+        result_preserve = self.wcs_preserve.wcs_pix2world(self.coords, 0)
         assert_allclose(result_default, result_preserve * self.scale)
 
     def test_wcs_world2pix(self):
-        result_default = self.wcs_default.wcs_world2pix(self.ones * self.scale, 0)
-        result_preserve = self.wcs_preserve.wcs_world2pix(self.ones, 0)
+        result_default = self.wcs_default.wcs_world2pix(self.coords * self.scale, 0)
+        result_preserve = self.wcs_preserve.wcs_world2pix(self.coords, 0)
         assert_allclose(result_default, result_preserve)
 
     def test_all_pix2world(self):
-        result_default = self.wcs_default.all_pix2world(self.ones, 0)
-        result_preserve = self.wcs_preserve.all_pix2world(self.ones, 0)
+        result_default = self.wcs_default.all_pix2world(self.coords, 0)
+        result_preserve = self.wcs_preserve.all_pix2world(self.coords, 0)
         assert_allclose(result_default, result_preserve * self.scale)
 
     def test_all_world2pix(self):
-        result_default = self.wcs_default.all_world2pix(self.ones * self.scale, 0)
-        result_preserve = self.wcs_preserve.all_world2pix(self.ones, 0)
+        result_default = self.wcs_default.all_world2pix(self.coords * self.scale, 0)
+        result_preserve = self.wcs_preserve.all_world2pix(self.coords, 0)
         assert_allclose(result_default, result_preserve)
 
     def test_get_cd(self):
