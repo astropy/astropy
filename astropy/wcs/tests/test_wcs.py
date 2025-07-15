@@ -8,13 +8,13 @@ from datetime import datetime
 
 import numpy as np
 import pytest
+from numpy.random import default_rng
 from numpy.testing import (
     assert_allclose,
     assert_array_almost_equal,
     assert_array_almost_equal_nulp,
     assert_array_equal,
 )
-from numpy.random import default_rng
 from packaging.version import Version
 
 from astropy import units as u
@@ -2265,7 +2265,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             "PC4_1 PC4_2 PC4_3 PC4_4 PC4_5  : 0.0 0.0 0.0 1.0 0.0 \n"
             "PC5_1 PC5_2 PC5_3 PC5_4 PC5_5  : 0.0 0.0 0.0 0.0 1.0 \n"
             "CDELT : 4.0 3.0 2.0 1.0 6.0 \n"
-            "NAXIS : 0  0"
+            "NAXIS : 0  0  0  0  0"
         )
         assert str(self.wcs_preserve) == expected
         assert repr(self.wcs_preserve) == expected
