@@ -2304,7 +2304,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             [x.rstrip() for x in strip_memory_addresses(captured.out).splitlines()]
         )
 
-    def test_tab(self):
+    def test_wcstab_cunit_conversion(self):
         # WCSLIB does not convert the units for coordinates that use lookup tables
         # with -TAB, but we should make sure that things still work properly
         # with preserve_units=True
