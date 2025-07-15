@@ -2305,7 +2305,6 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         )
 
     def test_tab(self):
-
         # WCSLIB does not convert the units for coordinates that use lookup tables
         # with -TAB, but we should make sure that things still work properly
         # with preserve_units=True
@@ -2316,20 +2315,20 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
         primary_hdu = fits.PrimaryHDU(flux)
 
-        col = fits.Column(name='WAVE', format='D', array=wav)
+        col = fits.Column(name="WAVE", format="D", array=wav)
         tab_hdu = fits.BinTableHDU.from_columns([col])
-        tab_hdu.name = 'WCS-TAB'
+        tab_hdu.name = "WCS-TAB"
 
         header = primary_hdu.header
-        header['WCSAXES'] = 1
-        header['CTYPE1'] = 'WAVE-TAB'
-        header['CRPIX1'] = 1
-        header['CDELT1'] = 1
-        header['CRVAL1'] = 0
-        header['CUNIT1'] = 'mm'
-        header['PS1_0'] = 'WCS-TAB'
-        header['PS1_1'] = 'WAVE'
-        header['PV1_1'] = 1
+        header["WCSAXES"] = 1
+        header["CTYPE1"] = "WAVE-TAB"
+        header["CRPIX1"] = 1
+        header["CDELT1"] = 1
+        header["CRVAL1"] = 0
+        header["CUNIT1"] = "mm"
+        header["PS1_0"] = "WCS-TAB"
+        header["PS1_1"] = "WAVE"
+        header["PV1_1"] = 1
 
         hdul = fits.HDUList([primary_hdu, tab_hdu])
 
@@ -2340,18 +2339,16 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         pixel = rsn.uniform(0, 100, 100)
         world = rsn.uniform(4000, 5000, 100)
 
+        assert not np.any(np.isnan(wcs_default.all_pix2world(pixel, 0)))
+
         assert_allclose(
             wcs_default.all_pix2world(pixel, 0),
             wcs_preserve.all_pix2world(pixel, 0),
         )
 
-        print(wcs_default.all_pix2world(pixel, 0))
+        assert not np.any(np.isnan(wcs_default.all_world2pix(world, 0)))
 
         assert_allclose(
             wcs_default.all_world2pix(world, 0),
             wcs_preserve.all_world2pix(world, 0),
         )
-
-        print(wcs_default.all_world2pix(world, 0))
-
-        assert False
