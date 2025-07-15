@@ -1118,9 +1118,8 @@ int check_unit_changes(PyWcsprm* self) {
       }
     }
 
-    return 0;
-
   }
+  return 0;
 }
 
 
@@ -1720,6 +1719,7 @@ PyWcsprm_s2p(
   // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
   // catch cases where the units might change if e.g. they are not in SI to start with.
   /* Force a call to wcsset here*/
+
   if (self->preserve_units && PyWcsprm_cset(self, 1)) {
     return NULL;
   }
@@ -2250,8 +2250,6 @@ PyWcsprm_to_header(
   int       status       = -1;
   PyObject* result       = NULL;
   const char* keywords[] = {"relax", NULL};
-  PyWcsprm*     copy = NULL;
-  int       original_flag = 0;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "|O:to_header",
