@@ -9,7 +9,7 @@ Interfacing with Pandas/Polars DataFrames via Narwhals
 
 Narwhals supports multiple DataFrame libraries. The following is supported within Astropy:
 
-* Importing from any Narwhals compatible DataFrame, such as `pandas`, ``polars``, ``pyarrow``, ``duckDB``, and others. 
+* Importing from any Narwhals compatible DataFrame, such as `pandas`, ``polars``, ``pyarrow``, ``duckDB``, and others.
 * Exporting to Narwhals compatible DataFrames with eager support, such as `pandas`, ``polars``, ``pyarrow``, ``modin``, or ``cudf``.
 
 The following examples and caveats will focus on common DataFrame libraries, primarily `pandas`.
