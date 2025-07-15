@@ -4128,18 +4128,24 @@ class Table:
         """
         from pandas import DataFrame, Series
 
+        # Handle index argument
+        has_single_pk = self.primary_key and len(self.primary_key) == 1
         if index is not False:
-            if index in (None, True):
-                # Default is to use the table primary key if available and a single column
-                if self.primary_key and len(self.primary_key) == 1:
+            if index is True or index is None:
+                if has_single_pk:
                     index = self.primary_key[0]
                 else:
-                    index = False
-            else:
+                    if index is True:
+                        raise ValueError("index=True requires a single-column primary key.")
+                    else:
+                        index = False
+            elif isinstance(index, str):
                 if index not in self.colnames:
-                    raise ValueError(
-                        "index must be None, False, True or a table column name"
-                    )
+                    raise ValueError(f"'{index}' is not in the table columns.")
+            else:
+                raise ValueError(
+                    "index must be None, False, True, or a valid column name."
+                )
 
         tbl = self._encode_mixins()
 
