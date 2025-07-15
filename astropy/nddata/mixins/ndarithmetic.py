@@ -391,7 +391,10 @@ class NDArithmeticMixin:
                         copy=COPY_IF_NEEDED,
                     ),
                     Quantity(
-                        operand.data, unit=operand.unit, dtype=None, copy=COPY_IF_NEEDED
+                        operand.data,
+                        unit=operand.unit,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED,
                     ),
                 )
         elif hasattr(operand, "unit"):
@@ -407,7 +410,10 @@ class NDArithmeticMixin:
             else:
                 result = operation(
                     Quantity(
-                        self.data, unit=self.unit, dtype=None, copy=COPY_IF_NEEDED
+                        self.data,
+                        unit=self.unit,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED,
                     ),
                     Quantity(
                         operand.data,

@@ -1429,7 +1429,10 @@ def test_arithmetics_dtypes_with_scalar(data1, data2):
             NDDataRef(np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32), unit=u.adu),
             u.Quantity(2.0, dtype=np.float32, unit=u.adu),
         ),
-        (NDDataRef(np.array([1.0, 2.0, 3.0, 4.0]), unit=u.adu), 2.0 * u.adu),
+        (
+            NDDataRef(np.array([1.0, 2.0, 3.0, 4.0]), unit=u.adu),
+            2.0 * u.adu,
+        ),
     ],
 )
 def test_add_quantity_matching_dtype(data1, data2):
