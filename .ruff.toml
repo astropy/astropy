@@ -65,9 +65,6 @@ lint.ignore = [
     # NOTE: be careful that developer notes are kept.
     "ERA001",  # commented-out-code
 
-    # flake8-executable (EXE)
-    "EXE002",  # shebang-missing-executable-file
-
     # Pyflakes (F)
     "F841",  # unused-variable
 
