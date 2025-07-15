@@ -772,7 +772,7 @@ def test_simplify_cases(before, after):
     # Regression test for a bug that caused the simplification to not work
     # correctly in the presence of dollar signs in LaTeX strings.
 
-    ticklabels = TickLabels(None)
+    ticklabels = TickLabels(frame=MagicMock())
     expected_labels = []
 
     for i, label in enumerate(before):
