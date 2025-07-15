@@ -1549,6 +1549,7 @@ def test_equatorial_arcsec():
 
     ax.set_xlim(-0.5, 20 - 0.5)
     ax.set_ylim(-0.5, 30 - 0.5)
+    return fig
 
 
 @figure_test
