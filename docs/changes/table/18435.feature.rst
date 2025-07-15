@@ -1,2 +1,1 @@
-Added generic ``from_df`` and ``to_df`` methods to ``astropy.Table``.
-Deprecated ``from_pandas`` and ``to_pandas``.
+Added generic ``from_df`` and ``to_df`` methods to ``astropy.Table`` using ``narwhals``.
