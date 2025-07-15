@@ -3147,6 +3147,10 @@ reduce these to 2 dimensions using the naxis kwarg.
                 description.append(s.format(*self.wcs.cd[i]))
 
         description.append(f"NAXIS : {'  '.join(map(str, self._naxis))}")
+
+        # Strip trailing space in lines
+        description = [line.rstrip() for line in description]
+
         return "\n".join(description)
 
     def get_axis_types(self):
