@@ -1687,6 +1687,7 @@ PyWcsprm_s2p(
   PyArrayObject* stat      = NULL;
   PyObject*      result    = NULL;
   int            status    = -1;
+  double*        world_copy = NULL;
   const char*    keywords[] = {
     "world", "origin", NULL };
 
@@ -1727,14 +1728,27 @@ PyWcsprm_s2p(
   // Convert world units to native WCSLIB units if needed. Here we use a check that
   // original_cunit is allocated, because the above line does not guarantee that
   // original_cunit will be allocated (for instance if the units are not set)
+
+  double *world_data = (double *)PyArray_DATA(world);
+
   if (self->original_cunit != NULL) {
-    double *world_data = (double *)PyArray_DATA(world);
+
+    world_copy = malloc(sizeof(double) * nelem * ncoord);
+    if (!world_copy) {
+      return PyErr_NoMemory();
+      return NULL;
+    }
+
     for (npy_intp i = 0; i < nelem; ++i) {
       for (npy_intp j = 0; j < ncoord; ++j) {
-          world_data[j * nelem + i] *= self->unit_scaling[i];
+          world_copy[j * nelem + i] = world_data[j * nelem + i] * self->unit_scaling[i];
       }
     }
+
+    world_data = world_copy;
+
   }
+
 
   /* Now we allocate a bunch of numpy arrays to store the
    * results in.
@@ -1777,7 +1791,7 @@ PyWcsprm_s2p(
       &self->x,
       ncoord,
       nelem,
-      (double*)PyArray_DATA(world),
+      world_data,
       (double*)PyArray_DATA(phi),
       (double*)PyArray_DATA(theta),
       (double*)PyArray_DATA(imgcrd),
@@ -1812,6 +1826,11 @@ PyWcsprm_s2p(
   }
 
  exit:
+
+  if (world_copy!=NULL) {
+    free(world_copy);
+  }
+
   Py_XDECREF((PyObject*)pixcrd);
   Py_XDECREF((PyObject*)imgcrd);
   Py_XDECREF((PyObject*)phi);
