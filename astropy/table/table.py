@@ -4136,7 +4136,9 @@ class Table:
                     index = self.primary_key[0]
                 else:
                     if index is True:
-                        raise ValueError("index=True requires a single-column primary key.")
+                        raise ValueError(
+                            "index=True requires a single-column primary key."
+                        )
                     else:
                         index = False
             elif isinstance(index, str):
