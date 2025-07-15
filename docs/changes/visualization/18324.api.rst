@@ -1,0 +1,4 @@
+A warning is now emitted for each axis name which is
+invalid in ``set_ticklabel_position``, ``set_axislabel_position``,
+and ``set_ticks_position``. This is a deprecation warning,
+and in future invalid axis names will result in an error.
