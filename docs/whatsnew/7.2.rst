@@ -95,7 +95,7 @@ for angles, and SI units for other physical types::
     >>> wcs = WCS(fits.Header.fromstring(header, sep='\n'))
     >>> wcs  # doctest: +FLOAT_CMP
     WCS Keywords
-
+    <BLANKLINE>
     Number of WCS axes: 3
     CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
     CUNIT : deg deg Hz
@@ -109,7 +109,7 @@ object::
     >>> wcs = WCS(fits.Header.fromstring(header, sep='\n'), preserve_units=True)
     >>> wcs  # doctest: +FLOAT_CMP
     WCS Keywords
-
+    <BLANKLINE>
     Number of WCS axes: 3
     CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
     CUNIT : arcsec arcsec GHz
