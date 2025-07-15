@@ -4176,8 +4176,10 @@ class Table:
                         # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
                         pd_dtype = pd_dtype.replace("i", "I").replace("u", "U")
                     else:
-                        # Convert to float with NaN for masked values
-                        pd_dtype = float
+                        raise ValueError(
+                            "Cannot convert masked integer columns to DataFrame without using nullable integers."
+                            f"Set use_nullable_int=True or remove the offending column: {name}."
+                        )
                     out[name] = Series(out[name], dtype=pd_dtype)
 
                 elif column.dtype.kind not in ["f", "c"]:
@@ -4347,7 +4349,10 @@ class Table:
 
             for n in masked_cols:
                 if old_dtypes[n].is_integer() and not use_nullable_int:
-                    df = df.with_columns(nw.col(n).fill_null(np.nan).alias(n))
+                    raise ValueError(
+                        "Cannot convert masked integer columns to DataFrame without using nullable integers."
+                        f"Set use_nullable_int=True or remove the offending column: {n}."
+                    )
                 elif old_dtypes[n].is_float():
                     df = df.with_columns(nw.col(n).cast(old_dtypes[n]).alias(n))
 
