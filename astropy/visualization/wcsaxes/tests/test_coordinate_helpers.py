@@ -328,8 +328,6 @@ def test_set_visible_invalid_type(invalid_input):
 
     with pytest.raises(TypeError):
         coord.set_visible(invalid_input)
-
-
 def test_set_position_invalid():
     fig = Figure()
     _canvas = FigureCanvasAgg(fig)
