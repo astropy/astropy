@@ -233,6 +233,61 @@ We can specify that for this CTYPE, the physical type should be
     ...     wcs.world_axis_physical_types
     ['food.spam']
 
+Preserving units in FITS-WCS
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, the :class:`~astropy.wcs.WCS` class will convert units into degrees
+for angles, and SI units for other physical types::
+
+    >>> header = """
+    ... CTYPE1  = 'GLON-CAR'
+    ... CTYPE2  = 'GLAT-CAR'
+    ... CTYPE3  = 'FREQ'
+    ... CUNIT1  = 'arcsec'
+    ... CUNIT2  = 'arcsec'
+    ... CUNIT3  = 'GHz'
+    ... CRVAL1  = 10
+    ... CRVAL2  = 20
+    ... CRVAL3  = 50
+    """.strip()
+    >>> wcs = WCS(fits.Header.fromstring(header, sep='\n'))
+    >>> wcs  # doctest: +FLOAT_CMP
+    WCS Keywords
+
+    Number of WCS axes: 3
+    CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
+    CUNIT : deg deg Hz
+    CRVAL : 0.002777777777777778 0.005555555555555556 50000000000.0
+    CRPIX : 0.0 0.0 0.0
+    PC1_1 PC1_2 PC1_3  : 1.0 0.0 0.0
+    PC2_1 PC2_2 PC2_3  : 0.0 1.0 0.0
+    PC3_1 PC3_2 PC3_3  : 0.0 0.0 1.0
+    CDELT : 0.0002777777777777778 0.0002777777777777778 1000000000.0
+    NAXIS : 0  0
+
+However, it is possible to preserve the original units by specifying
+``preserve_units=True`` when initializing the :class:`~astropy.wcs.WCS`
+object::
+
+    >>> wcs = WCS(fits.Header.fromstring(header, sep='\n'), preserve_units=True)
+    >>> wcs  # doctest: +FLOAT_CMP
+    WCS Keywords
+
+    Number of WCS axes: 3
+    CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
+    CUNIT : arcsec arcsec GHz
+    CRVAL : 10.0 20.0 50.0
+    CRPIX : 0.0 0.0 0.0
+    PC1_1 PC1_2 PC1_3  : 1.0 0.0 0.0
+    PC2_1 PC2_2 PC2_3  : 0.0 1.0 0.0
+    PC3_1 PC3_2 PC3_3  : 0.0 0.0 1.0
+    CDELT : 1.0 1.0 1.0
+    NAXIS : 0  0
+
+When using this, any input/output world coordinates will now be in these
+units, and accessing any of the parameters such as ``wcs.wcs.crval`` will
+return values in the original header units.
+
 Slicing of WCS objects
 ^^^^^^^^^^^^^^^^^^^^^^
 
