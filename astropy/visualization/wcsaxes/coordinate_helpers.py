@@ -859,14 +859,10 @@ class CoordinateHelper:
             If a string, interpret as a position (e.g. 't', 'lb', '#')
             and show all elements at that position.
         """
-        if visible is True:
-            self.set_ticks_visible(True)
-            self.set_ticklabel_visible(True)
-            self._axislabels.set_visible(True)
-        elif visible is False:
-            self.set_ticks_visible(False)
-            self.set_ticklabel_visible(False)
-            self._axislabels.set_visible(False)
+        if isinstance(visible, bool):
+            self.set_ticks_visible(visible)
+            self.set_ticklabel_visible(visible)
+            self._axislabels.set_visible(visible)
         elif isinstance(visible, str):
             self.set_ticks_position(visible)
             self.set_ticklabel_position(visible)
