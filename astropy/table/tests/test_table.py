@@ -2282,17 +2282,7 @@ class TestPandas:
         t["Source"] = [2584290278794471936, 2584290038276303744, 2584288728310999296]
         t["Source"].mask = [False, False, False]
 
-        if use_nullable_int:  # Default
-            df = t.to_pandas(use_nullable_int=use_nullable_int)
-        else:
-            from pandas.core.dtypes.cast import IntCastingNaNError
-
-            with pytest.raises(
-                IntCastingNaNError,
-                match=r"Cannot convert non-finite values \(NA or inf\) to integer",
-            ):
-                df = t.to_pandas(use_nullable_int=use_nullable_int)
-            return  # Do not continue
+        df = t.to_pandas(use_nullable_int=use_nullable_int)
 
         t2 = table.Table.from_df(df)
         for name, column in t.columns.items():
