@@ -236,7 +236,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def pixel_shape(self):
-        if all(i == 0 for i in self._naxis):
+        if self._naxis == [0, 0]:
             return None
         else:
             return tuple(self._naxis)
@@ -244,7 +244,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     @pixel_shape.setter
     def pixel_shape(self, value):
         if value is None:
-            self._naxis = self.naxis * [0]
+            self._naxis = [0, 0]
         else:
             if len(value) != self.naxis:
                 raise ValueError(

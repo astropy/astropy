@@ -583,6 +583,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     FITSFixedWarning,
                 )
 
+        self._get_naxis(header)
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
 
         if fix:
@@ -598,8 +599,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         for fd in close_fds:
             fd.close()
-
-        self._get_naxis(header)
 
         self._pixel_bounds = None
 
@@ -3086,10 +3085,10 @@ reduce these to 2 dimensions using the naxis kwarg.
                     _naxis.append(header[f"NAXIS{naxis}"])
                 except KeyError:
                     break
-
         if len(_naxis) == 0:
-            _naxis = self.naxis * [0]
-
+            _naxis = [0, 0]
+        elif len(_naxis) == 1:
+            _naxis.append(0)
         self._naxis = _naxis
 
     def printwcs(self):
@@ -3325,9 +3324,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         wcs_new : `~astropy.wcs.WCS`
             A new resampled WCS axis
         """
-        if view is Ellipsis:
-            return self.deepcopy()
-
         if hasattr(view, "__len__") and len(view) > self.wcs.naxis:
             raise ValueError("Must have # of slices <= # of WCS axes")
         elif not hasattr(view, "__len__"):  # view MUST be an iterable
