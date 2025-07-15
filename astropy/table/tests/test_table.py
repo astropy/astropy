@@ -2330,10 +2330,11 @@ class TestPandas:
             table.Table.from_pandas(df, units=[u.m, u.s])
 
         # test warning is raised if additional columns in units dict
-        with pytest.warns(UserWarning) as record:
+        with pytest.warns(
+            UserWarning,
+            match=r"^`units` contains additional columns: {'y'}$",
+        ):
             table.Table.from_pandas(df, units={"x": u.m, "t": u.s, "y": u.m})
-        assert len(record) == 1
-        assert "{'y'}" in record[0].message.args[0]
 
     def test_to_pandas_masked_int_data_with__index(self):
         data = {"data": [0, 1, 2], "index": [10, 11, 12]}
