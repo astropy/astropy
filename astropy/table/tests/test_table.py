@@ -2282,7 +2282,15 @@ class TestPandas:
         t["Source"] = [2584290278794471936, 2584290038276303744, 2584288728310999296]
         t["Source"].mask = [False, False, False]
 
-        df = t.to_pandas(use_nullable_int=use_nullable_int)
+        if use_nullable_int:  # Default
+            df = t.to_pandas(use_nullable_int=use_nullable_int)
+        else:
+            with pytest.raises(
+                ValueError,
+                match="Cannot convert masked integer columns to DataFrame without using nullable integers.",
+            ):
+                df = t.to_pandas(use_nullable_int=use_nullable_int)
+            return
 
         t2 = table.Table.from_df(df)
         for name, column in t.columns.items():
@@ -2516,7 +2524,16 @@ class TestPolars:
         t["Source"] = [2584290278794471936, 2584290038276303744, 2584288728310999296]
         t["Source"].mask = [False, False, False]
 
-        df = t.to_df("polars", use_nullable_int=use_nullable_int)
+        if use_nullable_int:  # Default
+            df = t.to_df("polars", use_nullable_int=use_nullable_int)
+        else:
+            with pytest.raises(
+                ValueError,
+                match="Cannot convert masked integer columns to DataFrame without using nullable integers.",
+            ):
+                df = t.to_df("polars", use_nullable_int=use_nullable_int)
+            return
+
         t2 = table.Table.from_df(df)
         for name, column in t.columns.items():
             assert np.all(column.data == t2[name].data)
