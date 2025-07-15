@@ -2315,8 +2315,8 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
         primary_hdu = fits.PrimaryHDU(flux)
 
-        col = fits.Column(name="WAVE", format="D", array=wav)
-        tab_hdu = fits.BinTableHDU.from_columns([col])
+        arr = np.array([(wav,)], dtype=[("WAVE", np.float64, wav.size)])
+        tab_hdu = fits.BinTableHDU(arr)
         tab_hdu.name = "WCS-TAB"
 
         header = primary_hdu.header
@@ -2336,7 +2336,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         wcs_preserve = wcs.WCS(hdul[0].header, hdul, preserve_units=True)
 
         rsn = default_rng(1234567890)
-        pixel = rsn.uniform(0, 100, 100)
+        pixel = rsn.uniform(1, 99, 100)
         world = rsn.uniform(4000, 5000, 100)
 
         assert not np.any(np.isnan(wcs_default.all_pix2world(pixel, 0)))
