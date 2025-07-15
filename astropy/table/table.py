@@ -89,7 +89,9 @@ __doctest_skip__ = [
     "Table.convert_unicode_to_bytestring",
 ]
 
-__doctest_requires__ = {("Table.from_pandas", "Table.to_pandas"): ["pandas"]}
+__doctest_requires__ = {
+    ("Table.from_df", "Table.to_df"): ["pandas", "polars"],
+}
 
 _pprint_docs = """
     {__doc__}
@@ -4025,209 +4027,228 @@ class Table:
         """
         return groups.table_group_by(self, keys)
 
+    def _encode_mixins(tbl):
+        """Encode mixin columns to basic columns for Pandas/Polars compatibility."""
+        from astropy.time import TimeBase, TimeDelta
+
+        from . import serialize
+
+        time_cols = [col for col in tbl.itercols() if isinstance(col, TimeBase)]
+        if time_cols:
+            new_cols = []
+            for col in tbl.itercols():
+                new_col = col_copy(col, copy_indices=False) if col.info.indices else col
+                new_cols.append(new_col)
+            tbl = tbl.__class__(new_cols, copy=False)
+
+            for col in tbl.itercols():
+                col.info.indices.clear()
+
+            for col in time_cols:
+                if isinstance(col, TimeDelta):
+                    new_col = (col.sec * 1e9).astype("timedelta64[ns]")
+                    nat = np.timedelta64("NaT")
+                else:
+                    new_col = col.datetime64.copy()
+                    nat = np.datetime64("NaT")
+                if col.masked:
+                    new_col[col.mask] = nat
+                tbl[col.info.name] = new_col
+
+        # Convert the table to one with no mixins, only Column objects.
+        encode_tbl = serialize.represent_mixins_as_columns(tbl)
+        return encode_tbl
+
+    @deprecated(since="7.3", alternative="t.to_df('pandas')", name="t.to_pandas()")
     def to_pandas(self, index=None, use_nullable_int=True):
+        return self.to_df(
+            backend="pandas", index=index, use_nullable_int=use_nullable_int
+        )
+
+    def to_df(self, backend="pandas", index=None, use_nullable_int=True):
         """
-        Return a :class:`pandas.DataFrame` instance.
+        Convert the table to an eager DataFrame using the ``narwhals`` backend.
 
-        The index of the created DataFrame is controlled by the ``index``
-        argument.  For ``index=True`` or the default ``None``, an index will be
-        specified for the DataFrame if there is a primary key index on the
-        Table *and* if it corresponds to a single column.  If ``index=False``
-        then no DataFrame index will be specified.  If ``index`` is the name of
-        a column in the table then that will be the DataFrame index.
+        This method supports converting Astropy Table (or QTable) instances into a variety of
+        DataFrame formats via the ``narwhals`` library. The output can be any supported eager
+        DataFrame type, such as `pandas`, ``polars``, or others, depending on the specified
+        backend.
 
-        In addition to vanilla columns or masked columns, this supports Table
-        mixin columns like Quantity, Time, or SkyCoord.  In many cases these
-        objects have no analog in pandas and will be converted to a "encoded"
-        representation using only Column or MaskedColumn.  The exception is
-        Time or TimeDelta columns, which will be converted to the corresponding
-        representation in pandas using ``np.datetime64`` or ``np.timedelta64``.
-        See the example below.
+        Mixin columns such as ``Quantity``, ``Time``, ``TimeDelta``, or ``SkyCoord`` are automatically
+        converted to plain Column or MaskedColumn types when necessary. Time-related mixins
+        will be represented using ``np.datetime64`` or ``np.timedelta64`` as appropriate. All
+        other mixins are serialized into a flat column structure using standard representations.
 
         Parameters
         ----------
+        backend : str or module or ``narwhals.Implementation``, default="pandas"
+            The backend to use for conversion. This can be:
+
+            - A string, such as "pandas" or "polars"
+            - The backend module itself (e.g., ``import pandas as pd; backend=pd``)
+            - A ``narwhals.Implementation`` instance
+
         index : None, bool, str
-            Specify DataFrame index mode
+            Specifies the index column in the resulting DataFrame.
+
+            - If None (default), use the table’s primary index if it exists and is a single column.
+            - If False, no index is set on the DataFrame.
+            - If a string, use the column with that name as the index.
+
         use_nullable_int : bool, default=True
-            Convert integer MaskedColumn to pandas nullable integer type.  If
-            ``use_nullable_int=False`` then the column is converted to float
-            with NaN.
+            If True, masked integer columns are converted to the backend's nullable integer type
+            (e.g., ``pandas.Int64``). If False, they are converted to float with NaN for missing values.
 
         Returns
         -------
-        dataframe : :class:`pandas.DataFrame`
-            A pandas :class:`pandas.DataFrame` instance
+        dataframe : object
+            An eager DataFrame instance as specified by the backend.
 
         Raises
         ------
-        ImportError
-            If pandas is not installed
         ValueError
-            If the Table has multi-dimensional columns
+            If the backend is not compatible with eager DataFrame conversion, or if the index argument is invalid.
 
         Examples
         --------
-        Here we convert a table with a few mixins to a
-        :class:`pandas.DataFrame` instance.
+        Convert a QTable with mixin columns to a pandas DataFrame:
 
-          >>> import pandas as pd
-          >>> from astropy.table import QTable
-          >>> import astropy.units as u
-          >>> from astropy.time import Time, TimeDelta
-          >>> from astropy.coordinates import SkyCoord
+            >>> from astropy.table import QTable
+            >>> import astropy.units as u
+            >>> from astropy.time import Time, TimeDelta
+            >>> from astropy.coordinates import SkyCoord
 
-          >>> q = [1, 2] * u.m
-          >>> tm = Time([1998, 2002], format='jyear')
-          >>> sc = SkyCoord([5, 6], [7, 8], unit='deg')
-          >>> dt = TimeDelta([3, 200] * u.s)
+            >>> q = [1, 2] * u.m
+            >>> tm = Time([1998, 2002], format='jyear')
+            >>> sc = SkyCoord([5, 6], [7, 8], unit='deg')
+            >>> dt = TimeDelta([3, 200] * u.s)
 
-          >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
-
-          >>> df = t.to_pandas(index='tm')
-          >>> with pd.option_context('display.max_columns', 20):
-          ...     print(df)
-                        q  sc.ra  sc.dec              dt
-          tm
-          1998-01-01  1.0    5.0     7.0 0 days 00:00:03
-          2002-01-01  2.0    6.0     8.0 0 days 00:03:20
+            >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
+            >>> df = t.to_df(backend='pandas', index='tm')
+            >>> print(df)
+                            q  sc.ra  sc.dec              dt
+            tm
+            1998-01-01  1.0    5.0     7.0 0 days 00:00:03
+            2002-01-01  2.0    6.0     8.0 0 days 00:03:20
 
         """
-        from pandas import DataFrame, Series
+        import narwhals as nw
 
+        backend = nw.Implementation.from_backend(backend)
+
+        if not nw._utils.is_eager_allowed(backend):
+            raise ValueError("Must export to eager compatible DataFrame")
+
+        # Handle index argument
+        has_single_pk = self.primary_key and len(self.primary_key) == 1
         if index is not False:
-            if index in (None, True):
-                # Default is to use the table primary key if available and a single column
-                if self.primary_key and len(self.primary_key) == 1:
+            if not backend.is_pandas_like():
+                if index:
+                    raise ValueError(
+                        "Indexing is only supported for pandas-like backends."
+                    )
+                index = False
+
+            elif index is True:
+                if has_single_pk:
+                    index = self.primary_key[0]
+                else:
+                    raise ValueError("index=True requires a single-column primary key.")
+
+            elif index is None:
+                if has_single_pk:
                     index = self.primary_key[0]
                 else:
                     index = False
-            else:
+
+            elif isinstance(index, str):
                 if index not in self.colnames:
-                    raise ValueError(
-                        "index must be None, False, True or a table column name"
+                    raise ValueError(f"'{index}' is not in the table columns.")
+
+            else:
+                raise ValueError(
+                    "index must be None, False, True, or a valid column name."
+                )
+
+        tbl = self._encode_mixins()
+
+        # Convert to narhwals DataFrame
+        array = tbl.as_array()
+        if tbl.has_masked_columns:
+            df = nw.from_dict({n: array[n].data for n in tbl.colnames}, backend=backend)
+
+            masked_cols = [
+                name
+                for name, col in tbl.columns.items()
+                if isinstance(col, MaskedColumn) and col.mask.any()
+            ]
+            old_dtypes = {n: df[n].dtype for n in masked_cols}
+
+            df = df.with_columns(
+                [
+                    (
+                        nw.when(
+                            nw.from_numpy(
+                                array[n].mask.reshape(-1, 1), backend=backend
+                            )[:, 0]
+                        )
+                        .then(None)
+                        .otherwise(nw.col(n))
+                        .alias(n)
                     )
-
-        def _encode_mixins(tbl):
-            """Encode a Table ``tbl`` that may have mixin columns to a Table with only
-            astropy Columns + appropriate meta-data to allow subsequent decoding.
-            """
-            from astropy.time import TimeBase, TimeDelta
-
-            from . import serialize
-
-            # Convert any Time or TimeDelta columns and pay attention to masking
-            time_cols = [col for col in tbl.itercols() if isinstance(col, TimeBase)]
-            if time_cols:
-                # Make a light copy of table and clear any indices
-                new_cols = []
-                for col in tbl.itercols():
-                    new_col = (
-                        col_copy(col, copy_indices=False) if col.info.indices else col
-                    )
-                    new_cols.append(new_col)
-                tbl = tbl.__class__(new_cols, copy=False)
-
-                # Certain subclasses (e.g. TimeSeries) may generate new indices on
-                # table creation, so make sure there are no indices on the table.
-                for col in tbl.itercols():
-                    col.info.indices.clear()
-
-                for col in time_cols:
-                    if isinstance(col, TimeDelta):
-                        # Convert to nanoseconds (matches astropy datetime64 support)
-                        new_col = (col.sec * 1e9).astype("timedelta64[ns]")
-                        nat = np.timedelta64("NaT")
-                    else:
-                        new_col = col.datetime64.copy()
-                        nat = np.datetime64("NaT")
-                    if col.masked:
-                        new_col[col.mask] = nat
-                    tbl[col.info.name] = new_col
-
-            # Convert the table to one with no mixins, only Column objects.
-            encode_tbl = serialize.represent_mixins_as_columns(tbl)
-            return encode_tbl
-
-        tbl = _encode_mixins(self)
-
-        badcols = [name for name, col in self.columns.items() if len(col.shape) > 1]
-        if badcols:
-            raise ValueError(
-                f"Cannot convert a table with multidimensional columns to a "
-                f"pandas DataFrame. Offending columns are: {badcols}\n"
-                f"One can filter out such columns using:\n"
-                f"names = [name for name in tbl.colnames if len(tbl[name].shape) <= 1]\n"
-                f"tbl[names].to_pandas(...)"
+                    for n in masked_cols
+                ]
             )
 
-        out = OrderedDict()
+            for n in masked_cols:
+                if old_dtypes[n].is_integer() and not use_nullable_int:
+                    df = df.with_columns(nw.col(n).fill_null(np.nan).alias(n))
+                elif old_dtypes[n].is_float():
+                    df = df.with_columns(nw.col(n).cast(old_dtypes[n]).alias(n))
 
-        for name, column in tbl.columns.items():
-            if getattr(column.dtype, "isnative", True):
-                out[name] = column
-            else:
-                out[name] = column.data.byteswap().view(column.dtype.newbyteorder("="))
+        else:
+            df = nw.from_dict({n: array[n] for n in tbl.colnames}, backend=backend)
+            masked_cols = []
 
-            if isinstance(column, MaskedColumn) and np.any(column.mask):
-                if column.dtype.kind in ["i", "u"]:
-                    pd_dtype = column.dtype.name
-                    if use_nullable_int:
-                        # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
-                        pd_dtype = pd_dtype.replace("i", "I").replace("u", "U")
-                    out[name] = Series(out[name], dtype=pd_dtype)
+        df = df.to_native()
 
-                elif column.dtype.kind not in ["f", "c"]:
-                    out[name] = column.astype(object).filled(np.nan)
+        # Fix pandas-like nullable integers
+        if backend.is_pandas_like() and masked_cols and use_nullable_int:
+            for name in masked_cols:
+                dtype = array[name].dtype
+                if dtype.kind in "iu":
+                    new_dtype = dtype.name.replace("i", "I").replace("u", "U")
+                    df[name] = df[name].astype(new_dtype)
 
-        kwargs = {}
-
+        # Pandas-like index
         if index:
-            idx = out.pop(index)
-
-            kwargs["index"] = idx
-
-            # We add the table index to Series inputs (MaskedColumn with int values) to override
-            # its default RangeIndex, see #11432
-            for v in out.values():
-                if isinstance(v, Series):
-                    v.index = idx
-
-        df = DataFrame(out, **kwargs)
-        if index:
-            # Explicitly set the pandas DataFrame index to the original table
-            # index name.
-            df.index.name = idx.info.name
+            df.set_index(index, inplace=True, drop=True)
 
         return df
 
+    @deprecated(since="7.3", alternative="Table.from_df()", name="Table.from_pandas()")
     @classmethod
     def from_pandas(cls, dataframe, index=False, units=None):
-        """
-        Create a `~astropy.table.Table` from a :class:`pandas.DataFrame` instance.
+        return cls.from_df(dataframe, index=index, units=units)
 
-        In addition to converting generic numeric or string columns, this supports
-        conversion of pandas Date and Time delta columns to `~astropy.time.Time`
-        and `~astropy.time.TimeDelta` columns, respectively.
+    @classmethod
+    def from_df(cls, df, index=False, units=None):
+        """
+        Create a `~astropy.table.Table` from any ``narwhals``-compatible dataframe (e.g., `pandas`, ``polars``).
 
         Parameters
         ----------
-        dataframe : :class:`pandas.DataFrame`
-            A pandas :class:`pandas.DataFrame` instance
+        df : object
+            A dataframe-like object (e.g., a `pandas.DataFrame`, ``polars.DataFrame``, or other ``narwhals`` compatible dataframe).
         index : bool
-            Include the index column in the returned table (default=False)
+            Whether to include the index (if applicable, like in pandas).
         units: dict
             A dict mapping column names to a `~astropy.units.Unit`.
             The columns will have the specified unit in the Table.
 
         Returns
         -------
-        table : `~astropy.table.Table`
-            A `~astropy.table.Table` (or subclass) instance
-
-        Raises
-        ------
-        ImportError
-            If pandas is not installed
+        table : astropy.table.Table
 
         Examples
         --------
@@ -4257,81 +4278,114 @@ class Table:
           1998-01-01T00:00:00.000       1.0     3.0
           2002-01-01T00:00:00.000     300.0     4.0
 
+        Here we convert a ``polars.DataFrame`` instance to a `~astropy.table.QTable`.
+
+          >>> import polars as pl
+          >>> from astropy.table import QTable
+          >>> df_polars = pl.DataFrame({
+          ...     'time': [1998, 2002],
+          ...     'values': [1.0, 2.0]
+          ... })
+          >>> QTable.from_df(df_polars, units={'values': 'm'})
+          <QTable length=2>
+          time  values
+                  m
+          int64 float64
+          ----- -------
+          1998     1.0
+          2002     2.0
+
         """
+        import narwhals as nw
+
+        # Create output
         out = OrderedDict()
 
-        names = list(dataframe.columns)
-        columns = [dataframe[name] for name in names]
-        datas = [np.array(column) for column in columns]
-        masks = [np.array(column.isnull()) for column in columns]
-
+        # Handle pandas index
         if index:
-            index_name = dataframe.index.name or "index"
-            while index_name in names:
-                index_name = "_" + index_name + "_"
-            names.insert(0, index_name)
-            columns.insert(0, dataframe.index)
-            datas.insert(0, np.array(dataframe.index))
-            masks.insert(0, np.zeros(len(dataframe), dtype=bool))
-
-        if units is None:
-            units = [None] * len(names)
-        else:
-            if not isinstance(units, Mapping):
-                raise TypeError('Expected a Mapping "column-name" -> "unit"')
-
-            not_found = set(units.keys()) - set(names)
-            if not_found:
-                warnings.warn(f"`units` contains additional columns: {not_found}")
-
-            units = [units.get(name) for name in names]
-
-        for name, column, data, mask, unit in zip(names, columns, datas, masks, units):
-            if column.dtype.kind in ["u", "i", "b"] and np.any(mask):
-                # Special-case support for pandas nullable int and bool
-                np_dtype = column.dtype.numpy_dtype
-                data = np.zeros(shape=column.shape, dtype=np_dtype)
-                data[~mask] = column[~mask]
-                out[name] = MaskedColumn(
-                    data=data, name=name, mask=mask, unit=unit, copy=False
+            if not hasattr(df, "index"):
+                raise ValueError(
+                    "The input dataframe does not have an index."
+                    "Are you trying to convert a non-pandas dataframe?"
+                    "Set `index=False` to avoid this error."
                 )
+            index_name = df.index.name or "index"
+            while index_name in df.columns:
+                index_name = "_" + index_name + "_"
+            df.reset_index(index_name, inplace=True, drop=False)
+
+        # Narwhals layer, must convert to eager
+        df_nw = nw.from_native(df)
+        if isinstance(df_nw, nw.LazyFrame):
+            df_nw = df_nw.collect()
+
+        # Handle units
+        if units is None:
+            units = {}
+        elif not isinstance(units, Mapping):
+            raise TypeError('Expected a Mapping "column-name" -> "unit"')
+        not_found = set(units.keys()) - set(df_nw.columns)
+        if not_found:
+            warnings.warn(f"`units` contains additional columns: {not_found}")
+
+        # Iterate over Narwhals columns
+        for column in df_nw.iter_columns():
+            # Unpack relevant data
+            name = column.name
+            dtype = column.dtype
+            mask = column.is_null()
+            unit = units.get(name)
+
+            print(name, dtype)
+
+            if isinstance(dtype, nw.Int128):
+                raise ValueError(
+                    "Astropy Tables does not support Int128, please use a smaller integer type."
+                )
+
+            # Handle nullable integers and bool
+            if (
+                dtype.is_integer() or isinstance(dtype, nw.dtypes.Boolean)
+            ) and mask.any():
+                data = column.fill_null(0).to_numpy()
+                out[name] = MaskedColumn(data=data, mask=mask, unit=unit, copy=False)
                 continue
 
-            if data.dtype.kind == "O":
-                # If all elements of an object array are string-like or np.nan
-                # then coerce back to a native numpy str/unicode array.
-                string_types = (str, bytes)
-                nan = np.nan
-                if all(isinstance(x, string_types) or x is nan for x in data):
-                    # Force any missing (null) values to b''.  Numpy will
-                    # upcast to str/unicode as needed. We go via a list to
-                    # avoid replacing objects in a view of the pandas array and
-                    # to ensure numpy initializes to string or bytes correctly.
-                    data = np.array([b"" if m else d for (d, m) in zip(data, mask)])
+            # Handle string-like columns
+            elif isinstance(dtype, (nw.String, nw.Object)):
+                data = column.to_numpy()
+                if data.dtype.kind == "O":
+                    data = np.array(["" if m else str(d) for d, m in zip(data, mask)])
 
-            # Numpy datetime64
-            if data.dtype.kind == "M":
+            # Handle datetime columns
+            elif isinstance(dtype, nw.Datetime):
                 from astropy.time import Time
 
-                out[name] = Time(data, format="datetime64")
-                if np.any(mask):
-                    out[name][mask] = np.ma.masked
-                out[name].format = "isot"
+                data = Time(column, format="datetime64")
+                data.format = "isot"
+                out[name] = data
+                continue
 
-            # Numpy timedelta64
-            elif data.dtype.kind == "m":
+            # Handle timedelta columns
+            elif isinstance(dtype, nw.Duration):
                 from astropy.time import TimeDelta
 
-                data_sec = data.astype("timedelta64[ns]").astype(np.float64) / 1e9
-                out[name] = TimeDelta(data_sec, format="sec")
-                if np.any(mask):
+                data = (
+                    column.to_numpy().astype("timedelta64[ns]").astype(np.float64) / 1e9
+                )
+                out[name] = TimeDelta(data, format="sec")
+                if mask.any():
                     out[name][mask] = np.ma.masked
+                continue
 
             else:
-                if np.any(mask):
-                    out[name] = MaskedColumn(data=data, name=name, mask=mask, unit=unit)
-                else:
-                    out[name] = Column(data=data, name=name, unit=unit)
+                data = column.to_numpy()
+
+            if mask.any():
+                out[name] = MaskedColumn(data=data, mask=mask, unit=unit, copy=False)
+
+            else:
+                out[name] = Column(data=data, unit=unit, copy=False)
 
         return cls(out)
 

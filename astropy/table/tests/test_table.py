@@ -30,7 +30,7 @@ from astropy.table import (
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
 from astropy.utils.compat import NUMPY_LT_1_25
-from astropy.utils.compat.optional_deps import HAS_PANDAS
+from astropy.utils.compat.optional_deps import HAS_NARWHALS, HAS_PANDAS, HAS_POLARS
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
@@ -2064,6 +2064,7 @@ def test_table_init_from_degenerate_arrays(table_types):
 
 
 @pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
+@pytest.mark.skipif(not HAS_NARWHALS, reason="requires narwhals")
 class TestPandas:
     def test_simple(self):
         t = table.Table()
@@ -2104,7 +2105,7 @@ class TestPandas:
         d[["<i4", ">i4"]]
         d[["<f4", ">f4"]]
 
-        t2 = table.Table.from_pandas(d)
+        t2 = table.Table.from_df(d)
 
         for column in t.columns:
             if column in ("u", "s"):
@@ -2125,7 +2126,7 @@ class TestPandas:
         df = t.to_pandas()
         pd_dtype = np_dtype.replace("i", "I").replace("u", "U")
         assert str(df["col0"].dtype) == pd_dtype
-        t2 = Table.from_pandas(df)
+        t2 = Table.from_df(df)
         assert str(t2["col0"].dtype) == np_dtype
         assert np.all(t2["col0"].mask == [False, True])
         assert np.all(t2["col0"] == c)
@@ -2136,9 +2137,9 @@ class TestPandas:
         t["b"] = np.ones((3, 2))
 
         with pytest.raises(
-            ValueError, match="Cannot convert a table with multidimensional columns"
+            ValueError, match="Per-column arrays must each be 1-dimensional"
         ):
-            t.to_pandas()
+            t.to_df("pandas")
 
     def test_mixin_pandas(self):
         t = table.QTable()
@@ -2149,7 +2150,7 @@ class TestPandas:
         t["dt"] = TimeDelta([0, 2, 4, 6], format="sec")
 
         tp = t.to_pandas()
-        t2 = table.Table.from_pandas(tp)
+        t2 = table.Table.from_df(tp)
 
         assert np.allclose(t2["quantity"], [0, 1, 2, 3])
         assert np.allclose(t2["longitude"], [0.0, 1.0, 5.0, 6.0])
@@ -2227,7 +2228,7 @@ class TestPandas:
 
         with pytest.raises(ValueError) as err:
             t.to_pandas(index="not a column")
-        assert "index must be None, False" in str(err.value)
+        assert "is not in the table columns" in str(err.value)
 
     def test_mixin_pandas_masked(self):
         tm = Time([1, 2, 3], format="cxcsec")
@@ -2240,7 +2241,7 @@ class TestPandas:
         assert np.all(tp["tm"].isnull() == [False, True, False])
         assert np.all(tp["dt"].isnull() == [False, True, False])
 
-        t2 = table.Table.from_pandas(tp)
+        t2 = table.Table.from_df(tp)
 
         assert np.all(t2["tm"].mask == tm.mask)
         assert np.ma.allclose(t2["tm"].jd, tm.jd, rtol=1e-14, atol=1e-14)
@@ -2248,16 +2249,16 @@ class TestPandas:
         assert np.all(t2["dt"].mask == dt.mask)
         assert np.ma.allclose(t2["dt"].jd, dt.jd, rtol=1e-14, atol=1e-14)
 
-    def test_from_pandas_index(self):
+    def test_from_df_index(self):
         tm = Time([1998, 2002], format="jyear")
         x = [1, 2]
         t = table.Table([tm, x], names=["tm", "x"])
         tp = t.to_pandas(index="tm")
 
-        t2 = table.Table.from_pandas(tp)
+        t2 = table.Table.from_df(tp)
         assert t2.colnames == ["x"]
 
-        t2 = table.Table.from_pandas(tp, index=True)
+        t2 = table.Table.from_df(tp, index=True)
         assert t2.colnames == ["tm", "x"]
         assert np.allclose(t2["tm"].jyear, tm.jyear)
 
@@ -2282,7 +2283,7 @@ class TestPandas:
         t["Source"].mask = [False, False, False]
 
         if use_nullable_int:  # Default
-            d = t.to_pandas(use_nullable_int=use_nullable_int)
+            df = t.to_pandas(use_nullable_int=use_nullable_int)
         else:
             from pandas.core.dtypes.cast import IntCastingNaNError
 
@@ -2290,11 +2291,10 @@ class TestPandas:
                 IntCastingNaNError,
                 match=r"Cannot convert non-finite values \(NA or inf\) to integer",
             ):
-                d = t.to_pandas(use_nullable_int=use_nullable_int)
+                df = t.to_pandas(use_nullable_int=use_nullable_int)
             return  # Do not continue
 
-        t2 = table.Table.from_pandas(d)
-
+        t2 = table.Table.from_df(df)
         for name, column in t.columns.items():
             assert np.all(column.data == t2[name].data)
             if hasattr(t2[name], "mask"):
@@ -2320,14 +2320,14 @@ class TestPandas:
         import pandas as pd
 
         df = pd.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
-        t = table.Table.from_pandas(df, units={"x": u.m, "t": u.s})
+        t = table.Table.from_df(df, units={"x": u.m, "t": u.s})
 
         assert t["x"].unit == u.m
         assert t["t"].unit == u.s
 
         # test error if not a mapping
         with pytest.raises(TypeError):
-            table.Table.from_pandas(df, units=[u.m, u.s])
+            table.Table.from_df(df, units=[u.m, u.s])
 
         # test warning is raised if additional columns in units dict
         with pytest.warns(
@@ -2346,6 +2346,233 @@ class TestPandas:
         df = t.to_pandas()
 
         assert df["data"].iloc[-1] == 2
+
+
+@pytest.mark.skipif(not HAS_POLARS, reason="requires polars")
+@pytest.mark.skipif(not HAS_NARWHALS, reason="requires narwhals")
+class TestPolars:
+    def test_simple(self):
+        import polars as pl
+
+        t = table.Table()
+
+        for endian in ["<", ">", "="]:
+            for kind in ["f", "i"]:
+                for byte in ["2", "4", "8"]:
+                    dtype = np.dtype(endian + kind + byte)
+                    x = np.array([1, 2, 3], dtype=dtype)
+                    t[endian + kind + byte] = x.view(x.dtype.newbyteorder(endian))
+
+        # String columns
+        t["u"] = ["a", "b", "c"]
+        t["s"] = ["a", "b", "c"]
+
+        d = t.to_df("polars")
+
+        for column in t.columns:
+            original_col = t[column]
+            polars_col = d[column]
+
+            if column in ("u", "s"):
+                # Ensure string content is preserved
+                assert np.all(original_col == ["a", "b", "c"])
+                # Polars uses Utf8 (str) for strings
+                assert str(polars_col.dtype) == "String"
+            else:
+                # Compare numerical values (upcasted dtypes allowed)
+                assert np.allclose(original_col, polars_col.to_numpy())
+
+                # Check expected Polars dtype from NumPy dtype
+                kind = original_col.dtype.kind
+                itemsize = original_col.dtype.itemsize
+
+                if kind == "f":
+                    expected_dtype = {2: pl.Float32, 4: pl.Float32, 8: pl.Float64}[
+                        itemsize
+                    ]
+                elif kind == "i":
+                    expected_dtype = {2: pl.Int16, 4: pl.Int32, 8: pl.Int64}[itemsize]
+                else:
+                    raise AssertionError(f"Unexpected kind: {kind}")
+
+                assert polars_col.dtype == expected_dtype
+
+        # Round-trip: Polars -> Astropy Table
+        t2 = Table.from_df(d)
+
+        for column in t.columns:
+            original_col = t[column]
+            roundtrip_col = t2[column]
+
+            if column in ("u", "s"):
+                assert np.all(original_col == roundtrip_col)
+            else:
+                assert_allclose(original_col, roundtrip_col)
+
+                # Compare dtypes by value, not identity (normalize endianness)
+                t_dtype = original_col.dtype.newbyteorder("=")
+                t2_dtype = roundtrip_col.dtype.newbyteorder("=")
+
+                if "f2" in column:
+                    with pytest.raises(AssertionError):
+                        # No Polars Float16
+                        assert t_dtype == t2_dtype
+                else:
+                    assert t_dtype == t2_dtype
+
+    @pytest.mark.parametrize("unsigned", ["u", ""])
+    @pytest.mark.parametrize("bits", [8, 16, 32, 64])
+    def test_nullable_int(self, unsigned, bits):
+        np_dtype = f"{unsigned}int{bits}"
+        c = MaskedColumn([1, 2], mask=[False, True], dtype=np_dtype)
+        t = Table([c])
+        df = t.to_df("polars")
+        # Polars uses Int64, UInt64 etc for nullable integers
+        assert str(df["col0"].dtype).lower() == np_dtype.replace("i", "i").replace(
+            "u", "u"
+        )
+        t2 = Table.from_df(df)
+        assert str(t2["col0"].dtype) == np_dtype
+        assert np.all(t2["col0"].mask == [False, True])
+        assert np.all(t2["col0"] == c)
+
+    def test_2d(self):
+        import polars as pl
+
+        t = table.Table()
+        t["a"] = [1, 2, 3]
+        t["b"] = np.ones((3, 2))
+        tp = t.to_df("polars")
+        assert isinstance(tp["b"].dtype, pl.Array)
+        t["b"] = np.ones((3, 2, 2))
+        tp = t.to_df("polars")
+        assert isinstance(tp["b"].dtype, pl.Array)
+
+    def test_mixin_polars(self):
+        t = table.QTable()
+        for name in sorted(MIXIN_COLS):
+            if not name.startswith("ndarray"):
+                t[name] = MIXIN_COLS[name]
+
+        t["dt"] = TimeDelta([0, 2, 4, 6], format="sec")
+
+        tp = t.to_df("polars")
+        t2 = table.Table.from_df(tp)
+
+        assert np.allclose(t2["quantity"], [0, 1, 2, 3])
+        assert np.allclose(t2["longitude"], [0.0, 1.0, 5.0, 6.0])
+        assert np.allclose(t2["latitude"], [5.0, 6.0, 10.0, 11.0])
+        assert np.allclose(t2["skycoord.ra"], [0, 1, 2, 3])
+        assert np.allclose(t2["skycoord.dec"], [0, 1, 2, 3])
+        assert np.allclose(t2["arraywrap"], [0, 1, 2, 3])
+        assert np.allclose(t2["arrayswap"], [0, 1, 2, 3])
+        assert np.allclose(
+            t2["earthlocation.y"], [0, 110708, 547501, 654527], rtol=0, atol=1
+        )
+
+        # For polars, Time, TimeDelta are the mixins that round-trip the class
+        assert np.allclose(t2["time"].jyear, [2000, 2001, 2002, 2003])
+        assert np.all(
+            t2["time"].isot
+            == [
+                "2000-01-01T12:00:00.000",
+                "2000-12-31T18:00:00.000",
+                "2002-01-01T00:00:00.000",
+                "2003-01-01T06:00:00.000",
+            ]
+        )
+        assert t2["time"].format == "isot"
+
+        # TimeDelta
+        assert isinstance(t2["dt"], TimeDelta)
+        assert np.allclose(t2["dt"].value, [0, 2, 4, 6])
+        assert t2["dt"].format == "sec"
+
+    def test_mixin_polars_masked(self):
+        tm = Time([1, 2, 3], format="cxcsec")
+        dt = TimeDelta([1, 2, 3], format="sec")
+        tm[1] = np.ma.masked
+        dt[1] = np.ma.masked
+        t = table.QTable([tm, dt], names=["tm", "dt"])
+
+        tp = t.to_df("polars")
+        assert np.all(tp["tm"].is_null().to_list() == [False, True, False])
+        assert np.all(tp["dt"].is_null().to_list() == [False, True, False])
+
+        t2 = table.Table.from_df(tp)
+
+        assert np.all(t2["tm"].mask == tm.mask)
+        assert np.ma.allclose(t2["tm"].jd, tm.jd, rtol=1e-14, atol=1e-14)
+
+        assert np.all(t2["dt"].mask == dt.mask)
+        assert np.ma.allclose(t2["dt"].jd, dt.jd, rtol=1e-14, atol=1e-14)
+
+    @pytest.mark.parametrize("use_nullable_int", [True, False])
+    def test_masking(self, use_nullable_int):
+        t = table.Table(masked=True)
+
+        t["a"] = [1, 2, 3]
+        t["a"].mask = [True, False, True]
+
+        t["b"] = [1.0, 2.0, 3.0]
+        t["b"].mask = [False, False, True]
+
+        t["u"] = ["a", "b", "c"]
+        t["u"].mask = [False, True, False]
+
+        t["s"] = ["a", "b", "c"]
+        t["s"].mask = [False, True, False]
+
+        t["Source"] = [2584290278794471936, 2584290038276303744, 2584288728310999296]
+        t["Source"].mask = [False, False, False]
+
+        df = t.to_df("polars", use_nullable_int=use_nullable_int)
+        t2 = table.Table.from_df(df)
+        for name, column in t.columns.items():
+            assert np.all(column.data == t2[name].data)
+            if hasattr(t2[name], "mask"):
+                assert np.all(column.mask == t2[name].mask)
+
+            if column.dtype.kind == "i":
+                if np.any(column.mask) and not use_nullable_int:
+                    assert t2[name].dtype.kind == "f"
+                else:
+                    assert t2[name].dtype.kind == "i"
+            else:
+                if column.dtype.byteorder in ("=", "|"):
+                    assert column.dtype == t2[name].dtype
+                else:
+                    assert column.dtype.newbyteorder() == t2[name].dtype
+
+    def test_units(self):
+        import polars as pl
+
+        df = pl.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
+        t = table.Table.from_df(df, units={"x": u.m, "t": u.s})
+
+        assert t["x"].unit == u.m
+        assert t["t"].unit == u.s
+
+        # test error if not a mapping
+        with pytest.raises(TypeError):
+            table.Table.from_df(df, units=[u.m, u.s])
+
+        # test warning is raised if additional columns in units dict
+        with pytest.warns(UserWarning) as record:
+            table.Table.from_df(df, units={"x": u.m, "t": u.s, "y": u.m})
+        assert len(record) == 1
+        assert "{'y'}" in record[0].message.args[0]
+
+    def test_to_polars_masked_int_data(self):
+        data = {"data": [0, 1, 2], "index": [10, 11, 12]}
+        t = table.Table(data=data, masked=True)
+
+        t["data"].mask = [1, 1, 0]
+
+        df = t.to_df("polars")
+
+        assert df["data"][2] == 2
+        assert df["data"].is_null()[:2].all()
 
 
 @pytest.mark.usefixtures("table_types")
