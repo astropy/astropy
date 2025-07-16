@@ -4263,9 +4263,9 @@ class Table:
             units = [units.get(name) for name in names]
 
         for name, column, data, mask, unit in zip(names, columns, datas, masks, units):
-            if column.dtype.kind in ["u", "i"] and np.any(mask):
-                # Special-case support for pandas nullable int
-                np_dtype = str(column.dtype).lower()
+            if column.dtype.kind in ["u", "i", "b"] and np.any(mask):
+                # Special-case support for pandas nullable int and bool
+                np_dtype = column.dtype.numpy_dtype
                 data = np.zeros(shape=column.shape, dtype=np_dtype)
                 data[~mask] = column[~mask]
                 out[name] = MaskedColumn(
