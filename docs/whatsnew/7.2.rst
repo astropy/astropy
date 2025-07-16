@@ -98,7 +98,7 @@ for angles, and SI units for other physical types::
     <BLANKLINE>
     Number of WCS axes: 3
     CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
-    CUNIT : deg deg Hz
+    CUNIT : 'deg' 'deg' 'Hz'
     CRVAL : 0.002777777777777778 0.005555555555555556 50000000000.0
     ...
 
@@ -112,7 +112,7 @@ object::
     <BLANKLINE>
     Number of WCS axes: 3
     CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
-    CUNIT : arcsec arcsec GHz
+    CUNIT : 'arcsec' 'arcsec' 'GHz'
     CRVAL : 10.0 20.0 50.0
     ...
 

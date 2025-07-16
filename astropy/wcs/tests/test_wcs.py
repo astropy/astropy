@@ -2269,7 +2269,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             "\n"
             "Number of WCS axes: 5\n"
             "CTYPE : 'RA---TAN' 'FREQ' 'DEC--TAN' 'WAVE' 'OFFSET'\n"
-            "CUNIT : arcsec GHz arcsec nm arcmin\n"
+            "CUNIT : 'arcsec' 'GHz' 'arcsec' 'nm' 'arcmin'\n"
             "CRVAL : 4.0 5.0 6.0 7.0 8.0\n"
             "CRPIX : 1.0 2.0 3.0 4.0 5.0\n"
             "PC1_1 PC1_2 PC1_3 PC1_4 PC1_5  : 1.0 0.0 0.0 0.0 0.0\n"

@@ -3122,7 +3122,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         keywords = ["CTYPE", "CUNIT", "CRVAL", "CRPIX"]
         values = [
             [repr(v) for v in self.wcs.ctype],
-            self.wcs.cunit,
+            [repr(str(v)) for v in self.wcs.cunit],
             self.wcs.crval,
             self.wcs.crpix,
         ]
