@@ -1,0 +1,5 @@
+Changed the behaviour of two warnings within ``FITSWCSAPIMixin`` related to `.SpectralCoord`.
+They have been changed to emit debug messages within the logger.
+
+These are, "observer cannot be converted to ICRS, so will not be set on SpectralCoord"
+and "target cannot be converted to ICRS, so will not be set on SpectralCoord".
