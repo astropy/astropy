@@ -64,6 +64,7 @@ simple image with two celestial axes (Right Ascension and Declination)::
     <BLANKLINE>
     Number of WCS axes: 2
     CTYPE : 'RA---TAN'  'DEC--TAN'
+    CUNIT : 'deg' 'deg'
     CRVAL : 266.4  -28.93333
     CRPIX : 361.0  360.5
     NAXIS : 721  720
@@ -148,7 +149,8 @@ spectral axis)::
     >>> wcs  # doctest: +REMOTE_DATA
     WCS Keywords
     Number of WCS axes: 3
-    CTYPE : 'RA---SFL'  'DEC--SFL'  'VOPT'
+    CTYPE : 'RA---SFL' 'DEC--SFL' 'VOPT'
+    CUNIT : 'deg' 'deg' 'm / s'
     CRVAL : 57.6599999999  0.0  -9959.44378305
     CRPIX : -799.0  -4741.913  -187.0
     PC1_1 PC1_2 PC1_3  : 1.0  0.0  0.0
@@ -256,7 +258,7 @@ for angles, and SI units for other physical types::
     <BLANKLINE>
     Number of WCS axes: 3
     CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
-    CUNIT : deg deg Hz
+    CUNIT : 'deg' 'deg' 'Hz'
     CRVAL : 0.002777777777777778 0.005555555555555556 50000000000.0
     CRPIX : 0.0 0.0 0.0
     PC1_1 PC1_2 PC1_3  : 1.0 0.0 0.0
@@ -275,7 +277,7 @@ object::
     <BLANKLINE>
     Number of WCS axes: 3
     CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
-    CUNIT : arcsec arcsec GHz
+    CUNIT : 'arcsec' 'arcsec' 'GHz'
     CRVAL : 10.0 20.0 50.0
     CRPIX : 0.0 0.0 0.0
     PC1_1 PC1_2 PC1_3  : 1.0 0.0 0.0
