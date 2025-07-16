@@ -2304,6 +2304,37 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             [x.rstrip() for x in strip_memory_addresses(captured.out).splitlines()]
         )
 
+    def test_unit_scaling(self):
+        # This is testing a private property that exists to be able to check
+        # what the unit scaling is between the original and modified units
+
+        assert self.wcs_default.wcs._unit_scaling is None
+        assert_allclose(self.wcs_preserve.wcs._unit_scaling, self.scale)
+
+    def test_no_scaling_if_no_unit_changes(self):
+        # This checks that if a WCS doesn't actually have units changing in
+        # WCSLIB, that we aren't using the unit scaling machinery with scales
+        # all set to 1 since this would have an unecessary impact on performance.
+
+        simple_wcs = wcs.WCS(naxis=3, preserve_units=True)
+        simple_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
+        simple_wcs.wcs.cunit = "deg", "deg", "Hz"
+        simple_wcs.wcs.set()
+
+        assert simple_wcs.wcs._unit_scaling is None
+
+    def test_no_scaling_if_no_scale_changes(self):
+        # A variant of the above - sometimes units are changed, for example
+        # 'deg ' -> 'deg', which is strictly different but has a scale of 1.
+        # In this case, we shouldn't do any unit scaling.
+
+        simple_wcs = wcs.WCS(naxis=3, preserve_units=True)
+        simple_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
+        simple_wcs.wcs.cunit = "deg ", "deg ", "Hz"
+        simple_wcs.wcs.set()
+
+        assert simple_wcs.wcs._unit_scaling is None
+
     def test_wcstab_cunit_conversion(self):
         # WCSLIB does not convert the units for coordinates that use lookup tables
         # with -TAB, but we should make sure that things still work properly
@@ -2335,6 +2366,12 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         wcs_default = wcs.WCS(hdul[0].header, hdul)
         wcs_preserve = wcs.WCS(hdul[0].header, hdul, preserve_units=True)
 
+        # Check that both the default and unit-preserving WCS have the same units
+        # of mm - this is used to know in future if WCSLIB changes the default
+        # behavior so that the default WCS would be in units of meters for example
+        assert wcs_default.wcs.cunit[0] == "mm"
+        assert wcs_preserve.wcs.cunit[0] == "mm"
+
         rsn = default_rng(1234567890)
         pixel = rsn.uniform(1, 99, 100)
         world = rsn.uniform(4000, 5000, 100)
@@ -2352,3 +2389,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             wcs_default.all_world2pix(world, 0),
             wcs_preserve.all_world2pix(world, 0),
         )
+
+        # Make sure that in both cases we aren't using the unit scaling machinery
+        assert wcs_default.wcs._unit_scaling is None
+        assert wcs_preserve.wcs._unit_scaling is None
