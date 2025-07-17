@@ -2985,7 +2985,7 @@ PyWcsprm_set_cunit(
 
   note_change(self);
 
-  if (self->unit_scaling != NULL) {
+  if (self->original_cunit != NULL) {
     PyErr_SetString(PyExc_AttributeError, "Original units have already been set, cannot change them");
     return -1;
   }
