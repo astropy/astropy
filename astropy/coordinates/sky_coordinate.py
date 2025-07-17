@@ -13,6 +13,7 @@ from astropy.constants import c as speed_of_light
 from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
@@ -36,6 +37,10 @@ from .sky_coordinate_parsers import (
 )
 
 __all__ = ["SkyCoord", "SkyCoordInfo"]
+
+# To be removed together with the deprecated `constellation_list` parameter for
+# `SkyCoord.get_constellation()`
+_CONSTELLATION_LIST_SENTINEL = object()
 
 
 class SkyCoordInfo(CoordinateFrameInfo):
@@ -1411,7 +1416,10 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
         return SkyOffsetFrame(origin=self, rotation=rotation)
 
-    def get_constellation(self, short_name=False, constellation_list="iau"):
+    @deprecated_renamed_argument("constellation_list", new_name=None, since="7.2")
+    def get_constellation(
+        self, short_name=False, constellation_list=_CONSTELLATION_LIST_SENTINEL
+    ):
         """
         Determines the constellation(s) of the coordinates this SkyCoord contains.
 
@@ -1451,10 +1459,14 @@ class SkyCoord(MaskableShapedLikeNDArray):
         novel = SkyCoord(
             self.realize_frame(self.data.without_differentials()), **extra_frameattrs
         )
-        return get_constellation(novel, short_name, constellation_list)
+        return (
+            get_constellation(novel, short_name)
+            if constellation_list is _CONSTELLATION_LIST_SENTINEL
+            else get_constellation(novel, short_name, constellation_list)
+        )
 
         # the simpler version below can be used when gh-issue #7028 is resolved
-        # return get_constellation(self, short_name, constellation_list)
+        # return get_constellation(self, short_name)
 
     # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode="all"):
