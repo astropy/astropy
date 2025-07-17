@@ -52,9 +52,8 @@ _COL_ATTRS = [
 
 
 def _get_differences(a, b):
-    relative = abs(b - a) / abs(b)
-    absolute = float(abs(b - a))
-    return relative, absolute
+    delta = abs(b - a)
+    return delta / abs(b), float(delta)
 
 
 class _BaseDiff:
