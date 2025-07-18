@@ -164,10 +164,7 @@ class FLRW(
         doc="Omega matter; matter density/critical density at z=0.",
         fvalidate="non-negative",
     )
-    Ode0: Parameter = Parameter(
-        doc="Omega dark energy; dark energy density/critical density at z=0.",
-        fvalidate="float",
-    )
+    Ode0: Parameter = ParameterOde0.clone()
     Tcmb0: Parameter = Parameter(
         default=0.0 * u.K,
         doc="Temperature of the CMB at z=0.",
