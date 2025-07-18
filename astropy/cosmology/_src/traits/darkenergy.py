@@ -16,7 +16,9 @@ else:
 
 
 class DarkEnergyComponent:
-    # Ode0 should be defined as a Parameter in concrete cosmology classes
+    # Subclasses should use `Parameter` to make this a parameter of the cosmology.
+    Ode0: float
+    """Omega dark energy; dark energy density/critical density at z=0."""
 
     @abstractmethod
     @deprecated_keywords("z", since="7.0")
