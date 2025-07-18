@@ -1,16 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.coordinates.matrix_utilities import (
     angle_axis,
     is_O3,
     is_rotation,
+    is_rotation_or_reflection,
     rotation_matrix,
 )
 from astropy.utils.exceptions import AstropyDeprecationWarning
+
+ROTATION_MATRIX = rotation_matrix(35 * u.deg, "x")
+IMPROPER_ROTATION_MATRIX = ROTATION_MATRIX.copy()
+IMPROPER_ROTATION_MATRIX[0, 0] *= -1
+NON_ORTHOGONAL_MATRIX = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
 
 def test_rotation_matrix():
@@ -65,33 +71,50 @@ def test_angle_axis():
     assert_allclose(ax2, [-(2**-0.5), -(2**-0.5), 0])
 
 
+@pytest.mark.parametrize(
+    "matrix,expectation",
+    [
+        pytest.param(ROTATION_MATRIX, np.True_, id="rotation"),
+        pytest.param(IMPROPER_ROTATION_MATRIX, np.True_, id="improper rotation"),
+        pytest.param(
+            np.stack((ROTATION_MATRIX, IMPROPER_ROTATION_MATRIX)),
+            (np.True_, np.True_),
+            id="proper and improper rotation",
+        ),
+        pytest.param(NON_ORTHOGONAL_MATRIX, np.False_, id="non-orthogonal matrix"),
+        pytest.param(
+            np.stack((ROTATION_MATRIX, NON_ORTHOGONAL_MATRIX)),
+            (np.True_, np.False_),
+            id="rotation and non-orthogonal matrix",
+        ),
+    ],
+)
+def test_is_rotation_or_reflection(matrix, expectation):
+    assert_array_equal(is_rotation_or_reflection(matrix), expectation, strict=True)
+
+
+@pytest.mark.parametrize(
+    "atol,expectation",
+    [
+        pytest.param(None, (np.True_, np.False_), id="default atol"),
+        pytest.param(1, (np.True_, np.True_), id="very large atol"),
+    ],
+)
+def test_is_rotation_or_reflection_atol(atol, expectation):
+    assert_array_equal(
+        is_rotation_or_reflection(
+            np.stack([ROTATION_MATRIX, 0.5 * ROTATION_MATRIX]), atol
+        ),
+        expectation,
+        strict=True,
+    )
+
+
 def test_is_O3():
-    """Test the matrix checker ``is_O3``."""
-    # Normal rotation matrix
-    m1 = rotation_matrix(35 * u.deg, "x")
-    assert is_O3(m1)
-    # and (M, 3, 3)
-    n1 = np.tile(m1, (2, 1, 1))
-    assert tuple(is_O3(n1)) == (True, True)  # (show the broadcasting)
-    # Test atol parameter
-    nn1 = np.tile(0.5 * m1, (2, 1, 1))
-    assert tuple(is_O3(nn1)) == (False, False)  # (show the broadcasting)
-    assert tuple(is_O3(nn1, atol=1)) == (True, True)  # (show the broadcasting)
-
-    # reflection
-    m2 = m1.copy()
-    m2[0, 0] *= -1
-    assert is_O3(m2)
-    # and (M, 3, 3)
-    n2 = np.stack((m1, m2))
-    assert tuple(is_O3(n2)) == (True, True)  # (show the broadcasting)
-
-    # Not any sort of O(3)
-    m3 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    assert not is_O3(m3)
-    # and (M, 3, 3)
-    n3 = np.stack((m1, m3))
-    assert tuple(is_O3(n3)) == (True, False)  # (show the broadcasting)
+    with pytest.warns(
+        AstropyDeprecationWarning, match=r"Use is_rotation_or_reflection instead\.$"
+    ):
+        is_O3(ROTATION_MATRIX)
 
 
 def test_is_rotation():
