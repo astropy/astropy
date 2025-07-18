@@ -1,2 +1,4 @@
 ``matrix_utilites.angle_axis()`` and ``matrix_utilites.is_rotation()`` are
 deprecated.
+``matrix_utilities.is_O3()`` is renamed to ``is_rotation_or_reflection()`` and
+the old name is deprecated.
