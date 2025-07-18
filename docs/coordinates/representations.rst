@@ -273,7 +273,7 @@ consider the following examples::
       [[(0.,  0.,  0.), (0.,   0., -2.), (0.,   3.,  0.)],
        [(0.,  0., -4.), (0.,  12.,  0.), (0., -12.,  4.)]]>
 
-  >>> from astropy.coordinates.matrix_utilities import rotation_matrix
+  >>> from astropy.coordinates import rotation_matrix
   >>> rotation = rotation_matrix(90 * u.deg, axis='z')
   >>> rotation  # doctest: +FLOAT_CMP
   array([[ 6.12323400e-17,  1.00000000e+00,  0.00000000e+00],

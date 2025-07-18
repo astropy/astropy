@@ -16,6 +16,7 @@ from .earth import *
 from .errors import *
 from .funcs import *
 from .matching import *
+from .matrix_utilities import *
 from .name_resolve import *
 from .polarization import *
 from .representation import *

@@ -4,6 +4,8 @@
 Utililies used for constructing and inspecting rotation matrices.
 """
 
+__all__ = ["is_rotation_or_reflection", "rotation_matrix"]
+
 import numpy as np
 
 from astropy import units as u
