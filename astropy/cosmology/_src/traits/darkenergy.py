@@ -4,7 +4,6 @@ from numbers import Number
 
 import numpy as np
 
-from astropy.cosmology._src.parameter import Parameter
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -17,10 +16,7 @@ else:
 
 
 class DarkEnergyComponent:
-    Ode0: Parameter = Parameter(
-        doc="Omega dark energy; dark energy density/critical density at z=0.",
-        fvalidate="float",
-    )
+    # Ode0 should be defined as a Parameter in concrete cosmology classes
 
     @abstractmethod
     @deprecated_keywords("z", since="7.0")
