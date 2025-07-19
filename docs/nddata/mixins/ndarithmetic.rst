@@ -103,7 +103,7 @@ Adding two `~astropy.nddata.NDData` objects with the same unit works::
 
     >>> ndd = ndd1.add(ndd2)
     >>> ndd.data  # doctest: +FLOAT_CMP
-    array([101., 152., 203., 54., 505.])
+    array([101, 152, 203, 54, 505])
     >>> ndd.unit
     Unit("m")
 
