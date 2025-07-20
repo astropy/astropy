@@ -28,6 +28,7 @@ Here is an example of how to use the
 >>> import astropy.units as u
 >>> from astropy.cosmology.traits import HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent
 >>> from astropy.cosmology import Cosmology
+>>> import numpy as np
 >>>
 >>> class CustomCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent):
 ...     def __init__(self, Om0, Ode0, H0=70, Tcmb0=2.725):
