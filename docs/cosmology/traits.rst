@@ -38,7 +38,10 @@ Here is an example of how to use the
 ...         super().__init__()
 ...
 ...     is_flat = False
-...     # Additional custom methods and properties can be added here
+
+...     def w(self, z):
+...         # Example: equation of state varies with redshift
+...         return -1 + 0.1 * np.sin(z)
 
 >>> cosmo = CustomCosmology(H0=70, Om0=0.3, Ode0=0.7)
 >>> cosmo.H0
@@ -49,6 +52,8 @@ Here is an example of how to use the
 <Quantity 5.45 K>
 >>> cosmo.hubble_time
 <Quantity 13.96846031 Gyr>
+>>> cosmo.w(0.5)
+-0.9520574461395797
 
 Reference/API
 *************
