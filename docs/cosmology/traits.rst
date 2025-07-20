@@ -54,7 +54,7 @@ Here is an example of how to use the
 >>> cosmo.hubble_time
 <Quantity 13.96846031 Gyr>
 >>> cosmo.w(0.5)
--0.9520574461395797
+np.float64(-0.9520574461395797)
 
 Reference/API
 *************
