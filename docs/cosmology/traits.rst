@@ -38,11 +38,11 @@ Here is an example of how to use the
 ...         self.Tcmb0 = u.Quantity(Tcmb0, "K")
 ...         super().__init__()
 ...
-...     is_flat = False
-
 ...     def w(self, z):
 ...         # Example: equation of state varies with redshift
 ...         return -1 + 0.1 * np.sin(z)
+...
+...     is_flat = False
 
 >>> cosmo = CustomCosmology(H0=70, Om0=0.3, Ode0=0.7)
 >>> cosmo.H0
