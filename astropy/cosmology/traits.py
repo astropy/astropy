@@ -2,9 +2,15 @@
 """Traits for building ``astropy`` :class:`~astropy.cosmology.Cosmology` classes."""
 
 __all__ = [
+    "CurvatureComponent",
     "HubbleParameter",
     "ScaleFactor",
     "TemperatureCMB",
 ]
 
-from ._src.traits import HubbleParameter, ScaleFactor, TemperatureCMB
+from ._src.traits import (
+    CurvatureComponent,
+    HubbleParameter,
+    ScaleFactor,
+    TemperatureCMB,
+)
