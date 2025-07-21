@@ -2966,10 +2966,10 @@ PyWcsprm_get_cunit(
 
   if (self->original_cunit != NULL) {
     return get_unit_list(
-      "cunit", self->original_cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self);
+      "cunit", self->original_cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self, 1);
   } else {
     return get_unit_list(
-      "cunit", self->x.cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self);
+      "cunit", self->x.cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self, 0);
   }
 }
 
@@ -2979,7 +2979,7 @@ PyWcsprm_set_cunit(
     PyObject* value,
     /*@unused@*/ void* closure) {
 
-  int status;
+  int status, status_unit;
   char (*previous_original_cunit)[72];
   double         scale, offset, power;
 
@@ -3034,14 +3034,11 @@ PyWcsprm_set_cunit(
         }
 
         if (strcmp(previous_original_cunit[i], self->original_cunit[i]) != 0) {
-            status = wcsunits(previous_original_cunit[i], self->original_cunit[i], &scale, &offset, &power);
-            if (status != 0) {
-                free(previous_original_cunit);
-                PyErr_Format(
-                PyExc_ValueError,
-                "Test "
-                );
-                return -1;
+            status_unit = wcsunits(previous_original_cunit[i], self->original_cunit[i], &scale, &offset, &power);
+            if (status_unit != 0) {
+              // FIXME: should we then somehow revert the cdelt/crval/cd values back to the original ones?
+              strncpy(self->x.cunit[i], self->original_cunit[i], 72);
+              continue;
             }
             if (offset != 0 || power != 1) {
                 free(previous_original_cunit);

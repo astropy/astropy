@@ -2278,10 +2278,11 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         wcs_equiv.wcs.cdelt = 1, 2
         wcs_equiv.wcs.crpix = 1, 1
 
-        assert_allclose(wcs_prog.all_pix2world(2, 3, 0), wcs_equiv.all_pix2world(2, 3, 0))
+        assert_allclose(
+            wcs_prog.all_pix2world(2, 3, 0), wcs_equiv.all_pix2world(2, 3, 0)
+        )
 
     def test_change_cunit_original_deg(self):
-
         # Similar to test_change_cunit but here we start off with a WCS in
         # degrees so that there is no scaling going on, and then we start
         # changing the values.
@@ -2305,7 +2306,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
         wcs_prog.wcs.set()
 
-        assert_allclose(wcs_prog.wcs._unit_scaling, [1/3600, 1/3600])
+        assert_allclose(wcs_prog.wcs._unit_scaling, [1 / 3600, 1 / 3600])
 
         assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
         assert_allclose(wcs_prog.wcs.crval, [10, 20])
@@ -2319,8 +2320,48 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         wcs_equiv.wcs.crpix = 1, 1
         wcs_equiv.wcs.set()
 
-        assert_allclose(wcs_prog.all_pix2world(2, 3, 0)[0], wcs_equiv.all_pix2world(2, 3, 0)[0] * 3600)
-        assert_allclose(wcs_prog.all_pix2world(2, 3, 0)[1], wcs_equiv.all_pix2world(2, 3, 0)[1] * 3600)
+        assert_allclose(
+            wcs_prog.all_pix2world(2, 3, 0)[0],
+            wcs_equiv.all_pix2world(2, 3, 0)[0] * 3600,
+        )
+        assert_allclose(
+            wcs_prog.all_pix2world(2, 3, 0)[1],
+            wcs_equiv.all_pix2world(2, 3, 0)[1] * 3600,
+        )
+
+    def test_change_cunit_inplace(self):
+        wcs_simple = wcs.WCS(naxis=1, preserve_units=True)
+        wcs_simple.wcs.ctype = ("FREQ",)
+        wcs_simple.wcs.cunit = ("GHz",)
+
+        # Setting units in-place works before set() is called
+
+        wcs_simple.wcs.cunit[0] = "MHz"
+
+        # However, it should not once set() has been called
+
+        wcs_simple.wcs.set()
+
+        with pytest.raises(
+            RuntimeError,
+            match=re.escape(
+                "Cannot set individual units in-place "
+                "once set() has been called when using preserve_units=True"
+            ),
+        ):
+            wcs_simple.wcs.cunit[0] = "kHz"
+
+    def test_change_cunit_incompatible(self):
+        # Make sure we still see errors related to incompatible units
+
+        wcs_simple = wcs.WCS(naxis=1, preserve_units=True)
+        wcs_simple.wcs.ctype = ("FREQ",)
+        wcs_simple.wcs.cunit = ("GHz",)
+        wcs_simple.wcs.set()
+
+        wcs_simple.wcs.cunit = ("mm",)
+        with pytest.raises(wcs.InvalidTransformError, match="Mismatched units type"):
+            wcs_simple.wcs.set()
 
     def test_str_and_repr(self):
         expected = (
@@ -2394,7 +2435,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
         assert simple_wcs.wcs._unit_scaling is None
 
-    @pytest.mark.parametrize('mixed_with_spatial', (False, True))
+    @pytest.mark.parametrize("mixed_with_spatial", (False, True))
     def test_wcstab_cunit_conversion(self, mixed_with_spatial):
         # WCSLIB does not convert the units for coordinates that use lookup tables
         # with -TAB, but we should make sure that things still work properly
@@ -2430,7 +2471,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             header["CUNIT2"] = "arcsec"
             header["CUNIT3"] = "deg"
             header["CDELT2"] = -1
-            header["CDELT3"] = 2 / 3600.
+            header["CDELT3"] = 2 / 3600.0
 
         hdul = fits.HDUList([primary_hdu, tab_hdu])
 
@@ -2471,13 +2512,15 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
         assert wcs_default.wcs._unit_scaling is None
         if mixed_with_spatial:
-            assert_allclose(wcs_preserve.wcs._unit_scaling, [1, 1/3600, 1])
+            assert_allclose(wcs_preserve.wcs._unit_scaling, [1, 1 / 3600, 1])
         else:
             assert wcs_preserve.wcs._unit_scaling is None
 
         # If we change the units, the results should continue to be consistent
         wcs_default.wcs.cunit = ["cm"] + (["deg", "deg"] if mixed_with_spatial else [])
-        wcs_preserve.wcs.cunit = ["cm"] + (["arcsec", "deg"] if mixed_with_spatial else [])
+        wcs_preserve.wcs.cunit = ["cm"] + (
+            ["arcsec", "deg"] if mixed_with_spatial else []
+        )
 
         assert wcs_default.wcs.cunit[0] == "cm"
         assert wcs_preserve.wcs.cunit[0] == "cm"
@@ -2499,6 +2542,6 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         # Make sure that in both cases we aren't using the unit scaling machinery
         assert wcs_default.wcs._unit_scaling is None
         if mixed_with_spatial:
-            assert_allclose(wcs_preserve.wcs._unit_scaling, [1, 1/3600, 1])
+            assert_allclose(wcs_preserve.wcs._unit_scaling, [1, 1 / 3600, 1])
         else:
             assert wcs_preserve.wcs._unit_scaling is None
