@@ -192,10 +192,13 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8, return_maxdiff=False):
         indices = np.where(absolute > (atol + rtol * np.abs(b)))
 
     if return_maxdiff:
-        with np.errstate(invalid="ignore", divide="ignore"):
-            relative = absolute / np.abs(b)
-        max_absolute = float(np.max(absolute))
-        max_relative = np.max(relative)
+        if len(indices[0]) == 0:
+            max_absolute = max_relative = 0
+        else:
+            with np.errstate(invalid="ignore", divide="ignore"):
+                relative = absolute / np.abs(b)
+            max_absolute = float(np.max(absolute[indices]))
+            max_relative = np.max(relative[indices])
         return indices, max_absolute, max_relative
     else:
         return indices
