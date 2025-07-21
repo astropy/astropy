@@ -2280,6 +2280,48 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
         assert_allclose(wcs_prog.all_pix2world(2, 3, 0), wcs_equiv.all_pix2world(2, 3, 0))
 
+    def test_change_cunit_original_deg(self):
+
+        # Similar to test_change_cunit but here we start off with a WCS in
+        # degrees so that there is no scaling going on, and then we start
+        # changing the values.
+
+        wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
+        wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_prog.wcs.cunit = "deg", "deg"
+        wcs_prog.wcs.crval = 10, 20
+        wcs_prog.wcs.cdelt = 1, 2
+        wcs_prog.wcs.crpix = 1, 1
+
+        wcs_prog.wcs.set()
+
+        assert list(wcs_prog.wcs.cunit) == ["deg", "deg"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        assert wcs_prog.wcs._unit_scaling is None
+
+        wcs_prog.wcs.cunit = "arcsec", "arcsec"
+
+        wcs_prog.wcs.set()
+
+        assert_allclose(wcs_prog.wcs._unit_scaling, [1/3600, 1/3600])
+
+        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_equiv = wcs.WCS(naxis=2)
+        wcs_equiv.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_equiv.wcs.cunit = "arcsec", "arcsec"
+        wcs_equiv.wcs.crval = 10, 20
+        wcs_equiv.wcs.cdelt = 1, 2
+        wcs_equiv.wcs.crpix = 1, 1
+        wcs_equiv.wcs.set()
+
+        assert_allclose(wcs_prog.all_pix2world(2, 3, 0)[0], wcs_equiv.all_pix2world(2, 3, 0)[0] * 3600)
+        assert_allclose(wcs_prog.all_pix2world(2, 3, 0)[1], wcs_equiv.all_pix2world(2, 3, 0)[1] * 3600)
+
     def test_str_and_repr(self):
         expected = (
             "WCS Keywords\n"
@@ -2352,12 +2394,16 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
         assert simple_wcs.wcs._unit_scaling is None
 
-    def test_wcstab_cunit_conversion(self):
+    @pytest.mark.parametrize('mixed_with_spatial', (False, True))
+    def test_wcstab_cunit_conversion(self, mixed_with_spatial):
         # WCSLIB does not convert the units for coordinates that use lookup tables
         # with -TAB, but we should make sure that things still work properly
         # with preserve_units=True
 
-        flux = np.random.rand(100)
+        if mixed_with_spatial:
+            flux = np.random.rand(100, 4, 5)
+        else:
+            flux = np.random.rand(100)
 
         wav = np.linspace(4000, 5000, 100)
 
@@ -2368,7 +2414,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         tab_hdu.name = "WCS-TAB"
 
         header = primary_hdu.header
-        header["WCSAXES"] = 1
+        header["WCSAXES"] = 3 if mixed_with_spatial else 1
         header["CTYPE1"] = "WAVE-TAB"
         header["CRPIX1"] = 1
         header["CDELT1"] = 1
@@ -2378,10 +2424,30 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         header["PS1_1"] = "WAVE"
         header["PV1_1"] = 1
 
+        if mixed_with_spatial:
+            header["CTYPE2"] = "GLON-CAR"
+            header["CTYPE3"] = "GLAT-CAR"
+            header["CUNIT2"] = "arcsec"
+            header["CUNIT3"] = "deg"
+            header["CDELT2"] = -1
+            header["CDELT3"] = 2 / 3600.
+
         hdul = fits.HDUList([primary_hdu, tab_hdu])
 
         wcs_default = wcs.WCS(hdul[0].header, hdul)
         wcs_preserve = wcs.WCS(hdul[0].header, hdul, preserve_units=True)
+
+        rsn = default_rng(1234567890)
+        pixel = rsn.uniform(1, 99, 3)
+        world = rsn.uniform(4000, 5000, 3)
+
+        pixel = [pixel] * (3 if mixed_with_spatial else 1)
+
+        if mixed_with_spatial:
+            world_spatial = rsn.uniform(-1, 1, 3)
+            world = [world, world_spatial, world_spatial]
+        else:
+            world = [world]
 
         # Check that both the default and unit-preserving WCS have the same units
         # of mm - this is used to know in future if WCSLIB changes the default
@@ -2389,24 +2455,50 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         assert wcs_default.wcs.cunit[0] == "mm"
         assert wcs_preserve.wcs.cunit[0] == "mm"
 
-        rsn = default_rng(1234567890)
-        pixel = rsn.uniform(1, 99, 100)
-        world = rsn.uniform(4000, 5000, 100)
-
-        assert not np.any(np.isnan(wcs_default.all_pix2world(pixel, 0)))
+        assert not np.any(np.isnan(np.array(wcs_default.all_pix2world(*pixel, 0))))
 
         assert_allclose(
-            wcs_default.all_pix2world(pixel, 0),
-            wcs_preserve.all_pix2world(pixel, 0),
+            wcs_default.all_pix2world(*pixel, 0)[0],
+            wcs_preserve.all_pix2world(*pixel, 0)[0],
         )
 
-        assert not np.any(np.isnan(wcs_default.all_world2pix(world, 0)))
+        assert not np.any(np.isnan(np.array(wcs_default.all_world2pix(*world, 0))))
 
         assert_allclose(
-            wcs_default.all_world2pix(world, 0),
-            wcs_preserve.all_world2pix(world, 0),
+            wcs_default.all_world2pix(*world, 0)[0],
+            wcs_preserve.all_world2pix(*world, 0)[0],
+        )
+
+        assert wcs_default.wcs._unit_scaling is None
+        if mixed_with_spatial:
+            assert_allclose(wcs_preserve.wcs._unit_scaling, [1, 1/3600, 1])
+        else:
+            assert wcs_preserve.wcs._unit_scaling is None
+
+        # If we change the units, the results should continue to be consistent
+        wcs_default.wcs.cunit = ["cm"] + (["deg", "deg"] if mixed_with_spatial else [])
+        wcs_preserve.wcs.cunit = ["cm"] + (["arcsec", "deg"] if mixed_with_spatial else [])
+
+        assert wcs_default.wcs.cunit[0] == "cm"
+        assert wcs_preserve.wcs.cunit[0] == "cm"
+
+        assert not np.any(np.isnan(np.array(wcs_default.all_pix2world(*pixel, 0))))
+
+        assert_allclose(
+            wcs_default.all_pix2world(*pixel, 0)[0],
+            wcs_preserve.all_pix2world(*pixel, 0)[0],
+        )
+
+        assert not np.any(np.isnan(np.array(wcs_default.all_world2pix(*world, 0))))
+
+        assert_allclose(
+            wcs_default.all_world2pix(*world, 0)[0],
+            wcs_preserve.all_world2pix(*world, 0)[0],
         )
 
         # Make sure that in both cases we aren't using the unit scaling machinery
         assert wcs_default.wcs._unit_scaling is None
-        assert wcs_preserve.wcs._unit_scaling is None
+        if mixed_with_spatial:
+            assert_allclose(wcs_preserve.wcs._unit_scaling, [1, 1/3600, 1])
+        else:
+            assert wcs_preserve.wcs._unit_scaling is None
