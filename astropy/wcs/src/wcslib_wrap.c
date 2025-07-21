@@ -2979,9 +2979,7 @@ PyWcsprm_set_cunit(
     PyObject* value,
     /*@unused@*/ void* closure) {
 
-  int status, status_unit;
-  char (*previous_original_cunit)[72];
-  double         scale, offset, power;
+  double scale;
 
   if (is_null(self->x.cunit)) {
     return -1;
@@ -2992,88 +2990,45 @@ PyWcsprm_set_cunit(
   // Note that if the user explicitly changes the units we should now preserve
   // those new units. The way the WCS class works normally when units are not
   // preserved is that changing units on an existing WCS is not just a unit
-  // conversion but truly overriding units.
-
-  // There are three cases to consider now:
-  // (a) The user is not using preserve_units, in which case unit_scaling will
-  //     not be allocated. The units can be set directly on the WCS as normal.
-  // (b) The user is using preserve_units, but unit_scaling has not been allocated
-  //     as it has not been needed. In this case we can do as in (a) and if the user
-  //     then either calls set() explicitly or does a conversion, unit_scaling will
-  //     get allocated if needed.
-  // (c) The user is using preserve_units and the unit scaling has been allocated
-  //     and set. In this case, special case is needed
+  // conversion but truly overriding units. The simplest and safest way to achieve
+  // this here is to undo any changes that were made by the WCS class related to
+  // units (scaling cdelt, crval, and optionally cd), set the new units on the
+  // WCS class, and let it figure out if the new units warrant re-instating the
+  // scaling.
 
   if (self->unit_scaling != NULL) {
 
-    // The class is being used in preserve_units=True mode and there has been at
-    // least one scale != 1 before.
-
-    // Keep track of previous original units
-    previous_original_cunit = malloc(self->x.naxis * sizeof(*previous_original_cunit));
-    if (previous_original_cunit == NULL) {
-        PyErr_NoMemory();
-        return -1;
-    }
-    for (int i = 0; i < self->x.naxis; ++i) {
-        strncpy(previous_original_cunit[i], self->original_cunit[i], 72);
-    }
-
-    // Set the new units in self->original_cunit
-    status = set_unit_list(
-       (PyObject *)self, "cunit", value, (Py_ssize_t)self->x.naxis, self->original_cunit);
-
-    // Check if there is a difference in scale between the units
     for (int i = 0; i < self->x.naxis; ++i) {
 
-        // For tabular axis, CDELTia and CRVALia relate to indices so we just
-        // copy the new unit and don't do any scaling.
-        if ((self->x.types[i] / 100) % 10 == 5) {
-            strncpy(self->x.cunit[i], self->original_cunit[i], 72);
-            continue;
-        }
+      scale = self->unit_scaling[i];
 
-        if (strcmp(previous_original_cunit[i], self->original_cunit[i]) != 0) {
-            status_unit = wcsunits(previous_original_cunit[i], self->original_cunit[i], &scale, &offset, &power);
-            if (status_unit != 0) {
-              // FIXME: should we then somehow revert the cdelt/crval/cd values back to the original ones?
-              strncpy(self->x.cunit[i], self->original_cunit[i], 72);
-              continue;
-            }
-            if (offset != 0 || power != 1) {
-                free(previous_original_cunit);
-                PyErr_Format(
-                PyExc_ValueError,
-                "Preserving original units with non-trivial offset and power is not supported "
-                );
-                return -1;
-            }
+      if (scale != 1.) {
 
-            self->x.cdelt[i] /= scale;
-            self->x.crval[i] /= scale;
+        self->x.cdelt[i] /= scale;
+        self->x.crval[i] /= scale;
 
-            if (self->x.cd) {
-                for (int j = 0; j < self->x.naxis; j++) {
-                    *(self->x.cd + i*self->x.naxis + j) /= scale;
-                }
-            }
-
-            self->unit_scaling[i] *= scale;
-
-        }
-    }
-} else {
-
-    status = set_unit_list(
-        (PyObject *)self, "cunit", value, (Py_ssize_t)self->x.naxis, self->x.cunit);
-        if (self->original_cunit != NULL) {
-            for (int i = 0; i < self->x.naxis; ++i) {
-                strncpy(self->original_cunit[i], self->x.cunit[i], 72);
+        if (self->x.cd) {
+            for (int j = 0; j < self->x.naxis; j++) {
+                *(self->x.cd + i*self->x.naxis + j) /= scale;
             }
         }
+
+      }
+
     }
 
-    return status;
+    free(self->unit_scaling);
+    self->unit_scaling = NULL;
+
+  }
+
+  if (self->original_cunit != NULL) {
+    free(self->original_cunit);
+    self->original_cunit = NULL;
+  }
+
+  return set_unit_list(
+      (PyObject *)self, "cunit", value, (Py_ssize_t)self->x.naxis, self->x.cunit);
 
 }
 
