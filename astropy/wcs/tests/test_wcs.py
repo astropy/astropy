@@ -1995,11 +1995,14 @@ class TestPreserveUnits:
         ]
 
     def test_set_cunit(self):
-        with pytest.raises(
-            AttributeError,
-            match="Original units have already been set, cannot change them",
-        ):
-            self.wcs_preserve.wcs.cunit = "arcmin", "MHz", "deg", "m", "arcmin"
+        self.wcs_preserve.wcs.cunit = "arcmin", "MHz", "deg", "m", "arcmin"
+        assert list(self.wcs_preserve.wcs.cunit) == [
+            "arcmin",
+            "MHz",
+            "deg",
+            "m",
+            "arcmin",
+        ]
 
     def test_get_cdelt(self):
         assert_allclose(self.wcs_default.wcs.cdelt, [4 / 3600, 3e9, 2 / 3600, 1e-9, 6])
@@ -2230,9 +2233,10 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         elif function == "all_world2pix":
             assert_allclose(wcs_prog.all_world2pix(10, 20, 1), [1, 1])
 
-    def test_multiple_set(self):
+    def test_change_cunit(self):
         # Make sure that things work fine if we make the WCS programmatically
-        # and not from a header
+        # and not from a header, and check that we can change the units after
+        # set() is called
 
         wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
         wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
@@ -2247,21 +2251,34 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
         wcs_prog.wcs.set()
 
-        with pytest.raises(
-            AttributeError,
-            match="Original units have already been set, cannot change them",
-        ):
-            wcs_prog.wcs.cunit = "arcmin", "arcmin"
-
         assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
         assert_allclose(wcs_prog.wcs.crval, [10, 20])
         assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_prog.wcs.cunit = "arcmin", "arcmin"
 
         wcs_prog.wcs.set()
 
-        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert list(wcs_prog.wcs.cunit) == ["arcmin", "arcmin"]
         assert_allclose(wcs_prog.wcs.crval, [10, 20])
         assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_prog.wcs.cunit = "deg", "deg"
+
+        wcs_prog.wcs.set()
+
+        assert list(wcs_prog.wcs.cunit) == ["deg", "deg"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_equiv = wcs.WCS(naxis=2)
+        wcs_equiv.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_equiv.wcs.cunit = "deg", "deg"
+        wcs_equiv.wcs.crval = 10, 20
+        wcs_equiv.wcs.cdelt = 1, 2
+        wcs_equiv.wcs.crpix = 1, 1
+
+        assert_allclose(wcs_prog.all_pix2world(2, 3, 0), wcs_equiv.all_pix2world(2, 3, 0))
 
     def test_str_and_repr(self):
         expected = (

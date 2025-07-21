@@ -2979,6 +2979,10 @@ PyWcsprm_set_cunit(
     PyObject* value,
     /*@unused@*/ void* closure) {
 
+  int status;
+  char (*previous_original_cunit)[72];
+  double         scale, offset, power;
+
   if (is_null(self->x.cunit)) {
     return -1;
   }
@@ -2986,12 +2990,73 @@ PyWcsprm_set_cunit(
   note_change(self);
 
   if (self->original_cunit != NULL) {
-    PyErr_SetString(PyExc_AttributeError, "Original units have already been set, cannot change them");
-    return -1;
+
+    // Units have been set before, so special care is needed here. The class is being used
+    // in preserve_units=True mode, so this means that if the user explicitly changes the
+    // units we should now preserve those new units. The way the WCS class works normally
+    // when units are not preserved is that changing units on an existing WCS is not just
+    // a unit conversion but truly overriding units. So we need to do three things here:
+    // (a) update original_cunit to reflect the new units, (b) update cdelt/crval/cd in
+    // the underlying WCS so that they have the values they would have had if we had started
+    // off initializing the WCS with the new units, and (c) make sure the unit scaling is
+    // updated.
+
+    // Keep track of previous original units
+    previous_original_cunit = malloc(self->x.naxis * sizeof(*previous_original_cunit));
+    if (previous_original_cunit == NULL) {
+        PyErr_NoMemory();
+        return -1;
+    }
+
+    for (int i = 0; i < self->x.naxis; ++i) {
+        strncpy(previous_original_cunit[i], self->original_cunit[i], 72);
+    }
+
+    // Set the new units in self->original_cunit
+    status = set_unit_list(
+       (PyObject *)self, "cunit", value, (Py_ssize_t)self->x.naxis, self->original_cunit);
+
+    // Check if there is a difference in scale between the units
+
+    for (int i = 0; i < self->x.naxis; ++i) {
+
+        if (strcmp(previous_original_cunit[i], self->original_cunit[i]) != 0) {
+        status = wcsunits(previous_original_cunit[i], self->original_cunit[i], &scale, &offset, &power);
+        if (status != 0) {
+            free(previous_original_cunit);
+            PyErr_Format(
+            PyExc_ValueError,
+            "Test "
+            );
+            return -1;
+        }
+        if (offset != 0 || power != 1) {
+            free(previous_original_cunit);
+            PyErr_Format(
+            PyExc_ValueError,
+            "Preserving original units with non-trivial offset and power is not supported "
+            );
+            return -1;
+        }
+
+        self->x.cdelt[i] /= scale;
+        self->x.crval[i] /= scale;
+
+        if (self->x.cd) {
+          for (int j = 0; j < self->x.naxis; j++) {
+            *(self->x.cd + i*self->x.naxis + j) /= scale;
+          }
+        }
+
+        self->unit_scaling[i] *= scale;
+
+        }}
+    return status;
+} else {
+    return set_unit_list(
+        (PyObject *)self, "cunit", value, (Py_ssize_t)self->x.naxis, self->x.cunit);
   }
 
-  return set_unit_list(
-    (PyObject *)self, "cunit", value, (Py_ssize_t)self->x.naxis, self->x.cunit);
 }
 
 /*@null@*/ static PyObject*
