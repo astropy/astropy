@@ -9,7 +9,7 @@ from erfa import ufunc as erfa_ufunc
 import astropy.units as u
 from astropy.coordinates.angles import Angle, Latitude, Longitude
 from astropy.coordinates.distances import Distance
-from astropy.coordinates.matrix_utilities import is_O3
+from astropy.coordinates.matrix_utilities import is_rotation_or_reflection
 from astropy.utils import classproperty
 from astropy.utils.compat import COPY_IF_NEEDED
 
@@ -163,7 +163,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
         # matrix is in O(3) and preserves lengths.
-        if np.all(is_O3(matrix)):  # remain in unit-rep
+        if np.all(is_rotation_or_reflection(matrix)):  # remain in unit-rep
             xyz = erfa_ufunc.s2c(self.lon, self.lat)
             p = erfa_ufunc.rxp(matrix, xyz)
             lon, lat = erfa_ufunc.c2s(p)
@@ -1035,7 +1035,7 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
         # matrix is in O(3) and preserves lengths.
-        if np.all(is_O3(matrix)):  # remain in unit-rep
+        if np.all(is_rotation_or_reflection(matrix)):  # remain in unit-rep
             # TODO! implement without Cartesian intermediate step.
             # some of this can be moved to the parent class.
             diff = super().transform(matrix, base, transformed_base)
@@ -1295,7 +1295,7 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
         # matrix is in O(3) and preserves lengths.
-        if np.all(is_O3(matrix)):  # remain in unit-rep
+        if np.all(is_rotation_or_reflection(matrix)):  # remain in unit-rep
             # TODO! implement without Cartesian intermediate step.
             diff = super().transform(matrix, base, transformed_base)
 
