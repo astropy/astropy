@@ -155,7 +155,7 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
     return identical
 
 
-def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
+def where_not_allclose(a, b, rtol=1e-5, atol=1e-8, return_maxdiff=False):
     """
     A version of :func:`numpy.allclose` that returns the indices
     where the two arrays differ, instead of just a boolean value.
@@ -164,15 +164,20 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
     ----------
     a, b : array-like
         Input arrays to compare.
-
     rtol, atol : float
         Relative and absolute tolerances as accepted by
         :func:`numpy.allclose`.
+    return_maxdiff : bool
+        Return the maximum of absolute and relative differences.
 
     Returns
     -------
     idx : tuple of array
         Indices where the two arrays differ.
+    max_absolute : float
+        Maximum of absolute difference, returned if ``return_maxdiff=True``.
+    max_relative : float
+        Maximum of relative difference, returned if ``return_maxdiff=True``.
 
     """
     # Create fixed mask arrays to handle INF and NaN; currently INF and NaN
@@ -182,7 +187,22 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
     if not np.all(np.isfinite(b)):
         b = np.ma.fix_invalid(b).data
 
+    absolute = np.abs(b - a)
+
     if atol == 0.0 and rtol == 0.0:
         # Use a faster comparison for the most simple (and common) case
-        return np.where(a != b)
-    return np.where(np.abs(a - b) > (atol + rtol * np.abs(b)))
+        indices = np.where(absolute > 0)
+    else:
+        indices = np.where(absolute > (atol + rtol * np.abs(b)))
+
+    if return_maxdiff:
+        if len(indices[0]) == 0:
+            max_absolute = max_relative = 0
+        else:
+            with np.errstate(invalid="ignore", divide="ignore"):
+                relative = absolute / np.abs(b)
+            max_absolute = float(np.max(absolute[indices]))
+            max_relative = np.max(relative[indices])
+        return indices, max_absolute, max_relative
+    else:
+        return indices

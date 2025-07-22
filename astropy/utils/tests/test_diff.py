@@ -165,3 +165,7 @@ def test_where_not_allclose(kwargs):
 
     assert where_not_allclose(a, b, **kwargs) == ([3],)
     assert len(where_not_allclose(a, a, **kwargs)[0]) == 0
+
+    diff, maxabs, maxrel = where_not_allclose(a, b, return_maxdiff=True, **kwargs)
+    assert np.isclose(maxabs, 0.1)
+    assert np.isclose(maxrel, 0.1 / 4.6)
