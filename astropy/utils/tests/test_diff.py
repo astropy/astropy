@@ -18,7 +18,8 @@ def test_diff_values_false(a):
 
 
 @pytest.mark.parametrize(
-    ("a", "b"), [(np.inf, np.nan), (1.11, 1.1), (1, 2), (1, "a"), ("a", "b")]
+    ("a", "b"),
+    [(np.inf, np.nan), (1.11, 1.1), (1, 2), (1, "a"), ("a", "b"), (np.nan, 1.1)],
 )
 def test_diff_values_true(a, b):
     assert diff_values(a, b)

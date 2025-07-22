@@ -5,6 +5,9 @@
 
 #define NO_IMPORT_ARRAY
 
+#include <stdlib.h> // calloc, malloc, free
+#include <string.h> // memset, strlen, strncpy
+
 #include "astropy_wcs/wcslib_wrap.h"
 #include "astropy_wcs/wcslib_auxprm_wrap.h"
 #include "astropy_wcs/wcslib_prjprm_wrap.h"
@@ -215,7 +218,7 @@ int _update_wtbarr_from_hdulist(PyObject *hdulist, struct wtbarr *wtb) {
     return 0;
   }
 
-  if (!PyArray_Check(arrayp)) {
+  if (!PyArray_Check((PyObject*)arrayp)) {
     PyErr_SetString(PyExc_TypeError,
                     "wtbarr callback must return a numpy.ndarray type "
                     "coordinate or index array.");
@@ -308,13 +311,18 @@ PyWcsprm_dealloc(
     PyWcsprm* self) {
 
   wcsfree(&self->x);
-  Py_TYPE(self)->tp_free((PyObject*)self);
+  PyTypeObject *tp = Py_TYPE((PyObject*)self);
+  freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+  free_func((PyObject*)self);
+  Py_DECREF(tp);
 }
 
 static PyWcsprm*
 PyWcsprm_cnew(void) {
   PyWcsprm* self;
-  self = (PyWcsprm*)(&PyWcsprmType)->tp_alloc(&PyWcsprmType, 0);
+  PyTypeObject* type = (PyTypeObject*)PyWcsprmType;
+  allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+  self = (PyWcsprm*)alloc_func(type, 0);
   return self;
 }
 
@@ -325,7 +333,8 @@ PyWcsprm_new(
     /*@unused@*/ PyObject* kwds) {
 
   PyWcsprm* self;
-  self = (PyWcsprm*)type->tp_alloc(type, 0);
+  allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+  self = (PyWcsprm*)alloc_func(type, 0);
   return (PyObject*)self;
 }
 
@@ -645,14 +654,14 @@ PyWcsprm_copy(
 
   if (status == 0) {
     if (PyWcsprm_cset(copy, 0)) {
-      Py_XDECREF(copy);
+      Py_XDECREF((PyObject*)copy);
       return NULL;
     }
 
     wcsprm_c2python(&copy->x);
     return (PyObject*)copy;
   } else {
-    Py_XDECREF(copy);
+    Py_XDECREF((PyObject*)copy);
     wcs_to_python_exc(&(self->x));
     return NULL;
   }
@@ -866,7 +875,7 @@ PyWcsprm_compare(
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "O!|id:compare", (char **)keywords,
-          &PyWcsprmType, &other, &cmp, &tolerance)) {
+          (PyTypeObject*)PyWcsprmType, &other, &cmp, &tolerance)) {
     return NULL;
   }
 
@@ -929,7 +938,7 @@ PyWcsprm_cylfix(
   status = cylfix(naxis, &self->x);
   wcsprm_c2python(&self->x);
 
-  Py_XDECREF(naxis_array);
+  Py_XDECREF((PyObject*)naxis_array);
 
   if (status == -1 || status == 0) {
     return PyLong_FromLong((long)status);
@@ -1031,7 +1040,7 @@ PyWcsprm_fix(
 
   /* We're done with this already, so deref now so we don't have to remember
      later */
-  Py_XDECREF(naxis_array);
+  Py_XDECREF((PyObject*)naxis_array);
 
   result = PyDict_New();
   if (result == NULL) {
@@ -1310,11 +1319,11 @@ PyWcsprm_mix(
   }
 
  exit:
-  Py_XDECREF(world);
-  Py_XDECREF(phi);
-  Py_XDECREF(theta);
-  Py_XDECREF(imgcrd);
-  Py_XDECREF(pixcrd);
+  Py_XDECREF((PyObject*)world);
+  Py_XDECREF((PyObject*)phi);
+  Py_XDECREF((PyObject*)theta);
+  Py_XDECREF((PyObject*)imgcrd);
+  Py_XDECREF((PyObject*)pixcrd);
 
   if (status == 0) {
     return result;
@@ -1451,12 +1460,12 @@ PyWcsprm_p2s(
   }
 
  exit:
-  Py_XDECREF(pixcrd);
-  Py_XDECREF(imgcrd);
-  Py_XDECREF(phi);
-  Py_XDECREF(theta);
-  Py_XDECREF(world);
-  Py_XDECREF(stat);
+  Py_XDECREF((PyObject*)pixcrd);
+  Py_XDECREF((PyObject*)imgcrd);
+  Py_XDECREF((PyObject*)phi);
+  Py_XDECREF((PyObject*)theta);
+  Py_XDECREF((PyObject*)world);
+  Py_XDECREF((PyObject*)stat);
 
   if (status == 0 || status == 8) {
     return result;
@@ -1594,12 +1603,12 @@ PyWcsprm_s2p(
   }
 
  exit:
-  Py_XDECREF(pixcrd);
-  Py_XDECREF(imgcrd);
-  Py_XDECREF(phi);
-  Py_XDECREF(theta);
-  Py_XDECREF(world);
-  Py_XDECREF(stat);
+  Py_XDECREF((PyObject*)pixcrd);
+  Py_XDECREF((PyObject*)imgcrd);
+  Py_XDECREF((PyObject*)phi);
+  Py_XDECREF((PyObject*)theta);
+  Py_XDECREF((PyObject*)world);
+  Py_XDECREF((PyObject*)stat);
 
   if (status == 0 || status == 9) {
     return result;
@@ -1706,6 +1715,7 @@ PyWcsprm_print_contents(
   wcsprm_c2python(&self->x);
 
   printf("%s", wcsprintf_buf());
+  fflush(stdout);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -1795,7 +1805,7 @@ PyObject *PyWcsprm_richcompare(PyObject *a, PyObject *b, int op) {
   struct wcsprm *bx;
 
   if ((op == Py_EQ || op == Py_NE) &&
-      PyObject_TypeCheck(b, &PyWcsprmType)) {
+      PyObject_TypeCheck(b, (PyTypeObject*)PyWcsprmType)) {
     ax = &((PyWcsprm *)a)->x;
     bx = &((PyWcsprm *)b)->x;
 
@@ -1990,12 +2000,12 @@ PyWcsprm_sub(
   if (status == 0) {
     return (PyObject*)py_dest_wcs;
   } else if (status == -1) {
-    Py_XDECREF(py_dest_wcs);
+    Py_XDECREF((PyObject*)py_dest_wcs);
     /* Exception already set */
     return NULL;
   } else {
     wcs_to_python_exc(&(py_dest_wcs->x));
-    Py_XDECREF(py_dest_wcs);
+    Py_XDECREF((PyObject*)py_dest_wcs);
     return NULL;
   }
 }
@@ -3957,7 +3967,7 @@ static PyObject* PyWcsprm_get_wtb(PyWcsprm* self, void* closure) {
       return NULL;
     }
 
-    PyList_SET_ITEM(list, i, elem);
+    PyList_SetItem(list, i, elem);
   }
 
   return list;
@@ -4134,46 +4144,26 @@ static PyMethodDef PyWcsprm_methods[] = {
   {NULL}
 };
 
-PyTypeObject PyWcsprmType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-  "astropy.wcs.Wcsprm",              /*tp_name*/
-  sizeof(PyWcsprm),             /*tp_basicsize*/
-  0,                            /*tp_itemsize*/
-  (destructor)PyWcsprm_dealloc, /*tp_dealloc*/
-  0,                            /*tp_print*/
-  0,                            /*tp_getattr*/
-  0,                            /*tp_setattr*/
-  0,                            /*tp_compare*/
-  (reprfunc)PyWcsprm___str__,   /*tp_repr*/
-  0,                            /*tp_as_number*/
-  0,                            /*tp_as_sequence*/
-  0,                            /*tp_as_mapping*/
-  0,                            /*tp_hash */
-  0,                            /*tp_call*/
-  (reprfunc)PyWcsprm___str__,   /*tp_str*/
-  0,                            /*tp_getattro*/
-  0,                            /*tp_setattro*/
-  0,                            /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-  doc_Wcsprm,                   /* tp_doc */
-  0,                            /* tp_traverse */
-  0,                            /* tp_clear */
-  PyWcsprm_richcompare,         /* tp_richcompare */
-  0,                            /* tp_weaklistoffset */
-  0,                            /* tp_iter */
-  0,                            /* tp_iternext */
-  PyWcsprm_methods,             /* tp_methods */
-  0,                            /* tp_members */
-  PyWcsprm_getset,              /* tp_getset */
-  0,                            /* tp_base */
-  0,                            /* tp_dict */
-  0,                            /* tp_descr_get */
-  0,                            /* tp_descr_set */
-  0,                            /* tp_dictoffset */
-  (initproc)PyWcsprm_init,      /* tp_init */
-  0,                            /* tp_alloc */
-  PyWcsprm_new,                 /* tp_new */
+static PyType_Spec PyWcsprm_spec = {
+  .name = "astropy.wcs.Wcsprm",
+  .basicsize = sizeof(PyWcsprm),
+  .itemsize = 0,
+  .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
+  .slots = (PyType_Slot[]) {
+    {Py_tp_dealloc, (destructor)PyWcsprm_dealloc},
+    {Py_tp_repr, (reprfunc)PyWcsprm___str__},
+    {Py_tp_str, (reprfunc)PyWcsprm___str__},
+    {Py_tp_doc, doc_Wcsprm},
+    {Py_tp_richcompare, PyWcsprm_richcompare},
+    {Py_tp_methods, PyWcsprm_methods},
+    {Py_tp_getset, PyWcsprm_getset},
+    {Py_tp_init, (initproc)PyWcsprm_init},
+    {Py_tp_new, PyWcsprm_new},
+    {0, NULL},
+  },
 };
+
+PyObject* PyWcsprmType = NULL;
 
 #define CONSTANT(a) PyModule_AddIntConstant(m, #a, a)
 #define CONSTANT2(n, v) PyModule_AddIntConstant(m, n, v)
@@ -4209,18 +4199,17 @@ int add_prj_codes(PyObject* module)
 int
 _setup_wcsprm_type(
     PyObject* m) {
+  PyWcsprmType = PyType_FromSpec(&PyWcsprm_spec);
 
-  if (PyType_Ready(&PyWcsprmType) < 0) {
+  if (PyWcsprmType == NULL) {
     return -1;
   }
-
-  Py_INCREF(&PyWcsprmType);
 
   wcsprintf_set(NULL);
   wcserr_enable(1);
 
   return (
-    PyModule_AddObject(m, "Wcsprm", (PyObject *)&PyWcsprmType) ||
+    PyModule_AddObject(m, "Wcsprm", PyWcsprmType) ||
     CONSTANT(WCSSUB_LONGITUDE) ||
     CONSTANT(WCSSUB_LATITUDE)  ||
     CONSTANT(WCSSUB_CUBEFACE)  ||

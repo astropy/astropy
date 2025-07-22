@@ -108,15 +108,10 @@ plot_pre_code = ""
 # -- General configuration ----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "3.0"
-
-# The intersphinx_mapping in sphinx_astropy.sphinx refers to astropy for
-# the benefit of other packages who want to refer to objects in the
-# astropy core.  However, we don't want to cyclically reference astropy in its
-# own build so we remove it here.
-del intersphinx_mapping["astropy"]
+needs_sphinx = "8.2.0"  # keep in sync with pyproject.toml
 
 # add any custom intersphinx for astropy
+intersphinx_resolve_self = "astropy"
 intersphinx_mapping.update(
     {
         "pyerfa": ("https://pyerfa.readthedocs.io/en/stable/", None),
@@ -412,6 +407,7 @@ linkcheck_ignore = [
     "http://data.astropy.org",
     "https://doi.org/",  # CI blocked by service provider
     "https://ui.adsabs.harvard.edu",  # CI blocked by service provider
+    "https://hst-docs.stsci.edu",  # CI blocked by service provider
     "https://www.tandfonline.com/",  # 403 Client Error: Forbidden
     "https://stackoverflow.com/",  # 403 Client Error: Forbidden
     "https://ieeexplore.ieee.org/",  # 418 Client Error: I'm a teapot
@@ -437,47 +433,6 @@ def rstjinja(app, docname, source):
             source[0], app.config.html_context
         )
         source[0] = rendered
-
-
-def resolve_astropy_reference(app, env, node, contnode):
-    """
-    Reference targets for ``astropy:`` are special cases.
-
-    Documentation links in astropy can be set up as intersphinx links so that
-    affiliate packages do not have to override the docstrings when building
-    the docs.
-
-    """
-    # should the node be processed?
-    reftarget = node.get("reftarget")  # str or None
-    if str(reftarget).startswith("astropy:"):
-        # This allows Astropy to use intersphinx links to itself and have
-        # them resolve to local links. Downstream packages will see intersphinx.
-        # TODO: Remove this when https://github.com/sphinx-doc/sphinx/issues/9169 is implemented upstream.
-        process, replace = True, "astropy:"
-    else:
-        process, replace = False, ""
-
-    # make link local
-    if process:
-        reftype = node.get("reftype")
-        refdoc = node.get("refdoc", app.env.docname)
-        # convert astropy intersphinx targets to local links.
-        # there are a few types of intersphinx link patterns, as described in
-        # https://docs.readthedocs.io/en/stable/guides/intersphinx.html
-        reftarget = reftarget.replace(replace, "")
-        if reftype == "doc":  # also need to replace the doc link
-            node.replace_attr("reftarget", reftarget)
-        # Delegate to the ref node's original domain/target (typically :ref:)
-        try:
-            domain = app.env.domains[node["refdomain"]]
-            return domain.resolve_xref(
-                app.env, refdoc, app.builder, reftype, reftarget, node, contnode
-            )
-        except Exception:
-            pass
-
-        # Otherwise return None which should delegate to intersphinx
 
 
 __minimum_python_version__ = pyproject["project"]["requires-python"].replace(">=", "")
@@ -633,7 +588,3 @@ global_substitutions |= processed_links
 def setup(app):
     # Generate the page from Jinja template
     app.connect("source-read", rstjinja)
-    # Set this to higher priority than intersphinx; this way when building
-    # docs astropy: targets will go to the local docs instead of the
-    # intersphinx mapping
-    app.connect("missing-reference", resolve_astropy_reference, priority=400)

@@ -3,10 +3,10 @@
 Script support for validating a VO file.
 """
 
+import argparse
+
 
 def main(args=None):
-    import argparse
-
     from . import table
 
     parser = argparse.ArgumentParser(

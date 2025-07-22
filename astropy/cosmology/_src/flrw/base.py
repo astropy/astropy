@@ -1,19 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 __all__ = ["FLRW", "FlatFLRWMixin"]
 
 import inspect
 import warnings
-from abc import abstractmethod
 from collections.abc import Mapping
 from dataclasses import field
 from functools import cached_property
 from inspect import signature
-from math import exp, floor, log, pi, sqrt
+from math import floor, pi, sqrt
 from numbers import Number
-from typing import TYPE_CHECKING, Self, TypeVar, overload
+from typing import Self, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
@@ -36,20 +33,19 @@ from astropy.cosmology._src.parameter import (
     validate_with_unit,
 )
 from astropy.cosmology._src.traits import (
+    DarkEnergyComponent,
+    HubbleParameter,
     ScaleFactor,
     TemperatureCMB,
     _BaryonComponent,
     _CriticalDensity,
+    _MatterComponent,
 )
 from astropy.cosmology._src.utils import (
     aszarr,
     deprecated_keywords,
     vectorize_redshift_method,
 )
-
-if TYPE_CHECKING:
-    import astropy.units
-
 
 # isort: split
 if HAS_SCIPY:
@@ -69,8 +65,7 @@ _InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number
 
 # Some conversion constants -- useful to compute them once here and reuse in
 # the initialization rather than have every object do them.
-_H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
-_sec_to_Gyr = u.s.to(u.Gyr)
+
 # angle conversions
 _radian_in_arcsec = (1 * u.rad).to(u.arcsec)
 _radian_in_arcmin = (1 * u.rad).to(u.arcmin)
@@ -94,7 +89,16 @@ ParameterOde0 = Parameter(
 
 
 @dataclass_decorator
-class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComponent):
+class FLRW(
+    Cosmology,
+    HubbleParameter,
+    ScaleFactor,
+    _CriticalDensity,
+    _BaryonComponent,
+    _MatterComponent,
+    DarkEnergyComponent,
+    TemperatureCMB,
+):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
     This is an abstract base class -- you cannot instantiate examples of this
@@ -326,21 +330,6 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
         return self._massivenu
 
     @cached_property
-    def h(self) -> float:
-        """Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]."""
-        return self.H0.value / 100.0
-
-    @cached_property
-    def hubble_time(self) -> u.Quantity:
-        """Hubble time."""
-        return (_sec_to_Gyr / (self.H0.value * _H0units_to_invs)) << u.Gyr
-
-    @cached_property
-    def hubble_distance(self) -> u.Quantity:
-        """Hubble distance."""
-        return (const.c / self.H0).to(u.Mpc)
-
-    @cached_property
     def critical_density0(self) -> u.Quantity:
         r"""Critical mass density at z=0.
 
@@ -369,36 +358,6 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
 
     # ---------------------------------------------------------------
 
-    @abstractmethod
-    @deprecated_keywords("z", since="7.0")
-    def w(self, z):
-        r"""The dark energy equation of state.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        w : ndarray or float
-            The dark energy equation of state.
-            `float` if scalar input.
-
-        Notes
-        -----
-        The dark energy equation of state is defined as
-        :math:`w(z) = P(z)/\rho(z)`, where :math:`P(z)` is the pressure at
-        redshift z and :math:`\rho(z)` is the density at redshift z, both in
-        units where c=1.
-
-        This must be overridden by subclasses.
-        """
-        raise NotImplementedError("w(z) is not implemented")
-
     @deprecated_keywords("z", since="7.0")
     def Otot(self, z):
         """The total density parameter at redshift ``z``.
@@ -418,33 +377,6 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
             Returns float if input scalar.
         """
         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
-
-    @deprecated_keywords("z", since="7.0")
-    def Om(self, z):
-        """Return the density parameter for non-relativistic matter at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Om : ndarray or float
-            The density of non-relativistic matter relative to the critical
-            density at each redshift.
-            Returns `float` if the input is scalar.
-
-        Notes
-        -----
-        This does not include neutrinos, even if non-relativistic at the
-        redshift of interest; see `Onu`.
-        """
-        z = aszarr(z)
-        return self.Om0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Odm(self, z):
@@ -495,30 +427,6 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
         if self.Ok0 == 0:  # Common enough to be worth checking explicitly
             return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
         return self.Ok0 * (z + 1.0) ** 2 * self.inv_efunc(z) ** 2
-
-    @deprecated_keywords("z", since="7.0")
-    def Ode(self, z):
-        """Return the density parameter for dark energy at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Ode : ndarray or float
-            The density of dark energy relative to the critical density at each
-            redshift.
-            Returns `float` if the input is scalar.
-        """
-        z = aszarr(z)
-        if self.Ode0 == 0:  # Common enough to be worth checking explicitly
-            return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
-        return self.Ode0 * self.de_density_scale(z) * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Ogamma(self, z):
@@ -659,80 +567,6 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
         rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
 
         return prefac * self._neff_per_nu * rel_mass
-
-    def _w_integrand(self, ln1pz, /):
-        """Internal convenience function for w(z) integral (eq. 5 of [1]_).
-
-        Parameters
-        ----------
-        ln1pz : `~numbers.Number` or scalar ndarray, positional-only
-            Assumes scalar input, since this should only be called inside an
-            integral.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
-
-        References
-        ----------
-        .. [1] Linder, E. (2003). Exploring the Expansion History of the
-               Universe. Phys. Rev. Lett., 90, 091301.
-        """
-        return 1.0 + self.w(exp(ln1pz) - 1.0)
-
-    @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z):
-        r"""Evaluates the redshift dependence of the dark energy density.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        I : ndarray or float
-            The scaling of the energy density of dark energy with redshift.
-            Returns `float` if the input is scalar.
-
-        Notes
-        -----
-        The scaling factor, I, is defined by :math:`\rho(z) = \rho_0 I`,
-        and is given by
-
-        .. math::
-
-           I = \exp \left( 3 \int_{a}^1 \frac{ da^{\prime} }{ a^{\prime} }
-                          \left[ 1 + w\left( a^{\prime} \right) \right] \right)
-
-        The actual integral used is rewritten from [1]_ to be in terms of z.
-
-        It will generally helpful for subclasses to overload this method if
-        the integral can be done analytically for the particular dark
-        energy equation of state that they implement.
-
-        References
-        ----------
-        .. [1] Linder, E. (2003). Exploring the Expansion History of the
-               Universe. Phys. Rev. Lett., 90, 091301.
-        """
-        # This allows for an arbitrary w(z) following eq (5) of
-        # Linder 2003, PRL 90, 91301.  The code here evaluates
-        # the integral numerically.  However, most popular
-        # forms of w(z) are designed to make this integral analytic,
-        # so it is probably a good idea for subclasses to overload this
-        # method if an analytic form is available.
-        z = aszarr(z)
-        if not isinstance(z, (Number, np.generic)):  # array/Quantity
-            ival = np.array(
-                [quad(self._w_integrand, 0, log(1 + redshift))[0] for redshift in z]
-            )
-            return np.exp(3 * ival)
-        else:  # scalar
-            ival = quad(self._w_integrand, 0, log(z + 1.0))[0]
-            return exp(3 * ival)
 
     @deprecated_keywords("z", since="7.0")
     def efunc(self, z):
@@ -894,25 +728,6 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
         """
         z = aszarr(z)
         return (z + 1.0) ** 2 * self.inv_efunc(z)
-
-    @deprecated_keywords("z", since="7.0")
-    def H(self, z):
-        """Hubble parameter (km/s/Mpc) at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        H : Quantity ['frequency']
-            Hubble parameter at each input redshift.
-        """
-        return self.H0 * self.efunc(z)
 
     @deprecated_keywords("z", since="7.0")
     def lookback_time(self, z):
@@ -1077,16 +892,14 @@ class FLRW(Cosmology, ScaleFactor, TemperatureCMB, _CriticalDensity, _BaryonComp
     # Comoving distance
 
     @overload
-    def comoving_distance(self, z: _InputT) -> astropy.units.Quantity: ...
+    def comoving_distance(self, z: _InputT) -> u.Quantity: ...
 
     @overload
-    def comoving_distance(self, z: _InputT, z2: _InputT) -> astropy.units.Quantity: ...
+    def comoving_distance(self, z: _InputT, z2: _InputT) -> u.Quantity: ...
 
     @deprecated_keywords("z2", since="7.1")
     @deprecated_keywords("z", since="7.0")
-    def comoving_distance(
-        self, z: _InputT, z2: _InputT | None = None
-    ) -> astropy.units.Quantity:
+    def comoving_distance(self, z: _InputT, z2: _InputT | None = None) -> u.Quantity:
         r"""Comoving line-of-sight distance :math:`d_c(z1, z2)` in Mpc.
 
         The comoving distance along the line-of-sight between two objects

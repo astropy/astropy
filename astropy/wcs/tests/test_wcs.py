@@ -569,22 +569,15 @@ def test_crpix_maps_to_crval():
     )
 
 
-def test_all_world2pix(
-    fname=None,
-    ext=0,
-    tolerance=1.0e-4,
-    origin=0,
-    random_npts=25000,
-    adaptive=False,
-    maxiter=20,
-    detect_divergence=True,
-):
+def test_all_world2pix():
     """Test all_world2pix, iterative inverse of all_pix2world"""
 
+    tolerance = 1.0e-4
+    origin = 0
+
     # Open test FITS file:
-    if fname is None:
-        fname = get_pkg_data_filename("data/j94f05bgq_flt.fits")
-        ext = ("SCI", 1)
+    fname = get_pkg_data_filename("data/j94f05bgq_flt.fits")
+    ext = ("SCI", 1)
     if not os.path.isfile(fname):
         raise OSError(f"Input file '{fname:s}' to 'test_all_world2pix' not found.")
     h = fits.open(fname)
@@ -608,7 +601,7 @@ def test_all_world2pix(
 
     # Generate random data (in image coordinates):
     with NumpyRNGContext(123456789):
-        rnd_pix = np.random.rand(random_npts, ncoord)
+        rnd_pix = np.random.rand(25_000, ncoord)
 
     # Scale random data to cover the central part of the image
     mwidth = 2 * (crpix * 1.0 / 8)
@@ -627,9 +620,9 @@ def test_all_world2pix(
             all_world,
             origin,
             tolerance=tolerance,
-            adaptive=adaptive,
-            maxiter=maxiter,
-            detect_divergence=detect_divergence,
+            adaptive=False,
+            maxiter=20,
+            detect_divergence=True,
         )
         runtime_end = datetime.now()
     except wcs.wcs.NoConvergence as e:
@@ -1419,6 +1412,25 @@ def test_naxis():
     w.array_shape = (45, 23)
     assert w._naxis == [23, 45]
     assert w.pixel_shape == (23, 45)
+
+    w.pixel_shape = None
+    assert w.pixel_bounds is None
+
+
+def test_naxis_1d():
+    w = wcs.WCS(
+        {
+            "naxis1": 100,
+            "crval1": 1,
+            "cdelt1": 0.1,
+            "crpix1": 1,
+        }
+    )
+    assert w.pixel_shape == (100,)
+    assert w.array_shape == (100,)
+
+    w.pixel_shape = (99,)
+    assert w._naxis == [99]
 
     w.pixel_shape = None
     assert w.pixel_bounds is None
