@@ -174,6 +174,10 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8, return_maxdiff=False):
     -------
     idx : tuple of array
         Indices where the two arrays differ.
+    max_absolute : float
+        Maximum of absolute difference, returned if ``return_maxdiff=True``.
+    max_relative : float
+        Maximum of relative difference, returned if ``return_maxdiff=True``.
 
     """
     # Create fixed mask arrays to handle INF and NaN; currently INF and NaN
