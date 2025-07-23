@@ -32,20 +32,20 @@ API, please see the :ref:`changelog`.
 
 Cosmology
 =========
-A traits class in cosmology for the Hubble Parameter. Which provides H0 as a trait along with additional methods.
-The :mod:`~astropy.cosmology.traits` module provides reusable components, called
-:term:`traits <trait type>`, that encapsulate specific cosmological properties or
-behaviors. For example, the :class:`~astropy.cosmology.traits.HubbleParameter` trait
-provides the Hubble constant (``H0``) and related methods, while
-:class:`~astropy.cosmology.traits.ScaleFactor`,
+A traits class in cosmology for the Hubble Parameter. Which provides H0 as a trait along
+with additional methods. The :mod:`~astropy.cosmology.traits` module provides reusable
+components, called :term:`traits <trait type>`, that encapsulate specific cosmological
+properties or behaviors. For example, the
+:class:`~astropy.cosmology.traits.HubbleParameter` trait provides the Hubble constant
+(``H0``) and related methods, while :class:`~astropy.cosmology.traits.ScaleFactor`,
 :class:`~astropy.cosmology.traits.TemperatureCMB`, and
 :class:`~astropy.cosmology.traits.DarkEnergyComponent` provide the scale factor, the
-temperature or the CMB, and the Dark Energy component, respectively.
-Here is an example of how to use the
-:class:`~astropy.cosmology.traits.HubbleParameter`,
+temperature or the CMB, and the Dark Energy component, respectively. Here is an example
+of how to use the :class:`~astropy.cosmology.traits.HubbleParameter`,
 :class:`~astropy.cosmology.traits.ScaleFactor`,
 :class:`~astropy.cosmology.traits.TemperatureCMB`, and
-:class:`~astropy.cosmology.traits.DarkEnergyComponent` traits in a custom cosmology class:
+:class:`~astropy.cosmology.traits.DarkEnergyComponent` traits in a custom cosmology
+class:
 
 >>> import astropy.units as u
 >>> from astropy.cosmology.traits import HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent
@@ -74,3 +74,15 @@ Here is an example of how to use the
 
 By combining these traits, you can easily construct custom cosmology classes with
 precisely the features you need, without having to reimplement common functionality.
+
+There is also a new unit equivalency for converting redshift to/from recessional
+velocity in cosmological calculations.
+
+>>> import astropy.cosmology.units as cu
+>>> from astropy.cosmology import WMAP9
+
+.. doctest-requires:: scipy
+
+    >>> z = 1100 * cu.redshift
+    >>> z.to(u.km / u.s, cu.redshift_recessional_velocity(WMAP9))
+    <Quantity 2.19252356e+10 km / s>
