@@ -832,7 +832,9 @@ class Double(FloatingPoint):
         data = read(8)
         if len(data) != 8:
             raise EOFError("Unexpected end of file")
-        return fast_binparse_double(data)
+        value, _ = fast_binparse_double(data)
+        is_null = self.is_null(value)
+        return value, is_null
 
 
 class Float(FloatingPoint):
@@ -971,7 +973,9 @@ class Int(Integer):
         data = read(4)
         if len(data) != 4:
             raise EOFError("Unexpected end of file")
-        return fast_binparse_int(data)
+        value, _ = fast_binparse_int(data)
+        is_null = self.is_null(value)
+        return value, is_null
 
 
 class Long(Integer):
@@ -987,7 +991,9 @@ class Long(Integer):
         data = read(8)
         if len(data) != 8:
             raise EOFError("Unexpected end of file")
-        return fast_binparse_long(data)
+        value, _ = fast_binparse_long(data)
+        is_null = self.is_null(value)
+        return value, is_null
 
 
 class ComplexArrayVarArray(VarArray):
@@ -1173,7 +1179,6 @@ class BitArray(NumericArray):
     def binoutput(self, value, mask):
         if np.any(mask):
             vo_warn(W39)
-
         return bool_to_bitarray(value)
 
 
