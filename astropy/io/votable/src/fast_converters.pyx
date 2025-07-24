@@ -29,8 +29,17 @@ ctypedef cnp.uint8_t bool_t
 
 cdef bint NEED_BYTESWAP = sys.byteorder == 'little'
 
-def fast_bitarray_to_bool(const unsigned char[::1] data, int length):
+def fast_bitarray_to_bool(data, int length):
     """Convert packed bits to bool array"""
+    cdef const unsigned char[::1] byte_data
+
+    if hasattr(data, 'tobytes'):
+        byte_data = memoryview(data.tobytes())
+    elif isinstance(data, (bytes, bytearray)):
+        byte_data = memoryview(data)
+    else:
+        byte_data = data
+
     cdef cnp.ndarray[bool_t, ndim=1] results = np.empty(length, dtype=np.bool_)
     cdef int i = 0
     cdef int byte_idx = 0
@@ -38,8 +47,8 @@ def fast_bitarray_to_bool(const unsigned char[::1] data, int length):
     cdef unsigned char byte_val
     cdef bool_t bit_val
 
-    while i < length and byte_idx < data.shape[0]:
-        byte_val = data[byte_idx]
+    while i < length and byte_idx < byte_data.shape[0]:
+        byte_val = byte_data[byte_idx]
         for bit_no in range(7, -1, -1):
             if i >= length:
                 break
@@ -50,21 +59,28 @@ def fast_bitarray_to_bool(const unsigned char[::1] data, int length):
 
     return results
 
-def fast_bool_to_bitarray(const bool_t[::1] value):
-    """Pack bools into bit array - reverse of above."""
-    cdef int length = value.shape[0]
+def fast_bool_to_bitarray(value):
+    """
+    Cython implementation of bool_to_bitarray.
+    """
+    if np.isscalar(value):
+        flat_array = np.array([bool(value)], dtype=np.bool_)
+    else:
+        value_array = np.asarray(value, dtype=np.bool_)
+        flat_array = value_array.ravel()
+
+    cdef int length = len(flat_array)
     cdef int num_bytes = (length + 7) // 8
     cdef cnp.ndarray[unsigned char, ndim=1] result = np.zeros(num_bytes, dtype=np.uint8)
 
     cdef int i
     cdef int byte_idx
     cdef int bit_no
-    cdef unsigned char byte_val
 
     for i in range(length):
         byte_idx = i // 8
         bit_no = 7 - (i % 8)
-        if value[i]:
+        if flat_array[i]:
             result[byte_idx] |= (1 << bit_no)
 
     return result.tobytes()
