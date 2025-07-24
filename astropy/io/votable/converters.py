@@ -689,6 +689,15 @@ class Numeric(Converter):
     vararray_type = ScalarVarArray
     null = None
 
+    _FAST_BINPARSE_FUNCTIONS = {
+        "f8": fast_binparse_double,
+        "f4": fast_binparse_float,
+        "i8": fast_binparse_long,
+        "i4": fast_binparse_int,
+        "i2": fast_binparse_short,
+        "u1": fast_binparse_ubyte,
+    }
+
     def __init__(self, field, config=None, pos=None):
         Converter.__init__(self, field, config, pos)
 
@@ -702,8 +711,16 @@ class Numeric(Converter):
             self.is_null = np.isnan
 
     def binparse(self, read):
-        result = np.frombuffer(read(self._memsize), dtype=self._bigendian_format)
-        return result[0], self.is_null(result[0])
+        """Generic fast binparse for all numeric types."""
+        data = read(self._memsize)
+        fast_function = self._FAST_BINPARSE_FUNCTIONS.get(self.format)
+        if fast_function:
+            value, _ = fast_function(data)
+            is_null = self.is_null(value)
+            return value, is_null
+        else:
+            result = np.frombuffer(data, dtype=self._bigendian_format)
+            return result[0], self.is_null(result[0])
 
     def _is_null(self, value):
         return value == self.null
@@ -822,19 +839,10 @@ class FloatingPoint(Numeric):
 
 class Double(FloatingPoint):
     """
-    Handles the double datatype.  Double-precision IEEE
-    floating-point.
+    Handles the double datatype.  Double-precision IEEE floating-point.
     """
 
     format = "f8"
-
-    def binparse(self, read):
-        data = read(8)
-        if len(data) != 8:
-            raise EOFError("Unexpected end of file")
-        value, _ = fast_binparse_double(data)
-        is_null = self.is_null(value)
-        return value, is_null
 
 
 class Float(FloatingPoint):
@@ -843,12 +851,6 @@ class Float(FloatingPoint):
     """
 
     format = "f4"
-
-    def binparse(self, read):
-        data = read(4)
-        if len(data) != 4:
-            raise EOFError("Unexpected end of file")
-        return fast_binparse_float(data)
 
 
 class Integer(Numeric):
@@ -937,12 +939,6 @@ class UnsignedByte(Integer):
     val_range = (0, 255)
     bit_size = "8-bit unsigned"
 
-    def binparse(self, read):
-        data = read(1)
-        if len(data) != 1:
-            raise EOFError("Unexpected end of file")
-        return fast_binparse_ubyte(data)
-
 
 class Short(Integer):
     """
@@ -952,12 +948,6 @@ class Short(Integer):
     format = "i2"
     val_range = (-32768, 32767)
     bit_size = "16-bit"
-
-    def binparse(self, read):
-        data = read(2)
-        if len(data) != 2:
-            raise EOFError("Unexpected end of file")
-        return fast_binparse_short(data)
 
 
 class Int(Integer):
@@ -969,14 +959,6 @@ class Int(Integer):
     val_range = (-2147483648, 2147483647)
     bit_size = "32-bit"
 
-    def binparse(self, read):
-        data = read(4)
-        if len(data) != 4:
-            raise EOFError("Unexpected end of file")
-        value, _ = fast_binparse_int(data)
-        is_null = self.is_null(value)
-        return value, is_null
-
 
 class Long(Integer):
     """
@@ -986,14 +968,6 @@ class Long(Integer):
     format = "i8"
     val_range = (-9223372036854775808, 9223372036854775807)
     bit_size = "64-bit"
-
-    def binparse(self, read):
-        data = read(8)
-        if len(data) != 8:
-            raise EOFError("Unexpected end of file")
-        value, _ = fast_binparse_long(data)
-        is_null = self.is_null(value)
-        return value, is_null
 
 
 class ComplexArrayVarArray(VarArray):
@@ -1219,8 +1193,6 @@ class Bit(Converter):
 
     def binparse(self, read):
         data = read(1)
-        if len(data) != 1:
-            raise EOFError("Unexpected end of file")
         return fast_binparse_bit(data)
 
     def binoutput(self, value, mask):
@@ -1304,8 +1276,6 @@ class Boolean(Converter):
 
     def binparse(self, read):
         data = read(1)
-        if len(data) != 1:
-            raise EOFError("Unexpected end of file")
         return fast_binparse_bool(data)
 
     _binparse_mapping = {
