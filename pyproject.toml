@@ -266,6 +266,8 @@ markers = [
 # We disable testing for the following wheels:
 # - MuslLinux (tests hang non-deterministically)
 test-skip = "*-musllinux_x86_64"
+enable = ["cpython-prerelease"] # this line can be removed when cibuildwheel is bumped to 3.1.0 or newer
+skip = ["cp314t-*"] # https://github.com/astropy/astropy/issues/16916
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
