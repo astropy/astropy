@@ -43,10 +43,10 @@ def test_matching_function():
     npt.assert_array_almost_equal(d2d.degree, [0, 0.1])
     assert d3d.value[0] == 0
 
-    idx, d2d, d3d = match_coordinates_3d(cmatch, ccatalog, nthneighbor=2)
-    assert np.all(idx == 2)
-    npt.assert_array_almost_equal(d2d.degree, [1, 0.9])
-    npt.assert_array_less(d3d.value, 0.02)
+    results = match_coordinates_3d(cmatch, ccatalog, nthneighbor=2)
+    assert np.all(results.indices_to_catalog == 2)
+    npt.assert_array_almost_equal(results.angular_separation.degree, [1, 0.9])
+    npt.assert_array_less(results.physical_separation.value, 0.02)
 
 
 def test_matching_function_3d_and_sky():
@@ -144,11 +144,11 @@ def test_matching_method():
 
     # should be the same as above because there's no distance, but just make sure this method works
     idx1, d2d1, d3d1 = SkyCoord(cmatch).match_to_catalog_sky(ccatalog)
-    idx2, d2d2, d3d2 = match_coordinates_sky(cmatch, ccatalog)
+    results = match_coordinates_sky(cmatch, ccatalog)
 
-    npt.assert_array_equal(idx1, idx2)
-    assert_allclose(d2d1, d2d2)
-    assert_allclose(d3d1, d3d2)
+    npt.assert_array_equal(idx1, results.indices_to_catalog)
+    assert_allclose(d2d1, results.angular_separation)
+    assert_allclose(d3d1, results.physical_separation)
 
     assert len(idx1) == len(d2d1) == len(d3d1) == 20
 
@@ -301,15 +301,15 @@ def test_search_around_no_matches(function, search_limit):
 )
 def test_search_around_empty_input(sources, catalog, function, search_limit):
     # Test when one or both of the coordinate arrays is empty, #4875
-    idx1, idx2, d2d, d3d = function(sources, catalog, search_limit)
-    assert idx1.size == 0
-    assert idx2.size == 0
-    assert d2d.size == 0
-    assert d3d.size == 0
-    assert idx1.dtype == int
-    assert idx2.dtype == int
-    assert d2d.unit == u.deg
-    assert d3d.unit == u.kpc
+    result = function(sources, catalog, search_limit)
+    assert result.indices_to_first_set.size == 0
+    assert result.indices_to_second_set.size == 0
+    assert result.angular_separation.size == 0
+    assert result.physical_separation.size == 0
+    assert result.indices_to_first_set.dtype == int
+    assert result.indices_to_second_set.dtype == int
+    assert result.angular_separation.unit == u.deg
+    assert result.physical_separation.unit == u.kpc
 
 
 @pytest.mark.parametrize(
