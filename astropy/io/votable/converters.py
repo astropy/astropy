@@ -689,15 +689,6 @@ class Numeric(Converter):
     vararray_type = ScalarVarArray
     null = None
 
-    _FAST_BINPARSE_FUNCTIONS = {
-        "f8": fast_binparse_double,
-        "f4": fast_binparse_float,
-        "i8": fast_binparse_long,
-        "i4": fast_binparse_int,
-        "i2": fast_binparse_short,
-        "u1": fast_binparse_ubyte,
-    }
-
     def __init__(self, field, config=None, pos=None):
         Converter.__init__(self, field, config, pos)
 
@@ -711,16 +702,8 @@ class Numeric(Converter):
             self.is_null = np.isnan
 
     def binparse(self, read):
-        """Generic fast binparse for all numeric types."""
-        data = read(self._memsize)
-        fast_function = self._FAST_BINPARSE_FUNCTIONS.get(self.format)
-        if fast_function:
-            value, _ = fast_function(data)
-            is_null = self.is_null(value)
-            return value, is_null
-        else:
-            result = np.frombuffer(data, dtype=self._bigendian_format)
-            return result[0], self.is_null(result[0])
+        result = np.frombuffer(read(self._memsize), dtype=self._bigendian_format)
+        return result[0], self.is_null(result[0])
 
     def _is_null(self, value):
         return value == self.null
@@ -738,6 +721,13 @@ class FloatingPoint(Numeric):
             config = {}
 
         Numeric.__init__(self, field, config, pos)
+
+        if self.null is not None:
+            self._fast_null_param = float(self.null)
+            self._fast_has_null = True
+        else:
+            self._fast_null_param = 0.0
+            self._fast_has_null = False
 
         precision = field.precision
         width = field.width
@@ -844,6 +834,10 @@ class Double(FloatingPoint):
 
     format = "f8"
 
+    def binparse(self, read):
+        data = read(8)
+        return fast_binparse_double(data, 0, self._fast_null_param, self._fast_has_null)
+
 
 class Float(FloatingPoint):
     """
@@ -851,6 +845,10 @@ class Float(FloatingPoint):
     """
 
     format = "f4"
+
+    def binparse(self, read):
+        data = read(4)
+        return fast_binparse_float(data, 0, self._fast_null_param, self._fast_has_null)
 
 
 class Integer(Numeric):
@@ -862,6 +860,13 @@ class Integer(Numeric):
 
     def __init__(self, field, config=None, pos=None):
         Numeric.__init__(self, field, config, pos)
+
+        if self.null is not None:
+            self._fast_null_param = int(self.null)
+            self._fast_has_null = True
+        else:
+            self._fast_null_param = 0
+            self._fast_has_null = False
 
     def parse(self, value, config=None, pos=None):
         if config is None:
@@ -939,6 +944,10 @@ class UnsignedByte(Integer):
     val_range = (0, 255)
     bit_size = "8-bit unsigned"
 
+    def binparse(self, read):
+        data = read(1)
+        return fast_binparse_ubyte(data, 0, self._fast_null_param, self._fast_has_null)
+
 
 class Short(Integer):
     """
@@ -948,6 +957,10 @@ class Short(Integer):
     format = "i2"
     val_range = (-32768, 32767)
     bit_size = "16-bit"
+
+    def binparse(self, read):
+        data = read(2)
+        return fast_binparse_short(data, 0, self._fast_null_param, self._fast_has_null)
 
 
 class Int(Integer):
@@ -959,6 +972,10 @@ class Int(Integer):
     val_range = (-2147483648, 2147483647)
     bit_size = "32-bit"
 
+    def binparse(self, read):
+        data = read(4)
+        return fast_binparse_int(data, 0, self._fast_null_param, self._fast_has_null)
+
 
 class Long(Integer):
     """
@@ -968,6 +985,10 @@ class Long(Integer):
     format = "i8"
     val_range = (-9223372036854775808, 9223372036854775807)
     bit_size = "64-bit"
+
+    def binparse(self, read):
+        data = read(8)
+        return fast_binparse_long(data, 0, self._fast_null_param, self._fast_has_null)
 
 
 class ComplexArrayVarArray(VarArray):

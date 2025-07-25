@@ -104,8 +104,8 @@ cdef inline void swap_bytes_16(unsigned char* data) noexcept nogil:
     cdef unsigned char temp
     temp = data[0]; data[0] = data[1]; data[1] = temp
 
-
-def fast_binparse_double(const unsigned char[::1] data, int offset=0):
+def fast_binparse_double(const unsigned char[::1] data,
+        int offset=0, double null_value=0.0, bint has_custom_null=False):
     """Parse 8-byte double from big-endian VOTable data."""
     cdef float64_t value
     cdef unsigned char temp_data[8]
@@ -119,12 +119,16 @@ def fast_binparse_double(const unsigned char[::1] data, int offset=0):
 
     value = (<float64_t*>temp_data)[0]
 
-    cdef bint is_null = value != value
+    cdef bint is_null
+    if has_custom_null:
+        is_null = (value == null_value)
+    else:
+        is_null = (value != value)
 
     return value, is_null
 
-
-def fast_binparse_float(const unsigned char[::1] data, int offset=0):
+def fast_binparse_float(const unsigned char[::1] data,
+        int offset=0, float null_value=0.0, bint has_custom_null=False):
     """Parse 4-byte float."""
     cdef float32_t value
     cdef unsigned char temp_data[4]
@@ -138,11 +142,16 @@ def fast_binparse_float(const unsigned char[::1] data, int offset=0):
 
     value = (<float32_t*>temp_data)[0]
 
-    cdef bint is_null = value != value
+    cdef bint is_null
+    if has_custom_null:
+        is_null = (value == null_value)
+    else:
+        is_null = (value != value)
 
     return value, is_null
 
-def fast_binparse_long(const unsigned char[::1] data, int offset=0):
+def fast_binparse_long(const unsigned char[::1] data,
+        int offset=0, long null_value=0, bint has_custom_null=False):
     """Parse 8-byte signed integer."""
     cdef int64_t value
     cdef unsigned char temp_data[8]
@@ -156,9 +165,14 @@ def fast_binparse_long(const unsigned char[::1] data, int offset=0):
 
     value = (<int64_t*>temp_data)[0]
 
-    return value, False
+    cdef bint is_null = False
+    if has_custom_null:
+        is_null = (value == null_value)
 
-def fast_binparse_int(const unsigned char[::1] data, int offset=0):
+    return value, is_null
+
+def fast_binparse_int(const unsigned char[::1] data,
+        int offset=0, int null_value=0, bint has_custom_null=False):
     """Parse 4-byte signed int."""
     cdef int32_t value
     cdef unsigned char temp_data[4]
@@ -172,9 +186,14 @@ def fast_binparse_int(const unsigned char[::1] data, int offset=0):
 
     value = (<int32_t*>temp_data)[0]
 
-    return value, False
+    cdef bint is_null = False
+    if has_custom_null:
+        is_null = (value == null_value)
 
-def fast_binparse_short(const unsigned char[::1] data, int offset=0):
+    return value, is_null
+
+def fast_binparse_short(const unsigned char[::1] data, int offset=0,
+        short null_value=0, bint has_custom_null=False):
     """Parse 2-byte signed short."""
     cdef int16_t value
     cdef unsigned char temp_data[2]
@@ -188,12 +207,22 @@ def fast_binparse_short(const unsigned char[::1] data, int offset=0):
 
     value = (<int16_t*>temp_data)[0]
 
-    return value, False
+    cdef bint is_null = False
+    if has_custom_null:
+        is_null = (value == null_value)
 
-def fast_binparse_ubyte(const unsigned char[::1] data, int offset=0):
-    """Parse unsigned byte. """
+    return value, is_null
+
+def fast_binparse_ubyte(const unsigned char[::1] data, int offset=0,
+        unsigned char null_value=0, bint has_custom_null=False):
+    """Parse unsigned byte."""
     cdef uint8_t value = data[offset]
-    return value, False
+
+    cdef bint is_null = False
+    if has_custom_null:
+        is_null = (value == null_value)
+
+    return value, is_null
 
 def fast_binparse_bool(const unsigned char[::1] data, int offset=0):
     """Parse boolean from character representation."""
