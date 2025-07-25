@@ -64,9 +64,6 @@ lint.ignore = [
     # NOTE: be careful that developer notes are kept.
     "ERA001",  # commented-out-code
 
-    # flake8-executable (EXE)
-    "EXE002",  # shebang-missing-executable-file
-
     # Pyflakes (F)
     "F841",  # unused-variable
 
@@ -305,7 +302,6 @@ lint.unfixable = [
     "PTH",      # all flake8-use-pathlib
 ]
 "astropy/time/*" = [
-    "B007",  # UnusedLoopControlVariable
     "FIX003",  # Line contains XXX.  replace XXX with TODO
     "PIE794",  # duplicate-class-field-definition
     "PLC0415",  # import-outside-top-level

@@ -1,0 +1,1 @@
+Modified the constructor for ``astropy.io.votable.tree.TableElement`` to use the version configuration information from the parent ``VOTableFile`` instance. This allows for better handling of version-specific features and ensures that the table element is created with the correct context regarding the VOTable version.
