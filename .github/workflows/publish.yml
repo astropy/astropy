@@ -56,6 +56,7 @@ jobs:
         - cp311-manylinux_x86_64
         - cp312-manylinux_x86_64
         - cp313-manylinux_x86_64
+        - cp314-manylinux_x86_64
 
         - target: cp311-manylinux_aarch64
           runs-on: ubuntu-24.04-arm
@@ -63,11 +64,14 @@ jobs:
           runs-on: ubuntu-24.04-arm
         - target: cp313-manylinux_aarch64
           runs-on: ubuntu-24.04-arm
+        - target: cp314-manylinux_aarch64
+          runs-on: ubuntu-24.04-arm
 
         # Note that following wheels are not currently tested:
         - cp311-musllinux_x86_64
         - cp312-musllinux_x86_64
         - cp313-musllinux_x86_64
+        - cp314-musllinux_x86_64
 
         # MacOS X wheels - as noted in https://github.com/astropy/astropy/pull/12379 we deliberately
         # do not build universal2 wheels.
@@ -75,20 +79,24 @@ jobs:
         - cp311*macosx_x86_64
         - cp312*macosx_x86_64
         - cp313*macosx_x86_64
+        - cp314*macosx_x86_64
 
         - cp311*macosx_arm64
         - cp312*macosx_arm64
         - cp313*macosx_arm64
+        - cp314*macosx_arm64
 
         # Windows wheels
 
         - cp311*win32
         - cp312*win32
         - cp313*win32
+        - cp314*win32
 
         - cp311*win_amd64
         - cp312*win_amd64
         - cp313*win_amd64
+        - cp314*win_amd64
 
     secrets:
       pypi_token: ${{ secrets.pypi_token }}
