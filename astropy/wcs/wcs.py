@@ -424,9 +424,14 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         fix=True,
         translate_units="",
         _do_set=True,
-        preserve_units=False,
+        preserve_units=None,
     ):
         close_fds = []
+
+        if preserve_units is None:
+            from astropy.wcs import default_preserve_units
+
+            preserve_units = default_preserve_units.get()
 
         # these parameters are stored to be used when unpickling a WCS object:
         self._init_kwargs = {
