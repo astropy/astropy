@@ -51,6 +51,7 @@ from astropy.utils.exceptions import (
     AstropyUserWarning,
     AstropyWarning,
 )
+from astropy.utils.state import ScienceState
 
 from . import _wcs, docstrings
 
@@ -81,6 +82,7 @@ __all__ = [
     "WcsError",
     "Wcsprm",
     "Wtbarr",
+    "default_preserve_units",
     "find_all_wcs",
     "validate",
 ]
@@ -180,6 +182,11 @@ WCSHDO_SIP = 0x80000
 # range of 0-19, followed by an underscore and another number in range of 0-19.
 # Keyword optionally ends with a capital letter.
 SIP_KW = re.compile("""^[AB]P?_1?[0-9]_1?[0-9][A-Z]?$""")
+
+
+class default_preserve_units(ScienceState):
+    _default_value = False
+    _value = False
 
 
 def _parse_keysel(keysel):
@@ -429,8 +436,6 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         close_fds = []
 
         if preserve_units is None:
-            from astropy.wcs import default_preserve_units
-
             preserve_units = default_preserve_units.get()
 
         # these parameters are stored to be used when unpickling a WCS object:

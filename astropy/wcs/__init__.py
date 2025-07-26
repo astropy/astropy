@@ -24,8 +24,6 @@ Each of these transformations can be used independently or together in
 a standard pipeline.
 """
 
-from astropy.utils.state import ScienceState
-
 from . import utils
 from .wcs import *
 from .wcs import InvalidTabularParametersError  # just for docs
@@ -38,8 +36,3 @@ def get_include():
     import os
 
     return os.path.join(os.path.dirname(__file__), "include")
-
-
-class default_preserve_units(ScienceState):
-    _default_value = False
-    _value = False
