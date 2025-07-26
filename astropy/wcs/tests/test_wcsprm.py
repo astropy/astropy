@@ -410,7 +410,7 @@ def test_fix():
         "celfix": "No change",
     }
 
-    version = wcs._wcs.__version__
+    version = wcs.__wcslib_version__
     if Version(version) <= Version("5"):
         del fix_ref["obsfix"]
 
@@ -438,7 +438,7 @@ def test_fix2():
         "unitfix": "No change",
         "celfix": "No change",
     }
-    version = wcs._wcs.__version__
+    version = wcs.__wcslib_version__
     if Version(version) <= Version("5"):
         del fix_ref["obsfix"]
         fix_ref["datfix"] = "Changed '31/12/99' to '1999-12-31'"
@@ -471,7 +471,7 @@ def test_fix3():
         "celfix": "No change",
     }
 
-    version = wcs._wcs.__version__
+    version = wcs.__wcslib_version__
     if Version(version) <= Version("5"):
         del fix_ref["obsfix"]
         fix_ref["datfix"] = "Invalid parameter value: invalid date '31/12/F9'"
@@ -1167,11 +1167,11 @@ def test_datebeg():
         "celfix": "No change",
     }
 
-    if Version(wcs._wcs.__version__) >= Version("7.3"):
+    if Version(wcs.__wcslib_version__) >= Version("7.3"):
         fix_ref["datfix"] = (
             "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref["datfix"]
         )
-    elif Version(wcs._wcs.__version__) >= Version("7.1"):
+    elif Version(wcs.__wcslib_version__) >= Version("7.1"):
         fix_ref["datfix"] = (
             "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref["datfix"]
         )
