@@ -30,7 +30,7 @@ from astropy.units import Quantity, UnitsWarning
 from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
-from astropy.wcs.wcs import WCS, FITSFixedWarning, NoConvergence, Sip, WCSLIB_VERSION
+from astropy.wcs.wcs import WCS, WCSLIB_VERSION, FITSFixedWarning, NoConvergence, Sip
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES, custom_ctype_to_ucd_mapping
 
 ###############################################################################

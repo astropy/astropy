@@ -40,7 +40,7 @@ from astropy.wcs.wcs import WCSLIB_VERSION
 
 # NOTE: User can choose to use system wcslib instead of bundled.
 def ctx_for_v71_dateref_warnings():
-    if Version(WCSLIB_VERSION) >= Version("7.1") and Version(WCSLIB_VERSION) < Version("7.3"):
+    if Version("7.1") <= Version(WCSLIB_VERSION) < Version("7.3"):
         ctx = pytest.warns(
             wcs.FITSFixedWarning,
             match=(
