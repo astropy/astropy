@@ -519,9 +519,11 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         fix=True,
         translate_units="",
         _do_set=True,
-        preserve_units=False,
+        preserve_units=None,
     ):
         close_fds = []
+
+        self._preserve_units = False if preserve_units is None else preserve_units
 
         # these parameters are stored to be used when unpickling a WCS object:
         self._init_kwargs = {
@@ -3679,6 +3681,16 @@ reduce these to 2 dimensions using the naxis kwarg.
         pccd = np.dot(cdelt, pc)
 
         return pccd
+
+    @property
+    def preserve_units(self):
+        """
+        Indicates whether the ``WCS`` class is preserving the original units.
+
+        If `True`, units are always kept as specified, whereas is `False`, some
+        units may in some cases be converted to SI or degrees.
+        """
+        return self._preserve_units
 
     def footprint_contains(self, coord, **kwargs):
         """
