@@ -410,7 +410,7 @@ def test_fix():
         "celfix": "No change",
     }
 
-    version = wcs.__wcslib_version__
+    version = _wcs.WCSLIB_VERSION
     if Version(version) <= Version("5"):
         del fix_ref["obsfix"]
 
@@ -438,7 +438,7 @@ def test_fix2():
         "unitfix": "No change",
         "celfix": "No change",
     }
-    version = wcs.__wcslib_version__
+    version = _wcs.WCSLIB_VERSION
     if Version(version) <= Version("5"):
         del fix_ref["obsfix"]
         fix_ref["datfix"] = "Changed '31/12/99' to '1999-12-31'"
@@ -471,7 +471,7 @@ def test_fix3():
         "celfix": "No change",
     }
 
-    version = wcs.__wcslib_version__
+    version = _wcs.WCSLIB_VERSION
     if Version(version) <= Version("5"):
         del fix_ref["obsfix"]
         fix_ref["datfix"] = "Invalid parameter value: invalid date '31/12/F9'"
@@ -1167,11 +1167,11 @@ def test_datebeg():
         "celfix": "No change",
     }
 
-    if Version(wcs.__wcslib_version__) >= Version("7.3"):
+    if Version(_wcs.WCSLIB_VERSION) >= Version("7.3"):
         fix_ref["datfix"] = (
             "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref["datfix"]
         )
-    elif Version(wcs.__wcslib_version__) >= Version("7.1"):
+    elif Version(_wcs.WCSLIB_VERSION) >= Version("7.1"):
         fix_ref["datfix"] = (
             "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref["datfix"]
         )
@@ -1236,7 +1236,7 @@ def test_num_keys(key):
 def test_array_keys(key):
     w = _wcs.Wcsprm()
     attr = getattr(w, key)
-    if key == "mjdref" and Version(_wcs.__version__) >= Version("7.1"):
+    if key == "mjdref" and Version(_wcs.WCSLIB_VERSION) >= Version("7.1"):
         assert np.allclose(attr, [0, 0])
     else:
         assert np.all(np.isnan(attr))
