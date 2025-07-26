@@ -82,6 +82,7 @@ from ._wcs import (
     WCSHDR_PIXLIST,
     WCSHDR_RADECSYS,
     WCSHDR_VSOURCE,
+    WCSLIB_VERSION,
     WCSSUB_CELESTIAL,
     WCSSUB_CUBEFACE,
     WCSSUB_LATITUDE,
@@ -136,7 +137,6 @@ from ._wcs import (
     _sanity_check,
     set_wtbarr_fitsio_callback,
 )
-from ._wcs import __version__ as __wcslib_version__
 from ._wcs import _Wcs as WCSBase
 from ._wcs import find_all_wcs as find_all_wcs_c
 
@@ -234,7 +234,7 @@ __all__ = [
 __doctest_skip__ = ["WCS.all_world2pix"]
 
 
-if Version(__wcslib_version__) < Version("5.8"):
+if Version(WCSLIB_VERSION) < Version("5.8"):
     raise ImportError(
         "astropy.wcs is built with wcslib {0}, but only versions 5.8 and "
         "later on the 5.x series are known to work.  The version of wcslib "
@@ -246,9 +246,9 @@ if not _sanity_check():
         "astropy.wcs did not pass its sanity check for your build on your platform."
     )
 
-_WCSSUB_TIME_SUPPORT = Version(__wcslib_version__) >= Version("7.8")
-_WCS_TPD_WARN_LT71 = Version(__wcslib_version__) < Version("7.1")
-_WCS_TPD_WARN_LT74 = Version(__wcslib_version__) < Version("7.4")
+_WCSSUB_TIME_SUPPORT = Version(WCSLIB_VERSION) >= Version("7.8")
+_WCS_TPD_WARN_LT71 = Version(WCSLIB_VERSION) < Version("7.1")
+_WCS_TPD_WARN_LT74 = Version(WCSLIB_VERSION) < Version("7.4")
 
 
 # Set coordinate extraction callback for WCS -TAB:
@@ -3015,7 +3015,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     if kw[:5] in ("CPDIS", "CQDIS") and val == "TPD":
                         warnings.warn(
                             f"WCS contains a TPD distortion model in {kw}. WCSLIB"
-                            f" {__wcslib_version__} is writing this in a format"
+                            f" {WCSLIB_VERSION} is writing this in a format"
                             " incompatible with current versions - please update to"
                             " 7.4 or use the bundled WCSLIB.",
                             AstropyWarning,
@@ -3026,7 +3026,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                         warnings.warn(
                             f"WCS contains a TPD distortion model in {kw}, which"
                             " requires WCSLIB 7.4 or later to store in a FITS header"
-                            f" (having {__wcslib_version__}).",
+                            f" (having {WCSLIB_VERSION}).",
                             AstropyWarning,
                         )
         else:
@@ -3628,7 +3628,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         if not _WCSSUB_TIME_SUPPORT:
             raise NotImplementedError(
                 "Support for 'temporal' axis requires WCSLIB version 7.8 or "
-                f"greater but linked WCSLIB version is {__wcslib_version__}"
+                f"greater but linked WCSLIB version is {WCSLIB_VERSION}"
             )
 
         return self.sub([WCSSUB_TIME])  # Defined by C-ext
