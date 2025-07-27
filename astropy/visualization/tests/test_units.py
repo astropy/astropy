@@ -10,6 +10,8 @@ if HAS_PLT:
     from matplotlib.figure import Figure
     from matplotlib.units import ConversionError
 
+from unittest.mock import MagicMock
+
 import numpy as np
 
 from astropy import units as u
@@ -158,3 +160,94 @@ def test_small_range():
 
     # check uniqueness of labels
     assert len(set(labels)) == len(labels)
+
+
+@pytest.fixture
+def mock_axis():
+    """Creates a mock axis with a mock axes container."""
+    mock_axes = MagicMock()
+    mock_axis = MagicMock()
+    mock_axes = mock_axis.axes
+    mock_axes.xaxis = MagicMock()
+    mock_axes.yaxis = MagicMock()
+    return mock_axis
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_decide_label_length_x_axis_meters(mock_axis):
+    """Test when unit is meters and X-axis label exists."""
+    labels = ["Meters Values", "Centimeters Values"]
+    mock_axis.axes.xaxis = type(mock_axis)  # Simulate X-axis
+    assert quantity_support(labels).decide_label(mock_axis, u.m) == "Meters Values(m)"
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_decide_label_length_y_axis_centimeters(mock_axis):
+    """Test when unit is centimeter and Y-axis label exists."""
+    labels = ["Meters Values", "Centimeters Values"]
+    mock_axis.axes.yaxis = type(mock_axis)  # Simulate X-axis
+    assert (
+        quantity_support(labels).decide_label(mock_axis, u.cm)
+        == "Centimeters Values(cm)"
+    )
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_decide_label_length_x_axis_centimeters(mock_axis):
+    """Test when unit is centimeters and X-axis label exists."""
+    labels = ["Centimeters Values", "Meters Values"]
+    mock_axis.axes.xaxis = type(mock_axis)  # Simulate X-axis
+    assert (
+        quantity_support(labels).decide_label(mock_axis, u.cm)
+        == "Centimeters Values(cm)"
+    )
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_decide_label_length_y_axis_meters(mock_axis):
+    """Test when unit is radian and Y-axis label exists."""
+    labels = ["Centimeters", "Meters Values"]
+    mock_axis.axes.yaxis = type(mock_axis)  # Simulate X-axis
+    assert quantity_support(labels).decide_label(mock_axis, u.m) == "Meters Values(m)"
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_decide_label_x_axis_rad(mock_axis):
+    """Test when unit is radian and X-axis label exists."""
+    labels = ["Circumference Values", "Angle Values"]
+    mock_axis.axes.xaxis = type(mock_axis)  # Simulate X-axis
+    assert (
+        quantity_support(labels).decide_label(mock_axis, u.rad)
+        == "Circumference Values(rad)"
+    )
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_decide_label_length_y_axis_deg(mock_axis):
+    """Test when unit is degree and Y-axis label exists."""
+    labels = ["Circumference Values", "Angle Values"]
+    mock_axis.axes.yaxis = type(mock_axis)  # Simulate X-axis
+    assert (
+        quantity_support(labels).decide_label(mock_axis, u.deg) == "Angle Values(deg)"
+    )
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_decide_label_length_x_axis_deg(mock_axis):
+    """Test when unit is degree and X-axis label exists."""
+    labels = ["Angle Values", "Circumference Values"]
+    mock_axis.axes.xaxis = type(mock_axis)  # Simulate X-axis
+    assert (
+        quantity_support(labels).decide_label(mock_axis, u.deg) == "Angle Values(deg)"
+    )
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_decide_label_length_y_axis_rad(mock_axis):
+    """Test when unit is radian and Y-axis label exists."""
+    labels = ["Angle Values", "Circumference Values"]
+    mock_axis.axes.yaxis = type(mock_axis)  # Simulate X-axis
+    assert (
+        quantity_support(labels).decide_label(mock_axis, u.rad)
+        == "Circumference Values(rad)"
+    )
