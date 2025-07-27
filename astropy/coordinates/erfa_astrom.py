@@ -281,24 +281,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
         return earth_pv, earth_heliocentric
 
     @staticmethod
-    def _get_c2i(support, obstime):
-        """
-        Calculate the Celestial-to-Intermediate rotation matrix.
-
-        Uses the coarser grid ``support`` to do the calculation, and interpolates
-        onto the finer grid ``obstime``.
-        """
-        jd1_tt_support, jd2_tt_support = get_jd12(support, "tt")
-        c2i_support = erfa.c2i06a(jd1_tt_support, jd2_tt_support)
-        c2i = np.empty(obstime.shape + (3, 3))
-        for dim1 in range(3):
-            for dim2 in range(3):
-                c2i[..., dim1, dim2] = np.interp(
-                    obstime.mjd, support.mjd, c2i_support[..., dim1, dim2]
-                )
-        return c2i
-
-    @staticmethod
     def _get_cip(support, obstime):
         """
         Find the X, Y coordinates of the CIP and the CIO locator, s.
