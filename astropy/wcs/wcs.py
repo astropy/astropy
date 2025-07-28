@@ -52,13 +52,134 @@ from astropy.utils.exceptions import (
     AstropyWarning,
 )
 
-from . import _wcs, docstrings
+from . import docstrings
+from ._wcs import (
+    PRJ_CODES,
+    PRJ_CONIC,
+    PRJ_CONVENTIONAL,
+    PRJ_CYLINDRICAL,
+    PRJ_HEALPIX,
+    PRJ_POLYCONIC,
+    PRJ_PSEUDOCYLINDRICAL,
+    PRJ_PVN,
+    PRJ_QUADCUBE,
+    PRJ_ZENITHAL,
+    WCSCOMPARE_ANCILLARY,
+    WCSCOMPARE_CRPIX,
+    WCSCOMPARE_TILING,
+    WCSHDO_EFMT,
+    WCSHDO_P12,
+    WCSHDO_P13,
+    WCSHDO_P14,
+    WCSHDO_P15,
+    WCSHDO_P16,
+    WCSHDO_P17,
+    WCSHDR_ALLIMG,
+    WCSHDR_AUXIMG,
+    WCSHDR_BIMGARR,
+    WCSHDR_IMGHEAD,
+    WCSHDR_LONGKEY,
+    WCSHDR_PIXLIST,
+    WCSHDR_RADECSYS,
+    WCSHDR_VSOURCE,
+    WCSLIB_VERSION,
+    WCSSUB_CELESTIAL,
+    WCSSUB_CUBEFACE,
+    WCSSUB_LATITUDE,
+    WCSSUB_LONGITUDE,
+    WCSSUB_SPECTRAL,
+    WCSSUB_STOKES,
+    WCSSUB_TIME,
+    Auxprm,
+    Celprm,
+    DistortionLookupTable,
+    InconsistentAxisTypesError,
+    InvalidCoordinateError,
+    InvalidPrjParametersError,
+    InvalidSubimageSpecificationError,
+    InvalidTabularParametersError,
+    InvalidTransformError,
+    NonseparableSubimageCoordinateSystemError,
+    NoSolutionError,
+    NoWcsKeywordsFoundError,
+    Prjprm,
+    SingularMatrixError,
+    Sip,
+    Tabprm,
+    WcsError,
+    WCSHDO_all,
+    WCSHDO_CNAMna,
+    WCSHDO_CRPXna,
+    WCSHDO_DOBSn,
+    WCSHDO_none,
+    WCSHDO_PVn_ma,
+    WCSHDO_safe,
+    WCSHDO_TPCn_ka,
+    WCSHDO_WCSNna,
+    WCSHDR_all,
+    WCSHDR_CD0i_0ja,
+    WCSHDR_CD00i00j,
+    WCSHDR_CNAMn,
+    WCSHDR_CROTAia,
+    WCSHDR_DOBSn,
+    WCSHDR_EPOCHa,
+    WCSHDR_none,
+    WCSHDR_PC0i_0ja,
+    WCSHDR_PC00i00j,
+    WCSHDR_PROJPn,
+    WCSHDR_PS0i_0ma,
+    WCSHDR_PV0i_0ma,
+    WCSHDR_reject,
+    WCSHDR_strict,
+    WCSHDR_VELREFa,
+    Wcsprm,
+    Wtbarr,
+    _sanity_check,
+    set_wtbarr_fitsio_callback,
+)
+from ._wcs import _Wcs as WCSBase
+from ._wcs import find_all_wcs as find_all_wcs_c
 
 # Mix-in class that provides the APE 14 API
 from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
 
 __all__ = [
+    "PRJ_CODES",
+    "PRJ_CONIC",
+    "PRJ_CONVENTIONAL",
+    "PRJ_CYLINDRICAL",
+    "PRJ_HEALPIX",
+    "PRJ_POLYCONIC",
+    "PRJ_PSEUDOCYLINDRICAL",
+    "PRJ_PVN",
+    "PRJ_QUADCUBE",
+    "PRJ_ZENITHAL",
     "WCS",
+    "WCSCOMPARE_ANCILLARY",
+    "WCSCOMPARE_CRPIX",
+    "WCSCOMPARE_TILING",
+    "WCSHDO_EFMT",
+    "WCSHDO_P12",
+    "WCSHDO_P13",
+    "WCSHDO_P14",
+    "WCSHDO_P15",
+    "WCSHDO_P16",
+    "WCSHDO_P17",
+    "WCSHDR_ALLIMG",
+    "WCSHDR_AUXIMG",
+    "WCSHDR_BIMGARR",
+    "WCSHDR_IMGHEAD",
+    "WCSHDR_LONGKEY",
+    "WCSHDR_PIXLIST",
+    "WCSHDR_RADECSYS",
+    "WCSHDR_VSOURCE",
+    "WCSSUB_CELESTIAL",
+    "WCSSUB_CUBEFACE",
+    "WCSSUB_LATITUDE",
+    "WCSSUB_LONGITUDE",
+    "WCSSUB_SPECTRAL",
+    "WCSSUB_STOKES",
+    "WCSSUB_TIME",
     "Auxprm",
     "Celprm",
     "DistortionLookupTable",
@@ -78,6 +199,31 @@ __all__ = [
     "Sip",
     "Tabprm",
     "WCSBase",
+    "WCSHDO_CNAMna",
+    "WCSHDO_CRPXna",
+    "WCSHDO_DOBSn",
+    "WCSHDO_PVn_ma",
+    "WCSHDO_TPCn_ka",
+    "WCSHDO_WCSNna",
+    "WCSHDO_all",
+    "WCSHDO_none",
+    "WCSHDO_safe",
+    "WCSHDR_CD0i_0ja",
+    "WCSHDR_CD00i00j",
+    "WCSHDR_CNAMn",
+    "WCSHDR_CROTAia",
+    "WCSHDR_DOBSn",
+    "WCSHDR_EPOCHa",
+    "WCSHDR_PC0i_0ja",
+    "WCSHDR_PC00i00j",
+    "WCSHDR_PROJPn",
+    "WCSHDR_PS0i_0ma",
+    "WCSHDR_PV0i_0ma",
+    "WCSHDR_VELREFa",
+    "WCSHDR_all",
+    "WCSHDR_none",
+    "WCSHDR_reject",
+    "WCSHDR_strict",
     "WcsError",
     "Wcsprm",
     "Wtbarr",
@@ -85,91 +231,40 @@ __all__ = [
     "validate",
 ]
 
-
 __doctest_skip__ = ["WCS.all_world2pix"]
 
 
-if _wcs is not None:
-    if Version(_wcs.__version__) < Version("5.8"):
-        raise ImportError(
-            "astropy.wcs is built with wcslib {0}, but only versions 5.8 and "
-            "later on the 5.x series are known to work.  The version of wcslib "
-            "that ships with astropy may be used."
-        )
-
-    if not _wcs._sanity_check():
-        raise RuntimeError(
-            "astropy.wcs did not pass its sanity check for your build on your platform."
-        )
-
-    _WCSSUB_TIME_SUPPORT = Version(_wcs.__version__) >= Version("7.8")
-    _WCS_TPD_WARN_LT71 = Version(_wcs.__version__) < Version("7.1")
-    _WCS_TPD_WARN_LT74 = Version(_wcs.__version__) < Version("7.4")
-
-    WCSBase = _wcs._Wcs
-    DistortionLookupTable = _wcs.DistortionLookupTable
-    Sip = _wcs.Sip
-    Wcsprm = _wcs.Wcsprm
-    Auxprm = _wcs.Auxprm
-    Celprm = _wcs.Celprm
-    Prjprm = _wcs.Prjprm
-    Tabprm = _wcs.Tabprm
-    Wtbarr = _wcs.Wtbarr
-    WcsError = _wcs.WcsError
-    SingularMatrixError = _wcs.SingularMatrixError
-    InconsistentAxisTypesError = _wcs.InconsistentAxisTypesError
-    InvalidTransformError = _wcs.InvalidTransformError
-    InvalidCoordinateError = _wcs.InvalidCoordinateError
-    NoSolutionError = _wcs.NoSolutionError
-    InvalidSubimageSpecificationError = _wcs.InvalidSubimageSpecificationError
-    NonseparableSubimageCoordinateSystemError = (
-        _wcs.NonseparableSubimageCoordinateSystemError
+if Version(WCSLIB_VERSION) < Version("5.8"):
+    raise ImportError(
+        "astropy.wcs is built with wcslib {0}, but only versions 5.8 and "
+        "later on the 5.x series are known to work.  The version of wcslib "
+        "that ships with astropy may be used."
     )
-    NoWcsKeywordsFoundError = _wcs.NoWcsKeywordsFoundError
-    InvalidTabularParametersError = _wcs.InvalidTabularParametersError
-    InvalidPrjParametersError = _wcs.InvalidPrjParametersError
 
-    # Copy all the constants from the C extension into this module's namespace
-    for key, val in _wcs.__dict__.items():
-        if key.startswith(("WCSSUB_", "WCSHDR_", "WCSHDO_", "WCSCOMPARE_", "PRJ_")):
-            locals()[key] = val
-            __all__.append(key)  # noqa: PYI056
+if not _sanity_check():
+    raise RuntimeError(
+        "astropy.wcs did not pass its sanity check for your build on your platform."
+    )
 
-    # Set coordinate extraction callback for WCS -TAB:
-    def _load_tab_bintable(hdulist, extnam, extver, extlev, kind, ttype, row, ndim):
-        arr = hdulist[(extnam, extver)].data[ttype][row - 1]
+_WCSSUB_TIME_SUPPORT = Version(WCSLIB_VERSION) >= Version("7.8")
+_WCS_TPD_WARN_LT71 = Version(WCSLIB_VERSION) < Version("7.1")
+_WCS_TPD_WARN_LT74 = Version(WCSLIB_VERSION) < Version("7.4")
 
-        if arr.ndim != ndim:
-            if kind == "c" and ndim == 2:
-                arr = arr.reshape((arr.size, 1))
-            else:
-                raise ValueError("Bad TDIM")
 
-        return np.ascontiguousarray(arr, dtype=np.double)
+# Set coordinate extraction callback for WCS -TAB:
+def _load_tab_bintable(hdulist, extnam, extver, extlev, kind, ttype, row, ndim):
+    arr = hdulist[(extnam, extver)].data[ttype][row - 1]
 
-    _wcs.set_wtbarr_fitsio_callback(_load_tab_bintable)
+    if arr.ndim != ndim:
+        if kind == "c" and ndim == 2:
+            arr = arr.reshape((arr.size, 1))
+        else:
+            raise ValueError("Bad TDIM")
 
-else:
-    WCSBase = object
-    Wcsprm = object
-    DistortionLookupTable = object
-    Sip = object
-    Tabprm = object
-    Wtbarr = object
-    WcsError = None
-    SingularMatrixError = None
-    InconsistentAxisTypesError = None
-    InvalidTransformError = None
-    InvalidCoordinateError = None
-    NoSolutionError = None
-    InvalidSubimageSpecificationError = None
-    NonseparableSubimageCoordinateSystemError = None
-    NoWcsKeywordsFoundError = None
-    InvalidTabularParametersError = None
+    return np.ascontiguousarray(arr, dtype=np.double)
 
-    _WCSSUB_TIME_SUPPORT = False
-    _WCS_TPD_WARN_LT71 = False
-    _WCS_TPD_WARN_LT74 = False
+
+set_wtbarr_fitsio_callback(_load_tab_bintable)
 
 
 # Additional relax bit flags
@@ -187,11 +282,11 @@ def _parse_keysel(keysel):
     if keysel is not None:
         for element in keysel:
             if element.lower() == "image":
-                keysel_flags |= _wcs.WCSHDR_IMGHEAD
+                keysel_flags |= WCSHDR_IMGHEAD
             elif element.lower() == "binary":
-                keysel_flags |= _wcs.WCSHDR_BIMGARR
+                keysel_flags |= WCSHDR_BIMGARR
             elif element.lower() == "pixel":
-                keysel_flags |= _wcs.WCSHDR_PIXLIST
+                keysel_flags |= WCSHDR_PIXLIST
             else:
                 raise ValueError(
                     "keysel must be a list of 'image', 'binary' and/or 'pixel'"
@@ -437,7 +532,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         if header is None:
             if naxis is None:
                 naxis = 2
-            wcsprm = _wcs.Wcsprm(
+            wcsprm = Wcsprm(
                 header=None,
                 key=key,
                 relax=relax,
@@ -507,7 +602,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                 tmp_header_bytes = tmp_header.tostring().rstrip()
                 if isinstance(tmp_header_bytes, str):
                     tmp_header_bytes = tmp_header_bytes.encode("ascii")
-                tmp_wcsprm = _wcs.Wcsprm(
+                tmp_wcsprm = Wcsprm(
                     header=tmp_header_bytes,
                     key=key,
                     relax=relax,
@@ -524,7 +619,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                         pass
                     est_naxis = tmp_wcsprm.naxis if tmp_wcsprm.naxis else 2
 
-            except _wcs.NoWcsKeywordsFoundError:
+            except NoWcsKeywordsFoundError:
                 pass
 
             self.naxis = est_naxis
@@ -548,7 +643,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                 header_string = header_string.decode("ascii")
 
             try:
-                wcsprm = _wcs.Wcsprm(
+                wcsprm = Wcsprm(
                     header=header_bytes,
                     key=key,
                     relax=relax,
@@ -557,12 +652,12 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                     hdulist=fobj,
                     preserve_units=preserve_units,
                 )
-            except _wcs.NoWcsKeywordsFoundError:
+            except NoWcsKeywordsFoundError:
                 # The header may have SIP or distortions, but no core
                 # WCS.  That isn't an error -- we want a "default"
                 # (identity) core Wcs transformation in that case.
                 if colsel is None:
-                    wcsprm = _wcs.Wcsprm(
+                    wcsprm = Wcsprm(
                         header=None,
                         key=key,
                         relax=relax,
@@ -705,8 +800,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         return copy
 
-    if _wcs is not None:
-        sub.__doc__ = _wcs.Wcsprm.sub.__doc__
+    sub.__doc__ = Wcsprm.sub.__doc__
 
     def _fix_scamp(self):
         """
@@ -2921,7 +3015,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     if kw[:5] in ("CPDIS", "CQDIS") and val == "TPD":
                         warnings.warn(
                             f"WCS contains a TPD distortion model in {kw}. WCSLIB"
-                            f" {_wcs.__version__} is writing this in a format"
+                            f" {WCSLIB_VERSION} is writing this in a format"
                             " incompatible with current versions - please update to"
                             " 7.4 or use the bundled WCSLIB.",
                             AstropyWarning,
@@ -2932,7 +3026,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                         warnings.warn(
                             f"WCS contains a TPD distortion model in {kw}, which"
                             " requires WCSLIB 7.4 or later to store in a FITS header"
-                            f" (having {_wcs.__version__}).",
+                            f" (having {WCSLIB_VERSION}).",
                             AstropyWarning,
                         )
         else:
@@ -3534,7 +3628,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         if not _WCSSUB_TIME_SUPPORT:
             raise NotImplementedError(
                 "Support for 'temporal' axis requires WCSLIB version 7.8 or "
-                f"greater but linked WCSLIB version is {_wcs.__version__}"
+                f"greater but linked WCSLIB version is {WCSLIB_VERSION}"
             )
 
         return self.sub([WCSSUB_TIME])  # Defined by C-ext
@@ -3703,7 +3797,7 @@ def find_all_wcs(
     else:
         header_bytes = header_string
 
-    wcsprms = _wcs.find_all_wcs(header_bytes, relax, keysel_flags)
+    wcsprms = find_all_wcs_c(header_bytes, relax, keysel_flags)
 
     result = []
     for wcsprm in wcsprms:
@@ -3808,7 +3902,7 @@ def validate(source):
 
         with warnings.catch_warnings(record=True) as warning_lines:
             wcses = find_all_wcs(
-                hdu.header, relax=_wcs.WCSHDR_reject, fix=False, _do_set=False
+                hdu.header, relax=WCSHDR_reject, fix=False, _do_set=False
             )
 
         for wcs in wcses:
@@ -3829,7 +3923,7 @@ def validate(source):
                         hdu.header,
                         hdulist,
                         key=wcs.wcs.alt or " ",
-                        relax=_wcs.WCSHDR_reject,
+                        relax=WCSHDR_reject,
                         fix=True,
                         _do_set=False,
                     )

@@ -27,7 +27,6 @@ from astropy.utils import unbroadcast
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.wcs import _wcs
 from astropy.wcs.utils import (
     FRAME_WCS_MAPPINGS,
     WCS_FRAME_MAPPINGS,
@@ -51,6 +50,7 @@ from astropy.wcs.utils import (
 )
 from astropy.wcs.wcs import (
     WCS,
+    WCSLIB_VERSION,
     WCSSUB_LATITUDE,
     WCSSUB_LONGITUDE,
     DistortionLookupTable,
@@ -1644,7 +1644,7 @@ def test_fit_wcs_from_points_returned_object_attributes():
 @pytest.mark.parametrize("x_in,y_in", [[0, 0], [np.arange(5), np.arange(5)]])
 def test_pixel_to_world_itrs(x_in, y_in):
     """Regression test for https://github.com/astropy/astropy/pull/9609"""
-    if Version(_wcs.__version__) >= Version("7.4"):
+    if Version(WCSLIB_VERSION) >= Version("7.4"):
         ctx = pytest.warns(
             FITSFixedWarning,
             match=(
