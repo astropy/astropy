@@ -849,30 +849,41 @@ class CoordinateHelper:
 
     def set_visible(self, visible):
         """
-        Set the visibility and/or position of ticks, tick labels, and axis label.
+        Set the visibility for ticks, tick labels, and axis labels.
 
         Parameters
         ----------
-        visible : bool or str
-            If 'True', show all elements at their current positions.
-            If 'False', hide all elements at their current positions.
-            If a string, interpret as a position (e.g. 't', 'lb', '#')
-            and show all elements at that position.
+        visible : bool
+            If 'True', show all elements.
+            If 'False', hide all elements.
         """
         if isinstance(visible, bool):
             self.set_ticks_visible(visible)
             self.set_ticklabel_visible(visible)
             self._axislabels.set_visible(visible)
-        elif isinstance(visible, str):
-            self.set_ticks_position(visible)
-            self.set_ticklabel_position(visible)
-            self.set_axislabel_position(visible)
+        else:
+            raise TypeError("visible must be a boolean")
+    
+    def set_position(self, position):
+        """
+        Set the position for ticks, tick labels, and axis labels.
+
+        Parameters
+        ----------
+        position : str
+            Show all elements at the given position string (e.g. 't', 'lb', '#').
+        """
+        if isinstance(position, str):
+            self.set_ticks_position(position)
+            self.set_ticklabel_position(position)
+            self.set_axislabel_position(position)
 
             self.set_ticks_visible(True)
             self.set_ticklabel_visible(True)
             self._axislabels.set_visible(True)
         else:
-            raise TypeError("visible must be bool or a position string")
+            raise TypeError("position must be a string")
+
 
     def get_axislabel_visibility_rule(self, rule):
         """
