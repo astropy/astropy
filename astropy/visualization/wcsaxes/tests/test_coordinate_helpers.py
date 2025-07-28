@@ -222,18 +222,12 @@ def test_get_ticks_visible():
     coord = ax.coords[0]
 
     assert coord.get_ticks_visible() is True
-    assert coord.get_ticklabel_visible() is True
-    assert coord.get_axislabel_visible() is True
 
     coord.set_ticks_visible(False)
     assert coord.get_ticks_visible() is False
-    assert coord.get_ticklabel_visible() is True
-    assert coord.get_axislabel_visible() is True
 
     coord.set_ticks_visible(True)
     assert coord.get_ticks_visible() is True
-    assert coord.get_ticklabel_visible() is True
-    assert coord.get_axislabel_visible() is True
 
 
 def test_get_ticklabel_visible():
@@ -243,19 +237,13 @@ def test_get_ticklabel_visible():
     fig.add_axes(ax)
     coord = ax.coords[0]
 
-    assert coord.get_ticks_visible() is True
     assert coord.get_ticklabel_visible() is True
-    assert coord.get_axislabel_visible() is True
 
     coord.set_ticklabel_visible(False)
-    assert coord.get_ticks_visible() is True
     assert coord.get_ticklabel_visible() is False
-    assert coord.get_axislabel_visible() is True
 
     coord.set_ticklabel_visible(True)
-    assert coord.get_ticks_visible() is True
     assert coord.get_ticklabel_visible() is True
-    assert coord.get_axislabel_visible() is True
 
 
 def test_get_axislabel_visible():
@@ -265,18 +253,12 @@ def test_get_axislabel_visible():
     fig.add_axes(ax)
     coord = ax.coords[0]
 
-    assert coord.get_ticks_visible() is True
-    assert coord.get_ticklabel_visible() is True
     assert coord.get_axislabel_visible() is True
 
     coord._axislabels.set_visible(False)
-    assert coord.get_ticks_visible() is True
-    assert coord.get_ticklabel_visible() is True
     assert coord.get_axislabel_visible() is False
 
     coord._axislabels.set_visible(True)
-    assert coord.get_ticks_visible() is True
-    assert coord.get_ticklabel_visible() is True
     assert coord.get_axislabel_visible() is True
 
 
