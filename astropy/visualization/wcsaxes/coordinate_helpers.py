@@ -863,7 +863,7 @@ class CoordinateHelper:
             self._axislabels.set_visible(visible)
         else:
             raise TypeError("visible must be a boolean")
-    
+
     def set_position(self, position):
         """
         Set the position for ticks, tick labels, and axis labels.
@@ -883,7 +883,6 @@ class CoordinateHelper:
             self._axislabels.set_visible(True)
         else:
             raise TypeError("position must be a string")
-
 
     def get_axislabel_visibility_rule(self, rule):
         """
