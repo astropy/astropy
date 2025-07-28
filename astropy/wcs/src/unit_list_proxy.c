@@ -24,6 +24,7 @@ typedef struct {
   Py_ssize_t size;
   char (*array)[ARRAYSIZE];
   PyObject* unit_class;
+  int readonly;
 } PyUnitListProxy;
 
 static void
@@ -81,7 +82,8 @@ PyUnitListProxy_clear(
 PyUnitListProxy_New(
     /*@shared@*/ PyObject* owner,
     Py_ssize_t size,
-    char (*array)[ARRAYSIZE]) {
+    char (*array)[ARRAYSIZE],
+    int readonly) {
 
   PyUnitListProxy* self = NULL;
   PyObject *units_module;
@@ -118,6 +120,7 @@ PyUnitListProxy_New(
   self->size = size;
   self->array = array;
   self->unit_class = unit_class;
+  self->readonly = readonly;
   return (PyObject*)self;
 }
 
@@ -180,9 +183,9 @@ PyUnitListProxy_getitem(
 
 static PyObject*
 PyUnitListProxy_richcmp(
-	PyObject *a,
-	PyObject *b,
-	int op){
+  PyObject *a,
+  PyObject *b,
+  int op){
   PyUnitListProxy *lhs, *rhs;
   Py_ssize_t idx;
   int equal = 1;
@@ -221,6 +224,11 @@ PyUnitListProxy_setitem(
     PyUnitListProxy* self,
     Py_ssize_t index,
     PyObject* arg) {
+
+  if (self->readonly) {
+    PyErr_SetString(PyExc_RuntimeError, "Cannot set individual units in-place once set() has been called when using preserve_units=True");
+    return -1;
+  }
 
   PyObject* value;
   PyObject* unicode_value;
@@ -322,7 +330,7 @@ set_unit_list(
     return -1;
   }
 
-  proxy = PyUnitListProxy_New(owner, len, dest);
+  proxy = PyUnitListProxy_New(owner, len, dest, 0);
   if (proxy == NULL) {
       return -1;
   }

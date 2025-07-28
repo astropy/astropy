@@ -347,6 +347,12 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         `WCS.fix` for more information about this parameter.  Only
         effective when ``fix`` is `True`.
 
+    preserve_units : str, optional
+        By default, some units are converted to SI, for example spectral
+        axes in units of nm might be converted to m, and celestial axes
+        in units of arcsec might be converted to deg. If ``preserve_units``
+        is set to `True`, the original units will be preserved.
+
     Raises
     ------
     MemoryError
@@ -418,6 +424,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         fix=True,
         translate_units="",
         _do_set=True,
+        preserve_units=False,
     ):
         close_fds = []
 
@@ -430,7 +437,13 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         if header is None:
             if naxis is None:
                 naxis = 2
-            wcsprm = _wcs.Wcsprm(header=None, key=key, relax=relax, naxis=naxis)
+            wcsprm = _wcs.Wcsprm(
+                header=None,
+                key=key,
+                relax=relax,
+                naxis=naxis,
+                preserve_units=preserve_units,
+            )
             self.naxis = wcsprm.naxis
             # Set some reasonable defaults.
             det2im = (None, None)
@@ -502,6 +515,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                     colsel=colsel,
                     warnings=False,
                     hdulist=fobj,
+                    preserve_units=preserve_units,
                 )
                 if naxis is not None:
                     try:
@@ -541,6 +555,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                     keysel=keysel_flags,
                     colsel=colsel,
                     hdulist=fobj,
+                    preserve_units=preserve_units,
                 )
             except _wcs.NoWcsKeywordsFoundError:
                 # The header may have SIP or distortions, but no core
@@ -554,6 +569,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                         keysel=keysel_flags,
                         colsel=colsel,
                         hdulist=fobj,
+                        preserve_units=preserve_units,
                     )
                 else:
                     raise
@@ -3100,11 +3116,16 @@ reduce these to 2 dimensions using the naxis kwarg.
         Return a short description. Simply porting the behavior from
         the `printwcs()` method.
         """
-        description = ["WCS Keywords\n", f"Number of WCS axes: {self.naxis!r}"]
+        description = ["WCS Keywords", "", f"Number of WCS axes: {self.naxis!r}"]
         sfmt = " : " + "".join([f"{{{i}}} " for i in range(self.naxis)])
 
-        keywords = ["CTYPE", "CRVAL", "CRPIX"]
-        values = [[repr(v) for v in self.wcs.ctype], self.wcs.crval, self.wcs.crpix]
+        keywords = ["CTYPE", "CUNIT", "CRVAL", "CRPIX"]
+        values = [
+            [repr(v) for v in self.wcs.ctype],
+            [repr(str(v)) for v in self.wcs.cunit],
+            self.wcs.crval,
+            self.wcs.crpix,
+        ]
         for keyword, value in zip(keywords, values):
             description.append(keyword + sfmt.format(*value))
 
@@ -3126,6 +3147,10 @@ reduce these to 2 dimensions using the naxis kwarg.
                 description.append(s.format(*self.wcs.cd[i]))
 
         description.append(f"NAXIS : {'  '.join(map(str, self._naxis))}")
+
+        # Strip trailing space in lines
+        description = [line.rstrip() for line in description]
+
         return "\n".join(description)
 
     def get_axis_types(self):
