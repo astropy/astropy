@@ -30,8 +30,7 @@ from astropy.units import Quantity, UnitsWarning
 from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
-from astropy.wcs._wcs import __version__ as wcsver
-from astropy.wcs.wcs import WCS, FITSFixedWarning, NoConvergence, Sip
+from astropy.wcs.wcs import WCS, WCSLIB_VERSION, FITSFixedWarning, NoConvergence, Sip
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES, custom_ctype_to_ucd_mapping
 
 ###############################################################################
@@ -583,7 +582,7 @@ OBSGEO-B= -70
 OBSGEO-H= 2530
 """
 
-if Version(wcsver) >= Version("7.1"):
+if Version(WCSLIB_VERSION) >= Version("7.1"):
     HEADER_TIME_1D += "DATEREF = '1995-10-12T14:24:00'\n"
 
 

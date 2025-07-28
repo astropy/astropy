@@ -35,14 +35,12 @@ from astropy.utils.exceptions import (
     AstropyWarning,
 )
 from astropy.utils.misc import NumpyRNGContext
-from astropy.wcs import _wcs
-
-_WCSLIB_VER = Version(_wcs.__version__)
+from astropy.wcs.wcs import WCSLIB_VERSION
 
 
 # NOTE: User can choose to use system wcslib instead of bundled.
 def ctx_for_v71_dateref_warnings():
-    if _WCSLIB_VER >= Version("7.1") and _WCSLIB_VER < Version("7.3"):
+    if Version("7.1") <= Version(WCSLIB_VERSION) < Version("7.3"):
         ctx = pytest.warns(
             wcs.FITSFixedWarning,
             match=(
@@ -124,7 +122,7 @@ class TestSpectra:
                 os.path.join("data", "spectra", filename), encoding="binary"
             )
             # finally run the test.
-            if _WCSLIB_VER >= Version("7.4"):
+            if Version(WCSLIB_VERSION) >= Version("7.4"):
                 ctx = pytest.warns(
                     wcs.FITSFixedWarning,
                     match=(
@@ -152,7 +150,7 @@ def test_fixes():
     ):
         wcs.WCS(header, translate_units="dhs")
 
-    if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
+    if Version("7.4") <= Version(WCSLIB_VERSION) < Version("7.6"):
         assert len(w) == 3
         assert "'datfix' made the change 'Success'." in str(w.pop().message)
     else:
@@ -192,7 +190,7 @@ def test_pix2world():
         ww = wcs.WCS(filename)
 
     # might as well monitor for changing behavior
-    if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
+    if Version("7.4") <= Version(WCSLIB_VERSION) < Version("7.6"):
         assert len(caught_warnings) == 2
     else:
         assert len(caught_warnings) == 1
@@ -253,10 +251,10 @@ def test_dict_init():
         "CDELT1": -0.1,
         "CDELT2": 0.1,
     }
-    if _WCSLIB_VER >= Version("7.1"):
+    if Version(WCSLIB_VERSION) >= Version("7.1"):
         hdr["DATEREF"] = "1858-11-17"
 
-    if _WCSLIB_VER >= Version("7.4"):
+    if Version(WCSLIB_VERSION) >= Version("7.4"):
         ctx = pytest.warns(
             wcs.wcs.FITSFixedWarning,
             match=r"'datfix' made the change 'Set MJDREF to 0\.000000 from DATEREF'\.",
@@ -369,7 +367,7 @@ def test_invalid_shape():
 
 def test_warning_about_defunct_keywords():
     header = get_pkg_data_contents("data/defunct_keywords.hdr", encoding="binary")
-    if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
+    if Version("7.4") <= Version(WCSLIB_VERSION) < Version("7.6"):
         n_warn = 5
     else:
         n_warn = 4
@@ -405,14 +403,14 @@ def test_to_header_string():
     )
     # fmt: on
 
-    if _WCSLIB_VER >= Version("7.3"):
+    if Version(WCSLIB_VERSION) >= Version("7.3"):
         # fmt: off
         hdrstr += (
             "MJDREF  =                  0.0 / [d] MJD of fiducial time                       ",
         )
         # fmt: on
 
-    elif _WCSLIB_VER >= Version("7.1"):
+    elif Version(WCSLIB_VERSION) >= Version("7.1"):
         # fmt: off
         hdrstr += (
             "DATEREF = '1858-11-17'         / ISO-8601 fiducial time                         ",
@@ -436,10 +434,10 @@ def test_to_header_string():
 
 
 def test_to_fits():
-    nrec = 11 if _WCSLIB_VER >= Version("7.1") else 8
-    if _WCSLIB_VER < Version("7.1"):
+    nrec = 11 if Version(WCSLIB_VERSION) >= Version("7.1") else 8
+    if Version(WCSLIB_VERSION) < Version("7.1"):
         nrec = 8
-    elif _WCSLIB_VER < Version("7.3"):
+    elif Version(WCSLIB_VERSION) < Version("7.3"):
         nrec = 11
     else:
         nrec = 9
@@ -493,15 +491,15 @@ def test_find_all_wcs_crash():
 def test_validate():
     results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
     results_txt = sorted({x.strip() for x in repr(results).splitlines()})
-    if _WCSLIB_VER >= Version("7.6"):
+    if Version(WCSLIB_VERSION) >= Version("7.6"):
         filename = "data/validate.7.6.txt"
-    elif _WCSLIB_VER >= Version("7.4"):
+    elif Version(WCSLIB_VERSION) >= Version("7.4"):
         filename = "data/validate.7.4.txt"
-    elif _WCSLIB_VER >= Version("6.0"):
+    elif Version(WCSLIB_VERSION) >= Version("6.0"):
         filename = "data/validate.6.txt"
-    elif _WCSLIB_VER >= Version("5.13"):
+    elif Version(WCSLIB_VERSION) >= Version("5.13"):
         filename = "data/validate.5.13.txt"
-    elif _WCSLIB_VER >= Version("5.0"):
+    elif Version(WCSLIB_VERSION) >= Version("5.0"):
         filename = "data/validate.5.0.txt"
     else:
         filename = "data/validate.txt"
@@ -962,7 +960,7 @@ def test_no_iteration():
 
 
 @pytest.mark.skipif(
-    _wcs.__version__[0] < "5", reason="TPV only works with wcslib 5.x or later"
+    WCSLIB_VERSION[0] < "5", reason="TPV only works with wcslib 5.x or later"
 )
 def test_sip_tpv_agreement():
     sip_header = get_pkg_data_contents(
@@ -1125,7 +1123,7 @@ def test_car_sip_with_pv():
 
 
 @pytest.mark.skipif(
-    _wcs.__version__[0] < "5", reason="TPV only works with wcslib 5.x or later"
+    WCSLIB_VERSION[0] < "5", reason="TPV only works with wcslib 5.x or later"
 )
 def test_tpv_copy():
     # See #3904
@@ -1617,7 +1615,7 @@ def test_cunit():
 
 class TestWcsWithTime:
     def setup_method(self):
-        if _WCSLIB_VER >= Version("7.1"):
+        if Version(WCSLIB_VERSION) >= Version("7.1"):
             fname = get_pkg_data_filename("data/header_with_time_wcslib71.fits")
         else:
             fname = get_pkg_data_filename("data/header_with_time.fits")
@@ -1634,7 +1632,7 @@ class TestWcsWithTime:
         cdelt = [self.header[val] for val in self.header["CDELT*"]]
         cunit = [self.header[val] for val in self.header["CUNIT*"]]
         assert list(self.w.wcs.ctype) == ctype
-        time_axis_code = 4000 if _WCSLIB_VER >= Version("7.9") else 0
+        time_axis_code = 4000 if Version(WCSLIB_VERSION) >= Version("7.9") else 0
         assert list(self.w.wcs.axis_types) == [2200, 2201, 3300, time_axis_code]
         assert_allclose(self.w.wcs.crval, crval)
         assert_allclose(self.w.wcs.crpix, crpix)
@@ -1759,7 +1757,7 @@ def test_distortion_header(tmp_path):
     # Template Polynomial Distortion model (TPD.FWD.n coefficients);
     # not testing explicitly for the header keywords here.
 
-    if _WCSLIB_VER < Version("7.4"):
+    if Version(WCSLIB_VERSION) < Version("7.4"):
         with pytest.warns(
             AstropyWarning, match="WCS contains a TPD distortion model in CQDIS"
         ):
@@ -1768,7 +1766,7 @@ def test_distortion_header(tmp_path):
             AstropyWarning, match="WCS contains a TPD distortion model in CQDIS"
         ):
             w1 = wcs.WCS(cut.wcs.to_header_string())
-        if _WCSLIB_VER >= Version("7.1"):
+        if Version(WCSLIB_VERSION) >= Version("7.1"):
             pytest.xfail("TPD coefficients incomplete with WCSLIB >= 7.1 < 7.4")
     else:
         w0 = wcs.WCS(w.to_header_string())
@@ -1811,7 +1809,7 @@ def test_pixlist_wcs_colsel():
 
 
 @pytest.mark.skipif(
-    _WCSLIB_VER < Version("7.8"),
+    Version(WCSLIB_VERSION) < Version("7.8"),
     reason="TIME axis extraction only works with wcslib 7.8 or later",
 )
 def test_time_axis_selection():
@@ -1826,7 +1824,7 @@ def test_time_axis_selection():
 
 
 @pytest.mark.skipif(
-    _WCSLIB_VER < Version("7.8"),
+    Version(WCSLIB_VERSION) < Version("7.8"),
     reason="TIME axis extraction only works with wcslib 7.8 or later",
 )
 def test_temporal():
