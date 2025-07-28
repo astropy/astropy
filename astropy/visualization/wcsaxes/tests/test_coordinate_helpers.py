@@ -301,6 +301,7 @@ def test_set_position():
     assert ax.coords[0].get_ticks_position() == ["t"]
     assert ax.coords[0].get_ticklabel_position() == ["t"]
     assert ax.coords[0].get_axislabel_position() == ["t"]
+
     assert ax.coords[0].get_ticks_visible() is True
     assert ax.coords[0].get_ticklabel_visible() is True
     assert ax.coords[0].get_axislabel_visible() is True
@@ -309,6 +310,7 @@ def test_set_position():
     assert ax.coords[0].get_ticks_position() == ["b", "l"]
     assert ax.coords[0].get_ticklabel_position() == ["b", "l"]
     assert ax.coords[0].get_axislabel_position() == ["b", "l"]
+
     assert ax.coords[0].get_ticks_visible() is True
     assert ax.coords[0].get_ticklabel_visible() is True
     assert ax.coords[0].get_axislabel_visible() is True
