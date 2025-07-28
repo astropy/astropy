@@ -1,3 +1,3 @@
-Added a new method ``set_visible()`` to control the visibility and/or position of ticks, tick labels, and the axis label in a single call.
+Added the methods ``set_visible()`` and ``set_position()`` to control the visibility and position of ticks, tick labels, and axis labels in a single call.
 
 Also added ``get_ticks_visible()``, ``get_ticklabel_visible()``, and ``get_axislabel_visible()`` methods to get the visibility state of each coordinate element.
