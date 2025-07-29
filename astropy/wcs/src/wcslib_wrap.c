@@ -1881,7 +1881,9 @@ PyWcsprm_cset(
 
   // We want to avoid calling wcsset whenever possible as it is not thread-safe. We use wcsenq
   // to see if the checksum of the wcsprm elements has changed since wcsset was last called.
-  if (wcsenq(&self->x, WCSENQ_CHK)) return 0;
+  if (wcsenq(&self->x, WCSENQ_CHK)) {
+    return 0;
+  }
 
   initialize_preserve_units(self);
 
