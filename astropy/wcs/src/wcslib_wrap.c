@@ -1622,6 +1622,12 @@ PyWcsprm_cset(
 
   int status = 0;
 
+  // We want to avoid calling wcsset whenever possible as it is not thread-safe. We use wcsenq
+  // to see if the checksum of the wcsprm elements has changed since wcsset was last called.
+  if (wcsenq(&self->x, WCSENQ_CHK)) {
+    return 0;
+  }
+
   if (convert) wcsprm_python2c(&self->x);
   status = wcsset(&self->x);
   if (convert) wcsprm_c2python(&self->x);
