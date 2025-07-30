@@ -182,27 +182,31 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8, return_maxdiff=False):
     """
     # Create fixed mask arrays to handle INF and NaN; currently INF and NaN
     # are handled as equivalent
-    if not np.all(np.isfinite(a)):
-        a = np.ma.fix_invalid(a).data
-    if not np.all(np.isfinite(b)):
-        b = np.ma.fix_invalid(b).data
+    a = np.ma.masked_invalid(a)
+    b = np.ma.masked_invalid(b)
 
-    absolute = np.abs(b - a)
+    absolute = np.ma.abs(b - a)
 
     if atol == 0.0 and rtol == 0.0:
         # Use a faster comparison for the most simple (and common) case
-        indices = np.where(absolute > 0)
+        thresh = 0
     else:
-        indices = np.where(absolute > (atol + rtol * np.abs(b)))
+        thresh = atol + rtol * np.abs(b)
+
+    # values invalid in only one of the two arrays should be reported
+    invalid = a.mask ^ b.mask
+    indices = np.where(invalid | (absolute.filled(0) > thresh))
 
     if return_maxdiff:
-        if len(indices[0]) == 0:
+        finites = ~absolute.mask
+        absolute = absolute.compressed()
+        if len(indices[0]) == 0 or absolute.size == 0:
             max_absolute = max_relative = 0
         else:
-            with np.errstate(invalid="ignore", divide="ignore"):
-                relative = absolute / np.abs(b)
-            max_absolute = float(np.max(absolute[indices]))
-            max_relative = np.max(relative[indices])
+            # remove all invalid values before computing max differences
+            relative = absolute / np.abs(b[finites])
+            max_absolute = float(np.max(absolute))
+            max_relative = np.max(relative)
         return indices, max_absolute, max_relative
     else:
         return indices
