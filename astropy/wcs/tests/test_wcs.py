@@ -1943,6 +1943,7 @@ def test_DistortionLookupTable():
             [12 + dx * 3, 22 + dy * 3],
         )
 
+
 def test_thread_safe_conversions():
     # This is a regression test for a bug which caused wcsset to be called
     # unnecessarily multiple times, including every time some attribute were
