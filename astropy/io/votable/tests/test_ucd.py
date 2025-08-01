@@ -69,3 +69,32 @@ def test_invalid_namespace():
 def test_invalid_word():
     with pytest.raises(ValueError):
         ucd.parse_ucd("-pho")
+
+
+def test_atmospheric_wind_ucd():
+    """Test parsing of atmospheric observation UCDs, specifically obs.atmos.wind.
+    
+    This test addresses issue #18452 where obs.atmos.wind and other new 
+    atmospheric terms from UCD1+ version 1.6 should be recognized.
+    """
+    # Test the specific case from the issue report
+    result = ucd.parse_ucd("phys.veloc;obs.atmos.wind;stat.mean", 
+                          check_controlled_vocabulary=True, 
+                          has_colon=";" in "phys.veloc;obs.atmos.wind;stat.mean")
+    expected = [("ivoa", "phys.veloc"), ("ivoa", "obs.atmos.wind"), ("ivoa", "stat.mean")]
+    assert result == expected
+    
+    # Test other new atmospheric terms from UCD 1.6
+    new_atmos_terms = [
+        "obs.atmos.humidity",
+        "obs.atmos.rain", 
+        "obs.atmos.turbulence",
+        "obs.atmos.turbulence.isoplanatic",
+        "obs.atmos.water",
+        "obs.atmos.wind"
+    ]
+    
+    for term in new_atmos_terms:
+        result = ucd.parse_ucd(term, check_controlled_vocabulary=True)
+        assert result == [("ivoa", term)]
+        assert ucd.check_ucd(term, check_controlled_vocabulary=True)
