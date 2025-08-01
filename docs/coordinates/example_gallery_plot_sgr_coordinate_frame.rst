@@ -48,8 +48,7 @@ by the `~astropy.coordinates.Galactic` class.
     >>> import numpy as np
     >>> import astropy.coordinates as coord
     >>> from astropy import units as u
-    >>> from astropy.coordinates import frame_transform_graph
-    >>> from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
+    >>> from astropy.coordinates import frame_transform_graph, rotation_matrix
 
     The first step is to create a new class, which we'll call
     ``Sagittarius`` and make it a subclass of
@@ -147,7 +146,7 @@ by the `~astropy.coordinates.Galactic` class.
     ... )
     ... def sgr_to_galactic():
     ...     """Compute the heliocentric Sgr to spherical Galactic transformation matrix."""
-    ...     return matrix_transpose(SGR_MATRIX)
+    ...     return SGR_MATRIX.swapaxes(-2, -1)
 
     Now that we have registered these transformations between ``Sagittarius`` and
     `~astropy.coordinates.Galactic`, we can transform between *any* coordinate
