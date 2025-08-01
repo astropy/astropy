@@ -31,9 +31,9 @@ Main Classes and Functions
   table metadata.
 - ``ECSVEngine`` and subclasses: Abstract base class and concrete implementations for
   different CSV parsing engines.
-- ``read_ecsv``: Reads an ECSV file and returns an Astropy `Table` object, handling all
+- ``read_ecsv``: Reads an ECSV file and returns an Astropy ``Table`` object, handling all
   necessary conversions and metadata.
-- ``write_ecsv``: Writes an Astropy `Table` to an ECSV file.
+- ``write_ecsv``: Writes an Astropy ``Table`` to an ECSV file.
 - ``register_pyarrow_ecsv_table``: Registers the PyArrow ECSV reader/writer with
   Astropy's I/O registry.
 
@@ -67,15 +67,22 @@ from collections.abc import Iterable
 from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, NamedTuple
+from typing import Any, Final, Literal, NamedTuple
 
 import numpy as np
 
 from astropy.table import SerializedColumn, Table, meta, serialize
 
-__all__ = ["read_ecsv", "register_ecsv_table", "write_ecsv"]
+__all__ = [
+    "ColumnECSV",
+    "ECSVEngine",
+    "ECSVHeader",
+    "read_ecsv",
+    "register_ecsv_table",
+    "write_ecsv",
+]
 
-ECSVEngines: dict[str, "ECSVEngine"] = {}
+ECSVEngines: Final[dict[str, "ECSVEngine"]] = {}
 
 
 class DerivedColumnProperties(NamedTuple):
@@ -201,8 +208,8 @@ class ECSVEngine(metaclass=abc.ABCMeta):
     An engine is responsible for reading the raw CSV data that follows the ECSV header.
     This assumes that the engine has a defined Table Unified I/O interface.
 
-    - ``name`` and ``format`` must be defined as class attributes in subclasses.
-    - ``engines`` is a base class-level dictionary that maps engine names to their
+    - `name` and `format` must be defined as class attributes in subclasses.
+    - `engines` is a base class-level dictionary that maps engine names to their
       respective engine classes. Subclasses should not modify this directly.
 
     Properties
@@ -226,8 +233,7 @@ class ECSVEngine(metaclass=abc.ABCMeta):
 
         # Ensure that the subclass has the required string class attributes.
         for attr in ("name", "format"):
-            val = getattr(cls, attr, None)
-            if not isinstance(val, str):
+            if not isinstance(val := getattr(cls, attr, None), str):
                 raise TypeError(
                     f"Subclasses of ECSVEngine must define a class attribute '{attr}' "
                     f"as a string, got {type(val)}."
@@ -1191,8 +1197,8 @@ def write_ecsv(tbl, output, **kwargs):
         The output file path or file-like object to write the ECSV data to.
     **kwargs : dict, optional
         Additional keyword arguments passed to the ECSV writer. These can include
-        options like `delimiter`, `encoding`, and others supported by the
-        `astropy.io.ascii.ecsv` writer.
+        options like ``delimiter``, ``encoding``, and others supported by the
+        `astropy.io.ascii.Ecsv` writer.
     """
     tbl.write(output, format="ascii.ecsv", **kwargs)
 

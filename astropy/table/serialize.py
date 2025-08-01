@@ -114,6 +114,14 @@ class SerializedColumn(dict):
         )
 
     def __repr__(self):
+        """Representation of SerializedColumn
+
+        Examples
+        --------
+        >>> from astropy.table.serialize import SerializedColumn
+        >>> SerializedColumn({"a": 1})
+        SerializedColumn({'a': 1})
+        """
         return f"{self.__class__.__name__}({super().__repr__()})"
 
 
