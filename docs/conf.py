@@ -253,7 +253,8 @@ html_theme_options.update(
         },
         "github_url": "https://github.com/astropy/astropy",
         "external_links": [
-            {"name": "Tutorials", "url": "https://learn.astropy.org/"},
+            {"name": "Learn", "url": "https://learn.astropy.org/"},
+            {"name": "Packages", "url": "https://www.astropy.org/affiliated/"},
         ],
         "use_edit_page_button": True,
         "logo": {
@@ -263,6 +264,7 @@ html_theme_options.update(
         # https://github.com/pydata/pydata-sphinx-theme/issues/1492
         "navigation_with_keys": False,
         "announcement": "https://www.astropy.org/annoucement_banner.html",
+        "header_links_before_dropdown": 6,
     }
 )
 
