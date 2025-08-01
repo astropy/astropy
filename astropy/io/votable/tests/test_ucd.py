@@ -79,10 +79,14 @@ def test_atmospheric_wind_ucd():
     """
     # Test the specific case from the issue report
     ucd_string = "phys.veloc;obs.atmos.wind;stat.mean"
-    result = ucd.parse_ucd(ucd_string,
-                          check_controlled_vocabulary=True,
-                          has_colon=";" in ucd_string)
-    expected = [("ivoa", "phys.veloc"), ("ivoa", "obs.atmos.wind"), ("ivoa", "stat.mean")]
+    result = ucd.parse_ucd(
+        ucd_string, check_controlled_vocabulary=True, has_colon=";" in ucd_string
+    )
+    expected = [
+        ("ivoa", "phys.veloc"),
+        ("ivoa", "obs.atmos.wind"),
+        ("ivoa", "stat.mean"),
+    ]
     assert result == expected
 
     # Test other new atmospheric terms from UCD 1.6
@@ -92,7 +96,7 @@ def test_atmospheric_wind_ucd():
         "obs.atmos.turbulence",
         "obs.atmos.turbulence.isoplanatic",
         "obs.atmos.water",
-        "obs.atmos.wind"
+        "obs.atmos.wind",
     ]
 
     for term in new_atmos_terms:
