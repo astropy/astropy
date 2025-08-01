@@ -18,6 +18,7 @@ from astropy import units as u
 from astropy.constants import c
 from astropy.io import ascii
 from astropy.utils import data
+from astropy.utils.decorators import deprecated_renamed_argument
 
 from .builtin_frames import GCRS, PrecessedGeocentric
 from .builtin_frames.utils import get_jd12
@@ -182,6 +183,7 @@ def get_sun(time):
 _constellation_data = {}
 
 
+@deprecated_renamed_argument("constellation_list", new_name=None, since="7.2")
 def get_constellation(coord, short_name=False, constellation_list="iau"):
     """
     Determines the constellation(s) a given coordinate object contains.
