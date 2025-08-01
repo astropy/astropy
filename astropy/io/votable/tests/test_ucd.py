@@ -111,7 +111,15 @@ def test_atmospheric_wind_ucd():
     for term in secondary_atmos_terms:
         # Test as secondary word (valid)
         combined_ucd = f"phys.temperature;{term}"
-        result = ucd.parse_ucd(combined_ucd, check_controlled_vocabulary=True, has_colon=";" in combined_ucd)
+        result = ucd.parse_ucd(
+            combined_ucd,
+            check_controlled_vocabulary=True,
+            has_colon=";" in combined_ucd,
+        )
         expected = [("ivoa", "phys.temperature"), ("ivoa", term)]
         assert result == expected
-        assert ucd.check_ucd(combined_ucd, check_controlled_vocabulary=True, has_colon=";" in combined_ucd)
+        assert ucd.check_ucd(
+            combined_ucd,
+            check_controlled_vocabulary=True,
+            has_colon=";" in combined_ucd,
+        )
