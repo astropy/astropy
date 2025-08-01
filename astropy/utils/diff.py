@@ -198,6 +198,7 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8, return_maxdiff=False):
     indices = np.where(invalid | (absolute.filled(0) > thresh))
 
     if return_maxdiff:
+        absolute[invalid] = np.ma.masked
         finites = ~absolute.mask
         absolute = absolute.compressed()
         if len(indices[0]) == 0 or absolute.size == 0:
