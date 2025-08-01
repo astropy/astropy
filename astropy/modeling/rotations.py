@@ -24,7 +24,7 @@ from functools import reduce
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates import rotation_matrix
 
 from .core import Model
 from .parameters import Parameter

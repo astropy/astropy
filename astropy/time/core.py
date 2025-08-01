@@ -2414,9 +2414,8 @@ class Time(TimeBase):
             Local sidereal time or Earth rotation angle, with units of hourangle.
 
         """
-        from astropy.coordinates import EarthLocation, Longitude
+        from astropy.coordinates import EarthLocation, Longitude, rotation_matrix
         from astropy.coordinates.builtin_frames.utils import get_polar_motion
-        from astropy.coordinates.matrix_utilities import rotation_matrix
 
         if longitude is None:
             if self.location is None:

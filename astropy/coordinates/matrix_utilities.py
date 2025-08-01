@@ -4,9 +4,12 @@
 Utililies used for constructing and inspecting rotation matrices.
 """
 
+__all__ = ["is_rotation_or_reflection", "rotation_matrix"]
+
 import numpy as np
 
 from astropy import units as u
+from astropy.utils.decorators import deprecated
 
 from .angles import Angle
 
@@ -93,6 +96,7 @@ def rotation_matrix(angle, axis="z", unit=None):
     return R
 
 
+@deprecated(since="7.2")
 def angle_axis(matrix):
     """
     Angle of rotation and rotation axis for a given rotation matrix.
@@ -122,6 +126,42 @@ def angle_axis(matrix):
     return Angle(angle, u.radian), -axis / r
 
 
+def is_rotation_or_reflection(matrix, atol=None):
+    """Check whether a matrix describes rotation or reflection (or both).
+
+    Proper and improper rotations (i.e. rotations without and with
+    a reflection) could be distinguished by the sign of the determinant,
+    but this function does not bother with that because both preserve
+    lengths of vectors.
+
+    Parameters
+    ----------
+    matrix : numpy.ndarray
+        The check is performed along the last two axes, which must have
+        equal sizes.
+    atol : float, optional
+        The allowed absolute difference.
+        If `None` it defaults to 1e-15 or 5 * epsilon of the matrix's
+        dtype, if floating.
+
+    Returns
+    -------
+    np.ndarray, bool
+        If the matrix has more than two axes, the check is performed on
+        slices along the last two axes -- (M, N, N) => (M, ) bool array.
+    """
+    if atol is None:
+        atol = (
+            5 * np.finfo(matrix.dtype).eps
+            if np.issubdtype(matrix.dtype, np.floating)
+            else 1e-15
+        )
+    return np.isclose(
+        matrix @ matrix.swapaxes(-2, -1), np.identity(matrix.shape[-1]), atol=atol
+    ).all(axis=(-2, -1))
+
+
+@deprecated(since="7.2", alternative="is_rotation_or_reflection")
 def is_O3(matrix, atol=None):
     """Check whether a matrix is in the length-preserving group O(3).
 
@@ -149,18 +189,10 @@ def is_O3(matrix, atol=None):
     For more information, see https://en.wikipedia.org/wiki/Orthogonal_group
     """
     # matrix is in O(3) (rotations, proper and improper).
-    I = np.identity(matrix.shape[-1])
-    if atol is None:
-        if np.issubdtype(matrix.dtype, np.floating):
-            atol = np.finfo(matrix.dtype).eps * 5
-        else:
-            atol = 1e-15
-
-    return np.all(
-        np.isclose(matrix @ matrix.swapaxes(-2, -1), I, atol=atol), axis=(-2, -1)
-    )
+    return is_rotation_or_reflection(matrix, atol)
 
 
+@deprecated(since="7.2")
 def is_rotation(matrix, allow_improper=False, atol=None):
     """Check whether a matrix is a rotation, proper or improper.
 
@@ -205,7 +237,7 @@ def is_rotation(matrix, allow_improper=False, atol=None):
             atol = 1e-15
 
     # matrix is in O(3).
-    is_o3 = is_O3(matrix, atol=atol)
+    is_o3 = is_rotation_or_reflection(matrix, atol=atol)
 
     # determinant checks  for rotation (proper and improper)
     if allow_improper:  # determinant can be +/- 1
