@@ -334,6 +334,7 @@ class WCSWorld2PixelTransform(CurvedTransform):
 
     has_inverse = True
     frame_in = None
+    units_in = None
 
     def __init__(self, wcs, invert_xy=False):
         super().__init__()
@@ -345,6 +346,7 @@ class WCSWorld2PixelTransform(CurvedTransform):
         self.invert_xy = invert_xy
 
         self.frame_in = wcsapi_to_celestial_frame(wcs)
+        self.units_in = wcs.world_axis_units
 
     def __eq__(self, other):
         return (
@@ -407,6 +409,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
         self.invert_xy = invert_xy
 
         self.frame_out = wcsapi_to_celestial_frame(wcs)
+        self.units_out = wcs.world_axis_units
 
     def __eq__(self, other):
         return (
