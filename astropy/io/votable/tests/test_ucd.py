@@ -89,17 +89,29 @@ def test_atmospheric_wind_ucd():
     ]
     assert result == expected
 
-    # Test other new atmospheric terms from UCD 1.6
-    new_atmos_terms = [
+    # Test primary/quantified atmospheric terms (can be used standalone)
+    primary_atmos_terms = [
         "obs.atmos.humidity",
         "obs.atmos.rain",
-        "obs.atmos.turbulence",
         "obs.atmos.turbulence.isoplanatic",
         "obs.atmos.water",
-        "obs.atmos.wind",
     ]
 
-    for term in new_atmos_terms:
+    for term in primary_atmos_terms:
         result = ucd.parse_ucd(term, check_controlled_vocabulary=True)
         assert result == [("ivoa", term)]
         assert ucd.check_ucd(term, check_controlled_vocabulary=True)
+
+    # Test secondary atmospheric terms (must be used with primary terms)
+    secondary_atmos_terms = [
+        "obs.atmos.wind",
+        "obs.atmos.turbulence",
+    ]
+
+    for term in secondary_atmos_terms:
+        # Test as secondary word (valid)
+        combined_ucd = f"phys.temperature;{term}"
+        result = ucd.parse_ucd(combined_ucd, check_controlled_vocabulary=True, has_colon=";" in combined_ucd)
+        expected = [("ivoa", "phys.temperature"), ("ivoa", term)]
+        assert result == expected
+        assert ucd.check_ucd(combined_ucd, check_controlled_vocabulary=True, has_colon=";" in combined_ucd)
