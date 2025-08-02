@@ -14,6 +14,14 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 
 OLD_CONFIG = {}
 
+SKIPIF_OPTIMIZED_PYTHON = pytest.mark.skipif(
+    sys.flags.optimize >= 2, reason="docstrings are not available at runtime"
+)
+ONLY_OPTIMIZED_PYTHON = pytest.mark.skipif(
+    sys.flags.optimize < 2,
+    reason="checking behavior specifically if docstrings are not present",
+)
+
 
 def setup_module():
     OLD_CONFIG.clear()
@@ -400,6 +408,7 @@ def test_configitem_options(tmp_path):
     assert "tstnmo = op2" in f.read_text().splitlines()
 
 
+@SKIPIF_OPTIMIZED_PYTHON
 def test_help(capsys):
     from astropy import conf
 
@@ -424,6 +433,7 @@ def test_help(capsys):
     assert use_color_msg in help_text
 
 
+@SKIPIF_OPTIMIZED_PYTHON
 def test_help_invalid_config_item():
     from astropy import conf
 
@@ -435,6 +445,17 @@ def test_help_invalid_config_item():
         ),
     ):
         conf.help("bad_name")
+
+
+@ONLY_OPTIMIZED_PYTHON
+def test_help_in_optimized_python():
+    from astropy import conf
+
+    with pytest.raises(
+        RuntimeError,
+        match=("The help method is not available under Python's optimized mode."),
+    ):
+        conf.help()
 
 
 def test_config_noastropy_fallback(monkeypatch):
