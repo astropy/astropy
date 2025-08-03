@@ -67,11 +67,12 @@ from collections.abc import Iterable
 from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Final, Literal, NamedTuple
+from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple
 
 import numpy as np
 
-from astropy.table import SerializedColumn, Table, meta, serialize
+if TYPE_CHECKING:
+    from astropy.table import SerializedColumn, Table
 
 __all__ = [
     "ColumnECSV",
@@ -634,6 +635,7 @@ def read_header(
     """
     from astropy.io.ascii.core import InconsistentTableError
     from astropy.io.ascii.ecsv import DELIMITERS
+    from astropy.table import meta
 
     # Extract non-blank comment (header) lines with comment character stripped
     header_lines, n_header, n_empty, n_comment = get_header_lines(
@@ -683,7 +685,7 @@ def read_data(
     null_values: list[str],
     encoding: str = "utf-8",
     engine_name: Literal["pyarrow", "io.ascii", "pandas"] = "io.ascii",
-) -> Table:
+) -> "Table":
     """
     Read the data from an ECSV table using the specified engine.
 
@@ -714,6 +716,8 @@ def read_data(
         If the column names from the ECSV header do not match the column names
         in the data.
     """
+    from astropy.table import Table
+
     engine = ECSVEngine.engines[engine_name]()
 
     # Get the engine-specific kwargs for reading the CSV data.
@@ -1105,7 +1109,7 @@ def read_ecsv(
     encoding: str = "utf-8",
     engine: Literal["pyarrow", "io.ascii", "pandas"] = "io.ascii",
     null_values: list[str] | None = None,
-) -> Table:
+) -> "Table":
     """
     Read an ECSV (Enhanced Character Separated Values) file and return an Astropy Table.
 
@@ -1145,6 +1149,8 @@ def read_ecsv(
       transferred from the ECSV header to the resulting Table object.
     - Handles JSON-encoded data and ensures appropriate numpy dtypes for columns.
     """
+    from astropy.table import Table, serialize
+
     if null_values is None:
         null_values = [""]
 
