@@ -107,7 +107,7 @@ class DerivedColumnProperties(NamedTuple):
     shape: tuple[int, ...]
 
 
-@dataclass
+@dataclass(frozen=True)
 class ColumnECSV:
     """
     Class representing attributes of a column in an ECSV header.
@@ -827,7 +827,7 @@ def convert_column(
                 # Multidim columns with consistent shape (n, m, ...).
                 process_func = process_fixed_shape_multidim_data
 
-            data_out = process_func(col, str_vals, mask)
+            data_out, col_shape = process_func(col, str_vals, mask)
 
         # Regular scalar value column
         else:
@@ -835,8 +835,9 @@ def convert_column(
             # If we need to cast the data to a different dtype, do it now.
             if data_out.dtype != np.dtype(col.dtype):
                 data_out = data_out.astype(col.dtype)
+            col_shape = col.shape
 
-        if data_out.shape[1:] != tuple(col.shape):
+        if data_out.shape[1:] != tuple(col_shape):
             raise ValueError("shape mismatch between value and column specifier")
 
     except json.JSONDecodeError:
@@ -853,7 +854,7 @@ def process_object_data(
     col: ColumnECSV,
     str_vals: list[Any] | np.ndarray,
     mask: np.ndarray | None,
-) -> np.ndarray | np.ma.MaskedArray:
+) -> tuple[np.ndarray | np.ma.MaskedArray, tuple[int, ...]]:
     """
     Handle object columns where each row element is a JSON-encoded object.
 
@@ -887,6 +888,8 @@ def process_object_data(
     data_out : numpy.ndarray or numpy.ma.MaskedArray
         An array of objects reconstructed from `str_vals`, with the same shape as `col`.
         If `mask` is provided, a masked array is returned with the mask applied.
+    col_shape : tuple[int, ...]
+        Expected shape of data_out, used in final sanity check of reading.
     """
     if mask is not None:
         for idx in np.nonzero(mask)[0]:
@@ -897,14 +900,14 @@ def process_object_data(
     data_out[...] = col_vals
     if mask is not None:
         data_out.mask = mask
-    return data_out
+    return data_out, col.shape
 
 
 def process_fixed_shape_multidim_data(
     col: ColumnECSV,
     str_vals: list[Any] | np.ndarray,
     mask: np.ndarray | None,
-) -> np.ndarray | np.ma.MaskedArray:
+) -> tuple[np.ndarray | np.ma.MaskedArray, tuple[int, ...]]:
     """
     Handle fixed-shape multidimensional columns as JSON-encoded strings.
 
@@ -934,6 +937,8 @@ def process_fixed_shape_multidim_data(
     data_out : numpy.ndarray or numpy.ma.MaskedArray
         An array of objects reconstructed from `str_vals`, with the same shape as `col`.
         If `mask` is provided, a masked array is returned with the mask applied.
+    col_shape : tuple[int, ...]
+        Expected shape of data_out, used in final sanity check of reading.
     """
     # Change empty (blank) values in original ECSV to something
     # like "[[null, null],[null,null]]" so subsequent JSON
@@ -958,14 +963,14 @@ def process_fixed_shape_multidim_data(
     else:
         data_out = arr_vals.astype(col.dtype)
 
-    return data_out
+    return data_out, col.shape
 
 
 def process_variable_length_array_data(
     col: ColumnECSV,
     str_vals: list[Any] | np.ndarray,
     mask: np.ndarray | None,
-) -> np.ndarray | np.ma.MaskedArray:
+) -> tuple[np.ndarray | np.ma.MaskedArray, tuple[int, ...]]:
     """
     Handle variable length arrays with shape (n, m, ..., *) as JSON-encoded strings.
 
@@ -1000,6 +1005,8 @@ def process_variable_length_array_data(
     data_out : numpy.ndarray or numpy.ma.MaskedArray
         An array of objects reconstructed from `str_vals`, with the same shape as `col`.
         If `mask` is provided, a masked array is returned with the mask applied.
+    col_shape : tuple[int, ...]
+        Expected shape of data_out, used in final sanity check of reading.
     """
     # Empty (blank) values in original ECSV are masked. Instead set the values
     # to "[]" indicating an empty list. This operation also unmasks the values.
@@ -1028,14 +1035,12 @@ def process_variable_length_array_data(
 
         col_vals.append(arr_val)
 
-    col.shape = ()
-    col.dtype = np.dtype(object)
     np_empty = np.empty if mask is None else np.ma.empty
     data_out = np_empty(len(col_vals), dtype=object)
     data_out[:] = col_vals
     if mask is not None:
         data_out.mask = mask
-    return data_out
+    return data_out, ()
 
 
 def get_null_values_per_column(
