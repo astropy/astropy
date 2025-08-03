@@ -751,6 +751,12 @@ def get_str_vals(
     (list of strings, or list of list of strings etc) and returns the mask as a separate
     array.
 
+    The Python representation is required in this case because the subsequent
+    ``process_*_data`` functions substitute (in-place) a new string with the appropriate
+    JSON for an empty/masked fill value. In particular, if the original input consists
+    solely of empty strings (which is legal), the numpy string array will be not be wide
+    enough to hold the fill value.
+
     For regular numpy arrays it simply returns the original data as a numpy array.
     """
     # For masked we need a list because for multidim the data under the mask is set
@@ -808,7 +814,7 @@ def convert_column(
 
             if col.dtype == "object":
                 # Any Python objects serializable to JSON
-                process_func = process_1d_Nd_object_data
+                process_func = process_object_data
             elif col.shape[-1] is None:
                 # Variable length arrays with shape (n, m, ..., *) for fixed
                 # n, m, .. and variable in last axis.
@@ -834,18 +840,21 @@ def convert_column(
             f"column {col.name!r} failed to convert: column value is not valid JSON"
         )
     except Exception as exc:
-        raise ValueError(f"column {col.name!r} failed to convert: {exc}")
+        raise ValueError(f"column {col.name!r} failed to convert: {exc}") from exc
 
     return data_out
 
 
-def process_1d_Nd_object_data(
+def process_object_data(
     col: ColumnECSV,
     str_vals: list[Any] | np.ndarray,
     mask: np.ndarray | None,
 ) -> np.ndarray | np.ma.MaskedArray:
     """
     Handle object columns where each row element is a JSON-encoded object.
+
+    The ECSV format only allows a 1-d column of object type, so if there is a mask it
+    is 1-d.
 
     Example::
 
@@ -865,7 +874,7 @@ def process_1d_Nd_object_data(
         The column specification, including dtype, shape, and name.
     str_vals : array-like of str
         Array of string representations of the data, typically JSON-encoded.
-    mask : numpy.ndarray or None
+    mask : numpy.ndarray (1d) or None
         Boolean mask array indicating invalid or missing values. If None, no masking is
         applied.
 

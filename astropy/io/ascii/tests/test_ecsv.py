@@ -257,6 +257,26 @@ def test_bad_delimiter_input(format_engine):
     assert "only space and comma are allowed" in str(err.value)
 
 
+def test_multidim_only_masked(format_engine):
+    """Multi-dimensional column with one masked entry
+
+    This hits code in ``get_str_vals`` that requires a pure Python representation of
+    data instead of a numpy string array, because later on there can be substitution
+    of a longer value into the array element.
+    """
+    txt = """
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: array3x2, datatype: string, subtype: 'float64[3,2]'}
+array3x2
+""
+"""
+    t = Table.read(txt, **format_engine)
+    assert len(t) == 1
+    assert np.all(t["array3x2"].mask == [[[True, True], [True, True], [True, True]]])
+
+
 def test_multidim_input(format_engine):
     """
     Multi-dimensional column in input
