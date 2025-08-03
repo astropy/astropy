@@ -137,7 +137,7 @@ class ColumnECSV:
         engine ``convert_np_type()`` method to generate the engine-specific type
         provided to the CSV reader. For instance, for pandas the ``int32`` type gets
         converted to ``Int32`` to read columns as a nullable int32.
-    dtype : str
+    dtype : np.dtype
         Numpy dtype in the final column data. This may be entirely different from
         ``csv_np_type`` in some cases, in particular JSON-encoded fields.
     shape : tuple of int
@@ -158,9 +158,9 @@ class ColumnECSV:
         return self._derived_properties.csv_np_type
 
     @functools.cached_property
-    def dtype(self) -> str:
+    def dtype(self) -> np.dtype:
         """Numpy dtype in the final column data"""
-        return self._derived_properties.dtype
+        return np.dtype(self._derived_properties.dtype)
 
     @functools.cached_property
     def shape(self) -> tuple[int, ...]:
@@ -833,7 +833,7 @@ def convert_column(
         else:
             data_out = data_in
             # If we need to cast the data to a different dtype, do it now.
-            if data_out.dtype != np.dtype(col.dtype):
+            if data_out.dtype != col.dtype:
                 data_out = data_out.astype(col.dtype)
             col_shape = col.shape
 
@@ -956,8 +956,7 @@ def process_fixed_shape_multidim_data(
     arr_vals_mask = arr_vals == None
     if np.any(arr_vals_mask):
         # Replace all the None with an appropriate fill value
-        kind = np.dtype(col.dtype).kind
-        arr_vals[arr_vals_mask] = {"U": "", "S": b""}.get(kind, 0)
+        arr_vals[arr_vals_mask] = {"U": "", "S": b""}.get(col.dtype.kind, 0)
         # Finally make a MaskedArray with the filled data + mask
         data_out = np.ma.array(arr_vals.astype(col.dtype), mask=arr_vals_mask)
     else:
@@ -1029,8 +1028,7 @@ def process_variable_length_array_data(
             vals = np.array(obj_val, dtype=object)
             # Replace all the None with an appropriate fill value
             mask_vals = vals == None
-            kind = np.dtype(col.dtype).kind
-            vals[mask_vals] = {"U": "", "S": b""}.get(kind, 0)
+            vals[mask_vals] = {"U": "", "S": b""}.get(col.dtype.kind, 0)
             arr_val = np.ma.array(vals.astype(col.dtype), mask=mask_vals)
 
         col_vals.append(arr_val)
