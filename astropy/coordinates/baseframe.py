@@ -910,8 +910,8 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     @property
     def data(self):
         """
-        The coordinate data for this object.  If this frame has no data, an
-        `ValueError` will be raised.  Use `has_data` to
+        The coordinate data for this object.  If this frame has no data,
+        a `ValueError` will be raised.  Use `has_data` to
         check if data is present on this frame object.
         """
         if self._data is None:
@@ -1825,9 +1825,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 f"scalar '{self.__class__.__name__}' frame object "
                 "does not support item assignment"
             )
-
-        if self._data is None:
-            raise ValueError("can only set frame if it has data")
 
         if self._data.__class__ is not value._data.__class__:
             raise TypeError(
