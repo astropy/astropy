@@ -70,6 +70,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple
 
 import numpy as np
+import numpy.typing as npt
 
 if TYPE_CHECKING:
     from astropy.table import SerializedColumn, Table
@@ -746,22 +747,35 @@ def read_data(
 
 def get_str_vals(
     data: np.ndarray | np.ma.MaskedArray,
-) -> tuple[list[Any] | np.ndarray, np.ndarray | None]:
+) -> tuple[list[str] | npt.NDArray[np.str_], npt.NDArray[np.bool_] | None]:
     """Get the string values and the mask if available.
 
-    This assumes an input array of strings, possibly multidimensional and/or masked.
+    This assumes a 1-d input array of strings, possibly masked. This array comes from
+    reading the ECSV data, which is always a 1-d array. This function is only called if
+    that array is a numpy string array or a masked array of strings.
 
     For a masked array it converts the data to the equivalent Python representation
-    (list of strings, or list of list of strings etc) and returns the mask as a separate
-    array.
+    (list of strings) and returns the mask as a separate array.
 
-    The Python representation is required in this case because the subsequent
+    A list of strings is required in this case because the subsequent
     ``process_*_data`` functions substitute (in-place) a new string with the appropriate
     JSON for an empty/masked fill value. In particular, if the original input consists
     solely of empty strings (which is legal), the numpy string array will be not be wide
     enough to hold the fill value.
 
     For regular numpy arrays it simply returns the original data as a numpy array.
+
+    Parameters
+    ----------
+    data : np.ndarray | np.ma.MaskedArray
+        The input data array to extract string values from.
+
+    Returns
+    -------
+    str_vals : list[str] | npt.NDArray[np.str_]
+        A list of strings or a 1D numpy array of strings representing the data.
+    mask : npt.NDArray[np.bool_] | None
+        A 1D numpy array of booleans indicating the mask, or None if not applicable.
     """
     # For masked we need a list because for multidim the data under the mask is set
     # to a compatible value.
@@ -852,14 +866,13 @@ def convert_column(
 
 def process_object_data(
     col: ColumnECSV,
-    str_vals: list[Any] | np.ndarray,
-    mask: np.ndarray | None,
+    str_vals: list[str] | npt.NDArray[np.str_],
+    mask: npt.NDArray[np.bool_] | None,
 ) -> tuple[np.ndarray | np.ma.MaskedArray, tuple[int, ...]]:
     """
     Handle object columns where each row element is a JSON-encoded object.
 
-    The ECSV format only allows a 1-d column of object type, so if there is a mask it
-    is 1-d.
+    The ECSV format only allows a 1-d column of object type.
 
     Example::
 
@@ -877,11 +890,11 @@ def process_object_data(
     ----------
     col : ColumnECSV
         The column specification, including dtype, shape, and name.
-    str_vals : array-like of str
-        Array of string representations of the data, typically JSON-encoded.
-    mask : numpy.ndarray (1d) or None
-        Boolean mask array indicating invalid or missing values. If None, no masking is
-        applied.
+    str_vals : list[str] or 1-D ndarray[str]
+        JSON-encoded string representations of the data.
+    mask : 1-D ndarray[bool] or None
+        Boolean mask array 1-D indicating invalid or missing values. If None, no masking
+        is applied.
 
     Returns
     -------
@@ -905,8 +918,8 @@ def process_object_data(
 
 def process_fixed_shape_multidim_data(
     col: ColumnECSV,
-    str_vals: list[Any] | np.ndarray,
-    mask: np.ndarray | None,
+    str_vals: list[str] | npt.NDArray[np.str_],
+    mask: npt.NDArray[np.bool_] | None,
 ) -> tuple[np.ndarray | np.ma.MaskedArray, tuple[int, ...]]:
     """
     Handle fixed-shape multidimensional columns as JSON-encoded strings.
@@ -967,8 +980,8 @@ def process_fixed_shape_multidim_data(
 
 def process_variable_length_array_data(
     col: ColumnECSV,
-    str_vals: list[Any] | np.ndarray,
-    mask: np.ndarray | None,
+    str_vals: list[str] | npt.NDArray[np.str_],
+    mask: npt.NDArray[np.bool_] | None,
 ) -> tuple[np.ndarray | np.ma.MaskedArray, tuple[int, ...]]:
     """
     Handle variable length arrays with shape (n, m, ..., *) as JSON-encoded strings.
@@ -993,11 +1006,11 @@ def process_variable_length_array_data(
     ----------
     col : ColumnECSV
         The column specification, including dtype, shape, and name.
-    str_vals : array-like of str
-        Array of string representations of the data, typically JSON-encoded.
-    mask : numpy.ndarray or None
-        Boolean mask array indicating invalid or missing values. If None, no masking is
-        applied.
+    str_vals : list[str] or 1-D ndarray[str]
+        JSON-encoded string representations of the data.
+    mask : 1-D ndarray[bool] or None
+        Boolean mask array 1-D indicating invalid or missing values. If None, no masking
+        is applied.
 
     Returns
     -------
