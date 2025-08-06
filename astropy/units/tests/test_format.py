@@ -1163,14 +1163,6 @@ def test_Fits_name_deprecation():
     assert Fits is u.format.FITS
 
 
-@pytest.mark.parametrize(
-    "format_spec",
-    [
-        "generic",
-        pytest.param(
-            "unicode", marks=pytest.mark.xfail(reason="regression test to reveal a bug")
-        ),
-    ],
-)
+@pytest.mark.parametrize("format_spec", ["generic", "unicode"])
 def test_liter(format_spec):
     assert format(u.liter, format_spec) == "l"

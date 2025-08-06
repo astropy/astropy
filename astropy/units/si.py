@@ -89,7 +89,6 @@ def_unit(
     1000 * cm**3.0,
     namespace=_ns,
     prefixes=True,
-    format={"latex": r"\mathcal{l}", "unicode": "ℓ"},
     doc="liter: metric unit of volume",
 )
 
