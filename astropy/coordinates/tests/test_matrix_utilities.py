@@ -55,18 +55,7 @@ def test_rotation_matrix():
 
 
 @pytest.mark.parametrize(
-    "angle",
-    [
-        Angle(0 * u.deg),
-        0 * u.deg,
-        np.array(0),
-        0,
-        pytest.param(
-            "0 deg",
-            marks=pytest.mark.xfail(reason="regression test that reveals a bug"),
-        ),
-    ],
-    ids=type,
+    "angle", [Angle(0 * u.deg), 0 * u.deg, np.array(0), 0, "0 deg"], ids=type
 )
 def test_rotation_angle_input_types(angle):
     assert_array_equal(rotation_matrix(angle), np.eye(3), strict=True)
