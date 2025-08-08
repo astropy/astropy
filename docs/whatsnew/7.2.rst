@@ -12,7 +12,7 @@ the 7.1 release.
 
 In particular, this release includes:
 
-* ...
+* `Faster ECSV reader with support for different engines <#faster-ecsv-readers>`_
 * ...
 * ...
 
@@ -29,6 +29,51 @@ Full change log
 
 To see a detailed list of all changes in version v7.2, including changes in
 API, please see the :ref:`changelog`.
+
+Faster ECSV table reader
+========================
+
+A new :ref:`ECSV <ecsv_format>` table reading module has been added that supports
+different backend engines for the CSV data parsing. In addition to the default
+"io.ascii" engine, this includes engines that use the `PyArrow
+<https://arrow.apache.org/docs/python/csv.html>`_ and `Pandas
+<https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html>`_ CSV readers. These
+can be up to 16 times faster and are more memory efficient than the native astropy ECSV
+reader.
+
+An example is reading the 233 Mb gzipped Gaia ECSV source file
+``GaiaSource_000000-003111.csv.gz`` from the `Gaia source archive
+<https://cdn.gea.esac.esa.int/Gaia/gdr3/gaia_source/>`_.
+
+
+.. list-table::
+    :width: 50%
+    :header-rows: 1
+
+    * - Format
+      - Engine
+      - Time (s)
+    * - ecsv
+      - pyarrow
+      - 2.04
+    * - ecsv
+      - pandas
+      - 10.5
+    * - ecsv
+      - io.ascii
+      - 33.1
+    * - ascii.ecsv
+      - --
+      - 35.6
+
+This functionality is available using ``Table.read(filename, format="ecsv",
+engine=...)``, where ``engine`` is one of ``"io.ascii"``, ``"pyarrow"``, or
+``"pandas"``. To get further help with this interface run
+``Table.read.help(format="ecsv")``. See also the :ref:`ecsv_format` section.
+
+You can also write an `astropy.table.Table` or `astropy.table.QTable` using
+``format="ecsv"``, but this is just a thin wrapper around the ``format="ascii.ecsv"``
+writer.
 
 Cosmology
 =========
