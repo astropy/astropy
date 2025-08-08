@@ -67,7 +67,7 @@ from collections.abc import Iterable
 from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple
+from typing import TYPE_CHECKING, Any, Final, NamedTuple
 
 import numpy as np
 import numpy.typing as npt
@@ -78,6 +78,9 @@ if TYPE_CHECKING:
 __all__ = [
     "ColumnECSV",
     "ECSVEngine",
+    "ECSVEngineIoAscii",
+    "ECSVEnginePandas",
+    "ECSVEnginePyArrow",
     "ECSVHeader",
     "read_ecsv",
     "register_ecsv_table",
@@ -327,11 +330,7 @@ class ECSVEnginePyArrow(ECSVEngine):
         header: ECSVHeader,
         null_values: list[str],
     ) -> dict[str, Any]:
-        """
-        Generate a dictionary of keyword arguments for data parsing.
-
-        See base method for details.
-        """
+        # See base method for details.
         kw = {}
         kw["null_values"] = null_values
         kw["header_start"] = header.n_header
@@ -345,9 +344,10 @@ class ECSVEngineIoAscii(ECSVEngine):
     name = "io.ascii"
     format = "ascii.csv"
 
-    def convert_np_type(self, np_type: str) -> str:
-        """Convert the np_type string to a numpy dtype type."""
-        # Output compatible with io.ascii `converters` option.
+    def convert_np_type(self, np_type: str) -> np.generic:
+        # Convert the np_type string to a numpy dtype type like np.int32, np.float64,
+        # etc. This output is compatible with io.ascii `converters` option where is gets
+        # used.
         return np.dtype(np_type).type
 
     def get_data_kwargs(
@@ -355,7 +355,6 @@ class ECSVEngineIoAscii(ECSVEngine):
         header: ECSVHeader,
         null_values: list[str],
     ) -> dict[str, Any]:
-        """Get the keyword arguments for reading the data."""
         kw = {}
         kw["fill_values"] = get_null_values_per_column(
             header.cols, header.table_meta, null_values
@@ -376,7 +375,7 @@ class ECSVEnginePandas(ECSVEngine):
     format = "pandas.csv"
 
     def convert_np_type(self, np_type: str) -> np.dtype:
-        """Convert the np_type to a pandas dtype will support for nullable types."""
+        # Convert the np_type to a pandas dtype will support for nullable types.
         import pandas as pd
 
         dtype = np.dtype(np_type)
@@ -416,7 +415,7 @@ class ECSVEnginePandas(ECSVEngine):
 
 
 def is_numpy_dtype(np_type: str) -> bool:
-    """Check if the given dtype is a valid numpy dtype."""
+    # Check if the given dtype is a valid numpy dtype.
     try:
         np.dtype(np_type)
     except Exception:
@@ -685,7 +684,7 @@ def read_data(
     header: ECSVHeader,
     null_values: list[str],
     encoding: str = "utf-8",
-    engine_name: Literal["pyarrow", "io.ascii", "pandas"] = "io.ascii",
+    engine_name: str = "io.ascii",
 ) -> "Table":
     """
     Read the data from an ECSV table using the specified engine.
@@ -703,8 +702,9 @@ def read_data(
         List of string values to interpret as null/missing values in the data.
     encoding : str, optional
         The encoding to use when reading the file. Default is "utf-8".
-    engine_name: Literal["pyarrow", "io.ascii", "pandas"], optional
+    engine_name: str, optional
         The backend engine to use for reading the data. Default is "io.ascii".
+        Built-in options are "pyarrow", "pandas", and "io.ascii".
 
     Returns
     -------
@@ -780,6 +780,8 @@ def get_str_vals(
     # For masked we need a list because for multidim the data under the mask is set
     # to a compatible value.
     if hasattr(data, "mask"):
+        # TODO: for not NUMPY_LT_2_0, try changing this to:
+        # str_vals = data.astype("T")
         str_vals = data.view(np.ndarray).tolist()
         mask = data.mask
     else:
@@ -825,9 +827,11 @@ def convert_column(
     """
     try:
         if col.dtype == "object" or col.shape:
-            # Handle three distinct column types where each row element is serialized
-            # to JSON. First convert the input data array or masked array to a list of
-            # str and get the mask where available.
+            # Handle three distinct column types where each row element is serialized to
+            # JSON. In this case ``data_in`` is an ndarray or MaskedArray of
+            # fixed-length string which are the JSON-encoded representation of the data.
+            # See docstring in `get_str_vals` for explanation of the next step, which
+            # has some subtlety.
             str_vals, mask = get_str_vals(data_in)
 
             if col.dtype == "object":
@@ -1061,7 +1065,7 @@ def get_null_values_per_column(
 ) -> list[tuple[str, str, str]]:
     """Get null and fill values for individual columns.
 
-    For ECSV handle the corner case of data that has been serialized using the
+    For ECSV to handle the corner case of data that has been serialized using the
     serialize_method='data_mask' option, which writes the full data and mask directly,
     AND where that table includes a string column with zero-length string entries ("")
     which are valid data. Normally the super() method will set col.fill_value=('', '0')
@@ -1076,14 +1080,15 @@ def get_null_values_per_column(
         Metadata dictionary from the ECSV header, which may include serialized columns
         and other metadata.
     null_values : list[str]
-        List of string values to interpret as null/missing values in the data. Default
-        is [""].
+        List of string values to interpret as null/missing values in every column.
+        The upstream default from ``read_ecsv`` is [""] but no default is defined here.
 
     Returns
     -------
     fill_values : list[tuple[str, str, str]]
         A list of tuples with (null_value, fill_value, column_name) for each column in
-        `cols`. If no fill values are needed, returns an empty list.
+        `cols` that is not a MaskedColumn. If no fill values are needed, returns an
+        empty list.
     """
     if table_meta is None:
         table_meta = {}
@@ -1123,7 +1128,7 @@ def read_ecsv(
     input_file: str | os.PathLike | io.BytesIO | io.StringIO | Iterable[str],
     *,
     encoding: str = "utf-8",
-    engine: Literal["pyarrow", "io.ascii", "pandas"] = "io.ascii",
+    engine: str = "io.ascii",
     null_values: list[str] | None = None,
 ) -> "Table":
     """
@@ -1134,17 +1139,21 @@ def read_ecsv(
     input_file : str, os.PathLike, io.BytesIO, io.StringIO, Iterable[str]
         The ECSV input to read. This can be a file path, a file-like object, a string
         containing the file contents, or an iterable of strings representing lines of
-        the file. Note that providing ``io.StringIO`` or an iterable of strings will
-        be less memory efficient, as it will be converted to a bytes stream.
+        the file. Note that providing ``io.StringIO`` or an iterable of strings will be
+        less memory efficient, as it will be converted to a bytes stream.
     encoding : str, optional
         The encoding to use when reading the file. Default is "utf-8".
-    engine : {"pyarrow", "io.ascii", "pandas"}, optional
-        The engine to use for reading the CSV data. Default is "io.ascii".
+    engine : str, optional
+        The engine to use for reading the CSV data. Default is "io.ascii", which uses
+        astropy to read the CSV data. Other built-in options are "pyarrow" and "pandas".
+        The "pyarrow" engine is optimized for performance and can handle large datasets
+        efficiently. The "pandas" engine uses the pandas CSV reader, which is also
+        faster than the default "io.ascii" engine.
     null_values : list of str or None, optional
-        List of string values to interpret as null/missing values. Default is [""].
-        The ECSV standard requires the null values are represented as empty strings
-        in the CSV data, but this allows reading non-compliant ECSV files. A notable
-        example are the Gaia source download files which are ECSV but use "null".
+        List of string values to interpret as null/missing values. Default is [""]. The
+        ECSV standard requires the null values are represented as empty strings in the
+        CSV data, but this allows reading non-compliant ECSV files. A notable example
+        are the Gaia source download files which are ECSV but use "null".
 
     Returns
     -------
