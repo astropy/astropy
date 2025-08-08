@@ -10,12 +10,14 @@ cds.py:
 
 import fnmatch
 import itertools
+import numbers
 import os
 import re
 from contextlib import suppress
 from pathlib import Path
 
 from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
+from astropy.table.operations import vstack
 
 from . import core, fixedwidth
 
@@ -355,6 +357,10 @@ class Cds(core.BaseReader):
     * The Units and Explanations are available in the column ``unit`` and
       ``description`` attributes, respectively.
     * The other metadata defined by this format is not available in the output table.
+
+    In rare cases, the data at CDS is split into multiple files to keep the file size
+    below 10 MB. In that case, the datafile name is given as e.g. "tyc2.dat", which will
+    read and merge all files named "tyc2.dat.00", "tyc2.dat.01", etc.
     """
 
     _format_name = "cds"
@@ -373,7 +379,7 @@ class Cds(core.BaseReader):
         """Not available for the CDS class (raises NotImplementedError)."""
         raise NotImplementedError
 
-    def read(self, table):
+    def read_table(self, table):
         # If the read kwarg `data_start` is 'guess' then the table may have extraneous
         # lines between the end of the header and the beginning of data.
         if self.data.start_line == "guess":
@@ -399,3 +405,26 @@ class Cds(core.BaseReader):
                     return super().read(lines)
         else:
             return super().read(table)
+
+    def read(self, table):
+        try:
+            return self.read_table(table)
+        except FileNotFoundError as e:
+            # deal with table where the RReadME is present, but the data is split over several data file
+            if self.header.readme is not None:
+                path = Path(table)
+                pattern = re.compile(path.name + r".(\d{2,3})(.gz)?$")
+                f_list = sorted(
+                    [item for item in path.parent.iterdir() if pattern.match(item.name)]
+                )
+                numbers = [int(pattern.search(str(f)).group(1)) for f in f_list]
+                if numbers != list(range(len(numbers))):
+                    raise core.InconsistentTableError(
+                        f"Files for {table} appear to be split into multiple parts, "
+                        "but the numbering is not consecutive for filenames: "
+                        f"{[f.name for f in f_list]}"
+                    ) from e
+                all_data = [self.read_table(f) for f in f_list]
+                return vstack(all_data, join_type="exact")
+
+            raise e
