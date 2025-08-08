@@ -10,14 +10,13 @@ cds.py:
 
 import fnmatch
 import itertools
-import numbers
 import os
 import re
 from contextlib import suppress
 from pathlib import Path
 
-from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 from astropy.table.operations import vstack
+from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 
 from . import core, fixedwidth
 
@@ -410,21 +409,22 @@ class Cds(core.BaseReader):
         try:
             return self.read_table(table)
         except FileNotFoundError as e:
-            # deal with table where the RReadME is present, but the data is split over several data file
+            # deal with table where the ReadMe is present, but the data is split over several data files
             if self.header.readme is not None:
                 path = Path(table)
-                pattern = re.compile(path.name + r".(\d{2,3})(.gz)?$")
+                pattern = re.compile(path.name + r"\.(\d{2,3})(\.gz)?$")
                 f_list = sorted(
                     [item for item in path.parent.iterdir() if pattern.match(item.name)]
                 )
-                numbers = [int(pattern.search(str(f)).group(1)) for f in f_list]
-                if numbers != list(range(len(numbers))):
-                    raise core.InconsistentTableError(
-                        f"Files for {table} appear to be split into multiple parts, "
-                        "but the numbering is not consecutive for filenames: "
-                        f"{[f.name for f in f_list]}"
-                    ) from e
-                all_data = [self.read_table(f) for f in f_list]
-                return vstack(all_data, join_type="exact")
+                if len(f_list) > 0:
+                    numbers = [int(pattern.search(str(f)).group(1)) for f in f_list]
+                    if numbers != list(range(len(numbers))):
+                        raise core.InconsistentTableError(
+                            f"Files for {table} appear to be split into multiple parts, "
+                            "but the numbering is not consecutive for filenames: "
+                            f"{[f.name for f in f_list]}"
+                        ) from e
+                    all_data = [self.read_table(f) for f in f_list]
+                    return vstack(all_data, join_type="exact")
 
             raise e
