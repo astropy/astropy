@@ -31,9 +31,14 @@ from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
 from . import representation as r
-from .angles import Angle, Latitude, Longitude, position_angle
+from .angles import Angle, Latitude, Longitude, angular_separation, position_angle
 from .attributes import Attribute
-from .errors import NonRotationTransformationError, NonRotationTransformationWarning
+from .distances import Distance
+from .errors import (
+    ConvertError,
+    NonRotationTransformationError,
+    NonRotationTransformationWarning,
+)
 from .transformations import (
     DynamicMatrixTransform,
     StaticMatrixTransform,
@@ -1460,8 +1465,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         ValueError
             If there is no possible transformation route.
         """
-        from .errors import ConvertError
-
         if self._data is None:
             raise ValueError("Cannot transform a frame with no data")
 
@@ -2062,8 +2065,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
 
         """
-        from .angles import Angle, angular_separation
-
         return Angle(
             angular_separation(
                 *self._prepare_unit_sphere_coords(other, origin_mismatch)
@@ -2094,8 +2095,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         ValueError
             If this or the other coordinate do not have distances.
         """
-        from .distances import Distance
-
         if isinstance(self.data, r.UnitSphericalRepresentation):
             raise ValueError(
                 "This object does not have a distance; cannot compute 3d separation."
