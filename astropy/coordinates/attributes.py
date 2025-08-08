@@ -5,6 +5,7 @@ import numpy as np
 
 # Project
 from astropy import units as u
+from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
 
@@ -200,8 +201,6 @@ class TimeAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        from astropy.time import Time
-
         if value is None:
             return None, False
 

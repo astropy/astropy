@@ -2,6 +2,7 @@
 
 from astropy.coordinates.attributes import EarthLocationAttribute, TimeAttribute
 from astropy.coordinates.baseframe import BaseCoordinateFrame, base_doc
+from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.representation import (
     CartesianDifferential,
     CartesianRepresentation,
@@ -79,8 +80,6 @@ class ITRS(BaseCoordinateFrame):
         """
         The data in this frame as an `~astropy.coordinates.EarthLocation` class.
         """
-        from astropy.coordinates.earth import EarthLocation
-
         cart = self.represent_as(CartesianRepresentation)
         return EarthLocation(
             x=cart.x + self.location.x,
