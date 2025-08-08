@@ -4,7 +4,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates import is_rotation_or_reflection, rotation_matrix
+from astropy.coordinates import Angle, is_rotation_or_reflection, rotation_matrix
 from astropy.coordinates.matrix_utilities import (
     angle_axis,
     is_O3,
@@ -52,6 +52,13 @@ def test_rotation_matrix():
         rotation_matrix(0.000001 * u.deg, "x"),
         rotation_matrix(0.000001 * u.deg, [1, 0, 0]),
     )
+
+
+@pytest.mark.parametrize(
+    "angle", [Angle(0 * u.deg), 0 * u.deg, np.array(0), 0, "0 deg"], ids=type
+)
+def test_rotation_angle_input_types(angle):
+    assert_array_equal(rotation_matrix(angle), np.eye(3), strict=True)
 
 
 def test_angle_axis():

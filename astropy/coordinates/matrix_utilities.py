@@ -9,6 +9,7 @@ __all__ = ["is_rotation_or_reflection", "rotation_matrix"]
 import numpy as np
 
 from astropy import units as u
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import deprecated
 
 from .angles import Angle
@@ -53,16 +54,12 @@ def rotation_matrix(angle, axis="z", unit=None):
     rmat : `numpy.matrix`
         A unitary rotation matrix.
     """
-    if isinstance(angle, u.Quantity):
-        angle = angle.to_value(u.radian)
-    else:
-        if unit is None:
-            angle = np.deg2rad(angle)
-        else:
-            angle = u.Unit(unit).to(u.rad, angle)
+    if not isinstance(angle, u.Quantity):
+        angle = Angle(angle, unit=unit or u.deg, copy=COPY_IF_NEEDED)
+    angle_in_rad = angle.to_value(u.rad)
 
-    s = np.sin(angle)
-    c = np.cos(angle)
+    s = np.sin(angle_in_rad)
+    c = np.cos(angle_in_rad)
 
     # use optimized implementations for x/y/z
     try:
@@ -86,7 +83,7 @@ def rotation_matrix(angle, axis="z", unit=None):
     else:
         a1 = (i + 1) % 3
         a2 = (i + 2) % 3
-        R = np.zeros(getattr(angle, "shape", ()) + (3, 3))
+        R = np.zeros(angle_in_rad.shape + (3, 3))
         R[..., i, i] = 1.0
         R[..., a1, a1] = c
         R[..., a1, a2] = s
