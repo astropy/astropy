@@ -275,15 +275,17 @@ def get_constellation(coord, short_name=False, constellation_list="iau"):
         return names
 
 
-def _concatenate_components(reps_difs, names):
+def _concatenate_components(reps_difs, target_type):
     """Helper function for the concatenate function below. Gets and
     concatenates all of the individual components for an iterable of
     representations or differentials.
     """
-    return [
-        np.concatenate(np.atleast_1d(*[getattr(x, name) for x in reps_difs]))
-        for name in names
-    ]
+    return target_type(
+        *[
+            np.concatenate(np.atleast_1d(*[getattr(x, name) for x in reps_difs]))
+            for name in target_type.attr_classes
+        ]
+    )
 
 
 def concatenate_representations(reps):
@@ -310,42 +312,31 @@ def concatenate_representations(reps):
     if not isinstance(reps, (Sequence, np.ndarray)):
         raise TypeError("Input must be a list or iterable of representation objects.")
 
-    # First, validate that the representations are the same, and
-    # concatenate all of the positional data:
     rep_type = type(reps[0])
-    if any(type(r) != rep_type for r in reps):
+    if any(type(rep) is not rep_type for rep in reps):
         raise TypeError("Input representations must all have the same type.")
 
-    # Construct the new representation with the concatenated data from the
-    # representations passed in
-    values = _concatenate_components(reps, rep_type.attr_classes.keys())
-    new_rep = rep_type(*values)
+    new_rep = _concatenate_components(reps, rep_type)
 
-    has_diff = any("s" in rep.differentials for rep in reps)
-    if has_diff and any("s" not in rep.differentials for rep in reps):
+    if all("s" not in rep.differentials for rep in reps):
+        return new_rep
+
+    try:
+        differentials = [rep.differentials["s"] for rep in reps]
+    except KeyError:
         raise ValueError(
             "Input representations must either all contain "
             "differentials, or not contain differentials."
+        ) from None
+
+    dif_type = type(differentials[0])
+    if any(type(differential) is not dif_type for differential in differentials):
+        raise TypeError(
+            "All input representations must have the same differential type."
         )
-
-    if has_diff:
-        dif_type = type(reps[0].differentials["s"])
-
-        if any(
-            "s" not in r.differentials or type(r.differentials["s"]) != dif_type
-            for r in reps
-        ):
-            raise TypeError(
-                "All input representations must have the same differential type."
-            )
-
-        values = _concatenate_components(
-            [r.differentials["s"] for r in reps], dif_type.attr_classes.keys()
-        )
-        new_dif = dif_type(*values)
-        new_rep = new_rep.with_differentials({"s": new_dif})
-
-    return new_rep
+    return new_rep.with_differentials(
+        {"s": _concatenate_components(differentials, dif_type)}
+    )
 
 
 def concatenate(coords):
