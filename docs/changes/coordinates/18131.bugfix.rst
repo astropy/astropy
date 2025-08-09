@@ -1,0 +1,3 @@
+Fixed a logical bug in the input handling of ``SkyCoord`` where extra frame
+attributes -- ones not relevant for the current frame -- were not validated with
+awareness of the data (e.g., its shape).
