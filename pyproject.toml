@@ -70,7 +70,7 @@ jupyter = [  # these are optional dependencies for utils.console and table
     # jupyter-core is a transitive dependency via ipykernel, we declare it as
     # a direct dependency in order to set a lower bound for oldest-deps testing
     "jupyter-core>=4.11.2",
-    "pandas>=1.5.0",
+    "pandas>=2.0",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
@@ -87,8 +87,8 @@ all = [
     "html5lib>=1.1",
     "bleach>=3.2.1",
     "pandas>=2.0",
-    "sortedcontainers>=1.5.7", # (older versions may work)
-    "pytz>=2016.10", # (older versions may work)
+    "sortedcontainers>=2.1.0",  # imposed by testing with hypothesis
+    "pytz>=2020.1",  # imposed by pandas==2.0
     "jplephem>=2.15",
     "mpmath>=1.2.1",
     "asdf>=2.8.3", # via asdf-astropy==0.3.*
