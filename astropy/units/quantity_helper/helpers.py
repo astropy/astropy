@@ -11,7 +11,7 @@ from fractions import Fraction
 
 import numpy as np
 
-from astropy.units.core import dimensionless_unscaled, unit_scale_converter
+from astropy.units.core import dimensionless_unscaled, one, unit_scale_converter
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
 from astropy.utils.compat.numpycompat import (
     NUMPY_LT_2_0,
@@ -110,34 +110,6 @@ def get_converters_and_unit(f, unit1, unit2):
 # the unit the output will be in.
 
 
-def helper_onearg_test(f, unit):
-    return ([None], None)
-
-
-def helper_invariant(f, unit):
-    return ([None], _d(unit))
-
-
-def helper_square(f, unit):
-    return ([None], unit**2 if unit is not None else dimensionless_unscaled)
-
-
-def helper_reciprocal(f, unit):
-    return ([None], unit**-1 if unit is not None else dimensionless_unscaled)
-
-
-one_half = 0.5  # faster than Fraction(1, 2)
-one_third = Fraction(1, 3)
-
-
-def helper_sqrt(f, unit):
-    return ([None], unit**one_half if unit is not None else dimensionless_unscaled)
-
-
-def helper_cbrt(f, unit):
-    return ([None], (unit**one_third if unit is not None else dimensionless_unscaled))
-
-
 def helper_modf(f, unit):
     if unit is None:
         return [None], (dimensionless_unscaled, dimensionless_unscaled)
@@ -151,10 +123,6 @@ def helper_modf(f, unit):
         raise UnitTypeError(
             f"Can only apply '{f.__name__}' function to dimensionless quantities"
         )
-
-
-def helper__ones_like(f, unit):
-    return [None], dimensionless_unscaled
 
 
 def helper_dimensionless_to_dimensionless(f, unit):
@@ -272,14 +240,6 @@ def helper_ldexp(f, unit1, unit2):
         raise TypeError("Cannot use ldexp with a quantity as second argument.")
     else:
         return [None, None], _d(unit1)
-
-
-def helper_copysign(f, unit1, unit2):
-    # if first arg is not a quantity, just return plain array
-    if unit1 is None:
-        return [None, None], None
-    else:
-        return [None, None], unit1
 
 
 def helper_heaviside(f, unit1, unit2):
@@ -442,9 +402,10 @@ if not NUMPY_LT_2_3:
 
 # ufuncs that do not care about the unit and do not return a Quantity
 # (but rather a boolean, or -1, 0, or +1 for np.sign).
-onearg_test_ufuncs = (np.isfinite, np.isinf, np.isnan, np.sign, np.signbit)
-for ufunc in onearg_test_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_onearg_test
+UFUNC_HELPERS |= dict.fromkeys(
+    (np.isfinite, np.isinf, np.isnan, np.sign, np.signbit),
+    lambda f, unit: ([None], None),
+)
 
 # ufuncs that return a value with the same unit as the input
 invariant_ufuncs = (
@@ -460,8 +421,9 @@ invariant_ufuncs = (
     np.trunc,
     np.positive,
 )
-for ufunc in invariant_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_invariant
+UFUNC_HELPERS |= dict.fromkeys(
+    invariant_ufuncs, lambda f, unit: ([None], one if unit is None else unit)
+)
 
 # ufuncs that require dimensionless input and and give dimensionless output
 dimensionless_to_dimensionless_ufuncs = (
@@ -509,12 +471,13 @@ radian_to_dimensionless_ufuncs = (np.cos, np.sin, np.tan, np.cosh, np.sinh, np.t
 for ufunc in radian_to_dimensionless_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_radian_to_dimensionless
 
-# ufuncs handled as special cases
-UFUNC_HELPERS[np.sqrt] = helper_sqrt
-UFUNC_HELPERS[np.square] = helper_square
-UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
-UFUNC_HELPERS[np.cbrt] = helper_cbrt
-UFUNC_HELPERS[np_umath._ones_like] = helper__ones_like
+power_funcs = {np.reciprocal: -1, np.cbrt: Fraction(1, 3), np.sqrt: 0.5, np.square: 2}
+UFUNC_HELPERS |= {
+    f: lambda f, unit, p=power: ([None], one if unit is None else unit**p)
+    for f, power in power_funcs.items()
+}
+
+UFUNC_HELPERS[np_umath._ones_like] = lambda f, unit: ([None], dimensionless_unscaled)
 UFUNC_HELPERS[np.modf] = helper_modf
 UFUNC_HELPERS[np.frexp] = helper_frexp
 
@@ -576,7 +539,7 @@ UFUNC_HELPERS[np.divide] = helper_division
 UFUNC_HELPERS[np.true_divide] = helper_division
 UFUNC_HELPERS[np.power] = helper_power
 UFUNC_HELPERS[np.ldexp] = helper_ldexp
-UFUNC_HELPERS[np.copysign] = helper_copysign
+UFUNC_HELPERS[np.copysign] = lambda f, unit1, unit2: ([None, None], unit1)
 UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
 UFUNC_HELPERS[np.heaviside] = helper_heaviside
 UFUNC_HELPERS[np.float_power] = helper_power
