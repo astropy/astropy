@@ -16,14 +16,16 @@ from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
-from .angles import Angle
+from .angles import Angle, offset_by
 from .baseframe import (
     BaseCoordinateFrame,
     CoordinateFrameInfo,
     GenericFrame,
     frame_transform_graph,
 )
+from .builtin_frames import SkyOffsetFrame
 from .distances import Distance
+from .errors import ConvertError
 from .representation import (
     SphericalDifferential,
     SphericalRepresentation,
@@ -501,8 +503,6 @@ class SkyCoord(MaskableShapedLikeNDArray):
             If there is no possible transformation route.
 
         """
-        from astropy.coordinates.errors import ConvertError
-
         frame_kwargs = {}
 
         # Frame name (string) or frame class?  Coerce into an instance.
@@ -1127,8 +1127,6 @@ class SkyCoord(MaskableShapedLikeNDArray):
             inverse operation for the ``separation`` component
 
         """
-        from .angles import offset_by
-
         slat = self.represent_as(UnitSphericalRepresentation).lat
         slon = self.represent_as(UnitSphericalRepresentation).lon
 
@@ -1407,8 +1405,6 @@ class SkyCoord(MaskableShapedLikeNDArray):
             this object has an ICRS coordinate, the resulting frame is
             SkyOffsetICRS, with the origin set to this object)
         """
-        from .builtin_frames.skyoffset import SkyOffsetFrame
-
         return SkyOffsetFrame(origin=self, rotation=rotation)
 
     def get_constellation(self, short_name=False, constellation_list="iau"):
@@ -1541,8 +1537,6 @@ class SkyCoord(MaskableShapedLikeNDArray):
             ymax, xmax = image.shape
         else:
             xmax, ymax = wcs._naxis
-
-        import warnings
 
         with warnings.catch_warnings():
             #  Suppress warnings since they just mean we didn't find the coordinate
