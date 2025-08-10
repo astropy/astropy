@@ -10,6 +10,10 @@ from inspect import signature
 from warnings import warn
 
 from astropy import units as u
+from astropy.coordinates.representation import (
+    CartesianDifferential,
+    CartesianRepresentation,
+)
 from astropy.coordinates.transformations.base import CoordinateTransform
 from astropy.utils.exceptions import AstropyWarning
 
@@ -165,11 +169,6 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         self._finite_difference_frameattr_name = value
 
     def __call__(self, fromcoord, toframe):
-        from astropy.coordinates.representation import (
-            CartesianDifferential,
-            CartesianRepresentation,
-        )
-
         supcall = self.func
         if not fromcoord.data.differentials:
             return supcall(fromcoord, toframe)
