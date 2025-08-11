@@ -80,7 +80,7 @@ def test_atmospheric_wind_ucd():
     # Test the specific case from the issue report
     ucd_string = "phys.veloc;obs.atmos.wind;stat.mean"
     result = ucd.parse_ucd(
-        ucd_string, check_controlled_vocabulary=True, has_colon=";" in ucd_string
+        ucd_string, check_controlled_vocabulary=True
     )
     expected = [
         ("ivoa", "phys.veloc"),
@@ -95,6 +95,7 @@ def test_atmospheric_wind_ucd():
         "obs.atmos.rain",
         "obs.atmos.turbulence.isoplanatic",
         "obs.atmos.water",
+        "phys.temperature.dew",
     ]
 
     for term in primary_atmos_terms:
@@ -113,13 +114,11 @@ def test_atmospheric_wind_ucd():
         combined_ucd = f"phys.temperature;{term}"
         result = ucd.parse_ucd(
             combined_ucd,
-            check_controlled_vocabulary=True,
-            has_colon=";" in combined_ucd,
+            check_controlled_vocabulary=True
         )
         expected = [("ivoa", "phys.temperature"), ("ivoa", term)]
         assert result == expected
         assert ucd.check_ucd(
             combined_ucd,
-            check_controlled_vocabulary=True,
-            has_colon=";" in combined_ucd,
+            check_controlled_vocabulary=True
         )
