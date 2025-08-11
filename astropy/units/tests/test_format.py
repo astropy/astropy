@@ -1161,3 +1161,8 @@ def test_Fits_name_deprecation():
     ):
         from astropy.units.format import Fits
     assert Fits is u.format.FITS
+
+
+@pytest.mark.parametrize("format_spec", ["generic", "unicode"])
+def test_liter(format_spec):
+    assert format(u.liter, format_spec) == "l"
