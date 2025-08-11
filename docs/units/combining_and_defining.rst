@@ -12,7 +12,7 @@ numeric operators::
   >>> from astropy import units as u
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
   >>> fluxunit
-  Unit("erg / (s cm2)")
+  Unit('erg / (s cm2)')
   >>> 52.0 * fluxunit  # doctest: +FLOAT_CMP
   <Quantity  52. erg / (s cm2)>
   >>> 52.0 * fluxunit / u.s  # doctest: +FLOAT_CMP
@@ -79,9 +79,9 @@ Users can see the definition of a unit and its :ref:`decomposition
 <decomposing>` via::
 
   >>> rofl.represents
-  Unit("4 guffaw")
+  Unit('4 guffaw')
   >>> rofl.decompose()
-  Unit("240 titter")
+  Unit('240 titter')
 
 By default, custom units are not searched by methods such as
 :meth:`~astropy.units.core.UnitBase.find_equivalent_units`. However, they

@@ -84,7 +84,7 @@ class LombScargle(BasePeriodogram):
     >>> y = y * u.mag
     >>> frequency, power = LombScargle(t, y).autopower()
     >>> frequency.unit
-    Unit("1 / s")
+    Unit('1 / s')
     >>> power.unit
     Unit(dimensionless)
 

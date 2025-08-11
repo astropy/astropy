@@ -129,7 +129,7 @@ To use the :class:`~astropy.timeseries.LombScargle` for
 >>> dy_mags = y * u.mag
 >>> frequency, power = LombScargle(t_days, y_mags, dy_mags).autopower()
 >>> frequency.unit
-Unit("1 / d")
+Unit('1 / d')
 >>> power.unit
 Unit(dimensionless)
 
@@ -456,7 +456,7 @@ power spectral density (PSD):
 >>> ls = LombScargle(t_days, y_mags, normalization='psd')
 >>> frequency, power = ls.autopower()
 >>> power.unit
-Unit("mag2")
+Unit('mag2')
 
 Note, however, that the ``normalization='psd'`` result only has these units
 *if uncertainties are not specified*. In the presence of uncertainties,

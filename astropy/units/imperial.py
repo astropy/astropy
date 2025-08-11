@@ -8,7 +8,7 @@ top-level `astropy.units` namespace, e.g.::
     >>> import astropy.units as u
     >>> mph = u.imperial.mile / u.hour
     >>> mph
-    Unit("mi / h")
+    Unit('mi / h')
 
 To include them in `~astropy.units.UnitBase.compose` and the results of
 `~astropy.units.UnitBase.find_equivalent_units`, do::

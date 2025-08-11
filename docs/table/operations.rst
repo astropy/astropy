@@ -1059,7 +1059,7 @@ To merge column attributes ``unit``, ``format``, or ``description``::
   MergeConflictWarning: In merged column 'a' the 'unit' attribute does
   not match (cm != m).  Using m for merged output
   >>> out['a'].unit
-  Unit("m")
+  Unit('m')
 
 The rules for merging are the same as for `Merging metadata`_, and the
 ``metadata_conflicts`` option also controls the merging of column attributes.

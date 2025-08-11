@@ -127,11 +127,11 @@ Units can also be created from strings in a number of different
 formats using the `~astropy.units.Unit` class::
 
   >>> u.Unit("m")
-  Unit("m")
+  Unit('m')
   >>> u.Unit("erg / (s cm2)")
-  Unit("erg / (s cm2)")
+  Unit('erg / (s cm2)')
   >>> u.Unit("erg.s-1.cm-2", format="cds")
-  Unit("erg / (s cm2)")
+  Unit('erg / (s cm2)')
 
 It is also possible to create a scalar |Quantity| from a string::
 
@@ -301,7 +301,7 @@ code snippet shows how to set up Angstroem -> Angstrom::
     >>> u.set_enabled_aliases({"Angstroem": u.Angstrom})
     <astropy.units.core._UnitContext object at 0x...>
     >>> u.Unit("Angstroem")
-    Unit("Angstrom")
+    Unit('Angstrom')
     >>> u.Unit("Angstroem") == u.Angstrom
     True
 

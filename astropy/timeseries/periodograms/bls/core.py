@@ -74,7 +74,7 @@ class BoxLeastSquares(BasePeriodogram):
     >>> model = BoxLeastSquares(t, y)
     >>> results = model.autopower(0.16 * u.day)
     >>> results.period.unit
-    Unit("d")
+    Unit('d')
     >>> results.power.unit
     Unit(dimensionless)
 

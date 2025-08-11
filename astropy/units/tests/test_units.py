@@ -129,7 +129,7 @@ def test_str():
 
 
 def test_repr():
-    assert repr(u.cm) == 'Unit("cm")'
+    assert repr(u.cm) == "Unit('cm')"
 
 
 def test_represents():
@@ -732,7 +732,7 @@ def test_duplicate_define(name):
         ValueError,
         match=(
             "^Object with NFKC normalized name 'h' already exists in given namespace "
-            r'\(Unit\("h"\)\)\.$'
+            r"\(Unit\('h'\)\)\.$"
         ),
     ):
         u.def_unit(name, u.hourangle, namespace=namespace)

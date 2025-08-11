@@ -203,7 +203,7 @@ operation is between two `~astropy.nddata.CCDData` objects.
     >>> round(uncertainty_ratio, 5)   # doctest: +FLOAT_CMP
     np.float64(0.2)
     >>> result.unit
-    Unit("adu electron")
+    Unit('adu electron')
 
 .. note::
     The affiliated package `ccdproc <https://ccdproc.readthedocs.io>`_ provides

@@ -48,7 +48,7 @@ value members::
     >>> q.value
     np.float64(42.0)
     >>> q.unit
-    Unit("m")
+    Unit('m')
 
 From this basic building block, it is possible to start combining
 quantities with different units::

@@ -188,7 +188,7 @@ the sampled distributions::
   >>> distr.size
   4
   >>> distr.unit
-  Unit("ct")
+  Unit('ct')
   >>> distr.n_samples
   1000
   >>> distr.pdf_mean() # doctest: +FLOAT_CMP

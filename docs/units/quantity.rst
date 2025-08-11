@@ -61,7 +61,7 @@ The current unit and value can be accessed via the
 
     >>> q = 2.5 * u.m / u.s
     >>> q.unit
-    Unit("m / s")
+    Unit('m / s')
     >>> q.value
     np.float64(2.5)
 
@@ -297,7 +297,7 @@ u.km)`` is not scale-free by default:
 
     >>> q = (1. * u.m / u.km)
     >>> q.unit
-    Unit("m / km")
+    Unit('m / km')
     >>> q.unit.decompose()
     Unit(dimensionless with a scale of 0.001)
 
@@ -370,7 +370,7 @@ To verify if a |Quantity| argument can be used in calculations::
     ...     return myarg.unit
 
     >>> myfunction(100*u.arcsec)
-    Unit("arcsec")
+    Unit('arcsec')
     >>> myfunction(2*u.m)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
@@ -385,7 +385,7 @@ It is also possible to instead specify the :ref:`physical type
     ...     return myarg.unit
 
     >>> myfunction(100*u.arcsec)
-    Unit("arcsec")
+    Unit('arcsec')
 
 Optionally, `None` keyword arguments are also supported; for such cases, the
 input is only checked when a value other than `None` is passed::
@@ -411,7 +411,7 @@ unit-aware Quantity-annotation syntax.
     ...     return myarg.unit
     >>>
     >>> myfunction(100*u.arcsec)
-    Unit("arcsec")
+    Unit('arcsec')
 
 You can also annotate for different types in non-unit expecting arguments:
 
@@ -419,7 +419,7 @@ You can also annotate for different types in non-unit expecting arguments:
     ... def myfunction(myarg: u.Quantity[u.arcsec], nice_string: str):
     ...     return myarg.unit, nice_string
     >>> myfunction(100*u.arcsec, "a nice string")
-    (Unit("arcsec"), 'a nice string')
+    (Unit('arcsec'), 'a nice string')
 
 The output can be specified to have a desired unit with a function annotation,
 for example
@@ -444,9 +444,9 @@ supported for functions that should accept inputs with multiple valid units:
     ...     return a.unit
 
     >>> myfunction(1.*u.km)
-    Unit("km")
+    Unit('km')
     >>> myfunction(1.*u.km/u.s)
-    Unit("km / s")
+    Unit('km / s')
 
 Representing Vectors with Units
 ===============================

@@ -92,10 +92,10 @@ attribute but does not have all of the features of a |Quantity|)::
   <class 'astropy.table.column.Column'>
 
   >>> t['velocity'].unit
-  Unit("m / s")
+  Unit('m / s')
 
   >>> (t['velocity'] ** 2).unit  # WRONG because Column is not smart about unit
-  Unit("m / s")
+  Unit('m / s')
 
 So instead let's do the same thing using a |QTable|::
 
@@ -112,10 +112,10 @@ The ``velocity`` column is now a |Quantity| and behaves accordingly::
   <class 'astropy.units.quantity.Quantity'>
 
   >>> qt['velocity'].unit
-  Unit("m / s")
+  Unit('m / s')
 
   >>> (qt['velocity'] ** 2).unit  # GOOD!
-  Unit("m2 / s2")
+  Unit('m2 / s2')
 
 You can conveniently convert |Table| to |QTable| and vice-versa::
 

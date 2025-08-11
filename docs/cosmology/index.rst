@@ -98,7 +98,7 @@ floating point or array values::
   >>> from astropy.cosmology import WMAP9 as cosmo
   >>> H0 = cosmo.H(0)
   >>> H0.value, H0.unit  # doctest: +FLOAT_CMP
-  (np.float64(69.32), Unit("km / (Mpc s)"))
+  (np.float64(69.32), Unit('km / (Mpc s)'))
 
 
 Using `astropy.cosmology`

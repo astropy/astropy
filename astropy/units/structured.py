@@ -101,11 +101,11 @@ class StructuredUnit:
         >>> import astropy.units as u
         >>> su = u.Unit('(AU,AU/day),yr')
         >>> su
-        Unit("((AU, AU / d), yr)")
+        Unit('((AU, AU / d), yr)')
         >>> su.field_names
         (['f0', ('f0', 'f1')], 'f1')
         >>> su['f1']
-        Unit("yr")
+        Unit('yr')
         >>> su2 = u.StructuredUnit(((u.AU, u.AU/u.day), u.yr), names=(('p', 'v'), 't'))
         >>> su2 == su
         True
@@ -117,14 +117,14 @@ class StructuredUnit:
         >>> su3.keys()
         ('p_v', 't')
         >>> su3.values()
-        (Unit("(AU, AU / d)"), Unit("d"))
+        (Unit('(AU, AU / d)'), Unit('d'))
 
     Structured units share most methods with regular units::
 
         >>> su.physical_type
         astropy.units.structured.Structure((astropy.units.structured.Structure((PhysicalType('length'), PhysicalType({'speed', 'velocity'})), dtype=[('f0', 'O'), ('f1', 'O')]), PhysicalType('time')), dtype=[('f0', 'O'), ('f1', 'O')])
         >>> su.si
-        Unit("((1.49598e+11 m, 1.73146e+06 m / s), 3.15576e+07 s)")
+        Unit('((1.49598e+11 m, 1.73146e+06 m / s), 3.15576e+07 s)')
 
     """
 
@@ -492,7 +492,7 @@ class StructuredUnit:
         return self.to_string()
 
     def __repr__(self):
-        return f'Unit("{self.to_string()}")'
+        return f"Unit('{self.to_string()}')"
 
     def __eq__(self, other):
         try:

@@ -670,7 +670,7 @@ class UnitBase:
         return Generic.to_string(self)
 
     def __repr__(self) -> str:
-        return f'Unit("{self}")'
+        return f"Unit('{self}')"
 
     @cached_property
     def _physical_type_id(self) -> PhysicalTypeID:
@@ -1491,15 +1491,15 @@ class UnitBase:
         --------
         >>> import astropy.units as u
         >>> (u.N / u.m**2).to_system(u.si)  # preference for simpler units
-        [Unit("Pa"), Unit("N / m2"), Unit("J / m3")]
+        [Unit('Pa'), Unit('N / m2'), Unit('J / m3')]
         >>> u.Pa.to_system(u.cgs)
-        [Unit("10 Ba"), Unit("10 P / s")]
+        [Unit('10 Ba'), Unit('10 P / s')]
         >>> u.Ba.to_system(u.si)
-        [Unit("0.1 Pa"), Unit("0.1 N / m2"), Unit("0.1 J / m3")]
+        [Unit('0.1 Pa'), Unit('0.1 N / m2'), Unit('0.1 J / m3')]
         >>> (u.AU/u.yr).to_system(u.cgs)  # preference for base units
-        [Unit("474047 cm / s"), Unit("474047 Gal s")]
+        [Unit('474047 cm / s'), Unit('474047 Gal s')]
         >>> (u.m / u.s**2).to_system(u.cgs)
-        [Unit("100 cm / s2"), Unit("100 Gal")]
+        [Unit('100 cm / s2'), Unit('100 Gal')]
 
         """
         return sorted(

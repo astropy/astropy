@@ -47,7 +47,7 @@ respectively. In addition, you can index any given field using its name::
          ([0., 1., 0.], [-0.125,  0.   ,  0.   ])],
         dtype=[('p', '<f8', (3,)), ('v', '<f8', (3,))])
   >>> pv.unit
-  Unit("(km, km / s)")
+  Unit('(km, km / s)')
   >>> pv['v']
   <Quantity [[ 0.   ,  0.125,  0.   ],
              [-0.125,  0.   ,  0.   ]] km / s>

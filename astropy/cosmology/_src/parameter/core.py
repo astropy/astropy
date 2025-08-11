@@ -274,7 +274,7 @@ class Parameter:
                   fvalidate='default', doc=None)
 
         >>> p.clone(unit="km")
-        Parameter(derived=False, unit=Unit("km"), equivalencies=[],
+        Parameter(derived=False, unit=Unit('km'), equivalencies=[],
                   fvalidate='default', doc=None)
         """
         kw.setdefault("fvalidate", self._fvalidate_in)  # prefer the input fvalidate
