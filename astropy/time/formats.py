@@ -189,7 +189,7 @@ class TimeFormat:
         if "subfmts" in cls.__dict__:
             cls.subfmts = _regexify_subfmts(cls.subfmts)
 
-        return super().__init_subclass__(**kwargs)
+        super().__init_subclass__(**kwargs)
 
     @classmethod
     def _get_allowed_subfmt(cls, subfmt):
