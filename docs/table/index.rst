@@ -353,7 +353,7 @@ Astropy Table and DataFrames
 .. toctree::
    :maxdepth: 2
 
-   df_narwhals.rst
+   dataframes.rst
    table_and_dataframes.rst
 
 Implementation

@@ -268,19 +268,13 @@ Method Reference
 Pandas-Specific Methods
 -----------------------
 
-.. autosummary::
-   :toctree: api
-
-   astropy.table.Table.to_pandas
-   astropy.table.Table.from_pandas
+- :meth:`~astropy.table.Table.to_pandas` - Convert Table to pandas DataFrame
+- :meth:`~astropy.table.Table.from_pandas` - Create Table from pandas DataFrame
 
 Generic Multi-Backend Methods  
 -----------------------------
 
-.. autosummary::
-   :toctree: api
-
-   astropy.table.Table.to_df
-   astropy.table.Table.from_df
+- :meth:`~astropy.table.Table.to_df` - Convert Table to DataFrame using specified backend  
+- :meth:`~astropy.table.Table.from_df` - Create Table from any narwhals-compatible DataFrame
 
 See the `Narwhals documentation <https://narwhals-dev.github.io/narwhals/>`_ for more information about supported backends and their capabilities.
