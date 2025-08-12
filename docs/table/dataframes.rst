@@ -65,12 +65,12 @@ The pandas-specific methods provide full support for DataFrame indexing, which i
     >>> tm = Time([1998, 2002], format="jyear")
     >>> x = [1, 2]
     >>> t = Table([tm, x], names=["tm", "x"])
-    
+
     # Use a column as the DataFrame index
     >>> df = t.to_pandas(index="tm")
     >>> df.index.name
     'tm'
-    
+
     # Convert back including the index as a column
     >>> t_back = Table.from_pandas(df, index=True)
     >>> t_back.colnames
@@ -185,7 +185,7 @@ Mixin Column Limitations
 Tables with :ref:`mixin_columns` such as `~astropy.time.Time`, `~astropy.coordinates.SkyCoord`, and |Quantity| can be converted, but **with loss of information**:
 
 * **Time columns**: Converted to native datetime types with reduced precision and loss of astronomical time scale information
-* **SkyCoord columns**: Split into separate coordinate component columns (e.g., ``ra``, ``dec``) with loss of units and coordinate frame information  
+* **SkyCoord columns**: Split into separate coordinate component columns (e.g., ``ra``, ``dec``) with loss of units and coordinate frame information
 * **Quantity columns**: Converted to plain numeric columns with complete loss of unit information
 
 Complex Example with Both Methods
@@ -250,7 +250,7 @@ Convert to polars using the generic method::
 Convert back to tables::
 
     >>> t_from_pandas = QTable.from_pandas(df_pandas)  # Using pandas-specific method
-    >>> t_from_generic = QTable.from_df(df_pandas)     # Using generic method  
+    >>> t_from_generic = QTable.from_df(df_pandas)     # Using generic method
     >>> t_from_polars = QTable.from_df(df_polars)      # From polars DataFrame
 
 Note the data transformations that occurred:
@@ -271,10 +271,10 @@ Pandas-Specific Methods
 - :meth:`~astropy.table.Table.to_pandas` - Convert Table to pandas DataFrame
 - :meth:`~astropy.table.Table.from_pandas` - Create Table from pandas DataFrame
 
-Generic Multi-Backend Methods  
+Generic Multi-Backend Methods
 -----------------------------
 
-- :meth:`~astropy.table.Table.to_df` - Convert Table to DataFrame using specified backend  
+- :meth:`~astropy.table.Table.to_df` - Convert Table to DataFrame using specified backend
 - :meth:`~astropy.table.Table.from_df` - Create Table from any narwhals-compatible DataFrame
 
 See the `Narwhals documentation <https://narwhals-dev.github.io/narwhals/>`_ for more information about supported backends and their capabilities.
