@@ -667,20 +667,29 @@ def test_nd_columun_as_index(masked):
         t.add_index("arr")
 
 
-def test_slice_an_indexed_table():
+@pytest.mark.parametrize("index_first", [True, False])
+def test_slice_an_indexed_table(index_first):
     """Test slicing a table that is already indexed.
 
-    Part of fix for https://github.com/astropy/astropy/issues/10732.
+    Test of fix for https://github.com/astropy/astropy/issues/10732.
+
+    #10732 is the case index_first=True, but also test slicing first (index_first=False)
+    since we're at it.
     """
     t = Table()
     t["a"] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
     t["b"] = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
     t["c"] = ["e", "f", "g", "h", "i", "j", "k", "a", "b", "c"]
-    t.add_index("a")
-    t.add_index(["b", "c"])
 
-    # Slice table
-    ts = t[::2]
+    if index_first:
+        t.add_index("a")
+        t.add_index(["b", "c"])
+        ts = t[::2]
+    else:
+        ts = t[::2]
+        ts.add_index("a")
+        ts.add_index(["b", "c"])
+
     assert ts.pformat() == [
         " a   b   c ",
         "--- --- ---",
