@@ -8,7 +8,12 @@ from astropy import table
 from astropy import units as u
 from astropy.table import MaskedColumn, Table
 from astropy.time import Time, TimeDelta
-from astropy.utils.compat.optional_deps import HAS_NARWHALS, HAS_PANDAS, HAS_POLARS
+from astropy.utils.compat.optional_deps import (
+    HAS_NARWHALS,
+    HAS_PANDAS,
+    HAS_POLARS,
+    HAS_PYARROW,
+)
 
 from .conftest import MIXIN_COLS
 
@@ -151,22 +156,26 @@ class TestPandasLegacy:
 
 
 @pytest.mark.skipif(not HAS_NARWHALS, reason="requires narwhals")
+@pytest.mark.parametrize(
+    "backend",
+    [
+        pytest.param(
+            "pandas",
+            marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
+        ),
+        pytest.param(
+            "polars",
+            marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
+        ),
+        pytest.param(
+            "pyarrow",
+            marks=pytest.mark.skipif(not HAS_PYARROW, reason="requires pyarrow"),
+        ),
+    ],
+)
 class TestGenericDataFrames:
     """Test generic DataFrame functionality that should work across backends."""
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
     def test_simple(self, backend):
         """Test basic endianness and data type handling."""
         t = table.Table()
@@ -206,19 +215,6 @@ class TestGenericDataFrames:
                 else:
                     assert t_dtype == t2_dtype
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
     @pytest.mark.parametrize("unsigned", ["u", ""])
     @pytest.mark.parametrize("bits", [8, 16, 32, 64])
     def test_nullable_int(self, backend, unsigned, bits):
@@ -233,19 +229,6 @@ class TestGenericDataFrames:
         assert np.all(t2["col0"].mask == [False, True])
         assert np.all(t2["col0"] == c)
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
     def test_2d_columns(self, backend):
         """Test handling of multidimensional columns."""
         t = table.Table()
@@ -270,19 +253,6 @@ class TestGenericDataFrames:
             tp = t.to_df(backend)
             assert isinstance(tp["b"].dtype, pl.Array)
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
     def test_mixin_columns(self, backend):
         """Test handling of astropy mixin columns."""
         t = table.QTable()
@@ -325,19 +295,6 @@ class TestGenericDataFrames:
         assert np.allclose(t2["dt"].value, [0, 2, 4, 6])
         assert t2["dt"].format == "sec"
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
     def test_mixin_masked(self, backend):
         """Test handling of masked mixin columns."""
         tm = Time([1, 2, 3], format="cxcsec")
@@ -363,19 +320,6 @@ class TestGenericDataFrames:
         assert np.all(t2["dt"].mask == dt.mask)
         assert np.ma.allclose(t2["dt"].jd, dt.jd, rtol=1e-14, atol=1e-14)
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
     @pytest.mark.parametrize("use_nullable_int", [True, False])
     def test_masking(self, backend, use_nullable_int):
         """Test handling of masked columns."""
@@ -424,165 +368,105 @@ class TestGenericDataFrames:
                 else:
                     assert column.dtype.newbyteorder() == t2[name].dtype
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
-    def test_units(self, backend):
-        """Test handling of units in from_df conversion."""
-        if backend == "pandas":
-            import pandas as pd
 
-            df = pd.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
-        else:  # polars
-            import polars as pl
+def test_units(self, backend):
+    """Test handling of units in from_df conversion."""
+    if backend == "pandas":
+        import pandas as pd
 
-            df = pl.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
+        df = pd.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
+    else:  # polars
+        import polars as pl
 
-        t = table.Table.from_df(df, units={"x": u.m, "t": u.s})
+        df = pl.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
 
-        assert t["x"].unit == u.m
-        assert t["t"].unit == u.s
+    t = table.Table.from_df(df, units={"x": u.m, "t": u.s})
 
-        # test error if not a mapping
-        with pytest.raises(TypeError):
-            table.Table.from_df(df, units=[u.m, u.s])
+    assert t["x"].unit == u.m
+    assert t["t"].unit == u.s
 
-        # test warning is raised if additional columns in units dict
-        with pytest.warns(UserWarning) as record:
-            table.Table.from_df(df, units={"x": u.m, "t": u.s, "y": u.m})
-        assert len(record) == 1
-        assert "{'y'}" in str(record[0].message.args[0])
+    # test error if not a mapping
+    with pytest.raises(TypeError):
+        table.Table.from_df(df, units=[u.m, u.s])
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
-    def test_basic_roundtrip(self, backend):
-        """Test basic round-trip conversion for different backends."""
-        t = table.Table()
-        t["a"] = [1, 2, 3]
-        t["b"] = [4.0, 5.0, 6.0]
-        t["c"] = ["x", "y", "z"]
+    # test warning is raised if additional columns in units dict
+    with pytest.warns(UserWarning) as record:
+        table.Table.from_df(df, units={"x": u.m, "t": u.s, "y": u.m})
+    assert len(record) == 1
+    assert "{'y'}" in str(record[0].message.args[0])
 
-        # Convert to DataFrame and back
-        df = t.to_df(backend)
-        t2 = table.Table.from_df(df)
 
-        # Check that data is preserved
-        assert_allclose(t["a"], t2["a"])
-        assert_allclose(t["b"], t2["b"])
-        assert np.all(t["c"] == t2["c"])
+def test_basic_roundtrip(self, backend):
+    """Test basic round-trip conversion for different backends."""
+    t = table.Table()
+    t["a"] = [1, 2, 3]
+    t["b"] = [4.0, 5.0, 6.0]
+    t["c"] = ["x", "y", "z"]
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
-    def test_units_preservation(self, backend):
-        """Test that units are handled correctly through DataFrame conversion."""
-        t = table.QTable()
-        t["x"] = [1, 2, 3] * u.m
-        t["y"] = [4.0, 5.0, 6.0] * u.s
+    # Convert to DataFrame and back
+    df = t.to_df(backend)
+    t2 = table.Table.from_df(df)
 
-        # Test that units are lost in DataFrame conversion (expected behavior)
-        df = t.to_df(backend)
-        t2 = table.Table.from_df(df)
+    # Check that data is preserved
+    assert_allclose(t["a"], t2["a"])
+    assert_allclose(t["b"], t2["b"])
+    assert np.all(t["c"] == t2["c"])
 
-        # Original table should still have units
-        assert t["x"].unit == u.m
-        assert t["y"].unit == u.s
 
-        # Round-trip table should not have units
-        assert t2["x"].unit is None
-        assert t2["y"].unit is None
+def test_units_preservation(self, backend):
+    """Test that units are handled correctly through DataFrame conversion."""
+    t = table.QTable()
+    t["x"] = [1, 2, 3] * u.m
+    t["y"] = [4.0, 5.0, 6.0] * u.s
 
-        # But data should be preserved
-        assert_allclose(t["x"].value, t2["x"])
-        assert_allclose(t["y"].value, t2["y"])
+    # Test that units are lost in DataFrame conversion (expected behavior)
+    df = t.to_df(backend)
+    t2 = table.Table.from_df(df)
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
-    def test_index_argument_non_pandas(self, backend):
-        """Test that index argument is rejected for non-pandas backends."""
-        t = table.Table()
-        t["a"] = [1, 2, 3]
-        t["b"] = [4, 5, 6]
+    # Original table should still have units
+    assert t["x"].unit == u.m
+    assert t["y"].unit == u.s
 
-        if backend == "pandas":
-            # Should work for pandas
-            df = t.to_df(backend, index="a")
-            assert df.index.name == "a"
-        else:
-            # Should raise error for non-pandas backends
-            with pytest.raises(
-                ValueError, match="Indexing is only supported for pandas-like backends"
-            ):
-                t.to_df(backend, index="a")
+    # Round-trip table should not have units
+    assert t2["x"].unit is None
+    assert t2["y"].unit is None
 
-    @pytest.mark.parametrize(
-        "backend",
-        [
-            pytest.param(
-                "pandas",
-                marks=pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas"),
-            ),
-            pytest.param(
-                "polars",
-                marks=pytest.mark.skipif(not HAS_POLARS, reason="requires polars"),
-            ),
-        ],
-    )
-    def test_masked_int_data(self, backend):
-        """Test specific masked integer data handling."""
-        data = {"data": [0, 1, 2], "index": [10, 11, 12]}
-        t = table.Table(data=data, masked=True)
+    # But data should be preserved
+    assert_allclose(t["x"].value, t2["x"])
+    assert_allclose(t["y"].value, t2["y"])
 
-        if backend == "pandas":
-            t.add_index("index")
-        t["data"].mask = [1, 1, 0]
 
-        df = t.to_df(backend)
+def test_index_argument_non_pandas(self, backend):
+    """Test that index argument is rejected for non-pandas backends."""
+    t = table.Table()
+    t["a"] = [1, 2, 3]
+    t["b"] = [4, 5, 6]
 
-        if backend == "pandas":
-            assert df["data"].iloc[-1] == 2
-        else:  # polars
-            assert df["data"][2] == 2
-            assert df["data"].is_null()[:2].all()
+    if backend == "pandas":
+        # Should work for pandas
+        df = t.to_df(backend, index="a")
+        assert df.index.name == "a"
+    else:
+        # Should raise error for non-pandas backends
+        with pytest.raises(
+            ValueError, match="Indexing is only supported for pandas-like backends"
+        ):
+            t.to_df(backend, index="a")
+
+
+def test_masked_int_data(self, backend):
+    """Test specific masked integer data handling."""
+    data = {"data": [0, 1, 2], "index": [10, 11, 12]}
+    t = table.Table(data=data, masked=True)
+
+    if backend == "pandas":
+        t.add_index("index")
+    t["data"].mask = [1, 1, 0]
+
+    df = t.to_df(backend)
+
+    if backend == "pandas":
+        assert df["data"].iloc[-1] == 2
+    else:  # polars
+        assert df["data"][2] == 2
+        assert df["data"].is_null()[:2].all()
