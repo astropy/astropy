@@ -4006,6 +4006,7 @@ class Table:
     def _encode_mixins(tbl):
         """Encode mixin columns to basic columns for DataFrame compatibility."""
         from .dataframes import _encode_mixins
+
         return _encode_mixins(tbl)
 
     def to_pandas(self, index=None, use_nullable_int=True):
@@ -4076,6 +4077,7 @@ class Table:
 
         """
         from .dataframes import to_pandas
+
         return to_pandas(self, index=index, use_nullable_int=use_nullable_int)
 
     def to_df(self, backend, index=None, use_nullable_int=True):
@@ -4146,7 +4148,10 @@ class Table:
 
         """
         from .dataframes import to_df
-        return to_df(self, backend=backend, index=index, use_nullable_int=use_nullable_int)
+
+        return to_df(
+            self, backend=backend, index=index, use_nullable_int=use_nullable_int
+        )
 
     @classmethod
     def from_pandas(cls, dataframe, index=False, units=None):
@@ -4207,6 +4212,7 @@ class Table:
 
         """
         from .dataframes import from_pandas
+
         return from_pandas(dataframe, index=index, units=units)
 
     @classmethod
@@ -4275,6 +4281,7 @@ class Table:
 
         """
         from .dataframes import from_df
+
         return from_df(df, index=index, units=units)
 
     info = TableInfo()
