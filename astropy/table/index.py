@@ -236,11 +236,12 @@ class Index:
         Parameters
         ----------
         row : int
-            Position of row to remove
+            Table row number to remove in original table order
         reorder : bool
             Whether to reorder indices after removal
         """
-        # for removal, form a key consisting of column values in this row
+        # For removal, form a key consisting of column values in this row, where
+        # self.columns references the original columns.
         if not self.data.remove(tuple(col[row] for col in self.columns), row):
             raise ValueError(f"Could not remove row {row} from index")
         # decrement the row number of all later rows

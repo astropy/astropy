@@ -2779,9 +2779,27 @@ class Table:
               2 0.2   y
               3 0.3   z
         """
-        # Update indices
-        for index in self.indices:
-            index.remove_rows(row_specifier)
+        # Update indices. If the table has been sliced then each index will have
+        # original=False indicating that the data are from the original table not the
+        # sliced version.
+        sliced = any(not index.original for index in self.indices)
+        if not sliced:
+            # For the not-sliced case we can use the remove_rows method to efficiently
+            # update the existing indices.
+            for index in self.indices:
+                index.remove_rows(row_specifier)
+        else:
+            # Removing rows in a sliced table requires fully remaking the indices. Each
+            # such SlicedIndex has a reference to the original table index and the
+            # slice, and it is not possible to maintain that if a row is removed. First
+            # remove all the existing indices but keep track of the index column names
+            # to later remake the indices.
+            indices_colnames = [
+                tuple(col.info.name for col in index.columns) for index in self.indices
+            ]
+            for col in self.itercols():
+                if hasattr(col.info, "indices"):
+                    col.info.indices.clear()
 
         keep_mask = np.ones(len(self), dtype=bool)
         keep_mask[row_specifier] = False
@@ -2793,6 +2811,12 @@ class Table:
             columns[name] = newcol
 
         self._replace_cols(columns)
+
+        if sliced:
+            # For the sliced case, re-create the indices (in order) after row removal.
+            # This will also preserve the first index as the primary key.
+            for index_colnames in indices_colnames:
+                self.add_index(index_colnames)
 
         # Revert groups to default (ungrouped) state
         if hasattr(self, "_groups"):
