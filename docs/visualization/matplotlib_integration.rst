@@ -25,8 +25,8 @@ the quantity:
 
     from astropy import units as u
     from astropy.visualization import quantity_support
-    quantity_support()
     from matplotlib import pyplot as plt
+    quantity_support()
     fig, ax = plt.subplots(figsize=(5, 3))
     ax.plot([1, 2, 3] * u.m)
 
