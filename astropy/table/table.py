@@ -4057,9 +4057,8 @@ class Table:
         index : None, bool, str
             Specify DataFrame index mode
         use_nullable_int : bool, default=True
-            Convert integer MaskedColumn to pandas nullable integer type.  If
-            ``use_nullable_int=False`` then the column is converted to float
-            with NaN.
+            If True, masked integer columns are converted to the pandas nullable integer type
+            If False, an error is raised if a masked integer column is encountered.
 
         Returns
         -------
@@ -4136,7 +4135,7 @@ class Table:
 
         use_nullable_int : bool, default=True
             If True, masked integer columns are converted to the backend's nullable integer type
-            (e.g., ``pandas.Int64``). If False, they are converted to float with NaN for missing values.
+            If False, an error is raised if a masked integer column is encountered.
 
         Returns
         -------
