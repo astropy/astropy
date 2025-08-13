@@ -139,7 +139,7 @@ Different DataFrame backends handle data differently:
 **Multidimensional Columns:**
   - Pandas: Not supported, raises an error
   - Polars: Supported as Array type for arbitrary dimensions
-  - PyArrow: Limited support for 1D arrays
+  - PyArrow: Limited support for 1D arrays, currently unavailable.
 
 **Index Support:**
   - Pandas: Full index support with :meth:`~astropy.table.Table.to_df`
