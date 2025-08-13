@@ -57,34 +57,25 @@ operator_mapping = {
         (np.arange(1000).reshape(20, 5, 10), np.ones((20, 5, 10)) * 3),
     ],
 )
-def test_arithmetics_data(data1, data2):
+@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+def test_arithmetics_data(data1, data2, meth, op):
     nd1 = NDDataArithmetic(data1)
     nd2 = NDDataArithmetic(data2)
 
-    # Addition
-    nd3 = nd1.add(nd2)
-    assert_array_equal(data1 + data2, nd3.data)
-    # Subtraction
-    nd4 = nd1.subtract(nd2)
-    assert_array_equal(data1 - data2, nd4.data)
-    # Multiplication
-    nd5 = nd1.multiply(nd2)
-    assert_array_equal(data1 * data2, nd5.data)
-    # Division
-    nd6 = nd1.divide(nd2)
-    assert_array_equal(data1 / data2, nd6.data)
-    for nd in [nd3, nd4, nd5, nd6]:
-        # Check that broadcasting worked as expected
-        if data1.ndim > data2.ndim:
-            assert data1.shape == nd.data.shape
-        else:
-            assert data2.shape == nd.data.shape
-        # Check all other attributes are not set
-        assert nd.unit is None
-        assert nd.uncertainty is None
-        assert nd.mask is None
-        assert len(nd.meta) == 0
-        assert nd.wcs is None
+    nd = getattr(nd1, meth)(nd2)
+    assert_array_equal(op(data1, data2), nd.data)
+
+    # Check that broadcasting worked as expected
+    if data1.ndim > data2.ndim:
+        assert data1.shape == nd.data.shape
+    else:
+        assert data2.shape == nd.data.shape
+    # Check all other attributes are not set
+    assert nd.unit is None
+    assert nd.uncertainty is None
+    assert nd.mask is None
+    assert len(nd.meta) == 0
+    assert nd.wcs is None
 
 
 # Invalid arithmetic operations for data covering:
@@ -117,45 +108,27 @@ def test_arithmetics_data_invalid():
         (np.array(5), np.array(10) * u.s / u.h),
     ],
 )
-def test_arithmetics_data_unit_identical(data1, data2):
+@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+def test_arithmetics_data_unit_identical(data1, data2, meth, op):
     nd1 = NDDataArithmetic(data1)
     nd2 = NDDataArithmetic(data2)
 
-    # Addition
-    nd3 = nd1.add(nd2)
-    ref = data1 + data2
+    nd = getattr(nd1, meth)(nd2)
+    ref = op(data1, data2)
     ref_unit, ref_data = ref.unit, ref.value
-    assert_array_equal(ref_data, nd3.data)
-    assert nd3.unit == ref_unit
-    # Subtraction
-    nd4 = nd1.subtract(nd2)
-    ref = data1 - data2
-    ref_unit, ref_data = ref.unit, ref.value
-    assert_array_equal(ref_data, nd4.data)
-    assert nd4.unit == ref_unit
-    # Multiplication
-    nd5 = nd1.multiply(nd2)
-    ref = data1 * data2
-    ref_unit, ref_data = ref.unit, ref.value
-    assert_array_equal(ref_data, nd5.data)
-    assert nd5.unit == ref_unit
-    # Division
-    nd6 = nd1.divide(nd2)
-    ref = data1 / data2
-    ref_unit, ref_data = ref.unit, ref.value
-    assert_array_equal(ref_data, nd6.data)
-    assert nd6.unit == ref_unit
-    for nd in [nd3, nd4, nd5, nd6]:
-        # Check that broadcasting worked as expected
-        if data1.ndim > data2.ndim:
-            assert data1.shape == nd.data.shape
-        else:
-            assert data2.shape == nd.data.shape
-        # Check all other attributes are not set
-        assert nd.uncertainty is None
-        assert nd.mask is None
-        assert len(nd.meta) == 0
-        assert nd.wcs is None
+    assert_array_equal(ref_data, nd.data)
+    assert nd.unit == ref_unit
+
+    # Check that broadcasting worked as expected
+    if data1.ndim > data2.ndim:
+        assert data1.shape == nd.data.shape
+    else:
+        assert data2.shape == nd.data.shape
+    # Check all other attributes are not set
+    assert nd.uncertainty is None
+    assert nd.mask is None
+    assert len(nd.meta) == 0
+    assert nd.wcs is None
 
 
 # Test with Data and unit and covers:
@@ -170,29 +143,23 @@ def test_arithmetics_data_unit_identical(data1, data2):
         (np.array(5), np.array(10) * u.s),
     ],
 )
-def test_arithmetics_data_unit_not_identical(data1, data2):
+@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+def test_arithmetics_data_unit_not_identical(data1, data2, meth, op):
     nd1 = NDDataArithmetic(data1)
     nd2 = NDDataArithmetic(data2)
 
-    # Addition should not be possible
-    with pytest.raises(UnitsError):
-        nd1.add(nd2)
-    # Subtraction should not be possible
-    with pytest.raises(UnitsError):
-        nd1.subtract(nd2)
-    # Multiplication is possible
-    nd3 = nd1.multiply(nd2)
-    ref = data1 * data2
-    ref_unit, ref_data = ref.unit, ref.value
-    assert_array_equal(ref_data, nd3.data)
-    assert nd3.unit == ref_unit
-    # Division is possible
-    nd4 = nd1.divide(nd2)
-    ref = data1 / data2
-    ref_unit, ref_data = ref.unit, ref.value
-    assert_array_equal(ref_data, nd4.data)
-    assert nd4.unit == ref_unit
-    for nd in [nd3, nd4]:
+    if meth in ("add", "subtract"):
+        # Addition/subtraction should not be possible
+        with pytest.raises(UnitsError):
+            getattr(nd1, meth)(nd2)
+    else:
+        # Multiplication/division is possible
+        nd = getattr(nd1, meth)(nd2)
+        ref = op(data1, data2)
+        ref_unit, ref_data = ref.unit, ref.value
+        assert_array_equal(ref_data, nd.data)
+        assert nd.unit == ref_unit
+
         # Check all other attributes are not set
         assert nd.uncertainty is None
         assert nd.mask is None
@@ -215,7 +182,8 @@ def test_arithmetics_data_unit_not_identical(data1, data2):
         nd_testing.create_two_unequal_wcs(naxis=2),
     ],
 )
-def test_arithmetics_data_wcs(wcs1, wcs2):
+@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+def test_arithmetics_data_wcs(wcs1, wcs2, meth, op):
     nd1 = NDDataArithmetic(1, wcs=wcs1)
     nd2 = NDDataArithmetic(1, wcs=wcs2)
 
@@ -228,24 +196,14 @@ def test_arithmetics_data_wcs(wcs1, wcs2):
     else:
         ref_wcs = wcs1
 
-    # Addition
-    nd3 = nd1.add(nd2)
-    nd_testing.assert_wcs_seem_equal(ref_wcs, nd3.wcs)
-    # Subtraction
-    nd4 = nd1.subtract(nd2)
-    nd_testing.assert_wcs_seem_equal(ref_wcs, nd4.wcs)
-    # Multiplication
-    nd5 = nd1.multiply(nd2)
-    nd_testing.assert_wcs_seem_equal(ref_wcs, nd5.wcs)
-    # Division
-    nd6 = nd1.divide(nd2)
-    nd_testing.assert_wcs_seem_equal(ref_wcs, nd6.wcs)
-    for nd in [nd3, nd4, nd5, nd6]:
-        # Check all other attributes are not set
-        assert nd.unit is None
-        assert nd.uncertainty is None
-        assert len(nd.meta) == 0
-        assert nd.mask is None
+    nd = getattr(nd1, meth)(nd2)
+    nd_testing.assert_wcs_seem_equal(ref_wcs, nd.wcs)
+
+    # Check all other attributes are not set
+    assert nd.unit is None
+    assert nd.uncertainty is None
+    assert len(nd.meta) == 0
+    assert nd.mask is None
 
 
 # Masks are completely separated in the NDArithmetics from the data so we need
@@ -278,7 +236,8 @@ def test_arithmetics_data_wcs(wcs1, wcs2):
         ),
     ],
 )
-def test_arithmetics_data_masks(mask1, mask2):
+@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+def test_arithmetics_data_masks(mask1, mask2, meth, op):
     nd1 = NDDataArithmetic(1, mask=mask1)
     nd2 = NDDataArithmetic(1, mask=mask2)
 
@@ -291,24 +250,14 @@ def test_arithmetics_data_masks(mask1, mask2):
     else:
         ref_mask = mask1 | mask2
 
-    # Addition
-    nd3 = nd1.add(nd2)
-    assert_array_equal(ref_mask, nd3.mask)
-    # Subtraction
-    nd4 = nd1.subtract(nd2)
-    assert_array_equal(ref_mask, nd4.mask)
-    # Multiplication
-    nd5 = nd1.multiply(nd2)
-    assert_array_equal(ref_mask, nd5.mask)
-    # Division
-    nd6 = nd1.divide(nd2)
-    assert_array_equal(ref_mask, nd6.mask)
-    for nd in [nd3, nd4, nd5, nd6]:
-        # Check all other attributes are not set
-        assert nd.unit is None
-        assert nd.uncertainty is None
-        assert len(nd.meta) == 0
-        assert nd.wcs is None
+    nd = getattr(nd1, meth)(nd2)
+    assert_array_equal(ref_mask, nd.mask)
+
+    # Check all other attributes are not set
+    assert nd.unit is None
+    assert nd.uncertainty is None
+    assert len(nd.meta) == 0
+    assert nd.wcs is None
 
 
 # Check that masks are preserved+propagated in NDData collapse operations
