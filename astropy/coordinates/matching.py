@@ -4,18 +4,61 @@
 This module contains functions for matching coordinate catalogs.
 """
 
+from typing import NamedTuple
+
 import numpy as np
+from numpy.typing import NDArray
+
+from astropy.units import Quantity
 
 from . import Angle
 from .representation import UnitSphericalRepresentation
 from .sky_coordinate import SkyCoord
 
 __all__ = [
+    "CoordinateMatchResult",
+    "CoordinateSearchResult",
     "match_coordinates_3d",
     "match_coordinates_sky",
     "search_around_3d",
     "search_around_sky",
 ]
+
+
+class CoordinateMatchResult(NamedTuple):
+    """Results of matching a set of sources to a catalog.
+
+    Parameters
+    ----------
+    indices_to_catalog : int array
+        For each source the index of the match in the catalog.
+    angular_separation : `~astropy.coordinates.Angle`
+        The angular separation between each source and its match
+        in the catalog.
+    physical_separation : `~astropy.units.Quantity`
+        The physical separation between each source and its match
+        in the catalog. If the sources or the catalog lack distances
+        then the physical separations are computed assuming all
+        coordinates are points on the unit sphere.
+
+    See Also
+    --------
+    astropy.coordinates.match_coordinates_3d
+    astropy.coordinates.match_coordinates_sky
+    SkyCoord.match_to_catalog_3d
+    SkyCoord.match_to_catalog_sky
+    """
+
+    indices_to_catalog: NDArray[np.int32] | NDArray[np.int64]
+    """For each source the index of the match in the catalog."""
+    angular_separation: Angle
+    """The angular separation between each source and its match
+    in the catalog."""
+    physical_separation: Quantity
+    """The physical separation between each source and its match in the
+    catalog. If the sources or the catalog lack distances then the
+    physical separations are computed assuming all coordinates are
+    points on the unit sphere."""
 
 
 def match_coordinates_3d(
@@ -51,15 +94,10 @@ def match_coordinates_3d(
 
     Returns
     -------
-    idx : int array
-        Indices into ``catalogcoord`` to get the matched points for each
-        ``matchcoord``. Shape matches ``matchcoord``.
-    sep2d : `~astropy.coordinates.Angle`
-        The on-sky separation between the closest match for each ``matchcoord``
-        and the ``matchcoord``. Shape matches ``matchcoord``.
-    dist3d : `~astropy.units.Quantity` ['length']
-        The 3D distance between the closest match for each ``matchcoord`` and
-        the ``matchcoord``. Shape matches ``matchcoord``.
+    CoordinateMatchResult
+        A `~typing.NamedTuple` with attributes representing for each
+        source in ``matchcoord`` the indices and angular and physical
+        separations of the match in ``catalogcoord``.
 
     Notes
     -----
@@ -94,7 +132,7 @@ def match_coordinates_3d(
         idx = idx[:, -1]
 
     sep2d = catalogcoord[idx].separation(matchcoord)
-    return (
+    return CoordinateMatchResult(
         idx.reshape(matchxyz.shape[1:]),
         sep2d,
         dist.reshape(matchxyz.shape[1:]) * catunit,
@@ -134,17 +172,13 @@ def match_coordinates_sky(
 
     Returns
     -------
-    idx : int array
-        Indices into ``catalogcoord`` to get the matched points for each
-        ``matchcoord``. Shape matches ``matchcoord``.
-    sep2d : `~astropy.coordinates.Angle`
-        The on-sky separation between the closest match for each
-        ``matchcoord`` and the ``matchcoord``. Shape matches ``matchcoord``.
-    dist3d : `~astropy.units.Quantity` ['length']
-        The 3D distance between the closest match for each ``matchcoord`` and
-        the ``matchcoord``. Shape matches ``matchcoord``.  If either
-        ``matchcoord`` or ``catalogcoord`` don't have a distance, this is the 3D
-        distance on the unit sphere, rather than a true distance.
+    CoordinateMatchResult
+        A `~typing.NamedTuple` with attributes representing for each
+        source in ``matchcoord`` the indices and angular and physical
+        separations of the match in ``catalogcoord``. If either
+        ``matchcoord`` or ``catalogcoord`` lack distances, the physical
+        separation is the 3D distance on the unit sphere, rather than a
+        true distance.
 
     Notes
     -----
@@ -192,7 +226,48 @@ def match_coordinates_sky(
         # the old backwards-compatible name
         catalogcoord.cache["kdtree"] = newcat_u.cache["kdtree"]
 
-    return idx, sep2d, sep3d
+    return CoordinateMatchResult(idx, sep2d, sep3d)
+
+
+class CoordinateSearchResult(NamedTuple):
+    """Results of searching close pairs between two sets of sources.
+
+    Parameters
+    ----------
+    indices_to_first_set : int array
+        Indices of the elements of the found pairs in the first set of
+        sources.
+    indices_to_second_set : int array
+        Indices of the elements of the found pairs in the second set of
+        sources.
+    angular_separation : `~astropy.coordinates.Angle`
+        The angular separations between the paired sources.
+    physical_separation : `~astropy.units.Quantity`
+        The physical separations between the paired sources. If either
+        of the source sets lack distances then the physical separations
+        are computed assuming all coordinates are points on the unit
+        sphere.
+
+    See Also
+    --------
+    astropy.coordinates.search_around_3d
+    astropy.coordinates.search_around_sky
+    SkyCoord.search_around_3d
+    SkyCoord.search_around_sky
+    """
+
+    indices_to_first_set: NDArray[np.int32] | NDArray[np.int64]
+    """Indices of the elements of the found pairs in the first set of
+    sources."""
+    indices_to_second_set: NDArray[np.int32] | NDArray[np.int64]
+    """Indices of the elements of the found pairs in the second set of
+    sources."""
+    angular_separation: Angle
+    """The angular separations between the paired sources."""
+    physical_separation: Quantity
+    """The physical separations between the paired sources. If either of
+    the source sets lack distances then the physical separations are
+    computed assuming all coordinates are points on the unit sphere."""
 
 
 def search_around_3d(coords1, coords2, distlimit, storekdtree="kdtree_3d"):
@@ -222,18 +297,10 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree="kdtree_3d"):
 
     Returns
     -------
-    idx1 : int array
-        Indices into ``coords1`` that matches to the corresponding element of
-        ``idx2``. Shape matches ``idx2``.
-    idx2 : int array
-        Indices into ``coords2`` that matches to the corresponding element of
-        ``idx1``. Shape matches ``idx1``.
-    sep2d : `~astropy.coordinates.Angle`
-        The on-sky separation between the coordinates. Shape matches ``idx1``
-        and ``idx2``.
-    dist3d : `~astropy.units.Quantity` ['length']
-        The 3D distance between the coordinates. Shape matches ``idx1`` and
-        ``idx2``. The unit is that of ``coords1``.
+    CoordinateSearchResult
+        A `~typing.NamedTuple` with attributes representing the indices
+        of the elements of found pairs in both source sets and angular
+        and physical separations of the pairs.
 
     Notes
     -----
@@ -280,7 +347,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree="kdtree_3d"):
             matches = kdt2.query_ball_point(point, distance.to_value(cunit))
             idxs1.extend(len(matches) * [i])
             idxs2.extend(matches)
-    return (
+    return CoordinateSearchResult(
         np.array(idxs1, dtype=int),
         np.array(idxs2, dtype=int),
         coords1[idxs1].separation(coords2[idxs2]),
@@ -315,21 +382,12 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree="kdtree_sky"):
 
     Returns
     -------
-    idx1 : int array
-        Indices into ``coords1`` that matches to the corresponding element of
-        ``idx2``. Shape matches ``idx2``.
-    idx2 : int array
-        Indices into ``coords2`` that matches to the corresponding element of
-        ``idx1``. Shape matches ``idx1``.
-    sep2d : `~astropy.coordinates.Angle`
-        The on-sky separation between the coordinates. Shape matches ``idx1``
-        and ``idx2``.
-    dist3d : `~astropy.units.Quantity` ['length']
-        The 3D distance between the coordinates. Shape matches ``idx1``
-        and ``idx2``; the unit is that of ``coords1``.
-        If either ``coords1`` or ``coords2`` don't have a distance,
-        this is the 3D distance on the unit sphere, rather than a
-        physical distance.
+    CoordinateSearchResult
+        A `~typing.NamedTuple` with attributes representing the indices
+        of the elements of found pairs in both source sets and angular
+        and physical separations of the pairs. If either set of sources
+        lack distances, the physical separation is the 3D distance on
+        the unit sphere, rather than a true distance.
 
     Notes
     -----
@@ -391,7 +449,9 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree="kdtree_sky"):
         # they don't have distances, so we just fall back on the cartesian
         # distance, computed from d2ds
         d3ds = 2 * np.sin(0.5 * d2ds)
-    return np.array(idxs1, dtype=int), np.array(idxs2, dtype=int), d2ds, d3ds
+    return CoordinateSearchResult(
+        np.array(idxs1, dtype=int), np.array(idxs2, dtype=int), d2ds, d3ds
+    )
 
 
 def _get_cartesian_kdtree(coord, attrname_or_kdt="kdtree", forceunit=None):
