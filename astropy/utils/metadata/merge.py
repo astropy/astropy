@@ -104,8 +104,6 @@ class MergeStrategy:
             for left, right in reversed(types):
                 MERGE_STRATEGIES.insert(0, (left, right, cls))
 
-        return cls
-
 
 class MergePlus(MergeStrategy):
     """
