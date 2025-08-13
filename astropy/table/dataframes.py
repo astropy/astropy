@@ -57,33 +57,13 @@ class DataFrameConverter:
     including validation of input columns and dependency checking.
     """
 
-    def __init__(self, backend=None):
-        """
-        Initialize the DataFrameConverter.
-
-        Parameters
-        ----------
-        backend : str, module, or narwhals.Implementation, optional
-            The backend to use for conversions. If None, will be determined
-            at conversion time.
-        """
-        self.backend = backend
-        self._backend_impl = None
-
-    def _get_backend_impl(self, backend=None):
+    def _get_backend_impl(self, backend):
         """Get the narwhals backend implementation."""
-        if backend is None:
-            backend = self.backend
-
-        if backend is None:
-            raise ValueError("No backend specified")
-
         try:
             import narwhals as nw
         except ImportError:
             raise ImportError(
-                "The narwhals library is required for DataFrame conversion. "
-                "Install with: pip install narwhals"
+                "The narwhals library is required for generic DataFrame conversion."
             )
 
         return nw.Implementation.from_backend(backend)
@@ -106,10 +86,10 @@ class DataFrameConverter:
         """
         # Check for multidimensional columns
         badcols = [name for name, col in table.columns.items() if len(col.shape) > 1]
-        if badcols:
+        if badcols and backend_impl.is_pandas_like():
             raise ValueError(
                 f"Cannot convert a table with multidimensional columns to a "
-                f"DataFrame. Offending columns are: {badcols}\n"
+                f"pandas-like DataFrame. Offending columns are: {badcols}\n"
                 f"One can filter out such columns using:\n"
                 f"names = [name for name in tbl.colnames if len(tbl[name].shape) <= 1]\n"
                 f"tbl[names].to_pandas(...)"
@@ -301,15 +281,16 @@ class DataFrameConverter:
 
         # Encode mixins and validate columns
         tbl = _encode_mixins(table)
+        is_masked = tbl.has_masked_columns
         self._validate_columns_for_backend(tbl, backend_impl)
 
         # Convert to narwhals DataFrame
         array = tbl.as_array()
-        if tbl.has_masked_columns:
-            df = nw.from_dict(
-                {n: array[n].data for n in tbl.colnames}, backend=backend_impl
-            )
+        array_dict = {n: array[n].data if is_masked else array[n] for n in tbl.colnames}
+        df = nw.from_dict(array_dict, backend=backend_impl)
 
+        # Handle masked columns
+        if is_masked:
             masked_cols = [
                 name
                 for name, col in tbl.columns.items()
@@ -342,14 +323,11 @@ class DataFrameConverter:
                 elif old_dtypes[n].is_float():
                     df = df.with_columns(nw.col(n).cast(old_dtypes[n]).alias(n))
 
-        else:
-            df = nw.from_dict({n: array[n] for n in tbl.colnames}, backend=backend_impl)
-            masked_cols = []
-
+        # Convert to dataframe
         df = df.to_native()
 
         # Fix pandas-like nullable integers
-        if backend_impl.is_pandas_like() and masked_cols and use_nullable_int:
+        if backend_impl.is_pandas_like() and is_masked and use_nullable_int:
             for name in masked_cols:
                 dtype = array[name].dtype
                 if dtype.kind in "iu":
