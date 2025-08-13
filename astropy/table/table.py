@@ -2779,9 +2779,8 @@ class Table:
               2 0.2   y
               3 0.3   z
         """
-        # Update indices. If the table has been sliced then each index will have
-        # original=False indicating that the data are from the original table not the
-        # sliced version.
+        # If the table has been sliced then each index will have original=False
+        # indicating that the data are a sliced reference (not from the original table).
         sliced = any(not index.original for index in self.indices)
         if not sliced:
             # For the not-sliced case we can use the remove_rows method to efficiently
@@ -2798,8 +2797,9 @@ class Table:
                 tuple(col.info.name for col in index.columns) for index in self.indices
             ]
             for col in self.itercols():
-                if hasattr(col.info, "indices"):
-                    col.info.indices.clear()
+                # Note - `indices` is a property of BaseColumnInfo and will always exist
+                # (and be a list) on col.info.
+                col.info.indices.clear()
 
         keep_mask = np.ones(len(self), dtype=bool)
         keep_mask[row_specifier] = False
