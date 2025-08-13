@@ -1397,10 +1397,12 @@ def test_nddata_bitmask_arithmetic():
     [
         2,
         2.0,
-        np.array(2, dtype=np.uint8),
+        np.uint8(2),
+        np.int16(2),
+        np.float32(2.0),
+        np.float64(2.0),
         np.array(2, dtype=np.int16),
         np.array(2.0, dtype=np.float32),
-        np.array(2.0, dtype=np.float64),
     ],
 )
 @pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
@@ -1463,9 +1465,9 @@ def test_add_quantity_matching_dtype(data1, data2, meth, op):
     [
         2,
         2.0,
-        np.array(2, dtype=np.uint16),
-        np.array(2.0, dtype=np.float32),
-        np.array(2.0),
+        np.uint16(2),
+        np.float32(2.0),
+        np.float64(2.0),
     ],
 )
 @pytest.mark.parametrize(
@@ -1520,6 +1522,8 @@ def generate_simple_ndds_with_uncert_mask(nout=1):
     [
         2,
         2.0,
+        np.uint16(2),
+        np.float32(2.0),
         np.array(2, dtype=np.uint16),
         np.array(2.0, dtype=np.float32),
     ],
