@@ -229,29 +229,36 @@ class TestGenericDataFrames:
         assert np.all(t2["col0"].mask == [False, True])
         assert np.all(t2["col0"] == c)
 
-    def test_2d_columns(self, backend):
-        """Test handling of multidimensional columns."""
+    @pytest.mark.parametrize("ndim", [1, 2, 3])
+    def test_nd_columns(self, backend, ndim):
+        # Add one since we want the dimension of each entry to be ndim
+        shape = (3,) * ndim
+        colshape = (10,) + shape
         t = table.Table()
-        t["a"] = [1, 2, 3]
-        t["b"] = np.ones((3, 2))
+        t["a"] = np.ones(colshape)
 
         if backend == "pandas":
-            # Pandas doesn't support multidimensional columns
             with pytest.raises(
-                ValueError, match="Cannot convert a table with multidimensional columns"
+                ValueError,
+                match="Cannot convert a table with multidimensional columns",
             ):
                 t.to_df(backend)
-        else:
-            # Polars supports multidimensional columns as Array type
-            import polars as pl
 
+        elif backend == "polars":
+            # Convert and check shape
             tp = t.to_df(backend)
-            assert isinstance(tp["b"].dtype, pl.Array)
+            assert tp["a"].dtype.shape == shape
 
-            # Test 3D as well
-            t["b"] = np.ones((3, 2, 2))
-            tp = t.to_df(backend)
-            assert isinstance(tp["b"].dtype, pl.Array)
+            # Round-trip conversion
+            t2 = table.Table.from_df(tp)
+            assert t2["a"].shape == colshape
+
+        elif backend == "pyarrow":
+            with pytest.raises(
+                ValueError,
+                match="only handle 1-dimensional arrays",
+            ):
+                t.to_df(backend)
 
     def test_mixin_columns(self, backend):
         """Test handling of astropy mixin columns."""
@@ -305,13 +312,25 @@ class TestGenericDataFrames:
 
         tp = t.to_df(backend)
 
-        if backend == "pandas":
-            assert np.all(tp["tm"].isnull() == [False, True, False])
-            assert np.all(tp["dt"].isnull() == [False, True, False])
-        else:  # polars
-            assert np.all(tp["tm"].is_null().to_list() == [False, True, False])
-            assert np.all(tp["dt"].is_null().to_list() == [False, True, False])
+        match backend:
+            case "pandas":
+                tm_nulls = tp["tm"].isnull().to_list()
+                dt_nulls = tp["dt"].isnull().to_list()
+            case "polars":
+                tm_nulls = tp["tm"].is_null().to_list()
+                dt_nulls = tp["dt"].is_null().to_list()
+            case "pyarrow":
+                tm_nulls = tp["tm"].is_null().to_pylist()
+                dt_nulls = tp["dt"].is_null().to_pylist()
+            case _:
+                raise ValueError(f"Unknown backend: {backend}")
 
+        # Common assertion for all backends
+        expected_nulls = [False, True, False]
+        assert tm_nulls == expected_nulls
+        assert dt_nulls == expected_nulls
+
+        # Round-trip conversion
         t2 = table.Table.from_df(tp)
 
         assert np.all(t2["tm"].mask == tm.mask)
@@ -368,105 +387,113 @@ class TestGenericDataFrames:
                 else:
                     assert column.dtype.newbyteorder() == t2[name].dtype
 
+    def test_units(self, backend):
+        """Test handling of units in from_df conversion."""
+        df = {"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]}
+        match backend:
+            case "pandas":
+                import pandas as pd
 
-def test_units(self, backend):
-    """Test handling of units in from_df conversion."""
-    if backend == "pandas":
-        import pandas as pd
+                df = pd.DataFrame(df)
+            case "polars":
+                import polars as pl
 
-        df = pd.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
-    else:  # polars
-        import polars as pl
+                df = pl.DataFrame(df)
+            case "pyarrow":
+                import pyarrow as pa
 
-        df = pl.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
+                df = pa.Table.from_pydict(df)
 
-    t = table.Table.from_df(df, units={"x": u.m, "t": u.s})
+        t = table.Table.from_df(df, units={"x": u.m, "t": u.s})
 
-    assert t["x"].unit == u.m
-    assert t["t"].unit == u.s
+        assert t["x"].unit == u.m
+        assert t["t"].unit == u.s
 
-    # test error if not a mapping
-    with pytest.raises(TypeError):
-        table.Table.from_df(df, units=[u.m, u.s])
+        # test error if not a mapping
+        with pytest.raises(TypeError):
+            table.Table.from_df(df, units=[u.m, u.s])
 
-    # test warning is raised if additional columns in units dict
-    with pytest.warns(UserWarning) as record:
-        table.Table.from_df(df, units={"x": u.m, "t": u.s, "y": u.m})
-    assert len(record) == 1
-    assert "{'y'}" in str(record[0].message.args[0])
+        # test warning is raised if additional columns in units dict
+        with pytest.warns(UserWarning) as record:
+            table.Table.from_df(df, units={"x": u.m, "t": u.s, "y": u.m})
+        assert len(record) == 1
+        assert "{'y'}" in str(record[0].message.args[0])
 
+    def test_basic_roundtrip(self, backend):
+        """Test basic round-trip conversion for different backends."""
+        t = table.Table()
+        t["a"] = [1, 2, 3]
+        t["b"] = [4.0, 5.0, 6.0]
+        t["c"] = ["x", "y", "z"]
 
-def test_basic_roundtrip(self, backend):
-    """Test basic round-trip conversion for different backends."""
-    t = table.Table()
-    t["a"] = [1, 2, 3]
-    t["b"] = [4.0, 5.0, 6.0]
-    t["c"] = ["x", "y", "z"]
+        # Convert to DataFrame and back
+        df = t.to_df(backend)
+        t2 = table.Table.from_df(df)
 
-    # Convert to DataFrame and back
-    df = t.to_df(backend)
-    t2 = table.Table.from_df(df)
+        # Check that data is preserved
+        assert_allclose(t["a"], t2["a"])
+        assert_allclose(t["b"], t2["b"])
+        assert np.all(t["c"] == t2["c"])
 
-    # Check that data is preserved
-    assert_allclose(t["a"], t2["a"])
-    assert_allclose(t["b"], t2["b"])
-    assert np.all(t["c"] == t2["c"])
+    def test_units_preservation(self, backend):
+        """Test that units are handled correctly through DataFrame conversion."""
+        t = table.QTable()
+        t["x"] = [1, 2, 3] * u.m
+        t["y"] = [4.0, 5.0, 6.0] * u.s
 
+        # Test that units are lost in DataFrame conversion (expected behavior)
+        df = t.to_df(backend)
+        t2 = table.Table.from_df(df)
 
-def test_units_preservation(self, backend):
-    """Test that units are handled correctly through DataFrame conversion."""
-    t = table.QTable()
-    t["x"] = [1, 2, 3] * u.m
-    t["y"] = [4.0, 5.0, 6.0] * u.s
+        # Original table should still have units
+        assert t["x"].unit == u.m
+        assert t["y"].unit == u.s
 
-    # Test that units are lost in DataFrame conversion (expected behavior)
-    df = t.to_df(backend)
-    t2 = table.Table.from_df(df)
+        # Round-trip table should not have units
+        assert t2["x"].unit is None
+        assert t2["y"].unit is None
 
-    # Original table should still have units
-    assert t["x"].unit == u.m
-    assert t["y"].unit == u.s
+        # But data should be preserved
+        assert_allclose(t["x"].value, t2["x"])
+        assert_allclose(t["y"].value, t2["y"])
 
-    # Round-trip table should not have units
-    assert t2["x"].unit is None
-    assert t2["y"].unit is None
+    def test_index_argument_non_pandas(self, backend):
+        """Test that index argument is rejected for non-pandas backends."""
+        t = table.Table()
+        t["a"] = [1, 2, 3]
+        t["b"] = [4, 5, 6]
 
-    # But data should be preserved
-    assert_allclose(t["x"].value, t2["x"])
-    assert_allclose(t["y"].value, t2["y"])
+        if backend == "pandas":
+            # Should work for pandas
+            df = t.to_df(backend, index="a")
+            assert df.index.name == "a"
+        else:
+            # Should raise error for non-pandas backends
+            with pytest.raises(
+                ValueError, match="Indexing is only supported for pandas-like backends"
+            ):
+                t.to_df(backend, index="a")
 
+    def test_masked_int_data(self, backend):
+        """Test specific masked integer data handling."""
+        data = {"data": [0, 1, 2]}
+        t = table.Table(data=data, masked=True)
+        t["data"].mask = [1, 1, 0]
 
-def test_index_argument_non_pandas(self, backend):
-    """Test that index argument is rejected for non-pandas backends."""
-    t = table.Table()
-    t["a"] = [1, 2, 3]
-    t["b"] = [4, 5, 6]
+        df = t.to_df(backend)
 
-    if backend == "pandas":
-        # Should work for pandas
-        df = t.to_df(backend, index="a")
-        assert df.index.name == "a"
-    else:
-        # Should raise error for non-pandas backends
-        with pytest.raises(
-            ValueError, match="Indexing is only supported for pandas-like backends"
-        ):
-            t.to_df(backend, index="a")
+        match backend:
+            case "pandas":
+                val = df["data"].iloc[2]
+                nulls_first_two = df["data"].isnull().iloc[:2]
+            case "polars":
+                val = df["data"][2]
+                nulls_first_two = df["data"].is_null()[:2]
+            case "pyarrow":
+                val = df["data"][2].as_py()
+                nulls_first_two = df["data"].is_null()[:2].to_numpy()
+            case _:
+                raise ValueError(f"Unknown backend: {backend}")
 
-
-def test_masked_int_data(self, backend):
-    """Test specific masked integer data handling."""
-    data = {"data": [0, 1, 2], "index": [10, 11, 12]}
-    t = table.Table(data=data, masked=True)
-
-    if backend == "pandas":
-        t.add_index("index")
-    t["data"].mask = [1, 1, 0]
-
-    df = t.to_df(backend)
-
-    if backend == "pandas":
-        assert df["data"].iloc[-1] == 2
-    else:  # polars
-        assert df["data"][2] == 2
-        assert df["data"].is_null()[:2].all()
+        assert val == 2
+        assert nulls_first_two.all()
