@@ -256,7 +256,7 @@ class TestGenericDataFrames:
         elif backend == "pyarrow":
             with pytest.raises(
                 ValueError,
-                match="only handle 1-dimensional arrays",
+                match="Cannot convert a table with multidimensional columns",
             ):
                 t.to_df(backend)
 
