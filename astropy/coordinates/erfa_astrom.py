@@ -5,6 +5,7 @@ ScienceState, which allows to speed up coordinate transformations at the
 expense of accuracy.
 """
 
+import functools
 import warnings
 
 import erfa
@@ -280,35 +281,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
         return earth_pv, earth_heliocentric
 
-    @staticmethod
-    def _get_cip(support, obstime):
-        """
-        Find the X, Y coordinates of the CIP and the CIO locator, s.
-
-        Uses the coarser grid ``support`` to do the calculation, and interpolates
-        onto the finer grid ``obstime``.
-        """
-        jd1_tt_support, jd2_tt_support = get_jd12(support, "tt")
-        cip_support = get_cip(jd1_tt_support, jd2_tt_support)
-        return tuple(
-            np.interp(obstime.mjd, support.mjd, cip_component)
-            for cip_component in cip_support
-        )
-
-    @staticmethod
-    def _get_polar_motion(support, obstime):
-        """
-        Find the two polar motion components in radians.
-
-        Uses the coarser grid ``support`` to do the calculation, and interpolates
-        onto the finer grid ``obstime``.
-        """
-        polar_motion_support = get_polar_motion(support)
-        return tuple(
-            np.interp(obstime.mjd, support.mjd, polar_motion_component)
-            for polar_motion_component in polar_motion_support
-        )
-
     def apco(self, frame_or_coord):
         """
         Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS.
@@ -323,6 +295,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
         lon, lat, height = frame_or_coord.location.to_geodetic("WGS84")
         obstime = frame_or_coord.obstime
         support = self._get_support_points(obstime)
+        interp = functools.partial(np.interp, obstime.mjd, support.mjd)
         jd1_tt, jd2_tt = get_jd12(obstime, "tt")
 
         # get the position and velocity arrays for the observatory.  Need to
@@ -331,9 +304,9 @@ class ErfaAstromInterpolator(ErfaAstrom):
             support, obstime
         )
 
-        xp, yp = self._get_polar_motion(support, obstime)
+        xp, yp = map(interp, get_polar_motion(support))
         sp = erfa.sp00(jd1_tt, jd2_tt)
-        x, y, s = self._get_cip(support, obstime)
+        x, y, s = map(interp, get_cip(*get_jd12(support, "tt")))
         era = erfa.era00(*get_jd12(obstime, "ut1"))
 
         # refraction constants
