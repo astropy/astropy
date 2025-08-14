@@ -27,8 +27,10 @@ def sanitize_slices(slices, ndim, shape=None):
         If provided, improved sanitization is possible.
     """
     if shape is not None and len(shape) != ndim:
-        raise ValueError("shape must be an iterable of int whose length is equal to ndim:"
-                         f"len(shape) ({len(shape)}) != ndim ({ndim})")
+        raise ValueError(
+            "shape must be an iterable of int whose length is equal to ndim:"
+            f"len(shape) ({len(shape)}) != ndim ({ndim})"
+        )
     if not isinstance(slices, (tuple, list)):  # We just have a single int
         slices = (slices,)
 
@@ -73,15 +75,20 @@ def sanitize_slices(slices, ndim, shape=None):
                     if stop < 0:
                         stop = n + stop
                     if stop - start <= 0 or start >= n or stop <= 0:
-                        raise IndexError(f"Slice for axis {i} ({slc}) slices axis to length-0.")
+                        raise IndexError(
+                            f"Slice for axis {i} ({slc}) slices axis to length-0."
+                        )
             elif not isinstance(slc, numbers.Integral):
                 raise IndexError("Only integer or range slices are accepted.")
             elif shape:
                 idx = shape[i] + slc if slc < 0 else slc
                 if idx >= shape[i]:
-                    raise IndexError(f"Index for axis {i} beyond axis range: slices[{i}] = "
-                                     f"{slc} (=={idx})" if slc < 0 else f"{slc}"
-                                     f"; shape[{i}] = {shape[i]}")
+                    raise IndexError(
+                        f"Index for axis {i} beyond axis range: slices[{i}] = "
+                        f"{slc} (=={idx})"
+                        if slc < 0
+                        else f"{slc}; shape[{i}] = {shape[i]}"
+                    )
         else:
             slices.append(slice(None))
 
