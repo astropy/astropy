@@ -22,7 +22,9 @@
 static PyObject*
 PyAuxprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
   PyAuxprm* self;
-  self = (PyAuxprm*)type->tp_alloc(type, 0);
+
+  allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+  self = (PyAuxprm*)alloc_func(type, 0);
   return (PyObject*)self;
 }
 
@@ -30,6 +32,7 @@ PyAuxprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 static int
 PyAuxprm_traverse(PyAuxprm* self, visitproc visit, void *arg) {
   Py_VISIT(self->owner);
+  Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
   return 0;
 }
 
@@ -43,13 +46,18 @@ PyAuxprm_clear(PyAuxprm* self) {
 
 static void PyAuxprm_dealloc(PyAuxprm* self) {
   PyAuxprm_clear(self);
-  Py_TYPE(self)->tp_free((PyObject*)self);
+  PyTypeObject *tp = Py_TYPE((PyObject*)self);
+  freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+  free_func((PyObject*)self);
+  Py_DECREF(tp);
 }
 
 
 PyAuxprm* PyAuxprm_cnew(PyObject* wcsprm, struct auxprm* x) {
   PyAuxprm* self;
-  self = (PyAuxprm*)(&PyAuxprmType)->tp_alloc(&PyAuxprmType, 0);
+  PyTypeObject* type = (PyTypeObject*)PyAuxprmType;
+  allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+  self = (PyAuxprm*)alloc_func(type, 0);
   if (self == NULL) return NULL;
   self->x = x;
   Py_INCREF(wcsprm);
@@ -330,57 +338,35 @@ static PyGetSetDef PyAuxprm_getset[] = {
   {NULL}
 };
 
-PyTypeObject PyAuxprmType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-  "astropy.wcs.Auxprm",         /*tp_name*/
-  sizeof(PyAuxprm),             /*tp_basicsize*/
-  0,                            /*tp_itemsize*/
-  (destructor)PyAuxprm_dealloc, /*tp_dealloc*/
-  0,                            /*tp_print*/
-  0,                            /*tp_getattr*/
-  0,                            /*tp_setattr*/
-  0,                            /*tp_compare*/
-  0,                            /*tp_repr*/
-  0,                            /*tp_as_number*/
-  0,                            /*tp_as_sequence*/
-  0,                            /*tp_as_mapping*/
-  0,                            /*tp_hash */
-  0,                            /*tp_call*/
-  (reprfunc)PyAuxprm___str__,   /*tp_str*/
-  0,                            /*tp_getattro*/
-  0,                            /*tp_setattro*/
-  0,                            /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-  doc_Auxprm,                   /* tp_doc */
-  (traverseproc)PyAuxprm_traverse, /* tp_traverse */
-  (inquiry)PyAuxprm_clear,      /* tp_clear */
-  0,                            /* tp_richcompare */
-  0,                            /* tp_weaklistoffset */
-  0,                            /* tp_iter */
-  0,                            /* tp_iternext */
-  0,                            /* tp_methods */
-  0,                            /* tp_members */
-  PyAuxprm_getset,              /* tp_getset */
-  0,                            /* tp_base */
-  0,                            /* tp_dict */
-  0,                            /* tp_descr_get */
-  0,                            /* tp_descr_set */
-  0,                            /* tp_dictoffset */
-  0,                            /* tp_init */
-  0,                            /* tp_alloc */
-  0,                            /* tp_new */
+PyType_Spec PyAuxprmType_spec = {
+  .name = "astropy.wcs.Auxprm",
+  .basicsize = sizeof(PyAuxprm),
+  .itemsize = 0,
+  .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
+  .slots = (PyType_Slot[]) {
+    {Py_tp_dealloc, (destructor)PyAuxprm_dealloc},
+    {Py_tp_str, (reprfunc)PyAuxprm___str__},
+    {Py_tp_doc, doc_Auxprm},
+    {Py_tp_traverse, (traverseproc)PyAuxprm_traverse},
+    {Py_tp_clear, (inquiry)PyAuxprm_clear},
+    {Py_tp_getset, PyAuxprm_getset},
+    // FIXME: this seems logical but this slot wasn't previously set
+    // maybe a mistake from https://github.com/astropy/astropy/pull/10333 ?
+    // {Py_tp_new, (void*)PyAuxprm_new},
+    {0, NULL}
+  },
 };
 
+PyObject* PyAuxprmType = NULL;
 
 int
 _setup_auxprm_type(PyObject* m) {
-  if (PyType_Ready(&PyAuxprmType) < 0) {
+  PyAuxprmType = PyType_FromSpec(&PyAuxprmType_spec);
+  if (PyAuxprmType == NULL) {
     return -1;
   }
 
-  Py_INCREF(&PyAuxprmType);
-
-  PyModule_AddObject(m, "Auxprm", (PyObject *)&PyAuxprmType);
+  PyModule_AddObject(m, "Auxprm", PyAuxprmType);
 
   return 0;
 }

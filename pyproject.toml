@@ -44,7 +44,7 @@ keywords = [
 dependencies = [
     "numpy>=1.24",
     "pyerfa>=2.0.1.1",
-    "astropy-iers-data>=0.2025.6.30.0.39.40",
+    "astropy-iers-data>=0.2025.7.28.0.41.50",
     "PyYAML>=6.0.0",
     "packaging>=22.0.0",
 ]
@@ -81,7 +81,7 @@ all = [
     # Install all remaining optional dependencies
     "certifi>=2022.6.15.1",
     "dask[array]>=2022.5.1",
-    "h5py>=3.8.0",
+    "h5py>=3.9.0",  # older versions used deprecated np.product()
     "pyarrow>=10.0.1",
     "beautifulsoup4>=4.9.3", # imposed by pandas==2.0
     "html5lib>=1.1",
@@ -266,6 +266,9 @@ markers = [
 # We disable testing for the following wheels:
 # - MuslLinux (tests hang non-deterministically)
 test-skip = "*-musllinux_x86_64"
+enable = ["cpython-prerelease"] # this line can be removed when cibuildwheel is bumped to 3.1.0 or newer
+skip = ["cp*t-*"] # https://github.com/astropy/astropy/issues/16916
+environment-pass = ["EXTENSION_HELPERS_PY_LIMITED_API"]
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
@@ -678,6 +681,7 @@ skip = """
     docs/credits.rst,
     *_lextab.py,
     *_parsetab.py,
+    astropy/wcs/tests/test_wcs.py
 """
 # The following list of words for codespell to ignore may contain some
 # misspellings that should be revisited and fixed in the future.

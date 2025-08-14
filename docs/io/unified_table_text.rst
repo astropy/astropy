@@ -62,6 +62,12 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
 
 HTML and JSON Formats
 ^^^^^^^^^^^^^^^^^^^^^
+Be aware that in many cases reading tables from published HTML journal articles will not work
+for a variety of reasons, including inconsistent mark-ups, CAPTCHAs, changing formats,
+embedded javascript, or the table actually being an image. If possible you should consider
+retrieving the table in a standard data format such as CSV or FITS, perhaps from an archive
+such as CDS/Vizier.
+
 ===========================  =====  ======  ============================================================================================
            Format            Write  Suffix                                          Description
 ===========================  =====  ======  ============================================================================================

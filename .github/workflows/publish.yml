@@ -26,7 +26,7 @@ jobs:
     # or if triggered manually via the workflow dispatch, or for a tag.
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@86823142467dd2afcd1bbac57d3a664cf468eb3b  # v2.1.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@28e947497bed4d6ec3fa1d66d198e95a1d17bc63  # v2.2.1
     if: (github.repository == 'astropy/astropy' && ( startsWith(github.ref, 'refs/tags/v') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')))
     with:
 
@@ -43,6 +43,7 @@ jobs:
       env: |
         CIBW_BEFORE_BUILD: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip install -U --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple setuptools>=77.0.0 setuptools_scm cython numpy>=0.0.dev0 extension-helpers') || '' }}'
         CIBW_BUILD_FRONTEND: '${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')) && 'pip; args: --no-build-isolation') || 'build' }}'
+        EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'
 
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it
@@ -52,43 +53,21 @@ jobs:
       test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
       targets: |
         # Linux wheels
-
-        - cp311-manylinux_x86_64
-        - cp312-manylinux_x86_64
-        - cp313-manylinux_x86_64
-
-        - target: cp311-manylinux_aarch64
-          runs-on: ubuntu-24.04-arm
-        - target: cp312-manylinux_aarch64
-          runs-on: ubuntu-24.04-arm
-        - target: cp313-manylinux_aarch64
+        - cp3*-manylinux_x86_64
+        - target: cp3*-manylinux_aarch64
           runs-on: ubuntu-24.04-arm
 
         # Note that following wheels are not currently tested:
-        - cp311-musllinux_x86_64
-        - cp312-musllinux_x86_64
-        - cp313-musllinux_x86_64
+        - cp3*-musllinux_x86_64
 
         # MacOS X wheels - as noted in https://github.com/astropy/astropy/pull/12379 we deliberately
         # do not build universal2 wheels.
-
-        - cp311*macosx_x86_64
-        - cp312*macosx_x86_64
-        - cp313*macosx_x86_64
-
-        - cp311*macosx_arm64
-        - cp312*macosx_arm64
-        - cp313*macosx_arm64
+        - cp3*-macosx_x86_64
+        - cp3*-macosx_arm64
 
         # Windows wheels
-
-        - cp311*win32
-        - cp312*win32
-        - cp313*win32
-
-        - cp311*win_amd64
-        - cp312*win_amd64
-        - cp313*win_amd64
+        - cp3*-win32
+        - cp3*-win_amd64
 
     secrets:
       pypi_token: ${{ secrets.pypi_token }}

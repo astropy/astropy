@@ -189,7 +189,7 @@ class TimeFormat:
         if "subfmts" in cls.__dict__:
             cls.subfmts = _regexify_subfmts(cls.subfmts)
 
-        return super().__init_subclass__(**kwargs)
+        super().__init_subclass__(**kwargs)
 
     @classmethod
     def _get_allowed_subfmt(cls, subfmt):
@@ -547,7 +547,7 @@ class TimeNumeric(TimeFormat):
             val1.dtype if orig_val2_is_none else np.result_type(val1.dtype, val2.dtype)
         )
         subfmts = self._select_subfmts(self.in_subfmt)
-        for subfmt, dtype, convert, _ in subfmts:
+        for _, dtype, convert, _ in subfmts:  # noqa: B007
             if np.issubdtype(val_dtype, dtype):
                 break
         else:
