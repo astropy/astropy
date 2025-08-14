@@ -34,10 +34,10 @@ class StdDevUncertaintyUncorrelated(StdDevUncertainty):
 
 # Correspondence between NDArithmetic & Python method/function names:
 operator_mapping = {
-    "add" : operator.add,
-    "subtract" : operator.sub,
-    "multiply" : operator.mul,
-    "divide" : operator.truediv,
+    "add": operator.add,
+    "subtract": operator.sub,
+    "multiply": operator.mul,
+    "divide": operator.truediv,
 }
 
 
@@ -1356,7 +1356,6 @@ def test_nddata_bitmask_arithmetic():
 )
 @pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
 def test_arithmetics_dtypes_with_scalar(data1, data2, meth, op):
-
     out = getattr(data1, meth)(data2)
     ref = op(data1.data, data2)
 
@@ -1386,12 +1385,9 @@ def test_arithmetics_dtypes_with_scalar(data1, data2, meth, op):
 )
 @pytest.mark.parametrize(
     ("meth", "op"),
-    (
-        (k, v) for k, v in operator_mapping.items() if k in ("add", "subtract")
-    ),
+    ((k, v) for k, v in operator_mapping.items() if k in ("add", "subtract")),
 )
 def test_add_quantity_matching_dtype(data1, data2, meth, op):
-
     out = getattr(data1, meth)(data2)
     ref = op(data1.data, data2.value)
 
@@ -1421,12 +1417,9 @@ def test_add_quantity_matching_dtype(data1, data2, meth, op):
 )
 @pytest.mark.parametrize(
     ("meth", "op"),
-    (
-        (k, v) for k, v in operator_mapping.items() if k in ("multiply", "divide")
-    ),
+    ((k, v) for k, v in operator_mapping.items() if k in ("multiply", "divide")),
 )
 def test_scale_dtypes_with_units(data1, data2, meth, op):
-
     out = getattr(data1, meth)(data2)
     ref = op(data1.data, data2)
 
@@ -1479,7 +1472,6 @@ def generate_simple_ndds_with_uncert_mask(nout=1):
 )
 @pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
 def test_dtypes_uncert_mask_with_scalars(data1, data2, meth, op):
-
     out = getattr(data1, meth)(data2)
 
     ref_dat = op(data1.data, data2)
@@ -1510,7 +1502,6 @@ def test_dtypes_uncert_mask_with_scalars(data1, data2, meth, op):
 )
 @pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
 def test_arithmetics_dtypes_uncert_mask(data1, data2, meth, op):
-
     ref_dat = op(data1.data, data2.data)
 
     # Deal with uncertainty, converting the data2 uncertainty class to match
@@ -1527,8 +1518,8 @@ def test_arithmetics_dtypes_uncert_mask(data1, data2, meth, op):
             )
         if meth in ("multiply", "divide"):
             ref_unc = ref_dat**2 * (
-                data1.uncertainty.array / data1.data ** 2
-                + data2.uncertainty.array / data2.data ** 2
+                data1.uncertainty.array / data1.data**2
+                + data2.uncertainty.array / data2.data**2
             )
         else:
             ref_unc = data1.uncertainty.array + data2.uncertainty.array
@@ -1543,7 +1534,7 @@ def test_arithmetics_dtypes_uncert_mask(data1, data2, meth, op):
         else:
             ref_unc = np.sqrt(data1.uncertainty.array**2 + data2.uncertainty.array**2)
 
-    ref_msk = np.logical_or(data1.mask, data2.mask) # default op for arith mixin
+    ref_msk = np.logical_or(data1.mask, data2.mask)  # default op for arith mixin
 
     out = getattr(data1, meth)(data2)
 
