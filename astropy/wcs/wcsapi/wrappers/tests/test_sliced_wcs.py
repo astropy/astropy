@@ -64,6 +64,12 @@ def test_invalid_slices():
     with pytest.raises(IndexError):
         SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [None, None, 1000.100])
 
+    with pytest.raises(IndexError):
+        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(-1, -2)], presliced_shape=(50, 60, 70))
+
+    with pytest.raises(IndexError):
+        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(55, 50)], presliced_shape=(50, 60, 70))
+
 
 @pytest.mark.parametrize(
     "item, ndim, expected",

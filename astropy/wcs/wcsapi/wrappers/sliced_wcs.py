@@ -10,12 +10,25 @@ from .base import BaseWCSWrapper
 __all__ = ["SlicedLowLevelWCS", "sanitize_slices"]
 
 
-def sanitize_slices(slices, ndim):
+def sanitize_slices(slices, ndim, shape=None):
     """
     Given a slice as input sanitise it to an easier to parse format.format.
 
-    This function returns a list ``ndim`` long containing slice objects (or ints).
+    This function returns a list ``len(shape)`` long containing slice objects (or ints).
+
+    Parameters
+    ----------
+    slices: `int`, `slice`, or `tuple` of same.
+        The slicing item.
+    ndim: `int`
+        The number of pixel dimensions.
+    shape: iterable of `int` (optional)
+        The shape of the data to which the slice item is to be applied.
+        If provided, improved sanitization is possible.
     """
+    if shape is not None and len(shape) != ndim:
+        raise ValueError("shape must be an iterable of int whose length is equal to ndim:"
+                         f"len(shape) ({len(shape)}) != ndim ({ndim})")
     if not isinstance(slices, (tuple, list)):  # We just have a single int
         slices = (slices,)
 
@@ -48,10 +61,27 @@ def sanitize_slices(slices, ndim):
         if i < len(slices):
             slc = slices[i]
             if isinstance(slc, slice):
+                # Only steps of 1 are supported.
                 if slc.step and slc.step != 1:
                     raise IndexError("Slicing WCS with a step is not supported.")
+                # Verify slice does not result in axis being sliced to length-0.
+                # And that slice range overlaps with data shape.
+                if shape:
+                    start, stop, n = slc.start, slc.stop, shape[i]
+                    if start < 0:
+                        start = n + start
+                    if stop < 0:
+                        stop = n + stop
+                    if stop - start <= 0 or start >= n or stop <= 0:
+                        raise IndexError(f"Slice for axis {i} ({slc}) slices axis to length-0.")
             elif not isinstance(slc, numbers.Integral):
                 raise IndexError("Only integer or range slices are accepted.")
+            elif shape:
+                idx = shape[i] + slc if slc < 0 else slc
+                if idx >= shape[i]:
+                    raise IndexError(f"Index for axis {i} beyond axis range: slices[{i}] = "
+                                     f"{slc} (=={idx})" if slc < 0 else f"{slc}"
+                                     f"; shape[{i}] = {shape[i]}")
         else:
             slices.append(slice(None))
 
@@ -116,11 +146,13 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
         The WCS to slice.
     slices : `slice` or `tuple` or `int`
         A valid array slice to apply to the WCS.
-
+    presliced_shape : `tuple` of `int` (optional)
+        The shape of the data to which the WCS applied before slicing.
+        Used to improve input sanitization.
     """
 
-    def __init__(self, wcs, slices):
-        slices = sanitize_slices(slices, wcs.pixel_n_dim)
+    def __init__(self, wcs, slices, presliced_shape=None):
+        slices = sanitize_slices(slices, wcs.pixel_n_dim, shape=presliced_shape)
 
         if isinstance(wcs, SlicedLowLevelWCS):
             # Here we combine the current slices with the previous slices
