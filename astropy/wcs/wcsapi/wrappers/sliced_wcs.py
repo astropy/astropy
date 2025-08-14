@@ -74,7 +74,7 @@ def sanitize_slices(slices, ndim, shape=None):
                         start = n + start
                     if stop < 0:
                         stop = n + stop
-                    if stop - start <= 0 or start >= n or stop <= 0:
+                    if stop - start <= 0 or start >= n or start < 0 or stop <= 0:
                         raise IndexError(
                             f"Slice for axis {i} ({slc}) slices axis to length-0."
                         )
@@ -82,7 +82,7 @@ def sanitize_slices(slices, ndim, shape=None):
                 raise IndexError("Only integer or range slices are accepted.")
             elif shape:
                 idx = shape[i] + slc if slc < 0 else slc
-                if idx >= shape[i]:
+                if idx < 0 or idx >= shape[i]:
                     raise IndexError(
                         f"Index for axis {i} beyond axis range: slices[{i}] = "
                         f"{slc} (=={idx})"
