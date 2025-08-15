@@ -136,8 +136,7 @@ def main(args=None):
     parser = argparse.ArgumentParser(
         description="Create a bitmap file from a FITS image."
     )
-    # TODO: pass color and suggest_on_error as kwargs when PYTHON_LT_14 is dropped
-    parser.color = True
+    # TODO: pass suggest_on_error as kwarg when PYTHON_LT_14 is dropped
     parser.suggest_on_error = True
 
     # the mutually exclusive groups can be removed when the deprecated
