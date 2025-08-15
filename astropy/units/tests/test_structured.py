@@ -228,7 +228,7 @@ class TestStructuredUnitBasics(StructuredTestBase):
 
     def test_repr(self):
         su = StructuredUnit(((u.km, u.km / u.s), u.yr))
-        assert repr(su) == 'Unit("((km, km / s), yr)")'
+        assert repr(su) == "Unit('((km, km / s), yr)')"
         assert eval(repr(su)) == su
 
 

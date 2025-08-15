@@ -99,7 +99,7 @@ properties::
     >>> ndd2.data  # It has the same data as ndd
     array([1, 2, 3, 4])
     >>> ndd2.unit  # but it also has the same unit as ndd
-    Unit("m")
+    Unit('m')
 
 Another possibility is to use a `~astropy.units.Quantity` as a ``data``
 parameter::
@@ -110,7 +110,7 @@ parameter::
     >>> ndd3.data  # doctest: +FLOAT_CMP
     array([1., 1., 1.])
     >>> ndd3.unit
-    Unit("cm")
+    Unit('cm')
 
 Or a `numpy.ma.MaskedArray`::
 
@@ -130,7 +130,7 @@ explicit parameter will be used and an info message will be issued::
     >>> ndd6.data  # doctest: +FLOAT_CMP
     array([0.01, 0.01, 0.01])
     >>> ndd6.unit
-    Unit("m")
+    Unit('m')
 
 The unit of the `~astropy.units.Quantity` is being ignored and the unit is set
 to the explicitly passed one.
@@ -206,7 +206,7 @@ The ``unit`` represents the unit of the data values. It is required to be
     >>> import astropy.units as u
     >>> ndd = NDData([1, 2, 3, 4], unit="meter")  # using a string
     >>> ndd.unit
-    Unit("m")
+    Unit('m')
 
 ..note::
     Setting the ``unit`` on an instance is not possible.

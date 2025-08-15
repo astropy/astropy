@@ -42,7 +42,7 @@ If a column contains unit information, it will have an associated
 `astropy.units` object::
 
     >>> t["energy"].unit
-    Unit("eV")
+    Unit('eV')
 
 It is also possible to get directly a table with columns as
 `~astropy.units.Quantity` objects by using the `~astropy.table.QTable` class::
