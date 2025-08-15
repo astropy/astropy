@@ -28,6 +28,18 @@ from .matrix_utilities import rotation_matrix
 __all__ = []
 
 
+def _refco(frame_or_coord):
+    if not hasattr(frame_or_coord, "pressure"):
+        # This is not an AltAz frame, so don't bother computing refraction
+        return 0.0, 0.0
+    return erfa.refco(
+        frame_or_coord.pressure.to_value(u.hPa),
+        frame_or_coord.temperature.to_value(u.deg_C),
+        frame_or_coord.relative_humidity.value,
+        frame_or_coord.obswl.to_value(u.micron),
+    )
+
+
 class ErfaAstrom:
     """
     The default provider for astrometry values.
@@ -59,17 +71,7 @@ class ErfaAstrom:
         earth_pv, earth_heliocentric = prepare_earth_position_vel(obstime)
 
         # refraction constants
-        if hasattr(frame_or_coord, "pressure"):
-            # this is an AltAz like frame. Calculate refraction
-            refa, refb = erfa.refco(
-                frame_or_coord.pressure.to_value(u.hPa),
-                frame_or_coord.temperature.to_value(u.deg_C),
-                frame_or_coord.relative_humidity.value,
-                frame_or_coord.obswl.to_value(u.micron),
-            )
-        else:
-            # This is not an AltAz frame, so don't bother computing refraction
-            refa, refb = 0.0, 0.0
+        refa, refb = _refco(frame_or_coord)
 
         return erfa.apco(
             jd1_tt,
@@ -178,12 +180,8 @@ class ErfaAstrom:
         # Magnitude of diurnal aberration vector.
 
         # Refraction constants.
-        astrom["refa"], astrom["refb"] = erfa.refco(
-            frame_or_coord.pressure.to_value(u.hPa),
-            frame_or_coord.temperature.to_value(u.deg_C),
-            frame_or_coord.relative_humidity.value,
-            frame_or_coord.obswl.to_value(u.micron),
-        )
+        astrom["refa"], astrom["refb"] = _refco(frame_or_coord)
+
         return astrom
 
 
@@ -310,17 +308,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
         era = erfa.era00(*get_jd12(obstime, "ut1"))
 
         # refraction constants
-        if hasattr(frame_or_coord, "pressure"):
-            # an AltAz like frame. Include refraction
-            refa, refb = erfa.refco(
-                frame_or_coord.pressure.to_value(u.hPa),
-                frame_or_coord.temperature.to_value(u.deg_C),
-                frame_or_coord.relative_humidity.value,
-                frame_or_coord.obswl.to_value(u.micron),
-            )
-        else:
-            # a CIRS like frame - no refraction
-            refa, refb = 0.0, 0.0
+        refa, refb = _refco(frame_or_coord)
 
         return erfa.apco(
             jd1_tt,
