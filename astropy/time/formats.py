@@ -939,12 +939,14 @@ class TimeGalexSec(TimeUnix):
       np.float64(315964800.0)
 
     In GALEX data, due to uncertainty in the spacecraft clock, the absolute time is only accurate to
-    about 1-10 seconds while the relative time within an observation is better than 0.005 s or so.
+    about 1-10 seconds while the relative time within an observation is better than 0.005 s or so,
+    except on days with leap seconds, where relative times can be wrong by up to 1 s.
     See question 101.2 in http://www.galex.caltech.edu/researcher/faq.html
     """
 
     name = "galexsec"
     epoch_val = "1980-01-06 00:00:00"
+    _default_precision = 0
 
 
 class TimeGPS(TimeFromEpoch):
