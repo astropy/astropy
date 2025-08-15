@@ -7,9 +7,11 @@ expense of accuracy.
 
 import functools
 import warnings
+from typing import NamedTuple
 
 import erfa
 import numpy as np
+from numpy.typing import NDArray
 
 import astropy.units as u
 from astropy.time import Time
@@ -28,15 +30,22 @@ from .matrix_utilities import rotation_matrix
 __all__ = []
 
 
+class _ReferenceCoefficients(NamedTuple):
+    refa: float | NDArray[np.float64]
+    refb: float | NDArray[np.float64]
+
+
 def _refco(frame_or_coord):
     if not hasattr(frame_or_coord, "pressure"):
         # This is not an AltAz frame, so don't bother computing refraction
-        return 0.0, 0.0
-    return erfa.refco(
-        frame_or_coord.pressure.to_value(u.hPa),
-        frame_or_coord.temperature.to_value(u.deg_C),
-        frame_or_coord.relative_humidity.value,
-        frame_or_coord.obswl.to_value(u.micron),
+        return _ReferenceCoefficients(0.0, 0.0)
+    return _ReferenceCoefficients(
+        *erfa.refco(
+            frame_or_coord.pressure.to_value(u.hPa),
+            frame_or_coord.temperature.to_value(u.deg_C),
+            frame_or_coord.relative_humidity.value,
+            frame_or_coord.obswl.to_value(u.micron),
+        )
     )
 
 
@@ -70,9 +79,6 @@ class ErfaAstrom:
         era = erfa.era00(*get_jd12(obstime, "ut1"))
         earth_pv, earth_heliocentric = prepare_earth_position_vel(obstime)
 
-        # refraction constants
-        refa, refb = _refco(frame_or_coord)
-
         return erfa.apco(
             jd1_tt,
             jd2_tt,
@@ -88,8 +94,7 @@ class ErfaAstrom:
             xp,
             yp,
             sp,
-            refa,
-            refb,
+            **_refco(frame_or_coord)._asdict(),
         )
 
     @staticmethod
@@ -307,9 +312,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
         x, y, s = map(interp, get_cip(*get_jd12(support, "tt")))
         era = erfa.era00(*get_jd12(obstime, "ut1"))
 
-        # refraction constants
-        refa, refb = _refco(frame_or_coord)
-
         return erfa.apco(
             jd1_tt,
             jd2_tt,
@@ -325,8 +327,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
             xp,
             yp,
             sp,
-            refa,
-            refb,
+            **_refco(frame_or_coord)._asdict(),
         )
 
     def apcs(self, frame_or_coord):
