@@ -36,11 +36,24 @@ The example below shows how to read a table in the specialized DAOphot format an
 it back to FITS format. Notice that FITS is a format where the interface recognizes the
 format automatically from the file name, so the ``format`` argument is not needed.
 
-.. doctest-skip::
+.. testsetup::
+    >>> import os
+    >>> with open('photometry.dat', 'w') as f: # doctest: +IGNORE_OUTPUT
+    ...     f.write("#N ID    XCENTER   YCENTER\n")
+    ...     f.write("#U ##    pixel     pixel \n")
+    ...     f.write("#F %-9d  %-10.3f   %-10.3f\n")
+    ...     f.write("#\n")
+    ...     f.write("14       138.538   256.405\n")
+    ...     f.write("18       18.114    280.170\n")
 
     >>> from astropy.table import Table
     >>> t = Table.read('photometry.dat', format='ascii.daophot')
     >>> t.write('photometry.fits')
+
+.. testcleanup::
+
+    >>> os.remove('photometry.dat')
+    >>> os.remove('photometry.fits')
 
 Each file format is handled by a specific reader or writer, and each of those
 functions will have its own set of arguments.
@@ -51,12 +64,10 @@ To get help on the available arguments for each format, use the ``help()`` metho
 appropriate ``read()`` or ``write()`` class method, e.g., `astropy.table.Table.read`.
 In the examples below we do not show the long output:
 
-.. doctest-skip::
-
     >>> from astropy.table import Table
     >>> from astropy.nddata import CCDData
-    >>> CCDData.read.help('fits')
-    >>> Table.read.help('ascii')
-    >>> Table.read.help('ascii.latex')
-    >>> Table.write.help('hdf5')
-    >>> Table.write.help('csv')
+    >>> CCDData.read.help('fits')  # doctest: +IGNORE_OUTPUT
+    >>> Table.read.help('ascii')  # doctest: +IGNORE_OUTPUT
+    >>> Table.read.help('ascii.latex')  # doctest: +IGNORE_OUTPUT
+    >>> Table.write.help('hdf5')  # doctest: +IGNORE_OUTPUT
+    >>> Table.write.help('csv')  # doctest: +IGNORE_OUTPUT

@@ -23,10 +23,16 @@ Examples
   Reading from and Writing to HDF5 Files
 
 To read a table called ``data`` from an HDF5 file named ``observations.hdf5``,
-you can do::
+you can do:
 
+.. testsetup::
     >>> from astropy.table import QTable
-    >>> t = QTable.read('observations.hdf5', path='data')
+    >>> tab = QTable({'col1': [1, 2, 3], 'col2': ['a', 'b', 'c']})
+    >>> tab.write('observations.hdf5', path='data')
+    >>> tab.write('observations.hdf5', path='group/data', append=True)
+
+>>> from astropy.table import QTable
+>>> t = QTable.read('observations.hdf5', path='data')
 
 To read a table nested in a group in the HDF5 file, you can do::
 
@@ -48,7 +54,13 @@ file that has multiple datasets, use *both* the ``overwrite=True`` and
 Finally, when writing to HDF5 files, the ``compression=`` argument can be
 used to ensure that the data is compressed on disk::
 
-    >>> t.write('new_file.hdf5', path='updated_data', compression=True)
+    >>> t.write('new_file.hdf5', path='updated_data', compression=True, overwrite=True)
+
+.. testcleanup::
+    >>> import os
+    >>> os.remove('new_file.hdf5')
+    >>> os.remove('observations.hdf5')
+
 
 ..
   EXAMPLE END

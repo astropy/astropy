@@ -106,23 +106,51 @@ the :ref:`astropy.io.ascii <io-ascii>` sub-package. This is done by prefixing th
 :ref:`format name <supported_formats>` with the ``ascii.`` prefix. For example to read a
 DAOphot table use:
 
-.. doctest-skip::
+.. testsetup::
+    >>> import os
+    >>> with open('photometry.dat', 'w') as f: # doctest: +IGNORE_OUTPUT
+    ...     f.write("#N ID    XCENTER   YCENTER\n")
+    ...     f.write("#U ##    pixel     pixel \n")
+    ...     f.write("#F %-9d  %-10.3f   %-10.3f\n")
+    ...     f.write("#\n")
+    ...     f.write("14       138.538   256.405\n")
+    ...     f.write("18       18.114    280.170\n")
 
-    >>> from astropy.table import Table
-    >>> t = Table.read('photometry.dat', format='ascii.daophot')
+>>> from astropy.table import Table
+>>> t = Table.read('photometry.dat', format='ascii.daophot')
+
+.. testcleanup::
+
+    >>> os.remove('photometry.dat')
 
 Use ``format='ascii'`` in order read a table and guess the table format by successively
 trying most of the available formats in a specific order. This can be slow and is not
 recommended for large tables.
 
-.. doctest-skip::
 
-  >>> t = Table.read('astropy/io/ascii/tests/t/latex1.tex', format='ascii')
-  >>> print(t)
-  cola colb colc
-  ---- ---- ----
-     a    1    2
-     b    3    4
+.. testsetup::
+
+    >>> with open('latex1.tex', 'w') as f: # doctest: +IGNORE_OUTPUT
+    ...     f.write(r'\begin{table}' + '\n')
+    ...     f.write(r'\begin{tabular}{lrr}\hline' + '\n')
+    ...     f.write(r'cola & colb & colc\\' + '\n')
+    ...     f.write(r'    a & 1 & 2\\' + '\n')
+    ...     f.write(r'    b & 3 & 4\\' + '\n')
+    ...     f.write(r'\end{tabular}' + '\n')
+    ...     f.write(r'\end{table}' + '\n')
+
+
+>>> t = Table.read('latex1.tex', format='ascii')
+>>> print(t)
+cola colb colc
+---- ---- ----
+   a    1    2
+   b    3    4
+
+.. testcleanup::
+
+    >>> import os
+    >>> os.remove('latex1.tex')
 
 When writing a table with ``format='ascii'`` the output is a basic
 space-delimited file with a single header line containing the
@@ -135,8 +163,7 @@ functions. Further details are available in the sections on
 example, to change the column delimiter and the output format for the ``colc``
 column use:
 
-.. doctest-skip::
-
+  >>> import sys
   >>> t.write(sys.stdout, format='ascii', delimiter='|', formats={'colc': '%0.2f'})
   cola|colb|colc
   a|1|2.00
@@ -187,10 +214,15 @@ the following functions / methods:
 When reading or writing a table, any keyword arguments apart from the
 ``format`` and file name are passed through to pandas, for instance:
 
-.. doctest-skip::
+.. doctest-requires:: pandas
 
   >>> t.write('data.csv', format='pandas.csv', sep=' ', header=False)
   >>> t2 = Table.read('data.csv', format='pandas.csv', sep=' ', names=['a', 'b', 'c'])
+
+.. testcleanup::
+  >>> import os
+  >>> if os.path.exists('data.csv'):
+  ...     os.remove('data.csv')
 
 .. _table_io_pyarrow_csv:
 

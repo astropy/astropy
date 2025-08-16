@@ -1,5 +1,3 @@
-
-
 .. doctest-skip-all
 
 .. _table_io_parquet:
@@ -28,6 +26,11 @@ Examples
   EXAMPLE START
   Reading from and Writing to Parquet Files
 
+.. testsetup::
+    >>> from astropy.table import Table
+    >>> t = Table({'mjd': [1, 2, 3], 'airmass': ['a', 'b', 'c']})
+    >>> t.write('observations.parquet')
+
 To read a table from a Parquet file named ``observations.parquet``, you can do::
 
     >>> t = Table.read('observations.parquet')
@@ -49,6 +52,13 @@ as shown below. This returns a zero-length table with the appropriate columns::
 To read only a subset of the columns, use the ``include_names`` and/or ``exclude_names`` keywords::
 
     >>> t_sub = Table.read('observations.parquet', include_names=['mjd', 'airmass'])
+
+
+.. testcleanup::
+    >>> import os
+    >>> os.remove('new_file.parquet')
+    >>> os.remove('observations.parquet')
+
 
 ..
   EXAMPLE END
