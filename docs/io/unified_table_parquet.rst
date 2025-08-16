@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. _table_io_parquet:
 
 Parquet
@@ -29,13 +27,19 @@ Examples
 .. testsetup::
     >>> from astropy.table import Table
     >>> t = Table({'mjd': [1, 2, 3], 'airmass': ['a', 'b', 'c']})
-    >>> t.write('observations.parquet')
+    >>> from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_PYARROW
+    >>> if HAS_PANDAS and HAS_PYARROW:
+    ...     t.write('observations.parquet')
 
-To read a table from a Parquet file named ``observations.parquet``, you can do::
+To read a table from a Parquet file named ``observations.parquet``, you can do:
+
+.. doctest-requires:: pandas pyarrow
 
     >>> t = Table.read('observations.parquet')
 
-To write a table to a new file, simply do::
+To write a table to a new file, simply do:
+
+.. doctest-requires:: pandas pyarrow
 
     >>> t.write('new_file.parquet')
 
@@ -45,19 +49,24 @@ overwriting existing files.
 One big advantage of the Parquet files is that each column is stored independently,
 and thus reading a subset of columns is fast and efficient.  To find out which
 columns are stored in a table without reading the data, use the ``schema_only=True``
-as shown below. This returns a zero-length table with the appropriate columns::
+as shown below. This returns a zero-length table with the appropriate columns:
+
+.. doctest-requires:: pandas pyarrow
 
     >>> schema = Table.read('observations.parquet', schema_only=True)
 
-To read only a subset of the columns, use the ``include_names`` and/or ``exclude_names`` keywords::
+To read only a subset of the columns, use the ``include_names`` and/or ``exclude_names`` keywords:
+
+.. doctest-requires:: pandas pyarrow
 
     >>> t_sub = Table.read('observations.parquet', include_names=['mjd', 'airmass'])
 
 
 .. testcleanup::
     >>> import os
-    >>> os.remove('new_file.parquet')
-    >>> os.remove('observations.parquet')
+    >>> if HAS_PANDAS and HAS_PYARROW:
+    ...     os.remove('new_file.parquet')
+    ...     os.remove('observations.parquet')
 
 
 ..
