@@ -104,53 +104,26 @@ like AAS `Machine-Readable Tables (MRT) <https://journals.aas.org/mrt-standards/
 We **strongly recommend** using the unified interface for reading and writing tables via
 the :ref:`astropy.io.ascii <io-ascii>` sub-package. This is done by prefixing the
 :ref:`format name <supported_formats>` with the ``ascii.`` prefix. For example to read a
-DAOphot table use:
+DAOphot table (in this example we use a file that is installed with astropy)::
 
-.. testsetup::
-    >>> import os
-    >>> with open('photometry.dat', 'w') as f: # doctest: +IGNORE_OUTPUT
-    ...     f.write("#N ID    XCENTER   YCENTER\n")
-    ...     f.write("#U ##    pixel     pixel \n")
-    ...     f.write("#F %-9d  %-10.3f   %-10.3f\n")
-    ...     f.write("#\n")
-    ...     f.write("14       138.538   256.405\n")
-    ...     f.write("18       18.114    280.170\n")
-
->>> from astropy.table import Table
->>> t = Table.read('photometry.dat', format='ascii.daophot')
-
-.. testcleanup::
-
-    >>> os.remove('photometry.dat')
+    >>> from astropy.table import Table
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> photometry_file = get_pkg_data_filename('data/daophot4.dat',
+    ...                                         package='astropy.io.ascii.tests')
+    >>> t = Table.read(photometry_file, format='ascii.daophot')
 
 Use ``format='ascii'`` in order read a table and guess the table format by successively
 trying most of the available formats in a specific order. This can be slow and is not
 recommended for large tables.
 
-
-.. testsetup::
-
-    >>> with open('latex1.tex', 'w') as f: # doctest: +IGNORE_OUTPUT
-    ...     f.write(r'\begin{table}' + '\n')
-    ...     f.write(r'\begin{tabular}{lrr}\hline' + '\n')
-    ...     f.write(r'cola & colb & colc\\' + '\n')
-    ...     f.write(r'    a & 1 & 2\\' + '\n')
-    ...     f.write(r'    b & 3 & 4\\' + '\n')
-    ...     f.write(r'\end{tabular}' + '\n')
-    ...     f.write(r'\end{table}' + '\n')
-
-
->>> t = Table.read('latex1.tex', format='ascii')
->>> print(t)
-cola colb colc
----- ---- ----
-   a    1    2
-   b    3    4
-
-.. testcleanup::
-
-    >>> import os
-    >>> os.remove('latex1.tex')
+    >>> latex_file = get_pkg_data_filename('data/latex1.tex',
+    ...                                     package='astropy.io.ascii.tests')
+    >>> t = Table.read(latex_file, format='ascii')
+    >>> print(t)
+    cola colb colc
+    ---- ---- ----
+       a    1    2
+       b    3    4
 
 When writing a table with ``format='ascii'`` the output is a basic
 space-delimited file with a single header line containing the
@@ -165,6 +138,8 @@ column use:
 
   >>> import sys
   >>> t.write(sys.stdout, format='ascii', delimiter='|', formats={'colc': '%0.2f'})
+  #
+  #
   cola|colb|colc
   a|1|2.00
   b|3|4.00
