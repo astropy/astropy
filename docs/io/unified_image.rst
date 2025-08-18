@@ -11,16 +11,18 @@ though the :ref:`CCDData class <ccddata>` using FITS file format:
     >>> ccd = CCDData([1, 2, 3], unit='adu')
     >>> ccd.write('image.fits')
 
->>> # Read CCD image
->>> from astropy.nddata import CCDData
->>> ccd = CCDData.read('image.fits')
+::
 
->>> # Write back CCD image
->>> ccd.write('new_image.fits')
+    >>> # Read CCD image
+    >>> from astropy.nddata import CCDData
+    >>> ccd = CCDData.read('image.fits')
+
+    >>> # Write back CCD image
+    >>> ccd.write('new_image.fits')
 
 .. testcleanup::
+    >>> del ccd
     >>> import os
-    >>> os.remove('image.fits')
     >>> os.remove('new_image.fits')
 
 Note that the unit is stored in the ``BUNIT`` keyword in the header on saving,
