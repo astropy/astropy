@@ -35,24 +35,21 @@ unless the format can be uniquely determined from the file name or file content.
 The example below shows how to read a table in the specialized DAOphot format and write
 it back to FITS format. Notice that FITS is a format where the interface recognizes the
 format automatically from the file name, so the ``format`` argument is not needed.
-
-.. testsetup::
-    >>> import os
-    >>> with open('photometry.dat', 'w') as f: # doctest: +IGNORE_OUTPUT
-    ...     f.write("#N ID    XCENTER   YCENTER\n")
-    ...     f.write("#U ##    pixel     pixel \n")
-    ...     f.write("#F %-9d  %-10.3f   %-10.3f\n")
-    ...     f.write("#\n")
-    ...     f.write("14       138.538   256.405\n")
-    ...     f.write("18       18.114    280.170\n")
+In this example we use a file that is installed with astropy::
 
     >>> from astropy.table import Table
-    >>> t = Table.read('photometry.dat', format='ascii.daophot')
-    >>> t.write('photometry.fits')
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> photometry_file = get_pkg_data_filename('data/daophot.dat',
+    ...                                         package='astropy.io.ascii.tests')
+    >>> t = Table.read(photometry_file, format='ascii.daophot')
+    >>> t.write('photometry.fits')  # doctest: +IGNORE_WARNINGS
+
+The FITS writer will issue a few warnings because the units read from the DAOphot
+file do not match the FITS conventions, but the data in the file is perfectly fine.
 
 .. testcleanup::
 
-    >>> os.remove('photometry.dat')
+    >>> import os
     >>> os.remove('photometry.fits')
 
 Each file format is handled by a specific reader or writer, and each of those
