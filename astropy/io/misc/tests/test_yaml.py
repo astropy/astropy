@@ -23,6 +23,7 @@ from astropy.coordinates import (
     SphericalDifferential,
     SphericalRepresentation,
     UnitSphericalRepresentation,
+    frame_transform_graph,
 )
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.misc.yaml import AstropyDumper, dump, load, load_all
@@ -137,9 +138,12 @@ def test_ndarray_subclasses(c):
         assert c.unit == cy.unit
 
 
-def compare_coord(c, cy):
+def compare_coord(c, cy, has_data=True):
     assert c.shape == cy.shape
-    assert c.frame.name == cy.frame.name
+    if hasattr(c, "frame"):
+        assert c.frame.name == cy.frame.name
+    else:
+        assert c.name == cy.name
 
     assert list(c.frame_attributes) == list(cy.frame_attributes)
     for attr in c.frame_attributes:
@@ -148,8 +152,24 @@ def compare_coord(c, cy):
     assert list(c.representation_component_names) == list(
         cy.representation_component_names
     )
-    for name in c.representation_component_names:
-        assert np.all(getattr(c, attr) == getattr(cy, attr))
+    if has_data:
+        for attr in c.representation_component_names:
+            assert np.all(getattr(c, attr) == getattr(cy, attr))
+
+
+def test_skycoord_galactocentric():
+    """Integration test for #18526 from https://stackoverflow.com/q/79735659/323631"""
+    sc = SkyCoord(
+        x=1 * u.kpc,
+        y=2 * u.kpc,
+        z=3 * u.kpc,
+        v_x=4 * u.km / u.s,
+        v_y=5 * u.km / u.s,
+        v_z=6 * u.km / u.s,
+        frame="galactocentric",
+    )
+    scr = load(dump(sc))
+    compare_coord(sc, scr)
 
 
 @pytest.mark.parametrize("frame", ["fk4", "altaz"])
@@ -201,6 +221,13 @@ def test_skycoord(frame):
 def test_representations(rep):
     rrep = load(dump(rep))
     assert np.all(representation_equal(rrep, rep))
+
+
+@pytest.mark.parametrize("frame_cls", frame_transform_graph.frame_set)
+def test_frames(frame_cls):
+    frame = frame_cls()
+    rframe = load(dump(frame))
+    compare_coord(frame, rframe, has_data=False)
 
 
 def _get_time():
