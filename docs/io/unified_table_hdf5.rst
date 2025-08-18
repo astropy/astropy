@@ -31,26 +31,20 @@ you can do:
     ...     tab.write('observations.hdf5', path='data')
     ...     tab.write('observations.hdf5', path='group/data', append=True)
 
-.. doctest-requires:: h5py
+::
 
     >>> from astropy.table import QTable
     >>> t = QTable.read('observations.hdf5', path='data')
 
-To read a table nested in a group in the HDF5 file, you can do:
-
-.. doctest-requires:: h5py
+To read a table nested in a group in the HDF5 file, you can do::
 
     >>> t = QTable.read('observations.hdf5', path='group/data')
 
-To write a table to a new file, the path should also be specified:
-
-.. doctest-requires:: h5py
+To write a table to a new file, the path should also be specified::
 
     >>> t.write('new_file.hdf5', path='updated_data')
 
-It is also possible to write a table to an existing file using ``append=True``:
-
-.. doctest-requires:: h5py
+It is also possible to write a table to an existing file using ``append=True``::
 
     >>> t.write('observations.hdf5', path='updated_data', append=True)
 
@@ -60,9 +54,7 @@ file that has multiple datasets, use *both* the ``overwrite=True`` and
 ``append=True`` arguments.
 
 Finally, when writing to HDF5 files, the ``compression=`` argument can be
-used to ensure that the data is compressed on disk:
-
-.. doctest-requires:: h5py
+used to ensure that the data is compressed on disk::
 
     >>> t.write('new_file.hdf5', path='updated_data', compression=True, overwrite=True)
 
@@ -91,9 +83,7 @@ To enable storing all table and column metadata to the HDF5 file, call
 the ``write()`` method with ``serialize_meta=True``. This will store metadata
 in a separate HDF5 dataset, contained in the same file, which is named
 ``<path>.__table_column_meta__``. Here ``path`` is the argument provided in
-the call to ``write()``:
-
-.. doctest-requires:: h5py
+the call to ``write()``::
 
     >>> t.write('observations.hdf5', path='data', serialize_meta=True, overwrite=True)
 
