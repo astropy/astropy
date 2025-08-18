@@ -1,1 +1,1 @@
-Fix crash in ``separability_matrix`` when used with ``CompoundModel`` involving ``fix_inputs``. Now correctly handles fixed input dictionaries and returns expected separability matrix shape. (`#18523 <https://github.com/astropy/astropy/issues/18523>`__)
+Fixed crash in ``separability_matrix`` when used with ``CompoundModel`` involving ``fix_inputs``. Now correctly handles fixed input dictionaries and returns expected separability matrix shape.
