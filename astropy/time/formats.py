@@ -41,6 +41,7 @@ __all__ = [
     "TimeFormat",
     "TimeFromEpoch",
     "TimeGPS",
+    "TimeGalexSec",
     "TimeISO",
     "TimeISOT",
     "TimeJD",
@@ -925,6 +926,27 @@ class TimeCxcSec(TimeFromEpoch):
     epoch_val2 = None
     epoch_scale = "tt"
     epoch_format = "iso"
+
+
+class TimeGalexSec(TimeUnix):
+    """
+    GALEX time: seconds since 1980-01-06 00:00:00 UTC not including leap seconds.
+
+    This is equivalent to the unix time minus 315964800.0, as shown below::
+
+      >>> t = Time("2025-01-01")
+      >>> t.unix - t.galexsec
+      np.float64(315964800.0)
+
+    In GALEX data, due to uncertainty in the spacecraft clock, the absolute time is only accurate to
+    about 1-10 seconds while the relative time within an observation is better than 0.005 s or so,
+    except on days with leap seconds, where relative times can be wrong by up to 1 s.
+    See question 101.2 in http://www.galex.caltech.edu/researcher/faq.html
+    """
+
+    name = "galexsec"
+    epoch_val = "1980-01-06 00:00:00"
+    _default_precision = 0
 
 
 class TimeGPS(TimeFromEpoch):
