@@ -22,6 +22,9 @@ from astropy.modeling.separable import (
     separability_matrix,
 )
 
+from astropy.modeling.models import Shift
+from astropy.modeling import CompoundModel
+
 sh1 = models.Shift(1, name="shift1")
 sh2 = models.Shift(2, name="sh2")
 scl1 = models.Scale(1, name="scl1")
@@ -191,3 +194,11 @@ def test_custom_model_separable():
 
     assert not model_c().separable
     assert np.all(separability_matrix(model_c()) == [True, True])
+
+def test_separability_with_fix_inputs():
+    s = Shift() & Shift() & Shift()
+    c = CompoundModel("fix_inputs", s, {"x0": 0.3})
+    mat = separability_matrix(c)
+
+    assert mat.shape == (3, 2)
+    assert mat.dtype == np.bool_

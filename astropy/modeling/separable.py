@@ -302,10 +302,23 @@ def _separable(transform):
         transform_matrix := transform._calculate_separability_matrix()
     ) is not NotImplemented:
         return transform_matrix
+
     elif isinstance(transform, CompoundModel):
+        if transform.op == "fix_inputs":
+            sepleft = _separable(transform.left)
+
+            fixed_inputs = set(transform.right.keys())
+            input_names = transform.left.inputs
+
+            keep_indices = [
+                i for i, name in enumerate(input_names) if name not in fixed_inputs
+            ]
+            return sepleft[:, keep_indices]
+
         sepleft = _separable(transform.left)
         sepright = _separable(transform.right)
         return _operators[transform.op](sepleft, sepright)
+
     elif isinstance(transform, Model):
         return _coord_matrix(transform, "left", transform.n_outputs)
 
