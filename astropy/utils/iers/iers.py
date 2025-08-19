@@ -9,6 +9,7 @@ celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
 
+import calendar
 import os
 import re
 from datetime import UTC, datetime
@@ -96,21 +97,6 @@ suppressed by setting the auto_max_age configuration variable to
   from astropy.utils.iers import conf
   conf.auto_max_age = None
 """
-
-MONTH_ABBR = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-]
 
 
 class IERSWarning(AstropyWarning):
@@ -1224,7 +1210,7 @@ class LeapSeconds(QTable):
                 match = cls._re_expires.match(line)
                 if match:
                     day, month, year = match.groups()[0].split()
-                    month_nb = MONTH_ABBR.index(month[:3]) + 1
+                    month_nb = calendar.Month[month.upper()].value
                     expires = Time(
                         f"{year}-{month_nb:02d}-{day}", scale="tai", out_subfmt="date"
                     )
