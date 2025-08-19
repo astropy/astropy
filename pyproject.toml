@@ -257,6 +257,8 @@ doctest_subpackage_requires = [
     "docs/coordinates/example_gallery_plot_mars_coordinate_frame.rst = matplotlib",
     "docs/coordinates/example_gallery_plot_obs_planning.rst = matplotlib",
     "docs/coordinates/example_gallery_plot_sgr_coordinate_frame.rst = matplotlib",
+    "docs/io/unified_table_hdf5.rst = h5py",
+    "docs/io/unified_table_parquet.rst = pandas pyarrow",
 ]
 markers = [
     "mpl_image_compare",

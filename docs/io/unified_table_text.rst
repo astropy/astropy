@@ -104,25 +104,26 @@ like AAS `Machine-Readable Tables (MRT) <https://journals.aas.org/mrt-standards/
 We **strongly recommend** using the unified interface for reading and writing tables via
 the :ref:`astropy.io.ascii <io-ascii>` sub-package. This is done by prefixing the
 :ref:`format name <supported_formats>` with the ``ascii.`` prefix. For example to read a
-DAOphot table use:
-
-.. doctest-skip::
+DAOphot table (in this example we use a file that is installed with astropy)::
 
     >>> from astropy.table import Table
-    >>> t = Table.read('photometry.dat', format='ascii.daophot')
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> photometry_file = get_pkg_data_filename('data/daophot4.dat',
+    ...                                         package='astropy.io.ascii.tests')
+    >>> t = Table.read(photometry_file, format='ascii.daophot')
 
 Use ``format='ascii'`` in order read a table and guess the table format by successively
 trying most of the available formats in a specific order. This can be slow and is not
 recommended for large tables.
 
-.. doctest-skip::
-
-  >>> t = Table.read('astropy/io/ascii/tests/t/latex1.tex', format='ascii')
-  >>> print(t)
-  cola colb colc
-  ---- ---- ----
-     a    1    2
-     b    3    4
+    >>> latex_file = get_pkg_data_filename('data/latex1.tex',
+    ...                                     package='astropy.io.ascii.tests')
+    >>> t = Table.read(latex_file, format='ascii')
+    >>> print(t)
+    cola colb colc
+    ---- ---- ----
+       a    1    2
+       b    3    4
 
 When writing a table with ``format='ascii'`` the output is a basic
 space-delimited file with a single header line containing the
@@ -135,9 +136,10 @@ functions. Further details are available in the sections on
 example, to change the column delimiter and the output format for the ``colc``
 column use:
 
-.. doctest-skip::
-
+  >>> import sys
   >>> t.write(sys.stdout, format='ascii', delimiter='|', formats={'colc': '%0.2f'})
+  #
+  #
   cola|colb|colc
   a|1|2.00
   b|3|4.00
@@ -187,10 +189,15 @@ the following functions / methods:
 When reading or writing a table, any keyword arguments apart from the
 ``format`` and file name are passed through to pandas, for instance:
 
-.. doctest-skip::
+.. doctest-requires:: pandas
 
   >>> t.write('data.csv', format='pandas.csv', sep=' ', header=False)
   >>> t2 = Table.read('data.csv', format='pandas.csv', sep=' ', names=['a', 'b', 'c'])
+
+.. testcleanup::
+  >>> import os
+  >>> if os.path.exists('data.csv'):
+  ...     os.remove('data.csv')
 
 .. _table_io_pyarrow_csv:
 
