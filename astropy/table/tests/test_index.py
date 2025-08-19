@@ -665,3 +665,92 @@ def test_nd_columun_as_index(masked):
         ValueError, match="Multi-dimensional column 'arr' cannot be used as an index."
     ):
         t.add_index("arr")
+
+
+@pytest.mark.parametrize("index_first", [True, False])
+def test_slice_an_indexed_table(index_first):
+    """Test slicing a table that is already indexed.
+
+    Test of fix for https://github.com/astropy/astropy/issues/10732.
+
+    #10732 is the case index_first=True, but also test slicing first (index_first=False)
+    since we're at it.
+    """
+    t = Table()
+    t["a"] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+    t["b"] = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+    t["c"] = ["e", "f", "g", "h", "i", "j", "k", "a", "b", "c"]
+
+    if index_first:
+        t.add_index("a")
+        t.add_index(["b", "c"])
+        ts = t[::2]
+    else:
+        ts = t[::2]
+        ts.add_index("a")
+        ts.add_index(["b", "c"])
+
+    assert ts.pformat() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  9   0   e",
+        "  7   0   g",
+        "  5   0   i",
+        "  3   1   k",
+        "  1   1   b",
+    ]
+    # Index access works
+    assert str(ts.loc[5]).splitlines() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  5   0   i",
+    ]
+
+    # Remove row 2 (a==5), check index access still works
+    ts.remove_row(2)
+    assert ts.pformat() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  9   0   e",
+        "  7   0   g",
+        "  3   1   k",
+        "  1   1   b",
+    ]
+    assert str(ts.loc[1]).splitlines() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  1   1   b",
+    ]
+
+    # Remove row 2 (now a==3), check index access still works
+    ts.remove_row(2)
+    assert ts.pformat() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  9   0   e",
+        "  7   0   g",
+        "  1   1   b",
+    ]
+    assert str(ts.loc[7]).splitlines() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  7   0   g",
+    ]
+
+    # Make sure primary index and secondary index look right (with original=True)
+    assert str(ts.indices[0]).splitlines() == [
+        "<SlicedIndex original=True index=<Index columns=('a',) data=<SortedArray length=3>",
+        " a  rows",
+        "--- ----",
+        "  1    2",
+        "  7    1",
+        "  9    0>>",
+    ]
+    assert str(ts.indices[1]).splitlines() == [
+        "<SlicedIndex original=True index=<Index columns=('b', 'c') data=<SortedArray length=3>",
+        " b   c  rows",
+        "--- --- ----",
+        "  0   e    0",
+        "  0   g    1",
+        "  1   b    2>>",
+    ]
