@@ -15,7 +15,6 @@ from numpy.testing import assert_allclose, assert_array_equal
 from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
-from astropy.units.quantity_helper.helpers import helper_sqrt
 from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -143,6 +142,8 @@ class TestUfuncHelpers:
 
     @pytest.mark.slow
     def test_thread_safety(self, fast_thread_switching):
+        helper_sqrt = qh.UFUNC_HELPERS[np.sqrt]
+
         def dummy_ufunc(*args, **kwargs):
             return np.sqrt(*args, **kwargs)
 
