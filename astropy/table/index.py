@@ -8,6 +8,9 @@ This module implements indexing functionality for astropy Table objects, enablin
 lookups and range queries on table columns. The indexing system uses various data
 structures to maintain sorted representations of table data for efficient searching.
 
+Note: these docs are intended for developers and are not rendered in the astropy
+narrative docs.
+
 Overview
 --------
 The astropy Table class supports creating indexes on one or more columns to enable fast
@@ -49,32 +52,32 @@ Core Functionality
 As a reminder of basic functionality.
 
 Creating Indexes:
-    Tables support adding indexes via `Table.add_index()`:
+    Tables support adding indexes via ``Table.add_index()``::
 
-    >>> t = Table({'a': [1, 3, 2, 5], 'b': ['x', 'y', 'z', 'w']})
-    >>> t.add_index('a')  # Single column index
-    >>> t.add_index(['a', 'b'])  # Multi-column composite index
+      t = Table({'a': [1, 3, 2, 5], 'b': ['x', 'y', 'z', 'w']})
+      t.add_index('a')  # Single column index
+      t.add_index(['a', 'b'])  # Multi-column composite index
 
 Value-Based Lookups with TableLoc:
-    The `TableLoc` class provides the `.loc[]` interface for value-based queries:
+    The `TableLoc` class provides the `.loc[]` interface for value-based queries::
 
-    >>> t.loc[3]  # Find row where indexed column 'a' equals 3
-    >>> t.loc[2:4]  # Range query: rows where 'a' is between 2 and 4 (inclusive)
-    >>> t.loc[[1, 3, 5]]  # Multiple specific values
-    >>> t.loc[('a', 3)]  # Explicitly specify index column and value
-    >>> t.loc[(['a', 'b'], (2, 'z'))]  # Multi-column composite key lookup
+      t.loc[3]  # Find row where indexed column 'a' equals 3
+      t.loc[2:4]  # Range query: rows where 'a' is between 2 and 4 (inclusive)
+      t.loc[[1, 3, 5]]  # Multiple specific values
+      t.loc[('a', 3)]  # Explicitly specify index column and value
+      t.loc[(['a', 'b'], (2, 'z'))]  # Multi-column composite key lookup
 
-    Range queries support slice notation with inclusive bounds: - `t.loc[2:5]` returns
-    rows where indexed values are between 2 and 5 - `t.loc[:3]` returns rows where
-    values are ≤ 3 - `t.loc[4:]` returns rows where values are ≥ 4
+    Range queries support slice notation with inclusive bounds: - ``t.loc[2:5]`` returns
+    rows where indexed values are between 2 and 5 - ``t.loc[:3]`` returns rows where
+    values are ≤ 3 - ``t.loc[4:]`` returns rows where values are ≥ 4.
 
 Position-Based Access with TableILoc:
     The `TableILoc` class provides `.iloc[]` for accessing rows by their position in the
-    sorted index order (not original table order):
+    sorted index order (not original table order)::
 
-    >>> t.iloc[0]  # First row in sorted order
-    >>> t.iloc[-1]  # Last row in sorted order
-    >>> t.iloc[1:3]  # Rows 1-2 in sorted order
+        t.iloc[0]  # First row in sorted order
+        t.iloc[-1]  # Last row in sorted order
+        t.iloc[1:3]  # Rows 1-2 in sorted order
 
 Index Management:
     - `TableIndices`: Container class that allows retrieval of indexes by column name
