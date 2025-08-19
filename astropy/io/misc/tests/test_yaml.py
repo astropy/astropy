@@ -223,11 +223,25 @@ def test_representations(rep):
     assert np.all(representation_equal(rrep, rep))
 
 
-@pytest.mark.parametrize("frame_cls", frame_transform_graph.frame_set)
+@pytest.mark.parametrize(
+    "frame_cls",
+    [
+        cls
+        for cls in frame_transform_graph.frame_set
+        if cls.__module__.startswith("astropy.")
+    ],
+)
 def test_frames(frame_cls):
+    """Test that bare instances of built-in frames round-trip through YAML
+
+    This excludes dynamically-created SkyOffset frames like ``abc.SkyOffsetAltAz``.
+    This one in particular fails tests since it tries to construct an ``AltAz``
+    instance. Possibly related to https://github.com/astropy/astropy/issues/10157.
+    """
     frame = frame_cls()
-    rframe = load(dump(frame))
-    compare_coord(frame, rframe, has_data=False)
+    frame_dump = dump(frame)
+    frame_rt = load(frame_dump)
+    compare_coord(frame, frame_rt, has_data=False)
 
 
 def _get_time():

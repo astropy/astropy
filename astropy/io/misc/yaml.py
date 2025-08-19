@@ -339,7 +339,14 @@ cls_coords.extend(
     )
     if cls.__name__ in coords.representation.__all__
 )
-cls_coords.extend(coords.frame_transform_graph.frame_set)
+# Add built-in frame classes, excluding dynamically-created frames like
+# ``abc.SkyOffsetAltAz``. This one fails tests since it tries to construct an ``AltAz``
+# instance. Possibly related to https://github.com/astropy/astropy/issues/10157.
+cls_coords.extend(
+    cls
+    for cls in coords.frame_transform_graph.frame_set
+    if cls.__module__.startswith("astropy.")
+)
 
 for cls in cls_coords:
     name = cls.__name__
