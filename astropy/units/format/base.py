@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, ClassVar, Literal
 import numpy as np
 
 from astropy.units.core import CompositeUnit, NamedUnit, Unit, get_current_unit_registry
-from astropy.units.errors import UnitsWarning
+from astropy.units.errors import UnitParserWarning, UnitsWarning
 from astropy.units.utils import maybe_simple_fraction
 from astropy.utils.misc import did_you_mean
 
@@ -253,13 +253,27 @@ class _ParsingFormatMixin:
         return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
 
     @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+    def _validate_unit(
+        cls,
+        unit: str,
+        detailed_exception: bool = True,
+        deprecations: Literal["silent", "warn", "raise"] = "warn",
+    ) -> UnitBase:
+        if unit in cls._deprecated_units:
+            if deprecations == "warn":
+                warnings.warn(cls._deprecated_unit_message(unit), UnitParserWarning)
+            elif deprecations == "raise":
+                raise ValueError()
         try:
             return cls._units[unit]
         except KeyError:
             if detailed_exception:
                 raise ValueError(cls._invalid_unit_error_message(unit)) from None
             raise ValueError() from None
+
+    @classmethod
+    def _deprecated_unit_message(cls, unit: str) -> str:
+        return f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:

@@ -2033,11 +2033,13 @@ class _UnitMetaClass(type):
             if isinstance(s, bytes):
                 s = s.decode("ascii")
 
-            try:
-                return f._validate_unit(s, detailed_exception=False)  # Try a shortcut
+            try:  # Try a shortcut
+                return f._validate_unit(
+                    s, detailed_exception=False, deprecations="raise"
+                )
             except (AttributeError, ValueError):
                 # No `f._validate_unit()` (AttributeError)
-                # or `s` was a composite unit (ValueError).
+                # or `s` was a composite unit or deprecated (ValueError).
                 pass
 
             try:

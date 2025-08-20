@@ -362,12 +362,3 @@ class OGIP(Base, _ParsingFormatMixin):
         cls, val: UnitScale | np.number, format_spec: str = "g"
     ) -> str:
         return format(val, format_spec)
-
-    @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        if unit in cls._deprecated_units:
-            warnings.warn(
-                f"The unit '{unit}' has been deprecated in the OGIP standard.",
-                UnitsWarning,
-            )
-        return super()._validate_unit(unit, detailed_exception)

@@ -356,7 +356,7 @@ def test_write_jybeam_unit(tmp_path, recwarn):
     t = Table(
         {
             "flux": [5 * (u.Jy / u.beam)],
-            "foo": [0 * u.Unit("Crab", format="ogip")],
+            "foo": [0 * u.Unit("Crab", format="ogip", parse_strict="warn")],
             "bar": [1 * u.def_unit("my_unit")],
         }
     )

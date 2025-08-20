@@ -376,7 +376,7 @@ class RoundtripBase:
         ud = unit.decompose()
         s = ud.to_string(self.format_)
         assert "  " not in s
-        a = Unit(s, format=self.format_)
+        a = Unit(s, format=self.format_, parse_strict="warn")
         assert_allclose(a.decompose().scale, ud.scale, rtol=1e-5)
 
 
@@ -403,16 +403,7 @@ class TestRoundtripVOUnit(RoundtripBase):
 
     @pytest.mark.parametrize(
         "unit",
-        [
-            pytest.param(
-                u,
-                marks=[pytest.mark.xfail(reason="regression test that reveals a bug")]
-                if str(u) in u_format.VOUnit._deprecated_units
-                else [],
-            )
-            for u in u_format.VOUnit._units.values()
-            if not isinstance(u, PrefixUnit)
-        ],
+        [u for u in u_format.VOUnit._units.values() if not isinstance(u, PrefixUnit)],
         ids=str,
     )
     def test_roundtrip(self, unit):
@@ -464,12 +455,7 @@ class TestRoundtripOGIP(RoundtripBase):
     @pytest.mark.parametrize(
         "unit",
         [
-            pytest.param(
-                unit,
-                marks=[pytest.mark.xfail(reason="regression test that reveals a bug")]
-                if str(unit) in u_format.OGIP._deprecated_units
-                else [],
-            )
+            unit
             for unit in u_format.OGIP._units.values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
@@ -481,7 +467,7 @@ class TestRoundtripOGIP(RoundtripBase):
             # as a deprecated unit.
             with pytest.warns(UnitsWarning):
                 s = unit.to_string(self.format_)
-                a = Unit(s, format=self.format_)
+                a = Unit(s, format=self.format_, parse_strict="warn")
             assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-9)
         else:
             self.check_roundtrip(unit)
@@ -734,7 +720,6 @@ def test_scaled_dimensionless():
         u.Unit(0.1).to_string("vounit")
 
 
-@pytest.mark.xfail(reason="regression test that reveals a bug")
 def test_deprecated_did_you_mean_units():
     with pytest.raises(ValueError) as exc_info:
         u.Unit("ANGSTROM", format="fits")
