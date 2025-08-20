@@ -871,7 +871,8 @@ class BinTableHDU(_TableBaseHDU):
             # Now add in the heap data to the checksum (we can skip any gap
             # between the table and the heap since it's all zeros and doesn't
             # contribute to the checksum
-            return self._compute_checksum(data._get_heap_data(), csum)
+            try_from_disk = self._manages_own_heap or not self._data_loaded
+            return self._compute_checksum(data._get_heap_data(try_from_disk), csum)
 
     def _calculate_datasum(self):
         """
@@ -912,7 +913,8 @@ class BinTableHDU(_TableBaseHDU):
 
             nbytes = data._gap
 
-            heap_data = data._get_heap_data()
+            try_from_disk = self._manages_own_heap or not self._data_loaded
+            heap_data = data._get_heap_data(try_from_disk)
             if len(heap_data) > 0:
                 nbytes += len(heap_data)
                 fileobj.writearray(heap_data)
