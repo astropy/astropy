@@ -361,9 +361,12 @@ class RoundtripBase:
             s = unit.to_string(output_format)
 
         if s in self.format_._deprecated_units:
-            with pytest.warns(UnitsWarning, match="deprecated") as w:
-                a = Unit(s, format=self.format_)
+            with pytest.raises(ValueError, match="deprecated"):
+                Unit(s, format=self.format_)
+            with pytest.warns(UnitParserWarning, match="deprecated") as w:
+                a = Unit(s, format=self.format_, parse_strict="warn")
             assert len(w) == 1
+            assert Unit(s, format=self.format_, parse_strict="silent") == a
         else:
             a = Unit(s, format=self.format_)  # No warning
 
@@ -400,7 +403,16 @@ class TestRoundtripVOUnit(RoundtripBase):
 
     @pytest.mark.parametrize(
         "unit",
-        [u for u in u_format.VOUnit._units.values() if not isinstance(u, PrefixUnit)],
+        [
+            pytest.param(
+                u,
+                marks=[pytest.mark.xfail(reason="regression test that reveals a bug")]
+                if str(u) in u_format.VOUnit._deprecated_units
+                else [],
+            )
+            for u in u_format.VOUnit._units.values()
+            if not isinstance(u, PrefixUnit)
+        ],
         ids=str,
     )
     def test_roundtrip(self, unit):
@@ -452,7 +464,12 @@ class TestRoundtripOGIP(RoundtripBase):
     @pytest.mark.parametrize(
         "unit",
         [
-            unit
+            pytest.param(
+                unit,
+                marks=[pytest.mark.xfail(reason="regression test that reveals a bug")]
+                if str(unit) in u_format.OGIP._deprecated_units
+                else [],
+            )
             for unit in u_format.OGIP._units.values()
             if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
@@ -717,6 +734,7 @@ def test_scaled_dimensionless():
         u.Unit(0.1).to_string("vounit")
 
 
+@pytest.mark.xfail(reason="regression test that reveals a bug")
 def test_deprecated_did_you_mean_units():
     with pytest.raises(ValueError) as exc_info:
         u.Unit("ANGSTROM", format="fits")
@@ -735,9 +753,8 @@ def test_deprecated_did_you_mean_units():
     ):
         u.Unit("ANGSTROM", format="vounit")
 
-    with pytest.warns(UnitsWarning, match=r".* 0\.1nm\.") as w:
+    with pytest.raises(ValueError, match=r".* 0\.1nm\."):
         u.Unit("angstrom", format="vounit")
-    assert len(w) == 1
 
 
 @pytest.mark.parametrize("string", ["mag(ct/s)", "dB(mW)", "dex(cm s**-2)"])
