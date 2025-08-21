@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 from yaml import SafeDumper
 
+import astropy.coordinates as coords
 import astropy.units as u
 from astropy.coordinates import (
     Angle,
@@ -223,14 +224,14 @@ def test_representations(rep):
     assert np.all(representation_equal(rrep, rep))
 
 
-@pytest.mark.parametrize(
-    "frame_cls",
-    [
-        cls
-        for cls in frame_transform_graph.frame_set
-        if cls.__module__.startswith("astropy.")
-    ],
+# Note: consistent test order (e.g. sorting) needed for parallel testing.
+frame_clss = sorted(
+    [cls for cls in frame_transform_graph.frame_set if cls.__name__ in dir(coords)],
+    key=lambda x: x.__name__,
 )
+
+
+@pytest.mark.parametrize("frame_cls", frame_clss)
 def test_frames(frame_cls):
     """Test that bare instances of built-in frames round-trip through YAML
 

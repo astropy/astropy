@@ -329,25 +329,17 @@ for cls, tag in (
     AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
     AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
-# Add representations, differentials, frames defined in astropy.
-cls_coords = []
-cls_coords.extend(
+# Add representations, differentials, and built-in frames defined in astropy and in the
+# ``astropy.coordinates`` public API.
+cls_coords = [
     cls
     for cls in itertools.chain(
         coords.representation.REPRESENTATION_CLASSES.values(),
         coords.representation.DIFFERENTIAL_CLASSES.values(),
+        coords.frame_transform_graph.frame_set,
     )
-    if cls.__name__ in coords.representation.__all__
-)
-# Add built-in frame classes, excluding dynamically-created frames like
-# ``abc.SkyOffsetAltAz``. This one fails tests since it tries to construct an ``AltAz``
-# instance. Possibly related to https://github.com/astropy/astropy/issues/10157.
-cls_coords.extend(
-    cls
-    for cls in coords.frame_transform_graph.frame_set
-    if cls.__module__.startswith("astropy.")
-)
-
+    if cls.__name__ in dir(coords)
+]
 for cls in cls_coords:
     name = cls.__name__
     tag = "!astropy.coordinates." + name
