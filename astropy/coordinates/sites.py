@@ -52,18 +52,19 @@ class SiteRegistry(Mapping):
         site : `~astropy.coordinates.EarthLocation`
             The location of the observatory.
         """
-        if site_name.lower() not in self._lowercase_names_to_locations:
-            # If site name not found, find close matches and suggest them in error
-            close_names = get_close_matches(
-                site_name, self._lowercase_names_to_locations
-            )
-            close_names = sorted(close_names, key=len)
-
+        try:
+            return self._lowercase_names_to_locations[site_name.lower()]
+        except KeyError:
             raise UnknownSiteException(
-                site_name, "the 'names' attribute", close_names=close_names
-            )
-
-        return self._lowercase_names_to_locations[site_name.lower()]
+                site=site_name,
+                attribute="the 'names' attribute",
+                close_names=sorted(
+                    get_close_matches(site_name, self._lowercase_names_to_locations),
+                    key=len,
+                ),
+            ) from None
+        except AttributeError:
+            raise TypeError(f"site name {site_name!r} is not a 'str'") from None
 
     def __len__(self) -> int:
         return len(self._lowercase_names_to_locations)
