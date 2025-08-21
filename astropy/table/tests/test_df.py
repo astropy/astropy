@@ -61,13 +61,21 @@ class TestDataFrameConversion:
 
     def _to_dataframe(self, table, backend, use_legacy, **kwargs):
         """Convert table to dataframe using appropriate method."""
-        if use_legacy and backend == "pandas":
+        if use_legacy:
+            if backend != "pandas":
+                raise ValueError(
+                    "Legacy conversion is only supported for the pandas backend."
+                )
             return table.to_pandas(**kwargs)
         return table.to_df(backend, **kwargs)
 
     def _from_dataframe(self, df, backend, use_legacy, **kwargs):
         """Convert dataframe to table using appropriate method."""
-        if use_legacy and backend == "pandas":
+        if use_legacy:
+            if backend != "pandas":
+                raise ValueError(
+                    "Legacy conversion is only supported for the pandas backend."
+                )
             return table.Table.from_pandas(df, **kwargs)
         return table.Table.from_df(df, **kwargs)
 
@@ -96,35 +104,36 @@ class TestDataFrameConversion:
 
             if column in ("u", "s"):
                 assert np.all(original_col == roundtrip_col)
-                if use_legacy:
+                if backend == "pandas":
                     # Legacy pandas-specific checks
                     assert d[column].dtype == np.dtype(
                         "O"
                     )  # upstream feature of pandas
             else:
-                if use_legacy:
+                # Generic comparison with tolerance
+                assert_allclose(original_col, roundtrip_col)
+
+                # Compare dtypes by value, not identity (normalize endianness)
+                t_dtype = original_col.dtype.newbyteorder("=")
+                t2_dtype = roundtrip_col.dtype.newbyteorder("=")
+
+                if backend == "polars" and "f2" in column:
+                    # No Polars Float16 support
+                    pass
+                else:
+                    assert t_dtype == t2_dtype
+
+                # Pandas-specific checks
+                if backend == "pandas":
                     # Legacy pandas-specific exact comparison
                     assert np.all(t[column] == d[column])
                     if t[column].dtype.isnative:
                         assert d[column].dtype == t[column].dtype
                     else:
                         assert d[column].dtype == t[column].dtype.newbyteorder()
-                else:
-                    # Generic comparison with tolerance
-                    assert_allclose(original_col, roundtrip_col)
 
-                    # Compare dtypes by value, not identity (normalize endianness)
-                    t_dtype = original_col.dtype.newbyteorder("=")
-                    t2_dtype = roundtrip_col.dtype.newbyteorder("=")
-
-                    if backend == "polars" and "f2" in column:
-                        # No Polars Float16 support
-                        pass
-                    else:
-                        assert t_dtype == t2_dtype
-
-        if use_legacy:
-            # Legacy pandas-specific endian tests
+        # Legacy pandas-specific endian tests
+        if backend == "pandas":
             # Regression test for astropy/astropy#1156 - the following code gave a
             # ValueError: Big-endian buffer not supported on little-endian
             # compiler. We now automatically swap the endian-ness to native order
@@ -146,7 +155,7 @@ class TestDataFrameConversion:
                     assert t[column].dtype.newbyteorder() == t2[column].dtype
 
     @pytest.mark.parametrize("use_IndexedTable", [False, True])
-    def test_index_handling(self, backend, use_legacy, use_IndexedTable):
+    def test_to_df_index(self, backend, use_legacy, use_IndexedTable):
         """Test indexing options for both legacy pandas and generic backends."""
 
         class IndexedTable(table.QTable):
@@ -161,62 +170,8 @@ class TestDataFrameConversion:
         table_cls = IndexedTable if use_IndexedTable else table.QTable
         t = table_cls([tm, x], names=["tm", "x"])
 
-        if use_legacy:
-            # Legacy pandas-specific tests
-            import pandas as pd
-
-            row_index = pd.RangeIndex(0, 2, 1)
-            tm_index = pd.DatetimeIndex(
-                ["1998-01-01", "2002-01-01"],
-                dtype="datetime64[ns]",
-                name="tm",
-                freq=None,
-            )
-
-            tp = self._to_dataframe(t, backend, use_legacy)
-
-            if not use_IndexedTable:
-                assert np.all(tp.index == row_index)
-                tp = self._to_dataframe(t, backend, use_legacy, index="tm")
-                assert np.all(tp.index == tm_index)
-                t.add_index("tm")
-
-            tp = self._to_dataframe(t, backend, use_legacy)
-            assert np.all(tp.index == tm_index)
-            # Make sure writing to dataframe didn't hack the original table
-            assert t["tm"].info.indices
-
-            tp = self._to_dataframe(t, backend, use_legacy, index=True)
-            assert np.all(tp.index == tm_index)
-
-            tp = self._to_dataframe(t, backend, use_legacy, index=False)
-            assert np.all(tp.index == row_index)
-
-            with pytest.raises(ValueError) as err:
-                self._to_dataframe(t, backend, use_legacy, index="not a column")
-            assert "is not in the table columns" in str(err.value)
-        else:
-            # Generic dataframe tests
-            if backend in ("polars", "pyarrow"):
-                # Test that indexing raises appropriate errors for non-pandas backends
-                if not use_IndexedTable:
-                    with pytest.raises(
-                        ValueError,
-                        match="Indexing is only supported for pandas-like backends",
-                    ):
-                        self._to_dataframe(t, backend, use_legacy, index="tm")
-                    return
-                else:
-                    # For indexed tables, test that index access fails appropriately
-                    tp = self._to_dataframe(t, backend, use_legacy)
-                    with pytest.raises(
-                        AttributeError,
-                        match="object has no attribute 'index'",
-                    ):
-                        assert np.all(tp.index)
-                    return
-            else:
-                # pandas backend with generic interface
+        match backend:
+            case "pandas":
                 import pandas as pd
 
                 row_index = pd.RangeIndex(0, 2, 1)
@@ -226,79 +181,82 @@ class TestDataFrameConversion:
                     name="tm",
                     freq=None,
                 )
-
-                df = self._to_dataframe(t, backend, use_legacy)
-
-                if not use_IndexedTable:
-                    assert np.all(df.index == row_index)
-                    df = self._to_dataframe(t, backend, use_legacy, index="tm")
-                    assert np.all(df.index == tm_index)
-                    t.add_index("tm")
-
                 tp = self._to_dataframe(t, backend, use_legacy)
-                assert np.all(tp.index == tm_index)
-                # Make sure writing to dataframe didn't hack the original table
-                assert t["tm"].info.indices
 
-                tp = self._to_dataframe(t, backend, use_legacy, index=True)
-                assert np.all(tp.index == tm_index)
+            case "polars" | "pyarrow":
+                with pytest.raises(
+                    ValueError,
+                    match="Indexing is only supported for pandas-like backends",
+                ):
+                    self._to_dataframe(t, backend, use_legacy, index="tm")
+                return
+            case _:
+                raise ValueError(f"Unknown backend: {backend}")
 
-                tp = self._to_dataframe(t, backend, use_legacy, index=False)
-                assert np.all(tp.index == row_index)
+        tp = self._to_dataframe(t, backend, use_legacy)
 
-                with pytest.raises(ValueError) as err:
-                    t.to_pandas(index="not a column")
-                assert "is not in the table columns" in str(err.value)
+        if not use_IndexedTable:
+            assert np.all(tp.index == row_index)
+            tp = self._to_dataframe(t, backend, use_legacy, index="tm")
+            assert np.all(tp.index == tm_index)
+            t.add_index("tm")
 
-    def test_from_index(self, backend, use_legacy):
+        tp = self._to_dataframe(t, backend, use_legacy)
+        assert np.all(tp.index == tm_index)
+        # Make sure writing to dataframe didn't hack the original table
+        assert t["tm"].info.indices
+
+        tp = self._to_dataframe(t, backend, use_legacy, index=True)
+        assert np.all(tp.index == tm_index)
+
+        tp = self._to_dataframe(t, backend, use_legacy, index=False)
+        assert np.all(tp.index == row_index)
+
+        with pytest.raises(ValueError, match="is not in the table columns"):
+            self._to_dataframe(t, backend, use_legacy, index="not a column")
+
+    def test_from_df_index(self, backend, use_legacy):
         """Test index handling in from_dataframe conversion."""
-        if not use_legacy and backend in ("polars", "pyarrow"):
-            # Non-pandas backends don't support indexing
-            tm = Time([1998, 2002], format="jyear")
-            x = [1, 2]
-            t = table.Table([tm, x], names=["tm", "x"])
-
-            with pytest.raises(
-                ValueError,
-                match="Indexing is only supported for pandas-like backends",
-            ):
-                self._to_dataframe(t, backend, use_legacy, index="tm")
-            return
-
         tm = Time([1998, 2002], format="jyear")
         x = [1, 2]
         t = table.Table([tm, x], names=["tm", "x"])
-        tp = self._to_dataframe(t, backend, use_legacy, index="tm")
+        match backend:
+            case "polars" | "pyarrow":
+                # Non-pandas backends don't support indexing
+                with pytest.raises(
+                    ValueError,
+                    match="Indexing is only supported for pandas-like backends",
+                ):
+                    self._to_dataframe(t, backend, use_legacy, index="tm")
+                return
+            case "pandas":
+                tp = self._to_dataframe(t, backend, use_legacy, index="tm")
+            case _:
+                raise ValueError(f"Unknown backend: {backend}")
 
         t2 = self._from_dataframe(tp, backend, use_legacy)
         assert t2.colnames == ["x"]
 
         t2 = self._from_dataframe(tp, backend, use_legacy, index=True)
         assert t2.colnames == ["tm", "x"]
-        assert t2.colnames == ["tm", "x"]
         assert np.allclose(t2["tm"].jyear, tm.jyear)
 
     def test_units(self, backend, use_legacy):
         """Test handling of units in from_dataframe conversion."""
-        if use_legacy:
-            import pandas as pd
+        df = {"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]}
+        match backend:
+            case "pandas":
+                import pandas as pd
 
-            df = pd.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
-        else:
-            df = {"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]}
-            match backend:
-                case "pandas":
-                    import pandas as pd
+                df = pd.DataFrame(df)
+            case "polars":
+                import polars as pl
 
-                    df = pd.DataFrame(df)
-                case "polars":
-                    import polars as pl
+                df = pl.DataFrame(df)
+            case "pyarrow":
+                import pyarrow as pa
 
-                    df = pl.DataFrame(df)
-                case "pyarrow":
-                    import pyarrow as pa
-
-                    df = pa.Table.from_pydict(df)
+                df = pa.Table.from_pydict(df)
 
         t = self._from_dataframe(df, backend, use_legacy, units={"x": u.m, "t": u.s})
 
@@ -315,10 +273,7 @@ class TestDataFrameConversion:
                 df, backend, use_legacy, units={"x": u.m, "t": u.s, "y": u.m}
             )
         assert len(record) == 1
-        if use_legacy:
-            assert "{'y'}" in str(record[0].message.args[0])
-        else:
-            assert "{'y'}" in str(record[0].message.args[0])
+        assert "{'y'}" in str(record[0].message.args[0])
 
     @pytest.mark.parametrize("unsigned", ["u", ""])
     @pytest.mark.parametrize("bits", [8, 16, 32, 64])
@@ -343,20 +298,26 @@ class TestDataFrameConversion:
         t = table.Table()
         t["a"] = np.ones(colshape)
 
-        if use_legacy or backend in ("pandas", "pyarrow"):
-            with pytest.raises(
-                ValueError,
-                match="Cannot convert a table with multidimensional columns",
-            ):
-                self._to_dataframe(t, backend, use_legacy)
-        elif backend == "polars":
-            df = self._to_dataframe(t, backend, use_legacy)
-            # Convert and check shape
-            assert df["a"].dtype.shape == shape
+        match backend:
+            # Pandas and PyArrow do not support multidimensional columns
+            case "pandas" | "pyarrow":
+                if ndim > 1:
+                    with pytest.raises(
+                        ValueError,
+                        match="Cannot convert a table with multidimensional columns",
+                    ):
+                        self._to_dataframe(t, backend, use_legacy)
+                    return
+            case "polars":
+                df = self._to_dataframe(t, backend, use_legacy)
+                # Convert and check shape
+                assert df["a"].dtype.shape == shape
 
-            # Round-trip conversion
-            t2 = self._from_dataframe(df, backend, use_legacy)
-            assert t2["a"].shape == colshape
+                # Round-trip conversion
+                t2 = self._from_dataframe(df, backend, use_legacy)
+                assert t2["a"].shape == colshape
+            case _:
+                raise ValueError(f"Unknown backend: {backend}")
 
     def test_mixin_columns(self, backend, use_legacy):
         """Test handling of astropy mixin columns."""
@@ -410,22 +371,18 @@ class TestDataFrameConversion:
 
         tp = self._to_dataframe(t, backend, use_legacy)
 
-        if use_legacy:
-            tm_nulls = tp["tm"].isnull().to_list()
-            dt_nulls = tp["dt"].isnull().to_list()
-        else:
-            match backend:
-                case "pandas":
-                    tm_nulls = tp["tm"].isnull().to_list()
-                    dt_nulls = tp["dt"].isnull().to_list()
-                case "polars":
-                    tm_nulls = tp["tm"].is_null().to_list()
-                    dt_nulls = tp["dt"].is_null().to_list()
-                case "pyarrow":
-                    tm_nulls = tp["tm"].is_null().to_pylist()
-                    dt_nulls = tp["dt"].is_null().to_pylist()
-                case _:
-                    raise ValueError(f"Unknown backend: {backend}")
+        match backend:
+            case "pandas":
+                tm_nulls = tp["tm"].isnull().to_list()
+                dt_nulls = tp["dt"].isnull().to_list()
+            case "polars":
+                tm_nulls = tp["tm"].is_null().to_list()
+                dt_nulls = tp["dt"].is_null().to_list()
+            case "pyarrow":
+                tm_nulls = tp["tm"].is_null().to_pylist()
+                dt_nulls = tp["dt"].is_null().to_pylist()
+            case _:
+                raise ValueError(f"Unknown backend: {backend}")
 
         # Common assertion for all backends
         expected_nulls = [False, True, False]
@@ -539,22 +496,18 @@ class TestDataFrameConversion:
 
         df = self._to_dataframe(t, backend, use_legacy)
 
-        if use_legacy:
-            val = df["data"].iloc[2]
-            nulls_first_two = df["data"].isnull().iloc[:2]
-        else:
-            match backend:
-                case "pandas":
-                    val = df["data"].iloc[2]
-                    nulls_first_two = df["data"].isnull().iloc[:2]
-                case "polars":
-                    val = df["data"][2]
-                    nulls_first_two = df["data"].is_null()[:2]
-                case "pyarrow":
-                    val = df["data"][2].as_py()
-                    nulls_first_two = df["data"].is_null()[:2].to_numpy()
-                case _:
-                    raise ValueError(f"Unknown backend: {backend}")
+        match backend:
+            case "pandas":
+                val = df["data"].iloc[2]
+                nulls_first_two = df["data"].isnull().iloc[:2]
+            case "polars":
+                val = df["data"][2]
+                nulls_first_two = df["data"].is_null()[:2]
+            case "pyarrow":
+                val = df["data"][2].as_py()
+                nulls_first_two = df["data"].is_null()[:2].to_numpy()
+            case _:
+                raise ValueError(f"Unknown backend: {backend}")
 
         assert val == 2
         assert nulls_first_two.all()
