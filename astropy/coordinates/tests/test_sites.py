@@ -91,6 +91,9 @@ def test_EarthLocation_basic():
     ):
         EarthLocation.of_site("nonexistent")
 
+    with pytest.raises(TypeError, match="^site name None is not a 'str'$"):
+        EarthLocation.of_site(None)
+
 
 @pytest.mark.parametrize(
     "class_method,args",
