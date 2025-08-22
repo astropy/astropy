@@ -1,0 +1,3 @@
+Fix a bug that caused ``WCSAxes.get_transform`` to not return the correct
+transform when using WCS instances with celestial axes that were not in
+degrees.
