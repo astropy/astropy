@@ -19,12 +19,18 @@ def quantity_support(format="latex_inline"):
       >>> from astropy import units as u
       >>> from astropy import visualization
       >>> with visualization.quantity_support():
-      ...     plt.figure()
+      ...     fig = plt.figure()
       ...     plt.plot([1, 2, 3] * u.m)
       [...]
       ...     plt.plot([101, 125, 150] * u.cm)
       [...]
+      ...     fig.axes[0].yaxis.set_units(u.km)
       ...     plt.draw()
+
+    The default axis unit is inferred from the first plot using a Quantity.
+    To override it, you can explicitly set the axis unit using
+    :meth:`matplotlib.axis.Axis.set_units`, for example,
+    ``fig.axes[0].yaxis.set_units(u.km)``.
 
     Parameters
     ----------
