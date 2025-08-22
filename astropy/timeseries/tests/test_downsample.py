@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
+import warnings
 
 import numpy as np
 import pytest
@@ -72,15 +73,15 @@ def test_nanmean_reduceat():
 
     data = data.astype("float")
     data[::2] = np.nan
-    with np.testing.suppress_warnings() as sup:
-        sup.filter(RuntimeWarning, "Mean of empty slice")
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", "Mean of empty slice", RuntimeWarning)
         reduceat_output2 = reduceat(data, indices, np.nanmean)
     nanmean_output2 = nanmean_reduceat(data, indices)
     assert_equal(reduceat_output2, nanmean_output2)
 
     data[:] = np.nan
-    with np.testing.suppress_warnings() as sup:
-        sup.filter(RuntimeWarning, "Mean of empty slice")
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", "Mean of empty slice", RuntimeWarning)
         reduceat_output3 = reduceat(data, indices, np.nanmean)
     nanmean_output3 = nanmean_reduceat(data, indices)
     assert_equal(reduceat_output3, nanmean_output3)
