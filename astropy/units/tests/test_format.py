@@ -608,7 +608,6 @@ def test_multiline_fraction_different_if_available(format_spec):
         assert multiline_format != inline_format
 
 
-@pytest.mark.xfail(reason="regression test that reveals a bug")
 @pytest.mark.parametrize("format_spec", u_format.Base.registry)
 def test_unknown_fraction_style(format_spec):
     fluxunit = u.W / u.m**2
