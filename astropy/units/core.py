@@ -744,12 +744,13 @@ class UnitBase:
         from .format import get_format
 
         try:
-            return get_format(format).to_string(self, **kwargs)
+            formatter = get_format(format)
         except (TypeError, ValueError) as err:
             from .format import known_formats
 
             err.add_note(known_formats())
             raise err
+        return formatter.to_string(self, **kwargs)
 
     def __format__(self, format_spec: str) -> str:
         try:
