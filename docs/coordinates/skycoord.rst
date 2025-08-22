@@ -536,7 +536,7 @@ lies in some less obvious attributes::
   {'l': 'lon', 'b': 'lat', 'distance': 'distance'}
 
   >>> sc_gal.representation_component_units
-  {'l': Unit("deg"), 'b': Unit("deg")}
+  {'l': Unit('deg'), 'b': Unit('deg')}
 
   >>> sc_gal.representation_type
   <class 'astropy.coordinates...SphericalRepresentation'>

@@ -116,7 +116,7 @@ class NDData(NDDataBase):
         >>> nd2.data  # doctest: +FLOAT_CMP
         array([100., 200., 300., 400.])
         >>> nd2.unit
-        Unit("cm")
+        Unit('cm')
 
     See Also
     --------

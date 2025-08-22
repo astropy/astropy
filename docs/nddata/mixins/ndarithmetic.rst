@@ -62,7 +62,7 @@ To wrap the result of an arithmetic operation between two Quantities::
     >>> ndd  # doctest: +FLOAT_CMP
     NDDataRef([10., 40.], unit='cm m')
     >>> ndd.unit
-    Unit("cm m")
+    Unit('cm m')
 
 Or take the inverse of an `~astropy.nddata.NDDataRef` object::
 
@@ -105,7 +105,7 @@ Adding two `~astropy.nddata.NDData` objects with the same unit works::
     >>> ndd.data  # doctest: +FLOAT_CMP
     array([101., 152., 203., 54., 505.])
     >>> ndd.unit
-    Unit("m")
+    Unit('m')
 
 Adding two `~astropy.nddata.NDData` objects with compatible units also works::
 
@@ -119,7 +119,7 @@ Adding two `~astropy.nddata.NDData` objects with compatible units also works::
     array([ -29.66013938,  -43.99020907,  -58.32027876,  -11.33006969,
            -148.30069689])
     >>> ndd.unit
-    Unit("pc")
+    Unit('pc')
 
 This will keep by default the unit of the first operand. However, units will
 not be decomposed during division::
@@ -128,7 +128,7 @@ not be decomposed during division::
     >>> ndd.data  # doctest: +FLOAT_CMP
     array([100. , 75. , 66.66666667, 12.5 , 100. ])
     >>> ndd.unit
-    Unit("lyr / pc")
+    Unit('lyr / pc')
 
 Mask
 ----

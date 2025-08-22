@@ -1208,7 +1208,7 @@ a `~astropy.table.Column` object with a ``unit`` attribute::
   >>> type(t['velocity'])
   <class 'astropy.table.column.Column'>
   >>> t['velocity'].unit
-  Unit("m / s")
+  Unit('m / s')
 
 To learn more about using standard `~astropy.table.Column` objects with defined
 units, see the :ref:`columns_with_units` section.

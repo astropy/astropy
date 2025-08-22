@@ -405,8 +405,8 @@ class TestParameter(ParameterTestMixin):
         assert "Parameter(" in r
         for subs in (
             "derived=False",
-            'unit=Unit("m")',
-            'equivalencies=[(Unit("kg"), Unit("J")',
+            "unit=Unit('m')",
+            "equivalencies=[(Unit('kg'), Unit('J')",
             "doc='Description of example parameter.'",
         ):
             assert subs in r, subs

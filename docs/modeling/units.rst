@@ -37,7 +37,7 @@ It is then possible to access the individual properties of the parameter::
     >>> g1.mean.value
     np.float64(3.0)
     >>> g1.mean.unit
-    Unit("m")
+    Unit('m')
 
 If a parameter has been initialized as a Quantity, it should always be set to a
 quantity, but the units don't have to be compatible with the initial ones::
