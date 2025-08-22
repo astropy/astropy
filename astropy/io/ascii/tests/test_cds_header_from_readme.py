@@ -77,6 +77,14 @@ def test_glob_header():
 
 
 def test_header_from_readme():
+    """Test reading VizieR data with accompanying ReadMe file.
+
+    We test several things here to make the best use of the included files:
+    - "table1.dat" is a standard table.
+    - "table5.dat.gz" is a gzipped table. When downloaded from VizieR, large tables come
+      gzipped by default, but the name in the ReadMe does not include the ".gz" suffix.
+      So, we check here that the zipped table is found. Regression test for #6549.
+    """
     r = ascii.Cds("data/vizier/ReadMe")
     table = r.read("data/vizier/table1.dat")
     assert len(r.data.data_lines) == 15
@@ -102,7 +110,7 @@ def test_header_from_readme():
     for i, val in enumerate(table.field("Bmag")):
         assert val == Bmag[i]
 
-    table = r.read("data/vizier/table5.dat")
+    table = r.read("data/vizier/table5.dat.gz")
     assert len(r.data.data_lines) == 49
     assert len(table) == 49
     assert len(table.keys()) == 10
