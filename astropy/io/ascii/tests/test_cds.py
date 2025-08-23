@@ -556,3 +556,70 @@ def test_write_qtable():
     result = out.getvalue()
     assert "Description of a" in result
     assert "Description of b" in result
+def generate_mrt_file(filename="test.mrt"):
+    """Creates an MRT file with NaN and constant columns."""
+    nan_column = Column(
+        np.full((11,), np.nan), name="nans", unit="m", dtype=float
+    )   
+    data1_column = Column(
+        np.full((11,), 1), name="data1", unit="m", dtype=float
+    )   
+    data2_column = Column(
+        np.full((11,), np.e), name="data2", unit="m", dtype=float
+    )   
+    
+    mrt_table = Table([nan_column, data1_column, data2_column])
+
+    mrt_table.write(
+        filename,
+        format="ascii.mrt",
+        formats={key: "%.3e" for key in mrt_table.keys()},
+        overwrite=True,
+    )
+    return filename
+
+
+def read_file(filename):
+    """Reads the file and returns its content as a string."""
+    with open(filename, "r") as file:
+        return file.read()
+
+
+EXPECTED_OUTPUT = """\
+Title:
+Authors:
+Table:
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+1- 3  E3.2   m      nans   [NaN/NaN] Description of nans    
+5-13  E9.4   m      data1   [1.0/1.0] Description of data1  
+15-23  E9.4   m      data2   [2.71/2.72] Description of data2
+--------------------------------------------------------------------------------
+Notes:
+--------------------------------------------------------------------------------
+nan 1.000e+00 2.718e+00
+nan 1.000e+00 2.718e+00
+nan 1.000e+00 2.718e+00
+nan 1.000e+00 2.718e+00
+nan 1.000e+00 2.718e+00
+nan 1.000e+00 2.718e+00
+nan 1.000e+00 2.718e+00
+nan 1.000e+00 2.718e+00
+nan 1.000e+00 2.718e+00
+nan 1.000e+00 2.718e+00
+nan 1.000e+00 2.718e+00
+"""
+
+
+@pytest.mark.parametrize("filename", ["test.mrt"])
+def test_mrt_file_generation(filename):
+    """Tests if the MRT file is generated correctly."""
+    generate_mrt_file(filename)
+    output = read_file(filename).strip()
+
+    expected = EXPECTED_OUTPUT.strip()
+
+    assert output == expected, "Generated file does not match the expected output!"
