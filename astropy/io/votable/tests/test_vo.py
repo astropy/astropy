@@ -7,9 +7,9 @@ This is a set of regression tests for vo.
 import difflib
 import gzip
 import io
-import pathlib
 import re
 import sys
+from pathlib import Path
 from unittest import mock
 
 # THIRD-PARTY
@@ -947,15 +947,10 @@ def test_build_from_scratch(tmp_path):
     )
 
 
-def test_validate(test_path_object=False):
-    """
-    test_path_object is needed for test below ``test_validate_path_object``
-    so that file could be passed as pathlib.Path object.
-    """
+@pytest.mark.parametrize("path_type", [str, Path])
+def test_validate(path_type):
     output = io.StringIO()
-    fpath = get_pkg_data_filename("data/regression.xml")
-    if test_path_object:
-        fpath = pathlib.Path(fpath)
+    fpath = path_type(get_pkg_data_filename("data/regression.xml"))
 
     # We can't test xmllint, because we can't rely on it being on the
     # user's machine.
@@ -991,11 +986,6 @@ def test_validate_xmllint_true(mock_subproc_popen):
     mock_subproc_popen.return_value = process_mock
 
     assert validate(get_pkg_data_filename("data/empty_table.xml"), xmllint=True)
-
-
-def test_validate_path_object():
-    """Validating when source is passed as path object (#4412)."""
-    test_validate(test_path_object=True)
 
 
 def test_gzip_filehandles(tmp_path):
