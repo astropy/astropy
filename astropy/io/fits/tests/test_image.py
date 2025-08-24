@@ -8,9 +8,12 @@ import numpy as np
 import pytest
 from numpy.testing import assert_equal
 
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
+from astropy.nddata import Cutout2D
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.wcs import WCS
 
 from .conftest import FitsTestCase
 
@@ -1124,6 +1127,16 @@ class TestImageFunctions(FitsTestCase):
             fits.ImageHDU(data=np.array(1))
         with pytest.raises(TypeError, match=msg):
             fits.PrimaryHDU(data=np.array(1))
+
+    def test_section_cutout2d_partial(self):
+        coord = SkyCoord("0.04694018 75.2179368", unit="deg")
+
+        with fits.open(self.data("compressed_2d_float.fits")) as hdul:
+            section = hdul[1].section
+            wcs = WCS(hdul[1].header)
+
+            cutout = Cutout2D(section, coord, 800, wcs=wcs, mode="partial", copy=True)
+            assert cutout is not None
 
 
 def test_scale_implicit_casting():
