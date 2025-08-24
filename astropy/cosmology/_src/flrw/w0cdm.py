@@ -3,10 +3,13 @@
 
 import numpy as np
 from numpy import sqrt
+from numpy.typing import ArrayLike
 
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.parameter import Parameter
+from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
@@ -83,7 +86,7 @@ class wCDM(FLRW):
         default=-1.0, doc="Dark energy equation of state.", fvalidate="float"
     )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
@@ -117,7 +120,7 @@ class wCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     @deprecated_keywords("z", since="7.0")
-    def w(self, z):
+    def w(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -145,7 +148,7 @@ class wCDM(FLRW):
         return self.w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
 
     @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z):
+    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -171,7 +174,7 @@ class wCDM(FLRW):
         return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self.w0))
 
     @deprecated_keywords("z", since="7.0")
-    def efunc(self, z):
+    def efunc(self, z: Quantity | ArrayLike) -> FArray | float:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -202,7 +205,7 @@ class wCDM(FLRW):
         )
 
     @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z):
+    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
@@ -298,7 +301,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
     wCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
     """
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
@@ -329,7 +332,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     @deprecated_keywords("z", since="7.0")
-    def efunc(self, z):
+    def efunc(self, z: Quantity | ArrayLike) -> FArray | float:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -359,7 +362,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         )
 
     @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z):
+    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
