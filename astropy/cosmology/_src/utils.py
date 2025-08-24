@@ -6,9 +6,10 @@ import functools
 import operator
 from collections.abc import Callable
 from numbers import Number
-from typing import Any, TypeVar
+from typing import Any, Protocol, TypeVar
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from astropy.units import Quantity
 
@@ -66,7 +67,11 @@ def vectorize_redshift_method(func=None, nin=1):
     return wrapper
 
 
-def aszarr(z):
+class HasShape(Protocol):
+    shape: tuple[int, ...]
+
+
+def aszarr(z: Number | np.generic | HasShape | ArrayLike) -> NDArray[Any]:
     """Redshift as a `~numbers.Number` or |ndarray| / |Quantity| / |Column|.
 
     Allows for any ndarray ducktype by checking for attribute "shape".
@@ -92,7 +97,9 @@ def all_cls_vars(obj: object | type, /) -> dict[str, Any]:
     return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))
 
 
-def deprecated_keywords(*kws, since):
+def deprecated_keywords(
+    *kws: str, since: str | float | tuple[str | float, ...]
+) -> Callable[[_F], _F]:
     """Deprecate calling one or more arguments as keywords.
 
     Parameters

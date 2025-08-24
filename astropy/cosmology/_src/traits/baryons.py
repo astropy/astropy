@@ -12,6 +12,7 @@ from typing import Any
 
 from numpy.typing import ArrayLike, NDArray
 
+from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
@@ -25,7 +26,7 @@ class _BaryonComponent:
     inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
 
     @deprecated_keywords("z", since="7.0")
-    def Ob(self, z: Quantity | ArrayLike) -> NDArray[Any] | float:
+    def Ob(self, z: Quantity | ArrayLike) -> FArray | float:
         """Return the density parameter for baryonic matter at redshift ``z``.
 
         Parameters
