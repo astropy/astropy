@@ -6,11 +6,14 @@ import copy
 from collections.abc import Sequence
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
-from typing import Any, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import astropy.units as u
 
 from .converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
+
+if TYPE_CHECKING:
+    import astropy.cosmology
 
 
 class Sentinel(Enum):
@@ -155,7 +158,11 @@ class Parameter:
     # -------------------------------------------
     # descriptor and property-like methods
 
-    def __get__(self, cosmology, cosmo_cls=None):
+    def __get__(
+        self,
+        cosmology: Union["astropy.cosmology.Cosmology", None],
+        cosmo_cls: Union["type[astropy.cosmology.Cosmology]", None] = None,
+    ) -> Any:
         # Get from class
         if cosmology is None:
             # If the Parameter is being set as part of a dataclass constructor, then we
@@ -171,7 +178,7 @@ class Parameter:
         # Get from instance
         return cosmology.__dict__[self.name]
 
-    def __set__(self, cosmology, value):
+    def __set__(self, cosmology: "astropy.cosmology.Cosmology", value: Any) -> None:
         """Allows attribute setting once.
 
         Raises AttributeError subsequently.
@@ -203,7 +210,7 @@ class Parameter:
     # -------------------------------------------
     # validate value
 
-    def validator(self, fvalidate):
+    def validator(self, fvalidate: FValidateCallable) -> "Parameter":
         """Make new Parameter with custom ``fvalidate``.
 
         Note: ``Parameter.fvalidator`` must be the top-most descriptor decorator.
@@ -219,7 +226,7 @@ class Parameter:
         """
         return self.clone(fvalidate=fvalidate)
 
-    def validate(self, cosmology, value):
+    def validate(self, cosmology: "astropy.cosmology.Cosmology", value: Any) -> Any:
         """Run the validator on this Parameter.
 
         Parameters
@@ -237,7 +244,7 @@ class Parameter:
         return self._fvalidate(cosmology, self, value)
 
     @staticmethod
-    def register_validator(key, fvalidate=None):
+    def register_validator(key, fvalidate: FValidateCallable | None = None) -> Any:
         """Decorator to register a new kind of validator function.
 
         Parameters
@@ -257,7 +264,7 @@ class Parameter:
 
     # -------------------------------------------
 
-    def clone(self, **kw):
+    def clone(self, **kw: Any) -> "Parameter":
         """Clone this `Parameter`, changing any constructor argument.
 
         Parameters
