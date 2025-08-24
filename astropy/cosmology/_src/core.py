@@ -6,11 +6,12 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Mapping
 from dataclasses import KW_ONLY, dataclass, replace
 from types import MappingProxyType
-from typing import Any, ClassVar, Self, TypeVar, Union
+from typing import Any, ClassVar, Literal, Self, TypeAlias, TypeVar, Union
 
 import numpy as np
 
 from astropy.io.registry import UnifiedReadWriteMethod
+from astropy.table import Table
 from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 
@@ -44,6 +45,7 @@ __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 # typing
 # NOTE: private b/c RTD error
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
+CosmoMeta: TypeAlias = Mapping[Any, Any]
 
 
 # dataclass transformation
@@ -64,7 +66,7 @@ def _with_signature(cls: type["Cosmology"]) -> type["Cosmology"]:
     return cls
 
 
-def dataclass_decorator(cls):
+def dataclass_decorator(cls: type["Cosmology"], /) -> type["Cosmology"]:
     """Decorator for the dataclass transform.
 
     Returns
@@ -91,7 +93,9 @@ class CosmologyError(Exception):
 class _NameField:
     default: str | None = None
 
-    def __get__(self, instance: Union["Cosmology", None], owner: type) -> str:
+    def __get__(
+        self, instance: Union["Cosmology", None], owner: Union["Cosmology", None]
+    ) -> str:
         # Called from the class. `dataclass` uses this to create ``__init__``.
         if instance is None:
             return self.default
@@ -170,7 +174,7 @@ class Cosmology(metaclass=ABCMeta):
 
     # ---------------------------------------------------------------
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         super().__init_subclass__()
 
         # -------------------
@@ -192,7 +196,7 @@ class Cosmology(metaclass=ABCMeta):
             cls._register_cls()
 
     @classmethod
-    def _register_cls(cls):
+    def _register_cls(cls) -> None:
         # register class
         _COSMOLOGY_CLASSES[cls.__qualname__] = cls
 
@@ -203,19 +207,19 @@ class Cosmology(metaclass=ABCMeta):
 
     # ---------------------------------------------------------------
 
-    def __post_init__(self):  # noqa: B027
+    def __post_init__(self) -> None:  # noqa: B027
         """Post-initialization, for subclasses to override if they need."""
 
     @property
     @abstractmethod
-    def is_flat(self):
+    def is_flat(self) -> bool:
         """Return bool; `True` if the cosmology is flat.
 
         This is abstract and must be defined in subclasses.
         """
         raise NotImplementedError("is_flat is not implemented")
 
-    def clone(self, *, meta=None, **kwargs):
+    def clone(self, *, meta: CosmoMeta | None = None, **kwargs: Any) -> "Cosmology":
         """Returns a copy of this object with updated parameters, as specified.
 
         This cannot be used to change the type of the cosmology, so ``clone()``
@@ -273,7 +277,7 @@ class Cosmology(metaclass=ABCMeta):
         return cloned
 
     @classproperty
-    def _init_has_kwargs(cls):
+    def _init_has_kwargs(cls) -> bool:
         return (
             next(reversed(cls.__signature__.parameters.values())).kind
             == inspect.Parameter.VAR_KEYWORD
@@ -368,7 +372,7 @@ class Cosmology(metaclass=ABCMeta):
 
         Parameters
         ----------
-        other : `~astropy.cosmology.Cosmology` subclass instance, positional-only
+        other : Any, positional-only
             The object in which to compare.
 
         Returns
@@ -425,13 +429,13 @@ class Cosmology(metaclass=ABCMeta):
 
     # ---------------------------------------------------------------
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return a string representation of the cosmology."""
         name_str = "" if self.name is None else f'name="{self.name}", '
         param_strs = (f"{k!s}={v!s}" for k, v in self.parameters.items())
         return f"{type(self).__name__}({name_str}{', '.join(param_strs)})"
 
-    def __astropy_table__(self, cls, copy, **kwargs):
+    def __astropy_table__(self, cls: type, copy: bool, **kwargs: Any) -> Table:
         """Return a `~astropy.table.Table` of type ``cls``.
 
         Parameters
@@ -542,7 +546,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
     # ===============================================================
 
     @property
-    def is_flat(self):
+    def is_flat(self) -> Literal[True]:
         """Return `True`, the cosmology is flat."""
         return True
 
@@ -552,7 +556,11 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
         """Return the equivalent non-flat-class instance of this cosmology."""
 
     def clone(
-        self, *, meta: Mapping | None = None, to_nonflat: bool = False, **kwargs
+        self,
+        *,
+        meta: CosmoMeta | None = None,
+        to_nonflat: bool = False,
+        **kwargs: Any,
     ) -> Self:
         """Returns a copy of this object with updated parameters, as specified.
 
@@ -606,7 +614,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
 
     # ===============================================================
 
-    def __equiv__(self, other):
+    def __equiv__(self, other: Any, /) -> bool:
         """Flat-|Cosmology| equivalence.
 
         Use `astropy.cosmology.cosmology_equal` with
@@ -614,7 +622,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
 
         Parameters
         ----------
-        other : `~astropy.cosmology.Cosmology` subclass instance
+        other : Any, positional-only
             The object to which to compare for equivalence.
 
         Returns
