@@ -21,7 +21,7 @@ SUPPORTED_TYPES = {
 IMPORTS = """
 # This stub file was automatically generated.
 
-from astropy.units.core import IrreducibleUnit, PrefixUnit, Unit 
+from astropy.units.core import IrreducibleUnit, PrefixUnit, Unit
 from astropy.units.function.logarithmic import MagUnit
 from astropy.units.function.mixin import IrreducibleFunctionUnit, RegularFunctionUnit
 """
