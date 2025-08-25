@@ -6,8 +6,6 @@ Stub files (.pyi) help type checkers understand dynamically created code.
 TO DO: functions, functools._lru_cache_wrapper, method, DataInfoMeta.
 """
 
-import inspect
-
 import astropy.units as units
 
 
