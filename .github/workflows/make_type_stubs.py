@@ -6,6 +6,8 @@ Stub files (.pyi) help type checkers understand dynamically created code.
 TO DO: functions, functools._lru_cache_wrapper, method, DataInfoMeta.
 """
 
+import inspect
+
 import astropy.units as units
 
 
@@ -24,10 +26,10 @@ def generate_stub_lines():
     for name in units.__all__:
         obj = getattr(units, name)
         # instances of unit classes
-        if isinstance(obj, (units.core.UnitBase, units.FunctionUnitBase)):
+        if isinstance(obj, (units.UnitBase, units.FunctionUnitBase)):
             type_name = type(obj).__name__
-            docstring = obj.__doc__
-            variable_lines.append(f'{name}: {type_name}\n"""{docstring}"""\n')
+            docstring = f'"""{obj.__doc__}"""\n' if has_own_docstring(obj) else ""
+            variable_lines.append(f"{name}: {type_name}\n{docstring}")
             # if the object type is not part of astropy.units, we need to import it
             if not getattr(units, type(obj).__name__, None):
                 import_lines.append(make_import_line(type(obj)))
@@ -52,6 +54,25 @@ def make_import_line(cls, include_as_suffix=False):
     class_name = cls.__name__
     as_suffix = f" as {class_name}" if include_as_suffix else ""
     return f"from {module_name} import {class_name}{as_suffix}"
+
+
+def has_own_docstring(obj):
+    """check if object has its own docstring vs an inherited one"""
+    if not hasattr(obj, "__doc__") or not obj.__doc__:
+        return False
+
+    # for classes, check if docstring differs from parent classes
+    if isinstance(obj, type):
+        for base in obj.__bases__:
+            if hasattr(base, "__doc__") and base.__doc__ == obj.__doc__:
+                return False
+
+    # for instances, check if docstring differs from class
+    elif hasattr(obj, "__class__"):
+        if hasattr(obj.__class__, "__doc__") and obj.__class__.__doc__ == obj.__doc__:
+            return False
+
+    return True
 
 
 if __name__ == "__main__":
