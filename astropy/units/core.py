@@ -4,8 +4,6 @@
 Core units classes and functions.
 """
 
-from __future__ import annotations
-
 import inspect
 import operator
 import textwrap
@@ -15,7 +13,7 @@ from collections.abc import Collection, Iterable, Mapping, MutableMapping, Seque
 from functools import cached_property
 from threading import RLock
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple, Self, overload
+from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple, Self, Union, overload
 
 import numpy as np
 
@@ -24,6 +22,14 @@ from astropy.utils.decorators import deprecated, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
+from .typing import (
+    PhysicalTypeID,
+    UnitLike,
+    UnitPower,
+    UnitPowerLike,
+    UnitScale,
+    UnitScaleLike,
+)
 from .utils import (
     is_effectively_unity,
     resolve_fractions,
@@ -32,17 +38,8 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from .format import Base
-    from .physical import PhysicalType
-    from .quantity import Quantity
-    from .typing import (
-        PhysicalTypeID,
-        UnitLike,
-        UnitPower,
-        UnitPowerLike,
-        UnitScale,
-        UnitScaleLike,
-    )
+    import astropy.units
+    import astropy.units.format
 
 __all__ = [
     "CompositeUnit",
@@ -73,6 +70,1077 @@ _WARNING_ACTIONS: Final[dict[str, str]] = {
     "warn": "default",
     "raise": "error",
 }
+
+
+class UnitBase:
+    """
+    Abstract base class for units.
+
+    Most of the arithmetic operations on units are defined in this
+    base class.
+
+    Should not be instantiated by users directly.
+    """
+
+    # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
+    # arrays to avoid element-wise multiplication.
+    __array_priority__: Final = 1000
+
+    def __deepcopy__(self, memo: dict[int, Any] | None) -> Self:
+        # This may look odd, but the units conversion will be very
+        # broken after deep-copying if we don't guarantee that a given
+        # physical unit corresponds to only one instance
+        return self
+
+    def _repr_latex_(self) -> str:
+        """
+        Generate latex representation of unit name.  This is used by
+        the IPython notebook to print a unit with a nice layout.
+
+        Returns
+        -------
+        Latex string
+        """
+        from .format import Latex
+
+        return Latex.to_string(self)
+
+    def __bytes__(self) -> bytes:
+        return str(self).encode("unicode_escape")
+
+    def __str__(self) -> str:
+        from .format import Generic
+
+        return Generic.to_string(self)
+
+    def __repr__(self) -> str:
+        return f'Unit("{self}")'
+
+    @cached_property
+    def _physical_type_id(self) -> PhysicalTypeID:
+        """
+        Returns an identifier that uniquely identifies the physical
+        type of this unit.  It is comprised of the bases and powers of
+        this unit, without the scale.  Since it is hashable, it is
+        useful as a dictionary key.
+        """
+        unit = self.decompose()
+        return tuple(zip((base.name for base in unit.bases), unit.powers))
+
+    @property
+    def scale(self) -> UnitScale:
+        """The scale of the unit."""
+        return 1.0
+
+    @property
+    def bases(self) -> list["NamedUnit"]:
+        """The bases of the unit."""
+        return [self]
+
+    @property
+    def powers(self) -> list[UnitPower]:
+        """The powers of the bases of the unit."""
+        return [1]
+
+    def to_string(
+        self, format: type["astropy.units.format.Base"] | str | None = None, **kwargs
+    ) -> str:
+        r"""Output the unit in the given format as a string.
+
+        Parameters
+        ----------
+        format : `astropy.units.format.Base` subclass or str or None
+            The name of a format or a formatter class.  If not
+            provided (or `None`), defaults to the generic format.
+
+        **kwargs
+            Further options forwarded to the formatter. Currently
+            recognized is ``fraction``, which can take the following values:
+
+            - `False` : display unit bases with negative powers as they are;
+            - 'inline' or `True` : use a single-line fraction;
+            - 'multiline' : use a multiline fraction (available for the
+              'latex', 'console' and 'unicode' formats only; for others,
+              an 'inline' fraction is used).
+
+        Raises
+        ------
+        TypeError
+            If ``format`` is of the wrong type.
+        ValueError
+            If ``format`` or ``fraction`` are not recognized.
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> kms = u.Unit('km / s')
+        >>> kms.to_string()  # Generic uses fraction='inline' by default
+        'km / s'
+        >>> kms.to_string('latex')  # Latex uses fraction='multiline' by default
+        '$\\mathrm{\\frac{km}{s}}$'
+        >>> print(kms.to_string('unicode', fraction=False))
+        km s⁻¹
+        >>> print(kms.to_string('unicode', fraction='inline'))
+        km / s
+        >>> print(kms.to_string('unicode', fraction='multiline'))
+        km
+        ──
+        s
+        """
+        from .format import get_format
+
+        try:
+            formatter = get_format(format)
+        except (TypeError, ValueError) as err:
+            from .format import known_formats
+
+            err.add_note(known_formats())
+            raise err
+        return formatter.to_string(self, **kwargs)
+
+    def __format__(self, format_spec: str) -> str:
+        try:
+            return self.to_string(format=format_spec)
+        except ValueError:
+            return format(str(self), format_spec)
+
+    @staticmethod
+    def _normalize_equivalencies(equivalencies):
+        """Normalizes equivalencies, ensuring each is a 4-tuple.
+
+        The resulting tuple is of the form::
+
+            (from_unit, to_unit, forward_func, backward_func)
+
+        Parameters
+        ----------
+        equivalencies : list of equivalency pairs, or None
+
+        Returns
+        -------
+        A normalized list, including possible global defaults set by, e.g.,
+        `set_enabled_equivalencies`, except when `equivalencies`=`None`,
+        in which case the returned list is always empty.
+
+        Raises
+        ------
+        ValueError if an equivalency cannot be interpreted
+        """
+        normalized = _normalize_equivalencies(equivalencies)
+        if equivalencies is not None:
+            normalized += get_current_unit_registry().equivalencies
+
+        return normalized
+
+    def __pow__(self, p: UnitPowerLike) -> "CompositeUnit":
+        try:  # Handling scalars should be as quick as possible
+            return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
+        except Exception:
+            arr = np.asanyarray(p)
+            p = arr.item(0)
+            if (arr != p).any():
+                raise ValueError(
+                    "Quantities and Units may only be raised to a scalar power"
+                ) from None
+            return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
+
+    @staticmethod
+    def _warn_about_operation_with_deprecated_type(op: str, other: bytes | str) -> None:
+        warnings.warn(
+            AstropyDeprecationWarning(
+                f"{op} involving a unit and a '{type(other).__name__}' instance are "
+                f"deprecated since v7.1. Convert {other!r} to a unit explicitly."
+            ),
+            stacklevel=3,
+        )
+
+    def __truediv__(self, m):
+        if isinstance(m, UnitBase):
+            if m.is_unity():
+                return self
+            return CompositeUnit(1, [self, m], [1, -1], _error_check=False)
+
+        if isinstance(m, (bytes, str)):
+            self._warn_about_operation_with_deprecated_type("divisions", m)
+            return self / Unit(m)
+
+        try:
+            # Cannot handle this as Unit, re-try as Quantity
+            from .quantity import Quantity
+
+            return Quantity(1, self) / m
+        except TypeError:
+            return NotImplemented
+
+    def __rtruediv__(self, m):
+        if isinstance(m, (bytes, str)):
+            self._warn_about_operation_with_deprecated_type("divisions", m)
+            return Unit(m) / self
+
+        try:
+            # Cannot handle this as Unit.  Here, m cannot be a Quantity,
+            # so we make it into one, fasttracking when it does not have a
+            # unit, for the common case of <array> / <unit>.
+            from .quantity import Quantity
+
+            if hasattr(m, "unit"):
+                result = Quantity(m)
+                result /= self
+                return result
+            else:
+                return Quantity(m, self ** (-1))
+        except TypeError:
+            if isinstance(m, np.ndarray):
+                raise
+            return NotImplemented
+
+    def __mul__(self, m):
+        if isinstance(m, UnitBase):
+            if m.is_unity():
+                return self
+            elif self.is_unity():
+                return m
+            return CompositeUnit(1, [self, m], [1, 1], _error_check=False)
+
+        if isinstance(m, (bytes, str)):
+            self._warn_about_operation_with_deprecated_type("products", m)
+            return self * Unit(m)
+
+        # Cannot handle this as Unit, re-try as Quantity.
+        try:
+            from .quantity import Quantity
+
+            return Quantity(1, unit=self) * m
+        except TypeError:
+            return NotImplemented
+
+    def __rmul__(self, m):
+        if isinstance(m, (bytes, str)):
+            self._warn_about_operation_with_deprecated_type("products", m)
+            return Unit(m) * self
+
+        # Cannot handle this as Unit.  Here, m cannot be a Quantity,
+        # so we make it into one, fasttracking when it does not have a unit
+        # for the common case of <array> * <unit>.
+        try:
+            from .quantity import Quantity
+
+            if hasattr(m, "unit"):
+                result = Quantity(m)
+                result *= self
+                return result
+            else:
+                return Quantity(m, unit=self)
+        except TypeError:
+            if isinstance(m, np.ndarray):
+                raise
+            return NotImplemented
+
+    def __rlshift__(self, m):
+        try:
+            from .quantity import Quantity
+
+            return Quantity(m, self, copy=COPY_IF_NEEDED, subok=True)
+        except Exception:
+            if isinstance(m, np.ndarray):
+                raise
+            return NotImplemented
+
+    def __rrshift__(self, m):
+        warnings.warn(
+            ">> is not implemented. Did you mean to convert "
+            f"to a Quantity with unit {m} using '<<'?",
+            AstropyWarning,
+        )
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return self._hash
+
+    @cached_property
+    def _hash(self) -> int:
+        return hash((self.scale, *[x.name for x in self.bases], *map(str, self.powers)))
+
+    def __getstate__(self) -> dict[str, object]:
+        # If we get pickled, we should *not* store the memoized members since
+        # hashes of strings vary between sessions.
+        state = self.__dict__.copy()
+        state.pop("_hash", None)
+        state.pop("_physical_type_id", None)
+        return state
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+
+        try:
+            other = Unit(other, parse_strict="silent")
+        except (ValueError, UnitsError, TypeError):
+            return NotImplemented
+
+        # Other is unit-like, but the test below requires it is a UnitBase
+        # instance; if it is not, give up (so that other can try).
+        if not isinstance(other, UnitBase):
+            return NotImplemented
+
+        try:
+            return is_effectively_unity(self._to(other))
+        except UnitsError:
+            return False
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __le__(self, other):
+        scale = self._to(Unit(other))
+        return scale <= 1.0 or is_effectively_unity(scale)
+
+    def __ge__(self, other):
+        scale = self._to(Unit(other))
+        return scale >= 1.0 or is_effectively_unity(scale)
+
+    def __lt__(self, other):
+        return not (self >= other)
+
+    def __gt__(self, other):
+        return not (self <= other)
+
+    def __neg__(self) -> "astropy.units.Quantity":
+        return self * -1.0
+
+    def is_equivalent(self, other, equivalencies=[]):
+        """Check whether this unit is equivalent to ``other``.
+
+        Parameters
+        ----------
+        other : `~astropy.units.Unit`, str, or tuple
+            The unit to convert to. If a tuple of units is specified, this
+            method returns true if the unit matches any of those in the tuple.
+
+        equivalencies : list of tuple
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`astropy:unit_equivalencies`.
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
+
+        Returns
+        -------
+        bool
+        """
+        equivalencies = self._normalize_equivalencies(equivalencies)
+
+        if isinstance(other, tuple):
+            return any(self.is_equivalent(u, equivalencies) for u in other)
+
+        other = Unit(other, parse_strict="silent")
+
+        return self._is_equivalent(other, equivalencies)
+
+    def _is_equivalent(self, other, equivalencies=[]):
+        """Returns `True` if this unit is equivalent to `other`.
+        See `is_equivalent`, except that a proper Unit object should be
+        given (i.e., no string) and that the equivalency list should be
+        normalized using `_normalize_equivalencies`.
+        """
+        if isinstance(other, UnrecognizedUnit):
+            return False
+
+        if self._physical_type_id == other._physical_type_id:
+            return True
+        elif len(equivalencies):
+            unit = self.decompose()
+            other = other.decompose()
+            for a, b, _, _ in equivalencies:
+                if b is None:
+                    # after canceling, is what's left convertible
+                    # to dimensionless (according to the equivalency)?
+                    try:
+                        (other / unit).decompose([a])
+                        return True
+                    except Exception:
+                        pass
+                elif (a._is_equivalent(unit) and b._is_equivalent(other)) or (
+                    b._is_equivalent(unit) and a._is_equivalent(other)
+                ):
+                    return True
+
+        return False
+
+    def _apply_equivalencies(self, unit, other, equivalencies):
+        """
+        Internal function (used from `get_converter`) to apply
+        equivalence pairs.
+        """
+
+        def make_converter(scale1, func, scale2):
+            def convert(v):
+                return func(_condition_arg(v) / scale1) * scale2
+
+            return convert
+
+        for funit, tunit, a, b in equivalencies:
+            if tunit is None:
+                ratio = other.decompose() / unit.decompose()
+                try:
+                    ratio_in_funit = ratio.decompose([funit])
+                    return make_converter(ratio_in_funit.scale, a, 1.0)
+                except UnitsError:
+                    pass
+            else:
+                try:
+                    scale1 = funit._to(unit)
+                    scale2 = tunit._to(other)
+                    return make_converter(scale1, a, scale2)
+                except UnitsError:
+                    pass
+                try:
+                    scale1 = tunit._to(unit)
+                    scale2 = funit._to(other)
+                    return make_converter(scale1, b, scale2)
+                except UnitsError:
+                    pass
+
+        def get_err_str(unit: UnitBase) -> str:
+            unit_str = unit.to_string("generic")
+            physical_type = unit.physical_type
+            if physical_type != "unknown":
+                unit_str = f"'{unit_str}' ({physical_type})"
+            else:
+                unit_str = f"'{unit_str}'"
+            return unit_str
+
+        unit_str = get_err_str(unit)
+        other_str = get_err_str(other)
+
+        raise UnitConversionError(f"{unit_str} and {other_str} are not convertible")
+
+    def get_converter(self, other, equivalencies=[]):
+        """
+        Create a function that converts values from this unit to another.
+
+        Parameters
+        ----------
+        other : unit-like
+            The unit to convert to.
+        equivalencies : list of tuple
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`astropy:unit_equivalencies`.
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
+
+        Returns
+        -------
+        func : callable
+            A callable that takes an array-like argument and returns
+            it converted from units of self to units of other.
+
+        Raises
+        ------
+        UnitsError
+            If the units cannot be converted to each other.
+
+        Notes
+        -----
+        This method is used internally in `Quantity` to convert to
+        different units. Note that the function returned takes
+        and returns values, not quantities.
+        """
+        # First see if it is just a scaling.
+        try:
+            scale = self._to(other)
+        except UnitsError:
+            pass
+        else:
+            if scale == 1.0:
+                # If no conversion is necessary, returns ``unit_scale_converter``
+                # (which is used as a check in quantity helpers).
+                return unit_scale_converter
+            else:
+                return lambda val: scale * _condition_arg(val)
+
+        # if that doesn't work, maybe we can do it with equivalencies?
+        try:
+            return self._apply_equivalencies(
+                self, other, self._normalize_equivalencies(equivalencies)
+            )
+        except UnitsError as exc:
+            # Last hope: maybe other knows how to do it?
+            # We assume the equivalencies have the unit itself as first item.
+            # TODO: maybe better for other to have a `_back_converter` method?
+            if hasattr(other, "equivalencies"):
+                for funit, tunit, _, b in other.equivalencies:
+                    if other is funit:
+                        try:
+                            converter = self.get_converter(tunit, equivalencies)
+                        except Exception:
+                            pass
+                        else:
+                            return lambda v: b(converter(v))
+
+            raise exc
+
+    def _to(self, other: "UnitBase") -> UnitScale:
+        """
+        Returns the scale to the specified unit.
+
+        See `to`, except that a Unit object should be given (i.e., no
+        string), and that all defaults are used, i.e., no
+        equivalencies and value=1.
+        """
+        # There are many cases where we just want to ensure a Quantity is
+        # of a particular unit, without checking whether it's already in
+        # a particular unit.  If we're being asked to convert from a unit
+        # to itself, we can short-circuit all of this.
+        if self is other:
+            return 1.0
+
+        # Don't presume decomposition is possible; e.g.,
+        # conversion to function units is through equivalencies.
+        if isinstance(other, UnitBase):
+            self_decomposed = self.decompose()
+            other_decomposed = other.decompose()
+
+            # Check quickly whether equivalent.  This is faster than
+            # `is_equivalent`, because it doesn't generate the entire
+            # physical type list of both units.  In other words it "fails
+            # fast".
+            if self_decomposed.powers == other_decomposed.powers and all(
+                self_base is other_base
+                for (self_base, other_base) in zip(
+                    self_decomposed.bases, other_decomposed.bases
+                )
+            ):
+                return self_decomposed.scale / other_decomposed.scale
+
+        raise UnitConversionError(f"'{self!r}' is not a scaled version of '{other!r}'")
+
+    def to(self, other, value=UNITY, equivalencies=[]):
+        """
+        Return the converted values in the specified unit.
+
+        Parameters
+        ----------
+        other : unit-like
+            The unit to convert to.
+
+        value : int, float, or scalar array-like, optional
+            Value(s) in the current unit to be converted to the
+            specified unit.  If not provided, defaults to 1.0
+
+        equivalencies : list of tuple
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`astropy:unit_equivalencies`.
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
+
+        Returns
+        -------
+        values : scalar or array
+            Converted value(s). Input value sequences are returned as
+            numpy arrays.
+
+        Raises
+        ------
+        UnitsError
+            If units are inconsistent
+        """
+        if other is self and value is UNITY:
+            return UNITY
+        else:
+            return self.get_converter(Unit(other), equivalencies)(value)
+
+    @deprecated(since="7.0", alternative="to()")
+    def in_units(self, other, value=1.0, equivalencies=[]):
+        """
+        Alias for `to` for backward compatibility with pynbody.
+        """
+        return self.to(other, value=value, equivalencies=equivalencies)
+
+    def decompose(self, bases: Collection["UnitBase"] = ()) -> "UnitBase":
+        """
+        Return a unit object composed of only irreducible units.
+
+        Parameters
+        ----------
+        bases : sequence of UnitBase, optional
+            The bases to decompose into.  When not provided,
+            decomposes down to any irreducible units.  When provided,
+            the decomposed result will only contain the given units.
+            This will raises a `UnitsError` if it's not possible
+            to do so.
+
+        Returns
+        -------
+        unit : `~astropy.units.CompositeUnit`
+            New object containing only irreducible unit objects.
+        """
+        raise NotImplementedError()
+
+    def _compose(
+        self, equivalencies=[], namespace=[], max_depth=2, depth=0, cached_results=None
+    ):
+        def is_final_result(unit: UnitBase) -> bool:
+            # Returns True if this result contains only the expected
+            # units
+            return all(base in namespace for base in unit.bases)
+
+        unit = self.decompose()
+
+        cached = cached_results.get(unit)
+        if cached is not None:
+            if isinstance(cached, Exception):
+                raise cached
+            return cached
+
+        # Prevent too many levels of recursion
+        # And special case for dimensionless unit
+        if depth >= max_depth:
+            cached_results[unit] = [unit]
+            return [unit]
+
+        # Make a list including all of the equivalent units
+        units = [unit]
+        for funit, tunit, a, b in equivalencies:
+            if tunit is not None:
+                if self._is_equivalent(funit):
+                    scale = funit.decompose().scale / unit.scale
+                    units.append(Unit(a(1.0 / scale) * tunit).decompose())
+                elif self._is_equivalent(tunit):
+                    scale = tunit.decompose().scale / unit.scale
+                    units.append(Unit(b(1.0 / scale) * funit).decompose())
+            else:
+                if self._is_equivalent(funit):
+                    units.append(Unit(unit.scale))
+
+        # Store partial results
+        partial_results = []
+        # Store final results that reduce to a single unit or pair of
+        # units
+        if len(unit.bases) == 0:
+            final_results = [{unit}, set()]
+        else:
+            final_results = [set(), set()]
+
+        for tunit in namespace:
+            tunit_decomposed = tunit.decompose()
+            for u in units:
+                # If the unit is a base unit, look for an exact match
+                # to one of the bases of the target unit.  If found,
+                # factor by the same power as the target unit's base.
+                # This allows us to factor out fractional powers
+                # without needing to do an exhaustive search.
+                if len(tunit_decomposed.bases) == 1:
+                    for base, power in zip(u.bases, u.powers):
+                        if tunit_decomposed._is_equivalent(base):
+                            tunit = tunit**power
+                            tunit_decomposed = tunit_decomposed**power
+                            break
+
+                composed = (u / tunit_decomposed).decompose()
+                factored = composed * tunit
+                len_bases = len(composed.bases)
+                if is_final_result(factored) and len_bases <= 1:
+                    final_results[len_bases].add(factored)
+                else:
+                    partial_results.append((len_bases, composed, tunit))
+
+        # Do we have any minimal results?
+        for final_result in final_results:
+            if len(final_result):
+                results = final_results[0].union(final_results[1])
+                cached_results[unit] = results
+                return results
+
+        partial_results.sort(key=operator.itemgetter(0))
+
+        # ...we have to recurse and try to further compose
+        results = []
+        for _, composed, tunit in partial_results:
+            try:
+                composed_list = composed._compose(
+                    equivalencies=equivalencies,
+                    namespace=namespace,
+                    max_depth=max_depth,
+                    depth=depth + 1,
+                    cached_results=cached_results,
+                )
+            except UnitsError:
+                composed_list = []
+            for subcomposed in composed_list:
+                results.append((len(subcomposed.bases), subcomposed, tunit))
+
+        if results:
+            results.sort(key=operator.itemgetter(0))
+
+            min_length = results[0][0]
+            subresults = set()
+            for len_bases, composed, tunit in results:
+                if len_bases > min_length:
+                    break
+
+                factored = composed * tunit
+                if is_final_result(factored):
+                    subresults.add(factored)
+
+            if subresults:
+                cached_results[unit] = subresults
+                return subresults
+
+        if not is_final_result(self):
+            result = UnitsError(
+                f"Cannot represent unit {self} in terms of the given units"
+            )
+            cached_results[unit] = result
+            raise result
+
+        cached_results[unit] = [self]
+        return [self]
+
+    def compose(
+        self, equivalencies=[], units=None, max_depth=2, include_prefix_units=None
+    ):
+        """
+        Return the simplest possible composite unit(s) that represent
+        the given unit.  Since there may be multiple equally simple
+        compositions of the unit, a list of units is always returned.
+
+        Parameters
+        ----------
+        equivalencies : list of tuple
+            A list of equivalence pairs to also list.  See
+            :ref:`astropy:unit_equivalencies`.
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
+
+        units : set of `~astropy.units.Unit`, optional
+            If not provided, any known units may be used to compose
+            into.  Otherwise, ``units`` is a dict, module or sequence
+            containing the units to compose into.
+
+        max_depth : int, optional
+            The maximum recursion depth to use when composing into
+            composite units.
+
+        include_prefix_units : bool, optional
+            When `True`, include prefixed units in the result.
+            Default is `True` if a sequence is passed in to ``units``,
+            `False` otherwise.
+
+        Returns
+        -------
+        units : list of `CompositeUnit`
+            A list of candidate compositions.  These will all be
+            equally simple, but it may not be possible to
+            automatically determine which of the candidates are
+            better.
+        """
+        # if units parameter is specified and is a sequence (list|tuple),
+        # include_prefix_units is turned on by default.  Ex: units=[u.kpc]
+        if include_prefix_units is None:
+            include_prefix_units = isinstance(units, (list, tuple))
+
+        # Pre-normalize the equivalencies list
+        equivalencies = self._normalize_equivalencies(equivalencies)
+
+        # The namespace of units to compose into should be filtered to
+        # only include units with bases in common with self, otherwise
+        # they can't possibly provide useful results.  Having too many
+        # destination units greatly increases the search space.
+
+        def has_bases_in_common(a: UnitBase, b: UnitBase) -> bool:
+            return any(ab in b.bases for ab in a.bases) if a.bases or b.bases else True
+
+        def has_bases_in_common_with_equiv(unit: UnitBase, other: UnitBase) -> bool:
+            if has_bases_in_common(unit, other):
+                return True
+            for funit, tunit, _, _ in equivalencies:
+                if tunit is not None:
+                    if unit._is_equivalent(funit):
+                        if has_bases_in_common(tunit.decompose(), other):
+                            return True
+                    elif unit._is_equivalent(tunit):
+                        if has_bases_in_common(funit.decompose(), other):
+                            return True
+                else:
+                    if unit._is_equivalent(funit):
+                        if has_bases_in_common(dimensionless_unscaled, other):
+                            return True
+            return False
+
+        def filter_units(units: Iterable[object]) -> set[UnitBase]:
+            return {
+                tunit
+                for tunit in units
+                if (
+                    isinstance(tunit, UnitBase)
+                    and (include_prefix_units or not isinstance(tunit, PrefixUnit))
+                    and has_bases_in_common_with_equiv(decomposed, tunit.decompose())
+                )
+            }
+
+        decomposed = self.decompose()
+
+        if units is None:
+            units = (
+                filter_units(self._get_units_with_same_physical_type(equivalencies))
+                or get_current_unit_registry().non_prefix_units
+            )
+        else:
+            units = filter_units(_flatten_units_collection(units))
+
+        # Sort the results so the simplest ones appear first.
+        # Simplest is defined as "the minimum sum of absolute
+        # powers" (i.e. the fewest bases), and preference should
+        # be given to results where the sum of powers is positive
+        # and the scale is exactly equal to 1.0
+        return sorted(
+            self._compose(
+                equivalencies=equivalencies,
+                namespace=units,
+                max_depth=max_depth,
+                depth=0,
+                cached_results={},
+            ),
+            key=lambda x: (
+                not is_effectively_unity(x.scale),
+                sum(x.powers) < 0.0,
+                sum(map(abs, x.powers)),
+                abs(x.scale),
+            ),
+        )
+
+    def to_system(self, system):
+        """Convert this unit into ones belonging to the given system.
+
+        Since more than one result may be possible, a list is always
+        returned.
+
+        Parameters
+        ----------
+        system : module
+            The module that defines the unit system.  Commonly used
+            ones include `astropy.units.si` and `astropy.units.cgs`.
+
+            To use your own module it must contain unit objects and a
+            sequence member named ``bases`` containing the base units of
+            the system.
+
+        Returns
+        -------
+        units : list of `CompositeUnit`
+            With an attempt to sort simpler units to the start (see examples).
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> (u.N / u.m**2).to_system(u.si)  # preference for simpler units
+        [Unit("Pa"), Unit("N / m2"), Unit("J / m3")]
+        >>> u.Pa.to_system(u.cgs)
+        [Unit("10 Ba"), Unit("10 P / s")]
+        >>> u.Ba.to_system(u.si)
+        [Unit("0.1 Pa"), Unit("0.1 N / m2"), Unit("0.1 J / m3")]
+        >>> (u.AU/u.yr).to_system(u.cgs)  # preference for base units
+        [Unit("474047 cm / s"), Unit("474047 Gal s")]
+        >>> (u.m / u.s**2).to_system(u.cgs)
+        [Unit("100 cm / s2"), Unit("100 Gal")]
+
+        """
+        return sorted(
+            self.decompose(bases=system.bases).compose(units=system),
+            key=lambda x: len(set(x.bases).difference(system.bases)),
+        )
+
+    @lazyproperty
+    def si(self) -> "UnitBase":
+        """The unit expressed in terms of SI units."""
+        from . import si
+
+        return self.to_system(si)[0]
+
+    @lazyproperty
+    def cgs(self) -> "UnitBase":
+        """The unit expressed in terms of CGS units."""
+        from . import cgs
+
+        return self.to_system(cgs)[0]
+
+    @property
+    def physical_type(self) -> "astropy.units.PhysicalType":
+        """
+        Physical type(s) dimensionally compatible with the unit.
+
+        Returns
+        -------
+        `~astropy.units.physical.PhysicalType`
+            A representation of the physical type(s) of a unit.
+
+        Examples
+        --------
+        >>> from astropy import units as u
+        >>> u.m.physical_type
+        PhysicalType('length')
+        >>> (u.m ** 2 / u.s).physical_type
+        PhysicalType({'diffusivity', 'kinematic viscosity'})
+
+        Physical types can be compared to other physical types
+        (recommended in packages) or to strings.
+
+        >>> area = (u.m ** 2).physical_type
+        >>> area == u.m.physical_type ** 2
+        True
+        >>> area == "area"
+        True
+
+        `~astropy.units.physical.PhysicalType` objects can be used for
+        dimensional analysis.
+
+        >>> number_density = u.m.physical_type ** -3
+        >>> velocity = (u.m / u.s).physical_type
+        >>> number_density * velocity
+        PhysicalType('particle flux')
+        """
+        from . import physical
+
+        return physical.get_physical_type(self)
+
+    def _get_units_with_same_physical_type(self, equivalencies=[]):
+        """
+        Return a list of registered units with the same physical type
+        as this unit.
+
+        This function is used by Quantity to add its built-in
+        conversions to equivalent units.
+
+        This is a private method, since end users should be encouraged
+        to use the more powerful `compose` and `find_equivalent_units`
+        methods (which use this under the hood).
+
+        Parameters
+        ----------
+        equivalencies : list of tuple
+            A list of equivalence pairs to also pull options from.
+            See :ref:`astropy:unit_equivalencies`.  It must already be
+            normalized using `_normalize_equivalencies`.
+        """
+        unit_registry = get_current_unit_registry()
+        units = set(unit_registry.get_units_with_physical_type(self))
+        for funit, tunit, _, _ in equivalencies:
+            if tunit is not None:
+                if self.is_equivalent(funit) and tunit not in units:
+                    units.update(unit_registry.get_units_with_physical_type(tunit))
+                if self._is_equivalent(tunit) and funit not in units:
+                    units.update(unit_registry.get_units_with_physical_type(funit))
+            else:
+                if self.is_equivalent(funit):
+                    units.add(dimensionless_unscaled)
+        return units
+
+    class EquivalentUnitsList(list):
+        """
+        A class to handle pretty-printing the result of
+        `find_equivalent_units`.
+        """
+
+        HEADING_NAMES: Final[tuple[str, str, str]] = (
+            "Primary name",
+            "Unit definition",
+            "Aliases",
+        )
+        NO_EQUIV_UNITS_MSG: Final[str] = "There are no equivalent units"
+
+        def __repr__(self) -> str:
+            if not self:
+                return self.NO_EQUIV_UNITS_MSG
+            lines = self._process_units()
+            widths = list(map(len, self.HEADING_NAMES))
+            for line in lines:
+                widths = [max(w, len(col)) for w, col in zip(widths, line, strict=True)]
+            row_template = "  {{0:<{}s}} | {{1:<{}s}} | {{2:<{}s}}".format(*widths)
+            return "\n".join(
+                [
+                    row_template.format(*self.HEADING_NAMES),
+                    "[",
+                    *(f"{row_template.format(*line)} ," for line in lines),
+                    "]",
+                ]
+            )
+
+        def _repr_html_(self) -> str:
+            """
+            Outputs a HTML table representation within Jupyter notebooks.
+            """
+            if not self:
+                return f"<p>{self.NO_EQUIV_UNITS_MSG}</p>"
+            heading = "".join(f"<th>{name}</th>" for name in self.HEADING_NAMES)
+            rows = (
+                f"<tr>{''.join(f'<td>{elem}</td>' for elem in row)}</tr>"
+                for row in self._process_units()
+            )
+            # The HTML will be rendered & the table is simple, so don't
+            # bother to include newlines & indentation for the HTML code.
+            return f'<table style="width:50%"><tr>{heading}</tr>{"".join(rows)}</table>'
+
+        def _process_units(self) -> list[tuple[str, str, str]]:
+            """
+            Extract attributes, and sort, the equivalent units pre-formatting.
+            """
+            return sorted(
+                (
+                    unit.name,
+                    "irreducible" if (s := str(unit.decompose())) == unit.name else s,
+                    ", ".join(unit.aliases),
+                )
+                for unit in self
+            )
+
+    def find_equivalent_units(
+        self, equivalencies=[], units=None, include_prefix_units=False
+    ):
+        """
+        Return a list of all the units that are the same type as ``self``.
+
+        Parameters
+        ----------
+        equivalencies : list of tuple
+            A list of equivalence pairs to also list.  See
+            :ref:`astropy:unit_equivalencies`.
+            Any list given, including an empty one, supersedes global defaults
+            that may be in effect (as set by `set_enabled_equivalencies`)
+
+        units : set of `~astropy.units.Unit`, optional
+            If not provided, all defined units will be searched for
+            equivalencies.  Otherwise, may be a dict, module or
+            sequence containing the units to search for equivalencies.
+
+        include_prefix_units : bool, optional
+            When `True`, include prefixed units in the result.
+            Default is `False`.
+
+        Returns
+        -------
+        units : list of `UnitBase`
+            A list of unit objects that match ``u``.  A subclass of
+            `list` (``EquivalentUnitsList``) is returned that
+            pretty-prints the list of units when output.
+        """
+        results = self.compose(
+            equivalencies=equivalencies,
+            units=units,
+            max_depth=1,
+            include_prefix_units=include_prefix_units,
+        )
+        results = {
+            x.bases[0] for x in results if len(x.bases) == 1 and x.powers[0] == 1
+        }
+        return self.EquivalentUnitsList(results)
+
+    def is_unity(self) -> bool:
+        """Check whether the unit is unscaled and dimensionless."""
+        return False
 
 
 def _flatten_units_collection(items: object) -> set[UnitBase]:
@@ -626,1075 +1694,6 @@ def add_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
     # in this new current registry, enable the further equivalencies requested
     get_current_unit_registry().add_enabled_aliases(aliases)
     return context
-
-
-class UnitBase:
-    """
-    Abstract base class for units.
-
-    Most of the arithmetic operations on units are defined in this
-    base class.
-
-    Should not be instantiated by users directly.
-    """
-
-    # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
-    # arrays to avoid element-wise multiplication.
-    __array_priority__: Final = 1000
-
-    def __deepcopy__(self, memo: dict[int, Any] | None) -> Self:
-        # This may look odd, but the units conversion will be very
-        # broken after deep-copying if we don't guarantee that a given
-        # physical unit corresponds to only one instance
-        return self
-
-    def _repr_latex_(self) -> str:
-        """
-        Generate latex representation of unit name.  This is used by
-        the IPython notebook to print a unit with a nice layout.
-
-        Returns
-        -------
-        Latex string
-        """
-        from .format import Latex
-
-        return Latex.to_string(self)
-
-    def __bytes__(self) -> bytes:
-        return str(self).encode("unicode_escape")
-
-    def __str__(self) -> str:
-        from .format import Generic
-
-        return Generic.to_string(self)
-
-    def __repr__(self) -> str:
-        return f'Unit("{self}")'
-
-    @cached_property
-    def _physical_type_id(self) -> PhysicalTypeID:
-        """
-        Returns an identifier that uniquely identifies the physical
-        type of this unit.  It is comprised of the bases and powers of
-        this unit, without the scale.  Since it is hashable, it is
-        useful as a dictionary key.
-        """
-        unit = self.decompose()
-        return tuple(zip((base.name for base in unit.bases), unit.powers))
-
-    @property
-    def scale(self) -> UnitScale:
-        """The scale of the unit."""
-        return 1.0
-
-    @property
-    def bases(self) -> list[NamedUnit]:
-        """The bases of the unit."""
-        return [self]
-
-    @property
-    def powers(self) -> list[UnitPower]:
-        """The powers of the bases of the unit."""
-        return [1]
-
-    def to_string(self, format: type[Base] | str | None = None, **kwargs) -> str:
-        r"""Output the unit in the given format as a string.
-
-        Parameters
-        ----------
-        format : `astropy.units.format.Base` subclass or str or None
-            The name of a format or a formatter class.  If not
-            provided (or `None`), defaults to the generic format.
-
-        **kwargs
-            Further options forwarded to the formatter. Currently
-            recognized is ``fraction``, which can take the following values:
-
-            - `False` : display unit bases with negative powers as they are;
-            - 'inline' or `True` : use a single-line fraction;
-            - 'multiline' : use a multiline fraction (available for the
-              'latex', 'console' and 'unicode' formats only; for others,
-              an 'inline' fraction is used).
-
-        Raises
-        ------
-        TypeError
-            If ``format`` is of the wrong type.
-        ValueError
-            If ``format`` or ``fraction`` are not recognized.
-
-        Examples
-        --------
-        >>> import astropy.units as u
-        >>> kms = u.Unit('km / s')
-        >>> kms.to_string()  # Generic uses fraction='inline' by default
-        'km / s'
-        >>> kms.to_string('latex')  # Latex uses fraction='multiline' by default
-        '$\\mathrm{\\frac{km}{s}}$'
-        >>> print(kms.to_string('unicode', fraction=False))
-        km s⁻¹
-        >>> print(kms.to_string('unicode', fraction='inline'))
-        km / s
-        >>> print(kms.to_string('unicode', fraction='multiline'))
-        km
-        ──
-        s
-        """
-        from .format import get_format
-
-        try:
-            formatter = get_format(format)
-        except (TypeError, ValueError) as err:
-            from .format import known_formats
-
-            err.add_note(known_formats())
-            raise err
-        return formatter.to_string(self, **kwargs)
-
-    def __format__(self, format_spec: str) -> str:
-        try:
-            return self.to_string(format=format_spec)
-        except ValueError:
-            return format(str(self), format_spec)
-
-    @staticmethod
-    def _normalize_equivalencies(equivalencies):
-        """Normalizes equivalencies, ensuring each is a 4-tuple.
-
-        The resulting tuple is of the form::
-
-            (from_unit, to_unit, forward_func, backward_func)
-
-        Parameters
-        ----------
-        equivalencies : list of equivalency pairs, or None
-
-        Returns
-        -------
-        A normalized list, including possible global defaults set by, e.g.,
-        `set_enabled_equivalencies`, except when `equivalencies`=`None`,
-        in which case the returned list is always empty.
-
-        Raises
-        ------
-        ValueError if an equivalency cannot be interpreted
-        """
-        normalized = _normalize_equivalencies(equivalencies)
-        if equivalencies is not None:
-            normalized += get_current_unit_registry().equivalencies
-
-        return normalized
-
-    def __pow__(self, p: UnitPowerLike) -> CompositeUnit:
-        try:  # Handling scalars should be as quick as possible
-            return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
-        except Exception:
-            arr = np.asanyarray(p)
-            p = arr.item(0)
-            if (arr != p).any():
-                raise ValueError(
-                    "Quantities and Units may only be raised to a scalar power"
-                ) from None
-            return CompositeUnit(1, [self], [sanitize_power(p)], _error_check=False)
-
-    @staticmethod
-    def _warn_about_operation_with_deprecated_type(op: str, other: bytes | str) -> None:
-        warnings.warn(
-            AstropyDeprecationWarning(
-                f"{op} involving a unit and a '{type(other).__name__}' instance are "
-                f"deprecated since v7.1. Convert {other!r} to a unit explicitly."
-            ),
-            stacklevel=3,
-        )
-
-    def __truediv__(self, m):
-        if isinstance(m, UnitBase):
-            if m.is_unity():
-                return self
-            return CompositeUnit(1, [self, m], [1, -1], _error_check=False)
-
-        if isinstance(m, (bytes, str)):
-            self._warn_about_operation_with_deprecated_type("divisions", m)
-            return self / Unit(m)
-
-        try:
-            # Cannot handle this as Unit, re-try as Quantity
-            from .quantity import Quantity
-
-            return Quantity(1, self) / m
-        except TypeError:
-            return NotImplemented
-
-    def __rtruediv__(self, m):
-        if isinstance(m, (bytes, str)):
-            self._warn_about_operation_with_deprecated_type("divisions", m)
-            return Unit(m) / self
-
-        try:
-            # Cannot handle this as Unit.  Here, m cannot be a Quantity,
-            # so we make it into one, fasttracking when it does not have a
-            # unit, for the common case of <array> / <unit>.
-            from .quantity import Quantity
-
-            if hasattr(m, "unit"):
-                result = Quantity(m)
-                result /= self
-                return result
-            else:
-                return Quantity(m, self ** (-1))
-        except TypeError:
-            if isinstance(m, np.ndarray):
-                raise
-            return NotImplemented
-
-    def __mul__(self, m):
-        if isinstance(m, UnitBase):
-            if m.is_unity():
-                return self
-            elif self.is_unity():
-                return m
-            return CompositeUnit(1, [self, m], [1, 1], _error_check=False)
-
-        if isinstance(m, (bytes, str)):
-            self._warn_about_operation_with_deprecated_type("products", m)
-            return self * Unit(m)
-
-        # Cannot handle this as Unit, re-try as Quantity.
-        try:
-            from .quantity import Quantity
-
-            return Quantity(1, unit=self) * m
-        except TypeError:
-            return NotImplemented
-
-    def __rmul__(self, m):
-        if isinstance(m, (bytes, str)):
-            self._warn_about_operation_with_deprecated_type("products", m)
-            return Unit(m) * self
-
-        # Cannot handle this as Unit.  Here, m cannot be a Quantity,
-        # so we make it into one, fasttracking when it does not have a unit
-        # for the common case of <array> * <unit>.
-        try:
-            from .quantity import Quantity
-
-            if hasattr(m, "unit"):
-                result = Quantity(m)
-                result *= self
-                return result
-            else:
-                return Quantity(m, unit=self)
-        except TypeError:
-            if isinstance(m, np.ndarray):
-                raise
-            return NotImplemented
-
-    def __rlshift__(self, m):
-        try:
-            from .quantity import Quantity
-
-            return Quantity(m, self, copy=COPY_IF_NEEDED, subok=True)
-        except Exception:
-            if isinstance(m, np.ndarray):
-                raise
-            return NotImplemented
-
-    def __rrshift__(self, m):
-        warnings.warn(
-            ">> is not implemented. Did you mean to convert "
-            f"to a Quantity with unit {m} using '<<'?",
-            AstropyWarning,
-        )
-        return NotImplemented
-
-    def __hash__(self) -> int:
-        return self._hash
-
-    @cached_property
-    def _hash(self) -> int:
-        return hash((self.scale, *[x.name for x in self.bases], *map(str, self.powers)))
-
-    def __getstate__(self) -> dict[str, object]:
-        # If we get pickled, we should *not* store the memoized members since
-        # hashes of strings vary between sessions.
-        state = self.__dict__.copy()
-        state.pop("_hash", None)
-        state.pop("_physical_type_id", None)
-        return state
-
-    def __eq__(self, other):
-        if self is other:
-            return True
-
-        try:
-            other = Unit(other, parse_strict="silent")
-        except (ValueError, UnitsError, TypeError):
-            return NotImplemented
-
-        # Other is unit-like, but the test below requires it is a UnitBase
-        # instance; if it is not, give up (so that other can try).
-        if not isinstance(other, UnitBase):
-            return NotImplemented
-
-        try:
-            return is_effectively_unity(self._to(other))
-        except UnitsError:
-            return False
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __le__(self, other):
-        scale = self._to(Unit(other))
-        return scale <= 1.0 or is_effectively_unity(scale)
-
-    def __ge__(self, other):
-        scale = self._to(Unit(other))
-        return scale >= 1.0 or is_effectively_unity(scale)
-
-    def __lt__(self, other):
-        return not (self >= other)
-
-    def __gt__(self, other):
-        return not (self <= other)
-
-    def __neg__(self) -> Quantity:
-        return self * -1.0
-
-    def is_equivalent(self, other, equivalencies=[]):
-        """Check whether this unit is equivalent to ``other``.
-
-        Parameters
-        ----------
-        other : `~astropy.units.Unit`, str, or tuple
-            The unit to convert to. If a tuple of units is specified, this
-            method returns true if the unit matches any of those in the tuple.
-
-        equivalencies : list of tuple
-            A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`astropy:unit_equivalencies`.
-            This list is in addition to possible global defaults set by, e.g.,
-            `set_enabled_equivalencies`.
-            Use `None` to turn off all equivalencies.
-
-        Returns
-        -------
-        bool
-        """
-        equivalencies = self._normalize_equivalencies(equivalencies)
-
-        if isinstance(other, tuple):
-            return any(self.is_equivalent(u, equivalencies) for u in other)
-
-        other = Unit(other, parse_strict="silent")
-
-        return self._is_equivalent(other, equivalencies)
-
-    def _is_equivalent(self, other, equivalencies=[]):
-        """Returns `True` if this unit is equivalent to `other`.
-        See `is_equivalent`, except that a proper Unit object should be
-        given (i.e., no string) and that the equivalency list should be
-        normalized using `_normalize_equivalencies`.
-        """
-        if isinstance(other, UnrecognizedUnit):
-            return False
-
-        if self._physical_type_id == other._physical_type_id:
-            return True
-        elif len(equivalencies):
-            unit = self.decompose()
-            other = other.decompose()
-            for a, b, _, _ in equivalencies:
-                if b is None:
-                    # after canceling, is what's left convertible
-                    # to dimensionless (according to the equivalency)?
-                    try:
-                        (other / unit).decompose([a])
-                        return True
-                    except Exception:
-                        pass
-                elif (a._is_equivalent(unit) and b._is_equivalent(other)) or (
-                    b._is_equivalent(unit) and a._is_equivalent(other)
-                ):
-                    return True
-
-        return False
-
-    def _apply_equivalencies(self, unit, other, equivalencies):
-        """
-        Internal function (used from `get_converter`) to apply
-        equivalence pairs.
-        """
-
-        def make_converter(scale1, func, scale2):
-            def convert(v):
-                return func(_condition_arg(v) / scale1) * scale2
-
-            return convert
-
-        for funit, tunit, a, b in equivalencies:
-            if tunit is None:
-                ratio = other.decompose() / unit.decompose()
-                try:
-                    ratio_in_funit = ratio.decompose([funit])
-                    return make_converter(ratio_in_funit.scale, a, 1.0)
-                except UnitsError:
-                    pass
-            else:
-                try:
-                    scale1 = funit._to(unit)
-                    scale2 = tunit._to(other)
-                    return make_converter(scale1, a, scale2)
-                except UnitsError:
-                    pass
-                try:
-                    scale1 = tunit._to(unit)
-                    scale2 = funit._to(other)
-                    return make_converter(scale1, b, scale2)
-                except UnitsError:
-                    pass
-
-        def get_err_str(unit: UnitBase) -> str:
-            unit_str = unit.to_string("generic")
-            physical_type = unit.physical_type
-            if physical_type != "unknown":
-                unit_str = f"'{unit_str}' ({physical_type})"
-            else:
-                unit_str = f"'{unit_str}'"
-            return unit_str
-
-        unit_str = get_err_str(unit)
-        other_str = get_err_str(other)
-
-        raise UnitConversionError(f"{unit_str} and {other_str} are not convertible")
-
-    def get_converter(self, other, equivalencies=[]):
-        """
-        Create a function that converts values from this unit to another.
-
-        Parameters
-        ----------
-        other : unit-like
-            The unit to convert to.
-        equivalencies : list of tuple
-            A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`astropy:unit_equivalencies`.
-            This list is in addition to possible global defaults set by, e.g.,
-            `set_enabled_equivalencies`.
-            Use `None` to turn off all equivalencies.
-
-        Returns
-        -------
-        func : callable
-            A callable that takes an array-like argument and returns
-            it converted from units of self to units of other.
-
-        Raises
-        ------
-        UnitsError
-            If the units cannot be converted to each other.
-
-        Notes
-        -----
-        This method is used internally in `Quantity` to convert to
-        different units. Note that the function returned takes
-        and returns values, not quantities.
-        """
-        # First see if it is just a scaling.
-        try:
-            scale = self._to(other)
-        except UnitsError:
-            pass
-        else:
-            if scale == 1.0:
-                # If no conversion is necessary, returns ``unit_scale_converter``
-                # (which is used as a check in quantity helpers).
-                return unit_scale_converter
-            else:
-                return lambda val: scale * _condition_arg(val)
-
-        # if that doesn't work, maybe we can do it with equivalencies?
-        try:
-            return self._apply_equivalencies(
-                self, other, self._normalize_equivalencies(equivalencies)
-            )
-        except UnitsError as exc:
-            # Last hope: maybe other knows how to do it?
-            # We assume the equivalencies have the unit itself as first item.
-            # TODO: maybe better for other to have a `_back_converter` method?
-            if hasattr(other, "equivalencies"):
-                for funit, tunit, _, b in other.equivalencies:
-                    if other is funit:
-                        try:
-                            converter = self.get_converter(tunit, equivalencies)
-                        except Exception:
-                            pass
-                        else:
-                            return lambda v: b(converter(v))
-
-            raise exc
-
-    def _to(self, other: UnitBase) -> UnitScale:
-        """
-        Returns the scale to the specified unit.
-
-        See `to`, except that a Unit object should be given (i.e., no
-        string), and that all defaults are used, i.e., no
-        equivalencies and value=1.
-        """
-        # There are many cases where we just want to ensure a Quantity is
-        # of a particular unit, without checking whether it's already in
-        # a particular unit.  If we're being asked to convert from a unit
-        # to itself, we can short-circuit all of this.
-        if self is other:
-            return 1.0
-
-        # Don't presume decomposition is possible; e.g.,
-        # conversion to function units is through equivalencies.
-        if isinstance(other, UnitBase):
-            self_decomposed = self.decompose()
-            other_decomposed = other.decompose()
-
-            # Check quickly whether equivalent.  This is faster than
-            # `is_equivalent`, because it doesn't generate the entire
-            # physical type list of both units.  In other words it "fails
-            # fast".
-            if self_decomposed.powers == other_decomposed.powers and all(
-                self_base is other_base
-                for (self_base, other_base) in zip(
-                    self_decomposed.bases, other_decomposed.bases
-                )
-            ):
-                return self_decomposed.scale / other_decomposed.scale
-
-        raise UnitConversionError(f"'{self!r}' is not a scaled version of '{other!r}'")
-
-    def to(self, other, value=UNITY, equivalencies=[]):
-        """
-        Return the converted values in the specified unit.
-
-        Parameters
-        ----------
-        other : unit-like
-            The unit to convert to.
-
-        value : int, float, or scalar array-like, optional
-            Value(s) in the current unit to be converted to the
-            specified unit.  If not provided, defaults to 1.0
-
-        equivalencies : list of tuple
-            A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`astropy:unit_equivalencies`.
-            This list is in addition to possible global defaults set by, e.g.,
-            `set_enabled_equivalencies`.
-            Use `None` to turn off all equivalencies.
-
-        Returns
-        -------
-        values : scalar or array
-            Converted value(s). Input value sequences are returned as
-            numpy arrays.
-
-        Raises
-        ------
-        UnitsError
-            If units are inconsistent
-        """
-        if other is self and value is UNITY:
-            return UNITY
-        else:
-            return self.get_converter(Unit(other), equivalencies)(value)
-
-    @deprecated(since="7.0", alternative="to()")
-    def in_units(self, other, value=1.0, equivalencies=[]):
-        """
-        Alias for `to` for backward compatibility with pynbody.
-        """
-        return self.to(other, value=value, equivalencies=equivalencies)
-
-    def decompose(self, bases: Collection[UnitBase] = ()) -> UnitBase:
-        """
-        Return a unit object composed of only irreducible units.
-
-        Parameters
-        ----------
-        bases : sequence of UnitBase, optional
-            The bases to decompose into.  When not provided,
-            decomposes down to any irreducible units.  When provided,
-            the decomposed result will only contain the given units.
-            This will raises a `UnitsError` if it's not possible
-            to do so.
-
-        Returns
-        -------
-        unit : `~astropy.units.CompositeUnit`
-            New object containing only irreducible unit objects.
-        """
-        raise NotImplementedError()
-
-    def _compose(
-        self, equivalencies=[], namespace=[], max_depth=2, depth=0, cached_results=None
-    ):
-        def is_final_result(unit: UnitBase) -> bool:
-            # Returns True if this result contains only the expected
-            # units
-            return all(base in namespace for base in unit.bases)
-
-        unit = self.decompose()
-
-        cached = cached_results.get(unit)
-        if cached is not None:
-            if isinstance(cached, Exception):
-                raise cached
-            return cached
-
-        # Prevent too many levels of recursion
-        # And special case for dimensionless unit
-        if depth >= max_depth:
-            cached_results[unit] = [unit]
-            return [unit]
-
-        # Make a list including all of the equivalent units
-        units = [unit]
-        for funit, tunit, a, b in equivalencies:
-            if tunit is not None:
-                if self._is_equivalent(funit):
-                    scale = funit.decompose().scale / unit.scale
-                    units.append(Unit(a(1.0 / scale) * tunit).decompose())
-                elif self._is_equivalent(tunit):
-                    scale = tunit.decompose().scale / unit.scale
-                    units.append(Unit(b(1.0 / scale) * funit).decompose())
-            else:
-                if self._is_equivalent(funit):
-                    units.append(Unit(unit.scale))
-
-        # Store partial results
-        partial_results = []
-        # Store final results that reduce to a single unit or pair of
-        # units
-        if len(unit.bases) == 0:
-            final_results = [{unit}, set()]
-        else:
-            final_results = [set(), set()]
-
-        for tunit in namespace:
-            tunit_decomposed = tunit.decompose()
-            for u in units:
-                # If the unit is a base unit, look for an exact match
-                # to one of the bases of the target unit.  If found,
-                # factor by the same power as the target unit's base.
-                # This allows us to factor out fractional powers
-                # without needing to do an exhaustive search.
-                if len(tunit_decomposed.bases) == 1:
-                    for base, power in zip(u.bases, u.powers):
-                        if tunit_decomposed._is_equivalent(base):
-                            tunit = tunit**power
-                            tunit_decomposed = tunit_decomposed**power
-                            break
-
-                composed = (u / tunit_decomposed).decompose()
-                factored = composed * tunit
-                len_bases = len(composed.bases)
-                if is_final_result(factored) and len_bases <= 1:
-                    final_results[len_bases].add(factored)
-                else:
-                    partial_results.append((len_bases, composed, tunit))
-
-        # Do we have any minimal results?
-        for final_result in final_results:
-            if len(final_result):
-                results = final_results[0].union(final_results[1])
-                cached_results[unit] = results
-                return results
-
-        partial_results.sort(key=operator.itemgetter(0))
-
-        # ...we have to recurse and try to further compose
-        results = []
-        for _, composed, tunit in partial_results:
-            try:
-                composed_list = composed._compose(
-                    equivalencies=equivalencies,
-                    namespace=namespace,
-                    max_depth=max_depth,
-                    depth=depth + 1,
-                    cached_results=cached_results,
-                )
-            except UnitsError:
-                composed_list = []
-            for subcomposed in composed_list:
-                results.append((len(subcomposed.bases), subcomposed, tunit))
-
-        if results:
-            results.sort(key=operator.itemgetter(0))
-
-            min_length = results[0][0]
-            subresults = set()
-            for len_bases, composed, tunit in results:
-                if len_bases > min_length:
-                    break
-
-                factored = composed * tunit
-                if is_final_result(factored):
-                    subresults.add(factored)
-
-            if subresults:
-                cached_results[unit] = subresults
-                return subresults
-
-        if not is_final_result(self):
-            result = UnitsError(
-                f"Cannot represent unit {self} in terms of the given units"
-            )
-            cached_results[unit] = result
-            raise result
-
-        cached_results[unit] = [self]
-        return [self]
-
-    def compose(
-        self, equivalencies=[], units=None, max_depth=2, include_prefix_units=None
-    ):
-        """
-        Return the simplest possible composite unit(s) that represent
-        the given unit.  Since there may be multiple equally simple
-        compositions of the unit, a list of units is always returned.
-
-        Parameters
-        ----------
-        equivalencies : list of tuple
-            A list of equivalence pairs to also list.  See
-            :ref:`astropy:unit_equivalencies`.
-            This list is in addition to possible global defaults set by, e.g.,
-            `set_enabled_equivalencies`.
-            Use `None` to turn off all equivalencies.
-
-        units : set of `~astropy.units.Unit`, optional
-            If not provided, any known units may be used to compose
-            into.  Otherwise, ``units`` is a dict, module or sequence
-            containing the units to compose into.
-
-        max_depth : int, optional
-            The maximum recursion depth to use when composing into
-            composite units.
-
-        include_prefix_units : bool, optional
-            When `True`, include prefixed units in the result.
-            Default is `True` if a sequence is passed in to ``units``,
-            `False` otherwise.
-
-        Returns
-        -------
-        units : list of `CompositeUnit`
-            A list of candidate compositions.  These will all be
-            equally simple, but it may not be possible to
-            automatically determine which of the candidates are
-            better.
-        """
-        # if units parameter is specified and is a sequence (list|tuple),
-        # include_prefix_units is turned on by default.  Ex: units=[u.kpc]
-        if include_prefix_units is None:
-            include_prefix_units = isinstance(units, (list, tuple))
-
-        # Pre-normalize the equivalencies list
-        equivalencies = self._normalize_equivalencies(equivalencies)
-
-        # The namespace of units to compose into should be filtered to
-        # only include units with bases in common with self, otherwise
-        # they can't possibly provide useful results.  Having too many
-        # destination units greatly increases the search space.
-
-        def has_bases_in_common(a: UnitBase, b: UnitBase) -> bool:
-            return any(ab in b.bases for ab in a.bases) if a.bases or b.bases else True
-
-        def has_bases_in_common_with_equiv(unit: UnitBase, other: UnitBase) -> bool:
-            if has_bases_in_common(unit, other):
-                return True
-            for funit, tunit, _, _ in equivalencies:
-                if tunit is not None:
-                    if unit._is_equivalent(funit):
-                        if has_bases_in_common(tunit.decompose(), other):
-                            return True
-                    elif unit._is_equivalent(tunit):
-                        if has_bases_in_common(funit.decompose(), other):
-                            return True
-                else:
-                    if unit._is_equivalent(funit):
-                        if has_bases_in_common(dimensionless_unscaled, other):
-                            return True
-            return False
-
-        def filter_units(units: Iterable[object]) -> set[UnitBase]:
-            return {
-                tunit
-                for tunit in units
-                if (
-                    isinstance(tunit, UnitBase)
-                    and (include_prefix_units or not isinstance(tunit, PrefixUnit))
-                    and has_bases_in_common_with_equiv(decomposed, tunit.decompose())
-                )
-            }
-
-        decomposed = self.decompose()
-
-        if units is None:
-            units = (
-                filter_units(self._get_units_with_same_physical_type(equivalencies))
-                or get_current_unit_registry().non_prefix_units
-            )
-        else:
-            units = filter_units(_flatten_units_collection(units))
-
-        # Sort the results so the simplest ones appear first.
-        # Simplest is defined as "the minimum sum of absolute
-        # powers" (i.e. the fewest bases), and preference should
-        # be given to results where the sum of powers is positive
-        # and the scale is exactly equal to 1.0
-        return sorted(
-            self._compose(
-                equivalencies=equivalencies,
-                namespace=units,
-                max_depth=max_depth,
-                depth=0,
-                cached_results={},
-            ),
-            key=lambda x: (
-                not is_effectively_unity(x.scale),
-                sum(x.powers) < 0.0,
-                sum(map(abs, x.powers)),
-                abs(x.scale),
-            ),
-        )
-
-    def to_system(self, system):
-        """Convert this unit into ones belonging to the given system.
-
-        Since more than one result may be possible, a list is always
-        returned.
-
-        Parameters
-        ----------
-        system : module
-            The module that defines the unit system.  Commonly used
-            ones include `astropy.units.si` and `astropy.units.cgs`.
-
-            To use your own module it must contain unit objects and a
-            sequence member named ``bases`` containing the base units of
-            the system.
-
-        Returns
-        -------
-        units : list of `CompositeUnit`
-            With an attempt to sort simpler units to the start (see examples).
-
-        Examples
-        --------
-        >>> import astropy.units as u
-        >>> (u.N / u.m**2).to_system(u.si)  # preference for simpler units
-        [Unit("Pa"), Unit("N / m2"), Unit("J / m3")]
-        >>> u.Pa.to_system(u.cgs)
-        [Unit("10 Ba"), Unit("10 P / s")]
-        >>> u.Ba.to_system(u.si)
-        [Unit("0.1 Pa"), Unit("0.1 N / m2"), Unit("0.1 J / m3")]
-        >>> (u.AU/u.yr).to_system(u.cgs)  # preference for base units
-        [Unit("474047 cm / s"), Unit("474047 Gal s")]
-        >>> (u.m / u.s**2).to_system(u.cgs)
-        [Unit("100 cm / s2"), Unit("100 Gal")]
-
-        """
-        return sorted(
-            self.decompose(bases=system.bases).compose(units=system),
-            key=lambda x: len(set(x.bases).difference(system.bases)),
-        )
-
-    @lazyproperty
-    def si(self) -> UnitBase:
-        """The unit expressed in terms of SI units."""
-        from . import si
-
-        return self.to_system(si)[0]
-
-    @lazyproperty
-    def cgs(self) -> UnitBase:
-        """The unit expressed in terms of CGS units."""
-        from . import cgs
-
-        return self.to_system(cgs)[0]
-
-    @property
-    def physical_type(self) -> PhysicalType:
-        """
-        Physical type(s) dimensionally compatible with the unit.
-
-        Returns
-        -------
-        `~astropy.units.physical.PhysicalType`
-            A representation of the physical type(s) of a unit.
-
-        Examples
-        --------
-        >>> from astropy import units as u
-        >>> u.m.physical_type
-        PhysicalType('length')
-        >>> (u.m ** 2 / u.s).physical_type
-        PhysicalType({'diffusivity', 'kinematic viscosity'})
-
-        Physical types can be compared to other physical types
-        (recommended in packages) or to strings.
-
-        >>> area = (u.m ** 2).physical_type
-        >>> area == u.m.physical_type ** 2
-        True
-        >>> area == "area"
-        True
-
-        `~astropy.units.physical.PhysicalType` objects can be used for
-        dimensional analysis.
-
-        >>> number_density = u.m.physical_type ** -3
-        >>> velocity = (u.m / u.s).physical_type
-        >>> number_density * velocity
-        PhysicalType('particle flux')
-        """
-        from . import physical
-
-        return physical.get_physical_type(self)
-
-    def _get_units_with_same_physical_type(self, equivalencies=[]):
-        """
-        Return a list of registered units with the same physical type
-        as this unit.
-
-        This function is used by Quantity to add its built-in
-        conversions to equivalent units.
-
-        This is a private method, since end users should be encouraged
-        to use the more powerful `compose` and `find_equivalent_units`
-        methods (which use this under the hood).
-
-        Parameters
-        ----------
-        equivalencies : list of tuple
-            A list of equivalence pairs to also pull options from.
-            See :ref:`astropy:unit_equivalencies`.  It must already be
-            normalized using `_normalize_equivalencies`.
-        """
-        unit_registry = get_current_unit_registry()
-        units = set(unit_registry.get_units_with_physical_type(self))
-        for funit, tunit, _, _ in equivalencies:
-            if tunit is not None:
-                if self.is_equivalent(funit) and tunit not in units:
-                    units.update(unit_registry.get_units_with_physical_type(tunit))
-                if self._is_equivalent(tunit) and funit not in units:
-                    units.update(unit_registry.get_units_with_physical_type(funit))
-            else:
-                if self.is_equivalent(funit):
-                    units.add(dimensionless_unscaled)
-        return units
-
-    class EquivalentUnitsList(list):
-        """
-        A class to handle pretty-printing the result of
-        `find_equivalent_units`.
-        """
-
-        HEADING_NAMES: Final[tuple[str, str, str]] = (
-            "Primary name",
-            "Unit definition",
-            "Aliases",
-        )
-        NO_EQUIV_UNITS_MSG: Final[str] = "There are no equivalent units"
-
-        def __repr__(self) -> str:
-            if not self:
-                return self.NO_EQUIV_UNITS_MSG
-            lines = self._process_units()
-            widths = list(map(len, self.HEADING_NAMES))
-            for line in lines:
-                widths = [max(w, len(col)) for w, col in zip(widths, line, strict=True)]
-            row_template = "  {{0:<{}s}} | {{1:<{}s}} | {{2:<{}s}}".format(*widths)
-            return "\n".join(
-                [
-                    row_template.format(*self.HEADING_NAMES),
-                    "[",
-                    *(f"{row_template.format(*line)} ," for line in lines),
-                    "]",
-                ]
-            )
-
-        def _repr_html_(self) -> str:
-            """
-            Outputs a HTML table representation within Jupyter notebooks.
-            """
-            if not self:
-                return f"<p>{self.NO_EQUIV_UNITS_MSG}</p>"
-            heading = "".join(f"<th>{name}</th>" for name in self.HEADING_NAMES)
-            rows = (
-                f"<tr>{''.join(f'<td>{elem}</td>' for elem in row)}</tr>"
-                for row in self._process_units()
-            )
-            # The HTML will be rendered & the table is simple, so don't
-            # bother to include newlines & indentation for the HTML code.
-            return f'<table style="width:50%"><tr>{heading}</tr>{"".join(rows)}</table>'
-
-        def _process_units(self) -> list[tuple[str, str, str]]:
-            """
-            Extract attributes, and sort, the equivalent units pre-formatting.
-            """
-            return sorted(
-                (
-                    unit.name,
-                    "irreducible" if (s := str(unit.decompose())) == unit.name else s,
-                    ", ".join(unit.aliases),
-                )
-                for unit in self
-            )
-
-    def find_equivalent_units(
-        self, equivalencies=[], units=None, include_prefix_units=False
-    ):
-        """
-        Return a list of all the units that are the same type as ``self``.
-
-        Parameters
-        ----------
-        equivalencies : list of tuple
-            A list of equivalence pairs to also list.  See
-            :ref:`astropy:unit_equivalencies`.
-            Any list given, including an empty one, supersedes global defaults
-            that may be in effect (as set by `set_enabled_equivalencies`)
-
-        units : set of `~astropy.units.Unit`, optional
-            If not provided, all defined units will be searched for
-            equivalencies.  Otherwise, may be a dict, module or
-            sequence containing the units to search for equivalencies.
-
-        include_prefix_units : bool, optional
-            When `True`, include prefixed units in the result.
-            Default is `False`.
-
-        Returns
-        -------
-        units : list of `UnitBase`
-            A list of unit objects that match ``u``.  A subclass of
-            `list` (``EquivalentUnitsList``) is returned that
-            pretty-prints the list of units when output.
-        """
-        results = self.compose(
-            equivalencies=equivalencies,
-            units=units,
-            max_depth=1,
-            include_prefix_units=include_prefix_units,
-        )
-        results = {
-            x.bases[0] for x in results if len(x.bases) == 1 and x.powers[0] == 1
-        }
-        return self.EquivalentUnitsList(results)
-
-    def is_unity(self) -> bool:
-        """Check whether the unit is unscaled and dimensionless."""
-        return False
 
 
 class NamedUnit(UnitBase):
@@ -2272,7 +2271,7 @@ class CompositeUnit(UnitBase):
         If the scale is zero.
     """
 
-    _decomposed_cache: CompositeUnit | None = None
+    _decomposed_cache: Union["CompositeUnit", None] = None
 
     # _error_check can switch off runtime validation of scale, bases and powers.
     # These overloads enable type checkers to validate statically.
@@ -2416,10 +2415,10 @@ class CompositeUnit(UnitBase):
         self._powers = [sanitize_power(x[1]) for x in new_parts]
         self._scale = sanitize_scale(scale)
 
-    def __copy__(self) -> CompositeUnit:
+    def __copy__(self) -> "CompositeUnit":
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
-    def decompose(self, bases: Collection[UnitBase] = ()) -> CompositeUnit:
+    def decompose(self, bases: Collection[UnitBase] = ()) -> "CompositeUnit":
         if len(bases) == 0 and self._decomposed_cache is not None:
             return self._decomposed_cache
 
