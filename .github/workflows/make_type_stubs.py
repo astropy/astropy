@@ -1,44 +1,59 @@
 """
 Simple stub generator. Focussed on `astropy.units` for now.
 
-Type stub files (.pyi) help type checkers understand dynamically created code.
+Stub files (.pyi) help type checkers understand dynamically created code.
+
+TO DO: functions, functools._lru_cache_wrapper, method, DataInfoMeta
 """
 
 import astropy.units as units
 
 
-# Types we want to include in the stub;
-# to be improved upon as needed.
-SUPPORTED_TYPES = {
-    "IrreducibleFunctionUnit",
-    "IrreducibleUnit",
-    "MagUnit",
-    "PrefixUnit",
-    "RegularFunctionUnit",
-    "Unit",
-}
-
-IMPORTS = """
-# This stub file was automatically generated.
-
-from astropy.units.core import IrreducibleUnit, PrefixUnit, Unit
-from astropy.units.function.logarithmic import MagUnit
-from astropy.units.function.mixin import IrreducibleFunctionUnit, RegularFunctionUnit
-"""
+def main():
+    with open("astropy/units/__init__.pyi", "w") as f:
+        for line in generate_stub_lines():
+            f.write(line)
+            f.write("\n")
 
 
-def generate_stub():
-    stub_lines = [IMPORTS.lstrip()]
+def generate_stub_lines():
+    # --- preprocessing ---
+    import_lines = []
+    variable_lines = []
     for name in units.__all__:
         obj = getattr(units, name)
-        type_name = type(obj).__name__
-        if type_name in SUPPORTED_TYPES:
+        # instances of unit classes
+        if isinstance(obj, (units.UnitBase, units.FunctionUnitBase)):
+            type_name = type(obj).__name__
             docstring = obj.__doc__
-            stub_lines.append(f'{name}: {type_name}\n"""{docstring}"""\n')
-    return "\n".join(stub_lines)
+            variable_lines.append(f'{name}: {type_name}\n"""{docstring}"""\n')
+            # if the object type is not part of astropy.units, we need to import it
+            if not getattr(units, type(obj).__name__, None):
+                import_lines.append(make_import_line(type(obj)))
+        # classes
+        elif type(obj).__name__ in ("type", "ABCMeta", "_UnitMetaClass"):
+            # "as"-suffix needed to make type checkers find it
+            import_lines.append(make_import_line(obj, include_as_suffix=True))
+
+    import_lines = list(set(import_lines))
+    import_lines.sort()
+
+    # --- output ---
+    yield "# This stub file was automatically generated."
+    yield ""
+    for line in import_lines:
+        yield line
+    yield ""
+    for line in variable_lines:
+        yield line
+
+
+def make_import_line(cls, include_as_suffix=False):
+    module_name = cls.__module__
+    class_name = cls.__name__
+    as_suffix = f" as {class_name}" if include_as_suffix else ""
+    return f"from {module_name} import {class_name}{as_suffix}"
 
 
 if __name__ == "__main__":
-    stub_content = generate_stub()
-    with open("astropy/units/__init__.pyi", "w") as f:
-        f.write(stub_content)
+    main()
