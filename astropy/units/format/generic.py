@@ -14,29 +14,24 @@
 Handles a "generic" string format for units
 """
 
-from __future__ import annotations
-
 import re
 import unicodedata
 import warnings
 from fractions import Fraction
 from re import Match, Pattern
-from typing import TYPE_CHECKING, ClassVar, Final
+from typing import ClassVar, Final
 
 import numpy as np
 
-from astropy.units.core import CompositeUnit, Unit, get_current_unit_registry
+from astropy.extern.ply.lex import Lexer
+from astropy.units.core import CompositeUnit, Unit, UnitBase, get_current_unit_registry
 from astropy.units.errors import UnitsWarning
+from astropy.units.typing import UnitScale
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
+from astropy.utils.parsing import ThreadSafeParser
 
 from .base import Base, _ParsingFormatMixin
-
-if TYPE_CHECKING:
-    from astropy.extern.ply.lex import Lexer
-    from astropy.units import UnitBase
-    from astropy.units.typing import UnitScale
-    from astropy.utils.parsing import ThreadSafeParser
 
 
 class _GenericParserMixin(_ParsingFormatMixin):
