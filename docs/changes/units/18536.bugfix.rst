@@ -1,0 +1,7 @@
+Parsing deprecated units (e.g. ``u.Unit("erg", format="vounit",
+parse_strict=...)``) now obeys the ``parse_strict`` argument, which has so far
+been ignored in that context.
+Because by default ``parse_strict="raise"`` then parsing deprecated units can
+now cause an error where it previously succeeded with a warning, but the
+previous behaviour (for deprecated units) can be ensured in a
+backwards-compatible way by setting ``parse_strict="warn"`` explicitly.

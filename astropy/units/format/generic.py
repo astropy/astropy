@@ -410,7 +410,9 @@ class Generic(Base, _GenericParserMixin):
     """
 
     @classmethod
-    def _validate_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
+    def _validate_unit(
+        cls, s: str, detailed_exception: bool = True, deprecations: str = "warn"
+    ) -> UnitBase:
         registry = get_current_unit_registry().registry
         if s in cls._unit_symbols:
             s = cls._unit_symbols[s]

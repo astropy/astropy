@@ -361,9 +361,12 @@ class RoundtripBase:
             s = unit.to_string(output_format)
 
         if s in self.format_._deprecated_units:
-            with pytest.warns(UnitsWarning, match="deprecated") as w:
-                a = Unit(s, format=self.format_)
+            with pytest.raises(ValueError, match="deprecated"):
+                Unit(s, format=self.format_)
+            with pytest.warns(UnitParserWarning, match="deprecated") as w:
+                a = Unit(s, format=self.format_, parse_strict="warn")
             assert len(w) == 1
+            assert Unit(s, format=self.format_, parse_strict="silent") == a
         else:
             a = Unit(s, format=self.format_)  # No warning
 
@@ -373,7 +376,7 @@ class RoundtripBase:
         ud = unit.decompose()
         s = ud.to_string(self.format_)
         assert "  " not in s
-        a = Unit(s, format=self.format_)
+        a = Unit(s, format=self.format_, parse_strict="warn")
         assert_allclose(a.decompose().scale, ud.scale, rtol=1e-5)
 
 
@@ -464,7 +467,7 @@ class TestRoundtripOGIP(RoundtripBase):
             # as a deprecated unit.
             with pytest.warns(UnitsWarning):
                 s = unit.to_string(self.format_)
-                a = Unit(s, format=self.format_)
+                a = Unit(s, format=self.format_, parse_strict="warn")
             assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-9)
         else:
             self.check_roundtrip(unit)
@@ -735,9 +738,8 @@ def test_deprecated_did_you_mean_units():
     ):
         u.Unit("ANGSTROM", format="vounit")
 
-    with pytest.warns(UnitsWarning, match=r".* 0\.1nm\.") as w:
+    with pytest.raises(ValueError, match=r".* 0\.1nm\."):
         u.Unit("angstrom", format="vounit")
-    assert len(w) == 1
 
 
 @pytest.mark.parametrize("string", ["mag(ct/s)", "dB(mW)", "dex(cm s**-2)"])
