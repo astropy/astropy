@@ -117,7 +117,7 @@ To use a position-velocity structured array with |PyERFA|::
   >>> erfa.pvu(86400*u.s, pv)
   <Quantity [([ 1.   ,  0.125,  0.   ], [ 0.   ,  0.125,  0.   ]),
              ([-0.125,  1.   ,  0.   ], [-0.125,  0.   ,  0.   ])] (AU, AU / d)>
-  >>> erfa.pv2s(pv)  # doctest: +FLOAT_CMP
+  >>> tuple(erfa.pv2s(pv))  # doctest: +FLOAT_CMP
   (<Quantity [0.        , 1.57079633] rad>,
    <Quantity [0., 0.] rad>,
    <Quantity [1., 1.] AU>,
