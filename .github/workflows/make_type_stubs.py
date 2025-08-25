@@ -3,7 +3,7 @@ Simple stub generator. Focussed on `astropy.units` for now.
 
 Stub files (.pyi) help type checkers understand dynamically created code.
 
-TO DO: functions, functools._lru_cache_wrapper, method, DataInfoMeta
+TO DO: functions, functools._lru_cache_wrapper, method, DataInfoMeta.
 """
 
 import astropy.units as units
@@ -11,9 +11,10 @@ import astropy.units as units
 
 def main():
     with open("astropy/units/__init__.pyi", "w") as f:
+        f.write("# This stub file was automatically generated.\n")
         for line in generate_stub_lines():
-            f.write(line)
             f.write("\n")
+            f.write(line)
 
 
 def generate_stub_lines():
@@ -23,7 +24,7 @@ def generate_stub_lines():
     for name in units.__all__:
         obj = getattr(units, name)
         # instances of unit classes
-        if isinstance(obj, (units.UnitBase, units.FunctionUnitBase)):
+        if isinstance(obj, (units.core.UnitBase, units.FunctionUnitBase)):
             type_name = type(obj).__name__
             docstring = obj.__doc__
             variable_lines.append(f'{name}: {type_name}\n"""{docstring}"""\n')
@@ -39,8 +40,6 @@ def generate_stub_lines():
     import_lines.sort()
 
     # --- output ---
-    yield "# This stub file was automatically generated."
-    yield ""
     for line in import_lines:
         yield line
     yield ""
