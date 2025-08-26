@@ -4027,12 +4027,6 @@ class Table:
         """
         return groups.table_group_by(self, keys)
 
-    def _encode_mixins(tbl):
-        """Encode mixin columns to basic columns for DataFrame compatibility."""
-        from .dataframes import _encode_mixins
-
-        return _encode_mixins(tbl)
-
     def to_pandas(self, index=None, use_nullable_int=True):
         """
         Return a :class:`pandas.DataFrame` instance.
