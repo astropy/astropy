@@ -120,7 +120,7 @@ Create a table and convert to different DataFrame backends::
     >>> type(df_polars)
     <class 'polars.dataframe.frame.DataFrame'>
 
-    # You can also pass the backend as a module
+    # You can also pass the module directly as a backend
     >>> import polars as pl
     >>> df_polars2 = t.to_df(pl)
 
