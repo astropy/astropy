@@ -192,8 +192,6 @@ class TestDataFrameConversion:
             case _:
                 raise ValueError(f"Unknown backend: {backend}")
 
-        tp = self._to_dataframe(t, backend, use_legacy)
-
         if not use_IndexedTable:
             assert np.all(tp.index == row_index)
             tp = self._to_dataframe(t, backend, use_legacy, index="tm")
