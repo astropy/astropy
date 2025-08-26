@@ -168,7 +168,8 @@ def to_pandas(table, index=None, use_nullable_int=True):
                     # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
                     pd_dtype = pd_dtype.replace("i", "I").replace("u", "U")
                 else:
-                    raise ValueError(
+                    from pandas.errors import IntCastingNaNError
+                    raise IntCastingNaNError(
                         "Cannot convert masked integer columns to DataFrame without using nullable integers. "
                         f"Set use_nullable_int=True or remove the offending column: {name}."
                     )
