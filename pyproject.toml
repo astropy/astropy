@@ -82,7 +82,7 @@ all = [
     "certifi>=2022.6.15.1",
     "dask[array]>=2022.5.1",
     "h5py>=3.9.0",  # older versions used deprecated np.product()
-    "pyarrow>=10.0.1",
+    "pyarrow>=11.0.0",
     "beautifulsoup4>=4.9.3", # imposed by pandas==2.0
     "html5lib>=1.1",
     "bleach>=3.2.1",
