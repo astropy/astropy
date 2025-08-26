@@ -412,7 +412,7 @@ def from_df(df, index=False, units=None):
 
         if isinstance(dtype, nw.Int128):
             raise ValueError(
-                "Astropy Tables does not support Int128, please use a smaller integer type."
+                "Numpy and astropy Table do not support Int128, please use a smaller integer type."
             )
 
         # Handle nullable integers
