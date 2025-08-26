@@ -293,7 +293,7 @@ class TestDataFrameConversion:
         shape = (3,) * ndim
         colshape = (10,) + shape
         t = table.Table()
-        t["a"] = np.ones(colshape)
+        t["a"] = np.arange(np.prod(colshape)).reshape(colshape)
 
         match backend:
             # Pandas and PyArrow do not support multidimensional columns
@@ -313,6 +313,7 @@ class TestDataFrameConversion:
                 # Round-trip conversion
                 t2 = self._from_dataframe(df, backend, use_legacy)
                 assert t2["a"].shape == colshape
+                assert np.all(t["a"] == t2["a"])
             case _:
                 raise ValueError(f"Unknown backend: {backend}")
 
