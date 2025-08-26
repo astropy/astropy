@@ -91,7 +91,7 @@ class TestDataFrameConversion:
                     t[endian + kind + byte] = x.view(x.dtype.newbyteorder(endian))
 
         t["u"] = ["a", "b", "c"]
-        t["s"] = ["a", "b", "c"]
+        t["s"] = [b"a", b"b", b"c"]
 
         d = self._to_dataframe(t, backend, use_legacy)
 
@@ -410,7 +410,7 @@ class TestDataFrameConversion:
         t["u"] = ["a", "b", "c"]
         t["u"].mask = [False, True, False]
 
-        t["s"] = ["a", "b", "c"]
+        t["s"] = [b"a", b"b", b"c"]
         t["s"].mask = [False, True, False]
 
         # https://github.com/astropy/astropy/issues/7741
