@@ -105,10 +105,9 @@ class TestDataFrameConversion:
             if column in ("u", "s"):
                 assert np.all(original_col == roundtrip_col)
                 if backend == "pandas":
-                    # Legacy pandas-specific checks
-                    assert d[column].dtype == np.dtype(
-                        "O"
-                    )  # upstream feature of pandas
+                    # Pandas-specific checks
+                    # Upstream feature of pandas
+                    assert d[column].dtype == np.dtype("O")
             else:
                 # Generic comparison with tolerance
                 assert_allclose(original_col, roundtrip_col)
@@ -125,14 +124,14 @@ class TestDataFrameConversion:
 
                 # Pandas-specific checks
                 if backend == "pandas":
-                    # Legacy pandas-specific exact comparison
+                    # Pandas-specific exact comparison
                     assert np.all(t[column] == d[column])
                     if t[column].dtype.isnative:
                         assert d[column].dtype == t[column].dtype
                     else:
                         assert d[column].dtype == t[column].dtype.newbyteorder()
 
-        # Legacy pandas-specific endian tests
+        # Pandas-specific endian tests
         if backend == "pandas":
             # Regression test for astropy/astropy#1156 - the following code gave a
             # ValueError: Big-endian buffer not supported on little-endian
@@ -143,7 +142,7 @@ class TestDataFrameConversion:
             d[["<i4", ">i4"]]
             d[["<f4", ">f4"]]
 
-            # Additional legacy round-trip checks
+            # Additional round-trip checks
             for column in t.columns:
                 if column in ("u", "s"):
                     assert np.all(t[column] == t2[column])
