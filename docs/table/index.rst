@@ -354,6 +354,7 @@ Astropy Table and DataFrames
    :maxdepth: 2
 
    dataframes.rst
+   pandas.rst
    table_and_dataframes.rst
 
 Implementation
