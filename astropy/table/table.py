@@ -4109,8 +4109,8 @@ class Table:
 
         This method supports converting Astropy Table (or QTable) instances into a variety of
         DataFrame formats via the ``narwhals`` library. The output can be any supported eager
-        DataFrame type, such as `pandas`, ``polars``, or others, depending on the specified
-        backend.
+        DataFrame type, such as `pandas`, ``polars``, `pyarrow`, or others, depending on the
+        specified backend.
 
         Mixin columns such as ``Quantity``, ``Time``, ``TimeDelta``, or ``SkyCoord`` are automatically
         converted to plain Column or MaskedColumn types when necessary. Time-related mixins
@@ -4119,12 +4119,11 @@ class Table:
 
         Parameters
         ----------
-        backend : str or module or ``narwhals.Implementation``
+        backend : str or module
             The backend to use for conversion. This can be:
 
-            - A string, such as "pandas" or "polars"
+            - A string, such as "pandas", "polars", or "pyarrow"
             - The backend module itself (e.g., ``import pandas as pd; backend=pd``)
-            - A ``narwhals.Implementation`` instance
 
         index : None, bool, str
             Specifies the index column in the resulting DataFrame.
@@ -4241,12 +4240,14 @@ class Table:
     @classmethod
     def from_df(cls, df, index=False, units=None):
         """
-        Create a `~astropy.table.Table` from any ``narwhals``-compatible dataframe (e.g., `pandas`, ``polars``).
+        Create a `~astropy.table.Table` from any ``narwhals``-compatible dataframe
+        (e.g., `pandas`, ``polars``, `pyarrow`, etc).
 
         Parameters
         ----------
         df : object
-            A dataframe-like object (e.g., a `pandas.DataFrame`, ``polars.DataFrame``, or other ``narwhals`` compatible dataframe).
+            A dataframe-like object (e.g., a `pandas.DataFrame`, ``polars.DataFrame``,
+            `pyarrow.Table` or other ``narwhals`` compatible dataframe).
         index : bool
             Whether to include the index (if applicable, like in pandas).
         units: dict
