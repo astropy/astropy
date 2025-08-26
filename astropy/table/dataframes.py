@@ -174,6 +174,7 @@ def to_pandas(table, index=None, use_nullable_int=True):
                     pd_dtype = pd_dtype.replace("i", "I").replace("u", "U")
                 else:
                     from pandas.errors import IntCastingNaNError
+
                     raise IntCastingNaNError(
                         "Cannot convert masked integer columns to DataFrame without using nullable integers. "
                         f"Set use_nullable_int=True or remove the offending column: {name}."
