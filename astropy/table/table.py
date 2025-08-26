@@ -4104,7 +4104,7 @@ class Table:
 
         This method supports converting Astropy Table (or QTable) instances into a variety of
         DataFrame formats via the ``narwhals`` library. The output can be any supported eager
-        DataFrame type, such as `pandas`, ``polars``, `pyarrow`, or others, depending on the
+        DataFrame type, such as `pandas`, ``polars``, ``pyarrow``, or others, depending on the
         specified backend.
 
         Mixin columns such as ``Quantity``, ``Time``, ``TimeDelta``, or ``SkyCoord`` are automatically
@@ -4236,13 +4236,13 @@ class Table:
     def from_df(cls, df, index=False, units=None):
         """
         Create a `~astropy.table.Table` from any ``narwhals``-compatible dataframe
-        (e.g., `pandas`, ``polars``, `pyarrow`, etc).
+        (e.g., `pandas`, ``polars``, ``pyarrow``, etc).
 
         Parameters
         ----------
         df : object
             A dataframe-like object (e.g., a `pandas.DataFrame`, ``polars.DataFrame``,
-            `pyarrow.Table` or other ``narwhals`` compatible dataframe).
+            ``pyarrow.Table`` or other ``narwhals`` compatible dataframe).
         index : bool
             Whether to include the index (if applicable, like in pandas).
         units: dict
