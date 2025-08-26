@@ -5,4 +5,4 @@ through the narwhals library. The ``to_df`` method converts an Astropy Table
 to any supported DataFrame format, while ``from_df`` creates an Astropy Table
 from any narwhals-compatible DataFrame. Narwhals is a lightweight compatibility
 layer that provides a unified API across different DataFrame libraries, allowing
-seamless interoperability without requiring all DataFrame libraries as dependencies. 
+seamless interoperability without requiring all DataFrame libraries as dependencies.
