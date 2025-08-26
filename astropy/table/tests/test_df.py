@@ -252,6 +252,8 @@ class TestDataFrameConversion:
                 df = pl.DataFrame(df)
             case "pyarrow":
                 import pyarrow as pa
+            case _:
+                raise ValueError(f"Unknown backend: {backend}")
 
                 df = pa.Table.from_pydict(df)
 
