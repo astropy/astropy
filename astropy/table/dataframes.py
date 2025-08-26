@@ -1,11 +1,12 @@
 """
 DataFrame conversion utilities for Astropy Tables.
 
-This module provides a class-based implementation for converting between
-Astropy Tables and various DataFrame formats (pandas, polars, etc) via
-the narwhals library.
+This module provides utility functions for converting between Astropy Tables
+and various DataFrame formats (pandas, polars, pyarrow, etc) via the narwhals
+library.
 """
 
+import types
 import warnings
 from collections import OrderedDict
 from collections.abc import Mapping
@@ -51,6 +52,10 @@ def _encode_mixins(tbl):
 
 def _get_backend_impl(backend):
     """Get the narwhals backend implementation."""
+    # Ensure backend is string or module
+    if not isinstance(backend, (str, types.ModuleType)):
+        raise TypeError("backend must be a string or module")
+
     try:
         import narwhals as nw
     except ImportError:
@@ -119,7 +124,7 @@ def _handle_index_argument(table, index, backend_impl):
 
 
 def to_pandas(table, index=None, use_nullable_int=True):
-    """Convert an Astropy Table to a pandas DataFrame (implementation).
+    """Convert an Astropy Table to a pandas DataFrame.
 
     This mirrors the previous DataFrameConverter.to_pandas method but as a
     module-level function.
@@ -280,7 +285,7 @@ def to_df(table, backend, index=None, use_nullable_int=True):
 
 
 def from_pandas(dataframe, index=False, units=None):
-    """Create a Table from a pandas DataFrame (implementation)."""
+    """Create a Table from a pandas DataFrame."""
     from .table import Table
 
     out = OrderedDict()
@@ -362,7 +367,7 @@ def from_pandas(dataframe, index=False, units=None):
 
 
 def from_df(df, index=False, units=None):
-    """Create a Table from any narwhals-compatible DataFrame (implementation)."""
+    """Create a Table from any narwhals-compatible DataFrame."""
     from .table import Table
 
     try:
