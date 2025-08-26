@@ -428,10 +428,18 @@ def from_df(df, index=False, units=None):
             continue
 
         # Handle string-like columns
-        elif isinstance(dtype, (nw.String, nw.Object)):
+        elif isinstance(dtype, (nw.String, nw.Binary, nw.Object)):
             data = column.to_numpy()
             if data.dtype.kind == "O":
-                data = np.array(["" if m else str(d) for d, m in zip(data, mask)])
+                ts = (str, bytes)
+                # If all elements of an object array are string-like or None or np.nan
+                # then coerce back to a native numpy str/unicode array.
+                if all(isinstance(x, ts) or (x is None) or np.isnan(x) for x in data):
+                    # Force any missing (null) values to b''.  Numpy will
+                    # upcast to str/unicode as needed. We go via a list to
+                    # avoid replacing objects in a view of the pandas array and
+                    # to ensure numpy initializes to string or bytes correctly.
+                    data = np.array([b"" if m else d for (d, m) in zip(data, mask)])
 
         # Handle datetime columns
         elif isinstance(dtype, nw.Datetime):
