@@ -230,7 +230,7 @@ release = metadata.version(project)
 version = ".".join(release.split(".")[:2])
 
 # Only include dev docs in dev version.
-dev = "dev" in release
+dev = False  # DO NOT MERGE: Simulate stable view
 if not dev:
     exclude_patterns += ["development/*"]
 
@@ -344,7 +344,7 @@ html_context = {
     "default_mode": "light",
     "version_slug": os.environ.get("READTHEDOCS_VERSION") or "",
     "to_be_indexed": ["stable", "latest"],
-    "is_development": dev,
+    "is_development": False,  # DO NOT MERGE: Simulate stable view
     "github_user": "astropy",
     "github_repo": "astropy",
     "github_version": "main",
