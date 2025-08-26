@@ -4,15 +4,12 @@
 Handles the "Unicode" unit format.
 """
 
-from __future__ import annotations
+from typing import ClassVar
 
-from typing import TYPE_CHECKING, ClassVar
+from astropy.units.core import NamedUnit
+from astropy.units.typing import UnitPower
 
 from . import console
-
-if TYPE_CHECKING:
-    from astropy.units import NamedUnit
-    from astropy.units.typing import UnitPower
 
 
 class Unicode(console.Console):

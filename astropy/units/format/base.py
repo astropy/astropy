@@ -1,22 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 import warnings
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, ClassVar, Literal
+from typing import ClassVar, Literal
 
 import numpy as np
 
-from astropy.units.core import CompositeUnit, NamedUnit, Unit, get_current_unit_registry
+from astropy.extern.ply.lex import LexToken
+from astropy.units.core import (
+    CompositeUnit,
+    NamedUnit,
+    Unit,
+    UnitBase,
+    get_current_unit_registry,
+)
 from astropy.units.errors import UnitsWarning
+from astropy.units.typing import UnitPower, UnitScale
 from astropy.units.utils import maybe_simple_fraction
 from astropy.utils.misc import did_you_mean
-
-if TYPE_CHECKING:
-    from astropy.extern.ply.lex import LexToken
-    from astropy.units import UnitBase
-    from astropy.units.typing import UnitPower, UnitScale
 
 
 class Base:
@@ -24,7 +25,7 @@ class Base:
     The abstract base class of all unit formats.
     """
 
-    registry: ClassVar[dict[str, type[Base]]] = {}
+    registry: ClassVar[dict[str, type["Base"]]] = {}
     _space: ClassVar[str] = " "
     _scale_unit_separator: ClassVar[str] = " "
     _times: ClassVar[str] = "*"
