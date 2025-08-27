@@ -40,6 +40,21 @@ though the second line is given in ``cm``:
 
     ax.plot([1, 2, 3] * u.cm)
 
+If you want more control, you can explicitly set the units for the x-axis
+and/or y-axis by passing a unit argument to ``ax.xaxis.set_units()`` or
+``ax.yaxis.set_units()``.
+
+For example, you can set the y-axis units to centimeters:
+
+.. plot::
+    :include-source:
+    :context:
+
+    ax.yaxis.set_units(u.cm)
+
+This keeps the axis units fixed, regardless of the data's units or plot order.
+For more information, see the Matplotlib documentation for :meth:`matplotlib.axis.Axis.set_units`.
+
 Plotting a quantity with an incompatible unit will raise an exception.
 For example, calling ``ax.plot([1, 2, 3] * u.kg)`` (mass unit) to overplot
 on the plot above that is displaying length units.
