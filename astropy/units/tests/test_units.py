@@ -720,21 +720,29 @@ def test_pickle_unrecognized_unit():
 
 
 @pytest.mark.parametrize(
-    "name",
+    "name,message",
     [
-        pytest.param("h", id="simple_conflict"),
-        pytest.param("ʰ", id="NFKC_normalization"),
+        pytest.param(
+            "h",
+            r"^the namespace already uses the name 'h' for Unit\(\"h\"\)$",
+            id="simple_conflict",
+        ),
+        pytest.param(
+            "ʰ",
+            (
+                "^the namespace already uses the NFKC normalized name 'h' for "
+                r'Unit\("h"\)'
+                "\n\nSee "
+                "https://docs.python.org/3/reference/lexical_analysis.html#identifiers "
+                r"for more information\.$"
+            ),
+            id="NFKC_normalization",
+        ),
     ],
 )
-def test_duplicate_define(name):
+def test_duplicate_define(name, message):
     namespace = {"h": u.h}
-    with pytest.raises(
-        ValueError,
-        match=(
-            "^Object with NFKC normalized name 'h' already exists in given namespace "
-            r'\(Unit\("h"\)\)\.$'
-        ),
-    ):
+    with pytest.raises(ValueError, match=message):
         u.def_unit(name, u.hourangle, namespace=namespace)
 
 

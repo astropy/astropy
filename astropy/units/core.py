@@ -1839,12 +1839,20 @@ class NamedUnit(UnitBase):
 
         # Loop through all of the names first, to ensure all of them
         # are new, then add them all as a single "transaction" below.
-        for name in (unicodedata.normalize("NFKC", name) for name in self._names):
-            if name in namespace and self != namespace[name]:
-                raise ValueError(
-                    f"Object with NFKC normalized name {name!r} already exists in "
-                    f"given namespace ({namespace[name]!r})."
+        for name in self._names:
+            nfkc_name = unicodedata.normalize("NFKC", name)
+            if nfkc_name in namespace and self != (obj := namespace[nfkc_name]):
+                msg = (
+                    f"the namespace already uses the name {name!r} for {obj!r}"
+                    if name == nfkc_name
+                    else (
+                        "the namespace already uses the NFKC normalized name "
+                        f"{nfkc_name!r} for {obj!r}\n\nSee "
+                        "https://docs.python.org/3/reference/lexical_analysis.html#identifiers "
+                        "for more information."
+                    )
                 )
+                raise ValueError(msg)
 
         for name in self._names:
             namespace[name] = self
