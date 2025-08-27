@@ -158,3 +158,15 @@ def test_small_range():
 
     # check uniqueness of labels
     assert len(set(labels)) == len(labels)
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_override_axis_unit():
+    fig = Figure()
+    ax = fig.add_subplot()
+
+    with quantity_support():
+        ax.plot([1, 2, 3] * u.m)
+        ax.yaxis.set_units(u.cm)
+        fig.canvas.draw()
+        assert ax.yaxis.get_units() == u.cm
