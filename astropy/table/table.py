@@ -8,6 +8,7 @@ from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from numpy import ma
@@ -4027,7 +4028,9 @@ class Table:
         """
         return groups.table_group_by(self, keys)
 
-    def to_pandas(self, index=None, use_nullable_int=True):
+    def to_pandas(
+        self, index: bool | str | None = None, use_nullable_int: bool = True
+    ) -> Any:
         """
         Return a :class:`pandas.DataFrame` instance.
 
@@ -4048,10 +4051,14 @@ class Table:
 
         Parameters
         ----------
-        index : None, bool, str
-            Specify DataFrame index mode
-        use_nullable_int : bool, default=True
-            If True, masked integer columns are converted to the pandas
+        index : None, bool, str, optional
+            Specify DataFrame index mode. If ``None`` (default), use the
+            table's primary index if it exists and is a single column.
+            If ``False``, no index is set. If ``True``, use the primary
+            index (requires single-column primary key). If a string,
+            use the column with that name as the index.
+        use_nullable_int : bool, optional
+            If True (default), masked integer columns are converted to the pandas
             nullable integer type. If False, an error is raised if a masked
             integer column is encountered.
 
@@ -4065,7 +4072,7 @@ class Table:
         ImportError
             If pandas is not installed
         ValueError
-            If the Table has multi-dimensional columns
+            If the Table has multi-dimensional columns or if index argument is invalid
 
         Examples
         --------
@@ -4098,7 +4105,12 @@ class Table:
 
         return to_pandas(self, index=index, use_nullable_int=use_nullable_int)
 
-    def to_df(self, backend, index=None, use_nullable_int=True):
+    def to_df(
+        self,
+        backend: str | types.ModuleType,
+        index: bool | str | None = None,
+        use_nullable_int: bool = True,
+    ) -> Any:
         """
         Convert the table to an eager DataFrame using the ``narwhals`` backend.
 
@@ -4120,15 +4132,15 @@ class Table:
             - A string, such as "pandas", "polars", or "pyarrow"
             - The backend module itself (e.g., ``import pandas as pd; backend=pd``)
 
-        index : None, bool, str
+        index : None, bool, str, optional
             Specifies the index column in the resulting DataFrame.
 
             - If None (default), use the table’s primary index if it exists and is a single column.
             - If False, no index is set on the DataFrame.
             - If a string, use the column with that name as the index.
 
-        use_nullable_int : bool, default=True
-            If True, masked integer columns are converted to the backend's nullable integer type.
+        use_nullable_int : bool, optional
+            If True (default), masked integer columns are converted to the backend's nullable integer type.
             If False, an error is raised if a masked integer column is encountered.
 
         Returns
@@ -4140,6 +4152,8 @@ class Table:
         ------
         ValueError
             If the backend is not compatible with eager DataFrame conversion, or if the index argument is invalid.
+        ImportError
+            If the narwhals library is not installed.
 
         Examples
         --------
@@ -4171,7 +4185,9 @@ class Table:
         )
 
     @classmethod
-    def from_pandas(cls, dataframe, index=False, units=None):
+    def from_pandas(
+        cls, dataframe: Any, index: bool = False, units: Mapping[str, Any] | None = None
+    ) -> "Table":
         """
         Create a `~astropy.table.Table` from a :class:`pandas.DataFrame` instance.
 
@@ -4183,9 +4199,9 @@ class Table:
         ----------
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
-        index : bool
+        index : bool, optional
             Include the index column in the returned table (default=False)
-        units: dict
+        units : dict, optional
             A dict mapping column names to a `~astropy.units.Unit`.
             The columns will have the specified unit in the Table.
 
@@ -4233,7 +4249,9 @@ class Table:
         return from_pandas(dataframe, index=index, units=units)
 
     @classmethod
-    def from_df(cls, df, index=False, units=None):
+    def from_df(
+        cls, df: Any, index: bool = False, units: Mapping[str, Any] | None = None
+    ) -> "Table":
         """
         Create a `~astropy.table.Table` from any ``narwhals``-compatible dataframe
         (e.g., `pandas`, ``polars``, ``pyarrow``, etc).
@@ -4243,15 +4261,20 @@ class Table:
         df : object
             A dataframe-like object (e.g., a `pandas.DataFrame`, ``polars.DataFrame``,
             ``pyarrow.Table`` or other ``narwhals`` compatible dataframe).
-        index : bool
-            Whether to include the index (if applicable, like in pandas).
-        units: dict
+        index : bool, optional
+            Whether to include the index (if applicable, like in pandas) (default=False).
+        units : dict, optional
             A dict mapping column names to a `~astropy.units.Unit`.
             The columns will have the specified unit in the Table.
 
         Returns
         -------
         table : astropy.table.Table
+
+        Raises
+        ------
+        ImportError
+            If the narwhals library is not installed.
 
         Examples
         --------

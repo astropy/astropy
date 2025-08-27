@@ -10,13 +10,17 @@ import types
 import warnings
 from collections import OrderedDict
 from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from .column import Column, MaskedColumn
 
+if TYPE_CHECKING:
+    from .table import Table
 
-def _encode_mixins(tbl):
+
+def _encode_mixins(tbl: "Table") -> "Table":
     """Encode mixin columns to basic columns for DataFrame compatibility."""
     from astropy.time import TimeBase, TimeDelta
 
@@ -50,7 +54,7 @@ def _encode_mixins(tbl):
     return encode_tbl
 
 
-def _get_backend_impl(backend):
+def _get_backend_impl(backend: str | types.ModuleType) -> Any:
     """Get the narwhals backend implementation."""
     # Ensure backend is string or module
     if not isinstance(backend, (str, types.ModuleType)):
@@ -66,7 +70,7 @@ def _get_backend_impl(backend):
     return nw.Implementation.from_backend(backend)
 
 
-def _validate_columns_for_backend(table, backend_impl):
+def _validate_columns_for_backend(table: "Table", backend_impl: Any) -> None:
     """Validate that table columns are compatible with the target backend.
 
     backend_impl may be *None* to indicate pandas-like validation.
@@ -89,7 +93,9 @@ def _validate_columns_for_backend(table, backend_impl):
         )
 
 
-def _handle_index_argument(table, index, backend_impl):
+def _handle_index_argument(
+    table: "Table", index: bool | str | None, backend_impl: Any
+) -> bool | str:
     """Process the index argument for DataFrame conversion."""
     has_single_pk = table.primary_key and len(table.primary_key) == 1
 
@@ -123,7 +129,9 @@ def _handle_index_argument(table, index, backend_impl):
     return False
 
 
-def to_pandas(table, index=None, use_nullable_int=True):
+def to_pandas(
+    table: "Table", index: bool | str | None = None, use_nullable_int: bool = True
+) -> Any:
     """Convert an Astropy Table to a pandas DataFrame.
 
     This mirrors the previous DataFrameConverter.to_pandas method but as a
@@ -205,7 +213,12 @@ def to_pandas(table, index=None, use_nullable_int=True):
     return df
 
 
-def to_df(table, backend, index=None, use_nullable_int=True):
+def to_df(
+    table: "Table",
+    backend: str | types.ModuleType,
+    index: bool | str | None = None,
+    use_nullable_int: bool = True,
+) -> Any:
     """Convert an Astropy Table to a DataFrame using the specified backend."""
     try:
         import narwhals as nw
@@ -285,7 +298,9 @@ def to_df(table, backend, index=None, use_nullable_int=True):
     return df
 
 
-def from_pandas(dataframe, index=False, units=None):
+def from_pandas(
+    dataframe: Any, index: bool = False, units: Mapping[str, Any] | None = None
+) -> "Table":
     """Create a Table from a pandas DataFrame."""
     from .table import Table
 
@@ -367,7 +382,9 @@ def from_pandas(dataframe, index=False, units=None):
     return Table(out)
 
 
-def from_df(df, index=False, units=None):
+def from_df(
+    df: Any, index: bool = False, units: Mapping[str, Any] | None = None
+) -> "Table":
     """Create a Table from any narwhals-compatible DataFrame."""
     from .table import Table
 
