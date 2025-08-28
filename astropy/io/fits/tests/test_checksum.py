@@ -127,7 +127,7 @@ class TestChecksumFunctions(BaseChecksumTests):
 
     def test_groups_hdu_data(self):
         imdata = np.arange(100.0)
-        imdata.shape = (10, 1, 1, 2, 5)
+        imdata = imdata.reshape((10, 1, 1, 2, 5))
         pdata1 = np.arange(10) + 0.1
         pdata2 = 42
         x = fits.hdu.groups.GroupData(

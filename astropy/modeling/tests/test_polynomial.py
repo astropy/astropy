@@ -114,7 +114,7 @@ class TestFitting:
         rsn = np.random.default_rng(0)
         self.n1 = rsn.standard_normal(self.x1.size) * 0.1
         self.n2 = rsn.standard_normal(self.x2.size)
-        self.n2.shape = self.x2.shape
+        self.n2 = self.n2.reshape(self.x2.shape)
         self.linear_fitter = fitting.LinearLSQFitter()
 
     # TODO: Most of these test cases have some pretty repetitive setup that we
