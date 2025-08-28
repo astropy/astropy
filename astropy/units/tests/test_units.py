@@ -746,7 +746,6 @@ def test_duplicate_define(name, message):
         u.def_unit(name, u.hourangle, namespace=namespace)
 
 
-@pytest.mark.xfail(reason="regression test to reveal a bug")
 def test_unit_module_dunder_all_nfkc_normalization():
     # Python applies NFKC normalization to identifiers, so inserting a name to __all__
     # that changes with NFKC normalization can only cause trouble.
