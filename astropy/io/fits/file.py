@@ -433,8 +433,7 @@ class _File:
                 count = reduce(operator.mul, shape)
                 self._file.seek(offset)
                 data = _array_from_file(self._file, dtype, count)
-                data = data.reshape(shape)
-                return data
+                return data.reshape(shape)
         finally:
             # Make sure we leave the file in the position we found it; on
             # some platforms (e.g. Windows) mmaping a file handle can also

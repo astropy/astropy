@@ -100,7 +100,7 @@ class Distribution:
             interface["strides"] = samples.strides[:-1]
             structured = np.asarray(DummyArray(interface, base=samples))
         # Set our new structured dtype.
-        structured = structured.vierw(new_dtype)
+        structured = structured.view(new_dtype)
         # Get rid of trailing dimension of 1.
         structured = structured.reshape(samples.shape[:-1])
 

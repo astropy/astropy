@@ -1,0 +1,1 @@
+Replace direct setting of `shape` and `dtype` attributes on NumPy arrays.
