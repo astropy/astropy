@@ -57,7 +57,7 @@ def spherical2cartesian(alpha, delta):
     x = np.cos(alpha) * cosd
     y = cosd * np.sin(alpha)
     z = np.sin(delta)
-    return np.array([x, y, z])
+    return x, y, z
 
 
 def cartesian2spherical(x, y, z):
@@ -127,13 +127,9 @@ class RotationSequence3D(Model):
         """
         if x.shape != y.shape or x.shape != z.shape:
             raise ValueError("Expected input arrays to have the same shape")
-        # Note: If the original shape was () (an array scalar) convert to a
-        # 1-element 1-D array on output for consistency with most other models
-        orig_shape = x.shape or (1,)
-        inarr = np.array([x.ravel(), y.ravel(), z.ravel()])
-        result = np.dot(_create_matrix(angles[0], self.axes_order), inarr)
-        x, y, z = np.reshape(result, (3, *orig_shape))
-        return x, y, z
+        inarr = np.stack([x, y, z], axis=-2)
+        result = np.matmul(_create_matrix(angles[0], self.axes_order), inarr)
+        return tuple(np.moveaxis(result, -2, 0))
 
 
 class SphericalRotationSequence(RotationSequence3D):
@@ -181,19 +177,10 @@ class _EulerRotation:
     _separable = False
 
     def evaluate(self, alpha, delta, phi, theta, psi, axes_order):
-        shape = None
-        if isinstance(alpha, np.ndarray):
-            alpha = alpha.ravel()
-            delta = delta.ravel()
-            shape = alpha.shape
-        inp = spherical2cartesian(alpha, delta)
         matrix = _create_matrix([phi, theta, psi], axes_order)
-        result = np.dot(matrix, inp)
-        a, b = cartesian2spherical(*result)
-        if shape is not None:
-            a = a.reshape(shape)
-            b = b.reshape(shape)
-        return a, b
+        inp = np.stack(np.atleast_1d(spherical2cartesian(alpha, delta)), axis=-2)
+        result = np.matmul(matrix, inp)
+        return cartesian2spherical(*np.moveaxis(result, -2, 0))
 
     _input_units_strict = True
 
@@ -536,14 +523,11 @@ class Rotation2D(Model):
             else:
                 raise u.UnitsError("x and y must have compatible units")
 
-        # Note: If the original shape was () (an array scalar) convert to a
-        # 1-element 1-D array on output for consistency with most other models
-        orig_shape = x.shape or (1,)
-        inarr = np.array([x.ravel(), y.ravel()])
+        inarr = np.stack(np.atleast_1d(x, y), axis=-2)
         if isinstance(angle, u.Quantity):
             angle = angle.to_value(u.rad)
-        result = np.dot(cls._compute_matrix(angle), inarr)
-        x, y = np.reshape(result, (2, *orig_shape))
+        res = np.matmul(cls._compute_matrix(angle), inarr)
+        x, y = np.moveaxis(res, -2, 0)
         if has_units:
             return u.Quantity(x, unit=x_unit, subok=True), u.Quantity(
                 y, unit=y_unit, subok=True
