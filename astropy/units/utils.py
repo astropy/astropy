@@ -8,6 +8,7 @@ package.
 
 import io
 import re
+import unicodedata
 from collections.abc import Generator, Mapping
 from fractions import Fraction
 from typing import TYPE_CHECKING, Literal, SupportsFloat
@@ -175,6 +176,16 @@ def generate_prefixonly_unit_summary(namespace: Mapping[str, object]) -> str:
         docstring.write(template.format(*unit_summary))
 
     return docstring.getvalue()
+
+
+def generate_dunder_all(namespace: Mapping[str, object]) -> list[str]:
+    from .core import UnitBase
+
+    return [
+        name
+        for name, value in namespace.items()
+        if isinstance(value, UnitBase) and name == unicodedata.normalize("NFKC", name)
+    ]
 
 
 def is_effectively_unity(value: UnitScaleLike) -> bool | np.bool_:

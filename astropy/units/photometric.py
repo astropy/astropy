@@ -18,8 +18,8 @@ import numpy as np
 from astropy.constants.si import L_bol0
 
 from . import astrophys, cgs, si
-from .core import Unit, UnitBase, def_unit
-from .utils import generate_unit_summary
+from .core import Unit, def_unit
+from .utils import generate_dunder_all, generate_unit_summary
 
 __all__ = ["zero_point_flux"]  #  Units are added at the end
 
@@ -88,7 +88,7 @@ def zero_point_flux(flux0):
 ###########################################################################
 # ALL & DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+__all__ += generate_dunder_all(globals())  # noqa: PLE0605
 
 
 if __doc__ is not None:
