@@ -166,3 +166,23 @@ object::
 When using this, any input/output world coordinates will now be in these
 units, and accessing any of the parameters such as ``wcs.wcs.crval`` will
 return values in the original header units.
+
+Concatenation and stacking of astropy classes
+=============================================
+
+Support has been added to apply numpy functions such as `~numpy.concatenate`
+and `~numpy.stack` to sequences of |SkyCoord|, |Time|, as well as coordinate
+representations and frames.
+
+For coordinates, this replaces most uses of the existing functions
+``astropy.coordinates.concatenate_representations`` and
+``astropy.coordinates.concatenate``, though there all small differences in
+behaviour.  For instance, the existing functions allow one to concatenate
+scalars together with one-dimensional arrays, while this is not allowed by
+`~numpy.concatenate`. Instead, like for arrays, one can do something along the
+lines of ``np.concatenate(np.atleast_1d(coords))``.
+
+Note that a current limitation is that instance attributes like ``location``
+for |Time| and ``obstime`` for |SkyCoord| must be the same (and scalar) for
+all instances that are being concatenated or stacked. These constraints are
+the same as for setting elements of an existing instance.
