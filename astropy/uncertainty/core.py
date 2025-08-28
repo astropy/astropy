@@ -100,9 +100,9 @@ class Distribution:
             interface["strides"] = samples.strides[:-1]
             structured = np.asarray(DummyArray(interface, base=samples))
         # Set our new structured dtype.
-        structured.dtype = new_dtype
+        structured = structured.vierw(new_dtype)
         # Get rid of trailing dimension of 1.
-        structured.shape = samples.shape[:-1]
+        structured = structured.reshape(samples.shape[:-1])
 
         # Now view as the Distribution subclass, and finalize based on the
         # original samples (e.g., to set the unit for QuantityDistribution).
