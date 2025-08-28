@@ -746,6 +746,13 @@ def test_duplicate_define(name, message):
         u.def_unit(name, u.hourangle, namespace=namespace)
 
 
+def test_unit_module_dunder_all_nfkc_normalization():
+    # Python applies NFKC normalization to identifiers, so inserting a name to __all__
+    # that changes with NFKC normalization can only cause trouble.
+    assert "ℓ" not in u.__all__
+    assert u.ℓ is u.liter
+
+
 def test_all_units():
     from astropy.units.core import get_current_unit_registry
 
