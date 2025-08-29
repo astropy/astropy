@@ -300,11 +300,18 @@ class AstropyLogger(Logger):
         --------
         >>> import warnings
         >>> from astropy import log
+        >>> from astropy.utils.exceptions import AstropyUserWarning
         >>> with log.warnings_logging_context():
         ...     warnings.warn("This will be logged", AstropyUserWarning)
+        
+        Notes
+        -----
+        This context manager can be used safely even when warnings logging
+        is already enabled globally. It will respect the existing state
+        and not interfere with it.
         """
         with warnings.catch_warnings():
-            # If warnings logging is already enabled globally, we need to 
+            # If warnings logging is already enabled globally, we need to
             # handle that case
             was_enabled = self.warnings_logging_enabled()
             
