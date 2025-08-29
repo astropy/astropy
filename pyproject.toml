@@ -134,18 +134,6 @@ docs = [
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
 ]
-# These group together all the dependencies needed for developing in Astropy.
-dev = [
-    "astropy[recommended]",  # installs the most common optional dependencies
-    "astropy[test]",
-    "astropy[docs]",
-    "astropy[typing]",
-]
-dev_all = [
-    "tox",
-    "astropy[dev]",
-    "astropy[test_all]",
-]
 
 [project.urls]
 homepage = "https://www.astropy.org/"
@@ -172,6 +160,27 @@ requires = ["setuptools>=77.0.0",
             "numpy>=2.0.0, <3",
             "extension-helpers>=1.4,<2"]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+# re-define historical optional dependencies (a.k.a. 'extras') as
+# user-invisible, PEP 735 dependency groups
+# These group together all the dependencies needed for developing in Astropy.
+dev = [
+    "astropy[recommended]",  # installs the most common optional dependencies
+    "astropy[test]",
+    "astropy[docs]",
+    "astropy[typing]",
+]
+dev_all = [
+    "tox",
+    "astropy[dev]",
+    "astropy[test_all]",
+]
+
+[tool.uv]
+# uv sync's default behavior includes the 'dev' group.
+# Disable this so we get lightweight envs by default.
+default-groups = []
 
 [tool.setuptools]
 include-package-data = true
