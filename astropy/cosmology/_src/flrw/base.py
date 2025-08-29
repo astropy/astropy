@@ -10,7 +10,7 @@ from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
 from numbers import Number
-from typing import Any, Self, TypeVar, overload
+from typing import Self, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
@@ -314,7 +314,7 @@ class FLRW(
         return self.Om0 - self.Ob0
 
     @cached_property
-    def Ok0(self) -> float | np.floating[Any]:
+    def Ok0(self) -> float | np.floating:
         """Omega curvature; the effective curvature density/critical density at z=0."""
         return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
 
