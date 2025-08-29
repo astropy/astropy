@@ -127,6 +127,82 @@ def test_warnings_logging_with_custom_class():
     assert log_list[0].origin == "astropy.tests.test_logger"
 
 
+def test_warnings_logging_context_manager():
+    """Test the new warnings_logging_context manager that isolates warning changes."""
+    # Save original showwarning
+    original_showwarning = warnings.showwarning
+    
+    # Test that the context manager isolates warning changes
+    with warnings.catch_warnings(record=True) as warn_list:
+        with log.warnings_logging_context():
+            with log.log_to_list() as log_list:
+                warnings.warn("This is a warning", AstropyUserWarning)
+                
+    # Check that warnings were logged correctly
+    assert len(log_list) == 1
+    assert len(warn_list) == 0
+    assert log_list[0].levelname == "WARNING"
+    assert log_list[0].message.startswith("This is a warning")
+    assert log_list[0].origin == "astropy.tests.test_logger"
+    
+    # Check that global warnings.showwarning was not permanently modified
+    assert warnings.showwarning == original_showwarning
+    
+    # Test that warnings work normally outside the context
+    with pytest.warns(AstropyUserWarning, match="Normal warning") as warn_list:
+        warnings.warn("Normal warning", AstropyUserWarning)
+    assert len(warn_list) == 1
+
+
+def test_warnings_logging_context_manager_nested():
+    """Test that the context manager works properly when warnings logging is already enabled."""
+    original_showwarning = warnings.showwarning
+    
+    # Enable warnings logging globally first
+    log.enable_warnings_logging()
+    
+    try:
+        # Use context manager while warnings logging is already enabled
+        with warnings.catch_warnings(record=True) as outer_warn_list:
+            with log.warnings_logging_context():
+                with log.log_to_list() as log_list:
+                    warnings.warn("Nested warning", AstropyUserWarning)
+        
+        # Should still work
+        assert len(log_list) == 1
+        assert log_list[0].message.startswith("Nested warning")
+        
+        # Global warnings logging should still be enabled
+        assert log.warnings_logging_enabled()
+        
+    finally:
+        # Clean up
+        log.disable_warnings_logging()
+    
+    # Global state should be restored
+    assert warnings.showwarning == original_showwarning
+
+
+def test_warnings_logging_context_manager_with_non_astropy_warnings():
+    """Test that the context manager properly handles non-Astropy warnings."""
+    original_showwarning = warnings.showwarning
+    
+    with warnings.catch_warnings(record=True) as warn_list:
+        with log.warnings_logging_context():
+            with log.log_to_list() as log_list:
+                warnings.warn("Astropy warning", AstropyUserWarning)
+                warnings.warn("Non-Astropy warning", UserWarning)
+    
+    # Only Astropy warnings should be logged, non-Astropy should go to warn_list
+    assert len(log_list) == 1
+    assert len(warn_list) == 1
+    assert log_list[0].message.startswith("Astropy warning")
+    assert "Non-Astropy warning" in str(warn_list[0].message)
+    
+    # Global state should be preserved
+    assert warnings.showwarning == original_showwarning
+
+
 def test_warning_logging_with_io_votable_warning():
     from astropy.io.votable.exceptions import W02, vo_warn
 

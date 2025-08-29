@@ -283,6 +283,45 @@ class AstropyLogger(Logger):
         warnings.showwarning = self._showwarning_orig
         self._showwarning_orig = None
 
+    @contextmanager
+    def warnings_logging_context(self):
+        """
+        Context manager to temporarily enable warnings logging.
+
+        This method uses ``warnings.catch_warnings()`` to ensure that
+        any changes to the warnings system are isolated to the context
+        and do not affect the global warnings state.
+
+        This is safer than using ``enable_warnings_logging()`` and
+        ``disable_warnings_logging()`` directly, as it ensures that
+        the global warnings system is not permanently modified.
+
+        Examples
+        --------
+        >>> import warnings
+        >>> from astropy import log
+        >>> with log.warnings_logging_context():
+        ...     warnings.warn("This will be logged", AstropyUserWarning)
+        """
+        with warnings.catch_warnings():
+            # If warnings logging is already enabled globally, we need to 
+            # handle that case
+            was_enabled = self.warnings_logging_enabled()
+            
+            if not was_enabled:
+                # Enable warnings logging within the isolated context
+                self._showwarning_orig = warnings.showwarning
+                warnings.showwarning = self._showwarning
+            
+            try:
+                yield
+            finally:
+                if not was_enabled:
+                    # Restore the warnings.showwarning within our context
+                    # The catch_warnings context will restore the global state
+                    warnings.showwarning = self._showwarning_orig
+                    self._showwarning_orig = None
+
     _excepthook_orig = None
 
     def _excepthook(self, etype, value, traceback):
