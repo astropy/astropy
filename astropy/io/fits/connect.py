@@ -126,6 +126,8 @@ def read_table_fits(
     unit_parse_strict="warn",
     mask_invalid=True,
     strip_spaces=False,
+    use_fsspec=None,
+    fsspec_kwargs=None,
 ):
     """
     Read a Table object from an FITS file.
@@ -184,6 +186,20 @@ def read_table_fits(
         Strip trailing whitespace in string columns, default is False and will be
         changed to True in the next major release. This is deactivated when
         using ``memmap=True`` (see above).
+    use_fsspec : bool, optional
+        Use `fsspec.open` to open the file? Defaults to `False` unless
+        ``name`` starts with the Amazon S3 storage prefix ``s3://`` or the
+        Google Cloud Storage prefix ``gs://``.  Can also be used for paths
+        with other prefixes (e.g., ``http://``) but in this case you must
+        explicitly pass ``use_fsspec=True``.
+        Use of this feature requires the optional ``fsspec`` package.
+        A ``ModuleNotFoundError`` will be raised if the dependency is missing.
+    fsspec_kwargs : dict, optional
+        Keyword arguments passed on to `fsspec.open`. This can be used to
+        configure cloud storage credentials and caching behavior.
+        For example, pass ``fsspec_kwargs={"anon": True}`` to enable
+        anonymous access to Amazon S3 open data buckets.
+        See ``fsspec``'s documentation for available parameters.
 
     """
     if isinstance(input, HDUList):
@@ -247,7 +263,13 @@ def read_table_fits(
             mask_invalid = False
             strip_spaces = False
 
-        hdulist = fits_open(input, character_as_bytes=character_as_bytes, memmap=memmap)
+        hdulist = fits_open(
+            input,
+            character_as_bytes=character_as_bytes,
+            memmap=memmap,
+            use_fsspec=use_fsspec,
+            fsspec_kwargs=fsspec_kwargs,
+        )
 
         try:
             return read_table_fits(
@@ -257,6 +279,8 @@ def read_table_fits(
                 unit_parse_strict=unit_parse_strict,
                 mask_invalid=mask_invalid,
                 strip_spaces=strip_spaces,
+                use_fsspec=use_fsspec,
+                fsspec_kwargs=fsspec_kwargs,
             )
         finally:
             hdulist.close()
