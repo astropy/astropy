@@ -1270,7 +1270,11 @@ class Column(BaseColumn):
             raise AttributeError(
                 "cannot set mask value to a column in non-masked Table"
             )
-        super().__setattr__(item, value)
+        if item == "dtype":
+            # not yet available!
+            self._set_dtype(value)
+        else:
+            super().__setattr__(item, value)
 
         if item == "unit" and issubclass(self.dtype.type, np.number):
             try:

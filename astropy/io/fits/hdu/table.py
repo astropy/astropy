@@ -198,7 +198,7 @@ class _TableLikeHDU(_ValidHDU):
 
             data = raw_data.view(np.rec.recarray)
 
-        self._init_tbdata(data)
+        data = self._init_tbdata(data)
         data = data.view(self._data_type)
         data._load_variable_length_data = self._load_variable_length_data
         columns._add_listener(data)
@@ -207,7 +207,7 @@ class _TableLikeHDU(_ValidHDU):
     def _init_tbdata(self, data):
         columns = self.columns
 
-        data.dtype = data.dtype.newbyteorder(">")
+        data = data.view(data.dtype.newbyteorder(">"))
 
         # hack to enable pseudo-uint support
         data._uint = self._uint
@@ -226,6 +226,7 @@ class _TableLikeHDU(_ValidHDU):
         # delete the _arrays attribute so that it is recreated to point to the
         # new data placed in the column object above
         del columns._arrays
+        return data
 
     def _update_load_data(self):
         """Load the data if asked to."""
@@ -758,7 +759,7 @@ class TableHDU(_TableBaseHDU):
 
         raw_data = self._get_raw_data(self._nrows, dtype, self._data_offset)
         data = raw_data.view(np.rec.recarray)
-        self._init_tbdata(data)
+        data = self._init_tbdata(data)
         return data.view(self._data_type)
 
     def _calculate_datasum(self):
