@@ -192,8 +192,8 @@ class _EulerRotation:
         result = np.dot(matrix, inp)
         a, b = cartesian2spherical(*result)
         if shape is not None:
-            a.shape = shape
-            b.shape = shape
+            a = a.reshape(shape)
+            b = b.reshape(shape)
         return a, b
 
     _input_units_strict = True
