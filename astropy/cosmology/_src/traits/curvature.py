@@ -8,7 +8,6 @@ This is private API. See `~astropy.cosmology.traits` for public API.
 __all__ = ["CurvatureComponent"]
 
 import abc
-from typing import Any
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -27,7 +26,7 @@ class CurvatureComponent:
 
     @property
     @abc.abstractmethod
-    def Ok0(self) -> float | np.floating[Any]:
+    def Ok0(self) -> float | np.floating:
         """Omega curvature; the effective curvature density/critical density at z=0."""
         raise NotImplementedError
 
@@ -38,9 +37,7 @@ class CurvatureComponent:
         raise NotImplementedError
 
     @deprecated_keywords("z", since="7.0")
-    def Ok(
-        self, z: Quantity | ArrayLike
-    ) -> NDArray[np.floating[Any]] | np.floating[Any]:
+    def Ok(self, z: Quantity | ArrayLike) -> NDArray[np.floating] | np.floating:
         """Return the equivalent density parameter for curvature at redshift ``z``.
 
         Parameters
