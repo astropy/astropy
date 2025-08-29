@@ -713,6 +713,30 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if "info" in getattr(obj, "__dict__", {}):
             self.info = obj.info
 
+    def _cleanup_indices(self):
+        """
+        Clean up indices to prevent circular references.
+        
+        This method breaks any circular references between the column and its indices
+        by clearing the indices list. This helps prevent memory leaks when the column
+        is no longer needed.
+        """
+        if hasattr(self, 'indices') and self.indices:
+            # Clear the indices list to break circular references
+            self.indices.clear()
+            
+    def __del__(self):
+        """
+        Clean up resources when the column is being destroyed.
+        
+        This ensures that circular references are broken to prevent memory leaks.
+        """
+        try:
+            self._cleanup_indices()
+        except (AttributeError, TypeError):
+            # Ignore errors during cleanup as the object may be partially destroyed
+            pass
+
     def __array_wrap__(self, out_arr, context=None, return_scalar=False):
         """
         __array_wrap__ is called at the end of every ufunc.
