@@ -35,9 +35,6 @@ MODULES_TO_STUB = [
     "required_by_vounit",
 ]
 
-# ignore deprecation warnings triggered by accessing units in deprecated.py
-warnings.simplefilter("ignore", AstropyDeprecationWarning)
-
 
 def main():
     args = _parse_args()
@@ -46,17 +43,19 @@ def main():
 
     log.info("Generating astropy.units stubs...")
 
-    for module_name in MODULES_TO_STUB:
-        full_module_name = f"astropy.units.{module_name}"
-        try:
-            module = importlib.import_module(full_module_name)
-        except ImportError:
-            log.warning(f"Could not import {full_module_name}, skipping.")
-            continue
+    # Ignore deprecation warnings triggered by accessing units in deprecated.py
+    with warnings.catch_warnings(action="ignore", category=AstropyDeprecationWarning):
+        for module_name in MODULES_TO_STUB:
+            full_module_name = f"astropy.units.{module_name}"
+            try:
+                module = importlib.import_module(full_module_name)
+            except ImportError:
+                log.warning(f"Could not import {full_module_name}, skipping.")
+                continue
 
-        stub_file_path = _get_stub_filepath(args.output_dir, module_name)
-        stub_lines = generate_stub_lines(module)
-        _write_stub_file(stub_file_path, stub_lines)
+            stub_file_path = _get_stub_filepath(args.output_dir, module_name)
+            stub_lines = generate_stub_lines(module)
+            _write_stub_file(stub_file_path, stub_lines)
 
 
 def generate_stub_lines(module) -> Iterator[str]:
