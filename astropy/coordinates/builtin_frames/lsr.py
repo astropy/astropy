@@ -186,16 +186,14 @@ class LSRK(BaseRADecFrame):
     r"""A coordinate or frame in the Kinematic Local Standard of Rest (LSR).
 
     This frame is defined as having a velocity of 20 km/s towards RA=270 Dec=30
-    (B1900) relative to the solar system Barycenter. This is defined in:
+    (B1900) relative to the Local Standard of Rest (LSR). This is defined in:
 
         Gordon 1975, Methods of Experimental Physics: Volume 12:
         Astrophysics, Part C: Radio Observations - Section 6.1.5.
 
     This coordinate frame is axis-aligned and co-spatial with
-    `~astropy.coordinates.ICRS`, but has a velocity offset relative to the
-    solar system barycenter to remove the peculiar motion of the sun relative
-    to the LSRK.
-
+    `~astropy.coordinates.ICRS`, but has a velocity offset that removes the
+    Sun's peculiar motion relative to the LSR.
     """
 
 
