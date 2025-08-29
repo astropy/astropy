@@ -2,10 +2,7 @@ import sys
 import textwrap
 from pathlib import Path
 
-import pytest
-
 from astropy.units.scripts import typestubs_for_units
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_typestubs_for_units_script(tmp_path: Path, monkeypatch):
@@ -22,14 +19,7 @@ def test_typestubs_for_units_script(tmp_path: Path, monkeypatch):
     )
 
     # --- generate the stub files ---
-    # Even though the script filters the astropy.units.deprecated module's
-    # warnings for the user, pytest's warning capture system will still
-    # see them. We use pytest.warns to acknowledge these expected warnings
-    # and prevent test failure.
-    # FUTURE MAINTENANCE: When the astropy.units.deprecated module
-    # is removed, this pytest.warns() context manager should be removed.
-    with pytest.warns(AstropyDeprecationWarning):
-        typestubs_for_units.main()
+    typestubs_for_units.main()
 
     # --- spot-check the fundamental si.pyi file ---
     si_stub = tmp_path / "si.pyi"
