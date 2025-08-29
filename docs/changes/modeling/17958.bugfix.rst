@@ -1,1 +1,0 @@
-Fix test_fitting_with_initial_values[DogBoxLSQFitter] convergence failure on ARM64 by changing to more robust initial conditions.
