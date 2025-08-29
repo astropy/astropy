@@ -152,6 +152,7 @@ class GalacticLSR(BaseCoordinateFrame):
     # frame attributes:
     v_bary = DifferentialAttribute(
         default=v_bary_Schoenrich2010,
+        allowed_classes=[r.CartesianDifferential],
         doc="The relative velocity of the solar-system barycenter",
     )
 
