@@ -23,8 +23,12 @@ from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from . import astrophys, cgs
-from .core import UnitBase, _add_prefixes, add_enabled_units, def_unit
-from .utils import generate_prefixonly_unit_summary, generate_unit_summary
+from .core import _add_prefixes, add_enabled_units, def_unit
+from .utils import (
+    generate_dunder_all,
+    generate_prefixonly_unit_summary,
+    generate_unit_summary,
+)
 
 local_units = {}
 
@@ -35,9 +39,7 @@ _add_prefixes(astrophys.earthMass, namespace=local_units, prefixes=True)
 _add_prefixes(astrophys.jupiterRad, namespace=local_units, prefixes=True)
 _add_prefixes(astrophys.earthRad, namespace=local_units, prefixes=True)
 
-__all__ = [
-    name for (name, member) in local_units.items() if isinstance(member, UnitBase)
-]
+__all__ = generate_dunder_all(local_units)  # noqa: PLE0605
 __all__ += ["enable"]
 
 if __doc__ is not None:
