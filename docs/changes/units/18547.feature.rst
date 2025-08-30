@@ -1,3 +1,0 @@
-A script was added, ``typestubs_for_units``, with which one can generate type
-stubs for all automatically generated units.  This is meant as a stop-gap
-solution until we have developed a way to provide these automatically.

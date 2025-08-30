@@ -166,28 +166,3 @@ object::
 When using this, any input/output world coordinates will now be in these
 units, and accessing any of the parameters such as ``wcs.wcs.crval`` will
 return values in the original header units.
-
-Creating Unit Type Stubs
-========================
-
-Individual unit objects like ``u.deg`` or ``u.m`` are created dynamically
-at runtime, which means static type checkers cannot recognize them by default.
-To enable proper type checking for these units, type stub (``.pyi``) files
-are needed that declare their types.
-
-These can be generated quite easily automatically, but we have not determined
-yet how best to provide them (apart from deciding we do not want automatically
-generated files in the source repository).  Pending a proper solution, we now
-include a script that generates these stub files:
-
-.. code-block:: bash
-
-   typestubs-for-units
-
-This command will attempt to write the stub files directly into the directory
-where ``astropy`` is installed. To write to a different location or see other
-options, use the ``--help`` flag.
-
-Note that we intend to retire this script once we have a better solution
-(e.g., generating stubs when astropy is packaged or installed, or providing a
-separate type stubs package).  In the meantime, we welcome feedback.

@@ -161,7 +161,6 @@ fitsinfo = "astropy.io.fits.scripts.fitsinfo:main"
 samp_hub = "astropy.samp.hub_script:hub_script"
 showtable = "astropy.table.scripts.showtable:main_deprecated"
 showtable-astropy = "astropy.table.scripts.showtable:main"
-typestubs-for-units = "astropy.units.scripts.typestubs_for_units:main"
 volint = "astropy.io.votable.volint:main"
 wcslint = "astropy.wcs.wcslint:main"
 
@@ -170,7 +169,8 @@ requires = ["setuptools>=77.0.0",
             "setuptools_scm>=8.0.0",
             "cython>=3.0.0, <4",
             "numpy>=2.0.0, <3",
-            "extension-helpers>=1.4,<2"]
+            "extension-helpers>=1.4,<2",
+            "pyerfa>=2.0.1.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
