@@ -1,11 +1,15 @@
-import sys
+import subprocess
 import textwrap
 from pathlib import Path
 
-from astropy.units.scripts import typestubs_for_units
+import astropy.units as u
 
 
-def test_typestubs_for_units_script(tmp_path: Path, monkeypatch):
+def test_typestubs_installed():
+    spot_check_stubs(Path(u.__file__).parent)
+
+
+def test_typestubs_for_units_script(tmp_path: Path):
     """
     Tests the script that generates module-level .pyi stub files for astropy.units.
 
@@ -13,16 +17,14 @@ def test_typestubs_for_units_script(tmp_path: Path, monkeypatch):
     directory. It then performs spot checks on a few representative files
     to ensure key units and their types are correctly generated.
     """
-    # monkeypatch command-line arguments to use the temporary directory
-    monkeypatch.setattr(
-        sys, "argv", ["typestub_for_units", "--output-dir", str(tmp_path)]
-    )
-
     # --- generate the stub files ---
-    typestubs_for_units.main()
+    subprocess.run(["typestubs-for-units", "-o", str(tmp_path)], check=True)
+    spot_check_stubs(tmp_path)
 
+
+def spot_check_stubs(path):
     # --- spot-check the fundamental si.pyi file ---
-    si_stub = tmp_path / "si.pyi"
+    si_stub = path / "si.pyi"
     check_stub_file(
         si_stub,
         """
@@ -40,7 +42,7 @@ def test_typestubs_for_units_script(tmp_path: Path, monkeypatch):
     assert '"""kilometer (km)"""' in si_stub.read_text()
 
     # --- spot-check the special function/units.pyi file ---
-    func_stub = tmp_path / "function" / "units.pyi"
+    func_stub = path / "function" / "units.pyi"
     check_stub_file(
         func_stub,
         """
@@ -53,7 +55,7 @@ def test_typestubs_for_units_script(tmp_path: Path, monkeypatch):
     )
 
     # --- spot-check a representative astrophys.pyi file ---
-    astrophys_stub = tmp_path / "astrophys.pyi"
+    astrophys_stub = path / "astrophys.pyi"
     check_stub_file(
         astrophys_stub,
         """
