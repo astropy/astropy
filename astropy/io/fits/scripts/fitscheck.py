@@ -46,6 +46,7 @@ import warnings
 
 from astropy import __version__
 from astropy.io import fits
+from astropy.utils.exceptions import AstropyUserWarning
 
 log = logging.getLogger("fitscheck")
 
@@ -165,6 +166,7 @@ def verify_checksums(filename):
     """
     Prints a message if any HDU in `filename` has a bad checksum or datasum.
     """
+    checksum_errors = 0
     with warnings.catch_warnings(record=True) as wlist:
         warnings.simplefilter("always")
         with fits.open(filename, checksum=OPTIONS.checksum_kind) as hdulist:
@@ -173,25 +175,26 @@ def verify_checksums(filename):
                 # checksums
                 if not OPTIONS.ignore_missing:
                     if not hdu._checksum:
-                        log.warning(
-                            f"MISSING {filename!r} .. Checksum not found in HDU #{i}"
+                        warnings.warn(
+                            f"Checksum verification failed: MISSING {filename!r} .. Checksum not found in HDU #{i}",
+                            AstropyUserWarning,
                         )
-                        return 1
                     if not hdu._datasum:
-                        log.warning(
-                            f"MISSING {filename!r} .. Datasum not found in HDU #{i}"
+                        warnings.warn(
+                            f"Datasum verification failed: MISSING {filename!r} .. Datasum not found in HDU #{i}",
+                            AstropyUserWarning,
                         )
-                        return 1
 
     for w in wlist:
         if str(w.message).startswith(
             ("Checksum verification failed", "Datasum verification failed")
         ):
             log.warning("BAD %r %s", filename, str(w.message))
-            return 1
+            checksum_errors += 1
 
-    log.info(f"OK {filename!r}")
-    return 0
+    if not checksum_errors:
+        log.info(f"OK {filename!r}")
+    return checksum_errors
 
 
 def verify_compliance(filename):
