@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from setuptools import setup
+from setuptools.command.editable_wheel import editable_wheel
 from setuptools.command.install import install
 
 from extension_helpers import get_extensions
@@ -36,6 +37,14 @@ class InstallWithStubs(install):
         install_stubs(self.build_lib, self.root)
 
 
+class EditableInstallWithStubs(editable_wheel):
+    """Post-installation command for editable_wheel mode."""
+
+    def run(self):
+        super().run()
+        install_stubs(self.project_dir, self.project_dir)
+
+
 # Specify the minimum version for the Numpy C-API
 for ext in ext_modules:
     if ext.include_dirs and "numpy" in ext.include_dirs[0]:
@@ -46,5 +55,6 @@ setup(
     ext_modules=ext_modules,
     cmdclass={
         "install": InstallWithStubs,
+        "editable_wheel": EditableInstallWithStubs,
     },
 )
