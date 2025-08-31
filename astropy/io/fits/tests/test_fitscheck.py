@@ -81,6 +81,7 @@ class TestFitscheck(FitsTestCase):
         assert re.match(
             r"BAD.*Checksum verification failed for HDU", caplog.records[0].message
         )
+        assert re.match(r"4 errors", caplog.records[4].message)
         caplog.clear()
 
         with pytest.warns(AstropyUserWarning):
