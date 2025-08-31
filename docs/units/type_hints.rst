@@ -75,30 +75,18 @@ Multiple Quantity and unit-aware |Quantity| annotations are supported using
 
 .. _typestubs_for_units:
 
-Script for Creating Unit Type Stubs
-===================================
+Unit Type Stubs
+===============
 
-Individual unit objects like ``u.deg`` or ``u.m`` are created dynamically
-at runtime, which means static type checkers cannot recognize them by default.
-To enable proper type checking for these units, type stub (``.pyi``) files
-are needed that declare their types.
+As of ``astropy`` 7.2, type stub files are included for individual unit
+objects like ``u.deg`` or ``u.m`` (which are created dynamically at runtime
+and thus not easily recognized by static type checkers by default).  These
+should appear along with ``astropy``, even if you install from a source
+checkout in editable mode.
 
-As an experimental feature, astropy 7.2 includes a script to generate these
-stub files automatically:
-
-.. code-block:: bash
-
-   typestubs-for-units
-
-This command will attempt to write the stub files directly into your
-installed ``astropy`` package directory. To write to a different location
-or see other options, use the ``--help`` flag.
-
-.. warning:: This script is meant to gain information about whether the
-    type hints provided this way are sufficient. Once an automatic
-    solution has been identified, the script will be removed. In the
-    meantime, we welcome feedback.
-
+.. note:: The automatic generation is experimental, and we welcome feedback on
+          it. If needed, you can (re)generate the ``*.pyi`` files with the
+          ``typestubs-for-units`` script.
 
 Type Annotations Module
 ***********************
