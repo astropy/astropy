@@ -1,0 +1,1 @@
+Fix a bug where the units of the ``values=`` keyword argument to ``set_ticks`` was not respected.
