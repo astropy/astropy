@@ -16,50 +16,55 @@ import numpy as np
 from astropy.constants.si import L_bol0
 
 from . import astrophys, cgs, si
-from .core import def_unit
-from .docgen import generate_dunder_all, generate_unit_summary
+from .core import PrefixUnit, def_unit
+from .docgen import generate_unit_summary
 
-__all__ = []  #  Units are added at the end
+__all__ = [
+    "AB",
+    "ST",
+    "ABflux",
+    "Bol",
+    "L_bol",
+    "STflux",
+    "bol",
+    "f_bol",
+    "maggy",
+    "mgy",
+    "nanomaggy",
+    "nmgy",
+]
 
-_ns = globals()
-
-def_unit(
+Bol = L_bol = def_unit(
     ["Bol", "L_bol"],
     L_bol0,
-    namespace=_ns,
-    prefixes=False,
     doc=(
         "Luminosity corresponding to absolute bolometric magnitude zero "
         "(magnitude ``M_bol``)."
     ),
 )
-def_unit(
+bol = f_bol = def_unit(
     ["bol", "f_bol"],
     L_bol0 / (4 * np.pi * (10.0 * astrophys.pc) ** 2),
-    namespace=_ns,
-    prefixes=False,
     doc=(
         "Irradiance corresponding to apparent bolometric magnitude zero "
         "(magnitude ``m_bol``)."
     ),
 )
-def_unit(
+AB = ABflux = def_unit(
     ["AB", "ABflux"],
     10.0 ** (48.6 / -2.5) * cgs.erg * cgs.cm**-2 / si.s / si.Hz,
-    namespace=_ns,
-    prefixes=False,
     doc="AB magnitude zero flux density (magnitude ``ABmag``).",
 )
-def_unit(
+ST = STflux = def_unit(
     ["ST", "STflux"],
     10.0 ** (21.1 / -2.5) * cgs.erg * cgs.cm**-2 / si.s / si.AA,
-    namespace=_ns,
-    prefixes=False,
     doc="ST magnitude zero flux density (magnitude ``STmag``).",
 )
-def_unit(
+nmgy: PrefixUnit
+nanomaggy: PrefixUnit
+mgy = maggy = def_unit(
     ["mgy", "maggy"],
-    namespace=_ns,
+    namespace=globals(),
     prefixes=[(["n"], ["nano"], 1e-9)],
     doc=(
         "Maggies - a linear flux unit that is the flux for a mag=0 object."
@@ -67,12 +72,6 @@ def_unit(
         "zero_point_flux equivalency should be used."
     ),
 )
-
-
-###########################################################################
-# ALL & DOCSTRING
-
-__all__ += generate_dunder_all(globals())  # noqa: PLE0605
 
 
 if __doc__ is not None:

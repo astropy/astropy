@@ -28,8 +28,6 @@ MODULES_TO_STUB = [
     "cgs",
     "astrophys",
     "misc",
-    "imperial",
-    "photometric",
     "function.units",
     "deprecated",
     "required_by_vounit",
