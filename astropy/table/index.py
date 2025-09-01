@@ -188,18 +188,12 @@ Column creation: - Column(c) -> deep copy of indices - c[[1, 2]] -> deep copy an
 reordering of indices - c[1:2] -> reference - array.view(Column) -> no indices
 """
 
-from __future__ import annotations
-
 from copy import deepcopy
-from typing import TYPE_CHECKING
 
 import numpy as np
 
 from .bst import MaxValue, MinValue
 from .sorted_array import SortedArray
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 
 class QueryError(ValueError):
@@ -1030,7 +1024,6 @@ class TableLoc:
             key, item = item
         else:
             key = self.table.primary_key
-
 
         item_is_sequence = isinstance(item, (list, np.ndarray))
 
