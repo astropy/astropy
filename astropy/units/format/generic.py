@@ -411,7 +411,7 @@ class Generic(Base, _GenericParserMixin):
         return get_current_unit_registry().registry
 
     @classmethod
-    def _validate_unit(cls, s: str) -> UnitBase:
+    def _validate_unit(cls, s: str, deprecations: str = "warn") -> UnitBase:
         if s in cls._unit_symbols:
             s = cls._unit_symbols[s]
 
