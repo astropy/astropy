@@ -255,12 +255,18 @@ class _ParsingFormatMixin:
 
     @classmethod
     def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+        if unit in cls._deprecated_units:
+            warnings.warn(cls._deprecated_unit_message(unit), UnitsWarning)
         try:
             return cls._units[unit]
         except KeyError:
             if detailed_exception:
                 raise ValueError(cls._invalid_unit_error_message(unit)) from None
             raise ValueError() from None
+
+    @classmethod
+    def _deprecated_unit_message(cls, unit: str) -> str:
+        return f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:
