@@ -268,7 +268,10 @@ class CDS(Base, _ParsingFormatMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: str = "warn",
     ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)

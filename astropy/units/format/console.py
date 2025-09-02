@@ -53,7 +53,10 @@ class Console(base.Base):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: str = "warn",
     ) -> str:
         # Change default of fraction to False, i.e., we typeset
         # without a fraction by default.

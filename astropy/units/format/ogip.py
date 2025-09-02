@@ -337,10 +337,13 @@ class OGIP(Base, _ParsingFormatMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = "inline"
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = "inline",
+        deprecations: Literal["silent", "warn", "raise"] = "warn",
     ) -> str:
         # Remove units that aren't known to the format
-        unit = cls._decompose_to_known_units(unit)
+        unit = cls._decompose_to_known_units(unit, deprecations)
 
         if isinstance(unit, CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
