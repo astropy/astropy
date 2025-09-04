@@ -435,7 +435,7 @@ class Cosmology(metaclass=ABCMeta):
         param_strs = (f"{k!s}={v!s}" for k, v in self.parameters.items())
         return f"{type(self).__name__}({name_str}{', '.join(param_strs)})"
 
-    def __astropy_table__(self, cls: type, copy: bool, **kwargs: Any) -> Table:
+    def __astropy_table__(self, cls: type[Table], copy: bool, **kwargs: Any) -> Table:
         """Return a `~astropy.table.Table` of type ``cls``.
 
         Parameters
