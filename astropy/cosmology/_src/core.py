@@ -94,7 +94,7 @@ class _NameField:
     default: str | None = None
 
     def __get__(
-        self, instance: Union["Cosmology", None], owner: Union["Cosmology", None]
+        self, instance: Union["Cosmology", None], owner: type["Cosmology"] | None
     ) -> str:
         # Called from the class. `dataclass` uses this to create ``__init__``.
         if instance is None:
