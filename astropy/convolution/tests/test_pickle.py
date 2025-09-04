@@ -8,14 +8,16 @@ from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noq
 
 
 @pytest.mark.parametrize(
-    "original",
+    ("name", "args", "kwargs", "xfail"),
     [
-        conv.CustomKernel(array=np.random.rand(15)),
-        conv.Gaussian1DKernel(1.0, x_size=5),
-        conv.Gaussian2DKernel(1.0, x_size=5, y_size=5),
+        (conv.CustomKernel, [], {"array": np.random.rand(15)}, False),
+        (conv.Gaussian1DKernel, [1.0], {"x_size": 5}, True),
+        (conv.Gaussian2DKernel, [1.0], {"x_size": 5, "y_size": 5}, True),
     ],
-    ids=lambda x: type(x).__name__,
 )
-def test_simple_object(pickle_protocol, original):  # noqa: F811
+def test_simple_object(pickle_protocol, name, args, kwargs, xfail):  # noqa: F811
     # Tests easily instantiated objects
+    if xfail:
+        pytest.xfail()
+    original = name(*args, **kwargs)
     check_pickling_recovery(original, pickle_protocol)
