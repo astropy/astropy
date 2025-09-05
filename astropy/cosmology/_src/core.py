@@ -237,9 +237,9 @@ class Cosmology(metaclass=ABCMeta):
         Returns
         -------
         newcosmo : `~astropy.cosmology.Cosmology` subclass instance
-            A new instance of this class with updated parameters as specified.
-            If no arguments are given, then a reference to this object is
-            returned instead of copy.
+            A new instance of this (or non-flat equivalent) class with updated
+            parameters as specified. If no arguments are given, then a
+            reference to this object is returned instead of a copy.
 
         Examples
         --------
@@ -561,7 +561,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
         meta: CosmoMeta | None = None,
         to_nonflat: bool = False,
         **kwargs: Any,
-    ) -> Self:
+    ) -> "Cosmology":
         """Returns a copy of this object with updated parameters, as specified.
 
         This cannot be used to change the type of the cosmology, except for
@@ -581,9 +581,9 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
         Returns
         -------
         newcosmo : `~astropy.cosmology.Cosmology` subclass instance
-            A new instance of this class with updated parameters as specified.
-            If no arguments are given, then a reference to this object is
-            returned instead of copy.
+            A new instance of this (or non-flat equivalent) class with updated 
+            parameters as specified. If no arguments are given, then a
+            reference to this object is returned instead of a copy.
 
         Examples
         --------

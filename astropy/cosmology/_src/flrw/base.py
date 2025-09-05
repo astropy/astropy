@@ -1440,7 +1440,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
 
     def clone(
         self, *, meta: CosmoMeta | None = None, to_nonflat: bool = False, **kwargs: Any
-    ) -> Self:
+    ) -> "FLRW":
         if not to_nonflat and kwargs.get("Ode0") is not None:
             msg = "Cannot set 'Ode0' in clone unless 'to_nonflat=True'. "
             raise ValueError(msg)
