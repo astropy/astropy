@@ -9,7 +9,7 @@ from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
 from numbers import Number
-from typing import Any, Self, TypeVar, overload
+from typing import Any, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
@@ -17,7 +17,7 @@ from numpy.typing import ArrayLike
 
 import astropy.constants as const
 import astropy.units as u
-from astropy.cosmology._src.typing import FArray
+from astropy.cosmology._src.typing import CosmoMeta, FArray
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
@@ -25,7 +25,6 @@ from astropy.utils.exceptions import AstropyUserWarning
 # isort: split
 from astropy.cosmology._src.core import (
     Cosmology,
-    CosmoMeta,
     FlatCosmologyMixin,
     dataclass_decorator,
 )

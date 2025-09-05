@@ -3,10 +3,9 @@
 
 import inspect
 from abc import ABCMeta, abstractmethod
-from collections.abc import Mapping
 from dataclasses import KW_ONLY, dataclass, replace
 from types import MappingProxyType
-from typing import Any, ClassVar, Literal, Self, TypeAlias, TypeVar, Union
+from typing import Any, ClassVar, Literal, TypeVar, Union
 
 import numpy as np
 
@@ -21,7 +20,7 @@ from astropy.cosmology._src.parameter import (
     ParametersAttribute,
     all_parameters,
 )
-from astropy.cosmology._src.typing import _CosmoT
+from astropy.cosmology._src.typing import CosmoMeta, _CosmoT
 from astropy.cosmology.io import (
     CosmologyFromFormat,
     CosmologyRead,
@@ -45,7 +44,6 @@ __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 # typing
 # NOTE: private b/c RTD error
 _FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
-CosmoMeta: TypeAlias = Mapping[Any, Any]
 
 
 # dataclass transformation
@@ -222,8 +220,9 @@ class Cosmology(metaclass=ABCMeta):
     def clone(self, *, meta: CosmoMeta | None = None, **kwargs: Any) -> "Cosmology":
         """Returns a copy of this object with updated parameters, as specified.
 
-        This cannot be used to change the type of the cosmology, so ``clone()``
-        cannot be used to change between flat and non-flat cosmologies.
+        In general this returns an instance of the same class. For some classes (e.g.
+        flat classes like `FlatLambdaCDM`) there are more options, which are documented
+        in the relevant subclass.
 
         Parameters
         ----------
@@ -581,7 +580,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
         Returns
         -------
         newcosmo : `~astropy.cosmology.Cosmology` subclass instance
-            A new instance of this (or non-flat equivalent) class with updated 
+            A new instance of this (or non-flat equivalent) class with updated
             parameters as specified. If no arguments are given, then a
             reference to this object is returned instead of a copy.
 
