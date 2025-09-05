@@ -2042,10 +2042,10 @@ class _UnitMetaClass(type):
                 s = s.decode("ascii")
 
             try:
-                return f._validate_unit(s, detailed_exception=False)  # Try a shortcut
-            except (AttributeError, ValueError):
+                return f._validate_unit(s)  # Try a shortcut
+            except (AttributeError, KeyError):
                 # No `f._validate_unit()` (AttributeError)
-                # or `s` was a composite unit (ValueError).
+                # or `s` was a composite unit (KeyError).
                 pass
 
             try:

@@ -379,7 +379,10 @@ class _GenericParserMixin(_ParsingFormatMixin):
                 p[0] = p[3] ** 0.5
                 return
             elif p[1] in ("mag", "dB", "dex"):
-                function_unit = cls._validate_unit(p[1])
+                try:
+                    function_unit = cls._validate_unit(p[1])
+                except KeyError:
+                    raise ValueError(cls._invalid_unit_error_message(p[1])) from None
                 # In Generic, this is callable, but that does not have to
                 # be the case in subclasses (e.g., in VOUnit it is not).
                 if callable(function_unit):
@@ -408,7 +411,7 @@ class Generic(Base, _GenericParserMixin):
         return get_current_unit_registry().registry
 
     @classmethod
-    def _validate_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
+    def _validate_unit(cls, s: str) -> UnitBase:
         if s in cls._unit_symbols:
             s = cls._unit_symbols[s]
 
@@ -420,7 +423,7 @@ class Generic(Base, _GenericParserMixin):
             elif s.endswith("R\N{INFINITY}"):
                 s = s[:-2] + "Ry"
 
-        return super()._validate_unit(s, detailed_exception)
+        return super()._validate_unit(s)
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:

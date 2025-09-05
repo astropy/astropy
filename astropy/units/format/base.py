@@ -224,12 +224,14 @@ class _ParsingFormatMixin:
     def _get_unit(cls, t: LexToken) -> UnitBase:
         try:
             return cls._validate_unit(t.value)
-        except ValueError as e:
+        except KeyError:
             registry = get_current_unit_registry()
             if t.value in registry.aliases:
                 return registry.aliases[t.value]
 
-            raise ValueError(f"At col {t.lexpos}, {str(e)}")
+            raise ValueError(
+                f"At col {t.lexpos}, {cls._invalid_unit_error_message(t.value)}"
+            ) from None
 
     @classmethod
     def _fix_deprecated(cls, x: str) -> list[str]:
@@ -254,13 +256,8 @@ class _ParsingFormatMixin:
         return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
 
     @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        try:
-            return cls._units[unit]
-        except KeyError:
-            if detailed_exception:
-                raise ValueError(cls._invalid_unit_error_message(unit)) from None
-            raise ValueError() from None
+    def _validate_unit(cls, unit: str) -> UnitBase:
+        return cls._units[unit]
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:
@@ -283,12 +280,13 @@ class _ParsingFormatMixin:
                 _error_check=False,
             )
         if isinstance(unit, NamedUnit):
+            name = unit._get_format_name(cls.name)
             try:
-                return cls._validate_unit(unit._get_format_name(cls.name))
-            except ValueError:
+                return cls._validate_unit(name)
+            except KeyError:
                 if isinstance(unit, Unit):
                     return cls._decompose_to_known_units(unit._represents)
-                raise
+                raise ValueError(cls._invalid_unit_error_message(name)) from None
         raise TypeError(
             f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
         )
