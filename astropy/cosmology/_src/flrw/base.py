@@ -9,7 +9,7 @@ from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
 from numbers import Number
-from typing import Any, Self, TypeVar, overload
+from typing import Any, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin

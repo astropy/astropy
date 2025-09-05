@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Mapping
 from dataclasses import KW_ONLY, dataclass, replace
 from types import MappingProxyType
-from typing import Any, ClassVar, Literal, Self, TypeAlias, TypeVar, Union
+from typing import Any, ClassVar, Literal, TypeAlias, TypeVar, Union
 
 import numpy as np
 
@@ -581,7 +581,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
         Returns
         -------
         newcosmo : `~astropy.cosmology.Cosmology` subclass instance
-            A new instance of this (or non-flat equivalent) class with updated 
+            A new instance of this (or non-flat equivalent) class with updated
             parameters as specified. If no arguments are given, then a
             reference to this object is returned instead of a copy.
 
