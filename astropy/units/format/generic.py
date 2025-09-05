@@ -28,7 +28,6 @@ from astropy.units.core import CompositeUnit, Unit, UnitBase, get_current_unit_r
 from astropy.units.errors import UnitsWarning
 from astropy.units.typing import UnitScale
 from astropy.utils import classproperty, parsing
-from astropy.utils.misc import did_you_mean
 from astropy.utils.parsing import ThreadSafeParser
 
 from .base import Base, _ParsingFormatMixin
@@ -380,7 +379,10 @@ class _GenericParserMixin(_ParsingFormatMixin):
                 p[0] = p[3] ** 0.5
                 return
             elif p[1] in ("mag", "dB", "dex"):
-                function_unit = cls._validate_unit(p[1])
+                try:
+                    function_unit = cls._validate_unit(p[1])
+                except KeyError:
+                    raise ValueError(cls._invalid_unit_error_message(p[1])) from None
                 # In Generic, this is callable, but that does not have to
                 # be the case in subclasses (e.g., in VOUnit it is not).
                 if callable(function_unit):
@@ -404,9 +406,12 @@ class Generic(Base, _GenericParserMixin):
     supports any unit available in the `astropy.units` namespace.
     """
 
+    @classproperty
+    def _units(cls) -> dict[str, UnitBase]:
+        return get_current_unit_registry().registry
+
     @classmethod
-    def _validate_unit(cls, s: str, detailed_exception: bool = True) -> UnitBase:
-        registry = get_current_unit_registry().registry
+    def _validate_unit(cls, s: str) -> UnitBase:
         if s in cls._unit_symbols:
             s = cls._unit_symbols[s]
 
@@ -418,13 +423,11 @@ class Generic(Base, _GenericParserMixin):
             elif s.endswith("R\N{INFINITY}"):
                 s = s[:-2] + "Ry"
 
-        if s in registry:
-            return registry[s]
+        return super()._validate_unit(s)
 
-        if detailed_exception:
-            raise ValueError(f"{s} is not a valid unit. {did_you_mean(s, registry)}")
-        else:
-            raise ValueError()
+    @classmethod
+    def _invalid_unit_error_message(cls, unit: str) -> str:
+        return f"{unit} is not a valid unit. {cls._did_you_mean_units(unit)}"
 
     _unit_symbols: ClassVar[dict[str, str]] = {
         "%": "percent",
