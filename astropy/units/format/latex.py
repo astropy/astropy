@@ -62,6 +62,7 @@ class Latex(console.Console):
         cls,
         unit: UnitBase,
         fraction: bool | Literal["inline", "multiline"] = "multiline",
+        deprecations: str = "warn",
     ) -> str:
         s = super().to_string(unit, fraction=fraction)
         return rf"$\mathrm{{{s}}}$"
@@ -82,6 +83,9 @@ class LatexInline(Latex):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: str = "warn",
     ) -> str:
         return super().to_string(unit, fraction=fraction)

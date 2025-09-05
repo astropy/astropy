@@ -14,7 +14,7 @@ from astropy.units.core import (
     UnitBase,
     get_current_unit_registry,
 )
-from astropy.units.errors import UnitsWarning
+from astropy.units.errors import UnitsError, UnitsWarning
 from astropy.units.typing import UnitPower, UnitScale
 from astropy.units.utils import maybe_simple_fraction
 from astropy.utils.misc import did_you_mean
@@ -135,7 +135,11 @@ class Base:
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, *, fraction: bool | Literal["inline", "multiline"] = True
+        cls,
+        unit: UnitBase,
+        *,
+        deprecations: Literal["silent", "warn", "raise"] = "warn",
+        fraction: bool | Literal["inline", "multiline"] = True,
     ) -> str:
         """Convert a unit to its string representation.
 
@@ -145,6 +149,9 @@ class Base:
         ----------
         unit : |Unit|
             The unit to convert.
+        deprecations : {"warn", "silent", "raise"}, optional, keyword-only
+            Whether deprecated units should emit a warning, be handled
+            silently or raise an error.
         fraction : {False|True|'inline'|'multiline'}, optional
             Options are as follows:
 
@@ -254,13 +261,32 @@ class _ParsingFormatMixin:
         return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
 
     @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+    def _validate_unit(
+        cls,
+        unit: str,
+        detailed_exception: bool = True,
+        deprecations: Literal["silent", "warn", "raise"] = "warn",
+    ) -> UnitBase:
+        if unit in cls._deprecated_units:
+            if deprecations == "warn":
+                warnings.warn(cls._deprecated_unit_message(unit), UnitsWarning)
+            elif deprecations == "raise":
+                raise UnitsError(cls._deprecated_unit_message(unit))
+            elif deprecations != "silent":
+                raise ValueError(
+                    f"invalid deprecation handling option: {deprecations!r}. Valid "
+                    "options are 'silent', 'warn' and 'raise'."
+                )
         try:
             return cls._units[unit]
         except KeyError:
             if detailed_exception:
                 raise ValueError(cls._invalid_unit_error_message(unit)) from None
             raise ValueError() from None
+
+    @classmethod
+    def _deprecated_unit_message(cls, unit: str) -> str:
+        return f"The unit '{unit}' has been deprecated in the {cls.__name__} standard."
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:
@@ -270,7 +296,11 @@ class _ParsingFormatMixin:
         )
 
     @classmethod
-    def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:
+    def _decompose_to_known_units(
+        cls,
+        unit: CompositeUnit | NamedUnit,
+        deprecations: Literal["silent", "warn", "raise"] = "warn",
+    ) -> UnitBase:
         """
         Partially decomposes a unit so it is only composed of units that
         are "known" to a given format.
@@ -278,16 +308,23 @@ class _ParsingFormatMixin:
         if isinstance(unit, CompositeUnit):
             return CompositeUnit(
                 unit.scale,
-                [cls._decompose_to_known_units(base) for base in unit.bases],
+                [
+                    cls._decompose_to_known_units(base, deprecations)
+                    for base in unit.bases
+                ],
                 unit.powers,
                 _error_check=False,
             )
         if isinstance(unit, NamedUnit):
             try:
-                return cls._validate_unit(unit._get_format_name(cls.name))
-            except ValueError:
-                if isinstance(unit, Unit):
-                    return cls._decompose_to_known_units(unit._represents)
+                return cls._validate_unit(
+                    unit._get_format_name(cls.name), deprecations=deprecations
+                )
+            except ValueError as err:
+                if isinstance(unit, Unit) and not str(err).startswith(
+                    "invalid deprecation handling option"
+                ):
+                    return cls._decompose_to_known_units(unit._represents, deprecations)
                 raise
         raise TypeError(
             f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
