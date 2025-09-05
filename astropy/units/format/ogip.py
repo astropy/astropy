@@ -359,10 +359,10 @@ class OGIP(Base, _ParsingFormatMixin):
         return format(val, format_spec)
 
     @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
+    def _validate_unit(cls, unit: str) -> UnitBase:
         if unit in cls._deprecated_units:
             warnings.warn(
                 f"The unit '{unit}' has been deprecated in the OGIP standard.",
                 UnitsWarning,
             )
-        return super()._validate_unit(unit, detailed_exception)
+        return super()._validate_unit(unit)
