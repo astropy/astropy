@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple, Self, Union, 
 import numpy as np
 
 from astropy.utils.compat import COPY_IF_NEEDED
-from astropy.utils.decorators import deprecated, lazyproperty
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
@@ -954,14 +954,14 @@ class UnitBase:
             key=lambda x: len(set(x.bases).difference(system.bases)),
         )
 
-    @lazyproperty
+    @cached_property
     def si(self) -> "UnitBase":
         """The unit expressed in terms of SI units."""
         from . import si
 
         return self.to_system(si)[0]
 
-    @lazyproperty
+    @cached_property
     def cgs(self) -> "UnitBase":
         """The unit expressed in terms of CGS units."""
         from . import cgs
@@ -2042,10 +2042,10 @@ class _UnitMetaClass(type):
                 s = s.decode("ascii")
 
             try:
-                return f._validate_unit(s, detailed_exception=False)  # Try a shortcut
-            except (AttributeError, ValueError):
+                return f._validate_unit(s)  # Try a shortcut
+            except (AttributeError, KeyError):
                 # No `f._validate_unit()` (AttributeError)
-                # or `s` was a composite unit (ValueError).
+                # or `s` was a composite unit (KeyError).
                 pass
 
             try:
