@@ -226,7 +226,6 @@ class _TableLikeHDU(_ValidHDU):
         # delete the _arrays attribute so that it is recreated to point to the
         # new data placed in the column object above
         del columns._arrays
-        return data
 
     def _update_load_data(self):
         """Load the data if asked to."""
