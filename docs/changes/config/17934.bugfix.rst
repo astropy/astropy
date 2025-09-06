@@ -1,0 +1,5 @@
+``get_config_dir()`` and ``get_cache_dir()`` now warn about non-existent
+directories specified via ``XDG_CACHE_HOME`` and ``XDG_CONFIG_HOME`` environment
+variables respectively. Missing sub-directories (i.e.
+``XDG_(CACHE|CONFIG)_HOME/astropy``) will also be silently created as long as the
+location is writable, and not a symbolic link.
