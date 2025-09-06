@@ -938,6 +938,7 @@ class _ImageBaseHDU(_ValidHDU):
             # its original little-endian order.
             if byteswapped and not _is_pseudo_integer(self.data.dtype):
                 d.byteswap(True)
+                d = d.view(d.dtype.newbyteorder("<"))
 
             return cs
         else:
