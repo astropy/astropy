@@ -1,0 +1,2 @@
+Type stub files for all units in ``astropy.units`` are now generated and
+installed automatically.

@@ -38,9 +38,12 @@ MODULES_TO_STUB = [
 
 def main():
     args = _parse_args()
-    if args.verbose:
-        log.setLevel("DEBUG")
+    return create_stubs(args.output_dir, "DEBUG" if args.verbose else None)
 
+
+def create_stubs(output_dir=None, log_level=None):
+    if log_level is not None:
+        log.setLevel(log_level)
     log.info("Generating astropy.units stubs...")
 
     # Ignore deprecation warnings triggered by accessing units in deprecated.py
@@ -53,7 +56,7 @@ def main():
                 log.warning(f"Could not import {full_module_name}, skipping.")
                 continue
 
-            stub_file_path = _get_stub_filepath(args.output_dir, module_name)
+            stub_file_path = _get_stub_filepath(output_dir, module_name)
             stub_lines = generate_stub_lines(module)
             _write_stub_file(stub_file_path, stub_lines)
 
