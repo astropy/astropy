@@ -7,6 +7,18 @@ Development Details
 This document contains somewhat-independent sections that provide details on
 topics covered in the :ref:`contributing_quickstart` guide.
 
+.. note::
+    A quick way to set up a complete development environment is to install astropy
+    as follows
+
+        python -m pip install --editable . --group dev
+
+    Or
+
+        python -m pip install --editable . --group dev_all
+
+    which will **also** install all test dependencies.
+
 .. _pre-commit:
 
 Pre-commit
