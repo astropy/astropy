@@ -1,0 +1,6 @@
+Fixed constructor of ``LombScargle`` class to check first element of ``t``
+input for type ``Time``. This prevents a bug, where when ``t`` declared with an
+array-like object, with contents of ``Time``, which seized up the
+``LombScargle.power()`` and ``LombScargle.autopower()`` methods because they
+expect unitless frequencies by input validation, and expect frequencies of type
+``units.Quantities``, because the contents of ``t`` are of instance ``Time``.
