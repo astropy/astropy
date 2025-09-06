@@ -207,8 +207,7 @@ class _TableLikeHDU(_ValidHDU):
     def _init_tbdata(self, data):
         columns = self.columns
 
-        # needs to be done in-place. using a view and returning the data does not work
-        data._set_dtype(data.dtype.newbyteorder(">"))
+        data.dtype = data.dtype.newbyteorder(">")
 
         # hack to enable pseudo-uint support
         data._uint = self._uint
