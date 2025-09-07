@@ -941,7 +941,7 @@ class TimeGalexSec(TimeUnix):
     In GALEX data, due to uncertainty in the spacecraft clock, the absolute time is only accurate to
     about 1-10 seconds while the relative time within an observation is better than 0.005 s or so,
     except on days with leap seconds, where relative times can be wrong by up to 1 s.
-    See question 101.2 in http://www.galex.caltech.edu/researcher/faq.html
+    See question 101.2 in https://www.galex.caltech.edu/researcher/faq.html
     """
 
     name = "galexsec"
@@ -1026,7 +1026,7 @@ class TimeStardate(TimeFromEpoch):
     """
     Stardate: date units from 2318-07-05 12:00:00 UTC.
     For example, stardate 41153.7 is 00:52 on April 30, 2363.
-    See http://trekguide.com/Stardates.htm#TNG for calculations and reference points.
+    See https://trekguide.com/Stardates.htm#TNG for calculations and reference points.
     """
 
     name = "stardate"
