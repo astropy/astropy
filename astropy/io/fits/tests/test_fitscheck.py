@@ -78,9 +78,15 @@ class TestFitscheck(FitsTestCase):
             hdul.writeto(testfile)
 
         assert fitscheck.main([testfile]) == 1
-        assert re.match(
-            r"BAD.*Checksum verification failed for HDU", caplog.records[0].message
-        )
+        for i in range(2):
+            assert re.match(
+                r"BAD.*Checksum verification failed for HDU",
+                caplog.records[i * 2].message,
+            )
+            assert re.match(
+                r"BAD.*Datasum verification failed for HDU",
+                caplog.records[i * 2 + 1].message,
+            )
         assert re.match(r"4 errors", caplog.records[4].message)
         caplog.clear()
 
