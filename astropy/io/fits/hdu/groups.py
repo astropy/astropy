@@ -537,12 +537,12 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 if self.data.flags.writeable:
                     byteswapped = True
                     d = self.data.byteswap(True)
-                    d.dtype = d.dtype.newbyteorder(">")
+                    d = d.view(d.dtype.newbyteorder(">"))
                 else:
                     # If the data is not writeable, we just make a byteswapped
                     # copy and don't bother changing it back after
                     d = self.data.byteswap(False)
-                    d.dtype = d.dtype.newbyteorder(">")
+                    d = d.view(d.dtype.newbyteorder(">"))
                     byteswapped = False
             else:
                 byteswapped = False
@@ -555,8 +555,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             # If the data was byteswapped in this method then return it to
             # its original little-endian order.
             if byteswapped:
-                d.byteswap(True)
-                d.dtype = d.dtype.newbyteorder("<")
+                self.data.byteswap(True)
 
             return cs
         else:
