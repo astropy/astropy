@@ -423,7 +423,7 @@ class Generic(Base, _GenericParserMixin):
             elif s.endswith("R\N{INFINITY}"):
                 s = s[:-2] + "Ry"
 
-        return super()._validate_unit(s)
+        return cls._units[s]
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:

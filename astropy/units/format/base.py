@@ -256,8 +256,16 @@ class _ParsingFormatMixin:
         return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
 
     @classmethod
-    def _validate_unit(cls, unit: str) -> UnitBase:
-        return cls._units[unit]
+    def _validate_unit(cls, s: str) -> UnitBase:
+        if s in cls._deprecated_units:
+            alternative = (
+                unit.represents if isinstance(unit := cls._units[s], Unit) else None
+            )
+            msg = f"The unit {s!r} has been deprecated in the {cls.__name__} standard."
+            if alternative:
+                msg += f" Suggested: {cls.to_string(alternative)}."
+            warnings.warn(msg, UnitsWarning)
+        return cls._units[s]
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:
