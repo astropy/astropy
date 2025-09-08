@@ -429,6 +429,7 @@ def from_df(
     # Iterate over Narwhals columns
     for column in df_nw.iter_columns():
         # Unpack relevant data
+        data = column.to_numpy()
         name = column.name
         dtype = column.dtype
         mask = column.is_null().to_numpy()
@@ -441,13 +442,31 @@ def from_df(
 
         # Handle nullable integers
         if dtype.is_integer() and mask.any():
-            data = column.fill_null(0).to_numpy()
-            out[name] = MaskedColumn(data=data, mask=mask, unit=unit, copy=False)
+            nullfilled = column.fill_null(0).to_numpy()
+            out[name] = MaskedColumn(data=nullfilled, mask=mask, unit=unit, copy=False)
+            continue
+
+        # Handle datetime columns
+        elif isinstance(dtype, nw.Datetime):
+            from astropy.time import Time
+
+            datetime = Time(data, format="datetime64")
+            datetime.format = "isot"
+            out[name] = datetime
+            continue
+
+        # Handle timedelta columns
+        elif isinstance(dtype, nw.Duration):
+            from astropy.time import TimeDelta
+
+            duration = data.astype("timedelta64[ns]").astype(np.float64) / 1e9
+            out[name] = TimeDelta(duration, format="sec")
+            if mask.any():
+                out[name][mask] = np.ma.masked
             continue
 
         # Handle string-like columns
         elif isinstance(dtype, (nw.String, nw.Binary, nw.Object)):
-            data = column.to_numpy()
             if data.dtype.kind == "O":
                 ts = (str, bytes)
                 # If all elements of an object array are string-like or None or np.nan
@@ -458,28 +477,6 @@ def from_df(
                     # avoid replacing objects in a view of the pandas array and
                     # to ensure numpy initializes to string or bytes correctly.
                     data = np.array([b"" if m else d for (d, m) in zip(data, mask)])
-
-        # Handle datetime columns
-        elif isinstance(dtype, nw.Datetime):
-            from astropy.time import Time
-
-            data = Time(column, format="datetime64")
-            data.format = "isot"
-            out[name] = data
-            continue
-
-        # Handle timedelta columns
-        elif isinstance(dtype, nw.Duration):
-            from astropy.time import TimeDelta
-
-            data = column.to_numpy().astype("timedelta64[ns]").astype(np.float64) / 1e9
-            out[name] = TimeDelta(data, format="sec")
-            if mask.any():
-                out[name][mask] = np.ma.masked
-            continue
-
-        else:
-            data = column.to_numpy()
 
         if mask.any():
             out[name] = MaskedColumn(data=data, mask=mask, unit=unit, copy=False)
