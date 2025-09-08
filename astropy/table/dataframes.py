@@ -100,8 +100,13 @@ def _handle_index_argument(
     has_single_pk = table.primary_key and len(table.primary_key) == 1
 
     if index is not False:
+        # Check if pandas-like, None is reserve for pandas itself
         # Non-pandas backends don't support indexing
-        if not getattr(backend_impl, "is_pandas_like", lambda: False)():
+        is_pandas_like = (
+            backend_impl is None
+            or getattr(backend_impl, "is_pandas_like", lambda: False)()
+        )
+        if not is_pandas_like:
             if index:
                 raise ValueError("Indexing is only supported for pandas-like backends.")
             return False
@@ -146,21 +151,7 @@ def to_pandas(
         )
 
     # Handle index argument (pandas-specific logic)
-    has_single_pk = table.primary_key and len(table.primary_key) == 1
-    if index is not False:
-        if index is True or index is None:
-            if has_single_pk:
-                index = table.primary_key[0]
-            else:
-                if index is True:
-                    raise ValueError("index=True requires a single-column primary key.")
-                else:
-                    index = False
-        elif isinstance(index, str):
-            if index not in table.colnames:
-                raise ValueError(f"'{index}' is not in the table columns.")
-        else:
-            raise ValueError("index must be None, False, True, or a valid column name.")
+    index = _handle_index_argument(table, index, None)  # None for pandas validation
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
