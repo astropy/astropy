@@ -20,12 +20,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
     si_prefixes,
 )
-from astropy.units.errors import (
-    UnitParserWarning,
-    UnitScaleError,
-    UnitsError,
-    UnitsWarning,
-)
+from astropy.units.errors import UnitParserWarning, UnitScaleError, UnitsError
 from astropy.units.typing import UnitScale
 from astropy.utils import classproperty
 
@@ -216,14 +211,3 @@ class VOUnit(Base, _GenericParserMixin):
             if x in cls._deprecated_units
             else [x]
         )
-
-    @classmethod
-    def _validate_unit(cls, unit: str) -> UnitBase:
-        if unit in cls._deprecated_units:
-            warnings.warn(
-                UnitsWarning(
-                    f"The unit '{unit}' has been deprecated in the VOUnit standard."
-                    f" Suggested: {cls.to_string(cls._units[unit]._represents)}."
-                )
-            )
-        return super()._validate_unit(unit)
