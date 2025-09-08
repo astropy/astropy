@@ -19,6 +19,7 @@ __all__ = [
     "ManualInterval",
     "MinMaxInterval",
     "PercentileInterval",
+    "SymmetricInterval",
     "ZScaleInterval",
 ]
 
@@ -231,6 +232,36 @@ class PercentileInterval(AsymmetricPercentileInterval):
         lower_percentile = (100 - percentile) * 0.5
         upper_percentile = 100 - lower_percentile
         super().__init__(lower_percentile, upper_percentile, n_samples=n_samples)
+
+
+class SymmetricInterval(BaseInterval):
+    """
+    Interval based on a symmetric radius away from a midpoint.
+
+    Parameters
+    ----------
+    radius : float or None
+        The amount the interval extends to either side of the midpoint, so the total
+        interval is twice this value. If None, the radius is automatically
+        determined such that the resulting interval contains both the image minimum
+        and maximum (ignoring NaNs).
+    midpoint : float, optional
+        The midpoint of the symmetric interval.  Defaults to zero.
+    """
+
+    def __init__(self, radius=None, *, midpoint=0):
+        self.radius = radius
+        self.midpoint = midpoint
+
+    def get_limits(self, values):
+        radius = self.radius
+        if radius is None:
+            values = self._process_values(values)
+            radius = np.max(
+                [np.max(values) - self.midpoint, self.midpoint - np.min(values)]
+            )
+
+        return self.midpoint - radius, self.midpoint + radius
 
 
 class ZScaleInterval(BaseInterval):
