@@ -431,7 +431,7 @@ def from_df(
         # Unpack relevant data
         name = column.name
         dtype = column.dtype
-        mask = column.is_null()
+        mask = column.is_null().to_numpy()
         unit = units.get(name)
 
         if isinstance(dtype, nw.Int128):
