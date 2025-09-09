@@ -99,3 +99,25 @@ class TestFitscheck(FitsTestCase):
 
         # check that the file was fixed
         assert fitscheck.main([testfile]) == 0
+
+    def test_missing_invalid(self, caplog):
+        """
+        from https://github.com/astropy/astropy/issues/16551
+        written by Zach Claytor
+        """
+        testfile = self.temp("test.fits")
+        p = fits.PrimaryHDU()  # create Primary HDU
+        hdul = fits.HDUList(p)  # add primary HDU to HDUList
+        ext = fits.ImageHDU()  # create extension
+        ext.add_checksum()  # add checksum to extension header
+        ext.header["THINGY"] = 123  # update header metadata
+        hdul.append(ext)  # add extension to HDUList
+        hdul.writeto(testfile, overwrite=True)  # save
+        assert fitscheck.main([testfile]) == 1
+        assert re.match(
+            r"BAD.*Checksum verification failed for HDU", caplog.records[0].message
+        )
+        assert re.match(r"BAD.*Checksum not found", caplog.records[1].message)
+        assert re.match(r"BAD.*Datasum not found", caplog.records[2].message)
+        assert re.match(r"3 errors", caplog.records[3].message)
+        caplog.clear()
