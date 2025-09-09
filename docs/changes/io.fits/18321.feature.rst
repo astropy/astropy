@@ -1,0 +1,1 @@
+Do not drop FITS header comments to keep HIERARCH cards within 80 characters.
