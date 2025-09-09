@@ -206,7 +206,11 @@ class Cosmology(metaclass=ABCMeta):
     # ---------------------------------------------------------------
 
     def __post_init__(self) -> None:  # noqa: B027
-        """Post-initialization, for subclasses to override if they need."""
+        """Post-initialization, for subclasses to override if they need.
+
+        This allows for subclasses to call ``super().__post_init__()`` without worrying
+        about whether the parent class has a ``__post_init__`` method.
+        """
 
     @property
     @abstractmethod
