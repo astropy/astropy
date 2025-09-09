@@ -13,7 +13,7 @@ from numpy.testing import assert_allclose
 
 from astropy import constants as c
 from astropy import units as u
-from astropy.units import utils
+from astropy.units import cds, utils
 from astropy.units.required_by_vounit import GsolLum, ksolMass, nsolRad
 from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT, HAS_DASK
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -751,6 +751,11 @@ def test_unit_module_dunder_all_nfkc_normalization():
     # that changes with NFKC normalization can only cause trouble.
     assert "ℓ" not in u.__all__
     assert u.ℓ is u.liter
+
+
+@pytest.mark.xfail(reason="regression test to reveal a bug")
+def test_unit_module_dunder_all_only_indentifiers():
+    assert "°" not in cds.__all__
 
 
 def test_all_units():
