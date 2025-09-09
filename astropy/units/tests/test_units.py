@@ -753,7 +753,6 @@ def test_unit_module_dunder_all_nfkc_normalization():
     assert u.ℓ is u.liter
 
 
-@pytest.mark.xfail(reason="regression test to reveal a bug")
 def test_unit_module_dunder_all_only_indentifiers():
     assert "°" not in cds.__all__
 

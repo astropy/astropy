@@ -137,5 +137,9 @@ def generate_dunder_all(namespace: Mapping[str, object]) -> list[str]:
     return [
         name
         for name, value in namespace.items()
-        if isinstance(value, UnitBase) and name == unicodedata.normalize("NFKC", name)
+        if (
+            isinstance(value, UnitBase)
+            and name.isidentifier()
+            and name == unicodedata.normalize("NFKC", name)
+        )
     ]
