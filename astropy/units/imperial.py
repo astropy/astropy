@@ -19,7 +19,7 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
 # avoid ruff complaints about undefined names defined by def_unit
 # ruff: noqa: F821
 
-__all__: list[str] = []  #  Units are added at the end
+__all__: list[str] = ["enable"]  #  Units are added at the end
 
 from . import si
 from .core import add_enabled_units, def_unit
