@@ -1188,6 +1188,22 @@ class TestHDUListFunctions(FitsTestCase):
         with pytest.raises(OSError):
             fits.open(filename, ignore_missing_end=True)
 
+    def test_warning_raised_extra_bytes_after_last_hdu(self):
+        filename = "test_extra_bytes.fits"
+        fits.writeto(self.temp(filename), np.arange(100))
+        # write some extra bytes to the end of the file
+        with open(self.temp(filename), "ab") as f:
+            f.write(b"extra bytes")
+
+        # this should not raise a DeprecationWarning about the indent
+        # function (#18607)
+        match = "There may be extra bytes after the last HDU"
+        with (
+            pytest.warns(VerifyWarning, match=match),
+            fits.open(self.temp(filename)) as hdul,
+        ):
+            assert len(hdul) == 1
+
     def test_pop_with_lazy_load(self):
         filename = self.data("checksum.fits")
 
