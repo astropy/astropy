@@ -207,7 +207,7 @@ class _SetTempPath:
                 and linkto is not None
                 and not linkto.exists()
             ):
-                os.symlink(maindir, linkto)
+                linkto.symlink_to(maindir)
 
         return maindir.resolve()
 
