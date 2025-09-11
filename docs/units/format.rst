@@ -135,7 +135,14 @@ It is possible to raise errors instead of emitting warnings::
       ...
     astropy.units.errors.UnitsError: The unit 'erg' has been deprecated in the VOUnit standard. Suggested: cm**2.g.s**-2.
 
-It is also possible to silence the warnings::
+Sometimes it is possible to automatically replace deprecated units::
+
+    >>> u.erg.to_string(format="vounit", deprecations="convert")
+    'cm**2.g.s**-2'
+
+If automatic replacement is not possible then the deprecated unit is used for
+constructing the string and a warning is emitted.
+As a last resort, it is possible to silence the warnings::
 
     >>> u.erg.to_string(format="vounit", deprecations="silent")
     'erg'

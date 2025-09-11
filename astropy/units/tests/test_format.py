@@ -747,10 +747,33 @@ def test_invalid_deprecated_units_handling():
         ValueError,
         match=(
             r"^invalid deprecation handling option: 'ignore'\. Valid options are "
-            r"'silent', 'warn', 'raise'\.$"
+            r"'silent', 'warn', 'raise', 'convert'\.$"
         ),
     ):
         u.erg.to_string(format="vounit", deprecations="ignore")
+
+
+@pytest.mark.parametrize(
+    "unit,string",
+    [
+        pytest.param(u.erg, "cm**2.g.s**-2", id="simple unit"),
+        pytest.param(u.erg / u.s, "cm**2.g.s**-3", id="composite unit"),
+    ],
+)
+def test_deprecated_units_conversion_success(unit, string):
+    assert unit.to_string(format="vounit", deprecations="convert") == string
+
+
+def test_deprecated_units_conversion_failure():
+    Crab = u_format.OGIP._units["Crab"]
+    with pytest.warns(
+        UnitsWarning,
+        match=(
+            r"^The unit 'Crab' has been deprecated in the OGIP standard\. "
+            r"It cannot be automatically converted\.$"
+        ),
+    ):
+        assert Crab.to_string(format="ogip", deprecations="convert") == "Crab"
 
 
 @pytest.mark.parametrize("string", ["mag(ct/s)", "dB(mW)", "dex(cm s**-2)"])

@@ -25,6 +25,7 @@ class DeprecatedUnitAction(StrEnum):
     SILENT = auto()
     WARN = auto()
     RAISE = auto()
+    CONVERT = auto()
 
 
 class Base:
@@ -156,9 +157,10 @@ class Base:
         ----------
         unit : |Unit|
             The unit to convert.
-        deprecations : {"warn", "silent", "raise"}, optional, keyword-only
+        deprecations : {"warn", "silent", "raise", "convert"}, optional, keyword-only
             Whether deprecated units should emit a warning, be handled
-            silently or raise an error.
+            silently or raise an error. The "convert" option replaces
+            the deprecated unit if possible and emits a warning otherwise.
         fraction : {False|True|'inline'|'multiline'}, optional
             Options are as follows:
 
@@ -279,12 +281,18 @@ class _ParsingFormatMixin:
             )
             msg = f"The unit {s!r} has been deprecated in the {cls.__name__} standard."
             if alternative:
+                if deprecations == DeprecatedUnitAction.CONVERT:
+                    return alternative
                 msg += f" Suggested: {cls.to_string(alternative)}."
 
             if deprecations == DeprecatedUnitAction.RAISE:
                 raise UnitsError(msg)
             if deprecations == DeprecatedUnitAction.WARN:
                 warnings.warn(msg, UnitsWarning)
+            elif deprecations == DeprecatedUnitAction.CONVERT:
+                warnings.warn(
+                    msg + " It cannot be automatically converted.", UnitsWarning
+                )
             else:
                 valid_options = ", ".join(map(repr, map(str, DeprecatedUnitAction)))
                 raise ValueError(
