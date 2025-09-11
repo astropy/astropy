@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Quantity helpers for the ERFA ufuncs."""
 # Tests for these are in coordinates, not in units.
-
-from erfa import dt_eraASTROM, dt_eraLDBODY, dt_pv
-from erfa import ufunc as erfa_ufunc
+# Note that when this is imported, the unit definitions have not yet
+# been completed, so we import units locally.
+# We also avoid importing erfa up front since otherwise type stub generation
+# in the build process can only run with erfa as a build requirement.
+# TODO: solve both of the above by defining inside get_erfa_helpers?
 
 from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitsError, UnitTypeError
@@ -42,12 +44,14 @@ def has_matching_structure(unit, dtype):
         return not isinstance(unit, StructuredUnit)
 
 
-def check_structured_unit(unit, dtype):
+def check_structured_unit(unit, dtype_name):
+    # TODO: short-cut "dt_pv".
+    import erfa
+
+    dtype = getattr(erfa, dtype_name)
     if not has_matching_structure(unit, dtype):
-        msg = {dt_pv: "pv", dt_eraLDBODY: "ldbody", dt_eraASTROM: "astrom"}.get(
-            dtype, "function"
-        )
-        raise UnitTypeError(f"{msg} input needs unit matching dtype={dtype}.")
+        name = dtype_name.removeprefix("dt_").removeprefix("era").lower()
+        raise UnitTypeError(f"{name} input needs unit matching dtype={dtype}.")
 
 
 def check_no_time_units(unit1, unit2, f):
@@ -160,14 +164,14 @@ def helper_p2pv(f, unit1):
 
 
 def helper_pv2p(f, unit1):
-    check_structured_unit(unit1, dt_pv)
+    check_structured_unit(unit1, "dt_pv")
     return [None], unit1[0]
 
 
 def helper_pv2s(f, unit_pv):
     from astropy.units.si import radian
 
-    check_structured_unit(unit_pv, dt_pv)
+    check_structured_unit(unit_pv, "dt_pv")
     ang_unit = radian * unit_pv[1] / unit_pv[0]
     return [None], (radian, radian, unit_pv[0], ang_unit, ang_unit, unit_pv[1])
 
@@ -187,8 +191,8 @@ def helper_s2pv(f, unit_theta, unit_phi, unit_r, unit_td, unit_pd, unit_rd):
 
 
 def helper_pv_multiplication(f, unit1, unit2):
-    check_structured_unit(unit1, dt_pv)
-    check_structured_unit(unit2, dt_pv)
+    check_structured_unit(unit1, "dt_pv")
+    check_structured_unit(unit2, "dt_pv")
     result_unit = StructuredUnit((unit1[0] * unit2[0], unit1[1] * unit2[0]))
     converter = get_converter(
         unit2, StructuredUnit((unit2[0], unit1[1] * unit2[0] / unit1[0]))
@@ -197,7 +201,7 @@ def helper_pv_multiplication(f, unit1, unit2):
 
 
 def helper_pvm(f, unit1):
-    check_structured_unit(unit1, dt_pv)
+    check_structured_unit(unit1, "dt_pv")
     return [None], (unit1[0], unit1[1])
 
 
@@ -247,30 +251,34 @@ def helper_pvtob(
 
 
 def helper_pvu(f, unit_t, unit_pv):
-    check_structured_unit(unit_pv, dt_pv)
+    check_structured_unit(unit_pv, "dt_pv")
     return [get_converter(unit_t, unit_pv[0] / unit_pv[1]), None], unit_pv
 
 
 def helper_pvup(f, unit_t, unit_pv):
-    check_structured_unit(unit_pv, dt_pv)
+    check_structured_unit(unit_pv, "dt_pv")
     return [get_converter(unit_t, unit_pv[0] / unit_pv[1]), None], unit_pv[0]
 
 
 def helper_s2xpv(f, unit1, unit2, unit_pv):
-    check_structured_unit(unit_pv, dt_pv)
+    check_structured_unit(unit_pv, "dt_pv")
     return [None, None, None], StructuredUnit(
         (_d(unit1) * unit_pv[0], _d(unit2) * unit_pv[1])
     )
 
 
 def ldbody_unit():
+    from erfa import dt_eraLDBODY
+
     from astropy.units.astrophys import AU, Msun
     from astropy.units.si import day, radian
 
-    return StructuredUnit((Msun, radian, (AU, AU / day)), erfa_ufunc.dt_eraLDBODY)
+    return StructuredUnit((Msun, radian, (AU, AU / day)), dt_eraLDBODY)
 
 
 def astrom_unit():
+    from erfa import dt_eraASTROM
+
     from astropy.units.astrophys import AU
     from astropy.units.si import rad, year
 
@@ -296,7 +304,7 @@ def astrom_unit():
             rad,
             rad,
         ),
-        erfa_ufunc.dt_eraASTROM,
+        dt_eraASTROM,
     )
 
 
@@ -311,7 +319,7 @@ def helper_ldn(f, unit_b, unit_ob, unit_sc):
 
 
 def helper_aper(f, unit_theta, unit_astrom):
-    check_structured_unit(unit_astrom, dt_eraASTROM)
+    check_structured_unit(unit_astrom, "dt_eraASTROM")
     unit_along = unit_astrom[7]  # along
 
     if unit_astrom[14] is unit_along:  # eral
@@ -474,6 +482,8 @@ def helper_atoiq(f, unit_type, unit_ri, unit_di, unit_astrom):
 
 
 def get_erfa_helpers():
+    from erfa import ufunc as erfa_ufunc
+
     return {
         erfa_ufunc.apco13: helper_apco13,
         erfa_ufunc.aper: helper_aper,

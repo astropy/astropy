@@ -73,32 +73,6 @@ Multiple Quantity and unit-aware |Quantity| annotations are supported using
                 typing.Annotated[astropy.units.quantity.Quantity, PhysicalType('time')]]
 
 
-.. _typestubs_for_units:
-
-Script for Creating Unit Type Stubs
-===================================
-
-Individual unit objects like ``u.deg`` or ``u.m`` are created dynamically
-at runtime, which means static type checkers cannot recognize them by default.
-To enable proper type checking for these units, type stub (``.pyi``) files
-are needed that declare their types.
-
-As an experimental feature, astropy 7.2 includes a script to generate these
-stub files automatically:
-
-.. code-block:: bash
-
-   typestubs-for-units
-
-This command will attempt to write the stub files directly into your
-installed ``astropy`` package directory. To write to a different location
-or see other options, use the ``--help`` flag.
-
-.. warning:: This script is meant to gain information about whether the
-    type hints provided this way are sufficient. Once an automatic
-    solution has been identified, the script will be removed. In the
-    meantime, we welcome feedback.
-
 
 Type Annotations Module
 ***********************
