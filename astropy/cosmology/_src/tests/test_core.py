@@ -71,7 +71,7 @@ class SubCosmology(Cosmology):
     m_nu: Parameter = Parameter(default=0 * u.eV, unit=u.eV)
 
     @property
-    def is_flat(self):
+    def is_flat(self) -> bool:
         return super().is_flat()
 
 
@@ -489,7 +489,7 @@ def test__nonflatclass__multiple_nonflat_inheritance():
     @dataclass_decorator
     class SubCosmology2(Cosmology):
         @property
-        def is_flat(self):
+        def is_flat(self) -> bool:
             return False
 
     # Now make an ambiguous flat cosmology from the two SubCosmologies

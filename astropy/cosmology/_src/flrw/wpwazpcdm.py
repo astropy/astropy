@@ -2,11 +2,14 @@
 
 
 from numpy import exp
+from numpy.typing import ArrayLike
 
 from astropy.cosmology import units as cu
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.parameter import Parameter
+from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
@@ -116,7 +119,7 @@ class wpwaCDM(FLRW):
         unit=cu.redshift,
     )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
@@ -161,7 +164,7 @@ class wpwaCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     @deprecated_keywords("z", since="7.0")
-    def w(self, z):
+    def w(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -190,7 +193,7 @@ class wpwaCDM(FLRW):
         return self.wp + self.wa * (apiv - 1.0 / (aszarr(z) + 1.0))
 
     @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z):
+    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -307,7 +310,7 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
         of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
     """
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion

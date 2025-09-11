@@ -44,7 +44,7 @@ class HubbleParameter:
         return self.H0 * self.efunc(z)
 
     @cached_property
-    def h(self) -> np.floating[Any]:
+    def h(self) -> np.floating:
         """Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]."""
         return self.H0.to_value("km/(s Mpc)") / 100.0
 
