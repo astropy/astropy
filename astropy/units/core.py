@@ -143,7 +143,11 @@ class UnitBase:
         return [1]
 
     def to_string(
-        self, format: type["astropy.units.format.Base"] | str | None = None, **kwargs
+        self,
+        format: type["astropy.units.format.Base"] | str | None = None,
+        *,
+        deprecations: Literal["silent", "warn", "raise", "convert"] = "warn",
+        **kwargs,
     ) -> str:
         r"""Output the unit in the given format as a string.
 
@@ -152,7 +156,10 @@ class UnitBase:
         format : `astropy.units.format.Base` subclass or str or None
             The name of a format or a formatter class.  If not
             provided (or `None`), defaults to the generic format.
-
+        deprecations : {"warn", "silent", "raise", "convert"}, optional, keyword-only
+            Whether deprecated units should emit a warning, be handled
+            silently or raise an error. The "convert" option replaces
+            the deprecated unit if possible and emits a warning otherwise.
         **kwargs
             Further options forwarded to the formatter. Currently
             recognized is ``fraction``, which can take the following values:
@@ -196,7 +203,7 @@ class UnitBase:
 
             err.add_note(known_formats())
             raise err
-        return formatter.to_string(self, **kwargs)
+        return formatter.to_string(self, deprecations=deprecations, **kwargs)
 
     def __format__(self, format_spec: str) -> str:
         try:
