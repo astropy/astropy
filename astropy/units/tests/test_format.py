@@ -611,7 +611,7 @@ def test_multiline_fraction_different_if_available(format_spec):
 @pytest.mark.parametrize("format_spec", u_format.Base.registry)
 def test_unknown_fraction_style(format_spec):
     fluxunit = u.W / u.m**2
-    msg = "fraction can only be False, 'inline', or 'multiline', not 'parrot'"
+    msg = r"^fraction can only be False, 'inline', or 'multiline', not 'parrot'\.$"
     with pytest.raises(ValueError, match=msg):
         fluxunit.to_string(format_spec, fraction="parrot")
 
@@ -1161,3 +1161,8 @@ def test_Fits_name_deprecation():
     ):
         from astropy.units.format import Fits
     assert Fits is u.format.FITS
+
+
+@pytest.mark.parametrize("format_spec", ["generic", "unicode"])
+def test_liter(format_spec):
+    assert format(u.liter, format_spec) == "l"

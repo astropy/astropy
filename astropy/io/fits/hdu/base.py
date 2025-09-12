@@ -203,7 +203,7 @@ class _BaseHDU:
 
             cls.data = data_prop.deleter(data)
 
-        return super().__init_subclass__(**kwargs)
+        super().__init_subclass__(**kwargs)
 
     @property
     def header(self):

@@ -2762,7 +2762,7 @@ Bug Fixes
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
-- Updated ``astropy.io.misc.yaml`` so ``dump()` with a numpy object array or
+- Updated ``astropy.io.misc.yaml`` so ``dump()`` with a numpy object array or
   ``load()`` with YAML representing a Numpy object array both raise
   ``TypeError``. This prevents problems like a segmentation fault. [#15373]
 
@@ -5821,7 +5821,7 @@ Other Changes and Additions
   Now in the parameter types in the Parameters, Other Parameters, Returns and
   Yields sections of the docstring, the physical type of a quantity can be
   annotated in square brackets.
-  E.g. `` distance : `~astropy.units.Quantity` ['length'] `` [#11595]
+  E.g. ``distance : `~astropy.units.Quantity` ['length']`` [#11595]
 
 - The minimum supported version of ``ipython`` is now 4.2. [#10942]
 
@@ -15991,8 +15991,8 @@ astropy.io.ascii
   that the header line was read again as the first data line
   [#855 and #1844].
 
-- A new ``csv`` format was added as a convenience for handling CSV (comma-
-  separated values) data. [#1935]
+- A new ``csv`` format was added as a convenience for handling CSV
+  (comma-separated values) data. [#1935]
   This format also recognises rows with an inconsistent number of elements.
   [#1562]
 
@@ -16564,7 +16564,7 @@ astropy.wcs
 - Bug fixes in the projection routines: in ``hpxx2s`` [the
   cartesian-to-spherical operation of the ``HPX`` projection]
   relating to bounds checking, bug introduced at wcslib 4.20; in
-  ``parx2s`` and molx2s`` [the cartesion-to-spherical operation of
+  ``parx2s`` and ``molx2s`` [the cartesion-to-spherical operation of
   the ``PAR`` and ``MOL`` projections respectively] relating to
   setting the stat vector; in ``hpxx2s`` relating to implementation
   of the vector API; and in ``xphx2s`` relating to setting an
@@ -17848,7 +17848,7 @@ astropy.io.misc
 astropy.nddata
 ^^^^^^^^^^^^^^
 
-- ``NDData`` objects have more helpful, though still rudimentary ``__str__`
+- ``NDData`` objects have more helpful, though still rudimentary ``__str__``
   and ``__repr__`` displays. [#1313]
 
 astropy.units
@@ -18342,8 +18342,8 @@ astropy.io.fits
   image tables (they omitted the max array length parameter from the
   variable-length array format).
 
-- Fixed a crash that could occur when writing a table containing multi-
-  dimensional array columns from an existing file into a new file.
+- Fixed a crash that could occur when writing a table containing
+  multi-dimensional array columns from an existing file into a new file.
 
 - Fixed a bug in fitsdiff that reported two header keywords containing NaN
   as having different values.

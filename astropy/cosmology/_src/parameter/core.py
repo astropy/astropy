@@ -1,18 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 __all__ = ["MISSING", "Parameter"]
 
 import copy
 from collections.abc import Sequence
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
-from typing import Any
+from typing import TYPE_CHECKING, Any, Union
 
 import astropy.units as u
 
 from .converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
+
+if TYPE_CHECKING:
+    import astropy.cosmology
 
 
 class Sentinel(Enum):
@@ -21,7 +22,7 @@ class Sentinel(Enum):
     MISSING = auto()
     """A sentinel value signifying a missing default."""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.name}>"
 
 
@@ -33,13 +34,13 @@ class _UnitField:
     # TODO: rm this class when py3.13+ allows for `field(converter=...)`
 
     def __get__(
-        self, obj: Parameter | None, objcls: type[Parameter] | None
+        self, obj: Union["Parameter", None], objcls: type["Parameter"] | None
     ) -> u.Unit | None:
         if obj is None:  # calling `Parameter.unit` from the class
             return None
         return getattr(obj, "_unit", None)
 
-    def __set__(self, obj: Parameter, value: Any) -> None:
+    def __set__(self, obj: "Parameter", value: Any) -> None:
         object.__setattr__(obj, "_unit", u.Unit(value) if value is not None else None)
 
 
@@ -48,13 +49,13 @@ class _FValidateField:
     default: FValidateCallable | str = "default"
 
     def __get__(
-        self, obj: Parameter | None, objcls: type[Parameter] | None
+        self, obj: Union["Parameter", None], objcls: type["Parameter"] | None
     ) -> FValidateCallable | str:
         if obj is None:  # calling `Parameter.fvalidate` from the class
             return self.default
         return obj._fvalidate  # calling `Parameter.fvalidate` from an instance
 
-    def __set__(self, obj: Parameter, value: Any) -> None:
+    def __set__(self, obj: "Parameter", value: Any) -> None:
         # Always store input fvalidate.
         object.__setattr__(obj, "_fvalidate_in", value)
 
@@ -157,7 +158,11 @@ class Parameter:
     # -------------------------------------------
     # descriptor and property-like methods
 
-    def __get__(self, cosmology, cosmo_cls=None):
+    def __get__(
+        self,
+        cosmology: Union["astropy.cosmology.Cosmology", None],
+        cosmo_cls: Union["type[astropy.cosmology.Cosmology]", None] = None,
+    ) -> Any:
         # Get from class
         if cosmology is None:
             # If the Parameter is being set as part of a dataclass constructor, then we
@@ -173,7 +178,7 @@ class Parameter:
         # Get from instance
         return cosmology.__dict__[self.name]
 
-    def __set__(self, cosmology, value):
+    def __set__(self, cosmology: "astropy.cosmology.Cosmology", value: Any) -> None:
         """Allows attribute setting once.
 
         Raises AttributeError subsequently.
@@ -205,7 +210,7 @@ class Parameter:
     # -------------------------------------------
     # validate value
 
-    def validator(self, fvalidate):
+    def validator(self, fvalidate: FValidateCallable) -> "Parameter":
         """Make new Parameter with custom ``fvalidate``.
 
         Note: ``Parameter.fvalidator`` must be the top-most descriptor decorator.
@@ -221,7 +226,7 @@ class Parameter:
         """
         return self.clone(fvalidate=fvalidate)
 
-    def validate(self, cosmology, value):
+    def validate(self, cosmology: "astropy.cosmology.Cosmology", value: Any) -> Any:
         """Run the validator on this Parameter.
 
         Parameters
@@ -239,7 +244,7 @@ class Parameter:
         return self._fvalidate(cosmology, self, value)
 
     @staticmethod
-    def register_validator(key, fvalidate=None):
+    def register_validator(key, fvalidate: FValidateCallable | None = None) -> Any:
         """Decorator to register a new kind of validator function.
 
         Parameters
@@ -259,7 +264,7 @@ class Parameter:
 
     # -------------------------------------------
 
-    def clone(self, **kw):
+    def clone(self, **kw: Any) -> "Parameter":
         """Clone this `Parameter`, changing any constructor argument.
 
         Parameters

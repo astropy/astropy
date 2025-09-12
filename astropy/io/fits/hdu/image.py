@@ -797,7 +797,7 @@ class _ImageBaseHDU(_ValidHDU):
         code = BITPIX2DTYPE[self._orig_bitpix]
 
         raw_data = self._get_raw_data(shape, code, offset)
-        raw_data.dtype = raw_data.dtype.newbyteorder(">")
+        raw_data = raw_data.view(raw_data.dtype.newbyteorder(">"))
 
         return self._scale_data(raw_data)
 
@@ -922,12 +922,12 @@ class _ImageBaseHDU(_ValidHDU):
                 if d.flags.writeable:
                     byteswapped = True
                     d = d.byteswap(True)
-                    d.dtype = d.dtype.newbyteorder(">")
+                    d = d.view(d.dtype.newbyteorder(">"))
                 else:
                     # If the data is not writeable, we just make a byteswapped
                     # copy and don't bother changing it back after
                     d = d.byteswap(False)
-                    d.dtype = d.dtype.newbyteorder(">")
+                    d = d.view(d.dtype.newbyteorder(">"))
                     byteswapped = False
             else:
                 byteswapped = False
@@ -938,7 +938,7 @@ class _ImageBaseHDU(_ValidHDU):
             # its original little-endian order.
             if byteswapped and not _is_pseudo_integer(self.data.dtype):
                 d.byteswap(True)
-                d.dtype = d.dtype.newbyteorder("<")
+                d = d.view(d.dtype.newbyteorder("<"))
 
             return cs
         else:

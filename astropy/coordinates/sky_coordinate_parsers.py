@@ -15,6 +15,7 @@ from .baseframe import (
     _get_repr_cls,
     frame_transform_graph,
 )
+from .builtin_frames import ICRS
 from .representation import (
     BaseRepresentation,
     SphericalRepresentation,
@@ -177,8 +178,6 @@ def _get_frame_without_data(args, kwargs):
                     )
 
     if frame_cls is None:
-        from .builtin_frames import ICRS
-
         frame_cls = ICRS
 
     # By now, frame_cls should be set - if it's not, something went wrong

@@ -3,17 +3,16 @@
 Script support for validating a VO file.
 """
 
+import argparse
+
 
 def main(args=None):
-    import argparse
-
     from . import table
 
     parser = argparse.ArgumentParser(
         description="Check a VOTable file for compliance to the VOTable specification"
     )
-    # TODO: pass color and suggest_on_error as kwargs when PYTHON_LT_14 is dropped
-    parser.color = True
+    # TODO: pass suggest_on_error as kwarg when PYTHON_LT_14 is dropped
     parser.suggest_on_error = True
 
     parser.add_argument("filename", nargs=1, help="Path to VOTable file to check")

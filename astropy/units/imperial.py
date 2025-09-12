@@ -19,11 +19,11 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
 # avoid ruff complaints about undefined names defined by def_unit
 # ruff: noqa: F821
 
-__all__: list[str] = []  #  Units are added at the end
+__all__: list[str] = ["enable"]  #  Units are added at the end
 
 from . import si
-from .core import UnitBase, add_enabled_units, def_unit
-from .docgen import generate_unit_summary
+from .core import add_enabled_units, def_unit
+from .docgen import generate_dunder_all, generate_unit_summary
 
 _ns = globals()
 
@@ -157,7 +157,7 @@ def_unit(
 ###########################################################################
 # ALL & DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+__all__ += generate_dunder_all(globals())  # noqa: PLE0605
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

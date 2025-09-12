@@ -150,25 +150,21 @@ not match the class' parameter names.
     True
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, TypeVar
+from typing import TypeVar
 
 import numpy as np
 
 from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import convert_registry
+from astropy.cosmology._src.typing import _CosmoT
 from astropy.table import Column, QTable, Table
 
 from .mapping import to_mapping
 from .row import from_row
 from .utils import convert_parameter_to_column
 
-if TYPE_CHECKING:
-    from astropy.cosmology._src.typing import _CosmoT
-
-    _TableT = TypeVar("_TableT", Table)
+_TableT = TypeVar("_TableT", bound=Table)
 
 
 def from_table(

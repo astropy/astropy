@@ -5,8 +5,8 @@
 Optimization algorithms used in `~astropy.modeling.fitting`.
 """
 
-import abc
 import warnings
+from abc import ABC, abstractmethod
 
 import numpy as np
 
@@ -26,7 +26,7 @@ DEFAULT_ACC = 1e-07
 DEFAULT_BOUNDS = (-(10**12), 10**12)
 
 
-class Optimization(metaclass=abc.ABCMeta):
+class Optimization(ABC):
     """
     Base class for optimizers.
 
@@ -45,7 +45,10 @@ class Optimization(metaclass=abc.ABCMeta):
 
     supported_constraints = []
 
-    def __init__(self, opt_method):
+    @abstractmethod
+    def __init__(self) -> None: ...
+
+    def _init_opt_method(self, opt_method):
         self._opt_method = opt_method
         self._maxiter = DEFAULT_MAXITER
         self._eps = DEFAULT_EPS
@@ -90,7 +93,7 @@ class Optimization(metaclass=abc.ABCMeta):
         """Return the optimization method."""
         return self._opt_method
 
-    @abc.abstractmethod
+    @abstractmethod
     def __call__(self):
         raise NotImplementedError("Subclasses should implement this method")
 
@@ -113,7 +116,7 @@ class SLSQP(Optimization):
     def __init__(self):
         from scipy.optimize import fmin_slsqp
 
-        super().__init__(fmin_slsqp)
+        self._init_opt_method(fmin_slsqp)
         self.fit_info = {
             "final_func_val": None,
             "numiter": None,
@@ -205,7 +208,7 @@ class Simplex(Optimization):
     def __init__(self):
         from scipy.optimize import fmin as simplex
 
-        super().__init__(simplex)
+        self._init_opt_method(simplex)
         self.fit_info = {
             "final_func_val": None,
             "numiter": None,

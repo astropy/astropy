@@ -24,7 +24,7 @@ from functools import reduce
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates import rotation_matrix
 
 from .core import Model
 from .parameters import Parameter
@@ -192,8 +192,8 @@ class _EulerRotation:
         result = np.dot(matrix, inp)
         a, b = cartesian2spherical(*result)
         if shape is not None:
-            a.shape = shape
-            b.shape = shape
+            a = a.reshape(shape)
+            b = b.reshape(shape)
         return a, b
 
     _input_units_strict = True

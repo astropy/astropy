@@ -1,5 +1,8 @@
 #define NO_IMPORT_ARRAY
 
+#include <stdlib.h> // calloc, malloc, free
+#include <string.h> // memcpy
+
 #include "astropy_wcs/wcslib_celprm_wrap.h"
 #include "astropy_wcs/wcslib_prjprm_wrap.h"
 
@@ -71,7 +74,8 @@ static int is_cel_null(PyCelprm* self)
 static PyObject* PyCelprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
     PyCelprm* self;
-    self = (PyCelprm*)type->tp_alloc(type, 0);
+    allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+    self = (PyCelprm*)alloc_func(type, 0);
     if (self == NULL) return NULL;
     self->owner = NULL;
     self->prefcount = NULL;
@@ -100,6 +104,7 @@ static PyObject* PyCelprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds
 static int PyCelprm_traverse(PyCelprm* self, visitproc visit, void *arg)
 {
     Py_VISIT(self->owner);
+    Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
     return 0;
 }
 
@@ -119,7 +124,10 @@ static void PyCelprm_dealloc(PyCelprm* self)
         free(self->x);
         free(self->prefcount);
     }
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    PyTypeObject *tp = Py_TYPE((PyObject*)self);
+    freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+    free_func((PyObject*)self);
+    Py_DECREF(tp);
 }
 
 
@@ -142,7 +150,9 @@ static PyObject* PyCelprm_set(PyCelprm* self)
 PyCelprm* PyCelprm_cnew(PyObject* wcsprm_obj, struct celprm* x, int* prefcount)
 {
     PyCelprm* self;
-    self = (PyCelprm*)(&PyCelprmType)->tp_alloc(&PyCelprmType, 0);
+    PyTypeObject* type = (PyTypeObject*)PyCelprmType;
+    allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+    self = (PyCelprm*)alloc_func(type, 0);
     if (self == NULL) return NULL;
     self->x = x;
     Py_XINCREF(wcsprm_obj);
@@ -164,7 +174,7 @@ static PyObject* PyCelprm_copy(PyCelprm* self)
 
 static PyObject* PyCelprm_deepcopy(PyCelprm* self)
 {
-    PyCelprm* copy = (PyCelprm*) PyCelprm_new(&PyCelprmType, NULL, NULL);
+    PyCelprm* copy = (PyCelprm*) PyCelprm_new((PyTypeObject*)PyCelprmType, NULL, NULL);
     if (copy == NULL) return NULL;
 
     memcpy(copy->x, self->x, sizeof(struct celprm));
@@ -422,54 +432,31 @@ static PyMethodDef PyCelprm_methods[] = {
     {NULL}
 };
 
-
-PyTypeObject PyCelprmType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "astropy.wcs.Celprm",         /*tp_name*/
-    sizeof(PyCelprm),             /*tp_basicsize*/
-    0,                            /*tp_itemsize*/
-    (destructor)PyCelprm_dealloc, /*tp_dealloc*/
-    0,                            /*tp_print*/
-    0,                            /*tp_getattr*/
-    0,                            /*tp_setattr*/
-    0,                            /*tp_compare*/
-    0,                            /*tp_repr*/
-    0,                            /*tp_as_number*/
-    0,                            /*tp_as_sequence*/
-    0,                            /*tp_as_mapping*/
-    0,                            /*tp_hash */
-    0,                            /*tp_call*/
-    (reprfunc)PyCelprm___str__,   /*tp_str*/
-    0,                            /*tp_getattro*/
-    0,                            /*tp_setattro*/
-    0,                            /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-    doc_Celprm,                   /* tp_doc */
-    (traverseproc)PyCelprm_traverse, /* tp_traverse */
-    (inquiry)PyCelprm_clear,      /* tp_clear */
-    0,                            /* tp_richcompare */
-    0,                            /* tp_weaklistoffset */
-    0,                            /* tp_iter */
-    0,                            /* tp_iternext */
-    PyCelprm_methods,             /* tp_methods */
-    0,                            /* tp_members */
-    PyCelprm_getset,              /* tp_getset */
-    0,                            /* tp_base */
-    0,                            /* tp_dict */
-    0,                            /* tp_descr_get */
-    0,                            /* tp_descr_set */
-    0,                            /* tp_dictoffset */
-    0,                            /* tp_init */
-    0,                            /* tp_alloc */
-    PyCelprm_new,                 /* tp_new */
+static PyType_Spec PyCelprmType_spec = {
+    .name = "astropy.wcs.Celprm",
+    .basicsize = sizeof(PyCelprm),
+    .itemsize = 0,
+    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
+    .slots = (PyType_Slot[]){
+        {Py_tp_dealloc, (destructor)PyCelprm_dealloc},
+        {Py_tp_str, (reprfunc)PyCelprm___str__},
+        {Py_tp_doc, doc_Celprm},
+        {Py_tp_traverse, (traverseproc)PyCelprm_traverse},
+        {Py_tp_clear, (inquiry)PyCelprm_clear},
+        {Py_tp_methods, PyCelprm_methods},
+        {Py_tp_getset, PyCelprm_getset},
+        {Py_tp_new, PyCelprm_new},
+        {0, NULL},
+    },
 };
 
+PyObject* PyCelprmType = NULL;
 
 int _setup_celprm_type(PyObject* m)
 {
-    if (PyType_Ready(&PyCelprmType) < 0) return -1;
-    Py_INCREF(&PyCelprmType);
-    PyModule_AddObject(m, "Celprm", (PyObject *)&PyCelprmType);
+    PyCelprmType = PyType_FromSpec(&PyCelprmType_spec);
+    if (PyCelprmType == NULL) return -1;
+    PyModule_AddObject(m, "Celprm", PyCelprmType);
 
     cel_errexc[0] = NULL;                         /* Success */
     cel_errexc[1] = &PyExc_MemoryError;           /* Null celprm pointer passed */

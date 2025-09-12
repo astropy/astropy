@@ -2,9 +2,7 @@
 
 """Tests for custom error and warning messages in `astropy.coordinates`."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
 import pytest
 
@@ -12,14 +10,12 @@ from astropy import units as u
 from astropy.coordinates import (
     GCRS,
     ICRS,
+    BaseCoordinateFrame,
     Galactic,
     NonRotationTransformationError,
     NonRotationTransformationWarning,
     UnknownSiteException,
 )
-
-if TYPE_CHECKING:
-    from astropy.coordinates import BaseCoordinateFrame
 
 
 class FrameDescription(NamedTuple):

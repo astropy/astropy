@@ -219,7 +219,10 @@ def test_read_write_simple(tmp_path):
         )
     )
     t1.write(test_file, format="ascii.qdp")
-    with pytest.warns(UserWarning) as record:
+    with pytest.warns(
+        AstropyUserWarning,
+        match=r"^table_id not specified\. Reading the first available table$",
+    ) as record:
         t2 = Table.read(test_file, format="ascii.qdp")
     assert np.any(
         [

@@ -12,8 +12,8 @@ import numpy as np
 from astropy.constants import si as _si
 
 from . import si
-from .core import UnitBase, binary_prefixes, def_unit, si_prefixes
-from .docgen import generate_unit_summary
+from .core import binary_prefixes, def_unit, si_prefixes
+from .docgen import generate_dunder_all, generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -154,7 +154,7 @@ def_unit(
 ###########################################################################
 # ALL & DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+__all__ += generate_dunder_all(globals())  # noqa: PLE0605
 
 
 if __doc__ is not None:

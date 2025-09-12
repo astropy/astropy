@@ -1,5 +1,5 @@
 **************************************************************
-HDF5, Parquet, PyArrow CSV, YAML (`astropy.io.misc`)
+ECVS, HDF5, Parquet, PyArrow CSV, YAML (`astropy.io.misc`)
 **************************************************************
 
 The `astropy.io.misc` module contains miscellaneous input/output routines that

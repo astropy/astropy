@@ -9,7 +9,7 @@
 #include "pyutil.h"
 #include "wcs.h"
 
-extern PyTypeObject PyTabprmType;
+extern PyObject* PyTabprmType;
 
 typedef struct {
   PyObject_HEAD

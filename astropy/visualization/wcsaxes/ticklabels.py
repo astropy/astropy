@@ -17,6 +17,26 @@ def sort_using(X, Y):
     return [x for (y, x) in sorted(zip(Y, X))]
 
 
+def _find_start_of_last_number(label):
+    """
+    Given a label, find the index of the start of the last numerical value
+    in the label.
+    """
+    numerical_chars = "0123456789.+"
+    if rcParams["axes.unicode_minus"] and not rcParams["text.usetex"]:
+        numerical_chars += "\N{MINUS SIGN}"
+    else:
+        numerical_chars += "-"
+
+    in_number = False
+    for j in range(len(label) - 1, -1, -1):
+        if in_number:
+            if label[j] not in numerical_chars:
+                return j + 1
+        elif label[j] in numerical_chars:
+            in_number = True
+
+
 class TickLabels(Text):
     def __init__(self, frame, *args, **kwargs):
         self.clear()
@@ -126,38 +146,35 @@ class TickLabels(Text):
         Figure out which parts of labels can be dropped to avoid repetition.
         """
         self.sort()
-        skippable_chars = "0123456789.+"
-        if rcParams["axes.unicode_minus"] and not rcParams["text.usetex"]:
-            skippable_chars += "\N{MINUS SIGN}"
-        else:
-            skippable_chars += "-"
 
         for axis in self.world:
             t1 = self.text[axis][0]
             for i in range(1, len(self.world[axis])):
                 t2 = self.text[axis][i]
-                if len(t1) != len(t2):
-                    t1 = self.text[axis][i]
-                    continue
-                start = 0
-                # In the following loop, we need to ignore the last character,
-                # hence the len(t1) - 1. This is because if we have two strings
-                # like 13d14m15s we want to make sure that we keep the last
-                # part (15s) even if the two labels are identical.
-                for j in range(len(t1) - 1):
-                    if t1[j] != t2[j]:
-                        break
-                    if t1[j] not in skippable_chars:
-                        start = j + 1
-                t1 = self.text[axis][i]
+
+                if t1 == t2:
+                    # In this case, we still need to preserve the last segment
+                    # of the label. We search backwards from the end, and
+                    # search for a number, and we then search for the first
+                    # non-number (and non-decimal place) character we can find.
+                    start = _find_start_of_last_number(t2)
+                else:
+                    for j in range(len(t1)):
+                        if t1[j] != t2[j]:
+                            start = _find_start_of_last_number(t2[: j + 1])
+                            break
+
                 if start != 0:
-                    starts_dollar = self.text[axis][i].startswith("$")
-                    self.text[axis][i] = self.text[axis][i][start:]
+                    starts_dollar = t2.startswith("$")
+                    self.text[axis][i] = t2[start:]
                     if starts_dollar:
                         self.text[axis][i] = "$" + self.text[axis][i]
+
                 # Remove any empty LaTeX inline math mode string
                 if self.text[axis][i] == "$$":
                     self.text[axis][i] = ""
+
+                t1 = t2
 
         self._stale = True
 
@@ -169,7 +186,7 @@ class TickLabels(Text):
         return self._pad
 
     def set_visible_axes(self, visible_axes):
-        self._visible_axes = visible_axes
+        self._visible_axes = self._frame._validate_positions(visible_axes)
         self._stale = True
 
     def get_visible_axes(self):

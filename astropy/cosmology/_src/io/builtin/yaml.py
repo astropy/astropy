@@ -17,10 +17,7 @@ require YAML serialization.
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """  # this is shown in the docs.
 
-from __future__ import annotations
-
 from collections.abc import Callable
-from typing import TYPE_CHECKING
 
 from yaml import MappingNode
 
@@ -31,12 +28,10 @@ from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
 import astropy.cosmology.units as cu
 from astropy.cosmology._src.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology._src.io.connect import convert_registry
+from astropy.cosmology._src.typing import _CosmoT
 
 from .mapping import from_mapping
 from .utils import FULLQUALNAME_SUBSTITUTIONS as QNS
-
-if TYPE_CHECKING:
-    from astropy.cosmology._src.typing import _CosmoT
 
 __all__: list[str] = []  # nothing is publicly scoped
 

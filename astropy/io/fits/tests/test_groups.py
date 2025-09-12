@@ -150,8 +150,7 @@ class TestGroupsFunctions(FitsTestCase):
         Basic test for creating GroupData from scratch.
         """
 
-        imdata = np.arange(100.0)
-        imdata.shape = (10, 1, 1, 2, 5)
+        imdata = np.arange(100.0).reshape((10, 1, 1, 2, 5))
         pdata1 = np.arange(10, dtype=np.float32) + 0.1
         pdata2 = 42.0
         x = fits.hdu.groups.GroupData(
@@ -195,8 +194,7 @@ class TestGroupsFunctions(FitsTestCase):
         value.
         """
 
-        imdata = np.arange(100.0)
-        imdata.shape = (10, 1, 1, 2, 5)
+        imdata = np.arange(100.0).reshape((10, 1, 1, 2, 5))
         pdata1 = np.arange(10, dtype=np.float32) + 1
         pdata2 = 42.0
         x = fits.hdu.groups.GroupData(

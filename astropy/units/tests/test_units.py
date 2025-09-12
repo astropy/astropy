@@ -13,7 +13,7 @@ from numpy.testing import assert_allclose
 
 from astropy import constants as c
 from astropy import units as u
-from astropy.units import utils
+from astropy.units import cds, utils
 from astropy.units.required_by_vounit import GsolLum, ksolMass, nsolRad
 from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT, HAS_DASK
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -720,22 +720,41 @@ def test_pickle_unrecognized_unit():
 
 
 @pytest.mark.parametrize(
-    "name",
+    "name,message",
     [
-        pytest.param("h", id="simple_conflict"),
-        pytest.param("ʰ", id="NFKC_normalization"),
+        pytest.param(
+            "h",
+            r"^the namespace already uses the name 'h' for Unit\(\"h\"\)$",
+            id="simple_conflict",
+        ),
+        pytest.param(
+            "ʰ",
+            (
+                "^the namespace already uses the NFKC normalized name 'h' for "
+                r'Unit\("h"\)'
+                "\n\nSee "
+                "https://docs.python.org/3/reference/lexical_analysis.html#identifiers "
+                r"for more information\.$"
+            ),
+            id="NFKC_normalization",
+        ),
     ],
 )
-def test_duplicate_define(name):
+def test_duplicate_define(name, message):
     namespace = {"h": u.h}
-    with pytest.raises(
-        ValueError,
-        match=(
-            "^Object with NFKC normalized name 'h' already exists in given namespace "
-            r'\(Unit\("h"\)\)\.$'
-        ),
-    ):
+    with pytest.raises(ValueError, match=message):
         u.def_unit(name, u.hourangle, namespace=namespace)
+
+
+def test_unit_module_dunder_all_nfkc_normalization():
+    # Python applies NFKC normalization to identifiers, so inserting a name to __all__
+    # that changes with NFKC normalization can only cause trouble.
+    assert "ℓ" not in u.__all__
+    assert u.ℓ is u.liter
+
+
+def test_unit_module_dunder_all_only_indentifiers():
+    assert "°" not in cds.__all__
 
 
 def test_all_units():

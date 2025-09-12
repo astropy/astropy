@@ -8,8 +8,8 @@ This package defines the SI units.  They are also available in
 
 import numpy as np
 
-from .core import CompositeUnit, UnitBase, def_unit
-from .docgen import generate_unit_summary
+from .core import CompositeUnit, def_unit
+from .docgen import generate_dunder_all, generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -89,7 +89,6 @@ def_unit(
     1000 * cm**3.0,
     namespace=_ns,
     prefixes=True,
-    format={"latex": r"\mathcal{l}", "unicode": "ℓ"},
     doc="liter: metric unit of volume",
 )
 
@@ -479,7 +478,7 @@ bases = {m, s, kg, A, cd, rad, K, mol}
 ###########################################################################
 # ALL & DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+__all__ += generate_dunder_all(globals())  # noqa: PLE0605
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

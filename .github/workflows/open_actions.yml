@@ -43,7 +43,7 @@ jobs:
             - [ ] At the time of adding the milestone, if the milestone set requires a backport to release branch(es), apply the appropriate "backport-X.Y.x" label(s) *before* merge.`
           })
     - name: Greet new contributors
-      uses: actions/first-interaction@34f15e814fe48ac9312ccf29db4e74fa767cbab7  # v1.3.0
+      uses: actions/first-interaction@753c925c8d1ac6fede23781875376600628d9b5d  # v3.0.0
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         issue-message: >
