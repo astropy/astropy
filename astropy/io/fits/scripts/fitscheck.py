@@ -46,7 +46,6 @@ import warnings
 
 from astropy import __version__
 from astropy.io import fits
-from astropy.utils.exceptions import AstropyUserWarning
 
 log = logging.getLogger("fitscheck")
 
@@ -167,30 +166,37 @@ def verify_checksums(filename):
     Prints a message if any HDU in `filename` has a bad checksum or datasum.
     """
     checksum_errors = 0
+
+    # _verify_checksum_datasum issues warnings when checksums are wrong so we
+    # catch those to avoid duplicates, since we are using logging here to
+    # report problems.
     with warnings.catch_warnings(record=True) as wlist:
         warnings.simplefilter("always")
         with fits.open(filename, checksum=OPTIONS.checksum_kind) as hdulist:
             for i, hdu in enumerate(hdulist):
                 # looping on HDUs is needed to read them and verify the
                 # checksums
-                if not OPTIONS.ignore_missing:
-                    if not hdu._checksum:
-                        warnings.warn(
-                            f"Checksum verification failed: MISSING {filename!r} .. Checksum not found in HDU #{i}",
-                            AstropyUserWarning,
-                        )
-                    if not hdu._datasum:
-                        warnings.warn(
-                            f"Datasum verification failed: MISSING {filename!r} .. Datasum not found in HDU #{i}",
-                            AstropyUserWarning,
-                        )
+                if not OPTIONS.ignore_missing and not hdu._checksum:
+                    checksum_errors += 1
+                    log.warning(
+                        f"MISSING {filename!r} .. Checksum not found in HDU #{i}",
+                    )
+                elif hdu._checksum and not hdu._checksum_valid:
+                    checksum_errors += 1
+                    log.warning(
+                        f"BAD {filename!r} Checksum verification failed for HDU {i}"
+                    )
 
-    for w in wlist:
-        if str(w.message).startswith(
-            ("Checksum verification failed", "Datasum verification failed")
-        ):
-            log.warning("BAD %r %s", filename, str(w.message))
-            checksum_errors += 1
+                if not OPTIONS.ignore_missing and not hdu._datasum:
+                    checksum_errors += 1
+                    log.warning(
+                        f"MISSING {filename!r} .. Datasum not found in HDU #{i}",
+                    )
+                elif hdu._datasum and not hdu._datasum_valid:
+                    checksum_errors += 1
+                    log.warning(
+                        f"BAD {filename!r} Datasum verification failed for HDU {i}"
+                    )
 
     if not checksum_errors:
         log.info(f"OK {filename!r}")

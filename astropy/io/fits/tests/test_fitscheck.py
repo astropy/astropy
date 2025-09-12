@@ -2,6 +2,7 @@
 
 import re
 
+import numpy as np
 import pytest
 
 from astropy import __version__ as version
@@ -105,19 +106,23 @@ class TestFitscheck(FitsTestCase):
         from https://github.com/astropy/astropy/issues/16551
         written by Zach Claytor
         """
+        # Test with a file where primary HDU has no checksum/datasum and image
+        # extension contains valid checksum/datasum
         testfile = self.temp("test.fits")
-        p = fits.PrimaryHDU()  # create Primary HDU
-        hdul = fits.HDUList(p)  # add primary HDU to HDUList
-        ext = fits.ImageHDU()  # create extension
-        ext.add_checksum()  # add checksum to extension header
-        ext.header["THINGY"] = 123  # update header metadata
-        hdul.append(ext)  # add extension to HDUList
-        hdul.writeto(testfile, overwrite=True)  # save
+        hdul = fits.HDUList([fits.PrimaryHDU()])
+        ext = fits.ImageHDU(data=np.arange(10))
+        ext.header["THINGY"] = 123
+        ext.add_datasum()
+        ext.add_checksum()
+        hdul.append(ext)
+        hdul.writeto(testfile)
+
         assert fitscheck.main([testfile]) == 1
-        assert re.match(
-            r"BAD.*Checksum verification failed for HDU", caplog.records[0].message
-        )
-        assert re.match(r"BAD.*Checksum not found", caplog.records[1].message)
-        assert re.match(r"BAD.*Datasum not found", caplog.records[2].message)
-        assert re.match(r"3 errors", caplog.records[3].message)
+        expected = [
+            f"MISSING '{testfile}' .. Checksum not found in HDU #0",
+            f"MISSING '{testfile}' .. Datasum not found in HDU #0",
+            "2 errors",
+        ]
+        for exp, rec in zip(expected, caplog.records):
+            assert rec.message == exp
         caplog.clear()
