@@ -757,11 +757,7 @@ def test_unit_module_dunder_all_nfkc_normalization():
     "string",
     [
         pytest.param("°", id="invalid characters"),  # Regression test for #18606
-        pytest.param(
-            "as",
-            id="keyword",
-            marks=pytest.mark.xfail(reason="regression test to reveal a bug"),
-        ),
+        pytest.param("as", id="keyword"),  # Regression test for #18614
     ],
 )
 def test_unit_module_dunder_all_only_indentifiers(string):
