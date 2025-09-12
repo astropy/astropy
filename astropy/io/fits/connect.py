@@ -432,7 +432,7 @@ def _encode_mixins(tbl):
     return encode_tbl
 
 
-def write_table_fits(input, output, overwrite=False, append=False):
+def write_table_fits(input, output, overwrite=False, append=False, name=None):
     """
     Write a Table object to a FITS file.
 
@@ -446,11 +446,14 @@ def write_table_fits(input, output, overwrite=False, append=False):
         Whether to overwrite any existing file without warning.
     append : bool
         Whether to append the table to an existing file
+    name : str
+        Name to be populated in ``EXTNAME`` keyword.
+
     """
     # Encode any mixin columns into standard Columns.
     input = _encode_mixins(input)
 
-    table_hdu = table_to_hdu(input, character_as_bytes=True)
+    table_hdu = table_to_hdu(input, character_as_bytes=True, name=name)
 
     # Check if output file already exists
     if isinstance(output, (str, os.PathLike)) and os.path.exists(output):

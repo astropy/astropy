@@ -1,22 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 import warnings
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, ClassVar, Literal
+from typing import ClassVar, Literal
 
 import numpy as np
 
-from astropy.units.core import CompositeUnit, NamedUnit, Unit, get_current_unit_registry
+from astropy.extern.ply.lex import LexToken
+from astropy.units.core import (
+    CompositeUnit,
+    NamedUnit,
+    Unit,
+    UnitBase,
+    get_current_unit_registry,
+)
 from astropy.units.errors import UnitsWarning
+from astropy.units.typing import UnitPower, UnitScale
 from astropy.units.utils import maybe_simple_fraction
 from astropy.utils.misc import did_you_mean
-
-if TYPE_CHECKING:
-    from astropy.extern.ply.lex import LexToken
-    from astropy.units import UnitBase
-    from astropy.units.typing import UnitPower, UnitScale
 
 
 class Base:
@@ -24,7 +25,7 @@ class Base:
     The abstract base class of all unit formats.
     """
 
-    registry: ClassVar[dict[str, type[Base]]] = {}
+    registry: ClassVar[dict[str, type["Base"]]] = {}
     _space: ClassVar[str] = " "
     _scale_unit_separator: ClassVar[str] = " "
     _times: ClassVar[str] = "*"
@@ -223,12 +224,14 @@ class _ParsingFormatMixin:
     def _get_unit(cls, t: LexToken) -> UnitBase:
         try:
             return cls._validate_unit(t.value)
-        except ValueError as e:
+        except KeyError:
             registry = get_current_unit_registry()
             if t.value in registry.aliases:
                 return registry.aliases[t.value]
 
-            raise ValueError(f"At col {t.lexpos}, {str(e)}")
+            raise ValueError(
+                f"At col {t.lexpos}, {cls._invalid_unit_error_message(t.value)}"
+            ) from None
 
     @classmethod
     def _fix_deprecated(cls, x: str) -> list[str]:
@@ -253,13 +256,16 @@ class _ParsingFormatMixin:
         return did_you_mean(unit, cls._units, fix=cls._fix_deprecated)
 
     @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        try:
-            return cls._units[unit]
-        except KeyError:
-            if detailed_exception:
-                raise ValueError(cls._invalid_unit_error_message(unit)) from None
-            raise ValueError() from None
+    def _validate_unit(cls, s: str) -> UnitBase:
+        if s in cls._deprecated_units:
+            alternative = (
+                unit.represents if isinstance(unit := cls._units[s], Unit) else None
+            )
+            msg = f"The unit {s!r} has been deprecated in the {cls.__name__} standard."
+            if alternative:
+                msg += f" Suggested: {cls.to_string(alternative)}."
+            warnings.warn(msg, UnitsWarning)
+        return cls._units[s]
 
     @classmethod
     def _invalid_unit_error_message(cls, unit: str) -> str:
@@ -282,12 +288,13 @@ class _ParsingFormatMixin:
                 _error_check=False,
             )
         if isinstance(unit, NamedUnit):
+            name = unit._get_format_name(cls.name)
             try:
-                return cls._validate_unit(unit._get_format_name(cls.name))
-            except ValueError:
+                return cls._validate_unit(name)
+            except KeyError:
                 if isinstance(unit, Unit):
                     return cls._decompose_to_known_units(unit._represents)
-                raise
+                raise ValueError(cls._invalid_unit_error_message(name)) from None
         raise TypeError(
             f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
         )

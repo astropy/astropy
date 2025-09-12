@@ -63,11 +63,6 @@ jobs:
             python: '3.13'
             toxenv: py313-test-devinfra
 
-          - name: Python 3.13 on macOS (x86_64) with all optional dependencies
-            os: macos-13
-            python: '3.13'
-            toxenv: py313-test-alldeps
-
           - name: Python 3.13t (free-threading) with recommended dependencies
             os: ubuntu-latest
             python: '3.13t'
@@ -81,7 +76,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
       with:
         persist-credentials: false
         fetch-depth: 0
@@ -127,7 +122,7 @@ jobs:
           - arch: armv7
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
         with:
           persist-credentials: false
           fetch-depth: 0

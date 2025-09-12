@@ -3,38 +3,29 @@
 Handles the "VOUnit" unit format.
 """
 
-from __future__ import annotations
-
 import re
 import warnings
 from re import Pattern
-from typing import TYPE_CHECKING, ClassVar, Literal
+from typing import ClassVar, Literal
 
 import numpy as np
 
+from astropy.extern.ply.lex import LexToken
 from astropy.units.core import (
     CompositeUnit,
     NamedUnit,
     PrefixUnit,
+    UnitBase,
     def_unit,
     dimensionless_unscaled,
     si_prefixes,
 )
-from astropy.units.errors import (
-    UnitParserWarning,
-    UnitScaleError,
-    UnitsError,
-    UnitsWarning,
-)
+from astropy.units.errors import UnitParserWarning, UnitScaleError, UnitsError
+from astropy.units.typing import UnitScale
 from astropy.utils import classproperty
 
 from . import Base, utils
 from .generic import _GenericParserMixin
-
-if TYPE_CHECKING:
-    from astropy.extern.ply.lex import LexToken
-    from astropy.units import UnitBase
-    from astropy.units.typing import UnitScale
 
 
 class VOUnit(Base, _GenericParserMixin):
@@ -220,14 +211,3 @@ class VOUnit(Base, _GenericParserMixin):
             if x in cls._deprecated_units
             else [x]
         )
-
-    @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        if unit in cls._deprecated_units:
-            warnings.warn(
-                UnitsWarning(
-                    f"The unit '{unit}' has been deprecated in the VOUnit standard."
-                    f" Suggested: {cls.to_string(cls._units[unit]._represents)}."
-                )
-            )
-        return super()._validate_unit(unit, detailed_exception)

@@ -2,19 +2,14 @@
 
 """Testing :mod:`astropy.cosmology._src.parameter.descriptor`."""
 
-from __future__ import annotations
-
 from types import MappingProxyType
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 import pytest
 
-from astropy.cosmology._src.parameter import Parameter
+from astropy.cosmology import Cosmology, Parameter
 from astropy.cosmology._src.parameter.descriptors import ParametersAttribute
 from astropy.cosmology._src.utils import all_cls_vars
-
-if TYPE_CHECKING:
-    from astropy.cosmology._src.core import Cosmology
 
 
 class Obj:

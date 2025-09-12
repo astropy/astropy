@@ -3,6 +3,7 @@
 import copy
 import operator
 import warnings
+from inspect import currentframe, getframeinfo
 
 import numpy as np
 import pytest
@@ -803,8 +804,6 @@ def test_string_truncation_warning(masked):
     Test warnings associated with in-place assignment to a string
     column that results in truncation of the right hand side.
     """
-    from inspect import currentframe, getframeinfo
-
     t = table.Table([["aa", "bb"]], names=["a"], masked=masked)
     t["a"][1] = "cc"
     t["a"][:] = "dd"

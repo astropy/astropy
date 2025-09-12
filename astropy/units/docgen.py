@@ -7,6 +7,7 @@ package.
 """
 
 import re
+import unicodedata
 from collections.abc import Iterable, Mapping
 from io import StringIO
 
@@ -130,3 +131,15 @@ def generate_prefixonly_unit_summary(namespace: Mapping[str, object]) -> str:
      - Only
 """
     return _summarize_units(non_prefixed_units, set(), StringIO(), template)
+
+
+def generate_dunder_all(namespace: Mapping[str, object]) -> list[str]:
+    return [
+        name
+        for name, value in namespace.items()
+        if (
+            isinstance(value, UnitBase)
+            and name.isidentifier()
+            and name == unicodedata.normalize("NFKC", name)
+        )
+    ]

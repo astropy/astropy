@@ -21,8 +21,8 @@ in Python. This API is described in the Astropy Proposal for Enhancements (APE) 
 `A shared Python interface for World Coordinate Systems
 <https://doi.org/10.5281/zenodo.1188874>`_.
 
-The core astropy package provides base classes that define the low- and high-
-level APIs described in APE 14 in the :mod:`astropy.wcs.wcsapi` module, and
+The core astropy package provides base classes that define the low- and
+high-level APIs described in APE 14 in the :mod:`astropy.wcs.wcsapi` module, and
 these are listed in the :ref:`wcs-reference-api` section below.
 
 Overview
@@ -64,6 +64,7 @@ simple image with two celestial axes (Right Ascension and Declination)::
     <BLANKLINE>
     Number of WCS axes: 2
     CTYPE : 'RA---TAN'  'DEC--TAN'
+    CUNIT : 'deg' 'deg'
     CRVAL : 266.4  -28.93333
     CRPIX : 361.0  360.5
     NAXIS : 721  720
@@ -148,7 +149,8 @@ spectral axis)::
     >>> wcs  # doctest: +REMOTE_DATA
     WCS Keywords
     Number of WCS axes: 3
-    CTYPE : 'RA---SFL'  'DEC--SFL'  'VOPT'
+    CTYPE : 'RA---SFL' 'DEC--SFL' 'VOPT'
+    CUNIT : 'deg' 'deg' 'm / s'
     CRVAL : 57.6599999999  0.0  -9959.44378305
     CRPIX : -799.0  -4741.913  -187.0
     PC1_1 PC1_2 PC1_3  : 1.0  0.0  0.0
@@ -232,6 +234,61 @@ We can specify that for this CTYPE, the physical type should be
     >>> with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
     ...     wcs.world_axis_physical_types
     ['food.spam']
+
+Preserving units in FITS-WCS
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, the :class:`~astropy.wcs.WCS` class will convert units into degrees
+for angles, and SI units for other physical types::
+
+    >>> header = """
+    ... CTYPE1  = 'GLON-CAR'
+    ... CTYPE2  = 'GLAT-CAR'
+    ... CTYPE3  = 'FREQ'
+    ... CUNIT1  = 'arcsec'
+    ... CUNIT2  = 'arcsec'
+    ... CUNIT3  = 'GHz'
+    ... CRVAL1  = 10
+    ... CRVAL2  = 20
+    ... CRVAL3  = 50
+    ... """.strip()
+    >>> wcs = WCS(fits.Header.fromstring(header, sep='\n'))
+    >>> wcs  # doctest: +FLOAT_CMP
+    WCS Keywords
+    <BLANKLINE>
+    Number of WCS axes: 3
+    CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
+    CUNIT : 'deg' 'deg' 'Hz'
+    CRVAL : 0.002777777777777778 0.005555555555555556 50000000000.0
+    CRPIX : 0.0 0.0 0.0
+    PC1_1 PC1_2 PC1_3  : 1.0 0.0 0.0
+    PC2_1 PC2_2 PC2_3  : 0.0 1.0 0.0
+    PC3_1 PC3_2 PC3_3  : 0.0 0.0 1.0
+    CDELT : 0.0002777777777777778 0.0002777777777777778 1000000000.0
+    NAXIS : 0  0  0
+
+However, it is possible to preserve the original units by specifying
+``preserve_units=True`` when initializing the :class:`~astropy.wcs.WCS`
+object::
+
+    >>> wcs = WCS(fits.Header.fromstring(header, sep='\n'), preserve_units=True)
+    >>> wcs  # doctest: +FLOAT_CMP
+    WCS Keywords
+    <BLANKLINE>
+    Number of WCS axes: 3
+    CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
+    CUNIT : 'arcsec' 'arcsec' 'GHz'
+    CRVAL : 10.0 20.0 50.0
+    CRPIX : 0.0 0.0 0.0
+    PC1_1 PC1_2 PC1_3  : 1.0 0.0 0.0
+    PC2_1 PC2_2 PC2_3  : 0.0 1.0 0.0
+    PC3_1 PC3_2 PC3_3  : 0.0 0.0 1.0
+    CDELT : 1.0 1.0 1.0
+    NAXIS : 0  0  0
+
+When using this, any input/output world coordinates will now be in these
+units, and accessing any of the parameters such as ``wcs.wcs.crval`` will
+return values in the original header units.
 
 Slicing of WCS objects
 ^^^^^^^^^^^^^^^^^^^^^^

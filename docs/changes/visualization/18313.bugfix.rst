@@ -1,0 +1,2 @@
+Fixed a bug that under certain conditions could lead to ticks being incorrectly
+labelled with a single "$" dollar sign in WCSAxes.

@@ -41,6 +41,7 @@ __all__ = [
     "TimeFormat",
     "TimeFromEpoch",
     "TimeGPS",
+    "TimeGalexSec",
     "TimeISO",
     "TimeISOT",
     "TimeJD",
@@ -189,7 +190,7 @@ class TimeFormat:
         if "subfmts" in cls.__dict__:
             cls.subfmts = _regexify_subfmts(cls.subfmts)
 
-        return super().__init_subclass__(**kwargs)
+        super().__init_subclass__(**kwargs)
 
     @classmethod
     def _get_allowed_subfmt(cls, subfmt):
@@ -547,7 +548,7 @@ class TimeNumeric(TimeFormat):
             val1.dtype if orig_val2_is_none else np.result_type(val1.dtype, val2.dtype)
         )
         subfmts = self._select_subfmts(self.in_subfmt)
-        for subfmt, dtype, convert, _ in subfmts:
+        for _, dtype, convert, _ in subfmts:  # noqa: B007
             if np.issubdtype(val_dtype, dtype):
                 break
         else:
@@ -927,6 +928,27 @@ class TimeCxcSec(TimeFromEpoch):
     epoch_format = "iso"
 
 
+class TimeGalexSec(TimeUnix):
+    """
+    GALEX time: seconds since 1980-01-06 00:00:00 UTC not including leap seconds.
+
+    This is equivalent to the unix time minus 315964800.0, as shown below::
+
+      >>> t = Time("2025-01-01")
+      >>> t.unix - t.galexsec
+      np.float64(315964800.0)
+
+    In GALEX data, due to uncertainty in the spacecraft clock, the absolute time is only accurate to
+    about 1-10 seconds while the relative time within an observation is better than 0.005 s or so,
+    except on days with leap seconds, where relative times can be wrong by up to 1 s.
+    See question 101.2 in https://www.galex.caltech.edu/researcher/faq.html
+    """
+
+    name = "galexsec"
+    epoch_val = "1980-01-06 00:00:00"
+    _default_precision = 0
+
+
 class TimeGPS(TimeFromEpoch):
     """GPS time: seconds from 1980-01-06 00:00:00 UTC
     For example, 630720013.0 is midnight on January 1, 2000.
@@ -1004,7 +1026,7 @@ class TimeStardate(TimeFromEpoch):
     """
     Stardate: date units from 2318-07-05 12:00:00 UTC.
     For example, stardate 41153.7 is 00:52 on April 30, 2363.
-    See http://trekguide.com/Stardates.htm#TNG for calculations and reference points.
+    See https://trekguide.com/Stardates.htm#TNG for calculations and reference points.
     """
 
     name = "stardate"

@@ -49,7 +49,7 @@ the standard Astropy docstring format.
   `intersphinx format
   <https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html>`_.
   For example a link to the Astropy section on unit equivalencies would be
-  `` :ref:`astropy:unit_equivalencies` ``.
+  ``:ref:`astropy:unit_equivalencies```.
   When built in Astropy, links starting with 'astropy' resolve to the current
   build. In affiliated packages using the ``sphinx-astropy`` intersphinx mapping,
   the links resolve to the stable version of Astropy. For linking to the
