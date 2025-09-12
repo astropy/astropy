@@ -753,8 +753,15 @@ def test_unit_module_dunder_all_nfkc_normalization():
     assert u.ℓ is u.liter
 
 
-def test_unit_module_dunder_all_only_indentifiers():
-    assert "°" not in cds.__all__
+@pytest.mark.parametrize(
+    "string",
+    [
+        pytest.param("°", id="invalid characters"),  # Regression test for #18606
+        pytest.param("as", id="keyword"),  # Regression test for #18614
+    ],
+)
+def test_unit_module_dunder_all_only_indentifiers(string):
+    assert string not in cds.__all__
 
 
 def test_all_units():
