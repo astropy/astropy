@@ -1054,8 +1054,7 @@ class Table:
     def loc(self):
         """
         Return a TableLoc object that can be used for retrieving
-        rows by index in a given data range. Note that both loc
-        and iloc work only with single-column indices.
+        rows by index in a given data range.
         """
         return TableLoc(self)
 
