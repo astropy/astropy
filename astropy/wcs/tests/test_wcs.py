@@ -1983,6 +1983,10 @@ class TestPreserveUnits:
         self.coords = rsn.uniform(-10, 10, (100, 5))
         self.scale = np.array([1 / 3600, 1e9, 1 / 3600, 1e-9, 1])
 
+    def test_preserve_units_property(self):
+        assert not self.wcs_default.preserve_units
+        assert self.wcs_preserve.preserve_units
+
     def test_get_cunit(self):
         assert list(self.wcs_default.wcs.cunit) == ["deg", "Hz", "deg", "m", "arcmin"]
         assert list(self.wcs_preserve.wcs.cunit) == [
