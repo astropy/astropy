@@ -1,0 +1,11 @@
+Fix tied parameters breaking in compound models due to name mangling
+--------------------------------------------------------------------
+
+This PR adds a test demonstrating that tied parameters break when used in compound models
+because parameter names get automatically changed (name mangling).
+
+The tied parameter functions still refer to the original names, which no longer exist,
+causing errors.
+
+Fixes #18259
+
