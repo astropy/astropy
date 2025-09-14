@@ -830,7 +830,7 @@ class _ImageBaseHDU(_ValidHDU):
             # is checked in __init__ but it can't hurt to double check here)
             blanks = None
 
-            if self._blank is not None and self._bitpix > 0:
+            if self._blank is not None and self._orig_bitpix > 0:
                 blanks = raw_data.flat == self._blank
                 # The size of blanks in bytes is the number of elements in
                 # raw_data.flat.  However, if we use np.where instead we will
@@ -860,7 +860,7 @@ class _ImageBaseHDU(_ValidHDU):
             if self._orig_bzero != 0:
                 data += self._orig_bzero
 
-            if self._blank:
+            if blanks is not None and self._blank:
                 data.flat[blanks] = np.nan
 
         return data
