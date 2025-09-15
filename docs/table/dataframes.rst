@@ -93,7 +93,7 @@ The generic methods support DataFrame libraries with eager execution, including:
 * **cudf** - GPU-accelerated DataFrames
 
 .. note::
-   **Testing and Support**: Currently, only **pandas**, **polars**, and **pyarrow** are directly tested in the Astropy test suite. While other narwhals-compatible backends should work in principle, they may exhibit unexpected behavior or incompatibilities. If you encounter issues with any backend, please file a bug report on the `Astropy GitHub repository <https://github.com/astropy/astropy/issues>`_.
+   **Testing and Support**: **pandas**, **polars**, and **pyarrow** are directly tested in the Astropy test suite. While other narwhals-compatible backends should work in principle, they may exhibit unexpected behavior or incompatibilities. If you encounter issues with any backend, please file a bug report on the `Astropy GitHub repository <https://github.com/astropy/astropy/issues>`_.
 
 .. warning::
    **Backend Differences**: Different DataFrame libraries implement varying data models, type systems, and computational paradigms. These fundamental differences can lead to inconsistent behavior across backends, particularly with respect to data type handling, missing value representation, and memory layout. Users should verify that round-trip conversions preserve the expected data integrity for their specific use case and chosen backend.
