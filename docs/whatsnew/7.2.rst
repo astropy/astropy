@@ -122,8 +122,8 @@ Example usage::
     # Convert back from any supported DataFrame
     t2 = Table.from_df(df_polars)
 
-The pandas-specific methods are maintained for legacy applications and because they
-only require pandas, not pandas + narwhals. The generic methods provide the same
+The pandas-specific methods are still maintained for legacy applications.
+The generic methods provide the same
 feature set while enabling broader DataFrame ecosystem compatibility through a
 unified API.
 
