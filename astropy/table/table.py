@@ -4114,7 +4114,7 @@ class Table:
         """
         Convert the table to an eager DataFrame using the ``narwhals`` backend.
 
-        This method supports converting Astropy Table (or QTable) instances into a variety of
+        This method supports converting Astropy Table instances into a variety of
         DataFrame formats via the ``narwhals`` library. The output can be any supported eager
         DataFrame type, such as `pandas`, ``polars``, ``pyarrow``, or others, depending on the
         specified backend.
