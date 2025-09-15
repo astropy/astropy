@@ -163,7 +163,7 @@ When to Use Which Method
 * Working with multiple DataFrame backends
 * Need to support polars, pyarrow, or other backends
 * Building library code that should work with various DataFrame types
-* Want future compatibility as new backends are added to narwhals
+* Want forward compatibility as new backends are added to narwhals
 
 Conversion Details and Limitations
 ===================================
