@@ -90,7 +90,7 @@ library. These new methods complement the existing pandas-specific methods:
 
 The generic methods require the ``narwhals`` package to be installed::
 
-    pip install narwhals
+    python -m pip install narwhals
 
 Supported DataFrame backends include:
 
