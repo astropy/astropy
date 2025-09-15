@@ -464,9 +464,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 
     # flake8-todos (TD)
     "TD002",  # Missing author in TODO
-
-    # PyUpgrade (UP)
-    "UP038",  # non-pep604-isinstance  # NOTE: this rule is deprecated
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
