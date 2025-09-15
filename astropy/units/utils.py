@@ -7,6 +7,7 @@ package.
 """
 
 import io
+import keyword
 import re
 import unicodedata
 from collections.abc import Generator, Mapping
@@ -187,6 +188,7 @@ def generate_dunder_all(namespace: Mapping[str, object]) -> list[str]:
         if (
             isinstance(value, UnitBase)
             and name.isidentifier()
+            and not keyword.iskeyword(name)
             and name == unicodedata.normalize("NFKC", name)
         )
     ]
