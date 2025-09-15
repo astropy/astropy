@@ -72,7 +72,7 @@ Comments:
 There are many other ways of :ref:`construct_table`, including from a list of
 rows (either tuples or dicts), from a ``numpy`` structured or 2D array, by
 adding columns or rows incrementally, or even converting from a |SkyCoord|, a
-:class:`pandas.DataFrame`, or a ``polars.DataFrame``
+:class:`pandas.DataFrame`, or a ``polars.DataFrame``.
 
 There are a few ways of :ref:`access_table`. You can get detailed information
 about the table values and column definitions as follows::
