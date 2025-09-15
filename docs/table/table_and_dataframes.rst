@@ -18,7 +18,7 @@ addition, the base `~astropy.table.Column` class holds a ``unit`` attribute as
 metadata to allow tracking of the units of the data for applications not using
 |Quantity|.
 
-*Pandas/Polars do not provide support for units.*
+*At the time of writing, neither pandas nor polars provide support for units.*
 
 Multi-dimensional and Structured Columns
 ----------------------------------------
