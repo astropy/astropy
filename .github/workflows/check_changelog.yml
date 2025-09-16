@@ -14,25 +14,8 @@ jobs:
     name: Check if towncrier change log entry is correct
     runs-on: ubuntu-latest
     steps:
-    - name: Check if changelog check should run
-      uses: actions/github-script@v7
-      id: check_repo
-      with:
-        script: |
-          const repo_name = context.payload.repository.full_name;
-          
-          // Only enforce changelog check for the main astropy repository
-          if (repo_name !== 'astropy/astropy') {
-            core.info(`Changelog check is skipped for fork repository: ${repo_name}`);
-            core.setOutput('should_run', 'false');
-            return;
-          }
-          
-          core.info(`Running changelog check for main repository: ${repo_name}`);
-          core.setOutput('should_run', 'true');
-    
     - uses: scientific-python/action-towncrier-changelog@4755e7510a07c6f6817cb607ffb9a711d3d62422  # 0.1.1
-      if: steps.check_repo.outputs.should_run == 'true'
+      if: github.repository == 'astropy/astropy'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         BOT_USERNAME: gilesbot

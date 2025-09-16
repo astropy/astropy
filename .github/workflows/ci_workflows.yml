@@ -24,19 +24,12 @@ jobs:
     steps:
     - name: Check base branch
       uses: actions/github-script@v7
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request' && github.repository == 'astropy/astropy'
       with:
         script: |
           const skip_label = 'skip-basebranch-check';
-          const { default_branch: allowed_basebranch, full_name: repo_name } = context.payload.repository;
+          const { default_branch: allowed_basebranch } = context.payload.repository;
           const pr = context.payload.pull_request;
-          
-          // Only enforce base branch check for the main astropy repository
-          if (repo_name !== 'astropy/astropy') {
-            core.info(`Base branch check is skipped for fork repository: ${repo_name}`);
-            return;
-          }
-          
           if (pr.user.login === 'meeseeksmachine') {
             core.info(`Base branch check is skipped since this is auto-backport by ${pr.user.login}`);
             return;

@@ -17,25 +17,8 @@ jobs:
   milestone_checker:
     runs-on: ubuntu-latest
     steps:
-    - name: Check if milestone check should run
-      uses: actions/github-script@v7
-      id: check_repo
-      with:
-        script: |
-          const repo_name = context.payload.repository.full_name;
-          
-          // Only enforce milestone check for the main astropy repository
-          if (repo_name !== 'astropy/astropy') {
-            core.info(`Milestone check is skipped for fork repository: ${repo_name}`);
-            core.setOutput('should_run', 'false');
-            return;
-          }
-          
-          core.info(`Running milestone check for main repository: ${repo_name}`);
-          core.setOutput('should_run', 'true');
-    
     - uses: actions/github-script@v7
-      if: steps.check_repo.outputs.should_run == 'true'
+      if: github.repository == 'astropy/astropy'
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
