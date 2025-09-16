@@ -4250,7 +4250,7 @@ class Table:
 
     @classmethod
     def from_df(
-        cls, df: Any, index: bool = False, units: Mapping[str, Any] | None = None
+        cls, df: Any, /, *, index: bool = False, units: Mapping[str, Any] | None = None
     ) -> "Table":
         """
         Create a `~astropy.table.Table` from any ``narwhals``-compatible dataframe
