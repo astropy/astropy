@@ -17,6 +17,8 @@ import numpy as np
 from .column import Column, MaskedColumn
 
 if TYPE_CHECKING:
+    from units.typing import UnitLike
+
     from .table import Table
 
 
@@ -220,7 +222,7 @@ def to_df(
 
 
 def from_df(
-    df: Any, index: bool = False, units: Mapping[str, Any] | None = None
+    df: Any, index: bool = False, units: Mapping[str, "UnitLike"] | None = None
 ) -> "Table":
     """Create a Table from any narwhals-compatible DataFrame."""
     from .table import Table
@@ -394,7 +396,7 @@ def to_pandas(
 
 
 def from_pandas(
-    dataframe: Any, index: bool = False, units: Mapping[str, Any] | None = None
+    dataframe: Any, index: bool = False, units: Mapping[str, "UnitLike"] | None = None
 ) -> "Table":
     """Create a Table from a pandas DataFrame."""
     from .table import Table
