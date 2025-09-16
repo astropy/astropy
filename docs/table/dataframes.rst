@@ -68,7 +68,7 @@ Create a table from any supported DataFrame::
 .. EXAMPLE END
 
 Known Backend-Specific Differences
-----------------------------
+----------------------------------
 
 Different DataFrame backends handle data differently:
 
