@@ -4030,7 +4030,7 @@ class Table:
 
     def to_pandas(
         self, index: bool | str | None = None, use_nullable_int: bool = True
-    ) -> Any:
+    ):
         """
         Return a :class:`pandas.DataFrame` instance.
 
@@ -4108,6 +4108,8 @@ class Table:
     def to_df(
         self,
         backend: str | types.ModuleType,
+        /,
+        *,
         index: bool | str | None = None,
         use_nullable_int: bool = True,
     ) -> Any:
