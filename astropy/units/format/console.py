@@ -7,6 +7,7 @@ Handles the "Console" unit format.
 from typing import ClassVar, Literal
 
 from astropy.units.core import UnitBase
+from astropy.units.enums import DeprecatedUnitAction
 
 from . import base
 
@@ -53,7 +54,10 @@ class Console(base.Base):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         # Change default of fraction to False, i.e., we typeset
         # without a fraction by default.

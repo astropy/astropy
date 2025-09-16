@@ -1,0 +1,4 @@
+Some unit formats have deprecated units and converting such units to strings
+emits a warning.
+The new ``deprecations`` parameter of the unit ``to_string()`` methods allows
+silencing those warnings or raising them as errors instead.
