@@ -25,6 +25,7 @@ import numpy as np
 
 from astropy.extern.ply.lex import Lexer
 from astropy.units.core import CompositeUnit, Unit, UnitBase, get_current_unit_registry
+from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.errors import UnitsWarning
 from astropy.units.typing import UnitScale
 from astropy.utils import classproperty, parsing
@@ -411,7 +412,9 @@ class Generic(Base, _GenericParserMixin):
         return get_current_unit_registry().registry
 
     @classmethod
-    def _validate_unit(cls, s: str) -> UnitBase:
+    def _validate_unit(
+        cls, s: str, deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN
+    ) -> UnitBase:
         if s in cls._unit_symbols:
             s = cls._unit_symbols[s]
 

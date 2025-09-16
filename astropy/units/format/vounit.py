@@ -20,6 +20,7 @@ from astropy.units.core import (
     dimensionless_unscaled,
     si_prefixes,
 )
+from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.errors import UnitParserWarning, UnitScaleError, UnitsError
 from astropy.units.typing import UnitScale
 from astropy.utils import classproperty
@@ -124,7 +125,11 @@ class VOUnit(Base, _GenericParserMixin):
             raise
 
     @classmethod
-    def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:
+    def _decompose_to_known_units(
+        cls,
+        unit: CompositeUnit | NamedUnit,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
+    ) -> UnitBase:
         # The da- and d- prefixes are discouraged.  This has the
         # effect of adding a scale to value in the result.
         if isinstance(unit, PrefixUnit) and unit._represents.scale in (0.1, 10.0):
@@ -134,7 +139,7 @@ class VOUnit(Base, _GenericParserMixin):
             and unit._get_format_name(cls.name) in cls._custom_units
         ):
             return unit
-        return super()._decompose_to_known_units(unit)
+        return super()._decompose_to_known_units(unit, deprecations)
 
     @classmethod
     def _def_custom_unit(cls, unit: str) -> UnitBase:
@@ -190,10 +195,13 @@ class VOUnit(Base, _GenericParserMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         # Remove units that aren't known to the format
-        unit = cls._decompose_to_known_units(unit)
+        unit = cls._decompose_to_known_units(unit, deprecations)
 
         if unit.physical_type == "dimensionless" and unit.scale != 1:
             raise UnitScaleError(

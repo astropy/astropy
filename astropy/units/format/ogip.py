@@ -25,6 +25,7 @@ import numpy as np
 
 from astropy.extern.ply.lex import Lexer
 from astropy.units.core import CompositeUnit, UnitBase
+from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.errors import UnitParserWarning, UnitsWarning
 from astropy.units.typing import UnitScale
 from astropy.utils import classproperty, parsing
@@ -337,10 +338,13 @@ class OGIP(Base, _ParsingFormatMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = "inline"
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = "inline",
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         # Remove units that aren't known to the format
-        unit = cls._decompose_to_known_units(unit)
+        unit = cls._decompose_to_known_units(unit, deprecations)
 
         if isinstance(unit, CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
