@@ -7,10 +7,82 @@ Interfacing with DataFrames
 
 The :class:`~astropy.table.Table` class provides comprehensive support for interfacing with DataFrame libraries through two complementary approaches:
 
-1. **Legacy pandas-specific methods**: :meth:`~astropy.table.Table.to_pandas` and :meth:`~astropy.table.Table.from_pandas` for direct pandas integration
-2. **Generic narwhals-based methods**: :meth:`~astropy.table.Table.to_df` and :meth:`~astropy.table.Table.from_df` for multi-backend DataFrame support
+1. **Generic narwhals-based methods**: :meth:`~astropy.table.Table.to_df` and :meth:`~astropy.table.Table.from_df` for multi-backend DataFrame support
+2. **Legacy pandas-specific methods**: :meth:`~astropy.table.Table.to_pandas` and :meth:`~astropy.table.Table.from_pandas` for direct pandas integration
 
 The narwhals-based approach uses `Narwhals <https://narwhals-dev.github.io/narwhals/>`_ as a unified translation layer, enabling seamless interoperability with multiple DataFrame libraries including `pandas <https://pandas.pydata.org/>`_, `polars <https://pola.rs/>`__, `pyarrow <https://arrow.apache.org/docs/python/>`__, and others.
+
+Generic Multi-Backend Methods
+=============================
+
+For users working with multiple DataFrame libraries or seeking broader compatibility, the generic methods provide a unified interface through narwhals.
+
+Supported Backends
+------------------
+
+The generic methods support DataFrame libraries with eager execution, including:
+
+* **pandas** - A popular and pioneering DataFrame library
+* **polars** - High-performance DataFrame library with different handling of multidimensional data
+* **pyarrow** - In-memory columnar format with good performance
+* **modin** - Distributed pandas-compatible DataFrames
+* **cudf** - GPU-accelerated DataFrames
+
+.. note::
+   **Testing and Support**: **pandas**, **polars**, and **pyarrow** are directly tested in the Astropy test suite. While other narwhals-compatible backends should work in principle, they may exhibit unexpected behavior or incompatibilities. If you encounter issues with any backend, please file a bug report on the `Astropy GitHub repository <https://github.com/astropy/astropy/issues>`_.
+
+.. warning::
+   **Backend Differences**: Different DataFrame libraries implement varying data models, type systems, and computational paradigms. These fundamental differences can lead to inconsistent behavior across backends, particularly with respect to data type handling, missing value representation, and memory layout. Users should verify that round-trip conversions preserve the expected data integrity for their specific use case and chosen backend.
+
+Basic Multi-Backend Example
+---------------------------
+
+.. EXAMPLE START: Using Generic Multi-Backend Methods
+
+Create a table and convert to different DataFrame backends::
+
+    >>> from astropy.table import Table
+    >>> t = Table()
+    >>> t['a'] = [1, 2, 3, 4]
+    >>> t['b'] = ['a', 'b', 'c', 'd']
+
+    # Convert to pandas DataFrame
+    >>> df_pandas = t.to_df("pandas")
+    >>> type(df_pandas)
+    <class 'pandas.core.frame.DataFrame'>
+
+    # Convert to polars DataFrame
+    >>> df_polars = t.to_df("polars")
+    >>> type(df_polars)
+    <class 'polars.dataframe.frame.DataFrame'>
+
+    # You can also pass the module directly as a backend
+    >>> import polars as pl
+    >>> df_polars2 = t.to_df(pl)
+
+Create a table from any supported DataFrame::
+
+    >>> t2 = Table.from_df(df_pandas)  # From pandas
+    >>> t3 = Table.from_df(df_polars)  # From polars
+
+.. EXAMPLE END
+
+Known Backend-Specific Differences
+----------------------------
+
+Different DataFrame backends handle data differently:
+
+**Multidimensional Columns:**
+  - Pandas: Not supported, raises an error
+  - Polars: Supported as Array type for arbitrary dimensions
+  - PyArrow: Limited support for 1D arrays, currently unavailable.
+
+**Index Support:**
+  - Pandas: Full index support with :meth:`~astropy.table.Table.to_df`
+  - Other backends: Index parameter raises an error (not supported)
+
+**Missing Value Handling:**
+  - All backends use sentinel values (NaN, null) rather than Astropy's mask arrays
 
 Pandas-Specific Methods
 =======================
@@ -76,78 +148,6 @@ The pandas-specific methods provide full support for DataFrame indexing, which i
     >>> t_back.colnames
     ['tm', 'x']
 
-Generic Multi-Backend Methods
-=============================
-
-For users working with multiple DataFrame libraries or seeking broader compatibility, the generic methods provide a unified interface through narwhals.
-
-Supported Backends
-------------------
-
-The generic methods support DataFrame libraries with eager execution, including:
-
-* **pandas** - A popular, and pioneer, DataFrame library
-* **polars** - High-performance DataFrame library with different handling of multidimensional data
-* **pyarrow** - In-memory columnar format with good performance
-* **modin** - Distributed pandas-compatible DataFrames
-* **cudf** - GPU-accelerated DataFrames
-
-.. note::
-   **Testing and Support**: **pandas**, **polars**, and **pyarrow** are directly tested in the Astropy test suite. While other narwhals-compatible backends should work in principle, they may exhibit unexpected behavior or incompatibilities. If you encounter issues with any backend, please file a bug report on the `Astropy GitHub repository <https://github.com/astropy/astropy/issues>`_.
-
-.. warning::
-   **Backend Differences**: Different DataFrame libraries implement varying data models, type systems, and computational paradigms. These fundamental differences can lead to inconsistent behavior across backends, particularly with respect to data type handling, missing value representation, and memory layout. Users should verify that round-trip conversions preserve the expected data integrity for their specific use case and chosen backend.
-
-Basic Multi-Backend Example
----------------------------
-
-.. EXAMPLE START: Using Generic Multi-Backend Methods
-
-Create a table and convert to different DataFrame backends::
-
-    >>> from astropy.table import Table
-    >>> t = Table()
-    >>> t['a'] = [1, 2, 3, 4]
-    >>> t['b'] = ['a', 'b', 'c', 'd']
-
-    # Convert to pandas DataFrame
-    >>> df_pandas = t.to_df("pandas")
-    >>> type(df_pandas)
-    <class 'pandas.core.frame.DataFrame'>
-
-    # Convert to polars DataFrame
-    >>> df_polars = t.to_df("polars")
-    >>> type(df_polars)
-    <class 'polars.dataframe.frame.DataFrame'>
-
-    # You can also pass the module directly as a backend
-    >>> import polars as pl
-    >>> df_polars2 = t.to_df(pl)
-
-Create a table from any supported DataFrame::
-
-    >>> t2 = Table.from_df(df_pandas)  # From pandas
-    >>> t3 = Table.from_df(df_polars)  # From polars
-
-.. EXAMPLE END
-
-Known Backend-Specific Differences
-----------------------------
-
-Different DataFrame backends handle data differently:
-
-**Multidimensional Columns:**
-  - Pandas: Not supported, raises an error
-  - Polars: Supported as Array type for arbitrary dimensions
-  - PyArrow: Limited support for 1D arrays, currently unavailable.
-
-**Index Support:**
-  - Pandas: Full index support with :meth:`~astropy.table.Table.to_df`
-  - Other backends: Index parameter raises an error (not supported)
-
-**Missing Value Handling:**
-  - All backends use sentinel values (NaN, null) rather than Astropy's mask arrays
-
 When to Use Which Method
 ========================
 
@@ -173,9 +173,9 @@ Both approaches share common limitations when converting between Tables and Data
 Data Type Limitations
 ---------------------
 
-* **Multidimensional columns**: Support varies by backend. Pandas does not support them, while Polars can handle them as Array types.
+* **Multidimensional columns**: Support varies by backend. At the time of writing, Pandas does not support them, while Polars can handle them as Array types.
 
-* **Masked tables**: DataFrames use sentinel values (e.g., `numpy.nan` or `None`) for missing data, while Astropy preserves the original value under the mask. The original values under the mask are lost during conversion.
+* **Masked tables**: DataFrames typically use sentinel values (e.g., `numpy.nan` or `None`) for missing data, while Astropy preserves the original value under the mask. The original values under the mask are lost during conversion.
 
 * **Mixed-type columns**: Object dtype columns have varied support. Pandas preserves them while other backends may fail to import such data.
 

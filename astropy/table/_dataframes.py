@@ -54,7 +54,7 @@ def _encode_mixins(tbl: "Table") -> "Table":
     return encode_tbl
 
 
-def _get_backend_impl(backend: str | types.ModuleType) -> Any:
+def _get_backend_impl(backend: str | types.ModuleType):
     """Get the narwhals backend implementation."""
     # Ensure backend is string or module
     if not isinstance(backend, (str, types.ModuleType)):
@@ -134,82 +134,12 @@ def _handle_index_argument(
     return False
 
 
-def to_pandas(
-    table: "Table", index: bool | str | None = None, use_nullable_int: bool = True
-) -> Any:
-    """Convert an Astropy Table to a pandas DataFrame.
-
-    This mirrors the previous DataFrameConverter.to_pandas method but as a
-    module-level function.
-    """
-    try:
-        from pandas import DataFrame, Series
-    except ImportError:
-        raise ImportError(
-            "pandas is required for to_pandas conversion. "
-            "Install with: pip install pandas"
-        )
-
-    # Handle index argument (pandas-specific logic)
-    index = _handle_index_argument(table, index, None)  # None for pandas validation
-
-    # Encode mixins and validate columns
-    tbl = _encode_mixins(table)
-    _validate_columns_for_backend(tbl, None)  # pandas validation
-
-    out = OrderedDict()
-
-    for name, column in tbl.columns.items():
-        if getattr(column.dtype, "isnative", True):
-            out[name] = column
-        else:
-            out[name] = column.data.byteswap().view(column.dtype.newbyteorder("="))
-
-        if isinstance(column, MaskedColumn) and np.any(column.mask):
-            if column.dtype.kind in ["i", "u"]:
-                pd_dtype = column.dtype.name
-                if use_nullable_int:
-                    # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
-                    pd_dtype = pd_dtype.replace("i", "I").replace("u", "U")
-                else:
-                    from pandas.errors import IntCastingNaNError
-
-                    raise IntCastingNaNError(
-                        "Cannot convert masked integer columns to DataFrame without using nullable integers. "
-                        f"Set use_nullable_int=True or remove the offending column: {name}."
-                    )
-                out[name] = Series(out[name], dtype=pd_dtype)
-
-            elif column.dtype.kind not in ["f", "c"]:
-                out[name] = column.astype(object).filled(np.nan)
-
-    kwargs = {}
-
-    if index:
-        idx = out.pop(index)
-        kwargs["index"] = idx
-
-        # We add the table index to Series inputs (MaskedColumn with int values) to override
-        # its default RangeIndex, see #11432
-        for v in out.values():
-            if isinstance(v, Series):
-                v.index = idx
-
-    df = DataFrame(out, **kwargs)
-    if index:
-        # Explicitly set the pandas DataFrame index to the original table
-        # index name.
-        df.index.name = idx.info.name
-
-    return df
-
-
 def to_df(
     table: "Table",
     backend: str | types.ModuleType,
     index: bool | str | None = None,
     use_nullable_int: bool = True,
-) -> Any:
+):
     """Convert an Astropy Table to a DataFrame using the specified backend."""
     try:
         import narwhals as nw
@@ -287,90 +217,6 @@ def to_df(
         df.set_index(index, inplace=True, drop=True)
 
     return df
-
-
-def from_pandas(
-    dataframe: Any, index: bool = False, units: Mapping[str, Any] | None = None
-) -> "Table":
-    """Create a Table from a pandas DataFrame."""
-    from .table import Table
-
-    out = OrderedDict()
-
-    names = list(dataframe.columns)
-    columns = [dataframe[name] for name in names]
-    datas = [np.array(column) for column in columns]
-    masks = [np.array(column.isnull()) for column in columns]
-
-    if index:
-        index_name = dataframe.index.name or "index"
-        while index_name in names:
-            index_name = "_" + index_name + "_"
-        names.insert(0, index_name)
-        columns.insert(0, dataframe.index)
-        datas.insert(0, np.array(dataframe.index))
-        masks.insert(0, np.zeros(len(dataframe), dtype=bool))
-
-    if units is None:
-        units = [None] * len(names)
-    else:
-        if not isinstance(units, Mapping):
-            raise TypeError('Expected a Mapping "column-name" -> "unit"')
-
-        not_found = set(units.keys()) - set(names)
-        if not_found:
-            warnings.warn(f"`units` contains additional columns: {not_found}")
-
-        units = [units.get(name) for name in names]
-
-    for name, column, data, mask, unit in zip(names, columns, datas, masks, units):
-        if column.dtype.kind in ["u", "i", "b"] and np.any(mask):
-            # Special-case support for pandas nullable int and bool
-            np_dtype = column.dtype.numpy_dtype
-            data = np.zeros(shape=column.shape, dtype=np_dtype)
-            data[~mask] = column[~mask]
-            out[name] = MaskedColumn(
-                data=data, name=name, mask=mask, unit=unit, copy=False
-            )
-            continue
-
-        if data.dtype.kind == "O":
-            # If all elements of an object array are string-like or np.nan
-            # then coerce back to a native numpy str/unicode array.
-            string_types = (str, bytes)
-            nan = np.nan
-            if all(isinstance(x, string_types) or x is nan for x in data):
-                # Force any missing (null) values to b''.  Numpy will
-                # upcast to str/unicode as needed. We go via a list to
-                # avoid replacing objects in a view of the pandas array and
-                # to ensure numpy initializes to string or bytes correctly.
-                data = np.array([b"" if m else d for (d, m) in zip(data, mask)])
-
-        # Numpy datetime64
-        if data.dtype.kind == "M":
-            from astropy.time import Time
-
-            out[name] = Time(data, format="datetime64")
-            if np.any(mask):
-                out[name][mask] = np.ma.masked
-            out[name].format = "isot"
-
-        # Numpy timedelta64
-        elif data.dtype.kind == "m":
-            from astropy.time import TimeDelta
-
-            data_sec = data.astype("timedelta64[ns]").astype(np.float64) / 1e9
-            out[name] = TimeDelta(data_sec, format="sec")
-            if np.any(mask):
-                out[name][mask] = np.ma.masked
-
-        else:
-            if np.any(mask):
-                out[name] = MaskedColumn(data=data, name=name, mask=mask, unit=unit)
-            else:
-                out[name] = Column(data=data, name=name, unit=unit)
-
-    return Table(out)
 
 
 def from_df(
@@ -473,5 +319,159 @@ def from_df(
             out[name] = MaskedColumn(data=data, mask=mask, unit=unit, copy=False)
         else:
             out[name] = Column(data=data, unit=unit, copy=False)
+
+    return Table(out)
+
+
+def to_pandas(
+    table: "Table", index: bool | str | None = None, use_nullable_int: bool = True
+):
+    """Convert an Astropy Table to a pandas DataFrame.
+
+    This mirrors the previous DataFrameConverter.to_pandas method but as a
+    module-level function.
+    """
+    try:
+        from pandas import DataFrame, Series
+    except ImportError:
+        raise ImportError(
+            "pandas is required for to_pandas conversion. "
+            "Install with: pip install pandas"
+        )
+
+    # Handle index argument (pandas-specific logic)
+    index = _handle_index_argument(table, index, None)  # None for pandas validation
+
+    # Encode mixins and validate columns
+    tbl = _encode_mixins(table)
+    _validate_columns_for_backend(tbl, None)  # pandas validation
+
+    out = OrderedDict()
+
+    for name, column in tbl.columns.items():
+        if getattr(column.dtype, "isnative", True):
+            out[name] = column
+        else:
+            out[name] = column.data.byteswap().view(column.dtype.newbyteorder("="))
+
+        if isinstance(column, MaskedColumn) and np.any(column.mask):
+            if column.dtype.kind in ["i", "u"]:
+                pd_dtype = column.dtype.name
+                if use_nullable_int:
+                    # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
+                    pd_dtype = pd_dtype.replace("i", "I").replace("u", "U")
+                else:
+                    from pandas.errors import IntCastingNaNError
+
+                    raise IntCastingNaNError(
+                        "Cannot convert masked integer columns to DataFrame without using nullable integers. "
+                        f"Set use_nullable_int=True or remove the offending column: {name}."
+                    )
+                out[name] = Series(out[name], dtype=pd_dtype)
+
+            elif column.dtype.kind not in ["f", "c"]:
+                out[name] = column.astype(object).filled(np.nan)
+
+    kwargs = {}
+
+    if index:
+        idx = out.pop(index)
+        kwargs["index"] = idx
+
+        # We add the table index to Series inputs (MaskedColumn with int values) to override
+        # its default RangeIndex, see #11432
+        for v in out.values():
+            if isinstance(v, Series):
+                v.index = idx
+
+    df = DataFrame(out, **kwargs)
+    if index:
+        # Explicitly set the pandas DataFrame index to the original table
+        # index name.
+        df.index.name = idx.info.name
+
+    return df
+
+
+def from_pandas(
+    dataframe: Any, index: bool = False, units: Mapping[str, Any] | None = None
+) -> "Table":
+    """Create a Table from a pandas DataFrame."""
+    from .table import Table
+
+    out = OrderedDict()
+
+    names = list(dataframe.columns)
+    columns = [dataframe[name] for name in names]
+    datas = [np.array(column) for column in columns]
+    masks = [np.array(column.isnull()) for column in columns]
+
+    if index:
+        index_name = dataframe.index.name or "index"
+        while index_name in names:
+            index_name = "_" + index_name + "_"
+        names.insert(0, index_name)
+        columns.insert(0, dataframe.index)
+        datas.insert(0, np.array(dataframe.index))
+        masks.insert(0, np.zeros(len(dataframe), dtype=bool))
+
+    if units is None:
+        units = [None] * len(names)
+    else:
+        if not isinstance(units, Mapping):
+            raise TypeError('Expected a Mapping "column-name" -> "unit"')
+
+        not_found = set(units.keys()) - set(names)
+        if not_found:
+            warnings.warn(f"`units` contains additional columns: {not_found}")
+
+        units = [units.get(name) for name in names]
+
+    for name, column, data, mask, unit in zip(names, columns, datas, masks, units):
+        if column.dtype.kind in ["u", "i", "b"] and np.any(mask):
+            # Special-case support for pandas nullable int and bool
+            np_dtype = column.dtype.numpy_dtype
+            data = np.zeros(shape=column.shape, dtype=np_dtype)
+            data[~mask] = column[~mask]
+            out[name] = MaskedColumn(
+                data=data, name=name, mask=mask, unit=unit, copy=False
+            )
+            continue
+
+        if data.dtype.kind == "O":
+            # If all elements of an object array are string-like or np.nan
+            # then coerce back to a native numpy str/unicode array.
+            string_types = (str, bytes)
+            nan = np.nan
+            if all(isinstance(x, string_types) or x is nan for x in data):
+                # Force any missing (null) values to b''.  Numpy will
+                # upcast to str/unicode as needed. We go via a list to
+                # avoid replacing objects in a view of the pandas array and
+                # to ensure numpy initializes to string or bytes correctly.
+                data = np.array([b"" if m else d for (d, m) in zip(data, mask)])
+
+        # Numpy datetime64
+        if data.dtype.kind == "M":
+            from astropy.time import Time
+
+            out[name] = Time(data, format="datetime64")
+            if np.any(mask):
+                out[name][mask] = np.ma.masked
+            out[name].format = "isot"
+
+        # Numpy timedelta64
+        elif data.dtype.kind == "m":
+            from astropy.time import TimeDelta
+
+            data_sec = data.astype("timedelta64[ns]").astype(np.float64) / 1e9
+            out[name] = TimeDelta(data_sec, format="sec")
+            if np.any(mask):
+                out[name][mask] = np.ma.masked
+
+        else:
+            if np.any(mask):
+                out[name] = MaskedColumn(data=data, name=name, mask=mask, unit=unit)
+            else:
+                out[name] = Column(data=data, name=name, unit=unit)
 
     return Table(out)

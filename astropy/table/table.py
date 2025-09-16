@@ -4028,83 +4028,6 @@ class Table:
         """
         return groups.table_group_by(self, keys)
 
-    def to_pandas(
-        self, index: bool | str | None = None, use_nullable_int: bool = True
-    ):
-        """
-        Return a :class:`pandas.DataFrame` instance.
-
-        The index of the created DataFrame is controlled by the ``index``
-        argument.  For ``index=True`` or the default ``None``, an index will be
-        specified for the DataFrame if there is a primary key index on the
-        Table *and* if it corresponds to a single column.  If ``index=False``
-        then no DataFrame index will be specified.  If ``index`` is the name of
-        a column in the table then that will be the DataFrame index.
-
-        In addition to vanilla columns or masked columns, this supports Table
-        mixin columns like Quantity, Time, or SkyCoord.  In many cases these
-        objects have no analog in pandas and will be converted to a "encoded"
-        representation using only Column or MaskedColumn.  The exception is
-        Time or TimeDelta columns, which will be converted to the corresponding
-        representation in pandas using ``np.datetime64`` or ``np.timedelta64``.
-        See the example below.
-
-        Parameters
-        ----------
-        index : None, bool, str, optional
-            Specify DataFrame index mode. If ``None`` (default), use the
-            table's primary index if it exists and is a single column.
-            If ``False``, no index is set. If ``True``, use the primary
-            index (requires single-column primary key). If a string,
-            use the column with that name as the index.
-        use_nullable_int : bool, optional
-            If True (default), masked integer columns are converted to the pandas
-            nullable integer type. If False, an error is raised if a masked
-            integer column is encountered.
-
-        Returns
-        -------
-        dataframe : :class:`pandas.DataFrame`
-            A pandas :class:`pandas.DataFrame` instance
-
-        Raises
-        ------
-        ImportError
-            If pandas is not installed
-        ValueError
-            If the Table has multi-dimensional columns or if index argument is invalid
-
-        Examples
-        --------
-        Here we convert a table with a few mixins to a
-        :class:`pandas.DataFrame` instance.
-
-          >>> import pandas as pd
-          >>> from astropy.table import QTable
-          >>> import astropy.units as u
-          >>> from astropy.time import Time, TimeDelta
-          >>> from astropy.coordinates import SkyCoord
-
-          >>> q = [1, 2] * u.m
-          >>> tm = Time([1998, 2002], format='jyear')
-          >>> sc = SkyCoord([5, 6], [7, 8], unit='deg')
-          >>> dt = TimeDelta([3, 200] * u.s)
-
-          >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
-
-          >>> df = t.to_pandas(index='tm')
-          >>> with pd.option_context('display.max_columns', 20):
-          ...     print(df)
-                        q  sc.ra  sc.dec              dt
-          tm
-          1998-01-01  1.0    5.0     7.0 0 days 00:00:03
-          2002-01-01  2.0    6.0     8.0 0 days 00:03:20
-
-        """
-        from .dataframes import to_pandas
-
-        return to_pandas(self, index=index, use_nullable_int=use_nullable_int)
-
     def to_df(
         self,
         backend: str | types.ModuleType,
@@ -4180,75 +4103,11 @@ class Table:
             2002-01-01  2.0    6.0     8.0 0 days 00:03:20
 
         """
-        from .dataframes import to_df
+        from ._dataframes import to_df
 
         return to_df(
             self, backend=backend, index=index, use_nullable_int=use_nullable_int
         )
-
-    @classmethod
-    def from_pandas(
-        cls, dataframe: Any, index: bool = False, units: Mapping[str, Any] | None = None
-    ) -> "Table":
-        """
-        Create a `~astropy.table.Table` from a :class:`pandas.DataFrame` instance.
-
-        In addition to converting generic numeric or string columns, this supports
-        conversion of pandas Date and Time delta columns to `~astropy.time.Time`
-        and `~astropy.time.TimeDelta` columns, respectively.
-
-        Parameters
-        ----------
-        dataframe : :class:`pandas.DataFrame`
-            A pandas :class:`pandas.DataFrame` instance
-        index : bool, optional
-            Include the index column in the returned table (default=False)
-        units : dict, optional
-            A dict mapping column names to a `~astropy.units.Unit`.
-            The columns will have the specified unit in the Table.
-
-        Returns
-        -------
-        table : `~astropy.table.Table`
-            A `~astropy.table.Table` (or subclass) instance
-
-        Raises
-        ------
-        ImportError
-            If pandas is not installed
-
-        Examples
-        --------
-        Here we convert a :class:`pandas.DataFrame` instance
-        to a `~astropy.table.QTable`.
-
-          >>> import numpy as np
-          >>> import pandas as pd
-          >>> from astropy.table import QTable
-
-          >>> time = pd.Series(['1998-01-01', '2002-01-01'], dtype='datetime64[ns]')
-          >>> dt = pd.Series(np.array([1, 300], dtype='timedelta64[s]'))
-          >>> df = pd.DataFrame({'time': time})
-          >>> df['dt'] = dt
-          >>> df['x'] = [3., 4.]
-          >>> with pd.option_context('display.max_columns', 20):
-          ...     print(df)
-                  time              dt    x
-          0 1998-01-01 0 days 00:00:01  3.0
-          1 2002-01-01 0 days 00:05:00  4.0
-
-          >>> QTable.from_pandas(df)
-          <QTable length=2>
-                    time              dt       x
-                    Time          TimeDelta float64
-          ----------------------- --------- -------
-          1998-01-01T00:00:00.000       1.0     3.0
-          2002-01-01T00:00:00.000     300.0     4.0
-
-        """
-        from .dataframes import from_pandas
-
-        return from_pandas(dataframe, index=index, units=units)
 
     @classmethod
     def from_df(
@@ -4324,9 +4183,148 @@ class Table:
           2002     2.0
 
         """
-        from .dataframes import from_df
+        from ._dataframes import from_df
 
         return from_df(df, index=index, units=units)
+
+    def to_pandas(self, index: bool | str | None = None, use_nullable_int: bool = True):
+        """
+        Return a :class:`pandas.DataFrame` instance.
+
+        The index of the created DataFrame is controlled by the ``index``
+        argument.  For ``index=True`` or the default ``None``, an index will be
+        specified for the DataFrame if there is a primary key index on the
+        Table *and* if it corresponds to a single column.  If ``index=False``
+        then no DataFrame index will be specified.  If ``index`` is the name of
+        a column in the table then that will be the DataFrame index.
+
+        In addition to vanilla columns or masked columns, this supports Table
+        mixin columns like Quantity, Time, or SkyCoord.  In many cases these
+        objects have no analog in pandas and will be converted to a "encoded"
+        representation using only Column or MaskedColumn.  The exception is
+        Time or TimeDelta columns, which will be converted to the corresponding
+        representation in pandas using ``np.datetime64`` or ``np.timedelta64``.
+        See the example below.
+
+        Parameters
+        ----------
+        index : None, bool, str, optional
+            Specify DataFrame index mode. If ``None`` (default), use the
+            table's primary index if it exists and is a single column.
+            If ``False``, no index is set. If ``True``, use the primary
+            index (requires single-column primary key). If a string,
+            use the column with that name as the index.
+        use_nullable_int : bool, optional
+            If True (default), masked integer columns are converted to the pandas
+            nullable integer type. If False, an error is raised if a masked
+            integer column is encountered.
+
+        Returns
+        -------
+        dataframe : :class:`pandas.DataFrame`
+            A pandas :class:`pandas.DataFrame` instance
+
+        Raises
+        ------
+        ImportError
+            If pandas is not installed
+        ValueError
+            If the Table has multi-dimensional columns or if index argument is invalid
+
+        Examples
+        --------
+        Here we convert a table with a few mixins to a
+        :class:`pandas.DataFrame` instance.
+
+          >>> import pandas as pd
+          >>> from astropy.table import QTable
+          >>> import astropy.units as u
+          >>> from astropy.time import Time, TimeDelta
+          >>> from astropy.coordinates import SkyCoord
+
+          >>> q = [1, 2] * u.m
+          >>> tm = Time([1998, 2002], format='jyear')
+          >>> sc = SkyCoord([5, 6], [7, 8], unit='deg')
+          >>> dt = TimeDelta([3, 200] * u.s)
+
+          >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
+
+          >>> df = t.to_pandas(index='tm')
+          >>> with pd.option_context('display.max_columns', 20):
+          ...     print(df)
+                        q  sc.ra  sc.dec              dt
+          tm
+          1998-01-01  1.0    5.0     7.0 0 days 00:00:03
+          2002-01-01  2.0    6.0     8.0 0 days 00:03:20
+
+        """
+        from ._dataframes import to_pandas
+
+        return to_pandas(self, index=index, use_nullable_int=use_nullable_int)
+
+    @classmethod
+    def from_pandas(
+        cls, dataframe: Any, index: bool = False, units: Mapping[str, Any] | None = None
+    ) -> "Table":
+        """
+        Create a `~astropy.table.Table` from a :class:`pandas.DataFrame` instance.
+
+        In addition to converting generic numeric or string columns, this supports
+        conversion of pandas Date and Time delta columns to `~astropy.time.Time`
+        and `~astropy.time.TimeDelta` columns, respectively.
+
+        Parameters
+        ----------
+        dataframe : :class:`pandas.DataFrame`
+            A pandas :class:`pandas.DataFrame` instance
+        index : bool, optional
+            Include the index column in the returned table (default=False)
+        units : dict, optional
+            A dict mapping column names to a `~astropy.units.Unit`.
+            The columns will have the specified unit in the Table.
+
+        Returns
+        -------
+        table : `~astropy.table.Table`
+            A `~astropy.table.Table` (or subclass) instance
+
+        Raises
+        ------
+        ImportError
+            If pandas is not installed
+
+        Examples
+        --------
+        Here we convert a :class:`pandas.DataFrame` instance
+        to a `~astropy.table.QTable`.
+
+          >>> import numpy as np
+          >>> import pandas as pd
+          >>> from astropy.table import QTable
+
+          >>> time = pd.Series(['1998-01-01', '2002-01-01'], dtype='datetime64[ns]')
+          >>> dt = pd.Series(np.array([1, 300], dtype='timedelta64[s]'))
+          >>> df = pd.DataFrame({'time': time})
+          >>> df['dt'] = dt
+          >>> df['x'] = [3., 4.]
+          >>> with pd.option_context('display.max_columns', 20):
+          ...     print(df)
+                  time              dt    x
+          0 1998-01-01 0 days 00:00:01  3.0
+          1 2002-01-01 0 days 00:05:00  4.0
+
+          >>> QTable.from_pandas(df)
+          <QTable length=2>
+                    time              dt       x
+                    Time          TimeDelta float64
+          ----------------------- --------- -------
+          1998-01-01T00:00:00.000       1.0     3.0
+          2002-01-01T00:00:00.000     300.0     4.0
+
+        """
+        from ._dataframes import from_pandas
+
+        return from_pandas(dataframe, index=index, units=units)
 
     info = TableInfo()
 
