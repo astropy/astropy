@@ -8,6 +8,7 @@ import re
 from typing import ClassVar, Literal
 
 from astropy.units.core import NamedUnit, UnitBase
+from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.typing import UnitPower
 
 from . import console
@@ -62,6 +63,7 @@ class Latex(console.Console):
         cls,
         unit: UnitBase,
         fraction: bool | Literal["inline", "multiline"] = "multiline",
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         s = super().to_string(unit, fraction=fraction)
         return rf"$\mathrm{{{s}}}$"
@@ -82,6 +84,9 @@ class LatexInline(Latex):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         return super().to_string(unit, fraction=fraction)
