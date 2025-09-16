@@ -72,10 +72,18 @@ jupyter = [  # these are optional dependencies for utils.console and table
     "jupyter-core>=4.11.2",
     "pandas>=1.5.0",
 ]
+# Dataframe support via narwhals with all tested backends.
+dataframe = [
+    "narwhals>=1.42",
+    "pyarrow>=11.0.0",
+    "pandas>=2.0",
+    "polars>=1.0",
+]
 # This is ALL the run-time optional dependencies.
 all = [
     # Install grouped optional dependencies
     "astropy[recommended]",
+    "astropy[dataframe]",
     "astropy[ipython]",
     "astropy[jupyter]",
     # Install all remaining optional dependencies
@@ -87,8 +95,6 @@ all = [
     "html5lib>=1.1",
     "bleach>=3.2.1",
     "pandas>=2.0",
-    "polars>=1.31",
-    "narwhals>=1.46",
     "sortedcontainers>=1.5.7", # (older versions may work)
     "pytz>=2016.10", # (older versions may work)
     "jplephem>=2.15",
@@ -127,6 +133,7 @@ typing = [
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
+    "astropy[dataframe]", # installs the [dataframe] dependencies
     "sphinx>=8.2.0",  # keep in sync with docs/conf.py
     "sphinx-astropy[confv2]>=1.9.1",
     "pytest>=8.0.0",
@@ -139,6 +146,7 @@ docs = [
 # These group together all the dependencies needed for developing in Astropy.
 dev = [
     "astropy[recommended]",  # installs the most common optional dependencies
+    "astropy[dataframe]", # installs the [dataframe] dependencies
     "astropy[test]",
     "astropy[docs]",
     "astropy[typing]",
