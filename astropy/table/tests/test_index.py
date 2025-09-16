@@ -43,6 +43,7 @@ def main_col(request):
 
 
 def assert_col_equal(col, array):
+    __tracebackhide__ = True
     if isinstance(col, Time):
         assert np.all(col == Time(array, format="jyear"))
     else:
@@ -604,3 +605,152 @@ def test_hstack_qtable_table():
 def test_index_slice_exception():
     with pytest.raises(TypeError, match="index_slice must be tuple or slice"):
         SlicedIndex(None, None)
+
+
+@pytest.fixture(scope="module")
+def simple_table():
+    """Simple table with an index on column 'a'."""
+    t = Table()
+    t["a"] = [3, 1, 2, 3]
+    t["b"] = ["x", "y", "z", "w"]
+    t.add_index("a")
+    return t
+
+
+@pytest.mark.parametrize("key", [None, "a"])
+@pytest.mark.parametrize(
+    "item,length,cls",
+    [
+        (slice(0, 0), 0, Table),
+        ([], 0, Table),
+        ([1], 1, Table),
+        ([1, 3], 3, Table),
+        (np.array([]), 0, Table),
+        (np.array([1]), 1, Table),
+        (3, 2, Table),  # scalar index with multiple rows
+        (1, None, Row),  # scalar index with single row
+    ],
+)
+def test_index_zero_slice_or_sequence_or_scalar(simple_table, key, item, length, cls):
+    """Test that indexing with various types gives the expected result.
+
+    Tests fix for #18037.
+    """
+    if key is not None:
+        item = (key, item)
+
+    tloc = simple_table.loc[item]
+    assert isinstance(tloc, cls)
+    assert tloc.colnames == simple_table.colnames
+
+    rows = simple_table.loc_indices[item]
+    if cls is Table:
+        assert len(tloc) == length
+        assert len(rows) == length
+
+
+@pytest.mark.parametrize(
+    "masked",
+    [pytest.param(False, id="raw-array"), pytest.param(True, id="masked array")],
+)
+def test_nd_columun_as_index(masked):
+    # see https://github.com/astropy/astropy/issues/13292
+    # and https://github.com/astropy/astropy/pull/16360
+    t = Table()
+    data = np.arange(0, 6)
+    if masked:
+        data = np.ma.masked_inside(data, 2, 4)
+    t.add_column(data.reshape(3, -1), name="arr")
+    with pytest.raises(
+        ValueError, match="Multi-dimensional column 'arr' cannot be used as an index."
+    ):
+        t.add_index("arr")
+
+
+@pytest.mark.parametrize("index_first", [True, False])
+def test_slice_an_indexed_table(index_first):
+    """Test slicing a table that is already indexed.
+
+    Test of fix for https://github.com/astropy/astropy/issues/10732.
+
+    #10732 is the case index_first=True, but also test slicing first (index_first=False)
+    since we're at it.
+    """
+    t = Table()
+    t["a"] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+    t["b"] = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+    t["c"] = ["e", "f", "g", "h", "i", "j", "k", "a", "b", "c"]
+
+    if index_first:
+        t.add_index("a")
+        t.add_index(["b", "c"])
+        ts = t[::2]
+    else:
+        ts = t[::2]
+        ts.add_index("a")
+        ts.add_index(["b", "c"])
+
+    assert ts.pformat() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  9   0   e",
+        "  7   0   g",
+        "  5   0   i",
+        "  3   1   k",
+        "  1   1   b",
+    ]
+    # Index access works
+    assert str(ts.loc[5]).splitlines() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  5   0   i",
+    ]
+
+    # Remove row 2 (a==5), check index access still works
+    ts.remove_row(2)
+    assert ts.pformat() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  9   0   e",
+        "  7   0   g",
+        "  3   1   k",
+        "  1   1   b",
+    ]
+    assert str(ts.loc[1]).splitlines() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  1   1   b",
+    ]
+
+    # Remove row 2 (now a==3), check index access still works
+    ts.remove_row(2)
+    assert ts.pformat() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  9   0   e",
+        "  7   0   g",
+        "  1   1   b",
+    ]
+    assert str(ts.loc[7]).splitlines() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  7   0   g",
+    ]
+
+    # Make sure primary index and secondary index look right (with original=True)
+    assert str(ts.indices[0]).splitlines() == [
+        "<SlicedIndex original=True index=<Index columns=('a',) data=<SortedArray length=3>",
+        " a  rows",
+        "--- ----",
+        "  1    2",
+        "  7    1",
+        "  9    0>>",
+    ]
+    assert str(ts.indices[1]).splitlines() == [
+        "<SlicedIndex original=True index=<Index columns=('b', 'c') data=<SortedArray length=3>",
+        " b   c  rows",
+        "--- --- ----",
+        "  0   e    0",
+        "  0   g    1",
+        "  1   b    2>>",
+    ]

@@ -12,6 +12,7 @@ from astropy import constants
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units.equivalencies import Equivalency
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_find_equivalent_units():
@@ -648,7 +649,7 @@ def test_equivalent_units2():
     match = {
         u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr, u.lsec,
         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
-        u.jupiterRad,
+        u.jupiterRad, u.foe,
     }  # fmt: skip
     assert units == match
 
@@ -661,7 +662,7 @@ def test_equivalent_units2():
             imperial.cal, u.cm, u.eV, u.erg, imperial.ft, imperial.fur,
             imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi, u.lsec,
             imperial.mil, u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
-            imperial.nmi, u.k, u.earthRad, u.jupiterRad,
+            imperial.nmi, u.k, u.earthRad, u.jupiterRad, u.foe,
         }  # fmt: skip
         assert units == match
 
@@ -669,7 +670,7 @@ def test_equivalent_units2():
     match = {
         u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr, u.lsec,
         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
-        u.jupiterRad,
+        u.jupiterRad, u.foe,
     }  # fmt: skip
     assert units == match
 
@@ -841,10 +842,6 @@ def test_temperature():
     t_k = 0 * u.K
     assert_allclose(t_k.to_value(u.deg_C, u.temperature()), -273.15)
     assert_allclose(t_k.to_value(deg_F, u.temperature()), -459.67)
-    t_k = 20 * u.K
-    assert_allclose(t_k.to_value(deg_R, u.temperature()), 36.0)
-    t_k = 20 * deg_R
-    assert_allclose(t_k.to_value(u.K, u.temperature()), 11.11, atol=0.01)
     t_k = 20 * deg_F
     assert_allclose(t_k.to_value(deg_R, u.temperature()), 479.67)
     t_k = 20 * deg_R
@@ -998,3 +995,31 @@ def test_pprint():
         "<tr><td>Ci</td><td>3.7e+10 / s</td><td>curie</td></tr>"
         "<tr><td>Hz</td><td>1 / s</td><td>Hertz, hertz</td></tr></table>"
     )
+
+
+def test_spectral_density_factor_deprecation():
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            r'^"factor" was deprecated in version 7\.0 and will be removed in a future '
+            r'version\. \n        Use "wav" as a "Quantity" instead\.$'
+        ),
+    ):
+        a = (u.erg / u.angstrom / u.cm**2 / u.s).to(
+            u.erg / u.Hz / u.cm**2 / u.s, 1, u.spectral_density(u.AA, factor=3500)
+        )
+    assert_quantity_allclose(a, 4.086160166177361e-12)
+
+
+def test_magnetic_flux_field():
+    H = 1 * u.A / u.m
+    B = (H * constants.mu0).to(u.T)
+    assert_allclose(H.to_value(u.T, u.magnetic_flux_field()), B.value)
+    assert_allclose(B.to_value(u.A / u.m, u.magnetic_flux_field()), H.value)
+
+    H = 1 * u.Oe
+    B = 1 * u.G
+    assert_allclose(H.to_value(u.G, u.magnetic_flux_field()), 1)
+    assert_allclose(B.to_value(u.Oe, u.magnetic_flux_field()), 1)
+    assert_allclose(H.to_value(u.G, u.magnetic_flux_field(mu_r=0.8)), 0.8)
+    assert_allclose(B.to_value(u.Oe, u.magnetic_flux_field(mu_r=0.8)), 1.25)

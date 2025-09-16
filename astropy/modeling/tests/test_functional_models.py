@@ -10,6 +10,8 @@ from numpy.testing import assert_allclose, assert_array_equal, assert_array_less
 from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.modeling import InputParameterError, fitting, models
+from astropy.modeling.functional_models import GAUSSIAN_SIGMA_TO_FWHM
+from astropy.stats.funcs import gaussian_sigma_to_fwhm
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
@@ -17,6 +19,12 @@ fitters = [
     fitting.LevMarLSQFitter,
     fitting.TRFLSQFitter,
     fitting.LMLSQFitter,
+    fitting.DogBoxLSQFitter,
+]
+
+fitters_bounds = [
+    fitting.LevMarLSQFitter,
+    fitting.TRFLSQFitter,
     fitting.DogBoxLSQFitter,
 ]
 
@@ -28,8 +36,6 @@ def test_sigma_constant():
     it manually in astropy.modeling to avoid importing from
     astropy.stats.
     """
-    from astropy.modeling.functional_models import GAUSSIAN_SIGMA_TO_FWHM
-    from astropy.stats.funcs import gaussian_sigma_to_fwhm
 
     assert gaussian_sigma_to_fwhm == GAUSSIAN_SIGMA_TO_FWHM
 
@@ -552,7 +558,7 @@ def test_Voigt1D_method():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", fitters)
+@pytest.mark.parametrize("fitter", fitters_bounds)
 def test_KingProjectedAnalytic1D_fit(fitter):
     fitter = fitter()
 

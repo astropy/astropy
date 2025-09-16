@@ -57,7 +57,8 @@ using the :class:`~astropy.timeseries.LombScargle` class:
 Plotting the result with Matplotlib gives:
 
 >>> import matplotlib.pyplot as plt  # doctest: +SKIP
->>> plt.plot(frequency, power)       # doctest: +SKIP
+>>> fig, ax = plt.subplots()  # doctest: +SKIP
+>>> ax.plot(frequency, power)  # doctest: +SKIP
 
 .. plot::
 
@@ -71,8 +72,8 @@ Plotting the result with Matplotlib gives:
     y = np.sin(2 * np.pi * t) + 0.1 * rand.standard_normal(100)
 
     frequency, power = LombScargle(t, y).autopower()
-    fig = plt.figure(figsize=(6, 4.5))
-    plt.plot(frequency, power)
+    fig, ax = plt.subplots(figsize=(6, 4.5))
+    ax.plot(frequency, power)
 
 The periodogram shows a clear spike at a frequency of 1 cycle per unit time,
 as we would expect from the data we constructed.
@@ -167,14 +168,14 @@ To tune the heuristic using keywords passed to the
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=2)
 >>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
-(500, 0.0010327803641893758, 1.0317475838251864)
+(500, np.float64(0.0010327803641893758), np.float64(1.0317475838251864))
 
 Here the highest frequency is two times the average Nyquist frequency.
 If we increase the ``nyquist_factor``, we can probe higher frequencies:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=10)
 >>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
-(2500, 0.0010327803641893758, 5.16286904058269)
+(2500, np.float64(0.0010327803641893758), np.float64(5.16286904058269))
 
 Alternatively, we can use the :func:`~astropy.timeseries.LombScargle.power`
 method to evaluate the periodogram at a user-specified set of frequencies:
@@ -204,7 +205,8 @@ Imagine you chose to evaluate your periodogram at 100 points:
 
 >>> frequency = np.linspace(0.1, 1.9, 100)
 >>> power = LombScargle(t, y, dy).power(frequency)
->>> plt.plot(frequency, power)   # doctest: +SKIP
+>>> fig, ax = plt.subplots()  # doctest: +SKIP
+>>> ax.plot(frequency, power)  # doctest: +SKIP
 
 .. plot::
 
@@ -220,11 +222,9 @@ Imagine you chose to evaluate your periodogram at 100 points:
     frequency = np.linspace(0.1, 1.9, 100)
     power = LombScargle(t, y, dy).power(frequency)
 
-    plt.figure(figsize=(6, 4.5))
-    plt.plot(frequency, power)
-    plt.xlabel('frequency')
-    plt.ylabel('Lomb-Scargle Power')
-    plt.ylim(0, 1)
+    fig, ax = plt.subplots(figsize=(6, 4.5))
+    ax.plot(frequency, power)
+    ax.set(xlabel='frequency', ylabel='Lomb-Scargle Power', ylim=(0, 1))
 
 From this plot alone, you might conclude that no clear periodic signal exists in
 the data.  But this conclusion is in error: there is in fact a strong periodic
@@ -239,7 +239,8 @@ the :func:`~astropy.timeseries.LombScargle.autopower` method:
 ...                                                    maximum_frequency=1.9)
 >>> len(frequency)
 872
->>> plt.plot(frequency, power)   # doctest: +SKIP
+>>> fig, ax = plt.subplots()  # doctest: +SKIP
+>>> ax.plot(frequency, power)  # doctest: +SKIP
 
 .. plot::
 
@@ -255,11 +256,9 @@ the :func:`~astropy.timeseries.LombScargle.autopower` method:
     frequency, power = LombScargle(t, y, dy).autopower(minimum_frequency=0.1,
                                                        maximum_frequency=1.9)
 
-    plt.figure(figsize=(6, 4.5))
-    plt.plot(frequency, power)
-    plt.xlabel('frequency')
-    plt.ylabel('Lomb-Scargle Power')
-    plt.ylim(0, 1)
+    fig, ax = plt.subplots(figsize=(6, 4.5))
+    ax.plot(frequency, power)
+    ax.set(xlabel='frequency', ylabel='Lomb-Scargle Power', ylim=(0, 1))
 
 With a finer grid (here 884 points between 0.1 and 1.9),
 it is clear that there is a very strong periodic signal in the data.
@@ -542,7 +541,7 @@ this peak? We can address this question using the
 .. doctest-requires:: scipy
 
   >>> ls.false_alarm_probability(power.max())  # doctest: +FLOAT_CMP
-  0.028959671719328808
+  np.float64(0.028959671719328808)
 
 What this tells us is that under the assumption that there is no periodic
 signal in the data, we will observe a peak this high or higher approximately
@@ -598,7 +597,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='baluev')  # doctest: +FLOAT_CMP
-    0.028959671719328808
+    np.float64(0.028959671719328808)
 
 - ``method="bootstrap"`` implements a bootstrap simulation: effectively it
   computes many Lomb-Scargle periodograms on simulated data at the same
@@ -611,7 +610,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='bootstrap')  # doctest: +SKIP
-    0.0030000000000000027
+    np.float64(0.0030000000000000027)
 
 - ``method="davies"`` is related to the Baluev method, but loses accuracy
   at large false alarm probabilities.
@@ -619,7 +618,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='davies')  # doctest: +FLOAT_CMP
-    0.029387277355227746
+    np.float64(0.029387277355227746)
 
 - ``method="naive"`` is a basic method based on the assumption that
   well-separated areas in the periodogram are independent. In general, it
@@ -629,7 +628,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='naive')  # doctest: +FLOAT_CMP
-    0.00810080828660202
+    np.float64(0.00810080828660202)
 
 The following figure compares these false alarm estimates at a range of
 peak heights for 100 observations with a heavily aliased observing pattern:
@@ -926,7 +925,7 @@ Literature References
        astroML: Machine learning for astrophysics*. Proceedings of the
        Conference on Intelligent Data Understanding (2012)
 .. [5]  Vanderplas, J., Connolly, A. Ivezic, Z. & Gray, A. *Statistics,
-	Data Mining and Machine Learning in Astronomy*. Princeton Press (2014)}
+        Data Mining and Machine Learning in Astronomy*. Princeton Press (2014)}
 .. [6] VanderPlas, J. *Gatspy: General Tools for Astronomical Time Series
        in Python* (2015) https://zenodo.org/record/14833
 .. [7] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
@@ -939,5 +938,5 @@ Literature References
        periodogram. A new formalism for the floating-mean and Keplerian
        periodograms*, A&A 496, 577-584 (2009)
 .. [11] VanderPlas, J. *Understanding the Lomb-Scargle Periodogram*
-	ApJS 236.1:16 (2018)
-	https://ui.adsabs.harvard.edu/abs/2018ApJS..236...16V
+        ApJS 236.1:16 (2018)
+        https://ui.adsabs.harvard.edu/abs/2018ApJS..236...16V

@@ -1,0 +1,1 @@
+The trait ``astropy.cosmology.traits.HubbleParameter`` has been added to work with objects that have attributes and methods related to the Hubble parameter.

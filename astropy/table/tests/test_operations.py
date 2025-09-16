@@ -22,16 +22,44 @@ from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.table import Column, MaskedColumn, QTable, Table, TableMergeError
-from astropy.table.operations import _get_out_class, join_distance, join_skycoord
+from astropy.table.operations import (
+    _apply_join_funcs,
+    _get_out_class,
+    join_distance,
+    join_skycoord,
+)
 from astropy.time import Time, TimeDelta
+from astropy.timeseries import TimeSeries
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.masked import Masked
 from astropy.utils.metadata import MergeConflictError
+
+MIXINS_WITH_FULL_MASK_SUPPORT = (
+    Quantity,
+    Time,
+    TimeDelta,
+    BaseRepresentationOrDifferential,
+    SkyCoord,
+    EarthLocation,  # Currently, a Quantity subclass, but that may change.
+)
 
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
+
+
+def check_cols_equal(col1, col2):
+    """Check that col1 == col2, taking care of zero-length masked columns."""
+    assert (
+        type(col1) is type(col2)
+        or (isinstance(col1, Masked) and type(col1) is Masked(type(col2)))
+        or (isinstance(col2, Masked) and type(col2) is Masked(type(col1)))
+    )
+    eq = np.all(col1 == col2)
+    return eq or (isinstance(eq, Masked) and not eq.shape and eq.unmasked)
 
 
 def check_mask(col, exp_mask):
@@ -660,7 +688,7 @@ class TestJoin:
 
         # Check for left, right, outer join which requires masking. Works for
         # the listed mixins classes.
-        if isinstance(col, (Quantity, Time, TimeDelta)):
+        if isinstance(col, MIXINS_WITH_FULL_MASK_SUPPORT):
             out = table.join(t1, t2, join_type="left")
             assert len(out) == 3
             assert np.all(out["idx"] == [0, 1, 3])
@@ -771,8 +799,6 @@ class TestJoin:
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
     def test_join_with_join_distance_1d_multikey(self):
-        from astropy.table.operations import _apply_join_funcs
-
         c1 = [0, 1, 1.1, 1.2, 2]
         id1 = [0, 1, 2, 2, 3]
         o1 = ["a", "b", "c", "d", "e"]
@@ -844,7 +870,7 @@ class TestJoin:
         t12 = table.join(t1, t2, join_type="outer", join_funcs={"col": join_func})
         exp = [
             "col_id   col_1       col_2   ",
-            f'{t12["col_id"].dtype.name}  float64[2]  float64[2]',  # int32 or int64
+            f"{t12['col_id'].dtype.name}  float64[2]  float64[2]",  # int32 or int64
             "------ ---------- -----------",
             "     1 1.0 .. 0.0 1.05 .. 0.0",
             "     2 2.0 .. 0.0  2.1 .. 0.0",
@@ -944,13 +970,23 @@ class TestJoin:
             names=["structured", "string"],
         )
         t12 = table.join(t1, t2, ["structured"], join_type="outer")
-        assert t12.pformat() == [
-            "structured [f, i] string_1 string_2",
-            "----------------- -------- --------",
-            "          (1., 1)      one       --",
-            "          (2., 2)      two    three",
-            "          (4., 4)       --     four",
-        ]
+        assert t12.pformat() == (
+            [
+                "structured [f, i] string_1 string_2",
+                "----------------- -------- --------",
+                "          (1., 1)      one       --",
+                "          (2., 2)      two    three",
+                "          (4., 4)       --     four",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "structured [f, i] string_1 string_2",
+                "----------------- -------- --------",
+                "         (1.0, 1)      one       --",
+                "         (2.0, 2)      two    three",
+                "         (4.0, 4)       --     four",
+            ]
+        )
 
 
 class TestSetdiff:
@@ -1239,7 +1275,7 @@ class TestVStack:
             table.vstack([self.t1, self.t2], join_type="exact")
 
         t1_reshape = self.t1.copy()
-        t1_reshape["b"].shape = [2, 1]
+        t1_reshape["b"] = t1_reshape["b"].reshape((2, 1))
         with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, t1_reshape])
         assert "have different shape" in str(excinfo.value)
@@ -1427,59 +1463,47 @@ class TestVStack:
         assert (self.t1 == table.vstack(self.t1)).all()
         assert (self.t1 == table.vstack([self.t1])).all()
 
-    def test_mixin_functionality(self, mixin_cols):
-        col = mixin_cols["m"]
-        len_col = len(col)
-        t = table.QTable([col], names=["a"])
-        cls_name = type(col).__name__
+    @pytest.mark.parametrize("empty_table1", [False, True])
+    @pytest.mark.parametrize("empty_table2", [False, True])
+    def test_mixin_functionality(self, mixin_cols, empty_table1, empty_table2):
+        col1 = col2 = mixin_cols["m"]
+        if empty_table1:
+            col1 = col1[:0]
+        if empty_table2:
+            col2 = col2[:0]
+        len_col1 = len(col1)
+        t1 = table.QTable([col1], names=["a"])
+        len_col2 = len(col2)
+        t2 = table.QTable([col2], names=["a"])
 
         # Vstack works for these classes:
-        if isinstance(
-            col,
-            (
-                u.Quantity,
-                Time,
-                TimeDelta,
-                SkyCoord,
-                EarthLocation,
-                BaseRepresentationOrDifferential,
-                StokesCoord,
-            ),
-        ):
-            out = table.vstack([t, t])
-            assert len(out) == len_col * 2
-            if cls_name == "SkyCoord":
-                # Argh, SkyCoord needs __eq__!!
-                assert skycoord_equal(out["a"][len_col:], col)
-                assert skycoord_equal(out["a"][:len_col], col)
-            elif "Repr" in cls_name or "Diff" in cls_name:
-                assert np.all(representation_equal(out["a"][:len_col], col))
-                assert np.all(representation_equal(out["a"][len_col:], col))
-            else:
-                assert np.all(out["a"][:len_col] == col)
-                assert np.all(out["a"][len_col:] == col)
+        if isinstance(col1, MIXINS_WITH_FULL_MASK_SUPPORT + (StokesCoord,)):
+            out = table.vstack([t1, t2])
+            assert len(out) == len_col1 + len_col2
+            assert check_cols_equal(out["a"][:len_col1], col1)
+            assert check_cols_equal(out["a"][len_col1:], col2)
         else:
-            msg = f"vstack unavailable for mixin column type(s): {cls_name}"
+            msg = f"vstack unavailable for mixin column type(s): {type(col1).__name__}"
             with pytest.raises(NotImplementedError, match=re.escape(msg)):
-                table.vstack([t, t])
+                table.vstack([t1, t2])
 
-        # Check for outer stack which requires masking.  Only Time supports
-        # this currently.
-        t2 = table.QTable([col], names=["b"])  # different from col name for t
-        if isinstance(col, (Time, TimeDelta, Quantity)):
-            out = table.vstack([t, t2], join_type="outer")
-            assert len(out) == len_col * 2
-            assert np.all(out["a"][:len_col] == col)
-            assert np.all(out["b"][len_col:] == col)
-            assert check_mask(out["a"], [False] * len_col + [True] * len_col)
-            assert check_mask(out["b"], [True] * len_col + [False] * len_col)
+        # Check for outer stack which requires masking.  Works for
+        # the listed mixins classes.
+        t2 = table.QTable([col2], names=["b"])  # different from col name for t
+        if isinstance(col1, MIXINS_WITH_FULL_MASK_SUPPORT):
+            out = table.vstack([t1, t2], join_type="outer")
+            assert len(out) == len_col1 + len_col2
+            assert check_cols_equal(out["a"][:len_col1], col1)
+            assert check_cols_equal(out["b"][len_col1:], col2)
+            assert check_mask(out["a"], [False] * len_col1 + [True] * len_col2)
+            assert check_mask(out["b"], [True] * len_col1 + [False] * len_col2)
             # check directly stacking mixin columns:
-            out2 = table.vstack([t, t2["b"]])
-            assert np.all(out["a"] == out2["a"])
-            assert np.all(out["b"] == out2["b"])
+            out2 = table.vstack([t1, t2["b"]])
+            assert check_cols_equal(out["a"], out2["a"])
+            assert check_cols_equal(out["b"], out2["b"])
         else:
             with pytest.raises(NotImplementedError) as err:
-                table.vstack([t, t2], join_type="outer")
+                table.vstack([t1, t2], join_type="outer")
             assert "vstack requires masking" in str(
                 err.value
             ) or "vstack unavailable" in str(err.value)
@@ -1501,6 +1525,15 @@ class TestVStack:
         with pytest.raises(ValueError, match="representations are inconsistent"):
             table.vstack([t1, t3])
 
+    def test_vstack_different_sky_coordinates(self):
+        """Test that SkyCoord can generally not be mixed together."""
+        sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
+        sc2 = SkyCoord([5, 6] * u.deg, [7, 8] * u.deg, frame="fk5")
+        t1 = Table([sc1])
+        t2 = Table([sc2])
+        with pytest.raises(ValueError, match="coords are inconsistent"):
+            table.vstack([t1, t2])
+
     def test_vstack_structured_column(self):
         """Regression tests for gh-13271."""
         # Two tables with matching names, including a structured column.
@@ -1519,14 +1552,25 @@ class TestVStack:
             names=["structured", "string"],
         )
         t12 = table.vstack([t1, t2])
-        assert t12.pformat() == [
-            "structured [f, i] string",
-            "----------------- ------",
-            "          (1., 1)    one",
-            "          (2., 2)    two",
-            "          (3., 3)  three",
-            "          (4., 4)   four",
-        ]
+        assert t12.pformat() == (
+            [
+                "structured [f, i] string",
+                "----------------- ------",
+                "          (1., 1)    one",
+                "          (2., 2)    two",
+                "          (3., 3)  three",
+                "          (4., 4)   four",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "structured [f, i] string",
+                "----------------- ------",
+                "         (1.0, 1)    one",
+                "         (2.0, 2)    two",
+                "         (3.0, 3)  three",
+                "         (4.0, 4)   four",
+            ]
+        )
 
         # One table without the structured column.
         t3 = t2[("string",)]
@@ -1732,12 +1776,21 @@ class TestDStack:
             names=["structured", "string"],
         )
         t12 = table.dstack([t1, t2])
-        assert t12.pformat() == [
-            "structured [f, i]     string   ",
-            "------------------ ------------",
-            "(1., 1) .. (3., 3) one .. three",
-            "(2., 2) .. (4., 4)  two .. four",
-        ]
+        assert t12.pformat() == (
+            [
+                "structured [f, i]     string   ",
+                "------------------ ------------",
+                "(1., 1) .. (3., 3) one .. three",
+                "(2., 2) .. (4., 4)  two .. four",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                " structured [f, i]      string   ",
+                "-------------------- ------------",
+                "(1.0, 1) .. (3.0, 3) one .. three",
+                "(2.0, 2) .. (4.0, 4)  two .. four",
+            ]
+        )
 
         # One table without the structured column.
         t3 = t2[("string",)]
@@ -2043,8 +2096,9 @@ class TestHStack:
             assert np.all(out["col0_1"] == col1[: len(col2)])
             assert np.all(out["col0_2"] == col2)
 
-        # Time class supports masking, all other mixins do not
-        if isinstance(col1, (Time, TimeDelta, Quantity)):
+        # Check mixin classes that support masking (and that we raise for
+        # those that do not).
+        if isinstance(col1, MIXINS_WITH_FULL_MASK_SUPPORT):
             out = table.hstack([t1, t2], join_type="outer")
             assert len(out) == len(t1)
             assert np.all(out["col0_1"] == col1)
@@ -2217,6 +2271,74 @@ def test_unique(operation_table_type):
     ]
 
 
+@pytest.mark.parametrize("join_type", ["inner", "outer", "left", "right", "cartesian"])
+def test_join_keep_sort_order(join_type):
+    """Test the keep_order argument for table.join.
+
+    See https://github.com/astropy/astropy/issues/11619.
+
+    This defines a left and right table which have an ``id`` column that is not sorted
+    and not unique. Each table has common and unique ``id`` key values along with an
+    ``order`` column to keep track of the original order.
+    """
+    keep_supported = join_type in ["left", "right", "inner"]
+    t1 = Table()
+    t1["id"] = [2, 8, 2, 0, 0, 1]  # Join key
+    t1["order"] = np.arange(len(t1))  # Original table order
+
+    t2 = Table()
+    t2["id"] = [2, 0, 1, 9, 0, 1]  # Join key
+    t2["order"] = np.arange(len(t2))  # Original table order
+
+    # No keys arg is allowed for cartesian join.
+    keys_kwarg = {} if join_type == "cartesian" else {"keys": "id"}
+
+    # Now do table joints with keep_order=False and keep_order=True.
+    t12f = table.join(t1, t2, join_type=join_type, keep_order=False, **keys_kwarg)
+    # For keep_order=True there should be a warning if keep_order is not supported for
+    # the join type.
+    ctx = (
+        nullcontext()
+        if keep_supported
+        else pytest.warns(
+            UserWarning,
+            match=r"keep_order=True is only supported for left, right, and inner joins",
+        )
+    )
+    with ctx:
+        t12t = table.join(t1, t2, join_type=join_type, keep_order=True, **keys_kwarg)
+
+    assert len(t12f) == len(t12t)
+    assert t12f.colnames == t12t.colnames
+
+    # Define expected sorting of join table for keep_order=False. Cartesian joins are
+    # always sorted by the native order of the left table, otherwise the table is sorted
+    # by the sort key ``id``.
+    sort_key_false = "order_1" if join_type == "cartesian" else "id"
+
+    # For keep_order=True the "order" column is sorted if keep is supported otherwise
+    # the table is sorted as for keep_order=False.
+    if keep_supported:
+        sort_key_true = "order_2" if join_type == "right" else "order_1"
+    else:
+        sort_key_true = sort_key_false
+
+    assert np.all(t12f[sort_key_false] == sorted(t12f[sort_key_false]))
+    assert np.all(t12t[sort_key_true] == sorted([t12t[sort_key_true]]))
+
+
+def test_join_keep_sort_order_exception():
+    """Test that exception in join(..., keep_order=True) leaves table unchanged"""
+    t1 = Table([[1, 2]], names=["id"])
+    t2 = Table([[2, 3]], names=["id"])
+    with pytest.raises(
+        TableMergeError, match=r"Left table does not have key column 'not-a-key'"
+    ):
+        table.join(t1, t2, keys="not-a-key", join_type="inner", keep_order=True)
+    assert t1.colnames == ["id"]
+    assert t2.colnames == ["id"]
+
+
 def test_vstack_bytes(operation_table_type):
     """
     Test for issue #5617 when vstack'ing bytes columns in Py3.
@@ -2326,8 +2448,6 @@ def test_sort_indexed_table():
 
     # Using the table as a TimeSeries implicitly sets the index, so
     # this test is a bit different from the above.
-    from astropy.timeseries import TimeSeries
-
     ts = TimeSeries(time=times)
     ts["flux"] = [3, 2, 1]
     ts.sort("flux")
@@ -2497,3 +2617,11 @@ def test_table_comp(t1, t2):
         assert not any(t2 == t1)
         assert all(t1 != t2)
         assert all(t2 != t1)
+
+
+def test_empty_skycoord_vstack():
+    # Explicit regression test for gh-17378
+    table1 = Table({"foo": SkyCoord([], [], unit="deg")})
+    table2 = table.vstack([table1, table1])  # Used to fail.
+    assert len(table2) == 0
+    assert isinstance(table2["foo"], SkyCoord)

@@ -1,4 +1,0 @@
-``Masked`` array instances now deal more properly with structured dtypes,
-combining field masks to get element masks for generalized ufuncs, and
-allowing ``.view()`` any time the mask can be viewed as well. This allows a
-larger number of ``erfa`` routines to work with masked data.

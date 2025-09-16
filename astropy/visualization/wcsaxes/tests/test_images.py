@@ -1,15 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import matplotlib.lines
-import matplotlib.pyplot as plt
 import matplotlib.text
 import numpy as np
 import pytest
 from matplotlib import rc_context
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.patches import Circle, Rectangle
 
 from astropy import units as u
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import (
+    ICRS,
+    RepresentationMapping,
+    SkyCoord,
+    SphericalRepresentation,
+    StaticMatrixTransform,
+    frame_transform_graph,
+)
 from astropy.io import fits
 from astropy.tests.figures import figure_test
 from astropy.utils.data import get_pkg_data_filename
@@ -18,6 +25,7 @@ from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_scalebar
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.visualization.wcsaxes.patches import Quadrangle, SphericalCircle
 from astropy.wcs import WCS
+from astropy.wcs.wcsapi import BaseLowLevelWCS
 
 
 class BaseImageTests:
@@ -38,39 +46,42 @@ class BaseImageTests:
         slice_header = get_pkg_data_filename("data/slice_header")
         cls.slice_header = fits.Header.fromtextfile(slice_header)
 
-    def teardown_method(self, method):
-        plt.close("all")
-
 
 class TestBasic(BaseImageTests):
     @figure_test
     def test_tight_layout(self):
         # Check that tight_layout works on a WCSAxes.
-        fig = plt.figure(figsize=(8, 6))
+        fig = Figure(figsize=(8, 6))
+        canvas = FigureCanvasAgg(fig)
         for i in (1, 2):
             fig.add_subplot(2, 1, i, projection=WCS(self.msx_header))
         fig.tight_layout()
+        canvas.draw()
         return fig
 
     @figure_test
     def test_image_plot(self):
         # Test for plotting image and also setting values of ticks
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.1, 0.1, 0.8, 0.8], projection=WCS(self.msx_header), aspect="equal"
         )
         ax.set_xlim(-0.5, 148.5)
         ax.set_ylim(-0.5, 148.5)
         ax.coords[0].set_ticks([-0.30, 0.0, 0.20] * u.degree, size=5, width=1)
+        canvas.draw()
         return fig
 
     @figure_test
     def test_axes_off(self):
         # Test for turning the axes off
-        fig = plt.figure(figsize=(3, 3))
+        fig = Figure(figsize=(3, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=WCS(self.msx_header))
         ax.imshow(np.arange(12).reshape((3, 4)))
         ax.set_axis_off()
+        canvas.draw()
         return fig
 
     @figure_test
@@ -78,7 +89,8 @@ class TestBasic(BaseImageTests):
     def test_axisbelow(self, axisbelow):
         # Test that tick marks, labels, and gridlines are drawn with the
         # correct zorder controlled by the axisbelow property.
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.1, 0.1, 0.8, 0.8], projection=WCS(self.msx_header), aspect="equal"
         )
@@ -100,6 +112,7 @@ class TestBasic(BaseImageTests):
         # Add a line (default zorder=2).
         ax.plot([32, 128], [32, 128], linewidth=10)
 
+        canvas.draw()
         return fig
 
     @figure_test
@@ -111,7 +124,8 @@ class TestBasic(BaseImageTests):
 
         wcs_msx = WCS(self.msx_header)
 
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.15, 0.15, 0.8, 0.8],
             projection=WCS(self.twoMASS_k_header),
@@ -138,6 +152,7 @@ class TestBasic(BaseImageTests):
         # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
+        canvas.draw()
         return fig
 
     @figure_test
@@ -149,7 +164,8 @@ class TestBasic(BaseImageTests):
 
         wcs_msx = WCS(self.msx_header)
 
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.15, 0.15, 0.8, 0.8],
             projection=WCS(self.twoMASS_k_header),
@@ -173,6 +189,7 @@ class TestBasic(BaseImageTests):
         # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
+        canvas.draw()
         return fig
 
     @figure_test
@@ -180,7 +197,8 @@ class TestBasic(BaseImageTests):
         # Test for overlaying grid, changing format of ticks, setting spacing
         # and number of ticks
 
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.25, 0.25, 0.65, 0.65], projection=WCS(self.msx_header), aspect="equal"
         )
@@ -209,13 +227,15 @@ class TestBasic(BaseImageTests):
         assert ax.coords.frame.get_color() == "red"
         assert ax.coords.frame.get_linewidth() == 2
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_curvilinear_grid_patches_image(self):
         # Overlay curvilinear grid and patches on image
 
-        fig = plt.figure(figsize=(8, 8))
+        fig = Figure(figsize=(8, 8))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.1, 0.1, 0.8, 0.8], projection=WCS(self.rosat_header), aspect="equal"
         )
@@ -255,13 +275,15 @@ class TestBasic(BaseImageTests):
         )
         ax.add_patch(p)
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_cube_slice_image(self):
         # Test for cube slicing
 
-        fig = plt.figure()
+        fig = Figure()
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.1, 0.1, 0.8, 0.8],
             projection=WCS(self.cube_header),
@@ -284,6 +306,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].grid(grid_type="contours", color="orange", linestyle="solid")
         ax.coords[2].grid(grid_type="contours", color="red", linestyle="solid")
 
+        canvas.draw()
         return fig
 
     @figure_test
@@ -291,7 +314,8 @@ class TestBasic(BaseImageTests):
         # Test for cube slicing. Here we test with longitude and latitude since
         # there is some longitude-specific code in _update_grid_contour.
 
-        fig = plt.figure()
+        fig = Figure()
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.1, 0.1, 0.8, 0.8],
             projection=WCS(self.cube_header),
@@ -311,11 +335,13 @@ class TestBasic(BaseImageTests):
         # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_plot_coord(self):
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.15, 0.15, 0.8, 0.8],
             projection=WCS(self.twoMASS_k_header),
@@ -337,13 +363,15 @@ class TestBasic(BaseImageTests):
         # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_scatter_coord(self):
         from matplotlib.collections import PathCollection
 
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.15, 0.15, 0.8, 0.8],
             projection=WCS(self.twoMASS_k_header),
@@ -364,11 +392,13 @@ class TestBasic(BaseImageTests):
         # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_text_coord(self):
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.15, 0.15, 0.8, 0.8],
             projection=WCS(self.twoMASS_k_header),
@@ -389,11 +419,13 @@ class TestBasic(BaseImageTests):
         # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_plot_line(self):
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.15, 0.15, 0.8, 0.8],
             projection=WCS(self.twoMASS_k_header),
@@ -411,12 +443,14 @@ class TestBasic(BaseImageTests):
         # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_changed_axis_units(self):
         # Test to see if changing the units of axis works
-        fig = plt.figure()
+        fig = Figure()
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.1, 0.1, 0.8, 0.8],
             projection=WCS(self.cube_header),
@@ -442,12 +476,14 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticklabel(exclude_overlapping=True)
         ax.coords[2].set_ticklabel(exclude_overlapping=True)
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_minor_ticks(self):
         # Test for drawing minor ticks
-        fig = plt.figure()
+        fig = Figure()
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.1, 0.1, 0.8, 0.8],
             projection=WCS(self.cube_header),
@@ -472,11 +508,13 @@ class TestBasic(BaseImageTests):
         ax.coords[2].set_minor_frequency(3)
         ax.coords[1].set_minor_frequency(10)
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_ticks_labels(self):
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
         fig.add_axes(ax)
         ax.set_xlim(-0.5, 2)
@@ -510,12 +548,14 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticklabel_position("all")
         ax.coords[1].set_ticklabel_position("r")
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_no_ticks(self):
         # Check that setting no ticks works
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.1, 0.1, 0.8, 0.8], projection=WCS(self.msx_header), aspect="equal"
         )
@@ -523,6 +563,7 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 148.5)
         ax.coords[0].set_ticks(number=0)
         ax.coords[0].grid(True)
+        canvas.draw()
         return fig
 
     @figure_test
@@ -551,7 +592,8 @@ class TestBasic(BaseImageTests):
                 "grid.alpha": 0.5,
             }
         ):
-            fig = plt.figure(figsize=(6, 6))
+            fig = Figure(figsize=(6, 6))
+            canvas = FigureCanvasAgg(fig)
             ax = WCSAxes(fig, [0.15, 0.1, 0.7, 0.7], wcs=None)
             fig.add_axes(ax)
             ax.set_xlim(-0.5, 2)
@@ -561,7 +603,8 @@ class TestBasic(BaseImageTests):
             ax.set_ylabel("Y label")
             ax.coords[0].set_ticklabel(exclude_overlapping=True)
             ax.coords[1].set_ticklabel(exclude_overlapping=True)
-            return fig
+            canvas.draw()
+        return fig
 
     @figure_test
     def test_tick_angles(self):
@@ -574,7 +617,8 @@ class TestBasic(BaseImageTests):
         w.wcs.crpix = [1, 1]
         w.wcs.radesys = "ICRS"
         w.wcs.equinox = 2000.0
-        fig = plt.figure(figsize=(3, 3))
+        fig = Figure(figsize=(3, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=w)
         ax.set_xlim(1, -1)
         ax.set_ylim(-1, 1)
@@ -586,6 +630,7 @@ class TestBasic(BaseImageTests):
         # for backward-compatibility with previous reference images we
         # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
+        canvas.draw()
         return fig
 
     @figure_test
@@ -600,7 +645,8 @@ class TestBasic(BaseImageTests):
         w.wcs.crpix = [1, 1]
         w.wcs.radesys = "ICRS"
         w.wcs.equinox = 2000.0
-        fig = plt.figure(figsize=(6, 3))
+        fig = Figure(figsize=(6, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=w)
         ax.set_xlim(1, -1)
         ax.set_ylim(-1, 1)
@@ -612,12 +658,14 @@ class TestBasic(BaseImageTests):
         # for backward-compatibility with previous reference images we
         # explicitly use degrees here.
         ax.coords[0].set_format_unit(u.degree)
+        canvas.draw()
         return fig
 
     @figure_test
     def test_set_coord_type(self):
         # Test for setting coord_type
-        fig = plt.figure(figsize=(3, 3))
+        fig = Figure(figsize=(3, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.2, 0.2, 0.6, 0.6], projection=WCS(self.msx_header), aspect="equal"
         )
@@ -629,6 +677,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_major_formatter("x.xxx")
         ax.coords[0].set_ticklabel(exclude_overlapping=True)
         ax.coords[1].set_ticklabel(exclude_overlapping=True)
+        canvas.draw()
         return fig
 
     @figure_test
@@ -640,7 +689,8 @@ class TestBasic(BaseImageTests):
         # potential ticks (which causes the tick angle calculation to return
         # NaN).
         wcs = WCS(self.slice_header)
-        fig = plt.figure(figsize=(3, 3))
+        fig = Figure(figsize=(3, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.25, 0.25, 0.5, 0.5], projection=wcs, aspect="auto")
         limits = wcs.wcs_world2pix([0, 0], [35e3, 80e3], 0)[1]
         ax.set_ylim(*limits)
@@ -650,6 +700,9 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticklabel(alpha=0.5)
         ax.coords[0].set_ticklabel_position("all")
         ax.coords[1].set_ticklabel_position("all")
+        ax.coords[0].set_axislabel_position("b")
+        ax.coords[1].set_axislabel_position("l")
+        canvas.draw()
         return fig
 
     @figure_test
@@ -659,12 +712,14 @@ class TestBasic(BaseImageTests):
         # list of bounding boxes for tick labels, but with default values of 0
         # to 1, which caused issues.
         wcs = WCS(self.msx_header)
-        fig = plt.figure(figsize=(3, 3))
+        fig = Figure(figsize=(3, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.25, 0.25, 0.5, 0.5], projection=wcs, aspect="auto")
         ax.coords[0].set_axislabel("Label 1")
         ax.coords[1].set_axislabel("Label 2")
         ax.coords[1].set_axislabel_visibility_rule("always")
-        ax.coords[1].ticklabels.set_visible(False)
+        ax.coords[1].set_ticklabel_visible(False)
+        canvas.draw()
         return fig
 
     @figure_test(savefig_kwargs={"bbox_inches": "tight"})
@@ -680,7 +735,8 @@ class TestBasic(BaseImageTests):
         wcs.wcs.ctype = ["solar-x", "solar-y"]
         wcs.wcs.cunit = ["arcsec", "arcsec"]
 
-        fig = plt.figure(figsize=(3, 3))
+        fig = Figure(figsize=(3, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_subplot(1, 1, 1, projection=wcs)
 
         ax.imshow(np.zeros([1024, 1024]), origin="lower")
@@ -701,6 +757,7 @@ class TestBasic(BaseImageTests):
 
         assert ax.format_coord(512, 512) == "513.0 513.0 (world)"
 
+        canvas.draw()
         return fig
 
     @figure_test
@@ -709,7 +766,8 @@ class TestBasic(BaseImageTests):
         # and SphericalCircle don't)
 
         wcs = WCS(self.msx_header)
-        fig = plt.figure(figsize=(3, 3))
+        fig = Figure(figsize=(3, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.25, 0.25, 0.5, 0.5], projection=wcs, aspect="equal")
 
         # Pixel coordinates
@@ -802,13 +860,15 @@ class TestBasic(BaseImageTests):
         assert np.allclose(r1.get_xy(), r3.get_xy())
         assert np.allclose(r2.get_xy()[0], [266.4, -29.25])
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_quadrangle(self, tmp_path):
         # Test that Quadrangle can have curved edges while Rectangle does not
         wcs = WCS(self.msx_header)
-        fig = plt.figure(figsize=(3, 3))
+        fig = Figure(figsize=(3, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.25, 0.25, 0.5, 0.5], projection=wcs, aspect="equal")
         ax.set_xlim(0, 10000)
         ax.set_ylim(-10000, 0)
@@ -841,13 +901,15 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticklabel_visible(False)
         ax.coords[1].set_ticklabel_visible(False)
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_beam_shape_from_args(self, tmp_path):
         # Test for adding the beam shape with the beam parameters as arguments
         wcs = WCS(self.msx_header)
-        fig = plt.figure(figsize=(4, 3))
+        fig = Figure(figsize=(4, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, aspect="equal")
         ax.set_xlim(-10, 10)
         ax.set_ylim(-10, 10)
@@ -864,6 +926,7 @@ class TestBasic(BaseImageTests):
             color="black",
         )
 
+        canvas.draw()
         return fig
 
     @figure_test
@@ -875,20 +938,23 @@ class TestBasic(BaseImageTests):
         hdr["BPA"] = 30.0
 
         wcs = WCS(hdr)
-        fig = plt.figure(figsize=(4, 3))
+        fig = Figure(figsize=(4, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, aspect="equal")
         ax.set_xlim(-10, 10)
         ax.set_ylim(-10, 10)
 
         add_beam(ax, header=hdr)
 
+        canvas.draw()
         return fig
 
     @figure_test
     def test_scalebar(self, tmp_path):
         # Test for adding a scale bar
         wcs = WCS(self.msx_header)
-        fig = plt.figure(figsize=(4, 3))
+        fig = Figure(figsize=(4, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, aspect="equal")
         ax.set_xlim(-10, 10)
         ax.set_ylim(-10, 10)
@@ -902,6 +968,7 @@ class TestBasic(BaseImageTests):
             label_top=True,
         )
 
+        canvas.draw()
         return fig
 
     @figure_test
@@ -910,31 +977,37 @@ class TestBasic(BaseImageTests):
         # be incorrectly simplified.
 
         wcs = WCS(self.msx_header)
-        fig = plt.figure(figsize=(5, 3))
+        fig = Figure(figsize=(5, 3))
+        canvas = FigureCanvasAgg(fig)
         fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, frame_class=EllipticalFrame)
+        canvas.draw()
         return fig
 
     @figure_test
     def test_hms_labels(self):
         # This tests the appearance of the hms superscripts in tick labels
-        fig = plt.figure(figsize=(3, 3))
+        fig = Figure(figsize=(3, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.3, 0.2, 0.65, 0.6], projection=WCS(self.twoMASS_k_header), aspect="equal"
         )
         ax.set_xlim(-0.5, 0.5)
         ax.set_ylim(-0.5, 0.5)
         ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
+        canvas.draw()
         return fig
 
     @figure_test(style={"text.usetex": True})
     def test_latex_labels(self):
-        fig = plt.figure(figsize=(3, 3))
+        fig = Figure(figsize=(3, 3))
+        canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes(
             [0.3, 0.2, 0.65, 0.6], projection=WCS(self.twoMASS_k_header), aspect="equal"
         )
         ax.set_xlim(-0.5, 0.5)
         ax.set_ylim(-0.5, 0.5)
         ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
+        canvas.draw()
         return fig
 
     @figure_test
@@ -945,14 +1018,15 @@ class TestBasic(BaseImageTests):
         wcs = WCS()
         wcs.wcs.ctype = ["lon", "lat"]
 
-        fig = plt.figure(figsize=(6, 6))
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvasAgg(fig)
 
         # The first subplot tests:
         # - that plt.tick_params works
         # - that by default both axes are changed
         # - changing the tick direction and appearance, the label appearance and padding
         ax = fig.add_subplot(2, 2, 1, projection=wcs)
-        plt.tick_params(
+        ax.tick_params(
             direction="in",
             length=20,
             width=5,
@@ -972,7 +1046,7 @@ class TestBasic(BaseImageTests):
         # - that the tick positioning works (bottom/left/top/right)
         # Make sure that we can pass things that can index coords
         ax = fig.add_subplot(2, 2, 2, projection=wcs)
-        plt.tick_params(
+        ax.tick_params(
             axis=0,
             direction="in",
             length=20,
@@ -984,7 +1058,7 @@ class TestBasic(BaseImageTests):
             bottom=True,
             grid_color="purple",
         )
-        plt.tick_params(
+        ax.tick_params(
             axis="lat",
             direction="out",
             labelsize=8,
@@ -1025,7 +1099,7 @@ class TestBasic(BaseImageTests):
             right=True,
             grid_color="red",
         )
-        plt.grid()
+        ax.grid()
 
         ax.coords[0].set_auto_axislabel(False)
         ax.coords[1].set_auto_axislabel(False)
@@ -1050,6 +1124,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_auto_axislabel(False)
         ax.coords[1].set_auto_axislabel(False)
 
+        canvas.draw()
         return fig
 
 
@@ -1067,13 +1142,15 @@ def wave_wcs_1d():
 
 @figure_test
 def test_1d_plot_1d_wcs(wave_wcs_1d):
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
     (lines,) = ax.plot([10, 12, 14, 12, 10])
 
     ax.set_xlabel("this is the x-axis")
     ax.set_ylabel("this is the y-axis")
 
+    canvas.draw()
     return fig
 
 
@@ -1083,11 +1160,23 @@ def test_1d_plot_1d_wcs_format_unit(wave_wcs_1d):
     This test ensures that the format unit is updated and displayed for both
     the axis ticks and default axis labels.
     """
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
     (lines,) = ax.plot([10, 12, 14, 12, 10])
 
     ax.coords[0].set_format_unit("nm")
+
+    canvas.draw()
+    return fig
+
+
+@figure_test
+def test_1d_plot_1d_wcs_get_transform(wave_wcs_1d):
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
+    ax.plot([100, 200, 300], [2, 3, 2], transform=ax.get_transform("world"))
 
     return fig
 
@@ -1105,7 +1194,8 @@ def spatial_wcs_2d():
 
 @figure_test
 def test_1d_plot_2d_wcs_correlated(spatial_wcs_2d):
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d, slices=("x", 0))
     (lines,) = ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
 
@@ -1117,6 +1207,7 @@ def test_1d_plot_2d_wcs_correlated(spatial_wcs_2d):
     ax.coords["glat"].set_ticklabel(color="blue")
     ax.coords["glat"].grid(color="blue")
 
+    canvas.draw()
     return fig
 
 
@@ -1150,6 +1241,8 @@ def test_1d_plot_1d_sliced_low_level_wcs(
     """
     Test that a SLLWCS through a coupled 2D WCS plots as line OK.
     """
+    import matplotlib.pyplot as plt
+
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle[slices])
     (lines,) = ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
@@ -1157,7 +1250,7 @@ def test_1d_plot_1d_sliced_low_level_wcs(
     # Draw to trigger rendering the ticks.
     plt.draw()
 
-    assert ax.coords[bottom_axis].ticks.get_visible_axes() == ["b"]
+    assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
 
     return fig
 
@@ -1178,6 +1271,8 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(
     change, and a set of lat ticks on the top because it does but it's the
     correlated axis not the actual one you are plotting against.
     """
+    import matplotlib.pyplot as plt
+
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle, slices=slices)
     (lines,) = ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
@@ -1185,7 +1280,7 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(
     # Draw to trigger rendering the ticks.
     plt.draw()
 
-    assert ax.coords[bottom_axis].ticks.get_visible_axes() == ["b"]
+    assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
 
     return fig
 
@@ -1195,7 +1290,8 @@ def test_allsky_labels_wrap():
     # Regression test for a bug that caused some tick labels to not be shown
     # when looking at all-sky maps in the case where coord_wrap < 360
 
-    fig = plt.figure(figsize=(4, 4))
+    fig = Figure(figsize=(4, 4))
+    canvas = FigureCanvasAgg(fig)
 
     icen = 0
 
@@ -1220,6 +1316,7 @@ def test_allsky_labels_wrap():
 
     fig.subplots_adjust(hspace=2, left=0.05, right=0.95, bottom=0.1, top=0.95)
 
+    canvas.draw()
     return fig
 
 
@@ -1240,6 +1337,7 @@ def test_tickable_gridlines():
     )
 
     fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_subplot(projection=wcs)
     ax.set_xlim(-0.5, 360 - 0.5)
     ax.set_ylim(-0.5, 150 - 0.5)
@@ -1266,4 +1364,215 @@ def test_tickable_gridlines():
     overlay[1].set_ticklabel(color="blue")
     overlay[1].set_axislabel("Galactic latitude", color="blue")
 
+    canvas.draw()
+    return fig
+
+
+@pytest.fixture
+def nondegree_frame():
+    # Provide a frame where the default units are not degrees for either longitude or latitude
+    class FakeICRS(ICRS):
+        frame_specific_representation_info = {
+            SphericalRepresentation: [
+                RepresentationMapping("lon", "ra", u.hourangle),
+                RepresentationMapping("lat", "dec", u.arcmin),
+            ]
+        }
+
+    # We need valid transformations to/from a real frame, and they are just identity transformations
+    trans1 = StaticMatrixTransform(
+        np.identity(3), ICRS, FakeICRS, register_graph=frame_transform_graph
+    )
+    trans2 = StaticMatrixTransform(
+        np.identity(3), FakeICRS, ICRS, register_graph=frame_transform_graph
+    )
+
+    yield FakeICRS
+
+    # Clean up the transformation graph so that other tests are not affected
+    trans1.unregister(frame_transform_graph)
+    trans2.unregister(frame_transform_graph)
+
+
+@figure_test
+def test_overlay_nondegree_unit(nondegree_frame):
+    wcs = WCS(
+        {
+            "CTYPE1": "RA---TAN",
+            "CTYPE2": "DEC--TAN",
+            "CDELT1": -1,
+            "CDELT2": 1,
+            "CRPIX1": 20 + 0.5,
+            "CRPIX2": 0 + 0.5,
+            "CRVAL1": 0,
+            "CRVAL2": 0,
+        }
+    )
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(projection=wcs)
+
+    ax.set_xlim(-0.5, 20 - 0.5)
+    ax.set_ylim(-0.5, 20 - 0.5)
+    ax.set_aspect("equal")
+
+    ax.coords[0].set_ticks_position("b")
+    ax.coords[0].grid()
+    ax.coords[1].set_ticks_position("l")
+    ax.coords[1].set_ticks(color="b")
+    ax.coords[1].set_ticklabel(color="b")
+    ax.coords[1].grid(color="b")
+
+    overlay = ax.get_coords_overlay(nondegree_frame())
+    overlay[0].set_ticks_position("t")
+    overlay[1].set_ticks_position("r")
+    overlay[1].set_ticks(color="r")
+    overlay[1].set_ticklabel(color="r")
+    overlay[1].grid(color="r", linestyle="dashed")
+
+    canvas.draw()
+    return fig
+
+
+@figure_test
+def test_nosimplify():
+    wcs = WCS(
+        {
+            "ctype1": "RA---CAR",
+            "ctype2": "DEC--CAR",
+            "crval1": 0,
+            "crval2": 0,
+            "cdelt1": -1,
+            "cdelt2": 1,
+            "crpix1": 1,
+            "crpix2": 1,
+        }
+    )
+
+    fig = Figure(figsize=(7, 8))
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(projection=wcs)
+
+    ax.coords[0].set_ticks(spacing=0.25 * u.hourangle)
+    ax.coords[0].set_ticklabel(rotation=90, pad=25, simplify=False)
+    ax.coords[0].set_ticklabel_position("bt")
+
+    ax.coords[1].set_ticks(spacing=0.25 * u.deg)
+    ax.coords[1].set_ticklabel(simplify=False)
+    ax.coords[1].set_ticklabel_position("lr")
+
+    ax.set_xlim(-30, 30)
+    ax.set_ylim(-2, 2)
+    ax.set_aspect(15)
+    ax.grid()
+
+    canvas.draw()
+    return fig
+
+
+@figure_test
+def test_custom_formatter(spatial_wcs_2d_small_angle):
+    def double_format(value, **kwargs):
+        if np.iterable(value):
+            return [f"{(v * 2):.4f}" for v in value]
+        else:
+            return f"{(value * 2):.2f}"
+
+    def fruit_format(value, **kwargs):
+        fruits = ["apple", "pear", "banana", "orange", "kiwi", "grape"]
+        if np.iterable(value):
+            return (fruits * 10)[: len(value)]
+        else:
+            return "apple"
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle)
+    ax.coords[0].set_major_formatter(double_format)
+    ax.coords[1].set_major_formatter(fruit_format)
+    canvas.draw()
+    return fig
+
+
+class EquatorialArcsecWCS(BaseLowLevelWCS):
+    @property
+    def pixel_n_dim(self):
+        return 2
+
+    @property
+    def world_n_dim(self):
+        return 2
+
+    @property
+    def world_axis_physical_types(self):
+        return [
+            "pos.eq.ra",
+            "pos.eq.dec",
+        ]
+
+    @property
+    def world_axis_units(self):
+        return ["arcsec", "arcsec"]
+
+    @property
+    def world_axis_names(self):
+        return ["RA", "DEC"]
+
+    def pixel_to_world_values(self, *pixel_arrays):
+        return pixel_arrays
+
+    def world_to_pixel_values(self, *world_arrays):
+        return world_arrays
+
+    @property
+    def world_axis_object_components(self):
+        return [
+            ("celestial", 0, "spherical.lon.degree"),
+            ("celestial", 1, "spherical.lat.degree"),
+        ]
+
+    @property
+    def world_axis_object_classes(self):
+        return {
+            "celestial": (SkyCoord, (), {"unit": "deg"}),
+        }
+
+
+@figure_test
+def test_equatorial_arcsec():
+    wcs = EquatorialArcsecWCS()
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(projection=wcs)
+
+    ax.set_xlim(-0.5, 20 - 0.5)
+    ax.set_ylim(-0.5, 30 - 0.5)
+    return fig
+
+
+@figure_test
+def test_wcs_preserve_units():
+    # Test to make sure WCS with preserve_units=True works fine
+
+    header = fits.Header()
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
+    header["CUNIT1"] = "arcsec"
+    header["CUNIT2"] = "arcsec"
+    header["CRVAL1"] = 20
+    header["CRVAL2"] = 20
+    header["CRPIX1"] = 1
+    header["CRPIX2"] = 1
+    header["CDELT1"] = -1
+    header["CDELT2"] = 1
+
+    wcs = WCS(header, preserve_units=True)
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    ax.set_xlim(-0.5, 30)
+    ax.set_ylim(-0.5, 20)
     return fig

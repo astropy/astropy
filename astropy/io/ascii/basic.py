@@ -395,17 +395,33 @@ class RdbData(TabData):
 
 
 class Rdb(Tab):
-    """Tab-separated file with an extra line after the column definition line that
-    specifies either numeric (N) or string (S) data.
+    """Tab-delimited table with a column name row and a type definition row.
 
-    See: https://www.drdobbs.com/rdb-a-unix-command-line-database/199101326
+    The ``rdb`` format is a legacy format that was originally created in 1991 as the
+    basis for a suite of Unix command-line relational database utilities.
 
-    Example::
+    The ``rdb`` format is defined as follows:
 
-      col1 <tab> col2 <tab> col3
-      N <tab> S <tab> N
-      1 <tab> 2 <tab> 5
+    - The table text starts with zero or more comment lines that begin with ``#``.
+    - Comments are allowed only at the beginning of the table.
+    - First row after the (optional) comments specifies the column names.
+    - Second row after the comments specifies the data types:
 
+      - Data type can be either ``S`` for string or ``N`` for numeric (case-insensitive).
+      - Data type specifier can optionally be preceded with an integer to indicate the
+        width when printing the table, but the ``astropy`` reader ignores it.
+    - Subsequent rows contain the data values.
+    - All row entries in the header and data are separated by a tab character.
+
+    Example (where the added spaces are for visual clarity)::
+
+        # Comment line
+        # -----------------
+        name <tab> age <tab> eye-color
+        6S <tab> 5N <tab> S
+        Bob  <tab> 45 <tab> blue
+        Mary <tab> 32 <tab> brown
+        Jill <tab> 80 <tab> hazel
     """
 
     _format_name = "rdb"

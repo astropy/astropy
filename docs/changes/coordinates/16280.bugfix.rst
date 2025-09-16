@@ -1,5 +1,0 @@
-``search_around_3d()`` now always raises a ``UnitConversionError`` if the units
-of the distances in ``coord1`` and ``coord2`` and the unit of ``distlimit`` do
-not agree.
-Previously the error was not raised if at least one of the coordinates was
-empty.

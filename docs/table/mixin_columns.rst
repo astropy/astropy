@@ -158,7 +158,7 @@ You can conveniently convert |Table| to |QTable| and vice-versa::
 Mixin Attributes
 ================
 
-The usual column attributes ``name``, ``dtype``, ``unit``, ``format``, and
+The usual column attributes ``name``, ``dtype``, ``unit``, ``format``, ``meta``, and
 ``description`` are available in any mixin column via the ``info`` property::
 
   >>> qt['velocity'].info.name
@@ -200,7 +200,7 @@ work.
 Masking of mixin columns is enabled by the |Masked| class. See
 :ref:`utils-masked` for details.
 
-**ASCII table writing**
+**Text table writing**
 
 Tables with mixin columns can be written out to file using the
 `astropy.io.ascii` module, but the fast C-based writers are not available.
@@ -231,7 +231,7 @@ array with the following properties:
   single item, slicing, or index array access.
 - Has a ``shape`` attribute.
 - Has a ``__len__()`` method for length.
-- Has an ``info`` class descriptor which is a subclass of the
+- Has an ``info`` class descriptor which is an instance of a subclass of the
   :class:`astropy.utils.data_info.MixinInfo` class.
 
 The `Example: ArrayWrapper`_ section shows a minimal working example of a class
@@ -302,7 +302,7 @@ the ``astropy`` mixin test suite and is fully compliant as a mixin column.
 
   from astropy.utils.data_info import ParentDtypeInfo
 
-  class ArrayWrapper(object):
+  class ArrayWrapper:
       """
       Minimal mixin using a simple wrapper around a numpy array
       """
@@ -361,17 +361,27 @@ that is not numpy-like and stores the data in a private attribute::
     ...     def __init__(self):
     ...         self._data = np.array([0, 1, 3, 4], dtype=float)
 
-By default, this cannot be used as a table column::
+By default, the outcome of setting a column using this class is not helpful::
 
-    >>> t = Table()
+    >>> t = Table([np.arange(4)], names=["index"])
     >>> t['data'] = ExampleDataClass()
-    Traceback (most recent call last):
-    ...
-    TypeError: Empty table cannot have column set to scalar value
+    >>> t
+    <Table length=4>
+    index                         data
+    int64                        object
+    ----- -------------------------------------...-
+        0 <__main__.ExampleDataClass object at ...>
+        1 <__main__.ExampleDataClass object at ...>
+        2 <__main__.ExampleDataClass object at ...>
+        3 <__main__.ExampleDataClass object at ...>
+
+What happened is that the instance is seen as a scalar object, and a
+|Column| with ``dtype=object`` is created, which has the same entry for
+each row. The same would happen if, e.g., you set ``t['data'] = None``.
 
 However, you can create a function (or 'handler') which takes
 an instance of the data class you want to have automatically
-handled and returns a mixin column::
+handled and turns it into a mixin column::
 
     >>> from astropy.table.table_helpers import ArrayWrapper
     >>> def handle_example_data_class(obj):
@@ -385,13 +395,18 @@ of the class and the handler function::
     >>> t['data'] = ExampleDataClass()
     >>> t
     <Table length=4>
-      data
-    float64
-    -------
-        0.0
-        1.0
-        3.0
-        4.0
+    index   data
+    int64 float64
+    ----- -------
+        0     0.0
+        1     1.0
+        2     3.0
+        3     4.0
+
+.. testcleanup::
+
+    >>> from astropy.table.mixins.registry import _handlers
+    >>> del _handlers['__main__.ExampleDataClass']
 
 Because we defined the data class as part of the example
 above, the fully qualified name starts with ``__main__``,

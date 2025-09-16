@@ -6,7 +6,7 @@ from numpy.testing import assert_allclose, assert_equal
 
 from astropy import units as u
 from astropy.stats import funcs
-from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY
+from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_MPMATH, HAS_SCIPY
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -397,17 +397,24 @@ def test_mad_std_with_axis_and_nan():
     result_axis0 = np.array([2.22390333, 0.74130111, 0.74130111, 2.22390333, np.nan])
     result_axis1 = np.array([1.48260222, 1.48260222])
 
-    with pytest.warns(RuntimeWarning, match=r"All-NaN slice encountered"):
+    if HAS_BOTTLENECK:
         assert_allclose(funcs.mad_std(data, axis=0, ignore_nan=True), result_axis0)
         assert_allclose(funcs.mad_std(data, axis=1, ignore_nan=True), result_axis1)
+    else:
+        with pytest.warns(RuntimeWarning, match=r"All-NaN slice encountered"):
+            assert_allclose(funcs.mad_std(data, axis=0, ignore_nan=True), result_axis0)
+            assert_allclose(funcs.mad_std(data, axis=1, ignore_nan=True), result_axis1)
 
 
 def test_mad_std_with_axis_and_nan_array_type():
     # mad_std should return a masked array if given one, and not otherwise
     data = np.array([[1, 2, 3, 4, np.nan], [4, 3, 2, 1, np.nan]])
 
-    with pytest.warns(RuntimeWarning, match=r"All-NaN slice encountered"):
+    if HAS_BOTTLENECK:
         result = funcs.mad_std(data, axis=0, ignore_nan=True)
+    else:
+        with pytest.warns(RuntimeWarning, match=r"All-NaN slice encountered"):
+            result = funcs.mad_std(data, axis=0, ignore_nan=True)
     assert not np.ma.isMaskedArray(result)
 
     data = np.ma.masked_where(np.isnan(data), data)
@@ -433,9 +440,17 @@ def test_poisson_conf_interval_rootn():
     assert_allclose(funcs.poisson_conf_interval(16, interval="root-n"), (12, 20))
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize(
-    "interval", ["root-n-0", "pearson", "sherpagehrels", "frequentist-confidence"]
+    "interval",
+    [
+        "root-n-0",
+        "pearson",
+        "sherpagehrels",
+        pytest.param(
+            "frequentist-confidence",
+            marks=pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy"),
+        ),
+    ],
 )
 def test_poisson_conf_large(interval):
     n = 100
@@ -724,7 +739,6 @@ def test_mpmath_poisson_limit():
     _ = funcs._mpmath_kraft_burrows_nousek(1000.0, 900.0, 0.9)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_poisson_conf_value_errors():
     with pytest.raises(ValueError, match="Only sigma=1 supported"):
         funcs.poisson_conf_interval([5, 6], "root-n", sigma=2)
@@ -741,7 +755,6 @@ def test_poisson_conf_value_errors():
         funcs.poisson_conf_interval(1, "foo")
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_poisson_conf_kbn_value_errors():
     with pytest.raises(ValueError, match="number between 0 and 1"):
         funcs.poisson_conf_interval(
@@ -860,7 +873,6 @@ def test_histogram():
         assert chi2(len(h)).sf(c2) > 0.01
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize(
     "ii,rr",
     [

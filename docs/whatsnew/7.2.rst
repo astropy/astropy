@@ -1,0 +1,168 @@
+.. _whatsnew-7.2:
+
+**************************
+What's New in Astropy 7.2?
+**************************
+
+Overview
+========
+
+Astropy 7.2 is a release that adds significant new functionality since
+the 7.1 release.
+
+In particular, this release includes:
+
+* `Faster ECSV reader with support for different engines <#faster-ecsv-readers>`_
+* ...
+* ...
+
+In addition to these major changes, Astropy v7.2 includes a large number of
+smaller improvements and bug fixes, which are described in the :ref:`changelog`.
+By the numbers:
+
+* X issues have been closed since v7.1
+* X pull requests have been merged since v7.1
+* X distinct people have contributed code
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v7.2, including changes in
+API, please see the :ref:`changelog`.
+
+Faster ECSV table reader
+========================
+
+A new :ref:`ECSV <ecsv_format>` table reading module has been added that supports
+different backend engines for the CSV data parsing. In addition to the default
+"io.ascii" engine, this includes engines that use the `PyArrow
+<https://arrow.apache.org/docs/python/csv.html>`_ and `Pandas
+<https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html>`_ CSV readers. These
+can be up to 16 times faster and are more memory efficient than the native astropy ECSV
+reader.
+
+An example is reading the 233 Mb gzipped Gaia ECSV source file
+``GaiaSource_000000-003111.csv.gz`` from the `Gaia source archive
+<https://cdn.gea.esac.esa.int/Gaia/gdr3/gaia_source/>`_.
+
+
+.. list-table::
+    :width: 50%
+    :header-rows: 1
+
+    * - Format
+      - Engine
+      - Time (s)
+    * - ecsv
+      - pyarrow
+      - 2.04
+    * - ecsv
+      - pandas
+      - 10.5
+    * - ecsv
+      - io.ascii
+      - 33.1
+    * - ascii.ecsv
+      - --
+      - 35.6
+
+This functionality is available using ``Table.read(filename, format="ecsv",
+engine=...)``, where ``engine`` is one of ``"io.ascii"``, ``"pyarrow"``, or
+``"pandas"``. To get further help with this interface run
+``Table.read.help(format="ecsv")``. See also the :ref:`ecsv_format` section.
+
+You can also write an `astropy.table.Table` or `astropy.table.QTable` using
+``format="ecsv"``, but this is just a thin wrapper around the ``format="ascii.ecsv"``
+writer.
+
+Cosmology
+=========
+A traits class in cosmology for the Hubble Parameter. Which provides H0 as a trait along with additional methods.
+The :mod:`~astropy.cosmology.traits` module provides reusable components, called
+:term:`traits <trait type>`, that encapsulate specific cosmological properties or
+behaviors. For example, the :class:`~astropy.cosmology.traits.HubbleParameter` trait
+provides the Hubble constant (``H0``) and related methods, while
+:class:`~astropy.cosmology.traits.ScaleFactor`,
+:class:`~astropy.cosmology.traits.TemperatureCMB`, and
+:class:`~astropy.cosmology.traits.DarkEnergyComponent` provide the scale factor, the
+temperature or the CMB, and the Dark Energy component, respectively.
+Here is an example of how to use the
+:class:`~astropy.cosmology.traits.HubbleParameter`,
+:class:`~astropy.cosmology.traits.ScaleFactor`,
+:class:`~astropy.cosmology.traits.TemperatureCMB`, and
+:class:`~astropy.cosmology.traits.DarkEnergyComponent` traits in a custom cosmology class:
+
+>>> import astropy.units as u
+>>> from astropy.cosmology.traits import HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent
+>>> from astropy.cosmology import Cosmology
+>>>
+>>> class CustomCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent):
+...     def __init__(self, Om0, Ode0, H0=70, Tcmb0=2.725):
+...         self.H0 = H0 << (u.km / u.s / u.Mpc)
+...         self.Om0 = Om0
+...         self.Ode0 = Ode0
+...         self.Tcmb0 = u.Quantity(Tcmb0, "K")
+...         super().__init__()
+...
+...     is_flat = False
+...     # Additional custom methods and properties can be added here
+
+>>> cosmo = CustomCosmology(H0=70, Om0=0.3, Ode0=0.7)
+>>> cosmo.H0
+<Quantity 70. km / (Mpc s)>
+>>> cosmo.scale_factor(0)
+<Quantity 1.>
+>>> cosmo.Tcmb(1)
+<Quantity 5.45 K>
+>>> cosmo.hubble_time
+<Quantity 13.96846031 Gyr>
+
+By combining these traits, you can easily construct custom cosmology classes with
+precisely the features you need, without having to reimplement common functionality.
+
+Preserving units in FITS-WCS
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, the :class:`~astropy.wcs.WCS` class always converts units into degrees
+for angles, and SI units for other physical types::
+
+    >>> from astropy.io import fits
+    >>> from astropy.wcs import WCS
+    >>> header = """
+    ... CTYPE1  = 'GLON-CAR'
+    ... CTYPE2  = 'GLAT-CAR'
+    ... CTYPE3  = 'FREQ'
+    ... CUNIT1  = 'arcsec'
+    ... CUNIT2  = 'arcsec'
+    ... CUNIT3  = 'GHz'
+    ... CRVAL1  = 10
+    ... CRVAL2  = 20
+    ... CRVAL3  = 50
+    ... """.strip()
+    >>> wcs = WCS(fits.Header.fromstring(header, sep='\n'))
+    >>> wcs  # doctest: +FLOAT_CMP
+    WCS Keywords
+    <BLANKLINE>
+    Number of WCS axes: 3
+    CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
+    CUNIT : 'deg' 'deg' 'Hz'
+    CRVAL : 0.002777777777777778 0.005555555555555556 50000000000.0
+    ...
+
+However, it is now possible to preserve the original units by specifying
+``preserve_units=True`` when initializing the :class:`~astropy.wcs.WCS`
+object::
+
+    >>> wcs = WCS(fits.Header.fromstring(header, sep='\n'), preserve_units=True)
+    >>> wcs  # doctest: +FLOAT_CMP
+    WCS Keywords
+    <BLANKLINE>
+    Number of WCS axes: 3
+    CTYPE : 'GLON-CAR' 'GLAT-CAR' 'FREQ'
+    CUNIT : 'arcsec' 'arcsec' 'GHz'
+    CRVAL : 10.0 20.0 50.0
+    ...
+
+When using this, any input/output world coordinates will now be in these
+units, and accessing any of the parameters such as ``wcs.wcs.crval`` will
+return values in the original header units.

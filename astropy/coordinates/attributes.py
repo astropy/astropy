@@ -5,17 +5,21 @@ import numpy as np
 
 # Project
 from astropy import units as u
+from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
 
+from .earth import EarthLocation
+from .representation import BaseDifferential, CartesianRepresentation
+
 __all__ = [
     "Attribute",
-    "TimeAttribute",
-    "QuantityAttribute",
-    "EarthLocationAttribute",
-    "CoordinateAttribute",
     "CartesianRepresentationAttribute",
+    "CoordinateAttribute",
     "DifferentialAttribute",
+    "EarthLocationAttribute",
+    "QuantityAttribute",
+    "TimeAttribute",
 ]
 
 
@@ -197,8 +201,6 @@ class TimeAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        from astropy.time import Time
-
         if value is None:
             return None, False
 
@@ -566,8 +568,3 @@ class DifferentialAttribute(Attribute):
                 )
 
         return value, True
-
-
-# do this here to prevent a series of complicated circular imports
-from .earth import EarthLocation  # noqa: E402
-from .representation import BaseDifferential, CartesianRepresentation  # noqa: E402

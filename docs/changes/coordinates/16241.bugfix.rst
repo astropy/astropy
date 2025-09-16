@@ -1,2 +1,0 @@
-Fix a bug where ``SkyCoord.spherical_offsets_by`` would crash when a wrap
-was needed.

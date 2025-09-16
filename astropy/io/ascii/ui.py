@@ -12,17 +12,20 @@ import collections
 import contextlib
 import copy
 import os
+import pydoc
 import re
 import sys
 import time
+import typing
 import warnings
 from io import StringIO
+from pathlib import Path
 
 import numpy as np
 
 from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
-from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
@@ -48,6 +51,63 @@ _read_trace = []
 
 # Default setting for guess parameter in read()
 _GUESS = True
+
+
+def _read_write_help(
+    read_write: str, format: str | None = None, out: typing.IO | None = None
+) -> None:
+    """Helper function to output help documentation for read() or write().
+
+    This uses the ``Table.read/write.help()`` functionality and modifies the output
+    to look like the ``ascii.read/write()`` syntax.
+    """
+    help_func = getattr(Table, read_write).help
+    format_parts = ["ascii"] + ([format] if format else [])
+    help_str_io = StringIO()
+    help_func(format=".".join(format_parts), out=help_str_io)
+    help_str = help_str_io.getvalue()
+    # Replace e.g. Table.read(format='ascii.ecsv') with ascii.read(format='ecsv').
+    # Special case for format='ascii' which goes to ascii.read() or ascii.write().
+    help_str = re.sub(
+        r"Table\.(read|write)\(format='ascii\.(\w+)'\)",
+        r"ascii.\1(format='\2')",
+        help_str,
+    )
+    help_str = re.sub(
+        r"Table\.(read|write)\(format='ascii'\)",
+        r"ascii.\1()",
+        help_str,
+    )
+
+    if out is None:
+        pydoc.pager(help_str)
+    else:
+        out.write(help_str)
+
+
+READ_WRITE_HELP = """Output help documentation for ``ascii.{read_write}()`` for the specified ``format``.
+
+    By default the help output is printed to the console via ``pydoc.pager``.
+    Instead one can supplied a file handle object as ``out`` and the output
+    will be written to that handle.
+
+    Parameters
+    ----------
+    format : str, None
+        Format name, e.g. 'basic', 'ecsv' or 'html'
+    out : None or file-like
+        Output destination (default is stdout via a pager)
+    """
+
+
+@format_doc(READ_WRITE_HELP, read_write="read")
+def read_help(format: str | None = None, out: typing.IO | None = None) -> None:
+    _read_write_help("read", format=format, out=out)
+
+
+@format_doc(READ_WRITE_HELP, read_write="write")
+def write_help(format: str | None = None, out: typing.IO | None = None) -> None:
+    _read_write_help("write", format=format, out=out)
 
 
 def _probably_html(table, maxchars=100000):
@@ -85,8 +145,9 @@ def _probably_html(table, maxchars=100000):
             return True
 
         # Filename ending in .htm or .html which exists
-        if re.search(r"\.htm[l]?$", table[-5:], re.IGNORECASE) and os.path.exists(
-            os.path.expanduser(table)
+        if (
+            re.search(r"\.htm[l]?$", table[-5:], re.IGNORECASE)
+            and Path(table).expanduser().is_file()
         ):
             return True
 
@@ -118,16 +179,6 @@ def set_guess(guess):
     _GUESS = guess
 
 
-# Make these changes in version 7.0 (hopefully!).
-@deprecated_renamed_argument("Reader", "reader_cls", "6.0")
-@deprecated_renamed_argument("Inputter", "inputter_cls", "6.0")
-@deprecated_renamed_argument("Outputter", "outputter_cls", "6.0")
-@deprecated_renamed_argument(
-    "header_Splitter", "header_splitter_cls", "6.0", arg_in_kwargs=True
-)
-@deprecated_renamed_argument(
-    "data_Splitter", "data_splitter_cls", "6.0", arg_in_kwargs=True
-)
 def get_reader(reader_cls=None, inputter_cls=None, outputter_cls=None, **kwargs):
     """
     Initialize a table reader allowing for common customizations.
@@ -192,26 +243,19 @@ def get_reader(reader_cls=None, inputter_cls=None, outputter_cls=None, **kwargs)
             reader_cls = fastbasic.FastBasic
         else:
             reader_cls = basic.Basic
-
-    reader = core._get_reader(
+    return core._get_reader(
         reader_cls, inputter_cls=inputter_cls, outputter_cls=outputter_cls, **kwargs
     )
-    return reader
 
 
-def _get_format_class(format, reader_writer_cls, label):
-    if format is not None and reader_writer_cls is not None:
-        raise ValueError(f"Cannot supply both format and {label} keywords")
-
-    if format is not None:
-        if format in core.FORMAT_CLASSES:
-            reader_writer_cls = core.FORMAT_CLASSES[format]
-        else:
-            raise ValueError(
-                f"ASCII format {format!r} not in allowed list "
-                f"{sorted(core.FORMAT_CLASSES)}"
-            )
-    return reader_writer_cls
+def _get_format_class(format):
+    if format is None:
+        return None
+    if format in core.FORMAT_CLASSES:
+        return core.FORMAT_CLASSES[format]
+    raise ValueError(
+        f"ASCII format {format!r} not in allowed list {sorted(core.FORMAT_CLASSES)}"
+    )
 
 
 def _get_fast_reader_dict(kwargs):
@@ -245,11 +289,10 @@ def _validate_read_write_kwargs(read_write, **kwargs):
                 # See if ``val`` walks and quacks like a ``cls```.
                 try:
                     new_val = cls(val)
-                    assert new_val == val
                 except Exception:
                     ok = False
                 else:
-                    ok = True
+                    ok = new_val == val
         return ok
 
     kwarg_types = READ_KWARG_TYPES if read_write == "read" else WRITE_KWARG_TYPES
@@ -287,32 +330,18 @@ def _expand_user_if_path(argument):
         )
         if not is_str_data:
             # Remain conservative in expanding the presumed-path
-            ex_user = os.path.expanduser(argument)
-            if os.path.exists(ex_user):
-                argument = ex_user
+            if (ex_user := Path(argument).expanduser()).exists():
+                argument = str(ex_user)
     return argument
 
 
-# Make these changes in version 7.0 (hopefully!).
-@deprecated_renamed_argument(
-    "Reader", None, "6.0", arg_in_kwargs=True, alternative='"format"'
-)
-@deprecated_renamed_argument("Inputter", "inputter_cls", "6.0", arg_in_kwargs=True)
-@deprecated_renamed_argument("Outputter", "outputter_cls", "6.0", arg_in_kwargs=True)
-@deprecated_renamed_argument(
-    "header_Splitter", "header_splitter_cls", "6.0", arg_in_kwargs=True
-)
-@deprecated_renamed_argument(
-    "data_Splitter", "data_splitter_cls", "6.0", arg_in_kwargs=True
-)
 def read(table, guess=None, **kwargs):
     # This the final output from reading. Static analysis indicates the reading
     # logic (which is indeed complex) might not define `dat`, thus do so here.
     dat = None
 
-    # Specifically block `reader_cls` kwarg, which will otherwise allow a backdoor from
-    # read() to specify the reader class. Mostly for testing.
-    # For 7.0+, do the same check for `Reader`.
+    # Specifically block `reader_cls` kwarg, which will otherwise cause a confusing
+    # exception later in the call to get_reader().
     if "reader_cls" in kwargs:
         raise TypeError("read() got an unexpected keyword argument 'reader_cls'")
 
@@ -347,11 +376,7 @@ def read(table, guess=None, **kwargs):
     new_kwargs = copy.deepcopy(kwargs)
     kwargs["fast_reader"] = copy.deepcopy(fast_reader)
 
-    # Get the Reader class based on possible format and reader_cls kwarg inputs.
-    reader_cls = _get_format_class(format, new_kwargs.pop("Reader", None), "Reader")
-    # For 7.0+ when `Reader` is removed:
-    # reader_cls = _get_format_class(format, None, "Reader")
-
+    reader_cls = _get_format_class(format)
     if reader_cls is not None:
         new_kwargs["reader_cls"] = reader_cls
         format = reader_cls._format_name
@@ -479,6 +504,7 @@ def read(table, guess=None, **kwargs):
 
 
 read.__doc__ = core.READ_DOCSTRING
+read.help = read_help
 
 
 def _guess(table, read_kwargs, format, fast_reader):
@@ -600,6 +626,36 @@ def _guess(table, read_kwargs, format, fast_reader):
         cparser.CParserError,
     )
 
+    # Determine whether we should limit the number of lines used in the guessing.
+    # Note that this does not currently work for file objects, so we set this to
+    # False if a file object was passed in.
+    from astropy.io.ascii import conf  # avoid circular imports
+
+    limit_lines = conf.guess_limit_lines if not hasattr(table, "read") else False
+
+    # Don't limit the number of lines if there are fewer than this number of
+    # lines in the table. In fact, we also don't limit the number of lines if
+    # there are just above the number of lines compared to the limit, up to a
+    # factor of 2, since it is fast to just go straight to the full table read.
+    table_guess_subset = None
+
+    if limit_lines:
+        if isinstance(table, list):
+            if len(table) > 2 * limit_lines:
+                table_guess_subset = table[:limit_lines]
+        else:
+            # Now search for the position of the Nth line ending
+            pos = -1
+            for idx in range(limit_lines * 2):
+                pos = table.find("\n", pos + 1)
+                if pos == -1:
+                    # Fewer than 2 * limit_lines line endings found so no guess subset.
+                    break
+                if idx == limit_lines - 1:
+                    pos_limit = pos
+            else:
+                table_guess_subset = table[:pos_limit]
+
     # Now cycle through each possible reader and associated keyword arguments.
     # Try to read the table using those args, and if an exception occurs then
     # keep track of the failed guess and move on.
@@ -613,6 +669,13 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader = get_reader(**guess_kwargs)
 
             reader.guessing = True
+
+            if table_guess_subset:
+                # First try with subset of lines - if this fails we can skip this
+                # format early. If it works, we still proceed to check with the
+                # full table since we need to then return the read data.
+                reader.read(table_guess_subset)
+
             dat = reader.read(table)
             _read_trace.append(
                 {
@@ -810,9 +873,7 @@ def _read_in_chunks(table, **kwargs):
 
     # Make final table from numpy arrays, converting dict to list
     out_cols = [out_cols[name] for name in tbl0.colnames]
-    out = tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta, copy=False)
-
-    return out
+    return tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta, copy=False)
 
 
 def _read_in_chunks_generator(table, chunk_size, **kwargs):
@@ -898,7 +959,6 @@ extra_writer_pars = (
 )
 
 
-@deprecated_renamed_argument("Writer", "writer_cls", "6.0")
 def get_writer(writer_cls=None, fast_writer=True, **kwargs):
     """
     Initialize a table writer allowing for common customizations.
@@ -958,12 +1018,10 @@ def get_writer(writer_cls=None, fast_writer=True, **kwargs):
     return writer
 
 
-@deprecated_renamed_argument("Writer", None, "6.0", alternative='"format"')
 def write(
     table,
     output=None,
     format=None,
-    Writer=None,
     fast_writer=True,
     *,
     overwrite=False,
@@ -971,22 +1029,17 @@ def write(
 ):
     # Docstring inserted below
 
-    # Specifically block `writer_cls` kwarg, which will otherwise allow a backdoor from
-    # read() to specify the reader class. Mostly for testing.
-    # For 7.0+, do the same check for `Reader`.
+    # Specifically block the legacy `writer_cls` kwarg, which will otherwise cause a confusing
+    # exception later in the call to get_writer().
     if "writer_cls" in kwargs:
         raise TypeError("write() got an unexpected keyword argument 'writer_cls'")
-
-    # For version 7.0+ (after Writer kwarg is removed):
-    # if "Writer" in kwargs:
-    #     raise TypeError("write() got an unexpected keyword argument 'Writer'")
 
     _validate_read_write_kwargs(
         "write", format=format, fast_writer=fast_writer, overwrite=overwrite, **kwargs
     )
 
     if isinstance(output, (str, bytes, os.PathLike)):
-        output = os.path.expanduser(output)
+        output = os.path.expanduser(output)  # noqa: PTH111
         if not overwrite and os.path.lexists(output):
             raise OSError(NOT_OVERWRITING_MSG.format(output))
 
@@ -1024,9 +1077,7 @@ def write(
     if table.has_mixin_columns:
         fast_writer = False
 
-    writer_cls = _get_format_class(format, Writer, "Writer")
-    # For version 7.0+:
-    # writer_cls = _get_format_class(format, None, "Writer")
+    writer_cls = _get_format_class(format)
     writer = get_writer(writer_cls=writer_cls, fast_writer=fast_writer, **kwargs)
     if writer._format_name in core.FAST_CLASSES:
         writer.write(table, output)
@@ -1041,16 +1092,16 @@ def write(
         # behavior is for Python to translate \r\n (which we write because
         # of os.linesep) into \r\r\n. Specifying newline='' disables any
         # auto-translation.
-        output = open(output, "w", newline="")
-        output.write(outstr)
-        output.write(os.linesep)
-        output.close()
+        with open(output, "w", newline="") as output:
+            output.write(outstr)
+            output.write(os.linesep)
     else:
         output.write(outstr)
         output.write(os.linesep)
 
 
 write.__doc__ = core.WRITE_DOCSTRING
+write.help = write_help
 
 
 def get_read_trace():

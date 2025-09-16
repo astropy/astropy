@@ -15,6 +15,7 @@ from .baseframe import (
     _get_repr_cls,
     frame_transform_graph,
 )
+from .builtin_frames import ICRS
 from .representation import (
     BaseRepresentation,
     SphericalRepresentation,
@@ -177,8 +178,6 @@ def _get_frame_without_data(args, kwargs):
                     )
 
     if frame_cls is None:
-        from .builtin_frames import ICRS
-
         frame_cls = ICRS
 
     # By now, frame_cls should be set - if it's not, something went wrong
@@ -398,7 +397,7 @@ def _parse_coordinate_arg(coords, frame, units):
                 if (
                     reprname == "d_distance"
                     and not hasattr(orig_vel, reprname)
-                    and "unit" in orig_vel.get_name()
+                    and "unit" in orig_vel.name
                 ):
                     continue
                 values.append(getattr(vel, reprname))
@@ -507,7 +506,7 @@ def _parse_coordinate_arg(coords, frame, units):
             if n_coords > n_attr_names:
                 raise ValueError(
                     f"Input coordinates have {n_coords} values but representation"
-                    f" {frame.representation_type.get_name()} only accepts"
+                    f" {frame.representation_type.name} only accepts"
                     f" {n_attr_names}"
                 )
 

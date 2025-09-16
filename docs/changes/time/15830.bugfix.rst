@@ -1,1 +1,0 @@
-Fix comparing NaN ``Quantity`` with ``TimeDelta`` object.

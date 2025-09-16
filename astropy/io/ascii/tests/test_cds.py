@@ -10,6 +10,7 @@ from io import StringIO
 
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -18,8 +19,6 @@ from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
-
-from .common import assert_almost_equal
 
 test_dat = [
     "names e d s i",
@@ -97,8 +96,8 @@ def test_write_byte_by_byte_units():
     out = StringIO()
     t.write(out, format="ascii.mrt")
     # Read written table.
-    tRead = ascii.read(out.getvalue(), format="cds")
-    assert [tRead[col].unit for col in tRead.columns] == col_units
+    columns = ascii.read(out.getvalue(), format="cds").itercols()
+    assert [col.unit for col in columns] == col_units
 
 
 def test_write_readme_with_default_options():
@@ -130,8 +129,6 @@ def test_write_readme_with_default_options():
 
 def test_write_empty_table():
     out = StringIO()
-    import pytest
-
     with pytest.raises(NotImplementedError):
         Table().write(out, format="ascii.mrt")
 
@@ -503,9 +500,7 @@ def test_write_extra_skycoord_cols():
     for a, b in zip(lines[-2:], exp_output[-2:]):
         assert a[:18] == b[:18]
         assert a[30:42] == b[30:42]
-        assert_almost_equal(
-            np.fromstring(a[2:], sep=" "), np.fromstring(b[2:], sep=" ")
-        )
+        assert_allclose(np.fromstring(a[2:], sep=" "), np.fromstring(b[2:], sep=" "))
 
 
 def test_write_skycoord_with_format():

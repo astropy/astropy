@@ -4,14 +4,13 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
         args: ["--enforce-all", "--maxkb=300"]
         exclude: "^(\
             cextern/wcslib/C/flexed/.*|\
             CHANGES.rst|\
-            astropy/extern/jquery/data/js/jquery.dataTables.js|\
         )$"
         # Prevent giant files from being committed.
       - id: check-case-conflict
@@ -51,8 +50,13 @@ repos:
       - id: text-unicode-replacement-char
         # Forbid files which have a UTF-8 Unicode replacement character.
 
+  - repo: https://github.com/woodruffw/zizmor-pre-commit
+    rev: v1.12.1
+    hooks:
+    - id: zizmor
+
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.4.1
     hooks:
       - id: codespell
         args: ["--write-changes"]
@@ -60,53 +64,16 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.3.4"
+    rev: v0.13.0
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: ["--fix", "--show-fixes"]
       - id: ruff-format
 
   - repo: https://github.com/scientific-python/cookie
-    rev: 2024.01.24
+    rev: 2025.05.02
     hooks:
       - id: sp-repo-review
-
-  - repo: https://github.com/PyCQA/docformatter
-    rev: v1.7.5
-    hooks:
-      - id: docformatter
-        additional_dependencies: [tomli]
-        args: [--in-place, --config, ./pyproject.toml]
-        exclude: |
-          (?x)(
-              test.*\.py |
-              astropy/__init__\.py |
-              astropy/_dev/ |
-              astropy/config/ |
-              astropy/conftest\.py |
-              astropy/constants/ |
-              astropy/convolution/ |
-              astropy/coordinates/ |
-              astropy/extern/ |
-              astropy/io/ |
-              astropy/logger\.py |
-              astropy/modeling/ |
-              astropy/nddata/ |
-              astropy/samp/ |
-              astropy/stats/ |
-              astropy/table/ |
-              astropy/tests/ |
-              astropy/time/ |
-              astropy/timeseries/ |
-              astropy/uncertainty/ |
-              astropy/units/ |
-              astropy/utils/ |
-              astropy/version\.py |
-              astropy/visualization/ |
-              astropy/wcs/ |
-              docs/ |
-              examples/
-          )
 
   - repo: local
     hooks:
@@ -114,10 +81,10 @@ repos:
         name: changelog filenames
         language: fail
         entry: >-
-          changelog files must be named <sub-package>/####.(bugfix|feature|api).rst
+          changelog files must be named <sub-package>/####.(bugfix|feature|api|perf).rst
           or ####.other.rst (in the root directory only)
         exclude: >-
-          ^docs/changes/[\w\.]+/(\d+\.(bugfix|feature|api)(\.\d)?.rst|.gitkeep)
+          ^docs/changes/[\w\.]+/(\d+\.(bugfix|feature|api|perf)(\.\d)?.rst|.gitkeep)
         files: ^docs/changes/[\w\.]+/
       - id: changelogs-rst-other
         name: changelog filenames for other category
@@ -127,3 +94,11 @@ repos:
         exclude: >-
           ^docs/changes/(\d+\.other.rst|README.rst|template.rst)
         files: ^docs/changes/\d+.\w+.rst
+
+  # Linting hook for stylistic issues in rst doc files.
+  - repo: https://github.com/sphinx-contrib/sphinx-lint
+    rev: v1.0.0
+    hooks:
+      - id: sphinx-lint
+        args: ["--disable", "missing-underscore-after-hyperlink"]
+        exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"

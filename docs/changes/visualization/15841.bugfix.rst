@@ -1,1 +1,0 @@
-Fix an edge case where ``quantity_support`` would produce duplicate tick labels for small data ranges.

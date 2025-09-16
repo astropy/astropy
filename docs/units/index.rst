@@ -46,7 +46,7 @@ value members::
 
     >>> q = 42.0 * u.meter
     >>> q.value
-    42.0
+    np.float64(42.0)
     >>> q.unit
     Unit("m")
 
@@ -114,7 +114,7 @@ And it can convert between unit systems, such as `SI
 <https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_::
 
     >>> (1.0 * u.Pa).cgs
-    <Quantity 10. P / s>
+    <Quantity 10. Ba>
 
 The units ``mag``, ``dex``, and ``dB`` are special, being :ref:`logarithmic
 units <logarithmic_units>`, for which a value is the logarithm of a physical
@@ -139,7 +139,7 @@ normally work:
     UnitConversionError: 'nm' (length) and 'Hz' (frequency) are not convertible
 
 But by passing an equivalency list, in this case
-:func:`~astropy.units.equivalencies.spectral`, it does:
+:func:`~astropy.units.spectral`, it does:
 
     >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
     <Quantity  2.99792458e+14 Hz>
@@ -205,8 +205,8 @@ See Also
   units in FITS.
 
 - The `Units in the VO 1.0 Standard
-  <http://www.ivoa.net/documents/VOUnits/>`_ for representing units in
-  the VO.
+  <https://www.ivoa.net/documents/VOUnits/20140523/index.html>`_ for
+  representing units in the VO.
 
 - OGIP Units: A standard for storing units in `OGIP FITS files
   <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.

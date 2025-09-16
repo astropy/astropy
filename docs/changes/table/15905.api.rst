@@ -1,2 +1,0 @@
-``show_in_notebook`` is deprecated and it is recommended to use dedicated
-tools in the Jupyter ecosystem to create interactive plots in notebooks.

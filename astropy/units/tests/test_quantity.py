@@ -4,6 +4,7 @@
 import copy
 import decimal
 import numbers
+import operator
 import pickle
 from fractions import Fraction
 
@@ -13,9 +14,8 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
-from astropy.utils import isiterable, minversion
 from astropy.utils.compat import COPY_IF_NEEDED
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
 """ The Quantity class will represent a number + unit + uncertainty """
@@ -718,6 +718,14 @@ class TestQuantityOperations:
         q = u.Quantity([1.0, 2.0, 3.0], u.m)
         assert np.all(np.array(q) == np.array([1.0, 2.0, 3.0]))
 
+    def test_index(self):
+        val = 123
+        out = operator.index(u.Quantity(val, u.one, dtype=int))
+        assert out == val
+
+        with pytest.raises(TypeError):
+            operator.index(u.Quantity(val, u.m, dtype=int))
+
 
 def test_quantity_conversion():
     q1 = u.Quantity(0.1, unit=u.meter)
@@ -747,6 +755,12 @@ def test_quantity_ilshift():  # in-place conversion
         q <<= u.rad
 
     assert np.isclose(q, 10 * u.rad)
+
+
+def test_quantity_round():
+    q = u.Quantity(10.1289, unit=u.s)
+    assert np.isclose(round(q), 10 * u.s)
+    assert np.isclose(round(q, 2), 10.13 * u.s)
 
 
 def test_regression_12964():
@@ -824,11 +838,7 @@ def test_quantity_conversion_equivalency_passed_on():
     assert_allclose(q4.value, q5.value)
 
 
-# Regression test for issue #2315, divide-by-zero error when examining 0*unit
-
-
 def test_self_equivalency():
-    assert u.deg.is_equivalent(0 * u.radian)
     assert u.deg.is_equivalent(1 * u.radian)
 
 
@@ -1421,6 +1431,8 @@ class TestQuantityDisplay:
     @pytest.mark.parametrize(
         "q, expected",
         [
+            pytest.param(0 * u.imperial.deg_R, r"$0\mathrm{{}^{\circ}R}$", id="deg_R"),
+            pytest.param(5 * u.imperial.deg_F, r"$5\mathrm{{}^{\circ}F}$", id="deg_F"),
             pytest.param(10 * u.deg_C, r"$10\mathrm{{}^{\circ}C}$", id="deg_C"),
             pytest.param(20 * u.deg, r"$20\mathrm{{}^{\circ}}$", id="deg"),
             pytest.param(30 * u.arcmin, r"$30\mathrm{{}^{\prime}}$", id="arcmin"),
@@ -1456,7 +1468,7 @@ def test_decompose_regression():
 
 def test_arrays():
     """
-    Test using quantites with array values
+    Test using quantities with array values
     """
 
     qsec = u.Quantity(np.arange(10), u.second)
@@ -1597,16 +1609,33 @@ def test_quantity_initialized_with_quantity():
 
 
 def test_quantity_string_unit():
-    q1 = 1.0 * u.m / "s"
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "^divisions involving a unit and a 'str' instance are deprecated since "
+            r"v7\.1\. Convert 's' to a unit explicitly\.$"
+        ),
+    ):
+        q1 = 1.0 * u.m / "s"
     assert q1.value == 1
     assert q1.unit == (u.m / u.s)
 
-    q2 = q1 * "m"
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "^products involving a unit and a 'str' instance are deprecated since "
+            r"v7\.1\. Convert 'm' to a unit explicitly\.$"
+        ),
+    ):
+        q2 = q1 * "m"
     assert q2.unit == ((u.m * u.m) / u.s)
 
 
 def test_quantity_invalid_unit_string():
-    with pytest.raises(ValueError):
+    with (
+        pytest.raises(ValueError),
+        pytest.warns(AstropyDeprecationWarning, match="^products involving .* a 'str'"),
+    ):
         "foo" * u.m
 
 
@@ -1647,11 +1676,11 @@ def test_quantity_iterability():
     """
 
     q1 = [15.0, 17.0] * u.m
-    assert isiterable(q1)
+    assert np.iterable(q1)
 
     q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
-    assert not isiterable(q2)
+    assert not np.iterable(q2)
     pytest.raises(TypeError, iter, q2)
 
 
@@ -1876,10 +1905,9 @@ def test_insert():
     assert q2.unit is u.m
     assert q2.dtype.kind == "f"
 
-    if minversion(np, "1.8.0"):
-        q2 = q.insert(1, [1, 2] * u.km)
-        assert np.all(q2.value == [1, 1000, 2000, 2])
-        assert q2.unit is u.m
+    q2 = q.insert(1, [1, 2] * u.km)
+    assert np.all(q2.value == [1, 1000, 2000, 2])
+    assert q2.unit is u.m
 
     # Cannot convert 1.5 * u.s to m
     with pytest.raises(u.UnitsError):
@@ -2046,7 +2074,7 @@ def test_masked_quantity_str_repr():
 
 class TestQuantitySubclassAboveAndBelow:
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         class MyArray(np.ndarray):
             def __array_finalize__(self, obj):
                 super_array_finalize = super().__array_finalize__
@@ -2055,9 +2083,9 @@ class TestQuantitySubclassAboveAndBelow:
                 if hasattr(obj, "my_attr"):
                     self.my_attr = obj.my_attr
 
-        self.MyArray = MyArray
-        self.MyQuantity1 = type("MyQuantity1", (u.Quantity, MyArray), dict(my_attr="1"))
-        self.MyQuantity2 = type("MyQuantity2", (MyArray, u.Quantity), dict(my_attr="2"))
+        cls.MyArray = MyArray
+        cls.MyQuantity1 = type("MyQuantity1", (u.Quantity, MyArray), dict(my_attr="1"))
+        cls.MyQuantity2 = type("MyQuantity2", (MyArray, u.Quantity), dict(my_attr="2"))
 
     def test_setup(self):
         mq1 = self.MyQuantity1(10, u.m)

@@ -264,8 +264,16 @@ It is also possible to convert between uncertainty types::
 ..
   EXAMPLE END
 
+Covariance
+----------
+
+A `~astropy.nddata.Covariance` uncertainty type is also implemented; however,
+its functionality is generally limited to construction and storage of sparse
+covariance matrices.  Additional functionality will be implemented as requested.
+See :ref:`nddata-covariance` for more description and example usage.
+
 WCS
----
+===
 
 The ``wcs`` should contain a mapping from the gridded data to world
 coordinates. There are no restrictions placed on the property currently but it
@@ -349,12 +357,12 @@ copies during initialization by setting the ``copy`` parameter to ``True``::
     >>> ndd = NDData(array)
     >>> ndd.data[2] = 10
     >>> array[2]  # Original array has changed
-    10
+    np.int64(10)
 
     >>> ndd2 = NDData(array, copy=True)
     >>> ndd2.data[2] = 3
     >>> array[2]  # Original array hasn't changed.
-    10
+    np.int64(10)
 
 .. note::
     In some cases setting ``copy=True`` will copy the ``data`` twice. Known
@@ -518,4 +526,3 @@ Converting the ``data``, ``unit``, and ``mask`` to a ``MaskedQuantity``::
     >>> from astropy.utils.masked import Masked
     >>> Masked(u.Quantity(ndd.data, ndd.unit), ndd.mask)  # doctest: +FLOAT_CMP
     <MaskedQuantity [——, 2., 3., ——] m>
-

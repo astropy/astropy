@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This package defines the SI units.  They are also available in the
-`astropy.units` namespace.
-
+This package defines the SI units.  They are also available in
+(and should be used through) the `astropy.units` namespace.
 """
+# avoid ruff complaints about undefined names defined by def_unit
+# ruff: noqa: F821
 
 import numpy as np
 
-from astropy.constants import si as _si
-
-from .core import Unit, UnitBase, def_unit
+from .core import CompositeUnit, def_unit
+from .docgen import generate_dunder_all, generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -21,7 +21,7 @@ _ns = globals()
 
 def_unit(
     ["percent", "pct"],
-    Unit(0.01),
+    CompositeUnit(0.01, [], []),
     namespace=_ns,
     prefixes=False,
     doc="percent: one hundredth of unity, factor 0.01",
@@ -55,12 +55,29 @@ def_unit(
     format={"latex": r"\mu m", "unicode": "\N{MICRO SIGN}m"},
 )
 def_unit(
-    ["Angstrom", "AA", "angstrom"],
+    ["Angstrom", "AA", "angstrom", "Å"],
     0.1 * nm,
     namespace=_ns,
     doc="ångström: 10 ** -10 m",
     prefixes=[(["m", "milli"], ["milli", "m"], 1.0e-3)],
-    format={"latex": r"\mathring{A}", "unicode": "Å", "vounit": "Angstrom"},
+    format={
+        "latex": r"\mathring{A}",
+        "ogip": "angstrom",
+        "unicode": "Å",
+        "vounit": "Angstrom",
+    },
+)
+
+
+###########################################################################
+# AREA
+
+def_unit(
+    ["ha", "hectare"],
+    1e4 * m**2,
+    namespace=_ns,
+    prefixes=False,
+    doc="hectare: unit of area, used to express area of land",
 )
 
 
@@ -68,11 +85,10 @@ def_unit(
 # VOLUMES
 
 def_unit(
-    (["l", "L"], ["liter"]),
+    (["l", "L", "ℓ"], ["liter"]),
     1000 * cm**3.0,
     namespace=_ns,
     prefixes=True,
-    format={"latex": r"\mathcal{l}", "unicode": "ℓ"},
     doc="liter: metric unit of volume",
 )
 
@@ -129,7 +145,7 @@ def_unit(
     doc="milli arc second: angular measurement",
 )
 def_unit(
-    ["uas"],
+    ["uas", "\N{MICRO SIGN}as", "\N{GREEK SMALL LETTER MU}as"],
     0.000001 * arcsec,
     namespace=_ns,
     doc="micro arc second: angular measurement",
@@ -195,7 +211,7 @@ def_unit(
     365.25 * d,
     namespace=_ns,
     prefixes=True,
-    exclude_prefixes=["P"],
+    exclude_prefixes=["P", "h"],  # Avoid possible confusion with Pascal and hectare
 )
 def_unit(
     ["yr", "year"],
@@ -249,6 +265,13 @@ def_unit(
     prefixes=True,
     doc="mole: amount of a chemical substance in SI.",
 )
+def_unit(
+    ["kat", "katal"],
+    mol * s**-1,
+    namespace=_ns,
+    prefixes=True,
+    doc="katal: catalytic activity.",
+)
 
 
 ###########################################################################
@@ -289,13 +312,6 @@ def_unit(
     namespace=_ns,
     prefixes=True,
     doc="Joule: energy",
-)
-def_unit(
-    ["eV", "electronvolt"],
-    _si.e.value * J,
-    namespace=_ns,
-    prefixes=True,
-    doc="Electron Volt",
 )
 
 
@@ -347,12 +363,12 @@ def_unit(
     doc="Volt: electric potential or electromotive force",
 )
 def_unit(
-    (["Ohm", "ohm"], ["Ohm"]),
+    (["Ohm", "ohm", "Ω"], ["Ohm"]),
     V * A**-1,
     namespace=_ns,
     prefixes=True,
     doc="Ohm: electrical resistance",
-    format={"latex": r"\Omega", "unicode": "Ω"},
+    format={"latex": r"\Omega", "ogip": "ohm", "unicode": "Ω"},
 )
 def_unit(
     ["S", "Siemens", "siemens"],
@@ -427,15 +443,29 @@ def_unit(
     ["Bq", "becquerel"],
     1 / s,
     namespace=_ns,
-    prefixes=False,
+    prefixes=True,
     doc="becquerel: unit of radioactivity",
 )
 def_unit(
     ["Ci", "curie"],
     Bq * 3.7e10,
     namespace=_ns,
-    prefixes=False,
+    prefixes=True,
     doc="curie: unit of radioactivity",
+)
+def_unit(
+    ["Gy", "gray"],
+    J * kg**-1,
+    namespace=_ns,
+    prefixes=True,
+    doc="gray: absorbed dose of ionizing radiation or kinetic energy released per unit mass (kerma)",
+)
+def_unit(
+    ["Sv", "sievert"],
+    J * kg**-1,
+    namespace=_ns,
+    prefixes=True,
+    doc="sievert: equivalent dose of ionizing radiation",
 )
 
 
@@ -448,11 +478,9 @@ bases = {m, s, kg, A, cd, rad, K, mol}
 ###########################################################################
 # ALL & DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+__all__ += generate_dunder_all(globals())  # noqa: PLE0605
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())

@@ -234,13 +234,30 @@ class NDArithmeticMixin:
             :meth:`NDArithmeticMixin.add`.
 
         """
+        # Check for numpy keywords not supported in astropy
+        numpy_extra_kwds = ["out", "dtype"]
+
+        # Pop off problem keywords when they exist, otherwise set numpy key value to None
+        for np_kwd in numpy_extra_kwds:
+            if np_kwd not in kwds:
+                np_key_val = None
+                continue
+            else:
+                np_key_val = kwds.pop(np_kwd)
+
+            # Check if the key value is populated, error if not None
+            if np_key_val is not None:
+                raise ValueError(
+                    f"{np_kwd} key is not None, {np_kwd} parameter not supported for np.min, np.max, np.mean, and np.sum, or parameter does not exist. {np_kwd} gives {np_key_val}"
+                )
+
         # Find the appropriate keywords for the appropriate method (not sure
         # if data and uncertainty are ever used ...)
         kwds2 = {"mask": {}, "meta": {}, "wcs": {}, "data": {}, "uncertainty": {}}
-        for i in kwds:
+        for i, kwd in kwds.items():
             splitted = i.split("_", 1)
             try:
-                kwds2[splitted[0]][splitted[1]] = kwds[i]
+                kwds2[splitted[0]][splitted[1]] = kwd
             except KeyError:
                 raise KeyError(f"Unknown prefix {splitted[0]} for parameter {i}")
 
@@ -477,7 +494,7 @@ class NDArithmeticMixin:
             # Both have uncertainties so just propagate.
 
             # only supply the axis kwarg if one has been specified for a collapsing operation
-            axis_kwarg = dict(axis=kwds["axis"]) if "axis" in kwds else dict()
+            axis_kwarg = dict(axis=kwds["axis"]) if "axis" in kwds else {}
             return self.uncertainty.propagate(
                 operation, operand, result, correlation, **axis_kwarg
             )

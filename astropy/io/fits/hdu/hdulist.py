@@ -7,6 +7,7 @@ import re
 import shutil
 import sys
 import warnings
+from textwrap import indent
 
 import numpy as np
 
@@ -23,19 +24,16 @@ from astropy.io.fits.util import (
     isfile,
 )
 from astropy.io.fits.verify import VerifyError, VerifyWarning, _ErrList, _Verify
-from astropy.utils import indent
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 # NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .base import ExtensionHDU, _BaseHDU, _NonstandardHDU, _ValidHDU
-from .compressed import compressed
+from .compressed.compressed import CompImageHDU
 from .groups import GroupsHDU
 from .image import ImageHDU, PrimaryHDU
-
-if HAS_BZ2:
-    import bz2
+from .table import BinTableHDU
 
 __all__ = ["HDUList", "fitsopen"]
 
@@ -450,7 +448,7 @@ class HDUList(list, _Verify):
 
         self._try_while_unread_hdus(super().__delitem__, key)
 
-        if key == end_index or key == -1 and not self._resize:
+        if key == end_index or (key == -1 and not self._resize):
             self._truncate = True
         else:
             self._truncate = False
@@ -734,6 +732,10 @@ class HDUList(list, _Verify):
         if not isinstance(hdu, _BaseHDU):
             raise ValueError("HDUList can only append an HDU.")
 
+        # store BZERO and BSCALE if present
+        bzero = hdu.header.get("BZERO")
+        bscale = hdu.header.get("BSCALE")
+
         if len(self) > 0:
             if isinstance(hdu, GroupsHDU):
                 raise ValueError("Can't append a GroupsHDU to a non-empty HDUList")
@@ -743,7 +745,11 @@ class HDUList(list, _Verify):
                 # so create an Extension HDU from the input Primary HDU.
                 # TODO: This isn't necessarily sufficient to copy the HDU;
                 # _header_offset and friends need to be copied too.
-                hdu = ImageHDU(hdu.data, hdu.header)
+                hdu = ImageHDU(
+                    hdu.data,
+                    hdu.header,
+                    do_not_scale_image_data=hdu._do_not_scale_image_data,
+                )
         else:
             if not isinstance(hdu, (PrimaryHDU, _NonstandardHDU)):
                 # You passed in an Extension HDU but we need a Primary
@@ -751,13 +757,24 @@ class HDUList(list, _Verify):
                 # If you provided an ImageHDU then we can convert it to
                 # a primary HDU and use that.
                 if isinstance(hdu, ImageHDU):
-                    hdu = PrimaryHDU(hdu.data, hdu.header)
+                    hdu = PrimaryHDU(
+                        hdu.data,
+                        hdu.header,
+                        do_not_scale_image_data=hdu._do_not_scale_image_data,
+                    )
                 else:
                     # You didn't provide an ImageHDU so we create a
                     # simple Primary HDU and append that first before
                     # we append the new Extension HDU.
                     phdu = PrimaryHDU()
                     super().append(phdu)
+
+        # Add back BZERO and BSCALE if relevant
+        if getattr(hdu, "_do_not_scale_image_data", False):
+            if bzero is not None:
+                hdu.header["BZERO"] = bzero
+            if bscale is not None:
+                hdu.header["BSCALE"] = bscale
 
         super().append(hdu)
         hdu._new = True
@@ -928,7 +945,7 @@ class HDUList(list, _Verify):
 
                 # only append HDU's which are "new"
                 if hdu._new:
-                    hdu._prewriteto(checksum=hdu._output_checksum)
+                    hdu._prewriteto()
                     with _free_space_check(self):
                         hdu._writeto(self._file)
                         if verbose:
@@ -1000,10 +1017,10 @@ class HDUList(list, _Verify):
 
         Notes
         -----
-        gzip, zip and bzip2 compression algorithms are natively supported.
+        gzip, zip, bzip2 and lzma compression algorithms are natively supported.
         Compression mode is determined from the filename extension
-        ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
-        compressed file object, e.g. `gzip.GzipFile`.
+        ('.gz', '.zip', '.bz2' or '.xz' respectively).  It is also possible to
+        pass a compressed file object, e.g. `gzip.GzipFile`.
         """
         if len(self) == 0:
             warnings.warn("There is nothing to write.", AstropyUserWarning)
@@ -1038,7 +1055,8 @@ class HDUList(list, _Verify):
         try:
             with _free_space_check(self, dirname=dirname):
                 for hdu in self:
-                    hdu._prewriteto(checksum=checksum)
+                    hdu._output_checksum = checksum
+                    hdu._prewriteto()
                     hdu._writeto(hdulist._file)
                     hdu._postwriteto()
         finally:
@@ -1283,7 +1301,6 @@ class HDUList(list, _Verify):
         if self._read_all:
             return False
 
-        saved_compression_enabled = compressed.COMPRESSION_ENABLED
         fileobj, data, kwargs = self._file, self._data, self._open_kwargs
 
         if fileobj is not None and fileobj.closed:
@@ -1291,9 +1308,6 @@ class HDUList(list, _Verify):
 
         try:
             self._in_read_next_hdu = True
-
-            if kwargs.get("disable_image_compression"):
-                compressed.COMPRESSION_ENABLED = False
 
             # read all HDUs
             try:
@@ -1330,6 +1344,17 @@ class HDUList(list, _Verify):
                     hdu = _BaseHDU.fromstring(data, **kwargs)
                     self._data = data[hdu._data_offset + hdu._data_size :]
 
+                if not kwargs.get("disable_image_compression", False):
+                    if isinstance(hdu, BinTableHDU) and CompImageHDU.match_header(
+                        hdu.header
+                    ):
+                        kwargs_comp = {
+                            key: val
+                            for key, val in kwargs.items()
+                            if key in ("scale_back", "uint", "do_not_scale_image_data")
+                        }
+                        hdu = CompImageHDU(bintable=hdu, **kwargs_comp)
+
                 super().append(hdu)
                 if len(self) == 1:
                     # Check for an extension HDU and update the EXTEND
@@ -1344,7 +1369,7 @@ class HDUList(list, _Verify):
             except (VerifyError, ValueError) as exc:
                 warnings.warn(
                     f"Error validating header for HDU #{len(self)} (note: Astropy "
-                    f"uses zero-based indexing).\n{indent(str(exc))}\n"
+                    f"uses zero-based indexing).\n{indent(str(exc), 4 * ' ')}\n"
                     "There may be extra bytes after the last HDU or the "
                     "file is corrupted.",
                     VerifyWarning,
@@ -1353,7 +1378,6 @@ class HDUList(list, _Verify):
                 self._read_all = True
                 return False
         finally:
-            compressed.COMPRESSION_ENABLED = saved_compression_enabled
             self._in_read_next_hdu = False
 
         return True
@@ -1416,7 +1440,7 @@ class HDUList(list, _Verify):
         for hdu in self:
             # Need to all _prewriteto() for each HDU first to determine if
             # resizing will be necessary
-            hdu._prewriteto(checksum=hdu._output_checksum, inplace=True)
+            hdu._prewriteto(inplace=True)
 
         try:
             self._wasresized()
@@ -1453,12 +1477,6 @@ class HDUList(list, _Verify):
             # original file, and rename the tmp file to the original file.
             if self._file.compression == "gzip":
                 new_file = gzip.GzipFile(name, mode="ab+")
-            elif self._file.compression == "bzip2":
-                if not HAS_BZ2:
-                    raise ModuleNotFoundError(
-                        "This Python installation does not provide the bz2 module."
-                    )
-                new_file = bz2.BZ2File(name, mode="w")
             else:
                 new_file = name
 
@@ -1518,11 +1536,26 @@ class HDUList(list, _Verify):
                 # references to data from files that had to be resized upon
                 # flushing (on Windows--again, this is no problem on Linux).
                 for idx, mmap, arr in mmaps:
-                    if mmap is not None:
+                    if mmap is None:
+                        continue
+                    if NUMPY_LT_2_0:
+                        # Note that this hack is only possible on numpy 1.x:
+                        # in 2.x, we cannot write directly to the data attribute
                         # https://github.com/numpy/numpy/issues/8628
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore", category=DeprecationWarning)
                             arr.data = self[idx].data.data
+                    elif sys.getrefcount(arr) > 2:
+                        # 2 is the minimum number of references to this object
+                        # counting `arr` and a reference as an argument to getrefcount(),
+                        # see  https://docs.python.org/3/library/sys.html#sys.getrefcount
+                        warnings.warn(
+                            "Memory map object was closed but appears to still "
+                            "be referenced. Further access will result in undefined "
+                            "behavior (possibly including segmentation faults).",
+                            category=UserWarning,
+                            stacklevel=2,
+                        )
                 del mmaps  # Just to be sure
 
         else:
@@ -1564,6 +1597,13 @@ class HDUList(list, _Verify):
         if not self._resize:
             # determine if any of the HDU is resized
             for hdu in self:
+                # for CompImageHDU, we need to handle things a little differently
+                # because the HDU matching the header/data on disk is hdu._bintable
+                if isinstance(hdu, CompImageHDU):
+                    hdu = hdu._bintable
+                    if hdu is None:
+                        continue
+
                 # Header:
                 nbytes = len(str(hdu._header))
                 if nbytes != (hdu._data_offset - hdu._header_offset):

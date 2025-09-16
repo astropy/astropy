@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 8.2.1.1 2023/11/16 10:05:57 mcalabre Exp mcalabre $
+  $Id: dis.h,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.2 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -338,7 +338,8 @@
 *
 * disndp(), disini(), disinit(), discpy(), and disfree() are provided to
 * manage the disprm struct, dissize() computes its total size including
-* allocated memory, and disprt() prints its contents.
+* allocated memory, disenq() returns information about the state of the
+* struct, and disprt() prints its contents.
 *
 * disperr() prints the error message(s) (if any) stored in a disprm struct.
 *
@@ -586,11 +587,36 @@
 *
 *                       It is not an error for the struct not to have been set
 *                       up via tabset(), which normally results in additional
-*                       memory allocation. 
+*                       memory allocation.
 *
 * Function return value:
 *             int       Status return value:
 *                         0: Success.
+*
+*
+* disenq() - enquire about the state of a disprm struct
+* -----------------------------------------------------
+* disenq() may be used to obtain information about the state of a disprm
+* struct.  The function returns a true/false answer for the enquiry asked.
+*
+* Given:
+*   dis       const struct disprm*
+*                       Distortion function parameters.
+*
+*   enquiry   int       Enquiry according to the following parameters:
+*                         DISENQ_MEM: memory in the struct is being managed by
+*                                     WCSLIB (see disinit()).
+*                         DISENQ_SET: the struct has been set up by disset().
+*                         DISENQ_BYP: the struct is in bypass mode (see
+*                                     disset()).
+*                       These may be combined by logical OR, e.g.
+*                       DISENQ_MEM | DISENQ_SET.  The enquiry result will be
+*                       the logical AND of the individual results.
+*
+* Function return value:
+*             int       Enquiry result:
+*                         0: No.
+*                         1: Yes.
 *
 *
 * disprt() - Print routine for the disprm struct
@@ -652,6 +678,13 @@
 * Note that this routine need not be called directly; it will be invoked by
 * disp2x() and disx2p() if the disprm::flag is anything other than a
 * predefined magic value.
+*
+* disset() normally operates regardless of the value of disprm::flag; i.e.
+* even if a struct was previously set up it will be reset unconditionally.
+* However, a disprm struct may be put into "bypass" mode by invoking disset()
+* initially with disprm::flag == 1 (rather than 0).  disset() will return
+* immediately if invoked on a struct in that state.  To take a struct out of
+* bypass mode, simply reset disprm::flag to zero.  See also disenq().
 *
 * Given and returned:
 *   dis       struct disprm*
@@ -854,8 +887,8 @@
 * the user.
 *
 *   int flag
-*     (Given and returned) This flag must be set to zero whenever any of the
-*     following members of the disprm struct are set or modified:
+*     (Given and returned) This flag must be set to zero (or 1, see disset())
+*     whenever any of the following disprm members are set or changed:
 *
 *       - disprm::naxis,
 *       - disprm::dtype,
@@ -992,8 +1025,6 @@
 *     (For internal use only.)
 *   int (**disx2p)(DISX2P_ARGS)
 *     (For internal use only.)
-*   double *dummy
-*     (For internal use only.)
 *   int m_flag
 *     (For internal use only.)
 *   int m_naxis
@@ -1054,6 +1085,11 @@
 extern "C" {
 #endif
 
+enum disenq_enum {
+  DISENQ_MEM = 1,		// disprm struct memory is managed by WCSLIB.
+  DISENQ_SET = 2,		// disprm struct has been set up.
+  DISENQ_BYP = 4,		// disprm struct is in bypass mode.
+};
 
 extern const char *dis_errmsg[];
 
@@ -1122,10 +1158,11 @@ struct disprm {
   int    i_naxis;		// Dimension of the internal arrays.
   int    ndis;			// The number of distortion functions.
 
-  // Error handling, if enabled.
+  // Error messaging, if enabled.
   //--------------------------------------------------------------------------
   struct wcserr *err;
 
+  //--------------------------------------------------------------------------
   // Private - the remainder are for internal use.
   //--------------------------------------------------------------------------
   int (**disp2x)(DISP2X_ARGS);	// For each axis, pointers to the
@@ -1159,6 +1196,8 @@ int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst);
 int disfree(struct disprm *dis);
 
 int dissize(const struct disprm *dis, int sizes[2]);
+
+int disenq(const struct disprm *dis, int enquiry);
 
 int disprt(const struct disprm *dis);
 

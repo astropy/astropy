@@ -74,7 +74,8 @@ class CartesianRepresentation(BaseRepresentation):
                 if differentials is None:
                     differentials = x._differentials
 
-                return super().__init__(x, differentials=differentials, copy=copy)
+                super().__init__(x, differentials=differentials, copy=copy)
+                return
 
             else:
                 x, y, z = x
@@ -176,7 +177,7 @@ class CartesianRepresentation(BaseRepresentation):
 
         We now create a rotation matrix around the z axis:
 
-            >>> from astropy.coordinates.matrix_utilities import rotation_matrix
+            >>> from astropy.coordinates import rotation_matrix
             >>> rotation = rotation_matrix(30 * u.deg, axis='z')
 
         Finally, we can apply this transformation:

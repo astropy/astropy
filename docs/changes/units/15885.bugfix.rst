@@ -1,1 +1,0 @@
-Fix write/read roundtrips with empty ``Table`` dumped to ECSV.

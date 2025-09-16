@@ -42,7 +42,7 @@ from astropy.coordinates import (
 )
 from astropy.coordinates.sites import get_builtin_sites
 from astropy.table import Table
-from astropy.tests.helper import PYTEST_LT_8_0, assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils import iers
@@ -252,16 +252,15 @@ def test_regression_futuretimes_4302():
     else:
         ctx1 = nullcontext()
 
-    if PYTEST_LT_8_0:
-        ctx2 = ctx3 = nullcontext()
-    else:
-        ctx2 = pytest.warns(ErfaWarning, match=".*dubious year.*")
-        ctx3 = pytest.warns(AstropyWarning, match=".*times after IERS data is valid.*")
-
-    with ctx1, ctx2, ctx3:
+    with (
+        ctx1,
+        pytest.warns(ErfaWarning, match=".*dubious year.*"),
+        pytest.warns(AstropyWarning, match=".*times after IERS data is valid.*"),
+    ):
         future_time = Time("2511-5-1")
         c = CIRS(1 * u.deg, 2 * u.deg, obstime=future_time)
-        c.transform_to(ITRS(obstime=future_time))
+        with iers.conf.set_temp("auto_max_age", None):
+            c.transform_to(ITRS(obstime=future_time))
 
 
 def test_regression_4996():
@@ -467,7 +466,7 @@ def test_regression_6236():
 
     class MySpecialFrame(MyFrame):
         def __init__(self, *args, **kwargs):
-            _rep_kwarg = kwargs.get("representation_type", None)
+            _rep_kwarg = kwargs.get("representation_type")
             super().__init__(*args, **kwargs)
             if not _rep_kwarg:
                 self.representation_type = self.default_representation
@@ -750,3 +749,50 @@ def test_regression_10291():
     assert_quantity_allclose(
         venus.separation(sun), 554.427 * u.arcsecond, atol=0.001 * u.arcsecond
     )
+
+
+@pytest.mark.parametrize("coord_cls", [ICRS, SkyCoord])
+@pytest.mark.parametrize(
+    "differential_type, diff_kwargs",
+    [
+        (None, {}),
+        (
+            "unitsphericalcoslat",
+            {
+                "pm_ra_cosdec": [40, 50] * u.mas / u.yr,
+                "pm_dec": [60, 70] * u.mas / u.yr,
+            },
+        ),
+        ("radial", {"radial_velocity": [80, 90] * u.km / u.s}),
+    ],
+)
+@pytest.mark.parametrize("extra_kwargs", [{}, {"representation_type": "unitspherical"}])
+def test_regression_16998(coord_cls, differential_type, diff_kwargs, extra_kwargs):
+    """Direct tests of the underlying problem causing gh-16998.
+
+    Note that the issue itself was of columns missing in data written to a file.
+    That is now tested directly by the "icrs" column in
+    astropy/io/tests/mixin_columns.py.
+    Here, we test the underlying problem, that .info._represent_as_dict()
+    did not return a full set of columns in some cases.
+    """
+    if extra_kwargs and differential_type:
+        extra_kwargs["differential_type"] = differential_type
+    coord = coord_cls([0, 10] * u.deg, [20, 30] * u.deg, **diff_kwargs, **extra_kwargs)
+    expected_entries = {"ra", "dec", "representation_type"}
+    if differential_type:
+        expected_entries |= {"differential_type"} | set(diff_kwargs)
+    if coord_cls is SkyCoord:
+        expected_entries.add("frame")
+    assert set(coord.info._represent_as_dict()) == expected_entries
+
+
+def test_regression_17008():
+    """Test that one can transform a SkyCoord with empty data to other frames.
+
+    The underlying bug that caused the problem reported in gh-17008
+    is tested in utils/iers/tests/test_iers.py::test_empty_mjd
+    """
+    s = SkyCoord([] * u.deg, [] * u.deg, obstime=Time([], format="iso"))
+    itrs = s.itrs  # This failed before.
+    assert itrs.size == 0

@@ -201,26 +201,27 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
 
     rng = np.random.default_rng(1337)
 
-    # 100_000 times randomly distributed over 12 hours
-    t = Time('2020-01-01T20:00:00') + rng.uniform(0, 1, 10_000) * u.hour
+    n_coords = 10_000
+    time_delta = 1 * u.hour
+    # n_coords times randomly distributed over time_delta
+    t = Time('2020-01-01T20:00:00') + rng.random(n_coords) * time_delta
 
     location = EarthLocation(
         lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m
     )
 
     # A celestial object in ICRS
-    crab = SkyCoord.from_name("Crab Nebula")
+    # crab = SkyCoord.from_name("Crab Nebula")
+    crab = SkyCoord(83.6287, 22.0147, unit="deg")
 
     # target horizontal coordinate frame
     altaz = AltAz(obstime=t, location=location)
-
 
     # the reference transform using no interpolation
     t0 = perf_counter()
     no_interp = crab.transform_to(altaz)
     reference = perf_counter() - t0
     print(f'No Interpolation took {reference:.4f} s')
-
 
     # now the interpolating approach for different time resolutions
     resolutions = 10.0**np.arange(-1, 5) * u.s
@@ -243,9 +244,11 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
 
     seps = u.Quantity(seps)
 
-    fig = plt.figure()
-
-    ax1, ax2 = fig.subplots(2, 1, gridspec_kw={'height_ratios': [2, 1]}, sharex=True)
+    fig, (ax1, ax2) = plt.subplots(
+      nrows=2,
+      sharex=True,
+      gridspec_kw=dict(height_ratios=[2, 1]),
+    )
 
     ax1.plot(
         resolutions.to_value(u.s),
@@ -260,7 +263,7 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
             'o', label=f'{p}%', color='C1', alpha=p / 100,
         )
 
-    ax1.set_title('Transformation of SkyCoord with 100.000 obstimes over 12 hours')
+    ax1.set_title(f'Transformation of SkyCoord with {n_coords:,} obstimes over {time_delta}')
 
     ax1.legend()
     ax1.set_xscale('log')

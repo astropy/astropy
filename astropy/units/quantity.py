@@ -5,54 +5,42 @@ associated units. `Quantity` objects support operations like ordinary numbers,
 but will deal with unit conversions internally.
 """
 
-from __future__ import annotations
-
 import builtins
 import numbers
 import operator
 import re
 import warnings
+from collections.abc import Collection
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import Self
 
 import numpy as np
 
 from astropy import config as _config
 from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
-from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
 
-from .core import (
-    Unit,
-    UnitBase,
-    UnitConversionError,
-    UnitsError,
-    UnitTypeError,
-    dimensionless_unscaled,
-    get_current_unit_registry,
-)
+from .core import Unit, UnitBase, dimensionless_unscaled, get_current_unit_registry
+from .errors import UnitConversionError, UnitsError, UnitTypeError
 from .format import Base, Latex
 from .quantity_helper import can_have_arbitrary_unit, check_output, converters_and_unit
 from .quantity_helper.function_helpers import (
     DISPATCHED_FUNCTIONS,
     FUNCTION_HELPERS,
     SUBCLASS_SAFE_FUNCTIONS,
+    UNIT_FROM_LIKE_ARG,
     UNSUPPORTED_FUNCTIONS,
 )
 from .structured import StructuredUnit, _structured_unit_like_dtype
+from .typing import QuantityLike
 from .utils import is_effectively_unity
-
-if TYPE_CHECKING:
-    from typing_extensions import Self
-
-    from .typing import QuantityLike
 
 __all__ = [
     "Quantity",
-    "SpecificTypeQuantity",
-    "QuantityInfoBase",
     "QuantityInfo",
+    "QuantityInfoBase",
+    "SpecificTypeQuantity",
     "allclose",
     "isclose",
 ]
@@ -113,8 +101,8 @@ class QuantityIterator:
     def __iter__(self):
         return self
 
-    def __getitem__(self, indx):
-        out = self._dataiter.__getitem__(indx)
+    def __getitem__(self, index):
+        out = self._dataiter.__getitem__(index)
         # For single elements, ndarray.flat.__getitem__ returns scalars; these
         # need a new view as a Quantity.
         if isinstance(out, type(self._quantity)):
@@ -126,9 +114,6 @@ class QuantityIterator:
         self._dataiter[index] = self._quantity._to_own_unit(value)
 
     def __next__(self):
-        """
-        Return the next value, or raise StopIteration.
-        """
         out = next(self._dataiter)
         # ndarray.flat._dataiter returns scalars, so need a view as a Quantity.
         return self._quantity._new_view(out)
@@ -213,7 +198,7 @@ class QuantityInfo(QuantityInfoBase):
             Length of the output column object
         metadata_conflicts : str ('warn'|'error'|'silent')
             How to handle metadata conflicts
-        name : str
+        name : str or None
             Output column name
 
         Returns
@@ -496,12 +481,11 @@ class Quantity(np.ndarray):
 
             elif isinstance(value, (list, tuple)) and len(value) > 0:
                 if all(isinstance(v, Quantity) for v in value):
-                    # If a list/tuple contains only quantities, convert all
-                    # to the same unit.
-                    if unit is None:
-                        unit = value[0].unit
-                    value = [q.to_value(unit) for q in value]
-                    value_unit = unit  # signal below that conversion has been done
+                    # If a list/tuple contains only quantities, stack them,
+                    # which also converts them to the same unit.
+                    value = np.stack(value)
+                    copy = False
+
                 elif (
                     dtype is None
                     and not hasattr(value, "dtype")
@@ -638,7 +622,7 @@ class Quantity(np.ndarray):
         try:
             converters, unit = converters_and_unit(function, method, *inputs)
 
-            out = kwargs.get("out", None)
+            out = kwargs.get("out")
             # Avoid loop back by turning any Quantity output into array views.
             if out is not None:
                 # If pre-allocated output is used, check it is suitable.
@@ -1209,7 +1193,6 @@ class Quantity(np.ndarray):
 
     # Arithmetic operations
     def __mul__(self, other):
-        """Multiplication between `Quantity` objects and other objects."""
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
@@ -1221,7 +1204,6 @@ class Quantity(np.ndarray):
         return super().__mul__(other)
 
     def __imul__(self, other):
-        """In-place multiplication between `Quantity` objects and others."""
         if isinstance(other, (UnitBase, str)):
             self._set_unit(other * self.unit)
             return self
@@ -1229,13 +1211,9 @@ class Quantity(np.ndarray):
         return super().__imul__(other)
 
     def __rmul__(self, other):
-        """
-        Right Multiplication between `Quantity` objects and other objects.
-        """
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        """Division between `Quantity` objects and other objects."""
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
@@ -1247,7 +1225,6 @@ class Quantity(np.ndarray):
         return super().__truediv__(other)
 
     def __itruediv__(self, other):
-        """Inplace division between `Quantity` objects and other objects."""
         if isinstance(other, (UnitBase, str)):
             self._set_unit(self.unit / other)
             return self
@@ -1255,7 +1232,6 @@ class Quantity(np.ndarray):
         return super().__itruediv__(other)
 
     def __rtruediv__(self, other):
-        """Right Division between `Quantity` objects and other objects."""
         if isinstance(other, (UnitBase, str)):
             return self._new_view(
                 1.0 / self.value, other / self.unit, propagate_info=False
@@ -1282,13 +1258,7 @@ class Quantity(np.ndarray):
                 f"'{self.__class__.__name__}' object with a scalar value is not"
                 " iterable"
             )
-
-        # Otherwise return a generator
-        def quantity_iter():
-            for val in self.value:
-                yield self._new_view(val)
-
-        return quantity_iter()
+        return map(self._new_view, self.value)
 
     def __getitem__(self, key):
         if isinstance(key, str) and isinstance(self.unit, StructuredUnit):
@@ -1366,17 +1336,22 @@ class Quantity(np.ndarray):
                 "converted to Python scalars"
             )
 
+    def __round__(self, ndigits=0):
+        return self.round(decimals=ndigits)
+
     def __index__(self):
         # for indices, we do not want to mess around with scaling at all,
         # so unlike for float, int, we insist here on unscaled dimensionless
-        try:
-            assert self.unit.is_unity()
-            return self.value.__index__()
-        except Exception:
-            raise TypeError(
-                "only integer dimensionless scalar quantities "
-                "can be converted to a Python index"
-            )
+        if self.unit.is_unity():
+            try:
+                return self.value.__index__()
+            except AttributeError:
+                pass
+
+        raise TypeError(
+            "only integer dimensionless scalar quantities "
+            "can be converted to a Python index"
+        )
 
     # TODO: we may want to add a hook for dimensionless quantities?
     @property
@@ -1607,7 +1582,7 @@ class Quantity(np.ndarray):
                 # Format the whole thing as a single string.
                 return format(f"{self.value}{self._unitstr:s}", format_spec)
 
-    def decompose(self, bases=[]):
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """
         Generates a new `Quantity` with the units
         decomposed. Decomposed units have only irreducible units in
@@ -1629,7 +1604,9 @@ class Quantity(np.ndarray):
         """
         return self._decompose(False, bases=bases)
 
-    def _decompose(self, allowscaledunits=False, bases=[]):
+    def _decompose(
+        self, allowscaledunits: bool = False, bases: Collection[UnitBase] = ()
+    ) -> Self:
         """
         Generates a new `Quantity` with the units decomposed. Decomposed
         units have only irreducible units in them (see
@@ -1913,7 +1890,15 @@ class Quantity(np.ndarray):
             except NotImplementedError:
                 return self._not_implemented_or_raise(function, types)
 
-            result = super().__array_function__(function, types, args, kwargs)
+            try:
+                result = super().__array_function__(function, types, args, kwargs)
+            except AttributeError as e:
+                # this exception handling becomes unneeded in numpy 2.2 (not NUMPY_LT_2_2)
+                # see https://github.com/numpy/numpy/issues/27500
+                if "_implementation" not in str(e):
+                    raise
+                result = function(*args, **kwargs)
+
             # Fall through to return section
 
         elif function in DISPATCHED_FUNCTIONS:
@@ -1937,6 +1922,12 @@ class Quantity(np.ndarray):
                 AstropyWarning,
             )
             return super().__array_function__(function, types, args, kwargs)
+
+        if unit is UNIT_FROM_LIKE_ARG:
+            # fallback mechanism for NEP 35 functions that dispatch on the 'like'
+            # argument (i.e. self, in this context), in cases where no other
+            # argument provides a unit
+            unit = self.unit
 
         # If unit is None, a plain array is expected (e.g., boolean), which
         # means we're done.
@@ -2071,19 +2062,6 @@ class Quantity(np.ndarray):
 
     def ediff1d(self, to_end=None, to_begin=None):
         return self._wrap_function(np.ediff1d, to_end, to_begin)
-
-    @deprecated("5.3", alternative="np.nansum", obj_type="method")
-    def nansum(self, axis=None, out=None, keepdims=False, *, initial=None, where=True):
-        if initial is not None:
-            initial = self._to_own_unit(initial)
-        return self._wrap_function(
-            np.nansum,
-            axis,
-            out=out,
-            keepdims=keepdims,
-            initial=initial,
-            where=where,
-        )
 
     def insert(self, obj, values, axis=None):
         """

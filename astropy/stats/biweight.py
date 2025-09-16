@@ -4,26 +4,36 @@ This module contains functions for computing robust statistics using
 Tukey's biweight function.
 """
 
-import numpy as np
+from collections.abc import Callable
 
-from .funcs import median_absolute_deviation
+import numpy as np
+from numpy.typing import ArrayLike, NDArray
+
+from astropy.stats.funcs import median_absolute_deviation
+from astropy.stats.nanfunctions import nanmedian, nansum
+
+# TODO: typing: use a custom-defined 'ArrayLike-but-not-a-scalar' type for `float | ArrayLike` or `ArrayLike | float` hints
 
 __all__ = [
     "biweight_location",
-    "biweight_scale",
-    "biweight_midvariance",
-    "biweight_midcovariance",
     "biweight_midcorrelation",
+    "biweight_midcovariance",
+    "biweight_midvariance",
+    "biweight_scale",
 ]
 
 
-def _stat_functions(data, ignore_nan=False):
+def _stat_functions(
+    data: ArrayLike,
+    ignore_nan: bool | None = False,
+) -> tuple[Callable[..., NDArray[float]], Callable[..., NDArray[float]]]:
+    # TODO: typing: update return Callables with custom callback protocol (https://mypy.readthedocs.io/en/stable/protocols.html#callback-protocols)
     if isinstance(data, np.ma.MaskedArray):
         median_func = np.ma.median
         sum_func = np.ma.sum
     elif ignore_nan:
-        median_func = np.nanmedian
-        sum_func = np.nansum
+        median_func = nanmedian
+        sum_func = nansum
     else:
         median_func = np.median
         sum_func = np.sum
@@ -31,7 +41,14 @@ def _stat_functions(data, ignore_nan=False):
     return median_func, sum_func
 
 
-def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
+def biweight_location(
+    data: ArrayLike,
+    c: float = 6.0,
+    M: float | ArrayLike | None = None,
+    axis: int | tuple[int, ...] | None = None,
+    *,
+    ignore_nan: bool | None = False,
+) -> float | NDArray[float]:
     r"""
     Compute the biweight location.
 
@@ -73,7 +90,7 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
         ``axis`` of the input array.  If `None` (default), then the
         median of the input array will be used (or along each ``axis``,
         if specified).
-    axis : None, int, or tuple of int, optional
+    axis : int or tuple of int, optional
         The axis or axes along which the biweight locations are
         computed.  If `None` (default), then the biweight location of
         the flattened input array will be computed.
@@ -127,10 +144,11 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
+    # np.ndim(mad) = 0 means axis is None or contains all axes
     # mad = 0 means data is constant or mostly constant
     # mad = np.nan means data contains NaNs and ignore_nan=False
-    if axis is None and (mad == 0.0 or np.isnan(mad)):
-        return M
+    if np.ndim(mad) == 0 and (mad == 0.0 or np.isnan(mad)):
+        return M.squeeze(axis=axis)
 
     if axis is not None:
         mad = np.expand_dims(mad, axis=axis)
@@ -149,19 +167,27 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     # the median value along that axis.
     # Ignore RuntimeWarnings for divide by zero
     with np.errstate(divide="ignore", invalid="ignore"):
-        value = M.squeeze() + (sum_func(d * u, axis=axis) / sum_func(u, axis=axis))
+        value = M.squeeze(axis=axis) + (
+            sum_func(d * u, axis=axis) / sum_func(u, axis=axis)
+        )
         if np.isscalar(value):
             return value
 
         where_func = np.where
         if isinstance(data, np.ma.MaskedArray):
             where_func = np.ma.where  # return MaskedArray
-        return where_func(mad.squeeze() == 0, M.squeeze(), value)
+        return where_func(mad.squeeze(axis=axis) == 0, M.squeeze(axis=axis), value)
 
 
 def biweight_scale(
-    data, c=9.0, M=None, axis=None, modify_sample_size=False, *, ignore_nan=False
-):
+    data: ArrayLike,
+    c: float = 9.0,
+    M: float | ArrayLike | None = None,
+    axis: int | tuple[int, ...] | None = None,
+    modify_sample_size: bool | None = False,
+    *,
+    ignore_nan: bool | None = False,
+) -> float | NDArray[float]:
     r"""
     Compute the biweight scale.
 
@@ -222,7 +248,7 @@ def biweight_scale(
         containing the location estimate along each ``axis`` of the
         input array.  If `None` (default), then the median of the input
         array will be used (or along each ``axis``, if specified).
-    axis : None, int, or tuple of int, optional
+    axis : int or tuple of int, optional
         The axis or axes along which the biweight scales are computed.
         If `None` (default), then the biweight scale of the flattened
         input array will be computed.
@@ -280,8 +306,14 @@ def biweight_scale(
 
 
 def biweight_midvariance(
-    data, c=9.0, M=None, axis=None, modify_sample_size=False, *, ignore_nan=False
-):
+    data: ArrayLike,
+    c: float = 9.0,
+    M: float | ArrayLike | None = None,
+    axis: int | tuple[int, ...] | None = None,
+    modify_sample_size: bool | None = False,
+    *,
+    ignore_nan: bool | None = False,
+) -> float | NDArray[float]:
     r"""
     Compute the biweight midvariance.
 
@@ -341,7 +373,7 @@ def biweight_midvariance(
         containing the location estimate along each ``axis`` of the
         input array.  If `None` (default), then the median of the input
         array will be used (or along each ``axis``, if specified).
-    axis : None, int, or tuple of int, optional
+    axis : int or tuple of int, optional
         The axis or axes along which the biweight midvariances are
         computed.  If `None` (default), then the biweight midvariance of
         the flattened input array will be computed.
@@ -404,12 +436,13 @@ def biweight_midvariance(
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
-    if axis is None:
-        # data is constant or mostly constant OR
-        # data contains NaNs and ignore_nan=False
-        if mad == 0.0 or np.isnan(mad):
-            return mad**2  # variance units
-    else:
+    # np.ndim(mad) = 0 means axis is None or contains all axes
+    # mad = 0 means data is constant or mostly constant
+    # mad = np.nan means data contains NaNs and ignore_nan=False
+    if np.ndim(mad) == 0 and (mad == 0.0 or np.isnan(mad)):
+        return mad**2  # variance units
+
+    if axis is not None:
         mad = np.expand_dims(mad, axis=axis)
 
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -453,10 +486,15 @@ def biweight_midvariance(
         where_func = np.where
         if isinstance(data, np.ma.MaskedArray):
             where_func = np.ma.where  # return MaskedArray
-        return where_func(mad.squeeze() == 0, 0.0, value)
+        return where_func(mad.squeeze(axis=axis) == 0, 0.0, value)
 
 
-def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
+def biweight_midcovariance(
+    data: ArrayLike,
+    c: float = 9.0,
+    M: float | ArrayLike | None = None,
+    modify_sample_size: bool | None = False,
+) -> NDArray[float]:
     r"""
     Compute the biweight midcovariance between pairs of multiple
     variables.
@@ -667,7 +705,13 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
         return value
 
 
-def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
+def biweight_midcorrelation(
+    x: ArrayLike,
+    y: ArrayLike,
+    c: float = 9.0,
+    M: float | ArrayLike | None = None,
+    modify_sample_size: bool | None = False,
+) -> float:
     r"""
     Compute the biweight midcorrelation between two variables.
 

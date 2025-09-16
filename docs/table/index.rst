@@ -7,24 +7,22 @@ Data Tables (`astropy.table`)
 Introduction
 ============
 
-`astropy.table` provides functionality for storing and manipulating
-heterogeneous tables of data in a way that is familiar to ``numpy`` users. A few
-notable capabilities of this package are:
+`astropy.table` provides a flexible and easy-to-use set of tools for working with
+tabular data using an interface based on `numpy`. In addition to basic table creation,
+access, and modification operations, key features include:
 
-* Initialize a table from a wide variety of input data structures and types.
-* Modify a table by adding or removing columns, changing column names,
-  or adding new rows of data.
-* Handle tables containing missing values.
-* Include table and column metadata as flexible data structures.
-* Specify a description, units, and output formatting for columns.
-* Interactively scroll through long tables similar to using ``more``.
-* Create a new table by selecting rows or columns from a table.
+* Support columns of astropy :ref:`time <astropy-time>`, :ref:`coordinates <astropy-coordinates>`, and :ref:`quantities <quantity>`.
+* Support multidimensional and :ref:`structured array columns <structured-array-as-a-column>`.
+* Maintain the units, description, and format of columns.
+* Provide flexible metadata structures for the table and individual columns.
 * Perform :ref:`table_operations` like database joins, concatenation, and binning.
 * Maintain a table index for fast retrieval of table items or ranges.
-* Manipulate multidimensional and :ref:`structured array columns <structured-array-as-a-column>`.
-* Handle non-native (mixin) column types within table.
-* Methods for :ref:`read_write_tables` to files.
-* Hooks for :ref:`subclassing_table` and its component classes.
+* Support a general :ref:`mixin protocol <mixin_protocol>` for flexible data containers in tables.
+* :ref:`Read and write <read_write_tables>` to files via the :ref:`Unified File Read/Write Interface <table_io>`.
+* Convert to and from `pandas.DataFrame`.
+
+The :ref:`astropy-table-and-dataframes` page provides the rationale for maintaining
+and using the dedicated `astropy.table` package instead of relying on `pandas`.
 
 Getting Started
 ===============
@@ -109,6 +107,13 @@ by altering the `astropy.table.conf.default_notebook_table_class
 .. image:: table_repr_html.png
    :width: 450px
 
+Or you can get a fancier notebook interface with :meth:`~astropy.table.Table.show_in_notebook`,
+e.g., when used with ``backend="ipydatagrid"``, it comes with in-browser filtering and sort:
+
+.. image:: https://raw.githubusercontent.com/jupyter-widgets/ipydatagrid/main/static/ipydatagrid_1.gif
+   :width: 450px
+   :alt: Animated DataGrid usage example from ipydatagrid.
+
 If you print the table (either from the notebook or in a text console session)
 then a formatted version appears::
 
@@ -165,7 +170,7 @@ syntax::
   5
 
   >>> t['a'][1]    # Row 1 of column 'a'
-  4
+  np.int32(4)
 
   >>> t[1]         # Row 1 of the table
   <Row index=1>
@@ -177,7 +182,7 @@ syntax::
 
 
   >>> t[1]['a']    # Column 'a' of row 1
-  4
+  np.int32(4)
 
 You can retrieve a subset of a table by rows (using a :class:`slice`) or by
 columns (using column names), where the subset is returned as a new table::
@@ -334,15 +339,6 @@ Masking
 
    masking.rst
 
-I/O with Tables
----------------
-
-.. toctree::
-   :maxdepth: 2
-
-   io.rst
-   pandas.rst
-
 Mixin Columns
 -------------
 
@@ -350,6 +346,15 @@ Mixin Columns
    :maxdepth: 2
 
    mixin_columns.rst
+
+Astropy Table and DataFrames
+----------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   pandas.rst
+   table_and_dataframes.rst
 
 Implementation
 --------------

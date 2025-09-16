@@ -1,4 +1,0 @@
-Fix an issue with unicode string representations of units shown as
-superscripts (like degree) when raised to some power. Like for
-LaTeX representations, now the superscript unicode character is
-replaced by the literal short name before adding the power.

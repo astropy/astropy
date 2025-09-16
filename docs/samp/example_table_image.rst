@@ -76,7 +76,7 @@ These IDs do not mean much, but we can find out more using::
    {'author.affiliation': 'Astrophysics Group, Bristol University',
     'author.email': 'm.b.taylor@bristol.ac.uk',
     'author.name': 'Mark Taylor',
-    'home.page': 'http://www.starlink.ac.uk/topcat/',
+    'home.page': 'https://www.star.bristol.ac.uk/mbt/topcat/',
     'samp.description.text': 'Tool for OPerations on Catalogues And Tables',
     'samp.documentation.url': 'http://127.0.0.1:2525/doc/sun253/index.html',
     'samp.icon.url': 'http://127.0.0.1:2525/doc/images/tc_sok.gif',
@@ -108,7 +108,7 @@ We now set up a receiver class which will handle any received messages. We need
 to take care to write handlers for both notifications and calls (the difference
 between the two being that calls expect a reply)::
 
-    >>> class Receiver(object):
+    >>> class Receiver:
     ...     def __init__(self, client):
     ...         self.client = client
     ...         self.received = False
@@ -183,7 +183,7 @@ reads the table once it has::
     client.connect()
 
     # Set up a receiver class
-    class Receiver(object):
+    class Receiver:
         def __init__(self, client):
             self.client = client
             self.received = False

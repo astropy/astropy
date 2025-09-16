@@ -1,10 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import matplotlib as mpl
 import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import BaseCoordinateFrame, UnitSphericalRepresentation
-from astropy.utils.introspection import minversion
 
 __all__ = [
     "select_step_degree",
@@ -12,8 +10,6 @@ __all__ = [
     "select_step_scalar",
     "transform_contour_set_inplace",
 ]
-
-MATPLOTLIB_LT_3_8 = not minversion(mpl, "3.8.dev")
 
 
 def select_step_degree(dv):
@@ -112,7 +108,8 @@ def get_coord_meta(frame):
     # Add dummy data to the frame to determine the longitude wrap angle and the units
     frame = frame.realize_frame(UnitSphericalRepresentation(0 * u.deg, 0 * u.deg))
     coord_meta["wrap"] = (frame.spherical.lon.wrap_angle, None)
-    coord_meta["unit"] = (frame.spherical.lon.unit, frame.spherical.lat.unit)
+    coord_meta["unit"] = (u.deg, u.deg)
+    coord_meta["format_unit"] = (frame.spherical.lon.unit, frame.spherical.lat.unit)
 
     return coord_meta
 
@@ -137,29 +134,15 @@ def transform_contour_set_inplace(cset, transform):
     all_paths = []
     pos_level = []
     pos_segments = []
-
-    if MATPLOTLIB_LT_3_8:
-        for collection in cset.collections:
-            paths = collection.get_paths()
-            if len(paths) == 0:
-                continue
-            all_paths.append(paths)
-            # The last item in pos isn't needed for np.split and in fact causes
-            # issues if we keep it because it will cause an extra empty array to be
-            # returned.
-            pos = np.cumsum([len(x) for x in paths])
-            pos_segments.append(pos[:-1])
-            pos_level.append(pos[-1])
-    else:
-        paths = cset.get_paths()
-        if len(paths) > 0:
-            all_paths.append(paths)
-            # The last item in pos isn't needed for np.split and in fact causes
-            # issues if we keep it because it will cause an extra empty array to be
-            # returned.
-            pos = np.cumsum([len(x) for x in paths])
-            pos_segments.append(pos[:-1])
-            pos_level.append(pos[-1])
+    paths = cset.get_paths()
+    if len(paths) > 0:
+        all_paths.append(paths)
+        # The last item in pos isn't needed for np.split and in fact causes
+        # issues if we keep it because it will cause an extra empty array to be
+        # returned.
+        pos = np.cumsum([len(x) for x in paths])
+        pos_segments.append(pos[:-1])
+        pos_level.append(pos[-1])
 
     # As above the last item isn't needed
     pos_level = np.cumsum(pos_level)[:-1]

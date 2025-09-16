@@ -1,2 +1,0 @@
-Deprecate importing ``ErfaError`` and ``ErfaWarning`` from ``astropy.utils.exceptions``.
-They should be imported directly from ``erfa`` instead.

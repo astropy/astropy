@@ -7,11 +7,12 @@ from shutil import get_terminal_size
 import numpy as np
 import pytest
 
-from astropy import table
+from astropy import conf, table
 from astropy import units as u
 from astropy.io import ascii
-from astropy.table import QTable, Table
+from astropy.table import Column, QTable, Table
 from astropy.table.table_helpers import simple_table
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
 SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
@@ -161,7 +162,8 @@ class TestPprint:
         """
         self._setup(table_type)
         arr = np.arange(4000, dtype=np.float64).reshape(100, 40)
-        lines = table_type(arr).pformat()
+        with conf.set_temp("max_width", None), conf.set_temp("max_lines", None):
+            lines = table_type(arr).pformat(max_lines=None, max_width=None)
         width, nlines = get_terminal_size()
         assert len(lines) == nlines
         for line in lines[:-1]:  # skip last "Length = .. rows" line
@@ -302,7 +304,14 @@ class TestPprint:
     def test_pformat_all(self, table_type):
         """Test that all rows are printed by default"""
         self._setup(table_type)
-        lines = self.tb.pformat_all()
+        with pytest.warns(
+            AstropyDeprecationWarning,
+            match=(
+                r"The pformat_all function is deprecated "
+                r"and may be removed in a future version\."
+            ),
+        ):
+            lines = self.tb.pformat_all()
         # +3 accounts for the three header lines in this  table
         assert len(lines) == BIG_WIDE_ARR.shape[0] + 3
 
@@ -313,6 +322,40 @@ class TestPprint:
         (out, err) = capsys.readouterr()
         # +3 accounts for the three header lines in this  table
         assert len(out.splitlines()) == BIG_WIDE_ARR.shape[0] + 3
+
+
+class TestPprintColumn:
+    @pytest.mark.parametrize(
+        "scalar, exp",
+        [
+            (
+                1,
+                [
+                    "None",
+                    "----",
+                    "   1",
+                ],
+            ),
+            (
+                u.Quantity(0.6, "eV"),
+                [
+                    "None",
+                    "----",
+                    " 0.6",
+                ],
+            ),
+        ],
+    )
+    def test_pprint_scalar(self, scalar, exp):
+        # see https://github.com/astropy/astropy/issues/12584
+        c = Column(scalar)
+
+        # Make sure pprint() does not raise an exception
+        c.pprint()
+
+        # Check actual output
+        out = c.pformat()
+        assert out == exp
 
 
 @pytest.mark.usefixtures("table_type")
@@ -658,7 +701,7 @@ def test_pprint_structured_with_format():
         "  1    1.23 -20.0 003 bar ",
         "  2   12.35   4.6 033 foo ",
     ]
-    assert t.pformat_all() == exp
+    assert t.pformat() == exp
 
 
 def test_pprint_nameless_col():
@@ -997,26 +1040,26 @@ class TestColumnsShowHide:
         ]
 
         with t.pprint_exclude_names.set(["a", "c"]):
-            out = t.pformat_all()
+            out = t.pformat()
         assert out == exp
 
         with t.pprint_include_names.set(["b", "d"]):
-            out = t.pformat_all()
+            out = t.pformat()
         assert out == exp
 
         with t.pprint_exclude_names.set(["a", "c"]):
-            out = t.pformat_all()
+            out = t.pformat()
         assert out == exp
 
         with t.pprint_include_names.set(["b", "d"]):
-            out = t.pformat_all()
+            out = t.pformat()
         assert out == exp
 
         with (
             t.pprint_include_names.set(["b", "c", "d"]),
             t.pprint_exclude_names.set(["c"]),
         ):
-            out = t.pformat_all()
+            out = t.pformat()
         assert out == exp
 
     def test_output_globs(self):
@@ -1032,7 +1075,7 @@ class TestColumnsShowHide:
             "  1   1   2",
         ]
         with t.pprint_include_names.set("a*"):
-            out = t.pformat_all()
+            out = t.pformat()
         assert out == exp
 
         # Show a* but exclude a??
@@ -1042,7 +1085,7 @@ class TestColumnsShowHide:
             "  1   1",
         ]
         with t.pprint_include_names.set("a*"), t.pprint_exclude_names.set("a??"):
-            out = t.pformat_all()
+            out = t.pformat()
         assert out == exp
 
         # Exclude a??
@@ -1052,7 +1095,7 @@ class TestColumnsShowHide:
             "  1   2   3   4   1",
         ]
         with t.pprint_exclude_names.set("a??"):
-            out = t.pformat_all()
+            out = t.pformat()
         assert out == exp
 
 
@@ -1070,7 +1113,7 @@ def test_embedded_newline_tab():
         r"   a b \n c \t \n d",
         r"   x            y\n",
     ]
-    assert t.pformat_all() == exp
+    assert t.pformat() == exp
 
 
 def test_multidims_with_zero_dim():
@@ -1085,4 +1128,16 @@ def test_multidims_with_zero_dim():
         "   a             ",
         "   b             ",
     ]
-    assert t.pformat_all(show_dtype=True) == exp
+    assert t.pformat(show_dtype=True) == exp
+
+
+def test_zero_length_string():
+    data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
+    t = Table(data, copy=False)
+    exp = [
+        "  a      b  ",
+        "bytes0 int32",
+        "------ -----",
+        "          12",
+    ]
+    assert t.pformat(show_dtype=True) == exp

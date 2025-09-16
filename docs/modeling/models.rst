@@ -319,7 +319,7 @@ a bounding box, then one can use the
 method ::
 
     >>> model1.bounding_box.bounding_box()
-    ((-4.0, 4.0), (-3.0, 3.0), (-2.0, 2.0))
+    ((np.float64(-4.0), np.float64(4.0)), (np.float64(-3.0), np.float64(3.0)), (np.float64(-2.0), np.float64(2.0)))
     >>> model2.bounding_box.bounding_box()
     (-1, 1)
     >>> model3.bounding_box.bounding_box()
@@ -430,7 +430,7 @@ or not. In this case, it makes sense for the selector argument to be ignored ::
     >>> model1(0.5, 1.5, 0, with_bounding_box=True)
     (1.5, 3.5, 0.0)
     >>> model1(0.5, 1.5, 1, with_bounding_box=True)
-    (nan, nan, nan)
+    (np.float64(nan), np.float64(nan), np.float64(nan))
 
 Multiple selector arguments can also be used, in this case the keys of the
 dictionary of bounding boxes need to be specified as tuples of values ::
@@ -493,7 +493,7 @@ dictionary of bounding boxes need to be specified as tuples of values ::
     >>> model2(0.5, 1.5, 0, 0, with_bounding_box=True)
     (1.5, 3.5, 0.0, 0.0)
     >>> model2(0.5, 1.5, 1, 1, with_bounding_box=True)
-    (nan, nan, nan, nan)
+    (np.float64(nan), np.float64(nan), np.float64(nan), np.float64(nan))
 
 Note that one can also specify the ordering for all the bounding boxes
 comprising the compound bounding using the ``order`` keyword argument.
@@ -691,37 +691,33 @@ a factor of 10 with negligible loss of information.
     max_err = diff.max()
 
     # Plots
-    plt.figure(figsize=(16, 7))
-    plt.subplots_adjust(left=.05, right=.97, bottom=.03, top=.97, wspace=0.15)
+    fig, axs = plt.subplots(figsize=(16, 7), ncols=2)
+    fig.subplots_adjust(left=.05, right=.97, bottom=.03, top=.97, wspace=0.15)
 
     # Full model image
-    plt.subplot(121)
-    plt.imshow(full_image, origin='lower')
-    plt.title(f'Full Models\nTiming: {t_full:.2f} seconds', fontsize=16)
-    plt.xlabel('x')
-    plt.ylabel('y')
+    ax1 = axs[0]
+    ax1.imshow(full_image, origin='lower')
+    ax1.set_title(f'Full Models\nTiming: {t_full:.2f} seconds', fontsize=16)
+    ax1.set(xlabel='x', ylabel='y')
 
     # Bounded model image with boxes overplotted
-    ax = plt.subplot(122)
-    plt.imshow(bb_image, origin='lower')
+    ax2 = axs[1]
+    ax2.imshow(bb_image, origin='lower')
     for model in model_list:
         del model.bounding_box  # Reset bounding_box to its default
         dy, dx = np.diff(model.bounding_box).flatten()
         pos = (model.x_mean.value - dx / 2, model.y_mean.value - dy / 2)
         r = Rectangle(pos, dx, dy, edgecolor='w', facecolor='none', alpha=.25)
-        ax.add_patch(r)
-    plt.title(f'Bounded Models\nTiming: {t_bb:.2f} seconds', fontsize=16)
-    plt.xlabel('x')
-    plt.ylabel('y')
+        ax2.add_patch(r)
+    ax2.set_title(f'Bounded Models\nTiming: {t_bb:.2f} seconds', fontsize=16)
+    ax2.set(xlabel='x', ylabel='y')
 
     # Difference image
-    plt.figure(figsize=(16, 8))
-    plt.subplot(111)
-    plt.imshow(diff, vmin=-max_err, vmax=max_err)
-    plt.colorbar(format='%.1e')
-    plt.title(f'Difference Image\nTotal Flux Err = {((flux - np.sum(bb_image)) / flux):.0e}')
-    plt.xlabel('x')
-    plt.ylabel('y')
+    fig2, ax = plt.subplots(figsize=(16, 8))
+    im = ax.imshow(diff, vmin=-max_err, vmax=max_err)
+    fig2.colorbar(im, format='%.1e')
+    ax.set_title(f'Difference Image\nTotal Flux Err = {((flux - np.sum(bb_image)) / flux):.0e}')
+    ax.set(xlabel='x', ylabel='y')
     plt.show()
 
 

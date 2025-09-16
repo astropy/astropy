@@ -5,9 +5,11 @@ The ``lombscargle`` function here is essentially a sophisticated switch
 statement for the various implementations available in this submodule
 """
 
-__all__ = ["lombscargle", "available_methods"]
+__all__ = ["available_methods", "lombscargle"]
 
 import numpy as np
+
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .chi2_impl import lombscargle_chi2
 from .cython_impl import lombscargle_cython
@@ -30,11 +32,7 @@ def available_methods():
     methods = ["auto", "slow", "chi2", "cython", "fast", "fastchi2"]
 
     # Scipy required for scipy algorithm (obviously)
-    try:
-        import scipy  # noqa: F401
-    except ImportError:
-        pass
-    else:
+    if HAS_SCIPY:
         methods.append("scipy")
     return methods
 

@@ -64,17 +64,17 @@ projcodes = [code for _, code in _PROJ_NAME_CODE]
 
 
 __all__ = [
-    "Projection",
+    "AffineTransformation2D",
+    "Conic",
+    "Cylindrical",
+    "HEALPix",
     "Pix2SkyProjection",
+    "Projection",
+    "PseudoConic",
+    "PseudoCylindrical",
+    "QuadCube",
     "Sky2PixProjection",
     "Zenithal",
-    "Cylindrical",
-    "PseudoCylindrical",
-    "Conic",
-    "PseudoConic",
-    "QuadCube",
-    "HEALPix",
-    "AffineTransformation2D",
     "projcodes",
 ]
 

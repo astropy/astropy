@@ -1,1 +1,0 @@
-Reading of CDS header files with multi-line descriptions where the continued line started with a number was broken. This is now fixed.

@@ -3,6 +3,7 @@
 import copy
 import operator
 import warnings
+from inspect import currentframe, getframeinfo
 
 import numpy as np
 import pytest
@@ -464,6 +465,18 @@ class TestColumn:
         with pytest.raises(AttributeError):
             t["a"].mask = [True, False]
 
+    @pytest.mark.parametrize("scalar", [1, u.Quantity(0.6, "eV")])
+    def test_access_scalar(self, scalar):
+        # see https://github.com/astropy/astropy/pull/15749#issuecomment-1867561072
+        c = table.Column(scalar)
+        if isinstance(scalar, u.Quantity):
+            assert c.item() == scalar.value
+        else:
+            assert c.item() == scalar
+
+        with pytest.raises(IndexError):
+            c[0]
+
 
 @pytest.mark.parametrize(
     "data",
@@ -791,8 +804,6 @@ def test_string_truncation_warning(masked):
     Test warnings associated with in-place assignment to a string
     column that results in truncation of the right hand side.
     """
-    from inspect import currentframe, getframeinfo
-
     t = table.Table([["aa", "bb"]], names=["a"], masked=masked)
     t["a"][1] = "cc"
     t["a"][:] = "dd"
@@ -1145,3 +1156,37 @@ def test_masked_unit_conversion():
     c = table.MaskedColumn([3.5, 2.4, 1.7], name="test", unit=u.km)
     c.convert_unit_to(u.m)
     assert c.unit == (c * 2.0).unit
+
+
+@pytest.mark.parametrize(
+    "copy",
+    [
+        False,
+        pytest.param(
+            True,
+            marks=pytest.mark.xfail(
+                reason="See https://github.com/numpy/numpy/issues/27301"
+            ),
+        ),
+    ],
+)
+def test_zero_length_strings(Column, copy):
+    # Easiest way to get a zero-sized byte string is with a structured dtype.
+    data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
+    col = Column(data["a"], name="a", copy=copy)
+    assert col.dtype.itemsize == 0
+    assert col.dtype == data.dtype["a"]
+
+
+def test_setting_column_name_to_with_invalid_type(Column):
+    # see https://github.com/astropy/astropy/issues/17449
+    col = Column([1, 2], name="a")
+    assert col.info.name == "a"
+
+    col.name = None
+    assert col.info.name is None
+
+    with pytest.raises(
+        TypeError, match="Expected a str value, got 2.3 with type float"
+    ):
+        col.name = 2.3

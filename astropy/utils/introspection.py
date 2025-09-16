@@ -1,29 +1,26 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Functions related to Python runtime introspection."""
 
-from __future__ import annotations
-
-import importlib
 import inspect
 import os
 import sys
-from importlib import metadata
+from importlib import import_module, metadata
 from importlib.metadata import packages_distributions
-from typing import TYPE_CHECKING
+from types import FrameType, ModuleType
+from typing import Literal
 
 from packaging.version import Version
 
 from .decorators import deprecated
 
-if TYPE_CHECKING:
-    from types import FrameType, ModuleType
-    from typing import Literal
-
-__all__ = ["resolve_name", "minversion", "find_current_module", "isinstancemethod"]
+__all__ = ["find_current_module", "isinstancemethod", "minversion", "resolve_name"]
 
 __doctest_skip__ = ["find_current_module"]
 
 
+@deprecated(
+    since="7.0", alternative="importlib (e.g. importlib.import_module for modules)"
+)
 def resolve_name(name: str, *additional_parts: str) -> object:
     """Resolve a name like ``module.object`` to an object and return it.
 
@@ -42,13 +39,6 @@ def resolve_name(name: str, *additional_parts: str) -> object:
     additional_parts : iterable, optional
         If more than one positional arguments are given, those arguments are
         automatically dotted together with ``name``.
-
-    Examples
-    --------
-    >>> resolve_name('astropy.utils.introspection.resolve_name')
-    <function resolve_name at 0x...>
-    >>> resolve_name('astropy', 'utils', 'introspection', 'resolve_name')
-    <function resolve_name at 0x...>
 
     Raises
     ------
@@ -126,7 +116,7 @@ def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -
         module_name = module
         module_version = None
         try:
-            module = resolve_name(module_name)
+            module = import_module(module_name)
         except ImportError:
             return False
     else:
@@ -233,7 +223,7 @@ def find_current_module(
 
     """
     frm = inspect.currentframe()
-    for i in range(depth):
+    for _ in range(depth):
         frm = frm.f_back
         if frm is None:
             return None
@@ -248,7 +238,7 @@ def find_current_module(
                 if inspect.ismodule(fd):
                     diffmods.append(fd)
                 elif isinstance(fd, str):
-                    diffmods.append(importlib.import_module(fd))
+                    diffmods.append(import_module(fd))
                 elif fd is True:
                     diffmods.append(currmod)
                 else:
@@ -340,12 +330,12 @@ def find_mod_objs(modname, onlylocals=False):
         the other arguments)
 
     """
-    mod = resolve_name(modname)
+    mod = import_module(modname)
 
     if hasattr(mod, "__all__"):
-        pkgitems = [(k, mod.__dict__[k]) for k in mod.__all__]
+        pkgitems = [(k, getattr(mod, k)) for k in mod.__all__]
     else:
-        pkgitems = [(k, mod.__dict__[k]) for k in dir(mod) if k[0] != "_"]
+        pkgitems = [(k, getattr(mod, k)) for k in dir(mod) if k[0] != "_"]
 
     # filter out modules and pull the names and objs out
     ismodule = inspect.ismodule

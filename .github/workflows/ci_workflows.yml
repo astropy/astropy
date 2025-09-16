@@ -17,13 +17,16 @@ env:
   ARCH_ON_CI: "normal"
   IS_CRON: "false"
 
+permissions:
+  contents: read
+
 jobs:
   initial_checks:
     name: Mandatory checks before CI
     runs-on: ubuntu-latest
     steps:
     - name: Check base branch
-      uses: actions/github-script@v7
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
       if: github.event_name == 'pull_request' && github.repository == 'astropy/astropy'
       with:
         script: |
@@ -46,7 +49,7 @@ jobs:
 
   tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@28e947497bed4d6ec3fa1d66d198e95a1d17bc63  # v2.2.1
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
@@ -66,35 +69,43 @@ jobs:
           linux: py312-test-cov
           coverage: codecov
 
-        - name: Python 3.11 in Parallel with all optional dependencies
-          linux: py311-test-alldeps-fitsio
+        - name: Python 3.12 in Parallel with all optional dependencies
+          linux: py312-test-alldeps-fitsio
           libraries:
             apt:
               - language-pack-fr
               - tzdata
+              - libbz2-dev
               - libcfitsio-dev
           toxargs: -v --develop
           posargs: -n=4 --run-slow
 
-        - name: Python 3.10 with oldest supported version of all dependencies
-          linux: py310-test-oldestdeps-alldeps-cov-clocale
+        - name: Python 3.11 with oldest supported version of all dependencies
+          linux: py311-test-oldestdeps-alldeps-cov-clocale
           posargs: --remote-data=astropy
           coverage: codecov
 
-        - name: Python 3.11 with all optional dependencies (Windows)
-          windows: py311-test-alldeps
+        - name: Python 3.12 with all optional dependencies (Windows)
+          windows: py312-test-alldeps
           posargs: --durations=50
 
-        - name: Python 3.11 with all optional dependencies (MacOS X)
-          macos: py311-test-alldeps
+        - name: Python 3.12 with all optional dependencies (MacOS X)
+          macos: py312-test-alldeps
           posargs: --durations=50 --run-slow
+          runs-on: macos-latest
 
-        - name: Python 3.10 Double test (Run tests twice)
-          linux: py310-test-double
+        # FIXME: Add aarch64 to name when bump Python version.
+        - name: Python 3.11 Double test (Run tests twice)
+          linux: py311-test-double
+          runs-on: ubuntu-24.04-arm
+          posargs: -n=4
+          setenv: |
+            ARCH_ON_CI: "arm64"
+            IS_CRON: "false"
 
   allowed_failures:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@28e947497bed4d6ec3fa1d66d198e95a1d17bc63  # v2.2.1
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -106,6 +117,51 @@ jobs:
           - language-pack-de
           - tzdata
       envs: |
-        - name: (Allowed Failure) Python 3.12 with remote data and dev version of key dependencies
-          linux: py312-test-devdeps
+        - name: (Allowed Failure) Python 3.13 with remote data and dev version of key dependencies
+          linux: py313-test-devdeps
           posargs: --remote-data=any --verbose
+
+  test_wheel_building:
+    needs: [initial_checks]
+    # This ensures that a couple of wheel targets work fine in pull requests and pushes
+    permissions:
+      contents: none
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@28e947497bed4d6ec3fa1d66d198e95a1d17bc63  # v2.2.1
+    with:
+      upload_to_pypi: false
+      upload_to_anaconda: false
+      test_extras: test
+      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
+      targets: |
+        - cp311-manylinux_x86_64
+
+
+  test_limited_api_build:
+    # Test to make sure that we can build astropy with the limited API
+    # This job is also important to check `build` as our build frontend
+    # see https://github.com/astropy/astropy/pull/18253
+    strategy:
+        fail-fast: false
+        matrix:
+          os:
+            - ubuntu-latest
+            - macos-latest
+            - windows-latest
+    runs-on: ${{ matrix.os }}
+    name: Python 3.11 (build only, partial) with limited API (${{ matrix.os }})
+    needs: [initial_checks]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        name: Install Python
+        with:
+          python-version: "3.11"
+      - run: |
+          python -m pip install build
+          python -m build
+        name: Run build
+        env:
+          EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'

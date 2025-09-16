@@ -55,6 +55,7 @@ Examples
 """
 
 import base64
+import itertools
 
 import numpy as np
 import yaml
@@ -64,7 +65,7 @@ from astropy import units as u
 from astropy.table import SerializedColumn
 from astropy.time import Time, TimeDelta
 
-__all__ = ["AstropyLoader", "AstropyDumper", "load", "load_all", "dump"]
+__all__ = ["AstropyDumper", "AstropyLoader", "dump", "load", "load_all"]
 
 
 def _unit_representer(dumper, obj):
@@ -78,8 +79,7 @@ def _unit_constructor(loader, node):
 
 
 def _serialized_column_representer(dumper, obj):
-    out = dumper.represent_mapping("!astropy.table.SerializedColumn", obj)
-    return out
+    return dumper.represent_mapping("!astropy.table.SerializedColumn", obj)
 
 
 def _serialized_column_constructor(loader, node):
@@ -94,8 +94,7 @@ def _time_representer(dumper, obj):
 
 def _time_constructor(loader, node):
     map = loader.construct_mapping(node)
-    out = Time.info._construct_from_dict(map)
-    return out
+    return Time.info._construct_from_dict(map)
 
 
 def _timedelta_representer(dumper, obj):
@@ -105,8 +104,7 @@ def _timedelta_representer(dumper, obj):
 
 def _timedelta_constructor(loader, node):
     map = loader.construct_mapping(node)
-    out = TimeDelta.info._construct_from_dict(map)
-    return out
+    return TimeDelta.info._construct_from_dict(map)
 
 
 def _ndarray_representer(dumper, obj):
@@ -181,26 +179,24 @@ def _quantity_constructor(cls):
 
 def _skycoord_representer(dumper, obj):
     map = obj.info._represent_as_dict()
-    out = dumper.represent_mapping("!astropy.coordinates.sky_coordinate.SkyCoord", map)
-    return out
+    return dumper.represent_mapping("!astropy.coordinates.sky_coordinate.SkyCoord", map)
 
 
 def _skycoord_constructor(loader, node):
     map = loader.construct_mapping(node)
-    out = coords.SkyCoord.info._construct_from_dict(map)
-    return out
+    return coords.SkyCoord.info._construct_from_dict(map)
 
 
 # Straight from yaml's Representer
 def _complex_representer(self, data):
     if data.imag == 0.0:
-        data = f"{data.real!r}"
+        data = f"{data.real!s}"
     elif data.real == 0.0:
-        data = f"{data.imag!r}j"
+        data = f"{data.imag!s}j"
     elif data.imag > 0:
-        data = f"{data.real!r}+{data.imag!r}j"
+        data = f"{data.real!s}+{data.imag!s}j"
     else:
-        data = f"{data.real!r}{data.imag!r}j"
+        data = f"{data.real!s}{data.imag!s}j"
     return self.represent_scalar("tag:yaml.org,2002:python/complex", data)
 
 
@@ -243,6 +239,30 @@ class AstropyDumper(yaml.SafeDumper):
     def _represent_tuple(self, data):
         return self.represent_sequence("tag:yaml.org,2002:python/tuple", data)
 
+    def represent_float(self, data):
+        # Override to change repr(data) to str(data) since otherwise all the
+        # numpy scalars fail in not NUMPY_LT_2_0.
+        # otherwise, this function is identical to yaml.SafeDumper.represent_float
+        # (as of pyyaml 6.0.1)
+        if data != data or (data == 0.0 and data == 1.0):
+            value = ".nan"
+        elif data == self.inf_value:
+            value = ".inf"
+        elif data == -self.inf_value:
+            value = "-.inf"
+        else:
+            value = str(data).lower()
+            # Note that in some cases `repr(data)` represents a float number
+            # without the decimal parts.  For instance:
+            #   >>> repr(1e17)
+            #   '1e17'
+            # Unfortunately, this is not a valid float representation according
+            # to the definition of the `!!float` tag.  We fix this by adding
+            # '.0' before the 'e' symbol.
+            if "." not in value and "e" in value:
+                value = value.replace("e", ".0e", 1)
+        return self.represent_scalar("tag:yaml.org,2002:float", value)
+
 
 AstropyDumper.add_multi_representer(u.UnitBase, _unit_representer)
 AstropyDumper.add_multi_representer(u.FunctionUnitBase, _unit_representer)
@@ -273,9 +293,7 @@ for np_type in [
         np_type, yaml.representer.SafeRepresenter.represent_int
     )
 for np_type in [np.float16, np.float32, np.float64, np.longdouble]:
-    AstropyDumper.add_representer(
-        np_type, yaml.representer.SafeRepresenter.represent_float
-    )
+    AstropyDumper.add_representer(np_type, AstropyDumper.represent_float)
 for np_type in [complex, np.complex64, np.complex128]:
     AstropyDumper.add_representer(np_type, _complex_representer)
 
@@ -311,15 +329,22 @@ for cls, tag in (
     AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
     AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
-for cls in list(coords.representation.REPRESENTATION_CLASSES.values()) + list(
-    coords.representation.DIFFERENTIAL_CLASSES.values()
-):
+# Add representations, differentials, and built-in frames defined in astropy and in the
+# ``astropy.coordinates`` public API.
+cls_coords = [
+    cls
+    for cls in itertools.chain(
+        coords.representation.REPRESENTATION_CLASSES.values(),
+        coords.representation.DIFFERENTIAL_CLASSES.values(),
+        coords.frame_transform_graph.frame_set,
+    )
+    if cls.__name__ in dir(coords)
+]
+for cls in cls_coords:
     name = cls.__name__
-    # Add representations/differentials defined in astropy.
-    if name in coords.representation.__all__:
-        tag = "!astropy.coordinates." + name
-        AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
-        AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
+    tag = "!astropy.coordinates." + name
+    AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
+    AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
 
 def load(stream):

@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 import inspect
 import itertools
-from typing import TYPE_CHECKING
+from io import StringIO
+from types import FunctionType, ModuleType
 
 import numpy as np
 import numpy.lib.recfunctions as rfn
@@ -18,18 +17,11 @@ from astropy.units.quantity_helper.function_helpers import (
     FUNCTION_HELPERS,
     IGNORED_FUNCTIONS,
     SUBCLASS_SAFE_FUNCTIONS,
+    SUPPORTED_NEP35_FUNCTIONS,
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
-from astropy.utils.compat import (
-    NUMPY_LT_1_24,
-    NUMPY_LT_1_25,
-    NUMPY_LT_2_0,
-)
-
-if TYPE_CHECKING:
-    from types import FunctionType, ModuleType
-
+from astropy.utils.compat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
 
 VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
 VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
@@ -37,6 +29,8 @@ POSITIONAL_ONLY = inspect.Parameter.POSITIONAL_ONLY
 KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
 POSITIONAL_OR_KEYWORD = inspect.Parameter.POSITIONAL_OR_KEYWORD
 
+ARCSEC_PER_DEGREE = 60 * 60
+ARCSEC_PER_RADIAN = ARCSEC_PER_DEGREE * np.rad2deg(1)
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
@@ -361,6 +355,211 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
             int32q = self.q.astype("int32")
             assert_array_equal(np.astype(int32q, "int32"), int32q)
 
+    @needs_array_function
+    @pytest.mark.parametrize(
+        "args, kwargs, expected",
+        [
+            pytest.param(
+                (1 * u.radian,),
+                {},
+                np.arange(1, dtype=float),
+                id="pos: stop",
+            ),
+            pytest.param(
+                (0 * u.degree, 1 * u.radian),
+                {},
+                np.arange(1, dtype=float),
+                id="pos: start, stop",
+            ),
+            pytest.param(
+                (0 * u.degree, 1 * u.radian, 1 * u.arcsec),
+                {},
+                np.arange(ARCSEC_PER_RADIAN, dtype=float),
+                id="pos: start, stop, step",
+            ),
+            pytest.param(
+                (0 * u.degree, 1 * u.radian),
+                {"step": 1 * u.arcsec},
+                np.arange(ARCSEC_PER_RADIAN, dtype=float),
+                id="pos: start, stop; kw: step",
+            ),
+            pytest.param(
+                (0 * u.radian,),
+                {"stop": 5 * u.radian},
+                np.rad2deg(np.arange(5, dtype=float) * ARCSEC_PER_DEGREE),
+                id="pos: start; kw: stop",
+            ),
+            pytest.param(
+                (10 * u.radian, None),
+                {},
+                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
+                id="pos: stop, followed by 1 None",
+            ),
+            pytest.param(
+                (10 * u.radian, None, None),
+                {},
+                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
+                id="pos: stop, followed by 2 None",
+            ),
+            pytest.param(
+                (10 * u.radian, None, None, None),
+                {},
+                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
+                id="pos: stop, followed by 3 None",
+            ),
+        ],
+    )
+    def test_arange(self, args, kwargs, expected):
+        arr = np.arange(*args, **kwargs, like=u.Quantity([], u.degree))
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.radian
+        assert arr.dtype == expected.dtype
+        assert_allclose(arr.to_value(u.arcsec), expected)
+
+    def test_arange_like_quantity_subclass(self):
+        class AngularUnits(u.SpecificTypeQuantity):
+            _equivalent_unit = u.radian
+
+        arr = np.arange(
+            0 * u.radian, 10 * u.radian, 1 * u.radian, like=AngularUnits([], u.radian)
+        )
+        assert type(arr) is AngularUnits
+        assert arr.unit == u.radian
+        assert arr.dtype == np.dtype(float)
+        assert_array_equal(arr.value, np.arange(10))
+
+    def test_arange_pos_dtype(self):
+        arr = np.arange(0 * u.s, 10 * u.s, 1 * u.s, int, like=u.Quantity([], u.radian))
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.s
+        assert arr.dtype == np.dtype(int)
+        assert_array_equal(arr.value, np.arange(10))
+
+    def test_arange_default_unit(self):
+        arr = np.arange(10, like=u.Quantity([], u.s))
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.s
+
+    def test_arange_invalid_inputs(self):
+        with pytest.raises(
+            TypeError,
+            match="stop without a unit cannot be combined with start or step",
+        ):
+            np.arange(0 * u.radian, 10, like=u.Quantity([], u.s))
+
+    def test_arange_unit_from_stop(self):
+        Q = 1 * u.km
+        a = np.arange(start=1 * u.s, stop=10 * u.min, like=Q)
+        b = np.arange(stop=10 * u.min, start=1 * u.s, like=Q)
+        assert a.unit == u.min
+        assert b.unit == u.min
+        assert_array_equal(a.value, b.value)
+
+
+class TestArrayCreation(BasicTestSetup):
+    def check(self, func, *args, skip_equality_check=False, **kwargs):
+        o = func(*args, **kwargs, like=self.q)
+        assert type(o) is type(self.q)
+        assert o.unit == self.q.unit
+        if skip_equality_check:
+            return
+        expected = func(*args, **kwargs) << self.q.unit
+        assert_array_equal(o, expected)
+
+    def test_empty(self):
+        self.check(np.empty, (2, 2), skip_equality_check=True)
+
+    def test_ones(self):
+        self.check(np.ones, (2, 2))
+
+    def test_zeros(self):
+        self.check(np.zeros, (2, 2))
+
+    def test_full(self):
+        self.check(np.full, (2, 2), 2)
+
+    def test_full_unit_from_fill_value(self):
+        Q = 1 * u.km
+        arr1 = np.full((2, 2), 2, like=Q)
+        arr2 = np.full((2, 2), 2 * u.s, like=Q)
+        assert type(arr2) is u.Quantity
+        assert arr2.unit == u.s
+        assert_array_equal(arr2.value, arr1.value)
+
+    def test_require(self):
+        self.check(np.require, np.arange(10))
+
+    def test_array(self):
+        self.check(np.array, np.arange(10))
+
+    def test_array_unit_from_data(self):
+        # check that input unit takes precedent over like arg
+        Q = np.arange(10) << u.km
+        arr2 = np.array(Q.value << u.cm, like=Q)
+        assert type(arr2) is u.Quantity
+        assert arr2.unit == u.cm
+        assert_array_equal(arr2.value, Q.value)
+
+    def test_asarray(self):
+        self.check(np.asarray, np.arange(10))
+
+    def test_asanyarray(self):
+        self.check(np.asanyarray, np.arange(10))
+
+    def test_ascontiguousarray(self):
+        self.check(np.ascontiguousarray, np.arange(10))
+
+    def test_asfortranarray(self):
+        self.check(np.asfortranarray, np.arange(10))
+
+    def test_genfromtxt(self):
+        s = StringIO("1.0,2.0,3.0")
+        self.check(np.genfromtxt, s, delimiter=",", skip_equality_check=True)
+
+    def test_loadtxt(self):
+        s = StringIO("0 1\n2 3")
+        self.check(np.loadtxt, s, skip_equality_check=True)
+
+    def test_fromfile(self, tmp_path):
+        arr = np.arange(10)
+        test_file = tmp_path / "arr.npy"
+        arr.tofile(test_file)
+        self.check(np.fromfile, test_file)
+
+    def test_frombuffer(self):
+        self.check(np.frombuffer, b"\x01\x02\x03", dtype=np.uint8)
+
+    def test_fromfunction(self):
+        self.check(np.fromfunction, lambda i, j: i * j, (3, 3))
+
+    def test_fromfunction_unit_from_retv(self):
+        Q = [1, 2, 3] << u.cm
+        arr = np.fromfunction(lambda i, j: (i * j) << u.s, (3, 3), like=Q)
+        assert type(arr) is u.Quantity
+        assert arr.unit == u.s
+
+    def test_fromiter(self):
+        it = (i * i for i in range(3))
+        self.check(
+            np.fromiter,
+            it,
+            dtype=np.dtype((int, 3)),
+            # cannot generate another array after consuming the iterator
+            skip_equality_check=True,
+        )
+
+    def test_fromstring(self):
+        self.check(np.fromstring, "1 2 3", sep=" ")
+
+    def test_identity(self):
+        self.check(np.identity, 3)
+
+    def test_eye(self):
+        self.check(np.eye, 3)
+
+    def test_tri(self):
+        self.check(np.tri, 3)
+
 
 class TestAccessingParts(InvariantUnitTestSetup):
     def test_diag(self):
@@ -646,6 +845,10 @@ class TestSplit:
     def test_dsplit(self):
         self.check(np.dsplit, [1])
 
+    @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.unstack is new in Numpy 2.1")
+    def test_unstack(self):
+        self.check(np.unstack)
+
 
 class TestUfuncReductions(InvariantUnitTestSetup):
     def test_max(self):
@@ -666,6 +869,10 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     def test_cumsum(self):
         self.check(np.cumsum)
 
+    @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.cumulative_sum is new in NumPy 2.1")
+    def test_cumulative_sum(self):
+        self.check(np.cumulative_sum, axis=1)
+
     def test_any(self):
         with pytest.raises(TypeError):
             np.any(self.q)
@@ -678,13 +885,13 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
     def test_sometrue(self):
         with pytest.raises(TypeError):
-            np.sometrue(self.q)  # noqa: NPY003
+            np.sometrue(self.q)  # noqa: NPY003, NPY201
 
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.alltrue is removed in NumPy 2.0")
     @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
     def test_alltrue(self):
         with pytest.raises(TypeError):
-            np.alltrue(self.q)  # noqa: NPY003
+            np.alltrue(self.q)  # noqa: NPY003, NPY201
 
     def test_prod(self):
         with pytest.raises(u.UnitsError):
@@ -694,7 +901,7 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
     def test_product(self):
         with pytest.raises(u.UnitsError):
-            np.product(self.q)  # noqa: NPY003
+            np.product(self.q)  # noqa: NPY003, NPY201
 
     def test_cumprod(self):
         with pytest.raises(u.UnitsError):
@@ -706,7 +913,12 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
     def test_cumproduct(self):
         with pytest.raises(u.UnitsError):
-            np.cumproduct(self.q)  # noqa: NPY003
+            np.cumproduct(self.q)  # noqa: NPY003, NPY201
+
+    @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.cumulative_prod is new in NumPy 2.1")
+    def test_cumulative_prod(self):
+        with pytest.raises(u.UnitsError):
+            np.cumulative_prod(self.q, axis=1)
 
 
 class TestUfuncLike(InvariantUnitTestSetup):
@@ -1057,10 +1269,52 @@ class TestNanFunctions(InvariantUnitTestSetup):
     def test_nanstd(self):
         self.check(np.nanstd)
 
+    @pytest.mark.parametrize(
+        "out_init",
+        [
+            pytest.param(u.Quantity(-1, "m"), id="out with correct unit"),
+            # this should work too: out.unit will be overridden
+            pytest.param(u.Quantity(-1), id="out with a different unit"),
+        ],
+    )
+    def test_nanstd_out(self, out_init):
+        out = out_init.copy()
+        o = np.nanstd(self.q, out=out)
+        assert o is out
+        assert o == np.nanstd(self.q)
+
+        # Also check array input, Quantity output.
+        out = out_init.copy()
+        o2 = np.nanstd(self.q.value, out=out)
+        assert o2 is out
+        assert o2.unit == u.dimensionless_unscaled
+        assert o2 == np.nanstd(self.q.value)
+
     def test_nanvar(self):
         out = np.nanvar(self.q)
         expected = np.nanvar(self.q.value) * self.q.unit**2
         assert np.all(out == expected)
+
+    @pytest.mark.parametrize(
+        "out_init",
+        [
+            pytest.param(u.Quantity(-1, "m"), id="out with correct unit"),
+            # this should work too: out.unit will be overridden
+            pytest.param(u.Quantity(-1), id="out with a different unit"),
+        ],
+    )
+    def test_nanvar_out(self, out_init):
+        out = out_init.copy()
+        o = np.nanvar(self.q, out=out)
+        assert o is out
+        assert o == np.nanvar(self.q)
+
+        # Also check array input, Quantity output.
+        out = out_init.copy()
+        o2 = np.nanvar(self.q.value, out=out)
+        assert o2 is out
+        assert o2.unit == u.dimensionless_unscaled
+        assert o2 == np.nanvar(self.q.value)
 
     def test_nanprod(self):
         with pytest.raises(u.UnitsError):
@@ -1198,7 +1452,7 @@ class TestIntDiffFunctions:
     if NUMPY_LT_2_0:
 
         def test_trapz(self):
-            self.check_trapezoid(np.trapz)
+            self.check_trapezoid(np.trapz)  # noqa: NPY201
 
     else:
 
@@ -1405,7 +1659,7 @@ class TestHistogramFunctions:
         if expected_units[0] is not None:
             expected_h = expected_h * expected_units[0]
         assert_array_equal(out_h, expected_h)
-        # Check bin edges.  Here, histogramdd returns an interable of the
+        # Check bin edges.  Here, histogramdd returns an iterable of the
         # bin edges as the second return argument, while histogram and
         # histogram2d return the bin edges directly.
         if function is np.histogramdd:
@@ -1770,9 +2024,10 @@ class TestSortFunctions(InvariantUnitTestSetup):
     def test_sort_axis(self):
         self.check(np.sort, axis=0)
 
-    @pytest.mark.skipif(not NUMPY_LT_1_24, reason="np.msort is deprecated")
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.msort was removed in numpy 2.0")
     def test_msort(self):
-        self.check(np.msort)
+        with pytest.warns(DeprecationWarning, match="^msort is deprecated"):
+            self.check(np.msort)
 
     @needs_array_function
     def test_sort_complex(self):
@@ -2029,11 +2284,11 @@ class TestSetOpsFunctions:
     @needs_array_function
     @pytest.mark.filterwarnings("ignore:`in1d` is deprecated. Use `np.isin` instead.")
     def test_in1d(self):
-        self.check2(np.in1d, unit=None)
+        self.check2(np.in1d, unit=None)  # noqa: NPY201
         # Check zero is treated as having any unit.
-        assert np.in1d(np.zeros(1), self.q2)
+        assert np.in1d(np.zeros(1), self.q2)  # noqa: NPY201
         with pytest.raises(u.UnitsError):
-            np.in1d(np.ones(1), self.q2)
+            np.in1d(np.ones(1), self.q2)  # noqa: NPY201
 
     @needs_array_function
     def test_isin(self):
@@ -2440,22 +2695,22 @@ class TestRecFunctions:
     tested_module = np.lib.recfunctions
 
     @classmethod
-    def setup_class(self):
-        self.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
-        self.pv_t_dtype = np.dtype(
+    def setup_class(cls):
+        cls.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
+        cls.pv_t_dtype = np.dtype(
             [("pv", np.dtype([("pp", "f8"), ("vv", "f8")])), ("t", "f8")]
         )
 
-        self.pv = np.array([(1.0, 0.25), (2.0, 0.5), (3.0, 0.75)], self.pv_dtype)
-        self.pv_t = np.array(
-            [((4.0, 2.5), 0.0), ((5.0, 5.0), 1.0), ((6.0, 7.5), 2.0)], self.pv_t_dtype
+        cls.pv = np.array([(1.0, 0.25), (2.0, 0.5), (3.0, 0.75)], cls.pv_dtype)
+        cls.pv_t = np.array(
+            [((4.0, 2.5), 0.0), ((5.0, 5.0), 1.0), ((6.0, 7.5), 2.0)], cls.pv_t_dtype
         )
 
-        self.pv_unit = u.StructuredUnit((u.km, u.km / u.s), ("p", "v"))
-        self.pv_t_unit = u.StructuredUnit((self.pv_unit, u.s), ("pv", "t"))
+        cls.pv_unit = u.StructuredUnit((u.km, u.km / u.s), ("p", "v"))
+        cls.pv_t_unit = u.StructuredUnit((cls.pv_unit, u.s), ("pv", "t"))
 
-        self.q_pv = self.pv << self.pv_unit
-        self.q_pv_t = self.pv_t << self.pv_t_unit
+        cls.q_pv = cls.pv << cls.pv_unit
+        cls.q_pv_t = cls.pv_t << cls.pv_t_unit
 
     def test_structured_to_unstructured(self):
         # can't unstructure something with incompatible units
@@ -2575,6 +2830,9 @@ class TestRecFunctions:
 all_wrapped_functions = get_wrapped_functions(
     np, np.fft, np.linalg, np.lib.recfunctions
 )
+if NUMPY_LT_2_2:
+    # ref https://github.com/numpy/numpy/issues/27451
+    all_wrapped_functions |= SUPPORTED_NEP35_FUNCTIONS
 tested_functions = get_covered_functions(locals())
 untested_functions = set()
 deprecated_functions = set()
@@ -2697,20 +2955,25 @@ class CheckSignatureCompatibilityBase:
                         f"helper is not re-exposing argument {nt!r} properly: "
                         f"expected {kt}, got {kh}"
                     )
+                elif nt == "like":
+                    # special case for NEP35 functions:
+                    # this argument doesn't need to be re-exposed because
+                    # it is not passed down to dispatched functions
+                    pass
                 elif kt is KEYWORD_ONLY:
-                    assert (
-                        have_kwargs_helper
-                    ), f"argument {nt!r} is not re-exposed as keyword"
+                    assert have_kwargs_helper, (
+                        f"argument {nt!r} is not re-exposed as keyword"
+                    )
                 elif kt is POSITIONAL_OR_KEYWORD:
-                    assert (
-                        have_args_helper and have_kwargs_helper
-                    ), f"argument {nt!r} is not re-exposed as positional-or-keyword"
+                    assert have_args_helper and have_kwargs_helper, (
+                        f"argument {nt!r} is not re-exposed as positional-or-keyword"
+                    )
             elif kt is VAR_POSITIONAL:
                 assert have_args_helper, "helper is missing a catch-all *args argument"
             elif kt is VAR_KEYWORD:
-                assert (
-                    have_kwargs_helper
-                ), "helper is missing a catch-all **kwargs argument"
+                assert have_kwargs_helper, (
+                    "helper is missing a catch-all **kwargs argument"
+                )
 
     def test_known_arguments(self, target, helper):
         # validate that all exposed arguments map to something in the target

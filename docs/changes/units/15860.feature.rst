@@ -1,2 +1,0 @@
-Added a new module ``astropy.units.typing`` that provides support for type annotations related to
-``astropy.units``.

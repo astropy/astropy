@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_equal
 
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.stretch import (
     AsinhStretch,
     ContrastBiasStretch,
@@ -119,9 +118,9 @@ def test_clip_invalid():
     np.testing.assert_allclose(values, [np.nan, 0.0, 0.70710678, 1.0, 1.2247448])
 
 
-@pytest.mark.parametrize("a", [-2.0, -1, 1.0])
+@pytest.mark.parametrize("a", [-2.0, -1, 0.0, 1.0])
 def test_invalid_powerdist_a(a):
-    match = "a must be >= 0, but cannot be set to 1"
+    match = "a must be > 0, but cannot be set to 1"
     with pytest.raises(ValueError, match=match):
         PowerDistStretch(a=a)
     with pytest.raises(ValueError, match=match):
@@ -162,23 +161,9 @@ def test_histeqstretch_invalid():
     assert_equal(InvertedHistEqStretch(data)(data), result)
 
 
-def test_deprecated_attrs():
-    match = "The power attribute is deprecated"
-    with pytest.warns(AstropyDeprecationWarning, match=match):
-        stretch = PowerStretch(a=0.5)
-        assert stretch.power == stretch.a
-
-    match = "The exp attribute is deprecated"
-    with pytest.warns(AstropyDeprecationWarning, match=match):
-        stretch = PowerDistStretch(a=0.5)
-        assert stretch.exp == stretch.a
-    with pytest.warns(AstropyDeprecationWarning, match=match):
-        stretch = InvertedPowerDistStretch(a=0.5)
-        assert stretch.exp == stretch.a
-
-    with pytest.warns(AstropyDeprecationWarning, match=match):
-        stretch = LogStretch(a=0.5)
-        assert stretch.exp == stretch.a
-    with pytest.warns(AstropyDeprecationWarning, match=match):
-        stretch = InvertedLogStretch(a=0.5)
-        assert stretch.exp == stretch.a
+def test_linearstretch_clip():
+    data = np.linspace(0, 1, 100)
+    stretch = LinearStretch(slope=2)
+    result = stretch(data, clip=True)
+    assert np.min(result) >= 0
+    assert np.max(result) <= 1

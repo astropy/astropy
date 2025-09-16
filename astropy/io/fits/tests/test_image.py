@@ -2,7 +2,6 @@
 
 import math
 import os
-import sys
 import time
 
 import numpy as np
@@ -41,6 +40,7 @@ class TestImageFunctions(FitsTestCase):
 
     def test_constructor_ver_arg(self):
         def assert_ver_is(hdu, reference_ver):
+            __tracebackhide__ = True
             assert hdu.ver == reference_ver
             assert hdu.header["EXTVER"] == reference_ver
 
@@ -234,6 +234,9 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp("test.fits")) as hdul:
             assert hdul[0].name == "XPRIMARY2"
 
+    @pytest.mark.filterwarnings(
+        "ignore:Memory map object was closed but appears to still be referenced:UserWarning"
+    )
     def test_io_manipulation(self):
         # Get a keyword value.  An extension can be referred by name or by
         # number.  Both extension and keyword names are case insensitive.
@@ -400,6 +403,7 @@ class TestImageFunctions(FitsTestCase):
     def test_section(self):
         # section testing
         fs = fits.open(self.data("arange.fits"))
+        assert fs[0].section.dtype == "int32"
         assert np.array_equal(fs[0].section[3, 2, 5], 357)
         assert np.array_equal(
             fs[0].section[3, 2, :],
@@ -585,7 +589,11 @@ class TestImageFunctions(FitsTestCase):
         assert (d.section[:, :, :, 1] == dat[:, :, :, 1]).all()
         hdul.close()
 
-    def test_section_data_scaled(self):
+    @pytest.mark.parametrize(
+        "file, expected_dtype",
+        [("scale.fits", "float32"), ("fixed-1890.fits", "uint16")],
+    )
+    def test_section_data_scaled(self, file, expected_dtype):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/143
 
@@ -593,9 +601,10 @@ class TestImageFunctions(FitsTestCase):
         image data, to test that sections can work correctly with scaled data.
         """
 
-        hdul = fits.open(self.data("scale.fits"))
+        hdul = fits.open(self.data(file))
         d = hdul[0]
         dat = hdul[0].data
+        assert d.section.dtype == expected_dtype
         assert (d.section[:, :] == dat[:, :]).all()
         assert (d.section[0, :] == dat[0, :]).all()
         assert (d.section[1, :] == dat[1, :]).all()
@@ -612,8 +621,9 @@ class TestImageFunctions(FitsTestCase):
         hdul.close()
 
         # Test without having accessed the full data first
-        hdul = fits.open(self.data("scale.fits"))
+        hdul = fits.open(self.data(file))
         d = hdul[0]
+        assert d.section.dtype == expected_dtype
         assert (d.section[:, :] == dat[:, :]).all()
         assert (d.section[0, :] == dat[0, :]).all()
         assert (d.section[1, :] == dat[1, :]).all()
@@ -926,14 +936,6 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp("test0.fits")) as hdul:
             assert (orig_data == hdul[1].data).all()
 
-    if sys.version_info < (3, 11):
-        # The test below raised a `ResourceWarning: unclosed transport` exception
-        # due to a bug in Python < 3.11 (cf. cpython#90476)
-        mark = pytest.mark.filterwarnings("ignore:unclosed transport <asyncio.sslproto")
-    else:
-        mark = lambda f: f
-
-    @mark
     def test_open_scaled_in_update_mode(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/119
@@ -1005,7 +1007,7 @@ class TestImageFunctions(FitsTestCase):
             assert hdul[0].header["BZERO"] == orig_bzero
             assert hdul[0].header["BSCALE"] == orig_bscale
 
-            zero_point = int(math.floor(-orig_bzero / orig_bscale))
+            zero_point = math.floor(-orig_bzero / orig_bscale)
             assert (hdul[0].data[0] == zero_point).all()
 
         with fits.open(self.temp("scale.fits")) as hdul:
@@ -1130,6 +1132,13 @@ def test_scale_implicit_casting():
 
     hdu = fits.ImageHDU(np.array([1], dtype=np.int32))
     hdu.scale(bzero=1.3)
+
+
+def test_scale_floats():
+    data = np.arange(10) / 10
+    hdu = fits.ImageHDU(data)
+    hdu.scale("float32")
+    np.testing.assert_array_equal(hdu.data, data.astype("float32"))
 
 
 def test_bzero_implicit_casting_compressed():

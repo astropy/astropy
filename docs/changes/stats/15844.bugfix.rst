@@ -1,1 +1,0 @@
-Fix a spurious warning when calling ``sigma_clipped_stats`` on a ``MaskedColumn``.

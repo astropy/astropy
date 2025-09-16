@@ -21,21 +21,21 @@ from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 __doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
 __all__ = [
-    "obsgeo_to_frame",
     "add_stokes_axis_to_wcs",
     "celestial_frame_to_wcs",
-    "wcs_to_celestial_frame",
-    "proj_plane_pixel_scales",
-    "proj_plane_pixel_area",
-    "is_proj_plane_distorted",
-    "non_celestial_pixel_scales",
-    "skycoord_to_pixel",
-    "pixel_to_skycoord",
-    "custom_wcs_to_frame_mappings",
     "custom_frame_to_wcs_mappings",
-    "pixel_to_pixel",
-    "local_partial_pixel_derivatives",
+    "custom_wcs_to_frame_mappings",
     "fit_wcs_from_points",
+    "is_proj_plane_distorted",
+    "local_partial_pixel_derivatives",
+    "non_celestial_pixel_scales",
+    "obsgeo_to_frame",
+    "pixel_to_pixel",
+    "pixel_to_skycoord",
+    "proj_plane_pixel_area",
+    "proj_plane_pixel_scales",
+    "skycoord_to_pixel",
+    "wcs_to_celestial_frame",
 ]
 
 SOLAR_SYSTEM_OBJ_DICT = {
@@ -976,7 +976,7 @@ def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
         derivatives[:, i] = world_off - world_ref
 
     if normalize_by_world:
-        derivatives /= derivatives.sum(axis=0)[:, np.newaxis]
+        derivatives /= derivatives.sum(axis=1)[:, np.newaxis]
 
     return derivatives
 
@@ -1196,7 +1196,7 @@ def fit_wcs_from_points(
         wcs.wcs.cd = wcs.wcs.pc
         wcs.wcs.__delattr__("pc")
 
-    if (type(sip_degree) != type(None)) and (type(sip_degree) != int):
+    if (sip_degree is not None) and (type(sip_degree) != int):
         raise ValueError("sip_degree must be None, or integer.")
 
     # compute bounding box for sources in image coordinates:

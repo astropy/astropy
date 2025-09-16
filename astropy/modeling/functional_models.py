@@ -18,41 +18,42 @@ from .utils import ellipse_extent
 
 __all__ = [
     "AiryDisk2D",
-    "Moffat1D",
-    "Moffat2D",
+    "ArcCosine1D",
+    "ArcSine1D",
+    "ArcTangent1D",
     "Box1D",
     "Box2D",
     "Const1D",
     "Const2D",
-    "Ellipse2D",
+    "Cosine1D",
     "Disk2D",
+    "Ellipse2D",
+    "Exponential1D",
     "Gaussian1D",
     "Gaussian2D",
     "GeneralSersic2D",
+    "KingProjectedAnalytic1D",
     "Linear1D",
+    "Logarithmic1D",
     "Lorentz1D",
-    "RickerWavelet1D",
-    "RickerWavelet2D",
-    "RedshiftScaleFactor",
+    "Lorentz2D",
+    "Moffat1D",
+    "Moffat2D",
     "Multiply",
     "Planar2D",
+    "RedshiftScaleFactor",
+    "RickerWavelet1D",
+    "RickerWavelet2D",
+    "Ring2D",
     "Scale",
     "Sersic1D",
     "Sersic2D",
     "Shift",
     "Sine1D",
-    "Cosine1D",
     "Tangent1D",
-    "ArcSine1D",
-    "ArcCosine1D",
-    "ArcTangent1D",
     "Trapezoid1D",
     "TrapezoidDisk2D",
-    "Ring2D",
     "Voigt1D",
-    "KingProjectedAnalytic1D",
-    "Exponential1D",
-    "Logarithmic1D",
 ]
 
 TWOPI = 2 * np.pi
@@ -80,8 +81,8 @@ class Gaussian1D(Fittable1DModel):
 
     Notes
     -----
-    Either all or none of input ``x``, ``mean`` and ``stddev`` must be provided
-    consistently with compatible units or as unitless numbers.
+    The ``x``, ``mean``, and ``stddev`` inputs must have compatible
+    units or be unitless numbers.
 
     Model formula:
 
@@ -274,8 +275,8 @@ class Gaussian2D(Fittable2DModel):
 
     Notes
     -----
-    Either all or none of input ``x, y``, ``[x,y]_mean`` and ``[x,y]_stddev``
-    must be provided consistently with compatible units or as unitless numbers.
+    The ``x, y``, ``[x,y]_mean``, and ``[x,y]_stddev`` inputs must have
+    compatible units or be unitless numbers.
 
     Model formula:
 
@@ -803,6 +804,9 @@ class Sersic1D(Fittable1DModel):
 
     Notes
     -----
+    The ``r`` and ``r_eff`` inputs must have compatible units or be
+    unitless numbers.
+
     Model formula:
 
     .. math::
@@ -1574,21 +1578,21 @@ class Lorentz1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float or `~astropy.units.Quantity`.
-        Peak value - for a normalized profile (integrating to 1),
-        set amplitude = 2 / (np.pi * fwhm)
+        Peak value. For a normalized profile (integrating to 1),
+        set amplitude = 2 / (np.pi * fwhm).
     x_0 : float or `~astropy.units.Quantity`.
-        Position of the peak
+        Position of the peak.
     fwhm : float or `~astropy.units.Quantity`.
-        Full width at half maximum (FWHM)
+        Full width at half maximum (FWHM).
 
     See Also
     --------
-    Gaussian1D, Box1D, RickerWavelet1D
+    Lorentz2D, Gaussian1D, Box1D, RickerWavelet1D
 
     Notes
     -----
-    Either all or none of input ``x``, position ``x_0`` and ``fwhm`` must be provided
-    consistently with compatible units or as unitless numbers.
+    The ``x``, ``x_0``, and ``fwhm`` inputs must have compatible units
+    or be unitless numbers.
 
     Model formula:
 
@@ -1596,7 +1600,8 @@ class Lorentz1D(Fittable1DModel):
 
         f(x) = \\frac{A \\gamma^{2}}{\\gamma^{2} + \\left(x - x_{0}\\right)^{2}}
 
-    where :math:`\\gamma` is half of given FWHM.
+    where :math:`\\gamma` is the half width at half maximum (HWHM),
+    which is half the FWHM.
 
     Examples
     --------
@@ -1614,9 +1619,10 @@ class Lorentz1D(Fittable1DModel):
 
         for factor in range(1, 4):
             s1.amplitude = factor
-            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+            plt.plot(r, s1(r), lw=2, label=f'Amplitude={factor}')
 
         plt.axis([-5, 5, -1, 4])
+        plt.legend()
         plt.show()
     """
 
@@ -1632,9 +1638,11 @@ class Lorentz1D(Fittable1DModel):
     @staticmethod
     def fit_deriv(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model derivative with respect to parameters."""
-        d_amplitude = fwhm**2 / (fwhm**2 + (x - x_0) ** 2)
-        d_x_0 = amplitude * d_amplitude * (2 * x - 2 * x_0) / (fwhm**2 + (x - x_0) ** 2)
-        d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
+        gamma = fwhm / 2.0
+        denom = gamma**2 + (x - x_0) ** 2
+        d_amplitude = gamma**2 / denom
+        d_x_0 = amplitude * gamma**2 * 2 * (x - x_0) / denom**2
+        d_fwhm = amplitude * gamma * (x - x_0) ** 2 / denom**2
         return [d_amplitude, d_x_0, d_fwhm]
 
     def bounding_box(self, factor=25):
@@ -1669,6 +1677,124 @@ class Lorentz1D(Fittable1DModel):
         }
 
 
+class Lorentz2D(Fittable2DModel):
+    """
+    Two-dimensional Lorentzian model.
+
+    Parameters
+    ----------
+    amplitude : float or `~astropy.units.Quantity`.
+        Peak value.
+    x_0 : float or `~astropy.units.Quantity`.
+        Position of the peak in x.
+    y_0 : float or `~astropy.units.Quantity`.
+        Position of the peak in y.
+    fwhm : float or `~astropy.units.Quantity`.
+        Full width at half maximum (FWHM).
+
+    See Also
+    --------
+    Lorentz1D, Gaussian2D, Moffat2D
+
+    Notes
+    -----
+    The ``x``, ``y``, ``x_0``, ``y_0``, and ``fwhm`` inputs must have
+    compatible units or as unitless numbers.
+
+    Model formula:
+
+    .. math::
+
+        f(x, y) = \\frac{A \\gamma^{2}}{\\gamma^{2}
+                  + \\left(x - x_{0}\\right)^2 + \\left(y - y_{0}\\right)^{2}}
+
+    where :math:`\\gamma` is the half width at half maximum (HWHM), which
+    is half the FWHM.
+
+    The area under the `Lorentz2D` profile is infinite, therefore this
+    model profile cannot be normalized to sum to 1.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Lorentz2D
+
+        plt.figure()
+        model = Lorentz2D(x_0=12, y_0=12, fwhm=3)
+        yy, xx = np.mgrid[:25, :25]
+        data = model(xx, yy)
+
+        plt.imshow(data)
+        plt.show()
+    """
+
+    amplitude = Parameter(default=1, description="Peak value")
+    x_0 = Parameter(default=0, description="Position of the peak in x")
+    y_0 = Parameter(default=0, description="Position of the peak in y")
+    fwhm = Parameter(default=1, description="Full width at half maximum")
+
+    @staticmethod
+    def evaluate(x, y, amplitude, x_0, y_0, fwhm):
+        """Two dimensional Lorentzian model function."""
+        return amplitude * (
+            ((fwhm / 2.0) ** 2) / ((x - x_0) ** 2 + (y - y_0) ** 2 + (fwhm / 2.0) ** 2)
+        )
+
+    @staticmethod
+    def fit_deriv(x, y, amplitude, x_0, y_0, fwhm):
+        """Two dimensional Lorentzian model derivative with respect to parameters."""
+        gamma = fwhm / 2.0
+        r2 = (x - x_0) ** 2 + (y - y_0) ** 2
+        denom = gamma**2 + r2
+        denom2 = denom**2
+        d_amplitude = gamma**2 / denom
+        d_x_0 = amplitude * gamma**2 * 2 * (x - x_0) / denom2
+        d_y_0 = amplitude * gamma**2 * 2 * (y - y_0) / denom2
+        d_fwhm = (amplitude * (fwhm / 2) * r2) / denom2
+        return [d_amplitude, d_x_0, d_y_0, d_fwhm]
+
+    def bounding_box(self, factor=25):
+        """Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high), (y_low, y_high)``.
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of FWHM used to define the limits.
+            Default is chosen to include most (99%) of the
+            area under the curve, while still showing the
+            central feature of interest.
+        """
+        x0 = self.x_0
+        y0 = self.y_0
+        dx = factor * self.fwhm
+        return ((x0 - dx, x0 + dx), (y0 - dx, y0 + dx))
+
+    @property
+    def input_units(self):
+        x_unit = self.x_0.input_unit
+        y_unit = self.y_0.input_unit
+        if x_unit is None and y_unit is None:
+            return None
+
+        return {self.inputs[0]: x_unit, self.inputs[1]: y_unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
+            raise UnitsError("Units of 'x' and 'y' inputs should match")
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[0]],
+            "fwhm": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
+
+
 class Voigt1D(Fittable1DModel):
     """
     One dimensional model for the Voigt profile.
@@ -1697,8 +1823,9 @@ class Voigt1D(Fittable1DModel):
 
     Notes
     -----
-    Either all or none of input ``x``, position ``x_0`` and the ``fwhm_*`` must be provided
-    consistently with compatible units or as unitless numbers.
+    The ``x``, ``x_0``, and ``fwhm_*`` inputs must have compatible units
+    or be unitless numbers.
+
     Voigt function is calculated as real part of the complex error function computed from either
     Humlicek's rational approximations (JQSRT 21:309, 1979; 27:437, 1982) following
     Schreier 2018 (MNRAS 479, 3068; and ``hum2zpf16m`` from his cpfX.py module); or
@@ -3137,6 +3264,10 @@ class Moffat2D(Fittable2DModel):
 
         f(x, y) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2} +
         \\left(y - y_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
+
+    Note that if :math:`\\alpha` is 1, the `Moffat2D` profile is a
+    `Lorentz2D` profile. In that case, the integral of the profile is
+    infinite.
     """
 
     amplitude = Parameter(default=1, description="Amplitude (peak value) of the model")
@@ -3238,6 +3369,9 @@ class Sersic2D(Fittable2DModel):
 
     Notes
     -----
+    The ``x``, ``y``, ``x_0``, ``y_0``, and ``r_eff`` inputs must have
+    compatible units or be unitless numbers.
+
     Model formula:
 
     .. math::

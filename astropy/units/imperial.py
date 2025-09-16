@@ -16,11 +16,14 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
     >>> import astropy.units as u
     >>> u.imperial.enable()  # doctest: +SKIP
 """
+# avoid ruff complaints about undefined names defined by def_unit
+# ruff: noqa: F821
 
-__all__: list[str] = []  #  Units are added at the end
+__all__: list[str] = ["enable"]  #  Units are added at the end
 
 from . import si
-from .core import UnitBase, def_unit
+from .core import add_enabled_units, def_unit
+from .docgen import generate_dunder_all, generate_unit_summary
 
 _ns = globals()
 
@@ -145,21 +148,21 @@ def_unit(
 )
 def_unit(
     ["deg_R", "Rankine"],
+    5 / 9 * si.K,
     namespace=_ns,
     doc="Rankine scale: absolute scale of thermodynamic temperature",
+    format={"latex": r"{}^{\circ}R", "unicode": "°R"},
 )
 
 ###########################################################################
 # ALL & DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+__all__ += generate_dunder_all(globals())  # noqa: PLE0605
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())
 
 
 def enable():
@@ -171,10 +174,4 @@ def enable():
     This may be used with the ``with`` statement to enable Imperial
     units only temporarily.
     """
-    # Local import to avoid cyclical import
-    # Local import to avoid polluting namespace
-    import inspect
-
-    from .core import add_enabled_units
-
-    return add_enabled_units(inspect.getmodule(enable))
+    return add_enabled_units(globals())

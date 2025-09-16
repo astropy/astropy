@@ -18,23 +18,23 @@ if HAS_H5PY:
 
 class MaskedArrayTableSetup:
     @classmethod
-    def setup_arrays(self):
-        self.a = np.array([3.0, 5.0, 0.0])
-        self.mask_a = np.array([True, False, False])
+    def setup_arrays(cls):
+        cls.a = np.array([3.0, 5.0, 0.0])
+        cls.mask_a = np.array([True, False, False])
 
     @classmethod
-    def setup_class(self):
-        self.setup_arrays()
-        self.ma = Masked(self.a, mask=self.mask_a)
-        self.ma.info.format = ".1f"
-        self.t = QTable([self.ma], names=["ma"])
+    def setup_class(cls):
+        cls.setup_arrays()
+        cls.ma = Masked(cls.a, mask=cls.mask_a)
+        cls.ma.info.format = ".1f"
+        cls.t = QTable([cls.ma], names=["ma"])
 
 
 class MaskedQuantityTableSetup(MaskedArrayTableSetup):
     @classmethod
-    def setup_arrays(self):
-        self.a = np.array([3.0, 5.0, 0.0]) << u.m
-        self.mask_a = np.array([True, False, False])
+    def setup_arrays(cls):
+        cls.a = np.array([3.0, 5.0, 0.0]) << u.m
+        cls.mask_a = np.array([True, False, False])
 
 
 class TestMaskedArrayTable(MaskedArrayTableSetup):

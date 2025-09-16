@@ -84,4 +84,5 @@ def test_get_coord_meta():
     hadec_meta = get_coord_meta(HADec)
     assert hadec_meta["name"] == ["ha", "dec"]
     assert hadec_meta["wrap"] == (Angle(180 * u.deg), None)
-    assert hadec_meta["unit"] == (u.hourangle, u.deg)
+    assert hadec_meta["unit"] == (u.deg, u.deg)
+    assert hadec_meta["format_unit"] == (u.hourangle, u.deg)

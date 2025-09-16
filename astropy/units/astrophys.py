@@ -1,16 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This package defines the astrophysics-specific units.  They are also
-available in the `astropy.units` namespace.
+This package defines the astrophysics-specific units. They are also
+available in (and should be used through) the `astropy.units` namespace.
 """
+# avoid ruff complaints about undefined names defined by def_unit
+# ruff: noqa: F821
 
 import numpy as np
 
 from astropy.constants import si as _si
 
 from . import si
-from .core import UnitBase, def_unit, set_enabled_units
+from .core import def_unit, set_enabled_units
+from .docgen import generate_dunder_all, generate_unit_summary
 
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
@@ -112,17 +115,12 @@ def_unit(
 ##########################################################################
 # ENERGY
 
-# Here, explicitly convert the planck constant to 'eV s' since the constant
-# can override that to give a more precise value that takes into account
-# covariances between e and h.  Eventually, this may also be replaced with
-# just `_si.Ryd.to(eV)`.
 def_unit(
-    ["Ry", "rydberg"],
-    (_si.Ryd * _si.c * _si.h.to(si.eV * si.s)).to(si.eV),
+    ["foe", "Bethe", "bethe"],
+    1e51 * si.g * si.cm**2 / si.s**2,
     namespace=_ns,
-    prefixes=True,
-    doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg constant",
-    format={"latex": r"R_{\infty}", "unicode": "R∞"},
+    prefixes=False,
+    doc="foe or Bethe: 1e51 erg, used to measure energy emitted by a supernova",
 )
 
 ###########################################################################
@@ -220,11 +218,9 @@ def_unit(
 ###########################################################################
 # ALL & DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+__all__ += generate_dunder_all(globals())  # noqa: PLE0605
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from .utils import generate_unit_summary as _generate_unit_summary
-
-    __doc__ += _generate_unit_summary(globals())
+    __doc__ += generate_unit_summary(globals())

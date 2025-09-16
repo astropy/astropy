@@ -3,17 +3,18 @@
 import concurrent.futures
 import inspect
 import pickle
-from contextlib import nullcontext
+import sys
 
 import pytest
 
-from astropy.tests.helper import PYTEST_LT_8_0
+from astropy.tests.helper import _skip_docstring_tests_with_optimized_python
 from astropy.utils.decorators import (
     classproperty,
     deprecated,
     deprecated_attribute,
     deprecated_renamed_argument,
     format_doc,
+    future_keyword_only,
     lazyproperty,
     sharedmethod,
 )
@@ -31,6 +32,13 @@ class NewDeprecationWarning(AstropyDeprecationWarning):
     """
 
 
+class NewPendingDeprecationWarning(AstropyPendingDeprecationWarning):
+    """
+    New Warning subclass to be used to test the deprecated decorator's
+    ``pending_warning_type`` parameter.
+    """
+
+
 def test_deprecated_attribute():
     class DummyClass:
         def __init__(self):
@@ -39,6 +47,7 @@ def test_deprecated_attribute():
             self._bar = 4242
             self._message = "42"
             self._pending = {42}
+            self._pending_custom = {42}
 
         foo = deprecated_attribute("foo", "0.2")
 
@@ -49,6 +58,13 @@ def test_deprecated_attribute():
         message = deprecated_attribute("message", "0.2", message="MSG")
 
         pending = deprecated_attribute("pending", "0.2", pending=True)
+
+        pending_custom = deprecated_attribute(
+            "pending_custom",
+            "0.2",
+            pending=True,
+            pending_warning_type=NewPendingDeprecationWarning,
+        )
 
     dummy = DummyClass()
 
@@ -95,6 +111,12 @@ def test_deprecated_attribute():
     with pytest.warns(AstropyPendingDeprecationWarning, match=msg):
         dummy.pending = {24}
 
+    msg = r"^The pending_custom attribute will be deprecated in a future version\.$"
+    with pytest.warns(NewPendingDeprecationWarning, match=msg):
+        assert dummy.pending_custom == {42}
+    with pytest.warns(NewPendingDeprecationWarning, match=msg):
+        dummy.pending_custom = {24}
+
 
 # This needs to be defined outside of the test function, because we
 # want to try to pickle it.
@@ -130,8 +152,8 @@ def test_deprecated_class():
     orig_A = TA.__bases__[0]
 
     # The only thing that should be different about the new class
-    # is __doc__, __init__, __bases__ and __subclasshook__.
-    # and __init_subclass__ for Python 3.6+.
+    # is __doc__, __init__, __bases__, __subclasshook__,
+    # and __init_subclass__.
     for x in dir(orig_A):
         if x not in (
             "__doc__",
@@ -395,19 +417,14 @@ def test_deprecated_argument_relaxed():
     assert len(w) == 1
 
     # Using both. Both keyword
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(AstropyDeprecationWarning)
-
-    with ctx, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(clobber=2, overwrite=1) == 1
     assert len(w) == 2
     assert '"clobber" was deprecated' in str(w[0].message)
     assert '"clobber" and "overwrite" keywords were set' in str(w[1].message)
 
     # One positional, one keyword
-    with ctx, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(1, clobber=2) == 1
     assert len(w) == 2
     assert '"clobber" was deprecated' in str(w[0].message)
@@ -449,20 +466,15 @@ def test_deprecated_argument_multi_deprecation():
     assert len(w) == 3
 
     # Make sure relax is valid for all arguments
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(AstropyDeprecationWarning)
-
-    with ctx, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, b=3) == (1, 3, 3)
     assert len(w) == 4
 
-    with ctx, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, a=3) == (3, 2, 3)
     assert len(w) == 4
 
-    with ctx, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, c=5) == (1, 2, 5)
     assert len(w) == 4
 
@@ -474,21 +486,15 @@ def test_deprecated_argument_multi_deprecation_2():
     def test(a, b, c):
         return a, b, c
 
-    if PYTEST_LT_8_0:
-        ctx1 = nullcontext()
-        ctx2 = pytest.warns(AstropyUserWarning)
-    else:
-        ctx1 = ctx2 = pytest.warns(AstropyDeprecationWarning)
-
-    with ctx1, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, b=3) == (1, 3, 3)
     assert len(w) == 4
 
-    with ctx1, pytest.warns(AstropyUserWarning) as w:
+    with pytest.warns(AstropyDeprecationWarning), pytest.warns(AstropyUserWarning) as w:
         assert test(x=1, y=2, z=3, a=3) == (3, 2, 3)
     assert len(w) == 4
 
-    with pytest.raises(TypeError), ctx2:
+    with pytest.raises(TypeError), pytest.warns(AstropyDeprecationWarning):
         assert test(x=1, y=2, z=3, c=5) == (1, 2, 5)
 
 
@@ -535,6 +541,94 @@ def test_deprecated_argument_remove():
     assert test() == (11, 3)
     assert test(121) == (121, 3)
     assert test(dummy=121) == (121, 3)
+
+
+def test_future_kwo_invalid_since():
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Expected names and since values with "
+            r"identical length. Got len\(names\)=3 "
+            r"and len\(since\)=2"
+        ),
+    ):
+        future_keyword_only(["a", "b", "c"], since=["7.1", "7.1"])(lambda a, b, c: ...)
+
+
+def test_future_kwo_invalid_names():
+    with pytest.raises(
+        ValueError,
+        match=(
+            "The following arguments cannot be marked as future keyword-only "
+            "because they were not found in the decorated function's signature: a"
+        ),
+    ):
+        future_keyword_only(["a"], since=["7.1"])(lambda b: ...)
+
+
+@pytest.mark.parametrize(
+    "input_func",
+    [
+        pytest.param(lambda a, /: ..., id="arg-is-positional-only"),
+        pytest.param(lambda *, a: ..., id="arg-is-keyword-only"),
+        pytest.param(lambda *a: ..., id="arg-is-var-positional"),
+        pytest.param(lambda **a: ..., id="arg-is-var-keyword"),
+    ],
+)
+def test_future_kwo_not_pos_or_kw(input_func):
+    with pytest.raises(
+        ValueError,
+        match=(
+            "The following arguments cannot be marked as future keyword-only "
+            "because they are not currently positional-or-keyword: a"
+        ),
+    ):
+        future_keyword_only(["a"], since=["7.1"])(input_func)
+
+
+def test_future_kwo_broken_pos_allowed():
+    with pytest.raises(
+        ValueError,
+        match=(
+            "The following positionally-allowed arguments were not marked as "
+            "future keyword-only and would be broken under future keyword-only "
+            r"requirements: c, d"
+        ),
+    ):
+        future_keyword_only(["b"], since=["7.1"])(lambda a, b, c, d=None: ...)
+
+
+def test_future_kwo_warn_if_and_only_if_needed():
+    func = future_keyword_only(["b", "c", "d"], since=["7.1", "7.1", "7.2"])(
+        lambda a, b, c=None, d=None: ...
+    )
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "The following arguments were received positionally, which "
+            "will be disallowed in a future release: b, c, d\n"
+            "Pass them as keywords to suppress this warning. "
+            r"\(deprecated since 7\.1, 7\.1, 7\.2, respectively\)"
+        ),
+    ):
+        func(1, 2, 3, 4)
+
+    # also check the warning if all arguments were marked at the same time
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "The following arguments were received positionally, which "
+            "will be disallowed in a future release: b, c\n"
+            "Pass them as keywords to suppress this warning. "
+            r"\(deprecated since 7\.1\)"
+        ),
+    ):
+        func(1, 2, 3, d=4)
+
+    # check no warning is emitted if future constraints are already honored
+    func(1, b=2, c=3, d=4)
+    func(1, b=2, c=3)
+    func(1, b=2)
 
 
 def test_sharedmethod_reuse_on_subclasses():
@@ -593,7 +687,8 @@ def test_classproperty_docstring():
 
             return 1
 
-    assert A.__dict__["foo"].__doc__ == "The foo."
+    expected_doc = "The foo." if sys.flags.optimize < 2 else None
+    assert inspect.getdoc(A.__dict__["foo"]) == expected_doc
 
     class B:
         # Use doc passed to classproperty constructor
@@ -602,7 +697,10 @@ def test_classproperty_docstring():
 
         foo = classproperty(_get_foo, doc="The foo.")
 
-    assert B.__dict__["foo"].__doc__ == "The foo."
+    # we should *always* get a string back by setting the doc argument.
+    # As of Python 3.13, this is in line with how the builtin @property decorator
+    # interacts with PYTHONOPTIMIZE=2
+    assert inspect.getdoc(B.__dict__["foo"]) == "The foo."
 
 
 @pytest.mark.slow
@@ -614,7 +712,7 @@ def test_classproperty_lazy_threadsafe(fast_thread_switching):
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         # This is testing for race conditions, so try many times in the
         # hope that we'll get the timing right.
-        for p in range(10000):
+        for _ in range(10000):
 
             class A:
                 @classproperty(lazy=True)
@@ -652,7 +750,7 @@ def test_lazyproperty_threadsafe(fast_thread_switching):
 
     workers = 8
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        for p in range(10000):
+        for _ in range(10000):
             a = A()
             futures = [executor.submit(lambda: a.foo) for i in range(workers)]
             values = [future.result() for future in futures]
@@ -661,18 +759,9 @@ def test_lazyproperty_threadsafe(fast_thread_switching):
             assert values == [a.foo] * workers
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_stringInput_simple():
     # Simple tests with string input
-
-    docstring_fail = ""
-
-    # Raises an valueerror if input is empty
-    with pytest.raises(ValueError):
-
-        @format_doc(docstring_fail)
-        def testfunc_fail():
-            pass
-
     docstring = "test"
 
     # A first test that replaces an empty docstring
@@ -680,27 +769,21 @@ def test_format_doc_stringInput_simple():
     def testfunc_1():
         pass
 
-    assert inspect.getdoc(testfunc_1) == docstring
+    assert inspect.getdoc(testfunc_1) == "test"
 
     # Test that it replaces an existing docstring
     @format_doc(docstring)
     def testfunc_2():
         """not test"""
 
-    assert inspect.getdoc(testfunc_2) == docstring
+    assert inspect.getdoc(testfunc_2) == "test"
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_stringInput_format():
     # Tests with string input and formatting
 
     docstring = "yes {0} no {opt}"
-
-    # Raises an indexerror if not given the formatted args and kwargs
-    with pytest.raises(IndexError):
-
-        @format_doc(docstring)
-        def testfunc1():
-            pass
 
     # Test that the formatting is done right
     @format_doc(docstring, "/", opt="= life")
@@ -723,16 +806,6 @@ def test_format_doc_stringInput_format():
 def test_format_doc_objectInput_simple():
     # Simple tests with object input
 
-    def docstring_fail():
-        pass
-
-    # Self input while the function has no docstring raises an error
-    with pytest.raises(ValueError):
-
-        @format_doc(docstring_fail)
-        def testfunc_fail():
-            pass
-
     def docstring0():
         """test"""
 
@@ -751,18 +824,12 @@ def test_format_doc_objectInput_simple():
     assert inspect.getdoc(testfunc_2) == inspect.getdoc(docstring0)
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_objectInput_format():
     # Tests with object input and formatting
 
     def docstring():
         """test {0} test {opt}"""
-
-    # Raises an indexerror if not given the formatted args and kwargs
-    with pytest.raises(IndexError):
-
-        @format_doc(docstring)
-        def testfunc_fail():
-            pass
 
     # Test that the formatting is done right
     @format_doc(docstring, "+", opt="= 2 * test")
@@ -783,15 +850,9 @@ def test_format_doc_objectInput_format():
     assert inspect.getdoc(testfunc3) == "test + test = 4 / 2 * test"
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_selfInput_simple():
     # Simple tests with self input
-
-    # Self input while the function has no docstring raises an error
-    with pytest.raises(ValueError):
-
-        @format_doc(None)
-        def testfunc_fail():
-            pass
 
     # Test that it keeps an existing docstring
     @format_doc(None)
@@ -801,15 +862,9 @@ def test_format_doc_selfInput_simple():
     assert inspect.getdoc(testfunc_1) == "not test"
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_selfInput_format():
     # Tests with string input which is '__doc__' (special case) and formatting
-
-    # Raises an indexerror if not given the formatted args and kwargs
-    with pytest.raises(IndexError):
-
-        @format_doc(None)
-        def testfunc_fail():
-            """dum {0} dum {opt}"""
 
     # Test that the formatting is done right
     @format_doc(None, "di", opt="da dum")
@@ -827,6 +882,7 @@ def test_format_doc_selfInput_format():
     assert inspect.getdoc(testfunc2) == "dum di dum "
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_onMethod():
     # Check if the decorator works on methods too, to spice it up we try double
     # decorator
@@ -841,6 +897,7 @@ def test_format_doc_onMethod():
     assert inspect.getdoc(TestClass.test_method) == "what we do is strange."
 
 
+@_skip_docstring_tests_with_optimized_python
 def test_format_doc_onClass():
     # Check if the decorator works on classes too
     docstring = "what we do {__doc__} {0}{opt}"
@@ -850,3 +907,41 @@ def test_format_doc_onClass():
         """is"""
 
     assert inspect.getdoc(TestClass) == "what we do is strange."
+
+
+@_skip_docstring_tests_with_optimized_python
+@pytest.mark.parametrize(
+    "docstring, expected_exception",
+    [
+        # Raises an valueerror if input is empty
+        pytest.param("", ValueError, id="empty string"),
+        # Raises an indexerror if not given the formatted args and kwargs
+        pytest.param("yes {0} no {opt}", IndexError, id="missing args or kwargs (str)"),
+        # Self input while the function has no docstring raises an error
+        pytest.param(lambda: None, ValueError, id="function without a docstring"),
+        # Self input while the function has no docstring raises an error
+        pytest.param(None, ValueError, id="None"),
+    ],
+)
+def test_format_doc_exceptions(docstring, expected_exception):
+    with pytest.raises(expected_exception):
+
+        @format_doc(docstring)
+        def testfunc_fail():
+            pass
+
+
+@_skip_docstring_tests_with_optimized_python
+def test_format_doc_indexerrors():
+    def _FUNC_WITH_TEMPLATE_DOCSTRING():
+        """test {0} test {opt}"""
+
+    # Raises an indexerror if not given the formatted args and kwargs
+    with pytest.raises(IndexError):
+
+        @format_doc(_FUNC_WITH_TEMPLATE_DOCSTRING)
+        def testfunc_fail():
+            pass
+
+    with pytest.raises(IndexError):
+        format_doc(None)(_FUNC_WITH_TEMPLATE_DOCSTRING)

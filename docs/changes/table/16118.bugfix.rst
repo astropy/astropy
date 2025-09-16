@@ -1,4 +1,0 @@
-The unit conversion ``convert_unit_to`` with MaskedColumn was
-broken as it was storing the old unit in a dictionary attached
-to underlying np.ma.MaskedArray. This fixes it by overwriting
-the old unit after unit conversion.

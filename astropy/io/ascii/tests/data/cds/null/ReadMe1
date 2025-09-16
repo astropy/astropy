@@ -46,7 +46,7 @@ See also:
  J/A+A/464/953 : Abundances of red giants in NGC 6441 (Gratton+, 2007)
  J/A+A/505/117 : Abund. of red giants in 15 globular clusters (Carretta+, 2009)
 
-Byte-by-byte Description of file: table.dat
+Byte-by-byte Description of file: table1.dat
 --------------------------------------------------------------------------------
    Bytes Format Units     Label     Explanations
 --------------------------------------------------------------------------------
@@ -60,9 +60,9 @@ Byte-by-byte Description of file: table.dat
   26- 30  F5.2  eV        chiEx     [1/20843]?+= Catalogue Identification Number
   32- 37  F6.2  ---       loggf     ]0/140[?Temperature class codified (10)
   39- 43  F5.1  0.1pm     EW        ?=-9.9 Equivalent width (in mA)
-  44- 45  F5.1  0.1pm     EW        [1/52]?-= Equivalent width (in mA)
-  46- 49  F4.1  0.1pm   e_EW        [1/6]?+ Luminosity class codified (11)
-  51- 56  F6.3  ---       Q         ?=-9.999 DAOSPEC quality parameter Q
+  45- 49  F5.1  0.1pm     EW_1      [1/52]?-= Another equivalent width (in mA)
+  51- 54  F4.1  0.1pm   e_EW        [1/6]?+ Luminosity class codified (11)
+  56- 62  F6.3  ---       Q         ?=-9.999 DAOSPEC quality parameter Q
                                      (large values are bad)
 --------------------------------------------------------------------------------
 

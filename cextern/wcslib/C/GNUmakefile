@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.2 and its test suite.
+# GNU makefile for building WCSLIB 8.4 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 8.2.1.1 2023/11/16 10:05:57 mcalabre Exp mcalabre $
+# $Id: GNUmakefile,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := C
@@ -81,8 +81,8 @@ TEST_P := tspc tprj2 tcel1 tcel2 ttab2 ttab3 twcsmix
 # Test programs that require PGSBOX (and therefore PGPLOT).
 TEST_B := tpih2
 
-# Test program for POSIX threads (code development only).
-TEST_T := tpthreads
+# Test programs for POSIX threads.
+TEST_T := tpih_pthread twcs_pthread
 
 # Test programs that are compiled but not automatically exercised.
 TEST_X := tsphdpa twcshdr
@@ -229,7 +229,8 @@ run_% : %
 	         echo 'PASS: C/$<' >> test_results ; \
 	       elif [ -f 'test/$<.out' ] ; then \
 	         trap 'rm -f run_$<.tmp' 0 1 2 3 15 ; \
-	         sed -e 's/$(ADDRE)/0x<address>/g' $<.out > \
+	         sed -e 's/$(ADDRE)/0x<address>/g' \
+	             -e 's/chksum:.*/chksum: <CHECKSUM>/' $<.out > \
 	           run_$<.tmp ; \
 	         mv -f run_$<.tmp $<.out ; \
 	         if cmp -s $<.out test/$<.out ; then \
@@ -442,8 +443,8 @@ tpih2_cfitsio : test/tpih2.c $(PGSBOXLIB) $(WCSLIB)
 	     $(CFITSIOLIB) $(WCSLIB) $(FLIBS) $(LIBS)
 	-@ $(RM) $@.o
 
-# TEST_T programs (using POSIX threads).
-tpthreads : test/tpthreads.c $(WCSLIB)
+# POSIX threads test programs.
+$(TEST_T) : %_pthread : test/%_pthread.c $(WCSLIB)
 	-@ echo ''
 	   $(CC) $(CPPFLAGS) $(CFLAGS) -pthread -c -o $@.o $<
 	   $(LD) -o $@ $@.o $(LDFLAGS) -pthread $(WCSLIB) -lpthread $(LIBS)

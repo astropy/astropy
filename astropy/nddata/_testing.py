@@ -9,6 +9,7 @@ def assert_wcs_seem_equal(wcs1, wcs2):
     """Just checks a few attributes to make sure wcs instances seem to be
     equal.
     """
+    __tracebackhide__ = True
     if wcs1 is None and wcs2 is None:
         return
     assert wcs1 is not None

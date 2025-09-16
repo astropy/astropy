@@ -1,11 +1,12 @@
 Reference/API
 *************
 
-.. automodapi:: astropy.units.quantity
+.. note::
+
+    `astropy.units.deprecated <https://docs.astropy.org/en/v7.0.0/units/ref_api.html#module-astropy.units.deprecated>`_
+    was deprecated in v7.1 and will be removed in a future version.
 
 .. automodapi:: astropy.units
-
-.. automodapi:: astropy.units.format
 
 .. automodapi:: astropy.units.si
 
@@ -25,13 +26,6 @@ Reference/API
 
 .. automodapi:: astropy.units.physical
 
-.. automodapi:: astropy.units.equivalencies
-
-.. automodapi:: astropy.units.function.core
-
-.. automodapi:: astropy.units.function.logarithmic
-   :include-all-objects:
-
-.. automodapi:: astropy.units.deprecated
+.. automodapi:: astropy.units.format
 
 .. automodapi:: astropy.units.required_by_vounit

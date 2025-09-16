@@ -1,2 +1,0 @@
-Fix extraneous space in LaTeX repr for ``Quantity`` objects with superscript
-units (e.g. angles or temperatures in degree Celsius).

@@ -1,18 +1,24 @@
 #-----------------------------------------------------------------------------
-# Makefile overrides for various combinations of architecture, operating
-# system and compiler.  Used for development and testing only, not required
-# for building WCSLIB.
+# Variable definitions for various combinations of architecture, operating
+# system, compiler, and purpose.  Used for development and testing only, not
+# required for building WCSLIB.
 #
-# Variables like CC and CFLAGS are exported into the environment so that they
-# will be seen by 'configure'.  Thus, normal usage is as follows:
+# Definitions in this file are only used when running 'configure'.  Variables
+# such as CC and CFLAGS are exported to the environment so that they will be
+# seen by 'configure' and from there passed to makedefs.  Thus, normal usage
+# is as follows:
 #
 #   make distclean
 #   make FLAVOUR=dev configure
-#   make
+#
+# At that point the definitions here should have propagated to makedefs.
+#
+# WARNING: configure may ignore compiler options added to the CC or F77
+#          environment variables.  They must be added to CFLAGS or FFLAGS.
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 8.2.1.1 2023/11/16 10:05:58 mcalabre Exp mcalabre $
+# $Id: flavours,v 8.4 2024/10/28 13:56:17 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
 F :=
@@ -23,17 +29,22 @@ ifeq "$(FLAVOUR)" ""
 endif
 
 ifeq "$(FLAVOUR)" "dev"
-  # Currently gcc 11.3.0.
+  # Currently gcc 11.4.0.
   F   := development
   CC  := gcc
   F77 := gfortran
 endif
 
 ifeq "$(FLAVOUR)" "dev12"
-  # Currently gcc 12.1.0.
+  # Currently gcc 12.3.0.
   F   := development
   CC  := gcc-12
   F77 := gfortran-12
+endif
+
+# Compiler optimization level.
+ifndef OPT
+  OPT := 0
 endif
 
 
@@ -44,7 +55,8 @@ endif
 
 ifeq "$F" "development"
   # Options for code development with gcc/gfortran.
-  INSTRUMENT      := -fsanitize=address -fsanitize=undefined
+#  INSTRUMENT      := -fsanitize=address    # appears to be broken.
+  INSTRUMENT      := -fsanitize=undefined
   INSTRUMENT      += -fstack-protector-strong
   CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long
   ifeq "$(INSTRUMENT)" ""
@@ -52,11 +64,12 @@ ifeq "$F" "development"
     CWARNINGS     += $(WPADDED)
   endif
   FWARNINGS       := -Wall -Wno-surprising
-  export CC       := $(CC) -std=c99 -pedantic
+  export CC       := $(CC)
   export CPPFLAGS := -D_FORTIFY_SOURCE=2
-  export CFLAGS   := -g -O0 $(INSTRUMENT) $(CWARNINGS)
+  export CFLAGS   := -std=c99 -pedantic
+  export CFLAGS   += -g -O$(OPT) $(INSTRUMENT) $(CWARNINGS)
   export F77      := $(F77)
-  export FFLAGS   := -g -O0 -fimplicit-none -I. $(INSTRUMENT) $(FWARNINGS)
+  export FFLAGS   := -g -O$(OPT) -fimplicit-none -I. $(INSTRUMENT) $(FWARNINGS)
   export LDFLAGS  := $(INSTRUMENT)
   ifdef VALGRIND
     override VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
@@ -64,12 +77,29 @@ ifeq "$F" "development"
   endif
 endif
 
+ifeq "$(FLAVOUR)" "lto"
+  # For LTO development.
+  F := $(FLAVOUR)
+  export BINDC    := yes
+  CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long
+  FWARNINGS       := -Wall -Wno-surprising
+  LTOFLAGS        := -O1 -flto=4 -Werror=odr -Werror=lto-type-mismatch -Werror=strict-aliasing
+  export CC       := gcc-12
+  export CPPFLAGS := -D_FORTIFY_SOURCE=2
+  export CFLAGS   := -std=c99 -pedantic
+  export CFLAGS   += $(LTOFLAGS) $(CWARNINGS)
+  export F77      := gfortran-12
+  export FFLAGS   := -fimplicit-none -I. $(LTOFLAGS) $(FWARNINGS)
+  export LDFLAGS  := $(LTOFLAGS)
+endif
+
 ifeq "$(FLAVOUR)" "profile"
   # gcc with profiling (gprof).
   F := $(FLAVOUR)
-  export CC       := gcc -std=c99 -pedantic
+  export CC       := gcc
   export CPPFLAGS :=
-  export CFLAGS   := -pg -g -O -Wall -Wextra -Wno-long-long $(WPADDED)
+  export CFLAGS   := -std=c99 -pedantic
+  export CFLAGS   += -pg -g -O -Wall -Wextra -Wno-long-long $(WPADDED)
   export FFLAGS   := -pg -g -O -fimplicit-none -Wall -I.
   export LDFLAGS  := -pg -g $(filter -L%, $(LDFLAGS))
   override EXTRA_CLEAN := gmon.out bb.out
@@ -90,32 +120,18 @@ else
 endif
 
 # Check MODE.
-ifeq "$(MODE)" "interactive"
-  # Important not to have output batched when running the test programs.
-  MAKEFLAGS := $(filter-out -Otarget,$(MAKEFLAGS)) -Onone
-else
+ifneq "$(MODE)" "interactive"
   # Unrecognised.
   override MODE :=
 endif
 
-
-# gmake uses FC in place of configure's F77.
-ifdef F77
-  FC := $(F77)
+# Check EXTRA_CLEAN.
+ifeq "$(EXTRA_CLEAN)" ""
+  EXTRA_CLEAN :=
 endif
 
-ifndef TIMER
-  TIMER := date +"%a %Y/%m/%d %X %z, executing on $$HOST"
-endif
-
-ifdef FLAVOUR
-  TIMER := $(TIMER) ; echo "    with $(FLAVOUR) FLAVOUR."
-endif
-
-show ::
-	-@ echo 'For code development...'
-	-@ echo '  FLAVOUR     := $(FLAVOUR)'
-	-@ echo '  MODE        := $(MODE)'
-	-@ echo '  VALGRIND    := $(VALGRIND)'
-	-@ echo '  EXTRA_CLEAN := $(EXTRA_CLEAN)'
-	-@ echo ''
+# Pass to configure though the environment.
+export FLAVOUR
+export VALGRIND
+export MODE
+export EXTRA_CLEAN

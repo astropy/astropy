@@ -11,7 +11,8 @@ celestial-to-terrestrial coordinate transformations
 
 import os
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Self
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -44,33 +45,33 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.state import ScienceState
 
 __all__ = [
-    "Conf",
-    "conf",
-    "earth_orientation_table",
-    "IERS",
-    "IERS_B",
-    "IERS_A",
-    "IERS_Auto",
-    "FROM_IERS_B",
     "FROM_IERS_A",
     "FROM_IERS_A_PREDICTION",
-    "TIME_BEFORE_IERS_RANGE",
-    "TIME_BEYOND_IERS_RANGE",
+    "FROM_IERS_B",
+    "IERS",
+    "IERS_A",
     "IERS_A_FILE",
+    "IERS_A_README",
     "IERS_A_URL",
     "IERS_A_URL_MIRROR",
-    "IERS_A_README",
+    "IERS_B",
     "IERS_B_FILE",
-    "IERS_B_URL",
     "IERS_B_README",
-    "IERSRangeError",
-    "IERSStaleWarning",
-    "IERSWarning",
-    "IERSDegradedAccuracyWarning",
-    "LeapSeconds",
+    "IERS_B_URL",
     "IERS_LEAP_SECOND_FILE",
     "IERS_LEAP_SECOND_URL",
     "IETF_LEAP_SECOND_URL",
+    "TIME_BEFORE_IERS_RANGE",
+    "TIME_BEYOND_IERS_RANGE",
+    "Conf",
+    "IERSDegradedAccuracyWarning",
+    "IERSRangeError",
+    "IERSStaleWarning",
+    "IERSWarning",
+    "IERS_Auto",
+    "LeapSeconds",
+    "conf",
+    "earth_orientation_table",
 ]
 
 # Status/source values returned by IERS.ut1_utc
@@ -165,9 +166,9 @@ class Conf(_config.ConfigNamespace):
 
     auto_download = _config.ConfigItem(
         True,
-        "Enable auto-downloading of the latest IERS data.  If set to False "
-        "then the local IERS-B file will be used by default (even if the "
-        "full IERS file with predictions was already downloaded and cached). "
+        "Enable auto-downloading of the latest IERS-A data.  If set to False "
+        "then the bundled IERS-A file will be used by default (even if a "
+        "newer version of the IERS-A file was previously downloaded and cached). "
         "This parameter also controls whether internet resources will be "
         "queried to update the leap second table if the installed version is "
         "out of date. Default is True.",
@@ -191,7 +192,7 @@ class Conf(_config.ConfigNamespace):
         ["error", "warn", "ignore"],
         "IERS behavior if the range of available IERS data does not "
         "cover the times when converting time scales, potentially leading "
-        "to degraded accuracy.",
+        "to degraded accuracy.  Applies only when using IERS-B data on its own.",
     )
     system_leap_second_file = _config.ConfigItem("", "System file with leap seconds.")
     iers_leap_second_auto_url = _config.ConfigItem(
@@ -443,9 +444,6 @@ class IERS(QTable):
         if is_scalar:
             mjd = np.array([mjd])
             utc = np.array([utc])
-        elif mjd.size == 0:
-            # Short-cut empty input.
-            return np.array([])
 
         self._refresh_table_as_needed(mjd)
 
@@ -493,7 +491,8 @@ class IERS(QTable):
             results.append(status)
             return results
         else:
-            self._check_interpolate_indices(i1, i, np.max(mjd))
+            # Pass in initial to np.max to allow things to work for empty mjd.
+            self._check_interpolate_indices(i1, i, np.max(mjd, initial=50000))
             return results[0] if len(results) == 1 else results
 
     def _refresh_table_as_needed(self, mjd):
@@ -545,9 +544,9 @@ class IERS_A(IERS):
 
     Notes
     -----
-    The IERS A file is not part of astropy.  It can be downloaded from
-    ``iers.IERS_A_URL`` or ``iers.IERS_A_URL_MIRROR``. See ``iers.__doc__``
-    for instructions on use in ``Time``, etc.
+    If the package IERS A file (``iers.IERS_A_FILE``) is out of date, a new
+    version can be downloaded from ``iers.IERS_A_URL`` or ``iers.IERS_A_URL_MIRROR``.
+    See ``iers.__doc__`` for instructions on use in ``Time``, etc.
     """
 
     iers_table = None
@@ -604,15 +603,19 @@ class IERS_A(IERS):
         return table
 
     @classmethod
-    def read(cls, file=None, readme=None):
+    def read(
+        cls,
+        file: str | os.PathLike[str] | None = None,
+        readme: str | os.PathLike[str] | None = None,
+    ) -> Self:
         """Read IERS-A table from a finals2000a.* file provided by USNO.
 
         Parameters
         ----------
-        file : str
+        file : str or os.PathLike[str]
             full path to ascii file holding IERS-A data.
             Defaults to ``iers.IERS_A_FILE``.
-        readme : str
+        readme : str or os.PathLike[str]
             full path to ascii file holding CDS-style readme.
             Defaults to package version, ``iers.IERS_A_README``.
 
@@ -640,8 +643,12 @@ class IERS_A(IERS):
                 )
             else:
                 file = IERS_A_FILE
+        else:
+            file = os.fspath(file)
         if readme is None:
             readme = IERS_A_README
+        else:
+            readme = os.fspath(readme)
 
         iers_a = super().read(file, format="cds", readme=readme)
 
@@ -684,7 +691,7 @@ class IERS_B(IERS):
 
     Notes
     -----
-    If the package IERS B file (```iers.IERS_B_FILE``) is out of date, a new
+    If the package IERS B file (``iers.IERS_B_FILE``) is out of date, a new
     version can be downloaded from ``iers.IERS_B_URL``.
 
     See `~astropy.utils.iers.IERS_B.read` for instructions on how to read
@@ -694,15 +701,20 @@ class IERS_B(IERS):
     iers_table = None
 
     @classmethod
-    def read(cls, file=None, readme=None, data_start=6):
+    def read(
+        cls,
+        file: str | os.PathLike[str] | None = None,
+        readme: str | os.PathLike[str] | None = None,
+        data_start: int = 6,
+    ) -> Self:
         """Read IERS-B table from a eopc04.* file provided by IERS.
 
         Parameters
         ----------
-        file : str
+        file : str or os.PathLike[str]
             full path to ascii file holding IERS-B data.
             Defaults to package version, ``iers.IERS_B_FILE``.
-        readme : str
+        readme : str or os.PathLike[str]
             full path to ascii file holding CDS-style readme.
             Defaults to package version, ``iers.IERS_B_README``.
         data_start : int
@@ -732,9 +744,12 @@ class IERS_B(IERS):
         """
         if file is None:
             file = IERS_B_FILE
+        else:
+            file = os.fspath(file)
         if readme is None:
             readme = IERS_B_README
-
+        else:
+            readme = os.fspath(readme)
         table = super().read(file, format="cds", readme=readme, data_start=data_start)
 
         table.meta["data_path"] = file
@@ -758,6 +773,10 @@ class IERS_Auto(IERS_A):
     """
     Provide most-recent IERS data and automatically handle downloading
     of updated values as necessary.
+
+    The returned table combines the IERS-A and IERS-B files, with the data
+    in the IERS-B file considered to be official values and thus superseding
+    values from the IERS-A file at the same times.
     """
 
     iers_table = None
@@ -772,8 +791,8 @@ class IERS_Auto(IERS_A):
         (or non-existent) then it will be downloaded over the network and cached.
 
         If the configuration setting ``astropy.utils.iers.conf.auto_download``
-        is set to False then ``astropy.utils.iers.IERS()`` is returned.  This
-        is normally the IERS-B table that is supplied with astropy.
+        is set to False then the bundled IERS-A table will be used rather than
+        any downloaded version of the IERS-A table.
 
         On the first call in a session, the table will be memoized (in the
         ``iers_table`` class attribute), and further calls to ``open`` will
@@ -786,7 +805,11 @@ class IERS_Auto(IERS_A):
 
         """
         if not conf.auto_download:
-            cls.iers_table = IERS_B.open()
+            # If auto_download is changed to False mid-session, iers_table may have already been
+            # made from non-bundled files, so it should be remade from bundled files
+            if not hasattr(cls, "_iers_table_bundled"):
+                cls._iers_table_bundled = cls.read()
+            cls.iers_table = cls._iers_table_bundled
             return cls.iers_table
 
         all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
@@ -817,8 +840,10 @@ class IERS_Auto(IERS_A):
             # Issue a warning here, perhaps user is offline.  An exception
             # will be raised downstream if actually trying to interpolate
             # predictive values.
-            warn("unable to download valid IERS file, using local IERS-B", IERSWarning)
-            cls.iers_table = IERS_B.open()
+            warn(
+                "unable to download valid IERS file, using bundled IERS-A", IERSWarning
+            )
+            cls.iers_table = cls.read()
 
         return cls.iers_table
 
@@ -853,7 +878,13 @@ class IERS_Auto(IERS_A):
           In other words the IERS-A table was created by IERS long enough
           ago that it can be considered stale for predictions.
         """
-        max_input_mjd = np.max(mjd)
+        # If downloading is disabled, bail out silently.
+        # _check_interpolate_indices() will error later if appropriate.
+        if not conf.auto_download:
+            return
+
+        # Pass in initial to np.max to allow things to work for empty mjd.
+        max_input_mjd = np.max(mjd, initial=50000)
         now_mjd = self.time_now.mjd
 
         # IERS-A table contains predictive data out for a year after
@@ -883,7 +914,7 @@ class IERS_Auto(IERS_A):
                 # predictive values.
                 warn(
                     AstropyWarning(
-                        f'failed to download {" and ".join(all_urls)}: {err}.\nA'
+                        f"failed to download {' and '.join(all_urls)}: {err}.\nA"
                         " coordinate or time-related calculation might be compromised"
                         " or fail because the dates are not covered by the available"
                         ' IERS file.  See the "IERS data access" section of the'
@@ -932,7 +963,7 @@ class IERS_Auto(IERS_A):
         IERS-A has IERS-B values included, but for reasons unknown these
         do not match the latest IERS-B values (see comments in #4436).
         Here, we use the bundled astropy IERS-B table to overwrite the values
-        in the downloaded IERS-A table.
+        in the IERS-A table.
         """
         iers_b = IERS_B.open()
         # Substitute IERS-B values for existing B values in IERS-A table
@@ -1090,9 +1121,7 @@ class LeapSeconds(QTable):
     def _today():
         # Get current day in scale='tai' without going through a scale change
         # (so we do not need leap seconds).
-        s = "{0.year:04d}-{0.month:02d}-{0.day:02d}".format(
-            datetime.now(tz=timezone.utc)
-        )
+        s = "{0.year:04d}-{0.month:02d}-{0.day:02d}".format(datetime.now(tz=UTC))
         return Time(s, scale="tai", format="iso", out_subfmt="date")
 
     @classmethod
@@ -1134,8 +1163,8 @@ class LeapSeconds(QTable):
             # configuration items, which we want to be sure are up to date).
             files = [getattr(conf, f, f) for f in cls._auto_open_files]
 
-        # Remove empty entries.
-        files = [f for f in files if f]
+        # Remove empty entries and normalize Path objects to string
+        files = [os.fspath(f) for f in files if f]
 
         # Our trials start with normal files and remote ones that are
         # already in cache.  The bools here indicate that the cache

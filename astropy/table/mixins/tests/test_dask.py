@@ -39,7 +39,7 @@ class TestDaskHandler:
         assert_equal(sub["a"].compute(), np.arange(10))
 
     def test_pformat(self):
-        assert self.t.pformat_all() == [
+        assert self.t.pformat() == [
             " a ",
             "---",
             "  0",

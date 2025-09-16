@@ -487,7 +487,6 @@ documentation::
   sc.gcrs                                sc.separation_3d
   sc.geocentrictrueecliptic              sc.shape
   sc.get_constellation                   sc.size
-  sc.get_frame_attr_names                sc.skyoffset_frame
   sc.guess_from_table                    sc.spherical
   sc.has_data                            sc.spherical_offsets_to
   sc.hcrs                                sc.squeeze
@@ -586,7 +585,6 @@ class), and |SkyCoord| (a.k.a. high-level class; see
   sc.frame.flatten                             sc.frame.reshape
   sc.frame.frame_attributes                    sc.frame.separation
   sc.frame.frame_specific_representation_info  sc.frame.separation_3d
-  sc.frame.get_frame_attr_names                sc.frame.shape
   sc.frame.has_data                            sc.frame.size
   sc.frame.is_equivalent_frame                 sc.frame.spherical
   sc.frame.is_frame_attr_default               sc.frame.squeeze
@@ -962,12 +960,11 @@ its usual position to avoid overlap with the axis labels.
 .. doctest-skip::
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.figure(figsize=(8,4.2))
-    >>> plt.subplot(111, projection="aitoff")
-    >>> plt.title("Aitoff projection of our random data")
-    >>> plt.grid(True)
-    >>> plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
-    >>> plt.subplots_adjust(top=0.95,bottom=0.0)
+    >>> fig, ax = plt.subplots(figsize=(8, 4.2), subplot_kw=dict(projection="aitoff"))
+    >>> ax.title("Aitoff projection of our random data")
+    >>> ax.grid(True)
+    >>> ax.scatter(ra_rad, dec_rad, marker="o", s=2, alpha=0.3)
+    >>> fig.subplots_adjust(top=0.95, bottom=0.0)
     >>> plt.show()
 
 
@@ -1008,12 +1005,11 @@ its usual position to avoid overlap with the axis labels.
     # As a last step we set up the plotting environment with matplotlib using the
     # Aitoff projection with a specific title, a grid, filled circles as markers with
     # a marker size of 2, and an alpha value of 0.3.
-    plt.figure(figsize=(8,4.2))
-    plt.subplot(111, projection="aitoff")
-    plt.title("Aitoff projection of our random data", y=1.08)
-    plt.grid(True)
-    plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
-    plt.subplots_adjust(top=0.95, bottom=0.0)
+    fig, ax = plt.subplots(figsize=(8, 4.2), subplot_kw=dict(projection="aitoff"))
+    ax.set_title("Aitoff projection of our random data", y=1.08)
+    ax.grid(True)
+    ax.scatter(ra_rad, dec_rad, marker="o", s=2, alpha=0.3)
+    fig.subplots_adjust(top=0.95, bottom=0.0)
     plt.show()
 
 ..
@@ -1063,12 +1059,11 @@ We use the same plotting setup as in the last example:
 .. doctest-skip::
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.figure(figsize=(8,4.2))
-    >>> plt.subplot(111, projection="aitoff")
-    >>> plt.title("Aitoff projection of our random data")
-    >>> plt.grid(True)
-    >>> plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
-    >>> plt.subplots_adjust(top=0.95,bottom=0.0)
+    >>> fig, ax = plt.subplots(figsize=(8, 4.2), subplot_kw=dict(projection="aitoff"))
+    >>> ax.set_title("Aitoff projection of our random data")
+    >>> ax.grid(True)
+    >>> ax.scatter(ra_rad, dec_rad, marker="o", s=2, alpha=0.3)
+    >>> fig.subplots_adjust(top=0.95, bottom=0.0)
     >>> plt.show()
 
 
@@ -1105,12 +1100,11 @@ We use the same plotting setup as in the last example:
     dec_rad = c_gal_icrs.dec.radian
 
     # We use the same plotting setup as in the last example:
-    plt.figure(figsize=(8,4.2))
-    plt.subplot(111, projection="aitoff")
-    plt.title("Aitoff projection of our random data", y=1.08)
-    plt.grid(True)
-    plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
-    plt.subplots_adjust(top=0.95,bottom=0.0)
+    fig, ax = plt.subplots(figsize=(8, 4.2), subplot_kw=dict(projection="aitoff"))
+    ax.set_title("Aitoff projection of our random data", y=1.08)
+    ax.grid(True)
+    ax.scatter(ra_rad, dec_rad, marker="o", s=2, alpha=0.3)
+    fig.subplots_adjust(top=0.95, bottom=0.0)
     plt.show()
 
 ..
@@ -1134,7 +1128,7 @@ FK4 => ICRS => FK4 and then compare::
 
   >>> sc1 = SkyCoord(1*u.deg, 2*u.deg, frame='fk4')
   >>> sc1.icrs.fk4 == sc1
-  False
+  np.False_
 
 Matching Within Tolerance
 -------------------------
@@ -1145,7 +1139,7 @@ To test if coordinates are within a certain angular distance of one other, use t
   >>> sc1.icrs.fk4.separation(sc1).to(u.arcsec)  # doctest: +SKIP
   <Angle 7.98873629e-13 arcsec>
   >>> sc1.icrs.fk4.separation(sc1) < 1e-9 * u.arcsec
-  True
+  np.True_
 
 Exact Equality
 --------------
@@ -1175,7 +1169,7 @@ In the first example we show simple comparisons using array-valued coordinates::
   >>> sc2 == sc2[1]  # Broadcasting comparison with a scalar
   array([False,  True])
   >>> sc2[0] == sc2[1]  # Scalar to scalar comparison
-  False
+  np.False_
   >>> sc1 != sc2  # Not equal
   array([False,  True])
 
@@ -1245,8 +1239,8 @@ means that attributes such as ``obstime`` can become columns or metadata::
       0.0    20.0
      20.0     0.0
   >>> t.meta
-  {'obstime': <Time object: scale='tt' format='jyear' value=2000.0>,
-   'representation_type': 'spherical', 'frame': 'galactic'}
+  {'representation_type': 'spherical', 'frame': 'galactic',
+   'obstime': <Time object: scale='tt' format='jyear' value=2000.0>}
 
 Convenience Methods
 ===================

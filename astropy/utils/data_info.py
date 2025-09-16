@@ -29,12 +29,12 @@ import numpy as np
 from . import metadata
 
 __all__ = [
-    "data_info_factory",
-    "dtype_info_name",
     "BaseColumnInfo",
     "DataInfo",
     "MixinInfo",
     "ParentDtypeInfo",
+    "data_info_factory",
+    "dtype_info_name",
 ]
 
 # Tuple of filterwarnings kwargs to ignore when calling info
@@ -153,7 +153,7 @@ def data_info_factory(names, funcs):
 
     def func(dat):
         outs = []
-        for name, func in zip(names, funcs):
+        for func in funcs:
             try:
                 if isinstance(func, str):
                     out = getattr(dat, func)()
@@ -170,22 +170,6 @@ def data_info_factory(names, funcs):
         return OrderedDict(zip(names, outs))
 
     return func
-
-
-def _get_obj_attrs_map(obj, attrs):
-    """
-    Get the values for object ``attrs`` and return as a dict.  This
-    ignores any attributes that are None.  In the context of serializing
-    the supported core astropy classes this conversion will succeed and
-    results in more succinct and less python-specific YAML.
-    """
-    out = {}
-    for attr in attrs:
-        val = getattr(obj, attr, None)
-
-        if val is not None:
-            out[attr] = val
-    return out
 
 
 def _get_data_attribute(dat, attr=None):
@@ -244,11 +228,11 @@ class ParentAttribute:
 
 
 class DataInfoMeta(type):
-    def __new__(mcls, name, bases, dct):
+    def __new__(cls, name, bases, dct):
         # Ensure that we do not gain a __dict__, which would mean
         # arbitrary attributes could be set.
         dct.setdefault("__slots__", [])
-        return super().__new__(mcls, name, bases, dct)
+        return super().__new__(cls, name, bases, dct)
 
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
@@ -302,7 +286,7 @@ class DataInfo(metaclass=DataInfoMeta):
     _attr_defaults = {"dtype": np.dtype("O")}
     _attrs_no_copy = set()
     _info_summary_attrs = ("dtype", "shape", "unit", "format", "description", "class")
-    __slots__ = ["_parent_cls", "_parent_ref", "_attrs"]
+    __slots__ = ["_attrs", "_parent_cls", "_parent_ref"]
     # This specifies the list of object attributes which must be stored in
     # order to re-create the object after serialization.  This is independent
     # of normal `info` attributes like name or description.  Subclasses will
@@ -398,13 +382,17 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
         self._attrs = state
 
     def _represent_as_dict(self, attrs=None):
-        """Get the values for the parent ``attrs`` and return as a dict.
-
+        """Get the values for the parent ``attrs`` and return as a dict. This
+        ignores any attributes that are None.  In the context of serializing
+        the supported core astropy classes this conversion will succeed and
+        results in more succinct and less python-specific YAML.
         By default, uses '_represent_as_dict_attrs'.
         """
-        if attrs is None:
-            attrs = self._represent_as_dict_attrs
-        return _get_obj_attrs_map(self._parent, attrs)
+        return {
+            key: val
+            for key in (self._represent_as_dict_attrs if attrs is None else attrs)
+            if (val := getattr(self._parent, key, None)) is not None
+        }
 
     def _construct_from_dict(self, map):
         args = [map.pop(attr) for attr in self._construct_from_dict_args]
@@ -490,17 +478,19 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
             info["name"] = name
 
         options = option if isinstance(option, (list, tuple)) else [option]
-        for option in options:
-            if isinstance(option, str):
-                if hasattr(self, "info_summary_" + option):
-                    option = getattr(self, "info_summary_" + option)
+        for option_ in options:
+            if isinstance(option_, str):
+                if hasattr(self, "info_summary_" + option_):
+                    option_ = getattr(self, "info_summary_" + option_)
                 else:
-                    raise ValueError(f"{option=} is not an allowed information type")
+                    raise ValueError(
+                        f"option={option_} is not an allowed information type"
+                    )
 
             with warnings.catch_warnings():
                 for ignore_kwargs in IGNORE_WARNINGS:
                     warnings.filterwarnings("ignore", **ignore_kwargs)
-                info.update(option(dat))
+                info.update(option_(dat))
 
         if hasattr(dat, "mask"):
             n_bad = np.count_nonzero(dat.mask)
@@ -554,7 +544,7 @@ class BaseColumnInfo(DataInfo):
     # like Time or SkyCoord will have different default serialization
     # representations depending on context.
     _serialize_context = None
-    __slots__ = ["_format_funcs", "_copy_indices"]
+    __slots__ = ["_copy_indices", "_format_funcs"]
 
     @property
     def parent_table(self):
@@ -711,7 +701,7 @@ class BaseColumnInfo(DataInfo):
             List of input Table column objects
         metadata_conflicts : str ('warn'|'error'|'silent')
             How to handle metadata conflicts
-        name : str
+        name : str or None
             Output column name
         attrs : list
             List of attribute names to be merged
@@ -758,7 +748,7 @@ class BaseColumnInfo(DataInfo):
 
         # "Merged" output name is the supplied name
         if name is not None:
-            out["name"] = name
+            out["name"] = str(name)
 
         return out
 
@@ -782,15 +772,23 @@ class MixinInfo(BaseColumnInfo):
         return self._attrs.get("name")
 
     @name.setter
-    def name(self, name):
+    def name(self, name: str | None):
+        if name is None:
+            new_name = None
+        elif isinstance(name, str):
+            new_name = str(name)
+        else:
+            raise TypeError(
+                f"Expected a str value, got {name} with type {type(name).__name__}"
+            )
+
         # For mixin columns that live within a table, rename the column in the
         # table when setting the name attribute.  This mirrors the same
         # functionality in the BaseColumn class.
         if self.parent_table is not None:
-            new_name = None if name is None else str(name)
             self.parent_table.columns._rename_column(self.name, new_name)
 
-        self._attrs["name"] = name
+        self._attrs["name"] = new_name
 
     @property
     def groups(self):

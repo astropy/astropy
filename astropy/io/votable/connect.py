@@ -278,3 +278,6 @@ def write_table_votable_parquet(input, output, column_metadata, *, overwrite=Fal
 
 
 io_registry.register_writer("votable.parquet", Table, write_table_votable_parquet)
+# We register the "votable.parquet" reader format for consistency with
+# the writer, even though the format is recognized by the "votable" reader
+io_registry.register_reader("votable.parquet", Table, read_table_votable)

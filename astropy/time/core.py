@@ -6,19 +6,16 @@ UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
 
-from __future__ import annotations
-
 import copy
 import enum
 import operator
 import os
-import sys
 import threading
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from itertools import pairwise
 from time import strftime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 from warnings import warn
 from weakref import WeakValueDictionary
 
@@ -29,12 +26,17 @@ from astropy import constants as const
 from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
-from astropy.utils import ShapedLikeNDArray, lazyproperty
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
+from astropy.utils import lazyproperty
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.masked import Masked
+from astropy.utils.masked import (
+    MaskableShapedLikeNDArray,
+    Masked,
+    combine_masks,
+    get_data_and_mask,
+)
 
 # Below, import TimeFromEpoch to avoid breaking code that followed the old
 # example of making a custom timescale in the documentation.
@@ -53,20 +55,21 @@ from .time_helper.function_helpers import CUSTOM_FUNCTIONS, UNSUPPORTED_FUNCTION
 from .utils import day_frac
 
 if TYPE_CHECKING:
-    from astropy.coordinates import EarthLocation
+    import astropy.coordinates
+
 __all__ = [
-    "TimeBase",
+    "STANDARD_TIME_SCALES",
+    "TIME_DELTA_SCALES",
+    "TIME_SCALES",
+    "OperandTypeError",
+    "ScaleValueError",
     "Time",
+    "TimeBase",
     "TimeDelta",
+    "TimeDeltaMissingUnitWarning",
     "TimeInfo",
     "TimeInfoBase",
     "update_leap_seconds",
-    "TIME_SCALES",
-    "STANDARD_TIME_SCALES",
-    "TIME_DELTA_SCALES",
-    "ScaleValueError",
-    "OperandTypeError",
-    "TimeDeltaMissingUnitWarning",
 ]
 
 
@@ -483,7 +486,7 @@ class TimeDeltaInfo(TimeInfoBase):
         return out
 
 
-class TimeBase(ShapedLikeNDArray):
+class TimeBase(MaskableShapedLikeNDArray):
     """Base time class from which Time and TimeDelta inherit."""
 
     # Make sure that reverse arithmetic (e.g., TimeDelta.__rmul__)
@@ -499,10 +502,7 @@ class TimeBase(ShapedLikeNDArray):
 
     def __getstate__(self):
         # For pickling, we remove the cache from what's pickled
-        if sys.version_info < (3, 11):
-            state = self.__dict__.copy()
-        else:
-            state = super().__getstate__().copy()
+        state = super().__getstate__().copy()
         state.pop("_id_cache", None)
         state.pop("cache", None)
         return state
@@ -551,13 +551,13 @@ class TimeBase(ShapedLikeNDArray):
 
         # If either of the input val, val2 are masked arrays then
         # find the masked elements and fill them.
-        mask = False
-        mask, val_data = get_mask_and_data(mask, val)
-        mask, val_data2 = get_mask_and_data(mask, val2)
+        data1, mask1 = get_data_and_mask(val)
+        data2, mask2 = get_data_and_mask(val2)
+        mask = combine_masks([mask1, mask2])
 
         # Parse / convert input values into internal jd1, jd2 based on format
         self._time = self._get_time_fmt(
-            val_data, val_data2, format, scale, precision, in_subfmt, out_subfmt, mask
+            data1, data2, format, scale, precision, in_subfmt, out_subfmt, mask
         )
         self._format = self._time.name
 
@@ -568,10 +568,10 @@ class TimeBase(ShapedLikeNDArray):
             self._location = self._time._location
             del self._time._location
 
-        # If any inputs were masked then masked jd2 accordingly.  From above
-        # routine ``mask`` must be either Python bool False or an bool ndarray
-        # with shape broadcastable to jd2.
-        if mask is not False:
+        # If any inputs were masked then mask both jd1 and jd2 accordingly,
+        # using a shared mask.  From above, ``mask`` must be either Python
+        # bool False or an bool ndarray with the correct shape.
+        if mask is not False and np.any(mask):
             # Ensure that if the class is already masked, we do not lose it.
             self._time.jd1 = Masked(self._time.jd1, copy=False)
             self._time.jd1.mask |= mask
@@ -674,9 +674,9 @@ class TimeBase(ShapedLikeNDArray):
         that could be used for initialization.  These can be listed with::
 
           >>> list(Time.FORMATS)
-          ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
-           'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
-           'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
+          ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'galexsec', 'gps',
+           'plot_date', 'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday',
+           'datetime64', 'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
         """
         return self._format
 
@@ -757,7 +757,7 @@ class TimeBase(ShapedLikeNDArray):
             raise TypeError(f"unhashable type: '{self.__class__.__name__}' {reason}")
 
     @property
-    def location(self) -> EarthLocation | None:
+    def location(self) -> Union["astropy.coordinates.EarthLocation", None]:
         return self._location
 
     @location.setter
@@ -1098,36 +1098,6 @@ class TimeBase(ShapedLikeNDArray):
     def masked(self):
         return isinstance(self._time.jd1, Masked)
 
-    @property
-    def unmasked(self):
-        """Get an instance without the mask.
-
-        Note that while one gets a new instance, the underlying data will be shared.
-
-        See Also
-        --------
-        astropy.time.Time.filled
-        """
-        # Get a new Time instance that has the unmasked versions of all attributes.
-        return self._apply(lambda x: getattr(x, "unmasked", x))
-
-    def filled(self, fill_value):
-        """Get a copy of the underlying data, with masked values filled in.
-
-        Parameters
-        ----------
-        fill_value : object
-            Value to replace masked values with.  Note that if this value is masked
-
-        See Also
-        --------
-        astropy.time.Time.unmasked
-        """
-        # TODO: once we support Not-a-Time, that can be the default fill_value.
-        unmasked = self.unmasked.copy()
-        unmasked[self.mask] = fill_value
-        return unmasked
-
     def insert(self, obj, values, axis=0):
         """
         Insert values before the given indices in the column and return
@@ -1226,7 +1196,7 @@ class TimeBase(ShapedLikeNDArray):
             if hasattr(self, attr):
                 delattr(self, attr)
 
-        if value is np.ma.masked or value is np.nan:
+        if value is np.ma.masked or value is np.nan:  # noqa: PLW0177, RUF100
             if not isinstance(self._time.jd2, Masked):
                 self._time.jd1 = Masked(self._time.jd1, copy=False)
                 self._time.jd2 = Masked(
@@ -1644,24 +1614,19 @@ class TimeBase(ShapedLikeNDArray):
             )
         return self.max(axis, keepdims=keepdims) - self.min(axis, keepdims=keepdims)
 
-    if NUMPY_LT_2_0:
-        _ptp_decorator = lambda f: f
-    else:
-        _ptp_decorator = deprecated("6.1", alternative="np.ptp")
+    def __array_function__(self, function, types, args, kwargs):
+        if function is np.ptp:
+            return self._ptp_impl(*args[1:], **kwargs)
+        else:
+            return super().__array_function__(function, types, args, kwargs)
 
-        def __array_function__(self, function, types, args, kwargs):
-            if function is np.ptp:
-                return self._ptp_impl(*args[1:], **kwargs)
-            else:
-                return super().__array_function__(function, types, args, kwargs)
-
-    @_ptp_decorator
+    @deprecated("7.0", alternative="np.ptp")
     def ptp(self, axis=None, out=None, keepdims=False):
         """Peak to peak (maximum - minimum) along a given axis.
 
-        This is similar to :meth:`~numpy.ndarray.ptp`, but adapted to ensure
-        that the full precision given by the two doubles ``jd1`` and ``jd2``
-        is used.
+        This method is similar to the :func:`numpy.ptp` function, but
+        adapted to ensure that the full precision given by the two doubles
+        ``jd1`` and ``jd2`` is used.
 
         Note that the ``out`` argument is present only for compatibility with
         `~numpy.ptp`; since `Time` instances are immutable, it is not possible
@@ -1859,11 +1824,8 @@ class TimeBase(ShapedLikeNDArray):
                 # Let other have a go.
                 return NotImplemented
 
-        if (
-            self.scale is not None
-            and self.scale not in other.SCALES
-            or other.scale is not None
-            and other.scale not in self.SCALES
+        if (self.scale is not None and self.scale not in other.SCALES) or (
+            other.scale is not None and other.scale not in self.SCALES
         ):
             # Other will also not be able to do it, so raise a TypeError
             # immediately, allowing us to explain why it doesn't work.
@@ -1920,9 +1882,10 @@ class Time(TimeBase):
     The allowed values for ``format`` can be listed with::
 
       >>> list(Time.FORMATS)
-      ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
-       'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
+      ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'galexsec', 'gps',
+       'plot_date', 'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
        'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
+
 
     See also: http://docs.astropy.org/en/stable/time/
 
@@ -2097,7 +2060,7 @@ class Time(TimeBase):
             such a subclass) at the current time.
         """
         # call `now` immediately to be sure it's ASAP
-        dtnow = datetime.now(tz=timezone.utc)
+        dtnow = datetime.now(tz=UTC)
         return cls(val=dtnow, format="datetime", scale="utc")
 
     info = TimeInfo()
@@ -2258,7 +2221,6 @@ class Time(TimeBase):
             GCRS,
             HCRS,
             ICRS,
-            CartesianRepresentation,
             UnitSphericalRepresentation,
             solar_system_ephemeris,
         )
@@ -2278,27 +2240,17 @@ class Time(TimeBase):
         with solar_system_ephemeris.set(ephemeris):
             if kind.lower() == "heliocentric":
                 # convert to heliocentric coordinates, aligned with ICRS
-                cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
+                loc_ref = itrs.transform_to(HCRS(obstime=self))
             else:
                 # first we need to convert to GCRS coordinates with the correct
-                # obstime, since ICRS coordinates have no frame time
-                gcrs_coo = itrs.transform_to(GCRS(obstime=self))
-                # convert to barycentric (BCRS) coordinates, aligned with ICRS
-                cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz
+                # obstime, since ICRS coordinates have no frame time, and then
+                # convert to barycentric (BCRS) coordinates, aligned with ICRS.
+                loc_ref = itrs.transform_to(GCRS(obstime=self)).transform_to(ICRS())
 
         # get unit ICRS vector to star
-        spos = (
-            skycoord.icrs.represent_as(UnitSphericalRepresentation)
-            .represent_as(CartesianRepresentation)
-            .xyz
-        )
-
-        # Move X,Y,Z to last dimension, to enable possible broadcasting below.
-        cpos = np.rollaxis(cpos, 0, cpos.ndim)
-        spos = np.rollaxis(spos, 0, spos.ndim)
-
+        spos = skycoord.icrs.represent_as(UnitSphericalRepresentation).to_cartesian()
         # calculate light travel time correction
-        tcor_val = (spos * cpos).sum(axis=-1) / const.c
+        tcor_val = loc_ref.cartesian.dot(spos) / const.c
         return TimeDelta(tcor_val, scale="tdb")
 
     def earth_rotation_angle(self, longitude=None):
@@ -2463,9 +2415,8 @@ class Time(TimeBase):
             Local sidereal time or Earth rotation angle, with units of hourangle.
 
         """
-        from astropy.coordinates import EarthLocation, Longitude
+        from astropy.coordinates import EarthLocation, Longitude, rotation_matrix
         from astropy.coordinates.builtin_frames.utils import get_polar_motion
-        from astropy.coordinates.matrix_utilities import rotation_matrix
 
         if longitude is None:
             if self.location is None:
@@ -3044,11 +2995,8 @@ class TimeDelta(TimeBase):
                 return NotImplemented
 
         # the scales should be compatible (e.g., cannot convert TDB to TAI)
-        if (
-            self.scale is not None
-            and self.scale not in other.SCALES
-            or other.scale is not None
-            and other.scale not in self.SCALES
+        if (self.scale is not None and self.scale not in other.SCALES) or (
+            other.scale is not None and other.scale not in self.SCALES
         ):
             raise TypeError(
                 "Cannot add TimeDelta instances with scales "
@@ -3400,46 +3348,6 @@ def _make_array(val, copy=COPY_IF_NEEDED):
         val = np.asanyarray(val, dtype=np.float64)
 
     return val
-
-
-def get_mask_and_data(mask, val):
-    """
-    Update ``mask`` in place and return unmasked ``val`` data.
-
-    If ``val`` is not masked then ``mask`` and ``val`` are returned
-    unchanged.
-
-    Parameters
-    ----------
-    mask : bool, ndarray(bool)
-        Mask to update
-    val: ndarray, np.ma.MaskedArray, Masked
-        Input val
-
-    Returns
-    -------
-    mask, val: bool, ndarray
-        Updated mask, unmasked data
-    """
-    if not isinstance(val, (np.ma.MaskedArray, Masked)):
-        return mask, val
-
-    if isinstance(val, np.ma.MaskedArray):
-        data = val.data
-    else:
-        data = val.unmasked
-
-    # For structured dtype, the mask is structured too.  We consider an
-    # array element masked if any field of the structure is masked.
-    if val.dtype.names:
-        val_mask = val.mask != np.zeros_like(val.mask, shape=())
-    else:
-        val_mask = val.mask
-    if np.any(val_mask):
-        # Final mask is the logical-or of inputs
-        mask = mask | val_mask
-
-    return mask, data
 
 
 class OperandTypeError(TypeError):

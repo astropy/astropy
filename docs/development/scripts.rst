@@ -1,6 +1,6 @@
-****************************
-Writing Command-Line Scripts
-****************************
+********************
+Command-Line Scripts
+********************
 
 Command-line scripts in Astropy should follow a consistent scheme to promote
 readability and compatibility.

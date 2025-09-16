@@ -1,43 +1,57 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""A set of standard astronomical equivalencies."""
+"""
+A set of standard astronomical equivalencies.
 
-from collections import UserList
+The equivalency class and all equivalency functions defined here are also
+available in (and should be used through) the `astropy.units` namespace.
+
+"""
+
+import functools
+from typing import Final
 
 # THIRD-PARTY
 import numpy as np
 
 # LOCAL
 from astropy.constants import si as _si
-from astropy.utils.misc import isiterable
+from astropy.utils import deprecated_renamed_argument
 
 from . import astrophys, cgs, dimensionless_unscaled, misc, si
-from .core import Unit, UnitsError
+from .core import Unit
+from .errors import UnitsError
 from .function import units as function_units
+from .photometric import maggy
 
 __all__ = [
-    "parallax",
-    "spectral",
-    "spectral_density",
-    "doppler_radio",
-    "doppler_optical",
-    "doppler_relativistic",
-    "doppler_redshift",
-    "mass_energy",
-    "brightness_temperature",
-    "thermodynamic_temperature",
+    "Equivalency",
     "beam_angular_area",
+    "brightness_temperature",
     "dimensionless_angles",
+    "doppler_optical",
+    "doppler_radio",
+    "doppler_redshift",
+    "doppler_relativistic",
     "logarithmic",
-    "temperature",
-    "temperature_energy",
+    "magnetic_flux_field",
+    "mass_energy",
     "molar_mass_amu",
+    "parallax",
     "pixel_scale",
     "plate_scale",
-    "Equivalency",
+    "spectral",
+    "spectral_density",
+    "temperature",
+    "temperature_energy",
+    "thermodynamic_temperature",
+    "zero_point_flux",
 ]
 
+km_per_s: Final = si.km / si.s
+ckms: Final = _si.c.to_value(km_per_s)
 
-class Equivalency(UserList):
+
+class Equivalency(list):
     """
     A container for a units equivalency.
 
@@ -50,18 +64,21 @@ class Equivalency(UserList):
     """
 
     def __init__(self, equiv_list, name="", kwargs=None):
-        self.data = equiv_list
+        super().__init__(equiv_list)
         self.name = [name]
         self.kwargs = [kwargs] if kwargs is not None else [{}]
 
     def __add__(self, other):
         if isinstance(other, Equivalency):
-            new = super().__add__(other)
-            new.name = self.name[:] + other.name
-            new.kwargs = self.kwargs[:] + other.kwargs
+            # The super() returns a list, which is really a bit weird,
+            # but that means we have to pass it back through the initializer.
+            new = self.__class__(super().__add__(other))
+            # Avoid the change to list of the name and kwargs arguments.
+            new.name = self.name + other.name
+            new.kwargs = self.kwargs + other.kwargs
             return new
         else:
-            return self.data.__add__(other)
+            return super().__add__(other)  # Let list take care.
 
     def __eq__(self, other):
         return (
@@ -71,6 +88,7 @@ class Equivalency(UserList):
         )
 
 
+@functools.cache
 def dimensionless_angles():
     """Allow angles to be equivalent to dimensionless (with 1 rad = 1 m/m = 1).
 
@@ -81,6 +99,7 @@ def dimensionless_angles():
     return Equivalency([(si.radian, None)], "dimensionless_angles")
 
 
+@functools.cache
 def logarithmic():
     """Allow logarithmic units to be converted to dimensionless fractions."""
     return Equivalency(
@@ -89,6 +108,7 @@ def logarithmic():
     )
 
 
+@functools.cache
 def parallax():
     """
     Returns a list of equivalence pairs that handle the conversion
@@ -99,7 +119,7 @@ def parallax():
         x = np.asanyarray(x)
         d = 1 / x
 
-        if isiterable(d):
+        if np.iterable(d):
             d[d < 0] = np.nan
             return d
 
@@ -114,6 +134,7 @@ def parallax():
     )
 
 
+@functools.cache
 def spectral():
     """
     Returns a list of equivalence pairs that handle spectral
@@ -152,6 +173,9 @@ def spectral():
     )
 
 
+@deprecated_renamed_argument(
+    "factor", None, since="7.0", alternative='"wav" as a "Quantity"'
+)
 def spectral_density(wav, factor=None):
     """
     Returns a list of equivalence pairs that handle spectral density
@@ -162,13 +186,15 @@ def spectral_density(wav, factor=None):
     wav : `~astropy.units.Quantity`
         `~astropy.units.Quantity` associated with values being converted
         (e.g., wavelength or frequency).
+    factor : array_like
+        If ``wav`` is a |Unit| instead of a |Quantity| then ``factor``
+        is the value ``wav`` will be multiplied with to convert it to
+        a |Quantity|.
 
-    Notes
-    -----
-    The ``factor`` argument is left for backward-compatibility with the syntax
-    ``spectral_density(unit, factor)`` but users are encouraged to use
-    ``spectral_density(factor * unit)`` instead.
+        .. deprecated:: 7.0
 
+            ``factor`` is deprecated. Pass in ``wav`` as a |Quantity|,
+            not as a |Unit|.
     """
     from .core import UnitBase
 
@@ -350,40 +376,21 @@ def doppler_radio(rest):
     <Quantity -31.209092088877583 km / s>
     """
     assert_is_spectral_unit(rest)
-
-    ckms = _si.c.to_value("km/s")
-
-    def to_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
-        return (restfreq - x) / (restfreq) * ckms
-
-    def from_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
-        voverc = x / ckms
-        return restfreq * (1 - voverc)
-
-    def to_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
-        return (x - restwav) / (x) * ckms
-
-    def from_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
-        return restwav * ckms / (ckms - x)
-
-    def to_vel_en(x):
-        resten = rest.to_value(si.eV, equivalencies=spectral())
-        return (resten - x) / (resten) * ckms
-
-    def from_vel_en(x):
-        resten = rest.to_value(si.eV, equivalencies=spectral())
-        voverc = x / ckms
-        return resten * (1 - voverc)
-
+    rest_in = functools.partial(rest.to_value, equivalencies=spectral())
+    to_funcs = {
+        misc.eV: lambda x: (1 - x / rest_in(misc.eV)) * ckms,
+        si.Hz: lambda x: (1 - x / rest_in(si.Hz)) * ckms,
+        si.AA: lambda x: (1 - rest_in(si.AA) / x) * ckms,
+    }
+    from_funcs = {
+        misc.eV: lambda x: rest_in(misc.eV) * (1 - x / ckms),
+        si.Hz: lambda x: rest_in(si.Hz) * (1 - x / ckms),
+        si.AA: lambda x: rest_in(si.AA) / (1 - x / ckms),
+    }
     return Equivalency(
         [
-            (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
-            (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (si.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (unit, km_per_s, to_func, from_funcs[unit])
+            for unit, to_func in to_funcs.items()
         ],
         "doppler_radio",
         {"rest": rest},
@@ -419,41 +426,21 @@ def doppler_optical(rest):
     <Quantity -31.20584348799674 km / s>
     """
     assert_is_spectral_unit(rest)
-
-    ckms = _si.c.to_value("km/s")
-
-    def to_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
-        return ckms * (restfreq - x) / x
-
-    def from_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
-        voverc = x / ckms
-        return restfreq / (1 + voverc)
-
-    def to_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
-        return ckms * (x / restwav - 1)
-
-    def from_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
-        voverc = x / ckms
-        return restwav * (1 + voverc)
-
-    def to_vel_en(x):
-        resten = rest.to_value(si.eV, equivalencies=spectral())
-        return ckms * (resten - x) / x
-
-    def from_vel_en(x):
-        resten = rest.to_value(si.eV, equivalencies=spectral())
-        voverc = x / ckms
-        return resten / (1 + voverc)
-
+    rest_in = functools.partial(rest.to_value, equivalencies=spectral())
+    to_funcs = {
+        misc.eV: lambda x: (rest_in(misc.eV) / x - 1) * ckms,
+        si.Hz: lambda x: (rest_in(si.Hz) / x - 1) * ckms,
+        si.AA: lambda x: (x / rest_in(si.AA) - 1) * ckms,
+    }
+    from_funcs = {
+        misc.eV: lambda x: rest_in(misc.eV) / (1 + x / ckms),
+        si.Hz: lambda x: rest_in(si.Hz) / (1 + x / ckms),
+        si.AA: lambda x: rest_in(si.AA) * (1 + x / ckms),
+    }
     return Equivalency(
         [
-            (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
-            (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (si.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (unit, km_per_s, to_func, from_funcs[unit])
+            for unit, to_func in to_funcs.items()
         ],
         "doppler_optical",
         {"rest": rest},
@@ -496,47 +483,44 @@ def doppler_relativistic(rest):
     <Quantity 2.6116243681798923 mm>
     """
     assert_is_spectral_unit(rest)
-
-    ckms = _si.c.to_value("km/s")
+    rest_in = functools.partial(rest.to_value, equivalencies=spectral())
 
     def to_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
-        return (restfreq**2 - x**2) / (restfreq**2 + x**2) * ckms
+        restfreq2 = rest_in(si.Hz) ** 2
+        return (restfreq2 - x**2) / (restfreq2 + x**2) * ckms
 
     def from_vel_freq(x):
-        restfreq = rest.to_value(si.Hz, equivalencies=spectral())
         voverc = x / ckms
-        return restfreq * ((1 - voverc) / (1 + (voverc))) ** 0.5
+        return rest_in(si.Hz) * ((1 - voverc) / (1 + voverc)) ** 0.5
 
     def to_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
-        return (x**2 - restwav**2) / (restwav**2 + x**2) * ckms
+        restwav2 = rest_in(si.AA) ** 2
+        return (x**2 - restwav2) / (restwav2 + x**2) * ckms
 
     def from_vel_wav(x):
-        restwav = rest.to_value(si.AA, spectral())
         voverc = x / ckms
-        return restwav * ((1 + voverc) / (1 - voverc)) ** 0.5
+        return rest_in(si.AA) * ((1 + voverc) / (1 - voverc)) ** 0.5
 
     def to_vel_en(x):
-        resten = rest.to_value(si.eV, spectral())
-        return (resten**2 - x**2) / (resten**2 + x**2) * ckms
+        resten2 = rest_in(misc.eV) ** 2
+        return (resten2 - x**2) / (resten2 + x**2) * ckms
 
     def from_vel_en(x):
-        resten = rest.to_value(si.eV, spectral())
         voverc = x / ckms
-        return resten * ((1 - voverc) / (1 + (voverc))) ** 0.5
+        return rest_in(misc.eV) * ((1 - voverc) / (1 + voverc)) ** 0.5
 
     return Equivalency(
         [
-            (si.Hz, si.km / si.s, to_vel_freq, from_vel_freq),
-            (si.AA, si.km / si.s, to_vel_wav, from_vel_wav),
-            (si.eV, si.km / si.s, to_vel_en, from_vel_en),
+            (si.Hz, km_per_s, to_vel_freq, from_vel_freq),
+            (si.AA, km_per_s, to_vel_wav, from_vel_wav),
+            (misc.eV, km_per_s, to_vel_en, from_vel_en),
         ],
         "doppler_relativistic",
         {"rest": rest},
     )
 
 
+@functools.cache
 def doppler_redshift():
     """
     Returns the equivalence between Doppler redshift (unitless) and radial velocity.
@@ -564,6 +548,7 @@ def doppler_redshift():
     )
 
 
+@functools.cache
 def molar_mass_amu():
     """
     Returns the equivalence between amu and molar mass.
@@ -571,6 +556,7 @@ def molar_mass_amu():
     return Equivalency([(si.g / si.mol, misc.u)], "molar_mass_amu")
 
 
+@functools.cache
 def mass_energy():
     """
     Returns a list of equivalence pairs that handle the conversion
@@ -774,12 +760,12 @@ def thermodynamic_temperature(frequency, T_cmb=None):
     )
 
 
+@functools.cache
 def temperature():
-    """Convert between Kelvin, Celsius, Rankine and Fahrenheit here because
+    """Convert degrees Celsius and degrees Fahrenheit here because
     Unit and CompositeUnit cannot do addition or subtraction properly.
     """
     from .imperial import deg_F as F
-    from .imperial import deg_R as R
 
     K = si.K
     C = si.deg_C
@@ -789,20 +775,18 @@ def temperature():
             (K, C, lambda x: x - 273.15, lambda x: x + 273.15),
             (C, F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
             (K, F, lambda x: x * 1.8 - 459.67, lambda x: (x + 459.67) / 1.8),
-            (R, F, lambda x: x - 459.67, lambda x: x + 459.67),
-            (R, C, lambda x: (x - 491.67) * (5 / 9), lambda x: x * 1.8 + 491.67),
-            (R, K, lambda x: x * (5 / 9), lambda x: x * 1.8),
         ],
         "temperature",
     )
 
 
+@functools.cache
 def temperature_energy():
     """Convert between Kelvin and keV(eV) to an equivalent amount."""
     e = _si.e.value
     k_B = _si.k_B.value
     return Equivalency(
-        [(si.K, si.eV, lambda x: x / (e / k_B), lambda x: x * (e / k_B))],
+        [(si.K, misc.eV, lambda x: x / (e / k_B), lambda x: x * (e / k_B))],
         "temperature_energy",
     )
 
@@ -867,3 +851,60 @@ def plate_scale(platescale):
         "plate_scale",
         {"platescale": platescale},
     )
+
+
+def magnetic_flux_field(mu_r=1):
+    r"""
+    Convert magnetic field between magnetic field strength :math:`(\mathbf{H})` and
+    magnetic flux density :math:`(\mathbf{B})` using the relationship:
+
+    .. math::
+
+        \mathbf{B} = \mu_r \mu_0 \mathbf{H}
+
+    where:
+        - :math:`\mu_0` is the vacuum permeability, a physical constant.
+        - :math:`\mu_r` is the relative permeability of the medium, a dimensionless
+          quantity.
+
+    The default setting (:math:`\mu_r=1`) represents conditions in a vacuum.
+
+    Parameters
+    ----------
+    mu_r : float, optional
+        The relative magnetic permeability of the medium. This is a dimensionless quantity
+        and has a default value of :math:`\mu_r=1` which corresponds to free space (vacuum).
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> H = 1 * u.Oe
+    >>> H.to(u.G, equivalencies=u.magnetic_flux_field())  # doctest: +FLOAT_CMP
+    <Quantity 1. G>
+    >>> H.to(u.G, equivalencies=u.magnetic_flux_field(mu_r=0.8))  # doctest: +FLOAT_CMP
+    <Quantity 0.8 G>
+    >>> B = 1 * u.T
+    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field())  # doctest: +FLOAT_CMP
+    <Quantity 795774.71502628 A / m>
+    >>> B.to(u.A / u.m, equivalencies=u.magnetic_flux_field(mu_r=0.8))  # doctest: +FLOAT_CMP
+    <Quantity 994718.39378285 A / m>
+
+    """
+    mu0 = _si.mu0.value
+    return Equivalency(
+        [(si.T, si.A / si.m, lambda x: x / (mu_r * mu0), lambda x: x * mu_r * mu0)],
+        "magnetic_flux_field",
+    )
+
+
+def zero_point_flux(flux0):
+    """
+    An equivalency for converting linear flux units ("maggys") defined relative
+    to a standard source into a standardized system.
+
+    Parameters
+    ----------
+    flux0 : `~astropy.units.Quantity`
+        The flux of a magnitude-0 object in the "maggy" system.
+    """
+    return Equivalency([(maggy, Unit(flux0))], "zero_point_flux")

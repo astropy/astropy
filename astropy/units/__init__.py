@@ -2,7 +2,7 @@
 
 """
 This subpackage contains classes and functions for defining and converting
-between different physical units.
+between different physical units, as well as the units themselves.
 
 This code is adapted from the `pynbody
 <https://github.com/pynbody/pynbody>`_ units module written by Andrew
@@ -15,10 +15,13 @@ from . import (
     cgs,
     core,
     decorators,
+    errors,
+    imperial,
     misc,
     photometric,
     physical,
     quantity,
+    required_by_vounit,
     si,
     structured,
 )
@@ -27,6 +30,7 @@ from .cgs import *
 from .core import *
 from .core import set_enabled_units
 from .decorators import *
+from .errors import *
 from .misc import *
 from .photometric import *
 from .physical import *
@@ -42,6 +46,7 @@ from .function import *
 
 __all__ = []
 __all__ += core.__all__
+__all__ += errors.__all__
 __all__ += quantity.__all__
 __all__ += decorators.__all__
 __all__ += structured.__all__
@@ -51,7 +56,6 @@ __all__ += astrophys.__all__
 __all__ += physical.__all__
 __all__ += misc.__all__
 __all__ += photometric.__all__
-__all__ += structured.__all__
 __all__ += equivalencies.__all__
 __all__ += function.__all__
 # We sort `__all__` for the docs. We use `globals` to avoid confusing any static
@@ -60,4 +64,6 @@ globals()["__all__"].sort()
 
 # Enable the set of default units.  This notably does *not* include
 # Imperial units.
-set_enabled_units([si, cgs, astrophys, function.units, misc, photometric])
+set_enabled_units(
+    [si, cgs, astrophys, function.units, misc, photometric, required_by_vounit]
+)

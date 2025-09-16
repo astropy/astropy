@@ -31,7 +31,6 @@ from astropy.coordinates.representation import (
     UnitSphericalRepresentation,
 )
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose_quantity
-from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 
@@ -130,8 +129,8 @@ class TestRadialRepresentation:
 
 class TestSphericalRepresentation:
     def test_name(self):
-        assert SphericalRepresentation.get_name() == "spherical"
-        assert SphericalRepresentation.get_name() in REPRESENTATION_CLASSES
+        assert SphericalRepresentation.name == "spherical"
+        assert SphericalRepresentation.name in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -308,7 +307,7 @@ class TestSphericalRepresentation:
         assert_allclose_quantity(s_slc.distance, [1, 1, 1] * u.kpc)
 
         assert len(s) == 10
-        assert isiterable(s)
+        assert np.iterable(s)
 
     def test_getitem_len_iterable_scalar(self):
         s = SphericalRepresentation(lon=1 * u.deg, lat=-2 * u.deg, distance=3 * u.kpc)
@@ -317,7 +316,7 @@ class TestSphericalRepresentation:
             s_slc = s[0]
         with pytest.raises(TypeError):
             len(s)
-        assert not isiterable(s)
+        assert not np.iterable(s)
 
     def test_setitem(self):
         s = SphericalRepresentation(
@@ -391,6 +390,13 @@ class TestSphericalRepresentation:
         assert np.may_share_memory(sph.lat, got.lat)
         expected = BaseRepresentation.represent_as(
             sph, UnitSphericalRepresentation, UnitSphericalDifferential
+        )
+        assert representation_equal_up_to_angular_type(got, expected)
+
+        got = sph.represent_as(RadialRepresentation, RadialDifferential)
+        assert np.may_share_memory(sph.distance, got.distance)
+        expected = BaseRepresentation.represent_as(
+            sph, RadialRepresentation, RadialDifferential
         )
         assert representation_equal_up_to_angular_type(got, expected)
 
@@ -520,8 +526,8 @@ class TestSphericalRepresentation:
 
 class TestUnitSphericalRepresentation:
     def test_name(self):
-        assert UnitSphericalRepresentation.get_name() == "unitspherical"
-        assert UnitSphericalRepresentation.get_name() in REPRESENTATION_CLASSES
+        assert UnitSphericalRepresentation.name == "unitspherical"
+        assert UnitSphericalRepresentation.name in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -695,8 +701,8 @@ class TestUnitSphericalRepresentation:
 
 class TestPhysicsSphericalRepresentation:
     def test_name(self):
-        assert PhysicsSphericalRepresentation.get_name() == "physicsspherical"
-        assert PhysicsSphericalRepresentation.get_name() in REPRESENTATION_CLASSES
+        assert PhysicsSphericalRepresentation.name == "physicsspherical"
+        assert PhysicsSphericalRepresentation.name in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -851,6 +857,13 @@ class TestPhysicsSphericalRepresentation:
         assert_allclose_quantity(got.phi, expected.phi, atol=3e-16 * u.deg)
         assert_array_equal(got.z, expected.z)
 
+        got = sph.represent_as(RadialRepresentation, RadialDifferential)
+        assert np.may_share_memory(sph.r, got.distance)
+        expected = BaseRepresentation.represent_as(
+            sph, RadialRepresentation, RadialDifferential
+        )
+        assert representation_equal_up_to_angular_type(got, expected)
+
     def test_to_cylindrical_at_the_origin(self):
         """Test that the transformation to cylindrical at the origin preserves phi."""
         sph = PhysicsSphericalRepresentation(
@@ -986,8 +999,8 @@ class TestPhysicsSphericalRepresentation:
 
 class TestCartesianRepresentation:
     def test_name(self):
-        assert CartesianRepresentation.get_name() == "cartesian"
-        assert CartesianRepresentation.get_name() in REPRESENTATION_CLASSES
+        assert CartesianRepresentation.name == "cartesian"
+        assert CartesianRepresentation.name in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -1253,8 +1266,8 @@ class TestCartesianRepresentation:
 
 class TestCylindricalRepresentation:
     def test_name(self):
-        assert CylindricalRepresentation.get_name() == "cylindrical"
-        assert CylindricalRepresentation.get_name() in REPRESENTATION_CLASSES
+        assert CylindricalRepresentation.name == "cylindrical"
+        assert CylindricalRepresentation.name in REPRESENTATION_CLASSES
 
     def test_empty_init(self):
         with pytest.raises(TypeError) as exc:
@@ -1431,6 +1444,14 @@ class TestCylindricalRepresentation:
         assert_allclose(sph.r, 3 * u.kpc)
         assert_allclose(sph.theta, 0 * u.deg)
         assert cyl.phi == 23.5 * u.deg  # phi is preserved exactly
+
+    def test_to_physicsspherical_small_theta(self):
+        """Test that the transformation to physicsspherical is accurate for small theta."""
+        cyl = CylindricalRepresentation(rho=1 * u.m, phi=10 * u.deg, z=1e8 * u.m)
+        got = cyl.represent_as(PhysicsSphericalRepresentation)
+        assert_allclose(got.r, 1e8 * u.m)
+        assert_allclose(got.phi, 10 * u.deg)
+        assert_allclose(got.theta, 1e-8 * u.rad)
 
 
 class TestUnitSphericalCosLatDifferential:
@@ -1655,10 +1676,9 @@ def test_subclass_representation():
 
     class Longitude180(Longitude):
         def __new__(cls, angle, unit=None, wrap_angle=180 * u.deg, **kwargs):
-            self = super().__new__(
+            return super().__new__(
                 cls, angle, unit=unit, wrap_angle=wrap_angle, **kwargs
             )
-            return self
 
     class SphericalWrap180Representation(SphericalRepresentation):
         attr_classes = {"lon": Longitude180, "lat": Latitude, "distance": u.Quantity}
@@ -1884,7 +1904,7 @@ class TestCartesianRepresentationWithDifferential:
         )
 
         r2 = CartesianRepresentation.from_representation(r1)
-        assert r2.get_name() == "cartesian"
+        assert r2.name == "cartesian"
         assert not r2.differentials
 
         r3 = SphericalRepresentation(r1)
@@ -1907,22 +1927,22 @@ class TestCartesianRepresentationWithDifferential:
 
         # Only change the representation, drop the differential
         new_rep = rep1.represent_as(SphericalRepresentation)
-        assert new_rep.get_name() == "spherical"
+        assert new_rep.name == "spherical"
         assert not new_rep.differentials  # dropped
 
         # Pass in separate classes for representation, differential
         new_rep = rep1.represent_as(
             SphericalRepresentation, SphericalCosLatDifferential
         )
-        assert new_rep.get_name() == "spherical"
-        assert new_rep.differentials["s"].get_name() == "sphericalcoslat"
+        assert new_rep.name == "spherical"
+        assert new_rep.differentials["s"].name == "sphericalcoslat"
 
         # Pass in a dictionary for the differential classes
         new_rep = rep1.represent_as(
             SphericalRepresentation, {"s": SphericalCosLatDifferential}
         )
-        assert new_rep.get_name() == "spherical"
-        assert new_rep.differentials["s"].get_name() == "sphericalcoslat"
+        assert new_rep.name == "spherical"
+        assert new_rep.differentials["s"].name == "sphericalcoslat"
 
         # make sure represent_as() passes through the differentials
         for name in REPRESENTATION_CLASSES:
@@ -1937,9 +1957,9 @@ class TestCartesianRepresentationWithDifferential:
             new_rep = rep1.represent_as(
                 REPRESENTATION_CLASSES[name], DIFFERENTIAL_CLASSES[name]
             )
-            assert new_rep.get_name() == name
+            assert new_rep.name == name
             assert len(new_rep.differentials) == 1
-            assert new_rep.differentials["s"].get_name() == name
+            assert new_rep.differentials["s"].name == name
 
         with pytest.raises(ValueError) as excinfo:
             rep1.represent_as("name")
@@ -2103,7 +2123,7 @@ def test_to_cartesian():
     )
 
     cart = sr.to_cartesian()
-    assert cart.get_name() == "cartesian"
+    assert cart.name == "cartesian"
     assert not cart.differentials
 
 
@@ -2193,7 +2213,7 @@ def unitphysics():
         del PhysicsSphericalRepresentation._unit_representation
 
     # remove from the module-level representations, if present
-    REPRESENTATION_CLASSES.pop(UnitPhysicsSphericalRepresentation.get_name(), None)
+    REPRESENTATION_CLASSES.pop(UnitPhysicsSphericalRepresentation.name, None)
 
 
 def test_unitphysics(unitphysics):

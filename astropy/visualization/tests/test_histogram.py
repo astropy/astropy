@@ -6,7 +6,7 @@ from numpy.testing import assert_allclose
 from astropy.utils.compat.optional_deps import HAS_PLT, HAS_SCIPY
 
 if HAS_PLT:
-    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
 
 import numpy as np
 import pytest
@@ -15,25 +15,29 @@ from astropy.stats import histogram
 from astropy.visualization import hist
 
 
-@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
-def test_hist_basic(rseed=0):
-    rng = np.random.default_rng(rseed)
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_hist_basic():
+    rng = np.random.default_rng(0)
     x = rng.standard_normal(100)
 
+    fig = Figure()
+    ax = fig.add_subplot()
     for range in [None, (-2, 2)]:
-        n1, bins1, patches1 = plt.hist(x, 10, range=range)
-        n2, bins2, patches2 = hist(x, 10, range=range)
+        n1, bins1, patches1 = ax.hist(x, 10, range=range)
+        n2, bins2, patches2 = hist(x, 10, range=range, ax=ax)
 
         assert_allclose(n1, n2)
         assert_allclose(bins1, bins2)
 
 
-@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
-def test_hist_specify_ax(rseed=0):
-    rng = np.random.default_rng(rseed)
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_hist_specify_ax():
+    rng = np.random.default_rng(0)
     x = rng.standard_normal(100)
 
-    fig, ax = plt.subplots(2)
+    fig = Figure()
+    ax = fig.subplots(2)
+
     n1, bins1, patches1 = hist(x, 10, ax=ax[0])
     assert patches1[0].axes is ax[0]
 
@@ -41,9 +45,9 @@ def test_hist_specify_ax(rseed=0):
     assert patches2[0].axes is ax[1]
 
 
-@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
-def test_hist_autobin(rseed=0):
-    rng = np.random.default_rng(rseed)
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_hist_autobin():
+    rng = np.random.default_rng(0)
     x = rng.standard_normal(100)
 
     # 'knuth' bintype depends on scipy that is optional dependency

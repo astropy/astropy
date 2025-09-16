@@ -14,11 +14,13 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Longitude
 from astropy.units import Quantity
+from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_2, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.utils.masked import Masked, MaskedNDArray
 
 
 def assert_masked_equal(a, b):
+    __tracebackhide__ = True
     assert_array_equal(a.unmasked, b.unmasked)
     assert_array_equal(a.mask, b.mask)
 
@@ -30,46 +32,46 @@ class ArraySetup:
     _data_cls = np.ndarray
 
     @classmethod
-    def setup_class(self):
-        self.a = np.arange(6.0).reshape(2, 3)
-        self.mask_a = np.array([[True, False, False], [False, True, False]])
-        self.b = np.array([-3.0, -2.0, -1.0])
-        self.mask_b = np.array([False, True, False])
-        self.c = np.array([[0.25], [0.5]])
-        self.mask_c = np.array([[False], [True]])
-        self.sdt = np.dtype([("a", "f8"), ("b", "f8")])
-        self.mask_sdt = np.dtype([("a", "?"), ("b", "?")])
-        self.sa = np.array(
+    def setup_class(cls):
+        cls.a = np.arange(6.0).reshape(2, 3)
+        cls.mask_a = np.array([[True, False, False], [False, True, False]])
+        cls.b = np.array([-3.0, -2.0, -1.0])
+        cls.mask_b = np.array([False, True, False])
+        cls.c = np.array([[0.25], [0.5]])
+        cls.mask_c = np.array([[False], [True]])
+        cls.sdt = np.dtype([("a", "f8"), ("b", "f8")])
+        cls.mask_sdt = np.dtype([("a", "?"), ("b", "?")])
+        cls.sa = np.array(
             [
                 [(1.0, 2.0), (3.0, 4.0)],
                 [(11.0, 12.0), (13.0, 14.0)],
             ],
-            dtype=self.sdt,
+            dtype=cls.sdt,
         )
-        self.mask_sa = np.array(
+        cls.mask_sa = np.array(
             [
                 [(True, True), (False, False)],
                 [(False, True), (True, False)],
             ],
-            dtype=self.mask_sdt,
+            dtype=cls.mask_sdt,
         )
-        self.sb = np.array([(1.0, 2.0), (-3.0, 4.0)], dtype=self.sdt)
-        self.mask_sb = np.array([(True, False), (False, False)], dtype=self.mask_sdt)
-        self.scdt = np.dtype([("sa", "2f8"), ("sb", "i8", (2, 2))])
-        self.sc = np.array(
+        cls.sb = np.array([(1.0, 2.0), (-3.0, 4.0)], dtype=cls.sdt)
+        cls.mask_sb = np.array([(True, False), (False, False)], dtype=cls.mask_sdt)
+        cls.scdt = np.dtype([("sa", "2f8"), ("sb", "i8", (2, 2))])
+        cls.sc = np.array(
             [
                 ([1.0, 2.0], [[1, 2], [3, 4]]),
                 ([-1.0, -2.0], [[-1, -2], [-3, -4]]),
             ],
-            dtype=self.scdt,
+            dtype=cls.scdt,
         )
-        self.mask_scdt = np.dtype([("sa", "2?"), ("sb", "?", (2, 2))])
-        self.mask_sc = np.array(
+        cls.mask_scdt = np.dtype([("sa", "2?"), ("sb", "?", (2, 2))])
+        cls.mask_sc = np.array(
             [
                 ([True, False], [[False, False], [True, True]]),
                 ([False, True], [[True, False], [False, True]]),
             ],
-            dtype=self.mask_scdt,
+            dtype=cls.mask_scdt,
         )
 
 
@@ -77,24 +79,24 @@ class QuantitySetup(ArraySetup):
     _data_cls = Quantity
 
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.a = Quantity(self.a, u.m)
-        self.b = Quantity(self.b, u.cm)
-        self.c = Quantity(self.c, u.km)
-        self.sa = Quantity(self.sa, u.m, dtype=self.sdt)
-        self.sb = Quantity(self.sb, u.cm, dtype=self.sdt)
+        cls.a = Quantity(cls.a, u.m)
+        cls.b = Quantity(cls.b, u.cm)
+        cls.c = Quantity(cls.c, u.km)
+        cls.sa = Quantity(cls.sa, u.m, dtype=cls.sdt)
+        cls.sb = Quantity(cls.sb, u.cm, dtype=cls.sdt)
 
 
 class LongitudeSetup(ArraySetup):
     _data_cls = Longitude
 
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.a = Longitude(self.a, u.deg)
-        self.b = Longitude(self.b, u.deg)
-        self.c = Longitude(self.c, u.deg)
+        cls.a = Longitude(cls.a, u.deg)
+        cls.b = Longitude(cls.b, u.deg)
+        cls.c = Longitude(cls.c, u.deg)
         # Note: Longitude does not work on structured arrays, so
         # leaving it as regular array (which just reruns some tests).
 
@@ -119,6 +121,15 @@ class TestMaskedArrayInitialization(ArraySetup):
         assert_array_equal(ma.mask, self.mask_sa)
         assert ma.mask is not self.mask_sa
         assert np.may_share_memory(ma.mask, self.mask_sa)
+
+    def test_masked_input(self):
+        ma = Masked(self.a, mask=self.mask_a)
+        mab = Masked(ma, mask=self.mask_b)
+        assert isinstance(mab, np.ndarray)
+        assert isinstance(mab, type(self.sa))
+        assert isinstance(mab, Masked)
+        assert_array_equal(mab.unmasked, self.a)
+        assert_array_equal(mab.mask, self.mask_a | self.mask_b)
 
 
 def test_masked_ndarray_init():
@@ -161,9 +172,9 @@ class TestMaskedClassCreation:
     """
 
     @classmethod
-    def setup_class(self):
-        self._base_classes_orig = Masked._base_classes.copy()
-        self._masked_classes_orig = Masked._masked_classes.copy()
+    def setup_class(cls):
+        cls._base_classes_orig = Masked._base_classes.copy()
+        cls._masked_classes_orig = Masked._masked_classes.copy()
 
         class MaskedList(Masked, list, base_cls=list, data_cls=list):
             def __new__(cls, *args, mask=None, copy=False, **kwargs):
@@ -177,7 +188,7 @@ class TestMaskedClassCreation:
             def shape(self):
                 return (len(self._unmasked),)
 
-        self.MaskedList = MaskedList
+        cls.MaskedList = MaskedList
 
     def teardown_class(self):
         Masked._base_classes = self._base_classes_orig
@@ -220,14 +231,14 @@ class TestMaskedNDArraySubclassCreation:
     """Test that masked subclasses can be created directly and indirectly."""
 
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         class MyArray(np.ndarray):
             def __new__(cls, *args, **kwargs):
                 return np.asanyarray(*args, **kwargs).view(cls)
 
-        self.MyArray = MyArray
-        self.a = np.array([1.0, 2.0]).view(self.MyArray)
-        self.m = np.array([True, False], dtype=bool)
+        cls.MyArray = MyArray
+        cls.a = np.array([1.0, 2.0]).view(cls.MyArray)
+        cls.m = np.array([True, False], dtype=bool)
 
     def teardown_method(self, method):
         Masked._masked_classes.pop(self.MyArray, None)
@@ -304,11 +315,11 @@ class TestMaskedNDArraySubclassCreation:
 
 class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySetup):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
         # Ensure we have used MaskedQuantity before - just in case a single test gets
         # called; see gh-15316.
-        self.MQ = Masked(Quantity)
+        cls.MQ = Masked(Quantity)
 
     def test_masked_quantity_getting(self):
         # First check setup_class (or previous use) defined a cache entry.
@@ -346,6 +357,19 @@ class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySe
         assert isinstance(mq, self.MQ)
         assert_array_equal(mq.value.unmasked, a)
         assert_array_equal(mq.mask, m)
+
+    def test_initialization_with_list_of_masked_quantity_scalars(self):
+        mq = self.MQ([Masked(1 * u.m, True), 2 * u.km, Masked(3 * u.Mm, False)])
+        assert mq.unit == u.m
+        assert_array_equal(mq.value.unmasked, [1.0, 2e3, 3e6])
+        assert_array_equal(mq.mask, [True, False, False])
+
+    def test_initialization_with_list_of_masked_quantity_arrays(self):
+        ma = Masked(self.a, self.mask_a)
+        mq = self.MQ([ma, ma << u.km])
+        assert isinstance(mq, self.MQ)
+        assert_array_equal(mq.unmasked, u.Quantity([self.a, self.a << u.km]))
+        assert_array_equal(mq.mask, np.array([self.mask_a, self.mask_a]))
 
 
 class TestMaskSetting(ArraySetup):
@@ -422,14 +446,14 @@ class TestMaskSetting(ArraySetup):
 
 class MaskedArraySetup(ArraySetup):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.ma = Masked(self.a, mask=self.mask_a)
-        self.mb = Masked(self.b, mask=self.mask_b)
-        self.mc = Masked(self.c, mask=self.mask_c)
-        self.msa = Masked(self.sa, mask=self.mask_sa)
-        self.msb = Masked(self.sb, mask=self.mask_sb)
-        self.msc = Masked(self.sc, mask=self.mask_sc)
+        cls.ma = Masked(cls.a, mask=cls.mask_a)
+        cls.mb = Masked(cls.b, mask=cls.mask_b)
+        cls.mc = Masked(cls.c, mask=cls.mask_c)
+        cls.msa = Masked(cls.sa, mask=cls.mask_sa)
+        cls.msb = Masked(cls.sb, mask=cls.mask_sb)
+        cls.msc = Masked(cls.sc, mask=cls.mask_sc)
 
 
 class TestViewing(MaskedArraySetup):
@@ -674,11 +698,11 @@ class MaskedItemTests(MaskedArraySetup):
 
 class TestMaskedArrayItems(MaskedItemTests):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.d = np.array(["aa", "bb"])
-        self.mask_d = np.array([True, False])
-        self.md = Masked(self.d, self.mask_d)
+        cls.d = np.array(["aa", "bb"])
+        cls.mask_d = np.array([True, False])
+        cls.md = Masked(cls.d, cls.mask_d)
 
     # Quantity, Longitude cannot hold strings.
     def test_getitem_strings(self):
@@ -797,7 +821,7 @@ class MaskedOperatorTests(MaskedArraySetup):
         assert_array_equal(mxm2.unmasked, exp2)
         assert_array_equal(mxm2.mask, mask2)
 
-    def test_matvec(self):
+    def test_matmul_matvec(self):
         result = self.ma @ self.mb
         assert np.all(result.mask)
         assert_array_equal(result.unmasked, self.a @ self.b)
@@ -811,7 +835,7 @@ class MaskedOperatorTests(MaskedArraySetup):
         assert_array_equal(result3.unmasked, self.a @ self.b)
         assert_array_equal(result3.mask, new_ma.mask.any(-1))
 
-    def test_vecmat(self):
+    def test_matmul_vecmat(self):
         result = self.mb @ self.ma.T
         assert np.all(result.mask)
         assert_array_equal(result.unmasked, self.b @ self.a.T)
@@ -824,7 +848,7 @@ class MaskedOperatorTests(MaskedArraySetup):
         assert_array_equal(result3.unmasked, self.b @ self.a.T)
         assert_array_equal(result3.mask, new_ma.mask.any(0))
 
-    def test_vecvec(self):
+    def test_matmul_vecvec(self):
         result = self.mb @ self.mb
         assert result.shape == ()
         assert result.mask
@@ -832,6 +856,27 @@ class MaskedOperatorTests(MaskedArraySetup):
         mb_no_mask = Masked(self.b, False)
         result2 = mb_no_mask @ mb_no_mask
         assert not result2.mask
+
+    @pytest.mark.skipif(
+        NUMPY_LT_2_3,
+        reason="np.matvec and np.vecmat are new in NumPy 2.3",
+    )
+    def test_matvec_vecmat(self):
+        vec = Masked(np.arange(3, like=self.a), [True, False, False])
+        mat_mask = np.zeros((3, 3), bool)
+        mat_mask[0, 0] = True
+        mat = Masked(
+            np.array([[1.0, -1.0, 2.0], [0.0, 3.0, -1.0], [-1.0, -1.0, 1.0]]),
+            mat_mask,
+        )
+
+        ref_matvec = (vec * mat).sum(-1)
+        res_matvec = np.matvec(mat, vec)
+        assert_masked_equal(res_matvec, ref_matvec)
+
+        ref_vecmat = (vec * mat.T).sum(-1)
+        res_vecmat = np.vecmat(vec, mat)
+        assert_masked_equal(res_vecmat, ref_vecmat)
 
 
 class TestMaskedArrayOperators(MaskedOperatorTests):
@@ -1395,12 +1440,16 @@ def test_masked_str_explicit_structured():
     sa = np.array([(1.0, 2.0), (3.0, 4.0)], dtype="f8,f8")
     msa = Masked(sa, [(False, True), (False, False)])
     assert str(msa) == "[(1., ——) (3., 4.)]"
-    assert str(msa[0]) == "(1., ——)"
-    assert str(msa[1]) == "(3., 4.)" == str(sa[1])
+    assert str(msa[0]) == ("(1., ——)" if NUMPY_LT_2_0 else "(1.0, ———)")
+    assert str(msa[1]) == str(sa[1]) == ("(3., 4.)" if NUMPY_LT_2_0 else "(3.0, 4.0)")
     with np.printoptions(precision=3, floatmode="fixed"):
         assert str(msa) == "[(1.000,   ———) (3.000, 4.000)]"
-        assert str(msa[0]) == "(1.000,   ———)"
-        assert str(msa[1]) == "(3.000, 4.000)" == str(sa[1])
+        assert str(msa[0]) == ("(1.000,   ———)" if NUMPY_LT_2_0 else "(1.0, ———)")
+        assert (
+            str(msa[1])
+            == str(sa[1])
+            == ("(3.000, 4.000)" if NUMPY_LT_2_0 else "(3.0, 4.0)")
+        )
 
 
 def test_masked_repr_explicit_structured():
@@ -1421,8 +1470,13 @@ def test_masked_repr_explicit_structured():
 
 def test_masked_repr_summary():
     ma = Masked(np.arange(15.0), mask=[True] + [False] * 14)
+    if NUMPY_LT_2_2:
+        expected = "MaskedNDArray([———,  1.,  2., ..., 12., 13., 14.])"
+    else:
+        expected = "MaskedNDArray([———,  1.,  2., ..., 12., 13., 14.], shape=(15,))"
+
     with np.printoptions(threshold=2):
-        assert repr(ma) == "MaskedNDArray([———,  1.,  2., ..., 12., 13., 14.])"
+        assert repr(ma) == expected
 
 
 def test_masked_repr_nodata():
@@ -1467,10 +1521,10 @@ class TestMaskedQuantityRepr(TestMaskedArrayRepr, QuantitySetup):
 
 class TestMaskedRecarray(MaskedArraySetup):
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         super().setup_class()
-        self.ra = self.sa.view(np.recarray)
-        self.mra = Masked(self.ra, mask=self.mask_sa)
+        cls.ra = cls.sa.view(np.recarray)
+        cls.mra = Masked(cls.ra, mask=cls.mask_sa)
 
     def test_recarray_setup(self):
         assert isinstance(self.mra, Masked)
@@ -1502,6 +1556,22 @@ class TestMaskedRecarray(MaskedArraySetup):
         assert_array_equal(mra.a.unmasked, self.msa["b"].unmasked)
         assert_array_equal(mra.a.mask, self.msa["b"].mask)
 
+    def test_recarray_repr(self):
+        # Omit dtype part with endian-dependence.
+        assert repr(self.mra).startswith(
+            "MaskedRecarray([[(———, ———), ( 3.,  4.)],\n"
+            "                [(11., ———), (———, 14.)]],\n"
+        )
+
+    def test_recarray_represent_as_dict(self):
+        rasd = self.mra.info._represent_as_dict()
+        assert type(rasd["data"]) is np.ma.MaskedArray
+        assert type(rasd["data"].base) is np.ndarray
+        mra2 = type(self.mra).info._construct_from_dict(rasd)
+        assert type(mra2) is type(self.mra)
+        assert_array_equal(mra2.unmasked, self.ra)
+        assert_array_equal(mra2.mask, self.mra.mask)
+
 
 class TestMaskedArrayInteractionWithNumpyMA(MaskedArraySetup):
     def test_masked_array_from_masked(self):
@@ -1531,15 +1601,6 @@ class TestMaskedQuantityInteractionWithNumpyMA(
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
 def test_plt_scatter_masked():
-    import matplotlib as mpl
-
-    from astropy.utils import minversion
-
-    MPL_LT_3_8 = not minversion(mpl, "3.8")
-
-    if MPL_LT_3_8:
-        pytest.skip("never worked before matplotlib 3.8")
-
     # check that plotting Masked data doesn't raise an exception
     # see https://github.com/astropy/astropy/issues/12481
     import matplotlib.pyplot as plt

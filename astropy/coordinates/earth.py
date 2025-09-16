@@ -267,7 +267,7 @@ class EarthLocation(u.Quantity):
             raise u.UnitsError("Geocentric coordinates should be in units of length.")
 
         # TODO: this part could be removed, with the try/except around the
-        # assignment to struc["x"], ..., below.  But this is a small API change
+        # assignment to struct["x"], ..., below.  But this is a small API change
         # in that it will no longer possible to initialize with a unit-full x,
         # and unit-less y, z. Arguably, though, that would just solve a bug.
         try:
@@ -278,9 +278,9 @@ class EarthLocation(u.Quantity):
             raise u.UnitsError("Geocentric coordinate units should all be consistent.")
 
         x, y, z = np.broadcast_arrays(x, y, z, subok=True)
-        struc = np.empty_like(x, dtype=cls._location_dtype)
-        struc["x"], struc["y"], struc["z"] = x, y, z
-        return super().__new__(cls, struc, unit, copy=False)
+        struct = np.empty_like(x, dtype=cls._location_dtype)
+        struct["x"], struct["y"], struct["z"] = x, y, z
+        return super().__new__(cls, struct, unit, copy=False)
 
     @classmethod
     def from_geodetic(cls, lon, lat, height=0.0, ellipsoid=None):

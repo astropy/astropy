@@ -112,15 +112,15 @@ default, ICRS, the coordinate component names are ``ra`` and ``dec``::
     >>> c.ra  # doctest: +FLOAT_CMP
     <Longitude 10.68458 deg>
     >>> c.ra.hour  # doctest: +FLOAT_CMP
-    0.7123053333333335
+    np.float64(0.7123053333333335)
     >>> c.ra.hms  # doctest: +FLOAT_CMP
-    hms_tuple(h=0.0, m=42.0, s=44.299200000000525)
+    hms_tuple(h=np.float64(0.0), m=np.float64(42.0), s=np.float64(44.299200000000525))
     >>> c.dec  # doctest: +FLOAT_CMP
     <Latitude 41.26917 deg>
     >>> c.dec.degree  # doctest: +FLOAT_CMP
-    41.26917
+    np.float64(41.26917)
     >>> c.dec.radian  # doctest: +FLOAT_CMP
-    0.7202828960652683
+    np.float64(0.7202828960652683)
 
 Coordinates can be converted to strings using the
 :meth:`~astropy.coordinates.SkyCoord.to_string` method::
@@ -398,8 +398,7 @@ third-party package that supports timezone solving, such as `timezonefinder
 pass in their ``.degree`` attributes.
 
 The resulting timezone name could then be used with any packages that support
-time zone definitions, such as the (Python 3.9 default package) `zoneinfo
-<https://docs.python.org/3/library/zoneinfo.html>`_:
+time zone definitions, such as the `zoneinfo <https://docs.python.org/3/library/zoneinfo.html>`_:
 
 .. doctest-remote-data::
 
@@ -426,6 +425,60 @@ and transforming velocities. These are available both via the lower-level
 For more details on velocity support (and limitations), see the
 :doc:`velocities` page.
 
+.. _astropy-coordinates-masks:
+
+Masks
+-----
+
+Sometimes you may have incomplete information about objects, e.g., some have
+distances while others have not. `~astropy.coordinates` supports using masks
+for such purposes, using the |Masked| class::
+
+    >>> from astropy.utils.masked import Masked
+    >>> distance = Masked([0.1, np.nan]*u.kpc, mask=[False, True])
+    >>> sc = SkyCoord([1., 2.]*u.hourangle, [3., 4.]*u.deg, distance=distance)
+    >>> sc
+    <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)
+        [(15., 3., 0.1), (30., 4., ———)]>
+
+The masks propagates as you would expect::
+
+    >>> sc.separation(sc[0])  # doctest: +FLOAT_CMP
+    <MaskedAngle [ 0.        , 15.00502838] deg>
+    >>> sc.separation_3d(sc[0])  # doctest: +FLOAT_CMP
+    <MaskedDistance [ 0., ———] kpc>
+    >>> gcrs = sc.gcrs  # doctest: +SHOW_WARNINGS +IGNORE_OUTPUT
+    RuntimeWarning: invalid value encountered in ld...
+    RuntimeWarning: invalid value encountered in anp...
+    >>> gcrs  # doctest: +FLOAT_CMP
+    <SkyCoord (GCRS: obstime=J2000.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, kpc)
+        [(15.00054403, 2.99988395, 0.1), (        ———,        ———, ———)]>
+
+In the last example, you will notice that the angles of the second item have
+become masked too. This is because the distance is required in the conversion.
+Indeed, because we put in ``NaN``, we get not only the warnings during
+the conversion, but also ``NaN`` in the unmasked converted angles::
+
+    >>> gcrs.unmasked  # doctest: +FLOAT_CMP
+    <SkyCoord (GCRS: obstime=J2000.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, kpc)
+        [(15.00054403, 2.99988395, 0.1), (        nan,        nan, nan)]>
+
+In principle, by using a "good guess" for the distance, this can be avoided::
+
+    >>> distance2 = Masked([0.1, 1.]*u.kpc, mask=[False, True])
+    >>> sc2 = SkyCoord([1., 2.]*u.hourangle, [3., 4.]*u.deg, distance=distance2)
+    >>> gcrs2 = sc2.gcrs
+    >>> gcrs2  # doctest: +FLOAT_CMP
+    <SkyCoord (GCRS: obstime=J2000.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, kpc)
+        [(15.00054403, 2.99988395, 0.1), (        ———,        ———, ———)]>
+    >>> gcrs2.unmasked  # doctest: +FLOAT_CMP
+    <SkyCoord (GCRS: obstime=J2000.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec, distance) in (deg, deg, kpc)
+        [(15.00054403, 2.99988395, 0.1), (30.00201927, 3.99996188, 1. )]>
+
+.. warning::
+    Support for masks is new in astropy 7.0, and likely incomplete.
+    Please report any problems you find.
+
 .. _astropy-coordinates-overview:
 
 Overview of `astropy.coordinates` Concepts
@@ -449,8 +502,8 @@ representations, frames, and a high-level class. Representations
 classes are a particular way of storing a three-dimensional data point
 (or points), such as Cartesian coordinates or spherical polar
 coordinates. Frames are particular reference frames like FK5 or ICRS,
-which may store their data in different representations, but have well-
-defined transformations between each other. These transformations are
+which may store their data in different representations, but have
+well-defined transformations between each other. These transformations are
 all stored in the ``astropy.coordinates.frame_transform_graph``, and new
 transformations can be created by users. Finally, the high-level class
 (|SkyCoord|) uses the frame classes, but provides a more accessible
@@ -496,7 +549,7 @@ listed below.
    common_errors
    definitions
    inplace
-
+   example_gallery_index
 
 In addition, another resource for the capabilities of this package is the
 ``astropy.coordinates.tests.test_api_ape5`` testing file. It showcases most of
@@ -534,7 +587,7 @@ coordinate systems implemented here include:
 * Meeus, J. "Astronomical Algorithms"
     A valuable text describing details of a wide range of coordinate-related
     problems and concepts.
-* `Revisiting Spacetrack Report #3 <https://celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
+* `Revisiting Spacetrack Report #3 <https://celestrak.org/publications/AIAA/2006-6753/AIAA-2006-6753-Rev2.pdf>`_
     A discussion of the simplified general perturbation (SGP) for satellite orbits, with a description of
     the True Equator Mean Equinox (TEME) coordinate frame.
 

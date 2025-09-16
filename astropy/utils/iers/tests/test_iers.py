@@ -25,25 +25,7 @@ from astropy.utils.iers import iers
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, "FileNotFoundError", OSError)
 
-try:
-    iers.IERS_A.open("finals2000A.all")  # check if IERS_A is available
-except OSError:
-    HAS_IERS_A = False
-else:
-    HAS_IERS_A = True
-
 IERS_A_EXCERPT = get_pkg_data_filename(os.path.join("data", "iers_a_excerpt"))
-
-
-def setup_module():
-    # Need auto_download so that IERS_B won't be loaded and cause tests to
-    # fail. Files to be downloaded are handled appropriately in the tests.
-    iers.conf.auto_download = True
-
-
-def teardown_module():
-    # This setting is to be consistent with astropy/conftest.py
-    iers.conf.auto_download = False
 
 
 class TestBasic:
@@ -114,7 +96,8 @@ class TestBasic:
         iers.IERS_A.close()
 
 
-def test_IERS_B_old_style_excerpt():
+@pytest.mark.parametrize("path_transform", [os.fspath, Path])
+def test_IERS_B_old_style_excerpt(path_transform):
     """Check that the instructions given in `IERS_B.read` actually work."""
     # If this test is changed, be sure to also adjust the instructions.
     #
@@ -122,8 +105,8 @@ def test_IERS_B_old_style_excerpt():
     # enough time has passed that old-style IERS_B files are simply
     # not around any more, say in 2025.  If so, also remove the excerpt
     # and the ReadMe.eopc04_IAU2000 file.
-    old_style_file = get_pkg_data_filename(
-        os.path.join("data", "iers_b_old_style_excerpt")
+    old_style_file = path_transform(
+        get_pkg_data_filename(os.path.join("data", "iers_b_old_style_excerpt"))
     )
     excerpt = iers.IERS_B.read(
         old_style_file,
@@ -138,7 +121,7 @@ def test_IERS_B_old_style_excerpt():
 
 class TestIERS_AExcerpt:
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         iers.IERS_A.close()
 
     def test_simple(self):
@@ -216,10 +199,9 @@ class TestIERS_AExcerpt:
         assert len(iers_tab[:2]) == 2
 
 
-@pytest.mark.skipif(not HAS_IERS_A, reason="requires IERS_A")
 class TestIERS_A:
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         iers.IERS_A.close()
 
     def test_simple(self):
@@ -260,6 +242,16 @@ class TestIERS_Auto:
         self.iers_a_url_1 = Path(self.iers_a_file_1).as_uri()
         self.iers_a_url_2 = Path(self.iers_a_file_2).as_uri()
         self.t = Time.now() + TimeDelta(10, format="jd") * np.arange(self.N)
+
+        # This group of tests requires auto downloading to be on
+        self._auto_download = iers.conf.auto_download
+        iers.conf.auto_download = True
+
+        # auto_download = False is tested in test_IERS_B_parameters_loading_into_IERS_Auto()
+
+    def teardown_class(self):
+        # Restore the auto downloading setting
+        iers.conf.auto_download = self._auto_download
 
     def teardown_method(self, method):
         """Run this after every test."""
@@ -310,12 +302,6 @@ class TestIERS_Auto:
                     iers_table = iers.IERS_Auto.open()
                     _ = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
 
-    def test_no_auto_download(self):
-        with iers.conf.set_temp("auto_download", False):
-            t = iers.IERS_Auto.open()
-        assert type(t) is iers.IERS_B
-
-    @pytest.mark.remote_data
     def test_simple(self):
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             dat = iers.IERS_Auto.open()
@@ -355,12 +341,22 @@ class TestIERS_Auto:
                 dat.ut1_utc(Time(60000, format="mjd").jd)
             assert len(warns) == 1
 
-            # Warning only if we are getting return status
+            # Confirm that disabling the download means no warning because there is no
+            # refresh to even fail, but there will still be the interpolation error
+            with (
+                iers.conf.set_temp("auto_download", False),
+                pytest.raises(
+                    ValueError,
+                    match="interpolating from IERS_Auto using predictive values that are more",
+                ),
+            ):
+                dat.ut1_utc(Time(60000, format="mjd").jd)
+
+            # Warning only (i.e., no exception) if we are getting return status
             with pytest.warns(
                 iers.IERSStaleWarning, match="IERS_Auto predictive values are older"
-            ) as warns:
+            ):
                 dat.ut1_utc(Time(60000, format="mjd").jd, return_status=True)
-            assert len(warns) == 1
 
             # Now set auto_max_age = None which says that we don't care how old the
             # available IERS-A file is.  There should be no warnings or exceptions.
@@ -383,9 +379,26 @@ class TestIERS_Auto:
             assert dat["MJD"][-1] == (57539.0 + 60) * u.d
 
 
-@pytest.mark.remote_data
+@pytest.mark.parametrize("query", ["ut1_utc", "pm_xy"])
+@pytest.mark.parametrize("jd", [np.array([]), Time([], format="mjd")])
+@pytest.mark.parametrize("return_status", [False, True])
+def test_empty_mjd(query, jd, return_status):
+    # Regression test for gh-17008
+    iers_table = iers.IERS_Auto.open()
+    result = getattr(iers_table, query)(jd, return_status=return_status)
+    n_exp = (1 if query == "ut1_utc" else 2) + (1 if return_status else 0)
+    if n_exp == 1:
+        assert isinstance(result, np.ndarray)
+        assert result.size == 0
+    else:
+        assert len(result) == n_exp
+        assert all(r.size == 0 for r in result)
+
+
 def test_IERS_B_parameters_loading_into_IERS_Auto():
-    A = iers.IERS_Auto.open()
+    # Make sure that auto downloading is off
+    with iers.conf.set_temp("auto_download", False):
+        A = iers.IERS_Auto.open()
     B = iers.IERS_B.open()
 
     ok_A = A["MJD"] <= B["MJD"][-1]
@@ -448,35 +461,31 @@ def test_iers_b_dl():
         iers.IERS_B.close()
 
 
-@pytest.mark.remote_data
-def test_iers_out_of_range_handling(tmp_path):
-    # Make sure we don't have IERS-A data available anywhere
-    with set_temp_cache(tmp_path):
-        iers.IERS_A.close()
-        iers.IERS_Auto.close()
-        iers.IERS.close()
+def test_iers_b_out_of_range_handling():
+    # The following error/warning applies only to IERS_B, not to the default IERS_Auto
+    with iers.earth_orientation_table.set(iers.IERS_B.open()):
         now = Time.now()
-        with iers.conf.set_temp("auto_download", False):
-            # Should be fine with built-in IERS_B
-            (now - 300 * u.day).ut1
 
-            # Default is to raise an error
-            match = r"\(some\) times are outside of range covered by IERS table"
-            with pytest.raises(iers.IERSRangeError, match=match):
+        # Should be fine with bundled IERS-B
+        (now - 300 * u.day).ut1
+
+        # Default is to raise an error
+        match = r"\(some\) times are outside of range covered by IERS table"
+        with pytest.raises(iers.IERSRangeError, match=match):
+            (now + 100 * u.day).ut1
+
+        with iers.conf.set_temp("iers_degraded_accuracy", "warn"):
+            with pytest.warns(iers.IERSDegradedAccuracyWarning, match=match):
                 (now + 100 * u.day).ut1
 
-            with iers.conf.set_temp("iers_degraded_accuracy", "warn"):
-                with pytest.warns(iers.IERSDegradedAccuracyWarning, match=match):
-                    (now + 100 * u.day).ut1
-
-            with iers.conf.set_temp("iers_degraded_accuracy", "ignore"):
-                (now + 100 * u.day).ut1
+        with iers.conf.set_temp("iers_degraded_accuracy", "ignore"):
+            (now + 100 * u.day).ut1
 
 
 @pytest.mark.remote_data
 def test_iers_download_error_handling(tmp_path):
-    # Make sure we don't have IERS-A data available anywhere
-    with set_temp_cache(tmp_path):
+    # Make sure an IERS-A table isn't already loaded
+    with set_temp_cache(tmp_path), iers.conf.set_temp("auto_download", True):
         iers.IERS_A.close()
         iers.IERS_Auto.close()
         iers.IERS.close()
@@ -488,7 +497,7 @@ def test_iers_download_error_handling(tmp_path):
             with iers.conf.set_temp("iers_auto_url_mirror", "https://google.com"):
                 with pytest.warns(iers.IERSWarning) as record:
                     with iers.conf.set_temp("iers_degraded_accuracy", "ignore"):
-                        (now + 100 * u.day).ut1
+                        (now + 400 * u.day).ut1
 
                 assert len(record) == 3
                 assert str(record[0].message).startswith(
@@ -498,7 +507,7 @@ def test_iers_download_error_handling(tmp_path):
                     "malformed IERS table from https://google.com"
                 )
                 assert str(record[2].message).startswith(
-                    "unable to download valid IERS file, using local IERS-B"
+                    "unable to download valid IERS file, using bundled IERS-A"
                 )
 
 

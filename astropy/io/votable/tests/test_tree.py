@@ -1,15 +1,26 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import filecmp
 import io
-from contextlib import nullcontext
 
+import numpy as np
 import pytest
 
 from astropy.io.votable import tree
-from astropy.io.votable.exceptions import E26, W07, W08, W21, W41
+from astropy.io.votable.exceptions import (
+    E26,
+    W07,
+    W08,
+    W15,
+    W21,
+    W27,
+    W37,
+    W41,
+    W47,
+    W54,
+    W57,
+)
 from astropy.io.votable.table import parse
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -90,27 +101,160 @@ def test_namespace_warning():
     parse(io.BytesIO(good_namespace_13), verify="exception")
 
 
+def test_votable_values_empty_min_max():
+    """Regression test for https://github.com/astropy/astropy/issues/16825"""
+    with_empty_minmax = b"""<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" version="1.4">
+        <RESOURCE type="results">
+          <TABLE name="main">
+            <PARAM name="break" datatype="int" value=""/>
+          <FIELD ID="hd" datatype="int" name="hd" ucd="meta.id;meta.main">
+            <DESCRIPTION>HD number for this object</DESCRIPTION>
+            <VALUES null="-2147483648">
+              <MIN value=""/>
+              <MAX value=""/>
+            </VALUES>
+          </FIELD>
+          <DATA>
+            <BINARY>
+              <STREAM encoding="base64">AAMNIg==</STREAM>
+            </BINARY>
+          </DATA>
+        </TABLE>
+      </RESOURCE>
+    </VOTABLE>
+    """
+    parse(io.BytesIO(with_empty_minmax), verify="exception")
+
+
+def _assert_minmax_match(val, expected_val):
+    """val can be number or numpy array; expected_val can be number or list"""
+    if isinstance(val, np.ndarray):
+        assert np.allclose(val, np.array(expected_val))
+    else:
+        assert val == expected_val
+
+
+@pytest.mark.parametrize(
+    ("testvals"),
+    [
+        {
+            "dt": "float",
+            "min": "1.2",
+            "max": "3.4",
+            "expected_min": 1.2,
+            "expected_max": 3.4,
+        },
+        {
+            "dt": "float",
+            "min": "1.2 3.4",
+            "max": "3.4 5.6",
+            "expected_min": [1.2, 3.4],
+            "expected_max": [3.4, 5.6],
+        },
+        {
+            "dt": "double",
+            "min": "1.2",
+            "max": "3.4",
+            "expected_min": 1.2,
+            "expected_max": 3.4,
+        },
+        {
+            "dt": "double",
+            "min": "1.2 3.4",
+            "max": "3.4 5.6",
+            "expected_min": [1.2, 3.4],
+            "expected_max": [3.4, 5.6],
+        },
+        {
+            "dt": "unsignedByte",
+            "min": "1",
+            "max": "3",
+            "expected_min": 1,
+            "expected_max": 3,
+        },
+        {
+            "dt": "unsignedByte",
+            "min": "1 3",
+            "max": "3 5",
+            "expected_min": [1, 3],
+            "expected_max": [3, 5],
+        },
+        {"dt": "short", "min": "1", "max": "3", "expected_min": 1, "expected_max": 3},
+        {
+            "dt": "short",
+            "min": "1 3",
+            "max": "3 5",
+            "expected_min": [1, 3],
+            "expected_max": [3, 5],
+        },
+        {"dt": "int", "min": "1", "max": "3", "expected_min": 1, "expected_max": 3},
+        {
+            "dt": "int",
+            "min": "1 3",
+            "max": "3 5",
+            "expected_min": [1, 3],
+            "expected_max": [3, 5],
+        },
+        {"dt": "long", "min": "1", "max": "3", "expected_min": 1, "expected_max": 3},
+        {
+            "dt": "long",
+            "min": "1 3",
+            "max": "3 5",
+            "expected_min": [1, 3],
+            "expected_max": [3, 5],
+        },
+    ],
+)
+def test_min_max_with_arrays(testvals):
+    """When a FIELD/PARAM is an array type, ensure we accept (without warnings/exceptions)
+    MIN and MAX values both as scalars (preferred except for some xtypes) or arrays."""
+    minmax_template = """<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" version="1.5">
+        <RESOURCE type="results">
+            <TABLE ID="result" name="result">
+                <{param_or_field} arraysize="2" datatype="{dt}" name="param_or_field" xtype="interval">
+                    <VALUES><MIN value="{min}"/><MAX value="{max}"/></VALUES>
+                </{param_or_field}>
+            </TABLE>
+        </RESOURCE>
+    </VOTABLE>
+    """
+
+    for param_or_field in ["PARAM", "FIELD"]:
+        testvals["param_or_field"] = param_or_field
+        xml_string = minmax_template.format(**testvals)
+        xml_bytes = xml_string.encode("utf-8")
+
+        # Parse without exceptions.
+        vot = parse(io.BytesIO(xml_bytes), verify="exception")
+
+        # Assert that the scalar or array values were parsed and stored as expected.
+        param_or_field = vot.get_field_by_id_or_name("param_or_field")
+        _assert_minmax_match(param_or_field.values.min, testvals["expected_min"])
+        _assert_minmax_match(param_or_field.values.max, testvals["expected_max"])
+
+
 def test_version():
     """
-    VOTableFile.__init__ allows versions of '1.1', '1.2', '1.3' and '1.4'.
+    VOTableFile.__init__ allows versions of '1.1' through '1.5'.
     VOTableFile.__init__ does not allow version of '1.0' anymore and now raises a ValueError as it does to other versions not supported.
     """
     # Exercise the checks in __init__
-    for version in ("1.1", "1.2", "1.3", "1.4"):
+    for version in ("1.1", "1.2", "1.3", "1.4", "1.5"):
         VOTableFile(version=version)
-    for version in ("0.9", "1.0", "2.0"):
+    for version in ("0.9", "1.0", "1.6", "2.0"):
         with pytest.raises(
-            ValueError, match=r"should be in \('1.1', '1.2', '1.3', '1.4'\)."
+            ValueError, match=r"should be in \('1.1', '1.2', '1.3', '1.4', '1.5'\)."
         ):
             VOTableFile(version=version)
 
     # Exercise the checks in the setter
     vot = VOTableFile()
-    for version in ("1.1", "1.2", "1.3", "1.4"):
+    for version in ("1.1", "1.2", "1.3", "1.4", "1.5"):
         vot.version = version
-    for version in ("1.0", "2.0"):
+    for version in ("1.0", "1.6", "2.0"):
         with pytest.raises(
-            ValueError, match=r"supports VOTable versions '1.1', '1.2', '1.3', '1.4'$"
+            ValueError,
+            match=r"version should be in \('1.1', '1.2', '1.3', '1.4', '1.5'\).",
         ):
             vot.version = version
 
@@ -127,15 +271,11 @@ def test_version():
             io.BytesIO(begin + bversion + middle + bversion + end), verify="exception"
         )
     parse(io.BytesIO(begin + b"1.4" + middle + b"1.3" + end), verify="exception")
-
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(W41)
+    parse(io.BytesIO(begin + b"1.5" + middle + b"1.3" + end), verify="exception")
 
     # Invalid versions
     for bversion in (b"1.0", b"2.0"):
-        with pytest.warns(W21), ctx:
+        with pytest.warns(W21), pytest.warns(W41):
             parse(
                 io.BytesIO(begin + bversion + middle + bversion + end),
                 verify="exception",
@@ -150,8 +290,7 @@ def votable_xml_string(version):
     votable_file.to_xml(xml_bytes)
     xml_bytes.seek(0)
     bstring = xml_bytes.read()
-    s = bstring.decode("utf-8")
-    return s
+    return bstring.decode("utf-8")
 
 
 def test_votable_tag():
@@ -172,6 +311,11 @@ def test_votable_tag():
     assert 'xmlns="http://www.ivoa.net/xml/VOTable/v1.3"' in xml
     assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 ' in xml
     assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"' in xml
+
+    xml = votable_xml_string("1.5")
+    assert 'xmlns="http://www.ivoa.net/xml/VOTable/v1.3"' in xml
+    assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 ' in xml
+    assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.5.xsd"' in xml
 
 
 def _squash_xml(data):
@@ -484,3 +628,67 @@ def test_mivot_order(tmp_path):
         file.writelines(lines)
 
     assert filecmp.cmp(vpath, vpath_out)
+
+
+def test_version_checks_from_api():
+    """Test that a VOTable can be constructed from APIs without triggering
+    version check failure.
+    """
+    votable = VOTableFile()  # v1.4 by default
+    resource = Resource()
+    votable.resources.append(resource)
+    table0 = tree.TableElement(votable)  # Will now get the version check config.
+    resource.tables.append(table0)
+    # Not allowed in older VOTable formats.
+    votable.set_all_tables_format("binary2")
+
+    with pytest.raises(W37):
+        votable.set_all_tables_format("unknown")
+
+    votable = VOTableFile(version="1.1")
+    resource = Resource()
+    votable.resources.append(resource)
+    table0 = tree.TableElement(votable)
+    resource.tables.append(table0)
+    with pytest.raises(W37):
+        votable.set_all_tables_format("binary2")
+
+    with pytest.raises(NotImplementedError):
+        votable.set_all_tables_format("fits")
+
+    # Check TimeSys can be created (requires version config check).
+    # Force exception to make it easier to test.
+    config = {"verify": "exception"}
+    votable = VOTableFile(version="1.4", config=config)
+    _ = tree.TimeSys("REF", timescale="UTC", config=votable.config)
+
+    votable = VOTableFile(version="1.1", config=config)
+    with pytest.raises(W54):
+        tree.TimeSys("REF", timescale="UTC", config=votable.config)
+
+    # CooSys was deprecated only in v1.2 and refposition only allowed in 1.5.
+    votable = VOTableFile(version="1.2", config=config)
+    with pytest.raises(W27):
+        tree.CooSys("REF", system="ICRS", config=votable.config)
+
+    votable = VOTableFile(version="1.4", config=config)
+    with pytest.raises(W57):
+        tree.CooSys(
+            "REF", system="ICRS", refposition="Something", config=votable.config
+        )
+
+    votable = VOTableFile(version="1.5", config=config)
+    _ = tree.CooSys(
+        "REF", system="ICRS", refposition="Something", config=votable.config
+    )
+
+    # Param construction will warn less if v1.0 and no name.
+    # Must use internal API to force 1.0 version.
+    votable._version = "1.0"
+    votable._config.update(votable._get_version_checks())
+    with pytest.warns(W47):
+        tree.Param(votable, ID="REF")
+
+    votable.version = "1.3"
+    with pytest.warns((W47, W15)):
+        tree.Param(votable, ID="REF", datatype="int")

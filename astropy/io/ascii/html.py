@@ -4,7 +4,7 @@
 html.py:
   Classes to read and write HTML tables
 
-`BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_
+`BeautifulSoup <https://www.crummy.com/software/BeautifulSoup/>`_
 must be installed to read HTML tables.
 """
 
@@ -12,6 +12,7 @@ import warnings
 from copy import deepcopy
 
 from astropy.table import Column
+from astropy.utils.compat.optional_deps import HAS_BS4
 from astropy.utils.xml import writer
 
 from . import core
@@ -75,12 +76,11 @@ class HTMLInputter(core.BaseInputter):
         Convert the given input into a list of SoupString rows
         for further processing.
         """
-        try:
-            from bs4 import BeautifulSoup
-        except ImportError:
+        if not HAS_BS4:
             raise core.OptionalTableImportError(
                 "BeautifulSoup must be installed to read HTML tables"
             )
+        from bs4 import BeautifulSoup
 
         if "parser" not in self.html:
             with warnings.catch_warnings():
@@ -106,9 +106,7 @@ class HTMLInputter(core.BaseInputter):
             )
 
         # Get all table rows
-        soup_list = [SoupString(x) for x in table.find_all("tr")]
-
-        return soup_list
+        return [SoupString(x) for x in table.find_all("tr")]
 
 
 class HTMLSplitter(core.BaseSplitter):
@@ -264,6 +262,13 @@ class HTML(core.BaseReader):
 
     In order to customize input and output, a dict of parameters may
     be passed to this class holding specific customizations.
+
+    .. note::
+       Be aware that in many cases reading tables from published HTML journal articles will not work
+       for a variety of reasons, including inconsistent mark-ups, CAPTCHAs, changing formats,
+       embedded javascript, or the table actually being an image. If possible you should consider
+       retrieving the table in a standard data format such as CSV or FITS, perhaps from an archive
+       such as CDS/Vizier.
 
     **htmldict** : Dictionary of parameters for HTML input/output.
 

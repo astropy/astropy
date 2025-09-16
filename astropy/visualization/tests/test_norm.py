@@ -5,9 +5,14 @@ import pytest
 from numpy import ma
 from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 
-from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
+from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.visualization.interval import ManualInterval, PercentileInterval
-from astropy.visualization.mpl_normalize import ImageNormalize, imshow_norm, simple_norm
+from astropy.visualization.mpl_normalize import (
+    ImageNormalize,
+    SimpleNorm,
+    imshow_norm,
+    simple_norm,
+)
 from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
 
 DATA = np.linspace(0.0, 15.0, 6)
@@ -18,7 +23,7 @@ STRETCHES = (SqrtStretch(), PowerStretch(0.5), LogStretch())
 INVALID = (None, -np.inf, -1)
 
 
-@pytest.mark.skipif(HAS_MATPLOTLIB, reason="matplotlib is installed")
+@pytest.mark.skipif(HAS_PLT, reason="matplotlib is installed")
 def test_normalize_error_message():
     with pytest.raises(
         ImportError, match=r"matplotlib is required in order to use this class."
@@ -26,7 +31,7 @@ def test_normalize_error_message():
         ImageNormalize()
 
 
-@pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
 class TestNormalize:
     def test_invalid_interval(self):
         with pytest.raises(TypeError):
@@ -198,7 +203,7 @@ class TestNormalize:
         assert_equal(result2, result3)
 
 
-@pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
 class TestImageScaling:
     def test_linear(self):
         """Test linear scaling."""
@@ -281,31 +286,76 @@ class TestImageScaling:
             simple_norm(DATA2, stretch="invalid")
 
 
-@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib.pyplot")
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+@pytest.mark.parametrize("stretch", ["linear", "sqrt", "power", "log", "asinh", "sinh"])
+def test_simplenorm(stretch):
+    data = np.arange(25).reshape((5, 5))
+    snorm = SimpleNorm(stretch, percent=99)
+    norm = snorm(data)
+    assert isinstance(norm, ImageNormalize)
+    assert_allclose(norm(data), simple_norm(data, stretch, percent=99)(data))
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_simplenorm_imshow():
+    from matplotlib.figure import Figure
+    from matplotlib.image import AxesImage
+
+    data = np.arange(25).reshape((5, 5))
+    fig = Figure()
+    ax = fig.add_subplot()
+    snorm = SimpleNorm("sqrt", percent=99)
+    axim = snorm.imshow(data, ax=ax)
+    assert isinstance(axim, AxesImage)
+    keys = ("vmin", "vmax", "stretch", "clip", "invalid")
+    for key in keys:
+        assert getattr(axim.norm, key) == getattr(snorm(data), key)
+
+    fig.clear()
+    axim = snorm.imshow(data, ax=None)
+
+    with pytest.raises(ValueError):
+        snorm.imshow(data, ax=ax, norm=ImageNormalize())
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
 def test_imshow_norm():
-    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
 
     image = np.random.randn(10, 10)
 
-    plt.clf()
-    ax = plt.subplot(label="test_imshow_norm")
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_norm")
     imshow_norm(image, ax=ax)
-
-    with pytest.raises(ValueError):
-        # X and data are the same, can't give both
-        imshow_norm(image, X=image, ax=ax)
 
     with pytest.raises(ValueError):
         # illegal to manually pass in normalization since that defeats the point
         imshow_norm(image, ax=ax, norm=ImageNormalize())
 
-    plt.clf()
+    fig.clear()
     imshow_norm(image, ax=ax, vmin=0, vmax=1)
 
-    # make sure the pyplot version works
-    plt.clf()
+    # make sure the matplotlib version works
+    fig.clear()
     imres, norm = imshow_norm(image, ax=None)
 
     assert isinstance(norm, ImageNormalize)
 
-    plt.close("all")
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_norm_without_data():
+    from matplotlib.figure import Figure
+
+    image = np.arange(10).reshape((1, 10))
+    interval = ManualInterval(2, 5)
+    norm_without_data = ImageNormalize(interval=interval)
+
+    assert norm_without_data.vmin is None
+    assert norm_without_data.vmax is None
+
+    fig = Figure()
+    ax = fig.add_subplot()
+    ax.imshow(image, norm=norm_without_data)  # calls norm_without_data.autoscale_None()
+
+    assert norm_without_data.vmin == interval.vmin
+    assert norm_without_data.vmax == interval.vmax

@@ -70,6 +70,7 @@ To recompose a unit with :meth:`~astropy.units.core.UnitBase.compose`::
   >>> x = u.Ry.decompose()
   >>> x.compose()
   [Unit("Ry"),
+   Unit("2.17987e-62 foe"),
    Unit("2.17987e-18 J"),
    Unit("2.17987e-11 erg"),
    Unit("13.6057 eV")]
@@ -122,22 +123,26 @@ Examples
 To convert between unit systems::
 
    >>> u.Pa.to_system(u.cgs)
-   [Unit("10 P / s"), Unit("10 Ba")]
+   [Unit("10 Ba"), Unit("10 P / s")]
 
 There is also a shorthand for this which only returns the first of
 many possible matches::
 
    >>> u.Pa.cgs
-   Unit("10 P / s")
+   Unit("10 Ba")
 
 This is equivalent to decomposing into the new system and then
-composing into the most complex units possible, though
+composing into the simplest units possible in that system, though
 :meth:`~astropy.units.core.UnitBase.to_system` adds some extra logic to
-return the results sorted in the most useful order::
+return the results sorted such that if a simple combination of base
+units exists, it will be put sorted to the front::
 
-   >>> u.Pa.decompose(bases=u.cgs.bases)
-   Unit("10 g / (cm s2)")
+   >>> unit = u.m**2 / u.s
+   >>> unit.decompose(bases=u.cgs.bases)
+   Unit("10000 cm2 / s")
    >>> _.compose(units=u.cgs)
-   [Unit("10 Ba"), Unit("10 P / s")]
+   [Unit("10000 St"), Unit("10000 cm2 / s")]
+   >>> unit.to_system(u.cgs)
+   [Unit("10000 cm2 / s"), Unit("10000 St")]
 
 .. EXAMPLE END

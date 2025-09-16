@@ -94,9 +94,9 @@ that relate to automatic IERS downloading. Four of the most
 important to consider are the following:
 
   auto_download:
-    Enable auto-downloading of the latest IERS data.  If set to ``False`` then
-    the local IERS-A and IERS-B files will be used by default (even if the full
-    IERS file with predictions was already downloaded and cached).  This
+    Enable auto-downloading of the latest IERS-A data.  If set to ``False`` then
+    the bundled IERS-A file will be used by default (even if a newer
+    versions of the IERS-A file was already downloaded and cached).  This
     parameter also controls whether internet resources will be queried to update
     the leap second table if the installed version is out of date.
 
@@ -109,12 +109,10 @@ important to consider are the following:
 
   iers_degraded_accuracy:
     Some time conversions like UTC -> UT1 require IERS-A Earth rotation data
-    for full accuracy. In cases where full accuracy is not required and
-    downloading the IERS-A is not possible or desired (for instance running on
-    a cluster) then this option can be set to either ``'warn'`` or ``'ignore'``.
-    The default is ``'error'`` which will raise an exception if full accuracy
-    is not possible for a time conversion, ``'warn'`` will issue a warning, and
-    ``'ignore'`` will ignore the problem and use available IERS-B data.
+    for full accuracy.  This parameter controls the behavior when computations
+    use only the IERS-B data and full accuracy is not possible.  ``'error'``
+    (the default) will raise an exception, ``'warn'`` will issue a warning, and
+    ``'ignore'`` will ignore the problem (i.e., the inaccuracy is acceptable).
 
 Auto refresh behavior
 ---------------------
@@ -271,3 +269,7 @@ UT1Flag, PM_x, PM_y, PolPMFlag::
   57877.0 -0.6573705        P 0.010328 0.451777         P
   57878.0 -0.6587712        P 0.011924 0.453209         P
   57879.0  -0.660187        P 0.013544 0.454617         P
+
+.. testcleanup::
+
+   >>> iers.earth_orientation_table.set(None)  # doctest: +IGNORE_OUTPUT

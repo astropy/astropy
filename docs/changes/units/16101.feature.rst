@@ -1,1 +1,0 @@
-Added magnetic helicity as a physical type.

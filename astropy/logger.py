@@ -10,32 +10,41 @@
 
 import inspect
 import logging
-import os
 import sys
 import warnings
 from contextlib import contextmanager
+from logging import CRITICAL, DEBUG, ERROR, FATAL, INFO, NOTSET, WARNING
+from pathlib import Path
 
 from . import conf as _conf
 from . import config as _config
 from .utils import find_current_module
 from .utils.exceptions import AstropyUserWarning, AstropyWarning
 
-__all__ = ["Conf", "conf", "log", "AstropyLogger", "LoggingError"]
+try:
+    # this name is only defined if running within ipython/jupyter
+    __IPYTHON__  # noqa: B018
+except NameError:
+    _WITHIN_IPYTHON = False
+else:
+    _WITHIN_IPYTHON = True
 
-# import the logging levels from logging so that one can do:
-# log.setLevel(log.DEBUG), for example
-logging_levels = [
-    "NOTSET",
-    "DEBUG",
-    "INFO",
-    "WARNING",
-    "ERROR",
+__all__ = [
     "CRITICAL",
+    "DEBUG",
+    "ERROR",
     "FATAL",
+    "INFO",
+    # import the logging levels from logging so that one can do:
+    # log.setLevel(log.DEBUG), for example
+    "NOTSET",
+    "WARNING",
+    "AstropyLogger",
+    "Conf",
+    "LoggingError",
+    "conf",
+    "log",
 ]
-for level in logging_levels:
-    globals()[level] = getattr(logging, level)
-__all__ += logging_levels  # noqa: PLE0605
 
 
 # Initialize by calling _init_log()
@@ -219,12 +228,12 @@ class AstropyLogger(Logger):
         # find the module object and thus the fully-package-specified module
         # name.  The module.__file__ is the original source file name.
         mod_name = None
-        mod_path, ext = os.path.splitext(mod_path)
-        for name, mod in list(sys.modules.items()):
+        mod_path = Path(mod_path).with_suffix("")
+        for mod in sys.modules.values():
             try:
                 # Believe it or not this can fail in some cases:
                 # https://github.com/astropy/astropy/issues/2671
-                path = os.path.splitext(getattr(mod, "__file__", ""))[0]
+                path = Path(getattr(mod, "__file__", "")).with_suffix("")
             except Exception:
                 continue
             if path == mod_path:
@@ -306,15 +315,12 @@ class AstropyLogger(Logger):
         exclog : bool
             True if exception logging is on, False if not.
         """
-        try:
-            ip = get_ipython()
-        except NameError:
-            ip = None
+        if _WITHIN_IPYTHON:
+            from IPython import get_ipython
 
-        if ip is None:
-            return self._excepthook_orig is not None
+            return _AstLogIPYExc in get_ipython().custom_exceptions
         else:
-            return _AstLogIPYExc in ip.custom_exceptions
+            return self._excepthook_orig is not None
 
     def enable_exception_logging(self):
         """
@@ -325,20 +331,12 @@ class AstropyLogger(Logger):
 
         This can be disabled with ``disable_exception_logging``.
         """
-        try:
-            ip = get_ipython()
-        except NameError:
-            ip = None
-
         if self.exception_logging_enabled():
             raise LoggingError("Exception logging has already been enabled")
 
-        if ip is None:
-            # standard python interpreter
-            self._excepthook_orig = sys.excepthook
-            sys.excepthook = self._excepthook
-        else:
+        if _WITHIN_IPYTHON:
             # IPython has its own way of dealing with excepthook
+            from IPython import get_ipython
 
             # We need to locally define the function here, because IPython
             # actually makes this a member function of their own class
@@ -352,10 +350,16 @@ class AstropyLogger(Logger):
             # now register the function with IPython
             # note that we include _AstLogIPYExc so `disable_exception_logging`
             # knows that it's disabling the right thing
-            ip.set_custom_exc((BaseException, _AstLogIPYExc), ipy_exc_handler)
+            get_ipython().set_custom_exc(
+                (BaseException, _AstLogIPYExc), ipy_exc_handler
+            )
 
             # and set self._excepthook_orig to a no-op
             self._excepthook_orig = lambda etype, evalue, tb: None
+        else:
+            # standard python interpreter
+            self._excepthook_orig = sys.excepthook
+            sys.excepthook = self._excepthook
 
     def disable_exception_logging(self):
         """
@@ -366,15 +370,15 @@ class AstropyLogger(Logger):
 
         This can be re-enabled with ``enable_exception_logging``.
         """
-        try:
-            ip = get_ipython()
-        except NameError:
-            ip = None
-
         if not self.exception_logging_enabled():
             raise LoggingError("Exception logging has not been enabled")
 
-        if ip is None:
+        if _WITHIN_IPYTHON:
+            # IPython has its own way of dealing with exceptions
+            from IPython import get_ipython
+
+            get_ipython().set_custom_exc((), None)
+        else:
             # standard python interpreter
             if sys.excepthook != self._excepthook:
                 raise LoggingError(
@@ -384,9 +388,6 @@ class AstropyLogger(Logger):
                 )
             sys.excepthook = self._excepthook_orig
             self._excepthook_orig = None
-        else:
-            # IPython has its own way of dealing with exceptions
-            ip.set_custom_exc(tuple(), None)
 
     def enable_color(self):
         """
@@ -523,11 +524,11 @@ class AstropyLogger(Logger):
 
             try:
                 if log_file_path == "" or testing_mode:
-                    log_file_path = os.path.join(
-                        _config.get_config_dir("astropy"), "astropy.log"
+                    log_file_path = (
+                        _config.get_config_dir_path("astropy") / "astropy.log"
                     )
                 else:
-                    log_file_path = os.path.expanduser(log_file_path)
+                    log_file_path = Path(log_file_path).expanduser()
 
                 encoding = conf.log_file_encoding if conf.log_file_encoding else None
                 fh = logging.FileHandler(log_file_path, encoding=encoding)
@@ -581,7 +582,12 @@ class StreamHandler(logging.StreamHandler):
                 color_print(record.levelname, "brown", end="", file=stream)
             else:
                 color_print(record.levelname, "red", end="", file=stream)
-        record.message = f"{record.msg} [{record.origin:s}]"
+        # Make lazy interpretation intentional to leave the option to use
+        # special characters without escaping in log messages.
+        if record.args:
+            record.message = f"{record.msg % record.args} [{record.origin:s}]"
+        else:
+            record.message = f"{record.msg} [{record.origin:s}]"
         print(": " + record.message, file=stream)
 
 

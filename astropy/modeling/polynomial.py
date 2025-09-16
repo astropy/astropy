@@ -10,7 +10,6 @@ from textwrap import indent
 
 import numpy as np
 
-from astropy.utils import check_broadcast
 from astropy.utils.compat import COPY_IF_NEEDED
 
 from .core import FittableModel, Model
@@ -19,6 +18,7 @@ from .parameters import Parameter
 from .utils import _validate_domain_window, poly_map_domain
 
 __all__ = [
+    "SIP",
     "Chebyshev1D",
     "Chebyshev2D",
     "Hermite1D",
@@ -26,10 +26,9 @@ __all__ = [
     "InverseSIP",
     "Legendre1D",
     "Legendre2D",
+    "OrthoPolynomialBase",
     "Polynomial1D",
     "Polynomial2D",
-    "SIP",
-    "OrthoPolynomialBase",
     "PolynomialModel",
 ]
 
@@ -819,8 +818,8 @@ class Hermite2D(OrthoPolynomialBase):
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
 
-        x = x.flatten()
-        y = y.flatten()
+        x = x.ravel()
+        y = y.ravel()
         x_deriv = self._hermderiv1d(x, self.x_degree + 1).T
         y_deriv = self._hermderiv1d(y, self.y_degree + 1).T
 
@@ -1189,7 +1188,7 @@ class Polynomial2D(PolynomialModel):
         # still as expected by the broadcasting rules, even though the x and y
         # inputs are not used in the evaluation
         if self.degree == 0:
-            output_shape = check_broadcast(np.shape(coeffs[0]), x.shape)
+            output_shape = np.broadcast_shapes(np.shape(coeffs[0]), x.shape)
             if output_shape:
                 new_result = np.empty(output_shape)
                 new_result[:] = result
@@ -1240,9 +1239,9 @@ class Polynomial2D(PolynomialModel):
             The Vandermonde matrix
         """
         if x.ndim == 2:
-            x = x.flatten()
+            x = x.ravel()
         if y.ndim == 2:
-            y = y.flatten()
+            y = y.ravel()
         if x.size != y.size:
             raise ValueError("Expected x and y to be of equal size")
 
@@ -1475,8 +1474,8 @@ class Chebyshev2D(OrthoPolynomialBase):
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
 
-        x = x.flatten()
-        y = y.flatten()
+        x = x.ravel()
+        y = y.ravel()
         x_deriv = self._chebderiv1d(x, self.x_degree + 1).T
         y_deriv = self._chebderiv1d(y, self.y_degree + 1).T
 
@@ -1631,8 +1630,8 @@ class Legendre2D(OrthoPolynomialBase):
         """
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
-        x = x.flatten()
-        y = y.flatten()
+        x = x.ravel()
+        y = y.ravel()
         x_deriv = self._legendderiv1d(x, self.x_degree + 1).T
         y_deriv = self._legendderiv1d(y, self.y_degree + 1).T
 

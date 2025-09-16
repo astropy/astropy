@@ -51,6 +51,12 @@ _COL_ATTRS = [
 ]
 
 
+def _get_differences(a, b):
+    relative = abs(b - a) / abs(b)
+    absolute = float(abs(b - a))
+    return relative, absolute
+
+
 class _BaseDiff:
     """
     Base class for all FITS diff objects.
@@ -843,10 +849,8 @@ class HeaderDiff(_BaseDiff):
         valuesa, commentsa = get_header_values_comments(cardsa)
         valuesb, commentsb = get_header_values_comments(cardsb)
 
-        # Normalize all keyword to upper-case for comparison's sake;
-        # TODO: HIERARCH keywords should be handled case-sensitively I think
-        keywordsa = {k.upper() for k in valuesa}
-        keywordsb = {k.upper() for k in valuesb}
+        keywordsa = set(valuesa)
+        keywordsb = set(valuesb)
 
         self.common_keywords = sorted(keywordsa.intersection(keywordsb))
         if len(cardsa) != len(cardsb):
@@ -1111,8 +1115,12 @@ class ImageDataDiff(_BaseDiff):
         if not self.diff_pixels:
             return
 
+        max_relative = 0
+        max_absolute = 0
+
         for index, values in self.diff_pixels:
-            index = [x + 1 for x in reversed(index)]
+            # Convert to int to avoid np.int64 in list repr.
+            index = [int(x + 1) for x in reversed(index)]
             self._writeln(f" Data differs at {index}:")
             report_diff_values(
                 values[0],
@@ -1122,6 +1130,9 @@ class ImageDataDiff(_BaseDiff):
                 rtol=self.rtol,
                 atol=self.atol,
             )
+            rdiff, adiff = _get_differences(values[0], values[1])
+            max_relative = max(max_relative, rdiff)
+            max_absolute = max(max_absolute, adiff)
 
         if self.diff_total > self.numdiffs:
             self._writeln(" ...")
@@ -1129,6 +1140,8 @@ class ImageDataDiff(_BaseDiff):
             f" {self.diff_total} different pixels found "
             f"({self.diff_ratio:.2%} different)."
         )
+        self._writeln(f" Maximum relative difference: {max_relative}")
+        self._writeln(f" Maximum absolute difference: {max_absolute}")
 
 
 class RawDataDiff(ImageDataDiff):
@@ -1522,8 +1535,8 @@ class TableDataDiff(_BaseDiff):
             return
 
         # Finally, let's go through and report column data differences:
-        for indx, values in self.diff_values:
-            self._writeln(" Column {} data differs in row {}:".format(*indx))
+        for (col, row), values in self.diff_values:
+            self._writeln(f" Column {col} data differs in row {row}:")
             report_diff_values(
                 values[0],
                 values[1],

@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.2 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2023, Mark Calabretta
+  WCSLIB 8.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.c,v 8.2.1.2 2023/11/29 07:36:19 mcalabre Exp mcalabre $
+  $Id: lin.c,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -87,7 +87,7 @@ int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
     if (lin->flag == -1) {
       lin->dispre = 0x0;
       lin->disseq = 0x0;
-      lin->tmpcrd = 0x0;
+      lin->dummy  = 0x0;
     }
 
     lin->m_flag   = 0;
@@ -180,10 +180,9 @@ int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
 
 
   // Free memory allocated by linset().
-  if (lin->flag == LINSET) {
+  if (abs(lin->flag) == LINSET) {
     if (lin->piximg) free(lin->piximg);
     if (lin->imgpix) free(lin->imgpix);
-    if (lin->tmpcrd) free(lin->tmpcrd);
   }
 
   lin->piximg  = 0x0;
@@ -192,12 +191,9 @@ int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
   lin->unity   = 0;
   lin->affine  = 0;
   lin->simple  = 0;
-  lin->tmpcrd  = 0x0;
 
 
-  lin->flag  = 0;
   lin->naxis = naxis;
-
 
   // CRPIXja defaults to 0.0.
   for (int j = 0; j < naxis; j++) {
@@ -222,6 +218,7 @@ int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
     lin->cdelt[i] = 1.0;
   }
 
+  lin->flag = 0;
 
   return 0;
 }
@@ -405,7 +402,6 @@ int linfree(struct linprm *lin)
     // Allocated unconditionally by linset().
     if (lin->piximg) free(lin->piximg);
     if (lin->imgpix) free(lin->imgpix);
-    if (lin->tmpcrd) free(lin->tmpcrd);
   }
 
 
@@ -421,8 +417,6 @@ int linfree(struct linprm *lin)
   lin->imgpix   = 0x0;
   lin->i_naxis  = 0;
 
-  lin->tmpcrd   = 0x0;
-
   wcserr_clear(&(lin->err));
 
   lin->flag = 0;
@@ -437,7 +431,7 @@ int linsize(const struct linprm *lin, int sizes[2])
 {
   if (lin == 0x0) {
     sizes[0] = sizes[1] = 0;
-    return LINERR_SUCCESS;
+    return 0;
   }
 
   // Base size, in bytes.
@@ -471,8 +465,8 @@ int linsize(const struct linprm *lin, int sizes[2])
   sizes[1] += exsizes[0] + exsizes[1];
 
   // The remaining arrays are allocated unconditionally by linset().
-  if (lin->flag != LINSET) {
-    return LINERR_SUCCESS;
+  if (abs(lin->flag) != LINSET) {
+    return 0;
   }
 
   // linprm::piximg[].
@@ -481,10 +475,35 @@ int linsize(const struct linprm *lin, int sizes[2])
   // linprm::imgpix[].
   sizes[1] += naxis*naxis * sizeof(double);
 
-  // linprm::tmpcrd[].
-  sizes[1] += naxis * sizeof(double);
+  return 0;
+}
 
-  return LINERR_SUCCESS;
+//----------------------------------------------------------------------------
+
+int linenq(const struct linprm *lin, int enquiry)
+
+{
+  // Initialize.
+  if (lin == 0x0) return LINERR_NULL_POINTER;
+
+  int answer = 0;
+
+  if (enquiry & LINENQ_MEM) {
+    if (lin->m_flag != LINSET) return 0;
+    answer = 1;
+  }
+
+  if (enquiry & LINENQ_SET) {
+    if (abs(lin->flag) != LINSET) return 0;
+    answer = 1;
+  }
+
+  if (enquiry & LINENQ_BYP) {
+    if (lin->flag != 1 && lin->flag != -LINSET) return 0;
+    answer = 1;
+  }
+
+  return answer;
 }
 
 //----------------------------------------------------------------------------
@@ -494,13 +513,13 @@ int linprt(const struct linprm *lin)
 {
   if (lin == 0x0) return LINERR_NULL_POINTER;
 
-  if (lin->flag != LINSET) {
+  if (abs(lin->flag) != LINSET) {
     wcsprintf("The linprm struct is UNINITIALIZED.\n");
     return 0;
   }
-  wcsprintf("       flag: %d\n", lin->flag);
 
   // Parameters supplied.
+  wcsprintf("       flag: %d\n", lin->flag);
   wcsprintf("      naxis: %d\n", lin->naxis);
 
   WCSPRINTF_PTR("      crpix: ", lin->crpix, "\n");
@@ -572,9 +591,6 @@ int linprt(const struct linprm *lin)
     wcserr_prt(lin->err, "             ");
   }
 
-  // Work arrays.
-  WCSPRINTF_PTR("     tmpcrd: ", lin->tmpcrd, "\n");
-
   // Memory management.
   wcsprintf("     m_flag: %d\n", lin->m_flag);
   wcsprintf("    m_naxis: %d\n", lin->m_naxis);
@@ -633,6 +649,7 @@ int linset(struct linprm *lin)
   static const char *function = "linset";
 
   if (lin == 0x0) return LINERR_NULL_POINTER;
+  if (lin->flag == -LINSET) return 0;
   struct wcserr **err = &(lin->err);
 
   int naxis = lin->naxis;
@@ -658,7 +675,7 @@ int linset(struct linprm *lin)
 
 
   if (lin->unity) {
-    if (lin->flag == LINSET) {
+    if (abs(lin->flag) == LINSET) {
       // Free memory that may have been allocated previously.
       if (lin->piximg) free(lin->piximg);
       if (lin->imgpix) free(lin->imgpix);
@@ -676,8 +693,8 @@ int linset(struct linprm *lin)
     }
 
   } else {
-    if (lin->flag != LINSET || lin->i_naxis < naxis) {
-      if (lin->flag == LINSET) {
+    if (abs(lin->flag) != LINSET || lin->i_naxis < naxis) {
+      if (abs(lin->flag) == LINSET) {
         // Free memory that may have been allocated previously.
         if (lin->piximg) free(lin->piximg);
         if (lin->imgpix) free(lin->imgpix);
@@ -723,6 +740,7 @@ int linset(struct linprm *lin)
   // Set up the distortion functions.
   lin->affine = 1;
   if (lin->dispre) {
+    (lin->dispre)->flag = 0;
     int status = disset(lin->dispre);
     if (status) {
       return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
@@ -732,6 +750,7 @@ int linset(struct linprm *lin)
   }
 
   if (lin->disseq) {
+    (lin->disseq)->flag = 0;
     int status = disset(lin->disseq);
     if (status) {
       return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
@@ -742,16 +761,7 @@ int linset(struct linprm *lin)
 
   lin->simple = lin->unity && lin->affine;
 
-
-  // Create work arrays.
-  if (lin->tmpcrd) free(lin->tmpcrd);
-  if ((lin->tmpcrd = calloc(naxis, sizeof(double))) == 0x0) {
-    linfree(lin);
-    return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
-  }
-
-
-  lin->flag = LINSET;
+  lin->flag = (lin->flag == 1) ? -LINSET : LINSET;
 
   return 0;
 }
@@ -772,7 +782,7 @@ int linp2x(
   if (lin == 0x0) return LINERR_NULL_POINTER;
   struct wcserr **err = &(lin->err);
 
-  if (lin->flag != LINSET) {
+  if (abs(lin->flag) != LINSET) {
     int status = linset(lin);
     if (status) {
       return status;
@@ -783,8 +793,8 @@ int linp2x(
 
 
   // Convert pixel coordinates to intermediate world coordinates.
-  register const double *pix = pixcrd;
-  register double *img = imgcrd;
+  const double *pix = pixcrd;
+  double *img = imgcrd;
 
   if (lin->simple) {
     // Handle the simplest and most common case with maximum efficiency.
@@ -807,7 +817,7 @@ int linp2x(
 
       for (int j = 0; j < naxis; j++) {
         // cdelt will have been incorporated into piximg.
-        register double *piximg = lin->piximg + j;
+        double *piximg = lin->piximg + j;
 
         // Column-wise multiplication allows this to be cached.
         double temp = *(pix++) - lin->crpix[j];
@@ -823,7 +833,10 @@ int linp2x(
   } else {
     // Distortions are present.
     int ndbl = naxis * sizeof(double);
-    register double *tmp  = lin->tmpcrd;
+    double *tmp = calloc(naxis, sizeof(double));
+    if (tmp == 0x0) {
+      return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
+    }
 
     for (int k = 0; k < ncoord; k++) {
       if (lin->dispre) {
@@ -845,7 +858,7 @@ int linp2x(
           tmp[j] -= lin->crpix[j];
         }
 
-        register double *piximg = lin->piximg;
+        double *piximg = lin->piximg;
         for (int i = 0; i < naxis; i++) {
           img[i] = 0.0;
           for (int j = 0; j < naxis; j++) {
@@ -857,6 +870,7 @@ int linp2x(
       if (lin->disseq) {
         int status = disp2x(lin->disseq, img, tmp);
         if (status) {
+	  free(tmp);
           return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
         }
 
@@ -875,6 +889,8 @@ int linp2x(
       pix += nelem;
       img += nelem;
     }
+
+    free(tmp);
   }
 
   return 0;
@@ -892,13 +908,14 @@ int linx2p(
 {
   static const char *function = "linx2p";
 
+  int status = 0;
+
   // Initialize.
   if (lin == 0x0) return LINERR_NULL_POINTER;
   struct wcserr **err = &(lin->err);
 
-  if (lin->flag != LINSET) {
-    int status = linset(lin);
-    if (status) {
+  if (abs(lin->flag) != LINSET) {
+    if ((status = linset(lin))) {
       return status;
     }
   }
@@ -907,8 +924,8 @@ int linx2p(
 
 
   // Convert intermediate world coordinates to pixel coordinates.
-  register const double *img = imgcrd;
-  register double *pix = pixcrd;
+  const double *img = imgcrd;
+  double *pix = pixcrd;
 
   if (lin->simple) {
     // Handle the simplest and most common case with maximum efficiency.
@@ -927,7 +944,7 @@ int linx2p(
     int nelemn = nelem - naxis;
     for (int k = 0; k < ncoord; k++) {
       // cdelt will have been incorporated into imgpix.
-      register double *imgpix = lin->imgpix;
+      double *imgpix = lin->imgpix;
 
       for (int j = 0; j < naxis; j++) {
         *pix = 0.0;
@@ -946,7 +963,10 @@ int linx2p(
   } else {
     // Distortions are present.
     int ndbl = naxis * sizeof(double);
-    register double *tmp  = lin->tmpcrd;
+    double *tmp = calloc(naxis, sizeof(double));
+    if (tmp == 0x0) {
+      return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
+    }
 
     for (int k = 0; k < ncoord; k++) {
       if (lin->disseq) {
@@ -955,9 +975,9 @@ int linx2p(
           tmp[i] = img[i] / lin->cdelt[i];
         }
 
-        int status = disx2p(lin->disseq, tmp, pix);
-        if (status) {
-          return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
+        if ((status = disx2p(lin->disseq, tmp, pix))) {
+          wcserr_set(LIN_ERRMSG(lin_diserr[status]));
+          goto cleanup;
         }
 
         memcpy(tmp, pix, ndbl);
@@ -979,7 +999,7 @@ int linx2p(
         }
 
       } else {
-        register double *imgpix = lin->imgpix;
+        double *imgpix = lin->imgpix;
         for (int j = 0; j < naxis; j++) {
           pix[j] = lin->crpix[j];
           for (int i = 0; i < naxis; i++) {
@@ -991,18 +1011,21 @@ int linx2p(
       if (lin->dispre) {
         memcpy(tmp, pix, ndbl);
 
-        int status = disx2p(lin->dispre, tmp, pix);
-        if (status) {
-          return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
+        if ((status = disx2p(lin->dispre, tmp, pix))) {
+          wcserr_set(LIN_ERRMSG(lin_diserr[status]));
+          goto cleanup;
         }
       }
 
       img += nelem;
       pix += nelem;
     }
+
+    cleanup:
+    free(tmp);
   }
 
-  return 0;
+  return status;
 }
 
 //----------------------------------------------------------------------------
@@ -1042,29 +1065,38 @@ int linwarp(
   // Quick return if no distortions.
   if (lin->affine) return 0;
 
+  int status = 0;
+
   // It's easier if there are no sequent distortions!
   if (lin->disseq == 0x0) {
-    int status = diswarp(lin->dispre, pixblc, pixtrc, pixsamp, nsamp,
-                         maxdis, maxtot, avgdis, avgtot, rmsdis, rmstot);
+    status = diswarp(lin->dispre, pixblc, pixtrc, pixsamp, nsamp, maxdis,
+                     maxtot, avgdis, avgtot, rmsdis, rmstot);
     return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
   }
 
   // Make a reference copy of lin without distortions.
+  double *pixinc = 0x0;
+  double *pix0   = 0x0;
   struct linprm affine;
   affine.flag = -1;
 
-  int status = lincpy(1, lin, &affine) ||
-               lindist(1, &affine, 0x0, 0) ||
-               lindist(2, &affine, 0x0, 0) ||
-               linset(&affine);
+  status = lincpy(1, lin, &affine) ||
+           lindist(1, &affine, 0x0, 0) ||
+           lindist(2, &affine, 0x0, 0) ||
+           linset(&affine);
   if (status) {
-    return wcserr_set(LIN_ERRMSG(status));
+    wcserr_set(LIN_ERRMSG(status));
+    goto cleanup;
   }
 
   // Work out increments on each axis.
   int ncoord = 0;
+  if ((pixinc = calloc(naxis, sizeof(double))) == 0x0) { 
+    wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
+    goto cleanup;
+  }
+
   for (int j = 0; j < naxis; j++) {
-    double *pixinc = lin->tmpcrd;
     double pixspan = pixtrc[j] - (pixblc ? pixblc[j] : 1.0);
 
     if (pixsamp == 0x0) {
@@ -1086,22 +1118,18 @@ int linwarp(
   }
 
   // Allocate memory in bulk for processing the image row by row.
-  double *pix0 = calloc((3*ncoord+4)*naxis, sizeof(double));
-  if (pix0 == 0x0) {
-    return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
+  if ((pix0 = calloc((3*ncoord+3)*naxis, sizeof(double))) == 0x0) {
+    status = wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
+    goto cleanup;
   }
 
   // Carve up the allocated memory.
   double *img    = pix0 + naxis*ncoord;
   double *pix1   = img  + naxis*ncoord;
-  double *pixinc = pix1 + naxis*ncoord;
-  double *pixend = pixinc + naxis;
+  double *pixend = pix1 + naxis*ncoord;
   double *sumdis = pixend + naxis;
   double *ssqdis = sumdis + naxis;
 
-
-  // Copy tmpcrd since linp2x() will overwrite it.
-  memcpy(pixinc, lin->tmpcrd, naxis*sizeof(double));
 
   // Set up the array of pixel coordinates.
   for (int j = 0; j < naxis; j++) {
@@ -1130,7 +1158,6 @@ int linwarp(
   // Loop over N dimensions.
   int carry = 0;
   while (carry == 0) {
-    int status;
     if ((status = linp2x(lin, ncoord, naxis, pix0, img))) {
       // (Preserve the error message set by linp2x().)
       goto cleanup;
@@ -1201,7 +1228,8 @@ int linwarp(
 
 cleanup:
   linfree(&affine);
-  free(pix0);
+  if (pixinc) free(pixinc);
+  if (pix0) free(pix0);
 
   return status;
 }
@@ -1240,7 +1268,7 @@ int matinv(int n, const double mat[], double inv[])
 
 
   // Initialize arrays.
-  register int ij = 0;
+  int ij = 0;
   for (int i = 0; i < n; i++) {
     // Vector that records row interchanges.
     mxl[i] = i;
@@ -1272,7 +1300,7 @@ int matinv(int n, const double mat[], double inv[])
     double colmax = fabs(lu[k*n+k]) / rowmax[k];
 
     for (int i = k+1; i < n; i++) {
-      register int ik = i*n + k;
+      int ik = i*n + k;
       double dtemp = fabs(lu[ik]) / rowmax[i];
       if (dtemp > colmax) {
         colmax = dtemp;
@@ -1282,8 +1310,8 @@ int matinv(int n, const double mat[], double inv[])
 
     if (pivot > k) {
       // We must pivot, interchange the rows of the design matrix.
-      register int kj = k*n;
-      register int pj = pivot*n;
+      int kj = k*n;
+      int pj = pivot*n;
       for (int j = 0; j < n; j++, pj++, kj++) {
         double dtemp = lu[pj];
         lu[pj] = lu[kj];
@@ -1303,7 +1331,7 @@ int matinv(int n, const double mat[], double inv[])
 
     // Gaussian elimination.
     for (int i = k+1; i < n; i++) {
-      register int ik = i*n + k;
+      int ik = i*n + k;
 
       // Nothing to do if lu[ik] is zero.
       if (lu[ik] != 0.0) {

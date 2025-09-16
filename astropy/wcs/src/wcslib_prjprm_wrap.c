@@ -1,6 +1,8 @@
 #define NO_IMPORT_ARRAY
 #include <math.h>
 #include <float.h>
+#include <stdlib.h> // calloc, malloc, free
+#include <string.h> // memcpy, strlen, strncpy
 
 #include "astropy_wcs/wcslib_celprm_wrap.h"
 #include "astropy_wcs/wcslib_prjprm_wrap.h"
@@ -70,7 +72,8 @@ static int is_prj_null(PyPrjprm* self)
 static PyObject* PyPrjprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
     PyPrjprm* self;
-    self = (PyPrjprm*)type->tp_alloc(type, 0);
+    allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+    self = (PyPrjprm*)alloc_func(type, 0);
     if (self == NULL) return NULL;
     self->owner = NULL;
     self->x = NULL;
@@ -98,6 +101,7 @@ static PyObject* PyPrjprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds
 static int PyPrjprm_traverse(PyPrjprm* self, visitproc visit, void *arg)
 {
     Py_VISIT(self->owner);
+    Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
     return 0;
 }
 
@@ -117,14 +121,19 @@ static void PyPrjprm_dealloc(PyPrjprm* self)
         free(self->x);
         free(self->prefcount);
     }
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    PyTypeObject *tp = Py_TYPE((PyObject*)self);
+    freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+    free_func((PyObject*)self);
+    Py_DECREF(tp);
 }
 
 
 PyPrjprm* PyPrjprm_cnew(PyObject* celprm_obj, struct prjprm* x, int* prefcount)
 {
     PyPrjprm* self;
-    self = (PyPrjprm*)(&PyPrjprmType)->tp_alloc(&PyPrjprmType, 0);
+    PyTypeObject* type = (PyTypeObject*)PyPrjprmType;
+    allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
+    self = (PyPrjprm*)alloc_func(type, 0);
     if (self == NULL) return NULL;
     self->x = x;
     Py_XINCREF(celprm_obj);
@@ -146,7 +155,7 @@ static PyObject* PyPrjprm_copy(PyPrjprm* self)
 
 static PyObject* PyPrjprm_deepcopy(PyPrjprm* self)
 {
-    PyPrjprm* copy = PyPrjprm_new(&PyPrjprmType, NULL, NULL);
+    PyPrjprm* copy = (PyPrjprm*) PyPrjprm_new((PyTypeObject*)PyPrjprmType, NULL, NULL);
     if (copy == NULL) return NULL;
 
     memcpy(copy->x, self->x, sizeof(struct prjprm));
@@ -268,11 +277,11 @@ static PyObject* _prj_eval(PyPrjprm* self, int (*prjfn)(PRJX2S_ARGS),
     }
 
     exit:
-        Py_XDECREF(x1);
-        Py_XDECREF(x2);
-        Py_XDECREF(prj_x1);
-        Py_XDECREF(prj_x2);
-        Py_XDECREF(stat);
+        Py_XDECREF((PyObject*)x1);
+        Py_XDECREF((PyObject*)x2);
+        Py_XDECREF((PyObject*)prj_x1);
+        Py_XDECREF((PyObject*)prj_x2);
+        Py_XDECREF((PyObject*)stat);
 
     return result;
 }
@@ -510,11 +519,12 @@ static PyObject* PyPrjprm_get_pv(PyPrjprm* self, void* closure)
     int k;
     Py_ssize_t size = PVN;
     double *pv;
-    PyObject* pv_array;
-
+    PyObject* pv_pyobj;
+    PyArrayObject* pv_array;
     if (is_prj_null(self)) return NULL;
 
-    pv_array = (PyArrayObject*) PyArray_SimpleNew(1, &size, NPY_DOUBLE);
+    pv_pyobj = PyArray_SimpleNew(1, &size, NPY_DOUBLE);
+    pv_array = (PyArrayObject*) pv_pyobj;
     if (pv_array == NULL) return NULL;
     pv = (double*) PyArray_DATA(pv_array);
 
@@ -526,7 +536,7 @@ static PyObject* PyPrjprm_get_pv(PyPrjprm* self, void* closure)
         }
     }
 
-    return pv_array;
+    return pv_pyobj;
 }
 
 
@@ -535,7 +545,7 @@ static int PyPrjprm_set_pv(PyPrjprm* self, PyObject* value, void* closure)
     int k, modified;
     npy_intp size;
     double *data;
-    PyObject* value_array = NULL;
+    PyArrayObject* value_array = NULL;
     int skip[PVN];
 
     if (is_prj_null(self) || is_readonly(self)) return -1;
@@ -550,7 +560,7 @@ static int PyPrjprm_set_pv(PyPrjprm* self, PyObject* value, void* closure)
         return 0;
     }
 
-    value_array = PyArray_ContiguousFromAny(value, NPY_DOUBLE, 1, 1);
+    value_array = (PyArrayObject*) PyArray_ContiguousFromAny(value, NPY_DOUBLE, 1, 1);
     if (!value_array) return -1;
 
     size = PyArray_SIZE(value_array);
@@ -612,7 +622,6 @@ static PyObject* PyPrjprm_get_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds
 {
     int idx;
     PyObject* index = NULL;
-    PyObject* value = NULL;
     const char* keywords[] = { "index", NULL };
 
     if (is_prj_null(self)) return NULL;
@@ -654,7 +663,8 @@ static PyObject* PyPrjprm_set_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds
     PyObject* index = NULL;
     PyObject* value = NULL;
     PyObject* flt_value = NULL;
-    PyObject* value_array = NULL;
+    PyObject* value_array_pyobj = NULL;
+    PyArrayObject* value_array = NULL;
     const char* keywords[] = { "index", "value", NULL };
     PyArray_Descr* dbl_descr = PyArray_DescrNewFromType(NPY_DOUBLE);
 
@@ -705,9 +715,10 @@ static PyObject* PyPrjprm_set_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds
         }
 
     } else {
-        if (PyArray_Converter(value, &value_array) == NPY_FAIL) {
+        if (PyArray_Converter(value, &value_array_pyobj) == NPY_FAIL) {
             return NULL;
         }
+        value_array = (PyArrayObject*) value_array_pyobj;
 
         size = PyArray_SIZE(value_array);
         if (size != 1) {
@@ -771,11 +782,11 @@ static PyObject* PyPrjprm_get_w(PyPrjprm* self, void* closure)
     Py_ssize_t size = 10;
     int k;
     double *w;
-    PyObject* w_array;
+    PyArrayObject* w_array;
 
     if (is_prj_null(self)) return NULL;
 
-    w_array = (PyObject*) PyArray_SimpleNew(1, &size, NPY_DOUBLE);
+    w_array = (PyArrayObject*) PyArray_SimpleNew(1, &size, NPY_DOUBLE);
     if (w_array == NULL) return NULL;
     w = (double*) PyArray_DATA(w_array);
 
@@ -787,7 +798,7 @@ static PyObject* PyPrjprm_get_w(PyPrjprm* self, void* closure)
         }
     }
 
-    return w_array;
+    return (PyObject*) w_array;
 }
 
 
@@ -951,54 +962,31 @@ static PyMethodDef PyPrjprm_methods[] = {
     {NULL}
 };
 
-
-PyTypeObject PyPrjprmType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "astropy.wcs.Prjprm",         /*tp_name*/
-    sizeof(PyPrjprm),             /*tp_basicsize*/
-    0,                            /*tp_itemsize*/
-    (destructor)PyPrjprm_dealloc, /*tp_dealloc*/
-    0,                            /*tp_print*/
-    0,                            /*tp_getattr*/
-    0,                            /*tp_setattr*/
-    0,                            /*tp_compare*/
-    0,                            /*tp_repr*/
-    0,                            /*tp_as_number*/
-    0,                            /*tp_as_sequence*/
-    0,                            /*tp_as_mapping*/
-    0,                            /*tp_hash */
-    0,                            /*tp_call*/
-    (reprfunc)PyPrjprm___str__,   /*tp_str*/
-    0,                            /*tp_getattro*/
-    0,                            /*tp_setattro*/
-    0,                            /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-    doc_Prjprm,                   /* tp_doc */
-    (traverseproc)PyPrjprm_traverse, /* tp_traverse */
-    (inquiry)PyPrjprm_clear,      /* tp_clear */
-    0,                            /* tp_richcompare */
-    0,                            /* tp_weaklistoffset */
-    0,                            /* tp_iter */
-    0,                            /* tp_iternext */
-    PyPrjprm_methods,             /* tp_methods */
-    0,                            /* tp_members */
-    PyPrjprm_getset,              /* tp_getset */
-    0,                            /* tp_base */
-    0,                            /* tp_dict */
-    0,                            /* tp_descr_get */
-    0,                            /* tp_descr_set */
-    0,                            /* tp_dictoffset */
-    0,                            /* tp_init */
-    0,                            /* tp_alloc */
-    PyPrjprm_new,                 /* tp_new */
+static PyType_Spec PyPrjprm_spec = {
+    .name = "astropy.wcs.Prjprm",
+    .basicsize = sizeof(PyPrjprm),
+    .itemsize = 0,
+    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
+    .slots = (PyType_Slot[]) {
+        {Py_tp_dealloc, (destructor)PyPrjprm_dealloc},
+        {Py_tp_str, (reprfunc)PyPrjprm___str__},
+        {Py_tp_doc, doc_Prjprm},
+        {Py_tp_traverse, (traverseproc)PyPrjprm_traverse},
+        {Py_tp_clear, (inquiry)PyPrjprm_clear},
+        {Py_tp_methods, PyPrjprm_methods},
+        {Py_tp_getset, PyPrjprm_getset},
+        {Py_tp_new, PyPrjprm_new},
+        {0, NULL},
+    },
 };
 
+PyObject* PyPrjprmType = NULL;
 
 int _setup_prjprm_type(PyObject* m)
 {
-    if (PyType_Ready(&PyPrjprmType) < 0) return -1;
-    Py_INCREF(&PyPrjprmType);
-    PyModule_AddObject(m, "Prjprm", (PyObject *)&PyPrjprmType);
+    PyPrjprmType = PyType_FromSpec(&PyPrjprm_spec);
+    if (PyPrjprmType == NULL) return -1;
+    PyModule_AddObject(m, "Prjprm", PyPrjprmType);
 
     prj_errexc[0] = NULL;                         /* Success */
     prj_errexc[1] = &PyExc_MemoryError;           /* Null prjprm pointer passed */

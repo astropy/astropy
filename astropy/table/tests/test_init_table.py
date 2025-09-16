@@ -5,9 +5,11 @@ from collections.abc import Mapping
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 import astropy.units as u
 from astropy.table import Column, MaskedColumn, QTable, Table, TableColumns
+from astropy.utils.masked import Masked
 
 
 class DictLike(Mapping):
@@ -195,6 +197,7 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
     def _setup(self, table_type):
         self.data = [{"a": 1, "b": 2, "c": 3}, {"a": 3, "b": 4, "c": 5}]
         self.data_ragged = [{"a": 1, "b": 2}, {"a": 2, "c": 4}]
+        self.data_acb = [{"a": 2, "c": 4}, {"a": 1, "b": 2}]
 
     def test_names(self, table_type):
         self._setup(table_type)
@@ -205,6 +208,14 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
         self._setup(table_type)
         t = table_type(self.data, names=("c", "b", "a"))
         assert t.colnames == ["c", "b", "a"]
+
+    def test_rows_without_names_args(self, table_type):
+        # see https://github.com/astropy/astropy/pull/15735
+        self._setup(table_type)
+        t1 = table_type(rows=self.data)
+        assert t1.colnames == ["a", "b", "c"]
+        t2 = table_type(rows=self.data_acb)
+        assert t2.colnames == ["a", "c", "b"]
 
     def test_missing_data_init_from_dict(self, table_type):
         self._setup(table_type)
@@ -223,12 +234,34 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
             assert type(t["c"]) is MaskedColumn
 
 
+def test_qtable_uses_masked_quantity_as_needed():
+    data = [{"a": 1 * u.m, "b": 1}, {"a": 2 * u.Mm, "b": 2}]
+    data_ragged = [{"a": 1 * u.m, "b": 1}, {"a": 2 * u.Mm}, {"b": 3}]
+    t = QTable(data)
+    assert t.colnames == ["a", "b"]
+    assert isinstance(t["a"], u.Quantity)
+    assert isinstance(t["b"], Column)
+    assert t["a"].unit == u.m
+    assert_array_equal(t["a"], [1, 2000000] * u.m)
+    assert not t.masked
+
+    t2 = QTable(data_ragged)
+    assert t2.colnames == ["a", "b"]
+    assert isinstance(t2["a"], Masked(u.Quantity))
+    assert isinstance(t2["b"], MaskedColumn)
+    assert t2["a"].unit == u.m
+    assert np.all(t2["a"] == [1, 2000000, 0] * u.m)
+    assert_array_equal(t2["a"].mask, [False, False, True])
+    assert_array_equal(t2["b"].mask, [False, True, False])
+
+
 class TestInitFromListOfMapping(TestInitFromListOfDicts):
     """Test that init from a Mapping that is not a dict subclass works"""
 
     def _setup(self, table_type):
         self.data = [DictLike(a=1, b=2, c=3), DictLike(a=3, b=4, c=5)]
         self.data_ragged = [DictLike(a=1, b=2), DictLike(a=2, c=4)]
+        self.data_acb = [DictLike(a=2, c=4), DictLike(a=1, b=2)]
         # Make sure data rows are not a dict subclass
         assert not isinstance(self.data[0], dict)
 

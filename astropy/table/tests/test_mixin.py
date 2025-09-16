@@ -13,6 +13,7 @@ from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
+from astropy.io.ascii.connect import _get_connectors_table
 from astropy.table import (
     Column,
     NdarrayMixin,
@@ -27,6 +28,7 @@ from astropy.table import (
 from astropy.table.column import BaseColumn
 from astropy.table.serialize import represent_mixins_as_columns
 from astropy.table.table_helpers import ArrayWrapper
+from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.metadata import MergeConflictWarning
@@ -113,11 +115,13 @@ def test_io_ascii_write():
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
-    from astropy.io.ascii.connect import _get_connectors_table
-
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
-        if fmt["Write"] and ".fast_" not in fmt["Format"]:
+        if (
+            fmt["Write"]
+            and ".fast_" not in fmt["Format"]
+            and fmt["Format"] != "ascii.tdat"
+        ):
             out = StringIO()
             t.write(out, format=fmt["Format"])
 
@@ -377,7 +381,7 @@ def test_join(table_types):
     t2 = table_types.Table(t1)
     t2["a"] = ["b", "c", "a", "d"]
 
-    for name, col in MIXIN_COLS.items():
+    for name in MIXIN_COLS:
         t1[name].info.description = name
         t2[name].info.description = name + "2"
 
@@ -455,6 +459,7 @@ def assert_table_name_col_equal(t, name, col):
     """
     Assert all(t[name] == col), with special handling for known mixin cols.
     """
+    __tracebackhide__ = True
     if isinstance(col, coordinates.SkyCoord):
         assert np.all(t[name].ra == col.ra)
         assert np.all(t[name].dec == col.dec)
@@ -496,7 +501,9 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
     """
 
     def pickle_roundtrip(c):
-        return pickle.loads(pickle.dumps(c))
+        # protocol=5 matches the default for Python 3.14 and later
+        # and is needed to preserve byteorder (available since Python 3.8)
+        return pickle.loads(pickle.dumps(c, protocol=5))
 
     def init_from_class(c):
         return c.__class__(c)
@@ -511,18 +518,7 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
         for func in (copy.copy, copy.deepcopy, pickle_roundtrip, init_from_class):
             m2 = func(m)
             for attr in attrs:
-                # non-native byteorder not preserved by last 2 func, _except_ for structured dtype
-                if (
-                    attr != "dtype"
-                    or getattr(m.info.dtype, "isnative", True)
-                    or m.info.dtype.name.startswith("void")
-                    or func in (copy.copy, copy.deepcopy)
-                ):
-                    original = getattr(m.info, attr)
-                else:
-                    # func does not preserve byteorder, check against (native) type.
-                    original = m.info.dtype.newbyteorder("=")
-                assert getattr(m2.info, attr) == original
+                assert getattr(m2.info, attr) == getattr(m.info, attr)
 
 
 def check_share_memory(col1, col2, copy):
@@ -630,30 +626,34 @@ def test_vstack():
         vstack([t1, t2])
 
 
-def test_insert_row(mixin_cols):
+@pytest.mark.parametrize("empty_table", [False, True])
+def test_insert_row(mixin_cols, empty_table):
     """
     Test inserting a row, which works for Column, Quantity, Time and SkyCoord.
     """
-    t = QTable(mixin_cols)
-    t0 = t.copy()
+    t0 = QTable(mixin_cols)
+    if empty_table:
+        t = t0[:0].copy()
+        insert_index = 0
+        result_indices = [-1]
+    else:
+        t = t0.copy()
+        insert_index = 1
+        result_indices = [0, -1, 1, 2, 3]
     t["m"].info.description = "d"
-    idxs = [0, -1, 1, 2, 3]
     if isinstance(
         t["m"], (u.Quantity, Column, time.Time, time.TimeDelta, coordinates.SkyCoord)
     ):
-        t.insert_row(1, t[-1])
+        t.insert_row(insert_index, t0[-1])
 
         for name in t.colnames:
-            col = t[name]
-            if isinstance(col, coordinates.SkyCoord):
-                assert skycoord_equal(col, t0[name][idxs])
-            else:
-                assert np.all(col == t0[name][idxs])
+            assert np.all(t[name] == t0[name][result_indices])
 
+        assert np.all(t == t0[result_indices])
         assert t["m"].info.description == "d"
     else:
         with pytest.raises(ValueError) as exc:
-            t.insert_row(1, t[-1])
+            t.insert_row(insert_index, t0[-1])
         assert "Unable to insert row" in str(exc.value)
 
 
@@ -756,56 +756,103 @@ def test_quantity_representation():
     ]
 
 
-def test_representation_representation():
+@pytest.mark.parametrize(
+    "c, expected_pformat",
+    [
+        pytest.param(
+            coordinates.CartesianRepresentation([0], [1], [0], unit=u.one),
+            # With no unit we get "None" in the unit row
+            [
+                "    col0    ",
+                "------------",
+                "(0., 1., 0.)",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "      col0     ",
+                "---------------",
+                "(0.0, 1.0, 0.0)",
+            ],
+            id="cartesian_wo_unit",
+        ),
+        pytest.param(
+            coordinates.CartesianRepresentation([0], [1], [0], unit="m"),
+            [
+                "    col0    ",
+                "     m      ",
+                "------------",
+                "(0., 1., 0.)",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "      col0     ",
+                "       m       ",
+                "---------------",
+                "(0.0, 1.0, 0.0)",
+            ],
+            id="cartesian_w_unit",
+        ),
+        pytest.param(
+            coordinates.SphericalRepresentation([10] * u.deg, [20] * u.deg, [1] * u.pc),
+            [
+                "     col0     ",
+                " deg, deg, pc ",
+                "--------------",
+                "(10., 20., 1.)",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "       col0      ",
+                "   deg, deg, pc  ",
+                "-----------------",
+                "(10.0, 20.0, 1.0)",
+            ],
+            id="spherical",
+        ),
+        pytest.param(
+            coordinates.UnitSphericalRepresentation([10] * u.deg, [20] * u.deg),
+            [
+                "   col0   ",
+                "   deg    ",
+                "----------",
+                "(10., 20.)",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "    col0    ",
+                "    deg     ",
+                "------------",
+                "(10.0, 20.0)",
+            ],
+            id="unitspherical",
+        ),
+        pytest.param(
+            coordinates.SphericalCosLatDifferential(
+                [10] * u.mas / u.yr, [2] * u.mas / u.yr, [10] * u.km / u.s
+            ),
+            [
+                "           col0           ",
+                "mas / yr, mas / yr, km / s",
+                "--------------------------",
+                "            (10., 2., 10.)",
+            ]
+            if NUMPY_LT_2_0
+            else [
+                "           col0           ",
+                "mas / yr, mas / yr, km / s",
+                "--------------------------",
+                "         (10.0, 2.0, 10.0)",
+            ],
+            id="sphericalcoslatdifferential",
+        ),
+    ],
+)
+def test_representation_representation(c, expected_pformat):
     """
     Test that Representations are represented correctly.
     """
-    # With no unit we get "None" in the unit row
-    c = coordinates.CartesianRepresentation([0], [1], [0], unit=u.one)
     t = Table([c])
-    assert t.pformat() == [
-        "    col0    ",
-        "------------",
-        "(0., 1., 0.)",
-    ]
-
-    c = coordinates.CartesianRepresentation([0], [1], [0], unit="m")
-    t = Table([c])
-    assert t.pformat() == [
-        "    col0    ",
-        "     m      ",
-        "------------",
-        "(0., 1., 0.)",
-    ]
-
-    c = coordinates.SphericalRepresentation([10] * u.deg, [20] * u.deg, [1] * u.pc)
-    t = Table([c])
-    assert t.pformat() == [
-        "     col0     ",
-        " deg, deg, pc ",
-        "--------------",
-        "(10., 20., 1.)",
-    ]
-
-    c = coordinates.UnitSphericalRepresentation([10] * u.deg, [20] * u.deg)
-    t = Table([c])
-    assert t.pformat() == [
-        "   col0   ",
-        "   deg    ",
-        "----------",
-        "(10., 20.)",
-    ]
-
-    c = coordinates.SphericalCosLatDifferential(
-        [10] * u.mas / u.yr, [2] * u.mas / u.yr, [10] * u.km / u.s
-    )
-    t = Table([c])
-    assert t.pformat() == [
-        "           col0           ",
-        "mas / yr, mas / yr, km / s",
-        "--------------------------",
-        "            (10., 2., 10.)",
-    ]
+    assert t.pformat() == expected_pformat
 
 
 def test_skycoord_representation():
@@ -916,15 +963,27 @@ def test_ndarray_mixin(as_ndarray_mixin):
     assert t[1]["d"][0] == d[1][0]
     assert t[1]["d"][1] == d[1][1]
 
-    assert t.pformat(show_dtype=True) == [
-        "  a [f0, f1]     b [x, y]      c [rx, ry]      d    ",
-        "(int32, str1) (int32, str2) (float64, str3) int64[2]",
-        "------------- ------------- --------------- --------",
-        "     (1, 'a')    (10, 'aa')   (100., 'raa')   0 .. 1",
-        "     (2, 'b')    (20, 'bb')   (200., 'rbb')   2 .. 3",
-        "     (3, 'c')    (30, 'cc')   (300., 'rcc')   4 .. 5",
-        "     (4, 'd')    (40, 'dd')   (400., 'rdd')   6 .. 7",
-    ]
+    assert t.pformat(show_dtype=True) == (
+        [
+            "  a [f0, f1]     b [x, y]      c [rx, ry]      d    ",
+            "(int32, str1) (int32, str2) (float64, str3) int64[2]",
+            "------------- ------------- --------------- --------",
+            "     (1, 'a')    (10, 'aa')   (100., 'raa')   0 .. 1",
+            "     (2, 'b')    (20, 'bb')   (200., 'rbb')   2 .. 3",
+            "     (3, 'c')    (30, 'cc')   (300., 'rcc')   4 .. 5",
+            "     (4, 'd')    (40, 'dd')   (400., 'rdd')   6 .. 7",
+        ]
+        if NUMPY_LT_2_0
+        else [
+            "  a [f0, f1]     b [x, y]      c [rx, ry]      d    ",
+            "(int32, str1) (int32, str2) (float64, str3) int64[2]",
+            "------------- ------------- --------------- --------",
+            "     (1, 'a')    (10, 'aa')  (100.0, 'raa')   0 .. 1",
+            "     (2, 'b')    (20, 'bb')  (200.0, 'rbb')   2 .. 3",
+            "     (3, 'c')    (30, 'cc')  (300.0, 'rcc')   4 .. 5",
+            "     (4, 'd')    (40, 'dd')  (400.0, 'rdd')   6 .. 7",
+        ]
+    )
 
 
 def test_possible_string_format_functions():

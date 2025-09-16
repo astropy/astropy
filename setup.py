@@ -5,72 +5,54 @@
 # other information are set in the pyproject.toml file.
 
 import sys
+from pathlib import Path
 
-# First provide helpful messages if contributors try and run legacy commands
-# for tests or docs.
+from setuptools import setup
+from setuptools.command.editable_wheel import editable_wheel
+from setuptools.command.install import install
 
-TEST_HELP = """
-Note: running tests is no longer done using 'python setup.py test'. Instead
-you will need to run:
-
-    tox -e test
-
-If you don't already have tox installed, you can install it with:
-
-    pip install tox
-
-If you only want to run part of the test suite, you can also use pytest
-directly with::
-
-    pip install -e .[test]
-    pytest
-
-For more information, see:
-
-  https://docs.astropy.org/en/latest/development/testguide.html#running-tests
-"""
-
-if "test" in sys.argv:
-    print(TEST_HELP)
-    sys.exit(1)
-
-DOCS_HELP = """
-Note: building the documentation is no longer done using
-'python setup.py build_docs'. Instead you will need to run:
-
-    tox -e build_docs
-
-If you don't already have tox installed, you can install it with:
-
-    pip install tox
-
-You can also build the documentation with Sphinx directly using::
-
-    pip install -e .[docs]
-    cd docs
-    make html
-
-For more information, see:
-
-  https://docs.astropy.org/en/latest/install.html#builddocs
-"""
-
-if "build_docs" in sys.argv or "build_sphinx" in sys.argv:
-    print(DOCS_HELP)
-    sys.exit(1)
-
-
-# Only import these if the above checks are okay
-# to avoid masking the real problem with import error.
-from setuptools import setup  # noqa: E402
-
-from extension_helpers import get_extensions  # noqa: E402
+from extension_helpers import get_extensions
 
 ext_modules = get_extensions()
+
+
+def install_stubs(build_lib, output_dir):
+    sys.path.insert(0, build_lib)
+    try:
+        from astropy.units.typing_utils import create_stubs  # noqa: PLC0415
+
+        create_stubs(Path(output_dir) / "astropy" / "units")
+    finally:
+        # Undo the path modification.
+        sys.path.pop(0)
+
+
+class InstallWithStubs(install):
+    """Post-installation command for installation mode."""
+
+    def run(self):
+        super().run()
+        install_stubs(self.build_lib, self.root)
+
+
+class EditableInstallWithStubs(editable_wheel):
+    """Post-installation command for editable_wheel mode."""
+
+    def run(self):
+        super().run()
+        install_stubs(self.project_dir, self.project_dir)
+
 
 # Specify the minimum version for the Numpy C-API
 for ext in ext_modules:
     if ext.include_dirs and "numpy" in ext.include_dirs[0]:
-        ext.define_macros.append(("NPY_TARGET_VERSION", "NPY_1_23_API_VERSION"))
+        ext.define_macros.append(("NPY_TARGET_VERSION", "NPY_1_24_API_VERSION"))
+        ext.define_macros.append(("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"))
 
-setup(ext_modules=ext_modules)
+setup(
+    ext_modules=ext_modules,
+    cmdclass={
+        "install": InstallWithStubs,
+        "editable_wheel": EditableInstallWithStubs,
+    },
+)

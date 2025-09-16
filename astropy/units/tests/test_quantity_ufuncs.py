@@ -1,12 +1,11 @@
 # The purpose of these tests are to ensure that calling ufuncs with quantities
 # returns quantities with the right units, or raises exceptions.
 
-from __future__ import annotations
-
 import concurrent.futures
 import dataclasses
 import warnings
-from typing import TYPE_CHECKING, NamedTuple
+from collections.abc import Callable
+from typing import NamedTuple
 
 import numpy as np
 import pytest
@@ -17,11 +16,8 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 if NUMPY_LT_2_0:
     from numpy.core import umath as np_umath
@@ -35,10 +31,10 @@ class testcase(NamedTuple):
     f: Callable
     """The ufunc to test."""
 
-    q_in: tuple[Quantity]
+    q_in: tuple[u.Quantity]
     """The input quantities."""
 
-    q_out: tuple[Quantity]
+    q_out: tuple[u.Quantity]
     """The expected output quantities."""
 
 
@@ -48,7 +44,7 @@ class testexc(NamedTuple):
     f: Callable
     """The ufunc to test."""
 
-    q_in: tuple[Quantity]
+    q_in: tuple[u.Quantity]
     """The input quantities."""
 
     exc: type
@@ -64,7 +60,7 @@ class testwarn(NamedTuple):
     f: Callable
     """The ufunc to test."""
 
-    q_in: tuple[Quantity]
+    q_in: tuple[u.Quantity]
     """The input quantities."""
 
     wfilter: str
@@ -124,6 +120,13 @@ class TestUfuncHelpers:
         }
         assert all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs == set()
 
+    @pytest.mark.skipif(
+        HAS_SCIPY,
+        reason=(
+            "UFUNC_HELPERS.modules might be in a different state "
+            "(by design) if scipy.special already registered"
+        ),
+    )
     def test_scipy_registered(self):
         # Should be registered as existing even if scipy is not available.
         assert "scipy.special" in qh.UFUNC_HELPERS.modules
@@ -148,7 +151,7 @@ class TestUfuncHelpers:
 
         workers = 8
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-            for p in range(10000):
+            for _ in range(10000):
                 helpers = UfuncHelpers()
                 helpers.register_module(
                     "astropy.units.tests.test_quantity_ufuncs",
@@ -323,6 +326,27 @@ class TestQuantityTrigonometricFuncs:
     def test_testwarns(self, tw):
         return test_testwarn(tw)
 
+    def test_sin_with_quantity_out(self):
+        # Test for a useful error message - see gh-16873.
+        # Non-quantity input should be treated as dimensionless and thus cannot
+        # be converted to radians.
+        out = u.Quantity(0)
+        with pytest.raises(
+            AttributeError,
+            match=(
+                "'NoneType' object has no attribute 'get_converter'"
+                ".*\n.*treated as dimensionless"
+            ),
+        ):
+            np.sin(0.5, out=out)
+
+        # Except if we have the right equivalency in place.
+        with u.add_enabled_equivalencies(u.dimensionless_angles()):
+            result = np.sin(0.5, out=out)
+
+        assert result is out
+        assert result == np.sin(0.5) * u.dimensionless_unscaled
+
 
 class TestQuantityMathFuncs:
     """
@@ -366,6 +390,29 @@ class TestQuantityMathFuncs:
         q2 = np.array([4j, 5j, 6j]) / u.s
         o = np.vecdot(q1, q2)
         assert o == (32.0 + 0j) * u.m / u.s
+
+    @pytest.mark.skipif(
+        NUMPY_LT_2_3, reason="np.matvec and np.vecmat are new in NumPy 2.3"
+    )
+    def test_matvec(self):
+        vec = np.arange(3) << u.s
+        mat = (
+            np.array(
+                [
+                    [1.0, -1.0, 2.0],
+                    [0.0, 3.0, -1.0],
+                    [-1.0, -1.0, 1.0],
+                ]
+            )
+            << u.m
+        )
+        ref_matvec = (vec * mat).sum(-1)
+        res_matvec = np.matvec(mat, vec)
+        assert_array_equal(res_matvec, ref_matvec)
+
+        ref_vecmat = (vec * mat.T).sum(-1)
+        res_vecmat = np.vecmat(vec, mat)
+        assert_array_equal(res_vecmat, ref_vecmat)
 
     @pytest.mark.parametrize("function", (np.divide, np.true_divide))
     def test_divide_scalar(self, function):
@@ -1393,11 +1440,10 @@ class DuckQuantity3(DuckQuantity2):
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
         inputs = [inp.data if isinstance(inp, type(self)) else inp for inp in inputs]
 
-        out = kwargs.get("out", None)
+        out = kwargs.get("out")
 
         kwargs_copy = {}
-        for k in kwargs:
-            kwarg = kwargs[k]
+        for k, kwarg in kwargs.items():
             if isinstance(kwarg, type(self)):
                 kwargs_copy[k] = kwarg.data
             elif isinstance(kwarg, (list, tuple)):
@@ -1521,13 +1567,11 @@ if HAS_SCIPY:
 
     def test_scipy_registration():
         """Check that scipy gets loaded upon first use."""
-        assert sps.erf not in qh.UFUNC_HELPERS
+        if sps.erf in qh.UFUNC_HELPERS:
+            # Generally, scipy will not be loaded here, but in a double run it might.
+            pytest.skip()
         sps.erf(1.0 * u.percent)
         assert sps.erf in qh.UFUNC_HELPERS
-        if isinstance(sps.erfinv, np.ufunc):
-            assert sps.erfinv in qh.UFUNC_HELPERS
-        else:
-            assert sps.erfinv not in qh.UFUNC_HELPERS
 
     class TestScipySpecialUfuncs:
         @pytest.mark.parametrize("function", erf_like_ufuncs)

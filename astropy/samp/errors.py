@@ -7,7 +7,7 @@ import xmlrpc.client as xmlrpc
 
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["SAMPWarning", "SAMPHubError", "SAMPClientError", "SAMPProxyError"]
+__all__ = ["SAMPClientError", "SAMPHubError", "SAMPProxyError", "SAMPWarning"]
 
 
 class SAMPWarning(AstropyUserWarning):
@@ -31,4 +31,10 @@ class SAMPClientError(Exception):
 class SAMPProxyError(xmlrpc.Fault):
     """
     SAMP Proxy Hub exception.
+    """
+
+
+class SAMPProxyTimeoutError(SAMPProxyError):
+    """
+    SAMP Proxy Hub timeout exception.
     """

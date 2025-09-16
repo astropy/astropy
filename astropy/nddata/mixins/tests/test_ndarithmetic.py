@@ -5,7 +5,7 @@ import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from astropy import units as u
-from astropy.nddata import NDDataRef
+from astropy.nddata import CCDData, NDDataRef
 from astropy.nddata import _testing as nd_testing
 from astropy.nddata.nduncertainty import (
     IncompatibleUncertaintiesException,
@@ -72,6 +72,47 @@ def test_arithmetics_data(data1, data2):
         assert nd.mask is None
         assert len(nd.meta) == 0
         assert nd.wcs is None
+
+
+# Test numpy functions that use astropy functions first
+def test_arithmetics_ccddata():
+    ccd1 = CCDData([1, 2, 3], unit="adu")
+    ccd2 = CCDData([1.1, 2.2, 3.3], unit="adu")
+    ccd3 = CCDData([1.1, 2.2, 3.3, 4.4], unit="adu")
+    nd1 = NDDataArithmetic(ccd1)
+    nd3 = NDDataArithmetic(ccd3)
+
+    assert np.min(ccd1).data == ccd1.min().data
+    assert np.min(ccd2).data == ccd2.min().data
+
+    assert np.max(ccd1).data == ccd1.max().data
+    assert np.max(ccd2).data == ccd2.max().data
+
+    assert np.sum(ccd1).data == ccd1.sum().data
+    assert np.sum(ccd2).data == ccd2.sum().data
+
+    assert np.mean(ccd1).data == ccd1.mean().data
+    assert np.mean(ccd2).data == ccd2.mean().data
+
+
+# Ensure exceptions are raised for numpy keys that are not None
+def test_arithmetics_ccddata_errors():
+    ccd1 = CCDData([1, 2, 3], unit="adu")
+    ccd2 = CCDData([1.1, 2.2, 3.3, 4.4], unit="adu")
+    nd1 = NDDataArithmetic(ccd1)
+    nd2 = NDDataArithmetic(ccd2)
+
+    with pytest.raises(ValueError):
+        np.mean(ccd1, out=nd1)
+
+    with pytest.raises(ValueError):
+        np.mean(ccd2, out=nd2)
+
+    with pytest.raises(ValueError):
+        np.mean(ccd1, out=nd1, dtype=int)
+
+    with pytest.raises(ValueError):
+        np.mean(ccd2, dtype=int)
 
 
 # Invalid arithmetic operations for data covering:

@@ -30,6 +30,7 @@ from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 
 
 def assert_representation_allclose(actual, desired, rtol=1.0e-7, atol=None, **kwargs):
+    __tracebackhide__ = True
     actual_xyz = actual.to_cartesian().get_xyz(xyz_axis=-1)
     desired_xyz = desired.to_cartesian().get_xyz(xyz_axis=-1)
     actual_xyz, desired_xyz = np.broadcast_arrays(actual_xyz, desired_xyz, subok=True)
@@ -629,11 +630,11 @@ class TestSphericalDifferential:
         self._setup(omit_coslat)
         if omit_coslat:
             assert self.SD_cls is SphericalCosLatDifferential
-            assert self.SD_cls.get_name() == "sphericalcoslat"
+            assert self.SD_cls.name == "sphericalcoslat"
         else:
             assert self.SD_cls is SphericalDifferential
-            assert self.SD_cls.get_name() == "spherical"
-        assert self.SD_cls.get_name() in DIFFERENTIAL_CLASSES
+            assert self.SD_cls.name == "spherical"
+        assert self.SD_cls.name in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self, omit_coslat):
         self._setup(omit_coslat)
@@ -801,11 +802,11 @@ class TestUnitSphericalDifferential:
         self._setup(omit_coslat)
         if omit_coslat:
             assert self.USD_cls is UnitSphericalCosLatDifferential
-            assert self.USD_cls.get_name() == "unitsphericalcoslat"
+            assert self.USD_cls.name == "unitsphericalcoslat"
         else:
             assert self.USD_cls is UnitSphericalDifferential
-            assert self.USD_cls.get_name() == "unitspherical"
-        assert self.USD_cls.get_name() in DIFFERENTIAL_CLASSES
+            assert self.USD_cls.name == "unitspherical"
+        assert self.USD_cls.name in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self, omit_coslat):
         self._setup(omit_coslat)
@@ -920,8 +921,8 @@ class TestRadialDifferential:
         self.sf = s.scale_factors()
 
     def test_name(self):
-        assert RadialDifferential.get_name() == "radial"
-        assert RadialDifferential.get_name() in DIFFERENTIAL_CLASSES
+        assert RadialDifferential.name == "radial"
+        assert RadialDifferential.name in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self):
         r, s, e, sf = self.r, self.s, self.e, self.sf
@@ -964,8 +965,8 @@ class TestPhysicsSphericalDifferential:
         self.sf = s.scale_factors()
 
     def test_name(self):
-        assert PhysicsSphericalDifferential.get_name() == "physicsspherical"
-        assert PhysicsSphericalDifferential.get_name() in DIFFERENTIAL_CLASSES
+        assert PhysicsSphericalDifferential.name == "physicsspherical"
+        assert PhysicsSphericalDifferential.name in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
@@ -1023,8 +1024,8 @@ class TestCylindricalDifferential:
         self.sf = s.scale_factors()
 
     def test_name(self):
-        assert CylindricalDifferential.get_name() == "cylindrical"
-        assert CylindricalDifferential.get_name() in DIFFERENTIAL_CLASSES
+        assert CylindricalDifferential.name == "cylindrical"
+        assert CylindricalDifferential.name in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf
@@ -1076,8 +1077,8 @@ class TestCartesianDifferential:
         self.sf = s.scale_factors()
 
     def test_name(self):
-        assert CartesianDifferential.get_name() == "cartesian"
-        assert CartesianDifferential.get_name() in DIFFERENTIAL_CLASSES
+        assert CartesianDifferential.name == "cartesian"
+        assert CartesianDifferential.name in DIFFERENTIAL_CLASSES
 
     def test_simple_differentials(self):
         s, e, sf = self.s, self.e, self.sf

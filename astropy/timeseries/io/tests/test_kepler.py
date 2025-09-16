@@ -6,7 +6,7 @@ import pytest
 
 from astropy.io.fits import BinTableHDU, HDUList, Header, PrimaryHDU
 from astropy.timeseries.io.kepler import kepler_fits_reader
-from astropy.units.core import UnitsWarning
+from astropy.units import UnitsWarning
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -147,9 +147,9 @@ def test_tess_astropy():
             ),
         ),
     }
-    assert (
-        unique_warnings == expected
-    ), f"Got some unexpected warnings\n{unique_warnings - expected}"
+    assert unique_warnings == expected, (
+        f"Got some unexpected warnings\n{unique_warnings - expected}"
+    )
     assert timeseries["time"].format == "isot"
     assert timeseries["time"].scale == "tdb"
     assert timeseries["sap_flux"].unit.to_string() == "electron / s"

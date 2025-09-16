@@ -1,1 +1,0 @@
-Fix an unintended exception being raised when attempting to compare two unequal ``Table`` instances.

@@ -1,20 +1,22 @@
 name: Check PR change log
 
 on:
-  # So it cannot be skipped.
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, labeled, unlabeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  pull-requests: read
+
 jobs:
   changelog_checker:
     name: Check if towncrier change log entry is correct
     runs-on: ubuntu-latest
     steps:
-    - uses: scientific-python/action-towncrier-changelog@4755e7510a07c6f6817cb607ffb9a711d3d62422  # 0.1.1
+    - uses: scientific-python/action-towncrier-changelog@1d7332022f76e36fe8ce2d716b851f3f98063c62  # v1.0.0
       if: github.repository == 'astropy/astropy'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

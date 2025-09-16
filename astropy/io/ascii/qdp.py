@@ -6,9 +6,11 @@ not meant to be used directly, but instead are available as readers/writers in
 """
 
 import copy
+import os
 import re
 import warnings
 from collections.abc import Iterable
+from pathlib import Path
 
 import numpy as np
 
@@ -136,9 +138,9 @@ def _get_type_from_list_of_lines(lines, delimiter=None):
 def _get_lines_from_file(qdp_file):
     if "\n" in qdp_file:
         lines = qdp_file.split("\n")
-    elif isinstance(qdp_file, str):
+    elif isinstance(qdp_file, (str, os.PathLike)):
         with open(qdp_file) as fobj:
-            lines = [line.strip() for line in fobj.readlines()]
+            lines = [line.strip() for line in fobj]
     elif isinstance(qdp_file, Iterable):
         lines = qdp_file
     else:
@@ -439,6 +441,13 @@ def _write_table_qdp(table, filename=None, err_specs=None):
         Dictionary of the format {'serr': [1], 'terr': [2, 3]}, specifying
         which columns have symmetric and two-sided errors (see QDP format
         specification)
+
+    Returns
+    -------
+    list[str]
+        List of QDP-formatted string representations of the table. Each string
+        represents a line in the QDP format, including headers, commands, and
+        data rows.
     """
     import io
 
@@ -486,8 +495,7 @@ def _write_table_qdp(table, filename=None, err_specs=None):
     fobj.close()
 
     if filename is not None:
-        with open(filename, "w") as fobj:
-            print(full_string, file=fobj)
+        Path(filename).write_text(full_string)
 
     return full_string.split("\n")
 
@@ -638,6 +646,20 @@ class QDP(basic.Basic):
         )
 
     def write(self, table):
+        """
+        Write an astropy table to QDP format.
+
+        Parameters
+        ----------
+        table : :class:`~astropy.table.Table`
+            Input table to be written.
+
+        Returns
+        -------
+        list[str]
+            List of QDP-formatted string representations of the table.
+            Each string represents a line in the QDP format, including headers,
+            commands, and data rows.
+        """
         self._check_multidim_table(table)
-        lines = _write_table_qdp(table, err_specs=self.err_specs)
-        return lines
+        return _write_table_qdp(table, err_specs=self.err_specs)

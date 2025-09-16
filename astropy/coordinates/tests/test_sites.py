@@ -91,6 +91,9 @@ def test_EarthLocation_basic():
     ):
         EarthLocation.of_site("nonexistent")
 
+    with pytest.raises(TypeError, match="^site name None is not a 'str'$"):
+        EarthLocation.of_site(None)
+
 
 @pytest.mark.parametrize(
     "class_method,args",
@@ -226,12 +229,12 @@ def check_builtin_matches_remote(download_url=True):
     if not all(matches.values()):
         # this makes sure we actually see which don't match
         print("In builtin registry but not in download:")
-        for name in in_dl:
-            if not in_dl[name]:
+        for name, is_in_dl in in_dl.items():
+            if not is_in_dl:
                 print("    ", name)
         print("In both but not the same value:")
-        for name in matches:
-            if not matches[name] and in_dl[name]:
+        for name, match in matches.items():
+            if not match and in_dl[name]:
                 print(
                     "    ",
                     name,

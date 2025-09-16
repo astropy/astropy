@@ -6,6 +6,7 @@ import base64
 import codecs
 import gzip
 import io
+import json
 import os
 import re
 import urllib.request
@@ -19,6 +20,7 @@ from astropy import __version__ as astropy_version
 from astropy.io import fits
 from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 
@@ -79,6 +81,7 @@ from .exceptions import (
     W53,
     W54,
     W56,
+    W57,
     vo_raise,
     vo_reraise,
     vo_warn,
@@ -95,21 +98,21 @@ except ImportError:
 
 
 __all__ = [
-    "Link",
-    "Info",
-    "Values",
-    "Field",
-    "Param",
     "CooSys",
-    "TimeSys",
-    "FieldRef",
-    "ParamRef",
-    "Group",
-    "TableElement",
-    "Resource",
-    "VOTableFile",
     "Element",
+    "Field",
+    "FieldRef",
+    "Group",
+    "Info",
+    "Link",
     "MivotBlock",
+    "Param",
+    "ParamRef",
+    "Resource",
+    "TableElement",
+    "TimeSys",
+    "VOTableFile",
+    "Values",
 ]
 
 
@@ -178,10 +181,10 @@ def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
             if element is before:
                 if getattr(element, attr, None) == ref:
                     vo_raise(
+                        KeyError,
                         f"{element_name} references itself",
                         element._config,
                         element._pos,
-                        KeyError,
                     )
                 break
             if getattr(element, attr, None) == ref:
@@ -221,10 +224,10 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
             if element is before:
                 if ref in (element.ID, element.name):
                     vo_raise(
+                        KeyError,
                         f"{element_name} references itself",
                         element._config,
                         element._pos,
-                        KeyError,
                     )
                 break
             if ref in (element.ID, element.name):
@@ -259,6 +262,32 @@ def _get_unit_format(config):
     else:
         format = config["unit_format"]
     return format
+
+
+def _attach_default_config(votable, config) -> dict:
+    """Create default config if none given.
+
+    Parameters
+    ----------
+    votable
+        Object that might potentially have a config attached to it.
+    config : `dict` or `None`
+        Config to be used or defined.
+
+    Returns
+    -------
+    config : `dict`
+        If config was `None` this will be a new `dict`. If the ``votable``
+        supported version checks then version information will be stored in
+        the returned `dict`. If it was defined this will be the given
+        parameter unchanged.
+    """
+    if config is None:
+        if hasattr(votable, "_get_version_checks"):
+            config = votable._get_version_checks()
+        else:
+            config = {}
+    return config
 
 
 ######################################################################
@@ -685,7 +714,7 @@ class Link(SimpleElement, _IDProperty):
     @content_role.setter
     def content_role(self, content_role):
         if (
-            content_role == "type" and not self._config["version_1_3_or_later"]
+            content_role == "type" and not self._config.get("version_1_3_or_later")
         ) or content_role not in (None, "query", "hints", "doc", "location"):
             vo_warn(W45, (content_role,), self._config, self._pos)
         self._content_role = content_role
@@ -1052,10 +1081,7 @@ class Values(Element, _IDProperty):
 
     @min.setter
     def min(self, min):
-        if hasattr(self._field, "converter") and min is not None:
-            self._min = self._field.converter.parse(min)[0]
-        else:
-            self._min = min
+        self._min = self._parse_minmax(min)
 
     @min.deleter
     def min(self):
@@ -1088,10 +1114,7 @@ class Values(Element, _IDProperty):
 
     @max.setter
     def max(self, max):
-        if hasattr(self._field, "converter") and max is not None:
-            self._max = self._field.converter.parse(max)[0]
-        else:
-            self._max = max
+        self._max = self._parse_minmax(max)
 
     @max.deleter
     def max(self):
@@ -1164,6 +1187,35 @@ class Values(Element, _IDProperty):
                     break
 
         return self
+
+    def _parse_minmax(self, val):
+        retval = val
+        if hasattr(self._field, "converter") and val is not None:
+            parsed_val = None
+            if self._field.arraysize is None:
+                # Use the default parser.
+                parsed_val = self._field.converter.parse(val, config=self._config)[0]
+            else:
+                # Set config to ignore verification (prevent warnings and exceptions) on parse.
+                ignore_warning_config = self._config.copy()
+                ignore_warning_config["verify"] = "ignore"
+
+                # max should be a scalar except for certain xtypes so try scalar parsing first.
+                try:
+                    parsed_val = self._field.converter.parse_scalar(
+                        val, config=ignore_warning_config
+                    )[0]
+                except ValueError as ex:
+                    pass  # Ignore ValueError returned for array vals by some parsers (like int)
+                finally:
+                    if parsed_val is None:
+                        # Try the array parsing to support certain xtypes and historical array values.
+                        parsed_val = self._field.converter.parse(
+                            val, config=ignore_warning_config
+                        )[0]
+
+            retval = parsed_val
+        return retval
 
     def is_defaults(self):
         """
@@ -1299,17 +1351,12 @@ class Field(
         pos=None,
         **extra,
     ):
-        if config is None:
-            if hasattr(votable, "_get_version_checks"):
-                config = votable._get_version_checks()
-            else:
-                config = {}
-        self._config = config
+        self._config = _attach_default_config(votable, config)
         self._pos = pos
 
         SimpleElement.__init__(self)
 
-        if config.get("version_1_2_or_later"):
+        if self._config.get("version_1_2_or_later"):
             self._attr_list = self._attr_list_12
         else:
             self._attr_list = self._attr_list_11
@@ -1324,7 +1371,7 @@ class Field(
         # to store character data, or we can't read it in.  A warning
         # will be raised when this happens.
         if (
-            config.get("verify", "ignore") != "exception"
+            self._config.get("verify", "ignore") != "exception"
             and name == "cprojection"
             and ID == "cprojection"
             and ucd == "VOX:WCS_CoordProjection"
@@ -1341,7 +1388,9 @@ class Field(
         self.ID = resolve_id(ID, id, config, pos) or xmlutil.fix_id(name, config, pos)
         self.name = name
         if name is None:
-            if self._element_name == "PARAM" and not config.get("version_1_1_or_later"):
+            if self._element_name == "PARAM" and not self._config.get(
+                "version_1_1_or_later"
+            ):
                 pass
             else:
                 warn_or_raise(W15, W15, self._element_name, config, pos)
@@ -1363,7 +1412,7 @@ class Field(
             "unsignedShort": "int",
         }
 
-        datatype_mapping.update(config.get("datatype_mapping", {}))
+        datatype_mapping.update(self._config.get("datatype_mapping", {}))
 
         if datatype in datatype_mapping:
             warn_or_raise(W13, W13, (datatype, datatype_mapping[datatype]), config, pos)
@@ -1651,7 +1700,14 @@ class Field(
     def to_xml(self, w, **kwargs):
         attrib = w.object_attrs(self, self._attr_list)
         if "unit" in attrib:
-            attrib["unit"] = self.unit.to_string("cds")
+            format = _get_unit_format(self._config)
+            try:
+                attrib["unit"] = self.unit.to_string(format)
+            except ValueError as e:
+                # Allow non-standard units with a warning, see
+                # https://github.com/astropy/astropy/issues/17497#issuecomment-2520472495
+                attrib["unit"] = self.unit.to_string()
+                warn_or_raise(W50, W50, (attrib["unit"],), self._config, self._pos)
         with w.tag(self._element_name, attrib=attrib):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
@@ -1680,13 +1736,17 @@ class Field(
             column.unit = self.unit
         if (
             isinstance(self.converter, converters.FloatingPoint)
-            and self.converter.output_format != "{!r:>}"
+            and self.converter.output_format != "{!s:>}"
         ):
             column.format = self.converter.output_format
         elif isinstance(self.converter, converters.Char):
             column.info.meta["_votable_string_dtype"] = "char"
+            if self.arraysize is not None and self.arraysize.endswith("*"):
+                column.info.meta["_votable_arraysize"] = self.arraysize
         elif isinstance(self.converter, converters.UnicodeChar):
             column.info.meta["_votable_string_dtype"] = "unicodeChar"
+            if self.arraysize is not None and self.arraysize.endswith("*"):
+                column.info.meta["_votable_arraysize"] = self.arraysize
 
     @classmethod
     def from_table_column(cls, votable, column):
@@ -1810,8 +1870,9 @@ class CooSys(SimpleElement):
     name, documented below.
     """
 
-    _attr_list = ["ID", "equinox", "epoch", "system"]
+    _attr_list = ["ID", "equinox", "epoch", "system", "refposition"]
     _element_name = "COOSYS"
+    _reference_frames = None
 
     def __init__(
         self,
@@ -1822,6 +1883,7 @@ class CooSys(SimpleElement):
         id=None,
         config=None,
         pos=None,
+        refposition=None,
         **extra,
     ):
         if config is None:
@@ -1841,6 +1903,11 @@ class CooSys(SimpleElement):
         self.equinox = equinox
         self.epoch = epoch
         self.system = system
+        self.refposition = refposition
+
+        # refposition introduced in v1.5.
+        if self.refposition is not None and not config.get("version_1_5_or_later"):
+            warn_or_raise(W57, W57, (), config, pos)
 
         warn_unknown_attrs("COOSYS", extra.keys(), config, pos)
 
@@ -1865,33 +1932,40 @@ class CooSys(SimpleElement):
     def system(self):
         """Specifies the type of coordinate system.
 
-        Valid choices are:
-
-          'eq_FK4', 'eq_FK5', 'ICRS', 'ecl_FK4', 'ecl_FK5', 'galactic',
-          'supergalactic', 'xy', 'barycentric', or 'geo_app'
+        Valid choices are given by `~astropy.io.votable.tree.CooSys.reference_frames`
         """
         return self._system
 
     @system.setter
     def system(self, system):
-        if system not in (
-            "eq_FK4",
-            "eq_FK5",
-            "ICRS",
-            "ecl_FK4",
-            "ecl_FK5",
-            "galactic",
-            "supergalactic",
-            "xy",
-            "barycentric",
-            "geo_app",
-        ):
+        if system not in self.reference_frames:
             warn_or_raise(E16, E16, system, self._config, self._pos)
         self._system = system
 
     @system.deleter
     def system(self):
         self._system = None
+
+    @property
+    def reference_frames(self):
+        """The list of reference frames recognized in the IVOA vocabulary.
+
+        This is described at http://www.ivoa.net/rdf/refframe
+
+        Returns
+        -------
+        set[str]
+            The labels of the IVOA reference frames.
+        """
+        # since VOTable version 1.5, the 'system' in COOSYS follow the RDF vocabulary
+        # for reference frames. If this is updated upstream, the json version can be
+        # downloaded at the bottom of the page and replaced here.
+        if self._reference_frames is None:
+            with open(
+                get_pkg_data_filename("data/ivoa-vocalubary_refframe-v20220222.json")
+            ) as f:
+                self._reference_frames = set(json.load(f)["terms"].keys())
+        return self._reference_frames
 
     @property
     def equinox(self):
@@ -1928,6 +2002,56 @@ class CooSys(SimpleElement):
     def epoch(self):
         self._epoch = None
 
+    def to_astropy_frame(self):
+        """Convert the coosys element into an astropy built-in frame.
+
+        This only reads the system and equinox attributes.
+
+        Returns
+        -------
+        `~astropy.coordinates.BaseCoordinateFrame`
+            An astropy built-in frame corresponding to the frame described by
+            the COOSYS element.
+
+        Examples
+        --------
+        >>> from astropy.io.votable.tree import CooSys
+        >>> coosys = CooSys(system="ICRS", epoch="J2020")
+        >>> # note that coosys elements also contain the epoch
+        >>> coosys.to_astropy_frame()
+        <ICRS Frame>
+
+        Notes
+        -----
+        If the correspondence is not straightforward, this method raises an error. In
+        that case, you can refer to the `IVOA reference frames definition
+        <http://www.ivoa.net/rdf/refframe>`_ and the list of `astropy's frames
+        <https://docs.astropy.org/en/stable/coordinates/frames.html>`_ and deal with the
+        conversion manually.
+        """
+        # the import has to be here due to circular dependencies issues
+        from astropy.coordinates import FK4, FK5, ICRS, AltAz, Galactic, Supergalactic
+
+        match_frames = {
+            "ICRS": ICRS(),
+            "FK4": FK4(equinox=self.equinox),
+            "FK5": FK5(equinox=self.equinox),
+            "eq_FK4": FK4(equinox=self.equinox),
+            "eq_FK5": FK5(equinox=self.equinox),
+            "GALACTIC": Galactic(),
+            "galactic": Galactic(),
+            "SUPER_GALACTIC": Supergalactic(),
+            "supergalactic": Supergalactic(),
+            "AZ_EL": AltAz(),
+        }
+
+        if self.system not in set(match_frames.keys()):
+            raise ValueError(
+                f"There is no direct correspondence between '{self.system}' and an "
+                "astropy frame. This method cannot return a frame."
+            )
+        return match_frames[self.system]
+
 
 class TimeSys(SimpleElement):
     """
@@ -1957,8 +2081,8 @@ class TimeSys(SimpleElement):
         self._pos = pos
 
         # TIMESYS is supported starting in version 1.4
-        if not config["version_1_4_or_later"]:
-            warn_or_raise(W54, W54, config["version"], config, pos)
+        if not config.get("version_1_4_or_later"):
+            warn_or_raise(W54, W54, config.get("version", "unknown"), config, pos)
 
         SimpleElement.__init__(self)
 
@@ -2126,7 +2250,7 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
         for field in self._table._votable.iter_fields_and_params():
             if isinstance(field, Field) and field.ID == self.ref:
                 return field
-        vo_raise(f"No field named '{self.ref}'", self._config, self._pos, KeyError)
+        vo_raise(KeyError, f"No field named '{self.ref}'", self._config, self._pos)
 
 
 class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
@@ -2191,7 +2315,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
         for param in self._table._votable.iter_fields_and_params():
             if isinstance(param, Param) and param.ID == self.ref:
                 return param
-        vo_raise(f"No params named '{self.ref}'", self._config, self._pos, KeyError)
+        vo_raise(KeyError, f"No params named '{self.ref}'", self._config, self._pos)
 
 
 class Group(
@@ -2389,18 +2513,18 @@ class TableElement(
         pos=None,
         **extra,
     ):
-        if config is None:
-            config = {}
-        self._config = config
+        self._config = _attach_default_config(votable, config)
         self._pos = pos
         self._empty = False
 
         Element.__init__(self)
         self._votable = votable
 
-        self.ID = resolve_id(ID, id, config, pos) or xmlutil.fix_id(name, config, pos)
+        self.ID = resolve_id(ID, id, self._config, pos) or xmlutil.fix_id(
+            name, self._config, pos
+        )
         self.name = name
-        xmlutil.check_id(ref, "ref", config, pos)
+        xmlutil.check_id(ref, "ref", self._config, pos)
         self._ref = ref
         self.ucd = ucd
         self.utype = utype
@@ -2413,6 +2537,7 @@ class TableElement(
         self.format = "tabledata"
 
         self._fields = HomogeneousList(Field)
+        self._all_fields = HomogeneousList(Field)
         self._params = HomogeneousList(Param)
         self._groups = HomogeneousList(Group)
         self._links = HomogeneousList(Link)
@@ -2420,7 +2545,7 @@ class TableElement(
 
         self.array = ma.array([])
 
-        warn_unknown_attrs("TABLE", extra.keys(), config, pos)
+        warn_unknown_attrs("TABLE", extra.keys(), self._config, pos)
 
     def __repr__(self):
         s = repr(self.to_table())
@@ -2457,11 +2582,13 @@ class TableElement(
                 ref = None
             else:
                 self._fields = table.fields
+                self._all_fields = table.all_fields
                 self._params = table.params
                 self._groups = table.groups
                 self._links = table.links
         else:
             del self._fields[:]
+            del self._all_fields[:]
             del self._params[:]
             del self._groups[:]
             del self._links[:]
@@ -2493,20 +2620,21 @@ class TableElement(
         format = format.lower()
         if format == "fits":
             vo_raise(
+                NotImplementedError,
                 "fits format can not be written out, only read.",
                 self._config,
                 self._pos,
-                NotImplementedError,
             )
         if format == "binary2":
-            if not self._config["version_1_3_or_later"]:
+            if not self._config.get("version_1_3_or_later"):
                 vo_raise(
+                    W37,
                     "binary2 only supported in votable 1.3 or later",
                     self._config,
                     self._pos,
                 )
         elif format not in ("tabledata", "binary"):
-            vo_raise(f"Invalid format '{format}'", self._config, self._pos)
+            vo_raise(W37, f"Invalid format '{format}'", self._config, self._pos)
         self._format = format
 
     @property
@@ -2524,6 +2652,22 @@ class TableElement(
         of the data columns.
         """
         return self._fields
+
+    @property
+    def all_fields(self):
+        """
+        A list of :class:`Field` objects describing the types of each
+        of the data columns. Contrary to ``fields``, this property should
+        list every field that's available on disk, including deselected columns.
+        """
+        # since we support extending self.fields directly via list.extend
+        # and list.append, self._all_fields may go out of sync.
+        # To remedy this issue, we sync back the public property upon access.
+        for field in self._fields:
+            if field not in self._all_fields:
+                self._all_fields.append(field)
+
+        return self._all_fields
 
     @property
     def params(self):
@@ -2567,18 +2711,35 @@ class TableElement(
         """
         return self._empty
 
-    def create_arrays(self, nrows=0, config=None):
+    def create_arrays(
+        self,
+        nrows=0,
+        config=None,
+        *,
+        colnumbers=None,
+    ):
         """
         Create a new array to hold the data based on the current set
         of fields, and store them in the *array* and member variable.
         Any data in the existing array will be lost.
 
         *nrows*, if provided, is the number of rows to allocate.
+        *colnumbers*, if provided, is the list of column indices to select.
+        By default, all columns are selected.
         """
         if nrows is None:
             nrows = 0
+        if colnumbers is None:
+            colnumbers = list(range(len(self.all_fields)))
 
-        fields = self.fields
+        new_fields = HomogeneousList(
+            Field,
+            values=[f for i, f in enumerate(self.all_fields) if i in colnumbers],
+        )
+        if new_fields != self._fields:
+            self._fields = new_fields
+
+        fields = self.all_fields
 
         if len(fields) == 0:
             array = np.recarray((nrows,), dtype="O")
@@ -2588,7 +2749,9 @@ class TableElement(
             Field.uniqify_names(fields)
 
             dtype = []
-            for x in fields:
+            for i, x in enumerate(fields):
+                if i not in colnumbers:
+                    continue
                 if x._unique_name == x.ID:
                     id = x.ID
                 else:
@@ -2619,10 +2782,14 @@ class TableElement(
             return 512
         return int(np.ceil(size * RESIZE_AMOUNT))
 
-    def _add_field(self, iterator, tag, data, config, pos):
-        field = Field(self._votable, config=config, pos=pos, **data)
+    def add_field(self, field: Field) -> None:
         self.fields.append(field)
+        self.all_fields.append(field)
+
+    def _register_field(self, iterator, tag, data, config, pos) -> None:
+        field = Field(self._votable, config=config, pos=pos, **data)
         field.parse(iterator, config)
+        self._all_fields.append(field)
 
     def _add_param(self, iterator, tag, data, config, pos):
         param = Param(self._votable, config=config, pos=pos, **data)
@@ -2688,7 +2855,7 @@ class TableElement(
                         self.description = data or None
         else:
             tag_mapping = {
-                "FIELD": self._add_field,
+                "FIELD": self._register_field,
                 "PARAM": self._add_param,
                 "GROUP": self._add_group,
                 "LINK": self._add_link,
@@ -2699,7 +2866,7 @@ class TableElement(
             for start, tag, data, pos in iterator:
                 if start:
                     if tag == "DATA":
-                        if len(self.fields) == 0:
+                        if len(self.all_fields) == 0:
                             warn_or_raise(E25, E25, None, config, pos)
                         warn_unknown_attrs("DATA", data.keys(), config, pos)
                         break
@@ -2714,14 +2881,14 @@ class TableElement(
                         self.description = data or None
                     elif tag == "TABLE":
                         # For error checking purposes
-                        Field.uniqify_names(self.fields)
+                        Field.uniqify_names(self.all_fields)
                         # We still need to create arrays, even if the file
                         # contains no DATA section
                         self.create_arrays(nrows=0, config=config)
                         return self
 
-        self.create_arrays(nrows=self._nrows, config=config)
-        fields = self.fields
+        fields = self.all_fields
+        Field.uniqify_names(fields)
         names = [x.ID for x in fields]
         # Deal with a subset of the columns, if requested.
         if not columns:
@@ -2738,12 +2905,18 @@ class TableElement(
                 try:
                     colnumbers = [names.index(x) for x in columns]
                 except ValueError:
-                    missing_columns = [name for name in columns if name not in names]
+                    # convert to builtin str because representation of numpy strings
+                    # differ in numpy 2 and may be confusing to users
+                    missing_columns = [
+                        str(name) for name in columns if name not in names
+                    ]
                     raise ValueError(
                         f"Columns {missing_columns} were not found in fields list"
                     ) from None
             else:
                 raise TypeError("Invalid columns list")
+
+        self.create_arrays(nrows=self._nrows, config=config, colnumbers=colnumbers)
 
         if (not skip_table) and (len(fields) > 0):
             for start, tag, data, pos in iterator:
@@ -2752,21 +2925,21 @@ class TableElement(
 
                 if tag == "TABLEDATA":
                     warn_unknown_attrs("TABLEDATA", data.keys(), config, pos)
-                    self.array = self._parse_tabledata(
-                        iterator, colnumbers, fields, config
-                    )
+                    self.array = self._parse_tabledata(iterator, colnumbers, config)
                 elif tag == "BINARY":
                     warn_unknown_attrs("BINARY", data.keys(), config, pos)
                     self.array = self._parse_binary(
-                        1, iterator, colnumbers, fields, config, pos
+                        1, iterator, colnumbers, config, pos
                     )
                 elif tag == "BINARY2":
-                    if not config["version_1_3_or_later"]:
+                    if not config.get("version_1_3_or_later"):
                         warn_or_raise(W52, W52, config["version"], config, pos)
                     self.array = self._parse_binary(
-                        2, iterator, colnumbers, fields, config, pos
+                        2, iterator, colnumbers, config, pos
                     )
                 elif tag == "FITS":
+                    if config.get("columns") is not None:
+                        raise NotImplementedError
                     warn_unknown_attrs("FITS", data.keys(), config, pos, ["extnum"])
                     try:
                         extnum = int(data.get("extnum", 0))
@@ -2804,7 +2977,7 @@ class TableElement(
 
         return self
 
-    def _parse_tabledata(self, iterator, colnumbers, fields, config):
+    def _parse_tabledata(self, iterator, colnumbers, config):
         # Since we don't know the number of rows up front, we'll
         # reallocate the record array to make room as we go.  This
         # prevents the need to scan through the XML twice.  The
@@ -2816,14 +2989,15 @@ class TableElement(
         array = self.array
         del self.array
 
+        fields = self.all_fields
         parsers = [field.converter.parse for field in fields]
         binparsers = [field.converter.binparse for field in fields]
 
         numrows = 0
         alloc_rows = len(array)
         colnumbers_bits = [i in colnumbers for i in range(len(fields))]
-        row_default = [x.converter.default for x in fields]
-        mask_default = [True] * len(fields)
+        row_default = [field.converter.default for field in self.fields]
+        mask_default = [True] * len(self.fields)
         array_chunk = []
         mask_chunk = []
         chunk_size = config.get("chunk_size", DEFAULT_CHUNK_SIZE)
@@ -2832,7 +3006,8 @@ class TableElement(
                 # Now parse one row
                 row = row_default[:]
                 row_mask = mask_default[:]
-                i = 0
+                i = 0  # index of the column being read from disk
+                j = 0  # index of the column being written in array (not necessarily == i)
                 for start, tag, data, pos in iterator:
                     if start:
                         binary = data.get("encoding", None) == "base64"
@@ -2879,8 +3054,9 @@ class TableElement(
                                     if invalid == "exception":
                                         vo_reraise(e, config, pos)
                                 else:
-                                    row[i] = value
-                                    row_mask[i] = mask_value
+                                    row[j] = value
+                                    row_mask[j] = mask_value
+                                    j += 1
                         elif tag == "TR":
                             break
                         else:
@@ -2958,10 +3134,10 @@ class TableElement(
             vo_prot = ("http", "https", "ftp", "file")
             if not href.startswith(vo_prot):
                 vo_raise(
+                    NotImplementedError,
                     f"The vo package only supports remote data through {vo_prot}",
                     self._config,
                     self._pos,
-                    NotImplementedError,
                 )
             fd = urllib.request.urlopen(href)
             if encoding is not None:
@@ -2971,10 +3147,10 @@ class TableElement(
                     fd = codecs.EncodedFile(fd, "base64")
                 else:
                     vo_raise(
+                        NotImplementedError,
                         f"Unknown encoding type '{encoding}'",
                         self._config,
                         self._pos,
-                        NotImplementedError,
                     )
             read = fd.read
 
@@ -2986,9 +3162,7 @@ class TableElement(
 
         return careful_read
 
-    def _parse_binary(self, mode, iterator, colnumbers, fields, config, pos):
-        fields = self.fields
-
+    def _parse_binary(self, mode, iterator, colnumbers, config, pos):
         careful_read = self._get_binary_data_stream(iterator, config)
 
         # Need to have only one reference so that we can resize the
@@ -2996,6 +3170,7 @@ class TableElement(
         array = self.array
         del self.array
 
+        fields = self.all_fields
         binparsers = [field.converter.binparse for field in fields]
 
         numrows = 0
@@ -3043,19 +3218,17 @@ class TableElement(
             except EOFError:
                 break
 
-            row = [x.converter.default for x in fields]
-            row_mask = [False] * len(fields)
-            for i in colnumbers:
-                row[i] = row_data[i]
-                row_mask[i] = row_mask_data[i]
+            row = [x.converter.default for x in self.fields]
+            row_mask = [False] * len(self.fields)
+            for j, i in enumerate(colnumbers):
+                row[j] = row_data[i]
+                row_mask[j] = row_mask_data[i]
 
             array[numrows] = tuple(row)
             array.mask[numrows] = tuple(row_mask)
             numrows += 1
 
-        array = _resize(array, numrows)
-
-        return array
+        return _resize(array, numrows)
 
     def _parse_fits(self, iterator, extnum, config):
         for start, tag, data, pos in iterator:
@@ -3075,10 +3248,10 @@ class TableElement(
 
         if not href.startswith(("http", "ftp", "file")):
             vo_raise(
+                NotImplementedError,
                 "The vo package only supports remote data through http, ftp or file",
                 self._config,
                 self._pos,
-                NotImplementedError,
             )
 
         fd = urllib.request.urlopen(href)
@@ -3089,10 +3262,10 @@ class TableElement(
                 fd = codecs.EncodedFile(fd, "base64")
             else:
                 vo_raise(
+                    NotImplementedError,
                     f"Unknown encoding type '{encoding}'",
                     self._config,
                     self._pos,
-                    NotImplementedError,
                 )
         hdulist = fits.open(fd)
 
@@ -3129,10 +3302,10 @@ class TableElement(
 
         if not href.startswith(("http", "ftp", "file")):
             vo_raise(
+                NotImplementedError,
                 "The vo package only supports remote data through http, ftp or file",
                 self._config,
                 self._pos,
-                NotImplementedError,
             )
 
         try:
@@ -3157,10 +3330,10 @@ class TableElement(
                     fd = codecs.EncodedFile(fd, "base64")
                 else:
                     vo_raise(
+                        NotImplementedError,
                         f"Unknown encoding type '{encoding}'",
                         self._config,
                         self._pos,
-                        NotImplementedError,
                     )
 
             array = Table.read(fd, format="parquet")
@@ -3294,14 +3467,23 @@ class TableElement(
                 for row in range(len(array)):
                     array_row = array.data[row]
                     array_mask = array.mask[row]
-
                     if mode == 2:
                         flattened = np.array([np.all(x) for x in array_mask])
                         data.write(converters.bool_to_bitarray(flattened))
 
                     for i, converter in fields_basic:
                         try:
-                            chunk = converter(array_row[i], array_mask[i])
+                            # BINARY2 cannot handle individual array element masks
+                            converter_type = converter.__self__.__class__
+                            # Delegate converter to handle the mask
+                            delegate_condition = issubclass(
+                                converter_type, converters.Array
+                            )
+                            if mode == 1 or delegate_condition:
+                                chunk = converter(array_row[i], array_mask[i])
+                            else:
+                                # Mask is already handled by BINARY2 behaviour
+                                chunk = converter(array_row[i], None)
                             assert type(chunk) == bytes
                         except Exception as e:
                             vo_reraise(
@@ -3378,7 +3560,7 @@ class TableElement(
 
         for colname in table.colnames:
             column = table[colname]
-            new_table.fields.append(Field.from_table_column(votable, column))
+            new_table.add_field(Field.from_table_column(votable, column))
 
         if table.mask is None:
             new_table.array = ma.array(np.asarray(table))
@@ -3393,7 +3575,7 @@ class TableElement(
         TABLE.
         """
         yield from self.params
-        yield from self.fields
+        yield from self.all_fields
         for group in self.groups:
             yield from group.iter_fields_and_params()
 
@@ -3877,13 +4059,17 @@ class Resource(
                 w.element("DESCRIPTION", self.description, wrap=True)
             if self.mivot_block is not None and self.type == "meta":
                 self.mivot_block.to_xml(w)
-            for element_set in (
+            element_sets = [
+                self.infos,
                 self.coordinate_systems,
                 self.time_systems,
                 self.params,
-                self.infos,
                 self.links,
-            ):
+            ]
+            if kwargs["version_1_2_or_later"]:
+                element_sets.append(self.groups)
+
+            for element_set in element_sets:
                 for element in element_set:
                     element.to_xml(w, **kwargs)
 
@@ -3961,9 +4147,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     """
 
     def __init__(self, ID=None, id=None, config=None, pos=None, version="1.4"):
-        if config is None:
-            config = {}
-        self._config = config
+        self._config = config.copy() if config is not None else {}
+
+        # Version setter forces the associated version config settings to
+        # be calculated.
+        self.version = version
         self._pos = pos
 
         Element.__init__(self)
@@ -3977,16 +4165,17 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._resources = HomogeneousList(Resource)
         self._groups = HomogeneousList(Group)
 
-        version = str(version)
-        if version not in self._version_namespace_map:
-            allowed_from_map = "', '".join(self._version_namespace_map)
-            raise ValueError(f"'version' should be in ('{allowed_from_map}').")
-
-        self._version = version
-
     def __repr__(self):
         n_tables = len(list(self.iter_tables()))
         return f"<VOTABLE>... {n_tables} tables ...</VOTABLE>"
+
+    @property
+    def config(self):
+        """
+        Configuration used to construct this object. Will always include the
+        version check values.
+        """
+        return self._config
 
     @property
     def version(self):
@@ -4001,10 +4190,12 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         if version not in self._version_namespace_map:
             allowed_from_map = "', '".join(self._version_namespace_map)
             raise ValueError(
-                "astropy.io.votable only supports VOTable versions"
-                f" '{allowed_from_map}'"
+                f"astropy.io.votable version should be in ('{allowed_from_map}')."
             )
         self._version = version
+        # Force config update.
+        self._config.update(self._get_version_checks())
+        self._config["version"] = version
 
     @property
     def coordinate_systems(self):
@@ -4089,10 +4280,12 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
     def _get_version_checks(self):
         config = {}
+        config["version"] = self.version
         config["version_1_1_or_later"] = util.version_compare(self.version, "1.1") >= 0
         config["version_1_2_or_later"] = util.version_compare(self.version, "1.2") >= 0
         config["version_1_3_or_later"] = util.version_compare(self.version, "1.3") >= 0
         config["version_1_4_or_later"] = util.version_compare(self.version, "1.4") >= 0
+        config["version_1_5_or_later"] = util.version_compare(self.version, "1.5") >= 0
         return config
 
     # Map VOTable version numbers to namespace URIs and schema information.
@@ -4136,6 +4329,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 " http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"
             ),
         },
+        "1.5": {
+            "namespace_uri": "http://www.ivoa.net/xml/VOTable/v1.3",
+            "schema_location_attr": "xsi:schemaLocation",
+            "schema_location_value": (
+                "http://www.ivoa.net/xml/VOTable/v1.3"
+                " http://www.ivoa.net/xml/VOTable/VOTable-1.5.xsd"
+            ),
+        },
     }
 
     def parse(self, iterator, config):
@@ -4156,6 +4357,12 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                             self._version = config["version"] = config["version"][1:]
                         if config["version"] not in self._version_namespace_map:
                             vo_warn(W21, config["version"], config, pos)
+
+                        # Update the configuration of the VOTableFile itself.
+                        # This can not be done via the .version property setter
+                        # because that refuses to allow votable 1.0.
+                        self._config["version"] = config["version"]
+                        self._config.update(self._get_version_checks())
 
                     if "xmlns" in data:
                         ns_info = self._version_namespace_map.get(config["version"], {})
@@ -4235,8 +4442,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         }
         kwargs.update(self._get_version_checks())
 
-        with util.convert_to_writable_filelike(fd, compressed=compressed) as fd:
-            w = XMLWriter(fd)
+        with util.convert_to_writable_filelike(fd, compressed=compressed) as fh:
+            w = XMLWriter(fh)
             version = self.version
             if _astropy_version is None:
                 lib_version = astropy_version
@@ -4274,7 +4481,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                     self.resources,
                 ]
                 if kwargs["version_1_2_or_later"]:
-                    element_sets[0] = self.groups
+                    element_sets.append(self.groups)
+
                 for element_set in element_sets:
                     for element in element_set:
                         element.to_xml(w, **kwargs)

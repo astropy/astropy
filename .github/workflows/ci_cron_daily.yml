@@ -42,7 +42,7 @@ jobs:
         include:
           - name: Bundling with pyinstaller
             os: ubuntu-latest
-            python: '3.10'
+            python: '3.11'
             toxenv: pyinstaller
 
           - name: Python 3.12 with all optional dependencies and pre-releases
@@ -54,12 +54,13 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
       with:
+        persist-credentials: false
         fetch-depth: 0
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
       with:
         python-version: ${{ matrix.python }}
 

@@ -791,10 +791,12 @@ class TestParameters:
         # model is not None
         param._model_required = False
         model = mk.MagicMock()
-        with mk.patch.object(functools, "partial", autospec=True) as mkPartial:
-            assert (
-                param._create_value_wrapper(wrapper2, model) == mkPartial.return_value
-            )
+        partial_wrapper = param._create_value_wrapper(wrapper2, model)
+        assert isinstance(partial_wrapper, functools.partial)
+        assert partial_wrapper.func is wrapper2
+        assert partial_wrapper.args == ()
+        assert list(partial_wrapper.keywords.keys()) == ["b"]
+        assert partial_wrapper.keywords["b"] is model
 
         # wrapper with more than 2 arguments
         def wrapper3(a, b, c):
@@ -942,10 +944,7 @@ class TestParameterInitialization:
         assert t.e.shape == (2,)
 
     def test_single_model_1d_array_different_length_parameters(self):
-        MESSAGE = (
-            r"Parameter .* of shape .* cannot be broadcast with parameter .* of"
-            r" shape .*"
-        )
+        MESSAGE = "Mismatch is between arg 0 with shape .* and arg 1 with shape .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             # Not broadcastable
             TParModel([1, 2], [3, 4, 5])
@@ -1004,10 +1003,7 @@ class TestParameterInitialization:
         assert t2.e.shape == (2, 3)
 
         # Not broadcastable
-        MESSAGE = (
-            r"Parameter .* of shape .* cannot be broadcast with parameter .* of"
-            r" shape .*"
-        )
+        MESSAGE = "Mismatch is between arg 0 with shape .* and arg 1 with shape .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff, e.T)
 
@@ -1110,10 +1106,7 @@ class TestParameterInitialization:
         assert t2.e.shape == (2, 3)
 
     def test_two_model_mixed_dimension_array_parameters(self):
-        MESSAGE = (
-            r"Parameter .* of shape .* cannot be broadcast with parameter .* of"
-            r" shape .*"
-        )
+        MESSAGE = "Mismatch is between arg 0 with shape .* and arg 1 with shape .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             # Can't broadcast different array shapes
             TParModel(
@@ -1242,10 +1235,7 @@ def test_non_broadcasting_parameters():
             return
 
     # a broadcasts with both b and c, but b does not broadcast with c
-    MESSAGE = (
-        r"Parameter '.*' of shape .* cannot be broadcast with parameter '.*' of"
-        r" shape .*"
-    )
+    MESSAGE = r"Mismatch is between arg \d with shape .* and arg \d with shape .*"
     for args in itertools.permutations((a, b, c)):
         with pytest.raises(InputParameterError, match=MESSAGE):
             TestModel(*args)

@@ -5,8 +5,10 @@ import copy
 import numpy as np
 import pytest
 
-from astropy.constants import Constant
-from astropy.units import Quantity as Q
+import astropy.constants as const
+import astropy.units as u
+from astropy import astronomical_constants, physical_constants
+from astropy.constants import Constant, EMConstant
 
 
 def test_c():
@@ -22,6 +24,39 @@ def test_c():
     assert c.name
     assert c.reference
     assert c.unit
+
+
+# Check that if a constant is defined (uncertainty 0) in some version,
+# it is also defined in the current, most up-to-date one.
+@pytest.mark.parametrize(
+    "version",
+    sorted(
+        set(physical_constants._versions.values())
+        | set(astronomical_constants._versions.values())
+    ),
+)
+def test_defined_constants_do_not_change(version):
+    """Check that any defined constants do not change their value
+
+    (the exception is mu0, which went from derived to measured in CODATA2018).
+    """
+    version_mod = getattr(const, version)
+    defined_constants = [
+        (name, constant)
+        for (name, constant) in version_mod.__dict__.items()
+        if isinstance(constant, Constant)
+        and not isinstance(constant, EMConstant)
+        and constant.uncertainty == 0
+        and name != "mu0"
+    ]
+    for name, constant in defined_constants:
+        current_constant = getattr(const, name)
+        assert current_constant.uncertainty == 0
+        if version == "iau2012" and name in ("pc", "kpc"):
+            pytest.xfail(
+                reason="different conversion from error-less au to pc and kpc."
+            )
+        assert current_constant.value == constant.value
 
 
 def test_h():
@@ -47,18 +82,18 @@ def test_e():
     from astropy.constants.astropyconst13 import e as e_13
 
     # A test quantity
-    E = Q(100.00000348276221, "V/m")
+    E = u.Quantity(100.00000348276221, "V/m")
 
     # e.cgs is too ambiguous and should not work at all
     with pytest.raises(TypeError):
         e_13.cgs * E
 
-    assert isinstance(e_13.si, Q)
-    assert isinstance(e_13.gauss, Q)
-    assert isinstance(e_13.esu, Q)
+    assert isinstance(e_13.si, u.Quantity)
+    assert isinstance(e_13.gauss, u.Quantity)
+    assert isinstance(e_13.esu, u.Quantity)
 
-    assert e_13.gauss * E == Q(e_13.gauss.value * E.value, "Fr V/m")
-    assert e_13.esu * E == Q(e_13.esu.value * E.value, "Fr V/m")
+    assert e_13.gauss * E == u.Quantity(e_13.gauss.value * E.value, "Fr V/m")
+    assert e_13.esu * E == u.Quantity(e_13.esu.value * E.value, "Fr V/m")
 
 
 def test_g0():
@@ -169,19 +204,19 @@ def test_view():
     assert c2.reference == c.reference
     assert c2.unit == c.unit
 
-    q1 = c.view(Q)
+    q1 = c.view(u.Quantity)
     assert q1 == c
     assert q1.value == c.value
-    assert type(q1) is Q
+    assert type(q1) is u.Quantity
     assert not hasattr(q1, "reference")
 
-    q2 = Q(c)
+    q2 = u.Quantity(c)
     assert q2 == c
     assert q2.value == c.value
-    assert type(q2) is Q
+    assert type(q2) is u.Quantity
     assert not hasattr(q2, "reference")
 
-    c3 = Q(c, subok=True)
+    c3 = u.Quantity(c, subok=True)
     assert c3 == c
     assert c3.value == c.value
     # make sure it has the necessary attributes and they're not blank
@@ -190,5 +225,5 @@ def test_view():
     assert c3.reference == c.reference
     assert c3.unit == c.unit
 
-    c4 = Q(c, subok=True, copy=False)
+    c4 = u.Quantity(c, subok=True, copy=False)
     assert c4 is c

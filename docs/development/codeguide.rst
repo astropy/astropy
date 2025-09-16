@@ -17,13 +17,6 @@ Interface and Dependencies
   <https://github.com/astropy/astropy/blob/main/pyproject.toml>`_ file of the
   core package.
 
-* Usage of ``six``, ``__future__``, and ``2to3`` is no longer acceptable.
-
-* `f-strings <https://docs.python.org/3/reference/lexical_analysis.html#f-strings>`_
-  should be used when possible, and if not, Python 3
-  formatting should be used (i.e. ``"{0:s}".format("spam")``)
-  instead of the ``%`` operator (``"%s" % "spam"``).
-
 * The core package should be importable with no
   dependencies other than components already in the Astropy core, the
   `Python Standard Library <https://docs.python.org/3/library/index.html>`_,
@@ -37,8 +30,7 @@ Interface and Dependencies
   statement, which will raise an ``ImportError`` if the dependency is
   not available. In the astropy core package, such optional dependencies should
   be recorded in the ``pyproject.toml`` file in the ``[project.optional-dependencies]``
-  entry, under ``all`` (or ``test_all`` if the dependency is only
-  needed for testing).
+  entry (put it in the appropriate category of optional dependencies).
 
   At the module level, one can subclass a class from an optional dependency
   like so::
@@ -48,7 +40,7 @@ Interface and Dependencies
       except ImportError:
           warn(AstropyWarning('opdep is not present, so <functionality>'
                               'will not work.'))
-          class Superclass(object): pass
+          class Superclass: pass
 
       class Customclass(Superclass):
           ...
@@ -132,25 +124,14 @@ Coding Style/Conventions
 ========================
 
 * The code should follow the standard `PEP8 Style Guide for Python Code
-  <https://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
-  using only 4 spaces for indentation, and never tabs.
+  <https://www.python.org/dev/peps/pep-0008/>`_.
 
   * ``astropy`` itself enforces this style guide using the
     `ruff format <https://docs.astral.sh/ruff/formatter/>`_ code formatter, which closely follows the
     `The Black Code Style <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_.
 
-  * We recognize that sometimes ruff_ will autoformat things in undesirable
-    ways, e.g., matrices.  In the cases that ruff_ produces undesirable code
-    formatting:
-
-      * one can wrap code the code in ``# fmt: off`` and ``# fmt: on`` to disable
-        ruff_ formatting over multiple lines.
-
-      * or one can add a single ``# fmt: skip`` comment to the end of a line to
-        disable ruff_ formatting for that line.
-
-    This should be done sparingly, and only
-    when ruff_ produces undesirable formatting.
+  * In the rare cases that ruff_ formatting is undesirable, it is possible to
+    `disable formatting locally <https://docs.astral.sh/ruff/formatter/#format-suppression>`_.
 
       .. note::
         When a list or array should be formatted as one item per line then this is best
@@ -169,48 +150,20 @@ Coding Style/Conventions
   addition, these checks also enforce `isort <https://pycqa.github.io/isort/>`_ to sort
   the module imports and a large set of style-checks supported by ruff_.
 
-  * We provide a ``pre-commit`` hook which automatically enforces and fixes (whenever
-    possible) the coding style, see :ref:`pre-commit` for details on how to set up and
-    use this. We note that the particular set of |PEP8| and style-related checks that are
-    used in Astropy do not need to be used in affiliated packages. In particular, the
-    set of ruff_ checks is not required for affiliated packages.
-
-  * Alternately, you can manually check and fix your changes by running the
-    following `tox <https://tox.readthedocs.io/>`__ command::
-
-      tox -e codestyle
-
-* Following PEP8's recommendation, absolute imports are to be used in general.
-  The exception to this is relative imports of the form
-  ``from . import modname``, best when referring to files within the same
-  sub-module.  This makes it clearer what code is from the current submodule
-  as opposed to from another.
+  * We provide a `pre-commit <https://pre-commit.com/>`_ configuration which
+    automatically enforces and fixes (whenever possible) the coding style, see
+    :ref:`pre-commit` for details on how to set up and use this. We note that the
+    particular set of |PEP8| and style-related checks that are used in Astropy do not
+    need to be used in affiliated packages. In particular, the set of ruff_ checks is
+    not required for affiliated packages.
 
   .. note:: There are multiple options for testing PEP8 compliance of code,
             see :doc:`testguide` for more information.
-            See :doc:`codeguide_emacs` for some configuration options for Emacs
-            that helps in ensuring conformance to PEP8.
 
-* Astropy source code should contain a comment at the beginning of the file (or
-  immediately after the ``#!/usr/bin env python`` command, if relevant)
-  pointing to the license for the Astropy source code.  This line should say::
+* ``astropy`` source code should contain a comment at the beginning of the file
+  pointing to the license for the ``astropy`` source code.  This line should say::
 
       # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-* The following naming conventions::
-
-    import numpy as np
-    import matplotlib as mpl
-    import matplotlib.pyplot as plt
-    import pandas as pd
-
-  should be used wherever relevant. The complete list of conventional aliases can be found `here <https://docs.astral.sh/ruff/settings/#flake8-import-conventions-aliases>`_ . On the other hand::
-
-    from packagename import *
-
-  should never be used, except as a tool to flatten the namespace of a module.
-  An example of the allowed usage is given in the :ref:`import-star-example`
-  example.
 
 * Classes should either use direct variable access, or Python’s property
   mechanism for setting object instance variables. ``get_value``/``set_value``
@@ -258,68 +211,33 @@ appropriate.  Therefore, there is a global configuration option,
 ``astropy.conf.unicode_output`` to enable Unicode output of values, set
 to `False` by default.
 
-The following conventions should be used for classes that define the
-standard string conversion methods (``__str__``, ``__repr__``,
-``__bytes__``, and ``__format__``).  In the bullets
-below, the phrase "string instance" is used to refer to `str`, while
-"bytes instance" is used to refer to `bytes`.
+The following conventions should be used for classes that implement the
+standard string conversion methods:
 
-- ``__repr__``: Return a "string instance" containing only 7-bit characters.
+- `~object.__repr__`: Return a `str` containing only ASCII characters.
+  The output must be independent of the ``astropy.conf.unicode_output``
+  setting.
 
-- ``__bytes__``: Return a "bytes instance" containing only 7-bit characters.
+- `~object.__str__`: Return a `str` containing only ASCII characters if
+  ``astropy.conf.unicode_output`` is `False`.
+  If ``astropy.conf.unicode_output`` is `True`, it may contain non-ASCII
+  characters.
 
-- ``__str__``: Return a "string instance".
-  If ``astropy.conf.unicode_output`` is `False`, it must contain
-  only 7-bit characters.  If ``astropy.conf.unicode_output`` is `True`, it
-  may contain non-ASCII characters when applicable.
+- `~.object.__format__`: Return a `str` containing only ASCII characters if
+  ``astropy.conf.unicode_output`` is `False` and the ``format_spec`` argument
+  is an empty string.
+  Otherwise it may contain non-ASCII characters.
 
-- ``__format__``: Return a "string instance".  If
-  ``astropy.conf.unicode_output`` is `False`, it must contain only 7-bit
-  characters.  If ``astropy.conf.unicode_output`` is `True`, it may contain
-  non-ASCII characters when applicable.
+For classes that are expected to roundtrip through strings, the parser must
+accept the output of `~object.__str__`.
 
-For classes that are expected to roundtrip through strings (unicode or
-bytes), the parser must accept the output of ``__str__``.
-Additionally, ``__repr__`` should roundtrip when that makes sense.
-
-This design generally follows Postel's Law: "Be liberal in what you
+This design generally follows `Postel's Law
+<https://en.wikipedia.org/wiki/Robustness_principle>`_: "Be liberal in what you
 accept, and conservative in what you send."
 
-The following example class shows a way to implement this::
-
-    # -*- coding: utf-8 -*-
-
-    from astropy import conf
-
-    class FloatList(object):
-        def __init__(self, init):
-            if isinstance(init, str):
-                init = init.split('‖')
-            elif isinstance(init, bytes):
-                init = init.split(b'|')
-            self.x = [float(x) for x in init]
-
-        def __repr__(self):
-            # Return unicode object containing no non-ASCII characters
-            return f'<FloatList [{", ".join(str(x) for x in self.x)}]>'
-
-        def __bytes__(self):
-            return b'|'.join(bytes(x) for x in self.x)
-
-        def __str__(self):
-            if astropy.conf.unicode_output:
-                return '‖'.join(str(x) for x in self.x)
-            else:
-                return self.__bytes__().decode('ascii')
-
-Additionally, there is a test helper,
-``astropy.test.helper.assert_follows_unicode_guidelines`` to ensure that a
-class follows the Unicode guidelines outlined above.  The following
-example test will test that our example class above is compliant::
-
-    def test_unicode_guidelines():
-        from astropy.test.helper import assert_follows_unicode_guidelines
-        assert_follows_unicode_guidelines(FloatList(b'5|4|3|2'), roundtrip=True)
+There is a test helper,
+:func:`~astropy.tests.helper.assert_follows_unicode_guidelines`,
+to check compliance with the above guidelines.
 
 Including C Code
 ================
@@ -379,10 +297,10 @@ Properties vs. get\_/set\_
 --------------------------
 
 This example shows a sample class illustrating the guideline regarding the use
-of properties as opposed to getter/setter methods.
+of `properties <https://docs.python.org/3/library/functions.html#property>`_ as
+opposed to getter/setter methods.
 
-Let's assuming you've defined a ``Star`` class and create an instance
-like this::
+Let's assume you've defined a ``Star`` class and create an instance like this::
 
     >>> s = Star(B=5.48, V=4.83)
 
@@ -415,7 +333,7 @@ multiple inheritance case::
 
     # This is dangerous and bug-prone!
 
-    class A(object):
+    class A:
         def method(self):
             print('Doing A')
 
@@ -471,7 +389,7 @@ class should be handed control in the next `super` call::
 
     # This is safer
 
-    class A(object):
+    class A:
         def method(self):
             print('Doing A')
 
@@ -511,61 +429,6 @@ the hierarchy.
 
 .. note:: For more information on the benefits of `super`, see
           https://rhettinger.wordpress.com/2011/05/26/super-considered-super/
-
-.. _import-star-example:
-
-Acceptable use of ``from module import *``
-------------------------------------------
-
-``from module import *`` is discouraged in a module that contains
-implementation code, as it impedes clarity and often imports unused variables.
-It can, however, be used for a package that is laid out in the following
-manner::
-
-    packagename
-    packagename/__init__.py
-    packagename/submodule1.py
-    packagename/submodule2.py
-
-In this case, ``packagename/__init__.py`` may be::
-
-    """
-    A docstring describing the package goes here
-    """
-    from submodule1 import *
-    from submodule2 import *
-
-This allows functions or classes in the submodules to be used directly as
-``packagename.foo`` rather than ``packagename.submodule1.foo``. If this is
-used, it is strongly recommended that the submodules make use of the ``__all__``
-variable to specify which modules should be imported. Thus, ``submodule2.py``
-might read::
-
-    from numpy import array, linspace
-
-    __all__ = ['foo', 'AClass']
-
-    def foo(bar):
-        # the function would be defined here
-        pass
-
-    class AClass(object):
-        # the class is defined here
-        pass
-
-This ensures that ``from submodule import *`` only imports ``foo`` and
-``AClass``, but not `numpy.array` or `numpy.linspace`.
-
-
-Additional Resources
-====================
-
-Further tips and hints relating to the coding guidelines are included below.
-
-.. toctree::
-    :maxdepth: 1
-
-    codeguide_emacs
 
 .. _Numpy: https://numpy.org/
 .. _Scipy: https://www.scipy.org/

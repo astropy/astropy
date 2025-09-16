@@ -439,9 +439,7 @@ class CCDData(NDDataArray):
             hdu_psf = fits.ImageHDU(self.psf, name=hdu_psf)
             hdus.append(hdu_psf)
 
-        hdulist = fits.HDUList(hdus)
-
-        return hdulist
+        return fits.HDUList(hdus)
 
     def copy(self):
         """
@@ -725,7 +723,8 @@ def fits_ccddata_reader(
 
         use_unit = unit or fits_unit_string
         hdr, wcs = _generate_wcs_and_update_header(hdr)
-        ccd_data = CCDData(
+
+        return CCDData(
             hdus[hdu].data,
             meta=hdr,
             unit=use_unit,
@@ -734,8 +733,6 @@ def fits_ccddata_reader(
             wcs=wcs,
             psf=psf,
         )
-
-    return ccd_data
 
 
 def fits_ccddata_writer(

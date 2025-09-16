@@ -10,14 +10,16 @@
 
 import collections
 import itertools
+import warnings
 from collections import Counter, OrderedDict
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from copy import deepcopy
 
 import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import metadata
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.masked import Masked
 
 from . import _np_utils
@@ -25,13 +27,13 @@ from .np_utils import TableMergeError
 from .table import Column, MaskedColumn, QTable, Row, Table
 
 __all__ = [
-    "join",
-    "setdiff",
     "hstack",
-    "vstack",
-    "unique",
-    "join_skycoord",
+    "join",
     "join_distance",
+    "join_skycoord",
+    "setdiff",
+    "unique",
+    "vstack",
 ]
 
 __doctest_requires__ = {"join_skycoord": ["scipy"], "join_distance": ["scipy"]}
@@ -274,10 +276,9 @@ def join_distance(distance, kdtree_args=None, query_args=None):
            4    --   0.5
 
     """
-    try:
-        from scipy.spatial import KDTree
-    except ImportError as exc:
-        raise ImportError("scipy is required to use join_distance()") from exc
+    if not HAS_SCIPY:
+        raise ModuleNotFoundError("scipy is required to use join_distance()")
+    from scipy.spatial import KDTree
 
     if kdtree_args is None:
         kdtree_args = {}
@@ -301,9 +302,9 @@ def join_distance(distance, kdtree_args=None, query_args=None):
 
         # Ensure columns are pure np.array and are 2-D for use with KDTree
         if col1.ndim == 1:
-            col1.shape = col1.shape + (1,)
+            col1 = col1.reshape(col1.shape + (1,))
         if col2.ndim == 1:
-            col2.shape = col2.shape + (1,)
+            col2 = col2.reshape(col2.shape + (1,))
 
         # Cross-match col1 and col2 within dist using KDTree
         kd1 = KDTree(col1, **kdtree_args)
@@ -360,6 +361,7 @@ def join(
     *,
     keys_left=None,
     keys_right=None,
+    keep_order=False,
     uniq_col_name="{col_name}_{table_name}",
     table_names=["1", "2"],
     metadata_conflicts="warn",
@@ -385,6 +387,11 @@ def join(
         column-like values with the same lengths as the left table.
     keys_right : str or list of str or list of column-like, optional
         Same as ``keys_left``, but for the right side of the join.
+    keep_order: bool, optional
+        By default, rows are sorted by the join keys. If True, preserve the order of
+        rows from the left table for "inner" or "left" joins, or from the right table
+        for "right" joins. For other join types this argument is ignored except that a
+        warning is issued if ``keep_order=True``.
     uniq_col_name : str or None
         String generate a unique output column name in case of a conflict.
         The default is '{col_name}_{table_name}'.
@@ -411,20 +418,48 @@ def join(
     if not isinstance(right, Table):
         right = Table(right)
 
-    col_name_map = OrderedDict()
-    out = _join(
-        left,
-        right,
-        keys,
-        join_type,
-        uniq_col_name,
-        table_names,
-        col_name_map,
-        metadata_conflicts,
-        join_funcs,
-        keys_left=keys_left,
-        keys_right=keys_right,
-    )
+    # Define a magic key that won't conflict with any user column name. This is to
+    # support the keep_order argument. In this case a temporary column is added to the
+    # left or right table to keep track of the original row order. After joining, the
+    # order is restored and the temporary column is removed.
+    sort_table_index_key = "__astropy_table_keep_order_sort_index__"
+    sort_table = None
+    if keep_order:
+        if join_type not in ["left", "right", "inner"]:
+            # Keep order is not meaningful for an outer join and cartesian join is
+            # already ordered by left (primary) then right (secondary).
+            warnings.warn(
+                "keep_order=True is only supported for left, right, and inner joins",
+                UserWarning,
+                stacklevel=2,
+            )
+        else:
+            sort_table = right if join_type == "right" else left
+            sort_table[sort_table_index_key] = np.arange(len(sort_table))
+
+    # In case keep_order=True we need try/finally to ensure that the temporary column
+    # is removed even if an exception is raised.
+    try:
+        out = _join(
+            left,
+            right,
+            keys,
+            join_type,
+            uniq_col_name,
+            table_names,
+            metadata_conflicts,
+            join_funcs,
+            keys_left=keys_left,
+            keys_right=keys_right,
+        )
+        if sort_table is not None:
+            # Sort joined table to the original order and remove the temporary column.
+            out.sort(sort_table_index_key)
+            del out[sort_table_index_key]
+    finally:
+        if sort_table is not None:
+            # If sort_table is not None that implies keep_order=True.
+            del sort_table[sort_table_index_key]
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
@@ -602,10 +637,7 @@ def dstack(tables, join_type="outer", metadata_conflicts="warn"):
         # [x x x y y y] => [[x x x],
         #                   [y y y]]
         new_shape = (len(tables), n_row) + col.shape[1:]
-        try:
-            col.shape = (len(tables), n_row) + col.shape[1:]
-        except AttributeError:
-            col = col.reshape(new_shape)
+        col = col.reshape(new_shape)
 
         # Transpose the table and row axes to get to
         # [[x, y],
@@ -679,9 +711,8 @@ def vstack(tables, join_type="outer", metadata_conflicts="warn"):
     tables = _get_list_of_tables(tables)  # validates input
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
-    col_name_map = OrderedDict()
 
-    out = _vstack(tables, join_type, col_name_map, metadata_conflicts)
+    out = _vstack(tables, join_type, metadata_conflicts)
 
     # Merge table metadata
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
@@ -761,9 +792,8 @@ def hstack(
     tables = _get_list_of_tables(tables)  # validates input
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
-    col_name_map = OrderedDict()
 
-    out = _hstack(tables, join_type, uniq_col_name, table_names, col_name_map)
+    out = _hstack(tables, join_type, uniq_col_name, table_names)
 
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
@@ -772,7 +802,7 @@ def hstack(
 
 def unique(input_table, keys=None, silent=False, keep="first"):
     """
-    Returns the unique rows of a table.
+    Return a new table with unique rows, sorted by ``keys``.
 
     Parameters
     ----------
@@ -1104,7 +1134,6 @@ def _join(
     join_type="inner",
     uniq_col_name="{col_name}_{table_name}",
     table_names=["1", "2"],
-    col_name_map=None,
     metadata_conflicts="warn",
     join_funcs=None,
     keys_left=None,
@@ -1130,9 +1159,6 @@ def _join(
     table_names : list of str or None
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2'].
-    col_name_map : empty dict or None
-        If passed as a dict then it will be updated in-place with the
-        mapping of output to input column names.
     metadata_conflicts : str
         How to proceed with metadata conflicts. This should be one of:
             * ``'silent'``: silently pick the last conflicting meta-data value
@@ -1147,9 +1173,6 @@ def _join(
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
-    # Store user-provided col_name_map until the end
-    _col_name_map = col_name_map
-
     # Special column name for cartesian join, should never collide with real column
     cartesian_index_name = "__table_cartesian_join_temp_index__"
 
@@ -1249,7 +1272,7 @@ def _join(
 
     out = _get_out_class([left, right])()
 
-    for out_name, dtype, shape in out_descrs:
+    for out_name, _dtype, _shape in out_descrs:
         if out_name == cartesian_index_name:
             continue
 
@@ -1301,7 +1324,8 @@ def _join(
             # array_mask is 1-d corresponding to length of output column.  We need
             # make it have the correct shape for broadcasting, i.e. (length, 1, 1, ..).
             # Mixin columns might not have ndim attribute so use len(col.shape).
-            array_mask.shape = (col.shape[0],) + (1,) * (len(col.shape) - 1)
+            new_shape = (col.shape[0],) + (1,) * (len(col.shape) - 1)
+            array_mask = array_mask.reshape(new_shape)
 
             # Now broadcast to the correct final shape
             array_mask = np.broadcast_to(array_mask, col.shape)
@@ -1316,10 +1340,6 @@ def _join(
 
         # Set the output table column to the new joined column
         out[out_name] = col
-
-    # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, Mapping):
-        _col_name_map.update(col_name_map)
 
     return out
 
@@ -1402,7 +1422,7 @@ def _check_join_type(join_type, func_name):
         raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
 
 
-def _vstack(arrays, join_type="outer", col_name_map=None, metadata_conflicts="warn"):
+def _vstack(arrays, join_type="outer", metadata_conflicts="warn"):
     """
     Stack Tables vertically (by rows).
 
@@ -1419,18 +1439,12 @@ def _vstack(arrays, join_type="outer", col_name_map=None, metadata_conflicts="wa
         Tables to stack by rows (vertically)
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'
-    col_name_map : empty dict or None
-        If passed as a dict then it will be updated in-place with the
-        mapping of output to input column names.
 
     Returns
     -------
     stacked_table : `~astropy.table.Table` object
         New table containing the stacked data from the input tables.
     """
-    # Store user-provided col_name_map until the end
-    _col_name_map = col_name_map
-
     # Trivial case of one input array
     if len(arrays) == 1:
         return arrays[0]
@@ -1509,10 +1523,6 @@ def _vstack(arrays, join_type="outer", col_name_map=None, metadata_conflicts="wa
 
         out[out_name] = col
 
-    # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, Mapping):
-        _col_name_map.update(col_name_map)
-
     return out
 
 
@@ -1521,7 +1531,6 @@ def _hstack(
     join_type="outer",
     uniq_col_name="{col_name}_{table_name}",
     table_names=None,
-    col_name_map=None,
 ):
     """
     Stack tables horizontally (by columns).
@@ -1550,9 +1559,6 @@ def _hstack(
     stacked_table : `~astropy.table.Table` object
         New table containing the stacked data from the input tables.
     """
-    # Store user-provided col_name_map until the end
-    _col_name_map = col_name_map
-
     if table_names is None:
         table_names = [f"{ii + 1}" for ii in range(len(arrays))]
     if len(arrays) != len(table_names):
@@ -1618,9 +1624,5 @@ def _hstack(
                 col = array[name][:n_rows]
 
             out[out_name] = col
-
-    # If col_name_map supplied as a dict input, then update.
-    if isinstance(_col_name_map, Mapping):
-        _col_name_map.update(col_name_map)
 
     return out

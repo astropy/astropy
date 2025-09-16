@@ -69,6 +69,8 @@ def handle_options(args):
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    # TODO: pass suggest_on_error as kwarg when PYTHON_LT_14 is dropped
+    parser.suggest_on_error = True
 
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
@@ -238,7 +240,7 @@ def process_file(filename):
             compliance_errors = verify_compliance(filename)
         else:
             compliance_errors = 0
-        if OPTIONS.write_file and checksum_errors == 0 or OPTIONS.force:
+        if (OPTIONS.write_file and checksum_errors == 0) or OPTIONS.force:
             update(filename)
         return checksum_errors + compliance_errors
     except Exception as e:

@@ -10,11 +10,11 @@ import warnings
 import numpy as np
 
 __all__ = [
-    "bitfield_to_boolean_mask",
-    "interpret_bit_flags",
     "BitFlagNameMap",
-    "extend_bit_flag_map",
     "InvalidBitFlag",
+    "bitfield_to_boolean_mask",
+    "extend_bit_flag_map",
+    "interpret_bit_flags",
 ]
 
 
@@ -42,7 +42,7 @@ def _is_bit_flag(n):
     if n < 1:
         return False
 
-    return bin(n).count("1") == 1
+    return n.bit_count() == 1
 
 
 def _is_int(n):
@@ -77,7 +77,7 @@ class BitFlag(int):
 
 
 class BitFlagNameMeta(type):
-    def __new__(mcls, name, bases, members):
+    def __new__(cls, name, bases, members):
         for k, v in members.items():
             if not k.startswith("_"):
                 v = BitFlag(v)
@@ -86,7 +86,7 @@ class BitFlagNameMeta(type):
         attrl = list(map(str.lower, attr))
 
         if _ENABLE_BITFLAG_CACHING:
-            cache = dict()
+            cache = {}
 
         for b in bases:
             for k, v in b.__dict__.items():
@@ -113,7 +113,7 @@ class BitFlagNameMeta(type):
         else:
             members = {"_locked": True, "__version__": "", **members}
 
-        return super().__new__(mcls, name, bases, members)
+        return super().__new__(cls, name, bases, members)
 
     def __setattr__(cls, name, val):
         if name == "_locked":
@@ -426,6 +426,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
                 )
             bit_flags = [bit_flags]
 
+        bit_flags = [f.strip() for f in bit_flags]
         if flag_name_map is not None:
             try:
                 int(bit_flags[0])

@@ -5,7 +5,7 @@ from math import ceil
 
 import numpy as np
 
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["_validate_tile_shape"]
 
@@ -84,39 +84,13 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
 
         # check if requested tile size causes the last tile to have
         # less than 4 pixels
-
         remain = image_header["NAXIS1"] % tile_shape[-1]  # 1st dimen
-
-        original_tile_shape = tile_shape[:]
-
-        if remain > 0 and remain < 4:
-            tile_shape[-1] += 1  # try increasing tile size by 1
-
-            remain = image_header["NAXIS1"] % tile_shape[-1]
-
-            if remain > 0 and remain < 4:
-                raise ValueError("Last tile along 1st dimension has less than 4 pixels")
+        if 0 < remain < 4:
+            raise ValueError("Last tile along 1st dimension has less than 4 pixels")
 
         remain = image_header["NAXIS2"] % tile_shape[-2]  # 2nd dimen
-
-        if remain > 0 and remain < 4:
-            tile_shape[-2] += 1  # try increasing tile size by 1
-
-            remain = image_header["NAXIS2"] % tile_shape[-2]
-
-            if remain > 0 and remain < 4:
-                raise ValueError("Last tile along 2nd dimension has less than 4 pixels")
-
-        if tile_shape != original_tile_shape:
-            warnings.warn(
-                f"The tile shape should be such that no tiles have "
-                f"fewer than 4 pixels. The tile shape has "
-                f"automatically been changed from {original_tile_shape} "
-                f"to {tile_shape}, but in future this will raise an "
-                f"error and the correct tile shape should be specified "
-                f"directly.",
-                AstropyDeprecationWarning,
-            )
+        if 0 < remain < 4:
+            raise ValueError("Last tile along 2nd dimension has less than 4 pixels")
 
     if len(tile_shape) == 0 and image_header["NAXIS"] > 0:
         tile_shape = [1] * (naxis - 1) + [image_header["NAXIS1"]]
@@ -125,7 +99,7 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
 
 
 def _n_tiles(data_shape, tile_shape):
-    return [int(ceil(d / t)) for d, t in zip(data_shape, tile_shape)]
+    return [ceil(d / t) for d, t in zip(data_shape, tile_shape)]
 
 
 def _iter_array_tiles(

@@ -19,6 +19,6 @@ class ICRS(BaseRADecFrame):
     very close (within tens of milliarcseconds) to J2000 equatorial.
 
     For more background on the ICRS and related coordinate transformations, see
-    the references provided in the  :ref:`astropy:astropy-coordinates-seealso`
+    the references provided in the :ref:`astropy:astropy-coordinates-seealso`
     section of the documentation.
     """

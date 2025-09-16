@@ -1,2 +1,0 @@
-Ensure that if a ``Column`` is initialized with a ``Quantity`` it will use by
-default a possible name defined on the quantity's ``.info``.

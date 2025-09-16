@@ -208,8 +208,7 @@ def _get_datatype_from_dtype(dtype):
     datatype = dtype.name
     if datatype.startswith(("bytes", "str")):
         datatype = "string"
-    if datatype.endswith("_"):
-        datatype = datatype[:-1]  # string_ and bool_ lose the final _ for ECSV
+    datatype = datatype.removesuffix("_")  # string_ and bool_ lose the final _ for ECSV
     return datatype
 
 

@@ -1,4 +1,0 @@
-Ensure that ``find_equivalent_units`` only returns actual units, not units
-that raised to some power match the requested one.  With this fix,
-``(u.m**-3).find_equivalent_units()`` properly finds nothing, rather than all
-units of length.

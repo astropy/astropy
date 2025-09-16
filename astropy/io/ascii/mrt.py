@@ -165,17 +165,13 @@ class MrtHeader(cds.CdsHeader):
                 if fformat == "E":
                     continue
 
-            if maxsize < fmt[0]:
-                maxsize = fmt[0]
-            if maxent < fmt[1]:
-                maxent = fmt[1]
-            if maxdec < fmt[2]:
-                maxdec = fmt[2]
+            maxsize = max(maxsize, fmt[0])
+            maxent = max(maxent, fmt[1])
+            maxdec = max(maxdec, fmt[2])
             if fmt[3]:
                 sign = True
 
-            if maxprec < fmt[1] + fmt[2]:
-                maxprec = fmt[1] + fmt[2]
+            maxprec = max(maxprec, fmt[1] + fmt[2])
 
         if fformat == "E":
             # If ``formats`` not passed.
@@ -360,18 +356,14 @@ class MrtHeader(cds.CdsHeader):
                         else:
                             lim_vals = f"[{col.min}/{col.max}]"
                 elif col.fortran_format[0] in ("E", "F"):
-                    lim_vals = (
-                        f"[{floor(col.min * 100) / 100.}/{ceil(col.max * 100) / 100.}]"
-                    )
+                    lim_vals = f"[{floor(col.min * 100) / 100.0}/{ceil(col.max * 100) / 100.0}]"
 
             if lim_vals != "" or nullflag != "":
                 description = f"{lim_vals}{nullflag} {description}"
 
             # Find the maximum label and description column widths.
-            if len(col.name) > max_label_width:
-                max_label_width = len(col.name)
-            if len(description) > max_descrip_size:
-                max_descrip_size = len(description)
+            max_label_width = max(len(col.name), max_label_width)
+            max_descrip_size = max(len(description), max_descrip_size)
 
             # Add a row for the Sign of Declination in the bbb table
             if col.name == "DEd":
@@ -445,8 +437,7 @@ class MrtHeader(cds.CdsHeader):
         self.linewidth = endb
 
         # Remove the last extra newline character from Byte-By-Byte.
-        buff = buff[:-1]
-        return buff
+        return buff[:-1]
 
     def write(self, lines):
         """

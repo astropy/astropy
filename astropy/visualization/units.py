@@ -1,7 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from contextlib import ContextDecorator
+
 import numpy as np
 
+__all__ = ["quantity_support"]
 __doctest_skip__ = ["quantity_support"]
 
 
@@ -16,17 +19,23 @@ def quantity_support(format="latex_inline"):
       >>> from astropy import units as u
       >>> from astropy import visualization
       >>> with visualization.quantity_support():
-      ...     plt.figure()
-      ...     plt.plot([1, 2, 3] * u.m)
+      ...     fig, ax = plt.subplots()
+      ...     ax.plot([1, 2, 3] * u.m)
       [...]
-      ...     plt.plot([101, 125, 150] * u.cm)
+      ...     ax.plot([101, 125, 150] * u.cm)
       [...]
+      ...     ax.yaxis.set_units(u.km)
       ...     plt.draw()
+
+    The default axis unit is inferred from the first plot using a Quantity.
+    To override it, you can explicitly set the axis unit using
+    :meth:`matplotlib.axis.Axis.set_units`, for example,
+    ``ax.yaxis.set_units(u.km)``.
 
     Parameters
     ----------
-    format : `astropy.units.format.Base` instance or str
-        The name of a format or a formatter object.  If not
+    format : `astropy.units.format.Base` subclass or str
+        The name of a format or a formatter class.  If not
         provided, defaults to ``latex_inline``.
 
     """
@@ -47,7 +56,7 @@ def quantity_support(format="latex_inline"):
         else:
             return f"{n}π/2"
 
-    class MplQuantityConverter(units.ConversionInterface):
+    class MplQuantityConverter(units.ConversionInterface, ContextDecorator):
         def __init__(self):
             # Keep track of original converter in case the context manager is
             # used in a nested way.

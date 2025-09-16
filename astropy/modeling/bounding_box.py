@@ -4,28 +4,18 @@
 This module is to contain an improved bounding box.
 """
 
-from __future__ import annotations
-
 import abc
 import copy
 import warnings
-from typing import TYPE_CHECKING, NamedTuple
+from collections.abc import Callable
+from typing import Any, NamedTuple, Self
 
 import numpy as np
 
-from astropy.units import Quantity
-from astropy.utils import isiterable
+from astropy.units import Quantity, UnitBase
 from astropy.utils.compat import COPY_IF_NEEDED
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Any
-
-    from typing_extensions import Self
-
-    from astropy.units import UnitBase
-
-__all__ = ["ModelBoundingBox", "CompoundBoundingBox"]
+__all__ = ["CompoundBoundingBox", "ModelBoundingBox"]
 
 
 class _BaseInterval(NamedTuple):
@@ -87,7 +77,7 @@ class _Interval(_BaseInterval):
                 and all(isinstance(b, np.ndarray) for b in interval)
             )
 
-        if not isiterable(interval) or not valid_shape:
+        if not np.iterable(interval) or not valid_shape:
             raise ValueError(MESSAGE)
 
     @classmethod
@@ -684,7 +674,9 @@ class ModelBoundingBox(_BoundingDomain):
         else:
             return self._intervals[self._get_index(key)]
 
-    def bounding_box(self, order: str | None = None):
+    def bounding_box(
+        self, order: str | None = None
+    ) -> tuple[float, float] | tuple[tuple[float, float], ...]:
         """
         Return the old tuple of tuples representation of the bounding_box
             order='C' corresponds to the old bounding_box ordering
@@ -817,7 +809,7 @@ class ModelBoundingBox(_BoundingDomain):
 
         return new
 
-    def fix_inputs(self, model, fixed_inputs: dict, _keep_ignored=False):
+    def fix_inputs(self, model, fixed_inputs: dict, _keep_ignored=False) -> Self:
         """
         Fix the bounding_box for a `fix_inputs` compound model.
 
@@ -848,7 +840,7 @@ class ModelBoundingBox(_BoundingDomain):
     def dimension(self):
         return len(self)
 
-    def domain(self, resolution, order: str | None = None):
+    def domain(self, resolution, order: str | None = None) -> list[np.ndarray]:
         inputs = self._model.inputs
         order = self._get_order(order)
         if order == "C":
@@ -1022,7 +1014,7 @@ class _SelectorArgument(_BaseSelectorArgument):
             All the processed model evaluation inputs.
         """
         _selector = inputs[self.index]
-        if isiterable(_selector):
+        if np.iterable(_selector):
             if len(_selector) == 1:
                 return _selector[0]
             else:
@@ -1427,7 +1419,7 @@ class CompoundBoundingBox(_BoundingDomain):
 
     @staticmethod
     def _get_selector_key(key):
-        if isiterable(key):
+        if np.iterable(key):
             return tuple(key)
         else:
             return (key,)
@@ -1606,7 +1598,7 @@ class CompoundBoundingBox(_BoundingDomain):
             self.selector_args.add_ignore(self._model, argument),
         )
 
-    def fix_inputs(self, model, fixed_inputs: dict):
+    def fix_inputs(self, model, fixed_inputs: dict) -> Self:
         """
         Fix the bounding_box for a `fix_inputs` compound model.
 

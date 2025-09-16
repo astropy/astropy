@@ -48,6 +48,8 @@ Utility Functions/Classes
 .. automodapi:: astropy.utils.shapes
     :no-inheritance-diagram:
 
+.. automodapi:: astropy.utils.system_info
+    :no-inheritance-diagram:
 
 File Downloads
 ==============

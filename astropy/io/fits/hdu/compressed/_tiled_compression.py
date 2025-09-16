@@ -255,9 +255,7 @@ def _get_compression_setting(header, name, default):
 
 
 def _column_dtype(compressed_coldefs, column_name):
-    tform = compressed_coldefs[column_name].format
-    if tform.startswith("1"):
-        tform = tform[1:]
+    tform = compressed_coldefs[column_name].format.removeprefix("1")
     if tform[1] == "B":
         dtype = np.uint8
     elif tform[1] == "I":
@@ -284,6 +282,7 @@ def decompress_image_data_section(
     compression_type,
     compressed_header,
     bintable,
+    image_header,
     first_tile_index,
     last_tile_index,
 ):
@@ -359,7 +358,7 @@ def decompress_image_data_section(
     else:
         zzero_column = None
 
-    zblank_header = compressed_header.get("ZBLANK", None)
+    zblank_header = compressed_header.get("ZBLANK", image_header.get("BLANK", None))
 
     gzip_compressed_data_column = None
     gzip_compressed_data_dtype = None
@@ -465,7 +464,7 @@ def decompress_image_data_section(
             if zblank is not None:
                 if not tile_data.flags.writeable:
                     tile_data = tile_data.copy()
-                tile_data[blank_mask] = np.nan
+                tile_data[blank_mask] = zblank_header if zbitpix > 0 else np.nan
 
         image_data[tile_slices] = tile_data
 
@@ -527,6 +526,12 @@ def compress_image_data(
 
     for irow, tile_slices in _iter_array_tiles(data_shape, tile_shape):
         tile_data = image_data[tile_slices]
+
+        if tile_data.dtype.kind == "u":
+            if tile_data.dtype.itemsize == 4:
+                tile_data = (tile_data.astype(np.int64) - 2**31).astype(np.int32)
+            elif tile_data.dtype.itemsize == 2:
+                tile_data = (tile_data.astype(np.int32) - 2**15).astype(np.int16)
 
         settings = _update_tile_settings(settings, compression_type, tile_data.shape)
 
@@ -640,6 +645,4 @@ def compress_image_data(
 
     table_bytes = table.tobytes()
 
-    heap = table.tobytes() + compressed_bytes
-
-    return len(compressed_bytes), np.frombuffer(heap, dtype=np.uint8)
+    return table.tobytes() + compressed_bytes

@@ -3,12 +3,11 @@ from collections import defaultdict
 
 import numpy as np
 
-from astropy.utils import isiterable
 from astropy.utils.decorators import lazyproperty
 
 from .base import BaseWCSWrapper
 
-__all__ = ["sanitize_slices", "SlicedLowLevelWCS"]
+__all__ = ["SlicedLowLevelWCS", "sanitize_slices"]
 
 
 def sanitize_slices(slices, ndim):
@@ -26,7 +25,7 @@ def sanitize_slices(slices, ndim):
             f"than the dimensionality ({ndim}) of the wcs."
         )
 
-    if any(isiterable(s) for s in slices):
+    if any(np.iterable(s) for s in slices):
         raise IndexError(
             "This slice is invalid, only integer or range slices are supported."
         )
@@ -174,7 +173,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
                 continue
 
             if "world_axis_object_classes" not in dropped_info:
-                dropped_info["world_axis_object_classes"] = dict()
+                dropped_info["world_axis_object_classes"] = {}
 
             wao_classes = self._wcs.world_axis_object_classes
             wao_components = self._wcs.world_axis_object_components
@@ -269,7 +268,10 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
                 world_arrays_new.append(sliced_out_world_coords[iworld])
 
         world_arrays_new = np.broadcast_arrays(*world_arrays_new)
-        pixel_arrays = list(self._wcs.world_to_pixel_values(*world_arrays_new))
+        pixel_arrays = self._wcs.world_to_pixel_values(*world_arrays_new)
+        pixel_arrays = (
+            list(pixel_arrays) if self._wcs.pixel_n_dim > 1 else [pixel_arrays]
+        )
 
         for ipixel in range(self._wcs.pixel_n_dim):
             if (
@@ -282,7 +284,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
         if isinstance(pixel_arrays, np.ndarray) and not pixel_arrays.shape:
             return pixel_arrays
         pixel = tuple(pixel_arrays[ip] for ip in self._pixel_keep)
-        if self.pixel_n_dim == 1 and self._wcs.pixel_n_dim > 1:
+        if self.pixel_n_dim == 1:
             pixel = pixel[0]
         return pixel
 

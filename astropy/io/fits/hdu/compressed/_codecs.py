@@ -30,12 +30,12 @@ except ImportError:
 
 
 __all__ = [
+    "PLIO1",
     "Gzip1",
     "Gzip2",
-    "Rice1",
-    "PLIO1",
     "HCompress1",
     "NoCompress",
+    "Rice1",
 ]
 
 

@@ -104,7 +104,7 @@ def base_original_data(data_shape, dtype, numpy_rng, compression_type):
     random.ravel()[0] = 0.0
     # There seems to be a bug with the fitsio library where HCOMPRESS doesn't
     # work with int16 random data, so use a bit for structured test data.
-    if compression_type.startswith("HCOMPRESS") and "i2" in dtype or "u1" in dtype:
+    if (compression_type.startswith("HCOMPRESS") and "i2" in dtype) or "u1" in dtype:
         random = np.arange(np.prod(data_shape)).reshape(data_shape)
     return random.astype(dtype)
 
@@ -185,10 +185,11 @@ def test_decompress(
 ):
     compression_type, param, dtype = comp_param_dtype
 
+    with fits.open(fitsio_compressed_file_path, disable_image_compression=True) as hdul:
+        assert hdul[1].header["ZCMPTYPE"].replace("ONE", "1") == compression_type
+
     with fits.open(fitsio_compressed_file_path) as hdul:
         data = hdul[1].data
-
-        assert hdul[1]._header["ZCMPTYPE"].replace("ONE", "1") == compression_type
         assert hdul[1].data.dtype.kind == np.dtype(dtype).kind
         assert hdul[1].data.dtype.itemsize == np.dtype(dtype).itemsize
 

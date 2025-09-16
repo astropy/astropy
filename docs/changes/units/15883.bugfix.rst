@@ -1,1 +1,0 @@
-Fix an unhelpful ``TypeError`` when attempting truediv, ``lshift`` (``<<``) or ``mul`` (``*``) or ``truediv`` (``/``) with a ``Unit`` for right operand and a numpy array with non-numerical dtype for left operand.

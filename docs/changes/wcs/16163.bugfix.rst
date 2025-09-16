@@ -1,1 +1,0 @@
-Fixed a bug in ``DistortionLookupTable`` (which implements ``cpdis`` and ``det2im`` projection corrections to a WCS) in which image pixels received an incorrect distortion value, from a location in the lookup table incorrectly offset by about 1 table pixel.

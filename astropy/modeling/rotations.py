@@ -24,17 +24,17 @@ from functools import reduce
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates import rotation_matrix
 
 from .core import Model
 from .parameters import Parameter
 from .utils import _to_orig_unit, _to_radian
 
 __all__ = [
+    "EulerAngleRotation",
     "RotateCelestial2Native",
     "RotateNative2Celestial",
     "Rotation2D",
-    "EulerAngleRotation",
     "RotationSequence3D",
     "SphericalRotationSequence",
 ]
@@ -53,8 +53,9 @@ def _create_matrix(angles, axes_order):
 def spherical2cartesian(alpha, delta):
     alpha = np.deg2rad(alpha)
     delta = np.deg2rad(delta)
-    x = np.cos(alpha) * np.cos(delta)
-    y = np.cos(delta) * np.sin(alpha)
+    cosd = np.cos(delta)
+    x = np.cos(alpha) * cosd
+    y = cosd * np.sin(alpha)
     z = np.sin(delta)
     return np.array([x, y, z])
 
@@ -129,7 +130,7 @@ class RotationSequence3D(Model):
         # Note: If the original shape was () (an array scalar) convert to a
         # 1-element 1-D array on output for consistency with most other models
         orig_shape = x.shape or (1,)
-        inarr = np.array([x.flatten(), y.flatten(), z.flatten()])
+        inarr = np.array([x.ravel(), y.ravel(), z.ravel()])
         result = np.dot(_create_matrix(angles[0], self.axes_order), inarr)
         x, y, z = result[0], result[1], result[2]
         x.shape = y.shape = z.shape = orig_shape
@@ -183,16 +184,16 @@ class _EulerRotation:
     def evaluate(self, alpha, delta, phi, theta, psi, axes_order):
         shape = None
         if isinstance(alpha, np.ndarray):
-            alpha = alpha.flatten()
-            delta = delta.flatten()
+            alpha = alpha.ravel()
+            delta = delta.ravel()
             shape = alpha.shape
         inp = spherical2cartesian(alpha, delta)
         matrix = _create_matrix([phi, theta, psi], axes_order)
         result = np.dot(matrix, inp)
         a, b = cartesian2spherical(*result)
         if shape is not None:
-            a.shape = shape
-            b.shape = shape
+            a = a.reshape(shape)
+            b = b.reshape(shape)
         return a, b
 
     _input_units_strict = True
@@ -539,7 +540,7 @@ class Rotation2D(Model):
         # Note: If the original shape was () (an array scalar) convert to a
         # 1-element 1-D array on output for consistency with most other models
         orig_shape = x.shape or (1,)
-        inarr = np.array([x.flatten(), y.flatten()])
+        inarr = np.array([x.ravel(), y.ravel()])
         if isinstance(angle, u.Quantity):
             angle = angle.to_value(u.rad)
         result = np.dot(cls._compute_matrix(angle), inarr)

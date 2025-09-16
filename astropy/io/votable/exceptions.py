@@ -41,19 +41,19 @@ from astropy.utils.exceptions import AstropyWarning
 
 __all__ = [
     "Conf",
+    "IOWarning",
+    "UnimplementedWarning",
+    "VOTableChangeWarning",
+    "VOTableSpecError",
+    "VOTableSpecWarning",
+    "VOWarning",
     "conf",
-    "warn_or_raise",
+    "parse_vowarning",
     "vo_raise",
     "vo_reraise",
     "vo_warn",
+    "warn_or_raise",
     "warn_unknown_attrs",
-    "parse_vowarning",
-    "VOWarning",
-    "VOTableChangeWarning",
-    "VOTableSpecWarning",
-    "UnimplementedWarning",
-    "IOWarning",
-    "VOTableSpecError",
 ]
 
 
@@ -642,8 +642,7 @@ class W19(VOTableSpecWarning):
     """
 
     message_template = (
-        "The fields defined in the VOTable do not match those in the "
-        "embedded FITS file"
+        "The fields defined in the VOTable do not match those in the embedded FITS file"
     )
 
 
@@ -660,12 +659,12 @@ class W20(VOTableSpecWarning):
 class W21(UnimplementedWarning):
     """
     Unknown issues may arise using ``astropy.io.votable`` with VOTable files
-    from a version other than 1.1, 1.2, 1.3, or 1.4.
+    from a version not in 1.1 through 1.5.
     """
 
     message_template = (
-        "astropy.io.votable is designed for VOTable version 1.1, 1.2, 1.3,"
-        " and 1.4, but this file is {}"
+        "astropy.io.votable is designed for VOTable versions 1.1 through 1.5,"
+        " but this file is {}"
     )
     default_args = ("x",)
 
@@ -888,8 +887,8 @@ class W36(VOTableSpecWarning):
 
 class W37(UnimplementedWarning):
     """
-    The 3 datatypes defined in the VOTable specification and supported by
-    ``astropy.io.votable`` are ``TABLEDATA``, ``BINARY``, and ``FITS``.
+    The 4 datatypes defined in the VOTable specification and supported by
+    ``astropy.io.votable`` are ``TABLEDATA``, ``BINARY``, ``BINARY2`` and ``FITS``.
     In addition, ``astropy.io.votable`` also supports ``PARQUET`` serialization, which is
     a candidate for addition to the VOTable specification.
 
@@ -1074,9 +1073,10 @@ class W49(VOTableSpecWarning):
 class W50(VOTableSpecWarning):
     """
     Invalid unit string as defined in the `Units in the VO, Version 1.0
-    <https://www.ivoa.net/documents/VOUnits>`_ (VOTable version >= 1.4)
-    or `Standards for Astronomical Catalogues, Version 2.0
-    <https://cdsarc.cds.unistra.fr/doc/catstd-3.2.htx>`_ (version < 1.4).
+    <https://www.ivoa.net/documents/VOUnits/20140523/index.html>`_
+    (VOTable version >= 1.4) or `Standards for Astronomical Catalogues,
+    Version 2.0 <https://cdsarc.cds.unistra.fr/doc/catstd-3.2.htx>`_
+    (version < 1.4).
 
     Consider passing an explicit ``unit_format`` parameter if the units
     in this file conform to another specification.
@@ -1154,6 +1154,20 @@ class W56(VOTableSpecWarning):
         "The fields defined in the VOTable do not match those in the "
         "embedded PARQUET file"
     )
+
+
+class W57(VOTableSpecWarning):
+    """
+    The ``refposition`` attribute on the ``COOSYS`` element is only allowed on
+    VOTABLE versions 1.5 and greater.
+    favor of a reference to the Space-Time Coordinate (STC) data
+    model (see `utype
+    <http://www.ivoa.net/documents/VOTable/20091130/REC-VOTable-1.2.html#sec:utype>`__
+    and the IVOA note `referencing STC in VOTable
+    <http://ivoa.net/Documents/latest/VOTableSTC.html>`__.
+    """
+
+    message_template = "refposition only allowed on VOTABLE v1.5 and greater"
 
 
 class E01(VOWarning, ValueError):

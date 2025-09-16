@@ -44,7 +44,6 @@ test_slices = [
 
 subsampling = 5
 
-test_pos_bad = [(-1, -4), (-2, 0), (6, 2), (6, 6)]
 test_nonfinite_positions = [
     (np.nan, np.nan),
     (np.inf, np.inf),
@@ -67,11 +66,23 @@ def test_slices_pos_different_dim():
         overlap_slices((4, 5), (1, 2), (0, 0, 3))
 
 
-@pytest.mark.parametrize("pos", test_pos_bad)
-def test_slices_no_overlap(pos):
+@pytest.mark.parametrize(
+    "inputs",
+    [
+        ((5, 5), (2, 2), (-1, -4)),
+        ((5, 5), (2, 2), (-2, -0)),
+        ((5, 5), (2, 2), (6, 2)),
+        ((5, 5), (2, 2), (6, 6)),
+        ((7, 7), (0, 0), (-2, -2)),
+        ((7, 7), (3, 3), (-2, -2)),
+        ((7, 7), (3, 3), (-2, 2)),
+        ((7, 7), (3, 3), (2, -2)),
+    ],
+)
+def test_slices_no_overlap(inputs):
     """If there is no overlap between arrays, an error should be raised."""
     with pytest.raises(NoOverlapError):
-        overlap_slices((5, 5), (2, 2), pos)
+        overlap_slices(*inputs)
 
 
 def test_slices_partial_overlap():
@@ -135,6 +146,84 @@ def test_slices_nonfinite_position(position):
 
     with pytest.raises(ValueError):
         overlap_slices((7, 7), (3, 3), position)
+
+
+@pytest.mark.parametrize(
+    "small_array_shape, position, limit_rounding_method, expected_lg, expected_sm",
+    [
+        (
+            (3, 5),
+            (4, 5),
+            np.ceil,
+            (slice(3, 6), slice(3, 8)),
+            (slice(0, 3), slice(0, 5)),
+        ),
+        (
+            (3, 5),
+            (4, 5),
+            np.floor,
+            (slice(2, 5), slice(2, 7)),
+            (slice(0, 3), slice(0, 5)),
+        ),
+        (
+            (3, 5),
+            (4.2, 5.6),
+            np.round,
+            (slice(3, 6), slice(3, 8)),
+            (slice(0, 3), slice(0, 5)),
+        ),
+        (
+            (3, 3),
+            (6, 6),
+            np.round,
+            (slice(4, 7), slice(4, 7)),
+            (slice(0, 3), slice(0, 3)),
+        ),
+        (
+            (3, 3),
+            (5, 5),
+            np.round,
+            (slice(4, 7), slice(4, 7)),
+            (slice(0, 3), slice(0, 3)),
+        ),
+        (
+            (3, 3),
+            (5, 5),
+            np.trunc,
+            (slice(3, 6), slice(3, 6)),
+            (slice(0, 3), slice(0, 3)),
+        ),
+    ],
+)
+def test_slices_limit_rounding_method(
+    small_array_shape, position, limit_rounding_method, expected_lg, expected_sm
+):
+    """Call overlap_slices with different limit rounding methods."""
+    slc_lg, slc_sm = overlap_slices(
+        (10, 10),
+        small_array_shape,
+        position,
+        limit_rounding_method=limit_rounding_method,
+    )
+    assert slc_lg == expected_lg
+    assert slc_sm == expected_sm
+
+
+@pytest.mark.parametrize(
+    "limit_rounding_method, error_msg",
+    [
+        (None, "^Limit rounding method must be a callable"),
+        ("invalid", "^Limit rounding method must be a callable"),
+        (lambda x: (1, 2), "^Limit rounding method must accept a single number"),
+        (lambda x: "invalid", "^Limit rounding method must accept a single number"),
+        (lambda x, y: 1, "^Limit rounding method must accept a single number"),
+        (lambda: 1, "^Limit rounding method must accept a single number"),
+    ],
+)
+def test_slices_wrong_limit_rounding_method(limit_rounding_method, error_msg):
+    """Call overlap_slices with an invalid rounding method."""
+    with pytest.raises(ValueError, match=error_msg):
+        overlap_slices((5,), (3,), (0,), limit_rounding_method=limit_rounding_method)
 
 
 def test_extract_array_even_shape_rounding():
@@ -543,6 +632,25 @@ class TestCutout2D:
         c2.data[xy] = value
         assert data[yx] != value
 
+    @pytest.mark.parametrize(
+        "position, limit_rounding_method, expected_slices_original",
+        [
+            ((2, 2), np.ceil, (slice(1, 4), slice(1, 4))),
+            ((2, 2), np.floor, (slice(0, 3), slice(0, 3))),
+            ((1.9, 2.9), np.round, (slice(1, 4), slice(0, 3))),
+            ((2, 2), np.trunc, (slice(0, 3), slice(0, 3))),
+        ],
+    )
+    def test_limit_rounding_method(
+        self, position, limit_rounding_method, expected_slices_original
+    ):
+        c = Cutout2D(
+            self.data, position, (3, 3), limit_rounding_method=limit_rounding_method
+        )
+        assert c.data.shape == (3, 3)
+        assert c.slices_original == expected_slices_original
+        assert c.slices_cutout == (slice(0, 3), slice(0, 3))
+
     def test_to_from_large(self):
         position = (2, 2)
         c = Cutout2D(self.data, position, (3, 3))
@@ -624,6 +732,9 @@ def test_cutout_section(tmp_path):
             100 * u.pix,
         )
 
+        # Partial cutout
+        c = Cutout2D(hdul[1].section, (75, 75), 100 * u.pix, mode="partial")
+
     chdu = fits.CompImageHDU(data=data)
     chdu.writeto(tmp_path / "compressed.fits")
 
@@ -633,3 +744,6 @@ def test_cutout_section(tmp_path):
             (75, 75),
             100 * u.pix,
         )
+
+        # Partial cutout
+        c = Cutout2D(hdul[1].section, (75, 75), 100 * u.pix, mode="partial")

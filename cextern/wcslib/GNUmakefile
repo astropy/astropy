@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.2
+# GNU makefile for building WCSLIB 8.4
 #
 # Summary of the main targets
 # ---------------------------
@@ -34,7 +34,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 8.2.1.2 2023/11/17 03:32:33 mcalabre Exp mcalabre $
+# $Id: GNUmakefile,v 8.4 2024/10/28 13:56:17 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := .
@@ -156,6 +156,7 @@ config.status : configure
 	-@ echo "  CFLAGS   = $${CFLAGS-(undefined)}"
 	-@ echo "  F77      = $${F77-(undefined)}"
 	-@ echo "  FFLAGS   = $${FFLAGS-(undefined)}"
+	-@ echo "  BINDC    = $${BINDC-(undefined)}"
 	-@ echo "  ARFLAGS  = $${ARFLAGS-(undefined)}"
 	-@ echo "  LDFLAGS  = $${LDFLAGS-(undefined)}"
 	-@ echo ''
@@ -212,6 +213,5 @@ configure : configure.ac
 	   autoconf
 	-@ $(RM) configure~
 
-# Code development overrides must be included specifically before 'configure'
-# generates makedefs.
+# Code development settings exported for 'configure'.
 -include flavours

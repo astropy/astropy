@@ -1,14 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
 import pytest
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 
 from astropy import units as u
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.wcsaxes.coordinate_helpers import CoordinateHelper
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
@@ -16,12 +18,8 @@ from astropy.wcs import WCS
 MSX_HEADER = fits.Header.fromtextfile(get_pkg_data_filename("data/msx_header"))
 
 
-def teardown_function(function):
-    plt.close("all")
-
-
 def test_getaxislabel(ignore_matplotlibrc):
-    fig = plt.figure()
+    fig = Figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
 
     ax.coords[0].set_axislabel("X")
@@ -32,7 +30,8 @@ def test_getaxislabel(ignore_matplotlibrc):
 
 @pytest.fixture
 def ax():
-    fig = plt.figure()
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
 
@@ -43,8 +42,8 @@ def assert_label_draw(ax, x_label, y_label):
     ax.coords[0].set_axislabel("Label 1")
     ax.coords[1].set_axislabel("Label 2")
 
-    with patch.object(ax.coords[0].axislabels, "set_position") as pos1:
-        with patch.object(ax.coords[1].axislabels, "set_position") as pos2:
+    with patch.object(ax.coords[0]._axislabels, "set_position") as pos1:
+        with patch.object(ax.coords[1]._axislabels, "set_position") as pos2:
             ax.figure.canvas.draw()
 
     assert pos1.call_count == x_label
@@ -83,12 +82,13 @@ def test_label_visibility_rules_always(ignore_matplotlibrc, ax):
 
 
 def test_format_unit():
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
     fig.add_axes(ax)
 
     # Force a draw which is required for format_coord to work
-    ax.figure.canvas.draw()
+    canvas.draw()
 
     ori_fu = ax.coords[1].get_format_unit()
     assert ori_fu == "deg"
@@ -99,12 +99,13 @@ def test_format_unit():
 
 
 def test_set_separator():
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
     fig.add_axes(ax)
 
     # Force a draw which is required for format_coord to work
-    ax.figure.canvas.draw()
+    canvas.draw()
 
     ax.coords[1].set_format_unit("deg")
     assert ax.coords[1].format_coord(4) == "4\xb000'00\""
@@ -120,10 +121,165 @@ def test_set_separator():
     "draw_grid, expected_visibility", [(True, True), (False, False), (None, True)]
 )
 def test_grid_variations(ignore_matplotlibrc, draw_grid, expected_visibility):
-    fig = plt.figure()
+    fig = Figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
     transform = transforms.Affine2D().scale(2.0)
-    coord_helper = CoordinateHelper(parent_axes=ax, transform=transform)
+    coord_helper = CoordinateHelper(
+        parent_axes=ax,
+        transform=transform,
+        frame=MagicMock(),
+    )
     coord_helper.grid(draw_grid=draw_grid)
-    assert coord_helper.grid_lines_kwargs["visible"] == expected_visibility
+    assert coord_helper._grid_lines_kwargs["visible"] == expected_visibility
+
+
+def test_get_position():
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+
+    assert ax.coords[0].get_ticks_position() == ["b", "r", "t", "l"]
+    assert ax.coords[1].get_ticks_position() == ["b", "r", "t", "l"]
+    assert ax.coords[0].get_ticklabel_position() == ["#"]
+    assert ax.coords[1].get_ticklabel_position() == ["#"]
+    assert ax.coords[0].get_axislabel_position() == ["#"]
+    assert ax.coords[1].get_axislabel_position() == ["#"]
+
+    fig.canvas.draw()
+
+    assert ax.coords[0].get_ticks_position() == ["b", "r", "t", "l"]
+    assert ax.coords[1].get_ticks_position() == ["b", "r", "t", "l"]
+    assert ax.coords[0].get_ticklabel_position() == ["b", "#"]
+    assert ax.coords[1].get_ticklabel_position() == ["l", "#"]
+    assert ax.coords[0].get_axislabel_position() == ["b", "#"]
+    assert ax.coords[1].get_axislabel_position() == ["l", "#"]
+
+    ax.coords[0].set_ticks_position("br")
+    ax.coords[1].set_ticks_position("tl")
+    ax.coords[0].set_ticklabel_position("bt")
+    ax.coords[1].set_ticklabel_position("rl")
+    ax.coords[0].set_axislabel_position("t")
+    ax.coords[1].set_axislabel_position("r")
+
+    assert ax.coords[0].get_ticks_position() == ["b", "r"]
+    assert ax.coords[1].get_ticks_position() == ["t", "l"]
+    assert ax.coords[0].get_ticklabel_position() == ["b", "t"]
+    assert ax.coords[1].get_ticklabel_position() == ["r", "l"]
+    assert ax.coords[0].get_axislabel_position() == ["t"]
+    assert ax.coords[1].get_axislabel_position() == ["r"]
+
+
+def test_deprecated_getters():
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+
+    helper = CoordinateHelper(
+        parent_axes=ax,
+        frame=MagicMock(),
+    )
+
+    with pytest.warns(AstropyDeprecationWarning):
+        ticks = helper.ticks
+    assert not ticks.get_display_minor_ticks()
+    with pytest.warns(AstropyDeprecationWarning):
+        ticklabels = helper.ticklabels
+    assert ticklabels.text == {}
+    with pytest.warns(AstropyDeprecationWarning):
+        axislabels = helper.axislabels
+    assert axislabels.get_visibility_rule() == "labels"
+
+
+def test_set_major_formatter():
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    # Force a draw which is required for format_coord to work
+    canvas.draw()
+
+    ax.coords[1].set_major_formatter("d.ddd")
+    assert ax.coords[1].format_coord(4) == "4.000\xb0"
+
+    ax.coords[1].set_major_formatter("d.dd", show_decimal_unit=False)
+    assert ax.coords[1].format_coord(4) == "4.00"
+
+    # Show unit has no effect on sexagesimal coordinates
+
+    ax.coords[1].set_major_formatter("dd:mm:ss.s", show_decimal_unit=False)
+    assert ax.coords[1].format_coord(4) == "4\xb000'00.0\""
+
+
+def test_set_position_invalid():
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['x'\], should be one of b/r/t/l",
+    ):
+        ax.coords[0].set_ticks_position("xl")
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['o'\], should be one of b/r/t/l",
+    ):
+        ax.coords[1].set_ticklabel_position("to")
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['q', 'p'\], should be one of b/r/t/l",
+    ):
+        ax.coords[1].set_axislabel_position("qbp")
+
+    assert ax.coords[0].get_ticks_position() == ["l"]
+    assert ax.coords[1].get_ticklabel_position() == ["t"]
+    assert ax.coords[1].get_axislabel_position() == ["b"]
+
+
+def test_set_position_invalid_gridline():
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+
+    ax.coords[0].add_tickable_gridline("my-grid-line", -30 * u.one)
+
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Ignoring unrecognized position\(s\): \['my-parrot-line'\]",
+    ):
+        ax.coords[1].set_ticks_position(["my-grid-line", "my-parrot-line"])
+
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"It looks like 'my-grid-line' matches the name of a single axis. If "
+        r"you are trying to specify a multi-character axis name, use a list "
+        r"or a tuple, e.g. \('my-grid-line',\).",
+    ):
+        ax.coords[1].set_ticks_position("my-grid-line")
+
+
+def test_set_ticks_values():
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    xticks = [1795, 1780, 1783] * u.arcsec
+    ax.coords[0].set_format_unit(u.arcsec)
+    ax.coords[0].set_ticks(xticks)
+
+    # Force a draw to calculate the tick positions
+    _canvas.draw()
+    # This attribute only exists after a draw
+    lbl_world = ax.coords[0]._lbl_world
+    lbl_world1 = lbl_world[: len(lbl_world) // 2]
+
+    lbl_locations = u.Quantity(lbl_world1, unit=u.deg)
+    assert u.allclose(lbl_locations, ax.coords[0]._formatter_locator.values)
+    assert u.Quantity(lbl_world).unit is xticks.unit

@@ -8,15 +8,18 @@ readme = "README.rst"
 authors = [
     { name = "The Astropy Developers", email = "astropy.team@gmail.com" }
 ]
-license = { text = "BSD-3-Clause" }
-requires-python = ">=3.10"
+license = "BSD-3-Clause"
+license-files = ["LICENSE.rst", "licenses/*.rst"]
+requires-python = ">=3.11"
 classifiers = [
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: C",
     "Programming Language :: Cython",
-    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Scientific/Engineering :: Physics",
@@ -39,71 +42,109 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "numpy>=1.23",
-    "pyerfa>=2.0.1.1",
-    "astropy-iers-data>=0.2024.4.1.0.33.14",
-    "PyYAML>=3.13",
-    "packaging>=19.0",
+    "numpy>=1.24",
+    "pyerfa>=2.0.1.1",  # For >=2.0.1.7, adjust structured_units.rst and doctest-requires
+    "astropy-iers-data>=0.2025.9.1.0.42.11",
+    "PyYAML>=6.0.0",
+    "packaging>=22.0.0",
 ]
 
 [project.optional-dependencies]
-test = [
-    "pytest>=7.0",
-    "pytest-doctestplus>=0.12",
-    "pytest-astropy-header>=0.2.1",
-    "pytest-astropy>=0.10",
-    "pytest-xdist",
-    "threadpoolctl",
-]
-test_all = [
-    "astropy[test]",  # installs the [test] dependencies
-    "objgraph",
-    "ipython>=4.2",
-    "coverage[toml]",
-    "skyfield>=1.20",
-    "sgp4>=2.3",
-    "array-api-strict",
-]
+# Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
-    "scipy>=1.8",
-    "matplotlib>=3.3,!=3.4.0,!=3.5.2",
+    "scipy>=1.9.2",
+    "matplotlib>=3.8.0",
 ]
-typing = [
-    "typing_extensions>=4.0.0"
+# Optional IPython-related behavior is in many places in Astropy. IPython is a complex
+# dependency that occasionally requires pinning one of it's upstream dependencies. If
+# you are using Astropy from an IPython-dependent IDE, like Jupyter, this should enforce
+# the minimum supported version of IPython.
+ipython = [
+    "ipython>=8.0.0",
 ]
+jupyter = [  # these are optional dependencies for utils.console and table
+    "astropy[ipython]",
+    "ipywidgets>=7.7.3",
+    "ipykernel>=6.16.0",
+    "ipydatagrid>=1.1.13",
+    # jupyter-core is a transitive dependency via ipykernel, we declare it as
+    # a direct dependency in order to set a lower bound for oldest-deps testing
+    "jupyter-core>=4.11.2",
+    "pandas>=1.5.0",
+]
+# This is ALL the run-time optional dependencies.
 all = [
-    "astropy[recommended]",  # installs the [recommended] dependencies
-    "astropy[typing]",
-    "certifi",
-    "dask[array]",
-    "h5py",
-    "pyarrow>=5.0.0",
-    "beautifulsoup4",
-    "html5lib",
-    "bleach",
-    "pandas",
-    "sortedcontainers",
-    "pytz",
-    "jplephem",
-    "mpmath",
+    # Install grouped optional dependencies
+    "astropy[recommended]",
+    "astropy[ipython]",
+    "astropy[jupyter]",
+    # Install all remaining optional dependencies
+    "certifi>=2022.6.15.1",
+    "dask[array]>=2022.5.1",
+    "h5py>=3.9.0",  # older versions used deprecated np.product()
+    "pyarrow>=10.0.1",
+    "beautifulsoup4>=4.9.3", # imposed by pandas==2.0
+    "html5lib>=1.1",
+    "bleach>=3.2.1",
+    "pandas>=2.0",
+    "sortedcontainers>=1.5.7", # (older versions may work)
+    "pytz>=2016.10", # (older versions may work)
+    "jplephem>=2.15",
+    "mpmath>=1.2.1",
+    "asdf>=2.8.3", # via asdf-astropy==0.3.*
     "asdf-astropy>=0.3",
-    "bottleneck",
-    "ipython>=4.2",
-    "pytest>=7.0",
+    "bottleneck>=1.3.3",
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
-    "pre-commit",
+    "uncompresspy>=0.4.0"
+]
+# The base set of test-time dependencies.
+test = [
+    "coverage>=6.4.4",
+    "pre-commit>=2.9.3", # lower bound is not tested beyond installation
+    "pytest>=8.0.0",
+    "pytest-doctestplus>=1.4.0",
+    "pytest-astropy-header>=0.2.1",
+    "pytest-astropy>=0.10.0",
+    "pytest-xdist>=2.5.0",
+    "threadpoolctl>=3.0.0",
+]
+test_all = [
+    # Install grouped optional dependencies
+    "astropy[all]",  # installs all optional run-time dependencies
+    "astropy[test]",
+    # Install all remaining dependencies
+    "objgraph>=1.6.0",
+    "skyfield>=1.20",
+    "sgp4>=2.3",
+    "array-api-strict>=1.0",
+    "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
+]
+typing = [
+    "pandas-stubs>=2.0",
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
-    "sphinx",
+    "sphinx>=8.2.0",  # keep in sync with docs/conf.py
     "sphinx-astropy[confv2]>=1.9.1",
-    "pytest>=7.0",
+    "pytest>=8.0.0",
     "sphinx-changelog>=1.2.0",
     "sphinx_design",
     "Jinja2>=3.1.3",
-    "tomli; python_version < '3.11'",
     "sphinxcontrib-globalsubs >= 0.1.1",
+    "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
+]
+# These group together all the dependencies needed for developing in Astropy.
+dev = [
+    "astropy[recommended]",  # installs the most common optional dependencies
+    "astropy[test]",
+    "astropy[docs]",
+    "astropy[typing]",
+]
+dev_all = [
+    "tox",
+    "astropy[dev]",
+    "astropy[test_all]",
 ]
 
 [project.urls]
@@ -118,21 +159,22 @@ fitsdiff = "astropy.io.fits.scripts.fitsdiff:main"
 fitsheader = "astropy.io.fits.scripts.fitsheader:main"
 fitsinfo = "astropy.io.fits.scripts.fitsinfo:main"
 samp_hub = "astropy.samp.hub_script:hub_script"
-showtable = "astropy.table.scripts.showtable:main"
+showtable = "astropy.table.scripts.showtable:main_deprecated"
+showtable-astropy = "astropy.table.scripts.showtable:main"
 volint = "astropy.io.votable.volint:main"
 wcslint = "astropy.wcs.wcslint:main"
 
 [build-system]
-requires = ["setuptools",
-            "setuptools_scm>=6.2",
-            "cython>=3.0.0,<3.1.0",
-            "numpy>=2.0.0rc1", # see https://github.com/astropy/astropy/issues/16257
-            "extension-helpers==1.*"]
+requires = ["setuptools>=77.0.0",
+            "setuptools_scm>=8.0.0",
+            "cython>=3.0.0, <4",
+            "numpy>=2.0.0, <3",
+            "extension-helpers>=1.4,<2",
+            "pyerfa>=2.0.1.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 include-package-data = true
-license-files = ["LICENSE.rst", "licenses/*.rst"]
 
 [tool.setuptools.packages.find]
 include = ["astropy*"]
@@ -157,15 +199,16 @@ namespaces = true
 "astropy.utils.tests" = ["data/.hidden_file.txt"]
 
 [tool.setuptools_scm]
-write_to = "astropy/_version.py"
+version_file = "astropy/_version.py"
 
 [tool.pytest.ini_options]
-minversion = "7.0"
+minversion = "8.0"
 testpaths = [
     "astropy",
     "docs",
 ]
 norecursedirs = [
+    ".*",
     "docs[\\/]_build",
     "docs[\\/]generated",
     "astropy[\\/]extern",
@@ -186,48 +229,50 @@ log_cli_level = "info"
 xfail_strict = true
 filterwarnings = [
     "error",
-    "ignore:unclosed <socket:ResourceWarning",
-    "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
-    # Can be removed once Python>=3.11 is the minimum dependency,
-    # cf. https://github.com/astropy/astropy/issues/13907
-    "ignore:unclosed transport <asyncio.sslproto",
-    "ignore:numpy\\.ufunc size changed:RuntimeWarning",
-    "ignore:numpy\\.ndarray size changed:RuntimeWarning",
-    "ignore:matplotlibrc text\\.usetex:UserWarning:matplotlib",
-    # Triggered by ProgressBar > ipykernel.iostream (revisit when we bump oldest deps versions)
-    "ignore:the imp module is deprecated:DeprecationWarning",
+    # https://github.com/astropy/astropy/issues/18126
+    "ignore:'_UnionGenericAlias' is deprecated and slated for removal in Python 3.17:DeprecationWarning", # not PYTHON_LT_3_14
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
     "*/tests/command.py",
 ]
 doctest_subpackage_requires = [
-    "astropy/cosmology/_io/mapping.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
-    "astropy/cosmology/_io/row.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
-    "astropy/cosmology/_io/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
-    "astropy/table/table.py = python<3.12",  # PYTHON_LT_3_12 (PR 14784)
+    "astropy/cosmology/_src/io/builtin/mapping.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
+    "astropy/cosmology/_src/io/builtin/row.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
+    "astropy/cosmology/_src/io/builtin/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
+    "astropy/table/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/table/mixins/dask.py = dask",
-    "docs/io/fits/index.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
-    "docs/io/fits/usage/image.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
-    "docs/io/fits/usage/unfamiliar.rst = numpy<1.25",  # NUMPY_LT_1_25 (Issue 14545)
+    "docs/* = numpy>=2",   # not NUMPY_LT_2_0 (PR 15065)
+    "docs/units/type_hints.rst = python<=3.13",  # PYTHON_LT_3_14 (PR 18140)
+    "docs/units/structured_units.rst = pyerfa<2.0.1.7",  # PYERFA_LT_2_0_1_7
+    "docs/timeseries/index.rst = numpy<2.2.0.dev0",  # NUMPY_LT_2_2 (PR 17364)
+    "astropy/stats/info_theory.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/stats/jackknife.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/table/row.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/time/formats.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/timeseries/periodograms/bls/core.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/timeseries/periodograms/lombscargle/core.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/units/structured.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
+    "astropy/modeling/_fitting_parallel.py = dask",
+    "docs/modeling/parallel-fitting.rst = dask",
+    "docs/coordinates/example_gallery_plot_galactocentric_frame.rst = matplotlib",
+    "docs/coordinates/example_gallery_plot_mars_coordinate_frame.rst = matplotlib",
+    "docs/coordinates/example_gallery_plot_obs_planning.rst = matplotlib",
+    "docs/coordinates/example_gallery_plot_sgr_coordinate_frame.rst = matplotlib",
+    "docs/io/unified_table_hdf5.rst = h5py",
+    "docs/io/unified_table_parquet.rst = pandas pyarrow",
 ]
 markers = [
     "mpl_image_compare",
 ]
 
-[tool.astropy-bot]
-    [tool.astropy-bot.autolabel]
-        # Comment this out to re-enable but then labeler Action needs to be disabled.
-        enabled = false
-
-    [tool.astropy-bot.changelog_checker]
-        enabled = false
-
 [tool.cibuildwheel]
 # We disable testing for the following wheels:
-# - Linux AArch64 (no native hardware, tests take too long)
 # - MuslLinux (tests hang non-deterministically)
-test-skip = "*-manylinux_aarch64 *-musllinux_x86_64"
+test-skip = "*-musllinux_x86_64"
+enable = ["cpython-prerelease"] # this line can be removed when cibuildwheel is bumped to 3.1.0 or newer
+skip = ["cp*t-*"] # https://github.com/astropy/astropy/issues/16916
+environment-pass = ["EXTENSION_HELPERS_PY_LIMITED_API"]
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
@@ -244,20 +289,6 @@ archs = ["auto", "aarch64"]
     wrap-descriptions = 75
     black = true
     syntax = "numpy"
-
-
-[tool.flynt]
-exclude= [
-    "astropy/extern",
-    "astropy/coordinates/angles/angle_lextab.py",
-    "astropy/units/format/cds_lextab.py",
-    "astropy/units/format/general_lextab.py",
-    "astropy/units/format/ogip_lextab.py",
-    "astropy/coordinates/angles/angle_parsetab.py",
-    "astropy/units/format/cds_parsetab.py",
-    "astropy/units/format/general_parsetab.py",
-    "astropy/units/format/ogip_parsetab.py",
-]
 
 
 [tool.coverage]
@@ -304,7 +335,64 @@ exclude= [
         ]
 
 [tool.ruff]
-lint.select = ["ALL"]
+lint.extend-select = [
+    "A",     # flake8-builtins
+    "AIR",   # Airflow
+    "ANN",   # flake8-annotations
+    "ARG",   # flake8-unused-arguments
+    "ASYNC", # flake8-async
+    "B",     # flake8-bugbear
+    "BLE",   # flake8-blind-except
+    "C4",    # flake8-comprehensions
+    "C90",   # mccabe
+    "COM",   # flake8-commas
+    # "CPY",   # flake8-copyright  # TODO: enable when out of preview
+    "D",     # pydocstyle
+    "DJ",    # flake8-django
+    # "DOC",   # pydocstyle  # TODO: enable when out of preview
+    "DTZ",   # flake8-datetimez
+    "E",     # pycodestyle
+    "EM",    # flake8-errmsg
+    "ERA",   # Eradicate
+    "EXE",   # flake8-executable
+    "F",     # Pyflakes
+    "FA",    # flake8-future-annotations
+    "FBT",   # flake8-boolean-trap
+    "FIX",   # flake8-fixme
+    "FLY",   # flynt
+    "FURB",  # refurb
+    "G",     # flake8-logging-format
+    "I",     # isort
+    "ICN",   # flake8-import-conventions
+    "INP",   # flake8-no-pep420
+    "INT",   # flake8-gettext
+    "ISC",   # flake8-implicit-str-concat
+    "LOG",   # flake8-logging
+    "N",     # pep8-naming
+    "NPY",   # NumPy-specific rules
+    "PERF",  # Perflint
+    "PGH",   # pygrep-hooks
+    "PIE",   # flake8-pie
+    "PL",    # Pylint
+    "PT",    # flake8-pytest-style
+    "PTH",   # flake8-use-pathlib
+    "PYI",   # flake8-pyi
+    "Q",     # flake8-quotes
+    "RET",   # flake8-return
+    "RSE",   # flake8-raise
+    "RUF",   # Ruff-specific rules
+    "S",     # flake8-bandit
+    "SIM",   # flake8-simplify
+    "SLOT",  # flake8-slots
+    "T10",   # flake8-debugger
+    "T20",   # flake8-print
+    "TD",    # flake8-todos
+    "TID",   # flake8-tidy-imports
+    "TRY",   # tryceratops
+    "UP",    # pyupgrade
+    "W",     # pycodestyle
+    "YTT",   # flake8-2020
+]
 exclude=[
     "astropy/extern/*",
     "*_parsetab.py",
@@ -316,16 +404,12 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # New ones should be avoided and is up to maintainers to enforce.
     "A00",
 
-    # flake8-annotations (ANN)
-    "ANN101",  # No annotation for `self`.
-    "ANN102",  # No annotation for `cls`.
-
     # flake8-bugbear (B)
     "B008",  # FunctionCallArgumentDefault
 
     # flake8-commas (COM)
-    "COM812",  # TrailingCommaMissing
-    "COM819",  # TrailingCommaProhibited
+    "COM812",  # TrailingCommaMissing, conflicts with Ruff formatter
+    "COM819",  # TrailingCommaProhibited, conflicts with Ruff formatter
 
     # pydocstyle (D)
     # Missing Docstrings
@@ -333,6 +417,8 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     "D105",  # Missing docstring in magic method. Don't check b/c class docstring.
     # Whitespace Issues
     "D200",  # FitsOnOneLine
+    # Quotes Issues
+    "D300",  # triple-single-quotes, conflicts with Ruff formatter
     # Docstring Content Issues
     "D410",  # BlankLineAfterSection. Using D412 instead.
     "D400",  # EndsInPeriod.  NOTE: might want to revisit this.
@@ -344,10 +430,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # flake8-fixme (FIX)
     "FIX002",  # Line contains TODO | notes for improvements are OK iff the code works
 
-    # ISC001 shouldn't be used with ruff format
-    # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
-    "ISC001",
-
     # pep8-naming (N)
     "N803",  # invalid-argument-name. Physics variables are often poor code variables
     "N806",  # non-lowercase-variable-in-function. Physics variables are often poor code variables
@@ -355,14 +437,33 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # pandas-vet (PD)
     "PD",
 
+    # pylint (PLC, PLR and PLW)
+    "PLR1730", # if-stmt-min-max (not always clearer, and sometimes slower)
+    "PLW0642", # self-or-cls-assignment (occasionally desirable, very rarely a mistake)
+
+    # flake8-use-pathlib (PTH)
+    "PTH123", # builtin-open (not worth creating a Path object, builtin open is fine)
+
+    # flake8-quotes (Q)
+    "Q000",  # use double quotes, conflicts with Ruff formatter
+
+    # flake8-return (RET)
+    # RET can sometimes help find places where refactoring is very helpful,
+    # but enforcing it everywhere might create undesirable churn
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
+
+    # Ruff-specific rules (RUF)
+    "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
+
+    # flake8-simplify (SIM)
+    "SIM103", # needless-bool (cannot be safely applied in all contexts (np.True_ is not True))
+
     # flake8-self (SLF)
     "SLF001", # private member access
 
     # flake8-todos (TD)
     "TD002",  # Missing author in TODO
-
-    # Ruff-specific rules (RUF)
-    "RUF005",  # unpack-instead-of-concatenating-to-collection-literal -- it's not clearly faster.
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
@@ -384,10 +485,9 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 "docs/*.py" = [
     "INP001",  # implicit-namespace-package. The examples are not a package.
 ]
-"examples/*.py" = [
-    "E402",   # Imports are done as needed.
-    "INP001", # implicit-namespace-package. The examples are not a package.
-    "T203"    # pprint found
+"__init__.py" = [
+    "E402", # module level import not at top of file
+    "F403", # Wildcard imports
 ]
 
 [tool.ruff.lint.flake8-annotations]
@@ -396,9 +496,6 @@ mypy-init-return = true
 
 [tool.ruff.lint.flake8-comprehensions]
 allow-dict-calls-with-keyword-arguments = true
-
-[tool.ruff.lint.flake8-type-checking]
-exempt-modules = []
 
 [tool.ruff.lint.isort]
 known-first-party = ["astropy", "extension_helpers"]
@@ -414,6 +511,7 @@ ignore = [
     "PC180", # ignore using `prettier` in pre-commit
     "PC901", # ignore using custom update message (we have many of the default ones in our history already)
     "PP308", # ignore requiring `-ra` flag for pytest, astropy's test suite is too large for this to be useful
+    "PY005", # ignore requiring a root level "test*" directory
 ]
 
 [tool.towncrier]
@@ -437,6 +535,11 @@ ignore = [
     [[tool.towncrier.type]]
         directory = "bugfix"
         name = "Bug Fixes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "perf"
+        name = "Performance Improvements"
         showcontent = true
 
     [[tool.towncrier.type]]
@@ -560,76 +663,54 @@ ignore = [
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
 
-    [tool.gilesbot.circleci_artifacts.py310-test-image-mpl334]
-        url = ".tmp/py310-test-image-mpl334/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons, for py310-test-image-mpl334."
+    [tool.gilesbot.circleci_artifacts.py311-test-image-mpl380]
+        url = ".tmp/py311-test-image-mpl380/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons, for py311-test-image-mpl380."
         report_on_fail = true
 
-    [tool.gilesbot.circleci_artifacts.py310-test-image-mpldev]
-        url = ".tmp/py310-test-image-mpldev/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons for py310-test-image-mpldev."
+    [tool.gilesbot.circleci_artifacts.py311-test-image-mpldev]
+        url = ".tmp/py311-test-image-mpldev/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons for py311-test-image-mpldev."
         report_on_fail = true
 
 [tool.codespell]
-skip = "*.cff,*.dat,*.fits,*.hdr,*.xml,*egg*,*extern/*,.git,.tox,_build,fitshdr.htest_groups.py,venv,_*.c,wcs.h,lin.h,tab.h,spc.h,cython*"
+skip = """
+    *.cff,
+    */data/*,
+    *extern/*,
+    astropy/CITATION,
+    docs/credits.rst,
+    *_lextab.py,
+    *_parsetab.py,
+    astropy/wcs/tests/test_wcs.py
+"""
 # The following list of words for codespell to ignore may contain some
 # misspellings that should be revisited and fixed in the future.
 ignore-words-list = """
     aas,
-    afile,
     ans,
     clen,
-    cna,
-    compiletime,
     coo,
     datas,
     ded,
-    dfine,
-    dne,
-    doesnt,
-    dout,
     dum,
-    falsy,
     fo,
-    fot,
-    hart,
     hel,
-    hendler,
-    inflight,
-    inout,
     lightyear,
-    lod,
     lond,
-    mapp,
-    milimeter,
-    moreso,
     nax,
     nd,
-    ndefined,
     ned,
     nin,
     numer,
-    ond,
-    ot,
     precess,
     precessed,
     precesses,
     precessing,
     pres,
-    rade,
-    rotat,
-    siz,
     som,
     splitted,
     stil,
-    struc,
     te,
-    thex,
-    timere,
-    tread,
-    trun,
-    ue,
-    valu,
-    watn,
-    watstr,
-    wirth"""
+    wirth,
+"""

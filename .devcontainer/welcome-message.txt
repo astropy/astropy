@@ -2,7 +2,7 @@
 
 🔍 To explore VS Code to its fullest, search using the Command Palette (Cmd/Ctrl + Shift + P or F1).
 
-ℹ️  Look at https://docs.astropy.org/en/latest/development/workflow/development_workflow.html
+ℹ️  Look at https://docs.astropy.org/en/latest/development/quickstart.html
     for more contribution details.
 
 ⭐⭐ =================================  IMPORTANT!!  ================================== ⭐⭐

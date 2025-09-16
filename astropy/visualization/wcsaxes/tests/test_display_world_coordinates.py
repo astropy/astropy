@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import matplotlib as mpl
-import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backend_bases import KeyEvent
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 
 import astropy.units as u
 from astropy.coordinates import FK5, SkyCoord, galactocentric_frame_defaults
@@ -14,15 +15,12 @@ from .test_images import BaseImageTests
 
 
 class TestDisplayWorldCoordinate(BaseImageTests):
-    def teardown_method(self, method):
-        plt.close("all")
-
     def test_overlay_coords(self, ignore_matplotlibrc, tmp_path):
         minus_sign = "\N{MINUS SIGN}" if mpl.rcParams["axes.unicode_minus"] else "-"
         wcs = WCS(self.msx_header)
 
-        fig = plt.figure(figsize=(4, 4))
-        canvas = fig.canvas
+        fig = Figure(figsize=(4, 4))
+        canvas = FigureCanvasAgg(fig)
 
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
         fig.add_axes(ax)
@@ -107,8 +105,8 @@ class TestDisplayWorldCoordinate(BaseImageTests):
     def test_cube_coords(self, ignore_matplotlibrc, tmp_path):
         wcs = WCS(self.cube_header)
 
-        fig = plt.figure(figsize=(4, 4))
-        canvas = fig.canvas
+        fig = Figure(figsize=(4, 4))
+        canvas = FigureCanvasAgg(fig)
 
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs, slices=("y", 50, "x"))
         fig.add_axes(ax)
@@ -133,8 +131,8 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         wcs = WCS(self.cube_header)
 
-        fig = plt.figure(figsize=(4, 4))
-        canvas = fig.canvas
+        fig = Figure(figsize=(4, 4))
+        canvas = FigureCanvasAgg(fig)
 
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs, slices=("x", "y", 2))
         fig.add_axes(ax)
@@ -159,7 +157,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         with galactocentric_frame_defaults.set("latest"):
             coord = SkyCoord(0 * u.kpc, 0 * u.kpc, 0 * u.kpc, frame="galactocentric")
 
-        fig = plt.figure()
+        fig = Figure()
         ax = fig.add_subplot(1, 1, 1, projection=wcs)
         (point,) = ax.plot_coord(coord, "ro")
 

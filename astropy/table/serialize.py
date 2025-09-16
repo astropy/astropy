@@ -38,6 +38,7 @@ __construct_mixin_classes = (
     "astropy.table.column.Column",
     "astropy.table.column.MaskedColumn",
     "astropy.utils.masked.core.MaskedNDArray",
+    "astropy.utils.masked.core.MaskedRecarray",
     # Angles
     "astropy.coordinates.angles.core.Latitude",
     "astropy.coordinates.angles.core.Longitude",
@@ -111,6 +112,17 @@ class SerializedColumn(dict):
         return next(
             (value.shape for value in self.values() if hasattr(value, "shape")), ()
         )
+
+    def __repr__(self):
+        """Representation of SerializedColumn
+
+        Examples
+        --------
+        >>> from astropy.table.serialize import SerializedColumn
+        >>> SerializedColumn({"a": 1})
+        SerializedColumn({'a': 1})
+        """
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
 
 def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=()):
@@ -193,7 +205,10 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=
         if not has_info_class(data, MixinInfo):
             col_cls = (
                 MaskedColumn
-                if (hasattr(data, "mask") and np.any(data.mask))
+                if (
+                    hasattr(data, "mask")
+                    and np.any(data.mask != np.zeros((), data.mask.dtype))
+                )
                 else Column
             )
             data = col_cls(data, name=new_name, **new_info)
@@ -332,7 +347,14 @@ def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
         mixin.info.name = info["name"]
         return mixin
 
-    if cls_full_name not in __construct_mixin_classes:
+    # We translate locally created skyoffset frames and treat all
+    # built-in frames as known.
+    if cls_full_name.startswith("abc.SkyOffset"):
+        cls_full_name = "astropy.coordinates.SkyOffsetFrame"
+    elif (
+        cls_full_name not in __construct_mixin_classes
+        and not cls_full_name.startswith("astropy.coordinates.builtin_frames")
+    ):
         raise ValueError(f"unsupported class for construct {cls_full_name}")
 
     mod_name, _, cls_name = cls_full_name.rpartition(".")

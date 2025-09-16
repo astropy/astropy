@@ -1,93 +1,35 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
+from collections.abc import Callable
+from typing import Literal
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
+from astropy.stats.biweight import biweight_location, biweight_scale
 from astropy.stats.funcs import mad_std
+from astropy.stats.nanfunctions import (
+    nanmadstd,
+    nanmax,
+    nanmean,
+    nanmedian,
+    nanmin,
+    nanstd,
+    nansum,
+    nanvar,
+)
 from astropy.units import Quantity
-from astropy.utils import isiterable
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
-from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
 from astropy.utils.exceptions import AstropyUserWarning
-
-if HAS_BOTTLENECK:
-    import bottleneck
 
 if NUMPY_LT_2_0:
     from numpy.core.multiarray import normalize_axis_index
 else:
     from numpy.lib.array_utils import normalize_axis_index
 
-__all__ = ["SigmaClip", "sigma_clip", "sigma_clipped_stats"]
-
-
-def _move_tuple_axes_first(array, axis):
-    """
-    Bottleneck can only take integer axis, not tuple, so this function
-    takes all the axes to be operated on and combines them into the
-    first dimension of the array so that we can then use axis=0.
-    """
-    # Figure out how many axes we are operating over
-    naxis = len(axis)
-
-    # Add remaining axes to the axis tuple
-    axis += tuple(i for i in range(array.ndim) if i not in axis)
-
-    # The new position of each axis is just in order
-    destination = tuple(range(array.ndim))
-
-    # Reorder the array so that the axes being operated on are at the
-    # beginning
-    array_new = np.moveaxis(array, axis, destination)
-
-    # Collapse the dimensions being operated on into a single dimension
-    # so that we can then use axis=0 with the bottleneck functions
-    array_new = array_new.reshape((-1,) + array_new.shape[naxis:])
-
-    return array_new
-
-
-def _nanmean(array, axis=None):
-    """Bottleneck nanmean function that handle tuple axis."""
-    if isinstance(axis, tuple):
-        array = _move_tuple_axes_first(array, axis=axis)
-        axis = 0
-
-    if isinstance(array, Quantity):
-        return array.__array_wrap__(bottleneck.nanmean(array, axis=axis))
-    else:
-        return bottleneck.nanmean(array, axis=axis)
-
-
-def _nanmedian(array, axis=None):
-    """Bottleneck nanmedian function that handle tuple axis."""
-    if isinstance(axis, tuple):
-        array = _move_tuple_axes_first(array, axis=axis)
-        axis = 0
-
-    if isinstance(array, Quantity):
-        return array.__array_wrap__(bottleneck.nanmedian(array, axis=axis))
-    else:
-        return bottleneck.nanmedian(array, axis=axis)
-
-
-def _nanstd(array, axis=None, ddof=0):
-    """Bottleneck nanstd function that handle tuple axis."""
-    if isinstance(axis, tuple):
-        array = _move_tuple_axes_first(array, axis=axis)
-        axis = 0
-
-    if isinstance(array, Quantity):
-        return array.__array_wrap__(bottleneck.nanstd(array, axis=axis, ddof=ddof))
-    else:
-        return bottleneck.nanstd(array, axis=axis, ddof=ddof)
-
-
-def _nanmadstd(array, axis=None):
-    """mad_std function that ignores NaNs by default."""
-    return mad_std(array, axis=axis, ignore_nan=True)
+__all__ = ["SigmaClip", "SigmaClippedStats", "sigma_clip", "sigma_clipped_stats"]
 
 
 class SigmaClip:
@@ -174,15 +116,16 @@ class SigmaClip:
 
     See Also
     --------
-    sigma_clip, sigma_clipped_stats
+    sigma_clip, sigma_clipped_stats, SigmaClippedStats
 
     Notes
     -----
     The best performance will typically be obtained by setting
     ``cenfunc`` and ``stdfunc`` to one of the built-in functions
-    specified as as string. If one of the options is set to a string
+    specified as a string. If one of the options is set to a string
     while the other has a custom callable, you may in some cases see
     better performance if you have the `bottleneck`_ package installed.
+    To preserve accuracy, bottleneck is only used for float64 computations.
 
     .. _bottleneck:  https://github.com/pydata/bottleneck
 
@@ -225,14 +168,14 @@ class SigmaClip:
 
     def __init__(
         self,
-        sigma=3.0,
-        sigma_lower=None,
-        sigma_upper=None,
-        maxiters=5,
-        cenfunc="median",
-        stdfunc="std",
-        grow=False,
-    ):
+        sigma: float = 3.0,
+        sigma_lower: float | None = None,
+        sigma_upper: float | None = None,
+        maxiters: int | None = 5,
+        cenfunc: Literal["median", "mean"] | Callable = "median",
+        stdfunc: Literal["std", "mad_std"] | Callable = "std",
+        grow: float | Literal[False] | None = False,
+    ) -> None:
         self.sigma = sigma
         self.sigma_lower = sigma_lower or sigma
         self.sigma_upper = sigma_upper or sigma
@@ -253,14 +196,14 @@ class SigmaClip:
 
             self._binary_dilation = binary_dilation
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"SigmaClip(sigma={self.sigma}, sigma_lower={self.sigma_lower},"
             f" sigma_upper={self.sigma_upper}, maxiters={self.maxiters},"
             f" cenfunc={self.cenfunc!r}, stdfunc={self.stdfunc!r}, grow={self.grow})"
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         lines = ["<" + self.__class__.__name__ + ">"]
         attrs = [
             "sigma",
@@ -276,19 +219,15 @@ class SigmaClip:
         return "\n".join(lines)
 
     @staticmethod
-    def _parse_cenfunc(cenfunc):
+    def _parse_cenfunc(
+        cenfunc: Literal["median", "mean"] | Callable | None,
+    ) -> Callable | None:
         if isinstance(cenfunc, str):
             if cenfunc == "median":
-                if HAS_BOTTLENECK:
-                    cenfunc = _nanmedian
-                else:
-                    cenfunc = np.nanmedian  # pragma: no cover
+                cenfunc = nanmedian
 
             elif cenfunc == "mean":
-                if HAS_BOTTLENECK:
-                    cenfunc = _nanmean
-                else:
-                    cenfunc = np.nanmean  # pragma: no cover
+                cenfunc = nanmean
 
             else:
                 raise ValueError(f"{cenfunc} is an invalid cenfunc.")
@@ -296,32 +235,45 @@ class SigmaClip:
         return cenfunc
 
     @staticmethod
-    def _parse_stdfunc(stdfunc):
+    def _parse_stdfunc(
+        stdfunc: Literal["std", "mad_std"] | Callable | None,
+    ) -> Callable | None:
         if isinstance(stdfunc, str):
             if stdfunc == "std":
-                if HAS_BOTTLENECK:
-                    stdfunc = _nanstd
-                else:
-                    stdfunc = np.nanstd  # pragma: no cover
+                stdfunc = nanstd
             elif stdfunc == "mad_std":
-                stdfunc = _nanmadstd
+                stdfunc = nanmadstd
             else:
                 raise ValueError(f"{stdfunc} is an invalid stdfunc.")
 
         return stdfunc
 
-    def _compute_bounds(self, data, axis=None):
+    def _compute_bounds(
+        self,
+        data: ArrayLike,
+        axis: int | tuple[int, ...] | None = None,
+    ) -> None:
         # ignore RuntimeWarning if the array (or along an axis) has only
         # NaNs
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            self._max_value = self._cenfunc_parsed(data, axis=axis)
+            cen = self._cenfunc_parsed(data, axis=axis)
             std = self._stdfunc_parsed(data, axis=axis)
-            self._min_value = self._max_value - (std * self.sigma_lower)
-            self._max_value += std * self.sigma_upper
+            self._min_value = cen - (std * self.sigma_lower)
+            self._max_value = cen + (std * self.sigma_upper)
 
     def _sigmaclip_fast(
-        self, data, axis=None, masked=True, return_bounds=False, copy=True
+        self,
+        data: ArrayLike,
+        axis: int | tuple[int, ...] | None = None,
+        masked: bool | None = True,
+        return_bounds: bool | None = False,
+        copy: bool | None = True,
+    ) -> (
+        NDArray
+        | np.ma.MaskedArray
+        | tuple[NDArray | np.ma.MaskedArray, float, float]
+        | tuple[NDArray | np.ma.MaskedArray, NDArray, NDArray]
     ):
         """
         Fast C implementation for simple use cases.
@@ -341,7 +293,7 @@ class SigmaClip:
         if axis is None:
             axis = -1 if data.ndim == 1 else tuple(range(data.ndim))
 
-        if not isiterable(axis):
+        if not np.iterable(axis):
             axis = normalize_axis_index(axis, data.ndim)
             data_reshaped = data
             transposed_shape = None
@@ -402,10 +354,14 @@ class SigmaClip:
         if masked:
             result = np.ma.array(data, mask=mask, copy=copy)
         else:
-            if copy:
-                result = data.astype(float, copy=True)
+            if data.dtype.kind != "f":
+                # float array type is needed to insert nans into the array
+                result = data.astype(np.float32)  # also makes a copy
             else:
-                result = data
+                if copy:
+                    result = data.copy()
+                else:
+                    result = data
             result[mask] = np.nan
 
         if unit is not None:
@@ -418,7 +374,13 @@ class SigmaClip:
         else:
             return result
 
-    def _sigmaclip_noaxis(self, data, masked=True, return_bounds=False, copy=True):
+    def _sigmaclip_noaxis(
+        self,
+        data: ArrayLike,
+        masked: bool | None = True,
+        return_bounds: bool | None = False,
+        copy: bool | None = True,
+    ) -> NDArray | np.ma.MaskedArray | tuple[NDArray | np.ma.MaskedArray, float, float]:
         """
         Sigma clip when ``axis`` is None and ``grow`` is not >0.
 
@@ -471,7 +433,17 @@ class SigmaClip:
             return filtered_data
 
     def _sigmaclip_withaxis(
-        self, data, axis=None, masked=True, return_bounds=False, copy=True
+        self,
+        data: ArrayLike,
+        axis: int | tuple[int, ...] | None = None,
+        masked: bool | None = True,
+        return_bounds: bool | None = False,
+        copy: bool | None = True,
+    ) -> (
+        NDArray
+        | np.ma.MaskedArray
+        | tuple[NDArray | np.ma.MaskedArray, float, float]
+        | tuple[NDArray | np.ma.MaskedArray, NDArray, NDArray]
     ):
         """
         Sigma clip the data when ``axis`` or ``grow`` is specified.
@@ -479,8 +451,11 @@ class SigmaClip:
         In this case, we replace clipped values with NaNs as placeholder
         values.
         """
-        # float array type is needed to insert nans into the array
-        filtered_data = data.astype(float)  # also makes a copy
+        if data.dtype.kind != "f":
+            # float array type is needed to insert nans into the array
+            filtered_data = data.astype(np.float32)  # also makes a copy
+        else:
+            filtered_data = data.copy()
 
         # remove invalid values
         bad_mask = ~np.isfinite(filtered_data)
@@ -499,7 +474,7 @@ class SigmaClip:
 
         if axis is not None:
             # convert negative axis/axes
-            if not isiterable(axis):
+            if not np.iterable(axis):
                 axis = (axis,)
             axis = tuple(filtered_data.ndim + n if n < 0 else n for n in axis)
 
@@ -574,7 +549,19 @@ class SigmaClip:
         else:
             return filtered_data
 
-    def __call__(self, data, axis=None, masked=True, return_bounds=False, copy=True):
+    def __call__(
+        self,
+        data: ArrayLike,
+        axis: int | tuple[int, ...] | None = None,
+        masked: bool | None = True,
+        return_bounds: bool | None = False,
+        copy: bool | None = True,
+    ) -> (
+        NDArray
+        | np.ma.MaskedArray
+        | tuple[NDArray | np.ma.MaskedArray, float, float]
+        | tuple[NDArray | np.ma.MaskedArray, NDArray, NDArray]
+    ):
         """
         Perform sigma clipping on the provided data.
 
@@ -627,11 +614,12 @@ class SigmaClip:
             If ``masked=False`` and ``axis`` is specified, then the
             output `~numpy.ndarray` will have the same shape as the
             input ``data`` and contain ``np.nan`` where values were
-            clipped. If the input ``data`` was a masked array, then the
-            output `~numpy.ndarray` will also contain ``np.nan`` where
-            the input mask was `True`. If ``return_bounds=True`` then
-            the returned minimum and maximum clipping thresholds will be
-            be `~numpy.ndarray`\\s.
+            clipped. In this case, integer-type ``data`` arrays will
+            be converted to `~numpy.float32`. If the input ``data``
+            was a masked array, then the output `~numpy.ndarray` will
+            also contain ``np.nan`` where the input mask was `True`. If
+            ``return_bounds=True`` then the returned minimum and maximum
+            clipping thresholds will be be `~numpy.ndarray`\\s.
         """
         data = np.asanyarray(data)
 
@@ -684,19 +672,19 @@ class SigmaClip:
 
 
 def sigma_clip(
-    data,
-    sigma=3,
-    sigma_lower=None,
-    sigma_upper=None,
-    maxiters=5,
-    cenfunc="median",
-    stdfunc="std",
-    axis=None,
-    masked=True,
-    return_bounds=False,
-    copy=True,
-    grow=False,
-):
+    data: ArrayLike,
+    sigma: float = 3.0,
+    sigma_lower: float | None = None,
+    sigma_upper: float | None = None,
+    maxiters: int | None = 5,
+    cenfunc: Literal["median", "mean"] | Callable = "median",
+    stdfunc: Literal["std", "mad_std"] | Callable = "std",
+    axis: int | tuple[int, ...] | None = None,
+    masked: bool | None = True,
+    return_bounds: bool | None = False,
+    copy: bool | None = True,
+    grow: float | Literal[False] | None = False,
+) -> ArrayLike | tuple[ArrayLike, float, float] | tuple[ArrayLike, ...]:
     """
     Perform sigma-clipping on the provided data.
 
@@ -821,25 +809,28 @@ def sigma_clip(
         have been removed. If ``return_bounds=True`` then the returned
         minimum and maximum thresholds are scalars.
 
-        If ``masked=False`` and ``axis`` is specified, then the output
-        `~numpy.ndarray` will have the same shape as the input ``data``
-        and contain ``np.nan`` where values were clipped. If the input
-        ``data`` was a masked array, then the output `~numpy.ndarray`
-        will also contain ``np.nan`` where the input mask was `True`.
-        If ``return_bounds=True`` then the returned minimum and maximum
-        clipping thresholds will be be `~numpy.ndarray`\\s.
+        If ``masked=False`` and ``axis`` is specified, then the
+        output `~numpy.ndarray` will have the same shape as the input
+        ``data`` and contain ``np.nan`` where values were clipped. In
+        this case, integer-type ``data`` arrays will be converted to
+        `~numpy.float32`. If the input ``data`` was a masked array,
+        then the output `~numpy.ndarray` will also contain ``np.nan``
+        where the input mask was `True`. If ``return_bounds=True`` then
+        the returned minimum and maximum clipping thresholds will be
+        `~numpy.ndarray`\\s.
 
     See Also
     --------
-    SigmaClip, sigma_clipped_stats
+    SigmaClip, sigma_clipped_stats, SigmaClippedStats
 
     Notes
     -----
     The best performance will typically be obtained by setting
     ``cenfunc`` and ``stdfunc`` to one of the built-in functions
-    specified as as string. If one of the options is set to a string
+    specified as a string. If one of the options is set to a string
     while the other has a custom callable, you may in some cases see
     better performance if you have the `bottleneck`_ package installed.
+    To preserve accuracy, bottleneck is only used for float64 computations.
 
     .. _bottleneck:  https://github.com/pydata/bottleneck
 
@@ -892,20 +883,344 @@ def sigma_clip(
     )
 
 
+class SigmaClippedStats:
+    """
+    Class to calculate sigma-clipped statistics on the provided data.
+
+    Parameters
+    ----------
+    data : array-like or `~numpy.ma.MaskedArray`
+        Data array or object that can be converted to an array.
+
+    mask : `numpy.ndarray` (bool), optional
+        A boolean mask with the same shape as ``data``, where a `True`
+        value indicates the corresponding element of ``data`` is masked.
+        Masked pixels are excluded when computing the statistics.
+
+    mask_value : float, optional
+        A data value (e.g., ``0.0``) that is ignored when computing the
+        statistics. ``mask_value`` will be masked in addition to any
+        input ``mask``.
+
+    sigma : float, optional
+        The number of standard deviations to use for both the lower
+        and upper clipping limit. These limits are overridden by
+        ``sigma_lower`` and ``sigma_upper``, if input. The default is 3.
+
+    sigma_lower : float or None, optional
+        The number of standard deviations to use as the lower bound for
+        the clipping limit. If `None` then the value of ``sigma`` is
+        used. The default is `None`.
+
+    sigma_upper : float or None, optional
+        The number of standard deviations to use as the upper bound for
+        the clipping limit. If `None` then the value of ``sigma`` is
+        used. The default is `None`.
+
+    maxiters : int or None, optional
+        The maximum number of sigma-clipping iterations to perform or
+        `None` to clip until convergence is achieved (i.e., iterate
+        until the last iteration clips nothing). If convergence is
+        achieved prior to ``maxiters`` iterations, the clipping
+        iterations will stop. The default is 5.
+
+    cenfunc : {'median', 'mean'} or callable, optional
+        The statistic or callable function/object used to compute
+        the center value for the clipping. If using a callable
+        function/object and the ``axis`` keyword is used, then it must
+        be able to ignore NaNs (e.g., `numpy.nanmean`) and it must have
+        an ``axis`` keyword to return an array with axis dimension(s)
+        removed. The default is ``'median'``.
+
+    stdfunc : {'std', 'mad_std'} or callable, optional
+        The statistic or callable function/object used to compute the
+        standard deviation about the center value. If using a callable
+        function/object and the ``axis`` keyword is used, then it must
+        be able to ignore NaNs (e.g., `numpy.nanstd`) and it must have
+        an ``axis`` keyword to return an array with axis dimension(s)
+        removed. The default is ``'std'``.
+
+    axis : None or int or tuple of int, optional
+        The axis or axes along which to sigma clip the data. If `None`,
+        then the flattened data will be used. ``axis`` is passed to the
+        ``cenfunc`` and ``stdfunc``. The default is `None`.
+
+    grow : float or `False`, optional
+        Radius within which to mask the neighbouring pixels of those
+        that fall outwith the clipping limits (only applied along
+        ``axis``, if specified). As an example, for a 2D image a value
+        of 1 will mask the nearest pixels in a cross pattern around each
+        deviant pixel, while 1.5 will also reject the nearest diagonal
+        neighbours and so on.
+
+    Notes
+    -----
+    The best performance will typically be obtained by setting
+    ``cenfunc`` and ``stdfunc`` to one of the built-in functions
+    specified as a string. If one of the options is set to a string
+    while the other has a custom callable, you may in some cases
+    see better performance if you have the `bottleneck`_ package
+    installed. To preserve accuracy, bottleneck is only used for float64
+    computations.
+
+    .. _bottleneck:  https://github.com/pydata/bottleneck
+
+    See Also
+    --------
+    sigma_clipped_stats, SigmaClip, sigma_clip
+    """
+
+    def __init__(
+        self,
+        data: ArrayLike,
+        *,
+        mask: NDArray | None = None,
+        mask_value: float | None = None,
+        sigma: float = 3.0,
+        sigma_lower: float | None = None,
+        sigma_upper: float | None = None,
+        maxiters: int = 5,
+        cenfunc: Literal["median", "mean"] | Callable = "median",
+        stdfunc: Literal["std", "mad_std"] | Callable = "std",
+        axis: int | tuple[int, ...] | None = None,
+        grow: float | Literal[False] | None = False,
+    ) -> None:
+        sigclip = SigmaClip(
+            sigma=sigma,
+            sigma_lower=sigma_lower,
+            sigma_upper=sigma_upper,
+            maxiters=maxiters,
+            cenfunc=cenfunc,
+            stdfunc=stdfunc,
+            grow=grow,
+        )
+
+        if mask is not None:
+            data = np.ma.MaskedArray(data, mask)
+        if mask_value is not None:
+            data = np.ma.masked_values(data, mask_value)
+
+        if isinstance(data, np.ma.MaskedArray) and data.mask.all():
+            raise ValueError("input data is all masked")
+
+        self.data = sigclip(
+            data, axis=axis, masked=False, return_bounds=False, copy=True
+        )
+        self.axis = axis
+
+    def min(self) -> float | NDArray:
+        """
+        Calculate the minimum of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        min : float or `~numpy.ndarray`
+            The minimum of the data.
+        """
+        return nanmin(self.data, axis=self.axis)
+
+    def max(self) -> float | NDArray:
+        """
+        Calculate the maximum of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        max : float or `~numpy.ndarray`
+            The maximum of the data.
+        """
+        return nanmax(self.data, axis=self.axis)
+
+    def sum(self) -> float | NDArray:
+        """
+        Calculate the sum of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        sum : float or `~numpy.ndarray`
+            The sum of the data.
+        """
+        return nansum(self.data, axis=self.axis)
+
+    def mean(self) -> float | NDArray:
+        """
+        Calculate the mean of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        mean : float or `~numpy.ndarray`
+            The mean of the data.
+        """
+        return nanmean(self.data, axis=self.axis)
+
+    def median(self) -> float | NDArray:
+        """
+        Calculate the median of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        median : float or `~numpy.ndarray`
+            The median of the data.
+        """
+        return nanmedian(self.data, axis=self.axis)
+
+    def mode(
+        self, median_factor: float = 3.0, mean_factor: float = 2.0
+    ) -> float | NDArray:
+        """
+        Calculate the mode of the data using a estimator of the form
+        ``(median_factor * median) - (mean_factor * mean)``.
+
+        NaN values are ignored.
+
+        Parameters
+        ----------
+        median_factor : float, optional
+            The multiplicative factor for the data median. Defaults to 3.
+
+        mean_factor : float, optional
+            The multiplicative factor for the data mean. Defaults to 2.
+
+        Returns
+        -------
+        mode : float or `~numpy.ndarray`
+            The estimated mode of the data.
+        """
+        return (median_factor * self.median()) - (mean_factor * self.mean())
+
+    def std(self, ddof: int = 0) -> float | NDArray:
+        """
+        Calculate the standard deviation of the data.
+
+        NaN values are ignored.
+
+        Parameters
+        ----------
+        ddof : int, optional
+            The delta degrees of freedom for the standard deviation
+            calculation. The divisor used in the calculation is ``N -
+            ddof``, where ``N`` represents the number of elements. For
+            a population standard deviation where you have data for the
+            entire population, use ``ddof=0``. For a sample standard
+            deviation where you have a sample of the population, use
+            ``ddof=1``. The default is 0.
+
+        Returns
+        -------
+        std : float or `~numpy.ndarray`
+            The standard deviation of the data.
+        """
+        return nanstd(self.data, axis=self.axis, ddof=ddof)
+
+    def var(self, ddof: int = 0) -> float | NDArray:
+        """
+        Calculate the variance of the data.
+
+        NaN values are ignored.
+
+        Parameters
+        ----------
+        ddof : int, optional
+            The delta degrees of freedom. The divisor used in the
+            calculation is ``N - ddof``, where ``N`` represents the
+            number of elements. For a population variance where you have
+            data for the entire population, use ``ddof=0``. For a sample
+            variance where you have a sample of the population, use
+            ``ddof=1``. The default is 0.
+
+        Returns
+        -------
+        var : float or `~numpy.ndarray`
+            The variance of the data.
+        """
+        return nanvar(self.data, axis=self.axis, ddof=ddof)
+
+    def biweight_location(
+        self, c: float = 6.0, M: float | None = None
+    ) -> float | NDArray:
+        """
+        Calculate the biweight location of the data.
+
+        NaN values are ignored.
+
+        Parameters
+        ----------
+        c : float, optional
+            Tuning constant for the biweight estimator. Default value is
+            6.0.
+
+        M : float or None, optional
+            Initial guess for the biweight location. Default value is
+            `None`.
+
+        Returns
+        -------
+        biweight_location : float or `~numpy.ndarray`
+            The biweight location of the data.
+        """
+        return biweight_location(self.data, c=c, M=M, axis=self.axis, ignore_nan=True)
+
+    def biweight_scale(self, c: float = 6.0, M: float | None = None) -> float | NDArray:
+        """
+        Calculate the biweight scale of the data.
+
+        NaN values are ignored.
+
+        Parameters
+        ----------
+        c : float, optional
+            Tuning constant for the biweight estimator. Default value is
+            6.0.
+
+        M : float or None, optional
+            Initial guess for the biweight location. Default value is
+            `None`.
+
+        Returns
+        -------
+        biweight_scale : float or `~numpy.ndarray`
+            The biweight scale of the data.
+        """
+        return biweight_scale(self.data, c=c, M=M, axis=self.axis, ignore_nan=True)
+
+    def mad_std(self) -> float | NDArray:
+        """
+        Calculate the median absolute deviation (MAD) based standard
+        deviation of the data.
+
+        NaN values are ignored.
+
+        Returns
+        -------
+        mad_std : float or `~numpy.ndarray`
+            The MAD-based standard deviation of the data.
+        """
+        return mad_std(self.data, axis=self.axis, ignore_nan=True)
+
+
 def sigma_clipped_stats(
-    data,
-    mask=None,
-    mask_value=None,
-    sigma=3.0,
-    sigma_lower=None,
-    sigma_upper=None,
-    maxiters=5,
-    cenfunc="median",
-    stdfunc="std",
-    std_ddof=0,
-    axis=None,
-    grow=False,
-):
+    data: ArrayLike,
+    mask: NDArray | None = None,
+    mask_value: float | None = None,
+    sigma: float = 3.0,
+    sigma_lower: float | None = None,
+    sigma_upper: float | None = None,
+    maxiters: int | None = 5,
+    cenfunc: Literal["median", "mean"] | Callable = "median",
+    stdfunc: Literal["std", "mad_std"] | Callable = "std",
+    std_ddof: int = 0,
+    axis: int | tuple[int, ...] | None = None,
+    grow: float | Literal[False] | None = False,
+) -> tuple[float, float, float]:
     """
     Calculate sigma-clipped statistics on the provided data.
 
@@ -965,8 +1280,11 @@ def sigma_clipped_stats(
     std_ddof : int, optional
         The delta degrees of freedom for the standard deviation
         calculation. The divisor used in the calculation is ``N -
-        std_ddof``, where ``N`` represents the number of elements. The
-        default is 0.
+        std_ddof``, where ``N`` represents the number of elements. For a
+        population standard deviation where you have data for the entire
+        population, use ``std_ddof=0``. For a sample standard deviation
+        where you have a sample of the population, use ``std_ddof=1``.
+        The default is 0.
 
     axis : None or int or tuple of int, optional
         The axis or axes along which to sigma clip the data. If `None`,
@@ -985,9 +1303,10 @@ def sigma_clipped_stats(
     -----
     The best performance will typically be obtained by setting
     ``cenfunc`` and ``stdfunc`` to one of the built-in functions
-    specified as as string. If one of the options is set to a string
+    specified as a string. If one of the options is set to a string
     while the other has a custom callable, you may in some cases see
     better performance if you have the `bottleneck`_ package installed.
+    To preserve accuracy, bottleneck is only used for float64 computations.
 
     .. _bottleneck:  https://github.com/pydata/bottleneck
 
@@ -999,7 +1318,7 @@ def sigma_clipped_stats(
 
     See Also
     --------
-    SigmaClip, sigma_clip
+    SigmaClippedStats, SigmaClip, sigma_clip
     """
     if mask is not None:
         data = np.ma.MaskedArray(data, mask)
@@ -1009,26 +1328,16 @@ def sigma_clipped_stats(
     if isinstance(data, np.ma.MaskedArray) and data.mask.all():
         return np.ma.masked, np.ma.masked, np.ma.masked
 
-    sigclip = SigmaClip(
+    stats = SigmaClippedStats(
+        data,
         sigma=sigma,
         sigma_lower=sigma_lower,
         sigma_upper=sigma_upper,
         maxiters=maxiters,
         cenfunc=cenfunc,
         stdfunc=stdfunc,
+        axis=axis,
         grow=grow,
     )
-    data_clipped = sigclip(
-        data, axis=axis, masked=False, return_bounds=False, copy=True
-    )
 
-    if HAS_BOTTLENECK:
-        mean = _nanmean(data_clipped, axis=axis)
-        median = _nanmedian(data_clipped, axis=axis)
-        std = _nanstd(data_clipped, ddof=std_ddof, axis=axis)
-    else:  # pragma: no cover
-        mean = np.nanmean(data_clipped, axis=axis)
-        median = np.nanmedian(data_clipped, axis=axis)
-        std = np.nanstd(data_clipped, ddof=std_ddof, axis=axis)
-
-    return mean, median, std
+    return stats.mean(), stats.median(), stats.std(ddof=std_ddof)

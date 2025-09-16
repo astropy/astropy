@@ -5,14 +5,17 @@ import abc
 import functools
 import operator
 import warnings
+from typing import ClassVar, Final
 
 import numpy as np
 
 import astropy.units as u
 from astropy.coordinates.angles import Angle
-from astropy.utils import ShapedLikeNDArray, classproperty
+from astropy.utils import classproperty
 from astropy.utils.data_info import MixinInfo
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import DuplicateRepresentationWarning
+from astropy.utils.masked import MaskableShapedLikeNDArray, Masked, combine_masks
 
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by __init_subclass__ when called by Representation or
@@ -49,6 +52,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
 
     attrs_from_parent = {"unit"}  # Indicates unit is read-only
     _supports_indexing = False
+    mask_val = np.ma.masked
 
     @staticmethod
     def default_format(val):
@@ -103,18 +107,18 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
         attrs = self.merge_cols_attributes(
             reps, metadata_conflicts, name, ("meta", "description")
         )
-        # Make a new representation or differential with the desired length
-        # using the _apply / __getitem__ machinery to effectively return
-        # rep0[[0, 0, ..., 0, 0]]. This will have the right shape, and
-        # include possible differentials.
-        indexes = np.zeros(length, dtype=np.int64)
-        out = reps[0][indexes]
+
+        # Make a new representation or differential with the desired length.
+        rep0 = reps[0]
+        out = rep0._apply(np.zeros_like, shape=(length,) + rep0.shape[1:])
 
         # Use __setitem__ machinery to check whether all representations
         # can represent themselves as this one without loss of information.
+        # We use :0 to ensure we do not break on empty coordinates (with the
+        # side benefit that we do not actually set anything).
         for rep in reps[1:]:
             try:
-                out[0] = rep[0]
+                out[:0] = rep[:0]
             except Exception as err:
                 raise ValueError("input representations are inconsistent.") from err
 
@@ -126,7 +130,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
         return out
 
 
-class BaseRepresentationOrDifferential(ShapedLikeNDArray):
+class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
     """3D coordinate representations and differentials.
 
     Parameters
@@ -141,9 +145,30 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
     # Ensure multiplication/division with ndarray or Quantity doesn't lead to
     # object arrays.
-    __array_priority__ = 50000
+    __array_priority__: Final = 50000
+
+    # Have to define this default b/c init_subclass is not called for the base class.
+    name: ClassVar[str] = "base"
+    """Name of the representation or differential.
+
+    When a subclass is defined, by default, the name is the lower-cased name of the
+    class with with any trailing 'representation' or 'differential' removed. (E.g.,
+    'spherical' for `~astropy.coordinates.SphericalRepresentation` or
+    `~astropy.coordinates.SphericalDifferential`.)
+
+    This can be customized when defining a subclass by setting the class attribute.
+    """
 
     info = BaseRepresentationOrDifferentialInfo()
+
+    def __init_subclass__(cls) -> None:
+        # Name of the representation or differential
+        if "name" not in cls.__dict__:
+            cls.name = (
+                cls.__name__.lower()
+                .removesuffix("representation")
+                .removesuffix("differential")
+            )
 
     def __init__(self, *args, **kwargs):
         # make argument a list, so we can pop them off.
@@ -238,23 +263,18 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         for component, attr in zip(components, attrs):
             setattr(self, "_" + component, attr)
 
+        # If any attribute has a mask, ensure all attributes are Masked.
+        if any(hasattr(attr, "mask") for attr in attrs):
+            self._ensure_masked()
+
+    @deprecated("v7.1", alternative="name")
     @classmethod
     def get_name(cls):
         """Name of the representation or differential.
 
-        In lower case, with any trailing 'representation' or 'differential'
-        removed. (E.g., 'spherical' for
-        `~astropy.coordinates.SphericalRepresentation` or
-        `~astropy.coordinates.SphericalDifferential`.)
+        Returns the ``.name`` attribute.
         """
-        name = cls.__name__.lower()
-
-        if name.endswith("representation"):
-            name = name[:-14]
-        elif name.endswith("differential"):
-            name = name[:-12]
-
-        return name
+        return cls.name
 
     # The two methods that any subclass has to define.
     @classmethod
@@ -377,14 +397,39 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         return new
 
     def __setitem__(self, item, value):
-        if value.__class__ is not self.__class__:
+        set_mask = value is np.ma.masked
+        clear_mask = value is np.ma.nomask
+        if not (value.__class__ is self.__class__ or set_mask or clear_mask):
             raise TypeError(
                 "can only set from object of same class: "
                 f"{self.__class__.__name__} vs. {value.__class__.__name__}"
+                " (unless setting or clearing the mask with"
+                " np.ma.masked or np.ma.nomask)."
             )
 
+        if not self.masked:
+            if clear_mask:
+                # Clearing masked elements on an unmasked instance: nothing to do.
+                return
+
+            # Ensure our components are masked if a mask needs to be set.
+            # NOTE: we could also make ourselves masked if value.masked.
+            # But then we have to be sure that Time does the same, and live
+            # with the inconsistency that things like ndarray and Quantity cannot
+            # become masked when setting an item with a masked value.  See
+            # https://github.com/astropy/astropy/pull/17016#issuecomment-2439607869
+            if set_mask:
+                self._ensure_masked()
+
+        if set_mask or clear_mask:
+            for comp in self.components:
+                c = "_" + comp
+                getattr(self, c).mask[item] = set_mask
+            return
+
         for component in self.components:
-            getattr(self, "_" + component)[item] = getattr(value, "_" + component)
+            c = "_" + component
+            getattr(self, c)[item] = getattr(value, c)
 
     @property
     def shape(self):
@@ -425,6 +470,46 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                     raise
                 else:
                     reshaped.append(val)
+
+    @property
+    def masked(self):
+        return isinstance(getattr(self, self.components[0]), Masked)
+
+    def _ensure_masked(self):
+        """Ensure Masked components."""
+        # TODO: should we just allow the above property to be set?
+        # But be sure the API remains consistent with Time!
+        if not self.masked:
+            for comp in self.components:
+                c = "_" + comp
+                setattr(self, c, Masked(getattr(self, c)))
+
+    def get_mask(self, *attrs):
+        """Calculate the mask, by combining masks from the given attributes.
+
+        Parameters
+        ----------
+        *attrs : str
+            Attributes from which to get the masks to combine. If not given,
+            use all components of the class.
+
+        Returns
+        -------
+        mask : ~numpy.ndarray of bool
+            The combined, read-only mask. If the instance is not masked, it
+            is an array of `False` with the correct shape.
+        """
+        if not attrs:
+            attrs = self.components
+
+        values = operator.attrgetter(*attrs)(self)
+        if not isinstance(values, tuple):
+            values = (values,)
+
+        mask = combine_masks([getattr(v, "mask", None) for v in values])
+        return np.broadcast_to(mask, self.shape)  # Makes it readonly too.
+
+    mask = property(get_mask, doc="The combined mask of all components.")
 
     # Required to support multiplication and division, and defined by the base
     # representation and differential classes.
@@ -474,7 +559,9 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         The record array fields will have the component names.
         """
         coo_items = [(c, getattr(self, c)) for c in self.components]
-        result = np.empty(self.shape, [(c, coo.dtype) for c, coo in coo_items])
+        result = np.empty_like(
+            coo_items[0][1].value, dtype=[(c, coo.dtype) for c, coo in coo_items]
+        )
         for c, coo in coo_items:
             result[c] = coo.value
         return result
@@ -486,16 +573,10 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
     @property
     def _unitstr(self):
-        units_set = set(self._units.values())
-        if len(units_set) == 1:
-            unitstr = units_set.pop().to_string()
-        else:
-            unitstr = "({})".format(
-                ", ".join(
-                    self._units[component].to_string() for component in self.components
-                )
-            )
-        return unitstr
+        units = self._units.values()
+        if len(units_set := set(units)) == 1:
+            return str(units_set.pop())
+        return f"({', '.join(map(str, units))})"
 
     def __str__(self):
         return f"{np.array2string(self._values, separator=', ')} {self._unitstr:s}"
@@ -505,10 +586,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         arrstr = np.array2string(self._values, prefix=prefixstr, separator=", ")
 
         diffstr = ""
-        if getattr(self, "differentials", None):
-            diffstr = "\n (has differentials w.r.t.: {})".format(
-                ", ".join([repr(key) for key in self.differentials.keys()])
-            )
+        if diffs := getattr(self, "differentials", None):
+            diffstr = f"\n (has differentials w.r.t.: {', '.join(map(repr, diffs))})"
 
         unitstr = ("in " + self._unitstr) if self._unitstr else "[dimensionless]"
         return (
@@ -574,8 +653,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     """
 
     info = RepresentationInfo()
+    # Ensure _differentials always exists.
+    _differentials = {}
 
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)  # sets `cls.name`
+
         # Register representation name (except for bases on which other
         # representations are built, but which cannot themselves be used).
         if cls.__name__.startswith("Base"):
@@ -586,7 +669,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 'Representations must have an "attr_classes" class attribute.'
             )
 
-        repr_name = cls.get_name()
+        repr_name = cls.name
         # first time a duplicate is added
         # remove first entry and add both using their qualnames
         if repr_name in REPRESENTATION_CLASSES:
@@ -636,14 +719,20 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                     ),
                 )
 
-        super().__init_subclass__(**kwargs)
-
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
         super().__init__(*args, **kwargs)
         if differentials is None and args and isinstance(args[0], self.__class__):
             differentials = args[0]._differentials
         self._differentials = self._validate_differentials(differentials)
+        # If any part is masked, all should be.
+        if self.masked or any(d.masked for d in self._differentials.values()):
+            self._ensure_masked()
+
+    def _ensure_masked(self):
+        super()._ensure_masked()
+        for d in self._differentials.values():
+            d._ensure_masked()
 
     def _validate_differentials(self, differentials):
         """
@@ -726,7 +815,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     @classproperty
     def _compatible_differentials(cls):
-        return [DIFFERENTIAL_CLASSES[cls.get_name()]]
+        return [DIFFERENTIAL_CLASSES[cls.name]]
 
     @property
     def differentials(self):
@@ -874,15 +963,14 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         from .cartesian import CartesianDifferential, CartesianRepresentation
 
         # route transformation through Cartesian
-        difs_cls = {k: CartesianDifferential for k in self.differentials.keys()}
         crep = self.represent_as(
-            CartesianRepresentation, differential_class=difs_cls
+            CartesianRepresentation,
+            differential_class=dict.fromkeys(self.differentials, CartesianDifferential),
         ).transform(matrix)
 
         # move back to original representation
         difs_cls = {k: diff.__class__ for k, diff in self.differentials.items()}
-        rep = crep.represent_as(self.__class__, difs_cls)
-        return rep
+        return crep.represent_as(self.__class__, difs_cls)
 
     def with_differentials(self, differentials):
         """
@@ -906,16 +994,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         if not differentials:
             return self
 
-        args = [getattr(self, component) for component in self.components]
-
-        # We shallow copy the differentials dictionary so we don't update the
-        # current object's dictionary when adding new keys
-        new_rep = self.__class__(
-            *args, differentials=self.differentials.copy(), copy=False
+        differentials = self._validate_differentials(differentials)
+        return self.__class__(
+            *[getattr(self, component) for component in self.components],
+            differentials=self.differentials | differentials,
+            copy=False,
         )
-        new_rep._differentials.update(new_rep._validate_differentials(differentials))
-
-        return new_rep
 
     def without_differentials(self):
         """Return a copy of the representation without attached differentials.
@@ -998,6 +1082,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         return rep
 
     def __setitem__(self, item, value):
+        if value is np.ma.masked or value is np.ma.nomask:
+            return super().__setitem__(item, value)
+
         if not isinstance(value, BaseRepresentation):
             raise TypeError(
                 f"value must be a representation instance, not {type(value)}."
@@ -1249,6 +1336,8 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         For these, the components are those of the base representation prefixed
         by 'd_', and the class is `~astropy.units.Quantity`.
         """
+        super().__init_subclass__(**kwargs)  # sets `cls.name`
+
         # Don't do anything for base helper classes.
         if cls.__name__ in (
             "BaseDifferential",
@@ -1268,7 +1357,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             base_attr_classes = cls.base_representation.attr_classes
             cls.attr_classes = {"d_" + c: u.Quantity for c in base_attr_classes}
 
-        repr_name = cls.get_name()
+        repr_name = cls.name
         if repr_name in DIFFERENTIAL_CLASSES:
             raise ValueError(f"Differential class {repr_name} already defined")
 
@@ -1286,8 +1375,6 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                         doc=f"Component '{component}' of the Differential.",
                     ),
                 )
-
-        super().__init_subclass__(**kwargs)
 
     @classmethod
     def _check_base(cls, base):
@@ -1470,8 +1557,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         # route transformation through Cartesian
         cdiff = self.represent_as(CartesianDifferential, base=base).transform(matrix)
         # move back to original representation
-        diff = cdiff.represent_as(self.__class__, transformed_base)
-        return diff
+        return cdiff.represent_as(self.__class__, transformed_base)
 
     def _scale_operation(self, op, *args, scaled_base=False):
         """Scale all components.

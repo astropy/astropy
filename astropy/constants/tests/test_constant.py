@@ -4,8 +4,8 @@ import copy
 
 import pytest
 
+import astropy.units as u
 from astropy.constants import Constant
-from astropy.units import Quantity as Q
 
 
 def test_c():
@@ -45,7 +45,7 @@ def test_e():
     from astropy.constants import e
 
     # A test quantity
-    E = Q(100, "V/m")
+    E = u.Quantity(100, "V/m")
 
     # Without specifying a system e should not combine with other quantities
     pytest.raises(TypeError, lambda: e * E)
@@ -57,13 +57,13 @@ def test_e():
     # e.cgs is too ambiguous and should not work at all
     pytest.raises(TypeError, lambda: e.cgs * E)
 
-    assert isinstance(e.si, Q)
-    assert isinstance(e.gauss, Q)
-    assert isinstance(e.esu, Q)
+    assert isinstance(e.si, u.Quantity)
+    assert isinstance(e.gauss, u.Quantity)
+    assert isinstance(e.esu, u.Quantity)
 
-    assert e.si * E == Q(100, "eV/m")
-    assert e.gauss * E == Q(e.gauss.value * E.value, "Fr V/m")
-    assert e.esu * E == Q(e.esu.value * E.value, "Fr V/m")
+    assert e.si * E == u.Quantity(100, "eV/m")
+    assert e.gauss * E == u.Quantity(e.gauss.value * E.value, "Fr V/m")
+    assert e.esu * E == u.Quantity(e.esu.value * E.value, "Fr V/m")
 
 
 def test_g0():
@@ -133,19 +133,19 @@ def test_view():
     assert c2.reference == c.reference
     assert c2.unit == c.unit
 
-    q1 = c.view(Q)
+    q1 = c.view(u.Quantity)
     assert q1 == c
     assert q1.value == c.value
-    assert type(q1) is Q
+    assert type(q1) is u.Quantity
     assert not hasattr(q1, "reference")
 
-    q2 = Q(c)
+    q2 = u.Quantity(c)
     assert q2 == c
     assert q2.value == c.value
-    assert type(q2) is Q
+    assert type(q2) is u.Quantity
     assert not hasattr(q2, "reference")
 
-    c3 = Q(c, subok=True)
+    c3 = u.Quantity(c, subok=True)
     assert c3 == c
     assert c3.value == c.value
     # make sure it has the necessary attributes and they're not blank
@@ -154,5 +154,5 @@ def test_view():
     assert c3.reference == c.reference
     assert c3.unit == c.unit
 
-    c4 = Q(c, subok=True, copy=False)
+    c4 = u.Quantity(c, subok=True, copy=False)
     assert c4 is c

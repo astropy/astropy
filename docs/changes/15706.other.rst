@@ -1,1 +1,0 @@
-The minimum required NumPy version is now 1.23 and the minimum required SciPy version is 1.8.

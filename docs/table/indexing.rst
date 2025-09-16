@@ -288,7 +288,7 @@ property can be indexed either by column value, range of column values
    >>> t = Table([('w', 'x', 'y', 'z'), (10, 1, 9, 9)], names=('a', 'b'), dtype=['str', 'i8'])
    >>> t.add_index('a')
    >>> t.loc_indices['x']
-   1
+   np.int64(1)
 
 .. EXAMPLE END
 

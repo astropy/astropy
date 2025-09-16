@@ -9,7 +9,7 @@ from erfa import ufunc as erfa_ufunc
 import astropy.units as u
 from astropy.coordinates.angles import Angle, Latitude, Longitude
 from astropy.coordinates.distances import Distance
-from astropy.coordinates.matrix_utilities import is_O3
+from astropy.coordinates.matrix_utilities import is_rotation_or_reflection
 from astropy.utils import classproperty
 from astropy.utils.compat import COPY_IF_NEEDED
 
@@ -163,7 +163,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
         # matrix is in O(3) and preserves lengths.
-        if np.all(is_O3(matrix)):  # remain in unit-rep
+        if np.all(is_rotation_or_reflection(matrix)):  # remain in unit-rep
             xyz = erfa_ufunc.s2c(self.lon, self.lat)
             p = erfa_ufunc.rxp(matrix, xyz)
             lon, lat = erfa_ufunc.c2s(p)
@@ -540,6 +540,16 @@ class SphericalRepresentation(BaseRepresentation):
                     lon=self.lon, lat=self.lat, differentials=diffs, copy=False
                 )
 
+            elif issubclass(other_class, RadialRepresentation):
+                diffs = self._re_represent_differentials(
+                    other_class, differential_class
+                )
+                return other_class(
+                    distance=self.distance,
+                    differentials=diffs,
+                    copy=False,
+                )
+
         return super().represent_as(other_class, differential_class)
 
     def to_cartesian(self):
@@ -751,6 +761,16 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
                     differentials=diffs,
                     copy=False,
                 )
+            elif issubclass(other_class, RadialRepresentation):
+                diffs = self._re_represent_differentials(
+                    other_class, differential_class
+                )
+                return other_class(
+                    distance=self.r,
+                    differentials=diffs,
+                    copy=False,
+                )
+
             from .cylindrical import CylindricalRepresentation
 
             if issubclass(other_class, CylindricalRepresentation):
@@ -917,8 +937,7 @@ class BaseSphericalDifferential(BaseDifferential):
         if (
             isinstance(other, BaseSphericalDifferential)
             and not isinstance(self, type(other))
-            or isinstance(other, RadialDifferential)
-        ):
+        ) or isinstance(other, RadialDifferential):
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
             result_args = {
@@ -1016,7 +1035,7 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
         # matrix is in O(3) and preserves lengths.
-        if np.all(is_O3(matrix)):  # remain in unit-rep
+        if np.all(is_rotation_or_reflection(matrix)):  # remain in unit-rep
             # TODO! implement without Cartesian intermediate step.
             # some of this can be moved to the parent class.
             diff = super().transform(matrix, base, transformed_base)
@@ -1177,8 +1196,7 @@ class BaseSphericalCosLatDifferential(BaseDifferential):
         if (
             isinstance(other, BaseSphericalCosLatDifferential)
             and not isinstance(self, type(other))
-            or isinstance(other, RadialDifferential)
-        ):
+        ) or isinstance(other, RadialDifferential):
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
             result_args = {
@@ -1277,7 +1295,7 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
         # matrix is in O(3) and preserves lengths.
-        if np.all(is_O3(matrix)):  # remain in unit-rep
+        if np.all(is_rotation_or_reflection(matrix)):  # remain in unit-rep
             # TODO! implement without Cartesian intermediate step.
             diff = super().transform(matrix, base, transformed_base)
 

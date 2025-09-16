@@ -38,10 +38,10 @@ from astropy.coordinates.representation import (
     REPRESENTATION_CLASSES,
     CartesianDifferential,
 )
+from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .test_representation import unitphysics  # this fixture is used below  # noqa: F401
 
@@ -108,9 +108,7 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.equinox.value == "B1950.000"
     assert mfk4.obstime.value == "B1980.000"
     assert mfk4.newattr == "newattr"
-
-    with pytest.warns(AstropyDeprecationWarning):
-        assert set(mfk4.get_frame_attr_names()) == {"equinox", "obstime", "newattr"}
+    assert set(mfk4.get_frame_attr_defaults()) == {"equinox", "obstime", "newattr"}
 
     mfk4 = MyFK4(equinox="J1980.0", obstime="J1990.0", newattr="world")
     assert mfk4.equinox.value == "J1980.000"
@@ -254,12 +252,12 @@ def test_no_data_nonscalar_frames():
     assert a1.obstime.shape == (3, 10)
     assert a1.temperature.shape == (3, 10)
     assert a1.shape == (3, 10)
-    with pytest.raises(ValueError) as exc:
+
+    with pytest.raises(ValueError, match=r".*inconsistent shapes.*"):
         AltAz(
             obstime=Time("2012-01-01") + np.arange(10.0) * u.day,
             temperature=np.ones((3,)) * u.deg_C,
         )
-    assert "inconsistent shapes" in str(exc.value)
 
 
 def test_frame_repr():
@@ -476,12 +474,25 @@ def test_replicating():
 
     iclone = i.replicate_without_data()
     assert i.has_data
+    assert not i.isscalar
+    assert i.shape == (1,)
+    assert len(i) == 1
     assert not iclone.has_data
+    assert iclone.isscalar
+    assert iclone.shape == ()
+    with pytest.raises(TypeError, match="no len()"):
+        len(iclone)
 
     aa = AltAz(alt=1 * u.deg, az=2 * u.deg, obstime=Time("J2000"))
-    aaclone = aa.replicate_without_data(obstime=Time("J2001"))
+    aaclone = aa.replicate_without_data(obstime=Time(["J2001"]))
+    assert aa.has_data
+    assert aa.isscalar
+    assert aa.shape == ()
     assert not aaclone.has_data
-    assert aa.obstime != aaclone.obstime
+    assert not aaclone.isscalar
+    assert aaclone.shape == (1,)
+    assert len(aaclone) == 1
+    assert not np.any(aa.obstime == aaclone.obstime)
     assert aa.pressure == aaclone.pressure
     assert aa.obswl == aaclone.obswl
 
@@ -555,12 +566,19 @@ def test_transform():
 
 def test_transform_to_nonscalar_nodata_frame():
     # https://github.com/astropy/astropy/pull/5254#issuecomment-241592353
+    # Also checks that shape and length of all make sense.
     times = Time("2016-08-23") + np.linspace(0, 10, 12) * u.day
     coo1 = ICRS(
         ra=[[0.0], [10.0], [20.0]] * u.deg, dec=[[-30.0], [30.0], [60.0]] * u.deg
     )
-    coo2 = coo1.transform_to(FK5(equinox=times))
+    assert coo1.shape == (3, 1)
+    assert len(coo1) == 3
+    fk5 = FK5(equinox=times)
+    assert fk5.shape == (12,)
+    assert len(fk5) == 12
+    coo2 = coo1.transform_to(fk5)
     assert coo2.shape == (3, 12)
+    assert len(coo2) == 3
 
 
 def test_setitem_no_velocity():
@@ -716,7 +734,7 @@ def test_time_inputs():
     assert c.shape == (2,)
 
     # If the shapes are not broadcastable, then we should raise an exception.
-    with pytest.raises(ValueError, match="inconsistent shapes"):
+    with pytest.raises(ValueError, match=r".*inconsistent shapes.*"):
         FK4([1, 2, 3] * u.deg, [4, 5, 6] * u.deg, obstime=["J2000", "J2001"])
 
 
@@ -913,11 +931,6 @@ def test_represent_as():
     assert isinstance(rep2, r.CylindricalRepresentation)
     assert isinstance(rep2.differentials["s"], r.CylindricalDifferential)
 
-    # single class with positional in_frame_units, verify that warning raised
-    with pytest.warns(AstropyWarning, match="argument position") as w:
-        icrs.represent_as(r.CylindricalRepresentation, False)
-    assert len(w) == 1
-
     # TODO: this should probably fail in the future once we figure out a better
     # workaround for dealing with UnitSphericalRepresentation's with
     # RadialDifferential's
@@ -1084,10 +1097,25 @@ def test_nodata_error():
     assert "does not have associated data" in str(excinfo.value)
 
 
+def test_nodata_len_shape():
+    i = ICRS()
+    assert i.shape == ()
+    with pytest.raises(TypeError, match="Scalar.*has no len()"):
+        len(i)
+
+
 def test_len0_data():
     i = ICRS([] * u.deg, [] * u.deg)
     assert i.has_data
     repr(i)
+    assert len(i) == 0
+    assert i.shape == (0,)
+
+
+def test_len0_nodata():
+    fk5 = FK5(equinox=Time([], format="jyear"))
+    assert len(fk5) == 0
+    assert fk5.shape == (0,)
 
 
 def test_quantity_attributes():
@@ -1311,14 +1339,14 @@ def test_representation_subclass():
         attr_classes = r.UnitSphericalRepresentation.attr_classes
 
         def __repr__(self):
-            return "<NewUnitSphericalRepresentation: spam spam spam>"
+            return "<NewUnitSphericalRepresentation spam spam spam>"
 
     frame = FK5(
         NewUnitSphericalRepresentation(lon=32 * u.deg, lat=20 * u.deg),
         representation_type=NewSphericalRepresentation,
     )
 
-    assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000):  spam spam spam>"
+    assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000): spam spam spam>"
 
 
 def test_getitem_representation():
@@ -1701,3 +1729,22 @@ def test_spherical_offsets_with_wrap(shape):
 
     scom = sc.spherical_offsets_by(-2 * u.deg, 0 * u.deg)
     assert scom.shape == shape
+
+
+def test_insert():
+    # Tests are a subset of those in test_sky_coord.
+    c0 = ICRS([1, 2] * u.deg, [3, 4] * u.deg)
+    c1 = ICRS(5 * u.deg, 6 * u.deg)
+    c3 = ICRS([10, 20] * u.deg, [30, 40] * u.deg)
+
+    # Insert a scalar
+    c = c0.insert(1, c1)
+    assert skycoord_equal(c, ICRS([1, 5, 2] * u.deg, [3, 6, 4] * u.deg))
+
+    # Insert length=2 array at start of array
+    c = c0.insert(0, c3)
+    assert skycoord_equal(c, ICRS([10, 20, 1, 2] * u.deg, [30, 40, 3, 4] * u.deg))
+
+    # Insert length=2 array at end of array
+    c = c0.insert(2, c3)
+    assert skycoord_equal(c, ICRS([1, 2, 10, 20] * u.deg, [3, 4, 30, 40] * u.deg))

@@ -1,6 +1,0 @@
-If any iterable such as a list of tuple was input to ``Quantity``, a check was
-done to see if they contained only quantities, and, if so, the quantities were
-concatenated.  This makes sense for list and tuple, but is not necessarily
-logical for all iterables and indeed was broken for those that do not have a
-length (such as ``array_api`` array instances). Hence, the check will now be
-done only for values where it makes sense, i.e., instances of list and tuple.

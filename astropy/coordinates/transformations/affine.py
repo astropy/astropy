@@ -6,13 +6,20 @@ from abc import abstractmethod
 
 import numpy as np
 
+from astropy.coordinates.representation import (
+    CartesianDifferential,
+    RadialDifferential,
+    SphericalCosLatDifferential,
+    SphericalDifferential,
+    UnitSphericalRepresentation,
+)
 from astropy.coordinates.transformations.base import CoordinateTransform
 
 __all__ = [
-    "BaseAffineTransform",
     "AffineTransform",
-    "StaticMatrixTransform",
+    "BaseAffineTransform",
     "DynamicMatrixTransform",
+    "StaticMatrixTransform",
 ]
 
 
@@ -32,14 +39,6 @@ class BaseAffineTransform(CoordinateTransform):
     """
 
     def _apply_transform(self, fromcoord, matrix, offset):
-        from astropy.coordinates.representation import (
-            CartesianDifferential,
-            RadialDifferential,
-            SphericalCosLatDifferential,
-            SphericalDifferential,
-            UnitSphericalRepresentation,
-        )
-
         data = fromcoord.data
         has_velocity = "s" in data.differentials
 

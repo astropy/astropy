@@ -2,7 +2,6 @@
 
 import os
 import pickle
-from contextlib import nullcontext
 
 import numpy as np
 import pytest
@@ -10,7 +9,6 @@ from numpy.testing import assert_array_almost_equal
 
 from astropy import wcs
 from astropy.io import fits
-from astropy.tests.helper import PYTEST_LT_8_0
 from astropy.utils.data import (
     get_pkg_data_contents,
     get_pkg_data_filename,
@@ -28,19 +26,18 @@ def test_basic():
 
 
 def test_dist():
-    if PYTEST_LT_8_0:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.warns(
-            wcs.FITSFixedWarning, match="The WCS transformation has more axes"
-        )
-
     with get_pkg_data_fileobj(
         os.path.join("data", "dist.fits"), encoding="binary"
     ) as test_file:
         hdulist = fits.open(test_file)
         # The use of ``AXISCORR`` for D2IM correction has been deprecated
-        with pytest.warns(AstropyDeprecationWarning), ctx:
+        with (
+            pytest.warns(AstropyDeprecationWarning),
+            pytest.warns(
+                wcs.FITSFixedWarning,
+                match="The WCS transformation has more axes",
+            ),
+        ):
             wcs1 = wcs.WCS(hdulist[0].header, hdulist)
         assert wcs1.det2im2 is not None
 

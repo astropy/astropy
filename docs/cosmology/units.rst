@@ -64,7 +64,7 @@ Since the redshift is not a true unit and is used so frequently, the
 redshift / dimensionless equivalency is actually enabled by default.
 
     >>> z == 1100 * u.dimensionless_unscaled
-    True
+    np.True_
 
     >>> q.to(u.K)
     <Quantity 2970. K>

@@ -6,20 +6,31 @@ Methods for selecting the bin width of histograms.
 Ported from the astroML project: https://www.astroml.org/
 """
 
+from typing import Literal
+
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from .bayesian_blocks import bayesian_blocks
 
 __all__ = [
-    "histogram",
-    "scott_bin_width",
-    "freedman_bin_width",
-    "knuth_bin_width",
     "calculate_bin_edges",
+    "freedman_bin_width",
+    "histogram",
+    "knuth_bin_width",
+    "scott_bin_width",
 ]
 
 
-def calculate_bin_edges(a, bins=10, range=None, weights=None):
+def calculate_bin_edges(
+    a: ArrayLike,
+    bins: int
+    | list[float]
+    | Literal["blocks", "knuth", "scott", "freedman"]
+    | None = 10,
+    range: tuple[float, float] | None = None,
+    weights: ArrayLike | None = None,
+) -> NDArray[float]:
     """
     Calculate histogram bin edges like ``numpy.histogram_bin_edges``.
 
@@ -44,6 +55,11 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
         the value of the weight corresponding to ``a`` instead of returning the
         count of values. This argument does not affect determination of bin
         edges, though they may be used in the future as new methods are added.
+
+    Returns
+    -------
+    bins : ndarray
+        Histogram bin edges
     """
     # if range is specified, we need to truncate the data for
     # the bin-finding routines
@@ -89,7 +105,16 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
     return bins
 
 
-def histogram(a, bins=10, range=None, weights=None, **kwargs):
+def histogram(
+    a: ArrayLike,
+    bins: int
+    | list[float]
+    | Literal["blocks", "knuth", "scott", "freedman"]
+    | None = 10,
+    range: tuple[float, float] | None = None,
+    weights: ArrayLike | None = None,
+    **kwargs,
+) -> tuple[NDArray, NDArray]:
     """Enhanced histogram function, providing adaptive binnings.
 
     This is a histogram function that enables the use of more sophisticated
@@ -143,7 +168,10 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     return np.histogram(a, bins=bins, range=range, weights=weights, **kwargs)
 
 
-def scott_bin_width(data, return_bins=False):
+def scott_bin_width(
+    data: ArrayLike,
+    return_bins: bool | None = False,
+) -> float | tuple[float, NDArray]:
     r"""Return the optimal histogram bin width using Scott's rule.
 
     Scott's rule is a normal reference rule: it minimizes the integrated
@@ -204,7 +232,10 @@ def scott_bin_width(data, return_bins=False):
         return dx
 
 
-def freedman_bin_width(data, return_bins=False):
+def freedman_bin_width(
+    data: ArrayLike,
+    return_bins: bool | None = False,
+) -> float | tuple[float, NDArray]:
     r"""Return the optimal histogram bin width using the Freedman-Diaconis rule.
 
     The Freedman-Diaconis rule is a normal reference rule like Scott's
@@ -279,7 +310,11 @@ def freedman_bin_width(data, return_bins=False):
         return dx
 
 
-def knuth_bin_width(data, return_bins=False, quiet=True):
+def knuth_bin_width(
+    data: ArrayLike,
+    return_bins: bool | None = False,
+    quiet: bool | None = True,
+) -> float | tuple[float, NDArray]:
     r"""Return the optimal histogram bin width using Knuth's rule.
 
     Knuth's rule is a fixed-width, Bayesian approach to determining
@@ -368,7 +403,7 @@ class _KnuthF:
     knuth_bin_width
     """
 
-    def __init__(self, data):
+    def __init__(self, data: ArrayLike) -> None:
         self.data = np.array(data, copy=True)
         if self.data.ndim != 1:
             raise ValueError("data should be 1-dimensional")
@@ -383,14 +418,14 @@ class _KnuthF:
         # create a reference to gammaln to use in self.eval()
         self.gammaln = special.gammaln
 
-    def bins(self, M):
+    def bins(self, M: int) -> NDArray:
         """Return the bin edges given M number of bins."""
         return np.linspace(self.data[0], self.data[-1], int(M) + 1)
 
-    def __call__(self, M):
+    def __call__(self, M: int) -> float:
         return self.eval(M)
 
-    def eval(self, M):
+    def eval(self, M: int) -> float:
         """Evaluate the Knuth function.
 
         Parameters

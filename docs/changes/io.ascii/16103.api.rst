@@ -1,5 +1,0 @@
-The parallel fast-reader parser for reading ASCII files has been removed.
-Since astropy v4.0.4 requesting this option has issued a warning that
-this option is broken and that the serial parser will be used.
-The ``parallel`` key in the ``fast_reader`` argument for reading
-ASCII tables is no longer available.

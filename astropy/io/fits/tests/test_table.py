@@ -27,6 +27,8 @@ from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import FitsTestCase
+from .test_connect import TestMultipleHDU
+from .test_core import TestCore
 
 
 def comparefloats(a, b):
@@ -1031,7 +1033,7 @@ class TestTableFunctions(FitsTestCase):
         """Regression test for https://github.com/astropy/astropy/issues/5280
         and https://github.com/astropy/astropy/issues/5287
 
-        multidimentional tables can now be written with the correct TDIM.
+        multidimensional tables can now be written with the correct TDIM.
         Author: Stephen Bailey.
         """
 
@@ -1155,6 +1157,24 @@ class TestTableFunctions(FitsTestCase):
         assert t1[1].data[2][1] == 500
 
         t1.close()
+
+    def test_row_setitem(self):
+        tbdata = fits.getdata(self.data("tb.fits"))
+        row = tbdata[0]
+        assert row["c1"] == 1
+        assert row["c2"] == "abc"
+
+        row[0] = 2
+        assert row["c1"] == 2
+        row["c1"] = 3
+        assert row["c1"] == 3
+
+        with pytest.raises(IndexError):
+            row[5] = 2
+
+        row[:2] = (12, "xyz")
+        assert row["c1"] == 12
+        assert row["c2"] == "xyz"
 
     def test_fits_record_len(self):
         counts = np.array([312, 334, 308, 317])
@@ -1887,10 +1907,9 @@ class TestTableFunctions(FitsTestCase):
         hdul = fits.open(self.data("zerowidth.fits"))
         tbhdu = hdul[2]  # This HDU contains a zero-width column 'ORBPARM'
         assert "ORBPARM" in tbhdu.columns.names
-        # The ORBPARM column should not be in the data, though the data should
-        # be readable
         assert "ORBPARM" in tbhdu.data.names
         assert "ORBPARM" in tbhdu.data.dtype.names
+        assert tbhdu.data["ORBPARM"].shape == (29, 0)
         # Verify that some of the data columns are still correctly accessible
         # by name
         assert tbhdu.data[0]["ANNAME"] == "VLA:_W16"
@@ -1915,6 +1934,7 @@ class TestTableFunctions(FitsTestCase):
         assert "ORBPARM" in tbhdu.columns.names
         assert "ORBPARM" in tbhdu.data.names
         assert "ORBPARM" in tbhdu.data.dtype.names
+        assert tbhdu.data["ORBPARM"].shape == (29, 0)
         assert tbhdu.data[0]["ANNAME"] == "VLA:_W16"
         assert comparefloats(
             tbhdu.data[0]["STABXYZ"],
@@ -1929,6 +1949,17 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.data[-1]["NOSTA"] == 29
         assert tbhdu.data[-1]["MNTSTA"] == 0
         hdul.close()
+
+    def test_table_with_zero_width_str_column(self):
+        data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
+        thdu = fits.BinTableHDU(data)
+        thdu.writeto(self.temp("zerodtable.fits"))
+
+        with fits.open(self.temp("zerodtable.fits")) as hdul:
+            thdu = hdul[1]
+            assert hdul[1].columns["a"].format == "0A"
+            np.testing.assert_array_equal(hdul[1].data["a"], [""])
+            np.testing.assert_array_equal(hdul[1].data["b"], [12])
 
     def test_string_column_padding(self):
         a = ["img1", "img2", "img3a", "p"]
@@ -2679,11 +2710,9 @@ class TestTableFunctions(FitsTestCase):
             assert comparerecords(rgr_pl, rgr[0].data)
 
         with fits.open(self.data("zerowidth.fits")) as zwc:
-            # Doesn't pickle zero-width (_phanotm) column 'ORBPARM'
             zwc_pd = pickle.dumps(zwc[2].data)
             zwc_pl = pickle.loads(zwc_pd)
-            with pytest.warns(UserWarning, match="Field 2 has a repeat count of 0"):
-                assert comparerecords(zwc_pl, zwc[2].data)
+            assert comparerecords(zwc_pl, zwc[2].data)
 
     def test_zero_length_table(self):
         array = np.array([], dtype=[("a", "i8"), ("b", "S64"), ("c", ("i4", (3, 2)))])
@@ -2812,10 +2841,6 @@ class TestTableFunctions(FitsTestCase):
         now with reference counting around each test to ensure that the
         leaks are fixed.
         """
-
-        from .test_connect import TestMultipleHDU
-        from .test_core import TestCore
-
         t1 = TestCore()
         t1.setup_method()
         try:
@@ -2848,6 +2873,27 @@ class TestTableFunctions(FitsTestCase):
         finally:
             t3.teardown_class()
         del t3
+
+    @pytest.mark.skipif(not HAVE_OBJGRAPH, reason="requires objgraph")
+    def test_reference_leak_copyhdu(self):
+        """Regression test for https://github.com/astropy/astropy/issues/15649"""
+
+        def readfile(filename):
+            with fits.open(filename) as hdul:
+                hdu = hdul[1].copy()
+
+        with _refcounting("FITS_rec"):
+            readfile(self.data("memtest.fits"))
+
+    def test_converted_copy(self):
+        """
+        Test that the bintable converted arrays are copied when the fitsrec is.
+        Related to https://github.com/astropy/astropy/issues/15649
+        """
+
+        with fits.open(self.data("memtest.fits")) as hdul:
+            data = hdul[1].data.copy()
+            assert data._converted is not hdul[1].data._converted
 
     def test_dump_overwrite(self):
         with fits.open(self.data("table.fits")) as hdul:
@@ -2970,9 +3016,9 @@ def _refcounting(type_):
     refcount = len(objgraph.by_type(type_))
     yield refcount
     gc.collect()
-    assert (
-        len(objgraph.by_type(type_)) <= refcount
-    ), "More {0!r} objects still in memory than before."
+    assert len(objgraph.by_type(type_)) <= refcount, (
+        "More {0!r} objects still in memory than before."
+    )
 
 
 class TestVLATables(FitsTestCase):
@@ -2992,6 +3038,9 @@ class TestVLATables(FitsTestCase):
                 q = toto[1].data.field("QUAL_SPE")
                 assert (q[0][4:8] == np.array([0, 0, 0, 0], dtype=np.uint8)).all()
                 assert toto[1].columns[0].format.endswith("J(1571)")
+                # Test BINTableHDU copy
+                copytoto = toto[1].copy()
+                assert (toto[1].data.field("QUAL_SPE")[0][4:8] == q[0][4:8]).all()
 
         for code in ("PJ()", "QJ()"):
             test(code)
@@ -3201,13 +3250,10 @@ class TestVLATables(FitsTestCase):
 
         col = fits.Column(name="MATRIX", format=f"PD({nelem})", unit="", array=matrix)
 
-        t = fits.BinTableHDU.from_columns([col])
-        t.name = "MATRIX"
-
         with pytest.raises(
             ValueError, match="Please consider using the 'Q' format for your file."
         ):
-            t.writeto(self.temp("matrix.fits"))
+            fits.BinTableHDU.from_columns([col])
 
     @pytest.mark.skipif(sys.maxsize < 2**32, reason="requires 64-bit system")
     @pytest.mark.skipif(sys.platform == "win32", reason="Cannot test on Windows")
@@ -3339,6 +3385,40 @@ class TestVLATables(FitsTestCase):
             ValueError, match=r"invalid literal for int\(\) with base 10"
         ):
             fits.BinTableHDU.from_columns([c1])
+
+    def test_vla_slice(self):
+        filename = self.data("variable_length_table.fits")
+
+        # slicing the VLA array
+        with fits.open(filename) as hdul:
+            hdu = hdul[1]
+            arr = hdu.data["var"][:1]
+            assert arr.tolist() == [[45, 56]]
+            assert arr[0].dtype == np.int16
+
+        # slicing .data
+        with fits.open(filename) as hdul:
+            hdu = hdul[1]
+            arr = hdu.data[:1]["var"]
+            assert arr.tolist() == [[45, 56]]
+            assert arr[0].dtype == np.int16
+
+    def test_vla_slice2(self):
+        filename = self.data("theap-gap.fits")
+
+        # slicing the VLA array
+        with fits.open(filename) as hdul:
+            hdu = hdul[1]
+            arr = hdu.data["arr"][:3]
+            assert arr.tolist() == [[], [0], [0, 1]]
+            assert arr[1].dtype == np.int32
+
+        # slicing .data
+        with fits.open(filename) as hdul:
+            hdu = hdul[1]
+            arr = hdu.data[:3]["arr"]
+            assert arr.tolist() == [[], [0], [0, 1]]
+            assert arr[1].dtype == np.int32
 
 
 # These are tests that solely test the Column and ColDefs interfaces and
@@ -3519,14 +3599,9 @@ class TestColumnFunctions(FitsTestCase):
             assert comparerecords(rgr_pl, rgr[0].data)
 
         with fits.open(self.data("zerowidth.fits")) as zwc:
-            # Doesn't pickle zero-width (_phanotm) column 'ORBPARM'
             zwc_pd = pickle.dumps(zwc[2].data)
             zwc_pl = pickle.loads(zwc_pd)
-            with pytest.warns(
-                UserWarning,
-                match=r"Field 2 has a repeat count of 0 in its format code",
-            ):
-                assert comparerecords(zwc_pl, zwc[2].data)
+            assert comparerecords(zwc_pl, zwc[2].data)
 
     def test_column_lookup_by_name(self):
         """Tests that a `ColDefs` can be indexed by column name."""
@@ -3724,8 +3799,6 @@ def test_regression_5383():
 
 
 def test_table_to_hdu():
-    from astropy.table import Table
-
     table = Table(
         [[1, 2, 3], ["a", "b", "c"], [2.3, 4.5, 6.7]],
         names=["a", "b", "c"],
@@ -3750,6 +3823,13 @@ def test_table_to_hdu():
 
     assert hdu.header["FOO"] == "bar"
     assert hdu.header["TEST"] == 1
+
+    with pytest.warns(
+        UnitsWarning, match="'not-a-unit' did not parse as fits unit"
+    ) as w:
+        hdu = fits.BinTableHDU(table, character_as_bytes=True)
+
+    assert np.array_equal(hdu.data["b"], [b"a", b"b", b"c"])
 
 
 def test_regression_scalar_indexing():
@@ -3839,3 +3919,62 @@ def test_unit_parse_strict(tmp_path):
 
     with pytest.warns(UnitsWarning):
         Table.read(path, unit_parse_strict="warn")
+
+
+def test_invalid_table_array():
+    # see https://github.com/astropy/astropy/issues/4580
+    data = np.empty((5, 100), dtype=[("w", ">f8"), ("f", ">f4")])
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"Input data with shape \(5, 100\) is not a valid "
+            r"representation of a row-oriented table\."
+        ),
+    ):
+        fits.BinTableHDU(data, name="DATA")
+
+
+def test_repr_scaling(tmp_path):
+    cols = [
+        fits.Column(name="a", array=np.array([1, 2]), format="I"),
+        fits.Column(name="b", array=np.array([1, 2]), format="I"),
+    ]
+    hdu = fits.BinTableHDU.from_columns(cols)
+    hdu.header["TSCAL2"] = 0.1
+    hdu.header["TZERO2"] = 10
+    hdu.writeto(tmp_path / "test.fits")
+
+    data = fits.getdata(tmp_path / "test.fits")
+    assert repr(data) == (
+        "FITS_rec([(1, 10.1), (2, 10.2)],\n"
+        "         dtype=(numpy.record, [('a', '>i2'), ('b', '>i2')]))"
+    )
+
+
+def test_one_row_string_column(tmp_path):
+    # Issue #18174 control. One-row table should still read/write normally after zero row fix
+    data = np.zeros((1, 3), dtype="|S8")
+    col = fits.Column(name="FOO", format="24A", dim="(8,3)", array=data)
+    hdul = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU.from_columns([col])])
+
+    outfile = tmp_path / "test.fits"
+    hdul.writeto(outfile)
+
+    with fits.open(outfile) as hdul:
+        table_data = hdul[1].data
+    assert table_data.shape[0] == 1
+
+
+def test_zero_row_string_column(tmp_path):
+    # issue #18174 writing a zero row BinTableHDU with multidimensional string column
+    data = np.zeros((0, 3), dtype="|S8")
+    col = fits.Column(name="FOO", format="24A", dim="(8,3)", array=data)
+    hdul = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU.from_columns([col])])
+
+    outfile = tmp_path / "test.fits"
+    hdul.writeto(outfile)
+
+    # re-open and check for zero rows
+    with fits.open(outfile) as hdul:
+        table_data = hdul[1].data
+    assert table_data.shape[0] == 0

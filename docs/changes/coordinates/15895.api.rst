@@ -1,3 +1,0 @@
-The ``astropy.coordinates.transformations`` module has been refactored into a module.
-There should be no user-visible changes, but if you notice any, please open an
-Issue.

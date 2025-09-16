@@ -7,8 +7,8 @@ from numpy.testing import assert_allclose
 from astropy.stats import RegularEvents, bayesian_blocks
 
 
-def test_single_change_point(rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_single_change_point():
+    rng = np.random.default_rng(0)
     x = np.concatenate([rng.random(100), 1 + rng.random(200)])
 
     bins = bayesian_blocks(x)
@@ -17,8 +17,8 @@ def test_single_change_point(rseed=0):
     assert_allclose(bins[1], 0.927289, rtol=0.02)
 
 
-def test_duplicate_events(rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_duplicate_events():
+    rng = np.random.default_rng(0)
     t = rng.random(100)
     t[80:] = t[:20]
 
@@ -32,8 +32,8 @@ def test_duplicate_events(rseed=0):
     assert_allclose(bins1, bins2)
 
 
-def test_measures_fitness_homoscedastic(rseed=0):
-    rng = np.random.default_rng(rseed)
+def test_measures_fitness_homoscedastic():
+    rng = np.random.default_rng(0)
     t = np.linspace(0, 1, 11)
     x = np.exp(-0.5 * (t - 0.5) ** 2 / 0.01**2)
     sigma = 0.05
@@ -82,9 +82,12 @@ def test_errors():
     rng = np.random.default_rng(0)
     t = rng.random(100)
 
-    # x must be integer or None for events
+    # x must be non-negative integer or None for events
     with pytest.raises(ValueError):
         bayesian_blocks(t, fitness="events", x=t)
+
+    with pytest.raises(ValueError):
+        bayesian_blocks(t, fitness="events", x=np.full(t.size, -1))
 
     # x must be binary for regular events
     with pytest.raises(ValueError):
@@ -164,14 +167,39 @@ def test_fitness_function_results():
     assert_allclose(edges, expected)
 
 
-def test_zero_change_points(rseed=0):
+def test_zero_change_points():
     """
     Ensure that edges contains both endpoints when there are no change points
     """
-    np.random.seed(rseed)
     # Using the failed edge case from
     # https://github.com/astropy/astropy/issues/8558
     values = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2])
     bins = bayesian_blocks(values)
     assert values.min() == bins[0]
     assert values.max() == bins[-1]
+
+
+def test_binned_data_with_zeros():
+    """
+    Ensure that binned data with zero entries is handled correctly.
+    """
+    # Using the failed edge case from
+    # https://github.com/astropy/astropy/issues/17786
+    rng = np.random.default_rng(0)
+    n = 100
+    t = np.arange(n)
+
+    # Generate data from Poisson distribution of mean 1.
+    # We set the first bin to have zero counts to test the edge case.
+    # A single outlier is set to be 999 at the midpoint to ensure that the
+    # outlier is detected by the algorithm.
+    x = rng.poisson(1.0, n)
+    x[0] = 0
+    x[n // 2] = 999
+
+    # Check events fitness function with binned data
+    edges1 = bayesian_blocks(t, x)
+    edges2 = bayesian_blocks(t, x, fitness="events")
+    expected = [t[0], t[n // 2] - 0.5, t[n // 2] + 0.5, t[-1]]
+    assert_allclose(edges1, expected)
+    assert_allclose(edges2, expected)

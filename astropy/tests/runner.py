@@ -10,12 +10,16 @@ import tempfile
 import warnings
 from functools import wraps
 from importlib.util import find_spec
+from pathlib import Path
 
-from astropy.config.paths import set_temp_cache, set_temp_config
-from astropy.utils import find_current_module
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils import deprecated, find_current_module
+from astropy.utils.exceptions import (
+    AstropyDeprecationWarning,
+    AstropyPendingDeprecationWarning,
+    AstropyWarning,
+)
 
-__all__ = ["TestRunner", "TestRunnerBase", "keyword"]
+__all__ = ["TestRunner", "TestRunnerBase"]
 
 
 class keyword:
@@ -48,13 +52,14 @@ class keyword:
         return keyword
 
 
+@deprecated("7.2", alternative="pytest", pending=True)
 class TestRunnerBase:
     """
     The base class for the TestRunner.
 
     A test runner can be constructed by creating a subclass of this class and
     defining 'keyword' methods. These are methods that have the
-    :class:`~astropy.tests.runner.keyword` decorator, these methods are used to
+    ``astropy.tests.runner.keyword`` decorator, these methods are used to
     construct allowed keyword arguments to the
     `~astropy.tests.runner.TestRunnerBase.run_tests` method as a way to allow
     customization of individual keyword arguments (and associated logic)
@@ -161,6 +166,9 @@ class TestRunnerBase:
 
         This method builds arguments for and then calls ``pytest.main``.
 
+        .. deprecated:: 7.2
+            Use pytest instead.
+
         Parameters
         ----------
 {keywords}
@@ -199,6 +207,13 @@ class TestRunnerBase:
                     raise RuntimeError(cls._missing_dependancy_error.format(module))
 
     def run_tests(self, **kwargs):
+        # This method is weirdly hooked into various things with docstring
+        # overrides, so we keep it simple and not use @deprecated here.
+        warnings.warn(
+            "The test runner will be deprecated in a future version.\n        Use pytest instead.",
+            AstropyPendingDeprecationWarning,
+        )
+
         # The following option will include eggs inside a .eggs folder in
         # sys.path when running the tests. This is possible so that when
         # running pytest, test dependencies installed via e.g.
@@ -228,30 +243,32 @@ class TestRunnerBase:
 
         args = self._generate_args(**kwargs)
 
-        if kwargs.get("plugins", None) is not None:
+        if kwargs.get("plugins") is not None:
             plugins = kwargs.pop("plugins")
         elif self.keywords.get("plugins", None) is not None:
             plugins = self.keywords["plugins"]
         else:
             plugins = []
 
-        # Override the config locations to not make a new directory nor use
-        # existing cache or config. Note that we need to do this here in
+        # Avoid the existing config. Note that we need to do this here in
         # addition to in conftest.py - for users running tests interactively
         # in e.g. IPython, conftest.py would get read in too late, so we need
         # to do it here - but at the same time the code here doesn't work when
         # running tests in parallel mode because this uses subprocesses which
         # don't know about the temporary config/cache.
-        astropy_config = tempfile.mkdtemp("astropy_config")
-        astropy_cache = tempfile.mkdtemp("astropy_cache")
-
-        # Have to use nested with statements for cross-Python support
-        # Note, using these context managers here is superfluous if the
-        # config_dir or cache_dir options to pytest are in use, but it's
-        # also harmless to nest the contexts
-        with set_temp_config(astropy_config, delete=True):
-            with set_temp_cache(astropy_cache, delete=True):
+        # Note, this is superfluous if the config_dir option to pytest is in use,
+        # but it's also harmless
+        orig_xdg_config = os.environ.get("XDG_CONFIG_HOME")
+        with tempfile.TemporaryDirectory("astropy_config") as astropy_config:
+            Path(astropy_config, "astropy").mkdir()
+            os.environ["XDG_CONFIG_HOME"] = astropy_config
+            try:
                 return pytest.main(args=args, plugins=plugins)
+            finally:
+                if orig_xdg_config is None:
+                    os.environ.pop("XDG_CONFIG_HOME", None)
+                else:
+                    os.environ["XDG_CONFIG_HOME"] = orig_xdg_config
 
     @classmethod
     def make_test_runner_in(cls, path):
@@ -287,6 +304,7 @@ class TestRunnerBase:
         return test
 
 
+@deprecated("7.2", alternative="pytest", pending=True)
 class TestRunner(TestRunnerBase):
     """
     A test runner for astropy tests.
@@ -493,26 +511,6 @@ class TestRunner(TestRunnerBase):
         return [f"--remote-data={remote_data}"]
 
     @keyword()
-    def pep8(self, pep8, kwargs):
-        """
-        pep8 : bool, optional
-            Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
-            tests. Same as specifying ``--pep8 -k pep8`` in ``args``.
-        """
-        if pep8:
-            try:
-                import pytest_pep8  # noqa: F401
-            except ImportError:
-                raise ImportError(
-                    "PEP8 checking requires pytest-pep8 plugin: "
-                    "https://pypi.org/project/pytest-pep8"
-                )
-            else:
-                return ["--pep8", "-k", "pep8"]
-
-        return []
-
-    @keyword()
     def pdb(self, pdb, kwargs):
         """
         pdb : bool, optional
@@ -562,7 +560,7 @@ class TestRunner(TestRunnerBase):
             elif not kwargs["test_path"]:
                 paths = [docs_path]
 
-            if len(paths) and not kwargs["test_path"]:
+            if paths and not kwargs["test_path"]:
                 paths.append("--doctest-rst")
 
         return paths

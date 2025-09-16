@@ -4,7 +4,6 @@
 This module contains tests for the name resolve convenience module.
 """
 
-import re
 import time
 import urllib.request
 
@@ -22,6 +21,7 @@ from astropy.coordinates.name_resolve import (
     sesame_url,
 )
 from astropy.coordinates.sky_coordinate import SkyCoord
+from astropy.utils.data import get_cached_urls
 
 _cached_ngc3642 = {}
 _cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669
@@ -114,10 +114,8 @@ def test_names():
     # "all" choice should ask for SIMBAD, then NED, then Vizier: "SNV" in the url
     with pytest.raises(
         NameResolveError,
-        match=re.escape(
-            "Unable to find coordinates for name 'm87h34hhh' "
-            "using https://cds.unistra.fr/cgi-bin/nph-sesame/SNV?m87h34hhh"
-        ),
+        # avoid hard-coding an exact url as it might depend on external state
+        match=r"Unable to find coordinates for name 'm87h34hhh' using http.*SNV.*",
     ):
         get_icrs_coordinates("m87h34hhh")
 
@@ -147,38 +145,25 @@ def test_names():
 
 @pytest.mark.remote_data
 def test_name_resolve_cache(tmp_path):
-    from astropy.utils.data import get_cached_urls
-
     target_name = "castor"
-
     (temp_cache_dir := tmp_path / "cache").mkdir()
-    with paths.set_temp_cache(temp_cache_dir, delete=True):
-        assert len(get_cached_urls()) == 0
-
-        icrs1 = get_icrs_coordinates(target_name, cache=True)
-
+    with paths.set_temp_cache(temp_cache_dir):
+        assert not get_cached_urls()  # sanity check
+        icrs = get_icrs_coordinates(target_name, cache=True)
         urls = get_cached_urls()
         assert len(urls) == 1
-        expected_urls = sesame_url.get()
-        assert any(
-            urls[0].startswith(x) for x in expected_urls
-        ), f"{urls[0]} not in {expected_urls}"
-
+        assert any(map(urls[0].startswith, sesame_url.get()))
         # Try reloading coordinates, now should just reload cached data:
         with no_internet():
-            icrs2 = get_icrs_coordinates(target_name, cache=True)
-
-        assert len(get_cached_urls()) == 1
-
-        assert u.allclose(icrs1.ra, icrs2.ra)
-        assert u.allclose(icrs1.dec, icrs2.dec)
+            assert get_icrs_coordinates(target_name, cache=True) == icrs
+        assert get_cached_urls() == urls
 
 
 def test_names_parse():
     # a few test cases for parsing embedded coordinates from object name
     test_names = [
         "CRTS SSS100805 J194428-420209",
-        "MASTER OT J061451.7-272535.5",
+        "MASTER OT J061451.7-272535.5",  # codespell:ignore ot
         "2MASS J06495091-0737408",
         "1RXS J042555.8-194534",
         "SDSS J132411.57+032050.5",

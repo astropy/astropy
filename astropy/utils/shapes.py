@@ -1,16 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """The ShapedLikeNDArray mixin class and shape-related functions."""
 
-from __future__ import annotations
-
 import abc
 import numbers
+from collections.abc import Sequence
 from itertools import zip_longest
-from typing import TYPE_CHECKING
+from math import prod
+from types import EllipsisType
+from typing import Self, TypeVar
 
 import numpy as np
+from numpy.typing import NDArray
 
 from astropy.utils.compat import NUMPY_LT_2_0
+from astropy.utils.decorators import deprecated
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -20,23 +23,16 @@ else:
     from numpy.lib.array_utils import normalize_axis_index
 
 __all__ = [
+    "IncompatibleShapeError",
     "NDArrayShapeMethods",
     "ShapedLikeNDArray",
     "check_broadcast",
-    "IncompatibleShapeError",
     "simplify_basic_index",
     "unbroadcast",
 ]
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-    from types import EllipsisType
-    from typing import TypeVar
 
-    from numpy.typing import NDArray
-    from typing_extensions import Self
-
-    DT = TypeVar("DT", bound=np.generic)
+DT = TypeVar("DT", bound=np.generic)
 
 
 class NDArrayShapeMethods:
@@ -224,10 +220,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
     @property
     def size(self) -> int:
         """The size of the object, as calculated from its shape."""
-        size = 1
-        for sh in self.shape:
-            size *= sh
-        return size
+        return prod(self.shape)
 
     @property
     def isscalar(self) -> bool:
@@ -356,6 +349,7 @@ class IncompatibleShapeError(ValueError):
         super().__init__(shape_a, shape_a_idx, shape_b, shape_b_idx)
 
 
+@deprecated("7.0", alternative="np.broadcast_shapes")
 def check_broadcast(*shapes: tuple[int, ...]) -> tuple[int, ...]:
     """
     Determines whether two or more Numpy arrays can be broadcast with each

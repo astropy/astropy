@@ -5,10 +5,11 @@ This module defines structured units and quantities.
 
 # Standard library
 import operator
+from collections.abc import Collection
+from functools import cached_property
+from typing import Self
 
 import numpy as np
-
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_24
 
 from .core import UNITY, Unit, UnitBase
 
@@ -121,7 +122,7 @@ class StructuredUnit:
     Structured units share most methods with regular units::
 
         >>> su.physical_type
-        ((PhysicalType('length'), PhysicalType({'speed', 'velocity'})), PhysicalType('time'))
+        astropy.units.structured.Structure((astropy.units.structured.Structure((PhysicalType('length'), PhysicalType({'speed', 'velocity'})), dtype=[('f0', 'O'), ('f1', 'O')]), PhysicalType('time')), dtype=[('f0', 'O'), ('f1', 'O')])
         >>> su.si
         Unit("((1.49598e+11 m, 1.73146e+06 m / s), 3.15576e+07 s)")
 
@@ -238,11 +239,7 @@ class StructuredUnit:
             If given, should be a subclass of `~numpy.void`. By default,
             will return a new `~astropy.units.StructuredUnit` instance.
         """
-        applied = tuple(func(part) for part in self.values())
-        if NUMPY_LT_1_24:
-            results = np.array(applied, self._units.dtype)[()]
-        else:
-            results = np.void(applied, self._units.dtype)
+        results = np.void(tuple(map(func, self.values())), self._units.dtype)
         if cls is not None:
             return results.view((cls, results.dtype))
 
@@ -297,9 +294,10 @@ class StructuredUnit:
         return self._recursively_apply(operator.attrgetter("cgs"))
 
     # Needed to pass through Unit initializer, so might as well use it.
-    def _get_physical_type_id(self):
+    @cached_property
+    def _physical_type_id(self):
         return self._recursively_apply(
-            operator.methodcaller("_get_physical_type_id"), cls=Structure
+            operator.attrgetter("_physical_type_id"), cls=Structure
         )
 
     @property
@@ -309,7 +307,7 @@ class StructuredUnit:
             operator.attrgetter("physical_type"), cls=Structure
         )
 
-    def decompose(self, bases=set()):
+    def decompose(self, bases: Collection[UnitBase] = ()) -> Self:
         """The `StructuredUnit` composed of only irreducible units.
 
         Parameters
@@ -424,8 +422,8 @@ class StructuredUnit:
 
         Parameters
         ----------
-        format : `astropy.units.format.Base` instance or str
-            The name of a format or a formatter object.  If not
+        format : `astropy.units.format.Base` subclass or str
+            The name of a format or a formatter class.  If not
             provided, defaults to the generic format.
 
         Notes

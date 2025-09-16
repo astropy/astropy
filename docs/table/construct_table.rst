@@ -132,12 +132,12 @@ of different data types to initialize a table::
   ...                 ([4., 5., 6.], [.4, .5, .6])], 'm,m/s')
   >>> QTable([a, b, c, d])
   <QTable length=2>
-    col0    col1   axis          col3 [f0, f1]
-                                    (m, m / s)
-  float64 int64[2] str1     (float64[3], float64[3])
-  ------- -------- ---- -------------------------------
-      1.0   2 .. 3    x ([1., 2., 3.], [0.1, 0.2, 0.3])
-      4.0   5 .. 6    y ([4., 5., 6.], [0.4, 0.5, 0.6])
+    col0    col1   axis           col3 [f0, f1]
+                                     (m, m / s)
+  float64 int64[2] str1      (float64[3], float64[3])
+  ------- -------- ---- ----------------------------------
+      1.0   2 .. 3    x ([1.0, 2.0, 3.0], [0.1, 0.2, 0.3])
+      4.0   5 .. 6    y ([4.0, 5.0, 6.0], [0.4, 0.5, 0.6])
 
 Notice that in the third column the existing column name ``'axis'`` is used.
 
@@ -201,8 +201,10 @@ column where each row element is itself a two-element array.
     ...
   KeyError: 'a_new'
 
-Row Data
---------
+.. _Row data:
+
+List of Rows
+------------
 
 Row-oriented data can be used to create a table using the ``rows``
 keyword argument.
@@ -258,26 +260,17 @@ You can specify the column order with the ``names`` argument::
    10   5
    20  15
 
-If ``names`` are not provided then column ordering will be determined by the
-first :class:`dict` if it contains values for all the columns, or by sorting
-the column names alphabetically if it doesn't::
+If ``names`` are not provided then column ordering will be determined by
+order in which they appear as the :class:`list` of :class:`dict` is iterated over.
 
-  >>> data = [{'b': 10, 'c': 7, 'a': 5},
+  >>> data = [{'b': 10, 'c': 7, },
   ...         {'a': 15, 'c': 35, 'b': 20}]
   >>> t = Table(rows=data)
   >>> print(t)
    b   c   a
   --- --- ---
-   10   7   5
+   10   7  --
    20  35  15
-  >>> data = [{'b': 10, 'c': 7, },
-  ...         {'a': 15, 'c': 35, 'b': 20}]
-  >>> t = Table(rows=data)
-  >>> print(t)
-   a   b   c
-  --- --- ---
-   --  10   7
-   15  20  35
 
 **Single row**
 
@@ -355,8 +348,8 @@ including the simple structured array defined previously as a column::
   >>> print(table)
    name arr [a, b, c]
   ----- -------------
-  Micah  (1, 2., 'x')
-  Mazzy  (4, 5., 'y')
+  Micah (1, 2.0, 'x')
+  Mazzy (4, 5.0, 'y')
 
 You can access or print a single field in the structured column as follows::
 
@@ -583,9 +576,9 @@ Comment Lines
 
 .. EXAMPLE START: Adding Comment Lines in an ASCII File
 
-Comment lines in an ASCII file can be added via the ``'comments'`` key in the
+Comment lines in a text file can be added via the ``'comments'`` key in the
 table's metadata. The following will insert two comment lines in the output
-ASCII file unless ``comment=False`` is explicitly set in ``write()``::
+text file unless ``comment=False`` is explicitly set in ``write()``::
 
   >>> import sys
   >>> from astropy.table import Table
@@ -664,8 +657,8 @@ for the ``data`` argument.
 
 **dict-like**
     The keys of the ``data`` object define the base column names. The
-    corresponding values can be |Column| objects, ``numpy`` arrays, or list-
-    like objects. The ``names`` list (optional) can be used to select
+    corresponding values can be |Column| objects, ``numpy`` arrays, or
+    list-like objects. The ``names`` list (optional) can be used to select
     particular fields and/or reorder the base names. The ``dtype`` list
     (optional) must match the length of ``names`` and is used to override
     the existing or default data types.
@@ -729,10 +722,10 @@ meta
 ----
 
 The ``meta`` argument is an object that contains metadata associated with the
-table. It is recommended that this object be a :class:`dict` or
-:class:`~collections.OrderedDict`, but the only firm requirement is that it can
+table. It is recommended that this object be a :class:`dict`, but the
+only firm requirement is that it *must be a dict-like mapping* and can
 be copied with the standard library :func:`copy.deepcopy` routine. By
-default, ``meta`` is an empty :class:`~collections.OrderedDict`.
+default, ``meta`` is an empty :class:`dict`.
 
 copy
 ----
@@ -898,7 +891,7 @@ Format Specifier
 ^^^^^^^^^^^^^^^^
 
 The format specifier controls the output of column values when a table or column
-is printed or written to an ASCII table. In the simplest case, it is a string
+is printed or written to a text table. In the simplest case, it is a string
 that can be passed to Python's built-in :func:`format` function. For more
 complicated formatting, one can also give "old style" or "new style"
 format strings, or even a function:
@@ -1151,7 +1144,7 @@ Now see what we have from our specialized ``ParamsRow`` object::
   >>> t[1].keys()
   ['a', 'b', 'id', 'z']
   >>> t[1].values()
-  [2, 3.0, 123123, 'hello']
+  [np.int32(2), np.float32(3.0), 123123, 'hello']
 
 To make this example really useful, you might want to override
 ``Table.__getitem__()`` in order to allow table-level access to the parameter

@@ -11,7 +11,7 @@ body:
         quick look to see if you are satisfied by the resolution.
         If not please go ahead and open an issue!
         Please check that the
-        [development version](https://docs.astropy.org/en/latest/development/workflow/get_devel_version.html)
+        [development version](https://docs.astropy.org/en/latest/development/quickstart.html#install-the-development-version-of-astropy)
         still produces the same bug.
   - type: textarea
     attributes:
@@ -40,25 +40,12 @@ body:
   - type: textarea
     attributes:
       label: Versions
-      description: Version of relevant packages.
+      description: Please run the following script and paste the output
       value: |
         ```python
-        import platform; print(platform.platform())
-        import sys; print("Python", sys.version)
-        import astropy; print("astropy", astropy.__version__)
-        import numpy; print("Numpy", numpy.__version__)
-        import erfa; print("pyerfa", erfa.__version__)
-        try:
-            import scipy
-            print("Scipy", scipy.__version__)
-        except ImportError:
-            print("Scipy not installed")
-        try:
-            import matplotlib
-            print("Matplotlib", matplotlib.__version__)
-        except ImportError:
-            print("Matplotlib not installed")
+        import astropy
+        astropy.system_info()
         ```
         ```
-        # Copy the result here
+        # Paste the result here
         ```
