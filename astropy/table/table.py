@@ -4035,7 +4035,7 @@ class Table:
         *,
         index: bool | str | None = None,
         use_nullable_int: bool = True,
-    ) -> Any:
+    ) -> Any: # Returns a Dataframe of type depending on backend
         """
         Convert the table to an eager DataFrame using the ``narwhals`` backend.
 
@@ -4187,7 +4187,9 @@ class Table:
 
         return from_df(df, index=index, units=units)
 
-    def to_pandas(self, index: bool | str | None = None, use_nullable_int: bool = True):
+    def to_pandas(
+        self, index: bool | str | None = None, use_nullable_int: bool = True
+    ) -> Any: # Returns pandas.DataFrame but pandas may not be installed
         """
         Return a :class:`pandas.DataFrame` instance.
 
