@@ -86,7 +86,7 @@ Supported Backends
 
 The generic methods support DataFrame libraries with eager execution, including:
 
-* **pandas** - The most feature-complete backend
+* **pandas** - A popular, and pioneer, DataFrame library
 * **polars** - High-performance DataFrame library with different handling of multidimensional data
 * **pyarrow** - In-memory columnar format with good performance
 * **modin** - Distributed pandas-compatible DataFrames
