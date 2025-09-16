@@ -150,9 +150,10 @@ class Base:
         ----------
         unit : |Unit|
             The unit to convert.
-        deprecations : {"warn", "silent", "raise"}, optional, keyword-only
+        deprecations : {"warn", "silent", "raise", "convert"}, optional, keyword-only
             Whether deprecated units should emit a warning, be handled
-            silently or raise an error.
+            silently or raise an error. The "convert" option replaces
+            the deprecated unit if possible and emits a warning otherwise.
         fraction : {False|True|'inline'|'multiline'}, optional
             Options are as follows:
 
@@ -276,6 +277,12 @@ class _ParsingFormatMixin:
                 msg += f" Suggested: {cls.to_string(alternative)}."
 
             match DeprecatedUnitAction(deprecations):
+                case DeprecatedUnitAction.CONVERT:
+                    if alternative:
+                        return alternative
+                    warnings.warn(
+                        msg + " It cannot be automatically converted.", UnitsWarning
+                    )
                 case DeprecatedUnitAction.WARN:
                     warnings.warn(msg, UnitsWarning)
                 case DeprecatedUnitAction.RAISE:
