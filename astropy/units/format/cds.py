@@ -17,6 +17,7 @@ from typing import ClassVar, Literal
 
 from astropy.extern.ply.lex import Lexer
 from astropy.units.core import CompositeUnit, Unit, UnitBase
+from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
 from astropy.utils.parsing import ThreadSafeParser
@@ -268,7 +269,10 @@ class CDS(Base, _ParsingFormatMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)

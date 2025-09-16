@@ -21,6 +21,7 @@ from astropy.units import (
     Unit,
     UnitBase,
     UnitParserWarning,
+    UnitsError,
     UnitsWarning,
     cds,
     dex,
@@ -356,11 +357,12 @@ class RoundtripBase:
     def check_roundtrip(self, unit, output_format=None):
         if output_format is None:
             output_format = self.format_.name
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")  # Same warning shows up multiple times
-            s = unit.to_string(output_format)
-
+        s = unit.to_string(output_format, deprecations="silent")
         if s in self.format_._deprecated_units:
+            with pytest.raises(UnitsError, match="deprecated"):
+                unit.to_string(output_format, deprecations="raise")
+            with pytest.warns(UnitsWarning, match="deprecated"):
+                assert unit.to_string(output_format) == s
             with pytest.warns(UnitsWarning, match="deprecated") as w:
                 a = Unit(s, format=self.format_)
             assert len(w) == 1
@@ -738,6 +740,17 @@ def test_deprecated_did_you_mean_units():
     with pytest.warns(UnitsWarning, match=r".* 0\.1nm\.") as w:
         u.Unit("angstrom", format="vounit")
     assert len(w) == 1
+
+
+def test_invalid_deprecated_units_handling():
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"^invalid deprecation handling option: 'ignore'\. Valid options are "
+            r"'silent', 'warn', 'raise'\.$"
+        ),
+    ):
+        u.erg.to_string(format="vounit", deprecations="ignore")
 
 
 @pytest.mark.parametrize("string", ["mag(ct/s)", "dB(mW)", "dex(cm s**-2)"])

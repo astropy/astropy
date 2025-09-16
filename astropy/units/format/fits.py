@@ -9,6 +9,7 @@ from typing import Literal
 import numpy as np
 
 from astropy.units.core import CompositeUnit, UnitBase
+from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.errors import UnitScaleError
 from astropy.utils import classproperty
 
@@ -58,7 +59,10 @@ class FITS(Base, _GenericParserMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)
