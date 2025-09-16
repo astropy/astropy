@@ -4070,7 +4070,7 @@ class Table:
 
         Returns
         -------
-        dataframe : object
+        dataframe : Any
             An eager DataFrame instance as specified by the backend.
 
         Raises
@@ -4119,7 +4119,7 @@ class Table:
 
         Parameters
         ----------
-        df : object
+        df : Any
             A dataframe-like object (e.g., a `pandas.DataFrame`, ``polars.DataFrame``,
             ``pyarrow.Table`` or other ``narwhals`` compatible dataframe).
         index : bool, optional
