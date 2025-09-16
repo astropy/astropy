@@ -8,6 +8,7 @@ class DeprecatedUnitAction(StrEnum):
     SILENT = auto()
     WARN = auto()
     RAISE = auto()
+    CONVERT = auto()
 
     @classmethod
     def _missing_(cls, value) -> Self | None:
