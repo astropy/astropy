@@ -2,7 +2,7 @@
 
 ----
 
-|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
+|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Supported Python Versions| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
 
 ----
 
@@ -104,6 +104,10 @@ Astropy is licensed under a 3-clause BSD style license - see the
 .. |PyPI Status| image:: https://img.shields.io/pypi/v/astropy.svg
     :target: https://pypi.org/project/astropy
     :alt: Astropy's PyPI Status
+
+.. |Supported Python Versions| image:: https://img.shields.io/pypi/pyversions/astropy
+    :target: https://pypi.org/project/astropy
+    :alt: Supported Python Versions of latest released astropy
 
 .. |Zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4670728.svg
     :target: https://doi.org/10.5281/zenodo.4670728
