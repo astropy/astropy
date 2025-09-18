@@ -275,17 +275,6 @@ def get_constellation(coord, short_name=False, constellation_list="iau"):
         return names
 
 
-def _concatenate_components(reps_difs, names):
-    """Helper function for the concatenate function below. Gets and
-    concatenates all of the individual components for an iterable of
-    representations or differentials.
-    """
-    return [
-        np.concatenate(np.atleast_1d(*[getattr(x, name) for x in reps_difs]))
-        for name in names
-    ]
-
-
 def concatenate_representations(reps):
     """
     Combine multiple representation objects into a single instance by
@@ -306,46 +295,32 @@ def concatenate_representations(reps):
         A single representation object with its data set to the concatenation of
         all the elements of the input sequence of representations.
 
+    Notes
+    -----
+    This function differs from `numpy.concatenate` in that (i) it does not
+    take an axis argument; (ii) scalar representations are allowed to be
+    concatenated with other scalar or one-dimensional ones; (iii) all
+    representations must have the same type and either all have or all not
+    have a differential relative to time, while for `numpy.concatenate`, the
+    output type and the number is forced to be that of the first
+    representation, and differentials on the later representations are ignored
+    if the first one does not have them.
+
     """
     if not isinstance(reps, (Sequence, np.ndarray)):
         raise TypeError("Input must be a list or iterable of representation objects.")
 
-    # First, validate that the representations are the same, and
-    # concatenate all of the positional data:
-    rep_type = type(reps[0])
-    if any(type(r) != rep_type for r in reps):
+    if len({type(r) for r in reps}) > 1:
         raise TypeError("Input representations must all have the same type.")
 
-    # Construct the new representation with the concatenated data from the
-    # representations passed in
-    values = _concatenate_components(reps, rep_type.attr_classes.keys())
-    new_rep = rep_type(*values)
-
-    has_diff = any("s" in rep.differentials for rep in reps)
-    if has_diff and any("s" not in rep.differentials for rep in reps):
+    r0_diff_keys = reps[0].differentials.keys()
+    if any(r.differentials.keys() != r0_diff_keys for r in reps[1:]):
         raise ValueError(
             "Input representations must either all contain "
             "differentials, or not contain differentials."
         )
 
-    if has_diff:
-        dif_type = type(reps[0].differentials["s"])
-
-        if any(
-            "s" not in r.differentials or type(r.differentials["s"]) != dif_type
-            for r in reps
-        ):
-            raise TypeError(
-                "All input representations must have the same differential type."
-            )
-
-        values = _concatenate_components(
-            [r.differentials["s"] for r in reps], dif_type.attr_classes.keys()
-        )
-        new_dif = dif_type(*values)
-        new_rep = new_rep.with_differentials({"s": new_dif})
-
-    return new_rep
+    return np.concatenate(np.atleast_1d(*reps))
 
 
 def concatenate(coords):
@@ -368,6 +343,16 @@ def concatenate(coords):
     cskycoord : SkyCoord
         A single sky coordinate with its data set to the concatenation of all
         the elements in ``coords``
+
+    Notes
+    -----
+    This function differs from `numpy.concatenate` in that (i) it does not
+    take an axis argument; (ii) scalar representations are allowed to be
+    concatenated with other scalar or one-dimensional ones; (iii) all
+    |SkyCoord| must have the same representation type and either all have or
+    all not have velocities; and (iv) non-frame attributes are removed
+    instead of copied from the first |SkyCoord|.
+
     """
     if getattr(coords, "isscalar", False) or not np.iterable(coords):
         raise TypeError("The argument to concatenate must be iterable")
