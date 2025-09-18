@@ -220,7 +220,7 @@ from .logger import _init_log, _teardown_log
 
 log = _init_log()
 
-_initialize_astropy()
+# _initialize_astropy()
 
 from types import ModuleType as __module_type__
 
