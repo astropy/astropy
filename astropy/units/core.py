@@ -1974,6 +1974,10 @@ class UnrecognizedUnit(IrreducibleUnit):
     __pow__ = __truediv__ = __rtruediv__ = __mul__ = __rmul__ = _unrecognized_operator
     __lt__ = __gt__ = __le__ = __ge__ = __neg__ = _unrecognized_operator
 
+    def __hash__(self):
+        # __hash__ isn't inherited in classes with a custom __eq__ method
+        return self._hash
+
     def __eq__(self, other):
         try:
             other = Unit(other, parse_strict="silent")
