@@ -202,9 +202,9 @@ def serialize_method_as(tbl, serialize_method):
                     # is not actually known (this gets determined by the write function
                     # in registry.py).  Note this creates a new temporary dict object
                     # so that the restored version is the same original object.
-                    col.info.serialize_method = {
-                        fmt: override_sm for fmt in col.info.serialize_method
-                    }
+                    col.info.serialize_method = dict.fromkeys(
+                        col.info.serialize_method, override_sm
+                    )
 
     # Finally yield for the context block
     try:

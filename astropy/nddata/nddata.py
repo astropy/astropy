@@ -345,7 +345,7 @@ class NDData(NDDataBase):
                     attr_prefix = f"\n  {attr}="
                     attr_repr = repr(attr_data)
                     attr_repr = attr_repr.replace(
-                        "\n", f'\n{" " * (len(attr_prefix) - 1)}'
+                        "\n", f"\n{' ' * (len(attr_prefix) - 1)}"
                     )
                     contents.append(attr_prefix + attr_repr)
             return prefix + ",".join(contents) + "\n)"

@@ -194,15 +194,11 @@ def _convert_sequence_data_to_array(data, dtype=None):
     """
     np_ma_masked = np.ma.masked  # Avoid repeated lookups of this object
 
+    has_len_gt0 = hasattr(data, "__len__") and len(data) > 0
     # Special case of an homogeneous list of MaskedArray elements (see #8977).
     # np.ma.masked is an instance of MaskedArray, so exclude those values.
-    if (
-        hasattr(data, "__len__")
-        and len(data) > 0
-        and all(
-            isinstance(val, np.ma.MaskedArray) and val is not np_ma_masked
-            for val in data
-        )
+    if has_len_gt0 and all(
+        isinstance(val, np.ma.MaskedArray) and val is not np_ma_masked for val in data
     ):
         np_data = np.ma.array(data, dtype=dtype)
         return np_data
@@ -222,21 +218,19 @@ def _convert_sequence_data_to_array(data, dtype=None):
             category=FutureWarning,
             message=".*Promotion of numbers and bools to strings.*",
         )
+
+        has_unit = has_len_gt0 and any(hasattr(v, "unit") for v in data)
+
         try:
-            np_data = np.array(data, dtype=dtype)
+            cls = Quantity if has_unit else np.array
+            np_data = cls(data, dtype=dtype)
         except np.ma.MaskError:
             # Catches case of dtype=int with masked values, instead let it
             # convert to float
             np_data = np.array(data)
         except Exception:
-            # Conversion failed for some reason, e.g. [2, 1*u.m] gives TypeError in Quantity.
-            # First try to interpret the data as Quantity. If that still fails then fall
-            # through to object
-            try:
-                np_data = Quantity(data, dtype)
-            except Exception:
-                dtype = object
-                np_data = np.array(data, dtype=dtype)
+            dtype = object
+            np_data = np.array(data, dtype=dtype)
 
     if np_data.ndim == 0 or (np_data.ndim > 0 and len(np_data) == 0):
         # Implies input was a scalar or an empty list (e.g. initializing an
@@ -264,9 +258,9 @@ def _convert_sequence_data_to_array(data, dtype=None):
         if ii == 0:
             any_statement = f"any({any_statement} for d0 in data)"
         elif ii == np_data.ndim - 1:
-            any_statement = f"any(d{ii} is ma_masked for d{ii} in d{ii-1})"
+            any_statement = f"any(d{ii} is ma_masked for d{ii} in d{ii - 1})"
         else:
-            any_statement = f"any({any_statement} for d{ii} in d{ii-1})"
+            any_statement = f"any({any_statement} for d{ii} in d{ii - 1})"
     context = {"ma_masked": np.ma.masked, "data": data}
     has_masked = eval(any_statement, context)
 
@@ -762,9 +756,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         return self._name
 
     @name.setter
-    def name(self, val):
-        if val is not None:
+    def name(self, val: str | None):
+        if isinstance(val, str):
             val = str(val)
+        elif val is not None:
+            raise TypeError(
+                f"Expected a str value, got {val} with type {type(val).__name__}"
+            )
 
         if self.parent_table is not None:
             table = self.parent_table

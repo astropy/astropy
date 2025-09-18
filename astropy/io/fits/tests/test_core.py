@@ -23,6 +23,8 @@ from astropy.io.tests import safeio
 from astropy.utils import data
 from astropy.utils.compat.optional_deps import (
     HAS_BZ2,  # NOTE: Python can be built without bz2
+    HAS_LZMA,  # NOTE: Python can be built without lzma
+    HAS_UNCOMPRESSPY,
 )
 from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
@@ -32,6 +34,12 @@ from .conftest import FitsTestCase
 
 if HAS_BZ2:
     import bz2
+
+if HAS_LZMA:
+    import lzma
+
+if HAS_UNCOMPRESSPY:
+    import uncompresspy
 
 
 class TestCore(FitsTestCase):
@@ -796,6 +804,14 @@ class TestFileFunctions(FitsTestCase):
             assert fits_handle._file.compression == "bzip2"
             assert len(fits_handle) == 5
 
+        for mode in ("append", "update"):
+            with pytest.raises(
+                OSError,
+                match="update and append modes are not supported with bzip2 files",
+            ):
+                with fits.open(bzip_file, mode=mode) as fits_handle:
+                    pass
+
     @pytest.mark.skipif(not HAS_BZ2, reason="Python built without bz2 module")
     def test_open_bzipped_from_handle(self):
         with open(self._make_bzip2_file(), "rb") as handle:
@@ -832,6 +848,137 @@ class TestFileFunctions(FitsTestCase):
 
         with fits.open(self.temp("testname.fits.bz2")) as hdul:
             assert hdul[0].header == h.header
+
+    @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
+    def test_open_lzma(self):
+        lzma_file = self._make_lzma_file()
+
+        with fits.open(lzma_file) as fits_handle:
+            assert fits_handle._file.compression == "lzma"
+            assert len(fits_handle) == 5
+
+        with fits.open(lzma_file, decompress_in_memory=True) as fits_handle:
+            assert fits_handle._file.compression == "lzma"
+            assert len(fits_handle) == 5
+
+        with fits.open(lzma.LZMAFile(lzma_file)) as fits_handle:
+            assert fits_handle._file.compression == "lzma"
+            assert len(fits_handle) == 5
+
+        for mode in ("append", "update"):
+            with pytest.raises(
+                OSError,
+                match="update and append modes are not supported with lzma files",
+            ):
+                with fits.open(lzma_file, mode=mode) as fits_handle:
+                    pass
+
+    @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
+    def test_open_lzma_from_handle(self):
+        with open(self._make_lzma_file(), "rb") as handle:
+            with fits.open(handle) as fits_handle:
+                assert fits_handle._file.compression == "lzma"
+                assert len(fits_handle) == 5
+
+    @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
+    def test_detect_lzma(self):
+        """Test detection of a lzma file when the extension is not .xz."""
+        with fits.open(self._make_lzma_file("test0.xx")) as fits_handle:
+            assert fits_handle._file.compression == "lzma"
+            assert len(fits_handle) == 5
+
+    @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
+    def test_writeto_lzma_fileobj(self):
+        """Test writing to a lzma.LZMAFile file like object"""
+        fileobj = lzma.LZMAFile(self.temp("test.fits.xz"), "w")
+        h = fits.PrimaryHDU()
+        try:
+            h.writeto(fileobj)
+        finally:
+            fileobj.close()
+
+        with fits.open(self.temp("test.fits.xz")) as hdul:
+            assert hdul[0].header == h.header
+
+    @pytest.mark.skipif(not HAS_LZMA, reason="Python built without lzma module")
+    def test_writeto_lzma_filename(self):
+        """Test writing to a lzma file by name"""
+        filename = self.temp("testname.fits.xz")
+        h = fits.PrimaryHDU()
+        h.writeto(filename)
+
+        with fits.open(self.temp("testname.fits.xz")) as hdul:
+            assert hdul[0].header == h.header
+
+    @pytest.mark.skipif(
+        not HAS_UNCOMPRESSPY, reason="Optional package uncompresspy not installed"
+    )
+    def test_open_lzw(self):
+        lzw_file = self._make_lzw_file()
+
+        arcfile = "ONTT.1991-12-30T08:55:46.000.fits"
+        last_datapoint = 53
+        with fits.open(lzw_file) as fits_handle:
+            assert fits_handle._file.compression == "lzw"
+            assert len(fits_handle) == 1
+            assert fits_handle[0].header["ARCFILE"] == arcfile
+            assert fits_handle[0].data[-1, -1] == last_datapoint
+
+        with fits.open(lzw_file, decompress_in_memory=True) as fits_handle:
+            assert fits_handle._file.compression == "lzw"
+            assert len(fits_handle) == 1
+            assert fits_handle[0].header["ARCFILE"] == arcfile
+            assert fits_handle[0].data[-1, -1] == last_datapoint
+
+        with fits.open(uncompresspy.LZWFile(lzw_file)) as fits_handle:
+            assert fits_handle._file.compression == "lzw"
+            assert len(fits_handle) == 1
+            assert fits_handle[0].header["ARCFILE"] == arcfile
+            assert fits_handle[0].data[-1, -1] == last_datapoint
+
+        for mode in ("append", "update"):
+            with pytest.raises(
+                OSError, match=f"{mode} mode not supported with LZW files"
+            ):
+                with fits.open(lzw_file, mode=mode) as fits_handle:
+                    pass
+
+    @pytest.mark.skipif(
+        not HAS_UNCOMPRESSPY, reason="Optional package uncompresspy not installed"
+    )
+    def test_open_lzw_from_handle(self):
+        arcfile = "ONTT.1991-12-30T08:55:46.000.fits"
+        last_datapoint = 53
+        with open(self._make_lzw_file(), "rb") as handle:
+            with fits.open(handle) as fits_handle:
+                assert fits_handle._file.compression == "lzw"
+                assert len(fits_handle) == 1
+                assert fits_handle[0].header["ARCFILE"] == arcfile
+                assert fits_handle[0].data[-1, -1] == last_datapoint
+
+    @pytest.mark.skipif(
+        not HAS_UNCOMPRESSPY, reason="Optional package uncompresspy not installed"
+    )
+    def test_detect_lzw(self):
+        """Test detection of a lzw file when the extension is not .Z."""
+        arcfile = "ONTT.1991-12-30T08:55:46.000.fits"
+        last_datapoint = 53
+        with fits.open(self._make_lzw_file("test0.xx")) as fits_handle:
+            assert fits_handle._file.compression == "lzw"
+            assert len(fits_handle) == 1
+            assert fits_handle[0].header["ARCFILE"] == arcfile
+            assert fits_handle[0].data[-1, -1] == last_datapoint
+
+    @pytest.mark.skipif(
+        not HAS_UNCOMPRESSPY, reason="Optional package uncompresspy not installed"
+    )
+    def test_writeto_lzw_filename(self):
+        """Test writing to a LZW file by name. This should fail as writing LZW
+        is not supported."""
+        filename = self.temp("testname.fits.Z")
+        h = fits.PrimaryHDU()
+        with pytest.raises(OSError, match="mode not supported with LZW files"):
+            h.writeto(filename)
 
     def test_open_zipped(self):
         zip_file = self._make_zip_file()
@@ -953,7 +1100,7 @@ class TestFileFunctions(FitsTestCase):
         with fits.open(self.temp("test.fits.gz")) as hdul:
             assert np.all(hdul[0].data == data)
 
-    @pytest.mark.parametrize("ext", ["gz", "bz2", "zip"])
+    @pytest.mark.parametrize("ext", ["gz", "bz2", "zip", "xz", "Z"])
     def test_compressed_ext_but_not_compressed(self, ext):
         testfile = self.temp(f"test0.fits.{ext}")
         shutil.copy(self.data("test0.fits"), testfile)
@@ -1343,6 +1490,23 @@ class TestFileFunctions(FitsTestCase):
 
         return bzfile
 
+    def _make_lzma_file(self, filename="test0.fits.xz"):
+        lzmafile = self.temp(filename)
+        with open(self.data("test0.fits"), "rb") as f:
+            lz = lzma.LZMAFile(lzmafile, "w")
+            lz.write(f.read())
+            lz.close()
+
+        return lzmafile
+
+    def _make_lzw_file(self, new_filename=None):
+        lzwfile = "lzw.fits.Z"
+        self.copy_file(lzwfile)
+        if new_filename is not None:
+            shutil.move(self.temp(lzwfile), self.temp(new_filename))
+            return self.temp(new_filename)
+        return self.temp(lzwfile)
+
     def test_simulateonly(self):
         """Write to None simulates writing."""
 
@@ -1484,7 +1648,7 @@ class TestStreamingFunctions(FitsTestCase):
 
     def test_blank_ignore(self):
         with fits.open(self.data("blank.fits"), ignore_blank=True) as f:
-            assert f[0].data.flat[0] == 2
+            assert f[0].data.item(0) == 2
 
     def test_error_if_memmap_impossible(self):
         pth = self.data("blank.fits")

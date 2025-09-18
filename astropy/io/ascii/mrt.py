@@ -356,9 +356,7 @@ class MrtHeader(cds.CdsHeader):
                         else:
                             lim_vals = f"[{col.min}/{col.max}]"
                 elif col.fortran_format[0] in ("E", "F"):
-                    lim_vals = (
-                        f"[{floor(col.min * 100) / 100.}/{ceil(col.max * 100) / 100.}]"
-                    )
+                    lim_vals = f"[{floor(col.min * 100) / 100.0}/{ceil(col.max * 100) / 100.0}]"
 
             if lim_vals != "" or nullflag != "":
                 description = f"{lim_vals}{nullflag} {description}"
@@ -439,8 +437,7 @@ class MrtHeader(cds.CdsHeader):
         self.linewidth = endb
 
         # Remove the last extra newline character from Byte-By-Byte.
-        buff = buff[:-1]
-        return buff
+        return buff[:-1]
 
     def write(self, lines):
         """

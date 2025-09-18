@@ -322,7 +322,7 @@ class TestSingleTable:
     def test_character_as_bytes(self, tmp_path, memmap):
         filename = tmp_path / "test_simple.fts"
         t1 = Table(self.data)
-        t1.write(filename, overwrite=True)
+        t1.write(filename)
         t2 = Table.read(filename, character_as_bytes=False, memmap=memmap)
         t3 = Table.read(filename, character_as_bytes=True, memmap=memmap)
         assert t2["b"].dtype.kind == "U"
@@ -331,6 +331,22 @@ class TestSingleTable:
         # To avoid issues with open files, we need to remove references to
         # data that uses memory mapping and force the garbage collection
         del t1, t2, t3
+        gc.collect()
+
+    @pytest.mark.parametrize("character_as_bytes", (False, True))
+    def test_strip_spaces(self, tmp_path, character_as_bytes):
+        filename = get_pkg_data_filename("data/tb.fits")
+        t = Table.read(
+            filename, character_as_bytes=character_as_bytes, strip_spaces=True
+        )
+        assert t["c2"].tolist() == ["abc", "xy"]
+
+        t = Table.read(filename, character_as_bytes=character_as_bytes)
+        assert t["c2"].tolist() == ["abc", "xy "]
+
+        t = Table.read(filename, character_as_bytes=character_as_bytes, memmap=True)
+        assert t["c2"].tolist() == ["abc", "xy "]
+        del t
         gc.collect()
 
     def test_oned_single_element(self, tmp_path):
@@ -374,6 +390,24 @@ class TestSingleTable:
         t.write(filename, append=True)
         check_equal(filename, 3, start_from=2)
         assert equal_data(t2, Table.read(filename, hdu=1))
+
+    def test_write_names(self, tmp_path):
+        t = Table(self.data)
+        hdu = table_to_hdu(t)
+
+        def check_equal(filename, expected, names):
+            with fits.open(filename) as hdu_list:
+                assert len(hdu_list) == expected
+                for name, hdu_table in zip(names, hdu_list[1:]):
+                    assert hdu_table.name == name
+
+        filename = tmp_path / "test_write_append.fits"
+        t.write(filename, name="TABLE1")
+        t.write(filename, append=True, name="TABLE2")
+        check_equal(filename, 3, names=["TABLE1", "TABLE2"])
+
+        t.write(filename, overwrite=True, name="TABLE2")
+        check_equal(filename, 2, names=["TABLE2"])
 
     def test_write_overwrite(self, tmp_path):
         t = Table(self.data)
@@ -1142,6 +1176,8 @@ def test_zero_length_string_columns_can_be_read_into_table(table_type, tmp_path)
     data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
     hdu = fits.BinTableHDU(data)
     hdu.writeto(filename)
-    t = table_type.read(filename)
+    # strip_spaces=True causes the array to be converted from dtype('S') to
+    # dtype('S1') so deactivate it to keep the original test
+    t = table_type.read(filename, strip_spaces=False)
     assert t["a"].dtype.itemsize == 0
     assert t["a"].dtype == data["a"].dtype

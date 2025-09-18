@@ -1,0 +1,2 @@
+Fixed a bug that caused slicing of WCS objects with an ellipsis to not return a WCS
+object but instead a SlicedLowLevelWCS object.

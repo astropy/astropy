@@ -238,8 +238,12 @@ The following packages can optionally be used when testing:
 - `tox <https://tox.readthedocs.io/en/latest/>`_: Used to automate testing
   and documentation builds.
 
+.. _sourcebuildinstructions:
+
 Build from Source
 =================
+
+{% if is_development %}
 
 If you want to build the code from source, follow the instructions for
 :ref:`contributing_environment`. Note that instead of cloning from your fork, you can
@@ -252,7 +256,13 @@ Building the documentation is typically not necessary unless you are
 developing code or documentation or do not have internet access, because
 the stable, latest, and archived versions of Astropy's documentation are
 available at `docs.astropy.org <https://docs.astropy.org>`_ . The process
-is described in `Building the Documentation from Source <https://docs.astropy.org/en/latest/development/docguide.html#builddocs>`_.
+is described in :ref:`builddocs`.
+
+{%else%}
+
+See the `latest documentation on how to build astropy from source <https://docs.astropy.org/en/latest/install.html#build-from-source>`_.
+
+{%endif%}
 
 .. _sourcebuildtest:
 

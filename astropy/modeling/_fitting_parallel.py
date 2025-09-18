@@ -12,7 +12,7 @@ from astropy.nddata import NDUncertainty, StdDevUncertainty, support_nddata
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 from astropy.wcs.wcsapi.wrappers import SlicedLowLevelWCS
 
-__all__ = ["parallel_fit_dask"]
+__all__ = ["FitInfoArrayContainer", "parallel_fit_dask"]
 
 
 def _pixel_to_world_values_block(*pixel, wcs=None):
@@ -51,6 +51,73 @@ def _copy_with_new_parameters(model, parameters):
     return model_new
 
 
+class FitInfoArrayContainer:
+    """
+    This class is intended to contain the object array of all fit_info values
+    and provide a convenience method to access specific items from fit_info
+    as arrays.
+    """
+
+    def __init__(self, fit_info_array):
+        self._fit_info_array = fit_info_array
+
+    @property
+    def shape(self):
+        return self._fit_info_array.shape
+
+    @property
+    def ndim(self):
+        return self._fit_info_array.ndim
+
+    def __getitem__(self, item):
+        result = self._fit_info_array[item]
+        if hasattr(result, "ndim"):
+            return FitInfoArrayContainer(result)
+        else:
+            return result
+
+    def get_property_as_array(self, name):
+        """
+        Return an array of one of the fit information properties
+
+        Parameters
+        ----------
+        name : str
+            The name of a property present on the individual fit information
+            objects.
+        """
+        array = None
+        for index in np.ndindex(self._fit_info_array.shape):
+            fit_info = self._fit_info_array[index]
+            if fit_info is not None:
+                value = np.array(getattr(fit_info, name))
+                if array is None:
+                    array = np.zeros(self.shape + value.shape, dtype=value.dtype)
+                if value.shape != array.shape[self.ndim :]:
+                    raise ValueError(
+                        "Property {name} does not have consistent shape in all fit_info"
+                    )
+                array[index] = value
+        return array
+
+    @property
+    def properties(self):
+        """
+        The properties available to query with :meth:`~astropy.modeling.fitting.FitInfoArrayContainer.get_property_as_array`
+        """
+        # Find the first non-None .fit_info
+        for index in np.ndindex(self._fit_info_array.shape):
+            fit_info = self._fit_info_array[index]
+            if fit_info is not None:
+                return tuple(sorted(fit_info))
+        return ()
+
+
+class FitInfoSubset(dict):
+    def __getattr__(self, attr):
+        return self[attr]
+
+
 def _fit_models_to_chunk(
     data,
     *arrays,
@@ -66,6 +133,7 @@ def _fit_models_to_chunk(
     iterating_axes=None,
     fitting_axes=None,
     weights_specified=None,
+    fit_info=None,
 ):
     """
     Function that gets passed to map_blocks and will fit models to a specific
@@ -111,6 +179,12 @@ def _fit_models_to_chunk(
     index = tuple([slice(None)] * (1 + len(iterating_axes)) + [0] * len(fitting_axes))
     parameters = parameters[index]
 
+    # Transform array to object array and add one more index along the first
+    # dimension so that we can store the fit_info
+    if fit_info:
+        parameters = parameters.astype(object)
+        parameters = np.pad(parameters, [(0, 1)] + [(0, 0)] * (parameters.ndim - 1))
+
     # The world argument is used to pass through 1D arrays of world coordinates
     # (otherwise world_arrays is used) so if the model has more than one
     # dimension we need to make these arrays N-dimensional.
@@ -127,7 +201,7 @@ def _fit_models_to_chunk(
     for index in np.ndindex(iterating_shape_chunk):
         # If all data values are NaN, just set parameters to NaN and move on
         if np.all(np.isnan(data[index])):
-            for ipar, name in enumerate(model.param_names):
+            for ipar in range(len(model.param_names)):
                 parameters[(ipar,) + index] = np.nan
             continue
 
@@ -171,14 +245,29 @@ def _fit_models_to_chunk(
             if diagnostics is not None and diagnostics.startswith("error"):
                 output = True
             error = traceback.format_exc()
-            for ipar, name in enumerate(model_i.param_names):
+            for ipar in range(len(model_i.param_names)):
                 parameters[(ipar,) + index] = np.nan
+
+            parameters[(-1,) + index] = None
         else:
             # Put fitted parameters back into parameters arrays. These arrays are
             # created in-memory by dask and are local to this process so should be
             # safe to modify in-place
             for ipar, name in enumerate(model_fit.param_names):
                 parameters[(ipar,) + index] = getattr(model_fit, name).value
+
+            if fit_info is True:
+                parameters[(-1,) + index] = fitter.fit_info
+            elif fit_info:
+                fit_info_dict = {}
+                for key in fit_info:
+                    if hasattr(fitter.fit_info, key):
+                        fit_info_dict[key] = getattr(fitter.fit_info, key)
+                    else:
+                        raise AttributeError(
+                            f"fit_info on fitter has no attribute '{key}'"
+                        )
+                parameters[(-1,) + index] = FitInfoSubset(fit_info_dict)
 
         if diagnostics == "error+warn" and len(all_warnings) > 0:
             output = True
@@ -191,7 +280,7 @@ def _fit_models_to_chunk(
             index_abs = np.array(index) + np.array(
                 [block_info[0]["array-location"][idx][0] for idx in iterating_axes]
             )
-            maxlen = int(ceil(log10(max(iterating_shape))))
+            maxlen = ceil(log10(max(iterating_shape)))
             fmt = "{0:0" + str(maxlen) + "d}"
             index_folder = Path(diagnostics_path).joinpath(
                 "_".join(fmt.format(idx) for idx in index_abs)
@@ -272,6 +361,7 @@ def parallel_fit_dask(
     fitter_kwargs=None,
     preserve_native_chunks=False,
     equivalencies=None,
+    fit_info=False,
 ):
     """
     Fit a model in parallel to an N-dimensional dataset.
@@ -343,6 +433,24 @@ def parallel_fit_dask(
     preserve_native_chunks : bool, optional
         If `True`, the native data chunks will be used, although an error will
         be raised if this chunk size does not include the whole fitting axes.
+    equivalencies : list of tuple
+        Any equivalencies to take into account in unit conversions
+    fit_info : bool or str or iterable, optional
+        Option to control whether fit information set on the ``.fit_info``
+        attribute of the fitters for individual fits should be concatenated
+        and set on the ``.fit_info`` on the input fitter object. The options
+        are as follows:
+
+        * `False`: don't set ``.fit_info`` on the fitter
+        * `True`: set ``.fit_info`` on the fitter with all available information
+           from individual fits
+        * An iterable of strings: only save the specific attributes mentioned
+          in the iterable
+
+        If not `False`, the ``.fit_info`` attribute on the fitter will be set
+        to a `FitInfoArrayContainer` object which can be used to query the
+        fit information for individual fits. Otherwise, ``.fit_info`` will be
+        left unchanged.
     """
     try:
         import dask
@@ -361,6 +469,8 @@ def parallel_fit_dask(
                 Path(diagnostics_path).mkdir(parents=True, exist_ok=True)
     else:
         raise ValueError("diagnostics should be None, 'error', 'error+warn', or 'all'")
+
+    original_fit_info = deepcopy(fitter.fit_info)
 
     if not isinstance(fitting_axes, tuple):
         fitting_axes = (fitting_axes,)
@@ -617,7 +727,7 @@ def parallel_fit_dask(
         *parameter_arrays,
         *(world if world_arrays else []),
         enforce_ndim=True,
-        dtype=float,
+        dtype=object if fit_info else float,
         drop_axis=fitting_axes,
         model=simple_model,
         fitter=fitter,
@@ -632,6 +742,7 @@ def parallel_fit_dask(
         fitter_kwargs=fitter_kwargs,
         name="fitting-results",
         weights_specified=weights is not None,
+        fit_info=fit_info,
     )
 
     if scheduler == "default":
@@ -639,12 +750,23 @@ def parallel_fit_dask(
     else:
         compute_kwargs = {"scheduler": scheduler}
 
-    parameter_arrays_fitted = result.compute(**compute_kwargs)
+    result_array = result.compute(**compute_kwargs)
+
+    if fit_info:
+        parameter_arrays_fitted = result_array[:-1].astype(float)
+        fit_info_array = result_array[-1]
+    else:
+        parameter_arrays_fitted = result_array
 
     # Set up new parameter arrays with fitted values
     parameters = {}
     for i, name in enumerate(model.param_names):
         parameters[name] = parameter_arrays_fitted[i].reshape(iterating_shape)
+
+    if fit_info:
+        fitter.fit_info = FitInfoArrayContainer(fit_info_array)
+    else:
+        fitter.fit_info = original_fit_info
 
     # Instantiate new fitted model
     model_fitted = _copy_with_new_parameters(model, parameters)

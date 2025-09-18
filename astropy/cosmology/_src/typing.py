@@ -1,14 +1,22 @@
 """Static typing for :mod:`astropy.cosmology`. PRIVATE API."""
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
+__all__ = ["CosmoMeta", "FArray", "_CosmoT"]
 
-__all__ = ["_CosmoT"]
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar
 
-from typing import TYPE_CHECKING, TypeVar
+import numpy as np
+from numpy.typing import NDArray
 
 if TYPE_CHECKING:
-    from astropy.cosmology import Cosmology
+    import astropy.cosmology
 
-_CosmoT = TypeVar("_CosmoT", bound="Cosmology")
+_CosmoT = TypeVar("_CosmoT", bound="astropy.cosmology.Cosmology")
 """Type variable for :class:`~astropy.cosmology.Cosmology` and subclasses."""
+
+CosmoMeta: TypeAlias = Mapping[Any, Any]
+"""Type alias for cosmology metadata."""
+
+FArray: TypeAlias = NDArray[np.floating]
+"""Type alias for numpy array of floating dtype."""

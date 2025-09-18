@@ -9,6 +9,7 @@ from astropy.table import Table
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 @pytest.fixture(scope="module")
@@ -290,7 +291,14 @@ def test_warning_no_obstime_on_skycoord():
         distance=50 * u.pc,
         frame="galactic",
     )
-    with pytest.warns(Warning):
+    with pytest.warns(
+        AstropyUserWarning,
+        match=(
+            r"^SkyCoord has space motion, and therefore the specified position "
+            r"of the SkyCoord may not be the same as the `obstime` for the "
+            r"radial velocity measurement\."
+        ),
+    ):
         c.radial_velocity_correction("barycentric", test_input_time, test_input_loc)
 
 

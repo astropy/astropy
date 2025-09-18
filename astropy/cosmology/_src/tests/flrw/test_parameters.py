@@ -2,24 +2,17 @@
 
 """Parameter test mixin classes."""
 
-from __future__ import annotations
-
 import copy
-from typing import TYPE_CHECKING
+from inspect import BoundArguments
 
 import numpy as np
 import pytest
 
 import astropy.units as u
-from astropy.cosmology import FlatFLRWMixin, Parameter
+from astropy.cosmology import Cosmology, FlatFLRWMixin, Parameter
 from astropy.cosmology._src.parameter import MISSING
 from astropy.cosmology._src.tests.test_core import ParameterTestMixin
 from astropy.tests.helper import assert_quantity_allclose
-
-if TYPE_CHECKING:
-    from inspect import BoundArguments
-
-    from astropy.cosmology import Cosmology
 
 
 class ParameterH0TestMixin(ParameterTestMixin):

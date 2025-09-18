@@ -243,7 +243,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
             if j < npages - 1:
                 w.element("a", ">>", href=f"{basename}_{j + 1:02d}.html")
 
-    npages = int(ceil(float(len(results)) / chunk_size))
+    npages = ceil(float(len(results)) / chunk_size)
 
     for i, j in enumerate(range(0, max(len(results), 1), chunk_size)):
         subresults = results[j : j + chunk_size]

@@ -1,0 +1,182 @@
+{
+  "uri": "http://www.ivoa.net/rdf/refframe",
+  "flavour": "RDF Class",
+  "terms": {
+    "EQUATORIAL": {
+      "label": "Equatorial",
+      "description": "Umbrella term of all equatorial frames.  Only use for old, pre-FK4 equatorial coordinates.",
+      "wider": [],
+      "narrower": [
+        "geo_app",
+        "ICRS",
+        "FK4",
+        "FK5",
+        "eq_FK4",
+        "eq_FK5"
+      ]
+    },
+    "geo_app": {
+      "label": "Geocentric Apparent Positions",
+      "description": "Positions given as observed by a fictitious observer at the Earth's centre for the equator of observation.",
+      "wider": [
+        "EQUATORIAL"
+      ],
+      "narrower": []
+    },
+    "ICRS": {
+      "label": "ICRS",
+      "description": "International Celestial Reference System as defined by 1998AJ....116..516M.",
+      "wider": [
+        "EQUATORIAL"
+      ],
+      "narrower": []
+    },
+    "FK4": {
+      "label": "FK4",
+      "description": "Positions based on the 4th Fundamental Katalog. If no equinox is defined with this frame, assume B1950.0.",
+      "wider": [
+        "EQUATORIAL"
+      ],
+      "narrower": []
+    },
+    "FK5": {
+      "label": "FK5",
+      "description": "Positions based on the 5th Fundamental Katalog. If no equinox is defined with this frame, assume J2000.0.  Applications not requiring extremely high precision can identify FK5 at J2000 with ICRS.",
+      "wider": [
+        "EQUATORIAL"
+      ],
+      "narrower": []
+    },
+    "eq_FK4": {
+      "label": "FK4",
+      "description": "Old VOTable COOSYS term for FK4.",
+      "useInstead": "FK4",
+      "deprecated": "",
+      "wider": [
+        "EQUATORIAL"
+      ],
+      "narrower": []
+    },
+    "eq_FK5": {
+      "label": "FK5",
+      "description": "Old VOTable COOSYS term for FK5.",
+      "deprecated": "",
+      "useInstead": "FK5",
+      "wider": [
+        "EQUATORIAL"
+      ],
+      "narrower": []
+    },
+    "ECLIPTIC": {
+      "label": "Ecliptic",
+      "description": "Ecliptic coordinates; the ecliptic of J2000.0 is assumed.",
+      "wider": [],
+      "narrower": [
+        "ecl_FK4",
+        "ecl_FK5"
+      ]
+    },
+    "ecl_FK4": {
+      "label": "Ecliptic (FK4)",
+      "description": "Old VOTable COOSYS term ecliptic coordinates for the FK4 ecliptic (of B1950.0).",
+      "wider": [
+        "ECLIPTIC"
+      ],
+      "narrower": []
+    },
+    "ecl_FK5": {
+      "label": "Ecliptic (FK5)",
+      "description": "Old VOTable COOSYS term ecliptic coordinates for the FK5 ecliptic (of J2000.0).",
+      "useInstead": "ECLIPTIC",
+      "deprecated": "",
+      "wider": [
+        "ECLIPTIC"
+      ],
+      "narrower": []
+    },
+    "GENERIC_GALACTIC": {
+      "label": "Galactic",
+      "description": "Umbrella term for Galactic coordinates.  If at all possible, use a more specific term, as historically, many different conventions have been in use.",
+      "wider": [],
+      "narrower": [
+        "GALACTIC_I",
+        "GALACTIC",
+        "galactic"
+      ]
+    },
+    "GALACTIC_I": {
+      "label": "Old Galactic",
+      "description": "Old, pre-1958, Galactic coordinates.  See 1960MNRAS.121..123B for details.",
+      "wider": [
+        "GENERIC_GALACTIC"
+      ],
+      "narrower": []
+    },
+    "GALACTIC": {
+      "label": "Galactic",
+      "description": "Galactic coordinates, modern definition: Pole at precisely FK4 B1950 192.25, 27.4, origin at approximately FK4 B1950 265.55, -28.92.  See 1960MNRAS.121..123B for details.",
+      "wider": [
+        "GENERIC_GALACTIC"
+      ],
+      "narrower": []
+    },
+    "galactic": {
+      "label": "Galactic",
+      "description": "Old VOTable COOSYS term for GALACTIC.",
+      "useInstead": "GALACTIC",
+      "deprecated": "",
+      "wider": [
+        "GENERIC_GALACTIC"
+      ],
+      "narrower": []
+    },
+    "SUPER_GALACTIC": {
+      "label": "Supergalactic",
+      "description": "Supergalactic coordinates (pole at GALACTIC 47.37, +6.32, origin at GALACTIC 137.37, 0.",
+      "wider": [],
+      "narrower": []
+    },
+    "supergalactic": {
+      "label": "Supergalactic",
+      "description": "Old VOTable COOSYS term for SUPER_GALACTIC",
+      "deprecated": "",
+      "useInstead": "SUPER_GALACTIC",
+      "wider": [],
+      "narrower": []
+    },
+    "AZ_EL": {
+      "label": "Azimuth/elevation",
+      "description": "Local azimuth and elevation. (Ground-based observations; Azimuth from North through East.)",
+      "wider": [],
+      "narrower": []
+    },
+    "BODY": {
+      "label": "Body Coordinates",
+      "description": "Generic bodycentric coordinates. Data annotated in this way cannot be automatically combined with any other data.  Use or create more specific terms if at all possible.",
+      "wider": [],
+      "narrower": []
+    },
+    "UNKNOWN": {
+      "label": "Unknown reference frame",
+      "description": "Unknown reference frame. Only to be used as a last resort or for simulations. Data annotated in this way cannot be automatically combined with any other data.",
+      "wider": [],
+      "narrower": []
+    },
+    "xy": {
+      "label": "Unknown reference frame",
+      "description": "Old VOTable COOSYS term for UNKNOWN",
+      "deprecated": "",
+      "useInstead": "UNKNOWN",
+      "wider": [],
+      "narrower": []
+    },
+    "barycentric": {
+      "label": "ICRS/Bary",
+      "description": "Old VOTable COOSYS term indicating ICRS at BARYCENTER reference position.  In the modern VO, refpos and refframe are no longer represented together.  Do not use this any more.",
+      "useInstead": "ICRS",
+      "deprecated": "",
+      "wider": [],
+      "narrower": []
+    }
+  }
+}

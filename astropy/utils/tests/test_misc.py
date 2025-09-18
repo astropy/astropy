@@ -15,12 +15,21 @@ from astropy.utils import data, misc
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
-def test_isiterable():
-    assert misc.isiterable(2) is False
-    assert misc.isiterable([2]) is True
-    assert misc.isiterable([1, 2, 3]) is True
-    assert misc.isiterable(np.array(2)) is False
-    assert misc.isiterable(np.array([1, 2, 3])) is True
+@pytest.mark.parametrize(
+    "obj,expectation",
+    [
+        (2, False),
+        ([2], True),
+        ([1, 2, 3], True),
+        (np.array(2), False),
+        (np.array([1, 2, 3]), True),
+    ],
+)
+def test_isiterable(obj, expectation):
+    with pytest.warns(
+        AstropyDeprecationWarning, match=r"Use numpy.iterable\(\) instead\.$"
+    ):
+        assert misc.isiterable(obj) is expectation
 
 
 @pytest.mark.remote_data
@@ -58,7 +67,7 @@ def test_is_path_hidden_deprecation():
 # This is the only test that uses astropy/utils/tests/data/.hidden_file.txt
 def test_skip_hidden():
     path = data.get_pkg_data_path("data")
-    for root, dirs, files in os.walk(path):
+    for _, _, files in os.walk(path):
         assert ".hidden_file.txt" in files
         assert "local.dat" in files
         # break after the first level since the data dir contains some other
@@ -67,7 +76,7 @@ def test_skip_hidden():
     with pytest.warns(
         AstropyDeprecationWarning, match="^The .*_hidden function is deprecated"
     ):
-        for root, dirs, files in misc.walk_skip_hidden(path):
+        for _, _, files in misc.walk_skip_hidden(path):
             assert ".hidden_file.txt" not in files
             assert "local.dat" in files
             break

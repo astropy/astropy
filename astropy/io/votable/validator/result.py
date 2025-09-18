@@ -134,8 +134,7 @@ class Result:
         if not os.path.exists(path):
             self.download_xml_content()
         with open(path, "rb") as fd:
-            content = fd.read()
-        return content
+            return fd.read()
 
     def validate_vo(self):
         path = self.get_vo_xml_path()

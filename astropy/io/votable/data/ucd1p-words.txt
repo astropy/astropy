@@ -1,4 +1,4 @@
-#EN-UCDlist-v1.5-2023-01-25
+#EN-UCDlist-v1.6-2024-12-18
 Q | arith                             |  Arithmetic quantities
 S | arith.diff                        |  Difference between two quantities described by the same UCD
 P | arith.factor                      |  Numerical factor
@@ -133,6 +133,7 @@ P | meta.code.mime                    |  MIME type
 P | meta.code.multip                  |  Multiplicity or binarity flag
 P | meta.code.qual                    |  Quality, precision, reliability flag or code
 P | meta.code.status                  |  Status code (e.g.: status of a proposal/observation)
+Q | meta.coverage                     |  A coverage (spatial, temporal, spectral, etc) with any combination of physical axes (such as moc, tmoc, stmoc)
 P | meta.cryptic                      |  Unknown or impossible to understand quantity
 Q | meta.curation                     |  Parameter informing about the curation of the data
 Q | meta.dataset                      |  Dataset
@@ -172,7 +173,13 @@ S | obs                               |  Observation
 Q | obs.airMass                       |  Airmass
 S | obs.atmos                         |  Atmosphere, atmospheric phenomena affecting an observation
 Q | obs.atmos.extinction              |  Atmospheric extinction
+Q | obs.atmos.humidity                |  Amount of air humidity at observing site during an observation
+Q | obs.atmos.rain                    |  Amount of rain at the telescope site during an observation 
 Q | obs.atmos.refractAngle            |  Atmospheric refraction angle
+S | obs.atmos.turbulence              |  Related to atmospheric turbulence at the telescope site
+P | obs.atmos.turbulence.isoplanatic  |  Isoplanatic angle characterising the atmospheric turbulence at telescope site 
+Q | obs.atmos.water                   |  Amount of atmospheric water at observing site
+S | obs.atmos.wind                    |  Related to atmospheric wind at observing site
 S | obs.calib                         |  Calibration observation
 S | obs.calib.flat                    |  Related to flat-field calibration observation (dome, sky, ..)
 S | obs.calib.dark                    |  Related to dark current calibration
@@ -288,6 +295,7 @@ Q | phys.flux                         |  Flux or flow of particle, energy, etc.
 Q | phys.flux.energy                  |  Energy flux, heat flux
 Q | phys.gauntFactor                  |  Gaunt factor/correction
 Q | phys.gravity                      |  Gravity
+Q | phys.inspiralSpin                 |  Effective inspiral spin in binary mergers (used in GW detections)
 Q | phys.ionizParam                   |  Ionization parameter
 Q | phys.ionizParam.coll              |  Collisional ionization
 Q | phys.ionizParam.rad               |  Radiative ionization
@@ -341,6 +349,7 @@ Q | phys.size.smajAxis                |  Linear semi major axis
 Q | phys.size.sminAxis                |  Linear semi minor axis
 Q | phys.size.smedAxis                |  Linear semi median axis for 3D ellipsoids
 Q | phys.temperature                  |  Temperature
+Q | phys.temperature.dew              |  Dew temperature measured at the telescope site during an observation
 Q | phys.temperature.effective        |  Effective temperature
 Q | phys.temperature.electron         |  Electron temperature
 Q | phys.transmission                 |  Transmission (of filter, instrument, ...)
@@ -356,6 +365,7 @@ Q | phys.veloc.rotat                  |  Rotational velocity
 Q | phys.veloc.transverse             |  Transverse / tangential velocity
 S | phys.virial                       |  Related to virial quantities (mass, radius, ...)
 Q | phys.volume                       |  Volume (in cubic units)
+Q | phys.voltage                      |  Electric potential difference over a distance or measured by an instrument
 Q | pos                               |  Position and coordinates
 Q | pos.angDistance                   |  Angular distance, elongation
 Q | pos.angResolution                 |  Angular resolution
@@ -409,7 +419,6 @@ Q | pos.healpix                       |  Hierarchical Equal Area IsoLatitude Pix
 S | pos.heliocentric                  |  Heliocentric position coordinate (solar system bodies)
 Q | pos.HTM                           |  Hierarchical Triangular Mesh
 Q | pos.incidenceAng                  |  Incidence angle of optical ray on an interface
-S | pos.lambert                       |  Lambert projection
 S | pos.lg                            |  Local Group reference frame
 S | pos.lsr                           |  Local Standard of Rest reference frame
 Q | pos.lunar                         |  Lunar coordinates
@@ -425,6 +434,7 @@ Q | pos.phaseAng                      |  Phase angle, e.g. elongation of earth f
 V | pos.pm                            |  Proper motion
 Q | pos.posAng                        |  Position angle of a given vector
 V | pos.precess                       |  Precession (in equatorial coordinates)
+Q | pos.projection                    |  2D spatial projection
 Q | pos.resolution                    |  Spatial linear resolution (not angular)
 S | pos.spherical                     |  Related to spherical coordinates
 Q | pos.spherical.azi                 |  Azimuthal angle (spherical coordinates)
@@ -492,15 +502,18 @@ Q | src.redshift.phot                 |  Photometric redshift
 Q | src.sample                        |  Sample
 Q | src.spType                        |  Spectral type MK
 Q | src.var                           |  Variability of source
-E | src.var.amplitude                 |  Amplitude of variation
+Q | src.var.amplitude                 |  Amplitude of variation
 Q | src.var.index                     |  Variability index
 Q | src.var.pulse                     |  Pulse
 Q | stat                              |  Statistical parameters
 Q | stat.asymmetry                    |  Measure of asymmetry
+P | stat.confidenceLevel              |  Level of confidence for a detection or classification process
 P | stat.correlation                  |  Correlation between two parameters
 P | stat.covariance                   |  Covariance between two parameters
 P | stat.error                        |  Statistical error
 P | stat.error.sys                    |  Systematic error
+Q | stat.falsePositive                |  Rate of false alarm in detection problems
+Q | stat.falseNegative                |  Rate of missed or false negative detection
 Q | stat.filling                      |  Filling factor (volume, time, ...)
 Q | stat.fit                          |  Fit
 P | stat.fit.chi2                     |  Chi2
@@ -527,7 +540,7 @@ P | stat.rank                         |  Rank or order in list of sorted values
 P | stat.rms                          |  Root mean square as square root of sum of squared values or quadratic mean
 P | stat.skewness                     |  Skewness of a probability distribution (third moment)
 P | stat.snr                          |  Signal to noise ratio
-P | stat.stdev                        |  Standard deviation as the square root of the variance
+Q | stat.stdev                        |  Standard deviation as the square root of the variance
 S | stat.uncalib                      |  Qualifier of a generic uncalibrated quantity
 Q | stat.value                        |  Miscellaneous value
 P | stat.variance                     |  Variance
@@ -543,6 +556,7 @@ Q | time.equinox                      |  Equinox
 Q | time.interval                     |  Time interval, time-bin, time elapsed between two events, not the duration of an event
 Q | time.lifetime                     |  Lifetime
 Q | time.period                       |  Period, interval of time between the recurrence of phases in a periodic phenomenon
+Q | time.period.pulsation             |  Period of pulsation or oscillation of a body or a phenomenon
 Q | time.period.revolution            |  Period of revolution of a body around a primary one (similar to year)
 Q | time.period.rotation              |  Period of rotation of a body around its axis (similar to day)
 Q | time.phase                        |  Phase, position within a period

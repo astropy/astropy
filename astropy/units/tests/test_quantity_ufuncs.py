@@ -1,12 +1,11 @@
 # The purpose of these tests are to ensure that calling ufuncs with quantities
 # returns quantities with the right units, or raises exceptions.
 
-from __future__ import annotations
-
 import concurrent.futures
 import dataclasses
 import warnings
-from typing import TYPE_CHECKING, NamedTuple
+from collections.abc import Callable
+from typing import NamedTuple
 
 import numpy as np
 import pytest
@@ -19,9 +18,6 @@ from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
 from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 if NUMPY_LT_2_0:
     from numpy.core import umath as np_umath
@@ -155,7 +151,7 @@ class TestUfuncHelpers:
 
         workers = 8
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-            for p in range(10000):
+            for _ in range(10000):
                 helpers = UfuncHelpers()
                 helpers.register_module(
                     "astropy.units.tests.test_quantity_ufuncs",

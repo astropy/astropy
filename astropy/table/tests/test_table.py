@@ -8,6 +8,7 @@ import pickle
 import sys
 from collections import OrderedDict
 from contextlib import nullcontext
+from inspect import currentframe, getframeinfo
 from io import StringIO
 
 import numpy as np
@@ -571,6 +572,15 @@ class TestAddName(SetupData):
         col = table_types.Column([1, 2, 3])
         t.add_column(col)
         assert t.colnames == ["col0"]
+
+    def test_setting_column_name_to_with_invalid_type(self, table_types):
+        t = table_types.Table()
+        t["a"] = [1, 2]
+        with pytest.raises(
+            TypeError, match=r"Expected a str value, got None with type NoneType"
+        ):
+            t["a"].name = None
+        assert t["a"].name == "a"
 
 
 @pytest.mark.usefixtures("table_types")
@@ -2309,8 +2319,6 @@ class TestPandas:
     def test_units(self):
         import pandas as pd
 
-        import astropy.units as u
-
         df = pd.DataFrame({"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]})
         t = table.Table.from_pandas(df, units={"x": u.m, "t": u.s})
 
@@ -2322,10 +2330,11 @@ class TestPandas:
             table.Table.from_pandas(df, units=[u.m, u.s])
 
         # test warning is raised if additional columns in units dict
-        with pytest.warns(UserWarning) as record:
+        with pytest.warns(
+            UserWarning,
+            match=r"^`units` contains additional columns: {'y'}$",
+        ):
             table.Table.from_pandas(df, units={"x": u.m, "t": u.s, "y": u.m})
-        assert len(record) == 1
-        assert "{'y'}" in record[0].message.args[0]
 
     def test_to_pandas_masked_int_data_with__index(self):
         data = {"data": [0, 1, 2], "index": [10, 11, 12]}
@@ -2876,8 +2885,6 @@ def test_replace_update_column_via_setitem_warnings_always():
     Test warnings related to table replace change in #5556:
     Test 'always' setting that raises warning for any replace.
     """
-    from inspect import currentframe, getframeinfo
-
     t = table.Table([[1, 2, 3], [4, 5, 6]], names=["a", "b"])
 
     with table.conf.set_temp("replace_warnings", ["always"]):
@@ -3612,3 +3619,16 @@ def test_table_create_no_rows_recarray(arg_type):
     t = Table(**kwargs)
     assert len(t) == 0
     assert t.colnames == ["foo", "bar"]
+
+
+def test_table_from_records_nd_quantity():
+    """Regression test for #17930"""
+
+    data = [
+        {"q0d": 5 * u.m, "q1d": [1, 2, 3] * u.s, "q2d": [[0, 1, 2], [3, 4, 5]] * u.TeV},
+    ]
+
+    t = Table(data)
+    assert t["q0d"].unit == u.m
+    assert t["q1d"].unit == u.s
+    assert t["q2d"].unit == u.TeV

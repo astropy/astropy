@@ -9,7 +9,7 @@ import numpy as np
 from numpy import ma
 
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
-from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.decorators import deprecated_renamed_argument, future_keyword_only
 
 from .interval import (
     AsymmetricPercentileInterval,
@@ -132,6 +132,14 @@ class ImageNormalize(Normalize):
                 self.vmin = _vmin
             if self.vmax is None:
                 self.vmax = _vmax
+
+    # Override the matplotlib method
+    def autoscale_None(self, A):
+        """
+        If vmin or vmax are not set, set them according to the interval.
+        If no interval is set, set them to the min/max of the data array.
+        """
+        self._set_limits(A)
 
     def __call__(self, values, clip=None, invalid=None):
         """
@@ -431,10 +439,25 @@ class SimpleNorm:
                 "matplotlib.pyplot.imshow directly to use your norm."
             )
 
-        axim = ax.imshow(data, norm=self(data), **kwargs)
-        return axim
+        return ax.imshow(data, norm=self(data), **kwargs)
 
 
+@future_keyword_only(
+    [
+        "power",
+        "asinh_a",
+        "vmin",
+        "vmax",
+        "min_percent",
+        "max_percent",
+        "percent",
+        "clip",
+        "log_a",
+        "invalid",
+        "sinh_a",
+    ],
+    since=["7.1"] * 11,
+)
 @deprecated_renamed_argument(["min_cut", "max_cut"], ["vmin", "vmax"], ["6.1", "6.1"])
 def simple_norm(
     data,

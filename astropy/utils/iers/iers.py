@@ -9,12 +9,10 @@ celestial-to-terrestrial coordinate transformations
 (in `astropy.coordinates`).
 """
 
-from __future__ import annotations
-
 import os
 import re
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import Self
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -45,9 +43,6 @@ from astropy.utils.data import (
 )
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.state import ScienceState
-
-if TYPE_CHECKING:
-    from typing import Self
 
 __all__ = [
     "FROM_IERS_A",
@@ -919,7 +914,7 @@ class IERS_Auto(IERS_A):
                 # predictive values.
                 warn(
                     AstropyWarning(
-                        f'failed to download {" and ".join(all_urls)}: {err}.\nA'
+                        f"failed to download {' and '.join(all_urls)}: {err}.\nA"
                         " coordinate or time-related calculation might be compromised"
                         " or fail because the dates are not covered by the available"
                         ' IERS file.  See the "IERS data access" section of the'

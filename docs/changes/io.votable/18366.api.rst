@@ -1,0 +1,2 @@
+Added a ``config`` property to ``astropy.io.votable.tree.VOTableFile``.
+This property can be passed to the ``config`` parameter of constructors that need to know the associated VOTable version, such as ``TimeSys`` and ``CooSys``.

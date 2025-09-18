@@ -410,7 +410,7 @@ def test_fix():
         "celfix": "No change",
     }
 
-    version = wcs._wcs.__version__
+    version = _wcs.WCSLIB_VERSION
     if Version(version) <= Version("5"):
         del fix_ref["obsfix"]
 
@@ -438,7 +438,7 @@ def test_fix2():
         "unitfix": "No change",
         "celfix": "No change",
     }
-    version = wcs._wcs.__version__
+    version = _wcs.WCSLIB_VERSION
     if Version(version) <= Version("5"):
         del fix_ref["obsfix"]
         fix_ref["datfix"] = "Changed '31/12/99' to '1999-12-31'"
@@ -471,7 +471,7 @@ def test_fix3():
         "celfix": "No change",
     }
 
-    version = wcs._wcs.__version__
+    version = _wcs.WCSLIB_VERSION
     if Version(version) <= Version("5"):
         del fix_ref["obsfix"]
         fix_ref["datfix"] = "Invalid parameter value: invalid date '31/12/F9'"
@@ -686,11 +686,37 @@ def test_piximg_matrix2():
         w.piximg_matrix = None
 
 
-def test_print_contents():
+def test_str():
     # In general, this is human-consumable, so we don't care if the
     # content changes, just check the type
     w = _wcs.Wcsprm()
     assert isinstance(str(w), str)
+
+
+def test_print_contents(capfd):
+    # This is both a check that print_contents() runs and outputs something,
+    # and also a regression test for a bug in print_contents() which caused the
+    # stdout buffer to not be fully flushed, which could lead to the output of
+    # print_contents() being truncated and pollution of subsequent
+    # print_contents() calls in both wcsprm and other print_contents() methods in
+    # astropy.wcs (e.g. Wcs.wcs.wtb[0].print_contents())
+
+    for _ in range(5):
+        w = _wcs.Wcsprm()
+        w.print_contents()
+
+        captured = capfd.readouterr()
+
+        # The details of the output don't matter too much, but check that it
+        # outputs the correct number of lines and contains some strings we
+        # expect. Before the ``print_contents()`` bug was fixed, the number of
+        # lines from call to call was different and truncated.
+
+        stdout = captured.out
+
+        assert len(stdout.splitlines()) == 210
+
+        assert "crval:" in stdout and "restfrq" in stdout
 
 
 def test_radesys():
@@ -1141,11 +1167,11 @@ def test_datebeg():
         "celfix": "No change",
     }
 
-    if Version(wcs._wcs.__version__) >= Version("7.3"):
+    if Version(_wcs.WCSLIB_VERSION) >= Version("7.3"):
         fix_ref["datfix"] = (
             "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref["datfix"]
         )
-    elif Version(wcs._wcs.__version__) >= Version("7.1"):
+    elif Version(_wcs.WCSLIB_VERSION) >= Version("7.1"):
         fix_ref["datfix"] = (
             "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref["datfix"]
         )
@@ -1210,7 +1236,7 @@ def test_num_keys(key):
 def test_array_keys(key):
     w = _wcs.Wcsprm()
     attr = getattr(w, key)
-    if key == "mjdref" and Version(_wcs.__version__) >= Version("7.1"):
+    if key == "mjdref" and Version(_wcs.WCSLIB_VERSION) >= Version("7.1"):
         assert np.allclose(attr, [0, 0])
     else:
         assert np.all(np.isnan(attr))

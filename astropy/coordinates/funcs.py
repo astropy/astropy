@@ -17,7 +17,7 @@ import numpy as np
 from astropy import units as u
 from astropy.constants import c
 from astropy.io import ascii
-from astropy.utils import data, isiterable
+from astropy.utils import data
 
 from .builtin_frames import GCRS, PrecessedGeocentric
 from .builtin_frames.utils import get_jd12
@@ -369,7 +369,7 @@ def concatenate(coords):
         A single sky coordinate with its data set to the concatenation of all
         the elements in ``coords``
     """
-    if getattr(coords, "isscalar", False) or not isiterable(coords):
+    if getattr(coords, "isscalar", False) or not np.iterable(coords):
         raise TypeError("The argument to concatenate must be iterable")
 
     scs = [SkyCoord(coord, copy=False) for coord in coords]

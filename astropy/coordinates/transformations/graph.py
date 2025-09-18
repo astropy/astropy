@@ -7,6 +7,7 @@ and transitions from one node to another are defined as functions (or methods)
 wrapped in transformation objects.
 """
 
+import functools
 import heapq
 import subprocess
 from collections import defaultdict
@@ -23,7 +24,6 @@ from astropy.coordinates.transformations.function import (
     FunctionTransform,
     FunctionTransformWithFiniteDifference,
 )
-from astropy.utils import lazyproperty
 
 __all__ = ["TransformGraph"]
 
@@ -81,7 +81,7 @@ class TransformGraph:
         self._graph = defaultdict(dict)
         self.invalidate_cache()  # generates cache entries
 
-    @lazyproperty
+    @functools.cached_property
     def _cached_names(self):
         dct = {}
         for c in self.frame_set:
@@ -103,7 +103,7 @@ class TransformGraph:
 
         return self._cached_frame_set.copy()
 
-    @lazyproperty
+    @functools.cached_property
     def frame_attributes(self):
         """
         A `dict` of all the attributes of all frame classes in this TransformGraph.
@@ -125,9 +125,9 @@ class TransformGraph:
         are added or removed, but will need to be called manually if
         weights on transforms are modified inplace.
         """
-        del self._cached_names
+        vars(self).pop("_cached_names", None)
         self._cached_frame_set = None
-        del self.frame_attributes
+        vars(self).pop("frame_attributes", None)
         self._shortestpaths = {}
         self._composite_cache = {}
 
@@ -289,7 +289,7 @@ class TransformGraph:
         nodes = {}
         for node, node_graph in self._graph.items():
             nodes[node] = None
-            nodes |= {node: None for node in node_graph}
+            nodes |= dict.fromkeys(node_graph)
 
         if fromsys not in nodes or tosys not in nodes:
             # fromsys or tosys are isolated or not registered, so there's
@@ -320,7 +320,7 @@ class TransformGraph:
                 # everything left is unreachable from fromsys, just copy them to
                 # the results and jump out of the loop
                 result[n] = (None, d)
-                for d, orderi, n, path in q:
+                for d, _, n, _ in q:
                     result[n] = (None, d)
                 break
             result[n] = (path, d)
@@ -475,8 +475,8 @@ class TransformGraph:
         nodes = {}
         for node, node_graph in self._graph.items():
             nodes[node] = None
-            nodes |= {node: None for node in node_graph}
-        nodes |= {node: None for node in addnodes}
+            nodes |= dict.fromkeys(node_graph)
+        nodes |= dict.fromkeys(addnodes)
         nodenames = []
         invclsaliases = {
             f: [k for k, v in self._cached_names.items() if v == f]

@@ -444,7 +444,7 @@ Literature References
        astroML: Machine learning for astrophysics*. Proceedings of the
        Conference on Intelligent Data Understanding (2012)
 .. [4]  Vanderplas, J., Connolly, A. Ivezic, Z. & Gray, A. *Statistics,
-	Data Mining and Machine Learning in Astronomy*. Princeton Press (2014)}
+        Data Mining and Machine Learning in Astronomy*. Princeton Press (2014)}
 .. [5] VanderPlas, J. *Gatspy: General Tools for Astronomical Time Series
        in Python* (2015) https://zenodo.org/record/14833
 .. [6] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical

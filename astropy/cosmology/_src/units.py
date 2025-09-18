@@ -3,6 +3,8 @@
 
 __all__ = ["littleh", "redshift"]
 
+from typing import Final
+
 import astropy.units as u
 
 _ns = globals()
@@ -10,7 +12,7 @@ _ns = globals()
 
 # This is not formally a unit, but is used in that way in many contexts, and
 # an appropriate equivalency is only possible if it's treated as a unit.
-redshift = u.def_unit(
+redshift: Final = u.def_unit(
     ["redshift"],
     prefixes=False,
     namespace=_ns,
@@ -24,7 +26,7 @@ u.def_physical_type(redshift, "redshift")
 # https://arxiv.org/pdf/1308.4150.pdf for more)
 # Also note that h or h100 or h_100 would be a better name, but they either
 # conflict or have numbers in them, which is disallowed
-littleh = u.def_unit(
+littleh: Final = u.def_unit(
     ["littleh"],
     namespace=_ns,
     prefixes=False,

@@ -158,7 +158,7 @@ You can conveniently convert |Table| to |QTable| and vice-versa::
 Mixin Attributes
 ================
 
-The usual column attributes ``name``, ``dtype``, ``unit``, ``format``, and
+The usual column attributes ``name``, ``dtype``, ``unit``, ``format``, ``meta``, and
 ``description`` are available in any mixin column via the ``info`` property::
 
   >>> qt['velocity'].info.name
@@ -200,7 +200,7 @@ work.
 Masking of mixin columns is enabled by the |Masked| class. See
 :ref:`utils-masked` for details.
 
-**ASCII table writing**
+**Text table writing**
 
 Tables with mixin columns can be written out to file using the
 `astropy.io.ascii` module, but the fast C-based writers are not available.

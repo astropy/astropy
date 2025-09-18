@@ -16,7 +16,7 @@ readers.
 .. attention::
 
     The ECSV format is the recommended way to store Table data in a
-    human-readable ASCII file. This includes use cases from informal
+    human-readable text file. This includes use cases from informal
     use in science research to production pipelines and data systems.
 
     In addition to Python, ECSV is supported in |TOPCAT|
@@ -25,12 +25,38 @@ readers.
 Usage
 -----
 
+Reading
+"""""""
+When reading an ECSV format table we recommend using ``format="ecsv"`` in the call to
+``Table.read()`` or ``QTable.read()``. This option uses a code base that was added in
+astropy 7.2. With this option you can select one of three built-in engines to read the
+actual CSV data: ``"io.ascii"`` (default), ``"pyarrow"`` (via `pyarrow.read_csv()
+<https://arrow.apache.org/docs/python/csv.html>`_), or ``"pandas"`` (via
+`pandas.read_csv`). The latter two require the corresponding optional package
+dependency to be installed.
+
+For a large gzipped ECSV file, the ``pyarrow`` engine is about 15 times faster than ``io.ascii``
+and the ``pandas`` engine is about 3 times faster. Both of these engines are also more
+memory efficient than ``io.ascii``.
+
+Details on this option are available in `~astropy.io.misc.ecsv.read_ecsv` or by
+interactively running ``Table.read.help(format="ecsv")`` in Python.
+
+You can also use ``format="ascii.ecsv"``, which uses the legacy code base that was the
+only astropy ECSV reader prior to astropy 7.2. This option is the default if
+you read a table file with an ``.ecsv`` extension without supplying the ``format``
+explicitly, e.g., ``QTable.read("my_data.ecsv")``. This default is planned to change in
+a future version of astropy and the legacy reader will be deprecated and later removed.
+
+Writing
+"""""""
+
 When writing in the ECSV format there are only two choices for the delimiter,
 either space or comma, with space being the default. Any other value of
 ``delimiter`` will give an error. For reading the delimiter is specified within
 the file itself.
 
-Apart from the delimiter, the only other applicable read/write arguments are
+Apart from the delimiter, the only other applicable write arguments are
 ``names``, ``include_names``, and ``exclude_names``. All other arguments will be
 either ignored or raise an error.
 

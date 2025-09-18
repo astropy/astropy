@@ -323,15 +323,24 @@ class Char(Converter):
             self.binoutput = self._binoutput_var
             self.arraysize = "*"
         else:
-            if field.arraysize.endswith("*"):
-                field.arraysize = field.arraysize[:-1]
+            # Check if this is a bounded variable-length field
+            is_variable = field.arraysize.endswith("*")
+            numeric_part = field.arraysize.removesuffix("*")
             try:
-                self.arraysize = int(field.arraysize)
+                self.arraysize = int(numeric_part)
             except ValueError:
-                vo_raise(E01, (field.arraysize, "char", field.ID), config)
+                vo_raise(E01, (numeric_part, "char", field.ID), config)
+
             self.format = f"U{self.arraysize:d}"
-            self.binparse = self._binparse_fixed
-            self.binoutput = self._binoutput_fixed
+
+            # For bounded variable-length fields use the variable methods
+            if is_variable:
+                self.binparse = self._binparse_var
+                self.binoutput = self._binoutput_var
+            else:
+                self.binparse = self._binparse_fixed
+                self.binoutput = self._binoutput_fixed
+
             self._struct_format = f">{self.arraysize:d}s"
 
     def supports_empty_values(self, config):
@@ -372,6 +381,10 @@ class Char(Converter):
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
+
+        if self.arraysize != "*" and length > self.arraysize:
+            vo_warn(W46, ("char", self.arraysize), None, None)
+
         return read(length).decode("ascii"), False
 
     def _binparse_fixed(self, read):
@@ -390,6 +403,10 @@ class Char(Converter):
                 value = value.encode("ascii")
             except ValueError:
                 vo_raise(E24, (value, self.field_name))
+
+        if self.arraysize != "*" and len(value) > self.arraysize:
+            vo_warn(W46, ("char", self.arraysize), None, None)
+
         return self._write_length(len(value)) + value
 
     def _binoutput_fixed(self, value, mask):
@@ -425,14 +442,24 @@ class UnicodeChar(Converter):
             self.binoutput = self._binoutput_var
             self.arraysize = "*"
         else:
+            # Check if this is a bounded variable-length field
+            is_variable = field.arraysize.endswith("*")
+            numeric_part = field.arraysize.removesuffix("*")
             try:
-                self.arraysize = int(field.arraysize)
+                self.arraysize = int(numeric_part)
             except ValueError:
-                vo_raise(E01, (field.arraysize, "unicode", field.ID), config)
+                vo_raise(E01, (numeric_part, "unicode", field.ID), config)
+
             self.format = f"U{self.arraysize:d}"
-            self.binparse = self._binparse_fixed
-            self.binoutput = self._binoutput_fixed
-            self._struct_format = f">{self.arraysize*2:d}s"
+
+            if is_variable:
+                self.binparse = self._binparse_var
+                self.binoutput = self._binoutput_var
+            else:
+                self.binparse = self._binparse_fixed
+                self.binoutput = self._binoutput_fixed
+
+            self._struct_format = f">{self.arraysize * 2:d}s"
 
     def parse(self, value, config=None, pos=None):
         if self.arraysize != "*" and len(value) > self.arraysize:
@@ -446,6 +473,10 @@ class UnicodeChar(Converter):
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
+
+        if self.arraysize != "*" and length > self.arraysize:
+            vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
+
         return read(length * 2).decode("utf_16_be"), False
 
     def _binparse_fixed(self, read):
@@ -459,8 +490,13 @@ class UnicodeChar(Converter):
     def _binoutput_var(self, value, mask):
         if mask or value is None or value == "":
             return _zero_int
+
+        if self.arraysize != "*" and len(value) > self.arraysize:
+            vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
+
         encoded = value.encode("utf_16_be")
-        return self._write_length(len(encoded) / 2) + encoded
+
+        return self._write_length(len(encoded) // 2) + encoded
 
     def _binoutput_fixed(self, value, mask):
         if mask:
@@ -1053,10 +1089,8 @@ class Complex(FloatingPoint, Array):
         real = self._output_format.format(float(value.real))
         imag = self._output_format.format(float(value.imag))
         if self._output_format[2] == "s":
-            if real.endswith(".0"):
-                real = real[:-2]
-            if imag.endswith(".0"):
-                imag = imag[:-2]
+            real = real.removesuffix(".0")
+            imag = imag.removesuffix(".0")
         return real + " " + imag
 
 
@@ -1443,28 +1477,52 @@ def table_column_to_votable_datatype(column):
         set on a VOTable FIELD element.
     """
     votable_string_dtype = None
+    max_length = None
+    original_arraysize = None
+
     if column.info.meta is not None:
         votable_string_dtype = column.info.meta.get("_votable_string_dtype")
+        # Check if we have stored the original arraysize with bounds
+        # If so, extract the max length
+        original_arraysize = column.info.meta.get("_votable_arraysize")
+        if (
+            original_arraysize is not None
+            and original_arraysize.endswith("*")
+            and not original_arraysize == "*"
+        ):
+            max_length = original_arraysize[:-1]
+
     if column.dtype.char == "O":
+        arraysize = "*"
+
+        # If max length is stored use it to create a bounded var-length array
+        if max_length is not None:
+            arraysize = f"{max_length}*"
+
         if votable_string_dtype is not None:
-            return {"datatype": votable_string_dtype, "arraysize": "*"}
+            return {"datatype": votable_string_dtype, "arraysize": arraysize}
         elif isinstance(column[0], np.ndarray):
             dtype, shape = _all_matching_dtype(column)
             if dtype is not False:
                 result = numpy_to_votable_dtype(dtype, shape)
                 if "arraysize" not in result:
-                    result["arraysize"] = "*"
+                    result["arraysize"] = arraysize
                 else:
                     result["arraysize"] += "*"
                 return result
 
         # All bets are off, do the most generic thing
-        return {"datatype": "unicodeChar", "arraysize": "*"}
+        return {"datatype": "unicodeChar", "arraysize": arraysize}
 
     # For fixed size string columns, datatype here will be unicodeChar,
     # but honor the original FIELD datatype if present.
     result = numpy_to_votable_dtype(column.dtype, column.shape[1:])
     if result["datatype"] == "unicodeChar" and votable_string_dtype == "char":
         result["datatype"] = "char"
+
+    # If we stored the original arraysize, use it instead of what
+    # numpy_to_votable_dtype derives
+    if original_arraysize is not None:
+        result["arraysize"] = original_arraysize
 
     return result

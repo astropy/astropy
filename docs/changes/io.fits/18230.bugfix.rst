@@ -1,0 +1,1 @@
+Writing zero-row BinTableHDU with string columns no longer raises a broadcast error in _ascii_encode()

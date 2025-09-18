@@ -23,7 +23,7 @@ import warnings
 from contextlib import suppress
 from io import StringIO
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import ClassVar, Final, Self, SupportsFloat, TypeGuard
 
 import numpy as np
 
@@ -33,9 +33,6 @@ from astropy.utils.exceptions import AstropyWarning
 
 from . import connect
 from .docs import READ_DOCSTRING, WRITE_DOCSTRING
-
-if TYPE_CHECKING:
-    from typing import ClassVar, Final, Self, SupportsFloat, TypeGuard
 
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES: dict[str, MetaBaseReader] = {}
@@ -522,9 +519,7 @@ class DefaultSplitter(BaseSplitter):
             )
         if self.process_val:
             vals = [self.process_val(x) for x in vals]
-        out = self.csv_writer.writerow(vals).rstrip("\r\n")
-
-        return out
+        return self.csv_writer.writerow(vals).rstrip("\r\n")
 
 
 def _replace_tab_with_space(line: str, escapechar: str, quotechar: str) -> str:

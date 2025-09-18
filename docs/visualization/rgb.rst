@@ -22,8 +22,8 @@ for floats (or 0-255 for integers); values outside that range will be clipped.
 RGB images using the Lupton et al (2004) scheme
 ===============================================
 
-`Lupton et al. (2004)`_ describe an "optimal" algorithm for producing red-green-
-blue composite images from three separate high-dynamic range arrays. This method
+`Lupton et al. (2004)`_ describe an "optimal" algorithm for producing
+red-green-blue composite images from three separate high-dynamic range arrays. This method
 is implemented in :func:`~astropy.visualization.make_lupton_rgb` as a convenience
 wrapper function and an associated set of classes to provide alternate scalings.
 The SDSS SkyServer color images were made using a variation on this technique.
@@ -43,7 +43,8 @@ To generate a color PNG file with the default (arcsinh) scaling:
     image_g = rng.random((100,100))
     image_b = rng.random((100,100))
     image = make_lupton_rgb(image_r, image_g, image_b, stretch=0.5)
-    plt.imshow(image)
+    fig, ax = plt.subplots()
+    ax.imshow(image)
 
 This method requires that the three images be aligned and have the same pixel
 scale and size. Changing the ``interval`` from the default of an instance of
@@ -76,7 +77,8 @@ it with Figure 1 of `Lupton et al. (2004)`_:
     i = fits.getdata(i_name)
 
     rgb_default = make_lupton_rgb(i, r, g, filename="ngc6976-default.jpeg")
-    plt.imshow(rgb_default, origin='lower')
+    fig, ax = plt.subplots()
+    ax.imshow(rgb_default, origin='lower')
 
 The image above was generated with the default parameters. However using a
 different scaling, e.g Q=10, stretch=0.5, faint features
@@ -89,7 +91,8 @@ of the galaxies show up. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
    :align: center
 
    rgb = make_lupton_rgb(i, r, g, Q=10, stretch=0.5, filename="ngc6976.jpeg")
-   plt.imshow(rgb, origin='lower')
+   fig, ax = plt.subplots()
+   ax.imshow(rgb, origin='lower')
 
 
 .. _SDSS Skyserver image: https://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra=313.12381&dec=-5.74611
@@ -155,7 +158,9 @@ now using a linear scaling.
             maximum = val
     rgb = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum),
                    filename="ngc6976-linear.jpeg")
-    plt.imshow(rgb, origin='lower')
+
+    fig, ax = plt.subplots()
+    ax.imshow(rgb, origin='lower')
 
 
 
@@ -187,7 +192,9 @@ can be beneficial. In this case, the a stretch instance of
 
     rgb_log = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum),
                        stretch=LogStretch(a=1000), filename="ngc6976-log.jpeg")
-    plt.imshow(rgb_log, origin='lower')
+
+    fig, ax = plt.subplots()
+    ax.imshow(rgb_log, origin='lower')
 
 By specifying per-filter maximum values, it is possible to emphasize
 certain objects, such as the very reddest sources:
@@ -202,7 +209,9 @@ certain objects, such as the very reddest sources:
     intervals[0] = ManualInterval(vmin=0, vmax=30.)
     rgb_log = make_rgb(i, r, g, interval=intervals, stretch=LogStretch(a=1000),
                        filename="ngc6976-log-alt.jpeg")
-    plt.imshow(rgb_log, origin='lower')
+
+    fig, ax = plt.subplots()
+    ax.imshow(rgb_log, origin='lower')
 
 
 Other stretches, such as square root, can also be used:
@@ -225,4 +234,6 @@ Other stretches, such as square root, can also be used:
 
     rgb_sqrt = make_rgb(i, r, g, interval=ManualInterval(vmin=0, vmax=maximum),
                         stretch=SqrtStretch(), filename="ngc6976-sqrt.jpeg")
-    plt.imshow(rgb_sqrt, origin='lower')
+
+    fig, ax = plt.subplots()
+    ax.imshow(rgb_sqrt, origin='lower')

@@ -13,7 +13,8 @@ from numpy.testing import assert_allclose
 
 from astropy import constants as c
 from astropy import units as u
-from astropy.units import utils
+from astropy.units import cds, utils
+from astropy.units.required_by_vounit import GsolLum, ksolMass, nsolRad
 from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT, HAS_DASK
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -145,6 +146,16 @@ def test_represents():
     assert blabla.represents.bases == [u.hr]
     assert blabla.decompose().scale == 10 * 3600
     assert blabla.decompose().bases == [u.s]
+
+
+@pytest.mark.parametrize("func", [u.Unit, u.def_unit])
+@pytest.mark.parametrize(
+    "represents, match_",
+    [("not_a_unit", "did not parse"), ([5, 6] * u.hr, "more than one element")],
+)
+def test_represents_errors(func, represents, match_):
+    with pytest.raises(ValueError, match=match_):
+        func("new_unit", represents)
 
 
 def test_units_conversion():
@@ -708,9 +719,49 @@ def test_pickle_unrecognized_unit():
     assert isinstance(pickle.loads(pickle.dumps(a)), u.UnrecognizedUnit)
 
 
-def test_duplicate_define():
-    with pytest.raises(ValueError):
-        u.def_unit("m", namespace=u.__dict__)
+@pytest.mark.parametrize(
+    "name,message",
+    [
+        pytest.param(
+            "h",
+            r"^the namespace already uses the name 'h' for Unit\(\"h\"\)$",
+            id="simple_conflict",
+        ),
+        pytest.param(
+            "ʰ",
+            (
+                "^the namespace already uses the NFKC normalized name 'h' for "
+                r'Unit\("h"\)'
+                "\n\nSee "
+                "https://docs.python.org/3/reference/lexical_analysis.html#identifiers "
+                r"for more information\.$"
+            ),
+            id="NFKC_normalization",
+        ),
+    ],
+)
+def test_duplicate_define(name, message):
+    namespace = {"h": u.h}
+    with pytest.raises(ValueError, match=message):
+        u.def_unit(name, u.hourangle, namespace=namespace)
+
+
+def test_unit_module_dunder_all_nfkc_normalization():
+    # Python applies NFKC normalization to identifiers, so inserting a name to __all__
+    # that changes with NFKC normalization can only cause trouble.
+    assert "ℓ" not in u.__all__
+    assert u.ℓ is u.liter
+
+
+@pytest.mark.parametrize(
+    "string",
+    [
+        pytest.param("°", id="invalid characters"),  # Regression test for #18606
+        pytest.param("as", id="keyword"),  # Regression test for #18614
+    ],
+)
+def test_unit_module_dunder_all_only_indentifiers(string):
+    assert string not in cds.__all__
 
 
 def test_all_units():
@@ -988,33 +1039,6 @@ def test_enable_unit_groupings():
         assert imperial.inch in u.m.find_equivalent_units()
 
 
-def test_unit_summary_prefixes():
-    """
-    Test for a few units that the unit summary table correctly reports
-    whether or not that unit supports prefixes.
-
-    Regression test for https://github.com/astropy/astropy/issues/3835
-    """
-
-    from astropy.units import astrophys
-
-    for summary in utils._iter_unit_summary(astrophys.__dict__):
-        unit, _, _, _, prefixes = summary
-
-        if unit.name == "lyr":
-            assert prefixes
-        elif unit.name == "pc":
-            assert prefixes
-        elif unit.name == "barn":
-            assert prefixes
-        elif unit.name == "cycle":
-            assert prefixes == "No"
-        elif unit.name == "spat":
-            assert prefixes == "No"
-        elif unit.name == "vox":
-            assert prefixes == "Yes"
-
-
 def test_raise_to_negative_power():
     """Test that order of bases is changed when raising to negative power.
 
@@ -1150,26 +1174,6 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu2) == hash(unit)
 
 
-@pytest.mark.parametrize(
-    "scale1, scale2",
-    [
-        (10, 10.0),
-        (2, Fraction(2, 1)),
-        (4, 4 + 0j),
-        (0.5, Fraction(1, 2)),
-        (2.4, 2.4 + 0j),
-        (Fraction(1, 4), 0.25 + 0j),
-    ],
-    ids=type,
-)
-def test_hash_scale_type(scale1, scale2):
-    # Regression test for #17820 - hash could depend on scale type, not just its value
-    unit1 = u.CompositeUnit(scale1, [u.m], [-1])
-    unit2 = u.CompositeUnit(scale2, [u.m], [-1])
-    assert unit1 == unit2
-    assert hash(unit1) == hash(unit2)
-
-
 @pytest.mark.skipif(not HAS_ARRAY_API_STRICT, reason="tests array_api_strict")
 def test_array_api_strict_arrays():
     # Ensure strict array api arrays can be passed in/out of Unit.to()
@@ -1260,3 +1264,29 @@ def test_dimensionless_scale_factor_types(scale):
     # Regression test for #17355 - Unit did not accept all scale factor
     # types that CompositeUnit accepted
     assert u.Unit(scale) == u.CompositeUnit(scale, [], [])
+
+
+# No need to test everything defined in required_by_vounit, the following few are
+# representative enough.
+required_by_vounit_parametrization = pytest.mark.parametrize(
+    "unit", [GsolLum, ksolMass, nsolRad], ids=lambda x: x.name
+)
+
+
+@required_by_vounit_parametrization
+def test_required_by_vounit_not_in_main_namespace(unit):
+    with pytest.raises(
+        AttributeError,
+        match=rf"^module 'astropy\.units' has no attribute '{unit.name}'$",
+    ):
+        getattr(u, unit.name)
+
+
+@required_by_vounit_parametrization
+def test_required_by_vounit_parsing(unit):
+    assert u.Unit(unit.name) is unit
+
+
+@required_by_vounit_parametrization
+def test_required_by_vounit_not_in_find_equivalent_units(unit):
+    assert unit not in unit.represents.bases[0].find_equivalent_units()

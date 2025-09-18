@@ -76,10 +76,23 @@ class RST(FixedWidth):
         super().__init__(delimiter_pad=None, bookend=False, header_rows=header_rows)
 
     def write(self, lines):
+        """
+        Write the table data in RST format including header and footer separator lines.
+
+        Parameters
+        ----------
+        lines : list of str
+            The formatted table lines to be written.
+
+        Returns
+        -------
+        list[str]
+            The complete RST table with header separator, table content, and
+            footer separator line.
+        """
         lines = super().write(lines)
         idx = len(self.header.header_rows)
-        lines = [lines[idx]] + lines + [lines[idx]]
-        return lines
+        return [lines[idx]] + lines + [lines[idx]]
 
     def read(self, table):
         self.data.start_line = 2 + len(self.header.header_rows)

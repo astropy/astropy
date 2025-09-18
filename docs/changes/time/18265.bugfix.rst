@@ -1,0 +1,2 @@
+Ensure that the fast C parser for ``Time`` works also with numpy 2.3.0, fixing
+a bug in our implementation which had no effect in previous numpy versions.

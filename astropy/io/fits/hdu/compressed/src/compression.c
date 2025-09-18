@@ -9,6 +9,8 @@
 #include <unquantize.h>
 #include <ricecomp.h>
 
+/* The following is needed in order to avoid compilation warnings related to calloc() */
+#include <stdlib.h>
 
 /* Define docstrings */
 static char module_docstring[] = "Core compression/decompression functions wrapped from cfitsio.";
@@ -320,7 +322,7 @@ static PyObject *compress_hcompress_1_c(PyObject *self, PyObject *args) {
     return (PyObject *)NULL;
   }
 
-  if (count != nx * ny * bytepix) {
+  if (count != (Py_ssize_t) nx * ny * bytepix) {
     PyErr_SetString(PyExc_ValueError,
                     "The tile dimensions and dtype do not match the number of bytes provided.");
     return (PyObject *)NULL;
@@ -395,7 +397,7 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args) {
 
   compressed_values = (unsigned char *)str;
 
-  dbytes = malloc(nx * ny * bytepix);
+  dbytes = malloc((size_t) nx * ny * bytepix);
 
   if (bytepix == 4) {
     decompressed_values_int = (int *)dbytes;
@@ -421,7 +423,7 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args) {
   }
 
   // fits_hdecompress[64] always returns 4 byte integers
-  result = Py_BuildValue("y#", dbytes, nx * ny * 4);
+  result = Py_BuildValue("y#", dbytes, (Py_ssize_t) nx * ny * 4);
   free(dbytes);
   return result;
 }

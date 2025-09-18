@@ -15,7 +15,7 @@ from setuptools import Extension
 from extension_helpers import get_compiler, import_file, pkg_config, write_if_different
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "8.3"
+WCSVERSION = "8.4"
 
 
 def b(s):
@@ -195,8 +195,8 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
     )
 
     if (
-        int(os.environ.get("ASTROPY_USE_SYSTEM_WCSLIB", 0))
-        or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", 0))
+        int(os.environ.get("ASTROPY_USE_SYSTEM_WCSLIB", "0"))
+        or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", "0"))
     ) and not sys.platform == "win32":
         wcsconfig_h_path = join(WCSROOT, "include", "wcsconfig.h")
         if os.path.exists(wcsconfig_h_path):
@@ -338,8 +338,8 @@ def get_extensions():
     ]
 
     if not (
-        int(os.environ.get("ASTROPY_USE_SYSTEM_WCSLIB", 0))
-        or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", 0))
+        int(os.environ.get("ASTROPY_USE_SYSTEM_WCSLIB", "0"))
+        or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", "0"))
     ):
         for header in wcslib_headers:
             source = Path("cextern", "wcslib", "C", header)

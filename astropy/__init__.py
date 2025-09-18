@@ -7,6 +7,7 @@ managing them.
 """
 
 import sys
+import warnings
 from pathlib import Path
 
 from astropy.utils.system_info import system_info
@@ -60,16 +61,8 @@ def __dir__():
     return sorted(set(globals()).union(__all__))
 
 
-from .version import version as __version__
-
-# The location of the online documentation for astropy
-# This location will normally point to the current released version of astropy
-online_docs_root = "https://docs.astropy.org/en/{}/".format(
-    "latest" if "dev" in __version__ else f"v{__version__}"
-)
-
-
 from . import config as _config
+from .version import version as __version__
 
 
 class Conf(_config.ConfigNamespace):
@@ -156,6 +149,7 @@ class physical_constants(base_constants_version):
     _value = "codata2018"
 
     _versions = dict(
+        codata2022="codata2022",
         codata2018="codata2018",
         codata2014="codata2014",
         codata2010="codata2010",
@@ -185,7 +179,9 @@ class astronomical_constants(base_constants_version):
 # Create the test() function
 from .tests.runner import TestRunner
 
-test = TestRunner.make_test_runner_in(__path__[0])
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
+    test = TestRunner.make_test_runner_in(__path__[0])
 
 
 # if we are *not* in setup mode, import the logger and possibly populate the
@@ -226,28 +222,9 @@ log = _init_log()
 
 _initialize_astropy()
 
-from .utils.misc import find_api_page
-
-
-def online_help(query):
-    """
-    Search the online Astropy documentation for the given query.
-    Opens the results in the default web browser.  Requires an active
-    Internet connection.
-
-    Parameters
-    ----------
-    query : str
-        The search query.
-    """
-    import webbrowser
-    from urllib.parse import urlencode
-
-    url = online_docs_root + f"search.html?{urlencode({'q': query})}"
-    webbrowser.open(url)
-
-
 from types import ModuleType as __module_type__
+
+from .utils.misc import find_api_page, online_docs_root, online_help
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

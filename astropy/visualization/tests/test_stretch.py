@@ -118,9 +118,9 @@ def test_clip_invalid():
     np.testing.assert_allclose(values, [np.nan, 0.0, 0.70710678, 1.0, 1.2247448])
 
 
-@pytest.mark.parametrize("a", [-2.0, -1, 1.0])
+@pytest.mark.parametrize("a", [-2.0, -1, 0.0, 1.0])
 def test_invalid_powerdist_a(a):
-    match = "a must be >= 0, but cannot be set to 1"
+    match = "a must be > 0, but cannot be set to 1"
     with pytest.raises(ValueError, match=match):
         PowerDistStretch(a=a)
     with pytest.raises(ValueError, match=match):
@@ -159,3 +159,11 @@ def test_histeqstretch_invalid():
     result = np.array([0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0])
     assert_equal(HistEqStretch(data)(data), result)
     assert_equal(InvertedHistEqStretch(data)(data), result)
+
+
+def test_linearstretch_clip():
+    data = np.linspace(0, 1, 100)
+    stretch = LinearStretch(slope=2)
+    result = stretch(data, clip=True)
+    assert np.min(result) >= 0
+    assert np.max(result) <= 1

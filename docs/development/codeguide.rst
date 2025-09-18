@@ -211,66 +211,33 @@ appropriate.  Therefore, there is a global configuration option,
 ``astropy.conf.unicode_output`` to enable Unicode output of values, set
 to `False` by default.
 
-The following conventions should be used for classes that define the
-standard string conversion methods (``__str__``, ``__repr__``,
-``__bytes__``, and ``__format__``).  In the bullets
-below, the phrase "string instance" is used to refer to `str`, while
-"bytes instance" is used to refer to `bytes`.
+The following conventions should be used for classes that implement the
+standard string conversion methods:
 
-- ``__repr__``: Return a "string instance" containing only 7-bit characters.
+- `~object.__repr__`: Return a `str` containing only ASCII characters.
+  The output must be independent of the ``astropy.conf.unicode_output``
+  setting.
 
-- ``__bytes__``: Return a "bytes instance" containing only 7-bit characters.
+- `~object.__str__`: Return a `str` containing only ASCII characters if
+  ``astropy.conf.unicode_output`` is `False`.
+  If ``astropy.conf.unicode_output`` is `True`, it may contain non-ASCII
+  characters.
 
-- ``__str__``: Return a "string instance".
-  If ``astropy.conf.unicode_output`` is `False`, it must contain
-  only 7-bit characters.  If ``astropy.conf.unicode_output`` is `True`, it
-  may contain non-ASCII characters when applicable.
+- `~.object.__format__`: Return a `str` containing only ASCII characters if
+  ``astropy.conf.unicode_output`` is `False` and the ``format_spec`` argument
+  is an empty string.
+  Otherwise it may contain non-ASCII characters.
 
-- ``__format__``: Return a "string instance".  If
-  ``astropy.conf.unicode_output`` is `False`, it must contain only 7-bit
-  characters.  If ``astropy.conf.unicode_output`` is `True`, it may contain
-  non-ASCII characters when applicable.
+For classes that are expected to roundtrip through strings, the parser must
+accept the output of `~object.__str__`.
 
-For classes that are expected to roundtrip through strings (unicode or
-bytes), the parser must accept the output of ``__str__``.
-Additionally, ``__repr__`` should roundtrip when that makes sense.
-
-This design generally follows Postel's Law: "Be liberal in what you
+This design generally follows `Postel's Law
+<https://en.wikipedia.org/wiki/Robustness_principle>`_: "Be liberal in what you
 accept, and conservative in what you send."
 
-The following example class shows a way to implement this::
-
-    from astropy import conf
-
-    class FloatList:
-        def __init__(self, init):
-            if isinstance(init, str):
-                init = init.split('‖')
-            elif isinstance(init, bytes):
-                init = init.split(b'|')
-            self.x = [float(x) for x in init]
-
-        def __repr__(self):
-            # Return unicode object containing no non-ASCII characters
-            return f'<FloatList [{", ".join(str(x) for x in self.x)}]>'
-
-        def __bytes__(self):
-            return b'|'.join(bytes(x) for x in self.x)
-
-        def __str__(self):
-            if astropy.conf.unicode_output:
-                return '‖'.join(str(x) for x in self.x)
-            else:
-                return self.__bytes__().decode('ascii')
-
-Additionally, there is a test helper,
-``astropy.test.helper.assert_follows_unicode_guidelines`` to ensure that a
-class follows the Unicode guidelines outlined above.  The following
-example test will test that our example class above is compliant::
-
-    def test_unicode_guidelines():
-        from astropy.test.helper import assert_follows_unicode_guidelines
-        assert_follows_unicode_guidelines(FloatList(b'5|4|3|2'), roundtrip=True)
+There is a test helper,
+:func:`~astropy.tests.helper.assert_follows_unicode_guidelines`,
+to check compliance with the above guidelines.
 
 Including C Code
 ================

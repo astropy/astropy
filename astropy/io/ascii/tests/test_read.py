@@ -449,8 +449,7 @@ def test_custom_process_lines():
 
 def test_custom_process_line():
     def process_line(line):
-        line_out = re.sub(r"^\|\s*", "", line.strip())
-        return line_out
+        return re.sub(r"^\|\s*", "", line.strip())
 
     reader = ascii.get_reader(data_start=2, delimiter="|")
     reader.header.splitter.process_line = process_line

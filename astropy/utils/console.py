@@ -26,6 +26,8 @@ try:
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
+import numpy as np
+
 from astropy import conf
 from astropy.utils.compat.optional_deps import (
     HAS_IPYKERNEL,
@@ -34,7 +36,6 @@ from astropy.utils.compat.optional_deps import (
 )
 
 from .decorators import classproperty, deprecated
-from .misc import isiterable
 
 __all__ = [
     "ProgressBar",
@@ -362,7 +363,7 @@ def human_file_size(size):
     if size == 0:
         num_scale = 0
     else:
-        num_scale = int(math.floor(math.log(size) / math.log(1000)))
+        num_scale = math.floor(math.log(size) / math.log(1000))
     if num_scale > 7:
         suffix = "?"
     else:
@@ -436,7 +437,7 @@ class ProgressBar:
         else:
             self._silent = False
 
-        if isiterable(total_or_items):
+        if np.iterable(total_or_items):
             self._items = iter(total_or_items)
             self._total = len(total_or_items)
         else:
@@ -851,7 +852,7 @@ class Spinner:
             flush()
             yield
 
-            for i in range(self._step):
+            for _ in range(self._step):
                 yield
 
             index = (index + 1) % len(chars)

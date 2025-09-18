@@ -14,7 +14,7 @@ from astropy.io.fits.util import (
     _pseudo_zero,
 )
 from astropy.io.fits.verify import VerifyWarning
-from astropy.utils import isiterable, lazyproperty
+from astropy.utils import lazyproperty
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU, _ValidHDU
 
@@ -797,7 +797,7 @@ class _ImageBaseHDU(_ValidHDU):
         code = BITPIX2DTYPE[self._orig_bitpix]
 
         raw_data = self._get_raw_data(shape, code, offset)
-        raw_data.dtype = raw_data.dtype.newbyteorder(">")
+        raw_data = raw_data.view(raw_data.dtype.newbyteorder(">"))
 
         return self._scale_data(raw_data)
 
@@ -922,12 +922,12 @@ class _ImageBaseHDU(_ValidHDU):
                 if d.flags.writeable:
                     byteswapped = True
                     d = d.byteswap(True)
-                    d.dtype = d.dtype.newbyteorder(">")
+                    d = d.view(d.dtype.newbyteorder(">"))
                 else:
                     # If the data is not writeable, we just make a byteswapped
                     # copy and don't bother changing it back after
                     d = d.byteswap(False)
-                    d.dtype = d.dtype.newbyteorder(">")
+                    d = d.view(d.dtype.newbyteorder(">"))
                     byteswapped = False
             else:
                 byteswapped = False
@@ -938,7 +938,7 @@ class _ImageBaseHDU(_ValidHDU):
             # its original little-endian order.
             if byteswapped and not _is_pseudo_integer(self.data.dtype):
                 d.byteswap(True)
-                d.dtype = d.dtype.newbyteorder("<")
+                d = d.view(d.dtype.newbyteorder("<"))
 
             return cs
         else:
@@ -1055,7 +1055,7 @@ class Section:
                 ks = range(*key.indices(axis))
                 break
 
-            if isiterable(key):
+            if np.iterable(key):
                 # Handle both integer and boolean arrays.
                 ks = np.arange(axis, dtype=int)[key]
                 break
@@ -1063,7 +1063,7 @@ class Section:
 
         data = [self[keys[:idx] + (k,) + keys[idx + 1 :]] for k in ks]
 
-        if any(isinstance(key, slice) or isiterable(key) for key in keys[idx + 1 :]):
+        if any(isinstance(key, slice) or np.iterable(key) for key in keys[idx + 1 :]):
             # data contains multidimensional arrays; combine them.
             return np.array(data)
         else:
@@ -1288,7 +1288,7 @@ class _IndexInfo:
             self.npts = (stop - start) // step
             self.offset = start
             self.contiguous = step == 1
-        elif isiterable(index):
+        elif np.iterable(index):
             self.npts = len(index)
             self.offset = 0
             self.contiguous = False

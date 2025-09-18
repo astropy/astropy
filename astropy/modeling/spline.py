@@ -9,7 +9,6 @@ import warnings
 
 import numpy as np
 
-from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .core import FittableModel, ModelDefinitionError
@@ -483,14 +482,14 @@ class Spline1D(_Spline):
     def _init_knots(self, knots, has_bounds, lower, upper):
         if np.issubdtype(type(knots), np.integer):
             self._t = np.concatenate((lower, np.zeros(knots), upper))
-        elif isiterable(knots):
+        elif np.iterable(knots):
             self._user_knots = True
             if has_bounds:
                 self._t = np.concatenate((lower, np.array(knots), upper))
             else:
                 if len(knots) < 2 * (self._degree + 1):
                     raise ValueError(
-                        f"Must have at least {2*(self._degree + 1)} knots."
+                        f"Must have at least {2 * (self._degree + 1)} knots."
                     )
                 self._t = np.array(knots)
         else:

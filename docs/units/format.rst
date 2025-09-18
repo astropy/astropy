@@ -57,7 +57,7 @@ Just like how `table.Column() <astropy.table.Column()>` takes a format specifier
 or callable for formatting, you can also optionally specify a format via the
 ``formatter`` parameter with either type or additionally with a dictionary, the
 added benefit being a more flexible or tighter LaTeX output. It relies on
-:func:`numpy.array2string()` for directly handling the ``formatter``, which will
+:func:`numpy.array2string` for directly handling the ``formatter``, which will
 effectively override the default LaTeX formatting for the scientific and complex
 notations provided by `Quantity.to_string() <astropy.units.Quantity.to_string()>`
 unless the ``formatter`` is simply just a format specifier string or `None`
@@ -117,6 +117,35 @@ implementation of the `format`-style usage::
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> fluxunit.to_string('latex')
     '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
+
+Deprecated Units
+----------------
+
+Some formats have deprecated units.
+By default converting such units to strings emits a warning::
+
+    >>> u.erg.to_string(format="vounit")  # doctest: +SHOW_WARNINGS
+    'erg'
+    UnitsWarning: The unit 'erg' has been deprecated in the VOUnit standard. Suggested: cm**2.g.s**-2.
+
+It is possible to raise errors instead of emitting warnings::
+
+    >>> u.erg.to_string(format="vounit", deprecations="raise")
+    Traceback (most recent call last):
+      ...
+    astropy.units.errors.UnitsError: The unit 'erg' has been deprecated in the VOUnit standard. Suggested: cm**2.g.s**-2.
+
+Sometimes it is possible to automatically replace deprecated units::
+
+    >>> u.erg.to_string(format="vounit", deprecations="convert")
+    'cm**2.g.s**-2'
+
+If automatic replacement is not possible then the deprecated unit is used for
+constructing the string and a warning is emitted.
+As a last resort, it is possible to silence the warnings::
+
+    >>> u.erg.to_string(format="vounit", deprecations="silent")
+    'erg'
 
 Converting from Strings
 =======================

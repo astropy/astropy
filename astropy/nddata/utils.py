@@ -34,7 +34,14 @@ class PartialOverlapError(ValueError):
     """Raised when arrays only partially overlap."""
 
 
-def overlap_slices(large_array_shape, small_array_shape, position, mode="partial"):
+def overlap_slices(
+    large_array_shape,
+    small_array_shape,
+    position,
+    mode="partial",
+    *,
+    limit_rounding_method=np.ceil,
+):
     """
     Get slices for the overlapping part of a small and a large array.
 
@@ -69,6 +76,10 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode="partial
         otherwise an `~astropy.nddata.utils.PartialOverlapError` is
         raised.  In all modes, non-overlapping arrays will raise a
         `~astropy.nddata.utils.NoOverlapError`.
+    limit_rounding_method : callable
+        The rounding method when calculating the minimum and maximum pixel indices.
+        This must be a callable function. Examples: `~numpy.ceil`, `~numpy.floor`,
+        `~numpy.round`. Default is `~numpy.ceil`.
 
     Returns
     -------
@@ -104,14 +115,23 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode="partial
             '"position" must have the same number of dimensions as "small_array_shape".'
         )
 
+    if not callable(limit_rounding_method):
+        raise ValueError("Limit rounding method must be a callable function.")
+
     # define the min/max pixel indices
-    indices_min = [
-        int(np.ceil(pos - (small_shape / 2.0)))
-        for (pos, small_shape) in zip(position, small_array_shape)
-    ]
+    # round according to the limit_rounding_method
+    try:
+        indices_min = [
+            int(limit_rounding_method(pos - (small_shape / 2.0)))
+            for (pos, small_shape) in zip(position, small_array_shape)
+        ]
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "Limit rounding method must accept a single number as input and return a single number."
+        ) from exc
     indices_max = [
-        int(np.ceil(pos + (small_shape / 2.0)))
-        for (pos, small_shape) in zip(position, small_array_shape)
+        int(idx_min + small_shape)
+        for (idx_min, small_shape) in zip(indices_min, small_array_shape)
     ]
 
     for e_max in indices_max:
@@ -159,6 +179,8 @@ def extract_array(
     mode="partial",
     fill_value=np.nan,
     return_position=False,
+    *,
+    limit_rounding_method=np.ceil,
 ):
     """
     Extract a smaller array of the given shape and position from a
@@ -199,6 +221,10 @@ def extract_array(
     return_position : bool, optional
         If `True`, return the coordinates of ``position`` in the
         coordinate system of the returned array.
+    limit_rounding_method : callable
+        The rounding method when calculating the minimum and maximum pixel indices.
+        This must be a callable function. Examples: `~numpy.ceil`, `~numpy.floor`,
+        `~numpy.round`. Default is `~numpy.ceil`.
 
     Returns
     -------
@@ -234,7 +260,11 @@ def extract_array(
         raise ValueError("Valid modes are 'partial', 'trim', and 'strict'.")
 
     large_slices, small_slices = overlap_slices(
-        array_large.shape, shape, position, mode=mode
+        array_large.shape,
+        shape,
+        position,
+        mode=mode,
+        limit_rounding_method=limit_rounding_method,
     )
     extracted_array = array_large[large_slices]
     if return_position:
@@ -264,7 +294,7 @@ def extract_array(
         return extracted_array
 
 
-def add_array(array_large, array_small, position):
+def add_array(array_large, array_small, position, *, limit_rounding_method=np.ceil):
     """
     Add a smaller array at a given position in a larger array.
 
@@ -278,6 +308,10 @@ def add_array(array_large, array_small, position):
     position : tuple
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
+    limit_rounding_method : callable
+        The rounding method when calculating the minimum and maximum pixel indices.
+        This must be a callable function. Examples: `~numpy.ceil`, `~numpy.floor`,
+        `~numpy.round`. Default is `~numpy.ceil`.
 
     Returns
     -------
@@ -311,7 +345,10 @@ def add_array(array_large, array_small, position):
         for (large_shape, small_shape) in zip(array_large.shape, array_small.shape)
     ):
         large_slices, small_slices = overlap_slices(
-            array_large.shape, array_small.shape, position
+            array_large.shape,
+            array_small.shape,
+            position,
+            limit_rounding_method=limit_rounding_method,
         )
         array_large[large_slices] += array_small[small_slices]
         return array_large
@@ -448,6 +485,11 @@ class Cutout2D:
         into the original ``data`` array.  If `True`, then the
         cutout data will hold a copy of the original ``data`` array.
 
+    limit_rounding_method : callable
+        The rounding method when calculating the minimum and maximum pixel indices.
+        This must be a callable function. Examples: `~numpy.ceil`, `~numpy.floor`,
+        `~numpy.round`. Default is `~numpy.ceil`.
+
     Attributes
     ----------
     data : 2D `~numpy.ndarray`
@@ -541,7 +583,16 @@ class Cutout2D:
     """
 
     def __init__(
-        self, data, position, size, wcs=None, mode="trim", fill_value=np.nan, copy=False
+        self,
+        data,
+        position,
+        size,
+        wcs=None,
+        mode="trim",
+        fill_value=np.nan,
+        copy=False,
+        *,
+        limit_rounding_method=np.ceil,
     ):
         if wcs is None:
             wcs = getattr(data, "wcs", None)
@@ -603,6 +654,7 @@ class Cutout2D:
             mode=mode,
             fill_value=fill_value,
             return_position=True,
+            limit_rounding_method=limit_rounding_method,
         )
         if copy:
             cutout_data = np.copy(cutout_data)
@@ -610,7 +662,11 @@ class Cutout2D:
 
         self.input_position_cutout = input_position_cutout[::-1]  # (x, y)
         slices_original, slices_cutout = overlap_slices(
-            data.shape, shape, pos_yx, mode=mode
+            data.shape,
+            shape,
+            pos_yx,
+            mode=mode,
+            limit_rounding_method=limit_rounding_method,
         )
 
         self.slices_original = slices_original

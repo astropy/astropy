@@ -104,8 +104,6 @@ class MergeStrategy:
             for left, right in reversed(types):
                 MERGE_STRATEGIES.insert(0, (left, right, cls))
 
-        return cls
-
 
 class MergePlus(MergeStrategy):
     """
@@ -241,6 +239,10 @@ def _error_str_func(key, left, right):
     return out
 
 
+def _raise_merge_conflict_error(left, right):
+    raise MergeConflictError
+
+
 def merge(
     left,
     right,
@@ -259,63 +261,48 @@ def merge(
 
     out = deepcopy(left)
 
-    for key, val in right.items():
+    for key, right_val in right.items():
         # If no conflict then insert val into out dict and continue
         if key not in out:
-            out[key] = deepcopy(val)
+            out[key] = deepcopy(right_val)
             continue
 
         # There is a conflict that must be resolved
-        if _both_isinstance(left[key], right[key], dict):
+        left_val = out[key]
+        if _both_isinstance(left_val, right_val, dict):
             out[key] = merge(
-                left[key], right[key], merge_func, metadata_conflicts=metadata_conflicts
+                left_val, right_val, merge_func, metadata_conflicts=metadata_conflicts
             )
+            continue
 
-        else:
-            try:
-                if merge_func is None:
-                    for left_type, right_type, merge_cls in MERGE_STRATEGIES:
-                        if not merge_cls.enabled:
-                            continue
-                        if isinstance(left[key], left_type) and isinstance(
-                            right[key], right_type
-                        ):
-                            out[key] = merge_cls.merge(left[key], right[key])
-                            break
-                    else:
-                        raise MergeConflictError
-                else:
-                    out[key] = merge_func(left[key], right[key])
-            except MergeConflictError:
-                # Pick the metadata item that is not None, or they are both not
-                # None, then if they are equal, there is no conflict, and if
-                # they are different, there is a conflict and we pick the one
-                # on the right (or raise an error).
-
-                if left[key] is None:
-                    # This may not seem necessary since out[key] gets set to
-                    # right[key], but not all objects support != which is
-                    # needed for one of the if clauses.
-                    out[key] = right[key]
-                elif right[key] is None:
-                    out[key] = left[key]
-                elif _not_equal(left[key], right[key]):
-                    if metadata_conflicts == "warn":
-                        warnings.warn(
-                            warn_str_func(key, left[key], right[key]),
-                            MergeConflictWarning,
-                        )
-                    elif metadata_conflicts == "error":
-                        raise MergeConflictError(
-                            error_str_func(key, left[key], right[key])
-                        )
-                    elif metadata_conflicts != "silent":
-                        raise ValueError(
-                            "metadata_conflicts argument must be one "
-                            'of "silent", "warn", or "error"'
-                        )
-                    out[key] = right[key]
-                else:
-                    out[key] = right[key]
-
+        local_merge_func = merge_func
+        if local_merge_func is None:
+            for left_type, right_type, merge_cls in MERGE_STRATEGIES:
+                if (
+                    merge_cls.enabled
+                    and isinstance(left_val, left_type)
+                    and isinstance(right_val, right_type)
+                ):
+                    local_merge_func = merge_cls.merge
+                    break
+            else:
+                local_merge_func = _raise_merge_conflict_error
+        try:
+            out[key] = local_merge_func(left_val, right_val)
+        except MergeConflictError:
+            # If right_val is None or equal to left_val then we are happy with what's
+            # already in out. Otherwise right_val takes priority (or there's an error).
+            if right_val is not None and _not_equal(left_val, right_val):
+                if metadata_conflicts == "warn":
+                    warnings.warn(
+                        warn_str_func(key, left_val, right_val), MergeConflictWarning
+                    )
+                elif metadata_conflicts == "error":
+                    raise MergeConflictError(error_str_func(key, left_val, right_val))
+                elif metadata_conflicts != "silent":
+                    raise ValueError(
+                        "metadata_conflicts argument must be one "
+                        'of "silent", "warn", or "error"'
+                    )
+                out[key] = right_val
     return out

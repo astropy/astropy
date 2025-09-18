@@ -1,0 +1,10 @@
+API changes towards a future deprecation of astropy test runner:
+
+* ``astropy.tests.runner.keyword`` is removed from public API.
+  It is used internally as a decorator within astropy test runner and
+  its exposure as public API was a mistake. In the future, it will be
+  removed without any deprecation.
+* ``astropy.test``, ``astropy.tests.runner.TestRunnerBase``, and ``astropy.tests.runner.TestRunner``
+  are now pending deprecation (``AstropyPendingDeprecationWarning``).
+  This will also affect downstream ``packagename.test`` generated using ``TestRunner``.
+  They may start to emit ``AstropyDeprecationWarning`` in v8.0 (but no earlier).

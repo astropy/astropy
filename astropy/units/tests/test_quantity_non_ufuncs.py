@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 import inspect
 import itertools
 from io import StringIO
-from typing import TYPE_CHECKING
+from types import FunctionType, ModuleType
 
 import numpy as np
 import numpy.lib.recfunctions as rfn
@@ -23,17 +21,7 @@ from astropy.units.quantity_helper.function_helpers import (
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
-from astropy.utils.compat import (
-    NUMPY_LT_1_24,
-    NUMPY_LT_1_25,
-    NUMPY_LT_2_0,
-    NUMPY_LT_2_1,
-    NUMPY_LT_2_2,
-)
-
-if TYPE_CHECKING:
-    from types import FunctionType, ModuleType
-
+from astropy.utils.compat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
 
 VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
 VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
@@ -2036,9 +2024,10 @@ class TestSortFunctions(InvariantUnitTestSetup):
     def test_sort_axis(self):
         self.check(np.sort, axis=0)
 
-    @pytest.mark.skipif(not NUMPY_LT_1_24, reason="np.msort is deprecated")
+    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.msort was removed in numpy 2.0")
     def test_msort(self):
-        self.check(np.msort)
+        with pytest.warns(DeprecationWarning, match="^msort is deprecated"):
+            self.check(np.msort)
 
     @needs_array_function
     def test_sort_complex(self):
@@ -2972,19 +2961,19 @@ class CheckSignatureCompatibilityBase:
                     # it is not passed down to dispatched functions
                     pass
                 elif kt is KEYWORD_ONLY:
-                    assert (
-                        have_kwargs_helper
-                    ), f"argument {nt!r} is not re-exposed as keyword"
+                    assert have_kwargs_helper, (
+                        f"argument {nt!r} is not re-exposed as keyword"
+                    )
                 elif kt is POSITIONAL_OR_KEYWORD:
-                    assert (
-                        have_args_helper and have_kwargs_helper
-                    ), f"argument {nt!r} is not re-exposed as positional-or-keyword"
+                    assert have_args_helper and have_kwargs_helper, (
+                        f"argument {nt!r} is not re-exposed as positional-or-keyword"
+                    )
             elif kt is VAR_POSITIONAL:
                 assert have_args_helper, "helper is missing a catch-all *args argument"
             elif kt is VAR_KEYWORD:
-                assert (
-                    have_kwargs_helper
-                ), "helper is missing a catch-all **kwargs argument"
+                assert have_kwargs_helper, (
+                    "helper is missing a catch-all **kwargs argument"
+                )
 
     def test_known_arguments(self, target, helper):
         # validate that all exposed arguments map to something in the target

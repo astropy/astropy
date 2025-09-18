@@ -44,24 +44,7 @@ body:
       value: |
         ```python
         import astropy
-        try:
-            astropy.system_info()
-        except AttributeError:
-            import platform; print(platform.platform())
-            import sys; print("Python", sys.version)
-            import astropy; print("astropy", astropy.__version__)
-            import numpy; print("Numpy", numpy.__version__)
-            import erfa; print("pyerfa", erfa.__version__)
-            try:
-                import scipy
-                print("Scipy", scipy.__version__)
-            except ImportError:
-                print("Scipy not installed")
-            try:
-                import matplotlib
-                print("Matplotlib", matplotlib.__version__)
-            except ImportError:
-                print("Matplotlib not installed")
+        astropy.system_info()
         ```
         ```
         # Paste the result here

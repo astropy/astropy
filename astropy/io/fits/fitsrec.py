@@ -478,9 +478,30 @@ class FITS_rec(np.recarray):
         return data
 
     def __repr__(self):
-        # Force use of the normal ndarray repr (rather than the new
-        # one added for recarray in Numpy 1.10) for backwards compat
-        return np.ndarray.__repr__(self)
+        # recarray.__repr__ hard-codes the name of the class, so we overwrite.
+        # The following is mostly a straight copy except for the name change
+        # and for treating using str to typeset integer -- the latter to fix
+        # the case where the integer columns are scaled (see gh-17583). Also,
+        # removed a branch for "if the user is playing strange game with dtypes".
+        #
+        # FIXME: recarray removes the "numpy.record" mention in the dtype repr,
+        # we could do the same in a future version
+
+        repr_dtype = self.dtype
+        # if repr_dtype.type is np.record:
+        #     repr_dtype = np.dtype((np.void, repr_dtype))
+        prefix = "FITS_rec("
+        fmt = "FITS_rec(%s,%sdtype=%s)"
+        # get data/shape string. logic taken from numeric.array_repr
+        if self.size > 0 or self.shape == (0,):
+            lst = np.array2string(
+                self, separator=", ", prefix=prefix, suffix=",", formatter=dict(int=str)
+            )
+        else:
+            # show zero-length shape unless it is (0,)
+            lst = "[], shape=%s" % (repr(self.shape),)  # noqa: UP031
+        lf = "\n" + " " * len(prefix)
+        return fmt % (lst, lf, repr_dtype)
 
     def __getattribute__(self, attr):
         # First, see if ndarray has this attr, and return it if so. Note that
@@ -825,7 +846,7 @@ class FITS_rec(np.recarray):
                         vla_first = int(len(dummy[idx]) / np.prod(vla_dim))
                         dummy[idx] = dummy[idx].reshape((vla_first,) + vla_dim)
 
-                dummy[idx].dtype = dummy[idx].dtype.newbyteorder(">")
+                dummy[idx] = dummy[idx].view(dummy[idx].dtype.newbyteorder(">"))
                 # Each array in the field may now require additional
                 # scaling depending on the other scaling parameters
                 # TODO: The same scaling parameters apply to every
@@ -1017,12 +1038,32 @@ class FITS_rec(np.recarray):
 
         This is returned as a numpy byte array.
         """
-        if self._heapsize:
-            raw_data = self._get_raw_data().view(np.ubyte)
+        raw_data = self._get_raw_data()
+        if self._heapsize and raw_data is not None:
+            # Read the heap from disk
+            raw_data = raw_data.view(np.ubyte)
             heap_end = self._heapoffset + self._heapsize
             return raw_data[self._heapoffset : heap_end]
         else:
-            return np.array([], dtype=np.ubyte)
+            # Data is only in memory so create the heap data, one column
+            # at a time, in the order that the data pointers appear in the
+            # column (regardless if that data pointer has a different,
+            # previous heap offset listed)
+            data = []
+            for idx in range(self._nfields):
+                # data should already be byteswapped from the caller
+                # using _binary_table_byte_swap
+                if not isinstance(self.columns._recformats[idx], _FormatP):
+                    continue
+
+                for row in self.field(idx):
+                    if len(row) > 0:
+                        data.append(row.view(type=np.ndarray, dtype=np.ubyte))
+
+            if data:
+                return np.concatenate(data)
+            else:
+                return np.array([], dtype=np.ubyte)
 
     def _get_raw_data(self):
         """
@@ -1341,6 +1382,8 @@ def _ascii_encode(inarray, out=None):
     out_dtype = np.dtype((f"S{inarray.dtype.itemsize // 4}", inarray.dtype.shape))
     if out is not None:
         out = out.view(out_dtype)
+    if inarray.size == 0:
+        return out
 
     op_dtypes = [inarray.dtype, out_dtype]
     op_flags = [["readonly"], ["writeonly", "allocate"]]

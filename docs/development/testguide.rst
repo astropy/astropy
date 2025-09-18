@@ -290,7 +290,7 @@ enable just these tests, you can run the
 tests with ``pytest --remote-data=astropy``.
 
 For more information on the ``pytest-remotedata`` plugin, see
-:ref:`remotedata-plugin`.
+|pytest-remotedata|.
 
 Examples
 --------
@@ -326,23 +326,22 @@ large, we will need to design a mechanism for removing test data immediately.
 Tests that use the file cache
 -----------------------------
 
-By default, the Astropy test runner sets up a clean file cache in a temporary
+By default, Astropy's test configuration sets up a clean file cache in a temporary
 directory that is used only for that test run and then destroyed.  This is to
 ensure consistency between test runs, as well as to not clutter users' caches
-(i.e. the cache directory returned by `~astropy.config.get_cache_dir`) with
+(i.e., the cache directory returned by `~astropy.config.get_cache_dir`) with
 test files.
 
 However, some test authors (especially for affiliated packages) may find it
 desirable to cache files downloaded during a test run in a more permanent
-location (e.g. for large data sets).  To this end the
+location (e.g., for large data sets).  To this end the
 `~astropy.config.set_temp_cache` helper may be used.  It can be used either as
 a context manager within a test to temporarily set the cache to a custom
 location, or as a *decorator* that takes effect for an entire test function
 (not including setup or teardown, which would have to be decorated separately).
 
 Furthermore, it is possible to change the location of the cache directory
-for the duration of the test run by setting the ``XDG_CACHE_HOME``
-environment variable.
+for the duration of the test run via :ref:`environment_variables`.
 
 
 Tests that create files
@@ -352,7 +351,7 @@ Some tests involve writing files. These files should not be saved permanently.
 The :ref:`pytest 'tmp_path' fixture <pytest:tmp_path>` allows for the
 convenient creation of temporary directories, which ensures test files will be
 cleaned up. Temporary directories can also be helpful in the case where the
-tests are run in an environment where the runner would otherwise not have write
+tests are run in an environment where ``pytest`` would otherwise not have write
 access.
 
 
@@ -587,15 +586,6 @@ tables to HDF5 format), and in ``test_all`` for dependencies only used in tests
 (e.g., ``skyfield``, which is used to cross-check the accuracy of coordinate
 transforms).
 
-Using pytest helper functions
-=============================
-
-If your tests need to use `pytest helper functions
-<https://docs.pytest.org/en/latest/reference/reference.html#functions>`_, such as
-``pytest.raises``, import ``pytest`` into your test module like so::
-
-    import pytest
-
 Testing warnings
 ================
 
@@ -648,7 +638,7 @@ Testing configuration parameters
 ================================
 
 In order to ensure reproducibility of tests, all configuration items
-are reset to their default values when the test runner starts up.
+are reset to their default values when ``pytest`` starts up.
 
 Sometimes you'll want to test the behavior of code when a certain
 configuration item is set to a particular value.  In that case, you
@@ -690,7 +680,7 @@ hashes and images.
 
 To run the Astropy tests with the image comparison, use e.g.::
 
-    tox -e py311-test-image-mpl360-cov
+    tox -e py311-test-image-mpl380-cov
 
 However, note that the output can be sensitive to the operating system and
 specific version of libraries such as freetype. In general, using tox will
@@ -755,7 +745,7 @@ generate it, you should run the tests the first time with::
 
 for example::
 
-    tox -e py311-test-image-mpl360-cov -- --mpl-generate-hash-library=astropy/tests/figures/py311-test-image-mpl360-cov.json
+    tox -e py311-test-image-mpl380-cov -- --mpl-generate-hash-library=astropy/tests/figures/py311-test-image-mpl380-cov.json
 
 Then add and commit the new JSON file and try running the tests again. The tests
 may fail in the continuous integration if e.g. the freetype version does not
@@ -801,7 +791,7 @@ running framework. For example doctests and detailed documentation on how to
 write them, see the full :mod:`doctest` documentation.
 
 For more information on the ``pytest-doctestplus`` plugin used by Astropy, see
-:ref:`doctestplus-plugin`.
+|pytest-doctestplus|.
 
 .. _skipping-doctests:
 
@@ -987,73 +977,3 @@ from `astropy-benchmarks <https://github.com/astropy/astropy-benchmarks/>`_.
 It is important to note that these benchmarks can be flaky as they run on
 virtual machines (and thus shared hardware) but they should give a general
 idea of the performance impact of a pull request.
-
-.. _pytest-plugins:
-
-Pytest Plugins
-**************
-
-The following ``pytest`` plugins are maintained and used by Astropy. They are
-included as dependencies to the ``pytest-astropy`` package, which is now
-required for testing Astropy. More information on all of the  plugins provided
-by the ``pytest-astropy`` package (including dependencies not maintained by
-Astropy) can be found `here <https://github.com/astropy/pytest-astropy>`__.
-
-.. _remotedata-plugin:
-
-pytest-remotedata
-=================
-
-The |pytest-remotedata| plugin allows developers to control whether to run
-tests that access data from the internet. The plugin provides two decorators
-that can be used to mark individual test functions or entire test classes:
-
-* ``@pytest.mark.remote_data`` for tests that require data from the internet
-* ``@pytest.mark.internet_off`` for tests that should run only when there is no
-  internet access. This is useful for testing local data caches or fallbacks
-  for when no network access is available.
-
-The plugin also adds the ``--remote-data`` option to the ``pytest`` command
-(which is also made available through the Astropy test runner).
-
-If the ``--remote-data`` option is not provided when running the test suite, or
-if ``--remote-data=none`` is provided, all tests that are marked with
-``remote_data`` will be skipped. All tests that are marked with
-``internet_off`` will be executed. Any test that attempts to access the
-internet but is not marked with ``remote_data`` will result in a failure.
-
-Providing either the ``--remote-data`` option, or ``--remote-data=any``, will
-cause all tests marked with ``remote_data`` to be executed. Any tests that are
-marked with ``internet_off`` will be skipped.
-
-Running the tests with ``--remote-data=astropy`` will cause only tests that
-receive remote data from Astropy data sources to be run. Tests with any other
-data sources will be skipped. This is indicated in the test code by marking
-test functions with ``@pytest.mark.remote_data(source='astropy')``. Tests
-marked with ``internet_off`` will also be skipped in this case.
-
-Also see :ref:`data-files`.
-
-.. _doctestplus-plugin:
-
-pytest-doctestplus
-==================
-
-The |pytest-doctestplus| plugin provides advanced doctest features, including:
-
-* handling doctests that use remote data in conjunction with the
-  ``pytest-remotedata`` plugin above (see :ref:`data-files`)
-* approximate floating point comparison for doctests that produce floating
-  point results (see :ref:`handling-float-output`)
-* skipping particular classes, methods, and functions when running doctests
-  (see :ref:`skipping-doctests`)
-* optional inclusion of ``*.rst`` files for doctests
-
-This plugin provides two command line options: ``--doctest-plus`` for enabling
-the advanced features mentioned above, and ``--doctest-rst`` for including
-``*.rst`` files in doctest collection.
-
-The Astropy test runner enables both of these options by default. When running
-the test suite directly from ``pytest`` (instead of through the Astropy test
-runner), it is necessary to explicitly provide these options when they are
-needed.

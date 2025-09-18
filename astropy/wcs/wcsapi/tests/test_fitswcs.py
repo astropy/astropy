@@ -2,8 +2,8 @@
 # the mix-in class on its own (since it's not functional without being used as
 # a mix-in)
 
+import re
 import warnings
-from itertools import product
 
 import numpy as np
 import pytest
@@ -29,9 +29,8 @@ from astropy.time import Time
 from astropy.units import Quantity, UnitsWarning
 from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyUserWarning
-from astropy.wcs._wcs import __version__ as wcsver
-from astropy.wcs.wcs import WCS, FITSFixedWarning, NoConvergence, Sip
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.wcs.wcs import WCS, WCSLIB_VERSION, FITSFixedWarning, NoConvergence, Sip
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES, custom_ctype_to_ucd_mapping
 
 ###############################################################################
@@ -583,7 +582,7 @@ OBSGEO-B= -70
 OBSGEO-H= 2530
 """
 
-if Version(wcsver) >= Version("7.1"):
+if Version(WCSLIB_VERSION) >= Version("7.1"):
     HEADER_TIME_1D += "DATEREF = '1995-10-12T14:24:00'\n"
 
 
@@ -1086,10 +1085,8 @@ def test_spectralcoord_frame(header_spectral_frames):
             assert_quantity_allclose(sc.quantity, sc_check.quantity)
 
 
-@pytest.mark.parametrize(
-    ("ctype3", "observer"),
-    product(["ZOPT", "BETA", "VELO", "VRAD", "VOPT"], [False, True]),
-)
+@pytest.mark.parametrize("ctype3", ["ZOPT", "BETA", "VELO", "VRAD", "VOPT"])
+@pytest.mark.parametrize("observer", [False, True])
 def test_different_ctypes(header_spectral_frames, ctype3, observer):
     header = header_spectral_frames.copy()
     header["CTYPE3"] = ctype3
@@ -1101,7 +1098,7 @@ def test_different_ctypes(header_spectral_frames, ctype3, observer):
     else:
         header["CUNIT3"] = ""
 
-    header["RESTWAV"] = 1.420405752e09
+    header["RESTWAV"] = 0.21106114
     header["MJD-OBS"] = 55197
 
     if observer:
@@ -1172,10 +1169,8 @@ def header_spectral_1d():
     return Header.fromstring(HEADER_SPECTRAL_1D, sep="\n")
 
 
-@pytest.mark.parametrize(
-    ("ctype1", "observer"),
-    product(["ZOPT", "BETA", "VELO", "VRAD", "VOPT"], [False, True]),
-)
+@pytest.mark.parametrize("ctype1", ["ZOPT", "BETA", "VELO", "VRAD", "VOPT"])
+@pytest.mark.parametrize("observer", [False, True])
 def test_spectral_1d(header_spectral_1d, ctype1, observer):
     # This is a regression test for issues that happened with 1-d WCS
     # where the target is not defined but observer is.
@@ -1190,7 +1185,7 @@ def test_spectral_1d(header_spectral_1d, ctype1, observer):
     else:
         header["CUNIT1"] = ""
 
-    header["RESTWAV"] = 1.420405752e09
+    header["RESTWAV"] = 0.21106114
     header["MJD-OBS"] = 55197
 
     if observer:
@@ -1521,3 +1516,63 @@ def test_out_of_bounds(direction):
     xw, yw = func(xp[-1], yp)
     assert_array_equal(xw, np.nan)
     assert_array_equal(yw, [np.nan, np.nan, 3, 4, 5])
+
+
+def test_restfrq_restwav():
+    # Regression test for a bug that caused an incorrect rest
+    # frequency/wavelength to be used. This happened for example when using
+    # VOPT but with only restfrq defined.
+
+    wcs = WCS(
+        header={
+            "CRVAL1": 100,
+            "CTYPE1": "VOPT",
+            "CDELT1": 1.0,
+            "CUNIT1": "m/s",
+            "CRPIX1": 1,
+            "RESTFRQ": 1e9,
+        }
+    )
+
+    scoord1 = wcs.pixel_to_world(5)
+
+    assert scoord1.doppler_convention == "optical"
+    assert_quantity_allclose(scoord1.doppler_rest, (1 * u.GHz).to(u.m, u.spectral()))
+
+    wcs = WCS(
+        header={
+            "CRVAL1": 100,
+            "CTYPE1": "VRAD",
+            "CDELT1": 1.0,
+            "CUNIT1": "m/s",
+            "CRPIX1": 1,
+            "RESTWAV": 1e-6,
+        }
+    )
+
+    scoord2 = wcs.pixel_to_world(5)
+
+    assert scoord2.doppler_convention == "radio"
+    assert_quantity_allclose(scoord2.doppler_rest, (1 * u.um).to(u.Hz, u.spectral()))
+
+    wcs = WCS(
+        header={
+            "CRVAL1": 100,
+            "CTYPE1": "VRAD",
+            "CDELT1": 1.0,
+            "CUNIT1": "m/s",
+            "CRPIX1": 1,
+            "RESTWAV": 1,
+            "RESTFRQ": 295000000.0,
+        }
+    )
+
+    # Once we switch from a deprecation warning to an exception, convert the
+    # following to pytest.raises
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=re.escape(
+            "restfrq=295000000.0 Hz and restwav=1.0 m=299792458.0 Hz are not consistent to rtol=1e-4"
+        ),
+    ):
+        scoord3 = wcs.pixel_to_world(5)

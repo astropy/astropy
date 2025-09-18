@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This file contains pytest configuration settings that are astropy-specific
-(i.e.  those that would not necessarily be shared by affiliated packages
-making use of astropy's test runner).
+This file contains pytest configuration settings that are astropy-specific.
 """
 
 import builtins
@@ -21,18 +19,6 @@ except ImportError:
 import pytest
 
 from astropy import __version__
-
-# This is needed to silence a warning from matplotlib caused by
-# PyInstaller's matplotlib runtime hook.  This can be removed once the
-# issue is fixed upstream in PyInstaller, and only impacts us when running
-# the tests from a PyInstaller bundle.
-# See https://github.com/astropy/astropy/issues/10785
-if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-    # The above checks whether we are running in a PyInstaller bundle.
-    warnings.filterwarnings("ignore", "(?s).*MATPLOTLIBDATA.*", category=UserWarning)
-
-# Note: while the filterwarnings is required, this import has to come after the
-# filterwarnings above, because this attempts to import matplotlib:
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
 if HAS_MATPLOTLIB:

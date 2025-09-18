@@ -29,7 +29,7 @@ from astropy.time import (
     TimezoneInfo,
     conf,
 )
-from astropy.utils import iers, isiterable
+from astropy.utils import iers
 from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYTZ
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -484,6 +484,7 @@ class TestBasic:
         """Create a time object using each defined format"""
         Time(2000.5, format="decimalyear")
         Time(100.0, format="cxcsec")
+        Time(100.0, format="galexsec")
         Time(100.0, format="unix")
         Time(100.0, format="gps")
         Time(1950.0, format="byear", scale="tai")
@@ -542,6 +543,8 @@ class TestBasic:
             t.unix
         with pytest.raises(ScaleValueError):
             t.cxcsec
+        with pytest.raises(ScaleValueError):
+            t.galexsec
         with pytest.raises(ScaleValueError):
             t.plot_date
 
@@ -1039,6 +1042,14 @@ class TestSubFormat:
         assert allclose_sec(t.cxcsec, t_cxcsec)
         assert allclose_sec(t.tt.cxcsec, t_cxcsec)
 
+        # This is the beginning of ObsID 6375102748379054080
+        # which is listed in MAST as starting at 2004-01-21 16:34:08
+        # which differs about 10 s from the value below, which is taken from
+        # the header of the observations and gPhoton processing.
+        t3 = Time("2004-01-21 16:33:57")
+        assert allclose_sec(t3.galexsec, 758738037.0)
+        assert allclose_sec(t3.galexsec, t3.unix - 315964800)
+
         # Round trip through epoch time
         for scale in ("utc", "tt"):
             t = Time("2000:001", scale=scale)
@@ -1256,9 +1267,9 @@ class TestNumericalSubFormat:
         with localcontext() as ctx:
             ctx.prec = 40
             t2_s_40 = t.to_value(fmt, "str")
-        assert (
-            t_s_2 == t2_s_40
-        ), "String representation should not depend on Decimal context"
+        assert t_s_2 == t2_s_40, (
+            "String representation should not depend on Decimal context"
+        )
 
     def test_decimal_context_caching(self):
         t = Time(val=58000, val2=1e-14, format="mjd", scale="tai")
@@ -1740,20 +1751,20 @@ def test_remove_astropy_time():
 def test_isiterable():
     """
     Ensure that scalar `Time` instances are not reported as iterable by the
-    `isiterable` utility.
+    `np.iterable()` utility.
 
     Regression test for https://github.com/astropy/astropy/issues/4048
     """
 
     t1 = Time.now()
-    assert not isiterable(t1)
+    assert not np.iterable(t1)
 
     t2 = Time(
         ["1999-01-01 00:00:00.123456789", "2010-01-01 00:00:00"],
         format="iso",
         scale="utc",
     )
-    assert isiterable(t2)
+    assert np.iterable(t2)
 
 
 def test_to_datetime():

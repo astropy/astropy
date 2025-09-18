@@ -87,49 +87,32 @@ def assert_follows_unicode_guidelines(x, roundtrip=None):
     from astropy import conf
 
     with conf.set_temp("unicode_output", False):
-        bytes_x = bytes(x)
-        unicode_x = str(x)
+        assert format(x, "").isascii()
+        str_x = str(x)
+        assert str_x.isascii()
         repr_x = repr(x)
-
-        assert isinstance(bytes_x, bytes)
-        bytes_x.decode("ascii")
-        assert isinstance(unicode_x, str)
-        unicode_x.encode("ascii")
-        assert isinstance(repr_x, str)
-        if isinstance(repr_x, bytes):
-            repr_x.decode("ascii")
-        else:
-            repr_x.encode("ascii")
-
+        assert repr_x.isascii()
         if roundtrip is not None:
-            assert x.__class__(bytes_x) == x
-            assert x.__class__(unicode_x) == x
+            assert type(x)(str_x) == x
             assert eval(repr_x, roundtrip) == x
 
     with conf.set_temp("unicode_output", True):
-        bytes_x = bytes(x)
-        unicode_x = str(x)
-        repr_x = repr(x)
-
-        assert isinstance(bytes_x, bytes)
-        bytes_x.decode("ascii")
-        assert isinstance(unicode_x, str)
-        assert isinstance(repr_x, str)
-        if isinstance(repr_x, bytes):
-            repr_x.decode("ascii")
-        else:
-            repr_x.encode("ascii")
-
+        assert repr(x) == repr_x
         if roundtrip is not None:
-            assert x.__class__(bytes_x) == x
-            assert x.__class__(unicode_x) == x
-            assert eval(repr_x, roundtrip) == x
+            assert type(x)(str(x)) == x
 
 
-@pytest.fixture(params=[0, 1, -1])
+@pytest.fixture(params=[0, 1, 4, -1])
 def pickle_protocol(request):
     """
-    Fixture to run all the tests for protocols 0 and 1, and -1 (most advanced).
+    Fixture to run all the tests for protocols 0, 1, 4 and -1 (most advanced).
+
+    * 0 is the original "human-readable" protocol
+    * 1 is the oldest binary format
+    * 4 introduced in Python 3.4, has been the default in 3.8-3.13
+    * -1 is the most advanced, which is 5 since Python 3.8, default from 3.14,
+      and the first binary format to preserve byteorder.
+
     (Originally from astropy.table.tests.test_pickle).
     """
     return request.param

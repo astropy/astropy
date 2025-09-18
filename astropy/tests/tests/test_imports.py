@@ -12,25 +12,16 @@ import pytest
 import astropy
 
 
-def test_imports():
+@pytest.mark.parametrize(
+    "subpkg",
+    [subpkg.name for subpkg in pkgutil.walk_packages(astropy.__path__) if subpkg.ispkg],
+)
+def test_imports(subpkg):
     """
-    This just imports all modules in astropy, making sure they don't have any
+    This just imports all top-level sub-packages in astropy, making sure they don't have any
     dependencies that sneak through
     """
-
-    def onerror(name):
-        # We should raise any legitimate error that occurred, but not
-        # any warnings which happen to be caught because of our pytest
-        # settings (e.g., DeprecationWarning).
-        try:
-            raise  # noqa: PLE0704
-        except Warning:
-            pass
-
-    for imper, nm, ispkg in pkgutil.walk_packages(
-        ["astropy"], "astropy.", onerror=onerror
-    ):
-        imper.find_spec(nm)
+    subprocess.run([sys.executable, "-c", f"from astropy import {subpkg}"], check=True)
 
 
 def test_toplevel_namespace():

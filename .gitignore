@@ -7,6 +7,10 @@
 *.dll
 __pycache__
 
+# Ignore .pyi files since those are all auto-generated, and there are no plans
+# to use them otherwise (as of 2025-08-31). Can be adjusted as needed.
+*.pyi
+
 # Ignore .c files by default to avoid including generated code. If you want to
 # add a non-generated .c extension, put that into the src/ subdirectory of a
 # package or else use `git add -f filename.c`.

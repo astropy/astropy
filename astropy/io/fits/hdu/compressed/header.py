@@ -32,7 +32,12 @@ __all__ = [
 ]
 
 ZDEF_RE = re.compile(r"(?P<label>^[Zz][a-zA-Z]*)(?P<num>[1-9][0-9 ]*$)?")
-INDEXED_COMPRESSION_KEYWORDS = {"ZNAXIS", "ZTILE", "ZNAME", "ZVAL"}
+INDEXED_COMPRESSION_KEYWORDS = {
+    "ZNAXIS",
+    "ZTILE",
+    "ZNAME",
+    "ZVAL",
+}
 REMAPPED_KEYWORDS = {
     "SIMPLE": "ZSIMPLE",
     "XTENSION": "ZTENSION",
@@ -46,14 +51,23 @@ REMAPPED_KEYWORDS = {
     "DATASUM": "ZDATASUM",
 }
 COMPRESSION_KEYWORDS = set(REMAPPED_KEYWORDS.values()).union(
-    {"ZIMAGE", "ZCMPTYPE", "ZMASKCMP", "ZQUANTIZ", "ZDITHER0"}
+    {
+        "ZIMAGE",
+        "ZCMPTYPE",
+        "ZMASKCMP",
+        "ZQUANTIZ",
+        "ZDITHER0",
+        "ZBLANK",
+        "ZSCALE",
+        "ZZERO",
+    }
 )
 
 
 class CompImageHeader(Header):
     def __init__(self, *args, **kwargs):
         warnings.warn(
-            "The CompImageHeader class is deprecated and will be " "removed in future",
+            "The CompImageHeader class is deprecated and will be removed in future",
             AstropyDeprecationWarning,
         )
         super().__init__(*args, **kwargs)
@@ -61,7 +75,7 @@ class CompImageHeader(Header):
 
 def _is_reserved_table_keyword(keyword):
     m = TDEF_RE.match(keyword)
-    return keyword == "TFIELDS" or (
+    return keyword in ("TFIELDS", "THEAP") or (
         m and m.group("label").upper() in TABLE_KEYWORD_NAMES
     )
 

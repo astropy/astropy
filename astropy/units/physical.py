@@ -7,22 +7,18 @@ The classes and functions defined here are also available in
 """
 
 import numbers
+from collections.abc import Iterator
+from typing import Final, Union
 
 from astropy.utils.compat import COPY_IF_NEEDED
 
-from . import (
-    astrophys,
-    cgs,
-    core,
-    imperial,  # for bkwd compat #11975 and #11977  # noqa: F401
-    misc,
-    quantity,
-    si,
-)
+from . import astrophys, cgs, core, misc, quantity, si
+from .typing import PhysicalTypeID, QuantityLike, UnitPowerLike
 
-__all__ = ["PhysicalType", "def_physical_type", "get_physical_type"]
+__all__: Final = ["PhysicalType", "def_physical_type", "get_physical_type"]
 
-_units_and_physical_types = [
+
+_units_and_physical_types: Final[list[tuple[core.UnitBase, str | set[str]]]] = [
     (core.dimensionless_unscaled, "dimensionless"),
     (si.m, "length"),
     (si.m**2, "area"),
@@ -142,81 +138,6 @@ _units_and_physical_types = [
     (si.m**-2 * si.s**-1, "particle flux"),
 ]
 
-_physical_unit_mapping = {}
-_unit_physical_mapping = {}
-_name_physical_mapping = {}
-# mapping from attribute-accessible name (no spaces, etc.) to the actual name.
-_attrname_physical_mapping = {}
-
-
-def _physical_type_from_str(name):
-    """
-    Return the `PhysicalType` instance associated with the name of a
-    physical type.
-    """
-    if name == "unknown":
-        raise ValueError("cannot uniquely identify an 'unknown' physical type.")
-
-    elif name in _attrname_physical_mapping:
-        return _attrname_physical_mapping[name]  # convert attribute-accessible
-    elif name in _name_physical_mapping:
-        return _name_physical_mapping[name]
-    else:
-        raise ValueError(f"{name!r} is not a known physical type.")
-
-
-def _replace_temperatures_with_kelvin(unit):
-    """
-    If a unit contains a temperature unit besides kelvin, then replace
-    that unit with kelvin.
-
-    Temperatures cannot be converted directly between K, °F, °C, and
-    °Ra, in particular since there would be different conversions for
-    T and ΔT.  However, each of these temperatures each represents the
-    physical type.  Replacing the different temperature units with
-    kelvin allows the physical type to be treated consistently.
-    """
-    physical_type_id = unit._physical_type_id
-
-    physical_type_id_components = []
-    substitution_was_made = False
-
-    for base, power in physical_type_id:
-        if base in ["deg_F", "deg_C", "deg_R"]:
-            base = "K"
-            substitution_was_made = True
-        physical_type_id_components.append((base, power))
-
-    if substitution_was_made:
-        return core.Unit._from_physical_type_id(tuple(physical_type_id_components))
-    else:
-        return unit
-
-
-def _standardize_physical_type_names(physical_type_input):
-    """
-    Convert a string or `set` of strings into a `set` containing
-    string representations of physical types.
-
-    The strings provided in ``physical_type_input`` can each contain
-    multiple physical types that are separated by a regular slash.
-    Underscores are treated as spaces so that variable names could
-    be identical to physical type names.
-    """
-    if isinstance(physical_type_input, str):
-        physical_type_input = {physical_type_input}
-
-    standardized_physical_types = set()
-
-    for ptype_input in physical_type_input:
-        if not isinstance(ptype_input, str):
-            raise ValueError(f"expecting a string, but got {ptype_input}")
-        input_set = set(ptype_input.split("/"))
-        processed_set = {s.strip().replace("_", " ") for s in input_set}
-        standardized_physical_types |= processed_set
-
-    return standardized_physical_types
-
 
 class PhysicalType:
     """
@@ -326,15 +247,14 @@ class PhysicalType:
     PhysicalType('length')
     """
 
-    def __init__(self, unit, physical_types):
+    def __init__(self, unit: core.UnitBase, physical_types: str | set[str]) -> None:
         self._unit = _replace_temperatures_with_kelvin(unit)
-        self._physical_type = _standardize_physical_type_names(physical_types)
-        self._physical_type_list = sorted(self._physical_type)
+        self._physical_type = sorted(_standardize_physical_type_names(physical_types))
 
-    def __iter__(self):
-        yield from self._physical_type_list
+    def __iter__(self) -> Iterator[str]:
+        yield from self._physical_type
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """
         Return `True` if ``other`` represents a physical type that is
         consistent with the physical type of the `PhysicalType` instance.
@@ -347,33 +267,20 @@ class PhysicalType:
         else:
             return NotImplemented
 
-    def __ne__(self, other):
-        equality = self.__eq__(other)
-        return not equality if isinstance(equality, bool) else NotImplemented
-
-    def _name_string_as_ordered_set(self):
-        return "{" + str(self._physical_type_list)[1:-1] + "}"
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         if len(self._physical_type) == 1:
-            names = "'" + self._physical_type_list[0] + "'"
+            names = "'" + self._physical_type[0] + "'"
         else:
-            names = self._name_string_as_ordered_set()
+            names = "{" + str(self._physical_type)[1:-1] + "}"
         return f"PhysicalType({names})"
 
-    def __str__(self):
-        return "/".join(self._physical_type_list)
+    def __str__(self) -> str:
+        return "/".join(self._physical_type)
 
     @staticmethod
-    def _dimensionally_compatible_unit(obj):
+    def _dimensionally_compatible_unit(obj: object) -> core.UnitBase | None:
         """
         Return a unit that corresponds to the provided argument.
-
-        If a unit is passed in, return that unit.  If a physical type
-        (or a `str` with the name of a physical type) is passed in,
-        return a unit that corresponds to that physical type.  If the
-        number equal to ``1`` is passed in, return a dimensionless unit.
-        Otherwise, return `NotImplemented`.
         """
         if isinstance(obj, core.UnitBase):
             return _replace_temperatures_with_kelvin(obj)
@@ -383,39 +290,41 @@ class PhysicalType:
             return core.dimensionless_unscaled
         elif isinstance(obj, str):
             return _physical_type_from_str(obj)._unit
-        else:
-            return NotImplemented
+        return None
 
-    def _dimensional_analysis(self, other, operation):
-        other_unit = self._dimensionally_compatible_unit(other)
-        if other_unit is NotImplemented:
-            return NotImplemented
-        other_unit = _replace_temperatures_with_kelvin(other_unit)
-        new_unit = getattr(self._unit, operation)(other_unit)
-        return new_unit.physical_type
+    def __mul__(
+        self, other: Union["PhysicalType", core.UnitBase, numbers.Real, str]
+    ) -> "PhysicalType":
+        if other_unit := self._dimensionally_compatible_unit(other):
+            return (self._unit * other_unit).physical_type
+        return NotImplemented
 
-    def __mul__(self, other):
-        return self._dimensional_analysis(other, "__mul__")
-
-    def __rmul__(self, other):
+    def __rmul__(
+        self, other: Union["PhysicalType", core.UnitBase, str]
+    ) -> "PhysicalType":
         return self.__mul__(other)
 
-    def __truediv__(self, other):
-        return self._dimensional_analysis(other, "__truediv__")
+    def __truediv__(
+        self, other: Union["PhysicalType", core.UnitBase, numbers.Real, str]
+    ) -> "PhysicalType":
+        if other_unit := self._dimensionally_compatible_unit(other):
+            return (self._unit / other_unit).physical_type
+        return NotImplemented
 
-    def __rtruediv__(self, other):
-        other = self._dimensionally_compatible_unit(other)
-        if other is NotImplemented:
-            return NotImplemented
-        return other.physical_type._dimensional_analysis(self, "__truediv__")
+    def __rtruediv__(
+        self, other: Union["PhysicalType", core.UnitBase, numbers.Real, str]
+    ) -> "PhysicalType":
+        if other_unit := self._dimensionally_compatible_unit(other):
+            return (other_unit / self._unit).physical_type
+        return NotImplemented
 
-    def __pow__(self, power):
+    def __pow__(self, power: UnitPowerLike) -> "PhysicalType":
         return (self._unit**power).physical_type
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._unit._physical_type_id)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._physical_type)
 
     # We need to prevent operations like where a Unit instance left
@@ -423,10 +332,85 @@ class PhysicalType:
     # instance with a PhysicalType as the value.  We can do this by
     # preventing np.array from casting a PhysicalType instance as
     # an object array.
-    __array__ = None
+    __array__: Final = None
 
 
-def def_physical_type(unit, name):
+_physical_unit_mapping: Final[dict[PhysicalTypeID, PhysicalType]] = {}
+_unit_physical_mapping: Final[dict[str, PhysicalTypeID]] = {}
+_name_physical_mapping: Final[dict[str, PhysicalType]] = {}
+# mapping from attribute-accessible name (no spaces, etc.) to the actual name.
+_attrname_physical_mapping: Final[dict[str, PhysicalType]] = {}
+
+
+def _physical_type_from_str(name: str) -> PhysicalType:
+    """
+    Return the `PhysicalType` instance associated with the name of a
+    physical type.
+    """
+    if name == "unknown":
+        raise ValueError("cannot uniquely identify an 'unknown' physical type.")
+
+    elif name in _attrname_physical_mapping:
+        return _attrname_physical_mapping[name]  # convert attribute-accessible
+    elif name in _name_physical_mapping:
+        return _name_physical_mapping[name]
+    else:
+        raise ValueError(f"{name!r} is not a known physical type.")
+
+
+def _replace_temperatures_with_kelvin(unit: core.UnitBase) -> core.UnitBase:
+    """Replace °F, and °C in the bases of `unit` with K.
+
+    The Kelvin, Celsius and Fahrenheit scales have different zero points,
+    which is a problem for the unit conversion machinery (without the
+    `temperature` equivalency). Replacing °F, and °C with kelvin allows the
+    physical type to be treated consistently. The Rankine scale has the
+    same zero point as the Kelvin scale, so degrees Rankine do not have to
+    be special-cased.
+    """
+    physical_type_id = unit._physical_type_id
+
+    physical_type_id_components = []
+    substitution_was_made = False
+
+    for base, power in physical_type_id:
+        if base in ["deg_F", "deg_C"]:
+            base = "K"
+            substitution_was_made = True
+        physical_type_id_components.append((base, power))
+
+    if substitution_was_made:
+        return core.Unit._from_physical_type_id(tuple(physical_type_id_components))
+    else:
+        return unit
+
+
+def _standardize_physical_type_names(physical_type_input: str | set[str]) -> set[str]:
+    """
+    Convert a string or `set` of strings into a `set` containing
+    string representations of physical types.
+
+    The strings provided in ``physical_type_input`` can each contain
+    multiple physical types that are separated by a regular slash.
+    Underscores are treated as spaces so that variable names could
+    be identical to physical type names.
+    """
+    if isinstance(physical_type_input, str):
+        physical_type_input = {physical_type_input}
+
+    standardized_physical_types = set()
+
+    for ptype_input in physical_type_input:
+        if not isinstance(ptype_input, str):
+            raise ValueError(f"expecting a string, but got {ptype_input}")
+        input_set = set(ptype_input.split("/"))
+        processed_set = {s.strip().replace("_", " ") for s in input_set}
+        standardized_physical_types |= processed_set
+
+    return standardized_physical_types
+
+
+def def_physical_type(unit: core.UnitBase, name: str | set[str]) -> None:
     """
     Add a mapping between a unit and the corresponding physical type(s).
 
@@ -473,23 +457,22 @@ def def_physical_type(unit, name):
     unit_already_in_use = physical_type_id in _physical_unit_mapping
     if unit_already_in_use:
         physical_type = _physical_unit_mapping[physical_type_id]
-        physical_type_names |= set(physical_type)
-        physical_type.__init__(unit, physical_type_names)
+        physical_type._physical_type = sorted(physical_type_names | set(physical_type))
     else:
         physical_type = PhysicalType(unit, physical_type_names)
         _physical_unit_mapping[physical_type_id] = physical_type
 
     for ptype in physical_type:
         _unit_physical_mapping[ptype] = physical_type_id
-
-    for ptype_name in physical_type_names:
-        _name_physical_mapping[ptype_name] = physical_type
+        _name_physical_mapping[ptype] = physical_type
         # attribute-accessible name
-        attr_name = ptype_name.replace(" ", "_").replace("(", "").replace(")", "")
+        attr_name = ptype.replace(" ", "_").replace("(", "").replace(")", "")
         _attrname_physical_mapping[attr_name] = physical_type
 
 
-def get_physical_type(obj):
+def get_physical_type(
+    obj: PhysicalType | str | core.UnitBase | QuantityLike,
+) -> PhysicalType:
     """
     Return the physical type that corresponds to a unit (or another
     physical type representation).
@@ -566,6 +549,7 @@ def get_physical_type(obj):
 # define the physical types
 for unit, physical_type in _units_and_physical_types:
     def_physical_type(unit, physical_type)
+del unit, physical_type
 
 
 # For getting the physical types.
@@ -597,7 +581,7 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-def __dir__():
+def __dir__() -> list[str]:
     """Return contents directory (__all__ + all physical type names)."""
     return list(set(__all__) | set(_attrname_physical_mapping.keys()))
 
@@ -616,14 +600,11 @@ if __doc__ is not None:
     ]
 
     for name in sorted(_name_physical_mapping.keys()):
-        physical_type = _name_physical_mapping[name]
+        ptype = _name_physical_mapping[name]
         doclines += [
             f"    * - _`{name}`",
-            f"      - :math:`{physical_type._unit.to_string('latex')[1:-1]}`",
-            f"      - {', '.join([n for n in physical_type if n != name])}",
+            f"      - :math:`{ptype._unit.to_string('latex')[1:-1]}`",
+            f"      - {', '.join([n for n in ptype if n != name])}",
         ]
 
     __doc__ += "\n\n" + "\n".join(doclines)
-
-
-del unit, physical_type

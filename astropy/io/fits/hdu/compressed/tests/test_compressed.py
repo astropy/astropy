@@ -7,7 +7,6 @@ import pickle
 import re
 import time
 from io import BytesIO
-from itertools import product
 
 import numpy as np
 import pytest
@@ -372,7 +371,7 @@ class TestCompressedImage(FitsTestCase):
             assert hdul[1].header["BZERO"] == orig_bzero
             assert hdul[1].header["BSCALE"] == orig_bscale
 
-            zero_point = int(math.floor(-orig_bzero / orig_bscale))
+            zero_point = math.floor(-orig_bzero / orig_bscale)
             assert (hdul[1].data[0] == zero_point).all()
 
         with fits.open(self.temp("scale.fits")) as hdul:
@@ -496,24 +495,19 @@ class TestCompressedImage(FitsTestCase):
         Ensure that setting reserved keywords related to the table data
         structure on CompImageHDU image headers fails.
         """
-
-        def test_set_keyword(hdr, keyword, value):
-            with pytest.warns(UserWarning) as w:
-                hdr[keyword] = value
-            assert len(w) == 1
-            assert str(w[0].message).startswith(f"Keyword {keyword!r} is reserved")
-            assert keyword not in hdr
-
         with fits.open(self.data("comp.fits")) as hdul:
             hdr = hdul[1].header
             hdr["TFIELDS"] = 8
+            hdr["THEAP"] = 1000
             hdr["TTYPE1"] = "Foo"
             hdr["ZCMPTYPE"] = "ASDF"
             hdr["ZVAL1"] = "Foo"
             with pytest.warns() as record:
                 hdul.writeto(tmp_path / "test.fits")
-            assert len(record) == 4
-            for i, keyword in enumerate(("TFIELDS", "TTYPE1", "ZCMPTYPE", "ZVAL1")):
+            assert len(record) == 5
+            for i, keyword in enumerate(
+                ("TFIELDS", "THEAP", "TTYPE1", "ZCMPTYPE", "ZVAL1")
+            ):
                 assert f"Keyword {keyword!r} is reserved" in record[i].message.args[0]
 
     def test_compression_header_append(self, tmp_path):
@@ -861,9 +855,8 @@ class TestCompressedImage(FitsTestCase):
         new = fits.getdata(testfile)
         np.testing.assert_array_equal(data, new)
 
-    @pytest.mark.parametrize(
-        ("dtype", "compression_type"), product(("f", "i4"), COMPRESSION_TYPES)
-    )
+    @pytest.mark.parametrize("dtype", ["f", "i4"])
+    @pytest.mark.parametrize("compression_type", COMPRESSION_TYPES)
     def test_write_non_contiguous_data(self, dtype, compression_type):
         """
         Regression test for https://github.com/astropy/astropy/issues/2150
@@ -1425,3 +1418,30 @@ def test_compression_options_with_mutated_data(
 
     zflags = {k: hdr[k] for k in expected_zflags}
     assert zflags == expected_zflags
+
+
+def test_reserved_keywords_stripped(tmp_path):
+    # Regression test for a bug that caused THEAP, ZBLANK, ZSCALE and ZZERO to
+    # not be correctly stripped from the compressed header when decompressing
+    #
+    # See also https://github.com/astropy/astropy/issues/18067
+
+    data = np.arange(6).reshape((2, 3))
+
+    hdu = fits.CompImageHDU(data)
+    hdu.writeto(tmp_path / "compressed.fits")
+
+    with fits.open(
+        tmp_path / "compressed.fits", disable_image_compression=True
+    ) as hduc:
+        hduc[1].header["THEAP"] = hduc[1].header["NAXIS1"] * hduc[1].header["NAXIS2"]
+        hduc[1].header["ZBLANK"] = 1231212
+        hduc[1].header["ZSCALE"] = 2
+        hduc[1].header["ZZERO"] = 10
+        hduc[1].writeto(tmp_path / "compressed_with_extra.fits")
+
+    with fits.open(tmp_path / "compressed_with_extra.fits") as hdud:
+        assert "THEAP" not in hdud[1].header
+        assert "ZBLANK" not in hdud[1].header
+        assert "ZSCALE" not in hdud[1].header
+        assert "ZZERO" not in hdud[1].header

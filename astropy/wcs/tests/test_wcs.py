@@ -2,11 +2,14 @@
 
 import io
 import os
+import re
 from contextlib import nullcontext
 from datetime import datetime
+from multiprocessing.pool import ThreadPool
 
 import numpy as np
 import pytest
+from numpy.random import default_rng
 from numpy.testing import (
     assert_allclose,
     assert_array_almost_equal,
@@ -33,14 +36,12 @@ from astropy.utils.exceptions import (
     AstropyWarning,
 )
 from astropy.utils.misc import NumpyRNGContext
-from astropy.wcs import _wcs
-
-_WCSLIB_VER = Version(_wcs.__version__)
+from astropy.wcs.wcs import WCSLIB_VERSION
 
 
 # NOTE: User can choose to use system wcslib instead of bundled.
 def ctx_for_v71_dateref_warnings():
-    if _WCSLIB_VER >= Version("7.1") and _WCSLIB_VER < Version("7.3"):
+    if Version("7.1") <= Version(WCSLIB_VERSION) < Version("7.3"):
         ctx = pytest.warns(
             wcs.FITSFixedWarning,
             match=(
@@ -51,6 +52,13 @@ def ctx_for_v71_dateref_warnings():
     else:
         ctx = nullcontext()
     return ctx
+
+
+def strip_memory_addresses(text: str) -> str:
+    """
+    Replace hex memory addresses (e.g., 0x600000acf000) in the text with a placeholder.
+    """
+    return re.sub(r"0x[0-9a-fA-F]+", "0xADDR", text)
 
 
 class TestMaps:
@@ -115,7 +123,7 @@ class TestSpectra:
                 os.path.join("data", "spectra", filename), encoding="binary"
             )
             # finally run the test.
-            if _WCSLIB_VER >= Version("7.4"):
+            if Version(WCSLIB_VERSION) >= Version("7.4"):
                 ctx = pytest.warns(
                     wcs.FITSFixedWarning,
                     match=(
@@ -143,7 +151,7 @@ def test_fixes():
     ):
         wcs.WCS(header, translate_units="dhs")
 
-    if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
+    if Version("7.4") <= Version(WCSLIB_VERSION) < Version("7.6"):
         assert len(w) == 3
         assert "'datfix' made the change 'Success'." in str(w.pop().message)
     else:
@@ -183,7 +191,7 @@ def test_pix2world():
         ww = wcs.WCS(filename)
 
     # might as well monitor for changing behavior
-    if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
+    if Version("7.4") <= Version(WCSLIB_VERSION) < Version("7.6"):
         assert len(caught_warnings) == 2
     else:
         assert len(caught_warnings) == 1
@@ -244,10 +252,10 @@ def test_dict_init():
         "CDELT1": -0.1,
         "CDELT2": 0.1,
     }
-    if _WCSLIB_VER >= Version("7.1"):
+    if Version(WCSLIB_VERSION) >= Version("7.1"):
         hdr["DATEREF"] = "1858-11-17"
 
-    if _WCSLIB_VER >= Version("7.4"):
+    if Version(WCSLIB_VERSION) >= Version("7.4"):
         ctx = pytest.warns(
             wcs.wcs.FITSFixedWarning,
             match=r"'datfix' made the change 'Set MJDREF to 0\.000000 from DATEREF'\.",
@@ -360,7 +368,7 @@ def test_invalid_shape():
 
 def test_warning_about_defunct_keywords():
     header = get_pkg_data_contents("data/defunct_keywords.hdr", encoding="binary")
-    if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
+    if Version("7.4") <= Version(WCSLIB_VERSION) < Version("7.6"):
         n_warn = 5
     else:
         n_warn = 4
@@ -396,14 +404,14 @@ def test_to_header_string():
     )
     # fmt: on
 
-    if _WCSLIB_VER >= Version("7.3"):
+    if Version(WCSLIB_VERSION) >= Version("7.3"):
         # fmt: off
         hdrstr += (
             "MJDREF  =                  0.0 / [d] MJD of fiducial time                       ",
         )
         # fmt: on
 
-    elif _WCSLIB_VER >= Version("7.1"):
+    elif Version(WCSLIB_VERSION) >= Version("7.1"):
         # fmt: off
         hdrstr += (
             "DATEREF = '1858-11-17'         / ISO-8601 fiducial time                         ",
@@ -427,10 +435,10 @@ def test_to_header_string():
 
 
 def test_to_fits():
-    nrec = 11 if _WCSLIB_VER >= Version("7.1") else 8
-    if _WCSLIB_VER < Version("7.1"):
+    nrec = 11 if Version(WCSLIB_VERSION) >= Version("7.1") else 8
+    if Version(WCSLIB_VERSION) < Version("7.1"):
         nrec = 8
-    elif _WCSLIB_VER < Version("7.3"):
+    elif Version(WCSLIB_VERSION) < Version("7.3"):
         nrec = 11
     else:
         nrec = 9
@@ -484,15 +492,15 @@ def test_find_all_wcs_crash():
 def test_validate():
     results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
     results_txt = sorted({x.strip() for x in repr(results).splitlines()})
-    if _WCSLIB_VER >= Version("7.6"):
+    if Version(WCSLIB_VERSION) >= Version("7.6"):
         filename = "data/validate.7.6.txt"
-    elif _WCSLIB_VER >= Version("7.4"):
+    elif Version(WCSLIB_VERSION) >= Version("7.4"):
         filename = "data/validate.7.4.txt"
-    elif _WCSLIB_VER >= Version("6.0"):
+    elif Version(WCSLIB_VERSION) >= Version("6.0"):
         filename = "data/validate.6.txt"
-    elif _WCSLIB_VER >= Version("5.13"):
+    elif Version(WCSLIB_VERSION) >= Version("5.13"):
         filename = "data/validate.5.13.txt"
-    elif _WCSLIB_VER >= Version("5.0"):
+    elif Version(WCSLIB_VERSION) >= Version("5.0"):
         filename = "data/validate.5.0.txt"
     else:
         filename = "data/validate.txt"
@@ -569,22 +577,15 @@ def test_crpix_maps_to_crval():
     )
 
 
-def test_all_world2pix(
-    fname=None,
-    ext=0,
-    tolerance=1.0e-4,
-    origin=0,
-    random_npts=25000,
-    adaptive=False,
-    maxiter=20,
-    detect_divergence=True,
-):
+def test_all_world2pix():
     """Test all_world2pix, iterative inverse of all_pix2world"""
 
+    tolerance = 1.0e-4
+    origin = 0
+
     # Open test FITS file:
-    if fname is None:
-        fname = get_pkg_data_filename("data/j94f05bgq_flt.fits")
-        ext = ("SCI", 1)
+    fname = get_pkg_data_filename("data/j94f05bgq_flt.fits")
+    ext = ("SCI", 1)
     if not os.path.isfile(fname):
         raise OSError(f"Input file '{fname:s}' to 'test_all_world2pix' not found.")
     h = fits.open(fname)
@@ -608,7 +609,7 @@ def test_all_world2pix(
 
     # Generate random data (in image coordinates):
     with NumpyRNGContext(123456789):
-        rnd_pix = np.random.rand(random_npts, ncoord)
+        rnd_pix = np.random.rand(25_000, ncoord)
 
     # Scale random data to cover the central part of the image
     mwidth = 2 * (crpix * 1.0 / 8)
@@ -627,9 +628,9 @@ def test_all_world2pix(
             all_world,
             origin,
             tolerance=tolerance,
-            adaptive=adaptive,
-            maxiter=maxiter,
-            detect_divergence=detect_divergence,
+            adaptive=False,
+            maxiter=20,
+            detect_divergence=True,
         )
         runtime_end = datetime.now()
     except wcs.wcs.NoConvergence as e:
@@ -960,7 +961,7 @@ def test_no_iteration():
 
 
 @pytest.mark.skipif(
-    _wcs.__version__[0] < "5", reason="TPV only works with wcslib 5.x or later"
+    WCSLIB_VERSION[0] < "5", reason="TPV only works with wcslib 5.x or later"
 )
 def test_sip_tpv_agreement():
     sip_header = get_pkg_data_contents(
@@ -1123,7 +1124,7 @@ def test_car_sip_with_pv():
 
 
 @pytest.mark.skipif(
-    _wcs.__version__[0] < "5", reason="TPV only works with wcslib 5.x or later"
+    WCSLIB_VERSION[0] < "5", reason="TPV only works with wcslib 5.x or later"
 )
 def test_tpv_copy():
     # See #3904
@@ -1424,6 +1425,25 @@ def test_naxis():
     assert w.pixel_bounds is None
 
 
+def test_naxis_1d():
+    w = wcs.WCS(
+        {
+            "naxis1": 100,
+            "crval1": 1,
+            "cdelt1": 0.1,
+            "crpix1": 1,
+        }
+    )
+    assert w.pixel_shape == (100,)
+    assert w.array_shape == (100,)
+
+    w.pixel_shape = (99,)
+    assert w._naxis == [99]
+
+    w.pixel_shape = None
+    assert w.pixel_bounds is None
+
+
 def test_sip_with_altkey():
     """
     Test that when creating a WCS object using a key, CTYPE with
@@ -1596,7 +1616,7 @@ def test_cunit():
 
 class TestWcsWithTime:
     def setup_method(self):
-        if _WCSLIB_VER >= Version("7.1"):
+        if Version(WCSLIB_VERSION) >= Version("7.1"):
             fname = get_pkg_data_filename("data/header_with_time_wcslib71.fits")
         else:
             fname = get_pkg_data_filename("data/header_with_time.fits")
@@ -1613,7 +1633,7 @@ class TestWcsWithTime:
         cdelt = [self.header[val] for val in self.header["CDELT*"]]
         cunit = [self.header[val] for val in self.header["CUNIT*"]]
         assert list(self.w.wcs.ctype) == ctype
-        time_axis_code = 4000 if _WCSLIB_VER >= Version("7.9") else 0
+        time_axis_code = 4000 if Version(WCSLIB_VERSION) >= Version("7.9") else 0
         assert list(self.w.wcs.axis_types) == [2200, 2201, 3300, time_axis_code]
         assert_allclose(self.w.wcs.crval, crval)
         assert_allclose(self.w.wcs.crpix, crpix)
@@ -1738,7 +1758,7 @@ def test_distortion_header(tmp_path):
     # Template Polynomial Distortion model (TPD.FWD.n coefficients);
     # not testing explicitly for the header keywords here.
 
-    if _WCSLIB_VER < Version("7.4"):
+    if Version(WCSLIB_VERSION) < Version("7.4"):
         with pytest.warns(
             AstropyWarning, match="WCS contains a TPD distortion model in CQDIS"
         ):
@@ -1747,7 +1767,7 @@ def test_distortion_header(tmp_path):
             AstropyWarning, match="WCS contains a TPD distortion model in CQDIS"
         ):
             w1 = wcs.WCS(cut.wcs.to_header_string())
-        if _WCSLIB_VER >= Version("7.1"):
+        if Version(WCSLIB_VERSION) >= Version("7.1"):
             pytest.xfail("TPD coefficients incomplete with WCSLIB >= 7.1 < 7.4")
     else:
         w0 = wcs.WCS(w.to_header_string())
@@ -1790,7 +1810,7 @@ def test_pixlist_wcs_colsel():
 
 
 @pytest.mark.skipif(
-    _WCSLIB_VER < Version("7.8"),
+    Version(WCSLIB_VERSION) < Version("7.8"),
     reason="TIME axis extraction only works with wcslib 7.8 or later",
 )
 def test_time_axis_selection():
@@ -1805,7 +1825,7 @@ def test_time_axis_selection():
 
 
 @pytest.mark.skipif(
-    _WCSLIB_VER < Version("7.8"),
+    Version(WCSLIB_VERSION) < Version("7.8"),
     reason="TIME axis extraction only works with wcslib 7.8 or later",
 )
 def test_temporal():
@@ -1922,3 +1942,637 @@ def test_DistortionLookupTable():
             img_world_wcs.pixel_to_world_values(12 + dx * 3, 22 + dy * 3),
             [12 + dx * 3, 22 + dy * 3],
         )
+
+
+HEADER_WITH_NON_SI_UNITS = """
+WCSAXES = 5
+CTYPE1  = 'RA---TAN'
+CTYPE2  = 'FREQ'
+CTYPE3  = 'DEC--TAN'
+CTYPE4  = 'WAVE'
+CTYPE5  = 'OFFSET'
+CUNIT1  = 'arcsec'
+CUNIT2  = 'GHz'
+CUNIT3  = 'arcsec'
+CUNIT4  = 'nm'
+CUNIT5  = 'arcmin'
+CRVAL1  = 4
+CRVAL2  = 5
+CRVAL3  = 6
+CRVAL4  = 7
+CRVAL5  = 8
+CRPIX1  = 1
+CRPIX2  = 2
+CRPIX3  = 3
+CRPIX4  = 4
+CRPIX5  = 5
+CDELT1  = 4
+CDELT2  = 3
+CDELT3  = 2
+CDELT4  = 1
+CDELT5  = 6
+""".strip()
+
+
+class TestPreserveUnits:
+    def setup_method(self, method):
+        self.header = fits.Header.fromstring(HEADER_WITH_NON_SI_UNITS, sep="\n")
+        self.wcs_default = wcs.WCS(self.header)
+        self.wcs_preserve = wcs.WCS(self.header, preserve_units=True)
+        rsn = default_rng(1234567890)
+        self.coords = rsn.uniform(-10, 10, (100, 5))
+        self.scale = np.array([1 / 3600, 1e9, 1 / 3600, 1e-9, 1])
+
+    def test_get_cunit(self):
+        assert list(self.wcs_default.wcs.cunit) == ["deg", "Hz", "deg", "m", "arcmin"]
+        assert list(self.wcs_preserve.wcs.cunit) == [
+            "arcsec",
+            "GHz",
+            "arcsec",
+            "nm",
+            "arcmin",
+        ]
+
+    def test_set_cunit(self):
+        self.wcs_preserve.wcs.cunit = "arcmin", "MHz", "deg", "m", "arcmin"
+        assert list(self.wcs_preserve.wcs.cunit) == [
+            "arcmin",
+            "MHz",
+            "deg",
+            "m",
+            "arcmin",
+        ]
+
+    def test_get_cdelt(self):
+        assert_allclose(self.wcs_default.wcs.cdelt, [4 / 3600, 3e9, 2 / 3600, 1e-9, 6])
+        assert_allclose(self.wcs_preserve.wcs.cdelt, [4, 3, 2, 1, 6])
+
+    def test_get_cdelt_indiv(self):
+        assert_allclose(self.wcs_default.wcs.cdelt[0], [4 / 3600])
+        assert_allclose(self.wcs_preserve.wcs.cdelt[0], [4])
+
+    def test_set_cdelt(self):
+        self.wcs_default.wcs.cdelt = [1 / 3600, 2e9, 3 / 3600, 4e-9, 5]
+        self.wcs_preserve.wcs.cdelt = [1, 2, 3, 4, 5]
+        assert_allclose(self.wcs_default.wcs.cdelt, [1 / 3600, 2e9, 3 / 3600, 4e-9, 5])
+        assert_allclose(self.wcs_preserve.wcs.cdelt, [1, 2, 3, 4, 5])
+
+    def test_set_cdelt_indiv(self):
+        # Changing individual items is complicated in preserve_units mode because
+        # there is no easy way to know that a value in memory has been changed
+        # in the array. If we really want to support it then before each
+        # transformation we could check if the WCS hash has changed, but it is
+        # easier and less confusing to simply require cdelt to be overwritten
+        # as a whole rather than individual values set.
+
+        self.wcs_default.wcs.cdelt[0] = 1 / 3600
+        assert_allclose(self.wcs_default.wcs.cdelt, [1 / 3600, 3e9, 2 / 3600, 1e-9, 6])
+
+        with pytest.raises(ValueError, match="assignment destination is read-only"):
+            self.wcs_preserve.wcs.cdelt[0] = 1
+
+    def test_get_cdelt_meth(self):
+        assert_allclose(
+            self.wcs_default.wcs.get_cdelt(), [4 / 3600, 3e9, 2 / 3600, 1e-9, 6]
+        )
+        assert_allclose(self.wcs_preserve.wcs.get_cdelt(), [4, 3, 2, 1, 6])
+
+    def test_get_crval(self):
+        assert_allclose(self.wcs_default.wcs.crval, [4 / 3600, 5e9, 6 / 3600, 7e-9, 8])
+        assert_allclose(self.wcs_preserve.wcs.crval, [4, 5, 6, 7, 8])
+
+    def test_get_crval_indiv(self):
+        assert_allclose(self.wcs_default.wcs.crval[0], [4 / 3600])
+        assert_allclose(self.wcs_preserve.wcs.crval[0], [4])
+
+    def test_set_crval(self):
+        self.wcs_default.wcs.crval = [1 / 3600, 2e9, 3 / 3600, 4e-9, 5]
+        self.wcs_preserve.wcs.crval = [1, 2, 3, 4, 5]
+        assert_allclose(self.wcs_default.wcs.crval, [1 / 3600, 2e9, 3 / 3600, 4e-9, 5])
+        assert_allclose(self.wcs_preserve.wcs.crval, [1, 2, 3, 4, 5])
+
+    def test_set_crval_indiv(self):
+        # See comment in test_set_cdelt_indiv about why this raises an error
+
+        self.wcs_default.wcs.crval[0] = 1 / 3600
+        assert_allclose(self.wcs_default.wcs.crval, [1 / 3600, 5e9, 6 / 3600, 7e-9, 8])
+
+        with pytest.raises(ValueError, match="assignment destination is read-only"):
+            self.wcs_preserve.wcs.crval[0] = 1
+
+    def test_p2s(self):
+        result_default = self.wcs_default.wcs.p2s(self.coords, 0)
+        result_preserve = self.wcs_preserve.wcs.p2s(self.coords, 0)
+        for key in result_default:
+            if key == "world":
+                assert_allclose(result_default[key], result_preserve[key] * self.scale)
+            else:
+                assert_allclose(result_default[key], result_preserve[key])
+
+    def test_s2p(self):
+        result_default = self.wcs_default.wcs.s2p(self.coords * self.scale, 0)
+        result_preserve = self.wcs_preserve.wcs.s2p(self.coords, 0)
+        for key in result_default:
+            assert_allclose(result_default[key], result_preserve[key])
+
+    def test_wcs_pix2world(self):
+        result_default = self.wcs_default.wcs_pix2world(self.coords, 0)
+        result_preserve = self.wcs_preserve.wcs_pix2world(self.coords, 0)
+        assert_allclose(result_default, result_preserve * self.scale)
+        # Make sure we aren't modifying the input array in-place
+        result_preserve = self.wcs_preserve.wcs_pix2world(self.coords, 0)
+        assert_allclose(result_default, result_preserve * self.scale)
+
+    def test_wcs_world2pix(self):
+        result_default = self.wcs_default.wcs_world2pix(self.coords * self.scale, 0)
+        result_preserve = self.wcs_preserve.wcs_world2pix(self.coords, 0)
+        assert_allclose(result_default, result_preserve)
+        # Make sure we aren't modifying the input array in-place
+        result_preserve = self.wcs_preserve.wcs_world2pix(self.coords, 0)
+        assert_allclose(result_default, result_preserve)
+
+    def test_all_pix2world(self):
+        result_default = self.wcs_default.all_pix2world(self.coords, 0)
+        result_preserve = self.wcs_preserve.all_pix2world(self.coords, 0)
+        assert_allclose(result_default, result_preserve * self.scale)
+        # Make sure we aren't modifying the input array in-place
+        result_preserve = self.wcs_preserve.all_pix2world(self.coords, 0)
+        assert_allclose(result_default, result_preserve * self.scale)
+
+    def test_all_world2pix(self):
+        result_default = self.wcs_default.all_world2pix(self.coords * self.scale, 0)
+        result_preserve = self.wcs_preserve.all_world2pix(self.coords, 0)
+        assert_allclose(result_default, result_preserve)
+        # Make sure we aren't modifying the input array in-place
+        result_preserve = self.wcs_preserve.all_world2pix(self.coords, 0)
+        assert_allclose(result_default, result_preserve)
+
+    def test_get_cd(self):
+        header = self.header.copy()
+
+        for i in range(5):
+            header.pop(f"CDELT{i + 1}")
+
+        CD = np.arange(25).reshape((5, 5))
+
+        for i in range(5):
+            for j in range(5):
+                header[f"CD{i + 1}_{j + 1}"] = CD[i, j]
+
+        wcs_default = wcs.WCS(header)
+        wcs_preserve = wcs.WCS(header, preserve_units=True)
+
+        assert_allclose(wcs_default.wcs.cd, CD * self.scale[:, np.newaxis])
+        assert_allclose(wcs_preserve.wcs.cd, CD)
+
+        assert_allclose(wcs_default.wcs.cd[0, 1], CD[0, 1] * self.scale[0])
+        assert_allclose(wcs_preserve.wcs.cd[0, 1], CD[0, 1])
+
+    def test_set_cd(self):
+        CD = np.arange(25).reshape((5, 5))
+
+        self.wcs_default.wcs.cd = CD * self.scale[:, np.newaxis]
+        self.wcs_preserve.wcs.cd = CD
+
+        assert_allclose(self.wcs_default.wcs.cd, CD * self.scale[:, np.newaxis])
+        assert_allclose(self.wcs_preserve.wcs.cd, CD)
+
+        # See comment in test_set_cdelt_indiv about why this raises an error
+
+        self.wcs_default.wcs.cd[0, 1] = 1 / 3600
+        assert_allclose(self.wcs_default.wcs.cd[0, 1], 1 / 3600)
+
+        with pytest.raises(ValueError, match="assignment destination is read-only"):
+            self.wcs_preserve.wcs.cd[0, 1] = 1
+
+    def test_header(self):
+        header = self.wcs_preserve.to_header()
+
+        expected_header = """
+WCSAXES =                    5 / Number of coordinate axes
+CRPIX1  =                  1.0 / Pixel coordinate of reference point
+CRPIX2  =                  2.0 / Pixel coordinate of reference point
+CRPIX3  =                  3.0 / Pixel coordinate of reference point
+CRPIX4  =                  4.0 / Pixel coordinate of reference point
+CRPIX5  =                  5.0 / Pixel coordinate of reference point
+CDELT1  =                  4.0 / [arcsec] Coordinate increment at reference poin
+CDELT2  =                  3.0 / [GHz] Coordinate increment at reference point
+CDELT3  =                  2.0 / [arcsec] Coordinate increment at reference poin
+CDELT4  =                  1.0 / [nm] Coordinate increment at reference point
+CDELT5  =                  6.0 / [arcmin] Coordinate increment at reference poin
+CUNIT1  = 'arcsec'             / Units of coordinate increment and value
+CUNIT2  = 'GHz'                / Units of coordinate increment and value
+CUNIT3  = 'arcsec'             / Units of coordinate increment and value
+CUNIT4  = 'nm'                 / Units of coordinate increment and value
+CUNIT5  = 'arcmin'             / Units of coordinate increment and value
+CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection
+CTYPE2  = 'FREQ'               / Frequency (linear)
+CTYPE3  = 'DEC--TAN'           / Declination, gnomonic projection
+CTYPE4  = 'WAVE'               / Coordinate type code
+CTYPE5  = 'OFFSET'             / Coordinate type code
+CRVAL1  =                  4.0 / [arcsec] Coordinate value at reference point
+CRVAL2  =                  5.0 / [GHz] Coordinate value at reference point
+CRVAL3  =                  6.0 / [arcsec] Coordinate value at reference point
+CRVAL4  =                  7.0 / [nm] Coordinate value at reference point
+CRVAL5  =                  8.0 / [arcmin] Coordinate value at reference point
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+LATPOLE =   0.0016666666666667 / [deg] Native latitude of celestial pole
+MJDREF  =                  0.0 / [d] MJD of fiducial time
+RADESYS = 'ICRS'               / Equatorial coordinate system
+""".strip()
+
+        assert header.tostring(sep="\n") == fits.Header.fromstring(
+            expected_header, sep="\n"
+        ).tostring(sep="\n")
+
+    @pytest.mark.parametrize("explicit_set", (False, True))
+    @pytest.mark.parametrize(
+        "function",
+        (
+            "p2s",
+            "s2p",
+            "wcs_pix2world",
+            "wcs_world2pix",
+            "all_pix2world",
+            "all_world2pix",
+        ),
+    )
+    def test_programmatic(self, explicit_set, function):
+        # Make sure that things work fine if we make the WCS programmatically
+        # and not from a header
+
+        wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
+        wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_prog.wcs.cunit = "arcsec", "arcsec"
+        wcs_prog.wcs.crval = 10, 20
+        wcs_prog.wcs.cdelt = 1, 2
+        wcs_prog.wcs.crpix = 1, 1
+
+        if explicit_set:
+            wcs_prog.wcs.set()
+
+        # FIXME: the following fails if explicit_set is False because wcsset
+        # gets called implicitly during the coordinate conversion but we don't
+        # catch this and store the before/after units.
+
+        if function == "p2s":
+            assert_allclose(
+                wcs_prog.wcs.p2s(np.array([[1, 1]]), 1)["world"], [[10, 20]]
+            )
+        elif function == "s2p":
+            assert_allclose(
+                wcs_prog.wcs.s2p(np.array([[10, 20]]), 1)["pixcrd"], [[1, 1]]
+            )
+        elif function == "wcs_pix2world":
+            assert_allclose(wcs_prog.wcs_pix2world(1, 1, 1), [10, 20])
+        elif function == "wcs_world2pix":
+            assert_allclose(wcs_prog.wcs_world2pix(10, 20, 1), [1, 1])
+        elif function == "all_pix2world":
+            assert_allclose(wcs_prog.all_pix2world(1, 1, 1), [10, 20])
+        elif function == "all_world2pix":
+            assert_allclose(wcs_prog.all_world2pix(10, 20, 1), [1, 1])
+
+    def test_change_cunit(self):
+        # Make sure that things work fine if we make the WCS programmatically
+        # and not from a header, and check that we can change the units after
+        # set() is called
+
+        wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
+        wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_prog.wcs.cunit = "arcsec", "arcsec"
+        wcs_prog.wcs.crval = 10, 20
+        wcs_prog.wcs.cdelt = 1, 2
+        wcs_prog.wcs.crpix = 1, 1
+
+        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_prog.wcs.set()
+
+        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_prog.wcs.cunit = "arcmin", "arcmin"
+
+        wcs_prog.wcs.set()
+
+        assert list(wcs_prog.wcs.cunit) == ["arcmin", "arcmin"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_prog.wcs.cunit = "deg", "deg"
+
+        wcs_prog.wcs.set()
+
+        assert list(wcs_prog.wcs.cunit) == ["deg", "deg"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_equiv = wcs.WCS(naxis=2)
+        wcs_equiv.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_equiv.wcs.cunit = "deg", "deg"
+        wcs_equiv.wcs.crval = 10, 20
+        wcs_equiv.wcs.cdelt = 1, 2
+        wcs_equiv.wcs.crpix = 1, 1
+
+        assert_allclose(
+            wcs_prog.all_pix2world(2, 3, 0), wcs_equiv.all_pix2world(2, 3, 0)
+        )
+
+    def test_change_cunit_original_deg(self):
+        # Similar to test_change_cunit but here we start off with a WCS in
+        # degrees so that there is no scaling going on, and then we start
+        # changing the values.
+
+        wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
+        wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_prog.wcs.cunit = "deg", "deg"
+        wcs_prog.wcs.crval = 10, 20
+        wcs_prog.wcs.cdelt = 1, 2
+        wcs_prog.wcs.crpix = 1, 1
+
+        wcs_prog.wcs.set()
+
+        assert list(wcs_prog.wcs.cunit) == ["deg", "deg"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        assert wcs_prog.wcs._unit_scaling is None
+
+        wcs_prog.wcs.cunit = "arcsec", "arcsec"
+
+        wcs_prog.wcs.set()
+
+        assert_allclose(wcs_prog.wcs._unit_scaling, [1 / 3600, 1 / 3600])
+
+        assert list(wcs_prog.wcs.cunit) == ["arcsec", "arcsec"]
+        assert_allclose(wcs_prog.wcs.crval, [10, 20])
+        assert_allclose(wcs_prog.wcs.cdelt, [1, 2])
+
+        wcs_equiv = wcs.WCS(naxis=2)
+        wcs_equiv.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_equiv.wcs.cunit = "arcsec", "arcsec"
+        wcs_equiv.wcs.crval = 10, 20
+        wcs_equiv.wcs.cdelt = 1, 2
+        wcs_equiv.wcs.crpix = 1, 1
+        wcs_equiv.wcs.set()
+
+        assert_allclose(
+            wcs_prog.all_pix2world(2, 3, 0)[0],
+            wcs_equiv.all_pix2world(2, 3, 0)[0] * 3600,
+        )
+        assert_allclose(
+            wcs_prog.all_pix2world(2, 3, 0)[1],
+            wcs_equiv.all_pix2world(2, 3, 0)[1] * 3600,
+        )
+
+    def test_change_cunit_inplace(self):
+        wcs_simple = wcs.WCS(naxis=1, preserve_units=True)
+        wcs_simple.wcs.ctype = ("FREQ",)
+        wcs_simple.wcs.cunit = ("GHz",)
+
+        # Setting units in-place works before set() is called
+
+        wcs_simple.wcs.cunit[0] = "MHz"
+
+        # However, it should not once set() has been called
+
+        wcs_simple.wcs.set()
+
+        with pytest.raises(
+            RuntimeError,
+            match=re.escape(
+                "Cannot set individual units in-place "
+                "once set() has been called when using preserve_units=True"
+            ),
+        ):
+            wcs_simple.wcs.cunit[0] = "kHz"
+
+    def test_change_cunit_incompatible(self):
+        # Make sure we still see errors related to incompatible units
+
+        wcs_simple = wcs.WCS(naxis=1, preserve_units=True)
+        wcs_simple.wcs.ctype = ("FREQ",)
+        wcs_simple.wcs.cunit = ("GHz",)
+        wcs_simple.wcs.set()
+
+        wcs_simple.wcs.cunit = ("mm",)
+        with pytest.raises(wcs.InvalidTransformError, match="Mismatched units type"):
+            wcs_simple.wcs.set()
+
+    def test_str_and_repr(self):
+        expected = (
+            "WCS Keywords\n"
+            "\n"
+            "Number of WCS axes: 5\n"
+            "CTYPE : 'RA---TAN' 'FREQ' 'DEC--TAN' 'WAVE' 'OFFSET'\n"
+            "CUNIT : 'arcsec' 'GHz' 'arcsec' 'nm' 'arcmin'\n"
+            "CRVAL : 4.0 5.0 6.0 7.0 8.0\n"
+            "CRPIX : 1.0 2.0 3.0 4.0 5.0\n"
+            "PC1_1 PC1_2 PC1_3 PC1_4 PC1_5  : 1.0 0.0 0.0 0.0 0.0\n"
+            "PC2_1 PC2_2 PC2_3 PC2_4 PC2_5  : 0.0 1.0 0.0 0.0 0.0\n"
+            "PC3_1 PC3_2 PC3_3 PC3_4 PC3_5  : 0.0 0.0 1.0 0.0 0.0\n"
+            "PC4_1 PC4_2 PC4_3 PC4_4 PC4_5  : 0.0 0.0 0.0 1.0 0.0\n"
+            "PC5_1 PC5_2 PC5_3 PC5_4 PC5_5  : 0.0 0.0 0.0 0.0 1.0\n"
+            "CDELT : 4.0 3.0 2.0 1.0 6.0\n"
+            "NAXIS : 0  0  0  0  0"
+        )
+        assert str(self.wcs_preserve) == expected
+        assert repr(self.wcs_preserve) == expected
+
+    def test_print_contents(self, capfd):
+        self.wcs_preserve.wcs.print_contents()
+        captured = capfd.readouterr()
+
+        expected = """
+      cdelt: 0xADDR
+               4.0000       3.0000       2.0000       1.0000       6.0000
+      crval: 0xADDR
+               4.0000       5.0000       6.0000       7.0000       8.0000
+      cunit: 0xADDR
+             "arcsec"
+             "GHz"
+             "arcsec"
+             "nm"
+             "arcmin"
+             """.strip()
+
+        assert expected in "\n".join(
+            [x.rstrip() for x in strip_memory_addresses(captured.out).splitlines()]
+        )
+
+    def test_unit_scaling(self):
+        # This is testing a private property that exists to be able to check
+        # what the unit scaling is between the original and modified units
+
+        assert self.wcs_default.wcs._unit_scaling is None
+        assert_allclose(self.wcs_preserve.wcs._unit_scaling, self.scale)
+
+    def test_no_scaling_if_no_unit_changes(self):
+        # This checks that if a WCS doesn't actually have units changing in
+        # WCSLIB, that we aren't using the unit scaling machinery with scales
+        # all set to 1 since this would have an unecessary impact on performance.
+
+        simple_wcs = wcs.WCS(naxis=3, preserve_units=True)
+        simple_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
+        simple_wcs.wcs.cunit = "deg", "deg", "Hz"
+        simple_wcs.wcs.set()
+
+        assert simple_wcs.wcs._unit_scaling is None
+
+    def test_no_scaling_if_no_scale_changes(self):
+        # A variant of the above - sometimes units are changed, for example
+        # 'deg ' -> 'deg', which is strictly different but has a scale of 1.
+        # In this case, we shouldn't do any unit scaling.
+
+        simple_wcs = wcs.WCS(naxis=3, preserve_units=True)
+        simple_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
+        simple_wcs.wcs.cunit = "deg ", "deg ", "Hz"
+        simple_wcs.wcs.set()
+
+        assert simple_wcs.wcs._unit_scaling is None
+
+    @pytest.mark.parametrize("mixed_with_spatial", (False, True))
+    def test_wcstab_cunit_conversion(self, mixed_with_spatial):
+        # WCSLIB does not convert the units for coordinates that use lookup tables
+        # with -TAB, but we should make sure that things still work properly
+        # with preserve_units=True
+
+        if mixed_with_spatial:
+            flux = np.random.rand(100, 4, 5)
+        else:
+            flux = np.random.rand(100)
+
+        wav = np.linspace(4000, 5000, 100)
+
+        primary_hdu = fits.PrimaryHDU(flux)
+
+        arr = np.array([(wav,)], dtype=[("WAVE", np.float64, wav.size)])
+        tab_hdu = fits.BinTableHDU(arr)
+        tab_hdu.name = "WCS-TAB"
+
+        header = primary_hdu.header
+        header["WCSAXES"] = 3 if mixed_with_spatial else 1
+        header["CTYPE1"] = "WAVE-TAB"
+        header["CRPIX1"] = 1
+        header["CDELT1"] = 1
+        header["CRVAL1"] = 0
+        header["CUNIT1"] = "mm"
+        header["PS1_0"] = "WCS-TAB"
+        header["PS1_1"] = "WAVE"
+        header["PV1_1"] = 1
+
+        if mixed_with_spatial:
+            header["CTYPE2"] = "GLON-CAR"
+            header["CTYPE3"] = "GLAT-CAR"
+            header["CUNIT2"] = "arcsec"
+            header["CUNIT3"] = "deg"
+            header["CDELT2"] = -1
+            header["CDELT3"] = 2 / 3600.0
+
+        hdul = fits.HDUList([primary_hdu, tab_hdu])
+
+        wcs_default = wcs.WCS(hdul[0].header, hdul)
+        wcs_preserve = wcs.WCS(hdul[0].header, hdul, preserve_units=True)
+
+        rsn = default_rng(1234567890)
+        pixel = rsn.uniform(1, 99, 3)
+        world = rsn.uniform(4000, 5000, 3)
+
+        pixel = [pixel] * (3 if mixed_with_spatial else 1)
+
+        if mixed_with_spatial:
+            world_spatial = rsn.uniform(-1, 1, 3)
+            world = [world, world_spatial, world_spatial]
+        else:
+            world = [world]
+
+        # Check that both the default and unit-preserving WCS have the same units
+        # of mm - this is used to know in future if WCSLIB changes the default
+        # behavior so that the default WCS would be in units of meters for example
+        assert wcs_default.wcs.cunit[0] == "mm"
+        assert wcs_preserve.wcs.cunit[0] == "mm"
+
+        assert not np.any(np.isnan(np.array(wcs_default.all_pix2world(*pixel, 0))))
+
+        assert_allclose(
+            wcs_default.all_pix2world(*pixel, 0)[0],
+            wcs_preserve.all_pix2world(*pixel, 0)[0],
+        )
+
+        assert not np.any(np.isnan(np.array(wcs_default.all_world2pix(*world, 0))))
+
+        assert_allclose(
+            wcs_default.all_world2pix(*world, 0)[0],
+            wcs_preserve.all_world2pix(*world, 0)[0],
+        )
+
+        assert wcs_default.wcs._unit_scaling is None
+        if mixed_with_spatial:
+            assert_allclose(wcs_preserve.wcs._unit_scaling, [1, 1 / 3600, 1])
+        else:
+            assert wcs_preserve.wcs._unit_scaling is None
+
+        # If we change the units, the results should continue to be consistent
+        wcs_default.wcs.cunit = ["cm"] + (["deg", "deg"] if mixed_with_spatial else [])
+        wcs_preserve.wcs.cunit = ["cm"] + (
+            ["arcsec", "deg"] if mixed_with_spatial else []
+        )
+
+        assert wcs_default.wcs.cunit[0] == "cm"
+        assert wcs_preserve.wcs.cunit[0] == "cm"
+
+        assert not np.any(np.isnan(np.array(wcs_default.all_pix2world(*pixel, 0))))
+
+        assert_allclose(
+            wcs_default.all_pix2world(*pixel, 0)[0],
+            wcs_preserve.all_pix2world(*pixel, 0)[0],
+        )
+
+        assert not np.any(np.isnan(np.array(wcs_default.all_world2pix(*world, 0))))
+
+        assert_allclose(
+            wcs_default.all_world2pix(*world, 0)[0],
+            wcs_preserve.all_world2pix(*world, 0)[0],
+        )
+
+        # Make sure that in both cases we aren't using the unit scaling machinery
+        assert wcs_default.wcs._unit_scaling is None
+        if mixed_with_spatial:
+            assert_allclose(wcs_preserve.wcs._unit_scaling, [1, 1 / 3600, 1])
+        else:
+            assert wcs_preserve.wcs._unit_scaling is None
+
+
+def test_thread_safe_conversions():
+    # This is a regression test for a bug which caused wcsset to be called
+    # unnecessarily multiple times, including every time some attribute were
+    # accessed on the WCS. This meant that if one was doing a series of
+    # coordinate transforms in a multi-threaded environment, wcsset could
+    # get called in the process and modify the WCS object, which was not
+    # thread-safe. Now wcsset is not actually called after the initial time.
+    # This was discussed in more detail in https://github.com/astropy/astropy/issues/16245
+
+    w = wcs.WCS(naxis=2)
+    w.wcs.crpix = [-234.75, 8.3393]
+    w.wcs.cdelt = np.array([-0.066667, 0.066667])
+    w.wcs.crval = [0, -90]
+    w.wcs.ctype = ["RA---AIR", "DEC--AIR"]
+    w.wcs.set()
+
+    N = 1_000_000
+
+    pixel = np.random.randint(-1000, 1000, N * 2).reshape((N, 2)).astype(float)
+
+    def round_trip_transform(pixel):
+        world = w.wcs.p2s(pixel.copy(), 1)["world"]
+        w.wcs.lng  # this access causes issues, without it all works
+        pixel = w.wcs.s2p(world, 1)["pixcrd"]
+        return pixel
+
+    with ThreadPool(8) as pool:
+        results = pool.map(round_trip_transform, (pixel,) * 8)
+        for pixel2 in results:
+            assert_allclose(pixel, pixel2, atol=1e-7)

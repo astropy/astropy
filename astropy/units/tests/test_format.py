@@ -3,13 +3,12 @@
 Regression tests for the units.format package
 """
 
-from __future__ import annotations
-
 import re
 import warnings
+from collections.abc import Iterable
 from contextlib import nullcontext
 from fractions import Fraction
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
 import numpy as np
 import pytest
@@ -22,6 +21,7 @@ from astropy.units import (
     Unit,
     UnitBase,
     UnitParserWarning,
+    UnitsError,
     UnitsWarning,
     cds,
     dex,
@@ -29,9 +29,6 @@ from astropy.units import (
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
 from astropy.utils.exceptions import AstropyDeprecationWarning
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 
 class FormatStringPair(NamedTuple):
@@ -360,11 +357,12 @@ class RoundtripBase:
     def check_roundtrip(self, unit, output_format=None):
         if output_format is None:
             output_format = self.format_.name
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")  # Same warning shows up multiple times
-            s = unit.to_string(output_format)
-
+        s = unit.to_string(output_format, deprecations="silent")
         if s in self.format_._deprecated_units:
+            with pytest.raises(UnitsError, match="deprecated"):
+                unit.to_string(output_format, deprecations="raise")
+            with pytest.warns(UnitsWarning, match="deprecated"):
+                assert unit.to_string(output_format) == s
             with pytest.warns(UnitsWarning, match="deprecated") as w:
                 a = Unit(s, format=self.format_)
             assert len(w) == 1
@@ -615,7 +613,7 @@ def test_multiline_fraction_different_if_available(format_spec):
 @pytest.mark.parametrize("format_spec", u_format.Base.registry)
 def test_unknown_fraction_style(format_spec):
     fluxunit = u.W / u.m**2
-    msg = "fraction can only be False, 'inline', or 'multiline', not 'parrot'"
+    msg = r"^fraction can only be False, 'inline', or 'multiline', not 'parrot'\.$"
     with pytest.raises(ValueError, match=msg):
         fluxunit.to_string(format_spec, fraction="parrot")
 
@@ -742,6 +740,40 @@ def test_deprecated_did_you_mean_units():
     with pytest.warns(UnitsWarning, match=r".* 0\.1nm\.") as w:
         u.Unit("angstrom", format="vounit")
     assert len(w) == 1
+
+
+def test_invalid_deprecated_units_handling():
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"^invalid deprecation handling option: 'ignore'\. Valid options are "
+            r"'silent', 'warn', 'raise', 'convert'\.$"
+        ),
+    ):
+        u.erg.to_string(format="vounit", deprecations="ignore")
+
+
+@pytest.mark.parametrize(
+    "unit,string",
+    [
+        pytest.param(u.erg, "cm**2.g.s**-2", id="simple unit"),
+        pytest.param(u.erg / u.s, "cm**2.g.s**-3", id="composite unit"),
+    ],
+)
+def test_deprecated_units_conversion_success(unit, string):
+    assert unit.to_string(format="vounit", deprecations="convert") == string
+
+
+def test_deprecated_units_conversion_failure():
+    Crab = u_format.OGIP._units["Crab"]
+    with pytest.warns(
+        UnitsWarning,
+        match=(
+            r"^The unit 'Crab' has been deprecated in the OGIP standard\. "
+            r"It cannot be automatically converted\.$"
+        ),
+    ):
+        assert Crab.to_string(format="ogip", deprecations="convert") == "Crab"
 
 
 @pytest.mark.parametrize("string", ["mag(ct/s)", "dB(mW)", "dex(cm s**-2)"])
@@ -1047,22 +1079,48 @@ def test_parse_error_message_for_output_only_format(format_):
         u.Unit("m", format=format_)
 
 
-class TestUnknownFormat:
-    # Check full message to ensure we correctly classify in-out and
-    # output only formats.
-    UNKNOWN_MSG = (
-        r"Unknown format {!r}.  Valid formatter names are: "
-        r"\['cds', 'generic', 'fits', 'ogip', 'vounit'\] for input and output, "
-        r"and \['console', 'latex', 'latex_inline', 'unicode'\] for output only."
-    )
+@pytest.mark.parametrize(
+    "parser,error_type,err_msg_start",
+    [
+        pytest.param("foo", ValueError, "Unknown format 'foo'", id="ValueError"),
+        pytest.param(
+            {}, TypeError, "Expected a formatter name, not {}", id="TypeError"
+        ),
+    ],
+)
+def test_unknown_parser(parser, error_type, err_msg_start):
+    with pytest.raises(
+        error_type,
+        match=(
+            f"^{err_msg_start}\\.\nValid parser names are: "
+            "'cds', 'generic', 'fits', 'ogip', 'vounit'$"
+        ),
+    ):
+        u.Unit("m", format=parser)
 
-    def test_unknown_parser(self):
-        with pytest.raises(ValueError, match=self.UNKNOWN_MSG.format("foo")):
-            u.Unit("m", format="foo")
 
-    def test_unknown_output_format(self):
-        with pytest.raises(ValueError, match=self.UNKNOWN_MSG.format("abc")):
-            u.m.to_string("abc")
+@pytest.mark.parametrize(
+    "formatter,error_type,err_msg_start",
+    [
+        pytest.param("abc", ValueError, "Unknown format 'abc'", id="ValueError"),
+        pytest.param(
+            float,
+            TypeError,
+            "Expected a formatter name, not <class 'float'>",
+            id="TypeError",
+        ),
+    ],
+)
+def test_unknown_output_format(formatter, error_type, err_msg_start):
+    with pytest.raises(
+        error_type,
+        match=(
+            f"^{err_msg_start}\\.\nValid formatter names are: "
+            "'cds', 'console', 'generic', 'fits', 'latex', 'latex_inline', 'ogip', "
+            "'unicode', 'vounit'$"
+        ),
+    ):
+        u.m.to_string(formatter)
 
 
 def test_celsius_fits():
@@ -1139,3 +1197,8 @@ def test_Fits_name_deprecation():
     ):
         from astropy.units.format import Fits
     assert Fits is u.format.FITS
+
+
+@pytest.mark.parametrize("format_spec", ["generic", "unicode"])
+def test_liter(format_spec):
+    assert format(u.liter, format_spec) == "l"

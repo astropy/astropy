@@ -42,10 +42,8 @@ from numpy.lib import recfunctions as rfn
 
 from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
-from astropy.utils import isiterable
 from astropy.utils.compat import (
     COPY_IF_NEEDED,
-    NUMPY_LT_1_24,
     NUMPY_LT_2_0,
     NUMPY_LT_2_1,
     NUMPY_LT_2_2,
@@ -204,7 +202,7 @@ class FunctionAssigner:
         if f is not None:
             if helps is None:
                 helps = getattr(module, f.__name__)
-            if not isiterable(helps):
+            if not np.iterable(helps):
                 helps = (helps,)
             for h in helps:
                 self.assignments[h] = f
@@ -542,8 +540,7 @@ def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
     if out_unit is UNIT_FROM_LIKE_ARG:
         if hasattr(start, "unit") or hasattr(step, "unit"):
             raise TypeError(
-                "stop without a unit cannot be combined with "
-                "start or step with a unit."
+                "stop without a unit cannot be combined with start or step with a unit."
             )
         kwargs.update(qty_kwargs)
     else:
@@ -1081,51 +1078,6 @@ def histogramdd(sample, bins=10, range=None, density=None, weights=None):
     )
 
 
-if NUMPY_LT_1_24:
-
-    @function_helper(helps={np.histogram})
-    def histogram_pre_1_24(
-        a, bins=10, range=None, normed=None, weights=None, density=None
-    ):
-        args, kwargs, unit, out = histogram(
-            a, bins=bins, range=range, weights=weights, density=density or normed
-        )
-        kwargs["normed"] = normed
-        kwargs["density"] = density
-        return args, kwargs, unit, out
-
-    @function_helper(helps={np.histogram2d})
-    def histogram2d_pre_1_24(
-        x, y, bins=10, range=None, normed=None, weights=None, density=None
-    ):
-        args, kwargs, unit, out = histogram2d(
-            x,
-            y,
-            bins=bins,
-            range=range,
-            weights=weights,
-            density=density or normed,
-        )
-        kwargs["normed"] = normed
-        kwargs["density"] = density
-        return args, kwargs, unit, out
-
-    @function_helper(helps={np.histogramdd})
-    def histogramdd_pre_1_24(
-        sample, bins=10, range=None, normed=None, weights=None, density=None
-    ):
-        args, kwargs, unit, out = histogramdd(
-            sample,
-            bins=bins,
-            range=range,
-            weights=weights,
-            density=density or normed,
-        )
-        kwargs["normed"] = normed
-        kwargs["density"] = density
-        return args, kwargs, unit, out
-
-
 @function_helper
 def diff(a, n=1, axis=-1, prepend=np._NoValue, append=np._NoValue):
     a = _as_quantity(a)
@@ -1206,9 +1158,11 @@ def unique(
     return_inverse=False,
     return_counts=False,
     axis=None,
+    *,
+    equal_nan=True,
     **kwargs,
 ):
-    # having **kwargs allows to support equal_nan (for not NUMPY_LT_1_24) without
+    # having **kwargs allows to support sorted (for not NUMPY_LT_2_3) without
     # introducing it pre-maturely in older supported numpy versions
     unit = ar.unit
     n_index = sum(bool(i) for i in (return_index, return_inverse, return_counts))
@@ -1217,7 +1171,7 @@ def unique(
 
     return (
         (ar.value, return_index, return_inverse, return_counts, axis),
-        kwargs,
+        kwargs | {"equal_nan": equal_nan},
         unit,
         None,
     )

@@ -85,9 +85,7 @@ def get_lon_lat_path(lon_lat, pixel, lon_lat_check):
         codes[1] = Path.MOVETO
 
     # Create the path
-    path = Path(pixel, codes=codes)
-
-    return path
+    return Path(pixel, codes=codes)
 
 
 def get_gridline_path(world, pixel):
@@ -119,6 +117,4 @@ def get_gridline_path(world, pixel):
     # or due to discontinuities in the projection.
 
     # Create the path
-    path = Path(pixel, codes=codes)
-
-    return path
+    return Path(pixel, codes=codes)

@@ -10,8 +10,9 @@ overview of running or writing the tests.
 
 Details
 =======
-The dependencies used by the Astropy test runner are provided by a separate
-package called |pytest-astropy| (see :ref:`pytest-plugins`). This package provides the ``pytest``
+
+The dependencies used by the Astropy test suite are provided by a separate
+package called |pytest-astropy|. This package provides the ``pytest``
 dependency itself, in addition to several ``pytest`` plugins that are used by
 Astropy, and will also be of general use to other packages.
 
@@ -73,6 +74,15 @@ Reference/API
 Astropy Test Runner
 ===================
 
+.. warning::
+
+    ``astropy.test``, ``TestRunner``, and ``TestRunnerBase`` are pending deprecation.
+    This will also affect downstream ``packagename.test`` generated using ``TestRunner``.
+    If you use any of the API referenced in this section, please consider
+    switching away to using ``pytest`` natively.
+    For example, running ``astropy.test()`` in Python is equivalent to
+    running ``pytest --pyargs astropy`` from the command line.
+
 When executing tests with ``packagename.test`` the call to pytest is controlled
 by the `astropy.tests.runner.TestRunner` class.
 
@@ -82,7 +92,7 @@ arguments to pytest. The arguments to pytest are defined in the
 `~astropy.tests.runner.TestRunner.run_tests` method, the arguments to
 ``run_tests`` and their respective logic are defined in methods of
 `~astropy.tests.runner.TestRunner` decorated with the
-`~astropy.tests.runner.keyword` decorator. For an example of this see
+``astropy.tests.runner.keyword`` decorator. For an example of this see
 `~astropy.tests.runner.TestRunnerBase`. This design makes it easy for
 packages to add or remove keyword arguments to their test runners, or define a
 whole new set of arguments by subclassing from
