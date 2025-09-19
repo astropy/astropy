@@ -208,6 +208,13 @@ class TestLogUnitStrings:
         latex_str = r"$\mathrm{mag}$$\mathrm{\left( \mathrm{ct\,s^{-1}} \right)}$"
         assert lu5.to_string("latex_inline") == latex_str
 
+    def test_dexunit_latex_format(self):
+        from astropy import units as u
+        dex = 1* u.Dex(u.cm / u.s**2)
+        s = dex.to_string(format="latex")
+        assert r"\mathrm{dex}" in s
+        assert r"\frac{\mathrm{cm}}{\mathrm{s}^{2}}" in s
+
 
 class TestLogUnitConversion:
     @pytest.mark.parametrize("physical_unit", pu_sample)
