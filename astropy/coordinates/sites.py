@@ -72,9 +72,6 @@ class SiteRegistry(Mapping):
     def __iter__(self) -> Iterator[str]:
         return iter(self._lowercase_names_to_locations)
 
-    def __contains__(self, site_name: object) -> bool:
-        return site_name.lower() in self._lowercase_names_to_locations
-
     @property
     def names(self) -> list[str]:
         """
@@ -122,8 +119,6 @@ class SiteRegistry(Mapping):
             location.info.meta = site_info  # whatever is left
 
             reg.add_site([site] + aliases, location)
-
-        reg._loaded_jsondb = jsondb
         return reg
 
 
