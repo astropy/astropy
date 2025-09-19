@@ -21,6 +21,9 @@ if TYPE_CHECKING:
 
     from .table import Table
 
+# Sentinel value to indicate pandas-like backend validation
+PANDAS_LIKE = object()
+
 
 def _encode_mixins(tbl: "Table") -> "Table":
     """Encode mixin columns to basic columns for DataFrame compatibility."""
@@ -72,16 +75,19 @@ def _get_backend_impl(backend: str | types.ModuleType):
     return nw.Implementation.from_backend(backend)
 
 
-def _validate_columns_for_backend(table: "Table", backend_impl: Any) -> None:
+def _validate_columns_for_backend(
+    table: "Table", *, backend_impl: Any = PANDAS_LIKE
+) -> None:
     """Validate that table columns are compatible with the target backend.
 
-    backend_impl may be *None* to indicate pandas-like validation.
+    backend_impl may be PANDAS_LIKE to indicate pandas-like validation.
     """
     # Check for multidimensional columns
     badcols = [name for name, col in table.columns.items() if len(col.shape) > 1]
 
     is_pandas_like = (
-        backend_impl is None or getattr(backend_impl, "is_pandas_like", lambda: False)()
+        backend_impl is PANDAS_LIKE
+        or getattr(backend_impl, "is_pandas_like", lambda: False)()
     )
     is_pyarrow = getattr(backend_impl, "is_pyarrow", lambda: False)()
 
@@ -104,10 +110,11 @@ def _handle_index_argument(
     if index is False:
         return False
 
-    # Check if pandas-like, None is reserve for pandas itself
+    # Check if pandas-like, PANDAS_LIKE is reserved for pandas itself
     # Non-pandas backends don't support indexing
     is_pandas_like = (
-        backend_impl is None or getattr(backend_impl, "is_pandas_like", lambda: False)()
+        backend_impl is PANDAS_LIKE
+        or getattr(backend_impl, "is_pandas_like", lambda: False)()
     )
     if not is_pandas_like:
         if index:
@@ -162,7 +169,7 @@ def to_df(
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
     is_masked = tbl.has_masked_columns
-    _validate_columns_for_backend(tbl, backend_impl)
+    _validate_columns_for_backend(tbl, backend_impl=backend_impl)
 
     # Convert to narwhals DataFrame
     array = tbl.as_array()
@@ -342,11 +349,13 @@ def to_pandas(
         )
 
     # Handle index argument (pandas-specific logic)
-    index = _handle_index_argument(table, index, None)  # None for pandas validation
+    index = _handle_index_argument(
+        table, index, PANDAS_LIKE
+    )  # PANDAS_LIKE for pandas validation
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
-    _validate_columns_for_backend(tbl, None)  # pandas validation
+    _validate_columns_for_backend(tbl, backend_impl=PANDAS_LIKE)  # pandas validation
 
     out = OrderedDict()
 
