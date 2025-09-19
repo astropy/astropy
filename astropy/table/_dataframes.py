@@ -101,39 +101,38 @@ def _handle_index_argument(
     """Process the index argument for DataFrame conversion."""
     has_single_pk = table.primary_key is not None and len(table.primary_key) == 1
 
-    if index is not False:
-        # Check if pandas-like, None is reserve for pandas itself
-        # Non-pandas backends don't support indexing
-        is_pandas_like = (
-            backend_impl is None
-            or getattr(backend_impl, "is_pandas_like", lambda: False)()
-        )
-        if not is_pandas_like:
-            if index:
-                raise ValueError("Indexing is only supported for pandas-like backends.")
+    if index is False:
+        return False
+
+    # Check if pandas-like, None is reserve for pandas itself
+    # Non-pandas backends don't support indexing
+    is_pandas_like = (
+        backend_impl is None or getattr(backend_impl, "is_pandas_like", lambda: False)()
+    )
+    if not is_pandas_like:
+        if index:
+            raise ValueError("Indexing is only supported for pandas-like backends.")
+        return False
+
+    if index is True:
+        if has_single_pk:
+            return table.primary_key[0]
+        else:
+            raise ValueError("index=True requires a single-column primary key.")
+
+    elif index is None:
+        if has_single_pk:
+            return table.primary_key[0]
+        else:
             return False
 
-        if index is True:
-            if has_single_pk:
-                return table.primary_key[0]
-            else:
-                raise ValueError("index=True requires a single-column primary key.")
+    elif isinstance(index, str):
+        if index not in table.colnames:
+            raise ValueError(f"{index!r} is not in the table columns.")
+        return index
 
-        elif index is None:
-            if has_single_pk:
-                return table.primary_key[0]
-            else:
-                return False
-
-        elif isinstance(index, str):
-            if index not in table.colnames:
-                raise ValueError(f"{index!r} is not in the table columns.")
-            return index
-
-        else:
-            raise ValueError("index must be None, False, True, or a valid column name.")
-
-    return False
+    else:
+        raise ValueError("index must be None, False, True, or a valid column name.")
 
 
 def to_df(
