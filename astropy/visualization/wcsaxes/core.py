@@ -729,8 +729,10 @@ class WCSAxes(Axes):
                   world-to-pixel transformation used to instantiate the
                   ``WCSAxes`` instance).
                 * ``'fk5'`` or ``'galactic'``: return a transformation from
-                  the specified frame to the pixel/data coordinates.
+                  the specified frame to the pixel/data coordinates. In this
+                  case, the values are assumed to be in degrees.
                 * :class:`~astropy.coordinates.BaseCoordinateFrame` instance.
+                  In this case, the values are assumed to be in degrees.
         """
         return self._get_transform_no_transdata(frame).inverted() + self.transData
 
@@ -747,7 +749,11 @@ class WCSAxes(Axes):
             )
             transform_world2pixel = transform.inverted()
 
-            if self._transform_pixel2world.frame_out == transform_world2pixel.frame_in:
+            if (
+                self._transform_pixel2world.frame_out == transform_world2pixel.frame_in
+                and self._transform_pixel2world.units_out
+                == transform_world2pixel.units_in
+            ):
                 return self._transform_pixel2world + transform_world2pixel
 
             else:
@@ -755,7 +761,9 @@ class WCSAxes(Axes):
                     self._transform_pixel2world
                     + CoordinateTransform(
                         self._transform_pixel2world.frame_out,
+                        self._transform_pixel2world.units_out,
                         transform_world2pixel.frame_in,
+                        transform_world2pixel.units_in,
                     )
                     + transform_world2pixel
                 )
@@ -772,7 +780,10 @@ class WCSAxes(Axes):
 
             else:
                 coordinate_transform = CoordinateTransform(
-                    self._transform_pixel2world.frame_out, frame
+                    self._transform_pixel2world.frame_out,
+                    self._transform_pixel2world.units_out,
+                    frame,
+                    ["deg", "deg"],
                 )
 
                 if coordinate_transform.same_frames:
