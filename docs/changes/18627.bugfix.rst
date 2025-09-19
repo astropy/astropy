@@ -1,0 +1,2 @@
+Fixed the LaTeX representation of ``DexUnit`` in ``astropy.units``.  
+It now correctly renders as ``\mathrm{dex}\left(\frac{\mathrm{cm}}{\mathrm{s}^{2}}\right)`` instead of the incomplete form (e.g., ``5 ex(cm/s2``).
