@@ -99,7 +99,7 @@ def _handle_index_argument(
     table: "Table", index: bool | str | None, backend_impl: Any
 ) -> bool | str:
     """Process the index argument for DataFrame conversion."""
-    has_single_pk = table.primary_key and len(table.primary_key) == 1
+    has_single_pk = table.primary_key is not None and len(table.primary_key) == 1
 
     if index is not False:
         # Check if pandas-like, None is reserve for pandas itself
@@ -127,7 +127,7 @@ def _handle_index_argument(
 
         elif isinstance(index, str):
             if index not in table.colnames:
-                raise ValueError(f"'{index}' is not in the table columns.")
+                raise ValueError(f"{index!r} is not in the table columns.")
             return index
 
         else:
@@ -138,6 +138,7 @@ def _handle_index_argument(
 
 def to_df(
     table: "Table",
+    *,
     backend: str | types.ModuleType,
     index: bool | str | None = None,
     use_nullable_int: bool = True,
@@ -222,7 +223,7 @@ def to_df(
 
 
 def from_df(
-    df: Any, index: bool = False, units: Mapping[str, "UnitLike"] | None = None
+    df: Any, *, index: bool = False, units: Mapping[str, "UnitLike"] | None = None
 ) -> "Table":
     """Create a Table from any narwhals-compatible DataFrame."""
     from .table import Table
@@ -326,7 +327,7 @@ def from_df(
 
 
 def to_pandas(
-    table: "Table", index: bool | str | None = None, use_nullable_int: bool = True
+    table: "Table", *, index: bool | str | None = None, use_nullable_int: bool = True
 ):
     """Convert an Astropy Table to a pandas DataFrame.
 
