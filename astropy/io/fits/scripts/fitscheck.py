@@ -170,7 +170,7 @@ def verify_checksums(filename):
     # _verify_checksum_datasum issues warnings when checksums are wrong so we
     # catch those to avoid duplicates, since we are using logging here to
     # report problems.
-    with warnings.catch_warnings(record=True) as wlist:
+    with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
         with fits.open(filename, checksum=OPTIONS.checksum_kind) as hdulist:
             for i, hdu in enumerate(hdulist):

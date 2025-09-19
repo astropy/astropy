@@ -118,11 +118,14 @@ class TestFitscheck(FitsTestCase):
         hdul.writeto(testfile)
 
         assert fitscheck.main([testfile]) == 1
-        expected = [
-            f"MISSING '{testfile}' .. Checksum not found in HDU #0",
-            f"MISSING '{testfile}' .. Datasum not found in HDU #0",
-            "2 errors",
-        ]
-        for exp, rec in zip(expected, caplog.records):
-            assert rec.message == exp
+
+        assert re.match(
+            r"MISSING '.*test\.fits' .. Checksum not found in HDU #0",
+            caplog.records[0].message,
+        )
+        assert re.match(
+            r"MISSING '.*test\.fits' .. Datasum not found in HDU #0",
+            caplog.records[1].message,
+        )
+        assert caplog.records[2].message == "2 errors"
         caplog.clear()
