@@ -304,12 +304,14 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
             assert cosmo.m_nu is None
         elif not cosmo._nu_info.has_massive_nu:  # only massless
             assert_quantity_allclose(cosmo.m_nu, 0 * u.eV)
-        elif self._nu_info.nmasslessnu == 0:  # only massive
+        elif self._nu_info.n_massless_nu == 0:  # only massive
             assert cosmo.m_nu == cosmo._nu_info.nu_y * const.k_B * cosmo.Tnu0
         else:  # a mix -- the most complicated case
-            assert_quantity_allclose(cosmo.m_nu[: self._nu_info.nmasslessnu], 0 * u.eV)
             assert_quantity_allclose(
-                cosmo.m_nu[self._nu_info.nmasslessnu],
+                cosmo.m_nu[: self._nu_info.n_massless_nu], 0 * u.eV
+            )
+            assert_quantity_allclose(
+                cosmo.m_nu[self._nu_info.n_massless_nu],
                 cosmo._nu_info.nu_y * const.k_B * cosmo.Tnu0,
             )
 

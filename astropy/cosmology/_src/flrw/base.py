@@ -106,10 +106,10 @@ class NeutrinoInfo(NamedTuple):
     has_massive_nu: bool
     """Boolean of which neutrinos are massive."""
 
-    nmassivenu: int
+    n_massive_nu: int
     """Number of massive neutrinos."""
 
-    nmasslessnu: int
+    n_massless_nu: int
     """Number of massless neutrinos."""
 
     nu_y: NDArray[np.floating] | None
@@ -234,8 +234,8 @@ class FLRW(
                 nneutrinos=0,
                 neff_per_nu=None,
                 has_massive_nu=False,
-                nmassivenu=0,
-                nmasslessnu=0,
+                n_massive_nu=0,
+                n_massless_nu=0,
                 nu_y=None,
                 nu_y_list=None,
             )
@@ -243,7 +243,7 @@ class FLRW(
             nneutrinos = floor(self.Neff)
             massive = np.nonzero(self.m_nu.value > 0)[0]
             has_massive_nu = massive.size > 0
-            nmassivenu = len(massive)
+            n_massive_nu = len(massive)
 
             # Compute Neutrino Omega and total relativistic component for massive
             # neutrinos. We also store a list version, since that is more efficient
@@ -265,8 +265,8 @@ class FLRW(
                 # massless ones separately (since they are easy to deal with, and a
                 # common use case is to have only one massive neutrino).
                 has_massive_nu=has_massive_nu,
-                nmassivenu=nmassivenu,
-                nmasslessnu=nneutrinos - nmassivenu,
+                n_massive_nu=n_massive_nu,
+                n_massless_nu=nneutrinos - n_massive_nu,
                 nu_y=nu_y,
                 nu_y_list=nu_y_list,
             )
@@ -603,7 +603,7 @@ class FLRW(
 
         curr_nu_y = self._nu_info.nu_y / (1.0 + np.expand_dims(z, axis=-1))
         rel_mass_per = (1.0 + (k * curr_nu_y) ** p) ** invp
-        rel_mass = rel_mass_per.sum(-1) + self._nu_info.nmasslessnu
+        rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
 
         return prefac * self._nu_info.neff_per_nu * rel_mass
 

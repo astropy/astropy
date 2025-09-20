@@ -111,7 +111,7 @@ class wCDM(FLRW):
                 self.Ok0,
                 self.Ogamma0,
                 self._nu_info.neff_per_nu,
-                self._nu_info.nmasslessnu,
+                self._nu_info.n_massless_nu,
                 self._nu_info.nu_y_list,
                 self.w0,
             )
@@ -324,7 +324,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
                 self.Ode0,
                 self.Ogamma0,
                 self._nu_info.neff_per_nu,
-                self._nu_info.nmasslessnu,
+                self._nu_info.n_massless_nu,
                 self._nu_info.nu_y_list,
                 self.w0,
             )

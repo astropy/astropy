@@ -123,7 +123,7 @@ class LambdaCDM(FLRW):
                 self.Ok0,
                 self.Ogamma0,
                 self._nu_info.neff_per_nu,
-                self._nu_info.nmasslessnu,
+                self._nu_info.n_massless_nu,
                 self._nu_info.nu_y_list,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
@@ -733,7 +733,7 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
                 self.Ode0,
                 self.Ogamma0,
                 self._nu_info.neff_per_nu,
-                self._nu_info.nmasslessnu,
+                self._nu_info.n_massless_nu,
                 self._nu_info.nu_y_list,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
