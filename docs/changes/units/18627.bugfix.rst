@@ -1,0 +1,2 @@
+Fixed the LaTeX representation of ``DexUnit`` in ``astropy.units``,
+and thus also how it is represented in, e.g., jupyter notebooks.
