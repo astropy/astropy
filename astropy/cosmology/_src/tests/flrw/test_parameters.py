@@ -8,6 +8,7 @@ from inspect import BoundArguments
 import numpy as np
 import pytest
 
+import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatFLRWMixin, Parameter
 from astropy.cosmology._src.parameter import MISSING
@@ -304,11 +305,12 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         elif not cosmo._nu_info.has_massive_nu:  # only massless
             assert_quantity_allclose(cosmo.m_nu, 0 * u.eV)
         elif self._nu_info.nmasslessnu == 0:  # only massive
-            assert cosmo.m_nu == cosmo._nu_info.massivenu_mass
+            assert cosmo.m_nu == cosmo._nu_info.nu_y * const.k_B * cosmo.Tnu0
         else:  # a mix -- the most complicated case
             assert_quantity_allclose(cosmo.m_nu[: self._nu_info.nmasslessnu], 0 * u.eV)
             assert_quantity_allclose(
-                cosmo.m_nu[self._nu_info.nmasslessnu], cosmo._nu_info.massivenu_mass
+                cosmo.m_nu[self._nu_info.nmasslessnu],
+                cosmo._nu_info.nu_y * const.k_B * cosmo.Tnu0,
             )
 
     def test_init_m_nu(self, cosmo_cls: type[Cosmology], ba: BoundArguments):

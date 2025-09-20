@@ -106,9 +106,6 @@ class NeutrinoInfo(NamedTuple):
     has_massive_nu: bool
     """Boolean of which neutrinos are massive."""
 
-    massivenu_mass: NDArray[np.float64] | None
-    """Masses of the massive neutrinos in eV, or None if no massive neutrinos."""
-
     nmassivenu: int
     """Number of massive neutrinos."""
 
@@ -237,7 +234,6 @@ class FLRW(
                 nneutrinos=0,
                 neff_per_nu=None,
                 has_massive_nu=False,
-                massivenu_mass=None,
                 nmassivenu=0,
                 nmasslessnu=0,
                 nu_y=None,
@@ -254,11 +250,9 @@ class FLRW(
             # to do integrals with (perhaps surprisingly! But small python lists
             # are more efficient than small NumPy arrays).
             if has_massive_nu:
-                massivenu_mass = self.m_nu[massive].value
-                nu_y = (massivenu_mass / (_kB_evK * self.Tnu0)).value
+                nu_y = (self.m_nu[massive].value / (_kB_evK * self.Tnu0)).value
                 nu_y_list = nu_y.tolist()
             else:
-                massivenu_mass = None
                 nu_y = nu_y_list = None
 
             nu_info = NeutrinoInfo(
@@ -271,7 +265,6 @@ class FLRW(
                 # massless ones separately (since they are easy to deal with, and a
                 # common use case is to have only one massive neutrino).
                 has_massive_nu=has_massive_nu,
-                massivenu_mass=massivenu_mass,
                 nmassivenu=nmassivenu,
                 nmasslessnu=nneutrinos - nmassivenu,
                 nu_y=nu_y,
