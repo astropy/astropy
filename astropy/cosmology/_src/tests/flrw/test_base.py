@@ -166,7 +166,7 @@ class FLRWTest(
         if cosmo.Tnu0 == 0:
             assert cosmo.has_massive_nu is False
         else:
-            assert cosmo.has_massive_nu is cosmo._massivenu
+            assert cosmo.has_massive_nu is cosmo._nu_info.massivenu
 
     def test_h(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``h``."""

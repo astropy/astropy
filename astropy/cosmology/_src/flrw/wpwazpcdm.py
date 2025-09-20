@@ -135,7 +135,7 @@ class wpwaCDM(FLRW):
                 apiv,
                 self.wa,
             )
-        elif not self._massivenu:
+        elif not self._nu_info.massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -153,9 +153,9 @@ class wpwaCDM(FLRW):
                 self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.nmasslessnu,
+                self._nu_info.nu_y_list,
                 self.wp,
                 apiv,
                 self.wa,
@@ -325,7 +325,7 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
                 apiv,
                 self.wa,
             )
-        elif not self._massivenu:
+        elif not self._nu_info.massivenu:
             inv_efunc_scalar = scalar_inv_efuncs.fwpwacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -341,9 +341,9 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
                 self.Om0,
                 self.Ode0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.nmasslessnu,
+                self._nu_info.nu_y_list,
                 self.wp,
                 apiv,
                 self.wa,
