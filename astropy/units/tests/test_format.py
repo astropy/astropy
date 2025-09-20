@@ -1137,8 +1137,8 @@ def test_celsius_fits():
     "test_pair",
     list_format_string_pairs(
         ("generic", "dB(1 / m)"),
-        ("latex", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{\frac{1}{m}} \right)}$"),
-        ("latex_inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
+        ("latex", r"$\mathrm{dB\left(\frac{1}{m}\right)}$"),
+        ("latex_inline", r"$\mathrm{dB\left(m^{-1}\right)}$"),
         ("console", "dB(m^-1)"),
         ("unicode", "dB(m⁻¹)"),
     ),
@@ -1157,8 +1157,8 @@ def test_function_format_styles(test_pair: FormatStringPair):
         ("console", "inline", "dB(1 / m)"),
         ("unicode", "multiline", "   1\ndB(─)\n   m"),
         ("unicode", "inline", "dB(1 / m)"),
-        ("latex", False, r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
-        ("latex", "inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{1 / m} \right)}$"),
+        ("latex", False, r"$\mathrm{dB\left(m^{-1}\right)}$"),
+        ("latex", "inline", r"$\mathrm{dB\left(1 / m\right)}$"),
     ],
 )
 def test_function_format_styles_non_default_fraction(format_spec, fraction, string):
