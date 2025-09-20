@@ -301,7 +301,7 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         # set differently depending on the other inputs
         if cosmo.Tnu0.value == 0:
             assert cosmo.m_nu is None
-        elif not cosmo._nu_info.massivenu:  # only massless
+        elif not cosmo._nu_info.has_massive_nu:  # only massless
             assert_quantity_allclose(cosmo.m_nu, 0 * u.eV)
         elif self._nu_info.nmasslessnu == 0:  # only massive
             assert cosmo.m_nu == cosmo._nu_info.massivenu_mass

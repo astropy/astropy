@@ -135,7 +135,7 @@ class wpwaCDM(FLRW):
                 apiv,
                 self.wa,
             )
-        elif not self._nu_info.massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -325,7 +325,7 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
                 apiv,
                 self.wa,
             )
-        elif not self._nu_info.massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.fwpwacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,

@@ -103,7 +103,7 @@ class NeutrinoInfo(NamedTuple):
     interactions, which could be unusual if one is considering sterile neutrinos).
     """
 
-    massivenu: bool
+    has_massive_nu: bool
     """Boolean of which neutrinos are massive."""
 
     massivenu_mass: NDArray[np.float64] | None
@@ -236,7 +236,7 @@ class FLRW(
             nu_info = NeutrinoInfo(
                 nneutrinos=0,
                 neff_per_nu=None,
-                massivenu=False,
+                has_massive_nu=False,
                 massivenu_mass=None,
                 nmassivenu=0,
                 nmasslessnu=0,
@@ -246,14 +246,14 @@ class FLRW(
         else:
             nneutrinos = floor(self.Neff)
             massive = np.nonzero(self.m_nu.value > 0)[0]
-            massivenu = massive.size > 0
+            has_massive_nu = massive.size > 0
             nmassivenu = len(massive)
 
             # Compute Neutrino Omega and total relativistic component for massive
             # neutrinos. We also store a list version, since that is more efficient
             # to do integrals with (perhaps surprisingly! But small python lists
             # are more efficient than small NumPy arrays).
-            if massivenu:
+            if has_massive_nu:
                 massivenu_mass = self.m_nu[massive].value
                 nu_y = (massivenu_mass / (_kB_evK * self.Tnu0)).value
                 nu_y_list = nu_y.tolist()
@@ -270,7 +270,7 @@ class FLRW(
                 # so, get the right number of masses. It is worth keeping track of
                 # massless ones separately (since they are easy to deal with, and a
                 # common use case is to have only one massive neutrino).
-                massivenu=massivenu,
+                has_massive_nu=has_massive_nu,
                 massivenu_mass=massivenu_mass,
                 nmassivenu=nmassivenu,
                 nmasslessnu=nneutrinos - nmassivenu,
@@ -373,7 +373,7 @@ class FLRW(
         """Does this cosmology have at least one massive neutrino species?"""
         if self.Tnu0.value == 0:
             return False
-        return self._nu_info.massivenu
+        return self._nu_info.has_massive_nu
 
     @cached_property
     def critical_density0(self) -> u.Quantity:
@@ -394,7 +394,7 @@ class FLRW(
     @cached_property
     def Onu0(self) -> float:
         """Omega nu; the density/critical density of neutrinos at z=0."""
-        if self._nu_info.massivenu:
+        if self._nu_info.has_massive_nu:
             return self.Ogamma0 * self.nu_relative_density(0)
         else:
             # This case is particularly simple, so do it directly The 0.2271...
@@ -598,7 +598,7 @@ class FLRW(
         # The massive and massless contribution must be handled separately
         # But check for common cases first
         z = aszarr(z)
-        if not self._nu_info.massivenu:
+        if not self._nu_info.has_massive_nu:
             return (
                 prefac * self.Neff * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
             )
@@ -640,7 +640,7 @@ class FLRW(
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._nu_info.massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -671,7 +671,7 @@ class FLRW(
         # Avoid the function overhead by repeating code
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._nu_info.massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])

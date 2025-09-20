@@ -94,7 +94,7 @@ class wCDM(FLRW):
         if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_norel
             inv_efunc_scalar_args = (self.Om0, self.Ode0, self.Ok0, self.w0)
-        elif not self._nu_info.massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -194,7 +194,7 @@ class wCDM(FLRW):
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._nu_info.massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -225,7 +225,7 @@ class wCDM(FLRW):
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._nu_info.massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -309,7 +309,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_norel
             inv_efunc_scalar_args = (self.Om0, self.Ode0, self.w0)
-        elif not self._nu_info.massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -352,7 +352,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._nu_info.massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -382,7 +382,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._nu_info.massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
