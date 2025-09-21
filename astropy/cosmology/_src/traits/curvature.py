@@ -37,7 +37,7 @@ class CurvatureComponent:
         raise NotImplementedError
 
     @deprecated_keywords("z", since="7.0")
-    def Ok(self, z: Quantity | ArrayLike) -> NDArray[np.floating] | np.floating:
+    def Ok(self, z: Quantity | ArrayLike) -> NDArray[np.floating]:
         """Return the equivalent density parameter for curvature at redshift ``z``.
 
         Parameters
