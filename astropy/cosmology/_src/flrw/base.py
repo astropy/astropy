@@ -337,6 +337,19 @@ class FLRW(
         return value
 
     # ---------------------------------------------------------------
+    # Critical Density
+
+    @cached_property
+    def critical_density0(self) -> u.Quantity:
+        r"""Critical mass density at z=0.
+
+        The critical density is the density of the Universe at which the Universe is
+        flat. It is defined as :math:`\rho_{\text{crit}} = 3 H_0^2 / (8 \pi G)`.
+
+        """
+        return (3 * self.H0**2 / (8 * pi * const.G)).cgs
+
+    # ---------------------------------------------------------------
     # properties
 
     @property
@@ -372,16 +385,6 @@ class FLRW(
         if self.Tnu0.value == 0:
             return False
         return self._nu_info.has_massive_nu
-
-    @cached_property
-    def critical_density0(self) -> u.Quantity:
-        r"""Critical mass density at z=0.
-
-        The critical density is the density of the Universe at which the Universe is
-        flat. It is defined as :math:`\rho_{\text{crit}} = 3 H_0^2 / (8 \pi G)`.
-
-        """
-        return (3 * self.H0**2 / (8 * pi * const.G)).cgs
 
     @cached_property
     def Ogamma0(self) -> float:
