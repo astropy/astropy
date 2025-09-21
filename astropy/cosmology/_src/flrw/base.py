@@ -9,7 +9,7 @@ from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
 from numbers import Number
-from typing import Any, NamedTuple, TypeVar, overload
+from typing import Any, Final, NamedTuple, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
@@ -60,13 +60,22 @@ _InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number
 # the initialization rather than have every object do them.
 
 # angle conversions
-_radian_in_arcsec = (1 * u.rad).to(u.arcsec)
-_radian_in_arcmin = (1 * u.rad).to(u.arcmin)
+RAD_IN_ARCSEC: Final = (1 * u.rad).to(u.arcsec)
+RAD_IN_ARCMIN: Final = (1 * u.rad).to(u.arcmin)
 # Radiation parameter over c^2 in cgs (g cm^-3 K^-4)
-_a_B_c2 = (4 * const.sigma_sb / const.c**3).cgs.value
+a_B_c2: Final = (4 * const.sigma_sb / const.c**3).cgs.value
 # Boltzmann constant in eV / K
-_kB_evK = const.k_B.to(u.eV / u.K)
+kB_evK: Final = const.k_B.to(u.eV / u.K)
 
+# See Komatsu et al. 2011, eq 26 and the surrounding discussion for an explanation of
+# what this does. However, this is modified to handle multiple neutrino masses by
+# computing the above for each mass, then summing
+NEUTRINO_FERMI_DIRAC_CORRECTION: Final = 0.22710731766  # 7/8 (4/11)^4/3
+
+# These are purely fitting constants -- see the Komatsu paper
+KOMATSU_P: Final = 1.83
+KOMATSU_INVP: Final = 0.54644808743  # 1.0 / p
+KOMATSU_K: Final = 0.3173
 
 # typing
 _FLRWT = TypeVar("_FLRWT", bound="FLRW")
@@ -244,7 +253,7 @@ class FLRW(
             # to do integrals with (perhaps surprisingly! But small python lists
             # are more efficient than small NumPy arrays).
             if has_massive_nu:
-                nu_y = (self.m_nu[massive].value / (_kB_evK * self.Tnu0)).value
+                nu_y = (self.m_nu[massive].value / (kB_evK * self.Tnu0)).value
                 nu_y_list = nu_y.tolist()
             else:
                 nu_y = nu_y_list = None
@@ -376,7 +385,7 @@ class FLRW(
     def Ogamma0(self) -> float:
         """Omega gamma; the density/critical density of photons at z=0."""
         # photon density from Tcmb
-        return _a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
+        return a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
 
     @cached_property
     def Onu0(self) -> float:
@@ -387,7 +396,7 @@ class FLRW(
             # This case is particularly simple, so do it directly The 0.2271...
             # is 7/8 (4/11)^(4/3) -- the temperature bit ^4 (blackbody energy
             # density) times 7/8 for FD vs. BE statistics.
-            return 0.22710731766 * self.Neff * self.Ogamma0
+            return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * self.Ogamma0
 
     # ---------------------------------------------------------------
 
@@ -553,30 +562,17 @@ class FLRW(
         # this in scalar_inv_efuncs.pyx, so if you find a problem in this
         # you need to update there too.
 
-        # See Komatsu et al. 2011, eq 26 and the surrounding discussion
-        # for an explanation of what we are doing here.
-        # However, this is modified to handle multiple neutrino masses
-        # by computing the above for each mass, then summing
-        prefac = 0.22710731766  # 7/8 (4/11)^4/3 -- see any cosmo book
-
         # The massive and massless contribution must be handled separately
         # But check for common cases first
         z = aszarr(z)
         if not self._nu_info.has_massive_nu:
-            return (
-                prefac * self.Neff * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
-            )
-
-        # These are purely fitting constants -- see the Komatsu paper
-        p = 1.83
-        invp = 0.54644808743  # 1.0 / p
-        k = 0.3173
+            return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * np.ones(np.shape(z))
 
         curr_nu_y = self._nu_info.nu_y / (1.0 + np.expand_dims(z, axis=-1))
-        rel_mass_per = (1.0 + (k * curr_nu_y) ** p) ** invp
+        rel_mass_per = (1.0 + (KOMATSU_K * curr_nu_y) ** KOMATSU_P) ** KOMATSU_INVP
         rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
 
-        return prefac * self._nu_info.neff_per_nu * rel_mass
+        return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass
 
     @deprecated_keywords("z", since="7.0")
     def efunc(self, z: u.Quantity | ArrayLike) -> FArray | float:
@@ -1301,7 +1297,7 @@ class FLRW(
             The distance in comoving kpc corresponding to an arcmin at each
             input redshift.
         """
-        return self.comoving_transverse_distance(z).to(u.kpc) / _radian_in_arcmin
+        return self.comoving_transverse_distance(z).to(u.kpc) / RAD_IN_ARCMIN
 
     @deprecated_keywords("z", since="7.0")
     def kpc_proper_per_arcmin(self, z: u.Quantity | ArrayLike) -> u.Quantity:
@@ -1321,7 +1317,7 @@ class FLRW(
             The distance in proper kpc corresponding to an arcmin at each input
             redshift.
         """
-        return self.angular_diameter_distance(z).to(u.kpc) / _radian_in_arcmin
+        return self.angular_diameter_distance(z).to(u.kpc) / RAD_IN_ARCMIN
 
     @deprecated_keywords("z", since="7.0")
     def arcsec_per_kpc_comoving(self, z: u.Quantity | ArrayLike) -> u.Quantity:
@@ -1341,7 +1337,7 @@ class FLRW(
             The angular separation in arcsec corresponding to a comoving kpc at
             each input redshift.
         """
-        return _radian_in_arcsec / self.comoving_transverse_distance(z).to(u.kpc)
+        return RAD_IN_ARCSEC / self.comoving_transverse_distance(z).to(u.kpc)
 
     @deprecated_keywords("z", since="7.0")
     def arcsec_per_kpc_proper(self, z: u.Quantity | ArrayLike) -> u.Quantity:
@@ -1361,7 +1357,7 @@ class FLRW(
             The angular separation in arcsec corresponding to a proper kpc at
             each input redshift.
         """
-        return _radian_in_arcsec / self.angular_diameter_distance(z).to(u.kpc)
+        return RAD_IN_ARCSEC / self.angular_diameter_distance(z).to(u.kpc)
 
 
 @dataclass_decorator
