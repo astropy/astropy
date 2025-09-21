@@ -9,11 +9,11 @@ from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
 from numbers import Number
-from typing import Any, TypeVar, overload
+from typing import Any, NamedTuple, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 
 import astropy.constants as const
 import astropy.units as u
@@ -79,6 +79,45 @@ _kB_evK = const.k_B.to(u.eV / u.K)
 # typing
 _FLRWT = TypeVar("_FLRWT", bound="FLRW")
 _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
+
+
+##############################################################################
+
+
+class NeutrinoInfo(NamedTuple):
+    """A container for neutrino information.
+
+    This is Private API.
+
+    """
+
+    n_nu: int
+    """Number of neutrino species (floor of Neff)."""
+
+    neff_per_nu: float | None
+    """Number of effective neutrino species per neutrino.
+
+    We are going to share Neff between the neutrinos equally. In detail this is not
+    correct, but it is a standard assumption because properly calculating it is a)
+    complicated b) depends on the details of the massive neutrinos (e.g., their weak
+    interactions, which could be unusual if one is considering sterile neutrinos).
+    """
+
+    has_massive_nu: bool
+    """Boolean of which neutrinos are massive."""
+
+    n_massive_nu: int
+    """Number of massive neutrinos."""
+
+    n_massless_nu: int
+    """Number of massless neutrinos."""
+
+    nu_y: NDArray[np.floating] | None
+    """The ratio m_nu / (kB T_nu) for each massive neutrino."""
+
+    nu_y_list: list[float] | None
+    """The ratio m_nu / (kB T_nu) for each massive neutrino as a list."""
+
 
 ##############################################################################
 
@@ -191,50 +230,49 @@ class FLRW(
     def __post_init__(self) -> None:
         # Compute neutrino parameters:
         if self.m_nu is None:
-            nneutrinos = 0
-            neff_per_nu = None
-            massivenu = False
-            massivenu_mass = None
-            nmassivenu = nmasslessnu = None
+            nu_info = NeutrinoInfo(
+                n_nu=0,
+                neff_per_nu=None,
+                has_massive_nu=False,
+                n_massive_nu=0,
+                n_massless_nu=0,
+                nu_y=None,
+                nu_y_list=None,
+            )
         else:
-            nneutrinos = floor(self.Neff)
-
-            # We are going to share Neff between the neutrinos equally. In
-            # detail this is not correct, but it is a standard assumption
-            # because properly calculating it is a) complicated b) depends on
-            # the details of the massive neutrinos (e.g., their weak
-            # interactions, which could be unusual if one is considering
-            # sterile neutrinos).
-            neff_per_nu = self.Neff / nneutrinos
-
-            # Now figure out if we have massive neutrinos to deal with, and if
-            # so, get the right number of masses. It is worth keeping track of
-            # massless ones separately (since they are easy to deal with, and a
-            # common use case is to have only one massive neutrino).
+            n_nu = floor(self.Neff)
             massive = np.nonzero(self.m_nu.value > 0)[0]
-            massivenu = massive.size > 0
-            nmassivenu = len(massive)
-            massivenu_mass = self.m_nu[massive].value if massivenu else None
-            nmasslessnu = nneutrinos - nmassivenu
+            has_massive_nu = massive.size > 0
+            n_massive_nu = len(massive)
 
-        object.__setattr__(self, "_nneutrinos", nneutrinos)
-        object.__setattr__(self, "_neff_per_nu", neff_per_nu)
-        object.__setattr__(self, "_massivenu", massivenu)
-        object.__setattr__(self, "_massivenu_mass", massivenu_mass)
-        object.__setattr__(self, "_nmassivenu", nmassivenu)
-        object.__setattr__(self, "_nmasslessnu", nmasslessnu)
+            # Compute Neutrino Omega and total relativistic component for massive
+            # neutrinos. We also store a list version, since that is more efficient
+            # to do integrals with (perhaps surprisingly! But small python lists
+            # are more efficient than small NumPy arrays).
+            if has_massive_nu:
+                nu_y = (self.m_nu[massive].value / (_kB_evK * self.Tnu0)).value
+                nu_y_list = nu_y.tolist()
+            else:
+                nu_y = nu_y_list = None
 
-        # Compute Neutrino Omega and total relativistic component for massive
-        # neutrinos. We also store a list version, since that is more efficient
-        # to do integrals with (perhaps surprisingly! But small python lists
-        # are more efficient than small NumPy arrays).
-        if self._massivenu:  # (`_massivenu` set in `m_nu`)
-            nu_y = (self._massivenu_mass / (_kB_evK * self.Tnu0)).value
-            nu_y_list = nu_y.tolist()
-        else:
-            nu_y = nu_y_list = None
-        object.__setattr__(self, "_nu_y", nu_y)
-        object.__setattr__(self, "_nu_y_list", nu_y_list)
+            nu_info = NeutrinoInfo(
+                n_nu=n_nu,
+                # We share Neff between the neutrinos equally. In detail this is not
+                # correct. See NeutrinoInfo for more info.
+                neff_per_nu=self.Neff / n_nu,
+                # Now figure out if we have massive neutrinos to deal with, and if
+                # so, get the right number of masses. It is worth keeping track of
+                # massless ones separately (since they are easy to deal with, and a
+                # common use case is to have only one massive neutrino).
+                has_massive_nu=has_massive_nu,
+                n_massive_nu=n_massive_nu,
+                n_massless_nu=n_nu - n_massive_nu,
+                nu_y=nu_y,
+                nu_y_list=nu_y_list,
+            )
+
+        self._nu_info: NeutrinoInfo
+        object.__setattr__(self, "_nu_info", nu_info)
 
         # Subclasses should override this reference if they provide
         #  more efficient scalar versions of inv_efunc.
@@ -272,24 +310,24 @@ class FLRW(
         negative.
         """
         # Check if there are any neutrinos
-        if (nneutrinos := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
+        if (n_nu := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
             return None  # None, regardless of input
 
         # Validate / set units
         value = validate_with_unit(self, param, value)
 
         # Check values and data shapes
-        if value.shape not in ((), (nneutrinos,)):
+        if value.shape not in ((), (n_nu,)):
             raise ValueError(
                 "unexpected number of neutrino masses — "
-                f"expected {nneutrinos}, got {len(value)}."
+                f"expected {n_nu}, got {len(value)}."
             )
         elif np.any(value.value < 0):
             raise ValueError("invalid (negative) neutrino mass encountered.")
 
         # scalar -> array
         if value.isscalar:
-            value = np.full_like(value, value, shape=nneutrinos)
+            value = np.full_like(value, value, shape=n_nu)
 
         return value
 
@@ -328,7 +366,7 @@ class FLRW(
         """Does this cosmology have at least one massive neutrino species?"""
         if self.Tnu0.value == 0:
             return False
-        return self._massivenu
+        return self._nu_info.has_massive_nu
 
     @cached_property
     def critical_density0(self) -> u.Quantity:
@@ -349,7 +387,7 @@ class FLRW(
     @cached_property
     def Onu0(self) -> float:
         """Omega nu; the density/critical density of neutrinos at z=0."""
-        if self._massivenu:  # (`_massivenu` set in `m_nu`)
+        if self._nu_info.has_massive_nu:
             return self.Ogamma0 * self.nu_relative_density(0)
         else:
             # This case is particularly simple, so do it directly The 0.2271...
@@ -553,7 +591,7 @@ class FLRW(
         # The massive and massless contribution must be handled separately
         # But check for common cases first
         z = aszarr(z)
-        if not self._massivenu:
+        if not self._nu_info.has_massive_nu:
             return (
                 prefac * self.Neff * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
             )
@@ -563,11 +601,11 @@ class FLRW(
         invp = 0.54644808743  # 1.0 / p
         k = 0.3173
 
-        curr_nu_y = self._nu_y / (1.0 + np.expand_dims(z, axis=-1))
+        curr_nu_y = self._nu_info.nu_y / (1.0 + np.expand_dims(z, axis=-1))
         rel_mass_per = (1.0 + (k * curr_nu_y) ** p) ** invp
-        rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
+        rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
 
-        return prefac * self._neff_per_nu * rel_mass
+        return prefac * self._nu_info.neff_per_nu * rel_mass
 
     @deprecated_keywords("z", since="7.0")
     def efunc(self, z: u.Quantity | ArrayLike) -> FArray | float:
@@ -595,7 +633,7 @@ class FLRW(
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -626,7 +664,7 @@ class FLRW(
         # Avoid the function overhead by repeating code
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
