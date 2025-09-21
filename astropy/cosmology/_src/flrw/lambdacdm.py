@@ -107,7 +107,7 @@ class LambdaCDM(FLRW):
                     "_comoving_distance_z1z2",
                     self._elliptic_comoving_distance_z1z2,
                 )
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -122,9 +122,9 @@ class LambdaCDM(FLRW):
                 self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
@@ -611,7 +611,7 @@ class LambdaCDM(FLRW):
         # form for a cosmological constant
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -639,7 +639,7 @@ class LambdaCDM(FLRW):
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -719,7 +719,7 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
             # of the LambaCDM above didn't actually create a flat cosmology.
             # That was done through the explicit tweak setting self.Ok0.
             self._optimize_flat_norad()
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -732,9 +732,9 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
                 self.Om0,
                 self.Ode0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
@@ -762,7 +762,7 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         # form for a cosmological constant
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -790,7 +790,7 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])

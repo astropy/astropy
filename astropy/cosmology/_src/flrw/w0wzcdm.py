@@ -110,7 +110,7 @@ class w0wzCDM(FLRW):
                 self.w0,
                 self.wz,
             )
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -127,9 +127,9 @@ class w0wzCDM(FLRW):
                 self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
                 self.w0,
                 self.wz,
             )
@@ -273,7 +273,7 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
         if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_norel
             inv_efunc_scalar_args = (self.Om0, self.Ode0, self.w0, self.wz)
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.fw0wzcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -288,9 +288,9 @@ class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
                 self.Om0,
                 self.Ode0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
                 self.w0,
                 self.wz,
             )
