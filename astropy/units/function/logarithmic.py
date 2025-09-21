@@ -187,7 +187,7 @@ class DexUnit(LogUnit):
             else:
                 return f"[{self.physical_unit.to_string(format=format)}]"
         else:
-            return super().to_string()
+            return super().to_string(format=format)
 
 
 class DecibelUnit(LogUnit):
