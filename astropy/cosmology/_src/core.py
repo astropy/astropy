@@ -89,6 +89,8 @@ class CosmologyError(Exception):
 #       See https://peps.python.org/pep-0712/
 @dataclass(frozen=True, slots=True)
 class _NameField:
+    """Descriptor for the `Cosmology.name` field."""
+
     default: str | None = None
 
     def __get__(
