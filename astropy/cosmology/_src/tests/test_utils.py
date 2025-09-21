@@ -5,7 +5,6 @@ import pytest
 
 import astropy.units as u
 from astropy.cosmology._src.utils import (
-    all_cls_vars,
     aszarr,
     deprecated_keywords,
     vectorize_redshift_method,
@@ -84,27 +83,6 @@ class Test_aszarr:
 
 
 # -------------------------------------------------------------------
-
-
-def test_all_cls_vars():
-    """Test :func:`astropy.cosmology._src.utils.all_cls_vars`."""
-
-    class ClassA:
-        a = 1
-        b = 2
-
-    all_vars = all_cls_vars(ClassA)
-    public_all_vars = {k: v for k, v in all_vars.items() if not k.startswith("_")}
-    assert public_all_vars == {"a": 1, "b": 2}
-
-    class ClassB(ClassA):
-        c = 3
-
-    all_vars = all_cls_vars(ClassB)
-    public_all_vars = {k: v for k, v in all_vars.items() if not k.startswith("_")}
-    assert public_all_vars == {"a": 1, "b": 2, "c": 3}
-    assert "a" not in vars(ClassB)
-    assert "b" not in vars(ClassB)
 
 
 class TestDeprecatedKeywords:

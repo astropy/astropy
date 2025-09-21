@@ -20,5 +20,5 @@ from .converter import (
     validate_with_unit,
 )
 from .core import MISSING, Parameter
-from .dataclass_utils import all_parameters
 from .descriptors import ParametersAttribute
+from .utils import all_parameters
