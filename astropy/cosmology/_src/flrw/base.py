@@ -91,7 +91,7 @@ class NeutrinoInfo(NamedTuple):
 
     """
 
-    nneutrinos: int
+    n_nu: int
     """Number of neutrino species (floor of Neff)."""
 
     neff_per_nu: float | None
@@ -231,7 +231,7 @@ class FLRW(
         # Compute neutrino parameters:
         if self.m_nu is None:
             nu_info = NeutrinoInfo(
-                nneutrinos=0,
+                n_nu=0,
                 neff_per_nu=None,
                 has_massive_nu=False,
                 n_massive_nu=0,
@@ -240,7 +240,7 @@ class FLRW(
                 nu_y_list=None,
             )
         else:
-            nneutrinos = floor(self.Neff)
+            n_nu = floor(self.Neff)
             massive = np.nonzero(self.m_nu.value > 0)[0]
             has_massive_nu = massive.size > 0
             n_massive_nu = len(massive)
@@ -256,17 +256,17 @@ class FLRW(
                 nu_y = nu_y_list = None
 
             nu_info = NeutrinoInfo(
-                nneutrinos=nneutrinos,
+                n_nu=n_nu,
                 # We share Neff between the neutrinos equally. In detail this is not
                 # correct. See NeutrinoInfo for more info.
-                neff_per_nu=self.Neff / nneutrinos,
+                neff_per_nu=self.Neff / n_nu,
                 # Now figure out if we have massive neutrinos to deal with, and if
                 # so, get the right number of masses. It is worth keeping track of
                 # massless ones separately (since they are easy to deal with, and a
                 # common use case is to have only one massive neutrino).
                 has_massive_nu=has_massive_nu,
                 n_massive_nu=n_massive_nu,
-                n_massless_nu=nneutrinos - n_massive_nu,
+                n_massless_nu=n_nu - n_massive_nu,
                 nu_y=nu_y,
                 nu_y_list=nu_y_list,
             )
@@ -310,24 +310,24 @@ class FLRW(
         negative.
         """
         # Check if there are any neutrinos
-        if (nneutrinos := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
+        if (n_nu := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
             return None  # None, regardless of input
 
         # Validate / set units
         value = validate_with_unit(self, param, value)
 
         # Check values and data shapes
-        if value.shape not in ((), (nneutrinos,)):
+        if value.shape not in ((), (n_nu,)):
             raise ValueError(
                 "unexpected number of neutrino masses — "
-                f"expected {nneutrinos}, got {len(value)}."
+                f"expected {n_nu}, got {len(value)}."
             )
         elif np.any(value.value < 0):
             raise ValueError("invalid (negative) neutrino mass encountered.")
 
         # scalar -> array
         if value.isscalar:
-            value = np.full_like(value, value, shape=nneutrinos)
+            value = np.full_like(value, value, shape=n_nu)
 
         return value
 
