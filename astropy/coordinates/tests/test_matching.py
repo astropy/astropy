@@ -271,6 +271,10 @@ def test_search_around_no_matches(function, search_limit):
     assert d2d.unit == u.deg
     assert d3d.unit == u.kpc
 
+    # regression test for #6347 - we want Angle, not just Quantity,
+    # even if there are no matches.
+    assert isinstance(d2d, Angle)
+
 
 @pytest.mark.parametrize(
     "function,search_limit",
