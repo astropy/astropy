@@ -419,8 +419,10 @@ class FunctionUnitBase(metaclass=ABCMeta):
         if pu_str == "":
             pu_str = "1"
         if format.startswith("latex"):
-            # need to strip leading and trailing "$"
-            self_str += rf"$\mathrm{{\left( {pu_str[1:-1]} \right)}}$"
+            # Add the physical unit with parentheses, removing its latex
+            # initialization stuff ("$\mathrm{" and "}$").
+            # For self_str, remove trailing "}$" and put it back at the end.
+            self_str = rf"{self_str[:-2]}\left({pu_str[9:-2]}\right)}}$"
         else:
             pu_lines = pu_str.splitlines()
             if len(pu_lines) == 1:
