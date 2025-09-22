@@ -7,28 +7,15 @@ import numpy as np
 from numpy import log
 from numpy.typing import ArrayLike
 
-from astropy.utils.compat.optional_deps import HAS_SCIPY
-
 # isort: split
 from astropy.cosmology._src.core import dataclass_decorator
+from astropy.cosmology._src.scipy_compat import ellipkinc, hyp2f1
 from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
-
-# isort: split
-if HAS_SCIPY:
-    from scipy.special import ellipkinc, hyp2f1
-else:
-
-    def ellipkinc(*args, **kwargs):
-        raise ModuleNotFoundError("No module named 'scipy.special'")
-
-    def hyp2f1(*args, **kwargs):
-        raise ModuleNotFoundError("No module named 'scipy.special'")
-
 
 __all__ = ["FlatLambdaCDM", "LambdaCDM"]
 
