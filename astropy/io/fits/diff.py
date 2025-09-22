@@ -51,12 +51,6 @@ _COL_ATTRS = [
 ]
 
 
-def _get_differences(a, b):
-    relative = abs(b - a) / abs(b)
-    absolute = float(abs(b - a))
-    return relative, absolute
-
-
 class _BaseDiff:
     """
     Base class for all FITS diff objects.
@@ -1051,6 +1045,8 @@ class ImageDataDiff(_BaseDiff):
         self.diff_dimensions = ()
         self.diff_pixels = []
         self.diff_ratio = 0
+        self.max_absolute = 0
+        self.max_relative = 0
 
         # self.diff_pixels only holds up to numdiffs differing pixels, but this
         # self.diff_total stores the total count of differences between
@@ -1080,7 +1076,9 @@ class ImageDataDiff(_BaseDiff):
             rtol = self.rtol
             atol = self.atol
 
-        diffs = where_not_allclose(self.a, self.b, atol=atol, rtol=rtol)
+        diffs, self.max_absolute, self.max_relative = where_not_allclose(
+            self.a, self.b, atol=atol, rtol=rtol, return_maxdiff=True
+        )
 
         self.diff_total = len(diffs[0])
 
@@ -1115,9 +1113,6 @@ class ImageDataDiff(_BaseDiff):
         if not self.diff_pixels:
             return
 
-        max_relative = 0
-        max_absolute = 0
-
         for index, values in self.diff_pixels:
             # Convert to int to avoid np.int64 in list repr.
             index = [int(x + 1) for x in reversed(index)]
@@ -1130,9 +1125,6 @@ class ImageDataDiff(_BaseDiff):
                 rtol=self.rtol,
                 atol=self.atol,
             )
-            rdiff, adiff = _get_differences(values[0], values[1])
-            max_relative = max(max_relative, rdiff)
-            max_absolute = max(max_absolute, adiff)
 
         if self.diff_total > self.numdiffs:
             self._writeln(" ...")
@@ -1140,8 +1132,8 @@ class ImageDataDiff(_BaseDiff):
             f" {self.diff_total} different pixels found "
             f"({self.diff_ratio:.2%} different)."
         )
-        self._writeln(f" Maximum relative difference: {max_relative}")
-        self._writeln(f" Maximum absolute difference: {max_absolute}")
+        self._writeln(f" Maximum relative difference: {self.max_relative}")
+        self._writeln(f" Maximum absolute difference: {self.max_absolute}")
 
 
 class RawDataDiff(ImageDataDiff):

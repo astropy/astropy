@@ -1,0 +1,2 @@
+Compute maximum absolute and relative differences reported by ``ImageDataDiff``
+on the full arrays instead of only a few values.
