@@ -18,7 +18,6 @@ from numpy.typing import ArrayLike, NDArray
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology._src.typing import CosmoMeta, FArray
-from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -33,6 +32,7 @@ from astropy.cosmology._src.parameter import (
     validate_non_negative,
     validate_with_unit,
 )
+from astropy.cosmology._src.scipy_compat import quad
 from astropy.cosmology._src.traits import (
     DarkEnergyComponent,
     HubbleParameter,
@@ -47,15 +47,6 @@ from astropy.cosmology._src.utils import (
     deprecated_keywords,
     vectorize_redshift_method,
 )
-
-# isort: split
-if HAS_SCIPY:
-    from scipy.integrate import quad
-else:
-
-    def quad(*args, **kwargs):
-        raise ModuleNotFoundError("No module named 'scipy.integrate'")
-
 
 __doctest_requires__ = {"*": ["scipy"]}
 _InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number)
