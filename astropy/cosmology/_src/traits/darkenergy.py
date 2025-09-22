@@ -5,17 +5,10 @@ from numbers import Number
 import numpy as np
 from numpy.typing import ArrayLike
 
+from astropy.cosmology._src.scipy_compat import quad
 from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
-from astropy.utils.compat.optional_deps import HAS_SCIPY
-
-if HAS_SCIPY:
-    from scipy.integrate import quad
-else:
-
-    def quad(*args, **kwargs):
-        raise ModuleNotFoundError("No module named 'scipy.integrate'")
 
 
 class DarkEnergyComponent:

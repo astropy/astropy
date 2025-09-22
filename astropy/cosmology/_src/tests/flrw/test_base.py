@@ -18,7 +18,7 @@ import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Planck18
 from astropy.cosmology._src.core import _COSMOLOGY_CLASSES, dataclass_decorator
-from astropy.cosmology._src.flrw.base import _a_B_c2, quad
+from astropy.cosmology._src.flrw.base import _a_B_c2
 from astropy.cosmology._src.tests.helper import get_redshift_methods
 from astropy.cosmology._src.tests.test_core import (
     CosmologyTest,
@@ -43,16 +43,6 @@ from .test_parameters import (
 
 ##############################################################################
 # TESTS
-##############################################################################
-
-
-@pytest.mark.skipif(HAS_SCIPY, reason="scipy is installed")
-def test_optional_deps_functions():
-    """Test stand-in functions when optional dependencies not installed."""
-    with pytest.raises(ModuleNotFoundError, match="No module named 'scipy.integrate'"):
-        quad()
-
-
 ##############################################################################
 
 
