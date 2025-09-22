@@ -6,8 +6,8 @@ This is private API. See `~astropy.cosmology.traits` for public API.
 
 __all__ = ["HubbleParameter"]
 
+import functools as ft
 from collections.abc import Callable
-from functools import cached_property
 from typing import Any
 
 import numpy as np
@@ -43,17 +43,17 @@ class HubbleParameter:
         """
         return self.H0 * self.efunc(z)
 
-    @cached_property
+    @ft.cached_property
     def h(self) -> np.floating:
         """Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]."""
         return self.H0.to_value("km/(s Mpc)") / 100.0
 
-    @cached_property
+    @ft.cached_property
     def hubble_time(self) -> u.Quantity:
         """Hubble time."""
         return (1 / self.H0).to(u.Gyr)
 
-    @cached_property
+    @ft.cached_property
     def hubble_distance(self) -> u.Quantity:
         """Hubble distance."""
         return (const.c / self.H0).to(u.Mpc)

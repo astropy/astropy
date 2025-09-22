@@ -2,7 +2,7 @@
 
 __all__: list[str] = []  # nothing is publicly scoped
 
-import functools
+import functools as ft
 import operator
 from collections.abc import Callable
 from numbers import Number
@@ -41,9 +41,9 @@ def vectorize_redshift_method(func=None, nin=1):
     """
     # allow for pie-syntax & setting nin
     if func is None:
-        return functools.partial(vectorize_redshift_method, nin=nin)
+        return ft.partial(vectorize_redshift_method, nin=nin)
 
-    @functools.wraps(func)
+    @ft.wraps(func)
     def wrapper(self, *args, **kwargs):
         """Wrapper converting arguments to numpy-compatible inputs.
 
@@ -97,7 +97,7 @@ def aszarr(
 def all_cls_vars(obj: object | type, /) -> dict[str, Any]:
     """Return all variables in the whole class hierarchy."""
     cls = obj if isinstance(obj, type) else obj.__class__
-    return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))
+    return ft.reduce(operator.__or__, map(vars, cls.mro()[::-1]))
 
 
 def deprecated_keywords(
@@ -113,7 +113,7 @@ def deprecated_keywords(
     since : str or number or sequence of str or number
         The release at which the old argument became deprecated.
     """
-    return functools.partial(_depr_kws, kws=kws, since=since)
+    return ft.partial(_depr_kws, kws=kws, since=since)
 
 
 def _depr_kws(
@@ -123,5 +123,5 @@ def _depr_kws(
     since: str | float | tuple[str | float, ...],
 ) -> Callable[P, R]:
     wrapper = _depr_kws_wrap(func, kws, since)
-    functools.update_wrapper(wrapper, func)
+    ft.update_wrapper(wrapper, func)
     return wrapper

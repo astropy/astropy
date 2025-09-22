@@ -6,7 +6,7 @@ the top-level namespace -- :mod:`astropy.cosmology`. This module will be
 moved.
 """
 
-import functools
+import functools as ft
 import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -58,7 +58,7 @@ class _CosmologyWrapper:
     wrapped: Any
 
 
-@functools.partial(np.frompyfunc, nin=2, nout=1)
+@ft.partial(np.frompyfunc, nin=2, nout=1)
 def _parse_format(cosmo: Any, format: _FormatType, /) -> Cosmology:
     """Parse Cosmology-like input into Cosmologies, given a format hint.
 
@@ -182,7 +182,7 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
     nin = sum(p.kind == 0 for p in sig.parameters.values())
 
     # Make wrapper function that parses cosmology-like inputs
-    @functools.wraps(pyfunc)
+    @ft.wraps(pyfunc)
     def wrapper(*cosmos: Any, format: _FormatsType = False, **kwargs: Any) -> bool:
         if len(cosmos) > nin:
             raise TypeError(

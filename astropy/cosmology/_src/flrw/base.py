@@ -2,10 +2,10 @@
 
 __all__ = ["FLRW", "FlatFLRWMixin"]
 
+import functools as ft
 import inspect
 import warnings
 from dataclasses import field
-from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
 from numbers import Number
@@ -344,17 +344,17 @@ class FLRW(
         """Omega total; the total density/critical density at z=0."""
         return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
 
-    @cached_property
+    @ft.cached_property
     def Odm0(self) -> float:
         """Omega dark matter; dark matter density/critical density at z=0."""
         return self.Om0 - self.Ob0
 
-    @cached_property
+    @ft.cached_property
     def Ok0(self) -> float:
         """Omega curvature; the effective curvature density/critical density at z=0."""
         return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
 
-    @cached_property
+    @ft.cached_property
     def Tnu0(self) -> u.Quantity:
         """Temperature of the neutrino background as |Quantity| at z=0."""
         # The constant in front is (4/11)^1/3 -- see any cosmology book for an
@@ -368,7 +368,7 @@ class FLRW(
             return False
         return self._nu_info.has_massive_nu
 
-    @cached_property
+    @ft.cached_property
     def critical_density0(self) -> u.Quantity:
         r"""Critical mass density at z=0.
 
@@ -378,13 +378,13 @@ class FLRW(
         """
         return (3 * self.H0**2 / (8 * pi * const.G)).cgs
 
-    @cached_property
+    @ft.cached_property
     def Ogamma0(self) -> float:
         """Omega gamma; the density/critical density of photons at z=0."""
         # photon density from Tcmb
         return _a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
 
-    @cached_property
+    @ft.cached_property
     def Onu0(self) -> float:
         """Omega nu; the density/critical density of neutrinos at z=0."""
         if self._nu_info.has_massive_nu:

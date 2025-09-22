@@ -9,7 +9,7 @@ tests for the specific abstract class :class:`astropy.cosmology.FLRW` are in
 """
 
 import abc
-from functools import cached_property
+import functools as ft
 
 import numpy as np
 import pytest
@@ -122,7 +122,7 @@ class FLRWTest(
     def test_Odm0(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``Odm0``."""
         # on the class
-        assert isinstance(cosmo_cls.Odm0, cached_property)
+        assert isinstance(cosmo_cls.Odm0, ft.cached_property)
 
         # on the instance
         assert np.allclose(cosmo.Odm0, cosmo.Om0 - cosmo.Ob0)
@@ -130,7 +130,7 @@ class FLRWTest(
     def test_Ok0(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``Ok0``."""
         # on the class
-        assert isinstance(cosmo_cls.Ok0, cached_property)
+        assert isinstance(cosmo_cls.Ok0, ft.cached_property)
 
         # on the instance
         assert np.allclose(
@@ -150,7 +150,7 @@ class FLRWTest(
     def test_Tnu0(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``Tnu0``."""
         # on the class
-        assert isinstance(cosmo_cls.Tnu0, cached_property)
+        assert isinstance(cosmo_cls.Tnu0, ft.cached_property)
 
         # on the instance
         assert cosmo.Tnu0.unit == u.K
@@ -171,7 +171,7 @@ class FLRWTest(
     def test_h(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``h``."""
         # on the class
-        assert isinstance(cosmo_cls.h, cached_property)
+        assert isinstance(cosmo_cls.h, ft.cached_property)
 
         # on the instance
         assert np.allclose(cosmo.h, cosmo.H0.value / 100.0)
@@ -179,7 +179,7 @@ class FLRWTest(
     def test_hubble_time(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``hubble_time``."""
         # on the class
-        assert isinstance(cosmo_cls.hubble_time, cached_property)
+        assert isinstance(cosmo_cls.hubble_time, ft.cached_property)
 
         # on the instance
         assert u.allclose(cosmo.hubble_time, (1 / cosmo.H0) << u.Gyr)
@@ -187,7 +187,7 @@ class FLRWTest(
     def test_hubble_distance(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``hubble_distance``."""
         # on the class
-        assert isinstance(cosmo_cls.hubble_distance, cached_property)
+        assert isinstance(cosmo_cls.hubble_distance, ft.cached_property)
 
         # on the instance
         assert cosmo.hubble_distance == (const.c / cosmo.H0).to(u.Mpc)
@@ -195,7 +195,7 @@ class FLRWTest(
     def test_critical_density0(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``critical_density0``."""
         # on the class
-        assert isinstance(cosmo_cls.critical_density0, cached_property)
+        assert isinstance(cosmo_cls.critical_density0, ft.cached_property)
 
         # on the instance
         assert cosmo.critical_density0.unit == u.g / u.cm**3
@@ -206,7 +206,7 @@ class FLRWTest(
     def test_Ogamma0(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``Ogamma0``."""
         # on the class
-        assert isinstance(cosmo_cls.Ogamma0, cached_property)
+        assert isinstance(cosmo_cls.Ogamma0, ft.cached_property)
 
         # on the instance
         # Ogamma cor \propto T^4/rhocrit
@@ -219,7 +219,7 @@ class FLRWTest(
     def test_Onu0(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``Onu0``."""
         # on the class
-        assert isinstance(cosmo_cls.Onu0, cached_property)
+        assert isinstance(cosmo_cls.Onu0, ft.cached_property)
 
         # on the instance
         # neutrino temperature <= photon temperature since the neutrinos
