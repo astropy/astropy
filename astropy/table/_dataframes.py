@@ -143,8 +143,10 @@ def _handle_index_argument(
         return index
 
     else:
-        raise TypeError("index must be None, False, True, or a valid column name."
-                        f"Type provided: {type(index).__name__}")
+        raise TypeError(
+            "index must be None, False, True, or a valid column name."
+            f"Type provided: {type(index).__name__}"
+        )
 
 
 def to_df(
@@ -176,7 +178,9 @@ def to_df(
 
     # Convert to narwhals DataFrame
     array = tbl.as_array()
-    array_dict = {n: array[n].data if tbl.has_masked_columns else array[n] for n in tbl.colnames}
+    array_dict = {
+        n: array[n].data if tbl.has_masked_columns else array[n] for n in tbl.colnames
+    }
     df_nw = nw.from_dict(array_dict, backend=backend_impl)
 
     # Handle masked columns
