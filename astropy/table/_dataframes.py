@@ -174,7 +174,7 @@ def to_df(
     # Convert to narwhals DataFrame
     array = tbl.as_array()
     array_dict = {n: array[n].data if is_masked else array[n] for n in tbl.colnames}
-    df = nw.from_dict(array_dict, backend=backend_impl)
+    df_nw = nw.from_dict(array_dict, backend=backend_impl)
 
     # Handle masked columns
     if is_masked:
@@ -183,9 +183,9 @@ def to_df(
             for name, col in tbl.columns.items()
             if isinstance(col, MaskedColumn) and col.mask.any()
         ]
-        old_dtypes = {n: df[n].dtype for n in masked_cols}
+        old_dtypes = {n: df_nw[n].dtype for n in masked_cols}
 
-        df = df.with_columns(
+        df_nw = df_nw.with_columns(
             [
                 (
                     nw.when(
@@ -208,10 +208,10 @@ def to_df(
                     f"Set use_nullable_int=True or remove the offending column: {n}."
                 )
             elif old_dtypes[n].is_float():
-                df = df.with_columns(nw.col(n).cast(old_dtypes[n]).alias(n))
+                df_nw = df_nw.with_columns(nw.col(n).cast(old_dtypes[n]).alias(n))
 
     # Convert to dataframe
-    df = df.to_native()
+    df_native = df_nw.to_native()
 
     # Fix pandas-like nullable integers
     if backend_impl.is_pandas_like() and is_masked and use_nullable_int:
@@ -219,13 +219,13 @@ def to_df(
             dtype = array[name].dtype
             if dtype.kind in "iu":
                 new_dtype = dtype.name.replace("i", "I").replace("u", "U")
-                df[name] = df[name].astype(new_dtype)
+                df_native[name] = df_native[name].astype(new_dtype)
 
     # Pandas-like index
     if index:
-        df.set_index(index, inplace=True, drop=True)
+        df_native.set_index(index, inplace=True, drop=True)
 
-    return df
+    return df_native
 
 
 def from_df(
