@@ -113,14 +113,11 @@ def _validate_columns_for_backend(
     if not badcols:
         return
 
-    is_pandas_like = _is_pandas_like(backend_impl)
-    is_pyarrow = (
-        not is_pandas_like
-        and not isinstance(backend_impl, str)
+    # Check if pandas-like or pyarrow-like
+    if _is_pandas_like(backend_impl) or (
+        not isinstance(backend_impl, str)
         and getattr(backend_impl, "is_pyarrow", lambda: False)()
-    )
-
-    if is_pandas_like or is_pyarrow:
+    ):
         raise ValueError(
             f"Cannot convert a table with multidimensional columns to a "
             f"pandas-like or pyarrow DataFrame. Offending columns are: {badcols}\n"
