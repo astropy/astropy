@@ -80,6 +80,13 @@ def _get_backend_impl(backend: str | types.ModuleType):
     return nw.Implementation.from_backend(backend)
 
 
+def _is_pandas_like(backend_impl: Any) -> bool:
+    return backend_impl is PANDAS_LIKE or (
+        not isinstance(backend_impl, str)
+        and getattr(backend_impl, "is_pandas_like", lambda: False)()
+    )
+
+
 def _validate_columns_for_backend(
     table: "Table", *, backend_impl: Any = PANDAS_LIKE
 ) -> None:
@@ -92,11 +99,12 @@ def _validate_columns_for_backend(
     # Check for multidimensional columns
     badcols = [name for name, col in table.columns.items() if len(col.shape) > 1]
 
-    is_pandas_like = (
-        backend_impl is PANDAS_LIKE
-        or getattr(backend_impl, "is_pandas_like", lambda: False)()
+    is_pandas_like = _is_pandas_like(backend_impl)
+    is_pyarrow = (
+        not is_pandas_like
+        and not isinstance(backend_impl, str)
+        and getattr(backend_impl, "is_pyarrow", lambda: False)()
     )
-    is_pyarrow = getattr(backend_impl, "is_pyarrow", lambda: False)()
 
     if badcols and (is_pandas_like or is_pyarrow):
         raise ValueError(
@@ -119,11 +127,7 @@ def _handle_index_argument(
 
     # Check if pandas-like, PANDAS_LIKE is reserved for pandas itself
     # Non-pandas backends don't support indexing
-    is_pandas_like = (
-        backend_impl is PANDAS_LIKE
-        or getattr(backend_impl, "is_pandas_like", lambda: False)()
-    )
-    if not is_pandas_like:
+    if not _is_pandas_like(backend_impl):
         if index:
             raise ValueError("Indexing is only supported for pandas-like backends.")
         return False
