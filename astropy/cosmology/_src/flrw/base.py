@@ -34,6 +34,7 @@ from astropy.cosmology._src.parameter import (
 )
 from astropy.cosmology._src.scipy_compat import quad
 from astropy.cosmology._src.traits import (
+    CurvatureComponent,
     DarkEnergyComponent,
     HubbleParameter,
     ScaleFactor,
@@ -122,12 +123,14 @@ ParameterOde0 = Parameter(
 @dataclass_decorator
 class FLRW(
     Cosmology,
+    # Traits
+    _BaryonComponent,
+    _CriticalDensity,
+    _MatterComponent,
+    CurvatureComponent,
+    DarkEnergyComponent,
     HubbleParameter,
     ScaleFactor,
-    _CriticalDensity,
-    _BaryonComponent,
-    _MatterComponent,
-    DarkEnergyComponent,
     TemperatureCMB,
 ):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
@@ -327,7 +330,7 @@ class FLRW(
 
     @property
     def is_flat(self) -> bool:
-        """Return bool; `True` if the cosmology is flat."""
+        """Return `bool`; `True` if the cosmology is globally flat."""
         return bool((self.Ok0 == 0.0) and (self.Otot0 == 1.0))
 
     @property
@@ -341,7 +344,7 @@ class FLRW(
         return self.Om0 - self.Ob0
 
     @cached_property
-    def Ok0(self) -> float:
+    def Ok0(self) -> float | np.floating:
         """Omega curvature; the effective curvature density/critical density at z=0."""
         return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
 
@@ -434,29 +437,6 @@ class FLRW(
         """
         z = aszarr(z)
         return self.Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
-
-    @deprecated_keywords("z", since="7.0")
-    def Ok(self, z: u.Quantity | ArrayLike) -> FArray | float:
-        """Return the equivalent density parameter for curvature at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Ok : ndarray or float
-            The equivalent density parameter for curvature at each redshift.
-            Returns `float` if the input is scalar.
-        """
-        z = aszarr(z)
-        if self.Ok0 == 0:  # Common enough to be worth checking explicitly
-            return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
-        return self.Ok0 * (z + 1.0) ** 2 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
     def Ogamma(self, z: u.Quantity | ArrayLike) -> FArray | float:
