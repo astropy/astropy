@@ -117,7 +117,7 @@ def _validate_columns_for_backend(
 
 
 def _handle_index_argument(
-    table: "Table", index: bool | str | None, backend_impl: Any
+    table: "Table", *, index: bool | str | None, backend_impl: Any
 ) -> bool | str:
     """Process the index argument for DataFrame conversion."""
     has_single_pk = table.primary_key is not None and len(table.primary_key) == 1
