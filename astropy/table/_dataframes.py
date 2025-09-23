@@ -139,7 +139,8 @@ def _handle_index_argument(
         return index
 
     else:
-        raise ValueError("index must be None, False, True, or a valid column name.")
+        raise TypeError("index must be None, False, True, or a valid column name."
+                        f"Type provided: {type(index).__name__}")
 
 
 def to_df(
@@ -154,7 +155,7 @@ def to_df(
         import narwhals as nw
     except ImportError:
         raise ImportError(
-            "The narwhals library is required for the generic to_df method. "
+            "The narwhals library is required for the generic to_df method."
             "If you want to only convert to pandas, use the `to_pandas` method instead."
         )
 
