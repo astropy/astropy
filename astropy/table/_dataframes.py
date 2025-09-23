@@ -292,7 +292,9 @@ def from_df(
         df.reset_index(index_name, inplace=True, drop=False)
 
     # Narwhals layer, must convert to eager
-    df_nw = nw.from_native(df, eager_only=True)
+    df_nw = nw.from_native(df)
+    if isinstance(df_nw, nw.LazyFrame):
+        df_nw = df_nw.collect()
 
     # Handle units
     if units is None:
