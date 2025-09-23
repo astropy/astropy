@@ -86,6 +86,8 @@ def _validate_columns_for_backend(
     """Validate that table columns are compatible with the target backend.
 
     backend_impl may be PANDAS_LIKE to indicate pandas-like validation.
+
+    Raises ValueError if there is a multidimensional column with an unsupported backend.
     """
     # Check for multidimensional columns
     badcols = [name for name, col in table.columns.items() if len(col.shape) > 1]
