@@ -233,8 +233,13 @@ def to_df(
             dtype = array[name].dtype
             if (dtype := array[name].dtype).kind not in INTEGER_DTYPE_KINDS:
                 continue
+
+            # Convert to Pandas dtype names from Numpy names
+            # Special case needed for uint -> UInt
             df_native[name] = df_native[name].astype(
-                dtype.name.replace("ui", "UI").replace("i", "I")
+                "UI" + dtype.name[2:]
+                if dtype.name.startswith("uint")
+                else dtype.name.title()
             )
 
     # Pandas-like index
