@@ -120,8 +120,6 @@ def _handle_index_argument(
     table: "Table", *, index: bool | str | None, backend_impl: Any
 ) -> bool | str:
     """Process the index argument for DataFrame conversion."""
-    has_single_pk = table.primary_key is not None and len(table.primary_key) == 1
-
     if index is False:
         return False
 
@@ -131,6 +129,8 @@ def _handle_index_argument(
         if index:
             raise ValueError("Indexing is only supported for pandas-like backends.")
         return False
+
+    has_single_pk = table.primary_key is not None and len(table.primary_key) == 1
 
     if index in (None, True):
         if has_single_pk:
