@@ -150,7 +150,7 @@ def _handle_index_argument(
 
     else:
         raise TypeError(
-            "index must be None, False, True, or a valid column name."
+            "index must be None, False, True, or a valid column name. "
             f"Type provided: {type(index).__name__}"
         )
 
