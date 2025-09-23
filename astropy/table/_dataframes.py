@@ -126,17 +126,14 @@ def _handle_index_argument(
             raise ValueError("Indexing is only supported for pandas-like backends.")
         return False
 
-    if index is True:
+    if index in (None, True):
         if has_single_pk:
             return table.primary_key[0]
-        else:
-            raise ValueError("index=True requires a single-column primary key.")
-
-    elif index is None:
-        if has_single_pk:
-            return table.primary_key[0]
-        else:
+        elif index is None:
             return False
+        else:
+            assert index is True
+            raise ValueError("index=True requires a single-column primary key.")
 
     elif isinstance(index, str):
         if index not in table.colnames:
