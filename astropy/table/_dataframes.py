@@ -201,14 +201,14 @@ def to_df(
             ]
         )
 
-        for n in masked_cols:
-            if old_dtypes[n].is_integer() and not use_nullable_int:
+        for n, old_dtype in old_dtypes.items():
+            if old_dtype.is_integer() and not use_nullable_int:
                 raise ValueError(
                     "Cannot convert masked integer columns to DataFrame without using nullable integers. "
                     f"Set use_nullable_int=True or remove the offending column: {n}."
                 )
-            elif old_dtypes[n].is_float():
-                df_nw = df_nw.with_columns(nw.col(n).cast(old_dtypes[n]).alias(n))
+            elif old_dtype.is_float():
+                df_nw = df_nw.with_columns(nw.col(n).cast(old_dtype).alias(n))
 
     # Convert to dataframe
     df_native = df_nw.to_native()
