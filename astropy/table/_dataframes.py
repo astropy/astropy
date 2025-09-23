@@ -14,6 +14,8 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
+from astropy.utils.compat.optional_deps import HAS_NARWHALS
+
 from .column import Column, MaskedColumn
 
 if TYPE_CHECKING:
@@ -151,13 +153,12 @@ def to_df(
     use_nullable_int: bool = True,
 ):
     """Convert an Astropy Table to a DataFrame using the specified backend."""
-    try:
-        import narwhals as nw
-    except ImportError:
-        raise ImportError(
-            "The narwhals library is required for the generic to_df method."
+    if not HAS_NARWHALS:
+        raise ModuleNotFoundError(
+            "The narwhals library is required for the generic to_df method. "
             "If you want to only convert to pandas, use the `to_pandas` method instead."
         )
+    import narwhals as nw
 
     backend_impl = _get_backend_impl(backend)
 
