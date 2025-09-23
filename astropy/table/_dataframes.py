@@ -181,6 +181,7 @@ def to_df(
 
     backend_impl = _get_backend_impl(backend)
 
+    # Using private API while narwhals-dev/narwhals#3150 is not merged
     if not nw._utils.is_eager_allowed(backend_impl):
         raise ValueError("Must export to eager compatible DataFrame")
 
