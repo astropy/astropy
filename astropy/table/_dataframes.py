@@ -231,7 +231,9 @@ def to_df(
             dtype = array[name].dtype
             if (dtype := array[name].dtype).kind not in INTEGER_DTYPE_KINDS:
                 continue
-            df_native[name] = df_native[name].astype(dtype.title())
+            df_native[name] = df_native[name].astype(
+                dtype.name.replace("ui", "UI").replace("i", "I")
+            )
 
     # Pandas-like index
     if index:
