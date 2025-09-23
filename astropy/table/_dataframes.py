@@ -26,6 +26,9 @@ if TYPE_CHECKING:
 # Sentinel value to indicate pandas-like backend validation
 PANDAS_LIKE = object()
 
+# Fixed set of integer dtypes
+INTEGER_DTYPE_KINDS = frozenset({"u", "i"})
+
 
 def _encode_mixins(tbl: "Table") -> "Table":
     """Encode mixin columns to basic columns for DataFrame compatibility."""
@@ -219,9 +222,9 @@ def to_df(
     if backend_impl.is_pandas_like() and is_masked and use_nullable_int:
         for name in masked_cols:
             dtype = array[name].dtype
-            if dtype.kind in "iu":
-                new_dtype = dtype.name.replace("i", "I").replace("u", "U")
-                df_native[name] = df_native[name].astype(new_dtype)
+            if (dtype := array[name].dtype).kind not in INTEGER_DTYPE_KINDS:
+                continue
+            df_native[name] = df_native[name].astype(dtype.title())
 
     # Pandas-like index
     if index:
