@@ -174,7 +174,7 @@ def to_df(
         raise ValueError("Must export to eager compatible DataFrame")
 
     # Handle index argument
-    index = _handle_index_argument(table, index, backend_impl)
+    index = _handle_index_argument(table, index=index, backend_impl=backend_impl)
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
@@ -201,7 +201,8 @@ def to_df(
                 (
                     nw.when(
                         nw.from_numpy(
-                            array[n].mask.reshape(-1, 1), backend=backend_impl
+                            array[n].mask[:, None],  # Reshape into column vector
+                            backend=backend_impl,
                         )[:, 0]
                     )
                     .then(None)
@@ -361,7 +362,7 @@ def to_pandas(
 
     # Handle index argument (pandas-specific logic)
     index = _handle_index_argument(
-        table, index, PANDAS_LIKE
+        table, index=index, backend_impl=PANDAS_LIKE
     )  # PANDAS_LIKE for pandas validation
 
     # Encode mixins and validate columns
