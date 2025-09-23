@@ -18,6 +18,8 @@ from astropy.utils.compat.optional_deps import HAS_NARWHALS
 
 from .column import Column, MaskedColumn
 
+__all__ = ["from_df", "from_pandas", "to_df", "to_pandas"]
+
 if TYPE_CHECKING:
     from units.typing import UnitLike
 
