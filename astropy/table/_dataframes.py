@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from astropy.utils.compat.optional_deps import HAS_NARWHALS
+from astropy.utils.compat.optional_deps import HAS_NARWHALS, HAS_PANDAS
 
 from .column import Column, MaskedColumn
 
@@ -81,12 +81,11 @@ def _get_backend_impl(backend: str | types.ModuleType):
     if not isinstance(backend, (str, types.ModuleType)):
         raise TypeError("backend must be a string or module")
 
-    try:
-        import narwhals as nw
-    except ImportError:
+    if not HAS_NARWHALS:
         raise ImportError(
             "The narwhals library is required for generic DataFrame conversion."
         )
+    import narwhals as nw
 
     return nw.Implementation.from_backend(backend)
 
@@ -259,9 +258,18 @@ def from_df(
     """Create a Table from any narwhals-compatible DataFrame."""
     from .table import Table
 
-    try:
-        import narwhals as nw
-    except ImportError:
+    if not HAS_NARWHALS:
+        raise ModuleNotFoundError(
+            "The narwhals library is required for the generic from_df method. "
+            "If you want to only convert from pandas, use the `from_pandas` method instead."
+        )
+    import narwhals as nw
+
+    # Create output
+    out = OrderedDict()
+
+    # Handle pandas index
+    if index:
         raise ImportError(
             "The narwhals library is required for the generic from_df method. "
             "If you want to only convert from pandas, use the `from_pandas` method instead."
@@ -363,13 +371,12 @@ def to_pandas(
     This mirrors the previous DataFrameConverter.to_pandas method but as a
     module-level function.
     """
-    try:
-        from pandas import DataFrame, Series
-    except ImportError:
-        raise ImportError(
+    if not HAS_PANDAS:
+        raise ModuleNotFoundError(
             "pandas is required for to_pandas conversion. "
             "Install with: pip install pandas"
         )
+    from pandas import DataFrame, Series
 
     # Handle index argument (pandas-specific logic)
     index = _handle_index_argument(
