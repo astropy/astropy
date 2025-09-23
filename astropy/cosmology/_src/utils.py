@@ -3,7 +3,6 @@
 __all__: list[str] = []  # nothing is publicly scoped
 
 import functools
-import operator
 from collections.abc import Callable
 from numbers import Number
 from typing import Any, ParamSpec, Protocol, TypeVar
@@ -92,12 +91,6 @@ def aszarr(
         return z
     # not one of the preferred types: Number / array ducktype
     return Quantity(z, cu.redshift).value
-
-
-def all_cls_vars(obj: object | type, /) -> dict[str, Any]:
-    """Return all variables in the whole class hierarchy."""
-    cls = obj if isinstance(obj, type) else obj.__class__
-    return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))
 
 
 def deprecated_keywords(
