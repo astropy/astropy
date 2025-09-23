@@ -32,6 +32,15 @@ PANDAS_LIKE = object()
 INTEGER_DTYPE_KINDS = frozenset({"u", "i"})
 
 
+def _numpy_to_pandas_dtype(dtype: np.dtype) -> str:
+    """Convert a numpy dtype to a pandas dtype string, handling nullable integers."""
+    dtype_name = dtype.name
+    # Special case needed for uint -> UInt
+    if dtype_name.startswith("uint"):
+        return "UI" + dtype_name[2:]
+    return dtype.name.title()
+
+
 def _encode_mixins(tbl: "Table") -> "Table":
     """Encode mixin columns to basic columns for DataFrame compatibility."""
     from astropy.time import TimeBase, TimeDelta
@@ -234,13 +243,7 @@ def to_df(
             if (dtype := array[name].dtype).kind not in INTEGER_DTYPE_KINDS:
                 continue
 
-            # Convert to Pandas dtype names from Numpy names
-            # Special case needed for uint -> UInt
-            df_native[name] = df_native[name].astype(
-                "UI" + dtype.name[2:]
-                if dtype.name.startswith("uint")
-                else dtype.name.title()
-            )
+            df_native[name] = df_native[name].astype(_numpy_to_pandas_dtype(dtype))
 
     # Pandas-like index
     if index:
