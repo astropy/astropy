@@ -172,16 +172,15 @@ def to_df(
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
-    is_masked = tbl.has_masked_columns
     _validate_columns_for_backend(tbl, backend_impl=backend_impl)
 
     # Convert to narwhals DataFrame
     array = tbl.as_array()
-    array_dict = {n: array[n].data if is_masked else array[n] for n in tbl.colnames}
+    array_dict = {n: array[n].data if tbl.has_masked_columns else array[n] for n in tbl.colnames}
     df_nw = nw.from_dict(array_dict, backend=backend_impl)
 
     # Handle masked columns
-    if is_masked:
+    if tbl.has_masked_columns:
         masked_cols = [
             name
             for name, col in tbl.columns.items()
@@ -218,7 +217,7 @@ def to_df(
     df_native = df_nw.to_native()
 
     # Fix pandas-like nullable integers
-    if backend_impl.is_pandas_like() and is_masked and use_nullable_int:
+    if backend_impl.is_pandas_like() and tbl.has_masked_columns and use_nullable_int:
         for name in masked_cols:
             dtype = array[name].dtype
             if (dtype := array[name].dtype).kind not in INTEGER_DTYPE_KINDS:
