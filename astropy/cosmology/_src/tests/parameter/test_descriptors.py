@@ -8,8 +8,7 @@ from typing import ClassVar
 import pytest
 
 from astropy.cosmology import Cosmology, Parameter
-from astropy.cosmology._src.parameter.descriptors import ParametersAttribute
-from astropy.cosmology._src.utils import all_cls_vars
+from astropy.cosmology._src.parameter import ParametersAttribute, all_parameters
 
 
 class Obj:
@@ -102,8 +101,8 @@ class ParametersAttributeTestMixin:
         assert all(isinstance(p, Parameter) for p in parameters.values())
         assert set(parameters) == {
             k
-            for k, v in all_cls_vars(cosmo_cls).items()
-            if (isinstance(v, Parameter) and (v.derived == ("derived" in name)))
+            for k, v in all_parameters(cosmo_cls).items()
+            if v.derived == ("derived" in name)
         }
 
     @pytest.mark.parametrize("name", ["parameters", "_derived_parameters"])
@@ -117,8 +116,8 @@ class ParametersAttributeTestMixin:
         # Test keys
         assert set(parameters) == {
             k
-            for k, v in all_cls_vars(cosmo).items()
-            if (isinstance(v, Parameter) and (v.derived == ("derived" in name)))
+            for k, v in all_parameters(cosmo).items()
+            if (v.derived == ("derived" in name))
         }
 
     @pytest.mark.parametrize("name", ["parameters", "_derived_parameters"])
