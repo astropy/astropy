@@ -467,7 +467,9 @@ def from_pandas(
         units = [None] * len(names)
     else:
         if not isinstance(units, Mapping):
-            raise TypeError('Expected a Mapping "column-name" -> "unit"')
+            raise TypeError(
+                f"Expected a Mapping from column-names to units. Got {units!r} with type {type(units)}"
+            )
 
         not_found = set(units.keys()) - set(names)
         if not_found:
