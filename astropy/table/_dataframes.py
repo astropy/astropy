@@ -296,7 +296,9 @@ def from_df(
     if units is None:
         units = {}
     elif not isinstance(units, Mapping):
-        raise TypeError(f"Expected a Mapping from column-names to units. Got {units!r} with type {type(units)}")
+        raise TypeError(
+            f"Expected a Mapping from column-names to units. Got {units!r} with type {type(units)}"
+        )
 
     # Iterate over Narwhals columns
     for column in df_nw.iter_columns():
@@ -304,8 +306,14 @@ def from_df(
         data = column.to_numpy()
         name = column.name
         dtype = column.dtype
-        mask = column.is_null().to_numpy()
         unit = units.get(name)
+
+        # Check if the column has masked values
+        if not (nw_mask := column.mask).is_null().any():
+            out[name] = Column(data=data, unit=unit, copy=False)
+
+        # Convert mask to numpy
+        mask = nw_mask.to_numpy()
 
         if isinstance(dtype, nw.Int128):
             raise ValueError(
@@ -331,7 +339,9 @@ def from_df(
         elif isinstance(dtype, nw.Duration):
             from astropy.time import TimeDelta
 
-            duration = data.astype("timedelta64[ns]").astype(np.float64, copy=False) / 1e9
+            duration = (
+                data.astype("timedelta64[ns]").astype(np.float64, copy=False) / 1e9
+            )
             out[name] = TimeDelta(duration, format="sec")
             if mask.any():
                 out[name][mask] = np.ma.masked
@@ -350,10 +360,7 @@ def from_df(
                     # to ensure numpy initializes to string or bytes correctly.
                     data = np.array([b"" if m else d for (d, m) in zip(data, mask)])
 
-        if mask.any():
-            out[name] = MaskedColumn(data=data, mask=mask, unit=unit, copy=False)
-        else:
-            out[name] = Column(data=data, unit=unit, copy=False)
+        out[name] = MaskedColumn(data=data, mask=mask, unit=unit, copy=False)
 
     return Table(out)
 
