@@ -78,8 +78,8 @@ dataframe = [
     "pyarrow>=11.0.0",
     "pandas>=2.0",
     "polars>=1.0",
-    "duckdb>=1.0",
-    "dask>=2024.11.1"
+    "duckdb>=1.1",
+    "dask[array]>=2022.5.1"
 ]
 # This is ALL the run-time optional dependencies.
 all = [
