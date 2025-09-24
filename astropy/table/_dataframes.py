@@ -281,7 +281,7 @@ def from_df(
             raise ValueError(
                 "The input dataframe does not have an index. "
                 "Are you trying to convert a non-pandas dataframe? "
-                "Set `index=False` to avoid this error."
+                "Set `index=False` (or leave it unspecified) to avoid this error."
             )
         index_name = df.index.name or "index"
         while index_name in df.columns:
@@ -297,9 +297,8 @@ def from_df(
     if units is None:
         units = {}
     elif not isinstance(units, Mapping):
-        raise TypeError('Expected a Mapping "column-name" -> "unit"')
-    not_found = set(units.keys()) - set(df_nw.columns)
-    if not_found:
+        raise TypeError(f"Expected a Mapping from column-names to units. Got {units!r} with type {type(units)}')
+    if (not_found := set(units).difference(df_nw.columns)):
         warnings.warn(f"`units` contains additional columns: {not_found}")
 
     # Iterate over Narwhals columns
@@ -313,7 +312,7 @@ def from_df(
 
         if isinstance(dtype, nw.Int128):
             raise ValueError(
-                "Numpy and astropy Table do not support Int128, please use a smaller integer type."
+                "Astropy Table does not support Int128, please use a smaller integer type."
             )
 
         # Handle nullable integers
@@ -335,7 +334,7 @@ def from_df(
         elif isinstance(dtype, nw.Duration):
             from astropy.time import TimeDelta
 
-            duration = data.astype("timedelta64[ns]").astype(np.float64) / 1e9
+            duration = data.astype("timedelta64[ns]").astype(np.float64, copy=False) / 1e9
             out[name] = TimeDelta(duration, format="sec")
             if mask.any():
                 out[name][mask] = np.ma.masked
