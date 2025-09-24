@@ -82,7 +82,7 @@ def _get_backend_impl(backend: str | types.ModuleType):
         raise TypeError("backend must be a string or module")
 
     if not HAS_NARWHALS:
-        raise ImportError(
+        raise ModuleNotFoundError(
             "The narwhals library is required for generic DataFrame conversion."
         )
     import narwhals as nw
@@ -264,16 +264,6 @@ def from_df(
             "If you want to only convert from pandas, use the `from_pandas` method instead."
         )
     import narwhals as nw
-
-    # Create output
-    out = OrderedDict()
-
-    # Handle pandas index
-    if index:
-        raise ImportError(
-            "The narwhals library is required for the generic from_df method. "
-            "If you want to only convert from pandas, use the `from_pandas` method instead."
-        )
 
     # Create output
     out = OrderedDict()
