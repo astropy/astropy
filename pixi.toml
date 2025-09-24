@@ -1,0 +1,16 @@
+[workspace]
+authors = ["TheSkyentist <raphael.hviding@gmail.com>"]
+channels = ["conda-forge"]
+name = "astropy"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = ">=3.13.7,<3.14"
+duckdb = "<=1.2"
+dask = "<=2024.11.100"
+
+[pypi-dependencies]
+astropy = { path = '.', extras = ['dev_all'], editable = true }

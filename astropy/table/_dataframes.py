@@ -299,6 +299,9 @@ def from_df(
         raise TypeError(
             f"Expected a Mapping from column-names to units. Got {units!r} with type {type(units)}"
         )
+    not_found = set(units.keys()) - set(df_nw.columns)
+    if not_found:
+        warnings.warn(f"`units` contains additional columns: {not_found}")
 
     # Iterate over Narwhals columns
     for column in df_nw.iter_columns():
@@ -306,14 +309,8 @@ def from_df(
         data = column.to_numpy()
         name = column.name
         dtype = column.dtype
+        nw_mask = column.is_null()
         unit = units.get(name)
-
-        # Check if the column has masked values
-        if not (nw_mask := column.mask).is_null().any():
-            out[name] = Column(data=data, unit=unit, copy=False)
-
-        # Convert mask to numpy
-        mask = nw_mask.to_numpy()
 
         if isinstance(dtype, nw.Int128):
             raise ValueError(
@@ -321,9 +318,11 @@ def from_df(
             )
 
         # Handle nullable integers
-        if dtype.is_integer() and mask.any():
+        if dtype.is_integer() and nw_mask.any():
             nullfilled = column.fill_null(0).to_numpy()
-            out[name] = MaskedColumn(data=nullfilled, mask=mask, unit=unit, copy=False)
+            out[name] = MaskedColumn(
+                data=nullfilled, mask=nw_mask.to_numpy(), unit=unit, copy=False
+            )
             continue
 
         # Handle datetime columns
@@ -343,8 +342,8 @@ def from_df(
                 data.astype("timedelta64[ns]").astype(np.float64, copy=False) / 1e9
             )
             out[name] = TimeDelta(duration, format="sec")
-            if mask.any():
-                out[name][mask] = np.ma.masked
+            if nw_mask.any():
+                out[name][nw_mask.to_numpy()] = np.ma.masked
             continue
 
         # Handle string-like columns
@@ -358,9 +357,16 @@ def from_df(
                     # upcast to str/unicode as needed. We go via a list to
                     # avoid replacing objects in a view of the pandas array and
                     # to ensure numpy initializes to string or bytes correctly.
-                    data = np.array([b"" if m else d for (d, m) in zip(data, mask)])
+                    data = np.array(
+                        [b"" if m else d for (d, m) in zip(data, nw_mask.to_numpy())]
+                    )
 
-        out[name] = MaskedColumn(data=data, mask=mask, unit=unit, copy=False)
+        if nw_mask.any():
+            out[name] = MaskedColumn(
+                data=data, mask=nw_mask.to_numpy(), unit=unit, copy=False
+            )
+        else:
+            out[name] = Column(data=data, unit=unit, copy=False)
 
     return Table(out)
 
@@ -450,7 +456,7 @@ def from_pandas(
     masks = [np.array(column.isnull()) for column in columns]
 
     if index:
-        index_name = str(dataframe.index.name or "index")
+        index_name = dataframe.index.name or "index"
         while index_name in names:
             index_name = "_" + index_name + "_"
         names.insert(0, index_name)
@@ -462,9 +468,7 @@ def from_pandas(
         units = [None] * len(names)
     else:
         if not isinstance(units, Mapping):
-            raise TypeError(
-                f"Expected a Mapping from column-names to units. Got {units!r} with type {type(units)}"
-            )
+            raise TypeError('Expected a Mapping "column-name" -> "unit"')
 
         not_found = set(units.keys()) - set(names)
         if not_found:
