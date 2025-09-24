@@ -296,9 +296,7 @@ def from_df(
     if units is None:
         units = {}
     elif not isinstance(units, Mapping):
-        raise TypeError(f"Expected a Mapping from column-names to units. Got {units!r} with type {type(units)}')
-    if (not_found := set(units).difference(df_nw.columns)):
-        warnings.warn(f"`units` contains additional columns: {not_found}")
+        raise TypeError(f"Expected a Mapping from column-names to units. Got {units!r} with type {type(units)}")
 
     # Iterate over Narwhals columns
     for column in df_nw.iter_columns():
