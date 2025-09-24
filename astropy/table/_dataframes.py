@@ -8,7 +8,6 @@ library.
 
 import types
 import warnings
-from collections import OrderedDict
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, NewType
 
@@ -273,7 +272,7 @@ def from_df(
     import narwhals as nw
 
     # Create output
-    out = OrderedDict()
+    out = {}
 
     # Handle pandas index
     if index:
@@ -386,7 +385,7 @@ def to_pandas(
     tbl = _encode_mixins(table)
     _validate_columns_for_backend(tbl, backend_impl=PANDAS_LIKE)  # pandas validation
 
-    out = OrderedDict()
+    out = {}
 
     for name, column in tbl.columns.items():
         if getattr(column.dtype, "isnative", True):
@@ -439,7 +438,7 @@ def from_pandas(
     """Create a Table from a pandas DataFrame."""
     from .table import Table
 
-    out = OrderedDict()
+    out = {}
 
     names = list(dataframe.columns)
     columns = [dataframe[name] for name in names]
