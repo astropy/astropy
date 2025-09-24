@@ -19,6 +19,7 @@ _optional_deps = [
     "bz2",  # stdlib
     "certifi",
     "dask",
+    "duckdb",
     "fsspec",
     "h5py",
     "html5lib",

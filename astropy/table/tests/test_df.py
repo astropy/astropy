@@ -9,6 +9,8 @@ from astropy import units as u
 from astropy.table import MaskedColumn, Table
 from astropy.time import Time, TimeDelta
 from astropy.utils.compat.optional_deps import (
+    HAS_DASK,
+    HAS_DUCKDB,
     HAS_NARWHALS,
     HAS_PANDAS,
     HAS_POLARS,
@@ -54,6 +56,24 @@ from .conftest import MIXIN_COLS
             ),
             id="pyarrow-generic",
         ),
+        pytest.param(
+            "dask",
+            False,
+            marks=pytest.mark.skipif(
+                not HAS_NARWHALS or not HAS_DASK,
+                reason="requires narwhals and dask",
+            ),
+            id="dask-generic",
+        ),
+        pytest.param(
+            "duckdb",
+            False,
+            marks=pytest.mark.skipif(
+                not HAS_NARWHALS or not HAS_DUCKDB,
+                reason="requires narwhals and duckdb",
+            ),
+            id="duckdb-generic",
+        ),
     ],
 )
 class TestDataFrameConversion:
@@ -67,6 +87,11 @@ class TestDataFrameConversion:
                     "Legacy conversion is only supported for the pandas backend."
                 )
             return table.to_pandas(**kwargs)
+
+        # Lazy backends cannot be exported to
+        if backend in ("dask", "duckdb"):
+            pytest.skip("Lazy backends cannot be converted back to Table")
+
         return table.to_df(backend, **kwargs)
 
     def _from_dataframe(self, df, backend, use_legacy, **kwargs):
@@ -189,6 +214,10 @@ class TestDataFrameConversion:
                 ):
                     self._to_dataframe(t, backend, use_legacy, index="tm")
                 return
+            case "dask" | "duckdb":
+                # Lazy backends will raise ValueError in _to_dataframe
+                self._to_dataframe(t, backend, use_legacy)
+                return
             case _:
                 raise ValueError(f"Unknown backend: {backend}")
 
@@ -226,6 +255,10 @@ class TestDataFrameConversion:
                 ):
                     self._to_dataframe(t, backend, use_legacy, index="tm")
                 return
+            case "dask" | "duckdb":
+                # Lazy backends will raise ValueError in _to_dataframe
+                self._to_dataframe(t, backend, use_legacy, index="tm")
+                return
             case "pandas":
                 tp = self._to_dataframe(t, backend, use_legacy, index="tm")
             case _:
@@ -240,20 +273,36 @@ class TestDataFrameConversion:
 
     def test_units(self, backend, use_legacy):
         """Test handling of units in from_dataframe conversion."""
-        df = {"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]}
+        data = {"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]}
         match backend:
             case "pandas":
                 import pandas as pd
 
-                df = pd.DataFrame(df)
+                df = pd.DataFrame(data)
             case "polars":
                 import polars as pl
 
-                df = pl.DataFrame(df)
+                df = pl.DataFrame(data)
             case "pyarrow":
                 import pyarrow as pa
 
-                df = pa.Table.from_pydict(df)
+                df = pa.Table.from_pydict(data)
+            case "dask":
+                import dask.array as da
+                import dask.dataframe as dd
+
+                # Need to aggregate data into 2D dask array
+                df = dd.from_dask_array(
+                    da.stack(list(data.values()), axis=1), columns=list(data.keys())
+                )
+            case "duckdb":
+                import io
+                import json
+
+                import duckdb
+
+                # DuckDB can't read directly from dict, need to stream via JSON
+                df = duckdb.read_json(io.StringIO(json.dumps(data)))
             case _:
                 raise ValueError(f"Unknown backend: {backend}")
 
@@ -307,6 +356,10 @@ class TestDataFrameConversion:
                     ):
                         self._to_dataframe(t, backend, use_legacy)
                     return
+            case "dask" | "duckdb":
+                # Lazy backends will raise ValueError in _to_dataframe
+                self._to_dataframe(t, backend, use_legacy)
+                return
             case "polars":
                 df = self._to_dataframe(t, backend, use_legacy)
                 # Convert and check shape
