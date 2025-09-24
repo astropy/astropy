@@ -217,10 +217,9 @@ def to_df(
             [
                 (
                     nw.when(
-                        nw.from_numpy(
-                            array[n].mask[:, None],  # Reshape into column vector
-                            backend=backend_impl,
-                        )[:, 0]
+                        nw.new_series(
+                            name="", values=array[n].mask, backend=backend_impl
+                        )
                     )
                     .then(None)
                     .otherwise(nw.col(n))
