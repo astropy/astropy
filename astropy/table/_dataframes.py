@@ -214,11 +214,7 @@ def to_df(
         old_dtypes = {n: df_nw[n].dtype for n in masked_cols}
 
         df_nw = df_nw.with_columns(
-            (
-                nw.when(
-                    ~nw.Series.from_numpy(n, array[n].mask, backend=backend_impl)
-                ).then(n)
-            )
+            (nw.when(~nw.new_series(n, array[n].mask, backend=backend_impl)).then(n))
             for n in masked_cols
         )
 
