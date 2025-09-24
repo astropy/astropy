@@ -282,7 +282,7 @@ def from_df(
                 "Are you trying to convert a non-pandas dataframe? "
                 "Set `index=False` (or leave it unspecified) to avoid this error."
             )
-        index_name = df.index.name or "index"
+        index_name = str(df.index.name or "index")
         while index_name in df.columns:
             index_name = "_" + index_name + "_"
         df.reset_index(index_name, inplace=True, drop=False)
@@ -450,7 +450,7 @@ def from_pandas(
     masks = [np.array(column.isnull()) for column in columns]
 
     if index:
-        index_name = dataframe.index.name or "index"
+        index_name = str(dataframe.index.name or "index")
         while index_name in names:
             index_name = "_" + index_name + "_"
         names.insert(0, index_name)
@@ -462,7 +462,9 @@ def from_pandas(
         units = [None] * len(names)
     else:
         if not isinstance(units, Mapping):
-            raise TypeError('Expected a Mapping "column-name" -> "unit"')
+            raise TypeError(
+                f"Expected a Mapping from column-names to units. Got {units!r} with type {type(units)}"
+            )
 
         not_found = set(units.keys()) - set(names)
         if not_found:
