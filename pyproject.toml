@@ -130,6 +130,7 @@ test_all = [
 ]
 typing = [
     "pandas-stubs>=2.0",
+    "narwhals>=1.42"
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies

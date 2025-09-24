@@ -10,7 +10,7 @@ import types
 import warnings
 from collections import OrderedDict
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NewType
 
 import numpy as np
 
@@ -21,12 +21,14 @@ from .column import Column, MaskedColumn
 __all__ = ["from_df", "from_pandas", "to_df", "to_pandas"]
 
 if TYPE_CHECKING:
+    import narwhals as nw
     from units.typing import UnitLike
 
     from .table import Table
 
 # Sentinel value to indicate pandas-like backend validation
-PANDAS_LIKE = object()
+PandasLikeSentinel = NewType("PandasLikeSentinel", object)  # Custom type
+PANDAS_LIKE: PandasLikeSentinel = PandasLikeSentinel(object())
 
 # Fixed set of integer dtypes
 INTEGER_DTYPE_KINDS = frozenset({"u", "i"})
@@ -90,7 +92,7 @@ def _get_backend_impl(backend: str | types.ModuleType):
     return nw.Implementation.from_backend(backend)
 
 
-def _is_pandas_like(backend_impl: Any) -> bool:
+def _is_pandas_like(backend_impl: "nw.Implementation" | PandasLikeSentinel) -> bool:
     return backend_impl is PANDAS_LIKE or (
         not isinstance(backend_impl, str)
         and getattr(backend_impl, "is_pandas_like", lambda: False)()
@@ -98,7 +100,9 @@ def _is_pandas_like(backend_impl: Any) -> bool:
 
 
 def _validate_columns_for_backend(
-    table: "Table", *, backend_impl: Any = PANDAS_LIKE
+    table: "Table",
+    *,
+    backend_impl: "nw.Implementation" | PandasLikeSentinel = PANDAS_LIKE,
 ) -> None:
     """Validate that table columns are compatible with the target backend.
 
@@ -127,7 +131,10 @@ def _validate_columns_for_backend(
 
 
 def _handle_index_argument(
-    table: "Table", *, index: bool | str | None, backend_impl: Any
+    table: "Table",
+    *,
+    index: bool | str | None,
+    backend_impl: "nw.Implementation" | PandasLikeSentinel,
 ) -> bool | str:
     """Process the index argument for DataFrame conversion."""
     if index is False:
