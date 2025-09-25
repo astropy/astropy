@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import erfa
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import earth_orientation as earth
 from astropy.coordinates.attributes import TimeAttribute
 from astropy.coordinates.baseframe import base_doc, frame_transform_graph
+from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.representation import (
     CartesianRepresentation,
     UnitSphericalRepresentation,
@@ -14,6 +15,7 @@ from astropy.coordinates.transformations import (
     DynamicMatrixTransform,
     FunctionTransformWithFiniteDifference,
 )
+from astropy.time import Time
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import format_doc
 
@@ -22,6 +24,7 @@ from .utils import EQUINOX_B1950
 
 __all__ = ["FK4", "FK4NoETerms"]
 
+jd1950 = Time("B1950").jd
 
 doc_footer_fk4 = """
     Other parameters
@@ -99,7 +102,34 @@ class FK4NoETerms(BaseRADecFrame):
         newcoord : array
             The precession matrix to transform to the new equinox
         """
-        return earth._precession_matrix_besselian(oldequinox.byear, newequinox.byear)
+        # tropical years
+        t1 = (oldequinox.byear - 1850.0) / 1000.0
+        t2 = (newequinox.byear - 1850.0) / 1000.0
+        dt = t2 - t1
+
+        zeta1 = 23035.545 + t1 * 139.720 + 0.060 * t1 * t1
+        zeta2 = 30.240 - 0.27 * t1
+        zeta3 = 17.995
+        pzeta = (zeta3, zeta2, zeta1, 0)
+        zeta = np.polyval(pzeta, dt) / 3600
+
+        z1 = 23035.545 + t1 * 139.720 + 0.060 * t1 * t1
+        z2 = 109.480 + 0.39 * t1
+        z3 = 18.325
+        pz = (z3, z2, z1, 0)
+        z = np.polyval(pz, dt) / 3600
+
+        theta1 = 20051.12 - 85.29 * t1 - 0.37 * t1 * t1
+        theta2 = -42.65 - 0.37 * t1
+        theta3 = -41.8
+        ptheta = (theta3, theta2, theta1, 0)
+        theta = np.polyval(ptheta, dt) / 3600
+
+        return (
+            rotation_matrix(-z, "z")
+            @ rotation_matrix(theta, "y")
+            @ rotation_matrix(-zeta, "z")
+        )
 
 
 # the "self" transform
@@ -129,16 +159,15 @@ def fk4_e_terms(equinox):
     k = 0.0056932  # in degrees (v_earth/c ~ 1e-4 rad ~ 0.0057 deg)
     k = np.radians(k)
 
+    # Explanatory Supplement to the Astronomical Almanac: P. Kenneth
+    #  Seidelmann (ed), University Science Books (1992).
+    T = (equinox.jd - jd1950) / 36525.0
     # Eccentricity of the Earth's orbit
-    e = earth.eccentricity(equinox.jd)
-
+    e = np.polyval((-0.000000126, -0.00004193, 0.01673011), T)
     # Mean longitude of perigee of the solar orbit
-    g = earth.mean_lon_of_perigee(equinox.jd)
-    g = np.radians(g)
-
+    g = np.radians(np.polyval((0.012, 1.65, 6190.67, 1015489.951), T) / 3600.0)
     # Obliquity of the ecliptic
-    o = earth.obliquity(equinox.jd, algorithm=1980)
-    o = np.radians(o)
+    o = erfa.obl80(equinox.jd, 0)
 
     return (
         e * k * np.sin(g),
