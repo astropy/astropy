@@ -989,8 +989,6 @@ class TableLoc:
             raise ValueError("Can only use TableLoc for a table with indices")
 
         index = self.indices[key]
-        if len(index.columns) > 1:
-            raise ValueError("Cannot use .loc on multi-column indices")
 
         if isinstance(item, slice):
             # None signifies no upper/lower bound
@@ -1003,7 +1001,7 @@ class TableLoc:
             # item should be a list or ndarray of values
             rows = []
             for index_key in item:
-                p = index.find((index_key,))
+                p = index.find(key if isinstance(index_key, tuple) else (index_key,))
                 if len(p) == 0:
                     raise KeyError(f"No matches found for key {index_key}")
                 else:
@@ -1017,22 +1015,32 @@ class TableLoc:
         """
         # This handles ``tbl.loc[<item>]`` and ``tbl.loc[<key>, <item>]`` (and the same
         # for ``tbl.loc_indices``).
-        if isinstance(item, tuple):
-            key, item = item
-        else:
-            key = self.table.primary_key
+        match item:
+            case (index_id, loc_item):
+                # variables are already bound by the `case` statement
+                # nothing more to be done
+                pass
+            case tuple():
+                raise ValueError(
+                    "If a tuple is provided to .loc[], it must be of the form "
+                    "(index_identifier, loc_item), where index_identifier specifies "
+                    "the table index and loc_item is a value, list of values or slice."
+                )
+            case _:
+                index_id = self.table.primary_key
+                loc_item = item
 
-        item_is_sequence = isinstance(item, (list, np.ndarray))
+        item_is_sequence = isinstance(loc_item, (list, np.ndarray))
 
         # Short-circuit for case like tbl.loc[[]], returns tbl[[]]
-        if item_is_sequence and len(item) == 0:
+        if item_is_sequence and len(loc_item) == 0:
             return []
 
-        rows = self._get_row_idxs_as_list(key, item)
+        rows = self._get_row_idxs_as_list(index_id, loc_item)
         # If ``item`` is a sequence of keys or a slice then always returns a list of
         # rows, where zero rows is OK. Otherwise check output and possibly return a
         # scalar.
-        if not (item_is_sequence or isinstance(item, slice)) and len(rows) == 1:
+        if not (item_is_sequence or isinstance(loc_item, slice)) and len(rows) == 1:
             rows = rows[0]
 
         return rows
