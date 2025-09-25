@@ -272,7 +272,7 @@ def extract_array(
 
     # Extracting on the edges is presumably a rare case, so treat special here
     if (extracted_array.shape != shape) and (mode == "partial"):
-        extracted_array = np.zeros(shape, dtype=array_large.dtype)
+        extracted_array = np.zeros(shape, dtype=extracted_array.dtype)
         try:
             extracted_array[:] = fill_value
         except ValueError as exc:
