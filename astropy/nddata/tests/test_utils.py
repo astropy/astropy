@@ -747,3 +747,27 @@ def test_cutout_section(tmp_path):
 
         # Partial cutout
         c = Cutout2D(hdul[1].section, (75, 75), 100 * u.pix, mode="partial")
+
+
+def test_cutout_section_with_bzero_bscale_blank(tmp_path):
+    # Make sure that one can pass ImageHDU.section and CompImageHDU.section
+    # to Cutout2D
+
+    data = (np.arange(200 * 200).reshape(200, 200) - 20_000).astype(np.int16)
+    hdu = fits.ImageHDU(data=data)
+    hdu._scale_internal(bzero=1.234, bscale=0.0002, blank=32767)
+    hdu.writeto(tmp_path / "uncompressed.fits")
+
+    position, size = (25, 25), 100 * u.pix
+
+    with fits.open(tmp_path / "uncompressed.fits") as hdul:
+        # Partial cutout
+        c = Cutout2D(hdul[1].section, position, size, mode="partial")
+
+    chdu = fits.CompImageHDU(data=data)
+    chdu._scale_internal(bzero=1.234, bscale=0.0002, blank=32767)
+    chdu.writeto(tmp_path / "compressed.fits")
+
+    with fits.open(tmp_path / "compressed.fits") as hdul:
+        # Partial cutout
+        c = Cutout2D(hdul[1].section, position, size, mode="partial")
