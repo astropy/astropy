@@ -5,7 +5,7 @@ from numbers import Number
 
 import numpy as np
 from numpy import log
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 
 # isort: split
 from astropy.cosmology._src.core import dataclass_decorator
@@ -241,28 +241,17 @@ class LambdaCDM(FLRW):
         b = -(27.0 / 2) * self.Om0**2 * self.Ode0 / self.Ok0**3
         kappa = b / abs(b)
         if (b < 0) or (2 < b):
-
-            def phi_z(Om0, Ok0, kappa, y1, A, z, /):
-                return np.arccos(
-                    ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 - A)
-                    / ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 + A)
-                )
-
             v_k = pow(kappa * (b - 1) + sqrt(b * (b - 2)), 1.0 / 3)
             y1 = (-1 + kappa * (v_k + 1 / v_k)) / 3
             A = sqrt(y1 * (3 * y1 + 2))
             g = 1 / sqrt(A)
             k2 = (2 * A + kappa * (1 + 3 * y1)) / (4 * A)
+            phi_z1 = phi_amplitude_b_outside(self.Om0, self.Ok0, kappa, y1, A, z1)
+            phi_z2 = phi_amplitude_b_outside(self.Om0, self.Ok0, kappa, y1, A, z2)
 
-            phi_z1 = phi_z(self.Om0, self.Ok0, kappa, y1, A, z1)
-            phi_z2 = phi_z(self.Om0, self.Ok0, kappa, y1, A, z2)
         # Get lower-right 0<b<2 solution in Om0, Ode0 plane.
         # For the upper-left 0<b<2 solution the Big Bang didn't happen.
         elif (0 < b < 2) and self.Om0 > self.Ode0:
-
-            def phi_z(Om0, Ok0, y1, y2, z, /):
-                return np.arcsin(np.sqrt((y1 - y2) / ((z + 1.0) * Om0 / abs(Ok0) + y1)))
-
             yb = cos(acos(1 - b) / 3)
             yc = sqrt(3) * sin(acos(1 - b) / 3)
             y1 = (1.0 / 3) * (-1 + yb + yc)
@@ -270,8 +259,9 @@ class LambdaCDM(FLRW):
             y3 = (1.0 / 3) * (-1 + yb - yc)
             g = 2 / sqrt(y1 - y2)
             k2 = (y1 - y3) / (y1 - y2)
-            phi_z1 = phi_z(self.Om0, self.Ok0, y1, y2, z1)
-            phi_z2 = phi_z(self.Om0, self.Ok0, y1, y2, z2)
+            phi_z1 = phi_amplitude_b_inside(self.Om0, self.Ok0, y1, y2, z1)
+            phi_z2 = phi_amplitude_b_inside(self.Om0, self.Ok0, y1, y2, z2)
+
         else:
             return self._integral_comoving_distance_z1z2(z1, z2)
 
@@ -632,6 +622,30 @@ class LambdaCDM(FLRW):
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0) + self.Ode0) ** (-0.5)
+
+
+def phi_amplitude_b_outside(
+    Om0: float, Ok0: float, kappa: float, y1: float, A: float, z: NDArray[np.number], /
+) -> NDArray[np.number]:
+    r"""Phi amplitude for b<0 and b>2 cases.
+
+    In the Kantowski-Kao-Thomas classification this is the "two large domains" with $b
+    \le 0$ or $b \ge 2$, i.e. the one-real-root branch of the cubic (their Case A1).
+    This is the regime treated by their first set of elliptic-integral formulas (eqs.
+    (8)-(13) in II.A.1).
+
+    """
+    return np.arccos(
+        ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 - A)
+        / ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 + A)
+    )
+
+
+def phi_amplitude_b_inside(
+    Om0: float, Ok0: float, y1: float, y2: float, z: NDArray[np.number], /
+) -> NDArray[np.number]:
+    r"""Phi amplitude for 0<b<2 case. See `phi_amplitude_b_outside`."""
+    return np.arcsin(np.sqrt((y1 - y2) / ((z + 1.0) * Om0 / abs(Ok0) + y1)))
 
 
 @dataclass_decorator
