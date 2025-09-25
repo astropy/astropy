@@ -18,6 +18,7 @@ from astropy.coordinates.funcs import (
     get_sun,
 )
 from astropy.time import Time
+from astropy.utils.exceptions import AstropyPendingDeprecationWarning
 
 CARTESIAN_POS = r.CartesianRepresentation([1, 2, 3] * u.kpc)
 CARTESIAN_VEL = r.CartesianDifferential([8, 9, 10] * u.km / u.s)
@@ -126,14 +127,21 @@ def test_concatenate():
     fk5 = FK5(1 * u.deg, 2 * u.deg)
     sc = SkyCoord(3 * u.deg, 4 * u.deg, frame="fk5")
 
-    res = concatenate([fk5, sc])
+    with pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"):
+        res = concatenate([fk5, sc])
     np.testing.assert_allclose(res.ra, [1, 3] * u.deg)
     np.testing.assert_allclose(res.dec, [2, 4] * u.deg)
 
-    with pytest.raises(TypeError):
+    with (
+        pytest.raises(TypeError),
+        pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+    ):
         concatenate(fk5)
 
-    with pytest.raises(TypeError):
+    with (
+        pytest.raises(TypeError),
+        pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+    ):
         concatenate(1 * u.deg)
 
     # positions and velocities
@@ -150,13 +158,20 @@ def test_concatenate():
         pm_dec=23 * u.mas / u.yr,
     )
 
-    res = concatenate([fr, sc])
+    with pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"):
+        res = concatenate([fr, sc])
 
-    with pytest.raises(ValueError):
+    with (
+        pytest.raises(ValueError),
+        pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+    ):
         concatenate([fr, fk5])
 
     fr2 = ICRS(ra=10 * u.deg, dec=11.0 * u.deg)
-    with pytest.raises(ValueError):
+    with (
+        pytest.raises(ValueError),
+        pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+    ):
         concatenate([fr, fr2])
 
 
@@ -181,8 +196,8 @@ def test_concatenate():
 def test_concatenate_representations(rep, n):
     # Test that combining with itself succeeds
     expected_shape = (n * rep.shape[0],) + rep.shape[1:] if rep.shape else (n,)
-
-    tmp = concatenate_representations(n * (rep,))
+    with pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"):
+        tmp = concatenate_representations(n * (rep,))
     assert tmp.shape == expected_shape
 
     if "s" in rep.differentials:
@@ -191,19 +206,29 @@ def test_concatenate_representations(rep, n):
 
 def test_concatenate_representations_invalid_input():
     # Test that combining pairs fails
-    with pytest.raises(TypeError):
+    with (
+        pytest.raises(TypeError),
+        pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+    ):
         concatenate_representations((CARTESIAN_POS, SPHERICAL_POS))
 
-    with pytest.raises(ValueError):
+    with (
+        pytest.raises(ValueError),
+        pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+    ):
         concatenate_representations((CARTESIAN_POS, CARTESIAN_POS_AND_VEL))
 
     # Check that passing in a single object fails
-    with pytest.raises(TypeError):
+    with (
+        pytest.raises(TypeError),
+        pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+    ):
         concatenate_representations(CARTESIAN_POS)
 
 
 def test_concatenate_representations_different_units():
-    concat = concatenate_representations(
-        [r.CartesianRepresentation([1, 2, 3] * unit) for unit in (u.pc, u.kpc)]
-    )
+    with pytest.warns(AstropyPendingDeprecationWarning, match=r"np\.concatenate"):
+        concat = concatenate_representations(
+            [r.CartesianRepresentation([1, 2, 3] * unit) for unit in (u.pc, u.kpc)]
+        )
     assert np.array_equal(concat.xyz, [[1, 1000], [2, 2000], [3, 3000]] * u.pc)
