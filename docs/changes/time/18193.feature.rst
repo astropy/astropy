@@ -1,0 +1,2 @@
+Allow ``np.concatenate``, ``np.stack`` and similar numpy functions to
+be applied on ``Time`` and ``TimeDelta`` instances.
