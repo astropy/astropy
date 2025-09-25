@@ -4,7 +4,6 @@
 import warnings
 from contextlib import contextmanager
 from copy import deepcopy
-from functools import wraps
 
 import numpy as np
 
@@ -83,26 +82,19 @@ class MergeStrategy:
 
     def __init_subclass__(cls):
         members = vars(cls)
-        # Wrap ``merge`` classmethod to catch any exception and re-raise as
-        # MergeConflictError.
-        if isinstance((merge_ := members.get("merge")), classmethod):
-            orig_merge = merge_.__func__
-
-            @wraps(orig_merge)
-            def merge(cls, left, right):
-                try:
-                    return orig_merge(cls, left, right)
-                except Exception as err:
-                    raise MergeConflictError(err)
-
-            cls.merge = classmethod(merge)
-
         # Register merging class (except for base MergeStrategy class)
         if (types := members.get("types")) is not None:
             if isinstance(types, tuple):
                 types = [types]
             for left, right in reversed(types):
                 MERGE_STRATEGIES.insert(0, (left, right, cls))
+
+    @classmethod
+    def _merge(cls, left, right):
+        try:
+            return cls.merge(left, right)
+        except Exception as err:
+            raise MergeConflictError(err)
 
 
 class MergePlus(MergeStrategy):
@@ -283,7 +275,7 @@ def merge(
                     and isinstance(left_val, left_type)
                     and isinstance(right_val, right_type)
                 ):
-                    local_merge_func = merge_cls.merge
+                    local_merge_func = merge_cls._merge
                     break
             else:
                 local_merge_func = _raise_merge_conflict_error
