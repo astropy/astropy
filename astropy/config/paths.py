@@ -168,24 +168,24 @@ class _SetTempPath:
                 path.mkdir(exist_ok=True)
             return path.resolve()
 
-        linkto: Path | None = None
         env_dir = cls._xdg_env_dir
-        if (dir_ := os.getenv(env_dir)) is not None:
-            if (xch := Path(dir_)).is_dir():
-                if not (xchpth := xch / rootname).is_symlink():
-                    xchpth.mkdir(exist_ok=True)
-                    return xchpth.resolve()
+        if (dir_ := os.getenv(env_dir)) is None:
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
 
-                # symlink will be set to this if the directory is created
-                linkto = xchpth
+        if not (xch := Path(dir_)).is_dir():
             warn(
                 f"{env_dir} is set to {dir_!r}, but no such directory was found. "
                 "So, this environment variable is ignored.",
                 category=UserWarning,
                 stacklevel=3,
             )
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
 
-        return cls._find_or_create_root_dir(linkto, rootname)
+        if (xchpth := xch / rootname).is_symlink():
+            return cls._find_or_create_root_dir(linkto=xchpth, pkgname=rootname)
+        else:
+            xchpth.mkdir(exist_ok=True)
+            return xchpth.resolve()
 
     @classmethod
     def _find_or_create_root_dir(
