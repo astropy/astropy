@@ -13,16 +13,20 @@ Environment variables
         This environment variables control where configuration files are read
         and written. Astropy will look for configuration files in
         ``$XDG_CONFIG_HOME/astropy``.
-        If not set, or if ``$XDG_CONFIG_HOME/astropy`` does not exist,
+        If not set, or if ``$XDG_CONFIG_HOME`` does not exist,
         astropy will default to ``$HOME/.astropy/config``.
+        In case ``$XDG_CONFIG_HOME`` does exist, the ``astropy`` sub-directory
+        will be created silently if missing.
         See :ref:`astropy_config` for how to programmatically set or get the
         location of the corresponding directory at runtime.
 
     ``XDG_CACHE_HOME``
         These environment variables control where data files are cached.
         Astropy will cache files in ``$XDG_CACHE_HOME/astropy``.
-        If not set, or if ``$XDG_CACHE_HOME/astropy`` does not exist,
+        If not set, or if ``$XDG_CACHE_HOME`` does not exist,
         astropy will default to ``$HOME/.astropy/cache``.
+        In case ``$XDG_CACHE_HOME`` does exist, the ``astropy`` sub-directory
+        will be created silently if missing.
         See :ref:`utils-data` for how to programmatically set or get the
         location of the corresponding directory at runtime.
 
