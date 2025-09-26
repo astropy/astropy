@@ -1,0 +1,5 @@
+QTable.read and Table now ignore units/descriptions for columns
+that do not exist in the input file, instead of raising a ValueError.
+
+This improves flexibility when reading tables with optional columns
+that may or may not appear in the data. (PR #XXXX)
