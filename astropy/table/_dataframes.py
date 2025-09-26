@@ -7,7 +7,6 @@ library.
 """
 
 import math
-import types
 import warnings
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, NewType
@@ -77,11 +76,11 @@ def _encode_mixins(tbl: "Table") -> "Table":
     return encode_tbl
 
 
-def _get_backend_impl(backend: str | types.ModuleType):
+def _get_backend_impl(backend: str):
     """Get the narwhals backend implementation."""
-    # Ensure backend is string or module
-    if not isinstance(backend, (str, types.ModuleType)):
-        raise TypeError("backend must be a string or module")
+    # Ensure backend is string
+    if not isinstance(backend, str):
+        raise TypeError("backend must be a string")
 
     if not HAS_NARWHALS:
         raise ModuleNotFoundError(
@@ -173,7 +172,7 @@ def _handle_index_argument(
 def to_df(
     table: "Table",
     *,
-    backend: str | types.ModuleType,
+    backend: str,
     index: bool | str | None = None,
     use_nullable_int: bool = True,
 ):

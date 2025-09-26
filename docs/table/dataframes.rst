@@ -56,10 +56,6 @@ Create a table and convert to different DataFrame backends::
     >>> type(df_polars)
     <class 'polars.dataframe.frame.DataFrame'>
 
-    # You can also pass the module directly as a backend
-    >>> import polars as pl
-    >>> df_polars2 = t.to_df(pl)
-
 Create a table from any supported DataFrame::
 
     >>> t2 = Table.from_df(df_pandas)  # From pandas

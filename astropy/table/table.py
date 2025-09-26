@@ -4030,7 +4030,7 @@ class Table:
 
     def to_df(
         self,
-        backend: str | types.ModuleType,
+        backend: str,
         /,
         *,
         index: bool | str | None = None,
@@ -4051,11 +4051,9 @@ class Table:
 
         Parameters
         ----------
-        backend : str or module
-            The backend to use for conversion. This can be:
-
-            - A string, such as "pandas", "polars", or "pyarrow"
-            - The backend module itself (e.g., ``import pandas as pd; backend=pd``)
+        backend : str
+            The backend to use for conversion. This should be a string
+            such as "pandas", "polars", or "pyarrow".
 
         index : None, bool, str, optional
             Specifies the index column in the resulting DataFrame.
@@ -4095,7 +4093,7 @@ class Table:
             >>> dt = TimeDelta([3, 200] * u.s)
 
             >>> t = QTable([q, tm, sc, dt], names=['q', 'tm', 'sc', 'dt'])
-            >>> df = t.to_df(backend='pandas', index='tm')
+            >>> df = t.to_df('pandas', index='tm')
             >>> print(df)
                             q  sc.ra  sc.dec              dt
             tm
