@@ -578,12 +578,14 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
         file-like object's ``read`` method will return `str` (``unicode``)
         objects, decoded from binary using the given encoding.
 
-    cache : bool
+    cache : bool or "update", optional
         If True, the file will be downloaded and saved locally or the
         already-cached local copy will be accessed. If False, the
         file-like object will directly access the resource (e.g. if a
         remote URL is accessed, an object like that from
-        `urllib.request.urlopen` is returned).
+        `urllib.request.urlopen` is returned). If "update",
+        always download the remote URL in case there is a new version
+        and store the result in the cache.
 
     Returns
     -------
@@ -821,12 +823,14 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
         file-like object's ``read`` method will return `str` (``unicode``)
         objects, decoded from binary using the given encoding.
 
-    cache : bool
+    cache : bool or "update", optional
         If True, the file will be downloaded and saved locally or the
         already-cached local copy will be accessed. If False, the
         file-like object will directly access the resource (e.g. if a
         remote URL is accessed, an object like that from
-        `urllib.request.urlopen` is returned).
+        `urllib.request.urlopen` is returned). If "update",
+        always download the remote URL in case there is a new version
+        and store the result in the cache.
 
     Returns
     -------
