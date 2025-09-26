@@ -6,6 +6,7 @@ and various DataFrame formats (pandas, polars, pyarrow, etc) via the narwhals
 library.
 """
 
+import math
 import types
 import warnings
 from collections.abc import Mapping
@@ -340,7 +341,7 @@ def from_df(
                 ts = (str, bytes)
                 # If all elements of an object array are string-like or None or np.nan
                 # then coerce back to a native numpy str/unicode array.
-                if all(isinstance(x, ts) or (x is None) or np.isnan(x) for x in data):
+                if all((x is None) or isinstance(x, ts) or math.isnan(x) for x in data):
                     # Force any missing (null) values to b''.  Numpy will
                     # upcast to str/unicode as needed. We go via a list to
                     # avoid replacing objects in a view of the pandas array and
