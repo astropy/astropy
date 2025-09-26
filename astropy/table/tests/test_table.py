@@ -3099,7 +3099,9 @@ def test_set_units_ignore_missing():
 
     # Now setting a unit for a non-existing column should NOT raise an error
     extra_units = {"x": u.m, "y": u.s, "c": u.kg}  # 'c' does not exist
-    t._set_column_attribute("unit", {k: v for k, v in extra_units.items() if k in t.colnames})
+    t._set_column_attribute(
+        "unit", {k: v for k, v in extra_units.items() if k in t.colnames}
+    )
 
     assert t["x"].unit is u.m
     assert t["y"].unit is u.s
