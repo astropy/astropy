@@ -133,7 +133,9 @@ def get_builtin_sites() -> SiteRegistry:
     return SiteRegistry.from_json(jsondb)
 
 
-def get_downloaded_sites(jsonurl: str | None = None, cache: bool | str = True) -> SiteRegistry:
+def get_downloaded_sites(
+    jsonurl: str | None = None, cache: bool | str = True
+) -> SiteRegistry:
     """
     Load observatory database from ``data.astropy.org`` and parse into a SiteRegistry.
 

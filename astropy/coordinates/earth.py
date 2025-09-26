@@ -574,7 +574,9 @@ class EarthLocation(u.Quantity):
             if force_download or not cls._site_registry:
                 try:
                     if isinstance(force_download, str):
-                        cls._site_registry = get_downloaded_sites(jsonurl=force_download, cache="update")
+                        cls._site_registry = get_downloaded_sites(
+                            jsonurl=force_download, cache="update"
+                        )
                     else:
                         if force_download:
                             cache = "update"
