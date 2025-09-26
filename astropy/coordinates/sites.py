@@ -21,6 +21,8 @@ from astropy.utils.data import get_file_contents, get_pkg_data_contents
 from .earth import EarthLocation
 from .errors import UnknownSiteException
 
+__all__ = ["SiteRegistry", "get_builtin_sites", "get_downloaded_sites"]
+
 
 class SiteRegistry(Mapping):
     """
@@ -124,23 +126,44 @@ class SiteRegistry(Mapping):
 
 def get_builtin_sites() -> SiteRegistry:
     """
-    Load observatory database from data/observatories.json and parse them into
+    Load observatory database from ``data/observatories.json`` and parse them into
     a SiteRegistry.
     """
     jsondb = json.loads(get_pkg_data_contents("data/sites.json"))
     return SiteRegistry.from_json(jsondb)
 
 
-def get_downloaded_sites(jsonurl: str | None = None) -> SiteRegistry:
+def get_downloaded_sites(jsonurl: str | None = None, cache: bool | str = True) -> SiteRegistry:
     """
-    Load observatory database from data.astropy.org and parse into a SiteRegistry.
+    Load observatory database from ``data.astropy.org`` and parse into a SiteRegistry.
+
+    Parameters
+    ----------
+    jsonurl : str or None, optional
+        URL to JSON file containing observatory database.
+        If not given, grabs ``sites.json`` from Astropy data server.
+
+    cache : bool or "update", optional
+        If True, the file will be downloaded and saved locally or the
+        already-cached local copy will be accessed. If False, the
+        file-like object will directly access the resource (e.g. if a
+        remote URL is accessed, an object like that from
+        `urllib.request.urlopen` is returned). If "update",
+        always download the remote URL in case there is a new version
+        and store the result in the cache.
+
+    Returns
+    -------
+    sites : SiteRegistry
+        Observatory database.
     """
     # we explicitly set the encoding because the default is to leave it set by
     # the users' locale, which may fail if it's not matched to the sites.json
+    kwargs = {"encoding": "UTF-8", "cache": cache}
     if jsonurl is None:
-        content = get_pkg_data_contents("coordinates/sites.json", encoding="UTF-8")
+        content = get_pkg_data_contents("coordinates/sites.json", **kwargs)
     else:
-        content = get_file_contents(jsonurl, encoding="UTF-8")
+        content = get_file_contents(jsonurl, **kwargs)
 
     jsondb = json.loads(content)
     return SiteRegistry.from_json(jsondb)

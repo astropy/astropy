@@ -1,0 +1,1 @@
+``refresh_cache=True`` passed into ``EarthLocation.of_site()`` and ``EarthLocation.get_site_names()`` now properly forces a download cache update.
