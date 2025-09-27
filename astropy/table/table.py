@@ -945,9 +945,7 @@ class Table:
 
         for name, value in values.items():
             if name not in self.columns:
-                raise ValueError(
-                    f"invalid column name {name} for setting {attr} attribute"
-                )
+                continue
 
             # Special case: ignore unit if it is an empty or blank string
             if attr == "unit" and isinstance(value, str):
