@@ -274,8 +274,16 @@ class CartesianRepresentationAttribute(Attribute):
             return CartesianRepresentation(np.zeros(3) * self.unit), True
         else:
             # is it a CartesianRepresentation with correct unit?
+            try:
+                cartesian = value.to_cartesian()
+            except AttributeError:
+                converted = False
+            else:
+                converted = cartesian is not value
+                value = cartesian
+
             if hasattr(value, "xyz") and value.xyz.unit == self.unit:
-                return value, False
+                return value, converted
 
             converted = True
             # if it's a CartesianRepresentation, get the xyz Quantity
