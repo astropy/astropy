@@ -3095,18 +3095,27 @@ def test_table_attribute_fail():
 
 def test_set_units_and_descriptions():
     dat = [[1.0, 2.0], ["aa", "bb"]]
-    t = Table(dat, names=["x", "y"], units=[u.m, u.s])
+
+    # Wrong number of units should raise ValueError
+    with pytest.raises(
+        ValueError, match="sequence of unit values must match number of columns"
+    ):
+        Table(dat, units=[u.m])
 
     # Now setting a unit for a non-existing column should NOT raise an error
-    extra_units = {"x": u.m, "y": u.s, "c": u.kg}  # 'c' does not exist
-    t._set_column_attribute(
-        "unit", {k: v for k, v in extra_units.items() if k in t.colnames}
+    t = Table(
+        dat,
+        names=["x", "y"],
+        units={"x": u.m, "c": u.kg},
+        descriptions={"y": "Y", "d": "D"},
     )
 
-    assert t["x"].unit is u.m
-    assert t["y"].unit is u.s
+    assert t["x"].unit == u.m
+    assert t["y"].description == "Y"
 
+    # Column 'c' and 'd' should not exist in the table
     assert "c" not in t.colnames
+    assert "d" not in t.colnames
 
 
 def test_set_units():

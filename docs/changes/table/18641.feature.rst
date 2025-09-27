@@ -1,6 +1,6 @@
 The ``read()`` methods of ``QTable`` and ``Table`` have been made more
 flexible when reading tables with optional columns that may or may not
-appear in the data. 
+appear in the data.
 
 These methods accept ``units`` and ``description`` arguments as a
 ``dict`` that specifies the units and descriptions for column names in
