@@ -3093,7 +3093,7 @@ def test_table_attribute_fail():
             colnames = TableAttribute()  # Conflicts with built-in property
 
 
-def test_set_units_ignore_missing():
+def test_set_units_and_descriptions():
     dat = [[1.0, 2.0], ["aa", "bb"]]
     t = Table(dat, names=["x", "y"], units=[u.m, u.s])
 
