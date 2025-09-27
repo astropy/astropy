@@ -88,11 +88,24 @@ Example
 
 To read a FITS Table::
 
+.. testsetup::
+
+    from astropy.io import fits
+    fits_table_filename = fits.util.get_testdata_filepath('btable.fits')
+
+.. doctest::
+    :hide:
 
     >>> from astropy.io import fits
     >>> fits_table_filename = fits.util.get_testdata_filepath('btable.fits')
-
     >>> hdul = fits.open(fits_table_filename)  # open a FITS file
+    >>> hdul.close()
+
+.. doctest::
+
+    >>> from astropy.io import fits
+    >>> hdul = fits.open("btable.fits")  # doctest: +SKIP
+    >>> # Note: filename must be a string
     >>> data = hdul[1].data  # assume the first extension is a table
     >>> # show the first two rows
     >>> first_two_rows = data[:2]
